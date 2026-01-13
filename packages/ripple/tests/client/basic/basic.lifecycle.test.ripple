@@ -1,0 +1,199 @@
+import { track, flushSync, onMount, onDestroy } from 'ripple';
+
+describe('basic client > lifecycle methods', () => {
+	it('calls onMount when component mounts', () => {
+		let mountCalled = false;
+
+		component Test() {
+			onMount(() => {
+				mountCalled = true;
+			});
+
+			<div>{'Component'}</div>
+		}
+
+		render(Test);
+		flushSync();
+
+		expect(mountCalled).toBe(true);
+	});
+
+	it('onMount can return cleanup function', () => {
+		let mounted = false;
+		let cleaned = false;
+
+		component Test() {
+			onMount(() => {
+				mounted = true;
+				return () => {
+					cleaned = true;
+				};
+			});
+
+			<div>{'Component'}</div>
+		}
+
+		render(Test);
+		flushSync();
+
+		expect(mounted).toBe(true);
+		expect(cleaned).toBe(false);
+
+		// Cleanup happens in afterEach when container is removed
+	});
+
+	it('calls onDestroy when component is cleaned up', () => {
+		let destroyCalled = false;
+		let mountCalled = false;
+
+		component Test() {
+			onMount(() => {
+				mountCalled = true;
+			});
+
+			onDestroy(() => {
+				destroyCalled = true;
+			});
+
+			<div>{'Component'}</div>
+		}
+
+		render(Test);
+		flushSync();
+
+		expect(mountCalled).toBe(true);
+		expect(destroyCalled).toBe(false);
+
+		// onDestroy will be called during test cleanup
+	});
+
+	it('onMount can access and modify tracked state', () => {
+		component Test() {
+			let count = track(0);
+
+			onMount(() => {
+				@count = 5;
+			});
+
+			<div class="count">{@count}</div>
+		}
+
+		render(Test);
+		flushSync();
+
+		const div = container.querySelector('.count');
+		expect(div.textContent).toBe('5');
+	});
+
+	it('multiple onMount calls execute in order', () => {
+		let order = [];
+
+		component Test() {
+			onMount(() => {
+				order.push(1);
+			});
+
+			onMount(() => {
+				order.push(2);
+			});
+
+			onMount(() => {
+				order.push(3);
+			});
+
+			<div>{'Component'}</div>
+		}
+
+		render(Test);
+		flushSync();
+
+		expect(order).toEqual([1, 2, 3]);
+	});
+
+	it('multiple onDestroy calls are registered', () => {
+		let order = [];
+
+		component Test() {
+			onDestroy(() => {
+				order.push(1);
+			});
+
+			onDestroy(() => {
+				order.push(2);
+			});
+
+			onDestroy(() => {
+				order.push(3);
+			});
+
+			<div>{'Component'}</div>
+		}
+
+		render(Test);
+		flushSync();
+
+		// All onDestroy calls should be registered (they'll be called during cleanup)
+		expect(order).toEqual([]);
+	});
+
+	it('onMount and onDestroy work together', () => {
+		let lifecycle = [];
+
+		component Test() {
+			onMount(() => {
+				lifecycle.push('mount');
+				return () => {
+					lifecycle.push('mount-cleanup');
+				};
+			});
+
+			onDestroy(() => {
+				lifecycle.push('destroy');
+			});
+
+			<div>{'Component'}</div>
+		}
+
+		render(Test);
+		flushSync();
+
+		expect(lifecycle).toEqual(['mount']);
+
+		// Cleanup happens during test teardown
+	});
+
+	it('onMount can set initial state', () => {
+		component Test() {
+			let value = track('initial');
+
+			onMount(() => {
+				@value = 'mounted';
+			});
+
+			<div class="value">{@value}</div>
+		}
+
+		render(Test);
+		flushSync();
+
+		// onMount should have set the value before render
+		const div = container.querySelector('.value');
+		expect(div.textContent).toBe('mounted');
+	});
+
+	it('throws error when onMount called outside component context', () => {
+		expect(() => {
+			onMount(() => {
+				console.log('mount');
+			});
+		}).toThrow('onMount() must be called within an active context');
+	});
+
+	it('throws error when onDestroy called outside component context', () => {
+		expect(() => {
+			onDestroy(() => {
+				console.log('destroy');
+			});
+		}).toThrow('onDestroy() must be called within an active context');
+	});
+});

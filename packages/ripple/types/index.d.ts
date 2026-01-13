@@ -23,6 +23,10 @@ export function flushSync<T>(fn?: () => T): T;
 
 export function effect(fn: (() => void) | (() => () => void)): void;
 
+export function onMount(fn: (() => void) | (() => () => void)): void;
+
+export function onDestroy(fn: () => void): void;
+
 export interface TrackedArrayConstructor {
 	new <T>(...elements: T[]): TrackedArray<T>; // must be used with `new`
 	from<T>(arrayLike: ArrayLike<T>): TrackedArray<T>;

@@ -178,7 +178,9 @@ export component App() {
 
 **[→ Transporting Reactivity Guide](https://www.ripplejs.com/docs/guide/reactivity#transporting-reactivity)**
 
-### Effects & Side Effects
+### Effects & Lifecycle
+
+**Effects** run when dependencies change:
 
 ```jsx
 import { effect, track } from 'ripple';
@@ -191,6 +193,32 @@ export component App() {
   });
 
   <button onClick={() => @count++}>{'Increment'}</button>
+}
+```
+
+**Lifecycle methods** for component mount and unmount:
+
+```jsx
+import { onMount, onDestroy, track } from 'ripple';
+
+export component App() {
+  let data = track(null);
+
+  onMount(() => {
+    console.log('Component mounted');
+    @data = fetchData();
+
+    // Return cleanup function (optional)
+    return () => {
+      console.log('Cleanup from onMount');
+    };
+  });
+
+  onDestroy(() => {
+    console.log('Component destroyed');
+  });
+
+  <div>{'Content'}</div>
 }
 ```
 

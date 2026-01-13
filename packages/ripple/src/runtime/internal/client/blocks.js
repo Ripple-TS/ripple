@@ -53,6 +53,73 @@ export function user_effect(fn) {
 }
 
 /**
+ * @param {() => (void | (() => void))} fn
+ */
+export function onMount(fn) {
+	if (active_block === null) {
+		throw new Error(
+			'onMount() must be called within an active context, such as a component',
+		);
+	}
+
+	var component = active_component;
+	if (component !== null && !component.m) {
+		var m = (component.mo ??= []);
+		m.push({
+			b: active_block,
+			fn,
+			r: active_reaction,
+		});
+
+		return;
+	}
+
+	// If already mounted, run immediately
+	var result = fn();
+	if (typeof result === 'function') {
+		var current_block = active_block;
+		if (current_block.t === null) {
+			current_block.t = result;
+		} else {
+			var prev_teardown = current_block.t;
+			current_block.t = () => {
+				prev_teardown();
+				result();
+			};
+		}
+	}
+}
+
+/**
+ * @param {() => void} fn
+ */
+export function onDestroy(fn) {
+	if (active_block === null) {
+		throw new Error(
+			'onDestroy() must be called within an active context, such as a component',
+		);
+	}
+
+	var current_block = active_block;
+	if (current_block.t === null) {
+		current_block.t = fn;
+
+		/** @type {Block | null} */
+		let block = current_block;
+		while (block !== null && (block.f & CONTAINS_TEARDOWN) === 0) {
+			block.f ^= CONTAINS_TEARDOWN;
+			block = block.p;
+		}
+	} else {
+		var prev_teardown = current_block.t;
+		current_block.t = () => {
+			prev_teardown();
+			fn();
+		};
+	}
+}
+
+/**
  * @param {Function} fn
  */
 export function effect(fn) {

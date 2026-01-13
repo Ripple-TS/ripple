@@ -70,7 +70,7 @@ export { createSubscriber } from './create-subscriber.js';
 
 export { MediaQuery } from './media-query.js';
 
-export { user_effect as effect } from './internal/client/blocks.js';
+export { user_effect as effect, onMount, onDestroy } from './internal/client/blocks.js';
 
 export { Portal } from './internal/client/portal.js';
 

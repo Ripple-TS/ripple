@@ -1201,6 +1201,7 @@ export function create_component_ctx() {
 	return {
 		c: null,
 		e: null,
+		mo: null,
 		m: false,
 		p: active_component,
 	};
@@ -1220,6 +1221,46 @@ export function push_component() {
 export function pop_component() {
 	var component = /** @type {Component} */ (active_component);
 	component.m = true;
+
+	// Run onMount callbacks
+	var mounts = component.mo;
+	if (mounts !== null) {
+		var mount_length = mounts.length;
+		for (var i = 0; i < mount_length; i++) {
+			var { b: mount_block, fn: mount_fn, r: mount_reaction } = mounts[i];
+			var prev_block = active_block;
+			var prev_reaction = active_reaction;
+
+			try {
+				active_block = mount_block;
+				active_reaction = mount_reaction;
+				var result = mount_fn();
+
+				if (typeof result === 'function') {
+					if (mount_block.t === null) {
+						mount_block.t = result;
+
+						/** @type {Block | null} */
+						let current = mount_block;
+						while (current !== null && (current.f & CONTAINS_TEARDOWN) === 0) {
+							current.f ^= CONTAINS_TEARDOWN;
+							current = current.p;
+						}
+					} else {
+						var prev_teardown = mount_block.t;
+						mount_block.t = () => {
+							prev_teardown();
+							result();
+						};
+					}
+				}
+			} finally {
+				active_block = prev_block;
+				active_reaction = prev_reaction;
+			}
+		}
+	}
+
 	var effects = component.e;
 	if (effects !== null) {
 		var length = effects.length;
