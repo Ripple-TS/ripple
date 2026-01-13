@@ -1,5 +1,12 @@
 /** @import { Tracked } from '#client' */
 
+/**
+@typedef {(v: unknown) => void} SetFunction
+@typedef {() => any} BindGetter
+@typedef {(v: unknown) => void} BindSetter
+@typedef {{getter: BindGetter, setter: BindSetter}} BindGetSet
+*/
+
 import { effect, render } from './blocks.js';
 import { on } from './events.js';
 import { get, set, tick, untrack } from './runtime.js';
@@ -11,6 +18,44 @@ import { is_array, is_tracked_object } from './utils.js';
  */
 function not_tracked_type_error(name) {
 	return new TypeError(`${name} argument is not a tracked object`);
+}
+
+/**
+ * @param {string} name
+ * @returns {TypeError}
+ */
+function not_set_function_type_error(name) {
+	return new TypeError(
+		`${name} second argument must be a set function when first argument is a get function`,
+	);
+}
+
+/**
+ * @param {string} name
+ * @param {unknown} maybe_tracked
+ * @param {SetFunction | undefined} set_func
+ * @returns {BindGetSet}
+ */
+function get_bind_get_set(name, maybe_tracked, set_func) {
+	if (typeof maybe_tracked === 'function') {
+		if (typeof set_func !== 'function') {
+			throw not_set_function_type_error(name);
+		}
+
+		return {
+			getter: /** @type {BindGetter} */ (maybe_tracked),
+			setter: set_func,
+		};
+	} else {
+		if (!is_tracked_object(maybe_tracked)) {
+			throw not_tracked_type_error(name);
+		}
+
+		return {
+			getter: () => get(/** @type {Tracked} */ (maybe_tracked)),
+			setter: (value) => set(/** @type {Tracked} */ (maybe_tracked), value),
+		};
+	}
 }
 
 /**
@@ -149,14 +194,11 @@ function select_option(select, value, mounting = false) {
 
 /**
  * @param {unknown} maybe_tracked
+ * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLInputElement | HTMLSelectElement) => void}
  */
-export function bindValue(maybe_tracked) {
-	if (!is_tracked_object(maybe_tracked)) {
-		throw not_tracked_type_error('bindValue()');
-	}
-
-	var tracked = /** @type {Tracked} */ (maybe_tracked);
+export function bindValue(maybe_tracked, set_func = undefined) {
+	var { getter, setter } = get_bind_get_set('bindValue()', maybe_tracked, set_func);
 
 	return (node) => {
 		var clear_event;
@@ -182,11 +224,11 @@ export function bindValue(maybe_tracked) {
 					value = selected_option && get_option_value(selected_option);
 				}
 
-				set(tracked, value);
+				setter(value);
 			});
 
 			effect(() => {
-				var value = get(tracked);
+				var value = getter();
 				select_option(select, value, mounting);
 
 				// Mounting and value undefined -> take selection from dom
@@ -196,7 +238,7 @@ export function bindValue(maybe_tracked) {
 					var selected_option = select.querySelector(':checked');
 					if (selected_option !== null) {
 						value = get_option_value(selected_option);
-						set(tracked, value);
+						setter(value);
 					}
 				}
 
@@ -209,11 +251,11 @@ export function bindValue(maybe_tracked) {
 				/** @type {any} */
 				var value = input.value;
 				value = is_numberlike_input(input) ? to_number(value) : value;
-				set(tracked, value);
+				setter(value);
 
 				await tick();
 
-				if (value !== (value = get(tracked))) {
+				if (value !== getter()) {
 					var start = input.selectionStart;
 					var end = input.selectionEnd;
 					input.value = value ?? '';
@@ -227,7 +269,7 @@ export function bindValue(maybe_tracked) {
 			});
 
 			render(() => {
-				var value = get(tracked);
+				var value = getter();
 
 				if (is_numberlike_input(input) && value === to_number(input.value)) {
 					return;
@@ -249,22 +291,19 @@ export function bindValue(maybe_tracked) {
 
 /**
  * @param {unknown} maybe_tracked
+ * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLInputElement) => void}
  */
-export function bindChecked(maybe_tracked) {
-	if (!is_tracked_object(maybe_tracked)) {
-		throw not_tracked_type_error('bindChecked()');
-	}
-
-	var tracked = /** @type {Tracked} */ (maybe_tracked);
+export function bindChecked(maybe_tracked, set_func = undefined) {
+	var { getter, setter } = get_bind_get_set('bindChecked()', maybe_tracked, set_func);
 
 	return (input) => {
 		var clear_event = on(input, 'change', () => {
-			set(tracked, input.checked);
+			setter(input.checked);
 		});
 
 		effect(() => {
-			var value = get(tracked);
+			var value = getter();
 			input.checked = Boolean(value);
 		});
 
@@ -274,22 +313,19 @@ export function bindChecked(maybe_tracked) {
 
 /**
  * @param {unknown} maybe_tracked
+ * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLInputElement) => void}
  */
-export function bindIndeterminate(maybe_tracked) {
-	if (!is_tracked_object(maybe_tracked)) {
-		throw not_tracked_type_error('bindIndeterminate()');
-	}
-
-	var tracked = /** @type {Tracked} */ (maybe_tracked);
+export function bindIndeterminate(maybe_tracked, set_func = undefined) {
+	var { getter, setter } = get_bind_get_set('bindIndeterminate()', maybe_tracked, set_func);
 
 	return (input) => {
 		var clear_event = on(input, 'change', () => {
-			set(tracked, input.indeterminate);
+			setter(input.indeterminate);
 		});
 
 		effect(() => {
-			var value = get(tracked);
+			var value = getter();
 			input.indeterminate = Boolean(value);
 		});
 
@@ -299,14 +335,11 @@ export function bindIndeterminate(maybe_tracked) {
 
 /**
  * @param {unknown} maybe_tracked
+ * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLInputElement) => void}
  */
-export function bindGroup(maybe_tracked) {
-	if (!is_tracked_object(maybe_tracked)) {
-		throw not_tracked_type_error('bindGroup()');
-	}
-
-	var tracked = /** @type {Tracked} */ (maybe_tracked);
+export function bindGroup(maybe_tracked, set_func = undefined) {
+	var { getter, setter } = get_bind_get_set('bindGroup()', maybe_tracked, set_func);
 
 	return (input) => {
 		var is_checkbox = input.getAttribute('type') === 'checkbox';
@@ -317,7 +350,7 @@ export function bindGroup(maybe_tracked) {
 
 			if (is_checkbox) {
 				/** @type {Array<any>} */
-				var list = get(tracked) || [];
+				var list = getter() || [];
 
 				if (input.checked) {
 					if (!list.includes(value)) {
@@ -332,12 +365,11 @@ export function bindGroup(maybe_tracked) {
 				result = input.value;
 			}
 
-			set(tracked, result);
+			setter(result);
 		});
 
 		effect(() => {
-			var value = get(tracked);
-
+			var value = getter();
 			if (is_checkbox) {
 				value = value || [];
 				input.checked = value.includes(input.value);
@@ -353,21 +385,20 @@ export function bindGroup(maybe_tracked) {
 /**
  * @param {unknown} maybe_tracked
  * @param {'clientWidth' | 'clientHeight' | 'offsetWidth' | 'offsetHeight'} type
+ * @param {SetFunction | undefined} set_func
  */
-function bind_element_size(maybe_tracked, type) {
-	if (!is_tracked_object(maybe_tracked)) {
-		throw not_tracked_type_error(`bind${type.charAt(0).toUpperCase() + type.slice(1)}()`);
-	}
-
-	var tracked = /** @type {Tracked<any>} */ (maybe_tracked);
+function bind_element_size(maybe_tracked, type, set_func = undefined) {
+	var { setter } = get_bind_get_set(
+		`bind${type.charAt(0).toUpperCase() + type.slice(1)}()`,
+		maybe_tracked,
+		set_func,
+	);
 
 	return (/** @type {HTMLElement} */ element) => {
-		var unsubscribe = resize_observer_border_box.observe(element, () =>
-			set(tracked, element[type]),
-		);
+		var unsubscribe = resize_observer_border_box.observe(element, () => setter(element[type]));
 
 		effect(() => {
-			set(tracked, element[type]);
+			setter(element[type]);
 			return unsubscribe;
 		});
 	};
@@ -375,46 +406,52 @@ function bind_element_size(maybe_tracked, type) {
 
 /**
  * @param {unknown} maybe_tracked
+ * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLElement) => void}
  */
-export function bindClientWidth(maybe_tracked) {
-	return bind_element_size(maybe_tracked, 'clientWidth');
+export function bindClientWidth(maybe_tracked, set_func = undefined) {
+	return bind_element_size(maybe_tracked, 'clientWidth', set_func);
 }
 
 /**
  * @param {unknown} maybe_tracked
+ * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLElement) => void}
  */
-export function bindClientHeight(maybe_tracked) {
-	return bind_element_size(maybe_tracked, 'clientHeight');
+export function bindClientHeight(maybe_tracked, set_func = undefined) {
+	return bind_element_size(maybe_tracked, 'clientHeight', set_func);
 }
 
 /**
  * @param {unknown} maybe_tracked
+ * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLElement) => void}
  */
-export function bindOffsetWidth(maybe_tracked) {
-	return bind_element_size(maybe_tracked, 'offsetWidth');
+export function bindOffsetWidth(maybe_tracked, set_func = undefined) {
+	return bind_element_size(maybe_tracked, 'offsetWidth', set_func);
 }
 
 /**
  * @param {unknown} maybe_tracked
+ * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLElement) => void}
  */
-export function bindOffsetHeight(maybe_tracked) {
-	return bind_element_size(maybe_tracked, 'offsetHeight');
+export function bindOffsetHeight(maybe_tracked, set_func = undefined) {
+	return bind_element_size(maybe_tracked, 'offsetHeight', set_func);
 }
 
 /**
  * @param {unknown} maybe_tracked
  * @param {'contentRect' | 'contentBoxSize' | 'borderBoxSize' | 'devicePixelContentBoxSize'} type
+ * @param {SetFunction | undefined} set_func
  */
-function bind_element_rect(maybe_tracked, type) {
-	if (!is_tracked_object(maybe_tracked)) {
-		throw not_tracked_type_error(`bind${type.charAt(0).toUpperCase() + type.slice(1)}()`);
-	}
+function bind_element_rect(maybe_tracked, type, set_func = undefined) {
+	var { setter } = get_bind_get_set(
+		`bind${type.charAt(0).toUpperCase() + type.slice(1)}()`,
+		maybe_tracked,
+		set_func,
+	);
 
-	var tracked = /** @type {Tracked<any>} */ (maybe_tracked);
 	var observer =
 		type === 'contentRect' || type === 'contentBoxSize'
 			? resize_observer_content_box
@@ -425,7 +462,7 @@ function bind_element_rect(maybe_tracked, type) {
 	return (/** @type {HTMLElement} */ element) => {
 		var unsubscribe = observer.observe(
 			element,
-			/** @param {any} entry */ (entry) => set(tracked, entry[type]),
+			/** @param {any} entry */ (entry) => setter(entry[type]),
 		);
 
 		effect(() => unsubscribe);
@@ -434,61 +471,65 @@ function bind_element_rect(maybe_tracked, type) {
 
 /**
  * @param {unknown} maybe_tracked
+ * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLElement) => void}
  */
-export function bindContentRect(maybe_tracked) {
-	return bind_element_rect(maybe_tracked, 'contentRect');
+export function bindContentRect(maybe_tracked, set_func = undefined) {
+	return bind_element_rect(maybe_tracked, 'contentRect', set_func);
 }
 
 /**
  * @param {unknown} maybe_tracked
+ * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLElement) => void}
  */
-export function bindContentBoxSize(maybe_tracked) {
-	return bind_element_rect(maybe_tracked, 'contentBoxSize');
+export function bindContentBoxSize(maybe_tracked, set_func = undefined) {
+	return bind_element_rect(maybe_tracked, 'contentBoxSize', set_func);
 }
 
 /**
  * @param {unknown} maybe_tracked
+ * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLElement) => void}
  */
-export function bindBorderBoxSize(maybe_tracked) {
-	return bind_element_rect(maybe_tracked, 'borderBoxSize');
+export function bindBorderBoxSize(maybe_tracked, set_func = undefined) {
+	return bind_element_rect(maybe_tracked, 'borderBoxSize', set_func);
 }
 
 /**
  * @param {unknown} maybe_tracked
+ * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLElement) => void}
  */
-export function bindDevicePixelContentBoxSize(maybe_tracked) {
-	return bind_element_rect(maybe_tracked, 'devicePixelContentBoxSize');
+export function bindDevicePixelContentBoxSize(maybe_tracked, set_func = undefined) {
+	return bind_element_rect(maybe_tracked, 'devicePixelContentBoxSize', set_func);
 }
 
 /**
  * @param {unknown} maybe_tracked
  * @param {'innerHTML' | 'innerText' | 'textContent'} property
+ * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLElement) => void}
  */
-export function bind_content_editable(maybe_tracked, property) {
-	if (!is_tracked_object(maybe_tracked)) {
-		throw not_tracked_type_error(`bind${property.charAt(0).toUpperCase() + property.slice(1)}()`);
-	}
-
-	var tracked = /** @type {Tracked} */ (maybe_tracked);
+export function bind_content_editable(maybe_tracked, property, set_func = undefined) {
+	var { getter, setter } = get_bind_get_set(
+		`bind${property.charAt(0).toUpperCase() + property.slice(1)}()`,
+		maybe_tracked,
+		set_func,
+	);
 
 	return (element) => {
 		var clear_event = on(element, 'input', () => {
-			set(tracked, element[property]);
+			setter(element[property]);
 		});
 
 		render(() => {
-			var value = get(tracked);
-
+			var value = getter();
 			if (element[property] !== value) {
 				if (value == null) {
 					// @ts-ignore
 					var non_null_value = element[property];
-					set(tracked, non_null_value);
+					setter(non_null_value);
 				} else {
 					// @ts-ignore
 					element[property] = value + '';
@@ -502,46 +543,46 @@ export function bind_content_editable(maybe_tracked, property) {
 
 /**
  * @param {unknown} maybe_tracked
+ * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLElement) => void}
  */
-export function bindInnerHTML(maybe_tracked) {
-	return bind_content_editable(maybe_tracked, 'innerHTML');
+export function bindInnerHTML(maybe_tracked, set_func = undefined) {
+	return bind_content_editable(maybe_tracked, 'innerHTML', set_func);
 }
 
 /**
  * @param {unknown} maybe_tracked
+ * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLElement) => void}
  */
-export function bindInnerText(maybe_tracked) {
-	return bind_content_editable(maybe_tracked, 'innerText');
+export function bindInnerText(maybe_tracked, set_func = undefined) {
+	return bind_content_editable(maybe_tracked, 'innerText', set_func);
 }
 
 /**
  * @param {unknown} maybe_tracked
+ * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLElement) => void}
  */
-export function bindTextContent(maybe_tracked) {
-	return bind_content_editable(maybe_tracked, 'textContent');
+export function bindTextContent(maybe_tracked, set_func = undefined) {
+	return bind_content_editable(maybe_tracked, 'textContent', set_func);
 }
 
 /**
  * @param {unknown} maybe_tracked
+ * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLInputElement) => void}
  */
-export function bindFiles(maybe_tracked) {
-	if (!is_tracked_object(maybe_tracked)) {
-		throw not_tracked_type_error('bindFiles()');
-	}
-
-	var tracked = /** @type {Tracked} */ (maybe_tracked);
+export function bindFiles(maybe_tracked, set_func = undefined) {
+	var { getter, setter } = get_bind_get_set('bindFiles()', maybe_tracked, set_func);
 
 	return (input) => {
 		var clear_event = on(input, 'change', () => {
-			set(tracked, input.files);
+			setter(input.files);
 		});
 
 		effect(() => {
-			var value = get(tracked);
+			var value = getter();
 
 			if (value !== input.files && value instanceof FileList) {
 				input.files = value;
@@ -555,17 +596,14 @@ export function bindFiles(maybe_tracked) {
 /**
  * Syntactic sugar for binding a HTMLElement with {ref fn}
  * @param {unknown} maybe_tracked
+ * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLElement) => void}
  */
-export function bindNode(maybe_tracked) {
-	if (!is_tracked_object(maybe_tracked)) {
-		throw not_tracked_type_error('bindNode()');
-	}
-
-	var tracked = /** @type {Tracked} */ (maybe_tracked);
+export function bindNode(maybe_tracked, set_func = undefined) {
+	var { setter } = get_bind_get_set('bindNode()', maybe_tracked, set_func);
 
 	/** @param {HTMLElement} node */
 	return (node) => {
-		set(tracked, node);
+		setter(node);
 	};
 }
