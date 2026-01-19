@@ -1,7 +1,7 @@
 /** @import { Block } from '#client' */
 
 import { remove_block_dom, render } from './blocks.js';
-import { first_child } from './operations.js';
+import { get_first_child } from './operations.js';
 import { active_block } from './runtime.js';
 import { assign_nodes, create_fragment_from_html } from './template.js';
 
@@ -35,17 +35,17 @@ export function html(node, get_html, svg = false, mathml = false) {
 		var node = create_fragment_from_html(html);
 
 		if (svg || mathml) {
-			node = /** @type {Element} */ (first_child(node));
+			node = /** @type {Element} */ (get_first_child(node));
 		}
 
 		assign_nodes(
-			/** @type {Element} */ (first_child(node)),
+			/** @type {Element} */ (get_first_child(node)),
 			/** @type {Element} */ (node.lastChild),
 		);
 
 		if (svg || mathml) {
-			while (first_child(node)) {
-				anchor.before(/** @type {Element} */ (first_child(node)));
+			while (get_first_child(node)) {
+				anchor.before(/** @type {Element} */ (get_first_child(node)));
 			}
 		} else {
 			anchor.before(node);

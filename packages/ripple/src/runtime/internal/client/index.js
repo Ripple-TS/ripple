@@ -1,6 +1,6 @@
 export {
 	first_child as child,
-	child_frag,
+	first_child_frag,
 	next_sibling as sibling,
 	document,
 	create_text,

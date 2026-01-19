@@ -2,10 +2,22 @@
 
 import { destroy_block, root } from './internal/client/blocks.js';
 import { handle_root_events } from './internal/client/events.js';
-import { init_operations } from './internal/client/operations.js';
+import {
+	get_first_child,
+	get_next_sibling,
+	init_operations,
+} from './internal/client/operations.js';
 import { active_block } from './internal/client/runtime.js';
 import { create_anchor } from './internal/client/utils.js';
 import { remove_ssr_css } from './internal/client/css.js';
+import {
+	hydrate_next,
+	hydrate_node,
+	hydrating,
+	set_hydrate_node,
+	set_hydrating,
+} from './internal/client/hydration.js';
+import { COMMENT_NODE, HYDRATION_ERROR, HYDRATION_START } from '../constants.js';
 
 // Re-export JSX runtime functions for jsxImportSource: "ripple"
 export { jsx, jsxs, Fragment } from '../jsx-runtime.js';
@@ -35,6 +47,56 @@ export function mount(component, options) {
 	const _root = root(() => {
 		component(anchor, props, active_block);
 	}, options.compat);
+
+	return () => {
+		cleanup_events();
+		destroy_block(_root);
+	};
+}
+
+/**
+ * @param {(anchor: Node, props: Record<string, any>, active_block: Block | null) => void} component
+ * @param {{ props?: Record<string, any>, target: HTMLElement, compat?: CompatOptions }} options
+ * @returns {() => void}
+ */
+export function hydrate(component, options) {
+	init_operations();
+	remove_ssr_css();
+
+	const props = options.props || {};
+	const target = options.target;
+	const was_hydrating = hydrating;
+	const previous_hydrate_node = hydrate_node;
+	let anchor = get_first_child(target);
+
+	const cleanup_events = handle_root_events(target);
+	let _root;
+
+	try {
+		while (
+			anchor &&
+			(anchor.nodeType !== COMMENT_NODE || /** @type {Comment} */ (anchor).data !== HYDRATION_START)
+		) {
+			anchor = get_next_sibling(anchor);
+		}
+
+		set_hydrating(true);
+		set_hydrate_node(/** @type {Comment} */ (anchor));
+		hydrate_next();
+
+		if (!anchor) {
+			throw HYDRATION_ERROR;
+		}
+
+		_root = root(() => {
+			component(/** @type {Comment} */ (anchor), props, active_block);
+		}, options.compat);
+	} catch (e) {
+		throw e;
+	} finally {
+		set_hydrating(was_hydrating);
+		set_hydrate_node(previous_hydrate_node, true);
+	}
 
 	return () => {
 		cleanup_events();

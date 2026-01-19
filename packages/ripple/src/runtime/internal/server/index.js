@@ -10,6 +10,7 @@ import { escape } from '../../../utils/escaping.js';
 import { is_boolean_attribute } from '../../../compiler/utils.js';
 import { clsx } from 'clsx';
 import { normalize_css_property_name } from '../../../utils/normalize_css_property_name.js';
+import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../constants.js';
 
 export { escape };
 export { register_component_css as register_css } from './css-registry.js';
@@ -228,7 +229,7 @@ export async function render(component) {
 		}
 
 		head = output.head;
-		body = output.body;
+		body = BLOCK_OPEN + output.body + BLOCK_CLOSE;
 		css = output.css;
 	} catch (error) {
 		console.log(error);

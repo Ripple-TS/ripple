@@ -6,7 +6,8 @@ import {
 	TEMPLATE_SVG_NAMESPACE,
 	TEMPLATE_MATHML_NAMESPACE,
 } from '../../../constants.js';
-import { first_child, is_firefox } from './operations.js';
+import { hydrate_next, hydrating } from './hydration.js';
+import { get_first_child, is_firefox } from './operations.js';
 import { active_block, active_namespace } from './runtime.js';
 
 /**
@@ -74,7 +75,7 @@ export function template(content, flags) {
 
 		if (node === undefined) {
 			node = create_fragment_from_html(has_start ? content : '<!>' + content, svg, mathml);
-			if (!is_fragment) node = /** @type {Node} */ (first_child(node));
+			if (!is_fragment) node = /** @type {Node} */ (get_first_child(node));
 		}
 
 		var clone =
@@ -83,7 +84,7 @@ export function template(content, flags) {
 				: /** @type {Node} */ (node).cloneNode(true);
 
 		if (is_fragment) {
-			var start = first_child(clone);
+			var start = get_first_child(clone);
 			var end = clone.lastChild;
 
 			assign_nodes(/** @type {Node} */ (start), /** @type {Node} */ (end));
@@ -101,6 +102,10 @@ export function template(content, flags) {
  * @param {Node} dom - The DOM node to append.
  */
 export function append(anchor, dom) {
+	if (hydrating) {
+		hydrate_next();
+		return;
+	}
 	anchor.before(/** @type {Node} */ (dom));
 }
 
@@ -117,11 +122,11 @@ function from_namespace(content, ns = 'svg') {
 	elem.innerHTML = wrapped;
 	var fragment = elem.content;
 
-	var root = /** @type {Element} */ (first_child(fragment));
+	var root = /** @type {Element} */ (get_first_child(fragment));
 	var result = document.createDocumentFragment();
 
 	var first;
-	while ((first = first_child(root))) {
+	while ((first = get_first_child(root))) {
 		result.appendChild(/** @type {Node} */ (first));
 	}
 

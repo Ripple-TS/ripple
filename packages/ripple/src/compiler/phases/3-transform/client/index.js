@@ -402,13 +402,13 @@ const visitors = {
 	ServerIdentifier(node, context) {
 		const id = b.id(SERVER_IDENTIFIER);
 		id.metadata.source_name = '#server';
-		return {...node, ...id};
+		return { ...node, ...id };
 	},
 
 	StyleIdentifier(node, context) {
 		const id = b.id(STYLE_IDENTIFIER);
 		id.metadata.source_name = '#style';
-		return {...node, ...id};
+		return { ...node, ...id };
 	},
 
 	ImportDeclaration(node, context) {
@@ -2839,19 +2839,26 @@ function transform_children(children, context) {
 			const current_prev = prev;
 			/** @type {AST.Identifier | null} */
 			let cached;
-			/** @param {boolean} [is_controlled] */
-			const flush_node = (is_controlled) => {
+			/**
+			 * @param {boolean} is_text
+			 * @param {boolean} [is_controlled]
+			 * */
+			const flush_node = (is_text, is_controlled) => {
 				if (cached && !is_controlled) {
 					return cached;
 				} else if (current_prev !== null) {
 					const id = get_id(node);
-					state.setup?.push(b.var(id, b.call('_$_.sibling', current_prev())));
+					state.setup?.push(
+						b.var(id, b.call('_$_.sibling', current_prev(is_text), is_text && b.true)),
+					);
 					cached = id;
 					return id;
 				} else if (initial !== null) {
 					if (is_fragment) {
 						const id = get_id(node);
-						state.setup?.push(b.var(id, b.call('_$_.child_frag', initial)));
+						state.setup?.push(
+							b.var(id, b.call('_$_.first_child_frag', initial, is_text && b.true)),
+						);
 						cached = id;
 						return id;
 					}
@@ -2862,7 +2869,9 @@ function transform_children(children, context) {
 					}
 
 					const id = get_id(node);
-					state.setup?.push(b.var(id, b.call('_$_.child', state.flush_node?.())));
+					state.setup?.push(
+						b.var(id, b.call('_$_.child', state.flush_node?.(), is_text && b.true)),
+					);
 					cached = id;
 					return id;
 				} else {
@@ -2889,7 +2898,7 @@ function transform_children(children, context) {
 			} else if (node.type === 'Html') {
 				context.state.template?.push('<!>');
 
-				const id = flush_node();
+				const id = flush_node(false);
 				state.update?.push({
 					operation: () =>
 						b.stmt(
@@ -2905,7 +2914,7 @@ function transform_children(children, context) {
 			} else if (node.type === 'Text') {
 				if (metadata?.tracking) {
 					state.template?.push(' ');
-					const id = flush_node();
+					const id = flush_node(true);
 					state.update?.push({
 						operation: (key) => b.stmt(b.call('_$_.set_text', id, key)),
 						expression: /** @type {AST.Expression} */ (expression),
@@ -2924,14 +2933,14 @@ function transform_children(children, context) {
 						) {
 							state.template?.push(escape_html(expr.value));
 						} else {
-							const id = flush_node();
+							const id = flush_node(true);
 							state.init?.push(
 								b.var(/** @type {AST.Identifier} */ (id), b.call('_$_.create_text', expr)),
 							);
 							state.final?.push(b.stmt(b.call('_$_.append', b.id('__anchor'), id)));
 						}
 					} else {
-						const id = flush_node();
+						const id = flush_node(true);
 						state.template?.push(' ');
 						// avoid set_text overhead for single text nodes
 						state.init?.push(
@@ -2947,7 +2956,7 @@ function transform_children(children, context) {
 				} else {
 					// Handle Text nodes in fragments
 					state.template?.push(' ');
-					const id = flush_node();
+					const id = flush_node(true);
 					state.update?.push({
 						operation: (key) => b.stmt(b.call('_$_.set_text', id, key)),
 						expression: /** @type {AST.Expression} */ (expression),
