@@ -155,7 +155,7 @@ describe('basic client > components & composition', () => {
 				onClick={() => {
 					@hasError = false;
 					try {
-						// @ts-ignore;
+						// @ts-ignore
 						obj['nonexistent']?.();
 					} catch {
 						@hasError = true;

@@ -2736,8 +2736,6 @@ function get_comment_handlers(source, comments, index = 0) {
 								} else {
 									// Special case: There can be multiple trailing comments after the last node in a block,
 									// and they can be separated by newlines
-									let end = node.end;
-
 									while (comments.length) {
 										const comment = comments[0];
 										if (parent && comment.start >= parent.end) break;
@@ -2747,13 +2745,11 @@ function get_comment_handlers(source, comments, index = 0) {
 											(maybeInner.innerComments ||= []).push(
 												/** @type {AST.CommentWithLocation} */ (comments.shift()),
 											);
-											end = comment.end;
 											continue;
 										}
 
 										(node.trailingComments ||= []).push(comment);
 										comments.shift();
-										end = comment.end;
 									}
 								}
 							} else if (/** @type {AST.NodeWithLocation} */ (node).end <= comments[0].start) {

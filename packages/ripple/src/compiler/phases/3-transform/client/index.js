@@ -701,7 +701,6 @@ const visitors = {
 				// Wrap with ['#v'] access
 				return b.member(member, b.literal('#v'), true);
 			} else {
-				// In TypeScript mode, skip the transformation and let transform_ts_child handle it
 				if (!context.state.to_ts) {
 					return b.call(
 						'_$_.get_property',
@@ -3284,8 +3283,6 @@ function create_tsx_with_typescript_support() {
 
 			context.visit(node.name);
 
-			// Write attributes so they're included in source maps
-			// Otherwise doesn't
 			for (const attr of node.attributes || []) {
 				context.write(' ');
 				context.visit(attr);

@@ -44,7 +44,7 @@ const rule: Rule.RuleModule = {
 				const parent = node.parent;
 				let isUnboxed = (parent && parent.type === 'TrackedExpression') || node.tracked === true;
 
-				// Fallback: check source code for @ character before the identifier
+				// Fallback: check source code for @ character as the first character
 				if (!isUnboxed) {
 					const sourceCode = context.getSourceCode();
 					const firstChar = sourceCode.text.substring(Math.max(0, node.range![0]), node.range![0]);

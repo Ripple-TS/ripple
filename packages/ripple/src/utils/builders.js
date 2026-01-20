@@ -964,8 +964,8 @@ export function jsx_spread_attribute(argument, loc_info) {
 export function jsx_text(value, raw) {
 	return {
 		type: 'JSXText',
-		value: value,
-		raw: raw,
+		value,
+		raw,
 		metadata: { path: [] },
 	};
 }
