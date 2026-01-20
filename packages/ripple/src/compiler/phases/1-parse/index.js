@@ -2133,6 +2133,16 @@ function RipplePlugin(config) {
 					const node = this.parseStatement(null);
 					body.push(node);
 
+					// Rewind the parser to the start of the current token 
+					// This is the token that was wrongly interpreted as "Less Than" < operator
+					this.pos = this.start;
+
+				
+					// We pass the character code of the current position (the '<' character code, usually 60).
+					// This forces the parser to re-evaluate it, correctly seeing it as a JSX Tag now.
+					this.readToken(this.input.charCodeAt(this.pos));
+
+
 					// Ensure we're not in JSX context before recursing
 					// This is important when elements are parsed at statement level
 					if (this.curContext() === tstc.tc_expr) {
