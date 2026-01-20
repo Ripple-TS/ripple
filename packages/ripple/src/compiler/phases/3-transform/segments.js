@@ -619,29 +619,6 @@ export function convert_source_map_to_mappings(
 					visit(closing);
 				}
 
-				// 3. Push closing tag name (not visited by AST walker)
-				// if (
-				// 	!node.openingElement?.selfClosing &&
-				// 	node.closingElement?.name?.type === 'JSXIdentifier'
-				// ) {
-				// 	const closingNameNode = /** @type {ESTreeJSX.JSXIdentifier & AST.NodeWithLocation} */ (
-				// 		node.closingElement.name
-				// 	);
-				// 	if (closingNameNode.metadata?.is_capitalized) {
-				// 		tokens.push({
-				// 			source: closingNameNode.metadata.source_name,
-				// 			generated: closingNameNode.name,
-				// 			loc: closingNameNode.loc,
-				// 		});
-				// 	} else {
-				// 		tokens.push({
-				// 			source: closingNameNode.name,
-				// 			generated: closingNameNode.name,
-				// 			loc: closingNameNode.loc,
-				// 		});
-				// 	}
-				// }
-
 				return;
 			} else if (
 				node.type === 'FunctionDeclaration' ||
