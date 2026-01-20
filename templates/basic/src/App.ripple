@@ -16,7 +16,7 @@ export component App() {
 			</div>
 
 			<div class="links">
-				<a href="https://www.ripplejs.com/" target="_blank" class="link-btn docs">
+				<a href="https://www.ripple-ts.com/" target="_blank" class="link-btn docs">
 					{'Docs'}
 				</a>
 				<a
