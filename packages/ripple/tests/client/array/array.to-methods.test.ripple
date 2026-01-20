@@ -2,7 +2,7 @@ import { track, flushSync, TrackedArray } from 'ripple';
 
 describe('TrackedArray > to* methods', () => {
 	it('handles toReversed method with reactivity', (context) => {
-		if (!'toReversed' in Array.prototype) {
+		if (!('toReversed' in Array.prototype)) {
 			context.skip();
 		}
 
@@ -32,7 +32,7 @@ describe('TrackedArray > to* methods', () => {
 	});
 
 	it('handles toSorted method with reactivity', (context) => {
-		if (!'toSorted' in Array.prototype) {
+		if (!('toSorted' in Array.prototype)) {
 			context.skip();
 		}
 
@@ -62,7 +62,7 @@ describe('TrackedArray > to* methods', () => {
 	});
 
 	it('handles toSpliced method with reactivity', (context) => {
-		if (!'toSpliced' in Array.prototype) {
+		if (!('toSpliced' in Array.prototype)) {
 			context.skip();
 		}
 
@@ -70,7 +70,7 @@ describe('TrackedArray > to* methods', () => {
 			let items = new TrackedArray<string | number>(1, 2, 3, 4, 5);
 			let spliced = track(() => items.toSpliced(1, 2, 'a', 'b'));
 
-			<button onClick={() => items[2] = 30}>{'change item'}</button>
+			<button onClick={() => (items[2] = 30)}>{'change item'}</button>
 			<pre>{JSON.stringify(items)}</pre>
 			<pre>{JSON.stringify(@spliced)}</pre>
 		}

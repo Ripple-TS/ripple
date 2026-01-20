@@ -1729,6 +1729,31 @@ files = [...(files ?? []), ...dt.files];`;
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
 		});
+
+		it('should preserve <script> tags', async () => {
+			const expected = `<script>
+  const i = 2;
+</script>`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve component as a named or an anonymous property', async () => {
+			const expected = `const UI = {
+  span: component Span() {
+    <span>{'Hello from Span'}</span>
+  },
+  button: component({ children }) {
+    <button>
+      <children />
+    </button>
+  },
+};`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
 	});
 
 	describe('edge cases', () => {
@@ -2161,6 +2186,28 @@ const obj2 = #{
 ];`;
 
 		const result = await format(input, { singleQuote: true, printWidth: 13 });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('should preserve comments inside js/ts blocks inside markup', async () => {
+		const expected = `component App() {
+  <button
+    onClick={() => {
+      @hasError = false;
+      try {
+        @hasError = false;
+        // @ts-ignore
+        obj['nonexistent']();
+      } catch {
+        // @hasError = true;
+      }
+    }}
+  >
+    {'Nonexistent'}
+  </button>
+}`;
+
+		const result = await format(expected, { singleQuote: true, printWidth: 100 });
 		expect(result).toBeWithNewline(expected);
 	});
 

@@ -467,14 +467,13 @@ export function convert_source_map_to_mappings(
 				return;
 			} else if (node.type === 'JSXOpeningElement') {
 				// Visit name and attributes in source order
-				if (node.name) {
-					visit(node.name);
+				visit(node.name);
+				for (const attr of node.attributes) {
+					visit(attr);
 				}
-				if (node.attributes) {
-					for (const attr of node.attributes) {
-						visit(attr);
-					}
-				}
+				return;
+			} else if (node.type === 'JSXClosingElement') {
+				visit(node.name);
 				return;
 			} else if (node.type === 'JSXAttribute') {
 				// Visit name and value in source order
@@ -566,36 +565,38 @@ export function convert_source_map_to_mappings(
 				// Manually visit in source order: opening element, children, closing element
 
 				// 1. Visit opening element (name and attributes)
-				if (node.openingElement) {
-					// Add tokens for '<' and '>' brackets to ensure auto-close feature works
-					const openingElem = node.openingElement;
+				// Add tokens for '<' and '>' brackets to ensure auto-close feature works
+				const opening = node.openingElement;
+				const closing = node.closingElement;
 
-					// Add '<' bracket
-					if (openingElem.loc) {
+				if (opening.loc) {
+					// Add tokens for '<' and '>' brackets to ensure auto-close feature works
+					if (opening.loc) {
+						// Add '<' bracket
 						tokens.push({
 							source: '<',
 							generated: '<',
 							loc: {
-								start: { line: openingElem.loc.start.line, column: openingElem.loc.start.column },
-								end: { line: openingElem.loc.start.line, column: openingElem.loc.start.column + 1 },
+								start: { line: opening.loc.start.line, column: opening.loc.start.column },
+								end: { line: opening.loc.start.line, column: opening.loc.start.column + 1 },
 							},
 						});
 					}
 
-					visit(node.openingElement);
-
-					// Add '>' bracket (or '/>' for self-closing)
-					if (openingElem.loc && !openingElem.selfClosing) {
+					if (!opening.selfClosing) {
+						// Add '>' bracket
 						tokens.push({
 							source: '>',
 							generated: '>',
 							loc: {
-								start: { line: openingElem.loc.end.line, column: openingElem.loc.end.column - 1 },
-								end: { line: openingElem.loc.end.line, column: openingElem.loc.end.column },
+								start: { line: opening.loc.end.line, column: opening.loc.end.column - 1 },
+								end: { line: opening.loc.end.line, column: opening.loc.end.column },
 							},
 						});
 					}
 				}
+
+				visit(opening);
 
 				// 2. Visit children in order
 				if (node.children) {
@@ -604,28 +605,42 @@ export function convert_source_map_to_mappings(
 					}
 				}
 
-				// 3. Push closing tag name (not visited by AST walker)
-				if (
-					!node.openingElement?.selfClosing &&
-					node.closingElement?.name?.type === 'JSXIdentifier'
-				) {
-					const closingNameNode = /** @type {ESTreeJSX.JSXIdentifier & AST.NodeWithLocation} */ (
-						node.closingElement.name
+				if (closing) {
+					// Add the whole closing tag
+					mappings.push(
+						get_mapping_from_node(
+							closing,
+							src_to_gen_map,
+							gen_line_offsets,
+							mapping_data_verify_only,
+						),
 					);
-					if (closingNameNode.metadata?.is_capitalized) {
-						tokens.push({
-							source: closingNameNode.metadata.source_name,
-							generated: closingNameNode.name,
-							loc: closingNameNode.loc,
-						});
-					} else {
-						tokens.push({
-							source: closingNameNode.name,
-							generated: closingNameNode.name,
-							loc: closingNameNode.loc,
-						});
-					}
+
+					visit(closing);
 				}
+
+				// 3. Push closing tag name (not visited by AST walker)
+				// if (
+				// 	!node.openingElement?.selfClosing &&
+				// 	node.closingElement?.name?.type === 'JSXIdentifier'
+				// ) {
+				// 	const closingNameNode = /** @type {ESTreeJSX.JSXIdentifier & AST.NodeWithLocation} */ (
+				// 		node.closingElement.name
+				// 	);
+				// 	if (closingNameNode.metadata?.is_capitalized) {
+				// 		tokens.push({
+				// 			source: closingNameNode.metadata.source_name,
+				// 			generated: closingNameNode.name,
+				// 			loc: closingNameNode.loc,
+				// 		});
+				// 	} else {
+				// 		tokens.push({
+				// 			source: closingNameNode.name,
+				// 			generated: closingNameNode.name,
+				// 			loc: closingNameNode.loc,
+				// 		});
+				// 	}
+				// }
 
 				return;
 			} else if (
@@ -636,38 +651,42 @@ export function convert_source_map_to_mappings(
 				// Add function/component keyword token
 				if (node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression') {
 					const node_fn = /** @type (typeof node) & AST.NodeWithLocation */ (node);
-					const source_func_keyword = node.metadata?.was_component ? 'component' : 'function';
+					const was_component = node_fn.metadata?.was_component;
+					const source_func_keyword = was_component ? 'component' : 'function';
 					let start_col = node_fn.loc.start.column;
 					const async_keyword = 'async';
 
-					// We explicitly mapped async and function in esrap
-					if (node_fn.async) {
+					// Avoid mapping property functions, e.g. obj = { myFunc() { } }
+					if (node.id || was_component) {
+						// We explicitly mapped async and function in esrap
+						if (node_fn.async) {
+							tokens.push({
+								source: async_keyword,
+								generated: async_keyword,
+								loc: {
+									start: { line: node_fn.loc.start.line, column: start_col },
+									end: {
+										line: node_fn.loc.start.line,
+										column: start_col + async_keyword.length,
+									},
+								},
+							});
+
+							start_col += async_keyword.length + 1; // +1 for space
+						}
+
 						tokens.push({
-							source: async_keyword,
-							generated: async_keyword,
+							source: source_func_keyword,
+							generated: 'function',
 							loc: {
 								start: { line: node_fn.loc.start.line, column: start_col },
 								end: {
 									line: node_fn.loc.start.line,
-									column: start_col + async_keyword.length,
+									column: start_col + source_func_keyword.length,
 								},
 							},
 						});
-
-						start_col += async_keyword.length + 1; // +1 for space
 					}
-
-					tokens.push({
-						source: source_func_keyword,
-						generated: 'function',
-						loc: {
-							start: { line: node_fn.loc.start.line, column: start_col },
-							end: {
-								line: node_fn.loc.start.line,
-								column: start_col + source_func_keyword.length,
-							},
-						},
-					});
 				}
 
 				// Visit in source order: id, params, body
@@ -1205,11 +1224,7 @@ export function convert_source_map_to_mappings(
 					}
 				}
 				return;
-			} else if (
-				node.type === 'JSXClosingElement' ||
-				node.type === 'JSXClosingFragment' ||
-				node.type === 'JSXOpeningFragment'
-			) {
+			} else if (node.type === 'JSXClosingFragment' || node.type === 'JSXOpeningFragment') {
 				// These are handled by their parent nodes
 				return;
 			} else if (node.type === 'JSXMemberExpression') {

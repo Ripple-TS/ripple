@@ -909,6 +909,25 @@ const visitors = {
 					// TODO: could transform invalid elements as something, e.g. Text Node, and avoid a fatal error
 					error(`<${node.id.name}> cannot be used in <head>`, state.analysis.module.filename, node);
 				}
+			} else {
+				if (node.id.name === 'script') {
+					const err_msg = '<script> cannot be used outside of <head>.';
+					error(
+						err_msg,
+						state.analysis.module.filename,
+						node.openingElement,
+						state.loose ? state.analysis.errors : undefined,
+					);
+
+					if (node.closingElement) {
+						error(
+							err_msg,
+							state.analysis.module.filename,
+							node.closingElement,
+							state.loose ? state.analysis.errors : undefined,
+						);
+					}
+				}
 			}
 
 			const is_void = is_void_element(node.id.name);

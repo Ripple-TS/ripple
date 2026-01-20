@@ -52,6 +52,16 @@ function DestructuringErrors() {
 }
 
 /**
+ * @param {AST.Identifier | ESTreeJSX.JSXIdentifier} node
+ * @param {string} name
+ */
+function set_tracked_name(node, name) {
+	node.name = name.slice(1);
+	node.metadata ??= { path: [] };
+	node.metadata.source_name = name;
+}
+
+/**
  * Convert JSX node types to regular JavaScript node types
  * @param {ESTreeJSX.JSXIdentifier | ESTreeJSX.JSXMemberExpression | AST.Node} node - The JSX node to convert
  * @returns {AST.Identifier | AST.MemberExpression | AST.Node} The converted node
@@ -127,28 +137,6 @@ function isWhitespaceTextNode(node) {
  * @param {AST.Element} element
  * @param {ESTreeJSX.JSXOpeningElement} open
  */
-function addOpeningAndClosing(element, open) {
-	const name = /** @type {ESTreeJSX.JSXIdentifier} */ (open.name).name;
-
-	element.openingElement = open;
-	element.closingElement = {
-		type: 'JSXClosingElement',
-		name: open.name,
-		start: /** @type {AST.NodeWithLocation} */ (element).end - `</${name}>`.length,
-		end: element.end,
-		loc: {
-			start: {
-				line: element.loc.end.line,
-				column: element.loc.end.column - `</${name}>`.length,
-			},
-			end: {
-				line: element.loc.end.line,
-				column: element.loc.end.column,
-			},
-		},
-		metadata: { path: [] },
-	};
-}
 
 /**
  * Acorn parser plugin for Ripple syntax extensions
@@ -160,6 +148,9 @@ function RipplePlugin(config) {
 		const original = acorn.Parser.prototype;
 		const tt = Parser.tokTypes || acorn.tokTypes;
 		const tc = Parser.tokContexts || acorn.tokContexts;
+		// Some parser constructors (e.g. via TS plugins) expose `tokContexts` without `b_stat`.
+		// If we push an undefined context, Acorn's tokenizer will later crash reading `.override`.
+		const b_stat = tc.b_stat || acorn.tokContexts.b_stat;
 		const tstt = Parser.acornTypeScript.tokTypes;
 		const tstc = Parser.acornTypeScript.tokContexts;
 
@@ -176,6 +167,22 @@ function RipplePlugin(config) {
 			constructor(options, input) {
 				super(options, input);
 				this.#loose = options?.rippleOptions.loose === true;
+			}
+
+			/**
+			 * Acorn expects `this.context` to always contain at least one tokContext.
+			 * Some of our template/JSX escape hatches can pop contexts aggressively;
+			 * if the stack becomes empty, Acorn will crash reading `curContext().override`.
+			 * @type {Parse.Parser['nextToken']}
+			 */
+			nextToken() {
+				while (this.context.length && this.context[this.context.length - 1] == null) {
+					this.context.pop();
+				}
+				if (this.context.length === 0) {
+					this.context.push(b_stat);
+				}
+				return super.nextToken();
 			}
 
 			/**
@@ -235,6 +242,8 @@ function RipplePlugin(config) {
 				if (code === 60) {
 					// < character
 					const inComponent = this.#path.findLast((n) => n.type === 'Component');
+					/** @type {number | null} */
+					let prevNonWhitespaceChar = null;
 
 					// Check if this could be TypeScript generics instead of JSX
 					// TypeScript generics appear after: identifiers, closing parens, 'new' keyword
@@ -254,6 +263,7 @@ function RipplePlugin(config) {
 					// Check what character/token precedes the <
 					if (lookback >= 0) {
 						const prevChar = this.input.charCodeAt(lookback);
+						prevNonWhitespaceChar = prevChar;
 
 						// If preceded by identifier character (letter, digit, _, $) or closing paren,
 						// this is likely TypeScript generics, not JSX
@@ -270,7 +280,44 @@ function RipplePlugin(config) {
 						}
 					}
 
+					// Support parsing standalone template markup at the top-level (outside `component`)
+					// for tooling like Prettier, e.g.:
+					// <Something>...</Something>\n\n<Child />
+					// <head><style>...</style></head>
+					// We only do this when '<' is in a tag-like position.
+					const nextChar =
+						this.pos + 1 < this.input.length ? this.input.charCodeAt(this.pos + 1) : -1;
+					const isWhitespaceAfterLt =
+						nextChar === 32 || nextChar === 9 || nextChar === 10 || nextChar === 13;
+					const isTagLikeAfterLt =
+						!isWhitespaceAfterLt &&
+						(nextChar === 47 || // '/'
+							(nextChar >= 65 && nextChar <= 90) || // A-Z
+							(nextChar >= 97 && nextChar <= 122)); // a-z
+					const prevAllowsTagStart =
+						prevNonWhitespaceChar === null ||
+						prevNonWhitespaceChar === 10 || // '\n'
+						prevNonWhitespaceChar === 13 || // '\r'
+						prevNonWhitespaceChar === 123 || // '{'
+						prevNonWhitespaceChar === 125 || // '}'
+						prevNonWhitespaceChar === 62; // '>'
+
+					if (!inComponent && prevAllowsTagStart && isTagLikeAfterLt) {
+						++this.pos;
+						return this.finishToken(tstt.jsxTagStart);
+					}
+
 					if (inComponent) {
+						// Inside component template bodies, allow adjacent tags without requiring
+						// a newline/indentation before the next '<'. This is important for inputs
+						// like `<div />` and `</div><style>...</style>` which Prettier formats.
+						if (prevNonWhitespaceChar === 123 /* '{' */ || prevNonWhitespaceChar === 62 /* '>' */) {
+							if (!isWhitespaceAfterLt) {
+								++this.pos;
+								return this.finishToken(tstt.jsxTagStart);
+							}
+						}
+
 						// Check if we're inside a nested function (arrow function, function expression, etc.)
 						// We need to distinguish between being inside a function vs just being in nested scopes
 						// (like for loops, if blocks, JSX elements, etc.)
@@ -573,13 +620,8 @@ function RipplePlugin(config) {
 					super.parseIdent(liberal)
 				);
 				if (node.name && node.name.startsWith('@')) {
-					node.name = node.name.slice(1); // Remove the '@' for internal use
+					set_tracked_name(node, node.name);
 					node.tracked = true;
-					node.start++;
-					const prev_pos = this.pos;
-					this.pos = node.start;
-					node.loc.start = this.curPosition();
-					this.pos = prev_pos;
 				}
 				return node;
 			}
@@ -1320,8 +1362,8 @@ function RipplePlugin(config) {
 						const id = /** @type {AST.Identifier} */ (this.parseIdentNode());
 						id.tracked = false;
 						if (id.name.startsWith('@')) {
+							set_tracked_name(id, id.name);
 							id.tracked = true;
-							id.name = id.name.slice(1);
 						}
 						this.finishNode(id, 'Identifier');
 						/** @type {AST.Attribute} */ (node).name = id;
@@ -1379,7 +1421,7 @@ function RipplePlugin(config) {
 					this.value &&
 					/** @type {string} */ (this.value).startsWith('@')
 				) {
-					node.name = /** @type {string} */ (this.value).substring(1);
+					set_tracked_name(node, /** @type {string} */ (this.value));
 					node.tracked = true;
 					this.next();
 				} else if (this.type === tt.name || this.type.keyword || this.type === tstt.jsxName) {
@@ -1545,14 +1587,14 @@ function RipplePlugin(config) {
 					switch (ch) {
 						case 60: // '<'
 						case 123: // '{'
-							if (ch === 60 && this.exprAllowed) {
+							// In JSX text mode, '<' and '{' always start a tag/expression container.
+							// `exprAllowed` can be false here due to surrounding parser state, but
+							// throwing breaks valid templates (e.g. sibling tags after a close).
+							if (ch === 60) {
 								++this.pos;
 								return this.finishToken(tstt.jsxTagStart);
 							}
-							if (ch === 123 && this.exprAllowed) {
-								return this.getTokenFromCode(ch);
-							}
-							throw new Error('TODO: Invalid syntax');
+							return this.getTokenFromCode(ch);
 
 						case 47: // '/'
 							// Check if this is a comment (// or /*)
@@ -1631,7 +1673,7 @@ function RipplePlugin(config) {
 								break;
 							}
 							// If not a comment, fall through to default case
-							this.context.push(tc.b_stat);
+							this.context.push(b_stat);
 							this.exprAllowed = true;
 							return original.readToken.call(this, ch);
 
@@ -1674,7 +1716,7 @@ function RipplePlugin(config) {
 							} else if (ch === 32 || ch === 9) {
 								++this.pos;
 							} else {
-								this.context.push(tc.b_stat);
+								this.context.push(b_stat);
 								this.exprAllowed = true;
 								return original.readToken.call(this, ch);
 							}
@@ -1699,55 +1741,12 @@ function RipplePlugin(config) {
 				element.metadata = { path: [] };
 				element.children = [];
 
-				// Check if this is a <script> or <style> tag
-				const tagName = this.value;
-				const isScriptOrStyle = tagName === 'script' || tagName === 'style';
-				/** @type {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} */
-				let open;
-				if (isScriptOrStyle) {
-					// Manually parse opening tag to avoid jsx_parseOpeningElementAt consuming content
-					const tagEndPos = this.input.indexOf('>', start) + 1; // +1 as end positions are exclusive
-					const opening_position = new acorn.Position(position.line, position.column);
-					const end_position = acorn.getLineInfo(this.input, tagEndPos);
+				const open = /** @type {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} */ (
+					this.jsx_parseOpeningElementAt(start, position)
+				);
 
-					open = {
-						type: 'JSXOpeningElement',
-						name: {
-							type: 'JSXIdentifier',
-							name: tagName,
-							metadata: { path: [] },
-							start: start + 1,
-							end: tagEndPos - 1,
-							loc: {
-								start: { ...position, column: position.column + 1 },
-								end: {
-									...end_position,
-									column: end_position.column - 1,
-								},
-							},
-						},
-						attributes: [],
-						selfClosing: false,
-						start,
-						end: tagEndPos,
-						loc: {
-							start: opening_position,
-							end: end_position,
-						},
-						metadata: { path: [] },
-					};
-
-					// Position after the '>'
-					this.pos = tagEndPos;
-
-					// Add opening and closing for easier location tracking
-					// TODO: we should also parse attributes inside the opening tag
-				} else {
-					open =
-						/** @type {ReturnType<Parse.Parser['jsx_parseOpeningElementAt']> & AST.NodeWithLocation} */ (
-							this.jsx_parseOpeningElementAt()
-						);
-				}
+				// Always attach the concrete opening element node for accurate source mapping
+				element.openingElement = open;
 
 				// Check if this is a namespaced element (tsx:react)
 				const is_tsx_compat = open.name.type === 'JSXNamespacedName';
@@ -1796,9 +1795,6 @@ function RipplePlugin(config) {
 				element.attributes = open.attributes;
 				element.metadata ??= { path: [] };
 				element.metadata.commentContainerId = ++this.#commentContextId;
-				// Store opening tag's end position for use in loose mode when element is unclosed
-				element.metadata.openingTagEnd = open.end;
-				element.metadata.openingTagEndLoc = open.loc.end;
 
 				if (element.selfClosing) {
 					this.#path.pop();
@@ -1816,35 +1812,80 @@ function RipplePlugin(config) {
 						const start = open.end;
 						const input = this.input.slice(start);
 						const end = input.indexOf('</script>');
-						content = input.slice(0, end);
+						content = end === -1 ? input : input.slice(0, end);
 
 						const newLines = content.match(regex_newline_characters)?.length;
 						if (newLines) {
 							this.curLine = open.loc.end.line + newLines;
 							this.lineStart = start + content.lastIndexOf('\n') + 1;
 						}
-						this.pos = start + content.length + 1;
+						if (end !== -1) {
+							const closingStart = start + content.length;
+							const closingLineInfo = acorn.getLineInfo(this.input, closingStart);
+							const closingStartLoc = new acorn.Position(
+								closingLineInfo.line,
+								closingLineInfo.column,
+							);
 
-						this.type = tstt.jsxTagStart;
-						this.next();
-						if (this.value === '/') {
+							// Ensure `</script>` can't be tokenized as `<` followed by a regexp
+							// start when we manually advance to the `/`.
+							this.exprAllowed = false;
+
+							// Position after '<' (so next() reads '/')
+							this.pos = closingStart + 1;
+							this.type = tstt.jsxTagStart;
+							this.start = closingStart;
+							this.startLoc = closingStartLoc;
 							this.next();
-							this.jsx_parseElementName();
-							this.exprAllowed = true;
+
+							// Consume '/'
+							this.next();
+
+							const closingElement = this.jsx_parseClosingElementAt(closingStart, closingStartLoc);
+							element.closingElement = closingElement;
+							this.exprAllowed = false;
+
+							const contentStartLineInfo = acorn.getLineInfo(this.input, start);
+							const contentStartLoc = new acorn.Position(
+								contentStartLineInfo.line,
+								contentStartLineInfo.column,
+							);
+
+							const contentEndLineInfo = acorn.getLineInfo(this.input, closingStart);
+							const contentEndLoc = new acorn.Position(
+								contentEndLineInfo.line,
+								contentEndLineInfo.column,
+							);
+
+							element.children = [
+								/** @type {AST.ScriptContent} */ ({
+									type: 'ScriptContent',
+									content,
+									start,
+									end: closingStart,
+									loc: { start: contentStartLoc, end: contentEndLoc },
+								}),
+							];
+
 							this.#path.pop();
-							this.next();
+						} else {
+							// No closing tag
+							if (!this.#loose) {
+								this.raise(
+									open.end,
+									"Unclosed tag '<script>'. Expected '</script>' before end of component.",
+								);
+							}
+							/** @type {AST.Element} */ (element).unclosed = true;
+							this.#path.pop();
 						}
-
-						/** @type {AST.Element} */ (element).content = content;
-						this.finishNode(element, 'Element');
-						addOpeningAndClosing(/** @type {AST.Element} */ (element), open);
 					} else if (/** @type {ESTreeJSX.JSXIdentifier} */ (open.name).name === 'style') {
 						// jsx_parseOpeningElementAt treats ID selectors (ie. #myid) or type selectors (ie. div) as identifier and read it
 						// So backtrack to the end of the <style> tag to make sure everything is included
 						const start = open.end;
 						const input = this.input.slice(start);
 						const end = input.indexOf('</style>');
-						const content = input.slice(0, end);
+						const content = end === -1 ? input : input.slice(0, end);
 
 						const component = /** @type {AST.Component} */ (
 							this.#path.findLast((n) => n.type === 'Component')
@@ -1864,16 +1905,41 @@ function RipplePlugin(config) {
 							this.curLine = open.loc.end.line + newLines;
 							this.lineStart = start + content.lastIndexOf('\n') + 1;
 						}
-						this.pos = start + content.length + 1;
+						if (end !== -1) {
+							const closingStart = start + content.length;
+							const closingLineInfo = acorn.getLineInfo(this.input, closingStart);
+							const closingStartLoc = new acorn.Position(
+								closingLineInfo.line,
+								closingLineInfo.column,
+							);
 
-						this.type = tstt.jsxTagStart;
-						this.next();
-						if (this.value === '/') {
+							// Ensure `</style>` can't be tokenized as `<` followed by a regexp
+							// start when we manually advance to the `/`.
+							this.exprAllowed = false;
+
+							// Position after '<' (so next() reads '/')
+							this.pos = closingStart + 1;
+							this.type = tstt.jsxTagStart;
+							this.start = closingStart;
+							this.startLoc = closingStartLoc;
 							this.next();
-							this.jsx_parseElementName();
-							this.exprAllowed = true;
+
+							// Consume '/'
+							this.next();
+
+							const closingElement = this.jsx_parseClosingElementAt(closingStart, closingStartLoc);
+							element.closingElement = closingElement;
+							this.exprAllowed = false;
 							this.#path.pop();
-							this.next();
+						} else {
+							if (!this.#loose) {
+								this.raise(
+									open.end,
+									"Unclosed tag '<style>'. Expected '</style>' before end of component.",
+								);
+							}
+							/** @type {AST.Element} */ (element).unclosed = true;
+							this.#path.pop();
 						}
 						// This node is used for Prettier - always add parsed CSS as children
 						// for proper formatting, regardless of whether it's inside head or not
@@ -1883,15 +1949,17 @@ function RipplePlugin(config) {
 
 						// Ensure we escape JSX <tag></tag> context
 						const curContext = this.curContext();
+						const parent = this.#path.at(-1);
+						const insideTemplate =
+							parent?.type === 'Component' ||
+							parent?.type === 'Element' ||
+							parent?.type === 'TsxCompat';
 
-						if (curContext === tstc.tc_expr) {
+						if (curContext === tstc.tc_expr && !insideTemplate) {
 							this.context.pop();
 						}
 
 						/** @type {AST.Element} */ (element).css = content;
-						this.finishNode(element, 'Element');
-						addOpeningAndClosing(/** @type {AST.Element} */ (element), open);
-						return element;
 					} else {
 						this.enterScope(0);
 						this.parseTemplateBody(/** @type {AST.Element} */ (element).children);
@@ -1936,11 +2004,10 @@ function RipplePlugin(config) {
 								);
 							} else {
 								element.unclosed = true;
-								const position = this.curPosition();
-								position.line = element.metadata.openingTagEndLoc.line;
-								position.column = element.metadata.openingTagEndLoc.column;
-								element.loc.end = position;
-								element.end = element.metadata.openingTagEnd;
+								element.loc.end = {
+									.../** @type {AST.SourceLocation} */ (element.openingElement.loc).end,
+								};
+								element.end = element.openingElement.end;
 								this.#path.pop();
 							}
 						}
@@ -1948,10 +2015,21 @@ function RipplePlugin(config) {
 
 					// Ensure we escape JSX <tag></tag> context
 					const curContext = this.curContext();
+					const parent = this.#path.at(-1);
+					const insideTemplate =
+						parent?.type === 'Component' ||
+						parent?.type === 'Element' ||
+						parent?.type === 'TsxCompat';
 
-					if (curContext === tstc.tc_expr) {
+					if (curContext === tstc.tc_expr && !insideTemplate) {
 						this.context.pop();
 					}
+				}
+
+				if (element.closingElement && !is_tsx_compat) {
+					/** @type {unknown} */ (element.closingElement.name) = convert_from_jsx(
+						element.closingElement.name,
+					);
 				}
 
 				this.finishNode(element, element.type);
@@ -2038,16 +2116,27 @@ function RipplePlugin(config) {
 					}
 					body.push(node);
 				} else if (this.type === tt.braceR) {
+					// Leaving a component/template body. We may still be in TSX/JSX tokenization
+					// context (e.g. after parsing markup), but the closing `}` is a JS token.
+					// If we don't reset this here, the following `next()` can read EOF using
+					// `jsx_readToken()` and throw "Unterminated JSX contents".
+					while (this.curContext() === tstc.tc_expr) {
+						this.context.pop();
+					}
 					return;
 				} else if (this.type === tstt.jsxTagStart) {
+					const startPos = this.start;
+					const startLoc = this.startLoc;
 					this.next();
-					if (this.value === '/') {
+					if (this.value === '/' || this.type === tt.slash) {
+						// Consume '/'
 						this.next();
-						const closingTag =
-							/** @type {ESTreeJSX.JSXIdentifier | ESTreeJSX.JSXNamespacedName | ESTreeJSX.JSXMemberExpression} */ (
-								this.jsx_parseElementName()
+
+						const closingElement =
+							/** @type {ESTreeJSX.JSXClosingElement & AST.NodeWithLocation} */ (
+								this.jsx_parseClosingElementAt(startPos, startLoc)
 							);
-						this.exprAllowed = true;
+						this.exprAllowed = false;
 
 						// Validate that the closing tag matches the opening tag
 						const currentElement = this.#path[this.#path.length - 1];
@@ -2064,26 +2153,24 @@ function RipplePlugin(config) {
 						let closingTagName;
 
 						if (currentElement.type === 'TsxCompat') {
-							if (closingTag.type === 'JSXNamespacedName') {
-								openingTagName = 'tsx:' + currentElement.kind;
-								closingTagName = closingTag.namespace.name + ':' + closingTag.name.name;
-							} else {
-								openingTagName = 'tsx:' + currentElement.kind;
-								closingTagName = this.getElementName(closingTag);
-							}
+							openingTagName = 'tsx:' + currentElement.kind;
+							closingTagName =
+								closingElement.name?.type === 'JSXNamespacedName'
+									? closingElement.name.namespace.name + ':' + closingElement.name.name.name
+									: this.getElementName(closingElement.name);
 						} else {
 							// Regular Element node
 							openingTagName = this.getElementName(currentElement.id);
 							closingTagName =
-								closingTag.type === 'JSXNamespacedName'
-									? closingTag.namespace.name + ':' + closingTag.name.name
-									: this.getElementName(closingTag);
+								closingElement.name?.type === 'JSXNamespacedName'
+									? closingElement.name.namespace.name + ':' + closingElement.name.name.name
+									: this.getElementName(closingElement.name);
 						}
 
 						if (openingTagName !== closingTagName) {
 							if (!this.#loose) {
 								this.raise(
-									this.start,
+									closingElement.start,
 									`Expected closing tag to match opening tag. Expected '</${openingTagName}>' but found '</${closingTagName}>'`,
 								);
 							} else {
@@ -2106,21 +2193,27 @@ function RipplePlugin(config) {
 
 									// Mark as unclosed and adjust location
 									elem.unclosed = true;
-									const position = this.curPosition();
-									position.line = /** @type {AST.Position} */ (elem.metadata.openingTagEndLoc).line;
-									position.column = /** @type {AST.Position} */ (
-										elem.metadata.openingTagEndLoc
-									).column;
-									/** @type {AST.NodeWithLocation} */ (elem).loc.end = position;
-									elem.end = elem.metadata.openingTagEnd;
+									/** @type {AST.NodeWithLocation} */ (elem).loc.end = {
+										.../** @type {AST.SourceLocation} */ (elem.openingElement.loc).end,
+									};
+									elem.end = elem.openingElement.end;
 
 									this.#path.pop(); // Remove from stack
 								}
 							}
 						}
 
+						const elementToClose = this.#path[this.#path.length - 1];
+						if (elementToClose && elementToClose.type === 'Element') {
+							const elementToCloseName = this.getElementName(
+								/** @type {AST.Element} */ (elementToClose).id,
+							);
+							if (elementToCloseName === closingTagName) {
+								/** @type {AST.Element} */ (elementToClose).closingElement = closingElement;
+							}
+						}
+
 						this.#path.pop();
-						this.next();
 						skipWhitespace(this);
 						return;
 					}
@@ -2150,7 +2243,7 @@ function RipplePlugin(config) {
 				if (
 					context !== 'for' &&
 					context !== 'if' &&
-					this.context.at(-1) === tc.b_stat &&
+					this.context.at(-1) === b_stat &&
 					this.type === tt.braceL &&
 					this.context.some((c) => c === tstc.tc_expr)
 				) {
@@ -2352,16 +2445,100 @@ function get_comment_handlers(source, comments, index = 0) {
 				_(node, { next, path }) {
 					const metadata = node?.metadata;
 
-					if (metadata && metadata.commentContainerId !== undefined) {
-						while (
-							comments[0] &&
-							comments[0].context &&
-							comments[0].context.containerId === metadata.commentContainerId &&
-							comments[0].context.beforeMeaningfulChild
-						) {
-							const elementComment = /** @type {AST.CommentWithLocation} */ (comments.shift());
+					/**
+					 * Check if a comment is inside an attribute expression
+					 * of any ancestor Elements.
+					 * @returns {boolean}
+					 */
+					function isCommentInsideAttributeExpression() {
+						for (let i = path.length - 1; i >= 0; i--) {
+							const ancestor = path[i];
+							if (
+								ancestor &&
+								(ancestor.type === 'JSXAttribute' ||
+									ancestor.type === 'Attribute' ||
+									ancestor.type === 'JSXExpressionContainer')
+							) {
+								return true;
+							}
+						}
+						return false;
+					}
 
-							(metadata.elementLeadingComments ||= []).push(elementComment);
+					/**
+					 * Check if a comment is inside any attribute of ancestor Elements,
+					 * but NOT if we're currently traversing inside that attribute.
+					 * @param {AST.CommentWithLocation} comment
+					 * @returns {boolean}
+					 */
+					function isCommentInsideUnvisitedAttribute(comment) {
+						for (let i = path.length - 1; i >= 0; i--) {
+							const ancestor = path[i];
+							// we would definitely reach the attribute first before getting to the element
+							if (ancestor.type === 'JSXAttribute' || ancestor.type === 'Attribute') {
+								return false;
+							}
+							if (ancestor && ancestor.type === 'Element') {
+								for (const attr of /** @type {(AST.Attribute & AST.NodeWithLocation)[]} */ (
+									ancestor.attributes
+								)) {
+									if (comment.start >= attr.start && comment.end <= attr.end) {
+										return true;
+									}
+								}
+							}
+						}
+						return false;
+					}
+
+					/**
+					 * If a comment is located between an empty Element's opening and closing tags,
+					 * attach it to the Element as `innerComments`.
+					 * @param {AST.CommentWithLocation} comment
+					 * @returns {AST.Element | null}
+					 */
+					function getEmptyElementInnerCommentTarget(comment) {
+						const element = /** @type {AST.Element | undefined} */ (
+							path.findLast((ancestor) => ancestor && ancestor.type === 'Element')
+						);
+						if (!element) return null;
+
+						if (element.children && element.children.length > 0) return null;
+						if (!element.openingElement || !element.closingElement) return null;
+						if (element.selfClosing || element.unclosed) return null;
+						if (typeof element.openingElement.end !== 'number') return null;
+						if (typeof element.end !== 'number') return null;
+
+						const contentStart = element.openingElement.end;
+						const rawContentEnd = element.closingElement.start;
+						const contentEnd =
+							typeof rawContentEnd === 'number' && rawContentEnd > contentStart
+								? rawContentEnd
+								: element.end;
+
+						const betweenTags = comment.start >= contentStart && comment.end <= contentEnd;
+						if (!betweenTags) return null;
+
+						return element;
+					}
+
+					if (metadata && metadata.commentContainerId !== undefined) {
+						// For empty template elements, keep comments as `innerComments`.
+						// The Prettier plugin uses `innerComments` to preserve them and
+						// to avoid collapsing the element into self-closing syntax.
+						const isEmptyElement =
+							node.type === 'Element' && (!node.children || node.children.length === 0);
+						if (!isEmptyElement) {
+							while (
+								comments[0] &&
+								comments[0].context &&
+								comments[0].context.containerId === metadata.commentContainerId &&
+								comments[0].context.beforeMeaningfulChild
+							) {
+								const elementComment = /** @type {AST.CommentWithLocation} */ (comments.shift());
+
+								(metadata.elementLeadingComments ||= []).push(elementComment);
+							}
 						}
 					}
 
@@ -2369,6 +2546,27 @@ function get_comment_handlers(source, comments, index = 0) {
 						comments[0] &&
 						comments[0].start < /** @type {AST.NodeWithLocation} */ (node).start
 					) {
+						// Skip comments that are inside an attribute of an ancestor Element.
+						// Since zimmerframe visits children before attributes, we need to leave
+						// these comments for when the attribute nodes are visited.
+						if (
+							isCommentInsideUnvisitedAttribute(
+								/** @type {AST.CommentWithLocation} */ (comments[0]),
+							)
+						) {
+							break;
+						}
+
+						const maybeInner = getEmptyElementInnerCommentTarget(
+							/** @type {AST.CommentWithLocation} */ (comments[0]),
+						);
+						if (maybeInner) {
+							(maybeInner.innerComments ||= []).push(
+								/** @type {AST.CommentWithLocation} */ (comments.shift()),
+							);
+							continue;
+						}
+
 						const comment = /** @type {AST.CommentWithLocation} */ (comments.shift());
 
 						// Skip leading comments for BlockStatement that is a function body
@@ -2386,6 +2584,11 @@ function get_comment_handlers(source, comments, index = 0) {
 								(parent.comments ||= []).push(comment);
 								continue;
 							}
+						}
+
+						if (isCommentInsideAttributeExpression()) {
+							(node.leadingComments ||= []).push(comment);
+							continue;
 						}
 
 						const ancestorElements = /** @type {(AST.Element & AST.NodeWithLocation)[]} */ (
@@ -2512,6 +2715,14 @@ function get_comment_handlers(source, comments, index = 0) {
 											break;
 										}
 
+										const maybeInner = getEmptyElementInnerCommentTarget(potentialComment);
+										if (maybeInner) {
+											(maybeInner.innerComments ||= []).push(
+												/** @type {AST.CommentWithLocation} */ (comments.shift()),
+											);
+											continue;
+										}
+
 										const nextChar = getNextNonWhitespaceCharacter(source, potentialComment.end);
 										if (nextChar === ')') {
 											(node.trailingComments ||= []).push(
@@ -2531,12 +2742,31 @@ function get_comment_handlers(source, comments, index = 0) {
 										const comment = comments[0];
 										if (parent && comment.start >= parent.end) break;
 
+										const maybeInner = getEmptyElementInnerCommentTarget(comment);
+										if (maybeInner) {
+											(maybeInner.innerComments ||= []).push(
+												/** @type {AST.CommentWithLocation} */ (comments.shift()),
+											);
+											end = comment.end;
+											continue;
+										}
+
 										(node.trailingComments ||= []).push(comment);
 										comments.shift();
 										end = comment.end;
 									}
 								}
 							} else if (/** @type {AST.NodeWithLocation} */ (node).end <= comments[0].start) {
+								const maybeInner = getEmptyElementInnerCommentTarget(
+									/** @type {AST.CommentWithLocation} */ (comments[0]),
+								);
+								if (maybeInner) {
+									(maybeInner.innerComments ||= []).push(
+										/** @type {AST.CommentWithLocation} */ (comments.shift()),
+									);
+									return;
+								}
+
 								const onlySimpleWhitespace = /^[,) \t]*$/.test(slice);
 								const onlyWhitespace = /^\s*$/.test(slice);
 								const hasBlankLine = /\n\s*\n/.test(slice);
@@ -2596,9 +2826,22 @@ function get_comment_handlers(source, comments, index = 0) {
 										}
 										// Otherwise leave it for next parameter's leading comments
 									} else {
-										node.trailingComments = [
-											/** @type {AST.CommentWithLocation} */ (comments.shift()),
-										];
+										// Line comments on the next line should be leading comments
+										// for the next statement, not trailing comments for this one.
+										// Only attach as trailing if:
+										// 1. It's on the same line as this node, OR
+										// 2. This is the last item in the array (no next sibling to attach to)
+										const commentOnSameLine =
+											nodeEndLine !== null &&
+											commentStartLine !== null &&
+											nodeEndLine === commentStartLine;
+
+										if (commentOnSameLine || is_last_in_array) {
+											node.trailingComments = [
+												/** @type {AST.CommentWithLocation} */ (comments.shift()),
+											];
+										}
+										// Otherwise leave it for next sibling's leading comments
 									}
 								} else if (hasBlankLine && onlyWhitespace && node_array) {
 									// When there's a blank line between node and comment(s),

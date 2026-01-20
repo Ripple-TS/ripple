@@ -21,8 +21,6 @@ interface BaseNodeMetaData {
 	is_capitalized?: boolean;
 	has_await?: boolean;
 	commentContainerId?: number;
-	openingTagEnd?: number;
-	openingTagEndLoc?: AST.Position;
 	parenthesized?: boolean;
 	elementLeadingComments?: AST.Comment[];
 	inside_component_top_level?: boolean;
@@ -104,6 +102,7 @@ declare module 'estree' {
 		RefAttribute: RefAttribute;
 		SpreadAttribute: SpreadAttribute;
 		ParenthesizedExpression: ParenthesizedExpression;
+		ScriptContent: ScriptContent;
 	}
 
 	interface ExpressionMap {
@@ -218,6 +217,8 @@ declare module 'estree' {
 		children: ESTreeJSX.JSXElement['children'];
 		selfClosing?: boolean;
 		unclosed?: boolean;
+		openingElement: ESTreeJSX.JSXOpeningElement;
+		closingElement: ESTreeJSX.JSXClosingElement;
 	}
 
 	interface Html extends AST.BaseNode {
@@ -250,17 +251,10 @@ declare module 'estree' {
 				hash: string;
 			};
 		};
-
-		// currently only for <style> and <script> tags
-		openingElement?: ESTreeJSX.JSXOpeningElement;
-		closingElement?: ESTreeJSX.JSXClosingElement;
-
+		openingElement: ESTreeJSX.JSXOpeningElement;
+		closingElement: ESTreeJSX.JSXClosingElement;
 		// for <style> tags
 		css?: string;
-
-		// for <script> tags
-		content?: string;
-
 		innerComments?: Comment[];
 	}
 
@@ -280,6 +274,12 @@ declare module 'estree' {
 		metadata: BaseNodeMetaData & {
 			exports: Set<string>;
 		};
+	}
+
+	// ScriptContent is only used by Prettier currently
+	interface ScriptContent extends Omit<AST.Element, 'type'> {
+		type: 'ScriptContent';
+		content: string;
 	}
 
 	/**
@@ -1125,6 +1125,7 @@ export interface BaseState {
 	serverIdentifierPresent: boolean;
 	ancestor_server_block: AST.ServerBlock | undefined;
 	inside_head?: boolean;
+	keep_component_style?: boolean;
 
 	/** Common For All */
 	to_ts: boolean;
@@ -1193,11 +1194,21 @@ type SpecializedVisitors<T extends AST.Node | AST.CSS.Node, U> = {
 	[K in T['type']]?: Visitor<NodeOf<K, T>, U, T>;
 };
 
+type VisitFn<V> = (node: V) => void;
+
+export type CatchAllVisitor<T, U, V> = (
+	node: T,
+	context: Context<V, U>,
+	visit: VisitFn<V>,
+) => V | void;
+
 export type Visitor<T, U, V> = (node: T, context: Context<V, U>) => V | void;
 
 export type Visitors<T extends AST.Node | AST.CSS.Node, U> = T['type'] extends '_'
 	? never
-	: SpecializedVisitors<T, U> & { _?: Visitor<T, U, T> };
+	: SpecializedVisitors<T, U> & {
+			_?: CatchAllVisitor<T, U, T>;
+		};
 
 export interface Context<T, U>
 	extends Omit<ESRap.Context, 'path' | 'state' | 'visit' | 'next' | 'stop'> {

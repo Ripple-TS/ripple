@@ -1,10 +1,10 @@
-import { flushSync, effect, track } from 'ripple';
+import { flushSync, effect, track, type Tracked } from 'ripple';
 
 describe('passing reactivity between boundaries tests', () => {
 	it('can pass reactivity between functions with simple arrays and destructuring', () => {
 		let log: string[] = [];
 
-		function createDouble([count]) {
+		function createDouble([count]: [Tracked<number>]) {
 			const double = track(() => @count * 2);
 
 			effect(() => {

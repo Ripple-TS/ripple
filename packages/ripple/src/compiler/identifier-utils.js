@@ -14,10 +14,25 @@ function encode_utf16_char(char) {
 }
 
 /**
+ * Finds the next uppercase character or returns name.length
+ * @param {string} name
+ * @param {number} start
+ * @returns {number}
+ */
+function find_next_uppercase(name, start) {
+	for (let i = start; i < name.length; i++) {
+		if (name[i] === name[i].toUpperCase()) {
+			return i;
+		}
+	}
+	return name.length;
+}
+
+/**
  * @param {string} encoded
  * @returns {string}
  */
-function decoded_utf16_string(encoded) {
+function decode_utf16_string(encoded) {
 	return encoded.replace(DECODE_UTF16_REGEX, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
 }
 
@@ -26,8 +41,13 @@ function decoded_utf16_string(encoded) {
  * @returns {string}
  */
 export function obfuscate_identifier(name) {
+	const first_char = name[0];
 	let start = 0;
-	if (name[0] === name[0].toUpperCase()) {
+	if (first_char === '@' || first_char === '#') {
+		const encoded = encode_utf16_char(first_char);
+		name = encoded + name.slice(1);
+		start = encoded.length;
+	} else if (first_char === first_char.toUpperCase()) {
 		start = 1;
 	}
 	const index = find_next_uppercase(name, start);
@@ -56,20 +76,5 @@ export function is_identifier_obfuscated(name) {
 export function deobfuscate_identifier(name) {
 	name = name.replaceAll(IDENTIFIER_OBFUSCATION_PREFIX, '');
 	const parts = name.split('__');
-	return decoded_utf16_string((parts[1] ? parts[1] : '') + parts[0]);
-}
-
-/**
- * Finds the next uppercase character or returns name.length
- * @param {string} name
- * @param {number} start
- * @returns {number}
- */
-function find_next_uppercase(name, start) {
-	for (let i = start; i < name.length; i++) {
-		if (name[i] === name[i].toUpperCase()) {
-			return i;
-		}
-	}
-	return name.length;
+	return decode_utf16_string((parts[1] ? parts[1] : '') + parts[0]);
 }

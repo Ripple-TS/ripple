@@ -797,12 +797,17 @@ const visitors = {
 			return;
 		}
 
+		const consequent_body =
+			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+
 		const consequent = b.block(
-			transform_body(/** @type {AST.BlockStatement} */ (node.consequent).body, {
+			transform_body(consequent_body, {
 				...context,
 				state: {
 					...context.state,
-					scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.consequent)),
+					scope: /** @type {ScopeInterface} */ (
+						context.state.scopes.get(node.consequent) || context.state.scope
+					),
 				},
 			}),
 		);
@@ -1137,6 +1142,12 @@ const visitors = {
 		}
 	},
 
+	ScriptContent(node, context) {
+		context.state.init?.push(
+			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(node.content))),
+		);
+	},
+
 	ServerBlock(node, context) {
 		const exports = node.metadata.exports;
 
@@ -1188,6 +1199,24 @@ const visitors = {
 				),
 			),
 		);
+	},
+
+	Program(node, context) {
+		// We need a Program visitor to make sure all top level entities are visited
+		// Without it, and without at least one export component
+		// other components are not visited
+		/** @type {Array<AST.Statement | AST.Directive | AST.ModuleDeclaration>} */
+		const statements = [];
+
+		for (const statement of node.body) {
+			statements.push(
+				/** @type {AST.Statement | AST.Directive | AST.ModuleDeclaration} */ (
+					context.visit(statement)
+				),
+			);
+		}
+
+		return { ...node, body: statements };
 	},
 };
 

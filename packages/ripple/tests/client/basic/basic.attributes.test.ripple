@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { track, flushSync } from 'ripple';
+import { track, flushSync, type TrackedArray } from 'ripple';
 
 describe('basic client > attribute rendering', () => {
 	it('render static attributes', () => {
@@ -438,8 +438,8 @@ describe('basic client > attribute rendering', () => {
 				{'Toggle Attributes'}
 			</button>
 			<div
-				title={@showTitle ? 'This is a title' : null}
-				aria-label={@showAria ? 'Accessible label' : null}
+				title={@showTitle ? 'This is a title' : undefined}
+				aria-label={@showAria ? 'Accessible label' : undefined}
 			>
 				{'Conditional Attributes'}
 			</div>
@@ -468,7 +468,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('render spread attributes', () => {
 		component Basic() {
-			let attrs = track(
+			let attrs = track<TestAttributes>(
 				{
 					class: 'initial',
 					id: 'test-1',
@@ -546,7 +546,7 @@ describe('basic client > attribute rendering', () => {
 			<Child isDisabled />
 		}
 
-		component Child({ isDisabled }) {
+		component Child({ isDisabled }: { isDisabled: boolean }) {
 			<input disabled={isDisabled} />
 		}
 
@@ -613,7 +613,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles events with capture option', () => {
 		component Basic() {
-			let captureOrder = #[];
+			let captureOrder: TrackedArray<string> = #[];
 
 			const handleCaptureClick = {
 				handleEvent() {
@@ -647,7 +647,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles events with Capture suffix in the name', () => {
 		component Basic() {
-			let captureOrder = #[];
+			let captureOrder: TrackedArray<string> = #[];
 
 			const handleCaptureClick = () => {
 				captureOrder.push('capture');
