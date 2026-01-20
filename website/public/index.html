@@ -47,6 +47,10 @@
 				box-sizing: border-box;
 			}
 
+			html {
+				overflow-x: hidden;
+			}
+
 			body {
 				font-family:
 					'Recursive',
@@ -661,68 +665,6 @@
 				font-weight: bold;
 			}
 
-			/* Atmospheric particles */
-			.particle {
-				position: absolute;
-				border-radius: 50%;
-				pointer-events: none;
-			}
-
-			.particle-1 {
-				width: 4px;
-				height: 4px;
-				background: rgba(120, 219, 226, 0.6);
-				top: 20%;
-				left: 15%;
-				animation:
-					drift 25s linear infinite,
-					pulse 3s ease-in-out infinite;
-			}
-
-			.particle-2 {
-				width: 6px;
-				height: 6px;
-				background: rgba(255, 119, 198, 0.4);
-				top: 60%;
-				right: 20%;
-				animation:
-					drift 30s linear infinite reverse,
-					pulse 4s ease-in-out infinite 1s;
-			}
-
-			.particle-3 {
-				width: 3px;
-				height: 3px;
-				background: rgba(120, 119, 198, 0.7);
-				top: 80%;
-				left: 70%;
-				animation:
-					drift 20s linear infinite,
-					pulse 2.5s ease-in-out infinite 2s;
-			}
-
-			.particle-4 {
-				width: 5px;
-				height: 5px;
-				background: rgba(120, 219, 226, 0.3);
-				top: 30%;
-				left: 80%;
-				animation:
-					drift 35s linear infinite reverse,
-					pulse 3.5s ease-in-out infinite 0.5s;
-			}
-
-			.particle-5 {
-				width: 2px;
-				height: 2px;
-				background: rgba(255, 119, 198, 0.8);
-				top: 10%;
-				right: 30%;
-				animation:
-					drift 22s linear infinite,
-					pulse 2s ease-in-out infinite 1.5s;
-			}
-
 			.sr-only {
 				position: absolute;
 				width: 1px;
@@ -733,36 +675,6 @@
 				clip: rect(0, 0, 0, 0);
 				white-space: nowrap;
 				border-width: 0;
-			}
-
-			@keyframes drift {
-				0% {
-					transform: translateX(0) translateY(0) rotate(0deg);
-				}
-				25% {
-					transform: translateX(100px) translateY(-50px) rotate(90deg);
-				}
-				50% {
-					transform: translateX(-50px) translateY(-100px) rotate(180deg);
-				}
-				75% {
-					transform: translateX(-100px) translateY(50px) rotate(270deg);
-				}
-				100% {
-					transform: translateX(0) translateY(0) rotate(360deg);
-				}
-			}
-
-			@keyframes pulse {
-				0%,
-				100% {
-					opacity: 0.3;
-					transform: scale(1);
-				}
-				50% {
-					opacity: 1;
-					transform: scale(1.5);
-				}
 			}
 
 			@media (max-width: 768px) {
@@ -890,12 +802,6 @@
 	</head>
 	<body>
 		<main>
-			<div class="particle particle-1"></div>
-			<div class="particle particle-2"></div>
-			<div class="particle particle-3"></div>
-			<div class="particle particle-4"></div>
-			<div class="particle particle-5"></div>
-
 			<div class="container">
 				<h1 class="sr-only">Ripple</h1>
 				<img
