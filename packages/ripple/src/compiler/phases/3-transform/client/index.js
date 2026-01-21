@@ -1468,7 +1468,7 @@ const visitors = {
 					);
 				} else if (attr.type === 'RefAttribute') {
 					const ref_id = state.scope.generate('ref');
-					state.setup?.push(b.var(ref_id, b.call('_$_.ref_prop')));
+					state.init?.push(b.var(ref_id, b.call('_$_.ref_prop')));
 					props.push(
 						b.prop(
 							'init',
@@ -2795,7 +2795,7 @@ function transform_children(children, context) {
 		const id = is_fragment ? b.id(state.scope.generate('fragment')) : get_id(node);
 		initial = id;
 		template_id = state.scope.generate('root');
-		state.setup?.push(b.var(id, b.call(template_id)));
+		state.init?.push(b.var(id, b.call(template_id)));
 	};
 
 	for (const node of normalized) {
@@ -2848,7 +2848,7 @@ function transform_children(children, context) {
 					return cached;
 				} else if (current_prev !== null) {
 					const id = get_id(node);
-					state.setup?.push(
+					state.init?.push(
 						b.var(id, b.call('_$_.sibling', current_prev(is_text), is_text && b.true)),
 					);
 					cached = id;
@@ -2856,9 +2856,7 @@ function transform_children(children, context) {
 				} else if (initial !== null) {
 					if (is_fragment) {
 						const id = get_id(node);
-						state.setup?.push(
-							b.var(id, b.call('_$_.first_child_frag', initial, is_text && b.true)),
-						);
+						state.init?.push(b.var(id, b.call('_$_.first_child_frag', initial, is_text && b.true)));
 						cached = id;
 						return id;
 					}
@@ -2869,9 +2867,7 @@ function transform_children(children, context) {
 					}
 
 					const id = get_id(node);
-					state.setup?.push(
-						b.var(id, b.call('_$_.child', state.flush_node?.(), is_text && b.true)),
-					);
+					state.init?.push(b.var(id, b.call('_$_.child', state.flush_node?.(), is_text && b.true)));
 					cached = id;
 					return id;
 				} else {
@@ -3055,7 +3051,6 @@ function transform_body(body, { visit, state }) {
 	const body_state = {
 		...state,
 		template: [],
-		setup: [],
 		init: [],
 		update: [],
 		final: [],
@@ -3083,7 +3078,6 @@ function transform_body(body, { visit, state }) {
 	}
 
 	return [
-		.../** @type {NonNullable<TransformClientState['setup']>} */ (body_state.setup),
 		.../** @type {AST.Statement[]} */ (body_state.init),
 		.../** @type {NonNullable<TransformClientState['final']>} */ (body_state.final),
 	];
@@ -3694,7 +3688,6 @@ export function transform_client(filename, source, analysis, to_ts, minify_css) 
 		events: new Set(),
 		template: null,
 		hoisted: [],
-		setup: null,
 		init: null,
 		inside_head: false,
 		update: null,

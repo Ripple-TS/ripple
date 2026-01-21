@@ -36,6 +36,7 @@ import {
 	CSS_HASH_IDENTIFIER,
 	obfuscate_identifier,
 } from '../../../identifier-utils.js';
+import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../../constants.js';
 
 /**
  * @param {AST.Node[]} children
@@ -807,6 +808,10 @@ const visitors = {
 			}),
 		);
 
+		context.state.init?.push(
+			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN))),
+		);
+
 		/** @type {AST.BlockStatement | AST.IfStatement | null} */
 		let alternate = null;
 		if (node.alternate) {
@@ -826,6 +831,10 @@ const visitors = {
 
 		context.state.init?.push(
 			b.if(/** @type {AST.Expression} */ (context.visit(node.test)), consequent, alternate),
+		);
+
+		context.state.init?.push(
+			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_CLOSE))),
 		);
 	},
 

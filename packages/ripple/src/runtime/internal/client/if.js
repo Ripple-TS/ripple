@@ -2,6 +2,7 @@
 
 import { branch, destroy_block, render } from './blocks.js';
 import { IF_BLOCK, UNINITIALIZED } from './constants.js';
+import { hydrate_next, hydrating } from './hydration.js';
 
 /**
  * @param {Node} node
@@ -9,6 +10,11 @@ import { IF_BLOCK, UNINITIALIZED } from './constants.js';
  * @returns {void}
  */
 export function if_block(node, fn) {
+	if (hydrating) {
+		debugger;
+		hydrate_next();
+	}
+
 	var anchor = node;
 	var has_branch = false;
 	/** @type {any} */
