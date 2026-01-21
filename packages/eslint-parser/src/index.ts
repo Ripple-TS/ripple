@@ -10,6 +10,41 @@ interface ParseResult {
 }
 
 /**
+ * The Ripple compiler's AST contains some redundant references (e.g. `Element.attributes`
+ * and `Element.openingElement.attributes`) that are useful for formatters/source-maps.
+ * ESLint's traverser will visit both paths and can trigger duplicate rule reports.
+ *
+ * For ESLint, we prune JSX wrapper nodes to keep a single traversal path.
+ */
+function normalizeRippleAstForEslint(ast: any): void {
+	const seen = new Set<any>();
+	const visit = (node: any) => {
+		if (!node || typeof node !== 'object') return;
+		if (seen.has(node)) return;
+		seen.add(node);
+
+		if (node.type === 'Element') {
+			// Avoid duplicate traversal of attributes/children through openingElement/closingElement.
+			// The Element node itself carries the data ESLint rules care about.
+			delete node.openingElement;
+			delete node.closingElement;
+		}
+
+		for (const key of Object.keys(node)) {
+			if (key === 'parent' || key === 'loc' || key === 'range') continue;
+			const value = node[key];
+			if (Array.isArray(value)) {
+				for (const child of value) visit(child);
+			} else if (value && typeof value === 'object') {
+				visit(value);
+			}
+		}
+	};
+
+	visit(ast);
+}
+
+/**
  * Recursively walks the AST and ensures all nodes have range and loc properties
  * ESLint's scope analyzer requires these properties on ALL nodes
  */
@@ -88,6 +123,9 @@ export function parseForESLint(code: string, options?: Linter.ParserOptions): Pa
 		// Parse the Ripple source code using the Ripple compiler
 		const ast = rippleCompiler.parse(code);
 		if (!ast) throw new Error('Parser returned null or undefined AST');
+
+		// Normalize for ESLint traversal (avoid duplicate node visits)
+		normalizeRippleAstForEslint(ast);
 
 		// Recursively ensure all nodes have range and loc properties
 		ensureNodeProperties(ast, code);

@@ -67,6 +67,7 @@ import {
 	normalize_event_name,
 } from '../../../../utils/events.js';
 import { createHash } from 'node:crypto';
+import { should_preserve_comment, format_comment } from '../../../comment-utils.js';
 
 /**
  *
@@ -364,7 +365,6 @@ const visitors = {
 							name: capitalized_name,
 							metadata: {
 								...node.metadata,
-								source_name: node.name,
 								is_capitalized: true,
 							},
 						};
@@ -689,16 +689,28 @@ const visitors = {
 		}
 
 		if (node.tracked || (node.property.type === 'Identifier' && node.property.tracked)) {
-			// In TypeScript mode, skip the transformation and let transform_ts_child handle it
-			if (!context.state.to_ts) {
-				return b.call(
-					'_$_.get_property',
-					/** @type {AST.Expression} */ (context.visit(node.object)),
-					node.computed
-						? /** @type {AST.Expression} */ (context.visit(node.property))
-						: b.literal(/** @type {AST.Identifier} */ (node.property).name),
-					node.optional ? b.true : undefined,
-				);
+			if (context.state.to_ts) {
+				// In TypeScript mode, transform @user.@name or @user.@['name'] or @user?.@name
+				// to user['#v'].name['#v'] or user['#v']['name']['#v'] or user['#v']?.name['#v']
+				const visited_object = /** @type {AST.Expression} */ (context.visit(node.object));
+				const visited_property = /** @type {AST.Expression} */ (context.visit(node.property));
+
+				// Build the member access: object.property or object[property]
+				const member = b.member(visited_object, visited_property, node.computed, node.optional);
+
+				// Wrap with ['#v'] access
+				return b.member(member, b.literal('#v'), true);
+			} else {
+				if (!context.state.to_ts) {
+					return b.call(
+						'_$_.get_property',
+						/** @type {AST.Expression} */ (context.visit(node.object)),
+						node.computed
+							? /** @type {AST.Expression} */ (context.visit(node.property))
+							: b.literal(/** @type {AST.Identifier} */ (node.property).name),
+						node.optional ? b.true : undefined,
+					);
+				}
 			}
 		}
 
@@ -765,7 +777,6 @@ const visitors = {
 							name: capitalized_name,
 							metadata: {
 								...pattern.metadata,
-								source_name: pattern.name,
 								is_capitalized: true,
 							},
 						};
@@ -1030,7 +1041,9 @@ const visitors = {
 				const id = state.flush_node?.();
 				state.template?.push('<!>');
 				context.state.init?.push(
-					b.stmt(b.call('_$_.script', id, b.literal(sanitize_template_string(node.content)))),
+					b.stmt(
+						b.call('_$_.script', id, /** @type {AST.Literal} */ (visit(node.children[0], state))),
+					),
 				);
 				return;
 			}
@@ -1988,11 +2001,13 @@ const visitors = {
 		const id = context.state.flush_node?.();
 		const statements = [];
 
-		const consequent_scope = /** @type {ScopeInterface} */ (
-			context.state.scopes.get(node.consequent)
-		);
+		const consequent_scope =
+			/** @type {ScopeInterface} */ (context.state.scopes.get(node.consequent)) ||
+			context.state.scope;
+		const consequent_body =
+			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
 		const consequent = b.block(
-			transform_body(/** @type {AST.BlockStatement} */ (node.consequent).body, {
+			transform_body(consequent_body, {
 				...context,
 				state: { ...context.state, scope: consequent_scope },
 			}),
@@ -2108,11 +2123,11 @@ const visitors = {
 	},
 
 	TryStatement(node, context) {
-		if (!is_inside_component(context)) {
-			if (context.state.to_ts) {
-				return transform_ts_child(node, context);
-			}
+		if (context.state.to_ts) {
+			return transform_ts_child(node, context);
+		}
 
+		if (!is_inside_component(context)) {
 			return context.next();
 		}
 		context.state.template?.push('<!>');
@@ -2283,6 +2298,10 @@ const visitors = {
 		return b.var(SERVER_IDENTIFIER, b.object(props));
 	},
 
+	ScriptContent(node, context) {
+		return b.literal(sanitize_template_string(node.content));
+	},
+
 	Program(node, context) {
 		/** @type {Array<AST.Statement | AST.Directive | AST.ModuleDeclaration>} */
 		const statements = [];
@@ -2359,19 +2378,6 @@ function transform_ts_child(node, context) {
 		// Do we need to do something special here?
 		state.init?.push(b.stmt(/** @type {AST.Expression} */ (visit(node.expression, { ...state }))));
 	} else if (node.type === 'Element') {
-		// Use capitalized name for dynamic components/elements in TypeScript output
-		// If node.id is not an Identifier (e.g., MemberExpression like props.children),
-		// we need to visit it to get the proper expression
-		/** @type {string | AST.Node} */
-		let type_expression;
-		let type_is_expression = false;
-		if (/** @type {AST.Node} */ (node.id).type === 'MemberExpression') {
-			// For MemberExpressions, we need to create a JSXExpression, not a JSXIdentifier
-			type_expression = visit(node.id, state);
-			type_is_expression = true;
-		} else {
-			type_expression = node.metadata?.ts_name || node.id.name;
-		}
 		/** @type {ESTreeJSX.JSXElement['children']} */
 		const children = [];
 		let has_children_props = false;
@@ -2381,36 +2387,50 @@ function transform_ts_child(node, context) {
 				const metadata = { await: false };
 				const name = visit(attr.name, { ...state, metadata });
 				const value =
-					attr.value === null ? b.literal(true) : visit(attr.value, { ...state, metadata });
+					attr.value === null
+						? b.literal(true)
+						: // reset init, update, final to avoid adding attr value to the component body
+							visit(attr.value, { ...state, metadata, init: null, update: null, final: null });
 
 				// Handle both regular identifiers and tracked identifiers
+				/** @type {string} */
 				let prop_name;
+				/** @type {AST.Identifier} */
+				let name_node;
 				if (name.type === 'Identifier') {
+					name_node = name;
 					prop_name = name.name;
 				} else if (name.type === 'MemberExpression' && name.object.type === 'Identifier') {
 					// For tracked attributes like {@count}, use the original name
+					name_node = name.object;
 					prop_name = name.object.name;
 				} else {
+					name_node = attr.name;
 					prop_name = attr.name.name || 'unknown';
 				}
 
-				const jsx_name = b.jsx_id(prop_name);
+				const jsx_name = b.jsx_id(prop_name, /** @type {AST.NodeWithLocation} */ (name_node));
 				if (prop_name === 'children') {
 					has_children_props = true;
 				}
-				jsx_name.loc = attr.name.loc || name.loc;
 
 				const jsx_attr = b.jsx_attribute(
 					jsx_name,
-					b.jsx_expression_container(/** @type {AST.Expression} */ (value)),
+					b.jsx_expression_container(
+						/** @type {AST.Expression} */ (value),
+						/** @type {AST.NodeWithLocation} */ (attr.value),
+					),
+					attr.shorthand ?? false,
+					/** @type {AST.NodeWithLocation} */ (attr),
 				);
-				// Preserve shorthand flag from parser (set for {identifier} syntax)
-				jsx_attr.shorthand = attr.shorthand ?? false;
 				return jsx_attr;
 			} else if (attr.type === 'SpreadAttribute') {
 				const metadata = { await: false };
 				const argument = visit(attr.argument, { ...state, metadata });
-				return b.jsx_spread_attribute(/** @type {AST.Expression} */ (argument));
+				return b.jsx_spread_attribute(
+					/** @type {AST.Expression} */ (argument),
+					/** @type {AST.NodeWithLocation} */ (attr),
+				);
 			} else if (attr.type === 'RefAttribute') {
 				const createRefKeyAlias = set_hidden_import_from_ripple('createRefKey', context);
 				const metadata = { await: false };
@@ -2418,7 +2438,7 @@ function transform_ts_child(node, context) {
 				const wrapper = b.object([
 					b.prop('init', b.call(createRefKeyAlias), /** @type {AST.Expression} */ (argument), true),
 				]);
-				return b.jsx_spread_attribute(wrapper);
+				return b.jsx_spread_attribute(wrapper, /** @type {AST.NodeWithLocation} */ (attr));
 			} else {
 				// Should not happen
 				throw new Error(`Unexpected attribute type: ${/** @type {AST.Attribute} */ (attr).type}`);
@@ -2427,153 +2447,53 @@ function transform_ts_child(node, context) {
 
 		if (!node.selfClosing && !node.unclosed && !has_children_props && node.children.length > 0) {
 			const is_dom_element = is_element_dom_element(node);
-
 			const component_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node));
-			const thunk = b.thunk(
-				b.block(
-					transform_body(node.children, {
-						...context,
-						state: { ...state, scope: component_scope },
-					}),
-				),
-			);
+			const thunk =
+				node.id.name === 'style'
+					? null
+					: b.thunk(
+							b.block(
+								transform_body(node.children, {
+									...context,
+									state: {
+										...state,
+										scope: component_scope,
+										inside_head: node.id.name === 'head' ? true : state.inside_head,
+									},
+								}),
+							),
+						);
 
-			if (is_dom_element) {
-				children.push(b.jsx_expression_container(b.call(thunk)));
-			} else {
-				attributes.push(b.jsx_attribute(b.jsx_id('children'), b.jsx_expression_container(thunk)));
+			if (thunk !== null) {
+				if (is_dom_element) {
+					children.push(b.jsx_expression_container(b.call(thunk)));
+				} else {
+					attributes.push(b.jsx_attribute(b.jsx_id('children'), b.jsx_expression_container(thunk)));
+				}
 			}
 		}
 
-		/** @type {ESTreeJSX.JSXIdentifier | AST.Node | undefined} */
-		let opening_name_element;
-		/** @type {AST.Node | ESTreeJSX.JSXClosingElement['name'] | undefined} */
-		let closing_name_element;
-
-		if (type_is_expression) {
-			// For dynamic/expression-based components (e.g., props.children),
-			// use JSX expression instead of identifier
-			opening_name_element = /** @type {AST.Node} */ (type_expression);
-			closing_name_element =
-				node.selfClosing || node.unclosed ? undefined : /** @type {AST.Node} */ (type_expression);
-		} else {
-			opening_name_element = b.jsx_id(/** @type {string} */ (type_expression));
-			// For tracked identifiers (dynamic components), adjust the loc to skip the '@' prefix
-			// and add metadata for mapping
-			if (node.id.tracked && node.id.loc) {
-				// The original identifier loc includes the '@', so we need to skip it
-				opening_name_element.loc = {
-					start: {
-						line: node.id.loc.start.line,
-						column: node.id.loc.start.column + 1, // Skip '@'
-					},
-					end: node.id.loc.end,
-				};
-				// Add metadata if this was capitalized
-				if (node.metadata?.ts_name && node.metadata?.source_name) {
-					opening_name_element.metadata = {
-						source_name: node.metadata.source_name,
-						is_capitalized: true,
-						path: [...node.metadata.path],
-					};
-				}
-			} else {
-				// Use node.id.loc if available, otherwise create a loc based on the element's position
-				opening_name_element.loc = node.id.loc || {
-					start: {
-						line: node.loc.start.line,
-						column: node.loc.start.column + 2, // After "<@"
-					},
-					end: {
-						line: node.loc.start.line,
-						column: node.loc.start.column + 2 + /** @type {string} */ (type_expression).length,
-					},
-				};
-			}
+		if (/** @type {AST.Node} */ (node.id).type !== 'MemberExpression' && node.id.tracked) {
+			// This is just temporary until we remove capitalization
+			// The `is_capitalized` was never handled for MemberExpression
+			// but it should've been for the `object` part because it starts the tag
+			// But the plan is to only rely on source_name and creating a const for the tag with ['#v']
+			node.openingElement.metadata = {
+				...node.openingElement.metadata,
+				is_capitalized: true,
+			};
 
 			if (!node.selfClosing && !node.unclosed) {
-				closing_name_element = b.jsx_id(/** @type {string} */ (type_expression));
-				// For tracked identifiers, also adjust closing tag location
-				if (node.id.tracked && node.id.loc) {
-					// Calculate position relative to closing tag
-					// Format: </@identifier>
-					const closing_tag_start =
-						node.loc.end.column - /** @type {string} */ (type_expression).length - 3; // </@
-					closing_name_element.loc = {
-						start: {
-							line: node.loc.end.line,
-							column: closing_tag_start + 3, // Skip '</@'
-						},
-						end: {
-							line: node.loc.end.line,
-							column:
-								closing_tag_start +
-								3 +
-								(node.metadata?.source_name?.length ||
-									/** @type {string} */ (type_expression).length),
-						},
-					};
-					// Add metadata if this was capitalized
-					if (node.metadata?.ts_name && node.metadata?.source_name) {
-						closing_name_element.metadata = {
-							source_name: node.metadata.source_name,
-							is_capitalized: true,
-							path: [...node.metadata.path],
-						};
-					}
-				} else {
-					closing_name_element.loc = {
-						start: {
-							line: node.loc.end.line,
-							column: node.loc.end.column - /** @type {string} */ (type_expression).length - 1,
-						},
-						end: {
-							line: node.loc.end.line,
-							column: node.loc.end.column - 1,
-						},
-					};
-				}
+				node.closingElement.metadata = {
+					...node.closingElement.metadata,
+					is_capitalized: true,
+				};
 			}
 		}
 
-		let jsxElement = b.jsx_element(
-			/** @type {ESTreeJSX.JSXIdentifier} */ (opening_name_element),
-			node,
-			attributes,
-			children,
-			/** @type {ESTreeJSX.JSXClosingElement['name'] | undefined} */ (closing_name_element),
-		);
+		/** @type {ESTreeJSX.JSXElement} */
+		const jsxElement = b.jsx_element(node, attributes, children);
 
-		// Calculate the location for the entire JSXClosingElement (including </ and >)
-		if (jsxElement.closingElement && !node.selfClosing && !node.unclosed) {
-			// The closing element starts with '</' and ends with '>'
-			// For a tag like </div>, if node.loc.end is right after '>', then:
-			// - '<' is at node.loc.end.column - type_expression.length - 3
-			// - '>' is at node.loc.end.column - 1
-			const tag_name_length = node.id.tracked
-				? (node.metadata?.source_name?.length || /** @type {string} */ (type_expression).length) + 1 // +1 for '@'
-				: /** @type {string} */ (type_expression).length;
-
-			jsxElement.closingElement.loc = {
-				start: {
-					line: node.loc.end.line,
-					column: node.loc.end.column - tag_name_length - 2, // at '</'
-				},
-				end: {
-					line: node.loc.end.line,
-					column: node.loc.end.column, // at '>'
-				},
-			};
-		}
-
-		// Preserve metadata from Element node for mapping purposes
-		if (node.metadata && (node.metadata.ts_name || node.metadata.source_name)) {
-			jsxElement.metadata = {
-				ts_name: node.metadata.ts_name,
-				source_name: node.metadata.source_name,
-				path: [...node.metadata.path],
-			};
-		}
 		// For unclosed elements, push the JSXElement directly without wrapping in ExpressionStatement
 		// This keeps it in the AST for mappings but avoids adding a semicolon
 		if (node.unclosed) {
@@ -2582,11 +2502,13 @@ function transform_ts_child(node, context) {
 			state.init?.push(b.stmt(jsxElement));
 		}
 	} else if (node.type === 'IfStatement') {
-		const consequent_scope = /** @type {ScopeInterface} */ (
-			context.state.scopes.get(node.consequent)
-		);
+		const consequent_scope =
+			/** @type {ScopeInterface} */ (context.state.scopes.get(node.consequent)) ||
+			context.state.scope;
+		const consequent_body =
+			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
 		const consequent = b.block(
-			transform_body(/** @type {AST.BlockStatement} */ (node.consequent).body, {
+			transform_body(consequent_body, {
 				...context,
 				state: { ...context.state, scope: consequent_scope },
 			}),
@@ -2609,7 +2531,11 @@ function transform_ts_child(node, context) {
 			);
 		}
 
-		state.init?.push(b.if(/** @type {AST.Expression} */ (visit(node.test)), consequent, alternate));
+		const result = b.if(/** @type {AST.Expression} */ (visit(node.test)), consequent, alternate);
+		if (!state.init) {
+			return result;
+		}
+		state.init.push(result);
 	} else if (node.type === 'SwitchStatement') {
 		const cases = [];
 
@@ -2629,16 +2555,16 @@ function transform_ts_child(node, context) {
 			);
 		}
 
-		const switch_stmt = b.switch(
+		const result = b.switch(
 			/** @type {AST.Expression} */ (context.visit(node.discriminant)),
 			cases,
 			/** @type {AST.NodeWithLocation} */ (node),
 		);
 
-		switch_stmt.start = node.start;
-		switch_stmt.end = node.end;
-		switch_stmt.loc = node.loc;
-		context.state.init?.push(switch_stmt);
+		if (!state.init) {
+			return result;
+		}
+		state.init.push(result);
 	} else if (node.type === 'ForOfStatement') {
 		const body_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.body));
 		const block_body = transform_body(/** @type {AST.BlockStatement} */ (node.body).body, {
@@ -2653,7 +2579,7 @@ function transform_ts_child(node, context) {
 		}
 		const body = b.block(block_body);
 
-		const for_of = b.for_of(
+		const result = b.for_of(
 			/** @type {AST.Pattern} */ (visit(node.left)),
 			/** @type {AST.Expression} */ (visit(node.right)),
 			body,
@@ -2661,7 +2587,10 @@ function transform_ts_child(node, context) {
 			/** @type {AST.NodeWithLocation} */ (node),
 		);
 
-		state.init?.push(for_of);
+		if (!state.init) {
+			return result;
+		}
+		state.init.push(result);
 	} else if (node.type === 'TryStatement') {
 		const try_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.block));
 		const try_body = b.block(
@@ -2716,14 +2645,22 @@ function transform_ts_child(node, context) {
 				/** @type {AST.NodeWithLocation} */ (node.finalizer),
 			);
 		}
-
-		state.init?.push(b.try(try_body, catch_handler, finally_block, pending_block));
+		const result = b.try(try_body, catch_handler, finally_block, pending_block);
+		if (!state.init) {
+			return result;
+		}
+		state.init.push(result);
 	} else if (node.type === 'Component') {
 		const component = visit(node, state);
 
 		state.init?.push(/** @type {AST.Statement} */ (component));
 	} else if (node.type === 'BreakStatement') {
-		state.init?.push(/** @type {AST.Statement} */ (b.break));
+		const result = b.break;
+
+		if (!state.init) {
+			return result;
+		}
+		state.init.push(/** @type {AST.Statement} */ (result));
 	} else if (node.type === 'TsxCompat') {
 		const children = /** @type {AST.TsxCompat['children']} */ (
 			node.children
@@ -2735,10 +2672,28 @@ function transform_ts_child(node, context) {
 	} else if (node.type === 'JSXExpressionContainer') {
 		// JSX comments {/* ... */} are JSXExpressionContainer with JSXEmptyExpression
 		// These should be preserved in the output as-is for prettier to handle
-		const jsx_container = b.jsx_expression_container(
+		const result = b.jsx_expression_container(
 			/** @type {AST.Expression} */ (visit(node.expression, state)),
 		);
-		state.init?.push(/** @type {AST.Statement} */ (/** @type {unknown} */ (jsx_container)));
+		if (!state.init) {
+			return result;
+		}
+		state.init.push(/** @type {AST.Statement} */ (/** @type {unknown} */ (result)));
+	} else if (node.type === 'ReturnStatement') {
+		const result = b.return(
+			node.argument ? /** @type {AST.Expression} */ (visit(node.argument, state)) : undefined,
+			/** @type {AST.NodeWithLocation} */ (node),
+		);
+		if (!state.init) {
+			return result;
+		}
+		state.init.push(result);
+	} else if (node.type === 'ScriptContent') {
+		state.init?.push(
+			/** @type {AST.Statement} */ (
+				/** @type {unknown} */ (b.jsx_text(node.content, node.content))
+			),
+		);
 	} else {
 		throw new Error('TODO');
 	}
@@ -2751,7 +2706,10 @@ function transform_ts_child(node, context) {
  */
 function transform_children(children, context) {
 	const { visit, state, root } = context;
-	const normalized = normalize_children(children, context);
+	const normalized = normalize_children(children, {
+		...context,
+		state: { ...state, keep_component_style: state.to_ts ? true : state.keep_component_style },
+	});
 
 	const head_elements = /** @type {AST.Element[]} */ (
 		children.filter(
@@ -3000,7 +2958,11 @@ function transform_children(children, context) {
 	}
 
 	for (const head_element of head_elements) {
-		visit_head_element(head_element, context);
+		if (state.to_ts) {
+			transform_ts_child(head_element, /** @type {VisitorClientContext} */ ({ visit, state }));
+		} else {
+			visit_head_element(head_element, context);
+		}
 	}
 
 	if (context.state.inside_head) {
@@ -3090,7 +3052,38 @@ function transform_body(body, { visit, state }) {
 function create_tsx_with_typescript_support() {
 	const base_tsx = /** @type {Visitors<AST.Node, TransformClientState>} */ (tsx());
 
-	// Add custom TypeScript node handlers that aren't in tsx
+	/**
+	 * Write preserved comments (TSDoc, TS pragmas, triple-slash directives) for a node
+	 * @param {AST.Node} node
+	 * @param {TransformClientContext} context
+	 * @param {'leading' | 'trailing'} position
+	 */
+	const write_preserved_comments = (node, context, position) => {
+		const comments = /** @type {AST.CommentWithLocation[]} */ (
+			position === 'leading' ? node.leadingComments : node.trailingComments
+		);
+		if (!comments || comments.length === 0) return;
+
+		for (const comment of comments) {
+			if (should_preserve_comment(comment)) {
+				if (position === 'leading') {
+					// Write the comment with source location if available
+					if (comment.loc) {
+						context.location(comment.loc.start.line, comment.loc.start.column);
+					}
+					context.write(format_comment(comment));
+					context.write('\n');
+				} else {
+					// Trailing comments go on the same line or next line
+					context.write(' ');
+					if (comment.loc) {
+						context.location(comment.loc.start.line, comment.loc.start.column);
+					}
+					context.write(format_comment(comment));
+				}
+			}
+		}
+	};
 
 	/**
 	 * Shared handler for function-like nodes to support component->function mapping
@@ -3099,6 +3092,9 @@ function create_tsx_with_typescript_support() {
 	 * @param {TransformClientContext} context
 	 */
 	const handle_function = (node, context) => {
+		// Write leading preserved comments (JSDoc, TS pragmas, etc.)
+		write_preserved_comments(node, context, 'leading');
+
 		const loc = /** @type {AST.SourceLocation} */ (node.loc);
 
 		if (node.async) {
@@ -3143,6 +3139,11 @@ function create_tsx_with_typescript_support() {
 
 	return /** @type {Visitors<AST.Node, TransformClientState>} */ ({
 		...base_tsx,
+		_(node, context, visit) {
+			write_preserved_comments(node, context, 'leading');
+
+			visit(node);
+		},
 		AssignmentPattern(node, context) {
 			// We need to make sure that the whole AssignmentPattern has a start and end mapping
 			// Acorn only maps pieces but not the whole thing
@@ -3151,6 +3152,36 @@ function create_tsx_with_typescript_support() {
 			// node.left already covers the start
 			base_tsx.AssignmentPattern?.(node, context);
 			// cover the end
+			context.location(loc.end.line, loc.end.column);
+		},
+		ExpressionStatement(node, context) {
+			if (!node.loc) {
+				base_tsx.ExpressionStatement?.(node, context);
+				return;
+			}
+			const loc = /** @type {AST.SourceLocation} */ (node.loc);
+			context.location(loc.start.line, loc.start.column);
+			base_tsx.ExpressionStatement?.(node, context);
+			context.location(loc.end.line, loc.end.column);
+		},
+		Literal(node, context) {
+			if (!node.loc || node.raw === undefined) {
+				base_tsx.Literal?.(node, context);
+				return;
+			}
+			const loc = /** @type {AST.SourceLocation} */ (node.loc);
+			context.location(loc.start.line, loc.start.column);
+			context.write(node.raw);
+			context.location(loc.end.line, loc.end.column);
+		},
+		MemberExpression(node, context) {
+			if (!node.loc) {
+				base_tsx.MemberExpression?.(node, context);
+				return;
+			}
+			const loc = /** @type {AST.SourceLocation} */ (node.loc);
+			context.location(loc.start.line, loc.start.column);
+			base_tsx.MemberExpression?.(node, context);
 			context.location(loc.end.line, loc.end.column);
 		},
 		TemplateLiteral(node, context) {
@@ -3256,24 +3287,46 @@ function create_tsx_with_typescript_support() {
 				base_tsx.Property?.(node, context);
 			}
 		},
-		JSXClosingElement(node, context) {
-			// Set location for '<' then write '</'
+		JSXOpeningElement(node, context) {
+			// Set location for '<'
 			if (node.loc) {
 				context.location(node.loc.start.line, node.loc.start.column);
-				context.write('</');
-			} else {
-				context.write('</');
 			}
+			context.write('<');
 
 			context.visit(node.name);
 
-			// Set location for '>' then write it
-			if (node.loc) {
-				context.location(node.loc.end.line, node.loc.end.column - 1);
-				context.write('>');
+			for (const attr of node.attributes || []) {
+				context.write(' ');
+				context.visit(attr);
+			}
+
+			if (node.selfClosing) {
+				context.write(' />');
 			} else {
+				// Set the source location for the '>'
+				// node.loc.end points AFTER the '>', so subtract 1 to get the position OF the '>'
+				if (node.loc) {
+					context.location(node.loc.end.line, node.loc.end.column - 1);
+				}
 				context.write('>');
 			}
+		},
+		JSXClosingElement(node, context) {
+			const loc = /** @type {AST.SourceLocation} */ (node.loc);
+			context.location(loc.start.line, loc.start.column);
+			base_tsx.JSXClosingElement?.(node, context);
+			context.location(loc.end.line, loc.end.column);
+		},
+		JSXIdentifier(node, context) {
+			if (!node.loc) {
+				base_tsx.JSXIdentifier?.(node, context);
+				return;
+			}
+			const loc = /** @type {AST.SourceLocation} */ (node.loc);
+			context.location(loc.start.line, loc.start.column);
+			context.write(node.name);
+			context.location(loc.end.line, loc.end.column);
 		},
 		MethodDefinition(node, context) {
 			// Check if there are type parameters to handle
@@ -3474,33 +3527,6 @@ function create_tsx_with_typescript_support() {
 				context.visit(node.local);
 			}
 		},
-		JSXOpeningElement(node, context) {
-			// Set location for '<'
-			if (node.loc) {
-				context.location(node.loc.start.line, node.loc.start.column);
-			}
-			context.write('<');
-
-			context.visit(node.name);
-
-			// Write attributes
-			for (const attr of node.attributes || []) {
-				context.write(' ');
-				context.visit(attr);
-			}
-
-			if (node.selfClosing) {
-				context.write(' />');
-			} else {
-				// Set the source location for the '>'
-				// node.loc.end points AFTER the '>', so subtract 1 to get the position OF the '>'
-				if (node.loc) {
-					// TODO: why do we need to subtract 1 from column here?
-					context.location(node.loc.end.line, node.loc.end.column - 1);
-				}
-				context.write('>');
-			}
-		},
 		TSParenthesizedType(node, context) {
 			context.write('(');
 			context.visit(/** @type {AST.TSTypeAnnotation} */ (node.typeAnnotation));
@@ -3553,6 +3579,11 @@ function create_tsx_with_typescript_support() {
 				context.visit(node.typeAnnotation);
 			}
 			context.write(' }');
+		},
+		TSTypeOperator(node, context) {
+			context.write(node.operator);
+			context.write(' ');
+			context.visit(/** @type {AST.TSTypeAnnotation} */ (node.typeAnnotation));
 		},
 		ArrowFunctionExpression(node, context) {
 			if (node.async) context.write('async ');

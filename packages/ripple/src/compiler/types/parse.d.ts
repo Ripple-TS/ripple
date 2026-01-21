@@ -1660,7 +1660,10 @@ export namespace Parse {
 		 * @param startLoc Start location
 		 * @returns JSXClosingElement or JSXClosingFragment
 		 */
-		jsx_parseClosingElementAt(startPos: number, startLoc: AST.Position): AST.Node;
+		jsx_parseClosingElementAt(
+			startPos: number,
+			startLoc: AST.Position,
+		): ESTreeJSX.JSXClosingElement;
 
 		/**
 		 * Parse JSX element at position
@@ -1668,19 +1671,19 @@ export namespace Parse {
 		 * @param startLoc Start location
 		 * @returns JSXElement or JSXFragment
 		 */
-		jsx_parseElementAt(startPos: number, startLoc: AST.Position): AST.Node;
+		jsx_parseElementAt(startPos: number, startLoc: AST.Position): ESTreeJSX.JSXElement;
 
 		/**
 		 * Parse JSX text node
 		 * @returns JSXText node
 		 */
-		jsx_parseText(): AST.Node;
+		jsx_parseText(): ESTreeJSX.JSXText;
 
 		/**
 		 * Parse complete JSX element
 		 * @returns JSXElement or JSXFragment
 		 */
-		jsx_parseElement(): AST.Node;
+		jsx_parseElement(): ESTreeJSX.JSXElement;
 
 		// ============================================================
 		// Try-Parse for Recovery

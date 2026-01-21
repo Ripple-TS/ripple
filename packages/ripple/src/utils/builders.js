@@ -760,10 +760,13 @@ export function imports(parts, source, attributes = [], importKind = 'value') {
 
 /**
  * @param {AST.Expression | null} argument
+ * @param {AST.NodeWithLocation} [loc_info]
  * @returns {AST.ReturnStatement}
  */
-function return_builder(argument = null) {
-	return { type: 'ReturnStatement', argument, metadata: { path: [] } };
+function return_builder(argument = null, loc_info) {
+	/** @type {AST.ReturnStatement} */
+	const node = { type: 'ReturnStatement', argument, metadata: { path: [] } };
+	return set_location(node, loc_info);
 }
 
 /**
@@ -827,57 +830,49 @@ export function key(name) {
 /**
  * @param {ESTreeJSX.JSXIdentifier | ESTreeJSX.JSXNamespacedName} name
  * @param {AST.Literal | ESTreeJSX.JSXExpressionContainer | null} value
+ * @param {boolean} [shorthand]
+ * @param {AST.NodeWithLocation} [loc_info]
  * @returns {ESTreeJSX.JSXAttribute}
  */
-export function jsx_attribute(name, value = null) {
-	return {
+export function jsx_attribute(name, value = null, shorthand = false, loc_info) {
+	const node = /** @type {ESTreeJSX.JSXAttribute} */ ({
 		type: 'JSXAttribute',
 		name,
 		value,
-		shorthand: false,
+		shorthand,
 		metadata: { path: [] },
-	};
+	});
+
+	return set_location(node, loc_info);
 }
 
 /**
- * @param {ESTreeJSX.JSXOpeningElement['name']} name
  * @param {AST.Element} node
  * @param {ESTreeJSX.JSXOpeningElement['attributes']} attributes
  * @param {ESTreeJSX.JSXElement['children']} children
- * @param {ESTreeJSX.JSXClosingElement['name']} [closing_name]
  * @returns {ESTreeJSX.JSXElement}
  */
-export function jsx_element(name, node, attributes = [], children = [], closing_name = name) {
-	/** @type {ESTreeJSX.JSXOpeningElement} */
-	const opening_element = {
-		type: 'JSXOpeningElement',
-		name,
-		attributes,
-		selfClosing: node.selfClosing ?? false,
-		loc: node.loc,
-		start: node.start,
-		end: node.end,
-		metadata: { path: [] },
-	};
-
-	/** @type {ESTreeJSX.JSXElement} */
-	const element = {
+export function jsx_element(node, attributes = [], children = []) {
+	return {
+		...node,
 		type: 'JSXElement',
-		openingElement: opening_element,
-		children,
-		closingElement:
-			node.selfClosing || node.unclosed
-				? null
-				: {
-						type: 'JSXClosingElement',
-						name: closing_name,
-						loc: node.loc,
-						metadata: { path: [] },
+		openingElement: {
+			...node.openingElement,
+			attributes,
+			metadata: {
+				path: [...node.metadata.path],
+			},
+		},
+		closingElement: node.closingElement
+			? {
+					...node.closingElement,
+					metadata: {
+						path: [...node.metadata.path],
 					},
-		metadata: { path: [] },
+				}
+			: null,
+		children,
 	};
-
-	return element;
 }
 
 /**
@@ -904,26 +899,32 @@ export function jsx_fragment(children = [], attributes = []) {
 
 /**
  * @param {AST.Expression | ESTreeJSX.JSXEmptyExpression} expression
+ * @param {AST.NodeWithLocation} [loc_info]
  * @returns {ESTreeJSX.JSXExpressionContainer}
  */
-export function jsx_expression_container(expression) {
-	return {
+export function jsx_expression_container(expression, loc_info) {
+	const node = /** @type {ESTreeJSX.JSXExpressionContainer} */ ({
 		type: 'JSXExpressionContainer',
 		expression,
 		metadata: { path: [] },
-	};
+	});
+
+	return set_location(node, loc_info);
 }
 
 /**
  * @param {string} name
+ * @param {AST.NodeWithLocation} [loc_info]
  * @returns {ESTreeJSX.JSXIdentifier}
  */
-export function jsx_id(name) {
-	return {
+export function jsx_id(name, loc_info) {
+	/** @type {ESTreeJSX.JSXIdentifier} */
+	const node = {
 		type: 'JSXIdentifier',
 		name,
 		metadata: { path: [] },
 	};
+	return set_location(node, loc_info);
 }
 
 /**
@@ -942,12 +943,29 @@ export function jsx_member(object, property) {
 
 /**
  * @param {AST.Expression} argument
+ * @param {AST.NodeWithLocation} [loc_info]
  * @returns {ESTreeJSX.JSXSpreadAttribute}
  */
-export function jsx_spread_attribute(argument) {
-	return {
+export function jsx_spread_attribute(argument, loc_info) {
+	const node = /** @type {ESTreeJSX.JSXSpreadAttribute} */ ({
 		type: 'JSXSpreadAttribute',
 		argument,
+		metadata: { path: [] },
+	});
+
+	return set_location(node, loc_info);
+}
+
+/**
+ * @param {string} value
+ * @param {string} raw
+ * @returns {ESTreeJSX.JSXText}
+ */
+export function jsx_text(value, raw) {
+	return {
+		type: 'JSXText',
+		value,
+		raw,
 		metadata: { path: [] },
 	};
 }

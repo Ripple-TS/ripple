@@ -85,6 +85,26 @@ export const printers = {
 				};
 			}
 
+			if (node.type === 'ScriptContent' && node.content) {
+				return async (textToDoc) => {
+					try {
+						// Format JS/TS using Prettier's textToDoc
+						const body = await textToDoc(node.content, {
+							parser: 'babel-ts',
+						});
+
+						// Return complete element with tags
+						// return ['<script>', indent([hardline, formattedContent]), hardline, '</script>'];
+						return body;
+					} catch (error) {
+						// If JS/TS has syntax errors, return original unformatted content
+						console.error('Error formatting JS/TS inside <script>:', error);
+						return node.content;
+						// return ['<script>', indent([hardline, node.content]), hardline, '</script>'];
+					}
+				};
+			}
+
 			return null;
 		},
 		getVisitorKeys(node) {
@@ -98,6 +118,7 @@ export const printers = {
 				'css', // Handled by embed()
 				'raw',
 				'regex',
+				'content', // Handled by embed() for <script> tags
 			]);
 
 			const keys = Object.keys(node).filter((key) => {
@@ -2175,7 +2196,7 @@ function printExportNamedDeclaration(node, path, options, print) {
 
 function printComponent(node, path, options, print, innerCommentParts = []) {
 	// Use arrays instead of string concatenation
-	const signatureParts = ['component ', node.id.name];
+	const signatureParts = node.id ? ['component ', node.id.name] : ['component'];
 
 	// Add TypeScript generics if present
 	if (node.typeParameters) {
@@ -3168,8 +3189,22 @@ function printClassBody(node, path, options, print) {
 
 	const members = path.map(print, 'body');
 
-	// Use AST builders for proper formatting
-	return group(['{', indent(concat([line, join(concat([line, line]), members)])), line, '}']);
+	// Build content with proper blank line handling
+	const contentParts = [];
+	for (let i = 0; i < members.length; i++) {
+		if (i > 0) {
+			// Check if we should add a blank line between members
+			const prevNode = node.body[i - 1];
+			const currNode = node.body[i];
+			if (shouldAddBlankLine(prevNode, currNode)) {
+				contentParts.push(line);
+			}
+		}
+		contentParts.push(line);
+		contentParts.push(members[i]);
+	}
+
+	return group(['{', indent(concat(contentParts)), line, '}']);
 }
 
 function printPropertyDefinition(node, path, options, print) {
@@ -4725,33 +4760,19 @@ function printMemberExpressionSimple(node, options, computed = false) {
 
 function printElement(node, path, options, print) {
 	const tagName = printMemberExpressionSimple(node.id, options);
-
 	const elementLeadingComments = getElementLeadingComments(node);
-	const openingTagEndIndex =
-		node?.metadata && typeof node.metadata.openingTagEnd === 'number'
-			? node.metadata.openingTagEnd
-			: null;
-	const nodeStartIndex = typeof node.start === 'number' ? node.start : null;
-	const nodeEndIndex = typeof node.end === 'number' ? node.end : null;
 
 	// `metadata.elementLeadingComments` may include comments that actually appear *inside* the element
 	// body (after the opening tag). Those must not be hoisted before the element.
-	const outerElementLeadingComments =
-		openingTagEndIndex == null || nodeStartIndex == null
-			? elementLeadingComments
-			: elementLeadingComments.filter(
-				(comment) => typeof comment.start !== 'number' || comment.start < nodeStartIndex,
-			);
-	const innerElementBodyComments =
-		openingTagEndIndex != null && nodeEndIndex != null
-			? elementLeadingComments.filter(
-				(comment) =>
-					typeof comment.start === 'number' &&
-					comment.start >= openingTagEndIndex &&
-					comment.start < nodeEndIndex,
-			)
-			: [];
-
+	const outerElementLeadingComments = elementLeadingComments.filter(
+		(comment) => typeof comment.start !== 'number' || comment.start < node.start,
+	);
+	const innerElementBodyComments = elementLeadingComments.filter(
+		(comment) =>
+			typeof comment.start === 'number' &&
+			comment.start >= node.openingElement.end &&
+			comment.start < node.end,
+	);
 	const metadataCommentParts =
 		outerElementLeadingComments.length > 0
 			? createElementLevelCommentParts(outerElementLeadingComments)
@@ -4842,9 +4863,7 @@ function printElement(node, path, options, print) {
 	const finalChildren = [];
 	const sortedInnerElementBodyComments =
 		innerElementBodyComments.length > 0
-			? innerElementBodyComments
-					.slice()
-					.sort((a, b) => (a.start ?? 0) - (b.start ?? 0))
+			? innerElementBodyComments.slice().sort((a, b) => (a.start ?? 0) - (b.start ?? 0))
 			: [];
 	let innerElementBodyCommentIndex = 0;
 
@@ -4915,7 +4934,8 @@ function printElement(node, path, options, print) {
 		let insertedBodyCommentsBetween = false;
 		if (innerElementBodyCommentIndex < sortedInnerElementBodyComments.length) {
 			const currentChildEnd = getNodeEndIndex(currentChild);
-			const nextChildStart = nextChild && typeof nextChild.start === 'number' ? nextChild.start : null;
+			const nextChildStart =
+				nextChild && typeof nextChild.start === 'number' ? nextChild.start : null;
 			if (typeof currentChildEnd === 'number') {
 				const commentsBetween = [];
 				while (innerElementBodyCommentIndex < sortedInnerElementBodyComments.length) {

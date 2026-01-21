@@ -67,7 +67,7 @@ describe('TrackedArray > derived', () => {
 			let items = new TrackedArray(1, 2, 3, 4, 5);
 			let sliced = track(() => items.slice(1, 4));
 
-			<button onClick={() => items[2] = 30}>{'change middle'}</button>
+			<button onClick={() => (items[2] = 30)}>{'change middle'}</button>
 			<pre>{JSON.stringify(items)}</pre>
 			<pre>{JSON.stringify(@sliced)}</pre>
 		}
@@ -194,10 +194,10 @@ describe('TrackedArray > derived', () => {
 
 	it('handles flat method with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray([1, 2], [3, 4], 5);
+			let items: TrackedArray<number[] | number> = new TrackedArray([1, 2], [3, 4], 5);
 			let flattened = track(() => items.flat());
 
-			<button onClick={() => items[0] = [6, 7, 8]}>{'change nested'}</button>
+			<button onClick={() => (items[0] = [6, 7, 8])}>{'change nested'}</button>
 			<pre>{JSON.stringify(items)}</pre>
 			<pre>{JSON.stringify(@flattened)}</pre>
 		}
@@ -425,7 +425,7 @@ describe('TrackedArray > derived', () => {
 	});
 
 	it('handles with method with reactivity', (context) => {
-		if (!'with' in Array.prototype) {
+		if (!('with' in Array.prototype)) {
 			context.skip();
 		}
 
@@ -433,7 +433,7 @@ describe('TrackedArray > derived', () => {
 			let items = new TrackedArray(1, 2, 3, 4);
 			let withReplaced = track(() => items.with(2, 30));
 
-			<button onClick={() => items[2] = 50}>{'change original'}</button>
+			<button onClick={() => (items[2] = 50)}>{'change original'}</button>
 			<pre>{JSON.stringify(items)}</pre>
 			<pre>{JSON.stringify(@withReplaced)}</pre>
 		}
@@ -483,8 +483,8 @@ describe('TrackedArray > derived', () => {
 			let atNegative1 = track(() => items.at(-1));
 			let atNegative2 = track(() => items.at(-2));
 
-			<button onClick={() => items[2] = 300}>{'change index 2'}</button>
-			<button onClick={() => items[items.length - 1] = 500}>{'change last'}</button>
+			<button onClick={() => (items[2] = 300)}>{'change index 2'}</button>
+			<button onClick={() => (items[items.length - 1] = 500)}>{'change last'}</button>
 			<pre>{JSON.stringify(items)}</pre>
 			<pre>{@atIndex2}</pre>
 			<pre>{@atNegative1}</pre>
