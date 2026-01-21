@@ -1882,7 +1882,7 @@ const visitors = {
 			context.state.template?.push('<!>');
 		}
 
-		const id = context.state.flush_node?.(is_controlled);
+		const id = context.state.flush_node?.(false, is_controlled);
 		const pattern = /** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id;
 		const body_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.body));
 
@@ -2798,7 +2798,7 @@ function transform_children(children, context) {
 			/** @type {AST.Identifier | null} */
 			let cached;
 			/**
-			 * @param {boolean} is_text
+			 * @param {boolean} [is_text]
 			 * @param {boolean} [is_controlled]
 			 * */
 			const flush_node = (is_text, is_controlled) => {
@@ -2821,11 +2821,13 @@ function transform_children(children, context) {
 					return initial;
 				} else if (state.flush_node !== null) {
 					if (is_controlled) {
-						return state.flush_node?.();
+						return state.flush_node?.(is_text);
 					}
 
 					const id = get_id(node);
-					state.init?.push(b.var(id, b.call('_$_.child', state.flush_node?.(), is_text && b.true)));
+					state.init?.push(
+						b.var(id, b.call('_$_.child', state.flush_node?.(is_text), is_text && b.true)),
+					);
 					cached = id;
 					return id;
 				} else {

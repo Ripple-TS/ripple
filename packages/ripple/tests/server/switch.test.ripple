@@ -22,7 +22,7 @@ describe('SSR: switch statements', () => {
 		}
 
 		const { body } = await render(App);
-		expect(body).toBe('<div>Case B</div>');
+		expect(body).toBeHtml('<div>Case B</div>');
 	});
 
 	it('renders a fall-through with an empty switch case', async () => {
@@ -43,7 +43,7 @@ describe('SSR: switch statements', () => {
 		}
 
 		const { body } = await render(App);
-		expect(body).toBe('<div>Case B or C</div>');
+		expect(body).toBeHtml('<div>Case B or C</div>');
 	});
 
 	it('renders a fall-through with a case that has elements', async () => {
@@ -64,7 +64,7 @@ describe('SSR: switch statements', () => {
 		}
 
 		const { body } = await render(App);
-		expect(body).toBe('<div>Case A</div><div>Case B</div><div>Case C</div>');
+		expect(body).toBeHtml('<div>Case A</div><div>Case B</div><div>Case C</div>');
 	});
 
 	it('renders a fall-through with a default case in the middle', async () => {
@@ -86,6 +86,6 @@ describe('SSR: switch statements', () => {
 		}
 
 		const { body } = await render(App);
-		expect(body).toBe('<div>Default Case</div><div>Case B</div>');
+		expect(body).toBeHtml('<div>Default Case</div><div>Case B</div>');
 	});
 });

@@ -11,7 +11,7 @@ describe('basic client', () => {
 		const { head, body } = await render(Basic);
 
 		expect(head).toBe('');
-		expect(body).toBe('<div>Hello World</div>');
+		expect(body).toBeHtml('<div>Hello World</div>');
 	});
 
 	it('renders tracked state updates', async () => {
@@ -26,7 +26,7 @@ describe('basic client', () => {
 
 		const { body } = await render(Counter);
 
-		expect(body).toBe('<div>6</div>');
+		expect(body).toBeHtml('<div>6</div>');
 	});
 
 	it('renders dynamic component with tracked props', async () => {
@@ -44,7 +44,7 @@ describe('basic client', () => {
 
 		const { body } = await render(Parent);
 
-		expect(body).toBe('<div class="test">Child Component</div><div>10</div>');
+		expect(body).toBeHtml('<div class="test">Child Component</div><div>10</div>');
 	});
 
 	it('renders tracked object properties', async () => {
@@ -59,7 +59,7 @@ describe('basic client', () => {
 
 		const { body } = await render(ObjCounter);
 
-		expect(body).toBe('<div>6</div>');
+		expect(body).toBeHtml('<div>6</div>');
 	});
 
 	it('renders spread props with tracked values', async () => {
@@ -73,7 +73,7 @@ describe('basic client', () => {
 
 		const { body } = await render(SpreadProps);
 
-		expect(body).toBe(
+		expect(body).toBeHtml(
 			'<div id="unique-id" class="active" style="color: red; font-size: 16px;">Spread Props</div>',
 		);
 	});
@@ -92,7 +92,7 @@ describe('basic client', () => {
 
 		const { body } = await render(Assignments);
 
-		expect(body).toBe('<div>10</div><div>10</div>');
+		expect(body).toBeHtml('<div>10</div><div>10</div>');
 	});
 
 	it(`handles derived changes via tracked dependencies' changes`, async () => {
@@ -110,7 +110,7 @@ describe('basic client', () => {
 
 		const { body } = await render(Derived);
 
-		expect(body).toBe('<div>15</div><div>21</div>');
+		expect(body).toBeHtml('<div>15</div><div>21</div>');
 	});
 
 	it(`handles derived changes based on another derived's dependencies' changes`, async () => {
@@ -129,6 +129,6 @@ describe('basic client', () => {
 
 		const { body } = await render(NestedDerived);
 
-		expect(body).toBe('<div>10</div><div>14</div>');
+		expect(body).toBeHtml('<div>10</div><div>14</div>');
 	});
 });

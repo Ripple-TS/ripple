@@ -11,7 +11,6 @@ import { hydrate_next, hydrating } from './hydration.js';
  */
 export function if_block(node, fn) {
 	if (hydrating) {
-		debugger;
 		hydrate_next();
 	}
 

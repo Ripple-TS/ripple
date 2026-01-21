@@ -22,6 +22,8 @@ export default defineConfig({
 					name: 'ripple-server',
 					include: ['packages/ripple/tests/server/**/*.test.ripple'],
 					environment: 'node',
+					setupFiles: ['packages/ripple/tests/setup-server.js'],
+					globals: true,
 				},
 				plugins: [ripple({ excludeRippleExternalModules: true })],
 				resolve: process.env.VITEST ? { conditions: ['default'] } : undefined,

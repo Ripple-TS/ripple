@@ -1173,7 +1173,7 @@ export interface TransformClientState extends BaseState {
 	events: Set<string>;
 	filename: string;
 	final: Array<AST.Statement> | null;
-	flush_node: ((is_controlled?: boolean) => AST.Identifier) | null;
+	flush_node: ((is_text?: boolean, is_controlled?: boolean) => AST.Identifier) | null;
 	hoisted: Array<AST.Statement>;
 	imports: Set<string | AST.ImportDeclaration>;
 	server_block_locals: AST.VariableDeclaration[];

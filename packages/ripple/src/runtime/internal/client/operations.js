@@ -76,7 +76,6 @@ export function first_child(node, is_text) {
  * @returns {Node | null}
  */
 export function first_child_frag(node, is_text) {
-	debugger;
 	var child = /** @type {Text} */ (first_child(node, is_text));
 
 	if (child.nodeType === Node.COMMENT_NODE && child.data === '') {

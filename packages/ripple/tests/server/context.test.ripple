@@ -26,6 +26,6 @@ describe('Context API', () => {
 
 		const { body } = await render(Outer);
 
-		expect(body).toBe('<div><span>middle</span></div><span>outer</span>');
+		expect(body).toBeHtml('<div><span>middle</span></div><span>outer</span>');
 	});
 });

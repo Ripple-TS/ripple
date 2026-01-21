@@ -12,7 +12,7 @@ describe('if statements in SSR', () => {
 		}
 
 		const { body } = await render(App);
-		expect(body).toBe('<div>If block</div>');
+		expect(body).toBeHtml('<div>If block</div>');
 	});
 
 	it('renders else block when condition is false', async () => {
@@ -27,7 +27,7 @@ describe('if statements in SSR', () => {
 		}
 
 		const { body } = await render(App);
-		expect(body).toBe('<div>Else block</div>');
+		expect(body).toBeHtml('<div>Else block</div>');
 	});
 
 	it('renders else if block when condition is true', async () => {
@@ -44,7 +44,7 @@ describe('if statements in SSR', () => {
 		}
 
 		const { body } = await render(App);
-		expect(body).toBe('<div>Case B</div>');
+		expect(body).toBeHtml('<div>Case B</div>');
 	});
 
 	it('renders final else block in an if-else if-else chain', async () => {
@@ -61,7 +61,7 @@ describe('if statements in SSR', () => {
 		}
 
 		const { body } = await render(App);
-		expect(body).toBe('<div>Default Case</div>');
+		expect(body).toBeHtml('<div>Default Case</div>');
 	});
 
 	it('renders nested if-else blocks correctly', async () => {
@@ -81,6 +81,6 @@ describe('if statements in SSR', () => {
 		}
 
 		const { body } = await render(App);
-		expect(body).toBe('<div>Outer true, Inner false</div>');
+		expect(body).toBeHtml('<div>Outer true, Inner false</div>');
 	});
 });
