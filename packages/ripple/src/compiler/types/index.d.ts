@@ -1180,7 +1180,6 @@ export interface TransformClientState extends BaseState {
 	init: Array<AST.Statement> | null;
 	metadata: BaseStateMetaData;
 	namespace: NameSpace;
-	setup: Array<AST.Statement> | null;
 	stylesheets: Array<AST.CSS.StyleSheet>;
 	template: Array<string | AST.Expression> | null;
 	update: UpdateList | null;
