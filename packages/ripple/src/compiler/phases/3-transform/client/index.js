@@ -2806,9 +2806,7 @@ function transform_children(children, context) {
 					return cached;
 				} else if (current_prev !== null) {
 					const id = get_id(node);
-					state.init?.push(
-						b.var(id, b.call('_$_.sibling', current_prev(), is_text && b.true)),
-					);
+					state.init?.push(b.var(id, b.call('_$_.sibling', current_prev(), is_text && b.true)));
 					cached = id;
 					return id;
 				} else if (initial !== null) {
@@ -2825,9 +2823,7 @@ function transform_children(children, context) {
 					}
 
 					const id = get_id(node);
-					state.init?.push(
-						b.var(id, b.call('_$_.child', state.flush_node?.(), is_text && b.true)),
-					);
+					state.init?.push(b.var(id, b.call('_$_.child', state.flush_node?.(), is_text && b.true)));
 					cached = id;
 					return id;
 				} else {
