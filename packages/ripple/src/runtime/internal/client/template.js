@@ -6,7 +6,7 @@ import {
 	TEMPLATE_SVG_NAMESPACE,
 	TEMPLATE_MATHML_NAMESPACE,
 } from '../../../constants.js';
-import { hydrate_next, hydrating } from './hydration.js';
+import { hydrate_next, hydrate_node, hydrating, pop } from './hydration.js';
 import { get_first_child, is_firefox } from './operations.js';
 import { active_block, active_namespace } from './runtime.js';
 
@@ -69,6 +69,10 @@ export function template(content, flags) {
 	var has_start = !is_comment && !content.startsWith('<!>');
 
 	return () => {
+		if (hydrating) {
+			assign_nodes(/** @type {Node} */ (hydrate_node), /** @type {Node} */ (hydrate_node));
+			return /** @type {Node} */ (hydrate_node);
+		}
 		// If using runtime namespace, check active_namespace
 		var svg = !is_comment && (use_svg_namespace || active_namespace === 'svg');
 		var mathml = !is_comment && (use_mathml_namespace || active_namespace === 'mathml');
@@ -103,6 +107,7 @@ export function template(content, flags) {
  */
 export function append(anchor, dom) {
 	if (hydrating) {
+		pop(anchor);
 		hydrate_next();
 		return;
 	}

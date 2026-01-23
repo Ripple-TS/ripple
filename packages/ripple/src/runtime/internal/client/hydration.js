@@ -21,7 +21,6 @@ export function set_hydrate_node(node, mounting = false) {
 	if (node === null && !mounting) {
 		throw HYDRATION_ERROR;
 	}
-
 	return (hydrate_node = node);
 }
 
@@ -30,13 +29,8 @@ export function hydrate_next() {
 }
 
 /** @param {Node} node */
-export function reset(node) {
+export function pop(node) {
 	if (!hydrating) return;
-
-	// If the node has remaining siblings, something has gone wrong
-	if (get_next_sibling(/** @type {Node} */ (hydrate_node)) !== null) {
-		throw HYDRATION_ERROR;
-	}
 
 	hydrate_node = node;
 }

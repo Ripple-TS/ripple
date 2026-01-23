@@ -1,4 +1,4 @@
-import { TEXT_NODE } from '../../../constants.js';
+import { COMMENT_NODE, HYDRATION_END, HYDRATION_START, TEXT_NODE } from '../../../constants.js';
 import { hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
 import { get_descriptor } from './utils.js';
 
@@ -127,6 +127,7 @@ export function next_sibling(node, is_text) {
 	}
 
 	set_hydrate_node(next_sibling);
+
 	return next_sibling;
 }
 

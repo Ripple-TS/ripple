@@ -18,7 +18,7 @@
 			import { createReactCompat } from '@ripple-ts/compat-react';
 
 			const target = document.getElementById('root');
-			const anchor = target.firstChild;
+			const anchor = target.firstChild.nextSibling;
 
 			if (anchor !== null) {
 				hydrate(App, {

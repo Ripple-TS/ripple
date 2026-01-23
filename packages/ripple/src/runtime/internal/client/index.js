@@ -87,3 +87,5 @@ export { rpc } from './rpc.js';
 export { tsx_compat } from './compat.js';
 
 export { TRY_BLOCK } from './constants.js';
+
+export { pop } from './hydration.js';

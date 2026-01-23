@@ -1404,6 +1404,27 @@ const visitors = {
 					}),
 				);
 				state.template?.push(`</${node.id.name}>`);
+
+				// We need to check if any child nodes are dynamic to determine
+				// if we need to pop the hydration stack to the parent node
+				const needs_pop = node.children.some(
+					(child) =>
+						child.type === 'IfStatement' ||
+						child.type === 'TryStatement' ||
+						child.type === 'ForOfStatement' ||
+						child.type === 'SwitchStatement' ||
+						child.type === 'TsxCompat' ||
+						child.type === 'Html' ||
+						(child.type === 'Element' &&
+							(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
+						(child.type === 'Text' && child.expression.type !== 'Literal'),
+				);
+
+				if (needs_pop) {
+					const id = state.flush_node?.();
+
+					init.push(b.stmt(b.call('_$_.pop', id)));
+				}
 			}
 
 			update.push(...local_updates);
@@ -2907,16 +2928,22 @@ function transform_children(children, context) {
 					}
 				} else {
 					// Handle Text nodes in fragments
-					state.template?.push(' ');
-					const id = flush_node(true);
-					state.update?.push({
-						operation: (key) => b.stmt(b.call('_$_.set_text', id, key)),
-						expression: /** @type {AST.Expression} */ (expression),
-						identity: node.expression,
-						initial: b.literal(' '),
-					});
-					if (metadata?.await) {
-						/** @type {NonNullable<TransformClientState['update']>} */ (state.update).async = true;
+					const expr = /** @type {AST.Expression} */ (expression);
+					if (expr.type === 'Literal') {
+						state.template?.push(escape_html(expr.value));
+					} else {
+						state.template?.push(' ');
+						const id = flush_node(true);
+						state.update?.push({
+							operation: (key) => b.stmt(b.call('_$_.set_text', id, key)),
+							expression: /** @type {AST.Expression} */ (expression),
+							identity: node.expression,
+							initial: b.literal(' '),
+						});
+						if (metadata?.await) {
+							/** @type {NonNullable<TransformClientState['update']>} */ (state.update).async =
+								true;
+						}
 					}
 				}
 			} else if (node.type === 'ForOfStatement') {
@@ -3744,25 +3771,31 @@ export function transform_client(filename, source, analysis, to_ts, minify_css) 
 
 	const program = /** @type {AST.Program} */ (walk(analysis.ast, { ...state }, visitors));
 
-	for (const hoisted of state.hoisted) {
-		program.body.unshift(hoisted);
-	}
+	const body = [];
 
 	for (const import_node of state.imports) {
 		if (typeof import_node === 'string') {
-			program.body.unshift(b.stmt(b.id(import_node)));
+			body.push(b.stmt(b.id(import_node)));
 		} else {
-			program.body.unshift(import_node);
+			body.push(import_node);
 		}
 	}
 
+	for (const hoisted of state.hoisted) {
+		body.push(hoisted);
+	}
+
+	body.push(...program.body);
+
 	if (state.events.size > 0) {
-		program.body.push(
+		body.push(
 			b.stmt(
 				b.call('_$_.delegate', b.array(Array.from(state.events).map((name) => b.literal(name)))),
 			),
 		);
 	}
+
+	program.body = body;
 
 	const language_handler = to_ts
 		? create_tsx_with_typescript_support()

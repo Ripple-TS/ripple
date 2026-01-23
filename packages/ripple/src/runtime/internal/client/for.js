@@ -3,7 +3,8 @@
 import { IS_CONTROLLED, IS_INDEXED } from '../../../constants.js';
 import { branch, destroy_block, destroy_block_children, render } from './blocks.js';
 import { FOR_BLOCK, TRACKED_ARRAY } from './constants.js';
-import { create_text, next_sibling } from './operations.js';
+import { hydrate_next, hydrating, set_hydrate_node } from './hydration.js';
+import { create_text, get_first_child, next_sibling } from './operations.js';
 import { active_block, set, tracked, untrack } from './runtime.js';
 import { array_from, is_array } from './utils.js';
 
@@ -111,7 +112,15 @@ export function for_block(node, get_collection, render_fn, flags) {
 	var anchor = /** @type {Element | Text} */ (node);
 
 	if (is_controlled) {
-		anchor = node.appendChild(create_text());
+		var parent_node = /** @type {Element} */ (node);
+
+		anchor = hydrating
+			? /** @type {Element | Text} */ (set_hydrate_node(get_first_child(parent_node)))
+			: node.appendChild(create_text());
+	}
+
+	if (hydrating) {
+		hydrate_next();
 	}
 
 	render(

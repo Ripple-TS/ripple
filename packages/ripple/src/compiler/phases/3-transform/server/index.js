@@ -772,6 +772,10 @@ const visitors = {
 		}
 		const body_scope = context.state.scopes.get(node.body);
 
+		context.state.init?.push(
+			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN))),
+		);
+
 		const body = transform_body(/** @type {AST.BlockStatement} */ (node.body).body, {
 			...context,
 			state: { ...context.state, scope: /** @type {ScopeInterface} */ (body_scope) },
@@ -789,6 +793,10 @@ const visitors = {
 				(context.visit(node.right)),
 				b.block(body),
 			),
+		);
+
+		context.state.init?.push(
+			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_CLOSE))),
 		);
 	},
 
