@@ -107,7 +107,7 @@ export function template(content, flags) {
  */
 export function append(anchor, dom) {
 	if (hydrating) {
-		pop(anchor);
+		pop(dom);
 		hydrate_next();
 		return;
 	}
