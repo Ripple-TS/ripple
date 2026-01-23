@@ -3476,11 +3476,7 @@ function create_tsx_with_typescript_support(comments) {
 				}
 				context.visit(node.params[i]);
 			}
-			if (
-				node.params.length === 1 &&
-				node.params.length === 1 &&
-				node.extra?.trailingComma !== undefined
-			) {
+			if (node.params.length === 1 && node.extra?.trailingComma !== undefined) {
 				context.write(',');
 			}
 			context.write('>');

@@ -3613,7 +3613,7 @@ function printTSTypeParameterDeclaration(node, path, options, print) {
 		if (i > 0) parts.push(', ');
 		parts.push(paramList[i]);
 	}
-	if (node.params.length === 1 && node.params.length === 1 && node.extra?.trailingComma !== undefined) {
+	if (node.params.length === 1 && node.extra?.trailingComma !== undefined) {
 		parts.push(',');
 	}
 	parts.push('>');
@@ -3654,7 +3654,6 @@ function printTSTypeParameterInstantiation(node, path, options, print) {
 		inlineParts.push(paramList[i]);
 	}
 	inlineParts.push('>');
-	const inlineDoc = concat(inlineParts);
 
 	// If any param breaks, use the breaking version with proper indentation
 	if (hasBreakingParam) {
@@ -3664,9 +3663,7 @@ function printTSTypeParameterInstantiation(node, path, options, print) {
 			if (i > 0) breakingParts.push(',', hardline);
 			breakingParts.push(paramList[i]);
 		}
-		return group(
-			concat(['<', indent(concat([hardline, ...breakingParts])), hardline, '>']),
-		);
+		return group(concat(['<', indent(concat([hardline, ...breakingParts])), hardline, '>']));
 	}
 
 	// Otherwise use group to allow natural breaking
