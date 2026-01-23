@@ -24,6 +24,7 @@ import {
 	is_void_element,
 	normalize_children,
 	is_binding_function,
+	is_inside_try_block,
 } from '../../utils.js';
 import { extract_paths } from '../../../utils/ast.js';
 import is_reference from 'is-reference';
@@ -800,6 +801,10 @@ const visitors = {
 			}
 		}
 
+		if (node.handler) {
+			context.visit(node.handler, state);
+		}
+
 		if (node.finalizer) {
 			context.visit(node.finalizer, state);
 		}
@@ -1054,20 +1059,27 @@ const visitors = {
 				context.state.metadata.await = true;
 			}
 
-			if (parent_block !== null && parent_block.type !== 'Component') {
-				if (!context.state.ancestor_server_block) {
-					// we want the error to live on the `await` keyword vs the whole expression
-					const adjusted_node /** @type {AST.AwaitExpression} */ = {
-						...node,
-						end: /** @type {AST.NodeWithLocation} */ (node).start + 'await'.length,
-					};
-					error(
-						'`await` is not allowed in client-side control-flow statements',
-						context.state.analysis.module.filename,
-						adjusted_node,
-						context.state.loose ? context.state.analysis.errors : undefined,
-					);
-				}
+			if (
+				parent_block !== null &&
+				parent_block?.type !== 'Component' &&
+				!context.state.ancestor_server_block &&
+				!(
+					parent_block.type === 'TryStatement' &&
+					parent_block.pending &&
+					is_inside_try_block(parent_block, context)
+				)
+			) {
+				// we want the error to live on the `await` keyword vs the whole expression
+				const adjusted_node /** @type {AST.AwaitExpression} */ = {
+					...node,
+					end: /** @type {AST.NodeWithLocation} */ (node).start + 'await'.length,
+				};
+				error(
+					'`await` is not allowed in client-side control-flow statements',
+					context.state.analysis.module.filename,
+					adjusted_node,
+					context.state.loose ? context.state.analysis.errors : undefined,
+				);
 			}
 		}
 
@@ -1103,7 +1115,8 @@ export function analyze(ast, filename, options = {}) {
 		metadata: {
 			serverIdentifierPresent: false,
 		},
-		errors: [],
+		errors: options.errors ?? [],
+		comments: options.comments ?? [],
 	});
 
 	walk(

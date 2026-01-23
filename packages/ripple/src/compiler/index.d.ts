@@ -87,7 +87,7 @@ export interface RippleCompileError extends Error {
 	raisedAt: number | undefined;
 	end: number | undefined;
 	loc: AST.SourceLocation | undefined;
-	fileName: string | undefined;
+	fileName: string | null;
 	type: 'fatal' | 'usage';
 }
 
@@ -104,13 +104,18 @@ export interface CompileOptions extends SharedCompileOptions {
 
 export interface ParseOptions {
 	loose?: boolean;
+	errors?: RippleCompileError[];
+	comments?: AST.CommentWithLocation[];
 }
 
 export interface AnalyzeOptions extends ParseOptions, Pick<CompileOptions, 'mode'> {
+	errors?: RippleCompileError[];
 	to_ts?: boolean;
 }
 
-export interface VolarCompileOptions extends ParseOptions, SharedCompileOptions {}
+export interface VolarCompileOptions
+	extends Omit<ParseOptions, 'errors' | 'comments'>,
+		SharedCompileOptions {}
 
 export function parse(source: string, options?: ParseOptions): AST.Program;
 

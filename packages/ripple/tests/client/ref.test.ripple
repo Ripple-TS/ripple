@@ -1,3 +1,4 @@
+import type { PropsWithExtras } from 'ripple';
 import { describe, it, expect } from 'vitest';
 import { flushSync, TrackedArray, track, createRefKey } from 'ripple';
 
@@ -20,6 +21,7 @@ describe('refs', () => {
 	});
 
 	it('works with spreading from composite component', () => {
+		type Child = typeof Child;
 		let _node: Child | undefined;
 
 		component Component() {
@@ -50,7 +52,7 @@ describe('refs', () => {
 		component App() {
 			let value = track('test');
 
-			function inputRef(node) {
+			function inputRef(node: HTMLInputElement) {
 				logs.push('ref called');
 			}
 
@@ -65,7 +67,7 @@ describe('refs', () => {
 			<Input {...props} />
 		}
 
-		component Input({ id, value, ...rest }) {
+		component Input({ id, value, ...rest }: PropsWithExtras<{ id: string; value: string }>) {
 			<input type="text" {id} {value} {...rest} />
 		}
 
@@ -81,7 +83,7 @@ describe('refs', () => {
 		component App() {
 			let value = track('test');
 
-			function inputRef(node) {
+			function inputRef(node: HTMLInputElement) {
 				logs.push('ref called');
 			}
 
@@ -95,7 +97,7 @@ describe('refs', () => {
 			<Input {ref inputRef} {...props} />
 		}
 
-		component Input({ id, value, ...rest }) {
+		component Input({ id, value, ...rest }: PropsWithExtras<{ id: string; value: string }>) {
 			<input type="text" {id} {value} {...rest} />
 		}
 

@@ -4,7 +4,7 @@ import { TRACKED_OBJECT } from '../../src/runtime/internal/client/constants.js';
 describe('TrackedObject', () => {
 	it('makes new properties reactive', () => {
 		component ObjectTest() {
-			const obj = new TrackedObject<{ a: number }>({});
+			const obj = new TrackedObject<{ a: number }>({a: -1});
 
 			obj.a = 0;
 
@@ -60,7 +60,7 @@ describe('TrackedObject', () => {
 
 	it('checks if property exists via the has trap', () => {
 		component ObjectTest() {
-			const obj = new TrackedObject<{ a: number; b: number }>({ b: 1 });
+			const obj = new TrackedObject<{ a: number; b: number }>({ a: - 1, b: 1 });
 
 			obj.a = 0;
 
@@ -160,6 +160,7 @@ describe('TrackedObject', () => {
 		component ObjectTest() {
 			const obj = new TrackedObject({ a: 0 });
 
+			// @ts-expect-error TRACKED_OBJECT is internal
 			expect(obj[TRACKED_OBJECT]).toBe(true);
 		}
 	});

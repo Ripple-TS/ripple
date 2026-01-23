@@ -776,3 +776,26 @@ export function is_binding_function(binding, scope, visited = new Set()) {
 
 	return false;
 }
+
+/**
+ * @param {AST.TryStatement} try_parent_stmt
+ * @param {CommonContext} context
+ * @returns {boolean}
+ */
+export function is_inside_try_block(try_parent_stmt, context) {
+	/** @type {AST.BlockStatement | null} */
+	let block_node = null;
+	for (let i = context.path.length - 1; i >= 0; i -= 1) {
+		const context_node = context.path[i];
+
+		if (context_node.type === 'BlockStatement') {
+			block_node = /** @type {AST.BlockStatement} */ (context_node);
+		}
+
+		if (context_node === try_parent_stmt) {
+			break;
+		}
+	}
+
+	return block_node !== null && try_parent_stmt.block === block_node;
+}

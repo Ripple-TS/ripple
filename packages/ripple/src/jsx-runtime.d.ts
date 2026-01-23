@@ -122,6 +122,174 @@ interface HTMLAttributes {
 	[key: string]: any;
 }
 
+// SVG common attributes
+interface SVGAttributes {
+	// Core attributes
+	id?: string;
+	lang?: string;
+	tabIndex?: number;
+	xmlBase?: string;
+	xmlLang?: string;
+	xmlSpace?: string;
+
+	// Styling
+	class?: ClassValue | undefined | null;
+	className?: string;
+	style?: string | Record<string, string | number>;
+
+	// Presentation attributes
+	alignmentBaseline?: 'auto' | 'baseline' | 'before-edge' | 'text-before-edge' | 'middle' | 'central' | 'after-edge' | 'text-after-edge' | 'ideographic' | 'alphabetic' | 'hanging' | 'mathematical' | 'inherit';
+	baselineShift?: string | number;
+	clip?: string;
+	clipPath?: string;
+	clipRule?: 'nonzero' | 'evenodd' | 'inherit';
+	color?: string;
+	colorInterpolation?: 'auto' | 'sRGB' | 'linearRGB' | 'inherit';
+	colorInterpolationFilters?: 'auto' | 'sRGB' | 'linearRGB' | 'inherit';
+	cursor?: string;
+	direction?: 'ltr' | 'rtl' | 'inherit';
+	display?: string;
+	dominantBaseline?: 'auto' | 'text-bottom' | 'alphabetic' | 'ideographic' | 'middle' | 'central' | 'mathematical' | 'hanging' | 'text-top' | 'inherit';
+	fill?: string;
+	fillOpacity?: number | string;
+	fillRule?: 'nonzero' | 'evenodd' | 'inherit';
+	filter?: string;
+	floodColor?: string;
+	floodOpacity?: number | string;
+	fontFamily?: string;
+	fontSize?: string | number;
+	fontSizeAdjust?: string | number;
+	fontStretch?: string;
+	fontStyle?: 'normal' | 'italic' | 'oblique' | 'inherit';
+	fontVariant?: string;
+	fontWeight?: string | number;
+	glyphOrientationHorizontal?: string;
+	glyphOrientationVertical?: string;
+	imageRendering?: 'auto' | 'optimizeSpeed' | 'optimizeQuality' | 'inherit';
+	letterSpacing?: string | number;
+	lightingColor?: string;
+	markerEnd?: string;
+	markerMid?: string;
+	markerStart?: string;
+	mask?: string;
+	opacity?: number | string;
+	overflow?: 'visible' | 'hidden' | 'scroll' | 'auto' | 'inherit';
+	pointerEvents?: 'bounding-box' | 'visiblePainted' | 'visibleFill' | 'visibleStroke' | 'visible' | 'painted' | 'fill' | 'stroke' | 'all' | 'none' | 'inherit';
+	shapeRendering?: 'auto' | 'optimizeSpeed' | 'crispEdges' | 'geometricPrecision' | 'inherit';
+	stopColor?: string;
+	stopOpacity?: number | string;
+	stroke?: string;
+	strokeDasharray?: string | number;
+	strokeDashoffset?: string | number;
+	strokeLinecap?: 'butt' | 'round' | 'square' | 'inherit';
+	strokeLinejoin?: 'miter' | 'round' | 'bevel' | 'inherit';
+	strokeMiterlimit?: number | string;
+	strokeOpacity?: number | string;
+	strokeWidth?: string | number;
+	textAnchor?: 'start' | 'middle' | 'end' | 'inherit';
+	textDecoration?: string;
+	textRendering?: 'auto' | 'optimizeSpeed' | 'optimizeLegibility' | 'geometricPrecision' | 'inherit';
+	transform?: string;
+	transformOrigin?: string;
+	unicodeBidi?: 'normal' | 'embed' | 'isolate' | 'bidi-override' | 'isolate-override' | 'plaintext' | 'inherit';
+	vectorEffect?: 'none' | 'non-scaling-stroke' | 'non-scaling-size' | 'non-rotation' | 'fixed-position';
+	visibility?: 'visible' | 'hidden' | 'collapse' | 'inherit';
+	wordSpacing?: string | number;
+	writingMode?: 'horizontal-tb' | 'vertical-rl' | 'vertical-lr' | 'inherit';
+
+	// Common SVG attributes
+	width?: string | number;
+	height?: string | number;
+	x?: string | number;
+	y?: string | number;
+	viewBox?: string;
+	preserveAspectRatio?: string;
+	xmlns?: string;
+	'xmlns:xlink'?: string;
+
+	// Event handlers (inherited from HTML but included for clarity)
+	onClick?: EventListener | AddEventObject;
+	onMouseDown?: EventListener | AddEventObject;
+	onMouseUp?: EventListener | AddEventObject;
+	onMouseMove?: EventListener | AddEventObject;
+	onMouseEnter?: EventListener | AddEventObject;
+	onMouseLeave?: EventListener | AddEventObject;
+	onMouseOver?: EventListener | AddEventObject;
+	onMouseOut?: EventListener | AddEventObject;
+	onFocus?: EventListener | AddEventObject;
+	onBlur?: EventListener | AddEventObject;
+	onLoad?: EventListener | AddEventObject;
+	onError?: EventListener | AddEventObject;
+
+	children?: any;
+	[key: string]: any;
+}
+
+// SVG animation attributes
+interface SVGAnimationAttributes {
+	attributeName?: string;
+	attributeType?: 'CSS' | 'XML' | 'auto';
+	begin?: string;
+	dur?: string;
+	end?: string;
+	min?: string;
+	max?: string;
+	restart?: 'always' | 'whenNotActive' | 'never';
+	repeatCount?: number | 'indefinite';
+	repeatDur?: string;
+	fill?: 'freeze' | 'remove';
+	calcMode?: 'discrete' | 'linear' | 'paced' | 'spline';
+	values?: string;
+	keyTimes?: string;
+	keySplines?: string;
+	from?: string | number;
+	to?: string | number;
+	by?: string | number;
+	additive?: 'replace' | 'sum';
+	accumulate?: 'none' | 'sum';
+}
+
+// SVG gradient attributes
+interface SVGGradientAttributes extends SVGAttributes {
+	gradientUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
+	gradientTransform?: string;
+	spreadMethod?: 'pad' | 'reflect' | 'repeat';
+	href?: string;
+	'xlink:href'?: string;
+}
+
+// SVG filter primitive attributes
+interface SVGFilterAttributes {
+	in?: string;
+	result?: string;
+	x?: string | number;
+	y?: string | number;
+	width?: string | number;
+	height?: string | number;
+}
+
+// SVG transfer function attributes (for feFuncR, feFuncG, feFuncB, feFuncA)
+interface SVGTransferFunctionAttributes {
+	type?: 'identity' | 'table' | 'discrete' | 'linear' | 'gamma';
+	tableValues?: string;
+	slope?: number;
+	intercept?: number;
+	amplitude?: number;
+	exponent?: number;
+	offset?: number;
+}
+
+// SVG text attributes
+interface SVGTextAttributes {
+	x?: string | number;
+	y?: string | number;
+	dx?: string | number;
+	dy?: string | number;
+	rotate?: string | number;
+	lengthAdjust?: 'spacing' | 'spacingAndGlyphs';
+	textLength?: string | number;
+}
+
 // Global JSX namespace for TypeScript
 declare global {
 	namespace JSX {
@@ -347,15 +515,231 @@ declare global {
 			};
 
 			// SVG and MathML
-			svg: HTMLAttributes & {
+			svg: HTMLAttributes & SVGAttributes;
+			math: HTMLAttributes;
+
+			// SVG elements
+			animate: HTMLAttributes & SVGAnimationAttributes;
+			animateMotion: HTMLAttributes & SVGAnimationAttributes;
+			animateTransform: HTMLAttributes & SVGAnimationAttributes & {
+				type?: 'translate' | 'scale' | 'rotate' | 'skewX' | 'skewY';
+			};
+			circle: HTMLAttributes & SVGAttributes & {
+				cx?: string | number;
+				cy?: string | number;
+				r?: string | number;
+			};
+			clipPath: HTMLAttributes & SVGAttributes & {
+				clipPathUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
+			};
+			defs: HTMLAttributes & SVGAttributes;
+			desc: HTMLAttributes & SVGAttributes;
+			ellipse: HTMLAttributes & SVGAttributes & {
+				cx?: string | number;
+				cy?: string | number;
+				rx?: string | number;
+				ry?: string | number;
+			};
+			feBlend: HTMLAttributes & SVGFilterAttributes & {
+				mode?: 'normal' | 'multiply' | 'screen' | 'overlay' | 'darken' | 'lighten' | 'color-dodge' | 'color-burn' | 'hard-light' | 'soft-light' | 'difference' | 'exclusion' | 'hue' | 'saturation' | 'color' | 'luminosity';
+				in2?: string;
+			};
+			feColorMatrix: HTMLAttributes & SVGFilterAttributes & {
+				type?: 'matrix' | 'saturate' | 'hueRotate' | 'luminanceToAlpha';
+				values?: string;
+			};
+			feComponentTransfer: HTMLAttributes & SVGFilterAttributes;
+			feComposite: HTMLAttributes & SVGFilterAttributes & {
+				operator?: 'over' | 'in' | 'out' | 'atop' | 'xor' | 'lighter' | 'arithmetic';
+				in2?: string;
+				k1?: number;
+				k2?: number;
+				k3?: number;
+				k4?: number;
+			};
+			feConvolveMatrix: HTMLAttributes & SVGFilterAttributes;
+			feDiffuseLighting: HTMLAttributes & SVGFilterAttributes;
+			feDisplacementMap: HTMLAttributes & SVGFilterAttributes;
+			feDistantLight: HTMLAttributes & SVGFilterAttributes & {
+				azimuth?: number;
+				elevation?: number;
+			};
+			feDropShadow: HTMLAttributes & SVGFilterAttributes & {
+				dx?: number;
+				dy?: number;
+				stdDeviation?: number | string;
+			};
+			feFlood: HTMLAttributes & SVGFilterAttributes & {
+				'flood-color'?: string;
+				'flood-opacity'?: number | string;
+			};
+			feFuncA: HTMLAttributes & SVGTransferFunctionAttributes;
+			feFuncB: HTMLAttributes & SVGTransferFunctionAttributes;
+			feFuncG: HTMLAttributes & SVGTransferFunctionAttributes;
+			feFuncR: HTMLAttributes & SVGTransferFunctionAttributes;
+			feGaussianBlur: HTMLAttributes & SVGFilterAttributes & {
+				stdDeviation?: number | string;
+			};
+			feImage: HTMLAttributes & SVGFilterAttributes;
+			feMerge: HTMLAttributes & SVGFilterAttributes;
+			feMergeNode: HTMLAttributes & SVGFilterAttributes;
+			feMorphology: HTMLAttributes & SVGFilterAttributes & {
+				operator?: 'erode' | 'dilate';
+				radius?: number | string;
+			};
+			feOffset: HTMLAttributes & SVGFilterAttributes & {
+				dx?: number;
+				dy?: number;
+			};
+			fePointLight: HTMLAttributes & SVGFilterAttributes & {
+				x?: number;
+				y?: number;
+				z?: number;
+			};
+			feSpecularLighting: HTMLAttributes & SVGFilterAttributes;
+			feSpotLight: HTMLAttributes & SVGFilterAttributes & {
+				x?: number;
+				y?: number;
+				z?: number;
+				pointsAtX?: number;
+				pointsAtY?: number;
+				pointsAtZ?: number;
+				specularExponent?: number;
+				limitingConeAngle?: number;
+			};
+			feTile: HTMLAttributes & SVGFilterAttributes;
+			feTurbulence: HTMLAttributes & SVGFilterAttributes & {
+				baseFrequency?: number | string;
+				numOctaves?: number;
+				seed?: number;
+				stitchTiles?: 'stitch' | 'noStitch';
+				type?: 'fractalNoise' | 'turbulence';
+			};
+			filter: HTMLAttributes & SVGAttributes & {
+				filterUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
+				primitiveUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
+				x?: string | number;
+				y?: string | number;
 				width?: string | number;
 				height?: string | number;
-				viewBox?: string;
-				xmlns?: string;
-				fill?: string;
-				stroke?: string;
 			};
-			math: HTMLAttributes;
+			foreignObject: HTMLAttributes & SVGAttributes & {
+				x?: string | number;
+				y?: string | number;
+				width?: string | number;
+				height?: string | number;
+			};
+			g: HTMLAttributes & SVGAttributes;
+			image: HTMLAttributes & SVGAttributes & {
+				href?: string;
+				'xlink:href'?: string;
+				x?: string | number;
+				y?: string | number;
+				width?: string | number;
+				height?: string | number;
+				preserveAspectRatio?: string;
+			};
+			line: HTMLAttributes & SVGAttributes & {
+				x1?: string | number;
+				y1?: string | number;
+				x2?: string | number;
+				y2?: string | number;
+			};
+			linearGradient: HTMLAttributes & SVGGradientAttributes & {
+				x1?: string | number;
+				y1?: string | number;
+				x2?: string | number;
+				y2?: string | number;
+			};
+			marker: HTMLAttributes & SVGAttributes & {
+				markerHeight?: string | number;
+				markerUnits?: 'strokeWidth' | 'userSpaceOnUse';
+				markerWidth?: string | number;
+				orient?: string | number;
+				refX?: string | number;
+				refY?: string | number;
+			};
+			mask: HTMLAttributes & SVGAttributes & {
+				maskContentUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
+				maskUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
+				x?: string | number;
+				y?: string | number;
+				width?: string | number;
+				height?: string | number;
+			};
+			metadata: HTMLAttributes & SVGAttributes;
+			mpath: HTMLAttributes & SVGAttributes & {
+				'xlink:href'?: string;
+			};
+			path: HTMLAttributes & SVGAttributes & {
+				d?: string;
+				pathLength?: number;
+			};
+			pattern: HTMLAttributes & SVGAttributes & {
+				patternContentUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
+				patternTransform?: string;
+				patternUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
+				x?: string | number;
+				y?: string | number;
+				width?: string | number;
+				height?: string | number;
+			};
+			polygon: HTMLAttributes & SVGAttributes & {
+				points?: string;
+			};
+			polyline: HTMLAttributes & SVGAttributes & {
+				points?: string;
+			};
+			radialGradient: HTMLAttributes & SVGGradientAttributes & {
+				cx?: string | number;
+				cy?: string | number;
+				r?: string | number;
+				fx?: string | number;
+				fy?: string | number;
+				fr?: string | number;
+			};
+			rect: HTMLAttributes & SVGAttributes & {
+				x?: string | number;
+				y?: string | number;
+				width?: string | number;
+				height?: string | number;
+				rx?: string | number;
+				ry?: string | number;
+			};
+			set: HTMLAttributes & SVGAnimationAttributes;
+			stop: HTMLAttributes & SVGAttributes & {
+				offset?: string | number;
+				'stop-color'?: string;
+				'stop-opacity'?: number | string;
+			};
+			switch: HTMLAttributes & SVGAttributes;
+			symbol: HTMLAttributes & SVGAttributes & {
+				viewBox?: string;
+				preserveAspectRatio?: string;
+				refX?: string | number;
+				refY?: string | number;
+			};
+			text: HTMLAttributes & SVGAttributes & SVGTextAttributes;
+			textPath: HTMLAttributes & SVGAttributes & SVGTextAttributes & {
+				href?: string;
+				'xlink:href'?: string;
+				startOffset?: string | number;
+				method?: 'align' | 'stretch';
+				spacing?: 'auto' | 'exact';
+			};
+			tspan: HTMLAttributes & SVGAttributes & SVGTextAttributes;
+			use: HTMLAttributes & SVGAttributes & {
+				href?: string;
+				'xlink:href'?: string;
+				x?: string | number;
+				y?: string | number;
+				width?: string | number;
+				height?: string | number;
+			};
+			view: HTMLAttributes & SVGAttributes & {
+				viewBox?: string;
+				preserveAspectRatio?: string;
+			};
 
 			// Scripting
 			canvas: HTMLAttributes & {

@@ -1,3 +1,4 @@
+import type { Component, Props, PropsWithChildren, PropsWithExtras } from 'ripple';
 import { track } from 'ripple';
 
 describe('SVG namespace handling', () => {
@@ -231,7 +232,7 @@ describe('SVG namespace handling', () => {
 	});
 
 	it('should render SVG with children as svg elements', () => {
-		component SVG({ children }) {
+		component SVG({ children }: PropsWithChildren<{}>) {
 			<svg width={20} height={20} fill="blue" viewBox="0 0 30 10" preserveAspectRatio="none">
 				<children />
 			</svg>
@@ -258,7 +259,7 @@ describe('SVG namespace handling', () => {
 	});
 
 	it('should render SVG with props as svg elements', () => {
-		component SVG({ Polygon }) {
+		component SVG({ Polygon }: PropsWithExtras<{ Polygon: Component }>) {
 			<svg width={20} height={20} fill="blue" viewBox="0 0 30 10" preserveAspectRatio="none">
 				<Polygon />
 			</svg>
@@ -282,7 +283,7 @@ describe('SVG namespace handling', () => {
 	});
 
 	it('should render SVG with children as dynamic elements', () => {
-		component SVG({ children }) {
+		component SVG({ children }: PropsWithChildren<{}>) {
 			<svg width={20} height={20} fill="blue" viewBox="0 0 30 10" preserveAspectRatio="none">
 				<children />
 			</svg>
@@ -305,13 +306,13 @@ describe('SVG namespace handling', () => {
 	});
 
 	it('should render SVG with children as dynamic components', () => {
-		component SVG({ children }) {
+		component SVG({ children }: PropsWithChildren<{}>) {
 			<svg width={20} height={20} fill="blue" viewBox="0 0 30 10" preserveAspectRatio="none">
 				<children />
 			</svg>
 		}
 
-		component Polygon({ points }) {
+		component Polygon({ points }: PropsWithExtras<{ points: string }>) {
 			<polygon {points} />
 		}
 
@@ -332,14 +333,14 @@ describe('SVG namespace handling', () => {
 	});
 
 	it('should render SVG as a dynamic top element with any dynamic children elements', () => {
-		component SVG({ children }) {
+		component SVG({ children }: PropsWithChildren<{}>) {
 			const tag = track('svg');
 			<@tag width={100} height={50} fill="red" viewBox="0 0 30 10" preserveAspectRatio="none">
 				<children />
 			</@tag>
 		}
 
-		component Polygon({ points }) {
+		component Polygon({ points }: PropsWithExtras<{ points: string }>) {
 			let dynTag = track('polygon');
 			<@dynTag {points} />
 		}

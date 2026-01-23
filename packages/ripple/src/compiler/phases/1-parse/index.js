@@ -3,7 +3,7 @@
 @import * as ESTreeJSX from 'estree-jsx'
 @import { Parse } from '#parser'
 @import { RipplePluginConfig } from '#compiler';
-@import { ParseOptions } from 'ripple/compiler'
+@import { ParseOptions, RippleCompileError } from 'ripple/compiler'
  */
 
 import * as acorn from 'acorn';
@@ -11,6 +11,7 @@ import { tsPlugin } from '@sveltejs/acorn-typescript';
 import { parse_style } from './style.js';
 import { walk } from 'zimmerframe';
 import { regex_newline_characters } from '../../../utils/patterns.js';
+import { error } from '../../errors.js';
 
 /**
  * @typedef {(BaseParser: typeof acorn.Parser) => typeof acorn.Parser} AcornPlugin
@@ -159,6 +160,10 @@ function RipplePlugin(config) {
 			#path = [];
 			#commentContextId = 0;
 			#loose = false;
+			/** @type {RippleCompileError[] | undefined} */
+			#errors = undefined;
+			/** @type {string | null} */
+			#filename = null;
 
 			/**
 			 * @param {Parse.Options} options
@@ -167,6 +172,101 @@ function RipplePlugin(config) {
 			constructor(options, input) {
 				super(options, input);
 				this.#loose = options?.rippleOptions.loose === true;
+				this.#errors = options?.rippleOptions.errors;
+				this.#filename = options?.rippleOptions.filename || null;
+			}
+
+			/**
+			 * Override to allow single-parameter generic arrow functions without trailing comma.
+			 * By default, @sveltejs/acorn-typescript throws an error for `<T>() => {}` when JSX is enabled
+			 * because it can't disambiguate from JSX. However, the parser still parses it correctly
+			 * using tryParse - it just throws afterwards. By overriding this to do nothing, we allow
+			 * the valid parse to succeed.
+			 * @param {AST.TSTypeParameterDeclaration} node
+			 */
+			reportReservedArrowTypeParam(node) {
+				// Allow <T>() => {} syntax without requiring trailing comma
+				if (this.#loose && node.params.length === 1 && node.extra?.trailingComma === undefined) {
+					error(
+						'This syntax is reserved in files with the .mts or .cts extension. Add a trailing comma, as in `<T,>() => ...`.',
+						this.#filename,
+						node,
+						this.#errors,
+					);
+				}
+			}
+
+			/**
+			 * Override to allow `readonly` type modifier on any type in loose mode.
+			 * By default, @sveltejs/acorn-typescript throws an error for `readonly { ... }`
+			 * because TypeScript only permits `readonly` on array and tuple types.
+			 * Suppress the error in the strict mode as ts is compiled away.
+			 * @param {AST.TSTypeOperator} node
+			 */
+			tsCheckTypeAnnotationForReadOnly(node) {
+				const typeAnnotation = /** @type {AST.TypeNode} */ (node.typeAnnotation);
+				if (typeAnnotation.type === 'TSTupleType' || typeAnnotation.type === 'TSArrayType') {
+					// Valid readonly usage, no error needed
+					return;
+				}
+
+				if (this.#loose) {
+					error(
+						"'readonly' type modifier is only permitted on array and tuple literal types.",
+						this.#filename,
+						typeAnnotation,
+						this.#errors,
+					);
+				}
+			}
+
+			/**
+			 * Override parsePropertyValue to support TypeScript generic methods in object literals.
+			 * By default, acorn-typescript doesn't handle `{ method<T>() {} }` syntax.
+			 * This override checks for type parameters before parsing the method.
+			 * @type {Parse.Parser['parsePropertyValue']}
+			 */
+			parsePropertyValue(
+				prop,
+				isPattern,
+				isGenerator,
+				isAsync,
+				startPos,
+				startLoc,
+				refDestructuringErrors,
+				containsEsc,
+			) {
+				// Check if this is a method with type parameters (e.g., `method<T>() {}`)
+				// We need to parse type parameters before the parentheses
+				if (
+					!isPattern &&
+					!isGenerator &&
+					!isAsync &&
+					this.type === tt.relational &&
+					this.value === '<'
+				) {
+					// Try to parse type parameters
+					const typeParameters = this.tsTryParseTypeParameters();
+					if (typeParameters && this.type === tt.parenL) {
+						// This is a method with type parameters
+						/** @type {AST.Property} */ (prop).method = true;
+						/** @type {AST.Property} */ (prop).kind = 'init';
+						/** @type {AST.Property} */ (prop).value = this.parseMethod(false, false);
+						/** @type {AST.Property} */ (prop).value.typeParameters = typeParameters;
+						return;
+					}
+				}
+
+				return super.parsePropertyValue(
+					prop,
+					isPattern,
+					isGenerator,
+					isAsync,
+					startPos,
+					startLoc,
+					refDestructuringErrors,
+					containsEsc,
+				);
 			}
 
 			/**
@@ -2915,72 +3015,41 @@ function get_comment_handlers(source, comments, index = 0) {
 /**
  * Parse Ripple source code into an AST
  * @param {string} source
+ * @param {string} [filename]
  * @param {ParseOptions} [options]
  * @returns {AST.Program}
  */
-export function parse(source, options) {
+export function parse(source, filename, options) {
 	/** @type {AST.CommentWithLocation[]} */
 	const comments = [];
+	const output_comments = options?.comments;
 
-	// Preprocess step 1: Add trailing commas to single-parameter generics followed by (
-	// This is a workaround for @sveltejs/acorn-typescript limitations with JSX enabled
-	let preprocessedSource = source;
-	let sourceChanged = false;
-
-	preprocessedSource = source.replace(/(<\s*[A-Z][a-zA-Z0-9_$]*\s*)>\s*\(/g, (_, generic) => {
-		sourceChanged = true;
-		// Add trailing comma to disambiguate from JSX
-		return `${generic},>(`;
-	});
-
-	// Preprocess step 2: Convert generic method shorthand in object literals to function property syntax
-	// Transform `method<T,>(...): ReturnType { body }` to `method: function<T,>(...): ReturnType { body }`
-	// Note: This only applies to object literal methods, not class methods
-	// The trailing comma was already added by step 1
-	preprocessedSource = preprocessedSource.replace(
-		/(\w+)(<[A-Z][a-zA-Z0-9_$,\s]*>)\s*\(([^)]*)\)(\s*:\s*[^{]+)?(\s*\{)/g,
-		(match, methodName, generics, params, returnType, brace, offset) => {
-			// Look backward to determine context
-			let checkPos = offset - 1;
-			while (checkPos >= 0 && /\s/.test(preprocessedSource[checkPos])) checkPos--;
-			const prevChar = preprocessedSource[checkPos];
-
-			// Check if we're inside a class
-			const before = preprocessedSource.substring(Math.max(0, offset - 500), offset);
-			const classMatch = before.match(/\bclass\s+\w+[^{]*\{[^}]*$/);
-
-			// Only transform if we're in an object literal context AND not inside a class
-			if ((prevChar === '{' || prevChar === ',') && !classMatch) {
-				sourceChanged = true;
-				// This is object literal method shorthand - convert to function property
-				// Add trailing comma if not already present
-				const fixedGenerics = generics.includes(',') ? generics : generics.replace('>', ',>');
-				return `${methodName}: function${fixedGenerics}(${params})${returnType || ''}${brace}`;
-			}
-			return match;
-		},
-	);
-
-	// Only mark as preprocessed if we actually changed something
-	if (!sourceChanged) {
-		preprocessedSource = source;
-	}
-
-	const { onComment, add_comments } = get_comment_handlers(preprocessedSource, comments);
+	const { onComment, add_comments } = get_comment_handlers(source, comments);
+	/** @type {AST.Program} */
 	let ast;
 
 	try {
-		ast = parser.parse(preprocessedSource, {
+		ast = parser.parse(source, {
 			sourceType: 'module',
 			ecmaVersion: 13,
 			locations: true,
 			onComment,
 			rippleOptions: {
+				filename,
+				errors: options?.errors ?? [],
 				loose: options?.loose || false,
 			},
 		});
 	} catch (e) {
 		throw e;
+	}
+
+	if (output_comments) {
+		// Copy comments to output array
+		// as add_comments modifies the original array (e.g. shift)
+		for (let i = 0; i < comments.length; i++) {
+			output_comments.push(comments[i]);
+		}
 	}
 
 	add_comments(ast);

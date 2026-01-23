@@ -16,6 +16,7 @@ import type * as ESTreeJSX from 'estree-jsx';
 import type * as ESRap from 'esrap';
 import type * as SourceMap from '@jridgewell/sourcemap-codec';
 import type * as RippleCompiler from '#compiler';
+import type { RippleCompileError } from 'ripple/compiler';
 
 type ForInit = boolean | 'await';
 
@@ -183,6 +184,8 @@ export namespace Parse {
 	export interface Options extends Omit<acorn.Options, 'onComment' | 'ecmaVersion'> {
 		rippleOptions: {
 			loose: boolean;
+			errors: RippleCompileError[];
+			filename: string | undefined;
 		};
 		// The type has "latest" but it's converted to 1e8 at runtime
 		// and if (ecmaVersion >= 2015) { ecmaVersion -= 2009 }
@@ -1120,6 +1123,12 @@ export namespace Parse {
 			refDestructuringErrors?: DestructuringErrors,
 			containsEsc?: boolean,
 		): void;
+
+		tsTryParseTypeParameters(
+			parseModifiers?: (node: AST.Node) => void | null,
+		): AST.TSTypeParameterDeclaration;
+
+		tsCheckTypeAnnotationForReadOnly(node: AST.TSTypeOperator): void;
 
 		/**
 		 * Get property kind from name

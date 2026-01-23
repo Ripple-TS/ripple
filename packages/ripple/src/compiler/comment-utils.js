@@ -80,12 +80,12 @@ export function format_comment(comment) {
 		if (comment.value.trimStart().startsWith('/')) {
 			return `/// ${comment.value.trimStart().slice(1)}`;
 		}
-		return `// ${comment.value}`;
+		return `// ${comment.value.trim()}`;
 	} else {
 		// Block comment - check if it's a JSDoc (value starts with *)
 		if (comment.value.startsWith('*')) {
 			return `/** ${comment.value.trim().slice(1)} */`;
 		}
-		return `/* ${comment.value} */`;
+		return `/* ${comment.value.trim()} */`;
 	}
 }

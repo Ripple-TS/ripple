@@ -12,7 +12,7 @@ import { convert_source_map_to_mappings } from './phases/3-transform/segments.js
  * @returns {AST.Program}
  */
 export function parse(source) {
-	return parse_module(source, undefined);
+	return parse_module(source, undefined, undefined);
 }
 
 /**
@@ -23,7 +23,7 @@ export function parse(source) {
  * @returns {object}
  */
 export function compile(source, filename, options = {}) {
-	const ast = parse_module(source, undefined);
+	const ast = parse_module(source, filename, undefined);
 	const analysis = analyze(ast, filename, options);
 	const result =
 		options.mode === 'server'
@@ -34,7 +34,7 @@ export function compile(source, filename, options = {}) {
 }
 
 /** @import { PostProcessingChanges, LineOffsets } from './phases/3-transform/client/index.js' */
-/** @import { VolarMappingsResult, VolarCompileOptions, CompileOptions } from 'ripple/compiler' */
+/** @import { VolarMappingsResult, VolarCompileOptions, CompileOptions, RippleCompileError } from 'ripple/compiler' */
 
 /**
  * Compile Ripple component to Volar virtual code with TypeScript mappings
@@ -43,9 +43,16 @@ export function compile(source, filename, options = {}) {
  * @param {VolarCompileOptions} [options] - Compiler options
  * @returns {VolarMappingsResult} Volar mappings object
  */
-export function compile_to_volar_mappings(source, filename, options) {
-	const ast = parse_module(source, options);
-	const analysis = analyze(ast, filename, { to_ts: true, loose: !!options?.loose });
+export function compile_to_volar_mappings(source, filename, options = {}) {
+	const errors = /** @type {RippleCompileError[]} */ ([]);
+	const comments = /** @type {AST.CommentWithLocation[]} */ ([]);
+	const ast = parse_module(source, filename, { ...options, errors, comments });
+	const analysis = analyze(ast, filename, {
+		to_ts: true,
+		loose: !!options?.loose,
+		errors,
+		comments,
+	});
 	const transformed = transform_client(
 		filename,
 		source,

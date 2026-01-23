@@ -1754,6 +1754,33 @@ files = [...(files ?? []), ...dt.files];`;
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
 		});
+
+		it('should preserve the order of try / pending / catch block', async () => {
+			const expected = `component Test() {
+  let items: TrackedArray<string> | null = null;
+  let error: string | null = null;
+
+  async function* throwingIterable() {
+    throw new Error('Async error');
+  }
+
+  try {
+    items = await TrackedArray.fromAsync(throwingIterable());
+    for (const item of items) {
+      <li>{item}</li>
+    }
+  } pending {
+    <div>{'Loading...'}</div>
+  } catch (e) {
+    error = (e as Error).message;
+  } finally {
+    <div>{'finally block'}</div>
+  }
+}`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
 	});
 
 	describe('edge cases', () => {
@@ -2613,6 +2640,26 @@ const items = [] as unknown[];`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should format nested generics types', async () => {
+			const expected = `component Test() {
+  const [children, rest] = trackSplit<
+    PropsWithChildren<{
+      class: string;
+      id: string;
+      onClick: EventListener;
+    }>,
+    keyof PropsWithChildren<{
+      class: string;
+      id: string;
+      onClick: EventListener;
+    }>
+  >(props as Props, ['children']);
+}`;
+
+			const result = await format(expected, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should format TypeScript tuple types (TSTupleType)', async () => {
 			const input = `type T = [string, number, boolean];`;
 			const expected = `type T = [string, number, boolean];`;
@@ -2694,6 +2741,15 @@ const items = [] as unknown[];`;
   <div>{length}</div>
 }`;
 			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should keep the TSInstantiationExpression ', async () => {
+			const expected = `component Test() {
+  const items = (Promise<string[]>).reject(new Error('Async error'));
+}`;
+
+			const result = await format(expected, { singleQuote: true });
 			expect(result).toBeWithNewline(expected);
 		});
 

@@ -126,6 +126,15 @@ declare module 'estree' {
 		context?: Parse.CommentMetaData | null;
 	}
 
+	// For now only ObjectExpression needs printInline
+	// Needed to avoid ts pragma comments being on the wrong line that
+	// does not affect the next line as in the source code
+	interface ObjectExpression {
+		metadata: BaseNodeMetaData & {
+			printInline?: boolean;
+		}
+	}
+
 	/**
 	 * Custom Comment interface with location information
 	 */
@@ -763,8 +772,10 @@ declare module 'estree' {
 	interface TSInferType extends Omit<AcornTSNode<TSESTree.TSInferType>, 'typeParameter'> {
 		typeParameter: TSTypeParameter;
 	}
-	interface TSInstantiationExpression extends AcornTSNode<TSESTree.TSInstantiationExpression> {
+	interface TSInstantiationExpression
+		extends Omit<AcornTSNode<TSESTree.TSInstantiationExpression>, 'typeArguments' | 'expression'> {
 		expression: AST.Expression;
+		typeArguments: TSTypeParameterInstantiation;
 	}
 	interface TSInterfaceBody extends Omit<AcornTSNode<TSESTree.TSInterfaceBody>, 'body'> {
 		body: TypeElement[];
@@ -893,7 +904,10 @@ declare module 'estree' {
 	}
 	interface TSTypeParameterDeclaration
 		extends Omit<AcornTSNode<TSESTree.TSTypeParameterDeclaration>, 'params'> {
-		params: TypeNode[];
+		params: TSTypeParameter[];
+		extra?: {
+			trailingComma: number;
+		};
 	}
 	interface TSTypeParameterInstantiation
 		extends Omit<AcornTSNode<TSESTree.TSTypeParameterInstantiation>, 'params'> {
@@ -975,6 +989,7 @@ export interface AnalysisResult {
 		serverIdentifierPresent: boolean;
 	};
 	errors: RippleCompileError[];
+	comments: AST.CommentWithLocation[];
 }
 
 /**

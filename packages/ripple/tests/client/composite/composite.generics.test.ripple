@@ -31,12 +31,12 @@ describe('composite > generics', () => {
 				}
 
 				open<U>() {
-					return new Box<U>();
+					return new Box<number>(1);
 				}
 			}
 			const limit = 100;
 			const i =
-				new Box<number>().value < limit ? 'ok' : 'no';
+				new Box<number>(2).value < limit ? 'ok' : 'no';
 
 			// 10. JSX / Element should still work
 			<div class="still-works">
@@ -140,14 +140,14 @@ describe('composite > generics', () => {
 
 			// 19. Ternary containing generics in both branches
 			let flag = true;
-			const s = flag ? new Box<number>() : new Box<string>();
+			const s = flag ? new Box<number>(1) : new Box<string>('string');
 
 			// 20. Generic inside template expression
 			const t = `length=${new TrackedArray<number>().length}`;
 
 			// 21. Optional chaining + generic + property access
 			const registry = new TrackedMap<string, number>();
-			const u = registry.get<number>('id')?.toString();
+			const u = registry.get('id')?.toString();
 
 			// 22. Generic call used as callee for another call
 			function make<T>() {
@@ -171,7 +171,7 @@ describe('composite > generics', () => {
 			// Additional component focusing on edge crankers
 
 			// 28. Generic after parenthesized new expression
-			const aa = (new Box<number>()).open<string>();
+			const aa = (new Box<number>(2)).open<string>();
 
 			// 29. Generic chain right after closing paren of IIFE
 			class Builder<Kind> {
@@ -202,8 +202,7 @@ describe('composite > generics', () => {
 				}
 			}
 			const gg = new Mapper<// key type
-			string, /* value type */
-			number>();
+			string /* value type */, number>();
 
 			// 33. Map of generic instance as key
 			const mm = new Map<TrackedArray<number>, TrackedArray<string>>();
