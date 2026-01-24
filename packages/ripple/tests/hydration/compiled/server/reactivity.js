@@ -1,6 +1,6 @@
 import * as _$_ from 'ripple/internal/server';
 
-import { track } from 'ripple';
+import { track } from 'ripple/ssr';
 
 export function TrackedState(__output) {
 	_$_.push_component();

@@ -55,6 +55,10 @@
     "./internal/server": {
       "default": "./src/runtime/internal/server/index.js"
     },
+    "./ssr": {
+      "types": "./types/index.d.ts",
+      "default": "./src/runtime/index-server.js"
+    },
     "./jsx-runtime": {
       "types": "./src/jsx-runtime.d.ts",
       "import": "./src/jsx-runtime.js",

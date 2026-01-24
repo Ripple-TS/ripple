@@ -71,12 +71,15 @@ describe('hydration > for blocks', () => {
 			ClientComponents.ForLoopInteractive,
 		);
 
-		const items = container.querySelectorAll('[class^="item-"]');
+		let items = container.querySelectorAll('[class^="item-"]');
 		expect(items.length).toBe(3);
 
 		// Click the second item's button
 		/** @type {HTMLButtonElement | null} */ (items[1]?.querySelector('.increment'))?.click();
 		flushSync();
+
+		// Re-query after state update since DOM may have been re-rendered
+		items = container.querySelectorAll('[class^="item-"]');
 
 		expect(items[0]?.querySelector('.value')?.textContent).toBe('0');
 		expect(items[1]?.querySelector('.value')?.textContent).toBe('1');

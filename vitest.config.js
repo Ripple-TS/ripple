@@ -92,6 +92,9 @@ export default defineConfig({
 					globals: true,
 				},
 				plugins: [ripple({ excludeRippleExternalModules: true })],
+				// Use browser conditions for client code, but server-compiled
+				// components may import from 'ripple' which needs server runtime
+				// This is a limitation - reactive server components need different setup
 				resolve: process.env.VITEST ? { conditions: ['browser'] } : undefined,
 			},
 		],

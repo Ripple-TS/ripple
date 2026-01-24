@@ -17,6 +17,23 @@ const componentsDir = join(__dirname, 'components');
 const clientOutDir = join(__dirname, 'compiled', 'client');
 const serverOutDir = join(__dirname, 'compiled', 'server');
 
+/**
+ * Transform server-compiled code to use server runtime imports.
+ * This is necessary because vitest runs with browser conditions, but
+ * server-compiled code needs server's track() which has different internals.
+ * @param {string} code - The compiled server code
+ * @returns {string} - Transformed code with server-compatible imports
+ */
+function transformServerImports(code) {
+	// Replace `import { track } from 'ripple'` with server version
+	// Use 'ripple/ssr' which always points to the server runtime,
+	// bypassing the browser/default condition resolution
+	return code.replace(
+		/import\s*\{\s*track\s*\}\s*from\s*['"]ripple['"]/g,
+		"import { track } from 'ripple/ssr'",
+	);
+}
+
 function buildComponents() {
 	// Ensure output directories exist
 	mkdirSync(clientOutDir, { recursive: true });
@@ -40,7 +57,9 @@ function buildComponents() {
 		const serverResult = compile(source, file, {
 			mode: 'server',
 		});
-		writeFileSync(join(serverOutDir, outputName), serverResult.js.code);
+		// Transform imports to use server runtime
+		const serverCode = transformServerImports(serverResult.js.code);
+		writeFileSync(join(serverOutDir, outputName), serverCode);
 
 		console.log(`Compiled ${file} -> client & server`);
 	}

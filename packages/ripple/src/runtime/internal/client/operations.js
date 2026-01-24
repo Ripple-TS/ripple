@@ -89,6 +89,11 @@ export function first_child(node, is_text) {
  * @returns {Node | null}
  */
 export function first_child_frag(node, is_text) {
+	// During hydration, for fragment templates, hydrate_node is already
+	// pointing to the first element of the fragment. Don't descend into it.
+	if (hydrating) {
+		return hydrate_node;
+	}
 	var child = /** @type {Text} */ (first_child(node, is_text));
 
 	if (child.nodeType === Node.COMMENT_NODE && child.data === '') {

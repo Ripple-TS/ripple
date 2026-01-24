@@ -108,7 +108,11 @@ export function template(content, flags) {
 export function append(anchor, dom) {
 	if (hydrating) {
 		pop(dom);
-		hydrate_next();
+		// During hydration, if anchor === dom, we're hydrating a child component
+		// where the "anchor" IS the content. Don't advance past it.
+		if (anchor !== dom) {
+			hydrate_next();
+		}
 		return;
 	}
 	anchor.before(/** @type {Node} */ (dom));
