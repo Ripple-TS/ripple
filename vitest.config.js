@@ -88,6 +88,7 @@ export default defineConfig({
 					include: ['packages/ripple/tests/hydration/**/*.test.js'],
 					environment: 'jsdom',
 					setupFiles: ['packages/ripple/tests/setup-hydration.js'],
+					globalSetup: ['packages/ripple/tests/hydration/build-components.js'],
 					globals: true,
 				},
 				plugins: [ripple({ excludeRippleExternalModules: true })],

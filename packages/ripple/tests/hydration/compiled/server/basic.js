@@ -110,7 +110,7 @@ export function Greeting(__output, props) {
 	_$_.push_component();
 	__output.push('<div');
 	__output.push('>');
-	__output.push(_$_.escape("Hello " + String(props.name)));
+	__output.push(_$_.escape('Hello ' + String(props.name)));
 	__output.push('</div>');
 	_$_.pop_component();
 }

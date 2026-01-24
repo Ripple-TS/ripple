@@ -119,7 +119,7 @@ export function Greeting(__anchor, props, __block) {
 	}
 
 	_$_.render(() => {
-		_$_.set_text(text_1, "Hello " + _$_.with_scope(__block, () => String(props.name)));
+		_$_.set_text(text_1, 'Hello ' + _$_.with_scope(__block, () => String(props.name)));
 	});
 
 	_$_.append(__anchor, div_6);
