@@ -1,0 +1,65 @@
+// Basic static components for hydration testing
+
+export component StaticText() {
+	<div>{'Hello World'}</div>
+}
+
+export component MultipleElements() {
+	<h1>{'Title'}</h1>
+	<p>{'Paragraph text'}</p>
+	<span>{'Span text'}</span>
+}
+
+export component NestedElements() {
+	<div class="outer">
+		<div class="inner">
+			<span>{'Nested content'}</span>
+		</div>
+	</div>
+}
+
+export component WithAttributes() {
+	<input type="text" placeholder="Enter text" disabled />
+	<a href="/link" target="_blank">{'Link'}</a>
+}
+
+export component ChildComponent() {
+	<span class="child">{'Child content'}</span>
+}
+
+export component ParentWithChild() {
+	<div class="parent">
+		<ChildComponent />
+	</div>
+}
+
+export component FirstSibling() {
+	<div class="first">{'First'}</div>
+}
+
+export component SecondSibling() {
+	<div class="second">{'Second'}</div>
+}
+
+export component SiblingComponents() {
+	<FirstSibling />
+	<SecondSibling />
+}
+
+export component Greeting(props: { name: string }) {
+	<div>
+		{'Hello '}
+		{props.name}
+	</div>
+}
+
+export component WithGreeting() {
+	<Greeting name="World" />
+}
+
+export component ExpressionContent() {
+	const value = 42;
+	const text = 'computed';
+	<div>{value}</div>
+	<span>{text.toUpperCase()}</span>
+}

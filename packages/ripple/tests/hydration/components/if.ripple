@@ -1,0 +1,123 @@
+// If block components for hydration testing
+import { track } from 'ripple';
+
+export component IfTruthy() {
+	const show = true;
+	if (show) {
+		<div class="shown">{'Visible'}</div>
+	}
+}
+
+export component IfFalsy() {
+	const show = false;
+	if (show) {
+		<div class="shown">{'Visible'}</div>
+	}
+}
+
+export component IfElse() {
+	const isLoggedIn = true;
+	if (isLoggedIn) {
+		<div class="logged-in">{'Welcome back!'}</div>
+	} else {
+		<div class="logged-out">{'Please log in'}</div>
+	}
+}
+
+export component ReactiveIf() {
+	let show = track(true);
+	<button
+		class="toggle"
+		onClick={() => {
+			@show = !@show;
+		}}
+	>
+		{'Toggle'}
+	</button>
+	if (@show) {
+		<div class="content">{'Content visible'}</div>
+	}
+}
+
+export component ReactiveIfElse() {
+	let isOn = track(false);
+	<button
+		class="toggle"
+		onClick={() => {
+			@isOn = !@isOn;
+		}}
+	>
+		{'Toggle'}
+	</button>
+	if (@isOn) {
+		<div class="on">{'ON'}</div>
+	} else {
+		<div class="off">{'OFF'}</div>
+	}
+}
+
+export component NestedIf() {
+	let outer = track(true);
+	let inner = track(true);
+	<button
+		class="outer-toggle"
+		onClick={() => {
+			@outer = !@outer;
+		}}
+	>
+		{'Outer'}
+	</button>
+	<button
+		class="inner-toggle"
+		onClick={() => {
+			@inner = !@inner;
+		}}
+	>
+		{'Inner'}
+	</button>
+	if (@outer) {
+		<div class="outer-content">
+			{'Outer'}
+			if (@inner) {
+				<span class="inner-content">{'Inner'}</span>
+			}
+		</div>
+	}
+}
+
+export component IfElseIfChain() {
+	let status = track<'loading' | 'success' | 'error'>('loading');
+	<div>
+		<button
+			class="success"
+			onClick={() => {
+				@status = 'success';
+			}}
+		>
+			{'Success'}
+		</button>
+		<button
+			class="error"
+			onClick={() => {
+				@status = 'error';
+			}}
+		>
+			{'Error'}
+		</button>
+		<button
+			class="loading"
+			onClick={() => {
+				@status = 'loading';
+			}}
+		>
+			{'Loading'}
+		</button>
+		if (@status === 'loading') {
+			<div class="state">{'Loading...'}</div>
+		} else if (@status === 'success') {
+			<div class="state">{'Success!'}</div>
+		} else {
+			<div class="state">{'Error occurred'}</div>
+		}
+	</div>
+}

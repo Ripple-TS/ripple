@@ -82,6 +82,17 @@ export default defineConfig({
 				plugins: [ripple({ excludeRippleExternalModules: true })],
 				resolve: process.env.VITEST ? { conditions: ['browser'] } : undefined,
 			},
+			{
+				test: {
+					name: 'ripple-hydration',
+					include: ['packages/ripple/tests/hydration/**/*.test.js'],
+					environment: 'jsdom',
+					setupFiles: ['packages/ripple/tests/setup-hydration.js'],
+					globals: true,
+				},
+				plugins: [ripple({ excludeRippleExternalModules: true })],
+				resolve: process.env.VITEST ? { conditions: ['browser'] } : undefined,
+			},
 		],
 	},
 });

@@ -1,0 +1,128 @@
+// For loop components for hydration testing
+import { track } from 'ripple';
+
+export component StaticForLoop() {
+	const items = ['Apple', 'Banana', 'Cherry'];
+	<ul>
+		for (const item of items) {
+			<li>{item}</li>
+		}
+	</ul>
+}
+
+export component ForLoopWithIndex() {
+	const items = ['A', 'B', 'C'];
+	<ul>
+		for (const item of items; index i) {
+			<li>{`${i}: ${item}`}</li>
+		}
+	</ul>
+}
+
+export component KeyedForLoop() {
+	const items = [
+		{ id: 1, name: 'First' },
+		{ id: 2, name: 'Second' },
+		{ id: 3, name: 'Third' },
+	];
+	<ul>
+		for (const item of items; key item.id) {
+			<li>{item.name}</li>
+		}
+	</ul>
+}
+
+export component ReactiveForLoopAdd() {
+	let items = track(['A', 'B']);
+	<button
+		class="add"
+		onClick={() => {
+			@items = [...@items, 'C'];
+		}}
+	>
+		{'Add'}
+	</button>
+	<ul>
+		for (const item of @items) {
+			<li>{item}</li>
+		}
+	</ul>
+}
+
+export component ReactiveForLoopRemove() {
+	let items = track(['A', 'B', 'C']);
+	<button
+		class="remove"
+		onClick={() => {
+			@items = @items.slice(0, -1);
+		}}
+	>
+		{'Remove'}
+	</button>
+	<ul>
+		for (const item of @items) {
+			<li>{item}</li>
+		}
+	</ul>
+}
+
+export component ForLoopInteractive() {
+	let counts = track([0, 0, 0]);
+	<div>
+		for (const count of @counts; index i) {
+			<div class={`item-${i}`}>
+				<span class="value">{count}</span>
+				<button
+					class="increment"
+					onClick={() => {
+						const newCounts = [...@counts];
+						newCounts[i]++;
+						@counts = newCounts;
+					}}
+				>
+					{'+'}
+				</button>
+			</div>
+		}
+	</div>
+}
+
+export component NestedForLoop() {
+	const grid = [
+		[1, 2],
+		[3, 4],
+	];
+	<div class="grid">
+		for (const row of grid; index rowIndex) {
+			<div class={`row-${rowIndex}`}>
+				for (const cell of row; index colIndex) {
+					<span class={`cell-${rowIndex}-${colIndex}`}>{cell}</span>
+				}
+			</div>
+		}
+	</div>
+}
+
+export component EmptyForLoop() {
+	const items: string[] = [];
+	<div class="container">
+		for (const item of items) {
+			<span>{item}</span>
+		}
+	</div>
+}
+
+export component ForLoopComplexObjects() {
+	const users = [
+		{ id: 1, name: 'Alice', role: 'Admin' },
+		{ id: 2, name: 'Bob', role: 'User' },
+	];
+	<div>
+		for (const user of users; key user.id) {
+			<div class={`user-${user.id}`}>
+				<span class="name">{user.name}</span>
+				<span class="role">{user.role}</span>
+			</div>
+		}
+	</div>
+}

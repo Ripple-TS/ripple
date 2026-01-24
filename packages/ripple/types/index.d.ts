@@ -15,6 +15,11 @@ export function mount(
 	options: { target: HTMLElement; props?: Record<string, any>; compat?: CompatOptions },
 ): () => void;
 
+export function hydrate(
+	component: () => void,
+	options: { target: HTMLElement; props?: Record<string, any>; compat?: CompatOptions },
+): () => void;
+
 export function tick(): Promise<void>;
 
 export function untrack<T>(fn: () => T): T;

@@ -1,0 +1,41 @@
+// Reactive components for hydration testing
+import { track } from 'ripple';
+
+export component TrackedState() {
+	let count = track(0);
+	<div class="count">{@count}</div>
+}
+
+export component CounterWithInitial(props: { initial: number }) {
+	let count = track(props.initial);
+	<div>
+		<span class="count">{@count}</span>
+	</div>
+}
+
+export component CounterWrapper() {
+	<CounterWithInitial initial={5} />
+}
+
+export component ComputedValues() {
+	let a = track(2);
+	let b = track(3);
+	const sum = () => @a + @b;
+	<div class="sum">{sum()}</div>
+}
+
+export component MultipleTracked() {
+	let x = track(10);
+	let y = track(20);
+	let z = track(30);
+	<div class="x">{@x}</div>
+	<div class="y">{@y}</div>
+	<div class="z">{@z}</div>
+}
+
+export component DerivedState() {
+	let firstName = track('John');
+	let lastName = track('Doe');
+	const fullName = () => `${@firstName} ${@lastName}`;
+	<div class="name">{fullName()}</div>
+}
