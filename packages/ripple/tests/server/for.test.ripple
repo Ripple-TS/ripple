@@ -80,7 +80,7 @@ describe('for statements in SSR', () => {
 		);
 	});
 
-	it('renders an array with id and key', async () => {
+	it('renders an array with index and key', async () => {
 		component App() {
 			const items = [
 				{ id: 1, name: 'Item' },
