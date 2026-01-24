@@ -4,7 +4,7 @@ import type { TSESTree } from '@typescript-eslint/types';
 import type { NAMESPACE_URI } from '../../runtime/internal/client/constants.js';
 import type { Parse } from '#parser';
 import type * as ESRap from 'esrap';
-import type { RippleCompileError } from 'ripple/compiler';
+import type { RippleCompileError, CompileOptions } from 'ripple/compiler';
 
 export type RpcModules = Map<string, [string, string]>;
 
@@ -132,7 +132,7 @@ declare module 'estree' {
 	interface ObjectExpression {
 		metadata: BaseNodeMetaData & {
 			printInline?: boolean;
-		}
+		};
 	}
 
 	/**
@@ -1162,6 +1162,7 @@ export interface AnalysisState extends BaseState {
 	metadata: BaseStateMetaData & {
 		styleClasses?: StyleClasses;
 	};
+	mode: CompileOptions['mode'];
 }
 
 export interface TransformServerState extends BaseState {

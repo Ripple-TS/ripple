@@ -562,7 +562,7 @@ const visitors = {
 			const scope = /** @type {ScopeInterface} */ (state.scopes.get(node));
 			/** @type {AST.Identifier | AST.Pattern} */
 			let pattern_id;
-			if (state.to_ts) {
+			if (state.to_ts || state.mode === 'server') {
 				pattern_id = pattern;
 			} else {
 				pattern_id = b.id(scope.generate('pattern'));
@@ -1131,6 +1131,7 @@ export function analyze(ast, filename, options = {}) {
 			to_ts: options.to_ts ?? false,
 			loose: options.loose ?? false,
 			metadata: {},
+			mode: options.mode,
 		},
 		visitors,
 	);
