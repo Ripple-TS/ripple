@@ -2469,7 +2469,7 @@ describe('bindNode', () => {
 
 	it('should allow access to bound element', () => {
 		component App() {
-			const inputRef = track(null);
+			const inputRef = track<HTMLInputElement | null>(null);
 
 			<div>
 				<input type="text" {ref bindNode(inputRef)} />
@@ -2626,7 +2626,7 @@ describe('bindFiles', () => {
 		let capturedFiles: FileList | null = null;
 
 		component App() {
-			const files = track(null);
+			const files = track<FileList | null>(null);
 
 			effect(() => {
 				capturedFiles = @files;
@@ -2653,8 +2653,8 @@ describe('bindFiles', () => {
 		flushSync();
 
 		expect(capturedFiles).not.toBeNull();
-		expect(capturedFiles?.length).toBe(1);
-		expect(capturedFiles?.[0].name).toBe('test.txt');
+		expect(capturedFiles!.length).toBe(1);
+		expect(capturedFiles![0].name).toBe('test.txt');
 	});
 
 	it('should update tracked value when files are selected with a getter and setter', () => {
@@ -2691,23 +2691,23 @@ describe('bindFiles', () => {
 		flushSync();
 
 		expect(capturedFiles).not.toBeNull();
-		expect(capturedFiles?.length).toBe(1);
-		expect(capturedFiles?.[0].name).toBe('test.txt');
+		expect(capturedFiles!.length).toBe(1);
+		expect(capturedFiles![0].name).toBe('test.txt');
 	});
 
 	it('should allow clearing files via input.files', () => {
 		let capturedFiles: FileList | null = null;
 
 		component App() {
-			const files = track(null);
-			const input = track(null);
+			const files = track<FileList | null>(null);
+			const input = track<HTMLInputElement | null>(null);
 
 			effect(() => {
 				capturedFiles = @files;
 			});
 
 			<div>
-				<input type="file" {ref bindFiles(files)} {ref bindNode(input)} />
+				<input type="file" {ref bindFiles<FileList>(files!)} {ref bindNode(input)} />
 				<button
 					onClick={() => {
 						if (@input) {
@@ -2739,13 +2739,13 @@ describe('bindFiles', () => {
 		input.dispatchEvent(new Event('change', { bubbles: true }));
 		flushSync();
 
-		expect(capturedFiles?.length).toBe(1);
+		expect(capturedFiles!.length).toBe(1);
 
 		// Clear via button
 		button.click();
 		flushSync();
 
-		expect(capturedFiles?.length).toBe(0);
+		expect(capturedFiles!.length).toBe(0);
 	});
 
 	it('should allow clearing files via input.files with a getter and setter', () => {
@@ -2753,7 +2753,7 @@ describe('bindFiles', () => {
 
 		component App() {
 			const files: TrackedObject<{ items: FileList | null }> = #{ items: null };
-			const input = track(null);
+			const input = track<HTMLInputElement | null>(null);
 
 			effect(() => {
 				capturedFiles = files.items;
@@ -2796,20 +2796,20 @@ describe('bindFiles', () => {
 		input.dispatchEvent(new Event('change', { bubbles: true }));
 		flushSync();
 
-		expect(capturedFiles?.length).toBe(1);
+		expect(capturedFiles!.length).toBe(1);
 
 		// Clear via button
 		button.click();
 		flushSync();
 
-		expect(capturedFiles?.length).toBe(0);
+		expect(capturedFiles!.length).toBe(0);
 	});
 
 	it('should handle multiple file selections', () => {
 		const fileCounts: number[] = [];
 
 		component App() {
-			const files = track(null);
+			const files = track<FileList | null>(null);
 
 			effect(() => {
 				@files;
@@ -2910,7 +2910,7 @@ describe('bindFiles', () => {
 		let capturedFile: File | null = null;
 
 		component App() {
-			const files = track(null);
+			const files = track<FileList | null>(null);
 
 			effect(() => {
 				@files;
@@ -2939,8 +2939,8 @@ describe('bindFiles', () => {
 		flushSync();
 
 		expect(capturedFile).not.toBeNull();
-		expect(capturedFile?.name).toBe('single.pdf');
-		expect(capturedFile?.type).toBe('application/pdf');
+		expect(capturedFile!.name).toBe('single.pdf');
+		expect(capturedFile!.type).toBe('application/pdf');
 	});
 
 	it('should handle file input without multiple attribute with a getter and setter', () => {
@@ -2978,8 +2978,8 @@ describe('bindFiles', () => {
 		flushSync();
 
 		expect(capturedFile).not.toBeNull();
-		expect(capturedFile?.name).toBe('single.pdf');
-		expect(capturedFile?.type).toBe('application/pdf');
+		expect(capturedFile!.name).toBe('single.pdf');
+		expect(capturedFile!.type).toBe('application/pdf');
 	});
 
 	it('should handle empty file selection', () => {
@@ -3073,6 +3073,7 @@ describe('error handling', () => {
 	it('should throw error when bindValue receives non-tracked object', () => {
 		expect(() => {
 			component App() {
+				// @ts-expect-error invalid argument
 				<input type="text" {ref bindValue({ value: 'not tracked' })} />
 			}
 			render(App);
@@ -3082,6 +3083,7 @@ describe('error handling', () => {
 	it('should throw error when bindChecked receives non-tracked object', () => {
 		expect(() => {
 			component App() {
+				// @ts-expect-error invalid argument
 				<input type="checkbox" {ref bindChecked({ value: false })} />
 			}
 			render(App);
@@ -3091,6 +3093,7 @@ describe('error handling', () => {
 	it('should throw error when bindIndeterminate receives non-tracked object', () => {
 		expect(() => {
 			component App() {
+				// @ts-expect-error invalid argument
 				<input type="checkbox" {ref bindIndeterminate({ value: false })} />
 			}
 			render(App);
@@ -3100,6 +3103,7 @@ describe('error handling', () => {
 	it('should throw error when bindGroup receives non-tracked object', () => {
 		expect(() => {
 			component App() {
+				// @ts-expect-error invalid argument
 				<input type="checkbox" value="a" {ref bindGroup({ value: [] })} />
 			}
 			render(App);
@@ -3109,6 +3113,7 @@ describe('error handling', () => {
 	it('should throw error when bindClientWidth receives non-tracked object', () => {
 		expect(() => {
 			component App() {
+				// @ts-expect-error invalid argument
 				<div {ref bindClientWidth({ value: 0 })} />
 			}
 			render(App);
@@ -3118,6 +3123,7 @@ describe('error handling', () => {
 	it('should throw error when bindClientHeight receives non-tracked object', () => {
 		expect(() => {
 			component App() {
+				// @ts-expect-error invalid argument
 				<div {ref bindClientHeight({ value: 0 })} />
 			}
 			render(App);
@@ -3127,6 +3133,7 @@ describe('error handling', () => {
 	it('should throw error when bindOffsetWidth receives non-tracked object', () => {
 		expect(() => {
 			component App() {
+				// @ts-expect-error invalid argument
 				<div {ref bindOffsetWidth({ value: 0 })} />
 			}
 			render(App);
@@ -3136,6 +3143,7 @@ describe('error handling', () => {
 	it('should throw error when bindOffsetHeight receives non-tracked object', () => {
 		expect(() => {
 			component App() {
+				// @ts-expect-error invalid argument
 				<div {ref bindOffsetHeight({ value: 0 })} />
 			}
 			render(App);
@@ -3145,6 +3153,7 @@ describe('error handling', () => {
 	it('should throw error when bindContentRect receives non-tracked object', () => {
 		expect(() => {
 			component App() {
+				// @ts-expect-error invalid argument
 				<div {ref bindContentRect({ value: null })} />
 			}
 			render(App);
@@ -3154,6 +3163,7 @@ describe('error handling', () => {
 	it('should throw error when bindContentBoxSize receives non-tracked object', () => {
 		expect(() => {
 			component App() {
+				// @ts-expect-error invalid argument
 				<div {ref bindContentBoxSize({ value: null })} />
 			}
 			render(App);
@@ -3163,6 +3173,7 @@ describe('error handling', () => {
 	it('should throw error when bindBorderBoxSize receives non-tracked object', () => {
 		expect(() => {
 			component App() {
+				// @ts-expect-error invalid argument
 				<div {ref bindBorderBoxSize({ value: null })} />
 			}
 			render(App);
@@ -3172,6 +3183,7 @@ describe('error handling', () => {
 	it('should throw error when bindDevicePixelContentBoxSize receives non-tracked object', () => {
 		expect(() => {
 			component App() {
+				// @ts-expect-error invalid argument
 				<div {ref bindDevicePixelContentBoxSize({ value: null })} />
 			}
 			render(App);
@@ -3181,6 +3193,7 @@ describe('error handling', () => {
 	it('should throw error when bindInnerHTML receives non-tracked object', () => {
 		expect(() => {
 			component App() {
+				// @ts-expect-error invalid argument
 				<div {ref bindInnerHTML({ value: '' })} />
 			}
 			render(App);
@@ -3190,6 +3203,7 @@ describe('error handling', () => {
 	it('should throw error when bindInnerText receives non-tracked object', () => {
 		expect(() => {
 			component App() {
+				// @ts-expect-error invalid argument
 				<div {ref bindInnerText({ value: '' })} />
 			}
 			render(App);
@@ -3199,6 +3213,7 @@ describe('error handling', () => {
 	it('should throw error when bindTextContent receives non-tracked object', () => {
 		expect(() => {
 			component App() {
+				// @ts-expect-error invalid argument
 				<div {ref bindTextContent({ value: '' })} />
 			}
 			render(App);
@@ -3208,6 +3223,7 @@ describe('error handling', () => {
 	it('should throw error when bindNode receives non-tracked object', () => {
 		expect(() => {
 			component App() {
+				// @ts-expect-error invalid argument
 				<div {ref bindNode({ value: null })} />
 			}
 			render(App);
@@ -3217,6 +3233,7 @@ describe('error handling', () => {
 	it('should throw error when bindFiles receives non-tracked object', () => {
 		expect(() => {
 			component App() {
+				// @ts-expect-error invalid argument
 				<input type="file" {ref bindFiles({ value: null })} />
 			}
 			render(App);
@@ -3239,6 +3256,7 @@ describe('error handling', () => {
 		expect(() => {
 			component App() {
 				const value = track('');
+				// @ts-expect-error invalid argument
 				<input type="text" {ref bindValue(() => @value, 5)} />
 			}
 			render(App);
@@ -3266,6 +3284,7 @@ describe('error handling', () => {
 		() => {
 			expect(() => {
 				component App() {
+					// @ts-expect-error invalid argument
 					<input type="checkbox" {ref bindChecked(() => false, true)} />
 				}
 				render(App);
@@ -3280,6 +3299,7 @@ describe('error handling', () => {
 		() => {
 			expect(() => {
 				component App() {
+					// @ts-expect-error invalid argument
 					<input type="checkbox" {ref bindIndeterminate(() => false, true)} />
 				}
 				render(App);
@@ -3294,6 +3314,7 @@ describe('error handling', () => {
 		() => {
 			expect(() => {
 				component App() {
+					// @ts-expect-error invalid argument
 					<input type="checkbox" value="a" {ref bindGroup(() => [], true)} />
 				}
 				render(App);
@@ -3308,6 +3329,7 @@ describe('error handling', () => {
 		() => {
 			expect(() => {
 				component App() {
+					// @ts-expect-error invalid argument
 					<div {ref bindClientWidth(() => 0, true)} />
 				}
 				render(App);
@@ -3322,6 +3344,7 @@ describe('error handling', () => {
 		() => {
 			expect(() => {
 				component App() {
+					// @ts-expect-error invalid argument
 					<div {ref bindClientHeight(() => 0, true)} />
 				}
 				render(App);
@@ -3336,6 +3359,7 @@ describe('error handling', () => {
 		() => {
 			expect(() => {
 				component App() {
+					// @ts-expect-error invalid argument
 					<div {ref bindOffsetWidth(() => 0, true)} />
 				}
 				render(App);
@@ -3350,6 +3374,7 @@ describe('error handling', () => {
 		() => {
 			expect(() => {
 				component App() {
+					// @ts-expect-error invalid argument
 					<div {ref bindOffsetHeight(() => 0, true)} />
 				}
 				render(App);
@@ -3364,6 +3389,7 @@ describe('error handling', () => {
 		() => {
 			expect(() => {
 				component App() {
+					// @ts-expect-error invalid argument
 					<div {ref bindContentRect(() => null, true)} />
 				}
 				render(App);
@@ -3378,6 +3404,7 @@ describe('error handling', () => {
 		() => {
 			expect(() => {
 				component App() {
+					// @ts-expect-error invalid argument
 					<div {ref bindContentBoxSize(() => null, true)} />
 				}
 				render(App);
@@ -3392,6 +3419,7 @@ describe('error handling', () => {
 		() => {
 			expect(() => {
 				component App() {
+					// @ts-expect-error invalid argument
 					<div {ref bindBorderBoxSize(() => null, true)} />
 				}
 				render(App);
@@ -3406,6 +3434,7 @@ describe('error handling', () => {
 		() => {
 			expect(() => {
 				component App() {
+					// @ts-expect-error invalid argument
 					<div {ref bindDevicePixelContentBoxSize(() => null, true)} />
 				}
 				render(App);
@@ -3420,6 +3449,7 @@ describe('error handling', () => {
 		() => {
 			expect(() => {
 				component App() {
+					// @ts-expect-error invalid argument
 					<div {ref bindInnerHTML(() => '', true)} />
 				}
 				render(App);
@@ -3434,6 +3464,7 @@ describe('error handling', () => {
 		() => {
 			expect(() => {
 				component App() {
+					// @ts-expect-error invalid argument
 					<div {ref bindInnerText(() => '', true)} />
 				}
 				render(App);
@@ -3448,6 +3479,7 @@ describe('error handling', () => {
 		() => {
 			expect(() => {
 				component App() {
+					// @ts-expect-error invalid argument
 					<div {ref bindTextContent(() => '', true)} />
 				}
 				render(App);
@@ -3462,6 +3494,7 @@ describe('error handling', () => {
 		() => {
 			expect(() => {
 				component App() {
+					// @ts-expect-error invalid argument
 					<div {ref bindNode(() => null, true)} />
 				}
 				render(App);
@@ -3476,6 +3509,7 @@ describe('error handling', () => {
 		() => {
 			expect(() => {
 				component App() {
+					// @ts-expect-error invalid argument
 					<input type="file" {ref bindFiles(() => null, true)} />
 				}
 				render(App);

@@ -115,47 +115,49 @@ describe('TrackedArray > static', () => {
 			});
 
 			// TODO: Fix this test case, needs some async love around try statements being using in a not template way
-			it.skip('handles error in fromAsync method', async () => {
-				component Parent() {
-					try {
-						<ArrayTest />
-					} pending {
-						<div>{'Loading placeholder...'}</div>
-					}
-				}
-
-				component ArrayTest() {
-					let items = null;
-					let error = null;
-
-					// try {
-					// 	items = await TrackedArray.fromAsync(Promise.reject(new Error('Async error')));
-					// } catch (e) {
-					// }
-				}
-
-				component ArrayTest() {
-					let items = null;
-					let error = null;
-
-					try {
-						// items = await TrackedArray.fromAsync(Promise.reject(new Error('Async error')));
-					} catch (e) {
-						error = (e as Error).message;
+			('fromAsync' in Array.prototype ? it : it.skip)(
+				'handles error in fromAsync method',
+				async () => {
+					component Parent() {
+						try {
+							<ArrayTest />
+						} pending {
+							<div>{'Loading placeholder...'}</div>
+						}
 					}
 
-					<pre>{error ? 'Error: ' + error : 'No error'}</pre>
-					<pre>{items ? JSON.stringify(items) : 'No items'}</pre>
-				}
+					component ArrayTest() {
+						let items: TrackedArray<string> | null = null;
+						let error: string | null = null;
 
-				render(Parent);
+						async function* throwingIterable() {
+							throw new Error('Async error');
+						}
 
-				await new Promise((resolve) => setTimeout(resolve, 0));
-				flushSync();
+						try {
+							items = await TrackedArray.fromAsync(throwingIterable());
+							for (const item of items) {
+								<li>{item}</li>
+							}
+						} pending {
+							<div>{'Loading...'}</div>
+						} catch (e) {
+							error = (e as Error).message;
+						}
 
-				expect(container.querySelectorAll('pre')[0].textContent).toBe('Error: Async error');
-				expect(container.querySelectorAll('pre')[1].textContent).toBe('No items');
-			});
+						<pre>{error ? 'Error: ' + error : 'No error'}</pre>
+						<pre>{items ? JSON.stringify(items) : 'No items'}</pre>
+					}
+
+					render(Parent);
+
+					await new Promise((resolve) => setTimeout(resolve, 0));
+					flushSync();
+
+					expect(container.querySelectorAll('pre')[0].textContent).toBe('Error: Async error');
+					expect(container.querySelectorAll('pre')[1].textContent).toBe('No items');
+				},
+			);
 		},
 	);
 

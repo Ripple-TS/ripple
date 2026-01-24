@@ -101,8 +101,9 @@ export type InferComponent<T> = T extends () => infer R ? (R extends Component<a
 export type Props<K extends PropertyKey = any, V = unknown> = Record<K, V>;
 export type PropsWithExtras<T extends object> = Props & T & Record<string, unknown>;
 export type PropsWithChildren<T extends object = {}> = Expand<
-	Omit<Props, 'children'> & { children: Component } & T
+	Omit<T, 'children'> & { children: Component }
 >;
+export type PropsNoChildren<T extends object = {}> = Expand<T>;
 
 type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
 
@@ -143,40 +144,42 @@ export interface ExtendedEventOptions extends AddEventListenerOptions, EventList
 	delegated?: boolean;
 }
 
+export type OnEventListenerRemover = () => void;
+
 export function on<Type extends keyof WindowEventMap>(
 	window: Window,
 	type: Type,
 	handler: (this: Window, event: WindowEventMap[Type]) => any,
 	options?: ExtendedEventOptions | undefined,
-): () => void;
+): OnEventListenerRemover;
 
 export function on<Type extends keyof DocumentEventMap>(
 	document: Document,
 	type: Type,
 	handler: (this: Document, event: DocumentEventMap[Type]) => any,
 	options?: ExtendedEventOptions | undefined,
-): () => void;
+): OnEventListenerRemover;
 
 export function on<Element extends HTMLElement, Type extends keyof HTMLElementEventMap>(
 	element: Element,
 	type: Type,
 	handler: (this: Element, event: HTMLElementEventMap[Type]) => any,
 	options?: ExtendedEventOptions | undefined,
-): () => void;
+): OnEventListenerRemover;
 
 export function on<Element extends MediaQueryList, Type extends keyof MediaQueryListEventMap>(
 	element: Element,
 	type: Type,
 	handler: (this: Element, event: MediaQueryListEventMap[Type]) => any,
 	options?: ExtendedEventOptions | undefined,
-): () => void;
+): OnEventListenerRemover;
 
 export function on(
 	element: EventTarget,
 	type: string,
 	handler: EventListener,
 	options?: ExtendedEventOptions | undefined,
-): () => void;
+): OnEventListenerRemover;
 
 export type TrackedObjectShallow<T> = {
 	[K in keyof T]: T[K] | Tracked<T[K]>;
@@ -209,7 +212,7 @@ export type TrackedObjectDeep<T> = T extends
 								? { [K in keyof T]: TrackedObjectDeep<T[K]> | Tracked<TrackedObjectDeep<T[K]>> }
 								: T | Tracked<T>;
 
-export type TrackedObject<T extends object = object> = T & { readonly __brand: unique symbol };
+export type TrackedObject<T extends object = object> = T & {};
 
 export interface TrackedObjectConstructor {
 	new <T extends Object>(obj: T): TrackedObject<T>;

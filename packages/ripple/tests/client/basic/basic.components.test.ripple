@@ -1,9 +1,9 @@
-import type { Tracked } from 'ripple';
+import type { Tracked, Props, PropsWithChildren, PropsWithExtras } from 'ripple';
 import { track, flushSync } from 'ripple';
 
 describe('basic client > components & composition', () => {
 	it('renders with component composition and children', () => {
-		component Card(props) {
+		component Card(props: PropsWithChildren<{}>) {
 			<div class="card">
 				<props.children />
 			</div>
@@ -27,11 +27,20 @@ describe('basic client > components & composition', () => {
 	});
 
 	it('renders with nested components and prop passing', () => {
-		component Button(props) {
+		component Button(props: PropsWithExtras<{
+			variant: string;
+			label: string;
+			onClick: EventListener;
+		}>) {
 			<button class={props.variant} onClick={props.onClick}>{props.label}</button>
 		}
 
-		component Card(props) {
+		component Card(props: PropsWithExtras<{
+			title: string;
+			content: string;
+			buttonText: string;
+			onAction: EventListener;
+		}>) {
 			<div class="card">
 				<h3>{props.title}</h3>
 				<p>{props.content}</p>
@@ -72,7 +81,10 @@ describe('basic client > components & composition', () => {
 	});
 
 	it('renders with reactive component props', () => {
-		component ChildComponent(props) {
+		component ChildComponent(props: PropsWithExtras<{
+			text: Tracked<string>;
+			count: Tracked<number>;
+		}>) {
 			<div class="child-content">{props.@text}</div>
 			<div class="child-count">{props.@count}</div>
 		}
@@ -248,7 +260,7 @@ describe('basic client > components & composition', () => {
 			span: component Span() {
 				<span>{'Hello from Span'}</span>
 			},
-			button: component({ children }) {
+			button: component({ children }: PropsWithChildren<{}>) {
 				<button>
 					<children />
 				</button>
@@ -280,7 +292,7 @@ describe('basic client > components & composition', () => {
 	});
 
 	it('handles empty string children', () => {
-		component Button({ children }) {
+		component Button({ children }: PropsWithChildren<{}>) {
 			<children />
 		}
 

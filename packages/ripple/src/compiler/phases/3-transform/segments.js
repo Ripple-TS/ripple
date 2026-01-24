@@ -670,6 +670,9 @@ export function convert_source_map_to_mappings(
 				if (/** @type {AST.FunctionDeclaration | AST.FunctionExpression} */ (node).id) {
 					visit(/** @type {AST.FunctionDeclaration | AST.FunctionExpression} */ (node).id);
 				}
+				if (node.typeParameters) {
+					visit(node.typeParameters);
+				}
 				if (node.params) {
 					for (const param of node.params) {
 						visit(param);
@@ -878,14 +881,24 @@ export function convert_source_map_to_mappings(
 				}
 				return;
 			} else if (node.type === 'CallExpression' || node.type === 'NewExpression') {
-				// Visit in source order: callee, arguments`
-				if (node.callee) {
-					visit(node.callee);
+				if (node.type === 'NewExpression' && node.loc) {
+					mappings.push(
+						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
+					);
 				}
+
 				if (node.arguments) {
 					for (const arg of node.arguments) {
 						visit(arg);
 					}
+				}
+
+				if (node.typeArguments) {
+					visit(node.typeArguments);
+				}
+
+				if (node.callee) {
+					visit(node.callee);
 				}
 				return;
 			} else if (node.type === 'LogicalExpression' || node.type === 'BinaryExpression') {
@@ -946,6 +959,12 @@ export function convert_source_map_to_mappings(
 
 				return;
 			} else if (node.type === 'ObjectExpression' || node.type === 'ObjectPattern') {
+				if (node.loc && node.type === 'ObjectExpression') {
+					mappings.push(
+						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
+					);
+				}
+
 				// Visit properties in order
 				if (node.properties) {
 					for (const prop of node.properties) {
@@ -1280,6 +1299,11 @@ export function convert_source_map_to_mappings(
 				node.type === 'TSTypeParameterInstantiation' ||
 				node.type === 'TSTypeParameterDeclaration'
 			) {
+				if (node.loc) {
+					mappings.push(
+						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
+					);
+				}
 				// Generic type parameters - visit to collect type variable names
 				if (node.params) {
 					for (const param of node.params) {
@@ -1700,6 +1724,15 @@ export function convert_source_map_to_mappings(
 				// TypeScript external module reference: import foo = require('bar');
 				if (node.expression) {
 					visit(node.expression);
+				}
+				return;
+			} else if (node.type === 'TSInstantiationExpression') {
+				// TypeScript instantiation expression: new Foo<T>()
+				if (node.expression) {
+					visit(node.expression);
+				}
+				if (node.typeArguments) {
+					visit(node.typeArguments);
 				}
 				return;
 			}

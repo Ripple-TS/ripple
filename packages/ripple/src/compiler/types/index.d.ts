@@ -4,7 +4,7 @@ import type { TSESTree } from '@typescript-eslint/types';
 import type { NAMESPACE_URI } from '../../runtime/internal/client/constants.js';
 import type { Parse } from '#parser';
 import type * as ESRap from 'esrap';
-import type { RippleCompileError } from 'ripple/compiler';
+import type { RippleCompileError, CompileOptions } from 'ripple/compiler';
 
 export type RpcModules = Map<string, [string, string]>;
 
@@ -124,6 +124,15 @@ declare module 'estree' {
 
 	interface Comment {
 		context?: Parse.CommentMetaData | null;
+	}
+
+	// For now only ObjectExpression needs printInline
+	// Needed to avoid ts pragma comments being on the wrong line that
+	// does not affect the next line as in the source code
+	interface ObjectExpression {
+		metadata: BaseNodeMetaData & {
+			printInline?: boolean;
+		};
 	}
 
 	/**
@@ -763,8 +772,10 @@ declare module 'estree' {
 	interface TSInferType extends Omit<AcornTSNode<TSESTree.TSInferType>, 'typeParameter'> {
 		typeParameter: TSTypeParameter;
 	}
-	interface TSInstantiationExpression extends AcornTSNode<TSESTree.TSInstantiationExpression> {
+	interface TSInstantiationExpression
+		extends Omit<AcornTSNode<TSESTree.TSInstantiationExpression>, 'typeArguments' | 'expression'> {
 		expression: AST.Expression;
+		typeArguments: TSTypeParameterInstantiation;
 	}
 	interface TSInterfaceBody extends Omit<AcornTSNode<TSESTree.TSInterfaceBody>, 'body'> {
 		body: TypeElement[];
@@ -893,7 +904,10 @@ declare module 'estree' {
 	}
 	interface TSTypeParameterDeclaration
 		extends Omit<AcornTSNode<TSESTree.TSTypeParameterDeclaration>, 'params'> {
-		params: TypeNode[];
+		params: TSTypeParameter[];
+		extra?: {
+			trailingComma: number;
+		};
 	}
 	interface TSTypeParameterInstantiation
 		extends Omit<AcornTSNode<TSESTree.TSTypeParameterInstantiation>, 'params'> {
@@ -975,6 +989,7 @@ export interface AnalysisResult {
 		serverIdentifierPresent: boolean;
 	};
 	errors: RippleCompileError[];
+	comments: AST.CommentWithLocation[];
 }
 
 /**
@@ -1147,6 +1162,7 @@ export interface AnalysisState extends BaseState {
 	metadata: BaseStateMetaData & {
 		styleClasses?: StyleClasses;
 	};
+	mode: CompileOptions['mode'];
 }
 
 export interface TransformServerState extends BaseState {

@@ -2459,6 +2459,8 @@ function transform_ts_child(node, context) {
 				const wrapper = b.object([
 					b.prop('init', b.call(createRefKeyAlias), /** @type {AST.Expression} */ (argument), true),
 				]);
+				// This ensures @ts-expect-error comments stay on the correct line
+				wrapper.metadata.printInline = true;
 				return b.jsx_spread_attribute(wrapper, /** @type {AST.NodeWithLocation} */ (attr));
 			} else {
 				// Should not happen
@@ -3072,42 +3074,51 @@ function transform_body(body, { visit, state }) {
 
 /**
  * Create a TSX language handler with enhanced TypeScript support
+ * @param {AST.CommentWithLocation[]} [comments] - Comments to pass to esrap's built-in comment handling
  * @returns {Visitors<AST.Node, TransformClientState>} TSX language handler with TypeScript return type support
  */
-function create_tsx_with_typescript_support() {
+function create_tsx_with_typescript_support(comments) {
+	const preserved_comments = comments?.filter(should_preserve_comment) ?? [];
+	// Don't pass comments to esrap - we handle them manually via flush_comments_before
+	// because esrap's built-in comment handling requires all intermediate nodes to have loc
 	const base_tsx = /** @type {Visitors<AST.Node, TransformClientState>} */ (tsx());
 
-	/**
-	 * Write preserved comments (TSDoc, TS pragmas, triple-slash directives) for a node
-	 * @param {AST.Node} node
-	 * @param {TransformClientContext} context
-	 * @param {'leading' | 'trailing'} position
-	 */
-	const write_preserved_comments = (node, context, position) => {
-		const comments = /** @type {AST.CommentWithLocation[]} */ (
-			position === 'leading' ? node.leadingComments : node.trailingComments
-		);
-		if (!comments || comments.length === 0) return;
+	// Track which comments have been written (by index)
+	let comment_index = 0;
+	// Track the previous node's line to see if need to
+	// insert a new line before the comment
+	let prev_line = -1;
 
-		for (const comment of comments) {
-			if (should_preserve_comment(comment)) {
-				if (position === 'leading') {
-					// Write the comment with source location if available
-					if (comment.loc) {
-						context.location(comment.loc.start.line, comment.loc.start.column);
-					}
-					context.write(format_comment(comment));
-					context.write('\n');
-				} else {
-					// Trailing comments go on the same line or next line
-					context.write(' ');
-					if (comment.loc) {
-						context.location(comment.loc.start.line, comment.loc.start.column);
-					}
-					context.write(format_comment(comment));
+	/**
+	 * Flush all preserved comments that appear before the given position
+	 * @param {TransformClientContext} context
+	 * @param {{ line: number, column: number }} position
+	 */
+	const flush_comments_before = (context, position) => {
+		while (comment_index < preserved_comments.length) {
+			const comment = preserved_comments[comment_index];
+			if (!comment.loc) {
+				comment_index++;
+				continue;
+			}
+			// Check if comment is before the current position
+			if (
+				comment.loc.start.line < position.line ||
+				(comment.loc.start.line === position.line && comment.loc.start.column < position.column)
+			) {
+				if (prev_line > 0 && comment.loc.start.line > prev_line) {
+					context.newline();
 				}
+				// Write the comment
+				context.write(format_comment(comment));
+				context.newline();
+				comment_index++;
+			} else {
+				// Comment is at or after position, stop
+				break;
 			}
 		}
+		prev_line = position.line;
 	};
 
 	/**
@@ -3117,18 +3128,28 @@ function create_tsx_with_typescript_support() {
 	 * @param {TransformClientContext} context
 	 */
 	const handle_function = (node, context) => {
-		// Write leading preserved comments (JSDoc, TS pragmas, etc.)
-		write_preserved_comments(node, context, 'leading');
-
+		let is_method = false;
+		const parent = node.metadata.path.at(-1);
+		if (
+			node.type === 'FunctionExpression' &&
+			parent &&
+			((parent.type === 'Property' && parent.method === true) || parent.type === 'MethodDefinition')
+		) {
+			is_method = true;
+		}
 		const loc = /** @type {AST.SourceLocation} */ (node.loc);
 
 		if (node.async) {
 			context.location(loc.start.line, loc.start.column);
 			context.write('async ');
-			context.location(loc.start.line, loc.start.column + 6);
-			context.write('function');
+			if (!is_method) {
+				context.location(loc.start.line, loc.start.column + 6);
+				context.write('function');
+			}
 		} else {
-			context.write('function', node);
+			if (!is_method) {
+				context.write('function', node);
+			}
 		}
 
 		if (node.generator) {
@@ -3165,7 +3186,9 @@ function create_tsx_with_typescript_support() {
 	return /** @type {Visitors<AST.Node, TransformClientState>} */ ({
 		...base_tsx,
 		_(node, context, visit) {
-			write_preserved_comments(node, context, 'leading');
+			if (node.loc) {
+				flush_comments_before(context, node.loc.start);
+			}
 
 			visit(node);
 		},
@@ -3207,6 +3230,37 @@ function create_tsx_with_typescript_support() {
 			const loc = /** @type {AST.SourceLocation} */ (node.loc);
 			context.location(loc.start.line, loc.start.column);
 			base_tsx.MemberExpression?.(node, context);
+			context.location(loc.end.line, loc.end.column);
+		},
+		ObjectExpression(node, context) {
+			if (node.loc) {
+				context.location(node.loc.start.line, node.loc.start.column);
+			}
+
+			if (node.metadata?.printInline) {
+				// Check if this object should be printed inline (e.g., ref attribute spread)
+				context.write('{ ');
+				for (let i = 0; i < node.properties.length; i++) {
+					if (i > 0) context.write(', ');
+					context.visit(node.properties[i]);
+				}
+				context.write(' }');
+			} else {
+				base_tsx.ObjectExpression?.(node, context);
+			}
+
+			if (node.loc) {
+				context.location(node.loc.end.line, node.loc.end.column);
+			}
+		},
+		NewExpression(node, context) {
+			if (!node.loc) {
+				base_tsx.NewExpression?.(node, context);
+				return;
+			}
+			const loc = /** @type {AST.SourceLocation} */ (node.loc);
+			context.location(loc.start.line, loc.start.column);
+			base_tsx.NewExpression?.(node, context);
 			context.location(loc.end.line, loc.end.column);
 		},
 		TemplateLiteral(node, context) {
@@ -3299,10 +3353,14 @@ function create_tsx_with_typescript_support() {
 					node.kind !== 'set';
 
 				if (wouldBeShorthand || wouldBeMethodShorthand) {
+					let colon_str = ': ';
+					if (node.method === true && node.value.type === 'FunctionExpression') {
+						colon_str = '';
+					}
 					// Force longhand: write key: value explicitly to preserve source positions
 					if (node.computed) context.write('[');
 					context.visit(node.key);
-					context.write(node.computed ? ']: ' : ': ');
+					context.write(node.computed ? ']' + colon_str : colon_str);
 					context.visit(node.value);
 				} else {
 					base_tsx.Property?.(node, context);
@@ -3355,7 +3413,6 @@ function create_tsx_with_typescript_support() {
 		},
 		MethodDefinition(node, context) {
 			// Check if there are type parameters to handle
-			// @ts-ignore - typeParameters may exist on node
 			const hasTypeParams = node.typeParameters || node.value?.typeParameters;
 
 			if (!hasTypeParams) {
@@ -3374,6 +3431,8 @@ function create_tsx_with_typescript_support() {
 				context.write('get ');
 			} else if (node.kind === 'set') {
 				context.write('set ');
+			} else if (node.kind === 'constructor') {
+				context.write('constructor ');
 			}
 
 			// Write * for generator methods
@@ -3427,6 +3486,43 @@ function create_tsx_with_typescript_support() {
 				context.visit(node.value.body);
 			}
 		},
+		TSObjectKeyword(node, context) {
+			if (node.loc) {
+				context.location(node.loc.start.line, node.loc.start.column);
+			}
+			context.write('object');
+			if (node.loc) {
+				context.location(node.loc.end.line, node.loc.end.column);
+			}
+		},
+		TSTypeParameterDeclaration(node, context) {
+			if (node.loc) {
+				context.location(node.loc.start.line, node.loc.start.column);
+			}
+			context.write('<');
+			for (let i = 0; i < node.params.length; i++) {
+				if (i > 0) {
+					context.write(', ');
+				}
+				context.visit(node.params[i]);
+			}
+			if (node.params.length === 1 && node.extra?.trailingComma !== undefined) {
+				context.write(',');
+			}
+			context.write('>');
+			if (node.loc) {
+				context.location(node.loc.end.line, node.loc.end.column);
+			}
+		},
+		TSTypeParameterInstantiation(node, context) {
+			if (node.loc) {
+				context.location(node.loc.start.line, node.loc.start.column);
+			}
+			base_tsx.TSTypeParameterInstantiation?.(node, context);
+			if (node.loc) {
+				context.location(node.loc.end.line, node.loc.end.column);
+			}
+		},
 		TSTypeParameter(node, context) {
 			// Set location for the type parameter name
 			if (node.loc) {
@@ -3444,6 +3540,9 @@ function create_tsx_with_typescript_support() {
 			if (node.default) {
 				context.write(' = ');
 				context.visit(node.default);
+			}
+			if (node.loc) {
+				context.location(node.loc.end.line, node.loc.end.column);
 			}
 		},
 		ArrayPattern(node, context) {
@@ -3610,8 +3709,19 @@ function create_tsx_with_typescript_support() {
 			context.write(' ');
 			context.visit(/** @type {AST.TSTypeAnnotation} */ (node.typeAnnotation));
 		},
+		TSInstantiationExpression(node, context) {
+			// e.g., identity<string>, Array<number> when used as expressions
+			context.visit(node.expression);
+			if (node.typeArguments) {
+				context.visit(node.typeArguments);
+			}
+		},
 		ArrowFunctionExpression(node, context) {
 			if (node.async) context.write('async ');
+
+			if (node.typeParameters) {
+				context.visit(node.typeParameters);
+			}
 
 			context.write('(');
 			// Visit each parameter
@@ -3798,7 +3908,7 @@ export function transform_client(filename, source, analysis, to_ts, minify_css) 
 	program.body = body;
 
 	const language_handler = to_ts
-		? create_tsx_with_typescript_support()
+		? create_tsx_with_typescript_support(analysis.comments)
 		: /** @type {Visitors<AST.Node, TransformClientState>} */ (tsx());
 
 	const js =

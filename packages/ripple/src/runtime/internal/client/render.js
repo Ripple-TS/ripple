@@ -188,7 +188,6 @@ export function set_class(dom, value, hash, is_html = true) {
  * @returns {void}
  */
 export function set_value(element, value) {
-	// @ts-expect-error
 	var attributes = (element.__attributes ??= {});
 
 	if (
@@ -211,7 +210,6 @@ export function set_value(element, value) {
  * @returns {void}
  */
 export function set_checked(element, checked) {
-	// @ts-expect-error
 	var attributes = (element.__attributes ??= {});
 
 	if (

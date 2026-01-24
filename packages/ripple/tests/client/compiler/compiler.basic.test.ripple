@@ -28,27 +28,27 @@ describe('compiler > basics', () => {
 		let input = source.replace('#style', style1);
 		let ast = parse(input);
 		expect(
-			((ast.body[0] as AST.ExportNamedDeclaration).declaration as AST.Component).css.source,
+			((ast.body[0] as AST.ExportNamedDeclaration).declaration as unknown as AST.Component)?.css.source,
 		).toEqual(style1);
 
 		input = source.replace('#style', style2);
 		ast = parse(input);
 		expect(
-			((ast.body[0] as AST.ExportNamedDeclaration).declaration as AST.Component).css.source,
+			((ast.body[0] as AST.ExportNamedDeclaration).declaration as unknown as AST.Component)?.css.source,
 		).toEqual(style2);
 
 		input = source.replace('#style', style3);
 		ast = parse(input);
 		expect(
-			((ast.body[0] as AST.ExportNamedDeclaration).declaration as AST.Component).css.source,
+			((ast.body[0] as AST.ExportNamedDeclaration).declaration as unknown as AST.Component)?.css.source,
 		).toEqual(style3);
 	});
 
 	it('renders without crashing', () => {
 		component App() {
-			let foo;
-			let bar;
-			let baz;
+			let foo: Record<string, number>;
+			let bar: Record<string, number>;
+			let baz: Record<string, number>;
 
 			foo = {};
 			foo = { test: 0 };
@@ -171,11 +171,11 @@ describe('compiler > basics', () => {
 	});
 
 	it('should not fail with random TS syntax', () => {
-		function tagFn() {
+		function tagFn(template: TemplateStringsArray) {
 			return null;
 		}
 
-		function Wrapper() {
+		function Wrapper<T>() {
 			return {
 				unwrap: function <T>() {
 					return null as unknown as T;
@@ -186,7 +186,7 @@ describe('compiler > basics', () => {
 		component App() {
 			let x: number[] = [] as number[];
 
-			const n = new Wrapper<number>().unwrap<string>();
+			const n = Wrapper<number>().unwrap<string>();
 
 			const tagResult = tagFn`value`;
 
@@ -208,7 +208,7 @@ describe('compiler > basics', () => {
 
 			let flag = true;
 
-			const s = flag ? new Box<number>() : new Box<string>();
+			const s = flag ? new Box<number>(1) : new Box<string>('string');
 		}
 
 		render(App);

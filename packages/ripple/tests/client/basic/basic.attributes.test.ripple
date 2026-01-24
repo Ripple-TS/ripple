@@ -290,11 +290,11 @@ describe('basic client > attribute rendering', () => {
 			let style = #{ color: 'red', fontWeight: 'bold' };
 
 			function toggleColor() {
-				@style.color = @style.color === 'red' ? 'blue' : 'red';
+				style.color = style.color === 'red' ? 'blue' : 'red';
 			}
 
 			<button onClick={toggleColor}>{'Change Color'}</button>
-			<div style={{ ...@style }}>{'Dynamic Style'}</div>
+			<div style={{ color: style.color, fontWeight: style.fontWeight }}>{'Dynamic Style'}</div>
 		}
 
 		render(Basic);

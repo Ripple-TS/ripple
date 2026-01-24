@@ -1311,6 +1311,12 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 		}
 
+		case 'TSInstantiationExpression': {
+			// Explicit type instantiation: foo<Type>, identity<string>
+			nodeContent = concat([path.call(print, 'expression'), path.call(print, 'typeArguments')]);
+			break;
+		}
+
 		case 'JSXExpressionContainer': {
 			nodeContent = concat(['{', path.call(print, 'expression'), '}']);
 			break;
@@ -1890,7 +1896,7 @@ function printRippleNode(node, path, options, print, args) {
 		case 'TSTypeOperator': {
 			const operator = node.operator;
 			const type = path.call(print, 'typeAnnotation');
-			nodeContent = `${operator} ${type}`;
+			nodeContent = concat([operator, ' ', type]);
 			break;
 		}
 
@@ -3158,6 +3164,11 @@ function printTryStatement(node, path, options, print) {
 	parts.push('try ');
 	parts.push(path.call(print, 'block'));
 
+	if (node.pending) {
+		parts.push(' pending ');
+		parts.push(path.call(print, 'pending'));
+	}
+
 	if (node.handler) {
 		parts.push(' catch');
 		if (node.handler.param) {
@@ -3172,11 +3183,6 @@ function printTryStatement(node, path, options, print) {
 	if (node.finalizer) {
 		parts.push(' finally ');
 		parts.push(path.call(print, 'finalizer'));
-	}
-
-	if (node.pending) {
-		parts.push(' pending ');
-		parts.push(path.call(print, 'pending'));
 	}
 
 	return parts;
@@ -3607,6 +3613,9 @@ function printTSTypeParameterDeclaration(node, path, options, print) {
 		if (i > 0) parts.push(', ');
 		parts.push(paramList[i]);
 	}
+	if (node.params.length === 1 && node.extra?.trailingComma !== undefined) {
+		parts.push(',');
+	}
 	parts.push('>');
 	return parts;
 }
@@ -3633,15 +3642,38 @@ function printTSTypeParameterInstantiation(node, path, options, print) {
 		return '';
 	}
 
-	const parts = [];
-	parts.push('<');
 	const paramList = path.map(print, 'params');
+
+	// Check if any param has line breaks (e.g., contains object types)
+	const hasBreakingParam = paramList.some((param) => willBreak(param));
+
+	// Build inline version: <T, U>
+	const inlineParts = ['<'];
 	for (let i = 0; i < paramList.length; i++) {
-		if (i > 0) parts.push(', ');
+		if (i > 0) inlineParts.push(', ');
+		inlineParts.push(paramList[i]);
+	}
+	inlineParts.push('>');
+
+	// If any param breaks, use the breaking version with proper indentation
+	if (hasBreakingParam) {
+		// Build breaking version: <\n  T,\n  U\n>
+		const breakingParts = [];
+		for (let i = 0; i < paramList.length; i++) {
+			if (i > 0) breakingParts.push(',', hardline);
+			breakingParts.push(paramList[i]);
+		}
+		return group(concat(['<', indent(concat([hardline, ...breakingParts])), hardline, '>']));
+	}
+
+	// Otherwise use group to allow natural breaking
+	const parts = [];
+	for (let i = 0; i < paramList.length; i++) {
+		if (i > 0) parts.push(',', line);
 		parts.push(paramList[i]);
 	}
-	parts.push('>');
-	return concat(parts);
+
+	return group(concat(['<', indent(concat([softline, ...parts])), softline, '>']));
 }
 
 function printSwitchStatement(node, path, options, print) {

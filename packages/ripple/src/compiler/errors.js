@@ -6,7 +6,7 @@
 /**
  *
  * @param {string} message
- * @param {string} filename
+ * @param {string | null} filename
  * @param {AST.Node} node
  * @param {RippleCompileError[]} [errors]
  * @returns {void}

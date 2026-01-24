@@ -1,3 +1,4 @@
+import type { OnEventListenerRemover } from 'ripple';
 import { track, flushSync, on, effect } from 'ripple';
 
 describe('on() event handler', () => {
@@ -37,7 +38,7 @@ describe('on() event handler', () => {
 		component Basic() {
 			let count = track(0);
 
-			const setupListener = (node) => {
+			const setupListener = (node: HTMLButtonElement) => {
 				const remove = on(node, 'click', () => {
 					@count++;
 				});
@@ -69,7 +70,7 @@ describe('on() event handler', () => {
 			let clickCount = track(0);
 			let mousedownCount = track(0);
 
-			const setupListeners = (node) => {
+			const setupListeners = (node: HTMLButtonElement) => {
 				const remove1 = on(node, 'click', () => {
 					@clickCount++;
 				});
@@ -117,7 +118,7 @@ describe('on() event handler', () => {
 		component Basic() {
 			let callOrder = track<number[]>([]);
 
-			const setupListeners = (node) => {
+			const setupListeners = (node: HTMLButtonElement) => {
 				const remove1 = on(node, 'click', () => {
 					@callOrder = [...@callOrder, 1];
 				});
@@ -160,9 +161,9 @@ describe('on() event handler', () => {
 			let handler1Called = track(0);
 			let handler2Called = track(0);
 			let handler3Called = track(0);
-			let removeHandler2;
+			let removeHandler2: OnEventListenerRemover | undefined;
 
-			const setupListeners = (node) => {
+			const setupListeners = (node: HTMLButtonElement) => {
 				const remove1 = on(node, 'click', () => {
 					@handler1Called++;
 				});
@@ -237,7 +238,7 @@ describe('on() event handler', () => {
 				let checked = track(false);
 				let indeterminate = track(true);
 
-				const setupListeners = (node) => {
+				const setupListeners = (node: HTMLInputElement) => {
 					node.indeterminate = @indeterminate;
 					node.checked = @checked;
 
@@ -284,7 +285,7 @@ describe('on() event handler', () => {
 		component Basic() {
 			let focusCount = track(0);
 
-			const setupListener = (node) => {
+			const setupListener = (node: HTMLInputElement) => {
 				const remove = on(node, 'focus', () => {
 					@focusCount++;
 				});
@@ -315,9 +316,11 @@ describe('on() event handler', () => {
 	it('should handle removal of all handlers for same event type', () => {
 		component Basic() {
 			let count = track(0);
-			let remove1, remove2, remove3;
+			let remove1: OnEventListenerRemover | undefined;
+			let remove2: OnEventListenerRemover | undefined;
+			let remove3: OnEventListenerRemover | undefined;
 
-			const setupListeners = (node) => {
+			const setupListeners = (node: HTMLButtonElement) => {
 				remove1 = on(node, 'click', () => {
 					@count++;
 				});
@@ -382,7 +385,7 @@ describe('on() event handler', () => {
 				@count++;
 			};
 
-			const setupListeners = (node) => {
+			const setupListeners = (node: HTMLButtonElement) => {
 				// Attach the same handler multiple times
 				const remove1 = on(node, 'click', sharedHandler);
 				const remove2 = on(node, 'click', sharedHandler);
@@ -425,7 +428,7 @@ describe('on() event handler', () => {
 				@count++;
 			};
 
-			const setupListeners = (node) => {
+			const setupListeners = (node: HTMLButtonElement) => {
 				// Attach the same handler multiple times with delegated: false
 				const remove1 = on(node, 'click', sharedHandler, { delegated: false });
 				const remove2 = on(node, 'click', sharedHandler, { delegated: false });
@@ -473,11 +476,11 @@ describe('on() event handler', () => {
 				@callOrder = [...@callOrder, 'child-bubble'];
 			};
 
-			const setupParent = (node) => {
+			const setupParent = (node: HTMLDivElement) => {
 				return on(node, 'clickCapture', parentCaptureHandler);
 			};
 
-			const setupChild = (node) => {
+			const setupChild = (node: HTMLButtonElement) => {
 				return on(node, 'click', childBubbleHandler);
 			};
 
@@ -511,7 +514,7 @@ describe('on() event handler', () => {
 			let count = track(0);
 			let permanentCount = track(0);
 
-			const setupListeners = (node) => {
+			const setupListeners = (node: HTMLButtonElement) => {
 				const onceHandler = on(node, 'click', () => {
 					@count++;
 				}, { once: true });

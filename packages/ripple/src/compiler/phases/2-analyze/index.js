@@ -24,6 +24,7 @@ import {
 	is_void_element,
 	normalize_children,
 	is_binding_function,
+	is_inside_try_block,
 } from '../../utils.js';
 import { extract_paths } from '../../../utils/ast.js';
 import is_reference from 'is-reference';
@@ -561,7 +562,7 @@ const visitors = {
 			const scope = /** @type {ScopeInterface} */ (state.scopes.get(node));
 			/** @type {AST.Identifier | AST.Pattern} */
 			let pattern_id;
-			if (state.to_ts) {
+			if (state.to_ts || state.mode === 'server') {
 				pattern_id = pattern;
 			} else {
 				pattern_id = b.id(scope.generate('pattern'));
@@ -798,6 +799,10 @@ const visitors = {
 					context.state.loose ? context.state.analysis.errors : undefined,
 				);
 			}
+		}
+
+		if (node.handler) {
+			context.visit(node.handler, state);
 		}
 
 		if (node.finalizer) {
@@ -1054,20 +1059,27 @@ const visitors = {
 				context.state.metadata.await = true;
 			}
 
-			if (parent_block !== null && parent_block.type !== 'Component') {
-				if (!context.state.ancestor_server_block) {
-					// we want the error to live on the `await` keyword vs the whole expression
-					const adjusted_node /** @type {AST.AwaitExpression} */ = {
-						...node,
-						end: /** @type {AST.NodeWithLocation} */ (node).start + 'await'.length,
-					};
-					error(
-						'`await` is not allowed in client-side control-flow statements',
-						context.state.analysis.module.filename,
-						adjusted_node,
-						context.state.loose ? context.state.analysis.errors : undefined,
-					);
-				}
+			if (
+				parent_block !== null &&
+				parent_block?.type !== 'Component' &&
+				!context.state.ancestor_server_block &&
+				!(
+					parent_block.type === 'TryStatement' &&
+					parent_block.pending &&
+					is_inside_try_block(parent_block, context)
+				)
+			) {
+				// we want the error to live on the `await` keyword vs the whole expression
+				const adjusted_node /** @type {AST.AwaitExpression} */ = {
+					...node,
+					end: /** @type {AST.NodeWithLocation} */ (node).start + 'await'.length,
+				};
+				error(
+					'`await` is not allowed in client-side control-flow statements',
+					context.state.analysis.module.filename,
+					adjusted_node,
+					context.state.loose ? context.state.analysis.errors : undefined,
+				);
 			}
 		}
 
@@ -1103,7 +1115,8 @@ export function analyze(ast, filename, options = {}) {
 		metadata: {
 			serverIdentifierPresent: false,
 		},
-		errors: [],
+		errors: options.errors ?? [],
+		comments: options.comments ?? [],
 	});
 
 	walk(
@@ -1118,6 +1131,7 @@ export function analyze(ast, filename, options = {}) {
 			to_ts: options.to_ts ?? false,
 			loose: options.loose ?? false,
 			metadata: {},
+			mode: options.mode,
 		},
 		visitors,
 	);
