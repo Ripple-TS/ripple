@@ -1,4 +1,4 @@
-import { COMMENT_NODE, HYDRATION_END, HYDRATION_START, TEXT_NODE } from '../../../constants.js';
+import { TEXT_NODE } from '../../../constants.js';
 import { hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
 import { get_descriptor } from './utils.js';
 
@@ -6,6 +6,8 @@ import { get_descriptor } from './utils.js';
 var first_child_getter;
 /** @type {() => Node | null} */
 var next_sibling_getter;
+/** @type {() => Node | null} */
+var last_child_getter;
 
 /** @type {Document} */
 export var document;
@@ -25,6 +27,8 @@ export function init_operations() {
 	first_child_getter = get_descriptor(node_prototype, 'firstChild').get;
 	// @ts-ignore
 	next_sibling_getter = get_descriptor(node_prototype, 'nextSibling').get;
+	// @ts-ignore
+	last_child_getter = get_descriptor(node_prototype, 'lastChild').get;
 
 	// the following assignments improve perf of lookups on DOM nodes
 	// @ts-expect-error
@@ -40,6 +44,15 @@ export function init_operations() {
  */
 export function get_first_child(node) {
 	return first_child_getter.call(node);
+}
+
+/**
+ * @template {Node} N
+ * @param {N} node
+ * @returns {Node | null}
+ */
+export function get_last_child(node) {
+	return last_child_getter.call(node);
 }
 
 /**
