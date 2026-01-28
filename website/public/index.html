@@ -70,6 +70,11 @@
 				position: relative;
 			}
 
+			main {
+				min-width: 0;
+				max-width: 100%;
+			}
+
 			body::before {
 				content: '';
 				position: absolute;
@@ -174,13 +179,13 @@
 				padding: 2rem;
 				position: relative;
 				z-index: 10;
-				backdrop-filter: blur(1px);
 			}
 
 			.logo {
 				width: 100%;
 				max-width: 400px;
-				padding-block: 20px;
+				aspect-ratio: 800 / 217;
+				margin: 20px auto;
 				filter: drop-shadow(0 0 30px rgba(120, 219, 226, 0.6))
 					drop-shadow(0 0 60px rgba(255, 119, 198, 0.6))
 					drop-shadow(0 0 90px rgba(120, 119, 198, 0.4));
@@ -310,8 +315,7 @@
 			}
 
 			.content-section {
-				background: rgba(40, 44, 52, 0.85);
-				backdrop-filter: blur(10px);
+				background: rgba(40, 44, 52, 0.92);
 				border-radius: 12px;
 				padding: 2rem;
 				margin: 2rem auto;
@@ -371,10 +375,9 @@
 				margin: 2rem auto;
 				max-width: 700px;
 				padding: 1.5rem;
-				background: rgba(255, 193, 7, 0.1);
+				background: rgba(255, 193, 7, 0.18);
 				border: 1px solid rgba(255, 193, 7, 0.3);
 				border-radius: 8px;
-				backdrop-filter: blur(5px);
 			}
 
 			.early-development p {
@@ -387,10 +390,9 @@
 			.coming-soon {
 				font-size: 1.1rem;
 				font-weight: 500;
-				background: rgba(255, 255, 255, 0.15);
+				background: rgba(255, 255, 255, 0.24);
 				padding: 1rem 2rem;
 				border-radius: 50px;
-				backdrop-filter: blur(10px);
 				border: 1px solid rgba(255, 255, 255, 0.2);
 				display: inline-block;
 				margin-bottom: 2rem;
@@ -407,8 +409,7 @@
 				padding: 0.75rem 1.5rem;
 				border: 1px solid rgba(120, 219, 226, 0.3);
 				border-radius: 50px;
-				background: rgba(0, 0, 0, 0.2);
-				backdrop-filter: blur(10px);
+				background: rgba(0, 0, 0, 0.32);
 				margin-bottom: 1rem;
 				box-sizing: border-box;
 				line-height: 1.2;
@@ -449,8 +450,7 @@
 				padding: 0.75rem 1.5rem;
 				border: 1px solid rgba(120, 219, 226, 0.3);
 				border-radius: 50px;
-				background: rgba(0, 0, 0, 0.2);
-				backdrop-filter: blur(10px);
+				background: rgba(0, 0, 0, 0.32);
 				box-sizing: border-box;
 				line-height: 1.2;
 				font-size: 1rem;
@@ -468,8 +468,7 @@
 				padding: 0.75rem 1.5rem;
 				border: 1px solid rgba(120, 219, 226, 0.3);
 				border-radius: 50px;
-				background: rgba(0, 0, 0, 0.2);
-				backdrop-filter: blur(10px);
+				background: rgba(0, 0, 0, 0.32);
 				box-sizing: border-box;
 				line-height: 1.2;
 				font-size: 1rem;
@@ -510,10 +509,9 @@
 			.editor-mockup {
 				max-width: 700px;
 				margin: 1rem auto;
-				background: rgba(30, 30, 35, 0.95);
+				background: rgba(30, 30, 35, 0.98);
 				border-radius: 12px;
 				border: 1px solid rgba(255, 255, 255, 0.1);
-				backdrop-filter: blur(10px);
 				overflow: hidden;
 				box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 				text-align: left;
@@ -711,7 +709,6 @@
 					white-space: pre;
 					font-size: 0.65rem;
 					line-height: 1.4;
-					min-width: max-content;
 				}
 
 				.line-number {
@@ -991,7 +988,7 @@
 <span class="line-number"> 3</span>
 <span class="line-number"> 4</span> <span class="export-keyword">export</span> <span class="keyword">component</span> <span class="function">TodoList</span><span class="brace">(</span><span class="brace">{</span> <span class="property">todos</span>, <span class="property">addTodo</span> <span class="brace">}</span>: <span class="component">Props</span><span class="brace">)</span> <span class="brace">{</span>
 <span class="line-number"> 5</span>   <span class="bracket">&lt;</span><span class="tag">div</span> <span class="attribute">class</span>=<span class="string">"container"</span><span class="bracket">&gt;</span>
-<span class="line-number"> 6</span>     <span class="bracket">&lt;</span><span class="tag">h2</span><span class="bracket">&gt;</span><span class="template-brace">{</span><span class="string">'Todo List'</span><span class="template-brace">}</span><span class="bracket">&lt;/</span><span class="tag">h2</span><span class="bracket">&gt;</span>
+<span class="line-number"> 6</span>     <span class="bracket">&lt;</span><span class="tag">h2</span><span class="bracket">&gt;</span><span class="template-brace">{</span><span class="string">"Todo List"</span><span class="template-brace">}</span><span class="bracket">&lt;/</span><span class="tag">h2</span><span class="bracket">&gt;</span>
 <span class="line-number"> 7</span>     <span class="bracket">&lt;</span><span class="tag">ul</span><span class="bracket">&gt;</span>
 <span class="line-number"> 8</span>       <span class="control-keyword">for</span> <span class="brace">(</span><span class="keyword">const</span> <span class="property">todo</span> <span class="keyword">of</span> <span class="ripple-syntax">todos</span><span class="brace">)</span> <span class="block-brace">{</span>
 <span class="line-number"> 9</span>         <span class="bracket">&lt;</span><span class="tag">li</span><span class="bracket">&gt;</span><span class="template-brace">{</span><span class="property">todo.text</span><span class="template-brace">}</span><span class="bracket">&lt;/</span><span class="tag">li</span><span class="bracket">&gt;</span>
@@ -1017,13 +1014,13 @@
 <span class="line-number">29</span>   <span class="keyword">let</span> <span class="property">count</span> <span class="operator">=</span> <span class="function">track</span><span class="brace">(</span><span class="value">0</span><span class="brace">)</span>;
 <span class="line-number">30</span>   <span class="keyword">let</span> <span class="property">double</span> <span class="operator">=</span> <span class="function">track</span><span class="brace">(</span><span class="brace">()</span> <span class="operator">=&gt;</span> <span class="reactive-var">@count</span> <span class="operator">*</span> <span class="value">2</span><span class="brace">)</span>;
 <span class="line-number">31</span>
-<span class="line-number">32</span>   <span class="bracket">&lt;</span><span class="tag">div</span> <span class="attribute">class</span>=<span class="string">'counter'</span><span class="bracket">&gt;</span>
-<span class="line-number">33</span>     <span class="bracket">&lt;</span><span class="tag">h2</span><span class="bracket">&gt;</span><span class="template-brace">{</span><span class="string">'Counter'</span><span class="template-brace">}</span><span class="bracket">&lt;/</span><span class="tag">h2</span><span class="bracket">&gt;</span>
+<span class="line-number">32</span>   <span class="bracket">&lt;</span><span class="tag">div</span> <span class="attribute">class</span>=<span class="string">"counter"</span><span class="bracket">&gt;</span>
+<span class="line-number">33</span>     <span class="bracket">&lt;</span><span class="tag">h2</span><span class="bracket">&gt;</span><span class="template-brace">{</span><span class="string">"Counter"</span><span class="template-brace">}</span><span class="bracket">&lt;/</span><span class="tag">h2</span><span class="bracket">&gt;</span>
 <span class="line-number">34</span>     <span class="bracket">&lt;</span><span class="tag">p</span><span class="bracket">&gt;</span><span class="template-brace">{</span><span class="string">"Count: "</span><span class="template-brace">}</span><span class="template-brace">{</span><span class="reactive-var">@count</span><span class="template-brace">}</span><span class="bracket">&lt;/</span><span class="tag">p</span><span class="bracket">&gt;</span>
 <span class="line-number">35</span>     <span class="bracket">&lt;</span><span class="tag">p</span><span class="bracket">&gt;</span><span class="template-brace">{</span><span class="string">"Double: "</span><span class="template-brace">}</span><span class="template-brace">{</span><span class="reactive-var">@double</span><span class="template-brace">}</span><span class="bracket">&lt;/</span><span class="tag">p</span><span class="bracket">&gt;</span>
 <span class="line-number">36</span>
-<span class="line-number">37</span>     <span class="bracket">&lt;</span><span class="component">Button</span> <span class="attribute">onClick</span>=<span class="template-brace">{</span><span class="brace">()</span> <span class="operator">=&gt;</span> <span class="reactive-var">@count</span><span class="operator">++</span><span class="template-brace">}</span> <span class="attribute">label</span>=<span class="template-brace">{</span><span class="string">'Increment'</span><span class="template-brace">}</span> <span class="bracket">/&gt;</span>
-<span class="line-number">38</span>     <span class="bracket">&lt;</span><span class="component">Button</span> <span class="attribute">onClick</span>=<span class="template-brace">{</span><span class="brace">()</span> <span class="operator">=&gt;</span> <span class="reactive-var">@count</span> <span class="operator">=</span> <span class="value">0</span><span class="template-brace">}</span> <span class="attribute">label</span>=<span class="template-brace">{</span><span class="string">'Reset'</span><span class="template-brace">}</span> <span class="bracket">/&gt;</span>
+<span class="line-number">37</span>     <span class="bracket">&lt;</span><span class="component">Button</span> <span class="attribute">onClick</span>=<span class="template-brace">{</span><span class="brace">()</span> <span class="operator">=&gt;</span> <span class="reactive-var">@count</span><span class="operator">++</span><span class="template-brace">}</span> <span class="attribute">label</span>=<span class="template-brace">{</span><span class="string">"Increment"</span><span class="template-brace">}</span> <span class="bracket">/&gt;</span>
+<span class="line-number">38</span>     <span class="bracket">&lt;</span><span class="component">Button</span> <span class="attribute">onClick</span>=<span class="template-brace">{</span><span class="brace">()</span> <span class="operator">=&gt;</span> <span class="reactive-var">@count</span> <span class="operator">=</span> <span class="value">0</span><span class="template-brace">}</span> <span class="attribute">label</span>=<span class="template-brace">{</span><span class="string">"Reset"</span><span class="template-brace">}</span> <span class="bracket">/&gt;</span>
 <span class="line-number">39</span>   <span class="bracket">&lt;/</span><span class="tag">div</span><span class="bracket">&gt;</span>
 <span class="line-number">40</span> <span class="brace">}</span>`
 
@@ -1032,14 +1029,16 @@
 					if (!element) return
 
 					let charIndex = 0
+					const STEP = 40
+					const INTERVAL = STEP / 2
+					const CURSOR = '<span class="typing-cursor">|</span>'
 
 					function addChar() {
+						charIndex += STEP
+
 						if (charIndex < codeContent.length) {
-							element.innerHTML =
-								codeContent.substring(0, charIndex + 20) +
-								'<span class="typing-cursor">|</span>'
-							charIndex += 20
-							setTimeout(addChar, 10)
+							element.innerHTML = codeContent.substring(0, charIndex) + CURSOR
+							setTimeout(addChar, INTERVAL)
 						} else {
 							element.innerHTML = codeContent
 						}
