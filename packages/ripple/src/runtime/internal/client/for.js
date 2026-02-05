@@ -3,7 +3,7 @@
 import { IS_CONTROLLED, IS_INDEXED } from '../../../constants.js';
 import { branch, destroy_block, destroy_block_children, render } from './blocks.js';
 import { FOR_BLOCK, TRACKED_ARRAY } from './constants.js';
-import { hydrate_next, hydrating, set_hydrate_node } from './hydration.js';
+import { hydrate_next, hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
 import { create_text, get_first_child, get_last_child, next_sibling } from './operations.js';
 import { active_block, set, tracked, untrack } from './runtime.js';
 import { array_from, is_array } from './utils.js';
@@ -112,11 +112,9 @@ export function for_block(node, get_collection, render_fn, flags) {
 	var anchor = /** @type {Element | Text} */ (node);
 
 	if (is_controlled) {
-		var parent_node = /** @type {Element} */ (node);
-
 		if (hydrating) {
+			var parent_node = /** @type {Element} */ (node);
 			/** @type {Element | Text} */ (set_hydrate_node(get_first_child(parent_node)));
-			anchor = /** @type {Element | Text} */ (get_last_child(parent_node));
 		} else {
 			anchor = node.appendChild(create_text());
 		}
@@ -135,6 +133,10 @@ export function for_block(node, get_collection, render_fn, flags) {
 			untrack(() => {
 				reconcile_by_ref(anchor, block, array, render_fn, is_controlled, is_indexed);
 			});
+
+			if (hydrating) {
+				anchor = /** @type {Element | Text} */ (hydrate_node);
+			}
 		},
 		null,
 		FOR_BLOCK,
