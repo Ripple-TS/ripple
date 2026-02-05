@@ -7,7 +7,7 @@ import {
 	TEMPLATE_MATHML_NAMESPACE,
 } from '../../../constants.js';
 import { hydrate_next, hydrate_node, hydrating, pop } from './hydration.js';
-import { get_first_child, is_firefox } from './operations.js';
+import { create_text, get_first_child, is_firefox } from './operations.js';
 import { active_block, active_namespace } from './runtime.js';
 
 /**
@@ -116,6 +116,14 @@ export function append(anchor, dom) {
 		return;
 	}
 	anchor.before(/** @type {Node} */ (dom));
+}
+
+export function text(data = '') {
+	if (hydrating) {
+		assign_nodes(/** @type {Node} */ (hydrate_node), /** @type {Node} */ (hydrate_node));
+		return /** @type {Node} */ (hydrate_node);
+	}
+	return create_text(data);
 }
 
 /**

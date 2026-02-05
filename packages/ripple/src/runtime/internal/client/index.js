@@ -66,7 +66,7 @@ export { try_block as try, aborted, suspend } from './try.js';
 
 export { switch_block as switch } from './switch.js';
 
-export { template, append } from './template.js';
+export { template, append, text } from './template.js';
 
 export { tracked_array } from '../../array.js';
 

@@ -124,7 +124,9 @@ export function next_sibling(node, is_text) {
 	let next_sibling = hydrating ? hydrate_node : node;
 	var last_sibling;
 
-	next_sibling = /** @type {ChildNode | null} */ (get_next_sibling(node));
+	next_sibling = /** @type {ChildNode | null} */ (
+		get_next_sibling(/** @type {ChildNode} */ (next_sibling))
+	);
 	last_sibling = next_sibling;
 
 	if (!hydrating) {

@@ -1760,11 +1760,18 @@ const visitors = {
 			}
 		}
 
+		const component_scope = context.state.scopes.get(node) || context.state.scope;
 		const body_statements = [
 			b.stmt(b.call('_$_.push_component')),
 			...transform_body(node.body, {
 				...context,
-				state: { ...context.state, component: node, metadata },
+				state: {
+					...context.state,
+					flush_node: null,
+					component: node,
+					metadata,
+					scope: component_scope,
+				},
 			}),
 			b.stmt(b.call('_$_.pop_component')),
 		];
@@ -2057,7 +2064,7 @@ const visitors = {
 		const consequent = b.block(
 			transform_body(consequent_body, {
 				...context,
-				state: { ...context.state, scope: consequent_scope },
+				state: { ...context.state, flush_node: null, scope: consequent_scope },
 			}),
 		);
 		const consequent_id = context.state.scope.generate('consequent');
@@ -2074,7 +2081,7 @@ const visitors = {
 			const alternate_block = b.block(
 				transform_body(alternate_body, {
 					...context,
-					state: { ...context.state, scope: alternate_scope },
+					state: { ...context.state, flush_node: null, scope: alternate_scope },
 				}),
 			);
 			alternate_id = context.state.scope.generate('alternate');
@@ -2837,15 +2844,15 @@ function transform_children(children, context) {
 			let metadata;
 			/** @type {AST.Expression | undefined} */
 			let expression = undefined;
-			let isCreateTextOnly = false;
+			let is_create_text_only = false;
 			if (node.type === 'Text' || node.type === 'Html') {
 				metadata = { tracking: false, await: false };
 				expression = /** @type {AST.Expression} */ (visit(node.expression, { ...state, metadata }));
-				isCreateTextOnly =
+				is_create_text_only =
 					node.type === 'Text' && normalized.length === 1 && expression.type === 'Literal';
 			}
 
-			if (initial === null && root && !isCreateTextOnly) {
+			if (initial === null && root && !is_create_text_only) {
 				create_initial(node);
 			}
 
@@ -2882,7 +2889,7 @@ function transform_children(children, context) {
 					cached = id;
 					return id;
 				} else {
-					debugger;
+					return get_id(node);
 				}
 			};
 
@@ -2941,9 +2948,7 @@ function transform_children(children, context) {
 							state.template?.push(escape_html(expr.value));
 						} else {
 							const id = flush_node(true);
-							state.init?.push(
-								b.var(/** @type {AST.Identifier} */ (id), b.call('_$_.create_text', expr)),
-							);
+							state.init?.push(b.var(/** @type {AST.Identifier} */ (id), b.call('_$_.text', expr)));
 							state.final?.push(b.stmt(b.call('_$_.append', b.id('__anchor'), id)));
 						}
 					} else {

@@ -10,6 +10,7 @@
     "test": "vitest run",
     "debug-volar": "node volar-debug.js",
     "debug-ssr": "node ssr-debug.js",
+    "debug-client": "node ssr-client.js",
     "lint": "eslint ."
   },
   "devDependencies": {

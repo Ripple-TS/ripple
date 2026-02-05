@@ -710,6 +710,10 @@ const visitors = {
 					state.init?.push(b.stmt(component_call));
 				}
 			} else {
+				state.init?.push(
+					b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN))),
+				);
+
 				// Component is imported or dynamic - check .async property at runtime
 				// Use if-statement instead of ternary to avoid parser issues with await in conditionals
 				state.init?.push(
@@ -718,6 +722,10 @@ const visitors = {
 						b.block([b.stmt(b.await(component_call))]),
 						b.block([b.stmt(component_call)]),
 					),
+				);
+
+				state.init?.push(
+					b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_CLOSE))),
 				);
 
 				// Mark parent component as async since we're using await

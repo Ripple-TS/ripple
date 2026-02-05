@@ -2,6 +2,7 @@
 
 import { branch, destroy_block, render, render_spread } from './blocks.js';
 import { COMPOSITE_BLOCK, DEFAULT_NAMESPACE, NAMESPACE_URI } from './constants.js';
+import { hydrate_next, hydrating } from './hydration.js';
 import { active_block, active_namespace, with_ns } from './runtime.js';
 import { top_element_to_ns } from './utils.js';
 
@@ -13,6 +14,10 @@ import { top_element_to_ns } from './utils.js';
  * @returns {void}
  */
 export function composite(get_component, node, props) {
+	if (hydrating) {
+		hydrate_next();
+	}
+
 	var anchor = node;
 	/** @type {Block | null} */
 	var b = null;
