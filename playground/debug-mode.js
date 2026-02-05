@@ -2,6 +2,15 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { compile } from 'ripple/compiler';
 
+const mode = process.argv[2] || 'server';
+
+if (mode !== 'client' && mode !== 'server') {
+	console.error(`Invalid mode: ${mode}. Must be 'client' or 'server'.`);
+	process.exit(1);
+}
+
+console.log(`Compiling in ${mode} mode...`);
+
 const dir = './src/';
 const output_dir = './debug';
 
@@ -11,7 +20,7 @@ await fs.mkdir(output_dir, { recursive: true });
 for (const filename of await fs.readdir(dir)) {
 	if (filename.endsWith('.ripple')) {
 		const source = await fs.readFile(path.join(dir, filename), 'utf-8');
-		const result = compile(source, filename, { mode: 'server' });
+		const result = compile(source, filename, { mode });
 		const base_name = filename.replace('.ripple', '');
 		await fs.writeFile(`${output_dir}/${base_name}.js`, result.js.code);
 		if (result.css) {

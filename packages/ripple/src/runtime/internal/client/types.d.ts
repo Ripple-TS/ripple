@@ -63,3 +63,21 @@ export type CompatApi = {
 export type CompatOptions = {
 	[key: string]: CompatApi;
 };
+
+declare global {
+	interface Element {
+		__attributes?: {
+			checked?: boolean;
+			value?: string;
+		};
+		__click?: () => void;
+	}
+
+	interface Event {
+		__root?: EventTarget;
+	}
+
+	interface Text {
+		__t?: string | null;
+	}
+}

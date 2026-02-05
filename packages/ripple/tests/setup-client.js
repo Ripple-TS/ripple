@@ -1,8 +1,12 @@
+/**
+ * @import { Component } from '#public';
+ */
+
 import { beforeEach, afterEach } from 'vitest';
 import { mount } from 'ripple';
 
 /**
- * @param {() => void} component
+ * @param {Component} component
  */
 globalThis.render = function render(component) {
 	mount(component, {
@@ -11,7 +15,7 @@ globalThis.render = function render(component) {
 };
 
 beforeEach(() => {
-	globalThis.container = /** @type {HTMLDivElement} */ (document.createElement('div'));
+	globalThis.container = document.createElement('div');
 	document.body.appendChild(globalThis.container);
 
 	globalThis.error = undefined;

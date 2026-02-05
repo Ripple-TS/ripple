@@ -33,7 +33,7 @@ export var array_prototype = Array.prototype;
  */
 export function create_anchor() {
 	var t = document.createTextNode('');
-	/** @type {any} */ (t).__t = '';
+	t.__t = '';
 	return t;
 }
 

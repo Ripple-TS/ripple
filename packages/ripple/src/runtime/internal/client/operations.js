@@ -18,7 +18,7 @@ export var is_firefox;
 export function init_operations() {
 	var node_prototype = Node.prototype;
 	var element_prototype = Element.prototype;
-	var event_target_prototype = EventTarget.prototype;
+	var event_target_prototype = Event.prototype;
 
 	is_firefox = /Firefox/.test(navigator.userAgent);
 	document = window.document;
@@ -34,9 +34,7 @@ export function init_operations() {
 	);
 
 	// the following assignments improve perf of lookups on DOM nodes
-	// @ts-expect-error
 	element_prototype.__click = undefined;
-	// @ts-expect-error
 	event_target_prototype.__root = undefined;
 }
 

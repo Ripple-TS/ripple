@@ -98,20 +98,14 @@ export function handle_event_propagation(event) {
 	// parent of the __root node, which indicates that there's nested
 	// mounted apps. In this case we don't want to trigger events multiple times.
 	var path_idx = 0;
-
-	// @ts-expect-error is added below
 	var handled_at = last_propagated_event === event && event.__root;
 
 	if (handled_at) {
 		var at_idx = path.indexOf(handled_at);
-		if (
-			at_idx !== -1 &&
-			(handler_element === document || handler_element === /** @type {any} */ (window))
-		) {
+		if (at_idx !== -1 && (handler_element === document || handler_element === window)) {
 			// This is the fallback document listener or a window listener, but the event was already handled
 			// -> ignore, but set handle_at to document/window so that we're resetting the event
 			// chain in case someone manually dispatches the same event object again.
-			// @ts-expect-error
 			event.__root = handler_element;
 			return;
 		}
@@ -210,7 +204,6 @@ export function handle_event_propagation(event) {
 		}
 	} finally {
 		set_active_block(previous_block);
-		// @ts-expect-error is used above
 		event.__root = handler_element;
 		// @ts-ignore remove proxy on currentTarget
 		delete event.currentTarget;

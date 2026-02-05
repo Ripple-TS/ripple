@@ -8,13 +8,22 @@ import { sanitize_template_string } from './sanitize_template_string.js';
  * @template {AST.Node} T
  * @param {T} node
  * @param {AST.NodeWithLocation | undefined} loc_info
+ * @param {boolean} is_deep_copy
  * @returns {T}
  */
-function set_location(node, loc_info) {
+export function set_location(node, loc_info, is_deep_copy = false) {
 	if (loc_info) {
 		node.start = loc_info.start;
 		node.end = loc_info.end;
-		node.loc = loc_info.loc;
+
+		if (is_deep_copy) {
+			node.loc = {
+				start: { ...loc_info.loc.start },
+				end: { ...loc_info.loc.end },
+			};
+		} else {
+			node.loc = loc_info.loc;
+		}
 	}
 
 	return node;
@@ -173,7 +182,7 @@ export function call(callee, ...args) {
 
 /**
  * @param {string | AST.Expression} callee
- * @param {...AST.Expression} args
+ * @param {...(AST.Expression | AST.SpreadElement | false | undefined)} args
  * @returns {AST.ChainExpression}
  */
 export function maybe_call(callee, ...args) {
@@ -362,14 +371,25 @@ export function literal(value, loc_info) {
  * @param {string | AST.Expression | AST.PrivateIdentifier} property
  * @param {boolean} computed
  * @param {boolean} optional
+ * @param {AST.NodeWithLocation} [loc_info]
  * @returns {AST.MemberExpression}
  */
-export function member(object, property, computed = false, optional = false) {
+export function member(object, property, computed = false, optional = false, loc_info) {
 	if (typeof property === 'string') {
 		property = id(property);
 	}
 
-	return { type: 'MemberExpression', object, property, computed, optional, metadata: { path: [] } };
+	/** @type {AST.MemberExpression} */
+	const node = {
+		type: 'MemberExpression',
+		object,
+		property,
+		computed,
+		optional,
+		metadata: { path: [] },
+	};
+
+	return set_location(node, loc_info);
 }
 
 /**

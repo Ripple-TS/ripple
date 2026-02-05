@@ -1,0 +1,459 @@
+import { track } from 'ripple';
+
+describe('basic server > attribute rendering', () => {
+	it('render static attributes', async () => {
+		component Basic() {
+			<div class="foo" id="bar" style="color: red;">{'Hello World'}</div>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const div = document.querySelector('div');
+
+		expect(div.className).toBe('foo');
+		expect(div.id).toBe('bar');
+		expect(div.style.color).toBe('red');
+		expect(div.innerHTML).toBe('Hello World');
+	});
+
+	it('render dynamic class attribute', async () => {
+		component Basic() {
+			let active = track(false);
+
+			<div class={@active ? 'active' : 'inactive'}>{'Dynamic Class'}</div>
+
+			<style>
+				.active {
+					color: green;
+				}
+			</style>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const div = document.querySelector('div');
+
+		expect(Array.from(div.classList).some((className) => className.startsWith('ripple-'))).toBe(
+			true,
+		);
+		expect(div.classList.contains('inactive')).toBe(true);
+	});
+
+	it('render class attribute with array, nested array, nested object', async () => {
+		component Basic() {
+			<div
+				class={[
+					'foo',
+					'bar',
+					true && 'baz',
+					false && 'aaa',
+					null && 'bbb',
+					[
+						'ccc',
+						'ddd',
+						{ eee: true, fff: false },
+					],
+				]}
+			>
+				{'Class Array'}
+			</div>
+
+			<style>
+				.foo {
+					color: red;
+				}
+			</style>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const div = document.querySelector('div');
+
+		expect(Array.from(div.classList).some((className) => className.startsWith('ripple-'))).toBe(
+			true,
+		);
+
+		expect(div.classList.contains('foo')).toBe(true);
+		expect(div.classList.contains('bar')).toBe(true);
+		expect(div.classList.contains('baz')).toBe(true);
+		expect(div.classList.contains('aaa')).toBe(false);
+		expect(div.classList.contains('bbb')).toBe(false);
+		expect(div.classList.contains('ccc')).toBe(true);
+		expect(div.classList.contains('ddd')).toBe(true);
+		expect(div.classList.contains('eee')).toBe(true);
+		expect(div.classList.contains('fff')).toBe(false);
+	});
+
+	it('render dynamic class object', async () => {
+		component Basic() {
+			let active = track(false);
+
+			<div class={{ active: @active, inactive: !@active }}>{'Dynamic Class'}</div>
+
+			<style>
+				.active {
+					color: green;
+				}
+			</style>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const div = document.querySelector('div');
+
+		expect(Array.from(div.classList).some((className) => className.startsWith('ripple-'))).toBe(
+			true,
+		);
+		expect(div.classList.contains('inactive')).toBe(true);
+		expect(div.classList.contains('active')).toBe(false);
+	});
+
+	it(
+		'applies scoped ripple class to multiple elements with dynamic class expressions',
+		async () => {
+			component Basic() {
+				let selected = track(1);
+
+				<div class={@selected === 0 ? 'selected' : ''}>{`div 1`}</div>
+				<div class={@selected === 0 ? 'selected' : ''}>{`div 2`}</div>
+
+				<style>
+					div {
+						background: green;
+						color: white;
+					}
+					div.selected {
+						background: indigo;
+					}
+				</style>
+			}
+
+			const { body } = await render(Basic);
+			const { document } = parseHtml(body);
+
+			const divs = document.querySelectorAll('div');
+
+			divs.forEach((div) => {
+				expect(Array.from(div.classList).some((className) => className.startsWith('ripple-'))).toBe(
+					true,
+				);
+			});
+		},
+	);
+
+	it('render dynamic id attribute', async () => {
+		component Basic() {
+			let count = track(0);
+
+			<div id={`item-${@count}`}>{'Dynamic ID'}</div>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const div = document.querySelector('div');
+
+		expect(div.id).toBe('item-0');
+	});
+
+	it('render dynamic style attribute', async () => {
+		component Basic() {
+			let color = track('red');
+
+			<div style={`color: ${@color}; font-weight: bold;`}>{'Dynamic Style'}</div>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const div = document.querySelector('div');
+
+		expect(div.style.color).toBe('red');
+		expect(div.style.fontWeight).toBe('bold');
+	});
+
+	it('render style attribute as dynamic object', async () => {
+		component Basic() {
+			let color = track('red');
+
+			<div style={{ color: @color, fontWeight: 'bold' }}>{'Dynamic Style'}</div>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const div = document.querySelector('div');
+
+		expect(div.style.color).toBe('red');
+		expect(div.style.fontWeight).toBe('bold');
+	});
+
+	it('render tracked variable as style attribute', async () => {
+		component Basic() {
+			let style = track({ color: 'red', fontWeight: 'bold' });
+
+			<div {@style}>{'Dynamic Style'}</div>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const div = document.querySelector('div');
+
+		expect(div.style.color).toBe('red');
+		expect(div.style.fontWeight).toBe('bold');
+	});
+
+	it('render tracked object as style attribute', async () => {
+		component Basic() {
+			let style = #{ color: 'red', fontWeight: 'bold' };
+
+			<div style={{ color: style.color, fontWeight: style.fontWeight }}>{'Dynamic Style'}</div>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const div = document.querySelector('div');
+
+		expect(div.style.color).toBe('red');
+		expect(div.style.fontWeight).toBe('bold');
+	});
+
+	it('render spread attributes with style and class', async () => {
+		component Basic() {
+			const attributes = {
+				style: { color: 'red', fontWeight: 'bold' },
+				class: ['foo', false && 'bar'],
+			};
+
+			<div {...attributes}>{'Attributes with style and class'}</div>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const div = document.querySelector('div');
+
+		expect(div.style.color).toBe('red');
+		expect(div.style.fontWeight).toBe('bold');
+
+		expect(div.classList.contains('foo')).toBe(true);
+		expect(div.classList.contains('bar')).toBe(false);
+	});
+
+	it('render spread props without duplication', async () => {
+		component Basic() {
+			const checkBoxProp = { name: 'car' };
+
+			<div>
+				<input {...checkBoxProp} type="checkbox" id="vehicle1" value="Bike" />
+			</div>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const input = document.querySelector('input');
+		const div = document.querySelector('div');
+		const html = div.innerHTML;
+
+		expect(input.getAttribute('name')).toBe('car');
+		expect(input.getAttribute('type')).toBe('checkbox');
+		expect(input.getAttribute('id')).toBe('vehicle1');
+		expect(input.getAttribute('value')).toBe('Bike');
+
+		expect(html).not.toContain('type="checkbox"type="checkbox"');
+		expect(html).not.toContain('value="Bike"value="Bike"');
+
+		expect(body).toBeHtml(
+			'<div><input name="car" type="checkbox" id="vehicle1" value="Bike" /></div>',
+		);
+	});
+
+	it('render dynamic boolean attributes as false', async () => {
+		component Basic() {
+			let disabled = track(false);
+			let checked = track(false);
+
+			<input type="checkbox" {@disabled} {@checked} />
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const input = document.querySelector('input');
+
+		expect(input.hasAttribute('disabled')).toBe(false);
+		expect(input.hasAttribute('checked')).toBe(false);
+		expect(body).toBeHtml('<input type="checkbox" />');
+	});
+
+	it('render dynamic boolean attributes as false via spread', async () => {
+		component Basic() {
+			const spread = { disabled: false, checked: false };
+
+			<input type="checkbox" {...spread} />
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const input = document.querySelector('input');
+
+		expect(input.hasAttribute('disabled')).toBe(false);
+		expect(input.hasAttribute('checked')).toBe(false);
+		expect(body).toBeHtml('<input type="checkbox" />');
+	});
+
+	it('render dynamic boolean attributes as true', async () => {
+		component Basic() {
+			let disabled = track(true);
+			let checked = track(true);
+
+			<input type="checkbox" {@disabled} {@checked} />
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const input = document.querySelector('input');
+
+		expect(input.hasAttribute('disabled')).toBe(true);
+		expect(input.hasAttribute('checked')).toBe(true);
+		expect(body).toBeHtml('<input type="checkbox" disabled checked />');
+	});
+
+	it('render dynamic boolean attributes as true via spread', async () => {
+		component Basic() {
+			const spread = { disabled: true, checked: true };
+
+			<input type="checkbox" {...spread} />
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const input = document.querySelector('input');
+
+		expect(input.hasAttribute('disabled')).toBe(true);
+		expect(input.hasAttribute('checked')).toBe(true);
+		expect(body).toBeHtml('<input type="checkbox" disabled checked />');
+	});
+
+	it('render multiple dynamic attributes', async () => {
+		component Basic() {
+			let theme = track('light');
+			let size = track('medium');
+
+			<div class={`theme-${@theme} size-${@size}`} data-theme={@theme} data-size={@size}>
+				{'Multiple Dynamic Attributes'}
+			</div>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const div = document.querySelector('div');
+
+		expect(div.className).toBe('theme-light size-medium');
+		expect(div.getAttribute('data-theme')).toBe('light');
+		expect(div.getAttribute('data-size')).toBe('medium');
+	});
+
+	it('render conditional attributes', async () => {
+		component Basic() {
+			let showTitle = track(false);
+			let showAria = track(false);
+
+			<div
+				title={@showTitle ? 'This is a title' : undefined}
+				aria-label={@showAria ? 'Accessible label' : undefined}
+			>
+				{'Conditional Attributes'}
+			</div>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const div = document.querySelector('div');
+
+		expect(div.hasAttribute('title')).toBe(false);
+		expect(div.hasAttribute('aria-label')).toBe(false);
+	});
+
+	it('render spread attributes', async () => {
+		component Basic() {
+			let attrs = track<TestAttributes>(
+				{
+					class: 'initial',
+					id: 'test-1',
+				},
+			);
+
+			<div {...@attrs}>{'Spread Attributes'}</div>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const div = document.querySelector('div');
+
+		expect(div.className).toBe('initial');
+		expect(div.id).toBe('test-1');
+		expect(div.hasAttribute('data-extra')).toBe(false);
+	});
+
+	it('renders with reactive attributes with nested reactive attributes', async () => {
+		component Basic() {
+			let value = track('parent-class');
+
+			<p class={@value}>{'Colored parent value'}</p>
+
+			<div>
+				let nested = track('nested-class');
+
+				<p class={@nested}>{'Colored nested value'}</p>
+			</div>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const paragraphs = document.querySelectorAll('p');
+
+		expect(paragraphs[0].className).toBe('parent-class');
+		expect(paragraphs[1].className).toBe('nested-class');
+	});
+
+	it('handles boolean attributes with no prop value provides', async () => {
+		component Basic() {
+			<div class="container">
+				<input type="checkbox" checked />
+			</div>
+		}
+
+		const { body } = await render(Basic);
+		expect(body).toBeHtml('<div class="container"><input type="checkbox" checked /></div>');
+	});
+
+	it('handles boolean props correctly', async () => {
+		component Basic() {
+			<div data-disabled />
+
+			<Child isDisabled />
+		}
+
+		component Child({ isDisabled }: { isDisabled: boolean }) {
+			<input disabled={isDisabled} />
+		}
+
+		const { body } = await render(Basic);
+		expect(body).toBeHtml('<div data-disabled="" /><input disabled />');
+	});
+});

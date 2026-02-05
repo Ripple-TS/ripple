@@ -934,7 +934,8 @@ export namespace Parse {
 			| AST.TrackedArrayExpression
 			| AST.TrackedObjectExpression
 			| AST.Component
-			| AST.Identifier;
+			| AST.Identifier
+			| AST.Literal;
 
 		/** Default handler for parseExprAtom when no other case matches */
 		parseExprAtomDefault(): AST.Expression;
@@ -1196,6 +1197,7 @@ export namespace Parse {
 						requireName?: boolean;
 						isDefault?: boolean;
 						declareName?: boolean;
+						skipName?: boolean;
 				  }
 				| undefined,
 		): AST.Component;

@@ -53,6 +53,11 @@
     "adm-zip": "catalog:default"
   },
   "contributes": {
+    "breakpoints": [
+      {
+        "language": "ripple"
+      }
+    ],
     "configuration": {
       "title": "Ripple",
       "properties": {

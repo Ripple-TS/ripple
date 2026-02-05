@@ -39,6 +39,12 @@ export const mapping_data_verify_only = {
 	verification: true,
 };
 
+/** @type {Partial<VolarCodeMapping['data']>} */
+export const mapping_data_verify_complete = {
+	verification: true,
+	completion: true,
+};
+
 /**
  * Convert byte offset to line/column
  * @param {number} offset
@@ -255,7 +261,7 @@ export function build_line_offsets(text) {
 }
 
 /**
- * @param {AST.Node} node
+ * @param {AST.Node | AST.NodeWithLocation} node
  * @param {CodeToGeneratedMap} src_to_gen_map
  * @param {number[]} gen_line_offsets
  * @param {Partial<VolarCodeMapping['data']>} [filtered_data]

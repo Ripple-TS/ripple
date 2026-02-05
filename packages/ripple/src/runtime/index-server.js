@@ -1,52 +1,16 @@
-/** @import { Component, Derived, Tracked } from '#server' */
-
-import { DERIVED, TRACKED, UNINITIALIZED } from './internal/client/constants.js';
-import { is_tracked_object } from './internal/client/utils.js';
-import { active_component, get, set, untrack } from './internal/server/index.js';
+import { get, set, untrack, track, track_split } from './internal/server/index.js';
 
 export { Context } from './internal/server/context.js';
 
-export { get, set, untrack };
+export { get, set, untrack, track, track_split as trackSplit };
 
-export function effect() {
-	// NO-OP
-}
+function noop() {}
 
-var empty_get_set = { get: undefined, set: undefined };
-
-/**
- * @param {any} v
- * @param {Function} [get]
- * @param {Function} [set]
- * @returns {Tracked | Derived}
- */
-export function track(v, get, set) {
-	var is_tracked = is_tracked_object(v);
-
-	if (is_tracked) {
-		return v;
-	}
-
-	if (typeof v === 'function') {
-		return {
-			a: get || set ? { get, set } : empty_get_set,
-			c: 0,
-			co: active_component,
-			d: null,
-			f: TRACKED | DERIVED,
-			fn: v,
-			v: UNINITIALIZED,
-		};
-	}
-
-	return {
-		a: get || set ? { get, set } : empty_get_set,
-		c: 0,
-		d: null,
-		f: TRACKED,
-		v,
-	};
-}
+export const effect = noop;
+export const createRefKey = noop;
+export const on = noop;
+export const tick = noop;
+export const flushSync = noop;
 
 export const TrackedObject = globalThis.Object;
 export const TrackedArray = globalThis.Array;
@@ -72,15 +36,9 @@ export function MediaQuery(query, matches = false) {
  * @param {any} _
  */
 export function createSubscriber(_) {
-	return () => {
-		/* NO-OP */
-	};
+	return noop;
 }
 
-function noop() {}
-
-// These don't get compiled in {ref fn} templates
-// But can still remain in imports and possibly in js
 export const bindValue = noop;
 export const bindChecked = noop;
 export const bindGroup = noop;

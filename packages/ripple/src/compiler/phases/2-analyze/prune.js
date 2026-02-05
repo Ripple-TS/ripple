@@ -3,7 +3,7 @@
 /** @typedef {0 | 1} Direction */
 
 import { walk } from 'zimmerframe';
-import { is_element_dom_element } from '../../utils.js';
+import { is_element_dom_element, is_element_dynamic } from '../../utils.js';
 
 const regex_backslash_and_following_character = /\\(.)/g;
 /** @type {Direction} */
@@ -350,7 +350,7 @@ function can_render_dynamic_content(element, check_classes = false) {
 
 	// Either a dynamic element or component (only can tell at runtime)
 	// But dynamic elements should return false ideally
-	if (/** @type {AST.Element} */ (element).id.tracked) {
+	if (is_element_dynamic(/** @type {AST.Element} */ (element))) {
 		return true;
 	}
 
@@ -932,7 +932,9 @@ function relative_selector_might_apply_to_node(relative_selector, rule, element,
 			}
 
 			case 'AttributeSelector': {
-				const whitelisted = whitelist_attribute_selector.get(element.id.name.toLowerCase());
+				const whitelisted = whitelist_attribute_selector.get(
+					/** @type {AST.Identifier} */ (element.id).name.toLowerCase(),
+				);
 				if (
 					!whitelisted?.includes(selector.name.toLowerCase()) &&
 					!attribute_matches(

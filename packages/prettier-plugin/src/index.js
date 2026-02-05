@@ -550,6 +550,36 @@ function buildInlineArrayCommentDoc(comments) {
 	return docs.length > 0 ? concat(docs) : null;
 }
 
+/**
+ * @param {AST.Property | AST.MethodDefinition} node
+ */
+function printKey(node, path, options, print) {
+	const parts = [];
+	if (node.computed) {
+		// computed are never converted to identifiers
+		parts.push('[', path.call(print, 'key'), ']');
+		return parts;
+	}
+
+	if (node.key.type === 'Literal' && typeof node.key.value === 'string') {
+		// Check if the key is a valid identifier that doesn't need quotes
+		const key = node.key.value;
+		const isValidIdentifier = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key);
+
+		if (isValidIdentifier) {
+			// Don't quote valid identifiers
+			parts.push(key);
+		} else {
+			// Quote keys that need it (e.g., contain special characters)
+			parts.push(formatStringLiteral(key, options));
+		}
+	} else {
+		parts.push(path.call(print, 'key'));
+	}
+
+	return parts;
+}
+
 function printRippleNode(node, path, options, print, args) {
 	if (!node || typeof node !== 'object') {
 		return String(node || '');
@@ -682,7 +712,7 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 
 		case 'Component':
-			nodeContent = printComponent(node, path, options, print, innerCommentParts);
+			nodeContent = printComponent(node, path, options, print, innerCommentParts, args);
 			break;
 
 		case 'ExportNamedDeclaration':
@@ -2200,9 +2230,20 @@ function printExportNamedDeclaration(node, path, options, print) {
 	return 'export';
 }
 
-function printComponent(node, path, options, print, innerCommentParts = []) {
+function printComponent(
+	node,
+	path,
+	options,
+	print,
+	innerCommentParts = [],
+	args = { skipComponentLabel: false },
+) {
 	// Use arrays instead of string concatenation
-	const signatureParts = node.id ? ['component ', node.id.name] : ['component'];
+	const signatureParts = args.skipComponentLabel
+		? []
+		: node.id
+			? ['component ', node.id.name]
+			: ['component'];
 
 	// Add TypeScript generics if present
 	if (node.typeParameters) {
@@ -3106,9 +3147,24 @@ function printObjectExpression(node, path, options, print, args) {
 				propertyParts.push(',');
 
 				// Check for blank lines between properties and preserve them
+				// Need to account for trailing comments on previous property and
+				// leading comments on current property
 				const prevProp = node.properties[i - 1];
 				const currentProp = node.properties[i];
-				if (prevProp && currentProp && getBlankLinesBetweenNodes(prevProp, currentProp) > 0) {
+
+				// Determine the source node (end of previous property or its trailing comments)
+				let sourceNode = prevProp;
+				if (prevProp?.trailingComments?.length > 0) {
+					sourceNode = prevProp.trailingComments[prevProp.trailingComments.length - 1];
+				}
+
+				// Determine the target node (start of current property or its leading comments)
+				let targetNode = currentProp;
+				if (currentProp?.leadingComments?.length > 0) {
+					targetNode = currentProp.leadingComments[0];
+				}
+
+				if (sourceNode && targetNode && getBlankLinesBetweenNodes(sourceNode, targetNode) > 0) {
 					propertyParts.push(hardline);
 					propertyParts.push(hardline); // Two hardlines = blank line
 				} else {
@@ -3259,6 +3315,7 @@ function printPropertyDefinition(node, path, options, print) {
 
 function printMethodDefinition(node, path, options, print) {
 	const parts = [];
+	const is_component = node.value?.type === 'Component';
 
 	// Access modifiers (public, private, protected)
 	if (node.accessibility) {
@@ -3271,23 +3328,36 @@ function printMethodDefinition(node, path, options, print) {
 		parts.push('static ');
 	}
 
+	// Method kind and name
+	if (node.kind === 'constructor') {
+		// skip as it's covered by the key
+	} else if (node.kind === 'get') {
+		parts.push('get ');
+	} else if (node.kind === 'set') {
+		parts.push('set ');
+	}
+
 	// Async keyword
 	if (node.value && node.value.async) {
 		parts.push('async ');
 	}
 
-	// Method kind and name
-	if (node.kind === 'constructor') {
-		parts.push('constructor');
-	} else if (node.kind === 'get') {
-		parts.push('get ');
-		parts.push(path.call(print, 'key'));
-	} else if (node.kind === 'set') {
-		parts.push('set ');
-		parts.push(path.call(print, 'key'));
-	} else {
-		parts.push(path.call(print, 'key'));
+	if (node.value.generator) {
+		parts.push('*');
 	}
+
+	if (is_component) {
+		if (node.value.id) {
+			// takes care of component methods
+			parts.push(path.call(print, 'value'));
+			return concat(parts);
+		}
+
+		parts.push('component ');
+	}
+
+	// the key is 'constructor' and we already handled that above
+	parts.push(...printKey(node, path, options, print));
 
 	// Add TypeScript generics if present (always on the method node, not on value)
 	if (node.typeParameters) {
@@ -3297,6 +3367,13 @@ function printMethodDefinition(node, path, options, print) {
 		} else {
 			parts.push(typeParams);
 		}
+	}
+
+	if (is_component) {
+		parts.push(
+			...path.call((childPath) => print(childPath, { skipComponentLabel: true }), 'value'),
+		);
+		return concat(parts);
 	}
 
 	// Parameters - use proper path.map for TypeScript support
@@ -3960,7 +4037,7 @@ function printProperty(node, path, options, print) {
 		return path.call(print, 'key');
 	}
 
-	const parts = [];
+	const is_component = node.value?.type === 'Component';
 
 	// Handle getter/setter methods
 	if (node.kind === 'get' || node.kind === 'set') {
@@ -3970,20 +4047,7 @@ function printProperty(node, path, options, print) {
 		// Add get/set keyword
 		methodParts.push(node.kind, ' ');
 
-		// Print key (with computed property brackets if needed)
-		if (node.computed) {
-			methodParts.push('[', path.call(print, 'key'), ']');
-		} else if (node.key.type === 'Literal' && typeof node.key.value === 'string') {
-			const key = node.key.value;
-			const isValidIdentifier = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key);
-			if (isValidIdentifier) {
-				methodParts.push(key);
-			} else {
-				methodParts.push(formatStringLiteral(key, options));
-			}
-		} else {
-			methodParts.push(path.call(print, 'key'));
-		}
+		methodParts.push(...printKey(node, path, options, print));
 
 		// Print parameters by calling into the value path
 		const paramsPart = path.call(
@@ -4002,7 +4066,7 @@ function printProperty(node, path, options, print) {
 	}
 
 	// Handle method shorthand: increment() {} instead of increment: function() {}
-	if (node.method && node.value.type === 'FunctionExpression') {
+	if (node.method && (node.value.type === 'FunctionExpression' || is_component)) {
 		const methodParts = [];
 		const funcValue = node.value;
 
@@ -4011,24 +4075,21 @@ function printProperty(node, path, options, print) {
 			methodParts.push('async ');
 		}
 
-		// Print key (with computed property brackets if needed)
-		if (node.computed) {
-			methodParts.push('[', path.call(print, 'key'), ']');
-		} else if (node.key.type === 'Literal' && typeof node.key.value === 'string') {
-			// Check if the key is a valid identifier that doesn't need quotes
-			const key = node.key.value;
-			const isValidIdentifier = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key);
-			if (isValidIdentifier) {
-				methodParts.push(key);
-			} else {
-				methodParts.push(formatStringLiteral(key, options));
-			}
-		} else {
-			methodParts.push(path.call(print, 'key'));
+		if (is_component) {
+			methodParts.push('component ');
 		}
 
 		if (funcValue.generator) {
 			methodParts.push('*');
+		}
+
+		methodParts.push(...printKey(node, path, options, print));
+
+		if (is_component) {
+			methodParts.push(
+				path.call((childPath) => print(childPath, { skipComponentLabel: true }), 'value'),
+			);
+			return concat(methodParts);
 		}
 
 		// Print parameters by calling into the value path
@@ -4047,27 +4108,8 @@ function printProperty(node, path, options, print) {
 		return concat(methodParts);
 	}
 
-	// Handle property key - if it's a Literal (quoted string in source),
-	// check if it needs quotes or can be unquoted
-	if (node.computed) {
-		// Computed property: [key]
-		parts.push('[', path.call(print, 'key'), ']');
-	} else if (node.key.type === 'Literal' && typeof node.key.value === 'string') {
-		// Check if the key is a valid identifier that doesn't need quotes
-		const key = node.key.value;
-		const isValidIdentifier = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key);
-
-		if (isValidIdentifier) {
-			// Don't quote valid identifiers
-			parts.push(key);
-		} else {
-			// Quote keys that need it (e.g., contain special characters)
-			parts.push(formatStringLiteral(key, options));
-		}
-	} else {
-		// For non-literal keys, print normally
-		parts.push(path.call(print, 'key'));
-	}
+	const parts = [];
+	parts.push(...printKey(node, path, options, print));
 
 	parts.push(': ');
 	parts.push(path.call(print, 'value'));

@@ -90,7 +90,7 @@ describe('basic client > rendering & text', () => {
 
 	it('renders simple JS expression logic correctly', () => {
 		component Example() {
-			let test = {};
+			let test: Record<number, string> = {};
 			let counter = 0;
 			test[counter++] = 'Test';
 

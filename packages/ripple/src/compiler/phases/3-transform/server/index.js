@@ -24,6 +24,8 @@ import {
 	is_void_element,
 	normalize_children,
 	is_binding_function,
+	build_getter,
+	is_element_dynamic,
 } from '../../../utils.js';
 import { escape } from '../../../../utils/escaping.js';
 import { is_event_attribute } from '../../../../utils/events.js';
@@ -69,8 +71,26 @@ function transform_children(children, context) {
 				}
 			}
 		} else {
-			visit(node, { ...state });
+			visit(node, state);
 		}
+	}
+
+	const head_elements = /** @type {AST.Element[]} */ (
+		children.filter(
+			(node) => node.type === 'Element' && node.id.type === 'Identifier' && node.id.name === 'head',
+		)
+	);
+
+	if (head_elements.length) {
+		state.init?.push(
+			b.stmt(b.assignment('=', b.member(b.id('__output'), b.id('target')), b.literal('head'))),
+		);
+		for (const head_element of head_elements) {
+			transform_children(head_element.children, context);
+		}
+		state.init?.push(
+			b.stmt(b.assignment('=', b.member(b.id('__output'), b.id('target')), b.literal(null))),
+		);
 	}
 }
 
@@ -108,15 +128,19 @@ const visitors = {
 	Identifier(node, context) {
 		const parent = /** @type {AST.Node} */ (context.path.at(-1));
 
-		if (is_reference(node, parent) && node.tracked) {
-			const is_right_side_of_assignment =
-				parent.type === 'AssignmentExpression' && parent.right === node;
-			if (
-				(parent.type !== 'AssignmentExpression' && parent.type !== 'UpdateExpression') ||
-				is_right_side_of_assignment
-			) {
-				return b.call('_$_.get', node);
+		if (is_reference(node, parent)) {
+			if (node.tracked) {
+				const is_right_side_of_assignment =
+					parent.type === 'AssignmentExpression' && parent.right === node;
+				if (
+					(parent.type !== 'AssignmentExpression' && parent.type !== 'UpdateExpression') ||
+					is_right_side_of_assignment
+				) {
+					return b.call('_$_.get', node);
+				}
 			}
+
+			return node;
 		}
 	},
 
@@ -459,27 +483,55 @@ const visitors = {
 	Element(node, context) {
 		const { state, visit } = context;
 
-		const is_dom_element = is_element_dom_element(node);
+		const dynamic_name = state.dynamicElementName;
+		if (dynamic_name) {
+			state.dynamicElementName = undefined;
+		}
+
+		const is_dom_element = !!dynamic_name || is_element_dom_element(node);
 		const is_spreading = node.attributes.some((attr) => attr.type === 'SpreadAttribute');
 		/** @type {(AST.Property | AST.SpreadElement)[] | null} */
 		const spread_attributes = is_spreading ? [] : null;
-		const child_namespace = is_dom_element
-			? determine_namespace_for_children(node.id.name, state.namespace)
-			: state.namespace;
+		const child_namespace =
+			!dynamic_name && is_dom_element
+				? determine_namespace_for_children(
+						/** @type {AST.Identifier} */ (node.id).name,
+						state.namespace,
+					)
+				: state.namespace;
 
 		if (is_dom_element) {
-			const is_void = is_void_element(node.id.name);
+			const is_void = dynamic_name
+				? false
+				: is_void_element(/** @type {AST.Identifier} */ (node.id).name);
+			const tag_name = dynamic_name
+				? dynamic_name
+				: b.literal(/** @type {AST.Identifier} */ (node.id).name);
+			/** @type {AST.CSS.StyleSheet['hash'] | null} */
+			const scoping_hash =
+				state.applyParentCssScope ??
+				(node.metadata.scoped && state.component?.css
+					? /** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash
+					: null);
 
 			state.init?.push(
-				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(`<${node.id.name}`))),
+				b.stmt(
+					b.call(
+						b.member(b.id('__output'), b.id('push')),
+						dynamic_name
+							? b.template([b.quasi('<', false), b.quasi('', false)], [tag_name])
+							: b.literal('<' + /** @type {AST.Literal} */ (tag_name).value),
+					),
+				),
 			);
 			let class_attribute = null;
 
 			/**
 			 * @param {string} name
-			 *  @param {string | number | bigint | boolean | RegExp | null | undefined} value
+			 * @param {string | number | bigint | boolean | RegExp | null | undefined} value
+			 * @param {'push' | 'unshift'} [spread_method]
 			 */
-			const handle_static_attr = (name, value) => {
+			const handle_static_attr = (name, value, spread_method = 'push') => {
 				const attr_str = ` ${name}${
 					is_boolean_attribute(name) && value === true
 						? ''
@@ -492,7 +544,7 @@ const visitors = {
 						is_boolean_attribute(name) && value === true
 							? b.literal(true)
 							: b.literal(value === true ? '' : value);
-					spread_attributes?.push(b.prop('init', b.literal(name), actual_value));
+					spread_attributes?.[spread_method](b.prop('init', b.literal(name), actual_value));
 				} else {
 					state.init?.push(
 						b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(attr_str))),
@@ -533,7 +585,12 @@ const visitors = {
 							b.stmt(
 								b.call(
 									b.member(b.id('__output'), b.id('push')),
-									b.call('_$_.attr', b.literal(name), expression),
+									b.call(
+										'_$_.attr',
+										b.literal(name),
+										expression,
+										b.literal(is_boolean_attribute(name)),
+									),
 								),
 							),
 						);
@@ -550,8 +607,8 @@ const visitors = {
 				if (attr_value.type === 'Literal') {
 					let value = attr_value.value;
 
-					if (node.metadata.scoped && state.component?.css) {
-						value = `${state.component.css.hash} ${value}`;
+					if (scoping_hash) {
+						value = `${scoping_hash} ${value}`;
 					}
 
 					handle_static_attr(class_attribute.name.name, value);
@@ -561,9 +618,9 @@ const visitors = {
 						visit(attr_value, { ...state, metadata })
 					);
 
-					if (node.metadata.scoped && state.component?.css) {
+					if (scoping_hash) {
 						// Pass array to clsx so it can handle objects properly
-						expression = b.array([expression, b.literal(state.component.css.hash)]);
+						expression = b.array([expression, b.literal(scoping_hash)]);
 					}
 
 					state.init?.push(
@@ -575,10 +632,8 @@ const visitors = {
 						),
 					);
 				}
-			} else if (node.metadata.scoped && state.component?.css) {
-				const value = state.component.css.hash;
-
-				handle_static_attr('class', value);
+			} else if (scoping_hash) {
+				handle_static_attr('class', scoping_hash, is_spreading ? 'unshift' : 'push');
 			}
 
 			if (spread_attributes !== null && spread_attributes.length > 0) {
@@ -589,26 +644,60 @@ const visitors = {
 							b.call(
 								'_$_.spread_attrs',
 								b.object(spread_attributes),
-								node.metadata.scoped && state.component?.css
-									? b.literal(state.component.css.hash)
-									: undefined,
+								scoping_hash ? b.literal(scoping_hash) : undefined,
 							),
 						),
 					),
 				);
 			}
 
-			state.init?.push(b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(`>`))));
+			state.init?.push(
+				b.stmt(
+					b.call(
+						b.member(b.id('__output'), b.id('push')),
+						b.literal(!node.selfClosing ? '>' : ' />'),
+					),
+				),
+			);
 
 			if (!is_void) {
+				/** @type {AST.Statement[]} */
+				const init = [];
 				transform_children(
 					node.children,
-					/** @type {TransformServerContext} */ ({ visit, state: { ...state } }),
+					/** @type {TransformServerContext} */ ({
+						visit,
+						state: {
+							...state,
+							init,
+							...(state.applyParentCssScope ||
+							(dynamic_name && node.metadata.scoped && state.component?.css)
+								? {
+										applyParentCssScope:
+											state.applyParentCssScope ||
+											/** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash,
+									}
+								: {}),
+						},
+					}),
 				);
 
-				state.init?.push(
-					b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(`</${node.id.name}>`))),
-				);
+				if (init.length > 0) {
+					state.init?.push(b.block(init));
+				}
+
+				if (!node.selfClosing) {
+					state.init?.push(
+						b.stmt(
+							b.call(
+								b.member(b.id('__output'), b.id('push')),
+								dynamic_name
+									? b.template([b.quasi('</', false), b.quasi('>', false)], [tag_name])
+									: b.literal('</' + /** @type {AST.Literal} */ (tag_name).value + '>'),
+							),
+						),
+					);
+				}
 			}
 		} else {
 			/** @type {(AST.Property | AST.SpreadElement)[]} */
@@ -616,23 +705,31 @@ const visitors = {
 			/** @type {AST.Expression | null} */
 			let children_prop = null;
 
+			if (state.applyParentCssScope) {
+				// We're inside a component, don't continue applying css hash to class
+				state.applyParentCssScope = undefined;
+			}
+
 			for (const attr of node.attributes) {
 				if (attr.type === 'Attribute') {
 					if (attr.name.type === 'Identifier') {
 						const metadata = { tracking: false, await: false };
-						let property = /** @type {AST.Expression} */ (
-							visit(/** @type {AST.Expression} */ (attr.value), {
-								...state,
-								metadata,
-							})
-						);
+						let property =
+							attr.value === null
+								? b.literal(true)
+								: /** @type {AST.Expression} */ (
+										visit(/** @type {AST.Expression} */ (attr.value), {
+											...state,
+											metadata,
+										})
+									);
 
 						if (attr.name.name === 'children') {
-							children_prop = b.thunk(property);
+							children_prop = attr.name.tracked ? b.thunk(property) : property;
 							continue;
 						}
 
-						props.push(b.prop('init', attr.name, property));
+						props.push(b.prop('init', b.key(attr.name.name), property));
 					}
 				} else if (attr.type === 'SpreadAttribute') {
 					props.push(
@@ -666,6 +763,10 @@ const visitors = {
 				}
 			}
 
+			if (children_prop) {
+				props.push(b.prop('init', b.id('children'), children_prop));
+			}
+
 			if (children_filtered.length > 0) {
 				const component_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node));
 				const children = /** @type {AST.Expression} */ (
@@ -676,63 +777,96 @@ const visitors = {
 					})
 				);
 
-				if (children_prop) {
-					/** @type {AST.ArrowFunctionExpression} */ (children_prop).body = b.logical(
-						'??',
-						/** @type {AST.Expression} */ (
-							/** @type {AST.ArrowFunctionExpression} */ (children_prop).body
-						),
-						children,
-					);
-				} else {
-					props.push(b.prop('init', b.id('children'), children));
-				}
+				props.push(b.prop('init', b.id('children'), children));
 			}
 
 			// For SSR, determine if we should await based on component metadata
-			const component_call = b.call(
-				/** @type {AST.Expression} */ (visit(node.id, state)),
-				b.id('__output'),
-				b.object(props),
-			);
+			const args = [b.id('__output'), b.object(props)];
 
 			// Check if this is a locally defined component and if it's async
 			const component_name = node.id.type === 'Identifier' ? node.id.name : null;
 			const local_metadata = component_name
 				? state.component_metadata.find((m) => m.id === component_name)
 				: null;
+			const comp_id = b.id('comp');
+			const args_id = b.id('args');
+			const comp_call = b.call(comp_id, b.spread(args_id));
+			const comp_call_regular = b.stmt(comp_call);
+			const comp_call_await = b.stmt(b.await(comp_call));
+
+			/** @type {AST.Statement[]} */
+			const init = [];
+			/** @type {AST.Statement[]} */
+			const statements = [
+				b.const(comp_id, /** @type {AST.Expression} */ (visit(node.id, state))),
+				b.const(args_id, b.array(args)),
+			];
 
 			if (local_metadata) {
-				// Component is defined locally - we know if it's async or not
-				if (local_metadata.async) {
-					state.init?.push(b.stmt(b.await(component_call)));
-				} else {
-					state.init?.push(b.stmt(component_call));
-				}
-			} else {
-				state.init?.push(
-					b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN))),
-				);
+				if (local_metadata?.async) {
+					statements.push(comp_call_await);
 
-				// Component is imported or dynamic - check .async property at runtime
-				// Use if-statement instead of ternary to avoid parser issues with await in conditionals
-				state.init?.push(
+					if (state.metadata?.await === false) {
+						state.metadata.await = true;
+					}
+				} else {
+					statements.push(comp_call_regular);
+				}
+			} else if (!is_element_dynamic(node)) {
+				// it's imported element, so it could be async
+				statements.push(
 					b.if(
-						b.member(/** @type {AST.Expression} */ (visit(node.id, state)), b.id('async')),
-						b.block([b.stmt(b.await(component_call))]),
-						b.block([b.stmt(component_call)]),
+						b.member(comp_id, b.id('async'), false, true),
+						b.block([comp_call_await]),
+						b.if(comp_id, b.block([comp_call_regular])),
 					),
 				);
 
-				state.init?.push(
+				if (state.metadata?.await === false) {
+					state.metadata.await = true;
+				}
+			} else {
+				// if it's a dynamic element, build the element output
+				// and store the results in the `init` array
+				visit(
+					node,
+					/** @type {TransformServerState} */ ({
+						...state,
+						dynamicElementName: b.template([b.quasi('', false), b.quasi('', false)], [comp_id]),
+						init,
+					}),
+				);
+
+				statements.push(
+					b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN))),
+				);
+
+				statements.push(
+					b.if(
+						b.binary('===', b.unary('typeof', comp_id), b.literal('function')),
+						b.block([
+							b.if(
+								b.member(comp_id, b.id('async')),
+								b.block([comp_call_await]),
+								b.block([comp_call_regular]),
+							),
+						]),
+						// make sure that falsy values for dynamic element or component don't get rendered
+						b.if(comp_id, b.block(init)),
+					),
+				);
+
+				statements.push(
 					b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_CLOSE))),
 				);
 
-				// Mark parent component as async since we're using await
+				// Mark parent component as async since this child component could potentially be async
 				if (state.metadata?.await === false) {
 					state.metadata.await = true;
 				}
 			}
+
+			state.init?.push(b.block(statements));
 		}
 	},
 
@@ -1113,7 +1247,11 @@ const visitors = {
 	},
 
 	MemberExpression(node, context) {
-		if (node.tracked || (node.property.type === 'Identifier' && node.property.tracked)) {
+		if (
+			node.tracked ||
+			((node.property.type === 'Identifier' || node.property.type === 'Literal') &&
+				node.property.tracked)
+		) {
 			return b.call(
 				'_$_.get_property',
 				/** @type {AST.Expression} */ (context.visit(node.object)),

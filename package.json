@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "jsdom": "catalog:default",
+    "linkedom": "catalog:default",
     "prettier": "catalog:default",
     "@ripple-ts/prettier-plugin": "workspace:*",
     "@ripple-ts/vite-plugin": "workspace:*",

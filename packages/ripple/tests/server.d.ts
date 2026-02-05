@@ -1,4 +1,11 @@
 import 'vitest';
+import type { render as renderSSR } from 'ripple/server';
+import type { parseHTML } from 'linkedom';
+
+declare global {
+	var render: typeof renderSSR;
+	var parseHtml: typeof parseHTML;
+}
 
 interface CustomMatchers<R = unknown> {
 	/**

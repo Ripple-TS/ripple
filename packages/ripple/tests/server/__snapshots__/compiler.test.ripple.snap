@@ -74,15 +74,20 @@ export async function App(__output) {
 		_$_.push_component();
 		__output.push('<div');
 		__output.push('>');
-		__output.push('<!--[-->');
 
-		if (ChildComponent.async) {
-			await ChildComponent(__output, { message: "hello" });
-		} else {
-			ChildComponent(__output, { message: "hello" });
+		{
+			{
+				const comp = ChildComponent;
+				const args = [__output, { message: "hello" }];
+
+				if (comp?.async) {
+					await comp(...args);
+				} else if (comp) {
+					comp(...args);
+				}
+			}
 		}
 
-		__output.push('<!--]-->');
 		__output.push('</div>');
 		_$_.pop_component();
 	});

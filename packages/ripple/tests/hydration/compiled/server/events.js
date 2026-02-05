@@ -9,16 +9,28 @@ export function ClickCounter(__output) {
 
 	__output.push('<div');
 	__output.push('>');
-	__output.push('<button');
-	__output.push(' class="increment"');
-	__output.push('>');
-	__output.push('Increment');
-	__output.push('</button>');
-	__output.push('<span');
-	__output.push(' class="count"');
-	__output.push('>');
-	__output.push(_$_.escape(_$_.get(count)));
-	__output.push('</span>');
+
+	{
+		__output.push('<button');
+		__output.push(' class="increment"');
+		__output.push('>');
+
+		{
+			__output.push('Increment');
+		}
+
+		__output.push('</button>');
+		__output.push('<span');
+		__output.push(' class="count"');
+		__output.push('>');
+
+		{
+			__output.push(_$_.escape(_$_.get(count)));
+		}
+
+		__output.push('</span>');
+	}
+
 	__output.push('</div>');
 	_$_.pop_component();
 }
@@ -30,21 +42,37 @@ export function IncrementDecrement(__output) {
 
 	__output.push('<div');
 	__output.push('>');
-	__output.push('<button');
-	__output.push(' class="decrement"');
-	__output.push('>');
-	__output.push('-');
-	__output.push('</button>');
-	__output.push('<span');
-	__output.push(' class="count"');
-	__output.push('>');
-	__output.push(_$_.escape(_$_.get(count)));
-	__output.push('</span>');
-	__output.push('<button');
-	__output.push(' class="increment"');
-	__output.push('>');
-	__output.push('+');
-	__output.push('</button>');
+
+	{
+		__output.push('<button');
+		__output.push(' class="decrement"');
+		__output.push('>');
+
+		{
+			__output.push('-');
+		}
+
+		__output.push('</button>');
+		__output.push('<span');
+		__output.push(' class="count"');
+		__output.push('>');
+
+		{
+			__output.push(_$_.escape(_$_.get(count)));
+		}
+
+		__output.push('</span>');
+		__output.push('<button');
+		__output.push(' class="increment"');
+		__output.push('>');
+
+		{
+			__output.push('+');
+		}
+
+		__output.push('</button>');
+	}
+
 	__output.push('</div>');
 	_$_.pop_component();
 }
@@ -57,21 +85,37 @@ export function MultipleEvents(__output) {
 
 	__output.push('<div');
 	__output.push('>');
-	__output.push('<button');
-	__output.push(' class="target"');
-	__output.push('>');
-	__output.push('Target');
-	__output.push('</button>');
-	__output.push('<span');
-	__output.push(' class="clicks"');
-	__output.push('>');
-	__output.push(_$_.escape(_$_.get(clicks)));
-	__output.push('</span>');
-	__output.push('<span');
-	__output.push(' class="hovers"');
-	__output.push('>');
-	__output.push(_$_.escape(_$_.get(hovers)));
-	__output.push('</span>');
+
+	{
+		__output.push('<button');
+		__output.push(' class="target"');
+		__output.push('>');
+
+		{
+			__output.push('Target');
+		}
+
+		__output.push('</button>');
+		__output.push('<span');
+		__output.push(' class="clicks"');
+		__output.push('>');
+
+		{
+			__output.push(_$_.escape(_$_.get(clicks)));
+		}
+
+		__output.push('</span>');
+		__output.push('<span');
+		__output.push(' class="hovers"');
+		__output.push('>');
+
+		{
+			__output.push(_$_.escape(_$_.get(hovers)));
+		}
+
+		__output.push('</span>');
+	}
+
 	__output.push('</div>');
 	_$_.pop_component();
 }
@@ -89,21 +133,37 @@ export function MultiStateUpdate(__output) {
 
 	__output.push('<div');
 	__output.push('>');
-	__output.push('<button');
-	__output.push(' class="btn"');
-	__output.push('>');
-	__output.push('Click');
-	__output.push('</button>');
-	__output.push('<span');
-	__output.push(' class="count"');
-	__output.push('>');
-	__output.push(_$_.escape(_$_.get(count)));
-	__output.push('</span>');
-	__output.push('<span');
-	__output.push(' class="action"');
-	__output.push('>');
-	__output.push(_$_.escape(_$_.get(lastAction)));
-	__output.push('</span>');
+
+	{
+		__output.push('<button');
+		__output.push(' class="btn"');
+		__output.push('>');
+
+		{
+			__output.push('Click');
+		}
+
+		__output.push('</button>');
+		__output.push('<span');
+		__output.push(' class="count"');
+		__output.push('>');
+
+		{
+			__output.push(_$_.escape(_$_.get(count)));
+		}
+
+		__output.push('</span>');
+		__output.push('<span');
+		__output.push(' class="action"');
+		__output.push('>');
+
+		{
+			__output.push(_$_.escape(_$_.get(lastAction)));
+		}
+
+		__output.push('</span>');
+	}
+
 	__output.push('</div>');
 	_$_.pop_component();
 }
@@ -115,11 +175,19 @@ export function ToggleButton(__output) {
 
 	__output.push('<div');
 	__output.push('>');
-	__output.push('<button');
-	__output.push(' class="toggle"');
-	__output.push('>');
-	__output.push(_$_.escape(_$_.get(isOn) ? 'ON' : 'OFF'));
-	__output.push('</button>');
+
+	{
+		__output.push('<button');
+		__output.push(' class="toggle"');
+		__output.push('>');
+
+		{
+			__output.push(_$_.escape(_$_.get(isOn) ? 'ON' : 'OFF'));
+		}
+
+		__output.push('</button>');
+	}
+
 	__output.push('</div>');
 	_$_.pop_component();
 }
@@ -129,7 +197,11 @@ export function ChildButton(__output, props) {
 	__output.push('<button');
 	__output.push(' class="child-btn"');
 	__output.push('>');
-	__output.push(_$_.escape(props.label));
+
+	{
+		__output.push(_$_.escape(props.label));
+	}
+
 	__output.push('</button>');
 	_$_.pop_component();
 }
@@ -142,19 +214,36 @@ export function ParentWithChildButton(__output) {
 	__output.push('<div');
 	__output.push('>');
 
-	ChildButton(__output, {
-		onClick: () => {
-			_$_.update(count);
-		},
+	{
+		{
+			const comp = ChildButton;
 
-		label: "Click me"
-	});
+			const args = [
+				__output,
 
-	__output.push('<span');
-	__output.push(' class="count"');
-	__output.push('>');
-	__output.push(_$_.escape(_$_.get(count)));
-	__output.push('</span>');
+				{
+					onClick: () => {
+						_$_.update(count);
+					},
+
+					label: "Click me"
+				}
+			];
+
+			comp(...args);
+		}
+
+		__output.push('<span');
+		__output.push(' class="count"');
+		__output.push('>');
+
+		{
+			__output.push(_$_.escape(_$_.get(count)));
+		}
+
+		__output.push('</span>');
+	}
+
 	__output.push('</div>');
 	_$_.pop_component();
 }

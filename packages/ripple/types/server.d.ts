@@ -21,7 +21,8 @@ export interface SSRRenderResult {
 }
 
 export type SSRRender = (component: SSRComponent) => Promise<SSRRenderResult>;
+export type render = (component: SSRComponent) => Promise<SSRRenderResult>;
+export type renderToStream = (component: SSRComponent) => Readable;
 
-export declare function render(component: SSRComponent): Promise<SSRRenderResult>;
-
-export declare function renderToStream(component: SSRComponent): Readable;
+export const render: render;
+export const renderToStream: renderToStream;

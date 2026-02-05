@@ -203,66 +203,6 @@ function createDefinitionPlugin() {
 						}
 					}
 
-					// Below here we handle adjusting TS definition for transformed tokens
-					// `originSelectionRange` returned by TS needs its end character adjusted
-					// to account for the source length differing from generated length
-					// e.g. when "component" in Ripple maps to "function" in TS
-					// Or when "#Map" maps to "TrackedMap", etc.
-
-					// If no TypeScript definitions, nothing to modify
-					// Volar will let the next ts plugin handle it
-					if (tsDefinitions.length === 0) {
-						return;
-					}
-
-					// Get the range from TypeScript's definition to find the exact token
-					// This gives us the precise start and end of the token (e.g., "function")
-					const firstDefinition = tsDefinitions[0];
-					if (!firstDefinition?.originSelectionRange) {
-						return tsDefinitions;
-					}
-
-					const range = firstDefinition.originSelectionRange;
-					const rangeStart = document.offsetAt(range.start);
-					const rangeEnd = document.offsetAt(range.end);
-
-					// Find the mapping using the exact token range for O(1) lookup
-					const mapping = virtualCode.findMappingByGeneratedRange(rangeStart, rangeEnd);
-
-					if (!mapping) {
-						return tsDefinitions;
-					}
-
-					log('Found mapping for definition at range', 'start: ', rangeStart, 'end: ', rangeEnd);
-
-					// Check if source length differs from generated length
-					// e.g., "component" -> "function" (source > generated)
-					// e.g., "#Map" -> "TrackedMap" (source < generated)
-					const customData = mapping.data.customData;
-					const sourceLength = mapping.lengths[0];
-					const generatedLength = customData.generatedLengths[0];
-
-					// If source and generated are same length, no transformation needed
-					if (sourceLength === generatedLength) {
-						return tsDefinitions;
-					}
-
-					const diffLength = sourceLength - generatedLength;
-
-					for (const definition of tsDefinitions) {
-						const tsRange = definition.originSelectionRange;
-						if (!tsRange) {
-							continue;
-						}
-
-						definition.originSelectionRange = {
-							start: tsRange.start,
-							end: {
-								line: tsRange.end.line,
-								character: tsRange.end.character + diffLength,
-							},
-						};
-					}
 					return tsDefinitions;
 				},
 			};

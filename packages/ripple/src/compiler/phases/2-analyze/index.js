@@ -844,6 +844,14 @@ const visitors = {
 	},
 
 	Element(node, context) {
+		if (!is_inside_component(context)) {
+			error(
+				'Elements cannot be used outside of components',
+				context.state.analysis.module.filename,
+				node,
+			);
+		}
+
 		const { state, visit, path } = context;
 		const is_dom_element = is_element_dom_element(node);
 		const attribute_names = new Set();
@@ -853,7 +861,11 @@ const visitors = {
 		validate_nesting(node, context);
 
 		// Store capitalized name for dynamic components/elements
-		if (node.id.tracked) {
+		// TODO: this is not quite right as the node.id could be a member expression
+		// so, we'd need to identify dynamic based on that too
+		// However, we're going to get rid of capitalization in favor of jsx()
+		// so, this will be need to be redone.
+		if (node.id.type === 'Identifier' && node.id.tracked) {
 			const source_name = node.id.name;
 			const capitalized_name = source_name.charAt(0).toUpperCase() + source_name.slice(1);
 			node.metadata.ts_name = capitalized_name;
@@ -878,7 +890,7 @@ const visitors = {
 		}
 
 		if (is_dom_element) {
-			if (node.id.name === 'head') {
+			if (/** @type {AST.Identifier} */ (node.id).name === 'head') {
 				// head validation
 				if (node.attributes.length > 0) {
 					// TODO: could transform attributes as something, e.g. Text Node, and avoid a fatal error
@@ -896,7 +908,7 @@ const visitors = {
 				return;
 			}
 			if (state.inside_head) {
-				if (node.id.name === 'title') {
+				if (/** @type {AST.Identifier} */ (node.id).name === 'title') {
 					const children = normalize_children(node.children, context);
 
 					if (children.length !== 1 || children[0].type !== 'Text') {
@@ -910,12 +922,16 @@ const visitors = {
 				}
 
 				// check for invalid elements in head
-				if (!valid_in_head.has(node.id.name)) {
+				if (!valid_in_head.has(/** @type {AST.Identifier} */ (node.id).name)) {
 					// TODO: could transform invalid elements as something, e.g. Text Node, and avoid a fatal error
-					error(`<${node.id.name}> cannot be used in <head>`, state.analysis.module.filename, node);
+					error(
+						`<${/** @type {AST.Identifier} */ (node.id).name}> cannot be used in <head>`,
+						state.analysis.module.filename,
+						node,
+					);
 				}
 			} else {
-				if (node.id.name === 'script') {
+				if (/** @type {AST.Identifier} */ (node.id).name === 'script') {
 					const err_msg = '<script> cannot be used outside of <head>.';
 					error(
 						err_msg,
@@ -935,7 +951,7 @@ const visitors = {
 				}
 			}
 
-			const is_void = is_void_element(node.id.name);
+			const is_void = is_void_element(/** @type {AST.Identifier} */ (node.id).name);
 
 			if (state.elements) {
 				state.elements.push(node);
@@ -975,7 +991,7 @@ const visitors = {
 
 			if (is_void && node.children.length > 0) {
 				error(
-					`The <${node.id.name}> element is a void element and cannot have children`,
+					`The <${/** @type {AST.Identifier} */ (node.id).name}> element is a void element and cannot have children`,
 					state.analysis.module.filename,
 					node,
 					context.state.loose ? context.state.analysis.errors : undefined,

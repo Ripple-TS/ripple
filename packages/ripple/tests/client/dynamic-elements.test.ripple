@@ -15,6 +15,50 @@ describe('dynamic DOM elements', () => {
 		expect(element.textContent).toBe('Hello World');
 	});
 
+	// The ts errors below are due to limitations in our current tsx generation for dynamic elements.
+	// They can be ignored for now. But we'll fix them via jsx() vs <jsx>
+	it('renders static dynamic element from a plain object with a tracked property', () => {
+		component App() {
+			let obj = { tag: track('div') };
+
+			<obj.@tag>{'Hello World'}</obj.@tag>
+		}
+		render(App);
+
+		const element = container.querySelector('div');
+		expect(element).toBeTruthy();
+		expect(element.textContent).toBe('Hello World');
+	});
+
+	it('renders static dynamic element from a tracked object with a tracked property', () => {
+		component App() {
+			let obj = track({ tag: track('div') });
+
+			<@obj.@tag>{'Hello World'}</@obj.@tag>
+		}
+		render(App);
+
+		const element = container.querySelector('div');
+		expect(element).toBeTruthy();
+		expect(element.textContent).toBe('Hello World');
+	});
+
+	it(
+		'renders static dynamic element from a tracked object with a computed tracked property',
+		() => {
+			component App() {
+				let obj = track({ tag: track('div') });
+
+				<@obj.@['tag']>{'Hello World'}</@obj.@['tag']>
+			}
+			render(App);
+
+			const element = container.querySelector('div');
+			expect(element).toBeTruthy();
+			expect(element.textContent).toBe('Hello World');
+		},
+	);
+
 	it('renders reactive dynamic element', () => {
 		component App() {
 			let tag = track('div');

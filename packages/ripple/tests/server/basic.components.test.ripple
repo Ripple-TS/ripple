@@ -1,0 +1,237 @@
+import type { Tracked, PropsWithChildren, PropsWithExtras, Component } from 'ripple';
+import { track } from 'ripple';
+
+describe('basic server > components & composition', () => {
+	it('renders with component composition and children', async () => {
+		component Card(props: PropsWithChildren<{}>) {
+			<div class="card">
+				<props.children />
+			</div>
+		}
+
+		component Basic() {
+			<Card>
+				component children() {
+					<p>{'Card content here'}</p>
+				}
+			</Card>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const card = document.querySelector('.card');
+		const paragraph = card.querySelector('p');
+
+		expect(card).toBeTruthy();
+		expect(paragraph.textContent).toBe('Card content here');
+	});
+
+	it('does not render a falsy component call', async () => {
+		component Card(props: PropsWithChildren<{}>) {
+			<div class="card">
+				<props.children />
+			</div>
+		}
+
+		component Basic() {
+			<Card>
+				component test() {
+					<p>{'Card content here'}</p>
+				}
+			</Card>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const card = document.querySelector('.card');
+		const paragraph = card.querySelector('p');
+
+		expect(card).toBeTruthy();
+		expect(paragraph).toBeFalsy();
+		expect(body).toBeHtml('<div class="card"></div>');
+	});
+
+	it('renders a component when children is set a component prop', async () => {
+		component Card(props: PropsWithChildren<{}>) {
+			<div class="card">
+				<props.children />
+			</div>
+		}
+
+		component Basic() {
+			component children() {
+				<p>{'Card content here'}</p>
+			}
+			<Card {children} />
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const card = document.querySelector('.card');
+		const paragraph = card.querySelector('p');
+
+		expect(card).toBeTruthy();
+		expect(paragraph.textContent).toBe('Card content here');
+	});
+
+	it('renders with nested components and prop passing', async () => {
+		component Button(props: PropsWithExtras<{
+			variant: string;
+			label: string;
+			onClick: EventListener;
+		}>) {
+			<button class={props.variant} onClick={props.onClick}>{props.label}</button>
+		}
+
+		component Card(props: PropsWithExtras<{
+			title: string;
+			content: string;
+			buttonText: string;
+			onAction: EventListener;
+		}>) {
+			<div class="card">
+				<h3>{props.title}</h3>
+				<p>{props.content}</p>
+				<Button variant="primary" label={props.buttonText} onClick={props.onAction} />
+			</div>
+		}
+
+		component Basic() {
+			let clicked = track(false);
+
+			<Card
+				title="Test Card"
+				content="This is a test card"
+				buttonText="Click me"
+				onAction={() => (@clicked = true)}
+			/>
+			<div class="status">{@clicked ? 'Clicked' : 'Not clicked'}</div>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const card = document.querySelector('.card');
+		const title = card.querySelector('h3');
+		const content = card.querySelector('p');
+		const button = card.querySelector('button');
+		const status = document.querySelector('.status');
+
+		expect(title.textContent).toBe('Test Card');
+		expect(content.textContent).toBe('This is a test card');
+		expect(button.textContent).toBe('Click me');
+		expect(button.className).toBe('primary');
+		expect(status.textContent).toBe('Not clicked');
+	});
+
+	it('renders with reactive component props', async () => {
+		component ChildComponent(props: PropsWithExtras<{
+			text: Tracked<string>;
+			count: Tracked<number>;
+		}>) {
+			<div class="child-content">{props.@text}</div>
+			<div class="child-count">{props.@count}</div>
+		}
+
+		component Basic() {
+			let message = track('Hello');
+			let number = track(1);
+
+			<ChildComponent text={message} count={number} />
+			<button
+				onClick={() => {
+					@message = @message === 'Hello' ? 'Goodbye' : 'Hello';
+					@number++;
+				}}
+			>
+				{'Update Props'}
+			</button>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const contentDiv = document.querySelector('.child-content');
+		const countDiv = document.querySelector('.child-count');
+
+		expect(contentDiv.textContent).toBe('Hello');
+		expect(countDiv.textContent).toBe('1');
+	});
+
+	it('renders components as named and anonymous properties', async () => {
+		const UI = {
+			span: component Span() {
+				<span>{'Hello from Span'}</span>
+			},
+			button: component({ children }: PropsWithChildren<{}>) {
+				<button>
+					<children />
+				</button>
+			},
+		};
+
+		component App() {
+			<div>
+				<h1>{'Component as Property Test'}</h1>
+				<UI.span />
+				<UI.button>
+					component children() {
+						<span>{'Click me!'}</span>
+					}
+				</UI.button>
+			</div>
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+
+		const heading = document.querySelector('h1');
+		const span = document.querySelector('span');
+		const button = document.querySelector('button');
+		const buttonSpan = button.querySelector('span');
+
+		expect(heading.textContent).toBe('Component as Property Test');
+		expect(span.textContent).toBe('Hello from Span');
+		expect(buttonSpan.textContent).toBe('Click me!');
+	});
+
+	it('handles empty string children', async () => {
+		component Button({ children }: PropsWithChildren<{}>) {
+			<children />
+		}
+
+		component App() {
+			let text = '';
+			<Button>{''}</Button>
+			<Button>{text}</Button>
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+
+		expect(document.documentElement).toBeNull();
+	});
+
+	it('handles component without any output', async () => {
+		component Noop() {
+			// No output
+		}
+
+		component Op() {
+			<div>{'Some HTML content'}</div>
+		}
+
+		component App() {
+			let Content = track(() => Noop);
+			<@Content />
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+
+		expect(document.querySelector('div')).toBeNull();
+	});
+});

@@ -13,7 +13,11 @@ export function IfTruthy(__output) {
 		__output.push('<div');
 		__output.push(' class="shown"');
 		__output.push('>');
-		__output.push('Visible');
+
+		{
+			__output.push('Visible');
+		}
+
 		__output.push('</div>');
 	}
 
@@ -32,7 +36,11 @@ export function IfFalsy(__output) {
 		__output.push('<div');
 		__output.push(' class="shown"');
 		__output.push('>');
-		__output.push('Visible');
+
+		{
+			__output.push('Visible');
+		}
+
 		__output.push('</div>');
 	}
 
@@ -51,13 +59,21 @@ export function IfElse(__output) {
 		__output.push('<div');
 		__output.push(' class="logged-in"');
 		__output.push('>');
-		__output.push('Welcome back!');
+
+		{
+			__output.push('Welcome back!');
+		}
+
 		__output.push('</div>');
 	} else {
 		__output.push('<div');
 		__output.push(' class="logged-out"');
 		__output.push('>');
-		__output.push('Please log in');
+
+		{
+			__output.push('Please log in');
+		}
+
 		__output.push('</div>');
 	}
 
@@ -73,7 +89,11 @@ export function ReactiveIf(__output) {
 	__output.push('<button');
 	__output.push(' class="toggle"');
 	__output.push('>');
-	__output.push('Toggle');
+
+	{
+		__output.push('Toggle');
+	}
+
 	__output.push('</button>');
 	__output.push('<!--[-->');
 
@@ -81,7 +101,11 @@ export function ReactiveIf(__output) {
 		__output.push('<div');
 		__output.push(' class="content"');
 		__output.push('>');
-		__output.push('Content visible');
+
+		{
+			__output.push('Content visible');
+		}
+
 		__output.push('</div>');
 	}
 
@@ -97,7 +121,11 @@ export function ReactiveIfElse(__output) {
 	__output.push('<button');
 	__output.push(' class="toggle"');
 	__output.push('>');
-	__output.push('Toggle');
+
+	{
+		__output.push('Toggle');
+	}
+
 	__output.push('</button>');
 	__output.push('<!--[-->');
 
@@ -105,13 +133,21 @@ export function ReactiveIfElse(__output) {
 		__output.push('<div');
 		__output.push(' class="on"');
 		__output.push('>');
-		__output.push('ON');
+
+		{
+			__output.push('ON');
+		}
+
 		__output.push('</div>');
 	} else {
 		__output.push('<div');
 		__output.push(' class="off"');
 		__output.push('>');
-		__output.push('OFF');
+
+		{
+			__output.push('OFF');
+		}
+
 		__output.push('</div>');
 	}
 
@@ -128,12 +164,20 @@ export function NestedIf(__output) {
 	__output.push('<button');
 	__output.push(' class="outer-toggle"');
 	__output.push('>');
-	__output.push('Outer');
+
+	{
+		__output.push('Outer');
+	}
+
 	__output.push('</button>');
 	__output.push('<button');
 	__output.push(' class="inner-toggle"');
 	__output.push('>');
-	__output.push('Inner');
+
+	{
+		__output.push('Inner');
+	}
+
 	__output.push('</button>');
 	__output.push('<!--[-->');
 
@@ -141,18 +185,26 @@ export function NestedIf(__output) {
 		__output.push('<div');
 		__output.push(' class="outer-content"');
 		__output.push('>');
-		__output.push('Outer');
-		__output.push('<!--[-->');
 
-		if (_$_.get(inner)) {
-			__output.push('<span');
-			__output.push(' class="inner-content"');
-			__output.push('>');
-			__output.push('Inner');
-			__output.push('</span>');
+		{
+			__output.push('Outer');
+			__output.push('<!--[-->');
+
+			if (_$_.get(inner)) {
+				__output.push('<span');
+				__output.push(' class="inner-content"');
+				__output.push('>');
+
+				{
+					__output.push('Inner');
+				}
+
+				__output.push('</span>');
+			}
+
+			__output.push('<!--]-->');
 		}
 
-		__output.push('<!--]-->');
 		__output.push('</div>');
 	}
 
@@ -167,50 +219,78 @@ export function IfElseIfChain(__output) {
 
 	__output.push('<div');
 	__output.push('>');
-	__output.push('<button');
-	__output.push(' class="success"');
-	__output.push('>');
-	__output.push('Success');
-	__output.push('</button>');
-	__output.push('<button');
-	__output.push(' class="error"');
-	__output.push('>');
-	__output.push('Error');
-	__output.push('</button>');
-	__output.push('<button');
-	__output.push(' class="loading"');
-	__output.push('>');
-	__output.push('Loading');
-	__output.push('</button>');
-	__output.push('<!--[-->');
 
-	if (_$_.get(status) === 'loading') {
-		__output.push('<div');
-		__output.push(' class="state"');
+	{
+		__output.push('<button');
+		__output.push(' class="success"');
 		__output.push('>');
-		__output.push('Loading...');
-		__output.push('</div>');
-	} else {
+
+		{
+			__output.push('Success');
+		}
+
+		__output.push('</button>');
+		__output.push('<button');
+		__output.push(' class="error"');
+		__output.push('>');
+
+		{
+			__output.push('Error');
+		}
+
+		__output.push('</button>');
+		__output.push('<button');
+		__output.push(' class="loading"');
+		__output.push('>');
+
+		{
+			__output.push('Loading');
+		}
+
+		__output.push('</button>');
 		__output.push('<!--[-->');
 
-		if (_$_.get(status) === 'success') {
+		if (_$_.get(status) === 'loading') {
 			__output.push('<div');
 			__output.push(' class="state"');
 			__output.push('>');
-			__output.push('Success!');
+
+			{
+				__output.push('Loading...');
+			}
+
 			__output.push('</div>');
 		} else {
-			__output.push('<div');
-			__output.push(' class="state"');
-			__output.push('>');
-			__output.push('Error occurred');
-			__output.push('</div>');
+			__output.push('<!--[-->');
+
+			if (_$_.get(status) === 'success') {
+				__output.push('<div');
+				__output.push(' class="state"');
+				__output.push('>');
+
+				{
+					__output.push('Success!');
+				}
+
+				__output.push('</div>');
+			} else {
+				__output.push('<div');
+				__output.push(' class="state"');
+				__output.push('>');
+
+				{
+					__output.push('Error occurred');
+				}
+
+				__output.push('</div>');
+			}
+
+			__output.push('<!--]-->');
 		}
 
 		__output.push('<!--]-->');
 	}
 
-	__output.push('<!--]-->');
 	__output.push('</div>');
 	_$_.pop_component();
 }

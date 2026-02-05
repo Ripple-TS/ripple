@@ -585,6 +585,40 @@ export function is_element_dom_element(node) {
 }
 
 /**
+ * Returns true if element is a dynamic element
+ * @param {AST.Element} node
+ * @returns {boolean}
+ */
+export function is_element_dynamic(node) {
+	return is_id_dynamic(node.id);
+}
+
+/**
+ * @param {AST.Identifier | AST.MemberExpression | AST.Literal} node
+ * @returns {boolean}
+ */
+function is_id_dynamic(node) {
+	if (node.type === 'Identifier' || node.type === 'Literal') {
+		if (node.tracked) {
+			return true;
+		}
+
+		return false;
+	} else if (node.type === 'MemberExpression') {
+		if (/** @type {AST.Identifier} */ (node.object).tracked === true) {
+			return true;
+		}
+		if (node.property.type === 'MemberExpression') {
+			return is_id_dynamic(node.property);
+		}
+
+		return !!(/** @type {AST.Identifier} */ (node.property).tracked);
+	}
+
+	return false;
+}
+
+/**
  * Normalizes children nodes (merges adjacent text, removes empty)
  * @param {AST.Node[]} children
  * @param {CommonContext} context

@@ -2,7 +2,7 @@
   "version": "0.2.1",
   "configurations": [
     {
-      "name": "Debug VSCode Extension",
+      "name": "VSCode Extension",
       "type": "extensionHost",
       "request": "launch",
       "autoAttachChildProcesses": true,
@@ -18,7 +18,91 @@
       }
     },
     {
-      "name": "Debug Ripple Compiler (Vite)",
+      "name": "Ripple Tests - Current Tab",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "run",
+        "test",
+        "${relativeFile}",
+        "-t",
+        "${input:rippeTestNamePattern}",
+        "--",
+        "--inspect-brk",
+        "--no-file-parallelism"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Ripple Tests - File Path",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "run",
+        "test",
+        "${input:rippleTestFile}",
+        "-t",
+        "${input:rippeTestNamePattern}",
+        "--",
+        "--inspect-brk",
+        "--no-file-parallelism"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Volar Codegen / Mappings",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/playground",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["run", "debug-volar"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "SSR Rendering",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/playground",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["run", "debug-ssr"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "SSR Runtime",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/playground",
+      "program": "${workspaceFolder}/playground/ssr-dev.js",
+      "env": {
+        "DEBUG_APP": "true"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Client Rendering",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/playground",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["run", "debug-client"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Vite Plugin",
       "type": "node",
       "request": "launch",
       "console": "integratedTerminal",
@@ -30,51 +114,20 @@
       "autoAttachChildProcesses": true,
       "skipFiles": ["<node_internals>/**"],
       "sourceMaps": true
+    }
+  ],
+  "inputs": [
+    {
+      "id": "rippleTestFile",
+      "type": "promptString",
+      "description": "Test file path",
+      "default": "${relativeFile}"
     },
     {
-      "name": "Debug All Tests - Vitest",
-      "type": "node",
-      "request": "launch",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["run", "test", "--", "--inspect-brk", "--no-file-parallelism"],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "skipFiles": ["<node_internals>/**"]
-    },
-    {
-      "name": "Debug Volar Transform / Mappings",
-      "type": "node",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/playground",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["run", "debug-volar"],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "skipFiles": ["<node_internals>/**"]
-    },
-    {
-      "name": "Debug SSR Rendering",
-      "type": "node",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/playground",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["run", "debug-ssr"],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "skipFiles": ["<node_internals>/**"]
-    },
-    {
-      "name": "Debug SSR Runtime",
-      "type": "node",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/playground",
-      "program": "${workspaceFolder}/playground/ssr-dev.js",
-      "env": {
-        "DEBUG_APP": "true"
-      },
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "skipFiles": ["<node_internals>/**"]
+      "id": "rippeTestNamePattern",
+      "type": "promptString",
+      "description": "(Optional): Test name pattern to match",
+      "default": ""
     }
   ]
 }

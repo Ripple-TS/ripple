@@ -11,12 +11,12 @@ export type CompatOptions = {
 };
 
 export function mount(
-	component: () => void,
+	component: Component,
 	options: { target: HTMLElement; props?: Record<string, any>; compat?: CompatOptions },
 ): () => void;
 
 export function hydrate(
-	component: () => void,
+	component: Component,
 	options: { target: HTMLElement; props?: Record<string, any>; compat?: CompatOptions },
 ): () => void;
 

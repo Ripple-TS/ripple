@@ -139,7 +139,7 @@ describe('basic client > attribute rendering', () => {
 		expect(div.classList.contains('active')).toBe(false);
 	});
 
-	it('applies scoped ripple classs to multiple elements with dynamic class expressions', () => {
+	it('applies scoped ripple class to multiple elements with dynamic class expressions', () => {
 		component Basic() {
 			let selected = track(1);
 

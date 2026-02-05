@@ -1,0 +1,102 @@
+import { track } from 'ripple';
+
+describe('head elements', () => {
+	it('renders static title element', async () => {
+		component App() {
+			<head>
+				<title>{'Static Test Title'}</title>
+			</head>
+
+			<div>{'Content'}</div>
+		}
+
+		const { head, body } = await render(App);
+		const { document } = parseAsFullHtml(head, body);
+
+		expect(document.title).toBe('Static Test Title');
+		expect(document.querySelector('div').textContent).toBe('Content');
+	});
+
+	it('renders reactive title element', async () => {
+		component App() {
+			let title = track('Initial Title');
+
+			<head>
+				<title>{@title}</title>
+			</head>
+			<div>
+				<span>{@title}</span>
+			</div>
+		}
+
+		const { head, body } = await render(App);
+		const { document } = parseAsFullHtml(head, body);
+
+		expect(document.title).toBe('Initial Title');
+		expect(document.querySelector('span').textContent).toBe('Initial Title');
+	});
+
+	it('renders title with template literal', async () => {
+		component App() {
+			let name = track('World');
+
+			<head>
+				<title>{`Hello ${@name}!`}</title>
+			</head>
+		}
+
+		const { head, body } = await render(App);
+		const { document } = parseAsFullHtml(head, body);
+
+		expect(document.title).toBe('Hello World!');
+	});
+
+	it('renders title with computed value', async () => {
+		component App() {
+			let count = track(0);
+			let prefix = 'Count: ';
+
+			<head>
+				<title>{prefix + @count}</title>
+			</head>
+			<div>
+				<span>{@count}</span>
+			</div>
+		}
+
+		const { head, body } = await render(App);
+		const { document } = parseAsFullHtml(head, body);
+
+		expect(document.title).toBe('Count: 0');
+	});
+
+	it('renders empty title', async () => {
+		component App() {
+			<head>
+				<title>{''}</title>
+			</head>
+			<div>{'Empty title test'}</div>
+		}
+
+		const { head, body } = await render(App);
+		const { document } = parseAsFullHtml(head, body);
+
+		expect(document.title).toBe('');
+	});
+
+	it('renders title with conditional content', async () => {
+		component App() {
+			let showPrefix = track(true);
+			let title = track('Main Page');
+
+			<head>
+				<title>{@showPrefix ? 'App - ' + @title : @title}</title>
+			</head>
+		}
+
+		const { head, body } = await render(App);
+		const { document } = parseAsFullHtml(head, body);
+
+		expect(document.title).toBe('App - Main Page');
+	});
+});

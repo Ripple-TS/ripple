@@ -98,13 +98,26 @@ function createHoverPlugin() {
 					}
 
 					const customHover = mapping?.data?.customData?.hover;
-					if (customHover) {
+
+					if (customHover === undefined) {
+						return tsHover;
+					}
+
+					if (typeof customHover === 'function') {
+						if (tsHover) {
+							/** @type {MarkupContent} **/ (tsHover.contents).value = customHover(
+								/** @type {MarkupContent} **/ (tsHover.contents).value,
+							);
+							log('Modified hover contents using custom hover function');
+						}
+						return tsHover;
+					} else if (typeof customHover === 'string') {
 						const contents = tsHover
 							? concatMarkdownContents(
 									/** @type {MarkupContent} **/ (tsHover.contents).value,
-									customHover.contents,
+									customHover,
 								)
-							: customHover.contents;
+							: customHover;
 						log('Found custom hover data in mapping');
 						return {
 							contents: {
@@ -124,29 +137,6 @@ function createHoverPlugin() {
 					}
 
 					log('Found mapping for hover at range', 'start: ', starOffset, 'end: ', endOffset);
-
-					if (tsHover && tsHover.range) {
-						// Check if source length is greater than generated length (component -> function)
-						const customData = mapping.data.customData;
-						const sourceLength = mapping.lengths[0];
-						const generatedLength = customData.generatedLengths[0];
-
-						// If no generatedLengths, or source and generated are same length, no transformation
-						if (sourceLength <= generatedLength) {
-							return tsHover;
-						}
-
-						const diffLength = sourceLength - generatedLength;
-
-						// Adjust the hover range to highlight the full "component" keyword
-						tsHover.range = {
-							start: tsHover.range.start,
-							end: {
-								line: tsHover.range.end.line,
-								character: tsHover.range.end.character + diffLength,
-							},
-						};
-					}
 
 					return tsHover;
 				},

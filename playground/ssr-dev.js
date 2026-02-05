@@ -6,7 +6,8 @@ import { createServer as createViteServer } from 'vite';
 import { executeServerFunction } from 'ripple/server';
 
 const PORT = process.env.PORT || '5173';
-const DEBUG_APP = process.env.DEBUG_APP === 'true' ? path.resolve('./debug/App.js') : null;
+const DEBUG = process.env.DEBUG_APP === 'true';
+const APP_PATH = path.resolve(DEBUG ? './debug/App.js' : './src/App.ripple');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -16,6 +17,10 @@ const vite = await createViteServer({
 });
 
 const rpc_modules = new Map();
+
+const import_function = DEBUG
+	? /** @param {string} path */ (path) => import(path)
+	: /** @param {string} path */ (path) => vite.ssrLoadModule(path);
 
 function get_request_body(req) {
 	return new Promise((resolve, reject) => {
@@ -70,20 +75,12 @@ polka()
 
 			try {
 				globalThis.rpc_modules = new Map(rpc_modules);
-				({ render, get_css_for_hashes } = await vite.ssrLoadModule('ripple/server'));
+				({ render, get_css_for_hashes } = await import_function('ripple/server'));
 			} finally {
 				globalThis.rpc_modules = previous_rpc;
 			}
 
-			let App;
-			if (DEBUG_APP) {
-				// Use pre-generated debug file
-				({ App } = await import(DEBUG_APP));
-			} else {
-				// Use Vite's ssrLoadModule for hot reloading
-				({ App } = await vite.ssrLoadModule('/src/App.ripple'));
-			}
-
+			const { App } = await import_function(APP_PATH);
 			const { head, body, css } = await render(App);
 
 			// Get the actual CSS content for the rendered components

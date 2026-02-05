@@ -1,5 +1,6 @@
+// @ts-expect-error ESM import
 /** @import { CodeMapping } from 'ripple/compiler' */
-// @ts-expect-error type-only import from ESM module into CJS is fine
+// @ts-expect-error ESM import
 /** @import {RippleCompiler, RippleCompileError, VolarMappingsResult} from 'ripple/compiler' */
 
 /** @typedef {Map<string, CodeMapping>} CachedMappings */

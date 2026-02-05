@@ -19,10 +19,10 @@ catalogs:
     '@types/vscode': ^1.107.0
     '@typescript-eslint/parser': *ts_eslint_parser
     '@typescript-eslint/types': ^8.40.0
-    '@volar/language-core': ~2.4.23
-    '@volar/language-server': ~2.4.23
-    '@volar/typescript': ~2.4.23
-    '@volar/vscode': ~2.4.23
+    '@volar/language-core': ~2.4.28
+    '@volar/language-server': ~2.4.28
+    '@volar/typescript': ~2.4.28
+    '@volar/vscode': ~2.4.28
     '@vscode/vsce': ^3.6.2
     acorn: ^8.15.0
     adm-zip: ^0.5.16
@@ -37,6 +37,7 @@ catalogs:
     is-reference: ^3.0.3
     jsdom: ^26.1.0
     kleur: ^4.1.5
+    linkedom: ^0.18.12
     livecodes: 0.12.0
     magic-string: ^0.30.18
     muggle-string: ^0.4.1
@@ -54,8 +55,8 @@ catalogs:
     vitepress-plugin-npm-commands: ^0.8.1
     vitepress-plugin-tabs: ^0.7.1
     vitest: ^3.2.4
-    volar-service-css: 0.0.65
-    volar-service-typescript: 0.0.65
+    volar-service-css: 0.0.68
+    volar-service-typescript: 0.0.68
     vscode-languageclient: ^9.0.1
     vscode-languageserver-textdocument: ^1.0.12
     vscode-languageserver-types: ^3.17.5

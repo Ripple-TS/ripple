@@ -10,7 +10,11 @@ export function TrackedState(__output) {
 	__output.push('<div');
 	__output.push(' class="count"');
 	__output.push('>');
-	__output.push(_$_.escape(_$_.get(count)));
+
+	{
+		__output.push(_$_.escape(_$_.get(count)));
+	}
+
 	__output.push('</div>');
 	_$_.pop_component();
 }
@@ -22,18 +26,33 @@ export function CounterWithInitial(__output, props) {
 
 	__output.push('<div');
 	__output.push('>');
-	__output.push('<span');
-	__output.push(' class="count"');
-	__output.push('>');
-	__output.push(_$_.escape(_$_.get(count)));
-	__output.push('</span>');
+
+	{
+		__output.push('<span');
+		__output.push(' class="count"');
+		__output.push('>');
+
+		{
+			__output.push(_$_.escape(_$_.get(count)));
+		}
+
+		__output.push('</span>');
+	}
+
 	__output.push('</div>');
 	_$_.pop_component();
 }
 
 export function CounterWrapper(__output) {
 	_$_.push_component();
-	CounterWithInitial(__output, { initial: 5 });
+
+	{
+		const comp = CounterWithInitial;
+		const args = [__output, { initial: 5 }];
+
+		comp(...args);
+	}
+
 	_$_.pop_component();
 }
 
@@ -47,7 +66,11 @@ export function ComputedValues(__output) {
 	__output.push('<div');
 	__output.push(' class="sum"');
 	__output.push('>');
-	__output.push(_$_.escape(sum()));
+
+	{
+		__output.push(_$_.escape(sum()));
+	}
+
 	__output.push('</div>');
 	_$_.pop_component();
 }
@@ -62,17 +85,29 @@ export function MultipleTracked(__output) {
 	__output.push('<div');
 	__output.push(' class="x"');
 	__output.push('>');
-	__output.push(_$_.escape(_$_.get(x)));
+
+	{
+		__output.push(_$_.escape(_$_.get(x)));
+	}
+
 	__output.push('</div>');
 	__output.push('<div');
 	__output.push(' class="y"');
 	__output.push('>');
-	__output.push(_$_.escape(_$_.get(y)));
+
+	{
+		__output.push(_$_.escape(_$_.get(y)));
+	}
+
 	__output.push('</div>');
 	__output.push('<div');
 	__output.push(' class="z"');
 	__output.push('>');
-	__output.push(_$_.escape(_$_.get(z)));
+
+	{
+		__output.push(_$_.escape(_$_.get(z)));
+	}
+
 	__output.push('</div>');
 	_$_.pop_component();
 }
@@ -87,7 +122,11 @@ export function DerivedState(__output) {
 	__output.push('<div');
 	__output.push(' class="name"');
 	__output.push('>');
-	__output.push(_$_.escape(fullName()));
+
+	{
+		__output.push(_$_.escape(fullName()));
+	}
+
 	__output.push('</div>');
 	_$_.pop_component();
 }

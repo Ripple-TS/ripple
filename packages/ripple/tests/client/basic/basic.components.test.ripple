@@ -26,6 +26,53 @@ describe('basic client > components & composition', () => {
 		expect(paragraph.textContent).toBe('Card content here');
 	});
 
+	it('does not render a falsy component call', () => {
+		component Card(props: PropsWithChildren<{}>) {
+			<div class="card">
+				<props.children />
+			</div>
+		}
+
+		component Basic() {
+			<Card>
+				component test() {
+					<p>{'Card content here'}</p>
+				}
+			</Card>
+		}
+
+		render(Basic);
+
+		const card = container.querySelector('.card');
+		const paragraph = card.querySelector('p');
+
+		expect(card).toBeTruthy();
+		expect(paragraph).toBeFalsy();
+	});
+
+	it('renders a component when children is set a component prop', () => {
+		component Card(props: PropsWithChildren<{}>) {
+			<div class="card">
+				<props.children />
+			</div>
+		}
+
+		component Basic() {
+			component children() {
+				<p>{'Card content here'}</p>
+			}
+			<Card {children} />
+		}
+
+		render(Basic);
+
+		const card = container.querySelector('.card');
+		const paragraph = card.querySelector('p');
+
+		expect(card).toBeTruthy();
+		expect(paragraph.textContent).toBe('Card content here');
+	});
+
 	it('renders with nested components and prop passing', () => {
 		component Button(props: PropsWithExtras<{
 			variant: string;

@@ -38,11 +38,7 @@ export interface PluginActionOverrides {
 	/** TypeScript diagnostic codes to suppress for this mapping */
 	suppressedDiagnostics?: number[];
 	/** Custom hover documentation for this mapping, false to disable */
-	hover?:
-		| {
-				contents: string;
-		  }
-		| false;
+	hover?: string | false | ((content: string) => string);
 	/** Custom definition info for this mapping, false to disable */
 	definition?:
 		| {

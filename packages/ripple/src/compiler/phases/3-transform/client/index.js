@@ -51,6 +51,7 @@ import {
 	build_getter,
 	determine_namespace_for_children,
 	index_to_key,
+	is_element_dynamic,
 } from '../../../utils.js';
 import {
 	CSS_HASH_IDENTIFIER,
@@ -68,6 +69,7 @@ import {
 } from '../../../../utils/events.js';
 import { createHash } from 'node:crypto';
 import { should_preserve_comment, format_comment } from '../../../comment-utils.js';
+import { set_location } from '../../../../utils/builders.js';
 
 /**
  *
@@ -715,7 +717,11 @@ const visitors = {
 			context.state.metadata.tracking = true;
 		}
 
-		if (node.tracked || (node.property.type === 'Identifier' && node.property.tracked)) {
+		if (
+			node.tracked ||
+			((node.property.type === 'Identifier' || node.property.type === 'Literal') &&
+				node.property.tracked)
+		) {
 			if (context.state.to_ts) {
 				// In TypeScript mode, transform @user.@name or @user.@['name'] or @user?.@name
 				// to user['#v'].name['#v'] or user['#v']['name']['#v'] or user['#v']?.name['#v']
@@ -723,10 +729,22 @@ const visitors = {
 				const visited_property = /** @type {AST.Expression} */ (context.visit(node.property));
 
 				// Build the member access: object.property or object[property]
-				const member = b.member(visited_object, visited_property, node.computed, node.optional);
+				const member = b.member(
+					visited_object,
+					visited_property,
+					node.computed,
+					node.optional,
+					/** @type {AST.NodeWithLocation} */ (node),
+				);
 
 				// Wrap with ['#v'] access
-				return b.member(member, b.literal('#v'), true);
+				return b.member(
+					member,
+					b.literal('#v'),
+					true,
+					undefined,
+					/** @type {AST.NodeWithLocation} */ (node),
+				);
 			} else {
 				if (!context.state.to_ts) {
 					return b.call(
@@ -1081,7 +1099,10 @@ const visitors = {
 		/** @type {(AST.Property | AST.SpreadElement)[] | null} */
 		const spread_attributes = is_spreading ? [] : null;
 		const child_namespace = is_dom_element
-			? determine_namespace_for_children(node.id.name, state.namespace)
+			? determine_namespace_for_children(
+					/** @type {AST.Identifier} */ (node.id).name,
+					state.namespace,
+				)
 			: state.namespace;
 
 		/**
@@ -1110,37 +1131,22 @@ const visitors = {
 		};
 
 		if (is_dom_element) {
+			/** @type {AST.Attribute | null} */
 			let class_attribute = null;
+			/** @type {AST.Attribute | null} */
 			let style_attribute = null;
-			const component = /** @type {AST.Component} */ (state.component);
+			// const component = /** @type {AST.Component} */ (state.component);
 			/** @type {TransformClientState['update']} */
 			const local_updates = [];
-			const is_void = is_void_element(node.id.name);
+			const is_void = is_void_element(/** @type {AST.Identifier} */ (node.id).name);
+			/** @type {AST.CSS.StyleSheet['hash'] | null} */
+			const scoping_hash =
+				state.applyParentCssScope ??
+				(node.metadata.scoped && state.component?.css
+					? /** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash
+					: null);
 
-			let scoping_hash = null;
-			if (node.metadata?.scoped && component.css) {
-				scoping_hash = component.css.hash;
-			} else {
-				let inside_dynamic_children = false;
-				for (let i = context.path.length - 1; i >= 0; i--) {
-					const anc = context.path[i];
-					if (anc && anc.type === 'Component' && anc.metadata && anc.metadata.inherited_css) {
-						inside_dynamic_children = true;
-						break;
-					}
-				}
-				if (inside_dynamic_children) {
-					for (let i = context.path.length - 1; i >= 0; i--) {
-						const anc = context.path[i];
-						if (anc && anc.type === 'Component' && anc.css) {
-							scoping_hash = anc.css.hash;
-							break;
-						}
-					}
-				}
-			}
-
-			state.template?.push(`<${node.id.name}`);
+			state.template?.push(`<${/** @type {AST.Identifier} */ (node.id).name}`);
 
 			for (const attr of node.attributes) {
 				if (attr.type === 'Attribute') {
@@ -1353,7 +1359,9 @@ const visitors = {
 					);
 
 					const hash_arg = scoping_hash ? b.literal(scoping_hash) : undefined;
-					const is_html = context.state.namespace === 'html' && node.id.name !== 'svg';
+					const is_html =
+						context.state.namespace === 'html' &&
+						/** @type {AST.Identifier} */ (node.id).name !== 'svg';
 
 					if (metadata.tracking) {
 						local_updates.push({
@@ -1430,7 +1438,7 @@ const visitors = {
 						root: false,
 					}),
 				);
-				state.template?.push(`</${node.id.name}>`);
+				state.template?.push(`</${/** @type {AST.Identifier} */ (node.id).name}>`);
 
 				// We need to check if any child nodes are dynamic to determine
 				// if we need to pop the hydration stack to the parent node
@@ -1472,6 +1480,12 @@ const visitors = {
 
 			state.template?.push('<!>');
 
+			if (state.applyParentCssScope) {
+				// We're inside a component, don't continue applying css hash to class
+				state.applyParentCssScope = undefined;
+			}
+
+			const is_dynamic_element = is_element_dynamic(node);
 			const is_spreading = node.attributes.some((attr) => attr.type === 'SpreadAttribute');
 			/** @type {(AST.Property | AST.SpreadElement)[]} */
 			const props = [];
@@ -1487,7 +1501,7 @@ const visitors = {
 								? b.literal(true)
 								: /** @type {AST.Expression} */ (visit(attr.value, { ...state, metadata }));
 
-						if (attr.name.name === 'class' && node.metadata?.scoped && state.component?.css) {
+						if (attr.name.name === 'class' && node.metadata.scoped && state.component?.css) {
 							if (property.type === 'Literal') {
 								property = b.literal(`${state.component.css.hash} ${property.value}`);
 							} else {
@@ -1543,7 +1557,7 @@ const visitors = {
 				}
 			}
 
-			if (node.metadata?.scoped && state.component?.css) {
+			if (node.metadata.scoped && state.component?.css) {
 				const hasClassAttr = node.attributes.some(
 					(attr) =>
 						attr.type === 'Attribute' &&
@@ -1579,17 +1593,19 @@ const visitors = {
 			}
 
 			if (children_filtered.length > 0) {
-				const component_scope = context.state.scopes.get(node);
+				const component_scope = state.scopes.get(node);
 				const children_component = b.component(b.id('children'), [], children_filtered);
-
-				children_component.metadata = {
-					...(children_component.metadata || {}),
-					inherited_css: true,
-				};
 
 				const children = /** @type {AST.Expression} */ (
 					visit(children_component, {
-						...context.state,
+						...state,
+						...(state.applyParentCssScope ||
+						(is_dynamic_element && node.metadata.scoped && state.component?.css)
+							? {
+									applyParentCssScope: /** @type {AST.CSS.StyleSheet} */ (state.component?.css)
+										.hash,
+								}
+							: {}),
 						scope: /** @type {ScopeInterface} */ (component_scope),
 						namespace: child_namespace,
 					})
@@ -1721,13 +1737,6 @@ const visitors = {
 				}),
 			];
 
-			/** @type {AST.NodeWithLocation} */
-			const loc_node = {
-				start: /** @type {AST.NodeWithLocation } */ (node).start,
-				end: /** @type {AST.NodeWithLocation } */ (node).end,
-				loc: /** @type {AST.SourceLocation} */ (node.loc),
-			};
-
 			const func = b.function(
 				node.id,
 				node.params.map(
@@ -1736,13 +1745,21 @@ const visitors = {
 				),
 				b.block([...style_statements, ...body_statements]),
 				false,
-				loc_node,
+				/** @type {AST.NodeWithLocation} */ (node),
 			);
 			// Mark that this function was originally a component
 			func.metadata = /** @type {AST.FunctionExpression['metadata']} */ ({
-				...func.metadata,
-				was_component: true,
+				...node.metadata,
+				is_component: true,
 			});
+
+			if (func.id) {
+				// metadata should be there as func.id === node.id
+				func.id.metadata = /** @type {AST.Identifier['metadata']} */ ({
+					...func.id.metadata,
+					is_component: true,
+				});
+			}
 
 			return func;
 		}
@@ -1793,12 +1810,7 @@ const visitors = {
 					: body_statements),
 			]),
 		);
-		// Mark that this function was originally a component
-		func.metadata = /** @type {AST.FunctionExpression['metadata']} */ ({
-			...func.metadata,
-			was_component: true,
-		});
-		func.loc = node.loc; // Copy source location for Volar mappings
+
 		return func;
 	},
 
@@ -2506,7 +2518,7 @@ function transform_ts_child(node, context) {
 			const is_dom_element = is_element_dom_element(node);
 			const component_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node));
 			const thunk =
-				node.id.name === 'style'
+				/** @type {AST.Identifier} */ (node.id).name === 'style'
 					? null
 					: b.thunk(
 							b.block(
@@ -2515,7 +2527,10 @@ function transform_ts_child(node, context) {
 									state: {
 										...state,
 										scope: component_scope,
-										inside_head: node.id.name === 'head' ? true : state.inside_head,
+										inside_head:
+											/** @type {AST.Identifier} */ (node.id).name === 'head'
+												? true
+												: state.inside_head,
 									},
 								}),
 							),
@@ -2545,6 +2560,20 @@ function transform_ts_child(node, context) {
 					...node.closingElement.metadata,
 					is_capitalized: true,
 				};
+			}
+		}
+
+		if (node.id.type === 'MemberExpression') {
+			const member = /** @type {AST.MemberExpression} */ (visit(node.id, { ...state }));
+
+			node.id = member;
+			/** @type {ESTreeJSX.RippleJSXOpeningElement} */ (node.openingElement).name = member;
+			if (node.closingElement) {
+				/** @type {ESTreeJSX.RippleJSXClosingElement} */ (node.closingElement).name = set_location(
+					{ ...member },
+					/** @type {AST.NodeWithLocation} */ (node.closingElement.name),
+					true,
+				);
 			}
 		}
 
@@ -2803,7 +2832,7 @@ function transform_children(children, context) {
 	const get_id = (node) => {
 		return b.id(
 			node.type == 'Element' && is_element_dom_element(node)
-				? state.scope.generate(node.id.name)
+				? state.scope.generate(/** @type {AST.Identifier} */ (node.id).name)
 				: node.type == 'Text'
 					? state.scope.generate('text')
 					: state.scope.generate('node'),
@@ -3100,7 +3129,7 @@ function transform_body(body, { visit, state }) {
 		}
 
 		// NOTE: transform_children in `to_ts` mode does NOT add to body_state.update
-		// So, we skip adding doing any actions with body_state.update
+		// So, we skip adding any actions with body_state.update
 	}
 
 	return [
@@ -3165,29 +3194,22 @@ function create_tsx_with_typescript_support(comments) {
 	 * @param {TransformClientContext} context
 	 */
 	const handle_function = (node, context) => {
-		let is_method = false;
-		const parent = node.metadata.path.at(-1);
-		if (
-			node.type === 'FunctionExpression' &&
-			parent &&
-			((parent.type === 'Property' && parent.method === true) || parent.type === 'MethodDefinition')
-		) {
-			is_method = true;
-		}
 		const loc = /** @type {AST.SourceLocation} */ (node.loc);
+		const start_pos = /** @type {AST.Position} */ ({
+			line: loc.start.line,
+			column: loc.start.column,
+		});
 
 		if (node.async) {
 			context.location(loc.start.line, loc.start.column);
 			context.write('async ');
-			if (!is_method) {
-				context.location(loc.start.line, loc.start.column + 6);
-				context.write('function');
-			}
-		} else {
-			if (!is_method) {
-				context.write('function', node);
-			}
+			context.location(loc.start.line, loc.start.column + 'async '.length);
+			start_pos.column += 'async '.length;
 		}
+
+		context.location(start_pos.line, start_pos.column);
+		context.write('function');
+		context.location(start_pos.line, start_pos.column + 'function'.length);
 
 		if (node.generator) {
 			context.write('*');
@@ -3247,6 +3269,46 @@ function create_tsx_with_typescript_support(comments) {
 			const loc = /** @type {AST.SourceLocation} */ (node.loc);
 			context.location(loc.start.line, loc.start.column);
 			base_tsx.ExpressionStatement?.(node, context);
+			context.location(loc.end.line, loc.end.column);
+		},
+		UpdateExpression(node, context) {
+			if (!node.loc) {
+				base_tsx.UpdateExpression?.(node, context);
+				return;
+			}
+			const loc = /** @type {AST.SourceLocation} */ (node.loc);
+			context.location(loc.start.line, loc.start.column);
+			base_tsx.UpdateExpression?.(node, context);
+			context.location(loc.end.line, loc.end.column);
+		},
+		UnaryExpression(node, context) {
+			if (!node.loc) {
+				base_tsx.UnaryExpression?.(node, context);
+				return;
+			}
+			const loc = /** @type {AST.SourceLocation} */ (node.loc);
+			context.location(loc.start.line, loc.start.column);
+			base_tsx.UnaryExpression?.(node, context);
+			context.location(loc.end.line, loc.end.column);
+		},
+		YieldExpression(node, context) {
+			if (!node.loc) {
+				base_tsx.YieldExpression?.(node, context);
+				return;
+			}
+			const loc = /** @type {AST.SourceLocation} */ (node.loc);
+			context.location(loc.start.line, loc.start.column);
+			base_tsx.YieldExpression?.(node, context);
+			context.location(loc.end.line, loc.end.column);
+		},
+		CallExpression(node, context) {
+			if (!node.loc) {
+				base_tsx.CallExpression?.(node, context);
+				return;
+			}
+			const loc = /** @type {AST.SourceLocation} */ (node.loc);
+			context.location(loc.start.line, loc.start.column);
+			base_tsx.CallExpression?.(node, context);
 			context.location(loc.end.line, loc.end.column);
 		},
 		Literal(node, context) {
@@ -3351,61 +3413,97 @@ function create_tsx_with_typescript_support(comments) {
 			context.location(loc.end.line, loc.end.column);
 		},
 		Property(node, context) {
-			// Check if the value is a function that was originally a component
-			const isComponent =
-				node.value?.type === 'FunctionExpression' && node.value.metadata?.was_component;
+			let start_pos = node.loc?.start;
+			if (node.loc) {
+				start_pos = /** @type {AST.Position} */ ({
+					line: node.loc.start.line,
+					column: node.loc.start.column,
+				});
+			}
 
-			if (isComponent) {
-				// Manually print as non-method property to preserve 'function' keyword
-				// This ensures esrap creates proper source map entries for the component->function transformation
-				if (node.computed) {
-					context.write('[');
-					context.visit(node.key);
-					context.write(']');
-				} else {
-					context.visit(node.key);
+			const is_method = node.method || node.kind === 'get' || node.kind === 'set';
+
+			// Handle getters/setters
+			if (node.kind === 'get') {
+				context.write('get ');
+				if (start_pos) {
+					start_pos.column += 'get '.length;
 				}
-				context.write(': ');
-				context.visit(node.value);
-			} else if (!node.shorthand) {
-				// If property is already longhand in source, keep it longhand
-				// to prevent source map issues when parts of the syntax disappear in shorthand conversion
-				// This applies to:
-				// - { media: media } -> would become { media } (value identifier disappears)
-				// - { fn: function() {} } -> would become { fn() {} } ('function' keyword disappears)
-				const value = node.value.type === 'AssignmentPattern' ? node.value.left : node.value;
+			} else if (node.kind === 'set') {
+				if (start_pos) {
+					start_pos.column += 'set '.length;
+				}
+				context.write('set ');
+			}
 
-				// Check if esrap would convert this to shorthand property or method
-				const wouldBeShorthand =
-					!node.computed &&
-					node.kind === 'init' &&
-					node.key.type === 'Identifier' &&
-					value.type === 'Identifier' &&
-					node.key.name === value.name;
+			// Write async keyword (before *)
+			if (is_method && /** @type {AST.FunctionExpression} */ (node.value).async) {
+				// If not a method, async should be a part of the value e.g. { prop: async function }
+				if (start_pos) {
+					context.location(start_pos.line, start_pos.column);
+				}
+				context.write('async ');
+				if (start_pos) {
+					context.location(start_pos.line, start_pos.column + 'async '.length);
+					start_pos.column += 'async '.length;
+				}
+			}
 
-				const wouldBeMethodShorthand =
-					!node.computed &&
-					node.value.type === 'FunctionExpression' &&
-					node.kind !== 'get' &&
-					node.kind !== 'set';
+			// Write * for generator methods
+			if (/** @type {AST.FunctionExpression} */ (node.value).generator) {
+				context.write('*');
+			}
 
-				if (wouldBeShorthand || wouldBeMethodShorthand) {
-					let colon_str = ': ';
-					if (node.method === true && node.value.type === 'FunctionExpression') {
-						colon_str = '';
-					}
-					// Force longhand: write key: value explicitly to preserve source positions
-					if (node.computed) context.write('[');
-					context.visit(node.key);
-					context.write(node.computed ? ']' + colon_str : colon_str);
-					context.visit(node.value);
-				} else {
-					base_tsx.Property?.(node, context);
+			// Write the key
+			if (node.computed) {
+				if (node.key.loc) {
+					context.location(node.key.loc.start.line, node.key.loc.start.column - 1);
+				}
+				context.write('[');
+				context.visit(node.key);
+				context.write(']');
+				if (node.key.loc) {
+					context.location(node.key.loc.end.line, node.key.loc.end.column + 1);
 				}
 			} else {
-				// Use default handler for non-component properties
-				base_tsx.Property?.(node, context);
+				context.visit(node.key);
 			}
+
+			// Shorthand property: { x } - just the key, we're done
+			if (node.shorthand) {
+				return;
+			}
+
+			// Method shorthand: { foo() {} } or getters/setters - print params and body directly
+			if (is_method) {
+				const fn = /** @type {AST.FunctionExpression} */ (node.value);
+
+				fn.metadata.is_method = true;
+
+				// Type parameters: { foo<T>() {} }
+				if (fn.typeParameters) {
+					context.visit(fn.typeParameters);
+				}
+
+				context.write('(');
+				for (let i = 0; i < fn.params.length; i++) {
+					if (i > 0) context.write(', ');
+					context.visit(fn.params[i]);
+				}
+				context.write(')');
+
+				if (fn.returnType) {
+					context.visit(fn.returnType);
+				}
+
+				context.write(' ');
+				context.visit(fn.body);
+				return;
+			}
+
+			// Regular property: { key: value }
+			context.write(': ');
+			context.visit(node.value);
 		},
 		JSXOpeningElement(node, context) {
 			// Set location for '<'
@@ -3449,49 +3547,71 @@ function create_tsx_with_typescript_support(comments) {
 			context.location(loc.end.line, loc.end.column);
 		},
 		MethodDefinition(node, context) {
-			// Check if there are type parameters to handle
-			const hasTypeParams = node.typeParameters || node.value?.typeParameters;
-
-			if (!hasTypeParams) {
-				// No type parameters, use default handler
-				return base_tsx.MethodDefinition?.(node, context);
+			node.value.metadata.is_method = true;
+			/** @type {AST.Position | undefined} */
+			let start_pos;
+			if (node.loc) {
+				start_pos = /** @type {AST.Position} */ ({
+					line: node.loc.start.line,
+					column: node.loc.start.column,
+				});
 			}
 
-			// Has type parameters - we need to manually handle to ensure they're visited
 			// Write modifiers (static, async, etc.)
 			if (node.static) {
 				context.write('static ');
+				if (start_pos) {
+					start_pos.column += 'static '.length;
+				}
 			}
 
-			// Handle getters/setters
 			if (node.kind === 'get') {
 				context.write('get ');
+				if (start_pos) {
+					start_pos.column += 'get '.length;
+				}
 			} else if (node.kind === 'set') {
+				if (start_pos) {
+					start_pos.column += 'set '.length;
+				}
 				context.write('set ');
 			} else if (node.kind === 'constructor') {
-				context.write('constructor ');
+				// skip as it's covered by the key
+			}
+
+			// Write async keyword (before *)
+			if (/** @type {AST.FunctionExpression} */ (node.value).async) {
+				if (start_pos) {
+					context.location(start_pos.line, start_pos.column);
+				}
+				context.write('async ');
+				if (start_pos) {
+					context.location(start_pos.line, start_pos.column + 'async '.length);
+					start_pos.column += 'async '.length;
+				}
 			}
 
 			// Write * for generator methods
-			if (node.value?.generator) {
+			if (node.value.generator) {
 				context.write('*');
-			}
-
-			// Write async keyword
-			if (node.value?.async) {
-				context.write('async ');
 			}
 
 			// Write the method key
 			if (node.computed) {
+				if (node.key.loc) {
+					context.location(node.key.loc.start.line, node.key.loc.start.column - 1);
+				}
 				context.write('[');
 				context.visit(node.key);
 				context.write(']');
+				if (node.key.loc) {
+					context.location(node.key.loc.end.line, node.key.loc.end.column + 1);
+				}
 			} else {
 				context.visit(node.key);
 			}
 
-			// Visit typeParameters if present (THIS IS THE FIX)
+			// Visit typeParameters
 			// TypeParameters can be on either the MethodDefinition or its value (FunctionExpression)
 			if (node.typeParameters) {
 				context.visit(node.typeParameters);

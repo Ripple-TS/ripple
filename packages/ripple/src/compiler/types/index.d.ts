@@ -27,7 +27,9 @@ interface BaseNodeMetaData {
 }
 
 interface FunctionMetaData extends BaseNodeMetaData {
-	was_component?: boolean;
+	// needed for volar tokens to recognize component functions
+	is_component?: boolean;
+	is_method?: boolean;
 	tracked?: boolean;
 }
 
@@ -78,9 +80,22 @@ declare module 'estree' {
 		implements?: AST.TSClassImplements[];
 	}
 
-	interface Identifier extends TrackedNode {}
+	interface Identifier extends AST.TrackedNode {
+		metadata: BaseNodeMetaData & {
+			// needed for volar tokens to recognize component functions
+			is_component?: boolean;
+		};
+	}
 
+	// We mark the whole node as marked when member is @[expression]
+	// Otherwise, we only mark Identifier nodes
 	interface MemberExpression extends AST.TrackedNode {}
+
+	// These 3 are needed so that Literal can extend TrackedNode
+	// since Literal is a union type we have to extend each individually
+	interface SimpleLiteral extends AST.TrackedNode {}
+	interface RegExpLiteral extends AST.TrackedNode {}
+	interface BigIntLiteral extends AST.TrackedNode {}
 
 	interface TrackedNode {
 		tracked?: boolean;
@@ -149,11 +164,11 @@ declare module 'estree' {
 		key?: AST.Expression | null;
 	}
 
-	interface ServerIdentifier extends AST.BaseNode {
+	interface ServerIdentifier extends AST.BaseExpression {
 		type: 'ServerIdentifier';
 	}
 
-	interface StyleIdentifier extends AST.BaseNode {
+	interface StyleIdentifier extends AST.BaseExpression {
 		type: 'StyleIdentifier';
 	}
 
@@ -211,7 +226,6 @@ declare module 'estree' {
 		body: AST.Node[];
 		css: CSS.StyleSheet | null;
 		metadata: BaseNodeMetaData & {
-			inherited_css?: boolean;
 			topScopedClasses?: TopScopedClasses;
 			styleClasses?: StyleClasses;
 			styleIdentifierPresent?: boolean;
@@ -237,7 +251,8 @@ declare module 'estree' {
 
 	interface Element extends AST.BaseNode {
 		type: 'Element';
-		id: AST.Identifier;
+		// MemberExpression for namespaced or dynamic elements
+		id: AST.Identifier | AST.MemberExpression;
 		attributes: RippleAttribute[];
 		children: AST.Node[];
 		selfClosing?: boolean;
@@ -267,7 +282,7 @@ declare module 'estree' {
 		innerComments?: Comment[];
 	}
 
-	export interface TextNode extends AST.BaseNode {
+	export interface TextNode extends AST.BaseExpression {
 		type: 'Text';
 		expression: AST.Expression;
 		loc?: AST.SourceLocation;
@@ -299,7 +314,7 @@ declare module 'estree' {
 		elements: (AST.Expression | AST.SpreadElement | null)[];
 	}
 
-	interface TrackedExpression extends AST.BaseNode {
+	interface TrackedExpression extends AST.BaseExpression {
 		argument: AST.Expression;
 		type: 'TrackedExpression';
 	}
@@ -309,12 +324,12 @@ declare module 'estree' {
 		properties: (AST.Property | AST.SpreadElement)[];
 	}
 
-	interface TrackedMapExpression extends AST.BaseNode {
+	interface TrackedMapExpression extends AST.BaseExpression {
 		type: 'TrackedMapExpression';
 		arguments: (AST.Expression | AST.SpreadElement)[];
 	}
 
-	interface TrackedSetExpression extends AST.BaseNode {
+	interface TrackedSetExpression extends AST.BaseExpression {
 		type: 'TrackedSetExpression';
 		arguments: (AST.Expression | AST.SpreadElement)[];
 	}
@@ -363,6 +378,14 @@ declare module 'estree' {
 	 */
 	interface RippleProgram extends Omit<Program, 'body'> {
 		body: (Program['body'][number] | Component)[];
+	}
+
+	interface RippleMethodDefinition extends Omit<AST.MethodDefinition, 'value'> {
+		value: AST.MethodDefinition['value'] | Component;
+	}
+
+	interface RippleProperty extends Omit<AST.Property, 'value'> {
+		value: AST.Property['value'] | Component;
 	}
 
 	export type RippleAttribute = Attribute | SpreadAttribute | RefAttribute;
@@ -569,6 +592,14 @@ declare module 'estree-jsx' {
 		computed?: boolean;
 	}
 
+	interface RippleJSXOpeningElement extends Omit<JSXOpeningElement, 'name'> {
+		name: AST.MemberExpression | JSXIdentifier | JSXNamespacedName;
+	}
+
+	interface RippleJSXClosingElement extends Omit<JSXClosingElement, 'name'> {
+		name: AST.MemberExpression | JSXIdentifier | JSXNamespacedName;
+	}
+
 	interface ExpressionMap {
 		JSXIdentifier: JSXIdentifier;
 	}
@@ -678,9 +709,10 @@ declare module 'estree' {
 	interface TSArrayType extends Omit<AcornTSNode<TSESTree.TSArrayType>, 'elementType'> {
 		elementType: TypeNode;
 	}
-	interface TSAsExpression extends AcornTSNode<TSESTree.TSAsExpression> {
+	interface TSAsExpression extends Omit<AcornTSNode<TSESTree.TSAsExpression>, 'typeAnnotation'> {
 		// Have to override it to use our Expression for required properties like metadata
 		expression: AST.Expression;
+		typeAnnotation: TypeNode;
 	}
 	interface TSBigIntKeyword extends AcornTSNode<TSESTree.TSBigIntKeyword> {}
 	interface TSBooleanKeyword extends AcornTSNode<TSESTree.TSBooleanKeyword> {}
@@ -865,8 +897,10 @@ declare module 'estree' {
 	interface TSRestType extends Omit<AcornTSNode<TSESTree.TSRestType>, 'typeAnnotation'> {
 		typeAnnotation: TypeNode;
 	}
-	interface TSSatisfiesExpression extends AcornTSNode<TSESTree.TSSatisfiesExpression> {
+	interface TSSatisfiesExpression
+		extends Omit<AcornTSNode<TSESTree.TSSatisfiesExpression>, 'typeAnnotation'> {
 		expression: AST.Expression;
+		typeAnnotation: TypeNode;
 	}
 	interface TSStringKeyword extends AcornTSNode<TSESTree.TSStringKeyword> {}
 	interface TSSymbolKeyword extends AcornTSNode<TSESTree.TSSymbolKeyword> {}
@@ -1175,6 +1209,8 @@ export interface TransformServerState extends BaseState {
 	namespace: NameSpace;
 	server_block_locals: AST.VariableDeclaration[];
 	server_exported_names: string[];
+	dynamicElementName?: AST.TemplateLiteral;
+	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
 }
 
 type UpdateList = Array<{
@@ -1200,6 +1236,7 @@ export interface TransformClientState extends BaseState {
 	template: Array<string | AST.Expression> | null;
 	update: UpdateList | null;
 	errors: RippleCompileError[];
+	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
 }
 
 /** Override zimmerframe types and provide our own */

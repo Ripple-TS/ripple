@@ -22,9 +22,7 @@ import { normalize_css_property_name } from '../../../utils/normalize_css_proper
 export function set_text(text, value) {
 	// For objects, we apply string coercion
 	var str = value == null ? '' : typeof value === 'object' ? value + '' : value;
-	// @ts-expect-error
 	if (str !== (text.__t ??= text.nodeValue)) {
-		// @ts-expect-error
 		text.__t = str;
 		text.nodeValue = str + '';
 	}

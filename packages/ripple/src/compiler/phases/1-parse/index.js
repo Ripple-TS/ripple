@@ -221,6 +221,123 @@ function RipplePlugin(config) {
 			}
 
 			/**
+			 * Override parseProperty to support component methods in object literals.
+			 * Handles syntax like `{ component something() { <div /> } }`
+			 * Also supports computed names: `{ component ['something']() { <div /> } }`
+			 * @type {Parse.Parser['parseProperty']}
+			 */
+			parseProperty(isPattern, refDestructuringErrors) {
+				// Check if this is a component method: component name( ... ) { ... }
+				if (!isPattern && this.type === tt.name && this.value === 'component') {
+					// Look ahead to see if this is "component identifier(", "component identifier<", "component [", or "component 'string'"
+					const lookahead = this.input.slice(this.pos).match(/^\s*(?:(\w+)\s*[(<]|\[|['"])/);
+					if (lookahead) {
+						// This is a component method definition
+						const prop = /** @type {AST.Property} */ (this.startNode());
+						const isComputed = lookahead[0].trim().startsWith('[');
+						const isStringLiteral = /^['"]/.test(lookahead[0].trim());
+
+						if (isComputed) {
+							// For computed names, consume 'component'
+							// parse the key, then parse component without name
+							this.next(); // consume 'component'
+							this.next(); // consume '['
+							prop.key = this.parseExpression();
+							this.expect(tt.bracketR);
+							prop.computed = true;
+
+							// Parse component without name (skipName: true)
+							const component_node = this.parseComponent({ skipName: true });
+							/** @type {AST.RippleProperty} */ (prop).value = component_node;
+						} else if (isStringLiteral) {
+							// For string literal names, consume 'component'
+							// parse the string key, then parse component without name
+							this.next(); // consume 'component'
+							prop.key = /** @type {AST.Literal} */ (this.parseExprAtom());
+							prop.computed = false;
+
+							// Parse component without name (skipName: true)
+							const component_node = this.parseComponent({ skipName: true });
+							/** @type {AST.RippleProperty} */ (prop).value = component_node;
+						} else {
+							const component_node = this.parseComponent({ requireName: true });
+
+							prop.key = /** @type {AST.Identifier} */ (component_node.id);
+							/** @type {AST.RippleProperty} */ (prop).value = component_node;
+							prop.computed = false;
+						}
+
+						prop.shorthand = false;
+						prop.method = true;
+						prop.kind = 'init';
+
+						return this.finishNode(prop, 'Property');
+					}
+				}
+
+				return super.parseProperty(isPattern, refDestructuringErrors);
+			}
+
+			/**
+			 * Override parseClassElement to support component methods in classes.
+			 * Handles syntax like `class Foo { component something() { <div /> } }`
+			 * Also supports computed names: `class Foo { component ['something']() { <div /> } }`
+			 * @type {Parse.Parser['parseClassElement']}
+			 */
+			parseClassElement(constructorAllowsSuper) {
+				// Check if this is a component method: component name( ... ) { ... }
+				if (this.type === tt.name && this.value === 'component') {
+					// Look ahead to see if this is "component identifier(",
+					// "component identifier<", "component [", or "component 'string'"
+					const lookahead = this.input.slice(this.pos).match(/^\s*(?:(\w+)\s*[(<]|\[|['"])/);
+					if (lookahead) {
+						// This is a component method definition
+						const node = /** @type {AST.MethodDefinition} */ (this.startNode());
+						const isComputed = lookahead[0].trim().startsWith('[');
+						const isStringLiteral = /^['"]/.test(lookahead[0].trim());
+
+						if (isComputed) {
+							// For computed names, consume 'component'
+							// parse the key, then parse component without name
+							this.next(); // consume 'component'
+							this.next(); // consume '['
+							node.key = this.parseExpression();
+							this.expect(tt.bracketR);
+							node.computed = true;
+
+							// Parse component without name (skipName: true)
+							const component_node = this.parseComponent({ skipName: true });
+							/** @type {AST.RippleMethodDefinition} */ (node).value = component_node;
+						} else if (isStringLiteral) {
+							// For string literal names, consume 'component'
+							// parse the string key, then parse component without name
+							this.next(); // consume 'component'
+							node.key = /** @type {AST.Literal} */ (this.parseExprAtom());
+							node.computed = false;
+
+							// Parse component without name (skipName: true)
+							const component_node = this.parseComponent({ skipName: true });
+							/** @type {AST.RippleMethodDefinition} */ (node).value = component_node;
+						} else {
+							// Use parseComponent which handles consuming 'component', parsing name, params, and body
+							const component_node = this.parseComponent({ requireName: true });
+
+							node.key = /** @type {AST.Identifier} */ (component_node.id);
+							/** @type {AST.RippleMethodDefinition} */ (node).value = component_node;
+							node.computed = false;
+						}
+
+						node.static = false;
+						node.kind = 'method';
+
+						return this.finishNode(node, 'MethodDefinition');
+					}
+				}
+
+				return super.parseClassElement(constructorAllowsSuper);
+			}
+
+			/**
 			 * Override parsePropertyValue to support TypeScript generic methods in object literals.
 			 * By default, acorn-typescript doesn't handle `{ method<T>() {} }` syntax.
 			 * This override checks for type parameters before parsing the method.
@@ -1097,15 +1214,28 @@ function RipplePlugin(config) {
 			 * Parse a component - common implementation used by statements, expressions, and export defaults
 			 * @type {Parse.Parser['parseComponent']}
 			 */
-			parseComponent({ requireName = false, isDefault = false, declareName = false } = {}) {
+			parseComponent({
+				requireName = false,
+				isDefault = false,
+				declareName = false,
+				skipName = false,
+			} = {}) {
 				const node = /** @type {AST.Component} */ (this.startNode());
 				node.type = 'Component';
 				node.css = null;
 				node.default = isDefault;
-				this.next(); // consume 'component'
+
+				// skipName is used for computed property names where 'component' and the key
+				// have already been consumed before calling parseComponent
+				if (!skipName) {
+					this.next(); // consume 'component'
+				}
 				this.enterScope(0);
 
-				if (requireName) {
+				if (skipName) {
+					// For computed names, the key is parsed separately, so id is null
+					node.id = null;
+				} else if (requireName) {
 					node.id = this.parseIdent();
 					if (declareName) {
 						this.declareName(
@@ -1349,10 +1479,17 @@ function RipplePlugin(config) {
 			 */
 			checkUnreserved(ref) {
 				if (ref.name === 'component') {
-					this.raise(
-						ref.start,
-						'"component" is a Ripple keyword and cannot be used as an identifier',
-					);
+					// Allow 'component' when it's followed by an identifier and '(' or '<' (component method in object literal or class)
+					// e.g., { component something() { ... } } or class Foo { component something<T>() { ... } }
+					// Also allow computed names: { component ['name']() { ... } }
+					// Also allow string literal names: { component 'name'() { ... } }
+					const nextChars = this.input.slice(this.pos).match(/^\s*(?:(\w+)\s*[(<]|\[|['"])/);
+					if (!nextChars) {
+						this.raise(
+							ref.start,
+							'"component" is a Ripple keyword and cannot be used as an identifier',
+						);
+					}
 				}
 				return super.checkUnreserved(ref);
 			}

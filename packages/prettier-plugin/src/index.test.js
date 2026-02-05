@@ -1781,6 +1781,116 @@ files = [...(files ?? []), ...dt.files];`;
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
 		});
+
+		it('should preserve class component method', async () => {
+			const expected = `class TestClass {
+  component something() {
+    <div>{'Nested component'}</div>
+  }
+}`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve class computed method', async () => {
+			const expected = `class TestClass {
+  ['something']() {
+    const i = 10;
+  }
+}`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve class computed component method', async () => {
+			const expected = `class TestClass {
+  component ['something']() {
+    <div>{'Nested component'}</div>
+  }
+}`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should format class with a literal component method', async () => {
+			const input = `class TestClass {
+  component 'something'() {
+    <div>{'Nested component'}</div>
+  }
+}`;
+
+			const expected = `class TestClass {
+  component something() {
+    <div>{'Nested component'}</div>
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve object component methods', async () => {
+			const expected = `const obj = {
+  component something() {
+    <div>{'Nested component'}</div>
+  },
+};`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve object computed methods', async () => {
+			const expected = `const obj = {
+  ['something']() {
+    const i = 10;
+  },
+};`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve object computed component method', async () => {
+			const expected = `const obj = {
+  component ['something']() {
+    <div>{'Nested component'}</div>
+  },
+};`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should format object with a literal component method', async () => {
+			const input = `const obj = {
+  component 'something'() {
+    <div>{'Nested component'}</div>
+  },
+};`;
+			const expected = `const obj = {
+  component something() {
+    <div>{'Nested component'}</div>
+  },
+};`;
+
+			const result = await format(input, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should print class constructor method only once', async () => {
+			const expected = `class TestClass {
+  constructor(value: T) {
+    this.value = value;
+  }
+}`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
 	});
 
 	describe('edge cases', () => {
@@ -2107,6 +2217,21 @@ const obj2 = #{
 }`;
 
 		const result = await format(input, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('should not add an extra new line above a comment inside objects and in between properties', async () => {
+		const expected = `let obj = {
+  ['hey']: function () {
+    const i = 'yo';
+  },
+  // <div>{'Weird name component'}</div>
+  normal() {
+    const b = 'hey';
+  },
+};`;
+
+		const result = await format(expected, { singleQuote: true });
 		expect(result).toBeWithNewline(expected);
 	});
 
@@ -2939,6 +3064,10 @@ try {
   {
     "id": "toast:6",
     "stacked": false,
+  },
+  {
+    ["id"]: "toast:6",
+    ["stacked"]: false,
   }
 ];`;
 
@@ -2962,6 +3091,10 @@ try {
   {
     id: 'toast:6',
     stacked: false,
+  },
+  {
+    ['id']: 'toast:6',
+    ['stacked']: false,
   },
 ];`;
 

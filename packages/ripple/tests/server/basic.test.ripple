@@ -137,4 +137,29 @@ describe('basic client', () => {
 
 		expect(body).toBeHtml('<div>10</div><div>14</div>');
 	});
+
+	it('handles lexical scopes correctly', async () => {
+		component LexicalScopes() {
+			let x = track(1);
+			<div>{@x}</div>
+
+			<div>
+				let x = track(10);
+				{@x}
+			</div>
+
+			<div>
+				let x = track(12);
+				{@x}
+				<span>
+					let x = track(15);
+					{@x}
+				</span>
+			</div>
+		}
+
+		const { body } = await render(LexicalScopes);
+
+		expect(body).toBeHtml('<div>1</div><div>10</div><div>12<span>15</span></div>');
+	});
 });

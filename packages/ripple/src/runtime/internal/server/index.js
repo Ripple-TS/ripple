@@ -4,8 +4,8 @@
 */
 
 import { Readable } from 'stream';
-import { DERIVED, UNINITIALIZED } from '../client/constants.js';
-import { is_tracked_object } from '../client/utils.js';
+import { DERIVED, UNINITIALIZED, TRACKED } from '../client/constants.js';
+import { is_tracked_object, get_descriptor, define_property, is_array } from '../client/utils.js';
 import { escape } from '../../../utils/escaping.js';
 import { is_boolean_attribute } from '../../../compiler/utils.js';
 import { clsx } from 'clsx';
@@ -180,6 +180,8 @@ class Output {
 	#parent = null;
 	/** @type {import('stream').Readable | null} */
 	#stream = null;
+	/** @type {null | 'head'} */
+	target = null;
 
 	/**
 	 * @param {Output | null} parent
@@ -195,6 +197,11 @@ class Output {
 	 * @returns {void}
 	 */
 	push(str) {
+		if (this.target === 'head') {
+			this.head += str;
+			return;
+		}
+
 		if (this.#stream) {
 			this.#stream.push(str);
 		} else {
@@ -476,11 +483,107 @@ export function spread_attrs(attrs, css_hash) {
 		}
 
 		if (name === 'class' && css_hash) {
-			value = value == null ? css_hash : [value, css_hash];
+			value = value == null || value === css_hash ? css_hash : [value, css_hash];
 		}
 
 		attr_str += attr(name, value, is_boolean_attribute(name));
 	}
 
 	return attr_str;
+}
+
+var empty_get_set = { get: undefined, set: undefined };
+
+/**
+ * @param {any} v
+ * @param {(value: any) => any} [get]
+ * @param {(next: any, prev: any) => any} [set]
+ * @returns {Tracked}
+ */
+function tracked(v, get, set) {
+	return {
+		a: get || set ? { get, set } : empty_get_set,
+		c: 0,
+		f: TRACKED,
+		v,
+	};
+}
+
+/**
+ * @param {any} v
+ * @param {(value: any) => any} [get]
+ * @param {(next: any, prev: any) => any} [set]
+ * @returns {Tracked | Derived}
+ */
+export function track(v, get, set) {
+	var is_tracked = is_tracked_object(v);
+
+	if (is_tracked) {
+		return v;
+	}
+
+	if (typeof v === 'function') {
+		return {
+			a: get || set ? { get, set } : empty_get_set,
+			c: 0,
+			co: active_component,
+			d: null,
+			f: TRACKED | DERIVED,
+			fn: v,
+			v: UNINITIALIZED,
+		};
+	}
+
+	return tracked(v, get, set);
+}
+
+/**
+ * @param {Record<string|symbol, any>} v
+ * @param {(symbol | string)[]} l
+ * @returns {Tracked[]}
+ */
+export function track_split(v, l) {
+	var is_tracked = is_tracked_object(v);
+
+	if (is_tracked || typeof v !== 'object' || v === null || is_array(v)) {
+		throw new TypeError('Invalid value: expected a non-tracked object');
+	}
+
+	/** @type {Tracked[]} */
+	var out = [];
+	/** @type {Record<string|symbol, any>} */
+	var rest = {};
+	/** @type {Record<PropertyKey, 1>} */
+	var done = {};
+	var props = Reflect.ownKeys(v);
+
+	for (let i = 0, key, t; i < l.length; i++) {
+		key = l[i];
+
+		if (props.includes(key)) {
+			if (is_tracked_object(v[key])) {
+				t = v[key];
+			} else {
+				t = tracked(undefined);
+				t = define_property(t, '__v', /** @type {PropertyDescriptor} */ (get_descriptor(v, key)));
+			}
+		} else {
+			t = tracked(undefined);
+		}
+
+		out[i] = t;
+		done[key] = 1;
+	}
+
+	for (let i = 0, key; i < props.length; i++) {
+		key = props[i];
+		if (done[key]) {
+			continue;
+		}
+		define_property(rest, key, /** @type {PropertyDescriptor} */ (get_descriptor(v, key)));
+	}
+
+	out.push(tracked(rest));
+
+	return out;
 }
