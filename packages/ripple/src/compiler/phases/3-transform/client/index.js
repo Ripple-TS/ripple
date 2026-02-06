@@ -1135,7 +1135,6 @@ const visitors = {
 			let class_attribute = null;
 			/** @type {AST.Attribute | null} */
 			let style_attribute = null;
-			// const component = /** @type {AST.Component} */ (state.component);
 			/** @type {TransformClientState['update']} */
 			const local_updates = [];
 			const is_void = is_void_element(/** @type {AST.Identifier} */ (node.id).name);
