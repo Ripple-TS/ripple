@@ -168,7 +168,6 @@ export function handle_event_propagation(event) {
 				null;
 
 			try {
-				// @ts-expect-error
 				var delegated = current_target['__' + event_name];
 
 				if (delegated !== undefined && !(/** @type {any} */ (current_target).disabled)) {
