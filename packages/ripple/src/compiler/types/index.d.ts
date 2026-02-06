@@ -5,6 +5,8 @@ import type { NAMESPACE_URI } from '../../runtime/internal/client/constants.js';
 import type { Parse } from '#parser';
 import type * as ESRap from 'esrap';
 import type { RippleCompileError, CompileOptions } from 'ripple/compiler';
+import type { Position } from 'acorn';
+import type { RequireAllOrNone } from '#helpers';
 
 export type RpcModules = Map<string, [string, string]>;
 
@@ -995,8 +997,6 @@ declare module 'estree' {
 	}
 }
 
-import type { Comment, Position } from 'acorn';
-
 /**
  * Parse error information
  */
@@ -1213,13 +1213,18 @@ export interface TransformServerState extends BaseState {
 	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
 }
 
-type UpdateList = Array<{
-	identity?: AST.Identifier | AST.Expression;
-	initial?: AST.Expression;
-	operation: (expr?: AST.Expression, prev?: AST.Expression) => AST.ExpressionStatement;
-	expression?: AST.Expression;
-	needsPrevTracking?: boolean;
-}> & { async?: boolean };
+type UpdateList = Array<
+	RequireAllOrNone<
+		{
+			identity?: AST.Identifier | AST.Expression;
+			initial?: AST.Expression;
+			operation: (expr?: AST.Expression, prev?: AST.Expression) => AST.ExpressionStatement;
+			expression?: AST.Expression;
+			needsPrevTracking?: boolean;
+		},
+		'initial' | 'identity' | 'expression'
+	>
+> & { async?: boolean };
 
 export interface TransformClientState extends BaseState {
 	events: Set<string>;

@@ -1,0 +1,161 @@
+import type { Tracked, Props } from 'ripple';
+import { track, trackSplit } from 'ripple';
+
+describe('composite > props', () => {
+	it('correctly handles default prop values', async () => {
+		component Child({ foo = 456 }) {
+			<div>{foo}</div>
+		}
+
+		component App() {
+			let foo = track(123);
+
+			<Child />
+			<Child {@foo} />
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+
+		expect(document.querySelectorAll('div')[0].textContent).toBe('456');
+		expect(document.querySelectorAll('div')[1].textContent).toBe('123');
+	});
+
+	it('correctly handles default prop values #2', async () => {
+		component Child({ foo = 456 }) {
+			<div>{foo}</div>
+		}
+
+		component App() {
+			let foo = 123;
+
+			<Child />
+			<Child {foo} />
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+
+		expect(document.querySelectorAll('div')[0].textContent).toBe('456');
+		expect(document.querySelectorAll('div')[1].textContent).toBe('123');
+	});
+
+	it('correctly handles no props', async () => {
+		component Child(props: { foo?: Tracked<number> }) {
+			<div>{props.@foo}</div>
+		}
+
+		component App() {
+			let foo = track(123);
+
+			<Child />
+			<Child {foo} />
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+
+		expect(document.querySelectorAll('div')[0].textContent).toBe('');
+		expect(document.querySelectorAll('div')[1].textContent).toBe('123');
+	});
+
+	it('correctly handles no props #2', async () => {
+		component Child({ foo }: { foo?: number }) {
+			<div>{foo}</div>
+		}
+
+		component App() {
+			let foo = track(123);
+
+			<Child />
+			<Child {@foo} />
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+
+		expect(document.querySelectorAll('div')[0].textContent).toBe('');
+		expect(document.querySelectorAll('div')[1].textContent).toBe('123');
+	});
+
+	it('correctly retains prop accessors and reactivity when using rest props', async () => {
+		component Button(props: Props) {
+			const [children, rest] = trackSplit(props, ['children']);
+			<button {...@rest}>
+				<@children />
+			</button>
+			<style>
+				.on {
+					color: blue;
+				}
+				.off {
+					color: red;
+				}
+			</style>
+		}
+
+		component Toggle(props: { pressed: Tracked<boolean> }) {
+			const [pressed, rest] = trackSplit(props, ['pressed']);
+			const onClick = () => (@pressed = !@pressed);
+			<Button {...@rest} class={@pressed ? 'on' : 'off'} {onClick}>{'button 1'}</Button>
+			<Button class={@pressed ? 'on' : 'off'} {onClick}>{'button 2'}</Button>
+		}
+
+		component App() {
+			const pressed = track(true);
+			<Toggle {pressed} />
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+		const button1 = document.querySelectorAll('button')[0];
+
+		const button2 = document.querySelectorAll('button')[1];
+
+		expect(button1.className).toContain('on');
+		expect(button2.className).toContain('on');
+	});
+
+	it('correctly renders destructured props', async () => {
+		interface ProductInfo {
+			id: string;
+			name: string;
+			organizationName: string;
+			description: string;
+			imageUrl: string;
+			price: number;
+		}
+
+		component Product({ id, name, organizationName, description, imageUrl, price }: ProductInfo) {
+			<article class="no-padding">
+				<img class="responsive small" src={imageUrl} alt={name} />
+				<span>{id}</span>
+				<h5>{name}</h5>
+				<h3>{organizationName}</h3>
+				<p>{description}</p>
+				<price class="price">{price}</price>
+			</article>
+		}
+
+		component App() {
+			<Product
+				id="1"
+				name="Product 1"
+				organizationName="Org 1"
+				description="Description 1"
+				imageUrl="https://picsum.photos/300/200"
+				price={15}
+			/>
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+
+		expect(document.querySelector('img').getAttribute('src')).toBe('https://picsum.photos/300/200');
+		expect(document.querySelector('span').textContent).toBe('1');
+		expect(document.querySelector('h5').textContent).toBe('Product 1');
+		expect(document.querySelector('h3').textContent).toBe('Org 1');
+		expect(document.querySelector('p').textContent).toBe('Description 1');
+		expect(document.querySelector('price').textContent).toBe('15');
+	});
+});

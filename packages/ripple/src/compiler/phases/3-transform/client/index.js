@@ -8,9 +8,11 @@
 	VisitorClientContext,
 	TransformClientState,
 	ScopeInterface,
-	Visitors
+	Visitors,
+	Binding,
 }	from '#compiler';
 @import { RippleCompileError } from 'ripple/compiler';
+@import { RequiredPresent } from '#helpers';
  */
 
 /**
@@ -177,8 +179,8 @@ function visit_head_element(node, context) {
  * @param {TransformClientState} state
  */
 function apply_updates(init, update, state) {
-	if (update?.length === 1 && !update[0].needsPrevTracking) {
-		init?.push(
+	if (update.length === 1 && !update[0].needsPrevTracking) {
+		init.push(
 			b.stmt(
 				b.call(
 					'_$_.render',
@@ -197,18 +199,32 @@ function apply_updates(init, update, state) {
 			),
 		);
 	} else {
+		/** @type {AST.Property[]} */
 		const initial = [];
+		/** @type {AST.Statement[]} */
 		const render_statements = [];
 		let index = 0;
 
+		/**
+			@type {
+				Map<
+					AST.Identifier | AST.Expression,
+					RequiredPresent<
+						NonNullable<TransformClientState['update']>[number],
+						'initial' | 'identity' | 'expression'
+					>[]
+				>
+			}
+		 */
 		const grouped_updates = new Map();
 
 		for (const u of update) {
 			if (u.initial) {
-				const id =
-					u.identity?.type === 'Identifier'
-						? state.scope.get(u.identity.name)?.initial
-						: u.identity;
+				const id = /** @type {AST.Identifier | AST.Expression} */ (
+					u.identity.type === 'Identifier'
+						? /** @type {Binding} */ (state.scope.get(u.identity.name)).node
+						: u.identity
+				);
 				let updates = grouped_updates.get(id);
 
 				if (updates === undefined) {
@@ -3470,12 +3486,14 @@ function create_tsx_with_typescript_support(comments) {
 					context.location(node.key.loc.end.line, node.key.loc.end.column + 1);
 				}
 			} else {
-				context.visit(node.key);
-			}
+				if (node.shorthand) {
+					// only visit value since key and value are the same
+					// or the value will contain the key like in AssignmentPattern: { foo = 1 }
+					context.visit(node.value);
+					return;
+				}
 
-			// Shorthand property: { x } - just the key, we're done
-			if (node.shorthand) {
-				return;
+				context.visit(node.key);
 			}
 
 			// Method shorthand: { foo() {} } or getters/setters - print params and body directly
