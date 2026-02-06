@@ -316,4 +316,44 @@ describe('switch statements', () => {
 			expect(container.querySelector('div').querySelectorAll('div')[1].id).toBe('b');
 		},
 	);
+
+	it('renders bare text nodes in switch fall-through cases without element wrappers', () => {
+		component App() {
+			let value = 'a';
+
+			<div>
+				<span>{'before'}</span>
+				switch (value) {
+					case 'a':
+						{'Case A'}
+					case 'b':
+						{'Case B'}
+				}
+			</div>
+		}
+
+		render(App);
+		expect(container.querySelector('div').textContent).toBe('beforeCase ACase B');
+	});
+
+	it('renders bare text nodes in switch cases without element wrappers', () => {
+		component App() {
+			let value = 'a';
+
+			<div>
+				<span>{'before'}</span>
+				switch (value) {
+					case 'a':
+						{'Case A'}
+						break;
+					case 'b':
+						{'Case B'}
+						break;
+				}
+			</div>
+		}
+
+		render(App);
+		expect(container.querySelector('div').textContent).toBe('beforeCase A');
+	});
 });

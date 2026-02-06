@@ -1964,7 +1964,12 @@ const visitors = {
 						b.block(
 							transform_body(/** @type {AST.BlockStatement} */ (node.body).body, {
 								...context,
-								state: { ...context.state, scope: body_scope, namespace: context.state.namespace },
+								state: {
+									...context.state,
+									scope: body_scope,
+									namespace: context.state.namespace,
+									flush_node: null,
+								},
 							}),
 						),
 					),
@@ -2005,7 +2010,7 @@ const visitors = {
 
 				const block = transform_body(consequent, {
 					...context,
-					state: { ...context.state, scope: consequent_scope },
+					state: { ...context.state, scope: consequent_scope, flush_node: null },
 				});
 				const has_break = consequent.some((stmt) => stmt.type === 'BreakStatement');
 				const is_last = counter === node.cases.length - 1;

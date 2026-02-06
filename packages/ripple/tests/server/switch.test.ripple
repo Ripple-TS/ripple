@@ -88,4 +88,44 @@ describe('SSR: switch statements', () => {
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>Default Case</div><div>Case B</div>');
 	});
+
+	it('renders bare text nodes in switch fall-through cases without element wrappers', async () => {
+		component App() {
+			let value = 'a';
+
+			<div>
+				<span>{'before'}</span>
+				switch (value) {
+					case 'a':
+						{'Case A'}
+					case 'b':
+						{'Case B'}
+				}
+			</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div><span>before</span>Case ACase B</div>');
+	});
+
+	it('renders bare text nodes in switch cases without element wrappers', async () => {
+		component App() {
+			let value = 'a';
+
+			<div>
+				<span>{'before'}</span>
+				switch (value) {
+					case 'a':
+						{'Case A'}
+						break;
+					case 'b':
+						{'Case B'}
+						break;
+				}
+			</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div><span>before</span>Case A</div>');
+	});
 });
