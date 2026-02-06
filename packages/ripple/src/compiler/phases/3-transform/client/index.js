@@ -413,9 +413,9 @@ const visitors = {
 								is_capitalized: true,
 							},
 						};
-						return b.member(capitalized_node, b.literal('#v'), true);
+						return b.member(capitalized_node, b.literal('#v'), true, true);
 					}
-					return b.member(node, b.literal('#v'), true);
+					return b.member(node, b.literal('#v'), true, true);
 				}
 			} else {
 				const binding = context.state.scope.get(node.name);
@@ -758,7 +758,10 @@ const visitors = {
 					member,
 					b.literal('#v'),
 					true,
-					undefined,
+					// Always set optional just in case as we don't know if the user's
+					// ts declaration had it as optional
+					// It's safe to set it as ts won't report it as such unless the user's ts had it
+					true,
 					/** @type {AST.NodeWithLocation} */ (node),
 				);
 			} else {
