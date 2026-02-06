@@ -2484,14 +2484,12 @@ function RipplePlugin(config) {
 					this.type === tt.braceL &&
 					this.context.some((c) => c === tstc.tc_expr)
 				) {
-					// Don't call this.next() here - jsx_parseExpressionContainer does it
 					const node = this.jsx_parseExpressionContainer();
 					// Keep JSXEmptyExpression as-is (don't convert to Text)
 					if (node.expression.type !== 'JSXEmptyExpression') {
 						/** @type {AST.TextNode} */ (/** @type {unknown} */ (node)).type = 'Text';
 					}
-					// Don't call this.next() here - jsx_parseExpressionContainer already consumed }
-					// Don't pop context - the } already triggered context pop
+
 					return /** @type {ESTreeJSX.JSXEmptyExpression | AST.TextNode | ESTreeJSX.JSXExpressionContainer} */ (
 						/** @type {unknown} */ (node)
 					);

@@ -532,20 +532,24 @@ const visitors = {
 			 * @param {'push' | 'unshift'} [spread_method]
 			 */
 			const handle_static_attr = (name, value, spread_method = 'push') => {
-				const attr_str = ` ${name}${
-					is_boolean_attribute(name) && value === true
-						? ''
-						: `="${value === true ? '' : escape_html(value, true)}"`
-				}`;
-
 				if (is_spreading) {
 					// For spread attributes, store just the actual value, not the full attribute string
 					const actual_value =
 						is_boolean_attribute(name) && value === true
 							? b.literal(true)
 							: b.literal(value === true ? '' : value);
-					spread_attributes?.[spread_method](b.prop('init', b.literal(name), actual_value));
+
+					// spread_attributes cannot be null based on is_spreading === true
+					/** @type {(AST.Property | AST.SpreadElement)[]} */ (spread_attributes)[spread_method](
+						b.prop('init', b.literal(name), actual_value),
+					);
 				} else {
+					const attr_str = ` ${name}${
+						is_boolean_attribute(name) && value === true
+							? ''
+							: `="${value === true ? '' : escape_html(value, true)}"`
+					}`;
+
 					state.init?.push(
 						b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(attr_str))),
 					);
