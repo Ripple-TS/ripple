@@ -25,11 +25,9 @@
   "include": [
     "./*.js",
     "./src/",
-    "./tests/compiler/**/*.test.ripple",
-    "./tests/compiler/**/*.ripple",
-    "./tests/compiler/**/*.js",
-    "./tests/hydration/**/*.js",
-    "./tests/utils/**/*.js",
-    "./tests/setup-hydration.js"
+    "./tests/**/*.test.ripple",
+    "./tests/**/*.ripple",
+    "./tests/**/*.d.ts",
+    "./tests/**/*.js"
   ]
 }
