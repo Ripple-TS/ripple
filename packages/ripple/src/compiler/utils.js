@@ -854,6 +854,10 @@ export function is_inside_left_side_assignment(node) {
 		switch (parent.type) {
 			case 'AssignmentExpression':
 			case 'AssignmentPattern':
+				if (parent.right === current) {
+					return false;
+				}
+
 				if (parent.left === current) {
 					return true;
 				}
@@ -861,6 +865,23 @@ export function is_inside_left_side_assignment(node) {
 				continue;
 			case 'UpdateExpression':
 				return true;
+			case 'MemberExpression':
+				// In obj[computeKey()] = 10, computeKey() is evaluated to determine
+				// which property to assign to, but is not itself an assignment target
+				if (parent.computed && parent.property === current) {
+					return false;
+				}
+				current = parent;
+				continue;
+			case 'Property':
+				// exit here to stop promoting current to parent
+				// and thus reaching VariableDeclarator, causing an erroneous truthy result
+				// e.g. const { [computeKey()]: value } = obj; where node = computeKey:
+				if (parent.key === current) {
+					return false;
+				}
+				current = parent;
+				continue;
 			case 'VariableDeclarator':
 				return parent.id === current;
 			case 'ForInStatement':
