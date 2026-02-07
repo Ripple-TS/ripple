@@ -833,3 +833,58 @@ export function is_inside_try_block(try_parent_stmt, context) {
 
 	return block_node !== null && try_parent_stmt.block === block_node;
 }
+
+/**
+ * Checks if a node is used as the left side of an assignment or update expression.
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+export function is_inside_left_side_assignment(node) {
+	const path = node.metadata?.path;
+	if (!path || path.length === 0) {
+		return false;
+	}
+
+	/** @type {AST.Node} */
+	let current = node;
+
+	for (let i = path.length - 1; i >= 0; i--) {
+		const parent = path[i];
+
+		switch (parent.type) {
+			case 'AssignmentExpression':
+			case 'AssignmentPattern':
+				if (parent.left === current) {
+					return true;
+				}
+				current = parent;
+				continue;
+			case 'UpdateExpression':
+				return true;
+			case 'VariableDeclarator':
+				return parent.id === current;
+			case 'ForInStatement':
+			case 'ForOfStatement':
+				return parent.left === current;
+
+			case 'Program':
+			case 'FunctionDeclaration':
+			case 'FunctionExpression':
+			case 'ArrowFunctionExpression':
+			case 'ClassDeclaration':
+			case 'ClassExpression':
+			case 'MethodDefinition':
+			case 'PropertyDefinition':
+			case 'StaticBlock':
+			case 'Component':
+			case 'Element':
+				return false;
+
+			default:
+				current = parent;
+				continue;
+		}
+	}
+
+	return false;
+}

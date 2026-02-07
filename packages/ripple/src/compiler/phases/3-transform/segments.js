@@ -1031,9 +1031,22 @@ export function convert_source_map_to_mappings(
 				return;
 			} else if (node.type === 'MemberExpression') {
 				if (node.loc) {
-					mappings.push(
-						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
+					const mapping = get_mapping_from_node(
+						node,
+						src_to_gen_map,
+						gen_line_offsets,
+						mapping_data_verify_only,
 					);
+
+					if (node.tracked) {
+						mapping.generatedLengths[0] = mapping.generatedLengths[0] + "['#v']".length;
+						if (node.optional) {
+							mapping.generatedLengths[0] = mapping.generatedLengths[0] + '.?'.length;
+						}
+						mapping.data.customData.generatedLengths = mapping.generatedLengths;
+					}
+
+					mappings.push(mapping);
 				}
 
 				if (node.object) {

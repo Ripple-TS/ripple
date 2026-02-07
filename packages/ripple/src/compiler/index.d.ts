@@ -71,6 +71,10 @@ export interface CodeMapping extends VolarMapping<MappingData> {
 	data: MappingData;
 }
 
+export interface CodeMappingWithAll extends CodeMapping {
+	generatedLengths: number[];
+}
+
 export interface VolarMappingsResult {
 	code: string;
 	mappings: CodeMapping[];

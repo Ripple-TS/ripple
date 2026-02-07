@@ -1,7 +1,7 @@
 /**
  @import { PostProcessingChanges, LineOffsets } from './phases/3-transform/client/index.js';
  @import * as AST from 'estree';
- @import { CodeMapping } from 'ripple/compiler';
+ @import { CodeMappingWithAll } from 'ripple/compiler';
  @import { CodeMapping as VolarCodeMapping } from '@volar/language-core';
  @import { RawSourceMap } from 'source-map';
  */
@@ -284,7 +284,7 @@ export function build_line_offsets(text) {
  * @param {Partial<VolarCodeMapping['data']>} [filtered_data]
  * @param {number} [src_max_len]
  * @param {number} [gen_max_len]
- * @returns {CodeMapping | Error}
+ * @returns {CodeMappingWithAll | Error}
  */
 function maybe_get_mapping_from_node(
 	node,
@@ -333,7 +333,7 @@ function maybe_get_mapping_from_node(
  * @param {Partial<VolarCodeMapping['data']>} [filtered_data]
  * @param {number} [src_max_len]
  * @param {number} [gen_max_len]
- * @returns {CodeMapping}
+ * @returns {CodeMappingWithAll}
  */
 export function get_mapping_from_node(
 	node,

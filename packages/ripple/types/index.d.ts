@@ -112,7 +112,11 @@ export type PropsNoChildren<T extends object = {}> = Expand<T>;
 
 type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
 
-type PickKeys<T, K extends readonly (keyof T)[]> = { [I in keyof K]: Tracked<T[K[I] & keyof T]> };
+type WrapTracked<V> = V extends Tracked<any> ? V : Tracked<V>;
+
+type PickKeys<T, K extends readonly (keyof T)[]> = {
+	[I in keyof K]: WrapTracked<T[K[I] & keyof T]>;
+};
 
 type RestKeys<T, K extends readonly (keyof T)[]> = Expand<Omit<T, K[number]>>;
 

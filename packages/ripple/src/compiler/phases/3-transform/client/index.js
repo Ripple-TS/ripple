@@ -54,6 +54,7 @@ import {
 	determine_namespace_for_children,
 	index_to_key,
 	is_element_dynamic,
+	is_inside_left_side_assignment,
 } from '../../../utils.js';
 import {
 	CSS_HASH_IDENTIFIER,
@@ -413,9 +414,25 @@ const visitors = {
 								is_capitalized: true,
 							},
 						};
-						return b.member(capitalized_node, b.literal('#v'), true, true);
+						const member = b.member(
+							capitalized_node,
+							b.literal('#v'),
+							true,
+							!is_inside_left_side_assignment(node),
+							/** @type {AST.NodeWithLocation} */ (node),
+						);
+						member.tracked = true;
+						return member;
 					}
-					return b.member(node, b.literal('#v'), true, true);
+					const member = b.member(
+						node,
+						b.literal('#v'),
+						true,
+						!is_inside_left_side_assignment(node),
+						/** @type {AST.NodeWithLocation} */ (node),
+					);
+					member.tracked = true;
+					return member;
 				}
 			} else {
 				const binding = context.state.scope.get(node.name);
@@ -754,16 +771,15 @@ const visitors = {
 				);
 
 				// Wrap with ['#v'] access
-				return b.member(
+				const member_expanded = b.member(
 					member,
 					b.literal('#v'),
 					true,
-					// Always set optional just in case as we don't know if the user's
-					// ts declaration had it as optional
-					// It's safe to set it as ts won't report it as such unless the user's ts had it
-					true,
+					!is_inside_left_side_assignment(node),
 					/** @type {AST.NodeWithLocation} */ (node),
 				);
+				member_expanded.tracked = true;
+				return member_expanded;
 			} else {
 				if (!context.state.to_ts) {
 					return b.call(
