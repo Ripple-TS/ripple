@@ -2723,7 +2723,7 @@ describe('bindNode', () => {
 		expect(input.value).toBe('ab');
 	});
 
-	it('it should prefer what getter returns via bind accessors', () => {
+	it('should prefer what getter returns via bind accessors', () => {
 		component App() {
 			let value = track('');
 			const value_accessors = [
