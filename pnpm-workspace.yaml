@@ -61,6 +61,7 @@ catalogs:
     vscode-languageserver-textdocument: ^1.0.12
     vscode-languageserver-types: ^3.17.5
     vscode-uri: ^3.1.0
+    wait-on: ^9.0.3
     zimmerframe: ^1.1.2
   peer:
     ripple: '*'

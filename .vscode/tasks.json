@@ -1,0 +1,12 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "wait-for-vite",
+      "type": "process",
+      "command": "pnpm",
+      "args": ["exec", "wait-on", "tcp:5173", "-d", "0"],
+      "problemMatcher": []
+    }
+  ]
+}

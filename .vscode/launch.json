@@ -78,7 +78,7 @@
       "skipFiles": ["<node_internals>/**"]
     },
     {
-      "name": "SSR Runtime",
+      "name": "SSR Runtime - From Compiled",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/playground",
@@ -102,6 +102,34 @@
       "skipFiles": ["<node_internals>/**"]
     },
     {
+      "name": "Client Runtime - Vite",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/playground",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["run", "dev"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "presentation": {
+        "hidden": true
+      }
+    },
+    {
+      "name": "Client Runtime - Browser",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/playground",
+      "pathMapping": {
+        "/@fs/": "/"
+      },
+      "resolveSourceMapLocations": null,
+      "presentation": {
+        "hidden": true
+      },
+      "preLaunchTask": "wait-for-vite"
+    },
+    {
       "name": "Vite Plugin",
       "type": "node",
       "request": "launch",
@@ -113,7 +141,22 @@
       "args": ["--host"],
       "autoAttachChildProcesses": true,
       "skipFiles": ["<node_internals>/**"],
-      "sourceMaps": true
+      "sourceMaps": true,
+      "presentation": {
+        "hidden": true
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Client Runtime - From Source",
+      "configurations": ["Client Runtime - Vite", "Client Runtime - Browser"],
+      "stopAll": true
+    },
+    {
+      "name": "Vite Plugin - Client",
+      "configurations": ["Vite Plugin"],
+      "stopAll": true
     }
   ],
   "inputs": [

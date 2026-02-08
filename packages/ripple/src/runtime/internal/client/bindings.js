@@ -9,7 +9,7 @@
 
 import { effect, render } from './blocks.js';
 import { on } from './events.js';
-import { get, set, tick, untrack } from './runtime.js';
+import { get, set } from './runtime.js';
 import { is_array, is_tracked_object } from './utils.js';
 
 /**
@@ -246,26 +246,15 @@ export function bindValue(maybe_tracked, set_func = undefined) {
 			});
 		} else {
 			var input = /** @type {HTMLInputElement} */ (node);
+			var selection_restore_needed = false;
 
-			clear_event = on(input, 'input', async () => {
+			clear_event = on(input, 'input', () => {
+				selection_restore_needed = true;
 				/** @type {any} */
 				var value = input.value;
 				value = is_numberlike_input(input) ? to_number(value) : value;
+				// the setter will schedule a microtask and the render block below will run
 				setter(value);
-
-				await tick();
-
-				if (value !== getter()) {
-					var start = input.selectionStart;
-					var end = input.selectionEnd;
-					input.value = value ?? '';
-
-					// Restore selection
-					if (end !== null) {
-						input.selectionStart = start;
-						input.selectionEnd = Math.min(end, input.value.length);
-					}
-				}
 			});
 
 			render(() => {
@@ -280,7 +269,23 @@ export function bindValue(maybe_tracked, set_func = undefined) {
 				}
 
 				if (value !== input.value) {
-					input.value = value ?? '';
+					if (selection_restore_needed) {
+						var start = input.selectionStart;
+						var end = input.selectionEnd;
+
+						input.value = value ?? '';
+
+						// Restore selection
+						if (end !== null && start !== null) {
+							end = Math.min(end, input.value.length);
+							start = Math.min(start, end);
+							input.selectionStart = start;
+							input.selectionEnd = end;
+						}
+						selection_restore_needed = false;
+					} else {
+						input.value = value ?? '';
+					}
 				}
 			});
 
