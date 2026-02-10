@@ -1749,15 +1749,7 @@ function RipplePlugin(config) {
 			jsx_parseAttributeValue() {
 				switch (this.type) {
 					case tt.braceL:
-						const t = this.jsx_parseExpressionContainer();
-						return (
-							t.expression.type === 'JSXEmptyExpression' &&
-								this.raise(
-									/** @type {AST.NodeWithLocation} */ (t).start,
-									'attributes must only be assigned a non-empty expression',
-								),
-							t
-						);
+						return this.jsx_parseExpressionContainer();
 					case tstt.jsxTagStart:
 					case tt.string:
 						return this.parseExprAtom();

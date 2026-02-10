@@ -2492,11 +2492,16 @@ function transform_ts_child(node, context) {
 			if (attr.type === 'Attribute') {
 				const metadata = { await: false };
 				const name = visit(attr.name, { ...state, metadata });
+				const attr_value = /** @type { AST.Expression & AST.NodeWithLocation | null} */ (
+					attr.value
+				);
 				const value =
-					attr.value === null
-						? b.literal(true)
+					attr_value === null
+						? // <div attr>, not adding `name` for loc because `jsx_name` below
+							// will take care of the mapping JSXAttribute's JSXIdentifier
+							b.literal(true)
 						: // reset init, update, final to avoid adding attr value to the component body
-							visit(attr.value, SetStateForOutsideComponent(state, { metadata }));
+							visit(attr_value, SetStateForOutsideComponent(state, { metadata }));
 
 				// Handle both regular identifiers and tracked identifiers
 				/** @type {string} */
@@ -2524,7 +2529,23 @@ function transform_ts_child(node, context) {
 					jsx_name,
 					b.jsx_expression_container(
 						/** @type {AST.Expression} */ (value),
-						/** @type {AST.NodeWithLocation} */ (attr.value),
+						attr_value === null
+							? /** @type {AST.NodeWithLocation} */ (value)
+							: // account location for opening and closing braces around the expression
+								/** @type {AST.NodeWithLocation} */ ({
+									start: attr_value.start - 1,
+									end: attr_value.end + 1,
+									loc: {
+										start: {
+											line: attr_value.loc.start.line,
+											column: attr_value.loc.start.column - 1,
+										},
+										end: {
+											line: attr_value.loc.end.line,
+											column: attr_value.loc.end.column + 1,
+										},
+									},
+								}),
 					),
 					attr.shorthand ?? false,
 					/** @type {AST.NodeWithLocation} */ (attr),
@@ -3585,6 +3606,16 @@ function create_tsx_with_typescript_support(comments) {
 			const loc = /** @type {AST.SourceLocation} */ (node.loc);
 			context.location(loc.start.line, loc.start.column);
 			context.write(node.name);
+			context.location(loc.end.line, loc.end.column);
+		},
+		JSXExpressionContainer(node, context) {
+			const loc = /** @type {AST.SourceLocation} */ (node.loc);
+			if (!loc) {
+				base_tsx.JSXExpressionContainer?.(node, context);
+				return;
+			}
+			context.location(loc.start.line, loc.start.column);
+			base_tsx.JSXExpressionContainer?.(node, context);
 			context.location(loc.end.line, loc.end.column);
 		},
 		MethodDefinition(node, context) {

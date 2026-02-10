@@ -10,7 +10,10 @@
 	StyleClasses,
 } from '#compiler';
  */
-/** @import * as AST from 'estree' */
+/**
+@import * as AST from 'estree';
+@import * as ESTreeJSX from 'estree-jsx';
+*/
 
 import * as b from '../../../utils/builders.js';
 import { walk } from 'zimmerframe';
@@ -959,6 +962,31 @@ const visitors = {
 
 			for (const attr of node.attributes) {
 				if (attr.type === 'Attribute') {
+					if (attr.value && attr.value.type === 'JSXEmptyExpression') {
+						const value = /** @type {ESTreeJSX.JSXEmptyExpression & AST.NodeWithLocation} */ (
+							attr.value
+						);
+						error(
+							'attributes must only be assigned a non-empty expression',
+							state.analysis.module.filename,
+							{
+								...value,
+								start: value.start - 1,
+								end: value.end + 1,
+								loc: {
+									start: {
+										line: value.loc.start.line,
+										column: value.loc.start.column - 1,
+									},
+									end: {
+										line: value.loc.end.line,
+										column: value.loc.end.column + 1,
+									},
+								},
+							},
+							context.state.loose ? context.state.analysis.errors : undefined,
+						);
+					}
 					if (attr.name.type === 'Identifier') {
 						attribute_names.add(attr.name);
 

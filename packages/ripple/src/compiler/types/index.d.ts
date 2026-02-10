@@ -131,6 +131,7 @@ declare module 'estree' {
 		StyleIdentifier: StyleIdentifier;
 		ServerIdentifier: ServerIdentifier;
 		Text: TextNode;
+		JSXEmptyExpression: ESTreeJSX.JSXEmptyExpression;
 	}
 
 	// Missing estree type
