@@ -2896,12 +2896,15 @@ function transform_children(children, context) {
 				: node.type == 'Text'
 					? state.scope.generate('text')
 					: state.scope.generate('node'),
+			/** @type {AST.NodeWithLocation} */ (node),
 		);
 	};
 
 	/** @param {AST.Node} node */
 	const create_initial = (node) => {
-		const id = is_fragment ? b.id(state.scope.generate('fragment')) : get_id(node);
+		const id = is_fragment
+			? b.id(state.scope.generate('fragment'), /** @type {AST.NodeWithLocation} */ (node))
+			: get_id(node);
 		initial = id;
 		template_id = state.scope.generate('root');
 		state.init?.push(b.var(id, b.call(template_id)));

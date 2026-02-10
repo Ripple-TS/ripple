@@ -31,7 +31,11 @@ function remove() {
  */
 function remove_when_css_loaded(callback) {
 	/** @type {HTMLLinkElement[]} */
-	const links = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
+	const links = Array.from(
+		/** @type {NodeListOf<HTMLLinkElement>} */ (
+			document.querySelectorAll('link[rel="stylesheet"]')
+		),
+	);
 	let remaining = links.length;
 
 	if (remaining === 0) {

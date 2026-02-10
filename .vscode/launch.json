@@ -120,6 +120,11 @@
       "request": "launch",
       "url": "http://localhost:5173",
       "webRoot": "${workspaceFolder}/playground",
+      "runtimeArgs": [
+        "--auto-open-devtools-for-tabs",
+        "--disable-cache",
+        "--disable-application-cache"
+      ],
       "pathMapping": {
         "/@fs/": "/"
       },

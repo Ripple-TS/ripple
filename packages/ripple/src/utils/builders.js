@@ -320,10 +320,14 @@ export function get(name, body) {
 
 /**
  * @param {string} name
+ * @param {AST.NodeWithLocation} [loc_info]
  * @returns {AST.Identifier}
  */
-export function id(name) {
-	return { type: 'Identifier', name, metadata: { path: [] } };
+export function id(name, loc_info) {
+	/** @type {AST.Identifier} */
+	const node = { type: 'Identifier', name, metadata: { path: [] } };
+
+	return set_location(node, loc_info);
 }
 
 /**
