@@ -104,30 +104,28 @@ function visit_function(node, context) {
 		}
 	}
 
-	let body = context.visit(node.body, {
-		...state,
-		// we are new context so tracking no longer applies
-		metadata: { ...state.metadata, tracking: false },
-	});
+	let body = /** @type {AST.BlockStatement | AST.Expression} */ (
+		context.visit(node.body, {
+			...state,
+			// we are new context so tracking no longer applies
+			metadata: { ...state.metadata, tracking: false },
+		})
+	);
 
-	if (metadata?.tracked === true) {
-		const new_body = [];
-
-		if (!is_inside_component(context, true) && is_component_level_function(context)) {
-			new_body.push(b.var('__block', b.call('_$_.scope')));
-		}
-		if (body.type === 'BlockStatement') {
-			new_body.push(...body.body);
-		}
-
-		return {
-			...node,
-			params: node.params.map((param) => context.visit(param, state)),
-			body: body.type === 'BlockStatement' ? { ...body, body: new_body } : body,
-		};
+	if (
+		metadata?.tracked === true &&
+		!is_inside_component(context, true) &&
+		is_component_level_function(context) &&
+		body.type === 'BlockStatement'
+	) {
+		body = { ...body, body: [b.var('__block', b.call('_$_.scope')), ...body.body] };
 	}
 
-	return context.next(state);
+	return {
+		...node,
+		params: node.params.map((param) => context.visit(param, state)),
+		body,
+	};
 }
 
 /**

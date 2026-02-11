@@ -231,4 +231,47 @@ describe('basic client > rendering & text', () => {
 		render(App);
 		expect(container).toMatchSnapshot();
 	});
+
+	it('should handle consecutive text nodes without duplication', () => {
+		component App() {
+			const Something = conditional('a');
+
+			<Something />
+
+			function conditional(item: 'a') {
+				let hello = 'Hello';
+				const obj = {
+					a: component() {
+						<div>
+							{'a'}
+							{' '}
+							{hello}
+						</div>
+					},
+				};
+
+				return obj[item];
+			}
+		}
+
+		render(App);
+		const div = container.querySelector('div');
+		expect(div.textContent).toEqual('a Hello');
+	});
+
+	it('should handle multiple consecutive text expressions', () => {
+		component App() {
+			let name = 'World';
+			<div>
+				{'Hello'}
+				{' '}
+				{name}
+				{'!'}
+			</div>
+		}
+
+		render(App);
+		const div = container.querySelector('div');
+		expect(div.textContent).toEqual('Hello World!');
+	});
 });
