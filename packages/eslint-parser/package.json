@@ -34,10 +34,6 @@
     "eslint": "catalog:peer",
     "ripple": "catalog:peer"
   },
-  "dependencies": {
-    "acorn": "catalog:default",
-    "@sveltejs/acorn-typescript": "catalog:default"
-  },
   "devDependencies": {
     "@types/eslint": "catalog:default",
     "@types/estree": "catalog:default",

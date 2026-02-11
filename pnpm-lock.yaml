@@ -289,12 +289,6 @@ importers:
 
   packages/eslint-parser:
     dependencies:
-      '@sveltejs/acorn-typescript':
-        specifier: catalog:default
-        version: 1.0.9(acorn@8.15.0)
-      acorn:
-        specifier: catalog:default
-        version: 8.15.0
       eslint:
         specifier: catalog:peer
         version: 9.37.0(jiti@2.5.1)
