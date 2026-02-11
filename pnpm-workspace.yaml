@@ -9,7 +9,7 @@ packages:
 catalogs:
   default:
     '@jridgewell/sourcemap-codec': ^1.5.5
-    '@sveltejs/acorn-typescript': ^1.0.6
+    '@sveltejs/acorn-typescript': ^1.0.9
     '@tailwindcss/vite': ^4.1.12
     '@types/eslint': ^9.6.1
     '@types/estree': ^1.0.8
@@ -26,7 +26,6 @@ catalogs:
     '@vscode/vsce': ^3.6.2
     acorn: ^8.15.0
     adm-zip: ^0.5.16
-    acorn-typescript: ^1.4.13
     clsx: ^2.1.1
     commander: ^12.1.0
     degit: ^2.8.4

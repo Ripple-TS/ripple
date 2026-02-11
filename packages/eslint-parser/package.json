@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "acorn": "catalog:default",
-    "acorn-typescript": "catalog:default"
+    "@sveltejs/acorn-typescript": "catalog:default"
   },
   "devDependencies": {
     "@types/eslint": "catalog:default",
