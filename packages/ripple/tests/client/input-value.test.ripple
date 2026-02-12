@@ -1516,6 +1516,375 @@ describe('use value()', () => {
 		// Should fall back to first non-disabled option
 		expect(select.options[1].selected).toBe(true);
 	});
+
+	it('should accurately reflect values mutated through a tracked setter', () => {
+		component App() {
+			let value = track(
+				'',
+				(val) => {
+					return val;
+				},
+				(next) => {
+					if (next.includes('c')) {
+						next = next.replace(/c/g, '');
+					}
+					return next;
+				},
+			);
+
+			<input type="text" {ref bindValue(value)} />
+			<div>{@value}</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		expect(input.value).toBe('');
+		expect(div.textContent).toBe('');
+
+		input.value = 'abc';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(input.value).toBe('ab');
+		expect(div.textContent).toBe('ab');
+	});
+
+	it('should accurately reflect values when a getter modifies value', () => {
+		component App() {
+			let value = track(
+				'',
+				(val) => {
+					if (val.includes('c')) {
+						val = val.replace(/c/g, '');
+					}
+					return val;
+				},
+				(next) => {
+					return next;
+				},
+			);
+
+			<input type="text" {ref bindValue(value)} />
+			<div>{@value}</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		expect(input.value).toBe('');
+		expect(div.textContent).toBe('');
+
+		input.value = 'abc';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(input.value).toBe('ab');
+		expect(div.textContent).toBe('ab');
+	});
+
+	it('should always prefer what getter returns even if setter mutates next', () => {
+		component App() {
+			let value = track(
+				'',
+				(val) => {
+					return val.replace(/[c,b]+/g, '');
+				},
+				(next) => {
+					if (next.includes('c')) {
+						next = next.replace(/c/g, '');
+					}
+					return next;
+				},
+			);
+
+			<input type="text" {ref bindValue(value)} />
+			<div>{@value}</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		expect(input.value).toBe('');
+		expect(div.textContent).toBe('');
+
+		input.value = 'abc';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(input.value).toBe('a');
+		expect(div.textContent).toBe('a');
+	});
+
+	it(
+		'should accurately reflect values mutated through an effect even after a setter mutation',
+		() => {
+			component App() {
+				let value = track(
+					'',
+					(val) => {
+						return val;
+					},
+					(next) => {
+						if (next.includes('c')) {
+							next = next.replace(/c/g, '');
+						}
+						return next;
+					},
+				);
+
+				effect(() => {
+					@value;
+
+					untrack(() => {
+						if (@value.includes('a')) {
+							@value = @value.replace(/a/g, '');
+						}
+					});
+				});
+				<input type="text" {ref bindValue(value)} />
+				<div>{@value}</div>
+			}
+
+			render(App);
+			flushSync();
+
+			const input = container.querySelector('input') as HTMLInputElement;
+			const div = container.querySelector('div') as HTMLDivElement;
+
+			expect(input.value).toBe('');
+			expect(div.textContent).toBe('');
+
+			input.value = 'abc';
+			input.dispatchEvent(new Event('input', { bubbles: true }));
+			flushSync();
+
+			expect(input.value).toBe('b');
+			expect(div.textContent).toBe('b');
+		},
+	);
+
+	it('should accurately reflect values mutated through a tracked setter via bind accessors', () => {
+		component App() {
+			let value = track('');
+			const value_accessors = [
+				() => {
+					return @value;
+				},
+				(v: string) => {
+					if (v.includes('c')) {
+						v = v.replace(/c/g, '');
+					}
+					@value = v;
+				},
+			];
+
+			<input type="text" {ref bindValue(...value_accessors)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+
+		expect(input.value).toBe('');
+
+		input.value = 'abc';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(input.value).toBe('ab');
+	});
+
+	it('should prefer what getter returns via bind accessors', () => {
+		component App() {
+			let value = track('');
+			const value_accessors = [
+				() => {
+					if (@value.includes('c')) {
+						return @value.replace(/c/g, '');
+					}
+					return @value;
+				},
+				(v: string) => {
+					@value = v;
+				},
+			];
+
+			<input type="text" {ref bindValue(...value_accessors)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+
+		expect(input.value).toBe('');
+
+		input.value = 'abc';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(input.value).toBe('ab');
+	});
+
+	it(
+		'should always prefer what getter returns even if setter mutates next via bind accessors',
+		() => {
+			component App() {
+				let value = track('');
+				const value_accessors = [
+					() => {
+						return @value.replace(/[c,b]+/g, '');
+					},
+					(v: string) => {
+						if (v.includes('c')) {
+							v = v.replace(/c/g, '');
+						}
+						@value = v;
+					},
+				];
+
+				<input type="text" {ref bindValue(...value_accessors)} />
+			}
+
+			render(App);
+			flushSync();
+
+			const input = container.querySelector('input') as HTMLInputElement;
+
+			expect(input.value).toBe('');
+
+			input.value = 'abc';
+			input.dispatchEvent(new Event('input', { bubbles: true }));
+			flushSync();
+
+			expect(input.value).toBe('a');
+		},
+	);
+
+	it(
+		'should accurately reflect values mutated through an effect even after a setter mutation via bind accessors',
+		() => {
+			component App() {
+				let value = track('');
+				const value_accessors = [
+					() => {
+						return @value;
+					},
+					(v: string) => {
+						if (v.includes('c')) {
+							v = v.replace(/c/g, '');
+						}
+						@value = v;
+					},
+				];
+
+				effect(() => {
+					@value;
+
+					untrack(() => {
+						if (@value.includes('a')) {
+							@value = @value.replace(/a/g, '');
+						}
+					});
+				});
+				<input type="text" {ref bindValue(...value_accessors)} />
+			}
+
+			render(App);
+			flushSync();
+
+			const input = container.querySelector('input') as HTMLInputElement;
+
+			expect(input.value).toBe('');
+
+			input.value = 'abc';
+			input.dispatchEvent(new Event('input', { bubbles: true }));
+			flushSync();
+
+			expect(input.value).toBe('b');
+		},
+	);
+
+	it(
+		'should keep the input.value unchanged and synced with the tracked when the setter blocks updates to the tracked via bind accessors',
+		() => {
+			component App() {
+				let value = track('');
+				const value_accessors = [
+					() => {
+						return @value;
+					},
+					(v: string) => {
+						// no update
+					},
+				];
+
+				<input type="text" {ref bindValue(...value_accessors)} />
+				<div>{@value}</div>
+			}
+
+			render(App);
+			flushSync();
+
+			const input = container.querySelector('input') as HTMLInputElement;
+			const div = container.querySelector('div') as HTMLDivElement;
+
+			expect(input.value).toBe('');
+
+			input.value = 'abc';
+			input.dispatchEvent(new Event('input', { bubbles: true }));
+			flushSync();
+
+			expect(input.value).toBe('');
+			expect(div.textContent).toBe('');
+		},
+	);
+
+	it(
+		'should keep the input.value unchanged and synced with the tracked when the setter blocks updates to the tracked via track get / set',
+		() => {
+			component App() {
+				let value = track(
+					'',
+					(v) => {
+						return v;
+					},
+					() => {
+						return '';
+					},
+				);
+
+				<input type="text" {ref bindValue(value)} />
+				<div>{@value}</div>
+			}
+
+			render(App);
+			flushSync();
+
+			const input = container.querySelector('input') as HTMLInputElement;
+			const div = container.querySelector('div') as HTMLDivElement;
+
+			expect(input.value).toBe('');
+
+			input.value = 'abc';
+			input.dispatchEvent(new Event('input', { bubbles: true }));
+			flushSync();
+
+			expect(input.value).toBe('');
+			expect(div.textContent).toBe('');
+		},
+	);
 });
 
 describe('bindClientWidth and bindClientHeight', () => {
@@ -2534,305 +2903,6 @@ describe('bindNode', () => {
 
 		expect(input.value).toBe('Set by ref');
 	});
-
-	it('should accurately reflect values mutated through a tracked setter', () => {
-		component App() {
-			let value = track(
-				'',
-				(val) => {
-					return val;
-				},
-				(next) => {
-					if (next.includes('c')) {
-						next = next.replace(/c/g, '');
-					}
-					return next;
-				},
-			);
-
-			<input type="text" {ref bindValue(value)} />
-			<div>{@value}</div>
-		}
-
-		render(App);
-		flushSync();
-
-		const input = container.querySelector('input') as HTMLInputElement;
-		const div = container.querySelector('div') as HTMLDivElement;
-
-		expect(input.value).toBe('');
-		expect(div.textContent).toBe('');
-
-		input.value = 'abc';
-		input.dispatchEvent(new Event('input', { bubbles: true }));
-		flushSync();
-
-		expect(input.value).toBe('ab');
-		expect(div.textContent).toBe('ab');
-	});
-
-	it('should accurately reflect values when a getter modifies value', () => {
-		component App() {
-			let value = track(
-				'',
-				(val) => {
-					if (val.includes('c')) {
-						val = val.replace(/c/g, '');
-					}
-					return val;
-				},
-				(next) => {
-					return next;
-				},
-			);
-
-			<input type="text" {ref bindValue(value)} />
-			<div>{@value}</div>
-		}
-
-		render(App);
-		flushSync();
-
-		const input = container.querySelector('input') as HTMLInputElement;
-		const div = container.querySelector('div') as HTMLDivElement;
-
-		expect(input.value).toBe('');
-		expect(div.textContent).toBe('');
-
-		input.value = 'abc';
-		input.dispatchEvent(new Event('input', { bubbles: true }));
-		flushSync();
-
-		expect(input.value).toBe('ab');
-		expect(div.textContent).toBe('ab');
-	});
-
-	it('should always prefer what getter returns even if setter mutates next', () => {
-		component App() {
-			let value = track(
-				'',
-				(val) => {
-					return val.replace(/[c,b]+/g, '');
-				},
-				(next) => {
-					if (next.includes('c')) {
-						next = next.replace(/c/g, '');
-					}
-					return next;
-				},
-			);
-
-			<input type="text" {ref bindValue(value)} />
-			<div>{@value}</div>
-		}
-
-		render(App);
-		flushSync();
-
-		const input = container.querySelector('input') as HTMLInputElement;
-		const div = container.querySelector('div') as HTMLDivElement;
-
-		expect(input.value).toBe('');
-		expect(div.textContent).toBe('');
-
-		input.value = 'abc';
-		input.dispatchEvent(new Event('input', { bubbles: true }));
-		flushSync();
-
-		expect(input.value).toBe('a');
-		expect(div.textContent).toBe('a');
-	});
-
-	it(
-		'should accurately reflect values mutated through an effect even after a setter mutation',
-		() => {
-			component App() {
-				let value = track(
-					'',
-					(val) => {
-						return val;
-					},
-					(next) => {
-						if (next.includes('c')) {
-							next = next.replace(/c/g, '');
-						}
-						return next;
-					},
-				);
-
-				effect(() => {
-					@value;
-
-					untrack(() => {
-						if (@value.includes('a')) {
-							@value = @value.replace(/a/g, '');
-						}
-					});
-				});
-				<input type="text" {ref bindValue(value)} />
-				<div>{@value}</div>
-			}
-
-			render(App);
-			flushSync();
-
-			const input = container.querySelector('input') as HTMLInputElement;
-			const div = container.querySelector('div') as HTMLDivElement;
-
-			expect(input.value).toBe('');
-			expect(div.textContent).toBe('');
-
-			input.value = 'abc';
-			input.dispatchEvent(new Event('input', { bubbles: true }));
-			flushSync();
-
-			expect(input.value).toBe('b');
-			expect(div.textContent).toBe('b');
-		},
-	);
-
-	it('should accurately reflect values mutated through a tracked setter via bind accessors', () => {
-		component App() {
-			let value = track('');
-			const value_accessors = [
-				() => {
-					return @value;
-				},
-				(v: string) => {
-					if (v.includes('c')) {
-						v = v.replace(/c/g, '');
-					}
-					@value = v;
-				},
-			];
-
-			<input type="text" {ref bindValue(...value_accessors)} />
-		}
-
-		render(App);
-		flushSync();
-
-		const input = container.querySelector('input') as HTMLInputElement;
-
-		expect(input.value).toBe('');
-
-		input.value = 'abc';
-		input.dispatchEvent(new Event('input', { bubbles: true }));
-		flushSync();
-
-		expect(input.value).toBe('ab');
-	});
-
-	it('should prefer what getter returns via bind accessors', () => {
-		component App() {
-			let value = track('');
-			const value_accessors = [
-				() => {
-					if (@value.includes('c')) {
-						return @value.replace(/c/g, '');
-					}
-					return @value;
-				},
-				(v: string) => {
-					@value = v;
-				},
-			];
-
-			<input type="text" {ref bindValue(...value_accessors)} />
-		}
-
-		render(App);
-		flushSync();
-
-		const input = container.querySelector('input') as HTMLInputElement;
-
-		expect(input.value).toBe('');
-
-		input.value = 'abc';
-		input.dispatchEvent(new Event('input', { bubbles: true }));
-		flushSync();
-
-		expect(input.value).toBe('ab');
-	});
-
-	it(
-		'should always prefer what getter returns even if setter mutates next via bind accessors',
-		() => {
-			component App() {
-				let value = track('');
-				const value_accessors = [
-					() => {
-						return @value.replace(/[c,b]+/g, '');
-					},
-					(v: string) => {
-						if (v.includes('c')) {
-							v = v.replace(/c/g, '');
-						}
-						@value = v;
-					},
-				];
-
-				<input type="text" {ref bindValue(...value_accessors)} />
-			}
-
-			render(App);
-			flushSync();
-
-			const input = container.querySelector('input') as HTMLInputElement;
-
-			expect(input.value).toBe('');
-
-			input.value = 'abc';
-			input.dispatchEvent(new Event('input', { bubbles: true }));
-			flushSync();
-
-			expect(input.value).toBe('a');
-		},
-	);
-
-	it(
-		'should accurately reflect values mutated through an effect even after a setter mutation via bind accessors',
-		() => {
-			component App() {
-				let value = track('');
-				const value_accessors = [
-					() => {
-						return @value;
-					},
-					(v: string) => {
-						if (v.includes('c')) {
-							v = v.replace(/c/g, '');
-						}
-						@value = v;
-					},
-				];
-
-				effect(() => {
-					@value;
-
-					untrack(() => {
-						if (@value.includes('a')) {
-							@value = @value.replace(/a/g, '');
-						}
-					});
-				});
-				<input type="text" {ref bindValue(...value_accessors)} />
-			}
-
-			render(App);
-			flushSync();
-
-			const input = container.querySelector('input') as HTMLInputElement;
-
-			expect(input.value).toBe('');
-
-			input.value = 'abc';
-			input.dispatchEvent(new Event('input', { bubbles: true }));
-			flushSync();
-
-			expect(input.value).toBe('b');
-		},
-	);
 });
 
 describe('bindFiles', () => {

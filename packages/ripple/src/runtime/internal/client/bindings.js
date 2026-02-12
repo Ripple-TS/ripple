@@ -248,15 +248,35 @@ export function bindValue(maybe_tracked, set_func = undefined) {
 			});
 		} else {
 			var input = /** @type {HTMLInputElement} */ (node);
-			var selection_restore_needed = false;
 
-			clear_event = on(input, 'input', () => {
-				selection_restore_needed = true;
+			clear_event = on(input, 'input', async () => {
 				/** @type {any} */
 				var value = input.value;
 				value = is_numberlike_input(input) ? to_number(value) : value;
-				// the setter will schedule a microtask and the render block below will run
 				setter(value);
+				const getter_value = getter();
+
+				// Check the getter to see if it's different from the input.value
+				// The setter may have decided not to update its track value or update it to something else
+				// We treat the getter as the source of truth since we cannot verify the change otherwise
+				// If getter() !== input.value, we set the input value right away
+				// the `render` block may be scheduled only if the tracked value has changed
+				// but it will not do anything if getter() === input.value
+				// The result is: the `render` block will ALWAYS exit early if the microtask
+				// came from this event handler
+				if (value !== getter_value) {
+					var start = input.selectionStart;
+					var end = input.selectionEnd;
+
+					input.value = getter_value ?? '';
+
+					if (end !== null && start !== null) {
+						end = Math.min(end, input.value.length);
+						start = Math.min(start, end);
+						input.selectionStart = start;
+						input.selectionEnd = end;
+					}
+				}
 			});
 
 			render(() => {
@@ -271,23 +291,9 @@ export function bindValue(maybe_tracked, set_func = undefined) {
 				}
 
 				if (value !== input.value) {
-					if (selection_restore_needed) {
-						var start = input.selectionStart;
-						var end = input.selectionEnd;
-
-						input.value = value ?? '';
-
-						// Restore selection
-						if (end !== null && start !== null) {
-							end = Math.min(end, input.value.length);
-							start = Math.min(start, end);
-							input.selectionStart = start;
-							input.selectionEnd = end;
-						}
-						selection_restore_needed = false;
-					} else {
-						input.value = value ?? '';
-					}
+					// this can only get here if the tracked value was changed directly,
+					// and not via the input event
+					input.value = value ?? '';
 				}
 			});
 
