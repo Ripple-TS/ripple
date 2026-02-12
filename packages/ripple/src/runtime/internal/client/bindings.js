@@ -249,7 +249,7 @@ export function bindValue(maybe_tracked, set_func = undefined) {
 		} else {
 			var input = /** @type {HTMLInputElement} */ (node);
 
-			clear_event = on(input, 'input', async () => {
+			clear_event = on(input, 'input', () => {
 				/** @type {any} */
 				var value = input.value;
 				value = is_numberlike_input(input) ? to_number(value) : value;
