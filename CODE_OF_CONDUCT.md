@@ -1,56 +1,46 @@
 # Code of Conduct
 
-## Our Pledge
-We as members, contributors, and maintainers pledge to make participation in this
-project a harassment-free experience for everyone, regardless of age, body size,
-visible or invisible disability, ethnicity, sex characteristics, gender identity
-and expression, level of experience, education, socio-economic status, nationality,
-personal appearance, race, religion, or sexual identity and orientation.
+This project is built by people who want to create something cool together. Let's
+keep it fun, welcoming, focused, and worth everyone's time.
 
-We pledge to act and interact in ways that contribute to an open, welcoming,
-diverse, inclusive, and healthy community.
+### Do
 
-## Our Standards
+- **Be respectful** — Treat everyone with kindness. We're all here because we care
+  about the project.
+- **Bring real value** — Make contributions that help the project move forward:
+  thoughtful code, clear docs, useful bug reports, or constructive ideas. When
+  submitting pull requests, focus on solving real problems or improving things for
+  users/maintainers—not just adding your name to the contributors list. Small,
+  high-quality changes beat big, low-effort ones every time.
+- **Own your code** — If you're using AI tools to help write or suggest code,
+  review it carefully, understand it fully, test it, and make it your own.
+  Unreviewed or barely-touched AI output is just noise—don't spam the project with
+  it.
+- **Stay on topic** — Keep discussions, issues, and PRs related to the project.
+  Save off-topic stuff for somewhere else.
+- **Give constructive feedback** — Point out problems kindly and suggest fixes
+  when you can. We're all learning.
+- **Assume good intent** — People usually mean well. If something feels off, ask
+  for clarification before assuming the worst.
+- **Have fun and be excellent to each other** — Celebrate wins, thank people, and
+  enjoy the ride.
 
-Examples of behavior that contributes to a positive environment include:
+### Don't
 
-- Demonstrating empathy and kindness toward other people
-- Being respectful of differing opinions, viewpoints, and experiences
-- Giving and gracefully accepting constructive feedback
-- Taking responsibility and apologizing to those affected by our mistakes
-- Focusing on what is best for the overall community
+- **Spam** — No drive-by comments, promo links, unrelated noise, or low-effort PRs
+  (including untouched AI-generated ones).
+- **Harass or attack** — No insults, slurs, threats, personal attacks, or
+  unwelcome advances. Ever.
+- **Troll** — Don't derail conversations or pick fights.
+- **Push big drama** — If there's conflict, try to resolve it privately or with a
+  maintainer first.
 
-Examples of unacceptable behavior include:
+### If something goes wrong
 
-- The use of sexualized language or imagery, and sexual attention or advances
-- Trolling, insulting or derogatory comments, and personal or political attacks
-- Public or private harassment
-- Publishing others’ private information without permission
-- Any conduct that could reasonably be considered inappropriate in a professional setting
+If you see behavior that breaks these guidelines, or you feel uncomfortable, reach
+out on Discord: https://discord.gg/JBF2ySrh2W. We'll listen, handle it fairly, and
+keep things confidential if needed. Maintainers can warn, remove comments/PRs, or
+ban repeat offenders.
 
-## Enforcement Responsibilities
-Project maintainers are responsible for clarifying and enforcing our standards of
-acceptable behavior and will take appropriate and fair corrective action in response
-to any behavior that they deem inappropriate, threatening, offensive, or harmful.
-
-Maintainers have the right and responsibility to remove, edit, or reject comments,
-commits, code, wiki edits, issues, and other contributions that are not aligned
-with this Code of Conduct.
-
-## Scope
-This Code of Conduct applies within all project spaces, and also applies when an
-individual is officially representing the project in public spaces. Examples of
-representing a project include using an official project email address, posting via
-an official social media account, or acting as an appointed representative at an
-online or offline event.
-
-## Reporting
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported
-to the project maintainers via our community Discord server at https://discord.gg/JBF2ySrh2W.
-
-All complaints will be reviewed and investigated promptly and fairly.
-
-## Enforcement
-Project maintainers who do not follow or enforce the Code of Conduct in good faith
-may face temporary or permanent repercussions as determined by other members of the
-project’s leadership.
+Thanks for helping make this a great place to collaborate. Let's build something
+awesome together!
