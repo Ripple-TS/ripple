@@ -1,0 +1,37 @@
+<!-- Plugin Configuration File: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+	<!-- Unique identifier of the plugin. It should be FQN, cannot be changed between the plugin versions. -->
+	<id>com.ripple_ts.intellij_plugin</id>
+
+	<!-- Public plugin name should be written in Title Case.
+			 Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-name -->
+	<name>Ripple</name>
+
+	<!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+	<vendor url="https://github.com/Ripple-TS/ripple">Ripple</vendor>
+
+	<!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
+			 Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-description -->
+	<description><![CDATA[
+        Ripple language support for IntelliJ-based IDEs. Provides TextMate-based syntax highlighting for .ripple
+        files and integrates with the Ripple language server for diagnostics, completion, and navigation.
+    ]]></description>
+
+	<!-- Product and plugin compatibility requirements.
+			 Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+	<depends>org.jetbrains.plugins.textmate</depends>
+	<depends optional="true" config-file="ripple-lsp.xml">com.intellij.modules.lsp</depends>
+	<!-- Extensions defined by the plugin.
+			 Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+	<extensions defaultExtensionNs="com.intellij">
+		<fileType name="Ripple" implementationClass="com.ripple_ts.intellij_plugin.RippleFileType" fieldName="INSTANCE"
+					 language="Ripple" extensions="ripple"/>
+		<lang.commenter language="Ripple" implementationClass="com.ripple_ts.intellij_plugin.RippleCommenter"/>
+		<lang.syntaxHighlighterFactory language="Ripple"
+									 implementationClass="org.jetbrains.plugins.textmate.language.syntax.highlighting.TextMateSyntaxHighlighterFactory"/>
+		<editorHighlighterProvider filetype="Ripple"
+								 implementationClass="org.jetbrains.plugins.textmate.language.syntax.highlighting.TextMateEditorHighlighterProvider"/>
+		<textmate.bundleProvider implementation="com.ripple_ts.intellij_plugin.RippleTextMateBundleProvider"/>
+		<notificationGroup id="Ripple" displayType="BALLOON" isLogByDefault="true"/>
+	</extensions>
+</idea-plugin>

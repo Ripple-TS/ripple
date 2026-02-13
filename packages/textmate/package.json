@@ -1,0 +1,22 @@
+{
+  "name": "@ripple-ts/textmate",
+  "version": "0.0.77",
+  "description": "TextMate bundle for syntax highlighting in .ripple files.",
+  "author": "Dominic Gannaway",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ripple-TS/ripple.git",
+    "directory": "packages/textmate"
+  },
+  "config": {
+    "@ripple-ts/language-server": "0.2.164"
+  },
+  "files": [],
+  "keywords": [
+    "textmate",
+    "ripple"
+  ]
+}
