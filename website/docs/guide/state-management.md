@@ -49,15 +49,11 @@ export component App() {
 
   // context's reactive property count gets updated
   <pre>{'Context: '}{context.get().@count}</pre>
-  <pre>{'Context2: '}{@count2}</pre>
+  <pre>{'Context2: '}{@(context2.get())}</pre>
 }
 ```
 
 </Code>
-
-::: info
-`@(context2.get())` usage with `@()` wrapping syntax will be enabled in the near future
-:::
 
 Passing data between components:
 
