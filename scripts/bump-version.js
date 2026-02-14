@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 
 /**
 @typedef {"major" | "minor" | "patch"} BumpType
-@typedef {"all" | "editors"} ScopeType
+@typedef {"packages" | "editors"} ScopeType
 @typedef {[number, number, number]} SemverTuple
 @typedef {'origin' | 'upstream'} GitRemoteName
 @typedef {{
@@ -30,21 +30,30 @@ const __dirname = path.dirname(__filename);
 /** @type {Set<BumpType>} */
 const ALLOWED_BUMPS = new Set(['major', 'minor', 'patch']);
 /** @type {Set<ScopeType>} */
-const ALLOWED_SCOPES = new Set(['all', 'editors']);
-const VSCODE_PACKAGE_DIR_NAME = 'vscode-plugin';
+const ALLOWED_SCOPES = new Set(['packages', 'editors']);
+
 const RIPPLE_PACKAGE_DIR_NAME = 'ripple';
+
+const VSCODE_PACKAGE_DIR_NAME = 'vscode-plugin';
 const ZED_PACKAGE_DIR_NAME = 'zed-plugin';
+const INTELLIJ_PACKAGE_DIR_NAME = 'intellij-plugin';
+const SUBLIME_PACKAGE_DIR_NAME = 'sublime-text-plugin';
+const NVIM_PACKAGE_DIR_NAME = 'nvim-plugin';
+const LANGUAGE_SERVER_PACKAGE_NAME = '@ripple-ts/language-server';
+
 const EDITOR_PACKAGE_DIRS = new Set([
-	'nvim-plugin',
-	'sublime-text-plugin',
+	NVIM_PACKAGE_DIR_NAME,
+	SUBLIME_PACKAGE_DIR_NAME,
+	INTELLIJ_PACKAGE_DIR_NAME,
 	VSCODE_PACKAGE_DIR_NAME,
 	ZED_PACKAGE_DIR_NAME,
 ]);
+
 const EXCLUDE_PACKAGE_DIRS_FROM_PUBLISH = new Set(['tree-sitter']);
 const bumpArg = process.argv[2] ?? '';
 const maybeScope = process.argv[3] ?? null;
 /** @type {ScopeType} */
-let scope = 'all';
+let scope = 'packages';
 let overrideArg = null;
 let useOtp = false;
 let otpValue = null;
@@ -85,7 +94,7 @@ if (maybeScope && ALLOWED_SCOPES.has(/** @type {ScopeType} */ (maybeScope))) {
 
 if (!ALLOWED_BUMPS.has(/** @type {BumpType} */ (bumpArg))) {
 	console.error(
-		'Usage: node scripts/bump-version.js <major|minor|patch> [scope] [override] [--otp | --otp=<code>]',
+		'Usage: node scripts/bump-version.js <major|minor|patch> [packages|editors] [override] [--otp | --otp=<code>]',
 	);
 	process.exit(1);
 }
@@ -286,8 +295,8 @@ function loadPackages(targetScope) {
 
 	for (const entry of entries) {
 		if (!entry.isDirectory()) continue;
-		if (targetScope === 'all' && EDITOR_PACKAGE_DIRS.has(entry.name)) continue;
 		if (targetScope === 'editors' && !EDITOR_PACKAGE_DIRS.has(entry.name)) continue;
+		if (targetScope === 'packages' && EDITOR_PACKAGE_DIRS.has(entry.name)) continue;
 
 		const packageJsonPath = path.join(packagesDir, entry.name, 'package.json');
 		if (!fs.existsSync(packageJsonPath)) continue;
@@ -316,6 +325,122 @@ function loadPackages(targetScope) {
 function writePackage(pkg) {
 	const content = `${JSON.stringify(pkg.json, null, 2)}\n`;
 	fs.writeFileSync(pkg.packageJsonPath, content);
+}
+
+/**
+ * @param {string} filePath
+ * @param {string} topLevelKey
+ * @param {string} packageName
+ * @param {string} version
+ * @returns {boolean}
+ */
+function updateDependencyVersionInPackageJson(filePath, topLevelKey, packageName, version) {
+	if (!fs.existsSync(filePath)) {
+		throw new Error(`Failed to update ${path.relative(REPO_ROOT, filePath)}: file does not exist.`);
+	}
+
+	const original = fs.readFileSync(filePath, 'utf8');
+	const json = JSON.parse(original);
+	const deps = json[topLevelKey];
+	if (!deps || typeof deps !== 'object') {
+		throw new Error(
+			`Failed to update ${path.relative(REPO_ROOT, filePath)}: '${topLevelKey}' section not found.`,
+		);
+	}
+
+	if (typeof deps[packageName] !== 'string') {
+		throw new Error(
+			`Failed to update ${path.relative(REPO_ROOT, filePath)}: '${packageName}' not found in '${topLevelKey}'.`,
+		);
+	}
+
+	if (deps[packageName] === version) {
+		return false;
+	}
+
+	deps[packageName] = version;
+	const content = `${JSON.stringify(json, null, 2)}\n`;
+	fs.writeFileSync(filePath, content);
+	return true;
+}
+
+/**
+ * @param {string} version
+ * @returns {string[]}
+ */
+function updateEditorLanguageServerVersionRefs(version) {
+	/** @type {string[]} */
+	const changedPaths = [];
+
+	const intellijVersionPath = path.join(
+		REPO_ROOT,
+		'packages',
+		INTELLIJ_PACKAGE_DIR_NAME,
+		'src',
+		'main',
+		'resources',
+		'lsp-version.txt',
+	);
+	if (!fs.existsSync(intellijVersionPath)) {
+		throw new Error(
+			`Failed to update ${path.relative(REPO_ROOT, intellijVersionPath)}: file does not exist.`,
+		);
+	}
+	const currentIntellijVersion = fs.readFileSync(intellijVersionPath, 'utf8').trim();
+	if (currentIntellijVersion !== version) {
+		fs.writeFileSync(intellijVersionPath, `${version}\n`);
+		changedPaths.push(path.relative(REPO_ROOT, intellijVersionPath));
+	}
+
+	const sublimeLanguageServerPackageJsonPath = path.join(
+		REPO_ROOT,
+		'packages',
+		SUBLIME_PACKAGE_DIR_NAME,
+		'src',
+		'language-server',
+		'package.json',
+	);
+	if (
+		updateDependencyVersionInPackageJson(
+			sublimeLanguageServerPackageJsonPath,
+			'dependencies',
+			LANGUAGE_SERVER_PACKAGE_NAME,
+			version,
+		)
+	) {
+		changedPaths.push(path.relative(REPO_ROOT, sublimeLanguageServerPackageJsonPath));
+	}
+
+	const nvimPackageJsonPath = path.join(
+		REPO_ROOT,
+		'packages',
+		NVIM_PACKAGE_DIR_NAME,
+		'package.json',
+	);
+	if (
+		updateDependencyVersionInPackageJson(
+			nvimPackageJsonPath,
+			'config',
+			LANGUAGE_SERVER_PACKAGE_NAME,
+			version,
+		)
+	) {
+		changedPaths.push(path.relative(REPO_ROOT, nvimPackageJsonPath));
+	}
+
+	const zedPackageJsonPath = path.join(REPO_ROOT, 'packages', ZED_PACKAGE_DIR_NAME, 'package.json');
+	if (
+		updateDependencyVersionInPackageJson(
+			zedPackageJsonPath,
+			'config',
+			LANGUAGE_SERVER_PACKAGE_NAME,
+			version,
+		)
+	) {
+		changedPaths.push(path.relative(REPO_ROOT, zedPackageJsonPath));
+	}
+
+	return changedPaths;
 }
 
 /**
@@ -348,6 +473,34 @@ function updateVersionInTomlFile(fileDir, fileName, newVersion) {
 }
 
 /**
+ * @param {string} fileDir
+ * @param {string} newVersion
+ * @returns {string}
+ */
+function updateVersionInGradleFile(fileDir, newVersion) {
+	const filePath = path.join(fileDir, 'build.gradle.kts');
+
+	const original = fs.readFileSync(filePath, 'utf8');
+	let replaced = false;
+	const updatedContent = original.replace(
+		/^(\s*version\s*=\s*")(.*?)(")/m,
+		(_match, prefix, _current, suffix) => {
+			replaced = true;
+			return `${prefix}${newVersion}${suffix}`;
+		},
+	);
+
+	if (!replaced) {
+		throw new Error(
+			`Failed to update version in ${path.relative(REPO_ROOT, filePath)}: version assignment not found.`,
+		);
+	}
+
+	fs.writeFileSync(filePath, updatedContent);
+	return path.relative(REPO_ROOT, filePath);
+}
+
+/**
  * @param {PackageInfo} pkg
  * @param {string} version
  * @return {string[]}
@@ -362,6 +515,9 @@ function updateAdditionalVersionFiles(pkg, version) {
 
 		updateVersionInTomlFile(pkg.dir, 'extension.toml', version);
 		changedPaths.push(path.relative(REPO_ROOT, path.join(pkg.dir, 'extension.toml')));
+	} else if (pkg.dirName === INTELLIJ_PACKAGE_DIR_NAME) {
+		const gradlePath = updateVersionInGradleFile(pkg.dir, version);
+		changedPaths.push(gradlePath);
 	}
 
 	return changedPaths;
@@ -447,15 +603,14 @@ function runPackagePack(pkg, destination) {
 /**
  * @param {readonly PackageInfo[]} packages
  * @param {string} version
- * @param {ScopeType} targetScope
  */
-function runPrePublishChecks(packages, version, targetScope) {
+function runPrePublishChecks(packages, version) {
 	console.log('\nPerforming pre-publish checks...');
 	const packOutputDir = path.join(REPO_ROOT, '.tmp', 'prepublish-pack');
 	preparePackOutputDir(packOutputDir);
 
 	try {
-		if (targetScope === 'editors') {
+		if (packages.some((pkg) => pkg.dirName === VSCODE_PACKAGE_DIR_NAME)) {
 			runEditorsScopePreCheck(packages);
 		}
 
@@ -618,6 +773,12 @@ process.on('SIGTERM', handleInterruption);
 			const additional = updateAdditionalVersionFiles(pkg, newVersion);
 			changedPaths.push(...additional);
 		}
+
+		if (scope === 'packages') {
+			const editorLanguageServerRefs = updateEditorLanguageServerVersionRefs(newVersion);
+			changedPaths.push(...editorLanguageServerRefs);
+		}
+
 		execSafe('git', ['add', ...changedPaths]);
 
 		const scopeLabel = scope;
@@ -627,7 +788,7 @@ process.on('SIGTERM', handleInterruption);
 			execSafe('git', ['commit', '-m', commitMessage], { stdio: 'inherit' });
 			commitCreated = true;
 
-			runPrePublishChecks(packages, newVersion, scope);
+			runPrePublishChecks(packages, newVersion);
 
 			let otp = otpValue ?? undefined;
 			if (useOtp && !otp) {

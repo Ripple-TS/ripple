@@ -6,6 +6,7 @@ packages:
   - packages/*
   - playground
   - website
+  - grammars/tree-sitter
 catalogs:
   default:
     '@jridgewell/sourcemap-codec': ^1.5.5

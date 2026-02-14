@@ -67,7 +67,7 @@ function createValueNode(doc, value, depth) {
 	}
 
 	throw new TypeError(`Unsupported value type: ${value}`);
-};
+}
 
 /**
  * @param {string[]} targets
@@ -82,27 +82,37 @@ function writeTargets(targets, contents) {
 			await writeFile(target, contents, 'utf8');
 		}),
 	);
-};
+}
 
 const __filename = fileURLToPath(import.meta.url);
-const rootDir = path.join(path.dirname(__filename), "..");
+const rootDir = path.join(path.dirname(__filename), '..');
 
-const sourceFile = path.join(rootDir, 'packages/vscode-plugin/syntaxes/ripple.tmLanguage.json');
+const sourceFile = path.join(rootDir, 'grammars/textmate/ripple.tmLanguage.json');
 
-const targetFiles = [
-	// For manual installation in editors we don't have plugins for
-	path.join(rootDir, 'assets/Ripple.tmbundle/Syntaxes/Ripple.tmLanguage'),
+const jsonTargetFiles = [
+	path.join(rootDir, 'packages/vscode-plugin/syntaxes/ripple.tmLanguage.json'),
+];
+
+const xmlTargetFiles = [
+	path.join(
+		rootDir,
+		'packages/intellij-plugin/src/main/resources/textmate/ripple.tmbundle/Syntaxes/ripple.tmLanguage',
+	),
 ];
 
 const main = async () => {
-	console.log("Reading TextMate grammar from VS Code plugin...");
+	console.log('Reading source TextMate grammar...');
 	const raw = await readFile(sourceFile, 'utf8');
 	const grammar = JSON.parse(/** @type {string} */ (raw));
 	if (!Array.isArray(grammar.fileTypes)) {
 		grammar.fileTypes = ['ripple'];
 	}
+	const json = `${JSON.stringify(grammar, null, 2)}\n`;
 
-	console.log("Converting TextMate grammar from JSON to XML...");
+	console.log('Writing JSON grammar for VS Code and Sublime...');
+	await writeTargets(jsonTargetFiles, json);
+
+	console.log('Converting TextMate grammar from JSON to XML...');
 	const dom = new JSDOM('<plist/>', { contentType: 'text/xml' });
 	const doc = dom.window.document;
 	const root = doc.documentElement;
@@ -118,14 +128,16 @@ const main = async () => {
 
 	const serializer = new dom.window.XMLSerializer();
 	const plist = serializer.serializeToString(root);
-	const xml = `
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-${plist}
-`.trim();
+	const xml =
+		[
+			'<?xml version="1.0" encoding="UTF-8"?>',
+			'<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">',
+			plist,
+		].join('\n') + '\n';
 
-	await writeTargets(targetFiles, xml);
-	console.log("TextMate grammar conversion complete.");
+	console.log('Writing XML grammar for IntelliJ...');
+	await writeTargets(xmlTargetFiles, xml);
+	console.log('TextMate grammar regeneration complete.');
 };
 
 main().catch((error) => {

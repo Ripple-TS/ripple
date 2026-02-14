@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.ripple_ts.intellij_plugin"
-version = "0.0.81"
+version = "0.0.82"
 
 repositories {
 	mavenCentral()
