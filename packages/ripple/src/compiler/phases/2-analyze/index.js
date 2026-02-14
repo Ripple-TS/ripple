@@ -40,6 +40,53 @@ import { validate_nesting } from './validation.js';
 const valid_in_head = new Set(['title', 'base', 'link', 'meta', 'style', 'script', 'noscript']);
 
 /**
+ * Checks if a node contains template content (elements, text, or control flow with templates)
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function has_template_content(node) {
+	if (
+		node.type === 'Element' ||
+		node.type === 'Text' ||
+		node.type === 'Html' ||
+		node.type === 'TsxCompat'
+	) {
+		return true;
+	}
+	if (
+		node.type === 'IfStatement' ||
+		node.type === 'ForOfStatement' ||
+		node.type === 'TryStatement' ||
+		node.type === 'SwitchStatement'
+	) {
+		return node.metadata.has_template === true;
+	}
+	return false;
+}
+
+/**
+ * Checks for unreachable template content after a return statement within a block body
+ * @param {AST.Node[]} body
+ * @param {AnalysisContext} context
+ */
+function check_unreachable_after_return(body, context) {
+	let found_return = false;
+	for (const stmt of body) {
+		if (found_return && has_template_content(stmt)) {
+			error(
+				'Unreachable template content after return statement',
+				context.state.analysis.module.filename,
+				stmt,
+				context.state.loose ? context.state.analysis.errors : undefined,
+			);
+		}
+		if (stmt.type === 'ReturnStatement') {
+			found_return = true;
+		}
+	}
+}
+
+/**
  * @param {AnalysisContext['path']} path
  */
 function mark_control_flow_has_template(path) {
@@ -107,6 +154,31 @@ function mark_as_tracked(path) {
 			break;
 		}
 	}
+}
+
+/**
+ * Checks if an AST expression tree contains any tracked identifiers (@var)
+ * @param {AST.Node | null | undefined} node
+ * @returns {boolean}
+ */
+function has_tracked_in_expression(node) {
+	if (!node) return false;
+	if (node.type === 'Identifier' && /** @type {AST.Identifier} */ (node).tracked) return true;
+	const record = /** @type {Record<string, any>} */ (node);
+	for (const key of Object.keys(record)) {
+		if (key === 'metadata' || key === 'type') continue;
+		const child = record[key];
+		if (child && typeof child === 'object') {
+			if (Array.isArray(child)) {
+				for (const item of child) {
+					if (item && typeof item.type === 'string' && has_tracked_in_expression(item)) return true;
+				}
+			} else if (typeof child.type === 'string' && has_tracked_in_expression(child)) {
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 /** @type {Visitors<AST.Node, AnalysisState>} */
@@ -742,7 +814,11 @@ const visitors = {
 
 		context.visit(node.consequent, context.state);
 
-		if (!node.metadata.has_template) {
+		const consequent_body =
+			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+		check_unreachable_after_return(consequent_body, context);
+
+		if (!node.metadata.has_template && !node.metadata.has_return) {
 			error(
 				'Component if statements must contain a template in their "then" body. Move the if statement into an effect if it does not render anything.',
 				context.state.analysis.module.filename,
@@ -752,11 +828,17 @@ const visitors = {
 		}
 
 		if (node.alternate) {
+			const saved_has_return = node.metadata.has_return;
+			const saved_returns = node.metadata.returns;
 			node.metadata.has_template = false;
 			node.metadata.has_await = false;
 			context.visit(node.alternate, context.state);
 
-			if (!node.metadata.has_template) {
+			if (node.alternate.type === 'BlockStatement') {
+				check_unreachable_after_return(node.alternate.body, context);
+			}
+
+			if (!node.metadata.has_template && !node.metadata.has_return) {
 				error(
 					'Component if statements must contain a template in their "else" body. Move the if statement into an effect if it does not render anything.',
 					context.state.analysis.module.filename,
@@ -764,7 +846,55 @@ const visitors = {
 					context.state.loose ? context.state.analysis.errors : undefined,
 				);
 			}
+
+			if (saved_has_return) {
+				node.metadata.has_return = true;
+				if (saved_returns) {
+					node.metadata.returns = [...saved_returns, ...(node.metadata.returns || [])];
+				}
+			}
 		}
+	},
+
+	ReturnStatement(node, context) {
+		if (!is_inside_component(context)) {
+			return context.next();
+		}
+
+		if (node.argument !== null) {
+			error(
+				'Component return statements must not have a return value',
+				context.state.analysis.module.filename,
+				node,
+				context.state.loose ? context.state.analysis.errors : undefined,
+			);
+		}
+
+		let is_reactive = false;
+		for (let i = context.path.length - 1; i >= 0; i--) {
+			const ancestor = context.path[i];
+
+			if (
+				ancestor.type === 'Component' ||
+				ancestor.type === 'FunctionExpression' ||
+				ancestor.type === 'ArrowFunctionExpression' ||
+				ancestor.type === 'FunctionDeclaration'
+			) {
+				break;
+			}
+
+			if (ancestor.type === 'IfStatement' && has_tracked_in_expression(ancestor.test)) {
+				is_reactive = true;
+			}
+
+			if (!ancestor.metadata.returns) {
+				ancestor.metadata.returns = [];
+			}
+			ancestor.metadata.returns.push(node);
+			ancestor.metadata.has_return = true;
+		}
+
+		node.metadata.is_reactive = is_reactive;
 	},
 
 	TryStatement(node, context) {

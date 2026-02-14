@@ -2281,9 +2281,6 @@ function RipplePlugin(config) {
 				const inside_tsx_compat = this.#path.findLast((n) => n.type === 'TsxCompat');
 
 				if (!inside_func) {
-					if (this.type.label === 'return') {
-						throw new Error('`return` statements are not allowed in components');
-					}
 					if (this.type.label === 'continue') {
 						throw new Error('`continue` statements are not allowed in components');
 					}
@@ -3165,6 +3162,7 @@ export function parse(source, filename, options) {
 		ast = parser.parse(source, {
 			sourceType: 'module',
 			ecmaVersion: 13,
+			allowReturnOutsideFunction: true,
 			locations: true,
 			onComment,
 			rippleOptions: {

@@ -2144,34 +2144,63 @@ const visitors = {
 			statements.push(b.var(b.id(alternate_id), b.arrow([b.id('__anchor')], alternate_block)));
 		}
 
-		statements.push(
-			b.stmt(
-				b.call(
-					'_$_.if',
-					id,
-					b.arrow(
-						[b.id('__render')],
-						b.block([
-							b.if(
-								/** @type {AST.Expression} */ (context.visit(node.test)),
-								b.stmt(b.call(b.id('__render'), b.id(consequent_id))),
-								alternate_id
-									? b.stmt(
-											b.call(
-												b.id('__render'),
-												b.id(alternate_id),
-												node.alternate ? b.literal(false) : undefined,
-											),
-										)
-									: undefined,
+		// Collect return flag resets for IfStatements that contain returns
+		/** @type {AST.Statement[]} */
+		const callback_body = [];
+
+		if (node.metadata?.has_return && context.state.return_flags) {
+			const returns = node.metadata.returns || [];
+			for (const ret of returns) {
+				const info = context.state.return_flags.get(ret);
+				if (info) {
+					if (info.tracked) {
+						callback_body.push(b.stmt(b.call('_$_.set', b.id(info.name), b.false)));
+					} else {
+						callback_body.push(b.stmt(b.assignment('=', b.id(info.name), b.false)));
+					}
+				}
+			}
+		}
+
+		callback_body.push(
+			b.if(
+				/** @type {AST.Expression} */ (context.visit(node.test)),
+				b.stmt(b.call(b.id('__render'), b.id(consequent_id))),
+				alternate_id
+					? b.stmt(
+							b.call(
+								b.id('__render'),
+								b.id(alternate_id),
+								node.alternate ? b.literal(false) : undefined,
 							),
-						]),
-					),
-				),
+						)
+					: undefined,
 			),
 		);
 
+		statements.push(
+			b.stmt(b.call('_$_.if', id, b.arrow([b.id('__render')], b.block(callback_body)))),
+		);
+
 		context.state.init?.push(b.block(statements));
+	},
+
+	ReturnStatement(node, context) {
+		if (!is_inside_component(context)) {
+			return context.next();
+		}
+		if (context.state.to_ts) {
+			return context.next();
+		}
+		const info = context.state.return_flags?.get(node);
+		if (info) {
+			if (info.tracked) {
+				return b.stmt(b.call('_$_.set', b.id(info.name), b.true));
+			} else {
+				return b.stmt(b.assignment('=', b.id(info.name), b.true));
+			}
+		}
+		return context.next();
 	},
 
 	TSAsExpression(node, context) {
@@ -2861,6 +2890,65 @@ function transform_ts_child(node, context) {
 }
 
 /**
+ * Checks if a node is template or control-flow content
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_template_or_control_flow(node) {
+	return (
+		node.type === 'Element' ||
+		node.type === 'Text' ||
+		node.type === 'Html' ||
+		node.type === 'TsxCompat' ||
+		node.type === 'IfStatement' ||
+		node.type === 'ForOfStatement' ||
+		node.type === 'TryStatement' ||
+		node.type === 'SwitchStatement'
+	);
+}
+
+/**
+ * Builds a negated AND condition from return flag info: !flag1 && !flag2 && ...
+ * Uses _$_.get() for tracked flags and direct reference for plain booleans.
+ * @param {{ name: string, tracked: boolean }[]} flags
+ * @returns {AST.Expression}
+ */
+function build_return_guard(flags) {
+	/** @param {{ name: string, tracked: boolean }} flag */
+	const negate_flag = (flag) =>
+		flag.tracked ? b.unary('!', b.call('_$_.get', b.id(flag.name))) : b.unary('!', b.id(flag.name));
+
+	/** @type {AST.Expression} */
+	let condition = negate_flag(flags[0]);
+	for (let i = 1; i < flags.length; i++) {
+		condition = b.logical('&&', condition, negate_flag(flags[i]));
+	}
+	return condition;
+}
+
+/**
+ * Collects all unique return statements from direct children
+ * @param {AST.Node[]} children
+ * @returns {AST.ReturnStatement[]}
+ */
+function collect_returns_from_children(children) {
+	/** @type {AST.ReturnStatement[]} */
+	const returns = [];
+	const seen = new Set();
+	for (const node of children) {
+		if (node.metadata?.returns) {
+			for (const ret of node.metadata.returns) {
+				if (!seen.has(ret)) {
+					seen.add(ret);
+					returns.push(ret);
+				}
+			}
+		}
+	}
+	return returns;
+}
+
+/**
  *
  * @param {AST.Node[]} children
  * @param {VisitorClientContext} context
@@ -2877,6 +2965,36 @@ function transform_children(children, context) {
 			(node) => node.type === 'Element' && node.id.type === 'Identifier' && node.id.name === 'head',
 		)
 	);
+
+	const all_returns = collect_returns_from_children(normalized);
+	/** @type {Map<AST.ReturnStatement, { name: string, tracked: boolean }>} */
+	const return_flags = new Map([...(state.return_flags || [])]);
+	/** @type {AST.ReturnStatement[]} */
+	const new_returns = [];
+	for (const ret of all_returns) {
+		if (!return_flags.has(ret)) {
+			return_flags.set(ret, {
+				name: state.scope.generate('__r'),
+				tracked: ret.metadata?.is_reactive ?? false,
+			});
+			new_returns.push(ret);
+		}
+	}
+
+	if (!state.to_ts) {
+		for (const ret of new_returns) {
+			const info = /** @type {{ name: string, tracked: boolean }} */ (return_flags.get(ret));
+			if (info.tracked) {
+				state.init?.push(b.let(b.id(info.name), b.call('_$_.tracked', b.false)));
+			} else {
+				state.init?.push(b.let(b.id(info.name), b.false));
+			}
+		}
+	}
+
+	/** @type {{ name: string, tracked: boolean }[]} */
+	const accumulated_return_flags = [];
+	const has_returns = all_returns.length > 0;
 
 	const is_fragment =
 		normalized.some(
@@ -2925,7 +3043,70 @@ function transform_children(children, context) {
 		state.init?.push(b.var(id, b.call(template_id)));
 	};
 
-	for (const node of normalized) {
+	for (let node_idx = 0; node_idx < normalized.length; node_idx++) {
+		const node = normalized[node_idx];
+		if (accumulated_return_flags.length > 0 && is_template_or_control_flow(node) && !state.to_ts) {
+			const guard_flags = [...accumulated_return_flags];
+			const remaining = normalized.slice(node_idx);
+			state.template?.push('<!>');
+
+			if (initial === null && root) {
+				create_initial(node);
+			}
+
+			const current_prev = prev;
+			const anchor_id = (() => {
+				if (current_prev !== null) {
+					const id = b.id(state.scope.generate('node'));
+					state.init?.push(b.var(id, b.call('_$_.sibling', current_prev())));
+					return id;
+				} else if (initial !== null) {
+					if (is_fragment) {
+						const id = b.id(state.scope.generate('node'));
+						state.init?.push(b.var(id, b.call('_$_.first_child_frag', initial)));
+						return id;
+					}
+					return initial;
+				} else if (state.flush_node !== null) {
+					const id = b.id(state.scope.generate('node'));
+					state.init?.push(b.var(id, b.call('_$_.child', state.flush_node?.())));
+					return id;
+				} else {
+					return b.id(state.scope.generate('node'));
+				}
+			})();
+
+			const content_body = b.block(
+				transform_body(remaining, {
+					...context,
+					state: { ...state, flush_node: null, return_flags },
+				}),
+			);
+			const content_id = state.scope.generate('return_content');
+
+			const statements = [];
+			statements.push(b.var(b.id(content_id), b.arrow([b.id('__anchor')], content_body)));
+			statements.push(
+				b.stmt(
+					b.call(
+						'_$_.if',
+						anchor_id,
+						b.arrow(
+							[b.id('__render')],
+							b.block([
+								b.if(
+									build_return_guard(guard_flags),
+									b.stmt(b.call(b.id('__render'), b.id(content_id))),
+								),
+							]),
+						),
+					),
+				),
+			);
+			state.init?.push(b.block(statements));
+			break; // All remaining nodes handled
+		}
+
 		if (
 			node.type === 'VariableDeclaration' ||
 			node.type === 'ExpressionStatement' ||
@@ -2935,10 +3116,13 @@ function transform_children(children, context) {
 			node.type === 'ClassDeclaration' ||
 			node.type === 'TSTypeAliasDeclaration' ||
 			node.type === 'TSInterfaceDeclaration' ||
+			node.type === 'ReturnStatement' ||
 			node.type === 'Component'
 		) {
 			const metadata = { await: false };
-			state.init?.push(/** @type {AST.Statement} */ (visit(node, { ...state, metadata })));
+			state.init?.push(
+				/** @type {AST.Statement} */ (visit(node, { ...state, return_flags, metadata })),
+			);
 			if (metadata.await) {
 				state.init?.push(b.if(b.call('_$_.aborted'), b.return(null)));
 				if (state.metadata?.await === false) {
@@ -3007,12 +3191,14 @@ function transform_children(children, context) {
 			if (node.type === 'Element') {
 				visit(node, {
 					...state,
+					return_flags,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
 			} else if (node.type === 'TsxCompat') {
 				visit(node, {
 					...state,
+					return_flags,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
@@ -3096,6 +3282,7 @@ function transform_children(children, context) {
 				node.is_controlled = is_controlled;
 				visit(node, {
 					...state,
+					return_flags,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
@@ -3103,6 +3290,7 @@ function transform_children(children, context) {
 				node.is_controlled = is_controlled;
 				visit(node, {
 					...state,
+					return_flags,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
@@ -3110,6 +3298,7 @@ function transform_children(children, context) {
 				node.is_controlled = is_controlled;
 				visit(node, {
 					...state,
+					return_flags,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
@@ -3117,6 +3306,7 @@ function transform_children(children, context) {
 				node.is_controlled = is_controlled;
 				visit(node, {
 					...state,
+					return_flags,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
@@ -3124,6 +3314,15 @@ function transform_children(children, context) {
 				// do nothing
 			} else {
 				debugger;
+			}
+		}
+
+		if (has_returns && node.metadata?.has_return && node.metadata.returns) {
+			for (const ret of node.metadata.returns) {
+				const info = return_flags.get(ret);
+				if (info && !accumulated_return_flags.some((f) => f.name === info.name)) {
+					accumulated_return_flags.push(info);
+				}
 			}
 		}
 	}
