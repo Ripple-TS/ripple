@@ -1,4 +1,4 @@
-import type { Props, PropsWithChildren, PropsNoChildren, PropsWithExtras } from 'ripple';
+import type { PropsWithExtras } from 'ripple';
 import { flushSync, track, createRefKey, trackSplit } from 'ripple';
 
 describe('dynamic DOM elements', () => {
@@ -591,5 +591,34 @@ describe('dynamic DOM elements', () => {
 
 		expect(outerScopes).toHaveLength(1);
 		expect(innerScopes).toHaveLength(0);
+	});
+
+	it('should remove and add back a text node in a conditional statement with a tracked', () => {
+		component App() {
+			let b = track(true);
+			<div>
+				if (@b) {
+					{'Inside if'}
+				}
+			</div>
+			<button onClick={() => (@b = !@b)}>{'Toggle b'}</button>
+		}
+
+		render(App);
+
+		const button = container.querySelector('button');
+		const div = container.querySelector('div');
+
+		expect(div.textContent).toBe('Inside if');
+
+		button.click();
+		flushSync();
+
+		expect(div.textContent).toBe('');
+
+		button.click();
+		flushSync();
+
+		expect(div.textContent).toBe('Inside if');
 	});
 });

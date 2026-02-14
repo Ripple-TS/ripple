@@ -123,7 +123,9 @@ export function text(data = '') {
 		assign_nodes(/** @type {Node} */ (hydrate_node), /** @type {Node} */ (hydrate_node));
 		return /** @type {Node} */ (hydrate_node);
 	}
-	return create_text(data);
+	const node = create_text(data);
+	assign_nodes(node, node);
+	return node;
 }
 
 /**
