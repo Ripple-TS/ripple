@@ -2525,26 +2525,31 @@ function transform_ts_child(node, context) {
 
 				const jsx_attr = b.jsx_attribute(
 					jsx_name,
-					b.jsx_expression_container(
-						/** @type {AST.Expression} */ (value),
-						attr_value === null
-							? /** @type {AST.NodeWithLocation} */ (value)
-							: // account location for opening and closing braces around the expression
-								/** @type {AST.NodeWithLocation} */ ({
-									start: attr_value.start - 1,
-									end: attr_value.end + 1,
-									loc: {
-										start: {
-											line: attr_value.loc.start.line,
-											column: attr_value.loc.start.column - 1,
-										},
-										end: {
-											line: attr_value.loc.end.line,
-											column: attr_value.loc.end.column + 1,
-										},
-									},
-								}),
-					),
+					// only literals but not null or undefined as they should be jsx expression containers
+					// we need to distinguish between values in curly braces vs string literals
+					// for proper source mapping to avoid turning strings into expressions
+					attr_value?.type === 'Literal' && (attr_value.value ?? null) !== null
+						? /** @type {AST.Literal} */ (value)
+						: b.jsx_expression_container(
+								/** @type {AST.Expression} */ (value),
+								attr_value === null
+									? /** @type {AST.NodeWithLocation} */ (value)
+									: // account location for opening and closing braces around the expression
+										/** @type {AST.NodeWithLocation} */ ({
+											start: attr_value.start - 1,
+											end: attr_value.end + 1,
+											loc: {
+												start: {
+													line: attr_value.loc.start.line,
+													column: attr_value.loc.start.column - 1,
+												},
+												end: {
+													line: attr_value.loc.end.line,
+													column: attr_value.loc.end.column + 1,
+												},
+											},
+										}),
+							),
 					attr.shorthand ?? false,
 					/** @type {AST.NodeWithLocation} */ (attr),
 				);

@@ -1,4 +1,5 @@
 import type { AddEventObject } from '#public';
+import type { Nullable } from '#helpers';
 
 /**
  * Ripple JSX Runtime Type Definitions
@@ -45,24 +46,24 @@ export type ClassValue = string | import('clsx').ClassArray | import('clsx').Cla
 // Base HTML attributes
 interface HTMLAttributes {
 	class?: ClassValue | undefined | null;
-	className?: string;
-	id?: string;
-	style?: string | Record<string, string | number>;
-	title?: string;
-	lang?: string;
+	className?: Nullable<string>;
+	id?: Nullable<string>;
+	style?: Nullable<string> | Record<string, string | number>;
+	title?: Nullable<string>;
+	lang?: Nullable<string>;
 	dir?: 'ltr' | 'rtl' | 'auto';
-	tabIndex?: number;
+	tabIndex?: Nullable<number>;
 	contentEditable?: boolean | 'true' | 'false' | 'inherit';
 	draggable?: boolean;
 	hidden?: boolean;
 	spellCheck?: boolean;
 	translate?: 'yes' | 'no';
-	role?: string;
+	role?: Nullable<string>;
 
 	// ARIA attributes
-	'aria-label'?: string;
-	'aria-labelledby'?: string;
-	'aria-describedby'?: string;
+	'aria-label'?: Nullable<string>;
+	'aria-labelledby'?: Nullable<string>;
+	'aria-describedby'?: Nullable<string>;
 	'aria-hidden'?: boolean | 'true' | 'false';
 	'aria-expanded'?: boolean | 'true' | 'false';
 	'aria-pressed'?: boolean | 'true' | 'false' | 'mixed';
@@ -74,13 +75,13 @@ interface HTMLAttributes {
 	'aria-live'?: 'off' | 'polite' | 'assertive';
 	'aria-atomic'?: boolean | 'true' | 'false';
 	'aria-busy'?: boolean | 'true' | 'false';
-	'aria-controls'?: string;
+	'aria-controls'?: Nullable<string>;
 	'aria-current'?: boolean | 'true' | 'false' | 'page' | 'step' | 'location' | 'date' | 'time';
-	'aria-owns'?: string;
-	'aria-valuemin'?: number;
-	'aria-valuemax'?: number;
-	'aria-valuenow'?: number;
-	'aria-valuetext'?: string;
+	'aria-owns'?: Nullable<string>;
+	'aria-valuemin'?: Nullable<number>;
+	'aria-valuemax'?: Nullable<number>;
+	'aria-valuenow'?: Nullable<number>;
+	'aria-valuetext'?: Nullable<string>;
 
 	// Event handlers
 	onClick?: EventListener | AddEventObject;
@@ -131,17 +132,17 @@ interface HTMLAttributes {
 // SVG common attributes
 interface SVGAttributes {
 	// Core attributes
-	id?: string;
-	lang?: string;
-	tabIndex?: number;
-	xmlBase?: string;
-	xmlLang?: string;
-	xmlSpace?: string;
+	id?: Nullable<string>;
+	lang?: Nullable<string>;
+	tabIndex?: Nullable<number>;
+	xmlBase?: Nullable<string>;
+	xmlLang?: Nullable<string>;
+	xmlSpace?: Nullable<string>;
 
 	// Styling
 	class?: ClassValue | undefined | null;
-	className?: string;
-	style?: string | Record<string, string | number>;
+	className?: Nullable<string>;
+	style?: Nullable<string> | Record<string, string | number>;
 
 	// Presentation attributes
 	alignmentBaseline?:
@@ -159,15 +160,15 @@ interface SVGAttributes {
 		| 'mathematical'
 		| 'inherit';
 	baselineShift?: string | number;
-	clip?: string;
-	clipPath?: string;
+	clip?: Nullable<string>;
+	clipPath?: Nullable<string>;
 	clipRule?: 'nonzero' | 'evenodd' | 'inherit';
-	color?: string;
+	color?: Nullable<string>;
 	colorInterpolation?: 'auto' | 'sRGB' | 'linearRGB' | 'inherit';
 	colorInterpolationFilters?: 'auto' | 'sRGB' | 'linearRGB' | 'inherit';
-	cursor?: string;
+	cursor?: Nullable<string>;
 	direction?: 'ltr' | 'rtl' | 'inherit';
-	display?: string;
+	display?: Nullable<string>;
 	dominantBaseline?:
 		| 'auto'
 		| 'text-bottom'
@@ -179,28 +180,28 @@ interface SVGAttributes {
 		| 'hanging'
 		| 'text-top'
 		| 'inherit';
-	fill?: string;
+	fill?: Nullable<string>;
 	fillOpacity?: number | string;
 	fillRule?: 'nonzero' | 'evenodd' | 'inherit';
-	filter?: string;
-	floodColor?: string;
+	filter?: Nullable<string>;
+	floodColor?: Nullable<string>;
 	floodOpacity?: number | string;
-	fontFamily?: string;
+	fontFamily?: Nullable<string>;
 	fontSize?: string | number;
 	fontSizeAdjust?: string | number;
-	fontStretch?: string;
+	fontStretch?: Nullable<string>;
 	fontStyle?: 'normal' | 'italic' | 'oblique' | 'inherit';
-	fontVariant?: string;
+	fontVariant?: Nullable<string>;
 	fontWeight?: string | number;
-	glyphOrientationHorizontal?: string;
-	glyphOrientationVertical?: string;
+	glyphOrientationHorizontal?: Nullable<string>;
+	glyphOrientationVertical?: Nullable<string>;
 	imageRendering?: 'auto' | 'optimizeSpeed' | 'optimizeQuality' | 'inherit';
 	letterSpacing?: string | number;
-	lightingColor?: string;
-	markerEnd?: string;
-	markerMid?: string;
-	markerStart?: string;
-	mask?: string;
+	lightingColor?: Nullable<string>;
+	markerEnd?: Nullable<string>;
+	markerMid?: Nullable<string>;
+	markerStart?: Nullable<string>;
+	mask?: Nullable<string>;
 	opacity?: number | string;
 	overflow?: 'visible' | 'hidden' | 'scroll' | 'auto' | 'inherit';
 	pointerEvents?:
@@ -216,9 +217,9 @@ interface SVGAttributes {
 		| 'none'
 		| 'inherit';
 	shapeRendering?: 'auto' | 'optimizeSpeed' | 'crispEdges' | 'geometricPrecision' | 'inherit';
-	stopColor?: string;
+	stopColor?: Nullable<string>;
 	stopOpacity?: number | string;
-	stroke?: string;
+	stroke?: Nullable<string>;
 	strokeDasharray?: string | number;
 	strokeDashoffset?: string | number;
 	strokeLinecap?: 'butt' | 'round' | 'square' | 'inherit';
@@ -227,15 +228,15 @@ interface SVGAttributes {
 	strokeOpacity?: number | string;
 	strokeWidth?: string | number;
 	textAnchor?: 'start' | 'middle' | 'end' | 'inherit';
-	textDecoration?: string;
+	textDecoration?: Nullable<string>;
 	textRendering?:
 		| 'auto'
 		| 'optimizeSpeed'
 		| 'optimizeLegibility'
 		| 'geometricPrecision'
 		| 'inherit';
-	transform?: string;
-	transformOrigin?: string;
+	transform?: Nullable<string>;
+	transformOrigin?: Nullable<string>;
 	unicodeBidi?:
 		| 'normal'
 		| 'embed'
@@ -259,10 +260,10 @@ interface SVGAttributes {
 	height?: string | number;
 	x?: string | number;
 	y?: string | number;
-	viewBox?: string;
-	preserveAspectRatio?: string;
-	xmlns?: string;
-	'xmlns:xlink'?: string;
+	viewBox?: Nullable<string>;
+	preserveAspectRatio?: Nullable<string>;
+	xmlns?: Nullable<string>;
+	'xmlns:xlink'?: Nullable<string>;
 
 	// Event handlers (inherited from HTML but included for clarity)
 	onClick?: EventListener | AddEventObject;
@@ -284,21 +285,21 @@ interface SVGAttributes {
 
 // SVG animation attributes
 interface SVGAnimationAttributes {
-	attributeName?: string;
+	attributeName?: Nullable<string>;
 	attributeType?: 'CSS' | 'XML' | 'auto';
-	begin?: string;
-	dur?: string;
-	end?: string;
-	min?: string;
-	max?: string;
+	begin?: Nullable<string>;
+	dur?: Nullable<string>;
+	end?: Nullable<string>;
+	min?: Nullable<string>;
+	max?: Nullable<string>;
 	restart?: 'always' | 'whenNotActive' | 'never';
 	repeatCount?: number | 'indefinite';
-	repeatDur?: string;
+	repeatDur?: Nullable<string>;
 	fill?: 'freeze' | 'remove';
 	calcMode?: 'discrete' | 'linear' | 'paced' | 'spline';
-	values?: string;
-	keyTimes?: string;
-	keySplines?: string;
+	values?: Nullable<string>;
+	keyTimes?: Nullable<string>;
+	keySplines?: Nullable<string>;
 	from?: string | number;
 	to?: string | number;
 	by?: string | number;
@@ -309,16 +310,16 @@ interface SVGAnimationAttributes {
 // SVG gradient attributes
 interface SVGGradientAttributes extends SVGAttributes {
 	gradientUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
-	gradientTransform?: string;
+	gradientTransform?: Nullable<string>;
 	spreadMethod?: 'pad' | 'reflect' | 'repeat';
-	href?: string;
-	'xlink:href'?: string;
+	href?: Nullable<string>;
+	'xlink:href'?: Nullable<string>;
 }
 
 // SVG filter primitive attributes
 interface SVGFilterAttributes {
-	in?: string;
-	result?: string;
+	in?: Nullable<string>;
+	result?: Nullable<string>;
 	x?: string | number;
 	y?: string | number;
 	width?: string | number;
@@ -328,12 +329,12 @@ interface SVGFilterAttributes {
 // SVG transfer function attributes (for feFuncR, feFuncG, feFuncB, feFuncA)
 interface SVGTransferFunctionAttributes {
 	type?: 'identity' | 'table' | 'discrete' | 'linear' | 'gamma';
-	tableValues?: string;
-	slope?: number;
-	intercept?: number;
-	amplitude?: number;
-	exponent?: number;
-	offset?: number;
+	tableValues?: Nullable<string>;
+	slope?: Nullable<number>;
+	intercept?: Nullable<number>;
+	amplitude?: Nullable<number>;
+	exponent?: Nullable<number>;
+	offset?: Nullable<number>;
 }
 
 // SVG text attributes
@@ -358,28 +359,28 @@ declare global {
 			head: HTMLAttributes;
 			title: HTMLAttributes;
 			base: HTMLAttributes & {
-				href?: string;
-				target?: string;
+				href?: Nullable<string>;
+				target?: Nullable<string>;
 			};
 			link: HTMLAttributes & {
-				rel?: string;
-				href?: string;
-				type?: string;
-				media?: string;
-				as?: string;
+				rel?: Nullable<string>;
+				href?: Nullable<string>;
+				type?: Nullable<string>;
+				media?: Nullable<string>;
+				as?: Nullable<string>;
 				crossOrigin?: 'anonymous' | 'use-credentials';
-				integrity?: string;
+				integrity?: Nullable<string>;
 			};
 			meta: HTMLAttributes & {
-				name?: string;
-				content?: string;
-				charSet?: string;
-				httpEquiv?: string;
-				property?: string;
+				name?: Nullable<string>;
+				content?: Nullable<string>;
+				charSet?: Nullable<string>;
+				httpEquiv?: Nullable<string>;
+				property?: Nullable<string>;
 			};
 			style: HTMLAttributes & {
-				type?: string;
-				media?: string;
+				type?: Nullable<string>;
+				media?: Nullable<string>;
 			};
 
 			// Sectioning root
@@ -405,7 +406,7 @@ declare global {
 
 			// Text content
 			blockquote: HTMLAttributes & {
-				cite?: string;
+				cite?: Nullable<string>;
 			};
 			dd: HTMLAttributes;
 			div: HTMLAttributes;
@@ -415,12 +416,12 @@ declare global {
 			figure: HTMLAttributes;
 			hr: HTMLAttributes;
 			li: HTMLAttributes & {
-				value?: number;
+				value?: Nullable<number>;
 			};
 			menu: HTMLAttributes;
 			ol: HTMLAttributes & {
 				reversed?: boolean;
-				start?: number;
+				start?: Nullable<number>;
 				type?: '1' | 'a' | 'A' | 'i' | 'I';
 			};
 			p: HTMLAttributes;
@@ -429,13 +430,13 @@ declare global {
 
 			// Inline text semantics
 			a: HTMLAttributes & {
-				href?: string;
-				target?: string;
-				rel?: string;
+				href?: Nullable<string>;
+				target?: Nullable<string>;
+				rel?: Nullable<string>;
 				download?: string | boolean;
-				hrefLang?: string;
-				type?: string;
-				referrerPolicy?: string;
+				hrefLang?: Nullable<string>;
+				type?: Nullable<string>;
+				referrerPolicy?: Nullable<string>;
 			};
 			abbr: HTMLAttributes;
 			b: HTMLAttributes;
@@ -445,7 +446,7 @@ declare global {
 			cite: HTMLAttributes;
 			code: HTMLAttributes;
 			data: HTMLAttributes & {
-				value?: string;
+				value?: Nullable<string>;
 			};
 			dfn: HTMLAttributes;
 			em: HTMLAttributes;
@@ -453,7 +454,7 @@ declare global {
 			kbd: HTMLAttributes;
 			mark: HTMLAttributes;
 			q: HTMLAttributes & {
-				cite?: string;
+				cite?: Nullable<string>;
 			};
 			rp: HTMLAttributes;
 			rt: HTMLAttributes;
@@ -466,7 +467,7 @@ declare global {
 			sub: HTMLAttributes;
 			sup: HTMLAttributes;
 			time: HTMLAttributes & {
-				dateTime?: string;
+				dateTime?: Nullable<string>;
 			};
 			u: HTMLAttributes;
 			var: HTMLAttributes;
@@ -474,18 +475,18 @@ declare global {
 
 			// Image and multimedia
 			area: HTMLAttributes & {
-				alt?: string;
-				coords?: string;
-				download?: string;
-				href?: string;
-				hrefLang?: string;
-				media?: string;
-				rel?: string;
+				alt?: Nullable<string>;
+				coords?: Nullable<string>;
+				download?: Nullable<string>;
+				href?: Nullable<string>;
+				hrefLang?: Nullable<string>;
+				media?: Nullable<string>;
+				rel?: Nullable<string>;
 				shape?: 'rect' | 'circle' | 'poly' | 'default';
-				target?: string;
+				target?: Nullable<string>;
 			};
 			audio: HTMLAttributes & {
-				src?: string;
+				src?: Nullable<string>;
 				autoplay?: boolean;
 				controls?: boolean;
 				loop?: boolean;
@@ -494,37 +495,37 @@ declare global {
 				crossOrigin?: 'anonymous' | 'use-credentials';
 			};
 			img: HTMLAttributes & {
-				src?: string;
-				alt?: string;
+				src?: Nullable<string>;
+				alt?: Nullable<string>;
 				width?: string | number;
 				height?: string | number;
 				loading?: 'eager' | 'lazy';
 				crossOrigin?: 'anonymous' | 'use-credentials';
 				decoding?: 'sync' | 'async' | 'auto';
 				fetchPriority?: 'high' | 'low' | 'auto';
-				referrerPolicy?: string;
-				sizes?: string;
-				srcSet?: string;
-				useMap?: string;
+				referrerPolicy?: Nullable<string>;
+				sizes?: Nullable<string>;
+				srcSet?: Nullable<string>;
+				useMap?: Nullable<string>;
 			};
 			map: HTMLAttributes & {
-				name?: string;
+				name?: Nullable<string>;
 			};
 			track: HTMLAttributes & {
 				default?: boolean;
 				kind?: 'subtitles' | 'captions' | 'descriptions' | 'chapters' | 'metadata';
-				label?: string;
-				src?: string;
-				srcLang?: string;
+				label?: Nullable<string>;
+				src?: Nullable<string>;
+				srcLang?: Nullable<string>;
 			};
 			video: HTMLAttributes & {
-				src?: string;
+				src?: Nullable<string>;
 				autoplay?: boolean;
 				controls?: boolean;
 				loop?: boolean;
 				muted?: boolean;
 				preload?: 'none' | 'metadata' | 'auto';
-				poster?: string;
+				poster?: Nullable<string>;
 				width?: string | number;
 				height?: string | number;
 				crossOrigin?: 'anonymous' | 'use-credentials';
@@ -533,42 +534,42 @@ declare global {
 
 			// Embedded content
 			embed: HTMLAttributes & {
-				src?: string;
-				type?: string;
+				src?: Nullable<string>;
+				type?: Nullable<string>;
 				width?: string | number;
 				height?: string | number;
 			};
 			iframe: HTMLAttributes & {
-				src?: string;
-				srcdoc?: string;
-				name?: string;
-				sandbox?: string;
-				allow?: string;
+				src?: Nullable<string>;
+				srcdoc?: Nullable<string>;
+				name?: Nullable<string>;
+				sandbox?: Nullable<string>;
+				allow?: Nullable<string>;
 				allowFullScreen?: boolean;
 				width?: string | number;
 				height?: string | number;
 				loading?: 'eager' | 'lazy';
-				referrerPolicy?: string;
+				referrerPolicy?: Nullable<string>;
 			};
 			object: HTMLAttributes & {
-				data?: string;
-				type?: string;
-				name?: string;
-				useMap?: string;
+				data?: Nullable<string>;
+				type?: Nullable<string>;
+				name?: Nullable<string>;
+				useMap?: Nullable<string>;
 				width?: string | number;
 				height?: string | number;
 			};
 			picture: HTMLAttributes;
 			portal: HTMLAttributes & {
-				referrerPolicy?: string;
-				src?: string;
+				referrerPolicy?: Nullable<string>;
+				src?: Nullable<string>;
 			};
 			source: HTMLAttributes & {
-				src?: string;
-				type?: string;
-				media?: string;
-				sizes?: string;
-				srcSet?: string;
+				src?: Nullable<string>;
+				type?: Nullable<string>;
+				media?: Nullable<string>;
+				sizes?: Nullable<string>;
+				srcSet?: Nullable<string>;
 			};
 
 			// SVG and MathML
@@ -620,40 +621,40 @@ declare global {
 						| 'saturation'
 						| 'color'
 						| 'luminosity';
-					in2?: string;
+					in2?: Nullable<string>;
 				};
 			feColorMatrix: HTMLAttributes &
 				SVGFilterAttributes & {
 					type?: 'matrix' | 'saturate' | 'hueRotate' | 'luminanceToAlpha';
-					values?: string;
+					values?: Nullable<string>;
 				};
 			feComponentTransfer: HTMLAttributes & SVGFilterAttributes;
 			feComposite: HTMLAttributes &
 				SVGFilterAttributes & {
 					operator?: 'over' | 'in' | 'out' | 'atop' | 'xor' | 'lighter' | 'arithmetic';
-					in2?: string;
-					k1?: number;
-					k2?: number;
-					k3?: number;
-					k4?: number;
+					in2?: Nullable<string>;
+					k1?: Nullable<number>;
+					k2?: Nullable<number>;
+					k3?: Nullable<number>;
+					k4?: Nullable<number>;
 				};
 			feConvolveMatrix: HTMLAttributes & SVGFilterAttributes;
 			feDiffuseLighting: HTMLAttributes & SVGFilterAttributes;
 			feDisplacementMap: HTMLAttributes & SVGFilterAttributes;
 			feDistantLight: HTMLAttributes &
 				SVGFilterAttributes & {
-					azimuth?: number;
-					elevation?: number;
+					azimuth?: Nullable<number>;
+					elevation?: Nullable<number>;
 				};
 			feDropShadow: HTMLAttributes &
 				SVGFilterAttributes & {
-					dx?: number;
-					dy?: number;
+					dx?: Nullable<number>;
+					dy?: Nullable<number>;
 					stdDeviation?: number | string;
 				};
 			feFlood: HTMLAttributes &
 				SVGFilterAttributes & {
-					'flood-color'?: string;
+					'flood-color'?: Nullable<string>;
 					'flood-opacity'?: number | string;
 				};
 			feFuncA: HTMLAttributes & SVGTransferFunctionAttributes;
@@ -674,33 +675,33 @@ declare global {
 				};
 			feOffset: HTMLAttributes &
 				SVGFilterAttributes & {
-					dx?: number;
-					dy?: number;
+					dx?: Nullable<number>;
+					dy?: Nullable<number>;
 				};
 			fePointLight: HTMLAttributes &
 				SVGFilterAttributes & {
-					x?: number;
-					y?: number;
-					z?: number;
+					x?: Nullable<number>;
+					y?: Nullable<number>;
+					z?: Nullable<number>;
 				};
 			feSpecularLighting: HTMLAttributes & SVGFilterAttributes;
 			feSpotLight: HTMLAttributes &
 				SVGFilterAttributes & {
-					x?: number;
-					y?: number;
-					z?: number;
-					pointsAtX?: number;
-					pointsAtY?: number;
-					pointsAtZ?: number;
-					specularExponent?: number;
-					limitingConeAngle?: number;
+					x?: Nullable<number>;
+					y?: Nullable<number>;
+					z?: Nullable<number>;
+					pointsAtX?: Nullable<number>;
+					pointsAtY?: Nullable<number>;
+					pointsAtZ?: Nullable<number>;
+					specularExponent?: Nullable<number>;
+					limitingConeAngle?: Nullable<number>;
 				};
 			feTile: HTMLAttributes & SVGFilterAttributes;
 			feTurbulence: HTMLAttributes &
 				SVGFilterAttributes & {
 					baseFrequency?: number | string;
-					numOctaves?: number;
-					seed?: number;
+					numOctaves?: Nullable<number>;
+					seed?: Nullable<number>;
 					stitchTiles?: 'stitch' | 'noStitch';
 					type?: 'fractalNoise' | 'turbulence';
 				};
@@ -723,13 +724,13 @@ declare global {
 			g: HTMLAttributes & SVGAttributes;
 			image: HTMLAttributes &
 				SVGAttributes & {
-					href?: string;
-					'xlink:href'?: string;
+					href?: Nullable<string>;
+					'xlink:href'?: Nullable<string>;
 					x?: string | number;
 					y?: string | number;
 					width?: string | number;
 					height?: string | number;
-					preserveAspectRatio?: string;
+					preserveAspectRatio?: Nullable<string>;
 				};
 			line: HTMLAttributes &
 				SVGAttributes & {
@@ -766,17 +767,17 @@ declare global {
 			metadata: HTMLAttributes & SVGAttributes;
 			mpath: HTMLAttributes &
 				SVGAttributes & {
-					'xlink:href'?: string;
+					'xlink:href'?: Nullable<string>;
 				};
 			path: HTMLAttributes &
 				SVGAttributes & {
-					d?: string;
-					pathLength?: number;
+					d?: Nullable<string>;
+					pathLength?: Nullable<number>;
 				};
 			pattern: HTMLAttributes &
 				SVGAttributes & {
 					patternContentUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
-					patternTransform?: string;
+					patternTransform?: Nullable<string>;
 					patternUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
 					x?: string | number;
 					y?: string | number;
@@ -785,11 +786,11 @@ declare global {
 				};
 			polygon: HTMLAttributes &
 				SVGAttributes & {
-					points?: string;
+					points?: Nullable<string>;
 				};
 			polyline: HTMLAttributes &
 				SVGAttributes & {
-					points?: string;
+					points?: Nullable<string>;
 				};
 			radialGradient: HTMLAttributes &
 				SVGGradientAttributes & {
@@ -813,14 +814,14 @@ declare global {
 			stop: HTMLAttributes &
 				SVGAttributes & {
 					offset?: string | number;
-					'stop-color'?: string;
+					'stop-color'?: Nullable<string>;
 					'stop-opacity'?: number | string;
 				};
 			switch: HTMLAttributes & SVGAttributes;
 			symbol: HTMLAttributes &
 				SVGAttributes & {
-					viewBox?: string;
-					preserveAspectRatio?: string;
+					viewBox?: Nullable<string>;
+					preserveAspectRatio?: Nullable<string>;
 					refX?: string | number;
 					refY?: string | number;
 				};
@@ -828,8 +829,8 @@ declare global {
 			textPath: HTMLAttributes &
 				SVGAttributes &
 				SVGTextAttributes & {
-					href?: string;
-					'xlink:href'?: string;
+					href?: Nullable<string>;
+					'xlink:href'?: Nullable<string>;
 					startOffset?: string | number;
 					method?: 'align' | 'stretch';
 					spacing?: 'auto' | 'exact';
@@ -837,8 +838,8 @@ declare global {
 			tspan: HTMLAttributes & SVGAttributes & SVGTextAttributes;
 			use: HTMLAttributes &
 				SVGAttributes & {
-					href?: string;
-					'xlink:href'?: string;
+					href?: Nullable<string>;
+					'xlink:href'?: Nullable<string>;
 					x?: string | number;
 					y?: string | number;
 					width?: string | number;
@@ -846,8 +847,8 @@ declare global {
 				};
 			view: HTMLAttributes &
 				SVGAttributes & {
-					viewBox?: string;
-					preserveAspectRatio?: string;
+					viewBox?: Nullable<string>;
+					preserveAspectRatio?: Nullable<string>;
 				};
 
 			// Scripting
@@ -857,48 +858,48 @@ declare global {
 			};
 			noscript: HTMLAttributes;
 			script: HTMLAttributes & {
-				src?: string;
-				type?: string;
+				src?: Nullable<string>;
+				type?: Nullable<string>;
 				async?: boolean;
 				defer?: boolean;
 				crossOrigin?: 'anonymous' | 'use-credentials';
-				integrity?: string;
+				integrity?: Nullable<string>;
 				noModule?: boolean;
-				referrerPolicy?: string;
+				referrerPolicy?: Nullable<string>;
 			};
 
 			// Demarcating edits
 			del: HTMLAttributes & {
-				cite?: string;
-				dateTime?: string;
+				cite?: Nullable<string>;
+				dateTime?: Nullable<string>;
 			};
 			ins: HTMLAttributes & {
-				cite?: string;
-				dateTime?: string;
+				cite?: Nullable<string>;
+				dateTime?: Nullable<string>;
 			};
 
 			// Table content
 			caption: HTMLAttributes;
 			col: HTMLAttributes & {
-				span?: number;
+				span?: Nullable<number>;
 			};
 			colgroup: HTMLAttributes & {
-				span?: number;
+				span?: Nullable<number>;
 			};
 			table: HTMLAttributes;
 			tbody: HTMLAttributes;
 			td: HTMLAttributes & {
-				colSpan?: number;
-				rowSpan?: number;
-				headers?: string;
+				colSpan?: Nullable<number>;
+				rowSpan?: Nullable<number>;
+				headers?: Nullable<string>;
 			};
 			tfoot: HTMLAttributes;
 			th: HTMLAttributes & {
-				colSpan?: number;
-				rowSpan?: number;
-				headers?: string;
+				colSpan?: Nullable<number>;
+				rowSpan?: Nullable<number>;
+				headers?: Nullable<string>;
 				scope?: 'row' | 'col' | 'rowgroup' | 'colgroup';
-				abbr?: string;
+				abbr?: Nullable<string>;
 			};
 			thead: HTMLAttributes;
 			tr: HTMLAttributes;
@@ -907,116 +908,116 @@ declare global {
 			button: HTMLAttributes & {
 				type?: 'button' | 'submit' | 'reset';
 				disabled?: boolean;
-				form?: string;
-				formAction?: string;
-				formEncType?: string;
-				formMethod?: string;
+				form?: Nullable<string>;
+				formAction?: Nullable<string>;
+				formEncType?: Nullable<string>;
+				formMethod?: Nullable<string>;
 				formNoValidate?: boolean;
-				formTarget?: string;
-				name?: string;
-				value?: string;
+				formTarget?: Nullable<string>;
+				name?: Nullable<string>;
+				value?: Nullable<string>;
 			};
 			datalist: HTMLAttributes;
 			fieldset: HTMLAttributes & {
 				disabled?: boolean;
-				form?: string;
-				name?: string;
+				form?: Nullable<string>;
+				name?: Nullable<string>;
 			};
 			form: HTMLAttributes & {
-				action?: string;
+				action?: Nullable<string>;
 				method?: 'get' | 'post' | 'dialog';
-				encType?: string;
-				acceptCharset?: string;
+				encType?: Nullable<string>;
+				acceptCharset?: Nullable<string>;
 				autoComplete?: 'on' | 'off';
 				noValidate?: boolean;
-				target?: string;
+				target?: Nullable<string>;
 			};
 			input: HTMLAttributes & {
-				type?: string;
+				type?: Nullable<string>;
 				value?: string | number;
-				placeholder?: string;
+				placeholder?: Nullable<string>;
 				disabled?: boolean;
-				name?: string;
-				accept?: string;
-				autoComplete?: string;
+				name?: Nullable<string>;
+				accept?: Nullable<string>;
+				autoComplete?: Nullable<string>;
 				autoFocus?: boolean;
 				checked?: boolean;
-				form?: string;
-				formAction?: string;
-				formEncType?: string;
-				formMethod?: string;
+				form?: Nullable<string>;
+				formAction?: Nullable<string>;
+				formEncType?: Nullable<string>;
+				formMethod?: Nullable<string>;
 				formNoValidate?: boolean;
-				formTarget?: string;
-				list?: string;
+				formTarget?: Nullable<string>;
+				list?: Nullable<string>;
 				max?: string | number;
-				maxLength?: number;
+				maxLength?: Nullable<number>;
 				min?: string | number;
-				minLength?: number;
+				minLength?: Nullable<number>;
 				multiple?: boolean;
-				pattern?: string;
+				pattern?: Nullable<string>;
 				readOnly?: boolean;
 				required?: boolean;
-				size?: number;
-				src?: string;
+				size?: Nullable<number>;
+				src?: Nullable<string>;
 				step?: string | number;
 				width?: string | number;
 				height?: string | number;
 			};
 			label: HTMLAttributes & {
-				for?: string;
-				htmlFor?: string;
+				for?: Nullable<string>;
+				htmlFor?: Nullable<string>;
 			};
 			legend: HTMLAttributes;
 			meter: HTMLAttributes & {
-				value?: number;
-				min?: number;
-				max?: number;
-				low?: number;
-				high?: number;
-				optimum?: number;
+				value?: Nullable<number>;
+				min?: Nullable<number>;
+				max?: Nullable<number>;
+				low?: Nullable<number>;
+				high?: Nullable<number>;
+				optimum?: Nullable<number>;
 			};
 			optgroup: HTMLAttributes & {
 				disabled?: boolean;
-				label?: string;
+				label?: Nullable<string>;
 			};
 			option: HTMLAttributes & {
 				value?: string | number;
 				selected?: boolean;
 				disabled?: boolean;
-				label?: string;
+				label?: Nullable<string>;
 			};
 			output: HTMLAttributes & {
-				for?: string;
-				htmlFor?: string;
-				form?: string;
-				name?: string;
+				for?: Nullable<string>;
+				htmlFor?: Nullable<string>;
+				form?: Nullable<string>;
+				name?: Nullable<string>;
 			};
 			progress: HTMLAttributes & {
-				value?: number;
-				max?: number;
+				value?: Nullable<number>;
+				max?: Nullable<number>;
 			};
 			select: HTMLAttributes & {
 				disabled?: boolean;
-				form?: string;
+				form?: Nullable<string>;
 				multiple?: boolean;
-				name?: string;
+				name?: Nullable<string>;
 				required?: boolean;
-				size?: number;
-				autoComplete?: string;
+				size?: Nullable<number>;
+				autoComplete?: Nullable<string>;
 			};
 			textarea: HTMLAttributes & {
-				placeholder?: string;
+				placeholder?: Nullable<string>;
 				disabled?: boolean;
-				rows?: number;
-				cols?: number;
-				name?: string;
-				form?: string;
-				maxLength?: number;
-				minLength?: number;
+				rows?: Nullable<number>;
+				cols?: Nullable<number>;
+				name?: Nullable<string>;
+				form?: Nullable<string>;
+				maxLength?: Nullable<number>;
+				minLength?: Nullable<number>;
 				readOnly?: boolean;
 				required?: boolean;
 				wrap?: 'soft' | 'hard';
-				autoComplete?: string;
+				autoComplete?: Nullable<string>;
 				autoFocus?: boolean;
 			};
 
@@ -1031,7 +1032,7 @@ declare global {
 
 			// Web Components
 			slot: HTMLAttributes & {
-				name?: string;
+				name?: Nullable<string>;
 			};
 			template: HTMLAttributes;
 
