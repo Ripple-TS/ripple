@@ -2154,4 +2154,211 @@ describe('early return in client components', () => {
 			expect(container.querySelector('div')).toBeTruthy();
 		});
 	});
+
+	describe('deeply nested conditions with returns', () => {
+		it('handles return inside nested div > if > div > if chain', () => {
+			component App() {
+				let a = false;
+				let b = false;
+				let c = false;
+				let d = false;
+
+				<div class="outer">
+					if (a) {
+						<span class="a">{'branch a'}</span>
+					}
+					<div class="inner">
+						if (b) {
+							<span class="b">{'branch b'}</span>
+						}
+						if (c) {
+							return;
+						}
+						if (d) {
+							<span class="d">{'branch d'}</span>
+							return;
+						}
+					</div>
+				</div>
+				<div class="after">{'after'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.outer')).toBeTruthy();
+			expect(container.querySelector('.inner')).toBeTruthy();
+			expect(container.querySelector('.after')).toBeTruthy();
+			expect(container.querySelector('.a')).toBeFalsy();
+			expect(container.querySelector('.b')).toBeFalsy();
+			expect(container.querySelector('.d')).toBeFalsy();
+		});
+
+		it('nested: first return triggers, hides content after outer div', () => {
+			component App() {
+				let a = false;
+				let b = false;
+				let c = true;
+				let d = false;
+
+				<div class="outer">
+					if (a) {
+						<span class="a">{'branch a'}</span>
+					}
+					<div class="inner">
+						if (b) {
+							<span class="b">{'branch b'}</span>
+						}
+						if (c) {
+							return;
+						}
+						if (d) {
+							<span class="d">{'branch d'}</span>
+							return;
+						}
+					</div>
+				</div>
+				<div class="after">{'after'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.outer')).toBeTruthy();
+			expect(container.querySelector('.inner')).toBeTruthy();
+			expect(container.querySelector('.after')).toBeFalsy();
+		});
+
+		it('nested: second return triggers with template, hides content after', () => {
+			component App() {
+				let a = true;
+				let b = true;
+				let c = false;
+				let d = true;
+
+				<div class="outer">
+					if (a) {
+						<span class="a">{'branch a'}</span>
+					}
+					<div class="inner">
+						if (b) {
+							<span class="b">{'branch b'}</span>
+						}
+						if (c) {
+							return;
+						}
+						if (d) {
+							<span class="d">{'branch d'}</span>
+							return;
+						}
+					</div>
+				</div>
+				<div class="after">{'after'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.a')).toBeTruthy();
+			expect(container.querySelector('.b')).toBeTruthy();
+			expect(container.querySelector('.d')).toBeTruthy();
+			expect(container.querySelector('.after')).toBeFalsy();
+		});
+
+		it('nested: both returns active, first wins', () => {
+			component App() {
+				let a = false;
+				let b = false;
+				let c = true;
+				let d = true;
+
+				<div class="outer">
+					if (a) {
+						<span class="a">{'branch a'}</span>
+					}
+					<div class="inner">
+						if (b) {
+							<span class="b">{'branch b'}</span>
+						}
+						if (c) {
+							return;
+						}
+						if (d) {
+							<span class="d">{'branch d'}</span>
+							return;
+						}
+					</div>
+				</div>
+				<div class="after">{'after'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.outer')).toBeTruthy();
+			expect(container.querySelector('.inner')).toBeTruthy();
+			expect(container.querySelector('.d')).toBeFalsy();
+			expect(container.querySelector('.after')).toBeFalsy();
+		});
+
+		it('nested reactive: toggling conditions updates DOM', () => {
+			component App() {
+				let a = track(false);
+				let b = track(false);
+				let c = track(false);
+				let d = track(false);
+
+				<button
+					class="toggle-c"
+					onClick={() => {
+						@c = !@c;
+					}}
+				>
+					{'toggle c'}
+				</button>
+				<button
+					class="toggle-d"
+					onClick={() => {
+						@d = !@d;
+					}}
+				>
+					{'toggle d'}
+				</button>
+
+				<div class="outer">
+					if (@a) {
+						<span class="a">{'branch a'}</span>
+					}
+					<div class="inner">
+						if (@b) {
+							<span class="b">{'branch b'}</span>
+						}
+						if (@c) {
+							return;
+						}
+						if (@d) {
+							<span class="d">{'branch d'}</span>
+							return;
+						}
+					</div>
+				</div>
+				<div class="after">{'after'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.after')).toBeTruthy();
+			expect(container.querySelector('.d')).toBeFalsy();
+
+			// trigger c return
+			container.querySelector('.toggle-c').click();
+			flushSync();
+			expect(container.querySelector('.after')).toBeFalsy();
+			expect(container.querySelector('.d')).toBeFalsy();
+
+			// untrigger c, trigger d
+			container.querySelector('.toggle-c').click();
+			flushSync();
+			container.querySelector('.toggle-d').click();
+			flushSync();
+			expect(container.querySelector('.d')).toBeTruthy();
+			expect(container.querySelector('.after')).toBeFalsy();
+
+			// untrigger d, everything visible again
+			container.querySelector('.toggle-d').click();
+			flushSync();
+			expect(container.querySelector('.after')).toBeTruthy();
+		});
+	});
 });

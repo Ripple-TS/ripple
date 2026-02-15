@@ -1145,4 +1145,144 @@ describe('early return in SSR', () => {
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>a !== b</div>');
 	});
+
+	describe('deeply nested conditions with returns', () => {
+		it('handles return inside nested div > if > div > if chain, all false', async () => {
+			component App() {
+				let a = false;
+				let b = false;
+				let c = false;
+				let d = false;
+
+				<div class="outer">
+					if (a) {
+						<span class="a">{'branch a'}</span>
+					}
+					<div class="inner">
+						if (b) {
+							<span class="b">{'branch b'}</span>
+						}
+						if (c) {
+							return;
+						}
+						if (d) {
+							<span class="d">{'branch d'}</span>
+							return;
+						}
+					</div>
+				</div>
+				<div class="after">{'after'}</div>
+			}
+
+			const { body } = await render(App);
+			expect(body).toContain('class="outer"');
+			expect(body).toContain('class="inner"');
+			expect(body).toContain('class="after"');
+			expect(body).not.toContain('class="a"');
+			expect(body).not.toContain('class="b"');
+			expect(body).not.toContain('class="d"');
+		});
+
+		it('nested: first return (c) triggers, hides after', async () => {
+			component App() {
+				let a = false;
+				let b = false;
+				let c = true;
+				let d = false;
+
+				<div class="outer">
+					if (a) {
+						<span class="a">{'branch a'}</span>
+					}
+					<div class="inner">
+						if (b) {
+							<span class="b">{'branch b'}</span>
+						}
+						if (c) {
+							return;
+						}
+						if (d) {
+							<span class="d">{'branch d'}</span>
+							return;
+						}
+					</div>
+				</div>
+				<div class="after">{'after'}</div>
+			}
+
+			const { body } = await render(App);
+			expect(body).toContain('class="outer"');
+			expect(body).toContain('class="inner"');
+			expect(body).not.toContain('class="after"');
+			expect(body).not.toContain('class="d"');
+		});
+
+		it('nested: second return (d) triggers with template, hides after', async () => {
+			component App() {
+				let a = true;
+				let b = true;
+				let c = false;
+				let d = true;
+
+				<div class="outer">
+					if (a) {
+						<span class="a">{'branch a'}</span>
+					}
+					<div class="inner">
+						if (b) {
+							<span class="b">{'branch b'}</span>
+						}
+						if (c) {
+							return;
+						}
+						if (d) {
+							<span class="d">{'branch d'}</span>
+							return;
+						}
+					</div>
+				</div>
+				<div class="after">{'after'}</div>
+			}
+
+			const { body } = await render(App);
+			expect(body).toContain('class="a"');
+			expect(body).toContain('class="b"');
+			expect(body).toContain('class="d"');
+			expect(body).not.toContain('class="after"');
+		});
+
+		it('nested: both returns active, first (c) wins', async () => {
+			component App() {
+				let a = false;
+				let b = false;
+				let c = true;
+				let d = true;
+
+				<div class="outer">
+					if (a) {
+						<span class="a">{'branch a'}</span>
+					}
+					<div class="inner">
+						if (b) {
+							<span class="b">{'branch b'}</span>
+						}
+						if (c) {
+							return;
+						}
+						if (d) {
+							<span class="d">{'branch d'}</span>
+							return;
+						}
+					</div>
+				</div>
+				<div class="after">{'after'}</div>
+			}
+
+			const { body } = await render(App);
+			expect(body).toContain('class="outer"');
+			expect(body).toContain('class="inner"');
+			expect(body).not.toContain('class="d"');
+			expect(body).not.toContain('class="after"');
+		});
+	});
 });
