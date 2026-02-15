@@ -9,7 +9,7 @@ repository = "https://github.com/trueadm/ripple"
 [grammars.ripple]
 repository = "https://github.com/Ripple-TS/ripple"
 rev = "1b35809e5d18aab72f6c0aff82e228981662d315"
-path = "packages/tree-sitter"
+path = "grammars/tree-sitter"
 
 [language_servers.ripple-language-server]
 name = "Ripple Language Server"

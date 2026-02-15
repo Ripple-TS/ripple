@@ -98,6 +98,7 @@ const xmlTargetFiles = [
 		rootDir,
 		'packages/intellij-plugin/src/main/resources/textmate/ripple.tmbundle/Syntaxes/ripple.tmLanguage',
 	),
+	path.join(rootDir, 'assets/Ripple.tmbundle/Syntaxes/ripple.tmLanguage'),
 ];
 
 const main = async () => {

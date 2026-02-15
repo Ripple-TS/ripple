@@ -4,8 +4,8 @@ function add_ripple()
   require('nvim-treesitter.parsers').ripple = {
     install_info = {
       url = 'https://github.com/Ripple-TS/ripple',
-      location = 'packages/tree-sitter',
-      queries = 'packages/tree-sitter/queries',
+      location = 'grammars/tree-sitter',
+      queries = 'grammars/tree-sitter/queries',
     },
   }
 end
