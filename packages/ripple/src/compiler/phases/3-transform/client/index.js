@@ -2985,9 +2985,9 @@ function transform_children(children, context) {
 		for (const ret of new_returns) {
 			const info = /** @type {{ name: string, tracked: boolean }} */ (return_flags.get(ret));
 			if (info.tracked) {
-				state.init?.push(b.let(b.id(info.name), b.call('_$_.tracked', b.false)));
+				state.init?.unshift(b.var(b.id(info.name), b.call('_$_.tracked', b.false)));
 			} else {
-				state.init?.push(b.let(b.id(info.name), b.false));
+				state.init?.unshift(b.var(b.id(info.name), b.false));
 			}
 		}
 	}
@@ -3044,67 +3044,12 @@ function transform_children(children, context) {
 	};
 
 	for (let node_idx = 0; node_idx < normalized.length; node_idx++) {
-		const node = normalized[node_idx];
+		let node = normalized[node_idx];
+		const original_node = node;
+
 		if (accumulated_return_flags.length > 0 && is_template_or_control_flow(node) && !state.to_ts) {
-			const guard_flags = [...accumulated_return_flags];
-			const remaining = normalized.slice(node_idx);
-			state.template?.push('<!>');
-
-			if (initial === null && root) {
-				create_initial(node);
-			}
-
-			const current_prev = prev;
-			const anchor_id = (() => {
-				if (current_prev !== null) {
-					const id = b.id(state.scope.generate('node'));
-					state.init?.push(b.var(id, b.call('_$_.sibling', current_prev())));
-					return id;
-				} else if (initial !== null) {
-					if (is_fragment) {
-						const id = b.id(state.scope.generate('node'));
-						state.init?.push(b.var(id, b.call('_$_.first_child_frag', initial)));
-						return id;
-					}
-					return initial;
-				} else if (state.flush_node !== null) {
-					const id = b.id(state.scope.generate('node'));
-					state.init?.push(b.var(id, b.call('_$_.child', state.flush_node?.())));
-					return id;
-				} else {
-					return b.id(state.scope.generate('node'));
-				}
-			})();
-
-			const content_body = b.block(
-				transform_body(remaining, {
-					...context,
-					state: { ...state, flush_node: null, return_flags },
-				}),
-			);
-			const content_id = state.scope.generate('return_content');
-
-			const statements = [];
-			statements.push(b.var(b.id(content_id), b.arrow([b.id('__anchor')], content_body)));
-			statements.push(
-				b.stmt(
-					b.call(
-						'_$_.if',
-						anchor_id,
-						b.arrow(
-							[b.id('__render')],
-							b.block([
-								b.if(
-									build_return_guard(guard_flags),
-									b.stmt(b.call(b.id('__render'), b.id(content_id))),
-								),
-							]),
-						),
-					),
-				),
-			);
-			state.init?.push(b.block(statements));
-			break; // All remaining nodes handled
+			const guard_condition = build_return_guard([...accumulated_return_flags]);
+			node = b.if(guard_condition, node, null);
 		}
 
 		if (
@@ -3317,8 +3262,8 @@ function transform_children(children, context) {
 			}
 		}
 
-		if (has_returns && node.metadata?.has_return && node.metadata.returns) {
-			for (const ret of node.metadata.returns) {
+		if (has_returns && original_node.metadata?.has_return && original_node.metadata.returns) {
+			for (const ret of original_node.metadata.returns) {
 				const info = return_flags.get(ret);
 				if (info && !accumulated_return_flags.some((f) => f.name === info.name)) {
 					accumulated_return_flags.push(info);
