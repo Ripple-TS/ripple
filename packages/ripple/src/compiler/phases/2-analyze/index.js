@@ -156,30 +156,6 @@ function mark_as_tracked(path) {
 	}
 }
 
-/**
- * Checks if an AST expression tree contains any tracked identifiers (@var)
- * @param {AST.Node | null | undefined} node
- * @returns {boolean}
- */
-function has_tracked_in_expression(node) {
-	if (!node) return false;
-	if (node.type === 'Identifier' && /** @type {AST.Identifier} */ (node).tracked) return true;
-	const record = /** @type {Record<string, any>} */ (node);
-	for (const key of Object.keys(record)) {
-		if (key === 'metadata' || key === 'type') continue;
-		const child = record[key];
-		if (child && typeof child === 'object') {
-			if (Array.isArray(child)) {
-				for (const item of child) {
-					if (item && typeof item.type === 'string' && has_tracked_in_expression(item)) return true;
-				}
-			} else if (typeof child.type === 'string' && has_tracked_in_expression(child)) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
 
 /** @type {Visitors<AST.Node, AnalysisState>} */
 const visitors = {
@@ -408,6 +384,13 @@ const visitors = {
 			mark_as_tracked(context.path);
 		}
 
+		context.next();
+	},
+
+	NewExpression(node, context) {
+		if (context.state.metadata?.tracking === false) {
+			context.state.metadata.tracking = true;
+		}
 		context.next();
 	},
 
@@ -812,11 +795,25 @@ const visitors = {
 			has_await: false,
 		};
 
+		const test_metadata = { tracking: false };
+		context.visit(node.test, { ...context.state, metadata: test_metadata });
+		if (test_metadata.tracking) {
+			/** @type {AST.TrackedNode} */ (node.test).tracked = true;
+		}
+
 		context.visit(node.consequent, context.state);
 
 		const consequent_body =
 			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
 		check_unreachable_after_return(consequent_body, context);
+
+		if (
+			consequent_body.length === 1 &&
+			consequent_body[0].type === 'ReturnStatement' &&
+			!node.alternate
+		) {
+			node.metadata.lone_return = true;
+		}
 
 		if (!node.metadata.has_template && !node.metadata.has_return) {
 			error(
@@ -883,7 +880,7 @@ const visitors = {
 				break;
 			}
 
-			if (ancestor.type === 'IfStatement' && has_tracked_in_expression(ancestor.test)) {
+			if (ancestor.type === 'IfStatement' && /** @type {AST.TrackedNode} */ (ancestor.test).tracked) {
 				is_reactive = true;
 			}
 

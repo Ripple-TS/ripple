@@ -29,6 +29,7 @@ interface BaseNodeMetaData {
 	returns?: AST.ReturnStatement[];
 	has_return?: boolean;
 	is_reactive?: boolean;
+	lone_return?: boolean;
 }
 
 interface FunctionMetaData extends BaseNodeMetaData {
