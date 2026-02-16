@@ -69,7 +69,7 @@ export function KeyedForLoop(__output) {
 	const items = [
 		{ id: 1, name: 'First' },
 		{ id: 2, name: 'Second' },
-		{ id: 3, name: 'Third' }
+		{ id: 3, name: 'Third' },
 	];
 
 	__output.push('<ul');
@@ -225,7 +225,10 @@ export function ForLoopInteractive(__output) {
 export function NestedForLoop(__output) {
 	_$_.push_component();
 
-	const grid = [[1, 2], [3, 4]];
+	const grid = [
+		[1, 2],
+		[3, 4],
+	];
 
 	__output.push('<div');
 	__output.push(' class="grid"');
@@ -308,7 +311,7 @@ export function ForLoopComplexObjects(__output) {
 
 	const users = [
 		{ id: 1, name: 'Alice', role: 'Admin' },
-		{ id: 2, name: 'Bob', role: 'User' }
+		{ id: 2, name: 'Bob', role: 'User' },
 	];
 
 	__output.push('<div');

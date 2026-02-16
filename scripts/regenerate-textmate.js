@@ -67,7 +67,7 @@ function createValueNode(doc, value, depth) {
 	}
 
 	throw new TypeError(`Unsupported value type: ${value}`);
-};
+}
 
 /**
  * @param {string[]} targets
@@ -82,10 +82,10 @@ function writeTargets(targets, contents) {
 			await writeFile(target, contents, 'utf8');
 		}),
 	);
-};
+}
 
 const __filename = fileURLToPath(import.meta.url);
-const rootDir = path.join(path.dirname(__filename), "..");
+const rootDir = path.join(path.dirname(__filename), '..');
 
 const sourceFile = path.join(rootDir, 'packages/vscode-plugin/syntaxes/ripple.tmLanguage.json');
 
@@ -95,14 +95,14 @@ const targetFiles = [
 ];
 
 const main = async () => {
-	console.log("Reading TextMate grammar from VS Code plugin...");
+	console.log('Reading TextMate grammar from VS Code plugin...');
 	const raw = await readFile(sourceFile, 'utf8');
 	const grammar = JSON.parse(/** @type {string} */ (raw));
 	if (!Array.isArray(grammar.fileTypes)) {
 		grammar.fileTypes = ['ripple'];
 	}
 
-	console.log("Converting TextMate grammar from JSON to XML...");
+	console.log('Converting TextMate grammar from JSON to XML...');
 	const dom = new JSDOM('<plist/>', { contentType: 'text/xml' });
 	const doc = dom.window.document;
 	const root = doc.documentElement;
@@ -125,7 +125,7 @@ ${plist}
 `.trim();
 
 	await writeTargets(targetFiles, xml);
-	console.log("TextMate grammar conversion complete.");
+	console.log('TextMate grammar conversion complete.');
 };
 
 main().catch((error) => {

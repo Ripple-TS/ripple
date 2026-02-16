@@ -117,6 +117,38 @@ Source Code (.ripple) → Parse → Analyze → Transform → Output (JS + CSS)
 - Generates string concatenation for SSR output
 - Handles `#server` block code execution
 - Registers CSS for hydration
+- Wraps control flow blocks with hydration comment markers
+
+### SSR vs Client Compilation
+
+The same `.ripple` module produces different output depending on the compilation
+mode, controlled by `options.mode` in the compiler:
+
+```javascript
+// compiler/index.js
+const result =
+  options.mode === 'server'
+    ? transform_server(filename, source, analysis, options?.minify_css ?? false)
+    : transform_client(
+        filename,
+        source,
+        analysis,
+        false,
+        options?.minify_css ?? false,
+      );
+```
+
+| Aspect           | Client Transform                           | Server Transform                         |
+| ---------------- | ------------------------------------------ | ---------------------------------------- |
+| **Output**       | Runtime calls (`_$_.render()`, `_$_.if()`) | String concatenation (`__output.push()`) |
+| **Templates**    | DOM template literals, `cloneNode()`       | Escaped HTML strings                     |
+| **Reactivity**   | Block scheduling, dirty checking           | Immediate execution, no scheduling       |
+| **Control flow** | Creates branch blocks, DOM diffing         | Wraps with `<!--[-->`/`<!--]-->` markers |
+| **Events**       | Delegation setup (`_$_.delegate()`)        | Omitted entirely                         |
+| **CSS**          | Injects hash for scoping                   | Registers CSS hash via `register_css()`  |
+
+**Vite plugin** compiles modules twice for SSR apps - once with `mode: 'client'`
+and once with `mode: 'server'`.
 
 ### Key AST Node Types (`packages/ripple/src/compiler/types/`)
 
@@ -195,6 +227,54 @@ Source Code (.ripple) → Parse → Analyze → Transform → Output (JS + CSS)
 - CSS registration for hydration markers
 - Escape utilities for safe HTML output
 
+### Hydration Mechanism
+
+Hydration allows the client to "adopt" server-rendered HTML without re-rendering,
+using comment markers to identify dynamic regions.
+
+**Comment Markers (inserted by server transform):**
+
+| Marker      | Constant          | Purpose                                      |
+| ----------- | ----------------- | -------------------------------------------- |
+| `<!--[-->`  | `HYDRATION_START` | Opens a dynamic block (if, for, switch, try) |
+| `<!--]-->`  | `HYDRATION_END`   | Closes a dynamic block                       |
+| `<!--[!-->` | `HYDRATION_ELSE`  | Marks else/fallback branch boundary          |
+
+**Server-side generation:**
+
+```javascript
+// Server transform wraps control flow with markers
+__output.push('<!--[-->'); // HYDRATION_START
+// ... render content ...
+__output.push('<!--]-->'); // HYDRATION_END
+```
+
+**Client-side hydration
+(`packages/ripple/src/runtime/internal/client/hydration.js`):**
+
+```javascript
+export let hydrating = false; // True during hydration phase
+export let hydrate_node = null; // Current DOM node being hydrated
+```
+
+**Key hydration functions:**
+
+| Function                 | Purpose                           |
+| ------------------------ | --------------------------------- |
+| `set_hydrating(value)`   | Enable/disable hydration mode     |
+| `set_hydrate_node(node)` | Set the current node pointer      |
+| `hydrate_next()`         | Advance to next sibling node      |
+| `pop(node)`              | Reset hydrate_node after mounting |
+
+**Hydration flow:**
+
+1. Server renders HTML with `<!--[-->` / `<!--]-->` markers around dynamic blocks
+2. Client receives HTML, `hydrating = true` is set
+3. Runtime walks DOM using `hydrate_node`, matching structure to component tree
+4. Instead of creating elements, runtime "claims" existing DOM nodes
+5. Comment markers guide block boundary detection
+6. After hydration completes, `hydrating` is set back to `false`
+
 ## Language Server (`packages/language-server/src/`)
 
 Built on **Volar framework** with TypeScript integration.
@@ -267,6 +347,51 @@ pnpm test --project prettier-plugin
 | `prettier-plugin`  | `packages/prettier-plugin/src/*.test.js`        | jsdom       |
 | `cli`              | `packages/cli/tests/**/*.test.js`               | jsdom       |
 | `compat-react`     | `packages/compat-react/tests/**/*.test.ripple`  | jsdom       |
+
+### Test Architecture
+
+**Ripple test files (`.test.ripple`):**
+
+Test files are valid Ripple modules that export a default test component. The Vite
+plugin transforms them before Vitest runs:
+
+```ripple
+// Example: packages/ripple/tests/client/reactivity.test.ripple
+import { describe, it, expect } from 'vitest';
+
+component default() {
+  describe('tracked', () => {
+    it('updates when value changes', async () => {
+      let count = @0;
+      // test implementation
+    });
+  });
+}
+```
+
+**Setup files (`packages/ripple/tests/`):**
+
+| File              | Purpose                                         |
+| ----------------- | ----------------------------------------------- |
+| `setup-client.js` | Client test setup: DOM utilities, flush helpers |
+| `setup-server.js` | Server test setup: Output class, render helpers |
+
+**Hydration tests (`packages/ripple/tests/hydration/`):**
+
+Hydration tests verify client/server output consistency:
+
+1. Server compiles and renders to HTML string with hydration markers
+2. Client receives pre-rendered HTML, sets `hydrating = true`
+3. Client walks DOM, claiming existing nodes instead of creating new ones
+4. Tests verify final DOM matches expected state
+
+```javascript
+// Typical hydration test pattern
+const server_html = render_server(Component); // With <!--[--> markers
+container.innerHTML = server_html;
+hydrate(Component, container); // Claims existing nodes
+expect(container.innerHTML).toBe(expected);
+```
 
 ### Development Playground
 

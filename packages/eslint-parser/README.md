@@ -1,6 +1,7 @@
 # @ripple-ts/eslint-parser
 
-ESLint parser for Ripple (.ripple files). This parser enables ESLint to understand and lint `.ripple` files by leveraging Ripple's built-in compiler.
+ESLint parser for Ripple (.ripple files). This parser enables ESLint to understand
+and lint `.ripple` files by leveraging Ripple's built-in compiler.
 
 ## Installation
 
@@ -56,7 +57,9 @@ export default [
 
 ## How It Works
 
-This parser uses Ripple's compiler (`ripple/compiler`) to parse `.ripple` files into an ESTree-compatible AST that ESLint can analyze. The Ripple compiler already outputs ESTree-compliant ASTs, making integration straightforward.
+This parser uses Ripple's compiler (`ripple/compiler`) to parse `.ripple` files
+into an ESTree-compatible AST that ESLint can analyze. The Ripple compiler already
+outputs ESTree-compliant ASTs, making integration straightforward.
 
 The parser:
 
@@ -93,7 +96,8 @@ export component Counter() {
 }
 ```
 
-The parser will successfully parse this and allow ESLint rules (like those from `@ripple-ts/eslint-plugin`) to check for:
+The parser will successfully parse this and allow ESLint rules (like those from
+`@ripple-ts/eslint-plugin`) to check for:
 
 - Track calls at module scope
 - Missing @ operators
@@ -102,15 +106,19 @@ The parser will successfully parse this and allow ESLint rules (like those from 
 
 ## Limitations
 
-- The parser requires Node.js runtime as it uses `require()` to load the Ripple compiler
+- The parser requires Node.js runtime as it uses `require()` to load the Ripple
+  compiler
 - Browser-based linting is not currently supported
 
 ## Related Packages
 
-- [@ripple-ts/eslint-plugin](https://www.npmjs.com/package/@ripple-ts/eslint-plugin) - ESLint rules for Ripple
+- [@ripple-ts/eslint-plugin](https://www.npmjs.com/package/@ripple-ts/eslint-plugin) -
+  ESLint rules for Ripple
 - [ripple](https://ripplejs.com) - The Ripple framework
-- [@ripple-ts/vite-plugin](https://www.npmjs.com/package/@ripple-ts/vite-plugin) - Vite plugin for Ripple
-- [@ripple-ts/prettier-plugin](https://www.npmjs.com/package/@ripple-ts/prettier-plugin) - Prettier plugin for Ripple
+- [@ripple-ts/vite-plugin](https://www.npmjs.com/package/@ripple-ts/vite-plugin) -
+  Vite plugin for Ripple
+- [@ripple-ts/prettier-plugin](https://www.npmjs.com/package/@ripple-ts/prettier-plugin) -
+  Prettier plugin for Ripple
 
 ## License
 

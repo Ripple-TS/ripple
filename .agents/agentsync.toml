@@ -5,7 +5,7 @@
 source_dir = "."
 
 # Default agents to process when --agents is not specified
-default_agents = ["claude", "copilot", "cursor", "vscode", "gemini", "opencode"]
+default_agents = ["claude", "copilot", "cursor", "vscode", "gemini", "opencode", "codex"]
 
 # Gitignore management
 # DISABLED: We want symlinks committed to git so cloud-based agents
@@ -28,6 +28,12 @@ description = "Claude Code - Anthropic's AI coding assistant"
 source = "AGENTS.md"
 destination = "CLAUDE.md"
 type = "symlink"
+
+[agents.claude.targets.skills]
+source = "skills"
+destination = ".claude/skills"
+type = "symlink-contents"
+pattern = "*.md"
 
 # GitHub Copilot
 [agents.copilot]
@@ -69,6 +75,12 @@ source = "AGENTS.md"
 destination = "GEMINI.md"
 type = "symlink"
 
+[agents.gemini.targets.skills]
+source = "skills"
+destination = ".gemini/skills"
+type = "symlink-contents"
+pattern = "*.md"
+
 # OpenCode
 [agents.opencode]
 enabled = true
@@ -78,3 +90,14 @@ description = "OpenCode AI"
 source = "AGENTS.md"
 destination = "AGENTS.md"
 type = "symlink"
+
+# OpenAI Codex CLI (uses skills, not instructions file)
+[agents.codex]
+enabled = true
+description = "OpenAI Codex CLI"
+
+[agents.codex.targets.skills]
+source = "skills"
+destination = ".codex/skills"
+type = "symlink-contents"
+pattern = "*.md"

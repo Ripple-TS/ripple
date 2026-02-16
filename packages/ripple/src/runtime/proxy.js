@@ -26,10 +26,10 @@ import {
 export function proxy(value, block) {
 	// if non-proxyable, or is already a proxy, return `value`
 	if (
-		typeof value !== 'object'
-		|| value === null
-		|| TRACKED_ARRAY in value
-		|| TRACKED_OBJECT in value
+		typeof value !== 'object' ||
+		value === null ||
+		TRACKED_ARRAY in value ||
+		TRACKED_OBJECT in value
 	) {
 		return value;
 	}
@@ -153,7 +153,9 @@ export function proxy(value, block) {
 		},
 
 		setPrototypeOf() {
-			throw new Error(`Cannot set prototype of ${is_proxied_array ? '\`TrackedArray\`' : '\`TrackedObject\`'}`);
+			throw new Error(
+				`Cannot set prototype of ${is_proxied_array ? '\`TrackedArray\`' : '\`TrackedObject\`'}`,
+			);
 		},
 
 		deleteProperty(target, prop) {
@@ -185,7 +187,7 @@ export function proxy(value, block) {
 
 			if (t !== undefined || !exists || get_descriptor(target, prop)?.writable) {
 				if (t === undefined) {
-					t = tracked(exists ?  /** @type {any} */ (target)[prop] : UNINITIALIZED, block);
+					t = tracked(exists ? /** @type {any} */ (target)[prop] : UNINITIALIZED, block);
 
 					tracked_elements.set(prop, t);
 				}
@@ -257,14 +259,13 @@ export function proxy(value, block) {
 						enumerable: true,
 						configurable: true,
 						value,
-						writable: true
+						writable: true,
 					};
 				}
 			}
 
 			return descriptor;
 		},
-
 	});
 }
 
@@ -284,7 +285,7 @@ export function array_proxy({ elements, block, from_static = false, use_array = 
 
 	if (
 		from_static &&
-		(first = get_first_if_length(/** @type {Array<T>} */(elements))) !== undefined
+		(first = get_first_if_length(/** @type {Array<T>} */ (elements))) !== undefined
 	) {
 		arr = new Array();
 		arr[0] = first;
@@ -334,8 +335,8 @@ function get_first_if_length(array) {
 		array.length === 1 &&
 		0 in array &&
 		Number.isInteger(first) &&
-    /** @type {number} */ (first) >= 0 &&
-    /** @type {number} */ (first) <= MAX_ARRAY_LENGTH
+		/** @type {number} */ (first) >= 0 &&
+		/** @type {number} */ (first) <= MAX_ARRAY_LENGTH
 	) {
 		return /** @type {number} */ (first);
 	}

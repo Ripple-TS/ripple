@@ -1,6 +1,7 @@
 # Ripple Extension for Zed
 
-This extension provides Ripple language support for the [Zed editor](https://zed.dev).
+This extension provides Ripple language support for the
+[Zed editor](https://zed.dev).
 
 ## Installation
 
@@ -27,10 +28,14 @@ Once published to the Zed extensions registry:
 
 ## Language Server Setup
 
-The extension automatically downloads the Ripple Language Server the first time it runs. The version is pinned via the `config` entry for `@ripple-ts/language-server` in this package's `package.json`. If you'd prefer to manage the dependency yourself, install it via npm:
+The extension automatically downloads the Ripple Language Server the first time it
+runs. The version is pinned via the `config` entry for
+`@ripple-ts/language-server` in this package's `package.json`. If you'd prefer to
+manage the dependency yourself, install it via npm:
 
 ```bash
 npm install -g @ripple-ts/language-server
 ```
 
-Project-local installations (`node_modules/.bin/ripple-language-server`) are also detected automatically.
+Project-local installations (`node_modules/.bin/ripple-language-server`) are also
+detected automatically.

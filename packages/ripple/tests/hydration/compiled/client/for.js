@@ -10,7 +10,10 @@ var root_7 = _$_.template(`<li> </li>`, 0);
 var root_6 = _$_.template(`<button class="add">Add</button><ul></ul>`, 1);
 var root_9 = _$_.template(`<li> </li>`, 0);
 var root_8 = _$_.template(`<button class="remove">Remove</button><ul></ul>`, 1);
-var root_11 = _$_.template(`<div><span class="value"> </span><button class="increment">+</button></div>`, 0);
+var root_11 = _$_.template(
+	`<div><span class="value"> </span><button class="increment">+</button></div>`,
+	0,
+);
 var root_10 = _$_.template(`<div></div>`, 0);
 var root_14 = _$_.template(`<span> </span>`, 0);
 var root_13 = _$_.template(`<div></div>`, 0);
@@ -44,7 +47,7 @@ export function StaticForLoop(__anchor, _, __block) {
 
 				_$_.append(__anchor, li_1);
 			},
-			4
+			4,
 		);
 
 		_$_.pop(ul_1);
@@ -79,7 +82,7 @@ export function ForLoopWithIndex(__anchor, _, __block) {
 
 				_$_.append(__anchor, li_2);
 			},
-			12
+			12,
 		);
 
 		_$_.pop(ul_2);
@@ -95,7 +98,7 @@ export function KeyedForLoop(__anchor, _, __block) {
 	const items = [
 		{ id: 1, name: 'First' },
 		{ id: 2, name: 'Second' },
-		{ id: 3, name: 'Third' }
+		{ id: 3, name: 'Third' },
 	];
 
 	var ul_3 = root_4();
@@ -120,7 +123,7 @@ export function KeyedForLoop(__anchor, _, __block) {
 				_$_.append(__anchor, li_3);
 			},
 			4,
-			(pattern) => _$_.get(pattern).id
+			(pattern) => _$_.get(pattern).id,
 		);
 
 		_$_.pop(ul_3);
@@ -159,7 +162,7 @@ export function ReactiveForLoopAdd(__anchor, _, __block) {
 
 				_$_.append(__anchor, li_4);
 			},
-			4
+			4,
 		);
 
 		_$_.pop(ul_4);
@@ -177,7 +180,10 @@ export function ReactiveForLoopRemove(__anchor, _, __block) {
 	var button_2 = _$_.first_child_frag(fragment_1);
 
 	button_2.__click = () => {
-		_$_.set(items, _$_.with_scope(__block, () => _$_.get(items).slice(0, -1)));
+		_$_.set(
+			items,
+			_$_.with_scope(__block, () => _$_.get(items).slice(0, -1)),
+		);
 	};
 
 	var ul_5 = _$_.sibling(button_2);
@@ -198,7 +204,7 @@ export function ReactiveForLoopRemove(__anchor, _, __block) {
 
 				_$_.append(__anchor, li_5);
 			},
-			4
+			4,
 		);
 
 		_$_.pop(ul_5);
@@ -247,7 +253,7 @@ export function ForLoopInteractive(__anchor, _, __block) {
 
 				_$_.append(__anchor, div_2);
 			},
-			12
+			12,
 		);
 
 		_$_.pop(div_1);
@@ -260,7 +266,10 @@ export function ForLoopInteractive(__anchor, _, __block) {
 export function NestedForLoop(__anchor, _, __block) {
 	_$_.push_component();
 
-	const grid = [[1, 2], [3, 4]];
+	const grid = [
+		[1, 2],
+		[3, 4],
+	];
 	var div_3 = root_12();
 
 	{
@@ -285,12 +294,17 @@ export function NestedForLoop(__anchor, _, __block) {
 							}
 
 							_$_.render(() => {
-								_$_.set_class(span_2, `cell-${_$_.get(rowIndex)}-${_$_.get(colIndex)}`, void 0, true);
+								_$_.set_class(
+									span_2,
+									`cell-${_$_.get(rowIndex)}-${_$_.get(colIndex)}`,
+									void 0,
+									true,
+								);
 							});
 
 							_$_.append(__anchor, span_2);
 						},
-						12
+						12,
 					);
 
 					_$_.pop(div_4);
@@ -302,7 +316,7 @@ export function NestedForLoop(__anchor, _, __block) {
 
 				_$_.append(__anchor, div_4);
 			},
-			12
+			12,
 		);
 
 		_$_.pop(div_3);
@@ -334,7 +348,7 @@ export function EmptyForLoop(__anchor, _, __block) {
 
 				_$_.append(__anchor, span_3);
 			},
-			4
+			4,
 		);
 
 		_$_.pop(div_5);
@@ -349,7 +363,7 @@ export function ForLoopComplexObjects(__anchor, _, __block) {
 
 	const users = [
 		{ id: 1, name: 'Alice', role: 'Admin' },
-		{ id: 2, name: 'Bob', role: 'User' }
+		{ id: 2, name: 'Bob', role: 'User' },
 	];
 
 	var div_6 = root_17();
@@ -384,28 +398,28 @@ export function ForLoopComplexObjects(__anchor, _, __block) {
 						var __a = _$_.get(pattern_1).name;
 
 						if (__prev.a !== __a) {
-							_$_.set_text(text_8, __prev.a = __a);
+							_$_.set_text(text_8, (__prev.a = __a));
 						}
 
 						var __b = _$_.get(pattern_1).role;
 
 						if (__prev.b !== __b) {
-							_$_.set_text(text_9, __prev.b = __b);
+							_$_.set_text(text_9, (__prev.b = __b));
 						}
 
 						var __c = `user-${_$_.get(pattern_1).id}`;
 
 						if (__prev.c !== __c) {
-							_$_.set_class(div_7, __prev.c = __c, void 0, true);
+							_$_.set_class(div_7, (__prev.c = __c), void 0, true);
 						}
 					},
-					{ a: ' ', b: ' ', c: Symbol() }
+					{ a: ' ', b: ' ', c: Symbol() },
 				);
 
 				_$_.append(__anchor, div_7);
 			},
 			4,
-			(pattern_1) => _$_.get(pattern_1).id
+			(pattern_1) => _$_.get(pattern_1).id,
 		);
 
 		_$_.pop(div_6);

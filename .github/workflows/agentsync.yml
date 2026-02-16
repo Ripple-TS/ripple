@@ -9,6 +9,9 @@ on:
       - 'AGENTS.md'
       - 'GEMINI.md'
       - '.github/copilot-instructions.md'
+      - '.claude/skills/**'
+      - '.gemini/skills/**'
+      - '.codex/skills/**'
 
   pull_request:
     branches: [main, develop]
@@ -18,6 +21,9 @@ on:
       - 'AGENTS.md'
       - 'GEMINI.md'
       - '.github/copilot-instructions.md'
+      - '.claude/skills/**'
+      - '.gemini/skills/**'
+      - '.codex/skills/**'
 
 jobs:
   verify:

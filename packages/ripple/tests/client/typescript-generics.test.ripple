@@ -60,7 +60,7 @@ describe('generic patterns', () => {
 		component App() {
 			function getBuilder() {
 				return {
-					build<T>(): T {
+					build(): T {
 						return 'test' as unknown as T;
 					},
 				};
@@ -80,7 +80,7 @@ describe('generic patterns', () => {
 		component App() {
 			function getBuilder() {
 				return <T,>() => ({
-					build<T>(): T {
+					build(): T {
 						return 'test' as unknown as T;
 					},
 				});
@@ -98,7 +98,7 @@ describe('generic patterns', () => {
 		component App() {
 			function getBuilder() {
 				return <T,>() => ({
-					build<U>(): U {
+					build(): U {
 						return 'test' as U;
 					},
 				});
@@ -120,7 +120,7 @@ describe('generic patterns', () => {
 		component App() {
 			function getBuilder() {
 				return <T,>() => ({
-					build<V,T,U>(): { build: () => V; data: T; key: U } {
+					build(): { build: () => V; data: T; key: U } {
 						return {
 							build(): V {
 								return 'test' as V;
@@ -148,7 +148,7 @@ describe('generic patterns', () => {
 		component App() {
 			function getBuilder() {
 				return <T,>() => ({
-					build<V, T, U>(): { build: () => V; data: T; key: U } {
+					build(): { build: () => V; data: T; key: U } {
 						return {
 							build(): V {
 								return 'test' as V;
@@ -176,7 +176,7 @@ describe('generic patterns', () => {
 		component App() {
 			function getBuilder() {
 				return <T,>() => ({
-					build<V, T, U>(): { build: () => V; data: T; key: U } {
+					build(): { build: () => V; data: T; key: U } {
 						return {
 							build(): V {
 								return 42 as V;

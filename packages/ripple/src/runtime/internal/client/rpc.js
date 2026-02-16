@@ -22,7 +22,9 @@ export async function rpc(hash, args) {
 	}
 
 	if (data === '') {
-		throw new Error('The server function end-point did not return a response. Are you running a Ripple server?');
+		throw new Error(
+			'The server function end-point did not return a response. Are you running a Ripple server?',
+		);
 	}
 
 	return devalue.parse(data).value;

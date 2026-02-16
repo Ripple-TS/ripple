@@ -9,13 +9,13 @@ import { object_proxy } from './proxy.js';
  * @returns {TrackedObject<T>}
  */
 export function TrackedObject(obj) {
-  if (!new.target) {
-    throw new Error("TrackedObject must be called with 'new'");
-  }
+	if (!new.target) {
+		throw new Error("TrackedObject must be called with 'new'");
+	}
 
-  var block = safe_scope();
+	var block = safe_scope();
 
-  return object_proxy(obj, block);
+	return object_proxy(obj, block);
 }
 
 /**
@@ -25,5 +25,5 @@ export function TrackedObject(obj) {
  * @returns {TrackedObject<T>}
  */
 export function tracked_object(obj, block) {
-  return object_proxy(obj, block);
+	return object_proxy(obj, block);
 }

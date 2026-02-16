@@ -40,4 +40,3 @@ describe('normalize_css_property_name utility', () => {
 		expect(normalize_css_property_name('textDecorationColor')).toBe('text-decoration-color');
 	});
 });
-

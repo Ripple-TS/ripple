@@ -16,7 +16,7 @@ export function normalize_css_property_name(str) {
 		return normalized_result;
 	}
 
-	normalized_result = str.replace(/[A-Z]/g, m => '-' + m.toLowerCase());
+	normalized_result = str.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase());
 	normalized_properties_cache.set(str, normalized_result);
 
 	return normalized_result;

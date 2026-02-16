@@ -90,7 +90,8 @@ If you update the tree-sitter grammar in `packages/tree-sitter`:
 
 ### After Language Server Changes
 
-The extension just launches the language server binary - no changes needed to the extension itself unless:
+The extension just launches the language server binary - no changes needed to the
+extension itself unless:
 
 - Binary name changes
 - Command-line arguments change

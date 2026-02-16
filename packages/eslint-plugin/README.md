@@ -1,8 +1,10 @@
 # @ripple-ts/eslint-plugin
 
-ESLint plugin for [Ripple](https://ripplejs.com) - helps enforce best practices and catch common mistakes when writing Ripple applications.
+ESLint plugin for [Ripple](https://ripplejs.com) - helps enforce best practices
+and catch common mistakes when writing Ripple applications.
 
-Works just like `eslint-plugin-react` - simply install and use the recommended config!
+Works just like `eslint-plugin-react` - simply install and use the recommended
+config!
 
 ## Installation
 
@@ -29,7 +31,8 @@ The plugin automatically:
 
 - Detects and uses `@ripple-ts/eslint-parser` if installed for `.ripple` files
 - Detects and uses `@typescript-eslint/parser` if installed for `.ts`/`.tsx` files
-- Excludes `.d.ts` files, `node_modules`, `dist`, and `build` directories from linting
+- Excludes `.d.ts` files, `node_modules`, `dist`, and `build` directories from
+  linting
 - Works with both `.ts`/`.tsx` and `.ripple` files
 
 ### Legacy Config (.eslintrc)
@@ -45,7 +48,8 @@ The plugin automatically:
 
 ### `recommended`
 
-The recommended configuration enables all rules at their default severity levels (errors and warnings).
+The recommended configuration enables all rules at their default severity levels
+(errors and warnings).
 
 ```js
 import ripple from '@ripple-ts/eslint-plugin';
@@ -77,7 +81,8 @@ export default [
 
 ### `ripple/no-module-scope-track` (error)
 
-Prevents calling `track()` at module scope. Tracked values must be created within a component context.
+Prevents calling `track()` at module scope. Tracked values must be created within
+a component context.
 
 ❌ **Incorrect:**
 
@@ -107,7 +112,8 @@ export component App() {
 
 ### `ripple/require-component-export` (warning)
 
-Warns when capitalized components are not exported. This helps ensure components are reusable across modules.
+Warns when capitalized components are not exported. This helps ensure components
+are reusable across modules.
 
 ❌ **Incorrect:**
 
@@ -128,7 +134,8 @@ export component MyButton() {
 
 ### `ripple/prefer-oninput` (warning, fixable)
 
-Recommends using `onInput` instead of `onChange` for form inputs. Unlike React, Ripple doesn't have synthetic events, so `onInput` is the correct event handler.
+Recommends using `onInput` instead of `onChange` for form inputs. Unlike React,
+Ripple doesn't have synthetic events, so `onInput` is the correct event handler.
 
 ❌ **Incorrect:**
 
@@ -146,7 +153,8 @@ This rule is auto-fixable with `--fix`.
 
 ### `ripple/no-return-in-component` (error)
 
-Prevents returning JSX from Ripple components. In Ripple, JSX should be used as statements, not expressions.
+Prevents returning JSX from Ripple components. In Ripple, JSX should be used as
+statements, not expressions.
 
 ❌ **Incorrect:**
 
@@ -166,7 +174,8 @@ export component App() {
 
 ### `ripple/unbox-tracked-values` (error)
 
-Ensures tracked values are unboxed with the `@` operator when used in JSX expressions.
+Ensures tracked values are unboxed with the `@` operator when used in JSX
+expressions.
 
 ❌ **Incorrect:**
 
@@ -192,7 +201,8 @@ export component App() {
 
 ### `ripple/no-introspect-in-modules` (error)
 
-Prevents using the `@` introspection operator in TypeScript/JavaScript modules. In `.ts`/`.js` files, you should use `get()` and `set()` functions instead.
+Prevents using the `@` introspection operator in TypeScript/JavaScript modules. In
+`.ts`/`.js` files, you should use `get()` and `set()` functions instead.
 
 ❌ **Incorrect:**
 
@@ -227,7 +237,8 @@ export function useCount() {
 }
 ```
 
-**Note:** The `@` operator is only valid in `.ripple` component files. In TypeScript modules, use `get()` to read values and `set()` to update them.
+**Note:** The `@` operator is only valid in `.ripple` component files. In
+TypeScript modules, use `get()` to read values and `set()` to update them.
 
 ## Custom Configuration
 
@@ -249,7 +260,8 @@ export default [
 ];
 ```
 
-The plugin will automatically detect and use the Ripple parser for your `.ripple` files.
+The plugin will automatically detect and use the Ripple parser for your `.ripple`
+files.
 
 ## License
 
@@ -262,5 +274,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## Related
 
 - [Ripple](https://ripplejs.com) - The Ripple framework
-- [@ripple-ts/vite-plugin](https://www.npmjs.com/package/@ripple-ts/vite-plugin) - Vite plugin for Ripple
-- [@ripple-ts/prettier-plugin](https://www.npmjs.com/package/@ripple-ts/prettier-plugin) - Prettier plugin for Ripple
+- [@ripple-ts/vite-plugin](https://www.npmjs.com/package/@ripple-ts/vite-plugin) -
+  Vite plugin for Ripple
+- [@ripple-ts/prettier-plugin](https://www.npmjs.com/package/@ripple-ts/prettier-plugin) -
+  Prettier plugin for Ripple

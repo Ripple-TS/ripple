@@ -1,7 +1,7 @@
-name: "✨ Feature Request"
-description: "Suggest a new feature or enhancement for Ripple"
-title: "[Feature]: "
-labels: ["enhancement", "triage"]
+name: '✨ Feature Request'
+description: 'Suggest a new feature or enhancement for Ripple'
+title: '[Feature]: '
+labels: ['enhancement', 'triage']
 body:
   - type: markdown
     attributes:
@@ -11,41 +11,41 @@ body:
   - type: dropdown
     id: category
     attributes:
-      label: "Feature Category"
-      description: "What area does this feature relate to?"
+      label: 'Feature Category'
+      description: 'What area does this feature relate to?'
       options:
-        - "Performance Enhancement"
-        - "Developer Experience"
-        - "Syntax/Language Improvement"
-        - "Tooling Integration"
-        - "Documentation"
-        - "Testing/Quality"
-        - "Other"
+        - 'Performance Enhancement'
+        - 'Developer Experience'
+        - 'Syntax/Language Improvement'
+        - 'Tooling Integration'
+        - 'Documentation'
+        - 'Testing/Quality'
+        - 'Other'
     validations:
       required: true
 
   - type: textarea
     id: problem
     attributes:
-      label: "Problem Statement"
+      label: 'Problem Statement'
       description: "What problem does this feature solve? What's the use case?"
-      placeholder: "As a user, I want to... so that I can..."
+      placeholder: 'As a user, I want to... so that I can...'
     validations:
       required: true
 
   - type: textarea
     id: solution
     attributes:
-      label: "Proposed Solution"
-      description: "Describe your proposed solution or feature"
-      placeholder: "I would like to see... This could work by..."
+      label: 'Proposed Solution'
+      description: 'Describe your proposed solution or feature'
+      placeholder: 'I would like to see... This could work by...'
     validations:
       required: true
 
   - type: textarea
     id: alternatives
     attributes:
-      label: "Alternatives Considered"
+      label: 'Alternatives Considered'
       description: "What other approaches have you considered? Any workarounds you're currently using?"
       placeholder: "I considered... but this doesn't work because..."
     validations:
@@ -54,8 +54,8 @@ body:
   - type: textarea
     id: examples
     attributes:
-      label: "Examples & References"
-      description: "Links to similar features in other tools, mockups, or code examples"
+      label: 'Examples & References'
+      description: 'Links to similar features in other tools, mockups, or code examples'
       placeholder: "Similar to how X does Y... Here's a mockup/example..."
     validations:
       required: false
@@ -63,7 +63,7 @@ body:
   - type: checkboxes
     id: checklist
     attributes:
-      label: "Checklist"
+      label: 'Checklist'
       options:
         - label: "I've searched for existing feature requests"
           required: true

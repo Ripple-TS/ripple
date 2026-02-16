@@ -85,7 +85,7 @@ describe('TrackedURL > parsing', () => {
 		component URLTest() {
 			const url = new TrackedURL('https://192.168.1.1:8080/path');
 
-			<button onClick={() => url.hostname = '10.0.0.1'}>{'Change IP'}</button>
+			<button onClick={() => (url.hostname = '10.0.0.1')}>{'Change IP'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.hostname}</pre>
 		}
@@ -110,7 +110,7 @@ describe('TrackedURL > parsing', () => {
 		component URLTest() {
 			const url = new TrackedURL('http://localhost:3000/api/data');
 
-			<button onClick={() => url.port = '8080'}>{'Change Port'}</button>
+			<button onClick={() => (url.port = '8080')}>{'Change Port'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.hostname}</pre>
 			<pre>{url.port}</pre>
@@ -138,7 +138,7 @@ describe('TrackedURL > parsing', () => {
 		component URLTest() {
 			const url = new TrackedURL('https://example.com/api/v1/users/123/profile');
 
-			<button onClick={() => url.pathname = '/api/v2/users/456/settings'}>{'Change Path'}</button>
+			<button onClick={() => (url.pathname = '/api/v2/users/456/settings')}>{'Change Path'}</button>
 			<pre>{url.pathname}</pre>
 			<pre>{url.href}</pre>
 		}
