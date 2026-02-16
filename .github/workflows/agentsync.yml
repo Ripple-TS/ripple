@@ -1,0 +1,49 @@
+name: AgentSync Check
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - '.agents/**'
+      - 'CLAUDE.md'
+      - 'AGENTS.md'
+      - 'GEMINI.md'
+      - '.github/copilot-instructions.md'
+
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - '.agents/**'
+      - 'CLAUDE.md'
+      - 'AGENTS.md'
+      - 'GEMINI.md'
+      - '.github/copilot-instructions.md'
+
+jobs:
+  verify:
+    name: Verify Agent Symlinks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --prod false --frozen-lockfile
+
+      - name: Apply AgentSync configuration
+        run: pnpm agents:sync
+
+      - name: Verify AgentSync status
+        run: pnpm agents:check
