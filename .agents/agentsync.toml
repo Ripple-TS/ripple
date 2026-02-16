@@ -5,7 +5,7 @@
 source_dir = "."
 
 # Default agents to process when --agents is not specified
-default_agents = ["claude", "copilot", "cursor", "vscode", "gemini", "opencode", "codex"]
+default_agents = ["claude", "copilot", "cursor", "vscode", "gemini", "opencode", "codex", "github"]
 
 # Gitignore management
 # DISABLED: We want symlinks committed to git so cloud-based agents
@@ -101,3 +101,13 @@ source = "skills"
 destination = ".codex/skills"
 type = "symlink-contents"
 pattern = "*.md"
+
+# GitHub Agents (Copilot Workspace, GitHub Actions agents, etc.)
+[agents.github]
+enabled = true
+description = "GitHub Agents"
+
+[agents.github.targets.instructions]
+source = "AGENTS.md"
+destination = ".github/AGENTS.md"
+type = "symlink"
