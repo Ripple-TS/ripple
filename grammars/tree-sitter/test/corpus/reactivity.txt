@@ -112,6 +112,40 @@ component App() {
           name: (identifier))))))
 
 ==================
+Tracked Map and Set Shorthand
+==================
+
+const set = new #Set([1, 2, 3]);
+const map = new #Map([['a', 1], ['b', 2]]);
+
+---
+
+(program
+  (lexical_declaration
+    (variable_declarator
+      name: (identifier)
+      (new_expression
+        constructor: (tracked_set_expression
+          arguments: (arguments
+            (array
+              (number)
+              (number)
+              (number)))))))
+  (lexical_declaration
+    (variable_declarator
+      name: (identifier)
+      (new_expression
+        constructor: (tracked_map_expression
+          arguments: (arguments
+            (array
+              (array
+                (string)
+                (number))
+              (array
+                (string)
+                (number)))))))))
+
+==================
 Augmented Assignment with Unbox
 ==================
 

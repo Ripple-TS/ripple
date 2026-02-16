@@ -176,6 +176,38 @@ component Status({ status }) {
                 name: (identifier)))))))))
 
 ==================
+Try Pending Block
+==================
+
+component SuspenseBoundary() {
+  try {
+    <AsyncComponent />
+  } pending {
+    <p>{'Loading...'}</p>
+  }
+}
+
+---
+
+(program
+  (component_declaration
+    name: (identifier)
+    parameters: (formal_parameters)
+    body: (component_body
+      (try_statement
+        body: (statement_block
+          (jsx_self_closing_element
+            name: (identifier)))
+        pending: (pending_clause
+          body: (statement_block
+            (jsx_element
+              open_tag: (jsx_opening_element
+                name: (identifier))
+              children: (jsx_expression (string))
+              close_tag: (jsx_closing_element
+                name: (identifier)))))))))
+
+==================
 Try-Catch Error Boundary
 ==================
 

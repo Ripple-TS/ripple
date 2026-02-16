@@ -19,8 +19,14 @@
 (function_declaration
   name: (identifier) @function)
 
+(class_declaration
+  name: (identifier) @type)
+
 (method_definition
   name: (property_name) @function.method)
+
+(field_definition
+  property: (property_name) @property)
 
 (call_expression
   function: (identifier) @function.call)
@@ -38,11 +44,6 @@
 
 (rest_parameter
   (identifier) @variable.parameter)
-
-; Reactive constructs
-(unbox_expression "@" @operator.special)
-(reactive_array "#[" @punctuation.bracket.special)
-(reactive_object "#{" @punctuation.bracket.special)
 
 ; JSX/Components
 (jsx_opening_element
@@ -113,9 +114,6 @@
 ; Literals
 (string) @string
 (template_string) @string
-(template_substitution
-  "${" @punctuation.special
-  "}" @punctuation.special)
 
 (number) @number
 (true) @constant.builtin.boolean
@@ -134,66 +132,8 @@
 ; Operators
 (unary_expression operator: _ @operator)
 (binary_expression operator: _ @operator)
-(ternary_expression ":" @operator)
+(augmented_assignment_expression operator: _ @operator)
 (update_expression operator: _ @operator)
-
-[
-  "="
-  "+="
-  "-="
-  "*="
-  "/="
-  "%="
-  "^="
-  "&="
-  "|="
-  ">>="
-  ">>>="
-  "<<="
-  "**="
-  "&&="
-  "||="
-  "??="
-] @operator
-
-[
-  "+"
-  "-"
-  "*"
-  "/"
-  "%"
-  "**"
-  "++"
-  "--"
-] @operator
-
-[
-  "&&"
-  "||"
-  "??"
-  "!"
-  "~"
-] @operator
-
-[
-  "=="
-  "==="
-  "!="
-  "!=="
-  "<"
-  "<="
-  ">"
-  ">="
-] @operator
-
-[
-  "<<"
-  ">>"
-  ">>>"
-  "&"
-  "|"
-  "^"
-] @operator
 
 ; Control flow keywords
 [
@@ -261,10 +201,6 @@
   (super)
 ] @variable.builtin
 
-; Reserved identifiers used as special built-ins
-((identifier) @variable.builtin
-  (#any-of? @variable.builtin "arguments" "await" "component" "fragment" "track" "untrack"))
-
 ; Properties
 (property_signature
   name: (property_name) @property)
@@ -285,6 +221,20 @@
 ["(" ")" "[" "]" "{" "}"] @punctuation.bracket
 ["." "," ";" ":" "..."] @punctuation.delimiter
 ; Note: < and > are handled separately in JSX contexts as @tag.delimiter
+
+; Reactive constructs (placed after generic punctuation so special tokens win)
+(unbox_expression "@" @operator.special)
+(reactive_array
+  "#[" @punctuation.special
+  "]" @punctuation.special)
+
+(reactive_object
+  "#{" @punctuation.special
+  "}" @punctuation.special)
+
+(template_substitution
+  "${" @punctuation.special
+  "}" @punctuation.special)
 
 ; Special: Arrow function
 "=>" @operator

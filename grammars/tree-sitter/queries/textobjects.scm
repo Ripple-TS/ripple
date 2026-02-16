@@ -25,11 +25,6 @@
 (class_declaration body: (class_body) @class.inside)
 (class_declaration body: (class_body) @class.inner)
 
-(interface_declaration) @class.around
-(interface_declaration) @class.outer
-(interface_declaration body: (interface_body) @class.inside)
-(interface_declaration body: (interface_body) @class.inner)
-
 ; Parameters
 (required_parameter) @parameter.around
 (required_parameter) @parameter.outer

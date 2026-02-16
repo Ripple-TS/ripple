@@ -11,3 +11,7 @@
 (template_substitution
   (expression) @injection.content
   (#set! injection.language "typescript"))
+
+; Inject TypeScript into all JSX text blocks
+((jsx_text) @injection.content
+  (#set! injection.language "tsx"))

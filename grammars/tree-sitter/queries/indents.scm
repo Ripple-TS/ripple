@@ -1,30 +1,19 @@
 ; Increase indentation inside block-like constructs.
 [
-  (statement_block)
-  (component_body)
-  (class_body)
-  (switch_body)
-  (object)
-  (object_pattern)
-  (array)
-  (array_pattern)
-  (arguments)
-  (formal_parameters)
-  (parenthesized_expression)
-  (jsx_element)
-  (style_element)
-  (script_element)
-  (server_block)
-  (reactive_object)
-  (reactive_array)
+  (statement_block "}" @end)
+  (component_body "}" @end)
+  (class_body "}" @end)
+  (switch_body "}" @end)
+  (object "}" @end)
+  (object_pattern "}" @end)
+  (array "]" @end)
+  (array_pattern "]" @end)
+  (arguments ")" @end)
+  (formal_parameters ")" @end)
+  (parenthesized_expression ")" @end)
+  (jsx_element (jsx_closing_element) @end)
+  (style_element "</style>" @end)
+  (server_block "}" @end)
+  (reactive_object "}" @end)
+  (reactive_array "]" @end)
 ] @indent
-
-; Decrease indentation on closing delimiters.
-[
-  "}"
-  "]"
-  ")"
-] @outdent
-
-; JSX closing tags should also outdent.
-(jsx_closing_element) @outdent

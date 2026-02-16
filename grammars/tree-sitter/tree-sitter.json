@@ -21,7 +21,7 @@
       }
     ],
     "links": {
-      "repository": "https://github.com/trueadm/ripple/packages/tree-sitter"
+      "repository": "https://github.com/trueadm/ripple/grammars/tree-sitter"
     }
   },
   "bindings": {

@@ -238,6 +238,14 @@
         "named": false
       },
       {
+        "type": "tracked_map_expression",
+        "named": true
+      },
+      {
+        "type": "tracked_set_expression",
+        "named": true
+      },
+      {
         "type": "true",
         "named": true
       },
@@ -2078,11 +2086,15 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": false,
       "types": [
         {
           "type": "arrow_function",
+          "named": true
+        },
+        {
+          "type": "component_statement",
           "named": true
         },
         {
@@ -2679,6 +2691,22 @@
     }
   },
   {
+    "type": "pending_clause",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "statement_block",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "predefined_type",
     "named": true,
     "fields": {}
@@ -2686,7 +2714,6 @@
   {
     "type": "program",
     "named": true,
-    "root": true,
     "fields": {},
     "children": {
       "multiple": true,
@@ -3226,6 +3253,44 @@
     }
   },
   {
+    "type": "tracked_map_expression",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "arguments",
+          "named": true
+        },
+        {
+          "type": "type_arguments",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "tracked_set_expression",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "arguments",
+          "named": true
+        },
+        {
+          "type": "type_arguments",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "try_statement",
     "named": true,
     "fields": {
@@ -3255,6 +3320,16 @@
         "types": [
           {
             "type": "catch_clause",
+            "named": true
+          }
+        ]
+      },
+      "pending": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "pending_clause",
             "named": true
           }
         ]
@@ -3636,6 +3711,14 @@
     "named": false
   },
   {
+    "type": "#Map",
+    "named": false
+  },
+  {
+    "type": "#Set",
+    "named": false
+  },
+  {
     "type": "#[",
     "named": false
   },
@@ -3913,8 +3996,7 @@
   },
   {
     "type": "comment",
-    "named": true,
-    "extra": true
+    "named": true
   },
   {
     "type": "component",
@@ -4070,6 +4152,10 @@
   },
   {
     "type": "override",
+    "named": false
+  },
+  {
+    "type": "pending",
     "named": false
   },
   {

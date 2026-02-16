@@ -1,5 +1,4 @@
 {
-  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/grammar.schema.json",
   "name": "ripple",
   "word": "identifier",
   "rules": {
@@ -1402,6 +1401,22 @@
           "members": [
             {
               "type": "FIELD",
+              "name": "pending",
+              "content": {
+                "type": "SYMBOL",
+                "name": "pending_clause"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
               "name": "handler",
               "content": {
                 "type": "SYMBOL",
@@ -1428,6 +1443,23 @@
               "type": "BLANK"
             }
           ]
+        }
+      ]
+    },
+    "pending_clause": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "pending"
+        },
+        {
+          "type": "FIELD",
+          "name": "body",
+          "content": {
+            "type": "SYMBOL",
+            "name": "statement_block"
+          }
         }
       ]
     },
@@ -3103,6 +3135,14 @@
         },
         {
           "type": "SYMBOL",
+          "name": "tracked_map_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "tracked_set_expression"
+        },
+        {
+          "type": "SYMBOL",
           "name": "function_expression"
         },
         {
@@ -3370,6 +3410,56 @@
         {
           "type": "STRING",
           "value": "]"
+        }
+      ]
+    },
+    "tracked_map_expression": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "#Map"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "type_arguments"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "arguments"
+        }
+      ]
+    },
+    "tracked_set_expression": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "#Set"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "type_arguments"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "arguments"
         }
       ]
     },
@@ -5947,6 +6037,13 @@
                       "name": "expression"
                     }
                   ]
+                },
+                {
+                  "type": "REPEAT1",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "component_statement"
+                  }
                 }
               ]
             },
@@ -7755,6 +7852,5 @@
     "expression",
     "primary_expression",
     "pattern"
-  ],
-  "reserved": {}
+  ]
 }
