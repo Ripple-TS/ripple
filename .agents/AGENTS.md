@@ -280,12 +280,15 @@ pnpm lint       # Lint playground code
 
 ### Package Manager
 
-**pnpm is required** (`engines` in package.json enforces this). Do NOT use npm or yarn.
+**pnpm is required** (`engines` in package.json enforces this). Do NOT use npm or
+yarn.
 
 ### Language & Types
 
-- **Internal code:** JavaScript (`.js`) with JSDoc type annotations — NOT TypeScript
-- **Type definitions:** TypeScript `.d.ts` files in `types/` directories for public API
+- **Internal code:** JavaScript (`.js`) with JSDoc type annotations — NOT
+  TypeScript
+- **Type definitions:** TypeScript `.d.ts` files in `types/` directories for
+  public API
 - **JSDoc imports:** Use `@import` syntax at top of file:
   ```javascript
   /** @import { Block, Tracked, Derived } from '#client' */
@@ -302,28 +305,29 @@ pnpm lint       # Lint playground code
 
 ### Naming Conventions
 
-| Context              | Style                  | Examples                                    |
-| -------------------- | ---------------------- | ------------------------------------------- |
-| Variables            | `snake_case`           | `active_block`, `is_mutating_allowed`       |
-| Functions            | `snake_case`           | `create_scopes`, `set_active_block`         |
-| Constants            | `SCREAMING_SNAKE_CASE` | `ROOT_BLOCK`, `FLUSH_MICROTASK`, `DERIVED`  |
-| Files                | `kebab-case`           | `css-analyze.js`, `source-map-utils.js`     |
-| Component files      | `PascalCase`           | `Button.ripple`, `TodoList.ripple`          |
-| Classes              | `PascalCase`           | `Scope`, `TrackedArray`, `Output`           |
-| Type parameters      | Single uppercase       | `V` in `Tracked<V>`, `T` in generics        |
+| Context         | Style                  | Examples                                   |
+| --------------- | ---------------------- | ------------------------------------------ |
+| Variables       | `snake_case`           | `active_block`, `is_mutating_allowed`      |
+| Functions       | `snake_case`           | `create_scopes`, `set_active_block`        |
+| Constants       | `SCREAMING_SNAKE_CASE` | `ROOT_BLOCK`, `FLUSH_MICROTASK`, `DERIVED` |
+| Files           | `kebab-case`           | `css-analyze.js`, `source-map-utils.js`    |
+| Component files | `PascalCase`           | `Button.ripple`, `TodoList.ripple`         |
+| Classes         | `PascalCase`           | `Scope`, `TrackedArray`, `Output`          |
+| Type parameters | Single uppercase       | `V` in `Tracked<V>`, `T` in generics       |
 
 ### Hot Path Optimizations
 
-In performance-critical runtime code, short property names are used to minimize bundle size:
+In performance-critical runtime code, short property names are used to minimize
+bundle size:
 
 ```javascript
 // Block structure uses short names
-block.p  // parent
-block.t  // teardown function
-block.d  // dependencies
-block.f  // flags
-block.s  // state
-block.c  // context
+block.p; // parent
+block.t; // teardown function
+block.d; // dependencies
+block.f; // flags
+block.s; // state
+block.c; // context
 ```
 
 ### General Guidelines
