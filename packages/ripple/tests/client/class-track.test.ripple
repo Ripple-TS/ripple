@@ -6,41 +6,41 @@ describe('Class with tracked members', () => {
 			constructor(val) {
 				this.history = #[];
 				this.currentIdx = track(-1);
-				this.currentState = track(() => this.history[@this.currentIdx]);
-				this.canUndo = track(() => @this.currentIdx > 0);
-				this.canRedo = track(() => @this.currentIdx < this.history.length - 1);
-				this.canReset = track(() => @this.canUndo || @this.canRedo);
+				this.currentState = track(() => this.history[this.@currentIdx]);
+				this.canUndo = track(() => this.@currentIdx > 0);
+				this.canRedo = track(() => this.@currentIdx < this.history.length - 1);
+				this.canReset = track(() => this.@canUndo || this.@canRedo);
 				this.length = track(() => this.history.length);
-				this.isAtLatestState = track(() => @this.currentIdx === this.history.length - 1);
+				this.isAtLatestState = track(() => this.@currentIdx === this.history.length - 1);
 				this.state = val;
 			}
 
 			get state() {
-				return @this.currentState;
+				return this.@currentState;
 			}
 
 			set state(val) {
-				if (!@this.isAtLatestState) this.history.splice(@this.currentIdx + 1);
-				this.history[++@this.currentIdx] = val;
+				if (!this.@isAtLatestState) this.history.splice(this.@currentIdx + 1);
+				this.history[++this.@currentIdx] = val;
 			}
 
 			undo() {
-				if (!@this.canUndo) return;
-				@this.currentIdx--;
+				if (!this.@canUndo) return;
+				this.@currentIdx--;
 			}
 
 			redo() {
-				if (!@this.canRedo) return;
-				@this.currentIdx++;
+				if (!this.@canRedo) return;
+				this.@currentIdx++;
 			}
 
 			goto(idx) {
-				@this.currentIdx = idx;
+				this.@currentIdx = idx;
 			}
 
 			reset() {
-				if (!@this.canReset) return;
-				@this.currentIdx = 0;
+				if (!this.@canReset) return;
+				this.@currentIdx = 0;
 				this.history.splice(1);
 			}
 
@@ -48,8 +48,8 @@ describe('Class with tracked members', () => {
 				return JSON.stringify(
 					{
 						history: this.history,
-						currentIdx: @this.currentIdx,
-						currentState: @this.currentState,
+						currentIdx: this.@currentIdx,
+						currentState: this.@currentState,
 					},
 					null,
 					2,
@@ -61,20 +61,20 @@ describe('Class with tracked members', () => {
 			let undoRedo = new UndoRedoState('initial');
 
 			<div>
-				<button id="add" onClick={() => (undoRedo.state = 'state-' + (@undoRedo.length + 1))}>
+				<button id="add" onClick={() => (undoRedo.state = 'state-' + (undoRedo.@length + 1))}>
 					{'Add'}
 				</button>
-				<button id="undo" onClick={() => undoRedo.undo()} disabled={!@undoRedo.canUndo}>
+				<button id="undo" onClick={() => undoRedo.undo()} disabled={!undoRedo.@canUndo}>
 					{'Undo'}
 				</button>
-				<button id="redo" onClick={() => undoRedo.redo()} disabled={!@undoRedo.canRedo}>
+				<button id="redo" onClick={() => undoRedo.redo()} disabled={!undoRedo.@canRedo}>
 					{'Redo'}
 				</button>
-				<button id="reset" onClick={() => undoRedo.reset()} disabled={!@undoRedo.canReset}>
+				<button id="reset" onClick={() => undoRedo.reset()} disabled={!undoRedo.@canReset}>
 					{'Reset'}
 				</button>
-				<div id="state">{@undoRedo.state}</div>
-				<div id="idx">{@undoRedo.currentIdx}</div>
+				<div id="state">{undoRedo.@state}</div>
+				<div id="idx">{undoRedo.@currentIdx}</div>
 			</div>
 		}
 

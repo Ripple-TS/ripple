@@ -748,27 +748,6 @@ const visitors = {
 			context.state.metadata.tracking = true;
 		}
 
-		// Handle @obj.value - when the object is a tracked identifier
-		// We need to access the property first, then unwrap the tracked value
-		// This should compile to _$_.get_property(obj, 'value') not _$_.get(obj).value
-		if (
-			!context.state.to_ts &&
-			node.object.type === 'Identifier' &&
-			node.object.tracked &&
-			!node.property.tracked
-		) {
-			// Remove the tracked flag from the object so it doesn't get transformed to _$_.get(obj)
-			const untracked_object = { ...node.object, tracked: false };
-			return b.call(
-				'_$_.get_property',
-				/** @type {AST.Expression} */ (context.visit(untracked_object)),
-				node.computed
-					? /** @type {AST.Expression} */ (context.visit(node.property))
-					: b.literal(/** @type {AST.Identifier} */ (node.property).name),
-				node.optional ? b.true : undefined,
-			);
-		}
-
 		if (
 			node.tracked ||
 			((node.property.type === 'Identifier' || node.property.type === 'Literal') &&
@@ -1876,9 +1855,7 @@ const visitors = {
 
 		if (
 			left.type === 'MemberExpression' &&
-			(left.tracked ||
-				(left.property.type === 'Identifier' && left.property.tracked) ||
-				(left.object.type === 'Identifier' && left.object.tracked))
+			(left.tracked || (left.property.type === 'Identifier' && left.property.tracked))
 		) {
 			const operator = node.operator;
 			const right = node.right;
@@ -1937,9 +1914,7 @@ const visitors = {
 
 		if (
 			argument.type === 'MemberExpression' &&
-			(argument.tracked ||
-				(argument.property.type === 'Identifier' && argument.property.tracked) ||
-				(argument.object.type === 'Identifier' && argument.object.tracked))
+			(argument.tracked || (argument.property.type === 'Identifier' && argument.property.tracked))
 		) {
 			if (context.state.metadata?.tracking === false) {
 				context.state.metadata.tracking = true;
