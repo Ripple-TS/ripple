@@ -29,15 +29,24 @@ export function html(node, get_html, svg = false, mathml = false) {
 
 		// Walk to find the closing marker
 		var next = hydrate_next(); // First content node or closing marker
-		hydration_start = next;
-		hydration_last = next;
-
-		while (
-			next !== null &&
-			(next.nodeType !== COMMENT_NODE || /** @type {Comment} */ (next).data !== ']')
-		) {
+		
+		// Check if we immediately hit the closing marker (empty HTML case)
+		if (next !== null && next.nodeType === COMMENT_NODE && /** @type {Comment} */ (next).data === ']') {
+			// Empty HTML - no content nodes
+			hydration_start = null;
+			hydration_last = null;
+		} else {
+			// Non-empty HTML - walk through content nodes
+			hydration_start = next;
 			hydration_last = next;
-			next = get_next_sibling(next);
+
+			while (
+				next !== null &&
+				(next.nodeType !== COMMENT_NODE || /** @type {Comment} */ (next).data !== ']')
+			) {
+				hydration_last = next;
+				next = get_next_sibling(next);
+			}
 		}
 
 		// Remove the hash comment
@@ -45,8 +54,11 @@ export function html(node, get_html, svg = false, mathml = false) {
 			hash_comment.parentNode.removeChild(hash_comment);
 		}
 
-		// Move past the closing marker
-		hydrate_next();
+		// Set hydrate_node to the closing marker (don't advance past it)
+		// The parent context will handle advancing past the closing marker
+		if (next !== null) {
+			set_hydrate_node(next);
+		}
 	}
 
 	render(() => {
