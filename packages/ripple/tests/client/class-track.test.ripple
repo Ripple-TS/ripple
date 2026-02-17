@@ -61,7 +61,7 @@ describe('Class with tracked members', () => {
 			let undoRedo = new UndoRedoState('initial');
 
 			<div>
-				<button id="add" onClick={() => (undoRedo.state = 'state-' + undoRedo.@length + 1)}>
+				<button id="add" onClick={() => (undoRedo.state = 'state-' + (undoRedo.@length + 1))}>
 					{'Add'}
 				</button>
 				<button id="undo" onClick={() => undoRedo.undo()} disabled={!undoRedo.@canUndo}>
