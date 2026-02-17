@@ -2922,8 +2922,11 @@ function printTSDeclareFunction(node, path, options, print) {
 		parts.push('*');
 	}
 
-	parts.push(' ');
-	parts.push(node.id.name);
+	// Handle function name (may be null for anonymous default exports)
+	if (node.id) {
+		parts.push(' ');
+		parts.push(node.id.name);
+	}
 
 	// Add TypeScript generics if present
 	if (node.typeParameters) {
