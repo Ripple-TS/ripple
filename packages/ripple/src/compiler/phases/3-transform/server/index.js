@@ -1319,9 +1319,7 @@ const visitors = {
 				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(`<!--${hash_value}-->`))),
 			);
 			// Push the HTML content
-			state.init?.push(
-				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(value))),
-			);
+			state.init?.push(b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(value))));
 		} else {
 			// For dynamic values, compute hash at runtime
 			// Create a variable to store the value

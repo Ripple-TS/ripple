@@ -26,12 +26,12 @@ export function html(node, get_html, svg = false, mathml = false) {
 	if (hydrating) {
 		set_hydrate_node(anchor); // Start at the opening marker <!--[-->
 		var hash_comment = hydrate_next(); // Move to hash comment
-		
+
 		// Walk to find the closing marker
 		var next = hydrate_next(); // First content node or closing marker
 		hydration_start = next;
 		hydration_last = next;
-		
+
 		while (
 			next !== null &&
 			(next.nodeType !== COMMENT_NODE || /** @type {Comment} */ (next).data !== ']')
@@ -39,12 +39,12 @@ export function html(node, get_html, svg = false, mathml = false) {
 			hydration_last = next;
 			next = get_next_sibling(next);
 		}
-		
+
 		// Remove the hash comment
 		if (hash_comment && hash_comment.parentNode) {
 			hash_comment.parentNode.removeChild(hash_comment);
 		}
-		
+
 		// Move past the closing marker
 		hydrate_next();
 	}

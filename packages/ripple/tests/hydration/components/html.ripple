@@ -36,4 +36,3 @@ export component HtmlWithReactivity() {
 		<button>{'Increment'}</button>
 	</div>
 }
-

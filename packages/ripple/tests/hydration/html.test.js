@@ -31,7 +31,9 @@ describe('hydration > html tags', () => {
 
 	it('hydrates multiple html blocks', async () => {
 		await hydrateComponent(ServerComponents.MultipleHtml, ClientComponents.MultipleHtml);
-		expect(container.innerHTML).toBeHtml('<div><p>First paragraph</p><p>Second paragraph</p></div>');
+		expect(container.innerHTML).toBeHtml(
+			'<div><p>First paragraph</p><p>Second paragraph</p></div>',
+		);
 	});
 
 	it('hydrates html with reactivity', async () => {
