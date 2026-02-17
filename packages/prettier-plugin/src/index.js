@@ -2905,6 +2905,11 @@ function printCallArguments(path, options, print) {
 function printTSDeclareFunction(node, path, options, print) {
 	const parts = [];
 
+	// Handle declare modifier for ambient declarations
+	if (node.declare) {
+		parts.push('declare ');
+	}
+
 	// Handle async functions
 	if (node.async) {
 		parts.push('async ');

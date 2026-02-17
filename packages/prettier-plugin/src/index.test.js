@@ -2902,6 +2902,15 @@ export function test(arg: string | number): string {
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should preserve declare modifier on ambient function declarations', async () => {
+			const input = `declare function doSomething(x: string): void;
+declare function processData<T>(data: T): Promise<T>;`;
+			const expected = `declare function doSomething(x: string): void;
+declare function processData<T>(data: T): Promise<T>;`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should retain templated declarations', async () => {
 			const expected = `function Wrapper() {
   return {
