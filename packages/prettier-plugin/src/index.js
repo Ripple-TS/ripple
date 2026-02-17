@@ -3509,9 +3509,49 @@ function printForStatement(node, path, options, print) {
  * @returns {Doc[]}
  */
 function printWhileStatement(node, path, options, print) {
+	// Extract leading comments from test node to print them before 'while' keyword
+	const testNode = node.test;
+	const testLeadingComments = testNode && testNode.leadingComments;
+
+	// Print test without its leading comments (they'll be printed before 'while')
+	const test = path.call((testPath) => print(testPath, { suppressLeadingComments: true }), 'test');
+
 	const parts = [];
+
+	// Print leading comments from test node before 'while' keyword
+	if (testLeadingComments && testLeadingComments.length > 0) {
+		for (let i = 0; i < testLeadingComments.length; i++) {
+			const comment = testLeadingComments[i];
+			const nextComment = testLeadingComments[i + 1];
+
+			if (comment.type === 'Line') {
+				parts.push('//' + comment.value);
+				parts.push(hardline);
+
+				// Check if there should be blank lines between comments
+				if (nextComment) {
+					const blankLinesBetween = getBlankLinesBetweenNodes(comment, nextComment);
+					if (blankLinesBetween > 0) {
+						parts.push(hardline);
+					}
+				}
+			} else if (comment.type === 'Block') {
+				parts.push('/*' + comment.value + '*/');
+				parts.push(hardline);
+
+				// Check if there should be blank lines between comments
+				if (nextComment) {
+					const blankLinesBetween = getBlankLinesBetweenNodes(comment, nextComment);
+					if (blankLinesBetween > 0) {
+						parts.push(hardline);
+					}
+				}
+			}
+		}
+	}
+
 	parts.push('while (');
-	parts.push(path.call(print, 'test'));
+	parts.push(test);
 	parts.push(') ');
 	parts.push(path.call(print, 'body'));
 
@@ -3527,11 +3567,54 @@ function printWhileStatement(node, path, options, print) {
  * @returns {Doc[]}
  */
 function printDoWhileStatement(node, path, options, print) {
+	// Extract leading comments from test node to print them before 'while' keyword
+	const testNode = node.test;
+	const testLeadingComments = testNode && testNode.leadingComments;
+
+	// Print test without its leading comments (they'll be printed before 'while')
+	const test = path.call((testPath) => print(testPath, { suppressLeadingComments: true }), 'test');
+
 	const parts = [];
 	parts.push('do ');
 	parts.push(path.call(print, 'body'));
-	parts.push(' while (');
-	parts.push(path.call(print, 'test'));
+
+	// Print leading comments from test node before 'while' keyword
+	if (testLeadingComments && testLeadingComments.length > 0) {
+		parts.push(' ');
+		for (let i = 0; i < testLeadingComments.length; i++) {
+			const comment = testLeadingComments[i];
+			const nextComment = testLeadingComments[i + 1];
+
+			if (comment.type === 'Line') {
+				parts.push('//' + comment.value);
+				parts.push(hardline);
+
+				// Check if there should be blank lines between comments
+				if (nextComment) {
+					const blankLinesBetween = getBlankLinesBetweenNodes(comment, nextComment);
+					if (blankLinesBetween > 0) {
+						parts.push(hardline);
+					}
+				}
+			} else if (comment.type === 'Block') {
+				parts.push('/*' + comment.value + '*/');
+				parts.push(hardline);
+
+				// Check if there should be blank lines between comments
+				if (nextComment) {
+					const blankLinesBetween = getBlankLinesBetweenNodes(comment, nextComment);
+					if (blankLinesBetween > 0) {
+						parts.push(hardline);
+					}
+				}
+			}
+		}
+	} else {
+		parts.push(' ');
+	}
+
+	parts.push('while (');
+	parts.push(test);
 	parts.push(')');
 
 	return parts;
@@ -4427,9 +4510,55 @@ function printTSTypeParameterInstantiation(node, path, options, print) {
  * @returns {Doc}
  */
 function printSwitchStatement(node, path, options, print) {
-	const discriminantDoc = group(
-		concat(['switch (', indent([softline, path.call(print, 'discriminant')]), softline, ')']),
+	// Extract leading comments from discriminant node to print them before 'switch' keyword
+	const discriminantNode = node.discriminant;
+	const discriminantLeadingComments = discriminantNode && discriminantNode.leadingComments;
+
+	// Print discriminant without its leading comments (they'll be printed before 'switch')
+	const discriminant = path.call(
+		(discriminantPath) => print(discriminantPath, { suppressLeadingComments: true }),
+		'discriminant',
 	);
+
+	const parts = [];
+
+	// Print leading comments from discriminant node before 'switch' keyword
+	if (discriminantLeadingComments && discriminantLeadingComments.length > 0) {
+		for (let i = 0; i < discriminantLeadingComments.length; i++) {
+			const comment = discriminantLeadingComments[i];
+			const nextComment = discriminantLeadingComments[i + 1];
+
+			if (comment.type === 'Line') {
+				parts.push('//' + comment.value);
+				parts.push(hardline);
+
+				// Check if there should be blank lines between comments
+				if (nextComment) {
+					const blankLinesBetween = getBlankLinesBetweenNodes(comment, nextComment);
+					if (blankLinesBetween > 0) {
+						parts.push(hardline);
+					}
+				}
+			} else if (comment.type === 'Block') {
+				parts.push('/*' + comment.value + '*/');
+				parts.push(hardline);
+
+				// Check if there should be blank lines between comments
+				if (nextComment) {
+					const blankLinesBetween = getBlankLinesBetweenNodes(comment, nextComment);
+					if (blankLinesBetween > 0) {
+						parts.push(hardline);
+					}
+				}
+			}
+		}
+	}
+
+	const discriminantDoc = group(
+		concat(['switch (', indent([softline, discriminant]), softline, ')']),
+	);
+
+	parts.push(discriminantDoc);
 
 	const cases = [];
 	for (let i = 0; i < node.cases.length; i++) {
@@ -4443,7 +4572,9 @@ function printSwitchStatement(node, path, options, print) {
 	const bodyDoc =
 		cases.length > 0 ? concat([indent([hardline, join(hardline, cases)]), hardline]) : hardline;
 
-	return concat([discriminantDoc, ' {', bodyDoc, '}']);
+	parts.push(' {', bodyDoc, '}');
+
+	return concat(parts);
 }
 
 /**

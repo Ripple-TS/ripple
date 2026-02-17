@@ -4851,5 +4851,47 @@ if (@status === 'a') @status = 'b'; else if (@status === 'b') @status = 'c'; els
 			const result = await format(input, { singleQuote: true });
 			expect(result).toBeWithNewline(expected);
 		});
+
+		it('should not move comments before switch statement into the discriminant', async () => {
+			const input = `function test() {
+  let x = 1;
+  // comment before switch
+  switch (x) {
+    case 1:
+      console.log('one');
+  }
+}`;
+			const expected = `function test() {
+  let x = 1;
+  // comment before switch
+  switch (x) {
+    case 1:
+      console.log('one');
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should handle multiple comments before if statement', async () => {
+			const input = `function test() {
+  // comment 1
+  // comment 2
+  if (true) {
+    console.log('test');
+  }
+}`;
+			const expected = `function test() {
+  // comment 1
+  // comment 2
+  if (true) {
+    console.log('test');
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
 	});
 });
