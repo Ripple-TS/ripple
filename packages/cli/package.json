@@ -21,6 +21,9 @@
     "url": "https://github.com/Ripple-TS/ripple/issues"
   },
   "homepage": "https://ripplejs.com",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "./dist/index.js"
   ],

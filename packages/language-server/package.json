@@ -26,5 +26,8 @@
   },
   "peerDependencies": {
     "typescript": "catalog:peer"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

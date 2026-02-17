@@ -29,5 +29,8 @@
   "peerDependencies": {
     "typescript": "catalog:peer",
     "ripple": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
