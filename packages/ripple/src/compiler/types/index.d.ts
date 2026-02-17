@@ -26,6 +26,10 @@ interface BaseNodeMetaData {
 	parenthesized?: boolean;
 	elementLeadingComments?: AST.Comment[];
 	inside_component_top_level?: boolean;
+	returns?: AST.ReturnStatement[];
+	has_return?: boolean;
+	is_reactive?: boolean;
+	lone_return?: boolean;
 }
 
 interface FunctionMetaData extends BaseNodeMetaData {
@@ -1213,6 +1217,7 @@ export interface TransformServerState extends BaseState {
 	dynamicElementName?: AST.TemplateLiteral;
 	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
 	dev?: boolean;
+	return_flags?: Map<AST.ReturnStatement, { name: string; tracked: boolean }>;
 }
 
 type UpdateList = Array<
@@ -1244,6 +1249,7 @@ export interface TransformClientState extends BaseState {
 	update: UpdateList | null;
 	errors: RippleCompileError[];
 	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
+	return_flags?: Map<AST.ReturnStatement, { name: string; tracked: boolean }>;
 }
 
 /** Override zimmerframe types and provide our own */

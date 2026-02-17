@@ -1,0 +1,2277 @@
+import { describe, it, expect } from 'vitest';
+import { track, flushSync } from 'ripple';
+import { compile } from 'ripple/compiler';
+
+describe('returns in prohibited scopes', () => {
+	it('throws error when return is used in module scope', () => {
+		expect(
+			() => compile(`
+				return;
+				component App() {
+					<div>{'hello'}</div>
+				}
+			`, 'test.ripple', {
+				mode: 'client',
+			}),
+		).toThrowError('Return statements are not allowed at the top level of a module.');
+	});
+});
+
+describe('early return in client components', () => {
+	it('skips template content after direct return', () => {
+		component App() {
+			<div class="before">{'before'}</div>
+			return;
+			<div class="after">{'after'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.before')).toBeTruthy();
+		expect(container.querySelector('.after')).toBeFalsy();
+	});
+
+	it('skips rest of body when return condition is true', () => {
+		component App() {
+			let condition = true;
+
+			if (condition) {
+				<div class="guard">{'guard hit'}</div>
+				return;
+			}
+			<div class="rest">{'rest'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.guard')).toBeTruthy();
+		expect(container.querySelector('.rest')).toBeFalsy();
+	});
+
+	it('renders rest of body when return condition is false', () => {
+		component App() {
+			let condition = false;
+
+			if (condition) {
+				<div class="guard">{'guard hit'}</div>
+				return;
+			}
+			<div class="rest">{'rest'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.guard')).toBeFalsy();
+		expect(container.querySelector('.rest')).toBeTruthy();
+	});
+
+	it('reactive: condition changes from false to true hides rest', () => {
+		component App() {
+			let condition = track(false);
+
+			<button
+				onClick={() => {
+					@condition = true;
+				}}
+			>
+				{'toggle'}
+			</button>
+			if (@condition) {
+				<div class="guard">{'guard hit'}</div>
+				return;
+			}
+			<div class="rest">{'rest'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.guard')).toBeFalsy();
+		expect(container.querySelector('.rest')).toBeTruthy();
+
+		container.querySelector('button').click();
+		flushSync();
+
+		expect(container.querySelector('.guard')).toBeTruthy();
+		expect(container.querySelector('.rest')).toBeFalsy();
+	});
+
+	it('reactive: condition changes from true to false shows rest', () => {
+		component App() {
+			let condition = track(true);
+
+			<button
+				onClick={() => {
+					@condition = false;
+				}}
+			>
+				{'toggle'}
+			</button>
+			if (@condition) {
+				<div class="guard">{'guard hit'}</div>
+				return;
+			}
+			<div class="rest">{'rest'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.guard')).toBeTruthy();
+		expect(container.querySelector('.rest')).toBeFalsy();
+
+		container.querySelector('button').click();
+		flushSync();
+
+		expect(container.querySelector('.guard')).toBeFalsy();
+		expect(container.querySelector('.rest')).toBeTruthy();
+	});
+
+	it('handles nested ifs with return', () => {
+		component App() {
+			let a = true;
+			let b = true;
+
+			if (a) {
+				<div class="a">{'a is true'}</div>
+				if (b) {
+					<div class="b">{'b is true'}</div>
+					return;
+				}
+			}
+			<div class="rest">{'rest'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.a')).toBeTruthy();
+		expect(container.querySelector('.b')).toBeTruthy();
+		expect(container.querySelector('.rest')).toBeFalsy();
+	});
+
+	it('renders rest when nested return condition is not fully met', () => {
+		component App() {
+			let a = true;
+			let b = false;
+
+			if (a) {
+				<div class="a">{'a is true'}</div>
+				if (b) {
+					<div class="b">{'b is true'}</div>
+					return;
+				}
+			}
+			<div class="rest">{'rest'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.a')).toBeTruthy();
+		expect(container.querySelector('.b')).toBeFalsy();
+		expect(container.querySelector('.rest')).toBeTruthy();
+	});
+
+	it('renders rest when outer condition is false', () => {
+		component App() {
+			let a = false;
+			let b = true;
+
+			if (a) {
+				<div class="a">{'a is true'}</div>
+				if (b) {
+					<div class="b">{'b is true'}</div>
+					return;
+				}
+			}
+			<div class="rest">{'rest'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.a')).toBeFalsy();
+		expect(container.querySelector('.b')).toBeFalsy();
+		expect(container.querySelector('.rest')).toBeTruthy();
+	});
+
+	it('handles content before and after the if-with-return', () => {
+		component App() {
+			let shouldReturn = true;
+
+			<div class="before">{'before'}</div>
+			if (shouldReturn) {
+				<div class="guard">{'guard'}</div>
+				return;
+			}
+			<div class="after">{'after'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.before')).toBeTruthy();
+		expect(container.querySelector('.guard')).toBeTruthy();
+		expect(container.querySelector('.after')).toBeFalsy();
+	});
+
+	it('renders multiple elements after guard when condition is false', () => {
+		component App() {
+			let shouldReturn = false;
+
+			if (shouldReturn) {
+				<div class="guard">{'guard'}</div>
+				return;
+			}
+			<div class="first">{'first'}</div>
+			<div class="second">{'second'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.guard')).toBeFalsy();
+		expect(container.querySelector('.first')).toBeTruthy();
+		expect(container.querySelector('.second')).toBeTruthy();
+	});
+
+	it('handles multiple sequential returns - first hits', () => {
+		component App() {
+			let a = true;
+			let b = true;
+
+			if (a) {
+				<div class="first">{'first guard'}</div>
+				return;
+			}
+			if (b) {
+				<div class="second">{'second guard'}</div>
+				return;
+			}
+			<div class="rest">{'rest'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.first')).toBeTruthy();
+		expect(container.querySelector('.second')).toBeFalsy();
+		expect(container.querySelector('.rest')).toBeFalsy();
+	});
+
+	it('handles multiple sequential returns - second hits', () => {
+		component App() {
+			let a = false;
+			let b = true;
+
+			if (a) {
+				<div class="first">{'first guard'}</div>
+				return;
+			}
+			if (b) {
+				<div class="second">{'second guard'}</div>
+				return;
+			}
+			<div class="rest">{'rest'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.first')).toBeFalsy();
+		expect(container.querySelector('.second')).toBeTruthy();
+		expect(container.querySelector('.rest')).toBeFalsy();
+	});
+
+	it('handles multiple sequential returns - none hit', () => {
+		component App() {
+			let a = false;
+			let b = false;
+
+			if (a) {
+				<div class="first">{'first guard'}</div>
+				return;
+			}
+			if (b) {
+				<div class="second">{'second guard'}</div>
+				return;
+			}
+			<div class="rest">{'rest'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.first')).toBeFalsy();
+		expect(container.querySelector('.second')).toBeFalsy();
+		expect(container.querySelector('.rest')).toBeTruthy();
+	});
+
+	it('handles deeply nested returns (3 levels)', () => {
+		component App() {
+			let a = true;
+			let b = true;
+			let c = true;
+
+			if (a) {
+				<div class="a">{'a'}</div>
+				if (b) {
+					<div class="b">{'b'}</div>
+					if (c) {
+						<div class="c">{'c'}</div>
+						return;
+					}
+				}
+			}
+			<div class="rest">{'rest'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.a')).toBeTruthy();
+		expect(container.querySelector('.b')).toBeTruthy();
+		expect(container.querySelector('.c')).toBeTruthy();
+		expect(container.querySelector('.rest')).toBeFalsy();
+	});
+
+	it('handles deeply nested returns (3 levels) - partial', () => {
+		component App() {
+			let a = true;
+			let b = true;
+			let c = false;
+
+			if (a) {
+				<div class="a">{'a'}</div>
+				if (b) {
+					<div class="b">{'b'}</div>
+					if (c) {
+						<div class="c">{'c'}</div>
+						return;
+					}
+				}
+			}
+			<div class="rest">{'rest'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.a')).toBeTruthy();
+		expect(container.querySelector('.b')).toBeTruthy();
+		expect(container.querySelector('.c')).toBeFalsy();
+		expect(container.querySelector('.rest')).toBeTruthy();
+	});
+
+	it('handles return with else-if chain - first condition', () => {
+		component App() {
+			let value = 1;
+
+			if (value === 1) {
+				<div class="one">{'one'}</div>
+				return;
+			} else if (value === 2) {
+				<div class="two">{'two'}</div>
+				return;
+			} else {
+				<div class="other">{'other'}</div>
+				return;
+			}
+			<div class="never">{'never reached'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.one')).toBeTruthy();
+		expect(container.querySelector('.two')).toBeFalsy();
+		expect(container.querySelector('.other')).toBeFalsy();
+		expect(container.querySelector('.never')).toBeFalsy();
+	});
+
+	it('handles return with else-if chain - second condition', () => {
+		component App() {
+			let value = 2;
+
+			if (value === 1) {
+				<div class="one">{'one'}</div>
+				return;
+			} else if (value === 2) {
+				<div class="two">{'two'}</div>
+				return;
+			} else {
+				<div class="other">{'other'}</div>
+				return;
+			}
+			<div class="never">{'never reached'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.one')).toBeFalsy();
+		expect(container.querySelector('.two')).toBeTruthy();
+		expect(container.querySelector('.other')).toBeFalsy();
+		expect(container.querySelector('.never')).toBeFalsy();
+	});
+
+	it('handles return with else-if chain - else condition', () => {
+		component App() {
+			let value = 3;
+
+			if (value === 1) {
+				<div class="one">{'one'}</div>
+				return;
+			} else if (value === 2) {
+				<div class="two">{'two'}</div>
+				return;
+			} else {
+				<div class="other">{'other'}</div>
+				return;
+			}
+			<div class="never">{'never reached'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.one')).toBeFalsy();
+		expect(container.querySelector('.two')).toBeFalsy();
+		expect(container.querySelector('.other')).toBeTruthy();
+		expect(container.querySelector('.never')).toBeFalsy();
+	});
+
+	it('handles return with complex boolean expression - AND', () => {
+		component App() {
+			let a = true;
+			let b = true;
+			let c = true;
+
+			if (a && b && c) {
+				<div class="all">{'all true'}</div>
+				return;
+			}
+			<div class="not-all">{'not all true'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.all')).toBeTruthy();
+		expect(container.querySelector('.not-all')).toBeFalsy();
+	});
+
+	it('handles return with complex boolean expression - OR', () => {
+		component App() {
+			let a = false;
+			let b = true;
+			let c = false;
+
+			if (a || b || c) {
+				<div class="any">{'at least one true'}</div>
+				return;
+			}
+			<div class="none">{'all false'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.any')).toBeTruthy();
+		expect(container.querySelector('.none')).toBeFalsy();
+	});
+
+	it('handles return with complex boolean expression - mixed', () => {
+		component App() {
+			let a = true;
+			let b = false;
+			let c = true;
+
+			if (a && !b || c) {
+				<div class="complex">{'complex condition met'}</div>
+				return;
+			}
+			<div class="simple">{'complex condition not met'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.complex')).toBeTruthy();
+		expect(container.querySelector('.simple')).toBeFalsy();
+	});
+
+	it('handles return with numeric comparison', () => {
+		component App() {
+			let num = 10;
+
+			if (num > 5) {
+				<div class="greater">{'greater than 5'}</div>
+				return;
+			}
+			<div class="less">{'5 or less'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.greater')).toBeTruthy();
+		expect(container.querySelector('.less')).toBeFalsy();
+	});
+
+	it('handles return with string comparison', () => {
+		component App() {
+			let str = 'hello';
+
+			if (str === 'hello') {
+				<div class="greeting">{'greeting'}</div>
+				return;
+			}
+			<div class="other">{'not greeting'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.greeting')).toBeTruthy();
+		expect(container.querySelector('.other')).toBeFalsy();
+	});
+
+	it('handles return with negated condition', () => {
+		component App() {
+			let flag = false;
+
+			if (!flag) {
+				<div class="false">{'flag is false'}</div>
+				return;
+			}
+			<div class="true">{'flag is true'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.false')).toBeTruthy();
+		expect(container.querySelector('.true')).toBeFalsy();
+	});
+
+	it('handles return with ternary result', () => {
+		component App() {
+			let condition = true;
+
+			if (condition) {
+				<div class="ternary">{condition ? 'yes' : 'no'}</div>
+				return;
+			}
+			<div class="fallback">{'fallback'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.ternary').textContent).toBe('yes');
+		expect(container.querySelector('.fallback')).toBeFalsy();
+	});
+
+	it('handles return in nested element scope', () => {
+		component App() {
+			let show = true;
+
+			<div class="outer">
+				<span class="label">{'outer'}</span>
+				if (show) {
+					<p class="inner">{'inner'}</p>
+					return;
+				}
+				<p class="after">{'after'}</p>
+			</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.outer')).toBeTruthy();
+		expect(container.querySelector('.label')).toBeTruthy();
+		expect(container.querySelector('.inner')).toBeTruthy();
+		expect(container.querySelector('.after')).toBeFalsy();
+	});
+
+	it('handles return with multiple elements before and after', () => {
+		component App() {
+			let shouldReturn = true;
+
+			<h1 class="title">{'title'}</h1>
+			<p class="desc">{'description'}</p>
+			if (shouldReturn) {
+				<div class="guard">{'guard'}</div>
+				<span class="guard-span">{'guard span'}</span>
+				return;
+			}
+			<footer class="footer">{'footer'}</footer>
+			<nav class="nav">{'nav'}</nav>
+		}
+
+		render(App);
+		expect(container.querySelector('.title')).toBeTruthy();
+		expect(container.querySelector('.desc')).toBeTruthy();
+		expect(container.querySelector('.guard')).toBeTruthy();
+		expect(container.querySelector('.guard-span')).toBeTruthy();
+		expect(container.querySelector('.footer')).toBeFalsy();
+		expect(container.querySelector('.nav')).toBeFalsy();
+	});
+
+	it('handles return at the beginning of component', () => {
+		component App() {
+			if (true) {
+				<div class="early">{'early exit'}</div>
+				return;
+			}
+			<div class="never1">{'never reached'}</div>
+			<div class="never2">{'also never reached'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.early')).toBeTruthy();
+		expect(container.querySelector('.never1')).toBeFalsy();
+		expect(container.querySelector('.never2')).toBeFalsy();
+	});
+
+	it('handles return at the end of component', () => {
+		component App() {
+			<div class="first">{'first'}</div>
+			<div class="second">{'second'}</div>
+			if (true) {
+				<div class="third">{'third'}</div>
+				return;
+			}
+		}
+
+		render(App);
+		expect(container.querySelector('.first')).toBeTruthy();
+		expect(container.querySelector('.second')).toBeTruthy();
+		expect(container.querySelector('.third')).toBeTruthy();
+	});
+
+	it('handles return with function call in condition', () => {
+		component App() {
+			function check() {
+				return true;
+			}
+
+			if (check()) {
+				<div class="func">{'function returned true'}</div>
+				return;
+			}
+			<div class="no-func">{'function returned false'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.func')).toBeTruthy();
+		expect(container.querySelector('.no-func')).toBeFalsy();
+	});
+
+	it('handles return with arithmetic in condition', () => {
+		component App() {
+			let x = 5;
+			let y = 3;
+
+			if (x + y > 7) {
+				<div class="greater">{'sum greater than 7'}</div>
+				return;
+			}
+			<div class="less">{'sum 7 or less'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.greater')).toBeTruthy();
+		expect(container.querySelector('.less')).toBeFalsy();
+	});
+
+	it('handles multiple sibling returns at same level', () => {
+		component App() {
+			let mode = 'b';
+
+			if (mode === 'a') {
+				<div class="mode-a">{'mode A'}</div>
+				return;
+			}
+
+			if (mode === 'b') {
+				<div class="mode-b">{'mode B'}</div>
+				return;
+			}
+
+			if (mode === 'c') {
+				<div class="mode-c">{'mode C'}</div>
+				return;
+			}
+
+			<div class="default">{'default mode'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.mode-a')).toBeFalsy();
+		expect(container.querySelector('.mode-b')).toBeTruthy();
+		expect(container.querySelector('.mode-c')).toBeFalsy();
+		expect(container.querySelector('.default')).toBeFalsy();
+	});
+
+	it('handles return with array length check', () => {
+		component App() {
+			let items = [1, 2, 3];
+
+			if (items.length > 0) {
+				<div class="has-items">{'has items'}</div>
+				return;
+			}
+			<div class="empty">{'empty'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.has-items')).toBeTruthy();
+		expect(container.querySelector('.empty')).toBeFalsy();
+	});
+
+	it('handles return with object property check', () => {
+		component App() {
+			let obj = { value: 42 };
+
+			if (obj.value === 42) {
+				<div class="correct">{'correct value'}</div>
+				return;
+			}
+			<div class="wrong">{'wrong value'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.correct')).toBeTruthy();
+		expect(container.querySelector('.wrong')).toBeFalsy();
+	});
+
+	it('handles return with typeof check', () => {
+		component App() {
+			let value = 'string';
+
+			if (typeof value === 'string') {
+				<div class="string">{'is string'}</div>
+				return;
+			}
+			<div class="not-string">{'not string'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.string')).toBeTruthy();
+		expect(container.querySelector('.not-string')).toBeFalsy();
+	});
+
+	it('handles return with null check', () => {
+		component App() {
+			let value = null;
+
+			if (value === null) {
+				<div class="null">{'is null'}</div>
+				return;
+			}
+			<div class="not-null">{'not null'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.null')).toBeTruthy();
+		expect(container.querySelector('.not-null')).toBeFalsy();
+	});
+
+	it('handles return with undefined check', () => {
+		component App() {
+			let value = undefined;
+
+			if (value === undefined) {
+				<div class="undef">{'is undefined'}</div>
+				return;
+			}
+			<div class="not-undef">{'not undefined'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.undef')).toBeTruthy();
+		expect(container.querySelector('.not-undef')).toBeFalsy();
+	});
+
+	it('handles return with truthy/falsy values', () => {
+		component App() {
+			let value = 0;
+
+			if (value) {
+				<div class="truthy">{'truthy'}</div>
+				return;
+			}
+			<div class="falsy">{'falsy'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.truthy')).toBeFalsy();
+		expect(container.querySelector('.falsy')).toBeTruthy();
+	});
+
+	it('handles return with empty string check', () => {
+		component App() {
+			let str = '';
+
+			if (str === '') {
+				<div class="empty">{'empty string'}</div>
+				return;
+			}
+			<div class="non-empty">{'non-empty string'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.empty')).toBeTruthy();
+		expect(container.querySelector('.non-empty')).toBeFalsy();
+	});
+
+	it('handles return with else branch that does not return', () => {
+		component App() {
+			let condition = false;
+
+			if (condition) {
+				<div class="true">{'condition true'}</div>
+				return;
+			} else {
+				<div class="false">{'condition false'}</div>
+			}
+			<div class="after">{'after if-else'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.true')).toBeFalsy();
+		expect(container.querySelector('.false')).toBeTruthy();
+		expect(container.querySelector('.after')).toBeTruthy();
+	});
+
+	it('handles return with else branch that also returns', () => {
+		component App() {
+			let condition = false;
+
+			if (condition) {
+				<div class="true">{'condition true'}</div>
+				return;
+			} else {
+				<div class="false">{'condition false'}</div>
+				return;
+			}
+			<div class="never">{'never reached'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.true')).toBeFalsy();
+		expect(container.querySelector('.false')).toBeTruthy();
+		expect(container.querySelector('.never')).toBeFalsy();
+	});
+
+	it('handles return with only if branch returning', () => {
+		component App() {
+			let condition = false;
+
+			if (condition) {
+				<div class="true">{'condition true'}</div>
+				return;
+			}
+			<div class="after">{'condition false or after'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.true')).toBeFalsy();
+		expect(container.querySelector('.after')).toBeTruthy();
+	});
+
+	it('handles return with comparison operators', () => {
+		component App() {
+			let a = 5;
+			let b = 10;
+
+			if (a < b) {
+				<div class="less">{'a less than b'}</div>
+				return;
+			}
+			<div class="not-less">{'a not less than b'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.less')).toBeTruthy();
+		expect(container.querySelector('.not-less')).toBeFalsy();
+	});
+
+	it('handles return with strict equality', () => {
+		component App() {
+			let a = 5;
+			let b = 5;
+
+			if (a === b) {
+				<div class="equal">{'strict equality'}</div>
+				return;
+			}
+			<div class="not-equal">{'not strictly equal'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.equal')).toBeTruthy();
+		expect(container.querySelector('.not-equal')).toBeFalsy();
+	});
+
+	it('handles return with greater than or equal', () => {
+		component App() {
+			let a = 10;
+			let b = 10;
+
+			if (a >= b) {
+				<div class="gte">{'a >= b'}</div>
+				return;
+			}
+			<div class="lt">{'a < b'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.gte')).toBeTruthy();
+		expect(container.querySelector('.lt')).toBeFalsy();
+	});
+
+	it('handles return with not equal', () => {
+		component App() {
+			let a = 5;
+			let b = 10;
+
+			if (a != b) {
+				<div class="neq">{'a != b'}</div>
+				return;
+			}
+			<div class="eq">{'a == b'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.neq')).toBeTruthy();
+		expect(container.querySelector('.eq')).toBeFalsy();
+	});
+
+	it('reactive: nested return condition changes', () => {
+		component App() {
+			let a = track(true);
+			let b = track(true);
+
+			<button
+				onClick={() => {
+					@b = false;
+				}}
+			>
+				{'toggle b'}
+			</button>
+			if (@a) {
+				<div class="a">{'a is true'}</div>
+				if (@b) {
+					<div class="b">{'b is true'}</div>
+					return;
+				}
+			}
+			<div class="rest">{'rest'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.a')).toBeTruthy();
+		expect(container.querySelector('.b')).toBeTruthy();
+		expect(container.querySelector('.rest')).toBeFalsy();
+
+		container.querySelector('button').click();
+		flushSync();
+
+		expect(container.querySelector('.a')).toBeTruthy();
+		expect(container.querySelector('.b')).toBeFalsy();
+		expect(container.querySelector('.rest')).toBeTruthy();
+	});
+
+	it('reactive: return in nested element scope', () => {
+		component App() {
+			let show = track(true);
+
+			<button
+				onClick={() => {
+					@show = false;
+				}}
+			>
+				{'toggle'}
+			</button>
+			<div class="outer">
+				<span class="label">{'outer'}</span>
+				if (@show) {
+					<p class="inner">{'inner'}</p>
+					return;
+				}
+				<p class="after">{'after'}</p>
+			</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.inner')).toBeTruthy();
+		expect(container.querySelector('.after')).toBeFalsy();
+
+		container.querySelector('button').click();
+		flushSync();
+
+		expect(container.querySelector('.inner')).toBeFalsy();
+		expect(container.querySelector('.after')).toBeTruthy();
+	});
+
+	describe('nested return scenarios', () => {
+		it('nested return hides content after inner if inside outer if', () => {
+			component App() {
+				let a = true;
+				let b = true;
+
+				if (a) {
+					<div class="a">{'a'}</div>
+					if (b) {
+						<div class="b">{'b'}</div>
+						return;
+					}
+					<div class="after-inner">{'after inner'}</div>
+				}
+				<div class="rest">{'rest'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.a')).toBeTruthy();
+			expect(container.querySelector('.b')).toBeTruthy();
+			expect(container.querySelector('.after-inner')).toBeFalsy();
+			expect(container.querySelector('.rest')).toBeFalsy();
+		});
+
+		it('nested return shows content after inner if when inner condition is false', () => {
+			component App() {
+				let a = true;
+				let b = false;
+
+				if (a) {
+					<div class="a">{'a'}</div>
+					if (b) {
+						<div class="b">{'b'}</div>
+						return;
+					}
+					<div class="after-inner">{'after inner'}</div>
+				}
+				<div class="rest">{'rest'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.a')).toBeTruthy();
+			expect(container.querySelector('.b')).toBeFalsy();
+			expect(container.querySelector('.after-inner')).toBeTruthy();
+			expect(container.querySelector('.rest')).toBeTruthy();
+		});
+
+		it('nested return with sibling returns inside outer if', () => {
+			component App() {
+				let outer = true;
+				let a = false;
+				let b = true;
+
+				if (outer) {
+					<div class="outer">{'outer'}</div>
+					if (a) {
+						<div class="a">{'a'}</div>
+						return;
+					}
+					<div class="between">{'between'}</div>
+					if (b) {
+						<div class="b">{'b'}</div>
+						return;
+					}
+					<div class="after-b">{'after b'}</div>
+				}
+				<div class="rest">{'rest'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.outer')).toBeTruthy();
+			expect(container.querySelector('.a')).toBeFalsy();
+			expect(container.querySelector('.between')).toBeTruthy();
+			expect(container.querySelector('.b')).toBeTruthy();
+			expect(container.querySelector('.after-b')).toBeFalsy();
+			expect(container.querySelector('.rest')).toBeFalsy();
+		});
+
+		it('nested return inside else branch', () => {
+			component App() {
+				let a = false;
+				let b = true;
+
+				if (a) {
+					<div class="a">{'a'}</div>
+				} else {
+					<div class="else">{'else'}</div>
+					if (b) {
+						<div class="b">{'b'}</div>
+						return;
+					}
+				}
+				<div class="rest">{'rest'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.a')).toBeFalsy();
+			expect(container.querySelector('.else')).toBeTruthy();
+			expect(container.querySelector('.b')).toBeTruthy();
+			expect(container.querySelector('.rest')).toBeFalsy();
+		});
+
+		it('deeply nested returns (4 levels) - all true', () => {
+			component App() {
+				let a = true;
+				let b = true;
+				let c = true;
+				let d = true;
+
+				if (a) {
+					<div class="a">{'a'}</div>
+					if (b) {
+						<div class="b">{'b'}</div>
+						if (c) {
+							<div class="c">{'c'}</div>
+							if (d) {
+								<div class="d">{'d'}</div>
+								return;
+							}
+						}
+					}
+				}
+				<div class="rest">{'rest'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.a')).toBeTruthy();
+			expect(container.querySelector('.b')).toBeTruthy();
+			expect(container.querySelector('.c')).toBeTruthy();
+			expect(container.querySelector('.d')).toBeTruthy();
+			expect(container.querySelector('.rest')).toBeFalsy();
+		});
+
+		it('deeply nested returns (4 levels) - innermost false', () => {
+			component App() {
+				let a = true;
+				let b = true;
+				let c = true;
+				let d = false;
+
+				if (a) {
+					<div class="a">{'a'}</div>
+					if (b) {
+						<div class="b">{'b'}</div>
+						if (c) {
+							<div class="c">{'c'}</div>
+							if (d) {
+								<div class="d">{'d'}</div>
+								return;
+							}
+						}
+					}
+				}
+				<div class="rest">{'rest'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.a')).toBeTruthy();
+			expect(container.querySelector('.b')).toBeTruthy();
+			expect(container.querySelector('.c')).toBeTruthy();
+			expect(container.querySelector('.d')).toBeFalsy();
+			expect(container.querySelector('.rest')).toBeTruthy();
+		});
+
+		it('nested return with else at outer level', () => {
+			component App() {
+				let a = true;
+				let b = true;
+
+				if (a) {
+					<div class="a">{'a'}</div>
+					if (b) {
+						<div class="b">{'b'}</div>
+						return;
+					}
+				} else {
+					<div class="else">{'else'}</div>
+				}
+				<div class="rest">{'rest'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.a')).toBeTruthy();
+			expect(container.querySelector('.b')).toBeTruthy();
+			expect(container.querySelector('.else')).toBeFalsy();
+			expect(container.querySelector('.rest')).toBeFalsy();
+		});
+
+		it('nested return with else at outer level - outer false', () => {
+			component App() {
+				let a = false;
+				let b = true;
+
+				if (a) {
+					<div class="a">{'a'}</div>
+					if (b) {
+						<div class="b">{'b'}</div>
+						return;
+					}
+				} else {
+					<div class="else">{'else'}</div>
+				}
+				<div class="rest">{'rest'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.a')).toBeFalsy();
+			expect(container.querySelector('.b')).toBeFalsy();
+			expect(container.querySelector('.else')).toBeTruthy();
+			expect(container.querySelector('.rest')).toBeTruthy();
+		});
+
+		it('nested return hides content at multiple intermediate levels', () => {
+			component App() {
+				let a = true;
+				let b = true;
+				let c = true;
+
+				if (a) {
+					<div class="a">{'a'}</div>
+					if (b) {
+						<div class="b">{'b'}</div>
+						if (c) {
+							<div class="c">{'c'}</div>
+							return;
+						}
+						<div class="after-c">{'after c'}</div>
+					}
+					<div class="after-b">{'after b'}</div>
+				}
+				<div class="rest">{'rest'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.a')).toBeTruthy();
+			expect(container.querySelector('.b')).toBeTruthy();
+			expect(container.querySelector('.c')).toBeTruthy();
+			expect(container.querySelector('.after-c')).toBeFalsy();
+			expect(container.querySelector('.after-b')).toBeFalsy();
+			expect(container.querySelector('.rest')).toBeFalsy();
+		});
+
+		it('reactive: nested return - outer condition changes to false shows rest', () => {
+			component App() {
+				let a = track(true);
+				let b = true;
+
+				<button
+					onClick={() => {
+						@a = false;
+					}}
+				>
+					{'toggle a'}
+				</button>
+				if (@a) {
+					<div class="a">{'a'}</div>
+					if (b) {
+						<div class="b">{'b'}</div>
+						return;
+					}
+				}
+				<div class="rest">{'rest'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.a')).toBeTruthy();
+			expect(container.querySelector('.b')).toBeTruthy();
+			expect(container.querySelector('.rest')).toBeFalsy();
+
+			container.querySelector('button').click();
+			flushSync();
+
+			expect(container.querySelector('.a')).toBeFalsy();
+			expect(container.querySelector('.b')).toBeFalsy();
+			expect(container.querySelector('.rest')).toBeTruthy();
+		});
+
+		it('reactive: deeply nested return - innermost condition changes', () => {
+			component App() {
+				let a = true;
+				let b = true;
+				let c = track(true);
+
+				<button
+					onClick={() => {
+						@c = false;
+					}}
+				>
+					{'toggle c'}
+				</button>
+				if (a) {
+					<div class="a">{'a'}</div>
+					if (b) {
+						<div class="b">{'b'}</div>
+						if (@c) {
+							<div class="c">{'c'}</div>
+							return;
+						}
+					}
+				}
+				<div class="rest">{'rest'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.a')).toBeTruthy();
+			expect(container.querySelector('.b')).toBeTruthy();
+			expect(container.querySelector('.c')).toBeTruthy();
+			expect(container.querySelector('.rest')).toBeFalsy();
+
+			container.querySelector('button').click();
+			flushSync();
+
+			expect(container.querySelector('.a')).toBeTruthy();
+			expect(container.querySelector('.b')).toBeTruthy();
+			expect(container.querySelector('.c')).toBeFalsy();
+			expect(container.querySelector('.rest')).toBeTruthy();
+		});
+	});
+
+	describe('semantic HTML edge cases', () => {
+		it('handles return inside ul element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<ul>
+					<li>{'first'}</li>
+					if (show) {
+						<li>{'second'}</li>
+						return;
+					}
+					<li>{'third'}</li>
+				</ul>
+			}
+
+			render(App);
+			expect(container.querySelector('ul')).toBeTruthy();
+			expect(container.querySelectorAll('li').length).toBe(2);
+		});
+
+		it('handles return inside ol element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<ol>
+					<li>{'first'}</li>
+					if (show) {
+						<li>{'second'}</li>
+						return;
+					}
+					<li>{'third'}</li>
+				</ol>
+			}
+
+			render(App);
+			expect(container.querySelector('ol')).toBeTruthy();
+			expect(container.querySelectorAll('li').length).toBe(2);
+		});
+
+		it('handles return inside select element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<select>
+					<option>{'first'}</option>
+					if (show) {
+						<option>{'second'}</option>
+						return;
+					}
+					<option>{'third'}</option>
+				</select>
+			}
+
+			render(App);
+			expect(container.querySelector('select')).toBeTruthy();
+			expect(container.querySelectorAll('option').length).toBe(2);
+		});
+
+		it('handles return inside tbody element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<table>
+					<tbody>
+						<tr>
+							<td>{'cell 1'}</td>
+						</tr>
+						if (show) {
+							<tr>
+								<td>{'cell 2'}</td>
+							</tr>
+							return;
+						}
+						<tr>
+							<td>{'cell 3'}</td>
+						</tr>
+					</tbody>
+				</table>
+			}
+
+			render(App);
+			expect(container.querySelector('table')).toBeTruthy();
+			expect(container.querySelectorAll('tr').length).toBe(2);
+		});
+
+		it('handles return inside thead element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<table>
+					<thead>
+						<tr>
+							<th>{'header 1'}</th>
+						</tr>
+						if (show) {
+							<tr>
+								<th>{'header 2'}</th>
+							</tr>
+							return;
+						}
+						<tr>
+							<th>{'header 3'}</th>
+						</tr>
+					</thead>
+				</table>
+			}
+
+			render(App);
+			expect(container.querySelector('thead')).toBeTruthy();
+			expect(container.querySelectorAll('thead tr').length).toBe(2);
+		});
+
+		it('handles return inside tfoot element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<table>
+					<tfoot>
+						<tr>
+							<td>{'footer 1'}</td>
+						</tr>
+						if (show) {
+							<tr>
+								<td>{'footer 2'}</td>
+							</tr>
+							return;
+						}
+						<tr>
+							<td>{'footer 3'}</td>
+						</tr>
+					</tfoot>
+				</table>
+			}
+
+			render(App);
+			expect(container.querySelector('tfoot')).toBeTruthy();
+			expect(container.querySelectorAll('tfoot tr').length).toBe(2);
+		});
+
+		it('handles return inside tr element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<table>
+					<tbody>
+						<tr>
+							<td>{'cell 1'}</td>
+							if (show) {
+								<td>{'cell 2'}</td>
+								return;
+							}
+							<td>{'cell 3'}</td>
+						</tr>
+					</tbody>
+				</table>
+			}
+
+			render(App);
+			expect(container.querySelector('tr')).toBeTruthy();
+			expect(container.querySelectorAll('td').length).toBe(2);
+		});
+
+		it('handles return inside dl element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<dl>
+					<dt>{'term 1'}</dt>
+					<dd>{'definition 1'}</dd>
+					if (show) {
+						<dt>{'term 2'}</dt>
+						<dd>{'definition 2'}</dd>
+						return;
+					}
+					<dt>{'term 3'}</dt>
+					<dd>{'definition 3'}</dd>
+				</dl>
+			}
+
+			render(App);
+			expect(container.querySelector('dl')).toBeTruthy();
+			expect(container.querySelectorAll('dt').length).toBe(2);
+		});
+
+		it('handles return inside figure element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<figure>
+					<img src="test.jpg" alt="test" />
+					if (show) {
+						<figcaption>{'caption 1'}</figcaption>
+						return;
+					}
+					<figcaption>{'caption 2'}</figcaption>
+				</figure>
+			}
+
+			render(App);
+			expect(container.querySelector('figure')).toBeTruthy();
+			expect(container.querySelectorAll('figcaption').length).toBe(1);
+		});
+
+		it('handles return inside fieldset element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<fieldset>
+					<legend>{'legend'}</legend>
+					<input type="text" />
+					if (show) {
+						<input type="checkbox" />
+						return;
+					}
+					<input type="radio" />
+				</fieldset>
+			}
+
+			render(App);
+			expect(container.querySelector('fieldset')).toBeTruthy();
+			expect(container.querySelectorAll('input').length).toBe(2);
+		});
+
+		it('handles return inside optgroup element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<select>
+					<optgroup label="group1">
+						<option>{'opt1'}</option>
+						if (show) {
+							<option>{'opt2'}</option>
+							return;
+						}
+						<option>{'opt3'}</option>
+					</optgroup>
+				</select>
+			}
+
+			render(App);
+			expect(container.querySelector('optgroup')).toBeTruthy();
+			expect(container.querySelectorAll('option').length).toBe(2);
+		});
+
+		it('handles return inside details element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<details>
+					<summary>{'summary'}</summary>
+					<p>{'content 1'}</p>
+					if (show) {
+						<p>{'content 2'}</p>
+						return;
+					}
+					<p>{'content 3'}</p>
+				</details>
+			}
+
+			render(App);
+			expect(container.querySelector('details')).toBeTruthy();
+			expect(container.querySelectorAll('details p').length).toBe(2);
+		});
+
+		it('handles return inside picture element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<picture>
+					<source srcset="large.jpg" media="(min-width: 800px)" />
+					if (show) {
+						<source srcset="medium.jpg" media="(min-width: 400px)" />
+						return;
+					}
+					<source srcset="small.jpg" />
+					<img src="fallback.jpg" alt="fallback" />
+				</picture>
+			}
+
+			render(App);
+			expect(container.querySelector('picture')).toBeTruthy();
+			expect(container.querySelectorAll('source').length).toBe(2);
+		});
+
+		it('handles return inside menu element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<menu>
+					<li>{'item 1'}</li>
+					if (show) {
+						<li>{'item 2'}</li>
+						return;
+					}
+					<li>{'item 3'}</li>
+				</menu>
+			}
+
+			render(App);
+			expect(container.querySelector('menu')).toBeTruthy();
+			expect(container.querySelectorAll('menu li').length).toBe(2);
+		});
+
+		it('handles return inside video element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<video>
+					<source src="video.mp4" type="video/mp4" />
+					if (show) {
+						<track src="captions.vtt" kind="captions" />
+						return;
+					}
+					<track src="chapters.vtt" kind="chapters" />
+				</video>
+			}
+
+			render(App);
+			expect(container.querySelector('video')).toBeTruthy();
+			expect(container.querySelectorAll('track').length).toBe(1);
+		});
+
+		it('handles return inside audio element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<audio>
+					<source src="audio.mp3" type="audio/mpeg" />
+					if (show) {
+						<track src="captions.vtt" kind="captions" />
+						return;
+					}
+					<track src="chapters.vtt" kind="chapters" />
+				</audio>
+			}
+
+			render(App);
+			expect(container.querySelector('audio')).toBeTruthy();
+			expect(container.querySelectorAll('track').length).toBe(1);
+		});
+
+		it('handles return inside form element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<form>
+					<input type="text" name="field1" />
+					if (show) {
+						<input type="text" name="field2" />
+						return;
+					}
+					<input type="text" name="field3" />
+				</form>
+			}
+
+			render(App);
+			expect(container.querySelector('form')).toBeTruthy();
+			expect(container.querySelectorAll('input').length).toBe(2);
+		});
+
+		it('handles return inside main element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<main>
+					<h1>{'title'}</h1>
+					if (show) {
+						<p>{'content'}</p>
+						return;
+					}
+					<p>{'other content'}</p>
+				</main>
+			}
+
+			render(App);
+			expect(container.querySelector('main')).toBeTruthy();
+			expect(container.querySelectorAll('main p').length).toBe(1);
+		});
+
+		it('handles return inside article element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<article>
+					<h2>{'article title'}</h2>
+					if (show) {
+						<p>{'article content'}</p>
+						return;
+					}
+					<p>{'more content'}</p>
+				</article>
+			}
+
+			render(App);
+			expect(container.querySelector('article')).toBeTruthy();
+			expect(container.querySelectorAll('article p').length).toBe(1);
+		});
+
+		it('handles return inside section element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<section>
+					<h2>{'section title'}</h2>
+					if (show) {
+						<p>{'section content'}</p>
+						return;
+					}
+					<p>{'more content'}</p>
+				</section>
+			}
+
+			render(App);
+			expect(container.querySelector('section')).toBeTruthy();
+			expect(container.querySelectorAll('section p').length).toBe(1);
+		});
+
+		it('handles return inside aside element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<aside>
+					<h3>{'sidebar title'}</h3>
+					if (show) {
+						<p>{'sidebar content'}</p>
+						return;
+					}
+					<p>{'more sidebar'}</p>
+				</aside>
+			}
+
+			render(App);
+			expect(container.querySelector('aside')).toBeTruthy();
+			expect(container.querySelectorAll('aside p').length).toBe(1);
+		});
+
+		it('handles return inside nav element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<nav>
+					<a href="/">{'home'}</a>
+					if (show) {
+						<a href="/about">{'about'}</a>
+						return;
+					}
+					<a href="/contact">{'contact'}</a>
+				</nav>
+			}
+
+			render(App);
+			expect(container.querySelector('nav')).toBeTruthy();
+			expect(container.querySelectorAll('nav a').length).toBe(2);
+		});
+
+		it('handles return inside header element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<header>
+					<h1>{'site title'}</h1>
+					if (show) {
+						<nav>{'nav'}</nav>
+						return;
+					}
+					<p>{'subtitle'}</p>
+				</header>
+			}
+
+			render(App);
+			expect(container.querySelector('header')).toBeTruthy();
+			expect(container.querySelector('header nav')).toBeTruthy();
+		});
+
+		it('handles return inside footer element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<footer>
+					<p>{'copyright'}</p>
+					if (show) {
+						<a href="/privacy">{'privacy'}</a>
+						return;
+					}
+					<a href="/terms">{'terms'}</a>
+				</footer>
+			}
+
+			render(App);
+			expect(container.querySelector('footer')).toBeTruthy();
+			expect(container.querySelectorAll('footer a').length).toBe(1);
+		});
+
+		it('handles return inside address element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<address>
+					<span>{'street'}</span>
+					if (show) {
+						<span>{'city'}</span>
+						return;
+					}
+					<span>{'country'}</span>
+				</address>
+			}
+
+			render(App);
+			expect(container.querySelector('address')).toBeTruthy();
+			expect(container.querySelectorAll('address span').length).toBe(2);
+		});
+
+		it('handles return inside blockquote element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<blockquote>
+					<p>{'quote part 1'}</p>
+					if (show) {
+						<p>{'quote part 2'}</p>
+						return;
+					}
+					<p>{'quote part 3'}</p>
+				</blockquote>
+			}
+
+			render(App);
+			expect(container.querySelector('blockquote')).toBeTruthy();
+			expect(container.querySelectorAll('blockquote p').length).toBe(2);
+		});
+
+		it('handles return inside pre element - skips sibling after return', () => {
+			component App() {
+				let show = true;
+
+				<pre>
+					<code>{'line 1\n'}</code>
+					if (show) {
+						<code>{'line 2\n'}</code>
+						return;
+					}
+					<code>{'line 3'}</code>
+				</pre>
+			}
+
+			render(App);
+			expect(container.querySelector('pre')).toBeTruthy();
+			expect(container.querySelectorAll('pre code').length).toBe(2);
+		});
+
+		it('handles deeply nested semantic structure with return', () => {
+			component App() {
+				let show = true;
+
+				<table>
+					<thead>
+						<tr>
+							<th>{'header'}</th>
+							if (show) {
+								<th>{'extra header'}</th>
+								return;
+							}
+							<th>{'another header'}</th>
+						</tr>
+					</thead>
+				</table>
+			}
+
+			render(App);
+			expect(container.querySelector('thead')).toBeTruthy();
+			expect(container.querySelectorAll('th').length).toBe(2);
+		});
+
+		it('handles return in nested ul > li structure', () => {
+			component App() {
+				let show = true;
+
+				<ul>
+					<li>
+						<span>{'item 1'}</span>
+						if (show) {
+							<ul>
+								<li>{'nested 1'}</li>
+							</ul>
+							return;
+						}
+						<ul>
+							<li>{'nested 2'}</li>
+						</ul>
+					</li>
+				</ul>
+			}
+
+			render(App);
+			expect(container.querySelector('ul')).toBeTruthy();
+			expect(container.querySelectorAll('ul li ul li').length).toBe(1);
+		});
+
+		it('handles return in select > optgroup structure', () => {
+			component App() {
+				let show = true;
+
+				<select>
+					<optgroup label="group1">
+						<option>{'opt1'}</option>
+					</optgroup>
+					if (show) {
+						<optgroup label="group2">
+							<option>{'opt2'}</option>
+						</optgroup>
+						return;
+					}
+					<optgroup label="group3">
+						<option>{'opt3'}</option>
+					</optgroup>
+				</select>
+			}
+
+			render(App);
+			expect(container.querySelector('select')).toBeTruthy();
+			expect(container.querySelectorAll('optgroup').length).toBe(2);
+		});
+
+		it('handles return when condition is false in semantic element', () => {
+			component App() {
+				let show = false;
+
+				<ul>
+					<li>{'first'}</li>
+					if (show) {
+						<li>{'second'}</li>
+						return;
+					}
+					<li>{'third'}</li>
+				</ul>
+			}
+
+			render(App);
+			expect(container.querySelector('ul')).toBeTruthy();
+			expect(container.querySelectorAll('li').length).toBe(2);
+			expect(container.querySelector('li:last-child').textContent).toBe('third');
+		});
+
+		it('handles multiple returns in table structure', () => {
+			component App() {
+				let mode = 1;
+
+				<table>
+					<tbody>
+						<tr>
+							<td>{'row 1'}</td>
+						</tr>
+						if (mode === 1) {
+							<tr>
+								<td>{'row 2'}</td>
+							</tr>
+							return;
+						}
+						if (mode === 2) {
+							<tr>
+								<td>{'row 3'}</td>
+							</tr>
+							return;
+						}
+						<tr>
+							<td>{'row 4'}</td>
+						</tr>
+					</tbody>
+				</table>
+			}
+
+			render(App);
+			expect(container.querySelector('table')).toBeTruthy();
+			expect(container.querySelectorAll('tr').length).toBe(2);
+		});
+	});
+
+	describe('return value validation', () => {
+		it('throws error for return with string value', () => {
+			expect(() => {
+				compile(`component App() {
+						if (true) {
+							<div>{'test'}</div>
+							return 'hello';
+						}
+					}`, 'test.ripple', {
+					mode: 'client',
+				});
+			}).toThrow('Return statements inside components cannot have a return value.');
+		});
+
+		it('throws error for return with number value', () => {
+			expect(() => {
+				compile(`component App() {
+						if (true) {
+							<div>{'test'}</div>
+							return 42;
+						}
+					}`, 'test.ripple', {
+					mode: 'client',
+				});
+			}).toThrow('Return statements inside components cannot have a return value.');
+		});
+
+		it('throws error for return with null value', () => {
+			expect(() => {
+				compile(`component App() {
+						if (true) {
+							<div>{'test'}</div>
+							return null;
+						}
+					}`, 'test.ripple', {
+					mode: 'client',
+				});
+			}).toThrow('Return statements inside components cannot have a return value.');
+		});
+
+		it('throws error for return with undefined value', () => {
+			expect(() => {
+				compile(
+					`component App() {
+						if (true) {
+							<div>{'test'}</div>
+							return undefined;
+						}
+					}`,
+					'test.ripple',
+					{ mode: 'client' },
+				);
+			}).toThrow('Return statements inside components cannot have a return value.');
+		});
+
+		it('throws error for return with object value', () => {
+			expect(() => {
+				compile(
+					`component App() {
+						if (true) {
+							<div>{'test'}</div>
+							return { foo: 'bar' };
+						}
+					}`,
+					'test.ripple',
+					{ mode: 'client' },
+				);
+			}).toThrow('Return statements inside components cannot have a return value.');
+		});
+
+		it('throws error for return with variable', () => {
+			expect(() => {
+				compile(
+					`component App() {
+						let x = 5;
+						if (true) {
+							<div>{'test'}</div>
+							return x;
+						}
+					}`,
+					'test.ripple',
+					{ mode: 'client' },
+				);
+			}).toThrow('Return statements inside components cannot have a return value.');
+		});
+
+		it('accepts void return', () => {
+			component App() {
+				let show = true;
+
+				if (show) {
+					<div>{'test'}</div>
+					return;
+				}
+				<div>{'fallback'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('div')).toBeTruthy();
+		});
+	});
+
+	describe('deeply nested conditions with returns', () => {
+		it('handles return inside nested div > if > div > if chain', () => {
+			component App() {
+				let a = false;
+				let b = false;
+				let c = false;
+				let d = false;
+
+				<div class="outer">
+					if (a) {
+						<span class="a">{'branch a'}</span>
+					}
+					<div class="inner">
+						if (b) {
+							<span class="b">{'branch b'}</span>
+						}
+						if (c) {
+							return;
+						}
+						if (d) {
+							<span class="d">{'branch d'}</span>
+							return;
+						}
+					</div>
+				</div>
+				<div class="after">{'after'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.outer')).toBeTruthy();
+			expect(container.querySelector('.inner')).toBeTruthy();
+			expect(container.querySelector('.after')).toBeTruthy();
+			expect(container.querySelector('.a')).toBeFalsy();
+			expect(container.querySelector('.b')).toBeFalsy();
+			expect(container.querySelector('.d')).toBeFalsy();
+		});
+
+		it('nested: first return triggers, hides content after outer div', () => {
+			component App() {
+				let a = false;
+				let b = false;
+				let c = true;
+				let d = false;
+
+				<div class="outer">
+					if (a) {
+						<span class="a">{'branch a'}</span>
+					}
+					<div class="inner">
+						if (b) {
+							<span class="b">{'branch b'}</span>
+						}
+						if (c) {
+							return;
+						}
+						if (d) {
+							<span class="d">{'branch d'}</span>
+							return;
+						}
+					</div>
+				</div>
+				<div class="after">{'after'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.outer')).toBeTruthy();
+			expect(container.querySelector('.inner')).toBeTruthy();
+			expect(container.querySelector('.after')).toBeFalsy();
+		});
+
+		it('nested: second return triggers with template, hides content after', () => {
+			component App() {
+				let a = true;
+				let b = true;
+				let c = false;
+				let d = true;
+
+				<div class="outer">
+					if (a) {
+						<span class="a">{'branch a'}</span>
+					}
+					<div class="inner">
+						if (b) {
+							<span class="b">{'branch b'}</span>
+						}
+						if (c) {
+							return;
+						}
+						if (d) {
+							<span class="d">{'branch d'}</span>
+							return;
+						}
+					</div>
+				</div>
+				<div class="after">{'after'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.a')).toBeTruthy();
+			expect(container.querySelector('.b')).toBeTruthy();
+			expect(container.querySelector('.d')).toBeTruthy();
+			expect(container.querySelector('.after')).toBeFalsy();
+		});
+
+		it('nested: both returns active, first wins', () => {
+			component App() {
+				let a = false;
+				let b = false;
+				let c = true;
+				let d = true;
+
+				<div class="outer">
+					if (a) {
+						<span class="a">{'branch a'}</span>
+					}
+					<div class="inner">
+						if (b) {
+							<span class="b">{'branch b'}</span>
+						}
+						if (c) {
+							return;
+						}
+						if (d) {
+							<span class="d">{'branch d'}</span>
+							return;
+						}
+					</div>
+				</div>
+				<div class="after">{'after'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.outer')).toBeTruthy();
+			expect(container.querySelector('.inner')).toBeTruthy();
+			expect(container.querySelector('.d')).toBeFalsy();
+			expect(container.querySelector('.after')).toBeFalsy();
+		});
+
+		it('nested reactive: toggling conditions updates DOM', () => {
+			component App() {
+				let a = track(false);
+				let b = track(false);
+				let c = track(false);
+				let d = track(false);
+
+				<button
+					class="toggle-c"
+					onClick={() => {
+						@c = !@c;
+					}}
+				>
+					{'toggle c'}
+				</button>
+				<button
+					class="toggle-d"
+					onClick={() => {
+						@d = !@d;
+					}}
+				>
+					{'toggle d'}
+				</button>
+
+				<div class="outer">
+					if (@a) {
+						<span class="a">{'branch a'}</span>
+					}
+					<div class="inner">
+						if (@b) {
+							<span class="b">{'branch b'}</span>
+						}
+						if (@c) {
+							return;
+						}
+						if (@d) {
+							<span class="d">{'branch d'}</span>
+							return;
+						}
+					</div>
+				</div>
+				<div class="after">{'after'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.after')).toBeTruthy();
+			expect(container.querySelector('.d')).toBeFalsy();
+
+			// trigger c return
+			container.querySelector('.toggle-c').click();
+			flushSync();
+			expect(container.querySelector('.after')).toBeFalsy();
+			expect(container.querySelector('.d')).toBeFalsy();
+
+			// untrigger c, trigger d
+			container.querySelector('.toggle-c').click();
+			flushSync();
+			container.querySelector('.toggle-d').click();
+			flushSync();
+			expect(container.querySelector('.d')).toBeTruthy();
+			expect(container.querySelector('.after')).toBeFalsy();
+
+			// untrigger d, everything visible again
+			container.querySelector('.toggle-d').click();
+			flushSync();
+			expect(container.querySelector('.after')).toBeTruthy();
+		});
+	});
+});

@@ -109,6 +109,41 @@ function mark_as_tracked(path) {
 	}
 }
 
+/**
+ * @param {AST.ReturnStatement} node
+ * @returns {AST.ReturnStatement}
+ */
+function get_return_keyword_node(node) {
+	const return_keyword_length = 'return'.length;
+	return /** @type {AST.ReturnStatement} */ ({
+		...node,
+		end: /** @type {AST.NodeWithLocation} */ (node).start + return_keyword_length,
+		loc: {
+			start: /** @type {AST.NodeWithLocation} */ (node).loc.start,
+			end: {
+				line: /** @type {AST.NodeWithLocation} */ (node).loc.start.line,
+				column: /** @type {AST.NodeWithLocation} */ (node).loc.start.column + return_keyword_length,
+			},
+		},
+	});
+}
+
+/**
+ * @param {AST.ReturnStatement} node
+ * @param {AnalysisContext} context
+ * @param {string} message
+ */
+function error_return_keyword(node, context, message) {
+	const return_keyword_node = get_return_keyword_node(node);
+
+	error(
+		message,
+		context.state.analysis.module.filename,
+		return_keyword_node,
+		context.state.loose ? context.state.analysis.errors : undefined,
+	);
+}
+
 /** @type {Visitors<AST.Node, AnalysisState>} */
 const visitors = {
 	_(node, { state, next, path }) {
@@ -336,6 +371,13 @@ const visitors = {
 			mark_as_tracked(context.path);
 		}
 
+		context.next();
+	},
+
+	NewExpression(node, context) {
+		if (context.state.metadata?.tracking === false) {
+			context.state.metadata.tracking = true;
+		}
 		context.next();
 	},
 
@@ -740,9 +782,26 @@ const visitors = {
 			has_await: false,
 		};
 
+		const test_metadata = { tracking: false };
+		context.visit(node.test, { ...context.state, metadata: test_metadata });
+		if (test_metadata.tracking) {
+			/** @type {AST.TrackedNode} */ (node.test).tracked = true;
+		}
+
 		context.visit(node.consequent, context.state);
 
-		if (!node.metadata.has_template) {
+		const consequent_body =
+			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+
+		if (
+			consequent_body.length === 1 &&
+			consequent_body[0].type === 'ReturnStatement' &&
+			!node.alternate
+		) {
+			node.metadata.lone_return = true;
+		}
+
+		if (!node.metadata.has_template && !node.metadata.has_return) {
 			error(
 				'Component if statements must contain a template in their "then" body. Move the if statement into an effect if it does not render anything.',
 				context.state.analysis.module.filename,
@@ -752,11 +811,13 @@ const visitors = {
 		}
 
 		if (node.alternate) {
+			const saved_has_return = node.metadata.has_return;
+			const saved_returns = node.metadata.returns;
 			node.metadata.has_template = false;
 			node.metadata.has_await = false;
 			context.visit(node.alternate, context.state);
 
-			if (!node.metadata.has_template) {
+			if (!node.metadata.has_template && !node.metadata.has_return) {
 				error(
 					'Component if statements must contain a template in their "else" body. Move the if statement into an effect if it does not render anything.',
 					context.state.analysis.module.filename,
@@ -764,6 +825,63 @@ const visitors = {
 					context.state.loose ? context.state.analysis.errors : undefined,
 				);
 			}
+
+			if (saved_has_return) {
+				node.metadata.has_return = true;
+				if (saved_returns) {
+					node.metadata.returns = [...saved_returns, ...(node.metadata.returns || [])];
+				}
+			}
+		}
+	},
+
+	ReturnStatement(node, context) {
+		const parent = context.path.at(-1);
+
+		if (!is_inside_component(context)) {
+			if (parent?.type === 'Program') {
+				error_return_keyword(
+					node,
+					context,
+					'Return statements are not allowed at the top level of a module.',
+				);
+			}
+
+			return context.next();
+		}
+
+		if (node.argument !== null) {
+			error_return_keyword(
+				node,
+				context,
+				'Return statements inside components cannot have a return value.',
+			);
+		}
+
+		for (let i = context.path.length - 1; i >= 0; i--) {
+			const ancestor = context.path[i];
+
+			if (
+				ancestor.type === 'Component' ||
+				ancestor.type === 'FunctionExpression' ||
+				ancestor.type === 'ArrowFunctionExpression' ||
+				ancestor.type === 'FunctionDeclaration'
+			) {
+				break;
+			}
+
+			if (
+				ancestor.type === 'IfStatement' &&
+				/** @type {AST.TrackedNode} */ (ancestor.test).tracked
+			) {
+				node.metadata.is_reactive = true;
+			}
+
+			if (!ancestor.metadata.returns) {
+				ancestor.metadata.returns = [];
+			}
+			ancestor.metadata.returns.push(node);
+			ancestor.metadata.has_return = true;
 		}
 	},
 
