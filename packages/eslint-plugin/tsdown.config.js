@@ -5,11 +5,7 @@ export default defineConfig({
 	format: ['esm'],
 	dts: true,
 	// Mark peer dependencies as external so they're not bundled
-	external: [
-		'eslint',
-		'@typescript-eslint/parser',
-		'@ripple-ts/eslint-parser',
-	],
+	external: ['eslint', '@typescript-eslint/parser', '@ripple-ts/eslint-parser'],
 	outputOptions: {
 		legalComments: 'inline',
 	},

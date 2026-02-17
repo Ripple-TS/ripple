@@ -1,6 +1,6 @@
 /** @import { createSubscriber } from '#public' */
 import { untrack, queue_microtask } from './internal/client/runtime.js';
-import { effect } from './internal/client/blocks.js'
+import { effect } from './internal/client/blocks.js';
 
 /** @type {createSubscriber} */
 export function createSubscriber(start) {

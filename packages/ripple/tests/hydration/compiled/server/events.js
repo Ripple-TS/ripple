@@ -1,6 +1,6 @@
 import * as _$_ from 'ripple/internal/server';
 
-import { track } from 'ripple/ssr';
+import { track } from 'ripple/server';
 
 export function ClickCounter(__output) {
 	_$_.push_component();

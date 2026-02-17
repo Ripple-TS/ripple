@@ -203,8 +203,11 @@ describe('generics', () => {
 					this.map = new Map<Key, Value>();
 				}
 			}
-			const gg = new Mapper<// key type
-			string /* value type */, number>();
+			const gg = new Mapper<
+				// key type
+				string /* value type */,
+				number
+			>();
 
 			// 33. Map of generic instance as key
 			const mm = new Map<TrackedArray<number>, TrackedArray<string>>();

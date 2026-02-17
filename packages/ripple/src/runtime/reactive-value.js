@@ -17,5 +17,13 @@ export function ReactiveValue(fn, start) {
 	const s = createSubscriber(start);
 	const block = safe_scope();
 
-	return (derived(fn, block, () => { s(); return fn(); }, (_, prev) => prev));
+	return derived(
+		fn,
+		block,
+		() => {
+			s();
+			return fn();
+		},
+		(_, prev) => prev,
+	);
 }

@@ -1,30 +1,30 @@
 on:
-    push:
-        branches: [main, develop]
-        tags: ["!**"]
-        paths: ["packages/**"]
-    pull_request:
-        branches: ["main"]
+  push:
+    branches: [main, develop]
+    tags: ["!**"]
+    paths: ["packages/**"]
+  pull_request:
+    branches: ["main"]
 
 permissions:
-    contents: read
+  contents: read
 
 name: Check for NPM Provenance Downgrade
 
 jobs:
-    check-provenance:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
-            - name: Check provenance downgrades
-              uses: danielroe/provenance-action@main
-              id: check
-              with:
-                  fail-on-provenance-change: true # optional, default: false
-              #   lockfile: pnpm-lock.yaml      # optional, auto-detects
-              #   base-ref: origin/main         # optional, default: origin/main
-              #   fail-on-downgrade: true       # optional, default: true
-            - name: Print result
-              run: "echo 'Downgraded: ${{ steps.check.outputs.downgraded }}'"
+  check-provenance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check provenance downgrades
+        uses: danielroe/provenance-action@main
+        id: check
+        with:
+          fail-on-provenance-change: true # optional, default: false
+        #   lockfile: pnpm-lock.yaml      # optional, auto-detects
+        #   base-ref: origin/main         # optional, default: origin/main
+        #   fail-on-downgrade: true       # optional, default: true
+      - name: Print result
+        run: "echo 'Downgraded: ${{ steps.check.outputs.downgraded }}'"

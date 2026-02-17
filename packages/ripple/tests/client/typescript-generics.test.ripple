@@ -120,7 +120,7 @@ describe('generic patterns', () => {
 		component App() {
 			function getBuilder() {
 				return <T,>() => ({
-					build<V,T,U>(): { build: () => V; data: T; key: U } {
+					build<V, T, U>(): { build: () => V; data: T; key: U } {
 						return {
 							build(): V {
 								return 'test' as V;

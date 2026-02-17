@@ -5,7 +5,7 @@ describe('TrackedArray > mutations', () => {
 		component ArrayTest() {
 			let items = new TrackedArray(1, 2, 3);
 
-			<button onClick={() => items[items.length] = items.length + 1}>{'increment'}</button>
+			<button onClick={() => (items[items.length] = items.length + 1)}>{'increment'}</button>
 
 			<Child {items} />
 		}
@@ -234,7 +234,7 @@ describe('TrackedArray > mutations', () => {
 		component ArrayTest() {
 			let items = new TrackedArray(1, 2, 3);
 
-			<button onClick={() => items.forEach((item, i) => items[i] = item * 2)}>
+			<button onClick={() => items.forEach((item, i) => (items[i] = item * 2))}>
 				{'double all'}
 			</button>
 			<pre>{JSON.stringify(items)}</pre>
@@ -258,7 +258,7 @@ describe('TrackedArray > mutations', () => {
 		component ArrayTest() {
 			let items = new TrackedArray(1, 2, 3);
 
-			<button onClick={() => items.forEach((item, i) => items[i] = item * 2)}>
+			<button onClick={() => items.forEach((item, i) => (items[i] = item * 2))}>
 				{'double all'}
 			</button>
 
@@ -291,7 +291,7 @@ describe('TrackedArray > mutations', () => {
 			let firstItem = track(() => items[0]);
 			let secondItem = track(() => items[1]);
 
-			<button onClick={() => items[0] = 100}>{'change first'}</button>
+			<button onClick={() => (items[0] = 100)}>{'change first'}</button>
 			<pre>{@firstItem}</pre>
 			<pre>{@secondItem}</pre>
 			<pre>{items[0]}</pre>
@@ -323,8 +323,8 @@ describe('TrackedArray > mutations', () => {
 			let items = new TrackedArray(1, 2, 3);
 			let length = track(() => items.length);
 
-			<button onClick={() => items.length = 5}>{'expand'}</button>
-			<button onClick={() => items.length = 2}>{'shrink'}</button>
+			<button onClick={() => (items.length = 5)}>{'expand'}</button>
+			<button onClick={() => (items.length = 2)}>{'shrink'}</button>
 			<pre>{JSON.stringify(items)}</pre>
 			<pre>{@length}</pre>
 		}
@@ -357,8 +357,8 @@ describe('TrackedArray > mutations', () => {
 		component ArrayTest() {
 			let items = new TrackedArray(1, 2, 3, 4, 5);
 
-			<button onClick={() => items.length = 3}>{'truncate'}</button>
-			<button onClick={() => items.length = 7}>{'expand'}</button>
+			<button onClick={() => (items.length = 3)}>{'truncate'}</button>
+			<button onClick={() => (items.length = 7)}>{'expand'}</button>
 			<pre>{JSON.stringify(items)}</pre>
 			<pre>{items.length}</pre>
 		}

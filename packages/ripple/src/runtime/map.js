@@ -24,7 +24,7 @@ export class TrackedMap extends Map {
 	constructor(iterable) {
 		super();
 
-		var block = this.#block = safe_scope();
+		var block = (this.#block = safe_scope());
 
 		if (iterable) {
 			for (var [key, value] of iterable) {
@@ -49,7 +49,7 @@ export class TrackedMap extends Map {
 		var map_proto = Map.prototype;
 
 		for (const method of introspect_methods) {
-      /** @type {any} */ (proto)[method] = function (/** @type {...any} */ ...v) {
+			/** @type {any} */ (proto)[method] = function (/** @type {...any} */ ...v) {
 				this.size;
 				this.#read_all();
 

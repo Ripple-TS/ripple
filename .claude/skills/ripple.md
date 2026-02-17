@@ -1,0 +1,1 @@
+../../.agents/skills/ripple.md

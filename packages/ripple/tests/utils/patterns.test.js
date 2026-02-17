@@ -256,8 +256,12 @@ describe('patterns utility', () => {
 		it('should remove invalid identifier characters', () => {
 			expect('123abc'.replace(patterns.regex_invalid_identifier_chars, '_')).toBe('_23abc');
 			expect('my-var'.replace(patterns.regex_invalid_identifier_chars, '_')).toBe('my_var');
-			expect('hello.world'.replace(patterns.regex_invalid_identifier_chars, '_')).toBe('hello_world');
-			expect('\t\r\nhello.world'.replace(patterns.regex_invalid_identifier_chars, '_')).toBe('___hello_world');
+			expect('hello.world'.replace(patterns.regex_invalid_identifier_chars, '_')).toBe(
+				'hello_world',
+			);
+			expect('\t\r\nhello.world'.replace(patterns.regex_invalid_identifier_chars, '_')).toBe(
+				'___hello_world',
+			);
 			expect('my\tvar'.replace(patterns.regex_invalid_identifier_chars, '_')).toBe('my_var');
 			expect('my\rvar'.replace(patterns.regex_invalid_identifier_chars, '_')).toBe('my_var');
 			expect(''.replace(patterns.regex_invalid_identifier_chars, '_')).toBe('');

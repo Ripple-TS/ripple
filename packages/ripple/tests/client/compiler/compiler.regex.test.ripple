@@ -59,16 +59,18 @@ describe('compiler > regex', () => {
 			// Mix of regex parsing and legitimate JSX
 			let paragraphs = htmlString.match(/<p[^>]*>.*?<\/p>/g);
 			let cleaned = htmlString.replace(/<\/?[^>]+>/g, '');
-			let splitArray = htmlString.split(/<\/?\w+>/g).filter(s => s.trim());
+			let splitArray = htmlString.split(/<\/?\w+>/g).filter((s) => s.trim());
 
-			<div class='container'>
-				<span class='result'>{String(paragraphs)}</span>
-				<span class='cleaned'>{cleaned}</span>
+			<div class="container">
+				<span class="result">{String(paragraphs)}</span>
+				<span class="cleaned">{cleaned}</span>
 				<p>{'This is real JSX'}</p>
-				<div><span>
-					{'Split result: '}
-					{splitArray.join(', ')}
-				</span></div>
+				<div>
+					<span>
+						{'Split result: '}
+						{splitArray.join(', ')}
+					</span>
+				</div>
 			</div>
 		}
 

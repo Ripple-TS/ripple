@@ -1,6 +1,22 @@
 import type { Props } from '#public';
 import type { Readable } from 'node:stream';
 
+// Re-export runtime types for server-compiled components
+export {
+	track,
+	untrack,
+	flushSync,
+	effect,
+	tick,
+	Context,
+	TrackedArray,
+	TrackedSet,
+	TrackedMap,
+	TrackedDate,
+	TrackedURL,
+	TrackedURLSearchParams,
+} from './index.js';
+
 export interface SSRRenderOutput {
 	head: string;
 	body: string;

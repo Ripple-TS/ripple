@@ -178,9 +178,11 @@ write a JS expression that evaluates to our desired value.
 
 ::: info
 Plain attributes can still be used.
+
 ```ripple
 <input type="text" />
 ```
+
 :::
 
 ## Raw HTML
@@ -205,9 +207,11 @@ export component App() {
 ::: info Note
 The raw HTML passed in should be valid, well-formed HTML. The following example
 will not work, since closing tags by themselves are considered malformed HTML.
+
 ```ripple
 {html '<div>'}content{html '</div>'}
 ```
+
 :::
 
 ### Styling Raw HTML

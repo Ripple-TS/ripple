@@ -1,0 +1,38 @@
+# GitHub Copilot agent environment setup
+# See: https://gh.io/copilot/actions-setup-steps
+
+name: Copilot Setup Steps
+
+on: workflow_dispatch
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build CLI
+        working-directory: ./packages/cli
+        run: pnpm build
+
+      - name: Build ESLint parser
+        working-directory: ./packages/eslint-parser
+        run: pnpm build
+
+      - name: Sync agent configurations
+        run: pnpm agents:sync

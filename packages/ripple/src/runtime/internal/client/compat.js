@@ -1,13 +1,13 @@
 /** @import { CompatApi } from '#client' */
 
-import { ROOT_BLOCK } from "./constants.js";
-import { active_block } from "./runtime.js";
+import { ROOT_BLOCK } from './constants.js';
+import { active_block } from './runtime.js';
 
 /**
  * @param {string} kind
  * @returns {CompatApi | null}
  */
-function get_compat_from_root(kind)  {
+function get_compat_from_root(kind) {
 	var current = active_block;
 
 	while (current !== null) {

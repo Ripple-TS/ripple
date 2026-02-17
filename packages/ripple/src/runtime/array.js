@@ -9,12 +9,12 @@ import { array_proxy } from './proxy.js';
  * @returns {TrackedArray<T>}
  */
 export function TrackedArray(...elements) {
-  if (!new.target) {
-    throw new Error("TrackedArray must be called with 'new'");
-  }
+	if (!new.target) {
+		throw new Error("TrackedArray must be called with 'new'");
+	}
 
-  var block = safe_scope();
-  return array_proxy({ elements, block });
+	var block = safe_scope();
+	return array_proxy({ elements, block });
 }
 
 /**
@@ -25,9 +25,9 @@ export function TrackedArray(...elements) {
  * @returns {TrackedArray<T>}
  */
 TrackedArray.from = function (arrayLike, mapFn, thisArg) {
-  var block = safe_scope();
-  var elements = mapFn ? Array.from(arrayLike, mapFn, thisArg) : Array.from(arrayLike);
-  return array_proxy({ elements, block, from_static: true });
+	var block = safe_scope();
+	var elements = mapFn ? Array.from(arrayLike, mapFn, thisArg) : Array.from(arrayLike);
+	return array_proxy({ elements, block, from_static: true });
 };
 
 /**
@@ -36,9 +36,9 @@ TrackedArray.from = function (arrayLike, mapFn, thisArg) {
  * @returns {TrackedArray<T>}
  */
 TrackedArray.of = function (...items) {
-  var block = safe_scope();
-  var elements = Array.of(...items);
-  return array_proxy({ elements, block, from_static: true });
+	var block = safe_scope();
+	var elements = Array.of(...items);
+	return array_proxy({ elements, block, from_static: true });
 };
 
 /**
@@ -49,11 +49,11 @@ TrackedArray.of = function (...items) {
  * @returns {Promise<TrackedArray<T>>}
  */
 TrackedArray.fromAsync = async function (arrayLike, mapFn, thisArg) {
-  var block = safe_scope();
-  var elements = mapFn
-    ? await Array.fromAsync(arrayLike, mapFn, thisArg)
-    : await Array.fromAsync(arrayLike);
-  return array_proxy({ elements, block, from_static: true });
+	var block = safe_scope();
+	var elements = mapFn
+		? await Array.fromAsync(arrayLike, mapFn, thisArg)
+		: await Array.fromAsync(arrayLike);
+	return array_proxy({ elements, block, from_static: true });
 };
 
 /**
@@ -63,5 +63,5 @@ TrackedArray.fromAsync = async function (arrayLike, mapFn, thisArg) {
  * @returns {TrackedArray<T>}
  */
 export function tracked_array(elements, block) {
-  return array_proxy({ elements, block, from_static: true });
+	return array_proxy({ elements, block, from_static: true });
 }

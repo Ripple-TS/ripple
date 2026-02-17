@@ -28,7 +28,7 @@ export class TrackedSet extends Set {
 	constructor(iterable) {
 		super();
 
-		var block = this.#block = safe_scope();
+		var block = (this.#block = safe_scope());
 
 		if (iterable) {
 			for (var item of iterable) {
@@ -57,7 +57,7 @@ export class TrackedSet extends Set {
 				continue;
 			}
 
-      /** @type {any} */ (proto)[method] = function (/** @type {...any} */ ...v) {
+			/** @type {any} */ (proto)[method] = function (/** @type {...any} */ ...v) {
 				this.size;
 
 				return /** @type {any} */ (set_proto)[method].apply(this, v);
@@ -69,7 +69,10 @@ export class TrackedSet extends Set {
 				continue;
 			}
 
-      /** @type {any} */ (proto)[method] = function (/** @type {any} */ other, /** @type {...any} */ ...v) {
+			/** @type {any} */ (proto)[method] = function (
+				/** @type {any} */ other,
+				/** @type {...any} */ ...v
+			) {
 				this.size;
 
 				if (other instanceof TrackedSet) {
@@ -85,14 +88,17 @@ export class TrackedSet extends Set {
 				continue;
 			}
 
-      /** @type {any} */ (proto)[method] = function (/** @type {any} */ other, /** @type {...any} */ ...v) {
+			/** @type {any} */ (proto)[method] = function (
+				/** @type {any} */ other,
+				/** @type {...any} */ ...v
+			) {
 				this.size;
 
 				if (other instanceof TrackedSet) {
 					other.size;
 				}
 
-				return new TrackedSet(/** @type {any} */(set_proto)[method].apply(this, [other, ...v]));
+				return new TrackedSet(/** @type {any} */ (set_proto)[method].apply(this, [other, ...v]));
 			};
 		}
 	}
@@ -138,9 +144,8 @@ export class TrackedSet extends Set {
 	/**
 	 * @param {T} value
 	 * @return {boolean}
-	*/
+	 */
 	has(value) {
-
 		var has = super.has(value);
 		var tracked_items = this.#tracked_items;
 		var t = tracked_items.get(value);

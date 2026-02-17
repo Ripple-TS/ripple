@@ -7,7 +7,7 @@ describe('TrackedURL > partials/removal', () => {
 
 			<pre>{url.port}</pre>
 			<pre>{url.host}</pre>
-			<button onClick={() => url.port = '8080'}>{'Add Port'}</button>
+			<button onClick={() => (url.port = '8080')}>{'Add Port'}</button>
 		}
 
 		render(URLTest);
@@ -56,7 +56,7 @@ describe('TrackedURL > partials/removal', () => {
 			const url = new TrackedURL('https://example.com/path');
 
 			<pre>{url.hash}</pre>
-			<button onClick={() => url.hash = '#section'}>{'Add Hash'}</button>
+			<button onClick={() => (url.hash = '#section')}>{'Add Hash'}</button>
 		}
 
 		render(URLTest);
@@ -77,7 +77,7 @@ describe('TrackedURL > partials/removal', () => {
 		component URLTest() {
 			const url = new TrackedURL('https://example.com:8080/path');
 
-			<button onClick={() => url.port = ''}>{'Remove Port'}</button>
+			<button onClick={() => (url.port = '')}>{'Remove Port'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.port}</pre>
 		}
@@ -102,7 +102,7 @@ describe('TrackedURL > partials/removal', () => {
 		component URLTest() {
 			const url = new TrackedURL('https://example.com/path#section');
 
-			<button onClick={() => url.hash = ''}>{'Remove Hash'}</button>
+			<button onClick={() => (url.hash = '')}>{'Remove Hash'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.hash}</pre>
 		}
@@ -129,7 +129,7 @@ describe('TrackedURL > partials/removal', () => {
 		component URLTest() {
 			const url = new TrackedURL('https://example.com/path?foo=bar');
 
-			<button onClick={() => url.search = ''}>{'Remove Search'}</button>
+			<button onClick={() => (url.search = '')}>{'Remove Search'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.search}</pre>
 			<pre>{url.searchParams.size}</pre>
@@ -159,7 +159,7 @@ describe('TrackedURL > partials/removal', () => {
 		component URLTest() {
 			const url = new TrackedURL('https://example.com/path');
 
-			<button onClick={() => url.hash = 'section'}>{'Set Hash'}</button>
+			<button onClick={() => (url.hash = 'section')}>{'Set Hash'}</button>
 			<pre>{url.hash}</pre>
 			<pre>{url.href}</pre>
 		}
@@ -185,7 +185,7 @@ describe('TrackedURL > partials/removal', () => {
 		component URLTest() {
 			const url = new TrackedURL('https://example.com/path');
 
-			<button onClick={() => url.search = 'foo=bar'}>{'Set Search'}</button>
+			<button onClick={() => (url.search = 'foo=bar')}>{'Set Search'}</button>
 			<pre>{url.search}</pre>
 			<pre>{url.href}</pre>
 		}

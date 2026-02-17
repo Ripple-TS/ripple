@@ -2,6 +2,7 @@
 
 import { branch, destroy_block, render } from './blocks.js';
 import { SWITCH_BLOCK } from './constants.js';
+import { hydrate_next, hydrating } from './hydration.js';
 import { next_sibling } from './operations.js';
 import { append } from './template.js';
 
@@ -34,6 +35,10 @@ function move(block, anchor) {
  * @returns {void}
  */
 export function switch_block(anchor, fn) {
+	if (hydrating) {
+		hydrate_next();
+	}
+
 	/** @type {((anchor: ChildNode) => void)[]} */
 	var prev = [];
 	/** @type {Map<(anchor: ChildNode) => void, Block>} */

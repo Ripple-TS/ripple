@@ -5,7 +5,7 @@ describe('TrackedURL > reactivity', () => {
 		component URLTest() {
 			const url = new TrackedURL('https://example.com/path');
 
-			<button onClick={() => url.protocol = 'http:'}>{'Change Protocol'}</button>
+			<button onClick={() => (url.protocol = 'http:')}>{'Change Protocol'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.protocol}</pre>
 			<pre>{url.origin}</pre>
@@ -33,7 +33,7 @@ describe('TrackedURL > reactivity', () => {
 		component URLTest() {
 			const url = new TrackedURL('https://example.com/path');
 
-			<button onClick={() => url.hostname = 'newdomain.com'}>{'Change Hostname'}</button>
+			<button onClick={() => (url.hostname = 'newdomain.com')}>{'Change Hostname'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.hostname}</pre>
 			<pre>{url.host}</pre>
@@ -61,7 +61,7 @@ describe('TrackedURL > reactivity', () => {
 		component URLTest() {
 			const url = new TrackedURL('https://example.com:8080/path');
 
-			<button onClick={() => url.port = '9090'}>{'Change Port'}</button>
+			<button onClick={() => (url.port = '9090')}>{'Change Port'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.port}</pre>
 			<pre>{url.host}</pre>
@@ -89,7 +89,7 @@ describe('TrackedURL > reactivity', () => {
 		component URLTest() {
 			const url = new TrackedURL('https://example.com:8080/path');
 
-			<button onClick={() => url.host = 'newdomain.com:9090'}>{'Change Host'}</button>
+			<button onClick={() => (url.host = 'newdomain.com:9090')}>{'Change Host'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.host}</pre>
 			<pre>{url.hostname}</pre>
@@ -122,7 +122,7 @@ describe('TrackedURL > reactivity', () => {
 		component URLTest() {
 			const url = new TrackedURL('https://example.com/old-path');
 
-			<button onClick={() => url.pathname = '/new-path'}>{'Change Pathname'}</button>
+			<button onClick={() => (url.pathname = '/new-path')}>{'Change Pathname'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.pathname}</pre>
 		}
@@ -147,7 +147,7 @@ describe('TrackedURL > reactivity', () => {
 		component URLTest() {
 			const url = new TrackedURL('https://example.com/path?foo=bar');
 
-			<button onClick={() => url.search = '?baz=qux'}>{'Change Search'}</button>
+			<button onClick={() => (url.search = '?baz=qux')}>{'Change Search'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.search}</pre>
 		}
@@ -176,7 +176,7 @@ describe('TrackedURL > reactivity', () => {
 		component URLTest() {
 			const url = new TrackedURL('https://example.com/path#section1');
 
-			<button onClick={() => url.hash = '#section2'}>{'Change Hash'}</button>
+			<button onClick={() => (url.hash = '#section2')}>{'Change Hash'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.hash}</pre>
 		}
@@ -205,7 +205,7 @@ describe('TrackedURL > reactivity', () => {
 		component URLTest() {
 			const url = new TrackedURL('https://user:pass@example.com/path');
 
-			<button onClick={() => url.username = 'newuser'}>{'Change Username'}</button>
+			<button onClick={() => (url.username = 'newuser')}>{'Change Username'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.username}</pre>
 		}
@@ -234,7 +234,7 @@ describe('TrackedURL > reactivity', () => {
 		component URLTest() {
 			const url = new TrackedURL('https://user:pass@example.com/path');
 
-			<button onClick={() => url.password = 'newpass'}>{'Change Password'}</button>
+			<button onClick={() => (url.password = 'newpass')}>{'Change Password'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.password}</pre>
 		}
@@ -263,7 +263,7 @@ describe('TrackedURL > reactivity', () => {
 		component URLTest() {
 			const url = new TrackedURL('https://example.com/path?foo=bar#section');
 
-			<button onClick={() => url.href = 'https://newdomain.com:9090/newpath?baz=qux#newsection'}>
+			<button onClick={() => (url.href = 'https://newdomain.com:9090/newpath?baz=qux#newsection')}>
 				{'Change Href'}
 			</button>
 			<pre>{url.href}</pre>
@@ -309,9 +309,9 @@ describe('TrackedURL > reactivity', () => {
 		component URLTest() {
 			const url = new TrackedURL('https://example.com:8080/path');
 
-			<button onClick={() => url.protocol = 'http:'}>{'Change Protocol'}</button>
-			<button onClick={() => url.hostname = 'newdomain.com'}>{'Change Hostname'}</button>
-			<button onClick={() => url.port = '9090'}>{'Change Port'}</button>
+			<button onClick={() => (url.protocol = 'http:')}>{'Change Protocol'}</button>
+			<button onClick={() => (url.hostname = 'newdomain.com')}>{'Change Hostname'}</button>
+			<button onClick={() => (url.port = '9090')}>{'Change Port'}</button>
 			<pre>{url.origin}</pre>
 		}
 
@@ -386,7 +386,7 @@ describe('TrackedURL > reactivity', () => {
 			const url = new TrackedURL('https://example.com/path?foo=bar');
 			const params = url.searchParams;
 
-			<button onClick={() => url.search = '?baz=qux&test=value'}>{'Change Search'}</button>
+			<button onClick={() => (url.search = '?baz=qux&test=value')}>{'Change Search'}</button>
 			<pre>{url.search}</pre>
 			<pre>{params.get('foo')}</pre>
 			<pre>{params.get('baz')}</pre>
@@ -456,7 +456,7 @@ describe('TrackedURL > reactivity', () => {
 			const url = new TrackedURL('https://old.com/old?foo=bar#old');
 			const params = url.searchParams;
 
-			<button onClick={() => url.href = 'https://new.com:9090/new?baz=qux#new'}>
+			<button onClick={() => (url.href = 'https://new.com:9090/new?baz=qux#new')}>
 				{'Change Href'}
 			</button>
 			<pre>{params.get('foo')}</pre>

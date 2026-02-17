@@ -1,0 +1,51 @@
+import { track } from 'ripple';
+
+export component SwitchStatic() {
+	const status = 'success';
+	switch (status) {
+		case 'success':
+			<div class="status-success">{'Success'}</div>
+			break;
+		case 'error':
+			<div class="status-error">{'Error'}</div>
+			break;
+		default:
+			<div class="status-unknown">{'Unknown'}</div>
+	}
+}
+
+export component SwitchReactive() {
+	let status = track<'a' | 'b' | 'c'>('a');
+	<button
+		class="toggle"
+		onClick={() => {
+			if (@status === 'a') @status = 'b';
+			else if (@status === 'b') @status = 'c';
+			else @status = 'a';
+		}}
+	>
+		{'Toggle'}
+	</button>
+	switch (@status) {
+		case 'a':
+			<div class="case-a">{'Case A'}</div>
+			break;
+		case 'b':
+			<div class="case-b">{'Case B'}</div>
+			break;
+		default:
+			<div class="case-c">{'Case C'}</div>
+	}
+}
+
+export component SwitchFallthrough() {
+	const val = 1;
+	switch (val) {
+		case 1:
+		case 2:
+			<div class="case-1-2">{'1 or 2'}</div>
+			break;
+		default:
+			<div class="case-other">{'Other'}</div>
+	}
+}

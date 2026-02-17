@@ -90,7 +90,9 @@ describe('escape utility', () => {
 		});
 
 		it('should handle mixed escaping', () => {
-			expect(escape('<div class="foo & bar">', true)).toBe('&lt;div class=&quot;foo &amp; bar&quot;>');
+			expect(escape('<div class="foo & bar">', true)).toBe(
+				'&lt;div class=&quot;foo &amp; bar&quot;>',
+			);
 		});
 	});
 

@@ -675,22 +675,18 @@ export function convert_source_map_to_mappings(
 
 				if (opening.loc) {
 					// Add tokens for '<' and '>' brackets to ensure auto-close feature works
-					if (opening.loc) {
-						// Add '<' bracket
-						tokens.push({
-							source: '<',
-							generated: '<',
-							loc: {
-								start: { line: opening.loc.start.line, column: opening.loc.start.column },
-								end: { line: opening.loc.start.line, column: opening.loc.start.column + 1 },
-							},
-							metadata: {},
-							mappingData: mapping_data_verify_only,
-						});
-					}
+					tokens.push({
+						source: '<',
+						generated: '<',
+						loc: {
+							start: { line: opening.loc.start.line, column: opening.loc.start.column },
+							end: { line: opening.loc.start.line, column: opening.loc.start.column + 1 },
+						},
+						metadata: {},
+						mappingData: mapping_data_verify_only,
+					});
 
 					if (!opening.selfClosing) {
-						// Add '>' bracket
 						tokens.push({
 							source: '>',
 							generated: '>',
@@ -715,17 +711,28 @@ export function convert_source_map_to_mappings(
 					}
 				}
 
-				if (closing) {
-					// Add the whole closing tag
-					mappings.push(
-						get_mapping_from_node(
-							closing,
-							src_to_gen_map,
-							gen_line_offsets,
-							mapping_data_verify_only,
-						),
+				if (closing || opening.selfClosing) {
+					// Add the whole closing tag or the self-closing
+					const mapping = get_mapping_from_node(
+						closing ? closing : opening,
+						src_to_gen_map,
+						gen_line_offsets,
+						mapping_data_verify_only,
 					);
 
+					// The generated code includes a semicolon after the closing or self-closed tag
+					// We're extending the mapping to include the semicolon
+					// because the diagnostics errors can include the whole element
+					// and we need to account for the semicolon as it's a part of the diagnostic
+					// At the same time, we could've instead applied this logic to the whole `node` element
+					// but since we already map the opening - start, we just need the proper end
+					// and it was causing some issues with mappings
+					mapping.generatedLengths = [mapping.generatedLengths[0] + 1];
+					mapping.data.customData.generatedLengths = mapping.generatedLengths;
+					mappings.push(mapping);
+				}
+
+				if (closing) {
 					visit(closing);
 				}
 
@@ -838,26 +845,86 @@ export function convert_source_map_to_mappings(
 				if (node.test) {
 					visit(node.test);
 				}
+
 				if (node.consequent) {
-					mappings.push(
-						get_mapping_from_node(
-							node.consequent,
-							src_to_gen_map,
-							gen_line_offsets,
-							mapping_data_verify_only,
-						),
-					);
+					if (node.consequent.loc) {
+						// We're mapping only the brackets because mapping the whole thing
+						// would be way too broad and causes
+						// issues with partial mapping of something inside the body that we need
+						tokens.push(
+							{
+								source: '{',
+								generated: '{',
+								loc: {
+									start: {
+										line: node.consequent.loc.start.line,
+										column: node.consequent.loc.start.column,
+									},
+									end: {
+										line: node.consequent.loc.start.line,
+										column: node.consequent.loc.start.column + 1,
+									},
+								},
+								metadata: {},
+								mappingData: mapping_data_verify_only,
+							},
+							{
+								source: '}',
+								generated: '}',
+								loc: {
+									start: {
+										line: node.consequent.loc.end.line,
+										column: node.consequent.loc.end.column - 1,
+									},
+									end: {
+										line: node.consequent.loc.end.line,
+										column: node.consequent.loc.end.column,
+									},
+								},
+								metadata: {},
+								mappingData: mapping_data_verify_only,
+							},
+						);
+					}
+
 					visit(node.consequent);
 				}
+
 				if (node.alternate) {
-					mappings.push(
-						get_mapping_from_node(
-							node.alternate,
-							src_to_gen_map,
-							gen_line_offsets,
-							mapping_data_verify_only,
-						),
-					);
+					if (node.alternate.loc) {
+						tokens.push(
+							{
+								source: '{',
+								generated: '{',
+								loc: {
+									start: {
+										line: node.alternate.loc.start.line,
+										column: node.alternate.loc.start.column,
+									},
+									end: {
+										line: node.alternate.loc.start.line,
+										column: node.alternate.loc.start.column + 1,
+									},
+								},
+								metadata: {},
+								mappingData: mapping_data_verify_only,
+							},
+							{
+								source: '}',
+								generated: '}',
+								loc: {
+									start: {
+										line: node.alternate.loc.end.line,
+										column: node.alternate.loc.end.column - 1,
+									},
+									end: { line: node.alternate.loc.end.line, column: node.alternate.loc.end.column },
+								},
+								metadata: {},
+								mappingData: mapping_data_verify_only,
+							},
+						);
+					}
+
 					visit(node.alternate);
 				}
 
@@ -1197,6 +1264,23 @@ export function convert_source_map_to_mappings(
 				// Visit argument
 				if (node.argument) {
 					visit(node.argument);
+				}
+
+				if (node.type === 'ReturnStatement' && node.loc) {
+					const mapping = get_mapping_from_node(
+						node,
+						src_to_gen_map,
+						gen_line_offsets,
+						mapping_data_verify_only,
+					);
+					// We're only mapping the 'return' keyword, otherwise the mapping would be too broad
+					// and likely may cause issues with partial mappings of something inside the return statement that we need
+					const return_keyword_length = 'return'.length;
+					mapping.lengths = [return_keyword_length];
+					mapping.generatedLengths = [return_keyword_length];
+					mapping.data.customData.generatedLengths = mapping.generatedLengths;
+
+					mappings.push(mapping);
 				}
 				return;
 			} else if (node.type === 'ExpressionStatement') {

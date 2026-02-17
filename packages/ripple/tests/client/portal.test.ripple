@@ -54,7 +54,7 @@ describe('Portal', () => {
 				</Portal>
 			}
 
-			<button onClick={() => @open = false}>{'Close'}</button>
+			<button onClick={() => (@open = false)}>{'Close'}</button>
 		}
 
 		render(TestPortal);
@@ -78,13 +78,13 @@ describe('Portal', () => {
 				<Portal target={document.body}>
 					<div class="test-portal">
 						{'Content'}
-						<button onClick={() => @open = false}>{'Close'}</button>
+						<button onClick={() => (@open = false)}>{'Close'}</button>
 					</div>
 				</Portal>
 			}
 
 			if (!@open) {
-				<button onClick={() => @open = true}>{'Open'}</button>
+				<button onClick={() => (@open = true)}>{'Open'}</button>
 			}
 		}
 

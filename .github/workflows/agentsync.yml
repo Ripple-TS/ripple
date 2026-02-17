@@ -1,0 +1,77 @@
+name: AgentSync Check
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - ".agents/**"
+      - "CLAUDE.md"
+      - "AGENTS.md"
+      - "GEMINI.md"
+      - ".github/copilot-instructions.md"
+      - ".github/AGENTS.md"
+      - ".claude/skills/**"
+      - ".gemini/skills/**"
+      - ".codex/skills/**"
+
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - ".agents/**"
+      - "CLAUDE.md"
+      - "AGENTS.md"
+      - "GEMINI.md"
+      - ".github/copilot-instructions.md"
+      - ".github/AGENTS.md"
+      - ".claude/skills/**"
+      - ".gemini/skills/**"
+      - ".codex/skills/**"
+
+jobs:
+  verify:
+    name: Verify Agent Symlinks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --prod false --frozen-lockfile
+
+      - name: Apply AgentSync configuration
+        run: pnpm agents:sync
+
+      - name: Verify instruction symlinks
+        run: |
+          # Verify all instruction file symlinks are valid
+          # (agentsync status exits 1 for skills folder warnings which we can ignore)
+          for file in CLAUDE.md AGENTS.md GEMINI.md .github/copilot-instructions.md .github/AGENTS.md; do
+            if [ -L "$file" ]; then
+              target=$(readlink "$file")
+              if [ -f "$file" ]; then
+                echo "✔ OK: $file -> $target"
+              else
+                echo "✗ BROKEN: $file -> $target (target not found)"
+                exit 1
+              fi
+            elif [ -f "$file" ]; then
+              echo "✗ ERROR: $file exists but is not a symlink"
+              exit 1
+            else
+              echo "✗ MISSING: $file does not exist"
+              exit 1
+            fi
+          done
+          echo "All instruction symlinks verified!"

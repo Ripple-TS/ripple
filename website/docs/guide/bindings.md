@@ -136,11 +136,12 @@ export component App() {
 </Code>
 
 ::: info Note
+
 - `bindChecked` only supports individual checkbox boolean binding. For checkbox
   groups or radio buttons, use `bindGroup` instead.
 
 - For `radio` inputs, use `bindGroup` instead of `bindChecked`.
-:::
+  :::
 
 ### bindIndeterminate
 
@@ -183,10 +184,11 @@ export component App() {
 </Code>
 
 ::: info Note
+
 - The indeterminate state is purely visual and doesn't affect the checkbox's checked value.
 - You can combine `bindIndeterminate` with `bindChecked` on the same checkbox.
 - Common use case: "Select All" checkboxes when some (but not all) items are selected.
-:::
+  :::
 
 ### bindGroup
 
@@ -263,6 +265,7 @@ export component App() {
 </Code>
 
 ::: info Note
+
 - **Checkboxes**: The tracked value should be an array. Checked boxes add
   their values to the array.
 - **Radio buttons**: The tracked value should be a single value matching one
@@ -273,7 +276,7 @@ export component App() {
   and the checkbox states.
 - **Per-binding instances**: Ripple's `bindGroup` doesn't require inputs to be in the
   same component since it uses per-binding instance groups.
-:::
+  :::
 
 ### bindFiles
 
@@ -339,6 +342,7 @@ export component App() {
 </Code>
 
 ::: info Note
+
 - `FileList` objects are read-only and cannot be modified directly.
 - To programmatically set files, create a new `DataTransfer` object and use
   its `files` property:
@@ -351,7 +355,7 @@ export component App() {
   `null` or `undefined` will not work for clearing).
 - `DataTransfer` may not be available in server-side JS runtimes. Leave the
   tracked value uninitialized to prevent errors during SSR.
-:::
+  :::
 
 ## Dimension Bindings
 

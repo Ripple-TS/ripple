@@ -18,6 +18,7 @@ export component TextBrace() {
 	// <p>Hello world!</p>
 }
 ```
+
 Read more: [Syntax](/docs/guide/syntax)
 
 ## Unexpected token `}`. Did you mean `&rbrace;` or `{"}"}`?
@@ -41,4 +42,5 @@ export component Bracey() {
 	// <br>
 }
 ```
+
 Read more: [Syntax](/docs/guide/syntax)

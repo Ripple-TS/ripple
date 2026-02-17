@@ -109,8 +109,15 @@ function skipWhitespace(parser) {
 	// Update line tracking if whitespace was skipped
 	if (parser.start !== originalStart) {
 		lineInfo = acorn.getLineInfo(parser.input, parser.start);
-		parser.curLine = lineInfo.line;
-		parser.lineStart = parser.start - lineInfo.column;
+		// Only update curLine/lineStart if the tokenizer hasn't already
+		// advanced past this position. When parser.pos > parser.start,
+		// acorn's internal skipSpace() has already processed comments and
+		// whitespace beyond where we stopped, so curLine/lineStart already
+		// reflect a later (correct) position that we must not overwrite.
+		if (parser.pos <= parser.start) {
+			parser.curLine = lineInfo.line;
+			parser.lineStart = parser.start - lineInfo.column;
+		}
 	}
 
 	// After skipping whitespace, update startLoc to reflect our actual position

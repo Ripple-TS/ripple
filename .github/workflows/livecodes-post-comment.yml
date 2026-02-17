@@ -2,7 +2,7 @@ name: comment
 
 on:
   workflow_run:
-    workflows: ['livecodes'] # the workflow that created the artifact
+    workflows: ["livecodes"] # the workflow that created the artifact
     types:
       - completed
 

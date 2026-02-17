@@ -56,3 +56,18 @@ export const bindTextContent = noop;
 export const bindNode = noop;
 export const bindOffsetWidth = noop;
 export const bindOffsetHeight = noop;
+
+/**
+ * Portal component noop for server-side rendering.
+ * Portals are client-only and do not render on the server.
+ * However, we need to output a marker comment so hydration can work correctly.
+ * @param {any} output
+ * @param {any} __
+ */
+export function Portal(output, __) {
+	// Portals are client-only, but we need to output a marker for hydration
+	// Output an empty HTML comment as a placeholder
+	if (output && typeof output.push === 'function') {
+		output.push('<!--portal-->');
+	}
+}

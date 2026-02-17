@@ -26,6 +26,12 @@
 			"options": {
 				"useTabs": false
 			}
+		},
+		{
+			"files": ["**/*.yml", "**/*.yaml"],
+			"options": {
+				"singleQuote": false
+			}
 		}
 	]
 }

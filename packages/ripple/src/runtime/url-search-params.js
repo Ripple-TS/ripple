@@ -3,7 +3,6 @@ import { get_current_url } from './url.js';
 
 export const REPLACE = Symbol();
 
-
 export class TrackedURLSearchParams extends URLSearchParams {
 	#block = safe_scope();
 	#version = tracked(0, this.#block);

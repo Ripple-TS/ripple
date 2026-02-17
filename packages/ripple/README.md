@@ -5,4 +5,5 @@
 
 # What is Ripple?
 
-Ripple is an elegant TypeScript UI framework. To find out more, view [Ripple's Github README](https://github.com/Ripple-TS/ripple).
+Ripple is an elegant TypeScript UI framework. To find out more, view
+[Ripple's Github README](https://github.com/Ripple-TS/ripple).

@@ -26,6 +26,7 @@ import {
 	is_binding_function,
 	build_getter,
 	is_element_dynamic,
+	hash,
 } from '../../../utils.js';
 import { escape } from '../../../../utils/escaping.js';
 import { is_event_attribute } from '../../../../utils/events.js';
@@ -85,8 +86,21 @@ function transform_children(children, context) {
 		state.init?.push(
 			b.stmt(b.assignment('=', b.member(b.id('__output'), b.id('target')), b.literal('head'))),
 		);
-		for (const head_element of head_elements) {
+		for (let i = 0; i < head_elements.length; i++) {
+			const head_element = head_elements[i];
+			// Generate a hash for this head element to match client-side hydration
+			// Use both filename and index to ensure uniqueness
+			const hash_source = `${context.state.filename}:head:${i}:${head_element.start ?? 0}`;
+			const hash_value = hash(hash_source);
+
+			// Emit hydration marker comment with hash
+			state.init?.push(
+				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(`<!--${hash_value}-->`))),
+			);
+
 			transform_children(head_element.children, context);
+
+			// No closing marker needed for head elements - the hash is sufficient
 		}
 		state.init?.push(
 			b.stmt(b.assignment('=', b.member(b.id('__output'), b.id('target')), b.literal(null))),
@@ -905,7 +919,15 @@ const visitors = {
 		}
 
 		context.state.init?.push(
+			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN))),
+		);
+
+		context.state.init?.push(
 			b.switch(/** @type {AST.Expression} */ (context.visit(node.discriminant)), cases),
+		);
+
+		context.state.init?.push(
+			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_CLOSE))),
 		);
 	},
 
@@ -1296,14 +1318,48 @@ const visitors = {
 			visit(node.expression, { ...state, metadata })
 		);
 
-		// For Html nodes, we render the content as-is without escaping
+		// For literal values, compute hash at build time
 		if (expression.type === 'Literal') {
+			const value = String(expression.value ?? '');
+			const hash_value = hash(value);
+			// Push hash comment
 			state.init?.push(
-				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(expression.value))),
+				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(`<!--${hash_value}-->`))),
+			);
+			// Push the HTML content
+			state.init?.push(b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(value))));
+			// Push empty comment as end marker
+			state.init?.push(
+				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal('<!---->'))),
 			);
 		} else {
-			// If it's dynamic, we need to evaluate it and push it directly (not escaped)
-			state.init?.push(b.stmt(b.call(b.member(b.id('__output'), b.id('push')), expression)));
+			// For dynamic values, compute hash at runtime
+			// Create a variable to store the value
+			const value_id = state.scope?.generate('html_value');
+			if (value_id) {
+				state.init?.push(
+					b.const(value_id, b.call(b.id('String'), b.logical('??', expression, b.literal('')))),
+				);
+				// Compute hash at runtime using _$_.hash and push as comment
+				state.init?.push(
+					b.stmt(
+						b.call(
+							b.member(b.id('__output'), b.id('push')),
+							b.binary(
+								'+',
+								b.binary('+', b.literal('<!--'), b.call('_$_.hash', b.id(value_id))),
+								b.literal('-->'),
+							),
+						),
+					),
+				);
+				// Push the HTML content
+				state.init?.push(b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.id(value_id))));
+				// Push empty comment as end marker
+				state.init?.push(
+					b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal('<!---->'))),
+				);
+			}
 		}
 	},
 

@@ -39,7 +39,9 @@ describe('sanitize_template_string utility', () => {
 	});
 
 	it('should handle mixed content', () => {
-		expect(sanitize_template_string('Path: C:\\Users\\${name}`')).toBe('Path: C:\\\\Users\\\\\\${name}\\`');
+		expect(sanitize_template_string('Path: C:\\Users\\${name}`')).toBe(
+			'Path: C:\\\\Users\\\\\\${name}\\`',
+		);
 	});
 
 	it('should handle complex template literals', () => {
@@ -48,4 +50,3 @@ describe('sanitize_template_string utility', () => {
 		expect(sanitize_template_string(input)).toBe(expected);
 	});
 });
-

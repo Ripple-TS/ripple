@@ -2,7 +2,7 @@ name: livecodes
 
 on:
   workflow_run:
-    workflows: ['Publish to pkg.pr.new']
+    workflows: ["Publish to pkg.pr.new"]
     types:
       - completed
 

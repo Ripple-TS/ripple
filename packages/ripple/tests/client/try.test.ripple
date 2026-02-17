@@ -1,0 +1,69 @@
+import { flushSync, track, TrackedArray } from 'ripple';
+
+describe('try block', () => {
+	it('does not crash when async component is used inside try/pending', async () => {
+		component App() {
+			try {
+				<AsyncChild />
+			} pending {
+				<p>{'loading...'}</p>
+			}
+		}
+
+		component AsyncChild() {
+			let data = await Promise.resolve(['a', 'b', 'c']);
+
+			<ul>
+				for (let item of data) {
+					<li>{item}</li>
+				}
+			</ul>
+		}
+
+		render(App);
+
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		const items = container.querySelectorAll('li');
+		expect(items.length).toBe(3);
+		expect(items[0].textContent).toBe('a');
+		expect(items[1].textContent).toBe('b');
+		expect(items[2].textContent).toBe('c');
+	});
+
+	it(
+		'does not crash when async component with tracked state is used inside try/pending',
+		async () => {
+			component App() {
+				let query = track('');
+
+				try {
+					<FilteredList {query} />
+				} pending {
+					<p>{'loading...'}</p>
+				}
+			}
+
+			component FilteredList({ query }: { query: any }) {
+				let items = await Promise.resolve(['apple', 'banana', 'cherry']);
+				let list = TrackedArray.from(items);
+				let filtered = track(() => list.filter((item: string) => item.includes(@query)));
+
+				<ul>
+					for (let item of @filtered) {
+						<li>{item}</li>
+					}
+				</ul>
+			}
+
+			render(App);
+
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			const listItems = container.querySelectorAll('li');
+			expect(listItems.length).toBe(3);
+		},
+	);
+});

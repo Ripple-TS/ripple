@@ -1,0 +1,113 @@
+# AgentSync Configuration for Ripple
+# See: https://github.com/dallay/agentsync
+
+# Source directory (relative to this config file)
+source_dir = "."
+
+# Default agents to process when --agents is not specified
+default_agents = ["claude", "copilot", "cursor", "vscode", "gemini", "opencode", "codex", "github"]
+
+# Gitignore management
+# DISABLED: We want symlinks committed to git so cloud-based agents
+# (GitHub Agents, Copilot Workspace, etc.) can access instruction files
+[gitignore]
+enabled = false
+marker = "AI Agent Symlinks (managed by AgentSync)"
+entries = []
+
+# ============================================================================
+# Agent Definitions
+# ============================================================================
+
+# Claude Code - Anthropic's AI coding assistant
+[agents.claude]
+enabled = true
+description = "Claude Code - Anthropic's AI coding assistant"
+
+[agents.claude.targets.instructions]
+source = "AGENTS.md"
+destination = "CLAUDE.md"
+type = "symlink"
+
+[agents.claude.targets.skills]
+source = "skills"
+destination = ".claude/skills"
+type = "symlink-contents"
+pattern = "*.md"
+
+# GitHub Copilot
+[agents.copilot]
+enabled = true
+description = "GitHub Copilot"
+
+[agents.copilot.targets.instructions]
+source = "AGENTS.md"
+destination = ".github/copilot-instructions.md"
+type = "symlink"
+
+# Cursor
+[agents.cursor]
+enabled = true
+description = "Cursor AI Editor"
+
+[agents.cursor.targets.instructions]
+source = "AGENTS.md"
+destination = "AGENTS.md"
+type = "symlink"
+
+# VS Code (uses AGENTS.md in root)
+[agents.vscode]
+enabled = true
+description = "VS Code with AI extensions"
+
+[agents.vscode.targets.instructions]
+source = "AGENTS.md"
+destination = "AGENTS.md"
+type = "symlink"
+
+# Gemini CLI
+[agents.gemini]
+enabled = true
+description = "Google Gemini CLI"
+
+[agents.gemini.targets.instructions]
+source = "AGENTS.md"
+destination = "GEMINI.md"
+type = "symlink"
+
+[agents.gemini.targets.skills]
+source = "skills"
+destination = ".gemini/skills"
+type = "symlink-contents"
+pattern = "*.md"
+
+# OpenCode
+[agents.opencode]
+enabled = true
+description = "OpenCode AI"
+
+[agents.opencode.targets.instructions]
+source = "AGENTS.md"
+destination = "AGENTS.md"
+type = "symlink"
+
+# OpenAI Codex CLI (uses skills, not instructions file)
+[agents.codex]
+enabled = true
+description = "OpenAI Codex CLI"
+
+[agents.codex.targets.skills]
+source = "skills"
+destination = ".codex/skills"
+type = "symlink-contents"
+pattern = "*.md"
+
+# GitHub Agents (Copilot Workspace, GitHub Actions agents, etc.)
+[agents.github]
+enabled = true
+description = "GitHub Agents"
+
+[agents.github.targets.instructions]
+source = "AGENTS.md"
+destination = ".github/AGENTS.md"
+type = "symlink"

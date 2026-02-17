@@ -11,16 +11,26 @@
 
 # Ripple TS
 
-Ripple is a TypeScript UI framework that combines the best parts of React, Solid, and Svelte. Created by [@trueadm](https://github.com/trueadm), who has contributed to [Inferno](https://github.com/infernojs/inferno), [React](https://github.com/facebook/react), [Lexical](https://github.com/facebook/lexical), and [Svelte 5](https://github.com/sveltejs/svelte).
+Ripple is a TypeScript UI framework that combines the best parts of React, Solid,
+and Svelte. Created by [@trueadm](https://github.com/trueadm), who has contributed
+to [Inferno](https://github.com/infernojs/inferno),
+[React](https://github.com/facebook/react),
+[Lexical](https://github.com/facebook/lexical), and
+[Svelte 5](https://github.com/sveltejs/svelte).
 
-**Key Philosophy:** Ripple is TS-first with its own `.ripple` file extension, allowing seamless TypeScript integration and a unique syntax that enhances both human and LLM developer experience.
+**Key Philosophy:** Ripple is TS-first with its own `.ripple` file extension,
+allowing seamless TypeScript integration and a unique syntax that enhances both
+human and LLM developer experience.
 
-📚 **[Full Documentation](https://www.ripplejs.com/docs)** | 🎮 **[Interactive Playground](https://www.ripplejs.com/playground)**
+📚 **[Full Documentation](https://www.ripplejs.com/docs)** | 🎮
+**[Interactive Playground](https://www.ripplejs.com/playground)**
 
 ## Features
 
-- ⚡ **Fine-grained Reactivity**: `track` and `@` syntax with a unique reactivity system
-- 🔥 **Performance**: Industry-leading rendering speed, bundle size, and memory usage
+- ⚡ **Fine-grained Reactivity**: `track` and `@` syntax with a unique reactivity
+  system
+- 🔥 **Performance**: Industry-leading rendering speed, bundle size, and memory
+  usage
 - 📦 **Reactive Collections**: `#[]` arrays and `#{}` objects with full reactivity
 - 🎯 **TypeScript First**: Complete type safety with `.ripple` file extension
 - 🛠️ **Developer Tools**: VSCode extension, Prettier, and ESLint support
@@ -71,7 +81,9 @@ mount(App, {
 
 ## 🔧 VSCode Extension
 
-Install the [Ripple VSCode extension](https://marketplace.visualstudio.com/items?itemName=Ripple-TS.ripple-ts-vscode-plugin) for:
+Install the
+[Ripple VSCode extension](https://marketplace.visualstudio.com/items?itemName=Ripple-TS.ripple-ts-vscode-plugin)
+for:
 
 - Syntax highlighting
 - TypeScript integration
@@ -84,7 +96,8 @@ Install the [Ripple VSCode extension](https://marketplace.visualstudio.com/items
 
 ### Components
 
-Define components with the `component` keyword. Unlike React, you don't return JSX—you write it directly:
+Define components with the `component` keyword. Unlike React, you don't return
+JSX—you write it directly:
 
 ```jsx
 component Button(props: { text: string, onClick: () => void }) {
@@ -392,15 +405,20 @@ export component App() {
 
 ## Resources
 
-- 📚 **[Full Documentation](https://www.ripplejs.com/docs)** - Complete guide and API reference
-- 🎮 **[Interactive Playground](https://www.ripplejs.com/playground)** - Try Ripple in your browser
-- 🐛 **[GitHub Issues](https://github.com/Ripple-TS/ripple/issues)** - Report bugs or request features
-- 💬 **[Discord Community](https://discord.gg/JBF2ySrh2W)** - Get help and discuss Ripple
+- 📚 **[Full Documentation](https://www.ripplejs.com/docs)** - Complete guide and
+  API reference
+- 🎮 **[Interactive Playground](https://www.ripplejs.com/playground)** - Try
+  Ripple in your browser
+- 🐛 **[GitHub Issues](https://github.com/Ripple-TS/ripple/issues)** - Report bugs
+  or request features
+- 💬 **[Discord Community](https://discord.gg/JBF2ySrh2W)** - Get help and discuss
+  Ripple
 - 📦 **[npm Package](https://www.npmjs.com/package/ripple)** - Install from npm
 
 ## Contributing
 
-Contributions are welcome! Please see our [contributing guidelines](CONTRIBUTING.md).
+Contributions are welcome! Please see our
+[contributing guidelines](CONTRIBUTING.md).
 
 ## License
 

@@ -1,6 +1,6 @@
 /**
 @import { Component, Dependency, Derived, Tracked } from '#server';
-@import { render, renderToStream, SSRComponent } from 'ripple/server';
+@import { SSRComponent } from 'ripple/server';
 */
 
 import { Readable } from 'stream';
@@ -14,6 +14,7 @@ import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../constants.js';
 
 export { escape };
 export { register_component_css as register_css } from './css-registry.js';
+export { hash } from '../../../utils/hashing.js';
 
 /** @type {null | Component} */
 export let active_component = null;

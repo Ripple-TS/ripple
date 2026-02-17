@@ -3,7 +3,9 @@ title: Best Practices in Ripple
 ---
 
 <!-- TODO: Elaborate -->
+
 # Best Practices
+
 A summary:
 
 1. **Reactivity**: Use `track()` to create reactive variables and `@` to access them

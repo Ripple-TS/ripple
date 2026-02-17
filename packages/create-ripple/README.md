@@ -1,6 +1,7 @@
 # create-ripple
 
-Interactive CLI tool for creating new Ripple applications. Alias for the `@ripple-ts/cli` package.
+Interactive CLI tool for creating new Ripple applications. Alias for the
+`@ripple-ts/cli` package.
 
 ## Usage
 
@@ -19,8 +20,10 @@ pnpm create ripple
 ### With Arguments
 
 - `project-name`: Optional. Name of the project to create
-- `-p, --package-manager <pm>`: Package manager to use - npm, yarn, pnpm (default: npm)
-- `--template <template>`: Choose a predefined template (default and currently only option: basic)
+- `-p, --package-manager <pm>`: Package manager to use - npm, yarn, pnpm (default:
+  npm)
+- `--template <template>`: Choose a predefined template (default and currently
+  only option: basic)
 - `--yes` or `-y`: Skip all prompts and use defaults
 - `--no-git`: Skip initializing a Git repository
 
