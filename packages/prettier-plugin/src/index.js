@@ -3003,10 +3003,22 @@ function printIfStatement(node, path, options, print) {
 	// Use group to allow breaking the test when it doesn't fit
 	const testDoc = group(concat(['if (', indent(concat([softline, test])), softline, ')']));
 
+	// Check if consequent is a block statement
+	const consequent_is_block = node.consequent.type === 'BlockStatement';
+
 	const parts = [testDoc, ' ', consequent];
 
+	// Handle the alternate
 	if (node.alternate) {
-		parts.push(' else ', path.call(print, 'alternate'));
+		// If consequent is not a block, add a hardline before else
+		if (!consequent_is_block) {
+			parts.push(hardline);
+		} else {
+			parts.push(' ');
+		}
+
+		parts.push('else ');
+		parts.push(path.call(print, 'alternate'));
 	}
 
 	return concat(parts);

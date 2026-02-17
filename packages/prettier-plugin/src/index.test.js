@@ -4577,5 +4577,84 @@ component App() {
 				expect(result).toBeWithNewline(expected);
 			});
 		});
+
+		describe('if statement formatting', () => {
+			it('should format chained if-else statements with non-block bodies on separate lines', async () => {
+				const input = `component Test() {
+  <button
+    onClick={() => {
+if (@status === 'a') @status = 'b'; else if (@status === 'b') @status = 'c'; else @status =
+  'a';
+}}
+  >
+    Click
+  </button>
+}`;
+				const expected = `component Test() {
+  <button
+    onClick={() => {
+      if (@status === "a") @status = "b";
+      else if (@status === "b") @status = "c";
+      else @status = "a";
+    }}
+  >
+    Click;
+  </button>
+}`;
+
+				const result = await format(input);
+				expect(result).toBeWithNewline(expected);
+			});
+
+			it('should format simple if statement with non-block body', async () => {
+				const input = `component Test() {
+  let x = 0;
+  if (x === 0) x = 1;
+  <div>{x}</div>
+}`;
+				const expected = `component Test() {
+  let x = 0;
+  if (x === 0) x = 1;
+  <div>{x}</div>
+}`;
+
+				const result = await format(input);
+				expect(result).toBeWithNewline(expected);
+			});
+
+			it('should format if-else with non-block bodies', async () => {
+				const input = `component Test() {
+  let x = 0;
+  if (x === 0) x = 1; else x = 2;
+  <div>{x}</div>
+}`;
+				const expected = `component Test() {
+  let x = 0;
+  if (x === 0) x = 1;
+  else x = 2;
+  <div>{x}</div>
+}`;
+
+				const result = await format(input);
+				expect(result).toBeWithNewline(expected);
+			});
+
+			it('should format nested if statements with non-block bodies', async () => {
+				const input = `component Test() {
+  let x = 0;
+  if (x === 0) if (x === 1) x = 2; else x = 3;
+  <div>{x}</div>
+}`;
+				const expected = `component Test() {
+  let x = 0;
+  if (x === 0) if (x === 1) x = 2;
+  else x = 3;
+  <div>{x}</div>
+}`;
+
+				const result = await format(input);
+				expect(result).toBeWithNewline(expected);
+			});
+		});
 	});
 });
