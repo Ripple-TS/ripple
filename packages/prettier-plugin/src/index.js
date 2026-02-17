@@ -3780,7 +3780,10 @@ function printTryStatement(node, path, options, print) {
 	const blockNode = node.block;
 
 	// Print block without its leading comments (they'll be printed before 'try')
-	const block = path.call((blockPath) => print(blockPath, { suppressLeadingComments: true }), 'block');
+	const block = path.call(
+		(blockPath) => print(blockPath, { suppressLeadingComments: true }),
+		'block',
+	);
 
 	const parts = [];
 
