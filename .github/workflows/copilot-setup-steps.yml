@@ -7,7 +7,7 @@ on:
   workflow_call:
 
 jobs:
-  setup:
+  copilot-setup-steps:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
