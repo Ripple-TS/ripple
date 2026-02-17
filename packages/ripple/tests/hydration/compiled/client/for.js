@@ -10,7 +10,10 @@ var root_7 = _$_.template(`<li> </li>`, 0);
 var root_6 = _$_.template(`<button class="add">Add</button><ul></ul>`, 1);
 var root_9 = _$_.template(`<li> </li>`, 0);
 var root_8 = _$_.template(`<button class="remove">Remove</button><ul></ul>`, 1);
-var root_11 = _$_.template(`<div><span class="value"> </span><button class="increment">+</button></div>`, 0);
+var root_11 = _$_.template(
+	`<div><span class="value"> </span><button class="increment">+</button></div>`,
+	0,
+);
 var root_10 = _$_.template(`<div></div>`, 0);
 var root_14 = _$_.template(`<span> </span>`, 0);
 var root_13 = _$_.template(`<div></div>`, 0);
@@ -27,14 +30,20 @@ var root_24 = _$_.template(`<li> </li>`, 0);
 var root_23 = _$_.template(`<button class="shuffle">Shuffle</button><ul></ul>`, 1);
 var root_27 = _$_.template(`<li> </li>`, 0);
 var root_26 = _$_.template(`<ul class="list"></ul>`, 0);
-var root_25 = _$_.template(`<button class="toggle">Toggle List</button><button class="add">Add Item</button><!>`, 1);
+var root_25 = _$_.template(
+	`<button class="toggle">Toggle List</button><button class="add">Add Item</button><!>`,
+	1,
+);
 var root_29 = _$_.template(`<li> </li>`, 0);
 var root_28 = _$_.template(`<button class="populate">Populate</button><ul class="list"></ul>`, 1);
 var root_31 = _$_.template(`<li> </li>`, 0);
 var root_30 = _$_.template(`<button class="clear">Clear</button><ul class="list"></ul>`, 1);
 var root_34 = _$_.template(`<span> </span>`, 0);
 var root_33 = _$_.template(`<div></div>`, 0);
-var root_32 = _$_.template(`<button class="add-row">Add Row</button><button class="update-cell">Update Cell</button><div class="grid"></div>`, 1);
+var root_32 = _$_.template(
+	`<button class="add-row">Add Row</button><button class="update-cell">Update Cell</button><div class="grid"></div>`,
+	1,
+);
 var root_38 = _$_.template(`<li class="member"> </li>`, 0);
 var root_37 = _$_.template(`<div><h3 class="team-name"> </h3><ul></ul></div>`, 0);
 var root_36 = _$_.template(`<div><h2 class="dept-name"> </h2><!></div>`, 0);
@@ -44,7 +53,10 @@ var root_39 = _$_.template(`<button class="prepend">Prepend</button><ul></ul>`, 
 var root_42 = _$_.template(`<li> </li>`, 0);
 var root_41 = _$_.template(`<button class="reorder">Rotate</button><ul></ul>`, 1);
 var root_44 = _$_.template(`<div> </div>`, 0);
-var root_43 = _$_.template(`<div class="wrapper"><header class="before">Before</header><!><footer class="after">After</footer></div><button class="add">Add</button>`, 1);
+var root_43 = _$_.template(
+	`<div class="wrapper"><header class="before">Before</header><!><footer class="after">After</footer></div><button class="add">Add</button>`,
+	1,
+);
 var root_46 = _$_.template(`<!>`, 1);
 var root_45 = _$_.template(`<div></div>`, 0);
 var root_47 = _$_.template(`<div><input type="checkbox" class="checkbox"><span> </span></div>`, 0);
@@ -87,7 +99,7 @@ export function StaticForLoop(__anchor, _, __block) {
 
 				_$_.append(__anchor, li_1);
 			},
-			4
+			4,
 		);
 
 		_$_.pop(ul_1);
@@ -122,7 +134,7 @@ export function ForLoopWithIndex(__anchor, _, __block) {
 
 				_$_.append(__anchor, li_2);
 			},
-			12
+			12,
 		);
 
 		_$_.pop(ul_2);
@@ -138,7 +150,7 @@ export function KeyedForLoop(__anchor, _, __block) {
 	const items = [
 		{ id: 1, name: 'First' },
 		{ id: 2, name: 'Second' },
-		{ id: 3, name: 'Third' }
+		{ id: 3, name: 'Third' },
 	];
 
 	var ul_3 = root_4();
@@ -163,7 +175,7 @@ export function KeyedForLoop(__anchor, _, __block) {
 				_$_.append(__anchor, li_3);
 			},
 			4,
-			(pattern) => _$_.get(pattern).id
+			(pattern) => _$_.get(pattern).id,
 		);
 
 		_$_.pop(ul_3);
@@ -202,7 +214,7 @@ export function ReactiveForLoopAdd(__anchor, _, __block) {
 
 				_$_.append(__anchor, li_4);
 			},
-			4
+			4,
 		);
 
 		_$_.pop(ul_4);
@@ -220,7 +232,10 @@ export function ReactiveForLoopRemove(__anchor, _, __block) {
 	var button_2 = _$_.first_child_frag(fragment_1);
 
 	button_2.__click = () => {
-		_$_.set(items, _$_.with_scope(__block, () => _$_.get(items).slice(0, -1)));
+		_$_.set(
+			items,
+			_$_.with_scope(__block, () => _$_.get(items).slice(0, -1)),
+		);
 	};
 
 	var ul_5 = _$_.sibling(button_2);
@@ -241,7 +256,7 @@ export function ReactiveForLoopRemove(__anchor, _, __block) {
 
 				_$_.append(__anchor, li_5);
 			},
-			4
+			4,
 		);
 
 		_$_.pop(ul_5);
@@ -290,7 +305,7 @@ export function ForLoopInteractive(__anchor, _, __block) {
 
 				_$_.append(__anchor, div_2);
 			},
-			12
+			12,
 		);
 
 		_$_.pop(div_1);
@@ -303,7 +318,10 @@ export function ForLoopInteractive(__anchor, _, __block) {
 export function NestedForLoop(__anchor, _, __block) {
 	_$_.push_component();
 
-	const grid = [[1, 2], [3, 4]];
+	const grid = [
+		[1, 2],
+		[3, 4],
+	];
 	var div_3 = root_12();
 
 	{
@@ -328,12 +346,17 @@ export function NestedForLoop(__anchor, _, __block) {
 							}
 
 							_$_.render(() => {
-								_$_.set_class(span_2, `cell-${_$_.get(rowIndex)}-${_$_.get(colIndex)}`, void 0, true);
+								_$_.set_class(
+									span_2,
+									`cell-${_$_.get(rowIndex)}-${_$_.get(colIndex)}`,
+									void 0,
+									true,
+								);
 							});
 
 							_$_.append(__anchor, span_2);
 						},
-						12
+						12,
 					);
 
 					_$_.pop(div_4);
@@ -345,7 +368,7 @@ export function NestedForLoop(__anchor, _, __block) {
 
 				_$_.append(__anchor, div_4);
 			},
-			12
+			12,
 		);
 
 		_$_.pop(div_3);
@@ -377,7 +400,7 @@ export function EmptyForLoop(__anchor, _, __block) {
 
 				_$_.append(__anchor, span_3);
 			},
-			4
+			4,
 		);
 
 		_$_.pop(div_5);
@@ -392,7 +415,7 @@ export function ForLoopComplexObjects(__anchor, _, __block) {
 
 	const users = [
 		{ id: 1, name: 'Alice', role: 'Admin' },
-		{ id: 2, name: 'Bob', role: 'User' }
+		{ id: 2, name: 'Bob', role: 'User' },
 	];
 
 	var div_6 = root_17();
@@ -427,28 +450,28 @@ export function ForLoopComplexObjects(__anchor, _, __block) {
 						var __a = _$_.get(pattern_1).name;
 
 						if (__prev.a !== __a) {
-							_$_.set_text(text_9, __prev.a = __a);
+							_$_.set_text(text_9, (__prev.a = __a));
 						}
 
 						var __b = _$_.get(pattern_1).role;
 
 						if (__prev.b !== __b) {
-							_$_.set_text(text_10, __prev.b = __b);
+							_$_.set_text(text_10, (__prev.b = __b));
 						}
 
 						var __c = `user-${_$_.get(pattern_1).id}`;
 
 						if (__prev.c !== __c) {
-							_$_.set_class(div_7, __prev.c = __c, void 0, true);
+							_$_.set_class(div_7, (__prev.c = __c), void 0, true);
 						}
 					},
-					{ a: ' ', b: ' ', c: Symbol() }
+					{ a: ' ', b: ' ', c: Symbol() },
 				);
 
 				_$_.append(__anchor, div_7);
 			},
 			4,
-			(pattern_1) => _$_.get(pattern_1).id
+			(pattern_1) => _$_.get(pattern_1).id,
 		);
 
 		_$_.pop(div_6);
@@ -465,11 +488,11 @@ export function KeyedForLoopReorder(__anchor, _, __block) {
 		[
 			{ id: 1, name: 'First' },
 			{ id: 2, name: 'Second' },
-			{ id: 3, name: 'Third' }
+			{ id: 3, name: 'Third' },
 		],
 		void 0,
 		void 0,
-		__block
+		__block,
 	);
 
 	var fragment_2 = root_19();
@@ -499,22 +522,22 @@ export function KeyedForLoopReorder(__anchor, _, __block) {
 						var __a = _$_.get(pattern_2).name;
 
 						if (__prev.a !== __a) {
-							_$_.set_text(text_11, __prev.a = __a);
+							_$_.set_text(text_11, (__prev.a = __a));
 						}
 
 						var __b = `item-${_$_.get(pattern_2).id}`;
 
 						if (__prev.b !== __b) {
-							_$_.set_class(li_6, __prev.b = __b, void 0, true);
+							_$_.set_class(li_6, (__prev.b = __b), void 0, true);
 						}
 					},
-					{ a: ' ', b: Symbol() }
+					{ a: ' ', b: Symbol() },
 				);
 
 				_$_.append(__anchor, li_6);
 			},
 			4,
-			(pattern_2) => _$_.get(pattern_2).id
+			(pattern_2) => _$_.get(pattern_2).id,
 		);
 
 		_$_.pop(ul_6);
@@ -527,12 +550,25 @@ export function KeyedForLoopReorder(__anchor, _, __block) {
 export function KeyedForLoopUpdate(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], void 0, void 0, __block);
+	let items = track(
+		[
+			{ id: 1, name: 'Item 1' },
+			{ id: 2, name: 'Item 2' },
+		],
+		void 0,
+		void 0,
+		__block,
+	);
 	var fragment_3 = root_21();
 	var button_5 = _$_.first_child_frag(fragment_3);
 
 	button_5.__click = () => {
-		_$_.set(items, _$_.with_scope(__block, () => _$_.get(items).map((item) => item.id === 1 ? { ...item, name: 'Updated' } : item)));
+		_$_.set(
+			items,
+			_$_.with_scope(__block, () =>
+				_$_.get(items).map((item) => (item.id === 1 ? { ...item, name: 'Updated' } : item)),
+			),
+		);
 	};
 
 	var ul_7 = _$_.sibling(button_5);
@@ -555,22 +591,22 @@ export function KeyedForLoopUpdate(__anchor, _, __block) {
 						var __a = _$_.get(pattern_3).name;
 
 						if (__prev.a !== __a) {
-							_$_.set_text(text_12, __prev.a = __a);
+							_$_.set_text(text_12, (__prev.a = __a));
 						}
 
 						var __b = `item-${_$_.get(pattern_3).id}`;
 
 						if (__prev.b !== __b) {
-							_$_.set_class(li_7, __prev.b = __b, void 0, true);
+							_$_.set_class(li_7, (__prev.b = __b), void 0, true);
 						}
 					},
-					{ a: ' ', b: Symbol() }
+					{ a: ' ', b: Symbol() },
 				);
 
 				_$_.append(__anchor, li_7);
 			},
 			4,
-			(pattern_3) => _$_.get(pattern_3).id
+			(pattern_3) => _$_.get(pattern_3).id,
 		);
 
 		_$_.pop(ul_7);
@@ -611,7 +647,7 @@ export function ForLoopMixedOperations(__anchor, _, __block) {
 
 				_$_.append(__anchor, li_8);
 			},
-			4
+			4,
 		);
 
 		_$_.pop(ul_8);
@@ -661,7 +697,7 @@ export function ForLoopInsideIf(__anchor, _, __block) {
 
 						_$_.append(__anchor, li_9);
 					},
-					4
+					4,
 				);
 
 				_$_.pop(ul_9);
@@ -708,7 +744,7 @@ export function ForLoopEmptyToPopulated(__anchor, _, __block) {
 
 				_$_.append(__anchor, li_10);
 			},
-			4
+			4,
 		);
 
 		_$_.pop(ul_10);
@@ -747,7 +783,7 @@ export function ForLoopPopulatedToEmpty(__anchor, _, __block) {
 
 				_$_.append(__anchor, li_11);
 			},
-			4
+			4,
 		);
 
 		_$_.pop(ul_11);
@@ -760,7 +796,15 @@ export function ForLoopPopulatedToEmpty(__anchor, _, __block) {
 export function NestedForLoopReactive(__anchor, _, __block) {
 	_$_.push_component();
 
-	let grid = track([[1, 2], [3, 4]], void 0, void 0, __block);
+	let grid = track(
+		[
+			[1, 2],
+			[3, 4],
+		],
+		void 0,
+		void 0,
+		__block,
+	);
 	var fragment_8 = root_32();
 	var button_11 = _$_.first_child_frag(fragment_8);
 
@@ -801,12 +845,17 @@ export function NestedForLoopReactive(__anchor, _, __block) {
 							}
 
 							_$_.render(() => {
-								_$_.set_class(span_6, `cell-${_$_.get(rowIndex)}-${_$_.get(colIndex)}`, void 0, true);
+								_$_.set_class(
+									span_6,
+									`cell-${_$_.get(rowIndex)}-${_$_.get(colIndex)}`,
+									void 0,
+									true,
+								);
 							});
 
 							_$_.append(__anchor, span_6);
 						},
-						12
+						12,
 					);
 
 					_$_.pop(div_9);
@@ -818,7 +867,7 @@ export function NestedForLoopReactive(__anchor, _, __block) {
 
 				_$_.append(__anchor, div_9);
 			},
-			12
+			12,
 		);
 
 		_$_.pop(div_8);
@@ -838,15 +887,15 @@ export function ForLoopDeeplyNested(__anchor, _, __block) {
 
 			teams: [
 				{ id: 't1', name: 'Frontend', members: ['Alice', 'Bob'] },
-				{ id: 't2', name: 'Backend', members: ['Charlie'] }
-			]
+				{ id: 't2', name: 'Backend', members: ['Charlie'] },
+			],
 		},
 
 		{
 			id: 'd2',
 			name: 'Design',
-			teams: [{ id: 't3', name: 'UX', members: ['Diana', 'Eve', 'Frank'] }]
-		}
+			teams: [{ id: 't3', name: 'UX', members: ['Diana', 'Eve', 'Frank'] }],
+		},
 	];
 
 	var div_10 = root_35();
@@ -902,7 +951,7 @@ export function ForLoopDeeplyNested(__anchor, _, __block) {
 
 											_$_.append(__anchor, li_12);
 										},
-										4
+										4,
 									);
 
 									_$_.pop(ul_12);
@@ -914,22 +963,22 @@ export function ForLoopDeeplyNested(__anchor, _, __block) {
 									var __a = _$_.get(pattern_5).name;
 
 									if (__prev.a !== __a) {
-										_$_.set_text(text_19, __prev.a = __a);
+										_$_.set_text(text_19, (__prev.a = __a));
 									}
 
 									var __b = `team-${_$_.get(pattern_5).id}`;
 
 									if (__prev.b !== __b) {
-										_$_.set_class(div_12, __prev.b = __b, void 0, true);
+										_$_.set_class(div_12, (__prev.b = __b), void 0, true);
 									}
 								},
-								{ a: ' ', b: Symbol() }
+								{ a: ' ', b: Symbol() },
 							);
 
 							_$_.append(__anchor, div_12);
 						},
 						0,
-						(pattern_5) => _$_.get(pattern_5).id
+						(pattern_5) => _$_.get(pattern_5).id,
 					);
 
 					_$_.pop(div_11);
@@ -940,22 +989,22 @@ export function ForLoopDeeplyNested(__anchor, _, __block) {
 						var __a = _$_.get(pattern_4).name;
 
 						if (__prev.a !== __a) {
-							_$_.set_text(text_18, __prev.a = __a);
+							_$_.set_text(text_18, (__prev.a = __a));
 						}
 
 						var __b = `dept-${_$_.get(pattern_4).id}`;
 
 						if (__prev.b !== __b) {
-							_$_.set_class(div_11, __prev.b = __b, void 0, true);
+							_$_.set_class(div_11, (__prev.b = __b), void 0, true);
 						}
 					},
-					{ a: ' ', b: Symbol() }
+					{ a: ' ', b: Symbol() },
 				);
 
 				_$_.append(__anchor, div_11);
 			},
 			4,
-			(pattern_4) => _$_.get(pattern_4).id
+			(pattern_4) => _$_.get(pattern_4).id,
 		);
 
 		_$_.pop(div_10);
@@ -996,21 +1045,21 @@ export function ForLoopIndexUpdate(__anchor, _, __block) {
 						var __a = `[${_$_.get(i)}] ${item}`;
 
 						if (__prev.a !== __a) {
-							_$_.set_text(text_21, __prev.a = __a);
+							_$_.set_text(text_21, (__prev.a = __a));
 						}
 
 						var __b = `item-${_$_.get(i)}`;
 
 						if (__prev.b !== __b) {
-							_$_.set_class(li_13, __prev.b = __b, void 0, true);
+							_$_.set_class(li_13, (__prev.b = __b), void 0, true);
 						}
 					},
-					{ a: ' ', b: Symbol() }
+					{ a: ' ', b: Symbol() },
 				);
 
 				_$_.append(__anchor, li_13);
 			},
-			12
+			12,
 		);
 
 		_$_.pop(ul_13);
@@ -1027,11 +1076,11 @@ export function KeyedForLoopWithIndex(__anchor, _, __block) {
 		[
 			{ id: 'a', value: 'Alpha' },
 			{ id: 'b', value: 'Beta' },
-			{ id: 'c', value: 'Gamma' }
+			{ id: 'c', value: 'Gamma' },
 		],
 		void 0,
 		void 0,
-		__block
+		__block,
 	);
 
 	var fragment_10 = root_41();
@@ -1061,28 +1110,28 @@ export function KeyedForLoopWithIndex(__anchor, _, __block) {
 						var __a = `[${_$_.get(i)}] ${_$_.get(pattern_6).id}: ${_$_.get(pattern_6).value}`;
 
 						if (__prev.a !== __a) {
-							_$_.set_text(text_22, __prev.a = __a);
+							_$_.set_text(text_22, (__prev.a = __a));
 						}
 
 						var __b = _$_.get(i);
 
 						if (__prev.b !== __b) {
-							_$_.set_attribute(li_14, 'data-index', __prev.b = __b);
+							_$_.set_attribute(li_14, 'data-index', (__prev.b = __b));
 						}
 
 						var __c = `item-${_$_.get(pattern_6).id}`;
 
 						if (__prev.c !== __c) {
-							_$_.set_class(li_14, __prev.c = __c, void 0, true);
+							_$_.set_class(li_14, (__prev.c = __c), void 0, true);
 						}
 					},
-					{ a: ' ', b: void 0, c: Symbol() }
+					{ a: ' ', b: void 0, c: Symbol() },
 				);
 
 				_$_.append(__anchor, li_14);
 			},
 			12,
-			(pattern_6, i) => _$_.get(pattern_6).id
+			(pattern_6, i) => _$_.get(pattern_6).id,
 		);
 
 		_$_.pop(ul_14);
@@ -1120,7 +1169,7 @@ export function ForLoopWithSiblings(__anchor, _, __block) {
 
 				_$_.append(__anchor, div_14);
 			},
-			0
+			0,
 		);
 
 		_$_.pop(div_13);
@@ -1142,7 +1191,7 @@ export function ForLoopItemState(__anchor, _, __block) {
 	const initialItems = [
 		{ id: 1, text: 'Todo 1' },
 		{ id: 2, text: 'Todo 2' },
-		{ id: 3, text: 'Todo 3' }
+		{ id: 3, text: 'Todo 3' },
 	];
 
 	var div_15 = root_45();
@@ -1164,15 +1213,15 @@ export function ForLoopItemState(__anchor, _, __block) {
 
 						get text() {
 							return _$_.get(pattern_7).text;
-						}
+						},
 					},
-					_$_.active_block
+					_$_.active_block,
 				);
 
 				_$_.append(__anchor, fragment_12);
 			},
 			4,
-			(pattern_7) => _$_.get(pattern_7).id
+			(pattern_7) => _$_.get(pattern_7).id,
 		);
 
 		_$_.pop(div_15);
@@ -1209,28 +1258,28 @@ function TodoItem(__anchor, props, __block) {
 			var __a = _$_.get(done);
 
 			if (__prev.a !== __a) {
-				_$_.set_checked(input_1, __prev.a = __a);
+				_$_.set_checked(input_1, (__prev.a = __a));
 			}
 
 			var __b = props.text;
 
 			if (__prev.b !== __b) {
-				_$_.set_text(text_24, __prev.b = __b);
+				_$_.set_text(text_24, (__prev.b = __b));
 			}
 
 			var __c = _$_.get(done) ? 'completed' : 'pending';
 
 			if (__prev.c !== __c) {
-				_$_.set_class(span_7, __prev.c = __c, void 0, true);
+				_$_.set_class(span_7, (__prev.c = __c), void 0, true);
 			}
 
 			var __d = `todo-${props.id}`;
 
 			if (__prev.d !== __d) {
-				_$_.set_class(div_16, __prev.d = __d, void 0, true);
+				_$_.set_class(div_16, (__prev.d = __d), void 0, true);
 			}
 		},
-		{ a: void 0, b: ' ', c: Symbol(), d: Symbol() }
+		{ a: void 0, b: ' ', c: Symbol(), d: Symbol() },
 	);
 
 	_$_.append(__anchor, div_16);
@@ -1259,7 +1308,7 @@ export function ForLoopSingleItem(__anchor, _, __block) {
 
 				_$_.append(__anchor, li_15);
 			},
-			4
+			4,
 		);
 
 		_$_.pop(ul_15);
@@ -1300,7 +1349,7 @@ export function ForLoopAddAtBeginning(__anchor, _, __block) {
 
 				_$_.append(__anchor, li_16);
 			},
-			4
+			4,
 		);
 
 		_$_.pop(ul_16);
@@ -1344,7 +1393,7 @@ export function ForLoopAddInMiddle(__anchor, _, __block) {
 
 				_$_.append(__anchor, li_17);
 			},
-			4
+			4,
 		);
 
 		_$_.pop(ul_17);
@@ -1362,7 +1411,10 @@ export function ForLoopRemoveFromMiddle(__anchor, _, __block) {
 	var button_18 = _$_.first_child_frag(fragment_15);
 
 	button_18.__click = () => {
-		_$_.set(items, _$_.with_scope(__block, () => _$_.get(items).filter((item) => item !== 'B')));
+		_$_.set(
+			items,
+			_$_.with_scope(__block, () => _$_.get(items).filter((item) => item !== 'B')),
+		);
 	};
 
 	var ul_18 = _$_.sibling(button_18);
@@ -1385,7 +1437,7 @@ export function ForLoopRemoveFromMiddle(__anchor, _, __block) {
 
 				_$_.append(__anchor, li_18);
 			},
-			4
+			4,
 		);
 
 		_$_.pop(ul_18);
@@ -1398,7 +1450,9 @@ export function ForLoopRemoveFromMiddle(__anchor, _, __block) {
 export function ForLoopLargeList(__anchor, _, __block) {
 	_$_.push_component();
 
-	const items = _$_.with_scope(__block, () => Array.from({ length: 50 }, (_, i) => `Item ${i + 1}`));
+	const items = _$_.with_scope(__block, () =>
+		Array.from({ length: 50 }, (_, i) => `Item ${i + 1}`),
+	);
 	var ul_19 = root_56();
 
 	{
@@ -1421,7 +1475,7 @@ export function ForLoopLargeList(__anchor, _, __block) {
 
 				_$_.append(__anchor, li_19);
 			},
-			12
+			12,
 		);
 
 		_$_.pop(ul_19);
@@ -1465,7 +1519,7 @@ export function ForLoopSwap(__anchor, _, __block) {
 
 				_$_.append(__anchor, li_20);
 			},
-			4
+			4,
 		);
 
 		_$_.pop(ul_20);
@@ -1483,7 +1537,10 @@ export function ForLoopReverse(__anchor, _, __block) {
 	var button_20 = _$_.first_child_frag(fragment_17);
 
 	button_20.__click = () => {
-		_$_.set(items, _$_.with_scope(__block, () => [..._$_.get(items)].reverse()));
+		_$_.set(
+			items,
+			_$_.with_scope(__block, () => [..._$_.get(items)].reverse()),
+		);
 	};
 
 	var ul_21 = _$_.sibling(button_20);
@@ -1506,7 +1563,7 @@ export function ForLoopReverse(__anchor, _, __block) {
 
 				_$_.append(__anchor, li_21);
 			},
-			4
+			4,
 		);
 
 		_$_.pop(ul_21);

@@ -1,9 +1,21 @@
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div><button class="increment">Increment</button><span class="count"> </span></div>`, 0);
-var root_1 = _$_.template(`<div><button class="decrement">-</button><span class="count"> </span><button class="increment">+</button></div>`, 0);
-var root_2 = _$_.template(`<div><button class="target">Target</button><span class="clicks"> </span><span class="hovers"> </span></div>`, 0);
-var root_3 = _$_.template(`<div><button class="btn">Click</button><span class="count"> </span><span class="action"> </span></div>`, 0);
+var root = _$_.template(
+	`<div><button class="increment">Increment</button><span class="count"> </span></div>`,
+	0,
+);
+var root_1 = _$_.template(
+	`<div><button class="decrement">-</button><span class="count"> </span><button class="increment">+</button></div>`,
+	0,
+);
+var root_2 = _$_.template(
+	`<div><button class="target">Target</button><span class="clicks"> </span><span class="hovers"> </span></div>`,
+	0,
+);
+var root_3 = _$_.template(
+	`<div><button class="btn">Click</button><span class="count"> </span><span class="action"> </span></div>`,
+	0,
+);
 var root_4 = _$_.template(`<div><button class="toggle"> </button></div>`, 0);
 var root_5 = _$_.template(`<button class="child-btn"> </button>`, 0);
 var root_6 = _$_.template(`<div><!><span class="count"> </span></div>`, 0);
@@ -116,16 +128,16 @@ export function MultipleEvents(__anchor, _, __block) {
 			var __a = _$_.get(clicks);
 
 			if (__prev.a !== __a) {
-				_$_.set_text(text_2, __prev.a = __a);
+				_$_.set_text(text_2, (__prev.a = __a));
 			}
 
 			var __b = _$_.get(hovers);
 
 			if (__prev.b !== __b) {
-				_$_.set_text(text_3, __prev.b = __b);
+				_$_.set_text(text_3, (__prev.b = __b));
 			}
 		},
-		{ a: ' ', b: ' ' }
+		{ a: ' ', b: ' ' },
 	);
 
 	_$_.append(__anchor, div_3);
@@ -172,16 +184,16 @@ export function MultiStateUpdate(__anchor, _, __block) {
 			var __a = _$_.get(count);
 
 			if (__prev.a !== __a) {
-				_$_.set_text(text_4, __prev.a = __a);
+				_$_.set_text(text_4, (__prev.a = __a));
 			}
 
 			var __b = _$_.get(lastAction);
 
 			if (__prev.b !== __b) {
-				_$_.set_text(text_5, __prev.b = __b);
+				_$_.set_text(text_5, (__prev.b = __b));
 			}
 		},
-		{ a: ' ', b: ' ' }
+		{ a: ' ', b: ' ' },
 	);
 
 	_$_.append(__anchor, div_4);
@@ -253,9 +265,9 @@ export function ParentWithChildButton(__anchor, _, __block) {
 					_$_.update(count);
 				},
 
-				label: "Click me"
+				label: 'Click me',
 			},
-			_$_.active_block
+			_$_.active_block,
 		);
 
 		var span_7 = _$_.sibling(node);
