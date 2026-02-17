@@ -2250,6 +2250,19 @@ const obj2 = #{
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('should preserve an existing blank line before a comment inside element children', async () => {
+		const expected = `component App() {
+  <div>
+    let x = 1;
+
+    // comment
+    <div>{'Test'}</div>
+  </div>
+}`;
+
+		const result = await format(expected, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
 	it('should preserve comment if the whole component code is commented out', async () => {
 		const expected = `export component Test() {
   // thing
