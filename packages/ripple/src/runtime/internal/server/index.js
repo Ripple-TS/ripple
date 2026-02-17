@@ -1,6 +1,6 @@
 /**
 @import { Component, Dependency, Derived, Tracked } from '#server';
-@import { render, renderToStream, SSRComponent } from 'ripple/server';
+@import { SSRComponent } from 'ripple/server';
 */
 
 import { Readable } from 'stream';
@@ -14,23 +14,6 @@ import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../constants.js';
 
 export { escape };
 export { register_component_css as register_css } from './css-registry.js';
-
-const regex_return_characters = /\r/g;
-
-/**
- * Hash a string for use in hydration markers
- * @param {string} str
- * @returns {string}
- */
-export function hash(str) {
-	str = String(str ?? '').replace(regex_return_characters, '');
-	let hash = 5381;
-	let i = str.length;
-
-	while (i--) hash = ((hash << 5) - hash) ^ str.charCodeAt(i);
-
-	return (hash >>> 0).toString(36);
-}
 
 /** @type {null | Component} */
 export let active_component = null;
