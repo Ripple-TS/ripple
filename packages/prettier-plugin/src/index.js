@@ -3004,14 +3004,14 @@ function printIfStatement(node, path, options, print) {
 	const testDoc = group(concat(['if (', indent(concat([softline, test])), softline, ')']));
 
 	// Check if consequent is a block statement
-	const consequent_is_block = node.consequent.type === 'BlockStatement';
+	const consequentIsBlock = node.consequent.type === 'BlockStatement';
 
 	const parts = [testDoc, ' ', consequent];
 
 	// Handle the alternate
 	if (node.alternate) {
 		// If consequent is not a block, add a hardline before else
-		if (!consequent_is_block) {
+		if (!consequentIsBlock) {
 			parts.push(hardline);
 		} else {
 			parts.push(' ');
