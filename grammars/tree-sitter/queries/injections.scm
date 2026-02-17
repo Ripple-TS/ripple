@@ -1,6 +1,7 @@
 ; Inject CSS into style elements
 (style_element
   (raw_text) @injection.content
+  (#set! injection.combined)
   (#set! injection.language "css"))
 
 ; Inject JavaScript/TypeScript into server blocks
@@ -12,6 +13,7 @@
   (expression) @injection.content
   (#set! injection.language "typescript"))
 
-; Inject TypeScript into all JSX text blocks
+; Inject Ripple into JSX text blocks so statement-like template code
+; (e.g. const/if lines in JSX children) is highlighted consistently.
 ((jsx_text) @injection.content
-  (#set! injection.language "tsx"))
+  (#set! injection.language "ripple"))

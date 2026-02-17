@@ -1,19 +1,29 @@
-; Increase indentation inside block-like constructs.
+; Helix indentation rules.
 [
-  (statement_block "}" @end)
-  (component_body "}" @end)
-  (class_body "}" @end)
-  (switch_body "}" @end)
-  (object "}" @end)
-  (object_pattern "}" @end)
-  (array "]" @end)
-  (array_pattern "]" @end)
-  (arguments ")" @end)
-  (formal_parameters ")" @end)
-  (parenthesized_expression ")" @end)
-  (jsx_element (jsx_closing_element) @end)
-  (style_element "</style>" @end)
-  (server_block "}" @end)
-  (reactive_object "}" @end)
-  (reactive_array "]" @end)
+  (statement_block)
+  (component_body)
+  (class_body)
+  (switch_body)
+  (object)
+  (object_pattern)
+  (array)
+  (array_pattern)
+  (arguments)
+  (formal_parameters)
+  (parenthesized_expression)
+  (jsx_element)
+  (jsx_self_closing_element)
+  (style_element)
+  (server_block)
+  (reactive_object)
+  (reactive_array)
 ] @indent
+
+[
+  "}"
+  "]"
+  ")"
+  "</style>"
+] @outdent
+
+(jsx_closing_element) @outdent
