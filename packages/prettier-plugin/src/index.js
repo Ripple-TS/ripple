@@ -1,4 +1,56 @@
-// @ts-nocheck
+/**
+ * @import { Doc, AstPath } from 'prettier'
+ * @import * as AST from 'estree'
+ * @import * as ESTreeJSX from 'estree-jsx'
+ */
+
+/**
+ * Ripple AST Node - union of all node types the printer handles
+ * @typedef {AST.Node | AST.Component | AST.Element | AST.TextNode | AST.TrackedExpression |
+ *           AST.TrackedArrayExpression | AST.TrackedObjectExpression | AST.TrackedMapExpression |
+ *           AST.TrackedSetExpression | AST.ServerBlock | AST.Attribute | AST.RefAttribute |
+ *           AST.SpreadAttribute | AST.ScriptContent | AST.CSS.StyleSheet | AST.CSS.Node |
+ *           ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment | ESTreeJSX.JSXAttribute |
+ *           ESTreeJSX.JSXSpreadAttribute} RippleASTNode
+ */
+
+/**
+ * Print function callback type
+ * @typedef {(path: AstPath<RippleASTNode>) => Doc} PrintFn
+ */
+
+/**
+ * Prettier formatting options used by this plugin
+ * @typedef {Object} RippleFormatOptions
+ * @property {boolean} [singleQuote] - Use single quotes for strings
+ * @property {boolean} [jsxSingleQuote] - Use single quotes in JSX attributes
+ * @property {boolean} [semi] - Add semicolons at end of statements
+ * @property {'none' | 'es5' | 'all'} [trailingComma] - Trailing comma style
+ * @property {boolean} [useTabs] - Use tabs for indentation
+ * @property {number} [tabWidth] - Number of spaces per indentation level
+ * @property {boolean} [singleAttributePerLine] - Put each JSX attribute on its own line
+ * @property {boolean} [bracketSameLine] - Put closing bracket on same line as attributes
+ * @property {string} [originalText] - Original source text
+ * @property {(node: RippleASTNode) => number} [locEnd] - Function to get node end position
+ */
+
+/**
+ * Context arguments passed through print function calls
+ * @typedef {Object} PrintArgs
+ * @property {boolean} [isInAttribute] - Node is inside an attribute value
+ * @property {boolean} [isInArray] - Node is inside an array
+ * @property {boolean} [allowInlineObject] - Allow single-line object formatting
+ * @property {boolean} [isConditionalTest] - Node is a conditional test expression
+ * @property {boolean} [isNestedConditional] - Node is a nested conditional
+ * @property {boolean} [suppressLeadingComments] - Skip printing leading comments
+ * @property {boolean} [suppressExpressionLeadingComments] - Skip expression leading comments
+ * @property {boolean} [isInlineContext] - Node is in an inline context
+ * @property {boolean} [isStatement] - Node is a statement
+ * @property {boolean} [isLogicalAndOr] - Node is logical AND/OR expression
+ * @property {boolean} [allowShorthandProperty] - Allow shorthand property syntax
+ * @property {boolean} [isFirstChild] - Node is first child of parent
+ */
+
 import { parse } from 'ripple/compiler';
 import { obfuscate_identifier } from 'ripple/compiler/internal/identifier/utils';
 import { doc } from 'prettier';
@@ -22,6 +74,7 @@ const {
 } = builders;
 const { willBreak } = utils;
 
+/** @type {import('prettier').Plugin['languages']} */
 export const languages = [
 	{
 		name: 'ripple',
@@ -31,25 +84,46 @@ export const languages = [
 	},
 ];
 
+/** @type {import('prettier').Plugin['parsers']} */
 export const parsers = {
 	ripple: {
 		astFormat: 'ripple-ast',
+		/**
+		 * @param {string} text
+		 * @returns {AST.Program}
+		 */
 		parse(text, parsers, options) {
 			return parse(text);
 		},
 
+		/**
+		 * @param {RippleASTNode} node
+		 * @returns {number}
+		 */
 		locStart(node) {
 			return node.loc.start.index;
 		},
 
+		/**
+		 * @param {RippleASTNode} node
+		 * @returns {number}
+		 */
 		locEnd(node) {
 			return node.loc.end.index;
 		},
 	},
 };
 
+/** @type {import('prettier').Plugin['printers']} */
 export const printers = {
 	'ripple-ast': {
+		/**
+		 * @param {AstPath<RippleASTNode>} path
+		 * @param {RippleFormatOptions} options
+		 * @param {PrintFn} print
+		 * @param {PrintArgs} [args]
+		 * @returns {Doc}
+		 */
 		print(path, options, print, args) {
 			const node = path.getValue();
 			const parts = printRippleNode(node, path, options, print, args);
@@ -61,6 +135,11 @@ export const printers = {
 			}
 			return typeof parts === 'string' ? parts : parts;
 		},
+		/**
+		 * @param {AstPath<RippleASTNode>} path
+		 * @param {RippleFormatOptions} options
+		 * @returns {((textToDoc: import('prettier').Doc) => Promise<Doc>) | null}
+		 */
 		embed(path, options) {
 			const node = path.getValue();
 
@@ -107,6 +186,10 @@ export const printers = {
 
 			return null;
 		},
+		/**
+		 * @param {RippleASTNode} node
+		 * @returns {string[]}
+		 */
 		getVisitorKeys(node) {
 			// Exclude metadata and raw text properties that shouldn't be traversed
 			// The css property is specifically excluded so embed() can handle it
@@ -133,7 +216,12 @@ export const printers = {
 	},
 };
 
-// Helper function to format string literals according to Prettier options
+/**
+ * Format a string literal according to Prettier options
+ * @param {string} value - The string value to format
+ * @param {RippleFormatOptions} options - Prettier options
+ * @returns {string} - The formatted string literal with quotes
+ */
 function formatStringLiteral(value, options) {
 	if (typeof value !== 'string') {
 		return JSON.stringify(value);
@@ -150,7 +238,12 @@ function formatStringLiteral(value, options) {
 	return quote + escapedValue + quote;
 }
 
-// Helper function to create indentation according to Prettier options
+/**
+ * Create indentation string according to Prettier options
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {number} [level=1] - Indentation level
+ * @returns {string} - The indentation string
+ */
 function createIndent(options, level = 1) {
 	if (options.useTabs) {
 		return '\t'.repeat(level);
@@ -159,11 +252,20 @@ function createIndent(options, level = 1) {
 	}
 }
 
-// Helper function to add semicolons based on options.semi setting
+/**
+ * Add semicolon based on options.semi setting
+ * @param {RippleFormatOptions} options - Prettier options
+ * @returns {string} - Semicolon or empty string
+ */
 function semi(options) {
 	return options.semi !== false ? ';' : '';
 }
 
+/**
+ * Check if a node was originally on a single line in source
+ * @param {RippleASTNode} node - The AST node to check
+ * @returns {boolean} - True if the node was on a single line
+ */
 function wasOriginallySingleLine(node) {
 	if (!node || !node.loc || !node.loc.start || !node.loc.end) {
 		return false;
@@ -172,15 +274,29 @@ function wasOriginallySingleLine(node) {
 	return node.loc.start.line === node.loc.end.line;
 }
 
+/**
+ * Check if an object expression was originally single line
+ * @param {AST.ObjectExpression} node - The object expression node
+ * @returns {boolean} - True if single line
+ */
 function isSingleLineObjectExpression(node) {
 	return wasOriginallySingleLine(node);
 }
 
-// Prettier-style helper functions
+/**
+ * Check if a node has any comments (leading, trailing, or inner)
+ * @param {RippleASTNode} node - The AST node to check
+ * @returns {boolean} - True if the node has comments
+ */
 function hasComment(node) {
 	return !!(node.leadingComments || node.trailingComments || node.innerComments);
 }
 
+/**
+ * Get all function parameters including `this`, params, and rest
+ * @param {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression} node - The function node
+ * @returns {AST.Pattern[]} - Array of parameter patterns
+ */
 function getFunctionParameters(node) {
 	const parameters = [];
 	if (node.this) {
@@ -195,6 +311,11 @@ function getFunctionParameters(node) {
 	return parameters;
 }
 
+/**
+ * Iterate over function parameters with path callbacks
+ * @param {AstPath<AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression>} path - The function path
+ * @param {(paramPath: AstPath<AST.Pattern>, index: number) => void} iteratee - Callback for each parameter
+ */
 function iterateFunctionParametersPath(path, iteratee) {
 	const { node } = path;
 	let index = 0;
@@ -239,11 +360,21 @@ const PRECEDENCE = {
 	'**': 11,
 };
 
+/**
+ * Get operator precedence for binary/logical expressions
+ * @param {string} operator - The operator string
+ * @returns {number} - Precedence level (higher = binds tighter)
+ */
 function getPrecedence(operator) {
 	return PRECEDENCE[operator] || 0;
 }
 
-// Check if a BinaryExpression needs parentheses
+/**
+ * Check if a BinaryExpression needs parentheses
+ * @param {AST.BinaryExpression | AST.LogicalExpression} node - The expression node
+ * @param {RippleASTNode} parent - The parent node
+ * @returns {boolean} - True if parentheses are needed
+ */
 function binaryExpressionNeedsParens(node, parent) {
 	if (!node.metadata?.parenthesized) {
 		return false;
@@ -284,6 +415,11 @@ function binaryExpressionNeedsParens(node, parent) {
 	return false;
 }
 
+/**
+ * Create a function that skips specified characters in text
+ * @param {string | RegExp} characters - Characters to skip
+ * @returns {(text: string, startIndex: number | false, options?: { backwards?: boolean }) => number | false}
+ */
 function createSkip(characters) {
 	return (text, startIndex, options) => {
 		const backwards = Boolean(options && options.backwards);
@@ -318,16 +454,32 @@ const skipSpaces = createSkip(' \t');
 const skipToLineEnd = createSkip(',; \t');
 const skipEverythingButNewLine = createSkip(/[^\n\r\u2028\u2029]/u);
 
+/**
+ * Check if a character is a newline
+ * @param {string} character - Single character to check
+ * @returns {boolean}
+ */
 function isCharNewLine(character) {
 	return (
 		character === '\n' || character === '\r' || character === '\u2028' || character === '\u2029'
 	);
 }
 
+/**
+ * Check if a character is whitespace (space or tab)
+ * @param {string} character - Single character to check
+ * @returns {boolean}
+ */
 function isCharSpace(character) {
 	return character === ' ' || character === '\t';
 }
 
+/**
+ * Skip over an inline comment (/* ... * /)
+ * @param {string} text - Source text
+ * @param {number | false} startIndex - Starting position
+ * @returns {number | false} - Position after comment or original position
+ */
 function skipInlineComment(text, startIndex) {
 	if (startIndex === false) {
 		return false;
@@ -344,6 +496,13 @@ function skipInlineComment(text, startIndex) {
 	return startIndex;
 }
 
+/**
+ * Skip over a newline character
+ * @param {string} text - Source text
+ * @param {number | false} startIndex - Starting position
+ * @param {{ backwards?: boolean }} [options] - Direction options
+ * @returns {number | false} - Position after newline or original position
+ */
 function skipNewline(text, startIndex, options) {
 	const backwards = Boolean(options && options.backwards);
 	if (startIndex === false) {
@@ -370,6 +529,12 @@ function skipNewline(text, startIndex, options) {
 	return startIndex;
 }
 
+/**
+ * Skip over a trailing comment (// ...)
+ * @param {string} text - Source text
+ * @param {number | false} startIndex - Starting position
+ * @returns {number | false} - Position after comment or original position
+ */
 function skipTrailingComment(text, startIndex) {
 	if (startIndex === false) {
 		return false;
@@ -382,6 +547,11 @@ function skipTrailingComment(text, startIndex) {
 	return startIndex;
 }
 
+/**
+ * Get the end index of a node from various possible properties
+ * @param {RippleASTNode} node - The AST node
+ * @returns {number | null} - End position or null
+ */
 function getNodeEndIndex(node) {
 	if (node?.loc?.end && typeof node.loc.end.index === 'number') {
 		return node.loc.end.index;
@@ -395,6 +565,11 @@ function getNodeEndIndex(node) {
 	return null;
 }
 
+/**
+ * Check if a node is a RegExp literal
+ * @param {RippleASTNode} node - The AST node
+ * @returns {boolean}
+ */
 function isRegExpLiteral(node) {
 	return (
 		node &&
@@ -406,6 +581,12 @@ function isRegExpLiteral(node) {
 	);
 }
 
+/**
+ * Check if a comment is followed by a paren on the same line
+ * @param {AST.Comment} comment - The comment node
+ * @param {RippleFormatOptions} options - Prettier options
+ * @returns {boolean}
+ */
 function isCommentFollowedBySameLineParen(comment, options) {
 	if (!comment || !options || typeof options.originalText !== 'string') {
 		return false;
@@ -432,12 +613,25 @@ function isCommentFollowedBySameLineParen(comment, options) {
 	return false;
 }
 
+/**
+ * Check if there is a newline at the given position
+ * @param {string} text - Source text
+ * @param {number} startIndex - Starting position
+ * @param {{ backwards?: boolean }} [options] - Direction options
+ * @returns {boolean}
+ */
 function hasNewline(text, startIndex, options) {
 	const idx = skipSpaces(text, options && options.backwards ? startIndex - 1 : startIndex, options);
 	const idx2 = skipNewline(text, idx, options);
 	return idx !== idx2;
 }
 
+/**
+ * Check if the next line after a node is empty
+ * @param {RippleASTNode} node - The AST node
+ * @param {RippleFormatOptions} options - Prettier options
+ * @returns {boolean}
+ */
 function isNextLineEmpty(node, options) {
 	if (!node || !options || !options.originalText) {
 		return false;
@@ -483,10 +677,21 @@ function isNextLineEmpty(node, options) {
 	return index !== false && hasNewline(text, index);
 }
 
+/**
+ * Check if a function has a rest parameter
+ * @param {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression} node - The function node
+ * @returns {boolean}
+ */
 function hasRestParameter(node) {
 	return !!node.rest;
 }
 
+/**
+ * Determine if a trailing comma should be printed based on options
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {'es5' | 'all'} [level='all'] - Comma level to check
+ * @returns {boolean}
+ */
 function shouldPrintComma(options, level = 'all') {
 	switch (options.trailingComma) {
 		case 'none':
@@ -500,6 +705,13 @@ function shouldPrintComma(options, level = 'all') {
 	}
 }
 
+/**
+ * Check if a leading comment can be attached to the previous element
+ * @param {AST.Comment} comment - The comment node
+ * @param {RippleASTNode} previousNode - Previous node
+ * @param {RippleASTNode} nextNode - Next node
+ * @returns {boolean}
+ */
 function canAttachLeadingCommentToPreviousElement(comment, previousNode, nextNode) {
 	if (!comment || !previousNode || !nextNode) {
 		return false;
@@ -525,6 +737,11 @@ function canAttachLeadingCommentToPreviousElement(comment, previousNode, nextNod
 	return true;
 }
 
+/**
+ * Build doc for inline array comments
+ * @param {AST.Comment[]} comments - Array of comment nodes
+ * @returns {Doc | null}
+ */
 function buildInlineArrayCommentDoc(comments) {
 	if (!Array.isArray(comments) || comments.length === 0) {
 		return null;
@@ -551,7 +768,12 @@ function buildInlineArrayCommentDoc(comments) {
 }
 
 /**
- * @param {AST.Property | AST.MethodDefinition} node
+ * Print an object or method key
+ * @param {AST.Property | AST.MethodDefinition} node - The property or method node
+ * @param {AstPath<AST.Property | AST.MethodDefinition>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
  */
 function printKey(node, path, options, print) {
 	const parts = [];
@@ -580,6 +802,15 @@ function printKey(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Main print function for Ripple AST nodes
+ * @param {RippleASTNode} node - The AST node to print
+ * @param {AstPath<RippleASTNode>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @param {PrintArgs} [args] - Additional context arguments
+ * @returns {Doc}
+ */
 function printRippleNode(node, path, options, print, args) {
 	if (!node || typeof node !== 'object') {
 		return String(node || '');
@@ -2128,6 +2359,14 @@ function printRippleNode(node, path, options, print, args) {
 	return nodeContent;
 }
 
+/**
+ * Print an import declaration
+ * @param {AST.ImportDeclaration} node - The import declaration node
+ * @param {AstPath<AST.ImportDeclaration>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printImportDeclaration(node, path, options, print) {
 	const parts = ['import'];
 
@@ -2200,6 +2439,14 @@ function printImportDeclaration(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print an export named declaration
+ * @param {AST.ExportNamedDeclaration} node - The export declaration node
+ * @param {AstPath<AST.ExportNamedDeclaration>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printExportNamedDeclaration(node, path, options, print) {
 	if (node.declaration) {
 		const parts = [];
@@ -2234,6 +2481,16 @@ function printExportNamedDeclaration(node, path, options, print) {
 	return 'export';
 }
 
+/**
+ * Print a Ripple component declaration
+ * @param {AST.Component} node - The component node
+ * @param {AstPath<AST.Component>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @param {Doc[]} [innerCommentParts=[]] - Inner comment docs
+ * @param {{ skipComponentLabel?: boolean }} [args] - Additional args
+ * @returns {Doc}
+ */
 function printComponent(
 	node,
 	path,
@@ -2412,6 +2669,14 @@ function printComponent(
 	return concat(parts);
 }
 
+/**
+ * Print a variable declaration
+ * @param {AST.VariableDeclaration} node - The variable declaration node
+ * @param {AstPath<AST.VariableDeclaration>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printVariableDeclaration(node, path, options, print) {
 	const kind = node.kind || 'let';
 
@@ -2434,6 +2699,14 @@ function printVariableDeclaration(node, path, options, print) {
 	return concat([kind, ' ', declarationParts]);
 }
 
+/**
+ * Print a function expression
+ * @param {AST.FunctionExpression} node - The function expression node
+ * @param {AstPath<AST.FunctionExpression>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printFunctionExpression(node, path, options, print) {
 	const parts = [];
 
@@ -2485,6 +2758,14 @@ function printFunctionExpression(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print an arrow function expression
+ * @param {AST.ArrowFunctionExpression} node - The arrow function node
+ * @param {AstPath<AST.ArrowFunctionExpression>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printArrowFunction(node, path, options, print) {
 	const parts = [];
 
@@ -2548,6 +2829,14 @@ function printArrowFunction(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print an export default declaration
+ * @param {AST.ExportDefaultDeclaration} node - The export default node
+ * @param {AstPath<AST.ExportDefaultDeclaration>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printExportDefaultDeclaration(node, path, options, print) {
 	const parts = [];
 	parts.push('export default ');
@@ -2555,6 +2844,11 @@ function printExportDefaultDeclaration(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Check if the only function parameter should be hugged (no extra parens)
+ * @param {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression} node - The function node
+ * @returns {boolean}
+ */
 function shouldHugTheOnlyFunctionParameter(node) {
 	if (!node) {
 		return false;
@@ -2575,6 +2869,13 @@ function shouldHugTheOnlyFunctionParameter(node) {
 	);
 }
 
+/**
+ * Print function parameters with proper formatting
+ * @param {AstPath<AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression>} path - The function path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printFunctionParameters(path, options, print) {
 	const functionNode = path.node;
 	const parameters = getFunctionParameters(functionNode);
@@ -2624,10 +2925,20 @@ function printFunctionParameters(path, options, print) {
 	];
 }
 
+/**
+ * Check if a node is spread-like (SpreadElement or RestElement)
+ * @param {RippleASTNode} node - The AST node
+ * @returns {boolean}
+ */
 function isSpreadLike(node) {
 	return node && (node.type === 'SpreadElement' || node.type === 'RestElement');
 }
 
+/**
+ * Check if a node is a block-like function (function expression or arrow with block body)
+ * @param {RippleASTNode} node - The AST node
+ * @returns {boolean}
+ */
 function isBlockLikeFunction(node) {
 	if (!node) {
 		return false;
@@ -2641,6 +2952,12 @@ function isBlockLikeFunction(node) {
 	return false;
 }
 
+/**
+ * Determine if the last argument should be hugged (no line break before it)
+ * @param {(AST.Expression | AST.SpreadElement)[]} args - Array of arguments
+ * @param {boolean[]} argumentBreakFlags - Flags indicating which args break
+ * @returns {boolean}
+ */
 function shouldHugLastArgument(args, argumentBreakFlags) {
 	if (!args || args.length === 0) {
 		return false;
@@ -2677,7 +2994,11 @@ function shouldHugLastArgument(args, argumentBreakFlags) {
 	return true;
 }
 
-// Check if arguments contain arrow functions with block bodies that should be hugged
+/**
+ * Check if arguments contain arrow functions with block bodies that should be hugged
+ * @param {(AST.Expression | AST.SpreadElement)[]} args - Array of arguments
+ * @returns {boolean}
+ */
 function shouldHugArrowFunctions(args) {
 	if (!args || args.length === 0) {
 		return false;
@@ -2701,6 +3022,13 @@ function shouldHugArrowFunctions(args) {
 	return firstBlockIndex === 0;
 }
 
+/**
+ * Print call expression arguments
+ * @param {AstPath<AST.CallExpression | AST.NewExpression>} path - The call path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printCallArguments(path, options, print) {
 	const { node } = path;
 	const args = node.arguments || [];
@@ -2901,6 +3229,11 @@ function printCallArguments(path, options, print) {
 /**
  * Print TSDeclareFunction (TypeScript function overload declaration)
  * These are function signatures without bodies, ending with semicolon
+ * @param {AST.TSDeclareFunction} node - The TS function declaration node
+ * @param {AstPath<AST.TSDeclareFunction>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
  */
 function printTSDeclareFunction(node, path, options, print) {
 	const parts = [];
@@ -2953,6 +3286,14 @@ function printTSDeclareFunction(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Print a function declaration
+ * @param {AST.FunctionDeclaration} node - The function declaration node
+ * @param {AstPath<AST.FunctionDeclaration>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printFunctionDeclaration(node, path, options, print) {
 	const parts = [];
 
@@ -2996,6 +3337,14 @@ function printFunctionDeclaration(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Print an if statement
+ * @param {AST.IfStatement} node - The if statement node
+ * @param {AstPath<AST.IfStatement>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printIfStatement(node, path, options, print) {
 	const test = path.call(print, 'test');
 	const consequent = path.call(print, 'consequent');
@@ -3012,6 +3361,14 @@ function printIfStatement(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print a for-in statement
+ * @param {AST.ForInStatement} node - The for-in statement node
+ * @param {AstPath<AST.ForInStatement>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printForInStatement(node, path, options, print) {
 	const parts = [];
 	parts.push('for (');
@@ -3025,6 +3382,14 @@ function printForInStatement(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Print a for-of statement (with Ripple index/key extensions)
+ * @param {AST.ForOfStatement} node - The for-of statement node
+ * @param {AstPath<AST.ForOfStatement>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printForOfStatement(node, path, options, print) {
 	const parts = [];
 	parts.push('for (');
@@ -3049,6 +3414,14 @@ function printForOfStatement(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Print a for statement
+ * @param {AST.ForStatement} node - The for statement node
+ * @param {AstPath<AST.ForStatement>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printForStatement(node, path, options, print) {
 	const parts = [];
 	parts.push('for (');
@@ -3078,7 +3451,14 @@ function printForStatement(node, path, options, print) {
 	return parts;
 }
 
-// Updated for-loop formatting
+/**
+ * Print a while statement
+ * @param {AST.WhileStatement} node - The while statement node
+ * @param {AstPath<AST.WhileStatement>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printWhileStatement(node, path, options, print) {
 	const parts = [];
 	parts.push('while (');
@@ -3089,6 +3469,14 @@ function printWhileStatement(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Print a do-while statement
+ * @param {AST.DoWhileStatement} node - The do-while statement node
+ * @param {AstPath<AST.DoWhileStatement>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printDoWhileStatement(node, path, options, print) {
 	const parts = [];
 	parts.push('do ');
@@ -3100,6 +3488,15 @@ function printDoWhileStatement(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Print an object expression (or TrackedObjectExpression)
+ * @param {AST.ObjectExpression | AST.TrackedObjectExpression} node - The object expression node
+ * @param {AstPath<AST.ObjectExpression | AST.TrackedObjectExpression>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @param {PrintArgs} [args] - Additional context arguments
+ * @returns {Doc}
+ */
 function printObjectExpression(node, path, options, print, args) {
 	const skip_offset = node.type === 'TrackedObjectExpression' ? 2 : 1;
 	const open_brace = node.type === 'TrackedObjectExpression' ? '#{' : '{';
@@ -3243,6 +3640,14 @@ function printObjectExpression(node, path, options, print, args) {
 	return group([open_brace, indent(content.slice(0, -1)), content[content.length - 1], '}']);
 }
 
+/**
+ * Print a class declaration
+ * @param {AST.ClassDeclaration | AST.ClassExpression} node - The class node
+ * @param {AstPath<AST.ClassDeclaration | AST.ClassExpression>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printClassDeclaration(node, path, options, print) {
 	const parts = [];
 	parts.push('class');
@@ -3274,6 +3679,14 @@ function printClassDeclaration(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Print a try statement (with Ripple pending block extension)
+ * @param {AST.TryStatement} node - The try statement node
+ * @param {AstPath<AST.TryStatement>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printTryStatement(node, path, options, print) {
 	const parts = [];
 	parts.push('try ');
@@ -3303,6 +3716,14 @@ function printTryStatement(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Print a class body
+ * @param {AST.ClassBody} node - The class body node
+ * @param {AstPath<AST.ClassBody>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printClassBody(node, path, options, print) {
 	if (!node.body || node.body.length === 0) {
 		return '{}';
@@ -3328,6 +3749,14 @@ function printClassBody(node, path, options, print) {
 	return group(['{', indent(concat(contentParts)), line, '}']);
 }
 
+/**
+ * Print a class property definition
+ * @param {AST.PropertyDefinition} node - The property definition node
+ * @param {AstPath<AST.PropertyDefinition>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printPropertyDefinition(node, path, options, print) {
 	const parts = [];
 
@@ -3372,6 +3801,14 @@ function printPropertyDefinition(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print a method definition
+ * @param {AST.MethodDefinition} node - The method definition node
+ * @param {AstPath<AST.MethodDefinition>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printMethodDefinition(node, path, options, print) {
 	const parts = [];
 	const is_component = node.value?.type === 'Component';
@@ -3462,6 +3899,14 @@ function printMethodDefinition(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print a member expression (object.property or object[property])
+ * @param {AST.MemberExpression} node - The member expression node
+ * @param {AstPath<AST.MemberExpression>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printMemberExpression(node, path, options, print) {
 	let objectPart = path.call(print, 'object');
 	// Preserve parentheses around the object when present
@@ -3499,6 +3944,14 @@ function printMemberExpression(node, path, options, print) {
 	return result;
 }
 
+/**
+ * Print a unary expression
+ * @param {AST.UnaryExpression | AST.UpdateExpression} node - The unary expression node
+ * @param {AstPath<AST.UnaryExpression | AST.UpdateExpression>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printUnaryExpression(node, path, options, print) {
 	const parts = [];
 
@@ -3530,6 +3983,14 @@ function printUnaryExpression(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print a yield expression
+ * @param {AST.YieldExpression} node - The yield expression node
+ * @param {AstPath<AST.YieldExpression>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printYieldExpression(node, path, options, print) {
 	const parts = [];
 	parts.push('yield');
@@ -3546,6 +4007,14 @@ function printYieldExpression(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Print a new expression
+ * @param {AST.NewExpression} node - The new expression node
+ * @param {AstPath<AST.NewExpression>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printNewExpression(node, path, options, print) {
 	const parts = [];
 	parts.push('new ');
@@ -3573,6 +4042,14 @@ function printNewExpression(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Print a template literal
+ * @param {AST.TemplateLiteral} node - The template literal node
+ * @param {AstPath<AST.TemplateLiteral>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printTemplateLiteral(node, path, options, print) {
 	const parts = [];
 	parts.push('`');
@@ -3610,6 +4087,14 @@ function printTemplateLiteral(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Print a tagged template expression
+ * @param {AST.TaggedTemplateExpression} node - The tagged template node
+ * @param {AstPath<AST.TaggedTemplateExpression>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printTaggedTemplateExpression(node, path, options, print) {
 	const parts = [];
 	parts.push(path.call(print, 'tag'));
@@ -3617,6 +4102,14 @@ function printTaggedTemplateExpression(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Print a throw statement
+ * @param {AST.ThrowStatement} node - The throw statement node
+ * @param {AstPath<AST.ThrowStatement>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printThrowStatement(node, path, options, print) {
 	const parts = [];
 	parts.push('throw ');
@@ -3625,6 +4118,14 @@ function printThrowStatement(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Print a TypeScript interface declaration
+ * @param {AST.TSInterfaceDeclaration} node - The interface declaration node
+ * @param {AstPath<AST.TSInterfaceDeclaration>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printTSInterfaceDeclaration(node, path, options, print) {
 	const parts = [];
 	parts.push('interface ');
@@ -3647,6 +4148,14 @@ function printTSInterfaceDeclaration(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print a TypeScript interface body
+ * @param {AST.TSInterfaceBody} node - The interface body node
+ * @param {AstPath<AST.TSInterfaceBody>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printTSInterfaceBody(node, path, options, print) {
 	if (!node.body || node.body.length === 0) {
 		return '{}';
@@ -3660,6 +4169,14 @@ function printTSInterfaceBody(node, path, options, print) {
 	return group(['{', indent([hardline, join(hardline, membersWithSemicolons)]), hardline, '}']);
 }
 
+/**
+ * Print a TypeScript type alias declaration
+ * @param {AST.TSTypeAliasDeclaration} node - The type alias node
+ * @param {AstPath<AST.TSTypeAliasDeclaration>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printTSTypeAliasDeclaration(node, path, options, print) {
 	const parts = [];
 	parts.push('type ');
@@ -3676,6 +4193,14 @@ function printTSTypeAliasDeclaration(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Print a TypeScript enum declaration
+ * @param {AST.TSEnumDeclaration} node - The enum declaration node
+ * @param {AstPath<AST.TSEnumDeclaration>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printTSEnumDeclaration(node, path, options, print) {
 	const parts = [];
 
@@ -3717,6 +4242,14 @@ function printTSEnumDeclaration(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print a TypeScript enum member
+ * @param {AST.TSEnumMember} node - The enum member node
+ * @param {AstPath<AST.TSEnumMember>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printTSEnumMember(node, path, options, print) {
 	const parts = [];
 
@@ -3737,6 +4270,14 @@ function printTSEnumMember(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print TypeScript type parameter declaration (<T, U extends V>)
+ * @param {AST.TSTypeParameterDeclaration} node - The type parameter declaration node
+ * @param {AstPath<AST.TSTypeParameterDeclaration>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printTSTypeParameterDeclaration(node, path, options, print) {
 	if (!node.params || node.params.length === 0) {
 		return '';
@@ -3756,6 +4297,14 @@ function printTSTypeParameterDeclaration(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Print a single TypeScript type parameter
+ * @param {AST.TSTypeParameter} node - The type parameter node
+ * @param {AstPath<AST.TSTypeParameter>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printTSTypeParameter(node, path, options, print) {
 	const parts = [];
 	parts.push(node.name);
@@ -3773,6 +4322,14 @@ function printTSTypeParameter(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Print TypeScript type parameter instantiation (<string, number>)
+ * @param {AST.TSTypeParameterInstantiation} node - The type parameter instantiation node
+ * @param {AstPath<AST.TSTypeParameterInstantiation>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printTSTypeParameterInstantiation(node, path, options, print) {
 	if (!node.params || node.params.length === 0) {
 		return '';
@@ -3812,6 +4369,14 @@ function printTSTypeParameterInstantiation(node, path, options, print) {
 	return group(concat(['<', indent(concat([softline, ...parts])), softline, '>']));
 }
 
+/**
+ * Print a switch statement
+ * @param {AST.SwitchStatement} node - The switch statement node
+ * @param {AstPath<AST.SwitchStatement>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printSwitchStatement(node, path, options, print) {
 	const discriminantDoc = group(
 		concat(['switch (', indent([softline, path.call(print, 'discriminant')]), softline, ')']),
@@ -3832,6 +4397,14 @@ function printSwitchStatement(node, path, options, print) {
 	return concat([discriminantDoc, ' {', bodyDoc, '}']);
 }
 
+/**
+ * Print a switch case
+ * @param {AST.SwitchCase} node - The switch case node
+ * @param {AstPath<AST.SwitchCase>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printSwitchCase(node, path, options, print) {
 	const header = node.test ? concat(['case ', path.call(print, 'test'), ':']) : 'default:';
 
@@ -3897,6 +4470,14 @@ function printSwitchCase(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print a break statement
+ * @param {AST.BreakStatement} node - The break statement node
+ * @param {AstPath<AST.BreakStatement>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printBreakStatement(node, path, options, print) {
 	const parts = [];
 	parts.push('break');
@@ -3908,6 +4489,14 @@ function printBreakStatement(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Print a continue statement
+ * @param {AST.ContinueStatement} node - The continue statement node
+ * @param {AstPath<AST.ContinueStatement>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printContinueStatement(node, path, options, print) {
 	const parts = [];
 	parts.push('continue');
@@ -3919,10 +4508,26 @@ function printContinueStatement(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Print a debugger statement
+ * @param {AST.DebuggerStatement} node - The debugger statement node
+ * @param {AstPath<AST.DebuggerStatement>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {string}
+ */
 function printDebuggerStatement(node, path, options, print) {
 	return 'debugger' + semi(options);
 }
 
+/**
+ * Print a sequence expression
+ * @param {AST.SequenceExpression} node - The sequence expression node
+ * @param {AstPath<AST.SequenceExpression>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printSequenceExpression(node, path, options, print) {
 	const parts = [];
 	parts.push('(');
@@ -3935,6 +4540,12 @@ function printSequenceExpression(node, path, options, print) {
 	return parts;
 }
 
+/**
+ * Get number of blank lines between two positions
+ * @param {{ line: number }} current_pos - Current position
+ * @param {{ line: number }} next_pos - Next position
+ * @returns {number}
+ */
 function getBlankLinesBetweenPositions(current_pos, next_pos) {
 	const line_gap = next_pos.line - current_pos.line;
 
@@ -3944,6 +4555,12 @@ function getBlankLinesBetweenPositions(current_pos, next_pos) {
 	return Math.max(0, line_gap - 1);
 }
 
+/**
+ * Get number of blank lines between two nodes
+ * @param {RippleASTNode} currentNode - Current node
+ * @param {RippleASTNode} nextNode - Next node
+ * @returns {number}
+ */
 function getBlankLinesBetweenNodes(currentNode, nextNode) {
 	// Return the number of blank lines between two nodes based on their location
 	if (
@@ -3959,6 +4576,12 @@ function getBlankLinesBetweenNodes(currentNode, nextNode) {
 	return 0;
 }
 
+/**
+ * Determine if a blank line should be added between nodes
+ * @param {RippleASTNode} currentNode - Current node
+ * @param {RippleASTNode} nextNode - Next node
+ * @returns {boolean}
+ */
 function shouldAddBlankLine(currentNode, nextNode) {
 	// Simplified blank line logic:
 	// 1. Check if there was originally 1+ blank lines between nodes
@@ -3993,6 +4616,14 @@ function shouldAddBlankLine(currentNode, nextNode) {
 	return originalBlankLines > 0;
 }
 
+/**
+ * Print an object pattern (destructuring)
+ * @param {AST.ObjectPattern} node - The object pattern node
+ * @param {AstPath<AST.ObjectPattern>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printObjectPattern(node, path, options, print) {
 	const propList = path.map(print, 'properties');
 	if (propList.length === 0) {
@@ -4068,6 +4699,14 @@ function printObjectPattern(node, path, options, print) {
 	return objectContent;
 }
 
+/**
+ * Print an array pattern (destructuring)
+ * @param {AST.ArrayPattern} node - The array pattern node
+ * @param {AstPath<AST.ArrayPattern>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printArrayPattern(node, path, options, print) {
 	const parts = [];
 	parts.push('[');
@@ -4086,6 +4725,14 @@ function printArrayPattern(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print a property (object property or method)
+ * @param {AST.Property} node - The property node
+ * @param {AstPath<AST.Property>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printProperty(node, path, options, print) {
 	if (node.shorthand) {
 		// For shorthand properties, if value is AssignmentPattern, print the value (which includes the default)
@@ -4180,6 +4827,14 @@ function printProperty(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print a variable declarator
+ * @param {AST.VariableDeclarator} node - The variable declarator node
+ * @param {AstPath<AST.VariableDeclarator>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printVariableDeclarator(node, path, options, print) {
 	if (node.init) {
 		const id = path.call(print, 'id');
@@ -4292,11 +4947,27 @@ function printVariableDeclarator(node, path, options, print) {
 	return path.call(print, 'id');
 }
 
+/**
+ * Print an assignment pattern (default parameter)
+ * @param {AST.AssignmentPattern} node - The assignment pattern node
+ * @param {AstPath<AST.AssignmentPattern>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printAssignmentPattern(node, path, options, print) {
 	// Handle default parameters like: count: number = 0
 	return concat([path.call(print, 'left'), ' = ', path.call(print, 'right')]);
 }
 
+/**
+ * Print a TypeScript type literal
+ * @param {AST.TSTypeLiteral} node - The type literal node
+ * @param {AstPath<AST.TSTypeLiteral>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printTSTypeLiteral(node, path, options, print) {
 	if (!node.members || node.members.length === 0) {
 		return '{}';
@@ -4321,6 +4992,14 @@ function printTSTypeLiteral(node, path, options, print) {
 	);
 }
 
+/**
+ * Print a TypeScript property signature in an interface
+ * @param {AST.TSPropertySignature} node - The property signature node
+ * @param {AstPath<AST.TSPropertySignature>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printTSPropertySignature(node, path, options, print) {
 	const parts = [];
 	parts.push(path.call(print, 'key'));
@@ -4337,6 +5016,14 @@ function printTSPropertySignature(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print a TypeScript method signature in an interface
+ * @param {AST.TSMethodSignature} node - The method signature node
+ * @param {AstPath<AST.TSMethodSignature>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printTSMethodSignature(node, path, options, print) {
 	const parts = [];
 
@@ -4378,6 +5065,14 @@ function printTSMethodSignature(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print a TypeScript type reference (e.g., Array<string>)
+ * @param {AST.TSTypeReference} node - The type reference node
+ * @param {AstPath<AST.TSTypeReference>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printTSTypeReference(node, path, options, print) {
 	const parts = [path.call(print, 'typeName')];
 
@@ -4403,6 +5098,14 @@ function printTSTypeReference(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print a TypeScript tuple type
+ * @param {AST.TSTupleType} node - The tuple type node
+ * @param {AstPath<AST.TSTupleType>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printTSTupleType(node, path, options, print) {
 	const parts = ['['];
 	const elements = node.elementTypes ? path.map(print, 'elementTypes') : [];
@@ -4414,6 +5117,14 @@ function printTSTupleType(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print a TypeScript index signature
+ * @param {AST.TSIndexSignature} node - The index signature node
+ * @param {AstPath<AST.TSIndexSignature>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printTSIndexSignature(node, path, options, print) {
 	const parts = [];
 	if (node.readonly === true || node.readonly === 'plus' || node.readonly === '+') {
@@ -4438,6 +5149,14 @@ function printTSIndexSignature(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print a TypeScript constructor type
+ * @param {AST.TSConstructorType} node - The constructor type node
+ * @param {AstPath<AST.TSConstructorType>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printTSConstructorType(node, path, options, print) {
 	const parts = [];
 	parts.push('new ');
@@ -4461,6 +5180,14 @@ function printTSConstructorType(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print a TypeScript conditional type
+ * @param {AST.TSConditionalType} node - The conditional type node
+ * @param {AstPath<AST.TSConditionalType>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printTSConditionalType(node, path, options, print) {
 	const parts = [];
 	parts.push(path.call(print, 'checkType'));
@@ -4473,6 +5200,14 @@ function printTSConditionalType(node, path, options, print) {
 	return concat(parts);
 }
 
+/**
+ * Print a TypeScript mapped type
+ * @param {AST.TSMappedType} node - The mapped type node
+ * @param {AstPath<AST.TSMappedType>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printTSMappedType(node, path, options, print) {
 	const readonlyMod =
 		node.readonly === true || node.readonly === 'plus' || node.readonly === '+'
@@ -4557,6 +5292,11 @@ function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
 	return false;
 }
 
+/**
+ * Get leading comments from element metadata
+ * @param {AST.Element} node - The element node
+ * @returns {AST.Comment[]}
+ */
 function getElementLeadingComments(node) {
 	const fromMetadata = node?.metadata?.elementLeadingComments;
 	if (Array.isArray(fromMetadata)) {
@@ -4565,6 +5305,11 @@ function getElementLeadingComments(node) {
 	return [];
 }
 
+/**
+ * Create doc parts for element-level comments
+ * @param {AST.Comment[]} comments - Array of comments
+ * @returns {Doc[]}
+ */
 function createElementLevelCommentParts(comments) {
 	if (!comments || comments.length === 0) {
 		return [];
@@ -4595,6 +5340,11 @@ function createElementLevelCommentParts(comments) {
 	return parts;
 }
 
+/**
+ * Create element-level comment parts with trailing hardline trimmed
+ * @param {AST.Comment[]} comments - Array of comments
+ * @returns {Doc[]}
+ */
 function createElementLevelCommentPartsTrimmed(comments) {
 	const parts = createElementLevelCommentParts(comments);
 	if (parts.length > 0 && parts[parts.length - 1] === hardline) {
@@ -4603,6 +5353,14 @@ function createElementLevelCommentPartsTrimmed(comments) {
 	return parts;
 }
 
+/**
+ * Print a TSX compatibility node
+ * @param {AST.TsxCompat} node - The TSX compat node
+ * @param {AstPath<AST.TsxCompat>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printTsxCompat(node, path, options, print) {
 	const tagName = `<tsx:${node.kind}>`;
 	const closingTagName = `</tsx:${node.kind}>`;
@@ -4678,6 +5436,14 @@ function printTsxCompat(node, path, options, print) {
 	return elementOutput;
 }
 
+/**
+ * Print a JSX element
+ * @param {ESTreeJSX.JSXElement} node - The JSX element node
+ * @param {AstPath<ESTreeJSX.JSXElement>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printJSXElement(node, path, options, print) {
 	// Get the tag name from the opening element
 	const openingElement = node.openingElement;
@@ -4795,6 +5561,14 @@ function printJSXElement(node, path, options, print) {
 	]);
 }
 
+/**
+ * Print a JSX fragment (<>...</>)
+ * @param {ESTreeJSX.JSXFragment} node - The JSX fragment node
+ * @param {AstPath<ESTreeJSX.JSXFragment>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printJSXFragment(node, path, options, print) {
 	const hasChildren = node.children && node.children.length > 0;
 
@@ -4840,6 +5614,14 @@ function printJSXFragment(node, path, options, print) {
 	return group(['<>', indent(concat([hardline, ...formattedChildren])), hardline, '</>']);
 }
 
+/**
+ * Print a JSX attribute
+ * @param {ESTreeJSX.JSXAttribute} attr - The JSX attribute node
+ * @param {AstPath<ESTreeJSX.JSXAttribute>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printJSXAttribute(attr, path, options, print) {
 	const name = attr.name.name;
 
@@ -4860,6 +5642,11 @@ function printJSXAttribute(attr, path, options, print) {
 	return name;
 }
 
+/**
+ * Print a JSX member expression (e.g., React.Fragment)
+ * @param {ESTreeJSX.JSXIdentifier | ESTreeJSX.JSXMemberExpression} node - The JSX member expression or identifier
+ * @returns {string}
+ */
 function printJSXMemberExpression(node) {
 	if (node.type === 'JSXIdentifier') {
 		return node.name;
@@ -4870,6 +5657,13 @@ function printJSXMemberExpression(node) {
 	return 'Unknown';
 }
 
+/**
+ * Print a member expression as simple string (for element tag names)
+ * @param {AST.Identifier | AST.MemberExpression | AST.Literal} node - The node to print
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {boolean} [computed=false] - Whether the property is computed
+ * @returns {string}
+ */
 function printMemberExpressionSimple(node, options, computed = false) {
 	if (node.type === 'Identifier') {
 		// When computed is true, it means we're inside brackets and tracked is already handled by .@[ or [
@@ -4896,6 +5690,14 @@ function printMemberExpressionSimple(node, options, computed = false) {
 	return '';
 }
 
+/**
+ * Print a Ripple Element node
+ * @param {AST.Element} node - The element node
+ * @param {AstPath<AST.Element>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
 function printElement(node, path, options, print) {
 	const tagName = printMemberExpressionSimple(node.id, options);
 	const elementLeadingComments = getElementLeadingComments(node);
@@ -5211,6 +6013,14 @@ function printElement(node, path, options, print) {
 		: elementOutput;
 }
 
+/**
+ * Print a Ripple attribute node
+ * @param {AST.Attribute} node - The attribute node
+ * @param {AstPath<AST.Attribute>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
 function printAttribute(node, path, options, print) {
 	const parts = [];
 
