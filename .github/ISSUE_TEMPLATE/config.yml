@@ -3,6 +3,6 @@ contact_links:
   - name: Discord Chat
     url: https://discord.gg/JBF2ySrh2W
     about: Ask questions and discuss ideas with other users real-time
-  - name: 'Discussions'
-    url: 'https://github.com/Ripple-TS/ripple/discussions'
-    about: 'Ask questions and discuss ideas with the community'
+  - name: "Discussions"
+    url: "https://github.com/Ripple-TS/ripple/discussions"
+    about: "Ask questions and discuss ideas with the community"

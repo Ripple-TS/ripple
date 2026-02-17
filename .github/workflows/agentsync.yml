@@ -4,26 +4,26 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - '.agents/**'
-      - 'CLAUDE.md'
-      - 'AGENTS.md'
-      - 'GEMINI.md'
-      - '.github/copilot-instructions.md'
-      - '.claude/skills/**'
-      - '.gemini/skills/**'
-      - '.codex/skills/**'
+      - ".agents/**"
+      - "CLAUDE.md"
+      - "AGENTS.md"
+      - "GEMINI.md"
+      - ".github/copilot-instructions.md"
+      - ".claude/skills/**"
+      - ".gemini/skills/**"
+      - ".codex/skills/**"
 
   pull_request:
     branches: [main, develop]
     paths:
-      - '.agents/**'
-      - 'CLAUDE.md'
-      - 'AGENTS.md'
-      - 'GEMINI.md'
-      - '.github/copilot-instructions.md'
-      - '.claude/skills/**'
-      - '.gemini/skills/**'
-      - '.codex/skills/**'
+      - ".agents/**"
+      - "CLAUDE.md"
+      - "AGENTS.md"
+      - "GEMINI.md"
+      - ".github/copilot-instructions.md"
+      - ".claude/skills/**"
+      - ".gemini/skills/**"
+      - ".codex/skills/**"
 
 jobs:
   verify:
@@ -42,8 +42,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'pnpm'
+          node-version: "20"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --prod false --frozen-lockfile

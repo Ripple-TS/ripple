@@ -1,10 +1,10 @@
 on:
   push:
     branches: [main, develop]
-    tags: ['!**']
-    paths: ['packages/**']
+    tags: ["!**"]
+    paths: ["packages/**"]
   pull_request:
-    branches: ['main']
+    branches: ["main"]
 
 permissions:
   contents: read

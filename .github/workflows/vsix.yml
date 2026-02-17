@@ -1,14 +1,14 @@
 on:
   push:
     branches: [main]
-    tags: ['!**']
-    paths: ['packages/vscode-plugin/**']
+    tags: ["!**"]
+    paths: ["packages/vscode-plugin/**"]
 
 name: Publish VSC Extension
 jobs:
   # Note: this doesn't parse the versions, rather, it only checks if the versions are different.
   version-check:
-    name: 'Verify version change'
+    name: "Verify version change"
     runs-on: ubuntu-latest
     outputs:
       version-changed: ${{ steps.compare_versions.outputs.changed }}
@@ -55,7 +55,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install deps w/ pnpm
         working-directory: ./packages/vscode-plugin
