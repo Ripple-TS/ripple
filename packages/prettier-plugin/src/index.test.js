@@ -4041,6 +4041,49 @@ component Polygon() {
 				const result = await format(expected, { singleQuote: true, printWidth: 100 });
 				expect(result).toBeWithNewline(expected);
 			});
+
+			it('should preserve blank line between commented out block and following element', async () => {
+				const expected = `component App() {
+  <div id="second-top-block">
+    <div>
+      <div />
+    </div>
+    <div id="sibling-block">{"Sibling"}</div>
+  </div>
+
+  // if (show) {
+  // 	<div id="third-top-block">{"Top Scope - Show is true"}</div>
+  // }
+
+  <button onClick={() => (@b = !@b)}>{"Toggle b"}</button>
+}`;
+
+				const result = await format(expected, { printWidth: 100 });
+				expect(result).toBeWithNewline(expected);
+			});
+
+			it('should preserve blank line after multi-line comment block followed by element in component body', async () => {
+				const expected = `component App() {
+  <div>
+    <div>
+      let x = 1;
+
+      // inner comment
+      <div />
+    </div>
+    <div>{"Sibling"}</div>
+  </div>
+
+  // if (show) {
+  // 	<div>{"Top Scope - Show is true"}</div>
+  // }
+
+  <button onClick={() => (@b = !@b)}>{"Toggle b"}</button>
+}`;
+
+				const result = await format(expected, { printWidth: 100 });
+				expect(result).toBeWithNewline(expected);
+			});
 		});
 
 		describe('Arrays with printWidth constraints', () => {
