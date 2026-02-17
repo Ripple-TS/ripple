@@ -1,0 +1,29 @@
+import { track } from 'ripple';
+
+// Example showing dynamic elements now accept attributes without TypeScript errors
+export component DynamicElementExample() {
+	// Create tracked element names
+	let div = track('div');
+	let button = track('button');
+	let input = track('input');
+
+	// All of these now work without TypeScript errors!
+	<@div class="container" id="main" data-testid="dynamic-div">
+		<h1>{'Dynamic Elements with Attributes'}</h1>
+		
+		<@button 
+			type="button" 
+			class="btn btn-primary"
+			onClick={() => alert('Clicked!')}
+		>
+			{'Click Me'}
+		</@button>
+		
+		<@input 
+			type="text" 
+			placeholder="Enter text..." 
+			value="test"
+			class="form-control"
+		/>
+	</@div>
+}
