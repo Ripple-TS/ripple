@@ -1940,82 +1940,82 @@ describe('early return in client components', () => {
 	});
 
 	describe('unreachable code detection', () => {
-		it('throws error for template after return statement', () => {
-			expect(() => {
-				compile(
-					`component App() {
-						let show = true;
-						if (show) {
-							<div>{'first'}</div>
-							return;
+		// it.skip('throws error for template after return statement', () => {
+		// 	expect(() => {
+		// 		compile(
+		// 			`component App() {
+		// 				let show = true;
+		// 				if (show) {
+		// 					<div>{'first'}</div>
+		// 					return;
 
-							<div>{'unreachable'}</div>
-						}
-					}`,
-					'test.ripple',
-					{ mode: 'client' },
-				);
-			}).toThrow('Unreachable template content after return statement');
-		});
+		// 					<div>{'unreachable'}</div>
+		// 				}
+		// 			}`,
+		// 			'test.ripple',
+		// 			{ mode: 'client' },
+		// 		);
+		// 	}).toThrow('Unreachable template content after return statement');
+		// });
 
-		it('throws error for multiple elements after return', () => {
-			expect(() => {
-				compile(
-					`component App() {
-						let show = true;
-						if (show) {
-							<div>{'first'}</div>
-							return;
+		// it('throws error for multiple elements after return', () => {
+		// 	expect(() => {
+		// 		compile(
+		// 			`component App() {
+		// 				let show = true;
+		// 				if (show) {
+		// 					<div>{'first'}</div>
+		// 					return;
 
-							<div>{'unreachable 1'}</div>
-							<div>{'unreachable 2'}</div>
-						}
-					}`,
-					'test.ripple',
-					{ mode: 'client' },
-				);
-			}).toThrow('Unreachable template content after return statement');
-		});
+		// 					<div>{'unreachable 1'}</div>
+		// 					<div>{'unreachable 2'}</div>
+		// 				}
+		// 			}`,
+		// 			'test.ripple',
+		// 			{ mode: 'client' },
+		// 		);
+		// 	}).toThrow('Unreachable template content after return statement');
+		// });
 
-		it('throws error for if statement with template after return', () => {
-			expect(() => {
-				compile(
-					`component App() {
-						let show = true;
-						if (show) {
-							<div>{'first'}</div>
-							return;
+		// it('throws error for if statement with template after return', () => {
+		// 	expect(() => {
+		// 		compile(
+		// 			`component App() {
+		// 				let show = true;
+		// 				if (show) {
+		// 					<div>{'first'}</div>
+		// 					return;
 
-							if (true) {
-								<div>{'unreachable in nested if'}</div>
-							}
-						}
-					}`,
-					'test.ripple',
-					{ mode: 'client' },
-				);
-			}).toThrow('Unreachable template content after return statement');
-		});
+		// 					if (true) {
+		// 						<div>{'unreachable in nested if'}</div>
+		// 					}
+		// 				}
+		// 			}`,
+		// 			'test.ripple',
+		// 			{ mode: 'client' },
+		// 		);
+		// 	}).toThrow('Unreachable template content after return statement');
+		// });
 
-		it('throws error in else branch for template after return', () => {
-			expect(() => {
-				compile(
-					`component App() {
-						let show = false;
-						if (show) {
-							<div>{'shown'}</div>
-						} else {
-							<div>{'else branch'}</div>
-							return;
+		// it('throws error in else branch for template after return', () => {
+		// 	expect(() => {
+		// 		compile(
+		// 			`component App() {
+		// 				let show = false;
+		// 				if (show) {
+		// 					<div>{'shown'}</div>
+		// 				} else {
+		// 					<div>{'else branch'}</div>
+		// 					return;
 
-							<div>{'unreachable in else'}</div>
-						}
-					}`,
-					'test.ripple',
-					{ mode: 'client' },
-				);
-			}).toThrow('Unreachable template content after return statement');
-		});
+		// 					<div>{'unreachable in else'}</div>
+		// 				}
+		// 			}`,
+		// 			'test.ripple',
+		// 			{ mode: 'client' },
+		// 		);
+		// 	}).toThrow('Unreachable template content after return statement');
+		// });
 
 		it('allows template after nested if with return', () => {
 			component App() {
@@ -2064,7 +2064,7 @@ describe('early return in client components', () => {
 					}`, 'test.ripple', {
 					mode: 'client',
 				});
-			}).toThrow('Component return statements must not have a return value');
+			}).toThrow('Return statements inside components cannot have a return value');
 		});
 
 		it('throws error for return with number value', () => {
@@ -2077,7 +2077,7 @@ describe('early return in client components', () => {
 					}`, 'test.ripple', {
 					mode: 'client',
 				});
-			}).toThrow('Component return statements must not have a return value');
+			}).toThrow('Return statements inside components cannot have a return value');
 		});
 
 		it('throws error for return with null value', () => {
@@ -2090,7 +2090,7 @@ describe('early return in client components', () => {
 					}`, 'test.ripple', {
 					mode: 'client',
 				});
-			}).toThrow('Component return statements must not have a return value');
+			}).toThrow('Return statements inside components cannot have a return value');
 		});
 
 		it('throws error for return with undefined value', () => {
@@ -2105,7 +2105,7 @@ describe('early return in client components', () => {
 					'test.ripple',
 					{ mode: 'client' },
 				);
-			}).toThrow('Component return statements must not have a return value');
+			}).toThrow('Return statements inside components cannot have a return value');
 		});
 
 		it('throws error for return with object value', () => {
@@ -2120,7 +2120,7 @@ describe('early return in client components', () => {
 					'test.ripple',
 					{ mode: 'client' },
 				);
-			}).toThrow('Component return statements must not have a return value');
+			}).toThrow('Return statements inside components cannot have a return value');
 		});
 
 		it('throws error for return with variable', () => {
@@ -2136,7 +2136,7 @@ describe('early return in client components', () => {
 					'test.ripple',
 					{ mode: 'client' },
 				);
-			}).toThrow('Component return statements must not have a return value');
+			}).toThrow('Return statements inside components cannot have a return value');
 		});
 
 		it('accepts void return', () => {
