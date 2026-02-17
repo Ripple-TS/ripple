@@ -3331,7 +3331,12 @@ function printFunctionDeclaration(node, path, options, print) {
  * @returns {Doc}
  */
 function printIfStatement(node, path, options, print) {
-	const test = path.call(print, 'test');
+	// Extract leading comments from test node to print them before 'if' keyword
+	const testNode = node.test;
+	const testLeadingComments = testNode && testNode.leadingComments;
+	
+	// Print test without its leading comments (they'll be printed before 'if')
+	const test = path.call((testPath) => print(testPath, { suppressLeadingComments: true }), 'test');
 	const consequent = path.call(print, 'consequent');
 
 	// Use group to allow breaking the test when it doesn't fit
@@ -3341,7 +3346,41 @@ function printIfStatement(node, path, options, print) {
 	const consequentIsBlock = node.consequent.type === 'BlockStatement';
 	const consequentIsIf = node.consequent.type === 'IfStatement';
 
-	const parts = [testDoc];
+	const parts = [];
+	
+	// Print leading comments from test node before 'if' keyword
+	if (testLeadingComments && testLeadingComments.length > 0) {
+		for (let i = 0; i < testLeadingComments.length; i++) {
+			const comment = testLeadingComments[i];
+			const nextComment = testLeadingComments[i + 1];
+			
+			if (comment.type === 'Line') {
+				parts.push('//' + comment.value);
+				parts.push(hardline);
+				
+				// Check if there should be blank lines between comments
+				if (nextComment) {
+					const blankLinesBetween = getBlankLinesBetweenNodes(comment, nextComment);
+					if (blankLinesBetween > 0) {
+						parts.push(hardline);
+					}
+				}
+			} else if (comment.type === 'Block') {
+				parts.push('/*' + comment.value + '*/');
+				parts.push(hardline);
+				
+				// Check if there should be blank lines between comments
+				if (nextComment) {
+					const blankLinesBetween = getBlankLinesBetweenNodes(comment, nextComment);
+					if (blankLinesBetween > 0) {
+						parts.push(hardline);
+					}
+				}
+			}
+		}
+	}
+	
+	parts.push(testDoc);
 
 	// Handle the consequent
 	if (consequentIsBlock) {

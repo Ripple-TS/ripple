@@ -4771,5 +4771,85 @@ if (@status === 'a') @status = 'b'; else if (@status === 'b') @status = 'c'; els
 				expect(result).toBeWithNewline(expected);
 			});
 		});
+
+		it('should not move comments before if statement into the test condition', async () => {
+			const input = `component App() {
+  <div id="second-top-block">
+    // <div>
+    if (true) {
+      <div>{'b is true'}</div>
+    }
+    // <div>
+    // <div>
+    // if (@b) {
+    // <span>nested</span>
+    // }
+    // </div>
+    // </div>
+    // <div />
+    // </div>
+    // <div id="sibling-block">{'Sibling'}</div>
+  </div>
+}`;
+			const expected = `component App() {
+  <div id="second-top-block">
+    // <div>
+    if (true) {
+      <div>{'b is true'}</div>
+    }
+    // <div>
+    // <div>
+    // if (@b) {
+    // <span>nested</span>
+    // }
+    // </div>
+    // </div>
+    // <div />
+    // </div>
+    // <div id="sibling-block">{'Sibling'}</div>
+  </div>
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should not move comments before while statement into the test condition', async () => {
+			const input = `function test() {
+  let i = 0;
+  // comment before while
+  while (i < 10) {
+    i++;
+  }
+}`;
+			const expected = `function test() {
+  let i = 0;
+  // comment before while
+  while (i < 10) {
+    i++;
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should not move comments before for-of statement into the right expression', async () => {
+			const input = `function test() {
+  // comment before for-of
+  for (const item of items) {
+    console.log(item);
+  }
+}`;
+			const expected = `function test() {
+  // comment before for-of
+  for (const item of items) {
+    console.log(item);
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
 	});
 });
