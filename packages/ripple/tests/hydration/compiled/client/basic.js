@@ -2,14 +2,8 @@ import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<div>Hello World</div>`, 0);
 var root_1 = _$_.template(`<h1>Title</h1><p>Paragraph text</p><span>Span text</span>`, 1);
-var root_2 = _$_.template(
-	`<div class="outer"><div class="inner"><span>Nested content</span></div></div>`,
-	0,
-);
-var root_3 = _$_.template(
-	`<input type="text" placeholder="Enter text" disabled><a href="/link" target="_blank">Link</a>`,
-	1,
-);
+var root_2 = _$_.template(`<div class="outer"><div class="inner"><span>Nested content</span></div></div>`, 0);
+var root_3 = _$_.template(`<input type="text" placeholder="Enter text" disabled><a href="/link" target="_blank">Link</a>`, 1);
 var root_4 = _$_.template(`<span class="child">Child content</span>`, 0);
 var root_5 = _$_.template(`<div class="parent"><!></div>`, 0);
 var root_6 = _$_.template(`<div class="first">First</div>`, 0);
@@ -138,7 +132,7 @@ export function WithGreeting(__anchor, _, __block) {
 	var fragment_3 = root_10();
 	var node_3 = _$_.first_child_frag(fragment_3);
 
-	Greeting(node_3, { name: 'World' }, _$_.active_block);
+	Greeting(node_3, { name: "World" }, _$_.active_block);
 	_$_.append(__anchor, fragment_3);
 	_$_.pop_component();
 }
@@ -167,10 +161,7 @@ export function ExpressionContent(__anchor, _, __block) {
 	}
 
 	_$_.render(() => {
-		_$_.set_text(
-			text_3,
-			_$_.with_scope(__block, () => text.toUpperCase()),
-		);
+		_$_.set_text(text_3, _$_.with_scope(__block, () => text.toUpperCase()));
 	});
 
 	_$_.append(__anchor, fragment_4);
