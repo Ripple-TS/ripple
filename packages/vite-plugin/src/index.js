@@ -359,6 +359,7 @@ export function ripple(inlineOptions = {}) {
 
 					const { js, css } = await compile(code, filename, {
 						mode: ssr ? 'server' : 'client',
+						dev: config?.command === 'serve',
 					});
 
 					if (css !== '') {

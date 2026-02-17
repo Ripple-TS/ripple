@@ -1212,6 +1212,7 @@ export interface TransformServerState extends BaseState {
 	server_exported_names: string[];
 	dynamicElementName?: AST.TemplateLiteral;
 	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
+	dev?: boolean;
 }
 
 type UpdateList = Array<
