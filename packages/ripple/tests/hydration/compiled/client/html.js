@@ -103,13 +103,10 @@ export function MultipleHtml(__anchor, _, __block) {
 		_$_.pop(div_4);
 	}
 
-	_$_.render(
-		(__prev) => {
-			_$_.html(node_4, () => html1);
-			_$_.html(node_5, () => html2);
-		},
-		{}
-	);
+	_$_.render((__prev) => {
+		_$_.html(node_4, () => html1);
+		_$_.html(node_5, () => html2);
+	}, {});
 
 	_$_.append(__anchor, div_4);
 	_$_.pop_component();

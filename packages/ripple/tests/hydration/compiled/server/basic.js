@@ -190,7 +190,7 @@ export function WithGreeting(__output) {
 
 	{
 		const comp = Greeting;
-		const args = [__output, { name: "World" }];
+		const args = [__output, { name: 'World' }];
 
 		comp(...args);
 	}
