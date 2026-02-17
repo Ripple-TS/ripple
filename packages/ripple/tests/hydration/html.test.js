@@ -9,30 +9,30 @@ import * as ClientComponents from './compiled/client/html.js';
 describe('hydration > html tags', () => {
 	it('hydrates static html content', async () => {
 		await hydrateComponent(ServerComponents.StaticHtml, ClientComponents.StaticHtml);
-		expect(container.innerHTML).toBeHtml('<div><!--usbxy9--><p><strong>Bold</strong> text</p><!----></div>');
+		expect(container.innerHTML).toBeHtml('<div><p><strong>Bold</strong> text</p></div>');
 	});
 
 	it('hydrates dynamic html content', async () => {
 		await hydrateComponent(ServerComponents.DynamicHtml, ClientComponents.DynamicHtml);
-		expect(container.innerHTML).toBeHtml('<div><!--1135hfg--><p>Dynamic <span>HTML</span> content</p><!----></div>');
+		expect(container.innerHTML).toBeHtml('<div><p>Dynamic <span>HTML</span> content</p></div>');
 	});
 
 	it('hydrates empty html content', async () => {
 		await hydrateComponent(ServerComponents.EmptyHtml, ClientComponents.EmptyHtml);
-		expect(container.innerHTML).toBeHtml('<div><!--45h--><!----></div>');
+		expect(container.innerHTML).toBeHtml('<div></div>');
 	});
 
 	it('hydrates complex nested html', async () => {
 		await hydrateComponent(ServerComponents.ComplexHtml, ClientComponents.ComplexHtml);
 		expect(container.innerHTML).toBeHtml(
-			'<section><!--s4xacs--><div class="nested"><span>Nested <em>content</em></span></div><!----></section>',
+			'<section><div class="nested"><span>Nested <em>content</em></span></div></section>',
 		);
 	});
 
 	it('hydrates multiple html blocks', async () => {
 		await hydrateComponent(ServerComponents.MultipleHtml, ClientComponents.MultipleHtml);
 		expect(container.innerHTML).toBeHtml(
-			'<div><!--1qh5cbs--><p>First paragraph</p><!----><!--13iev3m--><p>Second paragraph</p><!----></div>',
+			'<div><p>First paragraph</p><p>Second paragraph</p></div>',
 		);
 	});
 
@@ -41,6 +41,6 @@ describe('hydration > html tags', () => {
 			ServerComponents.HtmlWithReactivity,
 			ClientComponents.HtmlWithReactivity,
 		);
-		expect(container.innerHTML).toBeHtml('<div><!--1tb17hh--><p>Count: 0</p><!----><button>Increment</button></div>');
+		expect(container.innerHTML).toBeHtml('<div><p>Count: 0</p><button>Increment</button></div>');
 	});
 });
