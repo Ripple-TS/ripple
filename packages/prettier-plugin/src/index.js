@@ -2,6 +2,7 @@
  * @import { Doc, AstPath } from 'prettier'
  * @import * as AST from 'estree'
  * @import * as ESTreeJSX from 'estree-jsx'
+ * @import {} from 'ripple/compiler/types'
  */
 
 /**
@@ -52,7 +53,6 @@
  */
 
 import { parse } from 'ripple/compiler';
-import { obfuscate_identifier } from 'ripple/compiler/internal/identifier/utils';
 import { doc } from 'prettier';
 
 const { builders, utils } = doc;
@@ -92,7 +92,7 @@ export const parsers = {
 		 * @param {string} text
 		 * @returns {AST.Program}
 		 */
-		parse(text, parsers, options) {
+		parse(text, _parsers, _options) {
 			return parse(text);
 		},
 
@@ -137,10 +137,9 @@ export const printers = {
 		},
 		/**
 		 * @param {AstPath<RippleASTNode>} path
-		 * @param {RippleFormatOptions} options
-		 * @returns {((textToDoc: import('prettier').Doc) => Promise<Doc>) | null}
+		 * @returns {((textToDoc: (text: string, options: object) => Promise<Doc>) => Promise<Doc>) | null}
 		 */
-		embed(path, options) {
+		embed(path) {
 			const node = path.getValue();
 
 			// Handle StyleSheet nodes inside style tags
@@ -236,20 +235,6 @@ function formatStringLiteral(value, options) {
 		.replace(/\t/g, '\\t');
 
 	return quote + escapedValue + quote;
-}
-
-/**
- * Create indentation string according to Prettier options
- * @param {RippleFormatOptions} options - Prettier options
- * @param {number} [level=1] - Indentation level
- * @returns {string} - The indentation string
- */
-function createIndent(options, level = 1) {
-	if (options.useTabs) {
-		return '\t'.repeat(level);
-	} else {
-		return ' '.repeat((options.tabWidth || 2) * level);
-	}
 }
 
 /**
@@ -2364,10 +2349,10 @@ function printRippleNode(node, path, options, print, args) {
  * @param {AST.ImportDeclaration} node - The import declaration node
  * @param {AstPath<AST.ImportDeclaration>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
- * @param {PrintFn} print - Print callback
+ * @param {PrintFn} _print - Print callback (unused)
  * @returns {Doc}
  */
-function printImportDeclaration(node, path, options, print) {
+function printImportDeclaration(node, path, options, _print) {
 	const parts = ['import'];
 
 	// Handle type imports
@@ -3233,7 +3218,7 @@ function printCallArguments(path, options, print) {
  * @param {AstPath<AST.TSDeclareFunction>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
- * @returns {Doc}
+ * @returns {Doc[]}
  */
 function printTSDeclareFunction(node, path, options, print) {
 	const parts = [];
