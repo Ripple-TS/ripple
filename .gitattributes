@@ -1,1 +1,1 @@
-packages/tree-sitter/src/parser.c -linguist-detectable
+grammars/tree-sitter/src/parser.c -linguist-detectable
