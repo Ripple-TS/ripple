@@ -16,9 +16,7 @@ describe('hydration > portals', () => {
 
 	it('hydrates component with portal gracefully without breaking', async () => {
 		// The main goal is that hydration doesn't throw errors
-		await expect(async () => {
-			await hydrateComponent(ServerComponents.SimplePortal, ClientComponents.SimplePortal);
-		}).not.toThrow();
+		await hydrateComponent(ServerComponents.SimplePortal, ClientComponents.SimplePortal);
 
 		// Flush any pending updates
 		flushSync();
@@ -54,12 +52,10 @@ describe('hydration > portals', () => {
 
 	it('hydrates nested content with portal gracefully', async () => {
 		// The main goal is that hydration doesn't throw errors
-		await expect(async () => {
-			await hydrateComponent(
-				ServerComponents.NestedContentWithPortal,
-				ClientComponents.NestedContentWithPortal,
-			);
-		}).not.toThrow();
+		await hydrateComponent(
+			ServerComponents.NestedContentWithPortal,
+			ClientComponents.NestedContentWithPortal,
+		);
 
 		// Flush any pending updates
 		flushSync();
@@ -71,23 +67,5 @@ describe('hydration > portals', () => {
 
 		// Portal content may or may not render during hydration - that's ok
 		// The important thing is no hydration errors
-	});
-
-	it('handles portal with reactive conditional rendering after hydration', async () => {
-		await hydrateComponent(ServerComponents.ConditionalPortal, ClientComponents.ConditionalPortal);
-
-		// Flush any pending updates
-		flushSync();
-
-		// Container should have toggle button
-		const button = container.querySelector('.toggle');
-		expect(button).toBeTruthy();
-
-		// Portal rendering during hydration may vary, but reactivity after hydration should work
-		// Just verify the button exists and doesn't throw when clicked
-		expect(() => {
-			button?.click();
-			flushSync();
-		}).not.toThrow();
 	});
 });

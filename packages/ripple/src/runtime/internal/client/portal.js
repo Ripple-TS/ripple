@@ -20,14 +20,9 @@ import {
  */
 export function Portal(_, props) {
 	// Portals are client-only and don't participate in hydration
-	// If we're hydrating, skip the server-rendered marker (<!--portal--> comment)
+	// The compiler-generated code already handles getting the node via sibling()
 	var was_hydrating = hydrating;
 	var previous_hydrate_node = hydrate_node;
-
-	if (hydrating) {
-		// Skip the <!--portal--> comment marker
-		hydrate_next();
-	}
 
 	/** @type {Element | symbol} */
 	let target = UNINITIALIZED;
