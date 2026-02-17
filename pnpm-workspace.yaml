@@ -8,22 +8,22 @@ packages:
   - website
 catalogs:
   default:
-    '@jridgewell/sourcemap-codec': ^1.5.5
-    '@sveltejs/acorn-typescript': ^1.0.9
-    '@tailwindcss/vite': ^4.1.12
-    '@types/eslint': ^9.6.1
-    '@types/estree': ^1.0.8
-    '@types/estree-jsx': ^1.0.5
-    '@types/node': ^24.3.0
-    '@types/prompts': ^2.4.9
-    '@types/vscode': ^1.107.0
-    '@typescript-eslint/parser': *ts_eslint_parser
-    '@typescript-eslint/types': ^8.40.0
-    '@volar/language-core': ~2.4.28
-    '@volar/language-server': ~2.4.28
-    '@volar/typescript': ~2.4.28
-    '@volar/vscode': ~2.4.28
-    '@vscode/vsce': ^3.6.2
+    "@jridgewell/sourcemap-codec": ^1.5.5
+    "@sveltejs/acorn-typescript": ^1.0.9
+    "@tailwindcss/vite": ^4.1.12
+    "@types/eslint": ^9.6.1
+    "@types/estree": ^1.0.8
+    "@types/estree-jsx": ^1.0.5
+    "@types/node": ^24.3.0
+    "@types/prompts": ^2.4.9
+    "@types/vscode": ^1.107.0
+    "@typescript-eslint/parser": *ts_eslint_parser
+    "@typescript-eslint/types": ^8.40.0
+    "@volar/language-core": ~2.4.28
+    "@volar/language-server": ~2.4.28
+    "@volar/typescript": ~2.4.28
+    "@volar/vscode": ~2.4.28
+    "@vscode/vsce": ^3.6.2
     acorn: ^8.15.0
     adm-zip: ^0.5.16
     clsx: ^2.1.1
@@ -63,10 +63,10 @@ catalogs:
     wait-on: ^9.0.3
     zimmerframe: ^1.1.2
   peer:
-    ripple: '*'
-    '@typescript-eslint/parser': *ts_eslint_parser
-    eslint: '>=9.0.0'
-    prettier: '>=2.0.0'
+    ripple: "*"
+    "@typescript-eslint/parser": *ts_eslint_parser
+    eslint: ">=9.0.0"
+    prettier: ">=2.0.0"
     tailwindcss: ^4.1.12
     typescript: *ts_common
   vscode:
