@@ -13,6 +13,9 @@
     "url": "https://github.com/Ripple-TS/ripple/issues"
   },
   "homepage": "https://ripplejs.com",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": "./dist/index.js"
   },
