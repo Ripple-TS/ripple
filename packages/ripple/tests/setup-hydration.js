@@ -29,11 +29,16 @@ export async function hydrateComponent(serverComponent, clientComponent) {
 /**
  * Strips hydration markers from HTML for testing purposes.
  * Hydration markers are: <!--[--> <!--[!--> <!--]-->
+ * Also strips HTML block markers: hash comments and empty comment end markers
  * @param {string} html - The HTML string with hydration markers
  * @returns {string} The HTML string without hydration markers
  */
 export function stripHydrationMarkers(html) {
-	return html.replace(/<!--\[!?-->/g, '').replace(/<!--\]-->/g, '');
+	return html
+		.replace(/<!--\[!?-->/g, '') // Remove <!--[--> and <!--[!-->
+		.replace(/<!--\]-->/g, '') // Remove <!--]-->
+		.replace(/<!--[a-z0-9]+-->/g, '') // Remove hash comments like <!--usbxy9-->
+		.replace(/<!---->/g, ''); // Remove empty comment end markers
 }
 
 // Extend expect with a custom matcher for HTML comparison that strips hydration markers

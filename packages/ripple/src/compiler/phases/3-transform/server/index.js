@@ -1305,10 +1305,9 @@ const visitors = {
 			visit(node.expression, { ...state, metadata })
 		);
 
-		// Add opening hydration marker with hash
-		state.init?.push(
-			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN))),
-		);
+		// Following Svelte 5's approach: use hash comment as anchor, then content, then empty comment as end marker
+		// Structure: <!--hash--><content><!---->
+		// This is simpler and doesn't interfere with DOM traversal
 
 		// For literal values, compute hash at build time
 		if (expression.type === 'Literal') {
@@ -1320,6 +1319,10 @@ const visitors = {
 			);
 			// Push the HTML content
 			state.init?.push(b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(value))));
+			// Push empty comment as end marker
+			state.init?.push(
+				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal('<!---->'))  ),
+			);
 		} else {
 			// For dynamic values, compute hash at runtime
 			// Create a variable to store the value
@@ -1343,13 +1346,12 @@ const visitors = {
 				);
 				// Push the HTML content
 				state.init?.push(b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.id(value_id))));
+				// Push empty comment as end marker
+				state.init?.push(
+					b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal('<!---->'))  ),
+				);
 			}
 		}
-
-		// Add closing hydration marker
-		state.init?.push(
-			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_CLOSE))),
-		);
 	},
 
 	ScriptContent(node, context) {

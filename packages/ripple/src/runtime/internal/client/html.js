@@ -17,56 +17,35 @@ import { COMMENT_NODE } from '../../../constants.js';
 export function html(node, get_html, svg = false, mathml = false) {
 	var anchor = node;
 	var html = '';
-	/** @type {Node | null} */
-	var hydration_start = null;
-	/** @type {Node | null} */
-	var hydration_last = null;
-
-	// During hydration, skip the opening marker and process the hydration markers
-	if (hydrating) {
-		set_hydrate_node(anchor); // Start at the opening marker <!--[-->
-		var hash_comment = hydrate_next(); // Move to hash comment
-
-		// Walk to find the closing marker
-		var next = hydrate_next(); // First content node or closing marker
-		
-		// Check if we immediately hit the closing marker (empty HTML case)
-		if (next !== null && next.nodeType === COMMENT_NODE && /** @type {Comment} */ (next).data === ']') {
-			// Empty HTML - no content nodes
-			hydration_start = null;
-			hydration_last = null;
-		} else {
-			// Non-empty HTML - walk through content nodes
-			hydration_start = next;
-			hydration_last = next;
-
-			while (
-				next !== null &&
-				(next.nodeType !== COMMENT_NODE || /** @type {Comment} */ (next).data !== ']')
-			) {
-				hydration_last = next;
-				next = get_next_sibling(next);
-			}
-		}
-
-		// Remove the hash comment
-		if (hash_comment && hash_comment.parentNode) {
-			hash_comment.parentNode.removeChild(hash_comment);
-		}
-
-		// Set hydrate_node to the closing marker (don't advance past it)
-		// The parent context will handle advancing past the closing marker
-		if (next !== null) {
-			set_hydrate_node(next);
-		}
-	}
 
 	render(() => {
 		var block = /** @type {Block} */ (active_block);
 		var new_html = get_html() + '';
 
-		// If the HTML hasn't changed, skip the update
+		// If the HTML hasn't changed, skip the update (but still hydrate on first run)
 		if (html === new_html) {
+			// During hydration, we need to skip past the content and end marker even if value hasn't changed
+			if (hydrating) {
+				// The anchor is the hash comment - we need to skip past it and its content
+				set_hydrate_node(anchor);
+				var next = hydrate_next();
+				
+				// Walk until we find the empty comment end marker
+				while (
+					next !== null &&
+					(next.nodeType !== COMMENT_NODE || /** @type {Comment} */ (next).data !== '')
+				) {
+					next = get_next_sibling(next);
+				}
+				
+				// Move past the end marker (if next sibling exists)
+				if (next !== null) {
+					var next_node = get_next_sibling(next);
+					if (next_node !== null) {
+						set_hydrate_node(next_node);
+					}
+				}
+			}
 			return;
 		}
 
@@ -81,9 +60,42 @@ export function html(node, get_html, svg = false, mathml = false) {
 		}
 
 		if (hydrating) {
-			// During hydration, just assign the already-hydrated nodes
-			if (html !== '' && hydration_start !== null && hydration_last !== null) {
-				assign_nodes(hydration_start, hydration_last);
+			// Following Svelte 5's approach: anchor is the hash comment
+			// Structure: <!--hash--><content><!---->
+			
+			// The anchor parameter is the hash comment
+			// Set hydrate_node to the hash comment to start processing
+			set_hydrate_node(anchor);
+			
+			// Skip past the hash comment to get to content
+			/** @type {Node | null} */
+			var next = hydrate_next();
+			var first = next;
+			var last = next;
+
+			// Walk through content nodes until we hit the empty comment end marker
+			while (
+				next !== null &&
+				(next.nodeType !== COMMENT_NODE || /** @type {Comment} */ (next).data !== '')
+			) {
+				last = next;
+				next = get_next_sibling(next);
+			}
+
+			if (next === null) {
+				throw new Error('Hydration mismatch: expected end marker for HTML block');
+			}
+
+			// Include the hash comment and end marker in the assigned nodes
+			// This follows Svelte's approach where these markers are part of the effect's managed DOM
+			// They will be cleaned up when/if the content updates
+			assign_nodes(anchor, next);
+
+			// Move past the end marker for the next operation
+			// For empty HTML or end of container, next sibling might be null - that's okay
+			var next_node = get_next_sibling(next);
+			if (next_node !== null) {
+				set_hydrate_node(next_node);
 			}
 			return;
 		}

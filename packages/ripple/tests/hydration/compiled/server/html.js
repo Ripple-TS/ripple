@@ -11,13 +11,11 @@ export function StaticHtml(__output) {
 	__output.push('>');
 
 	{
-		__output.push('<!--[-->');
-
 		const html_value = String(html ?? '');
 
 		__output.push('<!--' + _$_.hash(html_value) + '-->');
 		__output.push(html_value);
-		__output.push('<!--]-->');
+		__output.push('<!---->');
 	}
 
 	__output.push('</div>');
@@ -33,13 +31,11 @@ export function DynamicHtml(__output) {
 	__output.push('>');
 
 	{
-		__output.push('<!--[-->');
-
 		const html_value_1 = String(content ?? '');
 
 		__output.push('<!--' + _$_.hash(html_value_1) + '-->');
 		__output.push(html_value_1);
-		__output.push('<!--]-->');
+		__output.push('<!---->');
 	}
 
 	__output.push('</div>');
@@ -55,13 +51,11 @@ export function EmptyHtml(__output) {
 	__output.push('>');
 
 	{
-		__output.push('<!--[-->');
-
 		const html_value_2 = String(html ?? '');
 
 		__output.push('<!--' + _$_.hash(html_value_2) + '-->');
 		__output.push(html_value_2);
-		__output.push('<!--]-->');
+		__output.push('<!---->');
 	}
 
 	__output.push('</div>');
@@ -77,13 +71,11 @@ export function ComplexHtml(__output) {
 	__output.push('>');
 
 	{
-		__output.push('<!--[-->');
-
 		const html_value_3 = String(html ?? '');
 
 		__output.push('<!--' + _$_.hash(html_value_3) + '-->');
 		__output.push(html_value_3);
-		__output.push('<!--]-->');
+		__output.push('<!---->');
 	}
 
 	__output.push('</section>');
@@ -100,20 +92,17 @@ export function MultipleHtml(__output) {
 	__output.push('>');
 
 	{
-		__output.push('<!--[-->');
-
 		const html_value_4 = String(html1 ?? '');
 
 		__output.push('<!--' + _$_.hash(html_value_4) + '-->');
 		__output.push(html_value_4);
-		__output.push('<!--]-->');
-		__output.push('<!--[-->');
+		__output.push('<!---->');
 
 		const html_value_5 = String(html2 ?? '');
 
 		__output.push('<!--' + _$_.hash(html_value_5) + '-->');
 		__output.push(html_value_5);
-		__output.push('<!--]-->');
+		__output.push('<!---->');
 	}
 
 	__output.push('</div>');
@@ -126,10 +115,9 @@ export function HtmlWithReactivity(__output) {
 	__output.push('>');
 
 	{
-		__output.push('<!--[-->');
 		__output.push('<!--1tb17hh-->');
 		__output.push('<p>Count: 0</p>');
-		__output.push('<!--]-->');
+		__output.push('<!---->');
 		__output.push('<button');
 		__output.push('>');
 
