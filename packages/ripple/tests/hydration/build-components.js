@@ -20,18 +20,24 @@ const serverOutDir = join(__dirname, 'compiled', 'server');
 /**
  * Transform server-compiled code to use server runtime imports.
  * This is necessary because vitest runs with browser conditions, but
- * server-compiled code needs server's track() which has different internals.
+ * server-compiled code needs server's track() and Portal which have different internals.
  * @param {string} code - The compiled server code
  * @returns {string} - Transformed code with server-compatible imports
  */
 function transformServerImports(code) {
 	// Replace `import { track } from 'ripple'` with server version
+	// Replace `import { Portal } from 'ripple'` with server version
 	// Use 'ripple/server' which always points to the server runtime,
 	// bypassing the browser/default condition resolution
-	return code.replace(
+	let transformed = code.replace(
 		/import\s*\{\s*track\s*\}\s*from\s*['"]ripple['"]/g,
 		"import { track } from 'ripple/server'",
 	);
+	transformed = transformed.replace(
+		/import\s*\{\s*Portal\s*\}\s*from\s*['"]ripple['"]/g,
+		"import { Portal } from 'ripple/server'",
+	);
+	return transformed;
 }
 
 function buildComponents() {
