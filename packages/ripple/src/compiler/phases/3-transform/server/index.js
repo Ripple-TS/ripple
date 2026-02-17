@@ -1318,10 +1318,6 @@ const visitors = {
 			visit(node.expression, { ...state, metadata })
 		);
 
-		// Following Svelte 5's approach: use hash comment as anchor, then content, then empty comment as end marker
-		// Structure: <!--hash--><content><!---->
-		// This is simpler and doesn't interfere with DOM traversal
-
 		// For literal values, compute hash at build time
 		if (expression.type === 'Literal') {
 			const value = String(expression.value ?? '');

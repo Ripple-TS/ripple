@@ -60,25 +60,16 @@ export function html(node, get_html, svg = false, mathml = false) {
 		}
 
 		if (hydrating) {
-			// Following Svelte 5's approach: anchor is the hash comment
-			// Structure: <!--hash--><content><!---->
-
-			// The anchor parameter is the hash comment
-			// Set hydrate_node to the hash comment to start processing
 			set_hydrate_node(anchor);
 
-			// Skip past the hash comment to get to content
 			/** @type {Node | null} */
 			var next = hydrate_next();
-			var first = next;
-			var last = next;
 
 			// Walk through content nodes until we hit the empty comment end marker
 			while (
 				next !== null &&
 				(next.nodeType !== COMMENT_NODE || /** @type {Comment} */ (next).data !== '')
 			) {
-				last = next;
 				next = get_next_sibling(next);
 			}
 
