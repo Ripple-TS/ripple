@@ -204,7 +204,7 @@ export function is_tag_valid_with_parent(child_tag, parent_tag, child_loc, paren
 		case 'th':
 			return `${child} must be the child of a \`<tr>\`, not a ${parent}`;
 		case 'tr':
-			return `\`<tr>\` must be the child of a \`<thead>\`, \`<tbody>\`, or \`<tfoot>\`, not a ${parent}`;
+			return `${child} must be the child of a \`<thead>\`, \`<tbody>\`, or \`<tfoot>\`, not a ${parent}`;
 	}
 
 	return null;

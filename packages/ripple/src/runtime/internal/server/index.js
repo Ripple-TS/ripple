@@ -230,6 +230,9 @@ export async function render(component) {
 	let body = '';
 	let css = new Set();
 
+	// Reset dev-mode element tracking state at the start of each render
+	reset_element_state();
+
 	try {
 		if (component.async) {
 			await component(output, {});
@@ -245,6 +248,8 @@ export async function render(component) {
 		css = output.css;
 	} catch (error) {
 		console.log(error);
+	} finally {
+		reset_element_state();
 	}
 	return { head, body, css };
 }
@@ -265,6 +270,9 @@ export function renderToStream(component) {
  * @param {Output} output
  */
 async function render_in_chunks(component, stream, output) {
+	// Reset dev-mode element tracking state at the start of each render
+	reset_element_state();
+
 	try {
 		if (component.async) {
 			await component(output, {});
@@ -278,6 +286,8 @@ async function render_in_chunks(component, stream, output) {
 	} catch (error) {
 		console.error(error);
 		stream.emit('error', error);
+	} finally {
+		reset_element_state();
 	}
 }
 /**
@@ -323,7 +333,7 @@ let seen_warnings = new Set();
 function print_nesting_error(message) {
 	message =
 		`node_invalid_placement_ssr: ${message}\n\n` +
-		'This can cause content to shift around as the browser repairs the HTML, and will likely result in a `hydration_mismatch` warning.';
+		'This can cause content to shift around as the browser repairs the HTML, and will likely result in a hydration mismatch.';
 
 	if (seen_warnings.has(message)) return;
 	seen_warnings.add(message);
@@ -385,10 +395,13 @@ export function pop_element() {
 }
 
 /**
- * Resets the seen warnings set. Exported for testing purposes.
+ * Resets the dev-mode element tracking state.
+ * Called automatically at the start/end of each render to prevent
+ * state from leaking between renders (e.g., if a render throws).
+ * Also exported for testing purposes.
  * @returns {void}
  */
-export function reset_seen_warnings() {
+export function reset_element_state() {
 	seen_warnings = new Set();
 	current_element = undefined;
 }
