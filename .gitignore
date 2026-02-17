@@ -43,6 +43,3 @@ debug
 # Temporary folders
 tmp/
 temp/
-
-# Hydration test compiled files
-packages/ripple/tests/hydration/compiled/
