@@ -612,17 +612,13 @@ function printRippleNode(node, path, options, print, args) {
 
 				// Check if there should be blank lines between this comment and the next
 				if (nextComment) {
-					const blankLinesBetween = getBlankLinesBetweenNodes(
-						comment,
-						nextComment,
-						options.originalText,
-					);
+					const blankLinesBetween = getBlankLinesBetweenNodes(comment, nextComment);
 					if (blankLinesBetween > 0) {
 						parts.push(hardline);
 					}
 				} else if (isLastComment) {
 					// Preserve a blank line between the last comment and the node if it existed
-					const blankLinesBetween = getBlankLinesBetweenNodes(comment, node, options.originalText);
+					const blankLinesBetween = getBlankLinesBetweenNodes(comment, node);
 					if (blankLinesBetween > 0) {
 						parts.push(hardline);
 					}
@@ -642,21 +638,13 @@ function printRippleNode(node, path, options, print, args) {
 
 					// Check if there should be blank lines between this comment and the next
 					if (nextComment) {
-						const blankLinesBetween = getBlankLinesBetweenNodes(
-							comment,
-							nextComment,
-							options.originalText,
-						);
+						const blankLinesBetween = getBlankLinesBetweenNodes(comment, nextComment);
 						if (blankLinesBetween > 0) {
 							parts.push(hardline);
 						}
 					} else if (isLastComment) {
 						// Preserve a blank line between the last comment and the node if it existed
-						const blankLinesBetween = getBlankLinesBetweenNodes(
-							comment,
-							node,
-							options.originalText,
-						);
+						const blankLinesBetween = getBlankLinesBetweenNodes(comment, node);
 						if (blankLinesBetween > 0) {
 							parts.push(hardline);
 						}
@@ -3956,21 +3944,8 @@ function getBlankLinesBetweenPositions(current_pos, next_pos) {
 	return Math.max(0, line_gap - 1);
 }
 
-function getBlankLinesBetweenNodes(currentNode, nextNode, sourceText) {
-	// Return the number of blank lines between two nodes based on their location.
-	// When sourceText is provided, use byte offsets for more reliable detection
-	// (loc positions can be inaccurate due to parser quirks with comments).
-	if (
-		sourceText &&
-		typeof currentNode.end === 'number' &&
-		typeof nextNode?.start === 'number' &&
-		nextNode.start > currentNode.end
-	) {
-		const textBetween = sourceText.substring(currentNode.end, nextNode.start);
-		const newlines = textBetween.split('\n').length - 1;
-		return Math.max(0, newlines - 1);
-	}
-
+function getBlankLinesBetweenNodes(currentNode, nextNode) {
+	// Return the number of blank lines between two nodes based on their location
 	if (
 		currentNode.loc &&
 		nextNode?.loc &&
