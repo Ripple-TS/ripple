@@ -120,7 +120,7 @@ function transform_children(children, context) {
 
 	for (const ret of new_returns) {
 		const info = /** @type {{ name: string, tracked: boolean }} */ (return_flags.get(ret));
-		state.init?.push(b.let(b.id(info.name), b.false));
+		state.init?.push(b.var(b.id(info.name), b.false));
 	}
 
 	// Track accumulated return flags as we process children
