@@ -2116,6 +2116,49 @@ function test() {
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('should preserve comments before closing tag in elements', async () => {
+		const expected = `component App() {
+  <div id="second-top-block">
+    if (true) {
+      <div>{'b is true'}</div>
+    }
+    // <div>
+    // 	<div />
+    // </div>
+    // <div id="sibling-block">{'Sibling'}</div>
+  </div>
+}`;
+
+		const result = await format(expected, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('should preserve trailing comments after last child element before closing tag', async () => {
+		const expected = `component App() {
+  <div>
+    <span>{'first'}</span>
+    <span>{'second'}</span>
+    // trailing comment 1
+    // trailing comment 2
+  </div>
+}`;
+
+		const result = await format(expected, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('should preserve block comments before closing tag in elements', async () => {
+		const expected = `component App() {
+  <div>
+    <span>{'child'}</span>
+    /* block comment */
+  </div>
+}`;
+
+		const result = await format(expected, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
 	it('should preserve trailing comments in function parameters', async () => {
 		const expected = `function test(
   // comment in params
@@ -2235,6 +2278,34 @@ const obj2 = #{
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('should not add an extra blank line before a comment inside element children', async () => {
+		const expected = `component App() {
+  <div id="second-top-block">
+    <div>
+      let x = 1;
+      // comment
+      <div>{'Test'}</div>
+    </div>
+  </div>
+}`;
+
+		const result = await format(expected, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('should preserve an existing blank line before a comment inside element children', async () => {
+		const expected = `component App() {
+  <div>
+    let x = 1;
+
+    // comment
+    <div>{'Test'}</div>
+  </div>
+}`;
+
+		const result = await format(expected, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
 	it('should preserve comment if the whole component code is commented out', async () => {
 		const expected = `export component Test() {
   // thing
@@ -4619,6 +4690,346 @@ component App() {
 				const result = await format(input);
 				expect(result).toBeWithNewline(expected);
 			});
+		});
+
+		describe('if statement formatting', () => {
+			it('should format chained if-else statements with non-block bodies on separate lines', async () => {
+				const input = `component Test() {
+  <button
+    onClick={() => {
+if (@status === 'a') @status = 'b'; else if (@status === 'b') @status = 'c'; else @status =
+  'a';
+}}
+  >
+    {'Click'}
+  </button>
+}`;
+				const expected = `component Test() {
+  <button
+    onClick={() => {
+      if (@status === 'a') @status = 'b';
+      else if (@status === 'b') @status = 'c';
+      else @status = 'a';
+    }}
+  >
+    {'Click'}
+  </button>
+}`;
+
+				const result = await format(input, { singleQuote: true });
+				expect(result).toBeWithNewline(expected);
+			});
+
+			it('should format simple if statement with non-block body', async () => {
+				const input = `component Test() {
+  let x = 0;
+  if (x === 0) x = 1;
+  <div>{x}</div>
+}`;
+				const expected = `component Test() {
+  let x = 0;
+  if (x === 0) x = 1;
+  <div>{x}</div>
+}`;
+
+				const result = await format(input, { singleQuote: true });
+				expect(result).toBeWithNewline(expected);
+			});
+
+			it('should format if-else with non-block bodies', async () => {
+				const input = `component Test() {
+  let x = 0;
+  if (x === 0) x = 1; else x = 2;
+  <div>{x}</div>
+}`;
+				const expected = `component Test() {
+  let x = 0;
+  if (x === 0) x = 1;
+  else x = 2;
+  <div>{x}</div>
+}`;
+
+				const result = await format(input, { singleQuote: true });
+				expect(result).toBeWithNewline(expected);
+			});
+
+			it('should format nested if statements with non-block bodies', async () => {
+				const input = `component Test() {
+  let x = 0;
+  if (x === 0) if (x === 1) x = 2; else x = 3;
+  <div>{x}</div>
+}`;
+				const expected = `component Test() {
+  let x = 0;
+  if (x === 0)
+    if (x === 1) x = 2;
+    else x = 3;
+  <div>{x}</div>
+}`;
+
+				const result = await format(input, { singleQuote: true });
+				expect(result).toBeWithNewline(expected);
+			});
+		});
+
+		it('should not move comments before if statement into the test condition', async () => {
+			const input = `component App() {
+  <div id="second-top-block">
+    // <div>
+    if (true) {
+      <div>{'b is true'}</div>
+    }
+    // <div>
+    // <div>
+    // if (@b) {
+    // <span>nested</span>
+    // }
+    // </div>
+    // </div>
+    // <div />
+    // </div>
+    // <div id="sibling-block">{'Sibling'}</div>
+  </div>
+}`;
+			const expected = `component App() {
+  <div id="second-top-block">
+    // <div>
+    if (true) {
+      <div>{'b is true'}</div>
+    }
+    // <div>
+    // <div>
+    // if (@b) {
+    // <span>nested</span>
+    // }
+    // </div>
+    // </div>
+    // <div />
+    // </div>
+    // <div id="sibling-block">{'Sibling'}</div>
+  </div>
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should not move comments before while statement into the test condition', async () => {
+			const input = `function test() {
+  let i = 0;
+  // comment before while
+  while (i < 10) {
+    i++;
+  }
+}`;
+			const expected = `function test() {
+  let i = 0;
+  // comment before while
+  while (i < 10) {
+    i++;
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should not move comments before for-of statement into the right expression', async () => {
+			const input = `function test() {
+  // comment before for-of
+  for (const item of items) {
+    console.log(item);
+  }
+}`;
+			const expected = `function test() {
+  // comment before for-of
+  for (const item of items) {
+    console.log(item);
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should not move comments before switch statement into the discriminant', async () => {
+			const input = `function test() {
+  let x = 1;
+  // comment before switch
+  switch (x) {
+    case 1:
+      console.log('one');
+  }
+}`;
+			const expected = `function test() {
+  let x = 1;
+  // comment before switch
+  switch (x) {
+    case 1:
+      console.log('one');
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should handle multiple comments before if statement', async () => {
+			const input = `function test() {
+  // comment 1
+  // comment 2
+  if (true) {
+    console.log('test');
+  }
+}`;
+			const expected = `function test() {
+  // comment 1
+  // comment 2
+  if (true) {
+    console.log('test');
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should handle comments before try/catch blocks', async () => {
+			const input = `function test() {
+  // comment before try
+  try {
+    doSomething();
+  } catch (e) {
+    console.error(e);
+  }
+}`;
+			const expected = `function test() {
+  // comment before try
+  try {
+    doSomething();
+  } catch (e) {
+    console.error(e);
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should handle comments before try/catch/finally blocks', async () => {
+			const input = `function test() {
+  // comment before try
+  try {
+    doSomething();
+  } catch (e) {
+    console.error(e);
+  } finally {
+    cleanup();
+  }
+}`;
+			const expected = `function test() {
+  // comment before try
+  try {
+    doSomething();
+  } catch (e) {
+    console.error(e);
+  } finally {
+    cleanup();
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should handle comments inside try/catch blocks', async () => {
+			const input = `function test() {
+  try {
+    // comment inside try
+    doSomething();
+  } catch (e) {
+    // comment inside catch
+    console.error(e);
+  }
+}`;
+			const expected = `function test() {
+  try {
+    // comment inside try
+    doSomething();
+  } catch (e) {
+    // comment inside catch
+    console.error(e);
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should handle block comments with try/catch', async () => {
+			const input = `function test() {
+  /* block comment before try */
+  try {
+    doSomething();
+  } catch (e) {
+    /* block comment in catch */
+    console.error(e);
+  }
+}`;
+			const expected = `function test() {
+  /* block comment before try */
+  try {
+    doSomething();
+  } catch (e) {
+    /* block comment in catch */
+    console.error(e);
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should handle comments before try block in Ripple component', async () => {
+			const input = `component App() {
+  <div id="second-top-block">
+    // <div>
+    try {
+      <div>{'b is true'}</div>
+    } catch (e) {}
+    // 	<div>
+    // 		<div>
+    // 			if (@b) {
+    // 				return;
+    // 			}
+    // 		</div>
+    // 	</div>
+    // 	<div />
+    // </div>
+    // <div id="sibling-block">{'Sibling'}</div>
+  </div>
+}`;
+			const expected = `component App() {
+  <div id="second-top-block">
+    // <div>
+    try {
+      <div>{'b is true'}</div>
+    } catch (e) {}
+    // 	<div>
+    // 		<div>
+    // 			if (@b) {
+    // 				return;
+    // 			}
+    // 		</div>
+    // 	</div>
+    // 	<div />
+    // </div>
+    // <div id="sibling-block">{'Sibling'}</div>
+  </div>
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
 		});
 	});
 });

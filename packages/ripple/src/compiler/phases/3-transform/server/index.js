@@ -1338,7 +1338,7 @@ const visitors = {
 			const value_id = state.scope?.generate('html_value');
 			if (value_id) {
 				state.init?.push(
-					b.const(value_id, b.call(b.id('String'), b.binary('??', expression, b.literal('')))),
+					b.const(value_id, b.call(b.id('String'), b.logical('??', expression, b.literal('')))),
 				);
 				// Compute hash at runtime using _$_.hash and push as comment
 				state.init?.push(
