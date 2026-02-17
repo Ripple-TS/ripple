@@ -69,7 +69,7 @@ export function KeyedForLoop(__output) {
 	const items = [
 		{ id: 1, name: 'First' },
 		{ id: 2, name: 'Second' },
-		{ id: 3, name: 'Third' },
+		{ id: 3, name: 'Third' }
 	];
 
 	__output.push('<ul');
@@ -225,10 +225,7 @@ export function ForLoopInteractive(__output) {
 export function NestedForLoop(__output) {
 	_$_.push_component();
 
-	const grid = [
-		[1, 2],
-		[3, 4],
-	];
+	const grid = [[1, 2], [3, 4]];
 
 	__output.push('<div');
 	__output.push(' class="grid"');
@@ -311,7 +308,7 @@ export function ForLoopComplexObjects(__output) {
 
 	const users = [
 		{ id: 1, name: 'Alice', role: 'Admin' },
-		{ id: 2, name: 'Bob', role: 'User' },
+		{ id: 2, name: 'Bob', role: 'User' }
 	];
 
 	__output.push('<div');
@@ -362,7 +359,7 @@ export function KeyedForLoopReorder(__output) {
 	let items = track([
 		{ id: 1, name: 'First' },
 		{ id: 2, name: 'Second' },
-		{ id: 3, name: 'Third' },
+		{ id: 3, name: 'Third' }
 	]);
 
 	__output.push('<button');
@@ -402,10 +399,7 @@ export function KeyedForLoopReorder(__output) {
 export function KeyedForLoopUpdate(__output) {
 	_$_.push_component();
 
-	let items = track([
-		{ id: 1, name: 'Item 1' },
-		{ id: 2, name: 'Item 2' },
-	]);
+	let items = track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }]);
 
 	__output.push('<button');
 	__output.push(' class="update"');
@@ -616,10 +610,7 @@ export function ForLoopPopulatedToEmpty(__output) {
 export function NestedForLoopReactive(__output) {
 	_$_.push_component();
 
-	let grid = track([
-		[1, 2],
-		[3, 4],
-	]);
+	let grid = track([[1, 2], [3, 4]]);
 
 	__output.push('<button');
 	__output.push(' class="add-row"');
@@ -695,15 +686,15 @@ export function ForLoopDeeplyNested(__output) {
 
 			teams: [
 				{ id: 't1', name: 'Frontend', members: ['Alice', 'Bob'] },
-				{ id: 't2', name: 'Backend', members: ['Charlie'] },
-			],
+				{ id: 't2', name: 'Backend', members: ['Charlie'] }
+			]
 		},
 
 		{
 			id: 'd2',
 			name: 'Design',
-			teams: [{ id: 't3', name: 'UX', members: ['Diana', 'Eve', 'Frank'] }],
-		},
+			teams: [{ id: 't3', name: 'UX', members: ['Diana', 'Eve', 'Frank'] }]
+		}
 	];
 
 	__output.push('<div');
@@ -833,7 +824,7 @@ export function KeyedForLoopWithIndex(__output) {
 	let items = track([
 		{ id: 'a', value: 'Alpha' },
 		{ id: 'b', value: 'Beta' },
-		{ id: 'c', value: 'Gamma' },
+		{ id: 'c', value: 'Gamma' }
 	]);
 
 	__output.push('<button');
@@ -938,7 +929,7 @@ export function ForLoopItemState(__output) {
 	const initialItems = [
 		{ id: 1, text: 'Todo 1' },
 		{ id: 2, text: 'Todo 2' },
-		{ id: 3, text: 'Todo 3' },
+		{ id: 3, text: 'Todo 3' }
 	];
 
 	__output.push('<div');

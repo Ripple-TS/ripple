@@ -122,22 +122,22 @@ export function MultipleTracked(__anchor, _, __block) {
 			var __a = _$_.get(x);
 
 			if (__prev.a !== __a) {
-				_$_.set_text(text_3, (__prev.a = __a));
+				_$_.set_text(text_3, __prev.a = __a);
 			}
 
 			var __b = _$_.get(y);
 
 			if (__prev.b !== __b) {
-				_$_.set_text(text_4, (__prev.b = __b));
+				_$_.set_text(text_4, __prev.b = __b);
 			}
 
 			var __c = _$_.get(z);
 
 			if (__prev.c !== __c) {
-				_$_.set_text(text_5, (__prev.c = __c));
+				_$_.set_text(text_5, __prev.c = __c);
 			}
 		},
-		{ a: ' ', b: ' ', c: ' ' },
+		{ a: ' ', b: ' ', c: ' ' }
 	);
 
 	_$_.append(__anchor, fragment_1);
