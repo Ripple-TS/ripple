@@ -10,20 +10,11 @@ export component DynamicElementExample() {
 	// All of these now work without TypeScript errors!
 	<@div class="container" id="main" data-testid="dynamic-div">
 		<h1>{'Dynamic Elements with Attributes'}</h1>
-		
-		<@button 
-			type="button" 
-			class="btn btn-primary"
-			onClick={() => alert('Clicked!')}
-		>
+
+		<@button type="button" class="btn btn-primary" onClick={() => alert('Clicked!')}>
 			{'Click Me'}
 		</@button>
-		
-		<@input 
-			type="text" 
-			placeholder="Enter text..." 
-			value="test"
-			class="form-control"
-		/>
+
+		<@input type="text" placeholder="Enter text..." value="test" class="form-control" />
 	</@div>
 }

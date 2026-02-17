@@ -2516,10 +2516,48 @@ function transform_ts_child(node, context) {
 			}
 		}
 
-		// No need to set capitalization metadata - TypeScript will infer
-		// correct types based on the original variable name case
+		// Handle dynamic elements/components (tracked identifiers)
+		// For TypeScript to properly infer types, we need to extract the tracked value
+		// into an obfuscated variable, then use that in JSX
+		if (node.id.type === 'Identifier' && node.id.tracked) {
+			const original_name = node.id.name;
+			const obfuscated_name = `__obfuscated_${original_name}`;
 
-		if (node.id.type === 'MemberExpression') {
+			// Create: const __obfuscated_<name> = <name>['#v']
+			const member = b.member(
+				b.id(original_name, /** @type {AST.NodeWithLocation} */ (node.id)),
+				b.literal('#v'),
+				true,
+				true,
+				/** @type {AST.NodeWithLocation} */ (node.id),
+			);
+
+			const obfuscated_id = b.id(obfuscated_name, /** @type {AST.NodeWithLocation} */ (node.id));
+			// Add metadata to map obfuscated name back to original for intellisense
+			obfuscated_id.metadata.source_name = original_name;
+
+			const declaration = b.const(obfuscated_id, member);
+			state.init?.push(declaration);
+
+			// Use obfuscated identifier in JSX
+			node.id = b.id(obfuscated_name, /** @type {AST.NodeWithLocation} */ (node.id));
+			node.id.metadata.source_name = original_name;
+			/** @type {ESTreeJSX.RippleJSXOpeningElement} */ (node.openingElement).name = b.jsx_id(
+				obfuscated_name,
+				/** @type {AST.NodeWithLocation} */ (node.id),
+			);
+			node.openingElement.name.metadata = {
+				...node.openingElement.name.metadata,
+				source_name: original_name,
+			};
+
+			if (node.closingElement) {
+				const closing_id = b.jsx_id(obfuscated_name, /** @type {AST.NodeWithLocation} */ (node.id));
+				closing_id.metadata.source_name = original_name;
+				/** @type {ESTreeJSX.RippleJSXClosingElement} */ (node.closingElement).name = closing_id;
+			}
+		} else if (node.id.type === 'MemberExpression') {
+			// Non-tracked member expressions (e.g., obj.Component)
 			const member = /** @type {AST.MemberExpression} */ (visit(node.id, { ...state }));
 
 			node.id = member;
