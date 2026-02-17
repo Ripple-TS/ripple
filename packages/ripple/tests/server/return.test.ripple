@@ -2,6 +2,17 @@ import { describe, it, expect } from 'vitest';
 import { render } from 'ripple/server';
 
 describe('early return in SSR', () => {
+	it('skips template content after direct return', async () => {
+		component App() {
+			<div>{'before'}</div>
+			return;
+			<div>{'after'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>before</div>');
+	});
+
 	it('skips rest of body when return condition is true', async () => {
 		component App() {
 			let condition = true;

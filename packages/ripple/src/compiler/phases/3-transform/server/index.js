@@ -80,6 +80,12 @@ function collect_returns_from_children(children) {
 	const returns = [];
 	const seen = new Set();
 	for (const node of children) {
+		if (node.type === 'ReturnStatement') {
+			if (!seen.has(node)) {
+				seen.add(node);
+				returns.push(node);
+			}
+		}
 		if (node.metadata?.returns) {
 			for (const ret of node.metadata.returns) {
 				if (!seen.has(ret)) {
@@ -149,6 +155,12 @@ function transform_children(children, context) {
 					state.metadata.await = true;
 				}
 			}
+			if (node.type === 'ReturnStatement') {
+				const info = return_flags.get(node);
+				if (info && !accumulated_flags.includes(info.name)) {
+					accumulated_flags.push(info.name);
+				}
+			}
 		} else {
 			visit(node, { ...state, return_flags });
 		}
@@ -179,6 +191,13 @@ function transform_children(children, context) {
 			}
 
 			process_node(n);
+
+			if (n.type === 'ReturnStatement') {
+				const info = return_flags.get(n);
+				if (info && !inner_flags.includes(info.name)) {
+					inner_flags.push(info.name);
+				}
+			}
 
 			if (n.metadata?.has_return && n.metadata.returns) {
 				for (const ret of n.metadata.returns) {

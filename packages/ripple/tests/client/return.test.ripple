@@ -3,6 +3,18 @@ import { track, flushSync } from 'ripple';
 import { compile } from 'ripple/compiler';
 
 describe('early return in client components', () => {
+	it('skips template content after direct return', () => {
+		component App() {
+			<div class="before">{'before'}</div>
+			return;
+			<div class="after">{'after'}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('.before')).toBeTruthy();
+		expect(container.querySelector('.after')).toBeFalsy();
+	});
+
 	it('skips rest of body when return condition is true', () => {
 		component App() {
 			let condition = true;

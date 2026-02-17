@@ -2974,6 +2974,12 @@ function collect_returns_from_children(children) {
 	const returns = [];
 	const seen = new Set();
 	for (const node of children) {
+		if (node.type === 'ReturnStatement') {
+			if (!seen.has(node)) {
+				seen.add(node);
+				returns.push(node);
+			}
+		}
 		if (node.metadata?.returns) {
 			for (const ret of node.metadata.returns) {
 				if (!seen.has(ret)) {
@@ -3191,6 +3197,12 @@ function transform_children(children, context) {
 				state.init?.push(b.if(b.call('_$_.aborted'), b.return(null)));
 				if (state.metadata?.await === false) {
 					state.metadata.await = true;
+				}
+			}
+			if (!state.to_ts && node.type === 'ReturnStatement') {
+				const info = return_flags.get(node);
+				if (info && !accumulated_return_flags.some((f) => f.name === info.name)) {
+					accumulated_return_flags.push(info);
 				}
 			}
 		} else if (state.to_ts) {
