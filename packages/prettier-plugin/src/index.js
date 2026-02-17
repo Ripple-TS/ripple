@@ -5121,7 +5121,11 @@ function printElement(node, path, options, print) {
 			if (insertedBodyCommentsBetween) {
 				continue;
 			}
-			const whitespaceLinesCount = getBlankLinesBetweenNodes(currentChild, nextChild);
+			const whitespaceTarget =
+				nextChild.leadingComments && nextChild.leadingComments.length > 0
+					? nextChild.leadingComments[0]
+					: nextChild;
+			const whitespaceLinesCount = getBlankLinesBetweenNodes(currentChild, whitespaceTarget);
 			const isTextOrHtmlChild =
 				currentChild.type === 'Text' ||
 				currentChild.type === 'Html' ||
