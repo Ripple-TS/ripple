@@ -132,7 +132,7 @@ function visit_function(node, context) {
  * @param {AST.Element} node
  * @param {TransformClientContext} context
  */
-function visit_head_element(node, context) {
+function visit_head_element(node, index, context) {
 	const { state, visit } = context;
 
 	/** @type {TransformClientState['init']} */
@@ -154,8 +154,9 @@ function visit_head_element(node, context) {
 	);
 
 	if (init.length > 0 || update.length > 0 || final.length > 0) {
-		// Generate a hash for this head element based on filename and position
-		const hash_source = `${state.filename}:head:${node.start ?? 0}`;
+		// Generate a hash for this head element based on filename and index
+		// Use both filename and index to ensure uniqueness across multiple head blocks
+		const hash_source = `${state.filename}:head:${index}:${node.start ?? 0}`;
 		const hash = createHash('sha256').update(hash_source).digest('hex').slice(0, 8);
 
 		context.state.init?.push(
@@ -3126,11 +3127,12 @@ function transform_children(children, context) {
 		}
 	}
 
-	for (const head_element of head_elements) {
+	for (let i = 0; i < head_elements.length; i++) {
+		const head_element = head_elements[i];
 		if (state.to_ts) {
 			transform_ts_child(head_element, /** @type {VisitorClientContext} */ ({ visit, state }));
 		} else {
-			visit_head_element(head_element, context);
+			visit_head_element(head_element, i, context);
 		}
 	}
 

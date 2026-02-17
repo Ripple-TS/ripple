@@ -97,7 +97,7 @@ describe('hydration > head', () => {
 		expect(container.innerHTML).toBeHtml('<div>Content</div>');
 	});
 
-	it('hydrates head with multiple head blocks', async () => {
+	it('hydrates simple head element', async () => {
 		await hydrateComponent(ServerComponents.HeadWithStyle, ClientComponents.HeadWithStyle);
 		expect(document.title).toBe('Styled Page');
 		expect(container.innerHTML).toBeHtml('<div>Styled content</div>');

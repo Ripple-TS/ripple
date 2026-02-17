@@ -85,9 +85,11 @@ function transform_children(children, context) {
 		state.init?.push(
 			b.stmt(b.assignment('=', b.member(b.id('__output'), b.id('target')), b.literal('head'))),
 		);
-		for (const head_element of head_elements) {
+		for (let i = 0; i < head_elements.length; i++) {
+			const head_element = head_elements[i];
 			// Generate a hash for this head element to match client-side hydration
-			const hash_source = `${context.state.filename}:head:${head_element.start ?? 0}`;
+			// Use both filename and index to ensure uniqueness
+			const hash_source = `${context.state.filename}:head:${i}:${head_element.start ?? 0}`;
 			const hash = createHash('sha256').update(hash_source).digest('hex').slice(0, 8);
 
 			// Emit hydration marker comment with hash
