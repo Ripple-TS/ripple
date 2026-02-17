@@ -55,6 +55,7 @@ import {
 	index_to_key,
 	is_element_dynamic,
 	is_inside_left_side_assignment,
+	hash,
 } from '../../../utils.js';
 import {
 	CSS_HASH_IDENTIFIER,
@@ -157,13 +158,13 @@ function visit_head_element(node, index, context) {
 		// Generate a hash for this head element based on filename and index
 		// Use both filename and index to ensure uniqueness across multiple head blocks
 		const hash_source = `${state.filename}:head:${index}:${node.start ?? 0}`;
-		const hash = createHash('sha256').update(hash_source).digest('hex').slice(0, 8);
+		const hash_value = hash(hash_source);
 
 		context.state.init?.push(
 			b.stmt(
 				b.call(
 					'_$_.head',
-					b.literal(hash),
+					b.literal(hash_value),
 					b.arrow(
 						[b.id('__anchor')],
 						b.block([
