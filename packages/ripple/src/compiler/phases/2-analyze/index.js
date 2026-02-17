@@ -40,31 +40,6 @@ import { validate_nesting } from './validation.js';
 const valid_in_head = new Set(['title', 'base', 'link', 'meta', 'style', 'script', 'noscript']);
 
 /**
- * Checks if a node contains template content (elements, text, or control flow with templates)
- * @param {AST.Node} node
- * @returns {boolean}
- */
-function has_template_content(node) {
-	if (
-		node.type === 'Element' ||
-		node.type === 'Text' ||
-		node.type === 'Html' ||
-		node.type === 'TsxCompat'
-	) {
-		return true;
-	}
-	if (
-		node.type === 'IfStatement' ||
-		node.type === 'ForOfStatement' ||
-		node.type === 'TryStatement' ||
-		node.type === 'SwitchStatement'
-	) {
-		return node.metadata.has_template === true;
-	}
-	return false;
-}
-
-/**
  * @param {AnalysisContext['path']} path
  */
 function mark_control_flow_has_template(path) {
@@ -136,7 +111,7 @@ function mark_as_tracked(path) {
 
 /**
  * @param {AST.ReturnStatement} node
- * @returns
+ * @returns {AST.ReturnStatement}
  */
 function get_return_keyword_node(node) {
 	const return_keyword_length = 'return'.length;
@@ -879,7 +854,7 @@ const visitors = {
 			error_return_keyword(
 				node,
 				context,
-				'Return statements inside components cannot have a return value',
+				'Return statements inside components cannot have a return value.',
 			);
 		}
 

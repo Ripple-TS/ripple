@@ -2,6 +2,21 @@ import { describe, it, expect } from 'vitest';
 import { track, flushSync } from 'ripple';
 import { compile } from 'ripple/compiler';
 
+describe('returns in prohibited scopes', () => {
+	it('throws error when return is used in module scope', () => {
+		expect(
+			() => compile(`
+				return;
+				component App() {
+					<div>{'hello'}</div>
+				}
+			`, 'test.ripple', {
+				mode: 'client',
+			}),
+		).toThrowError('Return statements are not allowed at the top level of a module.');
+	});
+});
+
 describe('early return in client components', () => {
 	it('skips template content after direct return', () => {
 		component App() {
@@ -1962,7 +1977,7 @@ describe('early return in client components', () => {
 					}`, 'test.ripple', {
 					mode: 'client',
 				});
-			}).toThrow('Return statements inside components cannot have a return value');
+			}).toThrow('Return statements inside components cannot have a return value.');
 		});
 
 		it('throws error for return with number value', () => {
@@ -1975,7 +1990,7 @@ describe('early return in client components', () => {
 					}`, 'test.ripple', {
 					mode: 'client',
 				});
-			}).toThrow('Return statements inside components cannot have a return value');
+			}).toThrow('Return statements inside components cannot have a return value.');
 		});
 
 		it('throws error for return with null value', () => {
@@ -1988,7 +2003,7 @@ describe('early return in client components', () => {
 					}`, 'test.ripple', {
 					mode: 'client',
 				});
-			}).toThrow('Return statements inside components cannot have a return value');
+			}).toThrow('Return statements inside components cannot have a return value.');
 		});
 
 		it('throws error for return with undefined value', () => {
@@ -2003,7 +2018,7 @@ describe('early return in client components', () => {
 					'test.ripple',
 					{ mode: 'client' },
 				);
-			}).toThrow('Return statements inside components cannot have a return value');
+			}).toThrow('Return statements inside components cannot have a return value.');
 		});
 
 		it('throws error for return with object value', () => {
@@ -2018,7 +2033,7 @@ describe('early return in client components', () => {
 					'test.ripple',
 					{ mode: 'client' },
 				);
-			}).toThrow('Return statements inside components cannot have a return value');
+			}).toThrow('Return statements inside components cannot have a return value.');
 		});
 
 		it('throws error for return with variable', () => {
@@ -2034,7 +2049,7 @@ describe('early return in client components', () => {
 					'test.ripple',
 					{ mode: 'client' },
 				);
-			}).toThrow('Return statements inside components cannot have a return value');
+			}).toThrow('Return statements inside components cannot have a return value.');
 		});
 
 		it('accepts void return', () => {
