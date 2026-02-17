@@ -156,6 +156,36 @@ function mark_as_tracked(path) {
 	}
 }
 
+/**
+ * Checks if arg present and creates an error
+ * @param {AST.ReturnStatement} node
+ * @param {AnalysisContext} context
+ * @returns {void}
+ */
+function check_component_return_arg(node, context) {
+	if (node.argument !== null) {
+		const return_keyword_length = 'return'.length;
+		const return_keyword_node = /** @type {AST.ReturnStatement} */ ({
+			...node,
+			end: /** @type {AST.NodeWithLocation} */ (node).start + return_keyword_length,
+			loc: {
+				start: /** @type {AST.NodeWithLocation} */ (node).loc.start,
+				end: {
+					line: /** @type {AST.NodeWithLocation} */ (node).loc.start.line,
+					column:
+						/** @type {AST.NodeWithLocation} */ (node).loc.start.column + return_keyword_length,
+				},
+			},
+		});
+
+		error(
+			'Component return statements must not have a return value',
+			context.state.analysis.module.filename,
+			return_keyword_node,
+			context.state.loose ? context.state.analysis.errors : undefined,
+		);
+	}
+}
 
 /** @type {Visitors<AST.Node, AnalysisState>} */
 const visitors = {
@@ -858,14 +888,7 @@ const visitors = {
 			return context.next();
 		}
 
-		if (node.argument !== null) {
-			error(
-				'Component return statements must not have a return value',
-				context.state.analysis.module.filename,
-				node,
-				context.state.loose ? context.state.analysis.errors : undefined,
-			);
-		}
+		check_component_return_arg(node, context);
 
 		let is_reactive = false;
 		for (let i = context.path.length - 1; i >= 0; i--) {
@@ -880,7 +903,10 @@ const visitors = {
 				break;
 			}
 
-			if (ancestor.type === 'IfStatement' && /** @type {AST.TrackedNode} */ (ancestor.test).tracked) {
+			if (
+				ancestor.type === 'IfStatement' &&
+				/** @type {AST.TrackedNode} */ (ancestor.test).tracked
+			) {
 				is_reactive = true;
 			}
 
