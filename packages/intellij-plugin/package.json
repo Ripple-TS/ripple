@@ -1,4 +1,5 @@
 {
   "name": "@ripple-ts/intellij-plugin",
+  "private": true,
   "version": "0.0.81"
 }
