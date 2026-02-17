@@ -622,11 +622,7 @@ function printRippleNode(node, path, options, print, args) {
 					}
 				} else if (isLastComment) {
 					// Preserve a blank line between the last comment and the node if it existed
-					const blankLinesBetween = getBlankLinesBetweenNodes(
-						comment,
-						node,
-						options.originalText,
-					);
+					const blankLinesBetween = getBlankLinesBetweenNodes(comment, node, options.originalText);
 					if (blankLinesBetween > 0) {
 						parts.push(hardline);
 					}
