@@ -3334,7 +3334,7 @@ function printIfStatement(node, path, options, print) {
 	// Extract leading comments from test node to print them before 'if' keyword
 	const testNode = node.test;
 	const testLeadingComments = testNode && testNode.leadingComments;
-	
+
 	// Print test without its leading comments (they'll be printed before 'if')
 	const test = path.call((testPath) => print(testPath, { suppressLeadingComments: true }), 'test');
 	const consequent = path.call(print, 'consequent');
@@ -3347,17 +3347,17 @@ function printIfStatement(node, path, options, print) {
 	const consequentIsIf = node.consequent.type === 'IfStatement';
 
 	const parts = [];
-	
+
 	// Print leading comments from test node before 'if' keyword
 	if (testLeadingComments && testLeadingComments.length > 0) {
 		for (let i = 0; i < testLeadingComments.length; i++) {
 			const comment = testLeadingComments[i];
 			const nextComment = testLeadingComments[i + 1];
-			
+
 			if (comment.type === 'Line') {
 				parts.push('//' + comment.value);
 				parts.push(hardline);
-				
+
 				// Check if there should be blank lines between comments
 				if (nextComment) {
 					const blankLinesBetween = getBlankLinesBetweenNodes(comment, nextComment);
@@ -3368,7 +3368,7 @@ function printIfStatement(node, path, options, print) {
 			} else if (comment.type === 'Block') {
 				parts.push('/*' + comment.value + '*/');
 				parts.push(hardline);
-				
+
 				// Check if there should be blank lines between comments
 				if (nextComment) {
 					const blankLinesBetween = getBlankLinesBetweenNodes(comment, nextComment);
@@ -3379,7 +3379,7 @@ function printIfStatement(node, path, options, print) {
 			}
 		}
 	}
-	
+
 	parts.push(testDoc);
 
 	// Handle the consequent
