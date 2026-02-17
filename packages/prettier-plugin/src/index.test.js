@@ -4593,16 +4593,16 @@ if (@status === 'a') @status = 'b'; else if (@status === 'b') @status = 'c'; els
 				const expected = `component Test() {
   <button
     onClick={() => {
-      if (@status === "a") @status = "b";
-      else if (@status === "b") @status = "c";
-      else @status = "a";
+      if (@status === 'a') @status = 'b';
+      else if (@status === 'b') @status = 'c';
+      else @status = 'a';
     }}
   >
-    {"Click"}
+    {'Click'}
   </button>
 }`;
 
-				const result = await format(input);
+				const result = await format(input, { singleQuote: true });
 				expect(result).toBeWithNewline(expected);
 			});
 
@@ -4618,7 +4618,7 @@ if (@status === 'a') @status = 'b'; else if (@status === 'b') @status = 'c'; els
   <div>{x}</div>
 }`;
 
-				const result = await format(input);
+				const result = await format(input, { singleQuote: true });
 				expect(result).toBeWithNewline(expected);
 			});
 
@@ -4635,7 +4635,7 @@ if (@status === 'a') @status = 'b'; else if (@status === 'b') @status = 'c'; els
   <div>{x}</div>
 }`;
 
-				const result = await format(input);
+				const result = await format(input, { singleQuote: true });
 				expect(result).toBeWithNewline(expected);
 			});
 
@@ -4652,7 +4652,7 @@ if (@status === 'a') @status = 'b'; else if (@status === 'b') @status = 'c'; els
   <div>{x}</div>
 }`;
 
-				const result = await format(input);
+				const result = await format(input, { singleQuote: true });
 				expect(result).toBeWithNewline(expected);
 			});
 		});
