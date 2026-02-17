@@ -1,0 +1,14 @@
+# pnpm files - can have formatting differences between environments
+pnpm-lock.yaml
+pnpm-workspace.yaml
+
+# Build outputs
+**/dist/
+**/build/
+
+# Dependencies
+**/node_modules/
+
+# Editor/IDE generated files
+**/.cache/
+**/coverage/
