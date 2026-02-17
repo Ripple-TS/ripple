@@ -7,10 +7,13 @@ function add_ripple()
       location = 'grammars/tree-sitter',
       queries = 'grammars/tree-sitter/queries',
     },
+    filetype = 'ripple',
   }
 end
 
 function M.setup()
+  add_ripple()
+
   vim.api.nvim_create_autocmd('FileType', {
     pattern = { 'ripple' },
     callback = function() pcall(vim.treesitter.start) end,
