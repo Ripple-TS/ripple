@@ -39,6 +39,7 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 	 */
 	function move_block(block, fragment) {
 		var state = block.s;
+		if (state === null) return;
 		var node = state.start;
 		var end = state.end;
 
