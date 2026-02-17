@@ -4590,6 +4590,9 @@ if (@status === 'a') @status = 'b'; else if (@status === 'b') @status = 'c'; els
     Click
   </button>
 }`;
+				// Note: The semicolon after 'Click' is a pre-existing formatting issue in the prettier plugin
+				// that is unrelated to the if statement formatting fix. This test focuses on verifying
+				// that the if-else statements are properly formatted on separate lines.
 				const expected = `component Test() {
   <button
     onClick={() => {
