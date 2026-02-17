@@ -65,28 +65,6 @@ function has_template_content(node) {
 }
 
 /**
- * Checks for unreachable template content after a return statement within a block body
- * @param {AST.Node[]} body
- * @param {AnalysisContext} context
- */
-function check_unreachable_after_return(body, context) {
-	let found_return = false;
-	for (const stmt of body) {
-		if (found_return && has_template_content(stmt)) {
-			error(
-				'Unreachable template content after return statement',
-				context.state.analysis.module.filename,
-				stmt,
-				context.state.loose ? context.state.analysis.errors : undefined,
-			);
-		}
-		if (stmt.type === 'ReturnStatement') {
-			found_return = true;
-		}
-	}
-}
-
-/**
  * @param {AnalysisContext['path']} path
  */
 function mark_control_flow_has_template(path) {
@@ -839,7 +817,6 @@ const visitors = {
 
 		const consequent_body =
 			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
-		// check_unreachable_after_return(consequent_body, context);
 
 		if (
 			consequent_body.length === 1 &&
@@ -864,10 +841,6 @@ const visitors = {
 			node.metadata.has_template = false;
 			node.metadata.has_await = false;
 			context.visit(node.alternate, context.state);
-
-			if (node.alternate.type === 'BlockStatement') {
-				// check_unreachable_after_return(node.alternate.body, context);
-			}
 
 			if (!node.metadata.has_template && !node.metadata.has_return) {
 				error(
@@ -910,7 +883,6 @@ const visitors = {
 			);
 		}
 
-		let is_inside_if = false;
 		for (let i = context.path.length - 1; i >= 0; i--) {
 			const ancestor = context.path[i];
 
@@ -923,11 +895,11 @@ const visitors = {
 				break;
 			}
 
-			if (ancestor.type === 'IfStatement') {
-				is_inside_if = true;
-				if (/** @type {AST.TrackedNode} */ (ancestor.test).tracked) {
-					node.metadata.is_reactive = true;
-				}
+			if (
+				ancestor.type === 'IfStatement' &&
+				/** @type {AST.TrackedNode} */ (ancestor.test).tracked
+			) {
+				node.metadata.is_reactive = true;
 			}
 
 			if (!ancestor.metadata.returns) {
@@ -935,14 +907,6 @@ const visitors = {
 			}
 			ancestor.metadata.returns.push(node);
 			ancestor.metadata.has_return = true;
-		}
-
-		if (!is_inside_if) {
-			// error_return_keyword(
-			// 	node,
-			// 	context,
-			// 	'Return statements in components are only allowed inside if statements.',
-			// );
 		}
 	},
 

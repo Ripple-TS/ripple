@@ -1066,6 +1066,7 @@ describe('early return in SSR', () => {
 			let a = 5;
 			let b = '5';
 
+			// @ts-expect-error testing loose equality
 			if (a == b) {
 				<div>{'loose equality'}</div>
 				return;
@@ -1146,6 +1147,7 @@ describe('early return in SSR', () => {
 			let a = 5;
 			let b = '5';
 
+			// @ts-expect-error testing strict inequality
 			if (a !== b) {
 				<div>{'a !== b'}</div>
 				return;
