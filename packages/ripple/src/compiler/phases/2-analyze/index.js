@@ -157,34 +157,38 @@ function mark_as_tracked(path) {
 }
 
 /**
- * Checks if arg present and creates an error
+ * @param {AST.ReturnStatement} node
+ * @returns
+ */
+function get_return_keyword_node(node) {
+	const return_keyword_length = 'return'.length;
+	return /** @type {AST.ReturnStatement} */ ({
+		...node,
+		end: /** @type {AST.NodeWithLocation} */ (node).start + return_keyword_length,
+		loc: {
+			start: /** @type {AST.NodeWithLocation} */ (node).loc.start,
+			end: {
+				line: /** @type {AST.NodeWithLocation} */ (node).loc.start.line,
+				column: /** @type {AST.NodeWithLocation} */ (node).loc.start.column + return_keyword_length,
+			},
+		},
+	});
+}
+
+/**
  * @param {AST.ReturnStatement} node
  * @param {AnalysisContext} context
- * @returns {void}
+ * @param {string} message
  */
-function check_component_return_arg(node, context) {
-	if (node.argument !== null) {
-		const return_keyword_length = 'return'.length;
-		const return_keyword_node = /** @type {AST.ReturnStatement} */ ({
-			...node,
-			end: /** @type {AST.NodeWithLocation} */ (node).start + return_keyword_length,
-			loc: {
-				start: /** @type {AST.NodeWithLocation} */ (node).loc.start,
-				end: {
-					line: /** @type {AST.NodeWithLocation} */ (node).loc.start.line,
-					column:
-						/** @type {AST.NodeWithLocation} */ (node).loc.start.column + return_keyword_length,
-				},
-			},
-		});
+function error_return_keyword(node, context, message) {
+	const return_keyword_node = get_return_keyword_node(node);
 
-		error(
-			'Component return statements must not have a return value',
-			context.state.analysis.module.filename,
-			return_keyword_node,
-			context.state.loose ? context.state.analysis.errors : undefined,
-		);
-	}
+	error(
+		message,
+		context.state.analysis.module.filename,
+		return_keyword_node,
+		context.state.loose ? context.state.analysis.errors : undefined,
+	);
 }
 
 /** @type {Visitors<AST.Node, AnalysisState>} */
@@ -835,7 +839,7 @@ const visitors = {
 
 		const consequent_body =
 			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
-		check_unreachable_after_return(consequent_body, context);
+		// check_unreachable_after_return(consequent_body, context);
 
 		if (
 			consequent_body.length === 1 &&
@@ -862,7 +866,7 @@ const visitors = {
 			context.visit(node.alternate, context.state);
 
 			if (node.alternate.type === 'BlockStatement') {
-				check_unreachable_after_return(node.alternate.body, context);
+				// check_unreachable_after_return(node.alternate.body, context);
 			}
 
 			if (!node.metadata.has_template && !node.metadata.has_return) {
@@ -884,13 +888,29 @@ const visitors = {
 	},
 
 	ReturnStatement(node, context) {
+		const parent = context.path.at(-1);
+
 		if (!is_inside_component(context)) {
+			if (parent?.type === 'Program') {
+				error_return_keyword(
+					node,
+					context,
+					'Return statements are not allowed at the top level of a module.',
+				);
+			}
+
 			return context.next();
 		}
 
-		check_component_return_arg(node, context);
+		if (node.argument !== null) {
+			error_return_keyword(
+				node,
+				context,
+				'Return statements inside components cannot have a return value',
+			);
+		}
 
-		let is_reactive = false;
+		let is_inside_if = false;
 		for (let i = context.path.length - 1; i >= 0; i--) {
 			const ancestor = context.path[i];
 
@@ -903,11 +923,11 @@ const visitors = {
 				break;
 			}
 
-			if (
-				ancestor.type === 'IfStatement' &&
-				/** @type {AST.TrackedNode} */ (ancestor.test).tracked
-			) {
-				is_reactive = true;
+			if (ancestor.type === 'IfStatement') {
+				is_inside_if = true;
+				if (/** @type {AST.TrackedNode} */ (ancestor.test).tracked) {
+					node.metadata.is_reactive = true;
+				}
 			}
 
 			if (!ancestor.metadata.returns) {
@@ -917,7 +937,13 @@ const visitors = {
 			ancestor.metadata.has_return = true;
 		}
 
-		node.metadata.is_reactive = is_reactive;
+		if (!is_inside_if) {
+			// error_return_keyword(
+			// 	node,
+			// 	context,
+			// 	'Return statements in components are only allowed inside if statements.',
+			// );
+		}
 	},
 
 	TryStatement(node, context) {
