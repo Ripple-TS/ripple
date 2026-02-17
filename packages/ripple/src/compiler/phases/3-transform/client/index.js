@@ -131,6 +131,7 @@ function visit_function(node, context) {
 
 /**
  * @param {AST.Element} node
+ * @param {number} index
  * @param {TransformClientContext} context
  */
 function visit_head_element(node, index, context) {
