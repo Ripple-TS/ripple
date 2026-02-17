@@ -1,3 +1,8 @@
+---
+description: Ripple project overview and development guidelines
+globs: **/*
+---
+
 # Ripple Project Guide for AI Agents
 
 Ripple is a TypeScript UI framework that combines the best parts of React, Solid,

@@ -12,9 +12,9 @@
   },
   "engineStrict": true,
   "scripts": {
-    "prepare": "agentsync apply || true",
-    "agents:sync": "agentsync apply",
-    "agents:check": "agentsync status",
+    "prepare": "rulesync generate || true",
+    "rules:generate": "rulesync generate",
+    "rules:check": "rulesync generate --check",
     "test": "vitest run",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -27,7 +27,6 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.2",
     "@changesets/cli": "^2.29.8",
-    "@dallay/agentsync": "^1.28.0",
     "@ripple-ts/eslint-plugin": "workspace:*",
     "@ripple-ts/prettier-plugin": "workspace:*",
     "@ripple-ts/vite-plugin": "workspace:*",
@@ -35,6 +34,7 @@
     "jsdom": "catalog:default",
     "linkedom": "catalog:default",
     "prettier": "catalog:default",
+    "rulesync": "^7.3.0",
     "source-map": "catalog:default",
     "type-fest": "catalog:default",
     "vitest": "catalog:default",

@@ -1,3 +1,10 @@
+---
+root: true
+targets: ['*']
+description: 'Ripple project overview and development guidelines'
+globs: ['**/*']
+---
+
 # Ripple Project Guide for AI Agents
 
 Ripple is a TypeScript UI framework that combines the best parts of React, Solid,
@@ -14,6 +21,28 @@ see:
   documentation
 - **[README.md](README.md)** - Project overview and quick start
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines
+
+## RuleSync
+
+This project uses [RuleSync](https://github.com/dyoshikawa/rulesync) to maintain a
+single source of truth for AI agent instructions. The canonical rules are in
+`.rulesync/rules/`, which are automatically generated to tool-specific locations:
+
+| Agent          | Generated File                    |
+| -------------- | --------------------------------- |
+| Claude Code    | `CLAUDE.md`                       |
+| GitHub Copilot | `.github/copilot-instructions.md` |
+| Cursor         | `.cursor/rules/project.mdc`       |
+| Gemini CLI     | `GEMINI.md`                       |
+| AGENTS.md      | `AGENTS.md`                       |
+
+**To regenerate after editing `.rulesync/rules/`:**
+
+```bash
+pnpm rules:generate
+```
+
+This runs automatically on `pnpm install` via the `prepare` script.
 
 ## Project Structure
 
@@ -310,6 +339,22 @@ nvim/zed plugins via `pnpm copy-tree-sitter-queries`.
 ## Validating Changes
 
 **CRITICAL: Use pnpm for all package management. Do NOT use npm or yarn.**
+
+### Changesets
+
+For user-facing changes, add a changeset before committing:
+
+```bash
+pnpm changeset
+```
+
+This creates a markdown file in `.changeset/` describing the change. Select
+affected packages and semver bump type (patch/minor/major). The file is committed
+with your changes.
+
+**Add a changeset for:** bug fixes, new features, breaking changes, API changes.
+
+**Skip changesets for:** docs-only, internal refactoring, tests, CI/tooling.
 
 ### Required Validation Steps
 

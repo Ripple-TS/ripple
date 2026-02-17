@@ -2,6 +2,13 @@
 pnpm-lock.yaml
 pnpm-workspace.yaml
 
+# RuleSync generated files
+CLAUDE.md
+GEMINI.md
+AGENTS.md
+.github/copilot-instructions.md
+.cursor/
+
 # Build outputs
 **/dist/
 **/build/

@@ -158,8 +158,44 @@ Before submitting:
 1. **Test thoroughly**: Ensure your changes work as expected
 2. **Write clear commit messages**: Describe what and why, not just what
 3. **Update documentation**: If you've changed APIs or added features
-4. **Target the main branch**: All PRs should be opened against `main`
-5. **Keep it focused**: One feature or fix per PR
+4. **Add a changeset**: For user-facing changes (see below)
+5. **Target the main branch**: All PRs should be opened against `main`
+6. **Keep it focused**: One feature or fix per PR
+
+### Changesets
+
+We use [Changesets](https://github.com/changesets/changesets) to manage versioning
+and changelogs. If your PR includes user-facing changes (bug fixes, new features,
+breaking changes), you should add a changeset:
+
+```bash
+pnpm changeset
+```
+
+This will prompt you to:
+
+1. Select the packages affected by your change
+2. Choose the semver bump type (patch/minor/major)
+3. Write a summary of your changes (this becomes the changelog entry)
+
+The command creates a markdown file in `.changeset/` that should be committed with
+your PR. When your PR is merged, the release workflow will automatically:
+
+1. Aggregate all changesets into a "Version Packages" PR
+2. When that PR is merged, publish to npm
+
+**When to add a changeset:**
+
+- Bug fixes → `patch`
+- New features (backwards compatible) → `minor`
+- Breaking changes → `major`
+
+**When NOT to add a changeset:**
+
+- Documentation-only changes
+- Internal refactoring with no user-facing impact
+- Test-only changes
+- CI/tooling changes
 
 Include in your PR description:
 

@@ -1,0 +1,6 @@
+{
+	"$schema": "https://raw.githubusercontent.com/dyoshikawa/rulesync/refs/heads/main/config-schema.json",
+	"targets": ["claudecode", "copilot", "cursor", "geminicli", "agentsmd"],
+	"features": ["rules"],
+	"delete": true,
+}

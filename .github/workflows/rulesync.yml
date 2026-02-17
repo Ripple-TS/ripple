@@ -1,0 +1,39 @@
+name: RuleSync Check
+
+on:
+  pull_request:
+    paths:
+      - ".rulesync/**"
+      - "rulesync.jsonc"
+      - "CLAUDE.md"
+      - "GEMINI.md"
+      - "AGENTS.md"
+      - ".github/copilot-instructions.md"
+      - ".cursor/rules/**"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check RuleSync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check RuleSync is up to date
+        run: pnpm rules:check
