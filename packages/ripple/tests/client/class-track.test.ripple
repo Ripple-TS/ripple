@@ -1,0 +1,118 @@
+import { flushSync, track } from 'ripple';
+
+describe('Class with tracked members', () => {
+	it('should handle track() calls in class constructor', () => {
+		class UndoRedoState {
+			constructor(val) {
+				this.history = #[];
+				this.currentIdx = track(-1);
+				this.currentState = track(() => this.history[@this.currentIdx]);
+				this.canUndo = track(() => @this.currentIdx > 0);
+				this.canRedo = track(() => @this.currentIdx < this.history.length - 1);
+				this.canReset = track(() => @this.canUndo || @this.canRedo);
+				this.length = track(() => this.history.length);
+				this.isAtLatestState = track(() => @this.currentIdx === this.history.length - 1);
+				this.state = val;
+			}
+
+			get state() {
+				return @this.currentState;
+			}
+
+			set state(val) {
+				if (!@this.isAtLatestState) this.history.splice(@this.currentIdx + 1);
+				this.history[++@this.currentIdx] = val;
+			}
+
+			undo() {
+				if (!@this.canUndo) return;
+				@this.currentIdx--;
+			}
+
+			redo() {
+				if (!@this.canRedo) return;
+				@this.currentIdx++;
+			}
+
+			goto(idx) {
+				@this.currentIdx = idx;
+			}
+
+			reset() {
+				if (!@this.canReset) return;
+				@this.currentIdx = 0;
+				this.history.splice(1);
+			}
+
+			toString() {
+				return JSON.stringify(
+					{
+						history: this.history,
+						currentIdx: @this.currentIdx,
+						currentState: @this.currentState,
+					},
+					null,
+					2,
+				);
+			}
+		}
+
+		component App() {
+			let undoRedo = new UndoRedoState('initial');
+
+			<div>
+				<button id="add" onClick={() => (undoRedo.state = 'state-' + (@undoRedo.length + 1))}>
+					{'Add'}
+				</button>
+				<button id="undo" onClick={() => undoRedo.undo()} disabled={!@undoRedo.canUndo}>
+					{'Undo'}
+				</button>
+				<button id="redo" onClick={() => undoRedo.redo()} disabled={!@undoRedo.canRedo}>
+					{'Redo'}
+				</button>
+				<button id="reset" onClick={() => undoRedo.reset()} disabled={!@undoRedo.canReset}>
+					{'Reset'}
+				</button>
+				<div id="state">{@undoRedo.state}</div>
+				<div id="idx">{@undoRedo.currentIdx}</div>
+			</div>
+		}
+
+		render(App);
+
+		expect(container.querySelector('#state').textContent).toBe('initial');
+		expect(container.querySelector('#idx').textContent).toBe('0');
+
+		// Add state
+		container.querySelector('#add').click();
+		flushSync();
+		expect(container.querySelector('#state').textContent).toBe('state-2');
+		expect(container.querySelector('#idx').textContent).toBe('1');
+
+		// Undo
+		container.querySelector('#undo').click();
+		flushSync();
+		expect(container.querySelector('#state').textContent).toBe('initial');
+		expect(container.querySelector('#idx').textContent).toBe('0');
+
+		// Redo
+		container.querySelector('#redo').click();
+		flushSync();
+		expect(container.querySelector('#state').textContent).toBe('state-2');
+		expect(container.querySelector('#idx').textContent).toBe('1');
+
+		// Add more states
+		container.querySelector('#add').click();
+		flushSync();
+		container.querySelector('#add').click();
+		flushSync();
+		expect(container.querySelector('#state').textContent).toBe('state-4');
+		expect(container.querySelector('#idx').textContent).toBe('3');
+
+		// Reset
+		container.querySelector('#reset').click();
+		flushSync();
+		expect(container.querySelector('#state').textContent).toBe('initial');
+		expect(container.querySelector('#idx').textContent).toBe('0');
+	});
+});
