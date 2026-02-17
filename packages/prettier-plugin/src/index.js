@@ -4513,10 +4513,9 @@ function printContinueStatement(node, path, options, print) {
  * @param {AST.DebuggerStatement} node - The debugger statement node
  * @param {AstPath<AST.DebuggerStatement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
- * @param {PrintFn} print - Print callback
  * @returns {string}
  */
-function printDebuggerStatement(node, path, options, print) {
+function printDebuggerStatement(node, path, options) {
 	return 'debugger' + semi(options);
 }
 
