@@ -1330,12 +1330,16 @@ const visitors = {
 				state.init?.push(
 					b.const(value_id, b.call(b.id('String'), b.binary('??', expression, b.literal('')))),
 				);
-				// Compute hash at runtime using _$_.hash
+				// Compute hash at runtime using _$_.hash and push as comment
 				state.init?.push(
 					b.stmt(
 						b.call(
 							b.member(b.id('__output'), b.id('push')),
-							b.template(['<!--', '-->'], [b.call('_$_.hash', b.id(value_id))]),
+							b.binary(
+								'+',
+								b.binary('+', b.literal('<!--'), b.call('_$_.hash', b.id(value_id))),
+								b.literal('-->'),
+							),
 						),
 					),
 				);
