@@ -872,24 +872,11 @@ const visitors = {
 		validate_nesting(node, context);
 
 		// Store capitalized name for dynamic components/elements
-		// TODO: this is not quite right as the node.id could be a member expression
-		// so, we'd need to identify dynamic based on that too
-		// However, we're going to get rid of capitalization in favor of jsx()
-		// so, this will be need to be redone.
+		// No need to capitalize or track dynamic component metadata
+		// TypeScript will infer correct types based on the original variable name case
 		if (node.id.type === 'Identifier' && node.id.tracked) {
 			const source_name = node.id.name;
-			const capitalized_name = source_name.charAt(0).toUpperCase() + source_name.slice(1);
-			node.metadata.ts_name = capitalized_name;
 			node.metadata.source_name = source_name;
-
-			// Mark the binding as a dynamic component so we can capitalize it everywhere
-			const binding = context.state.scope.get(source_name);
-			if (binding) {
-				if (!binding.metadata) {
-					binding.metadata = {};
-				}
-				binding.metadata.is_dynamic_component = true;
-			}
 
 			if (!is_dom_element && state.elements) {
 				state.elements.push(node);

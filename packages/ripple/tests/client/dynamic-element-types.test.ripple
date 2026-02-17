@@ -1,0 +1,161 @@
+import { describe, it, expect } from 'vitest';
+import { track } from 'ripple';
+
+describe('dynamic element TypeScript types', () => {
+	it('should allow attributes on dynamic elements', () => {
+		component App() {
+			let div = track('div');
+
+			// Should not have TypeScript errors
+			<@div />
+			<@div class="container" />
+			<@div id="test-id" data-testid="dynamic" />
+			<@div style={{ color: 'red' }} />
+			<@div class="test" id="test" data-attr="value">{'Content'}</@div>
+		}
+
+		render(App);
+		const elements = container.querySelectorAll('div');
+
+		expect(elements.length).toBe(5);
+		expect(elements[1].className).toBe('container');
+		expect(elements[2].id).toBe('test-id');
+		expect(elements[2].getAttribute('data-testid')).toBe('dynamic');
+		expect(elements[3].style.color).toBe('red');
+		expect(elements[4].className).toBe('test');
+		expect(elements[4].id).toBe('test');
+		expect(elements[4].getAttribute('data-attr')).toBe('value');
+	});
+
+	it('should work with lowercase dynamic elements', () => {
+		component App() {
+			let button = track('button');
+			let input = track('input');
+			let span = track('span');
+
+			<@button type="button" class="btn">{'Click me'}</@button>
+			<@input type="text" value="test" />
+			<@span class="highlight">{'Highlighted'}</@span>
+		}
+
+		render(App);
+
+		const button = container.querySelector('button');
+		const input = container.querySelector('input');
+		const span = container.querySelector('span');
+
+		expect(button).toBeTruthy();
+		expect(button.type).toBe('button');
+		expect(button.className).toBe('btn');
+
+		expect(input).toBeTruthy();
+		expect(input.type).toBe('text');
+		expect(input.value).toBe('test');
+
+		expect(span).toBeTruthy();
+		expect(span.className).toBe('highlight');
+	});
+
+	it('should work with union types', () => {
+		component App() {
+			let tag = track('div' as 'div' | 'span' | 'section');
+
+			<@tag class="union-element" data-type="test">{'Union type content'}</@tag>
+		}
+
+		render(App);
+		const element = container.querySelector('div');
+
+		expect(element).toBeTruthy();
+		expect(element.className).toBe('union-element');
+		expect(element.getAttribute('data-type')).toBe('test');
+	});
+
+	it('should accept event handlers on dynamic elements', () => {
+		let clicked = false;
+
+		component App() {
+			let button = track('button');
+
+			<@button
+				onClick={() => {
+					clicked = true;
+				}}
+			>
+				{'Click'}
+			</@button>
+		}
+
+		render(App);
+		const button = container.querySelector('button');
+
+		expect(clicked).toBe(false);
+		button?.click();
+		expect(clicked).toBe(true);
+	});
+
+	it('should work with spread attributes', () => {
+		component App() {
+			let div = track('div');
+			const attrs = {
+				class: 'spread-test',
+				id: 'spread-id',
+				'data-custom': 'custom-value',
+			};
+
+			<@div {...attrs}>{'Spread content'}</@div>
+		}
+
+		render(App);
+		const element = container.querySelector('div');
+
+		expect(element).toBeTruthy();
+		expect(element.className).toBe('spread-test');
+		expect(element.id).toBe('spread-id');
+		expect(element.getAttribute('data-custom')).toBe('custom-value');
+	});
+
+	it('should work with reactive attributes', () => {
+		component App() {
+			let tag = track('div');
+			let className = track('initial');
+
+			<@tag class={@className}>{'Reactive class'}</@tag>
+		}
+
+		render(App);
+		const element = container.querySelector('div');
+
+		expect(element).toBeTruthy();
+		expect(element.className).toBe('initial');
+	});
+
+	it('should allow void elements with attributes', () => {
+		component App() {
+			let input = track('input');
+			let br = track('br');
+			let img = track('img');
+
+			<@input type="text" value="void-test" />
+			<@br class="break" />
+			<@img src="test.jpg" alt="Test" />
+		}
+
+		render(App);
+
+		const input = container.querySelector('input');
+		const br = container.querySelector('br');
+		const img = container.querySelector('img');
+
+		expect(input).toBeTruthy();
+		expect(input.type).toBe('text');
+		expect(input.value).toBe('void-test');
+
+		expect(br).toBeTruthy();
+		expect(br.className).toBe('break');
+
+		expect(img).toBeTruthy();
+		expect(img.src).toContain('test.jpg');
+		expect(img.alt).toBe('Test');
+	});
+});

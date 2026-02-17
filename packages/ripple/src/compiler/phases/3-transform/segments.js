@@ -444,18 +444,9 @@ export function convert_source_map_to_mappings(
 				}
 				return; // Leaf node, don't traverse further
 			} else if (node.type === 'JSXIdentifier') {
-				// JSXIdentifiers can also be capitalized (for dynamic components)
+				// JSXIdentifiers are used as-is without capitalization
 				if (node.loc && node.name) {
-					if (node.metadata?.is_capitalized) {
-						tokens.push({
-							source: node.metadata.source_name,
-							generated: node.name,
-							loc: node.loc,
-							metadata: {},
-						});
-					} else {
-						tokens.push({ source: node.name, generated: node.name, loc: node.loc, metadata: {} });
-					}
+					tokens.push({ source: node.name, generated: node.name, loc: node.loc, metadata: {} });
 				}
 				return; // Leaf node, don't traverse further
 			} else if (node.type === 'Literal') {

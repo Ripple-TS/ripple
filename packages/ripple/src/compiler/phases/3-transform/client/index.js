@@ -398,30 +398,8 @@ const visitors = {
 		if (is_reference(node, parent)) {
 			if (context.state.to_ts) {
 				if (node.tracked) {
-					// Check if this identifier is used as a dynamic component/element
-					// by checking if it has a capitalized name in metadata
-					const binding = context.state.scope.get(node.name);
-					if (binding?.metadata?.is_dynamic_component) {
-						// Capitalize the identifier for TypeScript
-						const capitalized_name = node.name.charAt(0).toUpperCase() + node.name.slice(1);
-						const capitalized_node = {
-							...node,
-							name: capitalized_name,
-							metadata: {
-								...node.metadata,
-								is_capitalized: true,
-							},
-						};
-						const member = b.member(
-							capitalized_node,
-							b.literal('#v'),
-							true,
-							!is_inside_left_side_assignment(node),
-							/** @type {AST.NodeWithLocation} */ (node),
-						);
-						member.tracked = true;
-						return member;
-					}
+					// Use the original identifier name without capitalization
+					// TypeScript will infer correct types based on the original case
 					const member = b.member(
 						node,
 						b.literal('#v'),
@@ -837,78 +815,8 @@ const visitors = {
 	},
 
 	VariableDeclarator(node, context) {
-		// In TypeScript mode, capitalize identifiers that are used as dynamic components
-		if (context.state.to_ts) {
-			/**
-			 * Recursively capitalize identifiers in patterns (ArrayPattern, ObjectPattern)
-			 * @param {AST.Pattern} pattern - The pattern node to process
-			 * @returns {AST.Pattern} The transformed pattern
-			 */
-			const capitalize_pattern = (pattern) => {
-				if (pattern.type === 'Identifier') {
-					const binding = context.state.scope.get(pattern.name);
-					if (binding?.metadata?.is_dynamic_component) {
-						const capitalized_name = pattern.name.charAt(0).toUpperCase() + pattern.name.slice(1);
-						// Add metadata to track the original name for Volar mappings
-						return {
-							...pattern,
-							name: capitalized_name,
-							metadata: {
-								...pattern.metadata,
-								is_capitalized: true,
-							},
-						};
-					}
-					return pattern;
-				} else if (pattern.type === 'ArrayPattern') {
-					return {
-						...pattern,
-						elements: pattern.elements.map((element) =>
-							element ? capitalize_pattern(element) : element,
-						),
-					};
-				} else if (pattern.type === 'ObjectPattern') {
-					return {
-						...pattern,
-						properties: pattern.properties.map((prop) => {
-							if (prop.type === 'Property') {
-								return {
-									...prop,
-									value: capitalize_pattern(prop.value),
-								};
-							} else if (prop.type === 'RestElement') {
-								return {
-									...prop,
-									argument: capitalize_pattern(prop.argument),
-								};
-							}
-							return prop;
-						}),
-					};
-				} else if (pattern.type === 'RestElement') {
-					return {
-						...pattern,
-						argument: capitalize_pattern(pattern.argument),
-					};
-				} else if (pattern.type === 'AssignmentPattern') {
-					return {
-						...pattern,
-						left: capitalize_pattern(pattern.left),
-						right: /** @type {AST.Expression} */ (context.visit(pattern.right)),
-					};
-				}
-				return pattern;
-			};
-
-			const transformed_id = capitalize_pattern(node.id);
-			if (transformed_id !== node.id) {
-				return {
-					...node,
-					id: transformed_id,
-					init: node.init ? /** @type {AST.Expression} */ (context.visit(node.init)) : null,
-				};
-			}
-		}
+		// No need to capitalize identifiers - TypeScript will infer correct types
+		// based on the original variable name case
 		return context.next();
 	},
 
@@ -2608,23 +2516,8 @@ function transform_ts_child(node, context) {
 			}
 		}
 
-		if (/** @type {AST.Node} */ (node.id).type !== 'MemberExpression' && node.id.tracked) {
-			// This is just temporary until we remove capitalization
-			// The `is_capitalized` was never handled for MemberExpression
-			// but it should've been for the `object` part because it starts the tag
-			// But the plan is to only rely on source_name and creating a const for the tag with ['#v']
-			node.openingElement.metadata = {
-				...node.openingElement.metadata,
-				is_capitalized: true,
-			};
-
-			if (!node.selfClosing && !node.unclosed) {
-				node.closingElement.metadata = {
-					...node.closingElement.metadata,
-					is_capitalized: true,
-				};
-			}
-		}
+		// No need to set capitalization metadata - TypeScript will infer
+		// correct types based on the original variable name case
 
 		if (node.id.type === 'MemberExpression') {
 			const member = /** @type {AST.MemberExpression} */ (visit(node.id, { ...state }));
