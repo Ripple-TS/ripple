@@ -14,7 +14,7 @@ export component SimplePortal() {
 // Portal with conditional rendering
 export component ConditionalPortal() {
 	let show = @true;
-	
+
 	<div class="container">
 		<button class="toggle" onClick={() => (@show = !@show)}>{'Toggle'}</button>
 		if (@show) {
