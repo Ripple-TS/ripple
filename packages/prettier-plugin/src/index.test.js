@@ -4647,8 +4647,9 @@ if (@status === 'a') @status = 'b'; else if (@status === 'b') @status = 'c'; els
 }`;
 				const expected = `component Test() {
   let x = 0;
-  if (x === 0) if (x === 1) x = 2;
-  else x = 3;
+  if (x === 0)
+    if (x === 1) x = 2;
+    else x = 3;
   <div>{x}</div>
 }`;
 

@@ -3003,10 +3003,23 @@ function printIfStatement(node, path, options, print) {
 	// Use group to allow breaking the test when it doesn't fit
 	const testDoc = group(concat(['if (', indent(concat([softline, test])), softline, ')']));
 
-	// Check if consequent is a block statement
+	// Check if consequent is a block statement or another if statement
 	const consequentIsBlock = node.consequent.type === 'BlockStatement';
+	const consequentIsIf = node.consequent.type === 'IfStatement';
 
-	const parts = [testDoc, ' ', consequent];
+	const parts = [testDoc];
+
+	// Handle the consequent
+	if (consequentIsBlock) {
+		// For block statements, add a space before the block
+		parts.push(' ', consequent);
+	} else if (consequentIsIf) {
+		// For nested if statements, add a line break and indent
+		parts.push(indent(concat([hardline, consequent])));
+	} else {
+		// For other non-block statements, add a space
+		parts.push(' ', consequent);
+	}
 
 	// Handle the alternate
 	if (node.alternate) {
