@@ -13,15 +13,20 @@
       "@ripple-ts/language-server",
       "@ripple-ts/prettier-plugin",
       "@ripple-ts/rollup-plugin",
-      "@ripple-ts/tree-sitter",
       "@ripple-ts/typescript-plugin",
       "@ripple-ts/vite-plugin"
-    ],
-    ["@ripple-ts/vscode-plugin", "@ripple-ts/sublime-text-plugin", "@ripple-ts/zed-plugin"]
+    ]
   ],
   "linked": [],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@ripple-ts/textmate", "@ripple-ts/nvim-plugin"]
+  "ignore": [
+    "@ripple-ts/textmate",
+    "@ripple-ts/nvim-plugin",
+    "@ripple-ts/tree-sitter",
+    "@ripple-ts/vscode-plugin",
+    "@ripple-ts/sublime-text-plugin",
+    "@ripple-ts/zed-plugin"
+  ]
 }
