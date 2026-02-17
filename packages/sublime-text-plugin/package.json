@@ -2,6 +2,7 @@
   "name": "@ripple-ts/sublime-text-plugin",
   "version": "0.0.82",
   "description": "",
+  "private": true,
   "scripts": {
     "update-lock": "cd src/language-server && npm install --package-lock-only",
     "build": "npm run update-lock && node ./scripts/build.js"

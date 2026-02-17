@@ -4,6 +4,7 @@
   "publisher": "ripple-ts",
   "description": "Ripple JavaScript/TypeScript language support",
   "version": "0.0.82",
+  "private": true,
   "author": "Dominic Gannaway",
   "license": "MIT",
   "engines": {
