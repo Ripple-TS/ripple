@@ -19,8 +19,9 @@ export component SwitchReactive() {
 	<button
 		class="toggle"
 		onClick={() => {
-			if (@status === 'a') @status = 'b'; else if (@status === 'b') @status = 'c'; else @status =
-				'a';
+			if (@status === 'a') @status = 'b';
+			else if (@status === 'b') @status = 'c';
+			else @status = 'a';
 		}}
 	>
 		{'Toggle'}
