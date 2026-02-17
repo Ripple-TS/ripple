@@ -4893,5 +4893,101 @@ if (@status === 'a') @status = 'b'; else if (@status === 'b') @status = 'c'; els
 			const result = await format(input, { singleQuote: true });
 			expect(result).toBeWithNewline(expected);
 		});
+
+		it('should handle comments before try/catch blocks', async () => {
+			const input = `function test() {
+  // comment before try
+  try {
+    doSomething();
+  } catch (e) {
+    console.error(e);
+  }
+}`;
+			const expected = `function test() {
+  // comment before try
+  try {
+    doSomething();
+  } catch (e) {
+    console.error(e);
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should handle comments before try/catch/finally blocks', async () => {
+			const input = `function test() {
+  // comment before try
+  try {
+    doSomething();
+  } catch (e) {
+    console.error(e);
+  } finally {
+    cleanup();
+  }
+}`;
+			const expected = `function test() {
+  // comment before try
+  try {
+    doSomething();
+  } catch (e) {
+    console.error(e);
+  } finally {
+    cleanup();
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should handle comments inside try/catch blocks', async () => {
+			const input = `function test() {
+  try {
+    // comment inside try
+    doSomething();
+  } catch (e) {
+    // comment inside catch
+    console.error(e);
+  }
+}`;
+			const expected = `function test() {
+  try {
+    // comment inside try
+    doSomething();
+  } catch (e) {
+    // comment inside catch
+    console.error(e);
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should handle block comments with try/catch', async () => {
+			const input = `function test() {
+  /* block comment before try */
+  try {
+    doSomething();
+  } catch (e) {
+    /* block comment in catch */
+    console.error(e);
+  }
+}`;
+			const expected = `function test() {
+  /* block comment before try */
+  try {
+    doSomething();
+  } catch (e) {
+    /* block comment in catch */
+    console.error(e);
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
 	});
 });
