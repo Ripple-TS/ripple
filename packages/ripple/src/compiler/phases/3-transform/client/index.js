@@ -154,10 +154,15 @@ function visit_head_element(node, context) {
 	);
 
 	if (init.length > 0 || update.length > 0 || final.length > 0) {
+		// Generate a hash for this head element based on filename and position
+		const hash_source = `${state.filename}:head:${node.start ?? 0}`;
+		const hash = createHash('sha256').update(hash_source).digest('hex').slice(0, 8);
+
 		context.state.init?.push(
 			b.stmt(
 				b.call(
 					'_$_.head',
+					b.literal(hash),
 					b.arrow(
 						[b.id('__anchor')],
 						b.block([
