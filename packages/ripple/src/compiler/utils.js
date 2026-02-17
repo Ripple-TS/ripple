@@ -7,7 +7,7 @@ import { build_assignment_value, extract_paths } from '../utils/ast.js';
 import * as b from '../utils/builders.js';
 import { is_capture_event, is_non_delegated, normalize_event_name } from '../utils/events.js';
 
-const regex_return_characters = /\r/g;
+export { hash } from '../utils/hashing.js';
 
 const VOID_ELEMENT_NAMES = [
 	'area',
@@ -553,20 +553,6 @@ export function escape_html(value, is_attr = false) {
 	}
 
 	return escaped + str.substring(last);
-}
-
-/**
- * Hashes a string to a base36 value
- * @param {string} str
- * @returns {string}
- */
-export function hash(str) {
-	str = str.replace(regex_return_characters, '');
-	let hash = 5381;
-	let i = str.length;
-
-	while (i--) hash = ((hash << 5) - hash) ^ str.charCodeAt(i);
-	return (hash >>> 0).toString(36);
 }
 
 /**
