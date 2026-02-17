@@ -3776,9 +3776,19 @@ function printClassDeclaration(node, path, options, print) {
  * @returns {Doc[]}
  */
 function printTryStatement(node, path, options, print) {
+	// Extract leading comments from block node to print them before 'try' keyword
+	const blockNode = node.block;
+
+	// Print block without its leading comments (they'll be printed before 'try')
+	const block = path.call((blockPath) => print(blockPath, { suppressLeadingComments: true }), 'block');
+
 	const parts = [];
+
+	// Print leading comments from block node before 'try' keyword
+	parts.push(...extractAndPrintLeadingComments(blockNode));
+
 	parts.push('try ');
-	parts.push(path.call(print, 'block'));
+	parts.push(block);
 
 	if (node.pending) {
 		parts.push(' pending ');

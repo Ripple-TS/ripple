@@ -4989,5 +4989,47 @@ if (@status === 'a') @status = 'b'; else if (@status === 'b') @status = 'c'; els
 			const result = await format(input, { singleQuote: true });
 			expect(result).toBeWithNewline(expected);
 		});
+
+		it('should handle comments before try block in Ripple component', async () => {
+			const input = `component App() {
+  <div id="second-top-block">
+    // <div>
+    try {
+      <div>{'b is true'}</div>
+    } catch (e) {}
+    // 	<div>
+    // 		<div>
+    // 			if (@b) {
+    // 				return;
+    // 			}
+    // 		</div>
+    // 	</div>
+    // 	<div />
+    // </div>
+    // <div id="sibling-block">{'Sibling'}</div>
+  </div>
+}`;
+			const expected = `component App() {
+  <div id="second-top-block">
+    // <div>
+    try {
+      <div>{'b is true'}</div>
+    } catch (e) {}
+    // 	<div>
+    // 		<div>
+    // 			if (@b) {
+    // 				return;
+    // 			}
+    // 		</div>
+    // 	</div>
+    // 	<div />
+    // </div>
+    // <div id="sibling-block">{'Sibling'}</div>
+  </div>
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
 	});
 });
