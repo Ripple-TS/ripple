@@ -226,8 +226,8 @@ export function ParentWithChildButton(__output) {
 						_$_.update(count);
 					},
 
-					label: 'Click me',
-				},
+					label: "Click me"
+				}
 			];
 
 			comp(...args);
