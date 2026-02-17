@@ -2116,6 +2116,49 @@ function test() {
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('should preserve comments before closing tag in elements', async () => {
+		const expected = `component App() {
+  <div id="second-top-block">
+    if (true) {
+      <div>{'b is true'}</div>
+    }
+    // <div>
+    // 	<div />
+    // </div>
+    // <div id="sibling-block">{'Sibling'}</div>
+  </div>
+}`;
+
+		const result = await format(expected, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('should preserve trailing comments after last child element before closing tag', async () => {
+		const expected = `component App() {
+  <div>
+    <span>{'first'}</span>
+    <span>{'second'}</span>
+    // trailing comment 1
+    // trailing comment 2
+  </div>
+}`;
+
+		const result = await format(expected, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('should preserve block comments before closing tag in elements', async () => {
+		const expected = `component App() {
+  <div>
+    <span>{'child'}</span>
+    /* block comment */
+  </div>
+}`;
+
+		const result = await format(expected, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
 	it('should preserve trailing comments in function parameters', async () => {
 		const expected = `function test(
   // comment in params

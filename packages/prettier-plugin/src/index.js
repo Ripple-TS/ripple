@@ -5140,6 +5140,32 @@ function printElement(node, path, options, print) {
 		}
 	}
 
+	// Collect comments attached to the closing element (comments that appear after the last child
+	// but before the closing tag, e.g. `</div>`). The parser attaches these as leadingComments
+	// on either the closingElement node or the closingElement.name node depending on context.
+	const closingElementComments = [
+		...(node.closingElement && Array.isArray(node.closingElement.leadingComments)
+			? node.closingElement.leadingComments
+			: []),
+		...(node.closingElement &&
+		node.closingElement.name &&
+		Array.isArray(node.closingElement.name.leadingComments)
+			? node.closingElement.name.leadingComments
+			: []),
+	];
+
+	if (closingElementComments.length > 0) {
+		const lastChild = node.children[node.children.length - 1];
+		if (lastChild) {
+			const blankLinesBefore = getBlankLinesBetweenNodes(lastChild, closingElementComments[0]);
+			finalChildren.push(hardline);
+			if (blankLinesBefore > 0) {
+				finalChildren.push(hardline);
+			}
+		}
+		finalChildren.push(...createElementLevelCommentPartsTrimmed(closingElementComments));
+	}
+
 	const fallbackCommentParts =
 		fallbackElementComments.length > 0
 			? createElementLevelCommentParts(fallbackElementComments)
