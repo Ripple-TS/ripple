@@ -671,10 +671,62 @@ import {
 ```
 
 ### Mount API
+
+Use `mount()` to render a component to the DOM for client-side only applications:
+
 ```typescript
-mount(App, {
-  props: { title: 'Hello world!' },
-  target: document.getElementById('root')
+import { mount } from 'ripple';
+import { App } from './App.ripple';
+
+const cleanup = mount(App, {
+  target: document.getElementById('root')!,
+  props: { title: 'Hello world!' }
+});
+
+// To unmount later:
+cleanup();
+```
+
+### Hydrate API
+
+Use `hydrate()` when your HTML was server-rendered and you need to make it interactive:
+
+```typescript
+import { hydrate } from 'ripple';
+import { App } from './App.ripple';
+
+const cleanup = hydrate(App, {
+  target: document.getElementById('root')!,
+  props: { title: 'Hello world!' }
+});
+```
+
+**When to use each:**
+- `mount()`: Client-side only (SPA). Clears target and renders fresh DOM.
+- `hydrate()`: SSR apps. Adopts existing server-rendered HTML without re-creating elements.
+
+### Server-Side Rendering
+
+On the server, use `render()` from `ripple/server`:
+
+```typescript
+import { render } from 'ripple/server';
+import { App } from './App.ripple';
+
+// Render to string
+const html = render(App, {
+  props: { title: 'Hello world!' }
+});
+```
+
+For streaming SSR:
+
+```typescript
+import { renderToStream } from 'ripple/server';
+import { App } from './App.ripple';
+
+const stream = renderToStream(App, {
+  props: { title: 'Hello world!' }
 });
 ```
 

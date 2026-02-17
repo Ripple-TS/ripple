@@ -71,9 +71,7 @@ export function SwitchReactive(__anchor, _, __block) {
 	var button_1 = _$_.first_child_frag(fragment_3);
 
 	button_1.__click = () => {
-		if (_$_.get(status) === 'a') _$_.set(status, 'b');
-		else if (_$_.get(status) === 'b') _$_.set(status, 'c');
-		else _$_.set(status, 'a');
+		if (_$_.get(status) === 'a') _$_.set(status, 'b'); else if (_$_.get(status) === 'b') _$_.set(status, 'c'); else _$_.set(status, 'a');
 	};
 
 	var node_1 = _$_.sibling(button_1);

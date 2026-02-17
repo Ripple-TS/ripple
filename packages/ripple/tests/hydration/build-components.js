@@ -26,11 +26,11 @@ const serverOutDir = join(__dirname, 'compiled', 'server');
  */
 function transformServerImports(code) {
 	// Replace `import { track } from 'ripple'` with server version
-	// Use 'ripple/ssr' which always points to the server runtime,
+	// Use 'ripple/server' which always points to the server runtime,
 	// bypassing the browser/default condition resolution
 	return code.replace(
 		/import\s*\{\s*track\s*\}\s*from\s*['"]ripple['"]/g,
-		"import { track } from 'ripple/ssr'",
+		"import { track } from 'ripple/server'",
 	);
 }
 

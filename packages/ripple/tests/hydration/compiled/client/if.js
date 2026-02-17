@@ -14,18 +14,12 @@ var root_11 = _$_.template(`<div class="off">OFF</div>`, 0);
 var root_9 = _$_.template(`<button class="toggle">Toggle</button><!>`, 1);
 var root_14 = _$_.template(`<span class="inner-content">Inner</span>`, 0);
 var root_13 = _$_.template(`<div class="outer-content">Outer<!></div>`, 0);
-var root_12 = _$_.template(
-	`<button class="outer-toggle">Outer</button><button class="inner-toggle">Inner</button><!>`,
-	1,
-);
+var root_12 = _$_.template(`<button class="outer-toggle">Outer</button><button class="inner-toggle">Inner</button><!>`, 1);
 var root_16 = _$_.template(`<div class="state">Loading...</div>`, 0);
 var root_18 = _$_.template(`<div class="state">Success!</div>`, 0);
 var root_19 = _$_.template(`<div class="state">Error occurred</div>`, 0);
 var root_17 = _$_.template(`<!>`, 1);
-var root_15 = _$_.template(
-	`<div><button class="success">Success</button><button class="error">Error</button><button class="loading">Loading</button><!></div>`,
-	0,
-);
+var root_15 = _$_.template(`<div><button class="success">Success</button><button class="error">Error</button><button class="loading">Loading</button><!></div>`, 0);
 
 import { track } from 'ripple';
 
@@ -96,8 +90,7 @@ export function IfElse(__anchor, _, __block) {
 		};
 
 		_$_.if(node_2, (__render) => {
-			if (isLoggedIn) __render(consequent_2);
-			else __render(alternate, false);
+			if (isLoggedIn) __render(consequent_2); else __render(alternate, false);
 		});
 	}
 
@@ -161,8 +154,7 @@ export function ReactiveIfElse(__anchor, _, __block) {
 		};
 
 		_$_.if(node_4, (__render) => {
-			if (_$_.get(isOn)) __render(consequent_4);
-			else __render(alternate_1, false);
+			if (_$_.get(isOn)) __render(consequent_4); else __render(alternate_1, false);
 		});
 	}
 
@@ -277,8 +269,7 @@ export function IfElseIfChain(__anchor, _, __block) {
 					};
 
 					_$_.if(node_8, (__render) => {
-						if (_$_.get(status) === 'success') __render(consequent_8);
-						else __render(alternate_2, false);
+						if (_$_.get(status) === 'success') __render(consequent_8); else __render(alternate_2, false);
 					});
 				}
 
@@ -286,8 +277,7 @@ export function IfElseIfChain(__anchor, _, __block) {
 			};
 
 			_$_.if(node_7, (__render) => {
-				if (_$_.get(status) === 'loading') __render(consequent_7);
-				else __render(alternate_3, false);
+				if (_$_.get(status) === 'loading') __render(consequent_7); else __render(alternate_3, false);
 			});
 		}
 
