@@ -2887,6 +2887,21 @@ const items = [] as unknown[];`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should format TSDeclareFunction (function overload signatures)', async () => {
+			const input = `export function test(arg: string): string;
+export function test(arg: number): string;
+export function test(arg: string | number): string {
+  return String(arg);
+}`;
+			const expected = `export function test(arg: string): string;
+export function test(arg: number): string;
+export function test(arg: string | number): string {
+  return String(arg);
+}`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should retain templated declarations', async () => {
 			const expected = `function Wrapper() {
   return {

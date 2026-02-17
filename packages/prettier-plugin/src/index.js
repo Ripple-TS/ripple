@@ -727,6 +727,10 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printFunctionDeclaration(node, path, options, print);
 			break;
 
+		case 'TSDeclareFunction':
+			nodeContent = printTSDeclareFunction(node, path, options, print);
+			break;
+
 		case 'IfStatement':
 			nodeContent = printIfStatement(node, path, options, print);
 			break;
@@ -2892,6 +2896,53 @@ function printCallArguments(path, options, print) {
 	}
 
 	return groupedContents;
+}
+
+/**
+ * Print TSDeclareFunction (TypeScript function overload declaration)
+ * These are function signatures without bodies, ending with semicolon
+ */
+function printTSDeclareFunction(node, path, options, print) {
+	const parts = [];
+
+	// Handle async functions
+	if (node.async) {
+		parts.push('async ');
+	}
+
+	parts.push('function');
+
+	// Handle generator functions
+	if (node.generator) {
+		parts.push('*');
+	}
+
+	parts.push(' ');
+	parts.push(node.id.name);
+
+	// Add TypeScript generics if present
+	if (node.typeParameters) {
+		const typeParams = path.call(print, 'typeParameters');
+		if (Array.isArray(typeParams)) {
+			parts.push(...typeParams);
+		} else {
+			parts.push(typeParams);
+		}
+	}
+
+	// Print parameters using shared function
+	const paramsPart = printFunctionParameters(path, options, print);
+	parts.push(group(paramsPart));
+
+	// Handle return type annotation
+	if (node.returnType) {
+		parts.push(': ', path.call(print, 'returnType'));
+	}
+
+	// TSDeclareFunction ends with semicolon, no body
+	parts.push(';');
+
+	return parts;
 }
 
 function printFunctionDeclaration(node, path, options, print) {

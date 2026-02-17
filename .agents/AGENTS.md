@@ -488,6 +488,28 @@ block.c; // context
 - VS Code extension entry: `packages/vscode-plugin/src/extension.js`
 - TypeScript plugin: `packages/typescript-plugin/src/` for IDE integration
 
+### Prettier plugin
+
+The Prettier plugin (`packages/prettier-plugin/src/index.js`) formats `.ripple`
+files. When encountering `/* Unknown: NodeType */` in formatter output:
+
+1. **Identify the missing node type** from the comment (e.g., `TSDeclareFunction`)
+2. **Add a case** in the `printRippleNode` switch statement:
+   ```javascript
+   case 'TSDeclareFunction':
+     nodeContent = printTSDeclareFunction(node, path, options, print);
+     break;
+   ```
+3. **Implement the print function** following existing patterns (see
+   `printFunctionDeclaration` as reference)
+4. **Add a test** in `packages/prettier-plugin/src/index.test.js`
+
+Common patterns:
+
+- Use `path.call(print, 'childNode')` to recursively print child nodes
+- Use `concat([...])` to join parts, `group()` for line breaking
+- Check `node.typeParameters`, `node.returnType` for TypeScript annotations
+
 ### Testing
 
 - Client tests: create `.test.ripple` files in `packages/ripple/tests/client/`

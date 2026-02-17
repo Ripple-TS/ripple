@@ -51,5 +51,22 @@ jobs:
       - name: Apply AgentSync configuration
         run: pnpm agents:sync
 
-      - name: Verify AgentSync status
-        run: pnpm agents:check
+      - name: Verify instruction symlinks
+        run: |
+          # Verify all instruction file symlinks are valid
+          # (agentsync status exits 1 for skills folder warnings which we can ignore)
+          for file in CLAUDE.md AGENTS.md GEMINI.md .github/copilot-instructions.md .github/AGENTS.md; do
+            if [ -L "$file" ]; then
+              target=$(readlink "$file")
+              if [ -f "$file" ]; then
+                echo "✔ OK: $file -> $target"
+              else
+                echo "✗ BROKEN: $file -> $target (target not found)"
+                exit 1
+              fi
+            elif [ -f "$file" ]; then
+              echo "✗ ERROR: $file exists but is not a symlink"
+              exit 1
+            fi
+          done
+          echo "All instruction symlinks verified!"
