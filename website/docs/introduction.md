@@ -69,6 +69,6 @@ needed. Prior experience with other frameworks is helpful but not required.
 - **Prettier Support**: Full Prettier formatting support for `.ripple` modules
 - **ESLint Support**: linting support for `.ripple` modules
 
-## Missing Features
+## Server-Side Rendering
 
-- **SSR**: Ripple is currently an SPA only. It will have SSR soon! Hydration to follow after.
+Ripple supports server-side rendering (SSR) with full hydration support. See the [Application Guide](/docs/guide/application) for details on using `mount()` for client-side rendering and `hydrate()` for SSR hydration.

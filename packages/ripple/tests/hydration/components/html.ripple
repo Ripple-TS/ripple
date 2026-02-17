@@ -1,0 +1,38 @@
+// HTML tag hydration testing components
+import { track } from 'ripple';
+
+export component StaticHtml() {
+	const html = '<p><strong>Bold</strong> text</p>';
+	<div>{html html}</div>
+}
+
+export component DynamicHtml() {
+	const content = '<p>Dynamic <span>HTML</span> content</p>';
+	<div>{html content}</div>
+}
+
+export component EmptyHtml() {
+	const html = '';
+	<div>{html html}</div>
+}
+
+export component ComplexHtml() {
+	const html = '<div class="nested"><span>Nested <em>content</em></span></div>';
+	<section>{html html}</section>
+}
+
+export component MultipleHtml() {
+	const html1 = '<p>First paragraph</p>';
+	const html2 = '<p>Second paragraph</p>';
+	<div>
+		{html html1}
+		{html html2}
+	</div>
+}
+
+export component HtmlWithReactivity() {
+	<div>
+		{html '<p>Count: 0</p>'}
+		<button>{'Increment'}</button>
+	</div>
+}

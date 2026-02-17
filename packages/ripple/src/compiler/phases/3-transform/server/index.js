@@ -26,6 +26,7 @@ import {
 	is_binding_function,
 	build_getter,
 	is_element_dynamic,
+	hash,
 } from '../../../utils.js';
 import { escape } from '../../../../utils/escaping.js';
 import { is_event_attribute } from '../../../../utils/events.js';
@@ -1317,14 +1318,52 @@ const visitors = {
 			visit(node.expression, { ...state, metadata })
 		);
 
-		// For Html nodes, we render the content as-is without escaping
+		// Following Svelte 5's approach: use hash comment as anchor, then content, then empty comment as end marker
+		// Structure: <!--hash--><content><!---->
+		// This is simpler and doesn't interfere with DOM traversal
+
+		// For literal values, compute hash at build time
 		if (expression.type === 'Literal') {
+			const value = String(expression.value ?? '');
+			const hash_value = hash(value);
+			// Push hash comment
 			state.init?.push(
-				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(expression.value))),
+				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(`<!--${hash_value}-->`))),
+			);
+			// Push the HTML content
+			state.init?.push(b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(value))));
+			// Push empty comment as end marker
+			state.init?.push(
+				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal('<!---->'))),
 			);
 		} else {
-			// If it's dynamic, we need to evaluate it and push it directly (not escaped)
-			state.init?.push(b.stmt(b.call(b.member(b.id('__output'), b.id('push')), expression)));
+			// For dynamic values, compute hash at runtime
+			// Create a variable to store the value
+			const value_id = state.scope?.generate('html_value');
+			if (value_id) {
+				state.init?.push(
+					b.const(value_id, b.call(b.id('String'), b.binary('??', expression, b.literal('')))),
+				);
+				// Compute hash at runtime using _$_.hash and push as comment
+				state.init?.push(
+					b.stmt(
+						b.call(
+							b.member(b.id('__output'), b.id('push')),
+							b.binary(
+								'+',
+								b.binary('+', b.literal('<!--'), b.call('_$_.hash', b.id(value_id))),
+								b.literal('-->'),
+							),
+						),
+					),
+				);
+				// Push the HTML content
+				state.init?.push(b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.id(value_id))));
+				// Push empty comment as end marker
+				state.init?.push(
+					b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal('<!---->'))),
+				);
+			}
 		}
 	},
 
