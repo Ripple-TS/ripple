@@ -103,6 +103,48 @@ component App() {
 
 This design enforces clear separation between component templates and regular JavaScript logic, making code more predictable and easier to analyze.
 
+### ⚠️ Critical: Early Returns Are Guard Exits, Not JSX Returns
+
+**IMPORTANT**: Inside Ripple components, use early returns only as `return;` (no value). This exits the current component render path and skips statements that follow.
+
+```ripple
+// ✅ CORRECT - Guard clause with early return
+component AuthGate({ is_logged_in }) {
+  if (!is_logged_in) {
+    <p>{'Please sign in.'}</p>
+    return;
+  }
+
+  <h1>{'Dashboard'}</h1>
+}
+
+// ❌ WRONG - Returning templates from components
+component App() {
+  if (loading) {
+    return <p>{'Loading...'}</p>;  // Compilation error
+  }
+}
+
+// ❌ WRONG - Returning values from components
+component App() {
+  if (error) {
+    return 'failed';  // Compilation error
+  }
+}
+```
+
+**LLM DO:**
+- Use `if (...) { <Fallback /> return; }` guard clauses to short-circuit rendering.
+- Place any guard/fallback template statements before `return;`.
+- Keep helper functions separate for computing/returning data.
+- Use early return when it improves readability over deeply nested `if/else`.
+
+**LLM DON'T:**
+- Do not generate `return <JSX />` in Ripple components.
+- Do not generate `return someValue;` inside Ripple components.
+- Do not generate top-level/module `return;`.
+- Do not translate React-style `return (...)` component patterns directly to Ripple.
+
 ### Template Lexical Scoping
 
 **Unique Feature**: Ripple templates act as lexical scopes, allowing you to declare variables, call functions, and execute JavaScript statements directly within JSX elements - similar to block statements in regular JavaScript.

@@ -1216,6 +1216,7 @@ export interface TransformServerState extends BaseState {
 	server_exported_names: string[];
 	dynamicElementName?: AST.TemplateLiteral;
 	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
+	dev?: boolean;
 	return_flags?: Map<AST.ReturnStatement, { name: string; tracked: boolean }>;
 }
 

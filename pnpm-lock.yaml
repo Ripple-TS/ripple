@@ -383,6 +383,12 @@ importers:
 
   packages/prettier-plugin:
     devDependencies:
+      '@types/estree':
+        specifier: catalog:default
+        version: 1.0.8
+      '@types/estree-jsx':
+        specifier: catalog:default
+        version: 1.0.5
       prettier:
         specifier: catalog:default
         version: 3.6.2
