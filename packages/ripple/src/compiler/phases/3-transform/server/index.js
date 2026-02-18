@@ -24,7 +24,6 @@ import {
 	is_void_element,
 	normalize_children,
 	is_binding_function,
-	build_getter,
 	is_element_dynamic,
 	hash,
 } from '../../../utils.js';
@@ -40,6 +39,66 @@ import {
 import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../../constants.js';
 
 /**
+ * Checks if a node is template or control-flow content that should be wrapped when return flags are active
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_template_or_control_flow(node) {
+	return (
+		node.type === 'Element' ||
+		node.type === 'Text' ||
+		node.type === 'Html' ||
+		node.type === 'TsxCompat' ||
+		node.type === 'IfStatement' ||
+		node.type === 'ForOfStatement' ||
+		node.type === 'TryStatement' ||
+		node.type === 'SwitchStatement'
+	);
+}
+
+/**
+ * Builds a negated AND condition from return flag names: !__r_1 && !__r_2 && ...
+ * @param {string[]} flags
+ * @returns {AST.Expression}
+ */
+function build_return_guard(flags) {
+	/** @type {AST.Expression} */
+	let condition = b.unary('!', b.id(flags[0]));
+	for (let i = 1; i < flags.length; i++) {
+		condition = b.logical('&&', condition, b.unary('!', b.id(flags[i])));
+	}
+	return condition;
+}
+
+/**
+ * Collects all unique return statements from the direct children of a body
+ * @param {AST.Node[]} children
+ * @returns {AST.ReturnStatement[]}
+ */
+function collect_returns_from_children(children) {
+	/** @type {AST.ReturnStatement[]} */
+	const returns = [];
+	const seen = new Set();
+	for (const node of children) {
+		if (node.type === 'ReturnStatement') {
+			if (!seen.has(node)) {
+				seen.add(node);
+				returns.push(node);
+			}
+		}
+		if (node.metadata?.returns) {
+			for (const ret of node.metadata.returns) {
+				if (!seen.has(ret)) {
+					seen.add(ret);
+					returns.push(ret);
+				}
+			}
+		}
+	}
+	return returns;
+}
+
+/**
  * @param {AST.Node[]} children
  * @param {TransformServerContext} context
  */
@@ -47,10 +106,32 @@ function transform_children(children, context) {
 	const { visit, state } = context;
 	const normalized = normalize_children(children, context);
 
-	for (const node of normalized) {
+	const all_returns = collect_returns_from_children(normalized);
+	/** @type {Map<AST.ReturnStatement, { name: string, tracked: boolean }>} */
+	const return_flags = new Map([...(state.return_flags || [])]);
+	/** @type {AST.ReturnStatement[]} */
+	const new_returns = [];
+	for (const ret of all_returns) {
+		if (!return_flags.has(ret)) {
+			return_flags.set(ret, { name: state.scope.generate('__r'), tracked: false });
+			new_returns.push(ret);
+		}
+	}
+
+	for (const ret of new_returns) {
+		const info = /** @type {{ name: string, tracked: boolean }} */ (return_flags.get(ret));
+		state.init?.push(b.var(b.id(info.name), b.false));
+	}
+
+	// Track accumulated return flags as we process children
+	/** @type {string[]} */
+	let accumulated_flags = [];
+
+	/** @param {AST.Node} node */
+	const process_node = (node) => {
 		if (node.type === 'BreakStatement') {
 			state.init?.push(b.break);
-			continue;
+			return;
 		}
 		if (
 			node.type === 'VariableDeclaration' ||
@@ -61,18 +142,97 @@ function transform_children(children, context) {
 			node.type === 'ClassDeclaration' ||
 			node.type === 'TSTypeAliasDeclaration' ||
 			node.type === 'TSInterfaceDeclaration' ||
+			node.type === 'ReturnStatement' ||
 			node.type === 'Component'
 		) {
 			const metadata = { await: false };
-			state.init?.push(/** @type {AST.Statement} */ (visit(node, { ...state, metadata })));
+			state.init?.push(
+				/** @type {AST.Statement} */ (visit(node, { ...state, return_flags, metadata })),
+			);
 			if (metadata.await) {
 				state.init?.push(b.if(b.call('_$_.aborted'), b.return(null)));
 				if (state.metadata?.await === false) {
 					state.metadata.await = true;
 				}
 			}
+			if (node.type === 'ReturnStatement') {
+				const info = return_flags.get(node);
+				if (info && !accumulated_flags.includes(info.name)) {
+					accumulated_flags.push(info.name);
+				}
+			}
 		} else {
-			visit(node, state);
+			visit(node, { ...state, return_flags });
+		}
+	};
+
+	/**
+	 * Wraps remaining nodes (from index `start_index` onwards) inside a guard block.
+	 * Recursively handles additional return flags.
+	 * @param {number} start_index
+	 * @param {string[]} flags
+	 */
+	const wrap_remaining = (start_index, flags) => {
+		const guard = build_return_guard(flags);
+		/** @type {AST.Statement[]} */
+		const wrapped = [];
+		const saved_init = state.init;
+		state.init = wrapped;
+
+		/** @type {string[]} */
+		let inner_flags = [...flags];
+
+		for (let i = start_index; i < normalized.length; i++) {
+			const n = normalized[i];
+
+			if (inner_flags.length > flags.length && is_template_or_control_flow(n)) {
+				wrap_remaining(i, inner_flags);
+				break;
+			}
+
+			process_node(n);
+
+			if (n.type === 'ReturnStatement') {
+				const info = return_flags.get(n);
+				if (info && !inner_flags.includes(info.name)) {
+					inner_flags.push(info.name);
+				}
+			}
+
+			if (n.metadata?.has_return && n.metadata.returns) {
+				for (const ret of n.metadata.returns) {
+					const info = return_flags.get(ret);
+					if (info && !inner_flags.includes(info.name)) {
+						inner_flags.push(info.name);
+					}
+				}
+			}
+		}
+
+		state.init = saved_init;
+		if (wrapped.length > 0) {
+			state.init?.push(b.if(guard, b.block(wrapped)));
+		}
+	};
+
+	for (let idx = 0; idx < normalized.length; idx++) {
+		const node = normalized[idx];
+
+		if (accumulated_flags.length > 0 && is_template_or_control_flow(node)) {
+			wrap_remaining(idx, accumulated_flags);
+			break;
+		}
+
+		process_node(node);
+
+		// After processing, collect return flags from this node
+		if (node.metadata?.has_return && node.metadata.returns) {
+			for (const ret of node.metadata.returns) {
+				const info = return_flags.get(ret);
+				if (info && !accumulated_flags.includes(info.name)) {
+					accumulated_flags.push(info.name);
+				}
+			}
 		}
 	}
 
@@ -1015,6 +1175,17 @@ const visitors = {
 		context.state.init?.push(
 			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_CLOSE))),
 		);
+	},
+
+	ReturnStatement(node, context) {
+		if (!is_inside_component(context)) {
+			return context.next();
+		}
+		const info = context.state.return_flags?.get(node);
+		if (info) {
+			return b.stmt(b.assignment('=', b.id(info.name), b.true));
+		}
+		return context.next();
 	},
 
 	AssignmentExpression(node, context) {

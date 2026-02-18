@@ -131,6 +131,7 @@ function visit_function(node, context) {
 
 /**
  * @param {AST.Element} node
+ * @param {number} index
  * @param {TransformClientContext} context
  */
 function visit_head_element(node, index, context) {
@@ -2112,6 +2113,44 @@ const visitors = {
 		const id = context.state.flush_node?.();
 		const statements = [];
 
+		// Optimize lone return: if (cond) { return; } with no alternate
+		if (node.metadata?.lone_return && context.state.return_flags) {
+			const consequent_body =
+				node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+			const ret = /** @type {AST.ReturnStatement} */ (consequent_body[0]);
+			const info = context.state.return_flags.get(ret);
+
+			if (info) {
+				/** @type {AST.Statement[]} */
+				const callback_body = [];
+
+				if (info.tracked) {
+					callback_body.push(b.stmt(b.call('_$_.set', b.id(info.name), b.false)));
+					callback_body.push(
+						b.if(
+							/** @type {AST.Expression} */ (context.visit(node.test)),
+							b.stmt(b.call('_$_.set', b.id(info.name), b.true)),
+						),
+					);
+				} else {
+					callback_body.push(b.stmt(b.assignment('=', b.id(info.name), b.false)));
+					callback_body.push(
+						b.if(
+							/** @type {AST.Expression} */ (context.visit(node.test)),
+							b.stmt(b.assignment('=', b.id(info.name), b.true)),
+						),
+					);
+				}
+
+				statements.push(
+					b.stmt(b.call('_$_.if', id, b.arrow([b.id('__render')], b.block(callback_body)))),
+				);
+
+				context.state.init?.push(b.block(statements));
+				return;
+			}
+		}
+
 		const consequent_scope =
 			/** @type {ScopeInterface} */ (context.state.scopes.get(node.consequent)) ||
 			context.state.scope;
@@ -2144,34 +2183,63 @@ const visitors = {
 			statements.push(b.var(b.id(alternate_id), b.arrow([b.id('__anchor')], alternate_block)));
 		}
 
-		statements.push(
-			b.stmt(
-				b.call(
-					'_$_.if',
-					id,
-					b.arrow(
-						[b.id('__render')],
-						b.block([
-							b.if(
-								/** @type {AST.Expression} */ (context.visit(node.test)),
-								b.stmt(b.call(b.id('__render'), b.id(consequent_id))),
-								alternate_id
-									? b.stmt(
-											b.call(
-												b.id('__render'),
-												b.id(alternate_id),
-												node.alternate ? b.literal(false) : undefined,
-											),
-										)
-									: undefined,
+		// Collect return flag resets for IfStatements that contain returns
+		/** @type {AST.Statement[]} */
+		const callback_body = [];
+
+		if (node.metadata?.has_return && context.state.return_flags) {
+			const returns = node.metadata.returns || [];
+			for (const ret of returns) {
+				const info = context.state.return_flags.get(ret);
+				if (info) {
+					if (info.tracked) {
+						callback_body.push(b.stmt(b.call('_$_.set', b.id(info.name), b.false)));
+					} else {
+						callback_body.push(b.stmt(b.assignment('=', b.id(info.name), b.false)));
+					}
+				}
+			}
+		}
+
+		callback_body.push(
+			b.if(
+				/** @type {AST.Expression} */ (context.visit(node.test)),
+				b.stmt(b.call(b.id('__render'), b.id(consequent_id))),
+				alternate_id
+					? b.stmt(
+							b.call(
+								b.id('__render'),
+								b.id(alternate_id),
+								node.alternate ? b.literal(false) : undefined,
 							),
-						]),
-					),
-				),
+						)
+					: undefined,
 			),
 		);
 
+		statements.push(
+			b.stmt(b.call('_$_.if', id, b.arrow([b.id('__render')], b.block(callback_body)))),
+		);
+
 		context.state.init?.push(b.block(statements));
+	},
+
+	ReturnStatement(node, context) {
+		if (!is_inside_component(context)) {
+			return context.next();
+		}
+		if (context.state.to_ts) {
+			return context.next();
+		}
+		const info = context.state.return_flags?.get(node);
+		if (info) {
+			if (info.tracked) {
+				return b.stmt(b.call('_$_.set', b.id(info.name), b.true));
+			} else {
+				return b.stmt(b.assignment('=', b.id(info.name), b.true));
+			}
+		}
+		return context.next();
 	},
 
 	TSAsExpression(node, context) {
@@ -2861,6 +2929,71 @@ function transform_ts_child(node, context) {
 }
 
 /**
+ * Checks if a node is template or control-flow content
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_template_or_control_flow(node) {
+	return (
+		node.type === 'Element' ||
+		node.type === 'Text' ||
+		node.type === 'Html' ||
+		node.type === 'TsxCompat' ||
+		node.type === 'IfStatement' ||
+		node.type === 'ForOfStatement' ||
+		node.type === 'TryStatement' ||
+		node.type === 'SwitchStatement'
+	);
+}
+
+/**
+ * Builds a negated AND condition from return flag info: !flag1 && !flag2 && ...
+ * Uses _$_.get() for tracked flags and direct reference for plain booleans.
+ * @param {{ name: string, tracked: boolean }[]} flags
+ * @returns {AST.Expression}
+ */
+function build_return_guard(flags) {
+	/** @param {{ name: string, tracked: boolean }} flag */
+	const negate_flag = (flag) =>
+		flag.tracked ? b.unary('!', b.call('_$_.get', b.id(flag.name))) : b.unary('!', b.id(flag.name));
+
+	/** @type {AST.Expression} */
+	let condition = negate_flag(flags[0]);
+	for (let i = 1; i < flags.length; i++) {
+		condition = b.logical('&&', condition, negate_flag(flags[i]));
+	}
+	return condition;
+}
+
+/**
+ * Collects all unique return statements from direct children
+ * @param {AST.Node[]} children
+ * @returns {AST.ReturnStatement[]}
+ */
+function collect_returns_from_children(children) {
+	/** @type {AST.ReturnStatement[]} */
+	const returns = [];
+	const seen = new Set();
+	for (const node of children) {
+		if (node.type === 'ReturnStatement') {
+			if (!seen.has(node)) {
+				seen.add(node);
+				returns.push(node);
+			}
+		}
+		if (node.metadata?.returns) {
+			for (const ret of node.metadata.returns) {
+				if (!seen.has(ret)) {
+					seen.add(ret);
+					returns.push(ret);
+				}
+			}
+		}
+	}
+	return returns;
+}
+
+/**
  *
  * @param {AST.Node[]} children
  * @param {VisitorClientContext} context
@@ -2877,6 +3010,36 @@ function transform_children(children, context) {
 			(node) => node.type === 'Element' && node.id.type === 'Identifier' && node.id.name === 'head',
 		)
 	);
+
+	const all_returns = collect_returns_from_children(normalized);
+	/** @type {Map<AST.ReturnStatement, { name: string, tracked: boolean }>} */
+	const return_flags = new Map([...(state.return_flags || [])]);
+	/** @type {AST.ReturnStatement[]} */
+	const new_returns = [];
+	for (const ret of all_returns) {
+		if (!return_flags.has(ret)) {
+			return_flags.set(ret, {
+				name: state.scope.generate('__r'),
+				tracked: ret.metadata?.is_reactive ?? false,
+			});
+			new_returns.push(ret);
+		}
+	}
+
+	if (!state.to_ts) {
+		for (const ret of new_returns) {
+			const info = /** @type {{ name: string, tracked: boolean }} */ (return_flags.get(ret));
+			if (info.tracked) {
+				state.init?.unshift(b.var(b.id(info.name), b.call('_$_.tracked', b.false)));
+			} else {
+				state.init?.unshift(b.var(b.id(info.name), b.false));
+			}
+		}
+	}
+
+	/** @type {{ name: string, tracked: boolean }[]} */
+	const accumulated_return_flags = [];
+	const has_returns = all_returns.length > 0;
 
 	const is_fragment =
 		normalized.some(
@@ -2895,6 +3058,7 @@ function transform_children(children, context) {
 		).length > 1;
 	/** @type {AST.Identifier | null} */
 	let initial = null;
+	/** @type {(() => AST.Identifier) | null} */
 	let prev = null;
 	let template_id = null;
 
@@ -2925,7 +3089,95 @@ function transform_children(children, context) {
 		state.init?.push(b.var(id, b.call(template_id)));
 	};
 
-	for (const node of normalized) {
+	/** @type {AST.Node[]} */
+	let pending_group = [];
+	/** @type {{ name: string, tracked: boolean }[]} */
+	let pending_guard_flags = [];
+
+	const flush_pending_group = () => {
+		if (pending_group.length === 0) return;
+
+		const guard_flags = pending_guard_flags;
+		const group_nodes = pending_group;
+		pending_group = [];
+		pending_guard_flags = [];
+
+		// Push <!> placeholder for the _$_.if anchor
+		state.template?.push('<!>');
+
+		if (initial === null && root) {
+			create_initial(group_nodes[0]);
+		}
+
+		const current_prev = prev;
+		/** @type {AST.Identifier | null} */
+		let cached_anchor = null;
+		const group_flush_node = () => {
+			if (cached_anchor) return cached_anchor;
+			const id = b.id(state.scope.generate('node'));
+			if (current_prev !== null) {
+				state.init?.push(b.var(id, b.call('_$_.sibling', current_prev())));
+			} else if (initial !== null) {
+				if (is_fragment) {
+					state.init?.push(b.var(id, b.call('_$_.first_child_frag', initial)));
+				} else {
+					cached_anchor = initial;
+					return initial;
+				}
+			} else if (state.flush_node !== null) {
+				state.init?.push(b.var(id, b.call('_$_.child', state.flush_node?.())));
+			}
+			cached_anchor = id;
+			return id;
+		};
+
+		prev = group_flush_node;
+
+		const anchor = group_flush_node();
+
+		// Process group nodes through transform_body
+		const body = transform_body(group_nodes, {
+			...context,
+			state: { ...context.state, flush_node: null, return_flags },
+		});
+
+		const content_id = state.scope.generate('content');
+		const guard_condition = build_return_guard(guard_flags);
+
+		/** @type {AST.Statement[]} */
+		const callback_body = [
+			b.if(guard_condition, b.stmt(b.call(b.id('__render'), b.id(content_id)))),
+		];
+
+		state.init?.push(b.var(b.id(content_id), b.arrow([b.id('__anchor')], b.block(body))));
+		state.init?.push(
+			b.stmt(b.call('_$_.if', anchor, b.arrow([b.id('__render')], b.block(callback_body)))),
+		);
+	};
+
+	for (let node_idx = 0; node_idx < normalized.length; node_idx++) {
+		const node = normalized[node_idx];
+
+		if (accumulated_return_flags.length > 0 && is_template_or_control_flow(node) && !state.to_ts) {
+			if (pending_group.length === 0) {
+				pending_guard_flags = [...accumulated_return_flags];
+			}
+			pending_group.push(node);
+
+			if (node.metadata?.has_return && node.metadata.returns) {
+				flush_pending_group();
+				for (const ret of node.metadata.returns) {
+					const info = return_flags.get(ret);
+					if (info && !accumulated_return_flags.some((f) => f.name === info.name)) {
+						accumulated_return_flags.push(info);
+					}
+				}
+			}
+			continue;
+		}
+
+		flush_pending_group();
+
 		if (
 			node.type === 'VariableDeclaration' ||
 			node.type === 'ExpressionStatement' ||
@@ -2935,14 +3187,23 @@ function transform_children(children, context) {
 			node.type === 'ClassDeclaration' ||
 			node.type === 'TSTypeAliasDeclaration' ||
 			node.type === 'TSInterfaceDeclaration' ||
+			node.type === 'ReturnStatement' ||
 			node.type === 'Component'
 		) {
 			const metadata = { await: false };
-			state.init?.push(/** @type {AST.Statement} */ (visit(node, { ...state, metadata })));
+			state.init?.push(
+				/** @type {AST.Statement} */ (visit(node, { ...state, return_flags, metadata })),
+			);
 			if (metadata.await) {
 				state.init?.push(b.if(b.call('_$_.aborted'), b.return(null)));
 				if (state.metadata?.await === false) {
 					state.metadata.await = true;
+				}
+			}
+			if (!state.to_ts && node.type === 'ReturnStatement') {
+				const info = return_flags.get(node);
+				if (info && !accumulated_return_flags.some((f) => f.name === info.name)) {
+					accumulated_return_flags.push(info);
 				}
 			}
 		} else if (state.to_ts) {
@@ -3007,12 +3268,14 @@ function transform_children(children, context) {
 			if (node.type === 'Element') {
 				visit(node, {
 					...state,
+					return_flags,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
 			} else if (node.type === 'TsxCompat') {
 				visit(node, {
 					...state,
+					return_flags,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
@@ -3103,6 +3366,7 @@ function transform_children(children, context) {
 				node.is_controlled = is_controlled;
 				visit(node, {
 					...state,
+					return_flags,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
@@ -3126,7 +3390,18 @@ function transform_children(children, context) {
 				debugger;
 			}
 		}
+
+		if (has_returns && node.metadata?.has_return && node.metadata.returns) {
+			for (const ret of node.metadata.returns) {
+				const info = return_flags.get(ret);
+				if (info && !accumulated_return_flags.some((f) => f.name === info.name)) {
+					accumulated_return_flags.push(info);
+				}
+			}
+		}
 	}
+
+	flush_pending_group();
 
 	for (let i = 0; i < head_elements.length; i++) {
 		const head_element = head_elements[i];

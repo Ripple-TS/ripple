@@ -1,0 +1,1301 @@
+import { describe, it, expect } from 'vitest';
+import { render } from 'ripple/server';
+
+describe('early return in SSR', () => {
+	it('skips template content after direct return', async () => {
+		component App() {
+			<div>{'before'}</div>
+			return;
+			<div>{'after'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>before</div>');
+	});
+
+	it('skips rest of body when return condition is true', async () => {
+		component App() {
+			let condition = true;
+
+			if (condition) {
+				<div>{'guard hit'}</div>
+				return;
+			}
+			<div>{'rest'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>guard hit</div>');
+	});
+
+	it('renders rest of body when return condition is false', async () => {
+		component App() {
+			let condition = false;
+
+			if (condition) {
+				<div>{'guard hit'}</div>
+				return;
+			}
+			<div>{'rest'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>rest</div>');
+	});
+
+	it('handles nested ifs with return', async () => {
+		component App() {
+			let a = true;
+			let b = true;
+
+			if (a) {
+				<div>{'a is true'}</div>
+				if (b) {
+					<div>{'b is true'}</div>
+					return;
+				}
+			}
+			<div>{'rest renders only when !(a && b)'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>a is true</div><div>b is true</div>');
+	});
+
+	it('renders rest when nested return condition is not fully met', async () => {
+		component App() {
+			let a = true;
+			let b = false;
+
+			if (a) {
+				<div>{'a is true'}</div>
+				if (b) {
+					<div>{'b is true'}</div>
+					return;
+				}
+			}
+			<div>{'rest'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>a is true</div><div>rest</div>');
+	});
+
+	it('renders rest when outer condition is false', async () => {
+		component App() {
+			let a = false;
+			let b = true;
+
+			if (a) {
+				<div>{'a is true'}</div>
+				if (b) {
+					<div>{'b is true'}</div>
+					return;
+				}
+			}
+			<div>{'rest'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>rest</div>');
+	});
+
+	it('handles content before and after the if-with-return', async () => {
+		component App() {
+			let shouldReturn = true;
+
+			<div>{'before'}</div>
+			if (shouldReturn) {
+				<div>{'guard'}</div>
+				return;
+			}
+			<div>{'after'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>before</div><div>guard</div>');
+	});
+
+	it('renders multiple elements after guard when condition is false', async () => {
+		component App() {
+			let shouldReturn = false;
+
+			if (shouldReturn) {
+				<div>{'guard'}</div>
+				return;
+			}
+			<div>{'first'}</div>
+			<div>{'second'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>first</div><div>second</div>');
+	});
+
+	it('handles multiple sequential returns - first hits', async () => {
+		component App() {
+			let a = true;
+			let b = true;
+
+			if (a) {
+				<div>{'first guard'}</div>
+				return;
+			}
+			if (b) {
+				<div>{'second guard'}</div>
+				return;
+			}
+			<div>{'rest'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>first guard</div>');
+	});
+
+	it('handles multiple sequential returns - second hits', async () => {
+		component App() {
+			let a = false;
+			let b = true;
+
+			if (a) {
+				<div>{'first guard'}</div>
+				return;
+			}
+			if (b) {
+				<div>{'second guard'}</div>
+				return;
+			}
+			<div>{'rest'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>second guard</div>');
+	});
+
+	it('handles multiple sequential returns - none hit', async () => {
+		component App() {
+			let a = false;
+			let b = false;
+
+			if (a) {
+				<div>{'first guard'}</div>
+				return;
+			}
+			if (b) {
+				<div>{'second guard'}</div>
+				return;
+			}
+			<div>{'rest'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>rest</div>');
+	});
+
+	it('handles deeply nested returns (3 levels)', async () => {
+		component App() {
+			let a = true;
+			let b = true;
+			let c = true;
+
+			if (a) {
+				<div>{'a'}</div>
+				if (b) {
+					<div>{'b'}</div>
+					if (c) {
+						<div>{'c'}</div>
+						return;
+					}
+				}
+			}
+			<div>{'rest'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>a</div><div>b</div><div>c</div>');
+	});
+
+	it('handles deeply nested returns (3 levels) - partial', async () => {
+		component App() {
+			let a = true;
+			let b = true;
+			let c = false;
+
+			if (a) {
+				<div>{'a'}</div>
+				if (b) {
+					<div>{'b'}</div>
+					if (c) {
+						<div>{'c'}</div>
+						return;
+					}
+				}
+			}
+			<div>{'rest'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>a</div><div>b</div><div>rest</div>');
+	});
+
+	it('handles return with else-if chain - first condition', async () => {
+		component App() {
+			let value = 1;
+
+			if (value === 1) {
+				<div>{'one'}</div>
+				return;
+			} else if (value === 2) {
+				<div>{'two'}</div>
+				return;
+			} else {
+				<div>{'other'}</div>
+				return;
+			}
+			<div>{'never reached'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>one</div>');
+	});
+
+	it('handles return with else-if chain - second condition', async () => {
+		component App() {
+			let value = 2;
+
+			if (value === 1) {
+				<div>{'one'}</div>
+				return;
+			} else if (value === 2) {
+				<div>{'two'}</div>
+				return;
+			} else {
+				<div>{'other'}</div>
+				return;
+			}
+			<div>{'never reached'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>two</div>');
+	});
+
+	it('handles return with else-if chain - else condition', async () => {
+		component App() {
+			let value = 3;
+
+			if (value === 1) {
+				<div>{'one'}</div>
+				return;
+			} else if (value === 2) {
+				<div>{'two'}</div>
+				return;
+			} else {
+				<div>{'other'}</div>
+				return;
+			}
+			<div>{'never reached'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>other</div>');
+	});
+
+	it('handles return with complex boolean expression - AND', async () => {
+		component App() {
+			let a = true;
+			let b = true;
+			let c = true;
+
+			if (a && b && c) {
+				<div>{'all true'}</div>
+				return;
+			}
+			<div>{'not all true'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>all true</div>');
+	});
+
+	it('handles return with complex boolean expression - OR', async () => {
+		component App() {
+			let a = false;
+			let b = true;
+			let c = false;
+
+			if (a || b || c) {
+				<div>{'at least one true'}</div>
+				return;
+			}
+			<div>{'all false'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>at least one true</div>');
+	});
+
+	it('handles return with complex boolean expression - mixed', async () => {
+		component App() {
+			let a = true;
+			let b = false;
+			let c = true;
+
+			if (a && !b || c) {
+				<div>{'complex condition met'}</div>
+				return;
+			}
+			<div>{'complex condition not met'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>complex condition met</div>');
+	});
+
+	it('handles return with numeric comparison', async () => {
+		component App() {
+			let num = 10;
+
+			if (num > 5) {
+				<div>{'greater than 5'}</div>
+				return;
+			}
+			<div>{'5 or less'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>greater than 5</div>');
+	});
+
+	it('handles return with string comparison', async () => {
+		component App() {
+			let str = 'hello';
+
+			if (str === 'hello') {
+				<div>{'greeting'}</div>
+				return;
+			}
+			<div>{'not greeting'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>greeting</div>');
+	});
+
+	it('handles return with negated condition', async () => {
+		component App() {
+			let flag = false;
+
+			if (!flag) {
+				<div>{'flag is false'}</div>
+				return;
+			}
+			<div>{'flag is true'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>flag is false</div>');
+	});
+
+	it('handles return with ternary result', async () => {
+		component App() {
+			let condition = true;
+
+			if (condition) {
+				<div>{condition ? 'yes' : 'no'}</div>
+				return;
+			}
+			<div>{'fallback'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>yes</div>');
+	});
+
+	it('handles return in nested component scope', async () => {
+		component App() {
+			let show = true;
+
+			<div>
+				<span>{'outer'}</span>
+				if (show) {
+					<p>{'inner'}</p>
+					return;
+				}
+				<p>{'after'}</p>
+			</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div><span>outer</span><p>inner</p></div>');
+	});
+
+	it('handles return with multiple elements before and after', async () => {
+		component App() {
+			let shouldReturn = true;
+
+			<h1>{'title'}</h1>
+			<p>{'description'}</p>
+			if (shouldReturn) {
+				<div>{'guard'}</div>
+				<span>{'guard span'}</span>
+				return;
+			}
+			<footer>{'footer'}</footer>
+			<nav>{'nav'}</nav>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml(
+			'<h1>title</h1><p>description</p><div>guard</div><span>guard span</span>',
+		);
+	});
+
+	it('handles return at the beginning of component', async () => {
+		component App() {
+			if (true) {
+				<div>{'early exit'}</div>
+				return;
+			}
+			<div>{'never reached'}</div>
+			<div>{'also never reached'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>early exit</div>');
+	});
+
+	it('handles return at the end of component', async () => {
+		component App() {
+			<div>{'first'}</div>
+			<div>{'second'}</div>
+			if (true) {
+				<div>{'third'}</div>
+				return;
+			}
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>first</div><div>second</div><div>third</div>');
+	});
+
+	it('handles return with empty elements before (self-closing div)', async () => {
+		component App() {
+			<div />
+			if (true) {
+				<span>{'content'}</span>
+				return;
+			}
+			<p>{'after'}</p>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div /><span>content</span>');
+	});
+
+	it('handles return with function call in condition', async () => {
+		component App() {
+			function check() {
+				return true;
+			}
+
+			if (check()) {
+				<div>{'function returned true'}</div>
+				return;
+			}
+			<div>{'function returned false'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>function returned true</div>');
+	});
+
+	it('handles return with arithmetic in condition (corrected: 5+3=8 > 7)', async () => {
+		component App() {
+			let x = 5;
+			let y = 3;
+
+			if (x + y > 7) {
+				<div>{'sum greater than 7'}</div>
+				return;
+			}
+			<div>{'sum 7 or less'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>sum greater than 7</div>');
+	});
+
+	it('handles multiple sibling returns at same level', async () => {
+		component App() {
+			let mode = 'b';
+
+			if (mode === 'a') {
+				<div>{'mode A'}</div>
+				return;
+			}
+
+			if (mode === 'b') {
+				<div>{'mode B'}</div>
+				return;
+			}
+
+			if (mode === 'c') {
+				<div>{'mode C'}</div>
+				return;
+			}
+
+			<div>{'default mode'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>mode B</div>');
+	});
+
+	it('handles return with array length check', async () => {
+		component App() {
+			let items = [1, 2, 3];
+
+			if (items.length > 0) {
+				<div>{'has items'}</div>
+				return;
+			}
+			<div>{'empty'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>has items</div>');
+	});
+
+	it('handles return with object property check', async () => {
+		component App() {
+			let obj = { value: 42 };
+
+			if (obj.value === 42) {
+				<div>{'correct value'}</div>
+				return;
+			}
+			<div>{'wrong value'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>correct value</div>');
+	});
+
+	it('handles return with typeof check', async () => {
+		component App() {
+			let value = 'string';
+
+			if (typeof value === 'string') {
+				<div>{'is string'}</div>
+				return;
+			}
+			<div>{'not string'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>is string</div>');
+	});
+
+	it('handles return with null check', async () => {
+		component App() {
+			let value = null;
+
+			if (value === null) {
+				<div>{'is null'}</div>
+				return;
+			}
+			<div>{'not null'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>is null</div>');
+	});
+
+	it('handles return with undefined check', async () => {
+		component App() {
+			let value = undefined;
+
+			if (value === undefined) {
+				<div>{'is undefined'}</div>
+				return;
+			}
+			<div>{'not undefined'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>is undefined</div>');
+	});
+
+	it('handles return with truthy/falsy values', async () => {
+		component App() {
+			let value = 0;
+
+			if (value) {
+				<div>{'truthy'}</div>
+				return;
+			}
+			<div>{'falsy'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>falsy</div>');
+	});
+
+	it('handles return with empty string check', async () => {
+		component App() {
+			let str = '';
+
+			if (str === '') {
+				<div>{'empty string'}</div>
+				return;
+			}
+			<div>{'non-empty string'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>empty string</div>');
+	});
+
+	it('handles return with instance check', async () => {
+		component App() {
+			let arr = [1, 2, 3];
+
+			if (arr instanceof Array) {
+				<div>{'is array'}</div>
+				return;
+			}
+			<div>{'not array'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>is array</div>');
+	});
+
+	it('handles return with in operator', async () => {
+		component App() {
+			let obj = { a: 1, b: 2 };
+
+			if ('a' in obj) {
+				<div>{'has property a'}</div>
+				return;
+			}
+			<div>{'no property a'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>has property a</div>');
+	});
+
+	it('handles return with switch-like pattern using else-if', async () => {
+		component App() {
+			let status = 'loading';
+
+			if (status === 'idle') {
+				<div>{'idle state'}</div>
+				return;
+			} else if (status === 'loading') {
+				<div>{'loading state'}</div>
+				return;
+			} else if (status === 'success') {
+				<div>{'success state'}</div>
+				return;
+			} else if (status === 'error') {
+				<div>{'error state'}</div>
+				return;
+			} else {
+				<div>{'unknown state'}</div>
+				return;
+			}
+			<div>{'never reached'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>loading state</div>');
+	});
+
+	it('handles return with multiple nested levels and mixed conditions', async () => {
+		component App() {
+			let a = true;
+			let b = false;
+			let c = true;
+			let d = true;
+
+			if (a) {
+				<div>{'a'}</div>
+				if (b) {
+					<div>{'b'}</div>
+					return;
+				}
+				if (c) {
+					<div>{'c'}</div>
+					if (d) {
+						<div>{'d'}</div>
+						return;
+					}
+				}
+			}
+			<div>{'rest'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>a</div><div>c</div><div>d</div>');
+	});
+
+	it('handles return with conditional rendering before guard', async () => {
+		component App() {
+			let showHeader = true;
+			let shouldReturn = true;
+
+			if (showHeader) {
+				<h1>{'Header'}</h1>
+			}
+			if (shouldReturn) {
+				<div>{'guard'}</div>
+				return;
+			}
+			<footer>{'Footer'}</footer>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<h1>Header</h1><div>guard</div>');
+	});
+
+	it('handles return with else branch that does not return', async () => {
+		component App() {
+			let condition = false;
+
+			if (condition) {
+				<div>{'condition true'}</div>
+				return;
+			} else {
+				<div>{'condition false'}</div>
+			}
+			<div>{'after if-else'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>condition false</div><div>after if-else</div>');
+	});
+
+	it('handles return with else branch that also returns', async () => {
+		component App() {
+			let condition = false;
+
+			if (condition) {
+				<div>{'condition true'}</div>
+				return;
+			} else {
+				<div>{'condition false'}</div>
+				return;
+			}
+			<div>{'never reached'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>condition false</div>');
+	});
+
+	it('handles return with only if branch returning', async () => {
+		component App() {
+			let condition = false;
+
+			if (condition) {
+				<div>{'condition true'}</div>
+				return;
+			}
+			<div>{'condition false or after'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>condition false or after</div>');
+	});
+
+	it('handles return with deeply nested else-if chain', async () => {
+		component App() {
+			let x = 1;
+			let y = 2;
+
+			if (x === 1) {
+				if (y === 1) {
+					<div>{'x=1, y=1'}</div>
+					return;
+				} else if (y === 2) {
+					<div>{'x=1, y=2'}</div>
+					return;
+				} else {
+					<div>{'x=1, y=other'}</div>
+					return;
+				}
+			}
+			<div>{'x!=1'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>x=1, y=2</div>');
+	});
+
+	describe('nested return scenarios', () => {
+		it('nested return hides content after inner if inside outer if', async () => {
+			component App() {
+				let a = true;
+				let b = true;
+
+				if (a) {
+					<div>{'a'}</div>
+					if (b) {
+						<div>{'b'}</div>
+						return;
+					}
+					<div>{'after inner'}</div>
+				}
+				<div>{'rest'}</div>
+			}
+
+			const { body } = await render(App);
+			expect(body).toBeHtml('<div>a</div><div>b</div>');
+		});
+
+		it('nested return shows content after inner if when inner condition is false', async () => {
+			component App() {
+				let a = true;
+				let b = false;
+
+				if (a) {
+					<div>{'a'}</div>
+					if (b) {
+						<div>{'b'}</div>
+						return;
+					}
+					<div>{'after inner'}</div>
+				}
+				<div>{'rest'}</div>
+			}
+
+			const { body } = await render(App);
+			expect(body).toBeHtml('<div>a</div><div>after inner</div><div>rest</div>');
+		});
+
+		it('nested return with sibling returns inside outer if', async () => {
+			component App() {
+				let outer = true;
+				let a = false;
+				let b = true;
+
+				if (outer) {
+					<div>{'outer'}</div>
+					if (a) {
+						<div>{'a'}</div>
+						return;
+					}
+					<div>{'between'}</div>
+					if (b) {
+						<div>{'b'}</div>
+						return;
+					}
+					<div>{'after b'}</div>
+				}
+				<div>{'rest'}</div>
+			}
+
+			const { body } = await render(App);
+			expect(body).toBeHtml('<div>outer</div><div>between</div><div>b</div>');
+		});
+
+		it('nested return inside else branch', async () => {
+			component App() {
+				let a = false;
+				let b = true;
+
+				if (a) {
+					<div>{'a'}</div>
+				} else {
+					<div>{'else'}</div>
+					if (b) {
+						<div>{'b'}</div>
+						return;
+					}
+				}
+				<div>{'rest'}</div>
+			}
+
+			const { body } = await render(App);
+			expect(body).toBeHtml('<div>else</div><div>b</div>');
+		});
+
+		it('deeply nested returns (4 levels) - all true', async () => {
+			component App() {
+				let a = true;
+				let b = true;
+				let c = true;
+				let d = true;
+
+				if (a) {
+					<div>{'a'}</div>
+					if (b) {
+						<div>{'b'}</div>
+						if (c) {
+							<div>{'c'}</div>
+							if (d) {
+								<div>{'d'}</div>
+								return;
+							}
+						}
+					}
+				}
+				<div>{'rest'}</div>
+			}
+
+			const { body } = await render(App);
+			expect(body).toBeHtml('<div>a</div><div>b</div><div>c</div><div>d</div>');
+		});
+
+		it('deeply nested returns (4 levels) - innermost false', async () => {
+			component App() {
+				let a = true;
+				let b = true;
+				let c = true;
+				let d = false;
+
+				if (a) {
+					<div>{'a'}</div>
+					if (b) {
+						<div>{'b'}</div>
+						if (c) {
+							<div>{'c'}</div>
+							if (d) {
+								<div>{'d'}</div>
+								return;
+							}
+						}
+					}
+				}
+				<div>{'rest'}</div>
+			}
+
+			const { body } = await render(App);
+			expect(body).toBeHtml('<div>a</div><div>b</div><div>c</div><div>rest</div>');
+		});
+
+		it('nested return with else at outer level', async () => {
+			component App() {
+				let a = true;
+				let b = true;
+
+				if (a) {
+					<div>{'a'}</div>
+					if (b) {
+						<div>{'b'}</div>
+						return;
+					}
+				} else {
+					<div>{'else'}</div>
+				}
+				<div>{'rest'}</div>
+			}
+
+			const { body } = await render(App);
+			expect(body).toBeHtml('<div>a</div><div>b</div>');
+		});
+
+		it('nested return with else at outer level - outer false', async () => {
+			component App() {
+				let a = false;
+				let b = true;
+
+				if (a) {
+					<div>{'a'}</div>
+					if (b) {
+						<div>{'b'}</div>
+						return;
+					}
+				} else {
+					<div>{'else'}</div>
+				}
+				<div>{'rest'}</div>
+			}
+
+			const { body } = await render(App);
+			expect(body).toBeHtml('<div>else</div><div>rest</div>');
+		});
+
+		it('nested return hides content at multiple intermediate levels', async () => {
+			component App() {
+				let a = true;
+				let b = true;
+				let c = true;
+
+				if (a) {
+					<div>{'a'}</div>
+					if (b) {
+						<div>{'b'}</div>
+						if (c) {
+							<div>{'c'}</div>
+							return;
+						}
+						<div>{'after c'}</div>
+					}
+					<div>{'after b'}</div>
+				}
+				<div>{'rest'}</div>
+			}
+
+			const { body } = await render(App);
+			expect(body).toBeHtml('<div>a</div><div>b</div><div>c</div>');
+		});
+	});
+
+	it('handles return with comparison operators', async () => {
+		component App() {
+			let a = 5;
+			let b = 10;
+
+			if (a < b) {
+				<div>{'a less than b'}</div>
+				return;
+			}
+			<div>{'a not less than b'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>a less than b</div>');
+	});
+
+	it('handles return with equality operators', async () => {
+		component App() {
+			let a = 5;
+			let b = '5';
+
+			// @ts-expect-error testing loose equality
+			if (a == b) {
+				<div>{'loose equality'}</div>
+				return;
+			}
+			<div>{'not loosely equal'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>loose equality</div>');
+	});
+
+	it('handles return with strict equality', async () => {
+		component App() {
+			let a = 5;
+			let b = 5;
+
+			if (a === b) {
+				<div>{'strict equality'}</div>
+				return;
+			}
+			<div>{'not strictly equal'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>strict equality</div>');
+	});
+
+	it('handles return with greater than or equal', async () => {
+		component App() {
+			let a = 10;
+			let b = 10;
+
+			if (a >= b) {
+				<div>{'a >= b'}</div>
+				return;
+			}
+			<div>{'a < b'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>a >= b</div>');
+	});
+
+	it('handles return with less than or equal (escaped in HTML)', async () => {
+		component App() {
+			let a = 5;
+			let b = 10;
+
+			if (a <= b) {
+				<div>{'a <= b'}</div>
+				return;
+			}
+			<div>{'a > b'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>a &lt;= b</div>');
+	});
+
+	it('handles return with not equal', async () => {
+		component App() {
+			let a = 5;
+			let b = 10;
+
+			if (a != b) {
+				<div>{'a != b'}</div>
+				return;
+			}
+			<div>{'a == b'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>a != b</div>');
+	});
+
+	it('handles return with strict not equal', async () => {
+		component App() {
+			let a = 5;
+			let b = '5';
+
+			// @ts-expect-error testing strict inequality
+			if (a !== b) {
+				<div>{'a !== b'}</div>
+				return;
+			}
+			<div>{'a === b'}</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>a !== b</div>');
+	});
+
+	describe('deeply nested conditions with returns', () => {
+		it('handles return inside nested div > if > div > if chain, all false', async () => {
+			component App() {
+				let a = false;
+				let b = false;
+				let c = false;
+				let d = false;
+
+				<div class="outer">
+					if (a) {
+						<span class="a">{'branch a'}</span>
+					}
+					<div class="inner">
+						if (b) {
+							<span class="b">{'branch b'}</span>
+						}
+						if (c) {
+							return;
+						}
+						if (d) {
+							<span class="d">{'branch d'}</span>
+							return;
+						}
+					</div>
+				</div>
+				<div class="after">{'after'}</div>
+			}
+
+			const { body } = await render(App);
+			expect(body).toContain('class="outer"');
+			expect(body).toContain('class="inner"');
+			expect(body).toContain('class="after"');
+			expect(body).not.toContain('class="a"');
+			expect(body).not.toContain('class="b"');
+			expect(body).not.toContain('class="d"');
+		});
+
+		it('nested: first return (c) triggers, hides after', async () => {
+			component App() {
+				let a = false;
+				let b = false;
+				let c = true;
+				let d = false;
+
+				<div class="outer">
+					if (a) {
+						<span class="a">{'branch a'}</span>
+					}
+					<div class="inner">
+						if (b) {
+							<span class="b">{'branch b'}</span>
+						}
+						if (c) {
+							return;
+						}
+						if (d) {
+							<span class="d">{'branch d'}</span>
+							return;
+						}
+					</div>
+				</div>
+				<div class="after">{'after'}</div>
+			}
+
+			const { body } = await render(App);
+			expect(body).toContain('class="outer"');
+			expect(body).toContain('class="inner"');
+			expect(body).not.toContain('class="after"');
+			expect(body).not.toContain('class="d"');
+		});
+
+		it('nested: second return (d) triggers with template, hides after', async () => {
+			component App() {
+				let a = true;
+				let b = true;
+				let c = false;
+				let d = true;
+
+				<div class="outer">
+					if (a) {
+						<span class="a">{'branch a'}</span>
+					}
+					<div class="inner">
+						if (b) {
+							<span class="b">{'branch b'}</span>
+						}
+						if (c) {
+							return;
+						}
+						if (d) {
+							<span class="d">{'branch d'}</span>
+							return;
+						}
+					</div>
+				</div>
+				<div class="after">{'after'}</div>
+			}
+
+			const { body } = await render(App);
+			expect(body).toContain('class="a"');
+			expect(body).toContain('class="b"');
+			expect(body).toContain('class="d"');
+			expect(body).not.toContain('class="after"');
+		});
+
+		it('nested: both returns active, first (c) wins', async () => {
+			component App() {
+				let a = false;
+				let b = false;
+				let c = true;
+				let d = true;
+
+				<div class="outer">
+					if (a) {
+						<span class="a">{'branch a'}</span>
+					}
+					<div class="inner">
+						if (b) {
+							<span class="b">{'branch b'}</span>
+						}
+						if (c) {
+							return;
+						}
+						if (d) {
+							<span class="d">{'branch d'}</span>
+							return;
+						}
+					</div>
+				</div>
+				<div class="after">{'after'}</div>
+			}
+
+			const { body } = await render(App);
+			expect(body).toContain('class="outer"');
+			expect(body).toContain('class="inner"');
+			expect(body).not.toContain('class="d"');
+			expect(body).not.toContain('class="after"');
+		});
+	});
+});
