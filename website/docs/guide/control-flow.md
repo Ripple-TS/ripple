@@ -26,6 +26,34 @@ export component Truthy({ x }) {
 
 </Code>
 
+## Early return (guard clauses)
+
+You can pair `if` blocks with `return;` to short-circuit the rest of the
+component body once a guard branch is hit.
+
+<Code>
+
+```ripple
+import { track } from 'ripple';
+
+export component AuthGate() {
+  let is_logged_in = track(false);
+
+  if (!@is_logged_in) {
+    <p>{'Please sign in.'}</p>
+    return;
+  }
+
+  <h1>{'Dashboard'}</h1>
+  <p>{'Private content'}</p>
+}
+```
+
+</Code>
+
+`return` in components is only valid as `return;`. Returning a value (including
+templates) is invalid.
+
 ## Switch statements
 
 Switch statements let you conditionally render content based on a value. They work with both static and reactive values.

@@ -71,6 +71,31 @@ component App() {
 }
 ```
 
+## Early Returns in Components
+
+Ripple supports early exits from component/template execution via guard clauses.
+Use `return;` to stop evaluating the rest of the current render path after a
+condition is met.
+
+```ripple
+component Profile({ user }) {
+	if (!user) {
+		<p>{'Please sign in to continue.'}</p>
+		return;
+	}
+
+	<h1>{user.name}</h1>
+	<p>{user.email}</p>
+}
+```
+
+**Rules:**
+
+- Use only `return;` (without a value) inside component/template scopes.
+- `return` with a value (for example `return 'x'` or `return <div />`) is a compile error.
+- `return` is not allowed at module top level.
+- `return` is a control-flow exit, not a JSX return value mechanism.
+
 ## Concept: Expressions
 
 In Ripple (and JSX), we can interpolate expressions into the template with a

@@ -1,11 +1,13 @@
 /** @import { Block } from '#client' */
 
 import {
+	HYDRATION_END,
 	TEMPLATE_FRAGMENT,
 	TEMPLATE_USE_IMPORT_NODE,
 	TEMPLATE_SVG_NAMESPACE,
 	TEMPLATE_MATHML_NAMESPACE,
 } from '../../../constants.js';
+import { FOR_BLOCK } from './constants.js';
 import { hydrate_next, hydrate_node, hydrating, pop } from './hydration.js';
 import { create_text, get_first_child, is_firefox } from './operations.js';
 import { active_block, active_namespace } from './runtime.js';
@@ -107,6 +109,29 @@ export function template(content, flags) {
  */
 export function append(anchor, dom) {
 	if (hydrating) {
+		var block = /** @type {Block} */ (active_block);
+		var state = block?.s;
+		var parent = block?.p;
+
+		// During hydration, fragment templates initially assign start=end to the
+		// current node. Finalize the end boundary using the insertion anchor.
+		if (
+			anchor !== dom &&
+			(parent === null || (parent.f & FOR_BLOCK) === 0) &&
+			state !== null &&
+			typeof state === 'object' &&
+			'start' in state &&
+			'end' in state &&
+			state.start === dom &&
+			anchor.nodeType === Node.COMMENT_NODE &&
+			/** @type {Comment} */ (anchor).data === HYDRATION_END
+		) {
+			var end = anchor.previousSibling;
+			if (end !== null) {
+				state.end = end;
+			}
+		}
+
 		pop(dom);
 		// During hydration, if anchor === dom, we're hydrating a child component
 		// where the "anchor" IS the content. Don't advance past it.

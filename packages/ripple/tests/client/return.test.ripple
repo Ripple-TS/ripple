@@ -2273,5 +2273,228 @@ describe('early return in client components', () => {
 			flushSync();
 			expect(container.querySelector('.after')).toBeTruthy();
 		});
+
+		it(
+			'nested return with conditional parent nodes should be rendered when the would be parent is false',
+			() => {
+				component App() {
+					let a = true;
+					let b = track(true);
+
+					<button
+						class="toggle"
+						onClick={() => {
+							@b = !@b;
+						}}
+					>
+						{'Toggle'}
+					</button>
+					if (a) {
+						<div class="a">{'a'}</div>
+						if (@b) {
+							<div class="b">{'b'}</div>
+							return;
+						}
+					}
+					<div class="rest">{'rest'}</div>
+				}
+
+				render(App);
+
+				// Initially a=true and b=true - shows a, b, hides rest
+				expect(container.querySelector('.a')?.textContent).toBe('a');
+				expect(container.querySelector('.b')?.textContent).toBe('b');
+				expect(container.querySelector('.rest')).toBeNull();
+
+				// Toggle b to false - rest should appear
+				container.querySelector('.toggle')?.click();
+				flushSync();
+
+				expect(container.querySelector('.a')?.textContent).toBe('a');
+				expect(container.querySelector('.b')).toBeNull();
+				expect(container.querySelector('.rest')?.textContent).toBe('rest');
+
+				// Toggle b back to true
+				container.querySelector('.toggle')?.click();
+				flushSync();
+
+				expect(container.querySelector('.a')?.textContent).toBe('a');
+				expect(container.querySelector('.b')?.textContent).toBe('b');
+				expect(container.querySelector('.rest')).toBeNull();
+			},
+		);
+
+		it('reactive sibling returns cycle through first, second, and fallback branches', () => {
+			component App() {
+				let mode = track('first');
+
+				<button
+					class="toggle"
+					onClick={() => {
+						if (@mode === 'first') {
+							@mode = 'second';
+						} else if (@mode === 'second') {
+							@mode = 'none';
+						} else {
+							@mode = 'first';
+						}
+					}}
+				>
+					{'toggle'}
+				</button>
+
+				if (@mode === 'first') {
+					<div class="first">{'first guard'}</div>
+					return;
+				}
+
+				if (@mode === 'second') {
+					<div class="second">{'second guard'}</div>
+					return;
+				}
+
+				<div class="rest">{'rest'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.first')?.textContent).toBe('first guard');
+			expect(container.querySelector('.second')).toBeNull();
+			expect(container.querySelector('.rest')).toBeNull();
+
+			container.querySelector('.toggle')?.click();
+			flushSync();
+			expect(container.querySelector('.first')).toBeNull();
+			expect(container.querySelector('.second')?.textContent).toBe('second guard');
+			expect(container.querySelector('.rest')).toBeNull();
+
+			container.querySelector('.toggle')?.click();
+			flushSync();
+			expect(container.querySelector('.first')).toBeNull();
+			expect(container.querySelector('.second')).toBeNull();
+			expect(container.querySelector('.rest')?.textContent).toBe('rest');
+
+			container.querySelector('.toggle')?.click();
+			flushSync();
+			expect(container.querySelector('.first')?.textContent).toBe('first guard');
+			expect(container.querySelector('.second')).toBeNull();
+			expect(container.querySelector('.rest')).toBeNull();
+		});
+
+		it('reactive nested returns with tracked outer and inner flags transition correctly', () => {
+			component App() {
+				let a = track(true);
+				let b = track(true);
+
+				<button
+					class="toggle-a"
+					onClick={() => {
+						@a = !@a;
+					}}
+				>
+					{'toggle a'}
+				</button>
+
+				<button
+					class="toggle-b"
+					onClick={() => {
+						@b = !@b;
+					}}
+				>
+					{'toggle b'}
+				</button>
+
+				if (@a) {
+					<div class="a">{'a'}</div>
+					if (@b) {
+						<div class="b">{'b'}</div>
+						return;
+					}
+				}
+
+				<div class="rest">{@a ? 'a-on rest' : 'a-off rest'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.a')?.textContent).toBe('a');
+			expect(container.querySelector('.b')?.textContent).toBe('b');
+			expect(container.querySelector('.rest')).toBeNull();
+
+			container.querySelector('.toggle-b')?.click();
+			flushSync();
+			expect(container.querySelector('.a')?.textContent).toBe('a');
+			expect(container.querySelector('.b')).toBeNull();
+			expect(container.querySelector('.rest')?.textContent).toBe('a-on rest');
+
+			container.querySelector('.toggle-a')?.click();
+			flushSync();
+			expect(container.querySelector('.a')).toBeNull();
+			expect(container.querySelector('.b')).toBeNull();
+			expect(container.querySelector('.rest')?.textContent).toBe('a-off rest');
+
+			container.querySelector('.toggle-a')?.click();
+			flushSync();
+			expect(container.querySelector('.a')?.textContent).toBe('a');
+			expect(container.querySelector('.b')).toBeNull();
+			expect(container.querySelector('.rest')?.textContent).toBe('a-on rest');
+
+			container.querySelector('.toggle-b')?.click();
+			flushSync();
+			expect(container.querySelector('.a')?.textContent).toBe('a');
+			expect(container.querySelector('.b')?.textContent).toBe('b');
+			expect(container.querySelector('.rest')).toBeNull();
+		});
+
+		it('reactive else-if return chain transitions between return and non-return states', () => {
+			component App() {
+				let status = track(0);
+
+				<button
+					class="toggle"
+					onClick={() => {
+						@status = (@status + 1) % 3;
+					}}
+				>
+					{'toggle'}
+				</button>
+
+				if (@status === 0) {
+					<div class="zero">{'zero'}</div>
+					return;
+				} else if (@status === 1) {
+					<div class="one">{'one'}</div>
+					return;
+				}
+
+				<div class="rest">{'rest'}</div>
+				<div class="tail">{'tail'}</div>
+			}
+
+			render(App);
+			expect(container.querySelector('.zero')?.textContent).toBe('zero');
+			expect(container.querySelector('.one')).toBeNull();
+			expect(container.querySelector('.rest')).toBeNull();
+			expect(container.querySelector('.tail')).toBeNull();
+
+			container.querySelector('.toggle')?.click();
+			flushSync();
+			expect(container.querySelector('.zero')).toBeNull();
+			expect(container.querySelector('.one')?.textContent).toBe('one');
+			expect(container.querySelector('.rest')).toBeNull();
+			expect(container.querySelector('.tail')).toBeNull();
+
+			container.querySelector('.toggle')?.click();
+			flushSync();
+			expect(container.querySelector('.zero')).toBeNull();
+			expect(container.querySelector('.one')).toBeNull();
+			expect(container.querySelector('.rest')?.textContent).toBe('rest');
+			expect(container.querySelector('.tail')?.textContent).toBe('tail');
+
+			container.querySelector('.toggle')?.click();
+			flushSync();
+			expect(container.querySelector('.zero')?.textContent).toBe('zero');
+			expect(container.querySelector('.one')).toBeNull();
+			expect(container.querySelector('.rest')).toBeNull();
+			expect(container.querySelector('.tail')).toBeNull();
+		});
 	});
 });
