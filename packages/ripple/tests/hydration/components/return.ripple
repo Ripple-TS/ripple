@@ -1,0 +1,398 @@
+// Return statement components for hydration testing
+import { track } from 'ripple';
+
+// Basic return - skips content after direct return
+export component DirectReturn() {
+	<div class="before">{'before'}</div>
+	return;
+	<div class="after">{'after'}</div>
+}
+
+// Conditional return - condition is true, skips rest
+export component ConditionalReturnTrue() {
+	let condition = true;
+
+	if (condition) {
+		<div class="guard">{'guard hit'}</div>
+		return;
+	}
+	<div class="rest">{'rest'}</div>
+}
+
+// Conditional return - condition is false, shows rest
+export component ConditionalReturnFalse() {
+	let condition = false;
+
+	if (condition) {
+		<div class="guard">{'guard hit'}</div>
+		return;
+	}
+	<div class="rest">{'rest'}</div>
+}
+
+// Content before and after return guard
+export component ContentBeforeAfterReturn() {
+	let shouldReturn = true;
+
+	<div class="before">{'before'}</div>
+	if (shouldReturn) {
+		<div class="guard">{'guard'}</div>
+		return;
+	}
+	<div class="after">{'after'}</div>
+}
+
+// Multiple elements after guard when condition is false
+export component MultipleElementsAfterGuard() {
+	let shouldReturn = false;
+
+	if (shouldReturn) {
+		<div class="guard">{'guard'}</div>
+		return;
+	}
+	<div class="first">{'first'}</div>
+	<div class="second">{'second'}</div>
+}
+
+// Multiple sequential returns - first hits
+export component MultipleReturnsFirstHits() {
+	let a = true;
+	let b = true;
+
+	if (a) {
+		<div class="first">{'first guard'}</div>
+		return;
+	}
+	if (b) {
+		<div class="second">{'second guard'}</div>
+		return;
+	}
+	<div class="rest">{'rest'}</div>
+}
+
+// Multiple sequential returns - second hits
+export component MultipleReturnsSecondHits() {
+	let a = false;
+	let b = true;
+
+	if (a) {
+		<div class="first">{'first guard'}</div>
+		return;
+	}
+	if (b) {
+		<div class="second">{'second guard'}</div>
+		return;
+	}
+	<div class="rest">{'rest'}</div>
+}
+
+// Multiple sequential returns - none hit
+export component MultipleReturnsNoneHit() {
+	let a = false;
+	let b = false;
+
+	if (a) {
+		<div class="first">{'first guard'}</div>
+		return;
+	}
+	if (b) {
+		<div class="second">{'second guard'}</div>
+		return;
+	}
+	<div class="rest">{'rest'}</div>
+}
+
+// Nested returns - both conditions true
+export component NestedReturnsAllTrue() {
+	let a = true;
+	let b = true;
+
+	if (a) {
+		<div class="a">{'a is true'}</div>
+		if (b) {
+			<div class="b">{'b is true'}</div>
+			return;
+		}
+	}
+	<div class="rest">{'rest'}</div>
+}
+
+// Nested returns - inner condition false
+export component NestedReturnsInnerFalse() {
+	let a = true;
+	let b = false;
+
+	if (a) {
+		<div class="a">{'a is true'}</div>
+		if (b) {
+			<div class="b">{'b is true'}</div>
+			return;
+		}
+	}
+	<div class="rest">{'rest'}</div>
+}
+
+// Nested returns - outer condition false
+export component NestedReturnsOuterFalse() {
+	let a = false;
+	let b = true;
+
+	if (a) {
+		<div class="a">{'a is true'}</div>
+		if (b) {
+			<div class="b">{'b is true'}</div>
+			return;
+		}
+	}
+	<div class="rest">{'rest'}</div>
+}
+
+// Deeply nested returns (3 levels) - all true
+export component DeeplyNestedReturnsAllTrue() {
+	let a = true;
+	let b = true;
+	let c = true;
+
+	if (a) {
+		<div class="a">{'a'}</div>
+		if (b) {
+			<div class="b">{'b'}</div>
+			if (c) {
+				<div class="c">{'c'}</div>
+				return;
+			}
+		}
+	}
+	<div class="rest">{'rest'}</div>
+}
+
+// Deeply nested returns (3 levels) - innermost false
+export component DeeplyNestedReturnsInnermostFalse() {
+	let a = true;
+	let b = true;
+	let c = false;
+
+	if (a) {
+		<div class="a">{'a'}</div>
+		if (b) {
+			<div class="b">{'b'}</div>
+			if (c) {
+				<div class="c">{'c'}</div>
+				return;
+			}
+		}
+	}
+	<div class="rest">{'rest'}</div>
+}
+
+// Return with else-if chain - first condition
+export component ElseIfChainFirst() {
+	let value = 1;
+
+	if (value === 1) {
+		<div class="one">{'one'}</div>
+		return;
+	} else if (value === 2) {
+		<div class="two">{'two'}</div>
+		return;
+	} else {
+		<div class="other">{'other'}</div>
+		return;
+	}
+	<div class="never">{'never reached'}</div>
+}
+
+// Return with else-if chain - second condition
+export component ElseIfChainSecond() {
+	let value = 2;
+
+	if (value === 1) {
+		<div class="one">{'one'}</div>
+		return;
+	} else if (value === 2) {
+		<div class="two">{'two'}</div>
+		return;
+	} else {
+		<div class="other">{'other'}</div>
+		return;
+	}
+	<div class="never">{'never reached'}</div>
+}
+
+// Return with else-if chain - else condition
+export component ElseIfChainElse() {
+	let value = 3;
+
+	if (value === 1) {
+		<div class="one">{'one'}</div>
+		return;
+	} else if (value === 2) {
+		<div class="two">{'two'}</div>
+		return;
+	} else {
+		<div class="other">{'other'}</div>
+		return;
+	}
+	<div class="never">{'never reached'}</div>
+}
+
+// Return with else branch that does not return
+export component ReturnWithElseNoReturn() {
+	let condition = false;
+
+	if (condition) {
+		<div class="true">{'condition true'}</div>
+		return;
+	} else {
+		<div class="false">{'condition false'}</div>
+	}
+	<div class="after">{'after if-else'}</div>
+}
+
+// Return with else branch that also returns
+export component ReturnWithElseBothReturn() {
+	let condition = false;
+
+	if (condition) {
+		<div class="true">{'condition true'}</div>
+		return;
+	} else {
+		<div class="false">{'condition false'}</div>
+		return;
+	}
+	<div class="never">{'never reached'}</div>
+}
+
+// Reactive return - starts true, can toggle to false
+export component ReactiveReturnTrueToFalse() {
+	let condition = track(true);
+
+	<button
+		class="toggle"
+		onClick={() => {
+			@condition = !@condition;
+		}}
+	>
+		{'Toggle'}
+	</button>
+	if (@condition) {
+		<div class="guard">{'guard hit'}</div>
+		return;
+	}
+	<div class="rest">{'rest'}</div>
+}
+
+// Reactive return - starts false, can toggle to true
+export component ReactiveReturnFalseToTrue() {
+	let condition = track(false);
+
+	<button
+		class="toggle"
+		onClick={() => {
+			@condition = !@condition;
+		}}
+	>
+		{'Toggle'}
+	</button>
+	if (@condition) {
+		<div class="guard">{'guard hit'}</div>
+		return;
+	}
+	<div class="rest">{'rest'}</div>
+}
+
+// Reactive nested return - only inner condition (b) is tracked
+export component ReactiveNestedReturn() {
+	let a = true;
+	let b = track(true);
+
+	<button
+		class="toggle"
+		onClick={() => {
+			console.log('Button clicked: toggling b from', @b, 'to', !@b);
+			@b = !@b;
+			console.log('After toggle, b is now', @b);
+		}}
+	>
+		{'Toggle'}
+	</button>
+	if (a) {
+		<div class="a">{'a'}</div>
+		if (@b) {
+			<div class="b">{'b'}</div>
+			return;
+		}
+	}
+	<div class="rest">{'rest'}</div>
+}
+
+// Return inside nested element scope
+export component ReturnInNestedElement() {
+	let show = true;
+
+	<div class="outer">
+		<span class="label">{'outer'}</span>
+		if (show) {
+			<p class="inner">{'inner'}</p>
+			return;
+		}
+	</div>
+	<div class="after">{'after'}</div>
+}
+
+// Return with multiple elements before and after
+export component ReturnWithMultipleElements() {
+	let shouldReturn = true;
+
+	<h1 class="title">{'title'}</h1>
+	<p class="desc">{'description'}</p>
+	if (shouldReturn) {
+		<div class="guard">{'guard'}</div>
+		<span class="guard-span">{'guard span'}</span>
+		return;
+	}
+	<footer class="footer">{'footer'}</footer>
+	<nav class="nav">{'nav'}</nav>
+}
+
+// Return at the beginning of component
+export component ReturnAtBeginning() {
+	if (true) {
+		<div class="early">{'early exit'}</div>
+		return;
+	}
+	<div class="never1">{'never reached 1'}</div>
+	<div class="never2">{'never reached 2'}</div>
+}
+
+// Return at the end of component (after all content)
+export component ReturnAtEnd() {
+	<div class="first">{'first'}</div>
+	<div class="second">{'second'}</div>
+	if (true) {
+		<div class="third">{'third'}</div>
+		return;
+	}
+}
+
+// Multiple sibling returns at same level
+export component MultipleSiblingReturns() {
+	let mode = 'b';
+
+	if (mode === 'a') {
+		<div class="mode-a">{'mode A'}</div>
+		return;
+	}
+
+	if (mode === 'b') {
+		<div class="mode-b">{'mode B'}</div>
+		return;
+	}
+
+	if (mode === 'c') {
+		<div class="mode-c">{'mode C'}</div>
+		return;
+	}
+
+	<div class="default">{'default mode'}</div>
+}

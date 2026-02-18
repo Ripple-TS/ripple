@@ -2273,5 +2273,56 @@ describe('early return in client components', () => {
 			flushSync();
 			expect(container.querySelector('.after')).toBeTruthy();
 		});
+
+		it(
+			'nested return with conditional parent nodes should be rendered when the would be parent is false',
+			() => {
+				component App() {
+					let a = true;
+					let b = track(true);
+
+					<button
+						class="toggle"
+						onClick={() => {
+							@b = !@b;
+						}}
+					>
+						{'Toggle'}
+					</button>
+					if (a) {
+						<div class="a">{'a'}</div>
+						if (@b) {
+							<div class="b">{'b'}</div>
+							return;
+						}
+					}
+					<div class="rest">{'rest'}</div>
+				}
+
+				render(App);
+
+				// Initially a=true and b=true - shows a, b, hides rest
+				expect(container.querySelector('.a')?.textContent).toBe('a');
+				expect(container.querySelector('.b')?.textContent).toBe('b');
+				expect(container.querySelector('.rest')).toBeNull();
+
+				// Toggle b to false - rest should appear
+				container.querySelector('.toggle')?.click();
+				flushSync();
+				console.log('After toggle (b=false):', container.innerHTML);
+
+				expect(container.querySelector('.a')?.textContent).toBe('a');
+				expect(container.querySelector('.b')).toBeNull();
+				expect(container.querySelector('.rest')?.textContent).toBe('rest');
+
+				// Toggle b back to true
+				container.querySelector('.toggle')?.click();
+				flushSync();
+
+				expect(container.querySelector('.a')?.textContent).toBe('a');
+				expect(container.querySelector('.b')?.textContent).toBe('b');
+				expect(container.querySelector('.rest')).toBeNull();
+			},
+		);
 	});
 });
