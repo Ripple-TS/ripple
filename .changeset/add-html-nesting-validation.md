@@ -1,6 +1,6 @@
 ---
-'ripple': minor
-'@ripple-ts/vite-plugin': minor
+'ripple': patch
+'@ripple-ts/vite-plugin': patch
 ---
 
 Add invalid HTML nesting error detection during SSR in dev mode
