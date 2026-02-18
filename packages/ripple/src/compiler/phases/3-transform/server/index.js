@@ -838,6 +838,23 @@ const visitors = {
 				),
 			);
 
+			// In dev mode, emit push_element for runtime nesting validation
+			if (state.dev && !dynamic_name) {
+				const element_name = /** @type {AST.Identifier} */ (node.id).name;
+				const loc = node.loc;
+				state.init?.push(
+					b.stmt(
+						b.call(
+							'_$_.push_element',
+							b.literal(element_name),
+							b.literal(state.filename),
+							b.literal(loc?.start.line ?? 0),
+							b.literal(loc?.start.column ?? 0),
+						),
+					),
+				);
+			}
+
 			if (!is_void) {
 				/** @type {AST.Statement[]} */
 				const init = [];
@@ -876,6 +893,11 @@ const visitors = {
 						),
 					);
 				}
+			}
+
+			// In dev mode, emit pop_element after the element is fully rendered
+			if (state.dev && !dynamic_name) {
+				state.init?.push(b.stmt(b.call('_$_.pop_element')));
 			}
 		} else {
 			/** @type {(AST.Property | AST.SpreadElement)[]} */
@@ -1617,9 +1639,10 @@ const visitors = {
  * @param {string} source
  * @param {AnalysisResult} analysis
  * @param {boolean} minify_css
+ * @param {boolean} [dev]
  * @returns {{ ast: AST.Program; js: { code: string; map: RawSourceMap | null }; css: string; }}
  */
-export function transform_server(filename, source, analysis, minify_css) {
+export function transform_server(filename, source, analysis, minify_css, dev = false) {
 	// Use component metadata collected during the analyze phase
 	const component_metadata = analysis.component_metadata || [];
 
@@ -1640,6 +1663,7 @@ export function transform_server(filename, source, analysis, minify_css) {
 		// TODO: should we remove all `to_ts` usages we use the client rendering for that?
 		to_ts: false,
 		metadata: {},
+		dev,
 	};
 
 	state.imports.add(`import * as _$_ from 'ripple/internal/server'`);

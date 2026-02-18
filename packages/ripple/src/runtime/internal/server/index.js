@@ -11,6 +11,10 @@ import { is_boolean_attribute } from '../../../compiler/utils.js';
 import { clsx } from 'clsx';
 import { normalize_css_property_name } from '../../../utils/normalize_css_property_name.js';
 import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../constants.js';
+import {
+	is_tag_valid_with_parent,
+	is_tag_valid_with_ancestor,
+} from '../../../html-tree-validation.js';
 
 export { escape };
 export { register_component_css as register_css } from './css-registry.js';
@@ -226,6 +230,9 @@ export async function render(component) {
 	let body = '';
 	let css = new Set();
 
+	// Reset dev-mode element tracking state at the start of each render
+	reset_element_state();
+
 	try {
 		if (component.async) {
 			await component(output, {});
@@ -241,6 +248,8 @@ export async function render(component) {
 		css = output.css;
 	} catch (error) {
 		console.log(error);
+	} finally {
+		reset_element_state();
 	}
 	return { head, body, css };
 }
@@ -261,6 +270,9 @@ export function renderToStream(component) {
  * @param {Output} output
  */
 async function render_in_chunks(component, stream, output) {
+	// Reset dev-mode element tracking state at the start of each render
+	reset_element_state();
+
 	try {
 		if (component.async) {
 			await component(output, {});
@@ -274,6 +286,8 @@ async function render_in_chunks(component, stream, output) {
 	} catch (error) {
 		console.error(error);
 		stream.emit('error', error);
+	} finally {
+		reset_element_state();
 	}
 }
 /**
@@ -293,6 +307,103 @@ export function push_component() {
 export function pop_component() {
 	var component = /** @type {Component} */ (active_component);
 	active_component = component.p;
+}
+
+/**
+ * @typedef {{
+ * 	tag: string;
+ * 	parent: undefined | ElementContext;
+ *  filename: undefined | string;
+ *  line: number;
+ *  column: number;
+ * }} ElementContext
+ */
+
+/** @type {ElementContext | undefined} */
+let current_element;
+
+/**
+ * @type {Set<string>}
+ */
+let seen_warnings = new Set();
+
+/**
+ * @param {string} message
+ */
+function print_nesting_error(message) {
+	message =
+		`node_invalid_placement_ssr: ${message}\n\n` +
+		'This can cause content to shift around as the browser repairs the HTML, and will likely result in a hydration mismatch.';
+
+	if (seen_warnings.has(message)) return;
+	seen_warnings.add(message);
+
+	// eslint-disable-next-line no-console
+	console.error(message);
+}
+
+/**
+ * Pushes an element onto the element stack and validates its nesting.
+ * Used during DEV mode SSR to detect invalid HTML nesting that would cause
+ * the browser to repair the HTML, breaking hydration.
+ * @param {string} tag
+ * @param {string} filename
+ * @param {number} line
+ * @param {number} column
+ * @returns {void}
+ */
+export function push_element(tag, filename, line, column) {
+	var parent = current_element;
+	var element = { tag, parent, filename, line, column };
+
+	if (parent !== undefined) {
+		var ancestor = parent.parent;
+		var ancestors = [parent.tag];
+
+		const child_loc = filename ? `${filename}:${line}:${column}` : undefined;
+		const parent_loc = parent.filename
+			? `${parent.filename}:${parent.line}:${parent.column}`
+			: undefined;
+
+		const message = is_tag_valid_with_parent(tag, parent.tag, child_loc, parent_loc);
+		if (message) print_nesting_error(message);
+
+		while (ancestor != null) {
+			ancestors.push(ancestor.tag);
+			const ancestor_loc = ancestor.filename
+				? `${ancestor.filename}:${ancestor.line}:${ancestor.column}`
+				: undefined;
+
+			const ancestor_message = is_tag_valid_with_ancestor(tag, ancestors, child_loc, ancestor_loc);
+			if (ancestor_message) print_nesting_error(ancestor_message);
+
+			ancestor = ancestor.parent;
+		}
+	}
+
+	current_element = element;
+}
+
+/**
+ * Pops the current element from the element stack.
+ * @returns {void}
+ */
+export function pop_element() {
+	if (current_element !== undefined) {
+		current_element = current_element.parent;
+	}
+}
+
+/**
+ * Resets the dev-mode element tracking state.
+ * Called automatically at the start/end of each render to prevent
+ * state from leaking between renders (e.g., if a render throws).
+ * Also exported for testing purposes.
+ * @returns {void}
+ */
+export function reset_element_state() {
+	seen_warnings = new Set();
+	current_element = undefined;
 }
 
 /**
