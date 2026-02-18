@@ -1284,8 +1284,8 @@ describe('early return in SSR', () => {
 			expect(body).not.toContain('class="after"');
 		});
 
-			it('nested: both returns active, first (c) wins', async () => {
-				component App() {
+		it('nested: both returns active, first (c) wins', async () => {
+			component App() {
 				let a = false;
 				let b = false;
 				let c = true;
@@ -1314,11 +1314,13 @@ describe('early return in SSR', () => {
 			const { body } = await render(App);
 			expect(body).toContain('class="outer"');
 			expect(body).toContain('class="inner"');
-				expect(body).not.toContain('class="d"');
-				expect(body).not.toContain('class="after"');
-			});
+			expect(body).not.toContain('class="d"');
+			expect(body).not.toContain('class="after"');
+		});
 
-			it('nested outer/inner return guards render fallback paths when inner guard is false', async () => {
+		it(
+			'nested outer/inner return guards render fallback paths when inner guard is false',
+			async () => {
 				component App() {
 					let a = true;
 					let b = false;
@@ -1339,38 +1341,39 @@ describe('early return in SSR', () => {
 				expect(body).toBeHtml(
 					'<div class="a">a</div><div class="inner-rest">inner rest</div><div class="rest">rest</div>',
 				);
-			});
+			},
+		);
 
-			it('emits balanced hydration markers for nested sibling return guards', async () => {
-				component App() {
-					let a = true;
-					let b = false;
-					let c = true;
+		it('emits balanced hydration markers for nested sibling return guards', async () => {
+			component App() {
+				let a = true;
+				let b = false;
+				let c = true;
 
-					if (a) {
-						<div class="a">{'a'}</div>
-						if (b) {
-							<div class="b">{'b'}</div>
-							return;
-						}
-						if (c) {
-							<div class="c">{'c'}</div>
-							return;
-						}
-						<div class="inner-rest">{'inner rest'}</div>
+				if (a) {
+					<div class="a">{'a'}</div>
+					if (b) {
+						<div class="b">{'b'}</div>
+						return;
 					}
-
-					<div class="rest">{'rest'}</div>
+					if (c) {
+						<div class="c">{'c'}</div>
+						return;
+					}
+					<div class="inner-rest">{'inner rest'}</div>
 				}
 
-				const { body } = await render(App);
-				const open_markers = body.match(/<!--\[-->/g) || [];
-				const close_markers = body.match(/<!--\]-->/g) || [];
-				expect(open_markers.length).toBe(close_markers.length);
-				expect(open_markers.length).toBeGreaterThanOrEqual(3);
-				expect(body).toContain('<div class="a">a</div>');
-				expect(body).toContain('<div class="c">c</div>');
-				expect(body).not.toContain('<div class="rest">rest</div>');
-			});
+				<div class="rest">{'rest'}</div>
+			}
+
+			const { body } = await render(App);
+			const open_markers = body.match(/<!--\[-->/g) || [];
+			const close_markers = body.match(/<!--\]-->/g) || [];
+			expect(open_markers.length).toBe(close_markers.length);
+			expect(open_markers.length).toBeGreaterThanOrEqual(3);
+			expect(body).toContain('<div class="a">a</div>');
+			expect(body).toContain('<div class="c">c</div>');
+			expect(body).not.toContain('<div class="rest">rest</div>');
 		});
 	});
+});
