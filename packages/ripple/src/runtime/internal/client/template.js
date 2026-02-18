@@ -1,15 +1,15 @@
 /** @import { Block } from '#client' */
 
 import {
-	HYDRATION_END,
 	TEMPLATE_FRAGMENT,
 	TEMPLATE_USE_IMPORT_NODE,
 	TEMPLATE_SVG_NAMESPACE,
 	TEMPLATE_MATHML_NAMESPACE,
+	HYDRATION_START,
+	HYDRATION_END,
 } from '../../../constants.js';
-import { FOR_BLOCK } from './constants.js';
 import { hydrate_next, hydrate_node, hydrating, pop } from './hydration.js';
-import { create_text, get_first_child, is_firefox } from './operations.js';
+import { create_text, get_first_child, get_next_sibling, is_firefox } from './operations.js';
 import { active_block, active_namespace } from './runtime.js';
 
 /**
@@ -70,30 +70,102 @@ export function template(content, flags) {
 	var is_comment = content === '<!>';
 	var has_start = !is_comment && !content.startsWith('<!>');
 
+	// For fragments, eagerly create the node so we can walk its children
+	// during hydration to find the correct end node. The eagerly-created
+	// node is reused as the clone template in the non-hydrating path.
+	if (is_fragment) {
+		node = create_fragment_from_html(
+			has_start ? content : '<!>' + content,
+			use_svg_namespace,
+			use_mathml_namespace,
+		);
+	}
+
 	return () => {
 		if (hydrating) {
-			assign_nodes(/** @type {Node} */ (hydrate_node), /** @type {Node} */ (hydrate_node));
+			if (is_fragment) {
+				// Walk the template fragment's children in lockstep with hydrated
+				// DOM siblings. Comment nodes (<!>) are control flow anchors whose
+				// hydration markers (<!--[-->...<!--]-->) are consumed by block
+				// processing, so we skip them and only advance for element/text nodes.
+				var start = /** @type {Node} */ (hydrate_node);
+				var end = start;
+				var children = /** @type {DocumentFragment} */ (node).childNodes;
+				var is_first = true;
+
+				for (var i = 0; i < children.length; i++) {
+					if (children[i].nodeType === 8) continue;
+
+					if (is_first) {
+						is_first = false;
+						continue;
+					}
+
+					// Advance past comment nodes in the hydrated DOM. Each <!>
+					// anchor in the template expands to a <!--[-->...<!--]-->
+					// region, and there may be consecutive ones. Track depth so
+					// nested blocks are skipped, and stop at the first non-comment
+					// node at depth 0.
+					var next = get_next_sibling(end);
+					var depth = 0;
+
+					while (next !== null) {
+						if (next.nodeType === 8) {
+							var data = /** @type {Comment} */ (next).data;
+							if (data === HYDRATION_START) {
+								depth++;
+							} else if (data === HYDRATION_END) {
+								if (depth > 0) {
+									depth--;
+								} else {
+									// Reached a close marker that belongs to a parent block
+									next = null;
+									break;
+								}
+							}
+							next = get_next_sibling(next);
+							continue;
+						}
+
+						if (depth === 0) {
+							break;
+						}
+						next = get_next_sibling(next);
+					}
+
+					if (next === null) {
+						break;
+					}
+					end = next;
+				}
+
+				assign_nodes(start, end);
+			} else {
+				assign_nodes(/** @type {Node} */ (hydrate_node), /** @type {Node} */ (hydrate_node));
+			}
 			return /** @type {Node} */ (hydrate_node);
 		}
 		// If using runtime namespace, check active_namespace
 		var svg = !is_comment && (use_svg_namespace || active_namespace === 'svg');
 		var mathml = !is_comment && (use_mathml_namespace || active_namespace === 'mathml');
 
-		if (node === undefined) {
+		if (node === undefined || use_svg_namespace !== svg || use_mathml_namespace !== mathml) {
 			node = create_fragment_from_html(has_start ? content : '<!>' + content, svg, mathml);
 			if (!is_fragment) node = /** @type {Node} */ (get_first_child(node));
 		}
 
+		/** @type {DocumentFragment | Node} */
 		var clone =
 			use_import_node || is_firefox
 				? document.importNode(/** @type {Node} */ (node), true)
 				: /** @type {Node} */ (node).cloneNode(true);
 
 		if (is_fragment) {
-			var start = get_first_child(clone);
-			var end = clone.lastChild;
+			// we know for sure that children exist
+			var start = /** @type {Node} */ (get_first_child(/** @type {DocumentFragment} */ (clone)));
+			var end = /** @type {Node} */ (/** @type {DocumentFragment} */ (clone).lastChild);
 
-			assign_nodes(/** @type {Node} */ (start), /** @type {Node} */ (end));
+			assign_nodes(start, end);
 		} else {
 			assign_nodes(clone, clone);
 		}
@@ -109,35 +181,34 @@ export function template(content, flags) {
  */
 export function append(anchor, dom) {
 	if (hydrating) {
-		var block = /** @type {Block} */ (active_block);
-		var state = block?.s;
-		var parent = block?.p;
+		// During hydration, if anchor === dom, we're hydrating a child component
+		// where the "anchor" IS the content. Don't advance past it.
+		if (anchor === dom) {
+			pop(dom);
+			return;
+		}
 
-		// During hydration, fragment templates initially assign start=end to the
-		// current node. Finalize the end boundary using the insertion anchor.
-		if (
-			anchor !== dom &&
-			(parent === null || (parent.f & FOR_BLOCK) === 0) &&
-			state !== null &&
-			typeof state === 'object' &&
-			'start' in state &&
-			'end' in state &&
-			state.start === dom &&
-			anchor.nodeType === Node.COMMENT_NODE &&
-			/** @type {Comment} */ (anchor).data === HYDRATION_END
-		) {
-			var end = anchor.previousSibling;
-			if (end !== null) {
-				state.end = end;
+		// If the hydration cursor has descended into dom's children (e.g. after
+		// child()/sibling() traversal inside a single-node template), we need
+		// pop() to reset back to dom's sibling level before advancing.
+		// But if the cursor is already at dom's sibling level (e.g. because
+		// nested control flow blocks advanced it past dom via sibling traversal),
+		// pop() would incorrectly reset backwards — so we skip it.
+		if (hydrate_node?.parentNode === dom) {
+			pop(dom);
+		} else if (hydrate_node !== dom) {
+			// Cursor has advanced past dom via sibling traversal (due to nested
+			// block processing). Update the branch block's end to reflect the
+			// actual extent, which may be past the statically-assigned end from
+			// the template's assign_nodes call.
+			var block = /** @type {Block} */ (active_block);
+			var s = block.s;
+			if (s !== null) {
+				s.end = /** @type {Node} */ (hydrate_node);
 			}
 		}
 
-		pop(dom);
-		// During hydration, if anchor === dom, we're hydrating a child component
-		// where the "anchor" IS the content. Don't advance past it.
-		if (anchor !== dom) {
-			hydrate_next();
-		}
+		hydrate_next();
 		return;
 	}
 	anchor.before(/** @type {Node} */ (dom));

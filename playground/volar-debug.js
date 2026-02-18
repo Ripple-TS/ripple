@@ -3,7 +3,7 @@ import path from 'node:path';
 import { compile_to_volar_mappings } from 'ripple/compiler';
 
 const dir = './src/';
-const output_dir = './debug';
+const output_dir = './debug/tsx';
 
 await fs.rm(output_dir, { recursive: true, force: true });
 await fs.mkdir(output_dir, { recursive: true });
