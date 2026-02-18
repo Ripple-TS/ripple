@@ -140,7 +140,6 @@ export function ConditionalReturnTrue(__anchor, _, __block) {
 	let condition = true;
 	var fragment_1 = root_2();
 	var node_1 = _$_.first_child_frag(fragment_1);
-	var node_2 = _$_.sibling(node_1);
 
 	{
 		var consequent = (__anchor) => {
@@ -156,6 +155,8 @@ export function ConditionalReturnTrue(__anchor, _, __block) {
 			if (condition) __render(consequent);
 		});
 	}
+
+	var node_2 = _$_.sibling(node_1);
 
 	var content_1 = (__anchor) => {
 		var div_3 = root_4();
@@ -178,7 +179,6 @@ export function ConditionalReturnFalse(__anchor, _, __block) {
 	let condition = false;
 	var fragment_3 = root_5();
 	var node_3 = _$_.first_child_frag(fragment_3);
-	var node_4 = _$_.sibling(node_3);
 
 	{
 		var consequent_1 = (__anchor) => {
@@ -194,6 +194,8 @@ export function ConditionalReturnFalse(__anchor, _, __block) {
 			if (condition) __render(consequent_1);
 		});
 	}
+
+	var node_4 = _$_.sibling(node_3);
 
 	var content_2 = (__anchor) => {
 		var div_4 = root_7();
@@ -217,7 +219,6 @@ export function ContentBeforeAfterReturn(__anchor, _, __block) {
 	var fragment_5 = root_8();
 	var div_5 = _$_.first_child_frag(fragment_5);
 	var node_5 = _$_.sibling(div_5);
-	var node_6 = _$_.sibling(node_5);
 
 	{
 		var consequent_2 = (__anchor) => {
@@ -233,6 +234,8 @@ export function ContentBeforeAfterReturn(__anchor, _, __block) {
 			if (shouldReturn) __render(consequent_2);
 		});
 	}
+
+	var node_6 = _$_.sibling(node_5);
 
 	var content_3 = (__anchor) => {
 		var div_6 = root_10();
@@ -255,7 +258,6 @@ export function MultipleElementsAfterGuard(__anchor, _, __block) {
 	let shouldReturn = false;
 	var fragment_7 = root_11();
 	var node_7 = _$_.first_child_frag(fragment_7);
-	var node_8 = _$_.sibling(node_7);
 
 	{
 		var consequent_3 = (__anchor) => {
@@ -271,6 +273,8 @@ export function MultipleElementsAfterGuard(__anchor, _, __block) {
 			if (shouldReturn) __render(consequent_3);
 		});
 	}
+
+	var node_8 = _$_.sibling(node_7);
 
 	var content_4 = (__anchor) => {
 		var fragment_9 = root_13();
@@ -295,7 +299,6 @@ export function MultipleReturnsFirstHits(__anchor, _, __block) {
 	let b = true;
 	var fragment_10 = root_14();
 	var node_9 = _$_.first_child_frag(fragment_10);
-	var node_10 = _$_.sibling(node_9);
 
 	{
 		var consequent_4 = (__anchor) => {
@@ -311,6 +314,8 @@ export function MultipleReturnsFirstHits(__anchor, _, __block) {
 			if (a) __render(consequent_4);
 		});
 	}
+
+	var node_10 = _$_.sibling(node_9);
 
 	var content_5 = (__anchor) => {
 		var fragment_12 = root_16();
@@ -363,7 +368,6 @@ export function MultipleReturnsSecondHits(__anchor, _, __block) {
 	let b = true;
 	var fragment_14 = root_19();
 	var node_13 = _$_.first_child_frag(fragment_14);
-	var node_14 = _$_.sibling(node_13);
 
 	{
 		var consequent_6 = (__anchor) => {
@@ -379,6 +383,8 @@ export function MultipleReturnsSecondHits(__anchor, _, __block) {
 			if (a) __render(consequent_6);
 		});
 	}
+
+	var node_14 = _$_.sibling(node_13);
 
 	var content_7 = (__anchor) => {
 		var fragment_16 = root_21();
@@ -431,7 +437,6 @@ export function MultipleReturnsNoneHit(__anchor, _, __block) {
 	let b = false;
 	var fragment_18 = root_24();
 	var node_17 = _$_.first_child_frag(fragment_18);
-	var node_18 = _$_.sibling(node_17);
 
 	{
 		var consequent_8 = (__anchor) => {
@@ -447,6 +452,8 @@ export function MultipleReturnsNoneHit(__anchor, _, __block) {
 			if (a) __render(consequent_8);
 		});
 	}
+
+	var node_18 = _$_.sibling(node_17);
 
 	var content_9 = (__anchor) => {
 		var fragment_20 = root_26();
@@ -498,13 +505,12 @@ export function NestedReturnsAllTrue(__anchor, _, __block) {
 	let b = true;
 	var fragment_22 = root_29();
 	var node_21 = _$_.first_child_frag(fragment_22);
-	var node_22 = _$_.sibling(node_21);
 
 	{
 		var consequent_11 = (__anchor) => {
 			var fragment_23 = root_30();
 			var div_10 = _$_.first_child_frag(fragment_23);
-			var node_23 = _$_.sibling(div_10);
+			var node_22 = _$_.sibling(div_10);
 
 			{
 				var consequent_10 = (__anchor) => {
@@ -514,7 +520,7 @@ export function NestedReturnsAllTrue(__anchor, _, __block) {
 					_$_.append(__anchor, fragment_24);
 				};
 
-				_$_.if(node_23, (__render) => {
+				_$_.if(node_22, (__render) => {
 					__r_11 = false;
 
 					if (b) __render(consequent_10);
@@ -531,13 +537,15 @@ export function NestedReturnsAllTrue(__anchor, _, __block) {
 		});
 	}
 
+	var node_23 = _$_.sibling(node_21);
+
 	var content_11 = (__anchor) => {
 		var div_11 = root_32();
 
 		_$_.append(__anchor, div_11);
 	};
 
-	_$_.if(node_22, (__render) => {
+	_$_.if(node_23, (__render) => {
 		if (!__r_11) __render(content_11);
 	});
 
@@ -553,13 +561,12 @@ export function NestedReturnsInnerFalse(__anchor, _, __block) {
 	let b = false;
 	var fragment_25 = root_33();
 	var node_24 = _$_.first_child_frag(fragment_25);
-	var node_25 = _$_.sibling(node_24);
 
 	{
 		var consequent_13 = (__anchor) => {
 			var fragment_26 = root_34();
 			var div_12 = _$_.first_child_frag(fragment_26);
-			var node_26 = _$_.sibling(div_12);
+			var node_25 = _$_.sibling(div_12);
 
 			{
 				var consequent_12 = (__anchor) => {
@@ -569,7 +576,7 @@ export function NestedReturnsInnerFalse(__anchor, _, __block) {
 					_$_.append(__anchor, fragment_27);
 				};
 
-				_$_.if(node_26, (__render) => {
+				_$_.if(node_25, (__render) => {
 					__r_12 = false;
 
 					if (b) __render(consequent_12);
@@ -586,13 +593,15 @@ export function NestedReturnsInnerFalse(__anchor, _, __block) {
 		});
 	}
 
+	var node_26 = _$_.sibling(node_24);
+
 	var content_12 = (__anchor) => {
 		var div_13 = root_36();
 
 		_$_.append(__anchor, div_13);
 	};
 
-	_$_.if(node_25, (__render) => {
+	_$_.if(node_26, (__render) => {
 		if (!__r_12) __render(content_12);
 	});
 
@@ -608,13 +617,12 @@ export function NestedReturnsOuterFalse(__anchor, _, __block) {
 	let b = true;
 	var fragment_28 = root_37();
 	var node_27 = _$_.first_child_frag(fragment_28);
-	var node_28 = _$_.sibling(node_27);
 
 	{
 		var consequent_15 = (__anchor) => {
 			var fragment_29 = root_38();
 			var div_14 = _$_.first_child_frag(fragment_29);
-			var node_29 = _$_.sibling(div_14);
+			var node_28 = _$_.sibling(div_14);
 
 			{
 				var consequent_14 = (__anchor) => {
@@ -624,7 +632,7 @@ export function NestedReturnsOuterFalse(__anchor, _, __block) {
 					_$_.append(__anchor, fragment_30);
 				};
 
-				_$_.if(node_29, (__render) => {
+				_$_.if(node_28, (__render) => {
 					__r_13 = false;
 
 					if (b) __render(consequent_14);
@@ -641,13 +649,15 @@ export function NestedReturnsOuterFalse(__anchor, _, __block) {
 		});
 	}
 
+	var node_29 = _$_.sibling(node_27);
+
 	var content_13 = (__anchor) => {
 		var div_15 = root_40();
 
 		_$_.append(__anchor, div_15);
 	};
 
-	_$_.if(node_28, (__render) => {
+	_$_.if(node_29, (__render) => {
 		if (!__r_13) __render(content_13);
 	});
 
@@ -664,19 +674,18 @@ export function DeeplyNestedReturnsAllTrue(__anchor, _, __block) {
 	let c = true;
 	var fragment_31 = root_41();
 	var node_30 = _$_.first_child_frag(fragment_31);
-	var node_31 = _$_.sibling(node_30);
 
 	{
 		var consequent_18 = (__anchor) => {
 			var fragment_32 = root_42();
 			var div_16 = _$_.first_child_frag(fragment_32);
-			var node_32 = _$_.sibling(div_16);
+			var node_31 = _$_.sibling(div_16);
 
 			{
 				var consequent_17 = (__anchor) => {
 					var fragment_33 = root_43();
 					var div_17 = _$_.first_child_frag(fragment_33);
-					var node_33 = _$_.sibling(div_17);
+					var node_32 = _$_.sibling(div_17);
 
 					{
 						var consequent_16 = (__anchor) => {
@@ -686,7 +695,7 @@ export function DeeplyNestedReturnsAllTrue(__anchor, _, __block) {
 							_$_.append(__anchor, fragment_34);
 						};
 
-						_$_.if(node_33, (__render) => {
+						_$_.if(node_32, (__render) => {
 							__r_14 = false;
 
 							if (c) __render(consequent_16);
@@ -696,7 +705,7 @@ export function DeeplyNestedReturnsAllTrue(__anchor, _, __block) {
 					_$_.append(__anchor, fragment_33);
 				};
 
-				_$_.if(node_32, (__render) => {
+				_$_.if(node_31, (__render) => {
 					__r_14 = false;
 
 					if (b) __render(consequent_17);
@@ -713,13 +722,15 @@ export function DeeplyNestedReturnsAllTrue(__anchor, _, __block) {
 		});
 	}
 
+	var node_33 = _$_.sibling(node_30);
+
 	var content_14 = (__anchor) => {
 		var div_18 = root_45();
 
 		_$_.append(__anchor, div_18);
 	};
 
-	_$_.if(node_31, (__render) => {
+	_$_.if(node_33, (__render) => {
 		if (!__r_14) __render(content_14);
 	});
 
@@ -736,19 +747,18 @@ export function DeeplyNestedReturnsInnermostFalse(__anchor, _, __block) {
 	let c = false;
 	var fragment_35 = root_46();
 	var node_34 = _$_.first_child_frag(fragment_35);
-	var node_35 = _$_.sibling(node_34);
 
 	{
 		var consequent_21 = (__anchor) => {
 			var fragment_36 = root_47();
 			var div_19 = _$_.first_child_frag(fragment_36);
-			var node_36 = _$_.sibling(div_19);
+			var node_35 = _$_.sibling(div_19);
 
 			{
 				var consequent_20 = (__anchor) => {
 					var fragment_37 = root_48();
 					var div_20 = _$_.first_child_frag(fragment_37);
-					var node_37 = _$_.sibling(div_20);
+					var node_36 = _$_.sibling(div_20);
 
 					{
 						var consequent_19 = (__anchor) => {
@@ -758,7 +768,7 @@ export function DeeplyNestedReturnsInnermostFalse(__anchor, _, __block) {
 							_$_.append(__anchor, fragment_38);
 						};
 
-						_$_.if(node_37, (__render) => {
+						_$_.if(node_36, (__render) => {
 							__r_15 = false;
 
 							if (c) __render(consequent_19);
@@ -768,7 +778,7 @@ export function DeeplyNestedReturnsInnermostFalse(__anchor, _, __block) {
 					_$_.append(__anchor, fragment_37);
 				};
 
-				_$_.if(node_36, (__render) => {
+				_$_.if(node_35, (__render) => {
 					__r_15 = false;
 
 					if (b) __render(consequent_20);
@@ -785,13 +795,15 @@ export function DeeplyNestedReturnsInnermostFalse(__anchor, _, __block) {
 		});
 	}
 
+	var node_37 = _$_.sibling(node_34);
+
 	var content_15 = (__anchor) => {
 		var div_21 = root_50();
 
 		_$_.append(__anchor, div_21);
 	};
 
-	_$_.if(node_35, (__render) => {
+	_$_.if(node_37, (__render) => {
 		if (!__r_15) __render(content_15);
 	});
 
@@ -808,7 +820,6 @@ export function ElseIfChainFirst(__anchor, _, __block) {
 	let value = 1;
 	var fragment_39 = root_51();
 	var node_38 = _$_.first_child_frag(fragment_39);
-	var node_39 = _$_.sibling(node_38);
 
 	{
 		var consequent_22 = (__anchor) => {
@@ -820,7 +831,7 @@ export function ElseIfChainFirst(__anchor, _, __block) {
 
 		var alternate_1 = (__anchor) => {
 			var fragment_41 = root_53();
-			var node_40 = _$_.first_child_frag(fragment_41);
+			var node_39 = _$_.first_child_frag(fragment_41);
 
 			{
 				var consequent_23 = (__anchor) => {
@@ -837,7 +848,7 @@ export function ElseIfChainFirst(__anchor, _, __block) {
 					_$_.append(__anchor, fragment_43);
 				};
 
-				_$_.if(node_40, (__render) => {
+				_$_.if(node_39, (__render) => {
 					__r_17 = false;
 					__r_18 = false;
 					__r_17 = false;
@@ -862,13 +873,15 @@ export function ElseIfChainFirst(__anchor, _, __block) {
 		});
 	}
 
+	var node_40 = _$_.sibling(node_38);
+
 	var content_16 = (__anchor) => {
 		var div_22 = root_56();
 
 		_$_.append(__anchor, div_22);
 	};
 
-	_$_.if(node_39, (__render) => {
+	_$_.if(node_40, (__render) => {
 		if (!__r_16 && !__r_17 && !__r_18) __render(content_16);
 	});
 
@@ -885,7 +898,6 @@ export function ElseIfChainSecond(__anchor, _, __block) {
 	let value = 2;
 	var fragment_44 = root_57();
 	var node_41 = _$_.first_child_frag(fragment_44);
-	var node_42 = _$_.sibling(node_41);
 
 	{
 		var consequent_24 = (__anchor) => {
@@ -897,7 +909,7 @@ export function ElseIfChainSecond(__anchor, _, __block) {
 
 		var alternate_3 = (__anchor) => {
 			var fragment_46 = root_59();
-			var node_43 = _$_.first_child_frag(fragment_46);
+			var node_42 = _$_.first_child_frag(fragment_46);
 
 			{
 				var consequent_25 = (__anchor) => {
@@ -914,7 +926,7 @@ export function ElseIfChainSecond(__anchor, _, __block) {
 					_$_.append(__anchor, fragment_48);
 				};
 
-				_$_.if(node_43, (__render) => {
+				_$_.if(node_42, (__render) => {
 					__r_20 = false;
 					__r_21 = false;
 					__r_20 = false;
@@ -939,13 +951,15 @@ export function ElseIfChainSecond(__anchor, _, __block) {
 		});
 	}
 
+	var node_43 = _$_.sibling(node_41);
+
 	var content_17 = (__anchor) => {
 		var div_23 = root_62();
 
 		_$_.append(__anchor, div_23);
 	};
 
-	_$_.if(node_42, (__render) => {
+	_$_.if(node_43, (__render) => {
 		if (!__r_19 && !__r_20 && !__r_21) __render(content_17);
 	});
 
@@ -962,7 +976,6 @@ export function ElseIfChainElse(__anchor, _, __block) {
 	let value = 3;
 	var fragment_49 = root_63();
 	var node_44 = _$_.first_child_frag(fragment_49);
-	var node_45 = _$_.sibling(node_44);
 
 	{
 		var consequent_26 = (__anchor) => {
@@ -974,7 +987,7 @@ export function ElseIfChainElse(__anchor, _, __block) {
 
 		var alternate_5 = (__anchor) => {
 			var fragment_51 = root_65();
-			var node_46 = _$_.first_child_frag(fragment_51);
+			var node_45 = _$_.first_child_frag(fragment_51);
 
 			{
 				var consequent_27 = (__anchor) => {
@@ -991,7 +1004,7 @@ export function ElseIfChainElse(__anchor, _, __block) {
 					_$_.append(__anchor, fragment_53);
 				};
 
-				_$_.if(node_46, (__render) => {
+				_$_.if(node_45, (__render) => {
 					__r_23 = false;
 					__r_24 = false;
 					__r_23 = false;
@@ -1016,13 +1029,15 @@ export function ElseIfChainElse(__anchor, _, __block) {
 		});
 	}
 
+	var node_46 = _$_.sibling(node_44);
+
 	var content_18 = (__anchor) => {
 		var div_24 = root_68();
 
 		_$_.append(__anchor, div_24);
 	};
 
-	_$_.if(node_45, (__render) => {
+	_$_.if(node_46, (__render) => {
 		if (!__r_22 && !__r_23 && !__r_24) __render(content_18);
 	});
 
@@ -1037,7 +1052,6 @@ export function ReturnWithElseNoReturn(__anchor, _, __block) {
 	let condition = false;
 	var fragment_54 = root_69();
 	var node_47 = _$_.first_child_frag(fragment_54);
-	var node_48 = _$_.sibling(node_47);
 
 	{
 		var consequent_28 = (__anchor) => {
@@ -1061,6 +1075,8 @@ export function ReturnWithElseNoReturn(__anchor, _, __block) {
 		});
 	}
 
+	var node_48 = _$_.sibling(node_47);
+
 	var content_19 = (__anchor) => {
 		var div_26 = root_72();
 
@@ -1083,7 +1099,6 @@ export function ReturnWithElseBothReturn(__anchor, _, __block) {
 	let condition = false;
 	var fragment_56 = root_73();
 	var node_49 = _$_.first_child_frag(fragment_56);
-	var node_50 = _$_.sibling(node_49);
 
 	{
 		var consequent_29 = (__anchor) => {
@@ -1109,6 +1124,8 @@ export function ReturnWithElseBothReturn(__anchor, _, __block) {
 			if (condition) __render(consequent_29); else __render(alternate_7, false);
 		});
 	}
+
+	var node_50 = _$_.sibling(node_49);
 
 	var content_20 = (__anchor) => {
 		var div_27 = root_76();
@@ -1137,7 +1154,6 @@ export function ReactiveReturnTrueToFalse(__anchor, _, __block) {
 	};
 
 	var node_51 = _$_.sibling(button_1);
-	var node_52 = _$_.sibling(node_51);
 
 	{
 		var consequent_30 = (__anchor) => {
@@ -1153,6 +1169,8 @@ export function ReactiveReturnTrueToFalse(__anchor, _, __block) {
 			if (_$_.get(condition)) __render(consequent_30);
 		});
 	}
+
+	var node_52 = _$_.sibling(node_51);
 
 	var content_21 = (__anchor) => {
 		var div_28 = root_79();
@@ -1181,7 +1199,6 @@ export function ReactiveReturnFalseToTrue(__anchor, _, __block) {
 	};
 
 	var node_53 = _$_.sibling(button_2);
-	var node_54 = _$_.sibling(node_53);
 
 	{
 		var consequent_31 = (__anchor) => {
@@ -1197,6 +1214,8 @@ export function ReactiveReturnFalseToTrue(__anchor, _, __block) {
 			if (_$_.get(condition)) __render(consequent_31);
 		});
 	}
+
+	var node_54 = _$_.sibling(node_53);
 
 	var content_22 = (__anchor) => {
 		var div_29 = root_82();
@@ -1228,13 +1247,12 @@ export function ReactiveNestedReturn(__anchor, _, __block) {
 	};
 
 	var node_55 = _$_.sibling(button_3);
-	var node_56 = _$_.sibling(node_55);
 
 	{
 		var consequent_33 = (__anchor) => {
 			var fragment_64 = root_84();
 			var div_30 = _$_.first_child_frag(fragment_64);
-			var node_57 = _$_.sibling(div_30);
+			var node_56 = _$_.sibling(div_30);
 
 			{
 				var consequent_32 = (__anchor) => {
@@ -1244,7 +1262,7 @@ export function ReactiveNestedReturn(__anchor, _, __block) {
 					_$_.append(__anchor, fragment_65);
 				};
 
-				_$_.if(node_57, (__render) => {
+				_$_.if(node_56, (__render) => {
 					_$_.set(__r_30, false);
 
 					if (_$_.get(b)) __render(consequent_32);
@@ -1261,13 +1279,15 @@ export function ReactiveNestedReturn(__anchor, _, __block) {
 		});
 	}
 
+	var node_57 = _$_.sibling(node_55);
+
 	var content_23 = (__anchor) => {
 		var div_31 = root_86();
 
 		_$_.append(__anchor, div_31);
 	};
 
-	_$_.if(node_56, (__render) => {
+	_$_.if(node_57, (__render) => {
 		if (!_$_.get(__r_30)) __render(content_23);
 	});
 
@@ -1330,7 +1350,6 @@ export function ReturnWithMultipleElements(__anchor, _, __block) {
 	var h1_1 = _$_.first_child_frag(fragment_68);
 	var p_1 = _$_.sibling(h1_1);
 	var node_60 = _$_.sibling(p_1);
-	var node_61 = _$_.sibling(node_60);
 
 	{
 		var consequent_35 = (__anchor) => {
@@ -1346,6 +1365,8 @@ export function ReturnWithMultipleElements(__anchor, _, __block) {
 			if (shouldReturn) __render(consequent_35);
 		});
 	}
+
+	var node_61 = _$_.sibling(node_60);
 
 	var content_25 = (__anchor) => {
 		var fragment_70 = root_92();
@@ -1367,7 +1388,6 @@ export function ReturnAtBeginning(__anchor, _, __block) {
 	var __r_33 = false;
 	var fragment_71 = root_93();
 	var node_62 = _$_.first_child_frag(fragment_71);
-	var node_63 = _$_.sibling(node_62);
 
 	{
 		var consequent_36 = (__anchor) => {
@@ -1383,6 +1403,8 @@ export function ReturnAtBeginning(__anchor, _, __block) {
 			if (true) __render(consequent_36);
 		});
 	}
+
+	var node_63 = _$_.sibling(node_62);
 
 	var content_26 = (__anchor) => {
 		var fragment_73 = root_95();
@@ -1435,7 +1457,6 @@ export function MultipleSiblingReturns(__anchor, _, __block) {
 	let mode = 'b';
 	var fragment_76 = root_98();
 	var node_65 = _$_.first_child_frag(fragment_76);
-	var node_66 = _$_.sibling(node_65);
 
 	{
 		var consequent_38 = (__anchor) => {
@@ -1451,6 +1472,8 @@ export function MultipleSiblingReturns(__anchor, _, __block) {
 			if (mode === 'a') __render(consequent_38);
 		});
 	}
+
+	var node_66 = _$_.sibling(node_65);
 
 	var content_27 = (__anchor) => {
 		var fragment_78 = root_100();

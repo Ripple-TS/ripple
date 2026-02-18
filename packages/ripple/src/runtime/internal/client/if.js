@@ -2,7 +2,37 @@
 
 import { branch, destroy_block, render } from './blocks.js';
 import { IF_BLOCK, UNINITIALIZED } from './constants.js';
-import { hydrate_next, hydrating } from './hydration.js';
+import { HYDRATION_END, HYDRATION_START, HYDRATION_START_ELSE } from '../../../constants.js';
+import { hydrate_next, hydrating, set_hydrate_node } from './hydration.js';
+import { get_next_sibling } from './operations.js';
+
+/**
+ * Finds the matching hydration end marker for a block start marker.
+ * @param {Node} anchor
+ * @returns {Node | null}
+ */
+function find_hydration_end(anchor) {
+	/** @type {Node | null} */
+	let node = anchor;
+	let depth = 0;
+
+	while (node !== null) {
+		if (node.nodeType === Node.COMMENT_NODE) {
+			const data = /** @type {Comment} */ (node).data;
+			if (data === HYDRATION_START || data === HYDRATION_START_ELSE) {
+				depth += 1;
+			} else if (data === HYDRATION_END) {
+				depth -= 1;
+				if (depth === 0) {
+					return node;
+				}
+			}
+		}
+		node = get_next_sibling(/** @type {Node} */ (node));
+	}
+
+	return null;
+}
 
 /**
  * @param {Node} node
@@ -10,7 +40,10 @@ import { hydrate_next, hydrating } from './hydration.js';
  * @returns {void}
  */
 export function if_block(node, fn) {
+	/** @type {Node | null} */
+	let hydration_end = null;
 	if (hydrating) {
+		hydration_end = find_hydration_end(node);
 		hydrate_next();
 	}
 
@@ -52,4 +85,8 @@ export function if_block(node, fn) {
 		null,
 		IF_BLOCK,
 	);
+
+	if (hydrating && hydration_end !== null) {
+		set_hydrate_node(hydration_end);
+	}
 }
