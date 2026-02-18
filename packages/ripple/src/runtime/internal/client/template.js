@@ -190,7 +190,8 @@ export function append(anchor, dom, skip_advance) {
 		}
 
 		// During hydration, if anchor === dom, we're hydrating a child component
-		// where the "anchor" IS the content. Don't advance past it.
+		// where the "anchor" IS the content. Preserve the cursor on the
+		// template's hydrated end node so sibling traversal in the parent is correct.
 		if (anchor === dom) {
 			pop(dom);
 			return;

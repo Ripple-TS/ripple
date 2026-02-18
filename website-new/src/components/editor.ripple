@@ -1,0 +1,257 @@
+import type { Tracked } from 'ripple';
+import { track, effect, bindNode } from 'ripple';
+
+#server {
+	export async function fetchMessage(): Promise<string> {
+		const response = await fetch('/api/message');
+		const data = await response.json();
+		return atob(data.message);
+	}
+}
+
+const STEP = 40;
+const INTERVAL = STEP / 2;
+const CURSOR = '<span class="typing-cursor">|</span>';
+
+async function fetchMessage(): Promise<string> {
+	const response = await fetch('/api/message');
+	const data = await response.json();
+	return atob(data.message);
+}
+
+export component Editor() {
+	let nodeRef: Tracked<HTMLElement> = track();
+	let loading = track(true);
+	let content = track('');
+
+	effect(() => {
+		if (@nodeRef) {
+			#server.fetchMessage().then((message: string) => {
+				@content = message;
+
+				@loading = false;
+			});
+		}
+	});
+
+	effect(() => {
+		if (!@content) {
+			return;
+		}
+
+		let charIndex = 0;
+		let timeoutId: number;
+
+		function addChar() {
+			charIndex += STEP;
+
+			if (charIndex < @content.length) {
+				@nodeRef.innerHTML = @content.substring(0, charIndex) + CURSOR;
+				timeoutId = window.setTimeout(addChar, INTERVAL);
+			} else {
+				@nodeRef.innerHTML = @content;
+			}
+		}
+
+		timeoutId = window.setTimeout(addChar, 1000);
+
+		if (charIndex >= @content.length) {
+			window.clearTimeout(timeoutId);
+		}
+
+		return () => {
+			window.clearTimeout(timeoutId);
+		};
+	});
+
+	<div class="editor-mockup">
+		<div class="editor-header">
+			<div class="editor-dots">
+				<div class="editor-dot red" />
+				<div class="editor-dot yellow" />
+				<div class="editor-dot green" />
+			</div>
+			<div class="editor-tab">{'Examples.ripple'}</div>
+		</div>
+		<div class="editor-content">
+			<pre class="editor-code" {ref bindNode(nodeRef)}>
+				if (@loading) {
+					<span class="editor-loader">{'Loading...'}</span>
+				}
+			</pre>
+		</div>
+	</div>
+
+	<style>
+		@keyframes editorSlideIn {
+			0% {
+				opacity: 0;
+				transform: translateY(30px);
+			}
+			100% {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.editor-mockup {
+			max-width: 700px;
+			margin: 1rem auto;
+			background: rgba(30, 30, 35, 0.98);
+			border-radius: 12px;
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			overflow: hidden;
+			box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+			text-align: left;
+			opacity: 1;
+			transform: translateY(30px);
+			animation: editorSlideIn 1s ease-out 0.5s forwards;
+		}
+
+		.editor-header {
+			background: rgba(20, 20, 25, 0.9);
+			padding: 0.75rem 1rem 0;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+			display: flex;
+			align-items: flex-start;
+			gap: 1rem;
+		}
+
+		.editor-dots {
+			display: flex;
+			gap: 0.5rem;
+			align-self: center;
+			margin-top: -7px;
+		}
+
+		.editor-dot {
+			width: 12px;
+			height: 12px;
+			border-radius: 50%;
+		}
+
+		.editor-dot.red {
+			background: #ff5f57;
+		}
+		.editor-dot.yellow {
+			background: #ffbd2e;
+		}
+		.editor-dot.green {
+			background: #28ca42;
+		}
+
+		.editor-loader {
+			display: 'flex';
+			align-items: center;
+			justify-content: center;
+		}
+
+		.editor-tab {
+			background: rgba(25, 25, 30, 0.95);
+			padding: 0.5rem 1rem;
+			border-radius: 6px 6px 0 0;
+			color: rgba(255, 255, 255, 0.9);
+			font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+			font-size: 0.75rem;
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			border-bottom: none;
+			margin-bottom: -1px;
+			align-self: flex-end;
+		}
+
+		.editor-content {
+			background: rgba(25, 25, 30, 0.95);
+			padding: 0;
+			font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+			font-size: 0.8rem;
+			line-height: 1.5;
+			color: #e1e4e8;
+			overflow-x: auto;
+			text-align: left;
+			height: 800px;
+		}
+
+		.editor-code {
+			margin: 0;
+			padding: 1.5rem;
+			background: none;
+			color: inherit;
+			font: inherit;
+			white-space: pre;
+			overflow-x: auto;
+		}
+
+		:global(.editor-line) {
+			display: block;
+		}
+
+		:global(.line-number) {
+			color: rgba(255, 255, 255, 0.3);
+			display: inline-block;
+			width: 1rem;
+			text-align: right;
+			margin-right: 0.75rem;
+			user-select: none;
+		}
+
+		:global(.keyword) {
+			color: #569cd6;
+		}
+		:global(.export-keyword) {
+			color: #c586c0;
+		}
+		:global(.string) {
+			color: #ce9178;
+		}
+		:global(.component) {
+			color: #4ec9b0;
+		}
+		:global(.function) {
+			color: #dcdcaa;
+		}
+		:global(.property) {
+			color: #9cdcfe;
+		}
+		:global(.css-selector) {
+			color: #d7ba7d;
+		}
+		:global(.control-keyword) {
+			color: #c586c0;
+		}
+		:global(.block-brace) {
+			color: #c586c0;
+		}
+		:global(.tag) {
+			color: #569cd6;
+		}
+		:global(.attribute) {
+			color: #92c5f8;
+		}
+		:global(.value) {
+			color: #b5cea8;
+		}
+		:global(.comment) {
+			color: #6a9955;
+			font-style: italic;
+		}
+		:global(.brace) {
+			color: #ffd700;
+		}
+		:global(.css-brace) {
+			color: #d4d4d4;
+		}
+		:global(.template-brace) {
+			color: #ffd700;
+		}
+		:global(.ripple-syntax) {
+			color: #4fc1ff;
+		}
+		:global(.bracket) {
+			color: #808080;
+		}
+		:global(.reactive-var) {
+			color: #9cdcfe;
+			font-weight: bold;
+		}
+	</style>
+}

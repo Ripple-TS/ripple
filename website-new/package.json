@@ -1,0 +1,26 @@
+{
+  "name": "ripple-website",
+  "version": "0.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.18.2",
+  "dependencies": {
+    "livecodes": "catalog:default",
+    "marked": "catalog:default",
+    "@ripple-ts/adapter-node": "workspace:*"
+  },
+  "devDependencies": {
+    "@ripple-ts/vite-plugin": "workspace:*",
+    "@ripple-ts/typescript-plugin": "workspace:*",
+    "ripple": "workspace:*",
+    "typescript": "catalog:default",
+    "vite": "catalog:default"
+  }
+}

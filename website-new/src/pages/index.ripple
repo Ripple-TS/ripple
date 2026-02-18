@@ -1,0 +1,15 @@
+import { Layout } from '../components/layout.ripple';
+import { Header } from '../components/header.ripple';
+import { Actions } from '../components/actions.ripple';
+import { Editor } from '../components/editor.ripple';
+import { Content } from '../components/content.ripple';
+
+export component IndexPage() {
+	<Layout>
+		<Header />
+		<Actions playgroundVisible={true} />
+		<Editor />
+		<Content />
+		<Actions playgroundVisible={false} />
+	</Layout>
+}
