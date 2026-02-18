@@ -105,6 +105,20 @@ var root_103 = _$_.template(`<div class="mode-c">mode C</div>`, 1);
 var root_102 = _$_.template(`<!>`, 1);
 var root_104 = _$_.template(`<div class="default">default mode</div>`, 0);
 var root_98 = _$_.template(`<!><!><!><!>`, 1);
+var root_106 = _$_.template(`<div class="first">first guard</div>`, 1);
+var root_108 = _$_.template(`<div class="second">second guard</div>`, 1);
+var root_107 = _$_.template(`<!>`, 1);
+var root_109 = _$_.template(`<div class="rest">rest</div>`, 0);
+var root_105 = _$_.template(`<button class="toggle">Toggle</button><!><!><!>`, 1);
+var root_112 = _$_.template(`<div class="b">b</div>`, 1);
+var root_111 = _$_.template(`<div class="a">a</div><!>`, 1);
+var root_113 = _$_.template(`<div class="rest"> </div>`, 0);
+var root_110 = _$_.template(`<button class="toggle-a">Toggle A</button><button class="toggle-b">Toggle B</button><!><!>`, 1);
+var root_115 = _$_.template(`<div class="zero">zero</div>`, 1);
+var root_117 = _$_.template(`<div class="one">one</div>`, 1);
+var root_116 = _$_.template(`<!>`, 1);
+var root_118 = _$_.template(`<div class="rest">rest</div><div class="tail">tail</div>`, 1);
+var root_114 = _$_.template(`<button class="toggle">Toggle</button><!><!>`, 1);
 
 import { track } from 'ripple';
 
@@ -1542,6 +1556,235 @@ export function MultipleSiblingReturns(__anchor, _, __block) {
 	});
 
 	_$_.append(__anchor, fragment_76);
+	_$_.pop_component();
+}
+
+export function ReactiveSiblingReturns(__anchor, _, __block) {
+	_$_.push_component();
+
+	var __r_39 = _$_.tracked(false);
+	var __r_38 = _$_.tracked(false);
+	let mode = track('first', void 0, void 0, __block);
+	var fragment_82 = root_105();
+	var button_4 = _$_.first_child_frag(fragment_82);
+
+	button_4.__click = () => {
+		if (_$_.get(mode) === 'first') {
+			_$_.set(mode, 'second');
+		} else if (_$_.get(mode) === 'second') {
+			_$_.set(mode, 'none');
+		} else {
+			_$_.set(mode, 'first');
+		}
+	};
+
+	var node_71 = _$_.sibling(button_4);
+
+	{
+		var consequent_41 = (__anchor) => {
+			var fragment_83 = root_106();
+
+			_$_.set(__r_38, true);
+			_$_.append(__anchor, fragment_83);
+		};
+
+		_$_.if(node_71, (__render) => {
+			_$_.set(__r_38, false);
+
+			if (_$_.get(mode) === 'first') __render(consequent_41);
+		});
+	}
+
+	var node_72 = _$_.sibling(node_71);
+
+	var content_30 = (__anchor) => {
+		var fragment_84 = root_107();
+		var node_73 = _$_.first_child_frag(fragment_84);
+
+		{
+			var consequent_42 = (__anchor) => {
+				var fragment_85 = root_108();
+
+				_$_.set(__r_39, true);
+				_$_.append(__anchor, fragment_85);
+			};
+
+			_$_.if(node_73, (__render) => {
+				_$_.set(__r_39, false);
+
+				if (_$_.get(mode) === 'second') __render(consequent_42);
+			});
+		}
+
+		_$_.append(__anchor, fragment_84);
+	};
+
+	_$_.if(node_72, (__render) => {
+		if (!_$_.get(__r_38)) __render(content_30);
+	});
+
+	var node_74 = _$_.sibling(node_72);
+
+	var content_31 = (__anchor) => {
+		var div_37 = root_109();
+
+		_$_.append(__anchor, div_37);
+	};
+
+	_$_.if(node_74, (__render) => {
+		if (!_$_.get(__r_38) && !_$_.get(__r_39)) __render(content_31);
+	});
+
+	_$_.append(__anchor, fragment_82);
+	_$_.pop_component();
+}
+
+export function ReactiveOuterInnerReturns(__anchor, _, __block) {
+	_$_.push_component();
+
+	var __r_40 = _$_.tracked(false);
+	let a = track(true, void 0, void 0, __block);
+	let b = track(true, void 0, void 0, __block);
+	var fragment_86 = root_110();
+	var button_5 = _$_.first_child_frag(fragment_86);
+
+	button_5.__click = () => {
+		_$_.set(a, !_$_.get(a));
+	};
+
+	var button_6 = _$_.sibling(button_5);
+
+	button_6.__click = () => {
+		_$_.set(b, !_$_.get(b));
+	};
+
+	var node_75 = _$_.sibling(button_6);
+
+	{
+		var consequent_44 = (__anchor) => {
+			var fragment_87 = root_111();
+			var div_38 = _$_.first_child_frag(fragment_87);
+			var node_76 = _$_.sibling(div_38);
+
+			{
+				var consequent_43 = (__anchor) => {
+					var fragment_88 = root_112();
+
+					_$_.set(__r_40, true);
+					_$_.append(__anchor, fragment_88);
+				};
+
+				_$_.if(node_76, (__render) => {
+					_$_.set(__r_40, false);
+
+					if (_$_.get(b)) __render(consequent_43);
+				});
+			}
+
+			_$_.append(__anchor, fragment_87);
+		};
+
+		_$_.if(node_75, (__render) => {
+			_$_.set(__r_40, false);
+
+			if (_$_.get(a)) __render(consequent_44);
+		});
+	}
+
+	var node_77 = _$_.sibling(node_75);
+
+	var content_32 = (__anchor) => {
+		var div_39 = root_113();
+
+		{
+			var text = _$_.child(div_39, true);
+
+			_$_.pop(div_39);
+		}
+
+		_$_.render(() => {
+			_$_.set_text(text, _$_.get(a) ? 'a-on rest' : 'a-off rest');
+		});
+
+		_$_.append(__anchor, div_39);
+	};
+
+	_$_.if(node_77, (__render) => {
+		if (!_$_.get(__r_40)) __render(content_32);
+	});
+
+	_$_.append(__anchor, fragment_86);
+	_$_.pop_component();
+}
+
+export function ReactiveElseIfReturns(__anchor, _, __block) {
+	_$_.push_component();
+
+	var __r_42 = _$_.tracked(false);
+	var __r_41 = _$_.tracked(false);
+	let status = track(0, void 0, void 0, __block);
+	var fragment_89 = root_114();
+	var button_7 = _$_.first_child_frag(fragment_89);
+
+	button_7.__click = () => {
+		_$_.set(status, (_$_.get(status) + 1) % 3);
+	};
+
+	var node_78 = _$_.sibling(button_7);
+
+	{
+		var consequent_45 = (__anchor) => {
+			var fragment_90 = root_115();
+
+			_$_.set(__r_41, true);
+			_$_.append(__anchor, fragment_90);
+		};
+
+		var alternate_8 = (__anchor) => {
+			var fragment_91 = root_116();
+			var node_79 = _$_.first_child_frag(fragment_91);
+
+			{
+				var consequent_46 = (__anchor) => {
+					var fragment_92 = root_117();
+
+					_$_.set(__r_42, true);
+					_$_.append(__anchor, fragment_92);
+				};
+
+				_$_.if(node_79, (__render) => {
+					_$_.set(__r_42, false);
+
+					if (_$_.get(status) === 1) __render(consequent_46);
+				});
+			}
+
+			_$_.append(__anchor, fragment_91);
+		};
+
+		_$_.if(node_78, (__render) => {
+			_$_.set(__r_41, false);
+			_$_.set(__r_42, false);
+			_$_.set(__r_41, false);
+			_$_.set(__r_42, false);
+
+			if (_$_.get(status) === 0) __render(consequent_45); else __render(alternate_8, false);
+		});
+	}
+
+	var node_80 = _$_.sibling(node_78);
+
+	var content_33 = (__anchor) => {
+		var fragment_93 = root_118();
+
+		_$_.append(__anchor, fragment_93);
+	};
+
+	_$_.if(node_80, (__render) => {
+		if (!_$_.get(__r_41) && !_$_.get(__r_42)) __render(content_33);
+	});
+
+	_$_.append(__anchor, fragment_89);
 	_$_.pop_component();
 }
 

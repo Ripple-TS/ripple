@@ -1500,3 +1500,225 @@ export function MultipleSiblingReturns(__output) {
 	__output.push('<!--]-->');
 	_$_.pop_component();
 }
+
+export function ReactiveSiblingReturns(__output) {
+	_$_.push_component();
+
+	var __r_38 = false;
+	var __r_39 = false;
+	let mode = track('first');
+
+	__output.push('<button');
+	__output.push(' class="toggle"');
+	__output.push('>');
+
+	{
+		__output.push('Toggle');
+	}
+
+	__output.push('</button>');
+	__output.push('<!--[-->');
+
+	if (_$_.get(mode) === 'first') {
+		__output.push('<div');
+		__output.push(' class="first"');
+		__output.push('>');
+
+		{
+			__output.push('first guard');
+		}
+
+		__output.push('</div>');
+		__r_38 = true;
+	}
+
+	__output.push('<!--]-->');
+	__output.push('<!--[-->');
+
+	if (!__r_38) {
+		__output.push('<!--[-->');
+
+		if (_$_.get(mode) === 'second') {
+			__output.push('<div');
+			__output.push(' class="second"');
+			__output.push('>');
+
+			{
+				__output.push('second guard');
+			}
+
+			__output.push('</div>');
+			__r_39 = true;
+		}
+
+		__output.push('<!--]-->');
+	}
+
+	__output.push('<!--]-->');
+	__output.push('<!--[-->');
+
+	if (!__r_38 && !__r_39) {
+		__output.push('<div');
+		__output.push(' class="rest"');
+		__output.push('>');
+
+		{
+			__output.push('rest');
+		}
+
+		__output.push('</div>');
+	}
+
+	__output.push('<!--]-->');
+	_$_.pop_component();
+}
+
+export function ReactiveOuterInnerReturns(__output) {
+	_$_.push_component();
+
+	var __r_40 = false;
+	let a = track(true);
+	let b = track(true);
+
+	__output.push('<button');
+	__output.push(' class="toggle-a"');
+	__output.push('>');
+
+	{
+		__output.push('Toggle A');
+	}
+
+	__output.push('</button>');
+	__output.push('<button');
+	__output.push(' class="toggle-b"');
+	__output.push('>');
+
+	{
+		__output.push('Toggle B');
+	}
+
+	__output.push('</button>');
+	__output.push('<!--[-->');
+
+	if (_$_.get(a)) {
+		__output.push('<div');
+		__output.push(' class="a"');
+		__output.push('>');
+
+		{
+			__output.push('a');
+		}
+
+		__output.push('</div>');
+		__output.push('<!--[-->');
+
+		if (_$_.get(b)) {
+			__output.push('<div');
+			__output.push(' class="b"');
+			__output.push('>');
+
+			{
+				__output.push('b');
+			}
+
+			__output.push('</div>');
+			__r_40 = true;
+		}
+
+		__output.push('<!--]-->');
+	}
+
+	__output.push('<!--]-->');
+	__output.push('<!--[-->');
+
+	if (!__r_40) {
+		__output.push('<div');
+		__output.push(' class="rest"');
+		__output.push('>');
+
+		{
+			__output.push(_$_.escape(_$_.get(a) ? 'a-on rest' : 'a-off rest'));
+		}
+
+		__output.push('</div>');
+	}
+
+	__output.push('<!--]-->');
+	_$_.pop_component();
+}
+
+export function ReactiveElseIfReturns(__output) {
+	_$_.push_component();
+
+	var __r_41 = false;
+	var __r_42 = false;
+	let status = track(0);
+
+	__output.push('<button');
+	__output.push(' class="toggle"');
+	__output.push('>');
+
+	{
+		__output.push('Toggle');
+	}
+
+	__output.push('</button>');
+	__output.push('<!--[-->');
+
+	if (_$_.get(status) === 0) {
+		__output.push('<div');
+		__output.push(' class="zero"');
+		__output.push('>');
+
+		{
+			__output.push('zero');
+		}
+
+		__output.push('</div>');
+		__r_41 = true;
+	} else {
+		__output.push('<!--[-->');
+
+		if (_$_.get(status) === 1) {
+			__output.push('<div');
+			__output.push(' class="one"');
+			__output.push('>');
+
+			{
+				__output.push('one');
+			}
+
+			__output.push('</div>');
+			__r_42 = true;
+		}
+
+		__output.push('<!--]-->');
+	}
+
+	__output.push('<!--]-->');
+	__output.push('<!--[-->');
+
+	if (!__r_41 && !__r_42) {
+		__output.push('<div');
+		__output.push(' class="rest"');
+		__output.push('>');
+
+		{
+			__output.push('rest');
+		}
+
+		__output.push('</div>');
+		__output.push('<div');
+		__output.push(' class="tail"');
+		__output.push('>');
+
+		{
+			__output.push('tail');
+		}
+
+		__output.push('</div>');
+	}
+
+	__output.push('<!--]-->');
+	_$_.pop_component();
+}

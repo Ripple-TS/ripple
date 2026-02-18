@@ -248,13 +248,10 @@ describe('hydration > return statements', () => {
 			expect(container.querySelector('.rest')).toBeNull();
 		});
 
-		// TODO: This test exposes a hydration bug with reactive nested returns.
-		// The same scenario passes in client tests without hydration.
-		// The guard's tracked state doesn't properly propagate after hydration.
-		it('hydrates and toggles reactive nested return', async () => {
-			await hydrateComponent(
-				ServerComponents.ReactiveNestedReturn,
-				ClientComponents.ReactiveNestedReturn,
+			it('hydrates and toggles reactive nested return', async () => {
+				await hydrateComponent(
+					ServerComponents.ReactiveNestedReturn,
+					ClientComponents.ReactiveNestedReturn,
 			);
 			console.log('After hydration:', container.innerHTML);
 
@@ -277,10 +274,120 @@ describe('hydration > return statements', () => {
 			flushSync();
 
 			expect(container.querySelector('.a')?.textContent).toBe('a');
-			expect(container.querySelector('.b')?.textContent).toBe('b');
-			expect(container.querySelector('.rest')).toBeNull();
+				expect(container.querySelector('.b')?.textContent).toBe('b');
+				expect(container.querySelector('.rest')).toBeNull();
+			});
+
+			it('hydrates and cycles reactive sibling returns across all branches', async () => {
+				await hydrateComponent(
+					ServerComponents.ReactiveSiblingReturns,
+					ClientComponents.ReactiveSiblingReturns,
+				);
+
+				// first
+				expect(container.querySelector('.first')?.textContent).toBe('first guard');
+				expect(container.querySelector('.second')).toBeNull();
+				expect(container.querySelector('.rest')).toBeNull();
+
+				// second
+				container.querySelector('.toggle')?.click();
+				flushSync();
+				expect(container.querySelector('.first')).toBeNull();
+				expect(container.querySelector('.second')?.textContent).toBe('second guard');
+				expect(container.querySelector('.rest')).toBeNull();
+
+				// fallback
+				container.querySelector('.toggle')?.click();
+				flushSync();
+				expect(container.querySelector('.first')).toBeNull();
+				expect(container.querySelector('.second')).toBeNull();
+				expect(container.querySelector('.rest')?.textContent).toBe('rest');
+
+				// back to first
+				container.querySelector('.toggle')?.click();
+				flushSync();
+				expect(container.querySelector('.first')?.textContent).toBe('first guard');
+				expect(container.querySelector('.second')).toBeNull();
+				expect(container.querySelector('.rest')).toBeNull();
+			});
+
+			it('hydrates nested tracked returns when outer and inner conditions both change', async () => {
+				await hydrateComponent(
+					ServerComponents.ReactiveOuterInnerReturns,
+					ClientComponents.ReactiveOuterInnerReturns,
+				);
+
+				// a=true, b=true
+				expect(container.querySelector('.a')?.textContent).toBe('a');
+				expect(container.querySelector('.b')?.textContent).toBe('b');
+				expect(container.querySelector('.rest')).toBeNull();
+
+				// b=false => no early return, rest should appear in a-on mode
+				container.querySelector('.toggle-b')?.click();
+				flushSync();
+				expect(container.querySelector('.a')?.textContent).toBe('a');
+				expect(container.querySelector('.b')).toBeNull();
+				expect(container.querySelector('.rest')?.textContent).toBe('a-on rest');
+
+				// a=false => outer block disappears, rest switches to a-off mode
+				container.querySelector('.toggle-a')?.click();
+				flushSync();
+				expect(container.querySelector('.a')).toBeNull();
+				expect(container.querySelector('.b')).toBeNull();
+				expect(container.querySelector('.rest')?.textContent).toBe('a-off rest');
+
+				// a=true (b still false) => a returns, rest switches back to a-on mode
+				container.querySelector('.toggle-a')?.click();
+				flushSync();
+				expect(container.querySelector('.a')?.textContent).toBe('a');
+				expect(container.querySelector('.b')).toBeNull();
+				expect(container.querySelector('.rest')?.textContent).toBe('a-on rest');
+
+				// b=true => early return again, hide rest
+				container.querySelector('.toggle-b')?.click();
+				flushSync();
+				expect(container.querySelector('.a')?.textContent).toBe('a');
+				expect(container.querySelector('.b')?.textContent).toBe('b');
+				expect(container.querySelector('.rest')).toBeNull();
+			});
+
+			it('hydrates reactive else-if return chain through return and non-return states', async () => {
+				await hydrateComponent(
+					ServerComponents.ReactiveElseIfReturns,
+					ClientComponents.ReactiveElseIfReturns,
+				);
+
+				// status=0
+				expect(container.querySelector('.zero')?.textContent).toBe('zero');
+				expect(container.querySelector('.one')).toBeNull();
+				expect(container.querySelector('.rest')).toBeNull();
+				expect(container.querySelector('.tail')).toBeNull();
+
+				// status=1
+				container.querySelector('.toggle')?.click();
+				flushSync();
+				expect(container.querySelector('.zero')).toBeNull();
+				expect(container.querySelector('.one')?.textContent).toBe('one');
+				expect(container.querySelector('.rest')).toBeNull();
+				expect(container.querySelector('.tail')).toBeNull();
+
+				// status=2
+				container.querySelector('.toggle')?.click();
+				flushSync();
+				expect(container.querySelector('.zero')).toBeNull();
+				expect(container.querySelector('.one')).toBeNull();
+				expect(container.querySelector('.rest')?.textContent).toBe('rest');
+				expect(container.querySelector('.tail')?.textContent).toBe('tail');
+
+				// status=0
+				container.querySelector('.toggle')?.click();
+				flushSync();
+				expect(container.querySelector('.zero')?.textContent).toBe('zero');
+				expect(container.querySelector('.one')).toBeNull();
+				expect(container.querySelector('.rest')).toBeNull();
+				expect(container.querySelector('.tail')).toBeNull();
+			});
 		});
-	});
 
 	describe('return in element scopes', () => {
 		it('hydrates return inside nested element scope', async () => {

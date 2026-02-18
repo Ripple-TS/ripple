@@ -396,3 +396,94 @@ export component MultipleSiblingReturns() {
 
 	<div class="default">{'default mode'}</div>
 }
+
+// Reactive sibling returns - cycles first -> second -> fallback
+export component ReactiveSiblingReturns() {
+	let mode = track('first');
+
+	<button
+		class="toggle"
+		onClick={() => {
+			if (@mode === 'first') {
+				@mode = 'second';
+			} else if (@mode === 'second') {
+				@mode = 'none';
+			} else {
+				@mode = 'first';
+			}
+		}}
+	>
+		{'Toggle'}
+	</button>
+
+	if (@mode === 'first') {
+		<div class="first">{'first guard'}</div>
+		return;
+	}
+
+	if (@mode === 'second') {
+		<div class="second">{'second guard'}</div>
+		return;
+	}
+
+	<div class="rest">{'rest'}</div>
+}
+
+// Reactive nested returns with tracked outer and inner conditions
+export component ReactiveOuterInnerReturns() {
+	let a = track(true);
+	let b = track(true);
+
+	<button
+		class="toggle-a"
+		onClick={() => {
+			@a = !@a;
+		}}
+	>
+		{'Toggle A'}
+	</button>
+
+	<button
+		class="toggle-b"
+		onClick={() => {
+			@b = !@b;
+		}}
+	>
+		{'Toggle B'}
+	</button>
+
+	if (@a) {
+		<div class="a">{'a'}</div>
+		if (@b) {
+			<div class="b">{'b'}</div>
+			return;
+		}
+	}
+
+	<div class="rest">{@a ? 'a-on rest' : 'a-off rest'}</div>
+}
+
+// Reactive else-if return chain that transitions between return and non-return states
+export component ReactiveElseIfReturns() {
+	let status = track(0);
+
+	<button
+		class="toggle"
+		onClick={() => {
+			@status = (@status + 1) % 3;
+		}}
+	>
+		{'Toggle'}
+	</button>
+
+	if (@status === 0) {
+		<div class="zero">{'zero'}</div>
+		return;
+	} else if (@status === 1) {
+		<div class="one">{'one'}</div>
+		return;
+	}
+
+	<div class="rest">{'rest'}</div>
+	<div class="tail">{'tail'}</div>
+}
