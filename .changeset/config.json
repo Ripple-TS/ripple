@@ -13,6 +13,7 @@
       "@ripple-ts/language-server",
       "@ripple-ts/prettier-plugin",
       "@ripple-ts/adapter-node",
+      "@ripple-ts/adapter-bun",
       "@ripple-ts/rollup-plugin",
       "@ripple-ts/typescript-plugin",
       "@ripple-ts/vite-plugin"

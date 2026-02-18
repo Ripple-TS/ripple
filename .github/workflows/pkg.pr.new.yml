@@ -97,6 +97,7 @@ jobs:
             './packages/prettier-plugin' \
             './packages/ripple' \
             './packages/adapter-node' \
+            './packages/adapter-bun' \
             './packages/rollup-plugin' \
             './packages/vite-plugin' \
             './packages/cli' \
