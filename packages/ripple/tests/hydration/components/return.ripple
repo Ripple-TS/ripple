@@ -309,9 +309,7 @@ export component ReactiveNestedReturn() {
 	<button
 		class="toggle"
 		onClick={() => {
-			console.log('Button clicked: toggling b from', @b, 'to', !@b);
 			@b = !@b;
-			console.log('After toggle, b is now', @b);
 		}}
 	>
 		{'Toggle'}
@@ -486,4 +484,81 @@ export component ReactiveElseIfReturns() {
 
 	<div class="rest">{'rest'}</div>
 	<div class="tail">{'tail'}</div>
+}
+
+// Deeply nested independent return guards with multiple root-level siblings
+export component ReactiveDeepNestedIndependentReturns() {
+	let c1 = track(false);
+	let c2 = track(false);
+	let c3 = track(false);
+	let c4 = track(false);
+
+	<button
+		class="toggle-c1"
+		onClick={() => {
+			@c1 = !@c1;
+		}}
+	>
+		{'Toggle C1'}
+	</button>
+	<button
+		class="toggle-c2"
+		onClick={() => {
+			@c2 = !@c2;
+		}}
+	>
+		{'Toggle C2'}
+	</button>
+	<button
+		class="toggle-c3"
+		onClick={() => {
+			@c3 = !@c3;
+		}}
+	>
+		{'Toggle C3'}
+	</button>
+	<button
+		class="toggle-c4"
+		onClick={() => {
+			@c4 = !@c4;
+		}}
+	>
+		{'Toggle C4'}
+	</button>
+
+	<div class="top">{'top'}</div>
+
+	if (@c1) {
+		<div class="hit-1">{'hit-1'}</div>
+		return;
+	}
+
+	<div class="middle">{'middle'}</div>
+	<section class="nest-1">
+		<div class="nest-1-a">{'nest-1-a'}</div>
+		if (@c2) {
+			<div class="hit-2">{'hit-2'}</div>
+			return;
+		}
+
+		<div class="nest-1-b">{'nest-1-b'}</div>
+		<section class="nest-2">
+			<div class="nest-2-a">{'nest-2-a'}</div>
+			if (@c3) {
+				<div class="hit-3">{'hit-3'}</div>
+				return;
+			}
+
+			<div class="nest-2-b">{'nest-2-b'}</div>
+			if (@c4) {
+				<div class="hit-4">{'hit-4'}</div>
+				return;
+			}
+		</section>
+	</section>
+
+	<div class="root-1">{'root-1'}</div>
+	<div class="root-2">{'root-2'}</div>
+	<div class="root-3">{'root-3'}</div>
+	<div class="root-4">{'root-4'}</div>
 }

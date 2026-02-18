@@ -87,6 +87,17 @@ export function if_block(node, fn) {
 	);
 
 	if (hydrating && hydration_end !== null) {
+		if (b !== null) {
+			/** @type {Block} */
+			var bb = b;
+			var state = bb.s;
+			if (state !== null) {
+				var end = hydration_end.previousSibling;
+				if (end !== null && end !== anchor) {
+					state.end = end;
+				}
+			}
+		}
 		set_hydrate_node(hydration_end);
 	}
 }

@@ -252,28 +252,26 @@ describe('hydration > return statements', () => {
 				await hydrateComponent(
 					ServerComponents.ReactiveNestedReturn,
 					ClientComponents.ReactiveNestedReturn,
-			);
-			console.log('After hydration:', container.innerHTML);
+				);
 
-			// Initially a=true and b=true - shows a, b, hides rest
-			expect(container.querySelector('.a')?.textContent).toBe('a');
-			expect(container.querySelector('.b')?.textContent).toBe('b');
-			expect(container.querySelector('.rest')).toBeNull();
+				// Initially a=true and b=true - shows a, b, hides rest
+				expect(container.querySelector('.a')?.textContent).toBe('a');
+				expect(container.querySelector('.b')?.textContent).toBe('b');
+				expect(container.querySelector('.rest')).toBeNull();
 
-			// Toggle b to false - rest should appear
-			container.querySelector('.toggle')?.click();
-			flushSync();
-			console.log('After toggle (b=false):', container.innerHTML);
+				// Toggle b to false - rest should appear
+				container.querySelector('.toggle')?.click();
+				flushSync();
 
-			expect(container.querySelector('.a')?.textContent).toBe('a');
-			expect(container.querySelector('.b')).toBeNull();
-			expect(container.querySelector('.rest')?.textContent).toBe('rest');
+				expect(container.querySelector('.a')?.textContent).toBe('a');
+				expect(container.querySelector('.b')).toBeNull();
+				expect(container.querySelector('.rest')?.textContent).toBe('rest');
 
-			// Toggle b back to true
-			container.querySelector('.toggle')?.click();
-			flushSync();
+				// Toggle b back to true
+				container.querySelector('.toggle')?.click();
+				flushSync();
 
-			expect(container.querySelector('.a')?.textContent).toBe('a');
+				expect(container.querySelector('.a')?.textContent).toBe('a');
 				expect(container.querySelector('.b')?.textContent).toBe('b');
 				expect(container.querySelector('.rest')).toBeNull();
 			});
@@ -386,6 +384,116 @@ describe('hydration > return statements', () => {
 				expect(container.querySelector('.one')).toBeNull();
 				expect(container.querySelector('.rest')).toBeNull();
 				expect(container.querySelector('.tail')).toBeNull();
+			});
+
+			it('hydrates deeply nested independent returns and keeps trailing root siblings aligned', async () => {
+				await hydrateComponent(
+					ServerComponents.ReactiveDeepNestedIndependentReturns,
+					ClientComponents.ReactiveDeepNestedIndependentReturns,
+				);
+
+				const expect_full_content = () => {
+					expect(container.querySelector('.top')?.textContent).toBe('top');
+					expect(container.querySelector('.middle')?.textContent).toBe('middle');
+					expect(container.querySelector('.nest-1-a')?.textContent).toBe('nest-1-a');
+					expect(container.querySelector('.nest-1-b')?.textContent).toBe('nest-1-b');
+					expect(container.querySelector('.nest-2-a')?.textContent).toBe('nest-2-a');
+					expect(container.querySelector('.nest-2-b')?.textContent).toBe('nest-2-b');
+					expect(container.querySelector('.root-1')?.textContent).toBe('root-1');
+					expect(container.querySelector('.root-2')?.textContent).toBe('root-2');
+					expect(container.querySelector('.root-3')?.textContent).toBe('root-3');
+					expect(container.querySelector('.root-4')?.textContent).toBe('root-4');
+				};
+
+				const expect_no_hits = () => {
+					expect(container.querySelector('.hit-1')).toBeNull();
+					expect(container.querySelector('.hit-2')).toBeNull();
+					expect(container.querySelector('.hit-3')).toBeNull();
+					expect(container.querySelector('.hit-4')).toBeNull();
+				};
+
+				expect_full_content();
+				expect_no_hits();
+
+				// C3 return: deep nested return should hide trailing root siblings
+				container.querySelector('.toggle-c3')?.click();
+				flushSync();
+				expect(container.querySelector('.hit-3')?.textContent).toBe('hit-3');
+				expect(container.querySelector('.top')?.textContent).toBe('top');
+				expect(container.querySelector('.middle')?.textContent).toBe('middle');
+				expect(container.querySelector('.nest-1-a')?.textContent).toBe('nest-1-a');
+				expect(container.querySelector('.nest-1-b')?.textContent).toBe('nest-1-b');
+				expect(container.querySelector('.nest-2-a')?.textContent).toBe('nest-2-a');
+				expect(container.querySelector('.nest-2-b')).toBeNull();
+				expect(container.querySelector('.root-1')).toBeNull();
+				expect(container.querySelector('.root-2')).toBeNull();
+				expect(container.querySelector('.root-3')).toBeNull();
+				expect(container.querySelector('.root-4')).toBeNull();
+
+				container.querySelector('.toggle-c3')?.click();
+				flushSync();
+				expect_full_content();
+				expect_no_hits();
+
+				// C1 return: earliest return should cut everything below top
+				container.querySelector('.toggle-c1')?.click();
+				flushSync();
+				expect(container.querySelector('.top')?.textContent).toBe('top');
+				expect(container.querySelector('.hit-1')?.textContent).toBe('hit-1');
+				expect(container.querySelector('.middle')).toBeNull();
+				expect(container.querySelector('.nest-1-a')).toBeNull();
+				expect(container.querySelector('.nest-1-b')).toBeNull();
+				expect(container.querySelector('.nest-2-a')).toBeNull();
+				expect(container.querySelector('.nest-2-b')).toBeNull();
+				expect(container.querySelector('.root-1')).toBeNull();
+				expect(container.querySelector('.root-2')).toBeNull();
+				expect(container.querySelector('.root-3')).toBeNull();
+				expect(container.querySelector('.root-4')).toBeNull();
+
+				container.querySelector('.toggle-c1')?.click();
+				flushSync();
+				expect_full_content();
+				expect_no_hits();
+
+				// C2 return: mid-level nested return should keep upper nested nodes, hide lower/root siblings
+				container.querySelector('.toggle-c2')?.click();
+				flushSync();
+				expect(container.querySelector('.top')?.textContent).toBe('top');
+				expect(container.querySelector('.middle')?.textContent).toBe('middle');
+				expect(container.querySelector('.nest-1-a')?.textContent).toBe('nest-1-a');
+				expect(container.querySelector('.hit-2')?.textContent).toBe('hit-2');
+				expect(container.querySelector('.nest-1-b')).toBeNull();
+				expect(container.querySelector('.nest-2-a')).toBeNull();
+				expect(container.querySelector('.nest-2-b')).toBeNull();
+				expect(container.querySelector('.root-1')).toBeNull();
+				expect(container.querySelector('.root-2')).toBeNull();
+				expect(container.querySelector('.root-3')).toBeNull();
+				expect(container.querySelector('.root-4')).toBeNull();
+
+				container.querySelector('.toggle-c2')?.click();
+				flushSync();
+				expect_full_content();
+				expect_no_hits();
+
+				// C4 return: deepest return should keep all nested parents but still hide root siblings
+				container.querySelector('.toggle-c4')?.click();
+				flushSync();
+				expect(container.querySelector('.top')?.textContent).toBe('top');
+				expect(container.querySelector('.middle')?.textContent).toBe('middle');
+				expect(container.querySelector('.nest-1-a')?.textContent).toBe('nest-1-a');
+				expect(container.querySelector('.nest-1-b')?.textContent).toBe('nest-1-b');
+				expect(container.querySelector('.nest-2-a')?.textContent).toBe('nest-2-a');
+				expect(container.querySelector('.nest-2-b')?.textContent).toBe('nest-2-b');
+				expect(container.querySelector('.hit-4')?.textContent).toBe('hit-4');
+				expect(container.querySelector('.root-1')).toBeNull();
+				expect(container.querySelector('.root-2')).toBeNull();
+				expect(container.querySelector('.root-3')).toBeNull();
+				expect(container.querySelector('.root-4')).toBeNull();
+
+				container.querySelector('.toggle-c4')?.click();
+				flushSync();
+				expect_full_content();
+				expect_no_hits();
 			});
 		});
 

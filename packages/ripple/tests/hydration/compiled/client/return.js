@@ -119,6 +119,15 @@ var root_117 = _$_.template(`<div class="one">one</div>`, 1);
 var root_116 = _$_.template(`<!>`, 1);
 var root_118 = _$_.template(`<div class="rest">rest</div><div class="tail">tail</div>`, 1);
 var root_114 = _$_.template(`<button class="toggle">Toggle</button><!><!>`, 1);
+var root_120 = _$_.template(`<div class="hit-1">hit-1</div>`, 1);
+var root_122 = _$_.template(`<div class="hit-2">hit-2</div>`, 1);
+var root_124 = _$_.template(`<div class="hit-3">hit-3</div>`, 1);
+var root_126 = _$_.template(`<div class="hit-4">hit-4</div>`, 1);
+var root_125 = _$_.template(`<div class="nest-2-b">nest-2-b</div><!>`, 1);
+var root_123 = _$_.template(`<div class="nest-1-b">nest-1-b</div><section class="nest-2"><div class="nest-2-a">nest-2-a</div><!><!></section>`, 1);
+var root_121 = _$_.template(`<div class="middle">middle</div><section class="nest-1"><div class="nest-1-a">nest-1-a</div><!><!></section>`, 1);
+var root_127 = _$_.template(`<div class="root-1">root-1</div><div class="root-2">root-2</div><div class="root-3">root-3</div><div class="root-4">root-4</div>`, 1);
+var root_119 = _$_.template(`<button class="toggle-c1">Toggle C1</button><button class="toggle-c2">Toggle C2</button><button class="toggle-c3">Toggle C3</button><button class="toggle-c4">Toggle C4</button><div class="top">top</div><!><!><!>`, 1);
 
 import { track } from 'ripple';
 
@@ -1255,9 +1264,7 @@ export function ReactiveNestedReturn(__anchor, _, __block) {
 	var button_3 = _$_.first_child_frag(fragment_63);
 
 	button_3.__click = () => {
-		_$_.with_scope(__block, () => console.log('Button clicked: toggling b from', _$_.get(b), 'to', !_$_.get(b)));
 		_$_.set(b, !_$_.get(b));
-		_$_.with_scope(__block, () => console.log('After toggle, b is now', _$_.get(b)));
 	};
 
 	var node_55 = _$_.sibling(button_3);
@@ -1785,6 +1792,177 @@ export function ReactiveElseIfReturns(__anchor, _, __block) {
 	});
 
 	_$_.append(__anchor, fragment_89);
+	_$_.pop_component();
+}
+
+export function ReactiveDeepNestedIndependentReturns(__anchor, _, __block) {
+	_$_.push_component();
+
+	var __r_46 = _$_.tracked(false);
+	var __r_45 = _$_.tracked(false);
+	var __r_44 = _$_.tracked(false);
+	var __r_43 = _$_.tracked(false);
+	let c1 = track(false, void 0, void 0, __block);
+	let c2 = track(false, void 0, void 0, __block);
+	let c3 = track(false, void 0, void 0, __block);
+	let c4 = track(false, void 0, void 0, __block);
+	var fragment_94 = root_119();
+	var button_8 = _$_.first_child_frag(fragment_94);
+
+	button_8.__click = () => {
+		_$_.set(c1, !_$_.get(c1));
+	};
+
+	var button_9 = _$_.sibling(button_8);
+
+	button_9.__click = () => {
+		_$_.set(c2, !_$_.get(c2));
+	};
+
+	var button_10 = _$_.sibling(button_9);
+
+	button_10.__click = () => {
+		_$_.set(c3, !_$_.get(c3));
+	};
+
+	var button_11 = _$_.sibling(button_10);
+
+	button_11.__click = () => {
+		_$_.set(c4, !_$_.get(c4));
+	};
+
+	var div_40 = _$_.sibling(button_11);
+	var node_81 = _$_.sibling(div_40);
+
+	{
+		var consequent_47 = (__anchor) => {
+			var fragment_95 = root_120();
+
+			_$_.set(__r_43, true);
+			_$_.append(__anchor, fragment_95);
+		};
+
+		_$_.if(node_81, (__render) => {
+			_$_.set(__r_43, false);
+
+			if (_$_.get(c1)) __render(consequent_47);
+		});
+	}
+
+	var node_82 = _$_.sibling(node_81);
+
+	var content_36 = (__anchor) => {
+		var fragment_96 = root_121();
+		var div_42 = _$_.first_child_frag(fragment_96);
+		var section_1 = _$_.sibling(div_42);
+
+		{
+			var div_41 = _$_.child(section_1);
+			var node_83 = _$_.sibling(div_41);
+
+			{
+				var consequent_48 = (__anchor) => {
+					var fragment_97 = root_122();
+
+					_$_.set(__r_44, true);
+					_$_.append(__anchor, fragment_97);
+				};
+
+				_$_.if(node_83, (__render) => {
+					_$_.set(__r_44, false);
+
+					if (_$_.get(c2)) __render(consequent_48);
+				});
+			}
+
+			var node_84 = _$_.sibling(node_83);
+
+			var content_35 = (__anchor) => {
+				var fragment_98 = root_123();
+				var div_44 = _$_.first_child_frag(fragment_98);
+				var section_2 = _$_.sibling(div_44);
+
+				{
+					var div_43 = _$_.child(section_2);
+					var node_85 = _$_.sibling(div_43);
+
+					{
+						var consequent_49 = (__anchor) => {
+							var fragment_99 = root_124();
+
+							_$_.set(__r_45, true);
+							_$_.append(__anchor, fragment_99);
+						};
+
+						_$_.if(node_85, (__render) => {
+							_$_.set(__r_45, false);
+
+							if (_$_.get(c3)) __render(consequent_49);
+						});
+					}
+
+					var node_86 = _$_.sibling(node_85);
+
+					var content_34 = (__anchor) => {
+						var fragment_100 = root_125();
+						var div_45 = _$_.first_child_frag(fragment_100);
+						var node_87 = _$_.sibling(div_45);
+
+						{
+							var consequent_50 = (__anchor) => {
+								var fragment_101 = root_126();
+
+								_$_.set(__r_46, true);
+								_$_.append(__anchor, fragment_101);
+							};
+
+							_$_.if(node_87, (__render) => {
+								_$_.set(__r_46, false);
+
+								if (_$_.get(c4)) __render(consequent_50);
+							});
+						}
+
+						_$_.append(__anchor, fragment_100);
+					};
+
+					_$_.if(node_86, (__render) => {
+						if (!_$_.get(__r_45)) __render(content_34);
+					});
+
+					_$_.pop(section_2);
+				}
+
+				_$_.append(__anchor, fragment_98);
+			};
+
+			_$_.if(node_84, (__render) => {
+				if (!_$_.get(__r_44)) __render(content_35);
+			});
+
+			_$_.pop(section_1);
+		}
+
+		_$_.append(__anchor, fragment_96);
+	};
+
+	_$_.if(node_82, (__render) => {
+		if (!_$_.get(__r_43)) __render(content_36);
+	});
+
+	var node_88 = _$_.sibling(node_82);
+
+	var content_37 = (__anchor) => {
+		var fragment_102 = root_127();
+
+		_$_.append(__anchor, fragment_102);
+	};
+
+	_$_.if(node_88, (__render) => {
+		if (!_$_.get(__r_43) && !_$_.get(__r_44) && !_$_.get(__r_45) && !_$_.get(__r_46)) __render(content_37);
+	});
+
+	_$_.append(__anchor, fragment_94);
 	_$_.pop_component();
 }
 

@@ -1722,3 +1722,248 @@ export function ReactiveElseIfReturns(__output) {
 	__output.push('<!--]-->');
 	_$_.pop_component();
 }
+
+export function ReactiveDeepNestedIndependentReturns(__output) {
+	_$_.push_component();
+
+	var __r_43 = false;
+	var __r_44 = false;
+	var __r_45 = false;
+	var __r_46 = false;
+	let c1 = track(false);
+	let c2 = track(false);
+	let c3 = track(false);
+	let c4 = track(false);
+
+	__output.push('<button');
+	__output.push(' class="toggle-c1"');
+	__output.push('>');
+
+	{
+		__output.push('Toggle C1');
+	}
+
+	__output.push('</button>');
+	__output.push('<button');
+	__output.push(' class="toggle-c2"');
+	__output.push('>');
+
+	{
+		__output.push('Toggle C2');
+	}
+
+	__output.push('</button>');
+	__output.push('<button');
+	__output.push(' class="toggle-c3"');
+	__output.push('>');
+
+	{
+		__output.push('Toggle C3');
+	}
+
+	__output.push('</button>');
+	__output.push('<button');
+	__output.push(' class="toggle-c4"');
+	__output.push('>');
+
+	{
+		__output.push('Toggle C4');
+	}
+
+	__output.push('</button>');
+	__output.push('<div');
+	__output.push(' class="top"');
+	__output.push('>');
+
+	{
+		__output.push('top');
+	}
+
+	__output.push('</div>');
+	__output.push('<!--[-->');
+
+	if (_$_.get(c1)) {
+		__output.push('<div');
+		__output.push(' class="hit-1"');
+		__output.push('>');
+
+		{
+			__output.push('hit-1');
+		}
+
+		__output.push('</div>');
+		__r_43 = true;
+	}
+
+	__output.push('<!--]-->');
+	__output.push('<!--[-->');
+
+	if (!__r_43) {
+		__output.push('<div');
+		__output.push(' class="middle"');
+		__output.push('>');
+
+		{
+			__output.push('middle');
+		}
+
+		__output.push('</div>');
+		__output.push('<section');
+		__output.push(' class="nest-1"');
+		__output.push('>');
+
+		{
+			__output.push('<div');
+			__output.push(' class="nest-1-a"');
+			__output.push('>');
+
+			{
+				__output.push('nest-1-a');
+			}
+
+			__output.push('</div>');
+			__output.push('<!--[-->');
+
+			if (_$_.get(c2)) {
+				__output.push('<div');
+				__output.push(' class="hit-2"');
+				__output.push('>');
+
+				{
+					__output.push('hit-2');
+				}
+
+				__output.push('</div>');
+				__r_44 = true;
+			}
+
+			__output.push('<!--]-->');
+			__output.push('<!--[-->');
+
+			if (!__r_44) {
+				__output.push('<div');
+				__output.push(' class="nest-1-b"');
+				__output.push('>');
+
+				{
+					__output.push('nest-1-b');
+				}
+
+				__output.push('</div>');
+				__output.push('<section');
+				__output.push(' class="nest-2"');
+				__output.push('>');
+
+				{
+					__output.push('<div');
+					__output.push(' class="nest-2-a"');
+					__output.push('>');
+
+					{
+						__output.push('nest-2-a');
+					}
+
+					__output.push('</div>');
+					__output.push('<!--[-->');
+
+					if (_$_.get(c3)) {
+						__output.push('<div');
+						__output.push(' class="hit-3"');
+						__output.push('>');
+
+						{
+							__output.push('hit-3');
+						}
+
+						__output.push('</div>');
+						__r_45 = true;
+					}
+
+					__output.push('<!--]-->');
+					__output.push('<!--[-->');
+
+					if (!__r_45) {
+						__output.push('<div');
+						__output.push(' class="nest-2-b"');
+						__output.push('>');
+
+						{
+							__output.push('nest-2-b');
+						}
+
+						__output.push('</div>');
+						__output.push('<!--[-->');
+
+						if (_$_.get(c4)) {
+							__output.push('<div');
+							__output.push(' class="hit-4"');
+							__output.push('>');
+
+							{
+								__output.push('hit-4');
+							}
+
+							__output.push('</div>');
+							__r_46 = true;
+						}
+
+						__output.push('<!--]-->');
+					}
+
+					__output.push('<!--]-->');
+				}
+
+				__output.push('</section>');
+			}
+
+			__output.push('<!--]-->');
+		}
+
+		__output.push('</section>');
+	}
+
+	__output.push('<!--]-->');
+	__output.push('<!--[-->');
+
+	if (!__r_43 && !__r_44 && !__r_45 && !__r_46) {
+		__output.push('<div');
+		__output.push(' class="root-1"');
+		__output.push('>');
+
+		{
+			__output.push('root-1');
+		}
+
+		__output.push('</div>');
+		__output.push('<div');
+		__output.push(' class="root-2"');
+		__output.push('>');
+
+		{
+			__output.push('root-2');
+		}
+
+		__output.push('</div>');
+		__output.push('<div');
+		__output.push(' class="root-3"');
+		__output.push('>');
+
+		{
+			__output.push('root-3');
+		}
+
+		__output.push('</div>');
+		__output.push('<div');
+		__output.push(' class="root-4"');
+		__output.push('>');
+
+		{
+			__output.push('root-4');
+		}
+
+		__output.push('</div>');
+	}
+
+	__output.push('<!--]-->');
+	_$_.pop_component();
+}
