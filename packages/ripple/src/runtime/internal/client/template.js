@@ -149,19 +149,21 @@ export function template(content, flags) {
 		var svg = !is_comment && (use_svg_namespace || active_namespace === 'svg');
 		var mathml = !is_comment && (use_mathml_namespace || active_namespace === 'mathml');
 
-		if (node === undefined) {
+		if (node === undefined || use_svg_namespace !== svg || use_mathml_namespace !== mathml) {
 			node = create_fragment_from_html(has_start ? content : '<!>' + content, svg, mathml);
 			if (!is_fragment) node = /** @type {Node} */ (get_first_child(node));
 		}
 
+		/** @type {DocumentFragment | Node} */
 		var clone =
 			use_import_node || is_firefox
 				? document.importNode(/** @type {Node} */ (node), true)
 				: /** @type {Node} */ (node).cloneNode(true);
 
 		if (is_fragment) {
-			var start = /** @type {Node} */ (get_first_child(clone));
-			var end = /** @type {Node} */ (clone.lastChild);
+			// we know for sure that children exist
+			var start = /** @type {Node} */ (get_first_child(/** @type {DocumentFragment} */ (clone)));
+			var end = /** @type {Node} */ (/** @type {DocumentFragment} */ (clone).lastChild);
 
 			assign_nodes(start, end);
 		} else {

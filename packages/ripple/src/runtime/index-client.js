@@ -17,7 +17,7 @@ import {
 	set_hydrate_node,
 	set_hydrating,
 } from './internal/client/hydration.js';
-import { COMMENT_NODE, HYDRATION_ERROR, HYDRATION_START } from '../constants.js';
+import { COMMENT_NODE, HYDRATION_START } from '../constants.js';
 
 // Re-export JSX runtime functions for jsxImportSource: "ripple"
 export { jsx, jsxs, Fragment } from '../jsx-runtime.js';
@@ -83,10 +83,6 @@ export function hydrate(component, options) {
 		set_hydrating(true);
 		set_hydrate_node(/** @type {Comment} */ (anchor));
 		hydrate_next();
-
-		if (!anchor) {
-			throw HYDRATION_ERROR;
-		}
 
 		_root = root(() => {
 			component(/** @type {Comment} */ (anchor), props, active_block);
