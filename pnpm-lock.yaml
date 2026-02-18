@@ -228,13 +228,22 @@ importers:
         specifier: catalog:default
         version: 9.0.3
 
+  packages/adapter: {}
+
   packages/adapter-bun:
     dependencies:
+      '@ripple-ts/adapter':
+        specifier: workspace:*
+        version: link:../adapter
       bun:
         specifier: ^1.0.0
         version: 1.3.9
 
-  packages/adapter-node: {}
+  packages/adapter-node:
+    dependencies:
+      '@ripple-ts/adapter':
+        specifier: workspace:*
+        version: link:../adapter
 
   packages/cli:
     devDependencies:
