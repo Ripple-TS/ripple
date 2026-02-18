@@ -93,6 +93,6 @@
     "vscode-languageserver-types": "catalog:default"
   },
   "peerDependencies": {
-    "ripple": "workspace:*"
+    "ripple": "*"
   }
 }

@@ -35,7 +35,7 @@
   },
   "peerDependencies": {
     "eslint": "catalog:peer",
-    "ripple": "catalog:peer"
+    "ripple": "*"
   },
   "devDependencies": {
     "@types/eslint": "catalog:default",

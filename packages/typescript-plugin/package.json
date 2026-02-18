@@ -28,7 +28,7 @@
   },
   "peerDependencies": {
     "typescript": "catalog:peer",
-    "ripple": "workspace:*"
+    "ripple": "*"
   },
   "publishConfig": {
     "access": "public"
