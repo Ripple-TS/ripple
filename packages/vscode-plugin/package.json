@@ -27,7 +27,7 @@
     "src": "node ../../scripts/transform-package.js packages/vscode-plugin/package.json main src/extension.js && node ../../scripts/transform-package.js packages/vscode-plugin/package.json name @ripple-ts/vscode-plugin",
     "repack-vsix": "node scripts/repack-vsix.js",
     "delete-unpacked": "node ../../scripts/remove.js packages/vscode-plugin/vscode-plugin",
-    "package": "pnpm delete-unpacked && pnpm dist && vsce package --no-dependencies --out=vscode-plugin.vsix && pnpm src && pnpm repack-vsix || pnpm src",
+    "package": "pnpm delete-unpacked && pnpm dist && node ../../scripts/regenerate-textmate && vsce package --no-dependencies --out=vscode-plugin.vsix && pnpm src && pnpm repack-vsix || pnpm src",
     "install-package": "code --install-extension vscode-plugin.vsix",
     "build-and-package": "pnpm build && pnpm package",
     "build-package-and-install": "pnpm build && pnpm package && pnpm install-package",
