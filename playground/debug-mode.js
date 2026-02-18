@@ -12,7 +12,7 @@ if (mode !== 'client' && mode !== 'server') {
 console.log(`Compiling in ${mode} mode...`);
 
 const dir = './src/';
-const output_dir = './debug';
+const output_dir = `./debug/${mode}`;
 
 await fs.rm(output_dir, { recursive: true, force: true });
 await fs.mkdir(output_dir, { recursive: true });
