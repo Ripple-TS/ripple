@@ -1,3 +1,0 @@
-# .scm files are located in tree-sitter
-# ignore their copies
-queries/ripple/*.scm

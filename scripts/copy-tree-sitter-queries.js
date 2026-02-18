@@ -18,19 +18,19 @@ const sourceDir = path.join(rootDir, 'grammars', 'tree-sitter', 'queries');
  */
 /**
  * @param {TreeSittableCodeEditor} name
- * @param {string} dir
+ * @param {string} subdir
  * @return {Target}
  */
-function createTarget(name, dir = `${name}-plugin`) {
+function createTarget(name, subdir) {
 	return {
 		name,
-		dir: path.join(rootDir, 'packages', dir, 'queries', 'ripple'),
+		dir: path.join(rootDir, 'packages', `${name}-plugin`, subdir, 'ripple'),
 		indentVariant: `indents.${name}.scm`,
 	};
 }
 
 /** @type {Target[]} */
-const targets = [createTarget('zed'), createTarget('nvim')];
+const targets = [createTarget('zed', 'languages'), createTarget('nvim', 'queries')];
 
 const extraIndentFiles = targets.map((v) => v.indentVariant);
 
