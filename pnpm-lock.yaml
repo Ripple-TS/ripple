@@ -228,6 +228,8 @@ importers:
         specifier: catalog:default
         version: 9.0.3
 
+  packages/adapter-node: {}
+
   packages/cli:
     devDependencies:
       '@types/prompts':

@@ -1,0 +1,231 @@
+import { request as node_http_request } from 'node:http';
+import { describe, expect, it, vi } from 'vitest';
+import { serve } from '../src/index.js';
+
+/**
+ * @param {(request: Request, platform?: any) => Response | Promise<Response>} fetch_handler
+ * @param {(base_url: string) => Promise<void>} run
+ * @param {import('../types/index.d.ts').ServeOptions} [options]
+ * @returns {Promise<void>}
+ */
+async function with_server(fetch_handler, run, options = {}) {
+	const app = serve(fetch_handler, { hostname: '127.0.0.1', ...options });
+	const server = app.listen(0);
+
+	await new Promise((resolve, reject) => {
+		server.once('listening', resolve);
+		server.once('error', reject);
+	});
+
+	const address = server.address();
+	if (address == null || typeof address === 'string') {
+		throw new Error('Expected TCP server address');
+	}
+
+	try {
+		await run(`http://127.0.0.1:${address.port}`);
+	} finally {
+		await new Promise((resolve, reject) => {
+			server.close((error) => {
+				if (error) reject(error);
+				else resolve(undefined);
+			});
+		});
+	}
+}
+
+/**
+ * @param {string} url
+ * @param {{ method?: string, headers?: import('node:http').OutgoingHttpHeaders, body?: string }} [options]
+ * @returns {Promise<{
+ * 	status_code: number,
+ * 	headers: import('node:http').IncomingHttpHeaders,
+ * 	body: string
+ * }>}
+ */
+function send_node_request(url, options = {}) {
+	return new Promise((resolve, reject) => {
+		const request = node_http_request(
+			url,
+			{
+				method: options.method ?? 'GET',
+				headers: options.headers,
+			},
+			(response) => {
+				/** @type {string[]} */
+				const chunks = [];
+				response.setEncoding('utf8');
+				response.on('data', (chunk) => {
+					chunks.push(chunk);
+				});
+				response.on('end', () => {
+					resolve({
+						status_code: response.statusCode ?? 0,
+						headers: response.headers,
+						body: chunks.join(''),
+					});
+				});
+			},
+		);
+
+		request.on('error', reject);
+		if (options.body) {
+			request.write(options.body);
+		}
+		request.end();
+	});
+}
+
+describe('@ripple-ts/adapter-node serve()', () => {
+	it('maps node request values to a web Request and returns response values', async () => {
+		/** @type {{ method: string, url: string, body: string, custom_header: string | null } | null} */
+		let captured = null;
+
+		await with_server(
+			async (request) => {
+				captured = {
+					method: request.method,
+					url: request.url,
+					body: await request.text(),
+					custom_header: request.headers.get('x-custom'),
+				};
+
+				return new Response('created', {
+					status: 201,
+					headers: {
+						'x-response': 'ok',
+					},
+				});
+			},
+			async (base_url) => {
+				const response = await fetch(`${base_url}/users?id=1`, {
+					method: 'POST',
+					headers: {
+						'x-forwarded-proto': 'https, http',
+						'x-forwarded-host': 'example.com, proxy.local',
+						'x-custom': 'abc123',
+					},
+					body: 'payload',
+				});
+
+				expect(response.status).toBe(201);
+				expect(response.headers.get('x-response')).toBe('ok');
+				expect(await response.text()).toBe('created');
+			},
+		);
+
+		expect(captured).toEqual({
+			method: 'POST',
+			url: 'https://example.com/users?id=1',
+			body: 'payload',
+			custom_header: 'abc123',
+		});
+	});
+
+	it('runs middleware before handler when middleware calls next()', async () => {
+		/** @type {string[]} */
+		const calls = [];
+
+		await with_server(
+			() => {
+				calls.push('handler');
+				return new Response('ok');
+			},
+			async (base_url) => {
+				const response = await fetch(base_url);
+				expect(response.status).toBe(200);
+				expect(await response.text()).toBe('ok');
+			},
+			{
+				middleware(req, res, next) {
+					void req;
+					void res;
+					calls.push('middleware');
+					next();
+				},
+			},
+		);
+
+		expect(calls).toEqual(['middleware', 'handler']);
+	});
+
+	it('short-circuits the handler when middleware already handled the response', async () => {
+		const fetch_handler = vi.fn(() => new Response('from-handler'));
+
+		await with_server(
+			fetch_handler,
+			async (base_url) => {
+				const response = await fetch(base_url);
+				expect(response.status).toBe(204);
+				expect(await response.text()).toBe('');
+			},
+			{
+				middleware(req, res, next) {
+					void req;
+					res.statusCode = 204;
+					res.end();
+					next();
+				},
+			},
+		);
+
+		expect(fetch_handler).not.toHaveBeenCalled();
+	});
+
+	it('forwards multiple set-cookie headers', async () => {
+		await with_server(
+			() => {
+				const headers = new Headers();
+				headers.append('set-cookie', 'session=abc; Path=/');
+				headers.append('set-cookie', 'theme=dark; Path=/');
+				return new Response('ok', { headers });
+			},
+			async (base_url) => {
+				const response = await send_node_request(base_url);
+				const set_cookie = response.headers['set-cookie'];
+				const normalized_set_cookie = Array.isArray(set_cookie)
+					? set_cookie.join('\n')
+					: String(set_cookie ?? '');
+
+				expect(response.status_code).toBe(200);
+				expect(normalized_set_cookie).toContain('session=abc');
+				expect(normalized_set_cookie).toContain('theme=dark');
+			},
+		);
+	});
+
+	it('returns internal server error when handler throws', async () => {
+		await with_server(
+			() => {
+				throw new Error('boom');
+			},
+			async (base_url) => {
+				const response = await send_node_request(base_url);
+
+				expect(response.status_code).toBe(500);
+				expect(response.body).toBe('Internal Server Error');
+				expect(response.headers['content-type']).toBe('text/plain; charset=utf-8');
+			},
+		);
+	});
+
+	it('does not write response body for HEAD requests', async () => {
+		/** @type {string | undefined} */
+		let request_method;
+
+		await with_server(
+			(request) => {
+				request_method = request.method;
+				return new Response('body-should-not-be-sent');
+			},
+			async (base_url) => {
+				const response = await fetch(base_url, { method: 'HEAD' });
+
+				expect(response.status).toBe(200);
+				expect(await response.text()).toBe('');
+			},
+		);
+
+		expect(request_method).toBe('HEAD');
+	});
+});

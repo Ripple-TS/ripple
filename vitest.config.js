@@ -64,6 +64,15 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'adapter-node',
+					include: ['packages/adapter-node/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'utils',
 					include: ['packages/ripple/tests/utils/**/*.test.js'],
 					environment: 'node',
