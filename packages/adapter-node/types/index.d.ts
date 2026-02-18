@@ -1,6 +1,6 @@
-export type ServeOptions = {
-	port?: number;
-	hostname?: string;
+import type { AdapterCoreOptions, FetchHandler, ServeResult } from '@ripple-ts/adapter';
+
+export type ServeOptions = AdapterCoreOptions & {
 	middleware?:
 		| ((
 				req: import('node:http').IncomingMessage,
@@ -11,9 +11,9 @@ export type ServeOptions = {
 };
 
 export function serve(
-	fetch_handler: (request: Request, platform?: any) => Response | Promise<Response>,
+	fetch_handler: FetchHandler<{
+		node_request: import('node:http').IncomingMessage;
+		node_response: import('node:http').ServerResponse;
+	}>,
 	options?: ServeOptions,
-): {
-	listen: (port?: number) => import('node:http').Server;
-	close: () => void;
-};
+): ServeResult<import('node:http').Server>;

@@ -1,6 +1,6 @@
 {
-  "name": "@ripple-ts/adapter-bun",
-  "description": "Bun adapter for Ripple metaframework (Web Request/Response bridge)",
+  "name": "@ripple-ts/adapter",
+  "description": "Shared adapter primitives for Ripple metaframework adapters",
   "license": "MIT",
   "author": "Dominic Gannaway",
   "version": "0.2.208",
@@ -15,19 +15,13 @@
     }
   },
   "scripts": {
-    "test": "pnpm -w test --project adapter-bun"
-  },
-  "dependencies": {
-    "@ripple-ts/adapter": "workspace:*"
+    "test": "pnpm -w test --project adapter"
   },
   "homepage": "https://ripplejs.com",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Ripple-TS/ripple.git",
-    "directory": "packages/adapter-bun"
-  },
-  "peerDependencies": {
-    "bun": "^1.0.0"
+    "directory": "packages/adapter"
   },
   "bugs": {
     "url": "https://github.com/Ripple-TS/ripple/issues"

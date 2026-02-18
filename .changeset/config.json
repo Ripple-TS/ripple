@@ -12,6 +12,7 @@
       "@ripple-ts/eslint-plugin",
       "@ripple-ts/language-server",
       "@ripple-ts/prettier-plugin",
+      "@ripple-ts/adapter",
       "@ripple-ts/adapter-node",
       "@ripple-ts/adapter-bun",
       "@ripple-ts/rollup-plugin",

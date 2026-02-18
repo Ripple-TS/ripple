@@ -1,45 +1,11 @@
 /** @typedef {typeof import('bun')} Bun */
 /** @typedef {Bun.Server<undefined>} Server */
-
-/**
- * @returns {Response}
- */
-function internal_server_error_response() {
-	return new Response('Internal Server Error', {
-		status: 500,
-		headers: {
-			'content-type': 'text/plain; charset=utf-8',
-		},
-	});
-}
-
-/**
- * @param {(request: Request, server: Server, next: () => Promise<Response>) => Response | Promise<Response> | void} middleware
- * @param {Request} request
- * @param {Server} server
- * @param {() => Promise<Response>} next_handler
- * @returns {Promise<Response>}
- */
-async function run_middleware(middleware, request, server, next_handler) {
-	/** @type {Promise<Response> | null} */
-	let next_promise = null;
-
-	const next = () => {
-		if (next_promise === null) {
-			next_promise = Promise.resolve().then(next_handler);
-		}
-		return next_promise;
-	};
-
-	const middleware_result = await middleware(request, server, next);
-	if (middleware_result instanceof Response) {
-		return middleware_result;
-	}
-	if (next_promise !== null) {
-		return next_promise;
-	}
-	return await next_handler();
-}
+import {
+	DEFAULT_HOSTNAME,
+	DEFAULT_PORT,
+	internal_server_error_response,
+	run_next_middleware,
+} from '@ripple-ts/adapter';
 
 /**
  * @typedef {{
@@ -59,7 +25,7 @@ async function run_middleware(middleware, request, server, next_handler) {
  * @returns {{ listen: (port?: number) => Server, close: () => void }}
  */
 export function serve(fetch_handler, options = {}) {
-	const { port = 3000, hostname = 'localhost', middleware = null } = options;
+	const { port = DEFAULT_PORT, hostname = DEFAULT_HOSTNAME, middleware = null } = options;
 
 	/** @type {Server | null} */
 	let bun_server = null;
@@ -79,7 +45,7 @@ export function serve(fetch_handler, options = {}) {
 					const platform = { bun_server: server };
 					try {
 						if (middleware) {
-							return await run_middleware(middleware, request, server, async () => {
+							return await run_next_middleware(middleware, request, server, async () => {
 								return await fetch_handler(request, platform);
 							});
 						}

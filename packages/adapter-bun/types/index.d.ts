@@ -1,19 +1,15 @@
-export type ServeOptions = {
-	port?: number;
-	hostname?: string;
-	middleware?:
-		| ((
-				request: Request,
-				server: any,
-				next: () => Promise<Response>,
-		  ) => Response | Promise<Response> | void)
-		| null;
+import type {
+	AdapterCoreOptions,
+	FetchHandler,
+	NextMiddleware,
+	ServeResult,
+} from '@ripple-ts/adapter';
+
+export type ServeOptions = AdapterCoreOptions & {
+	middleware?: NextMiddleware<Request, any> | null;
 };
 
 export function serve(
-	fetch_handler: (request: Request, platform?: any) => Response | Promise<Response>,
+	fetch_handler: FetchHandler<{ bun_server: any }>,
 	options?: ServeOptions,
-): {
-	listen: (port?: number) => any;
-	close: () => void;
-};
+): ServeResult<any>;

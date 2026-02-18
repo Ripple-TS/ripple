@@ -96,6 +96,7 @@ jobs:
             './packages/create-ripple' \
             './packages/prettier-plugin' \
             './packages/ripple' \
+            './packages/adapter' \
             './packages/adapter-node' \
             './packages/adapter-bun' \
             './packages/rollup-plugin' \

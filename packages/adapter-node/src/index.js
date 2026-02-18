@@ -1,5 +1,11 @@
 import { createServer } from 'node:http';
 import { Readable } from 'node:stream';
+import {
+	DEFAULT_HOSTNAME,
+	DEFAULT_PORT,
+	internal_server_error_response,
+	run_next_middleware,
+} from '@ripple-ts/adapter';
 
 /**
  * @param {string | string[] | undefined} value
@@ -120,35 +126,12 @@ function web_response_to_node_response(web_response, node_response, request_meth
  */
 
 /**
- * @param {(req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse, next: (error?: any) => void) => void} middleware
- * @param {import('node:http').IncomingMessage} req
- * @param {import('node:http').ServerResponse} res
- * @returns {Promise<boolean>} true if response is handled (ended/headers sent)
- */
-function run_middleware(middleware, req, res) {
-	return new Promise((resolve, reject) => {
-		if (res.writableEnded) return resolve(true);
-
-		const done = (/** @type {Error} */ error) => {
-			if (error) return reject(error);
-			resolve(res.writableEnded || res.headersSent);
-		};
-
-		try {
-			middleware(req, res, done);
-		} catch (error) {
-			reject(error);
-		}
-	});
-}
-
-/**
  * @param {(request: Request, platform?: any) => Response | Promise<Response>} fetch_handler
  * @param {ServeOptions} [options]
  * @returns {{ listen: (port?: number) => import('node:http').Server, close: () => void }}
  */
 export function serve(fetch_handler, options = {}) {
-	const { port = 3000, hostname = 'localhost', middleware = null } = options;
+	const { port = DEFAULT_PORT, hostname = DEFAULT_HOSTNAME, middleware = null } = options;
 
 	const server = createServer(async (node_request, node_response) => {
 		const abort_controller = new AbortController();
@@ -161,20 +144,67 @@ export function serve(fetch_handler, options = {}) {
 		});
 
 		try {
+			const run_fetch_handler = async () => {
+				const request = node_request_to_web_request(node_request, abort_controller.signal);
+				return await fetch_handler(request, { node_request, node_response });
+			};
+
+			let response;
 			if (middleware) {
-				const handled = await run_middleware(middleware, node_request, node_response);
-				if (handled) return;
+				response = await run_next_middleware(
+					async (request, middleware_response, next) => {
+						await new Promise((resolve, reject) => {
+							if (middleware_response.writableEnded) {
+								resolve(undefined);
+								return;
+							}
+
+							const done = (/** @type {Error} */ error) => {
+								if (error) return reject(error);
+								resolve(undefined);
+							};
+
+							try {
+								middleware(request, middleware_response, done);
+							} catch (error) {
+								reject(error);
+							}
+						});
+
+						if (middleware_response.writableEnded || middleware_response.headersSent) {
+							return new Response(null, { status: 204 });
+						}
+
+						return await next();
+					},
+					node_request,
+					node_response,
+					run_fetch_handler,
+				);
+			} else {
+				response = await run_fetch_handler();
 			}
 
-			const request = node_request_to_web_request(node_request, abort_controller.signal);
-			const response = await fetch_handler(request, { node_request, node_response });
-			web_response_to_node_response(response, node_response, request.method);
-		} catch {
-			if (!node_response.headersSent) {
-				node_response.statusCode = 500;
-				node_response.setHeader('content-type', 'text/plain; charset=utf-8');
+			if (node_response.writableEnded || node_response.headersSent) {
+				return;
 			}
-			node_response.end('Internal Server Error');
+
+			web_response_to_node_response(
+				response,
+				node_response,
+				(node_request.method ?? 'GET').toUpperCase(),
+			);
+		} catch {
+			if (node_response.headersSent) {
+				node_response.end();
+				return;
+			}
+
+			web_response_to_node_response(
+				internal_server_error_response(),
+				node_response,
+				(node_request.method ?? 'GET').toUpperCase(),
+			);
 		}
 	});
 
