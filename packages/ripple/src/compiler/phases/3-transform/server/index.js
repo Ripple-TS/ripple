@@ -211,7 +211,13 @@ function transform_children(children, context) {
 
 		state.init = saved_init;
 		if (wrapped.length > 0) {
+			state.init?.push(
+				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN))),
+			);
 			state.init?.push(b.if(guard, b.block(wrapped)));
+			state.init?.push(
+				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_CLOSE))),
+			);
 		}
 	};
 

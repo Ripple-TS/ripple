@@ -1,0 +1,59 @@
+// Early return components for hydration testing
+import { track } from 'ripple';
+
+export component EarlyReturnStaticTrue() {
+	if (true) {
+		<div class="before">{'Before'}</div>
+		return;
+	}
+
+	<div class="after">{'After'}</div>
+}
+
+export component EarlyReturnStaticFalse() {
+	if (false) {
+		<div class="before">{'Before'}</div>
+		return;
+	}
+
+	<div class="after">{'After'}</div>
+}
+
+export component ReactiveEarlyReturn() {
+	let stop = track(true);
+
+	<button
+		class="toggle"
+		onClick={() => {
+			@stop = !@stop;
+		}}
+	>
+		{'Toggle'}
+	</button>
+
+	if (@stop) {
+		<div class="stop">{'Stopped'}</div>
+		return;
+	}
+
+	<div class="after">{'After'}</div>
+}
+
+export component ReactiveLoneReturn() {
+	let stop = track(true);
+
+	<button
+		class="toggle-lone"
+		onClick={() => {
+			@stop = !@stop;
+		}}
+	>
+		{'Toggle lone'}
+	</button>
+
+	if (@stop) {
+		return;
+	}
+
+	<div class="after-lone">{'After lone'}</div>
+}

@@ -43,6 +43,26 @@ describe('early return in SSR', () => {
 		expect(body).toBeHtml('<div>rest</div>');
 	});
 
+	it('emits hydration markers for content guarded by early return flags', async () => {
+		component App() {
+			let condition = true;
+
+			if (condition) {
+				return;
+			}
+
+			<div>{'rest'}</div>
+		}
+
+		const { body } = await render(App);
+		const open_markers = body.match(/<!--\[-->/g) || [];
+		const close_markers = body.match(/<!--\]-->/g) || [];
+		expect(open_markers.length).toBeGreaterThanOrEqual(3);
+		expect(close_markers.length).toBeGreaterThanOrEqual(3);
+		expect(open_markers.length).toBe(close_markers.length);
+		expect(body).toBeHtml('');
+	});
+
 	it('handles nested ifs with return', async () => {
 		component App() {
 			let a = true;
