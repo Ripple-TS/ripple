@@ -13,7 +13,6 @@ detect these cases and provide clear error messages.
 - Added `push_element` and `pop_element` functions to the server runtime that
   track the element stack during SSR
 - Added comprehensive HTML nesting validation rules based on the HTML spec
-  (similar to Svelte 5's approach)
 - The server compiler now emits `push_element`/`pop_element` calls when the `dev`
   option is enabled
 - Added `dev` option to `CompileOptions`
