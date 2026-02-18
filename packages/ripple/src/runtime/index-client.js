@@ -11,7 +11,6 @@ import { active_block } from './internal/client/runtime.js';
 import { create_anchor } from './internal/client/utils.js';
 import { remove_ssr_css } from './internal/client/css.js';
 import {
-	find_hydration_end,
 	hydrate_next,
 	hydrate_node,
 	hydrating,
@@ -81,21 +80,16 @@ export function hydrate(component, options) {
 			anchor = get_next_sibling(anchor);
 		}
 
-		if (!anchor) {
-			throw HYDRATION_ERROR;
-		}
-
-		var hydration_end = find_hydration_end(anchor);
-		if (hydration_end === null) {
-			throw HYDRATION_ERROR;
-		}
-
 		set_hydrating(true);
 		set_hydrate_node(/** @type {Comment} */ (anchor));
 		hydrate_next();
 
+		if (!anchor) {
+			throw HYDRATION_ERROR;
+		}
+
 		_root = root(() => {
-			component(/** @type {Comment} */ (hydration_end), props, active_block);
+			component(/** @type {Comment} */ (anchor), props, active_block);
 		}, options.compat);
 	} catch (e) {
 		throw e;
