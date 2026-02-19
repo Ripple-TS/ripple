@@ -13,12 +13,6 @@ const STEP = 40;
 const INTERVAL = STEP / 2;
 const CURSOR = '<span class="typing-cursor">|</span>';
 
-async function fetchMessage(): Promise<string> {
-	const response = await fetch('/api/message');
-	const data = await response.json();
-	return atob(data.message);
-}
-
 export component Editor() {
 	let nodeRef: Tracked<HTMLElement> = track();
 	let loading = track(true);
