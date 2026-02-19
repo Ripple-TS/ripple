@@ -3,6 +3,7 @@ import type {
 	FetchHandler,
 	ServeResult,
 	ServeStaticOptions as BaseServeStaticOptions,
+	ServeStaticDirectoryOptions as BaseServeStaticDirectoryOptions,
 } from '@ripple-ts/adapter';
 
 export type ServeOptions = AdapterCoreOptions & {
@@ -13,7 +14,7 @@ export type ServeOptions = AdapterCoreOptions & {
 				next: (error?: any) => void,
 		  ) => void)
 		| null;
-	static?: (BaseServeStaticOptions & { dir?: string }) | false;
+	static?: BaseServeStaticDirectoryOptions | false;
 };
 
 export type ServeStaticOptions = BaseServeStaticOptions;

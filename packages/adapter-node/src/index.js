@@ -114,11 +114,7 @@ function web_response_to_node_response(web_response, node_response, request_meth
 	node_stream.pipe(node_response);
 }
 
-/**
- * @typedef {import('@ripple-ts/adapter').ServeStaticOptions & {
- * 	dir?: string,
- * }} StaticServeOptions
- */
+/** @typedef {import('@ripple-ts/adapter').ServeStaticDirectoryOptions} StaticServeOptions */
 
 /**
  * @typedef {{

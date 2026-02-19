@@ -3,12 +3,13 @@ import type {
 	FetchHandler,
 	NextMiddleware,
 	ServeStaticOptions as BaseServeStaticOptions,
+	ServeStaticDirectoryOptions as BaseServeStaticDirectoryOptions,
 	ServeResult,
 } from '@ripple-ts/adapter';
 
 export type ServeOptions = AdapterCoreOptions & {
 	middleware?: NextMiddleware<Request, any> | null;
-	static?: (BaseServeStaticOptions & { dir?: string }) | false;
+	static?: BaseServeStaticDirectoryOptions | false;
 };
 
 export type ServeStaticOptions = BaseServeStaticOptions;

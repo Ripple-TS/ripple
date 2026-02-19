@@ -9,11 +9,7 @@ import {
 	serveStatic as create_static_handler,
 } from '@ripple-ts/adapter';
 
-/**
- * @typedef {import('@ripple-ts/adapter').ServeStaticOptions & {
- * 	dir?: string,
- * }} StaticServeOptions
- */
+/** @typedef {import('@ripple-ts/adapter').ServeStaticDirectoryOptions} StaticServeOptions */
 
 /**
  * @typedef {{

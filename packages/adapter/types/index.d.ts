@@ -14,6 +14,10 @@ export type ServeStaticOptions = {
 	immutable?: boolean;
 };
 
+export type ServeStaticDirectoryOptions = ServeStaticOptions & {
+	dir?: string;
+};
+
 export type NextMiddleware<RequestValue = Request, Server = any, ResultValue = Response> = (
 	request: RequestValue,
 	server: Server,
