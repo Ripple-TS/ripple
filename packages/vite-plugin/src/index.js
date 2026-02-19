@@ -427,7 +427,7 @@ export function ripple(inlineOptions = {}) {
 									res,
 									url,
 									vite,
-									rippleConfig?.server?.trustProxy === false,
+									rippleConfig.server?.trustProxy ?? false,
 								);
 								return;
 							}
