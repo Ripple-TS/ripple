@@ -356,9 +356,7 @@ describe('@ripple-ts/adapter-node serve()', () => {
 				async (base_url) => {
 					const response = await fetch(`${base_url}/public/asset.txt`);
 					expect(response.status).toBe(200);
-					expect(response.headers.get('cache-control')).toBe(
-						'public, max-age=31536000, immutable',
-					);
+					expect(response.headers.get('cache-control')).toBe('public, max-age=31536000, immutable');
 					expect(await response.text()).toBe('asset-data');
 				},
 				{
