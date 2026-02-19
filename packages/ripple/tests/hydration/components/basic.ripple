@@ -88,16 +88,10 @@ component Header() {
 
 component Actions({ playgroundVisible = false }: { playgroundVisible: boolean }) {
 	<div class="social-links">
-		<a href="https://github.com" class="github-link">
-			{'GitHub'}
-		</a>
-		<a href="https://discord.com" class="discord-link">
-			{'Discord'}
-		</a>
+		<a href="https://github.com" class="github-link">{'GitHub'}</a>
+		<a href="https://discord.com" class="discord-link">{'Discord'}</a>
 		if (playgroundVisible) {
-			<a href="/playground" class="playground-link">
-				{'Playground'}
-			</a>
+			<a href="/playground" class="playground-link">{'Playground'}</a>
 		}
 	</div>
 }
