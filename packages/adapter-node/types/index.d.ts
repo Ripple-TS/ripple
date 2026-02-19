@@ -1,7 +1,6 @@
 import type {
 	AdapterCoreOptions,
-	FetchHandler,
-	ServeResult,
+	ServeFunction,
 	ServeStaticOptions as BaseServeStaticOptions,
 	ServeStaticDirectoryOptions as BaseServeStaticDirectoryOptions,
 } from '@ripple-ts/adapter';
@@ -25,13 +24,14 @@ export type StaticMiddleware = (
 	next: (error?: any) => void,
 ) => void;
 
-export function serve(
-	fetch_handler: FetchHandler<{
+export const serve: ServeFunction<
+	{
 		node_request: import('node:http').IncomingMessage;
 		node_response: import('node:http').ServerResponse;
-	}>,
-	options?: ServeOptions,
-): ServeResult<import('node:http').Server>;
+	},
+	ServeOptions,
+	import('node:http').Server
+>;
 
 /**
  * Create a middleware that serves static files from a directory

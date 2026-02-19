@@ -23,19 +23,25 @@ export async function rpc(hash, args) {
 
 	if (!response.ok) {
 		let message = `Server function call failed with status ${response.status}`;
-
+		let error_body;
 		try {
-			const error_body = await response.text();
-
-			if (error_body) {
-				const parsed = JSON.parse(error_body);
-
-				if (parsed.error) {
-					message = parsed.error;
-				}
-			}
+			error_body = await response.text();
 		} catch {
 			// ignore parse errors, use default message
+		}
+
+		if (error_body) {
+			try {
+				const parsed = JSON.parse(error_body);
+
+				if (parsed && typeof parsed.error === 'string' && parsed.error.length > 0) {
+					message = parsed.error;
+				} else {
+					message = error_body;
+				}
+			} catch {
+				message = error_body;
+			}
 		}
 
 		throw new Error(message);
