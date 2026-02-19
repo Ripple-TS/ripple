@@ -1,5 +1,16 @@
 # @ripple-ts/adapter
 
+## 0.2.211
+
+### Patch Changes
+
+- [#694](https://github.com/Ripple-TS/ripple/pull/694)
+  [`fa285f4`](https://github.com/Ripple-TS/ripple/commit/fa285f441ab8d748c3dfea6adb463e3ca6d614b5)
+  Thanks [@trueadm](https://github.com/trueadm)! - Add a shared
+  `ServeStaticDirectoryOptions` type in `@ripple-ts/adapter` and update node/bun
+  adapters to consume it instead of redefining the same
+  `ServeStaticOptions & { dir?: string }` shape locally.
+
 ## 0.2.210
 
 ## 0.2.209

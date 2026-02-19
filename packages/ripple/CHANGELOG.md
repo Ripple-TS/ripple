@@ -1,5 +1,19 @@
 # ripple
 
+## 0.2.211
+
+### Patch Changes
+
+- [#694](https://github.com/Ripple-TS/ripple/pull/694)
+  [`fa285f4`](https://github.com/Ripple-TS/ripple/commit/fa285f441ab8d748c3dfea6adb463e3ca6d614b5)
+  Thanks [@trueadm](https://github.com/trueadm)! - Add a compiler validation error
+  for rendering `children` through text interpolation (for example `{children}` or
+  `{props.children}`) and direct users to render children as a component
+  (`<@children />`) instead.
+- Updated dependencies
+  [[`fa285f4`](https://github.com/Ripple-TS/ripple/commit/fa285f441ab8d748c3dfea6adb463e3ca6d614b5)]:
+  - ripple@0.2.211
+
 ## 0.2.210
 
 ### Patch Changes
