@@ -2302,12 +2302,16 @@ const visitors = {
 	},
 
 	TryStatement(node, context) {
-		if (context.state.to_ts) {
-			return transform_ts_child(node, context);
+		if (!is_inside_component(context)) {
+			if (context.state.to_ts) {
+				return transform_ts_child(node, SetContextForOutsideComponent(context));
+			}
+
+			return context.next();
 		}
 
-		if (!is_inside_component(context)) {
-			return context.next();
+		if (context.state.to_ts) {
+			return transform_ts_child(node, context);
 		}
 		context.state.template?.push('<!>');
 
