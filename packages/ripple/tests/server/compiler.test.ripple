@@ -50,7 +50,7 @@ export component Layout({ children }) {
 }`;
 
 		expect(() => compile(source, 'test.ripple', { mode: 'server' })).toThrow(
-			'`children` cannot be rendered using text interpolation. Use `<@children />` instead.',
+			'`children` cannot be rendered using text interpolation. Use `<children />` instead.',
 		);
 	});
 
@@ -61,7 +61,7 @@ export component Layout(props) {
 }`;
 
 		expect(() => compile(source, 'test.ripple', { mode: 'server' })).toThrow(
-			'`children` cannot be rendered using text interpolation. Use `<@children />` instead.',
+			'`children` cannot be rendered using text interpolation. Use `<children />` instead.',
 		);
 	});
 });

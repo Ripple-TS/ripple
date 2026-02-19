@@ -1298,7 +1298,7 @@ const visitors = {
 			)
 		) {
 			error(
-				'`children` cannot be rendered using text interpolation. Use `<@children />` instead.',
+				'`children` cannot be rendered using text interpolation. Use `<children />` instead.',
 				context.state.analysis.module.filename,
 				node.expression,
 				context.state.loose ? context.state.analysis.errors : undefined,
