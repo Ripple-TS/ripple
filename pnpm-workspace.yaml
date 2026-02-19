@@ -6,6 +6,8 @@ packages:
   - packages/*
   - playground
   - website
+  - grammars/tree-sitter
+  - website-new
 catalogs:
   default:
     "@jridgewell/sourcemap-codec": ^1.5.5
@@ -39,6 +41,7 @@ catalogs:
     linkedom: ^0.18.12
     livecodes: 0.12.0
     magic-string: ^0.30.18
+    marked: ^17.0.3
     muggle-string: ^0.4.1
     ora: ^8.1.0
     polka: ^1.0.0-next.25

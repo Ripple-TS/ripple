@@ -1,5 +1,8 @@
 # @ripple-ts/eslint-parser
 
+[![npm version](https://img.shields.io/npm/v/%40ripple-ts%2Feslint-parser?logo=npm)](https://www.npmjs.com/package/@ripple-ts/eslint-parser)
+[![npm downloads](https://img.shields.io/npm/dm/%40ripple-ts%2Feslint-parser?logo=npm&label=downloads)](https://www.npmjs.com/package/@ripple-ts/eslint-parser)
+
 ESLint parser for Ripple (.ripple files). This parser enables ESLint to understand
 and lint `.ripple` files by leveraging Ripple's built-in compiler.
 

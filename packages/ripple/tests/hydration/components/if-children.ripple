@@ -1,0 +1,71 @@
+// Minimal repro for hydration issue with if block containing children
+// Based on SidebarGroup pattern from website-new
+import { track } from 'ripple';
+
+export component IfWithChildren({ children }: { children: any }) {
+	let expanded = track(true);
+
+	<div class="container">
+		<div class="header" role="button" onClick={() => (@expanded = !@expanded)}>{'Toggle'}</div>
+		if (@expanded) {
+			<div class="content">
+				<children />
+			</div>
+		}
+	</div>
+}
+
+export component ChildItem({ text }: { text: string }) {
+	<div class="item">{text}</div>
+}
+
+export component TestIfWithChildren() {
+	<IfWithChildren>
+		<ChildItem text="Item 1" />
+		<ChildItem text="Item 2" />
+	</IfWithChildren>
+}
+
+// Simpler variant - if block with static children
+export component IfWithStaticChildren() {
+	let expanded = track(true);
+
+	<div class="container">
+		<div class="header" role="button" onClick={() => (@expanded = !@expanded)}>{'Toggle'}</div>
+		if (@expanded) {
+			<div class="content">
+				<span>{'Static child 1'}</span>
+				<span>{'Static child 2'}</span>
+			</div>
+		}
+	</div>
+}
+
+// Variant with sibling elements before the if block (like SidebarGroup)
+export component IfWithSiblingsAndChildren({ children }: { children: any }) {
+	let expanded = track(true);
+
+	<section class="group">
+		<div class="item" role="button" onClick={() => (@expanded = !@expanded)}>
+			<div class="indicator" />
+			<h2 class="text">{'Title'}</h2>
+			<div class="caret">
+				<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+					<path d="m9 18 6-6-6-6" />
+				</svg>
+			</div>
+		</div>
+		if (@expanded) {
+			<div class="items">
+				<children />
+			</div>
+		}
+	</section>
+}
+
+export component TestIfWithSiblingsAndChildren() {
+	<IfWithSiblingsAndChildren>
+		<ChildItem text="Item A" />
+		<ChildItem text="Item B" />
+	</IfWithSiblingsAndChildren>
+}

@@ -8,12 +8,6 @@ import type { RippleCompileError, CompileOptions } from 'ripple/compiler';
 import type { Position } from 'acorn';
 import type { RequireAllOrNone } from '#helpers';
 
-export type RpcModules = Map<string, [string, string]>;
-
-declare global {
-	var rpc_modules: RpcModules | undefined;
-}
-
 export type NameSpace = keyof typeof NAMESPACE_URI;
 interface BaseNodeMetaData {
 	scoped?: boolean;
@@ -99,12 +93,16 @@ declare module 'estree' {
 
 	// These 3 are needed so that Literal can extend TrackedNode
 	// since Literal is a union type we have to extend each individually
-	interface SimpleLiteral extends AST.TrackedNode {}
-	interface RegExpLiteral extends AST.TrackedNode {}
-	interface BigIntLiteral extends AST.TrackedNode {}
+	interface SimpleLiteral extends AST.LiteralTrackedNode {}
+	interface RegExpLiteral extends AST.LiteralTrackedNode {}
+	interface BigIntLiteral extends AST.LiteralTrackedNode {}
 
 	interface TrackedNode {
 		tracked?: boolean;
+	}
+
+	interface LiteralTrackedNode extends AST.TrackedNode {
+		was_expression?: boolean;
 	}
 
 	// Include TypeScript node types and Ripple-specific nodes in NodeMap
@@ -136,6 +134,7 @@ declare module 'estree' {
 		ServerIdentifier: ServerIdentifier;
 		Text: TextNode;
 		JSXEmptyExpression: ESTreeJSX.JSXEmptyExpression;
+		ParenthesizedExpression: ParenthesizedExpression;
 	}
 
 	// Missing estree type
@@ -1216,6 +1215,7 @@ export interface TransformServerState extends BaseState {
 	server_exported_names: string[];
 	dynamicElementName?: AST.TemplateLiteral;
 	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
+	dev?: boolean;
 	return_flags?: Map<AST.ReturnStatement, { name: string; tracked: boolean }>;
 }
 
@@ -1248,6 +1248,7 @@ export interface TransformClientState extends BaseState {
 	update: UpdateList | null;
 	errors: RippleCompileError[];
 	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
+	skip_children_traversal: boolean;
 	return_flags?: Map<AST.ReturnStatement, { name: string; tracked: boolean }>;
 }
 

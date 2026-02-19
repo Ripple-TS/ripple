@@ -13,7 +13,8 @@
 	"license": "MIT",
 	"packageManager": "pnpm@10.18.2",
 	"dependencies": {
-		"livecodes": "catalog:default"
+		"livecodes": "catalog:default",
+		"shiki": "^3.22.0"
 	},
 	"devDependencies": {
 		"vitepress": "catalog:default",

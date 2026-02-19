@@ -208,7 +208,8 @@ export function ReactiveForLoopAdd(__anchor, _, __block) {
 		_$_.pop(ul_4);
 	}
 
-	_$_.append(__anchor, fragment);
+	_$_.next();
+	_$_.append(__anchor, fragment, true);
 	_$_.pop_component();
 }
 
@@ -247,7 +248,8 @@ export function ReactiveForLoopRemove(__anchor, _, __block) {
 		_$_.pop(ul_5);
 	}
 
-	_$_.append(__anchor, fragment_1);
+	_$_.next();
+	_$_.append(__anchor, fragment_1, true);
 	_$_.pop_component();
 }
 
@@ -520,7 +522,8 @@ export function KeyedForLoopReorder(__anchor, _, __block) {
 		_$_.pop(ul_6);
 	}
 
-	_$_.append(__anchor, fragment_2);
+	_$_.next();
+	_$_.append(__anchor, fragment_2, true);
 	_$_.pop_component();
 }
 
@@ -576,7 +579,8 @@ export function KeyedForLoopUpdate(__anchor, _, __block) {
 		_$_.pop(ul_7);
 	}
 
-	_$_.append(__anchor, fragment_3);
+	_$_.next();
+	_$_.append(__anchor, fragment_3, true);
 	_$_.pop_component();
 }
 
@@ -617,7 +621,8 @@ export function ForLoopMixedOperations(__anchor, _, __block) {
 		_$_.pop(ul_8);
 	}
 
-	_$_.append(__anchor, fragment_4);
+	_$_.next();
+	_$_.append(__anchor, fragment_4, true);
 	_$_.pop_component();
 }
 
@@ -714,7 +719,8 @@ export function ForLoopEmptyToPopulated(__anchor, _, __block) {
 		_$_.pop(ul_10);
 	}
 
-	_$_.append(__anchor, fragment_6);
+	_$_.next();
+	_$_.append(__anchor, fragment_6, true);
 	_$_.pop_component();
 }
 
@@ -753,7 +759,8 @@ export function ForLoopPopulatedToEmpty(__anchor, _, __block) {
 		_$_.pop(ul_11);
 	}
 
-	_$_.append(__anchor, fragment_7);
+	_$_.next();
+	_$_.append(__anchor, fragment_7, true);
 	_$_.pop_component();
 }
 
@@ -824,7 +831,8 @@ export function NestedForLoopReactive(__anchor, _, __block) {
 		_$_.pop(div_8);
 	}
 
-	_$_.append(__anchor, fragment_8);
+	_$_.next(2);
+	_$_.append(__anchor, fragment_8, true);
 	_$_.pop_component();
 }
 
@@ -1016,7 +1024,8 @@ export function ForLoopIndexUpdate(__anchor, _, __block) {
 		_$_.pop(ul_13);
 	}
 
-	_$_.append(__anchor, fragment_9);
+	_$_.next();
+	_$_.append(__anchor, fragment_9, true);
 	_$_.pop_component();
 }
 
@@ -1088,7 +1097,8 @@ export function KeyedForLoopWithIndex(__anchor, _, __block) {
 		_$_.pop(ul_14);
 	}
 
-	_$_.append(__anchor, fragment_10);
+	_$_.next();
+	_$_.append(__anchor, fragment_10, true);
 	_$_.pop_component();
 }
 
@@ -1132,7 +1142,8 @@ export function ForLoopWithSiblings(__anchor, _, __block) {
 		_$_.set(items, [..._$_.get(items), 'C']);
 	};
 
-	_$_.append(__anchor, fragment_11);
+	_$_.next();
+	_$_.append(__anchor, fragment_11, true);
 	_$_.pop_component();
 }
 
@@ -1306,7 +1317,8 @@ export function ForLoopAddAtBeginning(__anchor, _, __block) {
 		_$_.pop(ul_16);
 	}
 
-	_$_.append(__anchor, fragment_13);
+	_$_.next();
+	_$_.append(__anchor, fragment_13, true);
 	_$_.pop_component();
 }
 
@@ -1350,7 +1362,8 @@ export function ForLoopAddInMiddle(__anchor, _, __block) {
 		_$_.pop(ul_17);
 	}
 
-	_$_.append(__anchor, fragment_14);
+	_$_.next();
+	_$_.append(__anchor, fragment_14, true);
 	_$_.pop_component();
 }
 
@@ -1391,7 +1404,8 @@ export function ForLoopRemoveFromMiddle(__anchor, _, __block) {
 		_$_.pop(ul_18);
 	}
 
-	_$_.append(__anchor, fragment_15);
+	_$_.next();
+	_$_.append(__anchor, fragment_15, true);
 	_$_.pop_component();
 }
 
@@ -1471,7 +1485,8 @@ export function ForLoopSwap(__anchor, _, __block) {
 		_$_.pop(ul_20);
 	}
 
-	_$_.append(__anchor, fragment_16);
+	_$_.next();
+	_$_.append(__anchor, fragment_16, true);
 	_$_.pop_component();
 }
 
@@ -1512,7 +1527,8 @@ export function ForLoopReverse(__anchor, _, __block) {
 		_$_.pop(ul_21);
 	}
 
-	_$_.append(__anchor, fragment_17);
+	_$_.next();
+	_$_.append(__anchor, fragment_17, true);
 	_$_.pop_component();
 }
 

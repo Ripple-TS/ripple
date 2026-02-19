@@ -5,13 +5,13 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "copy-scm": "cp ../tree-sitter/queries/*.scm ./languages/ripple"
+    "copy-scm": "cp ../../grammars/tree-sitter/queries/*.scm ./languages/ripple"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "config": {
-    "@ripple-ts/language-server": "0.2.164"
+    "@ripple-ts/language-server": "0.2.208"
   },
   "packageManager": "pnpm@10.18.2"
 }

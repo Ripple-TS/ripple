@@ -1,13 +1,72 @@
 /** @import {PackageJson} from 'type-fest' */
-/** @import {Plugin, ResolvedConfig} from 'vite' */
-/** @import {RipplePluginOptions} from '@ripple-ts/vite-plugin' */
+/** @import {Plugin, ResolvedConfig, ViteDevServer} from 'vite' */
+/** @import {RipplePluginOptions, RippleConfigOptions, Route, Middleware, RenderRoute} from '@ripple-ts/vite-plugin' */
+
+/// <reference types="ripple/compiler/internal/rpc" />
 
 import { compile } from 'ripple/compiler';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import fs from 'node:fs';
+import path from 'node:path';
 import { createRequire } from 'node:module';
+import { Readable } from 'node:stream';
+
+import { createRouter } from './server/router.js';
+import { createContext, runMiddlewareChain } from './server/middleware.js';
+import { handleRenderRoute } from './server/render-route.js';
+import { handleServerRoute } from './server/server-route.js';
+
+// Re-export route classes
+export { RenderRoute, ServerRoute } from './routes.js';
 
 const VITE_FS_PREFIX = '/@fs/';
 const IS_WINDOWS = process.platform === 'win32';
+
+// AsyncLocalStorage for request-scoped fetch patching
+const rpcContext = new AsyncLocalStorage();
+
+// Patch fetch once at module level to support relative URLs in #server blocks
+const originalFetch = globalThis.fetch;
+
+/**
+ * Patch global fetch to resolve relative URLs based on the current request context.
+ * This allows server functions in #server blocks to use relative URLs
+ * that are resolved against the incoming request's origin.
+ * // TODO: a similar logic needs to be ported to the adapters
+ * @param {string | Request | URL} input
+ * @param {RequestInit} [init]
+ * @returns {Promise<Response>}
+ */
+globalThis.fetch = function (input, init) {
+	const context = rpcContext.getStore();
+
+	if (context?.origin) {
+		// Handle string URLs
+		if (typeof input === 'string' && input.startsWith('/')) {
+			input = `${context.origin}${input}`;
+		}
+		// Handle Request objects
+		else if (input instanceof Request) {
+			const url = input.url;
+			// Only patch if the Request was built with a relative URL
+			// (This is rare since Request constructor typically resolves URLs)
+			if (url.startsWith('/')) {
+				input = new Request(`${context.origin}${url}`, input);
+			}
+		}
+		// Handle URL objects constructed with relative paths
+		else if (input instanceof URL) {
+			// URL objects with no protocol/origin are relative (very rare in practice)
+			// Example: new URL('/api/message') throws, but if somehow passed...
+			if (!input.protocol || input.protocol === '' || input.origin === 'null') {
+				const path = input.pathname + (input.search || '') + (input.hash || '');
+				input = new URL(path, context.origin);
+			}
+		}
+	}
+
+	return originalFetch(input, init);
+};
 
 /**
  * @param {string} filename
@@ -252,10 +311,15 @@ export function ripple(inlineOptions = {}) {
 	const ripplePackages = new Set();
 	const cssCache = new Map();
 
+	/** @type {RippleConfigOptions | null} */
+	let rippleConfig = null;
+	/** @type {ReturnType<typeof createRouter> | null} */
+	let router = null;
+
 	/** @type {Plugin[]} */
 	const plugins = [
 		{
-			name: 'vite-plugin',
+			name: 'vite-plugin-ripple',
 			// make sure our resolver runs before vite internal resolver to resolve ripple field correctly
 			enforce: 'pre',
 			api,
@@ -304,7 +368,155 @@ export function ripple(inlineOptions = {}) {
 				config = resolvedConfig;
 			},
 
+			/**
+			 * Configure the dev server with SSR middleware
+			 * @param {ViteDevServer} vite
+			 */
+			configureServer(vite) {
+				// Return a function to be called after Vite's internal middlewares
+				return async () => {
+					// Load ripple.config.ts
+					const configPath = path.join(root, 'ripple.config.ts');
+					if (!fs.existsSync(configPath)) {
+						console.log('[@ripple-ts/vite-plugin] No ripple.config.ts found, skipping SSR setup');
+						return;
+					}
+
+					try {
+						const configModule = await vite.ssrLoadModule(configPath);
+						rippleConfig = configModule.default;
+
+						if (!rippleConfig?.router?.routes) {
+							console.log('[@ripple-ts/vite-plugin] No routes defined in ripple.config.ts');
+							return;
+						}
+
+						// Create router from config
+						router = createRouter(rippleConfig.router.routes);
+						console.log(
+							`[@ripple-ts/vite-plugin] Loaded ${rippleConfig.router.routes.length} routes from ripple.config.ts`,
+						);
+					} catch (error) {
+						console.error('[@ripple-ts/vite-plugin] Failed to load ripple.config.ts:', error);
+						return;
+					}
+
+					// Add SSR middleware
+					vite.middlewares.use((req, res, next) => {
+						// Handle async logic in an IIFE
+						(async () => {
+							// Skip if no router
+							if (!router || !rippleConfig) {
+								next();
+								return;
+							}
+
+							const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+							const method = req.method || 'GET';
+
+							// Handle RPC requests for #server blocks
+							if (url.pathname.startsWith('/_$_ripple_rpc_$_/')) {
+								await handleRpcRequest(req, res, url, vite);
+								return;
+							}
+
+							// Match route
+							const match = router.match(method, url.pathname);
+
+							if (!match) {
+								next();
+								return;
+							}
+
+							try {
+								// Reload config to get fresh routes (for HMR)
+								const freshConfig = await vite.ssrLoadModule(configPath);
+								rippleConfig = freshConfig.default;
+
+								if (!rippleConfig || !rippleConfig.router || !rippleConfig.router.routes) {
+									console.log('[@ripple-ts/vite-plugin] No routes defined in ripple.config.ts');
+									next();
+									return;
+								}
+
+								// Check if routes have changed
+								if (
+									JSON.stringify(freshConfig.default.router.routes) !==
+									JSON.stringify(rippleConfig.router.routes)
+								) {
+									console.log(
+										`[@ripple-ts/vite-plugin] Detected route changes. Re-loading ${rippleConfig.router.routes.length} routes from ripple.config.ts`,
+									);
+								}
+
+								router = createRouter(rippleConfig.router.routes);
+
+								// Re-match with fresh router
+								const freshMatch = router.match(method, url.pathname);
+								if (!freshMatch) {
+									next();
+									return;
+								}
+
+								// Create context
+								const request = nodeRequestToWebRequest(req);
+								const context = createContext(request, freshMatch.params);
+
+								// Get global middlewares
+								const globalMiddlewares = rippleConfig.middlewares || [];
+
+								let response;
+
+								if (freshMatch.route.type === 'render') {
+									// Handle RenderRoute with global middlewares
+									response = await runMiddlewareChain(
+										context,
+										globalMiddlewares,
+										freshMatch.route.before || [],
+										async () =>
+											handleRenderRoute(
+												/** @type {RenderRoute} */ (freshMatch.route),
+												context,
+												vite,
+											),
+										[],
+									);
+								} else {
+									// Handle ServerRoute
+									response = await handleServerRoute(freshMatch.route, context, globalMiddlewares);
+								}
+
+								// Send response
+								await sendWebResponse(res, response);
+							} catch (/** @type {any} */ error) {
+								console.error('[@ripple-ts/vite-plugin] Request error:', error);
+								vite.ssrFixStacktrace(error);
+
+								res.statusCode = 500;
+								res.setHeader('Content-Type', 'text/html');
+								res.end(
+									`<pre style="color: red; background: #1a1a1a; padding: 2rem; margin: 0;">${escapeHtml(
+										error instanceof Error ? error.stack || error.message : String(error),
+									)}</pre>`,
+								);
+							}
+						})().catch((err) => {
+							console.error('[@ripple-ts/vite-plugin] Unhandled middleware error:', err);
+							if (!res.headersSent) {
+								res.statusCode = 500;
+								res.end('Internal Server Error');
+							}
+						});
+					});
+				};
+			},
+
 			async resolveId(id, importer, options) {
+				// Handle virtual hydrate module
+				if (id === 'virtual:ripple-hydrate') {
+					return '\0virtual:ripple-hydrate';
+				}
+
 				// Skip non-package imports (relative/absolute paths)
 				if (id.startsWith('.') || id.startsWith('/') || id.includes(':')) {
 					return null;
@@ -345,6 +557,42 @@ export function ripple(inlineOptions = {}) {
 			},
 
 			async load(id, opts) {
+				// Handle virtual hydrate module
+				if (id === '\0virtual:ripple-hydrate') {
+					return `
+import { hydrate, mount } from 'ripple';
+
+const data = JSON.parse(document.getElementById('__ripple_data').textContent);
+const target = document.getElementById('root');
+
+try {
+  const module = await import(/* @vite-ignore */ data.entry);
+  const Component =
+    module.default ||
+    Object.entries(module).find(([key, value]) => typeof value === 'function' && /^[A-Z]/.test(key))?.[1];
+
+  if (!Component || !target) {
+    console.error('[ripple] Unable to hydrate route: missing component export or #root target.');
+  } else {
+    try {
+      hydrate(Component, {
+        target,
+        props: { params: data.params }
+      });
+    } catch (error) {
+      console.warn('[ripple] Hydration failed, falling back to mount.', error);
+      mount(Component, {
+        target,
+        props: { params: data.params }
+      });
+    }
+  }
+} catch (error) {
+  console.error('[ripple] Failed to bootstrap client hydration.', error);
+}
+`;
+				}
+
 				if (cssCache.has(id)) {
 					return cssCache.get(id);
 				}
@@ -355,10 +603,11 @@ export function ripple(inlineOptions = {}) {
 
 				async handler(code, id, opts) {
 					const filename = id.replace(root, '');
-					const ssr = this.environment.config.consumer === 'server';
+					const ssr = opts?.ssr === true || this.environment.config.consumer === 'server';
 
 					const { js, css } = await compile(code, filename, {
 						mode: ssr ? 'server' : 'client',
+						dev: config?.command === 'serve',
 					});
 
 					if (css !== '') {
@@ -374,4 +623,189 @@ export function ripple(inlineOptions = {}) {
 	];
 
 	return plugins;
+}
+
+// This is mainly to enforce types and provide a better DX with types than anything else
+export function defineConfig(/** @type {RipplePluginOptions} */ options) {
+	return options;
+}
+
+// ============================================================================
+// Helper functions for dev server
+// ============================================================================
+
+/**
+ * Convert a Node.js IncomingMessage to a Web Request
+ * @param {import('node:http').IncomingMessage} nodeRequest
+ * @returns {Request}
+ */
+function nodeRequestToWebRequest(nodeRequest) {
+	const protocol = 'http';
+	const host = nodeRequest.headers.host || 'localhost';
+	const url = new URL(nodeRequest.url || '/', `${protocol}://${host}`);
+
+	const headers = new Headers();
+	for (const [key, value] of Object.entries(nodeRequest.headers)) {
+		if (value == null) continue;
+		if (Array.isArray(value)) {
+			for (const v of value) headers.append(key, v);
+		} else {
+			headers.set(key, value);
+		}
+	}
+
+	const method = (nodeRequest.method || 'GET').toUpperCase();
+	/** @type {RequestInit & { duplex?: 'half' }} */
+	const init = { method, headers };
+
+	// Add body for non-GET/HEAD requests
+	if (method !== 'GET' && method !== 'HEAD') {
+		init.body = /** @type {any} */ (Readable.toWeb(nodeRequest));
+		init.duplex = 'half';
+	}
+
+	return new Request(url, init);
+}
+
+/**
+ * Send a Web Response to a Node.js ServerResponse
+ * @param {import('node:http').ServerResponse} nodeResponse
+ * @param {Response} webResponse
+ */
+async function sendWebResponse(nodeResponse, webResponse) {
+	nodeResponse.statusCode = webResponse.status;
+	if (webResponse.statusText) {
+		nodeResponse.statusMessage = webResponse.statusText;
+	}
+
+	// Copy headers
+	webResponse.headers.forEach((value, key) => {
+		nodeResponse.setHeader(key, value);
+	});
+
+	// Send body
+	if (webResponse.body) {
+		const reader = webResponse.body.getReader();
+		try {
+			while (true) {
+				const { done, value } = await reader.read();
+				if (done) break;
+				nodeResponse.write(value);
+			}
+		} finally {
+			reader.releaseLock();
+		}
+	}
+
+	nodeResponse.end();
+}
+
+/**
+ * Handle RPC requests for #server blocks
+ * @param {import('node:http').IncomingMessage} req
+ * @param {import('node:http').ServerResponse} res
+ * @param {URL} url
+ * @param {import('vite').ViteDevServer} vite
+ */
+async function handleRpcRequest(req, res, url, vite) {
+	try {
+		const hash = url.pathname.slice('/_$_ripple_rpc_$_/'.length);
+
+		// Get request body
+		const body = await getRequestBody(req);
+
+		// Load the RPC module info from globalThis (set during SSR)
+		const rpcModules = /** @type {Map<string, [string, string]>} */ (
+			/** @type {any} */ (globalThis).rpc_modules
+		);
+		if (!rpcModules) {
+			res.statusCode = 500;
+			res.end('RPC modules not initialized');
+			return;
+		}
+
+		const moduleInfo = rpcModules.get(hash);
+		if (!moduleInfo) {
+			res.statusCode = 404;
+			res.end(`RPC function not found: ${hash}`);
+			return;
+		}
+
+		const [filePath, funcName] = moduleInfo;
+
+		// Load the module and execute the function
+		const { executeServerFunction } = await vite.ssrLoadModule('ripple/server');
+		const module = await vite.ssrLoadModule(filePath);
+		const server = module._$_server_$_;
+
+		if (!server || !server[funcName]) {
+			res.statusCode = 404;
+			res.end(`Server function not found: ${funcName}`);
+			return;
+		}
+
+		// Parse x-forwarded-proto (can be comma-separated like "https, http", or an array)
+		const forwardedProto = req.headers['x-forwarded-proto'];
+		const proto = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto;
+		const protocol = proto
+			? proto.split(',')[0].trim()
+			: /** @type {import('node:tls').TLSSocket} */ (req.socket).encrypted
+				? 'https'
+				: 'http';
+
+		// Parse x-forwarded-host (can also be comma-separated, or an array)
+		const forwardedHost = req.headers['x-forwarded-host'];
+		const fwdHost = Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost;
+		const host = fwdHost ? fwdHost.split(',')[0].trim() : req.headers.host || 'localhost';
+
+		const origin = `${protocol}://${host}`;
+
+		// Execute server function within async context
+		// This allows the patched fetch to access the origin without global state
+		await rpcContext.run({ origin }, async () => {
+			const result = await executeServerFunction(server[funcName], body);
+
+			res.statusCode = 200;
+			res.setHeader('Content-Type', 'application/json');
+			res.end(result);
+		});
+	} catch (error) {
+		console.error('[@ripple-ts/vite-plugin] RPC error:', error);
+		res.statusCode = 500;
+		res.setHeader('Content-Type', 'application/json');
+		res.end(JSON.stringify({ error: error instanceof Error ? error.message : 'RPC failed' }));
+	}
+}
+
+/**
+ * Get the body of a request as a string
+ * @param {import('node:http').IncomingMessage} req
+ * @returns {Promise<string>}
+ */
+function getRequestBody(req) {
+	return new Promise((resolve, reject) => {
+		let data = '';
+		req.on('data', (chunk) => {
+			data += chunk;
+			if (data.length > 1e6) {
+				req.destroy();
+				reject(new Error('Request body too large'));
+			}
+		});
+		req.on('end', () => resolve(data));
+		req.on('error', reject);
+	});
+}
+
+/**
+ * Escape HTML entities
+ * @param {string} str
+ * @returns {string}
+ */
+function escapeHtml(str) {
+	return str
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;');
 }

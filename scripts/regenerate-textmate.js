@@ -1,85 +1,19 @@
 #!/usr/bin/env node
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { cp } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { JSDOM } from 'jsdom';
-
-/**
- * @param {Document} doc
- * @param {number} depth
- * @return {Text}
- */
-function indentText(doc, depth) {
-	return doc.createTextNode(`\n${'	'.repeat(depth)}`);
-}
-
-/**
- * @param {Document} doc
- * @param {any} value
- * @param {number} depth
- * @return {Element}
- */
-function createValueNode(doc, value, depth) {
-	if (Array.isArray(value)) {
-		const array = doc.createElement('array');
-		if (value.length > 0) {
-			for (const item of value) {
-				array.appendChild(indentText(doc, depth + 1));
-				array.appendChild(createValueNode(doc, item, depth + 1));
-			}
-			array.appendChild(indentText(doc, depth));
-		}
-		return array;
-	}
-
-	if (value && typeof value === 'object') {
-		const dict = doc.createElement('dict');
-		const entries = Object.entries(value);
-		if (entries.length > 0) {
-			for (const [key, val] of entries) {
-				dict.appendChild(indentText(doc, depth + 1));
-				const keyNode = doc.createElement('key');
-				keyNode.appendChild(doc.createTextNode(key));
-				dict.appendChild(keyNode);
-				dict.appendChild(indentText(doc, depth + 1));
-				dict.appendChild(createValueNode(doc, val, depth + 1));
-			}
-			dict.appendChild(indentText(doc, depth));
-		}
-		return dict;
-	}
-
-	if (typeof value === 'string') {
-		const stringNode = doc.createElement('string');
-		stringNode.appendChild(doc.createTextNode(value));
-		return stringNode;
-	}
-
-	if (typeof value === 'number') {
-		const tag = Number.isInteger(value) ? 'integer' : 'real';
-		const numberNode = doc.createElement(tag);
-		numberNode.appendChild(doc.createTextNode(value.toString()));
-		return numberNode;
-	}
-
-	if (typeof value === 'boolean') {
-		return doc.createElement(value ? 'true' : 'false');
-	}
-
-	throw new TypeError(`Unsupported value type: ${value}`);
-}
 
 /**
  * @param {string[]} targets
- * @param {string} contents
+ * @param {string} sourcePath
  * @returns {Promise<void[]>}
  */
-function writeTargets(targets, contents) {
+function writeTargets(targets, sourcePath) {
 	return Promise.all(
-		targets.map(async (target) => {
-			console.log(`Writing to ${path.relative(rootDir, target)}...`);
-			await mkdir(path.dirname(target), { recursive: true });
-			await writeFile(target, contents, 'utf8');
+		targets.map(async (targetPath) => {
+			console.log(`[write] ${targetPath}`);
+			targetPath = path.join(rootDir, targetPath);
+			await cp(sourcePath, targetPath, { recursive: true });
 		}),
 	);
 }
@@ -87,48 +21,27 @@ function writeTargets(targets, contents) {
 const __filename = fileURLToPath(import.meta.url);
 const rootDir = path.join(path.dirname(__filename), '..');
 
-const sourceFile = path.join(rootDir, 'packages/vscode-plugin/syntaxes/ripple.tmLanguage.json');
+const sourceJson = path.join(rootDir, 'grammars/textmate/ripple.tmLanguage.json');
+const sourcePlist = path.join(rootDir, 'grammars/textmate/info.plist');
 
-const targetFiles = [
-	// For manual installation in editors we don't have plugins for
-	path.join(rootDir, 'assets/Ripple.tmbundle/Syntaxes/Ripple.tmLanguage'),
+const jsonTargetFiles = [
+	'packages/vscode-plugin/syntaxes/ripple.tmLanguage.json',
+	'packages/intellij-plugin/src/main/resources/textmate/Syntaxes/ripple.tmLanguage.json',
 ];
 
+const plistTargetFiles = ['packages/intellij-plugin/src/main/resources/textmate/info.plist'];
+
 const main = async () => {
-	console.log('Reading TextMate grammar from VS Code plugin...');
-	const raw = await readFile(sourceFile, 'utf8');
-	const grammar = JSON.parse(/** @type {string} */ (raw));
-	if (!Array.isArray(grammar.fileTypes)) {
-		grammar.fileTypes = ['ripple'];
-	}
+	console.log('Copying TextMate grammar files...\n');
 
-	console.log('Converting TextMate grammar from JSON to XML...');
-	const dom = new JSDOM('<plist/>', { contentType: 'text/xml' });
-	const doc = dom.window.document;
-	const root = doc.documentElement;
-	root.setAttribute('version', '1.0');
+	await writeTargets(jsonTargetFiles, sourceJson);
+	await writeTargets(plistTargetFiles, sourcePlist);
 
-	while (root.firstChild) {
-		root.removeChild(root.firstChild);
-	}
-
-	root.appendChild(indentText(doc, 1));
-	root.appendChild(createValueNode(doc, grammar, 1));
-	root.appendChild(indentText(doc, 0));
-
-	const serializer = new dom.window.XMLSerializer();
-	const plist = serializer.serializeToString(root);
-	const xml = `
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-${plist}
-`.trim();
-
-	await writeTargets(targetFiles, xml);
-	console.log('TextMate grammar conversion complete.');
+	console.log('\nTextMate grammar regeneration complete.');
 };
 
 main().catch((error) => {
+	console.error('TextMate grammar successfully copied to destinations.');
 	console.error(error);
 	process.exitCode = 1;
 });

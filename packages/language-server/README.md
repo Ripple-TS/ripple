@@ -1,5 +1,8 @@
 # @ripple-ts/language-server
 
+[![npm version](https://img.shields.io/npm/v/%40ripple-ts%2Flanguage-server?logo=npm)](https://www.npmjs.com/package/@ripple-ts/language-server)
+[![npm downloads](https://img.shields.io/npm/dm/%40ripple-ts%2Flanguage-server?logo=npm&label=downloads)](https://www.npmjs.com/package/@ripple-ts/language-server)
+
 Language Server Protocol (LSP) implementation for Ripple. This package provides
 language intelligence features for Ripple files and can be integrated into any
 editor that supports LSP.

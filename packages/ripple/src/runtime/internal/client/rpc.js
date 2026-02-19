@@ -6,20 +6,42 @@ import * as devalue from 'devalue';
  */
 export async function rpc(hash, args) {
 	const body = devalue.stringify(args);
-	let data;
+	/** @type {Response} */
+	let response;
 
 	try {
-		const response = await fetch('/_$_ripple_rpc_$_/' + hash, {
+		response = await fetch('/_$_ripple_rpc_$_/' + hash, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 			},
 			body,
 		});
-		data = await response.text();
 	} catch (err) {
 		throw new Error('An error occurred while trying to call the server function.');
 	}
+
+	if (!response.ok) {
+		let message = `Server function call failed with status ${response.status}`;
+
+		try {
+			const error_body = await response.text();
+
+			if (error_body) {
+				const parsed = JSON.parse(error_body);
+
+				if (parsed.error) {
+					message = parsed.error;
+				}
+			}
+		} catch {
+			// ignore parse errors, use default message
+		}
+
+		throw new Error(message);
+	}
+
+	const data = await response.text();
 
 	if (data === '') {
 		throw new Error(

@@ -144,6 +144,78 @@ function error_return_keyword(node, context, message) {
 	);
 }
 
+/**
+ * @param {AST.Expression} expression
+ * @returns {AST.Expression}
+ */
+function unwrap_template_expression(expression) {
+	/** @type {AST.Expression} */
+	let node = expression;
+
+	while (true) {
+		if (
+			node.type === 'ParenthesizedExpression' ||
+			node.type === 'TSAsExpression' ||
+			node.type === 'TSSatisfiesExpression' ||
+			node.type === 'TSNonNullExpression' ||
+			node.type === 'TSInstantiationExpression'
+		) {
+			node = /** @type {AST.Expression} */ (node.expression);
+			continue;
+		}
+
+		if (node.type === 'ChainExpression') {
+			node = /** @type {AST.Expression} */ (node.expression);
+			continue;
+		}
+
+		break;
+	}
+
+	return node;
+}
+
+/**
+ * @param {AST.Expression} expression
+ * @param {AnalysisState} state
+ * @returns {boolean}
+ */
+function is_children_template_expression(expression, state) {
+	const unwrapped = unwrap_template_expression(expression);
+
+	if (unwrapped.type === 'TrackedExpression') {
+		return is_children_template_expression(
+			/** @type {AST.Expression} */ (unwrapped.argument),
+			state,
+		);
+	}
+
+	if (unwrapped.type === 'MemberExpression') {
+		let property_name = null;
+
+		if (!unwrapped.computed && unwrapped.property.type === 'Identifier') {
+			property_name = unwrapped.property.name;
+		} else if (
+			unwrapped.computed &&
+			unwrapped.property.type === 'Literal' &&
+			typeof unwrapped.property.value === 'string'
+		) {
+			property_name = unwrapped.property.value;
+		}
+
+		if (property_name === 'children') {
+			const target = unwrap_template_expression(/** @type {AST.Expression} */ (unwrapped.object));
+
+			if (target.type === 'Identifier') {
+				const binding = state.scope.get(target.name);
+				return binding?.declaration_kind === 'param';
+			}
+		}
+	}
+
+	return unwrapped.type === 'Identifier' && unwrapped.name === 'children';
+}
+
 /** @type {Visitors<AST.Node, AnalysisState>} */
 const visitors = {
 	_(node, { state, next, path }) {
@@ -1218,6 +1290,21 @@ const visitors = {
 
 	Text(node, context) {
 		mark_control_flow_has_template(context.path);
+
+		if (
+			is_children_template_expression(
+				/** @type {AST.Expression} */ (node.expression),
+				context.state,
+			)
+		) {
+			error(
+				'`children` cannot be rendered using text interpolation. Use `<children />` instead.',
+				context.state.analysis.module.filename,
+				node.expression,
+				context.state.loose ? context.state.analysis.errors : undefined,
+			);
+		}
+
 		context.next();
 	},
 

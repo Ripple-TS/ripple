@@ -61,6 +61,34 @@ describe('basic client > errors', () => {
 		}).toThrow('Unclosed tag');
 	});
 
+	it('should throw error for interpolating children as text', () => {
+		const code = `
+			export component Layout({ children }) {
+				<div>{children}</div>
+			}
+		`;
+
+		expect(() => {
+			compile(code, 'test.ripple');
+		}).toThrow(
+			'`children` cannot be rendered using text interpolation. Use `<children />` instead.',
+		);
+	});
+
+	it('should throw error for interpolating props.children as text', () => {
+		const code = `
+			export component Layout(props) {
+				<div>{props.children}</div>
+			}
+		`;
+
+		expect(() => {
+			compile(code, 'test.ripple');
+		}).toThrow(
+			'`children` cannot be rendered using text interpolation. Use `<children />` instead.',
+		);
+	});
+
 	it('errors on mutating tracked value inside computed track() evaluation', () => {
 		component Basic() {
 			let count = track(0);

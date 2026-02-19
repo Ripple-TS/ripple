@@ -1,5 +1,8 @@
 # @ripple-ts/typescript-plugin
 
+[![npm version](https://img.shields.io/npm/v/%40ripple-ts%2Ftypescript-plugin?logo=npm)](https://www.npmjs.com/package/@ripple-ts/typescript-plugin)
+[![npm downloads](https://img.shields.io/npm/dm/%40ripple-ts%2Ftypescript-plugin?logo=npm&label=downloads)](https://www.npmjs.com/package/@ripple-ts/typescript-plugin)
+
 TypeScript plugin for Ripple that provides language support for `.ripple` files.
 
 ## Usage

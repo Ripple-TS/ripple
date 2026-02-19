@@ -4,11 +4,11 @@ title: Introduction
 
 # Introduction
 
-Ripple is an elegant, compiler-driven language and view library for the web
-based on a superset of JSX, by Dominic Gannaway ([@trueadm](https://github.com/trueadm)).
+Ripple is an elegant, compiler-driven language and UI framework built on a superset of TypeScript.
 
-Like JSX, Ripple is a JS-forward language. It extends JSX to allow for DOM
-elements to be written as statements, rather than expressions.
+It features its own JSX-like templating language, allowing a declarative blend of structure and control flow. This makes applications easier for both humans and AI to reason about, while delivering a developer experience that ultimately results in a better user experience.
+
+Ripple was created by Dominic Gannaway ([@trueadm](https://github.com/trueadm)), who has previously worked on React, Svelte, Lexical, and Inferno.
 
 <Code>
 

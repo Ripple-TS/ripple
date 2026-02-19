@@ -1,5 +1,8 @@
 # @ripple-ts/cli
 
+[![npm version](https://img.shields.io/npm/v/%40ripple-ts%2Fcli?logo=npm)](https://www.npmjs.com/package/@ripple-ts/cli)
+[![npm downloads](https://img.shields.io/npm/dm/%40ripple-ts%2Fcli?logo=npm&label=downloads)](https://www.npmjs.com/package/@ripple-ts/cli)
+
 Interactive CLI tool for creating and managing Ripple applications.
 
 To create a Ripple app with simpler syntax, you can also use `create-ripple`

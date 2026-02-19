@@ -127,6 +127,19 @@ function transform_children(children, context) {
 	/** @type {string[]} */
 	let accumulated_flags = [];
 
+	/**
+	 * @param {AST.ReturnStatement[] | undefined} returns
+	 */
+	const push_return_flags = (returns) => {
+		if (!returns) return;
+		for (const ret of returns) {
+			const info = return_flags.get(ret);
+			if (info && !accumulated_flags.includes(info.name)) {
+				accumulated_flags.push(info.name);
+			}
+		}
+	};
+
 	/** @param {AST.Node} node */
 	const process_node = (node) => {
 		if (node.type === 'BreakStatement') {
@@ -166,75 +179,63 @@ function transform_children(children, context) {
 		}
 	};
 
-	/**
-	 * Wraps remaining nodes (from index `start_index` onwards) inside a guard block.
-	 * Recursively handles additional return flags.
-	 * @param {number} start_index
-	 * @param {string[]} flags
-	 */
-	const wrap_remaining = (start_index, flags) => {
-		const guard = build_return_guard(flags);
+	/** @type {AST.Node[]} */
+	let pending_group = [];
+	/** @type {string[]} */
+	let pending_guard_flags = [];
+
+	const flush_pending_group = () => {
+		if (pending_group.length === 0) return;
+
+		const group = pending_group;
+		const guard_flags = pending_guard_flags;
+		pending_group = [];
+		pending_guard_flags = [];
+
 		/** @type {AST.Statement[]} */
 		const wrapped = [];
 		const saved_init = state.init;
 		state.init = wrapped;
 
-		/** @type {string[]} */
-		let inner_flags = [...flags];
-
-		for (let i = start_index; i < normalized.length; i++) {
-			const n = normalized[i];
-
-			if (inner_flags.length > flags.length && is_template_or_control_flow(n)) {
-				wrap_remaining(i, inner_flags);
-				break;
-			}
-
-			process_node(n);
-
-			if (n.type === 'ReturnStatement') {
-				const info = return_flags.get(n);
-				if (info && !inner_flags.includes(info.name)) {
-					inner_flags.push(info.name);
-				}
-			}
-
-			if (n.metadata?.has_return && n.metadata.returns) {
-				for (const ret of n.metadata.returns) {
-					const info = return_flags.get(ret);
-					if (info && !inner_flags.includes(info.name)) {
-						inner_flags.push(info.name);
-					}
-				}
-			}
+		for (const group_node of group) {
+			process_node(group_node);
 		}
 
 		state.init = saved_init;
-		if (wrapped.length > 0) {
-			state.init?.push(b.if(guard, b.block(wrapped)));
-		}
+		if (wrapped.length === 0) return;
+
+		const guard = build_return_guard(guard_flags);
+		state.init?.push(
+			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN))),
+		);
+		state.init?.push(b.if(guard, b.block(wrapped)));
+		state.init?.push(
+			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_CLOSE))),
+		);
 	};
 
 	for (let idx = 0; idx < normalized.length; idx++) {
 		const node = normalized[idx];
 
 		if (accumulated_flags.length > 0 && is_template_or_control_flow(node)) {
-			wrap_remaining(idx, accumulated_flags);
-			break;
-		}
-
-		process_node(node);
-
-		// After processing, collect return flags from this node
-		if (node.metadata?.has_return && node.metadata.returns) {
-			for (const ret of node.metadata.returns) {
-				const info = return_flags.get(ret);
-				if (info && !accumulated_flags.includes(info.name)) {
-					accumulated_flags.push(info.name);
-				}
+			if (pending_group.length === 0) {
+				pending_guard_flags = [...accumulated_flags];
 			}
+			pending_group.push(node);
+
+			if (node.metadata?.has_return && node.metadata.returns) {
+				flush_pending_group();
+				push_return_flags(node.metadata.returns);
+			}
+			continue;
 		}
+
+		flush_pending_group();
+		process_node(node);
+		push_return_flags(node.metadata?.has_return ? node.metadata.returns : undefined);
 	}
+
+	flush_pending_group();
 
 	const head_elements = /** @type {AST.Element[]} */ (
 		children.filter(
@@ -678,6 +679,7 @@ const visitors = {
 			const is_void = dynamic_name
 				? false
 				: is_void_element(/** @type {AST.Identifier} */ (node.id).name);
+			const use_self_closing_syntax = node.selfClosing && (is_void || !!dynamic_name);
 			const tag_name = dynamic_name
 				? dynamic_name
 				: b.literal(/** @type {AST.Identifier} */ (node.id).name);
@@ -833,10 +835,27 @@ const visitors = {
 				b.stmt(
 					b.call(
 						b.member(b.id('__output'), b.id('push')),
-						b.literal(!node.selfClosing ? '>' : ' />'),
+						b.literal(use_self_closing_syntax ? ' />' : '>'),
 					),
 				),
 			);
+
+			// In dev mode, emit push_element for runtime nesting validation
+			if (state.dev && !dynamic_name) {
+				const element_name = /** @type {AST.Identifier} */ (node.id).name;
+				const loc = node.loc;
+				state.init?.push(
+					b.stmt(
+						b.call(
+							'_$_.push_element',
+							b.literal(element_name),
+							b.literal(state.filename),
+							b.literal(loc?.start.line ?? 0),
+							b.literal(loc?.start.column ?? 0),
+						),
+					),
+				);
+			}
 
 			if (!is_void) {
 				/** @type {AST.Statement[]} */
@@ -864,7 +883,7 @@ const visitors = {
 					state.init?.push(b.block(init));
 				}
 
-				if (!node.selfClosing) {
+				if (!use_self_closing_syntax) {
 					state.init?.push(
 						b.stmt(
 							b.call(
@@ -876,6 +895,11 @@ const visitors = {
 						),
 					);
 				}
+			}
+
+			// In dev mode, emit pop_element after the element is fully rendered
+			if (state.dev && !dynamic_name) {
+				state.init?.push(b.stmt(b.call('_$_.pop_element')));
 			}
 		} else {
 			/** @type {(AST.Property | AST.SpreadElement)[]} */
@@ -1617,9 +1641,10 @@ const visitors = {
  * @param {string} source
  * @param {AnalysisResult} analysis
  * @param {boolean} minify_css
+ * @param {boolean} [dev]
  * @returns {{ ast: AST.Program; js: { code: string; map: RawSourceMap | null }; css: string; }}
  */
-export function transform_server(filename, source, analysis, minify_css) {
+export function transform_server(filename, source, analysis, minify_css, dev = false) {
 	// Use component metadata collected during the analyze phase
 	const component_metadata = analysis.component_metadata || [];
 
@@ -1640,6 +1665,7 @@ export function transform_server(filename, source, analysis, minify_css) {
 		// TODO: should we remove all `to_ts` usages we use the client rendering for that?
 		to_ts: false,
 		metadata: {},
+		dev,
 	};
 
 	state.imports.add(`import * as _$_ from 'ripple/internal/server'`);

@@ -97,6 +97,7 @@ export interface RippleCompileError extends Error {
 
 interface SharedCompileOptions {
 	minify_css?: boolean;
+	dev?: boolean;
 }
 export interface CompileOptions extends SharedCompileOptions {
 	mode?: 'client' | 'server';

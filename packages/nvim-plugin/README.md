@@ -34,5 +34,5 @@ instructions, please consider opening a PR.
 points it at the bundled grammar source:
 
 - Repository: `https://github.com/trueadm/ripple`
-- Subdirectory: `packages/tree-sitter`
+- Subdirectory: `grammars/tree-sitter`
 - Files: `src/parser.c`, `src/scanner.c`

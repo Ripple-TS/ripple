@@ -1,5 +1,8 @@
 # @ripple-ts/eslint-plugin
 
+[![npm version](https://img.shields.io/npm/v/%40ripple-ts%2Feslint-plugin?logo=npm)](https://www.npmjs.com/package/@ripple-ts/eslint-plugin)
+[![npm downloads](https://img.shields.io/npm/dm/%40ripple-ts%2Feslint-plugin?logo=npm&label=downloads)](https://www.npmjs.com/package/@ripple-ts/eslint-plugin)
+
 ESLint plugin for [Ripple](https://ripplejs.com) - helps enforce best practices
 and catch common mistakes when writing Ripple applications.
 

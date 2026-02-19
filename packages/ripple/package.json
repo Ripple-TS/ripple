@@ -3,7 +3,7 @@
   "description": "Ripple is an elegant TypeScript UI framework",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.2.208",
+  "version": "0.2.211",
   "type": "module",
   "module": "src/runtime/index-client.js",
   "main": "src/runtime/index-client.js",
@@ -40,6 +40,9 @@
     },
     "./compiler/internal/import": {
       "types": "./src/compiler/types/import.d.ts"
+    },
+    "./compiler/internal/rpc": {
+      "types": "./src/compiler/types/rpc.d.ts"
     },
     "./compiler/internal/identifier/utils": {
       "default": "./src/compiler/identifier-utils.js"

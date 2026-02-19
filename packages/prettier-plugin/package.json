@@ -1,6 +1,6 @@
 {
   "name": "@ripple-ts/prettier-plugin",
-  "version": "0.2.208",
+  "version": "0.2.211",
   "description": "Ripple plugin for Prettier",
   "type": "module",
   "module": "src/index.js",
@@ -24,6 +24,8 @@
     "prettier": "catalog:peer"
   },
   "devDependencies": {
+    "@types/estree": "catalog:default",
+    "@types/estree-jsx": "catalog:default",
     "ripple": "workspace:*",
     "prettier": "catalog:default"
   },

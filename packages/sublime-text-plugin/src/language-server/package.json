@@ -5,6 +5,6 @@
     "update-lockfile": "npm install --lockfile-only"
   },
   "dependencies": {
-    "@ripple-ts/language-server": "0.2.164"
+    "@ripple-ts/language-server": "0.2.208"
   }
 }

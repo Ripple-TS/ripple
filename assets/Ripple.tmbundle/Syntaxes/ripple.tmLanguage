@@ -519,6 +519,10 @@
 					</dict>
 					<dict>
 						<key>include</key>
+						<string>#tracked-array-literal</string>
+					</dict>
+					<dict>
+						<key>include</key>
 						<string>#tracked-map-literal</string>
 					</dict>
 					<dict>
@@ -4880,7 +4884,7 @@
 						<key>name</key>
 						<string>meta.for-of-ripple</string>
 						<key>match</key>
-						<string>\(\s*(let|const|var)\s+([_$[:alpha:]][_$[:alnum:]]*)\s+(of)\s+([^;]+?)\s*;\s*(?:(index)\s+([_$[:alpha:]][_$[:alnum:]]*)(?:\s*;\s*(key)\s+([^)]+?))?|(key)\s+([^)]+?))\s*\)</string>
+						<string>\(\s*(?:(let|const|var)\s+)?([_$[:alpha:]][_$[:alnum:]]*)\s+(of)\s+([^;]+?)\s*;\s*(?:(index)\s+([_$[:alpha:]][_$[:alnum:]]*)(?:\s*;\s*(key)\s+([^)]+?))?|(key)\s+([^)]+?))\s*\)</string>
 						<key>captures</key>
 						<dict>
 							<key>1</key>
@@ -6615,6 +6619,10 @@
 					</dict>
 					<dict>
 						<key>include</key>
+						<string>#tracked-array-literal</string>
+					</dict>
+					<dict>
+						<key>include</key>
 						<string>#tracked-map-literal</string>
 					</dict>
 					<dict>
@@ -6742,6 +6750,47 @@
 					<dict>
 						<key>include</key>
 						<string>#object-member</string>
+					</dict>
+				</array>
+			</dict>
+			<key>tracked-array-literal</key>
+			<dict>
+				<key>name</key>
+				<string>meta.tracked.array.literal.js</string>
+				<key>begin</key>
+				<string>(#)(\[)</string>
+				<key>beginCaptures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>keyword.control.tracked.js</string>
+					</dict>
+					<key>2</key>
+					<dict>
+						<key>name</key>
+						<string>meta.brace.square.js</string>
+					</dict>
+				</dict>
+				<key>end</key>
+				<string>\]</string>
+				<key>endCaptures</key>
+				<dict>
+					<key>0</key>
+					<dict>
+						<key>name</key>
+						<string>meta.brace.square.js</string>
+					</dict>
+				</dict>
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>include</key>
+						<string>#expression</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#punctuation-comma</string>
 					</dict>
 				</array>
 			</dict>

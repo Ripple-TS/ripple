@@ -1,0 +1,237 @@
+import { compile } from 'ripple/compiler';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render } from 'ripple/server';
+import { push_element, pop_element, reset_element_state } from 'ripple/internal/server';
+
+describe('HTML nesting validation', () => {
+	let consoleErrorSpy;
+
+	beforeEach(() => {
+		reset_element_state();
+		consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+	});
+
+	afterEach(() => {
+		consoleErrorSpy.mockRestore();
+		reset_element_state();
+	});
+
+	describe('push_element and pop_element runtime', () => {
+		it('does not warn for valid nesting', () => {
+			push_element('div', 'test.ripple', 1, 0);
+			push_element('span', 'test.ripple', 2, 0);
+			pop_element();
+			pop_element();
+
+			expect(consoleErrorSpy).not.toHaveBeenCalled();
+		});
+
+		it('warns when button is nested inside button', () => {
+			push_element('button', 'test.ripple', 1, 0);
+			push_element('button', 'test.ripple', 2, 0);
+			pop_element();
+			pop_element();
+
+			expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+			const msg = consoleErrorSpy.mock.calls[0][0];
+			expect(msg).toContain('`<button>`');
+			expect(msg).toContain('cannot be');
+		});
+
+		it('warns when a is nested inside a', () => {
+			push_element('a', 'test.ripple', 1, 0);
+			push_element('a', 'test.ripple', 2, 0);
+			pop_element();
+			pop_element();
+
+			expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+			const msg = consoleErrorSpy.mock.calls[0][0];
+			expect(msg).toContain('`<a>`');
+		});
+
+		it('warns when div is inside p', () => {
+			push_element('p', 'test.ripple', 1, 0);
+			push_element('div', 'test.ripple', 2, 0);
+			pop_element();
+			pop_element();
+
+			expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+			const msg = consoleErrorSpy.mock.calls[0][0];
+			expect(msg).toContain('`<div>`');
+			expect(msg).toContain('`<p>`');
+		});
+
+		it('warns when heading is nested inside heading', () => {
+			push_element('h1', 'test.ripple', 1, 0);
+			push_element('h2', 'test.ripple', 2, 0);
+			pop_element();
+			pop_element();
+
+			expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+			const msg = consoleErrorSpy.mock.calls[0][0];
+			expect(msg).toContain('`<h2>`');
+			expect(msg).toContain('`<h1>`');
+		});
+
+		it('warns when form is nested inside form', () => {
+			push_element('form', 'test.ripple', 1, 0);
+			push_element('form', 'test.ripple', 2, 0);
+			pop_element();
+			pop_element();
+
+			expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+			const msg = consoleErrorSpy.mock.calls[0][0];
+			expect(msg).toContain('`<form>`');
+		});
+
+		it('warns when td is not child of tr', () => {
+			push_element('div', 'test.ripple', 1, 0);
+			push_element('td', 'test.ripple', 2, 0);
+			pop_element();
+			pop_element();
+
+			expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+			const msg = consoleErrorSpy.mock.calls[0][0];
+			expect(msg).toContain('`<td>`');
+			expect(msg).toContain('`<tr>`');
+		});
+
+		it('warns when tr is not child of thead or tbody or tfoot', () => {
+			push_element('div', 'test.ripple', 1, 0);
+			push_element('tr', 'test.ripple', 2, 0);
+			pop_element();
+			pop_element();
+
+			expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+			const msg = consoleErrorSpy.mock.calls[0][0];
+			expect(msg).toContain('`<tr>`');
+		});
+
+		it('deduplicates warnings for the same message', () => {
+			push_element('button', 'test.ripple', 1, 0);
+			push_element('button', 'test.ripple', 2, 0);
+			pop_element();
+			pop_element();
+
+			push_element('button', 'test.ripple', 1, 0);
+			push_element('button', 'test.ripple', 2, 0);
+			pop_element();
+			pop_element();
+
+			expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+		});
+
+		it('includes location information in warning', () => {
+			push_element('button', 'App.ripple', 5, 2);
+			push_element('button', 'App.ripple', 10, 4);
+			pop_element();
+			pop_element();
+
+			expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+			const msg = consoleErrorSpy.mock.calls[0][0];
+			expect(msg).toContain('App.ripple:10:4');
+			expect(msg).toContain('App.ripple:5:2');
+		});
+
+		it('does not warn for custom elements', () => {
+			push_element('my-button', 'test.ripple', 1, 0);
+			push_element('my-button', 'test.ripple', 2, 0);
+			pop_element();
+			pop_element();
+
+			expect(consoleErrorSpy).not.toHaveBeenCalled();
+		});
+
+		it('validates ancestor nesting (button deep inside button)', () => {
+			push_element('button', 'test.ripple', 1, 0);
+			push_element('div', 'test.ripple', 2, 0);
+			push_element('span', 'test.ripple', 3, 0);
+			push_element('button', 'test.ripple', 4, 0);
+			pop_element();
+			pop_element();
+			pop_element();
+			pop_element();
+
+			expect(consoleErrorSpy).toHaveBeenCalled();
+			const msg = consoleErrorSpy.mock.calls[0][0];
+			expect(msg).toContain('`<button>`');
+		});
+
+		it('warns when li is direct child of another li', () => {
+			push_element('li', 'test.ripple', 1, 0);
+			push_element('li', 'test.ripple', 2, 0);
+			pop_element();
+			pop_element();
+
+			expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+			const msg = consoleErrorSpy.mock.calls[0][0];
+			expect(msg).toContain('`<li>`');
+		});
+
+		it('includes hydration mismatch warning text', () => {
+			push_element('p', 'test.ripple', 1, 0);
+			push_element('div', 'test.ripple', 2, 0);
+			pop_element();
+			pop_element();
+
+			const msg = consoleErrorSpy.mock.calls[0][0];
+			expect(msg).toContain('hydration mismatch');
+		});
+	});
+
+	describe('compiler dev mode output', () => {
+		it('emits push_element and pop_element calls in dev mode', () => {
+			const lines = [];
+			lines.push('component App() {');
+			lines.push('  <div>');
+			lines.push('    <span>{"Hello"}</span>');
+			lines.push('  </div>');
+			lines.push('}');
+			const source = lines.join('\n');
+
+			const result = compile(source, 'test.ripple', { mode: 'server', dev: true });
+
+			expect(result.js.code).toContain('_$_.push_element');
+			expect(result.js.code).toContain('_$_.pop_element');
+		});
+
+		it('does not emit push_element or pop_element in non-dev mode', () => {
+			const lines = [];
+			lines.push('component App() {');
+			lines.push('  <div>');
+			lines.push('    <span>{"Hello"}</span>');
+			lines.push('  </div>');
+			lines.push('}');
+			const source = lines.join('\n');
+
+			const result = compile(source, 'test.ripple', { mode: 'server', dev: false });
+
+			expect(result.js.code).not.toContain('push_element');
+			expect(result.js.code).not.toContain('pop_element');
+		});
+
+		it('emits push_element with correct tag name', () => {
+			const lines = [];
+			lines.push('component App() {');
+			lines.push('  <button>{"Click"}</button>');
+			lines.push('}');
+			const source = lines.join('\n');
+
+			const result = compile(source, 'test.ripple', { mode: 'server', dev: true });
+
+			expect(result.js.code).toContain('_$_.push_element(\'button\'');
+		});
+
+		it('does not emit push_element for client mode', () => {
+			const lines = [];
+			lines.push('component App() {');
+			lines.push('  <div>{"Hello"}</div>');
+			lines.push('}');
+			const source = lines.join('\n');
+
+			const result = compile(source, 'test.ripple', { mode: 'client', dev: true });
+
+			expect(result.js.code).not.toContain('push_element');
+		});
+	});
+});

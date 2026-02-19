@@ -2014,8 +2014,12 @@ function RipplePlugin(config) {
 						}
 						if (attr.value !== null) {
 							if (attr.value.type === 'JSXExpressionContainer') {
+								const expression = attr.value.expression;
+								if (expression.type === 'Literal') {
+									expression.was_expression = true;
+								}
 								/** @type {ESTreeJSX.JSXExpressionContainer['expression']} */ (attr.value) =
-									attr.value.expression;
+									expression;
 							}
 						}
 					}
@@ -2492,7 +2496,15 @@ function RipplePlugin(config) {
 				}
 
 				if (this.value === '#server') {
-					return this.parseServerBlock();
+					// Peek ahead to see if this is a server block (#server { ... }) vs
+					// a server identifier expression (#server.fn(), #server.fn().then())
+					let peek_pos = this.end;
+					while (peek_pos < this.input.length && /\s/.test(this.input[peek_pos])) peek_pos++;
+					if (peek_pos < this.input.length && this.input.charCodeAt(peek_pos) === 123) {
+						// Next non-whitespace character is '{' — parse as server block
+						return this.parseServerBlock();
+					}
+					// Otherwise fall through to parse as expression statement (e.g., #server.fn().then(...))
 				}
 
 				if (this.value === 'component') {

@@ -12,6 +12,9 @@
       "@ripple-ts/eslint-plugin",
       "@ripple-ts/language-server",
       "@ripple-ts/prettier-plugin",
+      "@ripple-ts/adapter",
+      "@ripple-ts/adapter-node",
+      "@ripple-ts/adapter-bun",
       "@ripple-ts/rollup-plugin",
       "@ripple-ts/typescript-plugin",
       "@ripple-ts/vite-plugin"
@@ -22,10 +25,10 @@
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [
-    "@ripple-ts/textmate",
-    "@ripple-ts/nvim-plugin",
+    "@ripple-ts/playground",
     "@ripple-ts/tree-sitter",
-    "@ripple-ts/vscode-plugin",
+    "@ripple-ts/nvim-plugin",
+    "@ripple-ts/intellij-plugin",
     "@ripple-ts/sublime-text-plugin",
     "@ripple-ts/zed-plugin"
   ]

@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# AI/LLM Documentation
+# For comprehensive framework documentation optimized for AI understanding
+# Visit: https://ripple-ts.com/llms.txt
+
+Sitemap: https://ripple-ts.com/sitemap.xml

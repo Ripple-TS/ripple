@@ -80,7 +80,7 @@ zed-ripple/
 
 ### After Grammar Changes
 
-If you update the tree-sitter grammar in `packages/tree-sitter`:
+If you update the tree-sitter grammar in `grammars/tree-sitter`:
 
 1. Update query files in `languages/ripple/` if needed
 2. Update the `rev` field in `extension.toml` to the new commit SHA
