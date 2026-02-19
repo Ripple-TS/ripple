@@ -345,6 +345,41 @@ export function ripple(inlineOptions = {}) {
 			},
 
 			async load(id, opts) {
+				// Handle virtual hydrate module
+				if (id === '\0virtual:ripple-hydrate') {
+					return `
+import { hydrate, mount } from 'ripple';
+
+const data = JSON.parse(document.getElementById('__ripple_data').textContent);
+const target = document.getElementById('root');
+
+try {
+  const module = await import(/* @vite-ignore */ data.entry);
+  const Component =
+    module.default ||
+    Object.entries(module).find(([key, value]) => typeof value === 'function' && /^[A-Z]/.test(key))?.[1];
+
+  if (!Component || !target) {
+    console.error('[ripple] Unable to hydrate route: missing component export or #root target.');
+  } else {
+    try {
+      hydrate(Component, {
+        target,
+        props: { params: data.params }
+      });
+    } catch (error) {
+      console.warn('[ripple] Hydration failed, falling back to mount.', error);
+      mount(Component, {
+        target,
+        props: { params: data.params }
+      });
+    }
+  }
+} catch (error) {
+  console.error('[ripple] Failed to bootstrap client hydration.', error);
+}
+`;
+				}
 				if (cssCache.has(id)) {
 					return cssCache.get(id);
 				}
@@ -355,7 +390,7 @@ export function ripple(inlineOptions = {}) {
 
 				async handler(code, id, opts) {
 					const filename = id.replace(root, '');
-					const ssr = this.environment.config.consumer === 'server';
+					const ssr = opts?.ssr === true || this.environment.config.consumer === 'server';
 
 					const { js, css } = await compile(code, filename, {
 						mode: ssr ? 'server' : 'client',
