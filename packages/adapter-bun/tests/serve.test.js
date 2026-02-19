@@ -242,4 +242,31 @@ describe('@ripple-ts/adapter-bun serve()', () => {
 			rmSync(temp_dir, { recursive: true, force: true });
 		}
 	});
+
+	it('serves static files via options.static with custom prefix and cache settings', async () => {
+		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-bun-static-options-'));
+		try {
+			writeFileSync(join(temp_dir, 'asset.txt'), 'asset-data');
+
+			const { server, get_fetch } = create_bun_mock();
+			const fetch_handler = vi.fn(() => new Response('fallback', { status: 404 }));
+			const app = serve(fetch_handler, {
+				static: {
+					dir: temp_dir,
+					prefix: '/public',
+					maxAge: 60,
+					immutable: true,
+				},
+			});
+			app.listen();
+
+			const response = await get_fetch()(new Request('http://localhost/public/asset.txt'), server);
+			expect(response.status).toBe(200);
+			expect(response.headers.get('cache-control')).toBe('public, max-age=31536000, immutable');
+			expect(await response.text()).toBe('asset-data');
+			expect(fetch_handler).not.toHaveBeenCalled();
+		} finally {
+			rmSync(temp_dir, { recursive: true, force: true });
+		}
+	});
 });

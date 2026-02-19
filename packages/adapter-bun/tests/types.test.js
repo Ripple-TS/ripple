@@ -9,6 +9,7 @@ describe('@ripple-ts/adapter-bun types', () => {
 			'ServeStaticDirectoryOptions as BaseServeStaticDirectoryOptions',
 		);
 		expect(types_source).toContain('static?: BaseServeStaticDirectoryOptions | false;');
+		expect(types_source).toContain('export type ServeStaticOptions = BaseServeStaticOptions;');
 	});
 
 	it('does not inline static dir type shape locally', () => {
