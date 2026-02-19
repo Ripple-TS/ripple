@@ -143,7 +143,9 @@ component Child(props: PropsWithChildren<{
   // children, count are always reactive
   // but className is passed in as a read-only reactive value
   const [children, count, className, rest] = trackSplit(props, [
-    'children', 'count', 'class',
+    'children',
+    'count',
+    'class',
   ]);
 
   <button class={@className} {...@rest}>
@@ -186,7 +188,6 @@ export component App() {
   >
     {@name}
   </Child>
-
 }
 ```
 
