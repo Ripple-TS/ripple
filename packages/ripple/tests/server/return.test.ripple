@@ -510,7 +510,7 @@ describe('early return in SSR', () => {
 		}
 
 		const { body } = await render(App);
-		expect(body).toBeHtml('<div /><span>content</span>');
+		expect(body).toBeHtml('<div></div><span>content</span>');
 	});
 
 	it('handles return with function call in condition', async () => {

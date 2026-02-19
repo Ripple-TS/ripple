@@ -679,6 +679,7 @@ const visitors = {
 			const is_void = dynamic_name
 				? false
 				: is_void_element(/** @type {AST.Identifier} */ (node.id).name);
+			const use_self_closing_syntax = node.selfClosing && (is_void || !!dynamic_name);
 			const tag_name = dynamic_name
 				? dynamic_name
 				: b.literal(/** @type {AST.Identifier} */ (node.id).name);
@@ -834,7 +835,7 @@ const visitors = {
 				b.stmt(
 					b.call(
 						b.member(b.id('__output'), b.id('push')),
-						b.literal(!node.selfClosing ? '>' : ' />'),
+						b.literal(use_self_closing_syntax ? ' />' : '>'),
 					),
 				),
 			);
@@ -882,7 +883,7 @@ const visitors = {
 					state.init?.push(b.block(init));
 				}
 
-				if (!node.selfClosing) {
+				if (!use_self_closing_syntax) {
 					state.init?.push(
 						b.stmt(
 							b.call(

@@ -454,6 +454,6 @@ describe('basic server > attribute rendering', () => {
 		}
 
 		const { body } = await render(Basic);
-		expect(body).toBeHtml('<div data-disabled="" /><input disabled />');
+		expect(body).toBeHtml('<div data-disabled=""></div><input disabled />');
 	});
 });
