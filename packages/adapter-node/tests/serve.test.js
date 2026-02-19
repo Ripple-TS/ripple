@@ -1,6 +1,9 @@
 import { request as node_http_request } from 'node:http';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
-import { serve } from '../src/index.js';
+import { serve, serveStatic } from '../src/index.js';
 
 /**
  * @param {(request: Request, platform?: any) => Response | Promise<Response>} fetch_handler
@@ -31,6 +34,21 @@ async function with_server(fetch_handler, run, options = {}) {
 				else resolve(undefined);
 			});
 		});
+	}
+}
+
+/**
+ * @param {string} cwd
+ * @param {() => Promise<void>} run
+ * @returns {Promise<void>}
+ */
+async function with_cwd(cwd, run) {
+	const previous_cwd = process.cwd();
+	process.chdir(cwd);
+	try {
+		await run();
+	} finally {
+		process.chdir(previous_cwd);
 	}
 }
 
@@ -227,5 +245,103 @@ describe('@ripple-ts/adapter-node serve()', () => {
 		);
 
 		expect(request_method).toBe('HEAD');
+	});
+
+	it('serveStatic middleware serves files and bypasses fetch handler', async () => {
+		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-node-static-'));
+		try {
+			writeFileSync(join(temp_dir, 'hello.txt'), 'hello static');
+
+			const fetch_handler = vi.fn(() => new Response('fallback', { status: 404 }));
+			await with_server(
+				fetch_handler,
+				async (base_url) => {
+					const response = await fetch(`${base_url}/assets/hello.txt`);
+					expect(response.status).toBe(200);
+					expect(response.headers.get('content-type')).toBe('text/plain; charset=utf-8');
+					expect(await response.text()).toBe('hello static');
+				},
+				{
+					middleware: serveStatic(temp_dir, { prefix: '/assets' }),
+				},
+			);
+
+			expect(fetch_handler).not.toHaveBeenCalled();
+		} finally {
+			rmSync(temp_dir, { recursive: true, force: true });
+		}
+	});
+
+	it('serveStatic middleware falls through when file is missing', async () => {
+		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-node-static-fallthrough-'));
+		try {
+			const fetch_handler = vi.fn(() => new Response('fallback', { status: 404 }));
+
+			await with_server(
+				fetch_handler,
+				async (base_url) => {
+					const response = await fetch(`${base_url}/assets/missing.txt`);
+					expect(response.status).toBe(404);
+					expect(await response.text()).toBe('fallback');
+				},
+				{
+					middleware: serveStatic(temp_dir, { prefix: '/assets' }),
+				},
+			);
+
+			expect(fetch_handler).toHaveBeenCalledTimes(1);
+		} finally {
+			rmSync(temp_dir, { recursive: true, force: true });
+		}
+	});
+
+	it('serves files from ./public by default', async () => {
+		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-node-default-static-'));
+		try {
+			const public_dir = join(temp_dir, 'public');
+			mkdirSync(public_dir);
+			writeFileSync(join(public_dir, 'llms.txt'), 'hello llms');
+
+			const fetch_handler = vi.fn(() => new Response('fallback', { status: 404 }));
+
+			await with_cwd(temp_dir, async () => {
+				await with_server(fetch_handler, async (base_url) => {
+					const response = await fetch(`${base_url}/llms.txt`);
+					expect(response.status).toBe(200);
+					expect(await response.text()).toBe('hello llms');
+				});
+			});
+
+			expect(fetch_handler).not.toHaveBeenCalled();
+		} finally {
+			rmSync(temp_dir, { recursive: true, force: true });
+		}
+	});
+
+	it('can disable default static serving via options.static = false', async () => {
+		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-node-default-static-disabled-'));
+		try {
+			const public_dir = join(temp_dir, 'public');
+			mkdirSync(public_dir);
+			writeFileSync(join(public_dir, 'llms.txt'), 'hello llms');
+
+			const fetch_handler = vi.fn(() => new Response('fallback', { status: 404 }));
+
+			await with_cwd(temp_dir, async () => {
+				await with_server(
+					fetch_handler,
+					async (base_url) => {
+						const response = await fetch(`${base_url}/llms.txt`);
+						expect(response.status).toBe(404);
+						expect(await response.text()).toBe('fallback');
+					},
+					{ static: false },
+				);
+			});
+
+			expect(fetch_handler).toHaveBeenCalledTimes(1);
+		} finally {
+			rmSync(temp_dir, { recursive: true, force: true });
+		}
 	});
 });

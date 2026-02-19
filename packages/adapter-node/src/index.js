@@ -5,6 +5,7 @@ import {
 	DEFAULT_PORT,
 	internal_server_error_response,
 	run_next_middleware,
+	serveStatic as create_static_handler,
 } from '@ripple-ts/adapter';
 
 /**
@@ -112,6 +113,13 @@ function web_response_to_node_response(web_response, node_response, request_meth
 	});
 	node_stream.pipe(node_response);
 }
+
+/**
+ * @typedef {import('@ripple-ts/adapter').ServeStaticOptions & {
+ * 	dir?: string,
+ * }} StaticServeOptions
+ */
+
 /**
  * @typedef {{
  * 	port?: number,
@@ -121,8 +129,39 @@ function web_response_to_node_response(web_response, node_response, request_meth
  * 		res: import('node:http').ServerResponse,
  * 		next: (error?: any) => void
  * 	) => void) | null,
+ * 	static?: StaticServeOptions | false,
  * }} ServeOptions
  */
+
+/**
+ * @param {(req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse, next: (error?: any) => void) => void} middleware
+ * @param {import('node:http').IncomingMessage} node_request
+ * @param {import('node:http').ServerResponse} node_response
+ * @returns {Promise<void>}
+ */
+function run_node_middleware(middleware, node_request, node_response) {
+	return new Promise((resolve, reject) => {
+		if (node_response.writableEnded) {
+			resolve(undefined);
+			return;
+		}
+
+		const done = (/** @type {Error} */ error) => {
+			if (error) {
+				reject(error);
+				return;
+			}
+
+			resolve(undefined);
+		};
+
+		try {
+			middleware(node_request, node_response, done);
+		} catch (error) {
+			reject(error);
+		}
+	});
+}
 
 /**
  * @param {(request: Request, platform?: any) => Response | Promise<Response>} fetch_handler
@@ -130,7 +169,19 @@ function web_response_to_node_response(web_response, node_response, request_meth
  * @returns {{ listen: (port?: number) => import('node:http').Server, close: () => void }}
  */
 export function serve(fetch_handler, options = {}) {
-	const { port = DEFAULT_PORT, hostname = DEFAULT_HOSTNAME, middleware = null } = options;
+	const {
+		port = DEFAULT_PORT,
+		hostname = DEFAULT_HOSTNAME,
+		middleware = null,
+		static: static_options = {},
+	} = options;
+
+	/** @type {ReturnType<typeof serveStatic> | null} */
+	let static_middleware = null;
+	if (static_options !== false) {
+		const { dir = 'public', ...static_handler_options } = static_options;
+		static_middleware = serveStatic(dir, static_handler_options);
+	}
 
 	const server = createServer(async (node_request, node_response) => {
 		const abort_controller = new AbortController();
@@ -149,29 +200,21 @@ export function serve(fetch_handler, options = {}) {
 			};
 
 			let response;
-			if (middleware) {
+			if (static_middleware !== null || middleware !== null) {
 				response = await run_next_middleware(
 					async (request, middleware_response, next) => {
-						await new Promise((resolve, reject) => {
-							if (middleware_response.writableEnded) {
-								resolve(undefined);
-								return;
+						if (static_middleware !== null) {
+							await run_node_middleware(static_middleware, request, middleware_response);
+							if (middleware_response.writableEnded || middleware_response.headersSent) {
+								return new Response(null, { status: 204 });
 							}
+						}
 
-							const done = (/** @type {Error} */ error) => {
-								if (error) return reject(error);
-								resolve(undefined);
-							};
-
-							try {
-								middleware(request, middleware_response, done);
-							} catch (error) {
-								reject(error);
+						if (middleware !== null) {
+							await run_node_middleware(middleware, request, middleware_response);
+							if (middleware_response.writableEnded || middleware_response.headersSent) {
+								return new Response(null, { status: 204 });
 							}
-						});
-
-						if (middleware_response.writableEnded || middleware_response.headersSent) {
-							return new Response(null, { status: 204 });
 						}
 
 						return await next();
@@ -215,5 +258,37 @@ export function serve(fetch_handler, options = {}) {
 		close() {
 			server.close();
 		},
+	};
+}
+
+/**
+ * Create a middleware that serves static files from a directory
+ *
+ * @param {string} dir - Directory to serve files from (relative to cwd or absolute)
+ * @param {import('@ripple-ts/adapter').ServeStaticOptions} [options]
+ * @returns {(req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse, next: (error?: any) => void) => void}
+ */
+export function serveStatic(dir, options = {}) {
+	const serve_static_request = create_static_handler(dir, options);
+
+	return function staticMiddleware(req, res, next) {
+		try {
+			const request_method = (req.method ?? 'GET').toUpperCase();
+			if (request_method !== 'GET' && request_method !== 'HEAD') {
+				next();
+				return;
+			}
+
+			const request = node_request_to_web_request(req, new AbortController().signal);
+			const response = serve_static_request(request);
+			if (response === null) {
+				next();
+				return;
+			}
+
+			web_response_to_node_response(response, res, request.method);
+		} catch {
+			next();
+		}
 	};
 }

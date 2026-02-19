@@ -2,7 +2,7 @@ import type {
 	AdapterCoreOptions,
 	FetchHandler,
 	ServeResult,
-	ServeStaticDirectoryOptions as BaseServeStaticDirectoryOptions,
+	ServeStaticOptions as BaseServeStaticOptions,
 } from '@ripple-ts/adapter';
 
 export type ServeOptions = AdapterCoreOptions & {
@@ -13,8 +13,16 @@ export type ServeOptions = AdapterCoreOptions & {
 				next: (error?: any) => void,
 		  ) => void)
 		| null;
-	static?: BaseServeStaticDirectoryOptions | false;
+	static?: (BaseServeStaticOptions & { dir?: string }) | false;
 };
+
+export type ServeStaticOptions = BaseServeStaticOptions;
+
+export type StaticMiddleware = (
+	req: import('node:http').IncomingMessage,
+	res: import('node:http').ServerResponse,
+	next: (error?: any) => void,
+) => void;
 
 export function serve(
 	fetch_handler: FetchHandler<{
@@ -23,3 +31,8 @@ export function serve(
 	}>,
 	options?: ServeOptions,
 ): ServeResult<import('node:http').Server>;
+
+/**
+ * Create a middleware that serves static files from a directory
+ */
+export function serveStatic(dir: string, options?: ServeStaticOptions): StaticMiddleware;

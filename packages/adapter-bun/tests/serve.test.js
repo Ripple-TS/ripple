@@ -1,5 +1,8 @@
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { serve } from '../src/index.js';
+import { serve, serveStatic } from '../src/index.js';
 
 /** @type {any} */
 const original_bun = globalThis.Bun;
@@ -41,6 +44,21 @@ function create_bun_mock() {
 			return fetch_handler;
 		},
 	};
+}
+
+/**
+ * @param {string} cwd
+ * @param {() => Promise<void>} run
+ * @returns {Promise<void>}
+ */
+async function with_cwd(cwd, run) {
+	const previous_cwd = process.cwd();
+	process.chdir(cwd);
+	try {
+		await run();
+	} finally {
+		process.chdir(previous_cwd);
+	}
 }
 
 describe('@ripple-ts/adapter-bun serve()', () => {
@@ -135,5 +153,93 @@ describe('@ripple-ts/adapter-bun serve()', () => {
 		app.close();
 
 		expect(server.stop).toHaveBeenCalledTimes(1);
+	});
+
+	it('serveStatic middleware serves matching files', async () => {
+		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-bun-static-'));
+		try {
+			writeFileSync(join(temp_dir, 'app.js'), 'console.log("bun");');
+
+			const static_middleware = serveStatic(temp_dir, { prefix: '/assets' });
+			const next = vi.fn(async () => new Response('next'));
+
+			const response = await static_middleware(
+				new Request('http://localhost/assets/app.js'),
+				/** @type {any} */ ({}),
+				next,
+			);
+
+			expect(next).not.toHaveBeenCalled();
+			expect(response.status).toBe(200);
+			expect(response.headers.get('content-type')).toBe('text/javascript; charset=utf-8');
+			expect(await response.text()).toContain('console.log');
+		} finally {
+			rmSync(temp_dir, { recursive: true, force: true });
+		}
+	});
+
+	it('serveStatic middleware falls through when no file is found', async () => {
+		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-bun-static-fallthrough-'));
+		try {
+			const static_middleware = serveStatic(temp_dir, { prefix: '/assets' });
+			const next = vi.fn(async () => new Response('next'));
+
+			const response = await static_middleware(
+				new Request('http://localhost/assets/missing.js'),
+				/** @type {any} */ ({}),
+				next,
+			);
+
+			expect(next).toHaveBeenCalledTimes(1);
+			expect(await response.text()).toBe('next');
+		} finally {
+			rmSync(temp_dir, { recursive: true, force: true });
+		}
+	});
+
+	it('serves files from ./public by default', async () => {
+		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-bun-default-static-'));
+		try {
+			const public_dir = join(temp_dir, 'public');
+			mkdirSync(public_dir);
+			writeFileSync(join(public_dir, 'llms.txt'), 'hello llms');
+
+			await with_cwd(temp_dir, async () => {
+				const { server, get_fetch } = create_bun_mock();
+				const fetch_handler = vi.fn(() => new Response('fallback', { status: 404 }));
+				const app = serve(fetch_handler);
+				app.listen();
+
+				const response = await get_fetch()(new Request('http://localhost/llms.txt'), server);
+				expect(response.status).toBe(200);
+				expect(await response.text()).toBe('hello llms');
+				expect(fetch_handler).not.toHaveBeenCalled();
+			});
+		} finally {
+			rmSync(temp_dir, { recursive: true, force: true });
+		}
+	});
+
+	it('can disable default static serving via options.static = false', async () => {
+		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-bun-default-static-disabled-'));
+		try {
+			const public_dir = join(temp_dir, 'public');
+			mkdirSync(public_dir);
+			writeFileSync(join(public_dir, 'llms.txt'), 'hello llms');
+
+			await with_cwd(temp_dir, async () => {
+				const { server, get_fetch } = create_bun_mock();
+				const fetch_handler = vi.fn(() => new Response('fallback', { status: 404 }));
+				const app = serve(fetch_handler, { static: false });
+				app.listen();
+
+				const response = await get_fetch()(new Request('http://localhost/llms.txt'), server);
+				expect(response.status).toBe(404);
+				expect(await response.text()).toBe('fallback');
+				expect(fetch_handler).toHaveBeenCalledTimes(1);
+			});
+		} finally {
+			rmSync(temp_dir, { recursive: true, force: true });
+		}
 	});
 });

@@ -14,6 +14,11 @@ environment-specific adapters like:
 - `DEFAULT_HOSTNAME`
 - `internal_server_error_response()`
 - `run_next_middleware()`
+- `serveStatic()`
+- `MIME_TYPES`
+- `get_mime_type()`
+- `is_hashed_asset()`
+- `get_static_cache_control()`
 
 Type exports:
 
@@ -21,6 +26,7 @@ Type exports:
 - `AdapterCoreOptions`
 - `NextMiddleware`
 - `ServeResult`
+- `ServeStaticOptions`
 
 ## License
 
