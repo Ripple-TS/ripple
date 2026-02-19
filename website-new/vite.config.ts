@@ -1,5 +1,5 @@
-import { ripple } from '@ripple-ts/vite-plugin'
-import { defineConfig } from 'vite'
+import { ripple } from '@ripple-ts/vite-plugin';
+import { defineConfig } from 'vite';
 
 export default defineConfig({
 	define: {
@@ -10,4 +10,4 @@ export default defineConfig({
 	},
 	appType: 'custom',
 	plugins: [ripple()],
-})
+});

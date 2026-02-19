@@ -9,7 +9,9 @@ component using the `<style>` element.
 
 ```ripple
 component MyComponent() {
-  <div class="container"><h1>{'Hello World'}</h1></div>
+  <div class="container">
+    <h1>{'Hello World'}</h1>
+  </div>
 
   <style>
     .container {
@@ -25,9 +27,7 @@ component MyComponent() {
 }
 ```
 
-::: info
-The `<style>` element must be top-level within a `component`.
-:::
+::: info The `<style>` element must be top-level within a `component`. :::
 
 ## Dynamic Classes
 
@@ -39,27 +39,27 @@ Examples:
 
 ```ripple
 let includeBaz = track(true);
-<div class={{ foo: true, bar: false, baz: @includeBaz }}></div>
+<div class={{ foo: true, bar: false, baz: @includeBaz }} />
 // becomes: class="foo baz"
 
-<div class={['foo', {baz: false}, 0 && 'bar', [true && 'bat'] ]}></div>
+<div class={['foo', { baz: false }, 0 && 'bar', [true && 'bat']]} />
 // becomes: class="foo bat"
 
 let count = track(3);
-<div class={['foo', {bar: @count > 2}, @count > 3 && 'bat']}></div>
+<div class={['foo', { bar: @count > 2 }, @count > 3 && 'bat']} />
 // becomes: class="foo bar"
 ```
 
 ## Dynamic Inline Styles
 
-Sometimes you might need to dynamically set inline styles. For this,
-you can use the `style` attribute, passing either a string or an object to it:
+Sometimes you might need to dynamically set inline styles. For this, you can use
+the `style` attribute, passing either a string or an object to it:
 
 ```ripple
 let color = track('red');
 
-<div style={`color: ${@color}; font-weight: bold; background-color: gray`}></div>
-<div style={{ color: @color, fontWeight: 'bold', 'background-color': 'gray' }}></div>
+<div style={`color: ${@color}; font-weight: bold; background-color: gray`} />
+<div style={{ color: @color, fontWeight: 'bold', 'background-color': 'gray' }} />
 
 const style = {
   @color,
@@ -68,19 +68,17 @@ const style = {
 };
 
 // using object spread
-<div style={{...style}}></div>
+<div style={{ ...style }} />
 
 // using object directly
-<div style={style}></div>
+<div {style} />
 ```
 
-Both examples above will render the same inline styles, however, it's
-recommended to use the object notation as it's typically more performance optimized.
+Both examples above will render the same inline styles, however, it's recommended
+to use the object notation as it's typically more performance optimized.
 
-::: info
-When passing an object to the `style` attribute, you can use either camelCase
-or kebab-case for CSS property names.
-:::
+::: info When passing an object to the `style` attribute, you can use either
+camelCase or kebab-case for CSS property names. :::
 
 ## Global Styles
 
@@ -135,7 +133,8 @@ component Child() {
 
 ### Global Keyframes
 
-Keyframes are scoped by default. To create global keyframes that can be shared across components, prefix the animation name with `-global-`:
+Keyframes are scoped by default. To create global keyframes that can be shared
+across components, prefix the animation name with `-global-`:
 
 <Code>
 
@@ -148,14 +147,22 @@ export component App() {
   <style>
     /* Scoped keyframe - only usable within Parent */
     @keyframes slideIn {
-      from { transform: translateX(-100%); }
-      to { transform: translateX(0); }
+      from {
+        transform: translateX(-100%);
+      }
+      to {
+        transform: translateX(0);
+      }
     }
 
     /* Global keyframe - usable in any component */
     @keyframes -global-fadeIn {
-      0% { opacity: 0; }
-      100% { opacity: 1; }
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
     }
 
     .parent {

@@ -807,4 +807,4 @@ component Child() {
 }
 `,
 	},
-]
+];

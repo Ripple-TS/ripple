@@ -4,8 +4,8 @@ title: Ripple Component Syntax
 
 # Component Syntax
 
-Ripple's syntax is a superset of JSX, with one notable difference: components
-and elements (which we'll call templates) are written as statements rather than
+Ripple's syntax is a superset of JSX, with one notable difference: components and
+elements (which we'll call templates) are written as statements rather than
 expressions.
 
 Ripple's compiler then transforms your components into optimized JavaScript code
@@ -19,55 +19,58 @@ transform that into a function that it can call.
 
 ```ripple
 component Hello() {
-	<span>{'Hello World!'}</span>
+  <span>{'Hello World!'}</span>
 }
 ```
 
-::: info Notice Anything Missing?
-The lack of a return statement, unlike a (functional-style) JSX component isn't
-erroneous. As explained above, templates are statements rather than expressions,
-unlike JSX. We'll explore what you can do with that later!
-:::
+::: info Notice Anything Missing? The lack of a return statement, unlike a
+(functional-style) JSX component isn't erroneous. As explained above, templates
+are statements rather than expressions, unlike JSX. We'll explore what you can do
+with that later! :::
 
 ## Caveat: Templates Must be within Components
 
-Unlike JSX, Ripple can only have templates within the body of a component.
-This means that helper functions should not (and cannot) return any templates,
-but rather just data. This design enforces clear separation between component
-templates and regular JavaScript logic, making code more predictable and easier
-to analyze.
+Unlike JSX, Ripple can only have templates within the body of a component. This
+means that helper functions should not (and cannot) return any templates, but
+rather just data. This design enforces clear separation between component
+templates and regular JavaScript logic, making code more predictable and easier to
+analyze.
 
 ```ripple
 // ❌ Wrong - Templates outside the component
-const element = <div>{"Hello"}</div>;  // Compilation error
+const element = <div>
+  {'Hello'}
+</div>; // Compilation error
 
 function regularFunction() {
-	return <span>{"Not allowed"}</span>;  // Compilation error
+  return <span>
+    {'Not allowed'}
+  </span>; // Compilation error
 }
 
-const myTemplate = (
-	<div>{"Cannot assign JSX"}</div>  // Compilation error
-);
+const myTemplate = <div>
+  {'Cannot assign JSX'}
+</div>; // Compilation error
 
 // ✅ Correct - Templates only inside components
 component MyComponent() {
-	// Template syntax is valid here
-	<div>{"Hello World"}</div>
+  // Template syntax is valid here
+  <div>{'Hello World'}</div>
 
-	// You can have JavaScript code mixed with templates
-	const message = "Dynamic content";
-	console.log("This JavaScript works");
+  // You can have JavaScript code mixed with templates
+  const message = 'Dynamic content';
+  console.log('This JavaScript works');
 
-	<p>{message}</p>
+  <p>{message}</p>
 }
 
 // ✅ Correct - Helper functions return data, not templates
 function getMessage() {
-	return "Hello from function";  // Return data, not JSX
+  return 'Hello from function'; // Return data, not JSX
 }
 
 component App() {
-	<div>{getMessage()}</div>  // Use function result in template
+  <div>{getMessage()}</div> // Use function result in template
 }
 ```
 
@@ -79,37 +82,37 @@ condition is met.
 
 ```ripple
 component Profile({ user }) {
-	if (!user) {
-		<p>{'Please sign in to continue.'}</p>
-		return;
-	}
+  if (!user) {
+    <p>{'Please sign in to continue.'}</p>
+    return;
+  }
 
-	<h1>{user.name}</h1>
-	<p>{user.email}</p>
+  <h1>{user.name}</h1>
+  <p>{user.email}</p>
 }
 ```
 
 **Rules:**
 
 - Use only `return;` (without a value) inside component/template scopes.
-- `return` with a value (for example `return 'x'` or `return <div />`) is a compile error.
+- `return` with a value (for example `return 'x'` or `return <div />`) is a
+  compile error.
 - `return` is not allowed at module top level.
 - `return` is a control-flow exit, not a JSX return value mechanism.
 
 ## Concept: Expressions
 
-In Ripple (and JSX), we can interpolate expressions into the template with a
-pair of {braces}. Inside the braces, we can put a JavaScript expression, which
-will then be converted to a string (if it is not already) to be inserted into
-the DOM.
+In Ripple (and JSX), we can interpolate expressions into the template with a pair
+of {braces}. Inside the braces, we can put a JavaScript expression, which will
+then be converted to a string (if it is not already) to be inserted into the DOM.
 
 ## Example: Displaying Text
 
 This is the first place we can notice the difference between Ripple and JSX.
-You'll need to place your text inside {braces} to start an expression.
-Again, this is because Ripple templates are statements rather than expressions,
-so we cannot have text in the middle of the template, as it would be akin to
-writing text in the middle of your code.
+You'll need to place your text inside {braces} to start an expression. Again, this
+is because Ripple templates are statements rather than expressions, so we cannot
+have text in the middle of the template, as it would be akin to writing text in
+the middle of your code.
 
 ```ripple
 // ✅ Correct - Text is an expression
@@ -130,8 +133,8 @@ let greet_text = Hello World!;
 
 The most basic form of data-binding is text interpolation. In the example below,
 we'll declare a `<span>` element as a statement, then use a pair of {braces} to
-declare an expression, inside which we put our string expression, like we would
-in plain JavaScript.
+declare an expression, inside which we put our string expression, like we would in
+plain JavaScript.
 
 ```ripple
 <span>{`Message: ${msg}`}</span>
@@ -146,33 +149,36 @@ similar to block statements in regular JavaScript.
 
 ```ripple
 component TemplateScope() {
-	<div>
-		// Variable declarations inside templates
-		const message = "Hello from template scope";
-		let count = 42;
+  <div>
+    const // Variable declarations inside templates
+    message = 'Hello from template scope';
+    let count = 42;
 
-		// Function calls and expressions
-		console.log("This runs during render");
+    // Function calls and expressions
+    console.log('This runs during render');
 
-		// Conditional logic
-		const isEven = count % 2 === 0;
+    // Conditional logic
+    const isEven = count % 2 === 0;
 
-		<h1>{message}</h1>
-		<p>{"Count is: "}{count}</p>
+    <h1>{message}</h1>
+    <p>
+      {'Count is: '}
+      {count}
+    </p>
 
-		if (isEven) {
-			<span>{"Count is even"}</span>
-		}
+    if (isEven) {
+      <span>{'Count is even'}</span>
+    }
 
-		// Nested scopes work too
-		<section>
-			const sectionData = "Nested scope variable";
-			<p>{sectionData}</p>
-		</section>
+    // Nested scopes work too
+    <section>
+      const sectionData = 'Nested scope variable';
+      <p>{sectionData}</p>
+    </section>
 
-		// You can even put debugger statements
-		debugger;
-	</div>
+    debugger;
+    // You can even put debugger statements
+  </div>
 }
 ```
 
@@ -180,7 +186,8 @@ component TemplateScope() {
 
 - **Inline Logic**: Execute JavaScript directly where you need it in the template
 - **Local Variables**: Declare variables scoped to specific parts of your template
-- **Debugging**: Place `console.log()` or `debugger` statements anywhere in templates
+- **Debugging**: Place `console.log()` or `debugger` statements anywhere in
+  templates
 - **Dynamic Computation**: Calculate values inline without helper functions
 
 **Scope Rules:**
@@ -192,17 +199,16 @@ component TemplateScope() {
 
 ## Attribute Binding
 
-Attribute Binding in Ripple is achieved the same way as JSX. To bind an
-expression to an attribute, we write the attribute's name and an equal sign,
-like plain HTML, but instead of quotes, we use {braces}, within which, we can
-write a JS expression that evaluates to our desired value.
+Attribute Binding in Ripple is achieved the same way as JSX. To bind an expression
+to an attribute, we write the attribute's name and an equal sign, like plain HTML,
+but instead of quotes, we use {braces}, within which, we can write a JS expression
+that evaluates to our desired value.
 
 ```ripple
 <span data-my-attr={attr_val}>{'Hi there!'}</span>
 ```
 
-::: info
-Plain attributes can still be used.
+::: info Plain attributes can still be used.
 
 ```ripple
 <input type="text" />
@@ -218,20 +224,18 @@ HTML directive to opt-out:
 
 ```ripple
 export component App() {
-	let source = `
+  let source = `
 <h1>My Blog Post</h1>
 <p>Hi! I like JS and Ripple.</p>
-`
+`;
 
-	<article>
-		{html source}
-	</article>
+  <article>{html source}</article>
 }
 ```
 
-::: info Note
-The raw HTML passed in should be valid, well-formed HTML. The following example
-will not work, since closing tags by themselves are considered malformed HTML.
+::: info Note The raw HTML passed in should be valid, well-formed HTML. The
+following example will not work, since closing tags by themselves are considered
+malformed HTML.
 
 ```ripple
 {html '<div>'}content{html '</div>'}

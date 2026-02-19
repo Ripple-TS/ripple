@@ -41,7 +41,8 @@ export function MultiRootChild(__anchor, _, __block) {
 
 	var fragment = root_2();
 
-	_$_.append(__anchor, fragment);
+	_$_.next();
+	_$_.append(__anchor, fragment, true);
 	_$_.pop_component();
 }
 

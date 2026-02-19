@@ -1,4 +1,4 @@
-import { RenderRoute, ServerRoute } from '@ripple-ts/vite-plugin'
+import { RenderRoute, ServerRoute } from '@ripple-ts/vite-plugin';
 
 export const routes = [
 	new RenderRoute({ path: '/', entry: '/src/pages/index.ripple' }),
@@ -9,12 +9,12 @@ export const routes = [
 		path: '/api/hello',
 		methods: ['GET'],
 		handler: async (context) => {
-			console.log('[handler] inside handler', context.url.pathname)
+			console.log('[handler] inside handler', context.url.pathname);
 
 			return Response.json({
 				message: 'Hello from Ripple SSR!',
 				timestamp: new Date().toISOString(),
-			})
+			});
 		},
 	}),
 	new ServerRoute({
@@ -61,12 +61,12 @@ export const routes = [
 <span class="line-number">37</span>     <span class="bracket">&lt;</span><span class="component">Button</span> <span class="attribute">onClick</span>=<span class="template-brace">{</span><span class="brace">()</span> <span class="operator">=&gt;</span> <span class="reactive-var">@count</span><span class="operator">++</span><span class="template-brace">}</span> <span class="attribute">label</span>=<span class="template-brace">{</span><span class="string">"Increment"</span><span class="template-brace">}</span> <span class="bracket">/&gt;</span>
 <span class="line-number">38</span>     <span class="bracket">&lt;</span><span class="component">Button</span> <span class="attribute">onClick</span>=<span class="template-brace">{</span><span class="brace">()</span> <span class="operator">=&gt;</span> <span class="reactive-var">@count</span> <span class="operator">=</span> <span class="value">0</span><span class="template-brace">}</span> <span class="attribute">label</span>=<span class="template-brace">{</span><span class="string">"Reset"</span><span class="template-brace">}</span> <span class="bracket">/&gt;</span>
 <span class="line-number">39</span>   <span class="bracket">&lt;/</span><span class="tag">div</span><span class="bracket">&gt;</span>
-<span class="line-number">40</span> <span class="brace">}</span>`)
+<span class="line-number">40</span> <span class="brace">}</span>`);
 
 			return Response.json({
 				message: codeContent,
 				timestamp: new Date().toISOString(),
-			})
+			});
 		},
 	}),
-]
+];

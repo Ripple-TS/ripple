@@ -1,7 +1,7 @@
-import { defineConfig } from '@ripple-ts/vite-plugin'
-import { serve } from '@ripple-ts/adapter-node'
+import { defineConfig } from '@ripple-ts/vite-plugin';
+import { serve } from '@ripple-ts/adapter-node';
 
-import { routes } from './src/routes.ts'
+import { routes } from './src/routes.ts';
 // import { loggingMiddleware } from './src/middlewares.ts'
 
 export default defineConfig({
@@ -14,4 +14,4 @@ export default defineConfig({
 	platform: {
 		env: {},
 	},
-})
+});
