@@ -1,0 +1,37 @@
+export component Layout({ children }) {
+	<div class="layout">
+		<children />
+	</div>
+}
+
+export component SingleChild() {
+	<div class="single">{'single'}</div>
+}
+
+export component MultiRootChild() {
+	<h1>{'title'}</h1>
+	<p>{'description'}</p>
+}
+
+export component EmptyLayout() {
+	<Layout />
+}
+
+export component LayoutWithSingleChild() {
+	<Layout>
+		<SingleChild />
+	</Layout>
+}
+
+export component LayoutWithMultipleChildren() {
+	<Layout>
+		<SingleChild />
+		<div class="extra">{'extra'}</div>
+	</Layout>
+}
+
+export component LayoutWithMultiRootChild() {
+	<Layout>
+		<MultiRootChild />
+	</Layout>
+}

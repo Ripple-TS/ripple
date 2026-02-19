@@ -15,7 +15,12 @@ import { top_element_to_ns } from './utils.js';
  */
 export function composite(get_component, node, props) {
 	if (hydrating) {
-		hydrate_next();
+		// During hydration, `node` may already point at the first real SSR node
+		// (e.g. layout children). Only skip forward when we are on an empty
+		// comment anchor from a client template placeholder.
+		if (node.nodeType === 8 && /** @type {Comment} */ (node).data === '') {
+			hydrate_next();
+		}
 	}
 
 	var anchor = node;

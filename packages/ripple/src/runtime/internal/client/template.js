@@ -12,6 +12,9 @@ import { hydrate_next, hydrate_node, hydrating, pop } from './hydration.js';
 import { create_text, get_first_child, get_next_sibling, is_firefox } from './operations.js';
 import { active_block, active_namespace } from './runtime.js';
 
+/** @type {WeakMap<Node, Node>} */
+const hydration_ends = new WeakMap();
+
 /**
  * Assigns start and end nodes to the active block's state.
  * @param {Node} start - The start node.
@@ -140,8 +143,10 @@ export function template(content, flags) {
 				}
 
 				assign_nodes(start, end);
+				hydration_ends.set(start, end);
 			} else {
 				assign_nodes(/** @type {Node} */ (hydrate_node), /** @type {Node} */ (hydrate_node));
+				hydration_ends.set(/** @type {Node} */ (hydrate_node), /** @type {Node} */ (hydrate_node));
 			}
 			return /** @type {Node} */ (hydrate_node);
 		}
@@ -182,9 +187,10 @@ export function template(content, flags) {
 export function append(anchor, dom) {
 	if (hydrating) {
 		// During hydration, if anchor === dom, we're hydrating a child component
-		// where the "anchor" IS the content. Don't advance past it.
+		// where the "anchor" IS the content. Preserve the cursor on the
+		// template's hydrated end node so sibling traversal in the parent is correct.
 		if (anchor === dom) {
-			pop(dom);
+			pop(hydration_ends.get(/** @type {Node} */ (dom)) || /** @type {Node} */ (dom));
 			return;
 		}
 
