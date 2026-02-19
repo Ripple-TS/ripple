@@ -77,3 +77,50 @@ export component StaticChildWithSiblings() {
 	<span class="sibling1">{foo}</span>
 	<span class="sibling2">{foo}</span>
 }
+
+// Website-like components for testing complex hydration scenarios
+
+component Header() {
+	<h1 class="sr-only">{'Ripple'}</h1>
+	<img src="/images/logo.png" alt="Logo" class="logo" />
+	<p class="subtitle">{'the elegant TypeScript UI framework'}</p>
+}
+
+component Actions({ playgroundVisible = false }: { playgroundVisible: boolean }) {
+	<div class="social-links">
+		<a href="https://github.com" class="github-link">
+			{'GitHub'}
+		</a>
+		<a href="https://discord.com" class="discord-link">
+			{'Discord'}
+		</a>
+		if (playgroundVisible) {
+			<a href="/playground" class="playground-link">
+				{'Playground'}
+			</a>
+		}
+	</div>
+}
+
+component Layout({ children }) {
+	<main>
+		<div class="container">
+			<children />
+		</div>
+	</main>
+}
+
+component Content() {
+	<div class="content">
+		<p>{'Some content here'}</p>
+	</div>
+}
+
+export component WebsiteIndex() {
+	<Layout>
+		<Header />
+		<Actions playgroundVisible={true} />
+		<Content />
+		<Actions playgroundVisible={false} />
+	</Layout>
+}

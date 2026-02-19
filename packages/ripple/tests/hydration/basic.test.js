@@ -69,4 +69,16 @@ describe('hydration > basic', () => {
 		expect(container.querySelector('.sibling1')?.textContent).toBe('bar');
 		expect(container.querySelector('.sibling2')?.textContent).toBe('bar');
 	});
+
+	it('hydrates website-like component structure', async () => {
+		await hydrateComponent(ServerComponents.WebsiteIndex, ClientComponents.WebsiteIndex);
+		expect(container.querySelector('.sr-only')?.textContent).toBe('Ripple');
+		expect(container.querySelector('.logo')).toBeTruthy();
+		expect(container.querySelector('.subtitle')?.textContent).toBe(
+			'the elegant TypeScript UI framework',
+		);
+		expect(container.querySelectorAll('.social-links').length).toBe(2);
+		expect(container.querySelector('.playground-link')?.textContent).toBe('Playground');
+		expect(container.querySelector('.content')).toBeTruthy();
+	});
 });

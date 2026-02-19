@@ -287,3 +287,187 @@ export function StaticChildWithSiblings(__output) {
 	__output.push('</span>');
 	_$_.pop_component();
 }
+
+function Header(__output) {
+	_$_.push_component();
+	__output.push('<h1');
+	__output.push(' class="sr-only"');
+	__output.push('>');
+
+	{
+		__output.push('Ripple');
+	}
+
+	__output.push('</h1>');
+	__output.push('<img');
+	__output.push(' src="/images/logo.png"');
+	__output.push(' alt="Logo"');
+	__output.push(' class="logo"');
+	__output.push(' />');
+	__output.push('<p');
+	__output.push(' class="subtitle"');
+	__output.push('>');
+
+	{
+		__output.push('the elegant TypeScript UI framework');
+	}
+
+	__output.push('</p>');
+	_$_.pop_component();
+}
+
+function Actions(__output, { playgroundVisible = false }) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="social-links"');
+	__output.push('>');
+
+	{
+		__output.push('<a');
+		__output.push(' href="https://github.com"');
+		__output.push(' class="github-link"');
+		__output.push('>');
+
+		{
+			__output.push('GitHub');
+		}
+
+		__output.push('</a>');
+		__output.push('<a');
+		__output.push(' href="https://discord.com"');
+		__output.push(' class="discord-link"');
+		__output.push('>');
+
+		{
+			__output.push('Discord');
+		}
+
+		__output.push('</a>');
+		__output.push('<!--[-->');
+
+		if (_$_.get(playgroundVisible)) {
+			__output.push('<a');
+			__output.push(' href="/playground"');
+			__output.push(' class="playground-link"');
+			__output.push('>');
+
+			{
+				__output.push('Playground');
+			}
+
+			__output.push('</a>');
+		}
+
+		__output.push('<!--]-->');
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}
+
+async function Layout(__output, { children }) {
+	return _$_.async(async () => {
+		_$_.push_component();
+		__output.push('<main');
+		__output.push('>');
+
+		{
+			__output.push('<div');
+			__output.push(' class="container"');
+			__output.push('>');
+
+			{
+				{
+					const comp = children;
+					const args = [__output, {}];
+
+					if (comp?.async) {
+						await comp(...args);
+					} else if (comp) {
+						comp(...args);
+					}
+				}
+			}
+
+			__output.push('</div>');
+		}
+
+		__output.push('</main>');
+		_$_.pop_component();
+	});
+}
+
+Layout.async = true;
+
+function Content(__output) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="content"');
+	__output.push('>');
+
+	{
+		__output.push('<p');
+		__output.push('>');
+
+		{
+			__output.push('Some content here');
+		}
+
+		__output.push('</p>');
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}
+
+export function WebsiteIndex(__output) {
+	_$_.push_component();
+
+	{
+		const comp = Layout;
+
+		const args = [
+			__output,
+
+			{
+				children: function children(__output) {
+					_$_.push_component();
+
+					{
+						const comp = Header;
+						const args = [__output, {}];
+
+						comp(...args);
+					}
+
+					{
+						const comp = Actions;
+						const args = [__output, { playgroundVisible: true }];
+
+						comp(...args);
+					}
+
+					{
+						const comp = Content;
+						const args = [__output, {}];
+
+						comp(...args);
+					}
+
+					{
+						const comp = Actions;
+						const args = [__output, { playgroundVisible: false }];
+
+						comp(...args);
+					}
+
+					_$_.pop_component();
+				}
+			}
+		];
+
+		comp(...args);
+	}
+
+	_$_.pop_component();
+}

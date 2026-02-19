@@ -14,6 +14,13 @@ var root_10 = _$_.template(`<!>`, 1);
 var root_11 = _$_.template(`<div> </div><span> </span>`, 1);
 var root_12 = _$_.template(`<h1 class="sr-only">heading</h1><p class="subtitle">first paragraph</p><p class="subtitle">second paragraph</p>`, 1);
 var root_13 = _$_.template(`<!><span class="sibling1"> </span><span class="sibling2"> </span>`, 1);
+var root_14 = _$_.template(`<h1 class="sr-only">Ripple</h1><img src="/images/logo.png" alt="Logo" class="logo"><p class="subtitle">the elegant TypeScript UI framework</p>`, 1);
+var root_16 = _$_.template(`<a href="/playground" class="playground-link">Playground</a>`, 0);
+var root_15 = _$_.template(`<div class="social-links"><a href="https://github.com" class="github-link">GitHub</a><a href="https://discord.com" class="discord-link">Discord</a><!></div>`, 0);
+var root_17 = _$_.template(`<main><div class="container"><!></div></main>`, 0);
+var root_18 = _$_.template(`<div class="content"><p>Some content here</p></div>`, 0);
+var root_20 = _$_.template(`<!><!><!><!>`, 1);
+var root_19 = _$_.template(`<!>`, 1);
 
 export function StaticText(__anchor, _, __block) {
 	_$_.push_component();
@@ -213,5 +220,112 @@ export function StaticChildWithSiblings(__anchor, _, __block) {
 
 	_$_.next();
 	_$_.append(__anchor, fragment_6, true);
+	_$_.pop_component();
+}
+
+function Header(__anchor, _, __block) {
+	_$_.push_component();
+
+	var fragment_7 = root_14();
+
+	_$_.next(2);
+	_$_.append(__anchor, fragment_7, true);
+	_$_.pop_component();
+}
+
+function Actions(__anchor, __props, __block) {
+	_$_.push_component();
+
+	var div_8 = root_15();
+
+	{
+		var a_2 = _$_.child(div_8);
+		var a_1 = _$_.sibling(a_2);
+		var node_5 = _$_.sibling(a_1);
+
+		{
+			var consequent = (__anchor) => {
+				var a_3 = root_16();
+
+				_$_.append(__anchor, a_3);
+			};
+
+			_$_.if(node_5, (__render) => {
+				if (_$_.get(_$_.fallback(__props.playgroundVisible, false))) __render(consequent);
+			});
+		}
+
+		_$_.pop(div_8);
+	}
+
+	_$_.append(__anchor, div_8);
+	_$_.pop_component();
+}
+
+function Layout(__anchor, __props, __block) {
+	_$_.push_component();
+
+	var main_1 = root_17();
+
+	{
+		var div_9 = _$_.child(main_1);
+
+		{
+			var node_6 = _$_.child(div_9);
+
+			_$_.composite(() => __props.children, node_6, {});
+			_$_.pop(div_9);
+		}
+	}
+
+	_$_.append(__anchor, main_1);
+	_$_.pop_component();
+}
+
+function Content(__anchor, _, __block) {
+	_$_.push_component();
+
+	var div_10 = root_18();
+
+	_$_.append(__anchor, div_10);
+	_$_.pop_component();
+}
+
+export function WebsiteIndex(__anchor, _, __block) {
+	_$_.push_component();
+
+	var fragment_8 = root_19();
+	var node_7 = _$_.first_child_frag(fragment_8);
+
+	Layout(
+		node_7,
+		{
+			children(__anchor, _, __block) {
+				_$_.push_component();
+
+				var fragment_9 = root_20();
+				var node_8 = _$_.first_child_frag(fragment_9);
+
+				Header(node_8, {}, _$_.active_block);
+
+				var node_9 = _$_.sibling(node_8);
+
+				Actions(node_9, { playgroundVisible: true }, _$_.active_block);
+
+				var node_10 = _$_.sibling(node_9);
+
+				Content(node_10, {}, _$_.active_block);
+
+				var node_11 = _$_.sibling(node_10);
+
+				Actions(node_11, { playgroundVisible: false }, _$_.active_block);
+				_$_.append(__anchor, fragment_9);
+				_$_.pop_component();
+			}
+		},
+		_$_.active_block
+	);
+
+	_$_.append(__anchor, fragment_8);
 	_$_.pop_component();
 }
