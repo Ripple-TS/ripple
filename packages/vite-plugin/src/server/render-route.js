@@ -1,5 +1,6 @@
+/// <reference types="ripple/compiler/internal/rpc" />
 import { readFile } from 'node:fs/promises';
-import { join, sep } from 'node:path';
+import { join } from 'node:path';
 
 /**
  * @typedef {import('@ripple-ts/vite-plugin').Context} Context
@@ -24,6 +25,12 @@ import { join, sep } from 'node:path';
  */
 export async function handleRenderRoute(route, context, vite) {
 	try {
+		// Initialize so the server can register
+		// RPC functions from #server blocks during SSR module loading
+		if (!globalThis.rpc_modules) {
+			globalThis.rpc_modules = new Map();
+		}
+
 		// Load ripple server utilities
 		const { render, get_css_for_hashes } = await vite.ssrLoadModule('ripple/server');
 

@@ -2,7 +2,10 @@
 /** @import {Plugin, ResolvedConfig, ViteDevServer} from 'vite' */
 /** @import {RipplePluginOptions, RippleConfigOptions, Route, Middleware, RenderRoute} from '@ripple-ts/vite-plugin' */
 
+/// <reference types="ripple/compiler/internal/rpc" />
+
 import { compile } from 'ripple/compiler';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -18,6 +21,52 @@ export { RenderRoute, ServerRoute } from './routes.js';
 
 const VITE_FS_PREFIX = '/@fs/';
 const IS_WINDOWS = process.platform === 'win32';
+
+// AsyncLocalStorage for request-scoped fetch patching
+const rpcContext = new AsyncLocalStorage();
+
+// Patch fetch once at module level to support relative URLs in #server blocks
+const originalFetch = globalThis.fetch;
+
+/**
+ * Patch global fetch to resolve relative URLs based on the current request context.
+ * This allows server functions in #server blocks to use relative URLs
+ * that are resolved against the incoming request's origin.
+ * // TODO: a similar logic needs to be ported to the adapters
+ * @param {string | Request | URL} input
+ * @param {RequestInit} [init]
+ * @returns {Promise<Response>}
+ */
+globalThis.fetch = function (input, init) {
+	const context = rpcContext.getStore();
+
+	if (context?.origin) {
+		// Handle string URLs
+		if (typeof input === 'string' && input.startsWith('/')) {
+			input = `${context.origin}${input}`;
+		}
+		// Handle Request objects
+		else if (input instanceof Request) {
+			const url = input.url;
+			// Only patch if the Request was built with a relative URL
+			// (This is rare since Request constructor typically resolves URLs)
+			if (url.startsWith('/')) {
+				input = new Request(`${context.origin}${url}`, input);
+			}
+		}
+		// Handle URL objects constructed with relative paths
+		else if (input instanceof URL) {
+			// URL objects with no protocol/origin are relative (very rare in practice)
+			// Example: new URL('/api/message') throws, but if somehow passed...
+			if (!input.protocol || input.protocol === '' || input.origin === 'null') {
+				const path = input.pathname + (input.search || '') + (input.hash || '');
+				input = new URL(path, context.origin);
+			}
+		}
+	}
+
+	return originalFetch(input, init);
+};
 
 /**
  * @param {string} filename
@@ -695,11 +744,31 @@ async function handleRpcRequest(req, res, url, vite) {
 			return;
 		}
 
-		const result = await executeServerFunction(server[funcName], body);
+		// Parse x-forwarded-proto (can be comma-separated like "https, http", or an array)
+		const forwardedProto = req.headers['x-forwarded-proto'];
+		const proto = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto;
+		const protocol = proto
+			? proto.split(',')[0].trim()
+			: /** @type {import('node:tls').TLSSocket} */ (req.socket).encrypted
+				? 'https'
+				: 'http';
 
-		res.statusCode = 200;
-		res.setHeader('Content-Type', 'application/json');
-		res.end(result);
+		// Parse x-forwarded-host (can also be comma-separated, or an array)
+		const forwardedHost = req.headers['x-forwarded-host'];
+		const fwdHost = Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost;
+		const host = fwdHost ? fwdHost.split(',')[0].trim() : req.headers.host || 'localhost';
+
+		const origin = `${protocol}://${host}`;
+
+		// Execute server function within async context
+		// This allows the patched fetch to access the origin without global state
+		await rpcContext.run({ origin }, async () => {
+			const result = await executeServerFunction(server[funcName], body);
+
+			res.statusCode = 200;
+			res.setHeader('Content-Type', 'application/json');
+			res.end(result);
+		});
 	} catch (error) {
 		console.error('[@ripple-ts/vite-plugin] RPC error:', error);
 		res.statusCode = 500;

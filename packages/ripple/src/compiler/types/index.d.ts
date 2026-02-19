@@ -8,12 +8,6 @@ import type { RippleCompileError, CompileOptions } from 'ripple/compiler';
 import type { Position } from 'acorn';
 import type { RequireAllOrNone } from '#helpers';
 
-export type RpcModules = Map<string, [string, string]>;
-
-declare global {
-	var rpc_modules: RpcModules | undefined;
-}
-
 export type NameSpace = keyof typeof NAMESPACE_URI;
 interface BaseNodeMetaData {
 	scoped?: boolean;

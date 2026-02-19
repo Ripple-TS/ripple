@@ -41,6 +41,9 @@
     "./compiler/internal/import": {
       "types": "./src/compiler/types/import.d.ts"
     },
+    "./compiler/internal/rpc": {
+      "types": "./src/compiler/types/rpc.d.ts"
+    },
     "./compiler/internal/identifier/utils": {
       "default": "./src/compiler/identifier-utils.js"
     },
