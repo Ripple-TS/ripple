@@ -39,4 +39,14 @@ describe('hydration > composite', () => {
 			'<div class=\"layout\"><h1>title</h1><p>description</p></div>',
 		);
 	});
+
+	it('hydrates a layout with a multi-root child followed by a sibling', async () => {
+		await hydrateComponent(
+			ServerComponents.LayoutWithMultiRootChildAndSibling,
+			ClientComponents.LayoutWithMultiRootChildAndSibling,
+		);
+		expect(container.innerHTML).toBeHtml(
+			'<div class=\"layout\"><h1>title</h1><p>description</p><div class=\"after\">after</div></div>',
+		);
+	});
 });

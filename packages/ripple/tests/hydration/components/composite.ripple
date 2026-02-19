@@ -35,3 +35,10 @@ export component LayoutWithMultiRootChild() {
 		<MultiRootChild />
 	</Layout>
 }
+
+export component LayoutWithMultiRootChildAndSibling() {
+	<Layout>
+		<MultiRootChild />
+		<div class="after">{'after'}</div>
+	</Layout>
+}
