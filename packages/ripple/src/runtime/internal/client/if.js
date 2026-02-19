@@ -2,7 +2,7 @@
 
 import { branch, destroy_block, render } from './blocks.js';
 import { IF_BLOCK, UNINITIALIZED } from './constants.js';
-import { find_hydration_end, hydrate_next, hydrating, set_hydrate_node } from './hydration.js';
+import { hydrate_next, hydrating } from './hydration.js';
 
 /**
  * @param {Node} node
@@ -10,14 +10,11 @@ import { find_hydration_end, hydrate_next, hydrating, set_hydrate_node } from '.
  * @returns {void}
  */
 export function if_block(node, fn) {
-	/** @type {Node | null} */
-	let hydration_end = null;
 	if (hydrating) {
-		hydration_end = find_hydration_end(node);
 		hydrate_next();
 	}
 
-	var anchor = hydrating && hydration_end !== null ? hydration_end : node;
+	var anchor = node;
 	var has_branch = false;
 	/** @type {any} */
 	var condition = UNINITIALIZED;
@@ -55,8 +52,4 @@ export function if_block(node, fn) {
 		null,
 		IF_BLOCK,
 	);
-
-	if (hydrating && hydration_end !== null) {
-		set_hydrate_node(hydration_end);
-	}
 }

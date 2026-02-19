@@ -1,0 +1,90 @@
+# @ripple-ts/adapter-node
+
+Node.js adapter for Ripple metaframework apps.
+
+It bridges Node's `IncomingMessage`/`ServerResponse` API to Web
+`Request`/`Response`, so your server handler can use standard Fetch APIs.
+
+## Installation
+
+```bash
+pnpm add @ripple-ts/adapter-node
+# or
+npm install @ripple-ts/adapter-node
+# or
+yarn add @ripple-ts/adapter-node
+```
+
+## Usage
+
+```js
+import { serve } from '@ripple-ts/adapter-node';
+
+const app = serve(async (request) => {
+  const url = new URL(request.url);
+
+  if (url.pathname === '/health') {
+    return new Response('ok');
+  }
+
+  return new Response('Hello from Ripple adapter-node!', {
+    headers: { 'content-type': 'text/plain; charset=utf-8' },
+  });
+});
+
+app.listen(3000);
+```
+
+## API
+
+### `serve(fetch_handler, options?)`
+
+Creates an HTTP server adapter.
+
+- `fetch_handler`:
+  `(request: Request, platform?: any) => Response | Promise<Response>`
+- `options.port` (default: `3000`)
+- `options.hostname` (default: `localhost`)
+- `options.middleware` (optional): Node-style middleware called before
+  `fetch_handler`
+
+Returns:
+
+- `listen(port?)`: starts the server and returns Node `Server`
+- `close()`: closes the server
+
+## Middleware
+
+If middleware sends the response (`res.end()` / `res.headersSent`), the fetch
+handler is skipped.
+
+```js
+import { serve } from '@ripple-ts/adapter-node';
+
+const app = serve(async () => new Response('from handler'), {
+  middleware(req, res, next) {
+    if (req.url === '/legacy') {
+      res.statusCode = 200;
+      res.setHeader('content-type', 'text/plain; charset=utf-8');
+      res.end('from middleware');
+      return;
+    }
+
+    next();
+  },
+});
+
+app.listen(3000);
+```
+
+## Notes
+
+- `x-forwarded-proto` and `x-forwarded-host` are respected when constructing the
+  request URL.
+- Request bodies are streamed for non-`GET`/`HEAD` methods.
+- Multiple `set-cookie` headers are forwarded correctly.
+- Unhandled errors return `500 Internal Server Error`.
+
+## License
+
+MIT
