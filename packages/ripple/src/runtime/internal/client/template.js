@@ -215,6 +215,8 @@ export function append(anchor, dom, skip_advance) {
 				s.end = /** @type {Node} */ (hydrate_node);
 			}
 		}
+
+		hydrate_next();
 		return;
 	}
 	anchor.before(/** @type {Node} */ (dom));
