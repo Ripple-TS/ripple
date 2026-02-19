@@ -42,6 +42,28 @@ function getString(e: string = 'test') {
 
 		expect(result.js.code).toMatchSnapshot();
 	});
+
+	it('throws error for interpolating children as text in SSR mode', () => {
+		const source = `
+export component Layout({ children }) {
+		<div>{children}</div>
+}`;
+
+		expect(() => compile(source, 'test.ripple', { mode: 'server' })).toThrow(
+			'`children` cannot be rendered using text interpolation. Use `<children />` instead.',
+		);
+	});
+
+	it('throws error for interpolating props.children as text in SSR mode', () => {
+		const source = `
+export component Layout(props) {
+	<div>{props.children}</div>
+}`;
+
+		expect(() => compile(source, 'test.ripple', { mode: 'server' })).toThrow(
+			'`children` cannot be rendered using text interpolation. Use `<children />` instead.',
+		);
+	});
 });
 
 describe('compiler server block tests', () => {
