@@ -99,12 +99,16 @@ declare module 'estree' {
 
 	// These 3 are needed so that Literal can extend TrackedNode
 	// since Literal is a union type we have to extend each individually
-	interface SimpleLiteral extends AST.TrackedNode {}
-	interface RegExpLiteral extends AST.TrackedNode {}
-	interface BigIntLiteral extends AST.TrackedNode {}
+	interface SimpleLiteral extends AST.LiteralTrackedNode {}
+	interface RegExpLiteral extends AST.LiteralTrackedNode {}
+	interface BigIntLiteral extends AST.LiteralTrackedNode {}
 
 	interface TrackedNode {
 		tracked?: boolean;
+	}
+
+	interface LiteralTrackedNode extends AST.TrackedNode {
+		was_expression?: boolean;
 	}
 
 	// Include TypeScript node types and Ripple-specific nodes in NodeMap
@@ -136,6 +140,7 @@ declare module 'estree' {
 		ServerIdentifier: ServerIdentifier;
 		Text: TextNode;
 		JSXEmptyExpression: ESTreeJSX.JSXEmptyExpression;
+		ParenthesizedExpression: ParenthesizedExpression;
 	}
 
 	// Missing estree type

@@ -2014,8 +2014,12 @@ function RipplePlugin(config) {
 						}
 						if (attr.value !== null) {
 							if (attr.value.type === 'JSXExpressionContainer') {
+								const expression = attr.value.expression;
+								if (expression.type === 'Literal') {
+									expression.was_expression = true;
+								}
 								/** @type {ESTreeJSX.JSXExpressionContainer['expression']} */ (attr.value) =
-									attr.value.expression;
+									expression;
 							}
 						}
 					}

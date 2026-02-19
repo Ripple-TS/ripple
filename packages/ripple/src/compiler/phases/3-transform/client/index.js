@@ -2606,10 +2606,9 @@ function transform_ts_child(node, context) {
 
 				const jsx_attr = b.jsx_attribute(
 					jsx_name,
-					// only literals but not null or undefined as they should be jsx expression containers
-					// we need to distinguish between values in curly braces vs string literals
+					// match the source code usage of expressions for literals
 					// for proper source mapping to avoid turning strings into expressions
-					attr_value?.type === 'Literal' && (attr_value.value ?? null) !== null
+					attr_value?.type === 'Literal' && !attr_value.was_expression
 						? /** @type {AST.Literal} */ (value)
 						: b.jsx_expression_container(
 								/** @type {AST.Expression} */ (value),
