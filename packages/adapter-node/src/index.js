@@ -112,7 +112,6 @@ function web_response_to_node_response(web_response, node_response, request_meth
 	});
 	node_stream.pipe(node_response);
 }
-
 /**
  * @typedef {{
  * 	port?: number,

@@ -6,7 +6,6 @@ import {
 	internal_server_error_response,
 	run_next_middleware,
 } from '@ripple-ts/adapter';
-
 /**
  * @typedef {{
  * 	port?: number,

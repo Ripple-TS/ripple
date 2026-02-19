@@ -1,4 +1,9 @@
-import type { AdapterCoreOptions, FetchHandler, ServeResult } from '@ripple-ts/adapter';
+import type {
+	AdapterCoreOptions,
+	FetchHandler,
+	ServeResult,
+	ServeStaticDirectoryOptions as BaseServeStaticDirectoryOptions,
+} from '@ripple-ts/adapter';
 
 export type ServeOptions = AdapterCoreOptions & {
 	middleware?:
@@ -8,6 +13,7 @@ export type ServeOptions = AdapterCoreOptions & {
 				next: (error?: any) => void,
 		  ) => void)
 		| null;
+	static?: BaseServeStaticDirectoryOptions | false;
 };
 
 export function serve(

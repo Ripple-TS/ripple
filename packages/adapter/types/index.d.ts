@@ -8,6 +8,15 @@ export type AdapterCoreOptions = {
 	hostname?: string;
 };
 
+export type ServeStaticOptions = {
+	prefix?: string;
+	maxAge?: number;
+	immutable?: boolean;
+};
+
+export type ServeStaticDirectoryOptions = ServeStaticOptions & {
+	dir?: string;
+};
 export type NextMiddleware<RequestValue = Request, Server = any, ResultValue = Response> = (
 	request: RequestValue,
 	server: Server,
