@@ -12,6 +12,8 @@ var root_8 = _$_.template(`<!><!>`, 1);
 var root_9 = _$_.template(`<div> </div>`, 0);
 var root_10 = _$_.template(`<!>`, 1);
 var root_11 = _$_.template(`<div> </div><span> </span>`, 1);
+var root_12 = _$_.template(`<h1 class="sr-only">heading</h1><p class="subtitle">first paragraph</p><p class="subtitle">second paragraph</p>`, 1);
+var root_13 = _$_.template(`<!><span class="sibling1"> </span><span class="sibling2"> </span>`, 1);
 
 export function StaticText(__anchor, _, __block) {
 	_$_.push_component();
@@ -27,7 +29,8 @@ export function MultipleElements(__anchor, _, __block) {
 
 	var fragment = root_1();
 
-	_$_.append(__anchor, fragment);
+	_$_.next(2);
+	_$_.append(__anchor, fragment, true);
 	_$_.pop_component();
 }
 
@@ -45,7 +48,8 @@ export function WithAttributes(__anchor, _, __block) {
 
 	var fragment_1 = root_3();
 
-	_$_.append(__anchor, fragment_1);
+	_$_.next();
+	_$_.append(__anchor, fragment_1, true);
 	_$_.pop_component();
 }
 
@@ -160,10 +164,54 @@ export function ExpressionContent(__anchor, _, __block) {
 		_$_.pop(span_2);
 	}
 
+	_$_.next();
+
 	_$_.render(() => {
 		_$_.set_text(text_3, _$_.with_scope(__block, () => text.toUpperCase()));
 	});
 
-	_$_.append(__anchor, fragment_4);
+	_$_.append(__anchor, fragment_4, true);
+	_$_.pop_component();
+}
+
+function StaticHeader(__anchor, _, __block) {
+	_$_.push_component();
+
+	var fragment_5 = root_12();
+
+	_$_.next(2);
+	_$_.append(__anchor, fragment_5, true);
+	_$_.pop_component();
+}
+
+export function StaticChildWithSiblings(__anchor, _, __block) {
+	_$_.push_component();
+
+	const foo = 'bar';
+	var fragment_6 = root_13();
+	var node_4 = _$_.first_child_frag(fragment_6);
+
+	StaticHeader(node_4, {}, _$_.active_block);
+
+	var span_3 = _$_.sibling(node_4);
+
+	{
+		var text_4 = _$_.child(span_3, true);
+
+		text_4.nodeValue = foo;
+		_$_.pop(span_3);
+	}
+
+	var span_4 = _$_.sibling(span_3);
+
+	{
+		var text_5 = _$_.child(span_4, true);
+
+		text_5.nodeValue = foo;
+		_$_.pop(span_4);
+	}
+
+	_$_.next();
+	_$_.append(__anchor, fragment_6, true);
 	_$_.pop_component();
 }

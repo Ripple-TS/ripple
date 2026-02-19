@@ -222,3 +222,68 @@ export function ExpressionContent(__output) {
 	__output.push('</span>');
 	_$_.pop_component();
 }
+
+function StaticHeader(__output) {
+	_$_.push_component();
+	__output.push('<h1');
+	__output.push(' class="sr-only"');
+	__output.push('>');
+
+	{
+		__output.push('heading');
+	}
+
+	__output.push('</h1>');
+	__output.push('<p');
+	__output.push(' class="subtitle"');
+	__output.push('>');
+
+	{
+		__output.push('first paragraph');
+	}
+
+	__output.push('</p>');
+	__output.push('<p');
+	__output.push(' class="subtitle"');
+	__output.push('>');
+
+	{
+		__output.push('second paragraph');
+	}
+
+	__output.push('</p>');
+	_$_.pop_component();
+}
+
+export function StaticChildWithSiblings(__output) {
+	_$_.push_component();
+
+	const foo = 'bar';
+
+	{
+		const comp = StaticHeader;
+		const args = [__output, {}];
+
+		comp(...args);
+	}
+
+	__output.push('<span');
+	__output.push(' class="sibling1"');
+	__output.push('>');
+
+	{
+		__output.push(_$_.escape(foo));
+	}
+
+	__output.push('</span>');
+	__output.push('<span');
+	__output.push(' class="sibling2"');
+	__output.push('>');
+
+	{
+		__output.push(_$_.escape(foo));
+	}
+
+	__output.push('</span>');
+	_$_.pop_component();
+}

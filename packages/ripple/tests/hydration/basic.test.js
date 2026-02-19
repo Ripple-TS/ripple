@@ -58,4 +58,15 @@ describe('hydration > basic', () => {
 		await hydrateComponent(ServerComponents.ExpressionContent, ClientComponents.ExpressionContent);
 		expect(container.innerHTML).toBeHtml('<div>42</div><span>COMPUTED</span>');
 	});
+
+	it('hydrates static child component followed by sibling content', async () => {
+		await hydrateComponent(
+			ServerComponents.StaticChildWithSiblings,
+			ClientComponents.StaticChildWithSiblings,
+		);
+		expect(container.querySelector('.sr-only')?.textContent).toBe('heading');
+		expect(container.querySelectorAll('.subtitle').length).toBe(2);
+		expect(container.querySelector('.sibling1')?.textContent).toBe('bar');
+		expect(container.querySelector('.sibling2')?.textContent).toBe('bar');
+	});
 });

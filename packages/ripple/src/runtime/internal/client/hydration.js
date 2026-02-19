@@ -28,6 +28,18 @@ export function hydrate_next() {
 	return set_hydrate_node(get_next_sibling(/** @type {Node} */ (hydrate_node)));
 }
 
+export function next(n = 1) {
+	if (hydrating) {
+		var node = hydrate_node;
+
+		for (var i = 0; i < n; i++) {
+			node = get_next_sibling(/** @type {Node} */ (node));
+		}
+
+		hydrate_node = node;
+	}
+}
+
 /** @param {Node} node */
 export function pop(node) {
 	if (!hydrating) return;

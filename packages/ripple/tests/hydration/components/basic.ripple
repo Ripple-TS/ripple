@@ -63,3 +63,17 @@ export component ExpressionContent() {
 	<div>{value}</div>
 	<span>{text.toUpperCase()}</span>
 }
+
+// Test for static content in child component followed by sibling content
+component StaticHeader() {
+	<h1 class="sr-only">{'heading'}</h1>
+	<p class="subtitle">{'first paragraph'}</p>
+	<p class="subtitle">{'second paragraph'}</p>
+}
+
+export component StaticChildWithSiblings() {
+	const foo = 'bar';
+	<StaticHeader />
+	<span class="sibling1">{foo}</span>
+	<span class="sibling2">{foo}</span>
+}

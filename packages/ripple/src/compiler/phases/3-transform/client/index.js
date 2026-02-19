@@ -1474,7 +1474,13 @@ const visitors = {
 					node.children,
 					/** @type {VisitorClientContext} */ ({
 						visit,
-						state: { ...state, init, update, namespace: child_namespace },
+						state: {
+							...state,
+							init,
+							update,
+							namespace: child_namespace,
+							skip_children_traversal: true,
+						},
 						root: false,
 					}),
 				);
@@ -2669,6 +2675,7 @@ function transform_ts_child(node, context) {
 											/** @type {AST.Identifier} */ (node.id).name === 'head'
 												? true
 												: state.inside_head,
+										skip_children_traversal: is_dom_element,
 									},
 								}),
 							),
@@ -3094,6 +3101,8 @@ function transform_children(children, context) {
 	/** @type {{ name: string, tracked: boolean }[]} */
 	let pending_guard_flags = [];
 
+	let skipped = 0;
+
 	const flush_pending_group = () => {
 		if (pending_group.length === 0) return;
 
@@ -3266,6 +3275,12 @@ function transform_children(children, context) {
 			const is_controlled = normalized.length === 1 && !root;
 
 			if (node.type === 'Element') {
+				if (is_element_dom_element(node)) {
+					skipped++;
+				} else {
+					skipped = 0;
+				}
+
 				visit(node, {
 					...state,
 					return_flags,
@@ -3273,6 +3288,8 @@ function transform_children(children, context) {
 					namespace: state.namespace,
 				});
 			} else if (node.type === 'TsxCompat') {
+				skipped = 0;
+
 				visit(node, {
 					...state,
 					return_flags,
@@ -3281,6 +3298,7 @@ function transform_children(children, context) {
 				});
 			} else if (node.type === 'Html') {
 				context.state.template?.push('<!>');
+				skipped = 0;
 
 				const id = flush_node(false);
 				state.update?.push({
@@ -3297,6 +3315,7 @@ function transform_children(children, context) {
 				});
 			} else if (node.type === 'Text') {
 				if (metadata?.tracking) {
+					skipped = 0;
 					state.template?.push(' ');
 					const id = flush_node(true);
 					state.update?.push({
@@ -3309,6 +3328,7 @@ function transform_children(children, context) {
 						/** @type {NonNullable<TransformClientState['update']>} */ (state.update).async = true;
 					}
 				} else if (normalized.length === 1) {
+					skipped++;
 					const expr = /** @type {AST.Expression} */ (expression);
 					if (expr.type === 'Literal') {
 						if (
@@ -3336,6 +3356,7 @@ function transform_children(children, context) {
 						);
 					}
 				} else {
+					skipped++;
 					// Handle Text nodes in fragments
 					const expr = /** @type {AST.Expression} */ (expression);
 					if (expr.type === 'Literal') {
@@ -3356,6 +3377,7 @@ function transform_children(children, context) {
 					}
 				}
 			} else if (node.type === 'ForOfStatement') {
+				skipped = 0;
 				node.is_controlled = is_controlled;
 				visit(node, {
 					...state,
@@ -3363,6 +3385,7 @@ function transform_children(children, context) {
 					namespace: state.namespace,
 				});
 			} else if (node.type === 'IfStatement') {
+				skipped = 0;
 				node.is_controlled = is_controlled;
 				visit(node, {
 					...state,
@@ -3371,6 +3394,7 @@ function transform_children(children, context) {
 					namespace: state.namespace,
 				});
 			} else if (node.type === 'TryStatement') {
+				skipped = 0;
 				node.is_controlled = is_controlled;
 				visit(node, {
 					...state,
@@ -3378,6 +3402,7 @@ function transform_children(children, context) {
 					namespace: state.namespace,
 				});
 			} else if (node.type === 'SwitchStatement') {
+				skipped = 0;
 				node.is_controlled = is_controlled;
 				visit(node, {
 					...state,
@@ -3425,6 +3450,13 @@ function transform_children(children, context) {
 		}
 	}
 
+	let emitted_next = false;
+	if (is_fragment && skipped > 1 && !state.skip_children_traversal) {
+		skipped--;
+		state.init?.push(b.stmt(b.call('_$_.next', skipped !== 1 && b.literal(skipped))));
+		emitted_next = true;
+	}
+
 	const template_namespace = state.namespace || 'html';
 
 	if (root && initial !== null && template_id !== null) {
@@ -3434,7 +3466,9 @@ function transform_children(children, context) {
 		} else if (template_namespace === 'mathml') {
 			flags |= TEMPLATE_MATHML_NAMESPACE;
 		}
-		state.final?.push(b.stmt(b.call('_$_.append', b.id('__anchor'), initial)));
+		state.final?.push(
+			b.stmt(b.call('_$_.append', b.id('__anchor'), initial, emitted_next && b.true)),
+		);
 		state.hoisted.push(
 			b.var(
 				template_id,
@@ -4419,6 +4453,7 @@ export function transform_client(filename, source, analysis, to_ts, minify_css) 
 		namespace: 'html',
 		metadata: {},
 		errors: analysis.errors,
+		skip_children_traversal: false,
 	};
 
 	// Add ripple internal import once for the entire module

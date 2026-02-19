@@ -302,7 +302,8 @@ export function MultipleElementsAfterGuard(__anchor, _, __block) {
 	var content_4 = (__anchor) => {
 		var fragment_9 = root_13();
 
-		_$_.append(__anchor, fragment_9);
+		_$_.next();
+		_$_.append(__anchor, fragment_9, true);
 	};
 
 	_$_.if(node_8, (__render) => {
@@ -1377,7 +1378,8 @@ export function ReturnWithMultipleElements(__anchor, _, __block) {
 			var fragment_69 = root_91();
 
 			__r_32 = true;
-			_$_.append(__anchor, fragment_69);
+			_$_.next();
+			_$_.append(__anchor, fragment_69, true);
 		};
 
 		_$_.if(node_60, (__render) => {
@@ -1392,7 +1394,8 @@ export function ReturnWithMultipleElements(__anchor, _, __block) {
 	var content_25 = (__anchor) => {
 		var fragment_70 = root_92();
 
-		_$_.append(__anchor, fragment_70);
+		_$_.next();
+		_$_.append(__anchor, fragment_70, true);
 	};
 
 	_$_.if(node_61, (__render) => {
@@ -1430,7 +1433,8 @@ export function ReturnAtBeginning(__anchor, _, __block) {
 	var content_26 = (__anchor) => {
 		var fragment_73 = root_95();
 
-		_$_.append(__anchor, fragment_73);
+		_$_.next();
+		_$_.append(__anchor, fragment_73, true);
 	};
 
 	_$_.if(node_63, (__render) => {
@@ -1784,7 +1788,8 @@ export function ReactiveElseIfReturns(__anchor, _, __block) {
 	var content_33 = (__anchor) => {
 		var fragment_93 = root_118();
 
-		_$_.append(__anchor, fragment_93);
+		_$_.next();
+		_$_.append(__anchor, fragment_93, true);
 	};
 
 	_$_.if(node_80, (__render) => {
@@ -1943,7 +1948,8 @@ export function ReactiveDeepNestedIndependentReturns(__anchor, _, __block) {
 			_$_.pop(section_1);
 		}
 
-		_$_.append(__anchor, fragment_96);
+		_$_.next();
+		_$_.append(__anchor, fragment_96, true);
 	};
 
 	_$_.if(node_82, (__render) => {
@@ -1955,7 +1961,8 @@ export function ReactiveDeepNestedIndependentReturns(__anchor, _, __block) {
 	var content_37 = (__anchor) => {
 		var fragment_102 = root_127();
 
-		_$_.append(__anchor, fragment_102);
+		_$_.next(3);
+		_$_.append(__anchor, fragment_102, true);
 	};
 
 	_$_.if(node_88, (__render) => {

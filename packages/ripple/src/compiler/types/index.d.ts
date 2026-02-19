@@ -1249,6 +1249,7 @@ export interface TransformClientState extends BaseState {
 	update: UpdateList | null;
 	errors: RippleCompileError[];
 	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
+	skip_children_traversal: boolean;
 	return_flags?: Map<AST.ReturnStatement, { name: string; tracked: boolean }>;
 }
 

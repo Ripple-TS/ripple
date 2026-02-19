@@ -140,6 +140,7 @@ export function template(content, flags) {
 				}
 
 				assign_nodes(start, end);
+				return start;
 			} else {
 				assign_nodes(/** @type {Node} */ (hydrate_node), /** @type {Node} */ (hydrate_node));
 			}
@@ -178,8 +179,9 @@ export function template(content, flags) {
  * Appends a DOM node before the anchor node.
  * @param {ChildNode} anchor - The anchor node.
  * @param {Node} dom - The DOM node to append.
+ * @param {boolean} [skip_advance] - If true, don't advance hydrate_node (used when next() already positioned it).
  */
-export function append(anchor, dom) {
+export function append(anchor, dom, skip_advance) {
 	if (hydrating) {
 		// During hydration, if anchor === dom, we're hydrating a child component
 		// where the "anchor" IS the content. Don't advance past it.
@@ -208,7 +210,7 @@ export function append(anchor, dom) {
 			}
 		}
 
-		hydrate_next();
+		if (!skip_advance) hydrate_next();
 		return;
 	}
 	anchor.before(/** @type {Node} */ (dom));

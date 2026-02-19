@@ -117,6 +117,8 @@ export function MultipleTracked(__anchor, _, __block) {
 		_$_.pop(div_6);
 	}
 
+	_$_.next(2);
+
 	_$_.render(
 		(__prev) => {
 			var __a = _$_.get(x);
@@ -140,7 +142,7 @@ export function MultipleTracked(__anchor, _, __block) {
 		{ a: ' ', b: ' ', c: ' ' }
 	);
 
-	_$_.append(__anchor, fragment_1);
+	_$_.append(__anchor, fragment_1, true);
 	_$_.pop_component();
 }
 
