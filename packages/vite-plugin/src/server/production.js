@@ -261,9 +261,13 @@ function generateHtml({ head, body, route, context, clientBase, clientAssets, ht
 		headParts.push(`<link rel="modulepreload" href="${clientBase}${hydrateAsset}">`);
 	}
 
-	// Body: SSR content + hydration data + hydration script
+	// Body: SSR content only (injected into the root container)
 	bodyParts.push(body);
-	bodyParts.push(
+
+	// Scripts: hydration data + bootstrap (injected before </body>, outside root)
+	/** @type {string[]} */
+	const scriptParts = [];
+	scriptParts.push(
 		`<script id="__ripple_data" type="application/json">${escapeScript(routeData)}</script>`,
 	);
 
@@ -272,7 +276,7 @@ function generateHtml({ head, body, route, context, clientBase, clientAssets, ht
 	const entryJs = entryAssets?.js ? `${clientBase}${entryAssets.js}` : null;
 
 	if (hydrateJs && entryJs) {
-		bodyParts.push(`<script type="module">
+		scriptParts.push(`<script type="module">
 import { hydrate, mount } from '${hydrateJs}';
 import Component from '${entryJs}';
 const target = document.getElementById('root');
@@ -291,6 +295,8 @@ try {
 		let html = htmlTemplate;
 		html = html.replace('<!--ssr-head-->', headParts.join('\n'));
 		html = html.replace('<!--ssr-body-->', bodyParts.join('\n'));
+		// Inject scripts before </body> so they're outside the root container
+		html = html.replace('</body>', scriptParts.join('\n') + '\n</body>');
 		return html;
 	}
 
@@ -304,6 +310,7 @@ ${headParts.join('\n')}
 </head>
 <body>
 <div id="root">${bodyParts.join('\n')}</div>
+${scriptParts.join('\n')}
 </body>
 </html>`;
 }
