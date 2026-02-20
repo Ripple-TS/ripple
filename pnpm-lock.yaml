@@ -552,6 +552,10 @@ importers:
         version: 0.15.4(typescript@5.9.2)
 
   packages/vite-plugin:
+    dependencies:
+      '@ripple-ts/adapter':
+        specifier: workspace:*
+        version: link:../adapter
     devDependencies:
       ripple:
         specifier: workspace:*

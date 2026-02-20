@@ -1,4 +1,5 @@
 import type { Plugin } from 'vite';
+import type { RuntimePrimitives } from '@ripple-ts/adapter';
 
 declare module '@ripple-ts/vite-plugin' {
 	// ============================================================================
@@ -94,6 +95,16 @@ declare module '@ripple-ts/vite-plugin' {
 		};
 		adapter?: {
 			serve: AdapterServeFunction;
+			/**
+			 * Platform-specific runtime primitives provided by the adapter.
+			 *
+			 * These allow the server runtime to operate without depending
+			 * on Node.js-specific APIs like `node:crypto` or `node:async_hooks`.
+			 *
+			 * Required for production builds. In development, the vite plugin
+			 * falls back to Node.js defaults if not provided.
+			 */
+			runtime: RuntimePrimitives;
 		};
 		router: {
 			routes: Route[];
@@ -122,4 +133,39 @@ declare module '@ripple-ts/vite-plugin' {
 		handler: (request: Request, platform?: unknown) => Response | Promise<Response>,
 		options?: Record<string, unknown>,
 	) => { listen: (port?: number) => unknown; close: () => void };
+
+	// ============================================================================
+	// Production runtime (exported from @ripple-ts/vite-plugin/production)
+	// ============================================================================
+
+	export interface ServerManifest {
+		routes: Route[];
+		components: Record<string, Function>;
+		layouts: Record<string, Function>;
+		middlewares: Middleware[];
+		/** Map of entry path → _$_server_$_ object for RPC support */
+		rpcModules?: Record<string, Record<string, Function>>;
+		/** Trust X-Forwarded-* headers when deriving origin for RPC fetch */
+		trustProxy?: boolean;
+		/** Platform-specific runtime primitives from the adapter */
+		runtime: RuntimePrimitives;
+	}
+
+	export interface RenderResult {
+		head: string;
+		body: string;
+		css: Set<string>;
+	}
+
+	export interface HandlerOptions {
+		render: (component: Function) => Promise<RenderResult>;
+		getCss: (css: Set<string>) => string;
+		htmlTemplate: string;
+		executeServerFunction: (fn: Function, body: string) => Promise<string>;
+	}
+
+	export function createHandler(
+		manifest: ServerManifest,
+		options: HandlerOptions,
+	): (request: Request) => Promise<Response>;
 }

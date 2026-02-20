@@ -1,5 +1,7 @@
 import { createServer } from 'node:http';
 import { Readable } from 'node:stream';
+import { createHash } from 'node:crypto';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import {
 	DEFAULT_HOSTNAME,
 	DEFAULT_PORT,
@@ -7,6 +9,32 @@ import {
 	run_next_middleware,
 	serveStatic as create_static_handler,
 } from '@ripple-ts/adapter';
+
+// ============================================================================
+// Runtime primitives — platform-specific capabilities for Ripple's server runtime
+// ============================================================================
+
+/**
+ * Node.js runtime primitives for the Ripple adapter contract.
+ *
+ * Provides:
+ * - `hash`: SHA-256 hex digest truncated to 8 chars (matches compiler output)
+ * - `createAsyncContext`: AsyncLocalStorage-backed request-scoped context
+ *
+ * @type {import('@ripple-ts/adapter').RuntimePrimitives}
+ */
+export const runtime = {
+	hash(str) {
+		return createHash('sha256').update(str).digest('hex').slice(0, 8);
+	},
+	createAsyncContext() {
+		const als = new AsyncLocalStorage();
+		return {
+			run: (store, fn) => als.run(store, fn),
+			getStore: () => als.getStore(),
+		};
+	},
+};
 
 /**
  * @param {string | string[] | undefined} value

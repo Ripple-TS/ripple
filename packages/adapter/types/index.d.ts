@@ -3,6 +3,9 @@ export type FetchHandler<Platform = any, ResultValue = Response> = (
 	platform?: Platform,
 ) => ResultValue | Promise<ResultValue>;
 
+// Re-export runtime primitive types from rpc module for adapter authors
+export type { RuntimePrimitives, AsyncContext } from './rpc.js';
+
 export type AdapterCoreOptions = {
 	port?: number;
 	hostname?: string;

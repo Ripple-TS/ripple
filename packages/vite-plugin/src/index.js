@@ -5,7 +5,6 @@
 /// <reference types="ripple/compiler/internal/rpc" />
 
 import { compile } from 'ripple/compiler';
-import { AsyncLocalStorage } from 'node:async_hooks';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -15,6 +14,14 @@ import { createRouter } from './server/router.js';
 import { createContext, runMiddlewareChain } from './server/middleware.js';
 import { handleRenderRoute } from './server/render-route.js';
 import { handleServerRoute } from './server/server-route.js';
+import { generateServerEntry } from './server/virtual-entry.js';
+
+import {
+	derive_origin,
+	patch_global_fetch,
+	is_rpc_request,
+	handle_rpc_request,
+} from '@ripple-ts/adapter/rpc';
 
 // Re-export route classes
 export { RenderRoute, ServerRoute } from './routes.js';
@@ -22,57 +29,41 @@ export { RenderRoute, ServerRoute } from './routes.js';
 const VITE_FS_PREFIX = '/@fs/';
 const IS_WINDOWS = process.platform === 'win32';
 
-// AsyncLocalStorage for request-scoped fetch patching
-const rpcContext = new AsyncLocalStorage();
+// Dev server always runs in Node — use node:async_hooks as default runtime
+// If the user provides adapter.runtime in their config, that will be used instead.
+import { AsyncLocalStorage } from 'node:async_hooks';
 
-// Patch fetch once at module level to support relative URLs in #server blocks
-const originalFetch = globalThis.fetch;
-
-/**
- * Quick check whether a string looks like it already has a URL scheme (e.g. "http://", "https://", "data:").
- * @param {string} url
- * @returns {boolean}
- */
-function hasScheme(url) {
-	return /^[a-z][a-z0-9+\-.]*:/i.test(url);
-}
+/** @type {import('@ripple-ts/adapter/rpc').AsyncContext | null} */
+let devAsyncContext = null;
 
 /**
- * Patch global fetch to resolve relative URLs based on the current request context.
- * This allows server functions in #server blocks to use relative URLs
- * (root-relative like "/api/foo" or path-relative like "api/foo", "./api/foo", "../api/foo")
- * that are resolved against the incoming request's origin.
- * // TODO: a similar logic needs to be ported to the adapters
- * @param {string | Request | URL} input
- * @param {RequestInit} [init]
- * @returns {Promise<Response>}
+ * Get (or lazily create) the dev server's async context.
+ * Uses adapter.runtime.createAsyncContext() if available, otherwise
+ * falls back to Node.js AsyncLocalStorage (always available in dev).
+ *
+ * @param {RippleConfigOptions | null} config
+ * @returns {import('@ripple-ts/adapter/rpc').AsyncContext}
  */
-globalThis.fetch = function (input, init) {
-	const context = rpcContext.getStore();
+function getDevAsyncContext(config) {
+	if (devAsyncContext) return devAsyncContext;
 
-	if (context?.origin) {
-		// Handle string URLs — resolve any non-absolute URL against the origin
-		if (typeof input === 'string' && !hasScheme(input)) {
-			input = new URL(input, context.origin).href;
-		}
-		// Handle Request objects
-		else if (input instanceof Request) {
-			const url = input.url;
-			if (!hasScheme(url)) {
-				input = new Request(new URL(url, context.origin).href, input);
-			}
-		}
-		// Handle URL objects constructed with relative paths
-		else if (input instanceof URL) {
-			if (!input.protocol || input.protocol === '' || input.origin === 'null') {
-				const relative = input.pathname + (input.search || '') + (input.hash || '');
-				input = new URL(relative, context.origin);
-			}
-		}
+	const adapterRuntime = config?.adapter?.runtime;
+	if (adapterRuntime?.createAsyncContext) {
+		devAsyncContext = adapterRuntime.createAsyncContext();
+	} else {
+		// Fallback: dev always runs in Node
+		const als = new AsyncLocalStorage();
+		devAsyncContext = {
+			run: (store, fn) => als.run(store, fn),
+			getStore: () => als.getStore(),
+		};
 	}
 
-	return originalFetch(input, init);
-};
+	// Patch fetch once using the async context
+	patch_global_fetch(devAsyncContext);
+
+	return devAsyncContext;
+}
 
 /**
  * @param {string} filename
@@ -322,6 +313,18 @@ export function ripple(inlineOptions = {}) {
 	/** @type {ReturnType<typeof createRouter> | null} */
 	let router = null;
 
+	/** @type {boolean} */
+	let isBuild = false;
+	/** @type {boolean} */
+	let isSSRBuild = false;
+
+	/** @type {string[]} Render route entry paths for client hydration import map */
+	let renderRouteEntries = [];
+	/** @type {RippleConfigOptions | null} Cached config from buildStart (reused in closeBundle) */
+	let buildRippleConfig = null;
+	/** @type {Set<string>} File paths (relative to root) of .ripple modules with #server blocks */
+	const serverBlockModules = new Set();
+
 	/** @type {Plugin[]} */
 	const plugins = [
 		{
@@ -330,7 +333,44 @@ export function ripple(inlineOptions = {}) {
 			enforce: 'pre',
 			api,
 
-			async config(userConfig) {
+			async config(userConfig, { command }) {
+				isBuild = command === 'build';
+				isSSRBuild = !!userConfig.build?.ssr;
+
+				// In build mode (client build, not the SSR sub-build), configure for production
+				if (isBuild && !isSSRBuild) {
+					const projectRoot = userConfig.root || process.cwd();
+					const configPath = path.join(projectRoot, 'ripple.config.ts');
+					const hasRippleConfig = fs.existsSync(configPath);
+
+					if (hasRippleConfig) {
+						const htmlInput = path.join(projectRoot, 'public', 'index.html');
+						if (!fs.existsSync(htmlInput)) {
+							throw new Error(
+								'[@ripple-ts/vite-plugin] public/index.html not found. ' +
+									'Required for SSR builds with ripple.config.ts.',
+							);
+						}
+
+						console.log(
+							'[@ripple-ts/vite-plugin] Detected ripple.config.ts — configuring client build',
+						);
+
+						return {
+							appType: 'custom',
+							build: {
+								outDir: 'dist/client',
+								emptyOutDir: true,
+								manifest: true,
+								ssrManifest: true,
+								rollupOptions: {
+									input: htmlInput,
+								},
+							},
+						};
+					}
+				}
+
 				if (excludeRippleExternalModules) {
 					return {
 						optimizeDeps: {
@@ -372,6 +412,48 @@ export function ripple(inlineOptions = {}) {
 			async configResolved(resolvedConfig) {
 				root = resolvedConfig.root;
 				config = resolvedConfig;
+			},
+
+			/**
+			 * Load render route entries before the client build so virtual:ripple-hydrate
+			 * can generate static import() calls that Vite will bundle.
+			 */
+			async buildStart() {
+				if (!isBuild || isSSRBuild) return;
+
+				const configPath = path.join(root, 'ripple.config.ts');
+				if (!fs.existsSync(configPath)) return;
+
+				// Load ripple.config.ts via a temp Vite server (same pattern as closeBundle)
+				const { createServer } = await import('vite');
+				const tempVite = await createServer({
+					root,
+					configFile: false,
+					appType: 'custom',
+					server: { middlewareMode: true },
+					plugins: [ripple({ excludeRippleExternalModules: true })],
+					logLevel: 'silent',
+				});
+
+				try {
+					const configModule = await tempVite.ssrLoadModule(configPath);
+					buildRippleConfig = configModule.default;
+
+					if (buildRippleConfig?.router?.routes) {
+						renderRouteEntries = buildRippleConfig.router.routes
+							.filter((/** @type {Route} */ r) => r.type === 'render')
+							.map((/** @type {RenderRoute} */ r) => r.entry);
+
+						// Deduplicate entries (multiple routes can share the same component)
+						renderRouteEntries = [...new Set(renderRouteEntries)];
+
+						console.log(
+							`[@ripple-ts/vite-plugin] Found ${renderRouteEntries.length} render route(s) for client hydration`,
+						);
+					}
+				} finally {
+					await tempVite.close();
+				}
 			},
 
 			/**
@@ -425,9 +507,9 @@ export function ripple(inlineOptions = {}) {
 								await handleRpcRequest(
 									req,
 									res,
-									url,
 									vite,
 									rippleConfig.server?.trustProxy ?? false,
+									rippleConfig,
 								);
 								return;
 							}
@@ -523,6 +605,120 @@ export function ripple(inlineOptions = {}) {
 				};
 			},
 
+			/**
+			 * Inject the hydration script into the HTML template during build.
+			 * In dev mode, this is handled by render-route.js instead.
+			 */
+			transformIndexHtml: {
+				order: 'pre',
+				handler(html) {
+					if (!isBuild || isSSRBuild) return html;
+
+					// Inject the hydration client entry script before </body>
+					const hydrationScript = `<script type="module" src="virtual:ripple-hydrate"></script>`;
+					return html.replace('</body>', `${hydrationScript}\n</body>`);
+				},
+			},
+
+			/**
+			 * After the client build completes, trigger the SSR server build.
+			 * This only runs for the primary (non-SSR) build.
+			 */
+			async closeBundle() {
+				if (!isBuild || isSSRBuild) return;
+
+				const configPath = path.join(root, 'ripple.config.ts');
+				if (!fs.existsSync(configPath)) return;
+
+				console.log('[@ripple-ts/vite-plugin] Client build done. Starting server build...');
+
+				// Reuse config loaded in buildStart, or load it now as fallback
+				/** @type {import('@ripple-ts/vite-plugin').RippleConfigOptions | null} */
+				let loadedConfig = buildRippleConfig;
+
+				if (!loadedConfig) {
+					const { createServer } = await import('vite');
+					const tempVite = await createServer({
+						root,
+						configFile: false,
+						appType: 'custom',
+						server: { middlewareMode: true },
+						plugins: [ripple({ excludeRippleExternalModules: true })],
+						logLevel: 'silent',
+					});
+
+					try {
+						const configModule = await tempVite.ssrLoadModule(configPath);
+						loadedConfig = configModule.default;
+					} finally {
+						await tempVite.close();
+					}
+				}
+
+				if (!loadedConfig?.router?.routes) {
+					console.log(
+						'[@ripple-ts/vite-plugin] No routes in ripple.config.ts — skipping server build',
+					);
+					return;
+				}
+
+				// Generate the virtual server entry
+				const serverEntryCode = generateServerEntry({
+					routes: loadedConfig.router.routes,
+					rippleConfigPath: configPath,
+					htmlTemplatePath: '../client/public/index.html',
+					rpcModulePaths: [...serverBlockModules],
+				});
+
+				const VIRTUAL_SERVER_ENTRY_ID = 'virtual:ripple-server-entry';
+				const RESOLVED_VIRTUAL_SERVER_ENTRY_ID = '\0' + VIRTUAL_SERVER_ENTRY_ID;
+
+				/** @type {Plugin} */
+				const virtualEntryPlugin = {
+					name: 'ripple-virtual-server-entry',
+					resolveId(id) {
+						if (id === VIRTUAL_SERVER_ENTRY_ID) return RESOLVED_VIRTUAL_SERVER_ENTRY_ID;
+					},
+					load(id) {
+						if (id === RESOLVED_VIRTUAL_SERVER_ENTRY_ID) return serverEntryCode;
+					},
+				};
+
+				const serverOutDir = path.join(root, 'dist', 'server');
+
+				// Do NOT add ripple() here — the user's vite.config.ts (loaded automatically
+				// from `root`) already includes it. Adding another instance causes double
+				// compilation of .ripple files.
+				const { build: viteBuild } = await import('vite');
+				await viteBuild({
+					root,
+					appType: 'custom',
+					plugins: [virtualEntryPlugin],
+					build: {
+						outDir: serverOutDir,
+						emptyOutDir: true,
+						ssr: true,
+						target: 'node20',
+						minify: false,
+						rollupOptions: {
+							input: VIRTUAL_SERVER_ENTRY_ID,
+							output: {
+								entryFileNames: 'entry.js',
+								format: 'esm',
+							},
+						},
+					},
+					ssr: {
+						external: ['@ripple-ts/adapter', '@ripple-ts/adapter-node', '@ripple-ts/adapter-bun'],
+						noExternal: [],
+					},
+				});
+
+				console.log('[@ripple-ts/vite-plugin] Server build complete.');
+				console.log(`[@ripple-ts/vite-plugin] Output: ${path.join(root, 'dist')}`);
+				console.log('[@ripple-ts/vite-plugin] Start with: node dist/server/entry.js');
+			},
+
 			async resolveId(id, importer, options) {
 				// Handle virtual hydrate module
 				if (id === 'virtual:ripple-hydrate') {
@@ -571,21 +767,45 @@ export function ripple(inlineOptions = {}) {
 			async load(id, opts) {
 				// Handle virtual hydrate module
 				if (id === '\0virtual:ripple-hydrate') {
-					return `
+					if (isBuild && renderRouteEntries.length > 0) {
+						// Production: generate static import map so Vite bundles page components
+						const importMapLines = renderRouteEntries
+							.map((entry) => `  ${JSON.stringify(entry)}: () => import(${JSON.stringify(entry)}),`)
+							.join('\n');
+
+						// IMPORTANT: Use async IIFE instead of top-level await.
+						// The page modules statically import from the main bundle (which contains
+						// the runtime). If we used top-level await here, it would deadlock:
+						// main bundle awaits page module import → page module awaits main bundle's
+						// TLA to complete → circular wait.
+						return `
 import { hydrate, mount } from 'ripple';
 
-const data = JSON.parse(document.getElementById('__ripple_data').textContent);
-const target = document.getElementById('root');
+const routeModules = {
+${importMapLines}
+};
 
-try {
-  const module = await import(/* @vite-ignore */ data.entry);
-  const Component =
-    module.default ||
-    Object.entries(module).find(([key, value]) => typeof value === 'function' && /^[A-Z]/.test(key))?.[1];
+(async () => {
+  try {
+    const data = JSON.parse(document.getElementById('__ripple_data').textContent);
+    const target = document.getElementById('root');
+    const loadModule = routeModules[data.entry];
 
-  if (!Component || !target) {
-    console.error('[ripple] Unable to hydrate route: missing component export or #root target.');
-  } else {
+    if (!loadModule) {
+      console.error('[ripple] No client module for route:', data.entry);
+      return;
+    }
+
+    const module = await loadModule();
+    const Component =
+      module.default ||
+      Object.entries(module).find(([key, value]) => typeof value === 'function' && /^[A-Z]/.test(key))?.[1];
+
+    if (!Component || !target) {
+      console.error('[ripple] Unable to hydrate route: missing component export or #root target.');
+      return;
+    }
+
     try {
       hydrate(Component, {
         target,
@@ -598,10 +818,48 @@ try {
         props: { params: data.params }
       });
     }
+  } catch (error) {
+    console.error('[ripple] Failed to bootstrap client hydration.', error);
   }
-} catch (error) {
-  console.error('[ripple] Failed to bootstrap client hydration.', error);
-}
+})();
+`;
+					}
+
+					// Dev mode: use async IIFE to avoid top-level await deadlock
+					// (same reason as production — page modules import from the main bundle)
+					return `
+import { hydrate, mount } from 'ripple';
+
+(async () => {
+  try {
+    const data = JSON.parse(document.getElementById('__ripple_data').textContent);
+    const target = document.getElementById('root');
+    const module = await import(/* @vite-ignore */ data.entry);
+    const Component =
+      module.default ||
+      Object.entries(module).find(([key, value]) => typeof value === 'function' && /^[A-Z]/.test(key))?.[1];
+
+    if (!Component || !target) {
+      console.error('[ripple] Unable to hydrate route: missing component export or #root target.');
+      return;
+    }
+
+    try {
+      hydrate(Component, {
+        target,
+        props: { params: data.params }
+      });
+    } catch (error) {
+      console.warn('[ripple] Hydration failed, falling back to mount.', error);
+      mount(Component, {
+        target,
+        props: { params: data.params }
+      });
+    }
+  } catch (error) {
+    console.error('[ripple] Failed to bootstrap client hydration.', error);
+  }
+})();
 `;
 				}
 
@@ -621,6 +879,11 @@ try {
 						mode: ssr ? 'server' : 'client',
 						dev: config?.command === 'serve',
 					});
+
+					// Track modules with #server blocks for RPC (client build only)
+					if (isBuild && !ssr && js.code.includes('_$_.rpc(')) {
+						serverBlockModules.add(filename);
+					}
 
 					if (css !== '') {
 						const cssId = createVirtualImportId(filename, root, 'style');
@@ -645,39 +908,6 @@ export function defineConfig(/** @type {RipplePluginOptions} */ options) {
 // ============================================================================
 // Helper functions for dev server
 // ============================================================================
-
-/**
- * Derive the request origin (protocol + host) from a Node.js request.
- * Only honors `X-Forwarded-Proto` and `X-Forwarded-Host` headers when
- * `trustProxy` is explicitly enabled; otherwise the protocol comes from the
- * socket and the host from the `Host` header.
- *
- * @param {import('node:http').IncomingMessage} req
- * @param {boolean} trustProxy
- * @returns {string}
- */
-function deriveOrigin(req, trustProxy) {
-	let protocol = /** @type {import('node:tls').TLSSocket} */ (req.socket).encrypted
-		? 'https'
-		: 'http';
-	let host = req.headers.host || 'localhost';
-
-	if (trustProxy) {
-		const forwardedProto = req.headers['x-forwarded-proto'];
-		const proto = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto;
-		if (proto) {
-			protocol = proto.split(',')[0].trim();
-		}
-
-		const forwardedHost = req.headers['x-forwarded-host'];
-		const fwdHost = Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost;
-		if (fwdHost) {
-			host = fwdHost.split(',')[0].trim();
-		}
-	}
-
-	return `${protocol}://${host}`;
-}
 
 /**
  * Convert a Node.js IncomingMessage to a Web Request
@@ -746,88 +976,56 @@ async function sendWebResponse(nodeResponse, webResponse) {
 }
 
 /**
- * Handle RPC requests for #server blocks
+ * Handle RPC requests for #server blocks in dev mode.
+ *
+ * Delegates to the shared `handle_rpc_request` from `@ripple-ts/adapter/rpc`,
+ * providing a dev-specific `resolveFunction` that uses Vite's `ssrLoadModule`
+ * and `globalThis.rpc_modules` (populated by the compiler during SSR).
+ *
  * @param {import('node:http').IncomingMessage} req
  * @param {import('node:http').ServerResponse} res
- * @param {URL} url
  * @param {import('vite').ViteDevServer} vite
  * @param {boolean} trustProxy
+ * @param {RippleConfigOptions | null} config
  */
-async function handleRpcRequest(req, res, url, vite, trustProxy) {
-	// we don't really need trustProxy in vite but leaving it as a model for production adapters
+async function handleRpcRequest(req, res, vite, trustProxy, config) {
 	try {
-		const hash = url.pathname.slice('/_$_ripple_rpc_$_/'.length);
+		// Convert Node request to Web Request for the shared handler
+		const webRequest = nodeRequestToWebRequest(req);
+		const asyncContext = getDevAsyncContext(config);
 
-		// Get request body
-		const body = await getRequestBody(req);
+		const response = await handle_rpc_request(webRequest, {
+			async resolveFunction(hash) {
+				const rpcModules = /** @type {Map<string, [string, string]>} */ (
+					/** @type {any} */ (globalThis).rpc_modules
+				);
+				if (!rpcModules) return null;
 
-		// Load the RPC module info from globalThis (set during SSR)
-		const rpcModules = /** @type {Map<string, [string, string]>} */ (
-			/** @type {any} */ (globalThis).rpc_modules
-		);
-		if (!rpcModules) {
-			res.statusCode = 500;
-			res.end('RPC modules not initialized');
-			return;
-		}
+				const moduleInfo = rpcModules.get(hash);
+				if (!moduleInfo) return null;
 
-		const moduleInfo = rpcModules.get(hash);
-		if (!moduleInfo) {
-			res.statusCode = 404;
-			res.end(`RPC function not found: ${hash}`);
-			return;
-		}
+				const [filePath, funcName] = moduleInfo;
+				const module = await vite.ssrLoadModule(filePath);
+				const server = module._$_server_$_;
 
-		const [filePath, funcName] = moduleInfo;
-
-		// Load the module and execute the function
-		const { executeServerFunction } = await vite.ssrLoadModule('ripple/server');
-		const module = await vite.ssrLoadModule(filePath);
-		const server = module._$_server_$_;
-
-		if (!server || !server[funcName]) {
-			res.statusCode = 404;
-			res.end(`Server function not found: ${funcName}`);
-			return;
-		}
-
-		const origin = deriveOrigin(req, trustProxy);
-
-		// Execute server function within async context
-		// This allows the patched fetch to access the origin without global state
-		await rpcContext.run({ origin }, async () => {
-			const result = await executeServerFunction(server[funcName], body);
-
-			res.statusCode = 200;
-			res.setHeader('Content-Type', 'application/json');
-			res.end(result);
+				if (!server || !server[funcName]) return null;
+				return server[funcName];
+			},
+			async executeServerFunction(fn, body) {
+				const { executeServerFunction } = await vite.ssrLoadModule('ripple/server');
+				return executeServerFunction(fn, body);
+			},
+			asyncContext,
+			trustProxy,
 		});
+
+		await sendWebResponse(res, response);
 	} catch (error) {
 		console.error('[@ripple-ts/vite-plugin] RPC error:', error);
 		res.statusCode = 500;
 		res.setHeader('Content-Type', 'application/json');
 		res.end(JSON.stringify({ error: error instanceof Error ? error.message : 'RPC failed' }));
 	}
-}
-
-/**
- * Get the body of a request as a string
- * @param {import('node:http').IncomingMessage} req
- * @returns {Promise<string>}
- */
-function getRequestBody(req) {
-	return new Promise((resolve, reject) => {
-		let data = '';
-		req.on('data', (chunk) => {
-			data += chunk;
-			if (data.length > 1e6) {
-				req.destroy();
-				reject(new Error('Request body too large'));
-			}
-		});
-		req.on('end', () => resolve(data));
-		req.on('error', reject);
-	});
 }
 
 /**

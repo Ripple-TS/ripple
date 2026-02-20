@@ -8,8 +8,37 @@ import {
 	run_next_middleware,
 	serveStatic as create_static_handler,
 } from '@ripple-ts/adapter';
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 /** @typedef {import('@ripple-ts/adapter').ServeStaticDirectoryOptions} StaticServeOptions */
+
+// ============================================================================
+// Runtime primitives — platform-specific capabilities for Ripple's server runtime
+// ============================================================================
+
+/**
+ * Bun runtime primitives for the Ripple adapter contract.
+ *
+ * Provides:
+ * - `hash`: SHA-256 hex digest truncated to 8 chars via Bun.CryptoHasher
+ * - `createAsyncContext`: AsyncLocalStorage-backed request-scoped context
+ *
+ * @type {import('@ripple-ts/adapter').RuntimePrimitives}
+ */
+export const runtime = {
+	hash(str) {
+		const hasher = new globalThis.Bun.CryptoHasher('sha256');
+		hasher.update(str);
+		return hasher.digest('hex').slice(0, 8);
+	},
+	createAsyncContext() {
+		const als = new AsyncLocalStorage();
+		return {
+			run: (store, fn) => als.run(store, fn),
+			getStore: () => als.getStore(),
+		};
+	},
+};
 
 /**
  * @typedef {{
