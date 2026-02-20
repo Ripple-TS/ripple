@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<div>Hello World</div>`, 0);
@@ -255,7 +256,7 @@ function Actions(__anchor, __props, __block) {
 			};
 
 			_$_.if(node_5, (__render) => {
-				if (_$_.get(_$_.fallback(__props.playgroundVisible, false))) __render(consequent);
+				if (_$_.fallback(__props.playgroundVisible, false)) __render(consequent);
 			});
 		}
 

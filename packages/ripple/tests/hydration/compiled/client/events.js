@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<div><button class="increment">Increment</button><span class="count"> </span></div>`, 0);

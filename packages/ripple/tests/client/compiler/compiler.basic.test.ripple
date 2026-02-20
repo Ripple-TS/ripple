@@ -357,4 +357,28 @@ export component App() {
 `;
 		expect(() => compile(code, 'test.ripple')).not.toThrow();
 	});
+
+	it('should inject __block for track() calls inside class constructors', () => {
+		const source = `
+import { track } from 'ripple';
+
+class Store {
+	constructor() {
+		this.count = track(0);
+		this.items = #[1, 2, 3];
+	}
+}
+
+export component App() {
+	const store = new Store();
+	<div>{store.count}</div>
+}
+`;
+		const result = compile(source, 'test.ripple', { mode: 'client' });
+		const code = result.js.code;
+
+		// The constructor's compiled output should contain __block = _$_.scope()
+		expect(code).toContain('__block');
+		expect(code).toContain('_$_.scope()');
+	});
 });
