@@ -118,3 +118,33 @@ export component WebsiteIndex() {
 		<Actions playgroundVisible={false} />
 	</Layout>
 }
+
+// Test case for component as last element with no following siblings.
+// This exercises hydrate_advance() in append() - at the end of content,
+// there's no next sibling and that should be handled gracefully.
+component LastChild() {
+	<footer class="last-child">{'I am the last child'}</footer>
+}
+
+export component ComponentAsLastSibling() {
+	<div class="wrapper">
+		<h1>{'Header'}</h1>
+		<p>{'Some content'}</p>
+		<LastChild />
+	</div>
+}
+
+// Nested version - component is last child inside another component
+component InnerContent() {
+	<div class="inner">
+		<span>{'Inner text'}</span>
+		<LastChild />
+	</div>
+}
+
+export component NestedComponentAsLastSibling() {
+	<section class="outer">
+		<h2>{'Section title'}</h2>
+		<InnerContent />
+	</section>
+}

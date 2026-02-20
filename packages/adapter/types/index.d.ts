@@ -6,6 +6,17 @@ export type FetchHandler<Platform = any, ResultValue = Response> = (
 export type AdapterCoreOptions = {
 	port?: number;
 	hostname?: string;
+	/**
+	 * Whether to trust `X-Forwarded-Proto` and `X-Forwarded-Host` headers
+	 * when deriving the request origin (protocol + host).
+	 *
+	 * Enable this only when the application is behind a trusted reverse proxy
+	 * (e.g., nginx, Cloudflare, AWS ALB). When `false` (the default), the
+	 * protocol is inferred from the socket and the host from the `Host` header.
+	 *
+	 * @default false
+	 */
+	trustProxy?: boolean;
 };
 
 export type ServeStaticOptions = {
@@ -28,6 +39,12 @@ export type ServeResult<Server = any> = {
 	listen: (port?: number) => Server;
 	close: () => void;
 };
+
+export type ServeFunction<
+	Platform = any,
+	Options extends AdapterCoreOptions = AdapterCoreOptions,
+	Server = any,
+> = (fetch_handler: FetchHandler<Platform>, options?: Options) => ServeResult<Server>;
 
 export const DEFAULT_HOSTNAME: 'localhost';
 export const DEFAULT_PORT: 3000;

@@ -29,8 +29,18 @@ const rpcContext = new AsyncLocalStorage();
 const originalFetch = globalThis.fetch;
 
 /**
+ * Quick check whether a string looks like it already has a URL scheme (e.g. "http://", "https://", "data:").
+ * @param {string} url
+ * @returns {boolean}
+ */
+function hasScheme(url) {
+	return /^[a-z][a-z0-9+\-.]*:/i.test(url);
+}
+
+/**
  * Patch global fetch to resolve relative URLs based on the current request context.
  * This allows server functions in #server blocks to use relative URLs
+ * (root-relative like "/api/foo" or path-relative like "api/foo", "./api/foo", "../api/foo")
  * that are resolved against the incoming request's origin.
  * // TODO: a similar logic needs to be ported to the adapters
  * @param {string | Request | URL} input
@@ -41,26 +51,22 @@ globalThis.fetch = function (input, init) {
 	const context = rpcContext.getStore();
 
 	if (context?.origin) {
-		// Handle string URLs
-		if (typeof input === 'string' && input.startsWith('/')) {
-			input = `${context.origin}${input}`;
+		// Handle string URLs — resolve any non-absolute URL against the origin
+		if (typeof input === 'string' && !hasScheme(input)) {
+			input = new URL(input, context.origin).href;
 		}
 		// Handle Request objects
 		else if (input instanceof Request) {
 			const url = input.url;
-			// Only patch if the Request was built with a relative URL
-			// (This is rare since Request constructor typically resolves URLs)
-			if (url.startsWith('/')) {
-				input = new Request(`${context.origin}${url}`, input);
+			if (!hasScheme(url)) {
+				input = new Request(new URL(url, context.origin).href, input);
 			}
 		}
 		// Handle URL objects constructed with relative paths
 		else if (input instanceof URL) {
-			// URL objects with no protocol/origin are relative (very rare in practice)
-			// Example: new URL('/api/message') throws, but if somehow passed...
 			if (!input.protocol || input.protocol === '' || input.origin === 'null') {
-				const path = input.pathname + (input.search || '') + (input.hash || '');
-				input = new URL(path, context.origin);
+				const relative = input.pathname + (input.search || '') + (input.hash || '');
+				input = new URL(relative, context.origin);
 			}
 		}
 	}
@@ -416,7 +422,13 @@ export function ripple(inlineOptions = {}) {
 
 							// Handle RPC requests for #server blocks
 							if (url.pathname.startsWith('/_$_ripple_rpc_$_/')) {
-								await handleRpcRequest(req, res, url, vite);
+								await handleRpcRequest(
+									req,
+									res,
+									url,
+									vite,
+									rippleConfig.server?.trustProxy ?? false,
+								);
 								return;
 							}
 
@@ -635,6 +647,39 @@ export function defineConfig(/** @type {RipplePluginOptions} */ options) {
 // ============================================================================
 
 /**
+ * Derive the request origin (protocol + host) from a Node.js request.
+ * Only honors `X-Forwarded-Proto` and `X-Forwarded-Host` headers when
+ * `trustProxy` is explicitly enabled; otherwise the protocol comes from the
+ * socket and the host from the `Host` header.
+ *
+ * @param {import('node:http').IncomingMessage} req
+ * @param {boolean} trustProxy
+ * @returns {string}
+ */
+function deriveOrigin(req, trustProxy) {
+	let protocol = /** @type {import('node:tls').TLSSocket} */ (req.socket).encrypted
+		? 'https'
+		: 'http';
+	let host = req.headers.host || 'localhost';
+
+	if (trustProxy) {
+		const forwardedProto = req.headers['x-forwarded-proto'];
+		const proto = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto;
+		if (proto) {
+			protocol = proto.split(',')[0].trim();
+		}
+
+		const forwardedHost = req.headers['x-forwarded-host'];
+		const fwdHost = Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost;
+		if (fwdHost) {
+			host = fwdHost.split(',')[0].trim();
+		}
+	}
+
+	return `${protocol}://${host}`;
+}
+
+/**
  * Convert a Node.js IncomingMessage to a Web Request
  * @param {import('node:http').IncomingMessage} nodeRequest
  * @returns {Request}
@@ -706,8 +751,10 @@ async function sendWebResponse(nodeResponse, webResponse) {
  * @param {import('node:http').ServerResponse} res
  * @param {URL} url
  * @param {import('vite').ViteDevServer} vite
+ * @param {boolean} trustProxy
  */
-async function handleRpcRequest(req, res, url, vite) {
+async function handleRpcRequest(req, res, url, vite, trustProxy) {
+	// we don't really need trustProxy in vite but leaving it as a model for production adapters
 	try {
 		const hash = url.pathname.slice('/_$_ripple_rpc_$_/'.length);
 
@@ -744,21 +791,7 @@ async function handleRpcRequest(req, res, url, vite) {
 			return;
 		}
 
-		// Parse x-forwarded-proto (can be comma-separated like "https, http", or an array)
-		const forwardedProto = req.headers['x-forwarded-proto'];
-		const proto = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto;
-		const protocol = proto
-			? proto.split(',')[0].trim()
-			: /** @type {import('node:tls').TLSSocket} */ (req.socket).encrypted
-				? 'https'
-				: 'http';
-
-		// Parse x-forwarded-host (can also be comma-separated, or an array)
-		const forwardedHost = req.headers['x-forwarded-host'];
-		const fwdHost = Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost;
-		const host = fwdHost ? fwdHost.split(',')[0].trim() : req.headers.host || 'localhost';
-
-		const origin = `${protocol}://${host}`;
+		const origin = deriveOrigin(req, trustProxy);
 
 		// Execute server function within async context
 		// This allows the patched fetch to access the origin without global state

@@ -21,6 +21,10 @@ var root_17 = _$_.template(`<main><div class="container"><!></div></main>`, 0);
 var root_18 = _$_.template(`<div class="content"><p>Some content here</p></div>`, 0);
 var root_20 = _$_.template(`<!><!><!><!>`, 1);
 var root_19 = _$_.template(`<!>`, 1);
+var root_21 = _$_.template(`<footer class="last-child">I am the last child</footer>`, 0);
+var root_22 = _$_.template(`<div class="wrapper"><h1>Header</h1><p>Some content</p><!></div>`, 0);
+var root_23 = _$_.template(`<div class="inner"><span>Inner text</span><!></div>`, 0);
+var root_24 = _$_.template(`<section class="outer"><h2>Section title</h2><!></section>`, 0);
 
 export function StaticText(__anchor, _, __block) {
 	_$_.push_component();
@@ -327,5 +331,66 @@ export function WebsiteIndex(__anchor, _, __block) {
 	);
 
 	_$_.append(__anchor, fragment_8);
+	_$_.pop_component();
+}
+
+function LastChild(__anchor, _, __block) {
+	_$_.push_component();
+
+	var footer_1 = root_21();
+
+	_$_.append(__anchor, footer_1);
+	_$_.pop_component();
+}
+
+export function ComponentAsLastSibling(__anchor, _, __block) {
+	_$_.push_component();
+
+	var div_11 = root_22();
+
+	{
+		var h1_1 = _$_.child(div_11);
+		var p_1 = _$_.sibling(h1_1);
+		var node_12 = _$_.sibling(p_1);
+
+		LastChild(node_12, {}, _$_.active_block);
+		_$_.pop(div_11);
+	}
+
+	_$_.append(__anchor, div_11);
+	_$_.pop_component();
+}
+
+function InnerContent(__anchor, _, __block) {
+	_$_.push_component();
+
+	var div_12 = root_23();
+
+	{
+		var span_5 = _$_.child(div_12);
+		var node_13 = _$_.sibling(span_5);
+
+		LastChild(node_13, {}, _$_.active_block);
+		_$_.pop(div_12);
+	}
+
+	_$_.append(__anchor, div_12);
+	_$_.pop_component();
+}
+
+export function NestedComponentAsLastSibling(__anchor, _, __block) {
+	_$_.push_component();
+
+	var section_1 = root_24();
+
+	{
+		var h2_1 = _$_.child(section_1);
+		var node_14 = _$_.sibling(h2_1);
+
+		InnerContent(node_14, {}, _$_.active_block);
+		_$_.pop(section_1);
+	}
+
+	_$_.append(__anchor, section_1);
 	_$_.pop_component();
 }

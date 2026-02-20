@@ -141,6 +141,9 @@ export function NestedContentWithPortal(__anchor, _, __block) {
 
 	{
 		var div_9 = _$_.child(div_8);
+
+		_$_.pop(div_9);
+
 		var node_4 = _$_.sibling(div_9);
 
 		Portal(

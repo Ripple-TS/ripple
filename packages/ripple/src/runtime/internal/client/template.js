@@ -8,7 +8,7 @@ import {
 	HYDRATION_START,
 	HYDRATION_END,
 } from '../../../constants.js';
-import { hydrate_next, hydrate_node, hydrating, pop } from './hydration.js';
+import { hydrate_advance, hydrate_next, hydrate_node, hydrating, pop } from './hydration.js';
 import { create_text, get_first_child, get_next_sibling, is_firefox } from './operations.js';
 import { active_block, active_namespace } from './runtime.js';
 
@@ -217,7 +217,9 @@ export function append(anchor, dom, skip_advance) {
 			}
 		}
 
-		hydrate_next();
+		// Only advance if there's a next sibling. At the end of a component's
+		// content, there might not be more siblings, and that's fine.
+		hydrate_advance();
 		return;
 	}
 	anchor.before(/** @type {Node} */ (dom));

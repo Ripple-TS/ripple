@@ -35,6 +35,30 @@ export component Layout({ children }) {
 			position: relative;
 		}
 
+		/* Scrollbar styling */
+		:global(*) {
+			scrollbar-width: thin;
+			scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+		}
+
+		:global(*::-webkit-scrollbar) {
+			width: 8px;
+			height: 8px;
+		}
+
+		:global(*::-webkit-scrollbar-track) {
+			background: transparent;
+		}
+
+		:global(*::-webkit-scrollbar-thumb) {
+			background-color: rgba(255, 255, 255, 0.2);
+			border-radius: 4px;
+		}
+
+		:global(*::-webkit-scrollbar-thumb:hover) {
+			background-color: rgba(255, 255, 255, 0.3);
+		}
+
 		:global(body::before) {
 			content: '';
 			position: absolute;

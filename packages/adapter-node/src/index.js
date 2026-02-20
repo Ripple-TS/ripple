@@ -30,18 +30,29 @@ function normalize_forwarded_value(value) {
 /**
  * @param {import('node:http').IncomingMessage} node_request
  * @param {AbortSignal} signal
+ * @param {boolean} [trust_proxy=false]
  * @returns {Request}
  */
-function node_request_to_web_request(node_request, signal) {
-	const forwarded_proto = normalize_forwarded_value(
-		first_header_value(node_request.headers['x-forwarded-proto']),
-	);
-	const forwarded_host = normalize_forwarded_value(
-		first_header_value(node_request.headers['x-forwarded-host']),
-	);
+function node_request_to_web_request(node_request, signal, trust_proxy = false) {
+	let proto = 'http';
+	let host = first_header_value(node_request.headers.host) ?? 'localhost';
 
-	const proto = forwarded_proto ?? 'http';
-	const host = forwarded_host ?? first_header_value(node_request.headers.host) ?? 'localhost';
+	if (trust_proxy) {
+		const forwarded_proto = normalize_forwarded_value(
+			first_header_value(node_request.headers['x-forwarded-proto']),
+		);
+		const forwarded_host = normalize_forwarded_value(
+			first_header_value(node_request.headers['x-forwarded-host']),
+		);
+
+		if (forwarded_proto) proto = forwarded_proto;
+		if (forwarded_host) host = forwarded_host;
+	} else {
+		// Derive protocol from the socket when not trusting proxy headers
+		if (/** @type {import('node:tls').TLSSocket} */ (node_request.socket).encrypted) {
+			proto = 'https';
+		}
+	}
 
 	const raw_url = node_request.url ?? '/';
 	const base = `${proto}://${host}`;
@@ -114,21 +125,6 @@ function web_response_to_node_response(web_response, node_response, request_meth
 	node_stream.pipe(node_response);
 }
 
-/** @typedef {import('@ripple-ts/adapter').ServeStaticDirectoryOptions} StaticServeOptions */
-
-/**
- * @typedef {{
- * 	port?: number,
- * 	hostname?: string,
- * 	middleware?: ((
- * 		req: import('node:http').IncomingMessage,
- * 		res: import('node:http').ServerResponse,
- * 		next: (error?: any) => void
- * 	) => void) | null,
- * 	static?: StaticServeOptions | false,
- * }} ServeOptions
- */
-
 /**
  * @param {(req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse, next: (error?: any) => void) => void} middleware
  * @param {import('node:http').IncomingMessage} node_request
@@ -160,9 +156,7 @@ function run_node_middleware(middleware, node_request, node_response) {
 }
 
 /**
- * @param {(request: Request, platform?: any) => Response | Promise<Response>} fetch_handler
- * @param {ServeOptions} [options]
- * @returns {{ listen: (port?: number) => import('node:http').Server, close: () => void }}
+ * @type {typeof import('@ripple-ts/adapter-node').serve}
  */
 export function serve(fetch_handler, options = {}) {
 	const {
@@ -170,6 +164,7 @@ export function serve(fetch_handler, options = {}) {
 		hostname = DEFAULT_HOSTNAME,
 		middleware = null,
 		static: static_options = {},
+		trustProxy: trust_proxy = false,
 	} = options;
 
 	/** @type {ReturnType<typeof serveStatic> | null} */
@@ -191,7 +186,11 @@ export function serve(fetch_handler, options = {}) {
 
 		try {
 			const run_fetch_handler = async () => {
-				const request = node_request_to_web_request(node_request, abort_controller.signal);
+				const request = node_request_to_web_request(
+					node_request,
+					abort_controller.signal,
+					trust_proxy,
+				);
 				return await fetch_handler(request, { node_request, node_response });
 			};
 

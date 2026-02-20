@@ -81,4 +81,27 @@ describe('hydration > basic', () => {
 		expect(container.querySelector('.playground-link')?.textContent).toBe('Playground');
 		expect(container.querySelector('.content')).toBeTruthy();
 	});
+
+	// Test for hydrate_advance() in append() - component as last sibling with no following siblings
+	it('hydrates component as last sibling (no following siblings)', async () => {
+		await hydrateComponent(
+			ServerComponents.ComponentAsLastSibling,
+			ClientComponents.ComponentAsLastSibling,
+		);
+		expect(container.querySelector('.wrapper')).toBeTruthy();
+		expect(container.querySelector('h1')?.textContent).toBe('Header');
+		expect(container.querySelector('p')?.textContent).toBe('Some content');
+		expect(container.querySelector('.last-child')?.textContent).toBe('I am the last child');
+	});
+
+	it('hydrates nested component with inner component as last sibling', async () => {
+		await hydrateComponent(
+			ServerComponents.NestedComponentAsLastSibling,
+			ClientComponents.NestedComponentAsLastSibling,
+		);
+		expect(container.querySelector('.outer')).toBeTruthy();
+		expect(container.querySelector('h2')?.textContent).toBe('Section title');
+		expect(container.querySelector('.inner span')?.textContent).toBe('Inner text');
+		expect(container.querySelector('.inner .last-child')?.textContent).toBe('I am the last child');
+	});
 });

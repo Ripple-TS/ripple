@@ -471,3 +471,109 @@ export function WebsiteIndex(__output) {
 
 	_$_.pop_component();
 }
+
+function LastChild(__output) {
+	_$_.push_component();
+	__output.push('<footer');
+	__output.push(' class="last-child"');
+	__output.push('>');
+
+	{
+		__output.push('I am the last child');
+	}
+
+	__output.push('</footer>');
+	_$_.pop_component();
+}
+
+export function ComponentAsLastSibling(__output) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="wrapper"');
+	__output.push('>');
+
+	{
+		__output.push('<h1');
+		__output.push('>');
+
+		{
+			__output.push('Header');
+		}
+
+		__output.push('</h1>');
+		__output.push('<p');
+		__output.push('>');
+
+		{
+			__output.push('Some content');
+		}
+
+		__output.push('</p>');
+
+		{
+			const comp = LastChild;
+			const args = [__output, {}];
+
+			comp(...args);
+		}
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}
+
+function InnerContent(__output) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="inner"');
+	__output.push('>');
+
+	{
+		__output.push('<span');
+		__output.push('>');
+
+		{
+			__output.push('Inner text');
+		}
+
+		__output.push('</span>');
+
+		{
+			const comp = LastChild;
+			const args = [__output, {}];
+
+			comp(...args);
+		}
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}
+
+export function NestedComponentAsLastSibling(__output) {
+	_$_.push_component();
+	__output.push('<section');
+	__output.push(' class="outer"');
+	__output.push('>');
+
+	{
+		__output.push('<h2');
+		__output.push('>');
+
+		{
+			__output.push('Section title');
+		}
+
+		__output.push('</h2>');
+
+		{
+			const comp = InnerContent;
+			const args = [__output, {}];
+
+			comp(...args);
+		}
+	}
+
+	__output.push('</section>');
+	_$_.pop_component();
+}

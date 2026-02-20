@@ -1,10 +1,9 @@
 import type {
 	AdapterCoreOptions,
-	FetchHandler,
 	NextMiddleware,
+	ServeFunction,
 	ServeStaticOptions as BaseServeStaticOptions,
 	ServeStaticDirectoryOptions as BaseServeStaticDirectoryOptions,
-	ServeResult,
 } from '@ripple-ts/adapter';
 
 export type ServeOptions = AdapterCoreOptions & {
@@ -14,10 +13,7 @@ export type ServeOptions = AdapterCoreOptions & {
 
 export type ServeStaticOptions = BaseServeStaticOptions;
 
-export function serve(
-	fetch_handler: FetchHandler<{ bun_server: any }>,
-	options?: ServeOptions,
-): ServeResult<any>;
+export const serve: ServeFunction<{ bun_server: any }, ServeOptions, any>;
 
 export function serveStatic(
 	dir: string,

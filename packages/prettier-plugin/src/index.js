@@ -1596,6 +1596,18 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 		}
 
+		case 'StyleSheet': {
+			// StyleSheet nodes inside <style> elements. When CSS is empty/whitespace-only,
+			// return empty string so the element collapses to <style></style>.
+			// Non-empty stylesheets are normally handled by embed() using textToDoc with the CSS parser.
+			if (!node.source || !node.source.trim()) {
+				nodeContent = '';
+			} else {
+				nodeContent = node.source.trim();
+			}
+			break;
+		}
+
 		case 'ServerIdentifier': {
 			nodeContent = '#server';
 			break;

@@ -1236,6 +1236,21 @@ const [obj1, obj2] = arrayOfObjects;`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should not mangle empty stylesheet tags <style></style>', async () => {
+			const input = `component App() {
+  <style>
+
+  </style>
+}`;
+
+			const expected = `component App() {
+  <style></style>
+}`;
+
+			const result = await format(input, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should keep TrackedMap short syntax intact', async () => {
 			const expected = `const map = new #Map([['key1', 'value1'], ['key2', 'value2']]);
 const set = new #Set([1, 2, 3]);`;

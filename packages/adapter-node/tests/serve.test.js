@@ -130,6 +130,7 @@ describe('@ripple-ts/adapter-node serve()', () => {
 				expect(response.headers.get('x-response')).toBe('ok');
 				expect(await response.text()).toBe('created');
 			},
+			{ trustProxy: true },
 		);
 
 		expect(captured).toEqual({
@@ -138,6 +139,32 @@ describe('@ripple-ts/adapter-node serve()', () => {
 			body: 'payload',
 			custom_header: 'abc123',
 		});
+	});
+
+	it('ignores x-forwarded-* headers when trustProxy is not enabled', async () => {
+		/** @type {{ url: string } | null} */
+		let captured = null;
+
+		await with_server(
+			async (request) => {
+				captured = { url: request.url };
+				return new Response('ok');
+			},
+			async (base_url) => {
+				await fetch(`${base_url}/test`, {
+					headers: {
+						'x-forwarded-proto': 'https',
+						'x-forwarded-host': 'evil.com',
+					},
+				});
+			},
+		);
+
+		// Should NOT use forwarded headers; URL should use http and the real host
+		expect(captured).not.toBeNull();
+		const url = new URL((captured ?? { url: '' }).url);
+		expect(url.protocol).toBe('http:');
+		expect(url.hostname).not.toBe('evil.com');
 	});
 
 	it('runs middleware before handler when middleware calls next()', async () => {

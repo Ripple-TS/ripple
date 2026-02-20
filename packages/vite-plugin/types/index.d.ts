@@ -103,6 +103,19 @@ declare module '@ripple-ts/vite-plugin' {
 		platform?: {
 			env: Record<string, string>;
 		};
+		server?: {
+			/**
+			 * Whether to trust `X-Forwarded-Proto` and `X-Forwarded-Host` headers
+			 * when deriving the request origin (protocol + host).
+			 *
+			 * Enable this only when the application is behind a trusted reverse proxy
+			 * (e.g., nginx, Cloudflare, AWS ALB). When `false` (the default), the
+			 * protocol is inferred from the socket and the host from the `Host` header.
+			 *
+			 * @default false
+			 */
+			trustProxy?: boolean;
+		};
 	}
 
 	export type AdapterServeFunction = (
