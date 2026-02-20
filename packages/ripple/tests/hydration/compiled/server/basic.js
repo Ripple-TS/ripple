@@ -345,7 +345,7 @@ function Actions(__output, { playgroundVisible = false }) {
 		__output.push('</a>');
 		__output.push('<!--[-->');
 
-		if (_$_.get(playgroundVisible)) {
+		if (playgroundVisible) {
 			__output.push('<a');
 			__output.push(' href="/playground"');
 			__output.push(' class="playground-link"');

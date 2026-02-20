@@ -285,35 +285,19 @@ const visitors = {
 			}
 		}
 
-		if (
-			binding?.kind === 'prop' ||
-			binding?.kind === 'prop_fallback' ||
-			binding?.kind === 'for_pattern'
-		) {
-			mark_as_tracked(context.path);
-			if (context.state.metadata?.tracking === false) {
-				context.state.metadata.tracking = true;
-			}
-		}
-
-		if (
-			is_reference(node, /** @type {AST.Node} */ (parent)) &&
-			node.tracked &&
-			binding?.node !== node
-		) {
-			mark_as_tracked(context.path);
-			if (context.state.metadata?.tracking === false) {
-				context.state.metadata.tracking = true;
-			}
-		}
-
-		if (
-			is_reference(node, /** @type {AST.Node} */ (parent)) &&
-			node.tracked &&
-			binding?.node !== node
-		) {
-			if (context.state.metadata?.tracking === false) {
-				context.state.metadata.tracking = true;
+		if (node.tracked && binding) {
+			if (
+				binding.kind === 'prop' ||
+				binding.kind === 'prop_fallback' ||
+				binding.kind === 'for_pattern' ||
+				(is_reference(node, /** @type {AST.Node} */ (parent)) &&
+					node.tracked &&
+					binding.node !== node)
+			) {
+				mark_as_tracked(context.path);
+				if (context.state.metadata?.tracking === false) {
+					context.state.metadata.tracking = true;
+				}
 			}
 		}
 
