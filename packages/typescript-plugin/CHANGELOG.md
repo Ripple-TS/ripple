@@ -1,5 +1,12 @@
 # @ripple-ts/typescript-plugin
 
+## 0.2.213
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.2.213
+
 ## 0.2.212
 
 ### Patch Changes
