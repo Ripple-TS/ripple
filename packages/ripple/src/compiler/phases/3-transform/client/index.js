@@ -116,7 +116,6 @@ function visit_function(node, context) {
 	if (
 		metadata?.tracked === true &&
 		!is_inside_component(context, true) &&
-		is_component_level_function(context) &&
 		body.type === 'BlockStatement'
 	) {
 		body = { ...body, body: [b.var('__block', b.call('_$_.scope')), ...body.body] };
