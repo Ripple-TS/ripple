@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
 export function StaticText(__output) {

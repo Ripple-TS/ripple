@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
 var root_1 = _$_.template(`<div class="status-success">Success</div>`, 1);

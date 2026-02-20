@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<div class="count"> </div>`, 0);

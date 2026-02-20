@@ -57,7 +57,7 @@ function buildComponents() {
 		const clientResult = compile(source, file, {
 			mode: 'client',
 		});
-		writeFileSync(join(clientOutDir, outputName), clientResult.js.code);
+		writeFileSync(join(clientOutDir, outputName), '// @ts-nocheck\n' + clientResult.js.code);
 
 		// Compile for server
 		const serverResult = compile(source, file, {
@@ -65,7 +65,7 @@ function buildComponents() {
 		});
 		// Transform imports to use server runtime
 		const serverCode = transformServerImports(serverResult.js.code);
-		writeFileSync(join(serverOutDir, outputName), serverCode);
+		writeFileSync(join(serverOutDir, outputName), '// @ts-nocheck\n' + serverCode);
 
 		console.log(`Compiled ${file} -> client & server`);
 	}
