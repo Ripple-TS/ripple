@@ -118,9 +118,32 @@ function createRippleLanguageServer() {
 		}
 	});
 
-	connection.onInitialized(() => {
+	connection.onInitialized(async () => {
 		log('Server initialized.');
 		server.initialized();
+
+		// Register file watchers for TypeScript/JavaScript files so the language
+		// server is notified when they change on disk. Without this, changes to
+		// .ts files that are imported by .ripple files are not detected, causing
+		// stale diagnostics until the server is restarted.
+		try {
+			await server.fileWatcher.watchFiles([
+				'**/*.ts',
+				'**/*.tsx',
+				'**/*.cts',
+				'**/*.mts',
+				'**/*.js',
+				'**/*.jsx',
+				'**/*.cjs',
+				'**/*.mjs',
+				'**/*.d.ts',
+				'**/tsconfig.json',
+				'**/jsconfig.json',
+			]);
+			log('File watchers registered for TypeScript/JavaScript files.');
+		} catch (err) {
+			logError('Failed to register file watchers:', err);
+		}
 	});
 
 	process.on('uncaughtException', (err) => {
