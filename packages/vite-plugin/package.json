@@ -14,6 +14,7 @@
       "default": "./src/index.js"
     },
     "./server/production": {
+      "types": "./types/server/production.d.ts",
       "import": "./src/server/production.js",
       "default": "./src/server/production.js"
     }

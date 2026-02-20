@@ -278,14 +278,23 @@ function generateHtml({ head, body, route, context, clientBase, clientAssets, ht
 	if (hydrateJs && entryJs) {
 		scriptParts.push(`<script type="module">
 import { hydrate, mount } from '${hydrateJs}';
-import Component from '${entryJs}';
-const target = document.getElementById('root');
-const data = JSON.parse(document.getElementById('__ripple_data').textContent);
-try {
-  hydrate(Component, { target, props: { params: data.params } });
-} catch (e) {
-  console.warn('[ripple] Hydration failed, falling back to mount.', e);
-  mount(Component, { target, props: { params: data.params } });
+import * as entryModule from '${entryJs}';
+const Component =
+  entryModule.default ??
+  (Object.entries(entryModule).find(
+    ([name, value]) => typeof value === 'function' && /^[A-Z]/.test(name)
+  ))?.[1];
+if (!Component) {
+  console.error('[ripple] Failed to find a component export in route module.', entryModule);
+} else {
+  const target = document.getElementById('root');
+  const data = JSON.parse(document.getElementById('__ripple_data').textContent);
+  try {
+    hydrate(Component, { target, props: { params: data.params } });
+  } catch (e) {
+    console.warn('[ripple] Hydration failed, falling back to mount.', e);
+    mount(Component, { target, props: { params: data.params } });
+  }
 }
 </script>`);
 	}

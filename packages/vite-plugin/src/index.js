@@ -742,35 +742,9 @@ try {
 					}
 
 					try {
-						const request = new Request(new URL(req.url || '/', origin), {
-							method: req.method,
-							headers: /** @type {HeadersInit} */ (req.headers),
-						});
-
+						const request = nodeRequestToWebRequest(req);
 						const response = await ssrModule.handler(request);
-
-						// Write status and headers
-						res.statusCode = response.status;
-						response.headers.forEach((value, key) => {
-							res.setHeader(key, value);
-						});
-
-						// Stream body
-						if (response.body) {
-							const reader = response.body.getReader();
-							const pump = async () => {
-								const { done, value } = await reader.read();
-								if (done) {
-									res.end();
-									return;
-								}
-								res.write(value);
-								await pump();
-							};
-							await pump();
-						} else {
-							res.end(await response.text());
-						}
+						await sendWebResponse(res, response);
 					} catch (error) {
 						console.error('[@ripple-ts/vite-plugin] Preview SSR error:', error);
 						next();
@@ -828,7 +802,17 @@ try {
 
 				// Read the HTML template
 				const templatePath = path.join(root, 'public', 'index.html');
-				const htmlTemplate = fs.readFileSync(templatePath, 'utf-8');
+				let htmlTemplate = '';
+				if (fs.existsSync(templatePath)) {
+					htmlTemplate = fs.readFileSync(templatePath, 'utf-8');
+				} else {
+					console.error(
+						'[@ripple-ts/vite-plugin] HTML template not found at',
+						templatePath,
+						'\nPlease create public/index.html with the required placeholders, or configure your project to provide a compatible template.',
+					);
+					return;
+				}
 
 				// Collect all render route entries and layouts
 				const renderRoutes = loadedConfig.router.routes.filter((r) => r.type === 'render');
@@ -1018,7 +1002,8 @@ function generateSSREntry(
 import { render, get_css_for_hashes } from 'ripple/server';
 import { createHandler } from '@ripple-ts/vite-plugin/server/production';
 import { RenderRoute } from '@ripple-ts/vite-plugin';
-${hasServerRoutes ? `import rippleConfig from './ripple.config.ts';\nconst configRoutes = rippleConfig.router.routes;` : ''}
+import rippleConfig from './ripple.config.ts';
+${hasServerRoutes ? `const configRoutes = rippleConfig.router.routes;` : ''}
 
 // Import all route components
 ${componentImports}
@@ -1061,7 +1046,7 @@ export const handler = createHandler(manifest, {
 
 // Default export: start the server when run directly
 export default async function startServer() {
-  const config = ${hasServerRoutes ? 'rippleConfig' : `(await import('./ripple.config.ts')).default`};
+  const config = rippleConfig;
   if (config.adapter?.serve) {
     const server = config.adapter.serve(handler, {
       static: { dir: new URL('../client', import.meta.url).pathname },
