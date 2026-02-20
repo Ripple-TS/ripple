@@ -1,11 +1,13 @@
 {
   "name": "ripple-website",
   "version": "0.0.2",
+  "type": "module",
   "description": "",
   "private": true,
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build"
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "keywords": [],
   "author": "",

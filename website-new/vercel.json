@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
-  "buildCommand": "vitepress build",
-  "outputDirectory": ".vitepress/dist",
+  "buildCommand": "vite build",
+  "outputDirectory": "dist/client",
   "headers": [
     {
       "source": "/(.*)",

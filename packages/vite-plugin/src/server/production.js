@@ -29,6 +29,12 @@ import { createContext, runMiddlewareChain } from './middleware.js';
  */
 
 /**
+ * @typedef {Object} ClientAssetEntry
+ * @property {string} js - Path to the built JS file
+ * @property {string[]} css - Paths to the built CSS files
+ */
+
+/**
  * Create a production request handler from a manifest
  *
  * @param {ServerManifest} manifest
@@ -36,10 +42,12 @@ import { createContext, runMiddlewareChain } from './middleware.js';
  * @param {(component: Function) => Promise<RenderResult>} options.render - SSR render function
  * @param {(css: Set<string>) => string} options.getCss - Get CSS for hashes
  * @param {string} options.clientBase - Base path for client assets
+ * @param {Record<string, ClientAssetEntry>} [options.clientAssets] - Map of entry paths to built asset paths
+ * @param {string} [options.htmlTemplate] - HTML template with <!--ssr-head--> and <!--ssr-body--> placeholders
  * @returns {(request: Request) => Promise<Response>}
  */
 export function createHandler(manifest, options) {
-	const { render, getCss, clientBase = '/' } = options;
+	const { render, getCss, clientBase = '/', clientAssets = {}, htmlTemplate = '' } = options;
 	const router = createRouter(manifest.routes);
 	const globalMiddlewares = manifest.middlewares || [];
 
@@ -67,6 +75,8 @@ export function createHandler(manifest, options) {
 					render,
 					getCss,
 					clientBase,
+					clientAssets,
+					htmlTemplate,
 				);
 			} else {
 				return await handleServerRoute(match.route, context, globalMiddlewares);
@@ -88,6 +98,8 @@ export function createHandler(manifest, options) {
  * @param {(component: Function) => Promise<RenderResult>} render
  * @param {(css: Set<string>) => string} getCss
  * @param {string} clientBase
+ * @param {Record<string, ClientAssetEntry>} clientAssets
+ * @param {string} htmlTemplate
  * @returns {Promise<Response>}
  */
 async function handleRenderRoute(
@@ -98,6 +110,8 @@ async function handleRenderRoute(
 	render,
 	getCss,
 	clientBase,
+	clientAssets,
+	htmlTemplate,
 ) {
 	const renderHandler = async () => {
 		// Get the page component
@@ -136,6 +150,8 @@ async function handleRenderRoute(
 			route,
 			context,
 			clientBase,
+			clientAssets,
+			htmlTemplate,
 		});
 
 		return new Response(html, {
@@ -195,63 +211,99 @@ function createLayoutWrapper(Layout, Page, pageProps) {
 }
 
 /**
- * Generate the full HTML document for production
+ * Generate the full HTML document for production.
+ * Uses the HTML template from public/index.html, replacing
+ * <!--ssr-head--> and <!--ssr-body--> placeholders.
+ *
  * @param {Object} options
- * @param {string} options.head
- * @param {string} options.body
+ * @param {string} options.head - SSR-rendered head content
+ * @param {string} options.body - SSR-rendered body content
  * @param {RenderRoute} options.route
  * @param {import('@ripple-ts/vite-plugin').Context} options.context
- * @param {string} options.clientBase
+ * @param {string} options.clientBase - Base path for client assets
+ * @param {Record<string, ClientAssetEntry>} options.clientAssets - Map of entry paths to built asset paths
+ * @param {string} options.htmlTemplate - HTML template with <!--ssr-head--> and <!--ssr-body--> placeholders
  * @returns {string}
  */
-function generateHtml({ head, body, route, context, clientBase }) {
+function generateHtml({ head, body, route, context, clientBase, clientAssets, htmlTemplate }) {
 	const routeData = JSON.stringify({
 		entry: route.entry,
 		params: context.params,
 	});
 
+	// Build asset tags for the current route entry
+	const entryAssets = clientAssets[route.entry];
+	/** @type {string[]} */
+	const headParts = [];
+	/** @type {string[]} */
+	const bodyParts = [];
+
+	// Add CSS links for the route's CSS files
+	if (entryAssets?.css) {
+		for (const cssFile of entryAssets.css) {
+			headParts.push(`<link rel="stylesheet" href="${clientBase}${cssFile}">`);
+		}
+	}
+
+	// Add SSR head content (component-rendered head + scoped styles)
+	if (head) {
+		headParts.push(head);
+	}
+
+	// Preload the route's JS module
+	if (entryAssets?.js) {
+		headParts.push(`<link rel="modulepreload" href="${clientBase}${entryAssets.js}">`);
+	}
+
+	// Preload the hydrate runtime
+	const hydrateAsset = clientAssets.__hydrate_js?.js;
+	if (hydrateAsset) {
+		headParts.push(`<link rel="modulepreload" href="${clientBase}${hydrateAsset}">`);
+	}
+
+	// Body: SSR content + hydration data + hydration script
+	bodyParts.push(body);
+	bodyParts.push(
+		`<script id="__ripple_data" type="application/json">${escapeScript(routeData)}</script>`,
+	);
+
+	// Inline hydration bootstrap script
+	const hydrateJs = hydrateAsset ? `${clientBase}${hydrateAsset}` : null;
+	const entryJs = entryAssets?.js ? `${clientBase}${entryAssets.js}` : null;
+
+	if (hydrateJs && entryJs) {
+		bodyParts.push(`<script type="module">
+import { hydrate, mount } from '${hydrateJs}';
+import Component from '${entryJs}';
+const target = document.getElementById('root');
+const data = JSON.parse(document.getElementById('__ripple_data').textContent);
+try {
+  hydrate(Component, { target, props: { params: data.params } });
+} catch (e) {
+  console.warn('[ripple] Hydration failed, falling back to mount.', e);
+  mount(Component, { target, props: { params: data.params } });
+}
+</script>`);
+	}
+
+	// If we have an HTML template, use it with placeholder replacement
+	if (htmlTemplate) {
+		let html = htmlTemplate;
+		html = html.replace('<!--ssr-head-->', headParts.join('\n'));
+		html = html.replace('<!--ssr-body-->', bodyParts.join('\n'));
+		return html;
+	}
+
+	// Fallback: generate a minimal HTML document
 	return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-${head}
+${headParts.join('\n')}
 </head>
 <body>
-<div id="app">${body}</div>
-<script id="__ripple_data" type="application/json">${escapeScript(routeData)}</script>
-<script type="module">
-import { hydrate, mount } from '${clientBase}ripple.js';
-
-const data = JSON.parse(document.getElementById('__ripple_data').textContent);
-const target = document.getElementById('app');
-
-try {
-  const module = await import('${clientBase}' + data.entry.replace(/^\\//, '').replace(/\\.ripple$/, '.js'));
-  const Component =
-    module.default ||
-    Object.entries(module).find(([key, value]) => typeof value === 'function' && /^[A-Z]/.test(key))?.[1];
-
-  if (!Component || !target) {
-    console.error('[ripple] Unable to hydrate route: missing component export or #app target.');
-  } else {
-    try {
-      hydrate(Component, {
-        target,
-        props: { params: data.params }
-      });
-    } catch (error) {
-      console.warn('[ripple] Hydration failed, falling back to mount.', error);
-      mount(Component, {
-        target,
-        props: { params: data.params }
-      });
-    }
-  }
-} catch (error) {
-  console.error('[ripple] Failed to bootstrap client hydration.', error);
-}
-</script>
+<div id="root">${bodyParts.join('\n')}</div>
 </body>
 </html>`;
 }

@@ -12,6 +12,10 @@
       "types": "./types/index.d.ts",
       "import": "./src/index.js",
       "default": "./src/index.js"
+    },
+    "./server/production": {
+      "import": "./src/server/production.js",
+      "default": "./src/server/production.js"
     }
   },
   "homepage": "https://ripplejs.com",

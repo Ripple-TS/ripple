@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { Readable } from 'node:stream';
+import { pathToFileURL } from 'node:url';
 
 import { createRouter } from './server/router.js';
 import { createContext, runMiddlewareChain } from './server/middleware.js';
@@ -330,7 +331,7 @@ export function ripple(inlineOptions = {}) {
 			enforce: 'pre',
 			api,
 
-			async config(userConfig) {
+			async config(userConfig, { command }) {
 				if (excludeRippleExternalModules) {
 					return {
 						optimizeDeps: {
@@ -361,11 +362,63 @@ export function ripple(inlineOptions = {}) {
 					`option to the 'ripple' plugin to skip this scan.`,
 				);
 
+				/** @type {Record<string, unknown>} */
+				const buildConfig = {};
+
+				const configRoot = userConfig.root || process.cwd();
+				const rippleConfigPath = path.join(configRoot, 'ripple.config.ts');
+				const hasRippleConfig = fs.existsSync(rippleConfigPath);
+
+				// When ripple.config.ts exists, always set outDir so vite preview
+				// knows where the client assets live
+				if (hasRippleConfig) {
+					buildConfig.outDir = userConfig.build?.outDir || 'dist/client';
+				}
+
+				// For builds, set up client build entries
+				// Skip if this is already an SSR build (triggered by our closeBundle hook)
+				if (command === 'build' && !userConfig.build?.ssr && hasRippleConfig) {
+					// Generate a small hydrate runtime entry that re-exports hydrate/mount
+					const hydrateEntryPath = path.join(configRoot, '.ripple-hydrate-entry.js');
+					fs.writeFileSync(hydrateEntryPath, `export { hydrate, mount } from 'ripple';\n`);
+
+					// Scan for .ripple page files to use as entry points
+					/** @type {Record<string, string>} */
+					const pageEntries = {};
+					const pagesDir = path.join(configRoot, 'src', 'pages');
+					if (fs.existsSync(pagesDir)) {
+						/**
+						 * @param {string} dir
+						 * @param {string} prefix
+						 */
+						const scanDir = (dir, prefix = '') => {
+							for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+								if (entry.isDirectory()) {
+									scanDir(path.join(dir, entry.name), prefix + entry.name + '/');
+								} else if (entry.name.endsWith('.ripple')) {
+									const name = prefix + entry.name.replace('.ripple', '');
+									pageEntries[`pages/${name}`] = path.join(dir, entry.name);
+								}
+							}
+						};
+						scanDir(pagesDir);
+					}
+
+					buildConfig.manifest = true;
+					buildConfig.rollupOptions = {
+						input: {
+							__ripple_hydrate: hydrateEntryPath,
+							...pageEntries,
+						},
+					};
+				}
+
 				// Return a config hook that will merge with user's config
 				return {
 					optimizeDeps: {
 						exclude: allExclude,
 					},
+					...(Object.keys(buildConfig).length > 0 ? { build: buildConfig } : {}),
 				};
 			},
 
@@ -631,6 +684,260 @@ try {
 					return js;
 				},
 			},
+
+			/**
+			 * Configure the preview server to use the built SSR handler
+			 * @param {import('vite').PreviewServer} server
+			 */
+			configurePreviewServer(server) {
+				const serverEntryPath = path.join(root, 'dist', 'server', 'index.js');
+				if (!fs.existsSync(serverEntryPath)) return;
+
+				/** @type {Promise<{ handler: (request: Request) => Promise<Response> } | null>} */
+				const ssrModulePromise = (async () => {
+					try {
+						process.env.RIPPLE_PREVIEW = '1';
+						return await import(pathToFileURL(serverEntryPath).href);
+					} catch (error) {
+						console.error(
+							'[@ripple-ts/vite-plugin] Failed to load SSR handler from dist/server/index.js:',
+							error,
+						);
+						return null;
+					}
+				})();
+
+				ssrModulePromise.then((mod) => {
+					if (!mod || typeof mod.handler !== 'function') {
+						console.warn(
+							'[@ripple-ts/vite-plugin] dist/server/index.js does not export a handler function',
+						);
+					} else {
+						console.log('[@ripple-ts/vite-plugin] Preview server using SSR handler');
+					}
+				});
+
+				// Pre-hook: runs before Vite's built-in static file serving
+				// so SSR routes take priority over index.html in dist/client
+				server.middlewares.use(async (req, res, next) => {
+					const origin = `http://${req.headers.host || 'localhost'}`;
+					const url = new URL(req.url || '/', origin);
+
+					// Let Vite's static file serving handle assets
+					if (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/.vite/')) {
+						next();
+						return;
+					}
+
+					// Also let Vite handle files with extensions (images, fonts, etc.)
+					if (url.pathname !== '/' && path.extname(url.pathname)) {
+						next();
+						return;
+					}
+
+					const ssrModule = await ssrModulePromise;
+					if (!ssrModule || typeof ssrModule.handler !== 'function') {
+						next();
+						return;
+					}
+
+					try {
+						const request = new Request(new URL(req.url || '/', origin), {
+							method: req.method,
+							headers: /** @type {HeadersInit} */ (req.headers),
+						});
+
+						const response = await ssrModule.handler(request);
+
+						// Write status and headers
+						res.statusCode = response.status;
+						response.headers.forEach((value, key) => {
+							res.setHeader(key, value);
+						});
+
+						// Stream body
+						if (response.body) {
+							const reader = response.body.getReader();
+							const pump = async () => {
+								const { done, value } = await reader.read();
+								if (done) {
+									res.end();
+									return;
+								}
+								res.write(value);
+								await pump();
+							};
+							await pump();
+						} else {
+							res.end(await response.text());
+						}
+					} catch (error) {
+						console.error('[@ripple-ts/vite-plugin] Preview SSR error:', error);
+						next();
+					}
+				});
+			},
+
+			async closeBundle() {
+				// Only run SSR build when doing a production client build
+				// Skip if this is already the SSR build (triggered by this hook)
+				if (config?.command !== 'build') return;
+				if (config?.build?.ssr) return;
+
+				const rippleConfigPath = path.join(root, 'ripple.config.ts');
+				if (!fs.existsSync(rippleConfigPath)) return;
+
+				const clientOutDir = config.build?.outDir || path.join(root, 'dist/client');
+				const serverOutDir = path.join(path.dirname(clientOutDir), 'server');
+
+				// Clean up the generated hydrate entry
+				const hydrateEntryPath = path.join(root, '.ripple-hydrate-entry.js');
+				try {
+					fs.unlinkSync(hydrateEntryPath);
+				} catch {
+					// ignore
+				}
+
+				console.log('[@ripple-ts/vite-plugin] Starting SSR build...');
+
+				// Load ripple.config.ts using dynamic import
+				/** @type {RippleConfigOptions} */
+				let loadedConfig;
+				try {
+					const configUrl = pathToFileURL(rippleConfigPath).href;
+					const configModule = await import(configUrl);
+					loadedConfig = configModule.default;
+				} catch (error) {
+					console.error('[@ripple-ts/vite-plugin] Failed to load ripple.config.ts:', error);
+					return;
+				}
+
+				if (!loadedConfig?.router?.routes) {
+					console.log('[@ripple-ts/vite-plugin] No routes defined, skipping SSR build');
+					return;
+				}
+
+				// Read Vite's client manifest
+				const manifestPath = path.join(clientOutDir, '.vite', 'manifest.json');
+				if (!fs.existsSync(manifestPath)) {
+					console.error('[@ripple-ts/vite-plugin] Client manifest not found at', manifestPath);
+					return;
+				}
+
+				const clientManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+
+				// Read the HTML template
+				const templatePath = path.join(root, 'public', 'index.html');
+				const htmlTemplate = fs.readFileSync(templatePath, 'utf-8');
+
+				// Collect all render route entries and layouts
+				const renderRoutes = loadedConfig.router.routes.filter((r) => r.type === 'render');
+				const entries = [...new Set(renderRoutes.map((r) => r.entry))];
+				const layouts = [...new Set(renderRoutes.map((r) => r.layout).filter(Boolean))];
+
+				// Build client asset map from manifest
+				// Manifest keys use source-relative paths, route entries use /src/pages/... paths
+				/** @type {Record<string, { js: string, css: string[] }>} */
+				const clientAssetMap = {};
+
+				// Recursively collect all CSS files from a manifest entry and its imports
+				/**
+				 * @param {string} key - Manifest key
+				 * @param {Set<string>} visited - Already visited keys to avoid cycles
+				 * @returns {string[]}
+				 */
+				const collectCss = (key, visited = new Set()) => {
+					if (visited.has(key)) return [];
+					visited.add(key);
+					const entry = clientManifest[key];
+					if (!entry) return [];
+					/** @type {string[]} */
+					const css = [...(entry.css || [])];
+					for (const imp of entry.imports || []) {
+						css.push(...collectCss(imp, visited));
+					}
+					return css;
+				};
+
+				// Find the hydrate runtime entry in manifest
+				let hydrateAsset = '';
+				for (const [key, value] of Object.entries(clientManifest)) {
+					if (
+						key.includes('.ripple-hydrate-entry') ||
+						/** @type {any} */ (value).name === '__ripple_hydrate'
+					) {
+						hydrateAsset = /** @type {any} */ (value).file;
+						break;
+					}
+				}
+
+				// Map route entry paths to built assets (with all CSS from dependency tree)
+				for (const entry of entries) {
+					// Route entry is like '/src/pages/index.ripple'
+					// Manifest key is the source-relative path like 'src/pages/index.ripple'
+					const manifestKey = entry.startsWith('/') ? entry.slice(1) : entry;
+					const manifestEntry = clientManifest[manifestKey];
+					if (manifestEntry) {
+						const allCss = [...new Set(collectCss(manifestKey))];
+						clientAssetMap[entry] = {
+							js: manifestEntry.file,
+							css: allCss,
+						};
+					}
+				}
+
+				// Generate SSR entry module
+				const ssrEntry = generateSSREntry(
+					loadedConfig,
+					entries,
+					layouts,
+					clientAssetMap,
+					hydrateAsset,
+					htmlTemplate,
+				);
+
+				// Write SSR entry to a temp file
+				const ssrEntryPath = path.join(root, '.ripple-ssr-entry.js');
+				fs.writeFileSync(ssrEntryPath, ssrEntry);
+
+				try {
+					// Run SSR build using Vite's API
+					const { build: viteBuild } = await import('vite');
+					await viteBuild({
+						root,
+						configFile: false,
+						logLevel: 'warn',
+						plugins: [ripple()],
+						publicDir: false,
+						build: {
+							ssr: true,
+							outDir: serverOutDir,
+							minify: false,
+							copyPublicDir: false,
+							rollupOptions: {
+								input: ssrEntryPath,
+								output: {
+									entryFileNames: 'index.js',
+								},
+							},
+						},
+						define: {
+							'import.meta.env.TEST': 'false',
+						},
+					});
+
+					console.log(`[@ripple-ts/vite-plugin] SSR build complete → ${serverOutDir}`);
+				} catch (error) {
+					console.error('[@ripple-ts/vite-plugin] SSR build failed:', error);
+				} finally {
+					// Clean up temp file
+					try {
+						fs.unlinkSync(ssrEntryPath);
+					} catch {
+						// ignore
+					}
+				}
+			},
 		},
 	];
 
@@ -640,6 +947,133 @@ try {
 // This is mainly to enforce types and provide a better DX with types than anything else
 export function defineConfig(/** @type {RipplePluginOptions} */ options) {
 	return options;
+}
+
+// ============================================================================
+// SSR Build helpers
+// ============================================================================
+
+/**
+ * Generate the SSR entry module source code.
+ * This module is the server-side entry point that imports all route components,
+ * creates the production handler, and exports a standalone server.
+ *
+ * @param {RippleConfigOptions} rippleConfig
+ * @param {string[]} entries - Unique entry paths from render routes
+ * @param {string[]} layouts - Unique layout paths from render routes
+ * @param {Record<string, { js: string, css: string[] }>} clientAssetMap - Map of entry paths to built asset paths
+ * @param {string} hydrateAsset - Built path of the hydrate runtime entry
+ * @param {string} htmlTemplate - The raw index.html template
+ * @returns {string}
+ */
+function generateSSREntry(
+	rippleConfig,
+	entries,
+	layouts,
+	clientAssetMap,
+	hydrateAsset,
+	htmlTemplate,
+) {
+	const componentImports = entries
+		.map((entry, i) => `import * as _entry_${i} from '${entry}';`)
+		.join('\n');
+
+	const layoutImports = layouts
+		.map((layout, i) => `import * as _layout_${i} from '${layout}';`)
+		.join('\n');
+
+	const componentMap = entries
+		.map((entry, i) => `  '${entry}': getDefaultExport(_entry_${i})`)
+		.join(',\n');
+
+	const layoutMap = layouts
+		.map((layout, i) => `  '${layout}': getDefaultExport(_layout_${i})`)
+		.join(',\n');
+
+	// Add a special entry for the hydrate runtime so generateHtml can find it
+	const allClientAssets = { ...clientAssetMap };
+	if (hydrateAsset) {
+		allClientAssets.__hydrate_js = { js: hydrateAsset, css: [] };
+	}
+
+	// Collect all route definitions as serializable data
+	const routeDefs = rippleConfig.router.routes.map((route) => {
+		if (route.type === 'render') {
+			return `  new RenderRoute({ path: ${JSON.stringify(route.path)}, entry: ${JSON.stringify(route.entry)}${route.layout ? `, layout: ${JSON.stringify(route.layout)}` : ''} })`;
+		} else {
+			// ServerRoutes with handlers can't be serialized - import them from config
+			return `  configRoutes.find(r => r.type === 'server' && r.path === ${JSON.stringify(route.path)})`;
+		}
+	});
+
+	// Check if there are server routes that need the config import
+	const hasServerRoutes = rippleConfig.router.routes.some((r) => r.type === 'server');
+
+	const escapedTemplate = JSON.stringify(htmlTemplate);
+
+	return `
+// Auto-generated SSR entry by @ripple-ts/vite-plugin
+import { render, get_css_for_hashes } from 'ripple/server';
+import { createHandler } from '@ripple-ts/vite-plugin/server/production';
+import { RenderRoute } from '@ripple-ts/vite-plugin';
+${hasServerRoutes ? `import rippleConfig from './ripple.config.ts';\nconst configRoutes = rippleConfig.router.routes;` : ''}
+
+// Import all route components
+${componentImports}
+${layoutImports}
+
+function getDefaultExport(mod) {
+  return mod.default || Object.values(mod).find(v => typeof v === 'function' && /^[A-Z]/.test(v.name));
+}
+
+const components = {
+${componentMap}
+};
+
+const layouts = {
+${layoutMap}
+};
+
+const routes = [
+${routeDefs.join(',\n')}
+].filter(Boolean);
+
+const clientAssets = ${JSON.stringify(allClientAssets, null, 2)};
+
+const htmlTemplate = ${escapedTemplate};
+
+const manifest = {
+  routes,
+  components,
+  layouts,
+  middlewares: [],
+};
+
+export const handler = createHandler(manifest, {
+  render,
+  getCss: get_css_for_hashes,
+  clientBase: '/',
+  clientAssets,
+  htmlTemplate,
+});
+
+// Default export: start the server when run directly
+export default async function startServer() {
+  const config = ${hasServerRoutes ? 'rippleConfig' : `(await import('./ripple.config.ts')).default`};
+  if (config.adapter?.serve) {
+    const server = config.adapter.serve(handler, {
+      static: { dir: new URL('../client', import.meta.url).pathname },
+    });
+    server.listen(Number(process.env.PORT) || 3000);
+    console.log('[ripple] Production server started on port ' + (process.env.PORT || 3000));
+  } else {
+    console.error('[ripple] No adapter.serve configured in ripple.config.ts');
+  }
+}
+
+// Auto-start when run directly (skip when loaded by vite preview)
+if (!process.env.RIPPLE_PREVIEW) startServer();
+`;
 }
 
 // ============================================================================

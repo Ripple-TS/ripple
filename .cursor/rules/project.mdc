@@ -405,7 +405,7 @@ import { describe, it, expect } from 'vitest';
 component default() {
   describe('tracked', () => {
     it('updates when value changes', async () => {
-      let count = @0;
+      let count = track(0);
       // test implementation
     });
   });
