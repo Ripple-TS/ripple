@@ -833,7 +833,9 @@ try {
 				// Collect all render route entries and layouts
 				const renderRoutes = loadedConfig.router.routes.filter((r) => r.type === 'render');
 				const entries = [...new Set(renderRoutes.map((r) => r.entry))];
-				const layouts = [...new Set(renderRoutes.map((r) => r.layout).filter(Boolean))];
+				const layouts = /** @type {string[]} */ ([
+					...new Set(renderRoutes.map((r) => r.layout).filter(Boolean)),
+				]);
 
 				// Build client asset map from manifest
 				// Manifest keys use source-relative paths, route entries use /src/pages/... paths
