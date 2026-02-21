@@ -1,17 +1,25 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import { Marked } from 'marked';
 import { createHighlighter } from 'shiki';
 
-// Resolve the docs directory relative to this module
-const docs_dir = path.resolve(import.meta.dirname, '../../docs');
+// Import the Ripple TextMate grammar directly (bundled by Vite at build time)
+import ripple_grammar from '../../../grammars/textmate/ripple.tmLanguage.json';
 
-// Load the Ripple TextMate grammar
-const ripple_grammar_path = path.resolve(
-	import.meta.dirname,
-	'../../../grammars/textmate/ripple.tmLanguage.json',
-);
-const ripple_grammar = JSON.parse(fs.readFileSync(ripple_grammar_path, 'utf-8'));
+// Import all doc markdown files as raw strings (bundled by Vite at build time).
+// This ensures docs are available in production without runtime fs access.
+const docs_files = import.meta.glob('../../docs/**/*.md', {
+	query: '?raw',
+	import: 'default',
+	eager: true,
+});
+
+// Build a slug -> content map
+const DOCS_GLOB_PREFIX = '../../docs/';
+/** @type {Record<string, string>} */
+const docs_map = {};
+for (const [file_path, content] of Object.entries(docs_files)) {
+	const slug = file_path.slice(DOCS_GLOB_PREFIX.length, -3);
+	docs_map[slug] = /** @type {string} */ (content);
+}
 const modified_grammar = {
 	...ripple_grammar,
 	embeddedLangs: ['jsx', 'tsx', 'css'],
@@ -190,9 +198,9 @@ function get_prev_next(slug) {
  * @returns {{ html: string, title: string, toc: Array<{ href: string, text: string }>, editPath: string, prev: { href: string, text: string } | null, next: { href: string, text: string } | null }}
  */
 export function get_doc(slug) {
-	const file_path = path.join(docs_dir, slug + '.md');
+	const content = docs_map[slug];
 
-	if (!fs.existsSync(file_path)) {
+	if (!content) {
 		return {
 			html: '<p>Page not found.</p>',
 			title: 'Not Found',
@@ -202,8 +210,6 @@ export function get_doc(slug) {
 			next: null,
 		};
 	}
-
-	let content = fs.readFileSync(file_path, 'utf-8');
 	const { frontmatter, body } = parse_frontmatter(content);
 
 	// Pre-process content

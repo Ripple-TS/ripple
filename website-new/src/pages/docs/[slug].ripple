@@ -1,19 +1,9 @@
 import { DocsLayout } from '../../components/docs-layout.ripple';
-
-#server {
-	import { get_doc } from '../../lib/markdown.js';
-
-	/**
- * @param {string} slug
- */
-	export function load_doc(slug) {
-		return get_doc(slug);
-	}
-}
+import { get_doc } from '../../lib/markdown.js';
 
 export component DocsPage({ params }: { params: { slug?: string } }) {
 	const slug = params.slug || 'introduction';
-	const doc = #server.load_doc(slug);
+	const doc = get_doc(slug);
 
 	<DocsLayout
 		title={doc.title}
