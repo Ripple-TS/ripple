@@ -11,7 +11,7 @@ import { spawn } from 'node:child_process';
 import path from 'node:path';
 import fs from 'node:fs';
 import { loadRippleConfig } from '../load-config.js';
-import { OUTDIR_DEFAULT } from '../constants.js';
+import { DEFAULT_OUTDIR } from '../constants.js';
 
 const projectRoot = process.cwd();
 
@@ -24,7 +24,7 @@ if (!fs.existsSync(configPath)) {
 
 try {
 	const config = await loadRippleConfig(projectRoot);
-	const outDir = config?.build?.outDir ?? OUTDIR_DEFAULT;
+	const outDir = config?.build?.outDir ?? DEFAULT_OUTDIR;
 	const entryPath = path.join(projectRoot, outDir, 'server', 'entry.js');
 
 	if (!fs.existsSync(entryPath)) {

@@ -8,49 +8,24 @@
  * Used by both the Vite dev server and production server runtime.
  */
 
+/**
+@import {
+	RipplePatchedFetch,
+	RpcEntry,
+	handle_rpc_request,
+	is_rpc_request,
+	build_rpc_lookup,
+	patch_global_fetch,
+} from '@ripple-ts/adapter/rpc';
+ */
+
 const RPC_PATH_PREFIX = '/_$_ripple_rpc_$_/';
-
-/**
- * @typedef {Object} AsyncContext
- * @property {<R>(store: any, fn: () => R | Promise<R>) => R | Promise<R>} run
- * @property {() => any} getStore
- */
-
-/**
- * @typedef {Object} RuntimePrimitives
- * @property {(str: string) => string} hash - Hash a string for RPC function identification
- * @property {() => AsyncContext} createAsyncContext - Create a request-scoped async context
- */
-
-/**
- * @typedef {Object} RpcEntry
- * @property {Record<string, Function>} serverObj - The _$_server_$_ object from the module
- * @property {string} funcName - The exported function name
- */
-
-/**
- * @typedef {Object} HandleRpcOptions
- * @property {(hash: string) => Function | null | Promise<Function | null>} resolveFunction - Resolve hash → server function
- * @property {(fn: Function, body: string) => Promise<string>} executeServerFunction - Execute a server function
- * @property {AsyncContext} asyncContext - Request-scoped async context
- * @property {boolean} trustProxy - Whether to trust X-Forwarded-* headers
- */
 
 // ============================================================================
 // Origin derivation
 // ============================================================================
 
-/**
- * Derive the request origin (protocol + host) from a Web Request.
- * Only honours `X-Forwarded-Proto` and `X-Forwarded-Host` headers when
- * `trustProxy` is explicitly enabled; otherwise origin comes from the URL.
- *
- * Uses only standard Web APIs — no Node.js imports.
- *
- * @param {Request} request
- * @param {boolean} trust_proxy
- * @returns {string}
- */
+/** @type {import('@ripple-ts/adapter/rpc').derive_origin} */
 export function derive_origin(request, trust_proxy) {
 	const url = new URL(request.url);
 	let protocol = url.protocol.replace(':', '');
@@ -84,20 +59,15 @@ function has_scheme(url) {
 	return /^[a-z][a-z0-9+\-.]*:/i.test(url);
 }
 
-/**
- * Patch `globalThis.fetch` to resolve relative URLs based on the current
- * request context stored in the provided async context.
- *
- * This allows server functions in `#server` blocks to use relative URLs
- * (e.g., "/api/foo", "./data") that are resolved against the incoming
- * request's origin.
- *
- * Should be called once during server initialization.
- *
- * @param {AsyncContext} async_context
- * @returns {() => void} Cleanup function that restores the original fetch
- */
+/** @type {patch_global_fetch} */
 export function patch_global_fetch(async_context) {
+	// Guard: if fetch is already patched by Ripple, don't wrap it again.
+	// This prevents layered wrapping when createHandler() or getDevAsyncContext()
+	// is called more than once in the same process (tests, hot reload, etc.).
+	if (/** @type {RipplePatchedFetch} */ (globalThis.fetch).__ripple_patched) {
+		return () => {};
+	}
+
 	/** @type {typeof globalThis.fetch} */
 	const original_fetch = globalThis.fetch;
 
@@ -132,6 +102,9 @@ export function patch_global_fetch(async_context) {
 	// function satisfies the full `typeof fetch` contract.
 	Object.assign(patched_fetch, original_fetch);
 
+	// Mark as patched so subsequent calls are idempotent
+	/** @type {RipplePatchedFetch} */ (patched_fetch).__ripple_patched = true;
+
 	globalThis.fetch = /** @type {typeof globalThis.fetch} */ (patched_fetch);
 
 	return () => {
@@ -143,16 +116,7 @@ export function patch_global_fetch(async_context) {
 // RPC lookup
 // ============================================================================
 
-/**
- * Build a hash → RpcEntry lookup from a map of rpcModules.
- *
- * The hash algorithm must match the compiler's ServerBlock transform.
- * The adapter's runtime provides the hash function.
- *
- * @param {Record<string, Record<string, Function>>} rpc_modules - Map of entry path → _$_server_$_ object
- * @param {(str: string) => string} hash_fn - Platform-specific hash function from adapter runtime
- * @returns {Map<string, RpcEntry>}
- */
+/** @type {build_rpc_lookup} */
 export function build_rpc_lookup(rpc_modules, hash_fn) {
 	/** @type {Map<string, RpcEntry>} */
 	const lookup = new Map();
@@ -172,29 +136,12 @@ export function build_rpc_lookup(rpc_modules, hash_fn) {
 // RPC request handler
 // ============================================================================
 
-/**
- * Check whether a URL pathname is an RPC request.
- *
- * @param {string} pathname
- * @returns {boolean}
- */
+/** @type {is_rpc_request} */
 export function is_rpc_request(pathname) {
 	return pathname.startsWith(RPC_PATH_PREFIX);
 }
 
-/**
- * Handle an RPC request for a `#server` block function.
- *
- * Platform-agnostic — operates on Web Request/Response and receives
- * environment-specific behavior via the `options` callbacks.
- *
- * In dev, `resolveFunction` uses Vite's `ssrLoadModule` to hot-load modules.
- * In production, it looks up a pre-built map.
- *
- * @param {Request} request
- * @param {HandleRpcOptions} options
- * @returns {Promise<Response>}
- */
+/** @type {handle_rpc_request} */
 export async function handle_rpc_request(request, options) {
 	const { resolveFunction, executeServerFunction, asyncContext, trustProxy } = options;
 

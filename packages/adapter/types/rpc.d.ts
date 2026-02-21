@@ -87,3 +87,7 @@ export function is_rpc_request(pathname: string): boolean;
  * Handle an RPC request. Platform-agnostic (Web Request/Response).
  */
 export function handle_rpc_request(request: Request, options: HandleRpcOptions): Promise<Response>;
+
+export type RipplePatchedFetch = typeof globalThis.fetch & {
+	__ripple_patched?: boolean;
+};

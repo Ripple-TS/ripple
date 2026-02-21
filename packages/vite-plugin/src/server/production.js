@@ -26,29 +26,11 @@ import {
  */
 
 /**
- * @typedef {Object} ServerManifest
- * @property {Route[]} routes - Array of route definitions
- * @property {Record<string, Function>} components - Map of entry path → component function
- * @property {Record<string, Function>} layouts - Map of layout path → layout function
- * @property {Middleware[]} middlewares - Global middlewares
- * @property {Record<string, Record<string, Function>>} [rpcModules] - Map of entry path → _$_server_$_ object
- * @property {boolean} [trustProxy] - Trust X-Forwarded-* headers when deriving origin
- * @property {import('@ripple-ts/adapter/rpc').RuntimePrimitives} runtime - Platform-specific runtime primitives from adapter
- */
-
-/**
- * @typedef {Object} RenderResult
- * @property {string} head
- * @property {string} body
- * @property {Set<string>} css
- */
-
-/**
- * @typedef {Object} HandlerOptions
- * @property {(component: Function) => Promise<RenderResult>} render - SSR render function
- * @property {(css: Set<string>) => string} getCss - Get CSS string for hashes
- * @property {string} htmlTemplate - The HTML template string (from index.html, post-build)
- * @property {(fn: Function, body: string) => Promise<string>} executeServerFunction - RPC executor
+@import {
+	ServerManifest,
+	RenderResult,
+	HandlerOptions,
+} from '@ripple-ts/vite-plugin/production';
  */
 
 /**
