@@ -18,6 +18,8 @@ import {
 	handle_rpc_request,
 } from '@ripple-ts/adapter/rpc';
 
+export { resolveRippleConfig } from '../load-config.js';
+
 /**
  * @typedef {import('@ripple-ts/vite-plugin').Route} Route
  * @typedef {import('@ripple-ts/vite-plugin').Middleware} Middleware
@@ -47,8 +49,8 @@ import {
 export function createHandler(manifest, options) {
 	const { render, getCss, htmlTemplate, executeServerFunction } = options;
 	const router = createRouter(manifest.routes);
-	const globalMiddlewares = manifest.middlewares || [];
-	const trustProxy = manifest.trustProxy ?? false;
+	const globalMiddlewares = manifest.middlewares;
+	const trustProxy = manifest.trustProxy;
 	const clientAssets = manifest.clientAssets || {};
 
 	// Use adapter's runtime primitives for platform-agnostic operation

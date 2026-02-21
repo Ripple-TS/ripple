@@ -125,14 +125,22 @@ export function generateServerEntry(options) {
 // Do not edit — regenerated on each build
 
 import { render, get_css_for_hashes, executeServerFunction } from 'ripple/server';
-import { createHandler } from '@ripple-ts/vite-plugin/production';
+import { createHandler, resolveRippleConfig } from '@ripple-ts/vite-plugin/production';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 
-import rippleConfig from ${JSON.stringify(rippleConfigPath)};
+import _rawRippleConfig from ${JSON.stringify(rippleConfigPath)};
 
 ${import_lines.join('\n')}
+
+let rippleConfig;
+try {
+  rippleConfig = resolveRippleConfig(_rawRippleConfig, { requireAdapter: true });
+} catch (e) {
+  console.error(e.message);
+  process.exit(1);
+}
 
 function getDefaultExport(mod) {
   if (typeof mod.default === 'function') return mod.default;
@@ -162,20 +170,14 @@ const htmlTemplate = readFileSync(join(__dirname, ${JSON.stringify(htmlTemplateP
 
 const clientAssets = ${JSON.stringify(clientAssetMap, null, 2)};
 
-if (!rippleConfig.adapter?.runtime) {
-  console.error('[ripple] No adapter (or adapter.runtime) configured in ripple.config.ts.');
-  console.error('[ripple] Install an adapter package (e.g. @ripple-ts/adapter-node) and set the \\\`adapter\\\` property.');
-  process.exit(1);
-}
-
 const handler = createHandler(
   {
     routes: rippleConfig.router.routes,
     components,
     layouts,
-    middlewares: rippleConfig.middlewares || [],
+    middlewares: rippleConfig.middlewares,
     rpcModules,
-    trustProxy: rippleConfig.server?.trustProxy ?? false,
+    trustProxy: rippleConfig.server.trustProxy,
     runtime: rippleConfig.adapter.runtime,
     clientAssets,
   },

@@ -11,20 +11,13 @@ import { spawn } from 'node:child_process';
 import path from 'node:path';
 import fs from 'node:fs';
 import { loadRippleConfig } from '../load-config.js';
-import { DEFAULT_OUTDIR, ENTRY_FILENAME } from '../constants.js';
+import { ENTRY_FILENAME } from '../constants.js';
 
 const projectRoot = process.cwd();
 
-// Quick sanity check — does the config file exist?
-const configPath = path.join(projectRoot, 'ripple.config.ts');
-if (!fs.existsSync(configPath)) {
-	console.error('[ripple-preview] ripple.config.ts not found in', projectRoot);
-	process.exit(1);
-}
-
 try {
 	const config = await loadRippleConfig(projectRoot);
-	const outDir = config?.build?.outDir ?? DEFAULT_OUTDIR;
+	const outDir = config.build.outDir;
 	const entryPath = path.join(projectRoot, outDir, 'server', ENTRY_FILENAME);
 
 	if (!fs.existsSync(entryPath)) {

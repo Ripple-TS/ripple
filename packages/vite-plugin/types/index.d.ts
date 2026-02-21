@@ -1,4 +1,4 @@
-import type { Plugin, BuildEnvironmentOptions } from 'vite';
+import type { Plugin, BuildEnvironmentOptions, ViteDevServer } from 'vite';
 import type { RuntimePrimitives } from '@ripple-ts/adapter';
 
 declare module '@ripple-ts/vite-plugin' {
@@ -8,6 +8,16 @@ declare module '@ripple-ts/vite-plugin' {
 
 	export function ripple(options?: RipplePluginOptions): Plugin[];
 	export function defineConfig(options: RippleConfigOptions): RippleConfigOptions;
+	export function resolveRippleConfig(
+		raw: RippleConfigOptions,
+		options?: { requireAdapter?: boolean },
+	): ResolvedRippleConfig;
+	export function getRippleConfigPath(projectRoot: string): string;
+	export function rippleConfigExists(projectRoot: string): boolean;
+	export function loadRippleConfig(
+		projectRoot: string,
+		options?: { vite?: ViteDevServer; requireAdapter?: boolean },
+	): Promise<ResolvedRippleConfig>;
 
 	// ============================================================================
 	// Route classes
@@ -132,6 +142,37 @@ declare module '@ripple-ts/vite-plugin' {
 		};
 	}
 
+	/**
+	 * Resolved configuration with all defaults applied.
+	 * Returned by `resolveRippleConfig` and `loadRippleConfig`.
+	 * Consumers should use this type instead of applying ad-hoc defaults.
+	 */
+	export interface ResolvedRippleConfig {
+		build: {
+			/** @default 'dist' */
+			outDir: string;
+			minify?: boolean;
+			target?: BuildEnvironmentOptions['target'];
+		};
+		adapter?: {
+			serve: AdapterServeFunction;
+			runtime: RuntimePrimitives;
+		};
+		router: {
+			routes: Route[];
+		};
+		/** @default [] */
+		middlewares: Middleware[];
+		platform: {
+			/** @default {} */
+			env: Record<string, string>;
+		};
+		server: {
+			/** @default false */
+			trustProxy: boolean;
+		};
+	}
+
 	export type AdapterServeFunction = (
 		handler: (request: Request, platform?: unknown) => Response | Promise<Response>,
 		options?: Record<string, unknown>,
@@ -139,7 +180,18 @@ declare module '@ripple-ts/vite-plugin' {
 }
 
 declare module '@ripple-ts/vite-plugin/production' {
-	import type { Route, Middleware, RuntimePrimitives } from '@ripple-ts/vite-plugin';
+	import type {
+		Route,
+		Middleware,
+		RuntimePrimitives,
+		ResolvedRippleConfig,
+		RippleConfigOptions,
+	} from '@ripple-ts/vite-plugin';
+
+	export function resolveRippleConfig(
+		raw: RippleConfigOptions,
+		options?: { requireAdapter?: boolean },
+	): ResolvedRippleConfig;
 
 	export interface ClientAssetEntry {
 		/** Path to the built JS file (relative to client output dir) */

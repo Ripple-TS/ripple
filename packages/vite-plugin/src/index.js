@@ -1,6 +1,6 @@
 /** @import {PackageJson} from 'type-fest' */
 /** @import {Plugin, ResolvedConfig, ViteDevServer} from 'vite' */
-/** @import {RipplePluginOptions, RippleConfigOptions, Route, Middleware, RenderRoute} from '@ripple-ts/vite-plugin' */
+/** @import {RipplePluginOptions, RippleConfigOptions, ResolvedRippleConfig, Route, Middleware, RenderRoute} from '@ripple-ts/vite-plugin' */
 
 /// <reference types="ripple/compiler/internal/rpc" />
 
@@ -15,8 +15,13 @@ import { createContext, runMiddlewareChain } from './server/middleware.js';
 import { handleRenderRoute } from './server/render-route.js';
 import { handleServerRoute } from './server/server-route.js';
 import { generateServerEntry } from './server/virtual-entry.js';
-import { loadRippleConfig } from './load-config.js';
-import { DEFAULT_OUTDIR, ENTRY_FILENAME } from './constants.js';
+import {
+	getRippleConfigPath,
+	loadRippleConfig,
+	resolveRippleConfig,
+	rippleConfigExists,
+} from './load-config.js';
+import { ENTRY_FILENAME } from './constants.js';
 
 import { patch_global_fetch, is_rpc_request, handle_rpc_request } from '@ripple-ts/adapter/rpc';
 
@@ -305,7 +310,7 @@ export function ripple(inlineOptions = {}) {
 	const ripplePackages = new Set();
 	const cssCache = new Map();
 
-	/** @type {RippleConfigOptions | null} */
+	/** @type {ResolvedRippleConfig | null} */
 	let rippleConfig = null;
 	/** @type {ReturnType<typeof createRouter> | null} */
 	let router = null;
@@ -317,7 +322,7 @@ export function ripple(inlineOptions = {}) {
 
 	/** @type {string[]} Render route entry paths for client hydration import map */
 	let renderRouteEntries = [];
-	/** @type {RippleConfigOptions | null} Cached config from buildStart (reused in closeBundle) */
+	/** @type {ResolvedRippleConfig | null} Cached config from buildStart (reused in closeBundle) */
 	let loadedRippleConfig = null;
 	/** @type {Set<string>} File paths (relative to root) of .ripple modules with #server blocks */
 	const serverBlockModules = new Set();
@@ -337,10 +342,8 @@ export function ripple(inlineOptions = {}) {
 				// In build mode (client build, not the SSR sub-build), configure for production
 				if (isBuild && !isSSRBuild) {
 					const projectRoot = userConfig.root || process.cwd();
-					const configPath = path.join(projectRoot, 'ripple.config.ts');
-					const hasRippleConfig = fs.existsSync(configPath);
 
-					if (hasRippleConfig) {
+					if (rippleConfigExists(projectRoot)) {
 						const htmlInput = path.join(projectRoot, 'index.html');
 						if (!fs.existsSync(htmlInput)) {
 							throw new Error(
@@ -359,7 +362,7 @@ export function ripple(inlineOptions = {}) {
 						// buildStart and closeBundle.
 						loadedRippleConfig = await loadRippleConfig(projectRoot);
 
-						const outDir = loadedRippleConfig?.build?.outDir ?? DEFAULT_OUTDIR;
+						const outDir = loadedRippleConfig.build.outDir;
 
 						// Build Rollup inputs: HTML template + each page entry as a
 						// separate input. This gives Vite proper per-page code splitting
@@ -367,21 +370,19 @@ export function ripple(inlineOptions = {}) {
 						/** @type {Record<string, string>} */
 						const rollupInput = { main: htmlInput };
 
-						if (loadedRippleConfig?.router?.routes) {
-							const renderRoutes = loadedRippleConfig.router.routes.filter(
-								(/** @type {Route} */ r) => r.type === 'render',
-							);
-							const uniqueEntries = [
-								...new Set(renderRoutes.map((/** @type {RenderRoute} */ r) => r.entry)),
-							];
-							for (const entry of uniqueEntries) {
-								const sourcePath = entry.startsWith('/') ? entry.slice(1) : entry;
-								rollupInput[sourcePath] = path.join(projectRoot, sourcePath);
-							}
-							console.log(
-								`[@ripple-ts/vite-plugin] Adding ${uniqueEntries.length} page entry/entries as Rollup inputs`,
-							);
+						const renderRoutes = loadedRippleConfig.router.routes.filter(
+							(/** @type {Route} */ r) => r.type === 'render',
+						);
+						const uniqueEntries = [
+							...new Set(renderRoutes.map((/** @type {RenderRoute} */ r) => r.entry)),
+						];
+						for (const entry of uniqueEntries) {
+							const sourcePath = entry.startsWith('/') ? entry.slice(1) : entry;
+							rollupInput[sourcePath] = path.join(projectRoot, sourcePath);
 						}
+						console.log(
+							`[@ripple-ts/vite-plugin] Adding ${uniqueEntries.length} page entry/entries as Rollup inputs`,
+						);
 
 						/** @type {import('vite').UserConfig['build']} */
 						const buildConfig = {
@@ -395,7 +396,7 @@ export function ripple(inlineOptions = {}) {
 
 						// Only override minify when explicitly set in ripple.config.ts;
 						// otherwise let Vite's default (esbuild) apply.
-						if (loadedRippleConfig?.build?.minify !== undefined) {
+						if (loadedRippleConfig.build.minify !== undefined) {
 							buildConfig.minify = loadedRippleConfig.build.minify;
 						}
 
@@ -456,27 +457,23 @@ export function ripple(inlineOptions = {}) {
 			async buildStart() {
 				if (!isBuild || isSSRBuild) return;
 
-				const configPath = path.join(root, 'ripple.config.ts');
-				if (!fs.existsSync(configPath)) return;
-
 				// Reuse config loaded in the config hook if available;
 				// otherwise load it now as a fallback.
 				if (!loadedRippleConfig) {
+					if (!rippleConfigExists(root)) return;
 					loadedRippleConfig = await loadRippleConfig(root);
 				}
 
-				if (loadedRippleConfig?.router?.routes) {
-					renderRouteEntries = loadedRippleConfig.router.routes
-						.filter((/** @type {Route} */ r) => r.type === 'render')
-						.map((/** @type {RenderRoute} */ r) => r.entry);
+				renderRouteEntries = loadedRippleConfig.router.routes
+					.filter((/** @type {Route} */ r) => r.type === 'render')
+					.map((/** @type {RenderRoute} */ r) => r.entry);
 
-					// Deduplicate entries (multiple routes can share the same component)
-					renderRouteEntries = [...new Set(renderRouteEntries)];
+				// Deduplicate entries (multiple routes can share the same component)
+				renderRouteEntries = [...new Set(renderRouteEntries)];
 
-					console.log(
-						`[@ripple-ts/vite-plugin] Found ${renderRouteEntries.length} render route(s) for client hydration`,
-					);
-				}
+				console.log(
+					`[@ripple-ts/vite-plugin] Found ${renderRouteEntries.length} render route(s) for client hydration`,
+				);
 			},
 
 			/**
@@ -486,21 +483,10 @@ export function ripple(inlineOptions = {}) {
 			configureServer(vite) {
 				// Return a function to be called after Vite's internal middlewares
 				return async () => {
-					// Load ripple.config.ts
-					const configPath = path.join(root, 'ripple.config.ts');
-					if (!fs.existsSync(configPath)) {
-						console.log('[@ripple-ts/vite-plugin] No ripple.config.ts found, skipping SSR setup');
-						return;
-					}
+					if (!rippleConfigExists(root)) return;
 
 					try {
-						const configModule = await vite.ssrLoadModule(configPath);
-						rippleConfig = configModule.default;
-
-						if (!rippleConfig?.router?.routes) {
-							console.log('[@ripple-ts/vite-plugin] No routes defined in ripple.config.ts');
-							return;
-						}
+						rippleConfig = await loadRippleConfig(root, { vite });
 
 						// Create router from config
 						router = createRouter(rippleConfig.router.routes);
@@ -531,7 +517,7 @@ export function ripple(inlineOptions = {}) {
 									req,
 									res,
 									vite,
-									rippleConfig.server?.trustProxy ?? false,
+									rippleConfig.server.trustProxy,
 									rippleConfig,
 								);
 								return;
@@ -547,20 +533,14 @@ export function ripple(inlineOptions = {}) {
 
 							try {
 								// Reload config to get fresh routes (for HMR)
-								const freshConfig = await vite.ssrLoadModule(configPath);
-								rippleConfig = freshConfig.default;
-
-								if (!rippleConfig || !rippleConfig.router || !rippleConfig.router.routes) {
-									console.log('[@ripple-ts/vite-plugin] No routes defined in ripple.config.ts');
-									next();
-									return;
+								const previousRoutes = rippleConfig.router.routes;
+								const freshConfig = await loadRippleConfig(root, { vite });
+								if (freshConfig) {
+									rippleConfig = freshConfig;
 								}
 
 								// Check if routes have changed
-								if (
-									JSON.stringify(freshConfig.default.router.routes) !==
-									JSON.stringify(rippleConfig.router.routes)
-								) {
+								if (JSON.stringify(previousRoutes) !== JSON.stringify(rippleConfig.router.routes)) {
 									console.log(
 										`[@ripple-ts/vite-plugin] Detected route changes. Re-loading ${rippleConfig.router.routes.length} routes from ripple.config.ts`,
 									);
@@ -579,8 +559,7 @@ export function ripple(inlineOptions = {}) {
 								const request = nodeRequestToWebRequest(req);
 								const context = createContext(request, freshMatch.params);
 
-								// Get global middlewares
-								const globalMiddlewares = rippleConfig.middlewares || [];
+								const globalMiddlewares = rippleConfig.middlewares;
 
 								let response;
 
@@ -650,38 +629,20 @@ export function ripple(inlineOptions = {}) {
 			async closeBundle() {
 				if (!isBuild || isSSRBuild) return;
 
-				const configPath = path.join(root, 'ripple.config.ts');
-				if (!fs.existsSync(configPath)) return;
-
-				console.log('[@ripple-ts/vite-plugin] Client build done. Starting server build...');
-
 				// Reuse config loaded in buildStart, or load it now as fallback
 				if (!loadedRippleConfig) {
+					if (!rippleConfigExists(root)) return;
 					loadedRippleConfig = await loadRippleConfig(root);
 				}
 
-				if (!loadedRippleConfig?.router?.routes) {
-					console.log(
-						'[@ripple-ts/vite-plugin] No routes in ripple.config.ts — skipping server build',
-					);
-					return;
-				}
+				console.log('[@ripple-ts/vite-plugin] Client build done. Starting server build...');
 
-				if (!loadedRippleConfig.adapter) {
-					throw new Error(
-						'[@ripple-ts/vite-plugin] Production SSR builds require an adapter in ripple.config.ts. ' +
-							'Install an adapter package (e.g. @ripple-ts/adapter-node) and set the `adapter` property.',
-					);
-				}
+				// Re-resolve with adapter validation for production builds.
+				// loadRippleConfig already resolved the config, but the adapter
+				// is only required for production server builds.
+				loadedRippleConfig = resolveRippleConfig(loadedRippleConfig, { requireAdapter: true });
 
-				if (!loadedRippleConfig.adapter.runtime) {
-					throw new Error(
-						'[@ripple-ts/vite-plugin] The adapter in ripple.config.ts is missing the `runtime` property. ' +
-							'Make sure your adapter exports runtime primitives.',
-					);
-				}
-
-				const outDir = loadedRippleConfig.build?.outDir ?? DEFAULT_OUTDIR;
+				const outDir = loadedRippleConfig.build.outDir;
 
 				// ------------------------------------------------------------------
 				// Read Vite's client manifest and build a per-route asset map.
@@ -780,7 +741,7 @@ export function ripple(inlineOptions = {}) {
 				// Generate the virtual server entry
 				const serverEntryCode = generateServerEntry({
 					routes: loadedRippleConfig.router.routes,
-					rippleConfigPath: configPath,
+					rippleConfigPath: getRippleConfigPath(root),
 					htmlTemplatePath: '../client/index.html',
 					rpcModulePaths: [...serverBlockModules],
 					clientAssetMap,
@@ -1026,7 +987,7 @@ import { hydrate, mount } from 'ripple';
 }
 
 // This is mainly to enforce types and provide a better DX with types than anything else
-export function defineConfig(/** @type {RipplePluginOptions} */ options) {
+export function defineConfig(/** @type {RippleConfigOptions} */ options) {
 	return options;
 }
 
