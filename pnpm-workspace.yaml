@@ -22,6 +22,7 @@ catalogs:
     "@types/vscode": ^1.107.0
     "@typescript-eslint/parser": *ts_eslint_parser
     "@typescript-eslint/types": ^8.40.0
+    "@vercel/nft": ^1.0.0
     "@volar/language-core": ~2.4.28
     "@volar/language-server": ~2.4.28
     "@volar/typescript": ~2.4.28

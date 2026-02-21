@@ -1,0 +1,403 @@
+/**
+ * Build output generator for Vercel's Build Output API v3.
+ *
+ * Takes the Ripple build output (dist/client + dist/server) and restructures
+ * it into `.vercel/output/` with proper routing, function config, and
+ * dependency tracing.
+ *
+ * Modeled after @sveltejs/adapter-vercel but adapted for the Ripple
+ * metaframework's architecture.
+ */
+
+/**
+@import {
+	AdaptOptions,
+	VercelRoute,
+	VercelConfig,
+} from '@ripple-ts/adapter-vercel';
+ */
+
+import {
+	existsSync,
+	mkdirSync,
+	cpSync,
+	writeFileSync,
+	rmSync,
+	readdirSync,
+	copyFileSync,
+	statSync,
+	symlinkSync,
+	realpathSync,
+} from 'node:fs';
+import { resolve, join, dirname, relative, sep } from 'node:path';
+import { nodeFileTrace } from '@vercel/nft';
+
+// ============================================================================
+// Constants
+// ============================================================================
+
+const VERCEL_OUTPUT_DIR = '.vercel/output';
+
+/**
+ * Detect the default Node.js runtime version for the current environment.
+ *
+ * @returns {string}
+ */
+function get_default_runtime() {
+	const major = Number(process.version.slice(1).split('.')[0]);
+	const valid = [20, 22, 24];
+
+	if (!valid.includes(major)) {
+		throw new Error(
+			`Unsupported Node.js version: ${process.version}. ` +
+				`Please use Node ${valid.join(' or ')} to build your project, ` +
+				`or explicitly specify a runtime in adapter options.`,
+		);
+	}
+
+	return `nodejs${major}.x`;
+}
+
+// ============================================================================
+// File utilities
+// ============================================================================
+
+/**
+ * Write a file, creating parent directories as needed.
+ *
+ * @param {string} file_path
+ * @param {string} data
+ */
+function write(file_path, data) {
+	mkdirSync(dirname(file_path), { recursive: true });
+	writeFileSync(file_path, data);
+}
+
+/**
+ * Copy a directory recursively, creating the destination if needed.
+ *
+ * @param {string} src
+ * @param {string} dest
+ */
+function copy_dir(src, dest) {
+	mkdirSync(dest, { recursive: true });
+	cpSync(src, dest, { recursive: true });
+}
+
+// ============================================================================
+// Dependency tracing
+// ============================================================================
+
+/**
+ * Trace dependencies using @vercel/nft and copy them into the function directory.
+ *
+ * This ensures the serverless function bundle contains exactly the files it needs
+ * at runtime, keeping cold start times minimal.
+ *
+ * @param {string} entry - Absolute path to the entry file
+ * @param {string} func_dir - Absolute path to the function output directory
+ * @returns {Promise<void>}
+ */
+async function trace_and_copy_dependencies(entry, func_dir) {
+	let base = entry;
+	while (base !== (base = dirname(base)));
+
+	const traced = await nodeFileTrace([entry], { base });
+
+	// Log non-fatal tracing warnings
+	for (const warning of traced.warnings) {
+		if (warning.message.startsWith('Failed to resolve dependency node:')) continue;
+		if (warning.message.startsWith('Failed to parse')) continue;
+
+		if (warning.message.startsWith('Failed to resolve dependency')) {
+			console.warn(`[adapter-vercel] Warning: ${warning.message}`);
+		}
+	}
+
+	const files = Array.from(traced.fileList);
+
+	// Find common ancestor directory for all traced files
+	/** @type {string[]} */
+	let common_parts = files[0]?.split(sep) ?? [];
+
+	for (let i = 1; i < files.length; i += 1) {
+		const parts = files[i].split(sep);
+		for (let j = 0; j < common_parts.length; j += 1) {
+			if (parts[j] !== common_parts[j]) {
+				common_parts = common_parts.slice(0, j);
+				break;
+			}
+		}
+	}
+
+	const ancestor = base + common_parts.join(sep);
+
+	for (const file of traced.fileList) {
+		const source = base + file;
+		const dest = join(func_dir, relative(ancestor, source));
+
+		const stats = statSync(source);
+		const is_dir = stats.isDirectory();
+		const realpath = realpathSync(source);
+
+		mkdirSync(dirname(dest), { recursive: true });
+
+		if (source !== realpath) {
+			const realdest = join(func_dir, relative(ancestor, realpath));
+			symlinkSync(relative(dirname(dest), realdest), dest, is_dir ? 'dir' : 'file');
+		} else if (!is_dir) {
+			copyFileSync(source, dest);
+		}
+	}
+}
+
+// ============================================================================
+// Handler template generation
+// ============================================================================
+
+/**
+ * Generate the serverless function handler source code.
+ *
+ * The handler imports the Ripple server entry and exports the `fetch`-style
+ * handler that Vercel's Node.js runtime expects.
+ *
+ * @param {string} server_entry_relative - Relative path from the function dir to
+ * the server entry file
+ * @returns {string}
+ */
+function generate_handler_source(server_entry_relative) {
+	return `\
+// Auto-generated by @ripple-ts/adapter-vercel
+// Vercel Serverless Function handler for Ripple
+import { handler } from ${JSON.stringify(server_entry_relative)};
+
+export default handler;
+`;
+}
+
+// ============================================================================
+// Vercel config generation
+// ============================================================================
+
+/**
+ * Generate the Build Output API v3 config.json.
+ *
+ * @param {AdaptOptions} options
+ * @returns {VercelConfig}
+ */
+function generate_vercel_config(options) {
+	const {
+		cleanUrls = true,
+		trailingSlash,
+		images,
+		headers = [],
+		redirects = [],
+		rewrites = [],
+	} = options;
+
+	/** @type {VercelRoute[]} */
+	const routes = [];
+
+	// User-defined redirects
+	for (const redirect of redirects) {
+		routes.push({
+			src: redirect.source,
+			headers: { Location: redirect.destination },
+			status: redirect.permanent ? 308 : 307,
+		});
+	}
+
+	// Immutable cache headers for hashed assets
+	routes.push({
+		src: '/assets/.+',
+		headers: {
+			'Cache-Control': 'public, max-age=31536000, immutable',
+		},
+		continue: true,
+	});
+
+	// User-defined headers
+	for (const header of headers) {
+		routes.push({
+			src: header.source,
+			headers: Object.fromEntries(header.headers.map((h) => [h.key, h.value])),
+			continue: true,
+		});
+	}
+
+	// Let Vercel handle filesystem (static) routes first
+	routes.push({ handle: 'filesystem' });
+
+	// User-defined rewrites (inserted before the catch-all)
+	for (const rewrite of rewrites) {
+		routes.push({
+			src: rewrite.source,
+			dest: rewrite.destination,
+		});
+	}
+
+	// Catch-all: send everything else to the serverless function
+	routes.push({
+		src: '/.*',
+		dest: '/index',
+	});
+
+	/** @type {VercelConfig} */
+	const config = {
+		version: 3,
+		routes,
+	};
+
+	if (cleanUrls !== undefined) {
+		config.cleanUrls = cleanUrls;
+	}
+
+	if (trailingSlash !== undefined) {
+		config.trailingSlash = trailingSlash;
+	}
+
+	if (images) {
+		config.images = images;
+	}
+
+	return config;
+}
+
+// ============================================================================
+// Main adapt function
+// ============================================================================
+
+/**
+ * Generate Vercel Build Output API v3 from a Ripple build.
+ *
+ * Transforms the standard Ripple build output (`dist/client` + `dist/server`)
+ * into `.vercel/output/` with:
+ * - Static files served from Vercel's CDN
+ * - A serverless function for SSR, API routes, and RPC
+ * - Routing rules for proper request handling
+ * - Dependency tracing via @vercel/nft for minimal bundle size
+ *
+ * @param {AdaptOptions} [options]
+ * @returns {Promise<void>}
+ */
+export async function adapt(options = {}) {
+	const { outDir = 'dist', serverless = {} } = options;
+
+	const project_root = process.cwd();
+	const build_dir = resolve(project_root, outDir);
+	const client_dir = join(build_dir, 'client');
+	const server_dir = join(build_dir, 'server');
+	const server_entry = join(server_dir, 'entry.js');
+	const output_dir = resolve(project_root, VERCEL_OUTPUT_DIR);
+
+	// ------------------------------------------------------------------
+	// Validate build output exists
+	// ------------------------------------------------------------------
+
+	if (!existsSync(client_dir)) {
+		throw new Error(
+			`[adapter-vercel] Client build output not found at ${client_dir}. ` +
+				`Run "vite build" before running the adapter.`,
+		);
+	}
+
+	if (!existsSync(server_entry)) {
+		throw new Error(
+			`[adapter-vercel] Server entry not found at ${server_entry}. ` +
+				`Make sure your project has a ripple.config.ts with an adapter configured.`,
+		);
+	}
+
+	// ------------------------------------------------------------------
+	// Clean and create output directory
+	// ------------------------------------------------------------------
+
+	console.log('[adapter-vercel] Generating Vercel Build Output...');
+
+	rmSync(output_dir, { recursive: true, force: true });
+	mkdirSync(output_dir, { recursive: true });
+
+	// ------------------------------------------------------------------
+	// 1. Copy static assets
+	// ------------------------------------------------------------------
+
+	const static_dir = join(output_dir, 'static');
+
+	console.log('[adapter-vercel] Copying static assets...');
+	copy_dir(client_dir, static_dir);
+
+	// Remove index.html from static output — SSR handles the root route.
+	// Vercel would serve the static index.html instead of the SSR function
+	// if we leave it in place.
+	const static_index_html = join(static_dir, 'index.html');
+	if (existsSync(static_index_html)) {
+		rmSync(static_index_html);
+	}
+
+	// ------------------------------------------------------------------
+	// 2. Create the serverless function
+	// ------------------------------------------------------------------
+
+	const func_dir = join(output_dir, 'functions', 'index.func');
+	mkdirSync(func_dir, { recursive: true });
+
+	console.log('[adapter-vercel] Tracing server dependencies...');
+
+	// Trace and copy all dependencies of the server entry
+	await trace_and_copy_dependencies(server_entry, func_dir);
+
+	// Generate the handler that imports the server entry
+	const server_entry_in_func = join(func_dir, relative(dirname(server_entry), server_entry));
+	const handler_path = join(func_dir, 'index.js');
+
+	// Find the relative path from handler to the traced server entry
+	const server_entry_relative = './' + relative(dirname(handler_path), server_entry_in_func);
+
+	write(handler_path, generate_handler_source(server_entry_relative));
+	write(join(func_dir, 'package.json'), JSON.stringify({ type: 'module' }));
+
+	// Function configuration
+	const runtime = serverless.runtime ?? get_default_runtime();
+
+	/** @type {Record<string, unknown>} */
+	const vc_config = {
+		runtime,
+		handler: 'index.js',
+		launcherType: 'Nodejs',
+		experimentalResponseStreaming: true,
+		framework: {
+			slug: 'ripple',
+			version: '0.2.213',
+		},
+	};
+
+	if (serverless.regions) {
+		vc_config.regions = serverless.regions;
+	}
+	if (serverless.memory) {
+		vc_config.memory = serverless.memory;
+	}
+	if (serverless.maxDuration) {
+		vc_config.maxDuration = serverless.maxDuration;
+	}
+
+	write(join(func_dir, '.vc-config.json'), JSON.stringify(vc_config, null, '\t'));
+
+	// ------------------------------------------------------------------
+	// 3. Generate the Build Output API config
+	// ------------------------------------------------------------------
+
+	console.log('[adapter-vercel] Writing config...');
+
+	const vercel_config = generate_vercel_config(options);
+	write(join(output_dir, 'config.json'), JSON.stringify(vercel_config, null, '\t'));
+
+	// ------------------------------------------------------------------
+	// Summary
+	// ------------------------------------------------------------------
+
+	console.log('[adapter-vercel] Build output generated at .vercel/output/');
+	console.log(`  Static:   ${static_dir}`);
+	console.log(`  Function: ${func_dir}`);
+	console.log(`  Runtime:  ${runtime}`);
+}

@@ -46,3 +46,21 @@ export const serve: ServeFunction<
  * Create a middleware that serves static files from a directory
  */
 export function serveStatic(dir: string, options?: ServeStaticOptions): StaticMiddleware;
+
+/**
+ * Convert a Node.js IncomingMessage to a Web Request.
+ */
+export function nodeRequestToWebRequest(
+	node_request: import('node:http').IncomingMessage,
+	signal: AbortSignal,
+	trust_proxy?: boolean,
+): Request;
+
+/**
+ * Write a Web Response to a Node.js ServerResponse.
+ */
+export function webResponseToNodeResponse(
+	web_response: Response,
+	node_response: import('node:http').ServerResponse,
+	request_method: string,
+): void;

@@ -15,6 +15,10 @@ import {
 	run_next_middleware,
 } from '@ripple-ts/adapter';
 
+// Re-export conversion helpers for use by serverless function wrappers (e.g. Vercel)
+export { node_request_to_web_request as nodeRequestToWebRequest };
+export { web_response_to_node_response as webResponseToNodeResponse };
+
 // ============================================================================
 // Runtime primitives — platform-specific capabilities for Ripple's server runtime
 // ============================================================================

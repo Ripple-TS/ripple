@@ -19,7 +19,7 @@
   "bugs": {
     "url": "https://github.com/Ripple-TS/ripple/issues"
   },
-  "homepage": "https://ripplejs.com",
+  "homepage": "https://ripple-ts.com",
   "engines": {
     "node": ">=20.0.0"
   },

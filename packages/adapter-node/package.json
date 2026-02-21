@@ -20,7 +20,7 @@
   "dependencies": {
     "@ripple-ts/adapter": "workspace:*"
   },
-  "homepage": "https://ripplejs.com",
+  "homepage": "https://ripple-ts.com",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Ripple-TS/ripple.git",

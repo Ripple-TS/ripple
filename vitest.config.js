@@ -91,6 +91,15 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'adapter-vercel',
+					include: ['packages/adapter-vercel/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'utils',
 					include: ['packages/ripple/tests/utils/**/*.test.js'],
 					environment: 'node',

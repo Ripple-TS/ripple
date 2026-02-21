@@ -20,7 +20,7 @@
   "bugs": {
     "url": "https://github.com/Ripple-TS/ripple/issues"
   },
-  "homepage": "https://ripplejs.com",
+  "homepage": "https://ripple-ts.com",
   "publishConfig": {
     "access": "public"
   },

@@ -1,6 +1,6 @@
 {
-  "name": "@ripple-ts/adapter",
-  "description": "Shared adapter primitives for Ripple metaframework adapters",
+  "name": "@ripple-ts/adapter-vercel",
+  "description": "Vercel adapter for Ripple metaframework (Build Output API v3)",
   "license": "MIT",
   "author": "Dominic Gannaway",
   "version": "0.2.213",
@@ -12,21 +12,24 @@
       "types": "./types/index.d.ts",
       "import": "./src/index.js",
       "default": "./src/index.js"
-    },
-    "./rpc": {
-      "types": "./types/rpc.d.ts",
-      "import": "./src/rpc.js",
-      "default": "./src/rpc.js"
     }
   },
+  "bin": {
+    "ripple-adapt-vercel": "./src/bin/adapt.js"
+  },
   "scripts": {
-    "test": "pnpm -w test --project adapter"
+    "test": "pnpm -w test --project adapter-vercel"
+  },
+  "dependencies": {
+    "@ripple-ts/adapter": "workspace:*",
+    "@ripple-ts/adapter-node": "workspace:*",
+    "@vercel/nft": "catalog:default"
   },
   "homepage": "https://ripple-ts.com",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Ripple-TS/ripple.git",
-    "directory": "packages/adapter"
+    "directory": "packages/adapter-vercel"
   },
   "bugs": {
     "url": "https://github.com/Ripple-TS/ripple/issues"

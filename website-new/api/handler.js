@@ -1,13 +1,19 @@
 /**
  * Vercel Serverless Function handler.
  *
- * This thin wrapper imports the production server entry and exports its
- * fetch-style handler for Vercel's Node.js serverless runtime.
- *
- * The server entry uses @ripple-ts/adapter-node's runtime under the hood
- * (node:crypto for hashing, AsyncLocalStorage for request context).
- * Since Vercel Serverless Functions run on Node.js, no separate adapter is needed.
+ * Vercel's Node.js runtime calls serverless functions with (IncomingMessage, ServerResponse),
+ * but Ripple's production handler expects Web Fetch (Request => Response).
+ * This wrapper uses adapter-node's conversion helpers to bridge the two.
  */
 import { handler } from '../dist/server/entry.js';
+import { nodeRequestToWebRequest, webResponseToNodeResponse } from '@ripple-ts/adapter-node';
 
-export default handler;
+export default async function (req, res) {
+	const controller = new AbortController();
+	req.on('aborted', () => controller.abort());
+	res.on('close', () => controller.abort());
+
+	const request = nodeRequestToWebRequest(req, controller.signal, true);
+	const response = await handler(request);
+	webResponseToNodeResponse(response, res, req.method ?? 'GET');
+}
