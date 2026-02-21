@@ -141,6 +141,13 @@ declare module '@ripple-ts/vite-plugin' {
 declare module '@ripple-ts/vite-plugin/production' {
 	import type { Route, Middleware, RuntimePrimitives } from '@ripple-ts/vite-plugin';
 
+	export interface ClientAssetEntry {
+		/** Path to the built JS file (relative to client output dir) */
+		js: string;
+		/** Paths to the built CSS files (relative to client output dir) */
+		css: string[];
+	}
+
 	export interface ServerManifest {
 		routes: Route[];
 		components: Record<string, Function>;
@@ -152,6 +159,14 @@ declare module '@ripple-ts/vite-plugin/production' {
 		trustProxy?: boolean;
 		/** Platform-specific runtime primitives from the adapter */
 		runtime: RuntimePrimitives;
+		/**
+		 * Map of route entry paths to their built client asset paths.
+		 * Used to emit `<link rel="stylesheet">` and `<link rel="modulepreload">`
+		 * tags in the production HTML. Populated from Vite's client manifest
+		 * during the build. The special key `__hydrate_js` holds the hydrate
+		 * runtime entry.
+		 */
+		clientAssets?: Record<string, ClientAssetEntry>;
 	}
 
 	export interface RenderResult {

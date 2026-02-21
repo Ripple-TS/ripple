@@ -11,7 +11,7 @@ import { spawn } from 'node:child_process';
 import path from 'node:path';
 import fs from 'node:fs';
 import { loadRippleConfig } from '../load-config.js';
-import { DEFAULT_OUTDIR } from '../constants.js';
+import { DEFAULT_OUTDIR, ENTRY_FILENAME } from '../constants.js';
 
 const projectRoot = process.cwd();
 
@@ -25,7 +25,7 @@ if (!fs.existsSync(configPath)) {
 try {
 	const config = await loadRippleConfig(projectRoot);
 	const outDir = config?.build?.outDir ?? DEFAULT_OUTDIR;
-	const entryPath = path.join(projectRoot, outDir, 'server', 'entry.js');
+	const entryPath = path.join(projectRoot, outDir, 'server', ENTRY_FILENAME);
 
 	if (!fs.existsSync(entryPath)) {
 		console.error(`[ripple-preview] Server entry not found: ${entryPath}`);
@@ -33,7 +33,7 @@ try {
 		process.exit(1);
 	}
 
-	console.log(`[ripple-preview] Starting server from ${outDir}/server/entry.js`);
+	console.log(`[ripple-preview] Starting server from ${outDir}/server/${ENTRY_FILENAME}`);
 
 	const child = spawn(process.execPath, [entryPath], {
 		stdio: 'inherit',

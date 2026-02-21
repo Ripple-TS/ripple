@@ -30,6 +30,7 @@ import {
 	ServerManifest,
 	RenderResult,
 	HandlerOptions,
+	ClientAssetEntry,
 } from '@ripple-ts/vite-plugin/production';
  */
 
@@ -48,6 +49,7 @@ export function createHandler(manifest, options) {
 	const router = createRouter(manifest.routes);
 	const globalMiddlewares = manifest.middlewares || [];
 	const trustProxy = manifest.trustProxy ?? false;
+	const clientAssets = manifest.clientAssets || {};
 
 	// Use adapter's runtime primitives for platform-agnostic operation
 	const runtime = manifest.runtime;
@@ -100,6 +102,7 @@ export function createHandler(manifest, options) {
 					render,
 					getCss,
 					htmlTemplate,
+					clientAssets,
 				);
 			} else {
 				return await handleServerRoute(match.route, context, globalMiddlewares);
@@ -125,6 +128,7 @@ export function createHandler(manifest, options) {
  * @param {(component: Function) => Promise<RenderResult>} render
  * @param {(css: Set<string>) => string} getCss
  * @param {string} htmlTemplate
+ * @param {Record<string, ClientAssetEntry>} clientAssets
  * @returns {Promise<Response>}
  */
 async function handleRenderRoute(
@@ -135,6 +139,7 @@ async function handleRenderRoute(
 	render,
 	getCss,
 	htmlTemplate,
+	clientAssets,
 ) {
 	const renderHandler = async () => {
 		// Get the page component
@@ -157,13 +162,35 @@ async function handleRenderRoute(
 		// Render to HTML
 		const { head, body, css } = await render(RootComponent);
 
-		// Generate CSS tags
+		// Generate inline scoped CSS (from SSR-rendered component hashes)
 		let cssContent = '';
 		if (css.size > 0) {
 			const cssString = getCss(css);
 			if (cssString) {
 				cssContent = `<style data-ripple-ssr>${cssString}</style>`;
 			}
+		}
+
+		// Build asset preload tags from the client manifest.
+		// These ensure the browser starts downloading page-specific JS/CSS
+		// immediately, before the hydration script executes.
+		/** @type {string[]} */
+		const preloadTags = [];
+		const entryAssets = clientAssets[route.entry];
+
+		if (entryAssets?.css) {
+			for (const cssFile of entryAssets.css) {
+				preloadTags.push(`<link rel="stylesheet" href="/${cssFile}">`);
+			}
+		}
+		if (entryAssets?.js) {
+			preloadTags.push(`<link rel="modulepreload" href="/${entryAssets.js}">`);
+		}
+
+		// Preload the hydrate runtime so it starts downloading in parallel
+		const hydrateAsset = clientAssets.__hydrate_js;
+		if (hydrateAsset?.js) {
+			preloadTags.push(`<link rel="modulepreload" href="/${hydrateAsset.js}">`);
 		}
 
 		// Build head content with hydration data
@@ -174,6 +201,7 @@ async function handleRenderRoute(
 		const headContent = [
 			head,
 			cssContent,
+			...preloadTags,
 			`<script id="__ripple_data" type="application/json">${escapeScript(routeData)}</script>`,
 		]
 			.filter(Boolean)

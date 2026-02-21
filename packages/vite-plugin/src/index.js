@@ -16,7 +16,7 @@ import { handleRenderRoute } from './server/render-route.js';
 import { handleServerRoute } from './server/server-route.js';
 import { generateServerEntry } from './server/virtual-entry.js';
 import { loadRippleConfig } from './load-config.js';
-import { DEFAULT_OUTDIR } from './constants.js';
+import { DEFAULT_OUTDIR, ENTRY_FILENAME } from './constants.js';
 
 import { patch_global_fetch, is_rpc_request, handle_rpc_request } from '@ripple-ts/adapter/rpc';
 
@@ -361,14 +361,35 @@ export function ripple(inlineOptions = {}) {
 
 						const outDir = loadedRippleConfig?.build?.outDir ?? DEFAULT_OUTDIR;
 
+						// Build Rollup inputs: HTML template + each page entry as a
+						// separate input. This gives Vite proper per-page code splitting
+						// and produces manifest entries for each page chunk.
+						/** @type {Record<string, string>} */
+						const rollupInput = { main: htmlInput };
+
+						if (loadedRippleConfig?.router?.routes) {
+							const renderRoutes = loadedRippleConfig.router.routes.filter(
+								(/** @type {Route} */ r) => r.type === 'render',
+							);
+							const uniqueEntries = [
+								...new Set(renderRoutes.map((/** @type {RenderRoute} */ r) => r.entry)),
+							];
+							for (const entry of uniqueEntries) {
+								const sourcePath = entry.startsWith('/') ? entry.slice(1) : entry;
+								rollupInput[sourcePath] = path.join(projectRoot, sourcePath);
+							}
+							console.log(
+								`[@ripple-ts/vite-plugin] Adding ${uniqueEntries.length} page entry/entries as Rollup inputs`,
+							);
+						}
+
 						/** @type {import('vite').UserConfig['build']} */
 						const buildConfig = {
 							outDir: `${outDir}/client`,
 							emptyOutDir: true,
 							manifest: true,
-							ssrManifest: true,
 							rollupOptions: {
-								input: htmlInput,
+								input: rollupInput,
 							},
 						};
 
@@ -662,12 +683,107 @@ export function ripple(inlineOptions = {}) {
 
 				const outDir = loadedRippleConfig.build?.outDir ?? DEFAULT_OUTDIR;
 
+				// ------------------------------------------------------------------
+				// Read Vite's client manifest and build a per-route asset map.
+				// This lets the production server emit <link rel="stylesheet"> and
+				// <link rel="modulepreload"> tags for every CSS/JS file a page
+				// needs (including transitive dependencies).
+				// ------------------------------------------------------------------
+				const clientOutDir = path.join(root, outDir, 'client');
+				const manifestPath = path.join(clientOutDir, '.vite', 'manifest.json');
+
+				/** @type {Record<string, { file: string, css?: string[], imports?: string[], name?: string }>} */
+				let clientManifest = {};
+				if (fs.existsSync(manifestPath)) {
+					clientManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+				} else {
+					console.warn(
+						'[@ripple-ts/vite-plugin] Client manifest not found at',
+						manifestPath,
+						'— asset preloading will be unavailable',
+					);
+				}
+
+				/**
+				 * Recursively collect all CSS files from a manifest entry and its
+				 * imports, avoiding cycles via a visited set.
+				 * @param {string} key - Manifest key (source-relative path)
+				 * @param {Set<string>} [visited] - Already visited keys
+				 * @returns {string[]}
+				 */
+				const collectCss = (key, visited = new Set()) => {
+					if (visited.has(key)) return [];
+					visited.add(key);
+					const entry = clientManifest[key];
+					if (!entry) return [];
+					/** @type {string[]} */
+					const css = [...(entry.css || [])];
+					for (const imp of entry.imports || []) {
+						css.push(...collectCss(imp, visited));
+					}
+					return css;
+				};
+
+				// Build a map of route entry → { js, css } from the manifest
+				/** @type {Record<string, { js: string, css: string[] }>} */
+				const clientAssetMap = {};
+
+				const renderRoutes = loadedRippleConfig.router.routes.filter(
+					(/** @type {Route} */ r) => r.type === 'render',
+				);
+				const uniqueEntries = [
+					...new Set(renderRoutes.map((/** @type {RenderRoute} */ r) => r.entry)),
+				];
+
+				for (const entry of uniqueEntries) {
+					const manifestKey = entry.startsWith('/') ? entry.slice(1) : entry;
+					const manifestEntry = clientManifest[manifestKey];
+					if (manifestEntry) {
+						clientAssetMap[entry] = {
+							js: manifestEntry.file,
+							css: [...new Set(collectCss(manifestKey))],
+						};
+					}
+				}
+
+				// Find the hydrate runtime entry in the manifest
+				let hydrateJsAsset = '';
+				for (const [key, value] of Object.entries(clientManifest)) {
+					if (key.includes('virtual:ripple-hydrate') || value.name === '__ripple_hydrate') {
+						hydrateJsAsset = value.file;
+						break;
+					}
+				}
+
+				if (hydrateJsAsset) {
+					// Store as a special key so the server can modulepreload it
+					clientAssetMap.__hydrate_js = { js: hydrateJsAsset, css: [] };
+				}
+
+				console.log(
+					`[@ripple-ts/vite-plugin] Built client asset map for ${Object.keys(clientAssetMap).length} entries`,
+				);
+
+				// Remove the .vite folder from the client build output.
+				// The manifest was only needed at build time to construct the
+				// clientAssetMap above. Leaving it in dist/client would expose
+				// source file paths publicly via the static file server.
+				const viteMetaDir = path.join(clientOutDir, '.vite');
+				try {
+					fs.rmSync(viteMetaDir, { recursive: true, force: true });
+					console.log('[@ripple-ts/vite-plugin] Removed .vite metadata from client output');
+				} catch {
+					// Non-fatal — warn but continue
+					console.warn('[@ripple-ts/vite-plugin] Could not remove .vite folder from client output');
+				}
+
 				// Generate the virtual server entry
 				const serverEntryCode = generateServerEntry({
 					routes: loadedRippleConfig.router.routes,
 					rippleConfigPath: configPath,
 					htmlTemplatePath: '../client/index.html',
 					rpcModulePaths: [...serverBlockModules],
+					clientAssetMap,
 				});
 
 				const VIRTUAL_SERVER_ENTRY_ID = 'virtual:ripple-server-entry';
@@ -704,7 +820,7 @@ export function ripple(inlineOptions = {}) {
 							rollupOptions: {
 								input: VIRTUAL_SERVER_ENTRY_ID,
 								output: {
-									entryFileNames: 'entry.js',
+									entryFileNames: ENTRY_FILENAME,
 									format: 'esm',
 								},
 							},
@@ -717,7 +833,9 @@ export function ripple(inlineOptions = {}) {
 
 					console.log('[@ripple-ts/vite-plugin] Server build complete.');
 					console.log(`[@ripple-ts/vite-plugin] Output: ${path.join(root, outDir)}`);
-					console.log(`[@ripple-ts/vite-plugin] Start with: node ${outDir}/server/entry.js`);
+					console.log(
+						`[@ripple-ts/vite-plugin] Start with: node ${outDir}/server/${ENTRY_FILENAME}`,
+					);
 				} catch (/** @type {any} */ error) {
 					console.error('[@ripple-ts/vite-plugin] Server build failed:', error);
 					throw new Error(

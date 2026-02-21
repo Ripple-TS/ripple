@@ -11,11 +11,18 @@
 /** @import { Route } from '@ripple-ts/vite-plugin' */
 
 /**
+ * @typedef {Object} ClientAssetEntry
+ * @property {string} js - Path to the built JS file
+ * @property {string[]} css - Paths to the built CSS files
+ */
+
+/**
  * @typedef {Object} VirtualEntryOptions
  * @property {Route[]} routes - Route definitions from ripple.config.ts
  * @property {string} rippleConfigPath - Absolute path to ripple.config.ts (for importing middlewares/adapter)
  * @property {string} htmlTemplatePath - Path to the processed index.html template
  * @property {string[]} [rpcModulePaths] - Paths (relative to root) of .ripple modules with #server blocks
+ * @property {Record<string, ClientAssetEntry>} [clientAssetMap] - Map of route entry paths to built JS/CSS asset paths
  */
 
 /**
@@ -34,7 +41,13 @@
  * @returns {string} The generated JavaScript module source
  */
 export function generateServerEntry(options) {
-	const { routes, rippleConfigPath, htmlTemplatePath, rpcModulePaths = [] } = options;
+	const {
+		routes,
+		rippleConfigPath,
+		htmlTemplatePath,
+		rpcModulePaths = [],
+		clientAssetMap = {},
+	} = options;
 
 	// Collect unique component entries and layouts
 	/** @type {Map<string, string>} entry path → import variable name */
@@ -147,6 +160,8 @@ if (!existsSync(join(__dirname, ${JSON.stringify(htmlTemplatePath)}))) {
 }
 const htmlTemplate = readFileSync(join(__dirname, ${JSON.stringify(htmlTemplatePath)}), 'utf-8');
 
+const clientAssets = ${JSON.stringify(clientAssetMap, null, 2)};
+
 if (!rippleConfig.adapter?.runtime) {
   console.error('[ripple] No adapter (or adapter.runtime) configured in ripple.config.ts.');
   console.error('[ripple] Install an adapter package (e.g. @ripple-ts/adapter-node) and set the \\\`adapter\\\` property.');
@@ -162,6 +177,7 @@ const handler = createHandler(
     rpcModules,
     trustProxy: rippleConfig.server?.trustProxy ?? false,
     runtime: rippleConfig.adapter.runtime,
+    clientAssets,
   },
   {
     render,
