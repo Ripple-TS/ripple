@@ -7,6 +7,7 @@ import { routes } from './src/routes.ts';
 export default defineConfig({
 	build: {
 		minify: false,
+		outDir: 'dist',
 	},
 	adapter: { serve, runtime },
 	router: { routes },

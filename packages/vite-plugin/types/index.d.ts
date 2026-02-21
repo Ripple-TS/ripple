@@ -91,6 +91,8 @@ declare module '@ripple-ts/vite-plugin' {
 
 	export interface RippleConfigOptions {
 		build?: {
+			/** Output directory for the production build. @default 'dist' */
+			outDir?: string;
 			minify?: boolean;
 		};
 		adapter?: {

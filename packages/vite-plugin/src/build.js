@@ -35,7 +35,7 @@ const RESOLVED_VIRTUAL_SERVER_ENTRY_ID = '\0' + VIRTUAL_SERVER_ENTRY_ID;
  */
 export async function buildApp(options) {
 	const { root, rippleConfig, viteConfig = {} } = options;
-	const outDir = path.resolve(root, 'dist');
+	const outDir = path.resolve(root, rippleConfig.build?.outDir ?? 'dist');
 	const clientOutDir = path.join(outDir, 'client');
 	const serverOutDir = path.join(outDir, 'server');
 
@@ -133,6 +133,7 @@ export async function buildApp(options) {
 	});
 
 	console.log('[@ripple-ts/vite-plugin] Server build complete.');
+	const relOutDir = rippleConfig.build?.outDir ?? 'dist';
 	console.log(`[@ripple-ts/vite-plugin] Output: ${outDir}`);
-	console.log(`[@ripple-ts/vite-plugin] Start with: node dist/server/entry.js`);
+	console.log(`[@ripple-ts/vite-plugin] Start with: node ${relOutDir}/server/entry.js`);
 }

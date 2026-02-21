@@ -15,6 +15,8 @@ import { createContext, runMiddlewareChain } from './server/middleware.js';
 import { handleRenderRoute } from './server/render-route.js';
 import { handleServerRoute } from './server/server-route.js';
 import { generateServerEntry } from './server/virtual-entry.js';
+import { loadRippleConfig } from './load-config.js';
+import { OUTDIR_DEFAULT } from './constants.js';
 
 import {
 	derive_origin,
@@ -325,33 +327,6 @@ export function ripple(inlineOptions = {}) {
 	/** @type {Set<string>} File paths (relative to root) of .ripple modules with #server blocks */
 	const serverBlockModules = new Set();
 
-	/**
-	 * Load ripple.config.ts by spinning up a temporary Vite server.
-	 * Used during build (config, buildStart, closeBundle) where no dev server is available.
-	 *
-	 * @param {string} projectRoot
-	 * @param {string} configPath
-	 * @returns {Promise<RippleConfigOptions>}
-	 */
-	async function loadRippleConfig(projectRoot, configPath) {
-		const { createServer } = await import('vite');
-		const tempVite = await createServer({
-			root: projectRoot,
-			configFile: false,
-			appType: 'custom',
-			server: { middlewareMode: true },
-			plugins: [ripple({ excludeRippleExternalModules: true })],
-			logLevel: 'silent',
-		});
-
-		try {
-			const configModule = await tempVite.ssrLoadModule(configPath);
-			return configModule.default;
-		} finally {
-			await tempVite.close();
-		}
-	}
-
 	/** @type {Plugin[]} */
 	const plugins = [
 		{
@@ -387,11 +362,13 @@ export function ripple(inlineOptions = {}) {
 						// influence the client build config returned from this hook.
 						// The loaded config is cached and reused by
 						// buildStart and closeBundle.
-						loadedRippleConfig = await loadRippleConfig(projectRoot, configPath);
+						loadedRippleConfig = await loadRippleConfig(projectRoot);
+
+						const outDir = loadedRippleConfig?.build?.outDir ?? OUTDIR_DEFAULT;
 
 						/** @type {import('vite').UserConfig['build']} */
 						const buildConfig = {
-							outDir: 'dist/client',
+							outDir: `${outDir}/client`,
 							emptyOutDir: true,
 							manifest: true,
 							ssrManifest: true,
@@ -469,7 +446,7 @@ export function ripple(inlineOptions = {}) {
 				// Reuse config loaded in the config hook if available;
 				// otherwise load it now as a fallback.
 				if (!loadedRippleConfig) {
-					loadedRippleConfig = await loadRippleConfig(root, configPath);
+					loadedRippleConfig = await loadRippleConfig(root);
 				}
 
 				if (loadedRippleConfig?.router?.routes) {
@@ -664,7 +641,7 @@ export function ripple(inlineOptions = {}) {
 
 				// Reuse config loaded in buildStart, or load it now as fallback
 				if (!loadedRippleConfig) {
-					loadedRippleConfig = await loadRippleConfig(root, configPath);
+					loadedRippleConfig = await loadRippleConfig(root);
 				}
 
 				if (!loadedRippleConfig?.router?.routes) {
@@ -673,6 +650,8 @@ export function ripple(inlineOptions = {}) {
 					);
 					return;
 				}
+
+				const outDir = loadedRippleConfig.build?.outDir ?? OUTDIR_DEFAULT;
 
 				// Generate the virtual server entry
 				const serverEntryCode = generateServerEntry({
@@ -696,7 +675,7 @@ export function ripple(inlineOptions = {}) {
 					},
 				};
 
-				const serverOutDir = path.join(root, 'dist', 'server');
+				const serverOutDir = path.join(root, outDir, 'server');
 
 				// Do NOT add ripple() here — the user's vite.config.ts (loaded automatically
 				// from `root`) already includes it. Adding another instance causes double
@@ -727,8 +706,8 @@ export function ripple(inlineOptions = {}) {
 				});
 
 				console.log('[@ripple-ts/vite-plugin] Server build complete.');
-				console.log(`[@ripple-ts/vite-plugin] Output: ${path.join(root, 'dist')}`);
-				console.log('[@ripple-ts/vite-plugin] Start with: node dist/server/entry.js');
+				console.log(`[@ripple-ts/vite-plugin] Output: ${path.join(root, outDir)}`);
+				console.log(`[@ripple-ts/vite-plugin] Start with: node ${outDir}/server/entry.js`);
 			},
 
 			async resolveId(id, importer, options) {
