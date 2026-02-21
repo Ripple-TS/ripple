@@ -13,7 +13,15 @@ export default async function (req, res) {
 	req.on('aborted', () => controller.abort());
 	res.on('close', () => controller.abort());
 
-	const request = nodeRequestToWebRequest(req, controller.signal, true);
-	const response = await handler(request);
-	webResponseToNodeResponse(response, res, req.method ?? 'GET');
+	try {
+		const request = nodeRequestToWebRequest(req, controller.signal, true);
+		const response = await handler(request);
+		webResponseToNodeResponse(response, res, req.method ?? 'GET');
+	} catch (err) {
+		console.error('[ripple] Serverless handler error:', err);
+		if (!res.headersSent) {
+			res.statusCode = 500;
+			res.end('Internal Server Error');
+		}
+	}
 }
