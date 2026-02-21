@@ -321,9 +321,36 @@ export function ripple(inlineOptions = {}) {
 	/** @type {string[]} Render route entry paths for client hydration import map */
 	let renderRouteEntries = [];
 	/** @type {RippleConfigOptions | null} Cached config from buildStart (reused in closeBundle) */
-	let buildRippleConfig = null;
+	let loadedRippleConfig = null;
 	/** @type {Set<string>} File paths (relative to root) of .ripple modules with #server blocks */
 	const serverBlockModules = new Set();
+
+	/**
+	 * Load ripple.config.ts by spinning up a temporary Vite server.
+	 * Used during build (config, buildStart, closeBundle) where no dev server is available.
+	 *
+	 * @param {string} projectRoot
+	 * @param {string} configPath
+	 * @returns {Promise<RippleConfigOptions>}
+	 */
+	async function loadRippleConfig(projectRoot, configPath) {
+		const { createServer } = await import('vite');
+		const tempVite = await createServer({
+			root: projectRoot,
+			configFile: false,
+			appType: 'custom',
+			server: { middlewareMode: true },
+			plugins: [ripple({ excludeRippleExternalModules: true })],
+			logLevel: 'silent',
+		});
+
+		try {
+			const configModule = await tempVite.ssrLoadModule(configPath);
+			return configModule.default;
+		} finally {
+			await tempVite.close();
+		}
+	}
 
 	/** @type {Plugin[]} */
 	const plugins = [
@@ -356,17 +383,32 @@ export function ripple(inlineOptions = {}) {
 							'[@ripple-ts/vite-plugin] Detected ripple.config.ts — configuring client build',
 						);
 
+						// Load ripple.config.ts early so build options (e.g. minify) can
+						// influence the client build config returned from this hook.
+						// The loaded config is cached and reused by
+						// buildStart and closeBundle.
+						loadedRippleConfig = await loadRippleConfig(projectRoot, configPath);
+
+						/** @type {import('vite').UserConfig['build']} */
+						const buildConfig = {
+							outDir: 'dist/client',
+							emptyOutDir: true,
+							manifest: true,
+							ssrManifest: true,
+							rollupOptions: {
+								input: htmlInput,
+							},
+						};
+
+						// Only override minify when explicitly set in ripple.config.ts;
+						// otherwise let Vite's default (esbuild) apply.
+						if (loadedRippleConfig?.build?.minify !== undefined) {
+							buildConfig.minify = loadedRippleConfig.build.minify;
+						}
+
 						return {
 							appType: 'custom',
-							build: {
-								outDir: 'dist/client',
-								emptyOutDir: true,
-								manifest: true,
-								ssrManifest: true,
-								rollupOptions: {
-									input: htmlInput,
-								},
-							},
+							build: buildConfig,
 						};
 					}
 				}
@@ -424,35 +466,23 @@ export function ripple(inlineOptions = {}) {
 				const configPath = path.join(root, 'ripple.config.ts');
 				if (!fs.existsSync(configPath)) return;
 
-				// Load ripple.config.ts via a temp Vite server (same pattern as closeBundle)
-				const { createServer } = await import('vite');
-				const tempVite = await createServer({
-					root,
-					configFile: false,
-					appType: 'custom',
-					server: { middlewareMode: true },
-					plugins: [ripple({ excludeRippleExternalModules: true })],
-					logLevel: 'silent',
-				});
+				// Reuse config loaded in the config hook if available;
+				// otherwise load it now as a fallback.
+				if (!loadedRippleConfig) {
+					loadedRippleConfig = await loadRippleConfig(root, configPath);
+				}
 
-				try {
-					const configModule = await tempVite.ssrLoadModule(configPath);
-					buildRippleConfig = configModule.default;
+				if (loadedRippleConfig?.router?.routes) {
+					renderRouteEntries = loadedRippleConfig.router.routes
+						.filter((/** @type {Route} */ r) => r.type === 'render')
+						.map((/** @type {RenderRoute} */ r) => r.entry);
 
-					if (buildRippleConfig?.router?.routes) {
-						renderRouteEntries = buildRippleConfig.router.routes
-							.filter((/** @type {Route} */ r) => r.type === 'render')
-							.map((/** @type {RenderRoute} */ r) => r.entry);
+					// Deduplicate entries (multiple routes can share the same component)
+					renderRouteEntries = [...new Set(renderRouteEntries)];
 
-						// Deduplicate entries (multiple routes can share the same component)
-						renderRouteEntries = [...new Set(renderRouteEntries)];
-
-						console.log(
-							`[@ripple-ts/vite-plugin] Found ${renderRouteEntries.length} render route(s) for client hydration`,
-						);
-					}
-				} finally {
-					await tempVite.close();
+					console.log(
+						`[@ripple-ts/vite-plugin] Found ${renderRouteEntries.length} render route(s) for client hydration`,
+					);
 				}
 			},
 
@@ -633,29 +663,11 @@ export function ripple(inlineOptions = {}) {
 				console.log('[@ripple-ts/vite-plugin] Client build done. Starting server build...');
 
 				// Reuse config loaded in buildStart, or load it now as fallback
-				/** @type {import('@ripple-ts/vite-plugin').RippleConfigOptions | null} */
-				let loadedConfig = buildRippleConfig;
-
-				if (!loadedConfig) {
-					const { createServer } = await import('vite');
-					const tempVite = await createServer({
-						root,
-						configFile: false,
-						appType: 'custom',
-						server: { middlewareMode: true },
-						plugins: [ripple({ excludeRippleExternalModules: true })],
-						logLevel: 'silent',
-					});
-
-					try {
-						const configModule = await tempVite.ssrLoadModule(configPath);
-						loadedConfig = configModule.default;
-					} finally {
-						await tempVite.close();
-					}
+				if (!loadedRippleConfig) {
+					loadedRippleConfig = await loadRippleConfig(root, configPath);
 				}
 
-				if (!loadedConfig?.router?.routes) {
+				if (!loadedRippleConfig?.router?.routes) {
 					console.log(
 						'[@ripple-ts/vite-plugin] No routes in ripple.config.ts — skipping server build',
 					);
@@ -664,7 +676,7 @@ export function ripple(inlineOptions = {}) {
 
 				// Generate the virtual server entry
 				const serverEntryCode = generateServerEntry({
-					routes: loadedConfig.router.routes,
+					routes: loadedRippleConfig.router.routes,
 					rippleConfigPath: configPath,
 					htmlTemplatePath: '../client/public/index.html',
 					rpcModulePaths: [...serverBlockModules],
@@ -699,7 +711,7 @@ export function ripple(inlineOptions = {}) {
 						emptyOutDir: true,
 						ssr: true,
 						target: 'node20',
-						minify: false,
+						minify: loadedRippleConfig?.build?.minify ?? false,
 						rollupOptions: {
 							input: VIRTUAL_SERVER_ENTRY_ID,
 							output: {

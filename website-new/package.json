@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build"
+    "build": "vite build",
+    "preview": "node dist/server/entry.js"
   },
   "keywords": [],
   "author": "",

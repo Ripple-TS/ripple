@@ -1,9 +1,23 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
-  "buildCommand": "vitepress build",
-  "outputDirectory": ".vitepress/dist",
+  "buildCommand": "vite build",
+  "outputDirectory": "dist/client",
+  "functions": {
+    "api/handler.js": {
+      "includeFiles": ["dist/server/**", "dist/client/public/index.html"]
+    }
+  },
   "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, immutable"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [
@@ -18,19 +32,6 @@
         {
           "key": "Referrer-Policy",
           "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/index.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600"
         }
       ]
     }
@@ -45,6 +46,12 @@
       "source": "/docs",
       "destination": "/docs/introduction",
       "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/handler"
     }
   ]
 }

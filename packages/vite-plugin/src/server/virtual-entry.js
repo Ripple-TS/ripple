@@ -8,7 +8,7 @@
  * - Wires routes, middlewares, RPC, and boots the HTTP server
  */
 
-/** @import { RippleConfigOptions, Route } from '@ripple-ts/vite-plugin' */
+/** @import { Route } from '@ripple-ts/vite-plugin' */
 
 /**
  * @typedef {Object} VirtualEntryOptions
@@ -66,128 +66,118 @@ export function generateServerEntry(options) {
 		}
 	}
 
-	// Build import statements
-	const lines = [];
+	// --- Dynamic import lines (built from route/RPC config) ---
 
-	lines.push(`// Auto-generated server entry for production build`);
-	lines.push(`// Do not edit — regenerated on each build`);
-	lines.push(``);
-	lines.push(`import { render, get_css_for_hashes, executeServerFunction } from 'ripple/server';`);
-	lines.push(`import { createHandler } from '@ripple-ts/vite-plugin/production';`);
-	lines.push(`import { readFileSync } from 'node:fs';`);
-	lines.push(`import { fileURLToPath } from 'node:url';`);
-	lines.push(`import { dirname, join } from 'node:path';`);
-	lines.push(``);
+	const import_lines = [];
 
-	// Import ripple.config.ts (for adapter + middlewares + server routes)
-	lines.push(`import rippleConfig from ${JSON.stringify(rippleConfigPath)};`);
-	lines.push(``);
-
-	// Import each page component
 	for (const [entry, varName] of component_imports) {
-		lines.push(`import * as ${varName} from ${JSON.stringify(entry)};`);
+		import_lines.push(`import * as ${varName} from ${JSON.stringify(entry)};`);
 	}
-
-	// Import each layout component
 	for (const [layout, varName] of layout_imports) {
-		lines.push(`import * as ${varName} from ${JSON.stringify(layout)};`);
+		import_lines.push(`import * as ${varName} from ${JSON.stringify(layout)};`);
 	}
-
-	// Import sub-components with #server blocks for RPC
 	for (const [rpcPath, varName] of rpc_imports) {
-		lines.push(`import * as ${varName} from ${JSON.stringify(rpcPath)};`);
+		import_lines.push(`import * as ${varName} from ${JSON.stringify(rpcPath)};`);
 	}
 
-	lines.push(``);
+	// --- Dynamic map entries ---
 
-	// Helper to get default export from a module
-	lines.push(`function getDefaultExport(mod) {`);
-	lines.push(`  if (typeof mod.default === 'function') return mod.default;`);
-	lines.push(`  for (const [key, value] of Object.entries(mod)) {`);
-	lines.push(`    if (typeof value === 'function' && /^[A-Z]/.test(key)) return value;`);
-	lines.push(`  }`);
-	lines.push(`  return null;`);
-	lines.push(`}`);
-	lines.push(``);
+	const component_entries = [...component_imports]
+		.map(([entry, varName]) => `  ${JSON.stringify(entry)}: getDefaultExport(${varName}),`)
+		.join('\n');
 
-	// Build components map
-	lines.push(`const components = {`);
+	const layout_entries = [...layout_imports]
+		.map(([layout, varName]) => `  ${JSON.stringify(layout)}: getDefaultExport(${varName}),`)
+		.join('\n');
+
+	// Only check _$_server_$_ on modules known to have #server blocks.
+	// Checking modules without #server blocks causes rollup warnings since
+	// they don't export _$_server_$_.
+	const rpcPathSet = new Set(rpcModulePaths);
+	const rpc_entries = [];
+
 	for (const [entry, varName] of component_imports) {
-		lines.push(`  ${JSON.stringify(entry)}: getDefaultExport(${varName}),`);
+		if (rpcPathSet.has(entry)) {
+			rpc_entries.push(`rpcModules[${JSON.stringify(entry)}] = ${varName}._$_server_$_;`);
+		}
 	}
-	lines.push(`};`);
-	lines.push(``);
-
-	// Build layouts map
-	lines.push(`const layouts = {`);
-	for (const [layout, varName] of layout_imports) {
-		lines.push(`  ${JSON.stringify(layout)}: getDefaultExport(${varName}),`);
-	}
-	lines.push(`};`);
-	lines.push(``);
-
-	// Build RPC map from modules that have _$_server_$_ exports
-	lines.push(`// Build RPC map from #server block exports`);
-	lines.push(`const rpcModules = {};`);
-	// Check page entries
-	for (const [entry, varName] of component_imports) {
-		lines.push(`if (${varName}._$_server_$_) {`);
-		lines.push(`  rpcModules[${JSON.stringify(entry)}] = ${varName}._$_server_$_;`);
-		lines.push(`}`);
-	}
-	// Check sub-components with #server blocks
 	for (const [rpcPath, varName] of rpc_imports) {
-		lines.push(`if (${varName}._$_server_$_) {`);
-		lines.push(`  rpcModules[${JSON.stringify(rpcPath)}] = ${varName}._$_server_$_;`);
-		lines.push(`}`);
+		rpc_entries.push(`rpcModules[${JSON.stringify(rpcPath)}] = ${varName}._$_server_$_;`);
 	}
-	lines.push(``);
 
-	// Read HTML template
-	lines.push(`// Read the HTML template from the client build output`);
-	lines.push(`const __dirname = dirname(fileURLToPath(import.meta.url));`);
-	lines.push(`const htmlTemplate = readFileSync(join(__dirname, ${JSON.stringify(htmlTemplatePath)}), 'utf-8');`);
-	lines.push(``);
+	// --- Assemble the full module ---
 
-	// Create the production handler
-	lines.push(`// Create the production request handler`);
-	lines.push(`const handler = createHandler(`);
-	lines.push(`  {`);
-	lines.push(`    routes: rippleConfig.router.routes,`);
-	lines.push(`    components,`);
-	lines.push(`    layouts,`);
-	lines.push(`    middlewares: rippleConfig.middlewares || [],`);
-	lines.push(`    rpcModules,`);
-	lines.push(`    trustProxy: rippleConfig.server?.trustProxy ?? false,`);
-	lines.push(`    runtime: rippleConfig.adapter.runtime,`);
-	lines.push(`  },`);
-	lines.push(`  {`);
-	lines.push(`    render,`);
-	lines.push(`    getCss: get_css_for_hashes,`);
-	lines.push(`    htmlTemplate,`);
-	lines.push(`    executeServerFunction,`);
-	lines.push(`  },`);
-	lines.push(`);`);
-	lines.push(``);
+	return `\
+// Auto-generated server entry for production build
+// Do not edit — regenerated on each build
 
-	// Boot the adapter
-	lines.push(`// Boot the production server via adapter`);
-	lines.push(`if (rippleConfig.adapter?.serve) {`);
-	lines.push(`  const server = rippleConfig.adapter.serve(handler, {`);
-	lines.push(`    static: { dir: join(__dirname, '../client') },`);
-	lines.push(`  });`);
-	lines.push(`  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;`);
-	lines.push(`  server.listen(port);`);
-	lines.push(`  console.log('[ripple] Production server listening on port ' + port);`);
-	lines.push(`} else {`);
-	lines.push(`  console.error('[ripple] No adapter configured in ripple.config.ts');`);
-	lines.push(`  process.exit(1);`);
-	lines.push(`}`);
-	lines.push(``);
+import { render, get_css_for_hashes, executeServerFunction } from 'ripple/server';
+import { createHandler } from '@ripple-ts/vite-plugin/production';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 
-	// Export the handler for programmatic use
-	lines.push(`export { handler };`);
-	lines.push(``);
+import rippleConfig from ${JSON.stringify(rippleConfigPath)};
 
-	return lines.join('\n');
+${import_lines.join('\n')}
+
+function getDefaultExport(mod) {
+  if (typeof mod.default === 'function') return mod.default;
+  for (const [key, value] of Object.entries(mod)) {
+    if (typeof value === 'function' && /^[A-Z]/.test(key)) return value;
+  }
+  return null;
+}
+
+const components = {
+${component_entries}
+};
+
+const layouts = {
+${layout_entries}
+};
+
+const rpcModules = {};
+${rpc_entries.join('\n')}
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const htmlTemplate = readFileSync(join(__dirname, ${JSON.stringify(htmlTemplatePath)}), 'utf-8');
+
+const handler = createHandler(
+  {
+    routes: rippleConfig.router.routes,
+    components,
+    layouts,
+    middlewares: rippleConfig.middlewares || [],
+    rpcModules,
+    trustProxy: rippleConfig.server?.trustProxy ?? false,
+    runtime: rippleConfig.adapter.runtime,
+  },
+  {
+    render,
+    getCss: get_css_for_hashes,
+    htmlTemplate,
+    executeServerFunction,
+  },
+);
+
+export { handler };
+
+// Auto-boot when running directly (node dist/server/entry.js)
+// Skip when imported as a module (e.g. by a serverless function wrapper)
+const isMainModule = typeof process !== 'undefined' && process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\\\/g, '/'));
+if (isMainModule) {
+  if (rippleConfig.adapter?.serve) {
+    const server = rippleConfig.adapter.serve(handler, {
+      static: { dir: join(__dirname, '../client') },
+    });
+    const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+    server.listen(port);
+    console.log('[ripple] Production server listening on port ' + port);
+  } else {
+    console.error('[ripple] No adapter configured in ripple.config.ts');
+    process.exit(1);
+  }
+}
+`;
 }

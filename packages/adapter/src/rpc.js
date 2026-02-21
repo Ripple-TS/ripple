@@ -92,15 +92,21 @@ function has_scheme(url) {
  * (e.g., "/api/foo", "./data") that are resolved against the incoming
  * request's origin.
  *
- * Should be called once during server initialisation.
+ * Should be called once during server initialization.
  *
  * @param {AsyncContext} async_context
  * @returns {() => void} Cleanup function that restores the original fetch
  */
 export function patch_global_fetch(async_context) {
+	/** @type {typeof globalThis.fetch} */
 	const original_fetch = globalThis.fetch;
 
-	globalThis.fetch = function (input, init) {
+	/**
+	 * @param {string | Request | URL} input
+	 * @param {RequestInit} [init]
+	 * @returns {ReturnType<typeof globalThis.fetch>}
+	 */
+	const patched_fetch = function (input, init) {
 		const context = async_context.getStore();
 
 		if (context?.origin) {
@@ -121,6 +127,12 @@ export function patch_global_fetch(async_context) {
 
 		return original_fetch(input, init);
 	};
+
+	// Copy static properties (e.g. fetch.preconnect) so the patched
+	// function satisfies the full `typeof fetch` contract.
+	Object.assign(patched_fetch, original_fetch);
+
+	globalThis.fetch = /** @type {typeof globalThis.fetch} */ (patched_fetch);
 
 	return () => {
 		globalThis.fetch = original_fetch;
