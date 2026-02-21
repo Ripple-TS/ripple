@@ -12,7 +12,6 @@
 import { createRouter } from './router.js';
 import { createContext, runMiddlewareChain } from './middleware.js';
 import {
-	derive_origin,
 	patch_global_fetch,
 	build_rpc_lookup,
 	is_rpc_request,
@@ -51,8 +50,6 @@ import {
  * @property {string} htmlTemplate - The HTML template string (from index.html, post-build)
  * @property {(fn: Function, body: string) => Promise<string>} executeServerFunction - RPC executor
  */
-
-const RPC_PATH_PREFIX = '/_$_ripple_rpc_$_/';
 
 /**
  * Create a production request handler from a manifest.

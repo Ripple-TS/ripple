@@ -18,7 +18,8 @@
     },
     "./production": {
       "import": "./src/server/production.js",
-      "default": "./src/server/production.js"
+      "default": "./src/server/production.js",
+      "types": "./types/index.d.ts"
     }
   },
   "homepage": "https://ripplejs.com",

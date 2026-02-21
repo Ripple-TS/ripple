@@ -136,10 +136,10 @@ declare module '@ripple-ts/vite-plugin' {
 		handler: (request: Request, platform?: unknown) => Response | Promise<Response>,
 		options?: Record<string, unknown>,
 	) => { listen: (port?: number) => unknown; close: () => void };
+}
 
-	// ============================================================================
-	// Production runtime (exported from @ripple-ts/vite-plugin/production)
-	// ============================================================================
+declare module '@ripple-ts/vite-plugin/production' {
+	import type { Route, Middleware, RuntimePrimitives } from '@ripple-ts/vite-plugin';
 
 	export interface ServerManifest {
 		routes: Route[];

@@ -18,12 +18,7 @@ import { generateServerEntry } from './server/virtual-entry.js';
 import { loadRippleConfig } from './load-config.js';
 import { DEFAULT_OUTDIR } from './constants.js';
 
-import {
-	derive_origin,
-	patch_global_fetch,
-	is_rpc_request,
-	handle_rpc_request,
-} from '@ripple-ts/adapter/rpc';
+import { patch_global_fetch, is_rpc_request, handle_rpc_request } from '@ripple-ts/adapter/rpc';
 
 // Re-export route classes
 export { RenderRoute, ServerRoute } from './routes.js';
@@ -510,7 +505,7 @@ export function ripple(inlineOptions = {}) {
 							const method = req.method || 'GET';
 
 							// Handle RPC requests for #server blocks
-							if (url.pathname.startsWith('/_$_ripple_rpc_$_/')) {
+							if (is_rpc_request(url.pathname)) {
 								await handleRpcRequest(
 									req,
 									res,

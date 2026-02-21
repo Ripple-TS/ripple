@@ -186,7 +186,7 @@ export function is_rpc_request(pathname) {
  * Handle an RPC request for a `#server` block function.
  *
  * Platform-agnostic — operates on Web Request/Response and receives
- * environment-specific behaviour via the `options` callbacks.
+ * environment-specific behavior via the `options` callbacks.
  *
  * In dev, `resolveFunction` uses Vite's `ssrLoadModule` to hot-load modules.
  * In production, it looks up a pre-built map.
