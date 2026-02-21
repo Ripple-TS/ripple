@@ -147,6 +147,12 @@ if (!existsSync(join(__dirname, ${JSON.stringify(htmlTemplatePath)}))) {
 }
 const htmlTemplate = readFileSync(join(__dirname, ${JSON.stringify(htmlTemplatePath)}), 'utf-8');
 
+if (!rippleConfig.adapter?.runtime) {
+  console.error('[ripple] No adapter (or adapter.runtime) configured in ripple.config.ts.');
+  console.error('[ripple] Install an adapter package (e.g. @ripple-ts/adapter-node) and set the \\\`adapter\\\` property.');
+  process.exit(1);
+}
+
 const handler = createHandler(
   {
     routes: rippleConfig.router.routes,

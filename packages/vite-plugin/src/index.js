@@ -646,6 +646,20 @@ export function ripple(inlineOptions = {}) {
 					return;
 				}
 
+				if (!loadedRippleConfig.adapter) {
+					throw new Error(
+						'[@ripple-ts/vite-plugin] Production SSR builds require an adapter in ripple.config.ts. ' +
+							'Install an adapter package (e.g. @ripple-ts/adapter-node) and set the `adapter` property.',
+					);
+				}
+
+				if (!loadedRippleConfig.adapter.runtime) {
+					throw new Error(
+						'[@ripple-ts/vite-plugin] The adapter in ripple.config.ts is missing the `runtime` property. ' +
+							'Make sure your adapter exports runtime primitives.',
+					);
+				}
+
 				const outDir = loadedRippleConfig.build?.outDir ?? DEFAULT_OUTDIR;
 
 				// Generate the virtual server entry
