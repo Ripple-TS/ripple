@@ -141,6 +141,7 @@ describe('adapt()', () => {
 		expect(vc_config.launcherType).toBe('Nodejs');
 		expect(vc_config.experimentalResponseStreaming).toBe(true);
 		expect(vc_config.framework.slug).toBe('ripple');
+		expect(vc_config.framework.version).toMatch(/^\d+\.\d+\.\d+/);
 		expect(vc_config.runtime).toMatch(/^nodejs\d+\.x$/);
 	});
 
@@ -160,7 +161,7 @@ describe('adapt()', () => {
 		expect(pkg.type).toBe('module');
 	});
 
-	it('generates handler that imports server entry', async () => {
+	it('generates handler that bridges Node.js req/res to Ripple fetch handler', async () => {
 		const { adapt } = await import('../src/adapt.js');
 		create_build_output(tmp_dir);
 
@@ -172,7 +173,16 @@ describe('adapt()', () => {
 		);
 
 		expect(handler_source).toContain('import { handler }');
-		expect(handler_source).toContain('export default handler');
+		expect(handler_source).toContain(
+			"import { nodeRequestToWebRequest, webResponseToNodeResponse } from '@ripple-ts/adapter-node'",
+		);
+		expect(handler_source).toContain('export default async function (req, res)');
+		expect(handler_source).toContain('nodeRequestToWebRequest(req, controller.signal, true)');
+		expect(handler_source).toContain('webResponseToNodeResponse(response, res,');
+
+		// Handler should import the server entry at its project-relative path
+		// (dist/server/entry.js), not just "entry.js"
+		expect(handler_source).toContain('dist/server/entry.js');
 	});
 
 	it('respects custom outDir', async () => {
@@ -319,5 +329,107 @@ describe('adapt()', () => {
 		);
 
 		expect(config.cleanUrls).toBe(false);
+	});
+
+	// ---------------------------------------------------------------
+	// ISR (Incremental Static Regeneration)
+	// ---------------------------------------------------------------
+
+	it('adds prerender config to .vc-config.json when isr is set', async () => {
+		const { adapt } = await import('../src/adapt.js');
+		create_build_output(tmp_dir);
+
+		await adapt({
+			isr: {
+				expiration: 60,
+			},
+		});
+
+		const vc_config = JSON.parse(
+			readFileSync(
+				join(tmp_dir, '.vercel', 'output', 'functions', 'index.func', '.vc-config.json'),
+				'utf-8',
+			),
+		);
+
+		expect(vc_config.prerender).toBeTruthy();
+		expect(vc_config.prerender.expiration).toBe(60);
+	});
+
+	it('supports isr.expiration = false for never-expiring cache', async () => {
+		const { adapt } = await import('../src/adapt.js');
+		create_build_output(tmp_dir);
+
+		await adapt({
+			isr: {
+				expiration: false,
+			},
+		});
+
+		const vc_config = JSON.parse(
+			readFileSync(
+				join(tmp_dir, '.vercel', 'output', 'functions', 'index.func', '.vc-config.json'),
+				'utf-8',
+			),
+		);
+
+		expect(vc_config.prerender).toBeTruthy();
+		expect(vc_config.prerender.expiration).toBe(false);
+	});
+
+	it('includes bypassToken and allowQuery in prerender config', async () => {
+		const { adapt } = await import('../src/adapt.js');
+		create_build_output(tmp_dir);
+
+		await adapt({
+			isr: {
+				expiration: 300,
+				bypassToken: 'my-secret-token',
+				allowQuery: ['page', 'q'],
+			},
+		});
+
+		const vc_config = JSON.parse(
+			readFileSync(
+				join(tmp_dir, '.vercel', 'output', 'functions', 'index.func', '.vc-config.json'),
+				'utf-8',
+			),
+		);
+
+		expect(vc_config.prerender.expiration).toBe(300);
+		expect(vc_config.prerender.bypassToken).toBe('my-secret-token');
+		expect(vc_config.prerender.allowQuery).toEqual(['page', 'q']);
+	});
+
+	it('does not add prerender config when isr is false', async () => {
+		const { adapt } = await import('../src/adapt.js');
+		create_build_output(tmp_dir);
+
+		await adapt({ isr: false });
+
+		const vc_config = JSON.parse(
+			readFileSync(
+				join(tmp_dir, '.vercel', 'output', 'functions', 'index.func', '.vc-config.json'),
+				'utf-8',
+			),
+		);
+
+		expect(vc_config.prerender).toBeUndefined();
+	});
+
+	it('does not add prerender config when isr is omitted', async () => {
+		const { adapt } = await import('../src/adapt.js');
+		create_build_output(tmp_dir);
+
+		await adapt();
+
+		const vc_config = JSON.parse(
+			readFileSync(
+				join(tmp_dir, '.vercel', 'output', 'functions', 'index.func', '.vc-config.json'),
+				'utf-8',
+			),
+		);
+
+		expect(vc_config.prerender).toBeUndefined();
 	});
 });

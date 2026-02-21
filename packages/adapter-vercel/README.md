@@ -70,6 +70,9 @@ await adapt({
 | `serverless.memory`      | `number`             | `undefined`   | Memory (MB) allocated to the function                                    |
 | `serverless.maxDuration` | `number`             | `undefined`   | Maximum execution time (seconds)                                         |
 | `isr`                    | `ISRConfig \| false` | `false`       | Incremental Static Regeneration config                                   |
+| `isr.expiration`         | `number \| false`    | —             | Seconds before background revalidation (`false` = never expire)          |
+| `isr.bypassToken`        | `string`             | `undefined`   | Token to bypass the ISR cache                                            |
+| `isr.allowQuery`         | `string[]`           | `undefined`   | Query params included in the cache key (empty = ignore query)            |
 | `images`                 | `ImagesConfig`       | `undefined`   | Vercel Image Optimization config                                         |
 | `headers`                | `VercelHeader[]`     | `[]`          | Custom response headers                                                  |
 | `redirects`              | `VercelRedirect[]`   | `[]`          | Custom redirects                                                         |
@@ -109,6 +112,46 @@ The generated structure:
 The adapter re-exports `serve` and `runtime` from `@ripple-ts/adapter-node`, so
 local development with `vite dev` and `ripple-preview` works exactly the same as
 with adapter-node.
+
+## Incremental Static Regeneration (ISR)
+
+Enable ISR to let Vercel cache serverless responses at the edge and revalidate
+them in the background:
+
+```javascript
+await adapt({
+  isr: {
+    // Re-generate cached pages every 60 seconds
+    expiration: 60,
+  },
+});
+```
+
+**Never-expiring cache** (only revalidated via on-demand revalidation):
+
+```javascript
+await adapt({
+  isr: {
+    expiration: false,
+    bypassToken: process.env.REVALIDATION_TOKEN,
+  },
+});
+```
+
+**Cache key control** — only include specific query parameters:
+
+```javascript
+await adapt({
+  isr: {
+    expiration: 300,
+    allowQuery: ['page', 'q'], // /search?q=foo and /search?q=bar are cached separately
+  },
+});
+```
+
+The ISR config is emitted as a `prerender` field in the function's
+`.vc-config.json`, following Vercel's
+[Build Output API v3 prerender configuration](https://vercel.com/docs/build-output-api/v3/configuration#prerender-configuration).
 
 ## Vercel Configuration
 
