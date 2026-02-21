@@ -4,7 +4,7 @@ import { Marked } from 'marked';
 import { createHighlighter } from 'shiki';
 
 // Resolve the docs directory relative to this module
-const docs_dir = path.resolve(import.meta.dirname, '../../../website/docs');
+const docs_dir = path.resolve(import.meta.dirname, '../../docs');
 
 // Load the Ripple TextMate grammar
 const ripple_grammar_path = path.resolve(
