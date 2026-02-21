@@ -346,10 +346,10 @@ export function ripple(inlineOptions = {}) {
 					const hasRippleConfig = fs.existsSync(configPath);
 
 					if (hasRippleConfig) {
-						const htmlInput = path.join(projectRoot, 'public', 'index.html');
+						const htmlInput = path.join(projectRoot, 'index.html');
 						if (!fs.existsSync(htmlInput)) {
 							throw new Error(
-								'[@ripple-ts/vite-plugin] public/index.html not found. ' +
+								'[@ripple-ts/vite-plugin] index.html not found. ' +
 									'Required for SSR builds with ripple.config.ts.',
 							);
 						}
@@ -657,7 +657,7 @@ export function ripple(inlineOptions = {}) {
 				const serverEntryCode = generateServerEntry({
 					routes: loadedRippleConfig.router.routes,
 					rippleConfigPath: configPath,
-					htmlTemplatePath: '../client/public/index.html',
+					htmlTemplatePath: '../client/index.html',
 					rpcModulePaths: [...serverBlockModules],
 				});
 

@@ -5,7 +5,7 @@
   "outputDirectory": "dist/client",
   "functions": {
     "api/handler.js": {
-      "includeFiles": ["dist/server/**", "dist/client/public/index.html"]
+      "includeFiles": ["dist/server/**", "dist/client/index.html"]
     }
   },
   "headers": [

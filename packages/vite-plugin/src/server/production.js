@@ -48,7 +48,7 @@ import {
  * @typedef {Object} HandlerOptions
  * @property {(component: Function) => Promise<RenderResult>} render - SSR render function
  * @property {(css: Set<string>) => string} getCss - Get CSS string for hashes
- * @property {string} htmlTemplate - The HTML template string (from public/index.html, post-build)
+ * @property {string} htmlTemplate - The HTML template string (from index.html, post-build)
  * @property {(fn: Function, body: string) => Promise<string>} executeServerFunction - RPC executor
  */
 

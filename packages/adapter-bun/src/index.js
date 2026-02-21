@@ -73,7 +73,7 @@ export function serve(fetch_handler, options = {}) {
 	/** @type {ReturnType<typeof serveStatic> | null} */
 	let static_middleware = null;
 	if (static_options !== false) {
-		const { dir = 'public', ...static_handler_options } = static_options;
+		const { dir = '.', ...static_handler_options } = static_options;
 		static_middleware = serveStatic(dir, static_handler_options);
 	}
 

@@ -268,12 +268,10 @@ describe('@ripple-ts/adapter-bun serve()', () => {
 		}
 	});
 
-	it('serves files from ./public by default', async () => {
-		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-bun-default-static-'));
+	it('serves files from ./ by default', async () => {
+		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-bun-default-static-dir'));
 		try {
-			const public_dir = join(temp_dir, 'public');
-			mkdirSync(public_dir);
-			writeFileSync(join(public_dir, 'llms.txt'), 'hello llms');
+			writeFileSync(join(temp_dir, 'llms.txt'), 'hello llms');
 
 			await with_cwd(temp_dir, async () => {
 				const { server, get_fetch } = create_bun_mock();
@@ -292,11 +290,9 @@ describe('@ripple-ts/adapter-bun serve()', () => {
 	});
 
 	it('can disable default static serving via options.static = false', async () => {
-		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-bun-default-static-disabled-'));
+		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-bun-default-static-disabled-dir'));
 		try {
-			const public_dir = join(temp_dir, 'public');
-			mkdirSync(public_dir);
-			writeFileSync(join(public_dir, 'llms.txt'), 'hello llms');
+			writeFileSync(join(temp_dir, 'llms.txt'), 'hello llms');
 
 			await with_cwd(temp_dir, async () => {
 				const { server, get_fetch } = create_bun_mock();

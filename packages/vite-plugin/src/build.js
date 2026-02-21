@@ -47,10 +47,10 @@ export async function buildApp(options) {
 	console.log('[@ripple-ts/vite-plugin] Building client...');
 
 	// Determine the HTML input
-	const htmlInput = path.join(root, 'public', 'index.html');
+	const htmlInput = path.join(root, 'index.html');
 	if (!fs.existsSync(htmlInput)) {
 		throw new Error(
-			`[@ripple-ts/vite-plugin] No public/index.html found at ${htmlInput}. ` +
+			`[@ripple-ts/vite-plugin] No index.html found at ${htmlInput}. ` +
 				`A template HTML file with <!--ssr-head--> and <!--ssr-body--> placeholders is required.`,
 		);
 	}
