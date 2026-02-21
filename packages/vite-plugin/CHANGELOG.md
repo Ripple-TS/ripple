@@ -1,5 +1,17 @@
 # @ripple-ts/vite-plugin
 
+## 0.2.214
+
+### Patch Changes
+
+- [#730](https://github.com/Ripple-TS/ripple/pull/730)
+  [`6efde20`](https://github.com/Ripple-TS/ripple/commit/6efde20a7fe1e29b27ac98823362cba2001340fa)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Force patch version bump for
+  vite-plugin package.
+
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.2.214
+
 ## 0.2.213
 
 ## 0.2.212

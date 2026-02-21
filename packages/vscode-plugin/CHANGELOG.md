@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.0.89
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.2.214
+  - @ripple-ts/language-server@0.2.214
+  - @ripple-ts/typescript-plugin@0.2.214
+
 ## 0.0.88
 
 ### Patch Changes
