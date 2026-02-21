@@ -322,12 +322,10 @@ describe('@ripple-ts/adapter-node serve()', () => {
 		}
 	});
 
-	it('serves files from ./public by default', async () => {
-		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-node-default-static-'));
+	it('serves files from ./ by default', async () => {
+		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-node-default-static-dir'));
 		try {
-			const public_dir = join(temp_dir, 'public');
-			mkdirSync(public_dir);
-			writeFileSync(join(public_dir, 'llms.txt'), 'hello llms');
+			writeFileSync(join(temp_dir, 'llms.txt'), 'hello llms');
 
 			const fetch_handler = vi.fn(() => new Response('fallback', { status: 404 }));
 
@@ -346,11 +344,9 @@ describe('@ripple-ts/adapter-node serve()', () => {
 	});
 
 	it('can disable default static serving via options.static = false', async () => {
-		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-node-default-static-disabled-'));
+		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-node-default-static-disabled-dir'));
 		try {
-			const public_dir = join(temp_dir, 'public');
-			mkdirSync(public_dir);
-			writeFileSync(join(public_dir, 'llms.txt'), 'hello llms');
+			writeFileSync(join(temp_dir, 'llms.txt'), 'hello llms');
 
 			const fetch_handler = vi.fn(() => new Response('fallback', { status: 404 }));
 

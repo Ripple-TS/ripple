@@ -12,6 +12,11 @@
       "types": "./types/index.d.ts",
       "import": "./src/index.js",
       "default": "./src/index.js"
+    },
+    "./rpc": {
+      "types": "./types/rpc.d.ts",
+      "import": "./src/rpc.js",
+      "default": "./src/rpc.js"
     }
   },
   "scripts": {

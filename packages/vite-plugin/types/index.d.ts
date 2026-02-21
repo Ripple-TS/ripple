@@ -1,4 +1,5 @@
-import type { Plugin } from 'vite';
+import type { Plugin, BuildEnvironmentOptions, ViteDevServer } from 'vite';
+import type { RuntimePrimitives } from '@ripple-ts/adapter';
 
 declare module '@ripple-ts/vite-plugin' {
 	// ============================================================================
@@ -7,6 +8,16 @@ declare module '@ripple-ts/vite-plugin' {
 
 	export function ripple(options?: RipplePluginOptions): Plugin[];
 	export function defineConfig(options: RippleConfigOptions): RippleConfigOptions;
+	export function resolveRippleConfig(
+		raw: RippleConfigOptions,
+		options?: { requireAdapter?: boolean },
+	): ResolvedRippleConfig;
+	export function getRippleConfigPath(projectRoot: string): string;
+	export function rippleConfigExists(projectRoot: string): boolean;
+	export function loadRippleConfig(
+		projectRoot: string,
+		options?: { vite?: ViteDevServer; requireAdapter?: boolean },
+	): Promise<ResolvedRippleConfig>;
 
 	// ============================================================================
 	// Route classes
@@ -90,10 +101,23 @@ declare module '@ripple-ts/vite-plugin' {
 
 	export interface RippleConfigOptions {
 		build?: {
+			/** Output directory for the production build. @default 'dist' */
+			outDir?: string;
 			minify?: boolean;
+			target?: BuildEnvironmentOptions['target'];
 		};
 		adapter?: {
 			serve: AdapterServeFunction;
+			/**
+			 * Platform-specific runtime primitives provided by the adapter.
+			 *
+			 * These allow the server runtime to operate without depending
+			 * on Node.js-specific APIs like `node:crypto` or `node:async_hooks`.
+			 *
+			 * Required for production builds. In development, the vite plugin
+			 * falls back to Node.js defaults if not provided.
+			 */
+			runtime: RuntimePrimitives;
 		};
 		router: {
 			routes: Route[];
@@ -118,8 +142,100 @@ declare module '@ripple-ts/vite-plugin' {
 		};
 	}
 
+	/**
+	 * Resolved configuration with all defaults applied.
+	 * Returned by `resolveRippleConfig` and `loadRippleConfig`.
+	 * Consumers should use this type instead of applying ad-hoc defaults.
+	 */
+	export interface ResolvedRippleConfig {
+		build: {
+			/** @default 'dist' */
+			outDir: string;
+			minify?: boolean;
+			target?: BuildEnvironmentOptions['target'];
+		};
+		adapter?: {
+			serve: AdapterServeFunction;
+			runtime: RuntimePrimitives;
+		};
+		router: {
+			routes: Route[];
+		};
+		/** @default [] */
+		middlewares: Middleware[];
+		platform: {
+			/** @default {} */
+			env: Record<string, string>;
+		};
+		server: {
+			/** @default false */
+			trustProxy: boolean;
+		};
+	}
+
 	export type AdapterServeFunction = (
 		handler: (request: Request, platform?: unknown) => Response | Promise<Response>,
 		options?: Record<string, unknown>,
 	) => { listen: (port?: number) => unknown; close: () => void };
+}
+
+declare module '@ripple-ts/vite-plugin/production' {
+	import type {
+		Route,
+		Middleware,
+		RuntimePrimitives,
+		ResolvedRippleConfig,
+		RippleConfigOptions,
+	} from '@ripple-ts/vite-plugin';
+
+	export function resolveRippleConfig(
+		raw: RippleConfigOptions,
+		options?: { requireAdapter?: boolean },
+	): ResolvedRippleConfig;
+
+	export interface ClientAssetEntry {
+		/** Path to the built JS file (relative to client output dir) */
+		js: string;
+		/** Paths to the built CSS files (relative to client output dir) */
+		css: string[];
+	}
+
+	export interface ServerManifest {
+		routes: Route[];
+		components: Record<string, Function>;
+		layouts: Record<string, Function>;
+		middlewares: Middleware[];
+		/** Map of entry path → _$_server_$_ object for RPC support */
+		rpcModules?: Record<string, Record<string, Function>>;
+		/** Trust X-Forwarded-* headers when deriving origin for RPC fetch */
+		trustProxy?: boolean;
+		/** Platform-specific runtime primitives from the adapter */
+		runtime: RuntimePrimitives;
+		/**
+		 * Map of route entry paths to their built client asset paths.
+		 * Used to emit `<link rel="stylesheet">` and `<link rel="modulepreload">`
+		 * tags in the production HTML. Populated from Vite's client manifest
+		 * during the build. The special key `__hydrate_js` holds the hydrate
+		 * runtime entry.
+		 */
+		clientAssets?: Record<string, ClientAssetEntry>;
+	}
+
+	export interface RenderResult {
+		head: string;
+		body: string;
+		css: Set<string>;
+	}
+
+	export interface HandlerOptions {
+		render: (component: Function) => Promise<RenderResult>;
+		getCss: (css: Set<string>) => string;
+		htmlTemplate: string;
+		executeServerFunction: (fn: Function, body: string) => Promise<string>;
+	}
+
+	export function createHandler(
+		manifest: ServerManifest,
+		options: HandlerOptions,
+	): (request: Request) => Promise<Response>;
 }

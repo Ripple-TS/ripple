@@ -1,9 +1,18 @@
 import type {
 	AdapterCoreOptions,
+	RuntimePrimitives,
 	ServeFunction,
 	ServeStaticOptions as BaseServeStaticOptions,
 	ServeStaticDirectoryOptions as BaseServeStaticDirectoryOptions,
 } from '@ripple-ts/adapter';
+
+/**
+ * Node.js runtime primitives for the Ripple adapter contract.
+ *
+ * - `hash`: SHA-256 (truncated to 8 hex chars) via `node:crypto`
+ * - `createAsyncContext`: `AsyncLocalStorage` from `node:async_hooks`
+ */
+export const runtime: RuntimePrimitives;
 
 export type ServeOptions = AdapterCoreOptions & {
 	middleware?:

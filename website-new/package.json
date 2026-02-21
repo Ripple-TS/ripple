@@ -3,9 +3,11 @@
   "version": "0.0.3",
   "description": "",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build"
+    "build": "vite build",
+    "preview": "ripple-preview"
   },
   "keywords": [],
   "author": "",

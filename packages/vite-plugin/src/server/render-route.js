@@ -90,7 +90,7 @@ export async function handleRenderRoute(route, context, vite) {
 			.join('\n');
 
 		// Load and process index.html template
-		const templatePath = join(vite.config.root, 'public', 'index.html');
+		const templatePath = join(vite.config.root, 'index.html');
 		let template = await readFile(templatePath, 'utf-8');
 
 		// Apply Vite's HTML transforms (HMR client, module resolution, etc.)

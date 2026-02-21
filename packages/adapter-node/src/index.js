@@ -1,12 +1,45 @@
 import { createServer } from 'node:http';
+import { createReadStream, existsSync, statSync } from 'node:fs';
+import { resolve, sep } from 'node:path';
 import { Readable } from 'node:stream';
+import { createHash } from 'node:crypto';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import {
 	DEFAULT_HOSTNAME,
 	DEFAULT_PORT,
+	DEFAULT_STATIC_PREFIX,
+	DEFAULT_STATIC_MAX_AGE,
+	get_mime_type,
+	get_static_cache_control,
 	internal_server_error_response,
 	run_next_middleware,
-	serveStatic as create_static_handler,
 } from '@ripple-ts/adapter';
+
+// ============================================================================
+// Runtime primitives — platform-specific capabilities for Ripple's server runtime
+// ============================================================================
+
+/**
+ * Node.js runtime primitives for the Ripple adapter contract.
+ *
+ * Provides:
+ * - `hash`: SHA-256 hex digest truncated to 8 chars (matches compiler output)
+ * - `createAsyncContext`: AsyncLocalStorage-backed request-scoped context
+ *
+ * @type {import('@ripple-ts/adapter').RuntimePrimitives}
+ */
+export const runtime = {
+	hash(str) {
+		return createHash('sha256').update(str).digest('hex').slice(0, 8);
+	},
+	createAsyncContext() {
+		const als = new AsyncLocalStorage();
+		return {
+			run: (store, fn) => als.run(store, fn),
+			getStore: () => als.getStore(),
+		};
+	},
+};
 
 /**
  * @param {string | string[] | undefined} value
@@ -170,7 +203,7 @@ export function serve(fetch_handler, options = {}) {
 	/** @type {ReturnType<typeof serveStatic> | null} */
 	let static_middleware = null;
 	if (static_options !== false) {
-		const { dir = 'public', ...static_handler_options } = static_options;
+		const { dir = '.', ...static_handler_options } = static_options;
 		static_middleware = serveStatic(dir, static_handler_options);
 	}
 
@@ -253,6 +286,86 @@ export function serve(fetch_handler, options = {}) {
 		close() {
 			server.close();
 		},
+	};
+}
+
+/**
+ * @param {string} base_dir
+ * @param {string} pathname
+ * @returns {string | null}
+ */
+function resolve_static_file_path(base_dir, pathname) {
+	const file_path = resolve(base_dir, `.${pathname}`);
+	const is_within_base_dir = file_path === base_dir || file_path.startsWith(base_dir + sep);
+	return is_within_base_dir ? file_path : null;
+}
+
+/**
+ * Create a request-based static file handler.
+ *
+ * @param {string} dir - Directory to serve files from (relative to cwd or absolute)
+ * @param {{ prefix?: string, maxAge?: number, immutable?: boolean }} [options]
+ * @returns {(request: Request) => Response | null}
+ */
+function create_static_handler(dir, options = {}) {
+	const {
+		prefix = DEFAULT_STATIC_PREFIX,
+		maxAge = DEFAULT_STATIC_MAX_AGE,
+		immutable = false,
+	} = options;
+
+	const base_dir = resolve(dir);
+
+	return function serve_static_request(request) {
+		const request_method = (request.method || 'GET').toUpperCase();
+		if (request_method !== 'GET' && request_method !== 'HEAD') {
+			return null;
+		}
+
+		let pathname;
+		try {
+			pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+		} catch {
+			return null;
+		}
+
+		if (!pathname.startsWith(prefix)) {
+			return null;
+		}
+
+		pathname = pathname.slice(prefix.length) || '/';
+		if (!pathname.startsWith('/')) {
+			pathname = '/' + pathname;
+		}
+
+		const file_path = resolve_static_file_path(base_dir, pathname);
+		if (file_path === null || !existsSync(file_path)) {
+			return null;
+		}
+
+		let file_stats;
+		try {
+			file_stats = statSync(file_path);
+		} catch {
+			return null;
+		}
+
+		if (file_stats.isDirectory()) {
+			return null;
+		}
+
+		const headers = new Headers();
+		headers.set('Content-Type', get_mime_type(file_path));
+		headers.set('Content-Length', String(file_stats.size));
+		headers.set('Cache-Control', get_static_cache_control(pathname, maxAge, immutable));
+
+		if (request_method === 'HEAD') {
+			return new Response(null, { status: 200, headers });
+		}
+
+		/** @type {BodyInit} */
+		const file_body = /** @type {any} */ (Readable.toWeb(createReadStream(file_path)));
+		return new Response(file_body, { status: 200, headers });
 	};
 }
 

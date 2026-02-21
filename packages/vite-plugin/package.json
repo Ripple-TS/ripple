@@ -7,11 +7,19 @@
   "type": "module",
   "module": "src/index.js",
   "main": "src/index.js",
+  "bin": {
+    "ripple-preview": "src/bin/preview.js"
+  },
   "exports": {
     ".": {
       "types": "./types/index.d.ts",
       "import": "./src/index.js",
       "default": "./src/index.js"
+    },
+    "./production": {
+      "import": "./src/server/production.js",
+      "default": "./src/server/production.js",
+      "types": "./types/index.d.ts"
     }
   },
   "homepage": "https://ripplejs.com",
@@ -22,6 +30,9 @@
   },
   "bugs": {
     "url": "https://github.com/Ripple-TS/ripple/issues"
+  },
+  "dependencies": {
+    "@ripple-ts/adapter": "workspace:*"
   },
   "devDependencies": {
     "ripple": "workspace:*",

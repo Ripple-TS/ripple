@@ -43,8 +43,8 @@ component Button(label: string, onClick: () => void) {
 ### Reactive State
 
 ```ripple
-let count = @0;  // tracked value
-let doubled = $count * 2;  // derived value
+let count = track(0); // tracked value
+let doubled = track(() => @count * 2); // derived value
 ```
 
 ### Validation Commands

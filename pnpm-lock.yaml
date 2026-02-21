@@ -15,6 +15,9 @@ catalogs:
     '@tailwindcss/vite':
       specifier: ^4.1.12
       version: 4.1.12
+    '@types/bun':
+      specifier: ^1.3.9
+      version: 1.3.9
     '@types/eslint':
       specifier: ^9.6.1
       version: 9.6.1
@@ -259,6 +262,10 @@ importers:
         version: link:../adapter
       bun:
         specifier: ^1.0.0
+        version: 1.3.9
+    devDependencies:
+      '@types/bun':
+        specifier: catalog:default
         version: 1.3.9
 
   packages/adapter-node:
@@ -552,6 +559,10 @@ importers:
         version: 0.15.4(typescript@5.9.2)
 
   packages/vite-plugin:
+    dependencies:
+      '@ripple-ts/adapter':
+        specifier: workspace:*
+        version: link:../adapter
     devDependencies:
       ripple:
         specifier: workspace:*
@@ -1744,6 +1755,9 @@ packages:
   '@types/adm-zip@0.5.7':
     resolution: {integrity: sha512-DNEs/QvmyRLurdQPChqq0Md4zGvPwHerAJYWk9l2jCbD1VPpnzRJorOdiq4zsw09NFbYnhfsoEhWtxIzXpn2yw==}
 
+  '@types/bun@1.3.9':
+    resolution: {integrity: sha512-KQ571yULOdWJiMH+RIWIOZ7B2RXQGpL1YQrBtLIV3FqDcCu6FsbFUBwhdKUlCKUpS3PJDsHlJ1QKlpxoVR+xtw==}
+
   '@types/chai@5.2.2':
     resolution: {integrity: sha512-8kB30R7Hwqf40JPiKhVzodJs2Qc1ZJ5zuT3uzw5Hq/dhNCl3G3l83jfpdI1e20BP348+fV7VIL/+FxaXkqBmWg==}
 
@@ -2219,6 +2233,9 @@ packages:
 
   buffer@5.7.1:
     resolution: {integrity: sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ==}
+
+  bun-types@1.3.9:
+    resolution: {integrity: sha512-+UBWWOakIP4Tswh0Bt0QD0alpTY8cb5hvgiYeWCMet9YukHbzuruIEeXC2D7nMJPB12kbh8C7XJykSexEqGKJg==}
 
   bun@1.3.9:
     resolution: {integrity: sha512-v5hkh1us7sMNjfimWE70flYbD5I1/qWQaqmJ45q2qk5H/7muQVa478LSVRSFyGTBUBog2LsPQnfIRdjyWJRY+A==}
@@ -6139,6 +6156,10 @@ snapshots:
     dependencies:
       '@types/node': 24.3.0
 
+  '@types/bun@1.3.9':
+    dependencies:
+      bun-types: 1.3.9
+
   '@types/chai@5.2.2':
     dependencies:
       '@types/deep-eql': 4.0.2
@@ -6684,6 +6705,10 @@ snapshots:
     dependencies:
       base64-js: 1.5.1
       ieee754: 1.2.1
+
+  bun-types@1.3.9:
+    dependencies:
+      '@types/node': 24.3.0
 
   bun@1.3.9:
     optionalDependencies:
