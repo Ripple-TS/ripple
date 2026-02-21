@@ -1,1 +1,1 @@
-export const OUTDIR_DEFAULT = 'dist';
+export const DEFAULT_OUTDIR = 'dist';

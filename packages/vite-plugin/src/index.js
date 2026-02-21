@@ -16,7 +16,7 @@ import { handleRenderRoute } from './server/render-route.js';
 import { handleServerRoute } from './server/server-route.js';
 import { generateServerEntry } from './server/virtual-entry.js';
 import { loadRippleConfig } from './load-config.js';
-import { OUTDIR_DEFAULT } from './constants.js';
+import { DEFAULT_OUTDIR } from './constants.js';
 
 import {
 	derive_origin,
@@ -364,7 +364,7 @@ export function ripple(inlineOptions = {}) {
 						// buildStart and closeBundle.
 						loadedRippleConfig = await loadRippleConfig(projectRoot);
 
-						const outDir = loadedRippleConfig?.build?.outDir ?? OUTDIR_DEFAULT;
+						const outDir = loadedRippleConfig?.build?.outDir ?? DEFAULT_OUTDIR;
 
 						/** @type {import('vite').UserConfig['build']} */
 						const buildConfig = {
@@ -651,7 +651,7 @@ export function ripple(inlineOptions = {}) {
 					return;
 				}
 
-				const outDir = loadedRippleConfig.build?.outDir ?? OUTDIR_DEFAULT;
+				const outDir = loadedRippleConfig.build?.outDir ?? DEFAULT_OUTDIR;
 
 				// Generate the virtual server entry
 				const serverEntryCode = generateServerEntry({
@@ -689,7 +689,7 @@ export function ripple(inlineOptions = {}) {
 						outDir: serverOutDir,
 						emptyOutDir: true,
 						ssr: true,
-						target: 'node20',
+						target: loadedRippleConfig?.build?.target,
 						minify: loadedRippleConfig?.build?.minify ?? false,
 						rollupOptions: {
 							input: VIRTUAL_SERVER_ENTRY_ID,

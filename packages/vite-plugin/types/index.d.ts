@@ -1,4 +1,4 @@
-import type { Plugin } from 'vite';
+import type { Plugin, BuildEnvironmentOptions } from 'vite';
 import type { RuntimePrimitives } from '@ripple-ts/adapter';
 
 declare module '@ripple-ts/vite-plugin' {
@@ -94,6 +94,7 @@ declare module '@ripple-ts/vite-plugin' {
 			/** Output directory for the production build. @default 'dist' */
 			outDir?: string;
 			minify?: boolean;
+			target?: BuildEnvironmentOptions['target'];
 		};
 		adapter?: {
 			serve: AdapterServeFunction;

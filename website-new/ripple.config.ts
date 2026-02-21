@@ -8,6 +8,7 @@ export default defineConfig({
 	build: {
 		minify: false,
 		outDir: 'dist',
+		target: 'es2022',
 	},
 	adapter: { serve, runtime },
 	router: { routes },
