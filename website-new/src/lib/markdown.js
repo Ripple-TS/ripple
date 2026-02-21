@@ -279,7 +279,7 @@ export function get_doc(slug) {
 	const final_html = html.replace(
 		/<div class="code-tab-wrapper">\s*([\s\S]*?)\s*<\/div>/g,
 		(_, inner) => {
-			return `<div class="vp-code-group"><div class="tabs"><button class="tab active">Code</button><button class="tab">Playground</button></div><div class="blocks">${inner}</div></div>`;
+			return `<div class="doc-code-group"><div class="tabs"><button class="tab active">Code</button><button class="tab">Playground</button></div><div class="blocks">${inner}</div></div>`;
 		},
 	);
 
