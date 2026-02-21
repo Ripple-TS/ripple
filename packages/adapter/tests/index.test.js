@@ -1,7 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { tmpdir } from 'node:os';
 import {
 	DEFAULT_HOSTNAME,
 	DEFAULT_PORT,
@@ -10,7 +7,6 @@ import {
 	internal_server_error_response,
 	is_hashed_asset,
 	run_next_middleware,
-	serveStatic,
 } from '../src/index.js';
 
 describe('@ripple-ts/adapter', () => {
@@ -94,99 +90,5 @@ describe('@ripple-ts/adapter', () => {
 			'public, max-age=31536000, immutable',
 		);
 		expect(get_static_cache_control('/assets/app.js', 60, false)).toBe('public, max-age=60');
-	});
-
-	it('serveStatic serves files for GET and HEAD requests', async () => {
-		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-static-'));
-		try {
-			writeFileSync(join(temp_dir, 'app.js'), 'console.log("ok");');
-
-			const static_handler = serveStatic(temp_dir, { prefix: '/assets' });
-
-			const get_response = static_handler(new Request('http://localhost/assets/app.js'));
-			expect(get_response).not.toBeNull();
-			if (get_response === null) {
-				throw new Error('Expected static GET response');
-			}
-			expect(get_response.status).toBe(200);
-			expect(get_response.headers.get('content-type')).toBe('text/javascript; charset=utf-8');
-			expect(get_response.headers.get('cache-control')).toBe('public, max-age=86400');
-			expect(await get_response.text()).toContain('console.log');
-
-			const head_response = static_handler(
-				new Request('http://localhost/assets/app.js', { method: 'HEAD' }),
-			);
-			expect(head_response).not.toBeNull();
-			if (head_response === null) {
-				throw new Error('Expected static HEAD response');
-			}
-			expect(head_response.status).toBe(200);
-			expect(await head_response.text()).toBe('');
-		} finally {
-			rmSync(temp_dir, { recursive: true, force: true });
-		}
-	});
-
-	it('serveStatic falls through for non-matching requests', () => {
-		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-static-fallthrough-'));
-		try {
-			writeFileSync(join(temp_dir, 'index.html'), '<h1>ok</h1>');
-			const static_handler = serveStatic(temp_dir, { prefix: '/assets' });
-
-			expect(static_handler(new Request('http://localhost/index.html'))).toBeNull();
-			expect(static_handler(new Request('http://localhost/assets/missing.js'))).toBeNull();
-			expect(
-				static_handler(new Request('http://localhost/assets/index.html', { method: 'POST' })),
-			).toBeNull();
-		} finally {
-			rmSync(temp_dir, { recursive: true, force: true });
-		}
-	});
-
-	it('serveStatic applies configured cache-control options', async () => {
-		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-static-cache-'));
-		try {
-			writeFileSync(join(temp_dir, 'app.js'), 'console.log("cache");');
-
-			const max_age_handler = serveStatic(temp_dir, { prefix: '/assets', maxAge: 120 });
-			const max_age_response = max_age_handler(new Request('http://localhost/assets/app.js'));
-			expect(max_age_response).not.toBeNull();
-			if (max_age_response === null) {
-				throw new Error('Expected static response');
-			}
-			expect(max_age_response.headers.get('cache-control')).toBe('public, max-age=120');
-
-			const immutable_handler = serveStatic(temp_dir, {
-				prefix: '/assets',
-				maxAge: 120,
-				immutable: true,
-			});
-			const immutable_response = immutable_handler(new Request('http://localhost/assets/app.js'));
-			expect(immutable_response).not.toBeNull();
-			if (immutable_response === null) {
-				throw new Error('Expected static response');
-			}
-			expect(immutable_response.headers.get('cache-control')).toBe(
-				'public, max-age=31536000, immutable',
-			);
-		} finally {
-			rmSync(temp_dir, { recursive: true, force: true });
-		}
-	});
-
-	it('serveStatic blocks traversal and directory targets', () => {
-		const temp_dir = mkdtempSync(join(tmpdir(), 'adapter-static-security-'));
-		try {
-			const public_dir = join(temp_dir, 'public');
-			mkdirSync(public_dir);
-			mkdirSync(join(public_dir, 'nested'));
-			writeFileSync(join(temp_dir, 'secret.txt'), 'secret');
-
-			const static_handler = serveStatic(public_dir, { prefix: '/assets' });
-			expect(static_handler(new Request('http://localhost/assets/%2e%2e/secret.txt'))).toBeNull();
-			expect(static_handler(new Request('http://localhost/assets/nested'))).toBeNull();
-		} finally {
-			rmSync(temp_dir, { recursive: true, force: true });
-		}
 	});
 });

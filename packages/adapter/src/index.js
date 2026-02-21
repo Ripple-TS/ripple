@@ -1,9 +1,3 @@
-// NOTE: For now we'd not have it fully runtime-agnostic
-// When we'd like to move away from Node.js modules or explore other runtime options.
-import { createReadStream, existsSync, statSync } from 'node:fs';
-import { extname, resolve, sep } from 'node:path';
-import { Readable } from 'node:stream';
-
 export const DEFAULT_HOSTNAME = 'localhost';
 export const DEFAULT_PORT = 3000;
 export const DEFAULT_STATIC_PREFIX = '/';
@@ -116,87 +110,7 @@ export function get_static_cache_control(
  * @returns {string}
  */
 export function get_mime_type(pathname) {
-	const extension = extname(pathname).toLowerCase();
+	const dot = pathname.lastIndexOf('.');
+	const extension = dot !== -1 ? pathname.slice(dot).toLowerCase() : '';
 	return MIME_TYPES[extension] || 'application/octet-stream';
-}
-
-/**
- * @param {string} base_dir
- * @param {string} pathname
- * @returns {string | null}
- */
-function resolve_static_file_path(base_dir, pathname) {
-	const file_path = resolve(base_dir, `.${pathname}`);
-	const is_within_base_dir = file_path === base_dir || file_path.startsWith(base_dir + sep);
-	return is_within_base_dir ? file_path : null;
-}
-
-/**
- * Create a request-based static file handler that can be used by adapters.
- *
- * @param {string} dir - Directory to serve files from (relative to cwd or absolute)
- * @param {{ prefix?: string, maxAge?: number, immutable?: boolean }} [options]
- * @returns {(request: Request) => Response | null}
- */
-export function serveStatic(dir, options = {}) {
-	const {
-		prefix = DEFAULT_STATIC_PREFIX,
-		maxAge = DEFAULT_STATIC_MAX_AGE,
-		immutable = false,
-	} = options;
-
-	const base_dir = resolve(dir);
-
-	return function serve_static_request(request) {
-		const request_method = (request.method || 'GET').toUpperCase();
-		if (request_method !== 'GET' && request_method !== 'HEAD') {
-			return null;
-		}
-
-		let pathname;
-		try {
-			pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
-		} catch {
-			return null;
-		}
-
-		if (!pathname.startsWith(prefix)) {
-			return null;
-		}
-
-		pathname = pathname.slice(prefix.length) || '/';
-		if (!pathname.startsWith('/')) {
-			pathname = '/' + pathname;
-		}
-
-		const file_path = resolve_static_file_path(base_dir, pathname);
-		if (file_path === null || !existsSync(file_path)) {
-			return null;
-		}
-
-		let file_stats;
-		try {
-			file_stats = statSync(file_path);
-		} catch {
-			return null;
-		}
-
-		if (file_stats.isDirectory()) {
-			return null;
-		}
-
-		const headers = new Headers();
-		headers.set('Content-Type', get_mime_type(file_path));
-		headers.set('Content-Length', String(file_stats.size));
-		headers.set('Cache-Control', get_static_cache_control(pathname, maxAge, immutable));
-
-		if (request_method === 'HEAD') {
-			return new Response(null, { status: 200, headers });
-		}
-
-		// `Readable.toWeb()` can be typed differently across Node/Bun/libdom contexts.
-		/** @type {BodyInit} */
-		const file_body = /** @type {any} */ (Readable.toWeb(createReadStream(file_path)));
-		return new Response(file_body, { status: 200, headers });
-	};
 }

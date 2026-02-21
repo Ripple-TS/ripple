@@ -73,8 +73,3 @@ export function get_static_cache_control(
 ): string;
 
 export function get_mime_type(pathname: string): string;
-
-export function serveStatic(
-	dir: string,
-	options?: ServeStaticOptions,
-): (request: Request) => Response | null;

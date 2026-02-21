@@ -1,17 +1,86 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import {
+	existsSync,
+	mkdirSync,
+	mkdtempSync,
+	readFileSync,
+	rmSync,
+	statSync,
+	writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { serve, serveStatic } from '../src/index.js';
 
-/** @type {any} */
-const original_bun = globalThis.Bun;
+const original_bun = Reflect.get(globalThis, 'Bun');
+
+/**
+ * Create a mock for Bun.file() that uses node:fs under the hood.
+ * Returns a Blob-like object so `new Response(bun_file)` works correctly.
+ *
+ * @param {string | URL} file_path
+ */
+function mock_bun_file(file_path) {
+	file_path = String(file_path);
+	const file_exists = existsSync(file_path);
+	const stats = file_exists ? statSync(file_path) : null;
+	const is_dir = stats?.isDirectory() ?? false;
+
+	if (!file_exists || is_dir) {
+		return {
+			exists: async () => false,
+			size: 0,
+		};
+	}
+
+	const content = readFileSync(file_path);
+	const blob = new Blob([content]);
+
+	// Attach Bun.file-specific methods onto the Blob so it can act as both
+	// a BodyInit (Blob) and a BunFile (exists/size).
+	const bun_file = Object.assign(blob, {
+		exists: /** @returns {Promise<boolean>} */ async () => true,
+	});
+	const file_size = /** @type {import('node:fs').Stats} */ (stats).size;
+	Object.defineProperty(bun_file, 'size', { value: file_size });
+	return bun_file;
+}
+
+/**
+ * Ensure globalThis.Bun has at least the `file` mock.
+ */
+function ensure_bun_file_mock() {
+	const bun = Reflect.get(globalThis, 'Bun');
+	if (!bun) {
+		Object.defineProperty(globalThis, 'Bun', {
+			value: { file: mock_bun_file },
+			writable: true,
+			configurable: true,
+		});
+		return;
+	}
+	if (!bun.file) {
+		Object.defineProperty(bun, 'file', {
+			value: mock_bun_file,
+			writable: true,
+			configurable: true,
+		});
+	}
+}
+
+beforeEach(() => {
+	ensure_bun_file_mock();
+});
 
 afterEach(() => {
 	if (original_bun === undefined) {
 		Reflect.deleteProperty(globalThis, 'Bun');
 	} else {
-		globalThis.Bun = original_bun;
+		Object.defineProperty(globalThis, 'Bun', {
+			value: original_bun,
+			writable: true,
+			configurable: true,
+		});
 	}
 	vi.restoreAllMocks();
 });
@@ -33,9 +102,11 @@ function create_bun_mock() {
 		return server;
 	});
 
-	globalThis.Bun = {
-		serve: serve_spy,
-	};
+	Object.defineProperty(globalThis, 'Bun', {
+		value: { serve: serve_spy, file: mock_bun_file },
+		writable: true,
+		configurable: true,
+	});
 
 	return {
 		serve_spy,
@@ -165,7 +236,7 @@ describe('@ripple-ts/adapter-bun serve()', () => {
 
 			const response = await static_middleware(
 				new Request('http://localhost/assets/app.js'),
-				/** @type {any} */ ({}),
+				/** @type {import('bun').Server<undefined>} */ ({}),
 				next,
 			);
 
@@ -186,7 +257,7 @@ describe('@ripple-ts/adapter-bun serve()', () => {
 
 			const response = await static_middleware(
 				new Request('http://localhost/assets/missing.js'),
-				/** @type {any} */ ({}),
+				/** @type {import('bun').Server<undefined>} */ ({}),
 				next,
 			);
 

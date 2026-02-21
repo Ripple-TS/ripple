@@ -4,11 +4,15 @@
 import {
 	DEFAULT_HOSTNAME,
 	DEFAULT_PORT,
+	DEFAULT_STATIC_PREFIX,
+	DEFAULT_STATIC_MAX_AGE,
+	get_mime_type,
+	get_static_cache_control,
 	internal_server_error_response,
 	run_next_middleware,
-	serveStatic as create_static_handler,
 } from '@ripple-ts/adapter';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { resolve, sep } from 'node:path';
 
 /** @typedef {import('@ripple-ts/adapter').ServeStaticDirectoryOptions} StaticServeOptions */
 
@@ -133,16 +137,63 @@ export function serve(fetch_handler, options = {}) {
  * @returns {(request: Request, server: Server, next: () => Promise<Response>) => Promise<Response>}
  */
 export function serveStatic(dir, options = {}) {
-	const serve_static_request = create_static_handler(dir, options);
+	const {
+		prefix = DEFAULT_STATIC_PREFIX,
+		maxAge = DEFAULT_STATIC_MAX_AGE,
+		immutable = false,
+	} = options;
+
+	const base_dir = resolve(dir);
 
 	return async function static_middleware(request, server, next) {
 		void server;
 
-		const response = serve_static_request(request);
-		if (response !== null) {
-			return response;
+		const request_method = (request.method || 'GET').toUpperCase();
+		if (request_method !== 'GET' && request_method !== 'HEAD') {
+			return await next();
 		}
 
-		return await next();
+		let pathname;
+		try {
+			pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+		} catch {
+			return await next();
+		}
+
+		if (!pathname.startsWith(prefix)) {
+			return await next();
+		}
+
+		pathname = pathname.slice(prefix.length) || '/';
+		if (!pathname.startsWith('/')) {
+			pathname = '/' + pathname;
+		}
+
+		const file_path = resolve(base_dir, `.${pathname}`);
+		const is_within_base_dir = file_path === base_dir || file_path.startsWith(base_dir + sep);
+		if (!is_within_base_dir) {
+			return await next();
+		}
+
+		const bun_file = globalThis.Bun.file(file_path);
+		if (!(await bun_file.exists())) {
+			return await next();
+		}
+
+		// Bun.file().size is 0 for directories; skip them
+		if (bun_file.size === 0) {
+			return await next();
+		}
+
+		const headers = new Headers();
+		headers.set('Content-Type', get_mime_type(file_path));
+		headers.set('Content-Length', String(bun_file.size));
+		headers.set('Cache-Control', get_static_cache_control(pathname, maxAge, immutable));
+
+		if (request_method === 'HEAD') {
+			return new Response(null, { status: 200, headers });
+		}
+
+		return new Response(bun_file, { status: 200, headers });
 	};
 }

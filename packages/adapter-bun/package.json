@@ -20,6 +20,9 @@
   "dependencies": {
     "@ripple-ts/adapter": "workspace:*"
   },
+  "devDependencies": {
+    "@types/bun": "catalog:default"
+  },
   "homepage": "https://ripplejs.com",
   "repository": {
     "type": "git",

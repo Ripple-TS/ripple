@@ -13,6 +13,7 @@ catalogs:
     "@jridgewell/sourcemap-codec": ^1.5.5
     "@sveltejs/acorn-typescript": ^1.0.9
     "@tailwindcss/vite": ^4.1.12
+    "@types/bun": ^1.3.9
     "@types/eslint": ^9.6.1
     "@types/estree": ^1.0.8
     "@types/estree-jsx": ^1.0.5
