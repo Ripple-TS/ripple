@@ -676,33 +676,40 @@ export function ripple(inlineOptions = {}) {
 				// from `root`) already includes it. Adding another instance causes double
 				// compilation of .ripple files.
 				const { build: viteBuild } = await import('vite');
-				await viteBuild({
-					root,
-					appType: 'custom',
-					plugins: [virtualEntryPlugin],
-					build: {
-						outDir: serverOutDir,
-						emptyOutDir: true,
-						ssr: true,
-						target: loadedRippleConfig?.build?.target,
-						minify: loadedRippleConfig?.build?.minify ?? false,
-						rollupOptions: {
-							input: VIRTUAL_SERVER_ENTRY_ID,
-							output: {
-								entryFileNames: 'entry.js',
-								format: 'esm',
+				try {
+					await viteBuild({
+						root,
+						appType: 'custom',
+						plugins: [virtualEntryPlugin],
+						build: {
+							outDir: serverOutDir,
+							emptyOutDir: true,
+							ssr: true,
+							target: loadedRippleConfig?.build?.target,
+							minify: loadedRippleConfig?.build?.minify ?? false,
+							rollupOptions: {
+								input: VIRTUAL_SERVER_ENTRY_ID,
+								output: {
+									entryFileNames: 'entry.js',
+									format: 'esm',
+								},
 							},
 						},
-					},
-					ssr: {
-						external: ['@ripple-ts/adapter', '@ripple-ts/adapter-node', '@ripple-ts/adapter-bun'],
-						noExternal: [],
-					},
-				});
+						ssr: {
+							external: ['@ripple-ts/adapter', '@ripple-ts/adapter-node', '@ripple-ts/adapter-bun'],
+							noExternal: [],
+						},
+					});
 
-				console.log('[@ripple-ts/vite-plugin] Server build complete.');
-				console.log(`[@ripple-ts/vite-plugin] Output: ${path.join(root, outDir)}`);
-				console.log(`[@ripple-ts/vite-plugin] Start with: node ${outDir}/server/entry.js`);
+					console.log('[@ripple-ts/vite-plugin] Server build complete.');
+					console.log(`[@ripple-ts/vite-plugin] Output: ${path.join(root, outDir)}`);
+					console.log(`[@ripple-ts/vite-plugin] Start with: node ${outDir}/server/entry.js`);
+				} catch (/** @type {any} */ error) {
+					console.error('[@ripple-ts/vite-plugin] Server build failed:', error);
+					throw new Error(
+						`Server build failed: ${error instanceof Error ? error.message : String(error)}`,
+					);
+				}
 			},
 
 			async resolveId(id, importer, options) {

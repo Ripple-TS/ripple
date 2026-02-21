@@ -148,6 +148,12 @@ export async function handle_rpc_request(request, options) {
 	try {
 		const url = new URL(request.url);
 		const hash = url.pathname.slice(RPC_PATH_PREFIX.length);
+
+		// Validate hash format — compiler always generates 8 lowercase hex chars
+		if (!hash || !/^[a-f0-9]{8}$/.test(hash)) {
+			return new Response('Invalid RPC request', { status: 400 });
+		}
+
 		const body = await request.text();
 
 		const fn = await resolveFunction(hash);

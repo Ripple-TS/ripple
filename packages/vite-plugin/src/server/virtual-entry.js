@@ -113,9 +113,9 @@ export function generateServerEntry(options) {
 
 import { render, get_css_for_hashes, executeServerFunction } from 'ripple/server';
 import { createHandler } from '@ripple-ts/vite-plugin/production';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 
 import rippleConfig from ${JSON.stringify(rippleConfigPath)};
 
@@ -141,6 +141,10 @@ const rpcModules = {};
 ${rpc_entries.join('\n')}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+if (!existsSync(join(__dirname, ${JSON.stringify(htmlTemplatePath)}))) {
+  console.error('[ripple] HTML template not found:', join(__dirname, ${JSON.stringify(htmlTemplatePath)}));
+  process.exit(1);
+}
 const htmlTemplate = readFileSync(join(__dirname, ${JSON.stringify(htmlTemplatePath)}), 'utf-8');
 
 const handler = createHandler(
@@ -165,13 +169,17 @@ export { handler };
 
 // Auto-boot when running directly (node dist/server/entry.js)
 // Skip when imported as a module (e.g. by a serverless function wrapper)
-const isMainModule = typeof process !== 'undefined' && process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\\\/g, '/'));
+const isMainModule = typeof process !== 'undefined' && process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1]);
 if (isMainModule) {
   if (rippleConfig.adapter?.serve) {
     const server = rippleConfig.adapter.serve(handler, {
       static: { dir: join(__dirname, '../client') },
     });
     const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+    if (isNaN(port) || port < 1 || port > 65535) {
+    	console.error('[ripple] Invalid PORT value:', process.env.PORT);
+    	process.exit(1);
+    }
     server.listen(port);
     console.log('[ripple] Production server listening on port ' + port);
   } else {
