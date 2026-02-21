@@ -63,11 +63,11 @@ export function create_fragment_from_html(
 export function template(content, flags) {
 	var is_fragment = (flags & TEMPLATE_FRAGMENT) !== 0;
 	var use_import_node = (flags & TEMPLATE_USE_IMPORT_NODE) !== 0;
-	var use_svg_namespace = (flags & TEMPLATE_SVG_NAMESPACE) !== 0;
-	var use_mathml_namespace = (flags & TEMPLATE_MATHML_NAMESPACE) !== 0;
+	var is_comment = content === '<!>';
+	var use_svg_namespace = !is_comment && (flags & TEMPLATE_SVG_NAMESPACE) !== 0;
+	var use_mathml_namespace = !is_comment && (flags & TEMPLATE_MATHML_NAMESPACE) !== 0;
 	/** @type {Node | DocumentFragment | undefined} */
 	var node;
-	var is_comment = content === '<!>';
 	var has_start = !is_comment && !content.startsWith('<!>');
 
 	// For fragments, eagerly create the node so we can walk its children
@@ -147,8 +147,8 @@ export function template(content, flags) {
 			return /** @type {Node} */ (hydrate_node);
 		}
 		// If using runtime namespace, check active_namespace
-		var svg = !is_comment && (use_svg_namespace || active_namespace === 'svg');
-		var mathml = !is_comment && (use_mathml_namespace || active_namespace === 'mathml');
+		var svg = use_svg_namespace || (!is_comment && active_namespace === 'svg');
+		var mathml = use_mathml_namespace || (!is_comment && active_namespace === 'mathml');
 
 		if (node === undefined || use_svg_namespace !== svg || use_mathml_namespace !== mathml) {
 			node = create_fragment_from_html(has_start ? content : '<!>' + content, svg, mathml);

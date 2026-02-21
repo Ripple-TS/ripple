@@ -438,4 +438,48 @@ describe('SVG namespace handling', () => {
 			expect(path.tagName.toLowerCase()).toBe('path');
 		});
 	});
+
+	it('should render dynamic SVG elements dispatched via a switch inside a for loop', () => {
+		component App() {
+			const iconNodes: [string, Record<string, string>][] = [
+				['path', { d: 'm14 12 4 4 4-4' }],
+				['circle', { cx: '12', cy: '12', r: '4' }],
+				['path', { d: 'M18 16V7' }],
+			];
+
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+				for (const [tag, attrs] of iconNodes) {
+					switch (tag) {
+						case 'path':
+							<path {...attrs} />
+							break;
+						case 'circle':
+							<circle {...attrs} />
+							break;
+					}
+				}
+			</svg>
+		}
+
+		render(App);
+
+		const svg = container.querySelector('svg');
+		expect(svg).toBeTruthy();
+		expect(svg.namespaceURI).toBe('http://www.w3.org/2000/svg');
+
+		const paths = svg.querySelectorAll('path');
+		const circles = svg.querySelectorAll('circle');
+
+		expect(paths.length).toBe(2);
+		expect(circles.length).toBe(1);
+
+		paths.forEach((path) => {
+			expect(path.namespaceURI).toBe('http://www.w3.org/2000/svg');
+		});
+		expect(circles[0].namespaceURI).toBe('http://www.w3.org/2000/svg');
+
+		expect(paths[0].getAttribute('d')).toBe('m14 12 4 4 4-4');
+		expect(circles[0].getAttribute('cx')).toBe('12');
+		expect(paths[1].getAttribute('d')).toBe('M18 16V7');
+	});
 });

@@ -3129,7 +3129,11 @@ function transform_children(children, context) {
 					(node.id.type !== 'Identifier' || !is_element_dom_element(node))),
 		) ||
 		normalized.filter(
-			(node) => node.type !== 'VariableDeclaration' && node.type !== 'EmptyStatement',
+			(node) =>
+				node.type !== 'VariableDeclaration' &&
+				node.type !== 'EmptyStatement' &&
+				node.type !== 'BreakStatement' &&
+				node.type !== 'ContinueStatement',
 		).length > 1;
 	/** @type {AST.Identifier | null} */
 	let initial = null;
