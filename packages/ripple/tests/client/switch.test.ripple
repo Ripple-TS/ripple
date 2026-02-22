@@ -356,4 +356,50 @@ describe('switch statements', () => {
 		render(App);
 		expect(container.querySelector('div').textContent).toBe('beforeCase A');
 	});
+
+	it('renders switch with block-scoped cases and break inside blocks', () => {
+		component App() {
+			let level = track(1);
+
+			<button onClick={() => {
+				if (@level === 1) @level = 2;
+				else if (@level === 2) @level = 3;
+				else @level = 1;
+			}}>{'Toggle'}</button>
+
+			switch (@level) {
+				case 1: {
+					<div class="level">{'Level 1'}</div>
+					break;
+				}
+				case 2: {
+					<div class="level">{'Level 2'}</div>
+					break;
+				}
+				case 3: {
+					<div class="level">{'Level 3'}</div>
+					break;
+				}
+			}
+		}
+
+		render(App);
+		expect(container.querySelector('.level').textContent).toBe('Level 1');
+		expect(container.querySelectorAll('.level').length).toBe(1);
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('.level').textContent).toBe('Level 2');
+		expect(container.querySelectorAll('.level').length).toBe(1);
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('.level').textContent).toBe('Level 3');
+		expect(container.querySelectorAll('.level').length).toBe(1);
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('.level').textContent).toBe('Level 1');
+		expect(container.querySelectorAll('.level').length).toBe(1);
+	});
 });

@@ -12,6 +12,18 @@ var root_4 = _$_.template(`<button class="toggle">Toggle</button><!>`, 1);
 var root_9 = _$_.template(`<div class="case-1-2">1 or 2</div>`, 0);
 var root_10 = _$_.template(`<div class="case-other">Other</div>`, 0);
 var root_8 = _$_.template(`<!>`, 1);
+var root_12 = _$_.template(`<div class="level-1">Level 1</div>`, 0);
+var root_13 = _$_.template(`<div class="level-2">Level 2</div>`, 0);
+var root_14 = _$_.template(`<div class="level-3">Level 3</div>`, 0);
+var root_11 = _$_.template(`<button class="level-toggle">Toggle Level</button><!>`, 1);
+var root_16 = _$_.template(`<div class="block-1">Block 1</div>`, 0);
+var root_17 = _$_.template(`<div class="block-2">Block 2</div>`, 0);
+var root_18 = _$_.template(`<div class="block-3">Block 3</div>`, 0);
+var root_15 = _$_.template(`<button class="block-toggle">Toggle</button><!>`, 1);
+var root_20 = _$_.template(`<div class="nobreak-1">NoBreak 1</div>`, 0);
+var root_21 = _$_.template(`<div class="nobreak-2">NoBreak 2</div>`, 0);
+var root_22 = _$_.template(`<div class="nobreak-3">NoBreak 3</div>`, 0);
+var root_19 = _$_.template(`<button class="nobreak-toggle">Toggle</button><!>`, 1);
 
 import { track } from 'ripple';
 
@@ -157,6 +169,169 @@ export function SwitchFallthrough(__anchor, _, __block) {
 	}
 
 	_$_.append(__anchor, fragment_2);
+	_$_.pop_component();
+}
+
+export function SwitchNumericLevels(__anchor, _, __block) {
+	_$_.push_component();
+
+	let level = track(1, void 0, void 0, __block);
+	var fragment_3 = root_11();
+	var button_2 = _$_.first_child_frag(fragment_3);
+
+	button_2.__click = () => {
+		if (_$_.get(level) === 1) _$_.set(level, 2); else if (_$_.get(level) === 2) _$_.set(level, 3); else _$_.set(level, 1);
+	};
+
+	var node_3 = _$_.sibling(button_2);
+
+	{
+		var switch_case_0_3 = (__anchor) => {
+			var div_9 = root_12();
+
+			_$_.append(__anchor, div_9);
+		};
+
+		var switch_case_1_2 = (__anchor) => {
+			var div_10 = root_13();
+
+			_$_.append(__anchor, div_10);
+		};
+
+		var switch_case_2 = (__anchor) => {
+			var div_11 = root_14();
+
+			_$_.append(__anchor, div_11);
+		};
+
+		_$_.switch(node_3, () => {
+			var result = [];
+
+			switch (_$_.get(level)) {
+				case 1:
+					result.push(switch_case_0_3);
+					return result;
+
+				case 2:
+					result.push(switch_case_1_2);
+					return result;
+
+				case 3:
+					result.push(switch_case_2);
+					return result;
+			}
+		});
+	}
+
+	_$_.append(__anchor, fragment_3);
+	_$_.pop_component();
+}
+
+export function SwitchBlockScoped(__anchor, _, __block) {
+	_$_.push_component();
+
+	let level = track(1, void 0, void 0, __block);
+	var fragment_4 = root_15();
+	var button_3 = _$_.first_child_frag(fragment_4);
+
+	button_3.__click = () => {
+		if (_$_.get(level) === 1) _$_.set(level, 2); else if (_$_.get(level) === 2) _$_.set(level, 3); else _$_.set(level, 1);
+	};
+
+	var node_4 = _$_.sibling(button_3);
+
+	{
+		var switch_case_0_4 = (__anchor) => {
+			var div_12 = root_16();
+
+			_$_.append(__anchor, div_12);
+		};
+
+		var switch_case_1_3 = (__anchor) => {
+			var div_13 = root_17();
+
+			_$_.append(__anchor, div_13);
+		};
+
+		var switch_case_2_1 = (__anchor) => {
+			var div_14 = root_18();
+
+			_$_.append(__anchor, div_14);
+		};
+
+		_$_.switch(node_4, () => {
+			var result = [];
+
+			switch (_$_.get(level)) {
+				case 1:
+					result.push(switch_case_0_4);
+					return result;
+
+				case 2:
+					result.push(switch_case_1_3);
+					return result;
+
+				case 3:
+					result.push(switch_case_2_1);
+					return result;
+			}
+		});
+	}
+
+	_$_.append(__anchor, fragment_4);
+	_$_.pop_component();
+}
+
+export function SwitchNoBreak(__anchor, _, __block) {
+	_$_.push_component();
+
+	let level = track(1, void 0, void 0, __block);
+	var fragment_5 = root_19();
+	var button_4 = _$_.first_child_frag(fragment_5);
+
+	button_4.__click = () => {
+		if (_$_.get(level) === 1) _$_.set(level, 2); else if (_$_.get(level) === 2) _$_.set(level, 3); else _$_.set(level, 1);
+	};
+
+	var node_5 = _$_.sibling(button_4);
+
+	{
+		var switch_case_0_5 = (__anchor) => {
+			var div_15 = root_20();
+
+			_$_.append(__anchor, div_15);
+		};
+
+		var switch_case_1_4 = (__anchor) => {
+			var div_16 = root_21();
+
+			_$_.append(__anchor, div_16);
+		};
+
+		var switch_case_2_2 = (__anchor) => {
+			var div_17 = root_22();
+
+			_$_.append(__anchor, div_17);
+		};
+
+		_$_.switch(node_5, () => {
+			var result = [];
+
+			switch (_$_.get(level)) {
+				case 1:
+					result.push(switch_case_0_5);
+
+				case 2:
+					result.push(switch_case_1_4);
+
+				case 3:
+					result.push(switch_case_2_2);
+					return result;
+			}
+		});
+	}
+
+	_$_.append(__anchor, fragment_5);
 	_$_.pop_component();
 }
 

@@ -2051,13 +2051,16 @@ const visitors = {
 			const consequent = switch_case.consequent;
 
 			if (consequent.length !== 0) {
+				// Flatten top-level BlockStatements so BreakStatements and elements inside
+				// block-scoped cases (e.g. `case 1: { ... break; }`) are properly handled
+				const flattened_consequent = flatten_switch_consequent(consequent);
 				const consequent_scope = context.state.scopes.get(consequent) || context.state.scope;
 
-				const block = transform_body(consequent, {
+				const block = transform_body(flattened_consequent, {
 					...context,
 					state: { ...context.state, scope: consequent_scope, flush_node: null },
 				});
-				const has_break = consequent.some((stmt) => stmt.type === 'BreakStatement');
+				const has_break = consequent_has_break(consequent);
 				const is_last = counter === node.cases.length - 1;
 				const is_default = switch_case.test == null;
 				const consequent_id = context.state.scope.generate(
@@ -3625,6 +3628,42 @@ function transform_children(children, context) {
 			),
 		);
 	}
+}
+
+/**
+ * Flattens top-level BlockStatements in switch case consequents so that
+ * BreakStatements and elements inside block-scoped cases are properly handled.
+ * e.g. `case 1: { <div /> break; }` → `[Element, BreakStatement]`
+ * @param {AST.Node[]} consequent
+ * @returns {AST.Node[]}
+ */
+function flatten_switch_consequent(consequent) {
+	/** @type {AST.Node[]} */
+	const result = [];
+	for (const node of consequent) {
+		if (node.type === 'BlockStatement') {
+			result.push(.../** @type {AST.BlockStatement} */ (node).body);
+		} else {
+			result.push(node);
+		}
+	}
+	return result;
+}
+
+/**
+ * Checks if a switch case consequent contains a BreakStatement,
+ * including inside BlockStatements.
+ * @param {AST.Node[]} consequent
+ * @returns {boolean}
+ */
+function consequent_has_break(consequent) {
+	for (const stmt of consequent) {
+		if (stmt.type === 'BreakStatement') return true;
+		if (stmt.type === 'BlockStatement') {
+			if (consequent_has_break(/** @type {AST.BlockStatement} */ (stmt).body)) return true;
+		}
+	}
+	return false;
 }
 
 /**

@@ -270,6 +270,26 @@ function transform_children(children, context) {
 }
 
 /**
+ * Flattens top-level BlockStatements in switch case consequents so that
+ * BreakStatements inside block-scoped cases are preserved.
+ * e.g. `case 1: { <div /> break; }` → `[Element, BreakStatement]`
+ * @param {AST.Node[]} consequent
+ * @returns {AST.Node[]}
+ */
+function flatten_switch_consequent(consequent) {
+	/** @type {AST.Node[]} */
+	const result = [];
+	for (const node of consequent) {
+		if (node.type === 'BlockStatement') {
+			result.push(.../** @type {AST.BlockStatement} */ (node).body);
+		} else {
+			result.push(node);
+		}
+	}
+	return result;
+}
+
+/**
  * @param {AST.Node[]} body
  * @param {TransformServerContext} context
  * @returns {AST.Statement[]}
@@ -1083,10 +1103,13 @@ const visitors = {
 			const case_body = [];
 
 			if (switch_case.consequent.length !== 0) {
+				// Flatten top-level BlockStatements so BreakStatements inside
+				// block-scoped cases (e.g. `case 1: { ... break; }`) are preserved
+				const flattened_consequent = flatten_switch_consequent(switch_case.consequent);
 				const consequent_scope =
 					context.state.scopes.get(switch_case.consequent) || context.state.scope;
 				const consequent = b.block(
-					transform_body(switch_case.consequent, {
+					transform_body(flattened_consequent, {
 						...context,
 						state: { ...context.state, scope: consequent_scope },
 					}),
