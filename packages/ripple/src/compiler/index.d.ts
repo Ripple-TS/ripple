@@ -101,6 +101,7 @@ interface SharedCompileOptions {
 }
 export interface CompileOptions extends SharedCompileOptions {
 	mode?: 'client' | 'server';
+	hmr?: boolean;
 }
 
 export interface ParseOptions {

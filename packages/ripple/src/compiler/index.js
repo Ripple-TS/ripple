@@ -34,7 +34,14 @@ export function compile(source, filename, options = {}) {
 					options?.minify_css ?? false,
 					options?.dev ?? false,
 				)
-			: transform_client(filename, source, analysis, false, options?.minify_css ?? false);
+			: transform_client(
+					filename,
+					source,
+					analysis,
+					false,
+					options?.minify_css ?? false,
+					options?.hmr ?? false,
+				);
 
 	return result;
 }

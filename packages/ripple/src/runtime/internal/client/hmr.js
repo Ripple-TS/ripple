@@ -1,1 +1,92 @@
-// TODO
+/** @import { Block } from '#client' */
+
+import { RENDER_BLOCK } from './constants.js';
+import { HMR } from './constants.js';
+import { hydrate_node, hydrating } from './hydration.js';
+import { branch, destroy_block, render } from './blocks.js';
+import { active_block, get, set, tracked } from './runtime.js';
+
+/**
+ * Wraps a component function for HMR (Hot Module Replacement).
+ * Creates a reactive wrapper that can swap the underlying component
+ * when a new version is received via import.meta.hot.accept().
+ *
+ * @template {(anchor: Node, props: any, block: Block | null) => any} Component
+ * @param {Component} fn
+ * @returns {Component}
+ */
+export function hmr(fn) {
+	var block = active_block;
+	debugger;
+	var current = tracked(fn, block);
+
+	/**
+	 * @param {Node} anchor
+	 * @param {any} props
+	 * @param {Block | null} block
+	 */
+	function wrapper(anchor, props, block) {
+		var component = {};
+
+		/** @type {Block | null} */
+		var effect = null;
+
+		var ran = false;
+
+		render(
+			() => {
+				var next_component = get(current);
+
+				if (component === next_component) {
+					return;
+				}
+
+				component = next_component;
+
+				if (effect) {
+					destroy_block(effect);
+				}
+
+				effect = branch(() => {
+					/** @type {Function} */ (component)(anchor, props, block);
+				});
+			},
+			null,
+			RENDER_BLOCK,
+		);
+
+		ran = true;
+
+		if (hydrating) {
+			anchor = hydrate_node;
+		}
+
+		return wrapper;
+	}
+
+	// @ts-ignore
+	wrapper[HMR] = {
+		fn,
+		current,
+		/**
+		 * Called by import.meta.hot.accept() with the new module's component.
+		 * Updates the tracked source so existing instances reactively re-render
+		 * with the new component function, and bridges the incoming wrapper's
+		 * source to the original one for future updates.
+		 *
+		 * @param {any} incoming
+		 */
+		update: (incoming) => {
+			// Update the original tracked source with the new component's fn,
+			// triggering reactive re-render of all mounted instances.
+			set(wrapper[HMR].current, incoming[HMR].fn);
+
+			// Bridge the incoming wrapper's source to the original one,
+			// so subsequent updates continue to use this same tracked source
+			// rather than creating an ever-growing chain of wrappers.
+			incoming[HMR].current = wrapper[HMR].current;
+		},
+	};
+
+	return /** @type {Component} */ (wrapper);
+}

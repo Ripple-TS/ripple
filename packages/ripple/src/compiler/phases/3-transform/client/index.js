@@ -4597,9 +4597,10 @@ function create_tsx_with_typescript_support(comments) {
  * @param {AnalysisResult} analysis - Analysis result
  * @param {boolean} to_ts - Whether to generate TypeScript output
  * @param {boolean} minify_css - Whether to minify CSS output
+ * @param {boolean} hmr - Whether to emit HMR wrapper code
  * @returns {{ ast: AST.Program, js: { code: string, map: RawSourceMap, post_processing_changes?: PostProcessingChanges, line_offsets?: LineOffsets }, css: string, errors:  RippleCompileError[]}}
  */
-export function transform_client(filename, source, analysis, to_ts, minify_css) {
+export function transform_client(filename, source, analysis, to_ts, minify_css, hmr = false) {
 	/** @type {TransformClientState} */
 	const state = {
 		imports: new Set(),
@@ -4634,7 +4635,8 @@ export function transform_client(filename, source, analysis, to_ts, minify_css) 
 
 	const program = /** @type {AST.Program} */ (walk(analysis.ast, { ...state }, visitors));
 
-	const body = [];
+	/** @type {AST.Statement[]} */
+	let body = [];
 
 	for (const import_node of state.imports) {
 		if (typeof import_node === 'string') {
@@ -4656,6 +4658,92 @@ export function transform_client(filename, source, analysis, to_ts, minify_css) 
 				b.call('_$_.delegate', b.array(Array.from(state.events).map((name) => b.literal(name)))),
 			),
 		);
+	}
+
+	// HMR: wrap all named components with _$_.hmr() and emit import.meta.hot.accept()
+	if (hmr && !to_ts) {
+		const component_names = new Set(analysis.component_metadata.map((c) => c.id));
+
+		// Track which components are exported and how
+		/** @type {{ name: string, export_type: 'default' | 'named' }[]} */
+		const exported_components = [];
+
+		// Walk the body to find components and inject HMR wrapping.
+		// After the walk, Component nodes become FunctionExpression nodes
+		// (via b.function() which creates FunctionExpression).
+		/** @type {AST.Statement[]} */
+		const hmr_body = [];
+
+		for (const node of body) {
+			hmr_body.push(node);
+
+			if (node.type === 'ExportDefaultDeclaration') {
+				const decl = node.declaration;
+				if (decl.type === 'FunctionExpression' && decl.id && component_names.has(decl.id.name)) {
+					const name = decl.id.name;
+					exported_components.push({ name, export_type: 'default' });
+					// Replace ExportDefaultDeclaration with plain FunctionExpression (printed as function declaration)
+					hmr_body[hmr_body.length - 1] = decl;
+					// Add: ComponentName = _$_.hmr(ComponentName);
+					hmr_body.push(b.stmt(b.assignment('=', b.id(name), b.call('_$_.hmr', b.id(name)))));
+					// Re-export as default
+					hmr_body.push(b.export_default(b.id(name)));
+				}
+			} else if (node.type === 'ExportNamedDeclaration') {
+				const decl = node.declaration;
+				if (
+					decl &&
+					decl.type === 'FunctionExpression' &&
+					decl.id &&
+					component_names.has(decl.id.name)
+				) {
+					const name = decl.id.name;
+					exported_components.push({ name, export_type: 'named' });
+					// Replace ExportNamedDeclaration with plain FunctionExpression (printed as function declaration)
+					hmr_body[hmr_body.length - 1] = decl;
+					// Add: ComponentName = _$_.hmr(ComponentName);
+					hmr_body.push(b.stmt(b.assignment('=', b.id(name), b.call('_$_.hmr', b.id(name)))));
+					// Re-export as named export
+					hmr_body.push(
+						b.export_builder(null, [
+							{
+								type: 'ExportSpecifier',
+								local: b.id(name),
+								exported: b.id(name),
+								metadata: { path: [] },
+							},
+						]),
+					);
+				}
+			} else if (
+				node.type === 'FunctionExpression' &&
+				node.id &&
+				component_names.has(node.id.name)
+			) {
+				const name = node.id.name;
+				// Local (non-exported) component — wrap with HMR
+				hmr_body.push(b.stmt(b.assignment('=', b.id(name), b.call('_$_.hmr', b.id(name)))));
+			}
+		}
+
+		// Emit import.meta.hot.accept() block if there are exported components
+		if (exported_components.length > 0) {
+			const update_lines = exported_components.map(({ name, export_type }) => {
+				const accessor = export_type === 'default' ? 'module.default' : `module.${name}`;
+				return `${name}[_$_.HMR].update(${accessor});`;
+			});
+
+			const hmr_block_code =
+				`if (import.meta.hot) {\n` +
+				`  import.meta.hot.accept((module) => {\n` +
+				update_lines.map((line) => `    ${line}`).join('\n') +
+				`\n  });\n` +
+				`}`;
+
+			hmr_body.push(b.stmt(b.id(hmr_block_code)));
+		}
+
+		body = hmr_body;
 	}
 
 	program.body = body;

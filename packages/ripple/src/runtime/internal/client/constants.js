@@ -26,6 +26,7 @@ export const TRACKED_ARRAY = Symbol();
 /** @type {unique symbol} */
 export const TRACKED_OBJECT = Symbol();
 export var COMPUTED_PROPERTY = Symbol();
+export var HMR = Symbol();
 export var REF_PROP = 'ref';
 /** @type {unique symbol} */
 export const ARRAY_SET_INDEX_AT = Symbol();

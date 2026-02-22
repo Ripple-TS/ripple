@@ -86,6 +86,8 @@ export { rpc } from './rpc.js';
 
 export { tsx_compat } from './compat.js';
 
-export { TRY_BLOCK } from './constants.js';
+export { TRY_BLOCK, HMR } from './constants.js';
+
+export { hmr } from './hmr.js';
 
 export { pop, next } from './hydration.js';
