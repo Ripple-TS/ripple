@@ -28,14 +28,17 @@ export function hmr(fn) {
 	 */
 	function wrapper(anchor, props, block = active_block) {
 		if (current === undefined) {
+			current = wrapper[HMR].current;
+		}
+
+		if (current === undefined) {
 			current = tracked(fn, /** @type {Block} */ (block));
+			wrapper[HMR].current = current;
 		}
 		var component = {};
 
 		/** @type {Block | null} */
 		var effect = null;
-
-		var ran = false;
 
 		render(
 			() => {
@@ -59,8 +62,6 @@ export function hmr(fn) {
 			RENDER_BLOCK,
 		);
 
-		ran = true;
-
 		if (hydrating) {
 			anchor = hydrate_node;
 		}
@@ -81,9 +82,23 @@ export function hmr(fn) {
 		 * @param {any} incoming
 		 */
 		update: (incoming) => {
-			// Update the original tracked source with the new component's fn,
-			// triggering reactive re-render of all mounted instances.
-			set(wrapper[HMR].current, incoming[HMR].fn);
+			fn = incoming[HMR].fn;
+			wrapper[HMR].fn = fn;
+
+			// Prefer this wrapper's existing source. If this wrapper has never
+			// mounted, it may not have one yet, so fall back to any bridged source
+			// on the incoming wrapper.
+			var source = wrapper[HMR].current;
+			if (source === undefined) {
+				source = incoming[HMR].current;
+			}
+
+			if (source !== undefined) {
+				current = source;
+				wrapper[HMR].current = source;
+				// Update the shared tracked source so mounted instances re-render.
+				set(source, fn);
+			}
 
 			// Bridge the incoming wrapper's source to the original one,
 			// so subsequent updates continue to use this same tracked source
