@@ -1,0 +1,436 @@
+import { track } from 'ripple';
+
+export component Sidebar({ currentPath = '/docs/introduction' }: { currentPath?: string }) {
+	<aside class="Sidebar">
+		<div class="curtain" />
+		<nav class="nav" id="SidebarNav" aria-labelledby="sidebar-aria-label" tabindex="-1">
+			<span class="visually-hidden" id="sidebar-aria-label">{'Sidebar Navigation'}</span>
+			<div class="group">
+				<SidebarGroup
+					title="Getting Started"
+					hasActive={currentPath.startsWith('/docs/introduction') ||
+						currentPath.startsWith('/docs/quick-start')}
+				>
+					<SidebarItem
+						href="/docs/introduction"
+						text="Introduction"
+						active={currentPath === '/docs/introduction'}
+					/>
+					<SidebarItem
+						href="/docs/quick-start"
+						text="Quick Start"
+						active={currentPath === '/docs/quick-start'}
+					/>
+				</SidebarGroup>
+			</div>
+			<div class="group">
+				<SidebarGroup title="Guide" hasActive={currentPath.startsWith('/docs/guide/')}>
+					<SidebarItem
+						href="/docs/guide/application"
+						text="Creating an Application"
+						active={currentPath === '/docs/guide/application'}
+					/>
+					<SidebarItem
+						href="/docs/guide/syntax"
+						text="Template Syntax"
+						active={currentPath === '/docs/guide/syntax'}
+					/>
+					<SidebarItem
+						href="/docs/guide/components"
+						text="Components"
+						active={currentPath === '/docs/guide/components'}
+					/>
+					<SidebarItem
+						href="/docs/guide/control-flow"
+						text="Control Flow"
+						active={currentPath === '/docs/guide/control-flow'}
+					/>
+					<SidebarItem
+						href="/docs/guide/reactivity"
+						text="Reactivity"
+						active={currentPath === '/docs/guide/reactivity'}
+					/>
+					<SidebarItem
+						href="/docs/guide/events"
+						text="Events"
+						active={currentPath === '/docs/guide/events'}
+					/>
+					<SidebarItem
+						href="/docs/guide/dom-refs"
+						text="DOM References"
+						active={currentPath === '/docs/guide/dom-refs'}
+					/>
+					<SidebarItem
+						href="/docs/guide/state-management"
+						text="State Management"
+						active={currentPath === '/docs/guide/state-management'}
+					/>
+					<SidebarItem
+						href="/docs/guide/head-management"
+						text="Head Management"
+						active={currentPath === '/docs/guide/head-management'}
+					/>
+					<SidebarItem
+						href="/docs/guide/styling"
+						text="Styling"
+						active={currentPath === '/docs/guide/styling'}
+					/>
+					<SidebarItem
+						href="/docs/guide/bindings"
+						text="Bindings"
+						active={currentPath === '/docs/guide/bindings'}
+					/>
+				</SidebarGroup>
+			</div>
+			<div class="group">
+				<SidebarGroup
+					title="Further Reading"
+					hasActive={currentPath === '/docs/comparison' || currentPath === '/docs/best-practices' ||
+						currentPath === '/docs/libraries' ||
+						currentPath === '/docs/troubleshooting'}
+				>
+					<SidebarItem
+						href="/docs/comparison"
+						text="Comparison to Other Frameworks"
+						active={currentPath === '/docs/comparison'}
+					/>
+					<SidebarItem
+						href="/docs/best-practices"
+						text="Best Practices"
+						active={currentPath === '/docs/best-practices'}
+					/>
+					<SidebarItem
+						href="/docs/libraries"
+						text="Libraries"
+						active={currentPath === '/docs/libraries'}
+					/>
+					<SidebarItem
+						href="/docs/troubleshooting"
+						text="Troubleshooting"
+						active={currentPath === '/docs/troubleshooting'}
+					/>
+				</SidebarGroup>
+			</div>
+			<div class="group">
+				<SidebarGroup title="Miscellaneous">
+					<SidebarItem href="/llms.txt" text="llms.txt" external />
+				</SidebarGroup>
+			</div>
+		</nav>
+	</aside>
+
+	<style>
+		.Sidebar {
+			position: fixed;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			z-index: 50;
+			padding: 32px 32px 96px;
+			width: 272px;
+			max-width: 100%;
+			background-color: #161618;
+			overflow-x: hidden;
+			overflow-y: auto;
+			overscroll-behavior: contain;
+			scrollbar-width: none;
+		}
+
+		@media (min-width: 960px) {
+			.Sidebar {
+				padding-top: 64px;
+			}
+		}
+
+		.Sidebar::-webkit-scrollbar {
+			display: none;
+		}
+
+		@media (min-width: 960px) {
+			.curtain {
+				position: sticky;
+				top: -64px;
+				left: 0;
+				z-index: 1;
+				margin-top: -64px;
+				margin-right: -32px;
+				margin-left: -32px;
+				height: 64px;
+				background-color: #161618;
+			}
+		}
+
+		.nav {
+			outline: 0;
+		}
+
+		.visually-hidden {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			padding: 0;
+			margin: -1px;
+			overflow: hidden;
+			clip: rect(0, 0, 0, 0);
+			white-space: nowrap;
+			border-width: 0;
+		}
+
+		.group {
+			padding-top: 10px;
+			width: calc(272px - 64px);
+		}
+
+		.group:first-child {
+			padding-top: 0;
+		}
+
+		.group + .group {
+			border-top: 1px solid #2e2e32;
+		}
+
+		@media (min-width: 1440px) {
+			.Sidebar {
+				padding-left: max(32px, calc((100vw - 1376px) / 2));
+				width: calc((100vw - 1376px) / 2 + 272px - 32px);
+			}
+		}
+
+		@media (max-width: 960px) {
+			.Sidebar {
+				display: none;
+			}
+		}
+	</style>
+}
+
+component SidebarGroup({
+	title,
+	children,
+	hasActive = false,
+}: {
+	title: string;
+	children: any;
+	hasActive?: boolean;
+}) {
+	let expanded = track(true);
+
+	<section
+		class={`SidebarItem level-0 collapsible ${hasActive ? 'has-active' : ''} ${
+			@expanded ? '' : 'collapsed'
+		}`}
+	>
+		<div class="item" role="button" tabindex="0" onClick={() => (@expanded = !@expanded)}>
+			<div class="indicator" />
+			<h2 class="text">{title}</h2>
+			<div
+				class="caret"
+				role="button"
+				aria-label="toggle section"
+				tabindex="0"
+				onClick={(e: Event) => {
+					e.stopPropagation();
+					@expanded = !@expanded;
+				}}
+			>
+				<svg
+					class="caret-icon"
+					xmlns="http://www.w3.org/2000/svg"
+					width="18"
+					height="18"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="m9 18 6-6-6-6" />
+				</svg>
+			</div>
+		</div>
+		if (@expanded) {
+			<div class="items">
+				<children />
+			</div>
+		}
+	</section>
+
+	<style>
+		.SidebarItem.level-0 {
+			padding-bottom: 24px;
+		}
+
+		.SidebarItem.collapsed.level-0 {
+			padding-bottom: 10px;
+		}
+
+		.item {
+			position: relative;
+			display: flex;
+			width: 100%;
+		}
+
+		.SidebarItem.collapsible > .item {
+			cursor: pointer;
+		}
+
+		.indicator {
+			position: absolute;
+			top: 6px;
+			bottom: 6px;
+			left: -17px;
+			width: 2px;
+			border-radius: 2px;
+			transition: background-color 0.25s;
+		}
+
+		.text {
+			flex-grow: 1;
+			padding: 4px 0;
+			line-height: 24px;
+			font-size: 14px;
+			font-weight: 700;
+			color: rgba(255, 255, 245, 0.86);
+			transition: color 0.25s;
+		}
+
+		.caret {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			margin-right: -7px;
+			width: 32px;
+			height: 32px;
+			color: rgba(235, 235, 245, 0.6);
+			cursor: pointer;
+			transition: color 0.25s;
+			flex-shrink: 0;
+		}
+
+		.item:hover .caret {
+			color: rgba(235, 235, 245, 0.78);
+		}
+
+		.item:hover .caret:hover {
+			color: rgba(255, 255, 245, 0.86);
+		}
+
+		.caret-icon {
+			width: 18px;
+			height: 18px;
+			transform: rotate(90deg);
+			transition: transform 0.25s;
+		}
+
+		.SidebarItem.collapsed .caret-icon {
+			transform: rotate(0deg);
+		}
+
+		.items {
+			padding-top: 4px;
+		}
+	</style>
+}
+
+component SidebarItem({
+	href,
+	text,
+	external = false,
+	active = false,
+	hasActive = false,
+}: {
+	href: string;
+	text: string;
+	external?: boolean;
+	active?: boolean;
+	hasActive?: boolean;
+}) {
+	const classes = `SidebarItem level-1 is-link${active ? ' is-active' : ''}${
+		hasActive ? ' has-active' : ''
+	}`;
+
+	<div class={classes}>
+		<div class="item">
+			<div class="indicator" />
+			if (external) {
+				<a {href} target="_blank" rel="noreferrer" class="link link doc-external-link-icon">
+					<p class="text">{text}</p>
+				</a>
+			} else {
+				<a {href} class="link link">
+					<p class="text">{text}</p>
+				</a>
+			}
+		</div>
+	</div>
+
+	<style>
+		.SidebarItem {
+			position: relative;
+		}
+
+		.item {
+			position: relative;
+			display: flex;
+			width: 100%;
+		}
+
+		.indicator {
+			position: absolute;
+			top: 6px;
+			bottom: 6px;
+			left: -17px;
+			width: 2px;
+			border-radius: 2px;
+			transition: background-color 0.25s;
+		}
+
+		.SidebarItem.is-active > .item > .indicator {
+			background-color: #3e95ff;
+		}
+
+		.link {
+			display: flex;
+			align-items: center;
+			flex-grow: 1;
+		}
+
+		.text {
+			flex-grow: 1;
+			padding: 4px 0;
+			line-height: 24px;
+			font-size: 14px;
+			font-weight: 500;
+			color: rgba(235, 235, 245, 0.6);
+			transition: color 0.25s;
+		}
+
+		.SidebarItem.is-link > .item > .link:hover .text {
+			color: #3e95ff;
+		}
+
+		.SidebarItem.has-active > .item > .link > .text {
+			color: rgba(255, 255, 245, 0.86);
+		}
+
+		.SidebarItem.is-active > .item > .link > .text {
+			color: #3e95ff;
+		}
+
+		.doc-external-link-icon::after {
+			content: '';
+			width: 11px;
+			height: 11px;
+			margin-left: 4px;
+			display: inline-block;
+			background: currentColor;
+			-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M0 0h24v24H0V0z' fill='none'/%3E%3Cpath d='M9 5v2h6.59L4 18.59 5.41 20 17 8.41V15h2V5H9z'/%3E%3C/svg%3E")
+				no-repeat;
+			mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M0 0h24v24H0V0z' fill='none'/%3E%3Cpath d='M9 5v2h6.59L4 18.59 5.41 20 17 8.41V15h2V5H9z'/%3E%3C/svg%3E")
+				no-repeat;
+			-webkit-mask-size: 100% 100%;
+			mask-size: 100% 100%;
+		}
+	</style>
+}

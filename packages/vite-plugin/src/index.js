@@ -787,7 +787,12 @@ export function ripple(inlineOptions = {}) {
 							},
 						},
 						ssr: {
-							external: ['@ripple-ts/adapter', '@ripple-ts/adapter-node', '@ripple-ts/adapter-bun'],
+							external: [
+								'@ripple-ts/adapter',
+								'@ripple-ts/adapter-node',
+								'@ripple-ts/adapter-bun',
+								'@ripple-ts/adapter-vercel',
+							],
 							noExternal: [],
 						},
 					});

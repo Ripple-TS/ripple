@@ -2,11 +2,55 @@ import { RenderRoute, ServerRoute } from '@ripple-ts/vite-plugin';
 
 export const routes = [
 	new RenderRoute({ path: '/', entry: '/src/pages/index.ripple' }),
+
+	// Getting Started
+	new RenderRoute({ path: '/docs/introduction', entry: '/src/pages/docs/introduction.ripple' }),
+	new RenderRoute({ path: '/docs/quick-start', entry: '/src/pages/docs/quick-start.ripple' }),
+
+	// Guide
 	new RenderRoute({
-		path: '/docs/*slug',
-		entry: '/src/pages/docs/[slug].ripple',
+		path: '/docs/guide/application',
+		entry: '/src/pages/docs/guide/application.ripple',
 	}),
+	new RenderRoute({ path: '/docs/guide/syntax', entry: '/src/pages/docs/guide/syntax.ripple' }),
+	new RenderRoute({
+		path: '/docs/guide/components',
+		entry: '/src/pages/docs/guide/components.ripple',
+	}),
+	new RenderRoute({
+		path: '/docs/guide/control-flow',
+		entry: '/src/pages/docs/guide/control-flow.ripple',
+	}),
+	new RenderRoute({
+		path: '/docs/guide/reactivity',
+		entry: '/src/pages/docs/guide/reactivity.ripple',
+	}),
+	new RenderRoute({ path: '/docs/guide/events', entry: '/src/pages/docs/guide/events.ripple' }),
+	new RenderRoute({ path: '/docs/guide/dom-refs', entry: '/src/pages/docs/guide/dom-refs.ripple' }),
+	new RenderRoute({
+		path: '/docs/guide/state-management',
+		entry: '/src/pages/docs/guide/state-management.ripple',
+	}),
+	new RenderRoute({
+		path: '/docs/guide/head-management',
+		entry: '/src/pages/docs/guide/head-management.ripple',
+	}),
+	new RenderRoute({ path: '/docs/guide/styling', entry: '/src/pages/docs/guide/styling.ripple' }),
+	new RenderRoute({ path: '/docs/guide/bindings', entry: '/src/pages/docs/guide/bindings.ripple' }),
+
+	// Further Reading
+	new RenderRoute({ path: '/docs/comparison', entry: '/src/pages/docs/comparison.ripple' }),
+	new RenderRoute({ path: '/docs/best-practices', entry: '/src/pages/docs/best-practices.ripple' }),
+	new RenderRoute({ path: '/docs/libraries', entry: '/src/pages/docs/libraries.ripple' }),
+	new RenderRoute({
+		path: '/docs/troubleshooting',
+		entry: '/src/pages/docs/troubleshooting.ripple',
+	}),
+
+	// 404 catch-all (must be last render route)
 	new RenderRoute({ path: '/**', entry: '/src/pages/404.ripple' }),
+
+	// API routes
 	new ServerRoute({
 		path: '/api/hello',
 		methods: ['GET'],

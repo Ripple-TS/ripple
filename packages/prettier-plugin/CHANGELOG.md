@@ -1,5 +1,7 @@
 # @ripple-ts/prettier-plugin
 
+## 0.2.214
+
 ## 0.2.213
 
 ## 0.2.212
