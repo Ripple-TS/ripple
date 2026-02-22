@@ -26,6 +26,7 @@ import {
 	is_binding_function,
 	is_element_dynamic,
 	hash,
+	flatten_switch_consequent,
 } from '../../../utils.js';
 import { escape } from '../../../../utils/escaping.js';
 import { is_event_attribute } from '../../../../utils/events.js';
@@ -267,26 +268,6 @@ function transform_children(children, context) {
 			b.stmt(b.assignment('=', b.member(b.id('__output'), b.id('target')), b.literal(null))),
 		);
 	}
-}
-
-/**
- * Flattens top-level BlockStatements in switch case consequents so that
- * BreakStatements inside block-scoped cases are preserved.
- * e.g. `case 1: { <div /> break; }` → `[Element, BreakStatement]`
- * @param {AST.Node[]} consequent
- * @returns {AST.Node[]}
- */
-function flatten_switch_consequent(consequent) {
-	/** @type {AST.Node[]} */
-	const result = [];
-	for (const node of consequent) {
-		if (node.type === 'BlockStatement') {
-			result.push(.../** @type {AST.BlockStatement} */ (node).body);
-		} else {
-			result.push(node);
-		}
-	}
-	return result;
 }
 
 /**

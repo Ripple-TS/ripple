@@ -895,3 +895,23 @@ export function is_inside_left_side_assignment(node) {
 
 	return false;
 }
+
+/**
+ * Flattens top-level BlockStatements in switch case consequents so that
+ * BreakStatements and elements inside block-scoped cases are properly handled.
+ * e.g. `case 1: { <div /> break; }` → `[Element, BreakStatement]`
+ * @param {AST.Node[]} consequent
+ * @returns {AST.Node[]}
+ */
+export function flatten_switch_consequent(consequent) {
+	/** @type {AST.Node[]} */
+	const result = [];
+	for (const node of consequent) {
+		if (node.type === 'BlockStatement') {
+			result.push(.../** @type {AST.BlockStatement} */ (node).body);
+		} else {
+			result.push(node);
+		}
+	}
+	return result;
+}

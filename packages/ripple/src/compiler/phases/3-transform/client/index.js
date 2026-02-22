@@ -45,7 +45,6 @@ import {
 	is_inside_call_expression,
 	is_value_static,
 	is_void_element,
-	is_component_level_function,
 	is_element_dom_element,
 	is_top_level_await,
 	is_ripple_track_call,
@@ -56,6 +55,7 @@ import {
 	is_element_dynamic,
 	is_inside_left_side_assignment,
 	hash,
+	flatten_switch_consequent,
 } from '../../../utils.js';
 import {
 	CSS_HASH_IDENTIFIER,
@@ -3628,26 +3628,6 @@ function transform_children(children, context) {
 			),
 		);
 	}
-}
-
-/**
- * Flattens top-level BlockStatements in switch case consequents so that
- * BreakStatements and elements inside block-scoped cases are properly handled.
- * e.g. `case 1: { <div /> break; }` → `[Element, BreakStatement]`
- * @param {AST.Node[]} consequent
- * @returns {AST.Node[]}
- */
-function flatten_switch_consequent(consequent) {
-	/** @type {AST.Node[]} */
-	const result = [];
-	for (const node of consequent) {
-		if (node.type === 'BlockStatement') {
-			result.push(.../** @type {AST.BlockStatement} */ (node).body);
-		} else {
-			result.push(node);
-		}
-	}
-	return result;
 }
 
 /**
