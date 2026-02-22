@@ -37,7 +37,7 @@ import {
 	CSS_HASH_IDENTIFIER,
 	obfuscate_identifier,
 } from '../../../identifier-utils.js';
-import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../../constants.js';
+import { BLOCK_CLOSE, BLOCK_OPEN, BLOCK_OPEN_ELSE } from '../../../../constants.js';
 
 /**
  * Checks if a node is template or control-flow content that should be wrapped when return flags are active
@@ -1175,6 +1175,7 @@ const visitors = {
 			}),
 		);
 
+		// Emit BLOCK_OPEN before the if statement - indicates if block start
 		context.state.init?.push(
 			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN))),
 		);
@@ -1188,12 +1189,16 @@ const visitors = {
 					? [node.alternate]
 					: /** @type {AST.BlockStatement} */ (node.alternate).body;
 
-			alternate = b.block(
-				transform_body(alternate_body_nodes, {
+			// Always emit BLOCK_OPEN_ELSE at the start of any else branch
+			// This is needed so client can distinguish "consequent content starting with if-block"
+			// from "else branch containing if-block (else-if)"
+			alternate = b.block([
+				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN_ELSE))),
+				...transform_body(alternate_body_nodes, {
 					...context,
 					state: { ...context.state, scope: alternate_scope },
 				}),
-			);
+			]);
 		}
 
 		context.state.init?.push(

@@ -121,3 +121,35 @@ export component IfElseIfChain() {
 		}
 	</div>
 }
+
+// --- Test case for server/client branch mismatch ---
+// This tests when server renders consequent BUT client evaluates false
+// (e.g., #server.load_doc() returns data on server but Promise on client)
+
+// Server version: condition is truthy, renders the consequent content
+export component IfMismatchServerContentful() {
+	const editPath = 'docs/styling.md'; // truthy on server
+	<article class="doc-content">
+		<div>{'Content'}</div>
+	</article>
+	if (editPath) {
+		<div class="edit-link">
+			<a href="/edit">{'Edit on GitHub'}</a>
+		</div>
+	}
+	<footer class="footer">{'Footer'}</footer>
+}
+
+// Client version: condition is falsy (simulating undefined from Promise)
+export component IfMismatchClientEmpty() {
+	const editPath: string | undefined = undefined; // falsy on client
+	<article class="doc-content">
+		<div>{'Content'}</div>
+	</article>
+	if (editPath) {
+		<div class="edit-link">
+			<a href="/edit">{'Edit on GitHub'}</a>
+		</div>
+	}
+	<footer class="footer">{'Footer'}</footer>
+}

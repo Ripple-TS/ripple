@@ -489,6 +489,7 @@ export function DomElementChildrenThenSibling(__output) {
 
 				__output.push('</pre>');
 			} else {
+				__output.push('<!--[!-->');
 				__output.push('<div');
 				__output.push(' class="preview"');
 				__output.push('>');

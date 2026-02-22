@@ -47,6 +47,41 @@ var root_40 = _$_.template(`<aside class="sidebar"><nav><div class="group"><!></
 var root_43 = _$_.template(`<header class="page-header"><div class="logo">MyApp</div></header>`, 0);
 var root_45 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
 var root_44 = _$_.template(`<div class="layout"><!><div class="content-wrapper"><!><main class="main-content"><div class="article"><div><h1>Introduction</h1><p>Welcome to the docs.</p></div></div><!><!></main></div></div>`, 0);
+var root_46 = _$_.template(`<article class="doc-content"><div><!></div></article>`, 0);
+var root_47 = _$_.template(`<footer class="doc-footer">Footer</footer>`, 0);
+var root_49 = _$_.template(`<h1>Title</h1><p>Content goes here.</p>`, 1);
+var root_50 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
+var root_51 = _$_.template(`<nav class="prev-next"><a href="/prev">Previous</a></nav>`, 0);
+var root_48 = _$_.template(`<div class="content-container"><!><!><!><!></div>`, 0);
+var root_53 = _$_.template(`<div class="doc-content"><!></div>`, 0);
+var root_54 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
+var root_52 = _$_.template(`<div class="content-container"><!><!><!></div>`, 0);
+var root_56 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
+var root_55 = _$_.template(`<div class="content-container"><article class="doc-content"><div><!></div></article><!><!></div>`, 0);
+var root_58 = _$_.template(`<div class="doc-content"><!></div>`, 0);
+var root_57 = _$_.template(`<!>`, 1);
+var root_59 = _$_.template(`<header class="header">Header</header>`, 0);
+var root_60 = _$_.template(`<aside class="sidebar">Sidebar</aside>`, 0);
+var root_61 = _$_.template(`<footer class="footer">Footer</footer>`, 0);
+var root_63 = _$_.template(`<div class="edit-link"><a href="/edit">Edit on GitHub</a></div>`, 0);
+var root_64 = _$_.template(`<nav class="prev-next"><a> </a></nav>`, 0);
+var root_62 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article><!><!><!></div></div></div></main></div></div>`, 0);
+var root_66 = _$_.template(`<div class="doc-content"><!></div>`, 0);
+var root_65 = _$_.template(`<!>`, 1);
+var root_68 = _$_.template(`<div class="doc-content"><!></div>`, 0);
+var root_67 = _$_.template(`<!>`, 1);
+var root_70 = _$_.template(`<div class="edit-link"><a>Edit on GitHub</a></div>`, 0);
+var root_72 = _$_.template(`<a class="pager prev"><span class="title"> </span></a>`, 0);
+var root_73 = _$_.template(`<span></span>`, 0);
+var root_74 = _$_.template(`<a class="pager next"><span class="title"> </span></a>`, 0);
+var root_71 = _$_.template(`<nav class="prev-next"><!><!></nav>`, 0);
+var root_76 = _$_.template(`<a> </a>`, 0);
+var root_75 = _$_.template(`<div class="aside-content"><nav class="outline"></nav></div>`, 0);
+var root_69 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article><!><!><!></div></div><aside class="aside"><!></aside></div></main></div></div>`, 0);
+var root_78 = _$_.template(`<div class="doc-content"><!></div>`, 0);
+var root_77 = _$_.template(`<!>`, 1);
+var root_80 = _$_.template(`<div class="doc-content"><!></div>`, 0);
+var root_79 = _$_.template(`<!>`, 1);
 
 import { track } from 'ripple';
 
@@ -1127,6 +1162,800 @@ export function LayoutWithSidebarAndMain(__anchor, _, __block) {
 	}
 
 	_$_.append(__anchor, div_33);
+	_$_.pop_component();
+}
+
+function ArticleWrapper(__anchor, __props, __block) {
+	_$_.push_component();
+
+	var article_2 = root_46();
+
+	{
+		var div_37 = _$_.child(article_2);
+
+		{
+			var node_51 = _$_.child(div_37);
+
+			_$_.composite(() => __props.children, node_51, {});
+			_$_.pop(div_37);
+		}
+	}
+
+	_$_.append(__anchor, article_2);
+	_$_.pop_component();
+}
+
+function SimpleFooter(__anchor, _, __block) {
+	_$_.push_component();
+
+	var footer_2 = root_47();
+
+	_$_.append(__anchor, footer_2);
+	_$_.pop_component();
+}
+
+export function ArticleWithChildrenThenSibling(__anchor, _, __block) {
+	_$_.push_component();
+
+	var div_38 = root_48();
+
+	{
+		var node_52 = _$_.child(div_38);
+
+		ArticleWrapper(
+			node_52,
+			{
+				children(__anchor, _, __block) {
+					_$_.push_component();
+
+					var fragment_13 = root_49();
+
+					_$_.append(__anchor, fragment_13);
+					_$_.pop_component();
+				}
+			},
+			_$_.active_block
+		);
+
+		var node_53 = _$_.sibling(node_52);
+
+		{
+			var consequent_6 = (__anchor) => {
+				var div_39 = root_50();
+
+				_$_.append(__anchor, div_39);
+			};
+
+			_$_.if(node_53, (__render) => {
+				if (true) __render(consequent_6);
+			});
+		}
+
+		var node_54 = _$_.sibling(node_53);
+
+		{
+			var consequent_7 = (__anchor) => {
+				var nav_3 = root_51();
+
+				_$_.append(__anchor, nav_3);
+			};
+
+			_$_.if(node_54, (__render) => {
+				if (true) __render(consequent_7);
+			});
+		}
+
+		var node_55 = _$_.sibling(node_54);
+
+		SimpleFooter(node_55, {}, _$_.active_block);
+		_$_.pop(div_38);
+	}
+
+	_$_.append(__anchor, div_38);
+	_$_.pop_component();
+}
+
+export function ArticleWithHtmlChildThenSibling(__anchor, _, __block) {
+	_$_.push_component();
+
+	const htmlContent = '<pre><code>const x = 1;</code></pre>';
+	var div_40 = root_52();
+
+	{
+		var node_56 = _$_.child(div_40);
+
+		ArticleWrapper(
+			node_56,
+			{
+				children(__anchor, _, __block) {
+					_$_.push_component();
+
+					var div_41 = root_53();
+
+					{
+						var node_57 = _$_.child(div_41);
+
+						_$_.pop(div_41);
+					}
+
+					_$_.render(() => {
+						_$_.html(node_57, () => htmlContent);
+					});
+
+					_$_.append(__anchor, div_41);
+					_$_.pop_component();
+				}
+			},
+			_$_.active_block
+		);
+
+		var node_58 = _$_.sibling(node_56);
+
+		{
+			var consequent_8 = (__anchor) => {
+				var div_42 = root_54();
+
+				_$_.append(__anchor, div_42);
+			};
+
+			_$_.if(node_58, (__render) => {
+				if (true) __render(consequent_8);
+			});
+		}
+
+		var node_59 = _$_.sibling(node_58);
+
+		SimpleFooter(node_59, {}, _$_.active_block);
+		_$_.pop(div_40);
+	}
+
+	_$_.append(__anchor, div_40);
+	_$_.pop_component();
+}
+
+function InlineArticleLayout(__anchor, __props, __block) {
+	_$_.push_component();
+
+	var div_43 = root_55();
+
+	{
+		var article_3 = _$_.child(div_43);
+
+		{
+			var div_44 = _$_.child(article_3);
+
+			{
+				var node_60 = _$_.child(div_44);
+
+				_$_.composite(() => __props.children, node_60, {});
+				_$_.pop(div_44);
+			}
+		}
+
+		_$_.pop(article_3);
+
+		var node_61 = _$_.sibling(article_3);
+
+		{
+			var consequent_9 = (__anchor) => {
+				var div_45 = root_56();
+
+				_$_.append(__anchor, div_45);
+			};
+
+			_$_.if(node_61, (__render) => {
+				if (true) __render(consequent_9);
+			});
+		}
+
+		var node_62 = _$_.sibling(node_61);
+
+		SimpleFooter(node_62, {}, _$_.active_block);
+		_$_.pop(div_43);
+	}
+
+	_$_.append(__anchor, div_43);
+	_$_.pop_component();
+}
+
+export function InlineArticleWithHtmlChild(__anchor, _, __block) {
+	_$_.push_component();
+
+	const htmlContent = '<pre><code>const x = 1;</code></pre>';
+	var fragment_14 = root_57();
+	var node_63 = _$_.first_child_frag(fragment_14);
+
+	InlineArticleLayout(
+		node_63,
+		{
+			children(__anchor, _, __block) {
+				_$_.push_component();
+
+				var div_46 = root_58();
+
+				{
+					var node_64 = _$_.child(div_46);
+
+					_$_.pop(div_46);
+				}
+
+				_$_.render(() => {
+					_$_.html(node_64, () => htmlContent);
+				});
+
+				_$_.append(__anchor, div_46);
+				_$_.pop_component();
+			}
+		},
+		_$_.active_block
+	);
+
+	_$_.append(__anchor, fragment_14);
+	_$_.pop_component();
+}
+
+function HeaderStub(__anchor, _, __block) {
+	_$_.push_component();
+
+	var header_2 = root_59();
+
+	_$_.append(__anchor, header_2);
+	_$_.pop_component();
+}
+
+function SidebarStub(__anchor, _, __block) {
+	_$_.push_component();
+
+	var aside_3 = root_60();
+
+	_$_.append(__anchor, aside_3);
+	_$_.pop_component();
+}
+
+function FooterStub(__anchor, _, __block) {
+	_$_.push_component();
+
+	var footer_3 = root_61();
+
+	_$_.append(__anchor, footer_3);
+	_$_.pop_component();
+}
+
+function DocsLayoutInner(__anchor, __props, __block) {
+	_$_.push_component();
+
+	var div_47 = root_62();
+
+	{
+		var node_65 = _$_.child(div_47);
+
+		HeaderStub(node_65, {}, _$_.active_block);
+
+		var div_48 = _$_.sibling(node_65);
+
+		{
+			var node_66 = _$_.child(div_48);
+
+			SidebarStub(node_66, {}, _$_.active_block);
+
+			var main_2 = _$_.sibling(node_66);
+
+			{
+				var div_52 = _$_.child(main_2);
+
+				{
+					var div_51 = _$_.child(div_52);
+
+					{
+						var div_50 = _$_.child(div_51);
+
+						{
+							var article_4 = _$_.child(div_50);
+
+							{
+								var div_49 = _$_.child(article_4);
+
+								{
+									var node_67 = _$_.child(div_49);
+
+									_$_.composite(() => __props.children, node_67, {});
+									_$_.pop(div_49);
+								}
+							}
+
+							_$_.pop(article_4);
+
+							var node_68 = _$_.sibling(article_4);
+
+							{
+								var consequent_10 = (__anchor) => {
+									var div_53 = root_63();
+
+									_$_.append(__anchor, div_53);
+								};
+
+								_$_.if(node_68, (__render) => {
+									if (_$_.fallback(__props.editPath, '')) __render(consequent_10);
+								});
+							}
+
+							var node_69 = _$_.sibling(node_68);
+
+							{
+								var consequent_11 = (__anchor) => {
+									var nav_4 = root_64();
+
+									{
+										var a_5 = _$_.child(nav_4);
+
+										{
+											var text_6 = _$_.child(a_5, true);
+
+											_$_.pop(a_5);
+										}
+									}
+
+									_$_.render(
+										(__prev) => {
+											var __a = _$_.fallback(__props.nextLink, null).text;
+
+											if (__prev.a !== __a) {
+												_$_.set_text(text_6, __prev.a = __a);
+											}
+
+											var __b = _$_.fallback(__props.nextLink, null).href;
+
+											if (__prev.b !== __b) {
+												_$_.set_attribute(a_5, 'href', __prev.b = __b);
+											}
+										},
+										{ a: ' ', b: void 0 }
+									);
+
+									_$_.append(__anchor, nav_4);
+								};
+
+								_$_.if(node_69, (__render) => {
+									if (_$_.fallback(__props.nextLink, null)) __render(consequent_11);
+								});
+							}
+
+							var node_70 = _$_.sibling(node_69);
+
+							FooterStub(node_70, {}, _$_.active_block);
+							_$_.pop(div_50);
+						}
+					}
+				}
+			}
+
+			_$_.pop(div_48);
+		}
+
+		_$_.pop(div_47);
+	}
+
+	_$_.append(__anchor, div_47);
+	_$_.pop_component();
+}
+
+export function DocsLayoutWithData(__anchor, _, __block) {
+	_$_.push_component();
+
+	const htmlContent = '<h1>Title</h1><p>Content</p>';
+	var fragment_15 = root_65();
+	var node_71 = _$_.first_child_frag(fragment_15);
+
+	DocsLayoutInner(
+		node_71,
+		{
+			editPath: "docs/styling.md",
+			nextLink: { href: '/next', text: 'Next' },
+
+			children(__anchor, _, __block) {
+				_$_.push_component();
+
+				var div_54 = root_66();
+
+				{
+					var node_72 = _$_.child(div_54);
+
+					_$_.pop(div_54);
+				}
+
+				_$_.render(() => {
+					_$_.html(node_72, () => htmlContent);
+				});
+
+				_$_.append(__anchor, div_54);
+				_$_.pop_component();
+			}
+		},
+		_$_.active_block
+	);
+
+	_$_.append(__anchor, fragment_15);
+	_$_.pop_component();
+}
+
+export function DocsLayoutWithoutData(__anchor, _, __block) {
+	_$_.push_component();
+
+	const htmlContent = undefined;
+	var fragment_16 = root_67();
+	var node_73 = _$_.first_child_frag(fragment_16);
+
+	DocsLayoutInner(
+		node_73,
+		{
+			children(__anchor, _, __block) {
+				_$_.push_component();
+
+				var div_55 = root_68();
+
+				{
+					var node_74 = _$_.child(div_55);
+
+					_$_.pop(div_55);
+				}
+
+				_$_.render(() => {
+					_$_.html(node_74, () => htmlContent);
+				});
+
+				_$_.append(__anchor, div_55);
+				_$_.pop_component();
+			}
+		},
+		_$_.active_block
+	);
+
+	_$_.append(__anchor, fragment_16);
+	_$_.pop_component();
+}
+
+function DocsLayoutExact(__anchor, __props, __block) {
+	_$_.push_component();
+
+	var div_56 = root_69();
+
+	{
+		var node_75 = _$_.child(div_56);
+
+		HeaderStub(node_75, {}, _$_.active_block);
+
+		var div_57 = _$_.sibling(node_75);
+
+		{
+			var node_76 = _$_.child(div_57);
+
+			SidebarStub(node_76, {}, _$_.active_block);
+
+			var main_3 = _$_.sibling(node_76);
+
+			{
+				var div_61 = _$_.child(main_3);
+
+				{
+					var div_60 = _$_.child(div_61);
+
+					{
+						var div_59 = _$_.child(div_60);
+
+						{
+							var article_5 = _$_.child(div_59);
+
+							{
+								var div_58 = _$_.child(article_5);
+
+								{
+									var node_77 = _$_.child(div_58);
+
+									_$_.composite(() => __props.children, node_77, {});
+									_$_.pop(div_58);
+								}
+							}
+
+							_$_.pop(article_5);
+
+							var node_78 = _$_.sibling(article_5);
+
+							{
+								var consequent_12 = (__anchor) => {
+									var div_62 = root_70();
+
+									{
+										var a_6 = _$_.child(div_62);
+									}
+
+									_$_.render(() => {
+										_$_.set_attribute(a_6, 'href', `/edit/${_$_.fallback(__props.editPath, '')}`);
+									});
+
+									_$_.append(__anchor, div_62);
+								};
+
+								_$_.if(node_78, (__render) => {
+									if (_$_.fallback(__props.editPath, '')) __render(consequent_12);
+								});
+							}
+
+							var node_79 = _$_.sibling(node_78);
+
+							{
+								var consequent_15 = (__anchor) => {
+									var nav_5 = root_71();
+
+									{
+										var node_80 = _$_.child(nav_5);
+
+										{
+											var consequent_13 = (__anchor) => {
+												var a_7 = root_72();
+
+												{
+													var span_2 = _$_.child(a_7);
+
+													{
+														var text_7 = _$_.child(span_2, true);
+
+														_$_.pop(span_2);
+													}
+												}
+
+												_$_.render(
+													(__prev) => {
+														var __a = _$_.fallback(__props.prevLink, null).text;
+
+														if (__prev.a !== __a) {
+															_$_.set_text(text_7, __prev.a = __a);
+														}
+
+														var __b = _$_.fallback(__props.prevLink, null).href;
+
+														if (__prev.b !== __b) {
+															_$_.set_attribute(a_7, 'href', __prev.b = __b);
+														}
+													},
+													{ a: ' ', b: void 0 }
+												);
+
+												_$_.append(__anchor, a_7);
+											};
+
+											var alternate = (__anchor) => {
+												var span_3 = root_73();
+
+												_$_.append(__anchor, span_3);
+											};
+
+											_$_.if(node_80, (__render) => {
+												if (_$_.fallback(__props.prevLink, null)) __render(consequent_13); else __render(alternate, false);
+											});
+										}
+
+										var node_81 = _$_.sibling(node_80);
+
+										{
+											var consequent_14 = (__anchor) => {
+												var a_8 = root_74();
+
+												{
+													var span_4 = _$_.child(a_8);
+
+													{
+														var text_8 = _$_.child(span_4, true);
+
+														_$_.pop(span_4);
+													}
+												}
+
+												_$_.render(
+													(__prev) => {
+														var __a = _$_.fallback(__props.nextLink, null).text;
+
+														if (__prev.a !== __a) {
+															_$_.set_text(text_8, __prev.a = __a);
+														}
+
+														var __b = _$_.fallback(__props.nextLink, null).href;
+
+														if (__prev.b !== __b) {
+															_$_.set_attribute(a_8, 'href', __prev.b = __b);
+														}
+													},
+													{ a: ' ', b: void 0 }
+												);
+
+												_$_.append(__anchor, a_8);
+											};
+
+											_$_.if(node_81, (__render) => {
+												if (_$_.fallback(__props.nextLink, null)) __render(consequent_14);
+											});
+										}
+
+										_$_.pop(nav_5);
+									}
+
+									_$_.append(__anchor, nav_5);
+								};
+
+								_$_.if(node_79, (__render) => {
+									if (_$_.fallback(__props.prevLink, null) || _$_.fallback(__props.nextLink, null)) __render(consequent_15);
+								});
+							}
+
+							var node_82 = _$_.sibling(node_79);
+
+							FooterStub(node_82, {}, _$_.active_block);
+							_$_.pop(div_59);
+						}
+					}
+
+					_$_.pop(div_60);
+
+					var aside_4 = _$_.sibling(div_60);
+
+					{
+						var node_83 = _$_.child(aside_4);
+
+						{
+							var consequent_16 = (__anchor) => {
+								var div_63 = root_75();
+
+								{
+									var nav_6 = _$_.child(div_63);
+
+									{
+										_$_.for(
+											nav_6,
+											() => _$_.fallback(__props.toc, []),
+											(__anchor, item) => {
+												var a_9 = root_76();
+
+												{
+													var text_9 = _$_.child(a_9, true);
+
+													_$_.pop(a_9);
+												}
+
+												_$_.render(
+													(__prev) => {
+														var __a = item.text;
+
+														if (__prev.a !== __a) {
+															_$_.set_text(text_9, __prev.a = __a);
+														}
+
+														var __b = item.href;
+
+														if (__prev.b !== __b) {
+															_$_.set_attribute(a_9, 'href', __prev.b = __b);
+														}
+													},
+													{ a: ' ', b: void 0 }
+												);
+
+												_$_.append(__anchor, a_9);
+											},
+											4
+										);
+
+										_$_.pop(nav_6);
+									}
+								}
+
+								_$_.append(__anchor, div_63);
+							};
+
+							_$_.if(node_83, (__render) => {
+								if (_$_.fallback(__props.toc, []).length > 0) __render(consequent_16);
+							});
+						}
+
+						_$_.pop(aside_4);
+					}
+				}
+			}
+
+			_$_.pop(div_57);
+		}
+
+		_$_.pop(div_56);
+	}
+
+	_$_.append(__anchor, div_56);
+	_$_.pop_component();
+}
+
+export function DocsLayoutExactWithData(__anchor, _, __block) {
+	_$_.push_component();
+
+	const htmlContent = '<h1>Styling Guide</h1><p>Content</p>';
+	var fragment_17 = root_77();
+	var node_84 = _$_.first_child_frag(fragment_17);
+
+	DocsLayoutExact(
+		node_84,
+		{
+			editPath: "docs/guide/styling.md",
+			prevLink: { href: '/prev', text: 'Previous' },
+			nextLink: { href: '/next', text: 'Next' },
+
+			toc: [
+				{ href: '#intro', text: 'Introduction' },
+				{ href: '#usage', text: 'Usage' }
+			],
+
+			children(__anchor, _, __block) {
+				_$_.push_component();
+
+				var div_64 = root_78();
+
+				{
+					var node_85 = _$_.child(div_64);
+
+					_$_.pop(div_64);
+				}
+
+				_$_.render(() => {
+					_$_.html(node_85, () => htmlContent);
+				});
+
+				_$_.append(__anchor, div_64);
+				_$_.pop_component();
+			}
+		},
+		_$_.active_block
+	);
+
+	_$_.append(__anchor, fragment_17);
+	_$_.pop_component();
+}
+
+export function DocsLayoutExactWithoutData(__anchor, _, __block) {
+	_$_.push_component();
+
+	const htmlContent = undefined;
+	const editPath = undefined;
+	const prevLink = undefined;
+	const nextLink = undefined;
+	const toc = undefined;
+	var fragment_18 = root_79();
+	var node_86 = _$_.first_child_frag(fragment_18);
+
+	DocsLayoutExact(
+		node_86,
+		{
+			editPath,
+			prevLink,
+			nextLink,
+			toc,
+
+			children(__anchor, _, __block) {
+				_$_.push_component();
+
+				var div_65 = root_80();
+
+				{
+					var node_87 = _$_.child(div_65);
+
+					_$_.pop(div_65);
+				}
+
+				_$_.render(() => {
+					_$_.html(node_87, () => htmlContent);
+				});
+
+				_$_.append(__anchor, div_65);
+				_$_.pop_component();
+			}
+		},
+		_$_.active_block
+	);
+
+	_$_.append(__anchor, fragment_18);
 	_$_.pop_component();
 }
 

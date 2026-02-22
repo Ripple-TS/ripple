@@ -740,6 +740,7 @@ export function ElseIfChainFirst(__output) {
 		__output.push('</div>');
 		__r_16 = true;
 	} else {
+		__output.push('<!--[!-->');
 		__output.push('<!--[-->');
 
 		if (value === 2) {
@@ -754,6 +755,7 @@ export function ElseIfChainFirst(__output) {
 			__output.push('</div>');
 			__r_17 = true;
 		} else {
+			__output.push('<!--[!-->');
 			__output.push('<div');
 			__output.push(' class="other"');
 			__output.push('>');
@@ -810,6 +812,7 @@ export function ElseIfChainSecond(__output) {
 		__output.push('</div>');
 		__r_19 = true;
 	} else {
+		__output.push('<!--[!-->');
 		__output.push('<!--[-->');
 
 		if (value === 2) {
@@ -824,6 +827,7 @@ export function ElseIfChainSecond(__output) {
 			__output.push('</div>');
 			__r_20 = true;
 		} else {
+			__output.push('<!--[!-->');
 			__output.push('<div');
 			__output.push(' class="other"');
 			__output.push('>');
@@ -880,6 +884,7 @@ export function ElseIfChainElse(__output) {
 		__output.push('</div>');
 		__r_22 = true;
 	} else {
+		__output.push('<!--[!-->');
 		__output.push('<!--[-->');
 
 		if (value === 2) {
@@ -894,6 +899,7 @@ export function ElseIfChainElse(__output) {
 			__output.push('</div>');
 			__r_23 = true;
 		} else {
+			__output.push('<!--[!-->');
 			__output.push('<div');
 			__output.push(' class="other"');
 			__output.push('>');
@@ -948,6 +954,7 @@ export function ReturnWithElseNoReturn(__output) {
 		__output.push('</div>');
 		__r_25 = true;
 	} else {
+		__output.push('<!--[!-->');
 		__output.push('<div');
 		__output.push(' class="false"');
 		__output.push('>');
@@ -999,6 +1006,7 @@ export function ReturnWithElseBothReturn(__output) {
 		__output.push('</div>');
 		__r_26 = true;
 	} else {
+		__output.push('<!--[!-->');
 		__output.push('<div');
 		__output.push(' class="false"');
 		__output.push('>');
@@ -1678,6 +1686,7 @@ export function ReactiveElseIfReturns(__output) {
 		__output.push('</div>');
 		__r_41 = true;
 	} else {
+		__output.push('<!--[!-->');
 		__output.push('<!--[-->');
 
 		if (_$_.get(status) === 1) {

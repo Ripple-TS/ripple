@@ -187,4 +187,102 @@ describe('hydration > html tags', () => {
 		expect(html).toContain('Quick Start');
 		expect(html).toContain('Welcome to the docs.');
 	});
+
+	it('hydrates article with composite children followed by if-block siblings', async () => {
+		// Reproduces StylingPage/DocsLayout hydration bug:
+		// ArticleWrapper contains <div> with <children /> (composite).
+		// After ArticleWrapper, there are if-blocks. The sibling(article_1)
+		// call fails because hydrate_node is incorrectly positioned after
+		// composite() finishes.
+		await hydrateComponent(
+			ServerComponents.ArticleWithChildrenThenSibling,
+			ClientComponents.ArticleWithChildrenThenSibling,
+		);
+		const html = container.innerHTML;
+		expect(html).toContain('Title');
+		expect(html).toContain('Content goes here.');
+		expect(html).toContain('Edit');
+		expect(html).toContain('Previous');
+		expect(html).toContain('Footer');
+	});
+
+	it('hydrates article with {html} child then sibling (StylingPage pattern)', async () => {
+		// Exact reproduction of StylingPage/DocsLayout:
+		// Children is a single <div class="doc-content">{html ...}</div>
+		// The {html} block leaves hydrate_node inside the div.
+		// Then pop(div) and append(anchor, div) where anchor === div.
+		// This tests the anchor === dom path in append().
+		await hydrateComponent(
+			ServerComponents.ArticleWithHtmlChildThenSibling,
+			ClientComponents.ArticleWithHtmlChildThenSibling,
+		);
+		const html = container.innerHTML;
+		expect(html).toContain('const x = 1;');
+		expect(html).toContain('Edit');
+		expect(html).toContain('Footer');
+	});
+
+	it('hydrates INLINE article with {html} child then sibling (exact DocsLayout)', async () => {
+		// EXACT reproduction of DocsLayout hydration bug:
+		// The article is INLINE in the same component (not a separate component).
+		// When inline, there's NO append() call to reset hydration cursor.
+		// After composite(children), pop(div) resets cursor to inner div,
+		// but sibling(article) uses hydrate_node (inner div) not the article param.
+		await hydrateComponent(
+			ServerComponents.InlineArticleWithHtmlChild,
+			ClientComponents.InlineArticleWithHtmlChild,
+		);
+		const html = container.innerHTML;
+		expect(html).toContain('const x = 1;');
+		expect(html).toContain('Edit');
+		expect(html).toContain('Footer');
+	});
+
+	it('hydrates full DocsLayout with data mismatch (StylingPage exact reproduction)', async () => {
+		// EXACT reproduction of StylingPage hydration bug:
+		// Server renders with editPath='docs/styling.md' (truthy) and html content
+		// Client sees editPath='' (falsy due to Promise) and html=undefined
+		// The if(editPath) and if(nextLink) blocks evaluate differently
+		// This causes hydration cursor to be out of sync
+		await hydrateComponent(
+			ServerComponents.DocsLayoutWithData,
+			ClientComponents.DocsLayoutWithoutData,
+		);
+		const html = container.innerHTML;
+		// Should preserve server-rendered content even with data mismatch
+		expect(html).toContain('Header');
+		expect(html).toContain('Sidebar');
+		expect(html).toContain('Title');
+		expect(html).toContain('Content');
+		expect(html).toContain('Footer');
+	});
+
+	it('hydrates exact DocsLayout with all conditions and data mismatch', async () => {
+		// COMPLETE reproduction matching actual website DocsLayout:
+		// - if (editPath) simple condition
+		// - if (prevLink || nextLink) OR condition
+		// - if (prevLink) ... else { <span /> } nested if-else
+		// - if (nextLink) nested if
+		// - if (toc.length > 0) array length check
+		// Server: all truthy (editPath, prevLink, nextLink, toc with items)
+		// Client: all undefined (from doc.prop on Promise)
+		await hydrateComponent(
+			ServerComponents.DocsLayoutExactWithData,
+			ClientComponents.DocsLayoutExactWithoutData,
+		);
+		const html = container.innerHTML;
+		expect(html).toContain('Header');
+		expect(html).toContain('Sidebar');
+		expect(html).toContain('Footer');
+	});
 });
+
+// Keep track of error for investigation
+// The real StylingPage hydration error happens at sibling(article_1)
+// because when #server.load_doc() returns a Promise, doc.editPath is undefined
+// and if(editPath) evaluates to false on client but true on server.
+// The tests above work because they use fallback() which defaults values,
+// but the actual mismatch causes hydration cursor to be misaligned.
+// The fix should be either:
+// 1. Embed #server data in HTML for synchronous access during hydration
+// 2. Make hydration more resilient to condition mismatches

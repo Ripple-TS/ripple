@@ -309,3 +309,274 @@ export component LayoutWithSidebarAndMain() {
 		</div>
 	</div>
 }
+
+// --- StylingPage/DocsLayout hydration bug reproduction ---
+// Pattern: <article> with composite children followed by if-block sibling
+// The issue is in nested structure:
+// <div.content-container>
+//   <article>
+//     <div>
+//       <children />   ← composite ends with hydrate_node inside div
+//     </div>
+//   </article>
+//   if (editPath) { ... }  ← sibling(article) fails
+// </div>
+
+component ArticleWrapper({ children }: { children: any }) {
+	<article class="doc-content">
+		<div>
+			<children />
+		</div>
+	</article>
+}
+
+component SimpleFooter() {
+	<footer class="doc-footer">{'Footer'}</footer>
+}
+
+export component ArticleWithChildrenThenSibling() {
+	<div class="content-container">
+		<ArticleWrapper>
+			<h1>{'Title'}</h1>
+			<p>{'Content goes here.'}</p>
+		</ArticleWrapper>
+		if (true) {
+			<div class="edit-link">
+				<a href="/edit">{'Edit'}</a>
+			</div>
+		}
+		if (true) {
+			<nav class="prev-next">
+				<a href="/prev">{'Previous'}</a>
+			</nav>
+		}
+		<SimpleFooter />
+	</div>
+}
+
+// --- StylingPage exact reproduction ---
+// Key pattern: children is a SINGLE DIV containing {html ...}
+// This tests the anchor === dom path in append()
+
+export component ArticleWithHtmlChildThenSibling() {
+	const htmlContent = '<pre><code>const x = 1;</code></pre>';
+	<div class="content-container">
+		<ArticleWrapper>
+			<div class="doc-content">{html htmlContent}</div>
+		</ArticleWrapper>
+		if (true) {
+			<div class="edit-link">
+				<a href="/edit">{'Edit'}</a>
+			</div>
+		}
+		<SimpleFooter />
+	</div>
+}
+
+// --- EXACT DocsLayout reproduction ---
+// The critical difference: article is INLINE in the same component, not a separate component.
+// When article is inline, there's NO append() call to reset the hydration cursor.
+// After composite(children) finishes, pop(div) resets cursor to inner div,
+// but cursor never gets reset to article level before sibling(article) is called.
+
+component InlineArticleLayout({ children }: { children: any }) {
+	<div class="content-container">
+		<article class="doc-content">
+			<div>
+				<children />
+			</div>
+		</article>
+		if (true) {
+			<div class="edit-link">
+				<a href="/edit">{'Edit'}</a>
+			</div>
+		}
+		<SimpleFooter />
+	</div>
+}
+
+export component InlineArticleWithHtmlChild() {
+	const htmlContent = '<pre><code>const x = 1;</code></pre>';
+	<InlineArticleLayout>
+		<div class="doc-content">{html htmlContent}</div>
+	</InlineArticleLayout>
+}
+
+// --- Full DocsLayout reproduction with data mismatch ---
+// This simulates the EXACT scenario on the real website:
+// - Server renders with real editPath (truthy)
+// - Client initially sees editPath as empty (falsy due to Promise not resolved)
+// - The if(editPath) block evaluates differently
+// - This causes hydration cursor mismatch
+
+component HeaderStub() {
+	<header class="header">{'Header'}</header>
+}
+
+component SidebarStub() {
+	<aside class="sidebar">{'Sidebar'}</aside>
+}
+
+component FooterStub() {
+	<footer class="footer">{'Footer'}</footer>
+}
+
+// Layout component that accepts children (like real DocsLayout)
+// The children are rendered via composite() inside article > div
+component DocsLayoutInner({
+	children,
+	editPath = '',
+	nextLink = null,
+}: {
+	children: any;
+	editPath?: string;
+	nextLink?: { href: string; text: string } | null;
+}) {
+	<div class="layout">
+		<HeaderStub />
+		<div class="docs-wrapper">
+			<SidebarStub />
+			<main class="docs-main">
+				<div class="docs-container">
+					<div class="content">
+						<div class="content-container">
+							<article class="doc-content">
+								<div>
+									<children />
+								</div>
+							</article>
+							if (editPath) {
+								<div class="edit-link">
+									<a href="/edit">{'Edit on GitHub'}</a>
+								</div>
+							}
+							if (nextLink) {
+								<nav class="prev-next">
+									<a href={nextLink.href}>{nextLink.text}</a>
+								</nav>
+							}
+							<FooterStub />
+						</div>
+					</div>
+				</div>
+			</main>
+		</div>
+	</div>
+}
+
+// Server version - renders WITH editPath content (children contain html)
+export component DocsLayoutWithData() {
+	const htmlContent = '<h1>Title</h1><p>Content</p>';
+	<DocsLayoutInner editPath="docs/styling.md" nextLink={{ href: '/next', text: 'Next' }}>
+		<div class="doc-content">{html htmlContent}</div>
+	</DocsLayoutInner>
+}
+
+// Client version - renders WITHOUT editPath content (simulating undefined from Promise)
+export component DocsLayoutWithoutData() {
+	const htmlContent: string | undefined = undefined;
+	<DocsLayoutInner>
+		<div class="doc-content">{html htmlContent}</div>
+	</DocsLayoutInner>
+}
+
+// --- EXACT DocsLayout reproduction with OR condition and nested if/else ---
+// This matches the ACTUAL website DocsLayout structure more closely
+
+component DocsLayoutExact({
+	children,
+	editPath = '',
+	prevLink = null,
+	nextLink = null,
+	toc = [],
+}: {
+	children: any;
+	editPath?: string;
+	prevLink?: { href: string; text: string } | null;
+	nextLink?: { href: string; text: string } | null;
+	toc?: { href: string; text: string }[];
+}) {
+	<div class="layout">
+		<HeaderStub />
+		<div class="docs-wrapper">
+			<SidebarStub />
+			<main class="docs-main">
+				<div class="docs-container">
+					<div class="content">
+						<div class="content-container">
+							<article class="doc-content">
+								<div>
+									<children />
+								</div>
+							</article>
+							if (editPath) {
+								<div class="edit-link">
+									<a href={`/edit/${editPath}`}>{'Edit on GitHub'}</a>
+								</div>
+							}
+							if (prevLink || nextLink) {
+								<nav class="prev-next">
+									if (prevLink) {
+										<a href={prevLink.href} class="pager prev">
+											<span class="title">{prevLink.text}</span>
+										</a>
+									} else {
+										<span />
+									}
+									if (nextLink) {
+										<a href={nextLink.href} class="pager next">
+											<span class="title">{nextLink.text}</span>
+										</a>
+									}
+								</nav>
+							}
+							<FooterStub />
+						</div>
+					</div>
+					<aside class="aside">
+						if (toc.length > 0) {
+							<div class="aside-content">
+								<nav class="outline">
+									for (const item of toc) {
+										<a href={item.href}>{item.text}</a>
+									}
+								</nav>
+							</div>
+						}
+					</aside>
+				</div>
+			</main>
+		</div>
+	</div>
+}
+
+// Server version - renders WITH all data (truthy values)
+export component DocsLayoutExactWithData() {
+	const htmlContent = '<h1>Styling Guide</h1><p>Content</p>';
+	<DocsLayoutExact
+		editPath="docs/guide/styling.md"
+		prevLink={{ href: '/prev', text: 'Previous' }}
+		nextLink={{ href: '/next', text: 'Next' }}
+		toc={[
+			{ href: '#intro', text: 'Introduction' },
+			{ href: '#usage', text: 'Usage' },
+		]}
+	>
+		<div class="doc-content">{html htmlContent}</div>
+	</DocsLayoutExact>
+}
+
+// Client version - renders WITHOUT data (simulating Promise on client)
+// All props are explicitly passed as undefined to simulate doc.prop on a Promise
+export component DocsLayoutExactWithoutData() {
+	const htmlContent: string | undefined = undefined;
+	// Simulate what happens when doc is a Promise and doc.editPath is undefined
+	const editPath: string | undefined = undefined;
+	const prevLink: { href: string; text: string } | null | undefined = undefined;
+	const nextLink: { href: string; text: string } | null | undefined = undefined;
+	const toc: { href: string; text: string }[] | undefined = undefined;
+
+	<DocsLayoutExact {editPath} {prevLink} {nextLink} {toc}>
+		<div class="doc-content">{html htmlContent}</div>
+	</DocsLayoutExact>
+}
