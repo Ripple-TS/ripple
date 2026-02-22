@@ -4,6 +4,15 @@ import { createHighlighter } from 'shiki';
 // Import the Ripple TextMate grammar directly (bundled by Vite at build time)
 import ripple_grammar from '../../../grammars/textmate/ripple.tmLanguage.json';
 
+/**
+ * Escape HTML special characters.
+ * @param {string} text
+ * @returns {string}
+ */
+function escape_html(text) {
+	return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 // Import all doc markdown files as raw strings (bundled by Vite at build time).
 // This ensures docs are available in production without runtime fs access.
 const docs_files = import.meta.glob('../../docs/**/*.md', {
@@ -59,7 +68,7 @@ export function highlight(text, lang) {
 		});
 	} catch {
 		// Fallback for unsupported languages
-		const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+		const escaped = escape_html(text);
 		highlighted = `<pre class="shiki" style="background-color:#24292e"><code>${escaped}</code></pre>`;
 	}
 	return highlighted;
@@ -100,10 +109,7 @@ function process_containers(content) {
 		/^:::\s*(info|tip|warning|danger|details)\s*(.*?)\n([\s\S]*?)^:::/gm,
 		(_, type, title, body) => {
 			const raw_title = title.trim();
-			const escaped_title = raw_title
-				.replace(/&/g, '&amp;')
-				.replace(/</g, '&lt;')
-				.replace(/>/g, '&gt;');
+			const escaped_title = escape_html(raw_title);
 			const title_html = escaped_title ? `<p class="custom-block-title">${escaped_title}</p>` : '';
 			return `<div class="${type} custom-block">${title_html}\n${body}</div>`;
 		},
@@ -281,8 +287,7 @@ export function get_doc(slug) {
 				return `<div class="language-${language}"><button title="Copy Code" class="copy"></button><span class="lang">${language}</span>${highlighted}</div>`;
 			},
 			codespan({ text }) {
-				const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-				return `<code>${escaped}</code>`;
+				return `<code>${text}</code>`;
 			},
 			link({ href, title, tokens }) {
 				const text = this.parser.parseInline(tokens);
