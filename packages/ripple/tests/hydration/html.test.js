@@ -153,4 +153,22 @@ describe('hydration > html tags', () => {
 		expect(html).toContain('Ripple is a framework');
 		expect(html).not.toContain('undefined');
 	});
+
+	it('hydrates html block after switch-based component in children', async () => {
+		// Reproduces DocCodeGroup hydration bug:
+		// When a switch-based component (DynamicHeading) renders inside children,
+		// it produces <!--[-->...<h1>...<!--]--> markers. The fragment template
+		// walker may mishandle these markers, causing the hydration cursor to be
+		// mispositioned for subsequent components like CodeBlock ({html ...}).
+		await hydrateComponent(
+			ServerComponents.HtmlAfterSwitchInChildren,
+			ClientComponents.HtmlAfterSwitchInChildren,
+		);
+		const html = container.innerHTML;
+		expect(html).toContain('Title');
+		expect(html).toContain('First paragraph');
+		expect(html).toContain('Second paragraph');
+		expect(html).toContain('const x = 1;');
+		expect(html).toContain('After code');
+	});
 });

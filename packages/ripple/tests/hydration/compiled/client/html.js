@@ -30,6 +30,13 @@ var root_26 = _$_.template(`<div class="vp-doc"><!></div>`, 0);
 var root_25 = _$_.template(`<!>`, 1);
 var root_28 = _$_.template(`<div class="vp-doc"><!></div>`, 0);
 var root_27 = _$_.template(`<!>`, 1);
+var root_30 = _$_.template(`<h1 class="heading"><!></h1>`, 0);
+var root_31 = _$_.template(`<h2 class="heading"><!></h2>`, 0);
+var root_29 = _$_.template(`<!>`, 1);
+var root_32 = _$_.template(`<div class="code-block"><div class="header"><button>Copy</button><span class="lang">js</span></div><div class="content"><!></div></div>`, 0);
+var root_33 = _$_.template(`<div class="wrapper"><div class="inner"><!></div></div>`, 0);
+var root_35 = _$_.template(`<!><p>First paragraph</p><p>Second paragraph</p><!><p>After code</p>`, 1);
+var root_34 = _$_.template(`<!>`, 1);
 
 import { track } from 'ripple';
 
@@ -658,5 +665,152 @@ export function HtmlWithUndefinedContent(__anchor, _, __block) {
 	);
 
 	_$_.append(__anchor, fragment_7);
+	_$_.pop_component();
+}
+
+function DynamicHeading(__anchor, __props, __block) {
+	_$_.push_component();
+
+	var fragment_8 = root_29();
+	var node_30 = _$_.first_child_frag(fragment_8);
+
+	{
+		var switch_case_0 = (__anchor) => {
+			var h1_2 = root_30();
+
+			{
+				var node_31 = _$_.child(h1_2);
+
+				_$_.composite(() => __props.children, node_31, {});
+				_$_.pop(h1_2);
+			}
+
+			_$_.append(__anchor, h1_2);
+		};
+
+		var switch_case_1 = (__anchor) => {
+			var h2_1 = root_31();
+
+			{
+				var node_32 = _$_.child(h2_1);
+
+				_$_.composite(() => __props.children, node_32, {});
+				_$_.pop(h2_1);
+			}
+
+			_$_.append(__anchor, h2_1);
+		};
+
+		_$_.switch(node_30, () => {
+			var result = [];
+
+			switch (__props.level) {
+				case 1:
+					result.push(switch_case_0);
+
+				case 2:
+					result.push(switch_case_1);
+					return result;
+			}
+		});
+	}
+
+	_$_.append(__anchor, fragment_8);
+	_$_.pop_component();
+}
+
+function CodeBlock(__anchor, __props, __block) {
+	_$_.push_component();
+
+	const highlighted = `<pre class="shiki"><code>${__props.code}</code></pre>`;
+	var div_22 = root_32();
+
+	{
+		var div_23 = _$_.child(div_22);
+
+		_$_.pop(div_23);
+
+		var div_24 = _$_.sibling(div_23);
+
+		{
+			var node_33 = _$_.child(div_24);
+
+			_$_.pop(div_24);
+		}
+	}
+
+	_$_.render(() => {
+		_$_.html(node_33, () => highlighted);
+	});
+
+	_$_.append(__anchor, div_22);
+	_$_.pop_component();
+}
+
+function ContentWrapper(__anchor, __props, __block) {
+	_$_.push_component();
+
+	var div_25 = root_33();
+
+	{
+		var div_26 = _$_.child(div_25);
+
+		{
+			var node_34 = _$_.child(div_26);
+
+			_$_.composite(() => __props.children, node_34, {});
+			_$_.pop(div_26);
+		}
+	}
+
+	_$_.append(__anchor, div_25);
+	_$_.pop_component();
+}
+
+export function HtmlAfterSwitchInChildren(__anchor, _, __block) {
+	_$_.push_component();
+
+	var fragment_9 = root_34();
+	var node_35 = _$_.first_child_frag(fragment_9);
+
+	ContentWrapper(
+		node_35,
+		{
+			children(__anchor, _, __block) {
+				_$_.push_component();
+
+				var fragment_10 = root_35();
+				var node_36 = _$_.first_child_frag(fragment_10);
+
+				DynamicHeading(
+					node_36,
+					{
+						level: 1,
+
+						children(__anchor, _, __block) {
+							_$_.push_component();
+
+							var text_2 = _$_.text('Title');
+
+							_$_.append(__anchor, text_2);
+							_$_.pop_component();
+						}
+					},
+					_$_.active_block
+				);
+
+				var p_2 = _$_.sibling(node_36);
+				var p_1 = _$_.sibling(p_2);
+				var node_37 = _$_.sibling(p_1);
+
+				CodeBlock(node_37, { code: "const x = 1;" }, _$_.active_block);
+				_$_.append(__anchor, fragment_10);
+				_$_.pop_component();
+			}
+		},
+		_$_.active_block
+	);
+
+	_$_.append(__anchor, fragment_9);
 	_$_.pop_component();
 }

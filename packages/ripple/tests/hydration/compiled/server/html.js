@@ -661,3 +661,218 @@ export function HtmlWithUndefinedContent(__output) {
 
 	_$_.pop_component();
 }
+
+async function DynamicHeading(__output, { level, children }) {
+	return _$_.async(async () => {
+		_$_.push_component();
+		__output.push('<!--[-->');
+
+		switch (level) {
+			case 1:
+				__output.push('<h1');
+				__output.push(' class="heading"');
+				__output.push('>');
+				{
+					{
+						const comp = children;
+						const args = [__output, {}];
+
+						if (comp?.async) {
+							await comp(...args);
+						} else if (comp) {
+							comp(...args);
+						}
+					}
+				}
+				__output.push('</h1>');
+
+			case 2:
+				__output.push('<h2');
+				__output.push(' class="heading"');
+				__output.push('>');
+				{
+					{
+						const comp = children;
+						const args = [__output, {}];
+
+						if (comp?.async) {
+							await comp(...args);
+						} else if (comp) {
+							comp(...args);
+						}
+					}
+				}
+				__output.push('</h2>');
+		}
+
+		__output.push('<!--]-->');
+		_$_.pop_component();
+	});
+}
+
+DynamicHeading.async = true;
+
+function CodeBlock(__output, { code }) {
+	_$_.push_component();
+
+	const highlighted = `<pre class="shiki"><code>${code}</code></pre>`;
+
+	__output.push('<div');
+	__output.push(' class="code-block"');
+	__output.push('>');
+
+	{
+		__output.push('<div');
+		__output.push(' class="header"');
+		__output.push('>');
+
+		{
+			__output.push('<button');
+			__output.push('>');
+
+			{
+				__output.push('Copy');
+			}
+
+			__output.push('</button>');
+			__output.push('<span');
+			__output.push(' class="lang"');
+			__output.push('>');
+
+			{
+				__output.push('js');
+			}
+
+			__output.push('</span>');
+		}
+
+		__output.push('</div>');
+		__output.push('<div');
+		__output.push(' class="content"');
+		__output.push('>');
+
+		{
+			const html_value_16 = String(highlighted ?? '');
+
+			__output.push('<!--' + _$_.hash(html_value_16) + '-->');
+			__output.push(html_value_16);
+			__output.push('<!---->');
+		}
+
+		__output.push('</div>');
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}
+
+async function ContentWrapper(__output, { children }) {
+	return _$_.async(async () => {
+		_$_.push_component();
+		__output.push('<div');
+		__output.push(' class="wrapper"');
+		__output.push('>');
+
+		{
+			__output.push('<div');
+			__output.push(' class="inner"');
+			__output.push('>');
+
+			{
+				{
+					const comp = children;
+					const args = [__output, {}];
+
+					if (comp?.async) {
+						await comp(...args);
+					} else if (comp) {
+						comp(...args);
+					}
+				}
+			}
+
+			__output.push('</div>');
+		}
+
+		__output.push('</div>');
+		_$_.pop_component();
+	});
+}
+
+ContentWrapper.async = true;
+
+export function HtmlAfterSwitchInChildren(__output) {
+	_$_.push_component();
+
+	{
+		const comp = ContentWrapper;
+
+		const args = [
+			__output,
+
+			{
+				children: function children(__output) {
+					_$_.push_component();
+
+					{
+						const comp = DynamicHeading;
+
+						const args = [
+							__output,
+
+							{
+								level: 1,
+
+								children: function children(__output) {
+									_$_.push_component();
+									__output.push('Title');
+									_$_.pop_component();
+								}
+							}
+						];
+
+						comp(...args);
+					}
+
+					__output.push('<p');
+					__output.push('>');
+
+					{
+						__output.push('First paragraph');
+					}
+
+					__output.push('</p>');
+					__output.push('<p');
+					__output.push('>');
+
+					{
+						__output.push('Second paragraph');
+					}
+
+					__output.push('</p>');
+
+					{
+						const comp = CodeBlock;
+						const args = [__output, { code: "const x = 1;" }];
+
+						comp(...args);
+					}
+
+					__output.push('<p');
+					__output.push('>');
+
+					{
+						__output.push('After code');
+					}
+
+					__output.push('</p>');
+					_$_.pop_component();
+				}
+			}
+		];
+
+		comp(...args);
+	}
+
+	_$_.pop_component();
+}

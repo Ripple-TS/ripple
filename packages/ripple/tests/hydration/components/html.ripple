@@ -165,3 +165,51 @@ export component HtmlWithUndefinedContent() {
 		<div class="vp-doc">{html content}</div>
 	</DocLayout>
 }
+
+// --- DocCodeGroup hydration bug reproduction ---
+// Pattern: switch-based component followed by siblings followed by html-based component
+
+component DynamicHeading({ level, children }: { level: number; children: any }) {
+	switch (level) {
+		case 1: {
+			<h1 class="heading">
+				<children />
+			</h1>
+		}
+		case 2: {
+			<h2 class="heading">
+				<children />
+			</h2>
+		}
+	}
+}
+
+component CodeBlock({ code }: { code: string }) {
+	const highlighted = `<pre class="shiki"><code>${code}</code></pre>`;
+	<div class="code-block">
+		<div class="header">
+			<button>{'Copy'}</button>
+			<span class="lang">{'js'}</span>
+		</div>
+		<div class="content">{html highlighted}</div>
+	</div>
+}
+
+component ContentWrapper({ children }: { children: any }) {
+	<div class="wrapper">
+		<div class="inner">
+			<children />
+		</div>
+	</div>
+}
+
+// Reproduction: switch component + siblings + html component inside children
+export component HtmlAfterSwitchInChildren() {
+	<ContentWrapper>
+		<DynamicHeading level={1}>{'Title'}</DynamicHeading>
+		<p>{'First paragraph'}</p>
+		<p>{'Second paragraph'}</p>
+		<CodeBlock code="const x = 1;" />
+		<p>{'After code'}</p>
+	</ContentWrapper>
+}
