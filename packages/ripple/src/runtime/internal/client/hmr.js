@@ -29,13 +29,12 @@ export function hmr(fn) {
 	function wrapper(anchor, props, block = active_block) {
 		if (current === undefined) {
 			current = tracked(fn, /** @type {Block} */ (block));
+			wrapper[HMR].current = current;
 		}
 		var component = {};
 
 		/** @type {Block | null} */
 		var effect = null;
-
-		var ran = false;
 
 		render(
 			() => {
@@ -58,8 +57,6 @@ export function hmr(fn) {
 			null,
 			RENDER_BLOCK,
 		);
-
-		ran = true;
 
 		if (hydrating) {
 			anchor = hydrate_node;
