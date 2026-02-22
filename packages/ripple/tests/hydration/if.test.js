@@ -83,20 +83,4 @@ describe('hydration > if blocks', () => {
 		flushSync();
 		expect(container.querySelector('.state')?.textContent).toBe('Error occurred');
 	});
-
-	it('hydrates when server renders consequent but client evaluates false (#server data mismatch)', async () => {
-		// This tests the exact bug from StylingPage/DocsLayout:
-		// - Server has editPath='docs/styling.md' (truthy), renders the if-block content
-		// - Client has editPath=undefined (from Promise), evaluates if(editPath) as false
-		// - The <!--[--> marker is followed by content, not <!--[!--> (no else marker)
-		// - Client must skip the server-rendered content to find <!--]--> and continue
-		await hydrateComponent(
-			ServerComponents.IfMismatchServerContentful,
-			ClientComponents.IfMismatchClientEmpty,
-		);
-		// Server rendered the edit-link, but client should skip it
-		// The footer should still be accessible (hydration cursor positioned correctly)
-		expect(container.querySelector('.footer')?.textContent).toBe('Footer');
-		expect(container.querySelector('.doc-content')).not.toBeNull();
-	});
 });

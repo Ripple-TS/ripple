@@ -1986,7 +1986,6 @@ async function DocsLayoutExact(
 
 											__output.push('</a>');
 										} else {
-											__output.push('<!--[!-->');
 											__output.push('<span');
 											__output.push('>');
 											__output.push('</span>');

@@ -67,7 +67,6 @@ export function IfElse(__output) {
 
 		__output.push('</div>');
 	} else {
-		__output.push('<!--[!-->');
 		__output.push('<div');
 		__output.push(' class="logged-out"');
 		__output.push('>');
@@ -142,7 +141,6 @@ export function ReactiveIfElse(__output) {
 
 		__output.push('</div>');
 	} else {
-		__output.push('<!--[!-->');
 		__output.push('<div');
 		__output.push(' class="off"');
 		__output.push('>');
@@ -264,7 +262,6 @@ export function IfElseIfChain(__output) {
 
 			__output.push('</div>');
 		} else {
-			__output.push('<!--[!-->');
 			__output.push('<!--[-->');
 
 			if (_$_.get(status) === 'success') {
@@ -278,7 +275,6 @@ export function IfElseIfChain(__output) {
 
 				__output.push('</div>');
 			} else {
-				__output.push('<!--[!-->');
 				__output.push('<div');
 				__output.push(' class="state"');
 				__output.push('>');
@@ -297,117 +293,5 @@ export function IfElseIfChain(__output) {
 	}
 
 	__output.push('</div>');
-	_$_.pop_component();
-}
-
-export function IfMismatchServerContentful(__output) {
-	_$_.push_component();
-
-	const editPath = 'docs/styling.md';
-
-	__output.push('<article');
-	__output.push(' class="doc-content"');
-	__output.push('>');
-
-	{
-		__output.push('<div');
-		__output.push('>');
-
-		{
-			__output.push('Content');
-		}
-
-		__output.push('</div>');
-	}
-
-	__output.push('</article>');
-	__output.push('<!--[-->');
-
-	if (editPath) {
-		__output.push('<div');
-		__output.push(' class="edit-link"');
-		__output.push('>');
-
-		{
-			__output.push('<a');
-			__output.push(' href="/edit"');
-			__output.push('>');
-
-			{
-				__output.push('Edit on GitHub');
-			}
-
-			__output.push('</a>');
-		}
-
-		__output.push('</div>');
-	}
-
-	__output.push('<!--]-->');
-	__output.push('<footer');
-	__output.push(' class="footer"');
-	__output.push('>');
-
-	{
-		__output.push('Footer');
-	}
-
-	__output.push('</footer>');
-	_$_.pop_component();
-}
-
-export function IfMismatchClientEmpty(__output) {
-	_$_.push_component();
-
-	const editPath = undefined;
-
-	__output.push('<article');
-	__output.push(' class="doc-content"');
-	__output.push('>');
-
-	{
-		__output.push('<div');
-		__output.push('>');
-
-		{
-			__output.push('Content');
-		}
-
-		__output.push('</div>');
-	}
-
-	__output.push('</article>');
-	__output.push('<!--[-->');
-
-	if (editPath) {
-		__output.push('<div');
-		__output.push(' class="edit-link"');
-		__output.push('>');
-
-		{
-			__output.push('<a');
-			__output.push(' href="/edit"');
-			__output.push('>');
-
-			{
-				__output.push('Edit on GitHub');
-			}
-
-			__output.push('</a>');
-		}
-
-		__output.push('</div>');
-	}
-
-	__output.push('<!--]-->');
-	__output.push('<footer');
-	__output.push(' class="footer"');
-	__output.push('>');
-
-	{
-		__output.push('Footer');
-	}
-
-	__output.push('</footer>');
 	_$_.pop_component();
 }

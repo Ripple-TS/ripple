@@ -21,10 +21,6 @@ var root_18 = _$_.template(`<div class="state">Success!</div>`, 0);
 var root_19 = _$_.template(`<div class="state">Error occurred</div>`, 0);
 var root_17 = _$_.template(`<!>`, 1);
 var root_15 = _$_.template(`<div><button class="success">Success</button><button class="error">Error</button><button class="loading">Loading</button><!></div>`, 0);
-var root_21 = _$_.template(`<div class="edit-link"><a href="/edit">Edit on GitHub</a></div>`, 0);
-var root_20 = _$_.template(`<article class="doc-content"><div>Content</div></article><!><footer class="footer">Footer</footer>`, 1);
-var root_23 = _$_.template(`<div class="edit-link"><a href="/edit">Edit on GitHub</a></div>`, 0);
-var root_22 = _$_.template(`<article class="doc-content"><div>Content</div></article><!><footer class="footer">Footer</footer>`, 1);
 
 import { track } from 'ripple';
 
@@ -290,60 +286,6 @@ export function IfElseIfChain(__anchor, _, __block) {
 	}
 
 	_$_.append(__anchor, div_9);
-	_$_.pop_component();
-}
-
-export function IfMismatchServerContentful(__anchor, _, __block) {
-	_$_.push_component();
-
-	const editPath = 'docs/styling.md';
-	var fragment_7 = root_20();
-	var article_1 = _$_.first_child_frag(fragment_7);
-
-	_$_.pop(article_1);
-
-	var node_9 = _$_.sibling(article_1);
-
-	{
-		var consequent_9 = (__anchor) => {
-			var div_13 = root_21();
-
-			_$_.append(__anchor, div_13);
-		};
-
-		_$_.if(node_9, (__render) => {
-			if (editPath) __render(consequent_9);
-		});
-	}
-
-	_$_.append(__anchor, fragment_7);
-	_$_.pop_component();
-}
-
-export function IfMismatchClientEmpty(__anchor, _, __block) {
-	_$_.push_component();
-
-	const editPath = undefined;
-	var fragment_8 = root_22();
-	var article_2 = _$_.first_child_frag(fragment_8);
-
-	_$_.pop(article_2);
-
-	var node_10 = _$_.sibling(article_2);
-
-	{
-		var consequent_10 = (__anchor) => {
-			var div_14 = root_23();
-
-			_$_.append(__anchor, div_14);
-		};
-
-		_$_.if(node_10, (__render) => {
-			if (editPath) __render(consequent_10);
-		});
-	}
-
-	_$_.append(__anchor, fragment_8);
 	_$_.pop_component();
 }
 
