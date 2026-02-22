@@ -50,7 +50,7 @@ export function createHandler(manifest, options) {
 	const { render, getCss, htmlTemplate, executeServerFunction } = options;
 	const router = createRouter(manifest.routes);
 	const globalMiddlewares = manifest.middlewares;
-	const trustProxy = manifest.trustProxy;
+	const trustProxy = manifest.trustProxy ?? false;
 	const clientAssets = manifest.clientAssets || {};
 
 	// Use adapter's runtime primitives for platform-agnostic operation
@@ -63,9 +63,9 @@ export function createHandler(manifest, options) {
 
 	// Create async context and patch fetch for relative URL resolution in #server blocks
 	const asyncContext = runtime.createAsyncContext();
-	patch_global_fetch(asyncContext);
+	const fetchHandle = patch_global_fetch(asyncContext);
 
-	return async function handler(request) {
+	const handler = async function handler(/** @type {Request} */ request) {
 		const url = new URL(request.url);
 		const method = request.method;
 
@@ -114,6 +114,13 @@ export function createHandler(manifest, options) {
 			return new Response('Internal Server Error', { status: 500 });
 		}
 	};
+
+	// Enable same-origin fetch short-circuit: server-side fetch() calls that
+	// resolve to the same origin are routed directly through this handler
+	// in-process, instead of making a real network request.
+	fetchHandle.set_handler(handler);
+
+	return handler;
 }
 
 // ============================================================================

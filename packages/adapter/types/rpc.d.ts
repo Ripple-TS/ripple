@@ -65,10 +65,29 @@ export type HandleRpcOptions = {
 export function derive_origin(request: Request, trust_proxy: boolean): string;
 
 /**
- * Patch globalThis.fetch to resolve relative URLs using the async context.
- * Returns a cleanup function that restores the original fetch.
+ * Return value of patch_global_fetch with methods to control the patched fetch.
  */
-export function patch_global_fetch(async_context: AsyncContext): () => void;
+export type PatchedFetchHandle = {
+	/** Restore the original fetch. */
+	restore: () => void;
+	/**
+	 * Set the handler used for same-origin short-circuit.
+	 * When set, same-origin requests are routed directly through the handler
+	 * in-process instead of making a real network request.
+	 */
+	set_handler: (handler: (request: Request) => Promise<Response>) => void;
+};
+
+/**
+ * Patch globalThis.fetch to resolve relative URLs using the async context.
+ * Returns a handle with `restore()` and `set_handler()` methods.
+ *
+ * When `set_handler()` is called with a request handler, same-origin fetch
+ * calls (matching the async context's origin) are routed directly through
+ * the handler in-process, avoiding network round-trips and issues with
+ * serverless platforms (e.g. Vercel Deployment Protection).
+ */
+export function patch_global_fetch(async_context: AsyncContext): PatchedFetchHandle;
 
 /**
  * Build a hash → RpcEntry lookup from rpcModules.

@@ -1,27 +1,23 @@
 /**
  * Vercel Serverless Function handler.
  *
- * Vercel's Node.js runtime calls serverless functions with (IncomingMessage, ServerResponse),
- * but Ripple's production handler expects Web Fetch (Request => Response).
- * This wrapper uses adapter-node's conversion helpers to bridge the two.
+ * Uses Vercel's native Web Standard API: the handler receives a Web Request
+ * and returns a Web Response. No Node.js (req, res) conversion needed.
+ *
+ * Same-origin fetch short-circuiting is handled at the framework level
+ * by patch_global_fetch in @ripple-ts/adapter — server-side fetch() calls
+ * that resolve to the same origin are routed directly through the handler
+ * in-process.
  */
 import { handler } from '../dist/server/entry.js';
-import { nodeRequestToWebRequest, webResponseToNodeResponse } from '@ripple-ts/adapter-node';
 
-export default async function (req, res) {
-	const controller = new AbortController();
-	req.on('aborted', () => controller.abort());
-	res.on('close', () => controller.abort());
-
-	try {
-		const request = nodeRequestToWebRequest(req, controller.signal, true);
-		const response = await handler(request);
-		webResponseToNodeResponse(response, res, req.method ?? 'GET');
-	} catch (err) {
-		console.error('[ripple] Serverless handler error:', err);
-		if (!res.headersSent) {
-			res.statusCode = 500;
-			res.end('Internal Server Error');
+export default {
+	async fetch(request) {
+		try {
+			return await handler(request);
+		} catch (err) {
+			console.error('[ripple] Serverless handler error:', err);
+			return new Response('Internal Server Error', { status: 500 });
 		}
-	}
-}
+	},
+};

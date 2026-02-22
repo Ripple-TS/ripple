@@ -161,7 +161,7 @@ describe('adapt()', () => {
 		expect(pkg.type).toBe('module');
 	});
 
-	it('generates handler that bridges Node.js req/res to Ripple fetch handler', async () => {
+	it('generates Web Standard handler using Vercel native fetch API', async () => {
 		const { adapt } = await import('../src/adapt.js');
 		create_build_output(tmp_dir);
 
@@ -172,16 +172,25 @@ describe('adapt()', () => {
 			'utf-8',
 		);
 
+		// Uses static import (not dynamic await import)
 		expect(handler_source).toContain('import { handler }');
-		expect(handler_source).toContain(
-			"import { nodeRequestToWebRequest, webResponseToNodeResponse } from '@ripple-ts/adapter-node'",
-		);
-		expect(handler_source).toContain('export default async function (req, res)');
-		expect(handler_source).toContain('nodeRequestToWebRequest(req, controller.signal, true)');
-		expect(handler_source).toContain('webResponseToNodeResponse(response, res,');
+
+		// Uses Vercel's native Web Standard export format
+		expect(handler_source).toContain('export default');
+		expect(handler_source).toContain('async fetch(request)');
+		expect(handler_source).toContain('handler(request)');
+
+		// No Node.js (req, res) bridge — no adapter-node dependency
+		expect(handler_source).not.toContain('adapter-node');
+		expect(handler_source).not.toContain('webResponseToNodeResponse');
+		expect(handler_source).not.toContain('bufferRequestBody');
+		expect(handler_source).not.toContain('(req, res)');
+
+		// No self-referential fetch hack — handled at framework level
+		expect(handler_source).not.toContain('_selfHosts');
+		expect(handler_source).not.toContain('_realFetch');
 
 		// Handler should import the server entry at its project-relative path
-		// (dist/server/entry.js), not just "entry.js"
 		expect(handler_source).toContain('dist/server/entry.js');
 	});
 

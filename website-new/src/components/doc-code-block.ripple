@@ -1,68 +1,7 @@
-#server {
-	import fs from 'node:fs';
-	import path from 'node:path';
-	import {
-		createHighlighterCoreSync,
-		createJavaScriptRegexEngine,
-	} from 'shiki';
-	import github_dark from 'shiki/themes/github-dark.mjs';
-	import lang_javascript from 'shiki/langs/javascript.mjs';
-	import lang_typescript from 'shiki/langs/typescript.mjs';
-	import lang_jsx from 'shiki/langs/jsx.mjs';
-	import lang_tsx from 'shiki/langs/tsx.mjs';
-	import lang_css from 'shiki/langs/css.mjs';
-	import lang_html from 'shiki/langs/html.mjs';
-	import lang_shellscript from 'shiki/langs/shellscript.mjs';
-	import lang_json from 'shiki/langs/json.mjs';
+import { highlight } from '../lib/markdown.js';
 
-	const ripple_grammar_path = path.resolve(
-		import.meta.dirname,
-		'../../../grammars/textmate/ripple.tmLanguage.json',
-	);
-	const ripple_grammar = JSON.parse(fs.readFileSync(ripple_grammar_path, 'utf-8'));
-	const modified_grammar = {
-		...ripple_grammar,
-		embeddedLangs: ['jsx', 'tsx', 'css'],
-	};
-
-	const highlighter = createHighlighterCoreSync({
-		themes: [github_dark],
-		langs: [
-			lang_javascript,
-			lang_typescript,
-			lang_jsx,
-			lang_tsx,
-			lang_css,
-			lang_html,
-			lang_shellscript,
-			lang_json,
-			modified_grammar,
-			{ ...modified_grammar, name: 'ripple' },
-		],
-		engine: createJavaScriptRegexEngine(),
-	});
-
-	export function highlight(code: string, lang: string): string {
-		try {
-			return highlighter.codeToHtml(code, {
-				lang,
-				theme: 'github-dark',
-			});
-		} catch {
-			const escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-			return `<pre class="shiki" style="background-color:#24292e"><code>${escaped}</code></pre>`;
-		}
-	}
-}
-
-export component DocCodeBlock({
-	code,
-	lang = 'text',
-}: {
-	code: string;
-	lang?: string;
-}) {
-	const highlighted = #server.highlight(code, lang);
+export component DocCodeBlock({ code, lang = 'text' }: { code: string; lang?: string }) {
+	const highlighted = highlight(code, lang);
 
 	<div class={`language-${lang}`}>
 		<button title="Copy Code" class="copy" />
@@ -71,14 +10,8 @@ export component DocCodeBlock({
 	</div>
 }
 
-export component DocCodeGroup({
-	code,
-	lang = 'ripple',
-}: {
-	code: string;
-	lang?: string;
-}) {
-	const highlighted = #server.highlight(code, lang);
+export component DocCodeGroup({ code, lang = 'ripple' }: { code: string; lang?: string }) {
+	const highlighted = highlight(code, lang);
 
 	<div class="doc-code-group">
 		<div class="tabs">

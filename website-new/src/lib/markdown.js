@@ -44,6 +44,28 @@ const highlighter = await createHighlighter({
 });
 
 /**
+ * Highlight code using Shiki with a fallback for unsupported languages
+ * @param {string} text - The code to highlight
+ * @param {string} lang - The language of the code block
+ * @returns {string} - The highlighted HTML string
+ */
+export function highlight(text, lang) {
+	/** @type {string} */
+	let highlighted;
+	try {
+		highlighted = highlighter.codeToHtml(text, {
+			lang,
+			theme: 'github-dark',
+		});
+	} catch {
+		// Fallback for unsupported languages
+		const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+		highlighted = `<pre class="shiki" style="background-color:#24292e"><code>${escaped}</code></pre>`;
+	}
+	return highlighted;
+}
+
+/**
  * Parse YAML-like frontmatter from markdown content
  * @param {string} content
  * @returns {{ frontmatter: Record<string, string>, body: string }}
@@ -240,16 +262,7 @@ export function get_doc(slug) {
 				const language = lang || 'text';
 				let highlighted;
 
-				try {
-					highlighted = highlighter.codeToHtml(text, {
-						lang: language,
-						theme: 'github-dark',
-					});
-				} catch {
-					// Fallback for unsupported languages
-					const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-					highlighted = `<pre class="shiki" style="background-color:#24292e"><code>${escaped}</code></pre>`;
-				}
+				highlighted = highlight(text, language);
 
 				// Check if this code block is inside a <Code> tab wrapper
 				const is_tabbed = lang === 'ripple';

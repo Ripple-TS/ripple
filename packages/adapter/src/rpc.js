@@ -65,11 +65,14 @@ export function patch_global_fetch(async_context) {
 	// This prevents layered wrapping when createHandler() or getDevAsyncContext()
 	// is called more than once in the same process (tests, hot reload, etc.).
 	if (/** @type {RipplePatchedFetch} */ (globalThis.fetch).__ripple_patched) {
-		return () => {};
+		return { restore() {}, set_handler(/** @type {any} */ _h) {} };
 	}
 
 	/** @type {typeof globalThis.fetch} */
 	const original_fetch = globalThis.fetch;
+
+	/** @type {((request: Request) => Promise<Response>) | null} */
+	let internal_handler = null;
 
 	/**
 	 * @param {string | Request | URL} input
@@ -93,6 +96,26 @@ export function patch_global_fetch(async_context) {
 					input = new URL(relative, context.origin);
 				}
 			}
+
+			// Short-circuit same-origin requests: route them directly through
+			// the handler in-process instead of making a real network request.
+			// This avoids issues on serverless platforms (e.g. Vercel Deployment
+			// Protection blocking server-to-server calls) and eliminates the
+			// latency of a redundant network round-trip + cold start.
+			if (internal_handler !== null) {
+				const resolved_url =
+					typeof input === 'string' ? input : input instanceof Request ? input.url : input.href;
+
+				try {
+					const resolved_origin = new URL(resolved_url).origin;
+					if (resolved_origin === context.origin) {
+						const request = input instanceof Request ? input : new Request(input, init);
+						return internal_handler(request);
+					}
+				} catch {
+					// Not a valid URL — fall through to real fetch
+				}
+			}
 		}
 
 		return original_fetch(input, init);
@@ -107,8 +130,20 @@ export function patch_global_fetch(async_context) {
 
 	globalThis.fetch = /** @type {typeof globalThis.fetch} */ (patched_fetch);
 
-	return () => {
-		globalThis.fetch = original_fetch;
+	return {
+		/** Restore the original fetch. */
+		restore() {
+			globalThis.fetch = original_fetch;
+		},
+		/**
+		 * Set the handler used for same-origin short-circuit.
+		 * Called by createHandler() after the handler function is created.
+		 *
+		 * @param {(request: Request) => Promise<Response>} handler
+		 */
+		set_handler(handler) {
+			internal_handler = handler;
+		},
 	};
 }
 
