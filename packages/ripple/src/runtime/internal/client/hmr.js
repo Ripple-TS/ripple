@@ -1,4 +1,4 @@
-/** @import { Block } from '#client' */
+/** @import { Block, Tracked } from '#client' */
 
 import { RENDER_BLOCK } from './constants.js';
 import { HMR } from './constants.js';
@@ -16,9 +16,10 @@ import { active_block, get, set, tracked } from './runtime.js';
  * @returns {Component}
  */
 export function hmr(fn) {
-	var block = active_block;
-	debugger;
-	var current = tracked(fn, block);
+	/**
+	 * @type {Tracked | undefined}
+	 */
+	var current;
 
 	/**
 	 * @param {Node} anchor
@@ -26,6 +27,10 @@ export function hmr(fn) {
 	 * @param {Block | null} block
 	 */
 	function wrapper(anchor, props, block) {
+		if (current === undefined) {
+			var block = /** @type {Block} */ (active_block);
+			current = tracked(fn, block);
+		}
 		var component = {};
 
 		/** @type {Block | null} */
