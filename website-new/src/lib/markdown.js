@@ -281,8 +281,7 @@ export function get_doc(slug) {
 				return `<div class="language-${language}"><button title="Copy Code" class="copy"></button><span class="lang">${language}</span>${highlighted}</div>`;
 			},
 			codespan({ text }) {
-				const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-				return `<code>${escaped}</code>`;
+				return `<code>${text}</code>`;
 			},
 			link({ href, title, tokens }) {
 				const text = this.parser.parseInline(tokens);
