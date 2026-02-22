@@ -26,10 +26,9 @@ export function hmr(fn) {
 	 * @param {any} props
 	 * @param {Block | null} block
 	 */
-	function wrapper(anchor, props, block) {
+	function wrapper(anchor, props, block = active_block) {
 		if (current === undefined) {
-			var block = /** @type {Block} */ (active_block);
-			current = tracked(fn, block);
+			current = tracked(fn, /** @type {Block} */ (block));
 		}
 		var component = {};
 
