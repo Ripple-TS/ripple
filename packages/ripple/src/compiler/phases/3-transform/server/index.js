@@ -1084,8 +1084,6 @@ const visitors = {
 			const case_body = [];
 
 			if (switch_case.consequent.length !== 0) {
-				// Flatten top-level BlockStatements so BreakStatements inside
-				// block-scoped cases (e.g. `case 1: { ... break; }`) are preserved
 				const flattened_consequent = flatten_switch_consequent(switch_case.consequent);
 				const consequent_scope =
 					context.state.scopes.get(switch_case.consequent) || context.state.scope;

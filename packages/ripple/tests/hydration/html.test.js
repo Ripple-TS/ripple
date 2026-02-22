@@ -83,10 +83,6 @@ describe('hydration > html tags', () => {
 			ServerComponents.HtmlWithEmptyComment,
 			ClientComponents.HtmlWithEmptyComment,
 		);
-		// The raw innerHTML should contain the empty comment from user content
-		// plus hydration markers. After stripping only hydration-specific markers,
-		// the user's empty comment should remain.
-		// Check that content before AND after the empty comment is present
 		const html = container.innerHTML;
 		expect(html).toContain('<p>Before</p>');
 		expect(html).toContain('<p>After</p>');
@@ -103,7 +99,6 @@ describe('hydration > html tags', () => {
 	});
 
 	it('hydrates html when server and client have matching data (DocsPage pattern)', async () => {
-		// When server and client have same data, hydration should work fine
 		await hydrateComponent(
 			ServerComponents.HtmlWithServerData,
 			ClientComponents.HtmlWithServerData,
@@ -117,49 +112,29 @@ describe('hydration > html tags', () => {
 	});
 
 	it('reproduces hydration mismatch when client has default props (DocsPage #server pattern)', async () => {
-		// This test reproduces the DocsPage hydration issue:
-		// Server renders with real data (editPath, nextLink, toc all truthy)
-		// Client hydrates with default values (editPath='', nextLink=null, toc=[])
-		// The if-block conditions evaluate differently, and the hydration walker
-		// doesn't skip past server-rendered content inside <!--[-->...<!--]-->.
-		// When the footer element (a sibling AFTER the if blocks) tries to hydrate,
-		// it finds the wrong DOM node, causing a HYDRATION_ERROR.
 		await hydrateComponent(
 			ServerComponents.HtmlWithServerData,
 			ClientComponents.HtmlWithClientDefaults,
 		);
 		const html = container.innerHTML;
-		// After hydration, the html content should still be present (not "undefined")
 		expect(html).toContain('Introduction');
 		expect(html).toContain('Ripple is a framework');
-		// The footer should still be present
 		expect(html).toContain('Footer content');
 		expect(html).not.toContain('undefined');
 	});
 
 	it('reproduces hydration mismatch with undefined html content', async () => {
-		// This simulates the actual DocsPage issue where doc.html is undefined
-		// because doc is a Promise from #server.load_doc().
-		// html() receives undefined, and get_html() + '' produces 'undefined' string.
-		// The server rendered valid HTML content, but the client sees 'undefined'.
 		await hydrateComponent(
 			ServerComponents.HtmlWithServerData,
 			ClientComponents.HtmlWithUndefinedContent,
 		);
 		const html = container.innerHTML;
-		// The server-rendered HTML content should be preserved during hydration
-		// html() should claim the DOM without replacing it with 'undefined' text
 		expect(html).toContain('Introduction');
 		expect(html).toContain('Ripple is a framework');
 		expect(html).not.toContain('undefined');
 	});
 
 	it('hydrates html block after switch-based component in children', async () => {
-		// Reproduces DocCodeGroup hydration bug:
-		// When a switch-based component (DynamicHeading) renders inside children,
-		// it produces <!--[-->...<h1>...<!--]--> markers. The fragment template
-		// walker may mishandle these markers, causing the hydration cursor to be
-		// mispositioned for subsequent components like CodeBlock ({html ...}).
 		await hydrateComponent(
 			ServerComponents.HtmlAfterSwitchInChildren,
 			ClientComponents.HtmlAfterSwitchInChildren,
@@ -173,10 +148,6 @@ describe('hydration > html tags', () => {
 	});
 
 	it('hydrates layout with sidebar (if-blocks) followed by main sibling', async () => {
-		// Reproduces DocsLayout hydration bug:
-		// SideNav contains SidebarSection with if(@expanded) control flow.
-		// After hydrating SideNav (single-root <aside>), the cursor must be
-		// correctly positioned so that sibling(node_1) finds <main>.
 		await hydrateComponent(
 			ServerComponents.LayoutWithSidebarAndMain,
 			ClientComponents.LayoutWithSidebarAndMain,
@@ -186,5 +157,65 @@ describe('hydration > html tags', () => {
 		expect(html).toContain('Introduction');
 		expect(html).toContain('Quick Start');
 		expect(html).toContain('Welcome to the docs.');
+	});
+
+	it('hydrates article with composite children followed by if-block siblings', async () => {
+		await hydrateComponent(
+			ServerComponents.ArticleWithChildrenThenSibling,
+			ClientComponents.ArticleWithChildrenThenSibling,
+		);
+		const html = container.innerHTML;
+		expect(html).toContain('Title');
+		expect(html).toContain('Content goes here.');
+		expect(html).toContain('Edit');
+		expect(html).toContain('Previous');
+		expect(html).toContain('Footer');
+	});
+
+	it('hydrates article with {html} child then sibling (StylingPage pattern)', async () => {
+		await hydrateComponent(
+			ServerComponents.ArticleWithHtmlChildThenSibling,
+			ClientComponents.ArticleWithHtmlChildThenSibling,
+		);
+		const html = container.innerHTML;
+		expect(html).toContain('const x = 1;');
+		expect(html).toContain('Edit');
+		expect(html).toContain('Footer');
+	});
+
+	it('hydrates INLINE article with {html} child then sibling (exact DocsLayout)', async () => {
+		await hydrateComponent(
+			ServerComponents.InlineArticleWithHtmlChild,
+			ClientComponents.InlineArticleWithHtmlChild,
+		);
+		const html = container.innerHTML;
+		expect(html).toContain('const x = 1;');
+		expect(html).toContain('Edit');
+		expect(html).toContain('Footer');
+	});
+
+	it('hydrates full DocsLayout with data mismatch (StylingPage exact reproduction)', async () => {
+		await hydrateComponent(
+			ServerComponents.DocsLayoutWithData,
+			ClientComponents.DocsLayoutWithoutData,
+		);
+		const html = container.innerHTML;
+		// Should preserve server-rendered content even with data mismatch
+		expect(html).toContain('Header');
+		expect(html).toContain('Sidebar');
+		expect(html).toContain('Title');
+		expect(html).toContain('Content');
+		expect(html).toContain('Footer');
+	});
+
+	it('hydrates exact DocsLayout with all conditions and data mismatch', async () => {
+		await hydrateComponent(
+			ServerComponents.DocsLayoutExactWithData,
+			ClientComponents.DocsLayoutExactWithoutData,
+		);
+		const html = container.innerHTML;
+		expect(html).toContain('Header');
+		expect(html).toContain('Sidebar');
+		expect(html).toContain('Footer');
 	});
 });
