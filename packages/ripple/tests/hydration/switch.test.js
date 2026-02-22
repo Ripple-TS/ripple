@@ -41,7 +41,10 @@ describe('hydration > switch blocks', () => {
 	});
 
 	it('hydrates reactive switch block with numeric cases', async () => {
-		await hydrateComponent(ServerComponents.SwitchNumericLevels, ClientComponents.SwitchNumericLevels);
+		await hydrateComponent(
+			ServerComponents.SwitchNumericLevels,
+			ClientComponents.SwitchNumericLevels,
+		);
 		const button = container.querySelector('.level-toggle');
 
 		expect(container.querySelector('.level-1')?.textContent).toBe('Level 1');

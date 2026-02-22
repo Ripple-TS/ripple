@@ -361,11 +361,15 @@ describe('switch statements', () => {
 		component App() {
 			let level = track(1);
 
-			<button onClick={() => {
-				if (@level === 1) @level = 2;
-				else if (@level === 2) @level = 3;
-				else @level = 1;
-			}}>{'Toggle'}</button>
+			<button
+				onClick={() => {
+					if (@level === 1) @level = 2;
+					else if (@level === 2) @level = 3;
+					else @level = 1;
+				}}
+			>
+				{'Toggle'}
+			</button>
 
 			switch (@level) {
 				case 1: {
