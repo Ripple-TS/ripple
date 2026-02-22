@@ -37,6 +37,16 @@ var root_32 = _$_.template(`<div class="code-block"><div class="header"><button>
 var root_33 = _$_.template(`<div class="wrapper"><div class="inner"><!></div></div>`, 0);
 var root_35 = _$_.template(`<!><p>First paragraph</p><p>Second paragraph</p><!><p>After code</p>`, 1);
 var root_34 = _$_.template(`<!>`, 1);
+var root_37 = _$_.template(`<div class="indicator"></div>`, 0);
+var root_36 = _$_.template(`<div><!><a><span> </span></a></div>`, 0);
+var root_39 = _$_.template(`<div class="section-items"><!></div>`, 0);
+var root_38 = _$_.template(`<section class="sidebar-section"><div class="section-header"><h2> </h2><button>Toggle</button></div><!></section>`, 0);
+var root_41 = _$_.template(`<!><!>`, 1);
+var root_42 = _$_.template(`<!><!>`, 1);
+var root_40 = _$_.template(`<aside class="sidebar"><nav><div class="group"><!></div><div class="group"><!></div></nav></aside>`, 0);
+var root_43 = _$_.template(`<header class="page-header"><div class="logo">MyApp</div></header>`, 0);
+var root_45 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
+var root_44 = _$_.template(`<div class="layout"><!><div class="content-wrapper"><!><main class="main-content"><div class="article"><div><h1>Introduction</h1><p>Welcome to the docs.</p></div></div><!><!></main></div></div>`, 0);
 
 import { track } from 'ripple';
 
@@ -444,7 +454,7 @@ export function DocLayout(__anchor, __props, __block) {
 						var a_2 = _$_.child(nav_1);
 
 						{
-							var text = _$_.child(a_2, true);
+							var text_1 = _$_.child(a_2, true);
 
 							_$_.pop(a_2);
 						}
@@ -455,7 +465,7 @@ export function DocLayout(__anchor, __props, __block) {
 							var __a = _$_.fallback(__props.nextLink, null).text;
 
 							if (__prev.a !== __a) {
-								_$_.set_text(text, __prev.a = __a);
+								_$_.set_text(text_1, __prev.a = __a);
 							}
 
 							var __b = _$_.fallback(__props.nextLink, null).href;
@@ -504,7 +514,7 @@ export function DocLayout(__anchor, __props, __block) {
 										var a_3 = _$_.child(li_1);
 
 										{
-											var text_1 = _$_.child(a_3, true);
+											var text_2 = _$_.child(a_3, true);
 
 											_$_.pop(a_3);
 										}
@@ -515,7 +525,7 @@ export function DocLayout(__anchor, __props, __block) {
 											var __a = item.text;
 
 											if (__prev.a !== __a) {
-												_$_.set_text(text_1, __prev.a = __a);
+												_$_.set_text(text_2, __prev.a = __a);
 											}
 
 											var __b = item.href;
@@ -790,9 +800,9 @@ export function HtmlAfterSwitchInChildren(__anchor, _, __block) {
 						children(__anchor, _, __block) {
 							_$_.push_component();
 
-							var text_2 = _$_.text('Title');
+							var text_3 = _$_.text('Title');
 
-							_$_.append(__anchor, text_2);
+							_$_.append(__anchor, text_3);
 							_$_.pop_component();
 						}
 					},
@@ -814,3 +824,310 @@ export function HtmlAfterSwitchInChildren(__anchor, _, __block) {
 	_$_.append(__anchor, fragment_9);
 	_$_.pop_component();
 }
+
+function NavItem(__anchor, __props, __block) {
+	_$_.push_component();
+
+	var div_27 = root_36();
+
+	{
+		var node_38 = _$_.child(div_27);
+
+		{
+			var consequent_3 = (__anchor) => {
+				var div_28 = root_37();
+
+				_$_.append(__anchor, div_28);
+			};
+
+			_$_.if(node_38, (__render) => {
+				if (_$_.fallback(__props.active, false)) __render(consequent_3);
+			});
+		}
+
+		var a_4 = _$_.sibling(node_38);
+
+		{
+			var span_1 = _$_.child(a_4);
+
+			{
+				var text_4 = _$_.child(span_1, true);
+
+				_$_.pop(span_1);
+			}
+		}
+
+		_$_.pop(div_27);
+	}
+
+	_$_.render(
+		(__prev) => {
+			var __a = __props.text;
+
+			if (__prev.a !== __a) {
+				_$_.set_text(text_4, __prev.a = __a);
+			}
+
+			var __b = __props.href;
+
+			if (__prev.b !== __b) {
+				_$_.set_attribute(a_4, 'href', __prev.b = __b);
+			}
+
+			var __c = `nav-item${_$_.fallback(__props.active, false) ? ' active' : ''}`;
+
+			if (__prev.c !== __c) {
+				_$_.set_class(div_27, __prev.c = __c, void 0, true);
+			}
+		},
+		{ a: ' ', b: void 0, c: Symbol() }
+	);
+
+	_$_.append(__anchor, div_27);
+	_$_.pop_component();
+}
+
+function SidebarSection(__anchor, __props, __block) {
+	_$_.push_component();
+
+	let expanded = track(true, void 0, void 0, __block);
+	var section_2 = root_38();
+
+	{
+		var div_29 = _$_.child(section_2);
+
+		{
+			var h2_2 = _$_.child(div_29);
+
+			{
+				var text_5 = _$_.child(h2_2, true);
+
+				_$_.pop(h2_2);
+			}
+
+			var button_1 = _$_.sibling(h2_2);
+
+			button_1.__click = () => _$_.set(expanded, !_$_.get(expanded));
+		}
+
+		_$_.pop(div_29);
+
+		var node_39 = _$_.sibling(div_29);
+
+		{
+			var consequent_4 = (__anchor) => {
+				var div_30 = root_39();
+
+				{
+					var node_40 = _$_.child(div_30);
+
+					_$_.composite(() => __props.children, node_40, {});
+					_$_.pop(div_30);
+				}
+
+				_$_.append(__anchor, div_30);
+			};
+
+			_$_.if(node_39, (__render) => {
+				if (_$_.get(expanded)) __render(consequent_4);
+			});
+		}
+
+		_$_.pop(section_2);
+	}
+
+	_$_.render(() => {
+		_$_.set_text(text_5, __props.title);
+	});
+
+	_$_.append(__anchor, section_2);
+	_$_.pop_component();
+}
+
+function SideNav(__anchor, __props, __block) {
+	_$_.push_component();
+
+	var aside_2 = root_40();
+
+	{
+		var nav_2 = _$_.child(aside_2);
+
+		{
+			var div_31 = _$_.child(nav_2);
+
+			{
+				var node_41 = _$_.child(div_31);
+
+				SidebarSection(
+					node_41,
+					{
+						title: "Getting Started",
+
+						children(__anchor, _, __block) {
+							_$_.push_component();
+
+							var fragment_11 = root_41();
+							var node_42 = _$_.first_child_frag(fragment_11);
+
+							NavItem(
+								node_42,
+								{
+									href: "/intro",
+									text: "Introduction",
+
+									get active() {
+										return __props.currentPath === '/intro';
+									}
+								},
+								_$_.active_block
+							);
+
+							var node_43 = _$_.sibling(node_42);
+
+							NavItem(
+								node_43,
+								{
+									href: "/start",
+									text: "Quick Start",
+
+									get active() {
+										return __props.currentPath === '/start';
+									}
+								},
+								_$_.active_block
+							);
+
+							_$_.append(__anchor, fragment_11);
+							_$_.pop_component();
+						}
+					},
+					_$_.active_block
+				);
+
+				_$_.pop(div_31);
+			}
+
+			var div_32 = _$_.sibling(div_31);
+
+			{
+				var node_44 = _$_.child(div_32);
+
+				SidebarSection(
+					node_44,
+					{
+						title: "Guide",
+
+						children(__anchor, _, __block) {
+							_$_.push_component();
+
+							var fragment_12 = root_42();
+							var node_45 = _$_.first_child_frag(fragment_12);
+
+							NavItem(
+								node_45,
+								{
+									href: "/guide/app",
+									text: "Application",
+
+									get active() {
+										return __props.currentPath === '/guide/app';
+									}
+								},
+								_$_.active_block
+							);
+
+							var node_46 = _$_.sibling(node_45);
+
+							NavItem(
+								node_46,
+								{
+									href: "/guide/syntax",
+									text: "Syntax",
+
+									get active() {
+										return __props.currentPath === '/guide/syntax';
+									}
+								},
+								_$_.active_block
+							);
+
+							_$_.append(__anchor, fragment_12);
+							_$_.pop_component();
+						}
+					},
+					_$_.active_block
+				);
+
+				_$_.pop(div_32);
+			}
+		}
+	}
+
+	_$_.append(__anchor, aside_2);
+	_$_.pop_component();
+}
+
+function PageHeader(__anchor, _, __block) {
+	_$_.push_component();
+
+	var header_1 = root_43();
+
+	_$_.append(__anchor, header_1);
+	_$_.pop_component();
+}
+
+export function LayoutWithSidebarAndMain(__anchor, _, __block) {
+	_$_.push_component();
+
+	var div_33 = root_44();
+
+	{
+		var node_47 = _$_.child(div_33);
+
+		PageHeader(node_47, {}, _$_.active_block);
+
+		var div_34 = _$_.sibling(node_47);
+
+		{
+			var node_48 = _$_.child(div_34);
+
+			SideNav(node_48, { currentPath: "/intro" }, _$_.active_block);
+
+			var main_1 = _$_.sibling(node_48);
+
+			{
+				var div_35 = _$_.child(main_1);
+
+				_$_.pop(div_35);
+
+				var node_49 = _$_.sibling(div_35);
+
+				{
+					var consequent_5 = (__anchor) => {
+						var div_36 = root_45();
+
+						_$_.append(__anchor, div_36);
+					};
+
+					_$_.if(node_49, (__render) => {
+						if (true) __render(consequent_5);
+					});
+				}
+
+				var node_50 = _$_.sibling(node_49);
+
+				PageHeader(node_50, {}, _$_.active_block);
+				_$_.pop(main_1);
+			}
+
+			_$_.pop(div_34);
+		}
+
+		_$_.pop(div_33);
+	}
+
+	_$_.append(__anchor, div_33);
+	_$_.pop_component();
+}
+
+_$_.delegate(['click']);

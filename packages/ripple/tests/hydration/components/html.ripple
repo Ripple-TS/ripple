@@ -213,3 +213,99 @@ export component HtmlAfterSwitchInChildren() {
 		<p>{'After code'}</p>
 	</ContentWrapper>
 }
+
+// --- DocsLayout sidebar hydration bug reproduction ---
+// Pattern: component with if-block inside single-root element, used as
+// sibling before another element inside a wrapper div
+
+component NavItem({
+	href,
+	text,
+	active = false,
+}: {
+	href: string;
+	text: string;
+	active?: boolean;
+}) {
+	<div class={`nav-item${active ? ' active' : ''}`}>
+		if (active) {
+			<div class="indicator" />
+		}
+		<a {href}>
+			<span>{text}</span>
+		</a>
+	</div>
+}
+
+component SidebarSection({ title, children }: { title: string; children: any }) {
+	let expanded = track(true);
+	<section class="sidebar-section">
+		<div class="section-header">
+			<h2>{title}</h2>
+			<button onClick={() => (@expanded = !@expanded)}>{'Toggle'}</button>
+		</div>
+		if (@expanded) {
+			<div class="section-items">
+				<children />
+			</div>
+		}
+	</section>
+}
+
+component SideNav({ currentPath }: { currentPath: string }) {
+	<aside class="sidebar">
+		<nav>
+			<div class="group">
+				<SidebarSection title="Getting Started">
+					<NavItem href="/intro" text="Introduction" active={currentPath === '/intro'} />
+					<NavItem href="/start" text="Quick Start" active={currentPath === '/start'} />
+				</SidebarSection>
+			</div>
+			<div class="group">
+				<SidebarSection title="Guide">
+					<NavItem href="/guide/app" text="Application" active={currentPath === '/guide/app'} />
+					<NavItem href="/guide/syntax" text="Syntax" active={currentPath === '/guide/syntax'} />
+				</SidebarSection>
+			</div>
+		</nav>
+	</aside>
+}
+
+component PageHeader() {
+	<header class="page-header">
+		<div class="logo">{'MyApp'}</div>
+	</header>
+}
+
+// This reproduces the DocsLayout pattern:
+// <div class="layout">
+//   <PageHeader />              ← static component
+//   <div class="content-wrapper">
+//     <SideNav />               ← component with if-blocks deep inside
+//     <main>...</main>          ← sibling(node_1) should find this
+//   </div>
+// </div>
+// Key: <main> must have dynamic content (children, if blocks) so the
+// compiler generates sibling(node_1) to walk from the sidebar to main.
+export component LayoutWithSidebarAndMain() {
+	<div class="layout">
+		<PageHeader />
+		<div class="content-wrapper">
+			<SideNav currentPath="/intro" />
+			<main class="main-content">
+				<div class="article">
+					<div>
+						<h1>{'Introduction'}</h1>
+						<p>{'Welcome to the docs.'}</p>
+					</div>
+				</div>
+				if (true) {
+					<div class="edit-link">
+						<a href="/edit">{'Edit'}</a>
+					</div>
+				}
+				<PageHeader />
+			</main>
+		</div>
+	</div>
+}

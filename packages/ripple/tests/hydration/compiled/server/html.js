@@ -876,3 +876,374 @@ export function HtmlAfterSwitchInChildren(__output) {
 
 	_$_.pop_component();
 }
+
+function NavItem(__output, { href, text, active = false }) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(_$_.attr('class', `nav-item${active ? ' active' : ''}`));
+	__output.push('>');
+
+	{
+		__output.push('<!--[-->');
+
+		if (active) {
+			__output.push('<div');
+			__output.push(' class="indicator"');
+			__output.push('>');
+			__output.push('</div>');
+		}
+
+		__output.push('<!--]-->');
+		__output.push('<a');
+		__output.push(_$_.attr('href', href, false));
+		__output.push('>');
+
+		{
+			__output.push('<span');
+			__output.push('>');
+
+			{
+				__output.push(_$_.escape(text));
+			}
+
+			__output.push('</span>');
+		}
+
+		__output.push('</a>');
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}
+
+async function SidebarSection(__output, { title, children }) {
+	return _$_.async(async () => {
+		_$_.push_component();
+
+		let expanded = track(true);
+
+		__output.push('<section');
+		__output.push(' class="sidebar-section"');
+		__output.push('>');
+
+		{
+			__output.push('<div');
+			__output.push(' class="section-header"');
+			__output.push('>');
+
+			{
+				__output.push('<h2');
+				__output.push('>');
+
+				{
+					__output.push(_$_.escape(title));
+				}
+
+				__output.push('</h2>');
+				__output.push('<button');
+				__output.push('>');
+
+				{
+					__output.push('Toggle');
+				}
+
+				__output.push('</button>');
+			}
+
+			__output.push('</div>');
+			__output.push('<!--[-->');
+
+			if (_$_.get(expanded)) {
+				__output.push('<div');
+				__output.push(' class="section-items"');
+				__output.push('>');
+
+				{
+					{
+						const comp = children;
+						const args = [__output, {}];
+
+						if (comp?.async) {
+							await comp(...args);
+						} else if (comp) {
+							comp(...args);
+						}
+					}
+				}
+
+				__output.push('</div>');
+			}
+
+			__output.push('<!--]-->');
+		}
+
+		__output.push('</section>');
+		_$_.pop_component();
+	});
+}
+
+SidebarSection.async = true;
+
+function SideNav(__output, { currentPath }) {
+	_$_.push_component();
+	__output.push('<aside');
+	__output.push(' class="sidebar"');
+	__output.push('>');
+
+	{
+		__output.push('<nav');
+		__output.push('>');
+
+		{
+			__output.push('<div');
+			__output.push(' class="group"');
+			__output.push('>');
+
+			{
+				{
+					const comp = SidebarSection;
+
+					const args = [
+						__output,
+
+						{
+							title: "Getting Started",
+
+							children: function children(__output) {
+								_$_.push_component();
+
+								{
+									const comp = NavItem;
+
+									const args = [
+										__output,
+
+										{
+											href: "/intro",
+											text: "Introduction",
+											active: currentPath === '/intro'
+										}
+									];
+
+									comp(...args);
+								}
+
+								{
+									const comp = NavItem;
+
+									const args = [
+										__output,
+
+										{
+											href: "/start",
+											text: "Quick Start",
+											active: currentPath === '/start'
+										}
+									];
+
+									comp(...args);
+								}
+
+								_$_.pop_component();
+							}
+						}
+					];
+
+					comp(...args);
+				}
+			}
+
+			__output.push('</div>');
+			__output.push('<div');
+			__output.push(' class="group"');
+			__output.push('>');
+
+			{
+				{
+					const comp = SidebarSection;
+
+					const args = [
+						__output,
+
+						{
+							title: "Guide",
+
+							children: function children(__output) {
+								_$_.push_component();
+
+								{
+									const comp = NavItem;
+
+									const args = [
+										__output,
+
+										{
+											href: "/guide/app",
+											text: "Application",
+											active: currentPath === '/guide/app'
+										}
+									];
+
+									comp(...args);
+								}
+
+								{
+									const comp = NavItem;
+
+									const args = [
+										__output,
+
+										{
+											href: "/guide/syntax",
+											text: "Syntax",
+											active: currentPath === '/guide/syntax'
+										}
+									];
+
+									comp(...args);
+								}
+
+								_$_.pop_component();
+							}
+						}
+					];
+
+					comp(...args);
+				}
+			}
+
+			__output.push('</div>');
+		}
+
+		__output.push('</nav>');
+	}
+
+	__output.push('</aside>');
+	_$_.pop_component();
+}
+
+function PageHeader(__output) {
+	_$_.push_component();
+	__output.push('<header');
+	__output.push(' class="page-header"');
+	__output.push('>');
+
+	{
+		__output.push('<div');
+		__output.push(' class="logo"');
+		__output.push('>');
+
+		{
+			__output.push('MyApp');
+		}
+
+		__output.push('</div>');
+	}
+
+	__output.push('</header>');
+	_$_.pop_component();
+}
+
+export function LayoutWithSidebarAndMain(__output) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="layout"');
+	__output.push('>');
+
+	{
+		{
+			const comp = PageHeader;
+			const args = [__output, {}];
+
+			comp(...args);
+		}
+
+		__output.push('<div');
+		__output.push(' class="content-wrapper"');
+		__output.push('>');
+
+		{
+			{
+				const comp = SideNav;
+				const args = [__output, { currentPath: "/intro" }];
+
+				comp(...args);
+			}
+
+			__output.push('<main');
+			__output.push(' class="main-content"');
+			__output.push('>');
+
+			{
+				__output.push('<div');
+				__output.push(' class="article"');
+				__output.push('>');
+
+				{
+					__output.push('<div');
+					__output.push('>');
+
+					{
+						__output.push('<h1');
+						__output.push('>');
+
+						{
+							__output.push('Introduction');
+						}
+
+						__output.push('</h1>');
+						__output.push('<p');
+						__output.push('>');
+
+						{
+							__output.push('Welcome to the docs.');
+						}
+
+						__output.push('</p>');
+					}
+
+					__output.push('</div>');
+				}
+
+				__output.push('</div>');
+				__output.push('<!--[-->');
+
+				if (true) {
+					__output.push('<div');
+					__output.push(' class="edit-link"');
+					__output.push('>');
+
+					{
+						__output.push('<a');
+						__output.push(' href="/edit"');
+						__output.push('>');
+
+						{
+							__output.push('Edit');
+						}
+
+						__output.push('</a>');
+					}
+
+					__output.push('</div>');
+				}
+
+				__output.push('<!--]-->');
+
+				{
+					const comp = PageHeader;
+					const args = [__output, {}];
+
+					comp(...args);
+				}
+			}
+
+			__output.push('</main>');
+		}
+
+		__output.push('</div>');
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}

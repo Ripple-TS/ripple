@@ -171,4 +171,20 @@ describe('hydration > html tags', () => {
 		expect(html).toContain('const x = 1;');
 		expect(html).toContain('After code');
 	});
+
+	it('hydrates layout with sidebar (if-blocks) followed by main sibling', async () => {
+		// Reproduces DocsLayout hydration bug:
+		// SideNav contains SidebarSection with if(@expanded) control flow.
+		// After hydrating SideNav (single-root <aside>), the cursor must be
+		// correctly positioned so that sibling(node_1) finds <main>.
+		await hydrateComponent(
+			ServerComponents.LayoutWithSidebarAndMain,
+			ClientComponents.LayoutWithSidebarAndMain,
+		);
+		const html = container.innerHTML;
+		expect(html).toContain('MyApp');
+		expect(html).toContain('Introduction');
+		expect(html).toContain('Quick Start');
+		expect(html).toContain('Welcome to the docs.');
+	});
 });
