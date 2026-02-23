@@ -608,6 +608,51 @@ export function ripple(inlineOptions = {}) {
 			},
 
 			/**
+			 * Handle HMR for files that Vite's default module HMR can't
+			 * properly refresh.
+			 *
+			 * .ripple components self-accept HMR and swap their component
+			 * function. For changes to their OWN code this works perfectly.
+			 * But for changes to DEPENDENCIES (e.g. .md files imported via
+			 * import.meta.glob), the self-accept handler can't refresh
+			 * static imports cached in the browser's ESM module registry.
+			 *
+			 * Strategy:
+			 * - If all changed modules self-accept → they can hot-replace
+			 *   themselves (e.g. .ripple components, CSS). Let Vite handle.
+			 * - Otherwise, check the SSR module graph. If the file is there,
+			 *   invalidate SSR cache and trigger a full page reload.
+			 */
+			hotUpdate({ file, modules, server }) {
+				if (this.environment.name !== 'client') return;
+
+				// If all changed modules self-accept, they can hot-replace
+				// themselves (.ripple components, CSS modules). Let Vite
+				// handle without intervention.
+				if (modules.length > 0 && modules.every((m) => m.isSelfAccepting)) {
+					return;
+				}
+
+				// Check if this file is part of the SSR module graph.
+				const ssr = server.environments.ssr;
+				if (!ssr) return;
+
+				const ssr_modules = ssr.moduleGraph.getModulesByFile(file);
+				if (!ssr_modules || ssr_modules.size === 0) return;
+
+				// Invalidate SSR modules so the server re-reads the file
+				// on next request instead of serving stale cached content.
+				for (const mod of ssr_modules) {
+					ssr.moduleGraph.invalidateModule(mod);
+				}
+
+				// Full reload — the only reliable way to pick up the change
+				// for files that don't self-accept but are consumed by the app.
+				server.hot.send({ type: 'full-reload' });
+				return [];
+			},
+
+			/**
 			 * Inject the hydration script into the HTML template during build.
 			 * In dev mode, this is handled by render-route.js instead.
 			 */
