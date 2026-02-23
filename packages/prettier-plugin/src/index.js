@@ -1505,6 +1505,11 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printMemberExpression(node, path, options, print);
 			break;
 
+		case 'MetaProperty':
+			// Prints import.meta, new.target, etc.
+			nodeContent = [path.call(print, 'meta'), '.', path.call(print, 'property')];
+			break;
+
 		case 'Super':
 			nodeContent = 'super';
 			break;
