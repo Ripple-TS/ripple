@@ -3167,7 +3167,7 @@ function transform_template_element(node, state, visit, child_namespace, init, u
 
 		transform_children(node.children, {
 			visit,
-			state: {...schild_state,
+			state: child_state,
 			root: false,
 		});
 
@@ -3252,11 +3252,7 @@ function transform_children(children, context) {
 					(node.id.type !== 'Identifier' || !is_element_dom_element(node))),
 		) ||
 		normalized.filter(
-			(node) =>
-				node.type !== 'VariableDeclaration' &&
-				node.type !== 'EmptyStatement' &&
-				node.type !== 'BreakStatement' &&
-				node.type !== 'ContinueStatement',
+			(node) => node.type !== 'VariableDeclaration' && node.type !== 'EmptyStatement',
 		).length > 1;
 	/** @type {AST.Identifier | null} */
 	let initial = null;

@@ -82,9 +82,9 @@ var root_78 = _$_.template(`<div class="doc-content"><!></div>`, 0);
 var root_77 = _$_.template(`<!>`, 1, 1);
 var root_80 = _$_.template(`<div class="doc-content"><!></div>`, 0);
 var root_79 = _$_.template(`<!>`, 1, 1);
-var root_81 = _$_.template(`<div><template id="t1"><!></template><p class="content">Main content</p></div>`, 0);
-var root_82 = _$_.template(`<div class="wrapper"><h1>Title</h1><template id="data-template"><!></template><p class="after-template">Content after template</p></div>`, 0);
-var root_83 = _$_.template(`<div class="layout"><template id="page-data"><!></template><main><!></main></div>`, 0);
+var root_81 = _$_.template(`<div><template id="t1"></template><p class="content">Main content</p></div>`, 0);
+var root_82 = _$_.template(`<div class="wrapper"><h1>Title</h1><template id="data-template"></template><p class="after-template">Content after template</p></div>`, 0);
+var root_83 = _$_.template(`<div class="layout"><template id="page-data"></template><main><!></main></div>`, 0);
 var root_85 = _$_.template(`<div class="doc-content"><!></div>`, 0);
 var root_84 = _$_.template(`<!>`, 1, 1);
 
@@ -1972,16 +1972,10 @@ export function TemplateWithHtmlContent(__anchor, _, __block) {
 
 	{
 		var template_1 = _$_.child(div_66);
-
-		{
-			var node_88 = _$_.child(template_1);
-
-			_$_.pop(template_1);
-		}
 	}
 
 	_$_.render(() => {
-		_$_.html(node_88, () => _$_.with_scope(__block, () => JSON.stringify(data)));
+		template_1.innerHTML = _$_.with_scope(__block, () => JSON.stringify(data));
 	});
 
 	_$_.append(__anchor, div_66);
@@ -1997,16 +1991,10 @@ export function TemplateWithHtmlAndSiblings(__anchor, _, __block) {
 	{
 		var h1_3 = _$_.child(div_67);
 		var template_2 = _$_.sibling(h1_3);
-
-		{
-			var node_89 = _$_.child(template_2);
-
-			_$_.pop(template_2);
-		}
 	}
 
 	_$_.render(() => {
-		_$_.html(node_89, () => _$_.with_scope(__block, () => JSON.stringify(data)));
+		template_2.innerHTML = _$_.with_scope(__block, () => JSON.stringify(data));
 	});
 
 	_$_.append(__anchor, div_67);
@@ -2020,25 +2008,18 @@ function LayoutWithTemplate(__anchor, __props, __block) {
 
 	{
 		var template_3 = _$_.child(div_68);
-
-		{
-			var node_90 = _$_.child(template_3);
-
-			_$_.pop(template_3);
-		}
-
 		var main_4 = _$_.sibling(template_3);
 
 		{
-			var node_91 = _$_.child(main_4);
+			var node_88 = _$_.child(main_4);
 
-			_$_.composite(() => __props.children, node_91, {});
+			_$_.composite(() => __props.children, node_88, {});
 			_$_.pop(main_4);
 		}
 	}
 
 	_$_.render(() => {
-		_$_.html(node_90, () => _$_.with_scope(__block, () => JSON.stringify(__props.data)));
+		template_3.innerHTML = _$_.with_scope(__block, () => JSON.stringify(__props.data));
 	});
 
 	_$_.append(__anchor, div_68);
@@ -2050,10 +2031,10 @@ export function NestedTemplateInLayout(__anchor, _, __block) {
 
 	const doc = { title: 'Comparison', html: '<p>Content</p>' };
 	var fragment_19 = root_84();
-	var node_92 = _$_.first_child_frag(fragment_19);
+	var node_89 = _$_.first_child_frag(fragment_19);
 
 	LayoutWithTemplate(
-		node_92,
+		node_89,
 		{
 			data: doc,
 
@@ -2063,13 +2044,13 @@ export function NestedTemplateInLayout(__anchor, _, __block) {
 				var div_69 = root_85();
 
 				{
-					var node_93 = _$_.child(div_69);
+					var node_90 = _$_.child(div_69);
 
 					_$_.pop(div_69);
 				}
 
 				_$_.render(() => {
-					_$_.html(node_93, () => doc.html);
+					_$_.html(node_90, () => doc.html);
 				});
 
 				_$_.append(__anchor, div_69);
