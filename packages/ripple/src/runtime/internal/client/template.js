@@ -5,6 +5,8 @@ import {
 	TEMPLATE_USE_IMPORT_NODE,
 	TEMPLATE_SVG_NAMESPACE,
 	TEMPLATE_MATHML_NAMESPACE,
+	HYDRATION_START,
+	HYDRATION_END,
 } from '../../../constants.js';
 import { hydrate_advance, hydrate_next, hydrate_node, hydrating, pop } from './hydration.js';
 import { create_text, get_first_child, get_next_sibling, is_firefox } from './operations.js';
