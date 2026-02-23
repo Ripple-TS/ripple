@@ -5,6 +5,8 @@ import {
 	TEMPLATE_USE_IMPORT_NODE,
 	TEMPLATE_SVG_NAMESPACE,
 	TEMPLATE_MATHML_NAMESPACE,
+	HYDRATION_START,
+	HYDRATION_END,
 } from '../../../constants.js';
 import { hydrate_advance, hydrate_node, hydrating, pop } from './hydration.js';
 import { create_text, get_first_child, get_next_sibling, is_firefox } from './operations.js';
@@ -75,21 +77,38 @@ export function template(content, flags, count = 1) {
 				var start = /** @type {Node} */ (hydrate_node);
 				var end = start;
 
-				// Walk using compiler-provided hop count so hydration never
-				// parses template HTML into fragments.
-				for (var i = 1; i < count; i++) {
-					var next = get_next_sibling(end);
+			// Walk using compiler-provided hop count so hydration never
+			// parses template HTML into fragments.
+			for (var i = 1; i < count; i++) {
+				var next = get_next_sibling(end);
+				var depth = 0;
 
-					while (next !== null && next.nodeType === Node.COMMENT_NODE) {
+				// Skip over hydration markers and nested blocks to find the next
+				// top-level sibling node
+				while (next !== null) {
+					if (next.nodeType === 8) {
+						var data = /** @type {Comment} */ (next).data;
+						if (data === HYDRATION_START) {
+							depth++;
+						} else if (data === HYDRATION_END) {
+							depth--;
+						}
+						next = get_next_sibling(next);
+					} else if (depth === 0) {
+						// Found a top-level node
+						break;
+					} else {
+						// Inside a nested block, skip this node
 						next = get_next_sibling(next);
 					}
-
-					if (next === null) {
-						break;
-					}
-
-					end = next;
 				}
+
+				if (next === null) {
+					break;
+				}
+
+				end = next;
+			}
 
 				assign_nodes(start, end);
 				return start;
