@@ -2519,32 +2519,6 @@ const visitors = {
 };
 
 /**
- * Count top-level fragment hydration hops from normalized AST children.
- * Control-flow constructs are counted because they compile to hydration anchor
- * regions that occupy sibling traversal steps.
- * @param {AST.Node[]} normalized - The normalized children array
- * @returns {number}
- */
-function count_dom_nodes(normalized) {
-	let count = 0;
-	for (const node of normalized) {
-		if (
-			node.type === 'Element' ||
-			node.type === 'Text' ||
-			node.type === 'Html' ||
-			node.type === 'TsxCompat' ||
-			node.type === 'IfStatement' ||
-			node.type === 'ForOfStatement' ||
-			node.type === 'SwitchStatement' ||
-			node.type === 'TryStatement'
-		) {
-			count++;
-		}
-	}
-	return count || 1;
-}
-
-/**
  * @param {Array<string | AST.Expression>} items
  */
 function join_template(items) {
