@@ -648,7 +648,7 @@ export function ripple(inlineOptions = {}) {
 
 				// Full reload — the only reliable way to pick up the change
 				// for files that don't self-accept but are consumed by the app.
-				server.hot.send({ type: 'full-reload' });
+				this.environment.hot.send({ type: 'full-reload' });
 				return [];
 			},
 
