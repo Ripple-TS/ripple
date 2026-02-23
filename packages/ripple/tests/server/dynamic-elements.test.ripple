@@ -1,5 +1,5 @@
-import type { Props, PropsWithChildren, PropsNoChildren, PropsWithExtras } from 'ripple';
-import { flushSync, track, createRefKey, trackSplit } from 'ripple';
+import type { PropsWithExtras } from 'ripple';
+import { track, createRefKey, trackSplit } from 'ripple';
 
 describe('server dynamic DOM elements', () => {
 	it('renders static dynamic element', async () => {

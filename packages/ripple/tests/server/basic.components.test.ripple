@@ -1,4 +1,4 @@
-import type { Tracked, PropsWithChildren, PropsWithExtras, Component } from 'ripple';
+import type { Tracked, PropsWithChildren, PropsWithExtras } from 'ripple';
 import { track } from 'ripple';
 
 describe('basic server > components & composition', () => {

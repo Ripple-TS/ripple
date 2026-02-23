@@ -1,10 +1,8 @@
-import { compile } from 'ripple/compiler';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render } from 'ripple/server';
+import type { MockInstance } from 'vitest';
 import { push_element, pop_element, reset_element_state } from 'ripple/internal/server';
 
 describe('HTML nesting validation', () => {
-	let consoleErrorSpy;
+	let consoleErrorSpy: MockInstance<typeof console.error>;
 
 	beforeEach(() => {
 		reset_element_state();

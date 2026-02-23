@@ -1,6 +1,4 @@
-import { test } from 'vitest';
 import { renderToStream } from 'ripple/server';
-import { Readable } from 'stream';
 
 test('renderToStream renders a simple component', async ({ expect }) => {
 	component Basic() {
