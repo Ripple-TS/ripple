@@ -99,10 +99,17 @@ describe('hydration > nested control flow (granular)', () => {
 
 	// ── switch + try (no for/if — baseline for try cursor behaviour) ─────────────
 	describe('switch + try', () => {
-		it('hydrates a switch where the matched case wraps a try/pending', async () => {
+		it('shows pending fallback immediately after hydration', async () => {
 			await hydrateComponent(ServerComponents.SwitchTry, ClientComponents.SwitchTry);
 
-			// async resolves synchronously via Promise.resolve, flush after hydrate
+			// Server rendered the pending content; client should retain it during hydration
+			expect(container.querySelector('.pending-a')?.textContent).toBe('A pending');
+		});
+
+		it('shows resolved content after async settles', async () => {
+			await hydrateComponent(ServerComponents.SwitchTry, ClientComponents.SwitchTry);
+
+			// After the promise resolves the pending fallback should be replaced
 			await Promise.resolve();
 			expect(container.querySelector('.resolved-a')?.textContent).toBe('A resolved');
 			expect(container.querySelector('.pending-a')).toBeNull();
@@ -111,9 +118,18 @@ describe('hydration > nested control flow (granular)', () => {
 
 	// ── for + switch + try (no if) ────────────────────────────────────────────────
 	describe('for + switch + try', () => {
-		it('hydrates 2-item for loop where each item uses switch+try', async () => {
+		it('shows pending fallback for each item immediately after hydration', async () => {
 			await hydrateComponent(ServerComponents.ForSwitchTry, ClientComponents.ForSwitchTry);
 
+			// Server rendered pending fallbacks for both items
+			const pending = Array.from(container.querySelectorAll('.pending')).map((n) => n.textContent);
+			expect(pending).toEqual(['pending 1', 'pending 2']);
+		});
+
+		it('shows resolved content for each item after async settles', async () => {
+			await hydrateComponent(ServerComponents.ForSwitchTry, ClientComponents.ForSwitchTry);
+
+			await Promise.resolve();
 			const items = Array.from(container.querySelectorAll('.item')).map((n) => n.textContent);
 			expect(items).toEqual(['A-1', 'B-2']);
 		});
@@ -121,9 +137,18 @@ describe('hydration > nested control flow (granular)', () => {
 
 	// ── for + if + try (no switch) ────────────────────────────────────────────────
 	describe('for + if + try', () => {
-		it('hydrates 2-item for loop where each item uses if+try', async () => {
+		it('shows pending fallback for each item immediately after hydration', async () => {
 			await hydrateComponent(ServerComponents.ForIfTry, ClientComponents.ForIfTry);
 
+			// Server rendered pending fallbacks for both items
+			const pending = Array.from(container.querySelectorAll('.pending')).map((n) => n.textContent);
+			expect(pending).toEqual(['pending 1', 'pending 2']);
+		});
+
+		it('shows resolved content for each item after async settles', async () => {
+			await hydrateComponent(ServerComponents.ForIfTry, ClientComponents.ForIfTry);
+
+			await Promise.resolve();
 			const items = Array.from(container.querySelectorAll('.item')).map((n) => n.textContent);
 			expect(items).toEqual(['item-1', 'item-2']);
 		});
@@ -131,22 +156,44 @@ describe('hydration > nested control flow (granular)', () => {
 
 	// ── for + if + switch + try ───────────────────────────────────────────────────
 	describe('for + if + switch + try', () => {
-		it('hydrates single-item for+if+switch+try (no inter-item advance needed)', async () => {
+		it('shows pending fallback for single-item for+if+switch+try immediately after hydration', async () => {
 			await hydrateComponent(
 				ServerComponents.ForIfSwitchTrySingle,
 				ClientComponents.ForIfSwitchTrySingle,
 			);
 
+			const pending = Array.from(container.querySelectorAll('.pending')).map((n) => n.textContent);
+			expect(pending).toEqual(['pending 1']);
+		});
+
+		it('shows resolved content for single-item for+if+switch+try after async settles', async () => {
+			await hydrateComponent(
+				ServerComponents.ForIfSwitchTrySingle,
+				ClientComponents.ForIfSwitchTrySingle,
+			);
+
+			await Promise.resolve();
 			const items = Array.from(container.querySelectorAll('.item')).map((n) => n.textContent);
 			expect(items).toEqual(['A-1']);
 		});
 
-		it('hydrates two-item for+if+switch+try (cursor must advance correctly between items)', async () => {
+		it('shows pending fallback for two-item for+if+switch+try immediately after hydration', async () => {
 			await hydrateComponent(
 				ServerComponents.ForIfSwitchTryMulti,
 				ClientComponents.ForIfSwitchTryMulti,
 			);
 
+			const pending = Array.from(container.querySelectorAll('.pending')).map((n) => n.textContent);
+			expect(pending).toEqual(['pending 1', 'pending 2']);
+		});
+
+		it('shows resolved content for two-item for+if+switch+try after async settles (cursor must advance correctly between items)', async () => {
+			await hydrateComponent(
+				ServerComponents.ForIfSwitchTryMulti,
+				ClientComponents.ForIfSwitchTryMulti,
+			);
+
+			await Promise.resolve();
 			const items = Array.from(container.querySelectorAll('.item')).map((n) => n.textContent);
 			expect(items).toEqual(['A-1', 'B-2']);
 			expect(container.querySelector('.item-1.kind-a')).not.toBeNull();
