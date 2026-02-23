@@ -747,6 +747,18 @@ const visitors = {
 	},
 
 	TrackedExpression(node, context) {
+		if (context.state.to_ts) {
+			const visited = /** @type {AST.Expression} */ (context.visit(node.argument));
+			const member = b.member(
+				visited,
+				b.literal('#v'),
+				true,
+				!is_inside_left_side_assignment(node),
+				/** @type {AST.NodeWithLocation} */ (node),
+			);
+			member.tracked = true;
+			return member;
+		}
 		return b.call('_$_.get', /** @type {AST.Expression} */ (context.visit(node.argument)));
 	},
 
