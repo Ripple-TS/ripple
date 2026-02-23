@@ -6,7 +6,7 @@ import {
 	TEMPLATE_SVG_NAMESPACE,
 	TEMPLATE_MATHML_NAMESPACE,
 } from '../../../constants.js';
-import { hydrate_advance, hydrate_next, hydrate_node, hydrating, pop } from './hydration.js';
+import { hydrate_advance, hydrate_node, hydrating, pop } from './hydration.js';
 import { create_text, get_first_child, get_next_sibling, is_firefox } from './operations.js';
 import { active_block, active_namespace } from './runtime.js';
 

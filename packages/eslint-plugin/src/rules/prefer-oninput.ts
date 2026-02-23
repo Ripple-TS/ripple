@@ -16,26 +16,40 @@ const rule: Rule.RuleModule = {
 		schema: [],
 	},
 	create(context) {
+		const reported_ranges = new Set<string>();
+
+		/**
+		 * @param {any} node
+		 */
+		function report_onchange(node: any) {
+			const range = node.range;
+			if (!range) {
+				return;
+			}
+
+			const key = `${range[0]}:${range[1]}`;
+			if (reported_ranges.has(key)) {
+				return;
+			}
+			reported_ranges.add(key);
+
+			context.report({
+				node,
+				messageId: 'preferOnInput',
+				fix(fixer) {
+					return fixer.replaceText(node.name, 'onInput');
+				},
+			});
+		}
+
 		return {
 			// Check JSX attributes (standard JSX)
 			'JSXAttribute[name.name="onChange"]'(node: any) {
-				context.report({
-					node,
-					messageId: 'preferOnInput',
-					fix(fixer) {
-						return fixer.replaceText(node.name, 'onInput');
-					},
-				});
+				report_onchange(node);
 			},
 			// Check Attribute nodes (Ripple parser)
 			'Attribute[name.name="onChange"]'(node: any) {
-				context.report({
-					node,
-					messageId: 'preferOnInput',
-					fix(fixer) {
-						return fixer.replaceText(node.name, 'onInput');
-					},
-				});
+				report_onchange(node);
 			},
 			// Check object properties (for spread props)
 			'Property[key.name="onChange"]'(node: any) {
