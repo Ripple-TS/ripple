@@ -66,11 +66,20 @@ export function first_child(node, is_text) {
 	if (!hydrating) {
 		return get_first_child(node);
 	}
-	var child = get_first_child(/** @type {Node} */ (hydrate_node));
+
+	var current_node = /** @type {Node} */ (hydrate_node);
+	var child;
+
+	// Template elements store their children in .content, not as direct children
+	if (current_node.nodeType === 1 && /** @type {Element} */ (current_node).tagName === 'TEMPLATE') {
+		child = get_first_child(/** @type {HTMLTemplateElement} */ (current_node).content);
+	} else {
+		child = get_first_child(current_node);
+	}
 
 	// Handles the case where we have `<p>{text}</p>`, where `text` is empty
 	if (child === null) {
-		child = /** @type {Node} */ (hydrate_node).appendChild(create_text());
+		child = current_node.appendChild(create_text());
 	} else if (is_text && child.nodeType !== TEXT_NODE) {
 		var text = create_text();
 		/** @type {Element | Text | Comment} */ (child)?.before(text);
