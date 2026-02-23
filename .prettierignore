@@ -9,6 +9,9 @@ AGENTS.md
 .github/copilot-instructions.md
 .cursor/
 
+# Changesets
+.changeset/
+
 # Build outputs
 **/dist/
 **/build/
