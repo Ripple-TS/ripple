@@ -3165,11 +3165,14 @@ function transform_template_element(node, state, visit, child_namespace, init, u
 			skip_children_traversal: true,
 		};
 
-		transform_children(node.children, {
-			visit,
-			state: child_state,
-			root: false,
-		});
+		transform_children(
+			node.children,
+			/** @type {VisitorClientContext} */ ({
+				visit,
+				state: child_state,
+				root: false,
+			}),
+		);
 
 		const template_array = /** @type {NonNullable<TransformClientState['template']>} */ (
 			child_state.template
