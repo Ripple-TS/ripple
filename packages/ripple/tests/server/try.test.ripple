@@ -1,0 +1,85 @@
+import { describe, it, expect } from 'vitest';
+import { render } from 'ripple/server';
+
+describe('try block with catch and pending (server)', () => {
+	it('catch block works when component throws before await with pending block', async () => {
+		component ThrowingChild() {
+			throw new Error('sync error');
+			let data = await Promise.resolve('hello');
+			<p>{data}</p>
+		}
+
+		component App() {
+			try {
+				<ThrowingChild />
+			} pending {
+				<p>{'loading...'}</p>
+			} catch (err) {
+				<p>{'caught error'}</p>
+			}
+		}
+
+		const { body } = await render(App);
+		expect(body).toContain('caught error');
+		expect(body).not.toContain('loading...');
+	});
+
+	it('catch block works when component throws after await with pending block', async () => {
+		component ThrowingAfterAwait() {
+			let data = await Promise.resolve('hello');
+			throw new Error('error after await');
+			<p>{data}</p>
+		}
+
+		component App() {
+			try {
+				<ThrowingAfterAwait />
+			} pending {
+				<p>{'loading...'}</p>
+			} catch (err) {
+				<p>{'caught error'}</p>
+			}
+		}
+
+		const { body } = await render(App);
+		expect(body).toContain('caught error');
+		expect(body).not.toContain('loading...');
+	});
+
+	it('catch block works with try/catch/pending when async body rejects', async () => {
+		component App() {
+			try {
+				let data = await Promise.reject(new Error('rejected'));
+				<p>{data}</p>
+			} pending {
+				<p>{'loading...'}</p>
+			} catch (err) {
+				<p>{'caught rejection'}</p>
+			}
+		}
+
+		const { body } = await render(App);
+		expect(body).toContain('caught rejection');
+		expect(body).not.toContain('loading...');
+	});
+
+	it('removes pending content for nested try/pending blocks', async () => {
+		component App() {
+			try {
+				try {
+					let data = await Promise.resolve('resolved');
+					<p>{data}</p>
+				} pending {
+					<p>{'inner loading...'}</p>
+				}
+			} pending {
+				<p>{'outer loading...'}</p>
+			}
+		}
+
+		const { body } = await render(App);
+		expect(body).toContain('resolved');
+		expect(body).not.toContain('outer loading...');
+		expect(body).not.toContain('inner loading...');
+	});
+});

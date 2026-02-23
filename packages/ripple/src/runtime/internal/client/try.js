@@ -87,6 +87,13 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 	 * @returns {void}
 	 */
 	function handle_error(error) {
+		if (suspended !== null) {
+			destroy_block(suspended);
+			suspended = null;
+			offscreen_fragment = null;
+			pending_count = 0;
+		}
+
 		if (b !== null) {
 			destroy_block(b);
 		}

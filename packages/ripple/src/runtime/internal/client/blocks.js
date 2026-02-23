@@ -20,6 +20,7 @@ import {
 	active_component,
 	active_reaction,
 	create_component_ctx,
+	handle_error,
 	is_block_dirty,
 	run_block,
 	run_teardown,
@@ -91,9 +92,14 @@ export function branch(fn, flags = 0, state = null) {
  */
 export function async(fn) {
 	return block(BRANCH_BLOCK, async () => {
+		var current_block = active_block;
 		const unsuspend = suspend();
-		await fn();
-		unsuspend();
+		try {
+			await fn();
+			unsuspend();
+		} catch (error) {
+			handle_error(error, /** @type {Block} */ (current_block));
+		}
 	});
 }
 

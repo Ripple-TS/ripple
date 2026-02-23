@@ -1,5 +1,80 @@
 import { flushSync, track, TrackedArray } from 'ripple';
 
+describe('try block with catch and pending', () => {
+	it('catch block works when component throws before await with pending block', async () => {
+		component App() {
+			try {
+				<ThrowingChild />
+			} pending {
+				<p>{'loading...'}</p>
+			} catch (err) {
+				<p>{'caught error'}</p>
+			}
+		}
+
+		component ThrowingChild() {
+			throw new Error('sync error');
+			let data = await Promise.resolve('hello');
+			<p>{data}</p>
+		}
+
+		render(App);
+
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.innerHTML).toContain('caught error');
+		expect(container.innerHTML).not.toContain('loading...');
+	});
+
+	it('catch block works when component throws after await with pending block', async () => {
+		component App() {
+			try {
+				<ThrowingAfterAwait />
+			} pending {
+				<p>{'loading...'}</p>
+			} catch (err) {
+				<p>{'caught error'}</p>
+			}
+		}
+
+		component ThrowingAfterAwait() {
+			let data = await Promise.resolve('hello');
+			throw new Error('error after await');
+			<p>{data}</p>
+		}
+
+		render(App);
+
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.innerHTML).toContain('caught error');
+		expect(container.innerHTML).not.toContain('loading...');
+	});
+
+	it('catch block works with try/catch/pending when async body rejects', async () => {
+		component App() {
+			try {
+				let data = await Promise.reject(new Error('rejected'));
+				<p>{data}</p>
+			} pending {
+				<p>{'loading...'}</p>
+			} catch (err) {
+				<p>{'caught rejection'}</p>
+			}
+		}
+
+		render(App);
+
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.innerHTML).toContain('caught rejection');
+		expect(container.innerHTML).not.toContain('loading...');
+	});
+});
+
 describe('try block', () => {
 	it('does not crash when async component is used inside try/pending', async () => {
 		component App() {
