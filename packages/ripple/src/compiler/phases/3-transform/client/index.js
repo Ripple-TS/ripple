@@ -1469,9 +1469,12 @@ const visitors = {
 			const update = [];
 
 			if (!is_void) {
-				transform_children(
-					node.children,
-					/** @type {VisitorClientContext} */ ({
+				const element_name = /** @type {AST.Identifier} */ (node.id).name;
+				// Special handling for <template> elements
+				if (element_name === 'template' && node.children.length > 0) {
+					transform_template_element(node, state, visit, child_namespace, init, update);
+				} else {
+					transform_children(node.children, {
 						visit,
 						state: {
 							...state,
@@ -1481,24 +1484,27 @@ const visitors = {
 							skip_children_traversal: true,
 						},
 						root: false,
-					}),
-				);
-				state.template?.push(`</${/** @type {AST.Identifier} */ (node.id).name}>`);
+					});
+				}
+				state.template?.push(`</${element_name}>`);
 
 				// We need to check if any child nodes are dynamic to determine
 				// if we need to pop the hydration stack to the parent node
-				const needs_pop = node.children.some(
-					(child) =>
-						child.type === 'IfStatement' ||
-						child.type === 'TryStatement' ||
-						child.type === 'ForOfStatement' ||
-						child.type === 'SwitchStatement' ||
-						child.type === 'TsxCompat' ||
-						child.type === 'Html' ||
-						(child.type === 'Element' &&
-							(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
-						(child.type === 'Text' && child.expression.type !== 'Literal'),
-				);
+				// Template elements never need pop() since we don't traverse into them
+				const needs_pop =
+					element_name !== 'template' &&
+					node.children.some(
+						(child) =>
+							child.type === 'IfStatement' ||
+							child.type === 'TryStatement' ||
+							child.type === 'ForOfStatement' ||
+							child.type === 'SwitchStatement' ||
+							child.type === 'TsxCompat' ||
+							child.type === 'Html' ||
+							(child.type === 'Element' &&
+								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
+							(child.type === 'Text' && child.expression.type !== 'Literal'),
+					);
 
 				if (needs_pop) {
 					const id = state.flush_node?.();
@@ -3099,6 +3105,90 @@ function element_has_dynamic_content(element) {
 	}
 
 	return false;
+}
+
+/**
+ * Transform a template element's children into innerHTML assignment.
+ * Template elements don't render children in the normal DOM tree - their content
+ * goes into template.content (a DocumentFragment). We handle them like textarea
+ * elements where children become innerHTML content.
+ *
+ * @param {AST.Element} node - The template element node
+ * @param {TransformClientState} state - The transform state
+ * @param {(node: AST.Node, state?: TransformClientState) => AST.Node} visit - The visitor function
+ * @param {'html' | 'svg' | 'mathml'} child_namespace - The namespace for child elements
+ * @param {Array<AST.Statement>} init - Array to push initialization statements
+ * @param {import('#compiler').UpdateList} update - Array to push update statements
+ */
+function transform_template_element(node, state, visit, child_namespace, init, update) {
+	// For template elements, check if children contain {html} expressions
+	const has_html_child = node.children.some((child) => child.type === 'Html');
+
+	if (has_html_child && node.children.length === 1 && node.children[0].type === 'Html') {
+		// Single {html} expression - set innerHTML reactively
+		const html_node = /** @type {AST.Html} */ (node.children[0]);
+		const id = state.flush_node?.();
+		const metadata = { tracking: false, await: false };
+		const expression = /** @type {AST.Expression} */ (
+			visit(html_node.expression, { ...state, metadata })
+		);
+
+		if (metadata.tracking) {
+			update.push({
+				operation: (key) =>
+					b.stmt(
+						b.assignment(
+							'=',
+							b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'),
+							/** @type {AST.Expression} */ (key),
+						),
+					),
+				expression,
+				identity: html_node.expression,
+				initial: b.literal(''),
+			});
+		} else {
+			state.init?.push(
+				b.stmt(
+					b.assignment('=', b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'), expression),
+				),
+			);
+		}
+	} else {
+		// Static or mixed content - serialize to string and set innerHTML once
+		const child_state = {
+			...state,
+			template: [],
+			init: [],
+			update: [],
+			namespace: child_namespace,
+			skip_children_traversal: true,
+		};
+
+		transform_children(node.children, {
+			visit,
+			state: {...schild_state,
+			root: false,
+		});
+
+		const template_array = /** @type {NonNullable<TransformClientState['template']>} */ (
+			child_state.template
+		);
+
+		if (template_array.length > 0) {
+			const content_html = join_template(template_array);
+			const id = state.flush_node?.();
+			state.init?.push(
+				b.stmt(
+					b.assignment(
+						'=',
+						b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'),
+						content_html,
+					),
+				),
+			);
+		}
+	}
 }
 
 /**
