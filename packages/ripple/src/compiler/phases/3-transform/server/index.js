@@ -1369,6 +1369,10 @@ const visitors = {
 				context.state.metadata.await = true;
 			}
 
+			const pending_position_name = node.pending
+				? context.state.scope.generate('__pending_pos')
+				: null;
+
 			// Render pending block first, saving position so we can remove it after async resolves
 			if (node.pending) {
 				const pending_body = transform_body(node.pending.body, {
@@ -1380,7 +1384,7 @@ const visitors = {
 				});
 				context.state.init?.push(
 					b.var(
-						b.id('__pending_pos'),
+						b.id(pending_position_name),
 						b.member(b.member(b.id('__output'), b.id('body')), b.id('length')),
 					),
 				);
@@ -1422,7 +1426,7 @@ const visitors = {
 							b.call(
 								b.member(b.member(b.id('__output'), b.id('body')), b.id('slice')),
 								b.literal(0),
-								b.id('__pending_pos'),
+								b.id(pending_position_name),
 							),
 						),
 					),

@@ -62,4 +62,24 @@ describe('try block with catch and pending (server)', () => {
 		expect(body).toContain('caught rejection');
 		expect(body).not.toContain('loading...');
 	});
+
+	it('removes pending content for nested try/pending blocks', async () => {
+		component App() {
+			try {
+				try {
+					let data = await Promise.resolve('resolved');
+					<p>{data}</p>
+				} pending {
+					<p>{'inner loading...'}</p>
+				}
+			} pending {
+				<p>{'outer loading...'}</p>
+			}
+		}
+
+		const { body } = await render(App);
+		expect(body).toContain('resolved');
+		expect(body).not.toContain('outer loading...');
+		expect(body).not.toContain('inner loading...');
+	});
 });
