@@ -5,8 +5,6 @@ import {
 	TEMPLATE_USE_IMPORT_NODE,
 	TEMPLATE_SVG_NAMESPACE,
 	TEMPLATE_MATHML_NAMESPACE,
-	HYDRATION_START,
-	HYDRATION_END,
 } from '../../../constants.js';
 import { hydrate_advance, hydrate_next, hydrate_node, hydrating, pop } from './hydration.js';
 import { create_text, get_first_child, get_next_sibling, is_firefox } from './operations.js';
@@ -74,25 +72,23 @@ export function template(content, flags, count = 1) {
 	return () => {
 		if (hydrating) {
 			if (is_fragment) {
-				// For fragments during hydration, use the pre-calculated node count
-				// (passed at compile-time) to determine how many DOM nodes to traverse.
-				// This avoids parsing the HTML string at runtime.
 				var start = /** @type {Node} */ (hydrate_node);
 				var end = start;
 
-				// Advance through the hydrated DOM to find the end node
-				for (var j = 1; j < count; j++) {
+				// Walk using compiler-provided hop count so hydration never
+				// parses template HTML into fragments.
+				for (var i = 1; i < count; i++) {
 					var next = get_next_sibling(end);
 
-					// Skip over hydration markers (comment nodes) to find the next
-					// real element/text node
-					while (next !== null && next.nodeType === 8) {
+					while (next !== null && next.nodeType === Node.COMMENT_NODE) {
 						next = get_next_sibling(next);
 					}
 
-					if (next !== null) {
-						end = next;
+					if (next === null) {
+						break;
 					}
+
+					end = next;
 				}
 
 				assign_nodes(start, end);

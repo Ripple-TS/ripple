@@ -25,4 +25,21 @@ describe('hydration > html in template elements', () => {
 		const data = JSON.parse(template.content.textContent);
 		expect(data).toEqual({ message: 'hello', count: 42 });
 	});
+
+	it('hydrates template siblings around control-flow content without crossing boundaries', async () => {
+		await hydrateComponent(
+			ServerComponents.TemplateAroundIfBlock,
+			ClientComponents.TemplateAroundIfBlock,
+		);
+
+		const before = container.querySelector('template#before');
+		const after = container.querySelector('template#after');
+		const inside = container.querySelector('.inside');
+
+		expect(before).not.toBeNull();
+		expect(after).not.toBeNull();
+		expect(inside?.textContent).toBe('inside');
+		expect(before.content.textContent).toBe('before');
+		expect(after.content.textContent).toBe('after');
+	});
 });

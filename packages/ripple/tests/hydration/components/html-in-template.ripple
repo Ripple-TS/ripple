@@ -10,3 +10,15 @@ export component TemplateWithJSON() {
 	const jsonData = JSON.stringify({ message: 'hello', count: 42 });
 	<template id="data2">{html jsonData}</template>
 }
+
+export component TemplateAroundIfBlock() {
+	const show = true;
+
+	<div>
+		<template id="before">{html 'before'}</template>
+		if (show) {
+			<span class="inside">{'inside'}</span>
+		}
+		<template id="after">{html 'after'}</template>
+	</div>
+}

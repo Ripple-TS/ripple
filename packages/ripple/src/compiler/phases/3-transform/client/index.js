@@ -1474,17 +1474,20 @@ const visitors = {
 				if (element_name === 'template' && node.children.length > 0) {
 					transform_template_element(node, state, visit, child_namespace, init, update);
 				} else {
-					transform_children(node.children, {
-						visit,
-						state: {
-							...state,
-							init,
-							update,
-							namespace: child_namespace,
-							skip_children_traversal: true,
-						},
-						root: false,
-					});
+					transform_children(
+						node.children,
+						/** @type {VisitorClientContext} */ ({
+							visit,
+							state: {
+								...state,
+								init,
+								update,
+								namespace: child_namespace,
+								skip_children_traversal: true,
+							},
+							root: false,
+						}),
+					);
 				}
 				state.template?.push(`</${element_name}>`);
 
@@ -2516,24 +2519,27 @@ const visitors = {
 };
 
 /**
- * Count top-level DOM nodes from normalized AST children (excludes control flow constructs)
+ * Count top-level fragment hydration hops from normalized AST children.
+ * Control-flow constructs are counted because they compile to hydration anchor
+ * regions that occupy sibling traversal steps.
  * @param {AST.Node[]} normalized - The normalized children array
  * @returns {number}
  */
 function count_dom_nodes(normalized) {
 	let count = 0;
 	for (const node of normalized) {
-		// Count only nodes that become actual DOM nodes, not control flow anchors
 		if (
 			node.type === 'Element' ||
 			node.type === 'Text' ||
 			node.type === 'Html' ||
-			node.type === 'TsxCompat'
+			node.type === 'TsxCompat' ||
+			node.type === 'IfStatement' ||
+			node.type === 'ForOfStatement' ||
+			node.type === 'SwitchStatement' ||
+			node.type === 'TryStatement'
 		) {
 			count++;
 		}
-		// IfStatement, ForOfStatement, SwitchStatement, TryStatement become <!> anchors, not DOM nodes
-		// VariableDeclaration, EmptyStatement, BreakStatement, ContinueStatement don't produce DOM
 	}
 	return count || 1;
 }
@@ -3156,14 +3162,14 @@ function transform_template_element(node, state, visit, child_namespace, init, u
 		}
 	} else {
 		// Static or mixed content - serialize to string and set innerHTML once
-		const child_state = {
+		const child_state = /** @type {TransformClientState} */ ({
 			...state,
 			template: [],
 			init: [],
 			update: [],
 			namespace: child_namespace,
 			skip_children_traversal: true,
-		};
+		});
 
 		transform_children(
 			node.children,

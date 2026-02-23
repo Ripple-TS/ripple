@@ -42,3 +42,55 @@ export function TemplateWithJSON(__output) {
 	__output.push('</template>');
 	_$_.pop_component();
 }
+
+export function TemplateAroundIfBlock(__output) {
+	_$_.push_component();
+
+	const show = true;
+
+	__output.push('<div');
+	__output.push('>');
+
+	{
+		__output.push('<template');
+		__output.push(' id="before"');
+		__output.push('>');
+
+		{
+			__output.push('<!--14v3bl2-->');
+			__output.push('before');
+			__output.push('<!---->');
+		}
+
+		__output.push('</template>');
+		__output.push('<!--[-->');
+
+		if (show) {
+			__output.push('<span');
+			__output.push(' class="inside"');
+			__output.push('>');
+
+			{
+				__output.push('inside');
+			}
+
+			__output.push('</span>');
+		}
+
+		__output.push('<!--]-->');
+		__output.push('<template');
+		__output.push(' id="after"');
+		__output.push('>');
+
+		{
+			__output.push('<!--1qvtvs1-->');
+			__output.push('after');
+			__output.push('<!---->');
+		}
+
+		__output.push('</template>');
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}

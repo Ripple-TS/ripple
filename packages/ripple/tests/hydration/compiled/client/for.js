@@ -28,7 +28,7 @@ var root_24 = _$_.template(`<li> </li>`, 0);
 var root_23 = _$_.template(`<button class="shuffle">Shuffle</button><ul></ul>`, 1, 2);
 var root_27 = _$_.template(`<li> </li>`, 0);
 var root_26 = _$_.template(`<ul class="list"></ul>`, 0);
-var root_25 = _$_.template(`<button class="toggle">Toggle List</button><button class="add">Add Item</button><!>`, 1, 2);
+var root_25 = _$_.template(`<button class="toggle">Toggle List</button><button class="add">Add Item</button><!>`, 1, 3);
 var root_29 = _$_.template(`<li> </li>`, 0);
 var root_28 = _$_.template(`<button class="populate">Populate</button><ul class="list"></ul>`, 1, 2);
 var root_31 = _$_.template(`<li> </li>`, 0);
