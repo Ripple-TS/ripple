@@ -1369,7 +1369,7 @@ const visitors = {
 				context.state.metadata.await = true;
 			}
 
-			// Render pending block first
+			// Render pending block first, saving position so we can remove it after async resolves
 			if (node.pending) {
 				const pending_body = transform_body(node.pending.body, {
 					...context,
@@ -1378,6 +1378,12 @@ const visitors = {
 						scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.pending)),
 					},
 				});
+				context.state.init?.push(
+					b.var(
+						b.id('__pending_pos'),
+						b.member(b.member(b.id('__output'), b.id('body')), b.id('length')),
+					),
+				);
 				context.state.init?.push(...pending_body);
 			}
 
@@ -1403,6 +1409,24 @@ const visitors = {
 							),
 						),
 					),
+				];
+			}
+
+			// Remove pending content before rendering resolved/catch content
+			if (node.pending) {
+				try_statements = [
+					b.stmt(
+						b.assignment(
+							'=',
+							b.member(b.id('__output'), b.id('body')),
+							b.call(
+								b.member(b.member(b.id('__output'), b.id('body')), b.id('slice')),
+								b.literal(0),
+								b.id('__pending_pos'),
+							),
+						),
+					),
+					...try_statements,
 				];
 			}
 
