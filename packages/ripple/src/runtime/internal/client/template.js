@@ -66,6 +66,8 @@ export function template(content, flags, count = 1) {
 	var use_mathml_namespace = (flags & TEMPLATE_MATHML_NAMESPACE) !== 0;
 	/** @type {Node | DocumentFragment | undefined} */
 	var node;
+	var node_svg = false;
+	var node_mathml = false;
 	var is_comment = content === '<!>';
 	var has_start = !is_comment && !content.startsWith('<!>');
 
@@ -103,8 +105,10 @@ export function template(content, flags, count = 1) {
 		var svg = !is_comment && (use_svg_namespace || active_namespace === 'svg');
 		var mathml = !is_comment && (use_mathml_namespace || active_namespace === 'mathml');
 
-		if (node === undefined) {
+		if (node === undefined || node_svg !== svg || node_mathml !== mathml) {
 			node = create_fragment_from_html(has_start ? content : '<!>' + content, svg, mathml);
+			node_svg = svg;
+			node_mathml = mathml;
 			if (!is_fragment) node = /** @type {Node} */ (get_first_child(node));
 		}
 
