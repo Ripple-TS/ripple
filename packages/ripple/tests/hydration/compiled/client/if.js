@@ -2,24 +2,24 @@
 import * as _$_ from 'ripple/internal/client';
 
 var root_1 = _$_.template(`<div class="shown">Visible</div>`, 0);
-var root = _$_.template(`<!>`, 1);
+var root = _$_.template(`<!>`, 1, 1);
 var root_3 = _$_.template(`<div class="shown">Visible</div>`, 0);
-var root_2 = _$_.template(`<!>`, 1);
+var root_2 = _$_.template(`<!>`, 1, 1);
 var root_5 = _$_.template(`<div class="logged-in">Welcome back!</div>`, 0);
 var root_6 = _$_.template(`<div class="logged-out">Please log in</div>`, 0);
-var root_4 = _$_.template(`<!>`, 1);
+var root_4 = _$_.template(`<!>`, 1, 1);
 var root_8 = _$_.template(`<div class="content">Content visible</div>`, 0);
-var root_7 = _$_.template(`<button class="toggle">Toggle</button><!>`, 1);
+var root_7 = _$_.template(`<button class="toggle">Toggle</button><!>`, 1, 2);
 var root_10 = _$_.template(`<div class="on">ON</div>`, 0);
 var root_11 = _$_.template(`<div class="off">OFF</div>`, 0);
-var root_9 = _$_.template(`<button class="toggle">Toggle</button><!>`, 1);
+var root_9 = _$_.template(`<button class="toggle">Toggle</button><!>`, 1, 2);
 var root_14 = _$_.template(`<span class="inner-content">Inner</span>`, 0);
 var root_13 = _$_.template(`<div class="outer-content">Outer<!></div>`, 0);
-var root_12 = _$_.template(`<button class="outer-toggle">Outer</button><button class="inner-toggle">Inner</button><!>`, 1);
+var root_12 = _$_.template(`<button class="outer-toggle">Outer</button><button class="inner-toggle">Inner</button><!>`, 1, 3);
 var root_16 = _$_.template(`<div class="state">Loading...</div>`, 0);
 var root_18 = _$_.template(`<div class="state">Success!</div>`, 0);
 var root_19 = _$_.template(`<div class="state">Error occurred</div>`, 0);
-var root_17 = _$_.template(`<!>`, 1);
+var root_17 = _$_.template(`<!>`, 1, 1);
 var root_15 = _$_.template(`<div><button class="success">Success</button><button class="error">Error</button><button class="loading">Loading</button><!></div>`, 0);
 
 import { track } from 'ripple';

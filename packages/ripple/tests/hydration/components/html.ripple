@@ -521,3 +521,36 @@ export component DocsLayoutExactWithoutData() {
 		<div class="doc-content">{html htmlContent}</div>
 	</DocsLayoutExact>
 }
+
+export component TemplateWithHtmlContent() {
+	const data = { title: 'Test', value: 42 };
+	<div>
+		<template id="t1">{html JSON.stringify(data)}</template>
+		<p class="content">{'Main content'}</p>
+	</div>
+}
+
+export component TemplateWithHtmlAndSiblings() {
+	const data = { name: 'Ripple', version: '1.0' };
+	<div class="wrapper">
+		<h1>{'Title'}</h1>
+		<template id="data-template">{html JSON.stringify(data)}</template>
+		<p class="after-template">{'Content after template'}</p>
+	</div>
+}
+
+component LayoutWithTemplate({ children, data }: { children: any; data: object }) {
+	<div class="layout">
+		<template id="page-data">{html JSON.stringify(data)}</template>
+		<main>
+			<children />
+		</main>
+	</div>
+}
+
+export component NestedTemplateInLayout() {
+	const doc = { title: 'Comparison', html: '<p>Content</p>' };
+	<LayoutWithTemplate data={doc}>
+		<div class="doc-content">{html doc.html}</div>
+	</LayoutWithTemplate>
+}

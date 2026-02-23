@@ -3,9 +3,9 @@ import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<div class="count"> </div>`, 0);
 var root_1 = _$_.template(`<div><span class="count"> </span></div>`, 0);
-var root_2 = _$_.template(`<!>`, 1);
+var root_2 = _$_.template(`<!>`, 1, 1);
 var root_3 = _$_.template(`<div class="sum"> </div>`, 0);
-var root_4 = _$_.template(`<div class="x"> </div><div class="y"> </div><div class="z"> </div>`, 1);
+var root_4 = _$_.template(`<div class="x"> </div><div class="y"> </div><div class="z"> </div>`, 1, 3);
 var root_5 = _$_.template(`<div class="name"> </div>`, 0);
 
 import { track } from 'ripple';

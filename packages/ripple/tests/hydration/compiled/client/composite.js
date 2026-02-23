@@ -3,14 +3,14 @@ import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<div class="layout"><!></div>`, 0);
 var root_1 = _$_.template(`<div class="single">single</div>`, 0);
-var root_2 = _$_.template(`<h1>title</h1><p>description</p>`, 1);
-var root_3 = _$_.template(`<!>`, 1);
-var root_5 = _$_.template(`<!>`, 1);
-var root_4 = _$_.template(`<!>`, 1);
-var root_7 = _$_.template(`<!><div class="extra">extra</div>`, 1);
-var root_6 = _$_.template(`<!>`, 1);
-var root_9 = _$_.template(`<!>`, 1);
-var root_8 = _$_.template(`<!>`, 1);
+var root_2 = _$_.template(`<h1>title</h1><p>description</p>`, 1, 2);
+var root_3 = _$_.template(`<!>`, 1, 1);
+var root_5 = _$_.template(`<!>`, 1, 1);
+var root_4 = _$_.template(`<!>`, 1, 1);
+var root_7 = _$_.template(`<!><div class="extra">extra</div>`, 1, 2);
+var root_6 = _$_.template(`<!>`, 1, 1);
+var root_9 = _$_.template(`<!>`, 1, 1);
+var root_8 = _$_.template(`<!>`, 1, 1);
 
 export function Layout(__anchor, __props, __block) {
 	_$_.push_component();

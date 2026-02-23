@@ -3,7 +3,7 @@ import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<div>Content</div>`, 0);
 var root_1 = _$_.template(`<div><span> </span></div>`, 0);
-var root_3 = _$_.template(`<meta name="description" content="Page description"><link rel="stylesheet" href="/styles.css">`, 1);
+var root_3 = _$_.template(`<meta name="description" content="Page description"><link rel="stylesheet" href="/styles.css">`, 1, 2);
 var root_2 = _$_.template(`<div>Page content</div>`, 0);
 var root_5 = _$_.template(`<meta name="description">`, 0);
 var root_4 = _$_.template(`<div> </div>`, 0);

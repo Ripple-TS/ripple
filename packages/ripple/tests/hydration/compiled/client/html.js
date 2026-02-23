@@ -9,15 +9,15 @@ var root_4 = _$_.template(`<div><!><!></div>`, 0);
 var root_5 = _$_.template(`<div><!><button>Increment</button></div>`, 0);
 var root_6 = _$_.template(`<div class="wrapper"><div class="inner"><!></div></div>`, 0);
 var root_8 = _$_.template(`<div class="vp-doc"><!></div>`, 0);
-var root_7 = _$_.template(`<!>`, 1);
-var root_10 = _$_.template(`<h1>Title</h1><div class="content"><!></div>`, 1);
-var root_9 = _$_.template(`<!>`, 1);
+var root_7 = _$_.template(`<!>`, 1, 1);
+var root_10 = _$_.template(`<h1>Title</h1><div class="content"><!></div>`, 1, 2);
+var root_9 = _$_.template(`<!>`, 1, 1);
 var root_12 = _$_.template(`<div class="doc"><!><!></div>`, 0);
-var root_11 = _$_.template(`<!>`, 1);
+var root_11 = _$_.template(`<!>`, 1, 1);
 var root_13 = _$_.template(`<div><!></div>`, 0);
 var root_14 = _$_.template(`<div><!></div>`, 0);
 var root_16 = _$_.template(`<div class="vp-doc"><!></div>`, 0);
-var root_15 = _$_.template(`<!>`, 1);
+var root_15 = _$_.template(`<!>`, 1, 1);
 var root_17 = _$_.template(`<footer class="doc-footer">Footer content</footer>`, 0);
 var root_19 = _$_.template(`<div class="edit-link"><a>Edit</a></div>`, 0);
 var root_20 = _$_.template(`<nav class="prev-next"><a> </a></nav>`, 0);
@@ -25,31 +25,31 @@ var root_22 = _$_.template(`<li><a> </a></li>`, 0);
 var root_21 = _$_.template(`<div class="toc"><ul></ul></div>`, 0);
 var root_18 = _$_.template(`<div class="layout"><div class="content-container"><article><div><!></div></article><!><!><!></div><aside><!></aside></div>`, 0);
 var root_24 = _$_.template(`<div class="vp-doc"><!></div>`, 0);
-var root_23 = _$_.template(`<!>`, 1);
+var root_23 = _$_.template(`<!>`, 1, 1);
 var root_26 = _$_.template(`<div class="vp-doc"><!></div>`, 0);
-var root_25 = _$_.template(`<!>`, 1);
+var root_25 = _$_.template(`<!>`, 1, 1);
 var root_28 = _$_.template(`<div class="vp-doc"><!></div>`, 0);
-var root_27 = _$_.template(`<!>`, 1);
+var root_27 = _$_.template(`<!>`, 1, 1);
 var root_30 = _$_.template(`<h1 class="heading"><!></h1>`, 0);
 var root_31 = _$_.template(`<h2 class="heading"><!></h2>`, 0);
-var root_29 = _$_.template(`<!>`, 1);
+var root_29 = _$_.template(`<!>`, 1, 1);
 var root_32 = _$_.template(`<div class="code-block"><div class="header"><button>Copy</button><span class="lang">js</span></div><div class="content"><!></div></div>`, 0);
 var root_33 = _$_.template(`<div class="wrapper"><div class="inner"><!></div></div>`, 0);
-var root_35 = _$_.template(`<!><p>First paragraph</p><p>Second paragraph</p><!><p>After code</p>`, 1);
-var root_34 = _$_.template(`<!>`, 1);
+var root_35 = _$_.template(`<!><p>First paragraph</p><p>Second paragraph</p><!><p>After code</p>`, 1, 5);
+var root_34 = _$_.template(`<!>`, 1, 1);
 var root_37 = _$_.template(`<div class="indicator"></div>`, 0);
 var root_36 = _$_.template(`<div><!><a><span> </span></a></div>`, 0);
 var root_39 = _$_.template(`<div class="section-items"><!></div>`, 0);
 var root_38 = _$_.template(`<section class="sidebar-section"><div class="section-header"><h2> </h2><button>Toggle</button></div><!></section>`, 0);
-var root_41 = _$_.template(`<!><!>`, 1);
-var root_42 = _$_.template(`<!><!>`, 1);
+var root_41 = _$_.template(`<!><!>`, 1, 2);
+var root_42 = _$_.template(`<!><!>`, 1, 2);
 var root_40 = _$_.template(`<aside class="sidebar"><nav><div class="group"><!></div><div class="group"><!></div></nav></aside>`, 0);
 var root_43 = _$_.template(`<header class="page-header"><div class="logo">MyApp</div></header>`, 0);
 var root_45 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
 var root_44 = _$_.template(`<div class="layout"><!><div class="content-wrapper"><!><main class="main-content"><div class="article"><div><h1>Introduction</h1><p>Welcome to the docs.</p></div></div><!><!></main></div></div>`, 0);
 var root_46 = _$_.template(`<article class="doc-content"><div><!></div></article>`, 0);
 var root_47 = _$_.template(`<footer class="doc-footer">Footer</footer>`, 0);
-var root_49 = _$_.template(`<h1>Title</h1><p>Content goes here.</p>`, 1);
+var root_49 = _$_.template(`<h1>Title</h1><p>Content goes here.</p>`, 1, 2);
 var root_50 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
 var root_51 = _$_.template(`<nav class="prev-next"><a href="/prev">Previous</a></nav>`, 0);
 var root_48 = _$_.template(`<div class="content-container"><!><!><!><!></div>`, 0);
@@ -59,7 +59,7 @@ var root_52 = _$_.template(`<div class="content-container"><!><!><!></div>`, 0);
 var root_56 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
 var root_55 = _$_.template(`<div class="content-container"><article class="doc-content"><div><!></div></article><!><!></div>`, 0);
 var root_58 = _$_.template(`<div class="doc-content"><!></div>`, 0);
-var root_57 = _$_.template(`<!>`, 1);
+var root_57 = _$_.template(`<!>`, 1, 1);
 var root_59 = _$_.template(`<header class="header">Header</header>`, 0);
 var root_60 = _$_.template(`<aside class="sidebar">Sidebar</aside>`, 0);
 var root_61 = _$_.template(`<footer class="footer">Footer</footer>`, 0);
@@ -67,9 +67,9 @@ var root_63 = _$_.template(`<div class="edit-link"><a href="/edit">Edit on GitHu
 var root_64 = _$_.template(`<nav class="prev-next"><a> </a></nav>`, 0);
 var root_62 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article><!><!><!></div></div></div></main></div></div>`, 0);
 var root_66 = _$_.template(`<div class="doc-content"><!></div>`, 0);
-var root_65 = _$_.template(`<!>`, 1);
+var root_65 = _$_.template(`<!>`, 1, 1);
 var root_68 = _$_.template(`<div class="doc-content"><!></div>`, 0);
-var root_67 = _$_.template(`<!>`, 1);
+var root_67 = _$_.template(`<!>`, 1, 1);
 var root_70 = _$_.template(`<div class="edit-link"><a>Edit on GitHub</a></div>`, 0);
 var root_72 = _$_.template(`<a class="pager prev"><span class="title"> </span></a>`, 0);
 var root_73 = _$_.template(`<span></span>`, 0);
@@ -79,9 +79,14 @@ var root_76 = _$_.template(`<a> </a>`, 0);
 var root_75 = _$_.template(`<div class="aside-content"><nav class="outline"></nav></div>`, 0);
 var root_69 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article><!><!><!></div></div><aside class="aside"><!></aside></div></main></div></div>`, 0);
 var root_78 = _$_.template(`<div class="doc-content"><!></div>`, 0);
-var root_77 = _$_.template(`<!>`, 1);
+var root_77 = _$_.template(`<!>`, 1, 1);
 var root_80 = _$_.template(`<div class="doc-content"><!></div>`, 0);
-var root_79 = _$_.template(`<!>`, 1);
+var root_79 = _$_.template(`<!>`, 1, 1);
+var root_81 = _$_.template(`<div><template id="t1"></template><p class="content">Main content</p></div>`, 0);
+var root_82 = _$_.template(`<div class="wrapper"><h1>Title</h1><template id="data-template"></template><p class="after-template">Content after template</p></div>`, 0);
+var root_83 = _$_.template(`<div class="layout"><template id="page-data"></template><main><!></main></div>`, 0);
+var root_85 = _$_.template(`<div class="doc-content"><!></div>`, 0);
+var root_84 = _$_.template(`<!>`, 1, 1);
 
 import { track } from 'ripple';
 
@@ -1956,6 +1961,106 @@ export function DocsLayoutExactWithoutData(__anchor, _, __block) {
 	);
 
 	_$_.append(__anchor, fragment_18);
+	_$_.pop_component();
+}
+
+export function TemplateWithHtmlContent(__anchor, _, __block) {
+	_$_.push_component();
+
+	const data = { title: 'Test', value: 42 };
+	var div_66 = root_81();
+
+	{
+		var template_1 = _$_.child(div_66);
+	}
+
+	_$_.render(() => {
+		template_1.innerHTML = _$_.with_scope(__block, () => JSON.stringify(data));
+	});
+
+	_$_.append(__anchor, div_66);
+	_$_.pop_component();
+}
+
+export function TemplateWithHtmlAndSiblings(__anchor, _, __block) {
+	_$_.push_component();
+
+	const data = { name: 'Ripple', version: '1.0' };
+	var div_67 = root_82();
+
+	{
+		var h1_3 = _$_.child(div_67);
+		var template_2 = _$_.sibling(h1_3);
+	}
+
+	_$_.render(() => {
+		template_2.innerHTML = _$_.with_scope(__block, () => JSON.stringify(data));
+	});
+
+	_$_.append(__anchor, div_67);
+	_$_.pop_component();
+}
+
+function LayoutWithTemplate(__anchor, __props, __block) {
+	_$_.push_component();
+
+	var div_68 = root_83();
+
+	{
+		var template_3 = _$_.child(div_68);
+		var main_4 = _$_.sibling(template_3);
+
+		{
+			var node_88 = _$_.child(main_4);
+
+			_$_.composite(() => __props.children, node_88, {});
+			_$_.pop(main_4);
+		}
+	}
+
+	_$_.render(() => {
+		template_3.innerHTML = _$_.with_scope(__block, () => JSON.stringify(__props.data));
+	});
+
+	_$_.append(__anchor, div_68);
+	_$_.pop_component();
+}
+
+export function NestedTemplateInLayout(__anchor, _, __block) {
+	_$_.push_component();
+
+	const doc = { title: 'Comparison', html: '<p>Content</p>' };
+	var fragment_19 = root_84();
+	var node_89 = _$_.first_child_frag(fragment_19);
+
+	LayoutWithTemplate(
+		node_89,
+		{
+			data: doc,
+
+			children(__anchor, _, __block) {
+				_$_.push_component();
+
+				var div_69 = root_85();
+
+				{
+					var node_90 = _$_.child(div_69);
+
+					_$_.pop(div_69);
+				}
+
+				_$_.render(() => {
+					_$_.html(node_90, () => doc.html);
+				});
+
+				_$_.append(__anchor, div_69);
+				_$_.pop_component();
+			}
+		},
+		_$_.active_block
+	);
+
+	_$_.append(__anchor, fragment_19);
 	_$_.pop_component();
 }
 

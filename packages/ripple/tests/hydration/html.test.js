@@ -218,4 +218,35 @@ describe('hydration > html tags', () => {
 		expect(html).toContain('Sidebar');
 		expect(html).toContain('Footer');
 	});
+
+	it('hydrates template element with {html} content', async () => {
+		await hydrateComponent(
+			ServerComponents.TemplateWithHtmlContent,
+			ClientComponents.TemplateWithHtmlContent,
+		);
+		const html = container.innerHTML;
+		expect(html).toContain('<template id="t1">');
+		expect(html).toContain('Main content');
+	});
+
+	it('hydrates template element with {html} and siblings', async () => {
+		await hydrateComponent(
+			ServerComponents.TemplateWithHtmlAndSiblings,
+			ClientComponents.TemplateWithHtmlAndSiblings,
+		);
+		const html = container.innerHTML;
+		expect(html).toContain('Title');
+		expect(html).toContain('<template id="data-template">');
+		expect(html).toContain('Content after template');
+	});
+
+	it('hydrates nested template in layout component', async () => {
+		await hydrateComponent(
+			ServerComponents.NestedTemplateInLayout,
+			ClientComponents.NestedTemplateInLayout,
+		);
+		const html = container.innerHTML;
+		expect(html).toContain('<template id="page-data">');
+		expect(html).toContain('<p>Content</p>');
+	});
 });

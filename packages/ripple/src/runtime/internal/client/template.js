@@ -5,10 +5,8 @@ import {
 	TEMPLATE_USE_IMPORT_NODE,
 	TEMPLATE_SVG_NAMESPACE,
 	TEMPLATE_MATHML_NAMESPACE,
-	HYDRATION_START,
-	HYDRATION_END,
 } from '../../../constants.js';
-import { hydrate_advance, hydrate_next, hydrate_node, hydrating, pop } from './hydration.js';
+import { hydrate_advance, hydrate_node, hydrating, pop } from './hydration.js';
 import { create_text, get_first_child, get_next_sibling, is_firefox } from './operations.js';
 import { active_block, active_namespace } from './runtime.js';
 
@@ -58,100 +56,59 @@ export function create_fragment_from_html(
  * Creates a template node or fragment from content and flags.
  * @param {string} content - The template content.
  * @param {number} flags - Flags for template type.
+ * @param {number} [count] - Pre-calculated count of top-level nodes (for fragments). When provided, avoids runtime parsing.
  * @returns {() => Node}
  */
-export function template(content, flags) {
+export function template(content, flags, count = 1) {
 	var is_fragment = (flags & TEMPLATE_FRAGMENT) !== 0;
 	var use_import_node = (flags & TEMPLATE_USE_IMPORT_NODE) !== 0;
-	var is_comment = content === '<!>';
-	var use_svg_namespace = !is_comment && (flags & TEMPLATE_SVG_NAMESPACE) !== 0;
-	var use_mathml_namespace = !is_comment && (flags & TEMPLATE_MATHML_NAMESPACE) !== 0;
+	var use_svg_namespace = (flags & TEMPLATE_SVG_NAMESPACE) !== 0;
+	var use_mathml_namespace = (flags & TEMPLATE_MATHML_NAMESPACE) !== 0;
 	/** @type {Node | DocumentFragment | undefined} */
 	var node;
+	var node_svg = false;
+	var node_mathml = false;
+	var is_comment = content === '<!>';
 	var has_start = !is_comment && !content.startsWith('<!>');
-
-	// For fragments, eagerly create the node so we can walk its children
-	// during hydration to find the correct end node. The eagerly-created
-	// node is reused as the clone template in the non-hydrating path.
-	if (is_fragment) {
-		node = create_fragment_from_html(
-			has_start ? content : '<!>' + content,
-			use_svg_namespace,
-			use_mathml_namespace,
-		);
-	}
 
 	return () => {
 		if (hydrating) {
 			if (is_fragment) {
-				// Walk the template fragment's children in lockstep with hydrated
-				// DOM siblings. Comment nodes (<!>) are control flow anchors whose
-				// hydration markers (<!--[-->...<!--]-->) are consumed by block
-				// processing, so we skip them and only advance for element/text nodes.
 				var start = /** @type {Node} */ (hydrate_node);
 				var end = start;
-				var children = /** @type {DocumentFragment} */ (node).childNodes;
-				var is_first = true;
 
-				for (var i = 0; i < children.length; i++) {
-					if (children[i].nodeType === 8) continue;
-
-					if (is_first) {
-						is_first = false;
-						continue;
-					}
-
-					// Advance past comment nodes in the hydrated DOM. Each <!>
-					// anchor in the template expands to a <!--[-->...<!--]-->
-					// region, and there may be consecutive ones. Track depth so
-					// nested blocks are skipped, and stop at the first non-comment
-					// node at depth 0.
+				// Walk using compiler-provided hop count so hydration never
+				// parses template HTML into fragments.
+				for (var i = 1; i < count; i++) {
 					var next = get_next_sibling(end);
-					var depth = 0;
 
-					while (next !== null) {
-						if (next.nodeType === 8) {
-							var data = /** @type {Comment} */ (next).data;
-							if (data === HYDRATION_START) {
-								depth++;
-							} else if (data === HYDRATION_END) {
-								if (depth > 0) {
-									depth--;
-								} else {
-									// Reached a close marker that belongs to a parent block
-									next = null;
-									break;
-								}
-							}
-							next = get_next_sibling(next);
-							continue;
-						}
-
-						if (depth === 0) {
-							break;
-						}
+					while (next !== null && next.nodeType === Node.COMMENT_NODE) {
 						next = get_next_sibling(next);
 					}
 
 					if (next === null) {
 						break;
 					}
+
 					end = next;
 				}
 
 				assign_nodes(start, end);
 				return start;
 			} else {
-				assign_nodes(/** @type {Node} */ (hydrate_node), /** @type {Node} */ (hydrate_node));
+				var node_to_use = /** @type {Node} */ (hydrate_node);
+				assign_nodes(node_to_use, node_to_use);
+				return node_to_use;
 			}
-			return /** @type {Node} */ (hydrate_node);
 		}
 		// If using runtime namespace, check active_namespace
-		var svg = use_svg_namespace || (!is_comment && active_namespace === 'svg');
-		var mathml = use_mathml_namespace || (!is_comment && active_namespace === 'mathml');
+		var svg = !is_comment && (use_svg_namespace || active_namespace === 'svg');
+		var mathml = !is_comment && (use_mathml_namespace || active_namespace === 'mathml');
 
-		if (node === undefined || use_svg_namespace !== svg || use_mathml_namespace !== mathml) {
+		if (node === undefined || node_svg !== svg || node_mathml !== mathml) {
 			node = create_fragment_from_html(has_start ? content : '<!>' + content, svg, mathml);
+			node_svg = svg;
+			node_mathml = mathml;
 			if (!is_fragment) node = /** @type {Node} */ (get_first_child(node));
 		}
 

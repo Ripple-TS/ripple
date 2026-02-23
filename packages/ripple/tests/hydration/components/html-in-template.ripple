@@ -1,0 +1,24 @@
+// Test case for hydration error with {html} inside template elements
+// Reproduces issue from website-new/src/pages/docs/comparison.ripple
+
+export component SimpleTemplateHtml() {
+	const data = 'test data';
+	<template id="data1">{html data}</template>
+}
+
+export component TemplateWithJSON() {
+	const jsonData = JSON.stringify({ message: 'hello', count: 42 });
+	<template id="data2">{html jsonData}</template>
+}
+
+export component TemplateAroundIfBlock() {
+	const show = true;
+
+	<div>
+		<template id="before">{html 'before'}</template>
+		if (show) {
+			<span class="inside">{'inside'}</span>
+		}
+		<template id="after">{html 'after'}</template>
+	</div>
+}
