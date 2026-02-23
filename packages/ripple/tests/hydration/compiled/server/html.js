@@ -2191,3 +2191,173 @@ export function DocsLayoutExactWithoutData(__output) {
 
 	_$_.pop_component();
 }
+
+export function TemplateWithHtmlContent(__output) {
+	_$_.push_component();
+
+	const data = { title: 'Test', value: 42 };
+
+	__output.push('<div');
+	__output.push('>');
+
+	{
+		__output.push('<template');
+		__output.push(' id="t1"');
+		__output.push('>');
+
+		{
+			const html_value_23 = String(JSON.stringify(data) ?? '');
+
+			__output.push('<!--' + _$_.hash(html_value_23) + '-->');
+			__output.push(html_value_23);
+			__output.push('<!---->');
+		}
+
+		__output.push('</template>');
+		__output.push('<p');
+		__output.push(' class="content"');
+		__output.push('>');
+
+		{
+			__output.push('Main content');
+		}
+
+		__output.push('</p>');
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}
+
+export function TemplateWithHtmlAndSiblings(__output) {
+	_$_.push_component();
+
+	const data = { name: 'Ripple', version: '1.0' };
+
+	__output.push('<div');
+	__output.push(' class="wrapper"');
+	__output.push('>');
+
+	{
+		__output.push('<h1');
+		__output.push('>');
+
+		{
+			__output.push('Title');
+		}
+
+		__output.push('</h1>');
+		__output.push('<template');
+		__output.push(' id="data-template"');
+		__output.push('>');
+
+		{
+			const html_value_24 = String(JSON.stringify(data) ?? '');
+
+			__output.push('<!--' + _$_.hash(html_value_24) + '-->');
+			__output.push(html_value_24);
+			__output.push('<!---->');
+		}
+
+		__output.push('</template>');
+		__output.push('<p');
+		__output.push(' class="after-template"');
+		__output.push('>');
+
+		{
+			__output.push('Content after template');
+		}
+
+		__output.push('</p>');
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}
+
+async function LayoutWithTemplate(__output, { children, data }) {
+	return _$_.async(async () => {
+		_$_.push_component();
+		__output.push('<div');
+		__output.push(' class="layout"');
+		__output.push('>');
+
+		{
+			__output.push('<template');
+			__output.push(' id="page-data"');
+			__output.push('>');
+
+			{
+				const html_value_25 = String(JSON.stringify(data) ?? '');
+
+				__output.push('<!--' + _$_.hash(html_value_25) + '-->');
+				__output.push(html_value_25);
+				__output.push('<!---->');
+			}
+
+			__output.push('</template>');
+			__output.push('<main');
+			__output.push('>');
+
+			{
+				{
+					const comp = children;
+					const args = [__output, {}];
+
+					if (comp?.async) {
+						await comp(...args);
+					} else if (comp) {
+						comp(...args);
+					}
+				}
+			}
+
+			__output.push('</main>');
+		}
+
+		__output.push('</div>');
+		_$_.pop_component();
+	});
+}
+
+LayoutWithTemplate.async = true;
+
+export function NestedTemplateInLayout(__output) {
+	_$_.push_component();
+
+	const doc = { title: 'Comparison', html: '<p>Content</p>' };
+
+	{
+		const comp = LayoutWithTemplate;
+
+		const args = [
+			__output,
+
+			{
+				data: doc,
+
+				children: function children(__output) {
+					_$_.push_component();
+					__output.push('<div');
+					__output.push(' class="doc-content"');
+					__output.push('>');
+
+					{
+						const html_value_26 = String(doc.html ?? '');
+
+						__output.push('<!--' + _$_.hash(html_value_26) + '-->');
+						__output.push(html_value_26);
+						__output.push('<!---->');
+					}
+
+					__output.push('</div>');
+					_$_.pop_component();
+				}
+			}
+		];
+
+		comp(...args);
+	}
+
+	_$_.pop_component();
+}
