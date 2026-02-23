@@ -58,9 +58,10 @@ export function create_fragment_from_html(
  * Creates a template node or fragment from content and flags.
  * @param {string} content - The template content.
  * @param {number} flags - Flags for template type.
+ * @param {number} [count] - Pre-calculated count of top-level nodes (for fragments). When provided, avoids runtime parsing.
  * @returns {() => Node}
  */
-export function template(content, flags) {
+export function template(content, flags, count = 1) {
 	var is_fragment = (flags & TEMPLATE_FRAGMENT) !== 0;
 	var use_import_node = (flags & TEMPLATE_USE_IMPORT_NODE) !== 0;
 	var is_comment = content === '<!>';
@@ -70,81 +71,37 @@ export function template(content, flags) {
 	var node;
 	var has_start = !is_comment && !content.startsWith('<!>');
 
-	// For fragments, eagerly create the node so we can walk its children
-	// during hydration to find the correct end node. The eagerly-created
-	// node is reused as the clone template in the non-hydrating path.
-	if (is_fragment) {
-		node = create_fragment_from_html(
-			has_start ? content : '<!>' + content,
-			use_svg_namespace,
-			use_mathml_namespace,
-		);
-	}
-
 	return () => {
 		if (hydrating) {
 			if (is_fragment) {
-				// Walk the template fragment's children in lockstep with hydrated
-				// DOM siblings. Comment nodes (<!>) are control flow anchors whose
-				// hydration markers (<!--[-->...<!--]-->) are consumed by block
-				// processing, so we skip them and only advance for element/text nodes.
+				// For fragments during hydration, use the pre-calculated node count
+				// (passed at compile-time) to determine how many DOM nodes to traverse.
+				// This avoids parsing the HTML string at runtime.
 				var start = /** @type {Node} */ (hydrate_node);
 				var end = start;
-				var children = /** @type {DocumentFragment} */ (node).childNodes;
-				var is_first = true;
 
-				for (var i = 0; i < children.length; i++) {
-					if (children[i].nodeType === 8) continue;
-
-					if (is_first) {
-						is_first = false;
-						continue;
-					}
-
-					// Advance past comment nodes in the hydrated DOM. Each <!>
-					// anchor in the template expands to a <!--[-->...<!--]-->
-					// region, and there may be consecutive ones. Track depth so
-					// nested blocks are skipped, and stop at the first non-comment
-					// node at depth 0.
+				// Advance through the hydrated DOM to find the end node
+				for (var j = 1; j < count; j++) {
 					var next = get_next_sibling(end);
-					var depth = 0;
 
-					while (next !== null) {
-						if (next.nodeType === 8) {
-							var data = /** @type {Comment} */ (next).data;
-							if (data === HYDRATION_START) {
-								depth++;
-							} else if (data === HYDRATION_END) {
-								if (depth > 0) {
-									depth--;
-								} else {
-									// Reached a close marker that belongs to a parent block
-									next = null;
-									break;
-								}
-							}
-							next = get_next_sibling(next);
-							continue;
-						}
-
-						if (depth === 0) {
-							break;
-						}
+					// Skip over hydration markers (comment nodes) to find the next
+					// real element/text node
+					while (next !== null && next.nodeType === 8) {
 						next = get_next_sibling(next);
 					}
 
-					if (next === null) {
-						break;
+					if (next !== null) {
+						end = next;
 					}
-					end = next;
 				}
 
 				assign_nodes(start, end);
 				return start;
 			} else {
-				assign_nodes(/** @type {Node} */ (hydrate_node), /** @type {Node} */ (hydrate_node));
+				var node_to_use = /** @type {Node} */ (hydrate_node);
+				assign_nodes(node_to_use, node_to_use);
+				return node_to_use;
 			}
-			return /** @type {Node} */ (hydrate_node);
 		}
 		// If using runtime namespace, check active_namespace
 		var svg = use_svg_namespace || (!is_comment && active_namespace === 'svg');

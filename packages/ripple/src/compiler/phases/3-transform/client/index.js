@@ -2510,6 +2510,29 @@ const visitors = {
 };
 
 /**
+ * Count top-level DOM nodes from normalized AST children (excludes control flow constructs)
+ * @param {AST.Node[]} normalized - The normalized children array
+ * @returns {number}
+ */
+function count_dom_nodes(normalized) {
+	let count = 0;
+	for (const node of normalized) {
+		// Count only nodes that become actual DOM nodes, not control flow anchors
+		if (
+			node.type === 'Element' ||
+			node.type === 'Text' ||
+			node.type === 'Html' ||
+			node.type === 'TsxCompat'
+		) {
+			count++;
+		}
+		// IfStatement, ForOfStatement, SwitchStatement, TryStatement become <!> anchors, not DOM nodes
+		// VariableDeclaration, EmptyStatement, BreakStatement, ContinueStatement don't produce DOM
+	}
+	return count || 1;
+}
+
+/**
  * @param {Array<string | AST.Expression>} items
  */
 function join_template(items) {
@@ -3622,18 +3645,21 @@ function transform_children(children, context) {
 		state.final?.push(
 			b.stmt(b.call('_$_.append', b.id('__anchor'), initial, emitted_next && b.true)),
 		);
-		state.hoisted.push(
-			b.var(
-				template_id,
-				b.call(
-					'_$_.template',
-					join_template(
-						/** @type {NonNullable<TransformClientState['template']>} */ (state.template),
-					),
-					b.literal(flags),
-				),
-			),
+
+		const template_array = /** @type {NonNullable<TransformClientState['template']>} */ (
+			state.template
 		);
+		const template_args = [join_template(template_array), b.literal(flags)];
+
+		// For fragments, add the pre-calculated node count as a third argument
+		// to avoid runtime HTML parsing during hydration. Count from the AST nodes
+		// rather than re-parsing the template string.
+		if (is_fragment) {
+			const node_count = count_dom_nodes(normalized);
+			template_args.push(b.literal(node_count));
+		}
+
+		state.hoisted.push(b.var(template_id, b.call('_$_.template', ...template_args)));
 	}
 }
 

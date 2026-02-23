@@ -4,7 +4,7 @@ import * as _$_ from 'ripple/internal/client';
 var root_1 = _$_.template(`<div class="portal-content">Portal content</div>`, 0);
 var root = _$_.template(`<div class="container"><h1>Main Content</h1><!></div>`, 0);
 var root_4 = _$_.template(`<div class="portal-content">Portal is visible</div>`, 0);
-var root_3 = _$_.template(`<!>`, 1);
+var root_3 = _$_.template(`<!>`, 1, 1);
 var root_2 = _$_.template(`<div class="container"><button class="toggle">Toggle</button><!></div>`, 0);
 var root_6 = _$_.template(`<div class="portal-content">Modal content</div>`, 0);
 var root_5 = _$_.template(`<div><div class="main-content">Main page content</div><!><div class="footer">Footer</div></div>`, 0);
