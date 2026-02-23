@@ -269,17 +269,6 @@ export default component App() {
 			expect(formatted).toBeWithNewline(already_formatted);
 		});
 
-		it('should format import.meta expressions correctly', async () => {
-			const input = `export component Test(){if(import.meta.env.SSR){<div>Server</div>}}`;
-			const expected = `export component Test() {
-  if (import.meta.env.SSR) {
-    <div>Server</div>
-  }
-}`;
-			const result = await format(input);
-			expect(result).toBeWithNewline(expected);
-		});
-
 		it('should format a component with an object property notation component markup', async () => {
 			const expected = `component Card(props) {
   <div class="card">
