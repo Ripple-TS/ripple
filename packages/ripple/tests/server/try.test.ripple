@@ -1,6 +1,3 @@
-import { describe, it, expect } from 'vitest';
-import { render } from 'ripple/server';
-
 describe('try block with catch and pending (server)', () => {
 	it('catch block works when component throws before await with pending block', async () => {
 		component ThrowingChild() {

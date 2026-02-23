@@ -1,8 +1,10 @@
 import { expect } from 'vitest';
 import { render } from 'ripple/server';
+import { compile } from 'ripple/compiler';
 import { parseHTML } from 'linkedom';
 
 globalThis.render = render;
+globalThis.compile = compile;
 globalThis.parseHtml = parseHTML;
 globalThis.parseAsFullHtml = parseAsFullHtml;
 
