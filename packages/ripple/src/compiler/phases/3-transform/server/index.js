@@ -418,16 +418,16 @@ const visitors = {
 
 		if (metadata.await) {
 			const parent = context.path.at(-1);
-			/** @type {any[] | null} */
+			/** @type {AST.RippleProgram['body'] | null} */
 			let body = null;
-			/** @type {any} */
+			/** @type {AST.Component | AST.ExportNamedDeclaration} */
 			let target_node = node;
 			if (parent?.type === 'Program' || parent?.type === 'BlockStatement') {
-				body = /** @type {AST.RippleProgram} */ (parent).body;
+				body = parent.body;
 			} else if (parent?.type === 'ExportNamedDeclaration') {
 				const grandparent = context.path.at(-2);
 				if (grandparent?.type === 'Program' || grandparent?.type === 'BlockStatement') {
-					body = /** @type {AST.RippleProgram} */ (grandparent).body;
+					body = grandparent.body;
 					target_node = parent;
 				}
 			}
