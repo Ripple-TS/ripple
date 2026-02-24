@@ -1384,7 +1384,7 @@ const visitors = {
 				});
 				context.state.init?.push(
 					b.var(
-						b.id(pending_position_name),
+						b.id(/** @type {string} */ (pending_position_name)),
 						b.member(b.member(b.id('__output'), b.id('body')), b.id('length')),
 					),
 				);
@@ -1426,7 +1426,7 @@ const visitors = {
 							b.call(
 								b.member(b.member(b.id('__output'), b.id('body')), b.id('slice')),
 								b.literal(0),
-								b.id(pending_position_name),
+								b.id(/** @type {string} */ (pending_position_name)),
 							),
 						),
 					),

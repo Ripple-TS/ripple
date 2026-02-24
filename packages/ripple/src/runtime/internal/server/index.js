@@ -1,6 +1,6 @@
 /**
 @import { Component, Dependency, Derived, Tracked } from '#server';
-@import { SSRComponent } from 'ripple/server';
+@import { SSRComponent, renderToStream, render } from 'ripple/server';
 */
 
 import { Readable } from 'stream';

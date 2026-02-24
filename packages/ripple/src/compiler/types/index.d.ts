@@ -383,7 +383,7 @@ declare module 'estree' {
 	 * Ripple's extended Program with Component support
 	 */
 	interface RippleProgram extends Omit<Program, 'body'> {
-		body: (Program['body'][number] | Component)[];
+		body: (Program['body'][number] | Component | FunctionExpression)[];
 	}
 
 	interface RippleMethodDefinition extends Omit<AST.MethodDefinition, 'value'> {

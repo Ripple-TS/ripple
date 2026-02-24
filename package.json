@@ -39,7 +39,8 @@
     "source-map": "catalog:default",
     "type-fest": "catalog:default",
     "vitest": "catalog:default",
-    "wait-on": "catalog:default"
+    "wait-on": "catalog:default",
+    "typescript": "catalog:default"
   },
   "dependencies": {
     "@types/eslint": "catalog:default"

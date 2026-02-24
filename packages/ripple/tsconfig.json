@@ -14,6 +14,7 @@
     "jsx": "preserve",
     "jsxImportSource": "ripple",
     "strict": true,
+    "skipLibCheck": true,
     "allowJs": true,
     "checkJs": true,
     "paths": {

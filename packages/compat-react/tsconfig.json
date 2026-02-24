@@ -3,6 +3,7 @@
     "module": "esnext",
     "lib": ["esnext", "dom", "dom.iterable"],
     "target": "esnext",
+    "skipLibCheck": true,
     "noEmit": true,
     "moduleResolution": "bundler",
     "resolveJsonModule": true,

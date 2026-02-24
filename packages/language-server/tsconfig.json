@@ -3,6 +3,7 @@
     "module": "node16",
     "moduleResolution": "node16",
     "target": "es2020",
+    "skipLibCheck": true,
     "allowJs": true,
     "checkJs": true,
     "noEmit": true,

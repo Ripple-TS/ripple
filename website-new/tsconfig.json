@@ -4,6 +4,7 @@
     "module": "ESNext",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "allowJs": true,
+    "checkJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -19,5 +20,5 @@
     "jsxImportSource": "ripple",
     "plugins": [{ "name": "@ripple-ts/typescript-plugin" }]
   },
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "api"]
 }
