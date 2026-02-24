@@ -3,7 +3,6 @@
     "module": "esnext",
     "lib": ["esnext", "dom", "dom.iterable"],
     "target": "esnext",
-    "skipLibCheck": true,
     "noEmit": true,
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
@@ -24,5 +23,6 @@
     "./tests/**/*.test.ripple",
     "./tests/**/*.d.ts",
     "./tests/**/*.js"
-  ]
+  ],
+  "exclude": ["node_modules", "dist"]
 }

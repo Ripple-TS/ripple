@@ -7,11 +7,11 @@
     "noEmitOnError": true,
     "noErrorTruncation": true,
     "strict": true,
-    "skipLibCheck": true,
     "allowJs": true,
     "checkJs": true,
     "noEmit": true,
     "types": ["vitest/globals"]
   },
-  "include": ["./*.js", "./src/", "vitest-extensions.d.ts"]
+  "include": ["./*.js", "./src/", "vitest-extensions.d.ts"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -18,6 +18,5 @@
     "jsx": "preserve",
     "jsxImportSource": "ripple",
     "plugins": [{ "name": "@ripple-ts/typescript-plugin" }]
-  },
-  "exclude": ["node_modules", "dist", "api"]
+  }
 }

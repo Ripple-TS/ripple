@@ -14,7 +14,6 @@
     "jsx": "preserve",
     "jsxImportSource": "ripple",
     "strict": true,
-    "skipLibCheck": true,
     "allowJs": true,
     "checkJs": true,
     "paths": {
@@ -30,5 +29,6 @@
     "./tests/**/*.ripple",
     "./tests/**/*.d.ts",
     "./tests/**/*.js"
-  ]
+  ],
+  "exclude": ["node_modules", "dist"]
 }
