@@ -5,6 +5,9 @@ export async function AsyncListInTryPending(__output) {
 	return _$_.async(async () => {
 		_$_.push_component();
 		__output.push('<!--[-->');
+
+		var __pending_pos = __output.body.length;
+
 		__output.push('<p');
 		__output.push(' class="loading"');
 		__output.push('>');
@@ -16,6 +19,8 @@ export async function AsyncListInTryPending(__output) {
 		__output.push('</p>');
 
 		await _$_.async(async () => {
+			__output.body = __output.body.slice(0, __pending_pos);
+
 			{
 				const comp = AsyncList;
 				const args = [__output, {}];
@@ -80,6 +85,9 @@ export async function AsyncTryWithLeadingSibling(__output) {
 
 		__output.push('</div>');
 		__output.push('<!--[-->');
+
+		var __pending_pos_1 = __output.body.length;
+
 		__output.push('<div');
 		__output.push(' class="loading"');
 		__output.push('>');
@@ -91,6 +99,8 @@ export async function AsyncTryWithLeadingSibling(__output) {
 		__output.push('</div>');
 
 		await _$_.async(async () => {
+			__output.body = __output.body.slice(0, __pending_pos_1);
+
 			{
 				const comp = AsyncContent;
 				const args = [__output, {}];

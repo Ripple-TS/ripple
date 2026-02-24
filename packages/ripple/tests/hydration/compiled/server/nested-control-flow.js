@@ -20,7 +20,7 @@ export function ForIf(__output) {
 		for (const item of items) {
 			__output.push('<!--[-->');
 
-			if (_$_.get_property(item, 'show')) {
+			if (item.show) {
 				__output.push('<li');
 				__output.push(_$_.attr('class', `item item-${item.id}`));
 				__output.push('>');
@@ -210,7 +210,7 @@ export function ForIfSwitchSingle(__output) {
 		for (const item of items) {
 			__output.push('<!--[-->');
 
-			if (_$_.get_property(item, 'show')) {
+			if (item.show) {
 				__output.push('<!--[-->');
 
 				switch (item.kind) {
@@ -265,7 +265,7 @@ export function ForIfSwitchMulti(__output) {
 		for (const item of items) {
 			__output.push('<!--[-->');
 
-			if (_$_.get_property(item, 'show')) {
+			if (item.show) {
 				__output.push('<!--[-->');
 
 				switch (item.kind) {
@@ -321,7 +321,7 @@ export function ForIfSwitchWithDisabled(__output) {
 		for (const item of items) {
 			__output.push('<!--[-->');
 
-			if (_$_.get_property(item, 'show')) {
+			if (item.show) {
 				__output.push('<!--[-->');
 
 				switch (item.kind) {
@@ -374,6 +374,7 @@ export async function SwitchTry(__output) {
 			switch (kind) {
 				case 'a':
 					__output.push('<!--[-->');
+					var __pending_pos = __output.body.length;
 					__output.push('<p');
 					__output.push(' class="pending-a"');
 					__output.push('>');
@@ -382,6 +383,7 @@ export async function SwitchTry(__output) {
 					}
 					__output.push('</p>');
 					await _$_.async(async () => {
+						__output.body = __output.body.slice(0, __pending_pos);
 						__output.push('<p');
 						__output.push(' class="resolved-a"');
 						__output.push('>');
@@ -434,6 +436,7 @@ export async function ForSwitchTry(__output) {
 				switch (item.kind) {
 					case 'a':
 						__output.push('<!--[-->');
+						var __pending_pos_1 = __output.body.length;
 						__output.push('<li');
 						__output.push(_$_.attr('class', `pending pending-${item.id}`));
 						__output.push('>');
@@ -442,6 +445,7 @@ export async function ForSwitchTry(__output) {
 						}
 						__output.push('</li>');
 						await _$_.async(async () => {
+							__output.body = __output.body.slice(0, __pending_pos_1);
 							__output.push('<li');
 							__output.push(_$_.attr('class', `item item-${item.id} kind-a`));
 							__output.push('>');
@@ -457,6 +461,7 @@ export async function ForSwitchTry(__output) {
 
 					default:
 						__output.push('<!--[-->');
+						var __pending_pos_2 = __output.body.length;
 						__output.push('<li');
 						__output.push(_$_.attr('class', `pending pending-${item.id}`));
 						__output.push('>');
@@ -465,6 +470,7 @@ export async function ForSwitchTry(__output) {
 						}
 						__output.push('</li>');
 						await _$_.async(async () => {
+							__output.body = __output.body.slice(0, __pending_pos_2);
 							__output.push('<li');
 							__output.push(_$_.attr('class', `item item-${item.id} kind-b`));
 							__output.push('>');
@@ -507,8 +513,11 @@ export async function ForIfTry(__output) {
 			for (const item of items) {
 				__output.push('<!--[-->');
 
-				if (_$_.get_property(item, 'show')) {
+				if (item.show) {
 					__output.push('<!--[-->');
+
+					var __pending_pos_3 = __output.body.length;
+
 					__output.push('<li');
 					__output.push(_$_.attr('class', `pending pending-${item.id}`));
 					__output.push('>');
@@ -520,6 +529,7 @@ export async function ForIfTry(__output) {
 					__output.push('</li>');
 
 					await _$_.async(async () => {
+						__output.body = __output.body.slice(0, __pending_pos_3);
 						__output.push('<li');
 						__output.push(_$_.attr('class', `item item-${item.id}`));
 						__output.push('>');
@@ -563,12 +573,13 @@ export async function ForIfSwitchTrySingle(__output) {
 			for (const item of items) {
 				__output.push('<!--[-->');
 
-				if (_$_.get_property(item, 'show')) {
+				if (item.show) {
 					__output.push('<!--[-->');
 
 					switch (item.kind) {
 						case 'a':
 							__output.push('<!--[-->');
+							var __pending_pos_4 = __output.body.length;
 							__output.push('<li');
 							__output.push(_$_.attr('class', `pending pending-${item.id}`));
 							__output.push('>');
@@ -577,6 +588,7 @@ export async function ForIfSwitchTrySingle(__output) {
 							}
 							__output.push('</li>');
 							await _$_.async(async () => {
+								__output.body = __output.body.slice(0, __pending_pos_4);
 								__output.push('<li');
 								__output.push(_$_.attr('class', `item item-${item.id} kind-a`));
 								__output.push('>');
@@ -592,6 +604,7 @@ export async function ForIfSwitchTrySingle(__output) {
 
 						default:
 							__output.push('<!--[-->');
+							var __pending_pos_5 = __output.body.length;
 							__output.push('<li');
 							__output.push(_$_.attr('class', `pending pending-${item.id}`));
 							__output.push('>');
@@ -600,6 +613,7 @@ export async function ForIfSwitchTrySingle(__output) {
 							}
 							__output.push('</li>');
 							await _$_.async(async () => {
+								__output.body = __output.body.slice(0, __pending_pos_5);
 								__output.push('<li');
 								__output.push(_$_.attr('class', `item item-${item.id} kind-default`));
 								__output.push('>');
@@ -648,12 +662,13 @@ export async function ForIfSwitchTryMulti(__output) {
 			for (const item of items) {
 				__output.push('<!--[-->');
 
-				if (_$_.get_property(item, 'show')) {
+				if (item.show) {
 					__output.push('<!--[-->');
 
 					switch (item.kind) {
 						case 'a':
 							__output.push('<!--[-->');
+							var __pending_pos_6 = __output.body.length;
 							__output.push('<li');
 							__output.push(_$_.attr('class', `pending pending-${item.id}`));
 							__output.push('>');
@@ -662,6 +677,7 @@ export async function ForIfSwitchTryMulti(__output) {
 							}
 							__output.push('</li>');
 							await _$_.async(async () => {
+								__output.body = __output.body.slice(0, __pending_pos_6);
 								__output.push('<li');
 								__output.push(_$_.attr('class', `item item-${item.id} kind-a`));
 								__output.push('>');
@@ -677,6 +693,7 @@ export async function ForIfSwitchTryMulti(__output) {
 
 						default:
 							__output.push('<!--[-->');
+							var __pending_pos_7 = __output.body.length;
 							__output.push('<li');
 							__output.push(_$_.attr('class', `pending pending-${item.id}`));
 							__output.push('>');
@@ -685,6 +702,7 @@ export async function ForIfSwitchTryMulti(__output) {
 							}
 							__output.push('</li>');
 							await _$_.async(async () => {
+								__output.body = __output.body.slice(0, __pending_pos_7);
 								__output.push('<li');
 								__output.push(_$_.attr('class', `item item-${item.id} kind-b`));
 								__output.push('>');

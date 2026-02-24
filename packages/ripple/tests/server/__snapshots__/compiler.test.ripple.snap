@@ -91,7 +91,9 @@ export async function App(__output) {
 		__output.push('</div>');
 		_$_.pop_component();
 	});
-}"
+}
+
+App.async = true;"
 `;
 
 exports[`compiler typescript tests > removes type assertions from function parameters and leaves default values 1`] = `

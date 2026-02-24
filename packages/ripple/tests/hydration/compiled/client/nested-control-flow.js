@@ -118,7 +118,7 @@ export function ForIf(__anchor, _, __block) {
 					};
 
 					_$_.if(node, (__render) => {
-						if (_$_.get_property(_$_.get(pattern), 'show')) __render(consequent);
+						if (_$_.get(pattern).show) __render(consequent);
 					});
 				}
 
@@ -456,7 +456,7 @@ export function ForIfSwitchSingle(__anchor, _, __block) {
 					};
 
 					_$_.if(node_6, (__render) => {
-						if (_$_.get_property(_$_.get(pattern_2), 'show')) __render(consequent_3);
+						if (_$_.get(pattern_2).show) __render(consequent_3);
 					});
 				}
 
@@ -575,7 +575,7 @@ export function ForIfSwitchMulti(__anchor, _, __block) {
 					};
 
 					_$_.if(node_8, (__render) => {
-						if (_$_.get_property(_$_.get(pattern_3), 'show')) __render(consequent_4);
+						if (_$_.get(pattern_3).show) __render(consequent_4);
 					});
 				}
 
@@ -695,7 +695,7 @@ export function ForIfSwitchWithDisabled(__anchor, _, __block) {
 					};
 
 					_$_.if(node_10, (__render) => {
-						if (_$_.get_property(_$_.get(pattern_4), 'show')) __render(consequent_5);
+						if (_$_.get(pattern_4).show) __render(consequent_5);
 					});
 				}
 
@@ -1043,7 +1043,7 @@ export function ForIfTry(__anchor, _, __block) {
 					};
 
 					_$_.if(node_17, (__render) => {
-						if (_$_.get_property(_$_.get(pattern_6), 'show')) __render(consequent_6);
+						if (_$_.get(pattern_6).show) __render(consequent_6);
 					});
 				}
 
@@ -1239,7 +1239,7 @@ export function ForIfSwitchTrySingle(__anchor, _, __block) {
 					};
 
 					_$_.if(node_19, (__render) => {
-						if (_$_.get_property(_$_.get(pattern_7), 'show')) __render(consequent_7);
+						if (_$_.get(pattern_7).show) __render(consequent_7);
 					});
 				}
 
@@ -1439,7 +1439,7 @@ export function ForIfSwitchTryMulti(__anchor, _, __block) {
 					};
 
 					_$_.if(node_23, (__render) => {
-						if (_$_.get_property(_$_.get(pattern_8), 'show')) __render(consequent_8);
+						if (_$_.get(pattern_8).show) __render(consequent_8);
 					});
 				}
 

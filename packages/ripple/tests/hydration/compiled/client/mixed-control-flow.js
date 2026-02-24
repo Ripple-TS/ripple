@@ -176,7 +176,7 @@ export function MixedControlFlowStatic(__anchor, _, __block) {
 					};
 
 					_$_.if(node, (__render) => {
-						if (_$_.get_property(_$_.get(pattern), 'enabled')) __render(consequent);
+						if (_$_.get(pattern).enabled) __render(consequent);
 					});
 				}
 
