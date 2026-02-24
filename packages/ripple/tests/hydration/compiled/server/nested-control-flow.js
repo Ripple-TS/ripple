@@ -373,6 +373,7 @@ export async function SwitchTry(__output) {
 
 			switch (kind) {
 				case 'a':
+					__output.push('<!--[-->');
 					__output.push('<p');
 					__output.push(' class="pending-a"');
 					__output.push('>');
@@ -391,6 +392,7 @@ export async function SwitchTry(__output) {
 
 						__output.push('</p>');
 					});
+					__output.push('<!--]-->');
 					break;
 
 				default:
@@ -411,6 +413,8 @@ export async function SwitchTry(__output) {
 	});
 }
 
+SwitchTry.async = true;
+
 export async function ForSwitchTry(__output) {
 	return _$_.async(async () => {
 		_$_.push_component();
@@ -429,6 +433,7 @@ export async function ForSwitchTry(__output) {
 
 				switch (item.kind) {
 					case 'a':
+						__output.push('<!--[-->');
 						__output.push('<li');
 						__output.push(_$_.attr('class', `pending pending-${item.id}`));
 						__output.push('>');
@@ -447,9 +452,11 @@ export async function ForSwitchTry(__output) {
 
 							__output.push('</li>');
 						});
+						__output.push('<!--]-->');
 						break;
 
 					default:
+						__output.push('<!--[-->');
 						__output.push('<li');
 						__output.push(_$_.attr('class', `pending pending-${item.id}`));
 						__output.push('>');
@@ -468,6 +475,7 @@ export async function ForSwitchTry(__output) {
 
 							__output.push('</li>');
 						});
+						__output.push('<!--]-->');
 				}
 
 				__output.push('<!--]-->');
@@ -480,6 +488,8 @@ export async function ForSwitchTry(__output) {
 		_$_.pop_component();
 	});
 }
+
+ForSwitchTry.async = true;
 
 export async function ForIfTry(__output) {
 	return _$_.async(async () => {
@@ -498,6 +508,7 @@ export async function ForIfTry(__output) {
 				__output.push('<!--[-->');
 
 				if (_$_.get_property(item, 'show')) {
+					__output.push('<!--[-->');
 					__output.push('<li');
 					__output.push(_$_.attr('class', `pending pending-${item.id}`));
 					__output.push('>');
@@ -519,6 +530,8 @@ export async function ForIfTry(__output) {
 
 						__output.push('</li>');
 					});
+
+					__output.push('<!--]-->');
 				}
 
 				__output.push('<!--]-->');
@@ -531,6 +544,8 @@ export async function ForIfTry(__output) {
 		_$_.pop_component();
 	});
 }
+
+ForIfTry.async = true;
 
 export async function ForIfSwitchTrySingle(__output) {
 	return _$_.async(async () => {
@@ -553,6 +568,7 @@ export async function ForIfSwitchTrySingle(__output) {
 
 					switch (item.kind) {
 						case 'a':
+							__output.push('<!--[-->');
 							__output.push('<li');
 							__output.push(_$_.attr('class', `pending pending-${item.id}`));
 							__output.push('>');
@@ -571,9 +587,11 @@ export async function ForIfSwitchTrySingle(__output) {
 
 								__output.push('</li>');
 							});
+							__output.push('<!--]-->');
 							break;
 
 						default:
+							__output.push('<!--[-->');
 							__output.push('<li');
 							__output.push(_$_.attr('class', `pending pending-${item.id}`));
 							__output.push('>');
@@ -592,6 +610,7 @@ export async function ForIfSwitchTrySingle(__output) {
 
 								__output.push('</li>');
 							});
+							__output.push('<!--]-->');
 					}
 
 					__output.push('<!--]-->');
@@ -607,6 +626,8 @@ export async function ForIfSwitchTrySingle(__output) {
 		_$_.pop_component();
 	});
 }
+
+ForIfSwitchTrySingle.async = true;
 
 export async function ForIfSwitchTryMulti(__output) {
 	return _$_.async(async () => {
@@ -632,6 +653,7 @@ export async function ForIfSwitchTryMulti(__output) {
 
 					switch (item.kind) {
 						case 'a':
+							__output.push('<!--[-->');
 							__output.push('<li');
 							__output.push(_$_.attr('class', `pending pending-${item.id}`));
 							__output.push('>');
@@ -650,9 +672,11 @@ export async function ForIfSwitchTryMulti(__output) {
 
 								__output.push('</li>');
 							});
+							__output.push('<!--]-->');
 							break;
 
 						default:
+							__output.push('<!--[-->');
 							__output.push('<li');
 							__output.push(_$_.attr('class', `pending pending-${item.id}`));
 							__output.push('>');
@@ -671,6 +695,7 @@ export async function ForIfSwitchTryMulti(__output) {
 
 								__output.push('</li>');
 							});
+							__output.push('<!--]-->');
 					}
 
 					__output.push('<!--]-->');
@@ -686,3 +711,5 @@ export async function ForIfSwitchTryMulti(__output) {
 		_$_.pop_component();
 	});
 }
+
+ForIfSwitchTryMulti.async = true;

@@ -28,6 +28,7 @@ export async function MixedControlFlowStatic(__output) {
 
 					switch (row.kind) {
 						case 'a':
+							__output.push('<!--[-->');
 							__output.push('<div');
 							__output.push(_$_.attr('class', `pending pending-${row.id}`));
 							__output.push('>');
@@ -46,9 +47,11 @@ export async function MixedControlFlowStatic(__output) {
 
 								__output.push('</div>');
 							});
+							__output.push('<!--]-->');
 							break;
 
 						default:
+							__output.push('<!--[-->');
 							__output.push('<div');
 							__output.push(_$_.attr('class', `pending pending-${row.id}`));
 							__output.push('>');
@@ -67,6 +70,7 @@ export async function MixedControlFlowStatic(__output) {
 
 								__output.push('</div>');
 							});
+							__output.push('<!--]-->');
 					}
 
 					__output.push('<!--]-->');
@@ -82,6 +86,8 @@ export async function MixedControlFlowStatic(__output) {
 		_$_.pop_component();
 	});
 }
+
+MixedControlFlowStatic.async = true;
 
 export async function MixedControlFlowReactive(__output) {
 	return _$_.async(async () => {
@@ -133,6 +139,7 @@ export async function MixedControlFlowReactive(__output) {
 
 					switch (_$_.get(mode)) {
 						case 'a':
+							__output.push('<!--[-->');
 							__output.push('<p');
 							__output.push(' class="pending"');
 							__output.push('>');
@@ -151,9 +158,11 @@ export async function MixedControlFlowReactive(__output) {
 
 								__output.push('</p>');
 							});
+							__output.push('<!--]-->');
 							break;
 
 						default:
+							__output.push('<!--[-->');
 							__output.push('<p');
 							__output.push(' class="pending"');
 							__output.push('>');
@@ -172,6 +181,7 @@ export async function MixedControlFlowReactive(__output) {
 
 								__output.push('</p>');
 							});
+							__output.push('<!--]-->');
 					}
 
 					__output.push('<!--]-->');
@@ -187,6 +197,8 @@ export async function MixedControlFlowReactive(__output) {
 		_$_.pop_component();
 	});
 }
+
+MixedControlFlowReactive.async = true;
 
 export async function MixedControlFlowAsyncPending(__output) {
 	return _$_.async(async () => {
@@ -214,6 +226,7 @@ export async function MixedControlFlowAsyncPending(__output) {
 
 				switch (state) {
 					case 'slow':
+						__output.push('<!--[-->');
 						__output.push('<div');
 						__output.push(_$_.attr('class', `pending-row pending-row-${row}`));
 						__output.push('>');
@@ -229,6 +242,7 @@ export async function MixedControlFlowAsyncPending(__output) {
 								await comp(...args);
 							}
 						});
+						__output.push('<!--]-->');
 						break;
 
 					default:
@@ -251,6 +265,8 @@ export async function MixedControlFlowAsyncPending(__output) {
 		_$_.pop_component();
 	});
 }
+
+MixedControlFlowAsyncPending.async = true;
 
 async function AsyncRow(__output, { label }) {
 	return _$_.async(async () => {

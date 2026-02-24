@@ -418,14 +418,28 @@ const visitors = {
 
 		if (metadata.await) {
 			const parent = context.path.at(-1);
+			/** @type {any[] | null} */
+			let body = null;
+			/** @type {any} */
+			let target_node = node;
 			if (parent?.type === 'Program' || parent?.type === 'BlockStatement') {
-				const body = /** @type {AST.RippleProgram} */ (parent).body;
-				const index = body.indexOf(node);
-				body.splice(
-					index + 1,
-					0,
-					b.stmt(b.assignment('=', b.member(node.id, b.id('async')), b.true)),
-				);
+				body = /** @type {AST.RippleProgram} */ (parent).body;
+			} else if (parent?.type === 'ExportNamedDeclaration') {
+				const grandparent = context.path.at(-2);
+				if (grandparent?.type === 'Program' || grandparent?.type === 'BlockStatement') {
+					body = /** @type {AST.RippleProgram} */ (grandparent).body;
+					target_node = parent;
+				}
+			}
+			if (body !== null) {
+				const index = body.indexOf(target_node);
+				if (index >= 0) {
+					body.splice(
+						index + 1,
+						0,
+						b.stmt(b.assignment('=', b.member(node.id, b.id('async')), b.true)),
+					);
+				}
 			}
 		}
 
@@ -1369,8 +1383,12 @@ const visitors = {
 				context.state.metadata.await = true;
 			}
 
-			// Render pending block first
+			// Render pending block (if any) wrapped in BLOCK_OPEN/CLOSE hydration markers
+			// so the client can locate and skip them during hydration.
 			if (node.pending) {
+				context.state.init?.push(
+					b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN))),
+				);
 				const pending_body = transform_body(node.pending.body, {
 					...context,
 					state: {
@@ -1409,6 +1427,12 @@ const visitors = {
 			context.state.init?.push(
 				b.stmt(b.await(b.call('_$_.async', b.thunk(b.block(try_statements), true)))),
 			);
+
+			if (node.pending) {
+				context.state.init?.push(
+					b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_CLOSE))),
+				);
+			}
 		} else {
 			// No async, just regular try/catch
 			if (node.handler != null) {

@@ -93,6 +93,11 @@ export function async(fn) {
 	return block(BRANCH_BLOCK, async () => {
 		const unsuspend = suspend();
 		await fn();
+		// An extra microtask tick ensures `suspend()` → `pending` is visible for at
+		// least one full microtask cycle.  This matters during SSR hydration: the
+		// test (or any awaiter) gets to observe the pending state before `unsuspend`
+		// swaps back to the resolved content.
+		await Promise.resolve();
 		unsuspend();
 	});
 }

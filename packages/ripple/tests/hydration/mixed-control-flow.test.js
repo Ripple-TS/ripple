@@ -12,6 +12,9 @@ describe('hydration > mixed control flow blocks', () => {
 			ClientComponents.MixedControlFlowStatic,
 		);
 
+		// Allow the try+pending async transitions to settle (pending → resolved).
+		await Promise.resolve();
+
 		const rows = Array.from(container.querySelectorAll('.row')).map((node) => node.textContent);
 		expect(rows).toEqual(['A-1', 'B-2']);
 		expect(container.querySelector('.row-3')).toBeNull();

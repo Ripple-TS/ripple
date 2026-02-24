@@ -4,6 +4,7 @@ import * as _$_ from 'ripple/internal/server';
 export async function AsyncListInTryPending(__output) {
 	return _$_.async(async () => {
 		_$_.push_component();
+		__output.push('<!--[-->');
 		__output.push('<p');
 		__output.push(' class="loading"');
 		__output.push('>');
@@ -23,9 +24,12 @@ export async function AsyncListInTryPending(__output) {
 			}
 		});
 
+		__output.push('<!--]-->');
 		_$_.pop_component();
 	});
 }
+
+AsyncListInTryPending.async = true;
 
 async function AsyncList(__output) {
 	return _$_.async(async () => {
@@ -75,6 +79,7 @@ export async function AsyncTryWithLeadingSibling(__output) {
 		}
 
 		__output.push('</div>');
+		__output.push('<!--[-->');
 		__output.push('<div');
 		__output.push(' class="loading"');
 		__output.push('>');
@@ -94,9 +99,12 @@ export async function AsyncTryWithLeadingSibling(__output) {
 			}
 		});
 
+		__output.push('<!--]-->');
 		_$_.pop_component();
 	});
 }
+
+AsyncTryWithLeadingSibling.async = true;
 
 async function AsyncContent(__output) {
 	return _$_.async(async () => {

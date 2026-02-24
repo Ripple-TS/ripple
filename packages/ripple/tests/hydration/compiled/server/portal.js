@@ -58,6 +58,8 @@ export async function SimplePortal(__output) {
 	});
 }
 
+SimplePortal.async = true;
+
 export async function ConditionalPortal(__output) {
 	return _$_.async(async () => {
 		_$_.push_component();
@@ -121,6 +123,8 @@ export async function ConditionalPortal(__output) {
 		_$_.pop_component();
 	});
 }
+
+ConditionalPortal.async = true;
 
 export async function PortalWithMainContent(__output) {
 	return _$_.async(async () => {
@@ -187,6 +191,8 @@ export async function PortalWithMainContent(__output) {
 	});
 }
 
+PortalWithMainContent.async = true;
+
 export async function NestedContentWithPortal(__output) {
 	return _$_.async(async () => {
 		_$_.push_component();
@@ -249,3 +255,5 @@ export async function NestedContentWithPortal(__output) {
 		_$_.pop_component();
 	});
 }
+
+NestedContentWithPortal.async = true;

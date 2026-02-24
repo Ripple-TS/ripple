@@ -26,6 +26,8 @@ export async function Layout(__output, { children }) {
 	});
 }
 
+Layout.async = true;
+
 export function SingleChild(__output) {
 	_$_.push_component();
 	__output.push('<div');

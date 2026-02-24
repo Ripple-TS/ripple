@@ -166,6 +166,8 @@ export async function HtmlWrapper(__output, { children }) {
 	});
 }
 
+HtmlWrapper.async = true;
+
 export function HtmlInChildren(__output) {
 	_$_.push_component();
 
@@ -539,6 +541,8 @@ export async function DocLayout(
 		_$_.pop_component();
 	});
 }
+
+DocLayout.async = true;
 
 export function HtmlWithServerData(__output) {
 	_$_.push_component();
