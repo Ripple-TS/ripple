@@ -6,6 +6,7 @@
     "../client.d.ts",
     "../setup-client.js",
     "../hydration",
+    "../hydration.d.ts",
     "../setup-hydration.js"
   ]
 }

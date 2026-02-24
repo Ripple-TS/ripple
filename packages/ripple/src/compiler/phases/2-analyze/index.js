@@ -307,7 +307,13 @@ const visitors = {
 	MemberExpression(node, context) {
 		const parent = context.path.at(-1);
 
-		if (context.state.metadata?.tracking === false && parent?.type !== 'AssignmentExpression') {
+		if (
+			context.state.metadata?.tracking === false &&
+			parent?.type !== 'AssignmentExpression' &&
+			(node.tracked ||
+				((node.property.type === 'Identifier' || node.property.type === 'Literal') &&
+					/** @type {AST.TrackedNode} */ (node.property).tracked))
+		) {
 			context.state.metadata.tracking = true;
 		}
 
@@ -419,10 +425,6 @@ const visitors = {
 			);
 		}
 
-		if (context.state.metadata?.tracking === false) {
-			context.state.metadata.tracking = true;
-		}
-
 		if (!is_inside_component(context, true)) {
 			mark_as_tracked(context.path);
 		}
@@ -431,9 +433,6 @@ const visitors = {
 	},
 
 	NewExpression(node, context) {
-		if (context.state.metadata?.tracking === false) {
-			context.state.metadata.tracking = true;
-		}
 		context.next();
 	},
 

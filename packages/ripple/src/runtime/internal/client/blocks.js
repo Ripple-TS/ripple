@@ -20,6 +20,7 @@ import {
 	active_component,
 	active_reaction,
 	create_component_ctx,
+	handle_error,
 	is_block_dirty,
 	run_block,
 	run_teardown,
@@ -91,14 +92,19 @@ export function branch(fn, flags = 0, state = null) {
  */
 export function async(fn) {
 	return block(BRANCH_BLOCK, async () => {
+		var current_block = active_block;
 		const unsuspend = suspend();
-		await fn();
-		// An extra microtask tick ensures `suspend()` → `pending` is visible for at
-		// least one full microtask cycle.  This matters during SSR hydration: the
-		// test (or any awaiter) gets to observe the pending state before `unsuspend`
-		// swaps back to the resolved content.
-		await Promise.resolve();
-		unsuspend();
+		try {
+			await fn();
+			// An extra microtask tick ensures `suspend()` → `pending` is visible for at
+			// least one full microtask cycle.  This matters during SSR hydration: the
+			// test (or any awaiter) gets to observe the pending state before `unsuspend`
+			// swaps back to the resolved content.
+			await Promise.resolve();
+			unsuspend();
+		} catch (error) {
+			handle_error(error, /** @type {Block} */ (current_block));
+		}
 	});
 }
 

@@ -1383,8 +1383,11 @@ const visitors = {
 				context.state.metadata.await = true;
 			}
 
-			// Render pending block (if any) wrapped in BLOCK_OPEN/CLOSE hydration markers
-			// so the client can locate and skip them during hydration.
+			const pending_position_name = node.pending
+				? context.state.scope.generate('__pending_pos')
+				: null;
+
+			// Render pending block first, saving position so we can remove it after async resolves
 			if (node.pending) {
 				context.state.init?.push(
 					b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN))),
@@ -1396,6 +1399,12 @@ const visitors = {
 						scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.pending)),
 					},
 				});
+				context.state.init?.push(
+					b.var(
+						b.id(pending_position_name),
+						b.member(b.member(b.id('__output'), b.id('body')), b.id('length')),
+					),
+				);
 				context.state.init?.push(...pending_body);
 			}
 
@@ -1421,6 +1430,24 @@ const visitors = {
 							),
 						),
 					),
+				];
+			}
+
+			// Remove pending content before rendering resolved/catch content
+			if (node.pending) {
+				try_statements = [
+					b.stmt(
+						b.assignment(
+							'=',
+							b.member(b.id('__output'), b.id('body')),
+							b.call(
+								b.member(b.member(b.id('__output'), b.id('body')), b.id('slice')),
+								b.literal(0),
+								b.id(pending_position_name),
+							),
+						),
+					),
+					...try_statements,
 				];
 			}
 
