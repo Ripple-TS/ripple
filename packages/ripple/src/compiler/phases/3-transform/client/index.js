@@ -2536,32 +2536,6 @@ const visitors = {
 };
 
 /**
- * Count top-level fragment hydration hops from normalized AST children.
- * Control-flow constructs are counted because they compile to hydration anchor
- * regions that occupy sibling traversal steps.
- * @param {AST.Node[]} normalized - The normalized children array
- * @returns {number}
- */
-function count_dom_nodes(normalized) {
-	let count = 0;
-	for (const node of normalized) {
-		if (
-			node.type === 'Element' ||
-			node.type === 'Text' ||
-			node.type === 'Html' ||
-			node.type === 'TsxCompat' ||
-			node.type === 'IfStatement' ||
-			node.type === 'ForOfStatement' ||
-			node.type === 'SwitchStatement' ||
-			node.type === 'TryStatement'
-		) {
-			count++;
-		}
-	}
-	return count || 1;
-}
-
-/**
  * @param {Array<string | AST.Expression>} items
  */
 function join_template(items) {
@@ -3317,6 +3291,7 @@ function transform_children(children, context) {
 	let pending_group = [];
 	/** @type {{ name: string, tracked: boolean }[]} */
 	let pending_guard_flags = [];
+	let fragment_hop_count = 0;
 
 	let skipped = 0;
 
@@ -3330,6 +3305,9 @@ function transform_children(children, context) {
 
 		// Push <!> placeholder for the _$_.if anchor
 		state.template?.push('<!>');
+		if (is_fragment) {
+			fragment_hop_count += 1;
+		}
 
 		if (initial === null && root) {
 			create_initial(group_nodes[0]);
@@ -3403,6 +3381,10 @@ function transform_children(children, context) {
 		}
 
 		flush_pending_group();
+
+		if (is_fragment && is_template_or_control_flow(node)) {
+			fragment_hop_count += 1;
+		}
 
 		if (
 			node.type === 'VariableDeclaration' ||
@@ -3757,17 +3739,15 @@ function transform_children(children, context) {
 		state.final?.push(
 			b.stmt(b.call('_$_.append', b.id('__anchor'), initial, emitted_next && b.true)),
 		);
-
 		const template_array = /** @type {NonNullable<TransformClientState['template']>} */ (
 			state.template
 		);
 		const template_args = [join_template(template_array), b.literal(flags)];
 
-		// For fragments, add the pre-calculated node count as a third argument
-		// to avoid runtime HTML parsing during hydration. Count from the AST nodes
-		// rather than re-parsing the template string.
+		// For fragments, add the pre-calculated hop count as a third argument.
+		// This count reflects emitted top-level positions after return-guard grouping.
 		if (is_fragment) {
-			const node_count = count_dom_nodes(normalized);
+			const node_count = fragment_hop_count || 1;
 			template_args.push(b.literal(node_count));
 		}
 

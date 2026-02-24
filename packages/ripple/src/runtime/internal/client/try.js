@@ -2,7 +2,15 @@
 
 import { branch, create_try_block, destroy_block, is_destroyed, resume_block } from './blocks.js';
 import { TRY_BLOCK } from './constants.js';
-import { next_sibling } from './operations.js';
+import {
+	hydrate_next,
+	hydrate_node,
+	hydrating,
+	set_hydrate_node,
+	set_hydrating,
+	skip_to_hydration_end,
+} from './hydration.js';
+import { get_next_sibling, next_sibling } from './operations.js';
 import {
 	active_block,
 	active_component,
@@ -54,7 +62,7 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 	function handle_await() {
 		if (pending_count++ === 0) {
 			queue_microtask(() => {
-				if (b !== null) {
+				if (b !== null && suspended === null) {
 					suspended = b;
 					offscreen_fragment = document.createDocumentFragment();
 					move_block(b, offscreen_fragment);
@@ -107,6 +115,62 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 		a: pending_fn !== null ? handle_await : null,
 		c: catch_fn !== null ? handle_error : null,
 	};
+
+	if (hydrating && pending_fn !== null) {
+		// SSR emits <!--[-->_try <pending_html> <resolved_html> <!--]-->_try
+		// Advance past the opening marker, discard SSR content, and recreate fresh
+		// client-side DOM in non-hydrating mode.  The `_$_.async` wrapper in blocks.js
+		// adds an extra `await Promise.resolve()` before calling unsuspend(), which
+		// ensures the pending UI created by handle_await's microtask is observable for
+		// at least one event-loop tick before the resolved content replaces it.
+		hydrate_next(); // consume <!--[-->_try
+		var end = skip_to_hydration_end(); // find matching <!--]-->_try
+		// Remove SSR pending+resolved nodes that sit between the two markers
+		var n = hydrate_node;
+		while (n !== null && n !== end) {
+			var next_n = get_next_sibling(n);
+			if (n.parentNode) n.parentNode.removeChild(n);
+			n = next_n;
+		}
+		set_hydrate_node(end); // position cursor at <!--]-->_try
+		set_hydrating(false);
+
+		// Save a reference to the nearest ancestor branch-block so we can update its
+		// DOM-range tracking (s.start) to cover the fresh client-side nodes we are
+		// about to insert.  Without this, destroy_block on the parent would try to
+		// remove the already-removed SSR node and miss the new content entirely.
+		var hydration_parent = active_block;
+		// Remember what was before anchor so we can find the first new node afterward.
+		var prev_sibling_before = anchor.previousSibling;
+
+		create_try_block(() => {
+			b = branch(() => {
+				fn(anchor);
+			});
+		}, state);
+
+		// fn(anchor) inserted new DOM immediately before `anchor`.
+		// Find the first of those newly inserted nodes and update the parent block's
+		// s.start so that destroy_block can later remove both the hydration markers
+		// (<!--[-->/<!--]-->) and the fresh content in one range sweep.
+		var new_first =
+			prev_sibling_before !== null
+				? get_next_sibling(prev_sibling_before)
+				: anchor.parentNode
+					? anchor.parentNode.firstChild
+					: null;
+		if (
+			new_first !== null &&
+			new_first !== anchor &&
+			hydration_parent !== null &&
+			hydration_parent.s !== null
+		) {
+			hydration_parent.s.start = new_first;
+		}
+
+		set_hydrating(true);
+		return;
+	}
 
 	create_try_block(() => {
 		b = branch(() => {

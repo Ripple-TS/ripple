@@ -64,5 +64,5 @@ test('renderToStream handles await blocks with pending state', async ({ expect }
 		stream.on('end', resolve);
 	});
 
-	expect(result).toBe('<div>Loading...</div><div>Data: resolved</div>');
+	expect(result).toBe('<!--[--><div>Loading...</div><div>Data: resolved</div><!--]-->');
 });

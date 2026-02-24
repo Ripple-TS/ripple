@@ -1,4 +1,9 @@
-import { HYDRATION_ERROR } from '../../../constants.js';
+import {
+	COMMENT_NODE,
+	HYDRATION_END,
+	HYDRATION_ERROR,
+	HYDRATION_START,
+} from '../../../constants.js';
 import { get_next_sibling } from './operations.js';
 
 export let hydrating = false;
@@ -47,6 +52,28 @@ export function next(n = 1) {
 /** @param {Node} node */
 export function pop(node) {
 	if (!hydrating) return;
-
 	hydrate_node = node;
+}
+
+/**
+ * Scans forward from the current hydrate_node to find the matching HYDRATION_END
+ * comment, handling nested blocks by tracking depth.
+ * Should be called after hydrate_next() has consumed the opening HYDRATION_START.
+ * @returns {Node} The HYDRATION_END comment node.
+ */
+export function skip_to_hydration_end() {
+	var depth = 0;
+	var node = /** @type {Node} */ (hydrate_node);
+	while (true) {
+		if (node.nodeType === COMMENT_NODE) {
+			var data = /** @type {Comment} */ (node).data;
+			if (data === HYDRATION_END) {
+				if (depth === 0) return node;
+				depth -= 1;
+			} else if (data === HYDRATION_START) {
+				depth += 1;
+			}
+		}
+		node = /** @type {Node} */ (get_next_sibling(node));
+	}
 }

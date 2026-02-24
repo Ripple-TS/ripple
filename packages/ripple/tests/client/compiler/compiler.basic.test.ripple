@@ -231,6 +231,22 @@ describe('compiler > basics', () => {
 		const result = compile(source, 'test.ripple', { mode: 'client' });
 	});
 
+	it('calculates fragment hop count after return-guard grouping', () => {
+		const source = `export component App() {
+	let stop = false;
+	if (stop) {
+		return;
+	}
+	<div class="a">{'a'}</div>
+	<div class="b">{'b'}</div>
+}`;
+
+		const { js } = compile(source, 'grouped-count.ripple', { mode: 'client' });
+
+		expect(js.code).toMatch(/_\$_\.template\(`<!><!>`,\s*1,\s*2\)/);
+		expect(js.code).not.toMatch(/_\$_\.template\(`<!><!>`,\s*1,\s*3\)/);
+	});
+
 	it(
 		'imports and uses only obfuscated Tracked imports when encountering only shorthand syntax',
 		() => {

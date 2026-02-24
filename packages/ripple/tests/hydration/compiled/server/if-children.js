@@ -55,6 +55,8 @@ export async function IfWithChildren(__output, { children }) {
 	});
 }
 
+IfWithChildren.async = true;
+
 export function ChildItem(__output, { text }) {
 	_$_.push_component();
 	__output.push('<div');
@@ -249,6 +251,8 @@ export async function IfWithSiblingsAndChildren(__output, { children }) {
 		_$_.pop_component();
 	});
 }
+
+IfWithSiblingsAndChildren.async = true;
 
 export function TestIfWithSiblingsAndChildren(__output) {
 	_$_.push_component();
