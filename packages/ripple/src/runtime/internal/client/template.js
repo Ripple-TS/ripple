@@ -165,7 +165,7 @@ export function append(anchor, dom, skip_advance) {
 		// But if the cursor is already at dom's sibling level (e.g. because
 		// nested control flow blocks advanced it past dom via sibling traversal),
 		// pop() would incorrectly reset backwards — so we skip it.
-		if (hydrate_node?.parentNode === dom) {
+		if (hydrate_node !== null && hydrate_node !== dom && dom.contains(hydrate_node)) {
 			pop(dom);
 		} else if (hydrate_node !== dom) {
 			// Cursor has advanced past dom via sibling traversal (due to nested
