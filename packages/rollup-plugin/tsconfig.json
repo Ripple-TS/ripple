@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "noEmit": true
+  },
+  "include": ["./src/**/*", "./**/*.js", "./tests/**/*.test.js"],
+  "exclude": ["dist", "node_modules"]
+}
