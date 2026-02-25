@@ -19,6 +19,9 @@
 ; Fold server blocks
 (server_block) @fold
 
+; Fold defer blocks
+(defer_block) @fold
+
 ; Fold comments
 (comment) @fold
 

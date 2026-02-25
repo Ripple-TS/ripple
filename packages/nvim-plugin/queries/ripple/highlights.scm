@@ -2,6 +2,7 @@
 (component_declaration "component" @keyword)
 (fragment_declaration "fragment" @keyword)
 (server_block "#server" @keyword)
+(defer_block "#defer" @keyword)
 
 ; Reserved identifiers
 [

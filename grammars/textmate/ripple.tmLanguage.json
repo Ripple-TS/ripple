@@ -65,6 +65,9 @@
           "include": "#jsx"
         },
         {
+          "include": "#defer-block"
+        },
+        {
           "include": "#declaration"
         },
         {
@@ -6818,6 +6821,29 @@
       "patterns": [
         {
           "include": "#statements"
+        }
+      ]
+    },
+    "defer-block": {
+      "name": "meta.defer-block.js",
+      "begin": "(#defer)\\s*(\\{)",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.type.defer.js"
+        },
+        "2": {
+          "name": "punctuation.definition.block.js"
+        }
+      },
+      "end": "\\}",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.block.js"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#component-statements"
         }
       ]
     },

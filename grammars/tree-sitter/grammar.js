@@ -572,9 +572,12 @@ module.exports = grammar({
 				$.jsx_element,
 				$.jsx_self_closing_element,
 				$.server_block,
+				$.defer_block,
 			),
 
 		server_block: ($) => seq('#server', '{', repeat($.statement), '}'),
+
+		defer_block: ($) => seq('#defer', '{', repeat($.statement), '}'),
 
 		unbox_expression: ($) =>
 			prec.left(
