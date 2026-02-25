@@ -12,10 +12,7 @@ import * as ClientComponents from './compiled/client/hmr.js';
 describe('hydration > HMR re-render', () => {
 	it('re-renders layout component correctly after hydration (no zoom/displacement)', async () => {
 		// Hydrate the layout+content component
-		await hydrateComponent(
-			ServerComponents.LayoutWithContent,
-			ClientComponents.LayoutWithContent,
-		);
+		await hydrateComponent(ServerComponents.LayoutWithContent, ClientComponents.LayoutWithContent);
 
 		// Verify initial state
 		expect(container.querySelector('.layout')).not.toBeNull();
@@ -45,10 +42,7 @@ describe('hydration > HMR re-render', () => {
 	});
 
 	it('layout component remains inside container after hydration', async () => {
-		await hydrateComponent(
-			ServerComponents.LayoutWithContent,
-			ClientComponents.LayoutWithContent,
-		);
+		await hydrateComponent(ServerComponents.LayoutWithContent, ClientComponents.LayoutWithContent);
 
 		// The layout div must be inside the container, not displaced
 		const layout = container.querySelector('.layout');
@@ -64,10 +58,7 @@ describe('hydration > HMR re-render', () => {
 	});
 
 	it('hydrates layout with nested if block without corrupting branch state', async () => {
-		await hydrateComponent(
-			ServerComponents.LayoutWithContent,
-			ClientComponents.LayoutWithContent,
-		);
+		await hydrateComponent(ServerComponents.LayoutWithContent, ClientComponents.LayoutWithContent);
 
 		// After hydration, the conditional content must still be visible
 		expect(container.querySelector('.text')).not.toBeNull();
