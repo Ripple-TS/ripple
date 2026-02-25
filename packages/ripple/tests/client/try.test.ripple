@@ -141,4 +141,27 @@ describe('try block', () => {
 			expect(listItems.length).toBe(3);
 		},
 	);
+
+	it('if test condition does not become async within try/pending', async () => {
+		component App() {
+			try {
+				let items = await Promise.resolve(['apple', 'banana', 'cherry']);
+
+				if (items.includes('not-in-list')) {
+					<p>{'not-in-list is in the list!'}</p>
+				} else {
+					<p>{'not-in-list is not in the list.'}</p>
+				}
+			} pending {
+				<p>{'loading...'}</p>
+			}
+		}
+
+		render(App);
+
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.innerHTML).toContain('not-in-list is not in the list.');
+	});
 });
