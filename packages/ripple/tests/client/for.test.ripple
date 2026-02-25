@@ -136,11 +136,17 @@ describe('for statements', () => {
 		component App() {
 			let count = track(0);
 
-			const items = track(() =>
-				Array.from({ length: @count }).map((_, id) => ({ id, label: `Item ${id}` })),
+			const items = track(
+				() => Array.from({ length: @count }).map((_, id) => ({ id, label: `Item ${id}` })),
 			);
 
-			<button onClick={() => { @count++; }}>{'Add'}</button>
+			<button
+				onClick={() => {
+					@count++;
+				}}
+			>
+				{'Add'}
+			</button>
 			for (const item of @items; key item.id) {
 				<div class="item">{item.label}</div>
 			}
