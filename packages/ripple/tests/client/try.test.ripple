@@ -142,7 +142,7 @@ describe('try block', () => {
 		},
 	);
 
-	it('if statement works with try/pending', async () => {
+	it('if test condition does not become async within try/pending', async () => {
 		component App() {
 			try {
 				let items = await Promise.resolve(['apple', 'banana', 'cherry']);
