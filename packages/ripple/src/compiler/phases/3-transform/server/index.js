@@ -513,18 +513,28 @@ const visitors = {
 		return context.next();
 	},
 
+	BlockStatement(node, context) {
+		/** @type {AST.Statement[]} */
+		const statements = [];
+
+		for (const statement of node.body) {
+			statements.push(/** @type {AST.Statement} */ (context.visit(statement)));
+		}
+
+		return b.block(statements);
+	},
+
 	ArrowFunctionExpression(node, context) {
-		if (!context.state.to_ts) {
-			delete node.returnType;
-			delete node.typeParameters;
-			for (const param of node.params) {
-				delete param.typeAnnotation;
-				// Handle AssignmentPattern (parameters with default values)
-				if (param.type === 'AssignmentPattern' && param.left) {
-					delete param.left.typeAnnotation;
-				}
+		delete node.returnType;
+		delete node.typeParameters;
+		for (const param of node.params) {
+			delete param.typeAnnotation;
+			// Handle AssignmentPattern (parameters with default values)
+			if (param.type === 'AssignmentPattern' && param.left) {
+				delete param.left.typeAnnotation;
 			}
 		}
+
 		return context.next();
 	},
 

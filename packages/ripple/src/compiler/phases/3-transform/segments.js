@@ -1237,9 +1237,11 @@ export function convert_source_map_to_mappings(
 				}
 				return;
 			} else if (node.type === 'TemplateLiteral') {
-				mappings.push(
-					get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
-				);
+				if (node.loc) {
+					mappings.push(
+						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
+					);
+				}
 
 				// Visit quasis and expressions in order
 				for (let i = 0; i < node.quasis.length; i++) {

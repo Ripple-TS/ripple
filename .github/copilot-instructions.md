@@ -122,6 +122,8 @@ Source Code (.ripple) → Parse → Analyze → Transform → Output (JS + CSS)
   prop, let, const, function, component, for_pattern)
 - **Reactivity analysis:** Marks tracked expressions, derives tracking metadata
 - **CSS scoping:** Hash-based class names via `CSS_HASH_IDENTIFIER`
+- **`#style` analysis:** Validates usage context, collects referenced classes,
+  cross-checks against standalone CSS selectors
 - **Server block analysis:** Tracks exports from `#server` blocks
 
 ### Phase 3: Transform (`packages/ripple/src/compiler/phases/3-transform/`)
@@ -186,6 +188,7 @@ and once with `mode: 'server'`.
 | `Attribute`               | Element attribute with `name`, `value`, `shorthand`      |
 | `RefAttribute`            | `ref={...}` reference binding                            |
 | `SpreadAttribute`         | `{...props}` spread                                      |
+| `StyleIdentifier`         | `#style` compile-time identifier for scoped CSS classes  |
 | `CSS.StyleSheet`          | Parsed CSS with `hash` for scoping                       |
 
 ## Runtime Architecture

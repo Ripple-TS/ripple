@@ -15,14 +15,14 @@
     "./types": "./types/index.d.ts"
   },
   "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "react": "catalog:default",
+    "react-dom": "catalog:default",
     "ripple": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:default",
-    "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2",
+    "@types/react": "catalog:default",
+    "@types/react-dom": "catalog:default",
     "typescript": "catalog:default"
   },
   "publishConfig": {

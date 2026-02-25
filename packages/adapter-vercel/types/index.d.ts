@@ -214,6 +214,12 @@ export interface AdaptOptions {
 	 * Enforce trailing slash behavior.
 	 */
 	trailingSlash?: boolean;
+
+	/**
+	 * Print progress messages to stdout.
+	 * @default true
+	 */
+	verbose?: boolean;
 }
 
 /**

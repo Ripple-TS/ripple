@@ -4038,6 +4038,11 @@ function create_tsx_with_typescript_support(comments) {
 			context.location(loc.end.line, loc.end.column);
 		},
 		TemplateLiteral(node, context) {
+			if (!node.loc) {
+				base_tsx.TemplateLiteral?.(node, context);
+				return;
+			}
+
 			const loc = /** @type {AST.SourceLocation} */ (node.loc);
 			context.location(loc.start.line, loc.start.column);
 			base_tsx.TemplateLiteral?.(node, context);

@@ -26,8 +26,8 @@
     "copy-tree-sitter-queries": "node ./scripts/copy-tree-sitter-queries.js"
   },
   "devDependencies": {
-    "@changesets/changelog-github": "^0.5.2",
-    "@changesets/cli": "^2.29.8",
+    "@changesets/changelog-github": "catalog:default",
+    "@changesets/cli": "catalog:default",
     "@ripple-ts/eslint-plugin": "workspace:*",
     "@ripple-ts/prettier-plugin": "workspace:*",
     "@ripple-ts/vite-plugin": "workspace:*",
@@ -35,7 +35,7 @@
     "jsdom": "catalog:default",
     "linkedom": "catalog:default",
     "prettier": "catalog:default",
-    "rulesync": "^7.3.0",
+    "rulesync": "catalog:default",
     "source-map": "catalog:default",
     "type-fest": "catalog:default",
     "vitest": "catalog:default",

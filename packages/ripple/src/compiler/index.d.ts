@@ -116,8 +116,7 @@ export interface AnalyzeOptions extends ParseOptions, Pick<CompileOptions, 'mode
 }
 
 export interface VolarCompileOptions
-	extends Omit<ParseOptions, 'errors' | 'comments'>,
-		SharedCompileOptions {}
+	extends Omit<ParseOptions, 'errors' | 'comments'>, SharedCompileOptions {}
 
 export function parse(source: string, options?: ParseOptions): AST.Program;
 
