@@ -1877,6 +1877,11 @@ const visitors = {
 			]),
 		);
 
+		func.metadata = {
+			...func.metadata,
+			is_component: true,
+		};
+
 		return func;
 	},
 
@@ -4033,6 +4038,11 @@ function create_tsx_with_typescript_support(comments) {
 			context.location(loc.end.line, loc.end.column);
 		},
 		TemplateLiteral(node, context) {
+			if (!node.loc) {
+				base_tsx.TemplateLiteral?.(node, context);
+				return;
+			}
+
 			const loc = /** @type {AST.SourceLocation} */ (node.loc);
 			context.location(loc.start.line, loc.start.column);
 			base_tsx.TemplateLiteral?.(node, context);
@@ -4748,7 +4758,7 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 
 	const program = /** @type {AST.Program} */ (walk(analysis.ast, { ...state }, visitors));
 
-	/** @type {AST.Statement[]} */
+	/** @type {AST.RippleProgram['body']} */
 	let body = [];
 
 	for (const import_node of state.imports) {
@@ -4784,15 +4794,15 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 		// Walk the body to find components and inject HMR wrapping.
 		// After the walk, Component nodes become FunctionExpression nodes
 		// (via b.function() which creates FunctionExpression).
-		/** @type {AST.Statement[]} */
+		/** @type {AST.RippleProgram['body']} */
 		const hmr_body = [];
 
 		for (const node of body) {
 			hmr_body.push(node);
 
 			if (node.type === 'ExportDefaultDeclaration') {
-				const decl = node.declaration;
-				if (decl.type === 'FunctionExpression' && decl.id && component_names.has(decl.id.name)) {
+				const decl = /** @type {AST.FunctionExpression} */ (node.declaration);
+				if (decl.metadata?.is_component && decl.id && component_names.has(decl.id.name)) {
 					const name = decl.id.name;
 					exported_components.push({ name, export_type: 'default' });
 					// Replace ExportDefaultDeclaration with plain FunctionExpression (printed as function declaration)
@@ -4803,13 +4813,8 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 					hmr_body.push(b.export_default(b.id(name)));
 				}
 			} else if (node.type === 'ExportNamedDeclaration') {
-				const decl = node.declaration;
-				if (
-					decl &&
-					decl.type === 'FunctionExpression' &&
-					decl.id &&
-					component_names.has(decl.id.name)
-				) {
+				const decl = /** @type {AST.FunctionExpression | null | undefined} */ (node.declaration);
+				if (decl && decl.metadata?.is_component && decl.id && component_names.has(decl.id.name)) {
 					const name = decl.id.name;
 					exported_components.push({ name, export_type: 'named' });
 					// Replace ExportNamedDeclaration with plain FunctionExpression (printed as function declaration)
@@ -4830,6 +4835,7 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 				}
 			} else if (
 				node.type === 'FunctionExpression' &&
+				node.metadata?.is_component &&
 				node.id &&
 				component_names.has(node.id.name)
 			) {
@@ -4859,7 +4865,7 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 		body = hmr_body;
 	}
 
-	program.body = body;
+	/** @type {AST.RippleProgram['body']} */ (program.body) = body;
 
 	const language_handler = to_ts
 		? create_tsx_with_typescript_support(analysis.comments)

@@ -11,5 +11,6 @@
     "resolveJsonModule": true,
     "types": []
   },
-  "include": ["src/**/*.js", "index.js", "bin/**/*.js"]
+  "include": ["src/**/*.js", "index.js", "bin/**/*.js"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -299,7 +299,9 @@ function generate_vercel_config(options) {
  * @returns {Promise<void>}
  */
 export async function adapt(options = {}) {
-	const { outDir = 'dist', serverless = {}, isr = false } = options;
+	const { outDir = 'dist', serverless = {}, isr = false, verbose = true } = options;
+
+	const log = verbose ? console.log.bind(console) : () => {};
 
 	const project_root = process.cwd();
 	const build_dir = resolve(project_root, outDir);
@@ -330,7 +332,7 @@ export async function adapt(options = {}) {
 	// Clean and create output directory
 	// ------------------------------------------------------------------
 
-	console.log('[adapter-vercel] Generating Vercel Build Output...');
+	log('[adapter-vercel] Generating Vercel Build Output...');
 
 	rmSync(output_dir, { recursive: true, force: true });
 	mkdirSync(output_dir, { recursive: true });
@@ -341,7 +343,7 @@ export async function adapt(options = {}) {
 
 	const static_dir = join(output_dir, 'static');
 
-	console.log('[adapter-vercel] Copying static assets...');
+	log('[adapter-vercel] Copying static assets...');
 	copy_dir(client_dir, static_dir);
 
 	// Remove index.html from static output — SSR handles the root route.
@@ -359,7 +361,7 @@ export async function adapt(options = {}) {
 	const func_dir = join(output_dir, 'functions', 'index.func');
 	mkdirSync(func_dir, { recursive: true });
 
-	console.log('[adapter-vercel] Tracing server dependencies...');
+	log('[adapter-vercel] Tracing server dependencies...');
 
 	// Trace and copy all dependencies of the server entry.
 	// The trace result tells us the project-relative path where the entry
@@ -420,7 +422,7 @@ export async function adapt(options = {}) {
 
 		vc_config.prerender = prerender;
 
-		console.log(
+		log(
 			`[adapter-vercel] ISR enabled (expiration: ${isr.expiration === false ? 'never' : isr.expiration + 's'})`,
 		);
 	}
@@ -431,7 +433,7 @@ export async function adapt(options = {}) {
 	// 3. Generate the Build Output API config
 	// ------------------------------------------------------------------
 
-	console.log('[adapter-vercel] Writing config...');
+	log('[adapter-vercel] Writing config...');
 
 	const vercel_config = generate_vercel_config(options);
 	write(join(output_dir, 'config.json'), JSON.stringify(vercel_config, null, '\t'));
@@ -440,8 +442,8 @@ export async function adapt(options = {}) {
 	// Summary
 	// ------------------------------------------------------------------
 
-	console.log('[adapter-vercel] Build output generated at .vercel/output/');
-	console.log(`  Static:   ${static_dir}`);
-	console.log(`  Function: ${func_dir}`);
-	console.log(`  Runtime:  ${runtime}`);
+	log('[adapter-vercel] Build output generated at .vercel/output/');
+	log(`  Static:   ${static_dir}`);
+	log(`  Function: ${func_dir}`);
+	log(`  Runtime:  ${runtime}`);
 }

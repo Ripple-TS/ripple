@@ -155,6 +155,7 @@ export function validate_nesting(element, context, errors) {
 						context.state.analysis.module.filename,
 						element,
 						errors,
+						context.state.analysis.comments,
 					);
 				} else {
 					// if my parent has a set of invalid children

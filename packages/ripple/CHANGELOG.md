@@ -1,5 +1,43 @@
 # ripple
 
+## 0.2.215
+
+### Patch Changes
+
+- [#742](https://github.com/Ripple-TS/ripple/pull/742)
+  [`a9ecda4`](https://github.com/Ripple-TS/ripple/commit/a9ecda4e3f29e3b934d9f5ee80d55c059ba36ebe)
+  Thanks [@copilot-swe-agent](https://github.com/apps/copilot-swe-agent)! - Fix
+  catch block not executing when used with pending block in try statements.
+  Previously, errors thrown inside async components within
+  `try { ... } pending { ... } catch { ... }` blocks were lost as unhandled
+  promise rejections. Now errors are properly caught and the catch block is
+  rendered. Also fixes the server-side rendering to not include pending content in
+  the final output when the async operation resolves or errors.
+
+- [#744](https://github.com/Ripple-TS/ripple/pull/744)
+  [`6653c5c`](https://github.com/Ripple-TS/ripple/commit/6653c5cebfbd4dce129906a25686ef9c63dc592a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix compiler analysis
+  incorrectly marking untrackable nodes as tracked. `MemberExpression` now only
+  enables tracking when the member or its property is actually marked as
+  `tracked`, and unconditional tracking side-effects were removed from
+  `CallExpression` and `NewExpression` visitors.
+
+  Also fixes the client transform for `TrackedExpression` in TypeScript mode to
+  emit a `['#v']` member access (marked as `tracked`) instead of the runtime
+  `_$_.get(...)` call, aligning TSX output with tracked-access semantics.
+
+- [#733](https://github.com/Ripple-TS/ripple/pull/733)
+  [`307dcf3`](https://github.com/Ripple-TS/ripple/commit/307dcf30f27dae987a19a59508cc2593c839eda3)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix client HMR updates when a
+  wrapped component has not mounted yet. The runtime now avoids calling `set()` on
+  an undefined tracked source and keeps wrapper HMR state synchronized across
+  update chains.
+- Updated dependencies
+  [[`a9ecda4`](https://github.com/Ripple-TS/ripple/commit/a9ecda4e3f29e3b934d9f5ee80d55c059ba36ebe),
+  [`6653c5c`](https://github.com/Ripple-TS/ripple/commit/6653c5cebfbd4dce129906a25686ef9c63dc592a),
+  [`307dcf3`](https://github.com/Ripple-TS/ripple/commit/307dcf30f27dae987a19a59508cc2593c839eda3)]:
+  - ripple@0.2.215
+
 ## 0.2.214
 
 ### Patch Changes

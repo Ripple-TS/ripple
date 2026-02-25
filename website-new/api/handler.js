@@ -12,6 +12,7 @@
 import { handler } from '../dist/server/entry.js';
 
 export default {
+	/** @param {Request} request */
 	async fetch(request) {
 		try {
 			return await handler(request);

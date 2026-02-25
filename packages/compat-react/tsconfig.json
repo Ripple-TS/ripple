@@ -23,5 +23,6 @@
     "./tests/**/*.test.ripple",
     "./tests/**/*.d.ts",
     "./tests/**/*.js"
-  ]
+  ],
+  "exclude": ["node_modules", "dist"]
 }

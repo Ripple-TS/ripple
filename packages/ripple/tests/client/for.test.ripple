@@ -132,6 +132,47 @@ describe('for statements', () => {
 		expect(container).toMatchSnapshot();
 	});
 
+	it('keyed for over derived updates sibling text nodes', () => {
+		component App() {
+			let count = track(0);
+
+			const items = track(
+				() => Array.from({ length: @count }).map((_, id) => ({ id, label: `Item ${id}` })),
+			);
+
+			<button
+				onClick={() => {
+					@count++;
+				}}
+			>
+				{'Add'}
+			</button>
+			for (const item of @items; key item.id) {
+				<div class="item">{item.label}</div>
+			}
+			<p class="count">{@count}</p>
+		}
+
+		render(App);
+
+		const button = container.querySelector('button');
+
+		expect(container.querySelector('.count').textContent).toBe('0');
+		expect(container.querySelectorAll('.item').length).toBe(0);
+
+		button.click();
+		flushSync();
+
+		expect(container.querySelector('.count').textContent).toBe('1');
+		expect(container.querySelectorAll('.item').length).toBe(1);
+
+		button.click();
+		flushSync();
+
+		expect(container.querySelector('.count').textContent).toBe('2');
+		expect(container.querySelectorAll('.item').length).toBe(2);
+	});
+
 	it('handles updating with new objects with same key', () => {
 		component App() {
 			let items = track([

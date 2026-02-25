@@ -1028,7 +1028,8 @@ import { effect, track } from 'ripple';`;
 		});
 
 		it('does not add spaces around inlined array elements in destructured arguments', async () => {
-			const expected = `for (const [key, value] of Object.entries(attributes).filter(([_key, value]) => value !== '')) {}
+			const expected = `for (const [key, value] of Object.entries(attributes).filter(([_key, value]) => value !== '')) {
+}
 const [obj1, obj2] = arrayOfObjects;`;
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
@@ -2112,6 +2113,102 @@ files = [...(files ?? []), ...dt.files];`;
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
 		});
+
+		it('should preserve comments above attributes on dom elements', async () => {
+			const expected = `component App() {
+  <div
+    // @ripple-ignore
+    something="test"
+  >
+    {'test'}
+  </div>
+}`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve comments above attributes on components', async () => {
+			const expected = `component App() {
+  <Child
+    // @ripple-ignore
+    something="test"
+  >
+    {'test'}
+  </Child>
+}
+component Child({ something }) {
+  <div>{something}</div>
+}`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('keeps parens in place when necessary for logical reasons with && and || operators', async () => {
+			const expected = `function App() {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+  }
+}`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('expands empty braces to new lines for for-in statements', async () => {
+			const expected = `for (const key in obj) {
+}`;
+			const result = await format(expected);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('expands empty braces to new lines for for statements', async () => {
+			const expected = `for (let i = 0; i < 10; i++) {
+}`;
+			const result = await format(expected);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('expands empty braces to new lines for while statements', async () => {
+			const expected = `while (true) {
+}`;
+			const result = await format(expected);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('expands empty braces to new lines for do-while statements', async () => {
+			const expected = `do {
+} while (true);`;
+			const result = await format(expected);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('adds semicolon after do-while when semi option is true', async () => {
+			const input = `do { console.log('x') } while (true)`;
+			const expected = `do {
+  console.log("x");
+} while (true);`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('omits semicolon after do-while when semi option is false', async () => {
+			const input = `do { console.log('x') } while (true);`;
+			const expected = `do {
+  console.log("x")
+} while (true)`;
+			const result = await format(input, { semi: false });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('expands empty braces to new lines for switch case blocks', async () => {
+			const expected = `switch (x) {
+  case 1: {
+  }
+}`;
+			const result = await format(expected);
+			expect(result).toBeWithNewline(expected);
+		});
 	});
 
 	describe('edge cases', () => {
@@ -2778,8 +2875,10 @@ const obj2 = #{
 		const input = `for (const [i = 0, item] of items.entries()) {}
 for (const {i = 0, item} of items.entries()) {}`;
 
-		const expected = `for (const [i = 0, item] of items.entries()) {}
-for (const { i = 0, item } of items.entries()) {}`;
+		const expected = `for (const [i = 0, item] of items.entries()) {
+}
+for (const { i = 0, item } of items.entries()) {
+}`;
 
 		const result = await format(input);
 		expect(result).toBeWithNewline(expected);

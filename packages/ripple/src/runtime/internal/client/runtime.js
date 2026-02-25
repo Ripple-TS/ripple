@@ -609,12 +609,14 @@ function flush_updates(root_block) {
 	var current = root_block;
 	var containing_update = null;
 	var effects = [];
+	var containing_update_head = null;
 
 	while (current !== null) {
 		var flags = current.f;
 
 		if ((flags & CONTAINS_UPDATE) !== 0) {
 			current.f ^= CONTAINS_UPDATE;
+			containing_update_head = { v: containing_update, n: containing_update_head };
 			containing_update = current;
 		}
 
@@ -645,7 +647,9 @@ function flush_updates(root_block) {
 
 		while (current === null && parent !== null) {
 			if (parent === containing_update) {
-				containing_update = null;
+				var head = /** @type {{ v: Block | null, n: any }} */ (containing_update_head);
+				containing_update = head.v;
+				containing_update_head = head.n;
 			}
 			current = parent.next;
 			parent = parent.p;

@@ -3,7 +3,7 @@
   "description": "Vercel adapter for Ripple metaframework (Build Output API v3)",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.2.214",
+  "version": "0.2.215",
   "type": "module",
   "module": "src/index.js",
   "main": "src/index.js",

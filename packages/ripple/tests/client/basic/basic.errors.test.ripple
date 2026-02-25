@@ -173,4 +173,70 @@ describe('basic client > errors', () => {
 			compile(code, 'test.ripple', { mode: 'client' });
 		}).toThrow('`await` is not allowed in client-side control-flow statements');
 	});
+
+	it('should throw error for while loop inside a component', () => {
+		const code = `
+			export default component App() {
+				let i = 0;
+				while (i < 10) {
+					i++;
+				}
+				<div>{i}</div>
+			}
+		`;
+		expect(() => {
+			compile(code, 'test.ripple');
+		}).toThrow('While loops are not supported in components.');
+	});
+
+	it('should throw error for do...while loop inside a component', () => {
+		const code = `
+			export default component App() {
+				let i = 0;
+				do {
+					i++;
+				} while (i < 10);
+				<div>{i}</div>
+			}
+		`;
+		expect(() => {
+			compile(code, 'test.ripple');
+		}).toThrow('Do...while loops are not supported in components.');
+	});
+
+	it('should not throw error for while loop inside a function within a component', () => {
+		const code = `
+			export default component App() {
+				const compute = () => {
+					let i = 0;
+					while (i < 10) {
+						i++;
+					}
+					return i;
+				};
+				<div>{compute()}</div>
+			}
+		`;
+		expect(() => {
+			compile(code, 'test.ripple');
+		}).not.toThrow();
+	});
+
+	it('should not throw error for do...while loop inside a function within a component', () => {
+		const code = `
+			export default component App() {
+				const compute = () => {
+					let i = 0;
+					do {
+						i++;
+					} while (i < 10);
+					return i;
+				};
+				<div>{compute()}</div>
+			}
+		`;
+		expect(() => {
+			compile(code, 'test.ripple');
+		}).not.toThrow();
+	});
 });

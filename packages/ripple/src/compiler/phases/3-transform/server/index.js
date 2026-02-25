@@ -418,16 +418,16 @@ const visitors = {
 
 		if (metadata.await) {
 			const parent = context.path.at(-1);
-			/** @type {any[] | null} */
+			/** @type {AST.RippleProgram['body'] | null} */
 			let body = null;
-			/** @type {any} */
+			/** @type {AST.Component | AST.ExportNamedDeclaration} */
 			let target_node = node;
 			if (parent?.type === 'Program' || parent?.type === 'BlockStatement') {
-				body = /** @type {AST.RippleProgram} */ (parent).body;
+				body = parent.body;
 			} else if (parent?.type === 'ExportNamedDeclaration') {
 				const grandparent = context.path.at(-2);
 				if (grandparent?.type === 'Program' || grandparent?.type === 'BlockStatement') {
-					body = /** @type {AST.RippleProgram} */ (grandparent).body;
+					body = grandparent.body;
 					target_node = parent;
 				}
 			}
@@ -513,18 +513,28 @@ const visitors = {
 		return context.next();
 	},
 
+	BlockStatement(node, context) {
+		/** @type {AST.Statement[]} */
+		const statements = [];
+
+		for (const statement of node.body) {
+			statements.push(/** @type {AST.Statement} */ (context.visit(statement)));
+		}
+
+		return b.block(statements);
+	},
+
 	ArrowFunctionExpression(node, context) {
-		if (!context.state.to_ts) {
-			delete node.returnType;
-			delete node.typeParameters;
-			for (const param of node.params) {
-				delete param.typeAnnotation;
-				// Handle AssignmentPattern (parameters with default values)
-				if (param.type === 'AssignmentPattern' && param.left) {
-					delete param.left.typeAnnotation;
-				}
+		delete node.returnType;
+		delete node.typeParameters;
+		for (const param of node.params) {
+			delete param.typeAnnotation;
+			// Handle AssignmentPattern (parameters with default values)
+			if (param.type === 'AssignmentPattern' && param.left) {
+				delete param.left.typeAnnotation;
 			}
 		}
+
 		return context.next();
 	},
 
@@ -1401,7 +1411,7 @@ const visitors = {
 				});
 				context.state.init?.push(
 					b.var(
-						b.id(pending_position_name),
+						b.id(/** @type {string} */ (pending_position_name)),
 						b.member(b.member(b.id('__output'), b.id('body')), b.id('length')),
 					),
 				);
@@ -1443,7 +1453,7 @@ const visitors = {
 							b.call(
 								b.member(b.member(b.id('__output'), b.id('body')), b.id('slice')),
 								b.literal(0),
-								b.id(pending_position_name),
+								b.id(/** @type {string} */ (pending_position_name)),
 							),
 						),
 					),

@@ -9,9 +9,14 @@
  * @param {string | null} filename
  * @param {AST.Node} node
  * @param {RippleCompileError[]} [errors]
+ * @param {AST.CommentWithLocation[]} [comments]
  * @returns {void}
  */
-export function error(message, filename, node, errors) {
+export function error(message, filename, node, errors, comments) {
+	if (errors && comments && is_ripple_error_suppressed(node, comments)) {
+		return;
+	}
+
 	const error = /** @type {RippleCompileError} */ (new Error(message));
 
 	// same as the acorn compiler error
@@ -42,4 +47,31 @@ export function error(message, filename, node, errors) {
 
 	error.type = 'fatal';
 	throw error;
+}
+
+/**
+ * @param {AST.CommentWithLocation} comment
+ * @return {boolean}
+ */
+function is_ripple_error_suppress_comment(comment) {
+	const text = comment.value.trim();
+	return text.startsWith('@ripple-ignore') || text.startsWith('@ripple-expect-error');
+}
+
+/**
+ * @param {AST.Node} node
+ * @param {AST.CommentWithLocation[]} comments
+ */
+function is_ripple_error_suppressed(node, comments) {
+	if (node.loc) {
+		const node_start_line = node.loc.start.line;
+		for (const comment of comments) {
+			if (comment.type === 'Line' && comment.loc.start.line === node_start_line - 1) {
+				if (is_ripple_error_suppress_comment(comment)) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }
