@@ -609,12 +609,15 @@ function flush_updates(root_block) {
 	var current = root_block;
 	var containing_update = null;
 	var effects = [];
+	/** @type {(Block | null)[]} */
+	var containing_update_stack = [];
 
 	while (current !== null) {
 		var flags = current.f;
 
 		if ((flags & CONTAINS_UPDATE) !== 0) {
 			current.f ^= CONTAINS_UPDATE;
+			containing_update_stack.push(containing_update);
 			containing_update = current;
 		}
 
@@ -645,7 +648,7 @@ function flush_updates(root_block) {
 
 		while (current === null && parent !== null) {
 			if (parent === containing_update) {
-				containing_update = null;
+				containing_update = containing_update_stack.pop() ?? null;
 			}
 			current = parent.next;
 			parent = parent.p;
