@@ -1,0 +1,396 @@
+import { compile } from 'ripple/compiler';
+import { track } from 'ripple';
+
+describe('#style identifier', () => {
+	describe('basic usage with components', () => {
+		it('passes scoped class to a child component via #style', () => {
+			component Child({ className }: { className: string }) {
+				<div class={className}>{'styled child'}</div>
+			}
+
+			component Parent() {
+				<Child className={#style.highlight} />
+
+				<style>
+					.highlight {
+						color: red;
+					}
+				</style>
+			}
+
+			render(Parent);
+
+			const div = container.querySelector('div');
+			expect(div).toBeTruthy();
+			expect(div.textContent).toBe('styled child');
+			const classes = Array.from(div.classList);
+			expect(classes.some((cls: string) => cls.startsWith('ripple-'))).toBe(true);
+			expect(classes.some((cls: string) => cls === 'highlight')).toBe(true);
+		});
+
+		it('passes multiple #style classes to a child component', () => {
+			component Child({ primary, secondary }: { primary: string; secondary: string }) {
+				<div class={primary}>{'primary'}</div>
+				<span class={secondary}>{'secondary'}</span>
+			}
+
+			component Parent() {
+				<Child primary={#style.primary} secondary={#style.secondary} />
+
+				<style>
+					.primary {
+						color: blue;
+					}
+					.secondary {
+						color: gray;
+					}
+				</style>
+			}
+
+			render(Parent);
+
+			const div = container.querySelector('div');
+			const span = container.querySelector('span');
+
+			expect(div).toBeTruthy();
+			expect(span).toBeTruthy();
+
+			const divClasses = Array.from(div.classList);
+			expect(divClasses.some((cls: string) => cls.startsWith('ripple-'))).toBe(true);
+			expect(divClasses.some((cls: string) => cls === 'primary')).toBe(true);
+
+			const spanClasses = Array.from(span.classList);
+			expect(spanClasses.some((cls: string) => cls.startsWith('ripple-'))).toBe(true);
+			expect(spanClasses.some((cls: string) => cls === 'secondary')).toBe(true);
+		});
+
+		it('passes scoped class to a dynamic child component via #style', () => {
+			component Child({ cls }: { cls: string }) {
+				<span class={cls}>{'text'}</span>
+			}
+
+			component Parent() {
+				let dynamic = track(() => Child);
+				<div class="wrapper">
+					<@dynamic cls={#style.text} />
+				</div>
+
+				<style>
+					.text {
+						color: red;
+					}
+				</style>
+			}
+
+			render(Parent);
+
+			const span = container.querySelector('span');
+			expect(span).toBeTruthy();
+			const classes = Array.from(span.classList);
+			expect(classes.some((cls: string) => cls.startsWith('ripple-'))).toBe(true);
+			expect(classes.some((cls: string) => cls === 'text')).toBe(true);
+		});
+
+		it('child can combine its own classes with parent #style class', () => {
+			component Card({ className }: { className?: string }) {
+				<div class={['card-base', className ?? '']}>{'card content'}</div>
+
+				<style>
+					.card-base {
+						border: 1px solid black;
+					}
+				</style>
+			}
+
+			component App() {
+				<Card className={#style.themed} />
+
+				<style>
+					.themed {
+						background: purple;
+					}
+				</style>
+			}
+
+			render(App);
+
+			const div = container.querySelector('div');
+			expect(div).toBeTruthy();
+			const classes = Array.from(div.classList);
+			expect(classes.some((cls: string) => cls === 'card-base')).toBe(true);
+			expect(classes.some((cls: string) => cls === 'themed')).toBe(true);
+		});
+
+		it('passes standalone class to child even when it also appears in descendant context', () => {
+			component Child({ cls }: { cls: string }) {
+				<span class={cls}>{'text'}</span>
+			}
+
+			component App() {
+				<div class="parent">
+					<Child cls={#style.dual} />
+				</div>
+
+				<style>
+					.dual {
+						color: blue;
+					}
+					.parent .dual {
+						font-weight: bold;
+					}
+				</style>
+			}
+
+			render(App);
+
+			const span = container.querySelector('span');
+			expect(span).toBeTruthy();
+			const classes = Array.from(span.classList);
+			expect(classes.some((cls: string) => cls.startsWith('ripple-'))).toBe(true);
+			expect(classes.some((cls: string) => cls === 'dual')).toBe(true);
+		});
+	});
+
+	describe('compile errors', () => {
+		it('errors when #style is used directly on a DOM element', () => {
+			const source = `
+component App() {
+	<div class={#style.box}>{'content'}</div>
+
+	<style>
+		.box {
+			padding: 10px;
+		}
+	</style>
+}`;
+			expect(() => compile(source, 'test.ripple')).toThrow(
+				/cannot be used directly on DOM elements/,
+			);
+		});
+
+		it('errors when #style bracket notation is used directly on a DOM element', () => {
+			const source = `
+component App() {
+	<div class={#style['container']}>{'content'}</div>
+
+	<style>
+		.container {
+			margin: 0 auto;
+		}
+	</style>
+}`;
+			expect(() => compile(source, 'test.ripple')).toThrow(
+				/cannot be used directly on DOM elements/,
+			);
+		});
+
+		it('errors when #style references a class in a compound selector passed to component', () => {
+			const source = `
+component Child({ cls }) {
+	<span class={cls}>{'text'}</span>
+}
+component App() {
+	<Child cls={#style.special} />
+
+	<style>
+		span.special {
+			color: red;
+		}
+	</style>
+}`;
+			expect(() => compile(source, 'test.ripple')).toThrow(/does not exist as a stand-alone class/);
+		});
+
+		it('errors if descendant class is attempted to be passed in to child component', () => {
+			const source = `
+				component Child({ cls }: { cls: string }) {
+					<span class={cls}>{'text'}</span>
+				}
+
+				component App() {
+					<div class="wrapper">
+						<Child
+							cls={#style.nested}
+						/>
+					</div>
+
+					<style>
+						.wrapper .nested {
+							color: red;
+						}
+					</style>
+				}
+
+				render(App);
+			`;
+
+			expect(() => compile(source, 'test.ripple')).toThrow(/does not exist as a stand-alone class/);
+		});
+
+		it('errors if combinator class is attempted to be passed in to child component', () => {
+			const source = `
+				component Child({ cls }) {
+					<p class={cls}>{'text'}</p>
+				}
+
+				component App() {
+					<div class="parent">
+						<Child
+							// @ts-expect-error - cannot use child combinator class as standalone
+							// @ripple-expect-error - cannot use child combinator class as standalone
+							cls={#style.child}
+						/>
+					</div>
+
+					<style>
+						.parent > .child {
+							font-size: 14px;
+						}
+					</style>
+				}
+
+				render(App);
+			`;
+			expect(() => compile(source, 'test.ripple')).toThrow(/does not exist as a stand-alone class/);
+		});
+
+		it('errors if compound class is attempted to be passed in to child component', () => {
+			const source = `
+				component Child({ cls }) {
+					<p class={cls}>{'text'}</p>
+				}
+
+				component App() {
+					<div class="parent">
+						<Child
+							// @ts-expect-error - cannot use compound class as standalone
+							// @ripple-expect-error - cannot use compound class as standalone
+							cls={#style.child}
+						/>
+					</div>
+
+					<style>
+						.parent.child {
+							font-size: 14px;
+						}
+					</style>
+				}
+
+				render(App);
+			`;
+			expect(() => compile(source, 'test.ripple')).toThrow(/does not exist as a stand-alone class/);
+		});
+
+		it('errors if descendant #style class is used on a dynamic component', () => {
+			const source = `
+				import { track } from 'ripple';
+
+				component Child({ cls }) {
+					<span class={cls}>{'text'}</span>
+				}
+
+				component App() {
+					let dynamic = track(() => Child);
+					<div class="wrapper">
+						<@dynamic cls={#style.nested} />
+					</div>
+
+					<style>
+						.wrapper .nested {
+							color: red;
+						}
+					</style>
+				}
+
+				render(App);
+			`;
+			expect(() => compile(source, 'test.ripple')).toThrow(/does not exist as a stand-alone class/);
+		});
+
+		it('errors when #style references a class that does not exist in the style block', () => {
+			const source = `
+component Child({ cls }) {
+	<div class={cls}>{'text'}</div>
+}
+component App() {
+	<Child cls={#style.missing} />
+
+	<style>
+		.other {
+			color: blue;
+		}
+	</style>
+}`;
+			expect(() => compile(source, 'test.ripple')).toThrow(/does not exist as a stand-alone class/);
+		});
+
+		it('errors when #style is used with a dynamic expression', () => {
+			const source = `
+component Child({ cls }) {
+	<div class={cls}>{'text'}</div>
+}
+component App() {
+	const key = 'highlight';
+	<Child cls={#style[key]} />
+
+	<style>
+		.highlight {
+			color: red;
+		}
+	</style>
+}`;
+			expect(() => compile(source, 'test.ripple')).toThrow(
+				/must use a dot property or static string/,
+			);
+		});
+
+		it('errors when #style is used outside of a component', () => {
+			const source = `function notAComponent() {
+	const cls = #style.foo;
+}`;
+			expect(() => compile(source, 'test.ripple')).toThrow(/can only be used within a component/);
+		});
+	});
+
+	describe('compiler output', () => {
+		it('generates #style object with standalone classes for client mode', () => {
+			const source = `
+component Child({ cls }) {
+	<div class={cls}>{'text'}</div>
+}
+export component App() {
+	<Child cls={#style.highlight} />
+
+	<style>
+		.highlight {
+			color: red;
+		}
+	</style>
+}`;
+			const { js } = compile(source, 'test.ripple');
+
+			expect(js.code).toContain('highlight');
+			expect(js.code).toMatch(/ripple-[a-z0-9]+/);
+		});
+
+		it('generates #style object with standalone classes for server mode', () => {
+			const source = `
+component Child({ cls }) {
+	<div class={cls}>{'text'}</div>
+}
+export component App() {
+	<Child cls={#style.highlight} />
+
+	<style>
+		.highlight {
+			color: red;
+		}
+	</style>
+}`;
+			const { js } = compile(source, 'test.ripple', { mode: 'server' });
+
+			expect(js.code).toContain('highlight');
+			expect(js.code).toMatch(/ripple-[a-z0-9]+/);
+		});
+	});
+});

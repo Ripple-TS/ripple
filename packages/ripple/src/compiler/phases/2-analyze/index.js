@@ -141,6 +141,7 @@ function error_return_keyword(node, context, message) {
 		context.state.analysis.module.filename,
 		return_keyword_node,
 		context.state.loose ? context.state.analysis.errors : undefined,
+		context.state.analysis.comments,
 	);
 }
 
@@ -281,6 +282,7 @@ const visitors = {
 					context.state.analysis.module.filename,
 					node,
 					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
 				);
 			}
 		}
@@ -327,6 +329,7 @@ const visitors = {
 					context.state.analysis.module.filename,
 					node,
 					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
 				);
 			} else {
 				component.metadata.styleIdentifierPresent = true;
@@ -352,6 +355,7 @@ const visitors = {
 					context.state.analysis.module.filename,
 					node.property,
 					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
 				);
 			}
 
@@ -383,6 +387,7 @@ const visitors = {
 						context.state.analysis.module.filename,
 						node.property,
 						context.state.loose ? context.state.analysis.errors : undefined,
+						context.state.analysis.comments,
 					);
 				}
 			}
@@ -397,6 +402,7 @@ const visitors = {
 					context.state.analysis.module.filename,
 					node.object,
 					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
 				);
 			}
 		}
@@ -422,6 +428,7 @@ const visitors = {
 				context.state.analysis.module.filename,
 				node.callee,
 				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
 			);
 		}
 
@@ -446,6 +453,7 @@ const visitors = {
 					state.analysis.module.filename,
 					declarator.id,
 					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
 				);
 			}
 			const metadata = { tracking: false, await: false };
@@ -476,6 +484,7 @@ const visitors = {
 							state.analysis.module.filename,
 							path.node,
 							context.state.loose ? context.state.analysis.errors : undefined,
+							context.state.analysis.comments,
 						);
 					}
 				}
@@ -535,6 +544,7 @@ const visitors = {
 					context.state.analysis.module.filename,
 					props,
 					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
 				);
 			}
 		}
@@ -581,6 +591,7 @@ const visitors = {
 							context.state.analysis.module.filename,
 							property,
 							context.state.loose ? context.state.analysis.errors : undefined,
+							context.state.analysis.comments,
 						);
 					}
 				}
@@ -638,6 +649,7 @@ const visitors = {
 					context.state.analysis.module.filename,
 					switch_case,
 					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
 				);
 			}
 		}
@@ -711,6 +723,7 @@ const visitors = {
 				context.state.analysis.module.filename,
 				node.body,
 				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
 			);
 		}
 	},
@@ -733,6 +746,7 @@ const visitors = {
 				context.state.analysis.module.filename,
 				/** @type {AST.Identifier} */ (declaration.id),
 				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
 			);
 			// TODO: the client and server rendering doesn't currently support components
 			// If we're going to support this, we need to account also for anonymous object declaration
@@ -761,6 +775,7 @@ const visitors = {
 								context.state.analysis.module.filename,
 								decl.init,
 								context.state.loose ? context.state.analysis.errors : undefined,
+								context.state.analysis.comments,
 							);
 							continue;
 						}
@@ -772,6 +787,7 @@ const visitors = {
 								context.state.analysis.module.filename,
 								path.node,
 								context.state.loose ? context.state.analysis.errors : undefined,
+								context.state.analysis.comments,
 							);
 						}
 					}
@@ -782,6 +798,7 @@ const visitors = {
 					context.state.analysis.module.filename,
 					decl,
 					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
 				);
 			}
 		} else if (node.specifiers) {
@@ -800,6 +817,7 @@ const visitors = {
 					context.state.analysis.module.filename,
 					specifier,
 					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
 				);
 			}
 		} else {
@@ -808,6 +826,7 @@ const visitors = {
 				context.state.analysis.module.filename,
 				node,
 				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
 			);
 		}
 
@@ -862,6 +881,7 @@ const visitors = {
 				context.state.analysis.module.filename,
 				node.consequent,
 				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
 			);
 		}
 
@@ -878,6 +898,7 @@ const visitors = {
 					context.state.analysis.module.filename,
 					node.alternate,
 					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
 				);
 			}
 
@@ -965,6 +986,7 @@ const visitors = {
 					state.analysis.module.filename,
 					node.block,
 					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
 				);
 			}
 
@@ -981,6 +1003,7 @@ const visitors = {
 					state.analysis.module.filename,
 					node.pending,
 					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
 				);
 			}
 		}
@@ -1166,6 +1189,7 @@ const visitors = {
 								},
 							},
 							context.state.loose ? context.state.analysis.errors : undefined,
+							context.state.analysis.comments,
 						);
 					}
 					if (attr.name.type === 'Identifier') {
@@ -1177,6 +1201,21 @@ const visitors = {
 								state.analysis.module.filename,
 								attr,
 								context.state.loose ? context.state.analysis.errors : undefined,
+								context.state.analysis.comments,
+							);
+						}
+
+						if (
+							attr.value &&
+							attr.value.type === 'MemberExpression' &&
+							attr.value.object.type === 'StyleIdentifier'
+						) {
+							error(
+								'`#style` cannot be used directly on DOM elements. Pass the class to a child component instead.',
+								state.analysis.module.filename,
+								attr.value.object,
+								context.state.loose ? context.state.analysis.errors : undefined,
+								context.state.analysis.comments,
 							);
 						}
 
@@ -1204,6 +1243,7 @@ const visitors = {
 					state.analysis.module.filename,
 					node,
 					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
 				);
 			}
 		} else {
@@ -1245,6 +1285,7 @@ const visitors = {
 						state.analysis.module.filename,
 						item,
 						context.state.loose ? context.state.analysis.errors : undefined,
+						context.state.analysis.comments,
 					);
 				}
 			}
@@ -1260,6 +1301,7 @@ const visitors = {
 						state.analysis.module.filename,
 						attribute,
 						context.state.loose ? context.state.analysis.errors : undefined,
+						context.state.analysis.comments,
 					);
 				}
 			}
@@ -1285,6 +1327,7 @@ const visitors = {
 				context.state.analysis.module.filename,
 				node.expression,
 				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
 			);
 		}
 
@@ -1319,6 +1362,7 @@ const visitors = {
 					context.state.analysis.module.filename,
 					adjusted_node,
 					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
 				);
 			}
 		}

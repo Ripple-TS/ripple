@@ -1922,7 +1922,25 @@ function printRippleNode(node, path, options, print, args) {
 						break;
 					}
 				}
-				nodeContent = '{}';
+
+				// Control flow statements (if, for, while, etc.) get expanded empty blocks
+				// to match standard Prettier behavior. Functions/methods keep `{}`.
+				const blockParent = path.getParentNode();
+				const isControlFlow =
+					blockParent &&
+					(blockParent.type === 'IfStatement' ||
+						blockParent.type === 'ForStatement' ||
+						blockParent.type === 'ForInStatement' ||
+						blockParent.type === 'ForOfStatement' ||
+						blockParent.type === 'WhileStatement' ||
+						blockParent.type === 'DoWhileStatement' ||
+						blockParent.type === 'SwitchCase');
+
+				if (isControlFlow) {
+					nodeContent = ['{', hardline, '}'];
+				} else {
+					nodeContent = '{}';
+				}
 				break;
 			}
 
@@ -2012,24 +2030,34 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = result;
 			break;
 		}
-		case 'LogicalExpression':
+		case 'LogicalExpression': {
+			const logicalParent = path.getParentNode();
+			let logicalResult;
 			// Don't add indent if we're in a conditional test context
 			if (args?.isConditionalTest) {
-				nodeContent = group([
+				logicalResult = group([
 					path.call((childPath) => print(childPath, { isConditionalTest: true }), 'left'),
 					' ',
 					node.operator,
 					[line, path.call((childPath) => print(childPath, { isConditionalTest: true }), 'right')],
 				]);
 			} else {
-				nodeContent = group([
+				logicalResult = group([
 					path.call(print, 'left'),
 					' ',
 					node.operator,
 					indent([line, path.call(print, 'right')]),
 				]);
 			}
+
+			// Wrap in parentheses only if semantically necessary
+			if (binaryExpressionNeedsParens(node, logicalParent)) {
+				logicalResult = ['(', logicalResult, ')'];
+			}
+
+			nodeContent = logicalResult;
 			break;
+		}
 
 		case 'ConditionalExpression': {
 			// Use Prettier's grouping to handle line breaking when exceeding printWidth
@@ -3645,6 +3673,7 @@ function printDoWhileStatement(node, path, options, print) {
 	parts.push('while (');
 	parts.push(test);
 	parts.push(')');
+	parts.push(semi(options));
 
 	return parts;
 }
@@ -5928,6 +5957,53 @@ function printElement(node, path, options, print) {
 	const isSelfClosing = !!node.selfClosing;
 	const hasAttributes = Array.isArray(node.attributes) && node.attributes.length > 0;
 
+	// Collect comments that the parser attached to children but actually belong inside
+	// the opening tag (positionally before openingElement.end). These should be printed
+	// as leading comments before the appropriate attribute, not lifted to element-level.
+	const openingTagCommentsSet = new Set();
+	if (hasChildren && node.openingElement) {
+		const openingEnd = node.openingElement.end;
+		for (const child of node.children) {
+			if (
+				(child.type === 'Text' || child.type === 'Html') &&
+				Array.isArray(child.leadingComments)
+			) {
+				for (const comment of child.leadingComments) {
+					if (
+						typeof comment.start === 'number' &&
+						comment.start >= node.start &&
+						comment.start < openingEnd
+					) {
+						openingTagCommentsSet.add(comment);
+					}
+				}
+			}
+		}
+	}
+
+	// Build a map from attribute index to comments that should precede that attribute
+	const openingTagCommentsByAttrIndex = new Map();
+	if (openingTagCommentsSet.size > 0 && hasAttributes) {
+		const sortedOTC = [...openingTagCommentsSet].sort(
+			(a, b) => /** @type {number} */ (a.start) - /** @type {number} */ (b.start),
+		);
+		let commentIdx = 0;
+		for (let attrIdx = 0; attrIdx < node.attributes.length; attrIdx++) {
+			const attr = node.attributes[attrIdx];
+			const commentsForAttr = [];
+			while (
+				commentIdx < sortedOTC.length &&
+				/** @type {number} */ (sortedOTC[commentIdx].start) < attr.start
+			) {
+				commentsForAttr.push(sortedOTC[commentIdx]);
+				commentIdx++;
+			}
+			if (commentsForAttr.length > 0) {
+				openingTagCommentsByAttrIndex.set(attrIdx, commentsForAttr);
+			}
+		}
+	}
+
 	if (isSelfClosing && !hasInnerComments && !hasAttributes) {
 		const elementDoc = group(['<', tagName, ' />']);
 		return metadataCommentParts.length > 0 ? [...metadataCommentParts, elementDoc] : elementDoc;
@@ -5940,14 +6016,36 @@ function printElement(node, path, options, print) {
 
 	const shouldUseSelfClosingSyntax = isSelfClosing || (!hasChildren && !hasInnerComments);
 
+	const hasOpeningTagComments = openingTagCommentsSet.size > 0;
+	let attrIndex = 0;
 	const openingTag = group([
 		'<',
 		tagName,
 		hasAttributes
 			? indent([
 					...path.map((attrPath) => {
-						return [attrLineBreak, print(attrPath)];
+						const idx = attrIndex++;
+						const commentsForAttr = openingTagCommentsByAttrIndex.get(idx);
+						const parts = [];
+						if (commentsForAttr) {
+							for (const comment of commentsForAttr) {
+								// Line comments (//) consume the rest of the line, so they must
+								// use hardline to force a break. Block comments can use normal breaks.
+								if (comment.type === 'Line') {
+									parts.push(hardline);
+									parts.push('//' + comment.value);
+								} else if (comment.type === 'Block') {
+									parts.push(attrLineBreak);
+									parts.push('/*' + comment.value + '*/');
+								}
+							}
+						}
+						parts.push(attrLineBreak);
+						parts.push(print(attrPath));
+						return parts;
 					}, 'attributes'),
+					// Force the group to break when there are line comments in the opening tag
+					...(hasOpeningTagComments ? [breakParent] : []),
 				])
 			: '',
 		// Add line break opportunity before > or />
@@ -6050,7 +6148,11 @@ function printElement(node, path, options, print) {
 
 		if (hasTextLeadingComments) {
 			for (let j = 0; j < currentChild.leadingComments.length; j++) {
-				fallbackElementComments.push(currentChild.leadingComments[j]);
+				const comment = currentChild.leadingComments[j];
+				// Don't lift comments that belong inside the opening tag (handled in attribute section)
+				if (!openingTagCommentsSet.has(comment)) {
+					fallbackElementComments.push(comment);
+				}
 			}
 		}
 

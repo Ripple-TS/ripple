@@ -115,8 +115,8 @@ catalogs:
       specifier: ^1.0.0-next.25
       version: 1.0.0-next.28
     prettier:
-      specifier: ^3.6.2
-      version: 3.6.2
+      specifier: ^3.8.1
+      version: 3.8.1
     prompts:
       specifier: ^2.4.2
       version: 2.4.2
@@ -220,7 +220,7 @@ importers:
         version: 0.18.12
       prettier:
         specifier: catalog:default
-        version: 3.6.2
+        version: 3.8.1
       rulesync:
         specifier: ^7.3.0
         version: 7.3.0(valibot@1.2.0(typescript@5.9.2))
@@ -314,7 +314,7 @@ importers:
         version: 8.2.0
       prettier:
         specifier: catalog:default
-        version: 3.6.2
+        version: 3.8.1
       prompts:
         specifier: catalog:default
         version: 2.4.2
@@ -460,7 +460,7 @@ importers:
         version: 1.0.5
       prettier:
         specifier: catalog:default
-        version: 3.6.2
+        version: 3.8.1
       ripple:
         specifier: workspace:*
         version: link:../ripple
@@ -4066,8 +4066,8 @@ packages:
     engines: {node: '>=10.13.0'}
     hasBin: true
 
-  prettier@3.6.2:
-    resolution: {integrity: sha512-I7AIg5boAr5R0FFtJ6rCfD+LFsWHp81dolrFD8S79U9tb8Az2nGrJncnMSnys+bpQJfRUzqs9hnA81OAA3hCuQ==}
+  prettier@3.8.1:
+    resolution: {integrity: sha512-UOnG6LftzbdaHZcKoPFtOcCKztrQ57WkHDeRD9t/PTQtmT0NHSeWWepj6pS0z/N7+08BHFDQVUrfmfMRcZwbMg==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -8675,7 +8675,7 @@ snapshots:
 
   prettier@2.8.8: {}
 
-  prettier@3.6.2: {}
+  prettier@3.8.1: {}
 
   pretty-ms@9.3.0:
     dependencies:

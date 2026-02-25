@@ -1,4 +1,4 @@
-prettier_common: &prettier_common ^3.6.2
+prettier_common: &prettier_common ^3.8.1
 ts_common: &ts_common ^5.9.2
 ts_eslint_parser: &ts_eslint_parser ^8.20.0
 
