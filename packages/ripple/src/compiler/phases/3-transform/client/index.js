@@ -2237,7 +2237,12 @@ const visitors = {
 
 		callback_body.push(
 			b.if(
-				/** @type {AST.Expression} */ (context.visit(node.test)),
+				/** @type {AST.Expression} */ (
+					context.visit(node.test, {
+						...context.state,
+						metadata: { ...context.state.metadata, await: false },
+					})
+				),
 				b.stmt(b.call(b.id('__render'), b.id(consequent_id))),
 				alternate_id
 					? b.stmt(
