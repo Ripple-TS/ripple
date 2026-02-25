@@ -1031,6 +1031,30 @@ const visitors = {
 		context.next();
 	},
 
+	WhileStatement(node, context) {
+		if (is_inside_component(context)) {
+			error(
+				'While loops are not supported in components. Move the while loop into a function.',
+				context.state.analysis.module.filename,
+				node,
+			);
+		}
+
+		context.next();
+	},
+
+	DoWhileStatement(node, context) {
+		if (is_inside_component(context)) {
+			error(
+				'Do...while loops are not supported in components. Move the do...while loop into a function.',
+				context.state.analysis.module.filename,
+				node,
+			);
+		}
+
+		context.next();
+	},
+
 	JSXElement(node, context) {
 		const inside_tsx_compat = context.path.some((n) => n.type === 'TsxCompat');
 
