@@ -2162,7 +2162,12 @@ const visitors = {
 					callback_body.push(b.stmt(b.call('_$_.set', b.id(info.name), b.false)));
 					callback_body.push(
 						b.if(
-							/** @type {AST.Expression} */ (context.visit(node.test)),
+							/** @type {AST.Expression} */ (
+								context.visit(node.test, {
+									...context.state,
+									metadata: { ...context.state.metadata, await: false },
+								})
+							),
 							b.stmt(b.call('_$_.set', b.id(info.name), b.true)),
 						),
 					);
@@ -2170,7 +2175,12 @@ const visitors = {
 					callback_body.push(b.stmt(b.assignment('=', b.id(info.name), b.false)));
 					callback_body.push(
 						b.if(
-							/** @type {AST.Expression} */ (context.visit(node.test)),
+							/** @type {AST.Expression} */ (
+								context.visit(node.test, {
+									...context.state,
+									metadata: { ...context.state.metadata, await: false },
+								})
+							),
 							b.stmt(b.assignment('=', b.id(info.name), b.true)),
 						),
 					);
