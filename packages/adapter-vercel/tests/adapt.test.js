@@ -72,7 +72,7 @@ describe('adapt()', () => {
 		const { adapt } = await import('../src/adapt.js');
 		create_build_output(tmp_dir);
 
-		await adapt();
+		await adapt({ verbose: false });
 
 		const output_dir = join(tmp_dir, '.vercel', 'output');
 
@@ -97,7 +97,7 @@ describe('adapt()', () => {
 		const { adapt } = await import('../src/adapt.js');
 		create_build_output(tmp_dir);
 
-		await adapt();
+		await adapt({ verbose: false });
 
 		const config = JSON.parse(
 			readFileSync(join(tmp_dir, '.vercel', 'output', 'config.json'), 'utf-8'),
@@ -128,7 +128,7 @@ describe('adapt()', () => {
 		const { adapt } = await import('../src/adapt.js');
 		create_build_output(tmp_dir);
 
-		await adapt();
+		await adapt({ verbose: false });
 
 		const vc_config = JSON.parse(
 			readFileSync(
@@ -149,7 +149,7 @@ describe('adapt()', () => {
 		const { adapt } = await import('../src/adapt.js');
 		create_build_output(tmp_dir);
 
-		await adapt();
+		await adapt({ verbose: false });
 
 		const pkg = JSON.parse(
 			readFileSync(
@@ -165,7 +165,7 @@ describe('adapt()', () => {
 		const { adapt } = await import('../src/adapt.js');
 		create_build_output(tmp_dir);
 
-		await adapt();
+		await adapt({ verbose: false });
 
 		const handler_source = readFileSync(
 			join(tmp_dir, '.vercel', 'output', 'functions', 'index.func', 'index.js'),
@@ -198,7 +198,7 @@ describe('adapt()', () => {
 		const { adapt } = await import('../src/adapt.js');
 		create_build_output(tmp_dir, { outDir: 'build' });
 
-		await adapt({ outDir: 'build' });
+		await adapt({ verbose: false, outDir: 'build' });
 
 		expect(existsSync(join(tmp_dir, '.vercel', 'output', 'config.json'))).toBe(true);
 		expect(existsSync(join(tmp_dir, '.vercel', 'output', 'functions', 'index.func'))).toBe(true);
@@ -209,6 +209,7 @@ describe('adapt()', () => {
 		create_build_output(tmp_dir);
 
 		await adapt({
+			verbose: false,
 			serverless: {
 				runtime: 'nodejs22.x',
 				regions: ['iad1', 'sfo1'],
@@ -235,6 +236,7 @@ describe('adapt()', () => {
 		create_build_output(tmp_dir);
 
 		await adapt({
+			verbose: false,
 			redirects: [{ source: '/old', destination: '/new', permanent: true }],
 		});
 
@@ -255,6 +257,7 @@ describe('adapt()', () => {
 		create_build_output(tmp_dir);
 
 		await adapt({
+			verbose: false,
 			headers: [
 				{
 					source: '/(.*)',
@@ -279,6 +282,7 @@ describe('adapt()', () => {
 		create_build_output(tmp_dir);
 
 		await adapt({
+			verbose: false,
 			images: {
 				sizes: [640, 1080, 1920],
 				domains: ['example.com'],
@@ -306,7 +310,7 @@ describe('adapt()', () => {
 		mkdirSync(stale_dir, { recursive: true });
 		writeFileSync(join(stale_dir, 'old-file.txt'), 'stale');
 
-		await adapt();
+		await adapt({ verbose: false });
 
 		// Stale file should be gone
 		expect(existsSync(join(stale_dir, 'old-file.txt'))).toBe(false);
@@ -318,7 +322,7 @@ describe('adapt()', () => {
 		const { adapt } = await import('../src/adapt.js');
 		create_build_output(tmp_dir);
 
-		await adapt({ trailingSlash: true });
+		await adapt({ verbose: false, trailingSlash: true });
 
 		const config = JSON.parse(
 			readFileSync(join(tmp_dir, '.vercel', 'output', 'config.json'), 'utf-8'),
@@ -331,7 +335,7 @@ describe('adapt()', () => {
 		const { adapt } = await import('../src/adapt.js');
 		create_build_output(tmp_dir);
 
-		await adapt({ cleanUrls: false });
+		await adapt({ verbose: false, cleanUrls: false });
 
 		const config = JSON.parse(
 			readFileSync(join(tmp_dir, '.vercel', 'output', 'config.json'), 'utf-8'),
@@ -349,6 +353,7 @@ describe('adapt()', () => {
 		create_build_output(tmp_dir);
 
 		await adapt({
+			verbose: false,
 			isr: {
 				expiration: 60,
 			},
@@ -370,6 +375,7 @@ describe('adapt()', () => {
 		create_build_output(tmp_dir);
 
 		await adapt({
+			verbose: false,
 			isr: {
 				expiration: false,
 			},
@@ -391,6 +397,7 @@ describe('adapt()', () => {
 		create_build_output(tmp_dir);
 
 		await adapt({
+			verbose: false,
 			isr: {
 				expiration: 300,
 				bypassToken: 'my-secret-token',
@@ -414,7 +421,7 @@ describe('adapt()', () => {
 		const { adapt } = await import('../src/adapt.js');
 		create_build_output(tmp_dir);
 
-		await adapt({ isr: false });
+		await adapt({ verbose: false, isr: false });
 
 		const vc_config = JSON.parse(
 			readFileSync(
@@ -430,7 +437,7 @@ describe('adapt()', () => {
 		const { adapt } = await import('../src/adapt.js');
 		create_build_output(tmp_dir);
 
-		await adapt();
+		await adapt({ verbose: false });
 
 		const vc_config = JSON.parse(
 			readFileSync(
