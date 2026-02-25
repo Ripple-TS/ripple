@@ -2809,12 +2809,7 @@ function transform_ts_child(node, context) {
 		}
 
 		const result = b.if(
-			/** @type {AST.Expression} */ (
-				visit(node.test, {
-					...state,
-					metadata: { ...state.metadata, await: false },
-				})
-			),
+			/** @type {AST.Expression} */ (visit(node.test)),
 			consequent,
 			alternate,
 			/** @type {AST.NodeWithLocation} */ (node),
