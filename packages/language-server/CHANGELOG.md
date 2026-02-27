@@ -1,5 +1,18 @@
 # @ripple-ts/language-server
 
+## 0.2.216
+
+### Patch Changes
+
+- [#764](https://github.com/Ripple-TS/ripple/pull/764)
+  [`95ea864`](https://github.com/Ripple-TS/ripple/commit/95ea8645b2cb27e2610a4ace4c8fb238c92d441a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fixes syntax color
+  highlighting for `pending`
+
+- Updated dependencies
+  [[`95ea864`](https://github.com/Ripple-TS/ripple/commit/95ea8645b2cb27e2610a4ace4c8fb238c92d441a)]:
+  - @ripple-ts/typescript-plugin@0.2.216
+
 ## 0.2.215
 
 ### Patch Changes

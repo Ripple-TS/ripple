@@ -1,5 +1,52 @@
 # ripple
 
+## 0.2.216
+
+### Patch Changes
+
+- [#757](https://github.com/Ripple-TS/ripple/pull/757)
+  [`9fb507d`](https://github.com/Ripple-TS/ripple/commit/9fb507d76af6fd6a5c636af1976d1e03d3e869ac)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - fixes compiler error that was
+  generating async functions for call expressions inside if conditions when inside
+  async context
+
+- [#751](https://github.com/Ripple-TS/ripple/pull/751)
+  [`e1de4bb`](https://github.com/Ripple-TS/ripple/commit/e1de4bb9df75342a693cda24d0999a423db05ec4)
+  Thanks [@copilot-swe-agent](https://github.com/apps/copilot-swe-agent)! - Fix
+  HMR "zoom" issue when a Ripple file is changed in the dev server.
+
+  When a layout component contained children with nested `if`/`for` blocks,
+  hydration would leave `hydrate_node` pointing deep inside the layout's root
+  element (e.g. a HYDRATION_END comment inside `<main>`). The `append()`
+  function's `parentNode === dom` check only handled direct children, so it missed
+  grandchild/deeper positions and incorrectly updated the branch block's `s.end`
+  to that deep internal node.
+
+  This caused two problems on HMR re-render:
+  1. `remove_block_dom(s.start, s.end)` removed wrong elements (the deep node was
+     treated as a sibling boundary, causing removal of unrelated content including
+     the root HYDRATION_END comment).
+  2. `target = hydrate_node` (set after the initial render) became `null` or
+     pointed outside the component's region, so new content was inserted at the
+     wrong DOM location — producing a layout that appeared "zoomed" because it
+     rendered outside its CSS container context.
+
+  The fix changes the `parentNode === dom` check to `dom.contains(hydrate_node)`,
+  consistent with the `anchor === dom` branch that already used `dom.contains()`.
+  This correctly resets `hydrate_node` to `dom`'s sibling level regardless of how
+  deeply nested it was inside `dom`.
+
+- [#764](https://github.com/Ripple-TS/ripple/pull/764)
+  [`95ea864`](https://github.com/Ripple-TS/ripple/commit/95ea8645b2cb27e2610a4ace4c8fb238c92d441a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fixes syntax color
+  highlighting for `pending`
+
+- Updated dependencies
+  [[`9fb507d`](https://github.com/Ripple-TS/ripple/commit/9fb507d76af6fd6a5c636af1976d1e03d3e869ac),
+  [`e1de4bb`](https://github.com/Ripple-TS/ripple/commit/e1de4bb9df75342a693cda24d0999a423db05ec4),
+  [`95ea864`](https://github.com/Ripple-TS/ripple/commit/95ea8645b2cb27e2610a4ace4c8fb238c92d441a)]:
+  - ripple@0.2.216
+
 ## 0.2.215
 
 ### Patch Changes
