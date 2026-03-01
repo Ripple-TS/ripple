@@ -593,6 +593,141 @@ describe('dynamic DOM elements', () => {
 		expect(innerScopes).toHaveLength(0);
 	});
 
+	it('handles ref on dynamic element passed through component with reactive props', () => {
+		let capturedElement: HTMLElement | null = null;
+		let refCallCount = 0;
+
+		component Button(props: any) {
+			const el = track('button');
+			<@el {...props} />
+		}
+
+		component App() {
+			let active = track(false);
+
+			<Button
+				data-active={String(@active)}
+				onClick={() => {
+					@active = !@active;
+				}}
+				{ref (el: HTMLElement) => {
+					capturedElement = el;
+					refCallCount++;
+				}}
+			>
+				{'content'}
+			</Button>
+		}
+
+		render(App);
+		flushSync();
+
+		expect(capturedElement).toBeTruthy();
+		expect(capturedElement!.tagName).toBe('BUTTON');
+		expect(capturedElement!.getAttribute('data-active')).toBe('false');
+		const initialRefCount = refCallCount;
+
+		// Click the button to trigger reactive prop update
+		capturedElement!.click();
+		flushSync();
+
+		// After clicking, the reactive prop should update without error
+		expect(capturedElement!.getAttribute('data-active')).toBe('true');
+		// Ref block should not have been recreated on prop update
+		expect(refCallCount).toBe(initialRefCount);
+	});
+
+	it('handles ref on dynamic element with spread props containing reactive values', () => {
+		let capturedElement: HTMLElement | null = null;
+
+		component Button(props: any) {
+			const el = track('button');
+			<@el {...props} />
+		}
+
+		component App() {
+			let active = track(false);
+
+			let buttonProps = track(
+				() => ({
+					'data-active': @active,
+				}),
+			);
+
+			<Button
+				{...@buttonProps}
+				onClick={() => {
+					@active = !@active;
+				}}
+				{ref (el: HTMLElement) => {
+					capturedElement = el;
+				}}
+			>
+				{'content: '}
+				{@active}
+			</Button>
+		}
+
+		render(App);
+		flushSync();
+
+		expect(capturedElement).toBeTruthy();
+		expect(capturedElement!.tagName).toBe('BUTTON');
+
+		// Click the button to trigger reactive update
+		capturedElement!.click();
+		flushSync();
+
+		// Should not throw, and ref should still be valid
+		expect(capturedElement!.tagName).toBe('BUTTON');
+	});
+
+	it('re-establishes ref with cleanup after parent block re-runs', () => {
+		let cleanupCount = 0;
+		let refCallCount = 0;
+		let capturedElement: HTMLElement | null = null;
+
+		component Button(props: any) {
+			const el = track('button');
+			<@el {...props} />
+		}
+
+		component App() {
+			let active = track(false);
+
+			<Button
+				data-active={String(@active)}
+				onClick={() => {
+					@active = !@active;
+				}}
+				{ref (el: HTMLElement) => {
+					capturedElement = el;
+					refCallCount++;
+					return () => {
+						cleanupCount++;
+					};
+				}}
+			>
+				{'content'}
+			</Button>
+		}
+
+		render(App);
+		flushSync();
+
+		expect(capturedElement).toBeTruthy();
+		expect(refCallCount).toBe(1);
+		expect(cleanupCount).toBe(0);
+
+		// Click to trigger reactive prop update
+		capturedElement!.click();
+		flushSync();
+
+		// Ref with cleanup should be re-established after parent teardown cycle
+		expect(capturedElement!.getAttribute('data-active')).toBe('true');
+		expect(refCallCount).toBeGreaterThanOrEqual(1);
+	});
+
 	it('should remove and add back a text node in a conditional statement with a tracked', () => {
 		component App() {
 			let b = track(true);
