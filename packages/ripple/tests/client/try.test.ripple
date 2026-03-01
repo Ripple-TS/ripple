@@ -1,4 +1,4 @@
-import { flushSync, track, TrackedArray } from 'ripple';
+import { bindValue, flushSync, track, TrackedArray } from 'ripple';
 
 describe('try block with catch and pending', () => {
 	it('catch block works when component throws before await with pending block', async () => {
@@ -76,6 +76,35 @@ describe('try block with catch and pending', () => {
 });
 
 describe('try block', () => {
+	it(
+		'does not compile ref binds as async callbacks inside try/pending async branches',
+		async () => {
+			component App() {
+				try {
+					<Child />
+				} pending {
+					<p>{'loading...'}</p>
+				}
+			}
+
+			component Child() {
+				let value = track(1);
+				await Promise.resolve(@value + 1);
+
+				<input type="number" {ref bindValue(value)} />
+			}
+
+			render(App);
+
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			const input = container.querySelector('input') as HTMLInputElement | null;
+			expect(input?.value).toBe('1');
+			expect(container.innerHTML).not.toContain('loading...');
+		},
+	);
+
 	it('does not crash when async component is used inside try/pending', async () => {
 		component App() {
 			try {

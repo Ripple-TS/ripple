@@ -1380,12 +1380,15 @@ const visitors = {
 					);
 				} else if (attr.type === 'RefAttribute') {
 					const id = state.flush_node?.();
+					const metadata = { tracking: false, await: false };
 					state.init?.push(
 						b.stmt(
 							b.call(
 								'_$_.ref',
 								id,
-								b.thunk(/** @type {AST.Expression} */ (visit(attr.argument, state))),
+								b.thunk(
+									/** @type {AST.Expression} */ (visit(attr.argument, { ...state, metadata })),
+								),
 							),
 						),
 					);
@@ -1609,12 +1612,13 @@ const visitors = {
 					);
 				} else if (attr.type === 'RefAttribute') {
 					const ref_id = state.scope.generate('ref');
+					const metadata = { tracking: false, await: false };
 					state.init?.push(b.var(ref_id, b.call('_$_.ref_prop')));
 					props.push(
 						b.prop(
 							'init',
 							b.id(ref_id),
-							/** @type {AST.Expression} */ (visit(attr.argument, state)),
+							/** @type {AST.Expression} */ (visit(attr.argument, { ...state, metadata })),
 							true,
 						),
 					);
