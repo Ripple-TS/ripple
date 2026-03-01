@@ -2711,12 +2711,46 @@ function transform_ts_child(node, context) {
 		if (!node.selfClosing && !node.unclosed && !has_children_props && node.children.length > 0) {
 			const is_dom_element = is_element_dom_element(node);
 			const component_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node));
+			const component_children = is_dom_element
+				? []
+				: node.children.filter((child) => child.type === 'Component');
+			const non_component_children =
+				component_children.length === 0
+					? node.children
+					: node.children.filter((child) => child.type !== 'Component');
+
+			if (!is_dom_element && component_children.length > 0) {
+				for (const child of component_children) {
+					const transformed_component = /** @type {AST.FunctionDeclaration} */ (
+						visit(child, {
+							...state,
+							scope: component_scope,
+							metadata: { await: false },
+						})
+					);
+					attributes.push(
+						b.jsx_attribute(
+							b.jsx_id(
+								/** @type {AST.Identifier} */ (child.id).name,
+								/** @type {AST.NodeWithLocation} */ (child.id),
+							),
+							b.jsx_expression_container(
+								b.arrow(
+									transformed_component.params,
+									transformed_component.body,
+									transformed_component.async,
+								),
+							),
+						),
+					);
+				}
+			}
 			const thunk =
 				/** @type {AST.Identifier} */ (node.id).name === 'style'
 					? null
 					: b.thunk(
 							b.block(
-								transform_body(node.children, {
+								transform_body(non_component_children, {
 									...context,
 									state: {
 										...state,
@@ -2732,9 +2766,9 @@ function transform_ts_child(node, context) {
 						);
 
 			if (thunk !== null) {
-				if (is_dom_element) {
+				if (is_dom_element && non_component_children.length > 0) {
 					children.push(b.jsx_expression_container(b.call(thunk)));
-				} else {
+				} else if (non_component_children.length > 0) {
 					attributes.push(b.jsx_attribute(b.jsx_id('children'), b.jsx_expression_container(thunk)));
 				}
 			}
