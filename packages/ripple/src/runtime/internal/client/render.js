@@ -252,6 +252,9 @@ export function apply_element_spread(element, fn) {
 	/** @type {Record<string | symbol, (() => void) | undefined>} */
 	var remove_listeners = {};
 
+	/** @type {Record<symbol, any>} */
+	var prev_symbols = {};
+
 	return () => {
 		var next = fn();
 
@@ -262,18 +265,22 @@ export function apply_element_spread(element, fn) {
 			}
 		}
 
+		/** @type {Record<symbol, any>} */
+		var current_symbols = {};
+
 		for (const symbol of get_own_property_symbols(next)) {
 			var ref_fn = next[symbol];
+			current_symbols[symbol] = ref_fn;
 
-			if (symbol.description === REF_PROP && (!(symbol in prev) || ref_fn !== prev[symbol])) {
+			if (symbol.description === REF_PROP && (!(symbol in prev_symbols) || ref_fn !== prev_symbols[symbol])) {
 				if (effects[symbol]) {
 					destroy_block(effects[symbol]);
 				}
 				effects[symbol] = ref(element, () => ref_fn);
 			}
-
-			next[symbol] = ref_fn;
 		}
+
+		prev_symbols = current_symbols;
 
 		for (let key in remove_listeners) {
 			// Remove event listeners that are no longer present
