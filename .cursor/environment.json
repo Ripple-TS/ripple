@@ -1,0 +1,4 @@
+{
+  "name": "ripple-monorepo",
+  "install": "bash .cursor/install.sh"
+}
