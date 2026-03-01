@@ -639,6 +639,26 @@ export function convert_source_map_to_mappings(
 						if (node.name) {
 							visit(node.name);
 						}
+
+						if (
+							node.name.type === 'JSXIdentifier' &&
+							node.name.metadata?.is_component &&
+							node.name.loc
+						) {
+							const mapping = get_mapping_from_node(
+								node.name,
+								src_to_gen_map,
+								gen_line_offsets,
+								mapping_data,
+							);
+							mapping.sourceOffsets = [
+								/** @type {AST.NodeWithLocation} */ (node.name).start - 'component '.length,
+							];
+							mapping.lengths = ['component'.length];
+
+							mapping.data.customData.hover = replace_label_to_component;
+							mappings.push(mapping);
+						}
 						if (node.value) {
 							visit(node.value);
 						}

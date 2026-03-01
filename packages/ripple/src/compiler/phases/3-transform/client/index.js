@@ -2716,7 +2716,7 @@ function transform_ts_child(node, context) {
 
 			for (let i = 0; i < node.children.length; i++) {
 				const child = node.children[i];
-				if (!is_dom_element && child.type === 'Component') {
+				if (!is_dom_element && child.type === 'Component' && child.id) {
 					const transformed_component = /** @type {AST.FunctionDeclaration} */ (
 						visit(child, {
 							...state,
@@ -2724,21 +2724,18 @@ function transform_ts_child(node, context) {
 							metadata: { await: false },
 						})
 					);
-					attributes.push(
-						b.jsx_attribute(
-							b.jsx_id(
-								/** @type {AST.Identifier} */ (child.id).name,
-								/** @type {AST.NodeWithLocation} */ (child.id),
-							),
-							b.jsx_expression_container(
-								b.arrow(
-									transformed_component.params,
-									transformed_component.body,
-									transformed_component.async,
-								),
-							),
-						),
+					const func = b.arrow(
+						transformed_component.params,
+						transformed_component.body,
+						transformed_component.async,
 					);
+					func.metadata = { ...func.metadata, is_component: true };
+					const id = b.jsx_id(
+						/** @type {AST.Identifier} */ (child.id).name,
+						/** @type {AST.NodeWithLocation} */ (child.id),
+					);
+					id.metadata = { ...id.metadata, is_component: true };
+					attributes.push(b.jsx_attribute(id, b.jsx_expression_container(func)));
 				} else {
 					non_component_children.push(child);
 				}
