@@ -2711,16 +2711,12 @@ function transform_ts_child(node, context) {
 		if (!node.selfClosing && !node.unclosed && !has_children_props && node.children.length > 0) {
 			const is_dom_element = is_element_dom_element(node);
 			const component_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node));
-			const component_children = is_dom_element
-				? []
-				: node.children.filter((child) => child.type === 'Component');
-			const non_component_children =
-				component_children.length === 0
-					? node.children
-					: node.children.filter((child) => child.type !== 'Component');
+			/** @type {AST.Node[]} */
+			const non_component_children = [];
 
-			if (!is_dom_element && component_children.length > 0) {
-				for (const child of component_children) {
+			for (let i = 0; i < node.children.length; i++) {
+				const child = node.children[i];
+				if (!is_dom_element && child.type === 'Component') {
 					const transformed_component = /** @type {AST.FunctionDeclaration} */ (
 						visit(child, {
 							...state,
@@ -2743,6 +2739,8 @@ function transform_ts_child(node, context) {
 							),
 						),
 					);
+				} else {
+					non_component_children.push(child);
 				}
 			}
 			const thunk =
