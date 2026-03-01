@@ -1,7 +1,7 @@
 /** @import { Block } from '#client' */
 
 import { destroy_block, ref } from './blocks.js';
-import { REF_PROP } from './constants.js';
+import { DESTROYED, REF_PROP } from './constants.js';
 import {
 	get_descriptors,
 	get_own_property_symbols,
@@ -272,8 +272,13 @@ export function apply_element_spread(element, fn) {
 			var ref_fn = next[symbol];
 			current_symbols[symbol] = ref_fn;
 
-			if (symbol.description === REF_PROP && (!(symbol in prev_symbols) || ref_fn !== prev_symbols[symbol])) {
-				if (effects[symbol]) {
+			if (
+				symbol.description === REF_PROP &&
+				(!(symbol in prev_symbols) ||
+					ref_fn !== prev_symbols[symbol] ||
+					(effects[symbol] && (effects[symbol].f & DESTROYED) !== 0))
+			) {
+				if (effects[symbol] && (effects[symbol].f & DESTROYED) === 0) {
 					destroy_block(effects[symbol]);
 				}
 				effects[symbol] = ref(element, () => ref_fn);

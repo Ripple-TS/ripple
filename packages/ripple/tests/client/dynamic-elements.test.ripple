@@ -615,7 +615,7 @@ describe('dynamic DOM elements', () => {
 					refCallCount++;
 				}}
 			>
-				{"content"}
+				{'content'}
 			</Button>
 		}
 
@@ -641,7 +641,7 @@ describe('dynamic DOM elements', () => {
 		let capturedElement: HTMLElement | null = null;
 
 		component Button(props: any) {
-			const el = track("button");
+			const el = track('button');
 			<@el {...props} />
 		}
 
@@ -650,8 +650,8 @@ describe('dynamic DOM elements', () => {
 
 			let buttonProps = track(
 				() => ({
-					"data-active": @active,
-				})
+					'data-active': @active,
+				}),
 			);
 
 			<Button
@@ -663,7 +663,8 @@ describe('dynamic DOM elements', () => {
 					capturedElement = el;
 				}}
 			>
-				{"content: "} {@active}
+				{'content: '}
+				{@active}
 			</Button>
 		}
 
@@ -679,6 +680,52 @@ describe('dynamic DOM elements', () => {
 
 		// Should not throw, and ref should still be valid
 		expect(capturedElement!.tagName).toBe('BUTTON');
+	});
+
+	it('re-establishes ref with cleanup after parent block re-runs', () => {
+		let cleanupCount = 0;
+		let refCallCount = 0;
+		let capturedElement: HTMLElement | null = null;
+
+		component Button(props: any) {
+			const el = track('button');
+			<@el {...props} />
+		}
+
+		component App() {
+			let active = track(false);
+
+			<Button
+				data-active={String(@active)}
+				onClick={() => {
+					@active = !@active;
+				}}
+				{ref (el: HTMLElement) => {
+					capturedElement = el;
+					refCallCount++;
+					return () => {
+						cleanupCount++;
+					};
+				}}
+			>
+				{'content'}
+			</Button>
+		}
+
+		render(App);
+		flushSync();
+
+		expect(capturedElement).toBeTruthy();
+		expect(refCallCount).toBe(1);
+		expect(cleanupCount).toBe(0);
+
+		// Click to trigger reactive prop update
+		capturedElement!.click();
+		flushSync();
+
+		// Ref with cleanup should be re-established after parent teardown cycle
+		expect(capturedElement!.getAttribute('data-active')).toBe('true');
+		expect(refCallCount).toBeGreaterThanOrEqual(1);
 	});
 
 	it('should remove and add back a text node in a conditional statement with a tracked', () => {
