@@ -4,7 +4,12 @@ set -euo pipefail
 WORKSPACE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOCKFILE_PATH="${WORKSPACE_ROOT}/pnpm-lock.yaml"
 LOCKFILE_HASH_PATH="${HOME}/.cache/cursor/ripple-pnpm-lock.sha256"
-REQUIRED_PNPM_VERSION="10.18.2"
+PACKAGE_MANAGER="$(node -p "JSON.parse(require('node:fs').readFileSync(process.argv[1], 'utf8')).packageManager" "${WORKSPACE_ROOT}/package.json")"
+if [[ "${PACKAGE_MANAGER}" != pnpm@* ]]; then
+	echo "Expected packageManager in package.json to be pnpm@<version>, got '${PACKAGE_MANAGER}'."
+	exit 1
+fi
+REQUIRED_PNPM_VERSION="${PACKAGE_MANAGER#pnpm@}"
 
 cd "${WORKSPACE_ROOT}"
 
