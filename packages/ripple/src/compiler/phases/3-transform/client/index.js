@@ -2741,7 +2741,8 @@ function transform_ts_child(node, context) {
 				}
 			}
 			const thunk =
-				/** @type {AST.Identifier} */ (node.id).name === 'style'
+				/** @type {AST.Identifier} */ (node.id).name === 'style' ||
+				non_component_children.length === 0
 					? null
 					: b.thunk(
 							b.block(
@@ -2761,9 +2762,9 @@ function transform_ts_child(node, context) {
 						);
 
 			if (thunk !== null) {
-				if (is_dom_element && non_component_children.length > 0) {
+				if (is_dom_element) {
 					children.push(b.jsx_expression_container(b.call(thunk)));
-				} else if (non_component_children.length > 0) {
+				} else {
 					attributes.push(b.jsx_attribute(b.jsx_id('children'), b.jsx_expression_container(thunk)));
 				}
 			}

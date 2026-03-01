@@ -370,7 +370,7 @@ export component App() {
 		const result = compile_to_volar_mappings(source, 'test.ripple').code;
 
 		expect(result).toContain('<ark.div class="host-class" data-value="42" asChild={');
-		expect(result).not.toContain('children={() => {');
+		expect(result).not.toContain('children={() =>');
 		expect(result).not.toContain('function asChild');
 	});
 
