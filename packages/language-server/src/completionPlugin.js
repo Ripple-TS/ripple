@@ -171,6 +171,16 @@ function generateImportEdit(documentText, importName) {
  */
 const RIPPLE_SNIPPETS = [
 	{
+		label: '#ripple.',
+		kind: CompletionItemKind.Snippet,
+		detail: 'Ripple namespace APIs',
+		documentation:
+			'Type #ripple. to access all built-in Ripple namespace APIs (track, map, set, style, server, etc.).',
+		insertText: '#ripple.',
+		insertTextFormat: InsertTextFormat.Snippet,
+		sortText: '0-#-namespace',
+	},
+	{
 		label: '#ripple[]',
 		kind: CompletionItemKind.Snippet,
 		detail: 'Ripple Reactive Array Literal, shorthand for new TrackedArray',
@@ -591,10 +601,9 @@ function createCompletionPlugin() {
 						/** @type {CompletionItem[]} */
 						const items = [];
 						for (const snippet of RIPPLE_NAMESPACE_SNIPPETS) {
-							const memberName = snippet.label.replace(/^#ripple\./, '');
 							items.push({
 								...snippet,
-								filterText: memberName,
+								filterText: snippet.label,
 								textEdit: {
 									range: {
 										start: { line: position.line, character: startChar },
@@ -677,10 +686,9 @@ function createCompletionPlugin() {
 						const startChar = position.character - fullPrefix.length;
 						log('🔷 #ripple. member match, partial:', typedAfterDot);
 						for (const snippet of RIPPLE_NAMESPACE_SNIPPETS) {
-							const memberName = snippet.label.replace(/^#ripple\./, '');
 							items.push({
 								...snippet,
-								filterText: memberName || snippet.label,
+								filterText: snippet.label,
 								textEdit: {
 									range: {
 										start: { line: position.line, character: startChar },
@@ -701,7 +709,12 @@ function createCompletionPlugin() {
 						const startChar = position.character - prefixLen;
 						log('🔷 # hash match, partial:', rippleHashMatch[0]);
 						for (const snippet of RIPPLE_SNIPPETS) {
-							if (snippet.label !== '#ripple[]' && snippet.label !== '#ripple{}') continue;
+							if (
+								snippet.label !== '#ripple.' &&
+								snippet.label !== '#ripple[]' &&
+								snippet.label !== '#ripple{}'
+							)
+								continue;
 							items.push({
 								...snippet,
 								textEdit: {

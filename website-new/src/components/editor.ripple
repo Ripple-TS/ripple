@@ -1,7 +1,7 @@
 import type { Tracked } from 'ripple';
 import { track, effect, bindNode } from 'ripple';
 
-#server {
+#ripple.server {
 	export async function fetchMessage(): Promise<string> {
 		const response = await fetch('/api/message');
 		const data = await response.json();
@@ -20,7 +20,7 @@ export component Editor() {
 
 	effect(() => {
 		if (@nodeRef) {
-			#server.fetchMessage().then((message: string) => {
+			#ripple.server.fetchMessage().then((message: string) => {
 				@content = message;
 
 				@loading = false;

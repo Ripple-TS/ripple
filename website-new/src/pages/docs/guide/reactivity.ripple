@@ -1,6 +1,6 @@
 import { DocsLayout } from '../../../components/docs-layout.ripple';
 
-#server {
+#ripple.server {
 	import { get_doc } from '../../../lib/markdown.js';
 
 	export function load_doc() {
@@ -9,7 +9,7 @@ import { DocsLayout } from '../../../components/docs-layout.ripple';
 }
 
 export component ReactivityPage() {
-	const doc = #server.load_doc();
+	const doc = #ripple.server.load_doc();
 
 	<DocsLayout
 		title={doc.title}
