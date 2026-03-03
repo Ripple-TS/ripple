@@ -717,8 +717,7 @@ const visitors = {
 				const calleeId = b.id(alias);
 				calleeId.loc = callee.loc;
 				calleeId.metadata = {
-					source_name:
-						callee.type === 'TrackedMapExpression' ? '#ripple.map' : '#ripple.set',
+					source_name: callee.type === 'TrackedMapExpression' ? '#ripple.map' : '#ripple.set',
 					path: [...context.path],
 				};
 				/** @type {AST.NewExpression} */
