@@ -4,7 +4,7 @@ import { TRACKED_OBJECT } from '../../src/runtime/internal/client/constants.js';
 describe('TrackedObject', () => {
 	it('makes new properties reactive', () => {
 		component ObjectTest() {
-			const obj = new #ripple.object<{ a: number }>({ a: -1 });
+			const obj = #ripple.object<{ a: number }>({ a: -1 });
 
 			obj.a = 0;
 
@@ -33,7 +33,7 @@ describe('TrackedObject', () => {
 
 	it('makes existing object properties reactive', () => {
 		component ObjectTest() {
-			const obj = new #ripple.object({ a: 0 });
+			const obj = #ripple.object({ a: 0 });
 
 			<pre>{obj.a}</pre>
 			<button

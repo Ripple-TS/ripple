@@ -152,8 +152,8 @@ export component App() {
 export component App() {
   const items = #ripple[1, 2, 3];            // TrackedArray literal
   const obj = #ripple{ a: 1, b: 2 };        // TrackedObject literal
-  const map = new #ripple.map([['k', 'v']]); // TrackedMap
-  const set = new #ripple.set([1, 2, 3]);    // TrackedSet
+  const map = #ripple.map([['k', 'v']]); // TrackedMap
+  const set = #ripple.set([1, 2, 3]);    // TrackedSet
 
   <div>
     <p>{"Items: "}{items.join(', ')}</p>

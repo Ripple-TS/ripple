@@ -17,7 +17,7 @@ describe('for statements', () => {
 
 	it('renders a simple dynamic array', () => {
 		component App() {
-			const items = new #ripple.array('Item 1', 'Item 2', 'Item 3');
+			const items = #ripple.array('Item 1', 'Item 2', 'Item 3');
 
 			for (const item of items) {
 				<div class={item}>{item}</div>
@@ -39,7 +39,7 @@ describe('for statements', () => {
 
 	it('correctly handles intermediate statements in for block', () => {
 		component App() {
-			const items = new #ripple.array(1, 2, 3);
+			const items = #ripple.array(1, 2, 3);
 
 			<div>
 				for (const item of items) {
@@ -68,7 +68,7 @@ describe('for statements', () => {
 
 	it('correctly handles the index in a for...of loop', () => {
 		component App() {
-			const items = new #ripple.array('a', 'b', 'c');
+			const items = #ripple.array('a', 'b', 'c');
 
 			<div>
 				for (let item of items; index i) {

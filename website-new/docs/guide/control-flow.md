@@ -188,7 +188,7 @@ You can use Ripple's reactive arrays to easily compose contents of an array.
 
 ```ripple
 export component Numbers() {
-  const array = new #ripple.array(1, 2, 3);
+  const array = #ripple.array(1, 2, 3);
 
   for (const item of array; index i) {
     <div>

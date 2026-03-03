@@ -407,7 +407,7 @@ export default component App() {
   const arr = #ripple[1, 2, 3];
 
   // using the new constructor
-  // const arr = new #ripple.array(1, 2, 3);
+  // const arr = #ripple.array(1, 2, 3);
 
   // using static from method
   // const arr = #ripple.array.from([1, 2, 3]);
@@ -457,7 +457,7 @@ export default component App() {
 		code: `
 
 export default component App() {
-  const set = new #ripple.set([1, 2, 3]);
+  const set = #ripple.set([1, 2, 3]);
 
   // direct usage
   <p>{"Direct usage: set contains 2: "}{set.has(2)}</p>
@@ -476,7 +476,7 @@ export default component App() {
 		code: `
 
 export default component App() {
-  const map = new #ripple.map([[1,1], [2,2], [3,3], [4,4]]);
+  const map = #ripple.map([[1,1], [2,2], [3,3], [4,4]]);
 
   // direct usage
   <p>{"Direct usage: map has an item with key 2: "}{map.has(2)}</p>
@@ -495,7 +495,7 @@ export default component App() {
 		code: `
 
 export default component App() {
-  const date = new #ripple.date(2025, 0, 1, 12, 0, 0);
+  const date = #ripple.date(2025, 0, 1, 12, 0, 0);
 
   // direct usage
   <p>{"Direct usage: Current year is "}{date.getFullYear()}</p>

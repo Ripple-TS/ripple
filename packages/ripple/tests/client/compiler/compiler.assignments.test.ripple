@@ -9,7 +9,7 @@ describe('compiler > assignments', () => {
 			let items: number[] = [];
 			let tracked_items = #ripple.track<number[]>([]);
 			let items2 = new Array();
-			let items3 = new #ripple.array<number>();
+			let items3 = #ripple.array<number>();
 			let i = 0;
 
 			logs.push(items[0]);

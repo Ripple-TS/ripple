@@ -402,7 +402,7 @@ const RIPPLE_NAMESPACE_SNIPPETS = [
 		kind: CompletionItemKind.Snippet,
 		detail: 'TrackedObject class reference (no import needed)',
 		documentation:
-			'Reference to the TrackedObject class. Use for static methods or as a type annotation.\n\nUsage: const obj = new #ripple.object({ a: 1 });',
+			'Reference to the TrackedObject class. Use for static methods or as a type annotation.\n\nUsage: const obj = #ripple.object({ a: 1 });',
 		insertText: '#ripple.object',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-ripple-object',
@@ -412,7 +412,7 @@ const RIPPLE_NAMESPACE_SNIPPETS = [
 		kind: CompletionItemKind.Snippet,
 		detail: 'TrackedMap (no import needed)',
 		documentation:
-			'Creates a reactive Map. Equivalent to new TrackedMap() but requires no import.\n\nUsage: const map = new #ripple.map([[key, value]]);',
+			'Creates a reactive Map. Equivalent to new TrackedMap() but requires no import.\n\nUsage: const map = #ripple.map([[key, value]]);',
 		insertText: '#ripple.map(${1})',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-ripple-map',
@@ -422,7 +422,7 @@ const RIPPLE_NAMESPACE_SNIPPETS = [
 		kind: CompletionItemKind.Snippet,
 		detail: 'TrackedSet (no import needed)',
 		documentation:
-			'Creates a reactive Set. Equivalent to new TrackedSet() but requires no import.\n\nUsage: const set = new #ripple.set([1, 2, 3]);',
+			'Creates a reactive Set. Equivalent to new TrackedSet() but requires no import.\n\nUsage: const set = #ripple.set([1, 2, 3]);',
 		insertText: '#ripple.set(${1})',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-ripple-set',
@@ -432,7 +432,7 @@ const RIPPLE_NAMESPACE_SNIPPETS = [
 		kind: CompletionItemKind.Snippet,
 		detail: 'TrackedDate (no import needed)',
 		documentation:
-			'Creates a reactive Date. Equivalent to new TrackedDate() but requires no import.\n\nUsage: const today = new #ripple.date();',
+			'Creates a reactive Date. Equivalent to new TrackedDate() but requires no import.\n\nUsage: const today = #ripple.date();',
 		insertText: '#ripple.date(${1})',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-ripple-date',
@@ -442,7 +442,7 @@ const RIPPLE_NAMESPACE_SNIPPETS = [
 		kind: CompletionItemKind.Snippet,
 		detail: 'TrackedURL (no import needed)',
 		documentation:
-			"Creates a reactive URL. Equivalent to new TrackedURL() but requires no import.\n\nUsage: const url = new #ripple.url('https://example.com');",
+			"Creates a reactive URL. Equivalent to new TrackedURL() but requires no import.\n\nUsage: const url = #ripple.url('https://example.com');",
 		insertText: "#ripple.url('${1:https://example.com}')",
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-ripple-url',
@@ -452,7 +452,7 @@ const RIPPLE_NAMESPACE_SNIPPETS = [
 		kind: CompletionItemKind.Snippet,
 		detail: 'TrackedURLSearchParams (no import needed)',
 		documentation:
-			'Creates a reactive URLSearchParams. Equivalent to new TrackedURLSearchParams() but requires no import.\n\nUsage: const params = new #ripple.urlSearchParams(${1});',
+			'Creates a reactive URLSearchParams. Equivalent to new TrackedURLSearchParams() but requires no import.\n\nUsage: const params = #ripple.urlSearchParams(${1});',
 		insertText: '#ripple.urlSearchParams(${1})',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-ripple-urlSearchParams',
@@ -462,7 +462,7 @@ const RIPPLE_NAMESPACE_SNIPPETS = [
 		kind: CompletionItemKind.Snippet,
 		detail: 'Reactive CSS media query (no import needed)',
 		documentation:
-			"Creates a reactive media query that tracks whether the query currently matches.\n\nUsage: const isMobile = new #ripple.mediaQuery('(max-width: 768px)');",
+			"Creates a reactive media query that tracks whether the query currently matches.\n\nUsage: const isMobile = #ripple.mediaQuery('(max-width: 768px)');",
 		insertText: "#ripple.mediaQuery('${1:(max-width: 768px)}')",
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-ripple-mediaQuery',

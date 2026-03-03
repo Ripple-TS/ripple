@@ -1573,10 +1573,10 @@ function printRippleNode(node, path, options, print, args) {
 		}
 
 		case 'TrackedMapExpression': {
-			// Format: #ripple.map(arg1, arg2, ...)
-			// When used with 'new', the arguments are empty and belong to NewExpression
+			// Format: #ripple.map(arg1, arg2, ...) or #ripple.map() for empty
+			// Note: 'new' is never needed - compiler handles that automatically
 			if (!node.arguments || node.arguments.length === 0) {
-				nodeContent = '#ripple.map';
+				nodeContent = '#ripple.map()';
 			} else {
 				const args = path.map(print, 'arguments');
 				nodeContent = ['#ripple.map(', join([',', line], args), ')'];
@@ -1585,10 +1585,10 @@ function printRippleNode(node, path, options, print, args) {
 		}
 
 		case 'TrackedSetExpression': {
-			// Format: #ripple.set(arg1, arg2, ...)
-			// When used with 'new', the arguments are empty and belong to NewExpression
+			// Format: #ripple.set(arg1, arg2, ...) or #ripple.set() for empty
+			// Note: 'new' is never needed - compiler handles that automatically
 			if (!node.arguments || node.arguments.length === 0) {
-				nodeContent = '#ripple.set';
+				nodeContent = '#ripple.set()';
 			} else {
 				const args = path.map(print, 'arguments');
 				nodeContent = ['#ripple.set(', join([',', line], args), ')'];
@@ -4224,6 +4224,18 @@ function printYieldExpression(node, path, options, print) {
  * @returns {Doc[]}
  */
 function printNewExpression(node, path, options, print) {
+	// #ripple.* constructors don't need 'new' - compiler handles that automatically
+	// If someone writes 'new #ripple.map()', just output '#ripple.map()'
+	if (
+		node.callee &&
+		(node.callee.type === 'TrackedMapExpression' ||
+			node.callee.type === 'TrackedSetExpression' ||
+			node.callee.type === 'TrackedArrayExpression' ||
+			node.callee.type === 'TrackedObjectExpression')
+	) {
+		return [path.call(print, 'callee')];
+	}
+
 	const parts = [];
 	parts.push('new ');
 	parts.push(path.call(print, 'callee'));

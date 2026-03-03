@@ -99,16 +99,16 @@ component App() {
   // Reactive collections — no imports
   const items = #ripple[1, 2, 3];           // TrackedArray literal
   const config = #ripple{ theme: 'dark' };  // TrackedObject literal
-  const map = new #ripple.map([['a', 1]]); // TrackedMap
-  const set = new #ripple.set([1, 2, 3]);  // TrackedSet
+  const map = #ripple.map([['a', 1]]); // TrackedMap
+  const set = #ripple.set([1, 2, 3]);  // TrackedSet
 
   // Context
   const ctx = #ripple.context('default');
 
   // Reactive platform types
-  const today = new #ripple.date();
-  const url = new #ripple.url('https://example.com');
-  const mq = new #ripple.mediaQuery('(max-width: 768px)');
+  const today = #ripple.date();
+  const url = #ripple.url('https://example.com');
+  const mq = #ripple.mediaQuery('(max-width: 768px)');
 
   <div style={{ color: config.theme === 'dark' ? 'white' : 'black' }}>
     for (const item of items) {
@@ -489,7 +489,7 @@ original reference will react to the change. You do NOT need to use the unboxing
 const arr = #ripple[1, 2, 3];
 
 // using the new constructor
-const arr = new #ripple.array(1, 2, 3);
+const arr = #ripple.array(1, 2, 3);
 
 // using static from method
 const arr = #ripple.array.from([1, 2, 3]);
@@ -533,7 +533,7 @@ the original reference reacts to the change. You do NOT need to use the unboxing
 const obj = #ripple{a: 1, b: 2, c: 3};
 
 // using the new constructor
-const obj = new #ripple.object({a: 1, b: 2, c: 3});
+const obj = #ripple.object({a: 1, b: 2, c: 3});
 ```
 
 Usage Example:
@@ -574,7 +574,7 @@ The `TrackedSet` extends the standard JS `Set` class, and supports all of its
 methods and properties.
 
 ```ripple
-const set = new #ripple.set([1, 2, 3]);
+const set = #ripple.set([1, 2, 3]);
 ```
 
 TrackedSet's reactive methods or properties can be used directly or assigned to
@@ -584,7 +584,7 @@ reactive variables.
 
 ```ripple
 export component App() {
-  const set = new #ripple.set([1, 2, 3]);
+  const set = #ripple.set([1, 2, 3]);
 
   // direct usage
   <p>
@@ -612,7 +612,7 @@ The `TrackedMap` extends the standard JS `Map` class, and supports all of its
 methods and properties.
 
 ```ripple
-const map = new #ripple.map([[1, 1], [2, 2], [3, 3], [4, 4]]);
+const map = #ripple.map([[1, 1], [2, 2], [3, 3], [4, 4]]);
 ```
 
 TrackedMap's reactive methods or properties can be used directly or assigned to
@@ -622,7 +622,7 @@ reactive variables.
 
 ```ripple
 export component App() {
-  const map = new #ripple.map([[1, 1], [2, 2], [3, 3], [4, 4]]);
+  const map = #ripple.map([[1, 1], [2, 2], [3, 3], [4, 4]]);
 
   // direct usage
   <p>
@@ -650,7 +650,7 @@ The `TrackedDate` extends the standard JS `Date` class, and supports all of its
 methods and properties.
 
 ```ripple
-const date = new #ripple.date(2026, 0, 1); // January 1, 2026
+const date = #ripple.date(2026, 0, 1); // January 1, 2026
 ```
 
 TrackedDate's reactive methods or properties can be used directly or assigned to
@@ -662,7 +662,7 @@ etc.) are reactive and will update when the date is modified.
 
 ```ripple
 export component App() {
-  const date = new #ripple.date(2025, 0, 1, 12, 0, 0);
+  const date = #ripple.date(2025, 0, 1, 12, 0, 0);
 
   // direct usage
   <p>

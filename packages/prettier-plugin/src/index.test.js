@@ -1264,8 +1264,8 @@ const [obj1, obj2] = arrayOfObjects;`;
 		});
 
 		it('should keep TrackedMap short syntax intact', async () => {
-			const expected = `const map = new #ripple.map([['key1', 'value1'], ['key2', 'value2']]);
-const set = new #ripple.set([1, 2, 3]);`;
+			const expected = `const map = #ripple.map([['key1', 'value1'], ['key2', 'value2']]);
+const set = #ripple.set([1, 2, 3]);`;
 
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
@@ -1273,7 +1273,7 @@ const set = new #ripple.set([1, 2, 3]);`;
 
 		it('should keep TrackedSet parents with short syntax and no args intact', async () => {
 			const expected = `component SetTest() {
-  let items = new #ripple.set();
+  let items = #ripple.set();
 
   <button onClick={() => items.add(1)}>{'add'}</button>
   <pre>{items.size}</pre>
@@ -1285,7 +1285,7 @@ const set = new #ripple.set([1, 2, 3]);`;
 
 		it('should keep TrackedMap parents with short syntax and no args intact', async () => {
 			const expected = `component MapTest() {
-  let items = new #ripple.map();
+  let items = #ripple.map();
 
   <button onClick={() => items.set('key', 1)}>{'add'}</button>
   <pre>{items.size}</pre>
@@ -1296,8 +1296,8 @@ const set = new #ripple.set([1, 2, 3]);`;
 
 		it('should preserve #ripple.array and #ripple.object constructors', async () => {
 			const expected = `component App() {
-  let arr = new #ripple.array(1, 2, 3);
-  let obj = new #ripple.object({ a: 1 });
+  let arr = #ripple.array(1, 2, 3);
+  let obj = #ripple.object({ a: 1 });
 
   <div>{arr.length + obj.a}</div>
 }`;
