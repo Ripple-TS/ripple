@@ -3,7 +3,7 @@ import { flushSync, TrackedArray } from 'ripple';
 describe('TrackedArray > mutations', () => {
 	it('handles direct assignment and length tracking', () => {
 		component ArrayTest() {
-			let items = #ripple.array(1, 2, 3);
+			let items = #ripple[1, 2, 3];
 
 			<button onClick={() => (items[items.length] = items.length + 1)}>{'increment'}</button>
 
@@ -34,7 +34,7 @@ describe('TrackedArray > mutations', () => {
 
 	it('handles push and pop operations with reactivity', () => {
 		component ArrayTest() {
-			let items = #ripple.array(1, 2, 3);
+			let items = #ripple[1, 2, 3];
 			let lastItem = #ripple.track(() => items[items.length - 1]);
 
 			<button onClick={() => items.push(4)}>{'push'}</button>
@@ -73,7 +73,7 @@ describe('TrackedArray > mutations', () => {
 
 	it('handles shift and unshift operations with reactivity', () => {
 		component ArrayTest() {
-			let items = #ripple.array(2, 3, 4);
+			let items = #ripple[2, 3, 4];
 			let firstItem = #ripple.track(() => items[0]);
 
 			<button onClick={() => items.unshift(1)}>{'unshift'}</button>
@@ -112,7 +112,7 @@ describe('TrackedArray > mutations', () => {
 
 	it('handles splice operation with reactivity', () => {
 		component ArrayTest() {
-			let items = #ripple.array<number | string>(1, 2, 3, 4, 5);
+			let items = #ripple[1, 2, 3, 4, 5];
 			let middleItem = #ripple.track(() => items[2]);
 
 			<button onClick={() => items.splice(1, 2, 'a', 'b')}>{'splice'}</button>
@@ -141,7 +141,7 @@ describe('TrackedArray > mutations', () => {
 
 	it('handles fill operation with reactivity', () => {
 		component ArrayTest() {
-			let items = #ripple.array(1, 2, 3, 4, 5);
+			let items = #ripple[1, 2, 3, 4, 5];
 			let secondItem = #ripple.track(() => items[1]);
 
 			<button onClick={() => items.fill(0, 1, 4)}>{'fill'}</button>
@@ -167,7 +167,7 @@ describe('TrackedArray > mutations', () => {
 
 	it('handles reverse operation with reactivity', () => {
 		component ArrayTest() {
-			let items = #ripple.array(1, 2, 3, 4, 5);
+			let items = #ripple[1, 2, 3, 4, 5];
 			let firstItem = #ripple.track(() => items[0]);
 			let lastItem = #ripple.track(() => items[4]);
 

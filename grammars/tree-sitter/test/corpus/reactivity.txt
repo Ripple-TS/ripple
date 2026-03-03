@@ -115,8 +115,8 @@ component App() {
 Tracked Map and Set Shorthand
 ==================
 
-const set = new #Set([1, 2, 3]);
-const map = new #Map([['a', 1], ['b', 2]]);
+const set = new #ripple.set([1, 2, 3]);
+const map = new #ripple.map([['a', 1], ['b', 2]]);
 
 ---
 
