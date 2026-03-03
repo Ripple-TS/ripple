@@ -80,7 +80,7 @@ describe('TrackedSet', () => {
 
 	it('creates empty TrackedSet using #ripple.set() shorthand syntax', () => {
 		component SetTest() {
-			let items = #ripple.set;
+			let items = #ripple.set();
 
 			<button onClick={() => items.add(1)}>{'add'}</button>
 			<pre>{items.size}</pre>
