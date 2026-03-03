@@ -44,5 +44,10 @@
   },
   "dependencies": {
     "@types/eslint": "catalog:default"
+  },
+  "pnpm": {
+    "overrides": {
+      "koa": ">=3.1.2"
+    }
   }
 }
