@@ -454,14 +454,34 @@ const visitors = {
 
 		const callee = node.callee;
 		const source_name = callee.type === 'Identifier' ? callee.metadata?.source_name : undefined;
+		const shorthand_runtime_method =
+			source_name === '#ripple.url'
+				? 'tracked_url'
+				: source_name === '#ripple.urlSearchParams'
+					? 'tracked_url_search_params'
+					: source_name === '#ripple.date'
+						? 'tracked_date'
+						: source_name === '#ripple.mediaQuery'
+							? 'media_query'
+							: source_name === '#ripple.context'
+								? 'context'
+								: source_name === '#ripple.createSubscriber'
+									? 'create_subscriber'
+									: null;
+		const shorthand_requires_block =
+			source_name === '#ripple.url' ||
+			source_name === '#ripple.urlSearchParams' ||
+			source_name === '#ripple.date' ||
+			source_name === '#ripple.mediaQuery';
 
-		if (!context.state.to_ts && source_name === '#ripple.context') {
+		if (!context.state.to_ts && shorthand_runtime_method !== null) {
 			return {
 				...node,
-				callee: b.member(b.id('_$_'), b.id('context')),
-				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
-					node.arguments.map((arg) => context.visit(arg))
-				),
+				callee: b.member(b.id('_$_'), b.id(shorthand_runtime_method)),
+				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
+					...(shorthand_requires_block ? [b.id('__block')] : []),
+					...node.arguments.map((arg) => context.visit(arg)),
+				]),
 			};
 		}
 

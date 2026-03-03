@@ -577,7 +577,7 @@ module.exports = grammar({
 
 		server_block: ($) => seq('#ripple.server', '{', repeat($.statement), '}'),
 
-		defer_block: ($) => seq('#defer', '{', repeat($.statement), '}'),
+		defer_block: ($) => seq('#ripple.defer', '{', repeat($.statement), '}'),
 
 		unbox_expression: ($) =>
 			prec.left(
@@ -612,9 +612,9 @@ module.exports = grammar({
 		reactive_array: ($) =>
 			seq('#ripple[', commaSep(choice($.expression, $.spread_element)), optional(','), ']'),
 
-		tracked_map_expression: ($) => seq('#Map', optional($.type_arguments), $.arguments),
+		tracked_map_expression: ($) => seq('#ripple.map', optional($.type_arguments), $.arguments),
 
-		tracked_set_expression: ($) => seq('#Set', optional($.type_arguments), $.arguments),
+		tracked_set_expression: ($) => seq('#ripple.set', optional($.type_arguments), $.arguments),
 
 		yield_expression: ($) => prec.right(seq('yield', optional('*'), optional($.expression))),
 

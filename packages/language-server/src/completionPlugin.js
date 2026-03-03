@@ -669,42 +669,14 @@ function createCompletionPlugin() {
 					// Also detects if 'new' is already typed before it to avoid duplicating
 					const trackedMatch = line.match(/(new\s+)?[T,M,#]([\w\.]*)$/);
 
-					// #ripple.* namespace completions — two distinct cases:
-					//   1. Line ends with '#ripple.' + optional partial → show all dot-members
-					//      Reached via isIncomplete re-request (triggerKind:3) after '#' session
-					//   2. Line ends with '#' or '#ripple' (no dot) → show only #ripple[] and #ripple{}
-					//      Return isIncomplete:true so VS Code re-requests when user types '.' next
-					const rippleDotMatch = line.match(/#ripple\.(\w*)$/);
-					const rippleHashMatch = !rippleDotMatch && line.match(/#(ripple)?(\w*)$/);
-
-					if (rippleDotMatch) {
-						// After '#ripple.' — show all namespace member completions.
-						// filterText = member name only (e.g. 'track', 'context') so VS Code
-						// can filter as user types after the dot.
-						const typedAfterDot = rippleDotMatch[1] ?? '';
-						const fullPrefix = '#ripple.' + typedAfterDot;
-						const startChar = position.character - fullPrefix.length;
-						log('🔷 #ripple. member match, partial:', typedAfterDot);
-						for (const snippet of RIPPLE_NAMESPACE_SNIPPETS) {
-							items.push({
-								...snippet,
-								filterText: snippet.label,
-								textEdit: {
-									range: {
-										start: { line: position.line, character: startChar },
-										end: position,
-									},
-									newText: snippet.insertText ?? snippet.label,
-								},
-							});
-						}
-						return { items, isIncomplete: true };
-					}
+					// '#' or '#ripple' (no dot yet) — show only the two literal shorthands.
+					// Dot-member completions for '#ripple.*' are handled earlier in this function.
+					const rippleHashMatch = line.match(/#(ripple)?(\w*)$/);
 
 					if (rippleHashMatch) {
 						// '#' or '#ripple' (no dot yet) — show only the two literal shorthands.
 						// isIncomplete:true keeps the session alive so when user types '.' next,
-						// VS Code re-requests (triggerKind:3) and we enter the rippleDotMatch branch.
+						// VS Code re-requests and the earlier #ripple. namespace branch handles members.
 						const prefixLen = rippleHashMatch[0].length;
 						const startChar = position.character - prefixLen;
 						log('🔷 # hash match, partial:', rippleHashMatch[0]);

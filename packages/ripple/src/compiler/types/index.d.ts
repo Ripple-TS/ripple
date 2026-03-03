@@ -23,15 +23,15 @@ interface BaseNodeMetaData {
 		| '#ripple.object'
 		| '#ripple.track'
 		| '#ripple.url'
-		| '#ripple.urlsearchparams'
+		| '#ripple.urlSearchParams'
 		| '#ripple.date'
+		| '#ripple.mediaQuery'
 		| '#ripple.createSubscriber'
 		| '#ripple.defer'
 		| '#ripple.validate'
 		| '#ripple.context'
 		| '#ripple.trackSplit'
-		| '#ripple.async'
-		| '#ripple.validate';
+		| '#ripple.async';
 	is_capitalized?: boolean;
 	has_await?: boolean;
 	commentContainerId?: number;

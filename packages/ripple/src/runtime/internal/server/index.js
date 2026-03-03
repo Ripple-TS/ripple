@@ -700,3 +700,49 @@ export function track_split(v, l) {
 
 	return out;
 }
+
+/**
+ * @param {any} _
+ * @param {ConstructorParameters<typeof URL>} params
+ * @returns {URL}
+ */
+export function tracked_url(_, ...params) {
+	return new URL(...params);
+}
+
+/**
+ * @param {any} _
+ * @param {ConstructorParameters<typeof URLSearchParams>} params
+ * @returns {URLSearchParams}
+ */
+export function tracked_url_search_params(_, ...params) {
+	return new URLSearchParams(...params);
+}
+
+/**
+ * @param {any} _
+ * @param {ConstructorParameters<typeof Date>} params
+ * @returns {Date}
+ */
+export function tracked_date(_, ...params) {
+	return new Date(...params);
+}
+
+/**
+ * @param {any} _
+ * @param {string} query
+ * @param {boolean} [matches]
+ * @returns {boolean}
+ */
+export function media_query(_, query, matches = false) {
+	void query;
+	return matches;
+}
+
+/**
+ * @param {any} _
+ * @returns {() => void}
+ */
+export function create_subscriber(_) {
+	return () => {};
+}

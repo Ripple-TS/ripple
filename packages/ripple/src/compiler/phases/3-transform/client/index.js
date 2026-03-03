@@ -564,8 +564,12 @@ const visitors = {
 			};
 		}
 
-		if (context.state.to_ts && source_name === '#ripple.track') {
-			const track_alias = set_hidden_import_from_ripple('track', context);
+		if (
+			context.state.to_ts &&
+			(source_name === '#ripple.track' || source_name === '#ripple.trackSplit')
+		) {
+			const import_name = source_name === '#ripple.trackSplit' ? 'trackSplit' : 'track';
+			const track_alias = set_hidden_import_from_ripple(import_name, context);
 			const track_id = b.id(track_alias);
 			track_id.metadata = {
 				...(callee.metadata ?? {}),
@@ -701,7 +705,7 @@ const visitors = {
 		}
 
 		// Special handling for TrackedMapExpression and TrackedSetExpression
-		// When source is "new #Map(...)" or "new #Map<K,V>(...)", the callee is TrackedMapExpression
+		// When source is "new #ripple.map(...)" or "new #ripple.map<K,V>(...)", the callee is TrackedMapExpression
 		// with empty arguments and the actual arguments are in NewExpression.arguments
 		if (callee.type === 'TrackedMapExpression' || callee.type === 'TrackedSetExpression') {
 			// Use NewExpression's arguments (the callee has empty arguments from parser)
@@ -713,7 +717,8 @@ const visitors = {
 				const calleeId = b.id(alias);
 				calleeId.loc = callee.loc;
 				calleeId.metadata = {
-					source_name: callee.type === 'TrackedMapExpression' ? '#Map' : '#Set',
+					source_name:
+						callee.type === 'TrackedMapExpression' ? '#ripple.map' : '#ripple.set',
 					path: [...context.path],
 				};
 				/** @type {AST.NewExpression} */
