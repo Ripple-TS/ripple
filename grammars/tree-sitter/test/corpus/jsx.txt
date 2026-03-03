@@ -173,7 +173,7 @@ Server Block
 ==================
 
 component App() {
-  #server {
+  #ripple.server {
     let data = fetchData();
   }
   <div>{'content'}</div>

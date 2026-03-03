@@ -41,7 +41,7 @@ component Counter() {
 Reactive Arrays
 ==================
 
-let items = #[1, 2, 3];
+let items = #ripple[1, 2, 3];
 
 ---
 
@@ -58,7 +58,7 @@ let items = #[1, 2, 3];
 Reactive Objects
 ==================
 
-let obj = #{a: 1, b: 2};
+let obj = #ripple{a: 1, b: 2};
 
 ---
 
@@ -144,6 +144,33 @@ const map = new #ripple.map([['a', 1], ['b', 2]]);
               (array
                 (string)
                 (number)))))))))
+
+==================
+Ripple Server/Style Member Expressions
+==================
+
+const serverData = #ripple.server.data;
+const styleClass = #ripple.style.button;
+const styleToken = #ripple.style['button'];
+
+---
+
+(program
+  (lexical_declaration
+    (variable_declarator
+      name: (identifier)
+      (server_member_expression
+        property: (identifier))))
+  (lexical_declaration
+    (variable_declarator
+      name: (identifier)
+      (style_member_expression
+        property: (identifier))))
+  (lexical_declaration
+    (variable_declarator
+      name: (identifier)
+      (style_subscript_expression
+        index: (string)))))
 
 ==================
 Augmented Assignment with Unbox

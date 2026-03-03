@@ -178,6 +178,8 @@ module.exports = grammar({
 				$.export_statement,
 				$.import_statement,
 				$.declaration,
+				$.server_block,
+				$.defer_block,
 				$.expression_statement,
 				$.if_statement,
 				$.switch_statement,
@@ -376,6 +378,8 @@ module.exports = grammar({
 			choice(
 				$.jsx_element,
 				$.jsx_self_closing_element,
+				$.server_block,
+				$.defer_block,
 				$.variable_declaration,
 				$.lexical_declaration,
 				$.function_declaration,
@@ -563,6 +567,9 @@ module.exports = grammar({
 				$.reactive_array,
 				$.tracked_map_expression,
 				$.tracked_set_expression,
+				$.server_member_expression,
+				$.style_member_expression,
+				$.style_subscript_expression,
 				$.function_expression,
 				$.arrow_function,
 				$.class_expression,
@@ -571,13 +578,17 @@ module.exports = grammar({
 				$.subscript_expression,
 				$.jsx_element,
 				$.jsx_self_closing_element,
-				$.server_block,
-				$.defer_block,
 			),
 
 		server_block: ($) => seq('#ripple.server', '{', repeat($.statement), '}'),
 
 		defer_block: ($) => seq('#ripple.defer', '{', repeat($.statement), '}'),
+
+		server_member_expression: ($) => seq('#ripple.server', '.', field('property', $.identifier)),
+
+		style_member_expression: ($) => seq('#ripple.style', '.', field('property', $.identifier)),
+
+		style_subscript_expression: ($) => seq('#ripple.style', '[', field('index', $.expression), ']'),
 
 		unbox_expression: ($) =>
 			prec.left(

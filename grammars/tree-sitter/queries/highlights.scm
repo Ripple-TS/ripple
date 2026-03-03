@@ -1,8 +1,23 @@
 ; Keywords
 (component_declaration "component" @keyword)
 (fragment_declaration "fragment" @keyword)
-(server_block "#ripple.server" @keyword)
-(defer_block "#ripple.defer" @keyword)
+(server_block) @keyword
+(defer_block) @keyword
+
+(server_member_expression
+  "#ripple.server" @keyword
+  "." @punctuation.delimiter
+  property: (identifier) @property)
+
+(style_member_expression
+  "#ripple.style" @keyword
+  "." @punctuation.delimiter
+  property: (identifier) @property)
+
+(style_subscript_expression
+  "#ripple.style" @keyword
+  "[" @punctuation.bracket
+  "]" @punctuation.bracket)
 
 ; Reserved identifiers
 [
@@ -151,6 +166,7 @@
   "return"
   "throw"
   "try"
+  "pending"
   "catch"
   "finally"
 ] @keyword.control
@@ -226,11 +242,11 @@
 ; Reactive constructs (placed after generic punctuation so special tokens win)
 (unbox_expression "@" @operator.special)
 (reactive_array
-  "#[" @punctuation.special
+  "#ripple[" @punctuation.special
   "]" @punctuation.special)
 
 (reactive_object
-  "#{" @punctuation.special
+  "#ripple{" @punctuation.special
   "}" @punctuation.special)
 
 (template_substitution
