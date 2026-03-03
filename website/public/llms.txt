@@ -873,7 +873,7 @@ Use `{ref fn}` syntax to capture DOM element references:
 
 ```ripple
 export component App() {
-  let div = #ripple.track(undefined);
+  let div = #ripple.track();
 
   const divRef = (node) => {
     @div = node;

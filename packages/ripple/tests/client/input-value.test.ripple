@@ -1443,7 +1443,7 @@ describe('use value()', () => {
 
 	it('should handle select without initial value and fall back to first option', () => {
 		component App() {
-			const selected = #ripple.track(undefined);
+			const selected = #ripple.track();
 
 			<select {ref bindValue(selected)}>
 				<option value="1">{'One'}</option>
@@ -1463,7 +1463,7 @@ describe('use value()', () => {
 		'should handle select without initial value and fall back to first option with a getter and setter',
 		() => {
 			component App() {
-				const selected = #ripple.track(undefined);
+				const selected = #ripple.track();
 
 				<select {ref bindValue(() => @selected, (v) => (@selected = v))}>
 					<option value="1">{'One'}</option>
@@ -1482,7 +1482,7 @@ describe('use value()', () => {
 
 	it('should handle select with disabled options', () => {
 		component App() {
-			const selected = #ripple.track(undefined);
+			const selected = #ripple.track();
 
 			<select {ref bindValue(selected)}>
 				<option value="1" disabled>{'One'}</option>
@@ -1500,7 +1500,7 @@ describe('use value()', () => {
 
 	it('should handle select with disabled options with a getter and setter', () => {
 		component App() {
-			const selected = #ripple.track(undefined);
+			const selected = #ripple.track();
 
 			<select {ref bindValue(() => @selected, (v) => (@selected = v))}>
 				<option value="1" disabled>{'One'}</option>
