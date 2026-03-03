@@ -1,4 +1,5 @@
 import { flushSync, TrackedMap } from 'ripple';
+
 describe('TrackedMap', () => {
 	it('handles set with update and delete operations with a reactive size var', () => {
 		component MapTest() {
@@ -121,7 +122,7 @@ describe('TrackedMap', () => {
 
 	it('creates empty TrackedMap using #ripple.map() shorthand syntax', () => {
 		component MapTest() {
-			let map = #ripple.map();
+			let map = #ripple.map;
 
 			<button onClick={() => map.set('a', 1)}>{'add'}</button>
 			<pre>{map.size}</pre>

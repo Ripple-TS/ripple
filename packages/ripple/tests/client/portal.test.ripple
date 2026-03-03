@@ -1,4 +1,5 @@
 import { Portal, flushSync } from 'ripple';
+
 describe('Portal', () => {
 	afterEach(() => {
 		// Clean up any leftover portal content from document.body

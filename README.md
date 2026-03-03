@@ -31,7 +31,8 @@ human and LLM developer experience.
   system
 - 🔥 **Performance**: Industry-leading rendering speed, bundle size, and memory
   usage
-- 📦 **Reactive Collections**: `#[]` arrays and `#{}` objects with full reactivity
+- 📦 **Reactive Collections**: `#ripple[...]` arrays and `#ripple{...}` objects
+  with full reactivity
 - 🎯 **TypeScript First**: Complete type safety with `.ripple` file extension
 - 🛠️ **Developer Tools**: VSCode extension, Prettier, and ESLint support
 - 🎨 **Scoped Styling**: Component-level CSS with automatic scoping
@@ -115,13 +116,11 @@ export component App() {
 
 ### Reactivity
 
-Create reactive state with `track` and access it with the `@` operator:
+Create reactive state with `#ripple.track` and access it with the `@` operator:
 
 ```jsx
-import { track } from 'ripple';
-
 export component App() {
-  let count = track(0);
+  let count = #ripple.track(0);
 
   <div>
     <p>{"Count: "}{@count}</p>
@@ -133,12 +132,10 @@ export component App() {
 **Derived values** automatically update:
 
 ```jsx
-import { track } from 'ripple';
-
 export component App() {
-  let count = track(0);
-  let double = track(() => @count * 2);
-  let quadruple = track(() => @double * 2);
+  let count = #ripple.track(0);
+  let double = #ripple.track(() => @count * 2);
+  let quadruple = #ripple.track(() => @double * 2);
 
   <div>
     <p>{"Count: "}{@count}</p>
@@ -149,12 +146,14 @@ export component App() {
 }
 ```
 
-**Reactive collections** with shorthand syntax:
+**Reactive collections** using the `#ripple.*` namespace (no imports needed):
 
 ```jsx
 export component App() {
-  const items = #[1, 2, 3];  // TrackedArray
-  const obj = #{a: 1, b: 2}; // TrackedObject
+  const items = #ripple[1, 2, 3];            // TrackedArray literal
+  const obj = #ripple{ a: 1, b: 2 };        // TrackedObject literal
+  const map = new #ripple.map([['k', 'v']]); // TrackedMap
+  const set = new #ripple.set([1, 2, 3]);    // TrackedSet
 
   <div>
     <p>{"Items: "}{items.join(', ')}</p>
@@ -165,6 +164,9 @@ export component App() {
 }
 ```
 
+The `#ripple.*` namespace eliminates all reactive imports. Type `#ripple.` in VS
+Code to see every available primitive via autocomplete.
+
 **[→ Reactivity Guide](https://www.ripplejs.com/docs/guide/reactivity)**
 
 ### Transporting Reactivity
@@ -172,14 +174,12 @@ export component App() {
 Pass reactive state across function boundaries:
 
 ```jsx
-import { track } from 'ripple';
-
 function createDouble(count) {
-  return track(() => @count * 2);
+  return #ripple.track(() => @count * 2);
 }
 
 export component App() {
-  let count = track(0);
+  let count = #ripple.track(0);
   const double = createDouble(count);
 
   <div>
@@ -194,10 +194,10 @@ export component App() {
 ### Effects & Side Effects
 
 ```jsx
-import { effect, track } from 'ripple';
+import { effect } from 'ripple';
 
 export component App() {
-  let count = track(0);
+  let count = #ripple.track(0);
 
   effect(() => {
     console.log('Count changed:', @count);
@@ -214,10 +214,8 @@ export component App() {
 **Conditionals:**
 
 ```jsx
-import { track } from 'ripple';
-
 export component App() {
-  let condition = track(true);
+  let condition = #ripple.track(true);
 
   <div>
     if (@condition) {
@@ -234,7 +232,7 @@ export component App() {
 
 ```jsx
 export component App() {
-  const items = #[
+  const items = #ripple[
     {id: 1, name: 'Item 1'},
     {id: 2, name: 'Item 2'},
     {id: 3, name: 'Item 3'}
@@ -252,8 +250,6 @@ export component App() {
 **Error Boundaries:**
 
 ```jsx
-import { track } from 'ripple';
-
 component ComponentThatMayFail(props: { shouldFail: boolean }) {
   if (props.shouldFail) {
     throw new Error('Component failed!');
@@ -264,7 +260,7 @@ component ComponentThatMayFail(props: { shouldFail: boolean }) {
 }
 
 export component App() {
-  let shouldFail = track(false);
+  let shouldFail = #ripple.track(false);
 
   <div>
     try {
@@ -296,10 +292,8 @@ export component App() {
 Use React-style event handlers:
 
 ```jsx
-import { track } from 'ripple';
-
 export component App() {
-  let value = track('');
+  let value = #ripple.track('');
 
   <div>
     <button onClick={() => console.log('Clicked')}>{'Click'}</button>
@@ -332,10 +326,8 @@ export component App() {
 **Dynamic styles:**
 
 ```jsx
-import { track } from 'ripple';
-
 export component App() {
-  let color = track('red');
+  let color = #ripple.track('red');
 
   <div>
     <div style={{ color: @color, fontWeight: 'bold' }}>{"Styled text"}</div>
@@ -353,9 +345,7 @@ export component App() {
 Share state across the component tree:
 
 ```jsx
-import { Context, track } from 'ripple';
-
-const ThemeContext = new Context();
+const ThemeContext = #ripple.context();
 
 component Child() {
   const theme = ThemeContext.get();
@@ -363,7 +353,7 @@ component Child() {
 }
 
 export component App() {
-  let theme = track('light');
+  let theme = #ripple.track('light');
 
   ThemeContext.set(theme);
 
@@ -381,10 +371,10 @@ export component App() {
 Render content outside the component hierarchy:
 
 ```jsx
-import { Portal, track } from 'ripple';
+import { Portal } from 'ripple';
 
 export component App() {
-  let showModal = track(false);
+  let showModal = #ripple.track(false);
 
   <div>
     <button onClick={() => @showModal = !@showModal}>{"Toggle Modal"}</button>

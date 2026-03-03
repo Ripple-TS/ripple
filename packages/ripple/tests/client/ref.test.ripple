@@ -1,6 +1,7 @@
 import type { PropsWithExtras } from 'ripple';
 import { describe, it, expect } from 'vitest';
 import { flushSync, TrackedArray, createRefKey } from 'ripple';
+
 describe('refs', () => {
 	it('capture a <div>', () => {
 		let div: HTMLDivElement | undefined;

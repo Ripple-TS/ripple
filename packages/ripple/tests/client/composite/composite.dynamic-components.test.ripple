@@ -1,4 +1,5 @@
 import { flushSync } from 'ripple';
+
 describe('composite > dynamic components', () => {
 	it('supports rendering compositie components using <@component> syntax', () => {
 		component App() {

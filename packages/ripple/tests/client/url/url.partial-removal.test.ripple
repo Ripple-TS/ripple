@@ -1,4 +1,5 @@
 import { flushSync } from 'ripple';
+
 describe('TrackedURL > partials/removal', () => {
 	it('handles URL with no port specified', () => {
 		component URLTest() {

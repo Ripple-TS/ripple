@@ -1,4 +1,5 @@
 import { flushSync, TrackedArray } from 'ripple';
+
 describe('TrackedArray copyWithin', () => {
 	it('handles copyWithin operation with reactivity', () => {
 		component ArrayTest() {

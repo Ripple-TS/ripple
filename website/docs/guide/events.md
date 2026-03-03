@@ -29,10 +29,9 @@ to improve runtime performance.
 <Code>
 
 ```ripple
-import { track } from 'ripple';
 
 export component EventExample() {
-	let message = track("");
+	let message = #ripple.track("");
 
 	<div>
 		<button onClick={() => @message = "Clicked!"}>{"Click me"}</button>
@@ -75,10 +74,9 @@ bubble phase. This is equivalent to using the `Capture` suffix on the event
 name. [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#capture)
 
 ```ripple
-import { track } from 'ripple';
 
 export component EventExample() {
-	let order = #[];
+	let order = #ripple[];
 
 	<div onClick={{
 		handleEvent: () => order.push('outer-capture'),
@@ -101,10 +99,9 @@ When `true`, the event listener is automatically removed after it fires once.
 This is useful for one-time setup or cleanup operations. [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#once)
 
 ```ripple
-import { track } from 'ripple';
 
 export component EventExample() {
-	let count = track(0);
+	let count = #ripple.track(0);
 
 	<button onClick={{
 		handleEvent: () => @count++,
@@ -186,10 +183,9 @@ or when you want to use a different event name than the lower-cased name that's 
 attribute.
 
 ```ripple
-import { track } from 'ripple';
 
 export component EventExample() {
-	let count = track(0);
+	let count = #ripple.track(0);
 
 	<div onMyCustomEvent={{
 		handleEvent: (e) => @count += e.detail.value,

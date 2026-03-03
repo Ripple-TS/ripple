@@ -8,7 +8,7 @@ export component Content() {
 			<li>
 				<strong>{'Reactive State Management'}</strong>
 				{'- Built-in reactivity with'}
-				<code>{'track()'}</code>
+				<code>{'#ripple.track()'}</code>
 				{'function and'}
 				<code>{'@'}</code>
 				{'access syntax'}

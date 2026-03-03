@@ -106,6 +106,7 @@ describe('basic client', () => {
 
 			@base += 2;
 
+
 			<div>{@derived}</div>
 		}
 
@@ -124,6 +125,7 @@ describe('basic client', () => {
 			<div>{@product}</div>
 
 			@a = 4;
+
 
 			<div>{@product}</div>
 		}

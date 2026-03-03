@@ -1,4 +1,5 @@
 import { flushSync, effect, type Tracked } from 'ripple';
+
 describe('passing reactivity between boundaries tests', () => {
 	it('can pass reactivity between functions with simple arrays and destructuring', () => {
 		let log: string[] = [];

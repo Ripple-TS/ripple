@@ -1,4 +1,3 @@
-
 describe('head elements', () => {
 	it('renders static title element', async () => {
 		component App() {

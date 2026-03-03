@@ -1,4 +1,5 @@
 import { flushSync } from 'ripple';
+
 describe('TrackedURL > reactivity', () => {
 	it('handles protocol changes with reactivity', () => {
 		component URLTest() {

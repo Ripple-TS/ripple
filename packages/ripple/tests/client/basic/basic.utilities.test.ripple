@@ -1,4 +1,5 @@
 import { effect, untrack, tick } from 'ripple';
+
 describe('basic client > utilities', () => {
 	it('tick function', async () => {
 		let resolve: () => void;

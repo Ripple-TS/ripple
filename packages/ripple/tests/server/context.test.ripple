@@ -1,4 +1,3 @@
-
 describe('Context API', () => {
 	it('handles context override in nested components', async () => {
 		const MessageContext = #ripple.context('default');

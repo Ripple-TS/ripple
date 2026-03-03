@@ -1,4 +1,3 @@
-
 describe('TrackedExpression tests', () => {
 	it('should handle the syntax correctly', () => {
 		component App() {

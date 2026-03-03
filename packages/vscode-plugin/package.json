@@ -103,12 +103,6 @@
         "configuration": "./language-configuration.json"
       }
     ],
-    "configurationDefaults": {
-      "emmet.includeLanguages": {
-        "ripple": "html"
-      },
-      "emmet.showExpandedAbbreviation": "always"
-    },
     "grammars": [
       {
         "language": "ripple",

@@ -13,10 +13,8 @@ function will receive the reference to the underlying DOM element.
 <Code console>
 
 ```ripple
-import { track } from 'ripple';
-
 export default component App() {
-  let div = track();
+  let div = #ripple.track();
 
   const divRef = (node) => {
     @div = node;
@@ -39,10 +37,8 @@ You can also create `{ref}` functions inline.
 <Code console>
 
 ```ripple
-import { track } from 'ripple';
-
 export component App() {
-  let div = track();
+  let div = #ripple.track();
 
   <div
     {ref (node) => {
@@ -89,10 +85,8 @@ relying directly on the `{ref ...}` template syntax.
 <Code console>
 
 ```ripple
-import { createRefKey, track } from 'ripple';
-
 export component App() {
-  let value = track('');
+  let value = #ripple.track('');
 
   const props = {
     id: 'example',

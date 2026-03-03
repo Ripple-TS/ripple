@@ -1,4 +1,5 @@
 import { flushSync } from 'ripple';
+
 describe('TrackedURL > serialization', () => {
 	it('handles toString method', () => {
 		component URLTest() {

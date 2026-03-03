@@ -1,4 +1,3 @@
-
 // Static title
 export component StaticTitle() {
 	<head>

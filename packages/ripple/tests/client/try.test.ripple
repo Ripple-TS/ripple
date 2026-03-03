@@ -1,4 +1,5 @@
 import { bindValue, flushSync, TrackedArray } from 'ripple';
+
 describe('try block with catch and pending', () => {
 	it('catch block works when component throws before await with pending block', async () => {
 		component App() {

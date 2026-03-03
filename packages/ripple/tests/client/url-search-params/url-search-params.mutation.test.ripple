@@ -1,4 +1,5 @@
 import { flushSync } from 'ripple';
+
 describe('TrackedURLSearchParams > mutation', () => {
 	it('handles append operation with reactivity', () => {
 		component URLTest() {

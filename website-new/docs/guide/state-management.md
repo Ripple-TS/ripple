@@ -26,20 +26,18 @@ Example with tracked / reactive contents:
 <Code>
 
 ```ripple
-import { track, Context } from 'ripple';
-
 // create context with an empty object
-const context = new Context({});
-const context2 = new Context();
+const context = #ripple.context({});
+const context2 = #ripple.context();
 
 export component App() {
   // get reference to the object
   const obj = context.get();
   // set your reactive value
-  obj.count = track(0);
+  obj.count = #ripple.track(0);
 
   // create another tracked variable
-  const count2 = track(0);
+  const count2 = #ripple.track(0);
   // context2 now contains a tracked variable
   context2.set(count2);
 
@@ -71,9 +69,7 @@ Passing data between components:
 <Code console>
 
 ```ripple
-import { Context } from 'ripple';
-
-const MyContext = new Context(null);
+const MyContext = #ripple.context(null);
 
 component Child() {
   // Context is read in the Child component

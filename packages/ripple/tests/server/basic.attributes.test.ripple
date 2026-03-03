@@ -1,4 +1,3 @@
-
 describe('basic server > attribute rendering', () => {
 	it('render static attributes', async () => {
 		component Basic() {

@@ -1,4 +1,5 @@
 import { flushSync, TrackedArray } from 'ripple';
+
 describe('TrackedArray > to* methods', () => {
 	it('handles toReversed method with reactivity', (context) => {
 		if (!('toReversed' in Array.prototype)) {

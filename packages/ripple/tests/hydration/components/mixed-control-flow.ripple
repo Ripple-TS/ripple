@@ -1,4 +1,3 @@
-
 export component MixedControlFlowStatic() {
 	const rows = [
 		{ id: 1, kind: 'a', enabled: true },

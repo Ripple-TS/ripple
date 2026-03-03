@@ -1,4 +1,5 @@
 import { flushSync } from 'ripple';
+
 type Callback = (event: MediaQueryListEvent) => void;
 
 function setupMatchMedia() {

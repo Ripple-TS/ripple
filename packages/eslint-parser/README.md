@@ -76,9 +76,9 @@ The parser:
 The parser supports all Ripple syntax including:
 
 - `component` declarations
-- `track()` reactive values
+- `#ripple.track()` reactive values
 - `@` unboxing operator
-- `#[]` and `#{}` reactive collections
+- `#ripple[]` and `#ripple{}` reactive collections
 - JSX-like templating inside components
 - All standard JavaScript/TypeScript syntax
 

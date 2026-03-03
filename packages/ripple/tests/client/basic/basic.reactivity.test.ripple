@@ -1,4 +1,5 @@
 import { flushSync, effect, untrack } from 'ripple';
+
 describe('basic client > reactivity', () => {
 	it('renders multiple reactive lexical blocks', () => {
 		component Basic() {

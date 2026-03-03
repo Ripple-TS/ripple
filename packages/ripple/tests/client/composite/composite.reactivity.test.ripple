@@ -1,5 +1,6 @@
 import type { Tracked } from 'ripple';
 import { flushSync, effect } from 'ripple';
+
 describe('composite > reactivity', () => {
 	it('renders composite components with object state', () => {
 		component Button({ obj }: { obj: { count: Tracked<number> } }) {

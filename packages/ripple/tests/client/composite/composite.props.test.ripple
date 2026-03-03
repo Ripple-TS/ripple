@@ -1,5 +1,6 @@
 import type { Tracked, Props } from 'ripple';
 import { effect, flushSync } from 'ripple';
+
 describe('composite > props', () => {
 	it('correctly handles default prop values', () => {
 		component Child({ foo = 456 }) {

@@ -1,4 +1,5 @@
 import { flushSync } from 'ripple';
+
 describe('html directive', () => {
 	it('renders static html', () => {
 		component App() {

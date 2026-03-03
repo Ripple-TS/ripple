@@ -1,4 +1,5 @@
 import { flushSync } from 'ripple';
+
 describe('TrackedURL > parsing', () => {
 	it('creates URL from string with reactivity', () => {
 		component URLTest() {

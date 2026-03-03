@@ -1,4 +1,3 @@
-
 describe('TrackedURLSearchParams > initialization', () => {
 	it('creates empty URLSearchParams with reactivity', () => {
 		component URLTest() {

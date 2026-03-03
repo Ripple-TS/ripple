@@ -1,4 +1,5 @@
 import { flushSync, TrackedArray } from 'ripple';
+
 describe('composite > render', () => {
 	it('renders composite components', () => {
 		component Button({ count }: { count: number }) {

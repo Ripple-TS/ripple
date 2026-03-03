@@ -9,7 +9,7 @@ directly within the component. It works with both static and reactive data.
 
 ```ripple
 export component App() {
-	let curr_step = track(0);
+	let curr_step = #ripple.track(0);
 
 	<head>
 		<title>{`Step ${@curr_step}`}</title>

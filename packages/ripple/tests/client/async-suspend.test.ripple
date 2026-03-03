@@ -1,4 +1,5 @@
 import { flushSync } from 'ripple';
+
 describe('async suspense', () => {
 	it('hides child content during re-suspension when tracked dependency changes', async () => {
 		let resolve_fn: (() => void) | null = null;

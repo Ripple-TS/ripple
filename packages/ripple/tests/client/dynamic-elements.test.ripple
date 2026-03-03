@@ -1,5 +1,6 @@
 import type { PropsWithExtras } from 'ripple';
 import { flushSync, createRefKey } from 'ripple';
+
 describe('dynamic DOM elements', () => {
 	it('renders static dynamic element', () => {
 		component App() {

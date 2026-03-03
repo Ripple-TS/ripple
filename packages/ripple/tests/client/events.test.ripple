@@ -1,5 +1,6 @@
 import type { OnEventListenerRemover } from 'ripple';
 import { flushSync, on, effect } from 'ripple';
+
 describe('on() event handler', () => {
 	it('should attach multiple handlers via onClick attribute (delegated)', () => {
 		component Basic() {

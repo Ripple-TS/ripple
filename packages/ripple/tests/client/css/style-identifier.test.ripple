@@ -183,8 +183,10 @@ component App() {
 			);
 		});
 
-		it('errors when #ripple.style references a class in a compound selector passed to component', () => {
-			const source = `
+		it(
+			'errors when #ripple.style references a class in a compound selector passed to component',
+			() => {
+				const source = `
 component Child({ cls }) {
 	<span class={cls}>{'text'}</span>
 }
@@ -197,8 +199,11 @@ component App() {
 		}
 	</style>
 }`;
-			expect(() => compile(source, 'test.ripple')).toThrow(/does not exist as a stand-alone class/);
-		});
+				expect(() => compile(source, 'test.ripple')).toThrow(
+					/does not exist as a stand-alone class/,
+				);
+			},
+		);
 
 		it('errors if descendant class is attempted to be passed in to child component', () => {
 			const source = `
@@ -305,8 +310,10 @@ component App() {
 			expect(() => compile(source, 'test.ripple')).toThrow(/does not exist as a stand-alone class/);
 		});
 
-		it('errors when #ripple.style references a class that does not exist in the style block', () => {
-			const source = `
+		it(
+			'errors when #ripple.style references a class that does not exist in the style block',
+			() => {
+				const source = `
 component Child({ cls }) {
 	<div class={cls}>{'text'}</div>
 }
@@ -319,8 +326,11 @@ component App() {
 		}
 	</style>
 }`;
-			expect(() => compile(source, 'test.ripple')).toThrow(/does not exist as a stand-alone class/);
-		});
+				expect(() => compile(source, 'test.ripple')).toThrow(
+					/does not exist as a stand-alone class/,
+				);
+			},
+		);
 
 		it('errors when #ripple.style is used with a dynamic expression', () => {
 			const source = `

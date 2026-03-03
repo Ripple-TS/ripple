@@ -1,4 +1,5 @@
 import { flushSync, effect, untrack, TrackedArray } from 'ripple';
+
 describe('TrackedArray > iteration', () => {
 	it('handles entries method with reactivity', () => {
 		component ArrayTest() {

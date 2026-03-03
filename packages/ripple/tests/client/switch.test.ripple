@@ -1,4 +1,5 @@
 import { flushSync } from 'ripple';
+
 describe('switch statements', () => {
 	it('renders simple switch with literal cases', () => {
 		component App() {

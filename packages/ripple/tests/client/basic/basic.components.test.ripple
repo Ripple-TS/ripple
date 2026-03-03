@@ -1,5 +1,6 @@
 import type { Tracked, Props, PropsWithChildren, PropsWithExtras } from 'ripple';
 import { flushSync } from 'ripple';
+
 describe('basic client > components & composition', () => {
 	it('renders with component composition and children', () => {
 		component Card(props: PropsWithChildren<{}>) {

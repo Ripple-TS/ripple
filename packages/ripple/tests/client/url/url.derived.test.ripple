@@ -1,4 +1,5 @@
 import { flushSync } from 'ripple';
+
 describe('TrackedURL > derived', () => {
 	it('handles reactive computed properties based on URL', () => {
 		component URLTest() {
