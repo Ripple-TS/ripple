@@ -1,4 +1,3 @@
-import { track } from 'ripple';
 
 export component MixedControlFlowStatic() {
 	const rows = [
@@ -31,9 +30,9 @@ export component MixedControlFlowStatic() {
 }
 
 export component MixedControlFlowReactive() {
-	let show = track(true);
+	let show = #ripple.track(true);
 	let mode = track<'a' | 'b'>('a');
-	let items = track([
+	let items = #ripple.track([
 		{ id: 1, label: 'One' },
 		{ id: 2, label: 'Two' },
 	]);

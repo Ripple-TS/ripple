@@ -1,4 +1,4 @@
-import { flushSync, TrackedArray, track } from 'ripple';
+import { flushSync, TrackedArray } from 'ripple';
 
 describe('for statements', () => {
 	it('renders a simple static array', () => {
@@ -17,7 +17,7 @@ describe('for statements', () => {
 
 	it('renders a simple dynamic array', () => {
 		component App() {
-			const items = new TrackedArray('Item 1', 'Item 2', 'Item 3');
+			const items = new #ripple.array('Item 1', 'Item 2', 'Item 3');
 
 			for (const item of items) {
 				<div class={item}>{item}</div>
@@ -39,7 +39,7 @@ describe('for statements', () => {
 
 	it('correctly handles intermediate statements in for block', () => {
 		component App() {
-			const items = new TrackedArray(1, 2, 3);
+			const items = new #ripple.array(1, 2, 3);
 
 			<div>
 				for (const item of items) {
@@ -68,7 +68,7 @@ describe('for statements', () => {
 
 	it('correctly handles the index in a for...of loop', () => {
 		component App() {
-			const items = new TrackedArray('a', 'b', 'c');
+			const items = new #ripple.array('a', 'b', 'c');
 
 			<div>
 				for (let item of items; index i) {
@@ -101,7 +101,7 @@ describe('for statements', () => {
 
 	it('correctly handles keyed for...of loops', () => {
 		component App() {
-			let items = track([
+			let items = #ripple.track([
 				{ id: 1, text: 'Item 1' },
 				{ id: 2, text: 'Item 2' },
 				{ id: 3, text: 'Item 3' },
@@ -134,9 +134,9 @@ describe('for statements', () => {
 
 	it('keyed for over derived updates sibling text nodes', () => {
 		component App() {
-			let count = track(0);
+			let count = #ripple.track(0);
 
-			const items = track(
+			const items = #ripple.track(
 				() => Array.from({ length: @count }).map((_, id) => ({ id, label: `Item ${id}` })),
 			);
 
@@ -175,7 +175,7 @@ describe('for statements', () => {
 
 	it('handles updating with new objects with same key', () => {
 		component App() {
-			let items = track([
+			let items = #ripple.track([
 				{ id: 1, text: 'Item 1' },
 				{ id: 2, text: 'Item 2' },
 				{ id: 3, text: 'Item 3' },

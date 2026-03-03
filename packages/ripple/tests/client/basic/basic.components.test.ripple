@@ -1,6 +1,5 @@
 import type { Tracked, Props, PropsWithChildren, PropsWithExtras } from 'ripple';
-import { track, flushSync } from 'ripple';
-
+import { flushSync } from 'ripple';
 describe('basic client > components & composition', () => {
 	it('renders with component composition and children', () => {
 		component Card(props: PropsWithChildren<{}>) {
@@ -96,7 +95,7 @@ describe('basic client > components & composition', () => {
 		}
 
 		component Basic() {
-			let clicked = track(false);
+			let clicked = #ripple.track(false);
 
 			<Card
 				title="Test Card"
@@ -137,8 +136,8 @@ describe('basic client > components & composition', () => {
 		}
 
 		component Basic() {
-			let message = track('Hello');
-			let number = track(1);
+			let message = #ripple.track('Hello');
+			let number = #ripple.track(1);
 
 			<ChildComponent text={message} count={number} />
 			<button
@@ -176,14 +175,14 @@ describe('basic client > components & composition', () => {
 	it('it retains this context with bracketed prop functions and keeps original chaining', () => {
 		component App() {
 			const SYMBOL_PROP = Symbol();
-			let hasError = track(false);
+			let hasError = #ripple.track(false);
 			const obj: {
 				count: Tracked<number>;
 				increment: () => void;
 				[key: symbol]: () => void;
 				arr: Array<() => void>;
 			} = {
-				count: track(0),
+				count: #ripple.track(0),
 				increment() {
 					this.@count++;
 				},
@@ -364,7 +363,7 @@ describe('basic client > components & composition', () => {
 		}
 
 		component App() {
-			let Content = track(() => Noop);
+			let Content = #ripple.track(() => Noop);
 			<@Content />
 
 			<button onClick={() => (@Content = Op)}>{'Show Op'}</button>

@@ -22,12 +22,10 @@ var root_15 = _$_.template(`<div class="tabs"><div class="tab-list"><button clas
 var root_18 = _$_.template(`<div class="container"><ul class="list"><li class="item"> </li><li class="item">Another item</li></ul><h2 class="heading">Static Heading</h2><p class="para">Static paragraph</p></div><button class="inc">Increment</button>`, 1, 2);
 var root_19 = _$_.template(`<div class="wrapper"><ul class="features"><li><strong>Feature One</strong>: Description of feature one with <code>code</code> reference</li><li><strong>Feature Two</strong>: Another feature description</li><li><strong>Feature Three</strong>: Third feature</li></ul><h2 class="section-heading">Section Heading</h2><p class="section-content">Static paragraph with <a href="/link">a link</a> and more text.</p></div>`, 0);
 
-import { track } from 'ripple';
-
 export function IfWithChildren(__anchor, __props, __block) {
 	_$_.push_component();
 
-	let expanded = track(true, void 0, void 0, __block);
+	let expanded = _$_.track(true, void 0, void 0, __block);
 	var div_1 = root();
 
 	{
@@ -116,7 +114,7 @@ export function TestIfWithChildren(__anchor, _, __block) {
 export function IfWithStaticChildren(__anchor, _, __block) {
 	_$_.push_component();
 
-	let expanded = track(true, void 0, void 0, __block);
+	let expanded = _$_.track(true, void 0, void 0, __block);
 	var div_5 = root_5();
 
 	{
@@ -148,7 +146,7 @@ export function IfWithStaticChildren(__anchor, _, __block) {
 export function IfWithSiblingsAndChildren(__anchor, __props, __block) {
 	_$_.push_component();
 
-	let expanded = track(true, void 0, void 0, __block);
+	let expanded = _$_.track(true, void 0, void 0, __block);
 	var section_1 = root_7();
 
 	{
@@ -219,7 +217,7 @@ export function TestIfWithSiblingsAndChildren(__anchor, _, __block) {
 export function ElementWithChildrenThenIf(__anchor, _, __block) {
 	_$_.push_component();
 
-	let show = track(true, void 0, void 0, __block);
+	let show = _$_.track(true, void 0, void 0, __block);
 	var fragment_4 = root_11();
 	var div_11 = _$_.first_child_frag(fragment_4);
 
@@ -256,7 +254,7 @@ export function ElementWithChildrenThenIf(__anchor, _, __block) {
 export function DeepNestingThenIf(__anchor, _, __block) {
 	_$_.push_component();
 
-	let visible = track(true, void 0, void 0, __block);
+	let visible = _$_.track(true, void 0, void 0, __block);
 	var fragment_5 = root_13();
 	var section_2 = _$_.first_child_frag(fragment_5);
 
@@ -293,7 +291,7 @@ export function DeepNestingThenIf(__anchor, _, __block) {
 export function DomElementChildrenThenSibling(__anchor, _, __block) {
 	_$_.push_component();
 
-	let activeTab = track('code', void 0, void 0, __block);
+	let activeTab = _$_.track('code', void 0, void 0, __block);
 	var div_13 = root_15();
 
 	{
@@ -362,7 +360,7 @@ export function DomElementChildrenThenSibling(__anchor, _, __block) {
 export function DomChildrenThenStaticSiblings(__anchor, _, __block) {
 	_$_.push_component();
 
-	let count = track(0, void 0, void 0, __block);
+	let count = _$_.track(0, void 0, void 0, __block);
 	var fragment_6 = root_18();
 	var div_17 = _$_.first_child_frag(fragment_6);
 

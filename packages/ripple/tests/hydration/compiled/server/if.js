@@ -1,8 +1,6 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-import { track } from 'ripple/server';
-
 export function IfTruthy(__output) {
 	_$_.push_component();
 
@@ -85,7 +83,7 @@ export function IfElse(__output) {
 export function ReactiveIf(__output) {
 	_$_.push_component();
 
-	let show = track(true);
+	let show = _$_.track(true);
 
 	__output.push('<button');
 	__output.push(' class="toggle"');
@@ -117,7 +115,7 @@ export function ReactiveIf(__output) {
 export function ReactiveIfElse(__output) {
 	_$_.push_component();
 
-	let isOn = track(false);
+	let isOn = _$_.track(false);
 
 	__output.push('<button');
 	__output.push(' class="toggle"');
@@ -159,8 +157,8 @@ export function ReactiveIfElse(__output) {
 export function NestedIf(__output) {
 	_$_.push_component();
 
-	let outer = track(true);
-	let inner = track(true);
+	let outer = _$_.track(true);
+	let inner = _$_.track(true);
 
 	__output.push('<button');
 	__output.push(' class="outer-toggle"');
@@ -216,7 +214,7 @@ export function NestedIf(__output) {
 export function IfElseIfChain(__output) {
 	_$_.push_component();
 
-	let status = track('loading');
+	let status = _$_.track('loading');
 
 	__output.push('<div');
 	__output.push('>');

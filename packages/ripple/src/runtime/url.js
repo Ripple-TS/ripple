@@ -1,4 +1,4 @@
-import { get, set, safe_scope, tracked } from './internal/client/runtime.js';
+import { get, set, safe_scope, tracked, with_scope } from './internal/client/runtime.js';
 import { REPLACE, TrackedURLSearchParams } from './url-search-params.js';
 
 /** @type {TrackedURL | null} */
@@ -161,4 +161,14 @@ export class TrackedURL extends URL {
 	toJSON() {
 		return this.href;
 	}
+}
+
+/**
+ * @param {import('#client').Block} block
+ * @param {string | URL} url
+ * @param {string | URL} [base]
+ * @returns {TrackedURL}
+ */
+export function tracked_url(block, url, base) {
+	return with_scope(block, () => new TrackedURL(url, base));
 }

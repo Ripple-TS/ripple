@@ -1,12 +1,10 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-import { track } from 'ripple/server';
-
 export function TrackedState(__output) {
 	_$_.push_component();
 
-	let count = track(0);
+	let count = _$_.track(0);
 
 	__output.push('<div');
 	__output.push(' class="count"');
@@ -23,7 +21,7 @@ export function TrackedState(__output) {
 export function CounterWithInitial(__output, props) {
 	_$_.push_component();
 
-	let count = track(props.initial);
+	let count = _$_.track(props.initial);
 
 	__output.push('<div');
 	__output.push('>');
@@ -60,8 +58,8 @@ export function CounterWrapper(__output) {
 export function ComputedValues(__output) {
 	_$_.push_component();
 
-	let a = track(2);
-	let b = track(3);
+	let a = _$_.track(2);
+	let b = _$_.track(3);
 	const sum = () => _$_.get(a) + _$_.get(b);
 
 	__output.push('<div');
@@ -79,9 +77,9 @@ export function ComputedValues(__output) {
 export function MultipleTracked(__output) {
 	_$_.push_component();
 
-	let x = track(10);
-	let y = track(20);
-	let z = track(30);
+	let x = _$_.track(10);
+	let y = _$_.track(20);
+	let z = _$_.track(30);
 
 	__output.push('<div');
 	__output.push(' class="x"');
@@ -116,8 +114,8 @@ export function MultipleTracked(__output) {
 export function DerivedState(__output) {
 	_$_.push_component();
 
-	let firstName = track('John');
-	let lastName = track('Doe');
+	let firstName = _$_.track('John');
+	let lastName = _$_.track('Doe');
 	const fullName = () => `${_$_.get(firstName)} ${_$_.get(lastName)}`;
 
 	__output.push('<div');

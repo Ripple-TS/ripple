@@ -1,9 +1,8 @@
-import { flushSync, TrackedURL } from 'ripple';
-
+import { flushSync } from 'ripple';
 describe('TrackedURL > parsing', () => {
 	it('creates URL from string with reactivity', () => {
 		component URLTest() {
-			const url = new TrackedURL('https://example.com:8080/path?foo=bar#section');
+			const url = #ripple.url('https://example.com:8080/path?foo=bar#section');
 
 			<pre>{url.href}</pre>
 			<pre>{url.protocol}</pre>
@@ -29,7 +28,7 @@ describe('TrackedURL > parsing', () => {
 
 	it('creates URL from string with base URL', () => {
 		component URLTest() {
-			const url = new TrackedURL('/path?query=value', 'https://example.com');
+			const url = #ripple.url('/path?query=value', 'https://example.com');
 
 			<pre>{url.href}</pre>
 			<pre>{url.origin}</pre>
@@ -45,7 +44,7 @@ describe('TrackedURL > parsing', () => {
 
 	it('handles URL encoding correctly', () => {
 		component URLTest() {
-			const url = new TrackedURL('https://example.com/path with spaces?key=value with spaces');
+			const url = #ripple.url('https://example.com/path with spaces?key=value with spaces');
 
 			<pre>{url.pathname}</pre>
 			<pre>{url.search}</pre>
@@ -63,7 +62,7 @@ describe('TrackedURL > parsing', () => {
 
 	it('handles URL with file protocol', () => {
 		component URLTest() {
-			const url = new TrackedURL('file:///Users/username/documents/file.txt');
+			const url = #ripple.url('file:///Users/username/documents/file.txt');
 
 			<pre>{url.protocol}</pre>
 			<pre>{url.pathname}</pre>
@@ -83,7 +82,7 @@ describe('TrackedURL > parsing', () => {
 
 	it('handles URL with IPv4 address', () => {
 		component URLTest() {
-			const url = new TrackedURL('https://192.168.1.1:8080/path');
+			const url = #ripple.url('https://192.168.1.1:8080/path');
 
 			<button onClick={() => (url.hostname = '10.0.0.1')}>{'Change IP'}</button>
 			<pre>{url.href}</pre>
@@ -108,7 +107,7 @@ describe('TrackedURL > parsing', () => {
 
 	it('handles URL with localhost', () => {
 		component URLTest() {
-			const url = new TrackedURL('http://localhost:3000/api/data');
+			const url = #ripple.url('http://localhost:3000/api/data');
 
 			<button onClick={() => (url.port = '8080')}>{'Change Port'}</button>
 			<pre>{url.href}</pre>
@@ -136,7 +135,7 @@ describe('TrackedURL > parsing', () => {
 
 	it('handles URL with multiple path segments', () => {
 		component URLTest() {
-			const url = new TrackedURL('https://example.com/api/v1/users/123/profile');
+			const url = #ripple.url('https://example.com/api/v1/users/123/profile');
 
 			<button onClick={() => (url.pathname = '/api/v2/users/456/settings')}>{'Change Path'}</button>
 			<pre>{url.pathname}</pre>
@@ -165,7 +164,7 @@ describe('TrackedURL > parsing', () => {
 
 	it('handles relative URL paths correctly', () => {
 		component URLTest() {
-			const url = new TrackedURL('../sibling/path', 'https://example.com/parent/current');
+			const url = #ripple.url('../sibling/path', 'https://example.com/parent/current');
 
 			<pre>{url.href}</pre>
 			<pre>{url.pathname}</pre>

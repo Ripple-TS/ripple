@@ -58,3 +58,11 @@ export class Context {
 		current_context.set(context, value);
 	}
 }
+
+/**
+ * @template T
+ * @param {T} [initial_value]
+ */
+export function context(initial_value) {
+	return new Context(initial_value);
+}

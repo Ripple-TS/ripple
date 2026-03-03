@@ -19,25 +19,25 @@ describe('compiler > basics', () => {
 		const source = `export component App() {
   <div id="myid" class="myclass">{"Hello World"}</div>
 
-  <style>#style</style>
+  <style>#ripple.style</style>
 }`;
 		const style1 = '.myid {color: green }';
 		const style2 = '#myid {color: green }';
 		const style3 = 'div {color: green }';
 
-		let input = source.replace('#style', style1);
+		let input = source.replace('#ripple.style', style1);
 		let ast = parse(input);
 		expect(
 			((ast.body[0] as AST.ExportNamedDeclaration).declaration as unknown as AST.Component)?.css.source,
 		).toEqual(style1);
 
-		input = source.replace('#style', style2);
+		input = source.replace('#ripple.style', style2);
 		ast = parse(input);
 		expect(
 			((ast.body[0] as AST.ExportNamedDeclaration).declaration as unknown as AST.Component)?.css.source,
 		).toEqual(style2);
 
-		input = source.replace('#style', style3);
+		input = source.replace('#ripple.style', style3);
 		ast = parse(input);
 		expect(
 			((ast.body[0] as AST.ExportNamedDeclaration).declaration as unknown as AST.Component)?.css.source,
@@ -251,19 +251,12 @@ describe('compiler > basics', () => {
 		'imports and uses only obfuscated Tracked imports when encountering only shorthand syntax',
 		() => {
 			const source = `
-import {
-	TrackedArray,
-	TrackedObject,
-	TrackedSet,
-	TrackedMap,
-	createRefKey,
-} from 'ripple';
-
+import { TrackedArray, TrackedObject, TrackedSet, TrackedMap, createRefKey } from 'ripple';
 component App() {
-	const items = #[1, 2, 3];
-	const obj = #{ a: 1, b: 2, c: 3 };
-	const set = new #Set([1, 2, 3]);
-	const map = new #Map([['a', 1], ['b', 2], ['c', 3]]);
+	const items = #ripple[1, 2, 3];
+	const obj = #ripple{ a: 1, b: 2, c: 3 };
+	const set = #ripple.set([1, 2, 3]);
+	const map = #ripple.map([['a', 1], ['b', 2], ['c', 3]]);
 
 	<div {ref () => {}} />
 }
@@ -282,19 +275,12 @@ component App() {
 		'adds obfuscated imports and keeps renamed Tracked imports intact when encountering shorthand syntax',
 		() => {
 			const source = `
-import {
-	TrackedArray as TA,
-	TrackedObject as TO,
-	TrackedSet as TS,
-	TrackedMap as TM,
-	createRefKey as crk,
-} from 'ripple';
-
+import { TrackedArray as TA, TrackedObject as TO, TrackedSet as TS, TrackedMap as TM, createRefKey as crk } from 'ripple';
 component App() {
-	const items = #[1, 2, 3];
-	const obj = #{ a: 1, b: 2, c: 3 };
-	const set = new #Set([1, 2, 3]);
-	const map = new #Map([['a', 1], ['b', 2], ['c', 3]]);
+	const items = #ripple[1, 2, 3];
+	const obj = #ripple{ a: 1, b: 2, c: 3 };
+	const set = #ripple.set([1, 2, 3]);
+	const map = #ripple.map([['a', 1], ['b', 2], ['c', 3]]);
 
 	<div {ref () => {}} />
 }
@@ -317,10 +303,10 @@ component App() {
 	it('adds hidden obfuscated imports for shorthand syntax', () => {
 		const source = `
 component App() {
-	const items = #[1, 2, 3];
-	const obj = #{ a: 1, b: 2, c: 3 };
-	const set = new #Set([1, 2, 3]);
-	const map = new #Map([['a', 1], ['b', 2], ['c', 3]]);
+	const items = #ripple[1, 2, 3];
+	const obj = #ripple{ a: 1, b: 2, c: 3 };
+	const set = #ripple.set([1, 2, 3]);
+	const map = #ripple.map([['a', 1], ['b', 2], ['c', 3]]);
 
 	<div {ref () => {}} />
 }
@@ -391,14 +377,13 @@ export component App() {
 		expect(() => compile(code, 'test.ripple')).not.toThrow();
 	});
 
-	it('should inject __block for track() calls inside class constructors', () => {
+	it('should inject __block for #ripple.track() calls inside class constructors', () => {
 		const source = `
-import { track } from 'ripple';
 
 class Store {
 	constructor() {
-		this.count = track(0);
-		this.items = #[1, 2, 3];
+		this.count = #ripple.track(0);
+		this.items = #ripple[1, 2, 3];
 	}
 }
 

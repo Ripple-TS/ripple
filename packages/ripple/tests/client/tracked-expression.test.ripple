@@ -1,9 +1,8 @@
-import { track } from 'ripple';
 
 describe('TrackedExpression tests', () => {
 	it('should handle the syntax correctly', () => {
 		component App() {
-			let count = track(0);
+			let count = #ripple.track(0);
 
 			function get_count() {
 				return count;

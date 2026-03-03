@@ -1,5 +1,5 @@
 import { on } from './internal/client/events.js';
-import { get, safe_scope, set, tracked } from './internal/client/index.js';
+import { get, safe_scope, set, tracked, with_scope } from './internal/client/index.js';
 import { ReactiveValue } from './reactive-value.js';
 
 const parenthesis_regex = /\(.+\)/;
@@ -42,4 +42,13 @@ export function MediaQuery(query, fallback) {
 				{ delegated: false },
 			),
 	);
+}
+
+/**
+ * @param {import('#client').Block} block
+ * @param {string} query
+ * @param {boolean | undefined} [fallback]
+ */
+export function media_query(block, query, fallback) {
+	return with_scope(block, () => new MediaQuery(query, fallback));
 }

@@ -19,6 +19,7 @@ import {
 export { escape };
 export { register_component_css as register_css } from './css-registry.js';
 export { hash } from '../../../utils/hashing.js';
+export { context } from './context.js';
 
 /** @type {null | Component} */
 export let active_component = null;

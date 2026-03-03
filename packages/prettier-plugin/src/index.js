@@ -1047,7 +1047,7 @@ function printRippleNode(node, path, options, print, args) {
 
 		case 'ArrayExpression':
 		case 'TrackedArrayExpression': {
-			const prefix = node.type === 'TrackedArrayExpression' ? '#' : '';
+			const prefix = node.type === 'TrackedArrayExpression' ? '#ripple' : '';
 
 			if (!node.elements || node.elements.length === 0) {
 				nodeContent = prefix + '[]';
@@ -1573,31 +1573,31 @@ function printRippleNode(node, path, options, print, args) {
 		}
 
 		case 'TrackedMapExpression': {
-			// Format: #Map(arg1, arg2, ...)
+			// Format: #ripple.map(arg1, arg2, ...)
 			// When used with 'new', the arguments are empty and belong to NewExpression
 			if (!node.arguments || node.arguments.length === 0) {
-				nodeContent = '#Map';
+				nodeContent = '#ripple.map';
 			} else {
 				const args = path.map(print, 'arguments');
-				nodeContent = ['#Map(', join([',', line], args), ')'];
+				nodeContent = ['#ripple.map(', join([',', line], args), ')'];
 			}
 			break;
 		}
 
 		case 'TrackedSetExpression': {
-			// Format: #Set(arg1, arg2, ...)
+			// Format: #ripple.set(arg1, arg2, ...)
 			// When used with 'new', the arguments are empty and belong to NewExpression
 			if (!node.arguments || node.arguments.length === 0) {
-				nodeContent = '#Set';
+				nodeContent = '#ripple.set';
 			} else {
 				const args = path.map(print, 'arguments');
-				nodeContent = ['#Set(', join([',', line], args), ')'];
+				nodeContent = ['#ripple.set(', join([',', line], args), ')'];
 			}
 			break;
 		}
 
 		case 'StyleIdentifier': {
-			nodeContent = '#style';
+			nodeContent = '#ripple.style';
 			break;
 		}
 
@@ -1614,7 +1614,7 @@ function printRippleNode(node, path, options, print, args) {
 		}
 
 		case 'ServerIdentifier': {
-			nodeContent = '#server';
+			nodeContent = '#ripple.server';
 			break;
 		}
 
@@ -1812,18 +1812,23 @@ function printRippleNode(node, path, options, print, args) {
 
 		case 'Identifier': {
 			// Simple case - just return the name directly like Prettier core
+			const source_name = node.metadata?.source_name;
+			const identifier_name =
+				typeof source_name === 'string' && source_name.startsWith('#ripple.')
+					? source_name
+					: node.name;
 			const trackedPrefix = node.tracked ? '@' : '';
 			let identifierContent;
 			if (node.typeAnnotation) {
 				const optionalMarker = node.optional ? '?' : '';
 				identifierContent = [
-					trackedPrefix + node.name,
+					trackedPrefix + identifier_name,
 					optionalMarker,
 					': ',
 					path.call(print, 'typeAnnotation'),
 				];
 			} else {
-				identifierContent = trackedPrefix + node.name;
+				identifierContent = trackedPrefix + identifier_name;
 			}
 			// Preserve parentheses for type-cast identifiers, but only if:
 			// 1. The identifier itself is marked as parenthesized
@@ -1971,7 +1976,7 @@ function printRippleNode(node, path, options, print, args) {
 
 		case 'ServerBlock': {
 			const blockContent = path.call(print, 'body');
-			nodeContent = ['#server ', blockContent];
+			nodeContent = ['#ripple.server ', blockContent];
 			break;
 		}
 
@@ -3688,8 +3693,13 @@ function printDoWhileStatement(node, path, options, print) {
  * @returns {Doc}
  */
 function printObjectExpression(node, path, options, print, args) {
-	const skip_offset = node.type === 'TrackedObjectExpression' ? 2 : 1;
-	const open_brace = node.type === 'TrackedObjectExpression' ? '#{' : '{';
+	const open_brace = node.type === 'TrackedObjectExpression' ? '#ripple{' : '{';
+	const skip_offset =
+		node.type === 'TrackedObjectExpression'
+			? options.originalText?.slice(node.loc.start.index, node.loc.start.index + 8) === '#ripple{'
+				? 8
+				: 2
+			: 1;
 	if (!node.properties || node.properties.length === 0) {
 		return open_brace + '}';
 	}

@@ -1,5 +1,4 @@
 import type { Tracked, Props } from 'ripple';
-import { track, trackSplit } from 'ripple';
 
 describe('composite > props', () => {
 	it('correctly handles default prop values', async () => {
@@ -8,7 +7,7 @@ describe('composite > props', () => {
 		}
 
 		component App() {
-			let foo = track(123);
+			let foo = #ripple.track(123);
 
 			<Child />
 			<Child {@foo} />
@@ -46,7 +45,7 @@ describe('composite > props', () => {
 		}
 
 		component App() {
-			let foo = track(123);
+			let foo = #ripple.track(123);
 
 			<Child />
 			<Child {foo} />
@@ -65,7 +64,7 @@ describe('composite > props', () => {
 		}
 
 		component App() {
-			let foo = track(123);
+			let foo = #ripple.track(123);
 
 			<Child />
 			<Child {@foo} />
@@ -80,7 +79,7 @@ describe('composite > props', () => {
 
 	it('correctly retains prop accessors and reactivity when using rest props', async () => {
 		component Button(props: Props) {
-			const [children, rest] = trackSplit(props, ['children']);
+			const [children, rest] = #ripple.trackSplit(props, ['children']);
 			<button {...@rest}>
 				<@children />
 			</button>
@@ -95,14 +94,14 @@ describe('composite > props', () => {
 		}
 
 		component Toggle(props: { pressed: Tracked<boolean> }) {
-			const [pressed, rest] = trackSplit(props, ['pressed']);
+			const [pressed, rest] = #ripple.trackSplit(props, ['pressed']);
 			const onClick = () => (@pressed = !@pressed);
 			<Button {...@rest} class={@pressed ? 'on' : 'off'} {onClick}>{'button 1'}</Button>
 			<Button class={@pressed ? 'on' : 'off'} {onClick}>{'button 2'}</Button>
 		}
 
 		component App() {
-			const pressed = track(true);
+			const pressed = #ripple.track(true);
 			<Toggle {pressed} />
 		}
 

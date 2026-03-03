@@ -1,8 +1,6 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-import { track } from 'ripple/server';
-
 export function DirectReturn(__output) {
 	_$_.push_component();
 
@@ -1034,7 +1032,7 @@ export function ReactiveReturnTrueToFalse(__output) {
 	_$_.push_component();
 
 	var __r_28 = false;
-	let condition = track(true);
+	let condition = _$_.track(true);
 
 	__output.push('<button');
 	__output.push(' class="toggle"');
@@ -1083,7 +1081,7 @@ export function ReactiveReturnFalseToTrue(__output) {
 	_$_.push_component();
 
 	var __r_29 = false;
-	let condition = track(false);
+	let condition = _$_.track(false);
 
 	__output.push('<button');
 	__output.push(' class="toggle"');
@@ -1133,7 +1131,7 @@ export function ReactiveNestedReturn(__output) {
 
 	var __r_30 = false;
 	let a = true;
-	let b = track(true);
+	let b = _$_.track(true);
 
 	__output.push('<button');
 	__output.push(' class="toggle"');
@@ -1507,7 +1505,7 @@ export function ReactiveSiblingReturns(__output) {
 
 	var __r_38 = false;
 	var __r_39 = false;
-	let mode = track('first');
+	let mode = _$_.track('first');
 
 	__output.push('<button');
 	__output.push(' class="toggle"');
@@ -1578,8 +1576,8 @@ export function ReactiveOuterInnerReturns(__output) {
 	_$_.push_component();
 
 	var __r_40 = false;
-	let a = track(true);
-	let b = track(true);
+	let a = _$_.track(true);
+	let b = _$_.track(true);
 
 	__output.push('<button');
 	__output.push(' class="toggle-a"');
@@ -1653,7 +1651,7 @@ export function ReactiveElseIfReturns(__output) {
 
 	var __r_41 = false;
 	var __r_42 = false;
-	let status = track(0);
+	let status = _$_.track(0);
 
 	__output.push('<button');
 	__output.push(' class="toggle"');
@@ -1731,10 +1729,10 @@ export function ReactiveDeepNestedIndependentReturns(__output) {
 	var __r_44 = false;
 	var __r_45 = false;
 	var __r_46 = false;
-	let c1 = track(false);
-	let c2 = track(false);
-	let c3 = track(false);
-	let c4 = track(false);
+	let c1 = _$_.track(false);
+	let c2 = _$_.track(false);
+	let c3 = _$_.track(false);
+	let c4 = _$_.track(false);
 
 	__output.push('<button');
 	__output.push(' class="toggle-c1"');

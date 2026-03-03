@@ -1,28 +1,4 @@
-import {
-	flushSync,
-	track,
-	effect,
-	untrack,
-	TrackedObject,
-	bindValue,
-	bindChecked,
-	bindIndeterminate,
-	bindGroup,
-	bindClientWidth,
-	bindClientHeight,
-	bindOffsetWidth,
-	bindOffsetHeight,
-	bindContentRect,
-	bindContentBoxSize,
-	bindBorderBoxSize,
-	bindDevicePixelContentBoxSize,
-	bindInnerHTML,
-	bindInnerText,
-	bindTextContent,
-	bindNode,
-	bindFiles,
-} from 'ripple';
-
+import { flushSync, effect, untrack, TrackedObject, bindValue, bindChecked, bindIndeterminate, bindGroup, bindClientWidth, bindClientHeight, bindOffsetWidth, bindOffsetHeight, bindContentRect, bindContentBoxSize, bindBorderBoxSize, bindDevicePixelContentBoxSize, bindInnerHTML, bindInnerText, bindTextContent, bindNode, bindFiles } from 'ripple';
 // Mock ResizeObserver for testing
 const resizeObserverCallbacks = new Map<any, ResizeObserverCallback>();
 const observedElements = new Map();
@@ -104,7 +80,7 @@ describe('use value()', () => {
 		const logs: string[] = [];
 
 		component App() {
-			const text = track('');
+			const text = #ripple.track('');
 
 			effect(() => {
 				logs.push('text changed', @text);
@@ -127,7 +103,7 @@ describe('use value()', () => {
 		const logs: string[] = [];
 
 		component App() {
-			const text = #{ value: '' };
+			const text = #ripple{ value: '' };
 
 			effect(() => {
 				logs.push('text changed', text.value);
@@ -150,7 +126,7 @@ describe('use value()', () => {
 		const logs: string[] = [];
 
 		component App() {
-			const text = track('foo');
+			const text = #ripple.track('foo');
 
 			effect(() => {
 				logs.push('text changed', @text);
@@ -174,7 +150,7 @@ describe('use value()', () => {
 		const logs: string[] = [];
 
 		component App() {
-			const text = #{ value: 'foo' };
+			const text = #ripple{ value: 'foo' };
 			effect(() => {
 				logs.push('text changed', text.value);
 			});
@@ -195,7 +171,7 @@ describe('use value()', () => {
 
 	it('should update text input element when tracked value changes', () => {
 		component App() {
-			const text = track('initial');
+			const text = #ripple.track('initial');
 
 			<div>
 				<input type="text" {ref bindValue(text)} />
@@ -218,7 +194,7 @@ describe('use value()', () => {
 
 	it('should update text input element when tracked value changes with a getter and setter', () => {
 		component App() {
-			const text = #{ value: 'initial' };
+			const text = #ripple{ value: 'initial' };
 
 			<div>
 				<input type="text" {ref bindValue(() => text.value, (v) => (text.value = v))} />
@@ -243,7 +219,7 @@ describe('use value()', () => {
 		const logs: (string | boolean)[] = [];
 
 		component App() {
-			const value = track(false);
+			const value = #ripple.track(false);
 
 			effect(() => {
 				logs.push('checked changed', @value);
@@ -267,7 +243,7 @@ describe('use value()', () => {
 		const logs: (string | boolean)[] = [];
 
 		component App() {
-			const obj = #{ value: false };
+			const obj = #ripple{ value: false };
 			effect(() => {
 				logs.push('checked changed', obj.value);
 			});
@@ -288,7 +264,7 @@ describe('use value()', () => {
 
 	it('should update checkbox element when tracked value changes', () => {
 		component App() {
-			const value = track(false);
+			const value = #ripple.track(false);
 
 			<div>
 				<input type="checkbox" {ref bindChecked(value)} />
@@ -311,7 +287,7 @@ describe('use value()', () => {
 
 	it('should update checkbox element when tracked value changes with a getter and setter', () => {
 		component App() {
-			const obj = #{ value: false };
+			const obj = #ripple{ value: false };
 
 			<div>
 				<input
@@ -339,7 +315,7 @@ describe('use value()', () => {
 		const logs: (string | boolean)[] = [];
 
 		component App() {
-			const value = track(false);
+			const value = #ripple.track(false);
 
 			effect(() => {
 				logs.push('indeterminate changed', @value);
@@ -365,7 +341,7 @@ describe('use value()', () => {
 		const logs: (string | boolean)[] = [];
 
 		component App() {
-			const obj = #{ value: false };
+			const obj = #ripple{ value: false };
 
 			effect(() => {
 				logs.push('indeterminate changed', obj.value);
@@ -392,7 +368,7 @@ describe('use value()', () => {
 
 	it('should update checkbox indeterminate element when tracked value changes', () => {
 		component App() {
-			const value = track(false);
+			const value = #ripple.track(false);
 
 			<div>
 				<input type="checkbox" {ref bindIndeterminate(value)} />
@@ -417,7 +393,7 @@ describe('use value()', () => {
 		'should update checkbox indeterminate element when tracked value changes with a getter and setter',
 		() => {
 			component App() {
-				const obj = #{ value: false };
+				const obj = #ripple{ value: false };
 
 				<div>
 					<input
@@ -446,7 +422,7 @@ describe('use value()', () => {
 		const logs: string[] = [];
 
 		component App() {
-			const select = track('2');
+			const select = #ripple.track('2');
 
 			effect(() => {
 				logs.push('select changed', @select);
@@ -475,7 +451,7 @@ describe('use value()', () => {
 		const logs: string[] = [];
 
 		component App() {
-			const select = #{ value: '2' };
+			const select = #ripple{ value: '2' };
 			effect(() => {
 				logs.push('select changed', select.value);
 			});
@@ -501,7 +477,7 @@ describe('use value()', () => {
 
 	it('should update select element when tracked value changes', () => {
 		component App() {
-			const select = track('1');
+			const select = #ripple.track('1');
 
 			<div>
 				<select {ref bindValue(select)}>
@@ -529,7 +505,7 @@ describe('use value()', () => {
 
 	it('should update select element when tracked value changes with a getter and setter', () => {
 		component App() {
-			const select = #{ value: '1' };
+			const select = #ripple{ value: '1' };
 
 			<div>
 				<select {ref bindValue(() => select.value, (v) => (select.value = v))}>
@@ -559,7 +535,7 @@ describe('use value()', () => {
 		const logs: string[] = [];
 
 		component App() {
-			const selected = track(['b']);
+			const selected = #ripple.track(['b']);
 
 			effect(() => {
 				logs.push('selected changed', JSON.stringify(@selected));
@@ -607,7 +583,7 @@ describe('use value()', () => {
 		const logs: string[] = [];
 
 		component App() {
-			const obj = #{ selected: ['b'] };
+			const obj = #ripple{ selected: ['b'] };
 
 			effect(() => {
 				logs.push('selected changed', JSON.stringify(obj.selected));
@@ -667,7 +643,7 @@ describe('use value()', () => {
 		const logs: string[] = [];
 
 		component App() {
-			const selected = track('b');
+			const selected = #ripple.track('b');
 
 			effect(() => {
 				logs.push('selected changed', @selected);
@@ -714,7 +690,7 @@ describe('use value()', () => {
 		const logs: string[] = [];
 
 		component App() {
-			const selected = #{ value: 'b' };
+			const selected = #ripple{ value: 'b' };
 
 			effect(() => {
 				logs.push('selected changed', selected.value);
@@ -774,7 +750,7 @@ describe('use value()', () => {
 
 	it('should update checkbox group from tracked value change', () => {
 		component App() {
-			const selected = track(['a']);
+			const selected = #ripple.track(['a']);
 
 			<div>
 				<input type="checkbox" value="a" {ref bindGroup(selected)} />
@@ -804,7 +780,7 @@ describe('use value()', () => {
 
 	it('should update checkbox group from tracked value change with a getter and setter', () => {
 		component App() {
-			const selected = #{ value: ['a'] };
+			const selected = #ripple{ value: ['a'] };
 
 			<div>
 				<input
@@ -846,7 +822,7 @@ describe('use value()', () => {
 
 	it('should update radio group from tracked value change', () => {
 		component App() {
-			const selected = track('a');
+			const selected = #ripple.track('a');
 
 			<div>
 				<input type="radio" name="test" value="a" {ref bindGroup(selected)} />
@@ -876,7 +852,7 @@ describe('use value()', () => {
 
 	it('should update radio group from tracked value change with a getter and setter', () => {
 		component App() {
-			const selected = #{ value: 'a' };
+			const selected = #ripple{ value: 'a' };
 
 			<div>
 				<input
@@ -921,7 +897,7 @@ describe('use value()', () => {
 
 	it('should handle checkbox group with initial empty array', () => {
 		component App() {
-			const selected = track([]);
+			const selected = #ripple.track([]);
 
 			<div>
 				<input type="checkbox" value="a" {ref bindGroup(selected)} />
@@ -947,7 +923,7 @@ describe('use value()', () => {
 
 	it('should handle checkbox group with initial empty array with a getter and setter', () => {
 		component App() {
-			const selected: TrackedObject<{ value: string[] }> = #{ value: [] };
+			const selected: TrackedObject<{ value: string[] }> = #ripple{ value: [] };
 
 			<div>
 				<input
@@ -981,7 +957,7 @@ describe('use value()', () => {
 
 	it('should handle number input type', () => {
 		component App() {
-			const value = track(42);
+			const value = #ripple.track(42);
 
 			<input type="number" {ref bindValue(value)} />
 		}
@@ -1001,7 +977,7 @@ describe('use value()', () => {
 
 	it('should handle number input type with a getter and setter', () => {
 		component App() {
-			const obj = #{ value: 42 };
+			const obj = #ripple{ value: 42 };
 
 			<input type="number" {ref bindValue(() => obj.value, (v) => (obj.value = v))} />
 		}
@@ -1021,7 +997,7 @@ describe('use value()', () => {
 
 	it('should update number input element when tracked value changes', () => {
 		component App() {
-			const value = track(10);
+			const value = #ripple.track(10);
 
 			<div>
 				<input type="number" {ref bindValue(value)} />
@@ -1047,7 +1023,7 @@ describe('use value()', () => {
 		'should update number input element when tracked value changes with a getter and setter',
 		() => {
 			component App() {
-				const obj = #{ value: 10 };
+				const obj = #ripple{ value: 10 };
 
 				<div>
 					<input type="number" {ref bindValue(() => obj.value, (v) => (obj.value = v))} />
@@ -1072,7 +1048,7 @@ describe('use value()', () => {
 
 	it('should handle range input type', () => {
 		component App() {
-			const value = track(50);
+			const value = #ripple.track(50);
 
 			<input type="range" min="0" max="100" {ref bindValue(value)} />
 		}
@@ -1092,7 +1068,7 @@ describe('use value()', () => {
 
 	it('should handle range input type with a getter and setter', () => {
 		component App() {
-			const obj = #{ value: 50 };
+			const obj = #ripple{ value: 50 };
 
 			<input
 				type="range"
@@ -1117,7 +1093,7 @@ describe('use value()', () => {
 
 	it('should update range input element when tracked value changes', () => {
 		component App() {
-			const value = track(25);
+			const value = #ripple.track(25);
 
 			<div>
 				<input type="range" min="0" max="100" {ref bindValue(value)} />
@@ -1143,7 +1119,7 @@ describe('use value()', () => {
 		'should update range input element when tracked value changes with a getter and setter',
 		() => {
 			component App() {
-				const obj = #{ value: 25 };
+				const obj = #ripple{ value: 25 };
 
 				<div>
 					<input
@@ -1173,7 +1149,7 @@ describe('use value()', () => {
 
 	it('should handle empty number input as null', () => {
 		component App() {
-			const value = track(null);
+			const value = #ripple.track(null);
 
 			<input type="number" {ref bindValue(value)} />
 		}
@@ -1193,7 +1169,7 @@ describe('use value()', () => {
 
 	it('should handle empty number input as null with a getter and setter', () => {
 		component App() {
-			const obj = #{ value: null };
+			const obj = #ripple{ value: null };
 
 			<input type="number" {ref bindValue(() => obj.value, (v) => (obj.value = v))} />
 		}
@@ -1213,7 +1189,7 @@ describe('use value()', () => {
 
 	it('should handle date input type', () => {
 		component App() {
-			const value = track('2025-11-14');
+			const value = #ripple.track('2025-11-14');
 
 			<input type="date" {ref bindValue(value)} />
 		}
@@ -1233,7 +1209,7 @@ describe('use value()', () => {
 
 	it('should handle date input type with a getter and setter', () => {
 		component App() {
-			const obj = #{ value: '2025-11-14' };
+			const obj = #ripple{ value: '2025-11-14' };
 
 			<input type="date" {ref bindValue(() => obj.value, (v) => (obj.value = v))} />
 		}
@@ -1253,7 +1229,7 @@ describe('use value()', () => {
 
 	it('should update date input element when tracked value changes', () => {
 		component App() {
-			const value = track('2025-01-01');
+			const value = #ripple.track('2025-01-01');
 
 			<div>
 				<input type="date" {ref bindValue(value)} />
@@ -1277,7 +1253,7 @@ describe('use value()', () => {
 
 	it('should update date input element when tracked value changes with a getter and setter', () => {
 		component App() {
-			const obj = #{ value: '2025-01-01' };
+			const obj = #ripple{ value: '2025-01-01' };
 
 			<div>
 				<input type="date" {ref bindValue(() => obj.value, (v) => (obj.value = v))} />
@@ -1301,7 +1277,7 @@ describe('use value()', () => {
 
 	it('should handle select with multiple attribute', () => {
 		component App() {
-			const selected = track(['2', '3']);
+			const selected = #ripple.track(['2', '3']);
 
 			<select multiple {ref bindValue(selected)}>
 				<option value="1">{'One'}</option>
@@ -1335,7 +1311,7 @@ describe('use value()', () => {
 
 	it('should handle select with multiple attribute with a getter and setter', () => {
 		component App() {
-			const selected = track(['2', '3']);
+			const selected = #ripple.track(['2', '3']);
 
 			<select multiple {ref bindValue(() => @selected, (v) => (@selected = v))}>
 				<option value="1">{'One'}</option>
@@ -1369,7 +1345,7 @@ describe('use value()', () => {
 
 	it('should update multiple select element when tracked value changes', () => {
 		component App() {
-			const selected = track(['1']);
+			const selected = #ripple.track(['1']);
 
 			<div>
 				<select multiple {ref bindValue(selected)}>
@@ -1407,7 +1383,7 @@ describe('use value()', () => {
 		'should update multiple select element when tracked value changes with a getter and setter',
 		() => {
 			component App() {
-				const selected = track(['1']);
+				const selected = #ripple.track(['1']);
 
 				<div>
 					<select multiple {ref bindValue(() => @selected, (v) => (@selected = v))}>
@@ -1444,7 +1420,7 @@ describe('use value()', () => {
 
 	it('should handle select without initial value and fall back to first option', () => {
 		component App() {
-			const selected = track(undefined);
+			const selected = #ripple.track(undefined);
 
 			<select {ref bindValue(selected)}>
 				<option value="1">{'One'}</option>
@@ -1464,7 +1440,7 @@ describe('use value()', () => {
 		'should handle select without initial value and fall back to first option with a getter and setter',
 		() => {
 			component App() {
-				const selected = track(undefined);
+				const selected = #ripple.track(undefined);
 
 				<select {ref bindValue(() => @selected, (v) => (@selected = v))}>
 					<option value="1">{'One'}</option>
@@ -1483,7 +1459,7 @@ describe('use value()', () => {
 
 	it('should handle select with disabled options', () => {
 		component App() {
-			const selected = track(undefined);
+			const selected = #ripple.track(undefined);
 
 			<select {ref bindValue(selected)}>
 				<option value="1" disabled>{'One'}</option>
@@ -1501,7 +1477,7 @@ describe('use value()', () => {
 
 	it('should handle select with disabled options with a getter and setter', () => {
 		component App() {
-			const selected = track(undefined);
+			const selected = #ripple.track(undefined);
 
 			<select {ref bindValue(() => @selected, (v) => (@selected = v))}>
 				<option value="1" disabled>{'One'}</option>
@@ -1519,7 +1495,7 @@ describe('use value()', () => {
 
 	it('should accurately reflect values mutated through a tracked setter', () => {
 		component App() {
-			let value = track(
+			let value = #ripple.track(
 				'',
 				(val) => {
 					return val;
@@ -1555,7 +1531,7 @@ describe('use value()', () => {
 
 	it('should accurately reflect values when a getter modifies value', () => {
 		component App() {
-			let value = track(
+			let value = #ripple.track(
 				'',
 				(val) => {
 					if (val.includes('c')) {
@@ -1591,7 +1567,7 @@ describe('use value()', () => {
 
 	it('should always prefer what getter returns even if setter mutates next', () => {
 		component App() {
-			let value = track(
+			let value = #ripple.track(
 				'',
 				(val) => {
 					return val.replace(/[c,b]+/g, '');
@@ -1629,7 +1605,7 @@ describe('use value()', () => {
 		'should accurately reflect values mutated through an effect even after a setter mutation',
 		() => {
 			component App() {
-				let value = track(
+				let value = #ripple.track(
 					'',
 					(val) => {
 						return val;
@@ -1675,7 +1651,7 @@ describe('use value()', () => {
 
 	it('should accurately reflect values mutated through a tracked setter via bind accessors', () => {
 		component App() {
-			let value = track('');
+			let value = #ripple.track('');
 			const value_accessors = [
 				() => {
 					return @value;
@@ -1707,7 +1683,7 @@ describe('use value()', () => {
 
 	it('should prefer what getter returns via bind accessors', () => {
 		component App() {
-			let value = track('');
+			let value = #ripple.track('');
 			const value_accessors = [
 				() => {
 					if (@value.includes('c')) {
@@ -1741,7 +1717,7 @@ describe('use value()', () => {
 		'should always prefer what getter returns even if setter mutates next via bind accessors',
 		() => {
 			component App() {
-				let value = track('');
+				let value = #ripple.track('');
 				const value_accessors = [
 					() => {
 						return @value.replace(/[c,b]+/g, '');
@@ -1776,7 +1752,7 @@ describe('use value()', () => {
 		'should accurately reflect values mutated through an effect even after a setter mutation via bind accessors',
 		() => {
 			component App() {
-				let value = track('');
+				let value = #ripple.track('');
 				const value_accessors = [
 					() => {
 						return @value;
@@ -1820,7 +1796,7 @@ describe('use value()', () => {
 		'should keep the input.value unchanged and synced with the tracked when the setter blocks updates to the tracked via bind accessors',
 		() => {
 			component App() {
-				let value = track('');
+				let value = #ripple.track('');
 				const value_accessors = [
 					() => {
 						return @value;
@@ -1855,7 +1831,7 @@ describe('use value()', () => {
 		'should keep the input.value unchanged and synced with the tracked when the setter blocks updates to the tracked via track get / set',
 		() => {
 			component App() {
-				let value = track(
+				let value = #ripple.track(
 					'',
 					(v) => {
 						return v;
@@ -1892,7 +1868,7 @@ describe('bindClientWidth and bindClientHeight', () => {
 		const logs: number[] = [];
 
 		component App() {
-			const width = track(0);
+			const width = #ripple.track(0);
 
 			effect(() => {
 				logs.push(@width);
@@ -1923,7 +1899,7 @@ describe('bindClientWidth and bindClientHeight', () => {
 		const logs: number[] = [];
 
 		component App() {
-			const width = #{ value: 0 };
+			const width = #ripple{ value: 0 };
 
 			effect(() => {
 				logs.push(width.value);
@@ -1954,7 +1930,7 @@ describe('bindClientWidth and bindClientHeight', () => {
 		const logs: number[] = [];
 
 		component App() {
-			const height = track(0);
+			const height = #ripple.track(0);
 
 			effect(() => {
 				logs.push(@height);
@@ -1985,7 +1961,7 @@ describe('bindClientWidth and bindClientHeight', () => {
 		const logs: number[] = [];
 
 		component App() {
-			const height = #{ value: 0 };
+			const height = #ripple{ value: 0 };
 			effect(() => {
 				logs.push(height.value);
 			});
@@ -2017,7 +1993,7 @@ describe('bindOffsetWidth and bindOffsetHeight', () => {
 		const logs: number[] = [];
 
 		component App() {
-			const width = track(0);
+			const width = #ripple.track(0);
 
 			effect(() => {
 				logs.push(@width);
@@ -2048,7 +2024,7 @@ describe('bindOffsetWidth and bindOffsetHeight', () => {
 		const logs: number[] = [];
 
 		component App() {
-			const width = #{ value: 0 };
+			const width = #ripple{ value: 0 };
 
 			effect(() => {
 				logs.push(width.value);
@@ -2079,7 +2055,7 @@ describe('bindOffsetWidth and bindOffsetHeight', () => {
 		const logs: number[] = [];
 
 		component App() {
-			const height = track(0);
+			const height = #ripple.track(0);
 
 			effect(() => {
 				logs.push(@height);
@@ -2110,7 +2086,7 @@ describe('bindOffsetWidth and bindOffsetHeight', () => {
 		const logs: number[] = [];
 
 		component App() {
-			const height = #{ value: 0 };
+			const height = #ripple{ value: 0 };
 			effect(() => {
 				logs.push(height.value);
 			});
@@ -2142,7 +2118,7 @@ describe('bindContentRect', () => {
 		const logs: DOMRectReadOnly[] = [];
 
 		component App() {
-			const rect = track(null);
+			const rect = #ripple.track(null);
 
 			effect(() => {
 				if (@rect) logs.push(@rect);
@@ -2172,7 +2148,7 @@ describe('bindContentRect', () => {
 		const logs: DOMRectReadOnly[] = [];
 
 		component App() {
-			const rect: TrackedObject<{ value: DOMRectReadOnly | null }> = #{ value: null };
+			const rect: TrackedObject<{ value: DOMRectReadOnly | null }> = #ripple{ value: null };
 			effect(() => {
 				if (rect.value) logs.push(rect.value);
 			});
@@ -2208,7 +2184,7 @@ describe('bindContentBoxSize', () => {
 		const logs: any[] = [];
 
 		component App() {
-			const boxSize = track(null);
+			const boxSize = #ripple.track(null);
 
 			effect(() => {
 				if (@boxSize) logs.push(@boxSize);
@@ -2241,7 +2217,7 @@ describe('bindContentBoxSize', () => {
 		];
 
 		component App() {
-			const boxSize: TrackedObject<{ value: typeof mockBoxSize | null }> = #{ value: null };
+			const boxSize: TrackedObject<{ value: typeof mockBoxSize | null }> = #ripple{ value: null };
 
 			effect(() => {
 				if (boxSize.value) logs.push(boxSize.value);
@@ -2275,7 +2251,7 @@ describe('bindBorderBoxSize', () => {
 		const logs: any[] = [];
 
 		component App() {
-			const boxSize = track(null);
+			const boxSize = #ripple.track(null);
 
 			effect(() => {
 				if (@boxSize) logs.push(@boxSize);
@@ -2308,7 +2284,7 @@ describe('bindBorderBoxSize', () => {
 		];
 
 		component App() {
-			const boxSize: TrackedObject<{ value: typeof mockBoxSize | null }> = #{ value: null };
+			const boxSize: TrackedObject<{ value: typeof mockBoxSize | null }> = #ripple{ value: null };
 
 			effect(() => {
 				if (boxSize.value) logs.push(boxSize.value);
@@ -2342,7 +2318,7 @@ describe('bindDevicePixelContentBoxSize', () => {
 		const logs: any[] = [];
 
 		component App() {
-			const boxSize = track(null);
+			const boxSize = #ripple.track(null);
 
 			effect(() => {
 				if (@boxSize) logs.push(@boxSize);
@@ -2375,7 +2351,7 @@ describe('bindDevicePixelContentBoxSize', () => {
 		];
 
 		component App() {
-			const boxSize: TrackedObject<{ value: typeof mockBoxSize | null }> = #{ value: null };
+			const boxSize: TrackedObject<{ value: typeof mockBoxSize | null }> = #ripple{ value: null };
 
 			effect(() => {
 				if (boxSize.value) logs.push(boxSize.value);
@@ -2409,7 +2385,7 @@ describe('bindInnerHTML', () => {
 		const logs: string[] = [];
 
 		component App() {
-			const html = track('<strong>Hello</strong>');
+			const html = #ripple.track('<strong>Hello</strong>');
 
 			effect(() => {
 				logs.push(@html);
@@ -2435,7 +2411,7 @@ describe('bindInnerHTML', () => {
 		const logs: string[] = [];
 
 		component App() {
-			const html = #{ value: '<strong>Hello</strong>' };
+			const html = #ripple{ value: '<strong>Hello</strong>' };
 
 			effect(() => {
 				logs.push(html.value);
@@ -2462,7 +2438,7 @@ describe('bindInnerHTML', () => {
 
 	it('should update innerHTML when tracked value changes', () => {
 		component App() {
-			const html = track('<p>Initial</p>');
+			const html = #ripple.track('<p>Initial</p>');
 
 			<div>
 				<div contenteditable="true" {ref bindInnerHTML(html)} />
@@ -2486,7 +2462,7 @@ describe('bindInnerHTML', () => {
 
 	it('should update innerHTML when tracked value changes with a getter and setter', () => {
 		component App() {
-			const html = #{ value: '<p>Initial</p>' };
+			const html = #ripple{ value: '<p>Initial</p>' };
 
 			<div>
 				<div
@@ -2513,7 +2489,7 @@ describe('bindInnerHTML', () => {
 
 	it('should handle null innerHTML value', () => {
 		component App() {
-			const html = track(null);
+			const html = #ripple.track(null);
 
 			<div contenteditable="true" {ref bindInnerHTML(html)} />
 		}
@@ -2528,7 +2504,7 @@ describe('bindInnerHTML', () => {
 
 	it('should handle null innerHTML value with a getter and setter', () => {
 		component App() {
-			const html: TrackedObject<{ value: null | string }> = #{ value: null };
+			const html: TrackedObject<{ value: null | string }> = #ripple{ value: null };
 
 			<div
 				contenteditable="true"
@@ -2550,7 +2526,7 @@ describe('bindInnerText', () => {
 		const logs: string[] = [];
 
 		component App() {
-			const text = track('Hello World');
+			const text = #ripple.track('Hello World');
 
 			effect(() => {
 				logs.push(@text);
@@ -2576,7 +2552,7 @@ describe('bindInnerText', () => {
 		const logs: string[] = [];
 
 		component App() {
-			const text = #{ value: 'Hello World' };
+			const text = #ripple{ value: 'Hello World' };
 			effect(() => {
 				logs.push(text.value);
 			});
@@ -2602,7 +2578,7 @@ describe('bindInnerText', () => {
 
 	it('should update innerText when tracked value changes', () => {
 		component App() {
-			const text = track('Before');
+			const text = #ripple.track('Before');
 
 			<div>
 				<div contenteditable="true" {ref bindInnerText(text)} />
@@ -2626,7 +2602,7 @@ describe('bindInnerText', () => {
 
 	it('should update innerText when tracked value changes with a getter and setter', () => {
 		component App() {
-			const text = #{ value: 'Before' };
+			const text = #ripple{ value: 'Before' };
 
 			<div>
 				<div
@@ -2657,7 +2633,7 @@ describe('bindTextContent', () => {
 		const logs: string[] = [];
 
 		component App() {
-			const text = track('Sample text');
+			const text = #ripple.track('Sample text');
 
 			effect(() => {
 				logs.push(@text);
@@ -2683,7 +2659,7 @@ describe('bindTextContent', () => {
 		const logs: string[] = [];
 
 		component App() {
-			const text = #{ value: 'Sample text' };
+			const text = #ripple{ value: 'Sample text' };
 
 			effect(() => {
 				logs.push(text.value);
@@ -2710,7 +2686,7 @@ describe('bindTextContent', () => {
 
 	it('should update textContent when tracked value changes', () => {
 		component App() {
-			const text = track('Start');
+			const text = #ripple.track('Start');
 
 			<div>
 				<div contenteditable="true" {ref bindTextContent(text)} />
@@ -2734,7 +2710,7 @@ describe('bindTextContent', () => {
 
 	it('should update textContent when tracked value changes with a getter and setter', () => {
 		component App() {
-			const text = #{ value: 'Start' };
+			const text = #ripple{ value: 'Start' };
 
 			<div>
 				<div
@@ -2761,7 +2737,7 @@ describe('bindTextContent', () => {
 
 	it('should handle null textContent value', () => {
 		component App() {
-			const text = track(null);
+			const text = #ripple.track(null);
 
 			<div contenteditable="true" {ref bindTextContent(text)} />
 		}
@@ -2776,7 +2752,7 @@ describe('bindTextContent', () => {
 
 	it('should handle null textContent value with a getter and setter', () => {
 		component App() {
-			const text: TrackedObject<{ value: string | null }> = #{ value: null };
+			const text: TrackedObject<{ value: string | null }> = #ripple{ value: null };
 
 			<div
 				contenteditable="true"
@@ -2801,7 +2777,7 @@ describe('bindNode', () => {
 		let capturedNode: HTMLElement | null = null;
 
 		component App() {
-			const nodeRef = track(null);
+			const nodeRef = #ripple.track(null);
 
 			effect(() => {
 				capturedNode = @nodeRef;
@@ -2821,7 +2797,7 @@ describe('bindNode', () => {
 		let capturedNode: HTMLElement | null = null;
 
 		component App() {
-			const nodeRef: TrackedObject<{ value: HTMLElement | null }> = #{ value: null };
+			const nodeRef: TrackedObject<{ value: HTMLElement | null }> = #ripple{ value: null };
 
 			effect(() => {
 				capturedNode = nodeRef.value;
@@ -2871,7 +2847,7 @@ describe('bindNode', () => {
 
 	it('should allow access to bound element with a getter and setter', () => {
 		component App() {
-			const inputRef: TrackedObject<{ node: HTMLInputElement | null }> = #{ node: null };
+			const inputRef: TrackedObject<{ node: HTMLInputElement | null }> = #ripple{ node: null };
 
 			<div>
 				<input
@@ -2910,7 +2886,7 @@ describe('bindFiles', () => {
 		const logs: FileList[] = [];
 
 		component App() {
-			const files = track(null);
+			const files = #ripple.track(null);
 
 			effect(() => {
 				@files;
@@ -2951,7 +2927,7 @@ describe('bindFiles', () => {
 		const logs: FileList[] = [];
 
 		component App() {
-			const files: TrackedObject<{ items: FileList | null }> = #{ items: null };
+			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
 
 			effect(() => {
 				files.items;
@@ -3031,7 +3007,7 @@ describe('bindFiles', () => {
 		let capturedFiles: FileList | null = null;
 
 		component App() {
-			const files: TrackedObject<{ items: FileList | null }> = #{ items: null };
+			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
 
 			effect(() => {
 				capturedFiles = files.items;
@@ -3122,7 +3098,7 @@ describe('bindFiles', () => {
 		let capturedFiles: FileList | null = null;
 
 		component App() {
-			const files: TrackedObject<{ items: FileList | null }> = #{ items: null };
+			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
 			const input = track<HTMLInputElement | null>(null);
 
 			effect(() => {
@@ -3228,7 +3204,7 @@ describe('bindFiles', () => {
 		const fileCounts: number[] = [];
 
 		component App() {
-			const files: TrackedObject<{ items: FileList | null }> = #{ items: null };
+			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
 			effect(() => {
 				files.items;
 				if (files.items) {
@@ -3317,7 +3293,7 @@ describe('bindFiles', () => {
 		let capturedFile: File | null = null;
 
 		component App() {
-			const files: TrackedObject<{ items: FileList | null }> = #{ items: null };
+			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
 			effect(() => {
 				files.items;
 				if (files.items && files.items.length > 0) {
@@ -3356,7 +3332,7 @@ describe('bindFiles', () => {
 		const logs: (FileList | null)[] = [];
 
 		component App() {
-			const files = track(null);
+			const files = #ripple.track(null);
 
 			effect(() => {
 				logs.push(@files);
@@ -3398,7 +3374,7 @@ describe('bindFiles', () => {
 		const logs: (FileList | null)[] = [];
 
 		component App() {
-			const files: TrackedObject<{ items: FileList | null }> = #{ items: null };
+			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
 			effect(() => {
 				logs.push(files.items);
 			});
@@ -3613,7 +3589,7 @@ describe('error handling', () => {
 	it('should throw error when bindValue receives a getter but not a setter', () => {
 		expect(() => {
 			component App() {
-				const value = track('');
+				const value = #ripple.track('');
 				<input type="text" {ref bindValue(() => @value)} />
 			}
 			render(App);
@@ -3625,7 +3601,7 @@ describe('error handling', () => {
 	it('should throw error when bindValue receives a getter and setter not a function', () => {
 		expect(() => {
 			component App() {
-				const value = track('');
+				const value = #ripple.track('');
 				// @ts-expect-error invalid argument
 				<input type="text" {ref bindValue(() => @value, 5)} />
 			}

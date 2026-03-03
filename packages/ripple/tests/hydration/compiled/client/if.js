@@ -22,8 +22,6 @@ var root_19 = _$_.template(`<div class="state">Error occurred</div>`, 0);
 var root_17 = _$_.template(`<!>`, 1, 1);
 var root_15 = _$_.template(`<div><button class="success">Success</button><button class="error">Error</button><button class="loading">Loading</button><!></div>`, 0);
 
-import { track } from 'ripple';
-
 export function IfTruthy(__anchor, _, __block) {
 	_$_.push_component();
 
@@ -102,7 +100,7 @@ export function IfElse(__anchor, _, __block) {
 export function ReactiveIf(__anchor, _, __block) {
 	_$_.push_component();
 
-	let show = track(true, void 0, void 0, __block);
+	let show = _$_.track(true, void 0, void 0, __block);
 	var fragment_3 = root_7();
 	var button_1 = _$_.first_child_frag(fragment_3);
 
@@ -131,7 +129,7 @@ export function ReactiveIf(__anchor, _, __block) {
 export function ReactiveIfElse(__anchor, _, __block) {
 	_$_.push_component();
 
-	let isOn = track(false, void 0, void 0, __block);
+	let isOn = _$_.track(false, void 0, void 0, __block);
 	var fragment_4 = root_9();
 	var button_2 = _$_.first_child_frag(fragment_4);
 
@@ -166,8 +164,8 @@ export function ReactiveIfElse(__anchor, _, __block) {
 export function NestedIf(__anchor, _, __block) {
 	_$_.push_component();
 
-	let outer = track(true, void 0, void 0, __block);
-	let inner = track(true, void 0, void 0, __block);
+	let outer = _$_.track(true, void 0, void 0, __block);
+	let inner = _$_.track(true, void 0, void 0, __block);
 	var fragment_5 = root_12();
 	var button_3 = _$_.first_child_frag(fragment_5);
 
@@ -221,7 +219,7 @@ export function NestedIf(__anchor, _, __block) {
 export function IfElseIfChain(__anchor, _, __block) {
 	_$_.push_component();
 
-	let status = track('loading', void 0, void 0, __block);
+	let status = _$_.track('loading', void 0, void 0, __block);
 	var div_9 = root_15();
 
 	{

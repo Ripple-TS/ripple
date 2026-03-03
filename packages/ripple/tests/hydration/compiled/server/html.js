@@ -1,8 +1,6 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-import { track } from 'ripple/server';
-
 export function StaticHtml(__output) {
 	_$_.push_component();
 
@@ -924,7 +922,7 @@ async function SidebarSection(__output, { title, children }) {
 	return _$_.async(async () => {
 		_$_.push_component();
 
-		let expanded = track(true);
+		let expanded = _$_.track(true);
 
 		__output.push('<section');
 		__output.push(' class="sidebar-section"');

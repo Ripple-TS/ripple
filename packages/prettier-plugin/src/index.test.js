@@ -1264,8 +1264,8 @@ const [obj1, obj2] = arrayOfObjects;`;
 		});
 
 		it('should keep TrackedMap short syntax intact', async () => {
-			const expected = `const map = new #Map([['key1', 'value1'], ['key2', 'value2']]);
-const set = new #Set([1, 2, 3]);`;
+			const expected = `const map = new #ripple.map([['key1', 'value1'], ['key2', 'value2']]);
+const set = new #ripple.set([1, 2, 3]);`;
 
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
@@ -1273,7 +1273,7 @@ const set = new #Set([1, 2, 3]);`;
 
 		it('should keep TrackedSet parents with short syntax and no args intact', async () => {
 			const expected = `component SetTest() {
-  let items = new #Set();
+  let items = new #ripple.set();
 
   <button onClick={() => items.add(1)}>{'add'}</button>
   <pre>{items.size}</pre>
@@ -1285,10 +1285,21 @@ const set = new #Set([1, 2, 3]);`;
 
 		it('should keep TrackedMap parents with short syntax and no args intact', async () => {
 			const expected = `component MapTest() {
-  let items = new #Map();
+  let items = new #ripple.map();
 
   <button onClick={() => items.set('key', 1)}>{'add'}</button>
   <pre>{items.size}</pre>
+}`;
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve #ripple.array and #ripple.object constructors', async () => {
+			const expected = `component App() {
+  let arr = new #ripple.array(1, 2, 3);
+  let obj = new #ripple.object({ a: 1 });
+
+  <div>{arr.length + obj.a}</div>
 }`;
 
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
@@ -2545,7 +2556,7 @@ function test() {
   // comment 3
 };
 
-const obj2 = #{
+const obj2 = #ripple{
   /* comment 1 */
   a: 1,
 
@@ -2691,7 +2702,7 @@ const obj2 = #{
 	});
 
 	it('should preserve comments in arrays width printWidth 3', async () => {
-		const input = `const arr = #[
+		const input = `const arr = #ripple[
   1,
   /* comment 1 */
   2,
@@ -2700,7 +2711,7 @@ const obj2 = #{
 ];`;
 
 		const expected = `const arr =
-  #[
+  #ripple[
     1,
     /* comment 1 */
     2,
@@ -2714,13 +2725,13 @@ const obj2 = #{
 
 	it('should preserve comments in arrays width printWidth 13', async () => {
 		const input = `const arr =
-  #[
+  #ripple[
     1 /* comment 1 */,
     2, 3,
     // comment 2
   ];`;
 
-		const expected = `const arr = #[
+		const expected = `const arr = #ripple[
   1 /* comment 1 */,
   2, 3,
   // comment 2
@@ -3554,7 +3565,7 @@ try {
 		it('properly formats components markup and new lines and leaves one new line between components and <style> if one or more exits', async () => {
 			const input = `export component App() {
   <div>
-    <RowList rows={#[{id: 'a'}, {id: 'b'}, {id: 'c'}]}>
+    <RowList rows={#ripple[{id: 'a'}, {id: 'b'}, {id: 'c'}]}>
       component Row({id, index, isHighlighted = (index) => (index % 2) === 0}) {
         <div class={{highlighted: isHighlighted(index)}}>{index}{' - '}{id}</div>
 
@@ -3577,7 +3588,7 @@ component RowList({ rows, Row }) {
 
 			const expected = `export component App() {
   <div>
-    <RowList rows={#[{ id: 'a' }, { id: 'b' }, { id: 'c' }]}>
+    <RowList rows={#ripple[{ id: 'a' }, { id: 'b' }, { id: 'c' }]}>
       component Row({ id, index, isHighlighted = (index) => index % 2 === 0 }) {
         <div class={{ highlighted: isHighlighted(index) }}>
           {index}
@@ -3611,13 +3622,13 @@ component RowList({ rows, Row }) {
 
 		it('leaves the shorthand reactive declaration intact and formats the same way as plain objects', async () => {
 			const input = `export component App() {
-  const obj = #{ a: 1, b: 2, c: 3 };
-  let singleUser = #{name:"Test Me", email: "abc@example.com"}
+  const obj = #ripple{ a: 1, b: 2, c: 3 };
+  let singleUser = #ripple{name:"Test Me", email: "abc@example.com"}
 }`;
 
 			const expected = `export component App() {
-  const obj = #{ a: 1, b: 2, c: 3 };
-  let singleUser = #{ name: 'Test Me', email: 'abc@example.com' };
+  const obj = #ripple{ a: 1, b: 2, c: 3 };
+  let singleUser = #ripple{ name: 'Test Me', email: 'abc@example.com' };
 }`;
 			const result = await format(input, {
 				singleQuote: true,
@@ -3629,12 +3640,12 @@ component RowList({ rows, Row }) {
 
 		it('formats single line reactive object into multiline when printWidth is exceeded', async () => {
 			const input = `export component App() {
-  const obj = #{a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11, l: 12, m: 13, n: 14, o: 15};
-  let singleUser = #{name:"Test Me", email: "abc@example.com"}
+  const obj = #ripple{a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11, l: 12, m: 13, n: 14, o: 15};
+  let singleUser = #ripple{name:"Test Me", email: "abc@example.com"}
 }`;
 
 			const expected = `export component App() {
-  const obj = #{
+  const obj = #ripple{
     a: 1,
     b: 2,
     c: 3,
@@ -3651,7 +3662,7 @@ component RowList({ rows, Row }) {
     n: 14,
     o: 15,
   };
-  let singleUser = #{ name: 'Test Me', email: 'abc@example.com' };
+  let singleUser = #ripple{ name: 'Test Me', email: 'abc@example.com' };
 }`;
 			const result = await format(input, {
 				singleQuote: true,
@@ -3663,13 +3674,13 @@ component RowList({ rows, Row }) {
 
 		it('leaves the shorthand reactive array declaration intact and formats the same way as regular array', async () => {
 			const input = `export component App() {
-  const arr = #[ {a: 1}, { b:2}, {c:3 }   ];
-  let multi = #[{a: 1}, {b: 2}, {c: 3}, {d: 4}, {e:5}, {f:6}, {g: 7}, {h: 8}, {i:9}, {j: 10}, {k: 11}];
+  const arr = #ripple[ {a: 1}, { b:2}, {c:3 }   ];
+  let multi = #ripple[{a: 1}, {b: 2}, {c: 3}, {d: 4}, {e:5}, {f:6}, {g: 7}, {h: 8}, {i:9}, {j: 10}, {k: 11}];
 }`;
 
 			const expected = `export component App() {
-  const arr = #[{ a: 1 }, { b: 2 }, { c: 3 }];
-  let multi = #[
+  const arr = #ripple[{ a: 1 }, { b: 2 }, { c: 3 }];
+  let multi = #ripple[
     { a: 1 },
     { b: 2 },
     { c: 3 },

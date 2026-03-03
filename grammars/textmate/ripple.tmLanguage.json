@@ -4074,7 +4074,7 @@
     },
     "tuple-literal": {
       "name": "meta.tuple.literal.js",
-      "begin": "(#)(\\[)",
+      "begin": "(#ripple)(\\[)",
       "beginCaptures": {
         "1": {
           "name": "keyword.control.tuple.js"
@@ -4100,7 +4100,7 @@
     },
     "record-literal": {
       "name": "meta.record.literal.js",
-      "begin": "(#)(\\{)",
+      "begin": "(#ripple)(\\{)",
       "beginCaptures": {
         "1": {
           "name": "keyword.control.record.js"
@@ -4123,15 +4123,12 @@
     },
     "tracked-map-literal": {
       "name": "meta.tracked.map.literal.js",
-      "begin": "(#)(Map)(\\()",
+      "begin": "(#ripple\\.map)(\\()",
       "beginCaptures": {
         "1": {
           "name": "keyword.control.tracked.js"
         },
         "2": {
-          "name": "entity.name.type.js"
-        },
-        "3": {
           "name": "meta.brace.round.js"
         }
       },
@@ -4152,15 +4149,12 @@
     },
     "tracked-set-literal": {
       "name": "meta.tracked.set.literal.js",
-      "begin": "(#)(Set)(\\()",
+      "begin": "(#ripple\\.set)(\\()",
       "beginCaptures": {
         "1": {
           "name": "keyword.control.tracked.js"
         },
         "2": {
-          "name": "entity.name.type.js"
-        },
-        "3": {
           "name": "meta.brace.round.js"
         }
       },
@@ -6803,7 +6797,7 @@
     },
     "server-block": {
       "name": "meta.server-block.js",
-      "begin": "(#server)\\s*(\\{)",
+      "begin": "(#ripple\\.server)\\s*(\\{)",
       "beginCaptures": {
         "1": {
           "name": "storage.type.server.js"
@@ -6826,7 +6820,7 @@
     },
     "defer-block": {
       "name": "meta.defer-block.js",
-      "begin": "(#defer)\\s*(\\{)",
+      "begin": "(#ripple\\.defer)\\s*(\\{)",
       "beginCaptures": {
         "1": {
           "name": "storage.type.defer.js"
@@ -6849,7 +6843,7 @@
     },
     "server-member-expression": {
       "name": "meta.server-member-expression.js",
-      "match": "(#server)(\\.)([_$[:alpha:]][_$[:alnum:]]*)",
+      "match": "(#ripple\\.server)(\\.)([_$[:alpha:]][_$[:alnum:]]*)",
       "captures": {
         "1": {
           "name": "storage.type.server.js"
@@ -6866,7 +6860,7 @@
       "patterns": [
         {
           "name": "meta.style-member-expression.dot.js",
-          "match": "(#style)(\\.)([_$[:alpha:]][_$[:alnum:]]*)",
+          "match": "(#ripple\\.style)(\\.)([_$[:alpha:]][_$[:alnum:]]*)",
           "captures": {
             "1": {
               "name": "storage.type.style.js"
@@ -6881,7 +6875,7 @@
         },
         {
           "name": "meta.style-member-expression.computed.js",
-          "begin": "(#style)(\\[)",
+          "begin": "(#ripple\\.style)(\\[)",
           "beginCaptures": {
             "1": {
               "name": "storage.type.style.js"

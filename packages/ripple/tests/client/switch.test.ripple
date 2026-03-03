@@ -1,9 +1,8 @@
-import { flushSync, track } from 'ripple';
-
+import { flushSync } from 'ripple';
 describe('switch statements', () => {
 	it('renders simple switch with literal cases', () => {
 		component App() {
-			let value = track('b');
+			let value = #ripple.track('b');
 
 			<button onClick={() => (@value = 'c')}>{'Change to C'}</button>
 			<button onClick={() => (@value = 'a')}>{'Change to A'}</button>
@@ -38,7 +37,7 @@ describe('switch statements', () => {
 
 	it('renders switch with reactive discriminant', () => {
 		component App() {
-			let count = track(1);
+			let count = #ripple.track(1);
 
 			<button onClick={() => @count++}>{'Increment'}</button>
 
@@ -70,7 +69,7 @@ describe('switch statements', () => {
 
 	it('renders switch with default clause only', () => {
 		component App() {
-			let value = track('x');
+			let value = #ripple.track('x');
 
 			<button onClick={() => (@value = 'y')}>{'Change Value'}</button>
 
@@ -91,7 +90,7 @@ describe('switch statements', () => {
 
 	it('renders switch using empty case fall-through', () => {
 		component App() {
-			let value = track('a');
+			let value = #ripple.track('a');
 
 			<button onClick={() => (@value = 'b')}>{'Change to B'}</button>
 			<button onClick={() => (@value = 'c')}>{'Change to C'}</button>
@@ -133,8 +132,8 @@ describe('switch statements', () => {
 
 	it('renders switch with template content and reacts to tracked changes', () => {
 		component App() {
-			let status = track('active');
-			let message = track('');
+			let status = #ripple.track('active');
+			let message = #ripple.track('');
 
 			<button onClick={() => (@status = 'pending')}>{'Pending'}</button>
 			<button onClick={() => (@status = 'completed')}>{'Completed'}</button>
@@ -185,7 +184,7 @@ describe('switch statements', () => {
 		'renders switch with multiple non-empty fall-through cases and reacts to tracked changes without recreating DOM unnecessarily',
 		() => {
 			component App() {
-				let status = track(0);
+				let status = #ripple.track(0);
 				<div>
 					switch (@status) {
 						case -1:
@@ -253,7 +252,7 @@ describe('switch statements', () => {
 		'renders a fall-through default in the middle of switch cases and reacts to changes without recreating DOM unnecessarily',
 		() => {
 			component App() {
-				let value = track('x');
+				let value = #ripple.track('x');
 
 				<button onClick={() => (@value = 'a')}>{'Set A'}</button>
 				<button onClick={() => (@value = 'b')}>{'Set B'}</button>
@@ -359,7 +358,7 @@ describe('switch statements', () => {
 
 	it('renders switch with block-scoped cases and break inside blocks', () => {
 		component App() {
-			let level = track(1);
+			let level = #ripple.track(1);
 
 			<button
 				onClick={() => {

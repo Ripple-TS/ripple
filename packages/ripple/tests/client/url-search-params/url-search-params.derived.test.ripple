@@ -1,12 +1,11 @@
-import { flushSync, track, TrackedURL, TrackedURLSearchParams } from 'ripple';
-
+import { flushSync } from 'ripple';
 describe('TrackedURLSearchParams > derived', () => {
 	it('handles reactive computed properties based on search params', () => {
 		component URLTest() {
-			const params = new TrackedURLSearchParams('page=1&limit=10');
-			let page = track(() => parseInt(params.get('page') || '1', 10));
-			let limit = track(() => parseInt(params.get('limit') || '10', 10));
-			let offset = track(() => (@page - 1) * @limit);
+			const params = #ripple.urlSearchParams('page=1&limit=10');
+			let page = #ripple.track(() => parseInt(params.get('page') || '1', 10));
+			let limit = #ripple.track(() => parseInt(params.get('limit') || '10', 10));
+			let offset = #ripple.track(() => (@page - 1) * @limit);
 
 			<button onClick={() => params.set('page', '2')}>{'next page'}</button>
 			<button onClick={() => params.set('page', '1')}>{'first page'}</button>
@@ -44,7 +43,7 @@ describe('TrackedURLSearchParams > derived', () => {
 
 	it('maintains reactivity across multiple components', () => {
 		component ParentTest() {
-			const params = new TrackedURLSearchParams('count=0');
+			const params = #ripple.urlSearchParams('count=0');
 
 			<ChildA {params} />
 			<ChildB {params} />
@@ -62,7 +61,7 @@ describe('TrackedURLSearchParams > derived', () => {
 		}
 
 		component ChildB({ params }: { params: TrackedURLSearchParams }) {
-			let count = track(() => params.get('count'));
+			let count = #ripple.track(() => params.get('count'));
 
 			<pre>{@count}</pre>
 		}

@@ -428,9 +428,9 @@ component Child1() {
 		'handles sibling combinators with dynamic component and :global before scoped elements',
 		() => {
 			const source = `
-import { track } from 'ripple';
+
 export component Test({ children }) {
-	const DynamicComponent = track(() => Child1);
+	const DynamicComponent = #ripple.track(() => Child1);
 	<div>
 		<p class="before">{'before'}</p>
 
@@ -474,9 +474,9 @@ component Child1() {
 		'handles sibling combinators with dynamic element or regular element and :global before scoped elements',
 		() => {
 			const source = `
-import { track } from 'ripple';
+
 export component Test({ children, classes }) {
-	const dynamicElement = track('div');
+	const dynamicElement = #ripple.track('div');
 	<div>
 		<p class="before">{'before'}</p>
 		// Use Dynamic Element but it's the same with a regular one

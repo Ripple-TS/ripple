@@ -1,8 +1,7 @@
 // Event handling components for hydration testing
-import { track } from 'ripple';
 
 export component ClickCounter() {
-	let count = track(0);
+	let count = #ripple.track(0);
 	<div>
 		<button
 			class="increment"
@@ -17,7 +16,7 @@ export component ClickCounter() {
 }
 
 export component IncrementDecrement() {
-	let count = track(0);
+	let count = #ripple.track(0);
 	<div>
 		<button
 			class="decrement"
@@ -40,8 +39,8 @@ export component IncrementDecrement() {
 }
 
 export component MultipleEvents() {
-	let clicks = track(0);
-	let hovers = track(0);
+	let clicks = #ripple.track(0);
+	let hovers = #ripple.track(0);
 	<div>
 		<button
 			class="target"
@@ -60,8 +59,8 @@ export component MultipleEvents() {
 }
 
 export component MultiStateUpdate() {
-	let count = track(0);
-	let lastAction = track('none');
+	let count = #ripple.track(0);
+	let lastAction = #ripple.track('none');
 
 	const handleClick = () => {
 		@count++;
@@ -76,7 +75,7 @@ export component MultiStateUpdate() {
 }
 
 export component ToggleButton() {
-	let isOn = track(false);
+	let isOn = #ripple.track(false);
 	<div>
 		<button
 			class="toggle"
@@ -94,7 +93,7 @@ export component ChildButton(props: { onClick: () => void; label: string }) {
 }
 
 export component ParentWithChildButton() {
-	let count = track(0);
+	let count = #ripple.track(0);
 	<div>
 		<ChildButton
 			onClick={() => {

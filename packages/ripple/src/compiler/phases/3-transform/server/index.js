@@ -25,6 +25,7 @@ import {
 	normalize_children,
 	is_binding_function,
 	is_element_dynamic,
+	is_ripple_track_call,
 	hash,
 	flatten_switch_consequent,
 } from '../../../utils.js';
@@ -450,6 +451,41 @@ const visitors = {
 		if (!context.state.to_ts) {
 			delete node.typeArguments;
 		}
+
+		const callee = node.callee;
+		const source_name = callee.type === 'Identifier' ? callee.metadata?.source_name : undefined;
+
+		if (!context.state.to_ts && source_name === '#ripple.context') {
+			return {
+				...node,
+				callee: b.member(b.id('_$_'), b.id('context')),
+				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+					node.arguments.map((arg) => context.visit(arg))
+				),
+			};
+		}
+
+		if (is_ripple_track_call(callee, context)) {
+			const track_method_name =
+				callee.type === 'Identifier'
+					? callee.name === 'trackSplit'
+						? 'track_split'
+						: 'track'
+					: callee.type === 'MemberExpression' && callee.property.type === 'Identifier'
+						? callee.property.name === 'trackSplit'
+							? 'track_split'
+							: 'track'
+						: 'track';
+
+			return {
+				...node,
+				callee: b.member(b.id('_$_'), b.id(track_method_name)),
+				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+					node.arguments.map((arg) => context.visit(arg))
+				),
+			};
+		}
+
 		return context.next();
 	},
 
@@ -458,6 +494,18 @@ const visitors = {
 		// When source is "new #Map(...)", the callee is TrackedMapExpression with empty arguments
 		// and the actual arguments are in NewExpression.arguments
 		const callee = node.callee;
+
+		if (
+			!context.state.to_ts &&
+			callee.type === 'Identifier' &&
+			(callee.metadata?.source_name === '#ripple.context' || callee.name === 'Context')
+		) {
+			return b.call(
+				'_$_.context',
+				.../** @type {AST.Expression[]} */ (node.arguments.map((arg) => context.visit(arg))),
+			);
+		}
+
 		if (callee.type === 'TrackedMapExpression' || callee.type === 'TrackedSetExpression') {
 			// Use NewExpression's arguments (the callee has empty arguments from parser)
 			const argsToUse = node.arguments.length > 0 ? node.arguments : callee.arguments;
@@ -474,6 +522,22 @@ const visitors = {
 			delete node.typeArguments;
 		}
 		return context.next();
+	},
+
+	TrackedMapExpression(node, context) {
+		return b.new(
+			b.id('Map'),
+			undefined,
+			.../** @type {AST.Expression[]} */ (node.arguments.map((arg) => context.visit(arg))),
+		);
+	},
+
+	TrackedSetExpression(node, context) {
+		return b.new(
+			b.id('Set'),
+			undefined,
+			.../** @type {AST.Expression[]} */ (node.arguments.map((arg) => context.visit(arg))),
+		);
 	},
 
 	PropertyDefinition(node, context) {

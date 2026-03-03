@@ -1,11 +1,10 @@
-import { flushSync, TrackedMap, track } from 'ripple';
-
+import { flushSync, TrackedMap } from 'ripple';
 describe('TrackedMap', () => {
 	it('handles set with update and delete operations with a reactive size var', () => {
 		component MapTest() {
 			let map = new TrackedMap([['a', 1], ['b', 2], ['c', 3]]);
-			let value = track(() => map.get('a'));
-			let size = track(() => map.size);
+			let value = #ripple.track(() => map.get('a'));
+			let size = #ripple.track(() => map.size);
 
 			<button onClick={() => map.set('d', 4)}>{'set'}</button>
 			<button onClick={() => map.delete('b')}>{'delete'}</button>
@@ -61,7 +60,7 @@ describe('TrackedMap', () => {
 	it('handles has operation and tracks reactive $has', () => {
 		component MapTest() {
 			let map = new TrackedMap([['a', 1], ['b', 2], ['c', 3]]);
-			let has = track(() => map.has('b'));
+			let has = #ripple.track(() => map.has('b'));
 
 			<button onClick={() => map.delete('b')}>{'delete'}</button>
 			<pre>{@has}</pre>
@@ -81,9 +80,9 @@ describe('TrackedMap', () => {
 	it('handles reactivity of keys, values, and entries', () => {
 		component MapTest() {
 			let map = new TrackedMap([['x', 10], ['y', 20]]);
-			let keys = track(() => Array.from(map.keys()));
-			let values = track(() => Array.from(map.values()));
-			let entries = track(() => Array.from(map.entries()));
+			let keys = #ripple.track(() => Array.from(map.keys()));
+			let values = #ripple.track(() => Array.from(map.values()));
+			let entries = #ripple.track(() => Array.from(map.entries()));
 
 			<button onClick={() => map.delete('x')}>{'delete'}</button>
 
@@ -120,9 +119,9 @@ describe('TrackedMap', () => {
 		expect(container.querySelectorAll('pre')[0].textContent).toBe('[["foo",1],["bar",2]]');
 	});
 
-	it('creates empty TrackedMap using #Map() shorthand syntax', () => {
+	it('creates empty TrackedMap using #ripple.map() shorthand syntax', () => {
 		component MapTest() {
-			let map = new #Map();
+			let map = #ripple.map();
 
 			<button onClick={() => map.set('a', 1)}>{'add'}</button>
 			<pre>{map.size}</pre>
@@ -139,10 +138,10 @@ describe('TrackedMap', () => {
 		expect(container.querySelector('pre').textContent).toBe('1');
 	});
 
-	it('creates TrackedMap with initial entries using #Map() shorthand syntax', () => {
+	it('creates TrackedMap with initial entries using #ripple.map() shorthand syntax', () => {
 		component MapTest() {
-			let map = new #Map([['a', 1], ['b', 2], ['c', 3]]);
-			let value = track(() => map.get('b'));
+			let map = #ripple.map([['a', 1], ['b', 2], ['c', 3]]);
+			let value = #ripple.track(() => map.get('b'));
 
 			<button onClick={() => map.set('b', 10)}>{'update'}</button>
 			<pre>{map.size}</pre>
@@ -161,10 +160,10 @@ describe('TrackedMap', () => {
 		expect(container.querySelectorAll('pre')[1].textContent).toBe('10');
 	});
 
-	it('handles all operations with #Map() shorthand syntax', () => {
+	it('handles all operations with #ripple.map() shorthand syntax', () => {
 		component MapTest() {
-			let map = new #Map([['x', 100], ['y', 200]]);
-			let keys = track(() => Array.from(map.keys()));
+			let map = #ripple.map([['x', 100], ['y', 200]]);
+			let keys = #ripple.track(() => Array.from(map.keys()));
 
 			<button onClick={() => map.set('z', 300)}>{'add'}</button>
 			<button onClick={() => map.delete('x')}>{'delete'}</button>

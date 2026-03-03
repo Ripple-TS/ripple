@@ -1,4 +1,4 @@
-import { get, increment, safe_scope, tracked } from './internal/client/runtime.js';
+import { get, increment, safe_scope, tracked, with_scope } from './internal/client/runtime.js';
 import { get_current_url } from './url.js';
 
 export const REPLACE = Symbol();
@@ -143,4 +143,15 @@ export class TrackedURLSearchParams extends URLSearchParams {
 		get(this.#version);
 		return super.size;
 	}
+}
+
+/**
+ * @param {import('#client').Block} block
+ * @param  {ConstructorParameters<typeof URLSearchParams>} params
+ * @returns {TrackedURLSearchParams}
+ */
+export function tracked_url_search_params(block, ...params) {
+	return with_scope(block, () => {
+		return new TrackedURLSearchParams(...params);
+	});
 }

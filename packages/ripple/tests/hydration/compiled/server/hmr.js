@@ -1,8 +1,6 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-import { track } from 'ripple/server';
-
 export async function Layout(__output, { children }) {
 	return _$_.async(async () => {
 		_$_.push_component();
@@ -50,7 +48,7 @@ Layout.async = true;
 export function Content(__output) {
 	_$_.push_component();
 
-	let visible = track(true);
+	let visible = _$_.track(true);
 
 	__output.push('<div');
 	__output.push(' class="content"');

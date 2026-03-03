@@ -1,8 +1,6 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-import { track } from 'ripple/server';
-
 export async function MixedControlFlowStatic(__output) {
 	return _$_.async(async () => {
 		_$_.push_component();
@@ -97,9 +95,9 @@ export async function MixedControlFlowReactive(__output) {
 	return _$_.async(async () => {
 		_$_.push_component();
 
-		let show = track(true);
-		let mode = track('a');
-		let items = track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }]);
+		let show = _$_.track(true);
+		let mode = _$_.track('a');
+		let items = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }]);
 
 		__output.push('<button');
 		__output.push(' class="toggle-show"');

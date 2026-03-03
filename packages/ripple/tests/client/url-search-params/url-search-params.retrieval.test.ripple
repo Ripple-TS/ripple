@@ -1,11 +1,10 @@
-import { flushSync, track, TrackedURLSearchParams } from 'ripple';
-
+import { flushSync } from 'ripple';
 describe('TrackedURLSearchParams > retrieval', () => {
 	it('handles get operation with reactivity', () => {
 		component URLTest() {
-			const params = new TrackedURLSearchParams('foo=bar&baz=qux');
-			let foo = track(() => params.get('foo'));
-			let baz = track(() => params.get('baz'));
+			const params = #ripple.urlSearchParams('foo=bar&baz=qux');
+			let foo = #ripple.track(() => params.get('foo'));
+			let baz = #ripple.track(() => params.get('baz'));
 
 			<button onClick={() => params.set('foo', 'updated')}>{'update foo'}</button>
 			<pre>{@foo}</pre>
@@ -30,8 +29,8 @@ describe('TrackedURLSearchParams > retrieval', () => {
 
 	it('handles get for nonexistent key', () => {
 		component URLTest() {
-			const params = new TrackedURLSearchParams('foo=bar');
-			let nonexistent = track(() => params.get('nonexistent'));
+			const params = #ripple.urlSearchParams('foo=bar');
+			let nonexistent = #ripple.track(() => params.get('nonexistent'));
 
 			<pre>{String(@nonexistent)}</pre>
 		}
@@ -43,8 +42,8 @@ describe('TrackedURLSearchParams > retrieval', () => {
 
 	it('handles getAll operation with reactivity', () => {
 		component URLTest() {
-			const params = new TrackedURLSearchParams('foo=bar&foo=baz');
-			let allFoo = track(() => params.getAll('foo'));
+			const params = #ripple.urlSearchParams('foo=bar&foo=baz');
+			let allFoo = #ripple.track(() => params.getAll('foo'));
 
 			<button onClick={() => params.append('foo', 'qux')}>{'append foo'}</button>
 			<pre>{JSON.stringify(@allFoo)}</pre>
@@ -66,9 +65,9 @@ describe('TrackedURLSearchParams > retrieval', () => {
 
 	it('handles has operation with reactivity', () => {
 		component URLTest() {
-			const params = new TrackedURLSearchParams('foo=bar');
-			let hasFoo = track(() => params.has('foo'));
-			let hasBaz = track(() => params.has('baz'));
+			const params = #ripple.urlSearchParams('foo=bar');
+			let hasFoo = #ripple.track(() => params.has('foo'));
+			let hasBaz = #ripple.track(() => params.has('baz'));
 
 			<button onClick={() => params.append('baz', 'qux')}>{'add baz'}</button>
 			<button onClick={() => params.delete('foo')}>{'delete foo'}</button>
@@ -102,9 +101,9 @@ describe('TrackedURLSearchParams > retrieval', () => {
 
 	it('handles has with specific value', () => {
 		component URLTest() {
-			const params = new TrackedURLSearchParams('foo=bar&foo=baz');
-			let hasBarValue = track(() => params.has('foo', 'bar'));
-			let hasQuxValue = track(() => params.has('foo', 'qux'));
+			const params = #ripple.urlSearchParams('foo=bar&foo=baz');
+			let hasBarValue = #ripple.track(() => params.has('foo', 'bar'));
+			let hasQuxValue = #ripple.track(() => params.has('foo', 'qux'));
 
 			<button onClick={() => params.append('foo', 'qux')}>{'add qux'}</button>
 			<pre>{@hasBarValue.toString()}</pre>
@@ -129,8 +128,8 @@ describe('TrackedURLSearchParams > retrieval', () => {
 
 	it('handles size property with reactivity', () => {
 		component URLTest() {
-			const params = new TrackedURLSearchParams('foo=bar');
-			let size = track(() => params.size);
+			const params = #ripple.urlSearchParams('foo=bar');
+			let size = #ripple.track(() => params.size);
 
 			<button onClick={() => params.append('baz', 'qux')}>{'add'}</button>
 			<button onClick={() => params.delete('foo')}>{'delete'}</button>

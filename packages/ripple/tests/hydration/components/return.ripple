@@ -1,5 +1,4 @@
 // Return statement components for hydration testing
-import { track } from 'ripple';
 
 // Basic return - skips content after direct return
 export component DirectReturn() {
@@ -265,7 +264,7 @@ export component ReturnWithElseBothReturn() {
 
 // Reactive return - starts true, can toggle to false
 export component ReactiveReturnTrueToFalse() {
-	let condition = track(true);
+	let condition = #ripple.track(true);
 
 	<button
 		class="toggle"
@@ -284,7 +283,7 @@ export component ReactiveReturnTrueToFalse() {
 
 // Reactive return - starts false, can toggle to true
 export component ReactiveReturnFalseToTrue() {
-	let condition = track(false);
+	let condition = #ripple.track(false);
 
 	<button
 		class="toggle"
@@ -304,7 +303,7 @@ export component ReactiveReturnFalseToTrue() {
 // Reactive nested return - only inner condition (b) is tracked
 export component ReactiveNestedReturn() {
 	let a = true;
-	let b = track(true);
+	let b = #ripple.track(true);
 
 	<button
 		class="toggle"
@@ -397,7 +396,7 @@ export component MultipleSiblingReturns() {
 
 // Reactive sibling returns - cycles first -> second -> fallback
 export component ReactiveSiblingReturns() {
-	let mode = track('first');
+	let mode = #ripple.track('first');
 
 	<button
 		class="toggle"
@@ -429,8 +428,8 @@ export component ReactiveSiblingReturns() {
 
 // Reactive nested returns with tracked outer and inner conditions
 export component ReactiveOuterInnerReturns() {
-	let a = track(true);
-	let b = track(true);
+	let a = #ripple.track(true);
+	let b = #ripple.track(true);
 
 	<button
 		class="toggle-a"
@@ -463,7 +462,7 @@ export component ReactiveOuterInnerReturns() {
 
 // Reactive else-if return chain that transitions between return and non-return states
 export component ReactiveElseIfReturns() {
-	let status = track(0);
+	let status = #ripple.track(0);
 
 	<button
 		class="toggle"
@@ -488,10 +487,10 @@ export component ReactiveElseIfReturns() {
 
 // Deeply nested independent return guards with multiple root-level siblings
 export component ReactiveDeepNestedIndependentReturns() {
-	let c1 = track(false);
-	let c2 = track(false);
-	let c3 = track(false);
-	let c4 = track(false);
+	let c1 = #ripple.track(false);
+	let c2 = #ripple.track(false);
+	let c3 = #ripple.track(false);
+	let c4 = #ripple.track(false);
 
 	<button
 		class="toggle-c1"

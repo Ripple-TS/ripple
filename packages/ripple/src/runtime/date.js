@@ -1,5 +1,5 @@
 /** @import { Block, Derived } from '#client' */
-import { safe_scope, tracked, get, derived, set } from './internal/client/runtime.js';
+import { safe_scope, tracked, get, derived, set, with_scope } from './internal/client/runtime.js';
 
 var init = false;
 
@@ -10,9 +10,8 @@ export class TrackedDate extends Date {
 	/** @type {Block} */
 	#block;
 
-	/** @param {any[]} params */
+	/** @param {ConstructorParameters<typeof Date>} params */
 	constructor(...params) {
-		// @ts-ignore
 		super(...params);
 
 		var block = (this.#block = safe_scope());
@@ -70,4 +69,15 @@ export class TrackedDate extends Date {
 			}
 		}
 	}
+}
+
+/**
+ * @param {Block} block
+ * @param {ConstructorParameters<typeof Date>} params
+ * @returns {TrackedDate}
+ */
+export function tracked_date(block, ...params) {
+	return with_scope(block, () => {
+		return new TrackedDate(...params);
+	});
 }

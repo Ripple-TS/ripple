@@ -468,13 +468,13 @@ const visitors = {
 
 	ServerIdentifier(node, context) {
 		const id = b.id(SERVER_IDENTIFIER);
-		id.metadata.source_name = '#server';
+		id.metadata.source_name = '#ripple.server';
 		return { ...node, ...id };
 	},
 
 	StyleIdentifier(node, context) {
 		const id = b.id(STYLE_IDENTIFIER);
-		id.metadata.source_name = '#style';
+		id.metadata.source_name = '#ripple.style';
 		return { ...node, ...id };
 	},
 
@@ -529,12 +529,70 @@ const visitors = {
 		}
 		const callee = node.callee;
 		const parent = context.path.at(-1);
-
+		const source_name = callee.type === 'Identifier' ? callee.metadata?.source_name : undefined;
+		const shorthand_runtime_method =
+			source_name === '#ripple.url'
+				? 'tracked_url'
+				: source_name === '#ripple.urlSearchParams'
+					? 'tracked_url_search_params'
+					: source_name === '#ripple.date'
+						? 'tracked_date'
+						: source_name === '#ripple.mediaQuery'
+							? 'media_query'
+							: source_name === '#ripple.context'
+								? 'context'
+								: source_name === '#ripple.createSubscriber'
+									? 'create_subscriber'
+									: null;
+		const shorthand_requires_block =
+			source_name === '#ripple.url' ||
+			source_name === '#ripple.urlSearchParams' ||
+			source_name === '#ripple.date' ||
+			source_name === '#ripple.mediaQuery';
 		if (context.state.metadata?.tracking === false) {
 			context.state.metadata.tracking = true;
 		}
 
+		if (!context.state.to_ts && shorthand_runtime_method !== null) {
+			return {
+				...node,
+				callee: b.member(b.id('_$_'), b.id(shorthand_runtime_method)),
+				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
+					...(shorthand_requires_block ? [b.id('__block')] : []),
+					...node.arguments.map((arg) => context.visit(arg)),
+				]),
+			};
+		}
+
+		if (context.state.to_ts && source_name === '#ripple.track') {
+			const track_alias = set_hidden_import_from_ripple('track', context);
+			const track_id = b.id(track_alias);
+			track_id.metadata = {
+				...(callee.metadata ?? {}),
+				source_name: source_name,
+			};
+
+			return {
+				...node,
+				callee: track_id,
+				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+					node.arguments.map((arg) => context.visit(arg))
+				),
+			};
+		}
+
 		if (!context.state.to_ts && is_ripple_track_call(callee, context)) {
+			const track_method_name =
+				callee.type === 'Identifier'
+					? callee.name === 'trackSplit'
+						? 'track_split'
+						: 'track'
+					: callee.type === 'MemberExpression' && callee.property.type === 'Identifier'
+						? callee.property.name === 'trackSplit'
+							? 'track_split'
+							: 'track'
+						: 'track';
+
 			if (callee.type === 'Identifier' && callee.name === 'track') {
 				if (node.arguments.length === 0) {
 					node.arguments.push(b.void0, b.void0, b.void0);
@@ -546,6 +604,7 @@ const visitors = {
 			}
 			return {
 				...node,
+				callee: b.member(b.id('_$_'), b.id(track_method_name)),
 				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
 					...node.arguments.map((arg) => context.visit(arg)),
 					b.id('__block'),
@@ -628,6 +687,17 @@ const visitors = {
 
 		if (context.state.metadata?.tracking === false) {
 			context.state.metadata.tracking = true;
+		}
+
+		if (
+			!context.state.to_ts &&
+			callee.type === 'Identifier' &&
+			(callee.metadata?.source_name === '#ripple.context' || callee.name === 'Context')
+		) {
+			return b.call(
+				'_$_.context',
+				.../** @type {AST.Expression[]} */ (node.arguments.map((arg) => context.visit(arg))),
+			);
 		}
 
 		// Special handling for TrackedMapExpression and TrackedSetExpression
@@ -743,6 +813,42 @@ const visitors = {
 				),
 			),
 			b.id('__block'),
+		);
+	},
+
+	TrackedMapExpression(node, context) {
+		if (context.state.to_ts) {
+			const map_alias = set_hidden_import_from_ripple('TrackedMap', context);
+
+			return b.new(
+				b.id(map_alias),
+				/** @type {AST.NodeWithLocation} */ (node),
+				.../** @type {AST.Expression[]} */ (node.arguments.map((arg) => context.visit(arg))),
+			);
+		}
+
+		return b.call(
+			'_$_.tracked_map',
+			b.id('__block'),
+			.../** @type {AST.Expression[]} */ (node.arguments.map((arg) => context.visit(arg))),
+		);
+	},
+
+	TrackedSetExpression(node, context) {
+		if (context.state.to_ts) {
+			const set_alias = set_hidden_import_from_ripple('TrackedSet', context);
+
+			return b.new(
+				b.id(set_alias),
+				/** @type {AST.NodeWithLocation} */ (node),
+				.../** @type {AST.Expression[]} */ (node.arguments.map((arg) => context.visit(arg))),
+			);
+		}
+
+		return b.call(
+			'_$_.tracked_set',
+			b.id('__block'),
+			.../** @type {AST.Expression[]} */ (node.arguments.map((arg) => context.visit(arg))),
 		);
 	},
 
@@ -2498,8 +2604,8 @@ const visitors = {
 
 			const server_identifier = b.id(SERVER_IDENTIFIER);
 			server_identifier.loc = node.loc;
-			// Add source_name to properly map longer generated back to '#server'
-			server_identifier.metadata.source_name = '#server';
+			// Add source_name to properly map longer generated back to '#ripple.server'
+			server_identifier.metadata.source_name = '#ripple.server';
 
 			const server_const = b.const(server_identifier, value);
 			server_const.loc = node.loc;
@@ -2508,7 +2614,7 @@ const visitors = {
 		}
 
 		if (!context.state.serverIdentifierPresent) {
-			// no point printing the client-side block if #server.func is not used
+			// no point printing the client-side block if #ripple.server.func is not used
 			return b.empty;
 		}
 

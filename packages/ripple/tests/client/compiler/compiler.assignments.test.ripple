@@ -1,4 +1,4 @@
-import { track, TrackedArray } from 'ripple';
+import { TrackedArray } from 'ripple';
 import { compile } from 'ripple/compiler';
 
 describe('compiler > assignments', () => {
@@ -7,9 +7,9 @@ describe('compiler > assignments', () => {
 
 		component App() {
 			let items: number[] = [];
-			let tracked_items = track<number[]>([]);
+			let tracked_items = #ripple.track<number[]>([]);
 			let items2 = new Array();
-			let items3 = new TrackedArray<number>();
+			let items3 = new #ripple.array<number>();
 			let i = 0;
 
 			logs.push(items[0]);
@@ -107,7 +107,7 @@ describe('compiler > assignments', () => {
 
 	it('compiles tracked values in effect with assignment expression', () => {
 		const source = `component App() {
-let count = track(0);
+let count = #ripple.track(0);
 
 effect(() => {
 	state.count = @count;
@@ -121,7 +121,7 @@ effect(() => {
 
 	it('compiles tracked values in effect with update expressions', () => {
 		const source = `component App() {
-let count = track(5);
+let count = #ripple.track(5);
 
 effect(() => {
 	untrack(() => {

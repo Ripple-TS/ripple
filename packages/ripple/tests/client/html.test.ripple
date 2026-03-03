@@ -1,5 +1,4 @@
-import { flushSync, track } from 'ripple';
-
+import { flushSync } from 'ripple';
 describe('html directive', () => {
 	it('renders static html', () => {
 		component App() {
@@ -14,7 +13,7 @@ describe('html directive', () => {
 
 	it('renders dynamic html', () => {
 		component App() {
-			let str = track('<div>Test</div>');
+			let str = #ripple.track('<div>Test</div>');
 
 			{html @str}
 

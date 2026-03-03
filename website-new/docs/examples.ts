@@ -404,7 +404,7 @@ export default component App() {
 
 export default component App() {
   // create a TrackedArray using syntactic sugar \`#\`
-  const arr = #[1, 2, 3];
+  const arr = #ripple[1, 2, 3];
 
   // using the new constructor
   // const arr = new TrackedArray(1, 2, 3);
@@ -442,7 +442,7 @@ export default component App() {
 	{
 		title: 'Reactive Object',
 		code: `export default component App() {
-  const obj = #{a: 0}
+  const obj = #ripple{a: 0}
 
   obj.a = 0;
 

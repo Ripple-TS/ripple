@@ -88,8 +88,6 @@ var root_83 = _$_.template(`<div class="layout"><template id="page-data"></templ
 var root_85 = _$_.template(`<div class="doc-content"><!></div>`, 0);
 var root_84 = _$_.template(`<!>`, 1, 1);
 
-import { track } from 'ripple';
-
 export function StaticHtml(__anchor, _, __block) {
 	_$_.push_component();
 
@@ -930,7 +928,7 @@ function NavItem(__anchor, __props, __block) {
 function SidebarSection(__anchor, __props, __block) {
 	_$_.push_component();
 
-	let expanded = track(true, void 0, void 0, __block);
+	let expanded = _$_.track(true, void 0, void 0, __block);
 	var section_2 = root_38();
 
 	{

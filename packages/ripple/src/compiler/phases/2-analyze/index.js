@@ -239,7 +239,7 @@ const visitors = {
 		if (context.path.at(-1)?.type !== 'Program') {
 			// fatal since we don't have a transformation defined for this case
 			error(
-				'`#server` block can only be declared at the module level.',
+				'`#ripple.server` block can only be declared at the module level.',
 				context.state.analysis.module.filename,
 				node,
 			);
@@ -319,13 +319,13 @@ const visitors = {
 			context.state.metadata.tracking = true;
 		}
 
-		// Track #style.className or #style['className'] references
+		// Track #ripple.style.className or #ripple.style['className'] references
 		if (node.object.type === 'StyleIdentifier') {
 			const component = is_inside_component(context, true);
 
 			if (!component) {
 				error(
-					'`#style` can only be used within a component',
+					'`#ripple.style` can only be used within a component',
 					context.state.analysis.module.filename,
 					node,
 					context.state.loose ? context.state.analysis.errors : undefined,
@@ -339,19 +339,19 @@ const visitors = {
 			let className = null;
 
 			if (!node.computed && node.property.type === 'Identifier') {
-				// #style.test
+				// #ripple.style.test
 				className = node.property.name;
 			} else if (
 				node.computed &&
 				node.property.type === 'Literal' &&
 				typeof node.property.value === 'string'
 			) {
-				// #style['test']
+				// #ripple.style['test']
 				className = node.property.value;
 			} else {
-				// #style[expression] - dynamic, not allowed
+				// #ripple.style[expression] - dynamic, not allowed
 				error(
-					'`#style` property access must use a dot property or static string for css class name, not a dynamic expression',
+					'`#ripple.style` property access must use a dot property or static string for css class name, not a dynamic expression',
 					context.state.analysis.module.filename,
 					node.property,
 					context.state.loose ? context.state.analysis.errors : undefined,
@@ -1235,7 +1235,7 @@ const visitors = {
 							attr.value.object.type === 'StyleIdentifier'
 						) {
 							error(
-								'`#style` cannot be used directly on DOM elements. Pass the class to a child component instead.',
+								'`#ripple.style` cannot be used directly on DOM elements. Pass the class to a child component instead.',
 								state.analysis.module.filename,
 								attr.value.object,
 								context.state.loose ? context.state.analysis.errors : undefined,

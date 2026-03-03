@@ -1,5 +1,4 @@
 import { TrackedArray, TrackedMap } from 'ripple';
-
 describe('composite > generics', () => {
 	it('handles advanced generic ambiguity and edge cases', () => {
 		component App() {

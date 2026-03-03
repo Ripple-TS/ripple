@@ -1,9 +1,8 @@
-import { track, flushSync, get, set, effect, untrack } from 'ripple';
-
+import { flushSync, get, set, effect, untrack } from 'ripple';
 describe('basic client > get/set functions', () => {
 	it('gets tracked value', () => {
 		component Test() {
-			let count = track(0);
+			let count = #ripple.track(0);
 
 			<div>{get(count)}</div>
 		}
@@ -16,7 +15,7 @@ describe('basic client > get/set functions', () => {
 
 	it('gets tracked value after mutation', () => {
 		component Test() {
-			let count = track(0);
+			let count = #ripple.track(0);
 
 			<p>{get(count)}</p>
 			<button onClick={() => @count++}>{'increment'}</button>
@@ -36,7 +35,7 @@ describe('basic client > get/set functions', () => {
 
 	it('gets tracked value after multiple mutations', () => {
 		component Test() {
-			let count = track(0);
+			let count = #ripple.track(0);
 
 			<p>{get(count)}</p>
 			<button
@@ -64,7 +63,7 @@ describe('basic client > get/set functions', () => {
 
 	it('sets tracked value', () => {
 		component Test() {
-			let count = track(0);
+			let count = #ripple.track(0);
 
 			<p>{get(count)}</p>
 			<button onClick={() => set(count, 10)}>{'set to 10'}</button>
@@ -84,7 +83,7 @@ describe('basic client > get/set functions', () => {
 
 	it('sets tracked value multiple times', () => {
 		component Test() {
-			let count = track(0);
+			let count = #ripple.track(0);
 
 			<p>{get(count)}</p>
 			<button
@@ -112,7 +111,7 @@ describe('basic client > get/set functions', () => {
 
 	it('sets tracked value based on previous value', () => {
 		component Test() {
-			let count = track(0);
+			let count = #ripple.track(0);
 
 			<p>{get(count)}</p>
 			<button onClick={() => set(count, get(count) + 10)}>{'add 10'}</button>
@@ -138,7 +137,7 @@ describe('basic client > get/set functions', () => {
 
 	it('sets tracked value multiple times based on previous value', () => {
 		component Test() {
-			let count = track(0);
+			let count = #ripple.track(0);
 
 			<p>{get(count)}</p>
 			<button
@@ -172,7 +171,7 @@ describe('basic client > get/set functions', () => {
 
 	it('gets value declared outside Ripple component', () => {
 		function store() {
-			return track(0);
+			return #ripple.track(0);
 		}
 
 		component Test() {
@@ -188,7 +187,7 @@ describe('basic client > get/set functions', () => {
 
 	it('sets value declared outside Ripple component', () => {
 		function store() {
-			return track(0);
+			return #ripple.track(0);
 		}
 
 		component Test() {
@@ -212,8 +211,8 @@ describe('basic client > get/set functions', () => {
 
 	it('works with effects', () => {
 		component Test() {
-			let count = track(0);
-			let double = track(0);
+			let count = #ripple.track(0);
+			let double = #ripple.track(0);
 
 			effect(() => {
 				set(double, get(count) * 2);
@@ -242,8 +241,8 @@ describe('basic client > get/set functions', () => {
 
 	it('works with effects and untrack', () => {
 		component Test() {
-			let count = track(0);
-			let double = track(0);
+			let count = #ripple.track(0);
+			let double = #ripple.track(0);
 
 			effect(() => {
 				untrack(() => {
@@ -274,6 +273,6 @@ describe('basic client > get/set functions', () => {
 	});
 
 	it('throws on trying to create tracked Ripple component', () => {
-		expect(() => track(0)).toThrow();
+		expect(() => #ripple.track(0)).toThrow();
 	});
 });

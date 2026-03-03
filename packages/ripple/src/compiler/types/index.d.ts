@@ -13,7 +13,25 @@ interface BaseNodeMetaData {
 	scoped?: boolean;
 	path: AST.Node[];
 	has_template?: boolean;
-	source_name?: string | '#Map' | '#Set' | '#server' | '#style';
+	source_name?:
+		| string
+		| '#ripple.map'
+		| '#ripple.set'
+		| '#ripple.server'
+		| '#ripple.style'
+		| '#ripple.array'
+		| '#ripple.object'
+		| '#ripple.track'
+		| '#ripple.url'
+		| '#ripple.urlsearchparams'
+		| '#ripple.date'
+		| '#ripple.createSubscriber'
+		| '#ripple.defer'
+		| '#ripple.validate'
+		| '#ripple.context'
+		| '#ripple.trackSplit'
+		| '#ripple.async'
+		| '#ripple.validate';
 	is_capitalized?: boolean;
 	has_await?: boolean;
 	commentContainerId?: number;

@@ -187,20 +187,20 @@ function generateImportEdit(documentText, importName) {
  */
 const RIPPLE_SNIPPETS = [
 	{
-		label: '#[]',
+		label: '#ripple[]',
 		kind: CompletionItemKind.Snippet,
 		detail: 'Ripple Reactive Array Literal, shorthand for new TrackedArray',
 		documentation: 'Create a new Ripple Array Literal',
-		insertText: '#[${1}]',
+		insertText: '#ripple[${1}]',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-#-array-literal',
 	},
 	{
-		label: '#{}',
+		label: '#ripple{}',
 		kind: CompletionItemKind.Snippet,
 		detail: 'Ripple Reactive Object Literal, shorthand for new TrackedObject',
 		documentation: 'Create a new Ripple Object Literal',
-		insertText: '#{${1}}',
+		insertText: '#ripple{${1}}',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-#-object-literal',
 	},

@@ -25,8 +25,6 @@ var root_21 = _$_.template(`<div class="nobreak-2">NoBreak 2</div>`, 0);
 var root_22 = _$_.template(`<div class="nobreak-3">NoBreak 3</div>`, 0);
 var root_19 = _$_.template(`<button class="nobreak-toggle">Toggle</button><!>`, 1, 2);
 
-import { track } from 'ripple';
-
 export function SwitchStatic(__anchor, _, __block) {
 	_$_.push_component();
 
@@ -79,7 +77,7 @@ export function SwitchStatic(__anchor, _, __block) {
 export function SwitchReactive(__anchor, _, __block) {
 	_$_.push_component();
 
-	let status = track('a', void 0, void 0, __block);
+	let status = _$_.track('a', void 0, void 0, __block);
 	var fragment_3 = root_4();
 	var button_1 = _$_.first_child_frag(fragment_3);
 
@@ -175,7 +173,7 @@ export function SwitchFallthrough(__anchor, _, __block) {
 export function SwitchNumericLevels(__anchor, _, __block) {
 	_$_.push_component();
 
-	let level = track(1, void 0, void 0, __block);
+	let level = _$_.track(1, void 0, void 0, __block);
 	var fragment_8 = root_11();
 	var button_2 = _$_.first_child_frag(fragment_8);
 
@@ -230,7 +228,7 @@ export function SwitchNumericLevels(__anchor, _, __block) {
 export function SwitchBlockScoped(__anchor, _, __block) {
 	_$_.push_component();
 
-	let level = track(1, void 0, void 0, __block);
+	let level = _$_.track(1, void 0, void 0, __block);
 	var fragment_12 = root_15();
 	var button_3 = _$_.first_child_frag(fragment_12);
 
@@ -285,7 +283,7 @@ export function SwitchBlockScoped(__anchor, _, __block) {
 export function SwitchNoBreak(__anchor, _, __block) {
 	_$_.push_component();
 
-	let level = track(1, void 0, void 0, __block);
+	let level = _$_.track(1, void 0, void 0, __block);
 	var fragment_16 = root_19();
 	var button_4 = _$_.first_child_frag(fragment_16);
 

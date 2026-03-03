@@ -1,12 +1,11 @@
-import { track, effect, untrack, tick } from 'ripple';
-
+import { effect, untrack, tick } from 'ripple';
 describe('basic client > utilities', () => {
 	it('tick function', async () => {
 		let resolve: () => void;
 		const promise = new Promise<void>((res) => (resolve = res));
 
 		component Basic() {
-			let value = track(0);
+			let value = #ripple.track(0);
 			effect(() => {
 				untrack(() => {
 					@value++;

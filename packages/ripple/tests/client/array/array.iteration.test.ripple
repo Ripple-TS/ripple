@@ -1,10 +1,9 @@
-import { flushSync, track, effect, untrack, TrackedArray } from 'ripple';
-
+import { flushSync, effect, untrack, TrackedArray } from 'ripple';
 describe('TrackedArray > iteration', () => {
 	it('handles entries method with reactivity', () => {
 		component ArrayTest() {
 			let items = new TrackedArray('a', 'b', 'c');
-			let entries = track(() => Array.from(items.entries()));
+			let entries = #ripple.track(() => Array.from(items.entries()));
 
 			<button onClick={() => items.push('d')}>{'add item'}</button>
 			<pre>{JSON.stringify(items)}</pre>
@@ -32,7 +31,7 @@ describe('TrackedArray > iteration', () => {
 	it('handles keys method with reactivity', () => {
 		component ArrayTest() {
 			let items = new TrackedArray('a', 'b', 'c');
-			let keys = track(() => Array.from(items.keys()));
+			let keys = #ripple.track(() => Array.from(items.keys()));
 
 			<button onClick={() => items.push('d')}>{'add item'}</button>
 			<pre>{JSON.stringify(items)}</pre>
@@ -58,7 +57,7 @@ describe('TrackedArray > iteration', () => {
 	it('handles values method with reactivity', () => {
 		component ArrayTest() {
 			let items = new TrackedArray('a', 'b', 'c');
-			let values = track(() => Array.from(items.values()));
+			let values = #ripple.track(() => Array.from(items.values()));
 
 			<button onClick={() => items.push('d')}>{'add item'}</button>
 			<pre>{JSON.stringify(items)}</pre>
@@ -84,7 +83,7 @@ describe('TrackedArray > iteration', () => {
 	it('handles Symbol.iterator with reactivity', () => {
 		component ArrayTest() {
 			let items = new TrackedArray(1, 2, 3);
-			let sum = track(0);
+			let sum = #ripple.track(0);
 
 			effect(() => {
 				@sum = 0;

@@ -1,8 +1,6 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-import { track } from 'ripple/server';
-
 export function SwitchStatic(__output) {
 	_$_.push_component();
 
@@ -48,7 +46,7 @@ export function SwitchStatic(__output) {
 export function SwitchReactive(__output) {
 	_$_.push_component();
 
-	let status = track('a');
+	let status = _$_.track('a');
 
 	__output.push('<button');
 	__output.push(' class="toggle"');
@@ -133,7 +131,7 @@ export function SwitchFallthrough(__output) {
 export function SwitchNumericLevels(__output) {
 	_$_.push_component();
 
-	let level = track(1);
+	let level = _$_.track(1);
 
 	__output.push('<button');
 	__output.push(' class="level-toggle"');
@@ -185,7 +183,7 @@ export function SwitchNumericLevels(__output) {
 export function SwitchBlockScoped(__output) {
 	_$_.push_component();
 
-	let level = track(1);
+	let level = _$_.track(1);
 
 	__output.push('<button');
 	__output.push(' class="block-toggle"');
@@ -237,7 +235,7 @@ export function SwitchBlockScoped(__output) {
 export function SwitchNoBreak(__output) {
 	_$_.push_component();
 
-	let level = track(1);
+	let level = _$_.track(1);
 
 	__output.push('<button');
 	__output.push(' class="nobreak-toggle"');

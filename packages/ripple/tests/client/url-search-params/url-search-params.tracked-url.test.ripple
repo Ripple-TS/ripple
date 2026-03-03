@@ -1,9 +1,8 @@
-import { flushSync, TrackedURL } from 'ripple';
-
+import { flushSync } from 'ripple';
 describe('TrackedURLSearchParams > TrackedURL integration', () => {
 	it('integrates with TrackedURL', () => {
 		component URLTest() {
-			const url = new TrackedURL('https://example.com?foo=bar');
+			const url = #ripple.url('https://example.com?foo=bar');
 			const params = url.searchParams;
 
 			<button onClick={() => params.append('baz', 'qux')}>{'add param'}</button>
@@ -31,7 +30,7 @@ describe('TrackedURLSearchParams > TrackedURL integration', () => {
 
 	it('handles empty search string in URL', () => {
 		component URLTest() {
-			const url = new TrackedURL('https://example.com');
+			const url = #ripple.url('https://example.com');
 			const params = url.searchParams;
 
 			<button onClick={() => params.append('foo', 'bar')}>{'add first param'}</button>

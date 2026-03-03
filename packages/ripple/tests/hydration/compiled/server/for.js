@@ -1,8 +1,6 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-import { track } from 'ripple/server';
-
 export function StaticForLoop(__output) {
 	_$_.push_component();
 
@@ -100,7 +98,7 @@ export function KeyedForLoop(__output) {
 export function ReactiveForLoopAdd(__output) {
 	_$_.push_component();
 
-	let items = track(['A', 'B']);
+	let items = _$_.track(['A', 'B']);
 
 	__output.push('<button');
 	__output.push(' class="add"');
@@ -138,7 +136,7 @@ export function ReactiveForLoopAdd(__output) {
 export function ReactiveForLoopRemove(__output) {
 	_$_.push_component();
 
-	let items = track(['A', 'B', 'C']);
+	let items = _$_.track(['A', 'B', 'C']);
 
 	__output.push('<button');
 	__output.push(' class="remove"');
@@ -176,7 +174,7 @@ export function ReactiveForLoopRemove(__output) {
 export function ForLoopInteractive(__output) {
 	_$_.push_component();
 
-	let counts = track([0, 0, 0]);
+	let counts = _$_.track([0, 0, 0]);
 
 	__output.push('<div');
 	__output.push('>');
@@ -357,7 +355,7 @@ export function ForLoopComplexObjects(__output) {
 export function KeyedForLoopReorder(__output) {
 	_$_.push_component();
 
-	let items = track([
+	let items = _$_.track([
 		{ id: 1, name: 'First' },
 		{ id: 2, name: 'Second' },
 		{ id: 3, name: 'Third' }
@@ -400,7 +398,7 @@ export function KeyedForLoopReorder(__output) {
 export function KeyedForLoopUpdate(__output) {
 	_$_.push_component();
 
-	let items = track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }]);
+	let items = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }]);
 
 	__output.push('<button');
 	__output.push(' class="update"');
@@ -439,7 +437,7 @@ export function KeyedForLoopUpdate(__output) {
 export function ForLoopMixedOperations(__output) {
 	_$_.push_component();
 
-	let items = track(['A', 'B', 'C', 'D']);
+	let items = _$_.track(['A', 'B', 'C', 'D']);
 
 	__output.push('<button');
 	__output.push(' class="shuffle"');
@@ -478,8 +476,8 @@ export function ForLoopMixedOperations(__output) {
 export function ForLoopInsideIf(__output) {
 	_$_.push_component();
 
-	let showList = track(true);
-	let items = track(['X', 'Y', 'Z']);
+	let showList = _$_.track(true);
+	let items = _$_.track(['X', 'Y', 'Z']);
 
 	__output.push('<button');
 	__output.push(' class="toggle"');
@@ -533,7 +531,7 @@ export function ForLoopInsideIf(__output) {
 export function ForLoopEmptyToPopulated(__output) {
 	_$_.push_component();
 
-	let items = track([]);
+	let items = _$_.track([]);
 
 	__output.push('<button');
 	__output.push(' class="populate"');
@@ -572,7 +570,7 @@ export function ForLoopEmptyToPopulated(__output) {
 export function ForLoopPopulatedToEmpty(__output) {
 	_$_.push_component();
 
-	let items = track(['One', 'Two', 'Three']);
+	let items = _$_.track(['One', 'Two', 'Three']);
 
 	__output.push('<button');
 	__output.push(' class="clear"');
@@ -611,7 +609,7 @@ export function ForLoopPopulatedToEmpty(__output) {
 export function NestedForLoopReactive(__output) {
 	_$_.push_component();
 
-	let grid = track([[1, 2], [3, 4]]);
+	let grid = _$_.track([[1, 2], [3, 4]]);
 
 	__output.push('<button');
 	__output.push(' class="add-row"');
@@ -780,7 +778,7 @@ export function ForLoopDeeplyNested(__output) {
 export function ForLoopIndexUpdate(__output) {
 	_$_.push_component();
 
-	let items = track(['First', 'Second', 'Third']);
+	let items = _$_.track(['First', 'Second', 'Third']);
 
 	__output.push('<button');
 	__output.push(' class="prepend"');
@@ -822,7 +820,7 @@ export function ForLoopIndexUpdate(__output) {
 export function KeyedForLoopWithIndex(__output) {
 	_$_.push_component();
 
-	let items = track([
+	let items = _$_.track([
 		{ id: 'a', value: 'Alpha' },
 		{ id: 'b', value: 'Beta' },
 		{ id: 'c', value: 'Gamma' }
@@ -869,7 +867,7 @@ export function KeyedForLoopWithIndex(__output) {
 export function ForLoopWithSiblings(__output) {
 	_$_.push_component();
 
-	let items = track(['A', 'B']);
+	let items = _$_.track(['A', 'B']);
 
 	__output.push('<div');
 	__output.push(' class="wrapper"');
@@ -958,7 +956,7 @@ export function ForLoopItemState(__output) {
 function TodoItem(__output, props) {
 	_$_.push_component();
 
-	let done = track(false);
+	let done = _$_.track(false);
 
 	__output.push('<div');
 	__output.push(_$_.attr('class', `todo-${props.id}`));
@@ -1018,7 +1016,7 @@ export function ForLoopSingleItem(__output) {
 export function ForLoopAddAtBeginning(__output) {
 	_$_.push_component();
 
-	let items = track(['B', 'C']);
+	let items = _$_.track(['B', 'C']);
 
 	__output.push('<button');
 	__output.push(' class="prepend"');
@@ -1057,7 +1055,7 @@ export function ForLoopAddAtBeginning(__output) {
 export function ForLoopAddInMiddle(__output) {
 	_$_.push_component();
 
-	let items = track(['A', 'C']);
+	let items = _$_.track(['A', 'C']);
 
 	__output.push('<button');
 	__output.push(' class="insert"');
@@ -1096,7 +1094,7 @@ export function ForLoopAddInMiddle(__output) {
 export function ForLoopRemoveFromMiddle(__output) {
 	_$_.push_component();
 
-	let items = track(['A', 'B', 'C']);
+	let items = _$_.track(['A', 'B', 'C']);
 
 	__output.push('<button');
 	__output.push(' class="remove-middle"');
@@ -1169,7 +1167,7 @@ export function ForLoopLargeList(__output) {
 export function ForLoopSwap(__output) {
 	_$_.push_component();
 
-	let items = track(['A', 'B', 'C', 'D']);
+	let items = _$_.track(['A', 'B', 'C', 'D']);
 
 	__output.push('<button');
 	__output.push(' class="swap"');
@@ -1208,7 +1206,7 @@ export function ForLoopSwap(__output) {
 export function ForLoopReverse(__output) {
 	_$_.push_component();
 
-	let items = track(['A', 'B', 'C', 'D']);
+	let items = _$_.track(['A', 'B', 'C', 'D']);
 
 	__output.push('<button');
 	__output.push(' class="reverse"');

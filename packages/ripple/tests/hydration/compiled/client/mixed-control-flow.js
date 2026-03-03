@@ -28,8 +28,6 @@ var root_19 = _$_.template(`<!>`, 1, 1);
 var root_18 = _$_.template(`<div class="before">before</div><!>`, 1, 2);
 var root_25 = _$_.template(`<div class="resolved-row"> </div>`, 0);
 
-import { track } from 'ripple';
-
 export function MixedControlFlowStatic(__anchor, _, __block) {
 	_$_.push_component();
 
@@ -196,9 +194,9 @@ export function MixedControlFlowStatic(__anchor, _, __block) {
 export function MixedControlFlowReactive(__anchor, _, __block) {
 	_$_.push_component();
 
-	let show = track(true, void 0, void 0, __block);
-	let mode = track('a', void 0, void 0, __block);
-	let items = track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }], void 0, void 0, __block);
+	let show = _$_.track(true, void 0, void 0, __block);
+	let mode = _$_.track('a', void 0, void 0, __block);
+	let items = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }], void 0, void 0, __block);
 	var fragment_4 = root_9();
 	var button_1 = _$_.first_child_frag(fragment_4);
 

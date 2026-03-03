@@ -109,9 +109,9 @@ export component IntroductionPage() {
 			<li>
 				<strong>{'Reactive Objects'}</strong>
 				{': You can create fully reactive arrays/objects using shorthand syntax '}
-				<code>{'#[]'}</code>
+				<code>{'#ripple[]'}</code>
 				{' '}
-				<code>{'#{}'}</code>
+				<code>{'#ripple{}'}</code>
 			</li>
 			<li>
 				<strong>{'Component-Based Architecture'}</strong>

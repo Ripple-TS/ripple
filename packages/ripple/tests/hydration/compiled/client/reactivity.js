@@ -8,12 +8,10 @@ var root_3 = _$_.template(`<div class="sum"> </div>`, 0);
 var root_4 = _$_.template(`<div class="x"> </div><div class="y"> </div><div class="z"> </div>`, 1, 3);
 var root_5 = _$_.template(`<div class="name"> </div>`, 0);
 
-import { track } from 'ripple';
-
 export function TrackedState(__anchor, _, __block) {
 	_$_.push_component();
 
-	let count = track(0, void 0, void 0, __block);
+	let count = _$_.track(0, void 0, void 0, __block);
 	var div_1 = root();
 
 	{
@@ -33,7 +31,7 @@ export function TrackedState(__anchor, _, __block) {
 export function CounterWithInitial(__anchor, props, __block) {
 	_$_.push_component();
 
-	let count = track(props.initial, void 0, void 0, __block);
+	let count = _$_.track(props.initial, void 0, void 0, __block);
 	var div_2 = root_1();
 
 	{
@@ -68,8 +66,8 @@ export function CounterWrapper(__anchor, _, __block) {
 export function ComputedValues(__anchor, _, __block) {
 	_$_.push_component();
 
-	let a = track(2, void 0, void 0, __block);
-	let b = track(3, void 0, void 0, __block);
+	let a = _$_.track(2, void 0, void 0, __block);
+	let b = _$_.track(3, void 0, void 0, __block);
 	const sum = () => _$_.get(a) + _$_.get(b);
 	var div_3 = root_3();
 
@@ -90,9 +88,9 @@ export function ComputedValues(__anchor, _, __block) {
 export function MultipleTracked(__anchor, _, __block) {
 	_$_.push_component();
 
-	let x = track(10, void 0, void 0, __block);
-	let y = track(20, void 0, void 0, __block);
-	let z = track(30, void 0, void 0, __block);
+	let x = _$_.track(10, void 0, void 0, __block);
+	let y = _$_.track(20, void 0, void 0, __block);
+	let z = _$_.track(30, void 0, void 0, __block);
 	var fragment_1 = root_4();
 	var div_4 = _$_.first_child_frag(fragment_1);
 
@@ -150,8 +148,8 @@ export function MultipleTracked(__anchor, _, __block) {
 export function DerivedState(__anchor, _, __block) {
 	_$_.push_component();
 
-	let firstName = track('John', void 0, void 0, __block);
-	let lastName = track('Doe', void 0, void 0, __block);
+	let firstName = _$_.track('John', void 0, void 0, __block);
+	let lastName = _$_.track('Doe', void 0, void 0, __block);
 	const fullName = () => `${_$_.get(firstName)} ${_$_.get(lastName)}`;
 	var div_7 = root_5();
 

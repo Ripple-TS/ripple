@@ -1,5 +1,4 @@
-import { Portal, track, flushSync } from 'ripple';
-
+import { Portal, flushSync } from 'ripple';
 describe('Portal', () => {
 	afterEach(() => {
 		// Clean up any leftover portal content from document.body
@@ -46,7 +45,7 @@ describe('Portal', () => {
 
 	it('cleans up portal content when destroyed via conditional rendering', () => {
 		component TestPortal() {
-			let open = track(true);
+			let open = #ripple.track(true);
 
 			if (@open) {
 				<Portal target={document.body}>
@@ -72,7 +71,7 @@ describe('Portal', () => {
 
 	it('opens and closes portal via conditional rendering', () => {
 		component TestPortal() {
-			let open = track(false);
+			let open = #ripple.track(false);
 
 			if (@open) {
 				<Portal target={document.body}>
@@ -138,7 +137,7 @@ describe('Portal', () => {
 
 	it('handles portal with reactive content', () => {
 		component TestReactivePortal() {
-			let count = track(0);
+			let count = #ripple.track(0);
 
 			<Portal target={document.body}>
 				<div class="test-portal">

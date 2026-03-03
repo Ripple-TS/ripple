@@ -50,6 +50,8 @@ export {
 	update_pre,
 	update_property,
 	update_pre_property,
+	track,
+	track_split,
 	push_component,
 	pop_component,
 	untrack,
@@ -84,6 +86,18 @@ export { tracked_object } from '../../object.js';
 export { tracked_map } from '../../map.js';
 
 export { tracked_set } from '../../set.js';
+
+export { tracked_date } from '../../date.js';
+
+export { tracked_url } from '../../url.js';
+
+export { tracked_url_search_params } from '../../url-search-params.js';
+
+export { media_query } from '../../media-query.js';
+
+export { createSubscriber as create_subscriber } from '../../create-subscriber.js';
+
+export { context } from './context.js';
 
 export { head } from './head.js';
 

@@ -130,8 +130,6 @@ var root_121 = _$_.template(`<div class="middle">middle</div><section class="nes
 var root_127 = _$_.template(`<div class="root-1">root-1</div><div class="root-2">root-2</div><div class="root-3">root-3</div><div class="root-4">root-4</div>`, 1, 4);
 var root_119 = _$_.template(`<button class="toggle-c1">Toggle C1</button><button class="toggle-c2">Toggle C2</button><button class="toggle-c3">Toggle C3</button><button class="toggle-c4">Toggle C4</button><div class="top">top</div><!><!><!>`, 1, 8);
 
-import { track } from 'ripple';
-
 export function DirectReturn(__anchor, _, __block) {
 	_$_.push_component();
 
@@ -1170,7 +1168,7 @@ export function ReactiveReturnTrueToFalse(__anchor, _, __block) {
 	_$_.push_component();
 
 	var __r_28 = _$_.tracked(false);
-	let condition = track(true, void 0, void 0, __block);
+	let condition = _$_.track(true, void 0, void 0, __block);
 	var fragment_59 = root_77();
 	var button_1 = _$_.first_child_frag(fragment_59);
 
@@ -1215,7 +1213,7 @@ export function ReactiveReturnFalseToTrue(__anchor, _, __block) {
 	_$_.push_component();
 
 	var __r_29 = _$_.tracked(false);
-	let condition = track(false, void 0, void 0, __block);
+	let condition = _$_.track(false, void 0, void 0, __block);
 	var fragment_61 = root_80();
 	var button_2 = _$_.first_child_frag(fragment_61);
 
@@ -1261,7 +1259,7 @@ export function ReactiveNestedReturn(__anchor, _, __block) {
 
 	var __r_30 = _$_.tracked(false);
 	let a = true;
-	let b = track(true, void 0, void 0, __block);
+	let b = _$_.track(true, void 0, void 0, __block);
 	var fragment_63 = root_83();
 	var button_3 = _$_.first_child_frag(fragment_63);
 
@@ -1576,7 +1574,7 @@ export function ReactiveSiblingReturns(__anchor, _, __block) {
 
 	var __r_39 = _$_.tracked(false);
 	var __r_38 = _$_.tracked(false);
-	let mode = track('first', void 0, void 0, __block);
+	let mode = _$_.track('first', void 0, void 0, __block);
 	var fragment_82 = root_105();
 	var button_4 = _$_.first_child_frag(fragment_82);
 
@@ -1655,8 +1653,8 @@ export function ReactiveOuterInnerReturns(__anchor, _, __block) {
 	_$_.push_component();
 
 	var __r_40 = _$_.tracked(false);
-	let a = track(true, void 0, void 0, __block);
-	let b = track(true, void 0, void 0, __block);
+	let a = _$_.track(true, void 0, void 0, __block);
+	let b = _$_.track(true, void 0, void 0, __block);
 	var fragment_86 = root_110();
 	var button_5 = _$_.first_child_frag(fragment_86);
 
@@ -1734,7 +1732,7 @@ export function ReactiveElseIfReturns(__anchor, _, __block) {
 
 	var __r_42 = _$_.tracked(false);
 	var __r_41 = _$_.tracked(false);
-	let status = track(0, void 0, void 0, __block);
+	let status = _$_.track(0, void 0, void 0, __block);
 	var fragment_89 = root_114();
 	var button_7 = _$_.first_child_frag(fragment_89);
 
@@ -1808,10 +1806,10 @@ export function ReactiveDeepNestedIndependentReturns(__anchor, _, __block) {
 	var __r_45 = _$_.tracked(false);
 	var __r_44 = _$_.tracked(false);
 	var __r_43 = _$_.tracked(false);
-	let c1 = track(false, void 0, void 0, __block);
-	let c2 = track(false, void 0, void 0, __block);
-	let c3 = track(false, void 0, void 0, __block);
-	let c4 = track(false, void 0, void 0, __block);
+	let c1 = _$_.track(false, void 0, void 0, __block);
+	let c2 = _$_.track(false, void 0, void 0, __block);
+	let c3 = _$_.track(false, void 0, void 0, __block);
+	let c4 = _$_.track(false, void 0, void 0, __block);
 	var fragment_94 = root_119();
 	var button_8 = _$_.first_child_frag(fragment_94);
 

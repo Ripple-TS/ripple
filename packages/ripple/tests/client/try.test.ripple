@@ -1,5 +1,4 @@
-import { bindValue, flushSync, track, TrackedArray } from 'ripple';
-
+import { bindValue, flushSync, TrackedArray } from 'ripple';
 describe('try block with catch and pending', () => {
 	it('catch block works when component throws before await with pending block', async () => {
 		component App() {
@@ -88,7 +87,7 @@ describe('try block', () => {
 			}
 
 			component Child() {
-				let value = track(1);
+				let value = #ripple.track(1);
 				await Promise.resolve(@value + 1);
 
 				<input type="number" {ref bindValue(value)} />
@@ -140,7 +139,7 @@ describe('try block', () => {
 		'does not crash when async component with tracked state is used inside try/pending',
 		async () => {
 			component App() {
-				let query = track('');
+				let query = #ripple.track('');
 
 				try {
 					<FilteredList {query} />
@@ -152,7 +151,7 @@ describe('try block', () => {
 			component FilteredList({ query }: { query: any }) {
 				let items = await Promise.resolve(['apple', 'banana', 'cherry']);
 				let list = TrackedArray.from(items);
-				let filtered = track(() => list.filter((item: string) => item.includes(@query)));
+				let filtered = #ripple.track(() => list.filter((item: string) => item.includes(@query)));
 
 				<ul>
 					for (let item of @filtered) {

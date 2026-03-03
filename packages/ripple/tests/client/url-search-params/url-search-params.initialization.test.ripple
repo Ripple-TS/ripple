@@ -1,9 +1,8 @@
-import { TrackedURLSearchParams } from 'ripple';
 
 describe('TrackedURLSearchParams > initialization', () => {
 	it('creates empty URLSearchParams with reactivity', () => {
 		component URLTest() {
-			const params = new TrackedURLSearchParams();
+			const params = #ripple.urlSearchParams();
 
 			<pre>{params.toString()}</pre>
 			<pre>{params.size}</pre>
@@ -17,7 +16,7 @@ describe('TrackedURLSearchParams > initialization', () => {
 
 	it('creates URLSearchParams from string with reactivity', () => {
 		component URLTest() {
-			const params = new TrackedURLSearchParams('foo=bar&baz=qux');
+			const params = #ripple.urlSearchParams('foo=bar&baz=qux');
 
 			<pre>{params.toString()}</pre>
 			<pre>{params.size}</pre>
@@ -33,7 +32,7 @@ describe('TrackedURLSearchParams > initialization', () => {
 
 	it('creates URLSearchParams from object with reactivity', () => {
 		component URLTest() {
-			const params = new TrackedURLSearchParams({ foo: 'bar', baz: 'qux' });
+			const params = #ripple.urlSearchParams({ foo: 'bar', baz: 'qux' });
 
 			<pre>{params.toString()}</pre>
 			<pre>{params.size}</pre>
@@ -47,7 +46,7 @@ describe('TrackedURLSearchParams > initialization', () => {
 
 	it('handles URL-encoded characters correctly', () => {
 		component URLTest() {
-			const params = new TrackedURLSearchParams('name=John+Doe&email=john%40example.com');
+			const params = #ripple.urlSearchParams('name=John+Doe&email=john%40example.com');
 
 			<pre>{params.get('name')}</pre>
 			<pre>{params.get('email')}</pre>

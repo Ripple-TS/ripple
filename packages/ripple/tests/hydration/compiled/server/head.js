@@ -1,8 +1,6 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-import { track } from 'ripple/server';
-
 export function StaticTitle(__output) {
 	_$_.push_component();
 	__output.push('<div');
@@ -14,7 +12,7 @@ export function StaticTitle(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--qwqurq-->');
+	__output.push('<!--1m7ahkz-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -30,7 +28,7 @@ export function StaticTitle(__output) {
 export function ReactiveTitle(__output) {
 	_$_.push_component();
 
-	let title = track('Initial Title');
+	let title = _$_.track('Initial Title');
 
 	__output.push('<div');
 	__output.push('>');
@@ -48,7 +46,7 @@ export function ReactiveTitle(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--1h8nm28-->');
+	__output.push('<!--1fsfvw2-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -72,7 +70,7 @@ export function MultipleHeadElements(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--9v67ol-->');
+	__output.push('<!--1h0irbb-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -96,7 +94,7 @@ export function MultipleHeadElements(__output) {
 export function ReactiveMetaTags(__output) {
 	_$_.push_component();
 
-	let description = track('Initial description');
+	let description = _$_.track('Initial description');
 
 	__output.push('<div');
 	__output.push('>');
@@ -107,7 +105,7 @@ export function ReactiveMetaTags(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--166unm-->');
+	__output.push('<!--1lobsw5-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -127,7 +125,7 @@ export function ReactiveMetaTags(__output) {
 export function TitleWithTemplate(__output) {
 	_$_.push_component();
 
-	let name = track('World');
+	let name = _$_.track('World');
 
 	__output.push('<div');
 	__output.push('>');
@@ -138,7 +136,7 @@ export function TitleWithTemplate(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--3o3mh2-->');
+	__output.push('<!--1bk804b-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -162,7 +160,7 @@ export function EmptyTitle(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--kwo3k6-->');
+	__output.push('<!--seqjz3-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -178,8 +176,8 @@ export function EmptyTitle(__output) {
 export function ConditionalTitle(__output) {
 	_$_.push_component();
 
-	let showPrefix = track(true);
-	let title = track('Main Page');
+	let showPrefix = _$_.track(true);
+	let title = _$_.track('Main Page');
 
 	__output.push('<div');
 	__output.push('>');
@@ -190,7 +188,7 @@ export function ConditionalTitle(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--c2i5xr-->');
+	__output.push('<!--1vn62he-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -206,7 +204,7 @@ export function ConditionalTitle(__output) {
 export function ComputedTitle(__output) {
 	_$_.push_component();
 
-	let count = track(0);
+	let count = _$_.track(0);
 	let prefix = 'Count: ';
 
 	__output.push('<div');
@@ -225,7 +223,7 @@ export function ComputedTitle(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--1h2z3z5-->');
+	__output.push('<!--uneoow-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -249,7 +247,7 @@ export function MultipleHeadBlocks(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--14rv3le-->');
+	__output.push('<!--1uaduh0-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -258,7 +256,7 @@ export function MultipleHeadBlocks(__output) {
 	}
 
 	__output.push('</title>');
-	__output.push('<!--1eh1mn5-->');
+	__output.push('<!--sio0fk-->');
 	__output.push('<meta');
 	__output.push(' name="author"');
 	__output.push(' content="Test Author"');
@@ -278,7 +276,7 @@ export function HeadWithStyle(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--1dxk6yg-->');
+	__output.push('<!--unnqsm-->');
 	__output.push('<title');
 	__output.push('>');
 

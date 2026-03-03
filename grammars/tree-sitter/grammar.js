@@ -575,7 +575,7 @@ module.exports = grammar({
 				$.defer_block,
 			),
 
-		server_block: ($) => seq('#server', '{', repeat($.statement), '}'),
+		server_block: ($) => seq('#ripple.server', '{', repeat($.statement), '}'),
 
 		defer_block: ($) => seq('#defer', '{', repeat($.statement), '}'),
 
@@ -595,7 +595,7 @@ module.exports = grammar({
 
 		reactive_object: ($) =>
 			seq(
-				'#{',
+				'#ripple{',
 				commaSep(
 					choice(
 						$.pair,
@@ -610,7 +610,7 @@ module.exports = grammar({
 			),
 
 		reactive_array: ($) =>
-			seq('#[', commaSep(choice($.expression, $.spread_element)), optional(','), ']'),
+			seq('#ripple[', commaSep(choice($.expression, $.spread_element)), optional(','), ']'),
 
 		tracked_map_expression: ($) => seq('#Map', optional($.type_arguments), $.arguments),
 

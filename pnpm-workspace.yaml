@@ -37,7 +37,7 @@ catalogs:
     clsx: ^2.1.1
     commander: ^12.1.0
     degit: ^2.8.4
-    devalue: ^5.3.2
+    devalue: ^5.6.3
     eslint: ^9.0.0
     esm-env: ^1.2.2
     esrap: ^2.1.0

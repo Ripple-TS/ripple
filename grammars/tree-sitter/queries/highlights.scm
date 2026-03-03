@@ -1,7 +1,7 @@
 ; Keywords
 (component_declaration "component" @keyword)
 (fragment_declaration "fragment" @keyword)
-(server_block "#server" @keyword)
+(server_block "#ripple.server" @keyword)
 (defer_block "#defer" @keyword)
 
 ; Reserved identifiers

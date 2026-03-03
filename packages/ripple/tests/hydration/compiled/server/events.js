@@ -1,12 +1,10 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-import { track } from 'ripple/server';
-
 export function ClickCounter(__output) {
 	_$_.push_component();
 
-	let count = track(0);
+	let count = _$_.track(0);
 
 	__output.push('<div');
 	__output.push('>');
@@ -39,7 +37,7 @@ export function ClickCounter(__output) {
 export function IncrementDecrement(__output) {
 	_$_.push_component();
 
-	let count = track(0);
+	let count = _$_.track(0);
 
 	__output.push('<div');
 	__output.push('>');
@@ -81,8 +79,8 @@ export function IncrementDecrement(__output) {
 export function MultipleEvents(__output) {
 	_$_.push_component();
 
-	let clicks = track(0);
-	let hovers = track(0);
+	let clicks = _$_.track(0);
+	let hovers = _$_.track(0);
 
 	__output.push('<div');
 	__output.push('>');
@@ -124,8 +122,8 @@ export function MultipleEvents(__output) {
 export function MultiStateUpdate(__output) {
 	_$_.push_component();
 
-	let count = track(0);
-	let lastAction = track('none');
+	let count = _$_.track(0);
+	let lastAction = _$_.track('none');
 
 	const handleClick = () => {
 		_$_.update(count);
@@ -172,7 +170,7 @@ export function MultiStateUpdate(__output) {
 export function ToggleButton(__output) {
 	_$_.push_component();
 
-	let isOn = track(false);
+	let isOn = _$_.track(false);
 
 	__output.push('<div');
 	__output.push('>');
@@ -210,7 +208,7 @@ export function ChildButton(__output, props) {
 export function ParentWithChildButton(__output) {
 	_$_.push_component();
 
-	let count = track(0);
+	let count = _$_.track(0);
 
 	__output.push('<div');
 	__output.push('>');

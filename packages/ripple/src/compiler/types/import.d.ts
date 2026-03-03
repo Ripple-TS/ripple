@@ -38,6 +38,7 @@ import {
 	TrackedURLSearchParams as _$_URLSearchParams__Tracked,
 	TrackedDate as _$_Date__Tracked,
 	createRefKey as _$_RefKey__create,
+	track as _$_track__,
 } from 'ripple';
 
 export {
@@ -49,4 +50,5 @@ export {
 	_$_URLSearchParams__Tracked,
 	_$_Date__Tracked,
 	_$_RefKey__create,
+	_$_track__,
 };

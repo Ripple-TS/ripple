@@ -200,11 +200,11 @@ export class TrackedSet extends Set {
 }
 
 /**
- * @template V
+ * @template T
  * @param {Block} block
- * @param {...any} args
- * @returns {TrackedSet<V>}
+ * @param {Iterable<T>} [iterable]
+ * @returns {TrackedSet<T>}
  */
-export function tracked_set(block, ...args) {
-	return with_scope(block, () => new TrackedSet(...args));
+export function tracked_set(block, iterable) {
+	return with_scope(block, () => new TrackedSet(iterable));
 }

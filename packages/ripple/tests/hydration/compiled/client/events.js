@@ -9,12 +9,10 @@ var root_4 = _$_.template(`<div><button class="toggle"> </button></div>`, 0);
 var root_5 = _$_.template(`<button class="child-btn"> </button>`, 0);
 var root_6 = _$_.template(`<div><!><span class="count"> </span></div>`, 0);
 
-import { track } from 'ripple';
-
 export function ClickCounter(__anchor, _, __block) {
 	_$_.push_component();
 
-	let count = track(0, void 0, void 0, __block);
+	let count = _$_.track(0, void 0, void 0, __block);
 	var div_1 = root();
 
 	{
@@ -44,7 +42,7 @@ export function ClickCounter(__anchor, _, __block) {
 export function IncrementDecrement(__anchor, _, __block) {
 	_$_.push_component();
 
-	let count = track(0, void 0, void 0, __block);
+	let count = _$_.track(0, void 0, void 0, __block);
 	var div_2 = root_1();
 
 	{
@@ -80,8 +78,8 @@ export function IncrementDecrement(__anchor, _, __block) {
 export function MultipleEvents(__anchor, _, __block) {
 	_$_.push_component();
 
-	let clicks = track(0, void 0, void 0, __block);
-	let hovers = track(0, void 0, void 0, __block);
+	let clicks = _$_.track(0, void 0, void 0, __block);
+	let hovers = _$_.track(0, void 0, void 0, __block);
 	var div_3 = root_2();
 
 	{
@@ -136,8 +134,8 @@ export function MultipleEvents(__anchor, _, __block) {
 export function MultiStateUpdate(__anchor, _, __block) {
 	_$_.push_component();
 
-	let count = track(0, void 0, void 0, __block);
-	let lastAction = track('none', void 0, void 0, __block);
+	let count = _$_.track(0, void 0, void 0, __block);
+	let lastAction = _$_.track('none', void 0, void 0, __block);
 
 	const handleClick = () => {
 		_$_.update(count);
@@ -192,7 +190,7 @@ export function MultiStateUpdate(__anchor, _, __block) {
 export function ToggleButton(__anchor, _, __block) {
 	_$_.push_component();
 
-	let isOn = track(false, void 0, void 0, __block);
+	let isOn = _$_.track(false, void 0, void 0, __block);
 	var div_5 = root_4();
 
 	{
@@ -241,7 +239,7 @@ export function ChildButton(__anchor, props, __block) {
 export function ParentWithChildButton(__anchor, _, __block) {
 	_$_.push_component();
 
-	let count = track(0, void 0, void 0, __block);
+	let count = _$_.track(0, void 0, void 0, __block);
 	var div_6 = root_6();
 
 	{

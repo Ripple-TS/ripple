@@ -197,9 +197,9 @@ export class TrackedMap extends Map {
 /**
  * @template K, V
  * @param {Block} block
- * @param {...any} args
+ * @param {Iterable<readonly [K, V]>} [iterable]
  * @returns {TrackedMap<K, V>}
  */
-export function tracked_map(block, ...args) {
-	return with_scope(block, () => new TrackedMap(...args));
+export function tracked_map(block, iterable) {
+	return with_scope(block, () => new TrackedMap(iterable));
 }

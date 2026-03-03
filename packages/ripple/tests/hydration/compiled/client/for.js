@@ -64,8 +64,6 @@ var root_58 = _$_.template(`<button class="swap">Swap First and Last</button><ul
 var root_61 = _$_.template(`<li> </li>`, 0);
 var root_60 = _$_.template(`<button class="reverse">Reverse</button><ul></ul>`, 1, 2);
 
-import { track } from 'ripple';
-
 export function StaticForLoop(__anchor, _, __block) {
 	_$_.push_component();
 
@@ -177,7 +175,7 @@ export function KeyedForLoop(__anchor, _, __block) {
 export function ReactiveForLoopAdd(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = track(['A', 'B'], void 0, void 0, __block);
+	let items = _$_.track(['A', 'B'], void 0, void 0, __block);
 	var fragment = root_6();
 	var button_1 = _$_.first_child_frag(fragment);
 
@@ -217,7 +215,7 @@ export function ReactiveForLoopAdd(__anchor, _, __block) {
 export function ReactiveForLoopRemove(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = track(['A', 'B', 'C'], void 0, void 0, __block);
+	let items = _$_.track(['A', 'B', 'C'], void 0, void 0, __block);
 	var fragment_1 = root_8();
 	var button_2 = _$_.first_child_frag(fragment_1);
 
@@ -257,7 +255,7 @@ export function ReactiveForLoopRemove(__anchor, _, __block) {
 export function ForLoopInteractive(__anchor, _, __block) {
 	_$_.push_component();
 
-	let counts = track([0, 0, 0], void 0, void 0, __block);
+	let counts = _$_.track([0, 0, 0], void 0, void 0, __block);
 	var div_1 = root_10();
 
 	{
@@ -464,7 +462,7 @@ export function ForLoopComplexObjects(__anchor, _, __block) {
 export function KeyedForLoopReorder(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = track(
+	let items = _$_.track(
 		[
 			{ id: 1, name: 'First' },
 			{ id: 2, name: 'Second' },
@@ -531,7 +529,7 @@ export function KeyedForLoopReorder(__anchor, _, __block) {
 export function KeyedForLoopUpdate(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], void 0, void 0, __block);
+	let items = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], void 0, void 0, __block);
 	var fragment_3 = root_21();
 	var button_5 = _$_.first_child_frag(fragment_3);
 
@@ -588,7 +586,7 @@ export function KeyedForLoopUpdate(__anchor, _, __block) {
 export function ForLoopMixedOperations(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = track(['A', 'B', 'C', 'D'], void 0, void 0, __block);
+	let items = _$_.track(['A', 'B', 'C', 'D'], void 0, void 0, __block);
 	var fragment_4 = root_23();
 	var button_6 = _$_.first_child_frag(fragment_4);
 
@@ -630,8 +628,8 @@ export function ForLoopMixedOperations(__anchor, _, __block) {
 export function ForLoopInsideIf(__anchor, _, __block) {
 	_$_.push_component();
 
-	let showList = track(true, void 0, void 0, __block);
-	let items = track(['X', 'Y', 'Z'], void 0, void 0, __block);
+	let showList = _$_.track(true, void 0, void 0, __block);
+	let items = _$_.track(['X', 'Y', 'Z'], void 0, void 0, __block);
 	var fragment_5 = root_25();
 	var button_7 = _$_.first_child_frag(fragment_5);
 
@@ -688,7 +686,7 @@ export function ForLoopInsideIf(__anchor, _, __block) {
 export function ForLoopEmptyToPopulated(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = track([], void 0, void 0, __block);
+	let items = _$_.track([], void 0, void 0, __block);
 	var fragment_6 = root_28();
 	var button_9 = _$_.first_child_frag(fragment_6);
 
@@ -728,7 +726,7 @@ export function ForLoopEmptyToPopulated(__anchor, _, __block) {
 export function ForLoopPopulatedToEmpty(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = track(['One', 'Two', 'Three'], void 0, void 0, __block);
+	let items = _$_.track(['One', 'Two', 'Three'], void 0, void 0, __block);
 	var fragment_7 = root_30();
 	var button_10 = _$_.first_child_frag(fragment_7);
 
@@ -768,7 +766,7 @@ export function ForLoopPopulatedToEmpty(__anchor, _, __block) {
 export function NestedForLoopReactive(__anchor, _, __block) {
 	_$_.push_component();
 
-	let grid = track([[1, 2], [3, 4]], void 0, void 0, __block);
+	let grid = _$_.track([[1, 2], [3, 4]], void 0, void 0, __block);
 	var fragment_8 = root_32();
 	var button_11 = _$_.first_child_frag(fragment_8);
 
@@ -977,7 +975,7 @@ export function ForLoopDeeplyNested(__anchor, _, __block) {
 export function ForLoopIndexUpdate(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = track(['First', 'Second', 'Third'], void 0, void 0, __block);
+	let items = _$_.track(['First', 'Second', 'Third'], void 0, void 0, __block);
 	var fragment_9 = root_39();
 	var button_13 = _$_.first_child_frag(fragment_9);
 
@@ -1033,7 +1031,7 @@ export function ForLoopIndexUpdate(__anchor, _, __block) {
 export function KeyedForLoopWithIndex(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = track(
+	let items = _$_.track(
 		[
 			{ id: 'a', value: 'Alpha' },
 			{ id: 'b', value: 'Beta' },
@@ -1106,7 +1104,7 @@ export function KeyedForLoopWithIndex(__anchor, _, __block) {
 export function ForLoopWithSiblings(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = track(['A', 'B'], void 0, void 0, __block);
+	let items = _$_.track(['A', 'B'], void 0, void 0, __block);
 	var fragment_11 = root_43();
 	var div_13 = _$_.first_child_frag(fragment_11);
 
@@ -1197,7 +1195,7 @@ export function ForLoopItemState(__anchor, _, __block) {
 function TodoItem(__anchor, props, __block) {
 	_$_.push_component();
 
-	let done = track(false, void 0, void 0, __block);
+	let done = _$_.track(false, void 0, void 0, __block);
 	var div_16 = root_47();
 
 	{
@@ -1284,7 +1282,7 @@ export function ForLoopSingleItem(__anchor, _, __block) {
 export function ForLoopAddAtBeginning(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = track(['B', 'C'], void 0, void 0, __block);
+	let items = _$_.track(['B', 'C'], void 0, void 0, __block);
 	var fragment_13 = root_50();
 	var button_16 = _$_.first_child_frag(fragment_13);
 
@@ -1326,7 +1324,7 @@ export function ForLoopAddAtBeginning(__anchor, _, __block) {
 export function ForLoopAddInMiddle(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = track(['A', 'C'], void 0, void 0, __block);
+	let items = _$_.track(['A', 'C'], void 0, void 0, __block);
 	var fragment_14 = root_52();
 	var button_17 = _$_.first_child_frag(fragment_14);
 
@@ -1371,7 +1369,7 @@ export function ForLoopAddInMiddle(__anchor, _, __block) {
 export function ForLoopRemoveFromMiddle(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = track(['A', 'B', 'C'], void 0, void 0, __block);
+	let items = _$_.track(['A', 'B', 'C'], void 0, void 0, __block);
 	var fragment_15 = root_54();
 	var button_18 = _$_.first_child_frag(fragment_15);
 
@@ -1449,7 +1447,7 @@ export function ForLoopLargeList(__anchor, _, __block) {
 export function ForLoopSwap(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = track(['A', 'B', 'C', 'D'], void 0, void 0, __block);
+	let items = _$_.track(['A', 'B', 'C', 'D'], void 0, void 0, __block);
 	var fragment_16 = root_58();
 	var button_19 = _$_.first_child_frag(fragment_16);
 
@@ -1494,7 +1492,7 @@ export function ForLoopSwap(__anchor, _, __block) {
 export function ForLoopReverse(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = track(['A', 'B', 'C', 'D'], void 0, void 0, __block);
+	let items = _$_.track(['A', 'B', 'C', 'D'], void 0, void 0, __block);
 	var fragment_17 = root_60();
 	var button_20 = _$_.first_child_frag(fragment_17);
 

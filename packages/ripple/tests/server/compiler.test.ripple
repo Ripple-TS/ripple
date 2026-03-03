@@ -67,7 +67,7 @@ export component Layout(props) {
 describe('compiler server block tests', () => {
 	it('compiles server block with with only supported types', () => {
 		const source = `
-#server {
+#ripple.server {
 	function something() {
 		return 'unexported function';
 	}
@@ -105,7 +105,7 @@ describe('compiler server block tests', () => {
 
 	it('throws error for unsupported exported object pattern in server block', () => {
 		const source = `
-#server {
+#ripple.server {
 		const obj = { fn1: () => {}, fn2: () => {} };
 
 		export const { fn1, fn2 } = obj;
@@ -116,7 +116,7 @@ describe('compiler server block tests', () => {
 
 	it('throws error for unsupported exported array pattern in server block', () => {
 		const source = `
-#server {
+#ripple.server {
 		const arr = [() => {}, () => {}];
 
 		export const [fnarr1, fnarr2] = arr;
@@ -127,7 +127,7 @@ describe('compiler server block tests', () => {
 
 	it('throws error for unsupported exported member expression via object in server block', () => {
 		const source = `
-#server {
+#ripple.server {
 		const obj = { fn1: () => {}, fn2: () => {} };
 
 		export const objProp = obj.fn1;
@@ -138,7 +138,7 @@ describe('compiler server block tests', () => {
 
 	it('throws error for unsupported exported member expression via array in server block', () => {
 		const source = `
-#server {
+#ripple.server {
 		const arr = [() => {}, () => {}];
 
 		export const arrIndex0 = arr[0];

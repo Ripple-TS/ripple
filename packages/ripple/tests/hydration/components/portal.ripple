@@ -1,6 +1,5 @@
 // Portal components for hydration testing
 import { Portal } from 'ripple';
-
 // Simple portal with static content
 export component SimplePortal() {
 	<div class="container">

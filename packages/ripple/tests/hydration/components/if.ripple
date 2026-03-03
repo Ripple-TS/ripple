@@ -1,5 +1,4 @@
 // If block components for hydration testing
-import { track } from 'ripple';
 
 export component IfTruthy() {
 	const show = true;
@@ -25,7 +24,7 @@ export component IfElse() {
 }
 
 export component ReactiveIf() {
-	let show = track(true);
+	let show = #ripple.track(true);
 	<button
 		class="toggle"
 		onClick={() => {
@@ -40,7 +39,7 @@ export component ReactiveIf() {
 }
 
 export component ReactiveIfElse() {
-	let isOn = track(false);
+	let isOn = #ripple.track(false);
 	<button
 		class="toggle"
 		onClick={() => {
@@ -57,8 +56,8 @@ export component ReactiveIfElse() {
 }
 
 export component NestedIf() {
-	let outer = track(true);
-	let inner = track(true);
+	let outer = #ripple.track(true);
+	let inner = #ripple.track(true);
 	<button
 		class="outer-toggle"
 		onClick={() => {

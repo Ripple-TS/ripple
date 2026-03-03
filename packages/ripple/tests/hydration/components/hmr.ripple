@@ -3,7 +3,6 @@
 // that use if/for blocks. After hydration, hydrate_node can be left pointing
 // deep inside the layout's root element (from nested block processing), which
 // previously caused branch.s.end to be set incorrectly and target to be null.
-import { track } from 'ripple';
 
 // A layout component similar to docs-layout: a root div wrapping child components
 // where the children contain conditional content (if blocks)
@@ -18,7 +17,7 @@ export component Layout({ children }: { children: any }) {
 
 // A child component with an if block (the key source of deep hydrate_node)
 export component Content() {
-	let visible = track(true);
+	let visible = #ripple.track(true);
 
 	<div class="content">
 		if (@visible) {
