@@ -47,7 +47,10 @@ const rule: Rule.RuleModule = {
 				// Fallback: check source code for @ character as the first character
 				if (!isUnboxed) {
 					const sourceCode = (context as any).sourceCode ?? context.getSourceCode();
-					const firstChar = sourceCode.text.substring(Math.max(0, node.range![0] - 1), node.range![0]);
+					const firstChar = sourceCode.text.substring(
+						Math.max(0, node.range![0] - 1),
+						node.range![0],
+					);
 					isUnboxed = firstChar === '@';
 				}
 
