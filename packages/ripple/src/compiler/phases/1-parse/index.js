@@ -889,6 +889,15 @@ function RipplePlugin(config) {
 					return this.parseTrackedCollectionExpression(type);
 				}
 
+				// Check if this is #ripple.array( or #ripple.object(
+				if (this.type === tt.name && this.value === '#ripple.array') {
+					return this.parseTrackedArrayCallExpression();
+				}
+
+				if (this.type === tt.name && this.value === '#ripple.object') {
+					return this.parseTrackedObjectCallExpression();
+				}
+
 				if (this.type === tt.name && typeof this.value === 'string') {
 					const ripple_identifier_map = {
 						'#ripple.track': 'track',
@@ -899,8 +908,6 @@ function RipplePlugin(config) {
 						'#ripple.urlSearchParams': 'TrackedURLSearchParams',
 						'#ripple.mediaQuery': 'MediaQuery',
 						'#ripple.createSubscriber': 'createSubscriber',
-						'#ripple.array': 'TrackedArray',
-						'#ripple.object': 'TrackedObject',
 					};
 
 					const identifier_name =
@@ -1155,6 +1162,73 @@ function RipplePlugin(config) {
 						node.properties.push(this.parseProperty(false, new DestructuringErrors()));
 					}
 				}
+
+				return this.finishNode(node, 'TrackedObjectExpression');
+			}
+
+			/**
+			 * Parse `#ripple.array(...)` syntax - creates a TrackedArrayExpression
+			 * The arguments become the array elements
+			 * @returns {AST.TrackedArrayExpression}
+			 */
+			parseTrackedArrayCallExpression() {
+				const node = /** @type {AST.TrackedArrayExpression} */ (this.startNode());
+				this.next(); // consume '#ripple.array'
+
+				// Skip TypeScript type arguments like <T>
+				if (this.type === tt.relational && this.value === '<') {
+					this.tsParseTypeArguments();
+				}
+
+				this.expect(tt.parenL); // expect '('
+
+				node.elements = [];
+
+				let first = true;
+				while (!this.eat(tt.parenR)) {
+					if (!first) {
+						this.expect(tt.comma);
+						if (this.afterTrailingComma(tt.parenR)) break;
+					} else {
+						first = false;
+					}
+
+					if (this.type === tt.ellipsis) {
+						const arg = this.parseSpread();
+						node.elements.push(arg);
+					} else {
+						node.elements.push(this.parseMaybeAssign(false));
+					}
+				}
+
+				return this.finishNode(node, 'TrackedArrayExpression');
+			}
+
+			/**
+			 * Parse `#ripple.object(...)` syntax - creates a TrackedObjectExpression
+			 * Expects a single object literal argument
+			 * @returns {AST.TrackedObjectExpression}
+			 */
+			parseTrackedObjectCallExpression() {
+				const node = /** @type {AST.TrackedObjectExpression} */ (this.startNode());
+				this.next(); // consume '#ripple.object'
+
+				// Skip TypeScript type arguments like <T>
+				if (this.type === tt.relational && this.value === '<') {
+					this.tsParseTypeArguments();
+				}
+
+				this.expect(tt.parenL); // expect '('
+
+				node.properties = [];
+
+				// Parse the object literal argument
+				if (this.type === tt.braceL) {
+					const objLiteral = /** @type {AST.ObjectExpression} */ (this.parseObj(false));
+					node.properties = objLiteral.properties;
+				}
+
+				this.expect(tt.parenR); // expect ')'
 
 				return this.finishNode(node, 'TrackedObjectExpression');
 			}

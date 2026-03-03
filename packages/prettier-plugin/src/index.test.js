@@ -1294,15 +1294,22 @@ const set = #ripple.set([1, 2, 3]);`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should preserve #ripple.array and #ripple.object constructors', async () => {
-			const expected = `component App() {
+		it('should normalize #ripple.array and #ripple.object to bracket syntax', async () => {
+			const input = `component App() {
   let arr = #ripple.array(1, 2, 3);
   let obj = #ripple.object({ a: 1 });
 
   <div>{arr.length + obj.a}</div>
 }`;
 
-			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			const expected = `component App() {
+  let arr = #ripple[1, 2, 3];
+  let obj = #ripple{ a: 1 };
+
+  <div>{arr.length + obj.a}</div>
+}`;
+
+			const result = await format(input, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
 		});
 
