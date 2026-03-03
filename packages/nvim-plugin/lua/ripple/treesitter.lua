@@ -21,6 +21,8 @@ function add_ripple(plugin)
 		install_info = resolve_parser_install_info(plugin),
 		filetype = 'ripple',
 	}
+
+	vim.treesitter.language.register('ripple', 'ripple')
 end
 
 function M.setup(plugin)
