@@ -1416,6 +1416,10 @@ function printRippleNode(node, path, options, print, args) {
 			if (node.typeArguments) {
 				parts.push(path.call(print, 'typeArguments'));
 			}
+			// @ts-expect-error account for future changes as our acorn-typescript is buggy
+			else if (node.typeParameters) {
+				parts.push(path.call(print, 'typeParameters'));
+			}
 
 			const argsDoc = printCallArguments(path, options, print);
 			parts.push(argsDoc);
@@ -4108,6 +4112,11 @@ function printNewExpression(node, path, options, print) {
 
 	if (node.typeArguments) {
 		parts.push(path.call(print, 'typeArguments'));
+	}
+	// @ts-expect-error account for future changes as our acorn-typescript is buggy
+	else if (node.typeParameters) {
+		// @ts-expect-error
+		parts.push(path.call(print, 'typeParameters'));
 	}
 
 	if (node.arguments && node.arguments.length > 0) {
