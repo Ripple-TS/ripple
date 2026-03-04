@@ -1,6 +1,7 @@
 const { defineConfig } = require('tsdown');
 
 module.exports = defineConfig({
+	inlineOnly: false,
 	entry: ['src/index.js'],
 	format: ['cjs'],
 	platform: 'node',

@@ -1,6 +1,7 @@
 import { defineConfig } from 'tsdown';
 
 export default defineConfig({
+	inlineOnly: false,
 	entry: 'src/index.ts',
 	format: ['esm'],
 	dts: true,
