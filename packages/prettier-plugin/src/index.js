@@ -120,7 +120,7 @@ export const parsers = {
 export const printers = {
 	'ripple-ast': {
 		/**
-		 * @param {AstPath} path
+		 * @param {AstPath<AST.Node | AST.CSS.StyleSheet>} path
 		 * @param {RippleFormatOptions} options
 		 * @param {PrintFn} print
 		 * @param {PrintArgs} [args]
@@ -138,7 +138,7 @@ export const printers = {
 			return typeof parts === 'string' ? parts : parts;
 		},
 		/**
-		 * @param {AstPath} path
+		 * @param {AstPath<AST.Node | AST.CSS.StyleSheet>} path
 		 * @returns {((textToDoc: (text: string, options: object) => Promise<Doc>) => Promise<Doc>) | null}
 		 */
 		embed(path) {
@@ -297,12 +297,12 @@ function getFunctionParameters(node) {
 /**
  * Iterate over function parameters with path callbacks.
  * TypeScript/Ripple functions can have additional `this` and `rest` parameters.
- * @param {AstPath<AST.FunctionExpression | AST.Component>} path - The function path
- * @param {(paramPath: AstPath<AST.FunctionExpression | AST.Component>, index: number) => void} iteratee - Callback for each parameter
+ * @param {AstPath<AST.FunctionExpression | AST.ArrowFunctionExpression | AST.TSDeclareFunction | AST.FunctionDeclaration | AST.Component>} path - The function path
+ * @param {(paramPath: AstPath<AST.FunctionExpression | AST.ArrowFunctionExpression | AST.TSDeclareFunction | AST.FunctionDeclaration | AST.Component>, index: number) => void} iteratee - Callback for each parameter
  * @returns {void}
  */
 function iterateFunctionParametersPath(path, iteratee) {
-	/** @type {AST.FunctionExpression | AST.Component} */
+	/** @type {AST.FunctionExpression | AST.ArrowFunctionExpression | AST.TSDeclareFunction | AST.FunctionDeclaration | AST.Component} */
 	const node = path.node;
 	let index = 0;
 	/** @type {(paramPath: AstPath) => void} */
@@ -702,7 +702,7 @@ function buildInlineArrayCommentDoc(comments) {
 /**
  * Print an object or method key
  * @param {AST.Property | AST.MethodDefinition} node - The property or method node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.Property | AST.MethodDefinition>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -2323,7 +2323,7 @@ function printRippleNode(node, path, options, print, args) {
 /**
  * Print an import declaration
  * @param {AST.ImportDeclaration} node - The import declaration node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.ImportDeclaration>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} _print - Print callback (unused)
  * @returns {Doc[]}
@@ -2613,7 +2613,7 @@ function printComponent(
 /**
  * Print a variable declaration
  * @param {AST.VariableDeclaration} node - The variable declaration node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.VariableDeclaration>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
@@ -2624,7 +2624,7 @@ function printVariableDeclaration(node, path, options, print) {
 	// Don't add semicolon ONLY if this is part of a for loop header
 	// - ForStatement: the init part
 	// - ForOfStatement: the left part
-	const parentNode = path.getParentNode();
+	const parentNode = /** @type {AST.Node | null} */ (path.getParentNode());
 	const isForLoopInit =
 		(parentNode && parentNode.type === 'ForStatement' && parentNode.init === node) ||
 		(parentNode && parentNode.type === 'ForOfStatement' && parentNode.left === node) ||
@@ -2703,7 +2703,7 @@ function printFunctionExpression(node, path, options, print) {
 /**
  * Print an arrow function expression
  * @param {AST.ArrowFunctionExpression} node - The arrow function node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.ArrowFunctionExpression>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
@@ -2814,7 +2814,7 @@ function shouldHugTheOnlyFunctionParameter(node) {
 
 /**
  * Print function parameters with proper formatting
- * @param {AstPath<AST.FunctionExpression | AST.Component>} path - The function path
+ * @param {AstPath<AST.FunctionExpression | AST.ArrowFunctionExpression | AST.TSDeclareFunction | AST.FunctionDeclaration | AST.Component>} path - The function path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -3179,7 +3179,7 @@ function printCallArguments(path, options, print) {
  * Print TSDeclareFunction (TypeScript function overload declaration)
  * These are function signatures without bodies, ending with semicolon
  * @param {AST.TSDeclareFunction} node - The TS function declaration node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TSDeclareFunction>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -3239,7 +3239,7 @@ function printTSDeclareFunction(node, path, options, print) {
 /**
  * Print a function declaration
  * @param {AST.FunctionDeclaration} node - The function declaration node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.FunctionDeclaration>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -3335,7 +3335,7 @@ function extractAndPrintLeadingComments(node) {
 /**
  * Print an if statement
  * @param {AST.IfStatement} node - The if statement node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.IfStatement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -3394,7 +3394,7 @@ function printIfStatement(node, path, options, print) {
 /**
  * Print a for-in statement
  * @param {AST.ForInStatement} node - The for-in statement node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.ForInStatement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -3416,7 +3416,7 @@ function printForInStatement(node, path, options, print) {
 /**
  * Print a for-of statement (with Ripple index/key extensions)
  * @param {AST.ForOfStatement} node - The for-of statement node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.ForOfStatement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -3449,7 +3449,7 @@ function printForOfStatement(node, path, options, print) {
 /**
  * Print a for statement
  * @param {AST.ForStatement} node - The for statement node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.ForStatement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -3487,7 +3487,7 @@ function printForStatement(node, path, options, print) {
 /**
  * Print a while statement
  * @param {AST.WhileStatement} node - The while statement node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.WhileStatement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -3516,7 +3516,7 @@ function printWhileStatement(node, path, options, print) {
 /**
  * Print a do-while statement
  * @param {AST.DoWhileStatement} node - The do-while statement node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.DoWhileStatement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -3553,7 +3553,7 @@ function printDoWhileStatement(node, path, options, print) {
 /**
  * Print an object expression (or TrackedObjectExpression)
  * @param {AST.ObjectExpression | AST.TrackedObjectExpression} node - The object expression node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.ObjectExpression | AST.TrackedObjectExpression>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @param {PrintArgs} [args] - Additional context arguments
@@ -3707,7 +3707,7 @@ function printObjectExpression(node, path, options, print, args) {
 /**
  * Print a class declaration
  * @param {AST.ClassDeclaration | AST.ClassExpression} node - The class node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.ClassDeclaration | AST.ClassExpression>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -3747,7 +3747,7 @@ function printClassDeclaration(node, path, options, print) {
 /**
  * Print a try statement (with Ripple pending block extension)
  * @param {AST.TryStatement} node - The try statement node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TryStatement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -3798,7 +3798,7 @@ function printTryStatement(node, path, options, print) {
 /**
  * Print a class body
  * @param {AST.ClassBody} node - The class body node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.ClassBody>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
@@ -3831,7 +3831,7 @@ function printClassBody(node, path, options, print) {
 /**
  * Print a class property definition
  * @param {AST.PropertyDefinition} node - The property definition node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.PropertyDefinition>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
@@ -3884,7 +3884,7 @@ function printPropertyDefinition(node, path, options, print) {
 /**
  * Print a method definition
  * @param {AST.MethodDefinition} node - The method definition node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.MethodDefinition>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
@@ -3985,7 +3985,7 @@ function printMethodDefinition(node, path, options, print) {
 /**
  * Print a member expression (object.property or object[property])
  * @param {AST.MemberExpression} node - The member expression node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.MemberExpression>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
@@ -4030,7 +4030,7 @@ function printMemberExpression(node, path, options, print) {
 /**
  * Print a unary expression
  * @param {AST.UnaryExpression} node - The unary expression node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.UnaryExpression>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -4070,7 +4070,7 @@ function printUnaryExpression(node, path, options, print) {
 /**
  * Print a yield expression
  * @param {AST.YieldExpression} node - The yield expression node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.YieldExpression>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -4095,7 +4095,7 @@ function printYieldExpression(node, path, options, print) {
 /**
  * Print a new expression
  * @param {AST.NewExpression} node - The new expression node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.NewExpression>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -4128,7 +4128,7 @@ function printNewExpression(node, path, options, print) {
 /**
  * Print a template literal
  * @param {AST.TemplateLiteral} node - The template literal node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TemplateLiteral>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -4174,7 +4174,7 @@ function printTemplateLiteral(node, path, options, print) {
 /**
  * Print a tagged template expression
  * @param {AST.TaggedTemplateExpression} node - The tagged template node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TaggedTemplateExpression>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -4190,7 +4190,7 @@ function printTaggedTemplateExpression(node, path, options, print) {
 /**
  * Print a throw statement
  * @param {AST.ThrowStatement} node - The throw statement node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.ThrowStatement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -4207,7 +4207,7 @@ function printThrowStatement(node, path, options, print) {
 /**
  * Print a TypeScript interface declaration
  * @param {AST.TSInterfaceDeclaration} node - The interface declaration node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TSInterfaceDeclaration>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -4238,7 +4238,7 @@ function printTSInterfaceDeclaration(node, path, options, print) {
 /**
  * Print a TypeScript interface body
  * @param {AST.TSInterfaceBody} node - The interface body node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TSInterfaceBody>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
@@ -4259,7 +4259,7 @@ function printTSInterfaceBody(node, path, options, print) {
 /**
  * Print a TypeScript type alias declaration
  * @param {AST.TSTypeAliasDeclaration} node - The type alias node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TSTypeAliasDeclaration>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -4284,7 +4284,7 @@ function printTSTypeAliasDeclaration(node, path, options, print) {
 /**
  * Print a TypeScript enum declaration
  * @param {AST.TSEnumDeclaration} node - The enum declaration node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TSEnumDeclaration>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -4334,7 +4334,7 @@ function printTSEnumDeclaration(node, path, options, print) {
 /**
  * Print a TypeScript enum member
  * @param {AST.TSEnumMember} node - The enum member node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TSEnumMember>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -4363,7 +4363,7 @@ function printTSEnumMember(node, path, options, print) {
 /**
  * Print TypeScript type parameter declaration (<T, U extends V>)
  * @param {AST.TSTypeParameterDeclaration} node - The type parameter declaration node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TSTypeParameterDeclaration>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[] | Doc}
@@ -4390,7 +4390,7 @@ function printTSTypeParameterDeclaration(node, path, options, print) {
 /**
  * Print a single TypeScript type parameter
  * @param {AST.TSTypeParameter} node - The type parameter node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TSTypeParameter>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -4416,7 +4416,7 @@ function printTSTypeParameter(node, path, options, print) {
 /**
  * Print TypeScript type parameter instantiation (<string, number>)
  * @param {AST.TSTypeParameterInstantiation} node - The type parameter instantiation node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TSTypeParameterInstantiation>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
@@ -4465,7 +4465,7 @@ function printTSTypeParameterInstantiation(node, path, options, print) {
 /**
  * Print a switch statement
  * @param {AST.SwitchStatement} node - The switch statement node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.SwitchStatement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -4510,7 +4510,7 @@ function printSwitchStatement(node, path, options, print) {
 /**
  * Print a switch case
  * @param {AST.SwitchCase} node - The switch case node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.SwitchCase>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
@@ -4584,7 +4584,7 @@ function printSwitchCase(node, path, options, print) {
 /**
  * Print a break statement
  * @param {AST.BreakStatement} node - The break statement node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.BreakStatement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -4604,7 +4604,7 @@ function printBreakStatement(node, path, options, print) {
 /**
  * Print a continue statement
  * @param {AST.ContinueStatement} node - The continue statement node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.ContinueStatement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -4624,7 +4624,7 @@ function printContinueStatement(node, path, options, print) {
 /**
  * Print a debugger statement
  * @param {AST.DebuggerStatement} node - The debugger statement node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.DebuggerStatement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @returns {string}
  */
@@ -4635,7 +4635,7 @@ function printDebuggerStatement(node, path, options) {
 /**
  * Print a sequence expression
  * @param {AST.SequenceExpression} node - The sequence expression node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.SequenceExpression>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -4740,7 +4740,7 @@ function shouldAddBlankLine(currentNode, nextNode) {
 /**
  * Print an object pattern (destructuring)
  * @param {AST.ObjectPattern} node - The object pattern node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.ObjectPattern>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
@@ -4819,7 +4819,7 @@ function printObjectPattern(node, path, options, print) {
 /**
  * Print an array pattern (destructuring)
  * @param {AST.ArrayPattern} node - The array pattern node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.ArrayPattern>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -4846,7 +4846,7 @@ function printArrayPattern(node, path, options, print) {
 /**
  * Print a property (object property or method)
  * @param {AST.Property} node - The property node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.Property>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[] | Doc}
@@ -4875,7 +4875,12 @@ function printProperty(node, path, options, print) {
 
 		// Print parameters by calling into the value path
 		const paramsPart = path.call(
-			(valuePath) => printFunctionParameters(valuePath, options, print),
+			(valuePath) =>
+				printFunctionParameters(
+					/** @type {Parameters<typeof printFunctionParameters>[0]} */ (valuePath),
+					options,
+					print,
+				),
 			'value',
 		);
 		methodParts.push(group(paramsPart));
@@ -4923,7 +4928,12 @@ function printProperty(node, path, options, print) {
 
 		// Print parameters by calling into the value path
 		const paramsPart = path.call(
-			(valuePath) => printFunctionParameters(valuePath, options, print),
+			(valuePath) =>
+				printFunctionParameters(
+					/** @type {Parameters<typeof printFunctionParameters>[0]} */ (valuePath),
+					options,
+					print,
+				),
 			'value',
 		);
 		methodParts.push(group(paramsPart));
@@ -4949,7 +4959,7 @@ function printProperty(node, path, options, print) {
 /**
  * Print a variable declarator
  * @param {AST.VariableDeclarator} node - The variable declarator node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.VariableDeclarator>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
@@ -5069,7 +5079,7 @@ function printVariableDeclarator(node, path, options, print) {
 /**
  * Print an assignment pattern (default parameter)
  * @param {AST.AssignmentPattern} node - The assignment pattern node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.AssignmentPattern>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
@@ -5082,7 +5092,7 @@ function printAssignmentPattern(node, path, options, print) {
 /**
  * Print a TypeScript type literal
  * @param {AST.TSTypeLiteral} node - The type literal node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TSTypeLiteral>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
@@ -5115,7 +5125,7 @@ function printTSTypeLiteral(node, path, options, print) {
 /**
  * Print a TypeScript property signature in an interface
  * @param {AST.TSPropertySignature} node - The property signature node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TSPropertySignature>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -5140,7 +5150,7 @@ function printTSPropertySignature(node, path, options, print) {
 /**
  * Print a TypeScript method signature in an interface
  * @param {AST.TSMethodSignature} node - The method signature node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TSMethodSignature>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -5190,7 +5200,7 @@ function printTSMethodSignature(node, path, options, print) {
 /**
  * Print a TypeScript type reference (e.g., Array<string>)
  * @param {AST.TSTypeReference} node - The type reference node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TSTypeReference>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -5212,6 +5222,7 @@ function printTSTypeReference(node, path, options, print) {
 		// we normalize it in the analyze phase, but here we get the parser ast
 	} else if (node.typeParameters) {
 		parts.push('<');
+		// @ts-expect-error - acorn-typescript uses typeParameters instead of typeArguments
 		const typeParams = path.map(print, 'typeParameters', 'params');
 		for (let i = 0; i < typeParams.length; i++) {
 			if (i > 0) parts.push(', ');
@@ -5226,7 +5237,7 @@ function printTSTypeReference(node, path, options, print) {
 /**
  * Print a TypeScript tuple type
  * @param {AST.TSTupleType} node - The tuple type node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TSTupleType>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -5246,7 +5257,7 @@ function printTSTupleType(node, path, options, print) {
 /**
  * Print a TypeScript index signature
  * @param {AST.TSIndexSignature} node - The index signature node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TSIndexSignature>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -5277,7 +5288,7 @@ function printTSIndexSignature(node, path, options, print) {
 /**
  * Print a TypeScript constructor type
  * @param {AST.TSConstructorType} node - The constructor type node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TSConstructorType>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -5308,7 +5319,7 @@ function printTSConstructorType(node, path, options, print) {
 /**
  * Print a TypeScript conditional type
  * @param {AST.TSConditionalType} node - The conditional type node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TSConditionalType>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -5329,7 +5340,7 @@ function printTSConditionalType(node, path, options, print) {
 /**
  * Print a TypeScript mapped type
  * @param {AST.TSMappedType} node - The mapped type node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TSMappedType>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[] | Doc}
@@ -5372,7 +5383,7 @@ function printTSMappedType(node, path, options, print) {
 
 /**
  * @param {AST.TSQualifiedName} node
- * @param {AstPath} path
+ * @param {AstPath<AST.TSQualifiedName>} path
  * @param {RippleFormatOptions} options
  * @param {PrintFn} print
  * @returns {Doc}
@@ -5383,7 +5394,7 @@ function printTSQualifiedName(node, path, options, print) {
 
 /**
  * @param {AST.TSIndexedAccessType} node
- * @param {AstPath} path
+ * @param {AstPath<AST.TSIndexedAccessType>} path
  * @param {RippleFormatOptions} options
  * @param {PrintFn} print
  * @returns {Doc}
@@ -5497,7 +5508,7 @@ function createElementLevelCommentPartsTrimmed(comments) {
 /**
  * Print a TSX compatibility node
  * @param {AST.TsxCompat} node - The TSX compat node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.TsxCompat>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
@@ -5578,7 +5589,7 @@ function printTsxCompat(node, path, options, print) {
 /**
  * Print a JSX element
  * @param {ESTreeJSX.JSXElement} node - The JSX element node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<ESTreeJSX.JSXElement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc | Doc[]}
@@ -5612,7 +5623,13 @@ function printJSXElement(node, path, options, print) {
 			(/** @type {AST.Node} */ attr, /** @type {number} */ i) => {
 				if (attr.type === 'JSXAttribute') {
 					return path.call(
-						(attrPath) => printJSXAttribute(attrPath.node, attrPath, options, print),
+						(attrPath) =>
+							printJSXAttribute(
+								/** @type {ESTreeJSX.JSXAttribute} */ (attrPath.node),
+								/** @type {AstPath<ESTreeJSX.JSXAttribute>} */ (attrPath),
+								options,
+								print,
+							),
 						'openingElement',
 						'attributes',
 						i,
@@ -5704,7 +5721,7 @@ function printJSXElement(node, path, options, print) {
 /**
  * Print a JSX fragment (<>...</>)
  * @param {ESTreeJSX.JSXFragment} node - The JSX fragment node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<ESTreeJSX.JSXFragment>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
@@ -5757,7 +5774,7 @@ function printJSXFragment(node, path, options, print) {
 /**
  * Print a JSX attribute
  * @param {ESTreeJSX.JSXAttribute} attr - The JSX attribute node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<ESTreeJSX.JSXAttribute>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc | Doc[]}
@@ -5847,7 +5864,7 @@ function printMemberExpressionSimple(node, options, computed = false) {
 /**
  * Print a Ripple Element node
  * @param {AST.Element} element - The element node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.Element>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
@@ -6247,7 +6264,7 @@ function printElement(element, path, options, print) {
 /**
  * Print a Ripple attribute node
  * @param {AST.Attribute} node - The attribute node
- * @param {AstPath} path - The AST path
+ * @param {AstPath<AST.Attribute>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}

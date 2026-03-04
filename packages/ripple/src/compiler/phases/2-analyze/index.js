@@ -834,7 +834,7 @@ const visitors = {
 	},
 
 	TSTypeReference(node, context) {
-		// bug in our acorn pasrer: it uses typeParameters instead of typeArguments
+		// bug in our acorn parser: it uses typeParameters instead of typeArguments
 		// @ts-expect-error
 		if (node.typeParameters) {
 			// @ts-expect-error
