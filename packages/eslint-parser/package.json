@@ -3,7 +3,7 @@
   "version": "0.2.216",
   "description": "ESLint parser for Ripple (.ripple files)",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/index",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Ripple-TS/ripple.git",
@@ -17,7 +17,7 @@
     "access": "public"
   },
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/index"
   },
   "files": [
     "dist"

@@ -10,4 +10,9 @@ export default defineConfig({
 	outputOptions: {
 		legalComments: 'inline',
 	},
+	clean: true,
+	noExternal: /.+/,
+	platform: 'node',
+	target: 'node20',
+	outDir: 'dist',
 });
