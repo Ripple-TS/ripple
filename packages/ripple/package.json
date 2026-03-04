@@ -44,6 +44,9 @@
     "./types/estree-jsx": {
       "types": "./src/compiler/types/estree-jsx.d.ts"
     },
+    "./types/acorn": {
+      "types": "./src/compiler/types/acorn.d.ts"
+    },
     "./compiler/internal/import": {
       "types": "./src/compiler/types/import.d.ts"
     },

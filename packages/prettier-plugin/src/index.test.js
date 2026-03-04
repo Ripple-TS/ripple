@@ -2209,6 +2209,15 @@ component Child({ something }) {
 			const result = await format(expected);
 			expect(result).toBeWithNewline(expected);
 		});
+
+		it('prints function with a rest parameter correctly', async () => {
+			const expected = `function TestRest(...args: string[]) {
+  console.log(args);
+}`;
+
+			const result = await format(expected);
+			expect(result).toBeWithNewline(expected);
+		});
 	});
 
 	describe('edge cases', () => {

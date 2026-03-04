@@ -64,8 +64,16 @@ declare module 'estree' {
 		metadata: FunctionMetaData;
 	}
 
+	type Accessibility = 'public' | 'protected' | 'private'; // missing in acorn-typescript types
 	interface MethodDefinition {
 		typeParameters?: TSTypeParameterDeclaration;
+		accessibility?: Accessibility;
+	}
+
+	interface PropertyDefinition {
+		accessibility?: Accessibility;
+		readonly?: boolean;
+		optional?: boolean;
 	}
 
 	interface ClassDeclaration {
@@ -85,6 +93,9 @@ declare module 'estree' {
 			// needed for volar tokens to recognize component functions
 			is_component?: boolean;
 		};
+		typeAnnotation?: TSTypeAnnotation | undefined;
+		decorators: TSESTree.Decorator[];
+		optional: boolean;
 	}
 
 	// We mark the whole node as marked when member is @[expression]
@@ -313,7 +324,6 @@ declare module 'estree' {
 		};
 	}
 
-	// ScriptContent is only used by Prettier currently
 	interface ScriptContent extends Omit<AST.Element, 'type'> {
 		type: 'ScriptContent';
 		content: string;
@@ -728,7 +738,6 @@ declare module 'estree' {
 	interface TSArrayType extends Omit<AcornTSNode<TSESTree.TSArrayType>, 'elementType'> {
 		elementType: TypeNode;
 	}
-	interface Identifier extends AcornTSNode<TSESTree.Identifier> {}
 	interface TSAsExpression extends Omit<AcornTSNode<TSESTree.TSAsExpression>, 'typeAnnotation'> {
 		// Have to override it to use our Expression for required properties like metadata
 		expression: AST.Expression;
@@ -977,7 +986,7 @@ declare module 'estree' {
 	> {
 		constraint: TypeNode | undefined;
 		default: TypeNode | undefined;
-		name: AST.Identifier;
+		name: string; // for some reason acorn-typescript uses string instead of Identifier
 	}
 	interface TSTypeParameterDeclaration extends Omit<
 		AcornTSNode<TSESTree.TSTypeParameterDeclaration>,

@@ -29,6 +29,7 @@ declare module 'acorn' {
 		line: number;
 		column: number;
 		constructor(line: number, column: number);
+		offset(offset: number): Position;
 	}
 	function isNewLine(code: number): boolean;
 
