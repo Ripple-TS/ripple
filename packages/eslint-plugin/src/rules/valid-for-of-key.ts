@@ -1,4 +1,6 @@
 import type { Rule } from 'eslint';
+import type * as AST from 'ripple/types/estree';
+import type { Scope } from 'eslint';
 
 const rule: Rule.RuleModule = {
 	meta: {
@@ -14,12 +16,12 @@ const rule: Rule.RuleModule = {
 	},
 	create(context) {
 		return {
-			ForOfStatement(node: any) {
+			ForOfStatement(node: AST.ForOfStatement) {
 				if (!node.key) {
 					return;
 				}
 
-				const checkIdentifier = (identifier: any) => {
+				const checkIdentifier = (identifier: AST.Identifier) => {
 					const scope = context.sourceCode.getScope(node);
 					const variable = findVariable(scope, identifier.name);
 
@@ -34,7 +36,7 @@ const rule: Rule.RuleModule = {
 					}
 				};
 
-				const traverse = (node: any) => {
+				const traverse = (node: AST.Node) => {
 					if (!node) return;
 
 					switch (node.type) {
@@ -66,11 +68,11 @@ const rule: Rule.RuleModule = {
 
 							break;
 						case 'ArrayExpression':
-							node.elements.forEach(traverse);
+							(node.elements as (AST.Expression | AST.SpreadElement)[]).forEach(traverse);
 
 							break;
 						case 'ObjectExpression':
-							node.properties.forEach((prop: any) => {
+							node.properties.forEach((prop: AST.Property | AST.SpreadElement) => {
 								if (prop.type === 'Property') {
 									if (prop.computed) {
 										traverse(prop.key);
@@ -102,8 +104,8 @@ const rule: Rule.RuleModule = {
 	},
 };
 
-function findVariable(scope: any, name: string) {
-	let currentScope = scope;
+function findVariable(scope: Scope.Scope, name: string) {
+	let currentScope: Scope.Scope | null = scope;
 
 	while (currentScope) {
 		const variable = currentScope.variables.find((v: { name: string }) => v.name === name);

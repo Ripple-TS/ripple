@@ -1,12 +1,11 @@
 import type { Rule } from 'eslint';
-import type { ReturnStatement } from 'estree';
+import type * as AST from 'ripple/types/estree';
 
 const rule: Rule.RuleModule = {
 	meta: {
 		type: 'problem',
 		docs: {
 			description: 'Disallow return statements with JSX in Ripple components',
-			category: 'Possible Errors',
 			recommended: true,
 		},
 		messages: {
@@ -33,7 +32,7 @@ const rule: Rule.RuleModule = {
 				insideComponent--;
 			},
 			// Check return statements
-			ReturnStatement(node: ReturnStatement) {
+			ReturnStatement(node: AST.ReturnStatement) {
 				if (insideComponent > 0 && node.argument) {
 					// Check if returning JSX (JSXElement, JSXFragment)
 					if (node.argument.type === 'JSXElement' || node.argument.type === 'JSXFragment') {

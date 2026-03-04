@@ -17,7 +17,7 @@
     "@ripple-ts/adapter-node": "workspace:*",
     "livecodes": "catalog:default",
     "marked": "catalog:default",
-    "shiki": "^3.22.0"
+    "shiki": "catalog:default"
   },
   "devDependencies": {
     "@ripple-ts/typescript-plugin": "workspace:*",

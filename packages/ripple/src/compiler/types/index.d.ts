@@ -221,6 +221,12 @@ declare module 'estree' {
 		loc: AST.SourceLocation;
 	}
 
+	interface NodeWithMaybeComments {
+		innerComments?: AST.Comment[] | undefined;
+		leadingComments?: AST.Comment[] | undefined;
+		trailingComments?: AST.Comment[] | undefined;
+	}
+
 	/**
 	 * Ripple custom interfaces and types section
 	 */
@@ -237,6 +243,7 @@ declare module 'estree' {
 			styleIdentifierPresent?: boolean;
 		};
 		default: boolean;
+		typeParameters?: AST.TSTypeParameterDeclaration;
 	}
 
 	interface TsxCompat extends AST.BaseNode {
@@ -399,9 +406,10 @@ declare module 'estree' {
 	export type NodeWithChildren = AST.Element | AST.TsxCompat;
 
 	export namespace CSS {
-		export interface BaseNode {
+		export interface BaseNode extends AST.NodeWithMaybeComments {
 			start: number;
 			end: number;
+			loc?: AST.SourceLocation;
 		}
 
 		export interface StyleSheet extends BaseNode {
@@ -720,6 +728,7 @@ declare module 'estree' {
 	interface TSArrayType extends Omit<AcornTSNode<TSESTree.TSArrayType>, 'elementType'> {
 		elementType: TypeNode;
 	}
+	interface Identifier extends AcornTSNode<TSESTree.Identifier> {}
 	interface TSAsExpression extends Omit<AcornTSNode<TSESTree.TSAsExpression>, 'typeAnnotation'> {
 		// Have to override it to use our Expression for required properties like metadata
 		expression: AST.Expression;

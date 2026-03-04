@@ -44,12 +44,12 @@
     "@ripple-ts/eslint-parser": "workspace:*"
   },
   "devDependencies": {
+    "@ripple-ts/eslint-parser": "workspace:*",
     "@types/eslint": "catalog:default",
-    "@types/estree": "catalog:default",
     "@types/node": "catalog:default",
     "@typescript-eslint/parser": "catalog:default",
     "eslint": "catalog:default",
-    "@ripple-ts/eslint-parser": "workspace:*",
+    "ripple": "workspace:*",
     "tsdown": "catalog:default",
     "typescript": "catalog:default",
     "vitest": "catalog:default"

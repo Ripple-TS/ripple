@@ -10,7 +10,7 @@
     "allowJs": true,
     "checkJs": true,
     "noEmit": true,
-    "types": ["vitest/globals"]
+    "types": ["node", "vitest/globals"]
   },
   "include": ["./*.js", "./src/", "vitest-extensions.d.ts"],
   "exclude": ["node_modules", "dist"]

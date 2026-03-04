@@ -16,13 +16,13 @@
     "url": "https://github.com/Ripple-TS/ripple/issues"
   },
   "dependencies": {
-    "@rollup/pluginutils": "^4.1.0"
+    "@rollup/pluginutils": "catalog:default"
   },
   "devDependencies": {
     "ripple": "workspace:*",
-    "rollup": "^2.33.3",
-    "source-map": "^0.7.3",
-    "uvu": "^0.5.6"
+    "rollup": "catalog:default",
+    "source-map": "catalog:default",
+    "uvu": "catalog:default"
   },
   "publishConfig": {
     "access": "public"
