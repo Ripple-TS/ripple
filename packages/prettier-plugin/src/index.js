@@ -5355,18 +5355,11 @@ function printTSConditionalType(node, path, options, print) {
  * @returns {Doc[] | Doc}
  */
 function printTSMappedType(node, path, options, print) {
-	const readonlyMod =
-		node.readonly === true || node.readonly === 'plus' || node.readonly === '+'
-			? 'readonly '
-			: node.readonly === 'minus' || node.readonly === '-'
-				? '-readonly '
-				: '';
+	const readonlyMod = node.readonly === true ? 'readonly ' : '';
 
 	let optionalMod = '';
-	if (node.optional === true || node.optional === 'plus' || node.optional === '+') {
+	if (node.optional === true) {
 		optionalMod = '?';
-	} else if (node.optional === 'minus' || node.optional === '-') {
-		optionalMod = '-?';
 	}
 
 	/** @type {Doc[]} */
