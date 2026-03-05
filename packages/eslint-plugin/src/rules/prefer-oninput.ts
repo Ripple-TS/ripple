@@ -1,5 +1,6 @@
 import type { Rule } from 'eslint';
 import type * as AST from 'ripple/types/estree';
+import type * as ESTreeJSX from 'ripple/types/estree-jsx';
 
 const rule: Rule.RuleModule = {
 	meta: {
@@ -18,7 +19,7 @@ const rule: Rule.RuleModule = {
 	create(context) {
 		const reported_ranges = new Set<string>();
 
-		function report_onchange(node: AST.Identifier) {
+		function report_onchange(node: AST.Attribute | ESTreeJSX.JSXAttribute) {
 			const range = node.range;
 			if (!range) {
 				return;
@@ -41,11 +42,11 @@ const rule: Rule.RuleModule = {
 
 		return {
 			// Check JSX attributes (standard JSX)
-			'JSXAttribute[name.name="onChange"]'(node: AST.Identifier) {
+			'JSXAttribute[name.name="onChange"]'(node: ESTreeJSX.JSXAttribute) {
 				report_onchange(node);
 			},
 			// Check Attribute nodes (Ripple parser)
-			'Attribute[name.name="onChange"]'(node: AST.Identifier) {
+			'Attribute[name.name="onChange"]'(node: AST.Attribute) {
 				report_onchange(node);
 			},
 			// Check object properties (for spread props)
