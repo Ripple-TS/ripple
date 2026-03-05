@@ -9,6 +9,7 @@ export default defineConfig({
 	},
 	clean: true,
 	format: ['esm'],
+	fixedExtension: false,
 	platform: 'node',
 	target: 'node20',
 	outDir: 'dist',
