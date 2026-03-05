@@ -1750,6 +1750,13 @@ files = [...(files ?? []), ...dt.files];`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should not double-parenthesize a parenthesized identifier callee', async () => {
+			const expected = `const s = (foo)();`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 80 });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should preserve parentheses around IIFE arrow function callee', async () => {
 			const expected = `const s = (() => {
   return true;

@@ -1406,8 +1406,11 @@ function printRippleNode(node, path, options, print, args) {
 			/** @type {Doc[]} */
 			const parts = [];
 			let calleePart = path.call(print, 'callee');
-			// Preserve parentheses around the callee (e.g. IIFEs like `(() => {})()`)
-			if (node.callee.metadata?.parenthesized) {
+			const calleeNeedsParens =
+				node.callee.metadata?.parenthesized &&
+				(node.callee.type === 'ArrowFunctionExpression' ||
+					node.callee.type === 'FunctionExpression');
+			if (calleeNeedsParens) {
 				calleePart = ['(', calleePart, ')'];
 			}
 			parts.push(calleePart);
