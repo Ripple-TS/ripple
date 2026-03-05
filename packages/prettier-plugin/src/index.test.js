@@ -1750,6 +1750,24 @@ files = [...(files ?? []), ...dt.files];`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should preserve parentheses around IIFE arrow function callee', async () => {
+			const expected = `const s = (() => {
+  return true;
+})();`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 80 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve parentheses around IIFE function expression callee', async () => {
+			const expected = `const s = (function () {
+  return true;
+})();`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 80 });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should recognize and preserve class assignments to variables', async () => {
 			const expected = `let test = class MediaQueryList {};`;
 
