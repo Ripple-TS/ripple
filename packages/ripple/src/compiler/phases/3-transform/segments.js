@@ -50,6 +50,7 @@ import {
 	mapping_data_verify_complete,
 	build_line_offsets,
 	get_mapping_from_node,
+	maybe_get_mapping_from_node,
 } from '../../source-map-utils.js';
 
 const LABEL_TO_COMPONENT_REPLACE_REGEX = /(function|\((property|method)\))/;
@@ -392,7 +393,13 @@ export function convert_source_map_to_mappings(
 	 */
 	function handle_literal(node, is_component = false) {
 		if (node.loc) {
-			const mapping = get_mapping_from_node(node, src_to_gen_map, gen_line_offsets);
+			const mapping = maybe_get_mapping_from_node(node, src_to_gen_map, gen_line_offsets);
+
+			if (mapping instanceof Error) {
+				// Literal has no source map entry (e.g., inside a TypeScript type annotation
+				// that gets erased from the generated output). Skip it.
+				return;
+			}
 
 			if (is_component) {
 				mapping.data.customData.hover = replace_label_to_component;
@@ -1576,9 +1583,15 @@ export function convert_source_map_to_mappings(
 				node.type === 'TSTypeParameterDeclaration'
 			) {
 				if (node.loc) {
-					mappings.push(
-						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
+					const mapping = maybe_get_mapping_from_node(
+						node,
+						src_to_gen_map,
+						gen_line_offsets,
+						mapping_data_verify_only,
 					);
+					if (!(mapping instanceof Error)) {
+						mappings.push(mapping);
+					}
 				}
 				// Generic type parameters - visit to collect type variable names
 				if (node.params) {

@@ -3975,6 +3975,12 @@ function create_tsx_with_typescript_support(comments) {
 
 			visit(node);
 		},
+		TSExpressionWithTypeArguments(node, context) {
+			context.visit(node.expression);
+			if (node.typeParameters) {
+				context.visit(node.typeParameters);
+			}
+		},
 		AssignmentPattern(node, context) {
 			// We need to make sure that the whole AssignmentPattern has a start and end mapping
 			// Acorn only maps pieces but not the whole thing
