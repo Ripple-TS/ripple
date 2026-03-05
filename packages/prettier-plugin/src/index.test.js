@@ -4707,6 +4707,19 @@ component Polygon() {
 		});
 
 		describe('<tsx:react>', () => {
+			it('should preserve namespace in generic JSX namespaced tags', async () => {
+				const input = `component App() {
+	<tsx:react><xml:space></xml:space></tsx:react>
+}`;
+
+				const expected = `component App() {
+  <tsx:react><xml:space></xml:space></tsx:react>
+}`;
+
+				const result = await format(input, { singleQuote: true });
+				expect(result).toBeWithNewline(expected);
+			});
+
 			it('should format JSX inside <tsx:react> tags', async () => {
 				const input = `component App() {
 	<div>
