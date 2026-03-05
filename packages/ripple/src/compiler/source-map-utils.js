@@ -286,7 +286,7 @@ export function build_line_offsets(text) {
  * @param {number} [gen_max_len]
  * @returns {CodeMappingWithAll | Error}
  */
-export function maybe_get_mapping_from_node(
+function maybe_get_mapping_from_node(
 	node,
 	src_to_gen_map,
 	gen_line_offsets,

@@ -334,6 +334,26 @@ component App() {
 		expect(count_occurrences(result, obfuscate_identifier('createRefKey'))).toBe(2);
 	});
 
+	it('preserves generic type args in interface extends for Volar mappings', () => {
+		const source = `
+interface PolymorphicProps<T extends keyof HTMLElementTagNameMap> {
+	as?: T;
+}
+
+interface Props extends PolymorphicProps<'div'> {
+	id: string;
+}
+
+export component App(props: Props) {
+	<div id={props.id} />
+}
+`;
+
+		const result = compile_to_volar_mappings(source, 'test.ripple').code;
+
+		expect(result).toContain("extends PolymorphicProps<'div'>");
+	});
+
 	it('should not error on having js below markup in the same scope', () => {
 		const code = `
 component Card(props) {
