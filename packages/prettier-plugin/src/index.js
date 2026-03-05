@@ -5356,16 +5356,16 @@ function printTSConditionalType(node, path, options, print) {
  */
 function printTSMappedType(node, path, options, print) {
 	const readonlyMod =
-		node.readonly === true || node.readonly === 'plus' || node.readonly === '+'
+		node.readonly === true || node.readonly === '+'
 			? 'readonly '
-			: node.readonly === 'minus' || node.readonly === '-'
+			: node.readonly === '-'
 				? '-readonly '
 				: '';
 
 	let optionalMod = '';
-	if (node.optional === true || node.optional === 'plus' || node.optional === '+') {
+	if (node.optional === true || node.optional === '+') {
 		optionalMod = '?';
-	} else if (node.optional === 'minus' || node.optional === '-') {
+	} else if (node.optional === '-') {
 		optionalMod = '-?';
 	}
 
