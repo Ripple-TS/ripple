@@ -4713,7 +4713,9 @@ component Polygon() {
 }`;
 
 				const expected = `component App() {
-  <tsx:react><xml:space></xml:space></tsx:react>
+  <tsx:react>
+    <xml:space></xml:space>
+  </tsx:react>
 }`;
 
 				const result = await format(input, { singleQuote: true });

@@ -5622,8 +5622,12 @@ function printJSXElement(node, path, options, print) {
 	} else if (openingElement.name.type === 'JSXMemberExpression') {
 		// Handle Member expressions like React.Fragment
 		tagName = printJSXMemberExpression(openingElement.name);
+	} else if (openingElement.name.type === 'JSXNamespacedName') {
+		const namespace_name = openingElement.name.namespace.name;
+		const local_name = openingElement.name.name.name;
+		tagName = namespace_name + ':' + local_name;
 	} else {
-		tagName = openingElement.name.name.name || 'Unknown';
+		tagName = 'Unknown';
 	}
 
 	const isSelfClosing = openingElement.selfClosing;
