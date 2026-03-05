@@ -3220,6 +3220,20 @@ const items = [] as unknown[];`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should preserve minus mapped modifiers in TypeScript mapped types', async () => {
+			const input = `type MutableRequired<T> = { -readonly [K in keyof T]-?: T[K] }`;
+			const expected = `type MutableRequired<T> = { -readonly [K in keyof T]-?: T[K] };`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve explicit plus mapped modifiers in TypeScript mapped types', async () => {
+			const input = `type ExplicitReadonlyOptional<T> = { +readonly [K in keyof T]+?: T[K] }`;
+			const expected = `type ExplicitReadonlyOptional<T> = { readonly [K in keyof T]?: T[K] };`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should format TypeScript qualified names (TSQualifiedName)', async () => {
 			const input = `type T = Foo.Bar;`;
 			const expected = `type T = Foo.Bar;`;
