@@ -38,6 +38,15 @@
       "require": "./src/compiler/index.js",
       "default": "./src/compiler/index.js"
     },
+    "./types/estree": {
+      "types": "./src/compiler/types/estree.d.ts"
+    },
+    "./types/estree-jsx": {
+      "types": "./src/compiler/types/estree-jsx.d.ts"
+    },
+    "./types/acorn": {
+      "types": "./src/compiler/types/acorn.d.ts"
+    },
     "./compiler/internal/import": {
       "types": "./src/compiler/types/import.d.ts"
     },
@@ -84,11 +93,11 @@
     "is-reference": "catalog:default",
     "magic-string": "catalog:default",
     "muggle-string": "catalog:default",
-    "zimmerframe": "catalog:default"
+    "zimmerframe": "catalog:default",
+    "@types/estree": "catalog:default",
+    "@types/estree-jsx": "catalog:default"
   },
   "devDependencies": {
-    "@types/estree": "catalog:default",
-    "@types/estree-jsx": "catalog:default",
     "@types/node": "catalog:default",
     "@typescript-eslint/types": "catalog:default",
     "typescript": "catalog:default",

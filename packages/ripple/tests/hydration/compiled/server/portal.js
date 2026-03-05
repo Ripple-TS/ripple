@@ -25,10 +25,8 @@ export async function SimplePortal(__output) {
 
 				const args = [
 					__output,
-
 					{
 						target: typeof document !== 'undefined' ? document.body : null,
-
 						children: function children(__output) {
 							_$_.push_component();
 							__output.push('<div');
@@ -88,10 +86,8 @@ export async function ConditionalPortal(__output) {
 
 					const args = [
 						__output,
-
 						{
 							target: typeof document !== 'undefined' ? document.body : null,
-
 							children: function children(__output) {
 								_$_.push_component();
 								__output.push('<div');
@@ -148,10 +144,8 @@ export async function PortalWithMainContent(__output) {
 
 				const args = [
 					__output,
-
 					{
 						target: typeof document !== 'undefined' ? document.body : null,
-
 						children: function children(__output) {
 							_$_.push_component();
 							__output.push('<div');
@@ -223,10 +217,8 @@ export async function NestedContentWithPortal(__output) {
 
 				const args = [
 					__output,
-
 					{
 						target: typeof document !== 'undefined' ? document.body : null,
-
 						children: function children(__output) {
 							_$_.push_component();
 							__output.push('<div');

@@ -82,8 +82,16 @@ declare module 'estree' {
 		metadata: FunctionMetaData;
 	}
 
+	type Accessibility = 'public' | 'protected' | 'private'; // missing in acorn-typescript types
 	interface MethodDefinition {
 		typeParameters?: TSTypeParameterDeclaration;
+		accessibility?: Accessibility;
+	}
+
+	interface PropertyDefinition {
+		accessibility?: Accessibility;
+		readonly?: boolean;
+		optional?: boolean;
 	}
 
 	interface ClassDeclaration {
@@ -103,6 +111,9 @@ declare module 'estree' {
 			// needed for volar tokens to recognize component functions
 			is_component?: boolean;
 		};
+		typeAnnotation?: TSTypeAnnotation | undefined;
+		decorators: TSESTree.Decorator[];
+		optional: boolean;
 	}
 
 	// We mark the whole node as marked when member is @[expression]
@@ -239,6 +250,12 @@ declare module 'estree' {
 		loc: AST.SourceLocation;
 	}
 
+	interface NodeWithMaybeComments {
+		innerComments?: AST.Comment[] | undefined;
+		leadingComments?: AST.Comment[] | undefined;
+		trailingComments?: AST.Comment[] | undefined;
+	}
+
 	/**
 	 * Ripple custom interfaces and types section
 	 */
@@ -255,6 +272,7 @@ declare module 'estree' {
 			styleIdentifierPresent?: boolean;
 		};
 		default: boolean;
+		typeParameters?: AST.TSTypeParameterDeclaration;
 	}
 
 	interface TsxCompat extends AST.BaseNode {
@@ -324,7 +342,6 @@ declare module 'estree' {
 		};
 	}
 
-	// ScriptContent is only used by Prettier currently
 	interface ScriptContent extends Omit<AST.Element, 'type'> {
 		type: 'ScriptContent';
 		content: string;
@@ -417,9 +434,10 @@ declare module 'estree' {
 	export type NodeWithChildren = AST.Element | AST.TsxCompat;
 
 	export namespace CSS {
-		export interface BaseNode {
+		export interface BaseNode extends AST.NodeWithMaybeComments {
 			start: number;
 			end: number;
+			loc?: AST.SourceLocation;
 		}
 
 		export interface StyleSheet extends BaseNode {
@@ -986,7 +1004,7 @@ declare module 'estree' {
 	> {
 		constraint: TypeNode | undefined;
 		default: TypeNode | undefined;
-		name: AST.Identifier;
+		name: string; // for some reason acorn-typescript uses string instead of Identifier
 	}
 	interface TSTypeParameterDeclaration extends Omit<
 		AcornTSNode<TSESTree.TSTypeParameterDeclaration>,

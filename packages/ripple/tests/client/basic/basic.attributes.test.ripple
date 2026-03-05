@@ -468,7 +468,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('render spread attributes', () => {
 		component Basic() {
-			let attrs = track<TestAttributes>(
+			let attrs = #ripple.track<TestAttributes>(
 				{
 					class: 'initial',
 					id: 'test-1',
@@ -557,7 +557,7 @@ describe('basic client > attribute rendering', () => {
 	it('handles reactive event handler changes', () => {
 		component Basic() {
 			let count = #ripple.track(0);
-			let mode = track<'increment' | 'decrement'>('increment');
+			let mode = #ripple.track<'increment' | 'decrement'>('increment');
 
 			const incrementHandler = () => {
 				@count++;
@@ -880,8 +880,8 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles passive event option', () => {
 		component Basic() {
-			let passiveDefaultPrevented = track<boolean | null>(null);
-			let nonPassiveDefaultPrevented = track<boolean | null>(null);
+			let passiveDefaultPrevented = #ripple.track<boolean | null>(null);
+			let nonPassiveDefaultPrevented = #ripple.track<boolean | null>(null);
 
 			const passiveHandler = {
 				handleEvent(event: Event) {

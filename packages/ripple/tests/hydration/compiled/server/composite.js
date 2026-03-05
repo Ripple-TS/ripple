@@ -84,7 +84,6 @@ export function LayoutWithSingleChild(__output) {
 
 		const args = [
 			__output,
-
 			{
 				children: function children(__output) {
 					_$_.push_component();
@@ -115,7 +114,6 @@ export function LayoutWithMultipleChildren(__output) {
 
 		const args = [
 			__output,
-
 			{
 				children: function children(__output) {
 					_$_.push_component();
@@ -155,7 +153,6 @@ export function LayoutWithMultiRootChild(__output) {
 
 		const args = [
 			__output,
-
 			{
 				children: function children(__output) {
 					_$_.push_component();

@@ -14,7 +14,7 @@
 	"packageManager": "pnpm@10.18.2",
 	"dependencies": {
 		"livecodes": "catalog:default",
-		"shiki": "^3.22.0"
+		"shiki": "catalog:default"
 	},
 	"devDependencies": {
 		"vitepress": "catalog:default",

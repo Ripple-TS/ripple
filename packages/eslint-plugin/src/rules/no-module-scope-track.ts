@@ -1,12 +1,11 @@
 import type { Rule } from 'eslint';
-import type { CallExpression } from 'estree';
+import type * as AST from 'ripple/types/estree';
 
 const rule: Rule.RuleModule = {
 	meta: {
 		type: 'problem',
 		docs: {
 			description: 'Disallow calling track() at module scope',
-			category: 'Possible Errors',
 			recommended: true,
 		},
 		messages: {
@@ -39,7 +38,7 @@ const rule: Rule.RuleModule = {
 			'ArrowFunctionExpression:exit': decrementFunctionDepth,
 
 			// Check track() calls
-			CallExpression(node: CallExpression) {
+			CallExpression(node: AST.CallExpression) {
 				if (
 					node.callee.type === 'Identifier' &&
 					node.callee.name === 'track' &&

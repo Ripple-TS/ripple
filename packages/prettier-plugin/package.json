@@ -24,8 +24,7 @@
     "prettier": "catalog:peer"
   },
   "devDependencies": {
-    "@types/estree": "catalog:default",
-    "@types/estree-jsx": "catalog:default",
+    "@types/node": "catalog:default",
     "ripple": "workspace:*",
     "prettier": "catalog:default"
   },

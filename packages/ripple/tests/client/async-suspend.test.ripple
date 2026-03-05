@@ -36,7 +36,7 @@ describe('async suspense', () => {
 		expect(container.innerHTML).not.toContain('child content');
 
 		// Resolve the first promise
-		resolve_fn?.();
+		(resolve_fn as () => void)?.();
 		await new Promise((resolve) => setTimeout(resolve, 0));
 		flushSync();
 

@@ -1,11 +1,12 @@
 import type { Rule } from 'eslint';
+import type * as AST from 'ripple/types/estree';
+import type * as ESTreeJSX from 'ripple/types/estree-jsx';
 
 const rule: Rule.RuleModule = {
 	meta: {
 		type: 'suggestion',
 		docs: {
 			description: 'Prefer onInput over onChange for form inputs in Ripple',
-			category: 'Best Practices',
 			recommended: true,
 		},
 		messages: {
@@ -18,10 +19,7 @@ const rule: Rule.RuleModule = {
 	create(context) {
 		const reported_ranges = new Set<string>();
 
-		/**
-		 * @param {any} node
-		 */
-		function report_onchange(node: any) {
+		function report_onchange(node: AST.Attribute | ESTreeJSX.JSXAttribute) {
 			const range = node.range;
 			if (!range) {
 				return;
@@ -44,15 +42,15 @@ const rule: Rule.RuleModule = {
 
 		return {
 			// Check JSX attributes (standard JSX)
-			'JSXAttribute[name.name="onChange"]'(node: any) {
+			'JSXAttribute[name.name="onChange"]'(node: ESTreeJSX.JSXAttribute) {
 				report_onchange(node);
 			},
 			// Check Attribute nodes (Ripple parser)
-			'Attribute[name.name="onChange"]'(node: any) {
+			'Attribute[name.name="onChange"]'(node: AST.Attribute) {
 				report_onchange(node);
 			},
 			// Check object properties (for spread props)
-			'Property[key.name="onChange"]'(node: any) {
+			'Property[key.name="onChange"]'(node: AST.Property) {
 				// Only report if this looks like it's in a props object
 				const ancestors = context.sourceCode.getAncestors(node);
 				const inObjectExpression = ancestors.some(

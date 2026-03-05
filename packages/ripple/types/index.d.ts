@@ -108,6 +108,9 @@ export type PropsWithExtras<T extends object> = Props & T & Record<string, unkno
 export type PropsWithChildren<T extends object = {}> = Expand<
 	Omit<T, 'children'> & { children: Component }
 >;
+export type PropsWithChildrenOptional<T extends object = {}> = Expand<
+	Omit<T, 'children'> & { children?: Component }
+>;
 export type PropsNoChildren<T extends object = {}> = Expand<T>;
 
 type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;

@@ -13,13 +13,13 @@
   "author": "Dominic Gannaway",
   "license": "MIT",
   "dependencies": {
-    "node-addon-api": "^7.1.0",
+    "node-addon-api": "^8.6.0",
     "node-gyp-build": "^4.8.0"
   },
   "devDependencies": {
-    "tree-sitter-cli": "^0.22.6",
+    "tree-sitter-cli": "^0.26.6",
     "prebuildify": "^6.0.0",
-    "node-gyp": "^10.0.0"
+    "node-gyp": "^12.2.0"
   },
   "scripts": {
     "generate": "tree-sitter generate",

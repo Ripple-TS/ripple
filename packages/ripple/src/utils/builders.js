@@ -325,7 +325,13 @@ export function get(name, body) {
  */
 export function id(name, loc_info) {
 	/** @type {AST.Identifier} */
-	const node = { type: 'Identifier', name, metadata: { path: [] } };
+	const node = {
+		type: 'Identifier',
+		name,
+		optional: false,
+		decorators: [],
+		metadata: { path: [] },
+	};
 
 	return set_location(node, loc_info);
 }

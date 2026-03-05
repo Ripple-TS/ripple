@@ -251,7 +251,6 @@ export function ParentWithChildButton(__anchor, _, __block) {
 				onClick: () => {
 					_$_.update(count);
 				},
-
 				label: "Click me"
 			},
 			_$_.active_block

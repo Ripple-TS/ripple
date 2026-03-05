@@ -112,7 +112,7 @@ describe('TrackedArray > mutations', () => {
 
 	it('handles splice operation with reactivity', () => {
 		component ArrayTest() {
-			let items = #ripple[1, 2, 3, 4, 5];
+			let items: TrackedArray<number | string> = #ripple[1, 2, 3, 4, 5];
 			let middleItem = #ripple.track(() => items[2]);
 
 			<button onClick={() => items.splice(1, 2, 'a', 'b')}>{'splice'}</button>

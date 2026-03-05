@@ -1,4 +1,11 @@
-import type { Tracked, Props, PropsWithChildren, PropsWithExtras } from 'ripple';
+import type {
+	Tracked,
+	Props,
+	PropsWithChildren,
+	PropsWithExtras,
+	Component,
+	PropsWithChildrenOptional,
+} from 'ripple';
 import { flushSync } from 'ripple';
 
 describe('basic client > components & composition', () => {
@@ -27,9 +34,11 @@ describe('basic client > components & composition', () => {
 	});
 
 	it('does not render a falsy component call', () => {
-		component Card(props: PropsWithChildren<{}>) {
+		component Card(props: PropsWithChildrenOptional<{ test?: Component }>) {
 			<div class="card">
-				<props.children />
+				if (props.children) {
+					<props.children />
+				}
 			</div>
 		}
 

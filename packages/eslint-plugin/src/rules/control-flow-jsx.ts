@@ -1,5 +1,5 @@
 import type { Rule } from 'eslint';
-import type { ForOfStatement, Node } from 'estree';
+import type * as AST from 'ripple/types/estree';
 
 const rule: Rule.RuleModule = {
 	meta: {
@@ -7,7 +7,6 @@ const rule: Rule.RuleModule = {
 		docs: {
 			description:
 				'Require JSX in for...of loops within components, but disallow JSX in for...of loops within effects',
-			category: 'Possible Errors',
 			recommended: true,
 		},
 		messages: {
@@ -22,7 +21,7 @@ const rule: Rule.RuleModule = {
 		let insideComponent = 0;
 		let insideEffect = 0;
 
-		function containsJSX(node: Node, visited: Set<Node> = new Set()): boolean {
+		function containsJSX(node: AST.Node, visited: Set<AST.Node> = new Set()): boolean {
 			if (!node) return false;
 
 			// Avoid infinite loops from circular references
@@ -76,7 +75,7 @@ const rule: Rule.RuleModule = {
 				insideEffect--;
 			},
 
-			ForOfStatement(node: ForOfStatement) {
+			ForOfStatement(node: AST.ForOfStatement) {
 				if (insideComponent === 0) return;
 
 				const hasJSX = containsJSX(node.body);

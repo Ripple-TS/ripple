@@ -25,6 +25,7 @@ const allExternalPackages = [...ALWAYS_EXTERNAL, ...computed];
 console.log(`ℹ️  Found ${computed.length} packages to mark as external`);
 
 export default defineConfig({
+	inlineOnly: false,
 	entry: ['src/extension.js', 'src/server.js'],
 	outDir: OUT_DIR,
 	outputOptions: {
@@ -32,7 +33,8 @@ export default defineConfig({
 		minify: false,
 	},
 	clean: true,
-	format: 'cjs',
+	format: ['cjs'],
+	fixedExtension: false,
 	platform: 'node',
 	target: 'node20',
 	external: allExternalPackages,

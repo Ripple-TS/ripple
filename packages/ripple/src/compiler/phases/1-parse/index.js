@@ -2114,13 +2114,15 @@ function RipplePlugin(config) {
 							);
 
 							element.children = [
-								/** @type {AST.ScriptContent} */ ({
-									type: 'ScriptContent',
-									content,
-									start,
-									end: closingStart,
-									loc: { start: contentStartLoc, end: contentEndLoc },
-								}),
+								/** @type {AST.ScriptContent} */ (
+									/** @type {unknown} */ ({
+										type: 'ScriptContent',
+										content,
+										start,
+										end: closingStart,
+										loc: { start: contentStartLoc, end: contentEndLoc },
+									})
+								),
 							];
 
 							this.#path.pop();

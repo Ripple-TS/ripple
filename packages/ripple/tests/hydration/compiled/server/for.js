@@ -682,7 +682,6 @@ export function ForLoopDeeplyNested(__output) {
 		{
 			id: 'd1',
 			name: 'Engineering',
-
 			teams: [
 				{ id: 't1', name: 'Frontend', members: ['Alice', 'Bob'] },
 				{ id: 't2', name: 'Backend', members: ['Charlie'] }
