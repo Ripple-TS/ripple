@@ -60,7 +60,7 @@ describe('TrackedObject', () => {
 
 	it('checks if property exists via the has trap', () => {
 		component ObjectTest() {
-			const obj = new TrackedObject<{ a: number; b: number }>({ a: -1, b: 1 });
+			const obj = #ripple{ a: -1, b: 1 };
 
 			obj.a = 0;
 

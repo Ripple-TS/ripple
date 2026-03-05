@@ -169,7 +169,7 @@ describe('basic client > events', () => {
 	it('renders with complex event handling and state updates', () => {
 		component Basic() {
 			let counter = #ripple.track(0);
-			let history = track<string[]>([]);
+			let history = #ripple.track<string[]>([]);
 			let isEven = #ripple.track(true);
 
 			const handleIncrement = () => {

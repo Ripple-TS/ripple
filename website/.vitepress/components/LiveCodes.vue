@@ -64,11 +64,9 @@ if (versionParam === 'latest') {
 const version = ref(versionParam || latest)
 
 const defaultContent = `
-import { track } from 'ripple';
-
 export default component Counter() {
-  let count = track(0);
-  let double = track(() => @count * 2);
+  let count = #ripple.track(0);
+  let double = #ripple.track(() => @count * 2);
 
   <div class="container">
     <h2>{'Counter'}</h2>

@@ -7,7 +7,7 @@
  *
  * @param {string} message
  * @param {string | null} filename
- * @param {AST.Node} node
+ * @param {AST.Node | AST.NodeWithLocation} node
  * @param {RippleCompileError[]} [errors]
  * @param {AST.CommentWithLocation[]} [comments]
  * @returns {void}

@@ -2838,7 +2838,7 @@ describe('bindNode', () => {
 
 	it('should allow access to bound element', () => {
 		component App() {
-			const inputRef = track<HTMLInputElement | null>(null);
+			const inputRef = #ripple.track<HTMLInputElement | null>(null);
 
 			<div>
 				<input type="text" {ref bindNode(inputRef)} />
@@ -2995,7 +2995,7 @@ describe('bindFiles', () => {
 		let capturedFiles: FileList | null = null;
 
 		component App() {
-			const files = track<FileList | null>(null);
+			const files = #ripple.track<FileList | null>(null);
 
 			effect(() => {
 				capturedFiles = @files;
@@ -3068,8 +3068,8 @@ describe('bindFiles', () => {
 		let capturedFiles: FileList | null = null;
 
 		component App() {
-			const files = track<FileList | null>(null);
-			const input = track<HTMLInputElement | null>(null);
+			const files = #ripple.track<FileList | null>(null);
+			const input = #ripple.track<HTMLInputElement | null>(null);
 
 			effect(() => {
 				capturedFiles = @files;
@@ -3122,7 +3122,7 @@ describe('bindFiles', () => {
 
 		component App() {
 			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
-			const input = track<HTMLInputElement | null>(null);
+			const input = #ripple.track<HTMLInputElement | null>(null);
 
 			effect(() => {
 				capturedFiles = files.items;
@@ -3178,7 +3178,7 @@ describe('bindFiles', () => {
 		const fileCounts: number[] = [];
 
 		component App() {
-			const files = track<FileList | null>(null);
+			const files = #ripple.track<FileList | null>(null);
 
 			effect(() => {
 				@files;
@@ -3279,7 +3279,7 @@ describe('bindFiles', () => {
 		let capturedFile: File | null = null;
 
 		component App() {
-			const files = track<FileList | null>(null);
+			const files = #ripple.track<FileList | null>(null);
 
 			effect(() => {
 				@files;

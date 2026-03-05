@@ -230,7 +230,7 @@ describe('compat-react', () => {
 
 		it('should work with Ripple reactivity', async () => {
 			component App() {
-				let count = track(0);
+				let count = #ripple.track(0);
 				<div>
 					<div class="ripple-count">{@count}</div>
 					<button onClick={() => @count++}>{'Increment'}</button>
@@ -321,7 +321,7 @@ describe('compat-react', () => {
 						</tsx:react>
 					</div>
 				} catch (e) {
-					<div class="error">{'ReactChiild had an error'}</div>
+					<div class="error">{'ReactChild had an error'}</div>
 				}
 			}
 
@@ -331,7 +331,7 @@ describe('compat-react', () => {
 
 			const reactContent = container.querySelector('div > div');
 			expect(reactContent).toBeTruthy();
-			expect(reactContent.textContent).toBe('ReactChiild had an error');
+			expect(reactContent.textContent).toBe('ReactChild had an error');
 		});
 
 		it('should handle React errors #2', async () => {
@@ -353,7 +353,7 @@ describe('compat-react', () => {
 						</tsx:react>
 					</div>
 				} catch (e) {
-					<div class="error">{'ReactChiild had an error'}</div>
+					<div class="error">{'ReactChild had an error'}</div>
 				}
 			}
 
@@ -363,7 +363,7 @@ describe('compat-react', () => {
 
 			const reactContent = container.querySelector('div > div');
 			expect(reactContent).toBeTruthy();
-			expect(reactContent.textContent).toBe('ReactChiild had an error');
+			expect(reactContent.textContent).toBe('ReactChild had an error');
 		});
 
 		it('Should handle React context', async () => {
@@ -464,7 +464,7 @@ describe('compat-react', () => {
 				component AsyncRippleChild() {
 					await sleep(1000);
 
-					let count = track(0);
+					let count = #ripple.track(0);
 
 					<div>
 						<div class="async-content">{'Loaded!'}</div>
@@ -549,7 +549,7 @@ describe('compat-react', () => {
 				}
 
 				component App() {
-					let page = track(1);
+					let page = #ripple.track(1);
 					setPage = (p: number) => {
 						@page = p;
 					};
@@ -629,7 +629,7 @@ describe('compat-react', () => {
 				}
 
 				component App() {
-					let page = track(1);
+					let page = #ripple.track(1);
 					setPage = (p: number) => {
 						@page = p;
 					};

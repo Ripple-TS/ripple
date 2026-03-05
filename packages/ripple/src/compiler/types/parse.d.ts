@@ -1132,6 +1132,8 @@ export namespace Parse {
 
 		tsCheckTypeAnnotationForReadOnly(node: AST.TSTypeOperator): void;
 
+		tsParseTypeArguments(): AST.Node;
+
 		/**
 		 * Get property kind from name
 		 * @param prop Property node

@@ -358,6 +358,26 @@ const RIPPLE_NAMESPACE_SNIPPETS = [
 		sortText: '0-ripple-trackSplit',
 	},
 	{
+		label: '#ripple.effect',
+		kind: CompletionItemKind.Snippet,
+		detail: 'Reactive effect (no import needed)',
+		documentation:
+			'Registers a reactive side effect. Equivalent to effect() but requires no import.\n\nUsage: #ripple.effect(() => {\n  console.log(@count);\n});',
+		insertText: '#ripple.effect(() => {\n\t$0\n})',
+		insertTextFormat: InsertTextFormat.Snippet,
+		sortText: '0-ripple-effect',
+	},
+	{
+		label: '#ripple.untrack',
+		kind: CompletionItemKind.Snippet,
+		detail: 'Read without dependency tracking (no import needed)',
+		documentation:
+			'Reads reactive values without creating dependencies. Equivalent to untrack() but requires no import.\n\nUsage: const snapshot = #ripple.untrack(() => @count);',
+		insertText: '#ripple.untrack(() => ${1:@value})',
+		insertTextFormat: InsertTextFormat.Snippet,
+		sortText: '0-ripple-untrack',
+	},
+	{
 		label: '#ripple.async',
 		kind: CompletionItemKind.Snippet,
 		detail: 'Async reactive derived value (no import needed)',
@@ -386,16 +406,6 @@ const RIPPLE_NAMESPACE_SNIPPETS = [
 		insertText: '#ripple.context(${1:defaultValue})',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-ripple-context',
-	},
-	{
-		label: '#ripple.createSubscriber',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Create reactive subscriber (no import needed)',
-		documentation:
-			'Creates a reactive subscriber that calls set() whenever an external value changes.\n\nUsage: const timer = #ripple.createSubscriber((set) => { ... });',
-		insertText: '#ripple.createSubscriber((set) => {\n\t${1}\n})',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-createSubscriber',
 	},
 	{
 		label: '#ripple.array',

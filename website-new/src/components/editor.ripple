@@ -1,5 +1,5 @@
 import type { Tracked } from 'ripple';
-import { track, effect, bindNode } from 'ripple';
+import { effect, bindNode } from 'ripple';
 
 #ripple.server {
 	export async function fetchMessage(): Promise<string> {
@@ -14,9 +14,9 @@ const INTERVAL = STEP / 2;
 const CURSOR = '<span class="typing-cursor">|</span>';
 
 export component Editor() {
-	let nodeRef: Tracked<HTMLElement> = track();
-	let loading = track(true);
-	let content = track('');
+	let nodeRef: Tracked<HTMLElement> = #ripple.track();
+	let loading = #ripple.track(true);
+	let content = #ripple.track('');
 
 	effect(() => {
 		if (@nodeRef) {

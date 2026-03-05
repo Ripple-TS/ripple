@@ -197,8 +197,8 @@ describe('compiler > basics', () => {
 			class Box<T> {
 				value: T;
 
-				method<T>(): T {
-					return this.value;
+				method<U extends T>(): U {
+					return this.value as U;
 				}
 
 				constructor(value: T) {
@@ -398,5 +398,45 @@ export component App() {
 		// The constructor's compiled output should contain __block = _$_.scope()
 		expect(code).toContain('__block');
 		expect(code).toContain('_$_.scope()');
+	});
+
+	it('parses #ripple.effect and #ripple.untrack calls', () => {
+		const source = `
+component App() {
+	let count = #ripple.track(0);
+
+	#ripple.effect(() => {
+		const snapshot = #ripple.untrack(() => @count);
+		console.log(snapshot);
+	});
+}
+`;
+
+		const ast = parse(source);
+		const ast_json = JSON.stringify(ast);
+
+		expect(ast_json).toContain('"source_name":"#ripple.effect"');
+		expect(ast_json).toContain('"source_name":"#ripple.untrack"');
+	});
+
+	it('collects duplicate declaration parser errors in loose mode', () => {
+		const source = `
+export component App() {
+	let test = #ripple.track(false);
+	let test = 'hey';
+}
+`;
+
+		expect(() => compile(source, 'test.ripple')).toThrow(
+			'Identifier \'test\' has already been declared',
+		);
+
+		const result = compile_to_volar_mappings(source, 'test.ripple', { loose: true });
+
+		expect(
+			result.errors.some(
+				(item) => item.message.includes('Identifier \'test\' has already been declared'),
+			),
+		).toBe(true);
 	});
 });

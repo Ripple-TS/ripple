@@ -116,7 +116,7 @@ describe('on() event handler', () => {
 
 	it('should handle multiple handlers for same event type on same element', () => {
 		component Basic() {
-			let callOrder = track<number[]>([]);
+			let callOrder = #ripple.track<number[]>([]);
 
 			const setupListeners = (node: HTMLButtonElement) => {
 				const remove1 = on(node, 'click', () => {
@@ -466,7 +466,7 @@ describe('on() event handler', () => {
 
 	it('should fire capture event on parent before bubbling event on child', () => {
 		component Basic() {
-			let callOrder = track<string[]>([]);
+			let callOrder = #ripple.track<string[]>([]);
 
 			const parentCaptureHandler = () => {
 				@callOrder = [...@callOrder, 'parent-capture'];

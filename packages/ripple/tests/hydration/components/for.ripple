@@ -219,7 +219,7 @@ export component ForLoopInsideIf() {
 
 // Test for loop that transitions from empty to populated
 export component ForLoopEmptyToPopulated() {
-	let items = track<string[]>([]);
+	let items = #ripple.track<string[]>([]);
 	<button
 		class="populate"
 		onClick={() => {

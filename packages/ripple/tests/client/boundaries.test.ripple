@@ -7,7 +7,7 @@ describe('passing reactivity between boundaries tests', () => {
 		function createDouble([count]: [Tracked<number>]) {
 			const double = #ripple.track(() => @count * 2);
 
-			effect(() => {
+			#ripple.effect(() => {
 				log.push('Count:' + @count);
 			});
 

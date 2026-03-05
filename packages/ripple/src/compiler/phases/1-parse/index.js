@@ -184,6 +184,53 @@ function RipplePlugin(config) {
 			}
 
 			/**
+			 * @param {number} position
+			 * @param {string} message
+			 */
+			#report_recoverable_error(position, message) {
+				const start = Math.max(0, Math.min(position, this.input.length));
+				const end = Math.min(this.input.length, start + 1);
+				const start_loc = acorn.getLineInfo(this.input, start);
+				const end_loc = acorn.getLineInfo(this.input, end);
+
+				error(
+					message,
+					this.#filename,
+					/** @type {AST.NodeWithLocation} */ ({
+						start,
+						end,
+						loc: {
+							start: start_loc,
+							end: end_loc,
+						},
+					}),
+					this.#loose ? this.#errors : undefined,
+				);
+			}
+
+			/**
+			 * In loose mode, keep parsing after duplicate declaration diagnostics so
+			 * editor tooling can continue producing AST and mappings.
+			 * @param {number} position
+			 * @param {string | { message?: string }} message
+			 */
+			raiseRecoverable(position, message) {
+				const error_message =
+					typeof message === 'string'
+						? message
+						: typeof message?.message === 'string'
+							? message.message
+							: String(message);
+
+				if (error_message.includes('has already been declared')) {
+					this.#report_recoverable_error(position, error_message);
+					return;
+				}
+
+				return super.raiseRecoverable(position, error_message);
+			}
+
+			/**
 			 * Override to allow single-parameter generic arrow functions without trailing comma.
 			 * By default, @sveltejs/acorn-typescript throws an error for `<T>() => {}` when JSX is enabled
 			 * because it can't disambiguate from JSX. However, the parser still parses it correctly
@@ -630,12 +677,13 @@ function RipplePlugin(config) {
 							'#ripple.object',
 							'#ripple.track',
 							'#ripple.trackSplit',
+							'#ripple.untrack',
+							'#ripple.effect',
 							'#ripple.context',
 							'#ripple.date',
 							'#ripple.url',
 							'#ripple.urlSearchParams',
 							'#ripple.mediaQuery',
-							'#ripple.createSubscriber',
 							'#ripple.server',
 							'#ripple.style',
 							'#ripple.defer',
@@ -861,6 +909,9 @@ function RipplePlugin(config) {
 			 * @type {Parse.Parser['parseExprAtom']}
 			 */
 			parseExprAtom(refDestructuringErrors, forNew, forInit) {
+				const lookahead_type = this.lookahead().type;
+				const is_next_call_token = lookahead_type === tt.parenL || lookahead_type === tt.relational;
+
 				// Check if this is @(expression) for unboxing tracked values
 				if (this.type === tt.parenL && this.value === '@(') {
 					return this.parseTrackedExpression();
@@ -890,7 +941,7 @@ function RipplePlugin(config) {
 				}
 
 				// Check if this is #ripple.array( or #ripple.object(
-				if (this.type === tt.name && this.value === '#ripple.array') {
+				if (this.type === tt.name && this.value === '#ripple.array' && is_next_call_token) {
 					return this.parseTrackedArrayCallExpression();
 				}
 
@@ -902,12 +953,13 @@ function RipplePlugin(config) {
 					const ripple_identifier_map = {
 						'#ripple.track': 'track',
 						'#ripple.trackSplit': 'trackSplit',
+						'#ripple.untrack': 'untrack',
+						'#ripple.effect': 'effect',
 						'#ripple.context': 'Context',
 						'#ripple.date': 'TrackedDate',
 						'#ripple.url': 'TrackedURL',
 						'#ripple.urlSearchParams': 'TrackedURLSearchParams',
 						'#ripple.mediaQuery': 'MediaQuery',
-						'#ripple.createSubscriber': 'createSubscriber',
 					};
 
 					const identifier_name =
@@ -1263,7 +1315,7 @@ function RipplePlugin(config) {
 					if (declareName) {
 						this.declareName(
 							node.id.name,
-							BINDING_TYPES.BIND_VAR,
+							BINDING_TYPES.BIND_FUNCTION,
 							/** @type {AST.NodeWithLocation} */ (node.id).start,
 						);
 					}
@@ -1272,7 +1324,7 @@ function RipplePlugin(config) {
 					if (declareName && node.id) {
 						this.declareName(
 							node.id.name,
-							BINDING_TYPES.BIND_VAR,
+							BINDING_TYPES.BIND_FUNCTION,
 							/** @type {AST.NodeWithLocation} */ (node.id).start,
 						);
 					}

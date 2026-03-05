@@ -639,6 +639,33 @@ function shouldPrintComma(options, level = 'all') {
 }
 
 /**
+ * Check whether a tracked array/object node used long #ripple.<kind>(...) syntax.
+ * @param {AST.TrackedArrayExpression | AST.TrackedObjectExpression} node - The tracked node
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {'array' | 'object'} kind - Tracked structure kind
+ * @returns {boolean}
+ */
+function uses_long_tracked_syntax(node, options, kind) {
+	if (!options || typeof options.originalText !== 'string') {
+		return false;
+	}
+
+	if (
+		typeof node.start !== 'number' ||
+		typeof node.end !== 'number' ||
+		node.start < 0 ||
+		node.end <= node.start
+	) {
+		return false;
+	}
+
+	const node_text = options.originalText.slice(node.start, node.end);
+	return kind === 'array'
+		? /^#ripple\.array\s*\(/.test(node_text)
+		: /^#ripple\.object\s*\(/.test(node_text);
+}
+
+/**
  * Check if a leading comment can be attached to the previous element
  * @param {AST.Comment} comment - The comment node
  * @param {AST.Node} previousNode - Previous node
@@ -928,7 +955,59 @@ function printRippleNode(node, path, options, print, args) {
 
 		case 'ArrayExpression':
 		case 'TrackedArrayExpression': {
-			const prefix = node.type === 'TrackedArrayExpression' ? '#ripple' : '';
+			const is_tracked_array = node.type === 'TrackedArrayExpression';
+			const use_long_tracked_syntax =
+				is_tracked_array &&
+				uses_long_tracked_syntax(
+					/** @type {AST.TrackedArrayExpression} */ (node),
+					options,
+					'array',
+				);
+			const prefix = is_tracked_array && !use_long_tracked_syntax ? '#ripple' : '';
+
+			if (use_long_tracked_syntax) {
+				if (!node.elements || node.elements.length === 0) {
+					nodeContent = '#ripple.array()';
+					break;
+				}
+
+				const trailingComma = shouldPrintComma(options, 'all') ? ',' : '';
+				const printed_elements = path.map(
+					(element_path) => print(element_path, { isInlineContext: true }),
+					'elements',
+				);
+
+				/** @type {Doc[]} */
+				const inline_parts = ['#ripple.array('];
+				for (let i = 0; i < printed_elements.length; i++) {
+					if (i > 0) {
+						inline_parts.push(', ');
+					}
+					inline_parts.push(printed_elements[i]);
+				}
+				inline_parts.push(')');
+
+				/** @type {Doc[]} */
+				const multiline_parts = [];
+				for (let i = 0; i < printed_elements.length; i++) {
+					if (i > 0) {
+						multiline_parts.push(',', line);
+					}
+					multiline_parts.push(printed_elements[i]);
+				}
+
+				nodeContent = conditionalGroup([
+					inline_parts,
+					group([
+						'#ripple.array(',
+						indent([softline, ...multiline_parts]),
+						ifBreak(trailingComma),
+						softline,
+						')',
+					]),
+				]);
+				break;
+			}
 
 			if (!node.elements || node.elements.length === 0) {
 				nodeContent = prefix + '[]';
@@ -3578,11 +3657,27 @@ function printDoWhileStatement(node, path, options, print) {
  * @returns {Doc}
  */
 function printObjectExpression(node, path, options, print, args) {
-	const open_brace = node.type === 'TrackedObjectExpression' ? '#ripple{' : '{';
-	const skip_offset = node.type === 'TrackedObjectExpression' ? '#ripple{'.length : 1;
+	const use_long_tracked_syntax =
+		node.type === 'TrackedObjectExpression' && uses_long_tracked_syntax(node, options, 'object');
+	const open_brace =
+		node.type === 'TrackedObjectExpression'
+			? use_long_tracked_syntax
+				? '#ripple.object({'
+				: '#ripple{'
+			: '{';
+	const close_brace =
+		node.type === 'TrackedObjectExpression' && use_long_tracked_syntax ? '})' : '}';
+	const skip_offset =
+		node.type === 'TrackedObjectExpression'
+			? use_long_tracked_syntax
+				? '#ripple.object({'.length
+				: '#ripple{'.length
+			: 1;
+	const closing_offset =
+		node.type === 'TrackedObjectExpression' && use_long_tracked_syntax ? 2 : 1;
 
 	if (!node.properties || node.properties.length === 0) {
-		return open_brace + '}';
+		return open_brace + close_brace;
 	}
 
 	// Check if there are blank lines between any properties
@@ -3623,8 +3718,8 @@ function printObjectExpression(node, path, options, print, args) {
 			hasAnyBlankLines =
 				getBlankLinesBetweenPositions(
 					lastProp.loc.end,
-					/** @type {acorn.Position} */ (node.loc.end).offset(-1),
-				) > 0; // -1 to skip the '}'
+					/** @type {acorn.Position} */ (node.loc.end).offset(-closing_offset),
+				) > 0; // Skip closing delimiter(s): either '}' or '})'.
 		}
 	}
 
@@ -3646,7 +3741,7 @@ function printObjectExpression(node, path, options, print, args) {
 		if (isInArray) {
 			if (isVerySimple) {
 				// 1-property objects: force inline with spaces
-				return [open_brace, ' ', properties[0], ' ', '}'];
+				return [open_brace, ' ', properties[0], ' ', close_brace];
 			}
 		}
 	}
@@ -3657,7 +3752,12 @@ function printObjectExpression(node, path, options, print, args) {
 		const spacing = options.bracketSpacing === false ? softline : line;
 		const trailingDoc = shouldUseTrailingComma ? ifBreak(',', '') : '';
 
-		return group([open_brace, indent([spacing, propertyDoc, trailingDoc]), spacing, '}']);
+		return group([
+			open_brace,
+			indent([spacing, propertyDoc, trailingDoc]),
+			spacing,
+			close_brace,
+		]);
 	}
 
 	// For objects that were originally inline (single-line) and don't have blank lines,
@@ -3670,7 +3770,12 @@ function printObjectExpression(node, path, options, print, args) {
 		const spacing = options.bracketSpacing === false ? softline : line;
 		const trailingDoc = shouldUseTrailingComma ? ifBreak(',', '') : '';
 
-		return group([open_brace, indent([spacing, propertyDoc, trailingDoc]), spacing, '}']);
+		return group([
+			open_brace,
+			indent([spacing, propertyDoc, trailingDoc]),
+			spacing,
+			close_brace,
+		]);
 	}
 
 	/** @type {Doc[]} */
@@ -3720,7 +3825,12 @@ function printObjectExpression(node, path, options, print, args) {
 		content.push(hardline);
 	}
 
-	return group([open_brace, indent(content.slice(0, -1)), content[content.length - 1], '}']);
+	return group([
+		open_brace,
+		indent(content.slice(0, -1)),
+		content[content.length - 1],
+		close_brace,
+	]);
 }
 
 /**

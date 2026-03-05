@@ -22,11 +22,12 @@ interface BaseNodeMetaData {
 		| '#ripple.array'
 		| '#ripple.object'
 		| '#ripple.track'
+		| '#ripple.untrack'
+		| '#ripple.effect'
 		| '#ripple.url'
 		| '#ripple.urlSearchParams'
 		| '#ripple.date'
 		| '#ripple.mediaQuery'
-		| '#ripple.createSubscriber'
 		| '#ripple.defer'
 		| '#ripple.validate'
 		| '#ripple.context'
@@ -1189,6 +1190,25 @@ export interface ScopeRoot {
 	/** Generate unique identifier name */
 	unique(preferred_name: string): AST.Identifier;
 }
+
+export interface ScopeConstructorInterface {
+	root: ScopeRoot;
+	parent: ScopeInterface | null;
+	porous: boolean;
+	error_options: {
+		loose: boolean;
+		errors: RippleCompileError[];
+		filename: string;
+		comments?: AST.CommentWithLocation[];
+	};
+}
+
+export type ScopeConstructorParameters = [
+	root: ScopeConstructorInterface['root'],
+	parent: ScopeConstructorInterface['parent'],
+	porous: ScopeConstructorInterface['porous'],
+	error_options: ScopeConstructorInterface['error_options'],
+];
 
 /**
  * Lexical scope for variable bindings

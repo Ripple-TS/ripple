@@ -3,7 +3,9 @@
 	Binding,
 	ScopeInterface,
 	ScopeRoot as ScopeRootInterface,
-	Context
+	Context,
+	ScopeConstructorInterface,
+	ScopeConstructorParameters
 } from '#compiler';
  @import * as AST from 'estree';
  */
@@ -12,6 +14,8 @@ import is_reference from 'is-reference';
 import { extract_identifiers, object, unwrap_pattern } from '../utils/ast.js';
 import { walk } from 'zimmerframe';
 import { is_reserved } from './utils.js';
+import { error } from './errors.js';
+import { IDENTIFIER_OBFUSCATION_PREFIX } from './identifier-utils.js';
 import * as b from '../utils/builders.js';
 
 /**
@@ -19,14 +23,15 @@ import * as b from '../utils/builders.js';
  * @param {AST.Node} ast - The AST to create scopes for
  * @param {ScopeRootInterface} root - Root scope manager
  * @param {ScopeInterface | null} parent - Parent scope
+ * @param {ScopeConstructorInterface['error_options']} error_options - Error options
  * @returns {{ scope: ScopeInterface, scopes: Map<AST.Node, ScopeInterface> }} Scope information
  */
-export function create_scopes(ast, root, parent) {
+export function create_scopes(ast, root, parent, error_options) {
 	/** @typedef {{ scope: ScopeInterface }} State */
 
 	/** @type {Map<AST.Node, ScopeInterface>} */
 	const scopes = new Map();
-	const scope = new Scope(root, parent, false);
+	const scope = new Scope(root, parent, false, error_options);
 	scopes.set(ast, scope);
 
 	/** @type {State} */
@@ -296,17 +301,19 @@ export class Scope {
 	 */
 	server_block = false;
 
+	/** @type {ScopeConstructorInterface['error_options']} */
+	#error_options;
+
 	/**
-	 *
-	 * @param {ScopeRootInterface} root
-	 * @param {ScopeInterface | null} parent
-	 * @param {boolean} porous
+	 * @param {ScopeConstructorParameters} params
 	 */
-	constructor(root, parent, porous) {
+	constructor(...params) {
+		const [root, parent, porous, error_options] = params;
 		this.root = root;
 		this.parent = parent;
 		this.#porous = porous;
 		this.function_depth = parent ? parent.function_depth + (porous ? 0 : 1) : 0;
+		this.#error_options = error_options ?? {};
 	}
 
 	/**
@@ -323,12 +330,24 @@ export class Scope {
 			}
 		}
 
-		if (node.name === '_$_') {
-			throw new Error('Cannot declare a variable named "_$_" as it is a reserved identifier');
+		if (node.name.startsWith(IDENTIFIER_OBFUSCATION_PREFIX)) {
+			error(
+				`Cannot declare a variable named "${node.name}" as identifiers starting with "${IDENTIFIER_OBFUSCATION_PREFIX}" are reserved`,
+				this.#error_options.filename,
+				node,
+				this.#error_options.loose ? this.#error_options.errors : undefined,
+				this.#error_options.comments,
+			);
 		}
 
 		if (this.declarations.has(node.name)) {
-			throw new Error(`'${node.name}' has already been declared in the current scope`);
+			error(
+				`'${node.name}' has already been declared in the current scope`,
+				this.#error_options.filename,
+				node,
+				this.#error_options.loose ? this.#error_options.errors : undefined,
+				this.#error_options.comments,
+			);
 		}
 
 		/** @type {Binding} */
@@ -355,7 +374,7 @@ export class Scope {
 	 * @type {ScopeInterface['child']}
 	 */
 	child(porous = false) {
-		return new Scope(this.root, this, porous);
+		return new Scope(this.root, this, porous, this.#error_options);
 	}
 
 	/**

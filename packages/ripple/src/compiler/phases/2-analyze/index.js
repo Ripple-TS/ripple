@@ -1411,8 +1411,16 @@ const visitors = {
  */
 export function analyze(ast, filename, options = {}) {
 	const scope_root = new ScopeRoot();
+	const errors = options.errors ?? [];
+	const comments = options.comments ?? [];
+	const loose = options.loose ?? false;
 
-	const { scope, scopes } = create_scopes(ast, scope_root, null);
+	const { scope, scopes } = create_scopes(ast, scope_root, null, {
+		loose,
+		errors,
+		filename,
+		comments,
+	});
 
 	const analysis = /** @type {AnalysisResult} */ ({
 		module: { ast, scope, scopes, filename },
@@ -1423,8 +1431,8 @@ export function analyze(ast, filename, options = {}) {
 		metadata: {
 			serverIdentifierPresent: false,
 		},
-		errors: options.errors ?? [],
-		comments: options.comments ?? [],
+		errors,
+		comments,
 	});
 
 	walk(
@@ -1437,7 +1445,7 @@ export function analyze(ast, filename, options = {}) {
 			inside_head: false,
 			ancestor_server_block: undefined,
 			to_ts: options.to_ts ?? false,
-			loose: options.loose ?? false,
+			loose,
 			metadata: {},
 			mode: options.mode,
 		},

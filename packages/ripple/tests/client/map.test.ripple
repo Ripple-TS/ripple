@@ -3,7 +3,7 @@ import { flushSync, TrackedMap } from 'ripple';
 describe('TrackedMap', () => {
 	it('handles set with update and delete operations with a reactive size var', () => {
 		component MapTest() {
-			let map = new TrackedMap([['a', 1], ['b', 2], ['c', 3]]);
+			let map = #ripple.map([['a', 1], ['b', 2], ['c', 3]]);
 			let value = #ripple.track(() => map.get('a'));
 			let size = #ripple.track(() => map.size);
 
@@ -42,7 +42,7 @@ describe('TrackedMap', () => {
 
 	it('handles clear operation', () => {
 		component MapTest() {
-			let map = new TrackedMap([['a', 1], ['b', 2], ['c', 3]]);
+			let map = #ripple.map([['a', 1], ['b', 2], ['c', 3]]);
 
 			<button onClick={() => map.clear()}>{'clear'}</button>
 			<pre>{map.size}</pre>
@@ -60,7 +60,7 @@ describe('TrackedMap', () => {
 
 	it('handles has operation and tracks reactive $has', () => {
 		component MapTest() {
-			let map = new TrackedMap([['a', 1], ['b', 2], ['c', 3]]);
+			let map = #ripple.map([['a', 1], ['b', 2], ['c', 3]]);
 			let has = #ripple.track(() => map.has('b'));
 
 			<button onClick={() => map.delete('b')}>{'delete'}</button>
@@ -80,7 +80,7 @@ describe('TrackedMap', () => {
 
 	it('handles reactivity of keys, values, and entries', () => {
 		component MapTest() {
-			let map = new TrackedMap([['x', 10], ['y', 20]]);
+			let map = #ripple.map([['x', 10], ['y', 20]]);
 			let keys = #ripple.track(() => Array.from(map.keys()));
 			let values = #ripple.track(() => Array.from(map.values()));
 			let entries = #ripple.track(() => Array.from(map.entries()));
@@ -110,7 +110,7 @@ describe('TrackedMap', () => {
 
 	it('toJSON returns correct object', () => {
 		component MapTest() {
-			let map = new TrackedMap([['foo', 1], ['bar', 2]]);
+			let map = #ripple.map([['foo', 1], ['bar', 2]]);
 
 			<pre>{JSON.stringify(map)}</pre>
 		}

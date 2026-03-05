@@ -85,7 +85,7 @@ export component NestedIf() {
 }
 
 export component IfElseIfChain() {
-	let status = track<'loading' | 'success' | 'error'>('loading');
+	let status = #ripple.track<'loading' | 'success' | 'error'>('loading');
 	<div>
 		<button
 			class="success"

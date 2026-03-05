@@ -30,7 +30,7 @@ export component MixedControlFlowStatic() {
 
 export component MixedControlFlowReactive() {
 	let show = #ripple.track(true);
-	let mode = track<'a' | 'b'>('a');
+	let mode = #ripple.track<'a' | 'b'>('a');
 	let items = #ripple.track([
 		{ id: 1, label: 'One' },
 		{ id: 2, label: 'Two' },

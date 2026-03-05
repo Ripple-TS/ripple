@@ -59,6 +59,35 @@ describe('basic client > components & composition', () => {
 		expect(paragraph).toBeFalsy();
 	});
 
+	it('allows tracked variable and slot component with same name in nested scope', () => {
+		component Card(props: PropsWithChildrenOptional<{ test?: Component }>) {
+			<div class="card">
+				if (props.children) {
+					<props.children />
+				}
+			</div>
+		}
+
+		component Basic() {
+			let test = #ripple.track(false);
+			<Card>
+				component test() {
+					<p>{'Card content here'}</p>
+				}
+			</Card>
+			<div>{@test ? 'yes' : 'no'}</div>
+		}
+
+		render(Basic);
+
+		const card = container.querySelector('.card');
+		const paragraph = card.querySelector('p');
+
+		expect(card).toBeTruthy();
+		expect(paragraph).toBeFalsy();
+		expect(container.textContent).toContain('no');
+	});
+
 	it('renders a component when children is set a component prop', () => {
 		component Card(props: PropsWithChildren<{}>) {
 			<div class="card">

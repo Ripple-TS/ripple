@@ -60,8 +60,8 @@ ruleTester.run('control-flow-jsx', rule, {
 		{
 			code: `
 				component App() {
-					const items = new TrackedArray(1, 2, 3);
-					const sum = track(0);
+					const items = #ripple.array(1, 2, 3);
+					const sum = #ripple.track(0);
 					effect(() => {
 						@sum = 0;
 						for (const item of items) {

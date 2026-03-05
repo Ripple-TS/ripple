@@ -541,9 +541,7 @@ const visitors = {
 							? 'media_query'
 							: source_name === '#ripple.context'
 								? 'context'
-								: source_name === '#ripple.createSubscriber'
-									? 'create_subscriber'
-									: null;
+								: null;
 		const shorthand_requires_block =
 			source_name === '#ripple.url' ||
 			source_name === '#ripple.urlSearchParams' ||
@@ -566,9 +564,12 @@ const visitors = {
 
 		if (
 			context.state.to_ts &&
-			(source_name === '#ripple.track' || source_name === '#ripple.trackSplit')
+			(source_name === '#ripple.track' ||
+				source_name === '#ripple.trackSplit' ||
+				source_name === '#ripple.untrack' ||
+				source_name === '#ripple.effect')
 		) {
-			const import_name = source_name === '#ripple.trackSplit' ? 'trackSplit' : 'track';
+			const import_name = source_name.replace('#ripple.', '');
 			const track_alias = set_hidden_import_from_ripple(import_name, context);
 			const track_id = b.id(track_alias);
 			track_id.metadata = {
@@ -4562,11 +4563,7 @@ function create_tsx_with_typescript_support(comments) {
 			if (node.loc) {
 				context.location(node.loc.start.line, node.loc.start.column);
 			}
-			if (typeof node.name === 'string') {
-				context.write(node.name);
-			} else if (node.name && node.name.name) {
-				context.write(node.name.name);
-			}
+			context.write(node.name);
 			if (node.constraint) {
 				context.write(' extends ');
 				context.visit(node.constraint);
@@ -4707,11 +4704,7 @@ function create_tsx_with_typescript_support(comments) {
 					context.location(tp.loc.start.line, tp.loc.start.column);
 				}
 				// Write the parameter name
-				if (typeof tp.name === 'string') {
-					context.write(tp.name);
-				} else if (tp.name && tp.name.name) {
-					context.write(tp.name.name);
-				}
+				context.write(tp.name);
 				// In mapped types, constraint uses 'in' instead of 'extends'
 				if (tp.constraint) {
 					context.write(' in ');

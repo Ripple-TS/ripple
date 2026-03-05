@@ -39,6 +39,8 @@ import {
 	TrackedDate as _$_Date__Tracked,
 	createRefKey as _$_RefKey__create,
 	track as _$_track__,
+	effect as _$_effect__,
+	untrack as _$_untrack__,
 } from 'ripple';
 
 export {
@@ -51,4 +53,6 @@ export {
 	_$_Date__Tracked,
 	_$_RefKey__create,
 	_$_track__,
+	_$_effect__,
+	_$_untrack__,
 };

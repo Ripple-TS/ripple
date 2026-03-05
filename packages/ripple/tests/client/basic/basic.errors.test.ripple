@@ -242,4 +242,16 @@ describe('basic client > errors', () => {
 			compile(code, 'test.ripple');
 		}).not.toThrow();
 	});
+
+	it('should throw error for variables using the reserved _$_ prefix', () => {
+		const code = `
+			export default component App() {
+				const _$_test = 'hello';
+				<div>{_$_test}</div>
+			}
+		`;
+		expect(() => {
+			compile(code, 'test.ripple');
+		}).toThrow('identifiers starting with "_$_" are reserved');
+	});
 });

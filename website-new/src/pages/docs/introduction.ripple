@@ -8,14 +8,14 @@ const toc = [
 	{ href: '#server-side-rendering', text: 'Server-Side Rendering', level: 2 },
 ];
 
-const example_code = `import { track } from 'ripple'
+const example_code = `
 
 export component App() {
   <div class="container">
     <h1>{"Welcome to Ripple!"}</h1>
 
     <div>
-      let count = track(0);
+      let count = #ripple.track(0);
 
       <button onClick={() => @count--}>{"-"}</button>
       <span class="count">{@count}</span>

@@ -30,9 +30,9 @@ export function effect(fn: (() => void) | (() => () => void)): void;
 
 export interface TrackedArrayConstructor {
 	new <T>(...elements: T[]): TrackedArray<T>; // must be used with `new`
-	from<T>(arrayLike: ArrayLike<T>): TrackedArray<T>;
+	from<T>(arrayLike: ArrayLike<T> | Iterable<T>): TrackedArray<T>;
 	of<T>(...items: T[]): TrackedArray<T>;
-	fromAsync<T>(iterable: AsyncIterable<T>): Promise<TrackedArray<T>>;
+	fromAsync<T>(iterable: AsyncIterable<T> | Iterable<T>): Promise<TrackedArray<T>>;
 }
 
 export interface TrackedArray<T> extends Array<T> {}

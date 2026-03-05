@@ -465,9 +465,7 @@ const visitors = {
 							? 'media_query'
 							: source_name === '#ripple.context'
 								? 'context'
-								: source_name === '#ripple.createSubscriber'
-									? 'create_subscriber'
-									: null;
+								: null;
 		const shorthand_requires_block =
 			source_name === '#ripple.url' ||
 			source_name === '#ripple.urlSearchParams' ||

@@ -387,7 +387,7 @@ describe('basic server > attribute rendering', () => {
 
 	it('render spread attributes', async () => {
 		component Basic() {
-			let attrs = track<TestAttributes>(
+			let attrs = #ripple.track<TestAttributes>(
 				{
 					class: 'initial',
 					id: 'test-1',

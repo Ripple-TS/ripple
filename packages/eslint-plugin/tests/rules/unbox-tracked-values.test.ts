@@ -18,7 +18,7 @@ ruleTester.run('unbox-tracked-values', rule, {
 		{
 			code: `
 				component Counter() {
-					const count = track(0);
+					const count = #ripple.track(0);
 					<div>{@count}</div>
 				}
 			`,
@@ -27,8 +27,8 @@ ruleTester.run('unbox-tracked-values', rule, {
 		{
 			code: `
 				component App() {
-					const value = track(42);
-					const doubled = track(@value * 2);
+					const value = #ripple.track(42);
+					const doubled = #ripple.track(@value * 2);
 					<span>{@doubled}</span>
 				}
 			`,
@@ -37,7 +37,7 @@ ruleTester.run('unbox-tracked-values', rule, {
 		{
 			code: `
 				component Form() {
-					const name = track('');
+					const name = #ripple.track('');
 					<input value={@name} />
 				}
 			`,
@@ -66,7 +66,7 @@ ruleTester.run('unbox-tracked-values', rule, {
 			// Invalid: the value does not get unboxed
 			code: `
 				component Counter() {
-					const count = track(0);
+					const count = #ripple.track(0);
 					<div>{count}</div>
 				}
 			`,
@@ -81,7 +81,7 @@ ruleTester.run('unbox-tracked-values', rule, {
 			// Invalid: the value does not get unboxed
 			code: `
 				component App() {
-					const value = track(10);
+					const value = #ripple.track(10);
 					<span>{\`Value: \${value}\`}</span>
 				}
 			`,
@@ -96,8 +96,8 @@ ruleTester.run('unbox-tracked-values', rule, {
 			// Invalid: multiple values don't get unboxed
 			code: `
 				component Form() {
-					const firstName = track('');
-					const lastName = track('');
+					const firstName = #ripple.track('');
+					const lastName = #ripple.track('');
 					<div>
 						<span>{firstName}</span>
 						<span>{lastName}</span>

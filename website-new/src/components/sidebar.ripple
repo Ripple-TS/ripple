@@ -1,5 +1,3 @@
-import { track } from 'ripple';
-
 export component Sidebar({ currentPath = '/docs/introduction' }: { currentPath?: string }) {
 	<aside class="Sidebar">
 		<div class="curtain" />
@@ -213,7 +211,7 @@ component SidebarGroup({
 	children: any;
 	hasActive?: boolean;
 }) {
-	let expanded = track(true);
+	let expanded = #ripple.track(true);
 
 	<section
 		class={`SidebarItem level-0 collapsible ${hasActive ? 'has-active' : ''} ${

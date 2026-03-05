@@ -20,7 +20,7 @@ ruleTester.run('no-introspect-in-modules', rule, {
 				import { get, set } from 'ripple';
 
 				export function useCount() {
-					const count = track(1);
+					const count = #ripple.track(1);
 					const double = derived(() => get(count) * 2);
 
 					effect(() => {
@@ -38,7 +38,7 @@ ruleTester.run('no-introspect-in-modules', rule, {
 				import { get } from 'ripple';
 
 				function useCounter() {
-					const count = track(0);
+					const count = #ripple.track(0);
 					effect(() => {
 						console.log(get(count));
 					});
@@ -53,7 +53,7 @@ ruleTester.run('no-introspect-in-modules', rule, {
 				import { get, set } from 'ripple';
 
 				export function useState() {
-					const state = track({ value: 0 });
+					const state = #ripple.track({ value: 0 });
 					const getValue = () => get(state);
 					const setValue = (v) => set(state, v);
 					return { getValue, setValue };
@@ -65,7 +65,7 @@ ruleTester.run('no-introspect-in-modules', rule, {
 		{
 			code: `
 				component Counter() {
-					const count = track(0);
+					const count = #ripple.track(0);
 					effect(() => {
 						console.log(@count);
 					});
@@ -80,7 +80,7 @@ ruleTester.run('no-introspect-in-modules', rule, {
 			// Invalid: using @ operator in TypeScript module
 			code: `
 				export function useCount() {
-					const count = track(1);
+					const count = #ripple.track(1);
 					effect(() => {
 						console.log(@count);
 					});
@@ -98,7 +98,7 @@ ruleTester.run('no-introspect-in-modules', rule, {
 			// Invalid: using @ operator in JavaScript module
 			code: `
 				function useCounter() {
-					const value = track(42);
+					const value = #ripple.track(42);
 					const result = @value * 2;
 					return result;
 				}
@@ -114,8 +114,8 @@ ruleTester.run('no-introspect-in-modules', rule, {
 			// Invalid: multiple @ operators in TypeScript module
 			code: `
 				export function useForm() {
-					const firstName = track('');
-					const lastName = track('');
+					const firstName = #ripple.track('');
+					const lastName = #ripple.track('');
 					const fullName = @firstName + ' ' + @lastName;
 					return { fullName };
 				}
@@ -134,7 +134,7 @@ ruleTester.run('no-introspect-in-modules', rule, {
 			// Invalid: @ operator in TSX file
 			code: `
 				export function useData() {
-					const data = track(null);
+					const data = #ripple.track(null);
 					effect(() => {
 						console.log(@data);
 					});
