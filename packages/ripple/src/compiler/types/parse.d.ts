@@ -930,8 +930,6 @@ export namespace Parse {
 			| AST.ServerIdentifier
 			| AST.StyleIdentifier
 			| AST.TrackedExpression
-			| AST.TrackedMapExpression
-			| AST.TrackedSetExpression
 			| AST.TrackedArrayExpression
 			| AST.TrackedObjectExpression
 			| AST.Component
@@ -955,10 +953,6 @@ export namespace Parse {
 
 		/** Parse parenthesized expression (just the expression) */
 		parseParenExpression(): AST.Expression;
-
-		parseTrackedCollectionExpression(
-			type: 'TrackedMapExpression' | 'TrackedSetExpression',
-		): AST.TrackedMapExpression | AST.TrackedSetExpression;
 
 		parseTrackedArrayExpression(): AST.TrackedArrayExpression;
 

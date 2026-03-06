@@ -82,6 +82,7 @@ declare global {
 		get_tracked(node: any): any;
 		get_derived(node: any): any;
 		set(node: any, value: any): any;
+		document: Document;
 		// Add other runtime functions as needed for TypeScript analysis
 	};
 }

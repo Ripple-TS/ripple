@@ -537,6 +537,10 @@ const visitors = {
 					? 'tracked_url_search_params'
 					: source_name === '#ripple.date'
 						? 'tracked_date'
+						: source_name === '#ripple.map'
+							? 'tracked_map'
+							: source_name === '#ripple.set'
+								? 'tracked_set'
 						: source_name === '#ripple.mediaQuery'
 							? 'media_query'
 							: source_name === '#ripple.context'
@@ -546,6 +550,8 @@ const visitors = {
 			source_name === '#ripple.url' ||
 			source_name === '#ripple.urlSearchParams' ||
 			source_name === '#ripple.date' ||
+			source_name === '#ripple.map' ||
+			source_name === '#ripple.set' ||
 			source_name === '#ripple.mediaQuery';
 		if (context.state.metadata?.tracking === false) {
 			context.state.metadata.tracking = true;
@@ -562,14 +568,40 @@ const visitors = {
 			};
 		}
 
-		if (
-			context.state.to_ts &&
-			(source_name === '#ripple.track' ||
-				source_name === '#ripple.trackSplit' ||
-				source_name === '#ripple.untrack' ||
-				source_name === '#ripple.effect')
-		) {
-			const import_name = source_name.replace('#ripple.', '');
+		if (context.state.to_ts && source_name?.startsWith('#ripple.')) {
+			/** @type {string} */
+			let import_name;
+			let is_new = false;
+			if (source_name === '#ripple.date') {
+				import_name = 'TrackedDate';
+				is_new = true;
+			} else if (source_name === '#ripple.urlSearchParams') {
+				import_name = 'TrackedURLSearchParams';
+				is_new = true;
+			} else if (source_name === '#ripple.url') {
+				import_name = 'TrackedURL';
+				is_new = true;
+			} else if (source_name === '#ripple.mediaQuery') {
+				import_name = 'MediaQuery';
+				is_new = true;
+			} else if (source_name === '#ripple.context') {
+				import_name = 'Context';
+				is_new = true;
+			} else if (source_name === '#ripple.map') {
+				import_name = 'TrackedMap';
+				is_new = true;
+			} else if (source_name === '#ripple.set') {
+				import_name = 'TrackedSet';
+				is_new = true;
+			} else if (source_name === '#ripple.object') {
+				import_name = 'TrackedObject';
+				is_new = true;
+			} else if (source_name === '#ripple.array') {
+				import_name = 'TrackedArray';
+				is_new = true;
+			} else {
+				import_name = source_name.replace('#ripple.', '');
+			}
 			const track_alias = set_hidden_import_from_ripple(import_name, context);
 			const track_id = b.id(track_alias);
 			track_id.metadata = {
@@ -577,13 +609,21 @@ const visitors = {
 				source_name: source_name,
 			};
 
-			return {
-				...node,
-				callee: track_id,
-				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
-					node.arguments.map((arg) => context.visit(arg))
-				),
-			};
+			if (is_new) {
+				return b.new(
+					track_alias,
+					/** @type {AST.NodeWithLocation} */ (node),
+					.../** @type {AST.Expression[]} */ (node.arguments.map((arg) => context.visit(arg))),
+				);
+			} else {
+				return {
+					...node,
+					callee: track_id,
+					arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+						node.arguments.map((arg) => context.visit(arg))
+					),
+				};
+			}
 		}
 
 		if (!context.state.to_ts && is_ripple_track_call(callee, context)) {
@@ -705,43 +745,6 @@ const visitors = {
 			);
 		}
 
-		// Special handling for TrackedMapExpression and TrackedSetExpression
-		// When source is "new #ripple.map(...)" or "new #ripple.map<K,V>(...)", the callee is TrackedMapExpression
-		// with empty arguments and the actual arguments are in NewExpression.arguments
-		if (callee.type === 'TrackedMapExpression' || callee.type === 'TrackedSetExpression') {
-			// Use NewExpression's arguments (the callee has empty arguments from parser)
-			const argsToUse = node.arguments.length > 0 ? node.arguments : callee.arguments;
-
-			if (context.state.to_ts) {
-				const className = callee.type === 'TrackedMapExpression' ? 'TrackedMap' : 'TrackedSet';
-				const alias = set_hidden_import_from_ripple(className, context);
-				const calleeId = b.id(alias);
-				calleeId.loc = callee.loc;
-				calleeId.metadata = {
-					source_name: callee.type === 'TrackedMapExpression' ? '#ripple.map' : '#ripple.set',
-					path: [...context.path],
-				};
-				/** @type {AST.NewExpression} */
-				const newExpr = b.new(
-					calleeId,
-					/** @type {AST.NodeWithLocation} */ (node),
-					.../** @type {AST.Expression[]} */ (argsToUse.map((arg) => context.visit(arg))),
-				);
-				// Preserve typeArguments for generics syntax like new #Map<string, number>()
-				if (node.typeArguments) {
-					newExpr.typeArguments = node.typeArguments;
-				}
-				return newExpr;
-			}
-
-			const helperName = callee.type === 'TrackedMapExpression' ? 'tracked_map' : 'tracked_set';
-			return b.call(
-				`_$_.${helperName}`,
-				b.id('__block'),
-				.../** @type {AST.Expression[]} */ (argsToUse.map((arg) => context.visit(arg))),
-			);
-		}
-
 		if (
 			context.state.to_ts ||
 			!is_inside_component(context, true) ||
@@ -818,42 +821,6 @@ const visitors = {
 				),
 			),
 			b.id('__block'),
-		);
-	},
-
-	TrackedMapExpression(node, context) {
-		if (context.state.to_ts) {
-			const map_alias = set_hidden_import_from_ripple('TrackedMap', context);
-
-			return b.new(
-				b.id(map_alias),
-				/** @type {AST.NodeWithLocation} */ (node),
-				.../** @type {AST.Expression[]} */ (node.arguments.map((arg) => context.visit(arg))),
-			);
-		}
-
-		return b.call(
-			'_$_.tracked_map',
-			b.id('__block'),
-			.../** @type {AST.Expression[]} */ (node.arguments.map((arg) => context.visit(arg))),
-		);
-	},
-
-	TrackedSetExpression(node, context) {
-		if (context.state.to_ts) {
-			const set_alias = set_hidden_import_from_ripple('TrackedSet', context);
-
-			return b.new(
-				b.id(set_alias),
-				/** @type {AST.NodeWithLocation} */ (node),
-				.../** @type {AST.Expression[]} */ (node.arguments.map((arg) => context.visit(arg))),
-			);
-		}
-
-		return b.call(
-			'_$_.tracked_set',
-			b.id('__block'),
-			.../** @type {AST.Expression[]} */ (node.arguments.map((arg) => context.visit(arg))),
 		);
 	},
 

@@ -930,16 +930,6 @@ function RipplePlugin(config) {
 					return /** @type {AST.StyleIdentifier} */ (this.finishNode(node, 'StyleIdentifier'));
 				}
 
-				// Check if this is #ripple.map( or #ripple.set(
-				if (
-					this.type === tt.name &&
-					(this.value === '#ripple.map' || this.value === '#ripple.set')
-				) {
-					const type =
-						this.value === '#ripple.map' ? 'TrackedMapExpression' : 'TrackedSetExpression';
-					return this.parseTrackedCollectionExpression(type);
-				}
-
 				// Check if this is #ripple.array( or #ripple.object(
 				if (this.type === tt.name && this.value === '#ripple.array' && is_next_call_token) {
 					return this.parseTrackedArrayCallExpression();
@@ -957,6 +947,8 @@ function RipplePlugin(config) {
 						'#ripple.effect': 'effect',
 						'#ripple.context': 'Context',
 						'#ripple.date': 'TrackedDate',
+						'#ripple.map': 'TrackedMap',
+						'#ripple.set': 'TrackedSet',
 						'#ripple.url': 'TrackedURL',
 						'#ripple.urlSearchParams': 'TrackedURLSearchParams',
 						'#ripple.mediaQuery': 'MediaQuery',
@@ -1093,56 +1085,6 @@ function RipplePlugin(config) {
 
 				this.awaitPos = 0;
 				return this.finishNode(node, 'ServerBlock');
-			}
-
-			/**
-			 * Parse `#ripple.map(...)` or `#ripple.set(...)` syntax for tracked collections
-			 * Creates a TrackedMap or TrackedSet node with the arguments property
-			 * @type {Parse.Parser['parseTrackedCollectionExpression']}
-			 */
-			parseTrackedCollectionExpression(type) {
-				const node =
-					/** @type {(AST.TrackedMapExpression | AST.TrackedSetExpression) & AST.NodeWithLocation} */ (
-						this.startNode()
-					);
-				this.next(); // consume '#ripple.map' or '#ripple.set'
-
-				// When used as `new #ripple.map(...)`, keep parentheses for NewExpression
-				const beforeStart = this.input.substring(Math.max(0, node.start - 5), node.start);
-				const isAfterNew = /new\s*$/.test(beforeStart);
-
-				// Don't consume parens or generics when used after `new`
-				if (this.type === tt.parenL || (this.type === tt.relational && this.value === '<')) {
-					if (isAfterNew) {
-						node.arguments = [];
-						return this.finishNode(node, type);
-					}
-				}
-
-				this.expect(tt.parenL); // expect '('
-
-				node.arguments = [];
-				// Parse arguments similar to function call arguments
-				let first = true;
-				while (!this.eat(tt.parenR)) {
-					if (!first) {
-						this.expect(tt.comma);
-						if (this.afterTrailingComma(tt.parenR)) break;
-					} else {
-						first = false;
-					}
-
-					if (this.type === tt.ellipsis) {
-						// Spread argument
-						const arg = this.parseSpread();
-						node.arguments.push(arg);
-					} else {
-						// Regular argument
-						node.arguments.push(this.parseMaybeAssign(false));
-					}
-				}
-
-				return this.finishNode(node, type);
 			}
 
 			/**

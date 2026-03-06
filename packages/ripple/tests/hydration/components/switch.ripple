@@ -1,5 +1,5 @@
 export component SwitchStatic() {
-	const status = 'success';
+	const status: string = 'success';
 	switch (status) {
 		case 'success':
 			<div class="status-success">{'Success'}</div>
@@ -37,7 +37,7 @@ export component SwitchReactive() {
 }
 
 export component SwitchFallthrough() {
-	const val = 1;
+	const val: number = 1;
 	switch (val) {
 		case 1:
 		case 2:

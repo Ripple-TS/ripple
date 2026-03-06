@@ -1545,30 +1545,6 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 		}
 
-		case 'TrackedMapExpression': {
-			// Format: #ripple.map(arg1, arg2, ...) or #ripple.map() for empty
-			// Note: 'new' is never needed - compiler handles that automatically
-			if (!node.arguments || node.arguments.length === 0) {
-				nodeContent = '#ripple.map()';
-			} else {
-				const args = path.map(print, 'arguments');
-				nodeContent = ['#ripple.map(', join([',', line], args), ')'];
-			}
-			break;
-		}
-
-		case 'TrackedSetExpression': {
-			// Format: #ripple.set(arg1, arg2, ...) or #ripple.set() for empty
-			// Note: 'new' is never needed - compiler handles that automatically
-			if (!node.arguments || node.arguments.length === 0) {
-				nodeContent = '#ripple.set()';
-			} else {
-				const args = path.map(print, 'arguments');
-				nodeContent = ['#ripple.set(', join([',', line], args), ')'];
-			}
-			break;
-		}
-
 		case 'StyleIdentifier': {
 			nodeContent = '#ripple.style';
 			break;
@@ -4223,9 +4199,7 @@ function printNewExpression(node, path, options, print) {
 	// If someone writes 'new #ripple.map()', just output '#ripple.map()'
 	if (
 		node.callee &&
-		(node.callee.type === 'TrackedMapExpression' ||
-			node.callee.type === 'TrackedSetExpression' ||
-			node.callee.type === 'TrackedArrayExpression' ||
+		(node.callee.type === 'TrackedArrayExpression' ||
 			node.callee.type === 'TrackedObjectExpression')
 	) {
 		return [path.call(print, 'callee')];

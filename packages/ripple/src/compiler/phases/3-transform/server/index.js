@@ -461,6 +461,10 @@ const visitors = {
 					? 'tracked_url_search_params'
 					: source_name === '#ripple.date'
 						? 'tracked_date'
+						: source_name === '#ripple.map'
+							? 'tracked_map'
+							: source_name === '#ripple.set'
+								? 'tracked_set'
 						: source_name === '#ripple.mediaQuery'
 							? 'media_query'
 							: source_name === '#ripple.context'
@@ -470,6 +474,8 @@ const visitors = {
 			source_name === '#ripple.url' ||
 			source_name === '#ripple.urlSearchParams' ||
 			source_name === '#ripple.date' ||
+			source_name === '#ripple.map' ||
+			source_name === '#ripple.set' ||
 			source_name === '#ripple.mediaQuery';
 
 		if (!context.state.to_ts && shorthand_runtime_method !== null) {
@@ -508,9 +514,6 @@ const visitors = {
 	},
 
 	NewExpression(node, context) {
-		// Special handling for TrackedMapExpression and TrackedSetExpression
-		// When source is "new #Map(...)", the callee is TrackedMapExpression with empty arguments
-		// and the actual arguments are in NewExpression.arguments
 		const callee = node.callee;
 
 		if (
@@ -524,38 +527,10 @@ const visitors = {
 			);
 		}
 
-		if (callee.type === 'TrackedMapExpression' || callee.type === 'TrackedSetExpression') {
-			// Use NewExpression's arguments (the callee has empty arguments from parser)
-			const argsToUse = node.arguments.length > 0 ? node.arguments : callee.arguments;
-			// For SSR, use regular Map/Set
-			const constructorName = callee.type === 'TrackedMapExpression' ? 'Map' : 'Set';
-			return b.new(
-				b.id(constructorName),
-				undefined,
-				.../** @type {AST.Expression[]} */ (argsToUse.map((arg) => context.visit(arg))),
-			);
-		}
-
 		if (!context.state.to_ts) {
 			delete node.typeArguments;
 		}
 		return context.next();
-	},
-
-	TrackedMapExpression(node, context) {
-		return b.new(
-			b.id('Map'),
-			undefined,
-			.../** @type {AST.Expression[]} */ (node.arguments.map((arg) => context.visit(arg))),
-		);
-	},
-
-	TrackedSetExpression(node, context) {
-		return b.new(
-			b.id('Set'),
-			undefined,
-			.../** @type {AST.Expression[]} */ (node.arguments.map((arg) => context.visit(arg))),
-		);
 	},
 
 	PropertyDefinition(node, context) {

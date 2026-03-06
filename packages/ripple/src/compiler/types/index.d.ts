@@ -157,8 +157,6 @@ declare module 'estree' {
 	interface ExpressionMap {
 		TrackedArrayExpression: TrackedArrayExpression;
 		TrackedObjectExpression: TrackedObjectExpression;
-		TrackedMapExpression: TrackedMapExpression;
-		TrackedSetExpression: TrackedSetExpression;
 		TrackedExpression: TrackedExpression;
 		StyleIdentifier: StyleIdentifier;
 		ServerIdentifier: ServerIdentifier;
@@ -364,16 +362,6 @@ declare module 'estree' {
 	interface TrackedObjectExpression extends Omit<AST.ObjectExpression, 'type'> {
 		type: 'TrackedObjectExpression';
 		properties: (AST.Property | AST.SpreadElement)[];
-	}
-
-	interface TrackedMapExpression extends AST.BaseExpression {
-		type: 'TrackedMapExpression';
-		arguments: (AST.Expression | AST.SpreadElement)[];
-	}
-
-	interface TrackedSetExpression extends AST.BaseExpression {
-		type: 'TrackedSetExpression';
-		arguments: (AST.Expression | AST.SpreadElement)[];
 	}
 
 	/**
