@@ -686,7 +686,6 @@ function RipplePlugin(config) {
 							'#ripple.mediaQuery',
 							'#ripple.server',
 							'#ripple.style',
-							'#ripple.defer',
 							'#ripple.validate',
 						];
 

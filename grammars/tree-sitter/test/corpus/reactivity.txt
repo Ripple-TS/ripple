@@ -2,10 +2,8 @@
 Reactive Primitives - track and unbox
 ==================
 
-import { track } from 'ripple';
-
 component Counter() {
-  let count = track(0);
+  let count = #ripple.track(0);
   <div>{@count}</div>
 }
 
@@ -79,7 +77,7 @@ Unbox Expression
 ==================
 
 component App() {
-  let count = track(0);
+  let count = #ripple.track(0);
   <button onClick={() => @count++}>{'+'}</button>
 }
 
@@ -177,7 +175,7 @@ Augmented Assignment with Unbox
 ==================
 
 component App() {
-  let count = track(0);
+  let count = #ripple.track(0);
   <button onClick={() => @count += 1}>{'+'}</button>
 }
 

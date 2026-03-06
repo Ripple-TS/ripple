@@ -179,7 +179,6 @@ module.exports = grammar({
 				$.import_statement,
 				$.declaration,
 				$.server_block,
-				$.defer_block,
 				$.expression_statement,
 				$.if_statement,
 				$.switch_statement,
@@ -379,7 +378,6 @@ module.exports = grammar({
 				$.jsx_element,
 				$.jsx_self_closing_element,
 				$.server_block,
-				$.defer_block,
 				$.variable_declaration,
 				$.lexical_declaration,
 				$.function_declaration,
@@ -582,8 +580,6 @@ module.exports = grammar({
 			),
 
 		server_block: ($) => seq('#ripple.server', '{', repeat($.statement), '}'),
-
-		defer_block: ($) => seq('#ripple.defer', '{', repeat($.statement), '}'),
 
 		server_member_expression: ($) => seq('#ripple.server', '.', field('property', $.identifier)),
 

@@ -2,7 +2,6 @@
 (component_declaration "component" @keyword)
 (fragment_declaration "fragment" @keyword)
 (server_block "#ripple.server" @keyword)
-(defer_block "#ripple.defer" @keyword)
 
 (server_member_expression
   "#ripple.server" @keyword

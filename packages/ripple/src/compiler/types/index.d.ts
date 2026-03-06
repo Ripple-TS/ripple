@@ -28,7 +28,6 @@ interface BaseNodeMetaData {
 		| '#ripple.urlSearchParams'
 		| '#ripple.date'
 		| '#ripple.mediaQuery'
-		| '#ripple.defer'
 		| '#ripple.validate'
 		| '#ripple.context'
 		| '#ripple.trackSplit';

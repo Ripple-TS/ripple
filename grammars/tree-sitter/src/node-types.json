@@ -292,10 +292,6 @@
         "named": true
       },
       {
-        "type": "defer_block",
-        "named": true
-      },
-      {
         "type": "do_statement",
         "named": true
       },
@@ -1142,10 +1138,6 @@
           "named": true
         },
         {
-          "type": "defer_block",
-          "named": true
-        },
-        {
           "type": "do_statement",
           "named": true
         },
@@ -1258,21 +1250,6 @@
     "type": "debugger_statement",
     "named": true,
     "fields": {}
-  },
-  {
-    "type": "defer_block",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "statement",
-          "named": true
-        }
-      ]
-    }
   },
   {
     "type": "do_statement",
@@ -3800,10 +3777,6 @@
   },
   {
     "type": "\"",
-    "named": false
-  },
-  {
-    "type": "#ripple.defer",
     "named": false
   },
   {

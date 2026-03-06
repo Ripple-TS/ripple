@@ -3,7 +3,7 @@ Dynamic Component
 ==================
 
 component App() {
-  let Current = track(() => ComponentA);
+  let Current = #ripple.track(() => ComponentA);
   <@Current />
 }
 
@@ -31,7 +31,7 @@ Dynamic Element
 ==================
 
 component App() {
-  let tag = track('div');
+  let tag = #ripple.track('div');
   <@tag>{'content'}</@tag>
 }
 

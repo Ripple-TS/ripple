@@ -497,16 +497,6 @@ const RIPPLE_NAMESPACE_SNIPPETS = [
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-ripple-server',
 	},
-	{
-		label: '#ripple.defer',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Deferred render block',
-		documentation:
-			"Marks template content to be rendered after the initial paint.\nUse for non-critical UI that shouldn't block first render.\n\nUsage:\n#ripple.defer {\n  <HeavyWidget />\n}",
-		insertText: '#ripple.defer {\n\t$0\n}',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-defer',
-	},
 ];
 
 /**

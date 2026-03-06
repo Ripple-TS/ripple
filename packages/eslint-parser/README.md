@@ -87,10 +87,8 @@ The parser supports all Ripple syntax including:
 Given a `.ripple` file:
 
 ```ripple
-import { track } from 'ripple';
-
 export component Counter() {
-  let count = track(0);
+  let count = #ripple.track(0);
 
   <div>
     <button onClick={() => @count++}>Increment</button>
