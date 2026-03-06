@@ -2328,10 +2328,15 @@ const visitors = {
 		let alternate_id;
 
 		if (node.alternate !== null) {
-			const alternate = /** @type {AST.BlockStatement | AST.IfStatement} */ (node.alternate);
+			const alternate = /** @type {AST.Statement} */ (node.alternate);
 			const alternate_scope = context.state.scopes.get(alternate) || context.state.scope;
 			/** @type {AST.Node[]} */
-			let alternate_body = alternate.type === 'IfStatement' ? [alternate] : alternate.body;
+			let alternate_body =
+				alternate.type === 'IfStatement'
+					? [alternate]
+					: alternate.type === 'BlockStatement'
+						? alternate.body
+						: [alternate];
 			const alternate_block = b.block(
 				transform_body(alternate_body, {
 					...context,
@@ -2940,10 +2945,14 @@ function transform_ts_child(node, context) {
 		let alternate;
 
 		if (node.alternate !== null) {
-			const alternate_node = /** @type {AST.BlockStatement | AST.IfStatement} */ (node.alternate);
+			const alternate_node = /** @type {AST.Statement} */ (node.alternate);
 			const alternate_scope = context.state.scopes.get(alternate_node) || context.state.scope;
 			const alternate_body =
-				alternate_node.type === 'IfStatement' ? [alternate_node] : alternate_node.body;
+				alternate_node.type === 'IfStatement'
+					? [alternate_node]
+					: alternate_node.type === 'BlockStatement'
+						? alternate_node.body
+						: [alternate_node];
 			alternate = b.block(
 				transform_body(alternate_body, {
 					...context,

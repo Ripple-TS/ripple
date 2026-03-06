@@ -340,6 +340,26 @@ export component App(props: Props) {
 		expect(result).toContain('extends PolymorphicProps<\'div\'>');
 	});
 
+	it('handles if-else expression statements in Volar mappings', () => {
+		const source = `
+export component App() {
+	let level = #ripple.track(1);
+
+	<button
+		onClick={() => {
+			if (@level === 1) @level = 2;
+			else if (@level === 2) @level = 3;
+			else @level = 1;
+		}}
+	>
+		{'Toggle'}
+	</button>
+}
+`;
+
+		expect(() => compile_to_volar_mappings(source, 'test.ripple')).not.toThrow();
+	});
+
 	it('should not error on having js below markup in the same scope', () => {
 		const code = `
 component Card(props) {
