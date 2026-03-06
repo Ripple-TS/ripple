@@ -516,17 +516,6 @@ const visitors = {
 	NewExpression(node, context) {
 		const callee = node.callee;
 
-		if (
-			!context.state.to_ts &&
-			callee.type === 'Identifier' &&
-			(callee.metadata?.source_name === '#ripple.context' || callee.name === 'Context')
-		) {
-			return b.call(
-				'_$_.context',
-				.../** @type {AST.Expression[]} */ (node.arguments.map((arg) => context.visit(arg))),
-			);
-		}
-
 		if (!context.state.to_ts) {
 			delete node.typeArguments;
 		}

@@ -3,7 +3,7 @@ import { flushSync } from 'ripple';
 
 describe('context', () => {
 	it('creates a reactive ref with initial value', () => {
-		const MyContext = new Context<string | null>(null);
+		const MyContext = #ripple.context<string | null>(null);
 
 		component Child() {
 			const value = MyContext.get();
@@ -25,7 +25,7 @@ describe('context', () => {
 	});
 
 	it('handles context captured inside a computed tracked', () => {
-		const MyContext = new Context<number | null>(null);
+		const MyContext = #ripple.context<number | null>(null);
 
 		const doubleContext = () => {
 			const value = MyContext.get() as number;
