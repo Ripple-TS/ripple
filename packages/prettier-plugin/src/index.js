@@ -3673,8 +3673,7 @@ function printObjectExpression(node, path, options, print, args) {
 				? '#ripple.object({'.length
 				: '#ripple{'.length
 			: 1;
-	const closing_offset =
-		node.type === 'TrackedObjectExpression' && use_long_tracked_syntax ? 2 : 1;
+	const closing_offset = node.type === 'TrackedObjectExpression' && use_long_tracked_syntax ? 2 : 1;
 
 	if (!node.properties || node.properties.length === 0) {
 		return open_brace + close_brace;
@@ -3752,12 +3751,7 @@ function printObjectExpression(node, path, options, print, args) {
 		const spacing = options.bracketSpacing === false ? softline : line;
 		const trailingDoc = shouldUseTrailingComma ? ifBreak(',', '') : '';
 
-		return group([
-			open_brace,
-			indent([spacing, propertyDoc, trailingDoc]),
-			spacing,
-			close_brace,
-		]);
+		return group([open_brace, indent([spacing, propertyDoc, trailingDoc]), spacing, close_brace]);
 	}
 
 	// For objects that were originally inline (single-line) and don't have blank lines,
@@ -3770,12 +3764,7 @@ function printObjectExpression(node, path, options, print, args) {
 		const spacing = options.bracketSpacing === false ? softline : line;
 		const trailingDoc = shouldUseTrailingComma ? ifBreak(',', '') : '';
 
-		return group([
-			open_brace,
-			indent([spacing, propertyDoc, trailingDoc]),
-			spacing,
-			close_brace,
-		]);
+		return group([open_brace, indent([spacing, propertyDoc, trailingDoc]), spacing, close_brace]);
 	}
 
 	/** @type {Doc[]} */
