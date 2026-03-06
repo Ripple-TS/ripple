@@ -25,6 +25,29 @@
   "untrack"
 ] @function.builtin
 
+; Hash-prefixed reactive builtins
+(
+  (member_expression
+    object: (_) @ripple_prefix @keyword
+    "." @punctuation.delimiter
+    property: (identifier) @ripple_builtin @function.builtin)
+  (#eq? @ripple_prefix "#ripple")
+  (#match? @ripple_builtin "^(track|untrack|effect|trackSplit|date|array|object|context|url|mediaQuery|urlSearchParams|createSubscriber|async|validate)$")
+)
+
+(
+  (member_expression
+    object: (member_expression
+      object: (_) @ripple_prefix @keyword
+      "." @punctuation.delimiter
+      property: (identifier) @ripple_array)
+    "." @punctuation.delimiter
+    property: (identifier) @ripple_array_static @function.builtin)
+  (#eq? @ripple_prefix "#ripple")
+  (#eq? @ripple_array "array")
+  (#match? @ripple_array_static "^(fromAsync|from|of)$")
+)
+
 ; Functions
 (component_declaration
   name: (identifier) @function)
@@ -241,6 +264,19 @@
 
 ; Reactive constructs (placed after generic punctuation so special tokens win)
 (unbox_expression "@" @operator.special)
+
+(tracked_map_expression
+  "#ripple.map" @function.builtin
+  (arguments
+    "(" @punctuation.bracket
+    ")" @punctuation.bracket))
+
+(tracked_set_expression
+  "#ripple.set" @function.builtin
+  (arguments
+    "(" @punctuation.bracket
+    ")" @punctuation.bracket))
+
 (reactive_array
   "#ripple[" @punctuation.special
   "]" @punctuation.special)
