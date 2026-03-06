@@ -364,13 +364,12 @@ export default component Counter() {
 	},
 	{
 		title: 'Effects',
-		code: `import { effect } from 'ripple';
-import confetti from 'canvas-confetti';
+		code: `import confetti from 'canvas-confetti';
 
 export default component App() {
   let count = #ripple.track(0);
 
-  effect(() => {
+  #ripple.effect(() => {
     console.log(@count);
     if (@count > 0) {
       confetti();
@@ -392,7 +391,7 @@ export default component App() {
 
 	const total = #ripple.track(() => arr.reduce((a, b) => a + @b, 0));
 
-	effect(() => {
+	#ripple.effect(() => {
 		console.log(@total);
 	})
 }
@@ -593,11 +592,9 @@ export default component App() {
 	},
 	{
 		title: 'Transporting Reactivity',
-		code: `import { effect } from 'ripple';
-
-function createDouble([ count ]) {
+		code: `function createDouble([ count ]) {
   const double = #ripple.track(() => @count * 2);
-  effect(() => {
+  #ripple.effect(() => {
     console.log('Count:', @count)
   });
   return [ double ];
@@ -605,7 +602,7 @@ function createDouble([ count ]) {
 
 function createQuad({ count }) {
   const quad = #ripple.track(() => @count * 4);
-  effect(() => {
+  #ripple.effect(() => {
     console.log('Count:', @count)
   });
   return { quad };
@@ -690,23 +687,21 @@ component basic() {
 	},
 	{
 		title: 'Untracking Reactivity',
-		code: `import { effect, untrack } from 'ripple';
-
-export default component App() {
+		code: `export default component App() {
   let count = #ripple.track(10);
   let double = #ripple.track(() => @count * 2);
   let quadruple = #ripple.track(() => @double * 2);
 
-  effect(() => {
+  #ripple.effect(() => {
     // This effect will never fire again, as we've untracked the only dependency it has
-    console.log(untrack(() => @quadruple));
+    console.log(#ripple.untrack(() => @quadruple));
   })
 }
 `,
 	},
 	{
 		title: 'Events',
-		code: `import { effect, on } from 'ripple';
+		code: `import { on } from 'ripple';
 
 export default component App() {
   let message = #ripple.track('');
@@ -718,7 +713,7 @@ export default component App() {
     <p>{@message}</p>
   </div>
 
-  effect(() => {
+  #ripple.effect(() => {
     // on component mount
     const removeListener = on(window, 'resize', () => {
       console.log('Window resized!');

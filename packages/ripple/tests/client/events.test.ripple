@@ -1,5 +1,5 @@
 import type { OnEventListenerRemover } from 'ripple';
-import { flushSync, on, effect } from 'ripple';
+import { flushSync, on } from 'ripple';
 
 describe('on() event handler', () => {
 	it('should attach multiple handlers via onClick attribute (delegated)', () => {
@@ -567,7 +567,7 @@ describe('on() event handler', () => {
 		component Basic() {
 			let windowClickCount = #ripple.track(0);
 
-			effect(() => {
+			#ripple.effect(() => {
 				const removeWindowListener = on(window, 'click', () => {
 					@windowClickCount++;
 				});
@@ -603,7 +603,7 @@ describe('on() event handler', () => {
 		component Basic() {
 			let documentClickCount = #ripple.track(0);
 
-			effect(() => {
+			#ripple.effect(() => {
 				const removeDocumentListener = on(document, 'click', () => {
 					@documentClickCount++;
 				});
@@ -639,7 +639,7 @@ describe('on() event handler', () => {
 		component Basic() {
 			let bodyClickCount = #ripple.track(0);
 
-			effect(() => {
+			#ripple.effect(() => {
 				const removeBodyListener = on(document.body, 'click', () => {
 					@bodyClickCount++;
 				});

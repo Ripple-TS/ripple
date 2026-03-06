@@ -3,10 +3,10 @@
 exports[`compiler > assignments > compiles tracked values in effect with assignment expression 1`] = `"state.count = _$_.get(count);"`;
 
 exports[`compiler > assignments > compiles tracked values in effect with update expressions 1`] = `
-"_$_.with_scope(__block, () => untrack(() => {
+"_$_.untrack(() => {
 			state.preIncrement = _$_.update_pre(count);
 			state.postIncrement = _$_.update(count);
 			state.preDecrement = _$_.update_pre(count, -1);
 			state.postDecrement = _$_.update(count, -1);
-		}));"
+		});"
 `;

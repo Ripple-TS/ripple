@@ -1,6 +1,8 @@
 import { TrackedArray } from 'ripple';
 import { compile } from 'ripple/compiler';
 
+const EFFECT_BODY_REGEX = /_\$\_\.effect\(\(\) => \{([\s\S]*?)\n\t\}\);/;
+
 describe('compiler > assignments', () => {
 	it('properly handles JS assignments, reads and updates to array indices', () => {
 		const logs: (number | undefined)[] = [];
@@ -107,34 +109,32 @@ describe('compiler > assignments', () => {
 
 	it('compiles tracked values in effect with assignment expression', () => {
 		const source = `component App() {
-let count = #ripple.track(0);
+	let count = #ripple.track(0);
 
-effect(() => {
-	state.count = @count;
-})
+	#ripple.effect(() => {
+		state.count = @count;
+	});
 }`;
 		const result = compile(source, 'test.ripple');
-		// Extract just the effect callback body
-		const effectMatch = result.js.code.match(/effect\(\(\) => \{([^}]+)\}\)/s);
-		expect(effectMatch?.[1].trim()).toMatchSnapshot();
+		const effect_match = result.js.code.match(EFFECT_BODY_REGEX);
+		expect(effect_match?.[1].trim()).toMatchSnapshot();
 	});
 
 	it('compiles tracked values in effect with update expressions', () => {
 		const source = `component App() {
-let count = #ripple.track(5);
+	let count = #ripple.track(5);
 
-effect(() => {
-	untrack(() => {
-		state.preIncrement = ++@count;
-		state.postIncrement = @count++;
-		state.preDecrement = --@count;
-		state.postDecrement = @count--;
+	#ripple.effect(() => {
+		#ripple.untrack(() => {
+			state.preIncrement = ++@count;
+			state.postIncrement = @count++;
+			state.preDecrement = --@count;
+			state.postDecrement = @count--;
+		});
 	});
-})
 }`;
 		const result = compile(source, 'test.ripple');
-		// Extract just the effect callback body
-		const effectMatch = result.js.code.match(/effect\(\(\) => \{([\s\S]+?)\n\t\}\)\)/);
-		expect(effectMatch?.[1].trim()).toMatchSnapshot();
+		const effect_match = result.js.code.match(EFFECT_BODY_REGEX);
+		expect(effect_match?.[1].trim()).toMatchSnapshot();
 	});
 });

@@ -13,7 +13,7 @@ const rule: Rule.RuleModule = {
 			requireJsxInLoop:
 				'For...of loops in component bodies should contain JSX elements. Use JSX to render items.',
 			noJsxInEffectLoop:
-				'For...of loops inside effect() should not contain JSX. Effects are for side effects, not rendering.',
+				'For...of loops inside #ripple.effect() should not contain JSX. Effects are for side effects, not rendering.',
 		},
 		schema: [],
 	},

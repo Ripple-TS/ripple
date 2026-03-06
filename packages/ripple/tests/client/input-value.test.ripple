@@ -1,8 +1,6 @@
 import type { GetFunction, SetFunction } from 'ripple';
 import {
 	flushSync,
-	effect,
-	untrack,
 	TrackedObject,
 	bindValue,
 	bindChecked,
@@ -106,7 +104,7 @@ describe('use value()', () => {
 		component App() {
 			const text = #ripple.track('');
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push('text changed', @text);
 			});
 
@@ -129,7 +127,7 @@ describe('use value()', () => {
 		component App() {
 			const text = #ripple{ value: '' };
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push('text changed', text.value);
 			});
 
@@ -152,7 +150,7 @@ describe('use value()', () => {
 		component App() {
 			const text = #ripple.track('foo');
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push('text changed', @text);
 			});
 
@@ -175,7 +173,7 @@ describe('use value()', () => {
 
 		component App() {
 			const text = #ripple{ value: 'foo' };
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push('text changed', text.value);
 			});
 
@@ -245,7 +243,7 @@ describe('use value()', () => {
 		component App() {
 			const value = #ripple.track(false);
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push('checked changed', @value);
 			});
 
@@ -268,7 +266,7 @@ describe('use value()', () => {
 
 		component App() {
 			const obj = #ripple{ value: false };
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push('checked changed', obj.value);
 			});
 
@@ -341,7 +339,7 @@ describe('use value()', () => {
 		component App() {
 			const value = #ripple.track(false);
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push('indeterminate changed', @value);
 			});
 
@@ -367,7 +365,7 @@ describe('use value()', () => {
 		component App() {
 			const obj = #ripple{ value: false };
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push('indeterminate changed', obj.value);
 			});
 
@@ -448,7 +446,7 @@ describe('use value()', () => {
 		component App() {
 			const select = #ripple.track('2');
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push('select changed', @select);
 			});
 
@@ -476,7 +474,7 @@ describe('use value()', () => {
 
 		component App() {
 			const select = #ripple{ value: '2' };
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push('select changed', select.value);
 			});
 
@@ -561,7 +559,7 @@ describe('use value()', () => {
 		component App() {
 			const selected = #ripple.track(['b']);
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push('selected changed', JSON.stringify(@selected));
 			});
 
@@ -609,7 +607,7 @@ describe('use value()', () => {
 		component App() {
 			const obj = #ripple{ selected: ['b'] };
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push('selected changed', JSON.stringify(obj.selected));
 			});
 
@@ -669,7 +667,7 @@ describe('use value()', () => {
 		component App() {
 			const selected = #ripple.track('b');
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push('selected changed', @selected);
 			});
 
@@ -716,7 +714,7 @@ describe('use value()', () => {
 		component App() {
 			const selected = #ripple{ value: 'b' };
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push('selected changed', selected.value);
 			});
 
@@ -1642,10 +1640,10 @@ describe('use value()', () => {
 					},
 				);
 
-				effect(() => {
+				#ripple.effect(() => {
 					@value;
 
-					untrack(() => {
+					#ripple.untrack(() => {
 						if (@value.includes('a')) {
 							@value = @value.replace(/a/g, '');
 						}
@@ -1789,10 +1787,10 @@ describe('use value()', () => {
 					},
 				];
 
-				effect(() => {
+				#ripple.effect(() => {
 					@value;
 
-					untrack(() => {
+					#ripple.untrack(() => {
 						if (@value.includes('a')) {
 							@value = @value.replace(/a/g, '');
 						}
@@ -1894,7 +1892,7 @@ describe('bindClientWidth and bindClientHeight', () => {
 		component App() {
 			const width = #ripple.track(0);
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push(@width);
 			});
 
@@ -1925,7 +1923,7 @@ describe('bindClientWidth and bindClientHeight', () => {
 		component App() {
 			const width = #ripple{ value: 0 };
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push(width.value);
 			});
 
@@ -1956,7 +1954,7 @@ describe('bindClientWidth and bindClientHeight', () => {
 		component App() {
 			const height = #ripple.track(0);
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push(@height);
 			});
 
@@ -1986,7 +1984,7 @@ describe('bindClientWidth and bindClientHeight', () => {
 
 		component App() {
 			const height = #ripple{ value: 0 };
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push(height.value);
 			});
 
@@ -2019,7 +2017,7 @@ describe('bindOffsetWidth and bindOffsetHeight', () => {
 		component App() {
 			const width = #ripple.track(0);
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push(@width);
 			});
 
@@ -2050,7 +2048,7 @@ describe('bindOffsetWidth and bindOffsetHeight', () => {
 		component App() {
 			const width = #ripple{ value: 0 };
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push(width.value);
 			});
 
@@ -2081,7 +2079,7 @@ describe('bindOffsetWidth and bindOffsetHeight', () => {
 		component App() {
 			const height = #ripple.track(0);
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push(@height);
 			});
 
@@ -2111,7 +2109,7 @@ describe('bindOffsetWidth and bindOffsetHeight', () => {
 
 		component App() {
 			const height = #ripple{ value: 0 };
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push(height.value);
 			});
 
@@ -2144,7 +2142,7 @@ describe('bindContentRect', () => {
 		component App() {
 			const rect = #ripple.track(null);
 
-			effect(() => {
+			#ripple.effect(() => {
 				if (@rect) logs.push(@rect);
 			});
 
@@ -2173,7 +2171,7 @@ describe('bindContentRect', () => {
 
 		component App() {
 			const rect: TrackedObject<{ value: DOMRectReadOnly | null }> = #ripple{ value: null };
-			effect(() => {
+			#ripple.effect(() => {
 				if (rect.value) logs.push(rect.value);
 			});
 
@@ -2210,7 +2208,7 @@ describe('bindContentBoxSize', () => {
 		component App() {
 			const boxSize = #ripple.track(null);
 
-			effect(() => {
+			#ripple.effect(() => {
 				if (@boxSize) logs.push(@boxSize);
 			});
 
@@ -2243,7 +2241,7 @@ describe('bindContentBoxSize', () => {
 		component App() {
 			const boxSize: TrackedObject<{ value: typeof mockBoxSize | null }> = #ripple{ value: null };
 
-			effect(() => {
+			#ripple.effect(() => {
 				if (boxSize.value) logs.push(boxSize.value);
 			});
 
@@ -2277,7 +2275,7 @@ describe('bindBorderBoxSize', () => {
 		component App() {
 			const boxSize = #ripple.track(null);
 
-			effect(() => {
+			#ripple.effect(() => {
 				if (@boxSize) logs.push(@boxSize);
 			});
 
@@ -2310,7 +2308,7 @@ describe('bindBorderBoxSize', () => {
 		component App() {
 			const boxSize: TrackedObject<{ value: typeof mockBoxSize | null }> = #ripple{ value: null };
 
-			effect(() => {
+			#ripple.effect(() => {
 				if (boxSize.value) logs.push(boxSize.value);
 			});
 
@@ -2344,7 +2342,7 @@ describe('bindDevicePixelContentBoxSize', () => {
 		component App() {
 			const boxSize = #ripple.track(null);
 
-			effect(() => {
+			#ripple.effect(() => {
 				if (@boxSize) logs.push(@boxSize);
 			});
 
@@ -2377,7 +2375,7 @@ describe('bindDevicePixelContentBoxSize', () => {
 		component App() {
 			const boxSize: TrackedObject<{ value: typeof mockBoxSize | null }> = #ripple{ value: null };
 
-			effect(() => {
+			#ripple.effect(() => {
 				if (boxSize.value) logs.push(boxSize.value);
 			});
 
@@ -2411,7 +2409,7 @@ describe('bindInnerHTML', () => {
 		component App() {
 			const html = #ripple.track('<strong>Hello</strong>');
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push(@html);
 			});
 
@@ -2437,7 +2435,7 @@ describe('bindInnerHTML', () => {
 		component App() {
 			const html = #ripple{ value: '<strong>Hello</strong>' };
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push(html.value);
 			});
 
@@ -2552,7 +2550,7 @@ describe('bindInnerText', () => {
 		component App() {
 			const text = #ripple.track('Hello World');
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push(@text);
 			});
 
@@ -2577,7 +2575,7 @@ describe('bindInnerText', () => {
 
 		component App() {
 			const text = #ripple{ value: 'Hello World' };
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push(text.value);
 			});
 
@@ -2659,7 +2657,7 @@ describe('bindTextContent', () => {
 		component App() {
 			const text = #ripple.track('Sample text');
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push(@text);
 			});
 
@@ -2685,7 +2683,7 @@ describe('bindTextContent', () => {
 		component App() {
 			const text = #ripple{ value: 'Sample text' };
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push(text.value);
 			});
 
@@ -2803,7 +2801,7 @@ describe('bindNode', () => {
 		component App() {
 			const nodeRef = #ripple.track(null);
 
-			effect(() => {
+			#ripple.effect(() => {
 				capturedNode = @nodeRef;
 			});
 
@@ -2823,7 +2821,7 @@ describe('bindNode', () => {
 		component App() {
 			const nodeRef: TrackedObject<{ value: HTMLElement | null }> = #ripple{ value: null };
 
-			effect(() => {
+			#ripple.effect(() => {
 				capturedNode = nodeRef.value;
 			});
 
@@ -2912,7 +2910,7 @@ describe('bindFiles', () => {
 		component App() {
 			const files = #ripple.track(null);
 
-			effect(() => {
+			#ripple.effect(() => {
 				@files;
 				if (@files) logs.push(@files);
 			});
@@ -2953,7 +2951,7 @@ describe('bindFiles', () => {
 		component App() {
 			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
 
-			effect(() => {
+			#ripple.effect(() => {
 				files.items;
 				if (files.items) logs.push(files.items);
 			});
@@ -2998,7 +2996,7 @@ describe('bindFiles', () => {
 		component App() {
 			const files = #ripple.track<FileList | null>(null);
 
-			effect(() => {
+			#ripple.effect(() => {
 				capturedFiles = @files;
 			});
 
@@ -3033,7 +3031,7 @@ describe('bindFiles', () => {
 		component App() {
 			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
 
-			effect(() => {
+			#ripple.effect(() => {
 				capturedFiles = files.items;
 			});
 
@@ -3072,7 +3070,7 @@ describe('bindFiles', () => {
 			const files = #ripple.track<FileList | null>(null);
 			const input = #ripple.track<HTMLInputElement | null>(null);
 
-			effect(() => {
+			#ripple.effect(() => {
 				capturedFiles = @files;
 			});
 
@@ -3125,7 +3123,7 @@ describe('bindFiles', () => {
 			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
 			const input = #ripple.track<HTMLInputElement | null>(null);
 
-			effect(() => {
+			#ripple.effect(() => {
 				capturedFiles = files.items;
 			});
 
@@ -3181,7 +3179,7 @@ describe('bindFiles', () => {
 		component App() {
 			const files = #ripple.track<FileList | null>(null);
 
-			effect(() => {
+			#ripple.effect(() => {
 				@files;
 				if (@files) {
 					fileCounts.push(@files.length);
@@ -3229,7 +3227,7 @@ describe('bindFiles', () => {
 
 		component App() {
 			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
-			effect(() => {
+			#ripple.effect(() => {
 				files.items;
 				if (files.items) {
 					fileCounts.push(files.items.length);
@@ -3282,7 +3280,7 @@ describe('bindFiles', () => {
 		component App() {
 			const files = #ripple.track<FileList | null>(null);
 
-			effect(() => {
+			#ripple.effect(() => {
 				@files;
 				if (@files && @files.length > 0) {
 					capturedFile = @files[0];
@@ -3318,7 +3316,7 @@ describe('bindFiles', () => {
 
 		component App() {
 			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
-			effect(() => {
+			#ripple.effect(() => {
 				files.items;
 				if (files.items && files.items.length > 0) {
 					capturedFile = files.items[0];
@@ -3358,7 +3356,7 @@ describe('bindFiles', () => {
 		component App() {
 			const files = #ripple.track(null);
 
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push(@files);
 			});
 
@@ -3399,7 +3397,7 @@ describe('bindFiles', () => {
 
 		component App() {
 			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push(files.items);
 			});
 

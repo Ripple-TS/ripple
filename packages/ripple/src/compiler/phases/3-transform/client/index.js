@@ -545,7 +545,11 @@ const visitors = {
 									? 'media_query'
 									: source_name === '#ripple.context'
 										? 'context'
-										: null;
+										: source_name === '#ripple.effect'
+											? 'effect'
+											: source_name === '#ripple.untrack'
+												? 'untrack'
+												: null;
 		const shorthand_requires_block =
 			source_name === '#ripple.url' ||
 			source_name === '#ripple.urlSearchParams' ||

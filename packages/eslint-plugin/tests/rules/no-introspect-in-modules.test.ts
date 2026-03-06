@@ -23,7 +23,7 @@ ruleTester.run('no-introspect-in-modules', rule, {
 					const count = #ripple.track(1);
 					const double = derived(() => get(count) * 2);
 
-					effect(() => {
+					#ripple.effect(() => {
 						console.log("count is", get(count));
 					});
 
@@ -39,7 +39,7 @@ ruleTester.run('no-introspect-in-modules', rule, {
 
 				function useCounter() {
 					const count = #ripple.track(0);
-					effect(() => {
+					#ripple.effect(() => {
 						console.log(get(count));
 					});
 					return { count };
@@ -66,7 +66,7 @@ ruleTester.run('no-introspect-in-modules', rule, {
 			code: `
 				component Counter() {
 					const count = #ripple.track(0);
-					effect(() => {
+					#ripple.effect(() => {
 						console.log(@count);
 					});
 					<div>{@count}</div>
@@ -81,7 +81,7 @@ ruleTester.run('no-introspect-in-modules', rule, {
 			code: `
 				export function useCount() {
 					const count = #ripple.track(1);
-					effect(() => {
+					#ripple.effect(() => {
 						console.log(@count);
 					});
 					return { count };
@@ -135,7 +135,7 @@ ruleTester.run('no-introspect-in-modules', rule, {
 			code: `
 				export function useData() {
 					const data = #ripple.track(null);
-					effect(() => {
+					#ripple.effect(() => {
 						console.log(@data);
 					});
 					return data;

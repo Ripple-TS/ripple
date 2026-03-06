@@ -1,4 +1,4 @@
-import { flushSync, effect, untrack, TrackedArray } from 'ripple';
+import { flushSync, TrackedArray } from 'ripple';
 
 describe('TrackedArray > iteration', () => {
 	it('handles entries method with reactivity', () => {
@@ -86,10 +86,10 @@ describe('TrackedArray > iteration', () => {
 			let items = new TrackedArray(1, 2, 3);
 			let sum = #ripple.track(0);
 
-			effect(() => {
+			#ripple.effect(() => {
 				@sum = 0;
 				for (const item of items) {
-					untrack(() => {
+					#ripple.untrack(() => {
 						@sum += item;
 					});
 				}

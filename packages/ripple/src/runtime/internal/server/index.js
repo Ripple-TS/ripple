@@ -746,3 +746,11 @@ export function media_query(_, query, matches = false) {
 export function create_subscriber(_) {
 	return () => {};
 }
+
+/**
+ * @param {() => void} _fn
+ * @returns {void}
+ */
+export function effect(_fn) {
+	return;
+}

@@ -26,6 +26,7 @@ export {
 	destroy_block,
 	move_block,
 	root,
+	user_effect as effect,
 } from './blocks.js';
 
 export { event, render_event, delegate } from './events.js';

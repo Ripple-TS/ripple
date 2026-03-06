@@ -1,5 +1,5 @@
 import type { PropsWithChildren, Tracked } from 'ripple';
-import { flushSync, effect, untrack } from 'ripple';
+import { flushSync } from 'ripple';
 
 describe('basic client > reactivity', () => {
 	it('renders multiple reactive lexical blocks', () => {
@@ -156,7 +156,7 @@ describe('basic client > reactivity', () => {
 				{'second: ' + @second}
 			</button>
 
-			effect(() => {
+			#ripple.effect(() => {
 				let _arr: number[] = [];
 
 				arr.forEach((item) => {
@@ -166,7 +166,7 @@ describe('basic client > reactivity', () => {
 				logs.push(_arr.join(', '));
 			});
 
-			effect(() => {
+			#ripple.effect(() => {
 				if (arr.map((a) => @a).includes(1)) {
 					logs.push('arr includes 1');
 				}
@@ -337,7 +337,7 @@ describe('basic client > reactivity', () => {
 		component Basic() {
 			let count = #ripple.track(0);
 
-			effect(() => {
+			#ripple.effect(() => {
 				state.count = @count;
 			});
 		}
@@ -361,8 +361,8 @@ describe('basic client > reactivity', () => {
 		component Basic() {
 			let count = #ripple.track(5);
 
-			effect(() => {
-				untrack(() => {
+			#ripple.effect(() => {
+				#ripple.untrack(() => {
 					state.initialValue = @count;
 					state.preIncrement = ++@count;
 					state.postIncrement = @count++;

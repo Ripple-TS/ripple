@@ -406,12 +406,11 @@ plugin transforms them before Vitest runs:
 ```ripple
 // Example: packages/ripple/tests/client/reactivity.test.ripple
 import { describe, it, expect } from 'vitest';
-import { track } from 'ripple';
 
 component default() {
   describe('tracked', () => {
     it('updates when value changes', async () => {
-      let count = track(0);
+      let count = #ripple.track(0);
       // test implementation
     });
   });

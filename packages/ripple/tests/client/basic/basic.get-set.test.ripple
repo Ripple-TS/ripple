@@ -1,4 +1,4 @@
-import { flushSync, get, set, effect, untrack } from 'ripple';
+import { flushSync, get, set } from 'ripple';
 
 describe('basic client > get/set functions', () => {
 	it('gets tracked value', () => {
@@ -215,7 +215,7 @@ describe('basic client > get/set functions', () => {
 			let count = #ripple.track(0);
 			let double = #ripple.track(0);
 
-			effect(() => {
+			#ripple.effect(() => {
 				set(double, get(count) * 2);
 			});
 
@@ -245,8 +245,8 @@ describe('basic client > get/set functions', () => {
 			let count = #ripple.track(0);
 			let double = #ripple.track(0);
 
-			effect(() => {
-				untrack(() => {
+			#ripple.effect(() => {
+				#ripple.untrack(() => {
 					set(double, get(count) * 2);
 				});
 			});

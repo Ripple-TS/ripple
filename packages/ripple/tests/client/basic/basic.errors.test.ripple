@@ -1,4 +1,4 @@
-import { flushSync, untrack } from 'ripple';
+import { flushSync } from 'ripple';
 import { compile } from 'ripple/compiler';
 
 describe('basic client > errors', () => {
@@ -112,14 +112,14 @@ describe('basic client > errors', () => {
 	});
 
 	it(
-		'errors on mutating tracked value inside untrack() in computed #ripple.track() evaluation',
+		'errors on mutating tracked value inside #ripple.untrack() in computed #ripple.track() evaluation',
 		() => {
 			component Basic() {
 				let count = #ripple.track(0);
 
 				const doubled = #ripple.track(() => {
 					try {
-						untrack(() => {
+						#ripple.untrack(() => {
 							@count *= 2;
 						});
 					} catch (e) {

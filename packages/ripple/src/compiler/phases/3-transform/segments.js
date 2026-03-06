@@ -422,6 +422,16 @@ export function convert_source_map_to_mappings(
 							loc: node.loc,
 							metadata: {},
 						};
+
+						if (
+							node.metadata.source_name === '#ripple.server' ||
+							node.metadata.source_name === '#ripple.style'
+						) {
+							// Let TextMate own the coloring for these namespace forms.
+							// Their dedicated AST nodes otherwise cause semantic tokens to repaint
+							// the full '#ripple.server' / '#ripple.style' span after TS attaches.
+							token.mappingData = { ...mapping_data, semantic: false };
+						}
 					} else {
 						token = {
 							source: node.name,

@@ -1,5 +1,5 @@
 import type { Tracked } from 'ripple';
-import { effect, bindNode } from 'ripple';
+import { bindNode } from 'ripple';
 
 #ripple.server {
 	export async function fetchMessage(): Promise<string> {
@@ -18,7 +18,7 @@ export component Editor() {
 	let loading = #ripple.track(true);
 	let content = #ripple.track('');
 
-	effect(() => {
+	#ripple.effect(() => {
 		if (@nodeRef) {
 			#ripple.server.fetchMessage().then((message: string) => {
 				@content = message;
@@ -28,7 +28,7 @@ export component Editor() {
 		}
 	});
 
-	effect(() => {
+	#ripple.effect(() => {
 		if (!@content) {
 			return;
 		}

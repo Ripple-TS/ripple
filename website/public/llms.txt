@@ -245,9 +245,9 @@ let count #ripple.track(0);
 let double #ripple.track(() => @count * 2);
 let quadruple #ripple.track(() => @double * 2);
 
-effect(() => {
+#ripple.effect(() => {
   // This effect will never fire again, as we've untracked the only dependency it has
-  console.log(untrack(() => @quadruple));
+  console.log(#ripple.untrack(() => @quadruple));
 })
 ```
 
@@ -352,12 +352,10 @@ let { children, count, class: className, ...rest } = props;
 
 #### Basic Transport Pattern
 ```ripple
-import { effect } from 'ripple';
-
 function createDouble(count) {
   const double #ripple.track(() => @count * 2);
 
-  effect(() => {
+  #ripple.effect(() => {
     console.log('Count:', @count)
   });
 
@@ -593,10 +591,10 @@ Use function `on` to attach events to window, document or any other element inst
 This method guarantees the proper execution order with respect to attribute-based handlers such as `onClick`, and similarly optimized through event delegation for those events that support it.
 
 ```ripple
-import { effect, on } from 'ripple';
+import { on } from 'ripple';
 
 export component App() {
-  effect(() => {
+  #ripple.effect(() => {
     // on component mount
     const removeListener = on(window, 'resize', () => {
       console.log('Window resized!');
@@ -760,9 +758,7 @@ Inline refs:
 ```typescript
 import {
   mount,           // Mount component to DOM
-  untrack,         // Prevent reactivity tracking
   flushSync,       // Synchronous state updates
-  effect,          // Side effects
 } from 'ripple';
 ```
 
@@ -828,12 +824,10 @@ const stream = renderToStream(App, {
 
 ### Effects
 ```ripple
-import { effect } from 'ripple';
-
 export component App() {
   let count #ripple.track(0);
 
-  effect(() => {
+  #ripple.effect(() => {
     console.log("Count changed:", @count);
   });
 
@@ -846,12 +840,12 @@ export component App() {
 The `tick()` function returns a Promise that resolves after all pending reactive updates have been applied to the DOM. This is useful when you need to ensure that DOM changes are complete before executing subsequent code, similar to Vue's `nextTick()` or Svelte's `tick()`.
 
 ```ripple
-import { effect, tick } from 'ripple';
+import { tick } from 'ripple';
 
 export component App() {
   let count #ripple.track(0);
 
-  effect(() => {
+  #ripple.effect(() => {
     @count;
 
     if (@count === 0) {
@@ -1365,15 +1359,13 @@ export component App() {
 
 ### Untracking Reactivity
 ```ripple
-import { untrack, effect } from 'ripple';
-
 let count #ripple.track(0);
 let double #ripple.track(() => @count * 2);
 let quadruple #ripple.track(() => @double * 2);
 
-effect(() => {
+#ripple.effect(() => {
   // This effect will never fire again, as we've untracked the only dependency it has
-  console.log(untrack(() => @quadruple));
+  console.log(#ripple.untrack(() => @quadruple));
 })
 ```
 
@@ -1490,7 +1482,7 @@ export default defineConfig({
 
 1. **Reactivity**: Use `#ripple.track()` to create reactive variables and `@` to access them
 2. **Strings**: Wrap string literals in `{"string"}` within templates
-3. **Effects**: Use `effect()` for side effects, not direct reactive variable access
+3. **Effects**: Use `#ripple.effect()` for side effects, not direct reactive variable access
 4. **Components**: Keep components focused and use TypeScript interfaces for props
 5. **Styling**: Use scoped `<style>` elements for component-specific styles
 6. **Collections**: Use #ripple.array()/#ripple.set()/#ripple.map() for reactive collections instead of regular arrays/sets/maps

@@ -34,7 +34,7 @@ ruleTester.run('control-flow-jsx', rule, {
 			code: `
 				component App() {
 					const items = ['Item 1', 'Item 2'];
-					effect(() => {
+					#ripple.effect(() => {
 						let sum = 0;
 						for (const item of items) {
 							sum += item;
@@ -62,10 +62,10 @@ ruleTester.run('control-flow-jsx', rule, {
 				component App() {
 					const items = #ripple.array(1, 2, 3);
 					const sum = #ripple.track(0);
-					effect(() => {
+					#ripple.effect(() => {
 						@sum = 0;
 						for (const item of items) {
-							untrack(() => {
+							#ripple.untrack(() => {
 								@sum += item;
 							});
 						}
@@ -107,7 +107,7 @@ ruleTester.run('control-flow-jsx', rule, {
 			code: `
 				component App() {
 					const items = ['Item 1', 'Item 2'];
-					effect(() => {
+					#ripple.effect(() => {
 						for (const item of items) {
 							<div>{item}</div>
 						}
@@ -125,7 +125,7 @@ ruleTester.run('control-flow-jsx', rule, {
 			code: `
 				component App() {
 					const items = [1, 2, 3];
-					effect(() => {
+					#ripple.effect(() => {
 						for (const item of items) {
 							if (item > 1) {
 								<span>{item}</span>

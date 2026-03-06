@@ -1,5 +1,5 @@
 import type { Props, Tracked } from 'ripple';
-import { flushSync, effect } from 'ripple';
+import { flushSync } from 'ripple';
 
 describe('composite > reactivity', () => {
 	it('renders composite components with object state', () => {
@@ -206,7 +206,7 @@ describe('composite > reactivity', () => {
 		}
 
 		component Child({ a, b, c }: { a: number; b: number; c: number }) {
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push(`Child effect: ${a}, ${b}, ${c}`);
 			});
 
@@ -274,14 +274,14 @@ describe('composite > reactivity', () => {
 			<CounterWrapper {@count} up={() => @count++} />
 		}
 
-		component CounterWrapper(props) {
-			const more = #ripple{
-				double: #ripple.track(() => props.@count * 2),
-				another: #ripple.track(0),
+		component CounterWrapper(props: { count: number; up: () => void }) {
+			const more: { double: Tracked<number>; another?: number; extra: number } = #ripple{
+				double: #ripple.track(() => props.count * 2),
+				another: 0,
 				extra: 100,
 			};
 
-			effect(() => {
+			#ripple.effect(() => {
 				props.count;
 				if (props.count === 1) {
 					delete more.another;
@@ -295,7 +295,13 @@ describe('composite > reactivity', () => {
 			</div>
 		}
 
-		component Counter(props) {
+		component Counter(props: {
+			count: number;
+			up: () => void;
+			double: Tracked<number>;
+			another?: number;
+			extra: number;
+		}) {
 			const [count, up, rest] = #ripple.trackSplit(props, ['count', 'up']);
 			<div {...@rest}>{`Counter: ${@count} Double: ${props.@double}`}</div>
 			<button onClick={() => @up()}>{'UP'}</button>

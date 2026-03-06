@@ -1,5 +1,5 @@
 import type { Tracked, Props } from 'ripple';
-import { effect, flushSync } from 'ripple';
+import { flushSync } from 'ripple';
 
 describe('composite > props', () => {
 	it('correctly handles default prop values', () => {
@@ -78,7 +78,7 @@ describe('composite > props', () => {
 		const logs: number[] = [];
 
 		component Counter({ count }: { count: Tracked<number> }) {
-			effect(() => {
+			#ripple.effect(() => {
 				logs.push(@count);
 			});
 
