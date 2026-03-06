@@ -1,3 +1,4 @@
+import type { PropsWithChildren, Tracked } from 'ripple';
 import { flushSync, effect, untrack } from 'ripple';
 
 describe('basic client > reactivity', () => {
@@ -56,7 +57,7 @@ describe('basic client > reactivity', () => {
 					count: #ripple.track(0),
 				};
 
-				<span>{obj[@count]}</span>
+				<span>{obj.@[count]}</span>
 			</div>
 			<div>
 				let b = {
@@ -65,15 +66,15 @@ describe('basic client > reactivity', () => {
 
 				<button
 					onClick={() => {
-						b[@count]--;
+						b.@[count]--;
 					}}
 				>
 					{'-'}
 				</button>
-				<span class="count">{b[@count]}</span>
+				<span class="count">{b.@[count]}</span>
 				<button
 					onClick={() => {
-						b[@count]++;
+						b.@[count]++;
 					}}
 				>
 					{'+'}
@@ -493,7 +494,7 @@ describe('basic client > reactivity', () => {
 				<Child
 					class="my-button"
 					onClick={() => @name === 'Click Me' ? @name = 'Clicked' : @name = 'Click Me'}
-					{@count}
+					{count}
 					{ref buttonRef}
 				>
 					{@name}
@@ -502,7 +503,11 @@ describe('basic client > reactivity', () => {
 				<button onClick={() => @count++}>{'Increment Count'}</button>
 			}
 
-			component Child(props: PropsWithChildren<{ count: Tracked<number> }>) {
+			component Child(props: PropsWithChildren<{
+				count: Tracked<number>;
+				class: string;
+				onClick: () => void;
+			}>) {
 				const [children, count, rest] = #ripple.trackSplit(props, ['children', 'count']);
 
 				if (@count < 2) {

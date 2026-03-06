@@ -1,4 +1,4 @@
-import { flushSync, TrackedArray } from 'ripple';
+import { flushSync, TrackedArray, type Component } from 'ripple';
 
 describe('composite > render', () => {
 	it('renders composite components', () => {
@@ -83,9 +83,18 @@ describe('composite > render', () => {
 	});
 
 	it('should not render <undefined> tag when a passed in component is undefined', () => {
-		component Child({ children, NonExistent, ...props }) {
+		component Child({
+			children,
+			NonExistent,
+			...props
+		}: {
+			children?: Component;
+			NonExistent?: Component;
+			[key: string]: any;
+		}) {
 			<div {...props}>
 				<children />
+				// @ts-expect-error - intentionally testing behavior when a component is undefined
 				<NonExistent />
 			</div>
 		}

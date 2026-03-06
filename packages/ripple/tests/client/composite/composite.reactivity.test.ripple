@@ -1,4 +1,4 @@
-import type { Tracked } from 'ripple';
+import type { Props, Tracked } from 'ripple';
 import { flushSync, effect } from 'ripple';
 
 describe('composite > reactivity', () => {
@@ -235,13 +235,13 @@ describe('composite > reactivity', () => {
 				<CounterWrapper {@count} up={() => @count++} down={() => @count--} />
 			}
 
-			component CounterWrapper(props) {
+			component CounterWrapper(props: Props) {
 				<div>
 					<Counter {...props} />
 				</div>
 			}
 
-			component Counter(props) {
+			component Counter(props: Props) {
 				const [count, up, down, rest] = #ripple.trackSplit(props, ['count', 'up', 'down']);
 				<button onClick={() => @up()}>{'UP'}</button>
 				<button onClick={() => @down()}>{'DOWN'}</button>
