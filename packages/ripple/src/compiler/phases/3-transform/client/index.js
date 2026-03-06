@@ -735,17 +735,6 @@ const visitors = {
 		}
 
 		if (
-			!context.state.to_ts &&
-			callee.type === 'Identifier' &&
-			(callee.metadata?.source_name === '#ripple.context' || callee.name === 'Context')
-		) {
-			return b.call(
-				'_$_.context',
-				.../** @type {AST.Expression[]} */ (node.arguments.map((arg) => context.visit(arg))),
-			);
-		}
-
-		if (
 			context.state.to_ts ||
 			!is_inside_component(context, true) ||
 			is_inside_call_expression(context) ||
