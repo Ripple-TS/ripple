@@ -14,18 +14,21 @@ import * as Ripple from 'ripple';
       (named_imports
         (import_specifier
           name: (identifier))))
-    (from_clause (string)))
+    (from_clause
+      (string)))
   (import_statement
     (import_clause
       (named_imports
         (import_specifier
           name: (identifier))))
-    (from_clause (string)))
+    (from_clause
+      (string)))
   (import_statement
     (import_clause
       (namespace_import
         (identifier)))
-    (from_clause (string))))
+    (from_clause
+      (string))))
 
 ==================
 Export Statements
@@ -45,7 +48,8 @@ export * from 'ripple';
   (export_statement
     (identifier))
   (export_statement
-    (from_clause (string))))
+    (from_clause
+      (string))))
 
 ==================
 Variable Declarations
@@ -61,11 +65,13 @@ var value;
   (variable_declaration
     (variable_declarator
       name: (identifier)
-      (number)))
-  (lexical_declaration
+      (initializer
+        (number))))
+  (variable_declaration
     (variable_declarator
       name: (identifier)
-      (string)))
+      (initializer
+        (string))))
   (variable_declaration
     (variable_declarator
       name: (identifier))))
@@ -85,26 +91,30 @@ async function fetchData() {
 ---
 
 (program
-  (function_declaration
-    name: (identifier)
-    parameters: (formal_parameters
-      (required_parameter pattern: (identifier))
-      (required_parameter pattern: (identifier)))
-    body: (statement_block
-      (return_statement
-        (binary_expression
-          left: (identifier)
-          operator: (string)
-          right: (identifier)))))
-  (function_declaration
-    name: (identifier)
-    parameters: (formal_parameters)
-    body: (statement_block
-      (return_statement
-        (await_expression
+  (expression_statement
+    (function_expression
+      name: (identifier)
+      parameters: (formal_parameters
+        (required_parameter
+          pattern: (identifier))
+        (required_parameter
+          pattern: (identifier)))
+      body: (statement_block
+        (return_statement
+          (binary_expression
+            left: (identifier)
+            right: (identifier))))))
+  (expression_statement
+    (function_expression
+      name: (identifier)
+      parameters: (formal_parameters)
+      body: (statement_block
+        (return_statement
           (call_expression
-            function: (identifier)
-            arguments: (arguments (string))))))))
+            function: (await_expression
+              (identifier))
+            arguments: (arguments
+              (string))))))))
 
 ==================
 Arrow Functions
@@ -117,38 +127,42 @@ const log = () => { console.log('test'); };
 ---
 
 (program
-  (lexical_declaration
+  (variable_declaration
     (variable_declarator
       name: (identifier)
-      (arrow_function
-        parameters: (formal_parameters
-          (required_parameter pattern: (identifier))
-          (required_parameter pattern: (identifier)))
-        body: (binary_expression
-          left: (identifier)
-          operator: (string)
-          right: (identifier)))))
-  (lexical_declaration
+      (initializer
+        (arrow_function
+          parameters: (formal_parameters
+            (required_parameter
+              pattern: (identifier))
+            (required_parameter
+              pattern: (identifier)))
+          body: (binary_expression
+            left: (identifier)
+            right: (identifier))))))
+  (variable_declaration
     (variable_declarator
       name: (identifier)
-      (arrow_function
-        parameter: (identifier)
-        body: (binary_expression
-          left: (identifier)
-          operator: (string)
-          right: (number)))))
-  (lexical_declaration
+      (initializer
+        (arrow_function
+          parameter: (identifier)
+          body: (binary_expression
+            left: (identifier)
+            right: (number))))))
+  (variable_declaration
     (variable_declarator
       name: (identifier)
-      (arrow_function
-        parameters: (formal_parameters)
-        body: (statement_block
-          (expression_statement
-            (call_expression
-              function: (member_expression
-                object: (identifier)
-                property: (identifier))
-              arguments: (arguments (string)))))))))
+      (initializer
+        (arrow_function
+          parameters: (formal_parameters)
+          body: (statement_block
+            (expression_statement
+              (call_expression
+                function: (member_expression
+                  object: (identifier)
+                  property: (identifier))
+                arguments: (arguments
+                  (string))))))))))
 
 ==================
 Class Declarations
@@ -165,22 +179,25 @@ class Counter {
 ---
 
 (program
-  (class_declaration
-    name: (identifier)
-    body: (class_body
-      (field_definition
-        property: (identifier)
-        (number))
-      (method_definition
-        name: (identifier)
-        parameters: (formal_parameters)
-        body: (statement_block
-          (expression_statement
-            (update_expression
-              argument: (member_expression
-                object: (this)
-                property: (identifier))
-              operator: (string))))))))
+  (expression_statement
+    (class_expression
+      name: (identifier)
+      body: (class_body
+        (field_definition
+          property: (property_name
+            (identifier))
+          (initializer
+            (number)))
+        (method_definition
+          name: (property_name
+            (identifier))
+          parameters: (formal_parameters)
+          body: (statement_block
+            (expression_statement
+              (update_expression
+                argument: (member_expression
+                  object: (this)
+                  property: (identifier))))))))))
 
 ==================
 Destructuring
@@ -193,26 +210,33 @@ const { c: renamed, ...rest } = obj;
 ---
 
 (program
-  (lexical_declaration
+  (variable_declaration
     (variable_declarator
       name: (object_pattern
-        (shorthand_property_identifier_pattern)
-        (shorthand_property_identifier_pattern))
-      (identifier)))
-  (lexical_declaration
+        (shorthand_property_identifier_pattern
+          (shorthand_property_identifier))
+        (shorthand_property_identifier_pattern
+          (shorthand_property_identifier)))
+      (initializer
+        (identifier))))
+  (variable_declaration
     (variable_declarator
       name: (array_pattern
         (identifier)
         (identifier))
-      (identifier)))
-  (lexical_declaration
+      (initializer
+        (identifier))))
+  (variable_declaration
     (variable_declarator
       name: (object_pattern
         (pair_pattern
-          key: (identifier)
+          key: (property_name
+            (identifier))
           value: (identifier))
-        (rest_pattern (identifier)))
-      (identifier))))
+        (rest_pattern
+          (identifier)))
+      (initializer
+        (identifier)))))
 
 ==================
 TypeScript Type Annotations
@@ -230,29 +254,36 @@ function add(a: number, b: number): number {
   (variable_declaration
     (variable_declarator
       name: (identifier)
-      (type_annotation (predefined_type))
-      (number)))
-  (lexical_declaration
+      (type
+        (predefined_type))
+      (initializer
+        (number))))
+  (variable_declaration
     (variable_declarator
       name: (identifier)
-      (type_annotation (predefined_type))
-      (string)))
-  (function_declaration
-    name: (identifier)
-    parameters: (formal_parameters
-      (required_parameter
-        pattern: (identifier)
-        (type_annotation (predefined_type)))
-      (required_parameter
-        pattern: (identifier)
-        (type_annotation (predefined_type))))
-    (type_annotation (predefined_type))
-    body: (statement_block
-      (return_statement
-        (binary_expression
-          left: (identifier)
-          operator: (string)
-          right: (identifier))))))
+      (type
+        (predefined_type))
+      (initializer
+        (string))))
+  (expression_statement
+    (function_expression
+      name: (identifier)
+      parameters: (formal_parameters
+        (required_parameter
+          pattern: (identifier)
+          (type
+            (predefined_type)))
+        (required_parameter
+          pattern: (identifier)
+          (type
+            (predefined_type))))
+      (type
+        (predefined_type))
+      body: (statement_block
+        (return_statement
+          (binary_expression
+            left: (identifier)
+            right: (identifier)))))))
 
 ==================
 Template Strings
@@ -267,13 +298,15 @@ const multiline = `
 ---
 
 (program
-  (lexical_declaration
+  (variable_declaration
     (variable_declarator
       name: (identifier)
-      (template_string
-        (template_substitution
-          (identifier)))))
-  (lexical_declaration
+      (initializer
+        (template_string
+          (template_substitution
+            (identifier))))))
+  (variable_declaration
     (variable_declarator
       name: (identifier)
-      (template_string))))
+      (initializer
+        (template_string)))))

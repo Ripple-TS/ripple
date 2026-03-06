@@ -10,30 +10,35 @@ component Counter() {
 ---
 
 (program
-  (import_statement
-    (import_clause
-      (named_imports
-        (import_specifier
-          name: (identifier))))
-    (from_clause (string)))
   (component_declaration
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
-      (variable_declaration
-        (variable_declarator
-          name: (identifier)
-          (call_expression
-            function: (identifier)
-            arguments: (arguments (number)))))
-      (jsx_element
-        open_tag: (jsx_opening_element
-          name: (identifier))
-        children: (jsx_expression
-          (unbox_expression
-            (identifier)))
-        close_tag: (jsx_closing_element
-          name: (identifier))))))
+      (component_statement
+        (variable_declaration
+          (variable_declarator
+            name: (identifier)
+            (initializer
+              (call_expression
+                function: (member_expression
+                  object: (ripple_namespace_identifier)
+                  property: (identifier))
+                arguments: (arguments
+                  (number)))))))
+      (component_statement
+        (expression_statement
+          (jsx_element
+            open_tag: (jsx_opening_element
+              name: (jsx_element_name
+                (identifier)))
+            children: (jsx_expression
+              (component_statement
+                (expression_statement
+                  (unbox_expression
+                    (identifier)))))
+            close_tag: (jsx_closing_element
+              name: (jsx_element_name
+                (identifier)))))))))
 
 ==================
 Reactive Arrays
@@ -47,10 +52,11 @@ let items = #ripple[1, 2, 3];
   (variable_declaration
     (variable_declarator
       name: (identifier)
-      (reactive_array
-        (number)
-        (number)
-        (number)))))
+      (initializer
+        (reactive_array
+          (number)
+          (number)
+          (number))))))
 
 ==================
 Reactive Objects
@@ -64,13 +70,16 @@ let obj = #ripple{a: 1, b: 2};
   (variable_declaration
     (variable_declarator
       name: (identifier)
-      (reactive_object
-        (pair
-          key: (identifier)
-          value: (number))
-        (pair
-          key: (identifier)
-          value: (number))))))
+      (initializer
+        (reactive_object
+          (pair
+            key: (property_name
+              (identifier))
+            value: (number))
+          (pair
+            key: (property_name
+              (identifier))
+            value: (number)))))))
 
 ==================
 Unbox Expression
@@ -88,26 +97,40 @@ component App() {
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
-      (variable_declaration
-        (variable_declarator
-          name: (identifier)
-          (call_expression
-            function: (identifier)
-            arguments: (arguments (number)))))
-      (jsx_element
-        open_tag: (jsx_opening_element
-          name: (identifier)
-          attribute: (jsx_attribute
+      (component_statement
+        (variable_declaration
+          (variable_declarator
             name: (identifier)
-            value: (jsx_expression
-              (arrow_function
-                body: (update_expression
-                  argument: (unbox_expression
-                    (identifier))
-                  operator: (string))))))
-        children: (jsx_expression (string))
-        close_tag: (jsx_closing_element
-          name: (identifier))))))
+            (initializer
+              (call_expression
+                function: (member_expression
+                  object: (ripple_namespace_identifier)
+                  property: (identifier))
+                arguments: (arguments
+                  (number)))))))
+      (component_statement
+        (expression_statement
+          (jsx_element
+            open_tag: (jsx_opening_element
+              name: (jsx_element_name
+                (identifier))
+              attribute: (jsx_attribute
+                name: (identifier)
+                value: (jsx_expression
+                  (component_statement
+                    (expression_statement
+                      (arrow_function
+                        parameters: (formal_parameters)
+                        body: (update_expression
+                          argument: (unbox_expression
+                            (identifier)))))))))
+            children: (jsx_expression
+              (component_statement
+                (expression_statement
+                  (string))))
+            close_tag: (jsx_closing_element
+              name: (jsx_element_name
+                (identifier)))))))))
 
 ==================
 Tracked Map and Set Shorthand
@@ -119,29 +142,31 @@ const map = new #ripple.map([['a', 1], ['b', 2]]);
 ---
 
 (program
-  (lexical_declaration
+  (variable_declaration
     (variable_declarator
       name: (identifier)
-      (new_expression
-        constructor: (tracked_set_expression
-          arguments: (arguments
-            (array
-              (number)
-              (number)
-              (number)))))))
-  (lexical_declaration
+      (initializer
+        (new_expression
+          constructor: (tracked_set_expression
+            (arguments
+              (array
+                (number)
+                (number)
+                (number))))))))
+  (variable_declaration
     (variable_declarator
       name: (identifier)
-      (new_expression
-        constructor: (tracked_map_expression
-          arguments: (arguments
-            (array
+      (initializer
+        (new_expression
+          constructor: (tracked_map_expression
+            (arguments
               (array
-                (string)
-                (number))
-              (array
-                (string)
-                (number)))))))))
+                (array
+                  (string)
+                  (number))
+                (array
+                  (string)
+                  (number))))))))))
 
 ==================
 Ripple Server/Style Member Expressions
@@ -154,21 +179,24 @@ const styleToken = #ripple.style['button'];
 ---
 
 (program
-  (lexical_declaration
+  (variable_declaration
     (variable_declarator
       name: (identifier)
-      (server_member_expression
-        property: (identifier))))
-  (lexical_declaration
+      (initializer
+        (server_member_expression
+          property: (identifier)))))
+  (variable_declaration
     (variable_declarator
       name: (identifier)
-      (style_member_expression
-        property: (identifier))))
-  (lexical_declaration
+      (initializer
+        (style_member_expression
+          property: (identifier)))))
+  (variable_declaration
     (variable_declarator
       name: (identifier)
-      (style_subscript_expression
-        index: (string)))))
+      (initializer
+        (style_subscript_expression
+          index: (string))))))
 
 ==================
 Augmented Assignment with Unbox
@@ -186,24 +214,38 @@ component App() {
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
-      (variable_declaration
-        (variable_declarator
-          name: (identifier)
-          (call_expression
-            function: (identifier)
-            arguments: (arguments (number)))))
-      (jsx_element
-        open_tag: (jsx_opening_element
-          name: (identifier)
-          attribute: (jsx_attribute
+      (component_statement
+        (variable_declaration
+          (variable_declarator
             name: (identifier)
-            value: (jsx_expression
-              (arrow_function
-                body: (augmented_assignment_expression
-                  left: (unbox_expression
-                    (identifier))
-                  operator: (string)
-                  right: (number))))))
-        children: (jsx_expression (string))
-        close_tag: (jsx_closing_element
-          name: (identifier))))))
+            (initializer
+              (call_expression
+                function: (member_expression
+                  object: (ripple_namespace_identifier)
+                  property: (identifier))
+                arguments: (arguments
+                  (number)))))))
+      (component_statement
+        (expression_statement
+          (jsx_element
+            open_tag: (jsx_opening_element
+              name: (jsx_element_name
+                (identifier))
+              attribute: (jsx_attribute
+                name: (identifier)
+                value: (jsx_expression
+                  (component_statement
+                    (expression_statement
+                      (arrow_function
+                        parameters: (formal_parameters)
+                        body: (augmented_assignment_expression
+                          left: (unbox_expression
+                            (identifier))
+                          right: (number))))))))
+            children: (jsx_expression
+              (component_statement
+                (expression_statement
+                  (string))))
+            close_tag: (jsx_closing_element
+              name: (jsx_element_name
+                (identifier)))))))))

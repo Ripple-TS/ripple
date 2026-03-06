@@ -14,17 +14,25 @@ component App() {
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
-      (variable_declaration
-        (variable_declarator
-          name: (identifier)
-          (call_expression
-            function: (identifier)
-            arguments: (arguments
-              (arrow_function
-                body: (identifier))))))
-      (jsx_self_closing_element
-        name: (unbox_expression
-          (identifier))))))
+      (component_statement
+        (variable_declaration
+          (variable_declarator
+            name: (identifier)
+            (initializer
+              (call_expression
+                function: (member_expression
+                  object: (ripple_namespace_identifier)
+                  property: (identifier))
+                arguments: (arguments
+                  (arrow_function
+                    parameters: (formal_parameters)
+                    body: (identifier))))))))
+      (component_statement
+        (expression_statement
+          (jsx_self_closing_element
+            name: (jsx_non_namespaced_element_name
+              (unbox_expression
+                (identifier)))))))))
 
 ==================
 Dynamic Element
@@ -42,20 +50,32 @@ component App() {
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
-      (variable_declaration
-        (variable_declarator
-          name: (identifier)
-          (call_expression
-            function: (identifier)
-            arguments: (arguments (string)))))
-      (jsx_element
-        open_tag: (jsx_opening_element
-          name: (unbox_expression
-            (identifier)))
-        children: (jsx_expression (string))
-        close_tag: (jsx_closing_element
-          name: (unbox_expression
-            (identifier)))))))
+      (component_statement
+        (variable_declaration
+          (variable_declarator
+            name: (identifier)
+            (initializer
+              (call_expression
+                function: (member_expression
+                  object: (ripple_namespace_identifier)
+                  property: (identifier))
+                arguments: (arguments
+                  (string)))))))
+      (component_statement
+        (expression_statement
+          (jsx_element
+            open_tag: (jsx_opening_element
+              name: (jsx_element_name
+                (unbox_expression
+                  (identifier))))
+            children: (jsx_expression
+              (component_statement
+                (expression_statement
+                  (string))))
+            close_tag: (jsx_closing_element
+              name: (jsx_element_name
+                (unbox_expression
+                  (identifier))))))))))
 
 ==================
 JSX Attributes
@@ -72,18 +92,22 @@ component App() {
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
-      (jsx_self_closing_element
-        name: (identifier)
-        attribute: (jsx_attribute
-          name: (identifier)
-          value: (string))
-        attribute: (jsx_attribute
-          name: (identifier)
-          value: (jsx_expression
-            (identifier)))
-        attribute: (jsx_expression
-          (spread_element
-            (identifier)))))))
+      (component_statement
+        (expression_statement
+          (jsx_self_closing_element
+            name: (jsx_non_namespaced_element_name
+              (identifier))
+            attribute: (jsx_attribute
+              name: (identifier)
+              value: (string))
+            attribute: (jsx_attribute
+              name: (identifier)
+              value: (jsx_expression
+                (component_statement
+                  (expression_statement
+                    (identifier)))))
+            attribute: (jsx_expression
+              (identifier))))))))
 
 ==================
 Ref Attribute
@@ -100,21 +124,30 @@ component App() {
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
-      (jsx_element
-        open_tag: (jsx_opening_element
-          name: (identifier)
-          attribute: (jsx_expression
-            (arrow_function
-              parameter: (identifier)
-              body: (call_expression
-                function: (member_expression
-                  object: (identifier)
-                  property: (identifier))
-                arguments: (arguments
-                  (identifier))))))
-        children: (jsx_expression (string))
-        close_tag: (jsx_closing_element
-          name: (identifier))))))
+      (component_statement
+        (expression_statement
+          (jsx_element
+            open_tag: (jsx_opening_element
+              name: (jsx_element_name
+                (identifier))
+              attribute: (jsx_expression
+                (arrow_function
+                  parameters: (formal_parameters
+                    (required_parameter
+                      pattern: (identifier)))
+                  body: (call_expression
+                    function: (member_expression
+                      object: (identifier)
+                      property: (identifier))
+                    arguments: (arguments
+                      (identifier))))))
+            children: (jsx_expression
+              (component_statement
+                (expression_statement
+                  (string))))
+            close_tag: (jsx_closing_element
+              name: (jsx_element_name
+                (identifier)))))))))
 
 ==================
 JSX Member Expression
@@ -132,14 +165,19 @@ component App() {
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
-      (jsx_self_closing_element
-        name: (jsx_member_name
-          (identifier)
-          (identifier)))
-      (jsx_self_closing_element
-        name: (jsx_member_name
-          (identifier)
-          (identifier))))))
+      (component_statement
+        (jsx_self_closing_element
+          name: (jsx_non_namespaced_element_name
+            (jsx_member_name
+              (identifier)
+              (identifier)))))
+      (component_statement
+        (expression_statement
+          (jsx_self_closing_element
+            name: (jsx_non_namespaced_element_name
+              (jsx_member_name
+                (identifier)
+                (identifier)))))))))
 
 ==================
 Style Element
@@ -159,14 +197,21 @@ component App() {
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
-      (jsx_element
-        open_tag: (jsx_opening_element
-          name: (identifier))
-        children: (jsx_expression (string))
-        close_tag: (jsx_closing_element
-          name: (identifier)))
-      (style_element
-        (raw_text)))))
+      (component_statement
+        (jsx_element
+          open_tag: (jsx_opening_element
+            name: (jsx_element_name
+              (identifier)))
+          children: (jsx_expression
+            (component_statement
+              (expression_statement
+                (string))))
+          close_tag: (jsx_closing_element
+            name: (jsx_element_name
+              (identifier)))))
+      (component_statement
+        (style_element
+          (raw_text))))))
 
 ==================
 Server Block
@@ -186,16 +231,25 @@ component App() {
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
-      (server_block
-        (variable_declaration
-          (variable_declarator
-            name: (identifier)
-            (call_expression
-              function: (identifier)
-              arguments: (arguments)))))
-      (jsx_element
-        open_tag: (jsx_opening_element
-          name: (identifier))
-        children: (jsx_expression (string))
-        close_tag: (jsx_closing_element
-          name: (identifier))))))
+      (component_statement
+        (server_block
+          (variable_declaration
+            (variable_declarator
+              name: (identifier)
+              (initializer
+                (call_expression
+                  function: (identifier)
+                  arguments: (arguments)))))))
+      (component_statement
+        (expression_statement
+          (jsx_element
+            open_tag: (jsx_opening_element
+              name: (jsx_element_name
+                (identifier)))
+            children: (jsx_expression
+              (component_statement
+                (expression_statement
+                  (string))))
+            close_tag: (jsx_closing_element
+              name: (jsx_element_name
+                (identifier)))))))))

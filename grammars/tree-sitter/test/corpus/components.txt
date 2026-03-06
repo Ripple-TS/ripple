@@ -14,21 +14,29 @@ component Button(props: { text: string }) {
     parameters: (formal_parameters
       (required_parameter
         pattern: (identifier)
-        (type_annotation
+        (type
           (object_type
             (property_signature
-              name: (identifier)
-              (type_annotation (predefined_type)))))))
+              name: (property_name
+                (identifier))
+              (type
+                (predefined_type)))))))
     body: (component_body
-      (jsx_element
-        open_tag: (jsx_opening_element
-          name: (identifier))
-        children: (jsx_expression
-          (member_expression
-            object: (identifier)
-            property: (identifier)))
-        close_tag: (jsx_closing_element
-          name: (identifier))))))
+      (component_statement
+        (expression_statement
+          (jsx_element
+            open_tag: (jsx_opening_element
+              name: (jsx_element_name
+                (identifier)))
+            children: (jsx_expression
+              (component_statement
+                (expression_statement
+                  (member_expression
+                    object: (identifier)
+                    property: (identifier)))))
+            close_tag: (jsx_closing_element
+              name: (jsx_element_name
+                (identifier)))))))))
 
 ==================
 Export Component
@@ -46,12 +54,19 @@ export component App() {
       name: (identifier)
       parameters: (formal_parameters)
       body: (component_body
-        (jsx_element
-          open_tag: (jsx_opening_element
-            name: (identifier))
-          children: (jsx_expression (string))
-          close_tag: (jsx_closing_element
-            name: (identifier)))))))
+        (component_statement
+          (expression_statement
+            (jsx_element
+              open_tag: (jsx_opening_element
+                name: (jsx_element_name
+                  (identifier)))
+              children: (jsx_expression
+                (component_statement
+                  (expression_statement
+                    (string))))
+              close_tag: (jsx_closing_element
+                name: (jsx_element_name
+                  (identifier))))))))))
 
 ==================
 Fragment Declaration
@@ -71,28 +86,37 @@ fragment ListItems(props: { items: Array<string> }) {
     parameters: (formal_parameters
       (required_parameter
         pattern: (identifier)
-        (type_annotation
+        (type
           (object_type
             (property_signature
-              name: (identifier)
-              (type_annotation
+              name: (property_name
+                (identifier))
+              (type
                 (generic_type
                   (identifier)
                   (type_arguments
-                    (predefined_type)))))))))
+                    (type
+                      (predefined_type))))))))))
     body: (component_body
-      (for_of_statement
-        (identifier)
-        (member_expression
-          object: (identifier)
-          property: (identifier))
-        body: (jsx_element
-          open_tag: (jsx_opening_element
-            name: (identifier))
-          children: (jsx_expression
-            (identifier))
-          close_tag: (jsx_closing_element
-            name: (identifier)))))))
+      (component_statement
+        (for_of_statement
+          (identifier)
+          right: (member_expression
+            object: (identifier)
+            property: (identifier))
+          body: (statement_block
+            (expression_statement
+              (jsx_element
+                open_tag: (jsx_opening_element
+                  name: (jsx_element_name
+                    (identifier)))
+                children: (jsx_expression
+                  (component_statement
+                    (expression_statement
+                      (identifier))))
+                close_tag: (jsx_closing_element
+                  name: (jsx_element_name
+                    (identifier)))))))))))
 
 ==================
 Children Prop
@@ -112,15 +136,23 @@ component Card({ children }) {
     parameters: (formal_parameters
       (required_parameter
         pattern: (object_pattern
-          (shorthand_property_identifier_pattern))))
+          (shorthand_property_identifier_pattern
+            (shorthand_property_identifier)))))
     body: (component_body
-      (jsx_element
-        open_tag: (jsx_opening_element
-          name: (identifier)
-          attribute: (jsx_attribute
-            name: (identifier)
-            value: (string)))
-        children: (jsx_self_closing_element
-          name: (identifier))
-        close_tag: (jsx_closing_element
-          name: (identifier))))))
+      (component_statement
+        (expression_statement
+          (jsx_element
+            open_tag: (jsx_opening_element
+              name: (jsx_element_name
+                (identifier))
+              attribute: (jsx_attribute
+                name: (identifier)
+                value: (string)))
+            children: (jsx_text)
+            children: (jsx_self_closing_element
+              name: (jsx_non_namespaced_element_name
+                (identifier)))
+            children: (jsx_text)
+            close_tag: (jsx_closing_element
+              name: (jsx_element_name
+                (identifier)))))))))

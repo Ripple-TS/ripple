@@ -18,26 +18,36 @@ component List({ items }) {
     parameters: (formal_parameters
       (required_parameter
         pattern: (object_pattern
-          (shorthand_property_identifier_pattern))))
+          (shorthand_property_identifier_pattern
+            (shorthand_property_identifier)))))
     body: (component_body
-      (jsx_element
-        open_tag: (jsx_opening_element
-          name: (identifier))
-        children: (for_of_statement
-          (identifier)
-          (identifier)
-          right: (identifier)
-          body: (jsx_element
+      (component_statement
+        (expression_statement
+          (jsx_element
             open_tag: (jsx_opening_element
-              name: (identifier))
+              name: (jsx_element_name
+                (identifier)))
+            children: (jsx_text)
             children: (jsx_expression
-              (member_expression
-                object: (identifier)
-                property: (identifier)))
+              (component_statement
+                (expression_statement
+                  (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (member_expression
+                            object: (identifier)
+                            property: (identifier)))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier)))))))
+            children: (jsx_text)
             close_tag: (jsx_closing_element
-              name: (identifier))))
-        close_tag: (jsx_closing_element
-          name: (identifier))))))
+              name: (jsx_element_name
+                (identifier)))))))))
 
 ==================
 For-of with index and key
@@ -59,26 +69,36 @@ component List({ items }) {
     parameters: (formal_parameters
       (required_parameter
         pattern: (object_pattern
-          (shorthand_property_identifier_pattern))))
+          (shorthand_property_identifier_pattern
+            (shorthand_property_identifier)))))
     body: (component_body
-      (jsx_element
-        open_tag: (jsx_opening_element
-          name: (identifier))
-        children: (for_of_statement
-          (identifier)
-          (identifier)
-          right: (identifier)
-          body: (jsx_element
+      (component_statement
+        (expression_statement
+          (jsx_element
             open_tag: (jsx_opening_element
-              name: (identifier))
+              name: (jsx_element_name
+                (identifier)))
+            children: (jsx_text)
             children: (jsx_expression
-              (member_expression
-                object: (identifier)
-                property: (identifier)))
+              (component_statement
+                (expression_statement
+                  (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (member_expression
+                            object: (identifier)
+                            property: (identifier)))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier)))))))
+            children: (jsx_text)
             close_tag: (jsx_closing_element
-              name: (identifier))))
-        close_tag: (jsx_closing_element
-          name: (identifier))))))
+              name: (jsx_element_name
+                (identifier)))))))))
 
 ==================
 If Statement in Template
@@ -100,23 +120,39 @@ component App({ show }) {
     parameters: (formal_parameters
       (required_parameter
         pattern: (object_pattern
-          (shorthand_property_identifier_pattern))))
+          (shorthand_property_identifier_pattern
+            (shorthand_property_identifier)))))
     body: (component_body
-      (if_statement
-        condition: (parenthesized_expression
-          (identifier))
-        consequence: (jsx_element
-          open_tag: (jsx_opening_element
-            name: (identifier))
-          children: (jsx_expression (string))
-          close_tag: (jsx_closing_element
-            name: (identifier)))
-        alternative: (jsx_element
-          open_tag: (jsx_opening_element
-            name: (identifier))
-          children: (jsx_expression (string))
-          close_tag: (jsx_closing_element
-            name: (identifier)))))))
+      (component_statement
+        (if_statement
+          condition: (parenthesized_expression
+            (identifier))
+          consequence: (statement_block
+            (expression_statement
+              (jsx_element
+                open_tag: (jsx_opening_element
+                  name: (jsx_element_name
+                    (identifier)))
+                children: (jsx_expression
+                  (component_statement
+                    (expression_statement
+                      (string))))
+                close_tag: (jsx_closing_element
+                  name: (jsx_element_name
+                    (identifier))))))
+          alternative: (statement_block
+            (expression_statement
+              (jsx_element
+                open_tag: (jsx_opening_element
+                  name: (jsx_element_name
+                    (identifier)))
+                children: (jsx_expression
+                  (component_statement
+                    (expression_statement
+                      (string))))
+                close_tag: (jsx_closing_element
+                  name: (jsx_element_name
+                    (identifier)))))))))))
 
 ==================
 Switch in Template
@@ -143,37 +179,57 @@ component Status({ status }) {
     parameters: (formal_parameters
       (required_parameter
         pattern: (object_pattern
-          (shorthand_property_identifier_pattern))))
+          (shorthand_property_identifier_pattern
+            (shorthand_property_identifier)))))
     body: (component_body
-      (switch_statement
-        value: (parenthesized_expression
-          (identifier))
-        body: (switch_body
-          (switch_case
-            value: (string)
-            (jsx_element
-              open_tag: (jsx_opening_element
-                name: (identifier))
-              children: (jsx_expression (string))
-              close_tag: (jsx_closing_element
-                name: (identifier)))
-            (break_statement))
-          (switch_case
-            value: (string)
-            (jsx_element
-              open_tag: (jsx_opening_element
-                name: (identifier))
-              children: (jsx_expression (string))
-              close_tag: (jsx_closing_element
-                name: (identifier)))
-            (break_statement))
-          (switch_default
-            (jsx_element
-              open_tag: (jsx_opening_element
-                name: (identifier))
-              children: (jsx_expression (string))
-              close_tag: (jsx_closing_element
-                name: (identifier)))))))))
+      (component_statement
+        (switch_statement
+          value: (parenthesized_expression
+            (identifier))
+          body: (switch_body
+            (switch_case
+              value: (string)
+              (expression_statement
+                (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_expression
+                    (component_statement
+                      (expression_statement
+                        (string))))
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier)))))
+              (break_statement))
+            (switch_case
+              value: (string)
+              (expression_statement
+                (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_expression
+                    (component_statement
+                      (expression_statement
+                        (string))))
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier)))))
+              (break_statement))
+            (switch_default
+              (expression_statement
+                (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_expression
+                    (component_statement
+                      (expression_statement
+                        (string))))
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier))))))))))))
 
 ==================
 Try Pending Block
@@ -194,18 +250,27 @@ component SuspenseBoundary() {
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
-      (try_statement
-        body: (statement_block
-          (jsx_self_closing_element
-            name: (identifier)))
-        pending: (pending_clause
+      (component_statement
+        (try_statement
           body: (statement_block
-            (jsx_element
-              open_tag: (jsx_opening_element
-                name: (identifier))
-              children: (jsx_expression (string))
-              close_tag: (jsx_closing_element
-                name: (identifier)))))))))
+            (expression_statement
+              (jsx_self_closing_element
+                name: (jsx_non_namespaced_element_name
+                  (identifier)))))
+          pending: (pending_clause
+            body: (statement_block
+              (expression_statement
+                (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_expression
+                    (component_statement
+                      (expression_statement
+                        (string))))
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier))))))))))))
 
 ==================
 Try-Catch Error Boundary
@@ -226,20 +291,31 @@ component App() {
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
-      (try_statement
-        body: (statement_block
-          (jsx_self_closing_element
-            name: (identifier)))
-        handler: (catch_clause
-          parameter: (identifier)
+      (component_statement
+        (try_statement
           body: (statement_block
-            (jsx_element
-              open_tag: (jsx_opening_element
-                name: (identifier))
-              children: (jsx_expression (string))
-              children: (jsx_expression
-                (member_expression
-                  object: (identifier)
-                  property: (identifier)))
-              close_tag: (jsx_closing_element
-                name: (identifier)))))))))
+            (expression_statement
+              (jsx_self_closing_element
+                name: (jsx_non_namespaced_element_name
+                  (identifier)))))
+          handler: (catch_clause
+            parameter: (identifier)
+            body: (statement_block
+              (expression_statement
+                (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_expression
+                    (component_statement
+                      (expression_statement
+                        (string))))
+                  children: (jsx_expression
+                    (component_statement
+                      (expression_statement
+                        (member_expression
+                          object: (identifier)
+                          property: (identifier)))))
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier))))))))))))
