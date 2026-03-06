@@ -541,11 +541,11 @@ const visitors = {
 							? 'tracked_map'
 							: source_name === '#ripple.set'
 								? 'tracked_set'
-						: source_name === '#ripple.mediaQuery'
-							? 'media_query'
-							: source_name === '#ripple.context'
-								? 'context'
-								: null;
+								: source_name === '#ripple.mediaQuery'
+									? 'media_query'
+									: source_name === '#ripple.context'
+										? 'context'
+										: null;
 		const shorthand_requires_block =
 			source_name === '#ripple.url' ||
 			source_name === '#ripple.urlSearchParams' ||
