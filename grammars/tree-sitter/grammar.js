@@ -551,6 +551,7 @@ module.exports = grammar({
 			choice(
 				$.this,
 				$.super,
+				$.ripple_namespace_identifier,
 				$.identifier,
 				$._reserved_identifier,
 				$.number,
@@ -985,6 +986,8 @@ module.exports = grammar({
 		},
 
 		private_property_identifier: ($) => /#[a-zA-Z_$][a-zA-Z0-9_$]*/,
+
+		ripple_namespace_identifier: ($) => '#ripple',
 
 		_reserved_identifier: ($) =>
 			choice('arguments', 'await', 'component', 'fragment', 'track', 'untrack'),

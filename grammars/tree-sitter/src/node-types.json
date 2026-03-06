@@ -210,6 +210,10 @@
         "named": true
       },
       {
+        "type": "ripple_namespace_identifier",
+        "named": true
+      },
+      {
         "type": "server_member_expression",
         "named": true
       },
@@ -2753,6 +2757,7 @@
   {
     "type": "program",
     "named": true,
+    "root": true,
     "fields": {},
     "children": {
       "multiple": true,
@@ -4091,7 +4096,8 @@
   },
   {
     "type": "comment",
-    "named": true
+    "named": true,
+    "extra": true
   },
   {
     "type": "component",
@@ -4231,11 +4237,11 @@
   },
   {
     "type": "number",
-    "named": true
+    "named": false
   },
   {
     "type": "number",
-    "named": false
+    "named": true
   },
   {
     "type": "object",
@@ -4280,6 +4286,10 @@
   {
     "type": "return",
     "named": false
+  },
+  {
+    "type": "ripple_namespace_identifier",
+    "named": true
   },
   {
     "type": "set",
