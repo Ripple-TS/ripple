@@ -13,7 +13,7 @@ export component SimplePortal() {
 
 // Portal with conditional rendering
 export component ConditionalPortal() {
-	let show = @true;
+	let show = #ripple.track(true);
 
 	<div class="container">
 		<button class="toggle" onClick={() => (@show = !@show)}>{'Toggle'}</button>

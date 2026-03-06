@@ -1,4 +1,10 @@
-import type { Tracked, PropsWithChildren, PropsWithExtras } from 'ripple';
+import type {
+	Tracked,
+	PropsWithChildren,
+	PropsWithExtras,
+	Component,
+	PropsWithChildrenOptional,
+} from 'ripple';
 
 describe('basic server > components & composition', () => {
 	it('renders with component composition and children', async () => {
@@ -27,8 +33,9 @@ describe('basic server > components & composition', () => {
 	});
 
 	it('does not render a falsy component call', async () => {
-		component Card(props: PropsWithChildren<{}>) {
+		component Card(props: PropsWithChildrenOptional<{ test: Component }>) {
 			<div class="card">
+				// @ts-expect-error - ripple automatically handles falsy children
 				<props.children />
 			</div>
 		}

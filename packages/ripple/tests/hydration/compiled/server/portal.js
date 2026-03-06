@@ -62,7 +62,7 @@ export async function ConditionalPortal(__output) {
 	return _$_.async(async () => {
 		_$_.push_component();
 
-		let show = _$_.get(true);
+		let show = _$_.track(true);
 
 		__output.push('<div');
 		__output.push(' class="container"');

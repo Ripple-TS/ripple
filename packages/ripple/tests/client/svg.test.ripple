@@ -1,4 +1,4 @@
-import type { Component, Props, PropsWithChildren, PropsWithExtras } from 'ripple';
+import type { Component, PropsWithChildren, PropsWithExtras } from 'ripple';
 
 describe('SVG namespace handling', () => {
 	it('should render static SVG elements with correct namespace', () => {
