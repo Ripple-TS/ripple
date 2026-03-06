@@ -85,7 +85,7 @@ compile time.
 let count = #ripple.track(0);
 
 // With #ripple.* — no import needed
-let count = #ripple.#ripple.track(0);
+let count = #ripple.track(0);
 ```
 
 The `#ripple.*` namespace supports all the same APIs:
@@ -93,14 +93,17 @@ The `#ripple.*` namespace supports all the same APIs:
 ```ripple
 component App() {
   // Reactive state
-  let count = #ripple.#ripple.track(0);
-  let double = #ripple.#ripple.track(() => @count * 2);
+  let count = #ripple.track(0);
+  let double = #ripple.track(() => @count * 2);
 
   // Reactive collections — no imports
-  const items = #ripple[1, 2, 3];           // TrackedArray literal
-  const config = #ripple{ theme: 'dark' };  // TrackedObject literal
+  const items = #ripple[1, 2, 3]; // TrackedArray literal
+  const config = #ripple{ theme: 'dark' }; // TrackedObject literal
   const map = #ripple.map([['a', 1]]); // TrackedMap
-  const set = #ripple.set([1, 2, 3]);  // TrackedSet
+  const set = #ripple.set([1, 2, 3]); // TrackedSet
+
+  // Async derived
+  let data = #ripple.track(async () => fetchData(@count));
 
   // Context
   const ctx = #ripple.context('default');
@@ -125,7 +128,7 @@ import-free equivalent of `trackSplit`:
 
 ```ripple
 component Button(props) {
-  const [children, rest] = #ripple.#ripple.trackSplit(props, ['children']);
+  const [children, rest] = #ripple.trackSplit(props, ['children']);
   <button {...rest}>{children}</button>
 }
 ```

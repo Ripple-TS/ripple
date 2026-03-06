@@ -31,8 +31,7 @@ interface BaseNodeMetaData {
 		| '#ripple.defer'
 		| '#ripple.validate'
 		| '#ripple.context'
-		| '#ripple.trackSplit'
-		| '#ripple.async';
+		| '#ripple.trackSplit';
 	is_capitalized?: boolean;
 	has_await?: boolean;
 	commentContainerId?: number;

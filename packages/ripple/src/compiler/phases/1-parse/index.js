@@ -687,7 +687,6 @@ function RipplePlugin(config) {
 							'#ripple.server',
 							'#ripple.style',
 							'#ripple.defer',
-							'#ripple.async',
 							'#ripple.validate',
 						];
 

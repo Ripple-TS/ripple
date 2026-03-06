@@ -378,16 +378,6 @@ const RIPPLE_NAMESPACE_SNIPPETS = [
 		sortText: '0-ripple-untrack',
 	},
 	{
-		label: '#ripple.async',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Async reactive derived value (no import needed)',
-		documentation:
-			'Creates an async reactive derived value. Re-evaluates when dependencies change.\n\nUsage: let data = #ripple.async(await fetchData(@id));',
-		insertText: '#ripple.async(${1})',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-async',
-	},
-	{
 		label: '#ripple.validate',
 		kind: CompletionItemKind.Snippet,
 		detail: 'Validation wrapper (no import needed)',

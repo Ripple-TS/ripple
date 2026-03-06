@@ -248,7 +248,7 @@ component Child({ cls }: { cls: string }) {
 }
 
 component Parent() {
-  let Dynamic = #ripple.#ripple.track(() => Child);
+  let Dynamic = #ripple.track(() => Child);
   <@Dynamic cls={#ripple.style.text} />
 
   <style>
