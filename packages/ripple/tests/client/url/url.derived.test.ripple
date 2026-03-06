@@ -1,3 +1,4 @@
+import type { TrackedURL } from 'ripple';
 import { flushSync } from 'ripple';
 
 describe('TrackedURL > derived', () => {

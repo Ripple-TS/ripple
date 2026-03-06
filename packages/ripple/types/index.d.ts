@@ -283,83 +283,151 @@ export function bindValue<V>(
 	tracked: Tracked<V> | GetFunction<V>,
 	setter?: SetFunction<V>,
 ): (node: HTMLInputElement | HTMLSelectElement) => void;
+export function bindValue<V>(
+	tracked: Tracked<V> | GetFunction<V>,
+	setter?: SetFunction<NonNullable<V>>,
+): (node: HTMLInputElement | HTMLSelectElement) => void;
 
 export function bindChecked<V>(
 	tracked: Tracked<V> | GetFunction<V>,
 	setter?: SetFunction<V>,
+): (node: HTMLInputElement) => void;
+export function bindChecked<V>(
+	tracked: Tracked<V> | GetFunction<V>,
+	setter?: SetFunction<NonNullable<V>>,
 ): (node: HTMLInputElement) => void;
 
 export function bindClientWidth<V>(
 	tracked: Tracked<V> | GetFunction<V>,
 	setter?: SetFunction<V>,
 ): (node: HTMLElement) => void;
+export function bindClientWidth<V>(
+	tracked: Tracked<V> | GetFunction<V>,
+	setter?: SetFunction<NonNullable<V>>,
+): (node: HTMLElement) => void;
 
 export function bindClientHeight<V>(
 	tracked: Tracked<V> | GetFunction<V>,
 	setter?: SetFunction<V>,
+): (node: HTMLElement) => void;
+export function bindClientHeight<V>(
+	tracked: Tracked<V> | GetFunction<V>,
+	setter?: SetFunction<NonNullable<V>>,
 ): (node: HTMLElement) => void;
 
 export function bindContentRect<V>(
 	tracked: Tracked<V> | GetFunction<V>,
 	setter?: SetFunction<V>,
 ): (node: HTMLElement) => void;
+export function bindContentRect<V>(
+	tracked: Tracked<V> | GetFunction<V>,
+	setter?: SetFunction<NonNullable<V>>,
+): (node: HTMLElement) => void;
 
 export function bindContentBoxSize<V>(
 	tracked: Tracked<V> | GetFunction<V>,
 	setter?: SetFunction<V>,
+): (node: HTMLElement) => void;
+export function bindContentBoxSize<V>(
+	tracked: Tracked<V> | GetFunction<V>,
+	setter?: SetFunction<NonNullable<V>>,
 ): (node: HTMLElement) => void;
 
 export function bindBorderBoxSize<V>(
 	tracked: Tracked<V> | GetFunction<V>,
 	setter?: SetFunction<V>,
 ): (node: HTMLElement) => void;
+export function bindBorderBoxSize<V>(
+	tracked: Tracked<V> | GetFunction<V>,
+	setter?: SetFunction<NonNullable<V>>,
+): (node: HTMLElement) => void;
 
 export function bindDevicePixelContentBoxSize<V>(
 	tracked: Tracked<V> | GetFunction<V>,
 	setter?: SetFunction<V>,
+): (node: HTMLElement) => void;
+export function bindDevicePixelContentBoxSize<V>(
+	tracked: Tracked<V> | GetFunction<V>,
+	setter?: SetFunction<NonNullable<V>>,
 ): (node: HTMLElement) => void;
 
 export function bindInnerHTML<V>(
 	tracked: Tracked<V> | GetFunction<V>,
 	setter?: SetFunction<V>,
 ): (node: HTMLElement) => void;
+export function bindInnerHTML<V>(
+	tracked: Tracked<V> | GetFunction<V>,
+	setter?: SetFunction<NonNullable<V>>,
+): (node: HTMLElement) => void;
 
 export function bindInnerText<V>(
 	tracked: Tracked<V> | GetFunction<V>,
 	setter?: SetFunction<V>,
+): (node: HTMLElement) => void;
+export function bindInnerText<V>(
+	tracked: Tracked<V> | GetFunction<V>,
+	setter?: SetFunction<NonNullable<V>>,
 ): (node: HTMLElement) => void;
 
 export function bindTextContent<V>(
 	tracked: Tracked<V> | GetFunction<V>,
 	setter?: SetFunction<V>,
 ): (node: HTMLElement) => void;
+export function bindTextContent<V>(
+	tracked: Tracked<V> | GetFunction<V>,
+	setter?: SetFunction<NonNullable<V>>,
+): (node: HTMLElement) => void;
 
 export function bindNode<V>(
 	tracked: Tracked<V> | GetFunction<V>,
 	setter?: SetFunction<V>,
+): (node: HTMLElement) => void;
+export function bindNode<V>(
+	tracked: Tracked<V> | GetFunction<V>,
+	setter?: SetFunction<NonNullable<V>>,
 ): (node: HTMLElement) => void;
 
 export function bindGroup<V>(
 	tracked: Tracked<V> | GetFunction<V>,
 	setter?: SetFunction<V>,
 ): (node: HTMLInputElement) => void;
+export function bindGroup<V>(
+	tracked: Tracked<V> | GetFunction<V>,
+	setter?: SetFunction<NonNullable<V>>,
+): (node: HTMLInputElement) => void;
 
 export function bindOffsetHeight<V>(
 	tracked: Tracked<V> | GetFunction<V>,
 	setter?: SetFunction<V>,
+): (node: HTMLElement) => void;
+export function bindOffsetHeight<V>(
+	tracked: Tracked<V> | GetFunction<V>,
+	setter?: SetFunction<NonNullable<V>>,
 ): (node: HTMLElement) => void;
 
 export function bindOffsetWidth<V>(
 	tracked: Tracked<V> | GetFunction<V>,
 	setter?: SetFunction<V>,
 ): (node: HTMLElement) => void;
+export function bindOffsetWidth<V>(
+	tracked: Tracked<V> | GetFunction<V>,
+	setter?: SetFunction<NonNullable<V>>,
+): (node: HTMLElement) => void;
 
 export function bindIndeterminate<V>(
 	tracked: Tracked<V> | GetFunction<V>,
 	setter?: SetFunction<V>,
 ): (node: HTMLInputElement) => void;
-
-export function bindFiles<V>(
+export function bindIndeterminate<V>(
 	tracked: Tracked<V> | GetFunction<V>,
+	setter?: SetFunction<NonNullable<V>>,
+): (node: HTMLInputElement) => void;
+
+export function bindFiles<V extends FileList>(
+	tracked: Tracked<V> | GetFunction<V>,
+	setter?: SetFunction<V>,
+): (node: HTMLInputElement) => void;
+export function bindFiles<V extends FileList>(
+	tracked: Tracked<V | null | undefined> | GetFunction<V | null | undefined>,
 	setter?: SetFunction<V>,
 ): (node: HTMLInputElement) => void;

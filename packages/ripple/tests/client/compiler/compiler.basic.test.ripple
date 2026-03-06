@@ -320,6 +320,27 @@ component App() {
 		expect(count_occurrences(result, obfuscate_identifier('createRefKey'))).toBe(2);
 	});
 
+	it('prints longhand tracked property values in to_ts output while preserving [\'#v\']', () => {
+		const source = `
+import { createRefKey } from 'ripple';
+
+component App() {
+	let value = #ripple.track('test');
+	function inputRef(node) {}
+
+	const props = {
+		id: 'example',
+		@value,
+		[createRefKey()]: inputRef,
+	};
+}
+`;
+
+		const result = compile_to_volar_mappings(source, 'test.ripple').code;
+
+		expect(result).toMatch(/value:\s*value\??\.\['#v'\]/);
+	});
+
 	it('preserves generic type args in interface extends for Volar mappings', () => {
 		const source = `
 interface PolymorphicProps<T extends keyof HTMLElementTagNameMap> {

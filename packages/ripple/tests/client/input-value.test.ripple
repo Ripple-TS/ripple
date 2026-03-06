@@ -1,3 +1,4 @@
+import type { GetFunction, SetFunction } from 'ripple';
 import {
 	flushSync,
 	effect,
@@ -1675,7 +1676,7 @@ describe('use value()', () => {
 	it('should accurately reflect values mutated through a tracked setter via bind accessors', () => {
 		component App() {
 			let value = #ripple.track('');
-			const value_accessors = [
+			const value_accessors: [GetFunction<string>, SetFunction<string>] = [
 				() => {
 					return @value;
 				},
@@ -1707,7 +1708,7 @@ describe('use value()', () => {
 	it('should prefer what getter returns via bind accessors', () => {
 		component App() {
 			let value = #ripple.track('');
-			const value_accessors = [
+			const value_accessors: [GetFunction<string>, SetFunction<string>] = [
 				() => {
 					if (@value.includes('c')) {
 						return @value.replace(/c/g, '');
@@ -1741,7 +1742,7 @@ describe('use value()', () => {
 		() => {
 			component App() {
 				let value = #ripple.track('');
-				const value_accessors = [
+				const value_accessors: [GetFunction<string>, SetFunction<string>] = [
 					() => {
 						return @value.replace(/[c,b]+/g, '');
 					},
@@ -1776,7 +1777,7 @@ describe('use value()', () => {
 		() => {
 			component App() {
 				let value = #ripple.track('');
-				const value_accessors = [
+				const value_accessors: [GetFunction<string>, SetFunction<string>] = [
 					() => {
 						return @value;
 					},
@@ -1820,7 +1821,7 @@ describe('use value()', () => {
 		() => {
 			component App() {
 				let value = #ripple.track('');
-				const value_accessors = [
+				const value_accessors: [GetFunction<string>, SetFunction<string>] = [
 					() => {
 						return @value;
 					},
@@ -3076,7 +3077,7 @@ describe('bindFiles', () => {
 			});
 
 			<div>
-				<input type="file" {ref bindFiles<FileList>(files!)} {ref bindNode(input)} />
+				<input type="file" {ref bindFiles<FileList>(files)} {ref bindNode(input)} />
 				<button
 					onClick={() => {
 						if (@input) {

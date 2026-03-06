@@ -4290,6 +4290,15 @@ function create_tsx_with_typescript_support(comments) {
 				}
 			} else {
 				if (node.shorthand) {
+					// Shorthand object properties require an Identifier value. When the
+					// transformed value is a tracked MemberExpression (for example
+					// @value), emit longhand to keep valid output.
+					if (node.value.type === 'MemberExpression' && node.value.tracked) {
+						context.visit(node.key);
+						context.write(': ');
+						context.visit(node.value);
+						return;
+					}
 					// only visit value since key and value are the same
 					// or the value will contain the key like in AssignmentPattern: { foo = 1 }
 					context.visit(node.value);

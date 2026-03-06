@@ -1,3 +1,4 @@
+import type { TrackedURLSearchParams } from 'ripple';
 import { flushSync } from 'ripple';
 
 describe('TrackedURLSearchParams > derived', () => {
