@@ -450,7 +450,7 @@ function reconcile_by_key(anchor, block, b, render_fn, is_controlled, is_indexed
 						if (is_indexed) {
 							update_index(block, j);
 						}
-						update_value(b_block, b_val);
+						update_value(block, b_val);
 						++patched;
 					} else if (!fast_path_removal) {
 						destroy_block(a_blocks[i]);
