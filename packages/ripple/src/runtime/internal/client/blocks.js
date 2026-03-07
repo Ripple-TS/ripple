@@ -440,5 +440,5 @@ export function destroy_block(block, remove_dom = true) {
 		unlink_block(block);
 	}
 
-	block.fn = block.s = block.d = block.p = block.d = block.co = block.t = null;
+	block.fn = block.s = block.d = block.p = block.co = block.t = null;
 }
