@@ -235,8 +235,9 @@ describe('for statements', () => {
 
 		render(App);
 
-		const getTexts = () =>
-			Array.from(container.querySelectorAll('.item')).map((el) => el.textContent);
+		const getTexts = () => Array.from(container.querySelectorAll('.item')).map(
+			(el) => el.textContent,
+		);
 
 		expect(getTexts()).toEqual(objects.map((o) => o.text));
 
