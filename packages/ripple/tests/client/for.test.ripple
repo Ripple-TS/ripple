@@ -211,4 +211,38 @@ describe('for statements', () => {
 
 		expect(container).toMatchSnapshot();
 	});
+
+	it('ref-based for with 32+ items: remove from start with shared refs via Map path', () => {
+		const objects = Array.from({ length: 50 }, (_, i) => ({ id: i, text: `Obj ${i}` }));
+
+		component App() {
+			let items = track(objects.slice());
+
+			<div>
+				for (const item of @items) {
+					<span class="item">{item.text}</span>
+				}
+			</div>
+
+			<button
+				onClick={() => {
+					@items = objects.slice(15).reverse();
+				}}
+			>
+				{'Trim and reverse'}
+			</button>
+		}
+
+		render(App);
+
+		const getTexts = () =>
+			Array.from(container.querySelectorAll('.item')).map((el) => el.textContent);
+
+		expect(getTexts()).toEqual(objects.map((o) => o.text));
+
+		container.querySelector('button').click();
+		flushSync();
+
+		expect(getTexts()).toEqual(objects.slice(15).reverse().map((o) => o.text));
+	});
 });
