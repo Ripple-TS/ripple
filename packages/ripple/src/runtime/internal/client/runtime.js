@@ -702,6 +702,7 @@ function flush_microtasks() {
 		}
 	}
 
+	flush_count++;
 	if (flush_count > 1001) {
 		return;
 	}
