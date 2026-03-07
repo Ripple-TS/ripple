@@ -175,9 +175,7 @@ describe('for statements', () => {
 
 	it('keyed for with 32+ items: full reversal updates values via Map path', () => {
 		component App() {
-			let items = track(
-				Array.from({ length: 40 }, (_, i) => ({ id: i, text: `Item ${i}` })),
-			);
+			let items = track(Array.from({ length: 40 }, (_, i) => ({ id: i, text: `Item ${i}` })));
 
 			<div>
 				for (let item of @items; index idx; key item.id) {
@@ -196,19 +194,16 @@ describe('for statements', () => {
 
 		render(App);
 
-		const getTexts = () =>
-			Array.from(container.querySelectorAll('.item')).map((el) => el.textContent);
-
-		expect(getTexts()).toEqual(
-			Array.from({ length: 40 }, (_, i) => `${i}:Item ${i}`),
+		const getTexts = () => Array.from(container.querySelectorAll('.item')).map(
+			(el) => el.textContent,
 		);
+
+		expect(getTexts()).toEqual(Array.from({ length: 40 }, (_, i) => `${i}:Item ${i}`));
 
 		container.querySelector('button').click();
 		flushSync();
 
-		expect(getTexts()).toEqual(
-			Array.from({ length: 40 }, (_, i) => `${i}:Item ${39 - i}`),
-		);
+		expect(getTexts()).toEqual(Array.from({ length: 40 }, (_, i) => `${i}:Item ${39 - i}`));
 	});
 
 	it('handles updating with new objects with same key', () => {
