@@ -436,7 +436,7 @@ function reconcile_by_key(anchor, block, b, render_fn, is_controlled, is_indexed
 						if (fast_path_removal) {
 							fast_path_removal = false;
 							while (i > a_start) {
-								destroy_block(a[a_start++]);
+								destroy_block(a_blocks[a_start++]);
 							}
 						}
 						sources[j - b_start] = i + 1;
