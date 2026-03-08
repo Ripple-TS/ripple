@@ -15,3 +15,4 @@ may have breaking changes at any moment. :::
 ## Component Library
 
 - https://github.com/anubra266/zag-ripple
+- https://github.com/anubra266/ark-ripple
