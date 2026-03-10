@@ -110,19 +110,19 @@ export {
 	tick,
 } from './internal/client/runtime.js';
 
-export { TrackedArray } from './array.js';
+export { RippleArray } from './array.js';
 
-export { TrackedObject } from './object.js';
+export { RippleObject } from './object.js';
 
-export { TrackedSet } from './set.js';
+export { RippleSet } from './set.js';
 
-export { TrackedMap } from './map.js';
+export { RippleMap } from './map.js';
 
-export { TrackedDate } from './date.js';
+export { RippleDate } from './date.js';
 
-export { TrackedURL } from './url.js';
+export { RippleURL } from './url.js';
 
-export { TrackedURLSearchParams } from './url-search-params.js';
+export { RippleURLSearchParams } from './url-search-params.js';
 
 export { createSubscriber } from './create-subscriber.js';
 
@@ -155,3 +155,37 @@ export {
 	bindOffsetWidth,
 	bindOffsetHeight,
 } from './internal/client/bindings.js';
+
+import { RippleMap } from './map.js';
+import { RippleSet } from './set.js';
+import { RippleArray } from './array.js';
+import { RippleObject } from './object.js';
+import { Context } from './internal/client/context.js';
+import { RippleURL } from './url.js';
+import { RippleURLSearchParams } from './url-search-params.js';
+import { RippleDate } from './date.js';
+import { MediaQuery } from './media-query.js';
+import {
+	track,
+	track_split as trackSplit,
+	untrack,
+	ref_prop as createRefKey,
+} from './internal/client/runtime.js';
+import { user_effect as effect } from './internal/client/blocks.js';
+
+export const ripple_namespace = {
+	map: RippleMap,
+	set: RippleSet,
+	array: RippleArray,
+	object: RippleObject,
+	context: Context,
+	url: RippleURL,
+	urlSearchParams: RippleURLSearchParams,
+	date: RippleDate,
+	mediaQuery: MediaQuery,
+	createRefKey,
+	track,
+	trackSplit,
+	effect,
+	untrack,
+};

@@ -402,7 +402,7 @@ export default component App() {
 		code: `
 
 export default component App() {
-  // create a TrackedArray using syntactic sugar \`#\`
+  // create a RippleArray using syntactic sugar \`#\`
   const arr = #ripple[1, 2, 3];
 
   // using the new constructor
@@ -657,11 +657,11 @@ export default component App() {
   const obj = {
     tracked_basic,
   };
-  const tracked_object = #ripple.track(obj);
+  const ripple_object = #ripple.track(obj);
   const Button = #ripple.track(() => SomeButton);
   const AnotherButton = #ripple.track(() => SomeButton);
 
-  <@tracked_object.@tracked_basic />
+  <@ripple_object.@tracked_basic />
   <Child {Button}>{'Child Button'}</Child>
   <AnotherChild Button={AnotherButton}>{'Another Child Button'}</AnotherChild>
 }

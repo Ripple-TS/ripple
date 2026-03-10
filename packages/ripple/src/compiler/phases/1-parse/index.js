@@ -697,13 +697,10 @@ function RipplePlugin(config) {
 							}
 						}
 
-						if (this.#loose) {
-							this.pos++;
-							return this.finishToken(tt.name, '#');
+						if (this.#loose && startsWith('#ripple') && is_ripple_delimiter(char_after(7))) {
+							this.pos += 7;
+							return this.finishToken(tt.name, '#ripple');
 						}
-					} else if (this.#loose) {
-						this.pos++;
-						return this.finishToken(tt.name, '#');
 					}
 				}
 				if (code === 64) {
@@ -903,7 +900,7 @@ function RipplePlugin(config) {
 			}
 
 			/**
-			 * Parse expression atom - handles TrackedArray and TrackedObject literals
+			 * Parse expression atom - handles RippleArray and RippleObject literals
 			 * @type {Parse.Parser['parseExprAtom']}
 			 */
 			parseExprAtom(refDestructuringErrors, forNew, forInit) {
@@ -928,27 +925,20 @@ function RipplePlugin(config) {
 					return /** @type {AST.StyleIdentifier} */ (this.finishNode(node, 'StyleIdentifier'));
 				}
 
-				// Check if this is #ripple.array( or #ripple.object(
-				if (this.type === tt.name && this.value === '#ripple.array' && is_next_call_token) {
-					return this.parseTrackedArrayCallExpression();
-				}
-
-				if (this.type === tt.name && this.value === '#ripple.object') {
-					return this.parseTrackedObjectCallExpression();
-				}
-
 				if (this.type === tt.name && typeof this.value === 'string') {
 					const ripple_identifier_map = {
+						'#ripple.array': 'RippleArray',
+						'#ripple.object': 'RippleObject',
 						'#ripple.track': 'track',
 						'#ripple.trackSplit': 'trackSplit',
 						'#ripple.untrack': 'untrack',
 						'#ripple.effect': 'effect',
 						'#ripple.context': 'Context',
-						'#ripple.date': 'TrackedDate',
-						'#ripple.map': 'TrackedMap',
-						'#ripple.set': 'TrackedSet',
-						'#ripple.url': 'TrackedURL',
-						'#ripple.urlSearchParams': 'TrackedURLSearchParams',
+						'#ripple.date': 'RippleDate',
+						'#ripple.map': 'RippleMap',
+						'#ripple.set': 'RippleSet',
+						'#ripple.url': 'RippleURL',
+						'#ripple.urlSearchParams': 'RippleURLSearchParams',
 						'#ripple.mediaQuery': 'MediaQuery',
 					};
 
@@ -969,7 +959,7 @@ function RipplePlugin(config) {
 					this.#loose &&
 					this.type === tt.name &&
 					typeof this.value === 'string' &&
-					this.value.startsWith('#')
+					this.value === '#ripple'
 				) {
 					// Return an Identifier node for incomplete tracked syntax
 					const node = /** @type {AST.Identifier} */ (this.startNode());
@@ -980,9 +970,9 @@ function RipplePlugin(config) {
 
 				// Check if this is a tuple literal starting with #ripple[
 				if (this.type === tt.bracketL && this.value === '#ripple[') {
-					return this.parseTrackedArrayExpression();
+					return this.parseRippleArrayExpression();
 				} else if (this.type === tt.braceL && this.value === '#ripple{') {
-					return this.parseTrackedObjectExpression();
+					return this.parseRippleObjectExpression();
 				}
 
 				// Check if this is a component expression (e.g., in object literal values)
@@ -1086,10 +1076,10 @@ function RipplePlugin(config) {
 			}
 
 			/**
-			 * @type {Parse.Parser['parseTrackedArrayExpression']}
+			 * @type {Parse.Parser['parseRippleArrayExpression']}
 			 */
-			parseTrackedArrayExpression() {
-				const node = /** @type {AST.TrackedArrayExpression} */ (this.startNode());
+			parseRippleArrayExpression() {
+				const node = /** @type {AST.RippleArrayExpression} */ (this.startNode());
 				this.next(); // consume the '#ripple['
 
 				node.elements = [];
@@ -1120,14 +1110,14 @@ function RipplePlugin(config) {
 					}
 				}
 
-				return this.finishNode(node, 'TrackedArrayExpression');
+				return this.finishNode(node, 'RippleArrayExpression');
 			}
 
 			/**
-			 * @type {Parse.Parser['parseTrackedObjectExpression']}
+			 * @type {Parse.Parser['parseRippleObjectExpression']}
 			 */
-			parseTrackedObjectExpression() {
-				const node = /** @type {AST.TrackedObjectExpression} */ (this.startNode());
+			parseRippleObjectExpression() {
+				const node = /** @type {AST.RippleObjectExpression} */ (this.startNode());
 				this.next(); // consume the '#ripple{'
 
 				node.properties = [];
@@ -1155,74 +1145,7 @@ function RipplePlugin(config) {
 					}
 				}
 
-				return this.finishNode(node, 'TrackedObjectExpression');
-			}
-
-			/**
-			 * Parse `#ripple.array(...)` syntax - creates a TrackedArrayExpression
-			 * The arguments become the array elements
-			 * @returns {AST.TrackedArrayExpression}
-			 */
-			parseTrackedArrayCallExpression() {
-				const node = /** @type {AST.TrackedArrayExpression} */ (this.startNode());
-				this.next(); // consume '#ripple.array'
-
-				// Skip TypeScript type arguments like <T>
-				if (this.type === tt.relational && this.value === '<') {
-					this.tsParseTypeArguments();
-				}
-
-				this.expect(tt.parenL); // expect '('
-
-				node.elements = [];
-
-				let first = true;
-				while (!this.eat(tt.parenR)) {
-					if (!first) {
-						this.expect(tt.comma);
-						if (this.afterTrailingComma(tt.parenR)) break;
-					} else {
-						first = false;
-					}
-
-					if (this.type === tt.ellipsis) {
-						const arg = this.parseSpread();
-						node.elements.push(arg);
-					} else {
-						node.elements.push(this.parseMaybeAssign(false));
-					}
-				}
-
-				return this.finishNode(node, 'TrackedArrayExpression');
-			}
-
-			/**
-			 * Parse `#ripple.object(...)` syntax - creates a TrackedObjectExpression
-			 * Expects a single object literal argument
-			 * @returns {AST.TrackedObjectExpression}
-			 */
-			parseTrackedObjectCallExpression() {
-				const node = /** @type {AST.TrackedObjectExpression} */ (this.startNode());
-				this.next(); // consume '#ripple.object'
-
-				// Skip TypeScript type arguments like <T>
-				if (this.type === tt.relational && this.value === '<') {
-					this.tsParseTypeArguments();
-				}
-
-				this.expect(tt.parenL); // expect '('
-
-				node.properties = [];
-
-				// Parse the object literal argument
-				if (this.type === tt.braceL) {
-					const objLiteral = /** @type {AST.ObjectExpression} */ (this.parseObj(false));
-					node.properties = objLiteral.properties;
-				}
-
-				this.expect(tt.parenR); // expect ')'
-
-				return this.finishNode(node, 'TrackedObjectExpression');
+				return this.finishNode(node, 'RippleObjectExpression');
 			}
 
 			/**
@@ -2977,12 +2900,12 @@ function get_comment_handlers(source, comments, index = 0) {
 								node_array = parent.consequent;
 							} else if (
 								parent.type === 'ArrayExpression' ||
-								parent.type === 'TrackedArrayExpression'
+								parent.type === 'RippleArrayExpression'
 							) {
 								node_array = parent.elements;
 							} else if (
 								parent.type === 'ObjectExpression' ||
-								parent.type === 'TrackedObjectExpression'
+								parent.type === 'RippleObjectExpression'
 							) {
 								node_array = parent.properties;
 							} else if (

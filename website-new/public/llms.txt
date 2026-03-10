@@ -951,10 +951,10 @@ However, if you need the entire array to be fully reactive, including when new e
 
 #### Fully Reactive Array
 
-`TrackedArray` class from Ripple extends the standard JS `Array` class, and supports all of its methods and properties. Use the provided `#ripple` syntax inside `.ripple` files or import it from the `'ripple'` namespace for `.js`/`.ts` files. All elements existing or new of the `TrackedArray` are reactive and respond to the various array operations such as push, pop, shift, unshift, etc. Even if you reference a non-existent element, once it added, the original reference will react to the change. You do NOT need to use the unboxing `@` with the elements of the array.
+`RippleArray` class from Ripple extends the standard JS `Array` class, and supports all of its methods and properties. Use the provided `#ripple` syntax inside `.ripple` files or import it from the `'ripple'` namespace for `.js`/`.ts` files. All elements existing or new of the `RippleArray` are reactive and respond to the various array operations such as push, pop, shift, unshift, etc. Even if you reference a non-existent element, once it added, the original reference will react to the change. You do NOT need to use the unboxing `@` with the elements of the array.
 
 ```ripple
-import { TrackedArray } from 'ripple';
+import { RippleArray } from 'ripple';
 
 // using `#ripple[]` syntax
 const arr = #ripple[1, 2, 3];
@@ -972,8 +972,8 @@ const arr = #ripple.array.fromAsync([1, 2, 3]);
 const arr = #ripple.array.of(1, 2, 3);
 
 // using the new constructor outside of `.ripple` files
-import { TrackedArray } from 'ripple';
-const arr = new TrackedArray(1, 2, 3);
+import { RippleArray } from 'ripple';
+const arr = new RippleArray(1, 2, 3);
 ```
 
 Usage Example:
@@ -994,7 +994,7 @@ export component App() {
 
 #### Reactive Object
 
-`TrackedObject` class extends the standard JS `Object` class, and supports all of its methods and properties. Inside `.ripple` files use the provided `#ripple` syntax or import it from the `'ripple'` namespace in `.ts` or `.js` files.  `TrackedObject` fully supports shallow reactivity and any property on the root level is reactive.  You can even reference non-existent properties and once added the original reference reacts to the change. You do NOT need to use the unboxing `@` with the properties of the `TrackedObject`.
+`RippleObject` class extends the standard JS `Object` class, and supports all of its methods and properties. Inside `.ripple` files use the provided `#ripple` syntax or import it from the `'ripple'` namespace in `.ts` or `.js` files.  `RippleObject` fully supports shallow reactivity and any property on the root level is reactive.  You can even reference non-existent properties and once added the original reference reacts to the change. You do NOT need to use the unboxing `@` with the properties of the `RippleObject`.
 
 ```ripple
 // using short `#ripple{}` syntax
@@ -1004,8 +1004,8 @@ const arr = #ripple{a: 1, b: 2, c: 3};
 const arr = #ripple.object({a: 1, b: 2, c: 3});
 
 // using the new constructor outside of `.ripple` files
-import { TrackedObject } from 'ripple';
-const arr = new TrackedObject({a: 1, b: 2, c: 3});
+import { RippleObject } from 'ripple';
+const arr = new RippleObject({a: 1, b: 2, c: 3});
 ```
 
 Usage Example:
@@ -1036,23 +1036,23 @@ component SetExample() {
 }
 
 // outside of `.ripple` files:
-import { TrackedSet } from 'ripple';
-const mySet = new TrackedSet([1, 2, 3]);
+import { RippleSet } from 'ripple';
+const mySet = new RippleSet([1, 2, 3]);
 ```
 
 #### Reactive Map
 
-The `TrackedMap` extends the standard JS `Map` class, and supports all of its methods and properties.
+The `RippleMap` extends the standard JS `Map` class, and supports all of its methods and properties.
 
 ```ripple
 const map = #ripple.map([[1,1], [2,2], [3,3], [4,4]]);
 
 // outside of `.ripple` files:
-import { TrackedMap } from 'ripple';
-const map = new TrackedMap([[1,1], [2,2], [3,3], [4,4]]);
+import { RippleMap } from 'ripple';
+const map = new RippleMap([[1,1], [2,2], [3,3], [4,4]]);
 ```
 
-TrackedMap's reactive methods or properties can be used directly or assigned to reactive variables.
+RippleMap's reactive methods or properties can be used directly or assigned to reactive variables.
 
 ```ripple
 export component App() {
@@ -1072,17 +1072,17 @@ export component App() {
 
 #### Reactive Date
 
-The `TrackedDate` extends the standard JS `Date` class, and supports all of its methods and properties.
+The `RippleDate` extends the standard JS `Date` class, and supports all of its methods and properties.
 
 ```ripple
 const date = #tracked.date(2026, 0, 1); // January 1, 2026
 
 // outside of `.ripple` files:
-import { TrackedDate } from 'ripple';
-const date = new TrackedDate(2026, 0, 1);
+import { RippleDate } from 'ripple';
+const date = new RippleDate(2026, 0, 1);
 ```
 
-TrackedDate's reactive methods or properties can be used directly or assigned to reactive variables. All getter methods (`getFullYear()`, `getMonth()`, `getDate()`, etc.) and formatting methods (`toISOString()`, `toDateString()`, etc.) are reactive and will update when the date is modified.
+RippleDate's reactive methods or properties can be used directly or assigned to reactive variables. All getter methods (`getFullYear()`, `getMonth()`, `getDate()`, etc.) and formatting methods (`toISOString()`, `toDateString()`, etc.) are reactive and will update when the date is modified.
 
 ```ripple
 export component App() {
@@ -1475,7 +1475,7 @@ export default defineConfig({
 
 ### vs Solid
 - Component definition with `component` keyword
-- Built-in collections (TrackedArray, TrackedSet)
+- Built-in collections (RippleArray, RippleSet)
 - Different templating approach within component bodies
 
 ## Best Practices

@@ -1,6 +1,6 @@
 /** @import { Block, Tracked } from '#client' */
-/** @import { TrackedArray } from './array.js' */
-/** @import { TrackedObject } from './object.js' */
+/** @import { RippleArray } from './array.js' */
+/** @import { RippleObject } from './object.js' */
 
 import { get, set, tracked } from './internal/client/runtime.js';
 import {
@@ -21,7 +21,7 @@ import {
  * @template T
  * @param {T[] | Record<PropertyKey, any>} value
  * @param {Block} block
- * @returns {TrackedArray<T> | TrackedObject<T>}
+ * @returns {RippleArray<T> | RippleObject<T>}
  */
 export function proxy(value, block) {
 	// if non-proxyable, or is already a proxy, return `value`
@@ -154,7 +154,7 @@ export function proxy(value, block) {
 
 		setPrototypeOf() {
 			throw new Error(
-				`Cannot set prototype of ${is_proxied_array ? '\`TrackedArray\`' : '\`TrackedObject\`'}`,
+				`Cannot set prototype of ${is_proxied_array ? '\`RippleArray\`' : '\`RippleObject\`'}`,
 			);
 		},
 
@@ -277,7 +277,7 @@ export function proxy(value, block) {
  *  from_static?: boolean,
  *  use_array?: boolean
  * }} params
- * @returns {TrackedArray<T>}
+ * @returns {RippleArray<T>}
  */
 export function array_proxy({ elements, block, from_static = false, use_array = false }) {
 	var arr;
@@ -302,7 +302,7 @@ export function array_proxy({ elements, block, from_static = false, use_array = 
  * @template {object} T
  * @param {T} obj
  * @param {Block} block
- * @returns {TrackedObject<T>}
+ * @returns {RippleObject<T>}
  */
 export function object_proxy(obj, block) {
 	return proxy(obj, block);

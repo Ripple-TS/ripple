@@ -1,16 +1,16 @@
-import { flushSync, TrackedSet } from 'ripple';
+import { flushSync, RippleSet } from 'ripple';
 
-describe('TrackedSet', () => {
+describe('RippleSet', () => {
 	it('handles add and delete operations', () => {
 		component SetTest() {
-			let items = new TrackedSet([1, 2, 3]);
+			let items = new RippleSet([1, 2, 3]);
 
 			<button onClick={() => items.add(4)}>{'add'}</button>
 			<button onClick={() => items.delete(2)}>{'delete'}</button>
 			<Child {items} />
 		}
 
-		component Child({ items }: { items: TrackedSet<number> }) {
+		component Child({ items }: { items: RippleSet<number> }) {
 			<pre>{JSON.stringify(items)}</pre>
 			<pre>{items.size}</pre>
 		}
@@ -35,13 +35,13 @@ describe('TrackedSet', () => {
 
 	it('handles clear operation', () => {
 		component SetTest() {
-			let items = new TrackedSet([1, 2, 3]);
+			let items = new RippleSet([1, 2, 3]);
 
 			<button onClick={() => items.clear()}>{'clear'}</button>
 			<Child {items} />
 		}
 
-		component Child({ items }: { items: TrackedSet<number> }) {
+		component Child({ items }: { items: RippleSet<number> }) {
 			<pre>{JSON.stringify(items)}</pre>
 			<pre>{items.size}</pre>
 		}
@@ -59,7 +59,7 @@ describe('TrackedSet', () => {
 
 	it('handles has operation', () => {
 		component SetTest() {
-			let items = new TrackedSet([1, 2, 3]);
+			let items = new RippleSet([1, 2, 3]);
 			let hasValue = #ripple.track(() => items.has(2));
 
 			<button onClick={() => items.delete(2)}>{'delete'}</button>
@@ -78,7 +78,7 @@ describe('TrackedSet', () => {
 		expect(container.querySelectorAll('pre')[0].textContent).toBe('false');
 	});
 
-	it('creates empty TrackedSet using #ripple.set() shorthand syntax', () => {
+	it('creates empty RippleSet using #ripple.set() shorthand syntax', () => {
 		component SetTest() {
 			let items = #ripple.set();
 
@@ -97,7 +97,7 @@ describe('TrackedSet', () => {
 		expect(container.querySelector('pre').textContent).toBe('1');
 	});
 
-	it('creates TrackedSet with initial values using #ripple.set() shorthand syntax', () => {
+	it('creates RippleSet with initial values using #ripple.set() shorthand syntax', () => {
 		component SetTest() {
 			let items = #ripple.set([1, 2, 3, 4]);
 			let hasValue = #ripple.track(() => items.has(3));

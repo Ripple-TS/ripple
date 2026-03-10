@@ -163,6 +163,21 @@ const DOM_PROPERTIES = [
 	'disableRemotePlayback',
 ];
 
+/** @type {Record<string, string>} */
+const RIPPLE_NAMESPACE_CALL_NAME = {
+	'#ripple.url': 'ripple_url',
+	'#ripple.urlSearchParams': 'ripple_url_search_params',
+	'#ripple.date': 'ripple_date',
+	'#ripple.map': 'ripple_map',
+	'#ripple.set': 'ripple_set',
+	'#ripple.mediaQuery': 'media_query',
+	'#ripple.context': 'context',
+	'#ripple.effect': 'effect',
+	'#ripple.untrack': 'untrack',
+	'#ripple.array': 'ripple_array',
+	'#ripple.object': 'ripple_object',
+};
+
 /**
  * Returns true if name is a DOM property
  * @param {string} name
@@ -914,4 +929,37 @@ export function flatten_switch_consequent(consequent) {
 		}
 	}
 	return result;
+}
+
+/**
+ * @param {string | null | undefined} name
+ * @returns {string | null}
+ */
+export function get_ripple_namespace_call_name(name) {
+	return name == null ? null : (RIPPLE_NAMESPACE_CALL_NAME[name] ?? null);
+}
+
+/**
+ * @param {AST.MemberExpression} member
+ * @returns {boolean}
+ */
+export function is_property_part_of_ripple_namespace(member) {
+	/** @type {AST.MemberExpression | null} */
+	let current = member;
+
+	while (current !== null) {
+		const source_name = current.object.metadata?.source_name;
+		if (get_ripple_namespace_call_name(source_name) !== null) {
+			return true;
+		}
+
+		const parent = current.metadata?.path?.at(-1);
+		if (parent?.type !== 'MemberExpression' || parent.object !== current) {
+			break;
+		}
+
+		current = parent;
+	}
+
+	return false;
 }

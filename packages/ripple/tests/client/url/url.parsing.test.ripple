@@ -1,6 +1,6 @@
 import { flushSync } from 'ripple';
 
-describe('TrackedURL > parsing', () => {
+describe('RippleURL > parsing', () => {
 	it('creates URL from string with reactivity', () => {
 		component URLTest() {
 			const url = #ripple.url('https://example.com:8080/path?foo=bar#section');

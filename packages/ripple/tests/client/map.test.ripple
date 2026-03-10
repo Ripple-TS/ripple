@@ -1,6 +1,6 @@
-import { flushSync, TrackedMap } from 'ripple';
+import { flushSync, RippleMap } from 'ripple';
 
-describe('TrackedMap', () => {
+describe('RippleMap', () => {
 	it('handles set with update and delete operations with a reactive size var', () => {
 		component MapTest() {
 			let map = #ripple.map([['a', 1], ['b', 2], ['c', 3]]);
@@ -120,7 +120,7 @@ describe('TrackedMap', () => {
 		expect(container.querySelectorAll('pre')[0].textContent).toBe('[["foo",1],["bar",2]]');
 	});
 
-	it('creates empty TrackedMap using #ripple.map() shorthand syntax', () => {
+	it('creates empty RippleMap using #ripple.map() shorthand syntax', () => {
 		component MapTest() {
 			let map = #ripple.map();
 
@@ -139,7 +139,7 @@ describe('TrackedMap', () => {
 		expect(container.querySelector('pre').textContent).toBe('1');
 	});
 
-	it('creates TrackedMap with initial entries using #ripple.map() shorthand syntax', () => {
+	it('creates RippleMap with initial entries using #ripple.map() shorthand syntax', () => {
 		component MapTest() {
 			let map = #ripple.map([['a', 1], ['b', 2], ['c', 3]]);
 			let value = #ripple.track(() => map.get('b'));

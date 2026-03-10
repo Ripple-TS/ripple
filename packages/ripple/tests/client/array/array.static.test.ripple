@@ -1,11 +1,11 @@
-import { flushSync, TrackedArray } from 'ripple';
+import { flushSync, RippleArray } from 'ripple';
 import { MAX_ARRAY_LENGTH } from '../../../src/runtime/internal/client/constants.js';
 
-describe('TrackedArray > static', () => {
+describe('RippleArray > static', () => {
 	it('handles static methods - from and of', () => {
 		component ArrayTest() {
-			let itemsFrom = TrackedArray.from([1, 2, 3], (x: number) => x * 2);
-			let itemsOf = TrackedArray.of(4, 5, 6);
+			let itemsFrom = RippleArray.from([1, 2, 3], (x: number) => x * 2);
+			let itemsOf = RippleArray.of(4, 5, 6);
 
 			<button onClick={() => itemsFrom.push(8)}>{'add to from'}</button>
 			<button onClick={() => itemsOf.push(7)}>{'add to of'}</button>
@@ -35,10 +35,87 @@ describe('TrackedArray > static', () => {
 		expect(container.querySelectorAll('pre')[1].textContent).toBe('[4,5,6,7]');
 	});
 
-	('fromAsync' in Array.prototype ? describe : describe.skip)(
-		'TrackedArray fromAsync',
-		async () => {
-			it('handles static fromAsync method with reactivity', async () => {
+	('fromAsync' in Array.prototype ? describe : describe.skip)('RippleArray fromAsync', async () => {
+		it('handles static fromAsync method with reactivity', async () => {
+			component Parent() {
+				try {
+					<ArrayTest />
+				} pending {
+					<div>{'Loading placeholder...'}</div>
+				}
+			}
+
+			component ArrayTest() {
+				let items = await RippleArray.fromAsync([1, 2, 3]);
+
+				<button
+					onClick={() => {
+						if (items) items.push(4);
+					}}
+				>
+					{'add item'}
+				</button>
+
+				<pre>{JSON.stringify(items)}</pre>
+			}
+
+			render(Parent);
+
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			const addButton = container.querySelector('button');
+
+			expect(container.querySelectorAll('pre')[0].textContent).toBe('[1,2,3]');
+
+			// Test adding an item to the async-created array
+			addButton.click();
+			flushSync();
+
+			expect(container.querySelectorAll('pre')[1].textContent).toBe('[1,2,3,4]');
+		});
+
+		it('handles static fromAsync method with mapping function', async () => {
+			component Parent() {
+				try {
+					<ArrayTest />
+				} pending {
+					<div>{'Loading placeholder...'}</div>
+				}
+			}
+
+			component ArrayTest() {
+				let items = await RippleArray.fromAsync([1, 2, 3], (x: number) => x * 2);
+
+				<button
+					onClick={() => {
+						if (items) items.push(8);
+					}}
+				>
+					{'add item'}
+				</button>
+				<pre>{items ? JSON.stringify(items) : 'Loading...'}</pre>
+			}
+
+			render(Parent);
+
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			const addButton = container.querySelector('button');
+
+			expect(container.querySelector('pre').textContent).toBe('[2,4,6]');
+
+			addButton.click();
+			flushSync();
+
+			expect(container.querySelector('pre').textContent).toBe('[2,4,6,8]');
+		});
+
+		// TODO: Fix this test case, needs some async love around try statements being using in a not template way
+		('fromAsync' in Array.prototype ? it : it.skip)(
+			'handles error in fromAsync method',
+			async () => {
 				component Parent() {
 					try {
 						<ArrayTest />
@@ -48,55 +125,26 @@ describe('TrackedArray > static', () => {
 				}
 
 				component ArrayTest() {
-					let items = await TrackedArray.fromAsync([1, 2, 3]);
+					let items: RippleArray<string> | null = null;
+					let error: string | null = null;
 
-					<button
-						onClick={() => {
-							if (items) items.push(4);
-						}}
-					>
-						{'add item'}
-					</button>
+					async function* throwingIterable() {
+						throw new Error('Async error');
+					}
 
-					<pre>{JSON.stringify(items)}</pre>
-				}
-
-				render(Parent);
-
-				await new Promise((resolve) => setTimeout(resolve, 0));
-				flushSync();
-
-				const addButton = container.querySelector('button');
-
-				expect(container.querySelectorAll('pre')[0].textContent).toBe('[1,2,3]');
-
-				// Test adding an item to the async-created array
-				addButton.click();
-				flushSync();
-
-				expect(container.querySelectorAll('pre')[1].textContent).toBe('[1,2,3,4]');
-			});
-
-			it('handles static fromAsync method with mapping function', async () => {
-				component Parent() {
 					try {
-						<ArrayTest />
+						items = await RippleArray.fromAsync(throwingIterable());
+						for (const item of items) {
+							<li>{item}</li>
+						}
 					} pending {
-						<div>{'Loading placeholder...'}</div>
+						<div>{'Loading...'}</div>
+					} catch (e) {
+						error = (e as Error).message;
 					}
-				}
 
-				component ArrayTest() {
-					let items = await TrackedArray.fromAsync([1, 2, 3], (x: number) => x * 2);
-
-					<button
-						onClick={() => {
-							if (items) items.push(8);
-						}}
-					>
-						{'add item'}
-					</button>
-					<pre>{items ? JSON.stringify(items) : 'Loading...'}</pre>
+					<pre>{error ? 'Error: ' + error : 'No error'}</pre>
+					<pre>{items ? JSON.stringify(items) : 'No items'}</pre>
 				}
 
 				render(Parent);
@@ -104,67 +152,16 @@ describe('TrackedArray > static', () => {
 				await new Promise((resolve) => setTimeout(resolve, 0));
 				flushSync();
 
-				const addButton = container.querySelector('button');
+				expect(container.querySelectorAll('pre')[0].textContent).toBe('Error: Async error');
+				expect(container.querySelectorAll('pre')[1].textContent).toBe('No items');
+			},
+		);
+	});
 
-				expect(container.querySelector('pre').textContent).toBe('[2,4,6]');
-
-				addButton.click();
-				flushSync();
-
-				expect(container.querySelector('pre').textContent).toBe('[2,4,6,8]');
-			});
-
-			// TODO: Fix this test case, needs some async love around try statements being using in a not template way
-			('fromAsync' in Array.prototype ? it : it.skip)(
-				'handles error in fromAsync method',
-				async () => {
-					component Parent() {
-						try {
-							<ArrayTest />
-						} pending {
-							<div>{'Loading placeholder...'}</div>
-						}
-					}
-
-					component ArrayTest() {
-						let items: TrackedArray<string> | null = null;
-						let error: string | null = null;
-
-						async function* throwingIterable() {
-							throw new Error('Async error');
-						}
-
-						try {
-							items = await TrackedArray.fromAsync(throwingIterable());
-							for (const item of items) {
-								<li>{item}</li>
-							}
-						} pending {
-							<div>{'Loading...'}</div>
-						} catch (e) {
-							error = (e as Error).message;
-						}
-
-						<pre>{error ? 'Error: ' + error : 'No error'}</pre>
-						<pre>{items ? JSON.stringify(items) : 'No items'}</pre>
-					}
-
-					render(Parent);
-
-					await new Promise((resolve) => setTimeout(resolve, 0));
-					flushSync();
-
-					expect(container.querySelectorAll('pre')[0].textContent).toBe('Error: Async error');
-					expect(container.querySelectorAll('pre')[1].textContent).toBe('No items');
-				},
-			);
-		},
-	);
-
-	describe('Creates TrackedArray with a single element', () => {
+	describe('Creates RippleArray with a single element', () => {
 		it('specifies int', () => {
 			component ArrayTest() {
-				let items = new TrackedArray(3);
+				let items = new RippleArray(3);
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{items.length}</pre>
 			}
@@ -180,7 +177,7 @@ describe('TrackedArray > static', () => {
 				let error = null;
 
 				try {
-					new TrackedArray(MAX_ARRAY_LENGTH + 1);
+					new RippleArray(MAX_ARRAY_LENGTH + 1);
 				} catch (e) {
 					error = (e as Error).message;
 				}
@@ -195,7 +192,7 @@ describe('TrackedArray > static', () => {
 
 		it('specifies int using static from method', () => {
 			component ArrayTest() {
-				let items = TrackedArray.from([4]);
+				let items = RippleArray.from([4]);
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{items.length}</pre>
 			}
@@ -208,7 +205,7 @@ describe('TrackedArray > static', () => {
 
 		it('specifies int using static of method', () => {
 			component ArrayTest() {
-				let items = TrackedArray.of(5);
+				let items = RippleArray.of(5);
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{items.length}</pre>
 			}
@@ -231,7 +228,7 @@ describe('TrackedArray > static', () => {
 				}
 
 				component ArrayTest() {
-					const items = await TrackedArray.fromAsync([6]);
+					const items = await RippleArray.fromAsync([6]);
 
 					<pre>{items ? JSON.stringify(items) : 'Loading...'}</pre>
 					<pre>{items ? items.length : ''}</pre>

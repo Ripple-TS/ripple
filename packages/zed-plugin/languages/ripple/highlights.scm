@@ -31,7 +31,7 @@
     "." @punctuation.delimiter
     property: (identifier) @ripple_builtin @function.builtin)
   (#eq? @ripple_prefix "#ripple")
-  (#match? @ripple_builtin "^(track|untrack|effect|trackSplit|date|array|object|context|url|mediaQuery|urlSearchParams|createSubscriber|async|validate)$")
+  (#match? @ripple_builtin "^(track|untrack|effect|trackSplit|date|array|object|map|set|context|url|mediaQuery|urlSearchParams|validate)$")
 )
 
 (
@@ -264,13 +264,13 @@
 ; Reactive constructs (placed after generic punctuation so special tokens win)
 (unbox_expression "@" @operator.special)
 
-(tracked_map_expression
+(ripple_map_expression
   "#ripple.map" @function.builtin
   (arguments
     "(" @punctuation.bracket
     ")" @punctuation.bracket))
 
-(tracked_set_expression
+(ripple_set_expression
   "#ripple.set" @function.builtin
   (arguments
     "(" @punctuation.bracket

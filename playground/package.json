@@ -8,9 +8,11 @@
     "ssr": "node ./ssr-dev.js",
     "build": "vite build --outDir dist/client",
     "test": "vitest run",
-    "debug-volar": "node volar-debug.js",
+    "debug-all": "node debug-mode.js all",
     "debug-ssr": "node debug-mode.js server",
     "debug-client": "node debug-mode.js client",
+    "debug-volar": "node debug-mode.js tsx",
+    "debug-tsx": "node debug-mode.js tsx",
     "lint": "eslint ."
   },
   "devDependencies": {

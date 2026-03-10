@@ -1,7 +1,16 @@
 {
   "compilerOptions": {
+    "module": "node20",
+    "moduleResolution": "node16",
+    "target": "es2021",
+    "lib": ["es2021"],
     "allowJs": true,
-    "noEmit": true
+    "checkJs": true,
+    "noEmit": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "types": ["node"]
   },
   "include": ["./src/**/*", "./tests/**/*"],
   "exclude": ["dist", "node_modules"]

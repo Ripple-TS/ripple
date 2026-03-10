@@ -28,40 +28,92 @@ export function flushSync<T>(fn?: () => T): T;
 
 export function effect(fn: (() => void) | (() => () => void)): void;
 
-export interface TrackedArrayConstructor {
-	new <T>(...elements: T[]): TrackedArray<T>; // must be used with `new`
-	from<T>(arrayLike: ArrayLike<T> | Iterable<T>): TrackedArray<T>;
-	of<T>(...items: T[]): TrackedArray<T>;
-	fromAsync<T>(iterable: AsyncIterable<T> | Iterable<T>): Promise<TrackedArray<T>>;
+export interface RippleArrayStatics {
+	from: {
+		<T>(array_like: ArrayLike<T>): RippleArray<T>;
+		<T, U>(
+			array_like: ArrayLike<T>,
+			mapfn: (value: T, index: number) => U,
+			this_arg?: any,
+		): RippleArray<U>;
+		<T>(iterable: Iterable<T>): RippleArray<T>;
+		<T, U>(
+			iterable: Iterable<T>,
+			mapfn: (value: T, index: number) => U,
+			this_arg?: any,
+		): RippleArray<U>;
+	};
+
+	of: {
+		<T>(...items: T[]): RippleArray<T>;
+	};
+
+	fromAsync: {
+		<T>(
+			iterable_or_array_like: AsyncIterable<T> | Iterable<T> | ArrayLike<T>,
+		): Promise<RippleArray<Awaited<T>>>;
+		<T, U>(
+			iterable_or_array_like: AsyncIterable<T> | Iterable<T> | ArrayLike<T>,
+			mapfn: (value: Awaited<T>, index: number) => U | PromiseLike<U>,
+			this_arg?: any,
+		): Promise<RippleArray<Awaited<U>>>;
+	};
 }
+export interface RippleArrayCallable extends RippleArrayStatics {
+	<T>(...elements: T[]): RippleArray<T>;
+}
+export interface RippleArrayConstructor extends RippleArrayStatics {
+	new <T>(...elements: T[]): RippleArray<T>;
+}
+export interface RippleArray<T> extends Array<T> {}
+export const RippleArray: RippleArrayConstructor;
 
-export interface TrackedArray<T> extends Array<T> {}
-
-export const TrackedArray: TrackedArrayConstructor;
-
-export class Context<T = undefined> {
-	constructor(initial_value?: T);
+export interface ContextCallable {
+	<T = undefined>(initial_value?: T): Context<T>;
+}
+export interface ContextConstructor {
+	new <T = undefined>(initial_value?: T): Context<T>;
+}
+declare const CONTEXT_BRAND: unique symbol;
+export interface Context<T = undefined> {
 	get(): T;
 	set(value: T): void;
-	#private;
+	[CONTEXT_BRAND]: void;
 }
+export declare const Context: ContextConstructor;
 
-export class TrackedSet<T> extends Set<T> {
-	isDisjointFrom<U>(other: ReadonlySetLike<U> | TrackedSet<U>): boolean;
-	isSubsetOf<U>(other: ReadonlySetLike<U> | TrackedSet<U>): boolean;
-	isSupersetOf<U>(other: ReadonlySetLike<U> | TrackedSet<U>): boolean;
-	difference<U>(other: ReadonlySetLike<U> | TrackedSet<U>): TrackedSet<T>;
-	intersection<U>(other: ReadonlySetLike<U> | TrackedSet<U>): TrackedSet<T & U>;
-	symmetricDifference<U>(other: ReadonlySetLike<U> | TrackedSet<U>): TrackedSet<T | U>;
-	union<U>(other: ReadonlySetLike<U> | TrackedSet<U>): TrackedSet<T | U>;
+export interface RippleSetCallable {
+	<T>(values?: readonly T[] | null): RippleSet<T>;
+}
+export interface RippleSetConstructor {
+	new <T>(values?: readonly T[] | null): RippleSet<T>;
+}
+declare const RIPPLE_SET_BRAND: unique symbol;
+export interface RippleSet<T> extends Set<T> {
+	isDisjointFrom<U>(other: ReadonlySetLike<U> | RippleSet<U>): boolean;
+	isSubsetOf<U>(other: ReadonlySetLike<U> | RippleSet<U>): boolean;
+	isSupersetOf<U>(other: ReadonlySetLike<U> | RippleSet<U>): boolean;
+	difference<U>(other: ReadonlySetLike<U> | RippleSet<U>): RippleSet<T>;
+	intersection<U>(other: ReadonlySetLike<U> | RippleSet<U>): RippleSet<T & U>;
+	symmetricDifference<U>(other: ReadonlySetLike<U> | RippleSet<U>): RippleSet<T | U>;
+	union<U>(other: ReadonlySetLike<U> | RippleSet<U>): RippleSet<T | U>;
 	toJSON(): T[];
-	#private;
+	[RIPPLE_SET_BRAND]: void;
 }
+export const RippleSet: RippleSetConstructor;
 
-export class TrackedMap<K, V> extends Map<K, V> {
-	toJSON(): [K, V][];
-	#private;
+export interface RippleMapCallable {
+	<K, V>(entries?: readonly (readonly [K, V])[] | null): RippleMap<K, V>;
 }
+export interface RippleMapConstructor {
+	new <K, V>(entries?: readonly (readonly [K, V])[] | null): RippleMap<K, V>;
+}
+declare const RIPPLE_MAP_BRAND: unique symbol;
+export interface RippleMap<K, V> extends Map<K, V> {
+	toJSON(): [K, V][];
+	[RIPPLE_MAP_BRAND]: void;
+}
+export const RippleMap: RippleMapConstructor;
 
 // Compiler-injected runtime symbols (for Ripple component development)
 declare global {
@@ -196,11 +248,11 @@ export function on(
 	options?: ExtendedEventOptions | undefined,
 ): OnEventListenerRemover;
 
-export type TrackedObjectShallow<T> = {
+export type RippleObjectShallow<T> = {
 	[K in keyof T]: T[K] | Tracked<T[K]>;
 };
 
-export type TrackedObjectDeep<T> = T extends
+export type RippleObjectDeep<T> = T extends
 	| string
 	| number
 	| boolean
@@ -209,66 +261,125 @@ export type TrackedObjectDeep<T> = T extends
 	| symbol
 	| bigint
 	? T | Tracked<T>
-	: T extends TrackedArray<infer U>
-		? TrackedArray<U> | Tracked<TrackedArray<U>>
-		: T extends TrackedSet<infer U>
-			? TrackedSet<U> | Tracked<TrackedSet<U>>
-			: T extends TrackedMap<infer K, infer V>
-				? TrackedMap<K, V> | Tracked<TrackedMap<K, V>>
+	: T extends RippleArray<infer U>
+		? RippleArray<U> | Tracked<RippleArray<U>>
+		: T extends RippleSet<infer U>
+			? RippleSet<U> | Tracked<RippleSet<U>>
+			: T extends RippleMap<infer K, infer V>
+				? RippleMap<K, V> | Tracked<RippleMap<K, V>>
 				: T extends Array<infer U>
-					? Array<TrackedObjectDeep<U>> | Tracked<Array<TrackedObjectDeep<U>>>
+					? Array<RippleObjectDeep<U>> | Tracked<Array<RippleObjectDeep<U>>>
 					: T extends Set<infer U>
-						? Set<TrackedObjectDeep<U>> | Tracked<Set<TrackedObjectDeep<U>>>
+						? Set<RippleObjectDeep<U>> | Tracked<Set<RippleObjectDeep<U>>>
 						: T extends Map<infer K, infer V>
 							?
-									| Map<TrackedObjectDeep<K>, TrackedObjectDeep<V>>
-									| Tracked<Map<TrackedObjectDeep<K>, TrackedObjectDeep<V>>>
+									| Map<RippleObjectDeep<K>, RippleObjectDeep<V>>
+									| Tracked<Map<RippleObjectDeep<K>, RippleObjectDeep<V>>>
 							: T extends object
-								? { [K in keyof T]: TrackedObjectDeep<T[K]> | Tracked<TrackedObjectDeep<T[K]>> }
+								? { [K in keyof T]: RippleObjectDeep<T[K]> | Tracked<RippleObjectDeep<T[K]>> }
 								: T | Tracked<T>;
 
-export type TrackedObject<T extends object = object> = T & {};
-
-export interface TrackedObjectConstructor {
-	new <T extends Object>(obj: T): TrackedObject<T>;
+export interface RippleObjectCallable {
+	<T extends Object>(obj: T): RippleObject<T>;
 }
-
-export const TrackedObject: TrackedObjectConstructor;
-
-export class TrackedDate extends Date {
-	constructor(...params: any[]);
-	#private;
+export interface RippleObjectConstructor {
+	new <T extends Object>(obj: T): RippleObject<T>;
 }
+export interface RippleObject<T> extends Object {}
+export const RippleObject: RippleObjectConstructor;
 
+export interface RippleDateCallable {
+	(): RippleDate;
+	(value: number | string): RippleDate;
+	(
+		year: number,
+		monthIndex: number,
+		date?: number,
+		hours?: number,
+		minutes?: number,
+		seconds?: number,
+		ms?: number,
+	): RippleDate;
+}
+export interface RippleDateConstructor {
+	new (): RippleDate;
+	new (value: number | string): RippleDate;
+	new (
+		year: number,
+		monthIndex: number,
+		date?: number,
+		hours?: number,
+		minutes?: number,
+		seconds?: number,
+		ms?: number,
+	): RippleDate;
+}
+declare const RIPPLE_DATE_BRAND: unique symbol;
+export interface RippleDate extends Date {
+	[RIPPLE_DATE_BRAND]: void;
+}
+export const RippleDate: RippleDateConstructor;
+
+export interface RippleURLSearchParamsCallable {
+	(
+		init?:
+			| string
+			| readonly (readonly [string, string])[]
+			| Record<string, string>
+			| URLSearchParams
+			| RippleURLSearchParams,
+	): RippleURLSearchParams;
+}
+export interface RippleURLSearchParamsConstructor {
+	new (
+		init?:
+			| string
+			| readonly (readonly [string, string])[]
+			| Record<string, string>
+			| URLSearchParams
+			| RippleURLSearchParams,
+	): RippleURLSearchParams;
+}
 declare const REPLACE: unique symbol;
-
-export class TrackedURLSearchParams extends URLSearchParams {
+declare const RIPPLE_URL_SEARCH_PARAMS_BRAND: unique symbol;
+export interface RippleURLSearchParams extends URLSearchParams {
 	[REPLACE](params: URLSearchParams): void;
-	#private;
+	[RIPPLE_URL_SEARCH_PARAMS_BRAND]: void;
 }
+export const RippleURLSearchParams: RippleURLSearchParamsConstructor;
 
-export class TrackedURL extends URL {
-	get searchParams(): TrackedURLSearchParams;
-	#private;
+export interface RippleURLCallable {
+	(url: string | URL, base?: string | URL | RippleURL): RippleURL;
 }
+export interface RippleURLConstructor {
+	new (url: string | URL, base?: string | URL | RippleURL): RippleURL;
+}
+declare const RIPPLE_URL_BRAND: unique symbol;
+export interface RippleURL extends URL {
+	get searchParams(): RippleURLSearchParams;
+	[RIPPLE_URL_BRAND]: void;
+}
+export const RippleURL: RippleURLConstructor;
 
 export function createSubscriber(start: () => void | (() => void)): () => void;
 
+declare const REACTIVE_VALUE_BRAND: unique symbol;
 interface ReactiveValue<V> extends Tracked<V> {
 	new (fn: () => Tracked<V>, start: () => void | (() => void)): Tracked<V>;
-	/** @private */
-	_brand: void;
+	[REACTIVE_VALUE_BRAND]: void;
 }
 
+export interface MediaQueryCallable {
+	(query: string, fallback?: boolean | undefined): Tracked<boolean>;
+}
+export interface MediaQueryConstructor {
+	new (query: string, fallback?: boolean | undefined): Tracked<boolean>;
+}
+declare const MEDIA_QUERY_BRAND: unique symbol;
 export interface MediaQuery extends Tracked<boolean> {
-	new (query: string, fallback?: boolean | undefined): Tracked<boolean>;
-	/** @private */
-	_brand: void;
+	[MEDIA_QUERY_BRAND]: void;
 }
-
-export const MediaQuery: {
-	new (query: string, fallback?: boolean | undefined): Tracked<boolean>;
-};
+export const MediaQuery: MediaQueryConstructor;
 
 export function Portal<V = HTMLElement>({
 	target,
@@ -433,3 +544,21 @@ export function bindFiles<V extends FileList>(
 	tracked: Tracked<V | null | undefined> | GetFunction<V | null | undefined>,
 	setter?: SetFunction<V>,
 ): (node: HTMLInputElement) => void;
+
+export interface RippleNamespace {
+	array: RippleArrayCallable;
+	object: RippleObjectCallable;
+	context: ContextCallable;
+	date: RippleDateCallable;
+	effect: typeof effect;
+	map: RippleMapCallable;
+	mediaQuery: MediaQueryCallable;
+	set: RippleSetCallable;
+	url: RippleURLCallable;
+	urlSearchParams: RippleURLSearchParamsCallable;
+	untrack: typeof untrack;
+	track: typeof track;
+	trackSplit: typeof trackSplit;
+}
+
+export declare const ripple_namespace: RippleNamespace;

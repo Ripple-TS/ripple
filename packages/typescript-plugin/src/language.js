@@ -1,7 +1,6 @@
-// @ts-expect-error ESM import
 /** @import { CodeMapping } from 'ripple/compiler' */
-// @ts-expect-error ESM import
-/** @import {RippleCompiler, RippleCompileError, VolarMappingsResult} from 'ripple/compiler' */
+/** @import {RippleCompileError, VolarMappingsResult} from 'ripple/compiler' */
+/** @import * as RippleCompiler from 'ripple/compiler' */
 
 /** @typedef {Map<string, CodeMapping>} CachedMappings */
 /** @typedef {import('typescript').CompilerOptions} CompilerOptions */
@@ -191,7 +190,7 @@ class RippleVirtualCode {
 				const charBeforeDot = newEnd > 1 ? newCode[newEnd - 2] : '';
 				log('  Char before dot:', JSON.stringify(charBeforeDot));
 
-				if (/[a-zA-Z0-9_\)\]\}]/.test(charBeforeDot)) {
+				if (/[$#_\u200C\u200D\p{ID_Continue}\)\]\}]/u.test(charBeforeDot)) {
 					isDotTyped = true;
 					dotPosition = newEnd - 1; // Position of the dot
 					log('ChangeRange detected dot typed at position', dotPosition);
@@ -200,40 +199,25 @@ class RippleVirtualCode {
 		}
 
 		try {
-			// If user typed a ".", use placeholder technique to get completions
+			// If user typed a ".", compile without it and then stitch it back into
+			// the generated output so completions can still resolve.
 			if (isDotTyped && dotPosition >= 0) {
-				const charBeforeDot = newCode[dotPosition - 1];
-				const codeWithPlaceholder =
-					newCode.substring(0, dotPosition) + charBeforeDot + newCode.substring(dotPosition + 1);
+				const codeWithoutDot =
+					newCode.substring(0, dotPosition) + newCode.substring(dotPosition + 1);
 
-				log('Using placeholder technique for dot at position', dotPosition);
-				transpiled = this.ripple.compile_to_volar_mappings(codeWithPlaceholder, this.fileName);
-				log('Compilation with placeholder successful');
+				log('Compiling without typed dot at position', dotPosition);
+				transpiled = this.ripple.compile_to_volar_mappings(codeWithoutDot, this.fileName, {
+					loose: true,
+				});
+				log('Compilation without dot successful');
 
-				// Find where the placeholder ended up in generated code and replace with "."
 				if (transpiled && transpiled.code && transpiled.mappings.length > 0) {
-					let placeholderMapping = null;
-					for (const mapping of transpiled.mappings) {
-						const sourceStart = mapping.sourceOffsets[0];
-						const sourceEnd = sourceStart + mapping.lengths[0];
+					const insertedDotPosition = restore_typed_dot_in_transpiled_code(transpiled, dotPosition);
 
-						if (dotPosition >= sourceStart && dotPosition < sourceEnd) {
-							placeholderMapping = mapping;
-							break;
-						}
-					}
-
-					if (placeholderMapping) {
-						const offsetInMapping = dotPosition - placeholderMapping.sourceOffsets[0];
-						const placeholderPosInGenerated =
-							placeholderMapping.generatedOffsets[0] + offsetInMapping;
-
-						transpiled.code =
-							transpiled.code.substring(0, placeholderPosInGenerated) +
-							'.' +
-							transpiled.code.substring(placeholderPosInGenerated + 1);
-
-						log('Replaced placeholder at position', placeholderPosInGenerated, 'with dot');
+					if (insertedDotPosition === null) {
+						logWarning('Failed to restore typed dot into transpiled output');
+					} else {
+						log('Inserted typed dot at generated position', insertedDotPosition);
 					}
 				}
 			} else {
@@ -325,7 +309,7 @@ class RippleVirtualCode {
 					generatedLengths: [newCode.length],
 					data: {
 						verification: true, // disable TS since we're using source code as generated code
-						customData: { generatedLengths: [newCode.length] },
+						customData: {},
 					},
 				},
 			];
@@ -355,7 +339,7 @@ class RippleVirtualCode {
 			mapping = this.mappings[i];
 
 			genStart = mapping.generatedOffsets[0];
-			genLength = mapping.data.customData.generatedLengths[0];
+			genLength = mapping.generatedLengths[0];
 			genEnd = genStart + genLength;
 			genKey = `${genStart}-${genEnd}`;
 			this.#mappingGenToSource.set(genKey, mapping);
@@ -427,7 +411,6 @@ function extractCssFromSource(code) {
 				structure: true,
 				format: false,
 				customData: {
-					generatedLengths: [cssLength],
 					content: cssContent,
 					embeddedId: `style_${index}`,
 				},
@@ -454,6 +437,75 @@ function extractCssFromSource(code) {
 	}
 
 	return embeddedCodes;
+}
+
+/**
+ * Insert a typed dot back into the transpiled code and update mappings so the
+ * source and generated offsets stay aligned for completion requests.
+ * @param {VolarMappingsResult} transpiled
+ * @param {number} dotPosition
+ * @returns {number | null}
+ */
+function restore_typed_dot_in_transpiled_code(transpiled, dotPosition) {
+	let dot_mapping = null;
+
+	for (const mapping of transpiled.mappings) {
+		const source_end = mapping.sourceOffsets[0] + mapping.lengths[0];
+		if (source_end === dotPosition) {
+			dot_mapping = mapping;
+			break;
+		}
+	}
+
+	if (!dot_mapping) {
+		return null;
+	}
+
+	const generated_length = dot_mapping.generatedLengths[0];
+	const insertedDotPosition = dot_mapping.generatedOffsets[0] + generated_length;
+
+	transpiled.code =
+		transpiled.code.substring(0, insertedDotPosition) +
+		'.' +
+		transpiled.code.substring(insertedDotPosition);
+
+	// Create a separate 1:1 mapping for the dot character instead of extending
+	// the existing mapping. When source and generated lengths differ (e.g.
+	// #ripple → _$__u0023_ripple), Volar's translateOffset uses
+	// Math.min(relativePos, toLength) which would map the cursor after the dot
+	// to the middle of the generated identifier instead of after it.
+
+	/** @type {CodeMapping} */
+	const new_dot_mapping = {
+		sourceOffsets: [dotPosition],
+		generatedOffsets: [insertedDotPosition],
+		lengths: [1],
+		generatedLengths: [1],
+		data: { ...dot_mapping.data },
+	};
+
+	// Find the index to insert after dot_mapping
+	const dot_mapping_index = transpiled.mappings.indexOf(dot_mapping);
+	transpiled.mappings.splice(dot_mapping_index + 1, 0, new_dot_mapping);
+
+	for (const mapping of transpiled.mappings) {
+		if (
+			mapping !== dot_mapping &&
+			mapping !== new_dot_mapping &&
+			mapping.generatedOffsets[0] >= insertedDotPosition
+		) {
+			mapping.generatedOffsets[0] += 1;
+		}
+		if (
+			mapping !== dot_mapping &&
+			mapping !== new_dot_mapping &&
+			mapping.sourceOffsets[0] >= dotPosition
+		) {
+			mapping.sourceOffsets[0] += 1;
+		}
+	}
+
+	return insertedDotPosition;
 }
 
 /**

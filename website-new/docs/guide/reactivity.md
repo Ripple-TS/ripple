@@ -97,10 +97,10 @@ component App() {
   let double = #ripple.track(() => @count * 2);
 
   // Reactive collections — no imports
-  const items = #ripple[1, 2, 3]; // TrackedArray literal
-  const config = #ripple{ theme: 'dark' }; // TrackedObject literal
-  const map = #ripple.map([['a', 1]]); // TrackedMap
-  const set = #ripple.set([1, 2, 3]); // TrackedSet
+  const items = #ripple[1, 2, 3]; // RippleArray literal
+  const config = #ripple{ theme: 'dark' }; // RippleObject literal
+  const map = #ripple.map([['a', 1]]); // RippleMap
+  const set = #ripple.set([1, 2, 3]); // RippleSet
 
   // Async derived
   let data = #ripple.track(async () => fetchData(@count));
@@ -477,14 +477,14 @@ elements get added, you should use the reactive array that Ripple provides.
 
 #### Fully Reactive Array
 
-`TrackedArray` class from Ripple extends the standard JS `Array` class, and
+`RippleArray` class from Ripple extends the standard JS `Array` class, and
 supports all of its methods and properties. Import it from the `'ripple'`
 namespace or use the provided syntactic sugar for a quick creation via the
-bracketed notation. All elements existing or new of the `TrackedArray` are
-reactive and respond to the various array operations such as push, pop, shift,
-unshift, etc. Even if you reference a non-existent element, once it is added, the
-original reference will react to the change. You do NOT need to use the unboxing
-`@` with the elements of the array.
+bracketed notation. All elements existing or new of the `RippleArray` are reactive
+and respond to the various array operations such as push, pop, shift, unshift,
+etc. Even if you reference a non-existent element, once it is added, the original
+reference will react to the change. You do NOT need to use the unboxing `@` with
+the elements of the array.
 
 ```ripple
 
@@ -522,13 +522,13 @@ export component App() {
 
 #### Reactive Object
 
-`TrackedObject` class extends the standard JS `Object` class, and supports all of
+`RippleObject` class extends the standard JS `Object` class, and supports all of
 its methods and properties. Import it from the `'ripple'` namespace or use the
 provided syntactic sugar for a quick creation via the curly brace notation.
-`TrackedObject` fully supports shallow reactivity and any property on the root
+`RippleObject` fully supports shallow reactivity and any property on the root
 level is reactive. You can even reference non-existent properties and once added
 the original reference reacts to the change. You do NOT need to use the unboxing
-`@` with the properties of the `TrackedObject`.
+`@` with the properties of the `RippleObject`.
 
 ```ripple
 
@@ -573,14 +573,14 @@ export component App() {
 
 #### Reactive Set
 
-The `TrackedSet` extends the standard JS `Set` class, and supports all of its
+The `RippleSet` extends the standard JS `Set` class, and supports all of its
 methods and properties.
 
 ```ripple
 const set = #ripple.set([1, 2, 3]);
 ```
 
-TrackedSet's reactive methods or properties can be used directly or assigned to
+RippleSet's reactive methods or properties can be used directly or assigned to
 reactive variables.
 
 <Code>
@@ -611,14 +611,14 @@ export component App() {
 
 #### Reactive Map
 
-The `TrackedMap` extends the standard JS `Map` class, and supports all of its
+The `RippleMap` extends the standard JS `Map` class, and supports all of its
 methods and properties.
 
 ```ripple
 const map = #ripple.map([[1, 1], [2, 2], [3, 3], [4, 4]]);
 ```
 
-TrackedMap's reactive methods or properties can be used directly or assigned to
+RippleMap's reactive methods or properties can be used directly or assigned to
 reactive variables.
 
 <Code>
@@ -649,14 +649,14 @@ export component App() {
 
 #### Reactive Date
 
-The `TrackedDate` extends the standard JS `Date` class, and supports all of its
+The `RippleDate` extends the standard JS `Date` class, and supports all of its
 methods and properties.
 
 ```ripple
 const date = #ripple.date(2026, 0, 1); // January 1, 2026
 ```
 
-TrackedDate's reactive methods or properties can be used directly or assigned to
+RippleDate's reactive methods or properties can be used directly or assigned to
 reactive variables. All getter methods (`getFullYear()`, `getMonth()`,
 `getDate()`, etc.) and formatting methods (`toISOString()`, `toDateString()`,
 etc.) are reactive and will update when the date is modified.

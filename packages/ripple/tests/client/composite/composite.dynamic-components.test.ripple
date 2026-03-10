@@ -51,9 +51,9 @@ describe('composite > dynamic components', () => {
 				tracked_basic,
 			};
 
-			const tracked_object = #ripple.track(obj);
+			const ripple_object = #ripple.track(obj);
 
-			<@tracked_object.@tracked_basic />
+			<@ripple_object.@tracked_basic />
 		}
 
 		render(App);

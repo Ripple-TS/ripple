@@ -147,7 +147,7 @@ const map = new #ripple.map([['a', 1], ['b', 2]]);
       name: (identifier)
       (initializer
         (new_expression
-          constructor: (tracked_set_expression
+          constructor: (ripple_set_expression
             (arguments
               (array
                 (number)
@@ -158,7 +158,7 @@ const map = new #ripple.map([['a', 1], ['b', 2]]);
       name: (identifier)
       (initializer
         (new_expression
-          constructor: (tracked_map_expression
+          constructor: (ripple_map_expression
             (arguments
               (array
                 (array

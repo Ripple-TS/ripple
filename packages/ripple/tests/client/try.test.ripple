@@ -1,4 +1,4 @@
-import { bindValue, flushSync, TrackedArray } from 'ripple';
+import { bindValue, flushSync, RippleArray } from 'ripple';
 
 describe('try block with catch and pending', () => {
 	it('catch block works when component throws before await with pending block', async () => {
@@ -151,7 +151,7 @@ describe('try block', () => {
 
 			component FilteredList({ query }: { query: any }) {
 				let items = await Promise.resolve(['apple', 'banana', 'cherry']);
-				let list = TrackedArray.from(items);
+				let list = RippleArray.from(items);
 				let filtered = #ripple.track(() => list.filter((item: string) => item.includes(@query)));
 
 				<ul>

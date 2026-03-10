@@ -75,7 +75,7 @@ describe('basic client > collections', () => {
 		expect(ageDiv.textContent).toBe('30');
 	});
 
-	it('works as a reactive TrackedArray when constructed using # syntactic sugar', () => {
+	it('works as a reactive RippleArray when constructed using # syntactic sugar', () => {
 		component App() {
 			const array = #ripple[1, 2, 3];
 

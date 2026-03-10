@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { flushSync, type TrackedArray } from 'ripple';
+import { flushSync, type RippleArray } from 'ripple';
 
 describe('basic client > attribute rendering', () => {
 	it('render static attributes', () => {
@@ -613,7 +613,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles events with capture option', () => {
 		component Basic() {
-			let captureOrder: TrackedArray<string> = #ripple[];
+			let captureOrder: RippleArray<string> = #ripple[];
 
 			const handleCaptureClick = {
 				handleEvent() {
@@ -647,7 +647,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles events with Capture suffix in the name', () => {
 		component Basic() {
-			let captureOrder: TrackedArray<string> = #ripple[];
+			let captureOrder: RippleArray<string> = #ripple[];
 
 			const handleCaptureClick = () => {
 				captureOrder.push('capture');

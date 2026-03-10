@@ -1,4 +1,4 @@
-import { flushSync, TrackedArray } from 'ripple';
+import { flushSync, RippleArray } from 'ripple';
 
 describe('for statements', () => {
 	it('renders a simple static array', () => {

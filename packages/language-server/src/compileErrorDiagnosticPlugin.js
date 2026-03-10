@@ -93,10 +93,7 @@ function parseCompilationErrorWithDocument(error, virtualCode, sourceMap, docume
 
 		if (mapping) {
 			start = document.positionAt(mapping.generatedOffsets[0]);
-			end = document.positionAt(
-				mapping.generatedOffsets[0] +
-					(mapping.generatedLengths || mapping.data.customData.generatedLengths)[0],
-			);
+			end = document.positionAt(mapping.generatedOffsets[0] + mapping.generatedLengths[0]);
 		} else if (sourceMap) {
 			// try to find the match even across multiple mappings
 			const result = sourceMap.toGeneratedRange(start_offset, end_offset, true).next().value;

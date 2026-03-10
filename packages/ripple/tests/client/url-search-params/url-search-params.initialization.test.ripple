@@ -1,4 +1,4 @@
-describe('TrackedURLSearchParams > initialization', () => {
+describe('RippleURLSearchParams > initialization', () => {
 	it('creates empty URLSearchParams with reactivity', () => {
 		component URLTest() {
 			const params = #ripple.urlSearchParams();

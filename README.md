@@ -150,10 +150,10 @@ export component App() {
 
 ```jsx
 export component App() {
-  const items = #ripple[1, 2, 3];            // TrackedArray literal
-  const obj = #ripple{ a: 1, b: 2 };        // TrackedObject literal
-  const map = #ripple.map([['k', 'v']]); // TrackedMap
-  const set = #ripple.set([1, 2, 3]);    // TrackedSet
+  const items = #ripple[1, 2, 3];            // RippleArray literal
+  const obj = #ripple{ a: 1, b: 2 };        // RippleObject literal
+  const map = #ripple.map([['k', 'v']]); // RippleMap
+  const set = #ripple.set([1, 2, 3]);    // RippleSet
 
   <div>
     <p>{"Items: "}{items.join(', ')}</p>

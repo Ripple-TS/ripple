@@ -1,6 +1,6 @@
 import { flushSync } from 'ripple';
 
-describe('TrackedURLSearchParams > serialization', () => {
+describe('RippleURLSearchParams > serialization', () => {
 	it('handles toString method with reactivity', () => {
 		component URLTest() {
 			const params = #ripple.urlSearchParams('foo=bar');

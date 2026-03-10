@@ -1,9 +1,9 @@
-import { flushSync, TrackedArray } from 'ripple';
+import { flushSync, RippleArray } from 'ripple';
 
-describe('TrackedArray > derived', () => {
+describe('RippleArray > derived', () => {
 	it('handles array methods that return values (map, filter, etc.)', () => {
 		component ArrayTest() {
-			let items = new TrackedArray(1, 2, 3, 4, 5);
+			let items = new RippleArray(1, 2, 3, 4, 5);
 			let doubled = #ripple.track(() => items.map((x) => x * 2));
 			let filtered = #ripple.track(() => items.filter((x) => x % 2 === 0));
 			let reduced = #ripple.track(() => items.reduce((acc, val) => acc + val, 0));
@@ -38,7 +38,7 @@ describe('TrackedArray > derived', () => {
 
 	it('handles concat method with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray(1, 2, 3);
+			let items = new RippleArray(1, 2, 3);
 			let concatenated = #ripple.track(() => items.concat([4, 5], 6, [7, 8]));
 
 			<button onClick={() => items.push(3.5)}>{'add to original'}</button>
@@ -64,7 +64,7 @@ describe('TrackedArray > derived', () => {
 
 	it('handles array slice method with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray(1, 2, 3, 4, 5);
+			let items = new RippleArray(1, 2, 3, 4, 5);
 			let sliced = #ripple.track(() => items.slice(1, 4));
 
 			<button onClick={() => (items[2] = 30)}>{'change middle'}</button>
@@ -90,7 +90,7 @@ describe('TrackedArray > derived', () => {
 
 	it('handles find and findIndex methods with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray(5, 10, 15, 20, 25);
+			let items = new RippleArray(5, 10, 15, 20, 25);
 			let found = #ripple.track(() => items.find((x) => x > 12));
 			let foundIndex = #ripple.track(() => items.findIndex((x) => x > 12));
 
@@ -124,7 +124,7 @@ describe('TrackedArray > derived', () => {
 
 	it('handles findLast and findLastIndex methods with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray(5, 15, 10, 20, 15);
+			let items = new RippleArray(5, 15, 10, 20, 15);
 			let foundLast = #ripple.track(() => items.findLast((x) => x === 15));
 			let foundLastIndex = #ripple.track(() => items.findLastIndex((x) => x === 15));
 
@@ -158,7 +158,7 @@ describe('TrackedArray > derived', () => {
 
 	it('handles every method with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray(2, 4, 6, 8);
+			let items = new RippleArray(2, 4, 6, 8);
 			let allEven = #ripple.track(() => items.every((x) => x % 2 === 0));
 
 			<button onClick={() => items.push(3)}>{'add odd'}</button>
@@ -194,7 +194,7 @@ describe('TrackedArray > derived', () => {
 
 	it('handles flat method with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray<number | number[]>([1, 2], [3, 4], 5);
+			let items = new RippleArray<number | number[]>([1, 2], [3, 4], 5);
 			let flattened = #ripple.track(() => items.flat());
 
 			<button onClick={() => (items[0] = [6, 7, 8])}>{'change nested'}</button>
@@ -220,7 +220,7 @@ describe('TrackedArray > derived', () => {
 
 	it('handles flatMap method with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray(1, 2, 3);
+			let items = new RippleArray(1, 2, 3);
 			let flatMapped = #ripple.track(() => items.flatMap((x) => [x, x * 2]));
 
 			<button onClick={() => items.push(4)}>{'add item'}</button>
@@ -246,7 +246,7 @@ describe('TrackedArray > derived', () => {
 
 	it('handles join method with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray('apple', 'banana', 'cherry');
+			let items = new RippleArray('apple', 'banana', 'cherry');
 			let joined = #ripple.track(() => items.join(', '));
 
 			<button onClick={() => items.push('date')}>{'add item'}</button>
@@ -274,7 +274,7 @@ describe('TrackedArray > derived', () => {
 
 	it('handles lastIndexOf method with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray(1, 2, 3, 2, 1);
+			let items = new RippleArray(1, 2, 3, 2, 1);
 			let lastIndex = #ripple.track(() => items.lastIndexOf(2));
 
 			<button
@@ -306,7 +306,7 @@ describe('TrackedArray > derived', () => {
 
 	it('handles reduceRight method with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray('a', 'b', 'c');
+			let items = new RippleArray('a', 'b', 'c');
 			let reduced = #ripple.track(() => items.reduceRight((acc, val) => acc + val, ''));
 
 			<button onClick={() => items.push('d')}>{'add item'}</button>
@@ -332,7 +332,7 @@ describe('TrackedArray > derived', () => {
 
 	it('handles some method with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray(1, 3, 5, 7);
+			let items = new RippleArray(1, 3, 5, 7);
 			let hasEven = #ripple.track(() => items.some((x) => x % 2 === 0));
 
 			<button onClick={() => items.push(2)}>{'add even'}</button>
@@ -368,7 +368,7 @@ describe('TrackedArray > derived', () => {
 
 	it('handles toLocaleString method with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray(1000, 2000, 3000);
+			let items = new RippleArray(1000, 2000, 3000);
 			let localized = #ripple.track(() => items.toLocaleString('en-US'));
 
 			<button
@@ -400,7 +400,7 @@ describe('TrackedArray > derived', () => {
 
 	it('handles toString method with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray(1, 2, 3);
+			let items = new RippleArray(1, 2, 3);
 			let string = #ripple.track(() => items.toString());
 
 			<button onClick={() => items.push(4)}>{'add item'}</button>
@@ -430,7 +430,7 @@ describe('TrackedArray > derived', () => {
 		}
 
 		component ArrayTest() {
-			let items = new TrackedArray(1, 2, 3, 4);
+			let items = new RippleArray(1, 2, 3, 4);
 			let withReplaced = #ripple.track(() => items.with(2, 30));
 
 			<button onClick={() => (items[2] = 50)}>{'change original'}</button>
@@ -456,7 +456,7 @@ describe('TrackedArray > derived', () => {
 
 	it('handles toJSON method', () => {
 		component ArrayTest() {
-			let items = new TrackedArray(1, 2, 3);
+			let items = new RippleArray(1, 2, 3);
 
 			<button onClick={() => items.push(4)}>{'add'}</button>
 			<pre>{JSON.stringify(items)}</pre>
@@ -478,7 +478,7 @@ describe('TrackedArray > derived', () => {
 
 	it('handles at method with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray(10, 20, 30, 40, 50);
+			let items = new RippleArray(10, 20, 30, 40, 50);
 			let atIndex2 = #ripple.track(() => items.at(2));
 			let atNegative1 = #ripple.track(() => items.at(-1));
 			let atNegative2 = #ripple.track(() => items.at(-2));

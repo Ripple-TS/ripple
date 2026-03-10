@@ -15,6 +15,7 @@ interface BaseNodeMetaData {
 	has_template?: boolean;
 	source_name?:
 		| string
+		| '#ripple'
 		| '#ripple.map'
 		| '#ripple.set'
 		| '#ripple.server'
@@ -153,8 +154,8 @@ declare module 'estree' {
 	}
 
 	interface ExpressionMap {
-		TrackedArrayExpression: TrackedArrayExpression;
-		TrackedObjectExpression: TrackedObjectExpression;
+		RippleArrayExpression: RippleArrayExpression;
+		RippleObjectExpression: RippleObjectExpression;
 		TrackedExpression: TrackedExpression;
 		StyleIdentifier: StyleIdentifier;
 		ServerIdentifier: ServerIdentifier;
@@ -347,8 +348,8 @@ declare module 'estree' {
 	/**
 	 * Tracked Expressions
 	 */
-	interface TrackedArrayExpression extends Omit<AST.ArrayExpression, 'type'> {
-		type: 'TrackedArrayExpression';
+	interface RippleArrayExpression extends Omit<AST.ArrayExpression, 'type'> {
+		type: 'RippleArrayExpression';
 		elements: (AST.Expression | AST.SpreadElement | null)[];
 	}
 
@@ -357,8 +358,8 @@ declare module 'estree' {
 		type: 'TrackedExpression';
 	}
 
-	interface TrackedObjectExpression extends Omit<AST.ObjectExpression, 'type'> {
-		type: 'TrackedObjectExpression';
+	interface RippleObjectExpression extends Omit<AST.ObjectExpression, 'type'> {
+		type: 'RippleObjectExpression';
 		properties: (AST.Property | AST.SpreadElement)[];
 	}
 
@@ -1151,7 +1152,7 @@ export interface Binding {
 	metadata: {
 		is_dynamic_component?: boolean;
 		pattern?: AST.Identifier;
-		is_tracked_object?: boolean;
+		is_ripple_object?: boolean;
 	} | null;
 	/** Kind of binding */
 	kind: BindingKind;

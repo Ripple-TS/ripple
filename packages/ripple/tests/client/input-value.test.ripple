@@ -1,7 +1,7 @@
 import type { GetFunction, SetFunction } from 'ripple';
 import {
 	flushSync,
-	TrackedObject,
+	RippleObject,
 	bindValue,
 	bindChecked,
 	bindIndeterminate,
@@ -945,7 +945,7 @@ describe('use value()', () => {
 
 	it('should handle checkbox group with initial empty array with a getter and setter', () => {
 		component App() {
-			const selected: TrackedObject<{ value: string[] }> = #ripple{ value: [] };
+			const selected: RippleObject<{ value: string[] }> = #ripple{ value: [] };
 
 			<div>
 				<input
@@ -2170,7 +2170,7 @@ describe('bindContentRect', () => {
 		const logs: DOMRectReadOnly[] = [];
 
 		component App() {
-			const rect: TrackedObject<{ value: DOMRectReadOnly | null }> = #ripple{ value: null };
+			const rect: RippleObject<{ value: DOMRectReadOnly | null }> = #ripple{ value: null };
 			#ripple.effect(() => {
 				if (rect.value) logs.push(rect.value);
 			});
@@ -2239,7 +2239,7 @@ describe('bindContentBoxSize', () => {
 		];
 
 		component App() {
-			const boxSize: TrackedObject<{ value: typeof mockBoxSize | null }> = #ripple{ value: null };
+			const boxSize: RippleObject<{ value: typeof mockBoxSize | null }> = #ripple{ value: null };
 
 			#ripple.effect(() => {
 				if (boxSize.value) logs.push(boxSize.value);
@@ -2306,7 +2306,7 @@ describe('bindBorderBoxSize', () => {
 		];
 
 		component App() {
-			const boxSize: TrackedObject<{ value: typeof mockBoxSize | null }> = #ripple{ value: null };
+			const boxSize: RippleObject<{ value: typeof mockBoxSize | null }> = #ripple{ value: null };
 
 			#ripple.effect(() => {
 				if (boxSize.value) logs.push(boxSize.value);
@@ -2373,7 +2373,7 @@ describe('bindDevicePixelContentBoxSize', () => {
 		];
 
 		component App() {
-			const boxSize: TrackedObject<{ value: typeof mockBoxSize | null }> = #ripple{ value: null };
+			const boxSize: RippleObject<{ value: typeof mockBoxSize | null }> = #ripple{ value: null };
 
 			#ripple.effect(() => {
 				if (boxSize.value) logs.push(boxSize.value);
@@ -2526,7 +2526,7 @@ describe('bindInnerHTML', () => {
 
 	it('should handle null innerHTML value with a getter and setter', () => {
 		component App() {
-			const html: TrackedObject<{ value: null | string }> = #ripple{ value: null };
+			const html: RippleObject<{ value: null | string }> = #ripple{ value: null };
 
 			<div
 				contenteditable="true"
@@ -2774,7 +2774,7 @@ describe('bindTextContent', () => {
 
 	it('should handle null textContent value with a getter and setter', () => {
 		component App() {
-			const text: TrackedObject<{ value: string | null }> = #ripple{ value: null };
+			const text: RippleObject<{ value: string | null }> = #ripple{ value: null };
 
 			<div
 				contenteditable="true"
@@ -2819,7 +2819,7 @@ describe('bindNode', () => {
 		let capturedNode: HTMLElement | null = null;
 
 		component App() {
-			const nodeRef: TrackedObject<{ value: HTMLElement | null }> = #ripple{ value: null };
+			const nodeRef: RippleObject<{ value: HTMLElement | null }> = #ripple{ value: null };
 
 			#ripple.effect(() => {
 				capturedNode = nodeRef.value;
@@ -2869,7 +2869,7 @@ describe('bindNode', () => {
 
 	it('should allow access to bound element with a getter and setter', () => {
 		component App() {
-			const inputRef: TrackedObject<{ node: HTMLInputElement | null }> = #ripple{ node: null };
+			const inputRef: RippleObject<{ node: HTMLInputElement | null }> = #ripple{ node: null };
 
 			<div>
 				<input
@@ -2949,7 +2949,7 @@ describe('bindFiles', () => {
 		const logs: FileList[] = [];
 
 		component App() {
-			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
+			const files: RippleObject<{ items: FileList | null }> = #ripple{ items: null };
 
 			#ripple.effect(() => {
 				files.items;
@@ -3029,7 +3029,7 @@ describe('bindFiles', () => {
 		let capturedFiles: FileList | null = null;
 
 		component App() {
-			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
+			const files: RippleObject<{ items: FileList | null }> = #ripple{ items: null };
 
 			#ripple.effect(() => {
 				capturedFiles = files.items;
@@ -3120,7 +3120,7 @@ describe('bindFiles', () => {
 		let capturedFiles: FileList | null = null;
 
 		component App() {
-			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
+			const files: RippleObject<{ items: FileList | null }> = #ripple{ items: null };
 			const input = #ripple.track<HTMLInputElement | null>(null);
 
 			#ripple.effect(() => {
@@ -3226,7 +3226,7 @@ describe('bindFiles', () => {
 		const fileCounts: number[] = [];
 
 		component App() {
-			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
+			const files: RippleObject<{ items: FileList | null }> = #ripple{ items: null };
 			#ripple.effect(() => {
 				files.items;
 				if (files.items) {
@@ -3315,7 +3315,7 @@ describe('bindFiles', () => {
 		let capturedFile: File | null = null;
 
 		component App() {
-			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
+			const files: RippleObject<{ items: FileList | null }> = #ripple{ items: null };
 			#ripple.effect(() => {
 				files.items;
 				if (files.items && files.items.length > 0) {
@@ -3396,7 +3396,7 @@ describe('bindFiles', () => {
 		const logs: (FileList | null)[] = [];
 
 		component App() {
-			const files: TrackedObject<{ items: FileList | null }> = #ripple{ items: null };
+			const files: RippleObject<{ items: FileList | null }> = #ripple{ items: null };
 			#ripple.effect(() => {
 				logs.push(files.items);
 			});

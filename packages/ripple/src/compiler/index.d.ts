@@ -58,7 +58,6 @@ export interface PluginActionOverrides {
 }
 
 export interface CustomMappingData extends PluginActionOverrides {
-	generatedLengths: number[];
 	embeddedId?: string; // e.g. css regions: 'style_0', 'style_1', etc.
 	content?: string; // (e.g., css code)
 }
@@ -67,12 +66,9 @@ export interface MappingData extends VolarCodeInformation {
 	customData: CustomMappingData;
 }
 
-export interface CodeMapping extends VolarMapping<MappingData> {
-	data: MappingData;
-}
-
-export interface CodeMappingWithAll extends CodeMapping {
+export interface CodeMapping extends Omit<VolarMapping<MappingData>, 'generatedLengths'> {
 	generatedLengths: number[];
+	data: MappingData;
 }
 
 export interface VolarMappingsResult {

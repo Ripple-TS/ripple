@@ -35,7 +35,7 @@ import {
 	get_descriptor,
 	get_own_property_symbols,
 	is_array,
-	is_tracked_object,
+	is_ripple_object,
 	object_keys,
 } from './utils.js';
 
@@ -363,7 +363,7 @@ export function derived(fn, block, get, set) {
  * @returns {Tracked | Derived}
  */
 export function track(v, get, set, b) {
-	if (is_tracked_object(v)) {
+	if (is_ripple_object(v)) {
 		return v;
 	}
 	if (b === null) {
@@ -383,7 +383,7 @@ export function track(v, get, set, b) {
  * @returns {Tracked[]}
  */
 export function track_split(v, l, b) {
-	var is_tracked = is_tracked_object(v);
+	var is_tracked = is_ripple_object(v);
 
 	if (is_tracked || typeof v !== 'object' || v === null || is_array(v)) {
 		throw new TypeError('Invalid value: expected a non-tracked object');
@@ -401,7 +401,7 @@ export function track_split(v, l, b) {
 		key = l[i];
 
 		if (props.includes(key)) {
-			if (is_tracked_object(v[key])) {
+			if (is_ripple_object(v[key])) {
 				t = v[key];
 			} else {
 				t = tracked(undefined, b);
@@ -800,7 +800,7 @@ export function get_derived(computed) {
  */
 export function get(tracked) {
 	// reflect back the value if it's not boxed
-	if (!is_tracked_object(tracked)) {
+	if (!is_ripple_object(tracked)) {
 		return tracked;
 	}
 
@@ -1313,7 +1313,7 @@ export async function maybe_tracked(v) {
 	var restore = capture();
 	let value;
 
-	if (is_tracked_object(v)) {
+	if (is_ripple_object(v)) {
 		if ((v.f & DERIVED) !== 0) {
 			value = await async_computed(v.fn, v.b);
 		} else {

@@ -6,14 +6,55 @@ import { array_proxy } from './proxy.js';
  * @template T
  * @constructor
  * @param {...T} elements
- * @returns {TrackedArray<T>}
+ * @returns {RippleArray<T>}
  */
-export function TrackedArray(...elements) {
+export function RippleArray(...elements) {
 	if (!new.target) {
-		throw new Error("TrackedArray must be called with 'new'");
+		throw new Error("RippleArray must be called with 'new'");
 	}
 
 	var block = safe_scope();
+	return ripple_array(block, ...elements);
+}
+
+/**
+ * @template T
+ * @param {ArrayLike<T> | Iterable<T>} arrayLike
+ * @param {(v: T, k: number) => any | undefined} [mapFn]
+ * @param {*} [thisArg]
+ * @returns {RippleArray<T>}
+ */
+RippleArray.from = function (arrayLike, mapFn, thisArg) {
+	return ripple_array.from(arrayLike, mapFn, thisArg);
+};
+
+/**
+ * @template T
+ * @param {...T} items
+ * @returns {RippleArray<T>}
+ */
+RippleArray.of = function (...items) {
+	return ripple_array.of(...items);
+};
+
+/**
+ * @template T
+ * @param {ArrayLike<T> | Iterable<T>} arrayLike
+ * @param {(v: T, k: number) => any | undefined} [mapFn]
+ * @param {any} [thisArg]
+ * @returns {Promise<RippleArray<T>>}
+ */
+RippleArray.fromAsync = async function (arrayLike, mapFn, thisArg) {
+	return ripple_array.fromAsync(arrayLike, mapFn, thisArg);
+};
+
+/**
+ * @template T
+ * @param {Block} block
+ * @param {...T} elements
+ * @returns {RippleArray<T>}
+ */
+export function ripple_array(block, ...elements) {
 	return array_proxy({ elements, block });
 }
 
@@ -22,9 +63,9 @@ export function TrackedArray(...elements) {
  * @param {ArrayLike<T> | Iterable<T>} arrayLike
  * @param {(v: T, k: number) => any | undefined} [mapFn]
  * @param {*} [thisArg]
- * @returns {TrackedArray<T>}
+ * @returns {RippleArray<T>}
  */
-TrackedArray.from = function (arrayLike, mapFn, thisArg) {
+ripple_array.from = function (arrayLike, mapFn, thisArg) {
 	var block = safe_scope();
 	var elements = mapFn ? Array.from(arrayLike, mapFn, thisArg) : Array.from(arrayLike);
 	return array_proxy({ elements, block, from_static: true });
@@ -33,9 +74,9 @@ TrackedArray.from = function (arrayLike, mapFn, thisArg) {
 /**
  * @template T
  * @param {...T} items
- * @returns {TrackedArray<T>}
+ * @returns {RippleArray<T>}
  */
-TrackedArray.of = function (...items) {
+ripple_array.of = function (...items) {
 	var block = safe_scope();
 	var elements = Array.of(...items);
 	return array_proxy({ elements, block, from_static: true });
@@ -46,22 +87,12 @@ TrackedArray.of = function (...items) {
  * @param {ArrayLike<T> | Iterable<T>} arrayLike
  * @param {(v: T, k: number) => any | undefined} [mapFn]
  * @param {any} [thisArg]
- * @returns {Promise<TrackedArray<T>>}
+ * @returns {Promise<RippleArray<T>>}
  */
-TrackedArray.fromAsync = async function (arrayLike, mapFn, thisArg) {
+ripple_array.fromAsync = async function (arrayLike, mapFn, thisArg) {
 	var block = safe_scope();
 	var elements = mapFn
 		? await Array.fromAsync(arrayLike, mapFn, thisArg)
 		: await Array.fromAsync(arrayLike);
 	return array_proxy({ elements, block, from_static: true });
 };
-
-/**
- * @template T
- * @param {Array<T>} elements
- * @param {Block} block
- * @returns {TrackedArray<T>}
- */
-export function tracked_array(elements, block) {
-	return array_proxy({ elements, block, from_static: true });
-}

@@ -963,7 +963,7 @@ export component Test({ a, b }: Props) {}`;
 
 		it('should not strip @ from dynamic self-closing components', async () => {
 			const expected = `component App() {
-  <@tracked_object.@tracked_basic />
+  <@ripple_object.@tracked_basic />
 }`;
 
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
@@ -1263,7 +1263,7 @@ const [obj1, obj2] = arrayOfObjects;`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should keep TrackedMap short syntax intact', async () => {
+		it('should keep RippleMap short syntax intact', async () => {
 			const expected = `const map = #ripple.map([['key1', 'value1'], ['key2', 'value2']]);
 const set = #ripple.set([1, 2, 3]);`;
 
@@ -1271,7 +1271,7 @@ const set = #ripple.set([1, 2, 3]);`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should keep TrackedSet parents with short syntax and no args intact', async () => {
+		it('should keep RippleSet parents with short syntax and no args intact', async () => {
 			const expected = `component SetTest() {
   let items = #ripple.set();
 
@@ -1283,7 +1283,7 @@ const set = #ripple.set([1, 2, 3]);`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should keep TrackedMap parents with short syntax and no args intact', async () => {
+		it('should keep RippleMap parents with short syntax and no args intact', async () => {
 			const expected = `component MapTest() {
   let items = #ripple.map();
 
@@ -1446,7 +1446,7 @@ import { GetRootNode } from './somewhere';`;
 		});
 
 		it('should preserve export interface with extends as provided', async () => {
-			const expected = `export interface TrackedArray<T> extends Array<T> {}`;
+			const expected = `export interface RippleArray<T> extends Array<T> {}`;
 
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
@@ -1458,7 +1458,7 @@ import { GetRootNode } from './somewhere';`;
  * @param {'contentRect' | 'contentBoxSize' | 'borderBoxSize' | 'devicePixelContentBoxSize'} type
  */
 function bind_element_rect(maybe_tracked, type) {
-  if (!is_tracked_object(maybe_tracked)) {
+  if (!is_ripple_object(maybe_tracked)) {
     throw not_tracked_type_error(\`bind\${type.charAt(0).toUpperCase() + type.slice(1)}()\`);
   }
 
@@ -1849,7 +1849,7 @@ files = [...(files ?? []), ...dt.files];`;
 
 		it('should preserve the order of try / pending / catch block', async () => {
 			const expected = `component Test() {
-  let items: TrackedArray<string> | null = null;
+  let items: RippleArray<string> | null = null;
   let error: string | null = null;
 
   async function* throwingIterable() {

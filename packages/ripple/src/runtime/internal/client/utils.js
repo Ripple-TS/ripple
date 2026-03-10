@@ -42,7 +42,7 @@ export function create_anchor() {
  * @param {any} v - The object to check.
  * @returns {boolean}
  */
-export function is_tracked_object(v) {
+export function is_ripple_object(v) {
 	return typeof v === 'object' && v !== null && typeof (/** @type {any} */ (v).f) === 'number';
 }
 

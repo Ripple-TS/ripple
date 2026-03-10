@@ -3,7 +3,7 @@ import { get_current_url } from './url.js';
 
 export const REPLACE = Symbol();
 
-export class TrackedURLSearchParams extends URLSearchParams {
+export class RippleURLSearchParams extends URLSearchParams {
 	#block = safe_scope();
 	#version = tracked(0, this.#block);
 	#url = get_current_url();
@@ -148,10 +148,10 @@ export class TrackedURLSearchParams extends URLSearchParams {
 /**
  * @param {import('#client').Block} block
  * @param  {ConstructorParameters<typeof URLSearchParams>} params
- * @returns {TrackedURLSearchParams}
+ * @returns {RippleURLSearchParams}
  */
-export function tracked_url_search_params(block, ...params) {
+export function ripple_url_search_params(block, ...params) {
 	return with_scope(block, () => {
-		return new TrackedURLSearchParams(...params);
+		return new RippleURLSearchParams(...params);
 	});
 }

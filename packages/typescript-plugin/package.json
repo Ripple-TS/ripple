@@ -24,6 +24,7 @@
     "@volar/typescript": "catalog:default"
   },
   "devDependencies": {
+    "@types/node": "catalog:default",
     "tsdown": "catalog:default"
   },
   "peerDependencies": {

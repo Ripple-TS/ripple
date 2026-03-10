@@ -1,7 +1,7 @@
-import { flushSync, TrackedObject } from 'ripple';
+import { flushSync, RippleObject } from 'ripple';
 import { TRACKED_OBJECT } from '../../src/runtime/internal/client/constants.js';
 
-describe('TrackedObject', () => {
+describe('RippleObject', () => {
 	it('makes new properties reactive', () => {
 		component ObjectTest() {
 			const obj = #ripple{ a: -1 };
@@ -76,7 +76,7 @@ describe('TrackedObject', () => {
 
 	it('deletes properties via the delete trap', () => {
 		component ObjectTest() {
-			const obj = new TrackedObject<{ a?: number; b: number }>({ a: 0, b: 1 });
+			const obj = new RippleObject<{ a?: number; b: number }>({ a: 0, b: 1 });
 
 			<pre>{String(obj.a)}</pre>
 			<button
@@ -103,7 +103,7 @@ describe('TrackedObject', () => {
 
 	it('checks if non-existent property is reactive when added later', () => {
 		component ObjectTest() {
-			const obj = new TrackedObject<{ a?: number }>({});
+			const obj = new RippleObject<{ a?: number }>({});
 
 			<pre>{String(obj.a)}</pre>
 			<button
@@ -130,7 +130,7 @@ describe('TrackedObject', () => {
 
 	it('checks that deeply nested objects are not proxied or reactive', () => {
 		component ObjectTest() {
-			const obj = new TrackedObject({ a: { b: 1 } });
+			const obj = new RippleObject({ a: { b: 1 } });
 
 			<pre>{String(obj.a.b)}</pre>
 			<button
@@ -156,16 +156,16 @@ describe('TrackedObject', () => {
 		expect(pre1.textContent).toBe('1');
 	});
 
-	it('checks if TRACKED_OBJECT symbol is present on TrackedObject instances', () => {
+	it('checks if TRACKED_OBJECT symbol is present on RippleObject instances', () => {
 		component ObjectTest() {
-			const obj = new TrackedObject({ a: 0 });
+			const obj = new RippleObject({ a: 0 });
 
 			// @ts-expect-error TRACKED_OBJECT is internal
 			expect(obj[TRACKED_OBJECT]).toBe(true);
 		}
 	});
 
-	it('uses the hash syntax for creating TrackedObject', () => {
+	it('uses the hash syntax for creating RippleObject', () => {
 		component ObjectTest() {
 			const obj = #ripple{ a: 0, b: 1, c: { d: { e: 8 } } };
 

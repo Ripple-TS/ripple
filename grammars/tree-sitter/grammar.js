@@ -554,8 +554,8 @@ module.exports = grammar({
 				$.array,
 				$.reactive_object,
 				$.reactive_array,
-				$.tracked_map_expression,
-				$.tracked_set_expression,
+				$.ripple_map_expression,
+				$.ripple_set_expression,
 				$.server_member_expression,
 				$.style_member_expression,
 				$.style_subscript_expression,
@@ -610,9 +610,9 @@ module.exports = grammar({
 		reactive_array: ($) =>
 			seq('#ripple[', commaSep(choice($.expression, $.spread_element)), optional(','), ']'),
 
-		tracked_map_expression: ($) => seq('#ripple.map', optional($.type_arguments), $.arguments),
+		ripple_map_expression: ($) => seq('#ripple.map', optional($.type_arguments), $.arguments),
 
-		tracked_set_expression: ($) => seq('#ripple.set', optional($.type_arguments), $.arguments),
+		ripple_set_expression: ($) => seq('#ripple.set', optional($.type_arguments), $.arguments),
 
 		yield_expression: ($) => prec.right(seq('yield', optional('*'), optional($.expression))),
 

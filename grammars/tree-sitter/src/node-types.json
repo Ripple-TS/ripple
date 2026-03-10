@@ -250,11 +250,11 @@
         "named": false
       },
       {
-        "type": "tracked_map_expression",
+        "type": "ripple_map_expression",
         "named": true
       },
       {
-        "type": "tracked_set_expression",
+        "type": "ripple_set_expression",
         "named": true
       },
       {
@@ -3322,7 +3322,7 @@
     }
   },
   {
-    "type": "tracked_map_expression",
+    "type": "ripple_map_expression",
     "named": true,
     "fields": {},
     "children": {
@@ -3341,7 +3341,7 @@
     }
   },
   {
-    "type": "tracked_set_expression",
+    "type": "ripple_set_expression",
     "named": true,
     "fields": {},
     "children": {

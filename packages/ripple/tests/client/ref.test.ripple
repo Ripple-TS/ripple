@@ -1,6 +1,6 @@
 import type { PropsWithExtras } from 'ripple';
 import { describe, it, expect } from 'vitest';
-import { flushSync, TrackedArray, createRefKey } from 'ripple';
+import { flushSync, RippleArray, createRefKey } from 'ripple';
 
 describe('refs', () => {
 	it('capture a <div>', () => {
@@ -25,7 +25,7 @@ describe('refs', () => {
 		let _node: Child | undefined;
 
 		component Component() {
-			let items = TrackedArray.from([1, 2, 3]);
+			let items = RippleArray.from([1, 2, 3]);
 
 			function componentRef(node: Child) {
 				_node = node;
@@ -34,7 +34,7 @@ describe('refs', () => {
 			<Child {ref componentRef} {items} />
 		}
 
-		component Child(props: { items: TrackedArray<number> }) {
+		component Child(props: { items: RippleArray<number> }) {
 			const { items, ...rest } = props;
 			<pre {...rest}>{JSON.stringify(items)}</pre>
 			<pre>{items.length}</pre>

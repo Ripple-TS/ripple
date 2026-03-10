@@ -1,6 +1,6 @@
 import { flushSync } from 'ripple';
 
-describe('TrackedURL > partials/removal', () => {
+describe('RippleURL > partials/removal', () => {
 	it('handles URL with no port specified', () => {
 		component URLTest() {
 			const url = #ripple.url('https://example.com/path');

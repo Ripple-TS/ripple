@@ -56,9 +56,11 @@ import {
 	is_inside_left_side_assignment,
 	hash,
 	flatten_switch_consequent,
+	get_ripple_namespace_call_name,
 } from '../../../utils.js';
 import {
 	CSS_HASH_IDENTIFIER,
+	RIPPLE_NAMESPACE_IDENTIFIER,
 	STYLE_IDENTIFIER,
 	SERVER_IDENTIFIER,
 	obfuscate_identifier,
@@ -343,15 +345,74 @@ function visit_title_element(node, context) {
 /**
  * @param {string} name
  * @param {TransformClientContext} context
+ * @param {boolean} [is_obfuscated]
  * @returns {string}
  */
-function set_hidden_import_from_ripple(name, context) {
-	name = obfuscate_identifier(name);
+function set_hidden_import_from_ripple(name, context, is_obfuscated = false) {
+	if (!is_obfuscated) {
+		name = obfuscate_identifier(name);
+	}
 	if (!context.state.imports.has(`import { ${name} } from 'ripple/compiler/internal/import'`)) {
 		context.state.imports.add(`import { ${name} } from 'ripple/compiler/internal/import'`);
 	}
 
 	return name;
+}
+
+/**
+ * @param {AST.NodeWithLocation} loc_info
+ * @param {number} start_offset
+ * @param {number} length
+ * @returns {AST.NodeWithLocation}
+ */
+function slice_loc_info(loc_info, start_offset, length) {
+	return {
+		start: loc_info.start + start_offset,
+		end: loc_info.start + start_offset + length,
+		loc: {
+			start: {
+				line: loc_info.loc.start.line,
+				column: loc_info.loc.start.column + start_offset,
+			},
+			end: {
+				line: loc_info.loc.start.line,
+				column: loc_info.loc.start.column + start_offset + length,
+			},
+		},
+	};
+}
+
+/**
+ * @param {string} property_name
+ * @param {string} source_name
+ * @param {AST.NodeWithLocation} loc_info
+ * @param {TransformClientContext} context
+ * @returns {AST.MemberExpression}
+ */
+function build_ripple_namespace_member(property_name, source_name, loc_info, context) {
+	const namespace_alias = set_hidden_import_from_ripple(RIPPLE_NAMESPACE_IDENTIFIER, context, true);
+	const namespace_loc = slice_loc_info(loc_info, 0, '#ripple'.length);
+	const property_loc = slice_loc_info(loc_info, '#ripple.'.length, property_name.length);
+	const namespace_id = b.id(namespace_alias, namespace_loc);
+	namespace_id.metadata.source_name = '#ripple';
+
+	const property_id = b.id(property_name, property_loc);
+	property_id.metadata.source_name = source_name;
+
+	return b.member(namespace_id, property_id, false, false, loc_info);
+}
+
+/**
+ * @param {string | undefined} name
+ * @returns {boolean}
+ */
+function ripple_namespace_requires_block(name) {
+	return (
+		name !== undefined &&
+		name !== '#ripple.effect' &&
+		name !== '#ripple.untrack' &&
+		name !== '#ripple.context'
+	);
 }
 
 /**
@@ -404,6 +465,17 @@ const visitors = {
 
 		if (is_reference(node, parent)) {
 			if (context.state.to_ts) {
+				if (node.metadata?.source_name === '#ripple' || node.name === '#ripple') {
+					const namespace_alias = set_hidden_import_from_ripple(
+						RIPPLE_NAMESPACE_IDENTIFIER,
+						context,
+						true,
+					);
+					const namespace_id = b.id(namespace_alias, /** @type {AST.NodeWithLocation} */ (node));
+					namespace_id.metadata.source_name = '#ripple';
+					return namespace_id;
+				}
+
 				if (node.tracked) {
 					// Check if this identifier is used as a dynamic component/element
 					// by checking if it has a capitalized name in metadata
@@ -530,33 +602,9 @@ const visitors = {
 		const callee = node.callee;
 		const parent = context.path.at(-1);
 		const source_name = callee.type === 'Identifier' ? callee.metadata?.source_name : undefined;
-		const shorthand_runtime_method =
-			source_name === '#ripple.url'
-				? 'tracked_url'
-				: source_name === '#ripple.urlSearchParams'
-					? 'tracked_url_search_params'
-					: source_name === '#ripple.date'
-						? 'tracked_date'
-						: source_name === '#ripple.map'
-							? 'tracked_map'
-							: source_name === '#ripple.set'
-								? 'tracked_set'
-								: source_name === '#ripple.mediaQuery'
-									? 'media_query'
-									: source_name === '#ripple.context'
-										? 'context'
-										: source_name === '#ripple.effect'
-											? 'effect'
-											: source_name === '#ripple.untrack'
-												? 'untrack'
-												: null;
-		const shorthand_requires_block =
-			source_name === '#ripple.url' ||
-			source_name === '#ripple.urlSearchParams' ||
-			source_name === '#ripple.date' ||
-			source_name === '#ripple.map' ||
-			source_name === '#ripple.set' ||
-			source_name === '#ripple.mediaQuery';
+		const shorthand_runtime_method = get_ripple_namespace_call_name(source_name);
+		const shorthand_requires_block = ripple_namespace_requires_block(source_name);
+
 		if (context.state.metadata?.tracking === false) {
 			context.state.metadata.tracking = true;
 		}
@@ -573,61 +621,21 @@ const visitors = {
 		}
 
 		if (context.state.to_ts && source_name?.startsWith('#ripple.')) {
-			/** @type {string} */
-			let import_name;
-			let is_new = false;
-			if (source_name === '#ripple.date') {
-				import_name = 'TrackedDate';
-				is_new = true;
-			} else if (source_name === '#ripple.urlSearchParams') {
-				import_name = 'TrackedURLSearchParams';
-				is_new = true;
-			} else if (source_name === '#ripple.url') {
-				import_name = 'TrackedURL';
-				is_new = true;
-			} else if (source_name === '#ripple.mediaQuery') {
-				import_name = 'MediaQuery';
-				is_new = true;
-			} else if (source_name === '#ripple.context') {
-				import_name = 'Context';
-				is_new = true;
-			} else if (source_name === '#ripple.map') {
-				import_name = 'TrackedMap';
-				is_new = true;
-			} else if (source_name === '#ripple.set') {
-				import_name = 'TrackedSet';
-				is_new = true;
-			} else if (source_name === '#ripple.object') {
-				import_name = 'TrackedObject';
-				is_new = true;
-			} else if (source_name === '#ripple.array') {
-				import_name = 'TrackedArray';
-				is_new = true;
-			} else {
-				import_name = source_name.replace('#ripple.', '');
-			}
-			const track_alias = set_hidden_import_from_ripple(import_name, context);
-			const track_id = b.id(track_alias);
-			track_id.metadata = {
-				...(callee.metadata ?? {}),
-				source_name: source_name,
-			};
+			const property_name = source_name.replace('#ripple.', '');
+			const namespace_member = build_ripple_namespace_member(
+				property_name,
+				source_name,
+				/** @type {AST.NodeWithLocation} */ (callee),
+				context,
+			);
 
-			if (is_new) {
-				return b.new(
-					track_alias,
-					/** @type {AST.NodeWithLocation} */ (node),
-					.../** @type {AST.Expression[]} */ (node.arguments.map((arg) => context.visit(arg))),
-				);
-			} else {
-				return {
-					...node,
-					callee: track_id,
-					arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
-						node.arguments.map((arg) => context.visit(arg))
-					),
-				};
-			}
+			return {
+				...node,
+				callee: namespace_member,
+				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+					node.arguments.map((arg) => context.visit(arg))
+				),
+			};
 		}
 
 		if (!context.state.to_ts && is_ripple_track_call(callee, context)) {
@@ -766,34 +774,31 @@ const visitors = {
 		return b.call('_$_.with_scope', b.id('__block'), b.thunk(new_node));
 	},
 
-	TrackedArrayExpression(node, context) {
+	RippleArrayExpression(node, context) {
 		if (context.state.to_ts) {
-			const arrayAlias = set_hidden_import_from_ripple('TrackedArray', context);
-
-			return b.call(
-				b.member(b.id(arrayAlias), b.id('from')),
-				b.array(
-					/** @type {(AST.Expression | AST.SpreadElement)[]} */ (
-						node.elements.map((el) => context.visit(/** @type {AST.Node} */ (el)))
-					),
+			const arrayAlias = set_hidden_import_from_ripple('RippleArray', context);
+			return {
+				type: 'NewExpression',
+				callee: b.id(arrayAlias),
+				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+					node.elements.map((el) => context.visit(/** @type {AST.Node} */ (el)))
 				),
-			);
+				metadata: { path: [] },
+			};
 		}
 
 		return b.call(
-			'_$_.tracked_array',
-			b.array(
-				/** @type {(AST.Expression | AST.SpreadElement)[]} */ (
-					node.elements.map((el) => context.visit(/** @type {AST.Node} */ (el)))
-				),
-			),
+			'_$_.ripple_array',
 			b.id('__block'),
+			.../** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+				node.elements.map((el) => context.visit(/** @type {AST.Node} */ (el)))
+			),
 		);
 	},
 
-	TrackedObjectExpression(node, context) {
+	RippleObjectExpression(node, context) {
 		if (context.state.to_ts) {
-			const objectAlias = set_hidden_import_from_ripple('TrackedObject', context);
+			const objectAlias = set_hidden_import_from_ripple('RippleObject', context);
 
 			return b.new(
 				b.id(objectAlias),
@@ -807,13 +812,13 @@ const visitors = {
 		}
 
 		return b.call(
-			'_$_.tracked_object',
+			'_$_.ripple_object',
+			b.id('__block'),
 			b.object(
 				/** @type {(AST.Property | AST.SpreadElement)[]} */ (
 					node.properties.map((prop) => context.visit(prop))
 				),
 			),
-			b.id('__block'),
 		);
 	},
 
@@ -905,6 +910,30 @@ const visitors = {
 				}
 			}
 		} else {
+			const source_name = node.object.metadata?.source_name;
+
+			if (
+				node.object.type === 'Identifier' &&
+				node.property.type === 'Identifier' &&
+				source_name?.startsWith('#ripple.')
+			) {
+				const property_name = source_name.replace('#ripple.', '');
+
+				if (context.state.to_ts) {
+					// const namespace_member = build_ripple_namespace_member(
+					// 	property_name,
+					// 	source_name,
+					// 	/** @type {AST.NodeWithLocation} */ (node.object),
+					// 	context,
+					// );
+				} else {
+					const method_name = get_ripple_namespace_call_name(source_name);
+					if (method_name !== null) {
+						return b.member(b.id('_$_'), b.member(b.id(method_name), b.id(node.property.name)));
+					}
+				}
+			}
+
 			return context.next();
 		}
 	},

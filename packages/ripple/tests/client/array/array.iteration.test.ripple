@@ -1,9 +1,9 @@
-import { flushSync, TrackedArray } from 'ripple';
+import { flushSync, RippleArray } from 'ripple';
 
-describe('TrackedArray > iteration', () => {
+describe('RippleArray > iteration', () => {
 	it('handles entries method with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray('a', 'b', 'c');
+			let items = new RippleArray('a', 'b', 'c');
 			let entries = #ripple.track(() => Array.from(items.entries()));
 
 			<button onClick={() => items.push('d')}>{'add item'}</button>
@@ -31,7 +31,7 @@ describe('TrackedArray > iteration', () => {
 
 	it('handles keys method with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray('a', 'b', 'c');
+			let items = new RippleArray('a', 'b', 'c');
 			let keys = #ripple.track(() => Array.from(items.keys()));
 
 			<button onClick={() => items.push('d')}>{'add item'}</button>
@@ -57,7 +57,7 @@ describe('TrackedArray > iteration', () => {
 
 	it('handles values method with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray('a', 'b', 'c');
+			let items = new RippleArray('a', 'b', 'c');
 			let values = #ripple.track(() => Array.from(items.values()));
 
 			<button onClick={() => items.push('d')}>{'add item'}</button>
@@ -83,7 +83,7 @@ describe('TrackedArray > iteration', () => {
 
 	it('handles Symbol.iterator with reactivity', () => {
 		component ArrayTest() {
-			let items = new TrackedArray(1, 2, 3);
+			let items = new RippleArray(1, 2, 3);
 			let sum = #ripple.track(0);
 
 			#ripple.effect(() => {

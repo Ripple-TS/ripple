@@ -371,7 +371,7 @@ const visitors = {
 		if (node.object.type === 'Identifier' && !node.object.tracked) {
 			const binding = context.state.scope.get(node.object.name);
 
-			if (binding && binding.metadata?.is_tracked_object) {
+			if (binding && binding.metadata?.is_ripple_object) {
 				const internalProperties = new Set(['__v', 'a', 'b', 'c', 'f']);
 
 				let propertyName = null;
@@ -470,7 +470,7 @@ const visitors = {
 							callee.property.type === 'Identifier' &&
 							(callee.property.name === 'track' || callee.property.name === 'tracked'))
 					) {
-						binding.metadata = { ...binding.metadata, is_tracked_object: true };
+						binding.metadata = { ...binding.metadata, is_ripple_object: true };
 					}
 				}
 				visit(declarator, state);

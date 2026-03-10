@@ -930,8 +930,8 @@ export namespace Parse {
 			| AST.ServerIdentifier
 			| AST.StyleIdentifier
 			| AST.TrackedExpression
-			| AST.TrackedArrayExpression
-			| AST.TrackedObjectExpression
+			| AST.RippleArrayExpression
+			| AST.RippleObjectExpression
 			| AST.Component
 			| AST.Identifier
 			| AST.Literal;
@@ -954,11 +954,11 @@ export namespace Parse {
 		/** Parse parenthesized expression (just the expression) */
 		parseParenExpression(): AST.Expression;
 
-		parseTrackedArrayExpression(): AST.TrackedArrayExpression;
+		parseRippleArrayExpression(): AST.RippleArrayExpression;
 
 		parseTrackedExpression(): AST.TrackedExpression;
 
-		parseTrackedObjectExpression(): AST.TrackedObjectExpression;
+		parseRippleObjectExpression(): AST.RippleObjectExpression;
 
 		/**
 		 * Parse item in parentheses (can be overridden for flow/ts)

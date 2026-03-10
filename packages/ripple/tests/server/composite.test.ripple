@@ -1,4 +1,4 @@
-import { TrackedArray, TrackedMap } from 'ripple';
+import { RippleArray, RippleMap } from 'ripple';
 
 describe('generics', () => {
 	it('handles advanced generic ambiguity and edge cases', () => {
@@ -143,10 +143,10 @@ describe('generics', () => {
 			const s = flag ? new Box<number>(1) : new Box<string>('string');
 
 			// 20. Generic inside template expression
-			const t = `length=${new TrackedArray<number>().length}`;
+			const t = `length=${new RippleArray<number>().length}`;
 
 			// 21. Optional chaining + generic + property access
-			const registry = new TrackedMap<string, number>();
+			const registry = new RippleMap<string, number>();
 			const u = registry.get('id')?.toString();
 
 			// 22. Generic call used as callee for another call
@@ -208,7 +208,7 @@ describe('generics', () => {
 			>();
 
 			// 33. Map of generic instance as key
-			const mm = new Map<TrackedArray<number>, TrackedArray<string>>();
+			const mm = new Map<RippleArray<number>, RippleArray<string>>();
 		}
 
 		render(App);

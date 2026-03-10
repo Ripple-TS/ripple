@@ -5,7 +5,7 @@
 
 import { Readable } from 'stream';
 import { DERIVED, UNINITIALIZED, TRACKED } from '../client/constants.js';
-import { is_tracked_object, get_descriptor, define_property, is_array } from '../client/utils.js';
+import { is_ripple_object, get_descriptor, define_property, is_array } from '../client/utils.js';
 import { escape } from '../../../utils/escaping.js';
 import { is_boolean_attribute } from '../../../compiler/utils.js';
 import { clsx } from 'clsx';
@@ -428,7 +428,7 @@ export function aborted() {
  * @returns {any}
  */
 export function get(tracked) {
-	if (!is_tracked_object(tracked)) {
+	if (!is_ripple_object(tracked)) {
 		return tracked;
 	}
 
@@ -591,7 +591,7 @@ export function spread_attrs(attrs, css_hash) {
 
 		if (typeof value === 'function') continue;
 
-		if (is_tracked_object(value)) {
+		if (is_ripple_object(value)) {
 			value = get(value);
 		}
 
@@ -629,7 +629,7 @@ function tracked(v, get, set) {
  * @returns {Tracked | Derived}
  */
 export function track(v, get, set) {
-	var is_tracked = is_tracked_object(v);
+	var is_tracked = is_ripple_object(v);
 
 	if (is_tracked) {
 		return v;
@@ -656,7 +656,7 @@ export function track(v, get, set) {
  * @returns {Tracked[]}
  */
 export function track_split(v, l) {
-	var is_tracked = is_tracked_object(v);
+	var is_tracked = is_ripple_object(v);
 
 	if (is_tracked || typeof v !== 'object' || v === null || is_array(v)) {
 		throw new TypeError('Invalid value: expected a non-tracked object');
@@ -674,7 +674,7 @@ export function track_split(v, l) {
 		key = l[i];
 
 		if (props.includes(key)) {
-			if (is_tracked_object(v[key])) {
+			if (is_ripple_object(v[key])) {
 				t = v[key];
 			} else {
 				t = tracked(undefined);
@@ -706,7 +706,7 @@ export function track_split(v, l) {
  * @param {ConstructorParameters<typeof URL>} params
  * @returns {URL}
  */
-export function tracked_url(_, ...params) {
+export function ripple_url(_, ...params) {
 	return new URL(...params);
 }
 
@@ -715,36 +715,26 @@ export function tracked_url(_, ...params) {
  * @param {ConstructorParameters<typeof URLSearchParams>} params
  * @returns {URLSearchParams}
  */
-export function tracked_url_search_params(_, ...params) {
+export function ripple_url_search_params(_, ...params) {
 	return new URLSearchParams(...params);
 }
 
 /**
- * @param {any} _
  * @param {ConstructorParameters<typeof Date>} params
  * @returns {Date}
  */
-export function tracked_date(_, ...params) {
+export function ripple_date(...params) {
 	return new Date(...params);
 }
 
 /**
- * @param {any} _
  * @param {string} query
  * @param {boolean} [matches]
  * @returns {boolean}
  */
-export function media_query(_, query, matches = false) {
+export function media_query(query, matches = false) {
 	void query;
 	return matches;
-}
-
-/**
- * @param {any} _
- * @returns {() => void}
- */
-export function create_subscriber(_) {
-	return () => {};
 }
 
 /**
@@ -753,4 +743,55 @@ export function create_subscriber(_) {
  */
 export function effect(_fn) {
 	return;
+}
+
+/**
+ * @template T
+ * @param  {...T} elements
+ * @returns {T[]}
+ */
+export function ripple_array(...elements) {
+	return new Array(...elements);
+}
+ripple_array.from = ripple_array_from;
+ripple_array.of = ripple_array_of;
+ripple_array.from_async = ripple_array_from_async;
+
+/**
+ * @template T
+ * @param {ArrayLike<T> | Iterable<T>} arrayLike
+ * @param {(v: T, k: number) => any | undefined} [map_fn]
+ * @param {any} [thisArg]
+ * @returns {T[]}
+ */
+export function ripple_array_from(arrayLike, map_fn, thisArg) {
+	return map_fn ? Array.from(arrayLike, map_fn, thisArg) : Array.from(arrayLike);
+}
+
+/**
+ * @template T
+ * @param  {...T} items
+ * @returns {T[]}
+ */
+export function ripple_array_of(...items) {
+	return Array.of(...items);
+}
+
+/**
+ * @template T
+ * @param {ArrayLike<T> | Iterable<T>} arrayLike
+ * @param {(v: T, k: number) => any | undefined} [map_fn]
+ * @param {any} [thisArg]
+ * @returns {Promise<T[]>}
+ */
+export async function ripple_array_from_async(arrayLike, map_fn, thisArg) {
+	return map_fn ? Array.fromAsync(arrayLike, map_fn, thisArg) : Array.fromAsync(arrayLike);
+}
+
+/**
+ * @param {object} obj
+ * @returns {object}
+ */
+export function ripple_object(obj) {
+	return obj;
 }

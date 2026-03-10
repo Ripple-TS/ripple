@@ -105,8 +105,7 @@ function createDefinitionPlugin() {
 
 							// Create the origin selection range for #Map/#Set
 							const generatedStart = customMapping.generatedOffsets[0];
-							const generatedEnd =
-								generatedStart + customMapping.data.customData.generatedLengths[0];
+							const generatedEnd = generatedStart + customMapping.generatedLengths[0];
 							const originStart = document.positionAt(generatedStart);
 							const originEnd = document.positionAt(generatedEnd);
 
@@ -175,8 +174,7 @@ function createDefinitionPlugin() {
 							// The origin selection range should be in the virtual document
 							// not in the source document!
 							const generatedStart = customMapping.generatedOffsets[0];
-							const generatedEnd =
-								generatedStart + customMapping.data.customData.generatedLengths[0];
+							const generatedEnd = generatedStart + customMapping.generatedLengths[0];
 							const originStart = document.positionAt(generatedStart);
 							const originEnd = document.positionAt(generatedEnd);
 

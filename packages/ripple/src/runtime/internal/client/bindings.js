@@ -10,7 +10,7 @@
 import { effect, render } from './blocks.js';
 import { on } from './events.js';
 import { get, set } from './runtime.js';
-import { is_array, is_tracked_object } from './utils.js';
+import { is_array, is_ripple_object } from './utils.js';
 
 /**
  * @param {string} name
@@ -47,7 +47,7 @@ function get_bind_get_set(name, maybe_tracked, set_func) {
 			setter: set_func,
 		};
 	} else {
-		if (!is_tracked_object(maybe_tracked)) {
+		if (!is_ripple_object(maybe_tracked)) {
 			throw not_tracked_type_error(name);
 		}
 

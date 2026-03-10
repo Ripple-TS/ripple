@@ -1,4 +1,4 @@
-import { flushSync, TrackedArray, type Component } from 'ripple';
+import { flushSync, RippleArray, type Component } from 'ripple';
 
 describe('composite > render', () => {
 	it('renders composite components', () => {
@@ -73,7 +73,7 @@ describe('composite > render', () => {
 
 	it('handles generics', () => {
 		component ArrayTest() {
-			let items = new TrackedArray<number>();
+			let items = new RippleArray<number>();
 			items.push.apply(items, [1, 2, 3, 4, 5]);
 
 			<pre>{items ? JSON.stringify(items) : 'Loading...'}</pre>

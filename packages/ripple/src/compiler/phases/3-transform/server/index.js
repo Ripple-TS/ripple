@@ -456,15 +456,15 @@ const visitors = {
 		const source_name = callee.type === 'Identifier' ? callee.metadata?.source_name : undefined;
 		const shorthand_runtime_method =
 			source_name === '#ripple.url'
-				? 'tracked_url'
+				? 'ripple_url'
 				: source_name === '#ripple.urlSearchParams'
-					? 'tracked_url_search_params'
+					? 'ripple_url_search_params'
 					: source_name === '#ripple.date'
-						? 'tracked_date'
+						? 'ripple_date'
 						: source_name === '#ripple.map'
-							? 'tracked_map'
+							? 'ripple_map'
 							: source_name === '#ripple.set'
-								? 'tracked_set'
+								? 'ripple_set'
 								: source_name === '#ripple.mediaQuery'
 									? 'media_query'
 									: source_name === '#ripple.context'
@@ -473,21 +473,23 @@ const visitors = {
 											? 'effect'
 											: source_name === '#ripple.untrack'
 												? 'untrack'
-												: null;
-		const shorthand_requires_block =
-			source_name === '#ripple.url' ||
-			source_name === '#ripple.urlSearchParams' ||
-			source_name === '#ripple.date' ||
-			source_name === '#ripple.map' ||
-			source_name === '#ripple.set' ||
-			source_name === '#ripple.mediaQuery';
+												: source_name === '#ripple.array'
+													? 'ripple_array'
+													: source_name === '#ripple.array.from'
+														? 'ripple_array_from'
+														: source_name === '#ripple.array.of'
+															? 'ripple_array_of'
+															: source_name === '#ripple.array.from_async'
+																? 'ripple_array_from_async'
+																: source_name === '#ripple.object'
+																	? 'ripple_object'
+																	: null;
 
-		if (!context.state.to_ts && shorthand_runtime_method !== null) {
+		if (shorthand_runtime_method !== null) {
 			return {
 				...node,
 				callee: b.member(b.id('_$_'), b.id(shorthand_runtime_method)),
 				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
-					...(shorthand_requires_block ? [b.id('__block')] : []),
 					...node.arguments.map((arg) => context.visit(arg)),
 				]),
 			};
@@ -1561,7 +1563,7 @@ const visitors = {
 		return b.call('_$_.get', /** @type {AST.Expression} */ (context.visit(node.argument)));
 	},
 
-	TrackedObjectExpression(node, context) {
+	RippleObjectExpression(node, context) {
 		// For SSR, we just evaluate the object as-is since there's no reactivity
 		return b.object(
 			/** @type {(AST.Property | AST.SpreadElement)[]} */
@@ -1569,12 +1571,10 @@ const visitors = {
 		);
 	},
 
-	TrackedArrayExpression(node, context) {
-		// For SSR, we just evaluate the array as-is since there's no reactivity
-		return b.array(
-			/** @type {(AST.Expression | AST.SpreadElement)[]} */
-			(
-				/** @param {AST.Node} el */
+	RippleArrayExpression(node, context) {
+		return b.call(
+			'_$_.ripple_array',
+			.../** @type {(AST.Expression | AST.SpreadElement)[]} */ (
 				node.elements.map((el) => context.visit(/** @type {AST.Node} */ (el)))
 			),
 		);

@@ -605,6 +605,9 @@ importers:
         specifier: catalog:peer
         version: 5.9.3
     devDependencies:
+      '@types/node':
+        specifier: catalog:default
+        version: 24.11.0
       tsdown:
         specifier: catalog:default
         version: 0.20.3(typescript@5.9.3)

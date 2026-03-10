@@ -1,6 +1,6 @@
 import { flushSync } from 'ripple';
 
-describe('TrackedURL > serialization', () => {
+describe('RippleURL > serialization', () => {
 	it('handles toString method', () => {
 		component URLTest() {
 			const url = #ripple.url('https://example.com/path?foo=bar#section');

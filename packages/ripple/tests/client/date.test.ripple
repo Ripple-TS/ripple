@@ -1,6 +1,6 @@
 import { flushSync } from 'ripple';
 
-describe('TrackedDate', () => {
+describe('RippleDate', () => {
 	it('handles getTime() with reactive updates', () => {
 		component DateTest() {
 			let date = #ripple.date(2025, 0, 1);

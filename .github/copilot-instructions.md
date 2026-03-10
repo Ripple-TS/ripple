@@ -102,7 +102,13 @@ Source Code (.ripple) → Parse → Analyze → Transform → Output (JS + CSS)
 - `component` keyword for component declarations
 - JSX with special handling for `@` tracked expressions
 - `#server` blocks for server-only code
-- `#[]` (TrackedArray), `#{}` (TrackedObject), `#Map()`, `#Set()` shorthand
+- `#ripple[]` (RippleArray shorthand), `#ripple{}` (RippleObject shorthand),
+  `#ripple.map()` (RippleMap), `#ripple.set()` (RippleSet),` #ripple.array()`
+  (RippleArray), `#ripple.object()` (RippleObject), `#ripple.url()` (RippleURL),
+  `#ripple.urlSearchParams()` (RippleURLSearchParams), `#ripple.Date()`
+  (RippleDate), `#ripple.Context()` (RippleContext), `#ripple.mediaQuery()`
+  (MediaQuery) `#ripple.track()` (track()), `#ripple.trackSplit()` (trackSplit())
+  `#ripple.untrack()` (untrack()), `#ripple.effect()` (effect()),
 - `#style` identifier for scoped CSS classes
 
 **Output:** ESTree-compatible AST with Ripple extensions
@@ -176,20 +182,20 @@ and once with `mode: 'server'`.
 
 ### Key AST Node Types (`packages/ripple/src/compiler/types/`)
 
-| Node Type                 | Description                                              |
-| ------------------------- | -------------------------------------------------------- |
-| `Component`               | Component declaration with `id`, `params`, `body`, `css` |
-| `Element`                 | HTML/SVG element with `id`, `attributes`, `children`     |
-| `Text`                    | Text node wrapping an expression                         |
-| `ServerBlock`             | `#server { ... }` block with exports tracking            |
-| `TrackedExpression`       | `@expression` tracked reactive value                     |
-| `TrackedArrayExpression`  | `#[...]` tracked array literal                           |
-| `TrackedObjectExpression` | `#{...}` tracked object literal                          |
-| `Attribute`               | Element attribute with `name`, `value`, `shorthand`      |
-| `RefAttribute`            | `ref={...}` reference binding                            |
-| `SpreadAttribute`         | `{...props}` spread                                      |
-| `StyleIdentifier`         | `#style` compile-time identifier for scoped CSS classes  |
-| `CSS.StyleSheet`          | Parsed CSS with `hash` for scoping                       |
+| Node Type                | Description                                              |
+| ------------------------ | -------------------------------------------------------- |
+| `Component`              | Component declaration with `id`, `params`, `body`, `css` |
+| `Element`                | HTML/SVG element with `id`, `attributes`, `children`     |
+| `Text`                   | Text node wrapping an expression                         |
+| `ServerBlock`            | `#server { ... }` block with exports tracking            |
+| `TrackedExpression`      | `@expression` tracked reactive value                     |
+| `RippleArrayExpression`  | `#[...]` tracked array literal                           |
+| `RippleObjectExpression` | `#{...}` tracked object literal                          |
+| `Attribute`              | Element attribute with `name`, `value`, `shorthand`      |
+| `RefAttribute`           | `ref={...}` reference binding                            |
+| `SpreadAttribute`        | `{...props}` spread                                      |
+| `StyleIdentifier`        | `#style` compile-time identifier for scoped CSS classes  |
+| `CSS.StyleSheet`         | Parsed CSS with `hash` for scoping                       |
 
 ## Runtime Architecture
 
@@ -237,13 +243,13 @@ and once with `mode: 'server'`.
 
 ### Reactive Collections (`packages/ripple/src/runtime/`)
 
-| Collection      | File        | Description                                 |
-| --------------- | ----------- | ------------------------------------------- |
-| `TrackedArray`  | `array.js`  | Fully reactive array with all Array methods |
-| `TrackedObject` | `object.js` | Shallow reactive object                     |
-| `TrackedMap`    | `map.js`    | Reactive Map                                |
-| `TrackedSet`    | `set.js`    | Reactive Set                                |
-| `TrackedDate`   | `date.js`   | Reactive Date                               |
+| Collection     | File        | Description                                 |
+| -------------- | ----------- | ------------------------------------------- |
+| `RippleArray`  | `array.js`  | Fully reactive array with all Array methods |
+| `RippleObject` | `object.js` | Shallow reactive object                     |
+| `RippleMap`    | `map.js`    | Reactive Map                                |
+| `RippleSet`    | `set.js`    | Reactive Set                                |
+| `RippleDate`   | `date.js`   | Reactive Date                               |
 
 ### Server Runtime (`packages/ripple/src/runtime/internal/server/`)
 
@@ -478,7 +484,7 @@ yarn.
 | Constants       | `SCREAMING_SNAKE_CASE` | `ROOT_BLOCK`, `FLUSH_MICROTASK`, `DERIVED` |
 | Files           | `kebab-case`           | `css-analyze.js`, `source-map-utils.js`    |
 | Component files | `PascalCase`           | `Button.ripple`, `TodoList.ripple`         |
-| Classes         | `PascalCase`           | `Scope`, `TrackedArray`, `Output`          |
+| Classes         | `PascalCase`           | `Scope`, `RippleArray`, `Output`           |
 | Type parameters | Single uppercase       | `V` in `Tracked<V>`, `T` in generics       |
 
 ### Hot Path Optimizations

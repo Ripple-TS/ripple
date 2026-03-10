@@ -1,6 +1,6 @@
 import { flushSync } from 'ripple';
 
-describe('TrackedURLSearchParams > iteration', () => {
+describe('RippleURLSearchParams > iteration', () => {
 	it('handles keys method with reactivity', () => {
 		component URLTest() {
 			const params = #ripple.urlSearchParams('foo=bar&baz=qux');

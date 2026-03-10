@@ -9,12 +9,12 @@ export {
 	effect,
 	tick,
 	Context,
-	TrackedArray,
-	TrackedSet,
-	TrackedMap,
-	TrackedDate,
-	TrackedURL,
-	TrackedURLSearchParams,
+	RippleArray,
+	RippleSet,
+	RippleMap,
+	RippleDate,
+	RippleURL,
+	RippleURLSearchParams,
 } from './index.js';
 
 export interface SSRRenderOutput {

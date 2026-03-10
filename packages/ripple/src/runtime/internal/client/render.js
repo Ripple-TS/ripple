@@ -6,7 +6,7 @@ import {
 	get_descriptors,
 	get_own_property_symbols,
 	get_prototype_of,
-	is_tracked_object,
+	is_ripple_object,
 } from './utils.js';
 import { event } from './events.js';
 import { get_attribute_event_name, is_event_attribute } from '../../../utils/events.js';
@@ -310,7 +310,7 @@ export function apply_element_spread(element, fn) {
 			if (key === 'children') continue;
 
 			let value = next[key];
-			if (is_tracked_object(value)) {
+			if (is_ripple_object(value)) {
 				value = get(value);
 			}
 			current[key] = value;

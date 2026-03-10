@@ -12,11 +12,11 @@
  * the user made a mistake when the user is missing an import.
  *
  * e.g.
- * // import { TrackedMap } from 'ripple'; -- assume TrackedMap import is missing
- * const map = new TrackedMap();
+ * // import { RippleMap } from 'ripple'; -- assume RippleMap import is missing
+ * const map = new RippleMap();
  *
- * If a type in the hidden import contains 'TrackedMap', e.g. '__TrackedMap',
- * TS would suggest to the user that they meant to use '__TrackedMap' instead of 'TrackedMap'.
+ * If a type in the hidden import contains 'RippleMap', e.g. '__RippleMap',
+ * TS would suggest to the user that they meant to use '__RippleMap' instead of 'RippleMap'.
  *
  * Add additional types as needed if they are used in hidden imports.
  *
@@ -30,29 +30,37 @@
  */
 
 import {
-	TrackedMap as _$_Map__Tracked,
-	TrackedSet as _$_Set__Tracked,
-	TrackedArray as _$_Array__Tracked,
-	TrackedObject as _$_Object__Tracked,
-	TrackedURL as _$_URL__Tracked,
-	TrackedURLSearchParams as _$_URLSearchParams__Tracked,
-	TrackedDate as _$_Date__Tracked,
+	RippleMap as _$_Map__Ripple,
+	RippleSet as _$_Set__Ripple,
+	RippleArray as _$_Array__Ripple,
+	RippleObject as _$_Object__Ripple,
+	Context as _$_Context__Ripple,
+	RippleURL as _$_URL__Ripple,
+	RippleURLSearchParams as _$_URLSearchParams__Ripple,
+	RippleDate as _$_Date__Ripple,
+	MediaQuery as _$_MediaQuery__,
 	createRefKey as _$_RefKey__create,
 	track as _$_track__,
+	trackSplit as _$_trackSplit__,
 	effect as _$_effect__,
 	untrack as _$_untrack__,
+	ripple_namespace as _$__u0023_ripple,
 } from 'ripple';
 
 export {
-	_$_Map__Tracked,
-	_$_Set__Tracked,
-	_$_Array__Tracked,
-	_$_Object__Tracked,
-	_$_URL__Tracked,
-	_$_URLSearchParams__Tracked,
-	_$_Date__Tracked,
+	_$_Map__Ripple,
+	_$_Set__Ripple,
+	_$_Array__Ripple,
+	_$_Object__Ripple,
+	_$_Context__Ripple,
+	_$_URL__Ripple,
+	_$_URLSearchParams__Ripple,
+	_$_Date__Ripple,
+	_$_MediaQuery__,
 	_$_RefKey__create,
 	_$_track__,
+	_$_trackSplit__,
 	_$_effect__,
 	_$_untrack__,
+	_$__u0023_ripple,
 };

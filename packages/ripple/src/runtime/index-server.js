@@ -12,13 +12,13 @@ export const on = noop;
 export const tick = noop;
 export const flushSync = noop;
 
-export const TrackedObject = globalThis.Object;
-export const TrackedArray = globalThis.Array;
-export const TrackedDate = globalThis.Date;
-export const TrackedSet = globalThis.Set;
-export const TrackedMap = globalThis.Map;
-export const TrackedURL = globalThis.URL;
-export const TrackedURLSearchParams = globalThis.URLSearchParams;
+export const RippleObject = globalThis.Object;
+export const RippleArray = globalThis.Array;
+export const RippleDate = globalThis.Date;
+export const RippleSet = globalThis.Set;
+export const RippleMap = globalThis.Map;
+export const RippleURL = globalThis.URL;
+export const RippleURLSearchParams = globalThis.URLSearchParams;
 
 /**
  * @param {string} query A media query string

@@ -6,24 +6,24 @@ import { object_proxy } from './proxy.js';
  * @template {object} T
  * @constructor
  * @param {T} obj
- * @returns {TrackedObject<T>}
+ * @returns {RippleObject<T>}
  */
-export function TrackedObject(obj) {
+export function RippleObject(obj) {
 	if (!new.target) {
-		throw new Error("TrackedObject must be called with 'new'");
+		throw new Error("RippleObject must be called with 'new'");
 	}
 
 	var block = safe_scope();
 
-	return object_proxy(obj, block);
+	return ripple_object(block, obj);
 }
 
 /**
  * @template {object} T
  * @param {T} obj
  * @param {Block} block
- * @returns {TrackedObject<T>}
+ * @returns {RippleObject<T>}
  */
-export function tracked_object(obj, block) {
+export function ripple_object(block, obj) {
 	return object_proxy(obj, block);
 }

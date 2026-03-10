@@ -11,68 +11,68 @@ const { log } = createLogging('[Ripple Completion Plugin]');
  */
 const TRACKED_COLLECTION_SNIPPETS = [
 	{
-		label: 'TrackedMap',
-		filterText: 'TrackedMap',
-		detail: 'Create a TrackedMap',
+		label: 'RippleMap',
+		filterText: 'RippleMap',
+		detail: 'Create a RippleMap',
 		documentation: 'A reactive Map that triggers updates when modified',
-		insertText: 'new TrackedMap(${1})',
-		importName: 'TrackedMap',
+		insertText: 'new RippleMap(${1})',
+		importName: 'RippleMap',
 	},
 	{
-		label: 'TrackedSet',
-		filterText: 'TrackedSet',
-		detail: 'Create a TrackedSet',
+		label: 'RippleSet',
+		filterText: 'RippleSet',
+		detail: 'Create a RippleSet',
 		documentation: 'A reactive Set that triggers updates when modified',
-		insertText: 'new TrackedSet(${1})',
-		importName: 'TrackedSet',
+		insertText: 'new RippleSet(${1})',
+		importName: 'RippleSet',
 	},
 	{
-		label: 'TrackedArray',
-		filterText: 'TrackedArray',
-		detail: 'Create a TrackedArray',
+		label: 'RippleArray',
+		filterText: 'RippleArray',
+		detail: 'Create a RippleArray',
 		documentation: 'A reactive Array that triggers updates when modified',
-		insertText: 'new TrackedArray(${1})',
-		importName: 'TrackedArray',
+		insertText: 'new RippleArray(${1})',
+		importName: 'RippleArray',
 	},
 	{
-		label: 'TrackedArray.from',
-		filterText: 'TrackedArray.from',
-		detail: 'Create a TrackedArray.from',
+		label: 'RippleArray.from',
+		filterText: 'RippleArray.from',
+		detail: 'Create a RippleArray.from',
 		documentation: 'A reactive Array that triggers when modified',
-		insertText: 'new TrackedArray.from(${1})',
-		importName: 'TrackedArray',
+		insertText: 'new RippleArray.from(${1})',
+		importName: 'RippleArray',
 	},
 	{
-		label: 'TrackedObject',
-		filterText: 'TrackedObject',
-		detail: 'Create a TrackedObject',
+		label: 'RippleObject',
+		filterText: 'RippleObject',
+		detail: 'Create a RippleObject',
 		documentation: 'A reactive Object that triggers updates when modified',
-		insertText: 'new TrackedObject(${1})',
-		importName: 'TrackedObject',
+		insertText: 'new RippleObject(${1})',
+		importName: 'RippleObject',
 	},
 	{
-		label: 'TrackedDate',
-		filterText: 'TrackedDate',
-		detail: 'Create a TrackedDate',
+		label: 'RippleDate',
+		filterText: 'RippleDate',
+		detail: 'Create a RippleDate',
 		documentation: 'A reactive Date that triggers updates when modified',
-		insertText: 'new TrackedDate(${1})',
-		importName: 'TrackedDate',
+		insertText: 'new RippleDate(${1})',
+		importName: 'RippleDate',
 	},
 	{
-		label: 'TrackedURL',
-		filterText: 'TrackedURL',
-		detail: 'Create a TrackedURL',
+		label: 'RippleURL',
+		filterText: 'RippleURL',
+		detail: 'Create a RippleURL',
 		documentation: 'A reactive URL that triggers updates when modified',
-		insertText: 'new TrackedURL(${1})',
-		importName: 'TrackedURL',
+		insertText: 'new RippleURL(${1})',
+		importName: 'RippleURL',
 	},
 	{
-		label: 'TrackedURLSearchParams',
-		filterText: 'TrackedURLSearchParams',
-		detail: 'Create a TrackedURLSearchParams',
+		label: 'RippleURLSearchParams',
+		filterText: 'RippleURLSearchParams',
+		detail: 'Create a RippleURLSearchParams',
 		documentation: 'A reactive URLSearchParams that triggers updates when modified',
-		insertText: 'new TrackedURLSearchParams(${1})',
-		importName: 'TrackedURLSearchParams',
+		insertText: 'new RippleURLSearchParams(${1})',
+		importName: 'RippleURLSearchParams',
 	},
 	{
 		label: 'MediaQuery',
@@ -116,7 +116,7 @@ function findRippleImport(text) {
 /**
  * Generate additionalTextEdits to add an import
  * @param {string} documentText - Full document text
- * @param {string} importName - Name to import (e.g., 'TrackedMap')
+ * @param {string} importName - Name to import (e.g., 'RippleMap')
  * @returns {TextEdit[]}
  */
 function generateImportEdit(documentText, importName) {
@@ -183,7 +183,7 @@ const RIPPLE_SNIPPETS = [
 	{
 		label: '#ripple[]',
 		kind: CompletionItemKind.Snippet,
-		detail: 'Ripple Reactive Array Literal, shorthand for new TrackedArray',
+		detail: 'Ripple Reactive Array Literal, shorthand for new RippleArray',
 		documentation: 'Create a new Ripple Array Literal',
 		insertText: '#ripple[${1}]',
 		insertTextFormat: InsertTextFormat.Snippet,
@@ -192,7 +192,7 @@ const RIPPLE_SNIPPETS = [
 	{
 		label: '#ripple{}',
 		kind: CompletionItemKind.Snippet,
-		detail: 'Ripple Reactive Object Literal, shorthand for new TrackedObject',
+		detail: 'Ripple Reactive Object Literal, shorthand for new RippleObject',
 		documentation: 'Create a new Ripple Object Literal',
 		insertText: '#ripple{${1}}',
 		insertTextFormat: InsertTextFormat.Snippet,
@@ -400,9 +400,9 @@ const RIPPLE_NAMESPACE_SNIPPETS = [
 	{
 		label: '#ripple.array',
 		kind: CompletionItemKind.Snippet,
-		detail: 'TrackedArray class reference (no import needed)',
+		detail: 'RippleArray class reference (no import needed)',
 		documentation:
-			'Reference to the TrackedArray class. Use for static methods or as a type annotation.\n\nUsage: const copy = #ripple.array.from(existing);',
+			'Reference to the RippleArray class. Use for static methods or as a type annotation.\n\nUsage: const copy = #ripple.array.from(existing);',
 		insertText: '#ripple.array',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-ripple-array',
@@ -410,9 +410,9 @@ const RIPPLE_NAMESPACE_SNIPPETS = [
 	{
 		label: '#ripple.object',
 		kind: CompletionItemKind.Snippet,
-		detail: 'TrackedObject class reference (no import needed)',
+		detail: 'RippleObject class reference (no import needed)',
 		documentation:
-			'Reference to the TrackedObject class. Use for static methods or as a type annotation.\n\nUsage: const obj = #ripple.object({ a: 1 });',
+			'Reference to the RippleObject class. Use for static methods or as a type annotation.\n\nUsage: const obj = #ripple.object({ a: 1 });',
 		insertText: '#ripple.object',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-ripple-object',
@@ -420,9 +420,9 @@ const RIPPLE_NAMESPACE_SNIPPETS = [
 	{
 		label: '#ripple.map',
 		kind: CompletionItemKind.Snippet,
-		detail: 'TrackedMap (no import needed)',
+		detail: 'RippleMap (no import needed)',
 		documentation:
-			'Creates a reactive Map. Equivalent to new TrackedMap() but requires no import.\n\nUsage: const map = #ripple.map([[key, value]]);',
+			'Creates a reactive Map. Equivalent to new RippleMap() but requires no import.\n\nUsage: const map = #ripple.map([[key, value]]);',
 		insertText: '#ripple.map(${1})',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-ripple-map',
@@ -430,9 +430,9 @@ const RIPPLE_NAMESPACE_SNIPPETS = [
 	{
 		label: '#ripple.set',
 		kind: CompletionItemKind.Snippet,
-		detail: 'TrackedSet (no import needed)',
+		detail: 'RippleSet (no import needed)',
 		documentation:
-			'Creates a reactive Set. Equivalent to new TrackedSet() but requires no import.\n\nUsage: const set = #ripple.set([1, 2, 3]);',
+			'Creates a reactive Set. Equivalent to new RippleSet() but requires no import.\n\nUsage: const set = #ripple.set([1, 2, 3]);',
 		insertText: '#ripple.set(${1})',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-ripple-set',
@@ -440,9 +440,9 @@ const RIPPLE_NAMESPACE_SNIPPETS = [
 	{
 		label: '#ripple.date',
 		kind: CompletionItemKind.Snippet,
-		detail: 'TrackedDate (no import needed)',
+		detail: 'RippleDate (no import needed)',
 		documentation:
-			'Creates a reactive Date. Equivalent to new TrackedDate() but requires no import.\n\nUsage: const today = #ripple.date();',
+			'Creates a reactive Date. Equivalent to new RippleDate() but requires no import.\n\nUsage: const today = #ripple.date();',
 		insertText: '#ripple.date(${1})',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-ripple-date',
@@ -450,9 +450,9 @@ const RIPPLE_NAMESPACE_SNIPPETS = [
 	{
 		label: '#ripple.url',
 		kind: CompletionItemKind.Snippet,
-		detail: 'TrackedURL (no import needed)',
+		detail: 'RippleURL (no import needed)',
 		documentation:
-			"Creates a reactive URL. Equivalent to new TrackedURL() but requires no import.\n\nUsage: const url = #ripple.url('https://example.com');",
+			"Creates a reactive URL. Equivalent to new RippleURL() but requires no import.\n\nUsage: const url = #ripple.url('https://example.com');",
 		insertText: "#ripple.url('${1:https://example.com}')",
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-ripple-url',
@@ -460,9 +460,9 @@ const RIPPLE_NAMESPACE_SNIPPETS = [
 	{
 		label: '#ripple.urlSearchParams',
 		kind: CompletionItemKind.Snippet,
-		detail: 'TrackedURLSearchParams (no import needed)',
+		detail: 'RippleURLSearchParams (no import needed)',
 		documentation:
-			'Creates a reactive URLSearchParams. Equivalent to new TrackedURLSearchParams() but requires no import.\n\nUsage: const params = #ripple.urlSearchParams(${1});',
+			'Creates a reactive URLSearchParams. Equivalent to new RippleURLSearchParams() but requires no import.\n\nUsage: const params = #ripple.urlSearchParams(${1});',
 		insertText: '#ripple.urlSearchParams(${1})',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-ripple-urlSearchParams',
@@ -546,6 +546,38 @@ const RIPPLE_IMPORTS = [
 ];
 
 /**
+ * @param {string} line
+ * @returns {RegExpMatchArray | null}
+ */
+function get_ripple_namespace_match(line) {
+	return line.match(/#ripple(?:\.(\w*))?$/);
+}
+
+/**
+ * @param {RegExpMatchArray} namespace_match
+ * @param {{ line: number, character: number }} position
+ * @returns {CompletionItem[]}
+ */
+function create_ripple_namespace_completion_items(namespace_match, position) {
+	const start_character = position.character - namespace_match[0].length;
+
+	return RIPPLE_NAMESPACE_SNIPPETS.map((snippet) => ({
+		...snippet,
+		filterText: snippet.label,
+		textEdit: {
+			range: {
+				start: {
+					line: position.line,
+					character: start_character,
+				},
+				end: position,
+			},
+			newText: snippet.insertText ?? snippet.label,
+		},
+	}));
+}
+
+/**
  * @returns {LanguageServicePlugin}
  */
 function createCompletionPlugin() {
@@ -555,8 +587,8 @@ function createCompletionPlugin() {
 			completionProvider: {
 				// Trigger on Ripple-specific syntax:
 				// '<' - JSX/HTML tags
-				// '#' - starts #ripple namespace session
-				// '.' - #ripple.* member completions (safe now that Emmet is disabled for .ripple)
+				// '#' - RippleMap/RippleSet shortcuts
+				// '.' - #ripple namespace member access
 				triggerCharacters: ['<', '#', '.'],
 				resolveProvider: false,
 			},
@@ -572,48 +604,19 @@ function createCompletionPlugin() {
 						return { items: [], isIncomplete: false };
 					}
 
-					// Get line text FIRST for early #ripple.* check
-					const line = document.getText({
-						start: { line: position.line, character: 0 },
-						end: position,
-					});
-
-					// Handle #ripple.* namespace - check line content regardless of trigger type.
-					// We need to handle both:
-					// - triggerCharacter='.' when user types the dot
-					// - triggerKind=Invoked when VS Code re-triggers completion
-					// Match #ripple. followed by optional partial member name (e.g., #ripple. or #ripple.tr)
-					const rippleNamespaceMatch = line.match(/#ripple\.(\w*)$/);
-					if (rippleNamespaceMatch) {
-						const partialMember = rippleNamespaceMatch[1]; // e.g., '' or 'tr' or 'track'
-						log('🔷 #ripple.* namespace match (partial:', partialMember, ')');
-						const startChar = position.character - '#ripple.'.length - partialMember.length;
-						/** @type {CompletionItem[]} */
-						const items = [];
-						for (const snippet of RIPPLE_NAMESPACE_SNIPPETS) {
-							items.push({
-								...snippet,
-								filterText: snippet.label,
-								textEdit: {
-									range: {
-										start: { line: position.line, character: startChar },
-										end: position,
-									},
-									newText: snippet.insertText ?? snippet.label,
-								},
-							});
-						}
-						return { items, isIncomplete: false };
-					}
-
 					const { virtualCode } = getVirtualCode(document, context);
 
-					if (virtualCode.languageId !== 'ripple') {
+					if (virtualCode && virtualCode.languageId !== 'ripple') {
 						// Check if we're inside an embedded code (like CSS in <style> blocks)
 						// If so, don't provide Ripple snippets - let CSS completions take priority
 						log(`Skipping Ripple completions in the '${virtualCode.languageId}' context`);
 						return { items: [], isIncomplete: false };
 					}
+
+					const line = document.getText({
+						start: { line: position.line, character: 0 },
+						end: position,
+					});
 
 					/** @type {CompletionItem[]} */
 					const items = [];
@@ -645,6 +648,15 @@ function createCompletionPlugin() {
 						return { items, isIncomplete: false };
 					}
 
+					const ripple_namespace_match = get_ripple_namespace_match(line);
+
+					if (ripple_namespace_match) {
+						items.push(
+							...create_ripple_namespace_completion_items(ripple_namespace_match, position),
+						);
+						return { items, isIncomplete: false };
+					}
+
 					// @ accessor hint when typing after @
 					if (/@\w*$/.test(line)) {
 						items.push({
@@ -655,41 +667,9 @@ function createCompletionPlugin() {
 						});
 					}
 
-					// TrackedMap/TrackedSet completions when typing T...
+					// RippleMap/RippleSet completions when typing T...
 					// Also detects if 'new' is already typed before it to avoid duplicating
 					const trackedMatch = line.match(/(new\s+)?[T,M,#]([\w\.]*)$/);
-
-					// '#' or '#ripple' (no dot yet) — show only the two literal shorthands.
-					// Dot-member completions for '#ripple.*' are handled earlier in this function.
-					const rippleHashMatch = line.match(/#(ripple)?(\w*)$/);
-
-					if (rippleHashMatch) {
-						// '#' or '#ripple' (no dot yet) — show only the two literal shorthands.
-						// isIncomplete:true keeps the session alive so when user types '.' next,
-						// VS Code re-requests and the earlier #ripple. namespace branch handles members.
-						const prefixLen = rippleHashMatch[0].length;
-						const startChar = position.character - prefixLen;
-						log('🔷 # hash match, partial:', rippleHashMatch[0]);
-						for (const snippet of RIPPLE_SNIPPETS) {
-							if (
-								snippet.label !== '#ripple.' &&
-								snippet.label !== '#ripple[]' &&
-								snippet.label !== '#ripple{}'
-							)
-								continue;
-							items.push({
-								...snippet,
-								textEdit: {
-									range: {
-										start: { line: position.line, character: startChar },
-										end: position,
-									},
-									newText: snippet.insertText ?? snippet.label,
-								},
-							});
-						}
-						return { items, isIncomplete: true };
-					}
 
 					if (trackedMatch) {
 						const hasNew = !!trackedMatch[1];

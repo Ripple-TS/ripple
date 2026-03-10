@@ -5,9 +5,13 @@
 /** @import {is_identifier_obfuscated, deobfuscate_identifier, IDENTIFIER_OBFUSCATION_PREFIX} from 'ripple/compiler/internal/identifier/utils' */
 
 const { URI } = require('vscode-uri');
-const { createLogging, DEBUG } = require('@ripple-ts/typescript-plugin/src/utils.js');
-// Matches valid JS/CSS identifier characters: word chars, dashes (CSS), $, and # (Ripple shorthands)
-const charAllowedWordRegex = /[\w\-$#]/;
+const {
+	createLogging,
+	getWordFromPosition,
+	charAllowedWordRegex,
+	DEBUG,
+} = require('@ripple-ts/typescript-plugin/src/utils.js');
+
 const IMPORT_EXPORT_REGEX = {
 	import: {
 		findBefore: /import\s+(?:\{[^}]*|\*\s+as\s+\w*|\w*)$/s,
@@ -91,31 +95,6 @@ function getVirtualCode(document, context) {
 		sourceScript && virtualCode ? context.language.maps.get(virtualCode, sourceScript) : undefined;
 
 	return { virtualCode, sourceUri, sourceScript, sourceMap };
-}
-
-/**
- * Get the word at a specific position in the text
- * @param {string} text
- * @param {number} start
- * @returns {{word: string, start: number, end: number}}
- */
-function getWordFromPosition(text, start) {
-	let wordStart = start;
-	let wordEnd = start;
-	while (wordStart > 0 && charAllowedWordRegex.test(text[wordStart - 1])) {
-		wordStart--;
-	}
-	while (wordEnd < text.length && charAllowedWordRegex.test(text[wordEnd])) {
-		wordEnd++;
-	}
-
-	const word = text.substring(wordStart, wordEnd);
-
-	return {
-		word,
-		start: wordStart,
-		end: wordEnd,
-	};
 }
 
 /**

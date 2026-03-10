@@ -3148,11 +3148,11 @@
         },
         {
           "type": "SYMBOL",
-          "name": "tracked_map_expression"
+          "name": "ripple_map_expression"
         },
         {
           "type": "SYMBOL",
-          "name": "tracked_set_expression"
+          "name": "ripple_set_expression"
         },
         {
           "type": "SYMBOL",
@@ -3501,7 +3501,7 @@
         }
       ]
     },
-    "tracked_map_expression": {
+    "ripple_map_expression": {
       "type": "SEQ",
       "members": [
         {
@@ -3526,7 +3526,7 @@
         }
       ]
     },
-    "tracked_set_expression": {
+    "ripple_set_expression": {
       "type": "SEQ",
       "members": [
         {

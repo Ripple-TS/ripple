@@ -1,7 +1,7 @@
 import { flushSync } from 'ripple';
 
-describe('TrackedURLSearchParams > TrackedURL integration', () => {
-	it('integrates with TrackedURL', () => {
+describe('RippleURLSearchParams > RippleURL integration', () => {
+	it('integrates with RippleURL', () => {
 		component URLTest() {
 			const url = #ripple.url('https://example.com?foo=bar');
 			const params = url.searchParams;

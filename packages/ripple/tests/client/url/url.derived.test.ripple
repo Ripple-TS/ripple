@@ -1,7 +1,7 @@
-import type { TrackedURL } from 'ripple';
+import type { RippleURL } from 'ripple';
 import { flushSync } from 'ripple';
 
-describe('TrackedURL > derived', () => {
+describe('RippleURL > derived', () => {
 	it('handles reactive computed properties based on URL', () => {
 		component URLTest() {
 			const url = #ripple.url('https://example.com/users/123?tab=profile');
@@ -46,7 +46,7 @@ describe('TrackedURL > derived', () => {
 			<ChildB {url} />
 		}
 
-		component ChildA({ url }: { url: TrackedURL }) {
+		component ChildA({ url }: { url: RippleURL }) {
 			<button
 				onClick={() => {
 					const current = parseInt(url.searchParams.get('count') || '0', 10);
@@ -57,7 +57,7 @@ describe('TrackedURL > derived', () => {
 			</button>
 		}
 
-		component ChildB({ url }: { url: TrackedURL }) {
+		component ChildB({ url }: { url: RippleURL }) {
 			let count = #ripple.track(() => url.searchParams.get('count'));
 
 			<pre>{url.href}</pre>

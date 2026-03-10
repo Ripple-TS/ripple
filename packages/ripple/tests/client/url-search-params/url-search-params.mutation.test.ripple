@@ -1,6 +1,6 @@
 import { flushSync } from 'ripple';
 
-describe('TrackedURLSearchParams > mutation', () => {
+describe('RippleURLSearchParams > mutation', () => {
 	it('handles append operation with reactivity', () => {
 		component URLTest() {
 			const params = #ripple.urlSearchParams('foo=bar');
