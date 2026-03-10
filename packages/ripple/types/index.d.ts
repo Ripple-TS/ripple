@@ -559,6 +559,7 @@ export interface RippleNamespace {
 	untrack: typeof untrack;
 	track: typeof track;
 	trackSplit: typeof trackSplit;
+	style: Record<string, string>; // Placeholder for style-related runtime class names (e.g., #ripple.style.someClass)
 }
 
 export declare const ripple_namespace: RippleNamespace;

@@ -650,10 +650,15 @@ function RipplePlugin(config) {
 						/** @param {number} ch */
 						const is_ripple_delimiter = (ch) =>
 							ch === 40 || // (
+							ch === 41 || // )
 							ch === 60 || // <
 							ch === 46 || // .
+							ch === 44 || // ,
+							ch === 59 || // ;
 							ch === 91 || // [
+							ch === 93 || // ]
 							ch === 123 || // {
+							ch === 125 || // }
 							ch === 32 || // space
 							ch === 9 || // tab
 							ch === 10 || // newline
