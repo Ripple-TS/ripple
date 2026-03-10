@@ -1,5 +1,7 @@
 # @ripple-ts/rollup-plugin
 
+## 1.0.0
+
 ## 0.2.216
 
 ## 0.2.215
