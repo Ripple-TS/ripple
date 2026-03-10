@@ -28,6 +28,7 @@ import {
 	is_ripple_track_call,
 	hash,
 	flatten_switch_consequent,
+	get_ripple_namespace_call_name,
 } from '../../../utils.js';
 import { escape } from '../../../../utils/escaping.js';
 import { is_event_attribute } from '../../../../utils/events.js';
@@ -454,41 +455,12 @@ const visitors = {
 
 		const callee = node.callee;
 		const source_name = callee.type === 'Identifier' ? callee.metadata?.source_name : undefined;
-		const shorthand_runtime_method =
-			source_name === '#ripple.url'
-				? 'ripple_url'
-				: source_name === '#ripple.urlSearchParams'
-					? 'ripple_url_search_params'
-					: source_name === '#ripple.date'
-						? 'ripple_date'
-						: source_name === '#ripple.map'
-							? 'ripple_map'
-							: source_name === '#ripple.set'
-								? 'ripple_set'
-								: source_name === '#ripple.mediaQuery'
-									? 'media_query'
-									: source_name === '#ripple.context'
-										? 'context'
-										: source_name === '#ripple.effect'
-											? 'effect'
-											: source_name === '#ripple.untrack'
-												? 'untrack'
-												: source_name === '#ripple.array'
-													? 'ripple_array'
-													: source_name === '#ripple.array.from'
-														? 'ripple_array_from'
-														: source_name === '#ripple.array.of'
-															? 'ripple_array_of'
-															: source_name === '#ripple.array.from_async'
-																? 'ripple_array_from_async'
-																: source_name === '#ripple.object'
-																	? 'ripple_object'
-																	: null;
+		const ripple_runtime_method = get_ripple_namespace_call_name(source_name);
 
-		if (shorthand_runtime_method !== null) {
+		if (ripple_runtime_method !== null) {
 			return {
 				...node,
-				callee: b.member(b.id('_$_'), b.id(shorthand_runtime_method)),
+				callee: b.member(b.id('_$_'), b.id(ripple_runtime_method)),
 				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
 					...node.arguments.map((arg) => context.visit(arg)),
 				]),
@@ -514,6 +486,34 @@ const visitors = {
 					node.arguments.map((arg) => context.visit(arg))
 				),
 			};
+		}
+
+		// Check for more than two nested level calls, like #ripple.array.from()
+		if (
+			callee.type === 'MemberExpression' &&
+			callee.object.metadata?.source_name?.startsWith('#ripple.') &&
+			callee.object.type === 'Identifier' &&
+			callee.property.type === 'Identifier'
+		) {
+			const object = callee.object;
+			const property = callee.property;
+			const source_name = /** @type {string} */ (object.metadata?.source_name);
+
+			const method_name = get_ripple_namespace_call_name(source_name);
+			if (method_name !== null) {
+				return b.member(
+					b.id('_$_'),
+					b.member(
+						b.id(method_name),
+						b.call(
+							b.id(property.name),
+							.../** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+								node.arguments.map((arg) => context.visit(arg))
+							),
+						),
+					),
+				);
+			}
 		}
 
 		return context.next();

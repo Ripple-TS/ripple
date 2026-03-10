@@ -25,7 +25,7 @@ export function RippleArray(...elements) {
  * @returns {RippleArray<T>}
  */
 RippleArray.from = function (arrayLike, mapFn, thisArg) {
-	return ripple_array.from(arrayLike, mapFn, thisArg);
+	return ripple_array.from(safe_scope(), arrayLike, mapFn, thisArg);
 };
 
 /**
@@ -34,7 +34,7 @@ RippleArray.from = function (arrayLike, mapFn, thisArg) {
  * @returns {RippleArray<T>}
  */
 RippleArray.of = function (...items) {
-	return ripple_array.of(...items);
+	return ripple_array.of(safe_scope(), ...items);
 };
 
 /**
@@ -45,7 +45,7 @@ RippleArray.of = function (...items) {
  * @returns {Promise<RippleArray<T>>}
  */
 RippleArray.fromAsync = async function (arrayLike, mapFn, thisArg) {
-	return ripple_array.fromAsync(arrayLike, mapFn, thisArg);
+	return ripple_array.fromAsync(safe_scope(), arrayLike, mapFn, thisArg);
 };
 
 /**
@@ -60,37 +60,37 @@ export function ripple_array(block, ...elements) {
 
 /**
  * @template T
+ * @param {Block} block
  * @param {ArrayLike<T> | Iterable<T>} arrayLike
  * @param {(v: T, k: number) => any | undefined} [mapFn]
  * @param {*} [thisArg]
  * @returns {RippleArray<T>}
  */
-ripple_array.from = function (arrayLike, mapFn, thisArg) {
-	var block = safe_scope();
+ripple_array.from = function (block, arrayLike, mapFn, thisArg) {
 	var elements = mapFn ? Array.from(arrayLike, mapFn, thisArg) : Array.from(arrayLike);
 	return array_proxy({ elements, block, from_static: true });
 };
 
 /**
  * @template T
+ * @param {Block} block
  * @param {...T} items
  * @returns {RippleArray<T>}
  */
-ripple_array.of = function (...items) {
-	var block = safe_scope();
+ripple_array.of = function (block, ...items) {
 	var elements = Array.of(...items);
 	return array_proxy({ elements, block, from_static: true });
 };
 
 /**
  * @template T
+ * @param {Block} block
  * @param {ArrayLike<T> | Iterable<T>} arrayLike
  * @param {(v: T, k: number) => any | undefined} [mapFn]
  * @param {any} [thisArg]
  * @returns {Promise<RippleArray<T>>}
  */
-ripple_array.fromAsync = async function (arrayLike, mapFn, thisArg) {
-	var block = safe_scope();
+ripple_array.fromAsync = async function (block, arrayLike, mapFn, thisArg) {
 	var elements = mapFn
 		? await Array.fromAsync(arrayLike, mapFn, thisArg)
 		: await Array.fromAsync(arrayLike);

@@ -753,9 +753,6 @@ export function effect(_fn) {
 export function ripple_array(...elements) {
 	return new Array(...elements);
 }
-ripple_array.from = ripple_array_from;
-ripple_array.of = ripple_array_of;
-ripple_array.from_async = ripple_array_from_async;
 
 /**
  * @template T
@@ -764,18 +761,18 @@ ripple_array.from_async = ripple_array_from_async;
  * @param {any} [thisArg]
  * @returns {T[]}
  */
-export function ripple_array_from(arrayLike, map_fn, thisArg) {
+ripple_array.from = function (arrayLike, map_fn, thisArg) {
 	return map_fn ? Array.from(arrayLike, map_fn, thisArg) : Array.from(arrayLike);
-}
+};
 
 /**
  * @template T
  * @param  {...T} items
  * @returns {T[]}
  */
-export function ripple_array_of(...items) {
+ripple_array.of = function (...items) {
 	return Array.of(...items);
-}
+};
 
 /**
  * @template T
@@ -784,9 +781,9 @@ export function ripple_array_of(...items) {
  * @param {any} [thisArg]
  * @returns {Promise<T[]>}
  */
-export async function ripple_array_from_async(arrayLike, map_fn, thisArg) {
+ripple_array.from_async = async function (arrayLike, map_fn, thisArg) {
 	return map_fn ? Array.fromAsync(arrayLike, map_fn, thisArg) : Array.fromAsync(arrayLike);
-}
+};
 
 /**
  * @param {object} obj

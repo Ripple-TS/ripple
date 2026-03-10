@@ -361,11 +361,14 @@ function set_hidden_import_from_ripple(name, context, is_obfuscated = false) {
 
 /**
  * @param {AST.NodeWithLocation} loc_info
- * @param {number} start_offset
- * @param {number} length
+ * @param {number} [start_offset]
+ * @param {number} [length]
  * @returns {AST.NodeWithLocation}
  */
-function slice_loc_info(loc_info, start_offset, length) {
+function slice_loc_info(loc_info, start_offset = 0, length) {
+	if (length === undefined) {
+		length = loc_info.end - loc_info.start - start_offset;
+	}
 	return {
 		start: loc_info.start + start_offset,
 		end: loc_info.start + start_offset + length,
@@ -392,12 +395,11 @@ function slice_loc_info(loc_info, start_offset, length) {
 function build_ripple_namespace_member(property_name, source_name, loc_info, context) {
 	const namespace_alias = set_hidden_import_from_ripple(RIPPLE_NAMESPACE_IDENTIFIER, context, true);
 	const namespace_loc = slice_loc_info(loc_info, 0, '#ripple'.length);
-	const property_loc = slice_loc_info(loc_info, '#ripple.'.length, property_name.length);
 	const namespace_id = b.id(namespace_alias, namespace_loc);
 	namespace_id.metadata.source_name = '#ripple';
 
+	const property_loc = slice_loc_info(loc_info, '#ripple.'.length, property_name.length);
 	const property_id = b.id(property_name, property_loc);
-	property_id.metadata.source_name = source_name;
 
 	return b.member(namespace_id, property_id, false, false, loc_info);
 }
@@ -602,19 +604,19 @@ const visitors = {
 		const callee = node.callee;
 		const parent = context.path.at(-1);
 		const source_name = callee.type === 'Identifier' ? callee.metadata?.source_name : undefined;
-		const shorthand_runtime_method = get_ripple_namespace_call_name(source_name);
-		const shorthand_requires_block = ripple_namespace_requires_block(source_name);
+		const ripple_runtime_method = get_ripple_namespace_call_name(source_name);
+		const ripple_method_requires_block = ripple_namespace_requires_block(source_name);
 
 		if (context.state.metadata?.tracking === false) {
 			context.state.metadata.tracking = true;
 		}
 
-		if (!context.state.to_ts && shorthand_runtime_method !== null) {
+		if (!context.state.to_ts && ripple_runtime_method !== null) {
 			return {
 				...node,
-				callee: b.member(b.id('_$_'), b.id(shorthand_runtime_method)),
+				callee: b.member(b.id('_$_'), b.id(ripple_runtime_method)),
 				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
-					...(shorthand_requires_block ? [b.id('__block')] : []),
+					...(ripple_method_requires_block ? [b.id('__block')] : []),
 					...node.arguments.map((arg) => context.visit(arg)),
 				]),
 			};
@@ -667,6 +669,63 @@ const visitors = {
 					b.id('__block'),
 				]),
 			};
+		}
+
+		// Check for more than two nested level calls, like #ripple.array.from()
+		if (
+			callee.type === 'MemberExpression' &&
+			callee.object.metadata?.source_name?.startsWith('#ripple.') &&
+			callee.object.type === 'Identifier' &&
+			callee.property.type === 'Identifier'
+		) {
+			const object = callee.object;
+			const property = callee.property;
+			const source_name = /** @type {string} */ (object.metadata?.source_name);
+			const property_name = source_name.replace('#ripple.', '');
+
+			if (context.state.to_ts) {
+				// e.g. `#ripple.array`
+				const namespace_member = build_ripple_namespace_member(
+					property_name,
+					source_name,
+					/** @type {AST.NodeWithLocation} */ (node.callee),
+					context,
+				);
+
+				return /** @type {AST.CallExpression} */ ({
+					...node,
+					callee: {
+						...namespace_member,
+						// e.g. `array.from`
+						property: b.member(
+							/** @type {AST.Identifier} */ (namespace_member.property),
+							property,
+							false,
+							false,
+							slice_loc_info(/** @type {AST.NodeWithLocation} */ (node.callee), '#ripple.'.length),
+						),
+					},
+					arguments: node.arguments.map((arg) => context.visit(arg)),
+				});
+			} else {
+				const method_name = get_ripple_namespace_call_name(source_name);
+				const requires_block = ripple_namespace_requires_block(source_name);
+				if (method_name !== null) {
+					return b.member(
+						b.id('_$_'),
+						b.member(
+							b.id(method_name),
+							b.call(
+								b.id(property.name),
+								.../** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
+									...(requires_block ? [b.id('__block')] : []),
+									...node.arguments.map((arg) => context.visit(arg)),
+								]),
+							),
+						),
+					);
+				}
+			}
 		}
 
 		if (
@@ -777,9 +836,15 @@ const visitors = {
 	RippleArrayExpression(node, context) {
 		if (context.state.to_ts) {
 			const arrayAlias = set_hidden_import_from_ripple('RippleArray', context);
+			const id = b.id(
+				arrayAlias,
+				slice_loc_info(/** @type {AST.NodeWithLocation} */ (node), 0, '#ripple'.length),
+			);
+			id.metadata.source_name = '#ripple';
+
 			return {
 				type: 'NewExpression',
-				callee: b.id(arrayAlias),
+				callee: id,
 				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
 					node.elements.map((el) => context.visit(/** @type {AST.Node} */ (el)))
 				),
@@ -799,16 +864,26 @@ const visitors = {
 	RippleObjectExpression(node, context) {
 		if (context.state.to_ts) {
 			const objectAlias = set_hidden_import_from_ripple('RippleObject', context);
-
-			return b.new(
-				b.id(objectAlias),
+			const id = b.id(
+				objectAlias,
+				slice_loc_info(/** @type {AST.NodeWithLocation} */ (node), 0, '#ripple'.length),
+			);
+			id.metadata.source_name = '#ripple';
+			const new_node = b.new(
+				id,
 				/** @type {AST.NodeWithLocation} */ (node),
 				b.object(
 					/** @type {(AST.Property | AST.SpreadElement)[]} */ (
 						node.properties.map((prop) => context.visit(prop))
 					),
+					slice_loc_info(/** @type {AST.NodeWithLocation} */ (node), '#ripple'.length),
 				),
 			);
+			// force the source mapping to skip the constructor,
+			// otherwise the mapping will be off by 4 and the whole
+			// new expression will be mapped to the source which doesn't have `new `
+			new_node.metadata.skipNewMapping = true;
+			return new_node;
 		}
 
 		return b.call(
@@ -910,30 +985,6 @@ const visitors = {
 				}
 			}
 		} else {
-			const source_name = node.object.metadata?.source_name;
-
-			if (
-				node.object.type === 'Identifier' &&
-				node.property.type === 'Identifier' &&
-				source_name?.startsWith('#ripple.')
-			) {
-				const property_name = source_name.replace('#ripple.', '');
-
-				if (context.state.to_ts) {
-					// const namespace_member = build_ripple_namespace_member(
-					// 	property_name,
-					// 	source_name,
-					// 	/** @type {AST.NodeWithLocation} */ (node.object),
-					// 	context,
-					// );
-				} else {
-					const method_name = get_ripple_namespace_call_name(source_name);
-					if (method_name !== null) {
-						return b.member(b.id('_$_'), b.member(b.id(method_name), b.id(node.property.name)));
-					}
-				}
-			}
-
 			return context.next();
 		}
 	},
@@ -4192,14 +4243,30 @@ function create_tsx_with_typescript_support(comments) {
 			}
 		},
 		NewExpression(node, context) {
-			if (!node.loc) {
-				base_tsx.NewExpression?.(node, context);
-				return;
+			const loc = /** @type {AST.SourceLocation} */ (node.loc) ?? null;
+
+			if (loc && !node?.metadata?.skipNewMapping) {
+				context.location(loc.start.line, loc.start.column);
 			}
-			const loc = /** @type {AST.SourceLocation} */ (node.loc);
-			context.location(loc.start.line, loc.start.column);
-			base_tsx.NewExpression?.(node, context);
-			context.location(loc.end.line, loc.end.column);
+			context.write('new ');
+
+			if (loc && node?.metadata?.skipNewMapping) {
+				context.location(loc.start.line, loc.start.column);
+			}
+
+			context.visit(node.callee);
+			if (node.typeArguments) {
+				context.visit(node.typeArguments);
+			}
+			context.write('(');
+			for (let i = 0; i < node.arguments.length; i++) {
+				if (i > 0) context.write(', ');
+				context.visit(node.arguments[i]);
+			}
+			context.write(')');
+			if (loc) {
+				context.location(loc.end.line, loc.end.column);
+			}
 		},
 		TemplateLiteral(node, context) {
 			if (!node.loc) {

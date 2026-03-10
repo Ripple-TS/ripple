@@ -22,16 +22,16 @@ interface BaseNodeMetaData {
 		| '#ripple.style'
 		| '#ripple.array'
 		| '#ripple.object'
-		| '#ripple.track'
-		| '#ripple.untrack'
 		| '#ripple.effect'
+		| '#ripple.track'
+		| '#ripple.trackSplit'
+		| '#ripple.untrack'
 		| '#ripple.url'
 		| '#ripple.urlSearchParams'
 		| '#ripple.date'
 		| '#ripple.mediaQuery'
-		| '#ripple.validate'
 		| '#ripple.context'
-		| '#ripple.trackSplit';
+		| '#ripple.validate';
 	is_capitalized?: boolean;
 	has_await?: boolean;
 	commentContainerId?: number;
@@ -80,6 +80,12 @@ declare module 'estree' {
 	}
 	interface ArrowFunctionExpression extends FunctionLikeTS {
 		metadata: FunctionMetaData;
+	}
+
+	interface NewExpression {
+		metadata: BaseNodeMetaData & {
+			skipNewMapping?: boolean;
+		};
 	}
 
 	type Accessibility = 'public' | 'protected' | 'private'; // missing in acorn-typescript types

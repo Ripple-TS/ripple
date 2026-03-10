@@ -420,10 +420,14 @@ export function member_id(path) {
 
 /**
  * @param {Array<AST.Property | AST.SpreadElement>} properties
+ * @param {AST.NodeWithLocation} [loc_info]
  * @returns {AST.ObjectExpression}
  */
-export function object(properties) {
-	return { type: 'ObjectExpression', properties, metadata: { path: [] } };
+export function object(properties, loc_info) {
+	/** @type {AST.ObjectExpression} */
+	const node = { type: 'ObjectExpression', properties, metadata: { path: [] } };
+
+	return set_location(node, loc_info);
 }
 
 /**
