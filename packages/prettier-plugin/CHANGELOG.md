@@ -1,5 +1,7 @@
 # @ripple-ts/prettier-plugin
 
+## 0.3.1
+
 ## 0.3.0
 
 ### Minor Changes
