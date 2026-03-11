@@ -1,6 +1,6 @@
 # ripple
 
-## 1.0.0
+## 0.3.0
 
 ### Minor Changes
 
@@ -37,7 +37,7 @@
   [`21dd402`](https://github.com/Ripple-TS/ripple/commit/21dd4029d7e027a0706cb133b09530a722feb73d),
   [`c2dbefe`](https://github.com/Ripple-TS/ripple/commit/c2dbefe5645c0c4f6e0ff4dc00d9c4de81616667),
   [`74a10cc`](https://github.com/Ripple-TS/ripple/commit/74a10cc5701962cd7c72b144d59b35ecb76263a3)]:
-  - ripple@1.0.0
+  - ripple@0.3.0
 
 ## 0.2.216
 
