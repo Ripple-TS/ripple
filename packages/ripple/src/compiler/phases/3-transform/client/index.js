@@ -541,9 +541,9 @@ const visitors = {
 	},
 
 	ServerIdentifier(node, context) {
-		const id = b.id(SERVER_IDENTIFIER);
+		const id = b.id(SERVER_IDENTIFIER, /** @type {AST.NodeWithLocation} */ (node));
 		id.metadata.source_name = '#ripple.server';
-		return { ...node, ...id };
+		return id;
 	},
 
 	StyleIdentifier(node, context) {
@@ -2716,8 +2716,10 @@ const visitors = {
 			);
 			value.loc = node.loc;
 
-			const server_identifier = b.id(SERVER_IDENTIFIER);
-			server_identifier.loc = node.loc;
+			const server_identifier = b.id(
+				SERVER_IDENTIFIER,
+				slice_loc_info(/** @type {AST.NodeWithLocation} */ (node), 0, '#ripple.server'.length),
+			);
 			// Add source_name to properly map longer generated back to '#ripple.server'
 			server_identifier.metadata.source_name = '#ripple.server';
 

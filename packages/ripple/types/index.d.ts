@@ -545,6 +545,8 @@ export function bindFiles<V extends FileList>(
 	setter?: SetFunction<V>,
 ): (node: HTMLInputElement) => void;
 
+type ServerBlock = {};
+
 export interface RippleNamespace {
 	array: RippleArrayCallable;
 	object: RippleObjectCallable;
@@ -559,7 +561,8 @@ export interface RippleNamespace {
 	untrack: typeof untrack;
 	track: typeof track;
 	trackSplit: typeof trackSplit;
-	style: Record<string, string>; // Placeholder for style-related runtime class names (e.g., #ripple.style.someClass)
+	style: Record<string, string>;
+	server: ServerBlock;
 }
 
 export declare const ripple_namespace: RippleNamespace;

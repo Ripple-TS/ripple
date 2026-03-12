@@ -422,22 +422,6 @@ export function convert_source_map_to_mappings(
 							loc: node.loc,
 							metadata: {},
 						};
-
-						if (node.metadata.source_name === '#ripple') {
-							// Suppress the private-identifier parse diagnostic while the user is
-							// still typing a namespace access like `#ripple.` for completions.
-							token.metadata.suppressedDiagnostics = [18016];
-						}
-
-						if (
-							node.metadata.source_name === '#ripple.server' ||
-							node.metadata.source_name === '#ripple.style'
-						) {
-							// Let TextMate own the coloring for these namespace forms.
-							// Their dedicated AST nodes otherwise cause semantic tokens to repaint
-							// the full '#ripple.server' / '#ripple.style' span after TS attaches.
-							token.mappingData = { ...mapping_data, semantic: false };
-						}
 					} else {
 						token = {
 							source: node.name,
@@ -445,12 +429,6 @@ export function convert_source_map_to_mappings(
 							loc: node.loc,
 							metadata: {},
 						};
-						if (node.name === '#ripple') {
-							// Suppress the private-identifier parse diagnostic while the user is
-							// still typing a namespace access like `#ripple.` for completions.
-							token.metadata.suppressedDiagnostics = [18016];
-						}
-						// No transformation - source and generated names are the same
 					}
 
 					if (node.metadata?.is_component) {
