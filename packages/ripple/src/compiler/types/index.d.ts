@@ -42,6 +42,7 @@ interface BaseNodeMetaData {
 	has_return?: boolean;
 	is_reactive?: boolean;
 	lone_return?: boolean;
+	forceMapping?: boolean;
 }
 
 interface FunctionMetaData extends BaseNodeMetaData {
@@ -54,8 +55,8 @@ interface FunctionMetaData extends BaseNodeMetaData {
 // Strip parent, loc, and range from TSESTree nodes to match @sveltejs/acorn-typescript output
 // acorn-typescript uses start/end instead of range, and loc is optional
 type AcornTSNode<T> = Omit<T, 'parent' | 'loc' | 'range' | 'expression'> & {
-	start: number;
-	end: number;
+	start?: number;
+	end?: number;
 	loc?: AST.SourceLocation;
 	range?: AST.BaseNode['range'];
 	metadata: BaseNodeMetaData;
@@ -168,12 +169,16 @@ declare module 'estree' {
 		Text: TextNode;
 		JSXEmptyExpression: ESTreeJSX.JSXEmptyExpression;
 		ParenthesizedExpression: ParenthesizedExpression;
+		TSAsExpression: TSAsExpression;
 	}
 
 	// Missing estree type
 	interface ParenthesizedExpression extends AST.BaseNode {
 		type: 'ParenthesizedExpression';
 		expression: AST.Expression;
+		metadata: BaseNodeMetaData & {
+			skipParenthesisMapping?: boolean;
+		};
 	}
 
 	interface Comment {
@@ -424,6 +429,8 @@ declare module 'estree' {
 	}
 
 	export type RippleAttribute = AST.Attribute | AST.SpreadAttribute | AST.RefAttribute;
+
+	export type RippleStatement = AST.Statement | TSESTree.Statement;
 
 	export type NodeWithChildren = AST.Element | AST.TsxCompat;
 

@@ -547,9 +547,38 @@ const visitors = {
 	},
 
 	StyleIdentifier(node, context) {
-		const id = b.id(STYLE_IDENTIFIER);
-		id.metadata.source_name = '#ripple.style';
-		return { ...node, ...id };
+		if (context.state.to_ts) {
+			const namespace_alias = set_hidden_import_from_ripple(
+				RIPPLE_NAMESPACE_IDENTIFIER,
+				context,
+				true,
+			);
+
+			// IMPORTANT! only add location to the ParenthesizedExpression
+			// otherwise it will cause partial #ripple mapping
+			const namespace_parens = b.parenthesized(
+				b.ts_as(b.id(namespace_alias), b.ts_type_reference(b.id('RippleNamespaceWithStyle'))),
+				slice_loc_info(/** @type {AST.NodeWithLocation} */ (node), 0, '#ripple'.length),
+			);
+			namespace_parens.metadata = {
+				...namespace_parens.metadata,
+				forceMapping: true,
+				skipParenthesisMapping: true,
+			};
+
+			return b.member(
+				namespace_parens,
+				b.id(
+					'style',
+					slice_loc_info(/** @type {AST.NodeWithLocation} */ (node), '#ripple.'.length),
+				),
+				false,
+				false,
+				/** @type {AST.NodeWithLocation} */ (node),
+			);
+		}
+
+		return { ...node, ...b.id(STYLE_IDENTIFIER) };
 	},
 
 	ImportDeclaration(node, context) {
@@ -1928,10 +1957,14 @@ const visitors = {
 			var_method_type = 'const';
 		}
 
-		if (node.css !== null && node.metadata.styleIdentifierPresent) {
+		if (node.metadata.styleIdentifierPresent) {
 			/** @type {AST.Property[]} */
 			const properties = [];
-			if (node.metadata.topScopedClasses && node.metadata.topScopedClasses.size > 0) {
+			if (
+				node.css !== null &&
+				node.metadata.topScopedClasses &&
+				node.metadata.topScopedClasses.size > 0
+			) {
 				const hash = b[var_method_type](b.id(CSS_HASH_IDENTIFIER), b.literal(node.css.hash));
 				style_statements.push(hash);
 				for (const [className] of node.metadata.topScopedClasses) {
@@ -1946,6 +1979,37 @@ const visitors = {
 						),
 					);
 				}
+			}
+			if (context.state.to_ts) {
+				const namespace_alias = set_hidden_import_from_ripple(
+					RIPPLE_NAMESPACE_IDENTIFIER,
+					context,
+					true,
+				);
+
+				// This will create a type that we'll use for type casting #ripple.style access, e.g.
+				// type RippleNamespaceWithStyle = Omit<typeof _$__u0023_ripple, 'style'> &	{ style: typeof _$__u0023_style };
+				const ripple_type_alias = b.ts_type_alias(
+					b.id('RippleNamespaceWithStyle'),
+					b.ts_intersection_type([
+						b.ts_type_reference(
+							b.id('Omit'),
+							b.ts_type_parameter_instantiation([
+								b.ts_type_query(b.id(namespace_alias)),
+								b.ts_literal_type(b.literal('style')),
+							]),
+						),
+						b.ts_type_literal([
+							b.ts_property_signature(
+								b.id('style'),
+								b.ts_type_annotation(b.ts_type_query(b.id(STYLE_IDENTIFIER))),
+							),
+						]),
+					]),
+				);
+				style_statements.push(
+					/** @type {AST.Statement} */ (/** @type {unknown} */ (ripple_type_alias)),
+				);
 			}
 			style_statements.push(b[var_method_type](b.id(STYLE_IDENTIFIER), b.object(properties)));
 		}
@@ -4590,6 +4654,16 @@ function create_tsx_with_typescript_support(comments) {
 				context.write(' ');
 				context.visit(node.value.body);
 			}
+		},
+		ParenthesizedExpression(node, context) {
+			if (!node.loc) {
+				base_tsx.ParenthesizedExpression?.(node, context);
+				return;
+			}
+			const loc = /** @type {AST.SourceLocation} */ (node.loc);
+			context.location(loc.start.line, loc.start.column);
+			base_tsx.ParenthesizedExpression?.(node, context);
+			context.location(loc.end.line, loc.end.column);
 		},
 		TSAsExpression(node, context) {
 			if (!node.loc) {

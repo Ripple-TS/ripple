@@ -1557,6 +1557,14 @@ export function convert_source_map_to_mappings(
 				}
 				return;
 			} else if (node.type === 'ParenthesizedExpression') {
+				if (node.metadata.forceMapping && node.loc) {
+					const mapping = get_mapping_from_node(node, src_to_gen_map, gen_line_offsets);
+					if (node.metadata.skipParenthesisMapping) {
+						mapping.generatedOffsets[0] = mapping.generatedOffsets[0] + 1; // Skip the opening parenthesis
+						mapping.generatedLengths[0] = mapping.generatedLengths[0] - 2; // Skip both parentheses
+					}
+					mappings.push(mapping);
+				}
 				// Visit the wrapped expression
 				if (node.expression) {
 					visit(node.expression);

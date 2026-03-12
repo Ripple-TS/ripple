@@ -633,7 +633,12 @@ const visitors = {
 	},
 
 	StyleIdentifier(node, context) {
+		const component = is_inside_component(context, true);
 		const parent = context.path.at(-1);
+
+		if (component) {
+			component.metadata.styleIdentifierPresent = true;
+		}
 
 		// #ripple.style must only be used for property access (e.g., #ripple.style.className)
 		if (!parent || parent.type !== 'MemberExpression' || parent.object !== node) {
@@ -748,20 +753,20 @@ const visitors = {
 			if (topScopedClasses.size > 0) {
 				node.metadata.topScopedClasses = topScopedClasses;
 			}
+		}
 
-			if (metadata.styleClasses.size > 0) {
-				node.metadata.styleClasses = metadata.styleClasses;
+		if (metadata.styleClasses.size > 0) {
+			node.metadata.styleClasses = metadata.styleClasses;
 
-				for (const [className, property] of metadata.styleClasses) {
-					if (!topScopedClasses?.has(className)) {
-						error(
-							`CSS class ".${className}" does not exist as a stand-alone class in ${node.id?.name ? node.id.name : "this component's"} <style> block`,
-							context.state.analysis.module.filename,
-							property,
-							context.state.loose ? context.state.analysis.errors : undefined,
-							context.state.analysis.comments,
-						);
-					}
+			for (const [className, property] of metadata.styleClasses) {
+				if (!topScopedClasses?.has(className)) {
+					error(
+						`CSS class ".${className}" does not exist as a stand-alone class in ${node.id?.name ? node.id.name : "this component's"} <style> block`,
+						context.state.analysis.module.filename,
+						property,
+						context.state.loose ? context.state.analysis.errors : undefined,
+						context.state.analysis.comments,
+					);
 				}
 			}
 		}
