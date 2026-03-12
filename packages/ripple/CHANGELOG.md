@@ -1,5 +1,18 @@
 # ripple
 
+## 0.3.3
+
+### Patch Changes
+
+- [#804](https://github.com/Ripple-TS/ripple/pull/804)
+  [`cd1073f`](https://github.com/Ripple-TS/ripple/commit/cd1073f7cc8085c8b200ada4faf77b2c35b10c6c)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Editor support for
+  #ripple.server
+
+- Updated dependencies
+  [[`cd1073f`](https://github.com/Ripple-TS/ripple/commit/cd1073f7cc8085c8b200ada4faf77b2c35b10c6c)]:
+  - ripple@0.3.3
+
 ## 0.3.2
 
 ### Patch Changes
