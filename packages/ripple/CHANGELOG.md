@@ -1,5 +1,18 @@
 # ripple
 
+## 0.3.2
+
+### Patch Changes
+
+- [#802](https://github.com/Ripple-TS/ripple/pull/802)
+  [`42524c9`](https://github.com/Ripple-TS/ripple/commit/42524c9551b1950d7f7a0336ce396fc312b6fe51)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Editor support for
+  #ripple.style
+
+- Updated dependencies
+  [[`42524c9`](https://github.com/Ripple-TS/ripple/commit/42524c9551b1950d7f7a0336ce396fc312b6fe51)]:
+  - ripple@0.3.2
+
 ## 0.3.1
 
 ### Patch Changes

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.2
+
+### Patch Changes
+
+- Updated dependencies
+  [[`42524c9`](https://github.com/Ripple-TS/ripple/commit/42524c9551b1950d7f7a0336ce396fc312b6fe51)]:
+  - ripple@0.3.2
+  - @ripple-ts/language-server@0.3.2
+  - @ripple-ts/typescript-plugin@0.3.2
+
 ## 0.3.1
 
 ### Patch Changes
