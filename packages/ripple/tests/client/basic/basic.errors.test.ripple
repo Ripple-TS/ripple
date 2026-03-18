@@ -161,7 +161,7 @@ describe('basic client > errors', () => {
 		);
 	});
 
-	it('should throw error for await in client-side control-flow statements', () => {
+	it('should throw error for await inside client components', () => {
 		const code = `
 			export default component App() {
 				let data = 'initial';
@@ -174,7 +174,7 @@ describe('basic client > errors', () => {
 		`;
 		expect(() => {
 			compile(code, 'test.ripple', { mode: 'client' });
-		}).toThrow('`await` is not allowed in client-side control-flow statements');
+		}).toThrow('`await` is not allowed inside client components');
 	});
 
 	it('should throw error for while loop inside a component', () => {

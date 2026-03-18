@@ -1,7 +1,7 @@
 import { bindValue, flushSync, RippleArray } from 'ripple';
 
 describe('try block with catch and pending', () => {
-	it('catch block works when component throws before await with pending block', async () => {
+	it('catch block works when a child throws synchronously', async () => {
 		component App() {
 			try {
 				<ThrowingChild />
@@ -14,12 +14,9 @@ describe('try block with catch and pending', () => {
 
 		component ThrowingChild() {
 			throw new Error('sync error');
-			let data = await Promise.resolve('hello');
-			<p>{data}</p>
 		}
 
 		render(App);
-
 		await new Promise((resolve) => setTimeout(resolve, 0));
 		flushSync();
 
@@ -27,10 +24,10 @@ describe('try block with catch and pending', () => {
 		expect(container.innerHTML).not.toContain('loading...');
 	});
 
-	it('catch block works when component throws after await with pending block', async () => {
+	it('catch block works when component throws after trackAsync with pending block', async () => {
 		component App() {
 			try {
-				<ThrowingAfterAwait />
+				<ThrowingAfterAsync />
 			} pending {
 				<p>{'loading...'}</p>
 			} catch (err) {
@@ -38,8 +35,8 @@ describe('try block with catch and pending', () => {
 			}
 		}
 
-		component ThrowingAfterAwait() {
-			let data = await Promise.resolve('hello');
+		component ThrowingAfterAsync() {
+			let data = #ripple.trackAsync(() => Promise.resolve('hello'));
 			throw new Error('error after await');
 			<p>{data}</p>
 		}
@@ -53,11 +50,11 @@ describe('try block with catch and pending', () => {
 		expect(container.innerHTML).not.toContain('loading...');
 	});
 
-	it('catch block works with try/catch/pending when async body rejects', async () => {
+	it('catch block works when trackAsync rejects', async () => {
 		component App() {
 			try {
-				let data = await Promise.reject(new Error('rejected'));
-				<p>{data}</p>
+				let data = #ripple.trackAsync(() => Promise.reject(new Error('rejected')));
+				<p>{@data}</p>
 			} pending {
 				<p>{'loading...'}</p>
 			} catch (err) {
@@ -66,7 +63,6 @@ describe('try block with catch and pending', () => {
 		}
 
 		render(App);
-
 		await new Promise((resolve) => setTimeout(resolve, 0));
 		flushSync();
 
@@ -77,21 +73,18 @@ describe('try block with catch and pending', () => {
 
 describe('try block', () => {
 	it(
-		'does not compile ref binds as async callbacks inside try/pending async branches',
+		'does not compile ref binds as async callbacks inside try/pending trackAsync branches',
 		async () => {
 			component App() {
+				let value = #ripple.track(1);
+
 				try {
-					<Child />
+					let loaded = #ripple.trackAsync(() => Promise.resolve(@value + 1));
+					<input type="number" {ref bindValue(value)} />
+					<span>{@loaded}</span>
 				} pending {
 					<p>{'loading...'}</p>
 				}
-			}
-
-			component Child() {
-				let value = #ripple.track(1);
-				await Promise.resolve(@value + 1);
-
-				<input type="number" {ref bindValue(value)} />
 			}
 
 			render(App);
@@ -101,11 +94,12 @@ describe('try block', () => {
 
 			const input = container.querySelector('input') as HTMLInputElement | null;
 			expect(input?.value).toBe('1');
+			expect(container.innerHTML).toContain('<span>2</span>');
 			expect(container.innerHTML).not.toContain('loading...');
 		},
 	);
 
-	it('does not crash when async component is used inside try/pending', async () => {
+	it('does not crash when trackAsync is used to render a list inside try/pending', async () => {
 		component App() {
 			try {
 				<AsyncChild />
@@ -115,17 +109,16 @@ describe('try block', () => {
 		}
 
 		component AsyncChild() {
-			let data = await Promise.resolve(['a', 'b', 'c']);
+			let data = #ripple.trackAsync(() => Promise.resolve(['a', 'b', 'c']));
 
 			<ul>
-				for (let item of data) {
+				for (let item of @data) {
 					<li>{item}</li>
 				}
 			</ul>
 		}
 
 		render(App);
-
 		await new Promise((resolve) => setTimeout(resolve, 0));
 		flushSync();
 
@@ -150,8 +143,8 @@ describe('try block', () => {
 			}
 
 			component FilteredList({ query }: { query: any }) {
-				let items = await Promise.resolve(['apple', 'banana', 'cherry']);
-				let list = RippleArray.from(items);
+				let items = #ripple.trackAsync(() => Promise.resolve(['apple', 'banana', 'cherry']));
+				let list = RippleArray.from(@items);
 				let filtered = #ripple.track(() => list.filter((item: string) => item.includes(@query)));
 
 				<ul>
@@ -171,12 +164,12 @@ describe('try block', () => {
 		},
 	);
 
-	it('if test condition does not become async within try/pending', async () => {
+	it('if test condition stays synchronous once trackAsync has resolved', async () => {
 		component App() {
 			try {
-				let items = await Promise.resolve(['apple', 'banana', 'cherry']);
+				let items = #ripple.trackAsync(() => Promise.resolve(['apple', 'banana', 'cherry']));
 
-				if (items.includes('not-in-list')) {
+				if (@items.includes('not-in-list')) {
 					<p>{'not-in-list is in the list!'}</p>
 				} else {
 					<p>{'not-in-list is not in the list.'}</p>

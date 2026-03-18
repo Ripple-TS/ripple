@@ -682,6 +682,7 @@ function RipplePlugin(config) {
 							'#ripple.object',
 							'#ripple.track',
 							'#ripple.trackSplit',
+							'#ripple.trackAsync',
 							'#ripple.untrack',
 							'#ripple.effect',
 							'#ripple.context',
@@ -936,6 +937,7 @@ function RipplePlugin(config) {
 						'#ripple.object': 'RippleObject',
 						'#ripple.track': 'track',
 						'#ripple.trackSplit': 'trackSplit',
+						'#ripple.trackAsync': 'trackAsync',
 						'#ripple.untrack': 'untrack',
 						'#ripple.effect': 'effect',
 						'#ripple.context': 'Context',
@@ -2833,6 +2835,16 @@ function get_comment_handlers(source, comments, index = 0) {
 					next();
 
 					if (comments[0]) {
+						if (node.type === 'Program' && node.body.length === 0) {
+							// Collect all comments in an empty program (file with only comments)
+							while (comments.length) {
+								const comment = /** @type {AST.CommentWithLocation} */ (comments.shift());
+								(node.innerComments ||= []).push(comment);
+							}
+							if (node.innerComments && node.innerComments.length > 0) {
+								return;
+							}
+						}
 						if (node.type === 'BlockStatement' && node.body.length === 0) {
 							// Collect all comments that fall within this empty block
 							while (
@@ -2891,38 +2903,40 @@ function get_comment_handlers(source, comments, index = 0) {
 							let isArgument = false;
 							let isSwitchCaseSibling = false;
 
-							if (
-								parent.type === 'BlockStatement' ||
-								parent.type === 'Program' ||
-								parent.type === 'Component' ||
-								parent.type === 'ClassBody'
-							) {
-								node_array = parent.body;
-							} else if (parent.type === 'SwitchStatement') {
-								node_array = parent.cases;
-								isSwitchCaseSibling = true;
-							} else if (parent.type === 'SwitchCase') {
-								node_array = parent.consequent;
-							} else if (
-								parent.type === 'ArrayExpression' ||
-								parent.type === 'RippleArrayExpression'
-							) {
-								node_array = parent.elements;
-							} else if (
-								parent.type === 'ObjectExpression' ||
-								parent.type === 'RippleObjectExpression'
-							) {
-								node_array = parent.properties;
-							} else if (
-								parent.type === 'FunctionDeclaration' ||
-								parent.type === 'FunctionExpression' ||
-								parent.type === 'ArrowFunctionExpression'
-							) {
-								node_array = parent.params;
-								isParam = true;
-							} else if (parent.type === 'CallExpression' || parent.type === 'NewExpression') {
-								node_array = parent.arguments;
-								isArgument = true;
+							if (parent) {
+								if (
+									parent.type === 'BlockStatement' ||
+									parent.type === 'Program' ||
+									parent.type === 'Component' ||
+									parent.type === 'ClassBody'
+								) {
+									node_array = parent.body;
+								} else if (parent.type === 'SwitchStatement') {
+									node_array = parent.cases;
+									isSwitchCaseSibling = true;
+								} else if (parent.type === 'SwitchCase') {
+									node_array = parent.consequent;
+								} else if (
+									parent.type === 'ArrayExpression' ||
+									parent.type === 'RippleArrayExpression'
+								) {
+									node_array = parent.elements;
+								} else if (
+									parent.type === 'ObjectExpression' ||
+									parent.type === 'RippleObjectExpression'
+								) {
+									node_array = parent.properties;
+								} else if (
+									parent.type === 'FunctionDeclaration' ||
+									parent.type === 'FunctionExpression' ||
+									parent.type === 'ArrowFunctionExpression'
+								) {
+									node_array = parent.params;
+									isParam = true;
+								} else if (parent.type === 'CallExpression' || parent.type === 'NewExpression') {
+									node_array = parent.arguments;
+									isArgument = true;
+								}
 							}
 
 							if (node_array && Array.isArray(node_array)) {

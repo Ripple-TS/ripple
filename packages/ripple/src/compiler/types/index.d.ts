@@ -25,6 +25,7 @@ interface BaseNodeMetaData {
 		| '#ripple.effect'
 		| '#ripple.track'
 		| '#ripple.trackSplit'
+		| '#ripple.trackAsync'
 		| '#ripple.untrack'
 		| '#ripple.url'
 		| '#ripple.urlSearchParams'
@@ -73,6 +74,10 @@ interface FunctionLikeTS {
 
 // Ripple augmentation for ESTree function nodes
 declare module 'estree' {
+	interface Program {
+		innerComments?: Comment[] | undefined;
+	}
+
 	interface FunctionDeclaration extends FunctionLikeTS {
 		metadata: FunctionMetaData;
 	}
@@ -1344,6 +1349,7 @@ export interface TransformClientState extends BaseState {
 	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
 	skip_children_traversal: boolean;
 	return_flags?: Map<AST.ReturnStatement, { name: string; tracked: boolean }>;
+	track_async_hoists?: Map<AST.CallExpression, { hoist_name: string; local_name: string }>;
 }
 
 /** Override zimmerframe types and provide our own */

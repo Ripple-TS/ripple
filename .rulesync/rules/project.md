@@ -114,8 +114,9 @@ Source Code (.ripple) → Parse → Analyze → Transform → Output (JS + CSS)
   (RippleArray), `#ripple.object()` (RippleObject), `#ripple.url()` (RippleURL),
   `#ripple.urlSearchParams()` (RippleURLSearchParams), `#ripple.Date()`
   (RippleDate), `#ripple.Context()` (RippleContext), `#ripple.mediaQuery()`
-  (MediaQuery) `#ripple.track()` (track()), `#ripple.trackSplit()` (trackSplit())
-  `#ripple.untrack()` (untrack()), `#ripple.effect()` (effect()),
+  (MediaQuery) `#ripple.track()` (track()), `#ripple.trackAsync()` (trackAsync())
+  `#ripple.trackSplit()` (trackSplit()) `#ripple.untrack()` (untrack()),
+  `#ripple.effect()` (effect()),
 - `#style` identifier for scoped CSS classes
 
 **Output:** ESTree-compatible AST with Ripple extensions

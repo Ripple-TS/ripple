@@ -163,6 +163,7 @@ const DOM_PROPERTIES = [
 	'disableRemotePlayback',
 ];
 
+// Omits track, trackSplit and trackAsync are they're handled separately
 /** @type {Record<string, string>} */
 const RIPPLE_NAMESPACE_CALL_NAME = {
 	'#ripple.url': 'ripple_url',
@@ -299,11 +300,14 @@ export function is_ripple_track_call(callee, context) {
 	if (callee.type === 'Super') return false;
 
 	return (
-		(callee.type === 'Identifier' && (callee.name === 'track' || callee.name === 'trackSplit')) ||
+		(callee.type === 'Identifier' &&
+			(callee.name === 'track' || callee.name === 'trackSplit' || callee.name === 'trackAsync')) ||
 		(callee.type === 'MemberExpression' &&
 			callee.object.type === 'Identifier' &&
 			callee.property.type === 'Identifier' &&
-			(callee.property.name === 'track' || callee.property.name === 'trackSplit') &&
+			(callee.property.name === 'track' ||
+				callee.property.name === 'trackSplit' ||
+				callee.property.name === 'trackAsync') &&
 			!callee.computed &&
 			is_ripple_import(callee, context))
 	);

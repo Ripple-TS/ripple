@@ -7,17 +7,15 @@ import {
 	destroy_non_branch_children,
 	effect,
 	is_destroyed,
-	render,
+	refresh_branch,
 } from './blocks.js';
 import {
-	ASYNC_BLOCK,
 	BLOCK_HAS_RUN,
 	BRANCH_BLOCK,
 	DERIVED,
 	COMPUTED_PROPERTY,
 	CONTAINS_TEARDOWN,
 	CONTAINS_UPDATE,
-	DEFERRED,
 	DESTROYED,
 	EFFECT_BLOCK,
 	PAUSED,
@@ -28,8 +26,10 @@ import {
 	REF_PROP,
 	TRACKED_OBJECT,
 	DEFAULT_NAMESPACE,
+	DERIVED_UPDATED,
+	SUSPENSE_PENDING,
 } from './constants.js';
-import { capture, suspend } from './try.js';
+import { begin_boundary_request, complete_boundary_request, get_pending_boundary } from './try.js';
 import {
 	define_property,
 	get_descriptor,
@@ -74,6 +74,8 @@ let queued_microtasks = [];
 let flush_count = 0;
 /** @type {null | Dependency} */
 let active_dependency = null;
+/** @type {null | Block} */
+let active_async_source_block = null;
 
 export let tracking = false;
 export let teardown = false;
@@ -187,15 +189,234 @@ function destroy_computed_children(computed) {
 }
 
 /**
+ * @param {any} value
+ * @returns {value is PromiseLike<any>}
+ */
+function is_promise_like(value) {
+	return (
+		(typeof value === 'object' || typeof value === 'function') &&
+		value !== null &&
+		typeof value.then === 'function'
+	);
+}
+
+/**
+ * @param {any} value
+ * @returns {{ promise: PromiseLike<any>, abort_controller: AbortController | null } | null}
+ */
+function get_async_track_result(value) {
+	if (is_promise_like(value)) {
+		return { promise: value, abort_controller: null };
+	}
+
+	if (typeof value === 'object' && value !== null && is_promise_like(value.promise)) {
+		return {
+			promise: value.promise,
+			abort_controller:
+				typeof value.abortController === 'object' && value.abortController !== null
+					? value.abortController
+					: null,
+		};
+	}
+
+	return null;
+}
+
+/**
+ * @param {Derived} computed
+ * @param {unknown} [abort_reason]
+ * @returns {void}
+ */
+function clear_async_request(computed, abort_reason) {
+	var abort_controller = computed.aa;
+
+	if (abort_reason !== undefined && abort_controller?.signal.aborted === false) {
+		abort_controller.abort(abort_reason);
+	}
+
+	if (computed.aq) {
+		complete_boundary_request(computed.at, computed.ai, false);
+	}
+
+	computed.aa = null;
+	computed.ap = null;
+	computed.aq = false;
+	computed.as = null;
+	computed.at = null;
+	computed.ai = 0;
+}
+
+/**
+ * @param {Derived} computed
+ * @param {number} version
+ * @param {boolean} fulfilled
+ * @param {any} value
+ * @param {AbortController | null} abort_controller
+ * @returns {void}
+ */
+function settle_async_derived(computed, version, fulfilled, value, abort_controller) {
+	if (computed.av !== version) {
+		return;
+	}
+
+	var source_block = computed.as;
+	var boundary = computed.at;
+	var request_id = computed.ai;
+	var contributes_pending = computed.aq;
+	var is_internal_abort =
+		value === DERIVED_UPDATED || abort_controller?.signal?.reason === DERIVED_UPDATED;
+
+	computed.aa = null;
+	computed.ap = null;
+	computed.aq = false;
+	computed.as = null;
+	computed.at = null;
+	computed.ai = 0;
+
+	if (
+		source_block === null ||
+		is_destroyed(source_block) ||
+		(boundary !== null && is_destroyed(boundary))
+	) {
+		return;
+	}
+
+	if (fulfilled) {
+		var has_changed = value !== computed.__v || !computed.ah;
+
+		if (has_changed) {
+			computed.__v = value;
+			computed.c = increment_clock();
+		}
+		computed.ah = true;
+
+		if (contributes_pending) {
+			// complete_boundary_request may re-render content synchronously,
+			// which can destroy source_block. Only schedule_update if still alive.
+			complete_boundary_request(boundary, request_id);
+		}
+
+		if (has_changed) {
+			if (contributes_pending && computed.b !== null && !is_destroyed(computed.b)) {
+				refresh_branch(computed.b);
+			} else if (source_block !== null && !is_destroyed(source_block)) {
+				schedule_update(source_block);
+			}
+		}
+
+		return;
+	}
+
+	if (is_internal_abort) {
+		if (contributes_pending) {
+			complete_boundary_request(boundary, request_id, false);
+		}
+		return;
+	}
+
+	// For rejection: complete the pending request first, then route the error.
+	// complete_boundary_request may destroy source_block, so we route rejection
+	// through the boundary's catch handler directly when available.
+	if (contributes_pending) {
+		complete_boundary_request(boundary, request_id, false);
+	}
+
+	if (boundary !== null && !is_destroyed(boundary) && boundary.s && boundary.s.c) {
+		boundary.s.c(value);
+	} else if (!is_destroyed(source_block)) {
+		handle_error(value, source_block);
+	}
+}
+
+/**
+ * @param {Derived} computed
+ * @param {any} value
+ * @param {Block | null} source_block
+ * @returns {any}
+ */
+function normalize_derived_value(computed, value, source_block) {
+	// Temporarily disable tracking so that is_promise_like checks (which access .then
+	// on potentially Proxy-wrapped values like RippleArray) don't register spurious
+	// dependencies on the derived being evaluated.
+	var previous_tracking = tracking;
+	tracking = false;
+	var async_result = get_async_track_result(value);
+	tracking = previous_tracking;
+
+	if (async_result === null) {
+		// Function-valued track() stays a normal synchronous derived unless the callback
+		// returns a promise-like value or an explicit { promise, abortController } pair.
+		clear_async_request(computed, DERIVED_UPDATED);
+		computed.ah = true;
+		return value;
+	}
+
+	// When run_derived is called from dirty-checking (is_block_dirty → is_tracking_dirty →
+	// update_derived), there is no active block context so source_block will be null.
+	// Fall back to the previously stored source block from the last async request.
+	if (source_block === null && computed.as !== null && !is_destroyed(computed.as)) {
+		source_block = computed.as;
+	}
+
+	var boundary = source_block === null ? null : get_pending_boundary(source_block);
+
+	if (source_block !== null && boundary === null) {
+		throw new Error('Missing parent `try { ... } pending { ... }` statement');
+	}
+
+	clear_async_request(computed, DERIVED_UPDATED);
+
+	var version = computed.av + 1;
+	var contributes_pending = !computed.ah;
+	var request_id = contributes_pending && boundary !== null ? begin_boundary_request(boundary) : 0;
+	var abort_controller = async_result.abort_controller;
+
+	computed.av = version;
+	computed.aa = abort_controller;
+	computed.ap = async_result.promise;
+	computed.aq = contributes_pending;
+	computed.as = source_block;
+	computed.at = boundary;
+	computed.ai = request_id;
+
+	/**
+	 * @param {boolean} fulfilled
+	 * @param {any} result
+	 */
+	const settle = (fulfilled, result) => {
+		try {
+			settle_async_derived(computed, version, fulfilled, result, abort_controller);
+		} catch (error) {
+			queue_microtask(() => {
+				throw error;
+			});
+		}
+	};
+
+	async_result.promise.then(
+		(resolved) => {
+			settle(true, resolved);
+		},
+		(error) => {
+			settle(false, error);
+		},
+	);
+
+	return contributes_pending ? SUSPENSE_PENDING : computed.__v;
+}
+
+/**
  * @param {Derived} computed
  */
 function run_derived(computed) {
+	var source_block = active_async_source_block ?? active_block;
 	var previous_block = active_block;
 	var previous_reaction = active_reaction;
 	var previous_tracking = tracking;
 	var previous_dependency = active_dependency;
 	var previous_component = active_component;
 	var previous_is_mutating_allowed = is_mutating_allowed;
+	var previous_async_source_block = active_async_source_block;
 
 	try {
 		active_block = computed.b;
@@ -204,6 +425,7 @@ function run_derived(computed) {
 		active_dependency = null;
 		active_component = computed.co;
 		is_mutating_allowed = false;
+		active_async_source_block = source_block;
 
 		destroy_computed_children(computed);
 
@@ -211,7 +433,10 @@ function run_derived(computed) {
 
 		computed.d = active_dependency;
 
-		return value;
+		return normalize_derived_value(computed, value, source_block);
+	} catch (error) {
+		computed.d = active_dependency;
+		throw error;
 	} finally {
 		active_block = previous_block;
 		active_reaction = previous_reaction;
@@ -219,6 +444,7 @@ function run_derived(computed) {
 		active_dependency = previous_dependency;
 		active_component = previous_component;
 		is_mutating_allowed = previous_is_mutating_allowed;
+		active_async_source_block = previous_async_source_block;
 	}
 }
 
@@ -232,9 +458,11 @@ export function handle_error(error, block) {
 
 	while (current !== null) {
 		var state = current.s;
-		if ((current.f & TRY_BLOCK) !== 0 && state.c !== null) {
-			state.c(error);
-			return;
+		if ((current.f & TRY_BLOCK) !== 0) {
+			if (state.c !== null) {
+				state.c(error);
+				return;
+			}
 		}
 		current = current.p;
 	}
@@ -277,6 +505,7 @@ export function run_block(block) {
 
 		block.d = active_dependency;
 	} catch (error) {
+		block.d = active_dependency;
 		handle_error(error, block);
 	} finally {
 		active_block = previous_block;
@@ -331,6 +560,14 @@ export function derived(fn, block, get, set) {
 		return {
 			DO_NOT_ACCESS_THIS_OBJECT_DIRECTLY: true,
 			a: get || set ? { get, set } : empty_get_set,
+			aa: null,
+			ap: null,
+			aq: false,
+			as: null,
+			at: null,
+			ai: 0,
+			av: 0,
+			ah: false,
 			b: block || active_block,
 			blocks: null,
 			c: 0,
@@ -344,6 +581,14 @@ export function derived(fn, block, get, set) {
 
 	return {
 		a: get || set ? { get, set } : empty_get_set,
+		aa: null,
+		ap: null,
+		aq: false,
+		as: null,
+		at: null,
+		ai: 0,
+		av: 0,
+		ah: false,
 		b: block || active_block,
 		blocks: null,
 		c: 0,
@@ -374,6 +619,30 @@ export function track(v, get, set, b) {
 		return derived(v, b, get, set);
 	}
 	return tracked(v, b, get, set);
+}
+
+/** *
+ * @param {any} v
+ * @param {Block} b
+ * @returns {Derived}
+ */
+export function track_async(v, b) {
+	if (is_ripple_object(v)) {
+		return v;
+	}
+
+	var target_block = b || active_block;
+	if (target_block === null) {
+		throw new TypeError('trackAsync() requires a valid component context');
+	}
+
+	if (typeof v !== 'function') {
+		throw new TypeError(
+			'trackAsync() only accepts function arguments that return a promise or an object with a promise property',
+		);
+	}
+
+	return derived(v, target_block, undefined, undefined);
 }
 
 /**
@@ -493,77 +762,6 @@ export function is_block_dirty(block) {
 }
 
 /**
- * @param {() => Promise<any>} fn
- * @param {Block} block
- * @returns {Promise<Tracked>}
- */
-export function async_computed(fn, block) {
-	/** @type {Block | Derived | null} */
-	let parent = active_reaction;
-	var t = tracked(UNINITIALIZED, block);
-	/** @type {Promise<any>} */
-	var promise;
-	/** @type {Map<Tracked, {v: any, c: number}>} */
-	var new_values = new Map();
-
-	render(
-		() => {
-			var [current, deferred] = capture_deferred(() => (promise = fn()));
-
-			var restore = capture();
-			/** @type {(() => void) | undefined} */
-			var unsuspend;
-
-			if (deferred === null) {
-				unsuspend = suspend();
-			} else {
-				for (var i = 0; i < deferred.length; i++) {
-					var tracked = deferred[i];
-					new_values.set(tracked, { v: tracked.__v, c: tracked.c });
-				}
-			}
-
-			promise.then((v) => {
-				if (parent && is_destroyed(/** @type {Block} */ (parent))) {
-					return;
-				}
-				if (promise === current && t.__v !== v) {
-					restore();
-
-					if (t.__v === UNINITIALIZED) {
-						t.__v = v;
-					} else {
-						set(t, v);
-					}
-				}
-
-				if (deferred === null) {
-					unsuspend?.();
-				} else if (promise === current) {
-					for (var i = 0; i < deferred.length; i++) {
-						var tracked = deferred[i];
-						var stored = /** @type {{ v: any, c: number }} */ (new_values.get(tracked));
-						var { v, c } = stored;
-						tracked.__v = v;
-						tracked.c = c;
-						schedule_update(tracked.b);
-					}
-					new_values.clear();
-				}
-			});
-		},
-		null,
-		ASYNC_BLOCK,
-	);
-
-	return new Promise(async (resolve) => {
-		var p;
-		while (p !== (p = promise)) await p;
-		return resolve(t);
-	});
-}
-
-/**
  * @template V
  * @param {Function} fn
  * @param {V} v
@@ -576,29 +774,6 @@ function trigger_track_get(fn, v) {
 	} finally {
 		is_mutating_allowed = previous_is_mutating_allowed;
 	}
-}
-
-/**
- * @param {() => any} fn
- * @returns {[any, Tracked[] | null]}
- */
-function capture_deferred(fn) {
-	var value = fn();
-	/** @type {Tracked[] | null} */
-	var deferred = null;
-	var dependency = active_dependency;
-
-	while (dependency !== null) {
-		var tracked = dependency.t;
-		if ((tracked.f & DEFERRED) !== 0) {
-			deferred ??= [];
-			deferred.push(tracked);
-			break;
-		}
-		dependency = dependency.n;
-	}
-
-	return [value, deferred];
 }
 
 /**
@@ -786,6 +961,16 @@ function register_dependency(tracked) {
  */
 export function get_derived(computed) {
 	update_derived(computed);
+	// When an async-capable derived is read from a new block context (e.g. after a try
+	// branch re-render), update the stored source block so that future async requests
+	// from dirty-checking (where active_block is null) can find the correct boundary.
+	if (computed.ah && active_block !== null) {
+		var current_source = active_async_source_block ?? active_block;
+		if (current_source !== null && current_source !== computed.as) {
+			computed.as = current_source;
+			computed.at = get_pending_boundary(current_source);
+		}
+	}
 	if (tracking) {
 		register_dependency(computed);
 	}
@@ -827,6 +1012,16 @@ export function get_tracked(tracked) {
 		value = trigger_track_get(get, value);
 	}
 	return value;
+}
+
+/**
+ * Returns the raw internal value of a tracked/derived without registering dependencies.
+ * Used by compiled trackAsync guards to check for SUSPENSE_PENDING.
+ * @param {Tracked | Derived} tracked
+ * @returns {any}
+ */
+export function get_tracked_raw(tracked) {
+	return tracked.__v;
 }
 
 /**
@@ -1305,30 +1500,4 @@ export function exclude_from_object(obj, exclude_keys) {
 	}
 
 	return new_obj;
-}
-
-/**
- * @param {any} v
- * @returns {Promise<() => any>}
- */
-export async function maybe_tracked(v) {
-	var restore = capture();
-	let value;
-
-	if (is_ripple_object(v)) {
-		if ((v.f & DERIVED) !== 0) {
-			value = await async_computed(v.fn, v.b);
-		} else {
-			value = await async_computed(async () => {
-				return await get_tracked(v);
-			}, /** @type {Block} */ (active_block));
-		}
-	} else {
-		value = await v;
-	}
-
-	return () => {
-		restore();
-		return value;
-	};
 }

@@ -77,13 +77,13 @@ export async function App(__output) {
 
 		{
 			{
-				const comp = ChildComponent;
-				const args = [__output, { message: "hello" }];
+				const comp_unique_1 = ChildComponent;
+				const args_unique_1 = [__output, { message: "hello" }];
 
-				if (comp?.async) {
-					await comp(...args);
-				} else if (comp) {
-					comp(...args);
+				if (comp_unique_1?.async) {
+					await comp_unique_1(...args_unique_1);
+				} else if (comp_unique_1) {
+					comp_unique_1(...args_unique_1);
 				}
 			}
 		}

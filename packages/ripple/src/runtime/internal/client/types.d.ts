@@ -29,6 +29,14 @@ export type Tracked<V = any> = {
 export type Derived = {
 	DO_NOT_ACCESS_THIS_OBJECT_DIRECTLY?: true;
 	a: { get?: Function; set?: Function };
+	aa: AbortController | null;
+	ap: PromiseLike<any> | null;
+	aq: boolean;
+	as: Block | null;
+	at: Block | null;
+	ai: number;
+	av: number;
+	ah: boolean;
 	b: Block;
 	blocks: null | Block[];
 	c: number;

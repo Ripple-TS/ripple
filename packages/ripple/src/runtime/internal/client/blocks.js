@@ -20,13 +20,11 @@ import {
 	active_component,
 	active_reaction,
 	create_component_ctx,
-	handle_error,
 	is_block_dirty,
 	run_block,
 	run_teardown,
 	schedule_update,
 } from './runtime.js';
-import { suspend } from './try.js';
 
 /**
  * @param {Function} fn
@@ -88,24 +86,11 @@ export function branch(fn, flags = 0, state = null) {
 }
 
 /**
- * @param {() => any} fn
+ * @param {(block: Block) => any} fn
  */
-export function async(fn) {
-	return block(BRANCH_BLOCK, async () => {
-		var current_block = active_block;
-		const unsuspend = suspend();
-		try {
-			await fn();
-			// An extra microtask tick ensures `suspend()` → `pending` is visible for at
-			// least one full microtask cycle.  This matters during SSR hydration: the
-			// test (or any awaiter) gets to observe the pending state before `unsuspend`
-			// swaps back to the resolved content.
-			await Promise.resolve();
-			unsuspend();
-		} catch (error) {
-			handle_error(error, /** @type {Block} */ (current_block));
-		}
-	});
+export function branch_with_self(fn, flags = 0, state = null) {
+	var b = create_block(BRANCH_BLOCK | flags, () => fn(b), state);
+	return start_block(b);
 }
 
 /**
@@ -198,7 +183,7 @@ function push_block(block, parent_block) {
  * @param {Component} [co]
  * @returns {Block}
  */
-export function block(flags, fn, state = null, co) {
+function create_block(flags, fn, state = null, co) {
 	/** @type {Block} */
 	var block = {
 		co: co || active_component,
@@ -223,14 +208,32 @@ export function block(flags, fn, state = null, co) {
 		push_block(block, active_block);
 	}
 
-	if ((flags & EFFECT_BLOCK) !== 0) {
-		schedule_update(block);
+	return block;
+}
+
+/**
+ * @param {Block} b
+ */
+function start_block(b) {
+	if ((b.f & EFFECT_BLOCK) !== 0) {
+		schedule_update(b);
 	} else {
-		run_block(block);
-		block.f ^= BLOCK_HAS_RUN;
+		run_block(b);
+		b.f ^= BLOCK_HAS_RUN;
 	}
 
-	return block;
+	return b;
+}
+
+/**
+ * @param {number} flags
+ * @param {Function} fn
+ * @param {any} [state]
+ * @param {Component} [co]
+ * @returns {Block}
+ */
+export function block(flags, fn, state = null, co) {
+	return start_block(create_block(flags, fn, state, co));
 }
 
 /**
@@ -406,6 +409,24 @@ export function move_block(block, target) {
 		child = child.next;
 	}
 	return moved;
+}
+
+/**
+ * Refreshes a branch block by removing its DOM, destroying children, and re-running its function.
+ * Used by track_async to re-execute a branch when an async derived value changes.
+ * @param {Block} block
+ */
+export function refresh_branch(block) {
+	if (is_destroyed(block)) return;
+
+	var s = block.s;
+	if (s !== null) {
+		remove_block_dom(s.start, s.end);
+		block.s = null;
+	}
+
+	destroy_block_children(block, false);
+	run_block(block);
 }
 
 /**

@@ -38,7 +38,7 @@ function createAutoInsertPlugin() {
 		capabilities: {
 			autoInsertionProvider: {
 				triggerCharacters: ['>'],
-				configurationSections: ['ripple.autoClosingTags'],
+				configurationSections: ['ripple.autoClosingTags.enabled'],
 			},
 			documentOnTypeFormattingProvider: {
 				triggerCharacters: ['>'],

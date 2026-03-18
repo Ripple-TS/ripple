@@ -9,9 +9,9 @@
   "files.trimTrailingWhitespace": true,
   "prettier.requireConfig": true,
   "js/ts.implicitProjectConfig.checkJs": true,
-  "typescript.preferences.preferTypeOnlyAutoImports": true,
-  "typescript.preferences.useAliasesForRenames": false,
-  "javascript.preferences.importModuleSpecifierEnding": "js",
+  "js/ts.preferences.preferTypeOnlyAutoImports": true,
+  "js/ts.preferences.useAliasesForRenames": false,
+  "js/ts.preferences.importModuleSpecifierEnding": "js",
 
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",

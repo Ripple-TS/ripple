@@ -152,6 +152,8 @@ export interface Tracked<V> {
 	(props: V extends Component<infer P> ? P : never): V extends Component ? void : never;
 }
 
+export const DERIVED_UPDATED: unique symbol;
+
 // Helper type to infer component type from a function that returns a component
 // If T is a function returning a Component, extract the Component type itself, not the return type (void)
 export type InferComponent<T> = T extends () => infer R ? (R extends Component<any> ? R : T) : T;
@@ -195,6 +197,10 @@ export function track<V>(
 ): Tracked<InferComponent<V>>;
 // Overload for non-function values
 export function track<V>(value?: V, get?: (v: V) => V, set?: (next: V, prev: V) => V): Tracked<V>;
+
+export function trackAsync<V>(
+	value: () => PromiseLike<V> | { promise: PromiseLike<V>; abortController: AbortController },
+): Tracked<V>;
 
 export function trackSplit<V extends Props, const K extends readonly (keyof V)[]>(
 	value: V,
@@ -560,6 +566,7 @@ export interface RippleNamespace {
 	urlSearchParams: RippleURLSearchParamsCallable;
 	untrack: typeof untrack;
 	track: typeof track;
+	trackAsync: typeof trackAsync;
 	trackSplit: typeof trackSplit;
 	style: Record<string, string>;
 	server: ServerBlock;

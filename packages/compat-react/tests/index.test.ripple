@@ -1,4 +1,4 @@
-import { track, flushSync } from 'ripple';
+import { flushSync } from 'ripple';
 import { act, createContext, useContext, Suspense } from 'react';
 import { vi } from 'vitest';
 import { Ripple } from '@ripple-ts/compat-react';
@@ -412,7 +412,7 @@ describe('compat-react', () => {
 				}
 
 				component AsyncRippleChild() {
-					await sleep(1000);
+					#ripple.trackAsync(() => sleep(1000));
 					<div class="async-content">{'Loaded!'}</div>
 				}
 
@@ -462,7 +462,7 @@ describe('compat-react', () => {
 				}
 
 				component AsyncRippleChild() {
-					await sleep(1000);
+					#ripple.trackAsync(() => sleep(1000));
 
 					let count = #ripple.track(0);
 
@@ -533,7 +533,7 @@ describe('compat-react', () => {
 				component AsyncRippleChild({ page }: { page: number }) {
 					// Using await track(() => ...) to create a reactive async operation
 					// that re-suspends when the tracked dependency (page) changes
-					await track(() => {
+					#ripple.trackAsync(() => {
 						page;
 						return sleep(1000);
 					});
@@ -614,7 +614,7 @@ describe('compat-react', () => {
 
 				component AsyncRippleChild({ page }: { page: number }) {
 					// Simple static await - no tracked dependencies
-					await sleep(1000);
+					#ripple.trackAsync(() => sleep(1000));
 
 					<div class="content">{`Page ${page} loaded`}</div>
 				}

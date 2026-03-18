@@ -62,7 +62,7 @@
     "configuration": {
       "title": "Ripple",
       "properties": {
-        "ripple.autoClosingTags": {
+        "ripple.autoClosingTags.enabled": {
           "type": "boolean",
           "default": true,
           "description": "Automatically insert closing tags when typing '>' after a tag name. Note: For Ripple files, you may also need to set 'javascript.autoClosingTags' and 'typescript.autoClosingTags' to false to fully disable this feature."

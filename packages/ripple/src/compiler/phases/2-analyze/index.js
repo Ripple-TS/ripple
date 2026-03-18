@@ -1141,11 +1141,6 @@ const visitors = {
 		}
 
 		if (node.pending) {
-			// Try/pending blocks indicate async operations
-			if (state.metadata?.await === false) {
-				state.metadata.await = true;
-			}
-
 			node.metadata = {
 				...node.metadata,
 				has_template: false,
@@ -1534,35 +1529,19 @@ const visitors = {
 	AwaitExpression(node, context) {
 		const parent_block = get_parent_block_node(context);
 
-		if (is_inside_component(context)) {
-			if (context.state.metadata?.await === false) {
-				context.state.metadata.await = true;
-			}
-
-			if (
-				parent_block !== null &&
-				parent_block?.type !== 'Component' &&
-				!context.state.ancestor_server_block &&
-				!(
-					parent_block.type === 'TryStatement' &&
-					parent_block.pending &&
-					is_inside_try_block(parent_block, context)
-				)
-			) {
-				// we want the error to live on the `await` keyword vs the whole expression
-				const adjusted_node /** @type {AST.AwaitExpression} */ = {
-					...node,
-					end: /** @type {AST.NodeWithLocation} */ (node).start + 'await'.length,
-				};
-				error(
-					'`await` is not allowed in client-side control-flow statements',
-					context.state.analysis.module.filename,
-					adjusted_node,
-					context.state.loose ? context.state.analysis.errors : undefined,
-					context.state.analysis.comments,
-				);
-			}
-		}
+		// if (is_inside_component(context)) {
+		// 	const adjusted_node /** @type {AST.AwaitExpression} */ = {
+		// 		...node,
+		// 		end: /** @type {AST.NodeWithLocation} */ (node).start + 'await'.length,
+		// 	};
+		// 	error(
+		// 		'`await` is not allowed inside client components. Use `#ripple.trackAsync(() => ...)` with an upstream `try { ... } pending { ... }` boundary instead.',
+		// 		context.state.analysis.module.filename,
+		// 		adjusted_node,
+		// 		context.state.loose ? context.state.analysis.errors : undefined,
+		// 		context.state.analysis.comments,
+		// 	);
+		// }
 
 		if (parent_block) {
 			if (!parent_block.metadata) {

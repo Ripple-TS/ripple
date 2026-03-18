@@ -38,3 +38,7 @@ export const NAMESPACE_URI = {
 	svg: 'http://www.w3.org/2000/svg',
 	mathml: 'http://www.w3.org/1998/Math/MathML',
 };
+/** @type {unique symbol} */
+export const DERIVED_UPDATED = Symbol();
+/** @type {unique symbol} */
+export const SUSPENSE_PENDING = Symbol();

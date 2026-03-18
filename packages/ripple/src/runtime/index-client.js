@@ -21,6 +21,7 @@ import { COMMENT_NODE, HYDRATION_START } from '../constants.js';
 
 // Re-export JSX runtime functions for jsxImportSource: "ripple"
 export { jsx, jsxs, Fragment } from '../jsx-runtime.js';
+export { DERIVED_UPDATED } from './internal/client/constants.js';
 
 /**
  * @param {(anchor: Node, props: Record<string, any>, active_block: Block | null) => void} component
@@ -105,6 +106,7 @@ export { Context } from './internal/client/context.js';
 export {
 	flush_sync as flushSync,
 	track,
+	track_async as trackAsync,
 	track_split as trackSplit,
 	untrack,
 	tick,

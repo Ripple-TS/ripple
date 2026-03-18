@@ -1,11 +1,12 @@
 /** @import { Block } from '#client' */
 
 import {
-	branch,
+	branch_with_self,
 	create_try_block,
 	destroy_block,
 	is_destroyed,
 	move_block,
+	pause_block,
 	resume_block,
 } from './blocks.js';
 import { TRY_BLOCK } from './constants.js';
@@ -18,69 +19,85 @@ import {
 	skip_to_hydration_end,
 } from './hydration.js';
 import { get_next_sibling } from './operations.js';
-import {
-	active_block,
-	active_component,
-	active_reaction,
-	queue_microtask,
-	set_active_block,
-	set_active_component,
-	set_active_reaction,
-	set_tracking,
-	tracking,
-} from './runtime.js';
+import { active_block, queue_microtask, with_block } from './runtime.js';
 
 /**
  * @param {Node} node
- * @param {(anchor: Node) => void} fn
- * @param {((anchor: Node, error: any) => void) | null} catch_fn
- * @param {((anchor: Node) => void) | null} [pending_fn=null]
+ * @param {(anchor: Node, block?: Block) => void} fn
+ * @param {((anchor: Node, error: any, block?: Block) => void) | null} catch_fn
+ * @param {((anchor: Node, block?: Block) => void) | null} [pending_fn=null]
  * @returns {void}
  */
 export function try_block(node, fn, catch_fn, pending_fn = null) {
 	var anchor = node;
 	/** @type {Block | null} */
-	var b = null;
-	/** @type {Block | null} */
-	var suspended = null;
+	var current_block = null;
 	var pending_count = 0;
+	var request_version = 0;
+	/** @type {Set<number>} */
+	var active_requests = new Set();
+	/** @type {Block | null} */
+	var owner = null;
+	/** @type {Block | null} */
+	var suspended_block = null;
 	/** @type {DocumentFragment | null} */
 	var offscreen_fragment = null;
 	var has_resolved = false;
+	/** @type {'resolved' | 'pending' | 'catch'} */
+	var mode = 'resolved';
 
-	function handle_await() {
-		if (pending_count++ === 0) {
-			queue_microtask(() => {
-				if (b !== null && suspended === null) {
-					suspended = b;
-					offscreen_fragment = document.createDocumentFragment();
-					// Only move content if promise has resolved before (re-suspension)
-					if (has_resolved) {
-						move_block(b, offscreen_fragment);
-					}
+	/**
+	 * @param {(anchor: Node, block?: Block) => void} render_fn
+	 */
+	function replace_branch(render_fn) {
+		var parent_block = owner ?? active_block;
 
-					b = branch(() => {
-						/** @type {(anchor: Node) => void} */ (pending_fn)(anchor);
-					});
-				}
-			});
+		if (parent_block === null || is_destroyed(parent_block)) {
+			return;
 		}
 
-		return () => {
-			if (--pending_count === 0) {
-				has_resolved = true;
-				if (b !== null) {
-					destroy_block(b);
-				}
-				/** @type {ChildNode} */ (anchor).before(
-					/** @type {DocumentFragment} */ (offscreen_fragment),
-				);
-				offscreen_fragment = null;
-				resume_block(/** @type {Block} */ (suspended));
-				b = suspended;
-				suspended = null;
-			}
-		};
+		if (current_block !== null) {
+			destroy_block(current_block);
+			current_block = null;
+		}
+
+		with_block(parent_block, () => {
+			current_block = branch_with_self((block) => {
+				render_fn(anchor, block);
+			});
+		});
+	}
+
+	function render_resolved() {
+		mode = 'resolved';
+		has_resolved = true;
+		replace_branch(fn);
+	}
+
+	function render_pending() {
+		if (pending_fn === null) {
+			return;
+		}
+
+		if (current_block !== null && suspended_block === null) {
+			suspended_block = current_block;
+			offscreen_fragment = document.createDocumentFragment();
+			move_block(current_block, offscreen_fragment);
+			pause_block(suspended_block);
+		}
+
+		var parent_block = owner ?? active_block;
+
+		if (parent_block === null || is_destroyed(parent_block)) {
+			return;
+		}
+
+		mode = 'pending';
+		with_block(parent_block, () => {
+			current_block = branch_with_self((block) => {
+				/** @type {(anchor: Node, block?: Block) => void} */ (pending_fn)(anchor, block);
+			});
+		});
 	}
 
 	/**
@@ -88,34 +105,97 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 	 * @returns {void}
 	 */
 	function handle_error(error) {
-		if (suspended !== null) {
-			destroy_block(suspended);
-			suspended = null;
+		pending_count = 0;
+		active_requests.clear();
+
+		if (suspended_block !== null) {
+			destroy_block(suspended_block);
+			suspended_block = null;
 			offscreen_fragment = null;
-			pending_count = 0;
 		}
 
-		if (b !== null) {
-			destroy_block(b);
-		}
-
-		b = branch(() => {
-			/** @type {(anchor: Node, error: any) => void} */ (catch_fn)(anchor, error);
+		mode = 'catch';
+		replace_branch(() => {
+			/** @type {(anchor: Node, error: any, block?: Block) => void} */ (catch_fn)(anchor, error);
 		});
 	}
 
+	function begin_request() {
+		var request_id = ++request_version;
+		active_requests.add(request_id);
+
+		if (pending_count++ === 0 && pending_fn !== null) {
+			queue_microtask(() => {
+				if (owner !== null && !is_destroyed(owner) && pending_count > 0 && mode !== 'pending') {
+					render_pending();
+				}
+			});
+		}
+
+		return request_id;
+	}
+
+	/**
+	 * @param {number} request_id
+	 * @param {boolean} [render_resolved_branch=true]
+	 * @returns {boolean}
+	 */
+	function complete_request(request_id, render_resolved_branch = true) {
+		if (!active_requests.delete(request_id)) {
+			return false;
+		}
+
+		pending_count--;
+
+		if (pending_count === 0) {
+			if (owner !== null && !is_destroyed(owner) && render_resolved_branch) {
+				if (mode !== 'pending' && !has_resolved) {
+					render_resolved();
+					return true;
+				}
+			}
+
+			if (owner !== null && !is_destroyed(owner) && pending_count === 0 && mode === 'pending') {
+				has_resolved ||= render_resolved_branch;
+
+				if (current_block !== null) {
+					destroy_block(current_block);
+					current_block = null;
+				}
+
+				if (suspended_block !== null) {
+					if (render_resolved_branch && offscreen_fragment !== null) {
+						/** @type {ChildNode} */ (anchor).before(offscreen_fragment);
+						resume_block(suspended_block);
+						current_block = suspended_block;
+					} else if (!render_resolved_branch) {
+						destroy_block(suspended_block);
+					}
+
+					offscreen_fragment = null;
+					suspended_block = null;
+					mode = render_resolved_branch ? 'resolved' : mode;
+				} else if (render_resolved_branch) {
+					render_resolved();
+					mode = 'resolved';
+				}
+			}
+		}
+
+		return true;
+	}
+
 	var state = {
-		a: pending_fn !== null ? handle_await : null,
+		a: pending_fn !== null,
+		b: begin_request,
+		r: complete_request,
 		c: catch_fn !== null ? handle_error : null,
 	};
 
 	if (hydrating && pending_fn !== null) {
 		// SSR emits <!--[-->_try <pending_html> <resolved_html> <!--]-->_try
 		// Advance past the opening marker, discard SSR content, and recreate fresh
-		// client-side DOM in non-hydrating mode.  The `_$_.async` wrapper in blocks.js
-		// adds an extra `await Promise.resolve()` before calling unsuspend(), which
-		// ensures the pending UI created by handle_await's microtask is observable for
-		// at least one event-loop tick before the resolved content replaces it.
+		// client-side DOM in non-hydrating mode.
 		hydrate_next(); // consume <!--[-->_try
 		var end = skip_to_hydration_end(); // find matching <!--]-->_try
 		// Remove SSR pending+resolved nodes that sit between the two markers
@@ -136,10 +216,8 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 		// Remember what was before anchor so we can find the first new node afterward.
 		var prev_sibling_before = anchor.previousSibling;
 
-		create_try_block(() => {
-			b = branch(() => {
-				fn(anchor);
-			});
+		owner = create_try_block(() => {
+			render_resolved();
 		}, state);
 
 		// fn(anchor) inserted new DOM immediately before `anchor`.
@@ -165,14 +243,31 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 		return;
 	}
 
-	create_try_block(() => {
-		b = branch(() => {
-			fn(anchor);
-		});
+	owner = create_try_block(() => {
+		render_resolved();
 	}, state);
 }
 
 /**
+ * @param {Block | null} block
+ * @returns {Block | null}
+ */
+export function get_pending_boundary(block) {
+	var current = block;
+
+	while (current !== null) {
+		var state = current.s;
+		if ((current.f & TRY_BLOCK) !== 0 && state.a !== null) {
+			return current;
+		}
+		current = current.p;
+	}
+
+	return null;
+}
+
+/**
+ * Still needed for tsx:react
  * @returns {() => void}
  */
 export function suspend() {
@@ -190,32 +285,23 @@ export function suspend() {
 }
 
 /**
- * @returns {void}
+ * @param {Block} boundary
+ * @returns {number}
  */
-function exit() {
-	set_tracking(false);
-	set_active_reaction(null);
-	set_active_block(null);
-	set_active_component(null);
+export function begin_boundary_request(boundary) {
+	return boundary.s.b();
 }
 
 /**
- * @returns {() => void}
+ * @param {Block | null} boundary
+ * @param {number} request_id
+ * @param {boolean} [render_resolved_branch=true]
+ * @returns {boolean}
  */
-export function capture() {
-	var previous_tracking = tracking;
-	var previous_block = active_block;
-	var previous_reaction = active_reaction;
-	var previous_component = active_component;
-
-	return () => {
-		set_tracking(previous_tracking);
-		set_active_block(previous_block);
-		set_active_reaction(previous_reaction);
-		set_active_component(previous_component);
-
-		queue_microtask(exit);
-	};
+export function complete_boundary_request(boundary, request_id, render_resolved_branch = true) {
+	return boundary !== null && !is_destroyed(boundary)
+		? boundary.s.r(request_id, render_resolved_branch)
+		: false;
 }
 
 /**
@@ -226,19 +312,4 @@ export function aborted() {
 		return true;
 	}
 	return is_destroyed(active_block);
-}
-
-/**
- * @template T
- * @param {Promise<T>} promise
- * @returns {Promise<() => T>}
- */
-export async function resume_context(promise) {
-	var restore = capture();
-	var value = await promise;
-
-	return () => {
-		restore();
-		return value;
-	};
 }
