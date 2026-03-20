@@ -647,44 +647,13 @@ const visitors = {
 		if (!context.state.to_ts) {
 			delete node.typeArguments;
 		}
-		const callee = node.callee;
-		const parent = context.path.at(-1);
-		const source_name = callee.type === 'Identifier' ? callee.metadata?.source_name : undefined;
-		const ripple_runtime_method = get_ripple_namespace_call_name(source_name);
-		const ripple_method_requires_block = ripple_namespace_requires_block(source_name);
 
 		if (context.state.metadata?.tracking === false) {
 			context.state.metadata.tracking = true;
 		}
 
-		if (!context.state.to_ts && ripple_runtime_method !== null) {
-			return {
-				...node,
-				callee: b.member(b.id('_$_'), b.id(ripple_runtime_method)),
-				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
-					...(ripple_method_requires_block ? [b.id('__block')] : []),
-					...node.arguments.map((arg) => context.visit(arg)),
-				]),
-			};
-		}
-
-		if (context.state.to_ts && source_name?.startsWith('#ripple.')) {
-			const property_name = source_name.replace('#ripple.', '');
-			const namespace_member = build_ripple_namespace_member(
-				property_name,
-				source_name,
-				/** @type {AST.NodeWithLocation} */ (callee),
-				context,
-			);
-
-			return {
-				...node,
-				callee: namespace_member,
-				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
-					node.arguments.map((arg) => context.visit(arg))
-				),
-			};
-		}
+		const callee = node.callee;
+		const parent = context.path.at(-1);
 
 		if (!context.state.to_ts && is_ripple_track_call(callee, context)) {
 			const track_method_name =
@@ -765,6 +734,39 @@ const visitors = {
 			}
 
 			return track_call;
+		}
+
+		const source_name = callee.type === 'Identifier' ? callee.metadata?.source_name : undefined;
+		const ripple_runtime_method = get_ripple_namespace_call_name(source_name);
+		const ripple_method_requires_block = ripple_namespace_requires_block(source_name);
+
+		if (!context.state.to_ts && ripple_runtime_method !== null) {
+			return {
+				...node,
+				callee: b.member(b.id('_$_'), b.id(ripple_runtime_method)),
+				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
+					...(ripple_method_requires_block ? [b.id('__block')] : []),
+					...node.arguments.map((arg) => context.visit(arg)),
+				]),
+			};
+		}
+
+		if (context.state.to_ts && source_name?.startsWith('#ripple.')) {
+			const property_name = source_name.replace('#ripple.', '');
+			const namespace_member = build_ripple_namespace_member(
+				property_name,
+				source_name,
+				/** @type {AST.NodeWithLocation} */ (callee),
+				context,
+			);
+
+			return {
+				...node,
+				callee: namespace_member,
+				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+					node.arguments.map((arg) => context.visit(arg))
+				),
+			};
 		}
 
 		// Check for more than two nested level calls, like #ripple.array.from()
@@ -3781,12 +3783,6 @@ function transform_children(children, context) {
 			state.init?.push(
 				/** @type {AST.Statement} */ (visit(node, { ...state, return_flags, metadata })),
 			);
-			if (metadata.await) {
-				state.init?.push(b.if(b.call('_$_.aborted'), b.return(null)));
-				if (state.metadata?.await === false) {
-					state.metadata.await = true;
-				}
-			}
 			// Emit UNINITIALIZED guards for trackAsync declarations
 			if (!state.to_ts) {
 				if (node.type === 'VariableDeclaration') {

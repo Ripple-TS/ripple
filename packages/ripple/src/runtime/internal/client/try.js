@@ -257,31 +257,13 @@ export function get_pending_boundary(block) {
 
 	while (current !== null) {
 		var state = current.s;
-		if ((current.f & TRY_BLOCK) !== 0 && state.a !== null) {
+		if ((current.f & TRY_BLOCK) !== 0 && state.a) {
 			return current;
 		}
 		current = current.p;
 	}
 
 	return null;
-}
-
-/**
- * Still needed for tsx:react
- * @returns {() => void}
- */
-export function suspend() {
-	var current = active_block;
-
-	while (current !== null) {
-		var state = current.s;
-		if ((current.f & TRY_BLOCK) !== 0 && state.a !== null) {
-			return state.a();
-		}
-		current = current.p;
-	}
-
-	throw new Error('Missing parent `try { ... } pending { ... }` statement');
 }
 
 /**

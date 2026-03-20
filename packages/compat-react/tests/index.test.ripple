@@ -585,8 +585,8 @@ describe('compat-react', () => {
 					flushSync();
 				});
 
-				// Should show loading again due to reactive async re-run
-				expect(container.querySelector('.loading')).toBeTruthy();
+				// Should not show loading again on subsequent reruns
+				expect(container.querySelector('.loading')).toBeFalsy();
 
 				// Advance timers to resolve the second async operation
 				await act(async () => {

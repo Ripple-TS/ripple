@@ -1529,19 +1529,19 @@ const visitors = {
 	AwaitExpression(node, context) {
 		const parent_block = get_parent_block_node(context);
 
-		// if (is_inside_component(context)) {
-		// 	const adjusted_node /** @type {AST.AwaitExpression} */ = {
-		// 		...node,
-		// 		end: /** @type {AST.NodeWithLocation} */ (node).start + 'await'.length,
-		// 	};
-		// 	error(
-		// 		'`await` is not allowed inside client components. Use `#ripple.trackAsync(() => ...)` with an upstream `try { ... } pending { ... }` boundary instead.',
-		// 		context.state.analysis.module.filename,
-		// 		adjusted_node,
-		// 		context.state.loose ? context.state.analysis.errors : undefined,
-		// 		context.state.analysis.comments,
-		// 	);
-		// }
+		if (is_inside_component(context)) {
+			const adjusted_node /** @type {AST.AwaitExpression} */ = {
+				...node,
+				end: /** @type {AST.NodeWithLocation} */ (node).start + 'await'.length,
+			};
+			error(
+				'`await` is not allowed inside client components. Use `#ripple.trackAsync(() => ...)` with an upstream `try { ... } pending { ... }` boundary instead.',
+				context.state.analysis.module.filename,
+				adjusted_node,
+				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		}
 
 		if (parent_block) {
 			if (!parent_block.metadata) {

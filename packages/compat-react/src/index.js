@@ -23,7 +23,7 @@ import {
 	tracked,
 	get_tracked,
 	handle_error,
-	suspend,
+	get_pending_boundary,
 	TRY_BLOCK,
 	destroy_block,
 	root,
@@ -58,7 +58,7 @@ function is_inside_try_pending(block) {
 	let current = block;
 
 	while (current) {
-		if (current.f & TRY_BLOCK && current.s.a !== null) {
+		if (current.f & TRY_BLOCK && current.s.a) {
 			return true;
 		}
 		current = current.p;
@@ -114,7 +114,12 @@ export function createReactCompat() {
 
 			function SuspenseHandler() {
 				useLayoutEffect(() => {
-					return with_block(e, () => suspend());
+					const boundary = get_pending_boundary(e);
+					if (boundary === null) return;
+					const request_id = boundary.s.b();
+					return () => {
+						boundary.s.r(request_id);
+					};
 				}, []);
 
 				return null;
@@ -232,22 +237,51 @@ export function Ripple({ component, props }) {
 		/** @type {any} */
 		const b = with_block(block, () => {
 			PortalContext.set({ portals, update });
-			const state = {
-				a() {
-					/** @type {((value?: unknown) => void) | undefined} */
-					let resolve;
-					const promise = new Promise((_resolve) => {
-						resolve = _resolve;
-					});
 
+			let pending_count = 0;
+			let request_version = 0;
+			/** @type {((value?: unknown) => void) | null} */
+			let resolve_fn = null;
+
+			function begin_request() {
+				const request_id = ++request_version;
+				pending_count++;
+
+				if (suspense_ref.current === null) {
+					const promise = new Promise((_resolve) => {
+						resolve_fn = _resolve;
+					});
 					suspense_ref.current = promise;
 					update((x) => x + 1);
+				}
 
-					return () => {
-						resolve?.();
-						suspense_ref.current = null;
-					};
-				},
+				return request_id;
+			}
+
+			/**
+			 * @param {number} request_id
+			 * @param {boolean} [render_resolved_branch=true]
+			 * @returns {boolean}
+			 */
+			function complete_request(request_id, render_resolved_branch = true) {
+				pending_count--;
+
+				if (pending_count <= 0) {
+					pending_count = 0;
+					if (resolve_fn !== null) {
+						resolve_fn();
+						resolve_fn = null;
+					}
+					suspense_ref.current = null;
+				}
+
+				return true;
+			}
+
+			const state = {
+				a: true,
+				b: begin_request,
+				r: complete_request,
 				c: null,
 			};
 

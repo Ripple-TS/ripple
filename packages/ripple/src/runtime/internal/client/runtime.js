@@ -7,7 +7,7 @@ import {
 	destroy_non_branch_children,
 	effect,
 	is_destroyed,
-	refresh_branch,
+	restart_async_branch,
 } from './blocks.js';
 import {
 	BLOCK_HAS_RUN,
@@ -298,7 +298,7 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
 
 		if (has_changed) {
 			if (contributes_pending && computed.b !== null && !is_destroyed(computed.b)) {
-				refresh_branch(computed.b);
+				restart_async_branch(computed.b);
 			} else if (source_block !== null && !is_destroyed(source_block)) {
 				schedule_update(source_block);
 			}

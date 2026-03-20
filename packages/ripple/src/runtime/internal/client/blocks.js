@@ -416,7 +416,7 @@ export function move_block(block, target) {
  * Used by track_async to re-execute a branch when an async derived value changes.
  * @param {Block} block
  */
-export function refresh_branch(block) {
+export function restart_async_branch(block) {
 	if (is_destroyed(block)) return;
 
 	var s = block.s;
