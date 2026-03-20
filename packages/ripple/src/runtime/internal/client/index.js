@@ -54,6 +54,7 @@ export {
 	update_pre_property,
 	track,
 	track_async,
+	is_tracked_pending,
 	track_split,
 	push_component,
 	pop_component,

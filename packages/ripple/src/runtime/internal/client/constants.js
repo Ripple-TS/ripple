@@ -42,3 +42,5 @@ export const NAMESPACE_URI = {
 export const DERIVED_UPDATED = Symbol();
 /** @type {unique symbol} */
 export const SUSPENSE_PENDING = Symbol();
+/** @type {unique symbol} */
+export const ASYNC_DERIVED_READ_THROWN = Symbol();

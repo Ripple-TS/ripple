@@ -177,6 +177,7 @@ const RIPPLE_NAMESPACE_CALL_NAME = {
 	'#ripple.untrack': 'untrack',
 	'#ripple.array': 'ripple_array',
 	'#ripple.object': 'ripple_object',
+	'#ripple.trackPending': 'is_tracked_pending',
 };
 
 /**

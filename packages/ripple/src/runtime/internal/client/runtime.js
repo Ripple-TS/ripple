@@ -10,6 +10,7 @@ import {
 	restart_async_branch,
 } from './blocks.js';
 import {
+	ASYNC_DERIVED_READ_THROWN,
 	BLOCK_HAS_RUN,
 	BRANCH_BLOCK,
 	DERIVED,
@@ -297,7 +298,7 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
 		}
 
 		if (has_changed) {
-			if (contributes_pending && computed.b !== null && !is_destroyed(computed.b)) {
+			if (computed.b !== null && !is_destroyed(computed.b)) {
 				restart_async_branch(computed.b);
 			} else if (source_block !== null && !is_destroyed(source_block)) {
 				schedule_update(source_block);
@@ -506,7 +507,13 @@ export function run_block(block) {
 		block.d = active_dependency;
 	} catch (error) {
 		block.d = active_dependency;
-		handle_error(error, block);
+		// When a derived read throws ASYNC_DERIVED_READ_THROWN, it means the
+		// derived is still SUSPENSE_PENDING. The dependency was already registered,
+		// so we swallow the throw and let the parent continue processing. When
+		// the derived settles, the block will be dirty and rerun automatically.
+		if (error !== ASYNC_DERIVED_READ_THROWN) {
+			handle_error(error, block);
+		}
 	} finally {
 		active_block = previous_block;
 		active_reaction = previous_reaction;
@@ -641,8 +648,20 @@ export function track_async(v, b) {
 			'trackAsync() only accepts function arguments that return a promise or an object with a promise property',
 		);
 	}
+	var d = derived(v, target_block, undefined, undefined);
+	update_derived(d);
+	return d;
+}
 
-	return derived(v, target_block, undefined, undefined);
+/**
+ * @param {Derived | Tracked} tracked
+ * @returns {boolean}
+ */
+export function is_tracked_pending(tracked) {
+	if (!is_ripple_object(tracked)) {
+		throw new TypeError('trackPending() only accepts tracked objects returned from trackAsync()');
+	}
+	return /** @type {Derived} */ (tracked).aq ?? false;
 }
 
 /**
@@ -974,12 +993,25 @@ export function get_derived(computed) {
 	if (tracking) {
 		register_dependency(computed);
 	}
-	var get = computed.a.get;
-	if (get !== undefined) {
-		computed.__v = trigger_track_get(get, computed.__v);
+
+	// When the derived is still pending (aq === true), throw to bail out of the
+	// current block so the rest of the component tree can continue processing
+	// (avoiding waterfalls). We check `aq` rather than `__v === SUSPENSE_PENDING`
+	// because users can temporarily overwrite `__v` on a derived, which would lose
+	// the pending indicator. `aq` is set by normalize_derived_value and cleared
+	// by settle_async_derived, so it reliably tracks the pending state.
+	if (computed.aq) {
+		throw ASYNC_DERIVED_READ_THROWN;
 	}
 
-	return computed.__v;
+	var value = computed.__v;
+	var get = computed.a.get;
+	if (get !== undefined) {
+		value = trigger_track_get(get, value);
+		computed.__v = value;
+	}
+
+	return value;
 }
 
 /**

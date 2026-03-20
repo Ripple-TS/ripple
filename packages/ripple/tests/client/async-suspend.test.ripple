@@ -259,13 +259,13 @@ describe('async suspense', () => {
 			expect(container.innerHTML).not.toContain('loading...');
 			expect(container.querySelectorAll('ul').length).toBe(1);
 			expect(container.querySelectorAll('pre').length).toBe(1);
-			// The stable RippleArray created from the first async result is reused, so
-			// only filtering by query changes the visible list.
+			// After re-fetch, the branch re-runs with the new data.
 			expect(container.innerHTML).toContain('avocado');
+			expect(container.innerHTML).toContain('blueberry');
+			expect(container.innerHTML).toContain('citrus');
 			expect(container.querySelector('pre')!.textContent).toBe('["avocado","blueberry","citrus"]');
-			// Old items that still match the filter remain, while non-matching ones disappear.
-			expect(container.innerHTML).toContain('apple');
-			expect(container.innerHTML).toContain('banana');
+			expect(container.innerHTML).not.toContain('apple');
+			expect(container.innerHTML).not.toContain('banana');
 			expect(container.innerHTML).not.toContain('cherry');
 		},
 	);
@@ -321,8 +321,12 @@ describe('async suspense', () => {
 		expect(container.innerHTML).not.toContain('loading...');
 		expect(container.querySelectorAll('ul').length).toBe(1);
 		expect(container.querySelectorAll('pre').length).toBe(1);
-		expect(container.innerHTML).toContain('apple');
-		expect(container.innerHTML).toContain('banana');
+		// After re-fetch, the branch re-runs with the new data.
+		expect(container.innerHTML).toContain('avocado');
+		expect(container.innerHTML).toContain('blueberry');
+		expect(container.innerHTML).toContain('citrus');
+		expect(container.innerHTML).not.toContain('apple');
+		expect(container.innerHTML).not.toContain('banana');
 		expect(container.innerHTML).not.toContain('cherry');
 		expect(container.querySelector('pre')!.textContent).toBe('["avocado","blueberry","citrus"]');
 	});

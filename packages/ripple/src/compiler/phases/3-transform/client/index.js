@@ -413,7 +413,8 @@ function ripple_namespace_requires_block(name) {
 		name !== undefined &&
 		name !== '#ripple.effect' &&
 		name !== '#ripple.untrack' &&
-		name !== '#ripple.context'
+		name !== '#ripple.context' &&
+		name !== '#ripple.trackPending'
 	);
 }
 
@@ -442,23 +443,6 @@ function SetStateForOutsideComponent(state, more_state = {}) {
 		update: null,
 		final: null,
 	});
-}
-
-/**
- * @param {TransformClientState} state
- * @param {string} var_name
- */
-function add_guard_to_track_async(state, var_name) {
-	state.init?.push(
-		b.if(
-			b.binary(
-				'===',
-				b.call('_$_.get_tracked_raw', b.id(var_name)),
-				b.member(b.id('_$_'), b.id('UNINITIALIZED')),
-			),
-			b.block([b.stmt(b.call('_$_.get', b.id(var_name))), b.return()]),
-		),
-	);
 }
 
 /** @type {Visitors<AST.Node, TransformClientState>} */
@@ -3783,34 +3767,8 @@ function transform_children(children, context) {
 			state.init?.push(
 				/** @type {AST.Statement} */ (visit(node, { ...state, return_flags, metadata })),
 			);
-			// Emit UNINITIALIZED guards for trackAsync declarations
 			if (!state.to_ts) {
-				if (node.type === 'VariableDeclaration') {
-					for (const declarator of node.declarations) {
-						if (
-							declarator.init?.type === 'CallExpression' &&
-							declarator.init.callee.type === 'Identifier' &&
-							declarator.init.callee.name === 'trackAsync' &&
-							declarator.id.type === 'Identifier'
-						) {
-							add_guard_to_track_async(state, declarator.id.name);
-						}
-					}
-				} else if (
-					node.type === 'ExpressionStatement' &&
-					node.expression.type === 'CallExpression' &&
-					node.expression.callee.type === 'Identifier' &&
-					node.expression.callee.name === 'trackAsync' &&
-					state.track_async_hoists &&
-					state.track_async_hoists.has(node.expression)
-				) {
-					add_guard_to_track_async(
-						state,
-						/** @type {NonNullable<ReturnType<NonNullable<TransformClientState['track_async_hoists']>['get']>>} */ (
-							state.track_async_hoists.get(node.expression)
-						).local_name,
-					);
-				} else if (node.type === 'ReturnStatement') {
+				if (node.type === 'ReturnStatement') {
 					const info = return_flags.get(node);
 					if (info && !accumulated_return_flags.some((f) => f.name === info.name)) {
 						accumulated_return_flags.push(info);

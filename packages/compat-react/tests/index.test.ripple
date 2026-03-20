@@ -412,8 +412,10 @@ describe('compat-react', () => {
 				}
 
 				component AsyncRippleChild() {
-					#ripple.trackAsync(() => sleep(1000));
-					<div class="async-content">{'Loaded!'}</div>
+					const result = #ripple.trackAsync(() => sleep(1000));
+					if (!#ripple.trackPending(result)) {
+						<div class="async-content">{'Loaded!'}</div>
+					}
 				}
 
 				function ReactChild() {
@@ -462,15 +464,17 @@ describe('compat-react', () => {
 				}
 
 				component AsyncRippleChild() {
-					#ripple.trackAsync(() => sleep(1000));
+					const result = #ripple.trackAsync(() => sleep(1000));
 
 					let count = #ripple.track(0);
 
-					<div>
-						<div class="async-content">{'Loaded!'}</div>
-						<div class="count">{@count}</div>
-						<button onClick={() => @count++}>{'Increment'}</button>
-					</div>
+					if (!#ripple.trackPending(result)) {
+						<div>
+							<div class="async-content">{'Loaded!'}</div>
+							<div class="count">{@count}</div>
+							<button onClick={() => @count++}>{'Increment'}</button>
+						</div>
+					}
 				}
 
 				function ReactChild() {
@@ -533,12 +537,13 @@ describe('compat-react', () => {
 				component AsyncRippleChild({ page }: { page: number }) {
 					// Using await track(() => ...) to create a reactive async operation
 					// that re-suspends when the tracked dependency (page) changes
-					#ripple.trackAsync(() => {
+					const result = #ripple.trackAsync(() => {
 						page;
 						return sleep(1000);
 					});
-
-					<div class="content">{`Page ${page} loaded`}</div>
+					if (!#ripple.trackPending(result)) {
+						<div class="content">{`Page ${page} loaded`}</div>
+					}
 				}
 
 				function ReactChild(props: { page: number }) {
@@ -614,9 +619,11 @@ describe('compat-react', () => {
 
 				component AsyncRippleChild({ page }: { page: number }) {
 					// Simple static await - no tracked dependencies
-					#ripple.trackAsync(() => sleep(1000));
+					const result = #ripple.trackAsync(() => sleep(1000));
 
-					<div class="content">{`Page ${page} loaded`}</div>
+					if (!#ripple.trackPending(result)) {
+						<div class="content">{`Page ${page} loaded`}</div>
+					}
 				}
 
 				function ReactChild(props: { page: number }) {
