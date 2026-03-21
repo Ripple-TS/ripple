@@ -994,13 +994,13 @@ export function get_derived(computed) {
 		register_dependency(computed);
 	}
 
-	// When the derived is still pending (aq === true), throw to bail out of the
+	// When the derived is still pending throw to bail out of the
 	// current block so the rest of the component tree can continue processing
-	// (avoiding waterfalls). We check `aq` rather than `__v === SUSPENSE_PENDING`
-	// because users can temporarily overwrite `__v` on a derived, which would lose
-	// the pending indicator. `aq` is set by normalize_derived_value and cleared
-	// by settle_async_derived, so it reliably tracks the pending state.
-	if (computed.aq) {
+	// (avoiding waterfalls). We check `__v === SUSPENSE_PENDING` rather than `aq`
+	// because users can temporarily overwrite `__v` on a derived, in which case
+	// the processing should continue without throwing since we assume that the values
+	// are consistent with the code's logic.
+	if (computed.__v === SUSPENSE_PENDING) {
 		throw ASYNC_DERIVED_READ_THROWN;
 	}
 
