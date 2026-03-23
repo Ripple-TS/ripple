@@ -1349,7 +1349,6 @@ export interface TransformClientState extends BaseState {
 	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
 	skip_children_traversal: boolean;
 	return_flags?: Map<AST.ReturnStatement, { name: string; tracked: boolean }>;
-	track_async_hoists?: Map<AST.CallExpression, { hoist_name: string; local_name: string }>;
 }
 
 /** Override zimmerframe types and provide our own */

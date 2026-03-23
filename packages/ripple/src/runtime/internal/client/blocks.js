@@ -86,14 +86,6 @@ export function branch(fn, flags = 0, state = null) {
 }
 
 /**
- * @param {(block: Block) => any} fn
- */
-export function branch_with_self(fn, flags = 0, state = null) {
-	var b = create_block(BRANCH_BLOCK | flags, () => fn(b), state);
-	return start_block(b);
-}
-
-/**
  * @param {Element} element
  * @param {() => (element: Element) => (void | (() => void))} get_fn
  * @returns {Block}
@@ -183,7 +175,7 @@ function push_block(block, parent_block) {
  * @param {Component} [co]
  * @returns {Block}
  */
-function create_block(flags, fn, state = null, co) {
+export function block(flags, fn, state = null, co) {
 	/** @type {Block} */
 	var block = {
 		co: co || active_component,
@@ -208,32 +200,14 @@ function create_block(flags, fn, state = null, co) {
 		push_block(block, active_block);
 	}
 
-	return block;
-}
-
-/**
- * @param {Block} b
- */
-function start_block(b) {
-	if ((b.f & EFFECT_BLOCK) !== 0) {
-		schedule_update(b);
+	if ((flags & EFFECT_BLOCK) !== 0) {
+		schedule_update(block);
 	} else {
-		run_block(b);
-		b.f ^= BLOCK_HAS_RUN;
+		run_block(block);
+		block.f ^= BLOCK_HAS_RUN;
 	}
 
-	return b;
-}
-
-/**
- * @param {number} flags
- * @param {Function} fn
- * @param {any} [state]
- * @param {Component} [co]
- * @returns {Block}
- */
-export function block(flags, fn, state = null, co) {
-	return start_block(create_block(flags, fn, state, co));
+	return block;
 }
 
 /**

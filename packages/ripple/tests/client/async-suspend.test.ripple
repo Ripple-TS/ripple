@@ -1,5 +1,5 @@
 import type { Tracked } from 'ripple';
-import { DERIVED_UPDATED, flushSync, RippleArray } from 'ripple';
+import { DERIVED_UPDATED, flushSync } from 'ripple';
 
 describe('async suspense', () => {
 	it('hides child content during re-suspension when tracked dependency changes', async () => {
@@ -205,9 +205,8 @@ describe('async suspense', () => {
 					),
 				);
 
-				let list = RippleArray.from(@items);
 				let filtered = #ripple.track(() => {
-					return list.filter((item: string) => item.includes(@query));
+					return @items.filter((item: string) => item.includes(@query));
 				});
 
 				<ul>
@@ -283,9 +282,8 @@ describe('async suspense', () => {
 					),
 				);
 
-				let list = RippleArray.from(@items);
 				let filtered = #ripple.track(() => {
-					return list.filter((item: string) => item.includes(@query));
+					return @items.filter((item: string) => item.includes(@query));
 				});
 
 				<ul>

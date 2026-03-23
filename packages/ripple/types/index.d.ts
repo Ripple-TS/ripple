@@ -198,7 +198,7 @@ export function track<V>(
 // Overload for non-function values
 export function track<V>(value?: V, get?: (v: V) => V, set?: (next: V, prev: V) => V): Tracked<V>;
 
-export function trackPending<V>(value: Tracked<V>): boolean;
+export function trackPending<V>(value: Tracked<V> | (() => any)): boolean;
 
 export function trackAsync<V>(
 	value: () => PromiseLike<V> | { promise: PromiseLike<V>; abortController: AbortController },

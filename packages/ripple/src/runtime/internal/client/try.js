@@ -1,14 +1,6 @@
 /** @import { Block } from '#client' */
 
-import {
-	branch_with_self,
-	create_try_block,
-	destroy_block,
-	is_destroyed,
-	move_block,
-	pause_block,
-	resume_block,
-} from './blocks.js';
+import { branch, create_try_block, destroy_block, is_destroyed, move_block } from './blocks.js';
 import { TRY_BLOCK } from './constants.js';
 import {
 	hydrate_next,
@@ -30,74 +22,62 @@ import { active_block, queue_microtask, with_block } from './runtime.js';
  */
 export function try_block(node, fn, catch_fn, pending_fn = null) {
 	var anchor = node;
-	/** @type {Block | null} */
-	var current_block = null;
 	var pending_count = 0;
 	var request_version = 0;
 	/** @type {Set<number>} */
 	var active_requests = new Set();
+	/** @type {Block} */
+	var try_block;
 	/** @type {Block | null} */
-	var owner = null;
+	var resolved_branch = null;
 	/** @type {Block | null} */
-	var suspended_block = null;
+	var pending_branch = null;
+	/** @type {Block | null} */
+	var catch_branch = null;
 	/** @type {DocumentFragment | null} */
 	var offscreen_fragment = null;
 	var has_resolved = false;
 	/** @type {'resolved' | 'pending' | 'catch'} */
 	var mode = 'resolved';
 
-	/**
-	 * @param {(anchor: Node, block?: Block) => void} render_fn
-	 */
-	function replace_branch(render_fn) {
-		var parent_block = owner ?? active_block;
-
-		if (parent_block === null || is_destroyed(parent_block)) {
-			return;
+	function move_resolved_offscreen() {
+		offscreen_fragment = document.createDocumentFragment();
+		if (resolved_branch !== null) {
+			move_block(resolved_branch, offscreen_fragment);
 		}
-
-		if (current_block !== null) {
-			destroy_block(current_block);
-			current_block = null;
-		}
-
-		with_block(parent_block, () => {
-			current_block = branch_with_self((block) => {
-				render_fn(anchor, block);
-			});
-		});
-	}
-
-	function render_resolved() {
-		mode = 'resolved';
-		has_resolved = true;
-		replace_branch(fn);
 	}
 
 	function render_pending() {
-		if (pending_fn === null) {
+		if (pending_fn === null || mode === 'pending') {
 			return;
 		}
 
-		if (current_block !== null && suspended_block === null) {
-			suspended_block = current_block;
-			offscreen_fragment = document.createDocumentFragment();
-			move_block(current_block, offscreen_fragment);
-			pause_block(suspended_block);
-		}
-
-		var parent_block = owner ?? active_block;
-
-		if (parent_block === null || is_destroyed(parent_block)) {
-			return;
+		if (mode === 'catch') {
+			// Destroy catch branch — resolved content is already offscreen
+			if (catch_branch !== null) {
+				destroy_block(catch_branch);
+				catch_branch = null;
+			}
+		} else {
+			move_resolved_offscreen();
 		}
 
 		mode = 'pending';
-		with_block(parent_block, () => {
-			current_block = branch_with_self((block) => {
-				/** @type {(anchor: Node, block?: Block) => void} */ (pending_fn)(anchor, block);
+
+		// with_block ensures the branch is parented under the TRY_BLOCK when called
+		// from async contexts (microtasks) where active_block is null. During synchronous
+		// execution (try_block not yet assigned), active_block is already the TRY_BLOCK.
+		var create_pending = () => {
+			pending_branch = branch(() => {
+				/** @type {(anchor: Node, block?: Block) => void} */ (pending_fn)(anchor);
 			});
-		});
+		};
+
+		if (try_block !== undefined && active_block !== try_block) {
+			with_block(try_block, create_pending);
+		} else {
+			create_pending();
+		}
 	}
 
 	/**
@@ -108,16 +88,39 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 		pending_count = 0;
 		active_requests.clear();
 
-		if (suspended_block !== null) {
-			destroy_block(suspended_block);
-			suspended_block = null;
-			offscreen_fragment = null;
+		if (mode === 'pending') {
+			// Resolved content is already offscreen. Destroy pending branch.
+			if (pending_branch !== null) {
+				destroy_block(pending_branch);
+				pending_branch = null;
+			}
+		} else if (mode === 'resolved') {
+			move_resolved_offscreen();
+		}
+		// mode === 'catch': resolved already offscreen, catch branch will be replaced below
+
+		// Destroy existing catch branch if re-entering catch
+		if (catch_branch !== null) {
+			destroy_block(catch_branch);
+			catch_branch = null;
 		}
 
 		mode = 'catch';
-		replace_branch(() => {
-			/** @type {(anchor: Node, error: any, block?: Block) => void} */ (catch_fn)(anchor, error);
-		});
+
+		// with_block ensures the branch is parented under the TRY_BLOCK when called
+		// from async contexts where active_block is null. During synchronous
+		// execution (try_block not yet assigned), active_block is already the TRY_BLOCK.
+		var create_catch = () => {
+			catch_branch = branch(() => {
+				/** @type {(anchor: Node, error: any, block?: Block) => void} */ (catch_fn)(anchor, error);
+			});
+		};
+
+		if (try_block !== undefined && active_block !== try_block) {
+			with_block(try_block, create_catch);
+		} else {
+			create_catch();
+		}
 	}
 
 	function begin_request() {
@@ -126,7 +129,12 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 
 		if (pending_count++ === 0 && pending_fn !== null) {
 			queue_microtask(() => {
-				if (owner !== null && !is_destroyed(owner) && pending_count > 0 && mode !== 'pending') {
+				if (
+					try_block !== null &&
+					!is_destroyed(try_block) &&
+					pending_count > 0 &&
+					mode !== 'pending'
+				) {
 					render_pending();
 				}
 			});
@@ -148,36 +156,31 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 		pending_count--;
 
 		if (pending_count === 0) {
-			if (owner !== null && !is_destroyed(owner) && render_resolved_branch) {
-				if (mode !== 'pending' && !has_resolved) {
-					render_resolved();
-					return true;
-				}
+			// Async resolved before pending microtask fired
+			if (mode !== 'pending') {
+				has_resolved = true;
+				return true;
 			}
 
-			if (owner !== null && !is_destroyed(owner) && pending_count === 0 && mode === 'pending') {
-				has_resolved ||= render_resolved_branch;
-
-				if (current_block !== null) {
-					destroy_block(current_block);
-					current_block = null;
+			// Transitioning from pending back
+			if (try_block !== null && !is_destroyed(try_block)) {
+				// Destroy pending branch (removes its DOM)
+				if (pending_branch !== null) {
+					destroy_block(pending_branch);
+					pending_branch = null;
 				}
 
-				if (suspended_block !== null) {
-					if (render_resolved_branch && offscreen_fragment !== null) {
+				if (render_resolved_branch) {
+					// Move resolved DOM back
+					if (offscreen_fragment !== null) {
 						/** @type {ChildNode} */ (anchor).before(offscreen_fragment);
-						resume_block(suspended_block);
-						current_block = suspended_block;
-					} else if (!render_resolved_branch) {
-						destroy_block(suspended_block);
+						offscreen_fragment = null;
 					}
 
-					offscreen_fragment = null;
-					suspended_block = null;
-					mode = render_resolved_branch ? 'resolved' : mode;
-				} else if (render_resolved_branch) {
-					render_resolved();
+					has_resolved = true;
 					mode = 'resolved';
+				} else {
+					// Rejection path — keep resolved content offscreen for handle_error
 				}
 			}
 		}
@@ -216,8 +219,8 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 		// Remember what was before anchor so we can find the first new node afterward.
 		var prev_sibling_before = anchor.previousSibling;
 
-		owner = create_try_block(() => {
-			render_resolved();
+		try_block = create_try_block(() => {
+			resolved_branch = branch(() => fn(anchor));
 		}, state);
 
 		// fn(anchor) inserted new DOM immediately before `anchor`.
@@ -243,8 +246,8 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 		return;
 	}
 
-	owner = create_try_block(() => {
-		render_resolved();
+	try_block = create_try_block(() => {
+		resolved_branch = branch(() => fn(anchor));
 	}, state);
 }
 

@@ -1,6 +1,7 @@
 import type { Context } from './context.js';
 
 export type Component = {
+	b: null | Block;
 	c: null | Map<Context<any>, any>;
 	e: null | Array<{
 		b: Block;

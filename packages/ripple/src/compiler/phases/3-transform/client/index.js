@@ -687,34 +687,12 @@ const visitors = {
 				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (call_args),
 			});
 
-			// For trackAsync, wrap in ??= with a hoisted variable
-			if (is_track_async && context.state.track_async_hoists) {
-				// Find the declarator name from the parent VariableDeclarator
-				/** @type {string | null} */
-				let local_name = null;
-				/** @type {string | null} */
-				let hoist_name = null;
-				/** @type {boolean} */
-				let needs_declaration = false;
-				if (parent?.type === 'VariableDeclarator') {
-					if (parent.id.type === 'Identifier') {
-						local_name = parent.id.name;
-						hoist_name = context.state.scope.generate('_$_' + local_name);
-					}
-				} else {
-					local_name = context.state.scope.generate('_$_ta_local');
-					hoist_name = context.state.scope.generate('_$_ta_hoisted');
-					needs_declaration = true;
-				}
-
-				if (local_name && hoist_name) {
-					const assignment = b.assignment('??=', b.id(hoist_name), track_call);
-					context.state.track_async_hoists.set(node, { hoist_name, local_name });
-					if (needs_declaration) {
-						return b.declaration('const', [b.declarator(local_name, assignment)]);
-					}
-					return assignment;
-				}
+			if (is_track_async) {
+				track_call.arguments.push(
+					// If it's not being assigned to anything, run eagerly
+					// since otherwise there is no way for it to run at all
+					parent?.type === 'ExpressionStatement' ? b.literal(true) : b.void0,
+				);
 			}
 
 			return track_call;
@@ -1086,23 +1064,6 @@ const visitors = {
 		}
 
 		return context.next();
-	},
-
-	ExpressionStatement(node, context) {
-		if (context.state.to_ts) {
-			return context.next();
-		}
-
-		const expression = context.visit(node.expression);
-
-		if (expression.type === 'VariableDeclaration') {
-			return expression;
-		}
-
-		return {
-			...node,
-			expression: /** @type {AST.Expression} */ (expression),
-		};
 	},
 
 	VariableDeclarator(node, context) {
@@ -2133,8 +2094,6 @@ const visitors = {
 		}
 
 		const component_scope = context.state.scopes.get(node) || context.state.scope;
-		/** @type {TransformClientState['track_async_hoists']} */
-		const track_async_hoists = new Map();
 		const transformed_body = transform_body(node.body, {
 			...context,
 			state: {
@@ -2143,31 +2102,15 @@ const visitors = {
 				component: node,
 				metadata,
 				scope: component_scope,
-				track_async_hoists,
 			},
 		});
 
 		/** @type {AST.Statement[]} */
-		let body_statements;
-		if (track_async_hoists.size > 0) {
-			// When trackAsync is used directly in a component, hoist the var declarations
-			// before a branch() block that wraps the component body so refresh_branch()
-			// can re-run it when the async derived settles with a new value
-			body_statements = [
-				b.stmt(b.call('_$_.push_component')),
-				...track_async_hoists.values().map(({ hoist_name }) => b.var(b.id(hoist_name))),
-				b.stmt(
-					b.call('_$_.branch_with_self', b.arrow([b.id('__block')], b.block(transformed_body))),
-				),
-				b.stmt(b.call('_$_.pop_component')),
-			];
-		} else {
-			body_statements = [
-				b.stmt(b.call('_$_.push_component')),
-				...transformed_body,
-				b.stmt(b.call('_$_.pop_component')),
-			];
-		}
+		const body_statements = [
+			b.stmt(b.call('_$_.push_component')),
+			...transformed_body,
+			b.stmt(b.call('_$_.pop_component')),
+		];
 
 		if (node.css !== null && node.css) {
 			context.state.stylesheets.push(node.css);
@@ -2677,40 +2620,29 @@ const visitors = {
 		const metadata = { await: false };
 		const handler = /** @type {AST.CatchClause | null} */ (node.handler);
 		const pending = /** @type {AST.BlockStatement | null} */ (node.pending);
-		/** @type {TransformClientState['track_async_hoists']} */
-		const track_async_hoists = new Map();
 		let body = transform_body(node.block.body, {
 			...context,
 			state: {
 				...context.state,
 				metadata,
-				track_async_hoists,
 			},
 		});
-
-		// Emit hoisted var declarations for trackAsync one level up (in parent scope)
-		for (const { hoist_name } of track_async_hoists.values()) {
-			context.state.init?.push(b.var(b.id(hoist_name)));
-		}
 
 		context.state.init?.push(
 			b.stmt(
 				b.call(
 					'_$_.try',
 					id,
-					b.arrow([b.id('__anchor'), b.id('__block')], b.block(body)),
+					b.arrow([b.id('__anchor')], b.block(body)),
 					handler === null
 						? b.literal(null)
 						: b.arrow(
-								[b.id('__anchor'), ...(handler.param ? [handler.param] : []), b.id('__block')],
+								[b.id('__anchor'), ...(handler.param ? [handler.param] : [])],
 								b.block(transform_body(handler.body.body, context)),
 							),
 					pending === null
 						? undefined
-						: b.arrow(
-								[b.id('__anchor'), b.id('__block')],
-								b.block(transform_body(pending.body, context)),
-							),
+						: b.arrow([b.id('__anchor')], b.block(transform_body(pending.body, context))),
 				),
 			),
 		);

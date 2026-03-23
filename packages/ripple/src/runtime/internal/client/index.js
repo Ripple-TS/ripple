@@ -22,7 +22,6 @@ export {
 	render_spread,
 	ref,
 	branch,
-	branch_with_self,
 	destroy_block,
 	move_block,
 	root,

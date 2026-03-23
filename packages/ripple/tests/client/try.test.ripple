@@ -69,6 +69,140 @@ describe('try block with catch and pending', () => {
 		expect(container.innerHTML).toContain('caught rejection');
 		expect(container.innerHTML).not.toContain('loading...');
 	});
+
+	it('catch replaces the retained resolved branch when a subsequent request rejects', async () => {
+		const requests = new Map<
+			number,
+			{ resolve: (value: string) => void; reject: (error: Error) => void }
+		>();
+
+		function createRequest(version: number) {
+			let resolve_value: (value: string) => void = () => {};
+			let reject_value: (error: Error) => void = () => {};
+
+			const promise = new Promise<string>((resolve, reject) => {
+				resolve_value = resolve;
+				reject_value = reject;
+			});
+
+			requests.set(version, { resolve: resolve_value, reject: reject_value });
+
+			return promise;
+		}
+
+		component App() {
+			let version = #ripple.track(0);
+
+			try {
+				let data = #ripple.trackAsync(() => createRequest(@version));
+				<p class="resolved">{@data}</p>
+			} pending {
+				<p class="pending">{'loading...'}</p>
+			} catch (err) {
+				<p class="caught">{(err as Error).message}</p>
+			}
+
+			<button class="retry" onClick={() => @version++}>{'Retry'}</button>
+		}
+
+		render(App);
+
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+		expect(container.querySelector('.pending')?.textContent).toBe('loading...');
+
+		(requests.get(0) as { resolve: (value: string) => void }).resolve('resolved value');
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.resolved')?.textContent).toBe('resolved value');
+		expect(container.querySelector('.pending')).toBeNull();
+		expect(container.querySelector('.caught')).toBeNull();
+
+		(container.querySelector('.retry') as HTMLButtonElement).click();
+		flushSync();
+
+		expect(container.querySelector('.resolved')?.textContent).toBe('resolved value');
+		expect(container.querySelector('.pending')).toBeNull();
+
+		(requests.get(1) as { reject: (error: Error) => void }).reject(new Error('failed retry'));
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.caught')?.textContent).toBe('failed retry');
+		expect(container.querySelector('.resolved')).toBeNull();
+		expect(container.querySelector('.pending')).toBeNull();
+	});
+
+	it('retrying from catch shows pending before resolving back to the resolved branch', async () => {
+		const requests = new Map<
+			number,
+			{ resolve: (value: string) => void; reject: (error: Error) => void }
+		>();
+
+		function createRequest(version: number) {
+			let resolve_value: (value: string) => void = () => {};
+			let reject_value: (error: Error) => void = () => {};
+
+			const promise = new Promise<string>((resolve, reject) => {
+				resolve_value = resolve;
+				reject_value = reject;
+			});
+
+			requests.set(version, { resolve: resolve_value, reject: reject_value });
+
+			return promise;
+		}
+
+		component App() {
+			let version = #ripple.track(0);
+
+			try {
+				let data = #ripple.trackAsync(() => {
+					@version;
+					return createRequest(@version);
+				});
+				<p class="resolved">{@data}</p>
+			} pending {
+				<p class="pending">{'loading...'}</p>
+			} catch (err) {
+				<p class="caught">{(err as Error).message}</p>
+			}
+
+			<button class="retry" onClick={() => @version++}>{'Retry'}</button>
+		}
+
+		render(App);
+
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+		expect(container.querySelector('.pending')?.textContent).toBe('loading...');
+
+		(requests.get(0) as { reject: (error: Error) => void }).reject(new Error('initial failure'));
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.caught')?.textContent).toBe('initial failure');
+		expect(container.querySelector('.pending')).toBeNull();
+		expect(container.querySelector('.resolved')).toBeNull();
+
+		(container.querySelector('.retry') as HTMLButtonElement).click();
+		flushSync();
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.pending')?.textContent).toBe('loading...');
+		expect(container.querySelector('.caught')).toBeNull();
+		expect(container.querySelector('.resolved')).toBeNull();
+
+		(requests.get(1) as { resolve: (value: string) => void }).resolve('recovered');
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.resolved')?.textContent).toBe('recovered');
+		expect(container.querySelector('.pending')).toBeNull();
+		expect(container.querySelector('.caught')).toBeNull();
+	});
 });
 
 describe('try block', () => {
@@ -144,8 +278,7 @@ describe('try block', () => {
 
 			component FilteredList({ query }: { query: any }) {
 				let items = #ripple.trackAsync(() => Promise.resolve(['apple', 'banana', 'cherry']));
-				let list = RippleArray.from(@items);
-				let filtered = #ripple.track(() => list.filter((item: string) => item.includes(@query)));
+				let filtered = #ripple.track(() => @items.filter((item: string) => item.includes(@query)));
 
 				<ul>
 					for (let item of @filtered) {
@@ -185,5 +318,242 @@ describe('try block', () => {
 		flushSync();
 
 		expect(container.innerHTML).toContain('not-in-list is not in the list.');
+	});
+
+	it('destroying try block while in pending state cleans up pending branch', async () => {
+		let pending_effect_teardown_count = 0;
+
+		component PendingChild() {
+			#ripple.effect(() => {
+				return () => {
+					pending_effect_teardown_count++;
+				};
+			});
+			<p class="pending">{'loading...'}</p>
+		}
+
+		component App() {
+			let show = #ripple.track(true);
+
+			if (@show) {
+				try {
+					let data = #ripple.trackAsync(() => new Promise(() => {}));
+					<p class="resolved">{@data}</p>
+				} pending {
+					<PendingChild />
+				}
+			}
+
+			<button class="toggle" onClick={() => (@show = !@show)}>{'toggle'}</button>
+		}
+
+		render(App);
+
+		// Wait for pending microtask to fire
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.pending')?.textContent).toBe('loading...');
+		expect(pending_effect_teardown_count).toBe(0);
+
+		// Toggle if condition to false — should destroy try block and pending branch
+		(container.querySelector('.toggle') as HTMLButtonElement).click();
+		flushSync();
+
+		expect(container.querySelector('.pending')).toBeNull();
+		expect(container.querySelector('.resolved')).toBeNull();
+		// Effect teardown in the pending branch should have run
+		expect(pending_effect_teardown_count).toBe(1);
+	});
+
+	it('destroying try block while in resolved state cleans up resolved branch', async () => {
+		let resolved_effect_teardown_count = 0;
+
+		component ResolvedChild({ data }: { data: string }) {
+			#ripple.effect(() => {
+				return () => {
+					resolved_effect_teardown_count++;
+				};
+			});
+			<p class="resolved">{data}</p>
+		}
+
+		component App() {
+			let show = #ripple.track(true);
+
+			if (@show) {
+				try {
+					let data = #ripple.trackAsync(() => Promise.resolve('hello'));
+					<ResolvedChild {@data} />
+				} pending {
+					<p class="pending">{'loading...'}</p>
+				} catch (err) {
+					<p class="caught">{(err as Error).message}</p>
+				}
+			}
+
+			<button class="toggle" onClick={() => (@show = !@show)}>{'toggle'}</button>
+		}
+
+		render(App);
+
+		// Wait for async to resolve
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.resolved')?.textContent).toBe('hello');
+		expect(resolved_effect_teardown_count).toBe(0);
+
+		// Toggle if condition to false — should destroy try block and resolved branch
+		(container.querySelector('.toggle') as HTMLButtonElement).click();
+		flushSync();
+
+		expect(container.querySelector('.resolved')).toBeNull();
+		expect(container.querySelector('.pending')).toBeNull();
+		expect(container.querySelector('.caught')).toBeNull();
+		// Effect teardown in the resolved branch should have run
+		expect(resolved_effect_teardown_count).toBe(1);
+	});
+
+	it('destroying try block while in catch state cleans up catch branch', async () => {
+		let catch_effect_teardown_count = 0;
+
+		component CatchChild({ error }: { error: Error }) {
+			#ripple.effect(() => {
+				return () => {
+					catch_effect_teardown_count++;
+				};
+			});
+			<p class="caught">{error.message}</p>
+		}
+
+		component App() {
+			let show = #ripple.track(true);
+
+			if (@show) {
+				try {
+					let data = #ripple.trackAsync(() => Promise.reject(new Error('fail')));
+					<p class="resolved">{@data}</p>
+				} pending {
+					<p class="pending">{'loading...'}</p>
+				} catch (err) {
+					<CatchChild error={err as Error} />
+				}
+			}
+
+			<button class="toggle" onClick={() => (@show = !@show)}>{'toggle'}</button>
+		}
+
+		render(App);
+
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.caught')?.textContent).toBe('fail');
+		expect(catch_effect_teardown_count).toBe(0);
+
+		// Toggle if condition to false — should destroy try block and catch branch
+		(container.querySelector('.toggle') as HTMLButtonElement).click();
+		flushSync();
+
+		expect(container.querySelector('.caught')).toBeNull();
+		// Effect teardown in the catch branch should have run
+		expect(catch_effect_teardown_count).toBe(1);
+	});
+
+	it('pending block throwing renders catch block from the same try block', async () => {
+		component ThrowingPending() {
+			throw new Error('pending exploded');
+			<p>{'should not render'}</p>
+		}
+
+		component App() {
+			try {
+				let data = #ripple.trackAsync(() => new Promise(() => {}));
+				<p class="resolved">{@data}</p>
+			} pending {
+				<ThrowingPending />
+			} catch (err) {
+				<p class="caught">{(err as Error).message}</p>
+			}
+		}
+
+		render(App);
+
+		// Wait for pending microtask to fire and render pending block
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		// Pending block threw, so catch should be rendered
+		expect(container.querySelector('.caught')?.textContent).toBe('pending exploded');
+		expect(container.querySelector('.pending')).toBeNull();
+		expect(container.querySelector('.resolved')).toBeNull();
+	});
+
+	it('pending block throwing without catch bubbles to parent try/catch', async () => {
+		component ThrowingPending() {
+			throw new Error('pending exploded');
+			<p>{'should not render'}</p>
+		}
+
+		component App() {
+			try {
+				<Inner />
+			} catch (err) {
+				<p class="parent-caught">{(err as Error).message}</p>
+			}
+		}
+
+		component Inner() {
+			try {
+				let data = #ripple.trackAsync(() => new Promise(() => {}));
+				<p class="resolved">{@data}</p>
+			} pending {
+				<ThrowingPending />
+			}
+		}
+
+		render(App);
+
+		// Wait for pending microtask to fire and render pending block
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		// Inner try has no catch, error should bubble to parent's catch
+		expect(container.querySelector('.parent-caught')?.textContent).toBe('pending exploded');
+		expect(container.querySelector('.resolved')).toBeNull();
+	});
+
+	it('resolved try block without catch bubbles error to parent try/catch', async () => {
+		component ThrowingChild() {
+			let data = #ripple.trackAsync(() => Promise.reject(new Error('async failed')));
+			<p class="resolved">{@data}</p>
+		}
+
+		component App() {
+			try {
+				<Inner />
+			} catch (err) {
+				<p class="parent-caught">{(err as Error).message}</p>
+			}
+		}
+
+		component Inner() {
+			try {
+				<ThrowingChild />
+			} pending {
+				<p class="pending">{'loading...'}</p>
+			}
+		}
+
+		render(App);
+
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		// Inner try has no catch, rejection should bubble to parent's catch
+		expect(container.querySelector('.parent-caught')?.textContent).toBe('async failed');
+		expect(container.querySelector('.pending')).toBeNull();
+		expect(container.querySelector('.resolved')).toBeNull();
 	});
 });

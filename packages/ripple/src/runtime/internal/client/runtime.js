@@ -242,7 +242,7 @@ function clear_async_request(computed, abort_reason) {
 	computed.aa = null;
 	computed.ap = null;
 	computed.aq = false;
-	computed.as = null;
+	// Preserve computed.as so dirty-check re-evaluations can find the boundary
 	computed.at = null;
 	computed.ai = 0;
 }
@@ -270,7 +270,7 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
 	computed.aa = null;
 	computed.ap = null;
 	computed.aq = false;
-	computed.as = null;
+	// Preserve computed.as so dirty-check re-evaluations can find the boundary
 	computed.at = null;
 	computed.ai = 0;
 
@@ -297,12 +297,8 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
 			complete_boundary_request(boundary, request_id);
 		}
 
-		if (has_changed) {
-			if (computed.b !== null && !is_destroyed(computed.b)) {
-				restart_async_branch(computed.b);
-			} else if (source_block !== null && !is_destroyed(source_block)) {
-				schedule_update(source_block);
-			}
+		if (has_changed && source_block !== null && !is_destroyed(source_block)) {
+			schedule_update(source_block);
 		}
 
 		return;
@@ -437,6 +433,9 @@ function run_derived(computed) {
 		return normalize_derived_value(computed, value, source_block);
 	} catch (error) {
 		computed.d = active_dependency;
+		if (error === ASYNC_DERIVED_READ_THROWN) {
+			return SUSPENSE_PENDING;
+		}
 		throw error;
 	} finally {
 		active_block = previous_block;
@@ -513,6 +512,10 @@ export function run_block(block) {
 		// the derived settles, the block will be dirty and rerun automatically.
 		if (error !== ASYNC_DERIVED_READ_THROWN) {
 			handle_error(error, block);
+		} else if (active_component?.b === block) {
+			throw new Error(
+				'Reads on pending tracked values directly inside component body are prohibited. Use #ripple.trackPending() test for safe access or create another derived instead.',
+			);
 		}
 	} finally {
 		active_block = previous_block;
@@ -631,9 +634,10 @@ export function track(v, get, set, b) {
 /** *
  * @param {any} v
  * @param {Block} b
- * @returns {Derived}
+ * @param {boolean} [is_eager]
+ * @returns {Derived | void}
  */
-export function track_async(v, b) {
+export function track_async(v, b, is_eager = false) {
 	if (is_ripple_object(v)) {
 		return v;
 	}
@@ -648,20 +652,37 @@ export function track_async(v, b) {
 			'trackAsync() only accepts function arguments that return a promise or an object with a promise property',
 		);
 	}
+
 	var d = derived(v, target_block, undefined, undefined);
-	update_derived(d);
+	if (is_eager) {
+		// is_eager should only be true if there is no assignment
+		// and the derived cannot be used anywhere else
+		// so we have to run it immediately as otherwise it would never run
+		update_derived(d);
+		return;
+	}
 	return d;
 }
 
 /**
- * @param {Derived | Tracked} tracked
+ * @param {(Derived | Tracked) | (() => any)} tracked
  * @returns {boolean}
  */
 export function is_tracked_pending(tracked) {
-	if (!is_ripple_object(tracked)) {
-		throw new TypeError('trackPending() only accepts tracked objects returned from trackAsync()');
+	try {
+		if (typeof tracked === 'function') {
+			tracked();
+			return false;
+		} else {
+			get(tracked);
+			return false;
+		}
+	} catch (error) {
+		if (error === ASYNC_DERIVED_READ_THROWN) {
+			return true;
+		}
+		throw error;
 	}
-	return /** @type {Derived} */ (tracked).aq ?? false;
 }
 
 /**
@@ -980,6 +1001,7 @@ function register_dependency(tracked) {
  */
 export function get_derived(computed) {
 	update_derived(computed);
+
 	// When an async-capable derived is read from a new block context (e.g. after a try
 	// branch re-render), update the stored source block so that future async requests
 	// from dirty-checking (where active_block is null) can find the correct boundary.
@@ -990,6 +1012,7 @@ export function get_derived(computed) {
 			computed.at = get_pending_boundary(current_source);
 		}
 	}
+
 	if (tracking) {
 		register_dependency(computed);
 	}
@@ -1432,6 +1455,7 @@ export function safe_scope(err = 'Cannot access outside of a component context')
 
 export function create_component_ctx() {
 	return {
+		b: active_block,
 		c: null,
 		e: null,
 		m: false,
