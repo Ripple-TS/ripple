@@ -203,9 +203,10 @@ function is_promise_like(value) {
 
 /**
  * @param {any} value
- * @returns {{ promise: PromiseLike<any>, abort_controller: AbortController | null } | null}
+ * @param {'deferred'} [type]
+ * @returns {{ promise: PromiseLike<any>, abort_controller: AbortController | null, type?: 'deferred' } | null}
  */
-function get_async_track_result(value) {
+function get_async_track_result(value, type) {
 	if (is_promise_like(value)) {
 		return { promise: value, abort_controller: null };
 	}
@@ -217,6 +218,7 @@ function get_async_track_result(value) {
 				typeof value.abortController === 'object' && value.abortController !== null
 					? value.abortController
 					: null,
+			type: type,
 		};
 	}
 
@@ -245,6 +247,8 @@ function clear_async_request(computed, abort_reason) {
 	// Preserve computed.as so dirty-check re-evaluations can find the boundary
 	computed.at = null;
 	computed.ai = 0;
+	computed.dr = null;
+	computed.dj = null;
 }
 
 /**
@@ -329,20 +333,36 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
  * @param {Derived} computed
  * @param {any} value
  * @param {Block | null} source_block
+ * @param {'deferred'} [type]
  * @returns {any}
  */
-function normalize_derived_value(computed, value, source_block) {
+function normalize_derived_value(computed, value, source_block, type) {
 	// Temporarily disable tracking so that is_promise_like checks (which access .then
 	// on potentially Proxy-wrapped values like RippleArray) don't register spurious
 	// dependencies on the derived being evaluated.
 	var previous_tracking = tracking;
 	tracking = false;
-	var async_result = get_async_track_result(value);
+	var async_result = get_async_track_result(value, type);
 	tracking = previous_tracking;
 
+	// If this derived has saved resolve/reject from a prior ASYNC_DERIVED_READ_THROWN,
+	// chain the deferred  to the real result so when the real settles,
+	// it will settle the synthetic deferred that was created to keep the pending state
+	// until running the async derived succeeds without ASYNC_DERIVED_READ_THROWN and the
+	// real promise is produced and settles.
+	// The old settle will no-op on version mismatch once clear_async_request bumps the
+	// version below, so we just fall through to the normal machinery.
+	if (computed.dr !== null && async_result?.type !== 'deferred') {
+		if (async_result !== null) {
+			async_result.promise.then(computed.dr, computed.dj);
+		} else {
+			computed.dr(value);
+		}
+		computed.dr = null;
+		computed.dj = null;
+	}
+
 	if (async_result === null) {
-		// Function-valued track() stays a normal synchronous derived unless the callback
-		// returns a promise-like value or an explicit { promise, abortController } pair.
 		clear_async_request(computed, DERIVED_UPDATED);
 		computed.ah = true;
 		return value;
@@ -434,6 +454,17 @@ function run_derived(computed) {
 	} catch (error) {
 		computed.d = active_dependency;
 		if (error === ASYNC_DERIVED_READ_THROWN) {
+			if (computed.ia && !computed.dr && !computed.dj) {
+				// Only trackAsync deriveds need a deferred boundary request.
+				// Only create the synthetic promise once in case
+				// there are multiple async dependencies used in the derived
+				var deferred_promise = new Promise((resolve, reject) => {
+					computed.dr = resolve;
+					computed.dj = reject;
+				});
+
+				return normalize_derived_value(computed, deferred_promise, source_block, 'deferred');
+			}
 			return SUSPENSE_PENDING;
 		}
 		throw error;
@@ -578,6 +609,9 @@ export function derived(fn, block, get, set) {
 			ai: 0,
 			av: 0,
 			ah: false,
+			dr: null,
+			dj: null,
+			ia: false,
 			b: block || active_block,
 			blocks: null,
 			c: 0,
@@ -599,6 +633,9 @@ export function derived(fn, block, get, set) {
 		ai: 0,
 		av: 0,
 		ah: false,
+		dr: null,
+		dj: null,
+		ia: false,
 		b: block || active_block,
 		blocks: null,
 		c: 0,
@@ -654,6 +691,7 @@ export function track_async(v, b, is_eager = false) {
 	}
 
 	var d = derived(v, target_block, undefined, undefined);
+	d.ia = true;
 	if (is_eager) {
 		// is_eager should only be true if there is no assignment
 		// and the derived cannot be used anywhere else

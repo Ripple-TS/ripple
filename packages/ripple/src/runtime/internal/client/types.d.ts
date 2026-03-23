@@ -38,6 +38,9 @@ export type Derived = {
 	ai: number;
 	av: number;
 	ah: boolean;
+	dr: ((value: any) => void) | null;
+	dj: ((reason: any) => void) | null;
+	ia: boolean;
 	b: Block;
 	blocks: null | Block[];
 	c: number;
