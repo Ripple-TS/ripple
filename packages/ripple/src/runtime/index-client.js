@@ -21,7 +21,12 @@ import { COMMENT_NODE, HYDRATION_START } from '../constants.js';
 
 // Re-export JSX runtime functions for jsxImportSource: "ripple"
 export { jsx, jsxs, Fragment } from '../jsx-runtime.js';
-export { DERIVED_UPDATED } from './internal/client/constants.js';
+export {
+	UNINITIALIZED,
+	DERIVED_UPDATED,
+	SUSPENSE_PENDING,
+	SUSPENSE_ERROR,
+} from './internal/client/constants.js';
 
 /**
  * @param {(anchor: Node, props: Record<string, any>, active_block: Block | null) => void} component
@@ -110,6 +115,7 @@ export {
 	track_split as trackSplit,
 	untrack,
 	tick,
+	peek_tracked as peek,
 } from './internal/client/runtime.js';
 
 export { RippleArray } from './array.js';

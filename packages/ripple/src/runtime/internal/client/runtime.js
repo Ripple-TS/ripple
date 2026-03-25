@@ -2,13 +2,7 @@
 /** @import { NAMESPACE_URI } from './constants.js' */
 
 import { DEV } from 'esm-env';
-import {
-	destroy_block,
-	destroy_non_branch_children,
-	effect,
-	is_destroyed,
-	restart_async_branch,
-} from './blocks.js';
+import { destroy_block, destroy_non_branch_children, effect, is_destroyed } from './blocks.js';
 import {
 	ASYNC_DERIVED_READ_THROWN,
 	BLOCK_HAS_RUN,
@@ -29,8 +23,15 @@ import {
 	DEFAULT_NAMESPACE,
 	DERIVED_UPDATED,
 	SUSPENSE_PENDING,
+	SUSPENSE_ERROR,
 } from './constants.js';
-import { begin_boundary_request, complete_boundary_request, get_pending_boundary } from './try.js';
+import {
+	begin_boundary_request,
+	complete_boundary_request,
+	get_pending_boundary,
+	register_boundary_deferred,
+	replace_boundary_request,
+} from './try.js';
 import {
 	define_property,
 	get_descriptor,
@@ -73,6 +74,8 @@ let queued_root_blocks = [];
 let queued_microtasks = [];
 /** @type {number} */
 let flush_count = 0;
+/** @type {(() => void)[]} */
+var queued_post_block_flush = [];
 /** @type {null | Dependency} */
 let active_dependency = null;
 /** @type {null | Block} */
@@ -208,7 +211,7 @@ function is_promise_like(value) {
  */
 function get_async_track_result(value, type) {
 	if (is_promise_like(value)) {
-		return { promise: value, abort_controller: null };
+		return { promise: value, abort_controller: null, type: type };
 	}
 
 	if (typeof value === 'object' && value !== null && is_promise_like(value.promise)) {
@@ -227,15 +230,10 @@ function get_async_track_result(value, type) {
 
 /**
  * @param {Derived} computed
- * @param {unknown} [abort_reason]
  * @returns {void}
  */
-function clear_async_request(computed, abort_reason) {
-	var abort_controller = computed.aa;
-
-	if (abort_reason !== undefined && abort_controller?.signal.aborted === false) {
-		abort_controller.abort(abort_reason);
-	}
+function clear_prev_async_request(computed) {
+	abort_async_derived_request(computed);
 
 	if (computed.aq) {
 		complete_boundary_request(computed.at, computed.ai, false);
@@ -247,8 +245,21 @@ function clear_async_request(computed, abort_reason) {
 	// Preserve computed.as so dirty-check re-evaluations can find the boundary
 	computed.at = null;
 	computed.ai = 0;
-	computed.dr = null;
-	computed.dj = null;
+	// Do not clear dr/dj here — they are managed by the self-chain block
+	// in normalize_derived_value and by settle_async_derived.
+}
+
+/**
+ * @param {Derived} computed
+ * @returns {boolean}
+ */
+function abort_async_derived_request(computed) {
+	var abort_controller = computed.aa;
+	if (abort_controller?.signal.aborted === false) {
+		abort_controller.abort(DERIVED_UPDATED);
+		return true;
+	}
+	return false;
 }
 
 /**
@@ -277,6 +288,8 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
 	// Preserve computed.as so dirty-check re-evaluations can find the boundary
 	computed.at = null;
 	computed.ai = 0;
+	computed.dr = null;
+	computed.dj = null;
 
 	if (
 		source_block === null ||
@@ -288,6 +301,7 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
 
 	if (fulfilled) {
 		var has_changed = value !== computed.__v || !computed.ah;
+		var should_schedule = has_changed && source_block !== null && !is_destroyed(source_block);
 
 		if (has_changed) {
 			computed.__v = value;
@@ -296,12 +310,20 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
 		computed.ah = true;
 
 		if (contributes_pending) {
-			// complete_boundary_request may re-render content synchronously,
-			// which can destroy source_block. Only schedule_update if still alive.
-			complete_boundary_request(boundary, request_id);
+			if (should_schedule) {
+				// Defer boundary completion until after the block flush so that
+				// chained async deriveds evaluated during re-render can start new
+				// requests, keeping the boundary in pending mode and avoiding
+				// a visible pending → resolved → pending flicker.
+				queue_post_block_flush_callback(() => {
+					complete_boundary_request(boundary, request_id);
+				});
+			} else {
+				complete_boundary_request(boundary, request_id);
+			}
 		}
 
-		if (has_changed && source_block !== null && !is_destroyed(source_block)) {
+		if (should_schedule) {
 			schedule_update(source_block);
 		}
 
@@ -315,11 +337,20 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
 		return;
 	}
 
-	// For rejection: complete the pending request first, then route the error.
-	// complete_boundary_request may destroy source_block, so we route rejection
-	// through the boundary's catch handler directly when available.
+	// For rejection: mark the derived as errored so downstream reads don't
+	// treat it as still pending. Don't increment clock — we don't want to
+	// trigger re-runs of dependent deriveds or blocks.
+	computed.__v = SUSPENSE_ERROR;
+
+	// Complete the pending request first, then route the error.
+	// If complete_boundary_request returns false, the request was already cleared
+	// (e.g. by handle_error from a prior rejection) — skip error routing to
+	// avoid double-catch.
 	if (contributes_pending) {
-		complete_boundary_request(boundary, request_id, false);
+		var completed = complete_boundary_request(boundary, request_id, false);
+		if (!completed) {
+			return;
+		}
 	}
 
 	if (boundary !== null && !is_destroyed(boundary) && boundary.s && boundary.s.c) {
@@ -333,7 +364,7 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
  * @param {Derived} computed
  * @param {any} value
  * @param {Block | null} source_block
- * @param {'deferred'} [type]
+ * @param {'deferred' | undefined} type
  * @returns {any}
  */
 function normalize_derived_value(computed, value, source_block, type) {
@@ -350,12 +381,15 @@ function normalize_derived_value(computed, value, source_block, type) {
 	// it will settle the synthetic deferred that was created to keep the pending state
 	// until running the async derived succeeds without ASYNC_DERIVED_READ_THROWN and the
 	// real promise is produced and settles.
-	// The old settle will no-op on version mismatch once clear_async_request bumps the
+	// The old settle will no-op on version mismatch once clear_prev_async_request bumps the
 	// version below, so we just fall through to the normal machinery.
 	if (computed.dr !== null && async_result?.type !== 'deferred') {
+		// This is the real promise result vs the synthetic `deferred`
 		if (async_result !== null) {
+			// the function passed to track.async returned a promise
 			async_result.promise.then(computed.dr, computed.dj);
 		} else {
+			// regular derived that previously threw ASYNC_DERIVED_READ_THROWN
 			computed.dr(value);
 		}
 		computed.dr = null;
@@ -363,7 +397,7 @@ function normalize_derived_value(computed, value, source_block, type) {
 	}
 
 	if (async_result === null) {
-		clear_async_request(computed, DERIVED_UPDATED);
+		clear_prev_async_request(computed);
 		computed.ah = true;
 		return value;
 	}
@@ -381,12 +415,23 @@ function normalize_derived_value(computed, value, source_block, type) {
 		throw new Error('Missing parent `try { ... } pending { ... }` statement');
 	}
 
-	clear_async_request(computed, DERIVED_UPDATED);
-
 	var version = computed.av + 1;
 	var contributes_pending = !computed.ah;
-	var request_id = contributes_pending && boundary !== null ? begin_boundary_request(boundary) : 0;
 	var abort_controller = async_result.abort_controller;
+	var should_begin_request = contributes_pending && boundary !== null;
+	var has_pending_request = computed.aq;
+	var request_id = 0;
+
+	if (has_pending_request && should_begin_request) {
+		// Replacing one async request with another on the same boundary.
+		// e.g. deferred synthetic promise with the real one, or cancelling the previous and start new
+		abort_async_derived_request(computed);
+		request_id = replace_boundary_request(/** @type {Block} */ (boundary), computed.ai);
+	} else {
+		// No active request to replace — clear old state and maybe start fresh.
+		clear_prev_async_request(computed);
+		request_id = should_begin_request ? begin_boundary_request(/** @type {Block} */ (boundary)) : 0;
+	}
 
 	computed.av = version;
 	computed.aa = abort_controller;
@@ -409,6 +454,19 @@ function normalize_derived_value(computed, value, source_block, type) {
 			});
 		}
 	};
+
+	// Register the deferred reject with the boundary so that if the
+	// boundary enters catch mode (from another derived rejecting),
+	// it can reject this deferred and trigger proper cleanup.
+	// Must be after computed.at and computed.ai are populated
+	if (
+		async_result.type === 'deferred' &&
+		computed.at !== null &&
+		computed.ai !== 0 &&
+		computed.dj !== null
+	) {
+		register_boundary_deferred(computed.at, computed.ai, computed.dj);
+	}
 
 	async_result.promise.then(
 		(resolved) => {
@@ -450,7 +508,7 @@ function run_derived(computed) {
 
 		computed.d = active_dependency;
 
-		return normalize_derived_value(computed, value, source_block);
+		return normalize_derived_value(computed, value, source_block, undefined);
 	} catch (error) {
 		computed.d = active_dependency;
 		if (error === ASYNC_DERIVED_READ_THROWN) {
@@ -724,6 +782,18 @@ export function is_tracked_pending(tracked) {
 }
 
 /**
+ * @param {Tracked | Derived} tracked
+ * @return {any}
+ */
+export function peek_tracked(tracked) {
+	if (!is_ripple_object(tracked)) {
+		return tracked;
+	}
+
+	return tracked.__v;
+}
+
+/**
  * @param {Record<string|symbol, any>} v
  * @param {(symbol | string)[]} l
  * @param {Block} b
@@ -932,6 +1002,14 @@ function flush_queued_root_blocks(root_blocks) {
 	for (let i = 0; i < root_blocks.length; i++) {
 		flush_updates(root_blocks[i]);
 	}
+
+	if (queued_post_block_flush.length > 0) {
+		var callbacks = queued_post_block_flush;
+		queued_post_block_flush = [];
+		for (var j = 0; j < callbacks.length; j++) {
+			callbacks[j]();
+		}
+	}
 }
 
 /**
@@ -981,6 +1059,16 @@ export function queue_microtask(fn) {
 	if (fn !== undefined) {
 		queued_microtasks.push(fn);
 	}
+}
+
+/**
+ * Queue a callback to run after all root blocks are flushed.
+ * Used to defer boundary completions so chained async deriveds evaluated during
+ * the flush can start new requests before the boundary transitions out of pending.
+ * @param {() => void} fn
+ */
+function queue_post_block_flush_callback(fn) {
+	queued_post_block_flush.push(fn);
 }
 
 /**
@@ -1055,13 +1143,13 @@ export function get_derived(computed) {
 		register_dependency(computed);
 	}
 
-	// When the derived is still pending throw to bail out of the
+	// When the derived is still pending or errored, throw to bail out of the
 	// current block so the rest of the component tree can continue processing
 	// (avoiding waterfalls). We check `__v === SUSPENSE_PENDING` rather than `aq`
 	// because users can temporarily overwrite `__v` on a derived, in which case
 	// the processing should continue without throwing since we assume that the values
 	// are consistent with the code's logic.
-	if (computed.__v === SUSPENSE_PENDING) {
+	if (computed.__v === SUSPENSE_PENDING || computed.__v === SUSPENSE_ERROR) {
 		throw ASYNC_DERIVED_READ_THROWN;
 	}
 

@@ -1476,6 +1476,9 @@ const visitors = {
 			/** @type {AST.Statement[]} */
 			let try_statements = body;
 			if (handler != null) {
+				if (handler.param) {
+					delete handler.param.typeAnnotation;
+				}
 				try_statements = [
 					b.try(
 						b.block(body),
@@ -1525,6 +1528,9 @@ const visitors = {
 		} else {
 			// No async, just regular try/catch
 			if (node.handler != null) {
+				if (node.handler.param) {
+					delete node.handler.param.typeAnnotation;
+				}
 				const handler_body = transform_body(node.handler.body.body, {
 					...context,
 					state: {

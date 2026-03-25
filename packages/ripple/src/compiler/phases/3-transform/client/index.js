@@ -414,7 +414,8 @@ function ripple_namespace_requires_block(name) {
 		name !== '#ripple.effect' &&
 		name !== '#ripple.untrack' &&
 		name !== '#ripple.context' &&
-		name !== '#ripple.trackPending'
+		name !== '#ripple.trackPending' &&
+		name !== '#ripple.peek'
 	);
 }
 
@@ -2627,6 +2628,10 @@ const visitors = {
 				metadata,
 			},
 		});
+
+		if (handler?.param) {
+			delete handler.param.typeAnnotation;
+		}
 
 		context.state.init?.push(
 			b.stmt(

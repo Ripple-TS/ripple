@@ -28,7 +28,7 @@ export {
 	user_effect as effect,
 } from './blocks.js';
 
-export { UNINITIALIZED, DERIVED_UPDATED, SUSPENSE_PENDING } from './constants.js';
+export { UNINITIALIZED, DERIVED_UPDATED, SUSPENSE_PENDING, SUSPENSE_ERROR } from './constants.js';
 export { event, render_event, delegate } from './events.js';
 
 export {
@@ -54,6 +54,7 @@ export {
 	track,
 	track_async,
 	is_tracked_pending,
+	peek_tracked,
 	track_split,
 	push_component,
 	pop_component,

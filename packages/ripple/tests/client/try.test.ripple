@@ -1,4 +1,4 @@
-import { bindValue, flushSync, RippleArray } from 'ripple';
+import { bindValue, flushSync, SUSPENSE_ERROR, UNINITIALIZED } from 'ripple';
 
 describe('try block with catch and pending', () => {
 	it('catch block works when a child throws synchronously', async () => {
@@ -582,6 +582,67 @@ describe('try block', () => {
 		expect(container.querySelector('.resolved')?.textContent).toBe('hello has length 105');
 	});
 
+	it('chained trackAsync does not recreate pending block when intermediate derived resolves', async () => {
+		let first_resolve: (value: string) => void;
+		let second_resolve: (value: number) => void;
+		let pending_render_count = 0;
+
+		const first_promise = new Promise<string>((resolve) => {
+			first_resolve = resolve;
+		});
+
+		component PendingTracker() {
+			pending_render_count++;
+			<p class="pending">{'loading...'}</p>
+		}
+
+		component App() {
+			try {
+				let name = #ripple.trackAsync(() => first_promise);
+				let length = #ripple.trackAsync(() => {
+					const n = @name;
+					return new Promise<number>((resolve) => {
+						second_resolve = resolve;
+					}).then((val) => n.length + val);
+				});
+				<p class="resolved">
+					{@name}
+					{' has length '}
+					{@length}
+				</p>
+			} pending {
+				<PendingTracker />
+			}
+		}
+
+		render(App);
+
+		// Wait for pending microtask to fire and render pending block
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.pending')?.textContent).toBe('loading...');
+		expect(pending_render_count).toBe(1);
+
+		// Resolve the first — second starts its own async request
+		// Pending block should NOT be torn down and recreated
+		first_resolve!('hello');
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.pending')?.textContent).toBe('loading...');
+		expect(pending_render_count).toBe(1); // Still 1 — no flicker
+
+		// Resolve the second — pending removed, resolved shown
+		second_resolve!(100);
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.pending')).toBeNull();
+		expect(container.querySelector('.resolved')?.textContent).toBe('hello has length 105');
+		expect(pending_render_count).toBe(1); // Never recreated
+	});
+
 	it(
 		'chained trackAsync: first rejects, catch renders and stays after second resolves',
 		async () => {
@@ -730,4 +791,536 @@ describe('try block', () => {
 		expect(container.querySelector('.pending')).toBeNull();
 		expect(container.querySelector('.resolved')).toBeNull();
 	});
+
+	it('rejection sets derived value to SUSPENSE_ERROR and promise is properly handled', async () => {
+		let reject_fn: (error: Error) => void;
+		let promise_settled: { type: 'resolved' | 'rejected'; value: any } | null = null;
+
+		const user_promise = new Promise<string>((_, reject) => {
+			reject_fn = reject;
+		});
+		user_promise.then(
+			(v) => {
+				promise_settled = { type: 'resolved', value: v };
+			},
+			(e) => {
+				promise_settled = { type: 'rejected', value: e };
+			},
+		);
+
+		let data: any;
+
+		component App() {
+			try {
+				data = #ripple.trackAsync(() => user_promise);
+				<p class="resolved">{@data}</p>
+			} pending {
+				<p class="pending">{'loading...'}</p>
+			} catch (err) {
+				<p class="caught">{(err as Error).message}</p>
+			}
+		}
+
+		render(App);
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.pending')?.textContent).toBe('loading...');
+
+		reject_fn!(new Error('test rejection'));
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.caught')?.textContent).toBe('test rejection');
+		expect(container.querySelector('.pending')).toBeNull();
+		expect(container.querySelector('.resolved')).toBeNull();
+
+		// The user promise was rejected and handled by the runtime
+		expect(promise_settled).toEqual({ type: 'rejected', value: expect.any(Error) });
+		expect((promise_settled as any).value.message).toBe('test rejection');
+		expect(#ripple.peek(data)).toEqual(SUSPENSE_ERROR);
+	});
+
+	it(
+		'chained trackAsync: first rejects, dependent deferred is rejected and cleaned up',
+		async () => {
+			let first_reject: (error: Error) => void;
+			let first_settled: { type: 'resolved' | 'rejected'; value: any } | null = null;
+
+			const first_promise = new Promise<string>((_, reject) => {
+				first_reject = reject;
+			});
+			first_promise.then(
+				(v) => {
+					first_settled = { type: 'resolved', value: v };
+				},
+				(e) => {
+					first_settled = { type: 'rejected', value: e };
+				},
+			);
+
+			let name: any;
+			let length: any;
+
+			component App() {
+				try {
+					name = #ripple.trackAsync(() => first_promise);
+					length = #ripple.trackAsync(() => {
+						const n = @name;
+						return new Promise<number>((resolve) => {
+							resolve(n.length);
+						});
+					});
+					<p class="resolved">
+						{@name}
+						{' has length '}
+						{@length}
+					</p>
+				} pending {
+					<p class="pending">{'loading...'}</p>
+				} catch (err) {
+					<p class="caught">{(err as Error).message}</p>
+				}
+			}
+
+			render(App);
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			expect(container.querySelector('.pending')?.textContent).toBe('loading...');
+
+			// Reject the first — should route to catch and clean up second's deferred
+			first_reject!(new Error('first failed'));
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			expect(container.querySelector('.caught')?.textContent).toBe('first failed');
+			expect(container.querySelector('.pending')).toBeNull();
+			expect(container.querySelector('.resolved')).toBeNull();
+			expect(#ripple.peek(name)).toEqual(SUSPENSE_ERROR);
+
+			// First promise was rejected and handled
+			expect(first_settled).toEqual({ type: 'rejected', value: expect.any(Error) });
+
+			// Verify stability — catch stays, no further state changes
+			await new Promise((resolve) => setTimeout(resolve, 50));
+			flushSync();
+			expect(container.querySelector('.caught')?.textContent).toBe('first failed');
+			// length never has a chance to run because name access throws and exits the block
+			expect(#ripple.peek(length)).toEqual(UNINITIALIZED);
+		},
+	);
+
+	it('deep chained trackAsync: A rejects, B and C deferreds are cleaned up', async () => {
+		let a_reject: (error: Error) => void;
+		let a_settled: { type: 'resolved' | 'rejected'; value: any } | null = null;
+
+		const a_promise = new Promise<string>((_, reject) => {
+			a_reject = reject;
+		});
+		a_promise.then(
+			(v) => {
+				a_settled = { type: 'resolved', value: v };
+			},
+			(e) => {
+				a_settled = { type: 'rejected', value: e };
+			},
+		);
+
+		component App() {
+			try {
+				let a = #ripple.trackAsync(() => a_promise);
+				let b = #ripple.trackAsync(() => {
+					const val = @a;
+					return Promise.resolve(val.toUpperCase());
+				});
+				let c = #ripple.trackAsync(() => {
+					const val = @b;
+					return Promise.resolve(val.length);
+				});
+				<p class="resolved">
+					{@a}
+					{' → '}
+					{@b}
+					{' → '}
+					{@c}
+				</p>
+			} pending {
+				<p class="pending">{'loading...'}</p>
+			} catch (err) {
+				<p class="caught">{(err as Error).message}</p>
+			}
+		}
+
+		render(App);
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.pending')?.textContent).toBe('loading...');
+
+		// Reject A — should cascade to catch, B and C cleaned up
+		a_reject!(new Error('chain failed'));
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.caught')?.textContent).toBe('chain failed');
+		expect(container.querySelector('.pending')).toBeNull();
+		expect(container.querySelector('.resolved')).toBeNull();
+
+		// A promise was rejected and handled
+		expect(a_settled).toEqual({ type: 'rejected', value: expect.any(Error) });
+
+		// Verify stability — no further state changes from B/C deferreds settling
+		await new Promise((resolve) => setTimeout(resolve, 50));
+		flushSync();
+		expect(container.querySelector('.caught')?.textContent).toBe('chain failed');
+	});
+
+	it('multiple independent trackAsyncs, one rejects, catch shows first error', async () => {
+		let first_reject: (error: Error) => void;
+		let second_resolve: (value: number) => void;
+		let first_settled: { type: 'resolved' | 'rejected'; value: any } | null = null;
+		let second_settled: { type: 'resolved' | 'rejected'; value: any } | null = null;
+
+		const first_promise = new Promise<string>((_, reject) => {
+			first_reject = reject;
+		});
+		first_promise.then(
+			(v) => {
+				first_settled = { type: 'resolved', value: v };
+			},
+			(e) => {
+				first_settled = { type: 'rejected', value: e };
+			},
+		);
+
+		const second_promise = new Promise<number>((resolve) => {
+			second_resolve = resolve;
+		});
+		second_promise.then(
+			(v) => {
+				second_settled = { type: 'resolved', value: v };
+			},
+			(e) => {
+				second_settled = { type: 'rejected', value: e };
+			},
+		);
+
+		component App() {
+			try {
+				let name = #ripple.trackAsync(() => first_promise);
+				let count = #ripple.trackAsync(() => second_promise);
+				<p class="resolved">
+					{@name}
+					{' count: '}
+					{@count}
+				</p>
+			} pending {
+				<p class="pending">{'loading...'}</p>
+			} catch (err) {
+				<p class="caught">{(err as Error).message}</p>
+			}
+		}
+
+		render(App);
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.pending')?.textContent).toBe('loading...');
+
+		// Reject the first — catch should render
+		first_reject!(new Error('name failed'));
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.caught')?.textContent).toBe('name failed');
+		expect(container.querySelector('.pending')).toBeNull();
+
+		// First promise was rejected
+		expect(first_settled).toEqual({ type: 'rejected', value: expect.any(Error) });
+
+		// Resolve the second — catch should stay stable
+		second_resolve!(42);
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.caught')?.textContent).toBe('name failed');
+		expect(container.querySelector('.resolved')).toBeNull();
+
+		// Second promise was resolved (by the test), but the boundary already caught
+		expect(second_settled).toEqual({ type: 'resolved', value: 42 });
+	});
+});
+
+describe('sync error while async deriveds are pending', () => {
+	it(
+		'catch stays stable when sync error fires while promise is pending, then promise resolves',
+		async () => {
+			let resolve_fn: ((v: string) => void) | undefined;
+			let user_promise = new Promise<string>((resolve) => {
+				resolve_fn = resolve;
+			});
+			let promise_settled: { type: string; value: any } | null = null;
+			user_promise.then(
+				(v) => (promise_settled = { type: 'resolved', value: v }),
+				(e) => (promise_settled = { type: 'rejected', value: e }),
+			);
+
+			component App() {
+				try {
+					<AsyncChild />
+					<ThrowingChild />
+				} pending {
+					<p class="pending">{'loading...'}</p>
+				} catch (err: Error) {
+					<p class="caught">{err.message}</p>
+				}
+			}
+
+			component AsyncChild() {
+				let data = #ripple.trackAsync(() => user_promise);
+				<p class="async-resolved">{@data}</p>
+			}
+
+			component ThrowingChild() {
+				throw new Error('sync boom');
+			}
+
+			render(App);
+			await new Promise((r) => setTimeout(r, 0));
+			flushSync();
+
+			// The sync error from ThrowingChild should trigger catch
+			expect(container.querySelector('.caught')?.textContent).toBe('sync boom');
+			expect(container.querySelector('.pending')).toBeNull();
+			expect(container.querySelector('.async-resolved')).toBeNull();
+
+			// Now resolve the promise that was in-flight
+			resolve_fn!('hello');
+			await new Promise((r) => setTimeout(r, 0));
+			flushSync();
+
+			// Catch should stay stable — boundary should NOT switch to resolved
+			expect(container.querySelector('.caught')?.textContent).toBe('sync boom');
+			expect(container.querySelector('.async-resolved')).toBeNull();
+			expect(promise_settled).toEqual({ type: 'resolved', value: 'hello' });
+
+			// Verify stability after all microtasks drain
+			await new Promise((r) => setTimeout(r, 50));
+			flushSync();
+			expect(container.querySelector('.caught')?.textContent).toBe('sync boom');
+			expect(container.querySelector('.async-resolved')).toBeNull();
+		},
+	);
+
+	it(
+		'catch stays stable when sync error fires while promise is pending, then promise rejects',
+		async () => {
+			let reject_fn: ((e: any) => void) | undefined;
+			let user_promise = new Promise<string>((_, reject) => {
+				reject_fn = reject;
+			});
+			let promise_settled: { type: string; value: any } | null = null;
+			user_promise.then(
+				(v) => (promise_settled = { type: 'resolved', value: v }),
+				(e) => (promise_settled = { type: 'rejected', value: e }),
+			);
+
+			component App() {
+				try {
+					<AsyncChild />
+					<ThrowingChild />
+				} pending {
+					<p class="pending">{'loading...'}</p>
+				} catch (err: Error) {
+					<p class="caught">{err.message}</p>
+				}
+			}
+
+			component AsyncChild() {
+				let data = #ripple.trackAsync(() => user_promise);
+				<p class="async-resolved">{@data}</p>
+			}
+
+			component ThrowingChild() {
+				throw new Error('sync boom');
+			}
+
+			render(App);
+			await new Promise((r) => setTimeout(r, 0));
+			flushSync();
+
+			// Catch should be showing from sync error
+			expect(container.querySelector('.caught')?.textContent).toBe('sync boom');
+
+			// Now reject the in-flight promise
+			reject_fn!(new Error('async failure'));
+			await new Promise((r) => setTimeout(r, 0));
+			flushSync();
+
+			// Catch should stay stable with the original sync error — no double-catch
+			expect(container.querySelector('.caught')?.textContent).toBe('sync boom');
+			expect(promise_settled).toEqual({ type: 'rejected', value: expect.any(Error) });
+
+			// Verify stability after all microtasks drain
+			await new Promise((r) => setTimeout(r, 0));
+			flushSync();
+			expect(container.querySelector('.caught')?.textContent).toBe('sync boom');
+			expect(container.querySelector('.async-resolved')).toBeNull();
+		},
+	);
+
+	it(
+		'catch stays stable when sync error fires with multiple pending trackAsyncs, all later resolve',
+		async () => {
+			let resolve_a: ((v: string) => void) | undefined;
+			let resolve_b: ((v: number) => void) | undefined;
+			let promise_a = new Promise<string>((resolve) => {
+				resolve_a = resolve;
+			});
+			let promise_b = new Promise<number>((resolve) => {
+				resolve_b = resolve;
+			});
+
+			let settled_a: { type: string; value: any } | null = null;
+			let settled_b: { type: string; value: any } | null = null;
+			promise_a.then(
+				(v) => (settled_a = { type: 'resolved', value: v }),
+				(e) => (settled_a = { type: 'rejected', value: e }),
+			);
+			promise_b.then(
+				(v) => (settled_b = { type: 'resolved', value: v }),
+				(e) => (settled_b = { type: 'rejected', value: e }),
+			);
+
+			component App() {
+				try {
+					<ChildA />
+					<ChildB />
+					<ThrowingChild />
+				} pending {
+					<p class="pending">{'loading...'}</p>
+				} catch (err: Error) {
+					<p class="caught">{err.message}</p>
+				}
+			}
+
+			component ChildA() {
+				let data = #ripple.trackAsync(() => promise_a);
+				<p class="a">{@data}</p>
+			}
+
+			component ChildB() {
+				let data = #ripple.trackAsync(() => promise_b);
+				<p class="b">{@data}</p>
+			}
+
+			component ThrowingChild() {
+				throw new Error('sync boom');
+			}
+
+			render(App);
+			await new Promise((r) => setTimeout(r, 0));
+			flushSync();
+
+			expect(container.querySelector('.caught')?.textContent).toBe('sync boom');
+
+			// Resolve both promises
+			resolve_a!('hello');
+			resolve_b!(42);
+			await new Promise((r) => setTimeout(r, 0));
+			flushSync();
+
+			// Catch should stay — boundary must NOT switch to resolved
+			expect(container.querySelector('.caught')?.textContent).toBe('sync boom');
+			expect(container.querySelector('.a')).toBeNull();
+			expect(container.querySelector('.b')).toBeNull();
+			expect(settled_a).toEqual({ type: 'resolved', value: 'hello' });
+			expect(settled_b).toEqual({ type: 'resolved', value: 42 });
+
+			// Verify stability after all microtasks drain
+			await new Promise((r) => setTimeout(r, 50));
+			flushSync();
+			expect(container.querySelector('.caught')?.textContent).toBe('sync boom');
+			expect(container.querySelector('.a')).toBeNull();
+			expect(container.querySelector('.b')).toBeNull();
+		},
+	);
+
+	it(
+		'catch stays stable when sync error fires with multiple pending trackAsyncs, one resolves and one rejects',
+		async () => {
+			let resolve_a: ((v: string) => void) | undefined;
+			let reject_b: ((e: any) => void) | undefined;
+			let promise_a = new Promise<string>((resolve) => {
+				resolve_a = resolve;
+			});
+			let promise_b = new Promise<number>((_, reject) => {
+				reject_b = reject;
+			});
+
+			let settled_a: { type: string; value: any } | null = null;
+			let settled_b: { type: string; value: any } | null = null;
+			promise_a.then(
+				(v) => (settled_a = { type: 'resolved', value: v }),
+				(e) => (settled_a = { type: 'rejected', value: e }),
+			);
+			promise_b.then(
+				(v) => (settled_b = { type: 'resolved', value: v }),
+				(e) => (settled_b = { type: 'rejected', value: e }),
+			);
+
+			component App() {
+				try {
+					<ChildA />
+					<ChildB />
+					<ThrowingChild />
+				} pending {
+					<p class="pending">{'loading...'}</p>
+				} catch (err: Error) {
+					<p class="caught">{err.message}</p>
+				}
+			}
+
+			component ChildA() {
+				let data = #ripple.trackAsync(() => promise_a);
+				<p class="a">{@data}</p>
+			}
+
+			component ChildB() {
+				let data = #ripple.trackAsync(() => promise_b);
+				<p class="b">{@data}</p>
+			}
+
+			component ThrowingChild() {
+				throw new Error('sync boom');
+			}
+
+			render(App);
+			await new Promise((r) => setTimeout(r, 0));
+			flushSync();
+
+			expect(container.querySelector('.caught')?.textContent).toBe('sync boom');
+
+			// Resolve A, reject B
+			resolve_a!('hello');
+			reject_b!(new Error('async failure'));
+			await new Promise((r) => setTimeout(r, 0));
+			flushSync();
+
+			// Catch should stay with original sync error
+			expect(container.querySelector('.caught')?.textContent).toBe('sync boom');
+			expect(container.querySelector('.a')).toBeNull();
+			expect(container.querySelector('.b')).toBeNull();
+			expect(settled_a).toEqual({ type: 'resolved', value: 'hello' });
+			expect(settled_b).toEqual({ type: 'rejected', value: expect.any(Error) });
+
+			// Verify stability after all microtasks drain
+			await new Promise((r) => setTimeout(r, 50));
+			flushSync();
+			expect(container.querySelector('.caught')?.textContent).toBe('sync boom');
+			expect(container.querySelector('.a')).toBeNull();
+			expect(container.querySelector('.b')).toBeNull();
+		},
+	);
 });

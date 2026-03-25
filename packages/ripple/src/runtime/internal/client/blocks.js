@@ -386,24 +386,6 @@ export function move_block(block, target) {
 }
 
 /**
- * Refreshes a branch block by removing its DOM, destroying children, and re-running its function.
- * Used by track_async to re-execute a branch when an async derived value changes.
- * @param {Block} block
- */
-export function restart_async_branch(block) {
-	if (is_destroyed(block)) return;
-
-	var s = block.s;
-	if (s !== null) {
-		remove_block_dom(s.start, s.end);
-		block.s = null;
-	}
-
-	destroy_block_children(block, false);
-	run_block(block);
-}
-
-/**
  * @param {Block} block
  * @param {boolean} [remove_dom]
  */

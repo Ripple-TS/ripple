@@ -39,6 +39,8 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 	var has_resolved = false;
 	/** @type {'resolved' | 'pending' | 'catch'} */
 	var mode = 'resolved';
+	/** @type {Map<number, (reason: any) => void>} */
+	var pending_deferreds = new Map();
 
 	function move_resolved_offscreen() {
 		offscreen_fragment = document.createDocumentFragment();
@@ -87,6 +89,16 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 	function handle_error(error) {
 		pending_count = 0;
 		active_requests.clear();
+
+		// Reject all pending deferred promises so dependent deriveds' settle
+		// handlers fire and clean up. The settle will see the request already
+		// cleared and skip error routing, avoiding double-catch.
+		if (pending_deferreds.size > 0) {
+			for (var [, reject_fn] of pending_deferreds) {
+				reject_fn(error);
+			}
+			pending_deferreds.clear();
+		}
 
 		if (mode === 'pending') {
 			// Resolved content is already offscreen. Destroy pending branch.
@@ -144,6 +156,19 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 	}
 
 	/**
+	 * @param {number} old_request_id
+	 * @returns {number}
+	 */
+	function replace_request(old_request_id) {
+		active_requests.delete(old_request_id);
+		pending_deferreds.delete(old_request_id);
+		// pending_count unchanged — one out, one in
+		var request_id = ++request_version;
+		active_requests.add(request_id);
+		return request_id;
+	}
+
+	/**
 	 * @param {number} request_id
 	 * @param {boolean} [render_resolved_branch=true]
 	 * @returns {boolean}
@@ -152,6 +177,8 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 		if (!active_requests.delete(request_id)) {
 			return false;
 		}
+
+		pending_deferreds.delete(request_id);
 
 		pending_count--;
 
@@ -193,6 +220,11 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 		b: begin_request,
 		r: complete_request,
 		c: catch_fn !== null ? handle_error : null,
+		/** @param {number} request_id @param {(reason: any) => void} reject_fn */
+		rd: (request_id, reject_fn) => {
+			pending_deferreds.set(request_id, reject_fn);
+		},
+		rp: replace_request,
 	};
 
 	if (hydrating && pending_fn !== null) {
@@ -278,6 +310,15 @@ export function begin_boundary_request(boundary) {
 }
 
 /**
+ * @param {Block} boundary
+ * @param {number} old_request_id
+ * @returns {number}
+ */
+export function replace_boundary_request(boundary, old_request_id) {
+	return boundary.s.rp(old_request_id);
+}
+
+/**
  * @param {Block | null} boundary
  * @param {number} request_id
  * @param {boolean} [render_resolved_branch=true]
@@ -287,6 +328,18 @@ export function complete_boundary_request(boundary, request_id, render_resolved_
 	return boundary !== null && !is_destroyed(boundary)
 		? boundary.s.r(request_id, render_resolved_branch)
 		: false;
+}
+
+/**
+ * @param {Block | null} boundary
+ * @param {number} request_id
+ * @param {(reason: any) => void} reject_fn
+ * @returns {void}
+ */
+export function register_boundary_deferred(boundary, request_id, reject_fn) {
+	if (boundary !== null && !is_destroyed(boundary) && boundary.s?.rd) {
+		boundary.s.rd(request_id, reject_fn);
+	}
 }
 
 /**

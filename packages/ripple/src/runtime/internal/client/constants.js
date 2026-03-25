@@ -20,7 +20,8 @@ export var DESTROYED = 1 << 19;
 
 export var CONTROL_FLOW_BLOCK = FOR_BLOCK | IF_BLOCK | SWITCH_BLOCK | TRY_BLOCK | COMPOSITE_BLOCK;
 
-export var UNINITIALIZED = Symbol();
+/** @type {unique symbol} */
+export const UNINITIALIZED = Symbol();
 /** @type {unique symbol} */
 export const TRACKED_ARRAY = Symbol();
 /** @type {unique symbol} */
@@ -42,5 +43,7 @@ export const NAMESPACE_URI = {
 export const DERIVED_UPDATED = Symbol();
 /** @type {unique symbol} */
 export const SUSPENSE_PENDING = Symbol();
+/** @type {unique symbol} */
+export const SUSPENSE_ERROR = Symbol();
 /** @type {unique symbol} */
 export const ASYNC_DERIVED_READ_THROWN = Symbol();

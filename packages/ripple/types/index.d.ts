@@ -152,7 +152,10 @@ export interface Tracked<V> {
 	(props: V extends Component<infer P> ? P : never): V extends Component ? void : never;
 }
 
+export const UNINITIALIZED: unique symbol;
 export const DERIVED_UPDATED: unique symbol;
+export const SUSPENSE_PENDING: unique symbol;
+export const SUSPENSE_ERROR: unique symbol;
 
 // Helper type to infer component type from a function that returns a component
 // If T is a function returning a Component, extract the Component type itself, not the return type (void)
@@ -200,14 +203,12 @@ export function track<V>(value?: V, get?: (v: V) => V, set?: (next: V, prev: V) 
 
 export function trackPending<V>(value: Tracked<V> | (() => any)): boolean;
 
-export function trackAsync<V>(
-	value: () => PromiseLike<V> | { promise: PromiseLike<V>; abortController: AbortController },
-): Tracked<V>;
-
 export function trackSplit<V extends Props, const K extends readonly (keyof V)[]>(
 	value: V,
 	splitKeys: K,
 ): SplitResult<V, K>;
+
+export function peek<V>(tracked: Tracked<V>): V;
 
 export interface AddEventOptions extends ExtendedEventOptions {
 	customName?: string;
@@ -568,9 +569,12 @@ export interface RippleNamespace {
 	urlSearchParams: RippleURLSearchParamsCallable;
 	untrack: typeof untrack;
 	track: typeof track;
-	trackAsync: typeof trackAsync;
+	trackAsync: <V>(
+		value: () => PromiseLike<V> | { promise: PromiseLike<V>; abortController: AbortController },
+	) => Tracked<V>;
 	trackPending: typeof trackPending;
 	trackSplit: typeof trackSplit;
+	peek: typeof peek;
 	style: Record<string, string>;
 	server: ServerBlock;
 }
