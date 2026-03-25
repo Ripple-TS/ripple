@@ -582,66 +582,69 @@ describe('try block', () => {
 		expect(container.querySelector('.resolved')?.textContent).toBe('hello has length 105');
 	});
 
-	it('chained trackAsync does not recreate pending block when intermediate derived resolves', async () => {
-		let first_resolve: (value: string) => void;
-		let second_resolve: (value: number) => void;
-		let pending_render_count = 0;
+	it(
+		'chained trackAsync does not recreate pending block when intermediate derived resolves',
+		async () => {
+			let first_resolve: (value: string) => void;
+			let second_resolve: (value: number) => void;
+			let pending_render_count = 0;
 
-		const first_promise = new Promise<string>((resolve) => {
-			first_resolve = resolve;
-		});
+			const first_promise = new Promise<string>((resolve) => {
+				first_resolve = resolve;
+			});
 
-		component PendingTracker() {
-			pending_render_count++;
-			<p class="pending">{'loading...'}</p>
-		}
-
-		component App() {
-			try {
-				let name = #ripple.trackAsync(() => first_promise);
-				let length = #ripple.trackAsync(() => {
-					const n = @name;
-					return new Promise<number>((resolve) => {
-						second_resolve = resolve;
-					}).then((val) => n.length + val);
-				});
-				<p class="resolved">
-					{@name}
-					{' has length '}
-					{@length}
-				</p>
-			} pending {
-				<PendingTracker />
+			component PendingTracker() {
+				pending_render_count++;
+				<p class="pending">{'loading...'}</p>
 			}
-		}
 
-		render(App);
+			component App() {
+				try {
+					let name = #ripple.trackAsync(() => first_promise);
+					let length = #ripple.trackAsync(() => {
+						const n = @name;
+						return new Promise<number>((resolve) => {
+							second_resolve = resolve;
+						}).then((val) => n.length + val);
+					});
+					<p class="resolved">
+						{@name}
+						{' has length '}
+						{@length}
+					</p>
+				} pending {
+					<PendingTracker />
+				}
+			}
 
-		// Wait for pending microtask to fire and render pending block
-		await new Promise((resolve) => setTimeout(resolve, 0));
-		flushSync();
+			render(App);
 
-		expect(container.querySelector('.pending')?.textContent).toBe('loading...');
-		expect(pending_render_count).toBe(1);
+			// Wait for pending microtask to fire and render pending block
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
 
-		// Resolve the first — second starts its own async request
-		// Pending block should NOT be torn down and recreated
-		first_resolve!('hello');
-		await new Promise((resolve) => setTimeout(resolve, 0));
-		flushSync();
+			expect(container.querySelector('.pending')?.textContent).toBe('loading...');
+			expect(pending_render_count).toBe(1);
 
-		expect(container.querySelector('.pending')?.textContent).toBe('loading...');
-		expect(pending_render_count).toBe(1); // Still 1 — no flicker
+			// Resolve the first — second starts its own async request
+			// Pending block should NOT be torn down and recreated
+			first_resolve!('hello');
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
 
-		// Resolve the second — pending removed, resolved shown
-		second_resolve!(100);
-		await new Promise((resolve) => setTimeout(resolve, 0));
-		flushSync();
+			expect(container.querySelector('.pending')?.textContent).toBe('loading...');
+			expect(pending_render_count).toBe(1); // Still 1 — no flicker
 
-		expect(container.querySelector('.pending')).toBeNull();
-		expect(container.querySelector('.resolved')?.textContent).toBe('hello has length 105');
-		expect(pending_render_count).toBe(1); // Never recreated
-	});
+			// Resolve the second — pending removed, resolved shown
+			second_resolve!(100);
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			expect(container.querySelector('.pending')).toBeNull();
+			expect(container.querySelector('.resolved')?.textContent).toBe('hello has length 105');
+			expect(pending_render_count).toBe(1); // Never recreated
+		},
+	);
 
 	it(
 		'chained trackAsync: first rejects, catch renders and stays after second resolves',
