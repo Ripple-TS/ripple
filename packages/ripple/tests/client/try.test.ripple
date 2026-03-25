@@ -1,4 +1,4 @@
-import { bindValue, flushSync, SUSPENSE_ERROR, UNINITIALIZED } from 'ripple';
+import { bindValue, flushSync, UNINITIALIZED, SUSPENSE_REJECTED } from 'ripple';
 
 describe('try block with catch and pending', () => {
 	it('catch block works when a child throws synchronously', async () => {
@@ -165,11 +165,18 @@ describe('try block with catch and pending', () => {
 				<p class="resolved">{@data}</p>
 			} pending {
 				<p class="pending">{'loading...'}</p>
-			} catch (err) {
+			} catch (err, reset) {
 				<p class="caught">{(err as Error).message}</p>
+				<button
+					class="retry"
+					onClick={() => {
+						@version++;
+						reset();
+					}}
+				>
+					{'Retry'}
+				</button>
 			}
-
-			<button class="retry" onClick={() => @version++}>{'Retry'}</button>
 		}
 
 		render(App);
@@ -795,54 +802,57 @@ describe('try block', () => {
 		expect(container.querySelector('.resolved')).toBeNull();
 	});
 
-	it('rejection sets derived value to SUSPENSE_ERROR and promise is properly handled', async () => {
-		let reject_fn: (error: Error) => void;
-		let promise_settled: { type: 'resolved' | 'rejected'; value: any } | null = null;
+	it(
+		'rejection sets derived value to SUSPENSE_REJECTED and promise is properly handled',
+		async () => {
+			let reject_fn: (error: Error) => void;
+			let promise_settled: { type: 'resolved' | 'rejected'; value: any } | null = null;
 
-		const user_promise = new Promise<string>((_, reject) => {
-			reject_fn = reject;
-		});
-		user_promise.then(
-			(v) => {
-				promise_settled = { type: 'resolved', value: v };
-			},
-			(e) => {
-				promise_settled = { type: 'rejected', value: e };
-			},
-		);
+			const user_promise = new Promise<string>((_, reject) => {
+				reject_fn = reject;
+			});
+			user_promise.then(
+				(v) => {
+					promise_settled = { type: 'resolved', value: v };
+				},
+				(e) => {
+					promise_settled = { type: 'rejected', value: e };
+				},
+			);
 
-		let data: any;
+			let data: any;
 
-		component App() {
-			try {
-				data = #ripple.trackAsync(() => user_promise);
-				<p class="resolved">{@data}</p>
-			} pending {
-				<p class="pending">{'loading...'}</p>
-			} catch (err) {
-				<p class="caught">{(err as Error).message}</p>
+			component App() {
+				try {
+					data = #ripple.trackAsync(() => user_promise);
+					<p class="resolved">{@data}</p>
+				} pending {
+					<p class="pending">{'loading...'}</p>
+				} catch (err) {
+					<p class="caught">{(err as Error).message}</p>
+				}
 			}
-		}
 
-		render(App);
-		await new Promise((resolve) => setTimeout(resolve, 0));
-		flushSync();
+			render(App);
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
 
-		expect(container.querySelector('.pending')?.textContent).toBe('loading...');
+			expect(container.querySelector('.pending')?.textContent).toBe('loading...');
 
-		reject_fn!(new Error('test rejection'));
-		await new Promise((resolve) => setTimeout(resolve, 0));
-		flushSync();
+			reject_fn!(new Error('test rejection'));
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
 
-		expect(container.querySelector('.caught')?.textContent).toBe('test rejection');
-		expect(container.querySelector('.pending')).toBeNull();
-		expect(container.querySelector('.resolved')).toBeNull();
+			expect(container.querySelector('.caught')?.textContent).toBe('test rejection');
+			expect(container.querySelector('.pending')).toBeNull();
+			expect(container.querySelector('.resolved')).toBeNull();
 
-		// The user promise was rejected and handled by the runtime
-		expect(promise_settled).toEqual({ type: 'rejected', value: expect.any(Error) });
-		expect((promise_settled as any).value.message).toBe('test rejection');
-		expect(#ripple.peek(data)).toEqual(SUSPENSE_ERROR);
-	});
+			// The user promise was rejected and handled by the runtime
+			expect(promise_settled).toEqual({ type: 'rejected', value: expect.any(Error) });
+			expect((promise_settled as any).value.message).toBe('test rejection');
+			expect(#ripple.peek(data)).toEqual(SUSPENSE_REJECTED);
+		},
+	);
 
 	it(
 		'chained trackAsync: first rejects, dependent deferred is rejected and cleaned up',
@@ -900,7 +910,7 @@ describe('try block', () => {
 			expect(container.querySelector('.caught')?.textContent).toBe('first failed');
 			expect(container.querySelector('.pending')).toBeNull();
 			expect(container.querySelector('.resolved')).toBeNull();
-			expect(#ripple.peek(name)).toEqual(SUSPENSE_ERROR);
+			expect(#ripple.peek(name)).toEqual(SUSPENSE_REJECTED);
 
 			// First promise was rejected and handled
 			expect(first_settled).toEqual({ type: 'rejected', value: expect.any(Error) });
@@ -1326,4 +1336,157 @@ describe('sync error while async deriveds are pending', () => {
 			expect(container.querySelector('.b')).toBeNull();
 		},
 	);
+
+	it('try block without catch propagates sync error to upstream boundary', async () => {
+		component ThrowingChild() {
+			throw new Error('no catch here');
+			<p>{'should not render'}</p>
+		}
+
+		component App() {
+			try {
+				<Inner />
+			} catch (err) {
+				<p class="upstream-caught">{(err as Error).message}</p>
+			}
+		}
+
+		component Inner() {
+			try {
+				<ThrowingChild />
+			} pending {
+				<p class="inner-pending">{'loading...'}</p>
+			}
+		}
+
+		render(App);
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.upstream-caught')?.textContent).toBe('no catch here');
+	});
+
+	it('try block without catch propagates async rejection to upstream boundary', async () => {
+		component App() {
+			try {
+				<Inner />
+			} catch (err) {
+				<p class="upstream-caught">{(err as Error).message}</p>
+			}
+		}
+
+		component Inner() {
+			try {
+				let data = #ripple.trackAsync(() => Promise.reject(new Error('async no catch')));
+				<p class="resolved">{@data}</p>
+			} pending {
+				<p class="inner-pending">{'loading...'}</p>
+			}
+		}
+
+		render(App);
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.upstream-caught')?.textContent).toBe('async no catch');
+		expect(container.querySelector('.resolved')).toBeNull();
+	});
+
+	it(
+		'try block without catch and without pending propagates async rejection to upstream boundary',
+		async () => {
+			let reject_fn: (error: Error) => void;
+			const user_promise = new Promise<string>((_, reject) => {
+				reject_fn = reject;
+			});
+
+			component App() {
+				try {
+					<Inner />
+				} catch (err) {
+					<p class="upstream-caught">{(err as Error).message}</p>
+				}
+			}
+
+			component Inner() {
+				try {
+					let data = #ripple.trackAsync(() => user_promise);
+					<p class="resolved">{@data}</p>
+				} pending {
+					<p class="inner-pending">{'loading...'}</p>
+				}
+			}
+
+			render(App);
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			// Inner should show nothing yet (no pending block)
+			expect(container.querySelector('.resolved')).toBeNull();
+			expect(container.querySelector('.upstream-caught')).toBeNull();
+
+			// Reject the promise
+			reject_fn!(new Error('deferred no catch'));
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			expect(container.querySelector('.upstream-caught')?.textContent).toBe('deferred no catch');
+		},
+	);
+
+	it('nested try blocks without catch propagate error through multiple levels', async () => {
+		component ThrowingChild() {
+			throw new Error('deep error');
+			<p>{'should not render'}</p>
+		}
+
+		component App() {
+			try {
+				<Middle />
+			} catch (err) {
+				<p class="top-caught">{(err as Error).message}</p>
+			}
+		}
+
+		component Middle() {
+			try {
+				<Inner />
+			} pending {
+				<p class="mid-pending">{'loading...'}</p>
+			}
+		}
+
+		component Inner() {
+			try {
+				<ThrowingChild />
+			} pending {
+				<p class="inner-pending">{'loading...'}</p>
+			}
+		}
+
+		render(App);
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.top-caught')?.textContent).toBe('deep error');
+	});
+
+	it('try block without catch throws to global when no upstream boundary exists', async () => {
+		component ThrowingChild() {
+			throw new Error('unhandled error');
+			<p>{'should not render'}</p>
+		}
+
+		component App() {
+			try {
+				<ThrowingChild />
+			} pending {
+				<p class="pending">{'loading...'}</p>
+			}
+		}
+
+		expect(() => {
+			render(App);
+		}).toThrow('unhandled error');
+	});
 });

@@ -23,7 +23,7 @@ import {
 	DEFAULT_NAMESPACE,
 	DERIVED_UPDATED,
 	SUSPENSE_PENDING,
-	SUSPENSE_ERROR,
+	SUSPENSE_REJECTED,
 } from './constants.js';
 import {
 	begin_boundary_request,
@@ -340,7 +340,7 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
 	// For rejection: mark the derived as errored so downstream reads don't
 	// treat it as still pending. Don't increment clock — we don't want to
 	// trigger re-runs of dependent deriveds or blocks.
-	computed.__v = SUSPENSE_ERROR;
+	computed.__v = SUSPENSE_REJECTED;
 
 	// Complete the pending request first, then route the error.
 	// If complete_boundary_request returns false, the request was already cleared
@@ -1143,13 +1143,13 @@ export function get_derived(computed) {
 		register_dependency(computed);
 	}
 
-	// When the derived is still pending or errored, throw to bail out of the
+	// When the derived is still pending or rejected, throw to bail out of the
 	// current block so the rest of the component tree can continue processing
 	// (avoiding waterfalls). We check `__v === SUSPENSE_PENDING` rather than `aq`
 	// because users can temporarily overwrite `__v` on a derived, in which case
 	// the processing should continue without throwing since we assume that the values
 	// are consistent with the code's logic.
-	if (computed.__v === SUSPENSE_PENDING || computed.__v === SUSPENSE_ERROR) {
+	if (computed.__v === SUSPENSE_PENDING || computed.__v === SUSPENSE_REJECTED) {
 		throw ASYNC_DERIVED_READ_THROWN;
 	}
 

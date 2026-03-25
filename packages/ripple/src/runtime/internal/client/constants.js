@@ -44,6 +44,6 @@ export const DERIVED_UPDATED = Symbol();
 /** @type {unique symbol} */
 export const SUSPENSE_PENDING = Symbol();
 /** @type {unique symbol} */
-export const SUSPENSE_ERROR = Symbol();
+export const SUSPENSE_REJECTED = Symbol();
 /** @type {unique symbol} */
 export const ASYNC_DERIVED_READ_THROWN = Symbol();

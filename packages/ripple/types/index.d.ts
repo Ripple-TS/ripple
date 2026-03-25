@@ -155,7 +155,7 @@ export interface Tracked<V> {
 export const UNINITIALIZED: unique symbol;
 export const DERIVED_UPDATED: unique symbol;
 export const SUSPENSE_PENDING: unique symbol;
-export const SUSPENSE_ERROR: unique symbol;
+export const SUSPENSE_REJECTED: unique symbol;
 
 // Helper type to infer component type from a function that returns a component
 // If T is a function returning a Component, extract the Component type itself, not the return type (void)

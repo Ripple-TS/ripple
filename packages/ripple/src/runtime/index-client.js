@@ -25,7 +25,7 @@ export {
 	UNINITIALIZED,
 	DERIVED_UPDATED,
 	SUSPENSE_PENDING,
-	SUSPENSE_ERROR,
+	SUSPENSE_REJECTED,
 } from './internal/client/constants.js';
 
 /**
