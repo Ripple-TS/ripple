@@ -1484,6 +1484,7 @@ const visitors = {
 						b.block(body),
 						b.catch_clause(
 							handler.param || b.id('error'),
+							handler.resetParam || null,
 							b.block(
 								transform_body(handler.body.body, {
 									...context,
@@ -1542,7 +1543,11 @@ const visitors = {
 				context.state.init?.push(
 					b.try(
 						b.block(body),
-						b.catch_clause(node.handler.param || b.id('error'), b.block(handler_body)),
+						b.catch_clause(
+							node.handler.param || b.id('error'),
+							node.handler.resetParam || null,
+							b.block(handler_body),
+						),
 					),
 				);
 			} else {

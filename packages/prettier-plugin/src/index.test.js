@@ -1874,6 +1874,23 @@ files = [...(files ?? []), ...dt.files];`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should format catch block with reset param and type annotation', async () => {
+			const expected = `component Test() {
+  try {
+    const data = await fetchData();
+    <div>{data}</div>
+  } pending {
+    <div>{'Loading...'}</div>
+  } catch (error: Error, reset: () => void) {
+    <div>{error.message}</div>
+    <button onClick={reset}>{'Retry'}</button>
+  }
+}`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should preserve class component method', async () => {
 			const expected = `class TestClass {
   component something() {

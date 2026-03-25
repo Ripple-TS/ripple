@@ -1726,12 +1726,43 @@ function RipplePlugin(config) {
 					const clause = /** @type {AST.CatchClause} */ (this.startNode());
 					this.next();
 					if (this.eat(tt.parenL)) {
-						clause.param = this.parseCatchClauseParam();
+						// Parse first param (error) manually to support optional second param (reset).
+						// We can't use parseCatchClauseParam() because it eats the closing paren.
+						const param = this.parseBindingAtom();
+						const simple = param.type === 'Identifier';
+						this.enterScope(simple ? BINDING_TYPES.BIND_SIMPLE_CATCH : 0);
+						this.checkLValPattern(
+							param,
+							simple ? BINDING_TYPES.BIND_SIMPLE_CATCH : BINDING_TYPES.BIND_LEXICAL,
+						);
+						const type = this.tsTryParseTypeAnnotation();
+						if (type) {
+							param.typeAnnotation = type;
+							this.resetEndLocation(param);
+						}
+						clause.param = param;
+
+						// Optional second parameter: reset function
+						if (this.eat(tt.comma)) {
+							const reset_param = this.parseBindingAtom();
+							this.checkLValSimple(reset_param, BINDING_TYPES.BIND_LEXICAL);
+							const reset_type = this.tsTryParseTypeAnnotation();
+							if (reset_type) {
+								reset_param.typeAnnotation = reset_type;
+								this.resetEndLocation(reset_param);
+							}
+							clause.resetParam = reset_param;
+						} else {
+							clause.resetParam = null;
+						}
+
+						this.expect(tt.parenR);
 					} else {
 						if (this.options.ecmaVersion < 10) {
 							this.unexpected();
 						}
 						clause.param = null;
+						clause.resetParam = null;
 						this.enterScope(0);
 					}
 					clause.body = this.parseBlock(false);

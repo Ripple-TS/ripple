@@ -2642,7 +2642,14 @@ const visitors = {
 					handler === null
 						? b.literal(null)
 						: b.arrow(
-								[b.id('__anchor'), ...(handler.param ? [handler.param] : [])],
+								[
+									b.id('__anchor'),
+									...(handler.param && handler.resetParam
+										? [handler.param, handler.resetParam]
+										: handler.param
+											? [handler.param]
+											: []),
+								],
 								b.block(transform_body(handler.body.body, context)),
 							),
 					pending === null
@@ -3191,6 +3198,7 @@ function transform_ts_child(node, context) {
 			);
 			catch_handler = b.catch_clause(
 				node.handler.param || null,
+				node.handler.resetParam || null,
 				catch_body,
 				/** @type {AST.NodeWithLocation} */ (node.handler),
 			);
@@ -5027,13 +5035,34 @@ function create_tsx_with_typescript_support(comments) {
 
 			if (node.handler) {
 				context.write(' catch');
-				if (node.handler.param) {
+				if (node.handler.param && !node.handler.resetParam) {
 					context.write(' (');
 					context.visit(node.handler.param);
 					context.write(')');
 				}
 				context.write(' ');
-				context.visit(node.handler.body);
+				if (node.handler.param && node.handler.resetParam) {
+					// Emit as IIFE so both params are valid TS arrow function parameters
+					context.write('{\n');
+					context.indent();
+					context.write('((');
+					context.visit(node.handler.param);
+					if (!node.handler.param.typeAnnotation) {
+						context.write(': unknown');
+					}
+					context.write(', ');
+					context.visit(node.handler.resetParam);
+					if (!node.handler.resetParam.typeAnnotation) {
+						context.write(': () => void');
+					}
+					context.write(') => ');
+					context.visit(node.handler.body);
+					context.write(')({}, () => {})\n');
+					context.dedent();
+					context.write('}');
+				} else {
+					context.visit(node.handler.body);
+				}
 			}
 
 			if (node.finalizer) {

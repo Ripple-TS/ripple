@@ -208,6 +208,10 @@ declare module 'estree' {
 		pending?: AST.BlockStatement | null;
 	}
 
+	interface CatchClause {
+		resetParam?: AST.Pattern | null;
+	}
+
 	interface ForOfStatement {
 		index?: AST.Identifier | null;
 		key?: AST.Expression | null;

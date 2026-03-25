@@ -1076,9 +1076,12 @@ export function convert_source_map_to_mappings(
 				}
 				return;
 			} else if (node.type === 'CatchClause') {
-				// Visit in source order: param, body
+				// Visit in source order: param, resetParam, body
 				if (node.param) {
 					visit(node.param);
+				}
+				if (node.resetParam) {
+					visit(node.resetParam);
 				}
 				if (node.body) {
 					visit(node.body);

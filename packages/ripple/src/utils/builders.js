@@ -1021,15 +1021,17 @@ export function try_builder(block, handler = null, finalizer = null, pending = n
 
 /**
  * @param {AST.Pattern | null} param
+ * @param {AST.Pattern | null} reset_param
  * @param {AST.BlockStatement} body
  * @param {AST.NodeWithLocation} [loc_info]
  * @return {AST.CatchClause}
  */
-export function catch_clause_builder(param, body, loc_info) {
+export function catch_clause_builder(param, reset_param, body, loc_info) {
 	/** @type {AST.CatchClause} */
 	const node = {
 		type: 'CatchClause',
 		param,
+		resetParam: reset_param,
 		body,
 		metadata: { path: [] },
 	};
