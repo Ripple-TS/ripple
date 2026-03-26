@@ -535,6 +535,36 @@ const visitors = {
 		return context.next();
 	},
 
+	ClassDeclaration(node, context) {
+		if (!context.state.to_ts) {
+			delete node.typeParameters;
+			delete (/** @type {any} */ (node).superTypeParameters);
+			delete node.superTypeArguments;
+			delete node.implements;
+			if (node.superClass?.type === 'TSInstantiationExpression') {
+				node.superClass = /** @type {AST.Expression} */ (context.visit(node.superClass.expression));
+			} else if (node.superClass && 'typeArguments' in node.superClass) {
+				delete node.superClass.typeArguments;
+			}
+		}
+		return context.next();
+	},
+
+	ClassExpression(node, context) {
+		if (!context.state.to_ts) {
+			delete node.typeParameters;
+			delete (/** @type {any} */ (node).superTypeParameters);
+			delete node.superTypeArguments;
+			delete node.implements;
+			if (node.superClass?.type === 'TSInstantiationExpression') {
+				node.superClass = /** @type {AST.Expression} */ (context.visit(node.superClass.expression));
+			} else if (node.superClass && 'typeArguments' in node.superClass) {
+				delete node.superClass.typeArguments;
+			}
+		}
+		return context.next();
+	},
+
 	FunctionDeclaration(node, context) {
 		if (!context.state.to_ts) {
 			delete node.returnType;

@@ -1025,6 +1025,36 @@ const visitors = {
 		return context.next();
 	},
 
+	ClassDeclaration(node, context) {
+		if (!context.state.to_ts) {
+			delete node.typeParameters;
+			delete (/** @type {any} */ (node).superTypeParameters);
+			delete node.superTypeArguments;
+			delete node.implements;
+			if (node.superClass?.type === 'TSInstantiationExpression') {
+				node.superClass = /** @type {AST.Expression} */ (context.visit(node.superClass.expression));
+			} else if (node.superClass && 'typeArguments' in node.superClass) {
+				delete node.superClass.typeArguments;
+			}
+		}
+		return context.next();
+	},
+
+	ClassExpression(node, context) {
+		if (!context.state.to_ts) {
+			delete node.typeParameters;
+			delete (/** @type {any} */ (node).superTypeParameters);
+			delete node.superTypeArguments;
+			delete node.implements;
+			if (node.superClass?.type === 'TSInstantiationExpression') {
+				node.superClass = /** @type {AST.Expression} */ (context.visit(node.superClass.expression));
+			} else if (node.superClass && 'typeArguments' in node.superClass) {
+				delete node.superClass.typeArguments;
+			}
+		}
+		return context.next();
+	},
+
 	VariableDeclaration(node, context) {
 		for (const declarator of node.declarations) {
 			if (!context.state.to_ts) {
@@ -4939,17 +4969,20 @@ function create_tsx_with_typescript_support(comments) {
 			if (node.id) {
 				context.visit(node.id);
 			}
-			if (node.typeParameters) {
+			if (context.state.to_ts && node.typeParameters) {
 				context.visit(node.typeParameters);
 			}
 			if (node.superClass) {
 				context.write(' extends ');
 				context.visit(node.superClass);
-				if (node.superTypeArguments) {
+				if (context.state.to_ts && /** @type {any} */ (node).superTypeParameters) {
+					context.visit(/** @type {any} */ (node).superTypeParameters);
+				}
+				if (context.state.to_ts && node.superTypeArguments) {
 					context.visit(node.superTypeArguments);
 				}
 			}
-			if (node.implements && node.implements.length > 0) {
+			if (context.state.to_ts && node.implements && node.implements.length > 0) {
 				context.write(' implements ');
 				for (let i = 0; i < node.implements.length; i++) {
 					if (i > 0) context.write(', ');
@@ -4965,17 +4998,20 @@ function create_tsx_with_typescript_support(comments) {
 				context.write(' ');
 				context.visit(node.id);
 			}
-			if (node.typeParameters) {
+			if (context.state.to_ts && node.typeParameters) {
 				context.visit(node.typeParameters);
 			}
 			if (node.superClass) {
 				context.write(' extends ');
 				context.visit(node.superClass);
-				if (node.superTypeArguments) {
+				if (context.state.to_ts && /** @type {any} */ (node).superTypeParameters) {
+					context.visit(/** @type {any} */ (node).superTypeParameters);
+				}
+				if (context.state.to_ts && node.superTypeArguments) {
 					context.visit(node.superTypeArguments);
 				}
 			}
-			if (node.implements && node.implements.length > 0) {
+			if (context.state.to_ts && node.implements && node.implements.length > 0) {
 				context.write(' implements ');
 				for (let i = 0; i < node.implements.length; i++) {
 					if (i > 0) context.write(', ');
