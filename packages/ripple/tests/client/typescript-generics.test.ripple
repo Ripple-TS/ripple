@@ -199,4 +199,30 @@ describe('generic patterns', () => {
 
 		render(App);
 	});
+
+	it('tests class extending generic type with type arguments', () => {
+		component App() {
+			// This tests that type arguments in class extends are stripped from JS output
+			// See: https://github.com/Ripple-TS/ripple/issues/813
+			class StringMap extends Map<string, string> {
+				constructor() {
+					super();
+				}
+				
+				getFirstKey(): string | undefined {
+					for (const key of this.keys()) {
+						return key;
+					}
+					return undefined;
+				}
+			}
+
+			const map = new StringMap();
+			map.set('hello', 'world');
+
+			<div>{map.get('hello')}</div>
+		}
+
+		render(App);
+	});
 });

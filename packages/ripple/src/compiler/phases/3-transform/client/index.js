@@ -4945,9 +4945,7 @@ function create_tsx_with_typescript_support(comments) {
 			if (node.superClass) {
 				context.write(' extends ');
 				context.visit(node.superClass);
-				if (node.superTypeArguments) {
-					context.visit(node.superTypeArguments);
-				}
+				// superTypeArguments is TypeScript-only and should not be emitted to JavaScript
 			}
 			if (node.implements && node.implements.length > 0) {
 				context.write(' implements ');
@@ -4971,9 +4969,7 @@ function create_tsx_with_typescript_support(comments) {
 			if (node.superClass) {
 				context.write(' extends ');
 				context.visit(node.superClass);
-				if (node.superTypeArguments) {
-					context.visit(node.superTypeArguments);
-				}
+				// superTypeArguments is TypeScript-only and should not be emitted to JavaScript
 			}
 			if (node.implements && node.implements.length > 0) {
 				context.write(' implements ');
