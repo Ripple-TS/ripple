@@ -180,6 +180,23 @@ function update_derived(computed) {
 
 /**
  * @param {Derived} computed
+ * @param {any} value
+ */
+function update_derived_value(computed, value) {
+	computed.__v = value;
+}
+
+/**
+ * @param {Derived} computed
+ * @param {any} value
+ */
+function update_derived_value_clock(computed, value) {
+	computed.__v = value;
+	computed.c = increment_clock();
+}
+
+/**
+ * @param {Derived} computed
  */
 function destroy_computed_children(computed) {
 	var blocks = computed.blocks;
@@ -296,6 +313,11 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
 		is_destroyed(source_block) ||
 		(boundary !== null && is_destroyed(boundary))
 	) {
+		if (fulfilled) {
+			update_derived_value_clock(computed, value);
+		} else {
+			update_derived_value(computed, SUSPENSE_REJECTED);
+		}
 		return;
 	}
 
@@ -304,8 +326,7 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
 		var should_schedule = has_changed && source_block !== null && !is_destroyed(source_block);
 
 		if (has_changed) {
-			computed.__v = value;
-			computed.c = increment_clock();
+			update_derived_value_clock(computed, value);
 		}
 		computed.ah = true;
 
@@ -337,10 +358,7 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
 		return;
 	}
 
-	// For rejection: mark the derived as errored so downstream reads don't
-	// treat it as still pending. Don't increment clock — we don't want to
-	// trigger re-runs of dependent deriveds or blocks.
-	computed.__v = SUSPENSE_REJECTED;
+	update_derived_value(computed, SUSPENSE_REJECTED);
 
 	// Complete the pending request first, then route the error.
 	// If complete_boundary_request returns false, the request was already cleared
@@ -377,7 +395,7 @@ function normalize_derived_value(computed, value, source_block, type) {
 	tracking = previous_tracking;
 
 	// If this derived has saved resolve/reject from a prior ASYNC_DERIVED_READ_THROWN,
-	// chain the deferred  to the real result so when the real settles,
+	// chain the deferred to the real result so when the real settles,
 	// it will settle the synthetic deferred that was created to keep the pending state
 	// until running the async derived succeeds without ASYNC_DERIVED_READ_THROWN and the
 	// real promise is produced and settles.
@@ -518,7 +536,10 @@ function run_derived(computed) {
 				// there are multiple async dependencies used in the derived
 				var deferred_promise = new Promise((resolve, reject) => {
 					computed.dr = resolve;
-					computed.dj = reject;
+					computed.dj = (error) => {
+						update_derived_value(computed, SUSPENSE_REJECTED);
+						reject(error);
+					};
 				});
 
 				return normalize_derived_value(computed, deferred_promise, source_block, 'deferred');
@@ -728,11 +749,12 @@ export function track(v, get, set, b) {
 
 /** *
  * @param {any} v
+ * @param {{ lazy?: boolean } | undefined} options
+ * @param {boolean} force_eager
  * @param {Block} b
- * @param {boolean} [is_eager]
  * @returns {Derived | void}
  */
-export function track_async(v, b, is_eager = false) {
+export function track_async(v, options = {}, force_eager, b) {
 	if (is_ripple_object(v)) {
 		return v;
 	}
@@ -750,13 +772,10 @@ export function track_async(v, b, is_eager = false) {
 
 	var d = derived(v, target_block, undefined, undefined);
 	d.ia = true;
-	if (is_eager) {
-		// is_eager should only be true if there is no assignment
-		// and the derived cannot be used anywhere else
-		// so we have to run it immediately as otherwise it would never run
-		update_derived(d);
-		return;
+	if (options.lazy && !force_eager) {
+		return d;
 	}
+	update_derived(d);
 	return d;
 }
 
@@ -768,11 +787,10 @@ export function is_tracked_pending(tracked) {
 	try {
 		if (typeof tracked === 'function') {
 			tracked();
-			return false;
 		} else {
 			get(tracked);
-			return false;
 		}
+		return false;
 	} catch (error) {
 		if (error === ASYNC_DERIVED_READ_THROWN) {
 			return true;

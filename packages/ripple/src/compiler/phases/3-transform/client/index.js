@@ -671,10 +671,14 @@ const visitors = {
 			/** @type {(AST.Expression | AST.SpreadElement)[]} */
 			let call_args;
 			if (is_track_async) {
-				// Visit the callback — the visitor already handles with_scope wrapping
-				// for expressions inside components
-				const visited_callback = /** @type {AST.Expression} */ (context.visit(node.arguments[0]));
-				call_args = [visited_callback, b.id('__block')];
+				call_args = [
+					/** @type {AST.Expression} */ (context.visit(node.arguments[0])),
+					/** @type {AST.Expression} */ (
+						node.arguments.length > 1 ? context.visit(node.arguments[1]) : b.void0
+					),
+					b.literal(parent?.type === 'ExpressionStatement'),
+					b.id('__block'),
+				];
 			} else {
 				call_args = /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
 					...node.arguments.map((arg) => context.visit(arg)),
@@ -687,14 +691,6 @@ const visitors = {
 				callee: b.member(b.id('_$_'), b.id(track_method_name)),
 				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (call_args),
 			});
-
-			if (is_track_async) {
-				track_call.arguments.push(
-					// If it's not being assigned to anything, run eagerly
-					// since otherwise there is no way for it to run at all
-					parent?.type === 'ExpressionStatement' ? b.literal(true) : b.void0,
-				);
-			}
 
 			return track_call;
 		}

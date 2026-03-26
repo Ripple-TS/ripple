@@ -571,6 +571,7 @@ export interface RippleNamespace {
 	track: typeof track;
 	trackAsync: <V>(
 		value: () => PromiseLike<V> | { promise: PromiseLike<V>; abortController: AbortController },
+		options?: { lazy?: boolean },
 	) => Tracked<V>;
 	trackPending: typeof trackPending;
 	trackSplit: typeof trackSplit;
