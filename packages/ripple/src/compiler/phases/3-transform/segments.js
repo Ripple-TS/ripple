@@ -1421,13 +1421,6 @@ export function convert_source_map_to_mappings(
 						max_len,
 					);
 
-					if (node.metadata?.inside_component_top_level) {
-						// Since we don't print component with async,
-						// we need to suppress the ts diagnostic on the 'await' keyword
-						// about being inside a non-async function
-						mapping.data.customData.suppressedDiagnostics = [1308];
-					}
-
 					mappings.push(mapping);
 				}
 				return;

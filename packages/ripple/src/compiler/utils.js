@@ -213,31 +213,6 @@ export function is_delegated_event(event_name, handler, context) {
 }
 
 /**
- * Returns true if context is inside a top-level await: inside component or module
- * @param {CommonContext} context
- * @returns {boolean}
- */
-export function is_top_level_await(context) {
-	for (let i = context.path.length - 1; i >= 0; i -= 1) {
-		const context_node = context.path[i];
-		const type = context_node.type;
-
-		if (context_node.type === 'Component') {
-			return true;
-		}
-
-		if (
-			type === 'FunctionExpression' ||
-			type === 'ArrowFunctionExpression' ||
-			type === 'FunctionDeclaration'
-		) {
-			return false;
-		}
-	}
-	return true;
-}
-
-/**
  * Returns true if context is inside a Component node
  * @param {CommonContext} context
  * @param {boolean} [includes_functions=false]

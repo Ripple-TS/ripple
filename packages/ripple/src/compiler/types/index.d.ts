@@ -38,7 +38,6 @@ interface BaseNodeMetaData {
 	commentContainerId?: number;
 	parenthesized?: boolean;
 	elementLeadingComments?: AST.Comment[];
-	inside_component_top_level?: boolean;
 	returns?: AST.ReturnStatement[];
 	has_return?: boolean;
 	is_reactive?: boolean;
@@ -1333,7 +1332,7 @@ type UpdateList = Array<
 		},
 		'initial' | 'identity' | 'expression'
 	>
-> & { async?: boolean };
+>;
 
 export interface TransformClientState extends BaseState {
 	events: Set<string>;

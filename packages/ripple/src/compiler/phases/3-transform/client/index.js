@@ -46,7 +46,6 @@ import {
 	is_value_static,
 	is_void_element,
 	is_element_dom_element,
-	is_top_level_await,
 	is_ripple_track_call,
 	normalize_children,
 	build_getter,
@@ -201,7 +200,6 @@ function apply_updates(init, update, state) {
 								return u.operation();
 							}),
 						),
-						!!update.async,
 					),
 				),
 			),
@@ -306,7 +304,7 @@ function apply_updates(init, update, state) {
 			b.stmt(
 				b.call(
 					'_$_.render',
-					b.arrow([b.id('__prev')], b.block(render_statements), !!update.async),
+					b.arrow([b.id('__prev')], b.block(render_statements)),
 					b.object(initial),
 				),
 			),
@@ -322,7 +320,7 @@ function visit_title_element(node, context) {
 	const normalized = normalize_children(node.children, context);
 	const content = normalized[0];
 
-	const metadata = { tracking: false, await: false };
+	const metadata = { tracking: false };
 	const visited = context.visit(content, { ...context.state, metadata });
 	const result = /** @type {AST.Expression} */ (
 		/** @type {{expression?: AST.Expression}} */ (visited).expression
@@ -821,16 +819,13 @@ const visitors = {
 		return b.call(
 			'_$_.with_scope',
 			b.id('__block'),
-			b.thunk(
-				{
-					...node,
-					callee: /** @type {AST.Expression} */ (context.visit(callee)),
-					arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
-						node.arguments.map((arg) => context.visit(arg))
-					),
-				},
-				context.state.metadata?.await ?? false,
-			),
+			b.thunk({
+				...node,
+				callee: /** @type {AST.Expression} */ (context.visit(callee)),
+				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+					node.arguments.map((arg) => context.visit(arg))
+				),
+			}),
 		);
 	},
 
@@ -1020,7 +1015,7 @@ const visitors = {
 		}
 
 		if (node.object.type === 'MemberExpression' && node.object.optional) {
-			const metadata = { tracking: false, await: false };
+			const metadata = { tracking: false };
 
 			const object = context.visit(node.object, { ...context.state, metadata });
 
@@ -1035,11 +1030,6 @@ const visitors = {
 					object: /** @type {AST.Expression} */ (object),
 					property: /** @type {AST.Expression} */ (context.visit(node.property)),
 				};
-			}
-			if (metadata.await) {
-				if (context.state.metadata?.await === false) {
-					context.state.metadata.await = true;
-				}
 			}
 		} else {
 			return context.next();
@@ -1436,7 +1426,7 @@ const visitors = {
 
 						if (name === 'value') {
 							const id = state.flush_node?.();
-							const metadata = { tracking: false, await: false };
+							const metadata = { tracking: false };
 							const expression = /** @type {AST.Expression} */ (
 								visit(attr.value, { ...state, metadata })
 							);
@@ -1457,7 +1447,7 @@ const visitors = {
 
 						if (name === 'checked') {
 							const id = state.flush_node?.();
-							const metadata = { tracking: false, await: false };
+							const metadata = { tracking: false };
 							const expression = /** @type {AST.Expression} */ (
 								visit(attr.value, { ...state, metadata })
 							);
@@ -1477,7 +1467,7 @@ const visitors = {
 
 						if (name === 'selected') {
 							const id = state.flush_node?.();
-							const metadata = { tracking: false, await: false };
+							const metadata = { tracking: false };
 							const expression = /** @type {AST.Expression} */ (
 								visit(attr.value, { ...state, metadata })
 							);
@@ -1496,7 +1486,7 @@ const visitors = {
 						}
 
 						if (is_event_attribute(name)) {
-							const metadata = { tracking: false, await: false };
+							const metadata = { tracking: false };
 							let handler = /** @type {AST.Expression} */ (
 								visit(attr.value, { ...state, metadata })
 							);
@@ -1533,7 +1523,7 @@ const visitors = {
 
 							continue;
 						}
-						const metadata = { tracking: false, await: false };
+						const metadata = { tracking: false };
 						const expression = /** @type {AST.Expression} */ (
 							visit(attr.value, { ...state, metadata })
 						);
@@ -1588,7 +1578,7 @@ const visitors = {
 					);
 				} else if (attr.type === 'RefAttribute') {
 					const id = state.flush_node?.();
-					const metadata = { tracking: false, await: false };
+					const metadata = { tracking: false };
 					state.init?.push(
 						b.stmt(
 							b.call(
@@ -1615,7 +1605,7 @@ const visitors = {
 					handle_static_attr(class_attribute.name.name, value);
 				} else {
 					const id = state.flush_node?.();
-					const metadata = { tracking: false, await: false };
+					const metadata = { tracking: false };
 					const expression = /** @type {AST.Expression} */ (
 						visit(attr_value, { ...state, metadata })
 					);
@@ -1649,7 +1639,7 @@ const visitors = {
 					handle_static_attr(style_attribute.name.name, attr_value.value);
 				} else {
 					const id = state.flush_node?.();
-					const metadata = { tracking: false, await: false };
+					const metadata = { tracking: false };
 					const expression = /** @type {AST.Expression} */ (
 						visit(attr_value, { ...state, metadata })
 					);
@@ -1772,7 +1762,7 @@ const visitors = {
 			for (const attr of node.attributes) {
 				if (attr.type === 'Attribute') {
 					if (attr.name.type === 'Identifier') {
-						const metadata = { tracking: false, await: false };
+						const metadata = { tracking: false };
 						let property =
 							attr.value === null
 								? b.literal(true)
@@ -1820,7 +1810,7 @@ const visitors = {
 					);
 				} else if (attr.type === 'RefAttribute') {
 					const ref_id = state.scope.generate('ref');
-					const metadata = { tracking: false, await: false };
+					const metadata = { tracking: false };
 					state.init?.push(b.var(ref_id, b.call('_$_.ref_prop')));
 					props.push(
 						b.prop(
@@ -1902,7 +1892,7 @@ const visitors = {
 				}
 			}
 
-			const metadata = { tracking: false, await: false };
+			const metadata = { tracking: false };
 			// We visit, but only to gather metadata
 			b.call(/** @type {AST.Expression} */ (visit(node.id, { ...state, metadata })));
 
@@ -1974,7 +1964,7 @@ const visitors = {
 
 	Component(node, context) {
 		let prop_statements;
-		const metadata = { await: false };
+		const metadata = {};
 
 		/** @type {AST.Statement[]} */
 		const style_statements = [];
@@ -2409,7 +2399,7 @@ const visitors = {
 							/** @type {AST.Expression} */ (
 								context.visit(node.test, {
 									...context.state,
-									metadata: { ...context.state.metadata, await: false },
+									metadata: { ...context.state.metadata },
 								})
 							),
 							b.stmt(b.call('_$_.set', b.id(info.name), b.true)),
@@ -2422,7 +2412,7 @@ const visitors = {
 							/** @type {AST.Expression} */ (
 								context.visit(node.test, {
 									...context.state,
-									metadata: { ...context.state.metadata, await: false },
+									metadata: { ...context.state.metadata },
 								})
 							),
 							b.stmt(b.assignment('=', b.id(info.name), b.true)),
@@ -2499,7 +2489,7 @@ const visitors = {
 				/** @type {AST.Expression} */ (
 					context.visit(node.test, {
 						...context.state,
-						metadata: { ...context.state.metadata, await: false },
+						metadata: { ...context.state.metadata },
 					})
 				),
 				b.stmt(b.call(b.id('__render'), b.id(consequent_id))),
@@ -2614,16 +2604,9 @@ const visitors = {
 		context.state.template?.push('<!>');
 
 		const id = context.state.flush_node?.();
-		const metadata = { await: false };
 		const handler = /** @type {AST.CatchClause | null} */ (node.handler);
 		const pending = /** @type {AST.BlockStatement | null} */ (node.pending);
-		let body = transform_body(node.block.body, {
-			...context,
-			state: {
-				...context.state,
-				metadata,
-			},
-		});
+		let body = transform_body(node.block.body, context);
 
 		if (handler?.param) {
 			delete handler.param.typeAnnotation;
@@ -2654,28 +2637,6 @@ const visitors = {
 				),
 			),
 		);
-	},
-
-	AwaitExpression(node, context) {
-		const { state } = context;
-
-		if (state.to_ts) {
-			if (is_inside_component(context)) {
-				node.metadata.inside_component_top_level = true;
-			}
-
-			return context.next();
-		}
-
-		if (!is_top_level_await(context)) {
-			return context.next();
-		}
-
-		if (context.state.metadata?.await === false) {
-			context.state.metadata.await = true;
-		}
-
-		return b.await(/** @type {AST.Expression} */ (context.visit(node.argument)));
 	},
 
 	BinaryExpression(node, context) {
@@ -2872,8 +2833,7 @@ function transform_ts_child(node, context) {
 
 		const attributes = node.attributes.map((attr) => {
 			if (attr.type === 'Attribute') {
-				const metadata = { await: false };
-				const name = visit(attr.name, { ...state, metadata });
+				const name = visit(attr.name, state);
 				const attr_value = /** @type { AST.Expression & AST.NodeWithLocation | null} */ (
 					attr.value
 				);
@@ -2883,7 +2843,7 @@ function transform_ts_child(node, context) {
 							// will take care of the mapping JSXAttribute's JSXIdentifier
 							b.literal(true)
 						: // reset init, update, final to avoid adding attr value to the component body
-							visit(attr_value, SetStateForOutsideComponent(state, { metadata }));
+							visit(attr_value, SetStateForOutsideComponent(state));
 
 				// Handle both regular identifiers and tracked identifiers
 				/** @type {string} */
@@ -2938,16 +2898,14 @@ function transform_ts_child(node, context) {
 				);
 				return jsx_attr;
 			} else if (attr.type === 'SpreadAttribute') {
-				const metadata = { await: false };
-				const argument = visit(attr.argument, { ...state, metadata });
+				const argument = visit(attr.argument, state);
 				return b.jsx_spread_attribute(
 					/** @type {AST.Expression} */ (argument),
 					/** @type {AST.NodeWithLocation} */ (attr),
 				);
 			} else if (attr.type === 'RefAttribute') {
 				const createRefKeyAlias = set_hidden_import_from_ripple('createRefKey', context);
-				const metadata = { await: false };
-				const argument = visit(attr.argument, { ...state, metadata });
+				const argument = visit(attr.argument, state);
 				const wrapper = b.object([
 					b.prop('init', b.call(createRefKeyAlias), /** @type {AST.Expression} */ (argument), true),
 				]);
@@ -2973,7 +2931,6 @@ function transform_ts_child(node, context) {
 						visit(child, {
 							...state,
 							scope: component_scope,
-							metadata: { await: false },
 						})
 					);
 					const func = b.arrow(
@@ -3431,7 +3388,7 @@ function transform_template_element(node, state, visit, child_namespace, init, u
 		// Single {html} expression - set innerHTML reactively
 		const html_node = /** @type {AST.Html} */ (node.children[0]);
 		const id = state.flush_node?.();
-		const metadata = { tracking: false, await: false };
+		const metadata = { tracking: false };
 		const expression = /** @type {AST.Expression} */ (
 			visit(html_node.expression, { ...state, metadata })
 		);
@@ -3704,10 +3661,7 @@ function transform_children(children, context) {
 			node.type === 'ReturnStatement' ||
 			node.type === 'Component'
 		) {
-			const metadata = { await: false };
-			state.init?.push(
-				/** @type {AST.Statement} */ (visit(node, { ...state, return_flags, metadata })),
-			);
+			state.init?.push(/** @type {AST.Statement} */ (visit(node, { ...state, return_flags })));
 			if (!state.to_ts) {
 				if (node.type === 'ReturnStatement') {
 					const info = return_flags.get(node);
@@ -3724,7 +3678,7 @@ function transform_children(children, context) {
 			let expression = undefined;
 			let is_create_text_only = false;
 			if (node.type === 'Text' || node.type === 'Html') {
-				metadata = { tracking: false, await: false };
+				metadata = { tracking: false };
 				expression = /** @type {AST.Expression} */ (visit(node.expression, { ...state, metadata }));
 				is_create_text_only =
 					node.type === 'Text' && normalized.length === 1 && expression.type === 'Literal';
@@ -3896,9 +3850,6 @@ function transform_children(children, context) {
 						identity: node.expression,
 						initial: b.literal(' '),
 					});
-					if (metadata.await) {
-						/** @type {NonNullable<TransformClientState['update']>} */ (state.update).async = true;
-					}
 				} else if (normalized.length === 1) {
 					skipped++;
 					const expr = /** @type {AST.Expression} */ (expression);
@@ -3942,10 +3893,6 @@ function transform_children(children, context) {
 							identity: node.expression,
 							initial: b.literal(' '),
 						});
-						if (metadata?.await) {
-							/** @type {NonNullable<TransformClientState['update']>} */ (state.update).async =
-								true;
-						}
 					}
 				}
 			} else if (node.type === 'ForOfStatement') {
