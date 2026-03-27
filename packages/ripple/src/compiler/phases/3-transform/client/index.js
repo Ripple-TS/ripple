@@ -131,6 +131,24 @@ function visit_function(node, context) {
 }
 
 /**
+ * @param {AST.ClassDeclaration | AST.ClassExpression} node
+ * @param {TransformClientContext} context
+ * @returns {void}
+ */
+function strip_class_typescript_syntax(node, context) {
+	delete node.typeParameters;
+	delete (/** @type {any} */ (node).superTypeParameters);
+	delete node.superTypeArguments;
+	delete node.implements;
+
+	if (node.superClass?.type === 'TSInstantiationExpression') {
+		node.superClass = /** @type {AST.Expression} */ (context.visit(node.superClass.expression));
+	} else if (node.superClass && 'typeArguments' in node.superClass) {
+		delete node.superClass.typeArguments;
+	}
+}
+
+/**
  * @param {AST.Element} node
  * @param {number} index
  * @param {TransformClientContext} context
@@ -1027,30 +1045,14 @@ const visitors = {
 
 	ClassDeclaration(node, context) {
 		if (!context.state.to_ts) {
-			delete node.typeParameters;
-			delete (/** @type {any} */ (node).superTypeParameters);
-			delete node.superTypeArguments;
-			delete node.implements;
-			if (node.superClass?.type === 'TSInstantiationExpression') {
-				node.superClass = /** @type {AST.Expression} */ (context.visit(node.superClass.expression));
-			} else if (node.superClass && 'typeArguments' in node.superClass) {
-				delete node.superClass.typeArguments;
-			}
+			strip_class_typescript_syntax(node, context);
 		}
 		return context.next();
 	},
 
 	ClassExpression(node, context) {
 		if (!context.state.to_ts) {
-			delete node.typeParameters;
-			delete (/** @type {any} */ (node).superTypeParameters);
-			delete node.superTypeArguments;
-			delete node.implements;
-			if (node.superClass?.type === 'TSInstantiationExpression') {
-				node.superClass = /** @type {AST.Expression} */ (context.visit(node.superClass.expression));
-			} else if (node.superClass && 'typeArguments' in node.superClass) {
-				delete node.superClass.typeArguments;
-			}
+			strip_class_typescript_syntax(node, context);
 		}
 		return context.next();
 	},
