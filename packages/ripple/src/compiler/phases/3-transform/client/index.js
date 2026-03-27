@@ -4979,8 +4979,7 @@ function create_tsx_with_typescript_support(comments) {
 				context.visit(node.superClass);
 				if (context.state.to_ts && /** @type {any} */ (node).superTypeParameters) {
 					context.visit(/** @type {any} */ (node).superTypeParameters);
-				}
-				if (context.state.to_ts && node.superTypeArguments) {
+				} else if (context.state.to_ts && node.superTypeArguments) {
 					context.visit(node.superTypeArguments);
 				}
 			}
@@ -5008,8 +5007,7 @@ function create_tsx_with_typescript_support(comments) {
 				context.visit(node.superClass);
 				if (context.state.to_ts && /** @type {any} */ (node).superTypeParameters) {
 					context.visit(/** @type {any} */ (node).superTypeParameters);
-				}
-				if (context.state.to_ts && node.superTypeArguments) {
+				} else if (context.state.to_ts && node.superTypeArguments) {
 					context.visit(node.superTypeArguments);
 				}
 			}
