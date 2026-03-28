@@ -4971,19 +4971,19 @@ function create_tsx_with_typescript_support(comments) {
 			if (node.id) {
 				context.visit(node.id);
 			}
-			if (context.state.to_ts && node.typeParameters) {
+			if (node.typeParameters) {
 				context.visit(node.typeParameters);
 			}
 			if (node.superClass) {
 				context.write(' extends ');
 				context.visit(node.superClass);
-				if (context.state.to_ts && /** @type {any} */ (node).superTypeParameters) {
+				if (/** @type {any} */ (node).superTypeParameters) {
 					context.visit(/** @type {any} */ (node).superTypeParameters);
-				} else if (context.state.to_ts && node.superTypeArguments) {
+				} else if (node.superTypeArguments) {
 					context.visit(node.superTypeArguments);
 				}
 			}
-			if (context.state.to_ts && node.implements && node.implements.length > 0) {
+			if (node.implements && node.implements.length > 0) {
 				context.write(' implements ');
 				for (let i = 0; i < node.implements.length; i++) {
 					if (i > 0) context.write(', ');
@@ -4999,19 +4999,19 @@ function create_tsx_with_typescript_support(comments) {
 				context.write(' ');
 				context.visit(node.id);
 			}
-			if (context.state.to_ts && node.typeParameters) {
+			if (node.typeParameters) {
 				context.visit(node.typeParameters);
 			}
 			if (node.superClass) {
 				context.write(' extends ');
 				context.visit(node.superClass);
-				if (context.state.to_ts && /** @type {any} */ (node).superTypeParameters) {
+				if (/** @type {any} */ (node).superTypeParameters) {
 					context.visit(/** @type {any} */ (node).superTypeParameters);
-				} else if (context.state.to_ts && node.superTypeArguments) {
+				} else if (node.superTypeArguments) {
 					context.visit(node.superTypeArguments);
 				}
 			}
-			if (context.state.to_ts && node.implements && node.implements.length > 0) {
+			if (node.implements && node.implements.length > 0) {
 				context.write(' implements ');
 				for (let i = 0; i < node.implements.length; i++) {
 					if (i > 0) context.write(', ');
