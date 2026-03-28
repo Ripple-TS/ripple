@@ -137,7 +137,7 @@ function visit_function(node, context) {
  */
 function strip_class_typescript_syntax(node, context) {
 	delete node.typeParameters;
-	delete (/** @type {any} */ (node).superTypeParameters);
+	delete node.superTypeParameters;
 	delete node.superTypeArguments;
 	delete node.implements;
 
@@ -4977,10 +4977,8 @@ function create_tsx_with_typescript_support(comments) {
 			if (node.superClass) {
 				context.write(' extends ');
 				context.visit(node.superClass);
-				if (/** @type {any} */ (node).superTypeParameters) {
-					context.visit(/** @type {any} */ (node).superTypeParameters);
-				} else if (node.superTypeArguments) {
-					context.visit(node.superTypeArguments);
+				if (node.superTypeParameters) {
+					context.visit(node.superTypeParameters);
 				}
 			}
 			if (node.implements && node.implements.length > 0) {
@@ -5005,10 +5003,8 @@ function create_tsx_with_typescript_support(comments) {
 			if (node.superClass) {
 				context.write(' extends ');
 				context.visit(node.superClass);
-				if (/** @type {any} */ (node).superTypeParameters) {
-					context.visit(/** @type {any} */ (node).superTypeParameters);
-				} else if (node.superTypeArguments) {
-					context.visit(node.superTypeArguments);
+				if (node.superTypeParameters) {
+					context.visit(node.superTypeParameters);
 				}
 			}
 			if (node.implements && node.implements.length > 0) {

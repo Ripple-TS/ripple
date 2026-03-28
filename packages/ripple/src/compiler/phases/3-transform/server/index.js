@@ -80,7 +80,7 @@ function build_return_guard(flags) {
  */
 function strip_class_typescript_syntax(node, context) {
 	delete node.typeParameters;
-	delete (/** @type {any} */ (node).superTypeParameters);
+	delete node.superTypeParameters;
 	delete node.superTypeArguments;
 	delete node.implements;
 
