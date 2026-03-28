@@ -130,6 +130,23 @@ function visit_function(node, context) {
 }
 
 /**
+ * @param {AST.ClassDeclaration | AST.ClassExpression} node
+ * @param {TransformClientContext} context
+ * @returns {void}
+ */
+function strip_class_typescript_syntax(node, context) {
+	delete node.typeParameters;
+	delete node.superTypeParameters;
+	delete node.implements;
+
+	if (node.superClass?.type === 'TSInstantiationExpression') {
+		node.superClass = /** @type {AST.Expression} */ (context.visit(node.superClass.expression));
+	} else if (node.superClass && 'typeArguments' in node.superClass) {
+		delete node.superClass.typeArguments;
+	}
+}
+
+/**
  * @param {AST.Element} node
  * @param {number} index
  * @param {TransformClientContext} context
@@ -1035,6 +1052,20 @@ const visitors = {
 	PropertyDefinition(node, context) {
 		if (!context.state.to_ts) {
 			delete node.typeAnnotation;
+		}
+		return context.next();
+	},
+
+	ClassDeclaration(node, context) {
+		if (!context.state.to_ts) {
+			strip_class_typescript_syntax(node, context);
+		}
+		return context.next();
+	},
+
+	ClassExpression(node, context) {
+		if (!context.state.to_ts) {
+			strip_class_typescript_syntax(node, context);
 		}
 		return context.next();
 	},
@@ -4915,8 +4946,8 @@ function create_tsx_with_typescript_support(comments) {
 			if (node.superClass) {
 				context.write(' extends ');
 				context.visit(node.superClass);
-				if (node.superTypeArguments) {
-					context.visit(node.superTypeArguments);
+				if (node.superTypeParameters) {
+					context.visit(node.superTypeParameters);
 				}
 			}
 			if (node.implements && node.implements.length > 0) {
@@ -4941,8 +4972,8 @@ function create_tsx_with_typescript_support(comments) {
 			if (node.superClass) {
 				context.write(' extends ');
 				context.visit(node.superClass);
-				if (node.superTypeArguments) {
-					context.visit(node.superTypeArguments);
+				if (node.superTypeParameters) {
+					context.visit(node.superTypeParameters);
 				}
 			}
 			if (node.implements && node.implements.length > 0) {

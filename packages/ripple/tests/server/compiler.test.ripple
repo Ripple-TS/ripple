@@ -41,6 +41,37 @@ function getString(e: string = 'test') {
 		expect(result.js.code).toMatchSnapshot();
 	});
 
+	it('removes class TypeScript syntax from JS output', () => {
+		const source = `interface BaseEvent {}
+
+class PrintEvent implements BaseEvent {
+	text: string;
+
+	constructor(text: string) {
+		this.text = text;
+	}
+}`;
+
+		const result = compile(source, 'test.ripple', { mode: 'server' });
+
+		expect(result.js.code).not.toContain('implements');
+		expect(result.js.code).toMatchSnapshot();
+	});
+
+	it('removes class extends type arguments from JS output', () => {
+		const source = `class StringMap extends Map<string, string> {
+	constructor() {
+		super();
+	}
+}`;
+
+		const result = compile(source, 'test.ripple', { mode: 'server' });
+
+		expect(result.js.code).not.toContain('Map<string, string>');
+		expect(result.js.code).toContain('class StringMap extends Map');
+		expect(result.js.code).toMatchSnapshot();
+	});
+
 	it('throws error for interpolating children as text in SSR mode', () => {
 		const source = `
 export component Layout({ children }) {

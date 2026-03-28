@@ -537,4 +537,15 @@ export component App() {
 
 		expect(mapping).toBeDefined();
 	});
+
+	it('preserves class extends generic type arguments in volar output', () => {
+		const source = `class StringMap extends Map<string, string> {}
+export component App() {}`;
+
+		expect(() => compile_to_volar_mappings(source, 'test.ripple', { loose: true })).not.toThrow();
+
+		const result = compile_to_volar_mappings(source, 'test.ripple', { loose: true }).code;
+
+		expect(result).toContain('class StringMap extends Map<string, string> {}');
+	});
 });
