@@ -138,7 +138,6 @@ function visit_function(node, context) {
 function strip_class_typescript_syntax(node, context) {
 	delete node.typeParameters;
 	delete node.superTypeParameters;
-	delete node.superTypeArguments;
 	delete node.implements;
 
 	if (node.superClass?.type === 'TSInstantiationExpression') {
