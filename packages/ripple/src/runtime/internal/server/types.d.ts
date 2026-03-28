@@ -19,6 +19,7 @@ export type Derived = {
 	f: number;
 	fn: Function;
 	v: any;
+	ia: boolean;
 };
 
 export type Tracked = {

@@ -454,6 +454,7 @@ const visitors = {
 		}
 
 		const callee = node.callee;
+		const parent = context.path.at(-1);
 		const source_name = callee.type === 'Identifier' ? callee.metadata?.source_name : undefined;
 		const ripple_runtime_method = get_ripple_namespace_call_name(source_name);
 
@@ -472,19 +473,37 @@ const visitors = {
 				callee.type === 'Identifier'
 					? callee.name === 'trackSplit'
 						? 'track_split'
-						: 'track'
+						: callee.name === 'trackAsync'
+							? 'track_async'
+							: 'track'
 					: callee.type === 'MemberExpression' && callee.property.type === 'Identifier'
 						? callee.property.name === 'trackSplit'
 							? 'track_split'
-							: 'track'
+							: callee.property.name === 'trackAsync'
+								? 'track_async'
+								: 'track'
 						: 'track';
+
+			/** @type {(AST.Expression | AST.SpreadElement)[]} */
+			let call_args;
+			if (track_method_name === 'track_async') {
+				call_args = [
+					/** @type {AST.Expression} */ (context.visit(node.arguments[0])),
+					/** @type {AST.Expression} */ (
+						node.arguments.length > 1 ? context.visit(node.arguments[1]) : b.void0
+					),
+					b.literal(parent?.type === 'ExpressionStatement'),
+				];
+			} else {
+				call_args = /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+					node.arguments.map((arg) => context.visit(arg))
+				);
+			}
 
 			return {
 				...node,
 				callee: b.member(b.id('_$_'), b.id(track_method_name)),
-				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
-					node.arguments.map((arg) => context.visit(arg))
-				),
+				arguments: call_args,
 			};
 		}
 
@@ -1440,6 +1459,43 @@ const visitors = {
 		// Check if the try block itself contains async operations
 		const is_async = metadata.await || has_pending;
 
+		/** @type {AST.CatchClause | null} */
+		let catch_clause = null;
+		const handler = node.handler;
+		if (handler) {
+			if (handler.param) {
+				delete handler.param.typeAnnotation;
+			}
+
+			/** @type {AST.Statement | null} */
+			let reset = null;
+			if (handler.resetParam) {
+				delete handler.resetParam.typeAnnotation;
+
+				reset = b.const(
+					handler.resetParam.type === 'AssignmentPattern'
+						? /** @type {AST.Identifier} */ (handler.resetParam.left).name
+						: /** @type {AST.Identifier} */ (handler.resetParam).name,
+					b.id('_$_.noop'),
+				);
+			}
+
+			catch_clause = b.catch_clause(
+				handler.param || b.id('error'),
+				null,
+				b.block([
+					...(reset ? [reset] : []),
+					...transform_body(handler.body.body, {
+						...context,
+						state: {
+							...context.state,
+							scope: /** @type {ScopeInterface} */ (context.state.scopes.get(handler.body)),
+						},
+					}),
+				]),
+			);
+		}
+
 		if (is_async) {
 			if (context.state.metadata?.await === false) {
 				context.state.metadata.await = true;
@@ -1472,31 +1528,10 @@ const visitors = {
 
 			// For SSR with pending block: render the resolved content wrapped in async
 			// In a streaming SSR implementation, we'd render pending first, then stream resolved
-			const handler = node.handler;
 			/** @type {AST.Statement[]} */
 			let try_statements = body;
-			if (handler != null) {
-				if (handler.param) {
-					delete handler.param.typeAnnotation;
-				}
-				try_statements = [
-					b.try(
-						b.block(body),
-						b.catch_clause(
-							handler.param || b.id('error'),
-							handler.resetParam || null,
-							b.block(
-								transform_body(handler.body.body, {
-									...context,
-									state: {
-										...context.state,
-										scope: /** @type {ScopeInterface} */ (context.state.scopes.get(handler.body)),
-									},
-								}),
-							),
-						),
-					),
-				];
+			if (catch_clause) {
+				try_statements = [b.try(b.block(body), catch_clause)];
 			}
 
 			// Remove pending content before rendering resolved/catch content
@@ -1528,28 +1563,8 @@ const visitors = {
 			}
 		} else {
 			// No async, just regular try/catch
-			if (node.handler != null) {
-				if (node.handler.param) {
-					delete node.handler.param.typeAnnotation;
-				}
-				const handler_body = transform_body(node.handler.body.body, {
-					...context,
-					state: {
-						...context.state,
-						scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.handler.body)),
-					},
-				});
-
-				context.state.init?.push(
-					b.try(
-						b.block(body),
-						b.catch_clause(
-							node.handler.param || b.id('error'),
-							node.handler.resetParam || null,
-							b.block(handler_body),
-						),
-					),
-				);
+			if (catch_clause) {
+				context.state.init?.push(b.try(b.block(body), catch_clause));
 			} else {
 				context.state.init?.push(...body);
 			}

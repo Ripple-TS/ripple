@@ -1585,4 +1585,159 @@ describe('sync error while async deriveds are pending', () => {
 			render(App);
 		}).toThrow('unhandled error');
 	});
+
+	it(
+		'outer try block with pending and inner try with catch and without pending should propagate rejection to inner boundary',
+		async () => {
+			let reject_fn: (error: Error) => void;
+			const user_promise = new Promise<string>((_, reject) => {
+				reject_fn = reject;
+			});
+
+			component Inner() {
+				try {
+					let data = #ripple.trackAsync(() => user_promise);
+					<p class="resolved">{@data}</p>
+				} catch (err) {
+					<p class="downstream-caught">{(err as Error).message}</p>
+				}
+			}
+
+			component App() {
+				try {
+					<Inner />
+				} pending {
+					<p class="outer-pending">{'loading...'}</p>
+				}
+			}
+
+			render(App);
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			// Inner should show nothing yet (no pending block)
+			expect(container.querySelector('.resolved')).toBeNull();
+			expect(container.querySelector('.downstream-caught')).toBeNull();
+			expect(container.querySelector('.outer-pending')?.textContent).toBe('loading...');
+
+			// Reject the promise
+			reject_fn!(new Error('deferred no catch'));
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			expect(container.querySelector('.resolved')).toBeNull();
+			expect(container.querySelector('.downstream-caught')?.textContent).toBe('deferred no catch');
+			expect(container.querySelector('.outer-pending')).toBeNull();
+		},
+	);
+
+	it(
+		'outer try block with pending and inner try with synchronous catch and without pending should propagate rejection to inner boundary with promise rejecting',
+		async () => {
+			let reject_fn: (error: Error) => void;
+			let resolve_fn: (value: string) => void;
+			const user_promise = new Promise<string>((resolve, reject) => {
+				resolve_fn = resolve;
+				reject_fn = reject;
+			});
+
+			let user_settled: { type: string; value: any } | null = null;
+			user_promise.then(
+				(v) => (user_settled = { type: 'resolved', value: v }),
+				(e) => (user_settled = { type: 'rejected', value: e }),
+			);
+
+			component Inner() {
+				try {
+					let data = #ripple.trackAsync(() => user_promise);
+					throw new Error('synchronous error');
+					<p class="resolved">{@data}</p>
+				} catch (err) {
+					<p class="downstream-caught">{(err as Error).message}</p>
+				}
+			}
+
+			component App() {
+				try {
+					<Inner />
+				} pending {
+					<p class="outer-pending">{'loading...'}</p>
+				}
+			}
+
+			render(App);
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			// Inner should show nothing yet (no pending block)
+			expect(container.querySelector('.resolved')).toBeNull();
+			expect(container.querySelector('.outer-pending')).not.toBeNull();
+			expect(container.querySelector('.downstream-caught')).toBeNull();
+
+			// Reject the promise
+			reject_fn!(new Error('whatever'));
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			expect(container.querySelector('.resolved')).toBeNull();
+			expect(container.querySelector('.outer-pending')).toBeNull();
+			expect(container.querySelector('.downstream-caught')?.textContent).toBe('synchronous error');
+			expect(user_settled).toEqual({ type: 'rejected', value: expect.any(Error) });
+		},
+	);
+
+	it(
+		'outer try block with pending and inner try with synchronous catch and without pending should propagate rejection to inner boundary with promise resolving instead of rejecting',
+		async () => {
+			let reject_fn: (error: Error) => void;
+			let resolve_fn: (value: string) => void;
+			const user_promise = new Promise<string>((resolve, reject) => {
+				resolve_fn = resolve;
+				reject_fn = reject;
+			});
+
+			let user_settled: { type: string; value: any } | null = null;
+			user_promise.then(
+				(v) => (user_settled = { type: 'resolved', value: v }),
+				(e) => (user_settled = { type: 'rejected', value: e }),
+			);
+
+			component Inner() {
+				try {
+					let data = #ripple.trackAsync(() => user_promise);
+					throw new Error('synchronous error');
+					<p class="resolved">{@data}</p>
+				} catch (err) {
+					<p class="downstream-caught">{(err as Error).message}</p>
+				}
+			}
+
+			component App() {
+				try {
+					<Inner />
+				} pending {
+					<p class="outer-pending">{'loading...'}</p>
+				}
+			}
+
+			render(App);
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			// Inner should show nothing yet (no pending block)
+			expect(container.querySelector('.resolved')).toBeNull();
+			expect(container.querySelector('.outer-pending')).not.toBeNull();
+			expect(container.querySelector('.downstream-caught')).toBeNull();
+
+			// Reject the promise
+			resolve_fn!('hello');
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			expect(container.querySelector('.resolved')).toBeNull();
+			expect(container.querySelector('.outer-pending')).toBeNull();
+			expect(container.querySelector('.downstream-caught')?.textContent).toBe('synchronous error');
+			expect(user_settled).toEqual({ type: 'resolved', value: 'hello' });
+		},
+	);
 });

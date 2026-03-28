@@ -1,11 +1,15 @@
-import { get, set, untrack, track, track_split } from './internal/server/index.js';
+import { get, set, untrack, track, track_split, track_async } from './internal/server/index.js';
 
 export { Context } from './internal/server/context.js';
+export { get, set, untrack, track, track_split as trackSplit, track_async as trackAsync };
+export {
+	UNINITIALIZED,
+	DERIVED_UPDATED,
+	SUSPENSE_PENDING,
+	SUSPENSE_REJECTED,
+} from './internal/client/constants.js';
 
-export { get, set, untrack, track, track_split as trackSplit };
-
-function noop() {}
-
+export function noop() {}
 export const effect = noop;
 export const createRefKey = noop;
 export const on = noop;

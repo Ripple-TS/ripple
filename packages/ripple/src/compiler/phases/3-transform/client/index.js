@@ -654,8 +654,6 @@ const visitors = {
 								: 'track'
 						: 'track';
 
-			const is_track_async = track_method_name === 'track_async';
-
 			if (callee.type === 'Identifier' && callee.name === 'track') {
 				if (node.arguments.length === 0) {
 					node.arguments.push(b.void0, b.void0, b.void0);
@@ -668,7 +666,7 @@ const visitors = {
 
 			/** @type {(AST.Expression | AST.SpreadElement)[]} */
 			let call_args;
-			if (is_track_async) {
+			if (track_method_name === 'track_async') {
 				call_args = [
 					/** @type {AST.Expression} */ (context.visit(node.arguments[0])),
 					/** @type {AST.Expression} */ (
@@ -684,13 +682,11 @@ const visitors = {
 				]);
 			}
 
-			const track_call = /** @type {AST.CallExpression} */ ({
+			return /** @type {AST.CallExpression} */ ({
 				...node,
 				callee: b.member(b.id('_$_'), b.id(track_method_name)),
-				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (call_args),
+				arguments: call_args,
 			});
-
-			return track_call;
 		}
 
 		const source_name = callee.type === 'Identifier' ? callee.metadata?.source_name : undefined;

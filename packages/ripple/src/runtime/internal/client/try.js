@@ -83,8 +83,12 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 
 	function move_resolved_offscreen() {
 		if (resolved_branch !== null) {
-			offscreen_fragment = document.createDocumentFragment();
-			move_block(resolved_branch, offscreen_fragment);
+			if (!offscreen_fragment) {
+				// if offcreen_fragment exists, it means the resolved_branch is already offscreen,
+				// so we can skip moving it again
+				offscreen_fragment = document.createDocumentFragment();
+				move_block(resolved_branch, offscreen_fragment);
+			}
 		}
 	}
 
@@ -199,10 +203,10 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 
 	/**
 	 * @param {number} request_id
-	 * @param {boolean} [render_resolved_branch=true]
+	 * @param {boolean} [show_resolved_branch=true]
 	 * @returns {boolean}
 	 */
-	function complete_request(request_id, render_resolved_branch = true) {
+	function complete_request(request_id, show_resolved_branch = true) {
 		if (!active_requests.delete(request_id)) {
 			return false;
 		}
@@ -222,7 +226,7 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 			if (try_block !== null && !is_destroyed(try_block)) {
 				destroy_pending();
 
-				if (render_resolved_branch) {
+				if (show_resolved_branch) {
 					// Move resolved DOM back
 					if (offscreen_fragment !== null) {
 						/** @type {ChildNode} */ (anchor).before(offscreen_fragment);
@@ -327,6 +331,24 @@ export function get_pending_boundary(block) {
 }
 
 /**
+ * @param {Block} block
+ * @returns {Block | null}
+ */
+export function get_boundary_with_catch(block) {
+	/** @type {Block | null} */
+	var current = block;
+
+	while (current !== null) {
+		if ((current.f & TRY_BLOCK) !== 0 && current.s.c !== null) {
+			return current;
+		}
+		current = current.p;
+	}
+
+	return null;
+}
+
+/**
  * @param {Block} boundary
  * @returns {number}
  */
@@ -346,12 +368,12 @@ export function replace_boundary_request(boundary, old_request_id) {
 /**
  * @param {Block | null} boundary
  * @param {number} request_id
- * @param {boolean} [render_resolved_branch=true]
+ * @param {boolean} [show_resolved_branch=true]
  * @returns {boolean}
  */
-export function complete_boundary_request(boundary, request_id, render_resolved_branch = true) {
+export function complete_boundary_request(boundary, request_id, show_resolved_branch = true) {
 	return boundary !== null && !is_destroyed(boundary)
-		? boundary.s.r(request_id, render_resolved_branch)
+		? boundary.s.r(request_id, show_resolved_branch)
 		: false;
 }
 

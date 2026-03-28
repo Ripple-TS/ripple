@@ -626,6 +626,25 @@ function tracked(v, get, set) {
  * @param {any} v
  * @param {(value: any) => any} [get]
  * @param {(next: any, prev: any) => any} [set]
+ * @returns {Derived}
+ */
+function derived(v, get, set) {
+	return {
+		a: get || set ? { get, set } : empty_get_set,
+		c: 0,
+		co: active_component,
+		d: null,
+		f: TRACKED | DERIVED,
+		fn: v,
+		v: UNINITIALIZED,
+		ia: false,
+	};
+}
+
+/**
+ * @param {any} v
+ * @param {(value: any) => any} [get]
+ * @param {(next: any, prev: any) => any} [set]
  * @returns {Tracked | Derived}
  */
 export function track(v, get, set) {
@@ -636,18 +655,36 @@ export function track(v, get, set) {
 	}
 
 	if (typeof v === 'function') {
-		return {
-			a: get || set ? { get, set } : empty_get_set,
-			c: 0,
-			co: active_component,
-			d: null,
-			f: TRACKED | DERIVED,
-			fn: v,
-			v: UNINITIALIZED,
-		};
+		return derived(v, get, set);
 	}
 
 	return tracked(v, get, set);
+}
+
+/**
+ * @param {any} v
+ * @param {{ lazy?: boolean } | undefined} options
+ * @param {boolean} force_eager
+ * @returns {Derived | void}
+ */
+export function track_async(v, options = {}, force_eager) {
+	if (is_ripple_object(v)) {
+		return v;
+	}
+
+	if (typeof v !== 'function') {
+		throw new TypeError(
+			'trackAsync() only accepts function arguments that return a promise or an object with a promise property',
+		);
+	}
+
+	var d = derived(v, undefined, undefined);
+	d.ia = true;
+	if (options.lazy && !force_eager) {
+		return d;
+	}
+	update_derived(d);
+	return d;
 }
 
 /**

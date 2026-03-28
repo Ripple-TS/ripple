@@ -16,7 +16,6 @@ import {
 	PAUSED,
 	ROOT_BLOCK,
 	TRACKED,
-	TRY_BLOCK,
 	UNINITIALIZED,
 	REF_PROP,
 	TRACKED_OBJECT,
@@ -28,6 +27,7 @@ import {
 import {
 	begin_boundary_request,
 	complete_boundary_request,
+	get_boundary_with_catch,
 	get_pending_boundary,
 	register_boundary_deferred,
 	replace_boundary_request,
@@ -360,21 +360,24 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
 
 	update_derived_value(computed, SUSPENSE_REJECTED);
 
-	// Complete the pending request first, then route the error.
-	// If complete_boundary_request returns false, the request was already cleared
-	// (e.g. by handle_error from a prior rejection) — skip error routing to
-	// avoid double-catch.
-	if (contributes_pending) {
-		var completed = complete_boundary_request(boundary, request_id, false);
-		if (!completed) {
-			return;
-		}
-	}
+	// This will show the catch block, which will destroy the pending and resolved
+	// on the same boundary as the catch
+	var boundary_with_catch = handle_error(value, source_block);
 
-	if (boundary !== null && !is_destroyed(boundary) && boundary.s && boundary.s.c) {
-		boundary.s.c(value);
-	} else if (!is_destroyed(source_block)) {
-		handle_error(value, source_block);
+	if (contributes_pending) {
+		// if the catch is inside the pending boundary, we need to show the resolved block
+		// because the catch is located on it
+		// it's safe to show now since the catch has already rendered via handle_error above
+		var should_show_resolved =
+			/* catch on the boundary */
+			boundary_with_catch === boundary ||
+			/* catch outside the boundary */
+			boundary == null ||
+			is_destroyed(boundary)
+				? false
+				: /* catch inside boundary */ true;
+		complete_boundary_request(boundary, request_id, should_show_resolved);
+		return;
 	}
 }
 
@@ -561,20 +564,13 @@ function run_derived(computed) {
 /**
  * @param {unknown} error
  * @param {Block} block
+ * @returns {Block}
  */
 export function handle_error(error, block) {
-	/** @type {Block | null} */
-	var current = block;
-
-	while (current !== null) {
-		var state = current.s;
-		if ((current.f & TRY_BLOCK) !== 0) {
-			if (state.c !== null) {
-				state.c(error);
-				return;
-			}
-		}
-		current = current.p;
+	var boundary_with_catch = get_boundary_with_catch(block);
+	if (boundary_with_catch !== null) {
+		boundary_with_catch.s.c(error);
+		return boundary_with_catch;
 	}
 
 	throw error;
@@ -747,7 +743,7 @@ export function track(v, get, set, b) {
 	return tracked(v, b, get, set);
 }
 
-/** *
+/**
  * @param {any} v
  * @param {{ lazy?: boolean } | undefined} options
  * @param {boolean} force_eager
