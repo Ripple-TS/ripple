@@ -919,3 +919,20 @@ export function flatten_switch_consequent(consequent) {
 export function get_ripple_namespace_call_name(name) {
 	return name == null ? null : (RIPPLE_NAMESPACE_CALL_NAME[name] ?? null);
 }
+
+/**
+ * @param {AST.ClassDeclaration | AST.ClassExpression} node
+ * @param {CommonContext} context
+ * @returns {void}
+ */
+export function strip_class_typescript_syntax(node, context) {
+	delete node.typeParameters;
+	delete node.superTypeParameters;
+	delete node.implements;
+
+	if (node.superClass?.type === 'TSInstantiationExpression') {
+		node.superClass = /** @type {AST.Expression} */ (context.visit(node.superClass.expression));
+	} else if (node.superClass && 'typeArguments' in node.superClass) {
+		delete node.superClass.typeArguments;
+	}
+}

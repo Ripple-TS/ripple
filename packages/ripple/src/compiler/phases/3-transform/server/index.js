@@ -29,6 +29,7 @@ import {
 	hash,
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
+	strip_class_typescript_syntax,
 } from '../../../utils.js';
 import { escape } from '../../../../utils/escaping.js';
 import { is_event_attribute } from '../../../../utils/events.js';
@@ -71,23 +72,6 @@ function build_return_guard(flags) {
 		condition = b.logical('&&', condition, b.unary('!', b.id(flags[i])));
 	}
 	return condition;
-}
-
-/**
- * @param {AST.ClassDeclaration | AST.ClassExpression} node
- * @param {TransformServerContext} context
- * @returns {void}
- */
-function strip_class_typescript_syntax(node, context) {
-	delete node.typeParameters;
-	delete node.superTypeParameters;
-	delete node.implements;
-
-	if (node.superClass?.type === 'TSInstantiationExpression') {
-		node.superClass = /** @type {AST.Expression} */ (context.visit(node.superClass.expression));
-	} else if (node.superClass && 'typeArguments' in node.superClass) {
-		delete node.superClass.typeArguments;
-	}
 }
 
 /**
@@ -466,7 +450,9 @@ const visitors = {
 	},
 
 	CallExpression(node, context) {
-		if (!context.state.to_ts) {
+		const { state } = context;
+
+		if (!state.to_ts) {
 			delete node.typeArguments;
 		}
 
@@ -501,26 +487,37 @@ const visitors = {
 								: 'track'
 						: 'track';
 
-			/** @type {(AST.Expression | AST.SpreadElement)[]} */
-			let call_args;
 			if (track_method_name === 'track_async') {
-				call_args = [
-					/** @type {AST.Expression} */ (context.visit(node.arguments[0])),
-					/** @type {AST.Expression} */ (
-						node.arguments.length > 1 ? context.visit(node.arguments[1]) : b.void0
+				const hoisted_name = b.id(state.scope.generate('_$_hoisted_async'));
+				state.hoisted.push(b.var(hoisted_name));
+
+				// cache the async derived in a hoisted as we'd be rerunning component trees
+				// (_$_hoisted_async = _$_hoisted_async ?? _$_.track_async(() => promise, void 0, false))
+				return b.parenthesized(
+					b.assignment(
+						'=',
+						hoisted_name,
+						b.logical('??', hoisted_name, {
+							...node,
+							callee: b.member(b.id('_$_'), b.id(track_method_name)),
+							arguments: [
+								/** @type {AST.Expression} */ (context.visit(node.arguments[0])),
+								/** @type {AST.Expression} */ (
+									node.arguments.length > 1 ? context.visit(node.arguments[1]) : b.void0
+								),
+								b.literal(parent?.type === 'ExpressionStatement'),
+							],
+						}),
 					),
-					b.literal(parent?.type === 'ExpressionStatement'),
-				];
-			} else {
-				call_args = /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
-					node.arguments.map((arg) => context.visit(arg))
 				);
 			}
 
 			return {
 				...node,
 				callee: b.member(b.id('_$_'), b.id(track_method_name)),
-				arguments: call_args,
+				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+					node.arguments.map((arg) => context.visit(arg))
+				),
 			};
 		}
 
@@ -1836,6 +1833,7 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 		to_ts: false,
 		metadata: {},
 		dev,
+		hoisted: [],
 	};
 
 	state.imports.add(`import * as _$_ from 'ripple/internal/server'`);
@@ -1857,14 +1855,25 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 		}
 	}
 
+	/** @type {AST.Program['body']} */
+	let body = [];
+
 	// Add async property to component functions
 	for (const import_node of state.imports) {
 		if (typeof import_node === 'string') {
-			program.body.unshift(b.stmt(b.id(import_node)));
+			body.push(b.stmt(b.id(import_node)));
 		} else {
-			program.body.unshift(import_node);
+			body.push(import_node);
 		}
 	}
+
+	for (const hoisted of state.hoisted) {
+		body.push(hoisted);
+	}
+
+	body.push(...program.body);
+
+	program.body = body;
 
 	const js = print(program, /** @type {Visitors<AST.Node, TransformServerState>} */ (ts()), {
 		sourceMapContent: source,

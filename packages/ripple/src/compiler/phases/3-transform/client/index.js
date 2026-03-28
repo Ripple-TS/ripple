@@ -56,6 +56,7 @@ import {
 	hash,
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
+	strip_class_typescript_syntax,
 } from '../../../utils.js';
 import {
 	CSS_HASH_IDENTIFIER,
@@ -127,23 +128,6 @@ function visit_function(node, context) {
 		params: node.params.map((param) => context.visit(param, state)),
 		body,
 	};
-}
-
-/**
- * @param {AST.ClassDeclaration | AST.ClassExpression} node
- * @param {TransformClientContext} context
- * @returns {void}
- */
-function strip_class_typescript_syntax(node, context) {
-	delete node.typeParameters;
-	delete node.superTypeParameters;
-	delete node.implements;
-
-	if (node.superClass?.type === 'TSInstantiationExpression') {
-		node.superClass = /** @type {AST.Expression} */ (context.visit(node.superClass.expression));
-	} else if (node.superClass && 'typeArguments' in node.superClass) {
-		delete node.superClass.typeArguments;
-	}
 }
 
 /**
