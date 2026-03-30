@@ -1420,23 +1420,6 @@ const visitors = {
 							continue;
 						}
 
-						if (attr.value.type === 'Literal' && name !== 'class' && name !== 'style') {
-							handle_static_attr(name, attr.value.value);
-							continue;
-						}
-
-						if (name === 'class') {
-							class_attribute = attr;
-
-							continue;
-						}
-
-						if (name === 'style') {
-							style_attribute = attr;
-
-							continue;
-						}
-
 						if (name === 'value') {
 							const id = state.flush_node?.();
 							const metadata = { tracking: false, await: false };
@@ -1454,6 +1437,23 @@ const visitors = {
 							} else {
 								state.init?.push(b.stmt(b.call('_$_.set_value', id, expression)));
 							}
+
+							continue;
+						}
+
+						if (attr.value.type === 'Literal' && name !== 'class' && name !== 'style') {
+							handle_static_attr(name, attr.value.value);
+							continue;
+						}
+
+						if (name === 'class') {
+							class_attribute = attr;
+
+							continue;
+						}
+
+						if (name === 'style') {
+							style_attribute = attr;
 
 							continue;
 						}

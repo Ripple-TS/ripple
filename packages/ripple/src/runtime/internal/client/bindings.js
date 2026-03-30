@@ -149,6 +149,10 @@ function is_numberlike_input(input) {
 
 /** @param {HTMLOptionElement} option */
 function get_option_value(option) {
+	if ('__value' in option) {
+		return option.__value;
+	}
+
 	return option.value;
 }
 
@@ -193,6 +197,28 @@ function select_option(select, value, mounting = false) {
 }
 
 /**
+ * Re-applies the current bound selection when option children change after mount.
+ * @param {HTMLSelectElement & { __value?: unknown }} select
+ * @returns {() => void}
+ */
+function init_select(select) {
+	var observer = new MutationObserver(() => {
+		select_option(select, select.__value);
+	});
+
+	observer.observe(select, {
+		childList: true,
+		subtree: true,
+		attributes: true,
+		attributeFilter: ['value'],
+	});
+
+	return () => {
+		observer.disconnect();
+	};
+}
+
+/**
  * @param {unknown} maybe_tracked
  * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLInputElement | HTMLSelectElement) => void}
@@ -201,11 +227,13 @@ export function bindValue(maybe_tracked, set_func = undefined) {
 	var { getter, setter } = get_bind_get_set('bindValue()', maybe_tracked, set_func);
 
 	return (node) => {
+		/** @type {undefined | (() => void)} */
 		var clear_event;
 
 		if (node.tagName === 'SELECT') {
-			var select = /** @type {HTMLSelectElement} */ (node);
+			var select = /** @type {HTMLSelectElement & { __value?: unknown }} */ (node);
 			var mounting = true;
+			var clear_observer = init_select(select);
 
 			clear_event = on(select, 'change', async () => {
 				var query = ':checked';
@@ -225,12 +253,14 @@ export function bindValue(maybe_tracked, set_func = undefined) {
 					value = selected_option && get_option_value(selected_option);
 				}
 
+				select.__value = value;
 				setter(value);
 			});
 
 			effect(() => {
 				var value = getter();
 				select_option(select, value, mounting);
+				select.__value = value;
 
 				// Mounting and value undefined -> take selection from dom
 				if (mounting && value === undefined) {
@@ -240,12 +270,18 @@ export function bindValue(maybe_tracked, set_func = undefined) {
 					);
 					if (selected_option !== null) {
 						value = get_option_value(selected_option);
+						select.__value = value;
 						setter(value);
 					}
 				}
 
 				mounting = false;
 			});
+
+			return () => {
+				clear_event?.();
+				clear_observer();
+			};
 		} else {
 			var input = /** @type {HTMLInputElement} */ (node);
 

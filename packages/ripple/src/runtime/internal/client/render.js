@@ -181,7 +181,7 @@ export function set_class(dom, value, hash, is_html = true) {
 }
 
 /**
- * @param {HTMLInputElement | HTMLProgressElement} element
+ * @param {HTMLInputElement | HTMLProgressElement | HTMLOptionElement} element
  * @param {any} value
  * @returns {void}
  */
@@ -197,6 +197,10 @@ export function set_value(element, value) {
 		(element.value === value && (value !== 0 || element.nodeName !== 'PROGRESS'))
 	) {
 		return;
+	}
+
+	if (element.nodeName === 'OPTION') {
+		/** @type {HTMLOptionElement & { __value?: any }} */ (element).__value = value;
 	}
 
 	element.value = value ?? '';
