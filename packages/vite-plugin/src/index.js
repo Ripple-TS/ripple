@@ -623,14 +623,51 @@ export function ripple(inlineOptions = {}) {
 			 * - Otherwise, check the SSR module graph. If the file is there,
 			 *   invalidate SSR cache and trigger a full page reload.
 			 */
-			hotUpdate({ file, modules, server }) {
+			async hotUpdate({ file, modules, server, read }) {
 				if (this.environment.name !== 'client') return;
+
+				let css_module_added = false;
+
+				// When a .ripple file changes, its virtual CSS module must also
+				// be included in the HMR update. The CSS hash is derived from
+				// the style block content — when CSS changes, the hash changes,
+				// and the component re-renders with new hash-scoped class names.
+				// Without explicitly updating the CSS module, the browser keeps
+				// stale CSS selectors that no longer match the new class names.
+				if (file.endsWith('.ripple')) {
+					const filename = file.replace(root, '');
+					const cssId = createVirtualImportId(filename, root, 'style');
+
+					try {
+						const code = await read();
+						const result = compile(code, filename, {
+							mode: 'client',
+							dev: true,
+							hmr: true,
+						});
+						if (result.css !== '') {
+							cssCache.set(cssId, result.css);
+						} else {
+							cssCache.delete(cssId);
+						}
+					} catch {
+						// Compile errors are expected for partial edits; the old
+						// cached CSS remains valid until the next successful compile.
+					}
+
+					const cssModule = this.environment.moduleGraph.getModuleById(cssId);
+					if (cssModule && !modules.includes(cssModule)) {
+						this.environment.moduleGraph.invalidateModule(cssModule);
+						modules = [...modules, cssModule];
+						css_module_added = true;
+					}
+				}
 
 				// If all changed modules self-accept, they can hot-replace
 				// themselves (.ripple components, CSS modules). Let Vite
 				// handle without intervention.
 				if (modules.length > 0 && modules.every((m) => m.isSelfAccepting)) {
-					return;
+					return css_module_added ? modules : undefined;
 				}
 
 				// Check if this file is part of the SSR module graph.
