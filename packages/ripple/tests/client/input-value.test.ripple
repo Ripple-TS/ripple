@@ -1626,7 +1626,9 @@ describe('use value()', () => {
 	it('should reselect tracked value when option lists are replaced later', async () => {
 		component App() {
 			const selected = #ripple.track(22);
-			const options = #ripple.array([{ id: 1, text: 'One' }]);
+			const options = #ripple.array([
+				{ id: 1, text: 'One' },
+			]);
 
 			#ripple.effect(() => {
 				const timeout = setTimeout(() => {
