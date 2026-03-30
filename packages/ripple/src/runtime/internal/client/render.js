@@ -188,6 +188,10 @@ export function set_class(dom, value, hash, is_html = true) {
 export function set_value(element, value) {
 	var attributes = (element.__attributes ??= {});
 
+	if (element.nodeName === 'OPTION') {
+		/** @type {HTMLOptionElement & { __value?: any }} */ (element).__value = value;
+	}
+
 	if (
 		attributes.value ===
 			(attributes.value =
@@ -197,10 +201,6 @@ export function set_value(element, value) {
 		(element.value === value && (value !== 0 || element.nodeName !== 'PROGRESS'))
 	) {
 		return;
-	}
-
-	if (element.nodeName === 'OPTION') {
-		/** @type {HTMLOptionElement & { __value?: any }} */ (element).__value = value;
 	}
 
 	element.value = value ?? '';
