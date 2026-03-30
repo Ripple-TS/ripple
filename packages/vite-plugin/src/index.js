@@ -608,85 +608,76 @@ export function ripple(inlineOptions = {}) {
 			},
 
 			/**
-			 * Handle HMR for files that Vite's default module HMR can't
-			 * properly refresh.
+			 * Handle HMR for .ripple files.
 			 *
-			 * .ripple components self-accept HMR and swap their component
-			 * function. For changes to their OWN code this works perfectly.
-			 * But for changes to DEPENDENCIES (e.g. .md files imported via
-			 * import.meta.glob), the self-accept handler can't refresh
-			 * static imports cached in the browser's ESM module registry.
+			 * Inspired by vite-plugin-svelte's approach: instead of manually
+			 * re-compiling in hotUpdate, we use `transformRequest` to run the
+			 * full Vite pipeline (load → transform). This updates cssCache
+			 * via the existing transform hook and avoids double-compilation.
 			 *
-			 * Strategy:
-			 * - If all changed modules self-accept → they can hot-replace
-			 *   themselves (e.g. .ripple components, CSS). Let Vite handle.
-			 * - Otherwise, check the SSR module graph. If the file is there,
-			 *   invalidate SSR cache and trigger a full page reload.
+			 * After the .ripple file is re-transformed, we invalidate and
+			 * include the virtual CSS module in the HMR update so the browser
+			 * receives fresh CSS in sync with the re-rendered component.
+			 *
+			 * For non-.ripple files that don't self-accept, we invalidate
+			 * SSR modules and trigger a full reload.
 			 */
-			async hotUpdate({ file, modules, server, read }) {
-				if (this.environment.name !== 'client') return;
+			hotUpdate: {
+				order: 'pre',
+				async handler({ file, modules, server }) {
+					if (this.environment.name !== 'client') return;
 
-				let css_module_added = false;
+					if (file.endsWith('.ripple')) {
+						const filename = file.replace(root, '');
+						const cssId = createVirtualImportId(filename, root, 'style');
 
-				// When a .ripple file changes, its virtual CSS module must also
-				// be included in the HMR update. The CSS hash is derived from
-				// the style block content — when CSS changes, the hash changes,
-				// and the component re-renders with new hash-scoped class names.
-				// Without explicitly updating the CSS module, the browser keeps
-				// stale CSS selectors that no longer match the new class names.
-				if (file.endsWith('.ripple')) {
-					const filename = file.replace(root, '');
-					const cssId = createVirtualImportId(filename, root, 'style');
+						// Snapshot current cached CSS for comparison
+						const prev_css = cssCache.get(cssId);
 
-					try {
-						const code = await read();
-						const result = compile(code, filename, {
-							mode: 'client',
-							dev: true,
-							hmr: true,
-						});
-						if (result.css !== '') {
-							cssCache.set(cssId, result.css);
-						} else {
-							cssCache.delete(cssId);
+						// Use transformRequest to run the standard Vite pipeline.
+						// This triggers our transform hook which re-compiles the
+						// .ripple file and updates cssCache as a side-effect.
+						try {
+							await this.environment.transformRequest(filename);
+						} catch {
+							// Compile errors during partial edits are expected
 						}
-					} catch {
-						// Compile errors are expected for partial edits; the old
-						// cached CSS remains valid until the next successful compile.
+
+						const next_css = cssCache.get(cssId);
+						const css_changed = prev_css !== next_css;
+
+						// If CSS changed, invalidate and include the virtual CSS
+						// module so the browser fetches the updated stylesheet.
+						if (css_changed) {
+							const css_module = this.environment.moduleGraph.getModuleById(cssId);
+							if (css_module && !modules.includes(css_module)) {
+								this.environment.moduleGraph.invalidateModule(css_module);
+								return [...modules, css_module];
+							}
+						}
+
+						return;
 					}
 
-					const cssModule = this.environment.moduleGraph.getModuleById(cssId);
-					if (cssModule && !modules.includes(cssModule)) {
-						this.environment.moduleGraph.invalidateModule(cssModule);
-						modules = [...modules, cssModule];
-						css_module_added = true;
+					// Non-.ripple files: if all modules self-accept, let Vite
+					// handle. Otherwise invalidate SSR and full-reload.
+					if (modules.length > 0 && modules.every((m) => m.isSelfAccepting)) {
+						return;
 					}
-				}
 
-				// If all changed modules self-accept, they can hot-replace
-				// themselves (.ripple components, CSS modules). Let Vite
-				// handle without intervention.
-				if (modules.length > 0 && modules.every((m) => m.isSelfAccepting)) {
-					return css_module_added ? modules : undefined;
-				}
+					const ssr = server.environments.ssr;
+					if (!ssr) return;
 
-				// Check if this file is part of the SSR module graph.
-				const ssr = server.environments.ssr;
-				if (!ssr) return;
+					const ssr_modules = ssr.moduleGraph.getModulesByFile(file);
+					if (!ssr_modules || ssr_modules.size === 0) return;
 
-				const ssr_modules = ssr.moduleGraph.getModulesByFile(file);
-				if (!ssr_modules || ssr_modules.size === 0) return;
+					for (const mod of ssr_modules) {
+						ssr.moduleGraph.invalidateModule(mod);
+					}
 
-				// Invalidate SSR modules so the server re-reads the file
-				// on next request instead of serving stale cached content.
-				for (const mod of ssr_modules) {
-					ssr.moduleGraph.invalidateModule(mod);
-				}
-
-				// Full reload — the only reliable way to pick up the change
-				// for files that don't self-accept but are consumed by the app.
-				this.environment.hot.send({ type: 'full-reload' });
-				return [];
+					this.environment.hot.send({ type: 'full-reload' });
+					return [];
+				},
 			},
 
 			/**
