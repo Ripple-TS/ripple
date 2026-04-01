@@ -592,7 +592,7 @@ const visitors = {
 					context.state.analysis.comments,
 				);
 			}
-			const metadata = { tracking: false, await: false };
+			const metadata = { tracking: false };
 
 			if (declarator.id.type === 'Identifier') {
 				const binding = state.scope.get(declarator.id.name);
@@ -726,7 +726,6 @@ const visitors = {
 
 		// Track metadata for this component
 		const metadata = {
-			await: false,
 			styleClasses: /** @type {StyleClasses} */ (new Map()),
 		};
 
@@ -776,7 +775,6 @@ const visitors = {
 		if (node.id) {
 			context.state.analysis.component_metadata.push({
 				id: node.id.name,
-				async: metadata.await,
 			});
 		}
 	},
@@ -811,14 +809,13 @@ const visitors = {
 			node.metadata = {
 				...node.metadata,
 				has_template: false,
-				has_await: false,
 			};
 
 			context.visit(switch_case, context.state);
 
-			if (!node.metadata.has_template && !node.metadata.has_await) {
+			if (!node.metadata.has_template) {
 				error(
-					'Component switch statements must contain a template or an await expression in each of their cases. Move the switch statement into an effect if it does not render anything.',
+					'Component switch statements must contain a template in each of their cases. Move the switch statement into an effect if it does not render anything.',
 					context.state.analysis.module.filename,
 					switch_case,
 					context.state.loose ? context.state.analysis.errors : undefined,
@@ -886,13 +883,12 @@ const visitors = {
 		node.metadata = {
 			...node.metadata,
 			has_template: false,
-			has_await: false,
 		};
 		context.next();
 
-		if (!node.metadata.has_template && !node.metadata.has_await) {
+		if (!node.metadata.has_template) {
 			error(
-				'Component for...of loops must contain a template or an await expression in their body. Move the for loop into an effect if it does not render anything.',
+				'Component for...of loops must contain a template in their body. Move the for loop into an effect if it does not render anything.',
 				context.state.analysis.module.filename,
 				node.body,
 				context.state.loose ? context.state.analysis.errors : undefined,
@@ -1026,7 +1022,6 @@ const visitors = {
 		node.metadata = {
 			...node.metadata,
 			has_template: false,
-			has_await: false,
 		};
 
 		const test_metadata = { tracking: false };
@@ -1062,7 +1057,6 @@ const visitors = {
 			const saved_has_return = node.metadata.has_return;
 			const saved_returns = node.metadata.returns;
 			node.metadata.has_template = false;
-			node.metadata.has_await = false;
 			context.visit(node.alternate, context.state);
 
 			if (!node.metadata.has_template && !node.metadata.has_return) {
@@ -1547,7 +1541,6 @@ const visitors = {
 			if (!parent_block.metadata) {
 				parent_block.metadata = { path: [...context.path] };
 			}
-			parent_block.metadata.has_await = true;
 		}
 
 		context.next();

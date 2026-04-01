@@ -162,16 +162,7 @@ function transform_children(children, context) {
 			node.type === 'ReturnStatement' ||
 			node.type === 'Component'
 		) {
-			const metadata = { await: false };
-			state.init?.push(
-				/** @type {AST.Statement} */ (visit(node, { ...state, return_flags, metadata })),
-			);
-			if (metadata.await) {
-				state.init?.push(b.if(b.call('_$_.aborted'), b.return(null)));
-				if (state.metadata?.await === false) {
-					state.metadata.await = true;
-				}
-			}
+			state.init?.push(/** @type {AST.Statement} */ (visit(node, { ...state, return_flags })));
 			if (node.type === 'ReturnStatement') {
 				const info = return_flags.get(node);
 				if (info && !accumulated_flags.includes(info.name)) {
@@ -334,8 +325,6 @@ const visitors = {
 			}
 		}
 
-		const metadata = { await: false };
-
 		/** @type {AST.Statement[]} */
 		const body_statements = [];
 
@@ -372,7 +361,7 @@ const visitors = {
 			b.stmt(b.call('_$_.push_component')),
 			...transform_body(node.body, {
 				...context,
-				state: { ...context.state, component: node, metadata },
+				state: { ...context.state, component: node },
 			}),
 			b.stmt(b.call('_$_.pop_component')),
 		);
@@ -380,71 +369,16 @@ const visitors = {
 		let component_fn = b.function(
 			node.id,
 			node.params.length > 0 ? [b.id('__output'), node.params[0]] : [b.id('__output')],
-			b.block([
-				...(metadata.await
-					? [b.return(b.call('_$_.async', b.thunk(b.block(body_statements), true)))]
-					: body_statements),
-			]),
+			b.block(body_statements),
 		);
-
-		// Mark function as async if needed
-		if (metadata.await) {
-			component_fn = b.async(component_fn);
-		}
 
 		// Anonymous components return a FunctionExpression
 		if (!node.id) {
-			// For async anonymous components, we need to set .async on the function
-			if (metadata.await) {
-				// Use IIFE pattern: (fn => (fn.async = true, fn))(function() { ... })
-				return b.call(
-					b.arrow(
-						[b.id('fn')],
-						b.sequence([
-							b.assignment('=', b.member(b.id('fn'), b.id('async')), b.true),
-							b.id('fn'),
-						]),
-					),
-					component_fn,
-				);
-			}
 			return component_fn;
 		}
 
 		// Named components return a FunctionDeclaration
-		const declaration = b.function_declaration(
-			node.id,
-			component_fn.params,
-			component_fn.body,
-			component_fn.async,
-		);
-
-		if (metadata.await) {
-			const parent = context.path.at(-1);
-			/** @type {AST.RippleProgram['body'] | null} */
-			let body = null;
-			/** @type {AST.Component | AST.ExportNamedDeclaration} */
-			let target_node = node;
-			if (parent?.type === 'Program' || parent?.type === 'BlockStatement') {
-				body = parent.body;
-			} else if (parent?.type === 'ExportNamedDeclaration') {
-				const grandparent = context.path.at(-2);
-				if (grandparent?.type === 'Program' || grandparent?.type === 'BlockStatement') {
-					body = grandparent.body;
-					target_node = parent;
-				}
-			}
-			if (body !== null) {
-				const index = body.indexOf(target_node);
-				if (index >= 0) {
-					body.splice(
-						index + 1,
-						0,
-						b.stmt(b.assignment('=', b.member(node.id, b.id('async')), b.true)),
-					);
-				}
-			}
-		}
+		const declaration = b.function_declaration(node.id, component_fn.params, component_fn.body);
 
 		return declaration;
 	},
@@ -880,7 +814,7 @@ const visitors = {
 						if (is_event_attribute(name)) {
 							continue;
 						}
-						const metadata = { tracking: false, await: false };
+						const metadata = { tracking: false };
 						const expression = /** @type {AST.Expression} */ (
 							visit(attr.value, { ...state, metadata })
 						);
@@ -917,7 +851,7 @@ const visitors = {
 
 					handle_static_attr(class_attribute.name.name, value);
 				} else {
-					const metadata = { tracking: false, await: false };
+					const metadata = { tracking: false };
 					let expression = /** @type {AST.Expression} */ (
 						visit(attr_value, { ...state, metadata })
 					);
@@ -1039,7 +973,7 @@ const visitors = {
 			for (const attr of node.attributes) {
 				if (attr.type === 'Attribute') {
 					if (attr.name.type === 'Identifier') {
-						const metadata = { tracking: false, await: false };
+						const metadata = { tracking: false };
 						let property =
 							attr.value === null
 								? b.literal(true)
@@ -1106,10 +1040,9 @@ const visitors = {
 				props.push(b.prop('init', b.id('children'), children));
 			}
 
-			// For SSR, determine if we should await based on component metadata
 			const args = [b.id('__output'), b.object(props)];
 
-			// Check if this is a locally defined component and if it's async
+			// Check if this is a locally defined component
 			const component_name = node.id.type === 'Identifier' ? node.id.name : null;
 			const local_metadata = component_name
 				? state.component_metadata.find((m) => m.id === component_name)
@@ -1117,8 +1050,7 @@ const visitors = {
 			const comp_id = b.id('comp');
 			const args_id = b.id('args');
 			const comp_call = b.call(comp_id, b.spread(args_id));
-			const comp_call_regular = b.stmt(comp_call);
-			const comp_call_await = b.stmt(b.await(comp_call));
+			const comp_call_statement = b.stmt(comp_call);
 
 			/** @type {AST.Statement[]} */
 			const init = [];
@@ -1129,28 +1061,10 @@ const visitors = {
 			];
 
 			if (local_metadata) {
-				if (local_metadata?.async) {
-					statements.push(comp_call_await);
-
-					if (state.metadata?.await === false) {
-						state.metadata.await = true;
-					}
-				} else {
-					statements.push(comp_call_regular);
-				}
+				statements.push(comp_call_statement);
 			} else if (!is_element_dynamic(node)) {
-				// it's imported element, so it could be async
-				statements.push(
-					b.if(
-						b.member(comp_id, b.id('async'), false, true),
-						b.block([comp_call_await]),
-						b.if(comp_id, b.block([comp_call_regular])),
-					),
-				);
-
-				if (state.metadata?.await === false) {
-					state.metadata.await = true;
-				}
+				// it's imported element
+				statements.push(comp_call_statement);
 			} else {
 				// if it's a dynamic element, build the element output
 				// and store the results in the `init` array
@@ -1170,13 +1084,7 @@ const visitors = {
 				statements.push(
 					b.if(
 						b.binary('===', b.unary('typeof', comp_id), b.literal('function')),
-						b.block([
-							b.if(
-								b.member(comp_id, b.id('async')),
-								b.block([comp_call_await]),
-								b.block([comp_call_regular]),
-							),
-						]),
+						b.block([comp_call_statement]),
 						// make sure that falsy values for dynamic element or component don't get rendered
 						b.if(comp_id, b.block(init)),
 					),
@@ -1185,11 +1093,6 @@ const visitors = {
 				statements.push(
 					b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_CLOSE))),
 				);
-
-				// Mark parent component as async since this child component could potentially be async
-				if (state.metadata?.await === false) {
-					state.metadata.await = true;
-				}
 			}
 
 			state.init?.push(b.block(statements));
@@ -1472,20 +1375,10 @@ const visitors = {
 			return context.next();
 		}
 
-		// If there's a pending block, this is an async operation
+		// TODO: keep for now
 		const has_pending = node.pending !== null;
-		if (has_pending && context.state.metadata?.await === false) {
-			context.state.metadata.await = true;
-		}
 
-		const metadata = { await: false };
-		const body = transform_body(node.block.body, {
-			...context,
-			state: { ...context.state, metadata },
-		});
-
-		// Check if the try block itself contains async operations
-		const is_async = metadata.await || has_pending;
+		const body = transform_body(node.block.body, context);
 
 		/** @type {AST.CatchClause | null} */
 		let catch_clause = null;
@@ -1524,93 +1417,11 @@ const visitors = {
 			);
 		}
 
-		if (is_async) {
-			if (context.state.metadata?.await === false) {
-				context.state.metadata.await = true;
-			}
-
-			const pending_position_name = node.pending
-				? context.state.scope.generate('__pending_pos')
-				: null;
-
-			// Render pending block first, saving position so we can remove it after async resolves
-			if (node.pending) {
-				context.state.init?.push(
-					b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN))),
-				);
-				const pending_body = transform_body(node.pending.body, {
-					...context,
-					state: {
-						...context.state,
-						scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.pending)),
-					},
-				});
-				context.state.init?.push(
-					b.var(
-						b.id(/** @type {string} */ (pending_position_name)),
-						b.member(b.member(b.id('__output'), b.id('body')), b.id('length')),
-					),
-				);
-				context.state.init?.push(...pending_body);
-			}
-
-			// For SSR with pending block: render the resolved content wrapped in async
-			// In a streaming SSR implementation, we'd render pending first, then stream resolved
-			/** @type {AST.Statement[]} */
-			let try_statements = body;
-			if (catch_clause) {
-				try_statements = [b.try(b.block(body), catch_clause)];
-			}
-
-			// Remove pending content before rendering resolved/catch content
-			if (node.pending) {
-				try_statements = [
-					b.stmt(
-						b.assignment(
-							'=',
-							b.member(b.id('__output'), b.id('body')),
-							b.call(
-								b.member(b.member(b.id('__output'), b.id('body')), b.id('slice')),
-								b.literal(0),
-								b.id(/** @type {string} */ (pending_position_name)),
-							),
-						),
-					),
-					...try_statements,
-				];
-			}
-
-			context.state.init?.push(
-				b.stmt(b.await(b.call('_$_.async', b.thunk(b.block(try_statements), true)))),
-			);
-
-			if (node.pending) {
-				context.state.init?.push(
-					b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_CLOSE))),
-				);
-			}
+		if (catch_clause) {
+			context.state.init?.push(b.try(b.block(body), catch_clause));
 		} else {
-			// No async, just regular try/catch
-			if (catch_clause) {
-				context.state.init?.push(b.try(b.block(body), catch_clause));
-			} else {
-				context.state.init?.push(...body);
-			}
+			context.state.init?.push(...body);
 		}
-	},
-
-	AwaitExpression(node, context) {
-		const { state } = context;
-
-		if (state.to_ts) {
-			return context.next();
-		}
-
-		if (state.metadata?.await === false) {
-			state.metadata.await = true;
-		}
-
-		return b.await(/** @type {AST.AwaitExpression} */ (context.visit(node.argument)));
 	},
 
 	TrackedExpression(node, context) {
@@ -1654,8 +1465,7 @@ const visitors = {
 	},
 
 	Text(node, { visit, state }) {
-		const metadata = { await: false };
-		let expression = /** @type {AST.Expression} */ (visit(node.expression, { ...state, metadata }));
+		let expression = /** @type {AST.Expression} */ (visit(node.expression, state));
 
 		if (expression.type === 'Identifier' && expression.tracked) {
 			expression = b.call('_$_.get', expression);
@@ -1675,10 +1485,7 @@ const visitors = {
 	},
 
 	Html(node, { visit, state }) {
-		const metadata = { await: false };
-		const expression = /** @type {AST.Expression} */ (
-			visit(node.expression, { ...state, metadata })
-		);
+		const expression = /** @type {AST.Expression} */ (visit(node.expression, state));
 
 		// For literal values, compute hash at build time
 		if (expression.type === 'Literal') {
@@ -1858,7 +1665,6 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 	/** @type {AST.Program['body']} */
 	let body = [];
 
-	// Add async property to component functions
 	for (const import_node of state.imports) {
 		if (typeof import_node === 'string') {
 			body.push(b.stmt(b.id(import_node)));

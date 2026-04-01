@@ -34,7 +34,6 @@ interface BaseNodeMetaData {
 		| '#ripple.context'
 		| '#ripple.validate';
 	is_capitalized?: boolean;
-	has_await?: boolean;
 	commentContainerId?: number;
 	parenthesized?: boolean;
 	elementLeadingComments?: AST.Comment[];
@@ -1105,7 +1104,7 @@ export interface AnalysisResult {
 	ast: AST.Program;
 	scopes: Map<AST.Node, ScopeInterface>;
 	scope: ScopeInterface;
-	component_metadata: Array<{ id: string; async: boolean }>;
+	component_metadata: Array<{ id: string }>;
 	metadata: {
 		serverIdentifierPresent: boolean;
 	};
@@ -1270,7 +1269,6 @@ export interface ScopeInterface {
 
 interface BaseStateMetaData {
 	tracking?: boolean | null;
-	await?: boolean;
 }
 
 export interface BaseState {
