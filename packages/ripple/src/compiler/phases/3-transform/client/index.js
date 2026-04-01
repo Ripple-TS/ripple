@@ -1400,7 +1400,8 @@ const visitors = {
 			let style_attribute = null;
 			/** @type {TransformClientState['update']} */
 			const local_updates = [];
-			const is_void = is_void_element(/** @type {AST.Identifier} */ (node.id).name);
+			const element_name = /** @type {AST.Identifier} */ (node.id).name;
+			const is_void = is_void_element(element_name);
 			/** @type {AST.CSS.StyleSheet['hash'] | null} */
 			const scoping_hash =
 				state.applyParentCssScope ??
@@ -1408,7 +1409,7 @@ const visitors = {
 					? /** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash
 					: null);
 
-			state.template?.push(`<${/** @type {AST.Identifier} */ (node.id).name}`);
+			state.template?.push(`<${element_name}`);
 
 			for (const attr of node.attributes) {
 				if (attr.type === 'Attribute') {
@@ -1420,7 +1421,7 @@ const visitors = {
 							continue;
 						}
 
-						if (name === 'value') {
+						if (name === 'value' && element_name === 'option' && attr.value.type === 'Literal') {
 							const id = state.flush_node?.();
 							const metadata = { tracking: false, await: false };
 							const expression = /** @type {AST.Expression} */ (
@@ -1443,6 +1444,27 @@ const visitors = {
 
 						if (attr.value.type === 'Literal' && name !== 'class' && name !== 'style') {
 							handle_static_attr(name, attr.value.value);
+							continue;
+						}
+
+						if (name === 'value') {
+							const id = state.flush_node?.();
+							const metadata = { tracking: false, await: false };
+							const expression = /** @type {AST.Expression} */ (
+								visit(attr.value, { ...state, metadata })
+							);
+
+							if (metadata.tracking) {
+								local_updates.push({
+									operation: (key) => b.stmt(b.call('_$_.set_value', id, key)),
+									expression,
+									identity: attr.value,
+									initial: b.void0,
+								});
+							} else {
+								state.init?.push(b.stmt(b.call('_$_.set_value', id, expression)));
+							}
+
 							continue;
 						}
 
