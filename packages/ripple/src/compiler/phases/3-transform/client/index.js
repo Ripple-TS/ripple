@@ -1421,28 +1421,12 @@ const visitors = {
 							continue;
 						}
 
-						if (name === 'value' && element_name === 'option' && attr.value.type === 'Literal') {
-							const id = state.flush_node?.();
-							const metadata = { tracking: false, await: false };
-							const expression = /** @type {AST.Expression} */ (
-								visit(attr.value, { ...state, metadata })
-							);
-
-							if (metadata.tracking) {
-								local_updates.push({
-									operation: (key) => b.stmt(b.call('_$_.set_value', id, key)),
-									expression,
-									identity: attr.value,
-									initial: b.void0,
-								});
-							} else {
-								state.init?.push(b.stmt(b.call('_$_.set_value', id, expression)));
-							}
-
-							continue;
-						}
-
-						if (attr.value.type === 'Literal' && name !== 'class' && name !== 'style') {
+						if (
+							attr.value.type === 'Literal' &&
+							name !== 'class' &&
+							name !== 'style' &&
+							!(name === 'value' && element_name === 'option')
+						) {
 							handle_static_attr(name, attr.value.value);
 							continue;
 						}
