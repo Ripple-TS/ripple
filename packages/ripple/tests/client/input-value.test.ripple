@@ -3774,6 +3774,42 @@ describe('error handling', () => {
 		);
 	});
 
+	it('should throw error when bindValue on select multiple receives a non-array tracked value', () => {
+		expect(() => {
+			component App() {
+				const value = #ripple.track('2');
+
+				<select multiple {ref bindValue(value)}>
+					<option value="1">{'One'}</option>
+					<option value="2">{'Two'}</option>
+				</select>
+			}
+
+			render(App);
+			flushSync();
+		}).toThrow(
+			'Reactive bound value of a `<select multiple>` element should be an array, but it received a non-array value.',
+		);
+	});
+
+	it('should throw error when bindValue on select multiple receives a non-array getter value', () => {
+		expect(() => {
+			component App() {
+				const value = #ripple.track('2');
+
+				<select multiple {ref bindValue(() => @value, (v) => (@value = v))}>
+					<option value="1">{'One'}</option>
+					<option value="2">{'Two'}</option>
+				</select>
+			}
+
+			render(App);
+			flushSync();
+		}).toThrow(
+			'Reactive bound value of a `<select multiple>` element should be an array, but it received a non-array value.',
+		);
+	});
+
 	it(
 		'should throw error when bindChecked receives non-tracked object with a getter but not a setter',
 		() => {

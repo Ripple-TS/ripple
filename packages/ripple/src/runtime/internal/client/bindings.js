@@ -31,6 +31,15 @@ function not_set_function_type_error(name) {
 }
 
 /**
+ * @returns {TypeError}
+ */
+function invalid_select_multiple_value_error() {
+	return new TypeError(
+		'Reactive bound value of a `<select multiple>` element should be an array, but it received a non-array value.',
+	);
+}
+
+/**
  * @param {string} name
  * @param {unknown} maybe_tracked
  * @param {SetFunction | undefined} set_func
@@ -172,7 +181,7 @@ function select_option(select, value, mounting = false) {
 
 		// If not an array, warn and keep the selection as is
 		if (!is_array(value)) {
-			// TODO
+			throw invalid_select_multiple_value_error();
 		}
 
 		// Otherwise, update the selection
