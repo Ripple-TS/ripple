@@ -221,6 +221,8 @@ var select_observer_options = {
  * @returns {void}
  */
 function process_select_mutation_entries(entries) {
+	var selects = new Set();
+
 	for (const entry of entries) {
 		const target = /** @type {HTMLElement} */ (entry.target);
 		const current_select = /** @type {HTMLSelectElement & { __value?: unknown } | null} */ (
@@ -228,8 +230,12 @@ function process_select_mutation_entries(entries) {
 		);
 
 		if (current_select && observed_selects?.has(current_select)) {
-			select_option(current_select, current_select.__value);
+			selects.add(current_select);
 		}
+	}
+
+	for (const select of selects) {
+		select_option(select, select.__value);
 	}
 }
 
