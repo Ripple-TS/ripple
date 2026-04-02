@@ -205,25 +205,78 @@ function select_option(select, value, mounting = false) {
 	}
 }
 
+/** @type {MutationObserver | undefined} */
+var select_mutation_observer;
+/** @type {Set<HTMLSelectElement & { __value?: unknown }> | undefined} */
+var observed_selects;
+var select_observer_options = {
+	childList: true,
+	subtree: true,
+	attributes: true,
+	attributeFilter: ['value'],
+};
+
+/**
+ * @param {MutationRecord[]} entries
+ * @returns {void}
+ */
+function process_select_mutation_entries(entries) {
+	for (const entry of entries) {
+		const target = /** @type {HTMLElement} */ (entry.target);
+		const current_select = /** @type {HTMLSelectElement & { __value?: unknown } | null} */ (
+			target.nodeName === 'SELECT' ? target : target.closest('select')
+		);
+
+		if (current_select && observed_selects?.has(current_select)) {
+			select_option(current_select, current_select.__value);
+		}
+	}
+}
+
+/**
+ * @param {HTMLSelectElement & { __value?: unknown }} select
+ * @returns {void}
+ */
+function observe_select(select) {
+	select_mutation_observer ??= new MutationObserver((entries) => {
+		process_select_mutation_entries(entries);
+	});
+
+	observed_selects ??= new Set();
+	observed_selects.add(select);
+	select_mutation_observer.observe(select, select_observer_options);
+}
+
+/**
+ * @param {HTMLSelectElement & { __value?: unknown }} select
+ * @returns {void}
+ */
+function unobserve_select(select) {
+	if (!observed_selects?.delete(select)) {
+		return;
+	}
+
+	if (select_mutation_observer) {
+		process_select_mutation_entries(select_mutation_observer.takeRecords());
+	}
+
+	select_mutation_observer?.disconnect();
+
+	for (const current_select of observed_selects) {
+		select_mutation_observer?.observe(current_select, select_observer_options);
+	}
+}
+
 /**
  * Re-applies the current bound selection when option children change after mount.
  * @param {HTMLSelectElement & { __value?: unknown }} select
  * @returns {() => void}
  */
 function init_select(select) {
-	var observer = new MutationObserver(() => {
-		select_option(select, select.__value);
-	});
-
-	observer.observe(select, {
-		childList: true,
-		subtree: true,
-		attributes: true,
-		attributeFilter: ['value'],
-	});
+	observe_select(select);
 
 	return () => {
-		observer.disconnect();
+		unobserve_select(select);
 	};
 }
 
