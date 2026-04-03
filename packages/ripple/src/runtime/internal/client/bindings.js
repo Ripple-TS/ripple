@@ -333,14 +333,20 @@ export function bindValue(maybe_tracked, set_func = undefined) {
 
 				// Mounting and value undefined -> take selection from dom
 				if (mounting && value === undefined) {
-					/** @type {HTMLOptionElement | null} */
-					var selected_option = /** @type {HTMLOptionElement | null} */ (
-						select.querySelector(':checked')
-					);
-					if (selected_option !== null) {
-						value = get_option_value(selected_option);
+					if (select.multiple) {
+						value = [].map.call(select.querySelectorAll(':checked'), get_option_value);
 						select.__value = value;
 						setter(value);
+					} else {
+						/** @type {HTMLOptionElement | null} */
+						var selected_option = /** @type {HTMLOptionElement | null} */ (
+							select.querySelector(':checked')
+						);
+						if (selected_option !== null) {
+							value = get_option_value(selected_option);
+							select.__value = value;
+							setter(value);
+						}
 					}
 				}
 
