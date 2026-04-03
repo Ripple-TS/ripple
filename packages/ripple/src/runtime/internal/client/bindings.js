@@ -207,7 +207,7 @@ function select_option(select, value, mounting = false) {
 
 /** @type {MutationObserver | undefined} */
 var select_mutation_observer;
-/** @type {Set<HTMLSelectElement & { __value?: unknown }> | undefined} */
+/** @type {Set<HTMLSelectElement> | undefined} */
 var observed_selects;
 var select_observer_options = {
 	childList: true,
@@ -225,22 +225,23 @@ function process_select_mutation_entries(entries) {
 
 	for (const entry of entries) {
 		const target = /** @type {HTMLElement} */ (entry.target);
-		const current_select = /** @type {HTMLSelectElement & { __value?: unknown } | null} */ (
+		const select = /** @type {HTMLSelectElement | null} */ (
 			target.nodeName === 'SELECT' ? target : target.closest('select')
 		);
 
-		if (current_select && observed_selects?.has(current_select)) {
-			selects.add(current_select);
+		if (!select || selects.has(select)) {
+			continue;
 		}
-	}
 
-	for (const select of selects) {
-		select_option(select, select.__value);
+		if (observed_selects?.has(select)) {
+			selects.add(select);
+			select_option(select, select.__value);
+		}
 	}
 }
 
 /**
- * @param {HTMLSelectElement & { __value?: unknown }} select
+ * @param {HTMLSelectElement} select
  * @returns {void}
  */
 function observe_select(select) {
@@ -254,7 +255,7 @@ function observe_select(select) {
 }
 
 /**
- * @param {HTMLSelectElement & { __value?: unknown }} select
+ * @param {HTMLSelectElement} select
  * @returns {void}
  */
 function unobserve_select(select) {
@@ -275,7 +276,7 @@ function unobserve_select(select) {
 
 /**
  * Re-applies the current bound selection when option children change after mount.
- * @param {HTMLSelectElement & { __value?: unknown }} select
+ * @param {HTMLSelectElement} select
  * @returns {() => void}
  */
 function init_select(select) {
@@ -299,7 +300,7 @@ export function bindValue(maybe_tracked, set_func = undefined) {
 		var clear_event;
 
 		if (node.tagName === 'SELECT') {
-			var select = /** @type {HTMLSelectElement & { __value?: unknown }} */ (node);
+			var select = /** @type {HTMLSelectElement} */ (node);
 			var mounting = true;
 			var clear_observer = init_select(select);
 
