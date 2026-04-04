@@ -1760,10 +1760,7 @@ const visitors = {
 
 			state.template?.push('<!>');
 
-			if (state.applyParentCssScope) {
-				// We're inside a component, don't continue applying css hash to class
-				state.applyParentCssScope = undefined;
-			}
+			const apply_parent_css_scope = state.applyParentCssScope;
 
 			const is_dynamic_element = is_element_dynamic(node);
 			const is_spreading = node.attributes.some((attr) => attr.type === 'SpreadAttribute');
@@ -1880,11 +1877,12 @@ const visitors = {
 				const children = /** @type {AST.Expression} */ (
 					visit(children_component, {
 						...state,
-						...(state.applyParentCssScope ||
+						...(apply_parent_css_scope ||
 						(is_dynamic_element && node.metadata.scoped && state.component?.css)
 							? {
-									applyParentCssScope: /** @type {AST.CSS.StyleSheet} */ (state.component?.css)
-										.hash,
+									applyParentCssScope:
+										apply_parent_css_scope ||
+										/** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash,
 								}
 							: {}),
 						scope: /** @type {ScopeInterface} */ (component_scope),
