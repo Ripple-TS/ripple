@@ -203,7 +203,10 @@ describe('#ripple.style identifier (server)', () => {
 			<div class="red">{'Child'}</div>
 
 			<style>
-				.red{color:red;--x:"6HcY-8";}
+				.red {
+					color: red;
+					--x: '6HcY-8';
+				}
 			</style>
 		}
 
@@ -213,8 +216,7 @@ describe('#ripple.style identifier (server)', () => {
 			</Wrapper>
 		}
 
-		const source =
-			'component Wrapper({ children }) { <div class="green">{"Wrapper"}<children /></div><style>.green{color:green;}</style> } component Child() { <div class="red">{"Child"}</div><style>.red{color:red;--x:"6HcY-8";}</style> } component App() { <Wrapper><Child /></Wrapper> }';
+		const source = 'component Wrapper({ children }) { <div class="green">{"Wrapper"}<children /></div><style>.green{color:green;}</style> } component Child() { <div class="red">{"Child"}</div><style>.red{color:red;--x:"6HcY-8";}</style> } component App() { <Wrapper><Child /></Wrapper> }';
 		const { css } = compile(source, 'wrapper-child-scoped.ripple', { mode: 'server' });
 		const compiled_wrapper_scope = css.match(/\.green\.(ripple-[a-z0-9]+)\s*\{/)?.[1];
 		const compiled_child_scope = css.match(/\.red\.(ripple-[a-z0-9]+)\s*\{/)?.[1];
