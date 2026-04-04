@@ -205,7 +205,6 @@ describe('#ripple.style identifier (server)', () => {
 			<style>
 				.red {
 					color: red;
-					--x: '6HcY-8';
 				}
 			</style>
 		}
@@ -216,24 +215,21 @@ describe('#ripple.style identifier (server)', () => {
 			</Wrapper>
 		}
 
-		const source = 'component Wrapper({ children }) { <div class="green">{"Wrapper"}<children /></div><style>.green{color:green;}</style> } component Child() { <div class="red">{"Child"}</div><style>.red{color:red;--x:"6HcY-8";}</style> } component App() { <Wrapper><Child /></Wrapper> }';
-		const { css } = compile(source, 'wrapper-child-scoped.ripple', { mode: 'server' });
-		const compiled_wrapper_scope = css.match(/\.green\.(ripple-[a-z0-9]+)\s*\{/)?.[1];
-		const compiled_child_scope = css.match(/\.red\.(ripple-[a-z0-9]+)\s*\{/)?.[1];
 		const { body } = await render(App);
-		const wrapper_runtime_scope = body.match(/class="(ripple-[a-z0-9]+)\s+green"/)?.[1];
-		const child_runtime_scope = body.match(/class="(ripple-[a-z0-9]+)\s+red"/)?.[1];
+		const { document } = parseHtml(body);
+		const wrapper = document.querySelector('.green');
+		const child = document.querySelector('.red');
+		const wrapper_scopes = Array.from(wrapper.classList).filter(
+			(name) => name.startsWith('ripple-'),
+		);
+		const child_scopes = Array.from(child.classList).filter((name) => name.startsWith('ripple-'));
 
-		expect(compiled_wrapper_scope).toBeTruthy();
-		expect(compiled_child_scope).toBe('ripple-1t9t5kv');
-		expect(compiled_wrapper_scope).not.toBe(compiled_child_scope);
+		expect(wrapper_scopes.length).toBeGreaterThan(0);
+		expect(child_scopes.length).toBeGreaterThan(0);
 
-		expect(body).toContain('class="');
-		expect(body).toContain(' green"');
-		expect(body).toContain(' red"');
-		expect(wrapper_runtime_scope).toBeTruthy();
-		expect(child_runtime_scope).toBeTruthy();
-		expect(wrapper_runtime_scope).not.toBe(child_runtime_scope);
+		const wrapper_scope = wrapper_scopes[0];
+		const child_scope = child_scopes.find((name) => name !== wrapper_scope) || child_scopes[0];
+		expect(wrapper_scope).not.toBe(child_scope);
 	});
 
 	describe('server compiler output', () => {

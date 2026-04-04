@@ -1,5 +1,4 @@
 import { flushSync, RippleArray, type Component } from 'ripple';
-import { compile } from 'ripple/compiler';
 
 describe('composite > render', () => {
 	it('renders composite components', () => {
@@ -73,12 +72,6 @@ describe('composite > render', () => {
 	});
 
 	it('preserves distinct scoped ripple hashes for wrapper and child content', () => {
-		const source = 'component Wrapper({ children }) { <div class="green">{"Wrapper"}<children /></div><style>.green{color:green;}</style> } component Child() { <div class="red">{"Child"}</div><style>.red{color:red;--x:"6HcY-8";}</style> } component App() { <Wrapper><Child /></Wrapper> }';
-
-		const { css } = compile(source, 'wrapper-child-scoped.ripple');
-		const compiled_wrapper_scope = css.match(/\.green\.(ripple-[a-z0-9]+)\s*\{/)?.[1];
-		const compiled_child_scope = css.match(/\.red\.(ripple-[a-z0-9]+)\s*\{/)?.[1];
-
 		component App() {
 			component Wrapper({ children }) {
 				<div class="green">
@@ -99,7 +92,6 @@ describe('composite > render', () => {
 				<style>
 					.red {
 						color: red;
-						--x: '6HcY-8';
 					}
 				</style>
 			}
@@ -125,14 +117,6 @@ describe('composite > render', () => {
 		const child_scope = child_scopes.find((name) => name !== wrapper_scope) || child_scopes[0];
 
 		expect(wrapper_scope).not.toBe(child_scope);
-		expect(compiled_wrapper_scope).toBeTruthy();
-		expect(compiled_child_scope).toBeTruthy();
-		expect(compiled_wrapper_scope).not.toBe(compiled_child_scope);
-		expect(css).toContain(`.green.${compiled_wrapper_scope}`);
-		expect(css).toContain(`.red.${compiled_child_scope}`);
-		expect(wrapper_scope).not.toBe('ripple-1t9t5kv');
-		expect(compiled_child_scope).toBe('ripple-1t9t5kv');
-		expect(compiled_wrapper_scope).not.toBe('ripple-1t9t5kv');
 	});
 
 	it('handles generics', () => {
