@@ -528,6 +528,17 @@ export component App() {
 		);
 	});
 
+	it('recovers unclosed tsx compat tags in loose mode', () => {
+		const source = `export component App() {
+	<tsx:react>1
+}`;
+
+		expect(() => compile_to_volar_mappings(source, 'test.ripple', { loose: true })).not.toThrow();
+
+		const result = compile_to_volar_mappings(source, 'test.ripple', { loose: true });
+		expect(result.errors).toEqual([]);
+	});
+
 	it('parses bare #ripple in loose mode for autocomplete recovery', () => {
 		const source = `export component App() {
 	#ripple

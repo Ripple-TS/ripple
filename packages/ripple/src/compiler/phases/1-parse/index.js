@@ -2146,32 +2146,36 @@ function RipplePlugin(config) {
 						if (element.type === 'TsxCompat') {
 							this.#path.pop();
 
-							const raise_error = () => {
-								this.raise(this.start, `Expected closing tag '</tsx:${element.kind}>'`);
-							};
+							if (element.unclosed) {
+								// parseTemplateBody already handled this in loose mode
+							} else {
+								const raise_error = () => {
+									this.raise(this.start, `Expected closing tag '</tsx:${element.kind}>'`);
+								};
 
-							this.next();
-							// we should expect to see </tsx:kind>
-							if (this.value !== '/') {
-								raise_error();
+								this.next();
+								// we should expect to see </tsx:kind>
+								if (this.value !== '/') {
+									raise_error();
+								}
+								this.next();
+								if (this.value !== 'tsx') {
+									raise_error();
+								}
+								this.next();
+								if (this.type.label !== ':') {
+									raise_error();
+								}
+								this.next();
+								if (this.value !== element.kind) {
+									raise_error();
+								}
+								this.next();
+								if (this.type !== tstt.jsxTagEnd) {
+									raise_error();
+								}
+								this.next();
 							}
-							this.next();
-							if (this.value !== 'tsx') {
-								raise_error();
-							}
-							this.next();
-							if (this.type.label !== ':') {
-								raise_error();
-							}
-							this.next();
-							if (this.value !== element.kind) {
-								raise_error();
-							}
-							this.next();
-							if (this.type !== tstt.jsxTagEnd) {
-								raise_error();
-							}
-							this.next();
 						} else if (this.#path[this.#path.length - 1] === element) {
 							// Check if this element was properly closed
 							if (!this.#loose) {
@@ -2234,13 +2238,23 @@ function RipplePlugin(config) {
 				if (inside_tsx_compat) {
 					this.exprAllowed = true;
 
+					const mark_unclosed_tsx_compat = () => {
+						inside_tsx_compat.unclosed = true;
+						/** @type {AST.NodeWithLocation} */ (inside_tsx_compat).loc.end = {
+							.../** @type {AST.SourceLocation} */ (inside_tsx_compat.openingElement.loc).end,
+						};
+						inside_tsx_compat.end = inside_tsx_compat.openingElement.end;
+					};
+
 					while (true) {
-						if (this.type === tt.eof || this.pos >= this.input.length) {
+						if (this.type === tt.eof || this.pos >= this.input.length || this.type === tt.braceR) {
 							if (!this.#loose) {
 								this.raise(
 									this.start,
 									`Unclosed tag '<tsx:${inside_tsx_compat.kind}>'. Expected '</tsx:${inside_tsx_compat.kind}>' before end of component.`,
 								);
+							} else {
+								mark_unclosed_tsx_compat();
 							}
 							return;
 						}
@@ -2264,9 +2278,9 @@ function RipplePlugin(config) {
 							while (this.pos < this.input.length) {
 								const ch = this.input.charCodeAt(this.pos);
 
-								// Stop at opening tag, closing tag, or expression
-								if (ch === 60 || ch === 123) {
-									// < or {
+								// Stop at opening tag, expression, or the component-closing brace
+								if (ch === 60 || ch === 123 || ch === 125) {
+									// < or { or }
 									break;
 								}
 
