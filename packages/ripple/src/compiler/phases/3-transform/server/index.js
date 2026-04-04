@@ -1015,10 +1015,7 @@ const visitors = {
 			/** @type {AST.Expression | null} */
 			let children_prop = null;
 
-			if (state.applyParentCssScope) {
-				// We're inside a component, don't continue applying css hash to class
-				state.applyParentCssScope = undefined;
-			}
+			const apply_parent_css_scope = state.applyParentCssScope;
 
 			for (const attr of node.attributes) {
 				if (attr.type === 'Attribute') {
@@ -1082,6 +1079,14 @@ const visitors = {
 				const children = /** @type {AST.Expression} */ (
 					visit(b.component(b.id('children'), [], children_filtered), {
 						...context.state,
+						...(apply_parent_css_scope ||
+						(is_element_dynamic(node) && node.metadata.scoped && state.component?.css)
+							? {
+									applyParentCssScope:
+										apply_parent_css_scope ||
+										/** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash,
+								}
+							: {}),
 						scope: component_scope,
 						namespace: child_namespace,
 					})

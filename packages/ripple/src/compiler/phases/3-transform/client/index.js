@@ -1400,7 +1400,8 @@ const visitors = {
 			let style_attribute = null;
 			/** @type {TransformClientState['update']} */
 			const local_updates = [];
-			const is_void = is_void_element(/** @type {AST.Identifier} */ (node.id).name);
+			const element_name = /** @type {AST.Identifier} */ (node.id).name;
+			const is_void = is_void_element(element_name);
 			/** @type {AST.CSS.StyleSheet['hash'] | null} */
 			const scoping_hash =
 				state.applyParentCssScope ??
@@ -1408,7 +1409,7 @@ const visitors = {
 					? /** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash
 					: null);
 
-			state.template?.push(`<${/** @type {AST.Identifier} */ (node.id).name}`);
+			state.template?.push(`<${element_name}`);
 
 			for (const attr of node.attributes) {
 				if (attr.type === 'Attribute') {
@@ -1420,20 +1421,13 @@ const visitors = {
 							continue;
 						}
 
-						if (attr.value.type === 'Literal' && name !== 'class' && name !== 'style') {
+						if (
+							attr.value.type === 'Literal' &&
+							name !== 'class' &&
+							name !== 'style' &&
+							!(name === 'value' && element_name === 'option')
+						) {
 							handle_static_attr(name, attr.value.value);
-							continue;
-						}
-
-						if (name === 'class') {
-							class_attribute = attr;
-
-							continue;
-						}
-
-						if (name === 'style') {
-							style_attribute = attr;
-
 							continue;
 						}
 
@@ -1454,6 +1448,18 @@ const visitors = {
 							} else {
 								state.init?.push(b.stmt(b.call('_$_.set_value', id, expression)));
 							}
+
+							continue;
+						}
+
+						if (name === 'class') {
+							class_attribute = attr;
+
+							continue;
+						}
+
+						if (name === 'style') {
+							style_attribute = attr;
 
 							continue;
 						}
@@ -1760,10 +1766,7 @@ const visitors = {
 
 			state.template?.push('<!>');
 
-			if (state.applyParentCssScope) {
-				// We're inside a component, don't continue applying css hash to class
-				state.applyParentCssScope = undefined;
-			}
+			const apply_parent_css_scope = state.applyParentCssScope;
 
 			const is_dynamic_element = is_element_dynamic(node);
 			const is_spreading = node.attributes.some((attr) => attr.type === 'SpreadAttribute');
@@ -1880,11 +1883,12 @@ const visitors = {
 				const children = /** @type {AST.Expression} */ (
 					visit(children_component, {
 						...state,
-						...(state.applyParentCssScope ||
+						...(apply_parent_css_scope ||
 						(is_dynamic_element && node.metadata.scoped && state.component?.css)
 							? {
-									applyParentCssScope: /** @type {AST.CSS.StyleSheet} */ (state.component?.css)
-										.hash,
+									applyParentCssScope:
+										apply_parent_css_scope ||
+										/** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash,
 								}
 							: {}),
 						scope: /** @type {ScopeInterface} */ (component_scope),

@@ -1515,6 +1515,147 @@ describe('use value()', () => {
 		expect(select.options[1].selected).toBe(true);
 	});
 
+	it('should preselect numeric option values in select bindValue', () => {
+		component App() {
+			const selected = #ripple.track(2);
+
+			<select {ref bindValue(selected)}>
+				<option value={1}>{'One'}</option>
+				<option value={2}>{'Two'}</option>
+				<option value={3}>{'Three'}</option>
+			</select>
+		}
+
+		render(App);
+		flushSync();
+
+		const select = container.querySelector('select') as HTMLSelectElement;
+
+		expect(select.value).toBe('2');
+		expect(select.options[0].selected).toBe(false);
+		expect(select.options[1].selected).toBe(true);
+		expect(select.options[2].selected).toBe(false);
+	});
+
+	it('should preselect numeric option values in select bindValue with a getter and setter', () => {
+		component App() {
+			const selected = #ripple.track(2);
+
+			<select {ref bindValue(() => @selected, (v) => (@selected = v))}>
+				<option value={1}>{'One'}</option>
+				<option value={2}>{'Two'}</option>
+				<option value={3}>{'Three'}</option>
+			</select>
+		}
+
+		render(App);
+		flushSync();
+
+		const select = container.querySelector('select') as HTMLSelectElement;
+
+		expect(select.value).toBe('2');
+		expect(select.options[0].selected).toBe(false);
+		expect(select.options[1].selected).toBe(true);
+		expect(select.options[2].selected).toBe(false);
+	});
+
+	it('should preserve numeric select values on change', () => {
+		const logs: number[] = [];
+
+		component App() {
+			const selected = #ripple.track(2);
+
+			#ripple.effect(() => {
+				logs.push(@selected);
+			});
+
+			<select {ref bindValue(selected)}>
+				<option value={1}>{'One'}</option>
+				<option value={2}>{'Two'}</option>
+				<option value={3}>{'Three'}</option>
+			</select>
+		}
+
+		render(App);
+		flushSync();
+
+		const select = container.querySelector('select') as HTMLSelectElement;
+		select.options[2].selected = true;
+		select.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(select.value).toBe('3');
+		expect(logs).toEqual([2, 3]);
+	});
+
+	it('should reselect tracked value when matching option is added later', async () => {
+		component App() {
+			const selected = #ripple.track(5);
+			const options = #ripple.array([
+				{ id: 1, text: 'One' },
+				{ id: 2, text: 'Two' },
+			]);
+
+			<div>
+				<select {ref bindValue(selected)}>
+					for (const option of options) {
+						<option value={option.id}>{option.text}</option>
+					}
+				</select>
+				<button onClick={() => options.push({ id: 5, text: 'Five' })}>{'Add'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const select = container.querySelector('select') as HTMLSelectElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(select.value).toBe('');
+
+		button.click();
+		flushSync();
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(select.value).toBe('5');
+		expect(select.selectedOptions[0].value).toBe('5');
+	});
+
+	it('should reselect tracked value when option lists are replaced later', async () => {
+		component App() {
+			const selected = #ripple.track(22);
+			const options = #ripple.array([
+				{ id: 1, text: 'One' },
+			]);
+
+			#ripple.effect(() => {
+				const timeout = setTimeout(() => {
+					options.splice(0, options.length, { id: 21, text: 'Tokyo' }, { id: 22, text: 'Osaka' });
+				}, 0);
+
+				return () => clearTimeout(timeout);
+			});
+
+			<select {ref bindValue(selected)}>
+				for (const option of options) {
+					<option value={option.id}>{option.text}</option>
+				}
+			</select>
+		}
+
+		render(App);
+		flushSync();
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		const select = container.querySelector('select') as HTMLSelectElement;
+
+		expect(select.value).toBe('22');
+		expect(select.options[1].selected).toBe(true);
+	});
+
 	it('should accurately reflect values mutated through a tracked setter', () => {
 		component App() {
 			let value = #ripple.track(
@@ -3632,6 +3773,48 @@ describe('error handling', () => {
 			'bindValue() second argument must be a set function when first argument is a get function',
 		);
 	});
+
+	it(
+		'should throw error when bindValue on select multiple receives a non-array tracked value',
+		() => {
+			expect(() => {
+				component App() {
+					const value = #ripple.track('2');
+
+					<select multiple {ref bindValue(value)}>
+						<option value="1">{'One'}</option>
+						<option value="2">{'Two'}</option>
+					</select>
+				}
+
+				render(App);
+				flushSync();
+			}).toThrow(
+				'Reactive bound value of a `<select multiple>` element should be an array, but it received a non-array value.',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindValue on select multiple receives a non-array getter value',
+		() => {
+			expect(() => {
+				component App() {
+					const value = #ripple.track('2');
+
+					<select multiple {ref bindValue(() => @value, (v) => (@value = v))}>
+						<option value="1">{'One'}</option>
+						<option value="2">{'Two'}</option>
+					</select>
+				}
+
+				render(App);
+				flushSync();
+			}).toThrow(
+				'Reactive bound value of a `<select multiple>` element should be an array, but it received a non-array value.',
+			);
+		},
+	);
 
 	it(
 		'should throw error when bindChecked receives non-tracked object with a getter but not a setter',

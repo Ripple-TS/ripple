@@ -77,6 +77,10 @@ declare global {
 		__root?: EventTarget;
 	}
 
+	interface HTMLSelectElement {
+		__value?: unknown;
+	}
+
 	interface Text {
 		__t?: string | null;
 	}

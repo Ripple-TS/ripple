@@ -71,6 +71,54 @@ describe('composite > render', () => {
 		expect(container).toMatchSnapshot();
 	});
 
+	it('preserves distinct scoped ripple hashes for wrapper and child content', () => {
+		component App() {
+			component Wrapper({ children }) {
+				<div class="green">
+					{'Wrapper'}
+					<children />
+				</div>
+
+				<style>
+					.green {
+						color: green;
+					}
+				</style>
+			}
+
+			component Child() {
+				<div class="red">{'Child'}</div>
+
+				<style>
+					.red {
+						color: red;
+					}
+				</style>
+			}
+
+			<Wrapper>
+				<Child />
+			</Wrapper>
+		}
+
+		render(App);
+
+		const wrapper = container.querySelector('.green');
+		const child = container.querySelector('.red');
+		const wrapper_scopes = Array.from(wrapper.classList).filter(
+			(name) => name.startsWith('ripple-'),
+		);
+		const child_scopes = Array.from(child.classList).filter((name) => name.startsWith('ripple-'));
+
+		expect(wrapper_scopes).toHaveLength(1);
+		expect(child_scopes).toHaveLength(1);
+
+		const wrapper_scope = wrapper_scopes[0];
+		const child_scope = child_scopes.find((name) => name !== wrapper_scope) || child_scopes[0];
+
+		expect(wrapper_scope).not.toBe(child_scope);
+	});
+
 	it('handles generics', () => {
 		component ArrayTest() {
 			let items = new RippleArray<number>();
