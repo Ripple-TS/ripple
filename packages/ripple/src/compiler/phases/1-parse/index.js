@@ -2235,6 +2235,16 @@ function RipplePlugin(config) {
 					this.exprAllowed = true;
 
 					while (true) {
+						if (this.type === tt.eof || this.pos >= this.input.length) {
+							if (!this.#loose) {
+								this.raise(
+									this.start,
+									`Unclosed tag '<tsx:${inside_tsx_compat.kind}>'. Expected '</tsx:${inside_tsx_compat.kind}>' before end of component.`,
+								);
+							}
+							return;
+						}
+
 						if (this.input.slice(this.pos, this.pos + 5) === '/tsx:') {
 							return;
 						}

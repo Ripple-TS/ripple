@@ -518,6 +518,16 @@ export component App() {
 		).toBe(true);
 	});
 
+	it('throws for unclosed tsx compat tags instead of hanging', () => {
+		const source = `export component App() {
+	<tsx:react>1
+}`;
+
+		expect(() => compile(source, 'test.ripple')).toThrow(
+			'Unclosed tag \'<tsx:react>\'. Expected \'</tsx:react>\' before end of component.',
+		);
+	});
+
 	it('parses bare #ripple in loose mode for autocomplete recovery', () => {
 		const source = `export component App() {
 	#ripple
