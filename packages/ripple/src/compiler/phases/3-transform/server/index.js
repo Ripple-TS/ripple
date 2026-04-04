@@ -1079,7 +1079,14 @@ const visitors = {
 				const children = /** @type {AST.Expression} */ (
 					visit(b.component(b.id('children'), [], children_filtered), {
 						...context.state,
-						...(apply_parent_css_scope ? { applyParentCssScope: apply_parent_css_scope } : {}),
+						...(apply_parent_css_scope ||
+						(is_element_dynamic(node) && node.metadata.scoped && state.component?.css)
+							? {
+									applyParentCssScope:
+										apply_parent_css_scope ||
+										/** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash,
+								}
+							: {}),
 						scope: component_scope,
 						namespace: child_namespace,
 					})

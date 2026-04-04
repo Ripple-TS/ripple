@@ -232,6 +232,37 @@ describe('#ripple.style identifier (server)', () => {
 		expect(wrapper_scope).not.toBe(child_scope);
 	});
 
+	it('applies caller scoped hash to slotted children through dynamic components', async () => {
+		component Wrapper({ children }) {
+			<section>
+				<children />
+			</section>
+		}
+
+		component App() {
+			const DynamicWrapper = #ripple.track(() => Wrapper);
+
+			<@DynamicWrapper>
+				<div class="green">{'Slotted child'}</div>
+			</@DynamicWrapper>
+
+			<style>
+				.green {
+					color: green;
+				}
+			</style>
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+		const slotted_child = document.querySelector('section > div.green');
+		const slotted_scopes = Array.from(slotted_child.classList).filter(
+			(name) => name.startsWith('ripple-'),
+		);
+
+		expect(slotted_scopes).toHaveLength(1);
+	});
+
 	describe('server compiler output', () => {
 		it('generates #ripple.style object with standalone classes', () => {
 			const source = `
