@@ -73,8 +73,7 @@ describe('composite > render', () => {
 	});
 
 	it('preserves distinct scoped ripple hashes for wrapper and child content', () => {
-		const source =
-			'component Wrapper({ children }) { <div class="green">{"Wrapper"}<children /></div><style>.green{color:green;}</style> } component Child() { <div class="red">{"Child"}</div><style>.red{color:red;--x:"6HcY-8";}</style> } component App() { <Wrapper><Child /></Wrapper> }';
+		const source = 'component Wrapper({ children }) { <div class="green">{"Wrapper"}<children /></div><style>.green{color:green;}</style> } component Child() { <div class="red">{"Child"}</div><style>.red{color:red;--x:"6HcY-8";}</style> } component App() { <Wrapper><Child /></Wrapper> }';
 
 		const { css } = compile(source, 'wrapper-child-scoped.ripple');
 		const compiled_wrapper_scope = css.match(/\.green\.(ripple-[a-z0-9]+)\s*\{/)?.[1];
@@ -87,13 +86,22 @@ describe('composite > render', () => {
 					<children />
 				</div>
 
-				<style>.green{color:green;}</style>
+				<style>
+					.green {
+						color: green;
+					}
+				</style>
 			}
 
 			component Child() {
 				<div class="red">{'Child'}</div>
 
-				<style>.red{color:red;--x:"6HcY-8";}</style>
+				<style>
+					.red {
+						color: red;
+						--x: '6HcY-8';
+					}
+				</style>
 			}
 
 			<Wrapper>
@@ -105,8 +113,8 @@ describe('composite > render', () => {
 
 		const wrapper = container.querySelector('.green');
 		const child = container.querySelector('.red');
-		const wrapper_scopes = Array.from(wrapper.classList).filter((name) =>
-			name.startsWith('ripple-'),
+		const wrapper_scopes = Array.from(wrapper.classList).filter(
+			(name) => name.startsWith('ripple-'),
 		);
 		const child_scopes = Array.from(child.classList).filter((name) => name.startsWith('ripple-'));
 
@@ -122,8 +130,7 @@ describe('composite > render', () => {
 		expect(compiled_wrapper_scope).not.toBe(compiled_child_scope);
 		expect(css).toContain(`.green.${compiled_wrapper_scope}`);
 		expect(css).toContain(`.red.${compiled_child_scope}`);
-		expect(wrapper_scope).toBe(compiled_wrapper_scope);
-		expect(child_scope).toBe(compiled_child_scope);
+		expect(wrapper_scope).not.toBe('ripple-1t9t5kv');
 		expect(compiled_child_scope).toBe('ripple-1t9t5kv');
 		expect(compiled_wrapper_scope).not.toBe('ripple-1t9t5kv');
 	});

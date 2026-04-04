@@ -1079,9 +1079,7 @@ const visitors = {
 				const children = /** @type {AST.Expression} */ (
 					visit(b.component(b.id('children'), [], children_filtered), {
 						...context.state,
-						...(apply_parent_css_scope
-							? { applyParentCssScope: apply_parent_css_scope }
-							: {}),
+						...(apply_parent_css_scope ? { applyParentCssScope: apply_parent_css_scope } : {}),
 						scope: component_scope,
 						namespace: child_namespace,
 					})
