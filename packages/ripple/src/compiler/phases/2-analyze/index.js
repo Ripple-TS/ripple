@@ -97,12 +97,12 @@ function setup_lazy_transforms(pattern, source_id, state, writable) {
 				binding.transform.assign = (node, value) => {
 					return b.assignment(
 						'=',
-						/** @type {AST.MemberExpression} */ (path.expression(source_id)),
+						/** @type {AST.MemberExpression} */ (path.update_expression(source_id)),
 						value,
 					);
 				};
 				binding.transform.update = (node) =>
-					b.update(node.operator, path.expression(source_id), node.prefix);
+					b.update(node.operator, path.update_expression(source_id), node.prefix);
 			}
 		}
 	}
