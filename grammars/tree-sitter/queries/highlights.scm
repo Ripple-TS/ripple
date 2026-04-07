@@ -3,6 +3,10 @@
 (fragment_declaration "fragment" @keyword)
 (server_block "#server" @keyword)
 
+; Lazy destructuring
+(lazy_object_pattern "&" @operator)
+(lazy_array_pattern "&" @operator)
+
 (server_member_expression
   "#server" @keyword
   "." @punctuation.delimiter

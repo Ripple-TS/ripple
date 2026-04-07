@@ -458,11 +458,11 @@ export function MixedControlFlowAsyncPending(__anchor, _, __block) {
 	_$_.pop_component();
 }
 
-function AsyncRow(__anchor, __props, __block) {
+function AsyncRow(__anchor, { label }, __block) {
 	_$_.async(async () => {
 		_$_.push_component();
 
-		let value = (await _$_.maybe_tracked(_$_.with_scope(__block, async () => Promise.resolve(__props.label))))();
+		let value = (await _$_.maybe_tracked(_$_.with_scope(__block, async () => Promise.resolve(label))))();
 
 		if (_$_.aborted()) return;
 

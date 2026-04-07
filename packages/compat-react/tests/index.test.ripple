@@ -530,7 +530,7 @@ describe('compat-react', () => {
 
 				let setPage: (page: number) => void;
 
-				component AsyncRippleChild({ page }: { page: number }) {
+				component AsyncRippleChild(&{ page }: { page: number }) {
 					// Using await track(() => ...) to create a reactive async operation
 					// that re-suspends when the tracked dependency (page) changes
 					await track(() => {
@@ -612,7 +612,7 @@ describe('compat-react', () => {
 
 				let setPage: (page: number) => void;
 
-				component AsyncRippleChild({ page }: { page: number }) {
+				component AsyncRippleChild(&{ page }: { page: number }) {
 					// Simple static await - no tracked dependencies
 					await sleep(1000);
 

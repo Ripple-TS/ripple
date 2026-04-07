@@ -1,0 +1,99 @@
+import { flushSync, track } from 'ripple';
+
+describe('lazy destructuring', () => {
+	it('lazily accesses object properties with const', () => {
+		component Inner(&{ a, b }: { a: number; b: string }) {
+			<pre>{`${a}-${b}`}</pre>
+		}
+
+		component Test() {
+			let a = track(1);
+			let b = track('hello');
+
+			<Inner a={@a} b={@b} />
+			<button onClick={() => { @a = 2; @b = 'world'; }}>{'update'}</button>
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('1-hello');
+		container.querySelector('button')!.click();
+		flushSync();
+		expect(container.querySelector('pre')!.textContent).toBe('2-world');
+	});
+
+	it('lazily accesses array elements with const', () => {
+		component Inner(&{ first, second }: { first: number; second: number }) {
+			<pre>{`${first}-${second}`}</pre>
+		}
+
+		component Test() {
+			let first = track(10);
+			let second = track(20);
+
+			<Inner first={@first} second={@second} />
+			<button onClick={() => { @first = 30; @second = 40; }}>{'update'}</button>
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('10-20');
+		container.querySelector('button')!.click();
+		flushSync();
+		expect(container.querySelector('pre')!.textContent).toBe('30-40');
+	});
+
+	it('supports default values in lazy object destructuring', () => {
+		component Test() {
+			const obj = { a: 5 };
+			const &{ a, b = 99 } = obj;
+			<pre>{`${a}-${b}`}</pre>
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('5-99');
+	});
+
+	it('supports lazy destructuring in component params', () => {
+		component Inner(&{ name, age }: { name: string; age: number }) {
+			<pre>{`${name}-${age}`}</pre>
+		}
+
+		component Test() {
+			<Inner name="Alice" age={30} />
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('Alice-30');
+	});
+
+	it('supports lazy destructuring in component params with reactivity', () => {
+		component Inner(&{ count }: { count: number }) {
+			<pre>{count}</pre>
+		}
+
+		component Test() {
+			let count = track(0);
+
+			<Inner count={@count} />
+			<button onClick={() => { @count++; }}>{'increment'}</button>
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('0');
+		container.querySelector('button')!.click();
+		flushSync();
+		expect(container.querySelector('pre')!.textContent).toBe('1');
+	});
+
+	it('supports lazy destructuring in function params', () => {
+		component Test() {
+			function getInfo(&{ x, y }: { x: number; y: number }) {
+				return x + y;
+			}
+			const result = getInfo({ x: 3, y: 7 });
+			<pre>{result}</pre>
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('10');
+	});
+});

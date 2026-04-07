@@ -873,6 +873,26 @@ function RipplePlugin(config) {
 			}
 
 			/**
+			 * Parse binding atom - handles lazy destructuring patterns (&{...} and &[...])
+			 * When & is directly followed by { or [, parse as a lazy destructuring pattern.
+			 * The resulting ObjectPattern/ArrayPattern node gets a `lazy: true` flag.
+			 */
+			parseBindingAtom() {
+				if (this.type === tt.bitwiseAND) {
+					// Check that the char immediately after & is { or [ (no whitespace)
+					const charAfterAmp = this.input.charCodeAt(this.end);
+					if (charAfterAmp === 123 || charAfterAmp === 91) {
+						// & directly followed by { or [ — lazy destructuring
+						this.next(); // consume &, now current token is { or [
+						const pattern = super.parseBindingAtom();
+						pattern.lazy = true;
+						return pattern;
+					}
+				}
+				return super.parseBindingAtom();
+			}
+
+			/**
 			 * Parse expression atom - handles RippleArray and RippleObject literals
 			 * @type {Parse.Parser['parseExprAtom']}
 			 */

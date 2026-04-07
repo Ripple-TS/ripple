@@ -108,6 +108,19 @@ function visit_function(node, context) {
 		}
 	}
 
+	// Replace lazy destructuring params with generated identifiers
+	const transformed_params = node.params.map((param) => {
+		const pattern = param.type === 'AssignmentPattern' ? param.left : param;
+		if (
+			(pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') &&
+			pattern.lazy &&
+			pattern.metadata?.lazy_id
+		) {
+			return b.id(pattern.metadata.lazy_id);
+		}
+		return param;
+	});
+
 	let body = /** @type {AST.BlockStatement | AST.Expression} */ (
 		context.visit(node.body, {
 			...state,
@@ -126,7 +139,7 @@ function visit_function(node, context) {
 
 	return {
 		...node,
-		params: node.params.map((param) => context.visit(param, state)),
+		params: transformed_params.map((param) => context.visit(param, state)),
 		body,
 	};
 }
@@ -508,6 +521,8 @@ const visitors = {
 						binding?.kind === 'prop' ||
 						binding?.kind === 'index' ||
 						binding?.kind === 'prop_fallback' ||
+						binding?.kind === 'lazy' ||
+						binding?.kind === 'lazy_fallback' ||
 						binding?.kind === 'for_pattern') &&
 					binding?.node !== node
 				) {
@@ -912,6 +927,15 @@ const visitors = {
 		for (const declarator of node.declarations) {
 			if (!context.state.to_ts) {
 				delete declarator.id.typeAnnotation;
+
+				// Replace lazy destructuring patterns with the generated identifier
+				if (
+					(declarator.id.type === 'ObjectPattern' || declarator.id.type === 'ArrayPattern') &&
+					declarator.id.lazy &&
+					declarator.id.metadata?.lazy_id
+				) {
+					declarator.id = b.id(declarator.id.metadata.lazy_id);
+				}
 			}
 		}
 
@@ -1931,8 +1955,13 @@ const visitors = {
 			if (props_param.type === 'Identifier') {
 				delete props_param.typeAnnotation;
 				props = props_param;
-			} else if (props_param.type === 'ObjectPattern') {
+			} else if (props_param.type === 'ObjectPattern' || props_param.type === 'ArrayPattern') {
 				delete props_param.typeAnnotation;
+				if (!props_param.lazy) {
+					// Non-lazy destructuring: use the pattern directly as the function param
+					props = /** @type {any} */ (props_param);
+				}
+				// Lazy destructuring: props stays as __props, bindings resolved via transforms
 			}
 		}
 

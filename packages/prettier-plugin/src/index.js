@@ -2036,11 +2036,15 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 
 		case 'ObjectPattern':
-			nodeContent = printObjectPattern(node, path, options, print);
+			nodeContent = node.lazy
+				? ['&', printObjectPattern(node, path, options, print)]
+				: printObjectPattern(node, path, options, print);
 			break;
 
 		case 'ArrayPattern':
-			nodeContent = printArrayPattern(node, path, options, print);
+			nodeContent = node.lazy
+				? ['&', printArrayPattern(node, path, options, print)]
+				: printArrayPattern(node, path, options, print);
 			break;
 
 		case 'Property':

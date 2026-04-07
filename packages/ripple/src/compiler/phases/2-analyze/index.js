@@ -69,6 +69,46 @@ function mark_control_flow_has_template(path) {
 }
 
 /**
+ * Set up lazy destructuring transforms for bindings extracted from a lazy pattern.
+ * Converts each destructured identifier into a binding that lazily accesses properties
+ * on the source identifier (e.g., `a` → `source.a` for object, `a` → `source[0]` for array).
+ * @param {AST.ObjectPattern | AST.ArrayPattern} pattern - The destructuring pattern with lazy: true
+ * @param {AST.Identifier} source_id - The identifier to access properties on
+ * @param {AnalysisState} state - The analysis state
+ * @param {boolean} writable - Whether assignments/updates should be supported (let vs const)
+ */
+function setup_lazy_transforms(pattern, source_id, state, writable) {
+	const paths = extract_paths(pattern);
+
+	for (const path of paths) {
+		const name = /** @type {AST.Identifier} */ (path.node).name;
+		const binding = state.scope.get(name);
+
+		if (binding !== null) {
+			binding.kind = path.has_default_value ? 'lazy_fallback' : 'lazy';
+
+			binding.transform = {
+				read: (_) => {
+					return path.expression(source_id);
+				},
+			};
+
+			if (writable) {
+				binding.transform.assign = (node, value) => {
+					return b.assignment(
+						'=',
+						/** @type {AST.MemberExpression} */ (path.expression(source_id)),
+						value,
+					);
+				};
+				binding.transform.update = (node) =>
+					b.update(node.operator, path.expression(source_id), node.prefix);
+			}
+		}
+	}
+}
+
+/**
  * @param {AST.Function} node
  * @param {AnalysisContext} context
  */
@@ -77,6 +117,19 @@ function visit_function(node, context) {
 		tracked: false,
 		path: [...context.path],
 	};
+
+	// Set up lazy transforms for any lazy destructured parameters
+	for (let i = 0; i < node.params.length; i++) {
+		const param_node = node.params[i];
+		const param = param_node.type === 'AssignmentPattern' ? param_node.left : param_node;
+
+		if ((param.type === 'ObjectPattern' || param.type === 'ArrayPattern') && param.lazy) {
+			const param_id = b.id(context.state.scope.generate('param'));
+			setup_lazy_transforms(param, param_id, context.state, true);
+			// Store the generated identifier name on the pattern for the transform phase
+			param.metadata = { ...param.metadata, lazy_id: param_id.name };
+		}
+	}
 
 	context.next({
 		...context.state,
@@ -291,6 +344,8 @@ const visitors = {
 			if (
 				binding.kind === 'prop' ||
 				binding.kind === 'prop_fallback' ||
+				binding.kind === 'lazy' ||
+				binding.kind === 'lazy_fallback' ||
 				binding.kind === 'for_pattern' ||
 				(is_reference(node, /** @type {AST.Node} */ (parent)) &&
 					node.tracked &&
@@ -475,6 +530,18 @@ const visitors = {
 				}
 				visit(declarator, state);
 			} else {
+				// Handle lazy destructuring patterns
+				if (
+					(declarator.id.type === 'ObjectPattern' || declarator.id.type === 'ArrayPattern') &&
+					declarator.id.lazy
+				) {
+					const lazy_id = b.id(state.scope.generate('lazy'));
+					const writable = node.kind === 'let';
+					setup_lazy_transforms(declarator.id, lazy_id, state, writable);
+					// Store the generated identifier name on the pattern for the transform phase
+					declarator.id.metadata = { ...declarator.id.metadata, lazy_id: lazy_id.name };
+				}
+
 				const paths = extract_paths(declarator.id);
 
 				for (const path of paths) {
@@ -549,32 +616,9 @@ const visitors = {
 		if (node.params.length > 0) {
 			const props = node.params[0];
 
-			if (props.type === 'ObjectPattern') {
-				const paths = extract_paths(props);
-
-				for (const path of paths) {
-					const name = /** @type {AST.Identifier} */ (path.node).name;
-					const binding = context.state.scope.get(name);
-
-					if (binding !== null) {
-						binding.kind = path.has_default_value ? 'prop_fallback' : 'prop';
-
-						binding.transform = {
-							read: (_) => {
-								return path.expression(b.id('__props'));
-							},
-							assign: (node, value) => {
-								return b.assignment(
-									'=',
-									/** @type {AST.MemberExpression} */ (path.expression(b.id('__props'))),
-									value,
-								);
-							},
-							update: (node) =>
-								b.update(node.operator, path.expression(b.id('__props')), node.prefix),
-						};
-					}
-				}
+			if ((props.type === 'ObjectPattern' || props.type === 'ArrayPattern') && props.lazy) {
+				// Lazy destructuring: &{...} or &[...] — set up lazy transforms
+				setup_lazy_transforms(props, b.id('__props'), context.state, true);
 			} else if (props.type === 'AssignmentPattern') {
 				error(
 					'Props are always an object, use destructured props with default values instead',

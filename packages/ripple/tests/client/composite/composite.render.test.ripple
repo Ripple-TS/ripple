@@ -2,7 +2,7 @@ import { RippleArray, flushSync, track, type Component } from 'ripple';
 
 describe('composite > render', () => {
 	it('renders composite components', () => {
-		component Button({ count }: { count: number }) {
+		component Button(&{ count }: { count: number }) {
 			<div>{count}</div>
 		}
 
@@ -131,7 +131,7 @@ describe('composite > render', () => {
 	});
 
 	it('should not render <undefined> tag when a passed in component is undefined', () => {
-		component Child({
+		component Child(&{
 			children,
 			NonExistent,
 			...props

@@ -24,7 +24,7 @@ var root_19 = _$_.template(`<div class="wrapper"><ul class="features"><li><stron
 
 import { track } from 'ripple';
 
-export function IfWithChildren(__anchor, __props, __block) {
+export function IfWithChildren(__anchor, { children }, __block) {
 	_$_.push_component();
 
 	let expanded = _$_.track(true, void 0, void 0, __block);
@@ -44,7 +44,7 @@ export function IfWithChildren(__anchor, __props, __block) {
 				{
 					var node_1 = _$_.child(div_3);
 
-					_$_.composite(() => __props.children, node_1, {});
+					children(node_1, {}, _$_.active_block);
 					_$_.pop(div_3);
 				}
 
@@ -63,7 +63,7 @@ export function IfWithChildren(__anchor, __props, __block) {
 	_$_.pop_component();
 }
 
-export function ChildItem(__anchor, __props, __block) {
+export function ChildItem(__anchor, { text }, __block) {
 	_$_.push_component();
 
 	var div_4 = root_2();
@@ -71,12 +71,9 @@ export function ChildItem(__anchor, __props, __block) {
 	{
 		var text_1 = _$_.child(div_4, true);
 
+		text_1.nodeValue = text;
 		_$_.pop(div_4);
 	}
-
-	_$_.render(() => {
-		_$_.set_text(text_1, __props.text);
-	});
 
 	_$_.append(__anchor, div_4);
 	_$_.pop_component();
@@ -145,7 +142,7 @@ export function IfWithStaticChildren(__anchor, _, __block) {
 	_$_.pop_component();
 }
 
-export function IfWithSiblingsAndChildren(__anchor, __props, __block) {
+export function IfWithSiblingsAndChildren(__anchor, { children }, __block) {
 	_$_.push_component();
 
 	let expanded = _$_.track(true, void 0, void 0, __block);
@@ -166,7 +163,7 @@ export function IfWithSiblingsAndChildren(__anchor, __props, __block) {
 				{
 					var node_7 = _$_.child(div_9);
 
-					_$_.composite(() => __props.children, node_7, {});
+					children(node_7, {}, _$_.active_block);
 					_$_.pop(div_9);
 				}
 

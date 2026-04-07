@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-export async function Layout(__output, { children }) {
+export async function Layout(__output, __props) {
 	return _$_.async(async () => {
 		_$_.push_component();
 		__output.push('<div');
@@ -10,7 +10,7 @@ export async function Layout(__output, { children }) {
 
 		{
 			{
-				const comp = children;
+				const comp = __props.children;
 				const args = [__output, {}];
 
 				if (comp?.async) {

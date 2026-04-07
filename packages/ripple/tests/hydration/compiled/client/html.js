@@ -215,7 +215,7 @@ export function HtmlWithReactivity(__anchor, _, __block) {
 	_$_.pop_component();
 }
 
-export function HtmlWrapper(__anchor, __props, __block) {
+export function HtmlWrapper(__anchor, { children }, __block) {
 	_$_.push_component();
 
 	var div_6 = root_6();
@@ -226,7 +226,7 @@ export function HtmlWrapper(__anchor, __props, __block) {
 		{
 			var node_7 = _$_.child(div_7);
 
-			_$_.composite(() => __props.children, node_7, {});
+			children(node_7, {}, _$_.active_block);
 			_$_.pop(div_7);
 		}
 	}
@@ -438,7 +438,11 @@ function DocFooter(__anchor, _, __block) {
 	_$_.pop_component();
 }
 
-export function DocLayout(__anchor, __props, __block) {
+export function DocLayout(
+	__anchor,
+	{ children, editPath = '', nextLink = null, toc = [] },
+	__block
+) {
 	_$_.push_component();
 
 	var div_14 = root_18();
@@ -455,7 +459,7 @@ export function DocLayout(__anchor, __props, __block) {
 				{
 					var node_19 = _$_.child(div_15);
 
-					_$_.composite(() => __props.children, node_19, {});
+					children(node_19, {}, _$_.active_block);
 					_$_.pop(div_15);
 				}
 			}
@@ -470,17 +474,15 @@ export function DocLayout(__anchor, __props, __block) {
 
 					{
 						var a_1 = _$_.child(div_17);
-					}
 
-					_$_.render(() => {
-						_$_.set_attribute(a_1, 'href', `https://github.com/edit/${_$_.fallback(__props.editPath, '')}`);
-					});
+						_$_.set_attribute(a_1, 'href', `https://github.com/edit/${editPath}`);
+					}
 
 					_$_.append(__anchor, div_17);
 				};
 
 				_$_.if(node_20, (__render) => {
-					if (_$_.fallback(__props.editPath, '')) __render(consequent);
+					if (editPath) __render(consequent);
 				});
 			}
 
@@ -502,13 +504,13 @@ export function DocLayout(__anchor, __props, __block) {
 
 					_$_.render(
 						(__prev) => {
-							var __a = _$_.fallback(__props.nextLink, null).text;
+							var __a = nextLink.text;
 
 							if (__prev.a !== __a) {
 								_$_.set_text(text_1, __prev.a = __a);
 							}
 
-							var __b = _$_.fallback(__props.nextLink, null).href;
+							var __b = nextLink.href;
 
 							if (__prev.b !== __b) {
 								_$_.set_attribute(a_2, 'href', __prev.b = __b);
@@ -521,7 +523,7 @@ export function DocLayout(__anchor, __props, __block) {
 				};
 
 				_$_.if(node_21, (__render) => {
-					if (_$_.fallback(__props.nextLink, null)) __render(consequent_1);
+					if (nextLink) __render(consequent_1);
 				});
 			}
 
@@ -546,7 +548,7 @@ export function DocLayout(__anchor, __props, __block) {
 						{
 							_$_.for(
 								ul_1,
-								() => _$_.fallback(__props.toc, []),
+								() => toc,
 								(__anchor, item) => {
 									var li_1 = root_22();
 
@@ -590,7 +592,7 @@ export function DocLayout(__anchor, __props, __block) {
 				};
 
 				_$_.if(node_23, (__render) => {
-					if (_$_.fallback(__props.toc, []).length > 0) __render(consequent_2);
+					if (toc.length > 0) __render(consequent_2);
 				});
 			}
 
@@ -717,7 +719,7 @@ export function HtmlWithUndefinedContent(__anchor, _, __block) {
 	_$_.pop_component();
 }
 
-function DynamicHeading(__anchor, __props, __block) {
+function DynamicHeading(__anchor, { level, children }, __block) {
 	_$_.push_component();
 
 	var fragment_8 = root_29();
@@ -730,7 +732,7 @@ function DynamicHeading(__anchor, __props, __block) {
 			{
 				var node_31 = _$_.child(h1_2);
 
-				_$_.composite(() => __props.children, node_31, {});
+				children(node_31, {}, _$_.active_block);
 				_$_.pop(h1_2);
 			}
 
@@ -743,7 +745,7 @@ function DynamicHeading(__anchor, __props, __block) {
 			{
 				var node_32 = _$_.child(h2_1);
 
-				_$_.composite(() => __props.children, node_32, {});
+				children(node_32, {}, _$_.active_block);
 				_$_.pop(h2_1);
 			}
 
@@ -753,7 +755,7 @@ function DynamicHeading(__anchor, __props, __block) {
 		_$_.switch(node_30, () => {
 			var result = [];
 
-			switch (__props.level) {
+			switch (level) {
 				case 1:
 					result.push(switch_case_0);
 
@@ -768,10 +770,10 @@ function DynamicHeading(__anchor, __props, __block) {
 	_$_.pop_component();
 }
 
-function CodeBlock(__anchor, __props, __block) {
+function CodeBlock(__anchor, { code }, __block) {
 	_$_.push_component();
 
-	const highlighted = `<pre class="shiki"><code>${__props.code}</code></pre>`;
+	const highlighted = `<pre class="shiki"><code>${code}</code></pre>`;
 	var div_22 = root_32();
 
 	{
@@ -796,7 +798,7 @@ function CodeBlock(__anchor, __props, __block) {
 	_$_.pop_component();
 }
 
-function ContentWrapper(__anchor, __props, __block) {
+function ContentWrapper(__anchor, { children }, __block) {
 	_$_.push_component();
 
 	var div_25 = root_33();
@@ -807,7 +809,7 @@ function ContentWrapper(__anchor, __props, __block) {
 		{
 			var node_34 = _$_.child(div_26);
 
-			_$_.composite(() => __props.children, node_34, {});
+			children(node_34, {}, _$_.active_block);
 			_$_.pop(div_26);
 		}
 	}
@@ -863,10 +865,12 @@ export function HtmlAfterSwitchInChildren(__anchor, _, __block) {
 	_$_.pop_component();
 }
 
-function NavItem(__anchor, __props, __block) {
+function NavItem(__anchor, { href, text, active = false }, __block) {
 	_$_.push_component();
 
 	var div_27 = root_36();
+
+	_$_.set_class(div_27, `nav-item${active ? ' active' : ''}`, void 0, true);
 
 	{
 		var node_38 = _$_.child(div_27);
@@ -879,11 +883,13 @@ function NavItem(__anchor, __props, __block) {
 			};
 
 			_$_.if(node_38, (__render) => {
-				if (_$_.fallback(__props.active, false)) __render(consequent_3);
+				if (active) __render(consequent_3);
 			});
 		}
 
 		var a_4 = _$_.sibling(node_38);
+
+		_$_.set_attribute(a_4, 'href', href);
 
 		{
 			var span_1 = _$_.child(a_4);
@@ -891,6 +897,7 @@ function NavItem(__anchor, __props, __block) {
 			{
 				var text_4 = _$_.child(span_1, true);
 
+				text_4.nodeValue = text;
 				_$_.pop(span_1);
 			}
 		}
@@ -898,34 +905,11 @@ function NavItem(__anchor, __props, __block) {
 		_$_.pop(div_27);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = __props.text;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(text_4, __prev.a = __a);
-			}
-
-			var __b = __props.href;
-
-			if (__prev.b !== __b) {
-				_$_.set_attribute(a_4, 'href', __prev.b = __b);
-			}
-
-			var __c = `nav-item${_$_.fallback(__props.active, false) ? ' active' : ''}`;
-
-			if (__prev.c !== __c) {
-				_$_.set_class(div_27, __prev.c = __c, void 0, true);
-			}
-		},
-		{ a: ' ', b: void 0, c: Symbol() }
-	);
-
 	_$_.append(__anchor, div_27);
 	_$_.pop_component();
 }
 
-function SidebarSection(__anchor, __props, __block) {
+function SidebarSection(__anchor, { title, children }, __block) {
 	_$_.push_component();
 
 	let expanded = _$_.track(true, void 0, void 0, __block);
@@ -940,6 +924,7 @@ function SidebarSection(__anchor, __props, __block) {
 			{
 				var text_5 = _$_.child(h2_2, true);
 
+				text_5.nodeValue = title;
 				_$_.pop(h2_2);
 			}
 
@@ -959,7 +944,7 @@ function SidebarSection(__anchor, __props, __block) {
 				{
 					var node_40 = _$_.child(div_30);
 
-					_$_.composite(() => __props.children, node_40, {});
+					children(node_40, {}, _$_.active_block);
 					_$_.pop(div_30);
 				}
 
@@ -974,15 +959,11 @@ function SidebarSection(__anchor, __props, __block) {
 		_$_.pop(section_2);
 	}
 
-	_$_.render(() => {
-		_$_.set_text(text_5, __props.title);
-	});
-
 	_$_.append(__anchor, section_2);
 	_$_.pop_component();
 }
 
-function SideNav(__anchor, __props, __block) {
+function SideNav(__anchor, { currentPath }, __block) {
 	_$_.push_component();
 
 	var aside_2 = root_40();
@@ -1011,9 +992,7 @@ function SideNav(__anchor, __props, __block) {
 								{
 									href: "/intro",
 									text: "Introduction",
-									get active() {
-										return __props.currentPath === '/intro';
-									}
+									active: currentPath === '/intro'
 								},
 								_$_.active_block
 							);
@@ -1025,9 +1004,7 @@ function SideNav(__anchor, __props, __block) {
 								{
 									href: "/start",
 									text: "Quick Start",
-									get active() {
-										return __props.currentPath === '/start';
-									}
+									active: currentPath === '/start'
 								},
 								_$_.active_block
 							);
@@ -1062,9 +1039,7 @@ function SideNav(__anchor, __props, __block) {
 								{
 									href: "/guide/app",
 									text: "Application",
-									get active() {
-										return __props.currentPath === '/guide/app';
-									}
+									active: currentPath === '/guide/app'
 								},
 								_$_.active_block
 							);
@@ -1076,9 +1051,7 @@ function SideNav(__anchor, __props, __block) {
 								{
 									href: "/guide/syntax",
 									text: "Syntax",
-									get active() {
-										return __props.currentPath === '/guide/syntax';
-									}
+									active: currentPath === '/guide/syntax'
 								},
 								_$_.active_block
 							);
@@ -1162,7 +1135,7 @@ export function LayoutWithSidebarAndMain(__anchor, _, __block) {
 	_$_.pop_component();
 }
 
-function ArticleWrapper(__anchor, __props, __block) {
+function ArticleWrapper(__anchor, { children }, __block) {
 	_$_.push_component();
 
 	var article_2 = root_46();
@@ -1173,7 +1146,7 @@ function ArticleWrapper(__anchor, __props, __block) {
 		{
 			var node_51 = _$_.child(div_37);
 
-			_$_.composite(() => __props.children, node_51, {});
+			children(node_51, {}, _$_.active_block);
 			_$_.pop(div_37);
 		}
 	}
@@ -1310,7 +1283,7 @@ export function ArticleWithHtmlChildThenSibling(__anchor, _, __block) {
 	_$_.pop_component();
 }
 
-function InlineArticleLayout(__anchor, __props, __block) {
+function InlineArticleLayout(__anchor, { children }, __block) {
 	_$_.push_component();
 
 	var div_43 = root_55();
@@ -1324,7 +1297,7 @@ function InlineArticleLayout(__anchor, __props, __block) {
 			{
 				var node_60 = _$_.child(div_44);
 
-				_$_.composite(() => __props.children, node_60, {});
+				children(node_60, {}, _$_.active_block);
 				_$_.pop(div_44);
 			}
 		}
@@ -1418,7 +1391,11 @@ function FooterStub(__anchor, _, __block) {
 	_$_.pop_component();
 }
 
-function DocsLayoutInner(__anchor, __props, __block) {
+function DocsLayoutInner(
+	__anchor,
+	{ children, editPath = '', nextLink = null },
+	__block
+) {
 	_$_.push_component();
 
 	var div_47 = root_62();
@@ -1455,7 +1432,7 @@ function DocsLayoutInner(__anchor, __props, __block) {
 								{
 									var node_67 = _$_.child(div_49);
 
-									_$_.composite(() => __props.children, node_67, {});
+									children(node_67, {}, _$_.active_block);
 									_$_.pop(div_49);
 								}
 							}
@@ -1472,7 +1449,7 @@ function DocsLayoutInner(__anchor, __props, __block) {
 								};
 
 								_$_.if(node_68, (__render) => {
-									if (_$_.fallback(__props.editPath, '')) __render(consequent_10);
+									if (editPath) __render(consequent_10);
 								});
 							}
 
@@ -1494,13 +1471,13 @@ function DocsLayoutInner(__anchor, __props, __block) {
 
 									_$_.render(
 										(__prev) => {
-											var __a = _$_.fallback(__props.nextLink, null).text;
+											var __a = nextLink.text;
 
 											if (__prev.a !== __a) {
 												_$_.set_text(text_6, __prev.a = __a);
 											}
 
-											var __b = _$_.fallback(__props.nextLink, null).href;
+											var __b = nextLink.href;
 
 											if (__prev.b !== __b) {
 												_$_.set_attribute(a_5, 'href', __prev.b = __b);
@@ -1513,7 +1490,7 @@ function DocsLayoutInner(__anchor, __props, __block) {
 								};
 
 								_$_.if(node_69, (__render) => {
-									if (_$_.fallback(__props.nextLink, null)) __render(consequent_11);
+									if (nextLink) __render(consequent_11);
 								});
 							}
 
@@ -1610,7 +1587,17 @@ export function DocsLayoutWithoutData(__anchor, _, __block) {
 	_$_.pop_component();
 }
 
-function DocsLayoutExact(__anchor, __props, __block) {
+function DocsLayoutExact(
+	__anchor,
+	{
+		children,
+		editPath = '',
+		prevLink = null,
+		nextLink = null,
+		toc = []
+	},
+	__block
+) {
 	_$_.push_component();
 
 	var div_56 = root_69();
@@ -1647,7 +1634,7 @@ function DocsLayoutExact(__anchor, __props, __block) {
 								{
 									var node_77 = _$_.child(div_58);
 
-									_$_.composite(() => __props.children, node_77, {});
+									children(node_77, {}, _$_.active_block);
 									_$_.pop(div_58);
 								}
 							}
@@ -1662,17 +1649,15 @@ function DocsLayoutExact(__anchor, __props, __block) {
 
 									{
 										var a_6 = _$_.child(div_62);
-									}
 
-									_$_.render(() => {
-										_$_.set_attribute(a_6, 'href', `/edit/${_$_.fallback(__props.editPath, '')}`);
-									});
+										_$_.set_attribute(a_6, 'href', `/edit/${editPath}`);
+									}
 
 									_$_.append(__anchor, div_62);
 								};
 
 								_$_.if(node_78, (__render) => {
-									if (_$_.fallback(__props.editPath, '')) __render(consequent_12);
+									if (editPath) __render(consequent_12);
 								});
 							}
 
@@ -1701,13 +1686,13 @@ function DocsLayoutExact(__anchor, __props, __block) {
 
 												_$_.render(
 													(__prev) => {
-														var __a = _$_.fallback(__props.prevLink, null).text;
+														var __a = prevLink.text;
 
 														if (__prev.a !== __a) {
 															_$_.set_text(text_7, __prev.a = __a);
 														}
 
-														var __b = _$_.fallback(__props.prevLink, null).href;
+														var __b = prevLink.href;
 
 														if (__prev.b !== __b) {
 															_$_.set_attribute(a_7, 'href', __prev.b = __b);
@@ -1726,7 +1711,7 @@ function DocsLayoutExact(__anchor, __props, __block) {
 											};
 
 											_$_.if(node_80, (__render) => {
-												if (_$_.fallback(__props.prevLink, null)) __render(consequent_13); else __render(alternate, false);
+												if (prevLink) __render(consequent_13); else __render(alternate, false);
 											});
 										}
 
@@ -1748,13 +1733,13 @@ function DocsLayoutExact(__anchor, __props, __block) {
 
 												_$_.render(
 													(__prev) => {
-														var __a = _$_.fallback(__props.nextLink, null).text;
+														var __a = nextLink.text;
 
 														if (__prev.a !== __a) {
 															_$_.set_text(text_8, __prev.a = __a);
 														}
 
-														var __b = _$_.fallback(__props.nextLink, null).href;
+														var __b = nextLink.href;
 
 														if (__prev.b !== __b) {
 															_$_.set_attribute(a_8, 'href', __prev.b = __b);
@@ -1767,7 +1752,7 @@ function DocsLayoutExact(__anchor, __props, __block) {
 											};
 
 											_$_.if(node_81, (__render) => {
-												if (_$_.fallback(__props.nextLink, null)) __render(consequent_14);
+												if (nextLink) __render(consequent_14);
 											});
 										}
 
@@ -1778,7 +1763,7 @@ function DocsLayoutExact(__anchor, __props, __block) {
 								};
 
 								_$_.if(node_79, (__render) => {
-									if (_$_.fallback(__props.prevLink, null) || _$_.fallback(__props.nextLink, null)) __render(consequent_15);
+									if (prevLink || nextLink) __render(consequent_15);
 								});
 							}
 
@@ -1806,7 +1791,7 @@ function DocsLayoutExact(__anchor, __props, __block) {
 									{
 										_$_.for(
 											nav_6,
-											() => _$_.fallback(__props.toc, []),
+											() => toc,
 											(__anchor, item) => {
 												var a_9 = root_76();
 
@@ -1846,7 +1831,7 @@ function DocsLayoutExact(__anchor, __props, __block) {
 							};
 
 							_$_.if(node_83, (__render) => {
-								if (_$_.fallback(__props.toc, []).length > 0) __render(consequent_16);
+								if (toc.length > 0) __render(consequent_16);
 							});
 						}
 
@@ -1990,7 +1975,7 @@ export function TemplateWithHtmlAndSiblings(__anchor, _, __block) {
 	_$_.pop_component();
 }
 
-function LayoutWithTemplate(__anchor, __props, __block) {
+function LayoutWithTemplate(__anchor, { children, data }, __block) {
 	_$_.push_component();
 
 	var div_68 = root_83();
@@ -2002,13 +1987,13 @@ function LayoutWithTemplate(__anchor, __props, __block) {
 		{
 			var node_88 = _$_.child(main_4);
 
-			_$_.composite(() => __props.children, node_88, {});
+			children(node_88, {}, _$_.active_block);
 			_$_.pop(main_4);
 		}
 	}
 
 	_$_.render(() => {
-		template_3.innerHTML = _$_.with_scope(__block, () => JSON.stringify(__props.data));
+		template_3.innerHTML = _$_.with_scope(__block, () => JSON.stringify(data));
 	});
 
 	_$_.append(__anchor, div_68);

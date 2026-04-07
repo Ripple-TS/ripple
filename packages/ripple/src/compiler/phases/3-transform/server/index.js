@@ -326,6 +326,27 @@ const visitors = {
 		const parent = /** @type {AST.Node} */ (context.path.at(-1));
 
 		if (is_reference(node, parent)) {
+			// Apply lazy destructuring binding transforms only
+			const binding = context.state.scope?.get(node.name);
+			if (
+				binding?.transform?.read &&
+				binding.node !== node &&
+				(binding.kind === 'lazy' || binding.kind === 'lazy_fallback')
+			) {
+				const transformed = binding.transform.read(node);
+				if (node.tracked) {
+					const is_right_side_of_assignment =
+						parent.type === 'AssignmentExpression' && parent.right === node;
+					if (
+						(parent.type !== 'AssignmentExpression' && parent.type !== 'UpdateExpression') ||
+						is_right_side_of_assignment
+					) {
+						return b.call('_$_.get', transformed);
+					}
+				}
+				return transformed;
+			}
+
 			if (node.tracked) {
 				const is_right_side_of_assignment =
 					parent.type === 'AssignmentExpression' && parent.right === node;
@@ -342,13 +363,24 @@ const visitors = {
 	},
 
 	Component(node, context) {
+		let props_param_output;
+
 		if (node.params.length > 0) {
 			let props_param = node.params[0];
 
 			if (props_param.type === 'Identifier') {
 				delete props_param.typeAnnotation;
-			} else if (props_param.type === 'ObjectPattern') {
+				props_param_output = props_param;
+			} else if (props_param.type === 'ObjectPattern' || props_param.type === 'ArrayPattern') {
 				delete props_param.typeAnnotation;
+				if (props_param.lazy) {
+					// Lazy destructuring: use __props identifier, bindings resolved via transforms
+					props_param_output = b.id('__props');
+				} else {
+					props_param_output = props_param;
+				}
+			} else {
+				props_param_output = props_param;
 			}
 		}
 
@@ -397,7 +429,7 @@ const visitors = {
 
 		let component_fn = b.function(
 			node.id,
-			node.params.length > 0 ? [b.id('__output'), node.params[0]] : [b.id('__output')],
+			node.params.length > 0 ? [b.id('__output'), props_param_output] : [b.id('__output')],
 			b.block([
 				...(metadata.await
 					? [b.return(b.call('_$_.async', b.thunk(b.block(body_statements), true)))]
@@ -586,11 +618,21 @@ const visitors = {
 		if (!context.state.to_ts) {
 			delete node.returnType;
 			delete node.typeParameters;
-			for (const param of node.params) {
+			for (let i = 0; i < node.params.length; i++) {
+				const param = node.params[i];
 				delete param.typeAnnotation;
 				// Handle AssignmentPattern (parameters with default values)
 				if (param.type === 'AssignmentPattern' && param.left) {
 					delete param.left.typeAnnotation;
+				}
+				// Replace lazy destructuring params with generated identifiers
+				const pattern = param.type === 'AssignmentPattern' ? param.left : param;
+				if (
+					(pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') &&
+					pattern.lazy &&
+					pattern.metadata?.lazy_id
+				) {
+					node.params[i] = b.id(pattern.metadata.lazy_id);
 				}
 			}
 		}
@@ -601,11 +643,21 @@ const visitors = {
 		if (!context.state.to_ts) {
 			delete node.returnType;
 			delete node.typeParameters;
-			for (const param of node.params) {
+			for (let i = 0; i < node.params.length; i++) {
+				const param = node.params[i];
 				delete param.typeAnnotation;
 				// Handle AssignmentPattern (parameters with default values)
 				if (param.type === 'AssignmentPattern' && param.left) {
 					delete param.left.typeAnnotation;
+				}
+				// Replace lazy destructuring params with generated identifiers
+				const pattern = param.type === 'AssignmentPattern' ? param.left : param;
+				if (
+					(pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') &&
+					pattern.lazy &&
+					pattern.metadata?.lazy_id
+				) {
+					node.params[i] = b.id(pattern.metadata.lazy_id);
 				}
 			}
 		}
@@ -626,11 +678,21 @@ const visitors = {
 	ArrowFunctionExpression(node, context) {
 		delete node.returnType;
 		delete node.typeParameters;
-		for (const param of node.params) {
+		for (let i = 0; i < node.params.length; i++) {
+			const param = node.params[i];
 			delete param.typeAnnotation;
 			// Handle AssignmentPattern (parameters with default values)
 			if (param.type === 'AssignmentPattern' && param.left) {
 				delete param.left.typeAnnotation;
+			}
+			// Replace lazy destructuring params with generated identifiers
+			const pattern = param.type === 'AssignmentPattern' ? param.left : param;
+			if (
+				(pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') &&
+				pattern.lazy &&
+				pattern.metadata?.lazy_id
+			) {
+				node.params[i] = b.id(pattern.metadata.lazy_id);
 			}
 		}
 
@@ -773,6 +835,15 @@ const visitors = {
 		for (const declarator of node.declarations) {
 			if (!context.state.to_ts) {
 				delete declarator.id.typeAnnotation;
+
+				// Replace lazy destructuring patterns with the generated identifier
+				if (
+					(declarator.id.type === 'ObjectPattern' || declarator.id.type === 'ArrayPattern') &&
+					declarator.id.lazy &&
+					declarator.id.metadata?.lazy_id
+				) {
+					declarator.id = b.id(declarator.id.metadata.lazy_id);
+				}
 			}
 		}
 
@@ -1345,6 +1416,17 @@ const visitors = {
 	AssignmentExpression(node, context) {
 		const left = node.left;
 
+		// Handle lazy binding assignments (e.g., a = 5 where a is from let &{a} = obj)
+		if (left.type === 'Identifier') {
+			const binding = context.state.scope?.get(left.name);
+			if (binding?.transform?.assign && binding.node !== left) {
+				return binding.transform.assign(
+					left,
+					/** @type {AST.Expression} */ (context.visit(node.right)),
+				);
+			}
+		}
+
 		if (
 			left.type === 'MemberExpression' &&
 			(left.tracked || (left.property.type === 'Identifier' && left.property.tracked))
@@ -1397,6 +1479,14 @@ const visitors = {
 
 	UpdateExpression(node, context) {
 		const argument = node.argument;
+
+		// Handle lazy binding updates (e.g., a++ where a is from let &{a} = obj)
+		if (argument.type === 'Identifier') {
+			const binding = context.state.scope?.get(argument.name);
+			if (binding?.transform?.update && binding.node !== argument) {
+				return binding.transform.update(node);
+			}
+		}
 
 		if (
 			argument.type === 'MemberExpression' &&

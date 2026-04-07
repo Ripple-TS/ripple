@@ -130,7 +130,7 @@ describe('composite > reactivity', () => {
 	});
 
 	it('parents and children have isolated connected state (destructured props)', () => {
-		component Button({ count }: { count: number }) {
+		component Button(&{ count }: { count: number }) {
 			let local_count = track(() => count);
 			<button
 				onClick={() => {
@@ -205,7 +205,7 @@ describe('composite > reactivity', () => {
 			</button>
 		}
 
-		component Child({ a, b, c }: { a: number; b: number; c: number }) {
+		component Child(&{ a, b, c }: { a: number; b: number; c: number }) {
 			effect(() => {
 				logs.push(`Child effect: ${a}, ${b}, ${c}`);
 			});
