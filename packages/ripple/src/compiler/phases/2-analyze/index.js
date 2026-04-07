@@ -85,7 +85,8 @@ function setup_lazy_transforms(pattern, source_id, state, writable) {
 		const binding = state.scope.get(name);
 
 		if (binding !== null) {
-			binding.kind = path.has_default_value ? 'lazy_fallback' : 'lazy';
+			const has_fallback = path.has_default_value;
+			binding.kind = has_fallback ? 'lazy_fallback' : 'lazy';
 
 			binding.transform = {
 				read: (_) => {
@@ -101,8 +102,40 @@ function setup_lazy_transforms(pattern, source_id, state, writable) {
 						value,
 					);
 				};
-				binding.transform.update = (node) =>
-					b.update(node.operator, path.update_expression(source_id), node.prefix);
+
+				if (has_fallback) {
+					// For bindings with default values, generate proper fallback-aware update
+					// e.g., count++ with default 0 becomes:
+					// (() => { var _v = _$_.fallback(obj.count, 0); obj.count = _v + 1; return _v; })() for postfix
+					// (obj.count = _$_.fallback(obj.count, 0) + 1) for prefix
+					binding.transform.update = (node) => {
+						const member = path.update_expression(source_id);
+						const fallback_read = path.expression(source_id);
+						const delta = node.operator === '++' ? b.literal(1) : b.literal(-1);
+
+						if (node.prefix) {
+							// ++count: return new value
+							return b.assignment('=', member, b.binary('+', fallback_read, delta));
+						} else {
+							// count++: return old value, write new value
+							// Use IIFE to declare temp variable
+							const temp = b.id('_v');
+							return b.call(
+								b.arrow(
+									[],
+									b.block([
+										b.var(temp, fallback_read),
+										b.stmt(b.assignment('=', member, b.binary('+', temp, delta))),
+										b.return(temp),
+									]),
+								),
+							);
+						}
+					};
+				} else {
+					binding.transform.update = (node) =>
+						b.update(node.operator, path.update_expression(source_id), node.prefix);
+				}
 			}
 		}
 	}

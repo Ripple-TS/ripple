@@ -2078,6 +2078,14 @@ const visitors = {
 		}
 		const argument = node.argument;
 
+		// Handle lazy binding updates (e.g., a++ where a is from let &{a} = obj)
+		if (argument.type === 'Identifier') {
+			const binding = context.state.scope?.get(argument.name);
+			if (binding?.transform?.update && binding.node !== argument) {
+				return binding.transform.update(node);
+			}
+		}
+
 		if (
 			argument.type === 'MemberExpression' &&
 			(argument.tracked || (argument.property.type === 'Identifier' && argument.property.tracked))

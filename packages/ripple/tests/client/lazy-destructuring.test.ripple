@@ -182,4 +182,28 @@ describe('lazy destructuring', () => {
 		render(Test);
 		expect(container.querySelector('pre')!.textContent).toBe('1-99');
 	});
+
+	it('supports update expressions on lazy bindings with default values', () => {
+		component Test() {
+			const obj: { count?: number } = {};
+			let &{ count = 0 } = obj;
+			count++;
+			count++;
+			<pre>{obj.count}</pre>
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('2');
+	});
+
+	it('supports member access on lazy destructured objects', () => {
+		component Test() {
+			const obj = { user: { name: 'Alice', age: 30 } };
+			const &{ user } = obj;
+			<pre>{`${user.name}-${user.age}`}</pre>
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('Alice-30');
+	});
 });

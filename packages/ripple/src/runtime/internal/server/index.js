@@ -792,3 +792,14 @@ ripple_array.from_async = async function (arrayLike, map_fn, thisArg) {
 export function ripple_object(obj) {
 	return obj;
 }
+
+/**
+ * Returns the fallback value if the given value is undefined.
+ * @template T
+ * @param {T | undefined} value
+ * @param {T} fallback
+ * @returns {T}
+ */
+export function fallback(value, fallback) {
+	return value === undefined ? fallback : value;
+}

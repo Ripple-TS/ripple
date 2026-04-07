@@ -1158,7 +1158,7 @@ export interface Binding {
 	transform?: {
 		read: (node?: AST.Identifier) => AST.Expression;
 		assign?: (node: AST.Pattern, value: AST.Expression) => AST.AssignmentExpression;
-		update?: (node: AST.UpdateExpression) => AST.UpdateExpression;
+		update?: (node: AST.UpdateExpression) => AST.Expression;
 	};
 }
 
