@@ -10,8 +10,15 @@ describe('lazy destructuring', () => {
 			let a = track(1);
 			let b = track('hello');
 
-			<Inner a={@a} b={@b} />
-			<button onClick={() => { @a = 2; @b = 'world'; }}>{'update'}</button>
+			<Inner {@a} {@b} />
+			<button
+				onClick={() => {
+					@a = 2;
+					@b = 'world';
+				}}
+			>
+				{'update'}
+			</button>
 		}
 
 		render(Test);
@@ -30,8 +37,15 @@ describe('lazy destructuring', () => {
 			let first = track(10);
 			let second = track(20);
 
-			<Inner first={@first} second={@second} />
-			<button onClick={() => { @first = 30; @second = 40; }}>{'update'}</button>
+			<Inner {@first} {@second} />
+			<button
+				onClick={() => {
+					@first = 30;
+					@second = 40;
+				}}
+			>
+				{'update'}
+			</button>
 		}
 
 		render(Test);
@@ -73,8 +87,14 @@ describe('lazy destructuring', () => {
 		component Test() {
 			let count = track(0);
 
-			<Inner count={@count} />
-			<button onClick={() => { @count++; }}>{'increment'}</button>
+			<Inner {@count} />
+			<button
+				onClick={() => {
+					@count++;
+				}}
+			>
+				{'increment'}
+			</button>
 		}
 
 		render(Test);
