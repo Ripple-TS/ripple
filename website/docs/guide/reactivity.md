@@ -122,11 +122,68 @@ exposed (for get) or stored (for set). Also, if only supplying the `set`, the
 `get` parameter must be set to `undefined`.
 :::
 
+#### Lazy Destructuring (`&{...}` / `&[...]`)
+
+Lazy destructuring uses the `&` prefix directly before `{` or `[` in a
+destructuring pattern. Instead of eagerly pulling values out of the source
+object, lazy destructuring compiles each variable access to a deferred
+property/index lookup on the source. This preserves reactivity for reactive
+props and other tracked objects.
+
+```ripple
+// Lazy object destructuring — a and b are accessed lazily from props
+const &{ a, b } = props;
+
+// Lazy array destructuring
+const &[first, second] = items;
+
+// With default values
+const &{ x = 10 } = props;
+
+// With rest patterns
+const &{ a, ...rest } = props;
+```
+
+**Component props** — use `&{...}` to lazily destructure props, preserving
+reactivity:
+
+```ripple
+component Child(&{ count, className, children }: Props) {
+  // count, className, children are lazily read from the props object
+  <button class={className}><@children /></button>
+  <pre>{`Count is: ${@count}`}</pre>
+}
+```
+
+**Function parameters** — works in regular functions too:
+
+```ripple
+function process(&{ x, y }: Point) {
+  return x + y; // lazily reads from the parameter object
+}
+```
+
+**Variable declarations** — works with `const`, `let`, and `var`:
+
+```ripple
+const &{ a, b } = someObject;     // read-only lazy access
+let &{ x, y } = mutableObject;    // supports assignment: x = 5 writes back
+```
+
+::: tip When to use lazy destructuring
+Use `&{...}` whenever you destructure reactive props or tracked objects and need
+the variables to remain reactive. Regular destructuring (`{ a, b } = obj`)
+eagerly copies values and loses reactivity.
+:::
+
 #### trackSplit Function
 
-The `trackSplit` "splits" a plain object — such as component props — into
-specified tracked variables and an extra `rest` property containing the
-remaining unspecified object properties.
+The `trackSplit` function is an alternative approach that "splits" a plain
+object — such as component props — into individually boxed `Tracked<V>`
+variables and an extra `rest` property containing the remaining unspecified
+object properties. Unlike lazy destructuring, `trackSplit` creates actual
+`Tracked` wrappers that can be passed by reference across boundaries and used
+with `@` syntax.
 
 ```ripple
 import { trackSplit } from 'ripple';
@@ -134,18 +191,9 @@ import { trackSplit } from 'ripple';
 const [children, count, rest] = trackSplit(props, ['children', 'count']);
 ```
 
-When working with component props, destructuring is often useful — both for
-direct use as variables and for collecting remaining properties into a `rest`
-object (which can be named arbitrarily). If destructuring happens in the
-component argument, e.g. `component Child({ children, value, ...rest })`, Ripple
-automatically links variable access to the original props — for example, `value`
-is compiled to `props.value`, preserving reactivity.
-
-However, destructuring inside the component body, e.g.
-`const { children, value, ...rest } = props`, for read-only reactive props, does
-not preserve reactivity (too complicated to implement due to many edge cases).
-To ensure destructured read-only reactive props remain reactive in this case,
-use the `trackSplit` function.
+For most cases, lazy destructuring (`&{...}`) is simpler and preferred. Use
+`trackSplit` when you need individually boxed `Tracked` values that can be
+transported to other functions or components by reference.
 
 ::: info Note
 boxed / wrapped `Tracked` objects are always reactive since they cross function boundaries by reference. Props that were not declared with `track()` are never reactive and always render the same value that was initially passed in.
@@ -202,12 +250,15 @@ export component App() {
 
 </Code>
 
-With the regular destructuring, such as the one below, the `class`
-property would lose its reactivity:
+With regular destructuring (without `&`), the `class` property would lose
+its reactivity:
 
 ```ripple
 // ❌ WRONG class / className reactivity would be lost
 let { children, count, class: className, ...rest } = props;
+
+// ✅ CORRECT use lazy destructuring to preserve reactivity
+let &{ children, count, class: className, ...rest } = props;
 ```
 
 ::: info Note
