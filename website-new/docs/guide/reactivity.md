@@ -147,7 +147,9 @@ reactivity:
 ```ripple
 component Child(&{ count, className, children }: Props) {
   // count, className, children are lazily read from the props object
-  <button class={className}><@children /></button>
+  <button class={className}>
+    <@children />
+  </button>
   <pre>{`Count is: ${@count}`}</pre>
 }
 ```
@@ -167,20 +169,18 @@ const &{ a, b } = someObject;     // read-only lazy access
 let &{ x, y } = mutableObject;    // supports assignment: x = 5 writes back
 ```
 
-::: tip When to use lazy destructuring
-Use `&{...}` whenever you destructure reactive props or tracked objects and need
-the variables to remain reactive. Regular destructuring (`{ a, b } = obj`) eagerly
-copies values and loses reactivity.
-:::
+::: tip When to use lazy destructuring Use `&{...}` whenever you destructure
+reactive props or tracked objects and need the variables to remain reactive.
+Regular destructuring (`{ a, b } = obj`) eagerly copies values and loses
+reactivity. :::
 
 #### trackSplit Function
 
-The `trackSplit` function is an alternative approach that "splits" a plain
-object — such as component props — into individually boxed `Tracked<V>` variables
-and an extra `rest` property containing the remaining unspecified object
-properties. Unlike lazy destructuring, `trackSplit` creates actual `Tracked`
-wrappers that can be passed by reference across boundaries and used with `@`
-syntax.
+The `trackSplit` function is an alternative approach that "splits" a plain object
+— such as component props — into individually boxed `Tracked<V>` variables and an
+extra `rest` property containing the remaining unspecified object properties.
+Unlike lazy destructuring, `trackSplit` creates actual `Tracked` wrappers that can
+be passed by reference across boundaries and used with `@` syntax.
 
 ```ripple
 import { trackSplit } from 'ripple';
