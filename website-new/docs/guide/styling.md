@@ -194,9 +194,9 @@ Scoped styles only apply to DOM elements within the same component. If you want 
 parent to influence how a child component looks, you can pass scoped class names
 as props using the `#style` identifier.
 
-`#style.className` produces a string containing both the CSS scope hash and
-the class name (e.g. `"ripple-abc123 highlight"`), which the child applies to its
-own elements via the `class` attribute.
+`#style.className` produces a string containing both the CSS scope hash and the
+class name (e.g. `"ripple-abc123 highlight"`), which the child applies to its own
+elements via the `class` attribute.
 
 ### Basic Usage
 

@@ -9,7 +9,8 @@ that combines the best parts of React, Solid, and Svelte.
 ## Your Expertise
 
 - Ripple component syntax and `.ripple` files
-- Reactivity system: `track()`, `RippleArray`, `RippleMap`, etc. (imported from `ripple`)
+- Reactivity system: `track()`, `RippleArray`, `RippleMap`, etc. (imported from
+  `ripple`)
 - Compiler architecture (parse → analyze → transform)
 - SSR and hydration mechanisms
 - Runtime internals (blocks, events, DOM operations)
