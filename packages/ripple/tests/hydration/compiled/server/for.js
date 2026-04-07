@@ -1,6 +1,8 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
+import { track } from 'ripple/server';
+
 export function StaticForLoop(__output) {
 	_$_.push_component();
 

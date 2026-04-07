@@ -1,11 +1,11 @@
 import type { OnEventListenerRemover } from 'ripple';
-import { flushSync, on } from 'ripple';
+import { effect, flushSync, on, track } from 'ripple';
 
 describe('on() event handler', () => {
 	it('should attach multiple handlers via onClick attribute (delegated)', () => {
 		component Basic() {
-			let count1 = #ripple.track(0);
-			let count2 = #ripple.track(0);
+			let count1 = track(0);
+			let count2 = track(0);
 
 			<button
 				onClick={() => {
@@ -36,7 +36,7 @@ describe('on() event handler', () => {
 
 	it('should attach and remove a single event handler', () => {
 		component Basic() {
-			let count = #ripple.track(0);
+			let count = track(0);
 
 			const setupListener = (node: HTMLButtonElement) => {
 				const remove = on(node, 'click', () => {
@@ -67,8 +67,8 @@ describe('on() event handler', () => {
 
 	it('should handle multiple different event types on same element', () => {
 		component Basic() {
-			let clickCount = #ripple.track(0);
-			let mousedownCount = #ripple.track(0);
+			let clickCount = track(0);
+			let mousedownCount = track(0);
 
 			const setupListeners = (node: HTMLButtonElement) => {
 				const remove1 = on(node, 'click', () => {
@@ -116,7 +116,7 @@ describe('on() event handler', () => {
 
 	it('should handle multiple handlers for same event type on same element', () => {
 		component Basic() {
-			let callOrder = #ripple.track<number[]>([]);
+			let callOrder = track<number[]>([]);
 
 			const setupListeners = (node: HTMLButtonElement) => {
 				const remove1 = on(node, 'click', () => {
@@ -158,9 +158,9 @@ describe('on() event handler', () => {
 
 	it('should remove specific handler without affecting others', () => {
 		component Basic() {
-			let handler1Called = #ripple.track(0);
-			let handler2Called = #ripple.track(0);
-			let handler3Called = #ripple.track(0);
+			let handler1Called = track(0);
+			let handler2Called = track(0);
+			let handler3Called = track(0);
 			let removeHandler2: OnEventListenerRemover | undefined;
 
 			const setupListeners = (node: HTMLButtonElement) => {
@@ -235,8 +235,8 @@ describe('on() event handler', () => {
 		'should handle change event with multiple handlers (like bindChecked and bindIndeterminate)',
 		() => {
 			component Basic() {
-				let checked = #ripple.track(false);
-				let indeterminate = #ripple.track(true);
+				let checked = track(false);
+				let indeterminate = track(true);
 
 				const setupListeners = (node: HTMLInputElement) => {
 					node.indeterminate = @indeterminate;
@@ -283,7 +283,7 @@ describe('on() event handler', () => {
 
 	it('should support non-delegated events', () => {
 		component Basic() {
-			let focusCount = #ripple.track(0);
+			let focusCount = track(0);
 
 			const setupListener = (node: HTMLInputElement) => {
 				const remove = on(node, 'focus', () => {
@@ -315,7 +315,7 @@ describe('on() event handler', () => {
 
 	it('should handle removal of all handlers for same event type', () => {
 		component Basic() {
-			let count = #ripple.track(0);
+			let count = track(0);
 			let remove1: OnEventListenerRemover | undefined;
 			let remove2: OnEventListenerRemover | undefined;
 			let remove3: OnEventListenerRemover | undefined;
@@ -379,7 +379,7 @@ describe('on() event handler', () => {
 
 	it('should not add duplicate handlers when same handler is attached multiple times', () => {
 		component Basic() {
-			let count = #ripple.track(0);
+			let count = track(0);
 
 			const sharedHandler = () => {
 				@count++;
@@ -422,7 +422,7 @@ describe('on() event handler', () => {
 
 	it('should allow duplicate handlers when delegated is false (no deduplication)', () => {
 		component Basic() {
-			let count = #ripple.track(0);
+			let count = track(0);
 
 			const sharedHandler = () => {
 				@count++;
@@ -466,7 +466,7 @@ describe('on() event handler', () => {
 
 	it('should fire capture event on parent before bubbling event on child', () => {
 		component Basic() {
-			let callOrder = #ripple.track<string[]>([]);
+			let callOrder = track<string[]>([]);
 
 			const parentCaptureHandler = () => {
 				@callOrder = [...@callOrder, 'parent-capture'];
@@ -511,8 +511,8 @@ describe('on() event handler', () => {
 
 	it('should fire handler only once when once option is true', () => {
 		component Basic() {
-			let count = #ripple.track(0);
-			let permanentCount = #ripple.track(0);
+			let count = track(0);
+			let permanentCount = track(0);
 
 			const setupListeners = (node: HTMLButtonElement) => {
 				const onceHandler = on(node, 'click', () => {
@@ -565,9 +565,9 @@ describe('on() event handler', () => {
 
 	it('should handle click events on window', () => {
 		component Basic() {
-			let windowClickCount = #ripple.track(0);
+			let windowClickCount = track(0);
 
-			#ripple.effect(() => {
+			effect(() => {
 				const removeWindowListener = on(window, 'click', () => {
 					@windowClickCount++;
 				});
@@ -601,9 +601,9 @@ describe('on() event handler', () => {
 
 	it('should handle click events on document', () => {
 		component Basic() {
-			let documentClickCount = #ripple.track(0);
+			let documentClickCount = track(0);
 
-			#ripple.effect(() => {
+			effect(() => {
 				const removeDocumentListener = on(document, 'click', () => {
 					@documentClickCount++;
 				});
@@ -637,9 +637,9 @@ describe('on() event handler', () => {
 
 	it('should handle click events on body', () => {
 		component Basic() {
-			let bodyClickCount = #ripple.track(0);
+			let bodyClickCount = track(0);
 
-			#ripple.effect(() => {
+			effect(() => {
 				const removeBodyListener = on(document.body, 'click', () => {
 					@bodyClickCount++;
 				});

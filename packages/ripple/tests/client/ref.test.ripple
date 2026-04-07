@@ -1,6 +1,6 @@
 import type { PropsWithExtras } from 'ripple';
 import { describe, it, expect } from 'vitest';
-import { flushSync, RippleArray, createRefKey } from 'ripple';
+import { RippleArray, createRefKey, flushSync, track } from 'ripple';
 
 describe('refs', () => {
 	it('capture a <div>', () => {
@@ -50,7 +50,7 @@ describe('refs', () => {
 		let logs: string[] = [];
 
 		component App() {
-			let value = #ripple.track('test');
+			let value = track('test');
 
 			function inputRef(node: HTMLInputElement) {
 				logs.push('ref called');
@@ -81,7 +81,7 @@ describe('refs', () => {
 		let logs: string[] = [];
 
 		component App() {
-			let value = #ripple.track('test');
+			let value = track('test');
 
 			function inputRef(node: HTMLInputElement) {
 				logs.push('ref called');

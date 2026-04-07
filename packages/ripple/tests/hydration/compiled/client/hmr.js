@@ -7,6 +7,8 @@ var root_1 = _$_.template(`<div class="content"><!></div>`, 0);
 var root_4 = _$_.template(`<!>`, 1, 1);
 var root_3 = _$_.template(`<!>`, 1, 1);
 
+import { track } from 'ripple';
+
 export function Layout(__anchor, __props, __block) {
 	_$_.push_component();
 

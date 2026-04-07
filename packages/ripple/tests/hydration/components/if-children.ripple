@@ -1,8 +1,10 @@
+import { track } from 'ripple';
+
 // Minimal repro for hydration issue with if block containing children
 // Based on SidebarGroup pattern from website-new
 
 export component IfWithChildren({ children }: { children: any }) {
-	let expanded = #ripple.track(true);
+	let expanded = track(true);
 
 	<div class="container">
 		<div class="header" role="button" onClick={() => (@expanded = !@expanded)}>{'Toggle'}</div>
@@ -27,7 +29,7 @@ export component TestIfWithChildren() {
 
 // Simpler variant - if block with static children
 export component IfWithStaticChildren() {
-	let expanded = #ripple.track(true);
+	let expanded = track(true);
 
 	<div class="container">
 		<div class="header" role="button" onClick={() => (@expanded = !@expanded)}>{'Toggle'}</div>
@@ -42,7 +44,7 @@ export component IfWithStaticChildren() {
 
 // Variant with sibling elements before the if block (like SidebarGroup)
 export component IfWithSiblingsAndChildren({ children }: { children: any }) {
-	let expanded = #ripple.track(true);
+	let expanded = track(true);
 
 	<section class="group">
 		<div class="item" role="button" onClick={() => (@expanded = !@expanded)}>
@@ -73,7 +75,7 @@ export component TestIfWithSiblingsAndChildren() {
 // This tests that hydrate_node is properly restored after processing an element's children
 // before navigating to a dynamic sibling (if/for/switch)
 export component ElementWithChildrenThenIf() {
-	let show = #ripple.track(true);
+	let show = track(true);
 
 	<div class="wrapper">
 		<div class="nested-parent">
@@ -91,7 +93,7 @@ export component ElementWithChildrenThenIf() {
 
 // More complex: multiple levels of nesting before if sibling
 export component DeepNestingThenIf() {
-	let visible = #ripple.track(true);
+	let visible = track(true);
 
 	<section class="outer">
 		<article class="middle">
@@ -114,7 +116,7 @@ export component DeepNestingThenIf() {
 // followed by another sibling element. This requires pop() to restore hydrate_node
 // because we descend into the first element to get the button children.
 export component DomElementChildrenThenSibling() {
-	let activeTab = #ripple.track('code');
+	let activeTab = track('code');
 
 	<div class="tabs">
 		<div class="tab-list">
@@ -147,7 +149,7 @@ export component DomElementChildrenThenSibling() {
 // generate sibling() calls. This was causing incorrect pop() generation before next().
 // Pattern: <ul> with dynamic <li> children -> static <h2> -> static <p> -> next()
 export component DomChildrenThenStaticSiblings() {
-	let count = #ripple.track(0);
+	let count = track(0);
 
 	<div class="container">
 		<ul class="list">

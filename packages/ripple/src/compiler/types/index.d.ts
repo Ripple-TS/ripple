@@ -13,25 +13,7 @@ interface BaseNodeMetaData {
 	scoped?: boolean;
 	path: AST.Node[];
 	has_template?: boolean;
-	source_name?:
-		| string
-		| '#ripple'
-		| '#ripple.map'
-		| '#ripple.set'
-		| '#ripple.server'
-		| '#ripple.style'
-		| '#ripple.array'
-		| '#ripple.object'
-		| '#ripple.effect'
-		| '#ripple.track'
-		| '#ripple.trackSplit'
-		| '#ripple.untrack'
-		| '#ripple.url'
-		| '#ripple.urlSearchParams'
-		| '#ripple.date'
-		| '#ripple.mediaQuery'
-		| '#ripple.context'
-		| '#ripple.validate';
+	source_name?: string | '#server' | '#style';
 	is_capitalized?: boolean;
 	has_await?: boolean;
 	commentContainerId?: number;
@@ -161,8 +143,6 @@ declare module 'estree' {
 	}
 
 	interface ExpressionMap {
-		RippleArrayExpression: RippleArrayExpression;
-		RippleObjectExpression: RippleObjectExpression;
 		TrackedExpression: TrackedExpression;
 		StyleIdentifier: StyleIdentifier;
 		ServerIdentifier: ServerIdentifier;
@@ -359,19 +339,9 @@ declare module 'estree' {
 	/**
 	 * Tracked Expressions
 	 */
-	interface RippleArrayExpression extends Omit<AST.ArrayExpression, 'type'> {
-		type: 'RippleArrayExpression';
-		elements: (AST.Expression | AST.SpreadElement | null)[];
-	}
-
 	interface TrackedExpression extends AST.BaseExpression {
 		argument: AST.Expression;
 		type: 'TrackedExpression';
-	}
-
-	interface RippleObjectExpression extends Omit<AST.ObjectExpression, 'type'> {
-		type: 'RippleObjectExpression';
-		properties: (AST.Property | AST.SpreadElement)[];
 	}
 
 	/**

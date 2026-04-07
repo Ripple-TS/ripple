@@ -1,13 +1,6 @@
 export const IDENTIFIER_OBFUSCATION_PREFIX = '_$_';
-export const RIPPLE_NAMESPACE_IDENTIFIER =
-	IDENTIFIER_OBFUSCATION_PREFIX + encode_utf16_char('#') + 'ripple';
 export const STYLE_IDENTIFIER = IDENTIFIER_OBFUSCATION_PREFIX + encode_utf16_char('#') + 'style';
-export const SERVER_IDENTIFIER =
-	IDENTIFIER_OBFUSCATION_PREFIX +
-	encode_utf16_char('#') +
-	'ripple' +
-	encode_utf16_char('.') +
-	'server';
+export const SERVER_IDENTIFIER = IDENTIFIER_OBFUSCATION_PREFIX + encode_utf16_char('#') + 'server';
 export const CSS_HASH_IDENTIFIER = IDENTIFIER_OBFUSCATION_PREFIX + 'hash';
 
 const DECODE_UTF16_REGEX = /_u([0-9a-fA-F]{4})_/g;

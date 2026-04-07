@@ -1,4 +1,4 @@
-import { flushSync, RippleArray } from 'ripple';
+import { RippleArray, flushSync, track } from 'ripple';
 
 describe('RippleArray > to* methods', () => {
 	it('handles toReversed method with reactivity', (context) => {
@@ -8,7 +8,7 @@ describe('RippleArray > to* methods', () => {
 
 		component ArrayTest() {
 			let items = new RippleArray(1, 2, 3, 4);
-			let reversed = #ripple.track(() => items.toReversed());
+			let reversed = track(() => items.toReversed());
 
 			<button onClick={() => items.push(5)}>{'add item'}</button>
 			<pre>{JSON.stringify(items)}</pre>
@@ -38,7 +38,7 @@ describe('RippleArray > to* methods', () => {
 
 		component ArrayTest() {
 			let items = new RippleArray(3, 1, 4, 2);
-			let sorted = #ripple.track(() => items.toSorted());
+			let sorted = track(() => items.toSorted());
 
 			<button onClick={() => items.push(0)}>{'add item'}</button>
 			<pre>{JSON.stringify(items)}</pre>
@@ -68,7 +68,7 @@ describe('RippleArray > to* methods', () => {
 
 		component ArrayTest() {
 			let items = new RippleArray<string | number>(1, 2, 3, 4, 5);
-			let spliced = #ripple.track(() => items.toSpliced(1, 2, 'a', 'b'));
+			let spliced = track(() => items.toSpliced(1, 2, 'a', 'b'));
 
 			<button onClick={() => (items[2] = 30)}>{'change item'}</button>
 			<pre>{JSON.stringify(items)}</pre>

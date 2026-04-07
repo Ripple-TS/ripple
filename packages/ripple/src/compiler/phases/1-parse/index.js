@@ -665,46 +665,14 @@ function RipplePlugin(config) {
 							ch === 13 || // carriage return
 							ch === -1; // EOF
 
-						if (startsWith('#ripple[')) {
-							this.pos += 8;
-							return this.finishToken(tt.bracketL, '#ripple[');
-						}
-
-						if (startsWith('#ripple{')) {
-							this.pos += 8;
-							return this.finishToken(tt.braceL, '#ripple{');
-						}
-
-						const ripple_keywords = [
-							'#ripple.map',
-							'#ripple.set',
-							'#ripple.array',
-							'#ripple.object',
-							'#ripple.track',
-							'#ripple.trackSplit',
-							'#ripple.untrack',
-							'#ripple.effect',
-							'#ripple.context',
-							'#ripple.date',
-							'#ripple.url',
-							'#ripple.urlSearchParams',
-							'#ripple.mediaQuery',
-							'#ripple.server',
-							'#ripple.style',
-							'#ripple.validate',
-						];
-
-						for (let i = 0; i < ripple_keywords.length; i++) {
-							const keyword = ripple_keywords[i];
-							if (startsWith(keyword) && is_ripple_delimiter(char_after(keyword.length))) {
-								this.pos += keyword.length;
-								return this.finishToken(tt.name, keyword);
-							}
-						}
-
-						if (this.#loose && startsWith('#ripple') && is_ripple_delimiter(char_after(7))) {
+						if (startsWith('#server') && is_ripple_delimiter(char_after(7))) {
 							this.pos += 7;
-							return this.finishToken(tt.name, '#ripple');
+							return this.finishToken(tt.name, '#server');
+						}
+
+						if (startsWith('#style') && is_ripple_delimiter(char_after(6))) {
+							this.pos += 6;
+							return this.finishToken(tt.name, '#style');
 						}
 					}
 				}
@@ -917,67 +885,17 @@ function RipplePlugin(config) {
 					return this.parseTrackedExpression();
 				}
 
-				// Check if this is #ripple.server identifier for server function calls
-				if (this.type === tt.name && this.value === '#ripple.server') {
+				// Check if this is #server identifier for server function calls
+				if (this.type === tt.name && this.value === '#server') {
 					const node = this.startNode();
 					this.next();
 					return /** @type {AST.ServerIdentifier} */ (this.finishNode(node, 'ServerIdentifier'));
 				}
 
-				if (this.type === tt.name && this.value === '#ripple.style') {
+				if (this.type === tt.name && this.value === '#style') {
 					const node = this.startNode();
 					this.next();
 					return /** @type {AST.StyleIdentifier} */ (this.finishNode(node, 'StyleIdentifier'));
-				}
-
-				if (this.type === tt.name && typeof this.value === 'string') {
-					const ripple_identifier_map = {
-						'#ripple.array': 'RippleArray',
-						'#ripple.object': 'RippleObject',
-						'#ripple.track': 'track',
-						'#ripple.trackSplit': 'trackSplit',
-						'#ripple.untrack': 'untrack',
-						'#ripple.effect': 'effect',
-						'#ripple.context': 'Context',
-						'#ripple.date': 'RippleDate',
-						'#ripple.map': 'RippleMap',
-						'#ripple.set': 'RippleSet',
-						'#ripple.url': 'RippleURL',
-						'#ripple.urlSearchParams': 'RippleURLSearchParams',
-						'#ripple.mediaQuery': 'MediaQuery',
-					};
-
-					const identifier_name =
-						ripple_identifier_map[/** @type {keyof typeof ripple_identifier_map} */ (this.value)];
-					if (identifier_name !== undefined) {
-						const node = /** @type {AST.Identifier} */ (this.startNode());
-						node.name = identifier_name;
-						node.metadata ??= { path: [] };
-						node.metadata.source_name = this.value;
-						this.next();
-						return this.finishNode(node, 'Identifier');
-					}
-				}
-
-				// In loose mode, handle incomplete #ripple prefixes for autocomplete
-				if (
-					this.#loose &&
-					this.type === tt.name &&
-					typeof this.value === 'string' &&
-					this.value === '#ripple'
-				) {
-					// Return an Identifier node for incomplete tracked syntax
-					const node = /** @type {AST.Identifier} */ (this.startNode());
-					node.name = this.value;
-					this.next();
-					return this.finishNode(node, 'Identifier');
-				}
-
-				// Check if this is a tuple literal starting with #ripple[
-				if (this.type === tt.bracketL && this.value === '#ripple[') {
-					return this.parseRippleArrayExpression();
-				} else if (this.type === tt.braceL && this.value === '#ripple{') {
-					return this.parseRippleObjectExpression();
 				}
 
 				// Check if this is a component expression (e.g., in object literal values)
@@ -1078,79 +996,6 @@ function RipplePlugin(config) {
 
 				this.awaitPos = 0;
 				return this.finishNode(node, 'ServerBlock');
-			}
-
-			/**
-			 * @type {Parse.Parser['parseRippleArrayExpression']}
-			 */
-			parseRippleArrayExpression() {
-				const node = /** @type {AST.RippleArrayExpression} */ (this.startNode());
-				this.next(); // consume the '#ripple['
-
-				node.elements = [];
-
-				// Parse array elements similar to regular array parsing
-				let first = true;
-				while (!this.eat(tt.bracketR)) {
-					if (!first) {
-						this.expect(tt.comma);
-						if (this.afterTrailingComma(tt.bracketR)) break;
-					} else {
-						first = false;
-					}
-
-					if (this.type === tt.comma) {
-						// Hole in array
-						node.elements.push(null);
-					} else if (this.type === tt.ellipsis) {
-						// Spread element
-						const element = this.parseSpread();
-						node.elements.push(element);
-						if (this.type === tt.comma && this.input.charCodeAt(this.pos) === 93) {
-							this.raise(this.pos, 'Trailing comma is not permitted after the rest element');
-						}
-					} else {
-						// Regular element
-						node.elements.push(this.parseMaybeAssign(false));
-					}
-				}
-
-				return this.finishNode(node, 'RippleArrayExpression');
-			}
-
-			/**
-			 * @type {Parse.Parser['parseRippleObjectExpression']}
-			 */
-			parseRippleObjectExpression() {
-				const node = /** @type {AST.RippleObjectExpression} */ (this.startNode());
-				this.next(); // consume the '#ripple{'
-
-				node.properties = [];
-
-				// Parse object properties similar to regular object parsing
-				let first = true;
-				while (!this.eat(tt.braceR)) {
-					if (!first) {
-						this.expect(tt.comma);
-						if (this.afterTrailingComma(tt.braceR)) break;
-					} else {
-						first = false;
-					}
-
-					if (this.type === tt.ellipsis) {
-						// Spread property
-						const prop = this.parseSpread();
-						node.properties.push(prop);
-						if (this.type === tt.comma && this.input.charCodeAt(this.pos) === 125) {
-							this.raise(this.pos, 'Trailing comma is not permitted after the rest element');
-						}
-					} else {
-						// Regular property
-						node.properties.push(this.parseProperty(false, new DestructuringErrors()));
-					}
-				}
-
-				return this.finishNode(node, 'RippleObjectExpression');
 			}
 
 			/**
@@ -2451,16 +2296,16 @@ function RipplePlugin(config) {
 					);
 				}
 
-				if (this.value === '#ripple.server') {
-					// Peek ahead to see if this is a server block (#ripple.server { ... }) vs
-					// a server identifier expression (#ripple.server.fn(), #ripple.server.fn().then())
+				if (this.value === '#server') {
+					// Peek ahead to see if this is a server block (#server { ... }) vs
+					// a server identifier expression (#server.fn(), #server.fn().then())
 					let peek_pos = this.end;
 					while (peek_pos < this.input.length && /\s/.test(this.input[peek_pos])) peek_pos++;
 					if (peek_pos < this.input.length && this.input.charCodeAt(peek_pos) === 123) {
 						// Next non-whitespace character is '{' — parse as server block
 						return this.parseServerBlock();
 					}
-					// Otherwise fall through to parse as expression statement (e.g., #ripple.server.fn().then(...))
+					// Otherwise fall through to parse as expression statement (e.g., #server.fn().then(...))
 				}
 
 				if (this.value === 'component') {

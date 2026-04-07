@@ -1,6 +1,8 @@
+import { Context } from 'ripple';
+
 describe('Context API', () => {
 	it('handles context override in nested components', async () => {
-		const MessageContext = #ripple.context('default');
+		const MessageContext = Context('default');
 
 		component Inner() {
 			const msg = MessageContext.get();

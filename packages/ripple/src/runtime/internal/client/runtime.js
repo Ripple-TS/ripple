@@ -846,7 +846,7 @@ export function public_set(tracked, value) {
 export function set(tracked, value) {
 	if (!is_mutating_allowed) {
 		throw new Error(
-			'Assignments or updates to tracked values are not allowed during computed "#ripple.track(() => ...)" evaluation',
+			'Assignments or updates to tracked values are not allowed during computed "track(() => ...)" evaluation',
 		);
 	}
 

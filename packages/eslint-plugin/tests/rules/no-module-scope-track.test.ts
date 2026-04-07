@@ -17,24 +17,27 @@ ruleTester.run('no-module-scope-track', rule, {
 		// Valid: track() inside component
 		{
 			code: `
+				import { track } from 'ripple';
 				component App() {
-					let count = #ripple.track(0);
+					let count = track(0);
 				}
 			`,
 		},
 		// Valid: track() inside function
 		{
 			code: `
+				import { track } from 'ripple';
 				function createCounter() {
-					return #ripple.track(0);
+					return track(0);
 				}
 			`,
 		},
 		// Valid: track() inside arrow function
 		{
 			code: `
+				import { track } from 'ripple';
 				const createState = () => {
-					return #ripple.track({ count: 0 });
+					return track({ count: 0 });
 				};
 			`,
 		},
@@ -43,7 +46,8 @@ ruleTester.run('no-module-scope-track', rule, {
 		// Invalid: track() at module scope
 		{
 			code: `
-				let count = #ripple.track(0);
+				import { track } from 'ripple';
+				let count = track(0);
 			`,
 			errors: [
 				{
@@ -55,7 +59,7 @@ ruleTester.run('no-module-scope-track', rule, {
 		{
 			code: `
 				import { track } from 'ripple';
-				let globalCount = #ripple.track(0);
+				let globalCount = track(0);
 			`,
 			errors: [
 				{

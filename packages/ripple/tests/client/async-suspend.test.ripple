@@ -1,11 +1,11 @@
-import { flushSync } from 'ripple';
+import { flushSync, track } from 'ripple';
 
 describe('async suspense', () => {
 	it('hides child content during re-suspension when tracked dependency changes', async () => {
 		let resolve_fn: (() => void) | null = null;
 
 		component Child({ count }: { count: any }) {
-			await #ripple.track(() => {
+			await track(() => {
 				@count;
 				return new Promise<void>((resolve) => {
 					resolve_fn = resolve;
@@ -16,7 +16,7 @@ describe('async suspense', () => {
 		}
 
 		component App() {
-			let count = #ripple.track(0);
+			let count = track(0);
 
 			try {
 				<Child {count} />

@@ -1,7 +1,7 @@
 import type { Tracked } from 'ripple';
-import { bindNode } from 'ripple';
+import { bindNode, track, effect } from 'ripple';
 
-#ripple.server {
+#server {
 	export async function fetchMessage(): Promise<string> {
 		const response = await fetch('/api/message');
 		const data = await response.json();
@@ -14,13 +14,13 @@ const INTERVAL = STEP / 2;
 const CURSOR = '<span class="typing-cursor">|</span>';
 
 export component Editor() {
-	let nodeRef: Tracked<HTMLElement> = #ripple.track();
-	let loading = #ripple.track(true);
-	let content = #ripple.track('');
+	let nodeRef: Tracked<HTMLElement> = track();
+	let loading = track(true);
+	let content = track('');
 
-	#ripple.effect(() => {
+	effect(() => {
 		if (@nodeRef) {
-			#ripple.server.fetchMessage().then((message: string) => {
+			#server.fetchMessage().then((message: string) => {
 				@content = message;
 
 				@loading = false;
@@ -28,7 +28,7 @@ export component Editor() {
 		}
 	});
 
-	#ripple.effect(() => {
+	effect(() => {
 		if (!@content) {
 			return;
 		}

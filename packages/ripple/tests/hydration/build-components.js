@@ -25,19 +25,13 @@ const serverOutDir = join(__dirname, 'compiled', 'server');
  * @returns {string} - Transformed code with server-compatible imports
  */
 function transformServerImports(code) {
-	// Replace `import { track } from 'ripple'` with server version
-	// Replace `import { Portal } from 'ripple'` with server version
+	// Replace `import { ... } from 'ripple'` with server version
 	// Use 'ripple/server' which always points to the server runtime,
 	// bypassing the browser/default condition resolution
-	let transformed = code.replace(
-		/import\s*\{\s*track\s*\}\s*from\s*['"]ripple['"]/g,
-		"import { track } from 'ripple/server'",
+	return code.replace(
+		/import\s*\{([^}]+)\}\s*from\s*['"]ripple['"]/g,
+		(match, specifiers) => `import {${specifiers}} from 'ripple/server'`,
 	);
-	transformed = transformed.replace(
-		/import\s*\{\s*Portal\s*\}\s*from\s*['"]ripple['"]/g,
-		"import { Portal } from 'ripple/server'",
-	);
-	return transformed;
 }
 
 function buildComponents() {

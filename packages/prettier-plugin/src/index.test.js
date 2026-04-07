@@ -655,7 +655,7 @@ import { Something, type Props, track } from 'ripple';`;
 		it('should handle @ prefix', async () => {
 			const input = `export default component App() {
   <div>
-    let count = #ripple.track(0);
+    let count = track(0);
     @count = 2;
     console.log(@count);
     console.log(count);
@@ -666,7 +666,7 @@ import { Something, type Props, track } from 'ripple';`;
 }`;
 			const expected = `export default component App() {
   <div>
-    let count = #ripple.track(0);
+    let count = track(0);
     @count = 2;
     console.log(@count);
     console.log(count);
@@ -708,14 +708,14 @@ import { Something, type Props, track } from 'ripple';`;
 
 		it('should preserve @ symbol in JSX attributes and shorthand syntax', async () => {
 			const input = `component App() {
-	const count = #ripple.track(0);
+	const count = track(0);
 
 	<Counter count={@count} />
 	<Counter {@count} />
 }`;
 
 			const expected = `component App() {
-  const count = #ripple.track(0);
+  const count = track(0);
 
   <Counter {@count} />
   <Counter {@count} />
@@ -935,7 +935,7 @@ export component Test({ a, b }: Props) {}`;
 
 		it('should not strip @ from dynamic @tag', async () => {
 			const expected = `export component Four() {
-  let tag = #ripple.track('div');
+  let tag = track('div');
 
   <@tag {href} {...props}>
     <@children />
@@ -973,7 +973,7 @@ export component Test({ a, b }: Props) {}`;
 		it('should keep @ on dynamic object member array expressions', async () => {
 			const expected = `component App() {
   const obj = {
-    [0]: #ripple.track(0),
+    [0]: track(0),
   };
 
   <div>{obj.@[0]}</div>
@@ -1264,8 +1264,8 @@ const [obj1, obj2] = arrayOfObjects;`;
 		});
 
 		it('should keep RippleMap short syntax intact', async () => {
-			const expected = `const map = #ripple.map([['key1', 'value1'], ['key2', 'value2']]);
-const set = #ripple.set([1, 2, 3]);`;
+			const expected = `const map = new RippleMap([['key1', 'value1'], ['key2', 'value2']]);
+const set = new RippleSet([1, 2, 3]);`;
 
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
@@ -1273,7 +1273,7 @@ const set = #ripple.set([1, 2, 3]);`;
 
 		it('should keep RippleSet parents with short syntax and no args intact', async () => {
 			const expected = `component SetTest() {
-  let items = #ripple.set();
+  let items = new RippleSet();
 
   <button onClick={() => items.add(1)}>{'add'}</button>
   <pre>{items.size}</pre>
@@ -1285,52 +1285,11 @@ const set = #ripple.set([1, 2, 3]);`;
 
 		it('should keep RippleMap parents with short syntax and no args intact', async () => {
 			const expected = `component MapTest() {
-  let items = #ripple.map();
+  let items = new RippleMap();
 
   <button onClick={() => items.set('key', 1)}>{'add'}</button>
   <pre>{items.size}</pre>
 }`;
-			const result = await format(expected, { singleQuote: true, printWidth: 100 });
-			expect(result).toBeWithNewline(expected);
-		});
-
-		it('should preserve #ripple.array and #ripple.object long syntax if authored', async () => {
-			const input = `component App() {
-  let arr = #ripple.array(1, 2, 3);
-  let obj = #ripple.object({ a: 1 });
-
-  <div>{arr.length + obj.a}</div>
-}`;
-
-			const expected = `component App() {
-  let arr = #ripple.array(1, 2, 3);
-  let obj = #ripple.object({ a: 1 });
-
-  <div>{arr.length + obj.a}</div>
-}`;
-
-			const result = await format(input, { singleQuote: true, printWidth: 100 });
-			expect(result).toBeWithNewline(expected);
-		});
-
-		it('should preserve static member access from #ripple collection roots', async () => {
-			const input = `const from = #ripple.array.from([1, 2, 3]);
-const from_async = #ripple.array.fromAsync([1, 2, 3]);
-const of = #ripple.array
-  .of(1, 2, 3);`;
-
-			const expected = `const from = #ripple.array.from([1, 2, 3]);
-const from_async = #ripple.array.fromAsync([1, 2, 3]);
-const of = #ripple.array.of(1, 2, 3);`;
-
-			const result = await format(input, { singleQuote: true, printWidth: 100 });
-			expect(result).toBeWithNewline(expected);
-		});
-
-		it('should preserve computed member access from #ripple roots', async () => {
-			const expected = `const from = #ripple.array['from']([1, 2, 3]);
-const of = #ripple.array['of'](1, 2, 3);`;
-
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
 		});
@@ -1476,7 +1435,7 @@ function bind_element_rect(maybe_tracked, type) {
       /** @param {any} entry */ (entry) => set(tracked, entry[type]),
     );
 
-    #ripple.effect(() => unsubscribe);
+    effect(() => unsubscribe);
   };
 }`;
 
@@ -1730,8 +1689,8 @@ const program =
 		it('should keep blank lines between commented out block and markup', async () => {
 			const expected = `function CounterWrapper(props) {
   const more = {
-    double: #ripple.track(() => props.count * 2),
-    another: #ripple.track(0),
+    double: track(() => props.count * 2),
+    another: track(0),
     onemore: 100,
   };
 
@@ -1749,24 +1708,24 @@ const program =
 		});
 
 		it('should keep parens around negating key in object expression', async () => {
-			const input = `#ripple.effect(() => {
+			const input = `effect(() => {
   props.count;
   if (props.count > 1 && 'another' in more) {
-  	#ripple.untrack(() => delete more.another);
+  	untrack(() => delete more.another);
   } else if (props.count > 2 && !('another' in more)) {
-  	#ripple.untrack(() => more.another = 0);
+  	untrack(() => more.another = 0);
   }
-  #ripple.untrack(() => console.log(more));
+  untrack(() => console.log(more));
 });`;
 
-			const expected = `#ripple.effect(() => {
+			const expected = `effect(() => {
   props.count;
   if (props.count > 1 && 'another' in more) {
-    #ripple.untrack(() => delete more.another);
+    untrack(() => delete more.another);
   } else if (props.count > 2 && !('another' in more)) {
-    #ripple.untrack(() => (more.another = 0));
+    untrack(() => (more.another = 0));
   }
-  #ripple.untrack(() => console.log(more));
+  untrack(() => console.log(more));
 });`;
 
 			const result = await format(input, { singleQuote: true, printWidth: 100 });
@@ -1774,7 +1733,7 @@ const program =
 		});
 
 		it('should keep parents in math subtraction and multiplication', async () => {
-			const expected = `let offset = #ripple.track(() => (@page - 1) * @limit);`;
+			const expected = `let offset = track(() => (@page - 1) * @limit);`;
 
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
@@ -1857,7 +1816,7 @@ files = [...(files ?? []), ...dt.files];`;
   }
 
   try {
-    items = await #ripple.array.fromAsync(throwingIterable());
+    items = await RippleArray.fromAsync(throwingIterable());
     for (const item of items) {
       <li>{item}</li>
     }
@@ -2333,7 +2292,7 @@ component Child({ something }) {
 
 		it('should correctly handle call expressions', async () => {
 			const input = `export component App() {
-	const context = #ripple.track(globalContext.get().theme);
+	const context = track(globalContext.get().theme);
 	<div>
 		<TypedComponent />
 		{@context}
@@ -2341,7 +2300,7 @@ component Child({ something }) {
 }`;
 
 			const expected = `export component App() {
-  const context = #ripple.track(globalContext.get().theme);
+  const context = track(globalContext.get().theme);
   <div>
     <TypedComponent />
     {@context}
@@ -2616,17 +2575,8 @@ function test() {
 		expect(result).toBeWithNewline(expected);
 	});
 
-	it('should preserve comments in object and tracked object expressions', async () => {
+	it('should preserve comments in object expressions', async () => {
 		const expected = `const obj = {
-  /* comment 1 */
-  a: 1,
-
-  // comment 2
-  b: 2,
-  // comment 3
-};
-
-const obj2 = #ripple{
   /* comment 1 */
   a: 1,
 
@@ -2768,46 +2718,6 @@ const obj2 = #ripple{
 ];`;
 
 		const result = await format(input, { singleQuote: true, printWidth: 80 });
-		expect(result).toBeWithNewline(expected);
-	});
-
-	it('should preserve comments in arrays width printWidth 3', async () => {
-		const input = `const arr = #ripple[
-  1,
-  /* comment 1 */
-  2,
-  3,
-  // comment 2
-];`;
-
-		const expected = `const arr =
-  #ripple[
-    1,
-    /* comment 1 */
-    2,
-    3,
-    // comment 2
-  ];`;
-
-		const result = await format(input, { singleQuote: true, printWidth: 3 });
-		expect(result).toBeWithNewline(expected);
-	});
-
-	it('should preserve comments in arrays width printWidth 13', async () => {
-		const input = `const arr =
-  #ripple[
-    1 /* comment 1 */,
-    2, 3,
-    // comment 2
-  ];`;
-
-		const expected = `const arr = #ripple[
-  1 /* comment 1 */,
-  2, 3,
-  // comment 2
-];`;
-
-		const result = await format(input, { singleQuote: true, printWidth: 13 });
 		expect(result).toBeWithNewline(expected);
 	});
 
@@ -3201,14 +3111,14 @@ const items = [] as unknown[];`;
 
 		it('should format TypeScript generics in variable declarations', async () => {
 			const input = `component GenericTest() {
-        let open: Tracked<boolean> = #ripple.track(false);
+        let open: Tracked<boolean> = track(false);
         let items: Array<string> = [];
         let map: Map<string, number> = new Map();
         <div>{"test"}</div>
       }`;
 
 			const expected = `component GenericTest() {
-  let open: Tracked<boolean> = #ripple.track(false);
+  let open: Tracked<boolean> = track(false);
   let items: Array<string> = [];
   let map: Map<string, number> = new Map();
   <div>{'test'}</div>
@@ -3649,7 +3559,7 @@ try {
 		it('properly formats components markup and new lines and leaves one new line between components and <style> if one or more exits', async () => {
 			const input = `export component App() {
   <div>
-    <RowList rows={#ripple[{id: 'a'}, {id: 'b'}, {id: 'c'}]}>
+    <RowList rows={[{id: 'a'}, {id: 'b'}, {id: 'c'}]}>
       component Row({id, index, isHighlighted = (index) => (index % 2) === 0}) {
         <div class={{highlighted: isHighlighted(index)}}>{index}{' - '}{id}</div>
 
@@ -3672,7 +3582,7 @@ component RowList({ rows, Row }) {
 
 			const expected = `export component App() {
   <div>
-    <RowList rows={#ripple[{ id: 'a' }, { id: 'b' }, { id: 'c' }]}>
+    <RowList rows={[{ id: 'a' }, { id: 'b' }, { id: 'c' }]}>
       component Row({ id, index, isHighlighted = (index) => index % 2 === 0 }) {
         <div class={{ highlighted: isHighlighted(index) }}>
           {index}
@@ -3695,88 +3605,6 @@ component RowList({ rows, Row }) {
   for (const { id } of rows; index i) {
     <Row index={i} {id} />
   }
-}`;
-			const result = await format(input, {
-				singleQuote: true,
-				arrowParens: 'always',
-				printWidth: 100,
-			});
-			expect(result).toBeWithNewline(expected);
-		});
-
-		it('leaves the shorthand reactive declaration intact and formats the same way as plain objects', async () => {
-			const input = `export component App() {
-  const obj = #ripple{ a: 1, b: 2, c: 3 };
-  let singleUser = #ripple{name:"Test Me", email: "abc@example.com"}
-}`;
-
-			const expected = `export component App() {
-  const obj = #ripple{ a: 1, b: 2, c: 3 };
-  let singleUser = #ripple{ name: 'Test Me', email: 'abc@example.com' };
-}`;
-			const result = await format(input, {
-				singleQuote: true,
-				arrowParens: 'always',
-				printWidth: 100,
-			});
-			expect(result).toBeWithNewline(expected);
-		});
-
-		it('formats single line reactive object into multiline when printWidth is exceeded', async () => {
-			const input = `export component App() {
-  const obj = #ripple{a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11, l: 12, m: 13, n: 14, o: 15};
-  let singleUser = #ripple{name:"Test Me", email: "abc@example.com"}
-}`;
-
-			const expected = `export component App() {
-  const obj = #ripple{
-    a: 1,
-    b: 2,
-    c: 3,
-    d: 4,
-    e: 5,
-    f: 6,
-    g: 7,
-    h: 8,
-    i: 9,
-    j: 10,
-    k: 11,
-    l: 12,
-    m: 13,
-    n: 14,
-    o: 15,
-  };
-  let singleUser = #ripple{ name: 'Test Me', email: 'abc@example.com' };
-}`;
-			const result = await format(input, {
-				singleQuote: true,
-				arrowParens: 'always',
-				printWidth: 100,
-			});
-			expect(result).toBeWithNewline(expected);
-		});
-
-		it('leaves the shorthand reactive array declaration intact and formats the same way as regular array', async () => {
-			const input = `export component App() {
-  const arr = #ripple[ {a: 1}, { b:2}, {c:3 }   ];
-  let multi = #ripple[{a: 1}, {b: 2}, {c: 3}, {d: 4}, {e:5}, {f:6}, {g: 7}, {h: 8}, {i:9}, {j: 10}, {k: 11}];
-}`;
-
-			const expected = `export component App() {
-  const arr = #ripple[{ a: 1 }, { b: 2 }, { c: 3 }];
-  let multi = #ripple[
-    { a: 1 },
-    { b: 2 },
-    { c: 3 },
-    { d: 4 },
-    { e: 5 },
-    { f: 6 },
-    { g: 7 },
-    { h: 8 },
-    { i: 9 },
-    { j: 10 },
-    { k: 11 },
-  ];
 }`;
 			const result = await format(input, {
 				singleQuote: true,
@@ -4513,7 +4341,7 @@ export component App() {
 			it('should keep blank line between components with a trailing comment at the end of the first', async () => {
 				const expected = `component SVG({ children }) {
   <svg width={20} height={20} fill="blue" viewBox="0 0 30 10" preserveAspectRatio="none">
-    let test = #ripple.track(8);
+    let test = track(8);
     {test}
     <polygon points="0,0 30,0 15,10" />
   </svg>
@@ -4994,7 +4822,7 @@ component Polygon() {
 
 			it('should preserve @ symbol in JSX attributes inside <tsx:react>', async () => {
 				const input = `component App() {
-	const count = #ripple.track(0);
+	const count = track(0);
 
 	<div>
 		<h1>{'Hello, from Ripple!'}</h1>
@@ -5005,7 +4833,7 @@ component Polygon() {
 }`;
 
 				const expected = `component App() {
-  const count = #ripple.track(0);
+  const count = track(0);
 
   <div>
     <h1>{'Hello, from Ripple!'}</h1>
@@ -5079,10 +4907,10 @@ component App() {
 				expect(result).toBeWithNewline(expected);
 			});
 			it('should format JSXExpressionContainer with complex expressions', async () => {
-				const input = `component App(){let count=#ripple.track(0);<tsx:react><div>{count*2+10}</div>{getMessage("test")}</tsx:react>}`;
+				const input = `component App(){let count=track(0);<tsx:react><div>{count*2+10}</div>{getMessage("test")}</tsx:react>}`;
 
 				const expected = `component App() {
-  let count = #ripple.track(0);
+  let count = track(0);
   <tsx:react>
     <div>
       {count * 2 + 10}

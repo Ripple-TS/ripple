@@ -38,14 +38,16 @@ falsy values are omitted. This behavior is powered by the `clsx` library.
 Examples:
 
 ```ripple
-let includeBaz = #ripple.track(true);
+import { track } from 'ripple';
+
+let includeBaz = track(true);
 <div class={{ foo: true, bar: false, baz: @includeBaz }} />
 // becomes: class="foo baz"
 
 <div class={['foo', { baz: false }, 0 && 'bar', [true && 'bat']]} />
 // becomes: class="foo bat"
 
-let count = #ripple.track(3);
+let count = track(3);
 <div class={['foo', { bar: @count > 2 }, @count > 3 && 'bat']} />
 // becomes: class="foo bar"
 ```
@@ -56,7 +58,9 @@ Sometimes you might need to dynamically set inline styles. For this, you can use
 the `style` attribute, passing either a string or an object to it:
 
 ```ripple
-let color = #ripple.track('red');
+import { track } from 'ripple';
+
+let color = track('red');
 
 <div style={`color: ${@color}; font-weight: bold; background-color: gray`} />
 <div style={{ color: @color, fontWeight: 'bold', 'background-color': 'gray' }} />
@@ -184,19 +188,15 @@ component Child() {
 
 </Code>
 
-## Passing Scoped Classes to Child Components (`#ripple.style`)
+## Passing Scoped Classes to Child Components (`#style`)
 
 Scoped styles only apply to DOM elements within the same component. If you want a
 parent to influence how a child component looks, you can pass scoped class names
-as props using the `#ripple.style` identifier (previously `#style`).
+as props using the `#style` identifier.
 
-`#ripple.style.className` produces a string containing both the CSS scope hash
+`#style.className` produces a string containing both the CSS scope hash
 and the class name (e.g. `"ripple-abc123 highlight"`), which the child applies to
 its own elements via the `class` attribute.
-
-::: info `#style` (legacy) and `#ripple.style` are interchangeable. New code
-should use `#ripple.style` for consistency with the rest of the `#ripple.*`
-namespace. :::
 
 ### Basic Usage
 
@@ -206,7 +206,7 @@ component Child({ className }: { className: string }) {
 }
 
 component Parent() {
-  <Child className={#ripple.style.highlight} />
+  <Child className={#style.highlight} />
 
   <style>
     .highlight {
@@ -225,7 +225,7 @@ component Child({ primary, secondary }: { primary: string; secondary: string }) 
 }
 
 component Parent() {
-  <Child primary={#ripple.style.primary} secondary={#ripple.style.secondary} />
+  <Child primary={#style.primary} secondary={#style.secondary} />
 
   <style>
     .primary {
@@ -240,16 +240,18 @@ component Parent() {
 
 ### With Dynamic Components
 
-`#ripple.style` also works when rendering dynamic components with `<@Component />`:
+`#style` also works when rendering dynamic components with `<@Component />`:
 
 ```ripple
+import { track } from 'ripple';
+
 component Child({ cls }: { cls: string }) {
   <span class={cls}>{'text'}</span>
 }
 
 component Parent() {
-  let Dynamic = #ripple.track(() => Child);
-  <@Dynamic cls={#ripple.style.text} />
+  let Dynamic = track(() => Child);
+  <@Dynamic cls={#style.text} />
 
   <style>
     .text {
@@ -276,7 +278,7 @@ component Card({ className }: { className?: string }) {
 }
 
 component App() {
-  <Card className={#ripple.style.themed} />
+  <Card className={#style.themed} />
 
   <style>
     .themed {
@@ -298,7 +300,7 @@ used with `#style`:
 ```ripple
 component App() {
   <div class="parent">
-    <Child cls={#ripple.style.dual} />
+    <Child cls={#style.dual} />
   </div>
 
   <style>
@@ -320,7 +322,7 @@ The following will **not** work because the class has no standalone rule:
 ```ripple
 // ❌ .nested only exists in a descendant selector
 component App() {
-  <Child cls={#ripple.style.nested} />
+  <Child cls={#style.nested} />
 
   <style>
     .wrapper .nested {
@@ -332,12 +334,9 @@ component App() {
 
 ### Syntax Rules
 
-- **Dot notation:** `#ripple.style.className`
-- **Bracket notation:** `#ripple.style['className']` (static string only)
-- **No dynamic access:** `#ripple.style[variable]` is a compile error
-- **Components only:** `#ripple.style` can only be used inside a `component` body
-- **Props only:** `#ripple.style` cannot be used directly on DOM elements — pass
+- **Dot notation:** `#style.className`
+- **Bracket notation:** `#style['className']` (static string only)
+- **No dynamic access:** `#style[variable]` is a compile error
+- **Components only:** `#style` can only be used inside a `component` body
+- **Props only:** `#style` cannot be used directly on DOM elements — pass
   it to a child component instead
-
-::: info Legacy syntax: `#ripple.style.className` and `#ripple.style['className']` are still
-accepted as aliases for `#ripple.style.*`. :::

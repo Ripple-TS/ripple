@@ -1,6 +1,8 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
+import { track } from 'ripple/server';
+
 export function StaticTitle(__output) {
 	_$_.push_component();
 	__output.push('<div');
@@ -12,7 +14,7 @@ export function StaticTitle(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--df6gdi-->');
+	__output.push('<!--qwqurq-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -46,7 +48,7 @@ export function ReactiveTitle(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--13wropz-->');
+	__output.push('<!--1h8nm28-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -70,7 +72,7 @@ export function MultipleHeadElements(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--jbv4cs-->');
+	__output.push('<!--9v67ol-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -105,7 +107,7 @@ export function ReactiveMetaTags(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--t794k2-->');
+	__output.push('<!--166unm-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -136,7 +138,7 @@ export function TitleWithTemplate(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--betaue-->');
+	__output.push('<!--3o3mh2-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -160,7 +162,7 @@ export function EmptyTitle(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--11sq4o6-->');
+	__output.push('<!--kwo3k6-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -188,7 +190,7 @@ export function ConditionalTitle(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--xxkmhn-->');
+	__output.push('<!--c2i5xr-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -223,7 +225,7 @@ export function ComputedTitle(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--1hj0can-->');
+	__output.push('<!--1h2z3z5-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -247,7 +249,7 @@ export function MultipleHeadBlocks(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--15ucmy3-->');
+	__output.push('<!--14rv3le-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -256,7 +258,7 @@ export function MultipleHeadBlocks(__output) {
 	}
 
 	__output.push('</title>');
-	__output.push('<!--1xolofp-->');
+	__output.push('<!--1eh1mn5-->');
 	__output.push('<meta');
 	__output.push(' name="author"');
 	__output.push(' content="Test Author"');
@@ -276,7 +278,7 @@ export function HeadWithStyle(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--q5et2p-->');
+	__output.push('<!--1dxk6yg-->');
 	__output.push('<title');
 	__output.push('>');
 

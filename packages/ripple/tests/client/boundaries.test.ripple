@@ -1,13 +1,13 @@
-import { flushSync, type Tracked } from 'ripple';
+import { effect, flushSync, track, type Tracked } from 'ripple';
 
 describe('passing reactivity between boundaries tests', () => {
 	it('can pass reactivity between functions with simple arrays and destructuring', () => {
 		let log: string[] = [];
 
 		function createDouble([count]: [Tracked<number>]) {
-			const double = #ripple.track(() => @count * 2);
+			const double = track(() => @count * 2);
 
-			#ripple.effect(() => {
+			effect(() => {
 				log.push('Count:' + @count);
 			});
 
@@ -15,7 +15,7 @@ describe('passing reactivity between boundaries tests', () => {
 		}
 
 		component App() {
-			let count = #ripple.track(0);
+			let count = track(0);
 
 			const [double] = createDouble([count]);
 
@@ -54,9 +54,9 @@ describe('passing reactivity between boundaries tests', () => {
 		let log: string[] = [];
 
 		function createDouble({ count }: { count: Tracked<number> }) {
-			const double = #ripple.track(() => @count * 2);
+			const double = track(() => @count * 2);
 
-			#ripple.effect(() => {
+			effect(() => {
 				log.push('Count:' + @count);
 			});
 
@@ -64,7 +64,7 @@ describe('passing reactivity between boundaries tests', () => {
 		}
 
 		component App() {
-			let count = #ripple.track(0);
+			let count = track(0);
 
 			const { double } = createDouble({ count });
 

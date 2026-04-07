@@ -1,3 +1,5 @@
+import { track } from 'ripple';
+
 // Components for testing HMR re-render after hydration.
 // The key scenario: a layout wrapper whose root element contains children
 // that use if/for blocks. After hydration, hydrate_node can be left pointing
@@ -17,7 +19,7 @@ export component Layout({ children }: { children: any }) {
 
 // A child component with an if block (the key source of deep hydrate_node)
 export component Content() {
-	let visible = #ripple.track(true);
+	let visible = track(true);
 
 	<div class="content">
 		if (@visible) {

@@ -172,20 +172,3 @@ import {
 	ref_prop as createRefKey,
 } from './internal/client/runtime.js';
 import { user_effect as effect } from './internal/client/blocks.js';
-
-export const ripple_namespace = {
-	map: RippleMap,
-	set: RippleSet,
-	array: RippleArray,
-	object: RippleObject,
-	context: Context,
-	url: RippleURL,
-	urlSearchParams: RippleURLSearchParams,
-	date: RippleDate,
-	mediaQuery: MediaQuery,
-	createRefKey,
-	track,
-	trackSplit,
-	effect,
-	untrack,
-};

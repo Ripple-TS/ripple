@@ -17,13 +17,13 @@ ruleTester.run('no-introspect-in-modules', rule, {
 		// Valid: using get() and set() in TypeScript modules
 		{
 			code: `
-				import { get, set } from 'ripple';
+				import { get, set, track, effect } from 'ripple';
 
 				export function useCount() {
-					const count = #ripple.track(1);
+					const count = track(1);
 					const double = derived(() => get(count) * 2);
 
-					#ripple.effect(() => {
+					effect(() => {
 						console.log("count is", get(count));
 					});
 
@@ -35,11 +35,11 @@ ruleTester.run('no-introspect-in-modules', rule, {
 		// Valid: using get() in regular JavaScript
 		{
 			code: `
-				import { get } from 'ripple';
+				import { get, track, effect } from 'ripple';
 
 				function useCounter() {
-					const count = #ripple.track(0);
-					#ripple.effect(() => {
+					const count = track(0);
+					effect(() => {
 						console.log(get(count));
 					});
 					return { count };
@@ -50,10 +50,10 @@ ruleTester.run('no-introspect-in-modules', rule, {
 		// Valid: using get/set functions to access tracked values
 		{
 			code: `
-				import { get, set } from 'ripple';
+				import { get, set, track } from 'ripple';
 
 				export function useState() {
-					const state = #ripple.track({ value: 0 });
+					const state = track({ value: 0 });
 					const getValue = () => get(state);
 					const setValue = (v) => set(state, v);
 					return { getValue, setValue };
@@ -64,9 +64,10 @@ ruleTester.run('no-introspect-in-modules', rule, {
 		// Valid: @ operator in .ripple files should be allowed
 		{
 			code: `
+				import { track, effect } from 'ripple';
 				component Counter() {
-					const count = #ripple.track(0);
-					#ripple.effect(() => {
+					const count = track(0);
+					effect(() => {
 						console.log(@count);
 					});
 					<div>{@count}</div>
@@ -79,9 +80,10 @@ ruleTester.run('no-introspect-in-modules', rule, {
 		{
 			// Invalid: using @ operator in TypeScript module
 			code: `
+				import { track, effect } from 'ripple';
 				export function useCount() {
-					const count = #ripple.track(1);
-					#ripple.effect(() => {
+					const count = track(1);
+					effect(() => {
 						console.log(@count);
 					});
 					return { count };
@@ -97,8 +99,9 @@ ruleTester.run('no-introspect-in-modules', rule, {
 		{
 			// Invalid: using @ operator in JavaScript module
 			code: `
+				import { track } from 'ripple';
 				function useCounter() {
-					const value = #ripple.track(42);
+					const value = track(42);
 					const result = @value * 2;
 					return result;
 				}
@@ -113,9 +116,10 @@ ruleTester.run('no-introspect-in-modules', rule, {
 		{
 			// Invalid: multiple @ operators in TypeScript module
 			code: `
+				import { track } from 'ripple';
 				export function useForm() {
-					const firstName = #ripple.track('');
-					const lastName = #ripple.track('');
+					const firstName = track('');
+					const lastName = track('');
 					const fullName = @firstName + ' ' + @lastName;
 					return { fullName };
 				}
@@ -133,9 +137,10 @@ ruleTester.run('no-introspect-in-modules', rule, {
 		{
 			// Invalid: @ operator in TSX file
 			code: `
+				import { track, effect } from 'ripple';
 				export function useData() {
-					const data = #ripple.track(null);
-					#ripple.effect(() => {
+					const data = track(null);
+					effect(() => {
 						console.log(@data);
 					});
 					return data;

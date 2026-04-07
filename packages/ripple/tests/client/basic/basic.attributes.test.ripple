@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { flushSync, type RippleArray } from 'ripple';
+import { RippleArray, RippleObject, flushSync, track } from 'ripple';
 
 describe('basic client > attribute rendering', () => {
 	it('render static attributes', () => {
@@ -14,7 +14,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('render dynamic class attribute', () => {
 		component Basic() {
-			let active = #ripple.track(false);
+			let active = track(false);
 
 			<button
 				onClick={() => {
@@ -98,7 +98,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('render dynamic class object', () => {
 		component Basic() {
-			let active = #ripple.track(false);
+			let active = track(false);
 
 			<button
 				onClick={() => {
@@ -141,7 +141,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('applies scoped ripple class to multiple elements with dynamic class expressions', () => {
 		component Basic() {
-			let selected = #ripple.track(1);
+			let selected = track(1);
 
 			<div class={@selected === 0 ? 'selected' : ''}>{`div 1`}</div>
 			<div class={@selected === 0 ? 'selected' : ''}>{`div 2`}</div>
@@ -170,7 +170,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('render dynamic id attribute', () => {
 		component Basic() {
-			let count = #ripple.track(0);
+			let count = track(0);
 
 			<button
 				onClick={() => {
@@ -202,7 +202,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('render dynamic style attribute', () => {
 		component Basic() {
-			let color = #ripple.track('red');
+			let color = track('red');
 
 			<button
 				onClick={() => {
@@ -231,7 +231,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('render style attribute as dynamic object', () => {
 		component Basic() {
-			let color = #ripple.track('red');
+			let color = track('red');
 
 			<button
 				onClick={() => {
@@ -260,7 +260,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('render tracked variable as style attribute', () => {
 		component Basic() {
-			let style = #ripple.track({ color: 'red', fontWeight: 'bold' });
+			let style = track({ color: 'red', fontWeight: 'bold' });
 
 			function toggleColor() {
 				@style = { ...@style, color: @style.color === 'red' ? 'blue' : 'red' };
@@ -287,7 +287,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('render tracked object as style attribute', () => {
 		component Basic() {
-			let style = #ripple{ color: 'red', fontWeight: 'bold' };
+			let style = new RippleObject({ color: 'red', fontWeight: 'bold' });
 
 			function toggleColor() {
 				style.color = style.color === 'red' ? 'blue' : 'red';
@@ -360,8 +360,8 @@ describe('basic client > attribute rendering', () => {
 
 	it('render dynamic boolean attributes', () => {
 		component Basic() {
-			let disabled = #ripple.track(false);
-			let checked = #ripple.track(false);
+			let disabled = track(false);
+			let checked = track(false);
 
 			<button
 				onClick={() => {
@@ -391,8 +391,8 @@ describe('basic client > attribute rendering', () => {
 
 	it('render multiple dynamic attributes', () => {
 		component Basic() {
-			let theme = #ripple.track('light');
-			let size = #ripple.track('medium');
+			let theme = track('light');
+			let size = track('medium');
 
 			<button
 				onClick={() => {
@@ -426,8 +426,8 @@ describe('basic client > attribute rendering', () => {
 
 	it('render conditional attributes', () => {
 		component Basic() {
-			let showTitle = #ripple.track(false);
-			let showAria = #ripple.track(false);
+			let showTitle = track(false);
+			let showAria = track(false);
 
 			<button
 				onClick={() => {
@@ -468,7 +468,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('render spread attributes', () => {
 		component Basic() {
-			let attrs = #ripple.track<TestAttributes>(
+			let attrs = track<TestAttributes>(
 				{
 					class: 'initial',
 					id: 'test-1',
@@ -508,12 +508,12 @@ describe('basic client > attribute rendering', () => {
 
 	it('renders with reactive attributes with nested reactive attributes', () => {
 		component App() {
-			let value = #ripple.track('parent-class');
+			let value = track('parent-class');
 
 			<p class={@value}>{'Colored parent value'}</p>
 
 			<div>
-				let nested = #ripple.track('nested-class');
+				let nested = track('nested-class');
 
 				<p class={@nested}>{'Colored nested value'}</p>
 			</div>
@@ -556,8 +556,8 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles reactive event handler changes', () => {
 		component Basic() {
-			let count = #ripple.track(0);
-			let mode = #ripple.track<'increment' | 'decrement'>('increment');
+			let count = track(0);
+			let mode = track<'increment' | 'decrement'>('increment');
 
 			const incrementHandler = () => {
 				@count++;
@@ -613,7 +613,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles events with capture option', () => {
 		component Basic() {
-			let captureOrder: RippleArray<string> = #ripple[];
+			let captureOrder: RippleArray<string> = new RippleArray();
 
 			const handleCaptureClick = {
 				handleEvent() {
@@ -647,7 +647,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles events with Capture suffix in the name', () => {
 		component Basic() {
-			let captureOrder: RippleArray<string> = #ripple[];
+			let captureOrder: RippleArray<string> = new RippleArray();
 
 			const handleCaptureClick = () => {
 				captureOrder.push('capture');
@@ -678,7 +678,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles custom events with customName option', () => {
 		component Basic() {
-			let customEventCount = #ripple.track(0);
+			let customEventCount = track(0);
 
 			const handleCustom = {
 				handleEvent(event: CustomEvent) {
@@ -713,8 +713,8 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles events with delegated: false option to bypass delegation', () => {
 		component Basic() {
-			let delegatedCount = #ripple.track(0);
-			let nonDelegatedCount = #ripple.track(0);
+			let delegatedCount = track(0);
+			let nonDelegatedCount = track(0);
 
 			const delegatedHandler = () => {
 				@delegatedCount++;
@@ -827,8 +827,8 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles events defined as function directly vs as object', () => {
 		component Basic() {
-			let functionCount = #ripple.track(0);
-			let objectCount = #ripple.track(0);
+			let functionCount = track(0);
+			let objectCount = track(0);
 
 			const functionHandler = () => {
 				@functionCount++;
@@ -880,8 +880,8 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles passive event option', () => {
 		component Basic() {
-			let passiveDefaultPrevented = #ripple.track<boolean | null>(null);
-			let nonPassiveDefaultPrevented = #ripple.track<boolean | null>(null);
+			let passiveDefaultPrevented = track<boolean | null>(null);
+			let nonPassiveDefaultPrevented = track<boolean | null>(null);
 
 			const passiveHandler = {
 				handleEvent(event: Event) {
@@ -945,8 +945,8 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles once option to fire event only once', () => {
 		component Basic() {
-			let onceCount = #ripple.track(0);
-			let regularCount = #ripple.track(0);
+			let onceCount = track(0);
+			let regularCount = track(0);
 
 			const onceHandler = {
 				handleEvent() {

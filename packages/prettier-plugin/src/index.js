@@ -639,33 +639,6 @@ function shouldPrintComma(options, level = 'all') {
 }
 
 /**
- * Check whether a tracked array/object node used long #ripple.<kind>(...) syntax.
- * @param {AST.RippleArrayExpression | AST.RippleObjectExpression} node - The tracked node
- * @param {RippleFormatOptions} options - Prettier options
- * @param {'array' | 'object'} kind - Tracked structure kind
- * @returns {boolean}
- */
-function uses_long_tracked_syntax(node, options, kind) {
-	if (!options || typeof options.originalText !== 'string') {
-		return false;
-	}
-
-	if (
-		typeof node.start !== 'number' ||
-		typeof node.end !== 'number' ||
-		node.start < 0 ||
-		node.end <= node.start
-	) {
-		return false;
-	}
-
-	const node_text = options.originalText.slice(node.start, node.end);
-	return kind === 'array'
-		? /^#ripple\.array\s*\(/.test(node_text)
-		: /^#ripple\.object\s*\(/.test(node_text);
-}
-
-/**
  * Check if a leading comment can be attached to the previous element
  * @param {AST.Comment} comment - The comment node
  * @param {AST.Node} previousNode - Previous node
@@ -953,13 +926,9 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printTryStatement(node, path, options, print);
 			break;
 
-		case 'ArrayExpression':
-		case 'RippleArrayExpression': {
-			const is_ripple_array = node.type === 'RippleArrayExpression';
-			const prefix = is_ripple_array ? '#ripple' : '';
-
+		case 'ArrayExpression': {
 			if (!node.elements || node.elements.length === 0) {
-				nodeContent = prefix + '[]';
+				nodeContent = '[]';
 				break;
 			}
 
@@ -1083,7 +1052,7 @@ function printRippleNode(node, path, options, print, args) {
 				const separator = [',', line];
 				const trailing = shouldUseTrailingComma ? ifBreak(',', '') : '';
 				nodeContent = group([
-					prefix + '[',
+					'[',
 					indent([softline, join(separator, elements), trailing]),
 					softline,
 					']',
@@ -1183,7 +1152,7 @@ function printRippleNode(node, path, options, print, args) {
 					const separator = [',', hardline];
 					const trailingDoc = shouldUseTrailingComma ? ',' : '';
 					nodeContent = group([
-						prefix + '[',
+						'[',
 						indent([hardline, join(separator, elements), trailingDoc]),
 						hardline,
 						']',
@@ -1243,12 +1212,7 @@ function printRippleNode(node, path, options, print, args) {
 				}
 
 				const trailingDoc = shouldUseTrailingComma ? ifBreak(',', '') : '';
-				nodeContent = group([
-					prefix + '[',
-					indent([softline, fill(fillParts), trailingDoc]),
-					softline,
-					']',
-				]);
+				nodeContent = group(['[', indent([softline, fill(fillParts), trailingDoc]), softline, ']']);
 				break;
 			}
 
@@ -1263,7 +1227,7 @@ function printRippleNode(node, path, options, print, args) {
 				}
 				const trailingDoc = shouldUseTrailingComma ? ifBreak(',', '') : '';
 				nodeContent = group([
-					prefix + '[',
+					'[',
 					indent([softline, join(separator, parts), trailingDoc]),
 					softline,
 					']',
@@ -1287,7 +1251,7 @@ function printRippleNode(node, path, options, print, args) {
 				const separator = [',', hardline];
 				const trailingDoc = shouldUseTrailingComma ? ifBreak(',', '') : '';
 				nodeContent = group([
-					prefix + '[',
+					'[',
 					indent([hardline, join(separator, inlineElements), trailingDoc]),
 					hardline,
 					']',
@@ -1362,12 +1326,11 @@ function printRippleNode(node, path, options, print, args) {
 
 			// Array with blank lines - format as multi-line
 			// Use simple group that will break to fit within printWidth
-			nodeContent = group([prefix + '[', indent([line, contentParts]), line, ']']);
+			nodeContent = group(['[', indent([line, contentParts]), line, ']']);
 			break;
 		}
 
 		case 'ObjectExpression':
-		case 'RippleObjectExpression':
 			nodeContent = printObjectExpression(node, path, options, print, args);
 			break;
 
@@ -1495,7 +1458,7 @@ function printRippleNode(node, path, options, print, args) {
 		}
 
 		case 'StyleIdentifier': {
-			nodeContent = '#ripple.style';
+			nodeContent = '#style';
 			break;
 		}
 
@@ -1512,7 +1475,7 @@ function printRippleNode(node, path, options, print, args) {
 		}
 
 		case 'ServerIdentifier': {
-			nodeContent = '#ripple.server';
+			nodeContent = '#server';
 			break;
 		}
 
@@ -1692,9 +1655,7 @@ function printRippleNode(node, path, options, print, args) {
 
 		case 'ExpressionStatement': {
 			// Object literals at statement position need parentheses to avoid ambiguity with blocks
-			const needsParens =
-				node.expression.type === 'ObjectExpression' ||
-				node.expression.type === 'RippleObjectExpression';
+			const needsParens = node.expression.type === 'ObjectExpression';
 			if (needsParens) {
 				nodeContent = ['(', path.call(print, 'expression'), ')', semi(options)];
 			} else {
@@ -1715,23 +1676,18 @@ function printRippleNode(node, path, options, print, args) {
 
 		case 'Identifier': {
 			// Simple case - just return the name directly like Prettier core
-			const source_name = node.metadata?.source_name;
-			const identifier_name =
-				typeof source_name === 'string' && source_name.startsWith('#ripple.')
-					? source_name
-					: node.name;
 			const trackedPrefix = node.tracked ? '@' : '';
 			let identifierContent;
 			if (node.typeAnnotation) {
 				const optionalMarker = node.optional ? '?' : '';
 				identifierContent = [
-					trackedPrefix + identifier_name,
+					trackedPrefix + node.name,
 					optionalMarker,
 					': ',
 					path.call(print, 'typeAnnotation'),
 				];
 			} else {
-				identifierContent = trackedPrefix + identifier_name;
+				identifierContent = trackedPrefix + node.name;
 			}
 			// Preserve parentheses for type-cast identifiers, but only if:
 			// 1. The identifier itself is marked as parenthesized
@@ -1880,7 +1836,7 @@ function printRippleNode(node, path, options, print, args) {
 
 		case 'ServerBlock': {
 			const blockContent = path.call(print, 'body');
-			nodeContent = ['#ripple.server ', blockContent];
+			nodeContent = ['#server ', blockContent];
 			break;
 		}
 
@@ -3005,10 +2961,7 @@ function printCallArguments(path, options, print) {
 	const finalArg = args[args.length - 1];
 	const couldExpandLastArg =
 		finalArg &&
-		(finalArg.type === 'ObjectExpression' ||
-			finalArg.type === 'RippleObjectExpression' ||
-			finalArg.type === 'ArrayExpression' ||
-			finalArg.type === 'RippleArrayExpression') &&
+		(finalArg.type === 'ObjectExpression' || finalArg.type === 'ArrayExpression') &&
 		!hasComment(finalArg);
 
 	/** @type {Doc[]} */
@@ -3047,10 +3000,7 @@ function printCallArguments(path, options, print) {
 	const trailingComma = shouldPrintComma(options, 'all') ? ',' : '';
 
 	// Special case: single array argument should keep opening bracket inline
-	const isSingleArrayArgument =
-		args.length === 1 &&
-		args[0] &&
-		(args[0].type === 'ArrayExpression' || args[0].type === 'RippleArrayExpression');
+	const isSingleArrayArgument = args.length === 1 && args[0] && args[0].type === 'ArrayExpression';
 
 	if (isSingleArrayArgument) {
 		// Don't use group() - just concat to allow array to control its own breaking
@@ -3105,11 +3055,7 @@ function printCallArguments(path, options, print) {
 	const previousArgsBreak =
 		lastIndex > 0 ? argumentBreakFlags.slice(0, lastIndex).some(Boolean) : false;
 	const isExpandableLastArgType =
-		lastArg &&
-		(lastArg.type === 'ObjectExpression' ||
-			lastArg.type === 'RippleObjectExpression' ||
-			lastArg.type === 'ArrayExpression' ||
-			lastArg.type === 'RippleArrayExpression');
+		lastArg && (lastArg.type === 'ObjectExpression' || lastArg.type === 'ArrayExpression');
 
 	// Check if we should expand the last argument (like Prettier's shouldExpandLastArg)
 	const shouldExpandLast =
@@ -3573,20 +3519,18 @@ function printDoWhileStatement(node, path, options, print) {
 }
 
 /**
- * Print an object expression (or RippleObjectExpression)
- * @param {AST.ObjectExpression | AST.RippleObjectExpression} node - The object expression node
- * @param {AstPath<AST.ObjectExpression | AST.RippleObjectExpression>} path - The AST path
+ * Print an object expression
+ * @param {AST.ObjectExpression} node - The object expression node
+ * @param {AstPath<AST.ObjectExpression>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @param {PrintArgs} [args] - Additional context arguments
  * @returns {Doc}
  */
 function printObjectExpression(node, path, options, print, args) {
-	// const use_long_tracked_syntax =
-	// 	node.type === 'RippleObjectExpression' && uses_long_tracked_syntax(node, options, 'object');
-	const open_brace = node.type === 'RippleObjectExpression' ? '#ripple{' : '{';
+	const open_brace = '{';
 	const close_brace = '}';
-	const skip_offset = node.type === 'RippleObjectExpression' ? '#ripple{'.length : 1;
+	const skip_offset = 1;
 	const closing_offset = 1;
 
 	if (!node.properties || node.properties.length === 0) {
@@ -4133,15 +4077,6 @@ function printYieldExpression(node, path, options, print) {
  * @returns {Doc[]}
  */
 function printNewExpression(node, path, options, print) {
-	// #ripple.* constructors don't need 'new' - compiler handles that automatically
-	// If someone writes 'new #ripple.map()', just output '#ripple.map()'
-	if (
-		node.callee &&
-		(node.callee.type === 'RippleArrayExpression' || node.callee.type === 'RippleObjectExpression')
-	) {
-		return [path.call(print, 'callee')];
-	}
-
 	/** @type {Doc[]} */
 	const parts = [];
 	parts.push('new ');
@@ -5042,16 +4977,13 @@ function printVariableDeclarator(node, path, options, print) {
 
 		// For arrays/objects with blank lines, use conditionalGroup to try both layouts
 		// Prettier will break the declaration if keeping it inline doesn't fit
-		const isArray =
-			node.init.type === 'ArrayExpression' || node.init.type === 'RippleArrayExpression';
-		const isObject =
-			node.init.type === 'ObjectExpression' || node.init.type === 'RippleObjectExpression';
+		const isArray = node.init.type === 'ArrayExpression';
+		const isObject = node.init.type === 'ObjectExpression';
 
 		if (isArray || isObject) {
 			const items = isArray
-				? /** @type {AST.ArrayExpression | AST.RippleArrayExpression} */ (node.init).elements || []
-				: /** @type {AST.ObjectExpression | AST.RippleObjectExpression} */ (node.init).properties ||
-					[];
+				? /** @type {AST.ArrayExpression} */ (node.init).elements || []
+				: /** @type {AST.ObjectExpression} */ (node.init).properties || [];
 			let hasBlankLines = false;
 
 			if (isArray) {

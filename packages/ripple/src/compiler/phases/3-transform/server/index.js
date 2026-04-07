@@ -26,6 +26,8 @@ import {
 	is_binding_function,
 	is_element_dynamic,
 	is_ripple_track_call,
+	is_ripple_import,
+	ripple_import_requires_block,
 	hash,
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
@@ -471,17 +473,19 @@ const visitors = {
 		}
 
 		const callee = node.callee;
-		const source_name = callee.type === 'Identifier' ? callee.metadata?.source_name : undefined;
-		const ripple_runtime_method = get_ripple_namespace_call_name(source_name);
 
-		if (ripple_runtime_method !== null) {
-			return {
-				...node,
-				callee: b.member(b.id('_$_'), b.id(ripple_runtime_method)),
-				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
-					...node.arguments.map((arg) => context.visit(arg)),
-				]),
-			};
+		// Handle direct calls to ripple-imported functions: effect(), untrack(), RippleArray(), etc.
+		if (callee.type === 'Identifier' && is_ripple_import(callee, context)) {
+			const ripple_runtime_method = get_ripple_namespace_call_name(callee.name);
+			if (ripple_runtime_method !== null) {
+				return {
+					...node,
+					callee: b.member(b.id('_$_'), b.id(ripple_runtime_method)),
+					arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
+						...node.arguments.map((arg) => context.visit(arg)),
+					]),
+				};
+			}
 		}
 
 		if (is_ripple_track_call(callee, context)) {
@@ -505,18 +509,16 @@ const visitors = {
 			};
 		}
 
-		// Check for more than two nested level calls, like #ripple.array.from()
+		// Handle member calls on ripple imports, like RippleArray.from()
 		if (
 			callee.type === 'MemberExpression' &&
-			callee.object.metadata?.source_name?.startsWith('#ripple.') &&
 			callee.object.type === 'Identifier' &&
-			callee.property.type === 'Identifier'
+			callee.property.type === 'Identifier' &&
+			is_ripple_import(callee, context)
 		) {
 			const object = callee.object;
 			const property = callee.property;
-			const source_name = /** @type {string} */ (object.metadata?.source_name);
-
-			const method_name = get_ripple_namespace_call_name(source_name);
+			const method_name = get_ripple_namespace_call_name(object.name);
 			if (method_name !== null) {
 				return b.member(
 					b.id('_$_'),
@@ -542,6 +544,20 @@ const visitors = {
 		if (!context.state.to_ts) {
 			delete node.typeArguments;
 		}
+
+		// Transform `new RippleArray(...)`, `new RippleMap(...)`, etc. imported from 'ripple'
+		if (callee.type === 'Identifier' && is_ripple_import(callee, context)) {
+			const ripple_runtime_method = get_ripple_namespace_call_name(callee.name);
+			if (ripple_runtime_method !== null) {
+				return b.call(
+					'_$_.' + ripple_runtime_method,
+					.../** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+						node.arguments.map((arg) => context.visit(arg))
+					),
+				);
+			}
+		}
+
 		return context.next();
 	},
 
@@ -1597,23 +1613,6 @@ const visitors = {
 
 	TrackedExpression(node, context) {
 		return b.call('_$_.get', /** @type {AST.Expression} */ (context.visit(node.argument)));
-	},
-
-	RippleObjectExpression(node, context) {
-		// For SSR, we just evaluate the object as-is since there's no reactivity
-		return b.object(
-			/** @type {(AST.Property | AST.SpreadElement)[]} */
-			(node.properties.map((prop) => context.visit(prop))),
-		);
-	},
-
-	RippleArrayExpression(node, context) {
-		return b.call(
-			'_$_.ripple_array',
-			.../** @type {(AST.Expression | AST.SpreadElement)[]} */ (
-				node.elements.map((el) => context.visit(/** @type {AST.Node} */ (el)))
-			),
-		);
 	},
 
 	MemberExpression(node, context) {

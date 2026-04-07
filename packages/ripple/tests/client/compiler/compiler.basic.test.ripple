@@ -1,8 +1,5 @@
 import { parse, compile, compile_to_volar_mappings } from 'ripple/compiler';
-import {
-	obfuscate_identifier,
-	RIPPLE_NAMESPACE_IDENTIFIER,
-} from 'ripple/compiler/internal/identifier/utils';
+import { obfuscate_identifier } from 'ripple/compiler/internal/identifier/utils';
 import type * as AST from 'estree';
 
 function count_occurrences(string: string, subString: string): number {
@@ -22,25 +19,25 @@ describe('compiler > basics', () => {
 		const source = `export component App() {
   <div id="myid" class="myclass">{"Hello World"}</div>
 
-  <style>#ripple.style</style>
+  <style>#style</style>
 }`;
 		const style1 = '.myid {color: green }';
 		const style2 = '#myid {color: green }';
 		const style3 = 'div {color: green }';
 
-		let input = source.replace('#ripple.style', style1);
+		let input = source.replace('#style', style1);
 		let ast = parse(input);
 		expect(
 			((ast.body[0] as AST.ExportNamedDeclaration).declaration as unknown as AST.Component)?.css.source,
 		).toEqual(style1);
 
-		input = source.replace('#ripple.style', style2);
+		input = source.replace('#style', style2);
 		ast = parse(input);
 		expect(
 			((ast.body[0] as AST.ExportNamedDeclaration).declaration as unknown as AST.Component)?.css.source,
 		).toEqual(style2);
 
-		input = source.replace('#ripple.style', style3);
+		input = source.replace('#style', style3);
 		ast = parse(input);
 		expect(
 			((ast.body[0] as AST.ExportNamedDeclaration).declaration as unknown as AST.Component)?.css.source,
@@ -256,10 +253,10 @@ describe('compiler > basics', () => {
 	// 			const source = `
 	// import { RippleArray, RippleObject, RippleSet, RippleMap, createRefKey } from 'ripple';
 	// component App() {
-	// 	const items = #ripple[1, 2, 3];
-	// 	const obj = #ripple{ a: 1, b: 2, c: 3 };
-	// 	const set = #ripple.set([1, 2, 3]);
-	// 	const map = #ripple.map([['a', 1], ['b', 2], ['c', 3]]);
+	// 	const items = new RippleArray(1, 2, 3);
+	// 	const obj = new RippleObject({ a: 1, b: 2, c: 3 });
+	// 	const set = RippleSet([1, 2, 3]);
+	// 	const map = RippleMap([['a', 1], ['b', 2], ['c', 3]]);
 
 	// 	<div {ref () => {}} />
 	// }
@@ -280,10 +277,10 @@ describe('compiler > basics', () => {
 	// 			const source = `
 	// import { RippleArray as TA, RippleObject as TO, RippleSet as TS, RippleMap as TM, createRefKey as crk } from 'ripple';
 	// component App() {
-	// 	const items = #ripple[1, 2, 3];
-	// 	const obj = #ripple{ a: 1, b: 2, c: 3 };
-	// 	const set = #ripple.set([1, 2, 3]);
-	// 	const map = #ripple.map([['a', 1], ['b', 2], ['c', 3]]);
+	// 	const items = new RippleArray(1, 2, 3);
+	// 	const obj = new RippleObject({ a: 1, b: 2, c: 3 });
+	// 	const set = RippleSet([1, 2, 3]);
+	// 	const map = RippleMap([['a', 1], ['b', 2], ['c', 3]]);
 
 	// 	<div {ref () => {}} />
 	// }
@@ -306,10 +303,10 @@ describe('compiler > basics', () => {
 	// 	it('adds hidden obfuscated imports for shorthand syntax', () => {
 	// 		const source = `
 	// component App() {
-	// 	const items = #ripple[1, 2, 3];
-	// 	const obj = #ripple{ a: 1, b: 2, c: 3 };
-	// 	const set = #ripple.set([1, 2, 3]);
-	// 	const map = #ripple.map([['a', 1], ['b', 2], ['c', 3]]);
+	// 	const items = new RippleArray(1, 2, 3);
+	// 	const obj = new RippleObject({ a: 1, b: 2, c: 3 });
+	// 	const set = RippleSet([1, 2, 3]);
+	// 	const map = RippleMap([['a', 1], ['b', 2], ['c', 3]]);
 
 	// 	<div {ref () => {}} />
 	// }
@@ -325,10 +322,9 @@ describe('compiler > basics', () => {
 
 	it('prints longhand tracked property values in to_ts output while preserving [\'#v\']', () => {
 		const source = `
-import { createRefKey } from 'ripple';
-
+import { RippleArray, RippleMap, RippleObject, RippleSet, createRefKey, effect, track, untrack } from 'ripple';
 component App() {
-	let value = #ripple.track('test');
+	let value = track('test');
 	function inputRef(node) {}
 
 	const props = {
@@ -342,20 +338,6 @@ component App() {
 		const result = compile_to_volar_mappings(source, 'test.ripple').code;
 
 		expect(result).toMatch(/value:\s*value\??\.\['#v'\]/);
-	});
-
-	it('rewrites standalone #ripple to the hidden namespace identifier in to_ts output', () => {
-		const source = `
-export component App() {
-	#ripple
-}
-`;
-
-		const result = compile_to_volar_mappings(source, 'test.ripple', { loose: true }).code;
-
-		expect(result).toContain(RIPPLE_NAMESPACE_IDENTIFIER);
-		expect(result).toContain(`${RIPPLE_NAMESPACE_IDENTIFIER};`);
-		expect(result).not.toContain('#ripple;');
 	});
 
 	it('preserves generic type args in interface extends for Volar mappings', () => {
@@ -380,8 +362,9 @@ export component App(props: Props) {
 
 	it('handles if-else expression statements in Volar mappings', () => {
 		const source = `
+import { track } from 'ripple';
 export component App() {
-	let level = #ripple.track(1);
+	let level = track(1);
 
 	<button
 		onClick={() => {
@@ -455,13 +438,14 @@ export component App() {
 		expect(() => compile(code, 'test.ripple')).not.toThrow();
 	});
 
-	it('should inject __block for #ripple.track() calls inside class constructors', () => {
+	it('should inject __block for track() calls inside class constructors', () => {
 		const source = `
+import { track, RippleArray } from 'ripple';
 
 class Store {
 	constructor() {
-		this.count = #ripple.track(0);
-		this.items = #ripple[1, 2, 3];
+		this.count = track(0);
+		this.items = new RippleArray(1, 2, 3);
 	}
 }
 
@@ -478,13 +462,15 @@ export component App() {
 		expect(code).toContain('_$_.scope()');
 	});
 
-	it('parses #ripple.effect and #ripple.untrack calls', () => {
+	it('parses effect and untrack calls', () => {
 		const source = `
-component App() {
-	let count = #ripple.track(0);
+import { track, effect, untrack } from 'ripple';
 
-	#ripple.effect(() => {
-		const snapshot = #ripple.untrack(() => @count);
+component App() {
+	let count = track(0);
+
+	effect(() => {
+		const snapshot = untrack(() => @count);
 		console.log(snapshot);
 	});
 }
@@ -493,14 +479,15 @@ component App() {
 		const ast = parse(source);
 		const ast_json = JSON.stringify(ast);
 
-		expect(ast_json).toContain('"source_name":"#ripple.effect"');
-		expect(ast_json).toContain('"source_name":"#ripple.untrack"');
+		expect(ast_json).toContain('"name":"effect"');
+		expect(ast_json).toContain('"name":"untrack"');
 	});
 
 	it('collects duplicate declaration parser errors in loose mode', () => {
 		const source = `
+import { track } from 'ripple';
 export component App() {
-	let test = #ripple.track(false);
+	let test = track(false);
 	let test = 'hey';
 }
 `;
@@ -537,26 +524,6 @@ export component App() {
 
 		const result = compile_to_volar_mappings(source, 'test.ripple', { loose: true });
 		expect(result.errors).toEqual([]);
-	});
-
-	it('parses bare #ripple in loose mode for autocomplete recovery', () => {
-		const source = `export component App() {
-	#ripple
-}
-`;
-
-		expect(() => compile_to_volar_mappings(source, 'test.ripple', { loose: true })).not.toThrow();
-
-		const result = compile_to_volar_mappings(source, 'test.ripple', { loose: true });
-		expect(result.errors).toEqual([]);
-
-		const ripple_offset = source.indexOf('#ripple');
-		const mapping = result.mappings.find(
-			(mapping) => mapping.sourceOffsets[0] === ripple_offset &&
-				mapping.lengths[0] === '#ripple'.length,
-		);
-
-		expect(mapping).toBeDefined();
 	});
 
 	it('preserves class extends generic type arguments in volar output', () => {
