@@ -632,7 +632,11 @@ const visitors = {
 					pattern.lazy &&
 					pattern.metadata?.lazy_id
 				) {
-					node.params[i] = b.id(pattern.metadata.lazy_id);
+					const id = b.id(pattern.metadata.lazy_id);
+					node.params[i] =
+						param.type === 'AssignmentPattern'
+							? /** @type {AST.AssignmentPattern} */ ({ ...param, left: id })
+							: id;
 				}
 			}
 		}
@@ -657,7 +661,11 @@ const visitors = {
 					pattern.lazy &&
 					pattern.metadata?.lazy_id
 				) {
-					node.params[i] = b.id(pattern.metadata.lazy_id);
+					const id = b.id(pattern.metadata.lazy_id);
+					node.params[i] =
+						param.type === 'AssignmentPattern'
+							? /** @type {AST.AssignmentPattern} */ ({ ...param, left: id })
+							: id;
 				}
 			}
 		}
@@ -692,7 +700,11 @@ const visitors = {
 				pattern.lazy &&
 				pattern.metadata?.lazy_id
 			) {
-				node.params[i] = b.id(pattern.metadata.lazy_id);
+				const id = b.id(pattern.metadata.lazy_id);
+				node.params[i] =
+					param.type === 'AssignmentPattern'
+						? /** @type {AST.AssignmentPattern} */ ({ ...param, left: id })
+						: id;
 			}
 		}
 

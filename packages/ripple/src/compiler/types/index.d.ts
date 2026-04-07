@@ -25,6 +25,7 @@ interface BaseNodeMetaData {
 	is_reactive?: boolean;
 	lone_return?: boolean;
 	forceMapping?: boolean;
+	lazy_id?: string;
 }
 
 interface FunctionMetaData extends BaseNodeMetaData {

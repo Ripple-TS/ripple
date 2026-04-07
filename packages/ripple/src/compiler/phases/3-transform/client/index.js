@@ -116,7 +116,11 @@ function visit_function(node, context) {
 			pattern.lazy &&
 			pattern.metadata?.lazy_id
 		) {
-			return b.id(pattern.metadata.lazy_id);
+			const id = b.id(pattern.metadata.lazy_id);
+			if (param.type === 'AssignmentPattern') {
+				return /** @type {AST.AssignmentPattern} */ ({ ...param, left: id });
+			}
+			return id;
 		}
 		return param;
 	});
@@ -1947,6 +1951,7 @@ const visitors = {
 			return func;
 		}
 
+		/** @type {AST.Identifier | AST.ObjectPattern | AST.ArrayPattern} */
 		let props = b.id('__props');
 
 		if (node.params.length > 0) {
@@ -1959,7 +1964,7 @@ const visitors = {
 				delete props_param.typeAnnotation;
 				if (!props_param.lazy) {
 					// Non-lazy destructuring: use the pattern directly as the function param
-					props = /** @type {any} */ (props_param);
+					props = props_param;
 				}
 				// Lazy destructuring: props stays as __props, bindings resolved via transforms
 			}
