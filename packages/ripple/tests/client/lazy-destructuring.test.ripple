@@ -116,4 +116,70 @@ describe('lazy destructuring', () => {
 		render(Test);
 		expect(container.querySelector('pre')!.textContent).toBe('10');
 	});
+
+	it('supports let lazy destructuring with assignment writeback', () => {
+		component Test() {
+			const obj = { a: 1, b: 2 };
+			let &{ a, b } = obj;
+			a = 10;
+			b = 20;
+			<pre>{`${obj.a}-${obj.b}`}</pre>
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('10-20');
+	});
+
+	it('supports compound assignment operators on lazy bindings', () => {
+		component Test() {
+			const obj = { a: 5, b: 10 };
+			let &{ a, b } = obj;
+			a += 3;
+			b *= 2;
+			<pre>{`${obj.a}-${obj.b}`}</pre>
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('8-20');
+	});
+
+	it('supports update expressions on lazy bindings', () => {
+		component Test() {
+			const obj = { count: 0 };
+			let &{ count } = obj;
+			count++;
+			count++;
+			count--;
+			<pre>{obj.count}</pre>
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('1');
+	});
+
+	it('supports function params with lazy destructuring and default values', () => {
+		component Test() {
+			function calc(&{ x, y = 100 }: { x: number; y?: number }) {
+				return x + y;
+			}
+			const a = calc({ x: 5, y: 10 });
+			const b = calc({ x: 5 });
+			<pre>{`${a}-${b}`}</pre>
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('15-105');
+	});
+
+	it('supports lazy destructuring with default value writeback', () => {
+		component Test() {
+			const obj: { a: number; b?: number } = { a: 1 };
+			let &{ a, b = 50 } = obj;
+			b = 99;
+			<pre>{`${a}-${obj.b}`}</pre>
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('1-99');
+	});
 });

@@ -1432,10 +1432,16 @@ const visitors = {
 		if (left.type === 'Identifier') {
 			const binding = context.state.scope?.get(left.name);
 			if (binding?.transform?.assign && binding.node !== left) {
-				return binding.transform.assign(
-					left,
-					/** @type {AST.Expression} */ (context.visit(node.right)),
-				);
+				let value = /** @type {AST.Expression} */ (context.visit(node.right));
+
+				// For compound operators (+=, -=, *=, /=), expand to read + operation
+				if (node.operator !== '=') {
+					const operator = node.operator.slice(0, -1); // '+=' -> '+'
+					const current = binding.transform.read(left);
+					value = b.binary(/** @type {AST.BinaryOperator} */ (operator), current, value);
+				}
+
+				return binding.transform.assign(left, value);
 			}
 		}
 
