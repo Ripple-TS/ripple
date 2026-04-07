@@ -1,6 +1,6 @@
-import type { Component } from 'ripple';
+import type { Children } from 'ripple';
 
-export component Layout(&{ children }: { children?: Component }) {
+export component Layout(&{ children }: { children?: Children }) {
 	<div class="layout">
 		<children />
 	</div>

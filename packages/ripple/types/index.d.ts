@@ -1,5 +1,8 @@
 export type Component<T = Record<string, any>> = (props: T) => void;
 
+/** Type for JSX children - accepts single child, multiple children, or no children */
+export type Children = Component | readonly Component[];
+
 export type CompatApi = {
 	createRoot: () => void;
 	createComponent: (node: any, children_fn: () => any) => void;
@@ -159,10 +162,10 @@ export type InferComponent<T> = T extends () => infer R ? (R extends Component<a
 export type Props<K extends PropertyKey = any, V = unknown> = Record<K, V>;
 export type PropsWithExtras<T extends object> = Props & T & Record<string, unknown>;
 export type PropsWithChildren<T extends object = {}> = Expand<
-	Omit<T, 'children'> & { children: Component }
+	Omit<T, 'children'> & { children: Children }
 >;
 export type PropsWithChildrenOptional<T extends object = {}> = Expand<
-	Omit<T, 'children'> & { children?: Component }
+	Omit<T, 'children'> & { children?: Children }
 >;
 export type PropsNoChildren<T extends object = {}> = Expand<T>;
 
