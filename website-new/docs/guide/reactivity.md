@@ -165,8 +165,8 @@ function process(&{ x, y }: Point) {
 **Variable declarations** — works with `const`, `let`, and `var`:
 
 ```ripple
-const &{ a, b } = someObject;     // read-only lazy access
-let &{ x, y } = mutableObject;    // supports assignment: x = 5 writes back
+const &{ a, b } = someObject; // read-only lazy access
+let &{ x, y } = mutableObject; // supports assignment: x = 5 writes back
 ```
 
 ::: tip When to use lazy destructuring Use `&{...}` whenever you destructure
