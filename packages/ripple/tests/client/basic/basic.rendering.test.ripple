@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { flushSync } from 'ripple';
+import { flushSync, track } from 'ripple';
 
 describe('basic client > rendering & text', () => {
 	it('renders static text', () => {
@@ -27,7 +27,7 @@ describe('basic client > rendering & text', () => {
 
 	it('renders dynamic text', () => {
 		component Basic() {
-			let text = #ripple.track('Hello World');
+			let text = track('Hello World');
 
 			<button
 				onClick={() => {
@@ -104,8 +104,8 @@ describe('basic client > rendering & text', () => {
 
 	it('renders with mixed static and dynamic content', () => {
 		component Basic() {
-			let name = #ripple.track('World');
-			let count = #ripple.track(0);
+			let name = track('World');
+			let count = track(0);
 			const staticMessage = 'Welcome to Ripple!';
 
 			<div class="mixed-content">
@@ -151,7 +151,7 @@ describe('basic client > rendering & text', () => {
 
 	it('basic operations', () => {
 		component App() {
-			let count = #ripple.track(0);
+			let count = track(0);
 			<div>{@count++}</div>
 			<div>{++@count}</div>
 			<div>{5}</div>
@@ -164,8 +164,8 @@ describe('basic client > rendering & text', () => {
 
 	it('renders with conditional rendering using if statements', () => {
 		component Basic() {
-			let showContent = #ripple.track(false);
-			let userRole = #ripple.track('guest');
+			let showContent = track(false);
+			let userRole = track('guest');
 
 			<button
 				onClick={() => {

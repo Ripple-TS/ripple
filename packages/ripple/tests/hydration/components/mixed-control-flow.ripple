@@ -1,3 +1,5 @@
+import { track } from 'ripple';
+
 export component MixedControlFlowStatic() {
 	const rows = [
 		{ id: 1, kind: 'a', enabled: true },
@@ -29,9 +31,9 @@ export component MixedControlFlowStatic() {
 }
 
 export component MixedControlFlowReactive() {
-	let show = #ripple.track(true);
-	let mode = #ripple.track<'a' | 'b'>('a');
-	let items = #ripple.track([
+	let show = track(true);
+	let mode = track<'a' | 'b'>('a');
+	let items = track([
 		{ id: 1, label: 'One' },
 		{ id: 2, label: 'Two' },
 	]);

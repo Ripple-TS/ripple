@@ -1,12 +1,11 @@
-import type { RippleURL } from 'ripple';
-import { flushSync } from 'ripple';
+import { RippleURL, flushSync, track } from 'ripple';
 
 describe('RippleURL > derived', () => {
 	it('handles reactive computed properties based on URL', () => {
 		component URLTest() {
-			const url = #ripple.url('https://example.com/users/123?tab=profile');
-			let userId = #ripple.track(() => url.pathname.split('/').pop());
-			let activeTab = #ripple.track(() => url.searchParams.get('tab'));
+			const url = RippleURL('https://example.com/users/123?tab=profile');
+			let userId = track(() => url.pathname.split('/').pop());
+			let activeTab = track(() => url.searchParams.get('tab'));
 
 			<button onClick={() => (url.pathname = '/users/456')}>{'Change User'}</button>
 			<button onClick={() => url.searchParams.set('tab', 'settings')}>{'Change Tab'}</button>
@@ -40,7 +39,7 @@ describe('RippleURL > derived', () => {
 
 	it('maintains reactivity across multiple components', () => {
 		component ParentTest() {
-			const url = #ripple.url('https://example.com/path?count=0');
+			const url = RippleURL('https://example.com/path?count=0');
 
 			<ChildA {url} />
 			<ChildB {url} />
@@ -58,7 +57,7 @@ describe('RippleURL > derived', () => {
 		}
 
 		component ChildB({ url }: { url: RippleURL }) {
-			let count = #ripple.track(() => url.searchParams.get('count'));
+			let count = track(() => url.searchParams.get('count'));
 
 			<pre>{url.href}</pre>
 			<pre>{@count}</pre>

@@ -1,3 +1,4 @@
+import { track } from 'ripple';
 import type {
 	Tracked,
 	PropsWithChildren,
@@ -106,7 +107,7 @@ describe('basic server > components & composition', () => {
 		}
 
 		component Basic() {
-			let clicked = #ripple.track(false);
+			let clicked = track(false);
 
 			<Card
 				title="Test Card"
@@ -143,8 +144,8 @@ describe('basic server > components & composition', () => {
 		}
 
 		component Basic() {
-			let message = #ripple.track('Hello');
-			let number = #ripple.track(1);
+			let message = track('Hello');
+			let number = track(1);
 
 			<ChildComponent text={message} count={number} />
 			<button
@@ -231,7 +232,7 @@ describe('basic server > components & composition', () => {
 		}
 
 		component App() {
-			let Content = #ripple.track(() => Noop);
+			let Content = track(() => Noop);
 			<@Content />
 		}
 

@@ -1,5 +1,7 @@
+import { track } from 'ripple';
+
 export component App() {
-	let count = #ripple.track(0);
+	let count = track(0);
 
 	<div class="app">
 		<div class="card">

@@ -25,6 +25,8 @@ var root_21 = _$_.template(`<div class="nobreak-2">NoBreak 2</div>`, 0);
 var root_22 = _$_.template(`<div class="nobreak-3">NoBreak 3</div>`, 0);
 var root_19 = _$_.template(`<button class="nobreak-toggle">Toggle</button><!>`, 1, 2);
 
+import { track } from 'ripple';
+
 export function SwitchStatic(__anchor, _, __block) {
 	_$_.push_component();
 

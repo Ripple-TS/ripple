@@ -57,10 +57,11 @@ import {
 	hash,
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
+	is_ripple_import,
+	ripple_import_requires_block,
 } from '../../../utils.js';
 import {
 	CSS_HASH_IDENTIFIER,
-	RIPPLE_NAMESPACE_IDENTIFIER,
 	STYLE_IDENTIFIER,
 	SERVER_IDENTIFIER,
 	obfuscate_identifier,
@@ -107,6 +108,23 @@ function visit_function(node, context) {
 		}
 	}
 
+	// Replace lazy destructuring params with generated identifiers
+	const transformed_params = node.params.map((param) => {
+		const pattern = param.type === 'AssignmentPattern' ? param.left : param;
+		if (
+			(pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') &&
+			pattern.lazy &&
+			pattern.metadata?.lazy_id
+		) {
+			const id = b.id(pattern.metadata.lazy_id);
+			if (param.type === 'AssignmentPattern') {
+				return /** @type {AST.AssignmentPattern} */ ({ ...param, left: id });
+			}
+			return id;
+		}
+		return param;
+	});
+
 	let body = /** @type {AST.BlockStatement | AST.Expression} */ (
 		context.visit(node.body, {
 			...state,
@@ -125,7 +143,7 @@ function visit_function(node, context) {
 
 	return {
 		...node,
-		params: node.params.map((param) => context.visit(param, state)),
+		params: transformed_params.map((param) => context.visit(param, state)),
 		body,
 	};
 }
@@ -403,35 +421,11 @@ function slice_loc_info(loc_info, start_offset = 0, length) {
 }
 
 /**
- * @param {string} property_name
- * @param {string} source_name
- * @param {AST.NodeWithLocation} loc_info
- * @param {TransformClientContext} context
- * @returns {AST.MemberExpression}
- */
-function build_ripple_namespace_member(property_name, source_name, loc_info, context) {
-	const namespace_alias = set_hidden_import_from_ripple(RIPPLE_NAMESPACE_IDENTIFIER, context, true);
-	const namespace_loc = slice_loc_info(loc_info, 0, '#ripple'.length);
-	const namespace_id = b.id(namespace_alias, namespace_loc);
-	namespace_id.metadata.source_name = '#ripple';
-
-	const property_loc = slice_loc_info(loc_info, '#ripple.'.length, property_name.length);
-	const property_id = b.id(property_name, property_loc);
-
-	return b.member(namespace_id, property_id, false, false, loc_info);
-}
-
-/**
  * @param {string | undefined} name
  * @returns {boolean}
  */
 function ripple_namespace_requires_block(name) {
-	return (
-		name !== undefined &&
-		name !== '#ripple.effect' &&
-		name !== '#ripple.untrack' &&
-		name !== '#ripple.context'
-	);
+	return name !== undefined && ripple_import_requires_block(name);
 }
 
 /**
@@ -484,17 +478,6 @@ const visitors = {
 
 		if (is_reference(node, parent)) {
 			if (context.state.to_ts) {
-				if (node.metadata?.source_name === '#ripple' || node.name === '#ripple') {
-					const namespace_alias = set_hidden_import_from_ripple(
-						RIPPLE_NAMESPACE_IDENTIFIER,
-						context,
-						true,
-					);
-					const namespace_id = b.id(namespace_alias, /** @type {AST.NodeWithLocation} */ (node));
-					namespace_id.metadata.source_name = '#ripple';
-					return namespace_id;
-				}
-
 				if (node.tracked) {
 					// Check if this identifier is used as a dynamic component/element
 					// by checking if it has a capitalized name in metadata
@@ -542,6 +525,8 @@ const visitors = {
 						binding?.kind === 'prop' ||
 						binding?.kind === 'index' ||
 						binding?.kind === 'prop_fallback' ||
+						binding?.kind === 'lazy' ||
+						binding?.kind === 'lazy_fallback' ||
 						binding?.kind === 'for_pattern') &&
 					binding?.node !== node
 				) {
@@ -559,40 +544,19 @@ const visitors = {
 
 	ServerIdentifier(node, context) {
 		const id = b.id(SERVER_IDENTIFIER, /** @type {AST.NodeWithLocation} */ (node));
-		id.metadata.source_name = '#ripple.server';
+		id.metadata.source_name = '#server';
 		return id;
 	},
 
 	StyleIdentifier(node, context) {
 		if (context.state.to_ts) {
-			const namespace_alias = set_hidden_import_from_ripple(
-				RIPPLE_NAMESPACE_IDENTIFIER,
-				context,
-				true,
-			);
+			const style_alias = set_hidden_import_from_ripple(STYLE_IDENTIFIER, context, true);
 
-			// IMPORTANT! only add location to the ParenthesizedExpression
-			// otherwise it will cause partial #ripple mapping
-			const namespace_parens = b.parenthesized(
-				b.ts_as(b.id(namespace_alias), b.ts_type_reference(b.id('RippleNamespaceWithStyle'))),
-				slice_loc_info(/** @type {AST.NodeWithLocation} */ (node), 0, '#ripple'.length),
-			);
-			namespace_parens.metadata = {
-				...namespace_parens.metadata,
-				forceMapping: true,
-				skipParenthesisMapping: true,
-			};
+			// IMPORTANT! only add location to the identifier
+			const style_id = b.id(style_alias, /** @type {AST.NodeWithLocation} */ (node));
+			style_id.metadata.source_name = '#style';
 
-			return b.member(
-				namespace_parens,
-				b.id(
-					'style',
-					slice_loc_info(/** @type {AST.NodeWithLocation} */ (node), '#ripple.'.length),
-				),
-				false,
-				false,
-				/** @type {AST.NodeWithLocation} */ (node),
-			);
+			return b.ts_as(style_id, b.ts_type_reference(b.id('RippleStyle')));
 		}
 
 		return { ...node, ...b.id(STYLE_IDENTIFIER) };
@@ -649,41 +613,25 @@ const visitors = {
 		}
 		const callee = node.callee;
 		const parent = context.path.at(-1);
-		const source_name = callee.type === 'Identifier' ? callee.metadata?.source_name : undefined;
-		const ripple_runtime_method = get_ripple_namespace_call_name(source_name);
-		const ripple_method_requires_block = ripple_namespace_requires_block(source_name);
 
 		if (context.state.metadata?.tracking === false) {
 			context.state.metadata.tracking = true;
 		}
 
-		if (!context.state.to_ts && ripple_runtime_method !== null) {
-			return {
-				...node,
-				callee: b.member(b.id('_$_'), b.id(ripple_runtime_method)),
-				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
-					...(ripple_method_requires_block ? [b.id('__block')] : []),
-					...node.arguments.map((arg) => context.visit(arg)),
-				]),
-			};
-		}
-
-		if (context.state.to_ts && source_name?.startsWith('#ripple.')) {
-			const property_name = source_name.replace('#ripple.', '');
-			const namespace_member = build_ripple_namespace_member(
-				property_name,
-				source_name,
-				/** @type {AST.NodeWithLocation} */ (callee),
-				context,
-			);
-
-			return {
-				...node,
-				callee: namespace_member,
-				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
-					node.arguments.map((arg) => context.visit(arg))
-				),
-			};
+		// Handle direct calls to ripple-imported functions: effect(), untrack(), RippleArray(), etc.
+		if (!context.state.to_ts && callee.type === 'Identifier' && is_ripple_import(callee, context)) {
+			const ripple_runtime_method = get_ripple_namespace_call_name(callee.name);
+			if (ripple_runtime_method !== null) {
+				const requires_block = ripple_namespace_requires_block(callee.name);
+				return {
+					...node,
+					callee: b.member(b.id('_$_'), b.id(ripple_runtime_method)),
+					arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
+						...(requires_block ? [b.id('__block')] : []),
+						...node.arguments.map((arg) => context.visit(arg)),
+					]),
+				};
+			}
 		}
 
 		if (!context.state.to_ts && is_ripple_track_call(callee, context)) {
@@ -717,60 +665,32 @@ const visitors = {
 			};
 		}
 
-		// Check for more than two nested level calls, like #ripple.array.from()
+		// Handle member calls on ripple imports, like RippleArray.from()
 		if (
 			callee.type === 'MemberExpression' &&
-			callee.object.metadata?.source_name?.startsWith('#ripple.') &&
 			callee.object.type === 'Identifier' &&
-			callee.property.type === 'Identifier'
+			callee.property.type === 'Identifier' &&
+			is_ripple_import(callee, context)
 		) {
 			const object = callee.object;
 			const property = callee.property;
-			const source_name = /** @type {string} */ (object.metadata?.source_name);
-			const property_name = source_name.replace('#ripple.', '');
+			const method_name = get_ripple_namespace_call_name(object.name);
 
-			if (context.state.to_ts) {
-				// e.g. `#ripple.array`
-				const namespace_member = build_ripple_namespace_member(
-					property_name,
-					source_name,
-					/** @type {AST.NodeWithLocation} */ (node.callee),
-					context,
+			if (!context.state.to_ts && method_name !== null) {
+				const requires_block = ripple_namespace_requires_block(object.name);
+				return b.member(
+					b.id('_$_'),
+					b.member(
+						b.id(method_name),
+						b.call(
+							b.id(property.name),
+							.../** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
+								...(requires_block ? [b.id('__block')] : []),
+								...node.arguments.map((arg) => context.visit(arg)),
+							]),
+						),
+					),
 				);
-
-				return /** @type {AST.CallExpression} */ ({
-					...node,
-					callee: {
-						...namespace_member,
-						// e.g. `array.from`
-						property: b.member(
-							/** @type {AST.Identifier} */ (namespace_member.property),
-							property,
-							false,
-							false,
-							slice_loc_info(/** @type {AST.NodeWithLocation} */ (node.callee), '#ripple.'.length),
-						),
-					},
-					arguments: node.arguments.map((arg) => context.visit(arg)),
-				});
-			} else {
-				const method_name = get_ripple_namespace_call_name(source_name);
-				const requires_block = ripple_namespace_requires_block(source_name);
-				if (method_name !== null) {
-					return b.member(
-						b.id('_$_'),
-						b.member(
-							b.id(method_name),
-							b.call(
-								b.id(property.name),
-								.../** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
-									...(requires_block ? [b.id('__block')] : []),
-									...node.arguments.map((arg) => context.visit(arg)),
-								]),
-							),
-						),
-					);
-				}
 			}
 		}
 
@@ -851,6 +771,21 @@ const visitors = {
 			context.state.metadata.tracking = true;
 		}
 
+		// Transform `new RippleArray(...)`, `new RippleMap(...)`, etc. imported from 'ripple'
+		if (!context.state.to_ts && callee.type === 'Identifier' && is_ripple_import(callee, context)) {
+			const ripple_runtime_method = get_ripple_namespace_call_name(callee.name);
+			if (ripple_runtime_method !== null) {
+				const requires_block = ripple_namespace_requires_block(callee.name);
+				return b.call(
+					'_$_.' + ripple_runtime_method,
+					...(requires_block ? [b.id('__block')] : []),
+					.../** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+						node.arguments.map((arg) => context.visit(arg))
+					),
+				);
+			}
+		}
+
 		if (
 			context.state.to_ts ||
 			!is_inside_component(context, true) ||
@@ -877,70 +812,6 @@ const visitors = {
 		}
 
 		return b.call('_$_.with_scope', b.id('__block'), b.thunk(new_node));
-	},
-
-	RippleArrayExpression(node, context) {
-		if (context.state.to_ts) {
-			const arrayAlias = set_hidden_import_from_ripple('RippleArray', context);
-			const id = b.id(
-				arrayAlias,
-				slice_loc_info(/** @type {AST.NodeWithLocation} */ (node), 0, '#ripple'.length),
-			);
-			id.metadata.source_name = '#ripple';
-
-			return {
-				type: 'NewExpression',
-				callee: id,
-				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
-					node.elements.map((el) => context.visit(/** @type {AST.Node} */ (el)))
-				),
-				metadata: { path: [] },
-			};
-		}
-
-		return b.call(
-			'_$_.ripple_array',
-			b.id('__block'),
-			.../** @type {(AST.Expression | AST.SpreadElement)[]} */ (
-				node.elements.map((el) => context.visit(/** @type {AST.Node} */ (el)))
-			),
-		);
-	},
-
-	RippleObjectExpression(node, context) {
-		if (context.state.to_ts) {
-			const objectAlias = set_hidden_import_from_ripple('RippleObject', context);
-			const id = b.id(
-				objectAlias,
-				slice_loc_info(/** @type {AST.NodeWithLocation} */ (node), 0, '#ripple'.length),
-			);
-			id.metadata.source_name = '#ripple';
-			const new_node = b.new(
-				id,
-				/** @type {AST.NodeWithLocation} */ (node),
-				b.object(
-					/** @type {(AST.Property | AST.SpreadElement)[]} */ (
-						node.properties.map((prop) => context.visit(prop))
-					),
-					slice_loc_info(/** @type {AST.NodeWithLocation} */ (node), '#ripple'.length),
-				),
-			);
-			// force the source mapping to skip the constructor,
-			// otherwise the mapping will be off by 4 and the whole
-			// new expression will be mapped to the source which doesn't have `new `
-			new_node.metadata.skipNewMapping = true;
-			return new_node;
-		}
-
-		return b.call(
-			'_$_.ripple_object',
-			b.id('__block'),
-			b.object(
-				/** @type {(AST.Property | AST.SpreadElement)[]} */ (
-					node.properties.map((prop) => context.visit(prop))
-				),
-			),
-		);
 	},
 
 	TrackedExpression(node, context) {
@@ -1060,6 +931,15 @@ const visitors = {
 		for (const declarator of node.declarations) {
 			if (!context.state.to_ts) {
 				delete declarator.id.typeAnnotation;
+
+				// Replace lazy destructuring patterns with the generated identifier
+				if (
+					(declarator.id.type === 'ObjectPattern' || declarator.id.type === 'ArrayPattern') &&
+					declarator.id.lazy &&
+					declarator.id.metadata?.lazy_id
+				) {
+					declarator.id = b.id(declarator.id.metadata.lazy_id);
+				}
 			}
 		}
 
@@ -1400,7 +1280,8 @@ const visitors = {
 			let style_attribute = null;
 			/** @type {TransformClientState['update']} */
 			const local_updates = [];
-			const is_void = is_void_element(/** @type {AST.Identifier} */ (node.id).name);
+			const element_name = /** @type {AST.Identifier} */ (node.id).name;
+			const is_void = is_void_element(element_name);
 			/** @type {AST.CSS.StyleSheet['hash'] | null} */
 			const scoping_hash =
 				state.applyParentCssScope ??
@@ -1408,7 +1289,7 @@ const visitors = {
 					? /** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash
 					: null);
 
-			state.template?.push(`<${/** @type {AST.Identifier} */ (node.id).name}`);
+			state.template?.push(`<${element_name}`);
 
 			for (const attr of node.attributes) {
 				if (attr.type === 'Attribute') {
@@ -1420,20 +1301,13 @@ const visitors = {
 							continue;
 						}
 
-						if (attr.value.type === 'Literal' && name !== 'class' && name !== 'style') {
+						if (
+							attr.value.type === 'Literal' &&
+							name !== 'class' &&
+							name !== 'style' &&
+							!(name === 'value' && element_name === 'option')
+						) {
 							handle_static_attr(name, attr.value.value);
-							continue;
-						}
-
-						if (name === 'class') {
-							class_attribute = attr;
-
-							continue;
-						}
-
-						if (name === 'style') {
-							style_attribute = attr;
-
 							continue;
 						}
 
@@ -1454,6 +1328,18 @@ const visitors = {
 							} else {
 								state.init?.push(b.stmt(b.call('_$_.set_value', id, expression)));
 							}
+
+							continue;
+						}
+
+						if (name === 'class') {
+							class_attribute = attr;
+
+							continue;
+						}
+
+						if (name === 'style') {
+							style_attribute = attr;
 
 							continue;
 						}
@@ -1760,10 +1646,7 @@ const visitors = {
 
 			state.template?.push('<!>');
 
-			if (state.applyParentCssScope) {
-				// We're inside a component, don't continue applying css hash to class
-				state.applyParentCssScope = undefined;
-			}
+			const apply_parent_css_scope = state.applyParentCssScope;
 
 			const is_dynamic_element = is_element_dynamic(node);
 			const is_spreading = node.attributes.some((attr) => attr.type === 'SpreadAttribute');
@@ -1880,11 +1763,12 @@ const visitors = {
 				const children = /** @type {AST.Expression} */ (
 					visit(children_component, {
 						...state,
-						...(state.applyParentCssScope ||
+						...(apply_parent_css_scope ||
 						(is_dynamic_element && node.metadata.scoped && state.component?.css)
 							? {
-									applyParentCssScope: /** @type {AST.CSS.StyleSheet} */ (state.component?.css)
-										.hash,
+									applyParentCssScope:
+										apply_parent_css_scope ||
+										/** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash,
 								}
 							: {}),
 						scope: /** @type {ScopeInterface} */ (component_scope),
@@ -2012,34 +1896,21 @@ const visitors = {
 				}
 			}
 			if (context.state.to_ts) {
-				const namespace_alias = set_hidden_import_from_ripple(
-					RIPPLE_NAMESPACE_IDENTIFIER,
-					context,
-					true,
-				);
-
-				// This will create a type that we'll use for type casting #ripple.style access, e.g.
-				// type RippleNamespaceWithStyle = Omit<typeof _$__u0023_ripple, 'style'> &	{ style: typeof _$__u0023_style };
-				const ripple_type_alias = b.ts_type_alias(
-					b.id('RippleNamespaceWithStyle'),
-					b.ts_intersection_type([
-						b.ts_type_reference(
-							b.id('Omit'),
-							b.ts_type_parameter_instantiation([
-								b.ts_type_query(b.id(namespace_alias)),
-								b.ts_literal_type(b.literal('style')),
-							]),
-						),
-						b.ts_type_literal([
+				// For to_ts mode, we create a type alias for RippleStyle
+				// that maps the scoped class names
+				const ripple_style_type_alias = b.ts_type_alias(
+					b.id('RippleStyle'),
+					b.ts_type_literal(
+						properties.map((prop) =>
 							b.ts_property_signature(
-								b.id('style'),
-								b.ts_type_annotation(b.ts_type_query(b.id(STYLE_IDENTIFIER))),
+								/** @type {AST.Expression} */ (prop.key),
+								b.ts_type_annotation(b.ts_keyword_type('string')),
 							),
-						]),
-					]),
+						),
+					),
 				);
 				style_statements.push(
-					/** @type {AST.Statement} */ (/** @type {unknown} */ (ripple_type_alias)),
+					/** @type {AST.Statement} */ (/** @type {unknown} */ (ripple_style_type_alias)),
 				);
 			}
 			style_statements.push(b[var_method_type](b.id(STYLE_IDENTIFIER), b.object(properties)));
@@ -2080,6 +1951,7 @@ const visitors = {
 			return func;
 		}
 
+		/** @type {AST.Identifier | AST.ObjectPattern | AST.ArrayPattern} */
 		let props = b.id('__props');
 
 		if (node.params.length > 0) {
@@ -2088,8 +1960,13 @@ const visitors = {
 			if (props_param.type === 'Identifier') {
 				delete props_param.typeAnnotation;
 				props = props_param;
-			} else if (props_param.type === 'ObjectPattern') {
+			} else if (props_param.type === 'ObjectPattern' || props_param.type === 'ArrayPattern') {
 				delete props_param.typeAnnotation;
+				if (!props_param.lazy) {
+					// Non-lazy destructuring: use the pattern directly as the function param
+					props = props_param;
+				}
+				// Lazy destructuring: props stays as __props, bindings resolved via transforms
 			}
 		}
 
@@ -2200,6 +2077,14 @@ const visitors = {
 			return context.next();
 		}
 		const argument = node.argument;
+
+		// Handle lazy binding updates (e.g., a++ where a is from let &{a} = obj)
+		if (argument.type === 'Identifier') {
+			const binding = context.state.scope?.get(argument.name);
+			if (binding?.transform?.update && binding.node !== argument) {
+				return binding.transform.update(node);
+			}
+		}
 
 		if (
 			argument.type === 'MemberExpression' &&
@@ -2749,10 +2634,10 @@ const visitors = {
 
 			const server_identifier = b.id(
 				SERVER_IDENTIFIER,
-				slice_loc_info(/** @type {AST.NodeWithLocation} */ (node), 0, '#ripple.server'.length),
+				slice_loc_info(/** @type {AST.NodeWithLocation} */ (node), 0, '#server'.length),
 			);
-			// Add source_name to properly map longer generated back to '#ripple.server'
-			server_identifier.metadata.source_name = '#ripple.server';
+			// Add source_name to properly map longer generated back to '#server'
+			server_identifier.metadata.source_name = '#server';
 
 			const server_const = b.const(server_identifier, value);
 			server_const.loc = node.loc;
@@ -2761,7 +2646,7 @@ const visitors = {
 		}
 
 		if (!context.state.serverIdentifierPresent) {
-			// no point printing the client-side block if #ripple.server.func is not used
+			// no point printing the client-side block if #server.func is not used
 			return b.empty;
 		}
 

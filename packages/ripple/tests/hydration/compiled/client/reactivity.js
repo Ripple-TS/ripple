@@ -8,6 +8,8 @@ var root_3 = _$_.template(`<div class="sum"> </div>`, 0);
 var root_4 = _$_.template(`<div class="x"> </div><div class="y"> </div><div class="z"> </div>`, 1, 3);
 var root_5 = _$_.template(`<div class="name"> </div>`, 0);
 
+import { track } from 'ripple';
+
 export function TrackedState(__anchor, _, __block) {
 	_$_.push_component();
 

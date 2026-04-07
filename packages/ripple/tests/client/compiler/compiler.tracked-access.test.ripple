@@ -3,8 +3,9 @@ import { compile } from 'ripple/compiler';
 describe('Compiler: Tracked Object Direct Access Checks', () => {
 	it('should error on direct access to __v of a tracked object', () => {
 		const code = `
+import { track } from 'ripple';
             export default component App() {
-                let count = #ripple.track(0);
+                let count = track(0);
                 console.log(count.__v);
             }
         `;
@@ -15,8 +16,9 @@ describe('Compiler: Tracked Object Direct Access Checks', () => {
 
 	it('should error on direct access to "a" (get/set config) of a tracked object', () => {
 		const code = `
+import { track } from 'ripple';
             export default component App() {
-                let myTracked = #ripple.track(0);
+                let myTracked = track(0);
                 console.log(myTracked.a);
             }
         `;
@@ -27,8 +29,9 @@ describe('Compiler: Tracked Object Direct Access Checks', () => {
 
 	it('should error on direct access to "b" (block) of a tracked object', () => {
 		const code = `
+import { track } from 'ripple';
             export default component App() {
-                let myTracked = #ripple.track(0);
+                let myTracked = track(0);
                 console.log(myTracked.b);
             }
         `;
@@ -39,8 +42,9 @@ describe('Compiler: Tracked Object Direct Access Checks', () => {
 
 	it('should error on direct access to "c" (clock) of a tracked object', () => {
 		const code = `
+import { track } from 'ripple';
             export default component App() {
-                let myTracked = #ripple.track(0);
+                let myTracked = track(0);
                 console.log(myTracked.c);
             }
         `;
@@ -51,8 +55,9 @@ describe('Compiler: Tracked Object Direct Access Checks', () => {
 
 	it('should error on direct access to "f" (flags) of a tracked object', () => {
 		const code = `
+import { track } from 'ripple';
             export default component App() {
-                let myTracked = #ripple.track(0);
+                let myTracked = track(0);
                 console.log(myTracked.f);
             }
         `;
@@ -63,8 +68,9 @@ describe('Compiler: Tracked Object Direct Access Checks', () => {
 
 	it('should compile successfully with correct @ syntax access', () => {
 		const code = `
+import { track } from 'ripple';
             export default component App() {
-                let count = #ripple.track(0);
+                let count = track(0);
                 console.log(@count);
             }
         `;
@@ -73,9 +79,9 @@ describe('Compiler: Tracked Object Direct Access Checks', () => {
 
 	it('should compile successfully with correct get() function access', () => {
 		const code = `
-import { get } from 'ripple';
+import { get, track } from 'ripple';
             export default component App() {
-                let count = #ripple.track(0);
+                let count = track(0);
                 console.log(get(count));
             }
         `;

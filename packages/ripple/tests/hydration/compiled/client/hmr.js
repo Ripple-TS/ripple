@@ -7,7 +7,9 @@ var root_1 = _$_.template(`<div class="content"><!></div>`, 0);
 var root_4 = _$_.template(`<!>`, 1, 1);
 var root_3 = _$_.template(`<!>`, 1, 1);
 
-export function Layout(__anchor, __props, __block) {
+import { track } from 'ripple';
+
+export function Layout(__anchor, { children }, __block) {
 	_$_.push_component();
 
 	var div_1 = root();
@@ -19,7 +21,7 @@ export function Layout(__anchor, __props, __block) {
 		{
 			var node = _$_.child(main_1);
 
-			_$_.composite(() => __props.children, node, {});
+			children(node, {}, _$_.active_block);
 			_$_.pop(main_1);
 		}
 	}

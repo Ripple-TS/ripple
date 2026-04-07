@@ -102,13 +102,6 @@ Source Code (.ripple) → Parse → Analyze → Transform → Output (JS + CSS)
 - `component` keyword for component declarations
 - JSX with special handling for `@` tracked expressions
 - `#server` blocks for server-only code
-- `#ripple[]` (RippleArray shorthand), `#ripple{}` (RippleObject shorthand),
-  `#ripple.map()` (RippleMap), `#ripple.set()` (RippleSet),` #ripple.array()`
-  (RippleArray), `#ripple.object()` (RippleObject), `#ripple.url()` (RippleURL),
-  `#ripple.urlSearchParams()` (RippleURLSearchParams), `#ripple.Date()`
-  (RippleDate), `#ripple.Context()` (RippleContext), `#ripple.mediaQuery()`
-  (MediaQuery) `#ripple.track()` (track()), `#ripple.trackSplit()` (trackSplit())
-  `#ripple.untrack()` (untrack()), `#ripple.effect()` (effect()),
 - `#style` identifier for scoped CSS classes
 
 **Output:** ESTree-compatible AST with Ripple extensions
@@ -405,11 +398,12 @@ plugin transforms them before Vitest runs:
 ```ripple
 // Example: packages/ripple/tests/client/reactivity.test.ripple
 import { describe, it, expect } from 'vitest';
+import { track } from 'ripple';
 
 component default() {
   describe('tracked', () => {
     it('updates when value changes', async () => {
-      let count = #ripple.track(0);
+      let count = track(0);
       // test implementation
     });
   });

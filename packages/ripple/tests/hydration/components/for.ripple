@@ -1,3 +1,5 @@
+import { track } from 'ripple';
+
 // For loop components for hydration testing
 
 export component StaticForLoop() {
@@ -32,7 +34,7 @@ export component KeyedForLoop() {
 }
 
 export component ReactiveForLoopAdd() {
-	let items = #ripple.track(['A', 'B']);
+	let items = track(['A', 'B']);
 	<button
 		class="add"
 		onClick={() => {
@@ -49,7 +51,7 @@ export component ReactiveForLoopAdd() {
 }
 
 export component ReactiveForLoopRemove() {
-	let items = #ripple.track(['A', 'B', 'C']);
+	let items = track(['A', 'B', 'C']);
 	<button
 		class="remove"
 		onClick={() => {
@@ -66,7 +68,7 @@ export component ReactiveForLoopRemove() {
 }
 
 export component ForLoopInteractive() {
-	let counts = #ripple.track([0, 0, 0]);
+	let counts = track([0, 0, 0]);
 	<div>
 		for (const count of @counts; index i) {
 			<div class={`item-${i}`}>
@@ -128,7 +130,7 @@ export component ForLoopComplexObjects() {
 
 // Test reordering items in a keyed for loop
 export component KeyedForLoopReorder() {
-	let items = #ripple.track([
+	let items = track([
 		{ id: 1, name: 'First' },
 		{ id: 2, name: 'Second' },
 		{ id: 3, name: 'Third' },
@@ -150,7 +152,7 @@ export component KeyedForLoopReorder() {
 
 // Test for loop with item property updates (keyed)
 export component KeyedForLoopUpdate() {
-	let items = #ripple.track([
+	let items = track([
 		{ id: 1, name: 'Item 1' },
 		{ id: 2, name: 'Item 2' },
 	]);
@@ -171,7 +173,7 @@ export component KeyedForLoopUpdate() {
 
 // Test for loop with combined add/remove/reorder
 export component ForLoopMixedOperations() {
-	let items = #ripple.track(['A', 'B', 'C', 'D']);
+	let items = track(['A', 'B', 'C', 'D']);
 	<button
 		class="shuffle"
 		onClick={() => {
@@ -190,8 +192,8 @@ export component ForLoopMixedOperations() {
 
 // Test for loop inside if block (combined control flow)
 export component ForLoopInsideIf() {
-	let showList = #ripple.track(true);
-	let items = #ripple.track(['X', 'Y', 'Z']);
+	let showList = track(true);
+	let items = track(['X', 'Y', 'Z']);
 	<button
 		class="toggle"
 		onClick={() => {
@@ -219,7 +221,7 @@ export component ForLoopInsideIf() {
 
 // Test for loop that transitions from empty to populated
 export component ForLoopEmptyToPopulated() {
-	let items = #ripple.track<string[]>([]);
+	let items = track<string[]>([]);
 	<button
 		class="populate"
 		onClick={() => {
@@ -237,7 +239,7 @@ export component ForLoopEmptyToPopulated() {
 
 // Test for loop that transitions from populated to empty
 export component ForLoopPopulatedToEmpty() {
-	let items = #ripple.track(['One', 'Two', 'Three']);
+	let items = track(['One', 'Two', 'Three']);
 	<button
 		class="clear"
 		onClick={() => {
@@ -255,7 +257,7 @@ export component ForLoopPopulatedToEmpty() {
 
 // Test nested for loops with reactivity
 export component NestedForLoopReactive() {
-	let grid = #ripple.track([
+	let grid = track([
 		[1, 2],
 		[3, 4],
 	]);
@@ -328,7 +330,7 @@ export component ForLoopDeeplyNested() {
 
 // Test for loop with index that gets updated
 export component ForLoopIndexUpdate() {
-	let items = #ripple.track(['First', 'Second', 'Third']);
+	let items = track(['First', 'Second', 'Third']);
 	<button
 		class="prepend"
 		onClick={() => {
@@ -346,7 +348,7 @@ export component ForLoopIndexUpdate() {
 
 // Test keyed for loop with index
 export component KeyedForLoopWithIndex() {
-	let items = #ripple.track([
+	let items = track([
 		{ id: 'a', value: 'Alpha' },
 		{ id: 'b', value: 'Beta' },
 		{ id: 'c', value: 'Gamma' },
@@ -368,7 +370,7 @@ export component KeyedForLoopWithIndex() {
 
 // Test for loop with sibling elements
 export component ForLoopWithSiblings() {
-	let items = #ripple.track(['A', 'B']);
+	let items = track(['A', 'B']);
 	<div class="wrapper">
 		<header class="before">{'Before'}</header>
 		for (const item of @items) {
@@ -401,7 +403,7 @@ export component ForLoopItemState() {
 }
 
 component TodoItem(props: { id: number; text: string }) {
-	let done = #ripple.track(false);
+	let done = track(false);
 	<div class={`todo-${props.id}`}>
 		<input
 			type="checkbox"
@@ -427,7 +429,7 @@ export component ForLoopSingleItem() {
 
 // Test for loop adding at beginning
 export component ForLoopAddAtBeginning() {
-	let items = #ripple.track(['B', 'C']);
+	let items = track(['B', 'C']);
 	<button
 		class="prepend"
 		onClick={() => {
@@ -445,7 +447,7 @@ export component ForLoopAddAtBeginning() {
 
 // Test for loop adding in the middle
 export component ForLoopAddInMiddle() {
-	let items = #ripple.track(['A', 'C']);
+	let items = track(['A', 'C']);
 	<button
 		class="insert"
 		onClick={() => {
@@ -465,7 +467,7 @@ export component ForLoopAddInMiddle() {
 
 // Test for loop removing from the middle
 export component ForLoopRemoveFromMiddle() {
-	let items = #ripple.track(['A', 'B', 'C']);
+	let items = track(['A', 'B', 'C']);
 	<button
 		class="remove-middle"
 		onClick={() => {
@@ -493,7 +495,7 @@ export component ForLoopLargeList() {
 
 // Test for loop with swap operation
 export component ForLoopSwap() {
-	let items = #ripple.track(['A', 'B', 'C', 'D']);
+	let items = track(['A', 'B', 'C', 'D']);
 	<button
 		class="swap"
 		onClick={() => {
@@ -513,7 +515,7 @@ export component ForLoopSwap() {
 
 // Test for loop with reverse operation
 export component ForLoopReverse() {
-	let items = #ripple.track(['A', 'B', 'C', 'D']);
+	let items = track(['A', 'B', 'C', 'D']);
 	<button
 		class="reverse"
 		onClick={() => {

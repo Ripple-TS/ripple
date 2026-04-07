@@ -1,3 +1,4 @@
+import { track } from 'ripple';
 import type { Tracked, PropsNoChildren } from 'ripple';
 
 describe('basic client', () => {
@@ -14,7 +15,7 @@ describe('basic client', () => {
 
 	it('renders tracked state updates', async () => {
 		component Counter() {
-			const count = #ripple.track(0);
+			const count = track(0);
 
 			@count++;
 			@count = @count + 5;
@@ -37,8 +38,8 @@ describe('basic client', () => {
 		}
 
 		component Parent() {
-			const count = #ripple.track(10);
-			let Dynamic = #ripple.track(() => Child);
+			const count = track(10);
+			let Dynamic = track(() => Child);
 
 			<@Dynamic {count} class={{ test: true }} />
 		}
@@ -50,7 +51,7 @@ describe('basic client', () => {
 
 	it('renders tracked object properties', async () => {
 		component ObjCounter() {
-			const obj = { count: #ripple.track(2) };
+			const obj = { count: track(2) };
 
 			obj.@count += 3;
 			obj.@count = obj.@count + 1;
@@ -65,9 +66,9 @@ describe('basic client', () => {
 
 	it('renders spread props with tracked values', async () => {
 		component SpreadProps() {
-			const id = #ripple.track('unique-id');
-			const isActive = #ripple.track(true);
-			const styles = #ripple.track({ color: 'red', fontSize: '16px' });
+			const id = track('unique-id');
+			const isActive = track(true);
+			const styles = track({ color: 'red', fontSize: '16px' });
 
 			<div {...{ id: @id, class: { active: @isActive }, style: @styles }}>{'Spread Props'}</div>
 		}
@@ -81,8 +82,8 @@ describe('basic client', () => {
 
 	it('handles AssignExpressions with tracked values or properties correctly', async () => {
 		component Assignments() {
-			const count = #ripple.track(0);
-			const obj = { value: #ripple.track(5) };
+			const count = track(0);
+			const obj = { value: track(5) };
 
 			@count += 10;
 			obj.@value *= 2;
@@ -98,9 +99,9 @@ describe('basic client', () => {
 
 	it(`handles derived changes via tracked dependencies' changes`, async () => {
 		component Derived() {
-			let base = #ripple.track(5);
-			let multiplier = #ripple.track(3);
-			const derived = #ripple.track(() => @base * @multiplier);
+			let base = track(5);
+			let multiplier = track(3);
+			const derived = track(() => @base * @multiplier);
 
 			<div>{@derived}</div>
 
@@ -117,10 +118,10 @@ describe('basic client', () => {
 
 	it(`handles derived changes based on another derived's dependencies' changes`, async () => {
 		component NestedDerived() {
-			let a = #ripple.track(2);
-			let b = #ripple.track(3);
-			const sum = #ripple.track(() => @a + @b);
-			const product = #ripple.track(() => @sum * 2);
+			let a = track(2);
+			let b = track(3);
+			const sum = track(() => @a + @b);
+			const product = track(() => @sum * 2);
 
 			<div>{@product}</div>
 
@@ -137,19 +138,19 @@ describe('basic client', () => {
 
 	it('handles lexical scopes correctly', async () => {
 		component LexicalScopes() {
-			let x = #ripple.track(1);
+			let x = track(1);
 			<div>{@x}</div>
 
 			<div>
-				let x = #ripple.track(10);
+				let x = track(10);
 				{@x}
 			</div>
 
 			<div>
-				let x = #ripple.track(12);
+				let x = track(12);
 				{@x}
 				<span>
-					let x = #ripple.track(15);
+					let x = track(15);
 					{@x}
 				</span>
 			</div>

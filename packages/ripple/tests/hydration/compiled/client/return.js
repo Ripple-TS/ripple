@@ -130,6 +130,8 @@ var root_121 = _$_.template(`<div class="middle">middle</div><section class="nes
 var root_127 = _$_.template(`<div class="root-1">root-1</div><div class="root-2">root-2</div><div class="root-3">root-3</div><div class="root-4">root-4</div>`, 1, 4);
 var root_119 = _$_.template(`<button class="toggle-c1">Toggle C1</button><button class="toggle-c2">Toggle C2</button><button class="toggle-c3">Toggle C3</button><button class="toggle-c4">Toggle C4</button><div class="top">top</div><!><!><!>`, 1, 8);
 
+import { track } from 'ripple';
+
 export function DirectReturn(__anchor, _, __block) {
 	_$_.push_component();
 

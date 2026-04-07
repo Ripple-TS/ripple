@@ -26,6 +26,8 @@ import {
 	is_binding_function,
 	is_element_dynamic,
 	is_ripple_track_call,
+	is_ripple_import,
+	ripple_import_requires_block,
 	hash,
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
@@ -324,6 +326,27 @@ const visitors = {
 		const parent = /** @type {AST.Node} */ (context.path.at(-1));
 
 		if (is_reference(node, parent)) {
+			// Apply lazy destructuring binding transforms only
+			const binding = context.state.scope?.get(node.name);
+			if (
+				binding?.transform?.read &&
+				binding.node !== node &&
+				(binding.kind === 'lazy' || binding.kind === 'lazy_fallback')
+			) {
+				const transformed = binding.transform.read(node);
+				if (node.tracked) {
+					const is_right_side_of_assignment =
+						parent.type === 'AssignmentExpression' && parent.right === node;
+					if (
+						(parent.type !== 'AssignmentExpression' && parent.type !== 'UpdateExpression') ||
+						is_right_side_of_assignment
+					) {
+						return b.call('_$_.get', transformed);
+					}
+				}
+				return transformed;
+			}
+
 			if (node.tracked) {
 				const is_right_side_of_assignment =
 					parent.type === 'AssignmentExpression' && parent.right === node;
@@ -340,13 +363,24 @@ const visitors = {
 	},
 
 	Component(node, context) {
+		let props_param_output;
+
 		if (node.params.length > 0) {
 			let props_param = node.params[0];
 
 			if (props_param.type === 'Identifier') {
 				delete props_param.typeAnnotation;
-			} else if (props_param.type === 'ObjectPattern') {
+				props_param_output = props_param;
+			} else if (props_param.type === 'ObjectPattern' || props_param.type === 'ArrayPattern') {
 				delete props_param.typeAnnotation;
+				if (props_param.lazy) {
+					// Lazy destructuring: use __props identifier, bindings resolved via transforms
+					props_param_output = b.id('__props');
+				} else {
+					props_param_output = props_param;
+				}
+			} else {
+				props_param_output = props_param;
 			}
 		}
 
@@ -395,7 +429,7 @@ const visitors = {
 
 		let component_fn = b.function(
 			node.id,
-			node.params.length > 0 ? [b.id('__output'), node.params[0]] : [b.id('__output')],
+			node.params.length > 0 ? [b.id('__output'), props_param_output] : [b.id('__output')],
 			b.block([
 				...(metadata.await
 					? [b.return(b.call('_$_.async', b.thunk(b.block(body_statements), true)))]
@@ -471,17 +505,19 @@ const visitors = {
 		}
 
 		const callee = node.callee;
-		const source_name = callee.type === 'Identifier' ? callee.metadata?.source_name : undefined;
-		const ripple_runtime_method = get_ripple_namespace_call_name(source_name);
 
-		if (ripple_runtime_method !== null) {
-			return {
-				...node,
-				callee: b.member(b.id('_$_'), b.id(ripple_runtime_method)),
-				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
-					...node.arguments.map((arg) => context.visit(arg)),
-				]),
-			};
+		// Handle direct calls to ripple-imported functions: effect(), untrack(), RippleArray(), etc.
+		if (callee.type === 'Identifier' && is_ripple_import(callee, context)) {
+			const ripple_runtime_method = get_ripple_namespace_call_name(callee.name);
+			if (ripple_runtime_method !== null) {
+				return {
+					...node,
+					callee: b.member(b.id('_$_'), b.id(ripple_runtime_method)),
+					arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
+						...node.arguments.map((arg) => context.visit(arg)),
+					]),
+				};
+			}
 		}
 
 		if (is_ripple_track_call(callee, context)) {
@@ -505,18 +541,16 @@ const visitors = {
 			};
 		}
 
-		// Check for more than two nested level calls, like #ripple.array.from()
+		// Handle member calls on ripple imports, like RippleArray.from()
 		if (
 			callee.type === 'MemberExpression' &&
-			callee.object.metadata?.source_name?.startsWith('#ripple.') &&
 			callee.object.type === 'Identifier' &&
-			callee.property.type === 'Identifier'
+			callee.property.type === 'Identifier' &&
+			is_ripple_import(callee, context)
 		) {
 			const object = callee.object;
 			const property = callee.property;
-			const source_name = /** @type {string} */ (object.metadata?.source_name);
-
-			const method_name = get_ripple_namespace_call_name(source_name);
+			const method_name = get_ripple_namespace_call_name(object.name);
 			if (method_name !== null) {
 				return b.member(
 					b.id('_$_'),
@@ -542,6 +576,20 @@ const visitors = {
 		if (!context.state.to_ts) {
 			delete node.typeArguments;
 		}
+
+		// Transform `new RippleArray(...)`, `new RippleMap(...)`, etc. imported from 'ripple'
+		if (callee.type === 'Identifier' && is_ripple_import(callee, context)) {
+			const ripple_runtime_method = get_ripple_namespace_call_name(callee.name);
+			if (ripple_runtime_method !== null) {
+				return b.call(
+					'_$_.' + ripple_runtime_method,
+					.../** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+						node.arguments.map((arg) => context.visit(arg))
+					),
+				);
+			}
+		}
+
 		return context.next();
 	},
 
@@ -570,11 +618,25 @@ const visitors = {
 		if (!context.state.to_ts) {
 			delete node.returnType;
 			delete node.typeParameters;
-			for (const param of node.params) {
+			for (let i = 0; i < node.params.length; i++) {
+				const param = node.params[i];
 				delete param.typeAnnotation;
 				// Handle AssignmentPattern (parameters with default values)
 				if (param.type === 'AssignmentPattern' && param.left) {
 					delete param.left.typeAnnotation;
+				}
+				// Replace lazy destructuring params with generated identifiers
+				const pattern = param.type === 'AssignmentPattern' ? param.left : param;
+				if (
+					(pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') &&
+					pattern.lazy &&
+					pattern.metadata?.lazy_id
+				) {
+					const id = b.id(pattern.metadata.lazy_id);
+					node.params[i] =
+						param.type === 'AssignmentPattern'
+							? /** @type {AST.AssignmentPattern} */ ({ ...param, left: id })
+							: id;
 				}
 			}
 		}
@@ -585,11 +647,25 @@ const visitors = {
 		if (!context.state.to_ts) {
 			delete node.returnType;
 			delete node.typeParameters;
-			for (const param of node.params) {
+			for (let i = 0; i < node.params.length; i++) {
+				const param = node.params[i];
 				delete param.typeAnnotation;
 				// Handle AssignmentPattern (parameters with default values)
 				if (param.type === 'AssignmentPattern' && param.left) {
 					delete param.left.typeAnnotation;
+				}
+				// Replace lazy destructuring params with generated identifiers
+				const pattern = param.type === 'AssignmentPattern' ? param.left : param;
+				if (
+					(pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') &&
+					pattern.lazy &&
+					pattern.metadata?.lazy_id
+				) {
+					const id = b.id(pattern.metadata.lazy_id);
+					node.params[i] =
+						param.type === 'AssignmentPattern'
+							? /** @type {AST.AssignmentPattern} */ ({ ...param, left: id })
+							: id;
 				}
 			}
 		}
@@ -610,11 +686,25 @@ const visitors = {
 	ArrowFunctionExpression(node, context) {
 		delete node.returnType;
 		delete node.typeParameters;
-		for (const param of node.params) {
+		for (let i = 0; i < node.params.length; i++) {
+			const param = node.params[i];
 			delete param.typeAnnotation;
 			// Handle AssignmentPattern (parameters with default values)
 			if (param.type === 'AssignmentPattern' && param.left) {
 				delete param.left.typeAnnotation;
+			}
+			// Replace lazy destructuring params with generated identifiers
+			const pattern = param.type === 'AssignmentPattern' ? param.left : param;
+			if (
+				(pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') &&
+				pattern.lazy &&
+				pattern.metadata?.lazy_id
+			) {
+				const id = b.id(pattern.metadata.lazy_id);
+				node.params[i] =
+					param.type === 'AssignmentPattern'
+						? /** @type {AST.AssignmentPattern} */ ({ ...param, left: id })
+						: id;
 			}
 		}
 
@@ -757,6 +847,15 @@ const visitors = {
 		for (const declarator of node.declarations) {
 			if (!context.state.to_ts) {
 				delete declarator.id.typeAnnotation;
+
+				// Replace lazy destructuring patterns with the generated identifier
+				if (
+					(declarator.id.type === 'ObjectPattern' || declarator.id.type === 'ArrayPattern') &&
+					declarator.id.lazy &&
+					declarator.id.metadata?.lazy_id
+				) {
+					declarator.id = b.id(declarator.id.metadata.lazy_id);
+				}
 			}
 		}
 
@@ -1015,10 +1114,7 @@ const visitors = {
 			/** @type {AST.Expression | null} */
 			let children_prop = null;
 
-			if (state.applyParentCssScope) {
-				// We're inside a component, don't continue applying css hash to class
-				state.applyParentCssScope = undefined;
-			}
+			const apply_parent_css_scope = state.applyParentCssScope;
 
 			for (const attr of node.attributes) {
 				if (attr.type === 'Attribute') {
@@ -1082,6 +1178,14 @@ const visitors = {
 				const children = /** @type {AST.Expression} */ (
 					visit(b.component(b.id('children'), [], children_filtered), {
 						...context.state,
+						...(apply_parent_css_scope ||
+						(is_element_dynamic(node) && node.metadata.scoped && state.component?.css)
+							? {
+									applyParentCssScope:
+										apply_parent_css_scope ||
+										/** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash,
+								}
+							: {}),
 						scope: component_scope,
 						namespace: child_namespace,
 					})
@@ -1324,6 +1428,23 @@ const visitors = {
 	AssignmentExpression(node, context) {
 		const left = node.left;
 
+		// Handle lazy binding assignments (e.g., a = 5 where a is from let &{a} = obj)
+		if (left.type === 'Identifier') {
+			const binding = context.state.scope?.get(left.name);
+			if (binding?.transform?.assign && binding.node !== left) {
+				let value = /** @type {AST.Expression} */ (context.visit(node.right));
+
+				// For compound operators (+=, -=, *=, /=), expand to read + operation
+				if (node.operator !== '=') {
+					const operator = node.operator.slice(0, -1); // '+=' -> '+'
+					const current = binding.transform.read(left);
+					value = b.binary(/** @type {AST.BinaryOperator} */ (operator), current, value);
+				}
+
+				return binding.transform.assign(left, value);
+			}
+		}
+
 		if (
 			left.type === 'MemberExpression' &&
 			(left.tracked || (left.property.type === 'Identifier' && left.property.tracked))
@@ -1376,6 +1497,14 @@ const visitors = {
 
 	UpdateExpression(node, context) {
 		const argument = node.argument;
+
+		// Handle lazy binding updates (e.g., a++ where a is from let &{a} = obj)
+		if (argument.type === 'Identifier') {
+			const binding = context.state.scope?.get(argument.name);
+			if (binding?.transform?.update && binding.node !== argument) {
+				return binding.transform.update(node);
+			}
+		}
 
 		if (
 			argument.type === 'MemberExpression' &&
@@ -1592,23 +1721,6 @@ const visitors = {
 
 	TrackedExpression(node, context) {
 		return b.call('_$_.get', /** @type {AST.Expression} */ (context.visit(node.argument)));
-	},
-
-	RippleObjectExpression(node, context) {
-		// For SSR, we just evaluate the object as-is since there's no reactivity
-		return b.object(
-			/** @type {(AST.Property | AST.SpreadElement)[]} */
-			(node.properties.map((prop) => context.visit(prop))),
-		);
-	},
-
-	RippleArrayExpression(node, context) {
-		return b.call(
-			'_$_.ripple_array',
-			.../** @type {(AST.Expression | AST.SpreadElement)[]} */ (
-				node.elements.map((el) => context.visit(/** @type {AST.Node} */ (el)))
-			),
-		);
 	},
 
 	MemberExpression(node, context) {

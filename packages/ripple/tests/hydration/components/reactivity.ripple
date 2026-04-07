@@ -1,12 +1,14 @@
+import { track } from 'ripple';
+
 // Reactive components for hydration testing
 
 export component TrackedState() {
-	let count = #ripple.track(0);
+	let count = track(0);
 	<div class="count">{@count}</div>
 }
 
 export component CounterWithInitial(props: { initial: number }) {
-	let count = #ripple.track(props.initial);
+	let count = track(props.initial);
 	<div>
 		<span class="count">{@count}</span>
 	</div>
@@ -17,24 +19,24 @@ export component CounterWrapper() {
 }
 
 export component ComputedValues() {
-	let a = #ripple.track(2);
-	let b = #ripple.track(3);
+	let a = track(2);
+	let b = track(3);
 	const sum = () => @a + @b;
 	<div class="sum">{sum()}</div>
 }
 
 export component MultipleTracked() {
-	let x = #ripple.track(10);
-	let y = #ripple.track(20);
-	let z = #ripple.track(30);
+	let x = track(10);
+	let y = track(20);
+	let z = track(30);
 	<div class="x">{@x}</div>
 	<div class="y">{@y}</div>
 	<div class="z">{@z}</div>
 }
 
 export component DerivedState() {
-	let firstName = #ripple.track('John');
-	let lastName = #ripple.track('Doe');
+	let firstName = track('John');
+	let lastName = track('Doe');
 	const fullName = () => `${@firstName} ${@lastName}`;
 	<div class="name">{fullName()}</div>
 }

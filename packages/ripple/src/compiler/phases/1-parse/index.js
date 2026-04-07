@@ -665,46 +665,14 @@ function RipplePlugin(config) {
 							ch === 13 || // carriage return
 							ch === -1; // EOF
 
-						if (startsWith('#ripple[')) {
-							this.pos += 8;
-							return this.finishToken(tt.bracketL, '#ripple[');
-						}
-
-						if (startsWith('#ripple{')) {
-							this.pos += 8;
-							return this.finishToken(tt.braceL, '#ripple{');
-						}
-
-						const ripple_keywords = [
-							'#ripple.map',
-							'#ripple.set',
-							'#ripple.array',
-							'#ripple.object',
-							'#ripple.track',
-							'#ripple.trackSplit',
-							'#ripple.untrack',
-							'#ripple.effect',
-							'#ripple.context',
-							'#ripple.date',
-							'#ripple.url',
-							'#ripple.urlSearchParams',
-							'#ripple.mediaQuery',
-							'#ripple.server',
-							'#ripple.style',
-							'#ripple.validate',
-						];
-
-						for (let i = 0; i < ripple_keywords.length; i++) {
-							const keyword = ripple_keywords[i];
-							if (startsWith(keyword) && is_ripple_delimiter(char_after(keyword.length))) {
-								this.pos += keyword.length;
-								return this.finishToken(tt.name, keyword);
-							}
-						}
-
-						if (this.#loose && startsWith('#ripple') && is_ripple_delimiter(char_after(7))) {
+						if (startsWith('#server') && is_ripple_delimiter(char_after(7))) {
 							this.pos += 7;
-							return this.finishToken(tt.name, '#ripple');
+							return this.finishToken(tt.name, '#server');
+						}
+
+						if (startsWith('#style') && is_ripple_delimiter(char_after(6))) {
+							this.pos += 6;
+							return this.finishToken(tt.name, '#style');
 						}
 					}
 				}
@@ -905,6 +873,49 @@ function RipplePlugin(config) {
 			}
 
 			/**
+			 * Override isLet to recognize `let &{` and `let &[` as variable declarations.
+			 * Acorn's isLet checks the char after `let` and only recognizes `{`, `[`, or identifiers.
+			 * The `&` char (38) is not in that set, so `let &{...}` would not be parsed as a declaration.
+			 * @param {string} context
+			 * @returns {boolean}
+			 */
+			isLet(context) {
+				if (!this.isContextual('let')) return false;
+				const skip = /\s*/y;
+				skip.lastIndex = this.pos;
+				const match = skip.exec(this.input);
+				if (!match) return super.isLet(context);
+				const next = this.pos + match[0].length;
+				const nextCh = this.input.charCodeAt(next);
+				// If next char is &, check if char after & is { or [
+				if (nextCh === 38) {
+					const afterAmp = this.input.charCodeAt(next + 1);
+					if (afterAmp === 123 || afterAmp === 91) return true;
+				}
+				return super.isLet(context);
+			}
+
+			/**
+			 * Parse binding atom - handles lazy destructuring patterns (&{...} and &[...])
+			 * When & is directly followed by { or [, parse as a lazy destructuring pattern.
+			 * The resulting ObjectPattern/ArrayPattern node gets a `lazy: true` flag.
+			 */
+			parseBindingAtom() {
+				if (this.type === tt.bitwiseAND) {
+					// Check that the char immediately after & is { or [ (no whitespace)
+					const charAfterAmp = this.input.charCodeAt(this.end);
+					if (charAfterAmp === 123 || charAfterAmp === 91) {
+						// & directly followed by { or [ — lazy destructuring
+						this.next(); // consume &, now current token is { or [
+						const pattern = super.parseBindingAtom();
+						pattern.lazy = true;
+						return pattern;
+					}
+				}
+				return super.parseBindingAtom();
+			}
+
+			/**
 			 * Parse expression atom - handles RippleArray and RippleObject literals
 			 * @type {Parse.Parser['parseExprAtom']}
 			 */
@@ -917,67 +928,17 @@ function RipplePlugin(config) {
 					return this.parseTrackedExpression();
 				}
 
-				// Check if this is #ripple.server identifier for server function calls
-				if (this.type === tt.name && this.value === '#ripple.server') {
+				// Check if this is #server identifier for server function calls
+				if (this.type === tt.name && this.value === '#server') {
 					const node = this.startNode();
 					this.next();
 					return /** @type {AST.ServerIdentifier} */ (this.finishNode(node, 'ServerIdentifier'));
 				}
 
-				if (this.type === tt.name && this.value === '#ripple.style') {
+				if (this.type === tt.name && this.value === '#style') {
 					const node = this.startNode();
 					this.next();
 					return /** @type {AST.StyleIdentifier} */ (this.finishNode(node, 'StyleIdentifier'));
-				}
-
-				if (this.type === tt.name && typeof this.value === 'string') {
-					const ripple_identifier_map = {
-						'#ripple.array': 'RippleArray',
-						'#ripple.object': 'RippleObject',
-						'#ripple.track': 'track',
-						'#ripple.trackSplit': 'trackSplit',
-						'#ripple.untrack': 'untrack',
-						'#ripple.effect': 'effect',
-						'#ripple.context': 'Context',
-						'#ripple.date': 'RippleDate',
-						'#ripple.map': 'RippleMap',
-						'#ripple.set': 'RippleSet',
-						'#ripple.url': 'RippleURL',
-						'#ripple.urlSearchParams': 'RippleURLSearchParams',
-						'#ripple.mediaQuery': 'MediaQuery',
-					};
-
-					const identifier_name =
-						ripple_identifier_map[/** @type {keyof typeof ripple_identifier_map} */ (this.value)];
-					if (identifier_name !== undefined) {
-						const node = /** @type {AST.Identifier} */ (this.startNode());
-						node.name = identifier_name;
-						node.metadata ??= { path: [] };
-						node.metadata.source_name = this.value;
-						this.next();
-						return this.finishNode(node, 'Identifier');
-					}
-				}
-
-				// In loose mode, handle incomplete #ripple prefixes for autocomplete
-				if (
-					this.#loose &&
-					this.type === tt.name &&
-					typeof this.value === 'string' &&
-					this.value === '#ripple'
-				) {
-					// Return an Identifier node for incomplete tracked syntax
-					const node = /** @type {AST.Identifier} */ (this.startNode());
-					node.name = this.value;
-					this.next();
-					return this.finishNode(node, 'Identifier');
-				}
-
-				// Check if this is a tuple literal starting with #ripple[
-				if (this.type === tt.bracketL && this.value === '#ripple[') {
-					return this.parseRippleArrayExpression();
-				} else if (this.type === tt.braceL && this.value === '#ripple{') {
-					return this.parseRippleObjectExpression();
 				}
 
 				// Check if this is a component expression (e.g., in object literal values)
@@ -1078,79 +1039,6 @@ function RipplePlugin(config) {
 
 				this.awaitPos = 0;
 				return this.finishNode(node, 'ServerBlock');
-			}
-
-			/**
-			 * @type {Parse.Parser['parseRippleArrayExpression']}
-			 */
-			parseRippleArrayExpression() {
-				const node = /** @type {AST.RippleArrayExpression} */ (this.startNode());
-				this.next(); // consume the '#ripple['
-
-				node.elements = [];
-
-				// Parse array elements similar to regular array parsing
-				let first = true;
-				while (!this.eat(tt.bracketR)) {
-					if (!first) {
-						this.expect(tt.comma);
-						if (this.afterTrailingComma(tt.bracketR)) break;
-					} else {
-						first = false;
-					}
-
-					if (this.type === tt.comma) {
-						// Hole in array
-						node.elements.push(null);
-					} else if (this.type === tt.ellipsis) {
-						// Spread element
-						const element = this.parseSpread();
-						node.elements.push(element);
-						if (this.type === tt.comma && this.input.charCodeAt(this.pos) === 93) {
-							this.raise(this.pos, 'Trailing comma is not permitted after the rest element');
-						}
-					} else {
-						// Regular element
-						node.elements.push(this.parseMaybeAssign(false));
-					}
-				}
-
-				return this.finishNode(node, 'RippleArrayExpression');
-			}
-
-			/**
-			 * @type {Parse.Parser['parseRippleObjectExpression']}
-			 */
-			parseRippleObjectExpression() {
-				const node = /** @type {AST.RippleObjectExpression} */ (this.startNode());
-				this.next(); // consume the '#ripple{'
-
-				node.properties = [];
-
-				// Parse object properties similar to regular object parsing
-				let first = true;
-				while (!this.eat(tt.braceR)) {
-					if (!first) {
-						this.expect(tt.comma);
-						if (this.afterTrailingComma(tt.braceR)) break;
-					} else {
-						first = false;
-					}
-
-					if (this.type === tt.ellipsis) {
-						// Spread property
-						const prop = this.parseSpread();
-						node.properties.push(prop);
-						if (this.type === tt.comma && this.input.charCodeAt(this.pos) === 125) {
-							this.raise(this.pos, 'Trailing comma is not permitted after the rest element');
-						}
-					} else {
-						// Regular property
-						node.properties.push(this.parseProperty(false, new DestructuringErrors()));
-					}
-				}
-
-				return this.finishNode(node, 'RippleObjectExpression');
 			}
 
 			/**
@@ -2146,32 +2034,34 @@ function RipplePlugin(config) {
 						if (element.type === 'TsxCompat') {
 							this.#path.pop();
 
-							const raise_error = () => {
-								this.raise(this.start, `Expected closing tag '</tsx:${element.kind}>'`);
-							};
+							if (!element.unclosed) {
+								const raise_error = () => {
+									this.raise(this.start, `Expected closing tag '</tsx:${element.kind}>'`);
+								};
 
-							this.next();
-							// we should expect to see </tsx:kind>
-							if (this.value !== '/') {
-								raise_error();
+								this.next();
+								// we should expect to see </tsx:kind>
+								if (this.value !== '/') {
+									raise_error();
+								}
+								this.next();
+								if (this.value !== 'tsx') {
+									raise_error();
+								}
+								this.next();
+								if (this.type.label !== ':') {
+									raise_error();
+								}
+								this.next();
+								if (this.value !== element.kind) {
+									raise_error();
+								}
+								this.next();
+								if (this.type !== tstt.jsxTagEnd) {
+									raise_error();
+								}
+								this.next();
 							}
-							this.next();
-							if (this.value !== 'tsx') {
-								raise_error();
-							}
-							this.next();
-							if (this.type.label !== ':') {
-								raise_error();
-							}
-							this.next();
-							if (this.value !== element.kind) {
-								raise_error();
-							}
-							this.next();
-							if (this.type !== tstt.jsxTagEnd) {
-								raise_error();
-							}
-							this.next();
 						} else if (this.#path[this.#path.length - 1] === element) {
 							// Check if this element was properly closed
 							if (!this.#loose) {
@@ -2235,6 +2125,22 @@ function RipplePlugin(config) {
 					this.exprAllowed = true;
 
 					while (true) {
+						if (this.type === tt.eof || this.pos >= this.input.length || this.type === tt.braceR) {
+							if (!this.#loose) {
+								this.raise(
+									this.start,
+									`Unclosed tag '<tsx:${inside_tsx_compat.kind}>'. Expected '</tsx:${inside_tsx_compat.kind}>' before end of component.`,
+								);
+							} else {
+								inside_tsx_compat.unclosed = true;
+								/** @type {AST.NodeWithLocation} */ (inside_tsx_compat).loc.end = {
+									.../** @type {AST.SourceLocation} */ (inside_tsx_compat.openingElement.loc).end,
+								};
+								inside_tsx_compat.end = inside_tsx_compat.openingElement.end;
+							}
+							return;
+						}
+
 						if (this.input.slice(this.pos, this.pos + 5) === '/tsx:') {
 							return;
 						}
@@ -2254,9 +2160,9 @@ function RipplePlugin(config) {
 							while (this.pos < this.input.length) {
 								const ch = this.input.charCodeAt(this.pos);
 
-								// Stop at opening tag, closing tag, or expression
-								if (ch === 60 || ch === 123) {
-									// < or {
+								// Stop at opening tag, expression, or the component-closing brace
+								if (ch === 60 || ch === 123 || ch === 125) {
+									// < or { or }
 									break;
 								}
 
@@ -2433,16 +2339,16 @@ function RipplePlugin(config) {
 					);
 				}
 
-				if (this.value === '#ripple.server') {
-					// Peek ahead to see if this is a server block (#ripple.server { ... }) vs
-					// a server identifier expression (#ripple.server.fn(), #ripple.server.fn().then())
+				if (this.value === '#server') {
+					// Peek ahead to see if this is a server block (#server { ... }) vs
+					// a server identifier expression (#server.fn(), #server.fn().then())
 					let peek_pos = this.end;
 					while (peek_pos < this.input.length && /\s/.test(this.input[peek_pos])) peek_pos++;
 					if (peek_pos < this.input.length && this.input.charCodeAt(peek_pos) === 123) {
 						// Next non-whitespace character is '{' — parse as server block
 						return this.parseServerBlock();
 					}
-					// Otherwise fall through to parse as expression statement (e.g., #ripple.server.fn().then(...))
+					// Otherwise fall through to parse as expression statement (e.g., #server.fn().then(...))
 				}
 
 				if (this.value === 'component') {

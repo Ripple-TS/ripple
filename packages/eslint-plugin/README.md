@@ -90,8 +90,10 @@ a component context.
 ❌ **Incorrect:**
 
 ```js
+import { track } from 'ripple';
+
 // This will cause runtime errors
-let globalCount = #ripple.track(0);
+let globalCount = track(0);
 
 export component App() {
   <div>{@globalCount}</div>
@@ -101,9 +103,11 @@ export component App() {
 ✅ **Correct:**
 
 ```js
+import { track } from 'ripple';
+
 export component App() {
   // track() called within component
-  let count = #ripple.track(0);
+  let count = track(0);
 
   <div>{@count}</div>
 }
@@ -179,8 +183,10 @@ expressions.
 ❌ **Incorrect:**
 
 ```js
+import { track } from 'ripple';
+
 export component App() {
-  let count = #ripple.track(0);
+  let count = track(0);
 
   // Missing @ operator
   <div>{count}</div>
@@ -190,8 +196,10 @@ export component App() {
 ✅ **Correct:**
 
 ```js
+import { track } from 'ripple';
+
 export component App() {
-  let count = #ripple.track(0);
+  let count = track(0);
 
   // Properly unboxed with @
   <div>{@count}</div>
@@ -207,9 +215,11 @@ Prevents using the `@` introspection operator in TypeScript/JavaScript modules. 
 
 ```ts
 // count.ts
+import { track, effect } from 'ripple';
+
 export function useCount() {
-  const count = #ripple.track(1);
-  #ripple.effect(() => {
+  const count = track(1);
+  effect(() => {
     console.log(@count); // Error: Cannot use @ in TypeScript modules
   });
   return { count };
@@ -220,15 +230,15 @@ export function useCount() {
 
 ```ts
 // count.ts
-import { get, set } from 'ripple';
+import { track, effect, get, set } from 'ripple';
 
 export function useCount() {
-  const count = #ripple.track(1);
+  const count = track(1);
 
   // Use get() to read tracked values
-  const double = #ripple.track(() => get(count) * 2);
+  const double = track(() => get(count) * 2);
 
-  #ripple.effect(() => {
+  effect(() => {
     console.log('count is', get(count));
   });
 

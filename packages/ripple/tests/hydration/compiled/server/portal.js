@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-import { Portal } from 'ripple/server';
+import { Portal, track } from 'ripple/server';
 
 export async function SimplePortal(__output) {
 	return _$_.async(async () => {

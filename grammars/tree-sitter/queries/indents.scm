@@ -15,8 +15,6 @@
   (jsx_self_closing_element)
   (style_element)
   (server_block)
-  (reactive_object)
-  (reactive_array)
 ] @indent
 
 [

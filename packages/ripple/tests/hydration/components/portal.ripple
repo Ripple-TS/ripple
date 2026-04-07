@@ -1,5 +1,5 @@
 // Portal components for hydration testing
-import { Portal } from 'ripple';
+import { Portal, track } from 'ripple';
 
 // Simple portal with static content
 export component SimplePortal() {
@@ -13,7 +13,7 @@ export component SimplePortal() {
 
 // Portal with conditional rendering
 export component ConditionalPortal() {
-	let show = #ripple.track(true);
+	let show = track(true);
 
 	<div class="container">
 		<button class="toggle" onClick={() => (@show = !@show)}>{'Toggle'}</button>

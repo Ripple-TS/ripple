@@ -1,10 +1,10 @@
-import { flushSync } from 'ripple';
+import { RippleArray, flushSync, track } from 'ripple';
 import { TRACKED_ARRAY } from '../../../src/runtime/internal/client/constants.js';
 
 describe('basic client > collections', () => {
 	it('renders with simple reactive objects', () => {
 		component Basic() {
-			let user = #ripple.track(
+			let user = track(
 				{
 					name: 'John',
 					age: 25,
@@ -40,10 +40,10 @@ describe('basic client > collections', () => {
 
 	it('renders with nested reactive objects', () => {
 		component Basic() {
-			let user = #ripple.track(
+			let user = track(
 				{
-					name: #ripple.track('John'),
-					age: #ripple.track(25),
+					name: track('John'),
+					age: track(25),
 				},
 			);
 
@@ -77,7 +77,7 @@ describe('basic client > collections', () => {
 
 	it('works as a reactive RippleArray when constructed using # syntactic sugar', () => {
 		component App() {
-			const array = #ripple[1, 2, 3];
+			const array = new RippleArray(1, 2, 3);
 
 			<pre>{String(array[3])}</pre>
 			<pre>{array[0]}</pre>
