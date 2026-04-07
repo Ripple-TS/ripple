@@ -1,4 +1,4 @@
-import { flushSync } from 'ripple';
+import { MediaQuery, flushSync, track } from 'ripple';
 
 type Callback = (event: MediaQueryListEvent) => void;
 
@@ -51,7 +51,7 @@ describe('MediaQuery', () => {
 		const media = '(min-width: 600px)';
 
 		component App() {
-			const medium = #ripple.mediaQuery(media);
+			const medium = MediaQuery(media);
 
 			<div>
 				<p>{@medium}</p>
@@ -86,7 +86,7 @@ describe('MediaQuery', () => {
 		const media = '(min-width: 600px)';
 
 		component App() {
-			let show = #ripple.track(true);
+			let show = track(true);
 
 			if (@show) {
 				<Child />
@@ -96,7 +96,7 @@ describe('MediaQuery', () => {
 		}
 
 		component Child() {
-			const medium = #ripple.mediaQuery(media);
+			const medium = MediaQuery(media);
 
 			<div>
 				<p>{@medium}</p>

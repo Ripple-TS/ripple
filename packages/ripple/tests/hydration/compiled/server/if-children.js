@@ -1,6 +1,8 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
+import { track } from 'ripple/server';
+
 export async function IfWithChildren(__output, { children }) {
 	return _$_.async(async () => {
 		_$_.push_component();

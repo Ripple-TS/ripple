@@ -1,5 +1,5 @@
 import type { Tracked, Props } from 'ripple';
-import { flushSync } from 'ripple';
+import { effect, flushSync, track, trackSplit } from 'ripple';
 
 describe('composite > props', () => {
 	it('correctly handles default prop values', () => {
@@ -8,7 +8,7 @@ describe('composite > props', () => {
 		}
 
 		component App() {
-			let foo = #ripple.track(123);
+			let foo = track(123);
 
 			<Child />
 			<Child {@foo} />
@@ -44,7 +44,7 @@ describe('composite > props', () => {
 		}
 
 		component App() {
-			let foo = #ripple.track(123);
+			let foo = track(123);
 
 			<Child />
 			<Child {foo} />
@@ -62,7 +62,7 @@ describe('composite > props', () => {
 		}
 
 		component App() {
-			let foo = #ripple.track(123);
+			let foo = track(123);
 
 			<Child />
 			<Child {@foo} />
@@ -78,7 +78,7 @@ describe('composite > props', () => {
 		const logs: number[] = [];
 
 		component Counter({ count }: { count: Tracked<number> }) {
-			#ripple.effect(() => {
+			effect(() => {
 				logs.push(@count);
 			});
 
@@ -86,7 +86,7 @@ describe('composite > props', () => {
 		}
 
 		component App() {
-			const count = #ripple.track(0);
+			const count = track(0);
 
 			<div>
 				<Counter {count} />
@@ -107,7 +107,7 @@ describe('composite > props', () => {
 
 	it('correctly retains prop accessors and reactivity when using rest props', () => {
 		component Button(props: Props) {
-			const [children, rest] = #ripple.trackSplit(props, ['children']);
+			const [children, rest] = trackSplit(props, ['children']);
 			<button {...@rest}>
 				<@children />
 			</button>
@@ -122,14 +122,14 @@ describe('composite > props', () => {
 		}
 
 		component Toggle(props: { pressed: Tracked<boolean> }) {
-			const [pressed, rest] = #ripple.trackSplit(props, ['pressed']);
+			const [pressed, rest] = trackSplit(props, ['pressed']);
 			const onClick = () => (@pressed = !@pressed);
 			<Button {...@rest} class={@pressed ? 'on' : 'off'} {onClick}>{'button 1'}</Button>
 			<Button class={@pressed ? 'on' : 'off'} {onClick}>{'button 2'}</Button>
 		}
 
 		component App() {
-			const pressed = #ripple.track(true);
+			const pressed = track(true);
 			<Toggle {pressed} />
 		}
 

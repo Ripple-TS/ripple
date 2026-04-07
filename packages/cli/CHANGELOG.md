@@ -1,5 +1,13 @@
 # @ripple-ts/cli
 
+## 0.3.4
+
+### Patch Changes
+
+- [#807](https://github.com/Ripple-TS/ripple/pull/807)
+  [`56cdf54`](https://github.com/Ripple-TS/ripple/commit/56cdf54afb1b96e49faa273c18e0489ad70897b2)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Upgrade to Vite 8
+
 ## 0.3.3
 
 ## 0.3.2

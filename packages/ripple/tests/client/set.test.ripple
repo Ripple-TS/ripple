@@ -1,4 +1,4 @@
-import { flushSync, RippleSet } from 'ripple';
+import { RippleSet, flushSync, track } from 'ripple';
 
 describe('RippleSet', () => {
 	it('handles add and delete operations', () => {
@@ -60,7 +60,7 @@ describe('RippleSet', () => {
 	it('handles has operation', () => {
 		component SetTest() {
 			let items = new RippleSet([1, 2, 3]);
-			let hasValue = #ripple.track(() => items.has(2));
+			let hasValue = track(() => items.has(2));
 
 			<button onClick={() => items.delete(2)}>{'delete'}</button>
 			<pre>{@hasValue}</pre>
@@ -78,9 +78,9 @@ describe('RippleSet', () => {
 		expect(container.querySelectorAll('pre')[0].textContent).toBe('false');
 	});
 
-	it('creates empty RippleSet using #ripple.set() shorthand syntax', () => {
+	it('creates empty RippleSet using RippleSet() shorthand syntax', () => {
 		component SetTest() {
-			let items = #ripple.set();
+			let items = RippleSet();
 
 			<button onClick={() => items.add(1)}>{'add'}</button>
 			<pre>{items.size}</pre>
@@ -97,10 +97,10 @@ describe('RippleSet', () => {
 		expect(container.querySelector('pre').textContent).toBe('1');
 	});
 
-	it('creates RippleSet with initial values using #ripple.set() shorthand syntax', () => {
+	it('creates RippleSet with initial values using RippleSet() shorthand syntax', () => {
 		component SetTest() {
-			let items = #ripple.set([1, 2, 3, 4]);
-			let hasValue = #ripple.track(() => items.has(3));
+			let items = RippleSet([1, 2, 3, 4]);
+			let hasValue = track(() => items.has(3));
 
 			<button onClick={() => items.delete(3)}>{'delete'}</button>
 			<pre>{items.size}</pre>
@@ -120,10 +120,10 @@ describe('RippleSet', () => {
 		expect(container.querySelectorAll('pre')[1].textContent).toBe('false');
 	});
 
-	it('handles all operations with #ripple.set() shorthand syntax', () => {
+	it('handles all operations with RippleSet() shorthand syntax', () => {
 		component SetTest() {
-			let items = #ripple.set([10, 20, 30]);
-			let values = #ripple.track(() => Array.from(items.values()));
+			let items = RippleSet([10, 20, 30]);
+			let values = track(() => Array.from(items.values()));
 
 			<button onClick={() => items.add(40)}>{'add'}</button>
 			<button onClick={() => items.delete(20)}>{'delete'}</button>

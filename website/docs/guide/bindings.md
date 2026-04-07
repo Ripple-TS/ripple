@@ -26,10 +26,10 @@ and an input or select element's value.
 <Code>
 
 ```ripple
-import { bindValue } from 'ripple';
+import { bindValue, track } from 'ripple';
 
 export component App() {
-  let name = #ripple.track('');
+  let name = track('');
 
   <div>
     <input type="text" {ref bindValue(name)} placeholder="Enter your name" />
@@ -46,10 +46,10 @@ export component App() {
 <Code>
 
 ```ripple
-import { bindValue } from 'ripple';
+import { bindValue, track } from 'ripple';
 
 export component App() {
-  let age = #ripple.track(0);
+  let age = track(0);
 
   <div>
     <input type="number" {ref bindValue(age)} min="0" max="120" />
@@ -66,10 +66,10 @@ export component App() {
 <Code>
 
 ```ripple
-import { bindValue } from 'ripple';
+import { bindValue, track } from 'ripple';
 
 export component App() {
-  let selectedFruit = #ripple.track('apple');
+  let selectedFruit = track('apple');
 
   <div>
     <select {ref bindValue(selectedFruit)}>
@@ -90,10 +90,10 @@ export component App() {
 <Code>
 
 ```ripple
-import { bindValue } from 'ripple';
+import { bindValue, track } from 'ripple';
 
 export component App() {
-  let selectedColors = #ripple.track(['red', 'blue']);
+  let selectedColors = track(['red', 'blue']);
 
   <div>
     <select multiple {ref bindValue(selectedColors)} style="height: 100px">
@@ -117,10 +117,10 @@ tracked boolean value.
 <Code>
 
 ```ripple
-import { bindChecked } from 'ripple';
+import { bindChecked, track } from 'ripple';
 
 export component App() {
-  let agreed = #ripple.track(false);
+  let agreed = track(false);
 
   <div>
     <label>
@@ -152,11 +152,11 @@ with a tracked boolean value. The indeterminate state is commonly used for
 <Code>
 
 ```ripple
-import { bindChecked, bindIndeterminate } from 'ripple';
+import { bindChecked, bindIndeterminate, track } from 'ripple';
 
 export component App() {
-  let checked = #ripple.track(false);
-  let indeterminate = #ripple.track(true);
+  let checked = track(false);
+  let indeterminate = track(true);
 
   <div>
     <label>
@@ -201,10 +201,10 @@ multiple selections or mutually exclusive choices.
 <Code>
 
 ```ripple
-import { bindGroup } from 'ripple';
+import { bindGroup, track } from 'ripple';
 
 export component App() {
-  let hobbies = #ripple.track(['reading']);
+  let hobbies = track(['reading']);
 
   <div>
     <label>
@@ -237,10 +237,10 @@ export component App() {
 <Code>
 
 ```ripple
-import { bindGroup } from 'ripple';
+import { bindGroup, track } from 'ripple';
 
 export component App() {
-  let size = #ripple.track('medium');
+  let size = track('medium');
 
   <div>
     <label>
@@ -287,12 +287,12 @@ programmatically update the file input.
 <Code>
 
 ```ripple
-import { bindFiles, bindNode } from 'ripple';
+import { bindFiles, bindNode, track } from 'ripple';
 
 export component App() {
-	let files = #ripple.track();
-	let version = #ripple.track(0);
-	let input = #ripple.track();
+	let files = track();
+	let version = track(0);
+	let input = track();
 
 	const clearFiles = () => {
 		@files = new DataTransfer().files; // null or undefined does not work
@@ -367,11 +367,11 @@ and scrollbars).
 <Code>
 
 ```ripple
-import { bindClientWidth, bindClientHeight } from 'ripple';
+import { bindClientWidth, bindClientHeight, track } from 'ripple';
 
 export component App() {
-  let width = #ripple.track(0);
-  let height = #ripple.track(0);
+  let width = track(0);
+  let height = track(0);
 
   <div>
     <div
@@ -404,11 +404,11 @@ borders).
 <Code>
 
 ```ripple
-import { bindOffsetWidth, bindOffsetHeight } from 'ripple';
+import { bindOffsetWidth, bindOffsetHeight, track } from 'ripple';
 
 export component App() {
-  let width = #ripple.track(0);
-  let height = #ripple.track(0);
+  let width = track(0);
+  let height = track(0);
 
   <div>
     <div
@@ -440,10 +440,10 @@ Tracks the element's content rectangle from the ResizeObserver API.
 <Code>
 
 ```ripple
-import { bindContentRect } from 'ripple';
+import { bindContentRect, track } from 'ripple';
 
 export component App() {
-  let rect = #ripple.track({ width: 0, height: 0, top: 0, left: 0 });
+  let rect = track({ width: 0, height: 0, top: 0, left: 0 });
 
   <div>
     <div
@@ -473,10 +473,10 @@ Tracks the content box size (without padding or borders).
 <Code>
 
 ```ripple
-import { bindContentBoxSize } from 'ripple';
+import { bindContentBoxSize, track } from 'ripple';
 
 export component App() {
-  let size = #ripple.track([]);
+  let size = track([]);
 
   <div>
     <div
@@ -507,10 +507,10 @@ Tracks the border box size (including padding and borders).
 <Code>
 
 ```ripple
-import { bindBorderBoxSize } from 'ripple';
+import { bindBorderBoxSize, track } from 'ripple';
 
 export component App() {
-  let size = #ripple.track([]);
+  let size = track([]);
 
   <div>
     <div
@@ -542,10 +542,10 @@ displays).
 <Code>
 
 ```ripple
-import { bindDevicePixelContentBoxSize } from 'ripple';
+import { bindDevicePixelContentBoxSize, track } from 'ripple';
 
 export component App() {
-  let size = #ripple.track([]);
+  let size = track([]);
 
   <div>
     <div
@@ -578,10 +578,10 @@ Binds to an element's innerHTML property, useful for rich text editors.
 <Code>
 
 ```ripple
-import { bindInnerHTML } from 'ripple';
+import { bindInnerHTML, track } from 'ripple';
 
 export component App() {
-  let content = #ripple.track('<strong>Bold text</strong>');
+  let content = track('<strong>Bold text</strong>');
 
   <div>
     <div
@@ -609,10 +609,10 @@ HTML).
 <Code>
 
 ```ripple
-import { bindInnerText } from 'ripple';
+import { bindInnerText, track } from 'ripple';
 
 export component App() {
-  let text = #ripple.track('Edit me!');
+  let text = track('Edit me!');
 
   <div>
     <div
@@ -639,10 +639,10 @@ formatting).
 <Code>
 
 ```ripple
-import { bindTextContent } from 'ripple';
+import { bindTextContent, track } from 'ripple';
 
 export component App() {
-  let text = #ripple.track('Type here');
+  let text = track('Type here');
 
   <div>
     <div
@@ -671,10 +671,10 @@ A convenient way to get a reference to a DOM element.
 <Code>
 
 ```ripple
-import { bindNode } from 'ripple';
+import { bindNode, track } from 'ripple';
 
 export component App() {
-  let divElement = #ripple.track();
+  let divElement = track();
 
   const handleFocus = () => {
     if (@divElement) {
@@ -710,12 +710,12 @@ You can use multiple bindings on the same element by applying multiple
 <Code>
 
 ```ripple
-import { bindValue, bindClientWidth, bindNode } from 'ripple';
+import { bindValue, bindClientWidth, bindNode, track } from 'ripple';
 
 export component App() {
-  let text = #ripple.track('');
-  let width = #ripple.track(0);
-  let inputElement = #ripple.track();
+  let text = track('');
+  let width = track(0);
+  let inputElement = track();
 
   const logInfo = () => {
     console.log('Input:', @inputElement);
@@ -744,7 +744,7 @@ export component App() {
 ## Best Practices
 
 1. **Always use tracked variables**: All binding functions require `Tracked`
-   objects created with `#ripple.track()`.
+   objects created with `track()`.
 
 2. **Cleanup is automatic**: Bindings automatically handle cleanup when
    elements are removed from the DOM.

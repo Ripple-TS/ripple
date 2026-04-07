@@ -11,7 +11,7 @@ var root_5 = _$_.template(`<div><div class="main-content">Main page content</div
 var root_8 = _$_.template(`<div class="portal-content">Portal content</div>`, 0);
 var root_7 = _$_.template(`<div class="outer"><div class="inner"><span>Nested content</span></div><!></div>`, 0);
 
-import { Portal } from 'ripple';
+import { Portal, track } from 'ripple';
 
 export function SimplePortal(__anchor, _, __block) {
 	_$_.push_component();

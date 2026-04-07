@@ -171,32 +171,24 @@ function generateImportEdit(documentText, importName) {
  */
 const RIPPLE_SNIPPETS = [
 	{
-		label: '#ripple.',
+		label: '#style',
 		kind: CompletionItemKind.Snippet,
-		detail: 'Ripple namespace APIs',
+		detail: 'Scoped CSS class reference',
 		documentation:
-			'Type #ripple. to access all built-in Ripple namespace APIs (track, map, set, style, server, etc.).',
-		insertText: '#ripple.',
+			'Produces a scoped CSS class string for passing to child components.\nThe class must be defined as a standalone selector in <style>.\n\nUsage: <Child cls={#style.highlight} />',
+		insertText: '#style.${1:className}',
 		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-#-namespace',
+		sortText: '0-#-style',
 	},
 	{
-		label: '#ripple[]',
+		label: '#server',
 		kind: CompletionItemKind.Snippet,
-		detail: 'Ripple Reactive Array Literal, shorthand for new RippleArray',
-		documentation: 'Create a new Ripple Array Literal',
-		insertText: '#ripple[${1}]',
+		detail: 'Server-only code block (module level)',
+		documentation:
+			'Marks a block as server-only. Code inside is tree-shaken on the client.\nMust be at module top level.\n\nUsage:\n#server {\n  export async function loadData() { ... }\n}',
+		insertText: '#server {\n\t$0\n}',
 		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-#-array-literal',
-	},
-	{
-		label: '#ripple{}',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Ripple Reactive Object Literal, shorthand for new RippleObject',
-		documentation: 'Create a new Ripple Object Literal',
-		insertText: '#ripple{${1}}',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-#-object-literal',
+		sortText: '0-#-server',
 	},
 	{
 		label: 'component',
@@ -332,174 +324,6 @@ const RIPPLE_SNIPPETS = [
 ];
 
 /**
- * All #ripple.* namespace completions — no imports required.
- * Shown when the cursor follows `#ripple` or `#ripple.`
- * @type {CompletionItem[]}
- */
-const RIPPLE_NAMESPACE_SNIPPETS = [
-	{
-		label: '#ripple.track',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Reactive tracked value (no import needed)',
-		documentation:
-			'Creates a reactive tracked value. Equivalent to track() but requires no import.\n\nUsage: let count = #ripple.track(0);\nDerived: let double = #ripple.track(() => @count * 2);',
-		insertText: '#ripple.track(${1:initialValue})',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-track',
-	},
-	{
-		label: '#ripple.trackSplit',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Reactive prop splitting (no import needed)',
-		documentation:
-			"Destructures props while preserving reactivity. Equivalent to trackSplit() but requires no import.\n\nUsage: const [children, rest] = #ripple.trackSplit(props, ['children']);",
-		insertText: "#ripple.trackSplit(${1:props}, ['${2:children}'])",
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-trackSplit',
-	},
-	{
-		label: '#ripple.effect',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Reactive effect (no import needed)',
-		documentation:
-			'Registers a reactive side effect. Equivalent to effect() but requires no import.\n\nUsage: #ripple.effect(() => {\n  console.log(@count);\n});',
-		insertText: '#ripple.effect(() => {\n\t$0\n})',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-effect',
-	},
-	{
-		label: '#ripple.untrack',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Read without dependency tracking (no import needed)',
-		documentation:
-			'Reads reactive values without creating dependencies. Equivalent to untrack() but requires no import.\n\nUsage: const snapshot = #ripple.untrack(() => @count);',
-		insertText: '#ripple.untrack(() => ${1:@value})',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-untrack',
-	},
-	{
-		label: '#ripple.validate',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Validation wrapper (no import needed)',
-		documentation:
-			"Wraps a value with validation logic.\n\nUsage: let email = #ripple.validate(#ripple.track(''));",
-		insertText: '#ripple.validate(${1})',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-validate',
-	},
-	{
-		label: '#ripple.context',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Create a Context (no import needed)',
-		documentation:
-			"Creates a reactive context. Equivalent to new Context() but requires no import.\n\nUsage: const ThemeCtx = #ripple.context('light');",
-		insertText: '#ripple.context(${1:defaultValue})',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-context',
-	},
-	{
-		label: '#ripple.array',
-		kind: CompletionItemKind.Snippet,
-		detail: 'RippleArray class reference (no import needed)',
-		documentation:
-			'Reference to the RippleArray class. Use for static methods or as a type annotation.\n\nUsage: const copy = #ripple.array.from(existing);',
-		insertText: '#ripple.array',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-array',
-	},
-	{
-		label: '#ripple.object',
-		kind: CompletionItemKind.Snippet,
-		detail: 'RippleObject class reference (no import needed)',
-		documentation:
-			'Reference to the RippleObject class. Use for static methods or as a type annotation.\n\nUsage: const obj = #ripple.object({ a: 1 });',
-		insertText: '#ripple.object',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-object',
-	},
-	{
-		label: '#ripple.map',
-		kind: CompletionItemKind.Snippet,
-		detail: 'RippleMap (no import needed)',
-		documentation:
-			'Creates a reactive Map. Equivalent to new RippleMap() but requires no import.\n\nUsage: const map = #ripple.map([[key, value]]);',
-		insertText: '#ripple.map(${1})',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-map',
-	},
-	{
-		label: '#ripple.set',
-		kind: CompletionItemKind.Snippet,
-		detail: 'RippleSet (no import needed)',
-		documentation:
-			'Creates a reactive Set. Equivalent to new RippleSet() but requires no import.\n\nUsage: const set = #ripple.set([1, 2, 3]);',
-		insertText: '#ripple.set(${1})',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-set',
-	},
-	{
-		label: '#ripple.date',
-		kind: CompletionItemKind.Snippet,
-		detail: 'RippleDate (no import needed)',
-		documentation:
-			'Creates a reactive Date. Equivalent to new RippleDate() but requires no import.\n\nUsage: const today = #ripple.date();',
-		insertText: '#ripple.date(${1})',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-date',
-	},
-	{
-		label: '#ripple.url',
-		kind: CompletionItemKind.Snippet,
-		detail: 'RippleURL (no import needed)',
-		documentation:
-			"Creates a reactive URL. Equivalent to new RippleURL() but requires no import.\n\nUsage: const url = #ripple.url('https://example.com');",
-		insertText: "#ripple.url('${1:https://example.com}')",
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-url',
-	},
-	{
-		label: '#ripple.urlSearchParams',
-		kind: CompletionItemKind.Snippet,
-		detail: 'RippleURLSearchParams (no import needed)',
-		documentation:
-			'Creates a reactive URLSearchParams. Equivalent to new RippleURLSearchParams() but requires no import.\n\nUsage: const params = #ripple.urlSearchParams(${1});',
-		insertText: '#ripple.urlSearchParams(${1})',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-urlSearchParams',
-	},
-	{
-		label: '#ripple.mediaQuery',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Reactive CSS media query (no import needed)',
-		documentation:
-			"Creates a reactive media query that tracks whether the query currently matches.\n\nUsage: const isMobile = #ripple.mediaQuery('(max-width: 768px)');",
-		insertText: "#ripple.mediaQuery('${1:(max-width: 768px)}')",
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-mediaQuery',
-	},
-	{
-		label: '#ripple.style',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Scoped CSS class reference (no import needed)',
-		documentation:
-			'Produces a scoped CSS class string for passing to child components.\nThe class must be defined as a standalone selector in <style>.\n\nUsage: <Child cls={#ripple.style.highlight} />',
-		insertText: '#ripple.style.${1:className}',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-style',
-	},
-	{
-		label: '#ripple.server',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Server-only code block (module level)',
-		documentation:
-			'Marks a block as server-only. Code inside is tree-shaken on the client.\nMust be at module top level.\n\nUsage:\n#ripple.server {\n  export async function loadData() { ... }\n}',
-		insertText: '#ripple.server {\n\t$0\n}',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-ripple-server',
-	},
-];
-
-/**
  * Import suggestions for Ripple
  */
 const RIPPLE_IMPORTS = [
@@ -546,38 +370,6 @@ const RIPPLE_IMPORTS = [
 ];
 
 /**
- * @param {string} line
- * @returns {RegExpMatchArray | null}
- */
-function get_ripple_namespace_match(line) {
-	return line.match(/#ripple(?:\.(\w*))?$/);
-}
-
-/**
- * @param {RegExpMatchArray} namespace_match
- * @param {{ line: number, character: number }} position
- * @returns {CompletionItem[]}
- */
-function create_ripple_namespace_completion_items(namespace_match, position) {
-	const start_character = position.character - namespace_match[0].length;
-
-	return RIPPLE_NAMESPACE_SNIPPETS.map((snippet) => ({
-		...snippet,
-		filterText: snippet.label,
-		textEdit: {
-			range: {
-				start: {
-					line: position.line,
-					character: start_character,
-				},
-				end: position,
-			},
-			newText: snippet.insertText ?? snippet.label,
-		},
-	}));
-}
-
-/**
  * @returns {LanguageServicePlugin}
  */
 function createCompletionPlugin() {
@@ -587,9 +379,8 @@ function createCompletionPlugin() {
 			completionProvider: {
 				// Trigger on Ripple-specific syntax:
 				// '<' - JSX/HTML tags
-				// '#' - RippleMap/RippleSet shortcuts
-				// '.' - #ripple namespace member access
-				triggerCharacters: ['<', '#', '.'],
+				// '#' - #style, #server keywords
+				triggerCharacters: ['<', '#'],
 				resolveProvider: false,
 			},
 		},
@@ -648,15 +439,6 @@ function createCompletionPlugin() {
 						return { items, isIncomplete: false };
 					}
 
-					const ripple_namespace_match = get_ripple_namespace_match(line);
-
-					if (ripple_namespace_match) {
-						items.push(
-							...create_ripple_namespace_completion_items(ripple_namespace_match, position),
-						);
-						return { items, isIncomplete: false };
-					}
-
 					// @ accessor hint when typing after @
 					if (/@\w*$/.test(line)) {
 						items.push({
@@ -667,9 +449,9 @@ function createCompletionPlugin() {
 						});
 					}
 
-					// RippleMap/RippleSet completions when typing T...
+					// RippleMap/RippleSet completions when typing R, M...
 					// Also detects if 'new' is already typed before it to avoid duplicating
-					const trackedMatch = line.match(/(new\s+)?[T,M,#]([\w\.]*)$/);
+					const trackedMatch = line.match(/(new\s+)?[R,M]([\w\.]*)$/);
 
 					if (trackedMatch) {
 						const hasNew = !!trackedMatch[1];

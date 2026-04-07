@@ -14,8 +14,6 @@
   (jsx_expression "}" @indent.end)
   (style_element "</style>" @indent.end)
   (server_block "}" @indent.end)
-  (reactive_object "}" @indent.end)
-  (reactive_array "]" @indent.end)
 ] @indent.begin
 
 [

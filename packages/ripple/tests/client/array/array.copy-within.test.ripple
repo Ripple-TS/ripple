@@ -1,12 +1,12 @@
-import { flushSync, RippleArray } from 'ripple';
+import { RippleArray, flushSync, track } from 'ripple';
 
 describe('RippleArray copyWithin', () => {
 	it('handles copyWithin operation with reactivity', () => {
 		component ArrayTest() {
 			let items = new RippleArray(1, 2, 3, 4, 5);
-			let firstItem = #ripple.track(() => items[0]);
-			let thirdItem = #ripple.track(() => items[2]);
-			let fourthItem = #ripple.track(() => items[3]);
+			let firstItem = track(() => items[0]);
+			let thirdItem = track(() => items[2]);
+			let fourthItem = track(() => items[3]);
 
 			<button onClick={() => items.copyWithin(0, 3)}>{'copy end to start'}</button>
 			<button onClick={() => items.copyWithin(2, 0, 2)}>{'copy start to middle'}</button>
@@ -49,8 +49,8 @@ describe('RippleArray copyWithin', () => {
 	it('handles copyWithin with negative indexes and reactivity', () => {
 		component ArrayTest() {
 			let items = new RippleArray(1, 2, 3, 4, 5);
-			let secondItem = #ripple.track(() => items[1]);
-			let thirdItem = #ripple.track(() => items[2]);
+			let secondItem = track(() => items[1]);
+			let thirdItem = track(() => items[2]);
 
 			<button onClick={() => items.copyWithin(-4, -2)}>{'copy with negative indexes'}</button>
 			<pre>{JSON.stringify(items)}</pre>
@@ -80,7 +80,7 @@ describe('RippleArray copyWithin', () => {
 	it('handles copyWithin with overlapping ranges', () => {
 		component ArrayTest() {
 			let items = new RippleArray(1, 2, 3, 4, 5);
-			let entries = #ripple.track(() => Array.from(items.entries()));
+			let entries = track(() => Array.from(items.entries()));
 
 			<button onClick={() => items.copyWithin(2, 1, 4)}>{'copy with overlap'}</button>
 			<pre>{JSON.stringify(items)}</pre>

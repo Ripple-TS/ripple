@@ -27,8 +27,10 @@ possible, to improve runtime performance. :::
 <Code>
 
 ```ripple
+import { track } from 'ripple';
+
 export component EventExample() {
-  let message = #ripple.track('');
+  let message = track('');
 
   <div>
     <button onClick={() => (@message = 'Clicked!')}>{'Click me'}</button>
@@ -75,8 +77,10 @@ phase. This is equivalent to using the `Capture` suffix on the event name.
 [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#capture)
 
 ```ripple
+import { RippleArray } from 'ripple';
+
 export component EventExample() {
-  let order = #ripple[];
+  let order = new RippleArray();
 
   <div
     onClick={{
@@ -100,8 +104,10 @@ is useful for one-time setup or cleanup operations.
 [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#once)
 
 ```ripple
+import { track } from 'ripple';
+
 export component EventExample() {
-  let count = #ripple.track(0);
+  let count = track(0);
 
   <button
     onClick={{
@@ -189,8 +195,10 @@ or when you want to use a different event name than the lower-cased name that's
 inferred from the attribute.
 
 ```ripple
+import { track } from 'ripple';
+
 export component EventExample() {
-  let count = #ripple.track(0);
+  let count = track(0);
 
   <div
     onMyCustomEvent={{
@@ -219,10 +227,10 @@ ones that can be used for event attributes with the object syntax.
 <Code console>
 
 ```ripple
-import { on } from 'ripple';
+import { effect, on } from 'ripple';
 
 export component App() {
-  #ripple.effect(() => {
+  effect(() => {
     // on component mount
     const removeListener = on(window, 'resize', () => {
       console.log('Window resized!');

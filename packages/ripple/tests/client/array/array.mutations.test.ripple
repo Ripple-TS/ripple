@@ -1,9 +1,9 @@
-import { flushSync, RippleArray } from 'ripple';
+import { RippleArray, flushSync, track } from 'ripple';
 
 describe('RippleArray > mutations', () => {
 	it('handles direct assignment and length tracking', () => {
 		component ArrayTest() {
-			let items = #ripple[1, 2, 3];
+			let items = new RippleArray(1, 2, 3);
 
 			<button onClick={() => (items[items.length] = items.length + 1)}>{'increment'}</button>
 
@@ -34,8 +34,8 @@ describe('RippleArray > mutations', () => {
 
 	it('handles push and pop operations with reactivity', () => {
 		component ArrayTest() {
-			let items = #ripple[1, 2, 3];
-			let lastItem = #ripple.track(() => items[items.length - 1]);
+			let items = new RippleArray(1, 2, 3);
+			let lastItem = track(() => items[items.length - 1]);
 
 			<button onClick={() => items.push(4)}>{'push'}</button>
 			<button onClick={() => items.pop()}>{'pop'}</button>
@@ -73,8 +73,8 @@ describe('RippleArray > mutations', () => {
 
 	it('handles shift and unshift operations with reactivity', () => {
 		component ArrayTest() {
-			let items = #ripple[2, 3, 4];
-			let firstItem = #ripple.track(() => items[0]);
+			let items = new RippleArray(2, 3, 4);
+			let firstItem = track(() => items[0]);
 
 			<button onClick={() => items.unshift(1)}>{'unshift'}</button>
 			<button onClick={() => items.shift()}>{'shift'}</button>
@@ -112,8 +112,8 @@ describe('RippleArray > mutations', () => {
 
 	it('handles splice operation with reactivity', () => {
 		component ArrayTest() {
-			let items: RippleArray<number | string> = #ripple[1, 2, 3, 4, 5];
-			let middleItem = #ripple.track(() => items[2]);
+			let items: RippleArray<number | string> = new RippleArray(1, 2, 3, 4, 5);
+			let middleItem = track(() => items[2]);
 
 			<button onClick={() => items.splice(1, 2, 'a', 'b')}>{'splice'}</button>
 			<pre>{JSON.stringify(items)}</pre>
@@ -141,8 +141,8 @@ describe('RippleArray > mutations', () => {
 
 	it('handles fill operation with reactivity', () => {
 		component ArrayTest() {
-			let items = #ripple[1, 2, 3, 4, 5];
-			let secondItem = #ripple.track(() => items[1]);
+			let items = new RippleArray(1, 2, 3, 4, 5);
+			let secondItem = track(() => items[1]);
 
 			<button onClick={() => items.fill(0, 1, 4)}>{'fill'}</button>
 			<pre>{JSON.stringify(items)}</pre>
@@ -167,9 +167,9 @@ describe('RippleArray > mutations', () => {
 
 	it('handles reverse operation with reactivity', () => {
 		component ArrayTest() {
-			let items = #ripple[1, 2, 3, 4, 5];
-			let firstItem = #ripple.track(() => items[0]);
-			let lastItem = #ripple.track(() => items[4]);
+			let items = new RippleArray(1, 2, 3, 4, 5);
+			let firstItem = track(() => items[0]);
+			let lastItem = track(() => items[4]);
 
 			<button onClick={() => items.reverse()}>{'reverse'}</button>
 			<pre>{JSON.stringify(items)}</pre>
@@ -198,7 +198,7 @@ describe('RippleArray > mutations', () => {
 	it('handles sort operation with reactivity', () => {
 		component ArrayTest() {
 			let items = new RippleArray(5, 3, 1, 4, 2);
-			let secondItem = #ripple.track(() => items[1]);
+			let secondItem = track(() => items[1]);
 
 			<button onClick={() => items.sort()}>{'sort ascending'}</button>
 			<button onClick={() => items.sort((a, b) => b - a)}>{'sort descending'}</button>
@@ -288,8 +288,8 @@ describe('RippleArray > mutations', () => {
 	it('handles array index access with reactivity', () => {
 		component ArrayTest() {
 			let items = new RippleArray(10, 20, 30);
-			let firstItem = #ripple.track(() => items[0]);
-			let secondItem = #ripple.track(() => items[1]);
+			let firstItem = track(() => items[0]);
+			let secondItem = track(() => items[1]);
 
 			<button onClick={() => (items[0] = 100)}>{'change first'}</button>
 			<pre>{@firstItem}</pre>
@@ -321,7 +321,7 @@ describe('RippleArray > mutations', () => {
 	it('handles length property for reactivity', () => {
 		component ArrayTest() {
 			let items = new RippleArray(1, 2, 3);
-			let length = #ripple.track(() => items.length);
+			let length = track(() => items.length);
 
 			<button onClick={() => (items.length = 5)}>{'expand'}</button>
 			<button onClick={() => (items.length = 2)}>{'shrink'}</button>

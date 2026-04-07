@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { flushSync } from 'ripple';
+import { flushSync, track } from 'ripple';
 
 describe('basic client > events', () => {
 	it('renders with different event types', () => {
 		component Basic() {
-			let focusCount = #ripple.track(0);
-			let clickCount = #ripple.track(0);
+			let focusCount = track(0);
+			let clickCount = track(0);
 
 			<button
 				onFocus={() => {
@@ -38,8 +38,8 @@ describe('basic client > events', () => {
 
 	it('renders with capture events', () => {
 		component Basic() {
-			let captureClicks = #ripple.track(0);
-			let bubbleClicks = #ripple.track(0);
+			let captureClicks = track(0);
+			let bubbleClicks = track(0);
 
 			<div
 				onClick={{
@@ -76,7 +76,7 @@ describe('basic client > events', () => {
 
 	it('renders with event listeners in spread props', () => {
 		component Basic() {
-			let count = #ripple.track(0);
+			let count = track(0);
 
 			const minus = {
 				onClick() {
@@ -125,8 +125,8 @@ describe('basic client > events', () => {
 
 	it('handles both delegated and non-delegated events in spread props', () => {
 		component Basic() {
-			let clickCount = #ripple.track(0);
-			let focusCount = #ripple.track(0);
+			let clickCount = track(0);
+			let focusCount = track(0);
 
 			const mixedHandler = {
 				onClick() {
@@ -168,9 +168,9 @@ describe('basic client > events', () => {
 
 	it('renders with complex event handling and state updates', () => {
 		component Basic() {
-			let counter = #ripple.track(0);
-			let history = #ripple.track<string[]>([]);
-			let isEven = #ripple.track(true);
+			let counter = track(0);
+			let history = track<string[]>([]);
+			let isEven = track(true);
 
 			const handleIncrement = () => {
 				@counter++;

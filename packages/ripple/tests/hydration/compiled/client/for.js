@@ -64,6 +64,8 @@ var root_58 = _$_.template(`<button class="swap">Swap First and Last</button><ul
 var root_61 = _$_.template(`<li> </li>`, 0);
 var root_60 = _$_.template(`<button class="reverse">Reverse</button><ul></ul>`, 1, 2);
 
+import { track } from 'ripple';
+
 export function StaticForLoop(__anchor, _, __block) {
 	_$_.push_component();
 

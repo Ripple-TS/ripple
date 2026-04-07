@@ -22,6 +22,8 @@ var root_19 = _$_.template(`<div class="state">Error occurred</div>`, 0);
 var root_17 = _$_.template(`<!>`, 1, 1);
 var root_15 = _$_.template(`<div><button class="success">Success</button><button class="error">Error</button><button class="loading">Loading</button><!></div>`, 0);
 
+import { track } from 'ripple';
+
 export function IfTruthy(__anchor, _, __block) {
 	_$_.push_component();
 

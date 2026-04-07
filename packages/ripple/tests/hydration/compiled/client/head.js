@@ -15,12 +15,14 @@ var root_11 = _$_.template(`<meta name="author" content="Test Author">`, 0);
 var root_10 = _$_.template(`<div>Content</div>`, 0);
 var root_12 = _$_.template(`<div>Styled content</div>`, 0);
 
+import { track } from 'ripple';
+
 export function StaticTitle(__anchor, _, __block) {
 	_$_.push_component();
 
 	var div_1 = root();
 
-	_$_.head('df6gdi', (__anchor) => {
+	_$_.head('qwqurq', (__anchor) => {
 		_$_.document.title = 'Static Test Title';
 	});
 
@@ -44,7 +46,7 @@ export function ReactiveTitle(__anchor, _, __block) {
 		}
 	}
 
-	_$_.head('13wropz', (__anchor) => {
+	_$_.head('1h8nm28', (__anchor) => {
 		_$_.render(() => {
 			_$_.document.title = _$_.get(title);
 		});
@@ -63,7 +65,7 @@ export function MultipleHeadElements(__anchor, _, __block) {
 
 	var div_3 = root_2();
 
-	_$_.head('jbv4cs', (__anchor) => {
+	_$_.head('9v67ol', (__anchor) => {
 		var fragment = root_3();
 
 		_$_.document.title = 'Page Title';
@@ -87,7 +89,7 @@ export function ReactiveMetaTags(__anchor, _, __block) {
 		_$_.pop(div_4);
 	}
 
-	_$_.head('t794k2', (__anchor) => {
+	_$_.head('166unm', (__anchor) => {
 		var meta_1 = root_5();
 
 		_$_.document.title = 'My Page';
@@ -115,7 +117,7 @@ export function TitleWithTemplate(__anchor, _, __block) {
 		_$_.pop(div_5);
 	}
 
-	_$_.head('betaue', (__anchor) => {
+	_$_.head('3o3mh2', (__anchor) => {
 		_$_.render(() => {
 			_$_.document.title = `Hello ${_$_.get(name)}!`;
 		});
@@ -134,7 +136,7 @@ export function EmptyTitle(__anchor, _, __block) {
 
 	var div_6 = root_7();
 
-	_$_.head('11sq4o6', (__anchor) => {
+	_$_.head('kwo3k6', (__anchor) => {
 		_$_.document.title = '';
 	});
 
@@ -155,7 +157,7 @@ export function ConditionalTitle(__anchor, _, __block) {
 		_$_.pop(div_7);
 	}
 
-	_$_.head('xxkmhn', (__anchor) => {
+	_$_.head('c2i5xr', (__anchor) => {
 		_$_.render(() => {
 			_$_.document.title = _$_.get(showPrefix) ? 'App - ' + _$_.get(title) : _$_.get(title);
 		});
@@ -186,7 +188,7 @@ export function ComputedTitle(__anchor, _, __block) {
 		}
 	}
 
-	_$_.head('1hj0can', (__anchor) => {
+	_$_.head('1h2z3z5', (__anchor) => {
 		_$_.render(() => {
 			_$_.document.title = prefix + _$_.get(count);
 		});
@@ -205,11 +207,11 @@ export function MultipleHeadBlocks(__anchor, _, __block) {
 
 	var div_9 = root_10();
 
-	_$_.head('15ucmy3', (__anchor) => {
+	_$_.head('14rv3le', (__anchor) => {
 		_$_.document.title = 'First Head';
 	});
 
-	_$_.head('1xolofp', (__anchor) => {
+	_$_.head('1eh1mn5', (__anchor) => {
 		var meta_2 = root_11();
 
 		_$_.append(__anchor, meta_2);
@@ -224,7 +226,7 @@ export function HeadWithStyle(__anchor, _, __block) {
 
 	var div_10 = root_12();
 
-	_$_.head('q5et2p', (__anchor) => {
+	_$_.head('1dxk6yg', (__anchor) => {
 		_$_.document.title = 'Styled Page';
 	});
 

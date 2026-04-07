@@ -69,6 +69,79 @@ function mark_control_flow_has_template(path) {
 }
 
 /**
+ * Set up lazy destructuring transforms for bindings extracted from a lazy pattern.
+ * Converts each destructured identifier into a binding that lazily accesses properties
+ * on the source identifier (e.g., `a` → `source.a` for object, `a` → `source[0]` for array).
+ * @param {AST.ObjectPattern | AST.ArrayPattern} pattern - The destructuring pattern with lazy: true
+ * @param {AST.Identifier} source_id - The identifier to access properties on
+ * @param {AnalysisState} state - The analysis state
+ * @param {boolean} writable - Whether assignments/updates should be supported (let vs const)
+ */
+function setup_lazy_transforms(pattern, source_id, state, writable) {
+	const paths = extract_paths(pattern);
+
+	for (const path of paths) {
+		const name = /** @type {AST.Identifier} */ (path.node).name;
+		const binding = state.scope.get(name);
+
+		if (binding !== null) {
+			const has_fallback = path.has_default_value;
+			binding.kind = has_fallback ? 'lazy_fallback' : 'lazy';
+
+			binding.transform = {
+				read: (_) => {
+					return path.expression(source_id);
+				},
+			};
+
+			if (writable) {
+				binding.transform.assign = (node, value) => {
+					return b.assignment(
+						'=',
+						/** @type {AST.MemberExpression} */ (path.update_expression(source_id)),
+						value,
+					);
+				};
+
+				if (has_fallback) {
+					// For bindings with default values, generate proper fallback-aware update
+					// e.g., count++ with default 0 becomes:
+					// (() => { var _v = _$_.fallback(obj.count, 0); obj.count = _v + 1; return _v; })() for postfix
+					// (obj.count = _$_.fallback(obj.count, 0) + 1) for prefix
+					binding.transform.update = (node) => {
+						const member = path.update_expression(source_id);
+						const fallback_read = path.expression(source_id);
+						const delta = node.operator === '++' ? b.literal(1) : b.literal(-1);
+
+						if (node.prefix) {
+							// ++count: return new value
+							return b.assignment('=', member, b.binary('+', fallback_read, delta));
+						} else {
+							// count++: return old value, write new value
+							// Use IIFE to declare temp variable
+							const temp = b.id('_v');
+							return b.call(
+								b.arrow(
+									[],
+									b.block([
+										b.var(temp, fallback_read),
+										b.stmt(b.assignment('=', member, b.binary('+', temp, delta))),
+										b.return(temp),
+									]),
+								),
+							);
+						}
+					};
+				} else {
+					binding.transform.update = (node) =>
+						b.update(node.operator, path.update_expression(source_id), node.prefix);
+				}
+			}
+		}
+	}
+}
+
+/**
  * @param {AST.Function} node
  * @param {AnalysisContext} context
  */
@@ -77,6 +150,19 @@ function visit_function(node, context) {
 		tracked: false,
 		path: [...context.path],
 	};
+
+	// Set up lazy transforms for any lazy destructured parameters
+	for (let i = 0; i < node.params.length; i++) {
+		const param_node = node.params[i];
+		const param = param_node.type === 'AssignmentPattern' ? param_node.left : param_node;
+
+		if ((param.type === 'ObjectPattern' || param.type === 'ArrayPattern') && param.lazy) {
+			const param_id = b.id(context.state.scope.generate('param'));
+			setup_lazy_transforms(param, param_id, context.state, true);
+			// Store the generated identifier name on the pattern for the transform phase
+			param.metadata = { ...param.metadata, lazy_id: param_id.name };
+		}
+	}
 
 	context.next({
 		...context.state,
@@ -239,7 +325,7 @@ const visitors = {
 		if (context.path.at(-1)?.type !== 'Program') {
 			// fatal since we don't have a transformation defined for this case
 			error(
-				'`#ripple.server` block can only be declared at the module level.',
+				'`#server` block can only be declared at the module level.',
 				context.state.analysis.module.filename,
 				node,
 			);
@@ -291,6 +377,8 @@ const visitors = {
 			if (
 				binding.kind === 'prop' ||
 				binding.kind === 'prop_fallback' ||
+				binding.kind === 'lazy' ||
+				binding.kind === 'lazy_fallback' ||
 				binding.kind === 'for_pattern' ||
 				(is_reference(node, /** @type {AST.Node} */ (parent)) &&
 					node.tracked &&
@@ -301,45 +389,6 @@ const visitors = {
 					context.state.metadata.tracking = true;
 				}
 			}
-		}
-
-		// Validate #ripple namespace usage
-		const source_name = node.metadata?.source_name;
-		if (typeof source_name === 'string' && source_name.startsWith('#ripple.')) {
-			// Cannot assign to a #ripple namespace identifier (left side)
-			if (
-				(parent?.type === 'AssignmentExpression' && parent.left === node) ||
-				parent?.type === 'UpdateExpression'
-			) {
-				error(
-					`Cannot assign to \`${source_name}\`. The \`#ripple\` namespace is read-only.`,
-					context.state.analysis.module.filename,
-					node,
-					context.state.loose ? context.state.analysis.errors : undefined,
-					context.state.analysis.comments,
-				);
-				return context.next();
-			}
-
-			// Valid: callee of a CallExpression
-			if (parent?.type === 'CallExpression' && parent.callee === node) {
-				return context.next();
-			}
-
-			// Valid: object of a MemberExpression (further validated in MemberExpression visitor)
-			if (parent?.type === 'MemberExpression' && parent.object === node) {
-				return context.next();
-			}
-
-			// Everything else is an invalid bare reference
-			error(
-				`\`${source_name}\` must be called as a function, e.g., \`${source_name}(...)\`.`,
-				context.state.analysis.module.filename,
-				node,
-				context.state.loose ? context.state.analysis.errors : undefined,
-				context.state.analysis.comments,
-			);
-			return context.next();
 		}
 
 		context.next();
@@ -358,13 +407,13 @@ const visitors = {
 			context.state.metadata.tracking = true;
 		}
 
-		// Track #ripple.style.className or #ripple.style['className'] references
+		// Track #style.className or #style['className'] references
 		if (node.object.type === 'StyleIdentifier') {
 			const component = is_inside_component(context, true);
 
 			if (!component) {
 				error(
-					'`#ripple.style` can only be used within a component',
+					'`#style` can only be used within a component',
 					context.state.analysis.module.filename,
 					node,
 					context.state.loose ? context.state.analysis.errors : undefined,
@@ -378,19 +427,19 @@ const visitors = {
 			let className = null;
 
 			if (!node.computed && node.property.type === 'Identifier') {
-				// #ripple.style.test
+				// #style.test
 				className = node.property.name;
 			} else if (
 				node.computed &&
 				node.property.type === 'Literal' &&
 				typeof node.property.value === 'string'
 			) {
-				// #ripple.style['test']
+				// #style['test']
 				className = node.property.value;
 			} else {
-				// #ripple.style[expression] - dynamic, not allowed
+				// #style[expression] - dynamic, not allowed
 				error(
-					'`#ripple.style` property access must use a dot property or static string for css class name, not a dynamic expression',
+					'`#style` property access must use a dot property or static string for css class name, not a dynamic expression',
 					context.state.analysis.module.filename,
 					node.property,
 					context.state.loose ? context.state.analysis.errors : undefined,
@@ -405,71 +454,6 @@ const visitors = {
 			return context.next();
 		} else if (node.object.type === 'ServerIdentifier') {
 			context.state.analysis.metadata.serverIdentifierPresent = true;
-		}
-
-		// Validate #ripple namespace member access
-		if (
-			node.object.type === 'Identifier' &&
-			typeof node.object.metadata?.source_name === 'string' &&
-			node.object.metadata.source_name.startsWith('#ripple.')
-		) {
-			const ripple_source = node.object.metadata.source_name;
-			const member_parent = context.path.at(-1);
-
-			// No computed property access on #ripple namespace
-			if (node.computed) {
-				error(
-					`Computed property access is not allowed on \`${ripple_source}\`. Use dot notation instead.`,
-					context.state.analysis.module.filename,
-					node,
-					context.state.loose ? context.state.analysis.errors : undefined,
-					context.state.analysis.comments,
-				);
-				return context.next();
-			}
-
-			if (ripple_source === '#ripple.array') {
-				// Only .from, .of, and .fromAsync are allowed on #ripple.array
-				const allowed_methods = new Set(['from', 'of', 'fromAsync']);
-				const prop_name = node.property.type === 'Identifier' ? node.property.name : null;
-
-				if (prop_name === null || !allowed_methods.has(prop_name)) {
-					error(
-						`Only \`.from\`, \`.of\`, and \`.fromAsync\` are allowed on \`#ripple.array\`.${prop_name ? ` Got \`.${prop_name}\`.` : ''}`,
-						context.state.analysis.module.filename,
-						node.property,
-						context.state.loose ? context.state.analysis.errors : undefined,
-						context.state.analysis.comments,
-					);
-					return context.next();
-				}
-			} else {
-				// No member access allowed for other #ripple namespaces
-				error(
-					`Member access is not allowed on \`${ripple_source}\`. Use \`${ripple_source}(...)\` to call it directly.`,
-					context.state.analysis.module.filename,
-					node,
-					context.state.loose ? context.state.analysis.errors : undefined,
-					context.state.analysis.comments,
-				);
-				return context.next();
-			}
-
-			// All #ripple member expressions must be called as a function
-			if (!(member_parent?.type === 'CallExpression' && member_parent.callee === node)) {
-				const prop_name = node.property.type === 'Identifier' ? node.property.name : null;
-				const full_name = prop_name ? `${ripple_source}.${prop_name}` : ripple_source;
-				error(
-					`\`${full_name}\` must be called as a function, e.g., \`${full_name}(...)\`.`,
-					context.state.analysis.module.filename,
-					node,
-					context.state.loose ? context.state.analysis.errors : undefined,
-					context.state.analysis.comments,
-				);
-				return context.next();
-			}
-
-			return context.next();
 		}
 
 		if (node.object.type === 'Identifier' && !node.object.tracked) {
@@ -544,38 +528,6 @@ const visitors = {
 	},
 
 	NewExpression(node, context) {
-		const callee = node.callee;
-
-		// Cannot use `new` with #ripple namespace
-		if (
-			callee.type === 'Identifier' &&
-			typeof callee.metadata?.source_name === 'string' &&
-			callee.metadata.source_name.startsWith('#ripple.')
-		) {
-			error(
-				`Cannot use \`new\` with \`${callee.metadata.source_name}\`. Use \`${callee.metadata.source_name}(...)\` instead.`,
-				context.state.analysis.module.filename,
-				node,
-				context.state.loose ? context.state.analysis.errors : undefined,
-				context.state.analysis.comments,
-			);
-		}
-
-		if (
-			callee.type === 'MemberExpression' &&
-			callee.object.type === 'Identifier' &&
-			typeof callee.object.metadata?.source_name === 'string' &&
-			callee.object.metadata.source_name.startsWith('#ripple.')
-		) {
-			error(
-				`Cannot use \`new\` with the \`#ripple\` namespace.`,
-				context.state.analysis.module.filename,
-				node,
-				context.state.loose ? context.state.analysis.errors : undefined,
-				context.state.analysis.comments,
-			);
-		}
-
 		context.next();
 	},
 
@@ -611,6 +563,18 @@ const visitors = {
 				}
 				visit(declarator, state);
 			} else {
+				// Handle lazy destructuring patterns
+				if (
+					(declarator.id.type === 'ObjectPattern' || declarator.id.type === 'ArrayPattern') &&
+					declarator.id.lazy
+				) {
+					const lazy_id = b.id(state.scope.generate('lazy'));
+					const writable = node.kind !== 'const';
+					setup_lazy_transforms(declarator.id, lazy_id, state, writable);
+					// Store the generated identifier name on the pattern for the transform phase
+					declarator.id.metadata = { ...declarator.id.metadata, lazy_id: lazy_id.name };
+				}
+
 				const paths = extract_paths(declarator.id);
 
 				for (const path of paths) {
@@ -640,10 +604,10 @@ const visitors = {
 			component.metadata.styleIdentifierPresent = true;
 		}
 
-		// #ripple.style must only be used for property access (e.g., #ripple.style.className)
+		// #style must only be used for property access (e.g., #style.className)
 		if (!parent || parent.type !== 'MemberExpression' || parent.object !== node) {
 			error(
-				'`#ripple.style` can only be used for property access, e.g., `#ripple.style.className`.',
+				'`#style` can only be used for property access, e.g., `#style.className`.',
 				context.state.analysis.module.filename,
 				node,
 				context.state.loose ? context.state.analysis.errors : undefined,
@@ -656,10 +620,10 @@ const visitors = {
 	ServerIdentifier(node, context) {
 		const parent = context.path.at(-1);
 
-		// #ripple.server must only be used for member access (e.g., #ripple.server.functionName(...))
+		// #server must only be used for member access (e.g., #server.functionName(...))
 		if (!parent || parent.type !== 'MemberExpression' || parent.object !== node) {
 			error(
-				'`#ripple.server` can only be used for member access, e.g., `#ripple.server.functionName(...)`.',
+				'`#server` can only be used for member access, e.g., `#server.functionName(...)`.',
 				context.state.analysis.module.filename,
 				node,
 				context.state.loose ? context.state.analysis.errors : undefined,
@@ -685,32 +649,9 @@ const visitors = {
 		if (node.params.length > 0) {
 			const props = node.params[0];
 
-			if (props.type === 'ObjectPattern') {
-				const paths = extract_paths(props);
-
-				for (const path of paths) {
-					const name = /** @type {AST.Identifier} */ (path.node).name;
-					const binding = context.state.scope.get(name);
-
-					if (binding !== null) {
-						binding.kind = path.has_default_value ? 'prop_fallback' : 'prop';
-
-						binding.transform = {
-							read: (_) => {
-								return path.expression(b.id('__props'));
-							},
-							assign: (node, value) => {
-								return b.assignment(
-									'=',
-									/** @type {AST.MemberExpression} */ (path.expression(b.id('__props'))),
-									value,
-								);
-							},
-							update: (node) =>
-								b.update(node.operator, path.expression(b.id('__props')), node.prefix),
-						};
-					}
-				}
+			if ((props.type === 'ObjectPattern' || props.type === 'ArrayPattern') && props.lazy) {
+				// Lazy destructuring: &{...} or &[...] — set up lazy transforms
+				setup_lazy_transforms(props, b.id('__props'), context.state, true);
 			} else if (props.type === 'AssignmentPattern') {
 				error(
 					'Props are always an object, use destructured props with default values instead',
@@ -1408,7 +1349,7 @@ const visitors = {
 							attr.value.object.type === 'StyleIdentifier'
 						) {
 							error(
-								'`#ripple.style` cannot be used directly on DOM elements. Pass the class to a child component instead.',
+								'`#style` cannot be used directly on DOM elements. Pass the class to a child component instead.',
 								state.analysis.module.filename,
 								attr.value.object,
 								context.state.loose ? context.state.analysis.errors : undefined,

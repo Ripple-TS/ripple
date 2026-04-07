@@ -1,4 +1,4 @@
-import { flushSync } from 'ripple';
+import { flushSync, track } from 'ripple';
 
 describe('composite > dynamic components', () => {
 	it('supports rendering composite components using <@component> syntax', () => {
@@ -7,7 +7,7 @@ describe('composite > dynamic components', () => {
 				<div>{'Basic Component'}</div>
 			}
 
-			const tracked_basic = #ripple.track(() => basic);
+			const tracked_basic = track(() => basic);
 
 			<@tracked_basic />
 		}
@@ -24,7 +24,7 @@ describe('composite > dynamic components', () => {
 				<div>{'Basic Component'}</div>
 			}
 
-			const tracked_basic = #ripple.track(() => basic);
+			const tracked_basic = track(() => basic);
 
 			const obj = {
 				tracked_basic,
@@ -45,13 +45,13 @@ describe('composite > dynamic components', () => {
 				<div>{'Basic Component'}</div>
 			}
 
-			const tracked_basic = #ripple.track(() => basic);
+			const tracked_basic = track(() => basic);
 
 			const obj = {
 				tracked_basic,
 			};
 
-			const ripple_object = #ripple.track(obj);
+			const ripple_object = track(obj);
 
 			<@ripple_object.@tracked_basic />
 		}
@@ -72,7 +72,7 @@ describe('composite > dynamic components', () => {
 		}
 
 		component App() {
-			let thing = #ripple.track(() => Child1);
+			let thing = track(() => Child1);
 
 			<div id="container">
 				<@thing />

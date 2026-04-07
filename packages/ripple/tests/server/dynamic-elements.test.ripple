@@ -1,10 +1,10 @@
 import type { PropsWithExtras } from 'ripple';
-import { createRefKey } from 'ripple';
+import { createRefKey, track, trackSplit } from 'ripple';
 
 describe('server dynamic DOM elements', () => {
 	it('renders static dynamic element', async () => {
 		component App() {
-			let tag = #ripple.track('div');
+			let tag = track('div');
 
 			<@tag>{'Hello World'}</@tag>
 		}
@@ -18,7 +18,7 @@ describe('server dynamic DOM elements', () => {
 	// They can be ignored for now. But we'll fix them via jsx() vs <jsx>
 	it('renders static dynamic element from a plain object with a tracked property', async () => {
 		component App() {
-			let obj = { tag: #ripple.track('div') };
+			let obj = { tag: track('div') };
 
 			<obj.@tag>{'Hello World'}</obj.@tag>
 		}
@@ -30,7 +30,7 @@ describe('server dynamic DOM elements', () => {
 
 	it('renders static dynamic element from a tracked object with a tracked property', async () => {
 		component App() {
-			let obj = #ripple.track({ tag: #ripple.track('div') });
+			let obj = track({ tag: track('div') });
 
 			<@obj.@tag>{'Hello World'}</@obj.@tag>
 		}
@@ -44,7 +44,7 @@ describe('server dynamic DOM elements', () => {
 		'renders static dynamic element from a tracked object with a computed tracked property',
 		async () => {
 			component App() {
-				let obj = #ripple.track({ tag: #ripple.track('div') });
+				let obj = track({ tag: track('div') });
 
 				<@obj.@['tag']>{'Hello World'}</@obj.@['tag']>
 			}
@@ -57,7 +57,7 @@ describe('server dynamic DOM elements', () => {
 
 	it('renders self-closing dynamic element', async () => {
 		component App() {
-			let tag = #ripple.track('input');
+			let tag = track('input');
 
 			<@tag type="text" value="test" />
 		}
@@ -69,8 +69,8 @@ describe('server dynamic DOM elements', () => {
 
 	it('handles dynamic element with attributes', async () => {
 		component App() {
-			let tag = #ripple.track('div');
-			let className = #ripple.track('test-class');
+			let tag = track('div');
+			let className = track('test-class');
 
 			<@tag class={@className} id="test" data-testid="dynamic-element">{'Content'}</@tag>
 		}
@@ -87,8 +87,8 @@ describe('server dynamic DOM elements', () => {
 
 	it('handles nested dynamic elements', async () => {
 		component App() {
-			let outerTag = #ripple.track('div');
-			let innerTag = #ripple.track('span');
+			let outerTag = track('div');
+			let innerTag = track('span');
 
 			<@outerTag class="outer">
 				<@innerTag class="inner">{'Nested content'}</@innerTag>
@@ -108,8 +108,8 @@ describe('server dynamic DOM elements', () => {
 
 	it('handles dynamic element with class object', async () => {
 		component App() {
-			let tag = #ripple.track('div');
-			let active = #ripple.track(true);
+			let tag = track('div');
+			let active = track(true);
 
 			<@tag class={{ active: @active, 'dynamic-element': true }}>
 				{'Element with class object'}
@@ -127,7 +127,7 @@ describe('server dynamic DOM elements', () => {
 
 	it('handles dynamic element with style object', async () => {
 		component App() {
-			let tag = #ripple.track('span');
+			let tag = track('span');
 
 			<@tag
 				style={{
@@ -152,7 +152,7 @@ describe('server dynamic DOM elements', () => {
 
 	it('handles dynamic element with spread attributes', async () => {
 		component App() {
-			let tag = #ripple.track('section');
+			let tag = track('section');
 			const attrs = {
 				id: 'spread-section',
 				'data-testid': 'spread-test',
@@ -176,7 +176,7 @@ describe('server dynamic DOM elements', () => {
 		let capturedElement: HTMLElement | null = null;
 
 		component App() {
-			let tag = #ripple.track('article');
+			let tag = track('article');
 
 			<@tag
 				{ref (node: HTMLElement) => {
@@ -202,7 +202,7 @@ describe('server dynamic DOM elements', () => {
 
 	it('handles dynamic element with createRefKey in spread', async () => {
 		component App() {
-			let tag = #ripple.track('header');
+			let tag = track('header');
 
 			function elementRef(node: HTMLElement) {
 				// Set an attribute on the element to prove ref was called
@@ -233,7 +233,7 @@ describe('server dynamic DOM elements', () => {
 
 	it('applies scoped CSS to dynamic elements', async () => {
 		component App() {
-			let tag = #ripple.track('div');
+			let tag = track('div');
 
 			<@tag class="test-class">{'Dynamic element'}</@tag>
 
@@ -261,8 +261,8 @@ describe('server dynamic DOM elements', () => {
 			class: string;
 			id: string;
 		}>) {
-			const tag = #ripple.track('button');
-			const [rest] = #ripple.trackSplit(props, []);
+			const tag = track('button');
+			const [rest] = trackSplit(props, []);
 			<@tag {...@rest}>{@rest.class}</@tag>
 
 			<style>
@@ -276,7 +276,7 @@ describe('server dynamic DOM elements', () => {
 		}
 
 		component App() {
-			const count = #ripple.track(0);
+			const count = track(0);
 			<DynamicButton class={@count % 2 ? 'even' : 'odd'} id={@count % 2 ? 'even' : 'odd'} />
 		}
 
@@ -298,7 +298,7 @@ describe('server dynamic DOM elements', () => {
 
 	it('adds scoping class to dynamic elements', async () => {
 		component App() {
-			let tag = #ripple.track('div');
+			let tag = track('div');
 
 			<@tag class="scoped">
 				<p>{'Scoped dynamic element'}</p>
@@ -327,7 +327,7 @@ describe('server dynamic DOM elements', () => {
 			// NOTE: We always add the class scoping hash if there is css
 			// but the tag selector will be marked as unused if it's not explicitly seen in the template.
 			component App() {
-				let tag = #ripple.track('div');
+				let tag = track('div');
 
 				<@tag class="scoped">
 					<p>{'Scoped dynamic element'}</p>
@@ -365,7 +365,7 @@ describe('server dynamic DOM elements', () => {
 		}
 
 		component App() {
-			let tag = #ripple.track('div');
+			let tag = track('div');
 
 			<@tag class="scoped">
 				<p>{'Scoped dynamic element'}</p>
@@ -412,7 +412,7 @@ describe('server dynamic DOM elements', () => {
 		}
 
 		component App() {
-			let tag = #ripple.track(() => Child);
+			let tag = track(() => Child);
 
 			<@tag />
 

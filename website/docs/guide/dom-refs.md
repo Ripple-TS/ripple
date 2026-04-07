@@ -13,9 +13,10 @@ The hook function will receive the reference to the underlying DOM element.
 <Code console>
 
 ```ripple
+import { track } from 'ripple';
 
 export default component App() {
-  let div = #ripple.track();
+  let div = track();
 
   const divRef = (node) => {
     @div = node;
@@ -38,9 +39,10 @@ You can also create `{ref}` functions inline.
 <Code console>
 
 ```ripple
+import { track } from 'ripple';
 
 export component App() {
-  let div = #ripple.track();
+  let div = track();
 
   <div {ref (node) => {
     @div = node;
@@ -84,9 +86,10 @@ relying directly on the `{ref ...}` template syntax.
 <Code console>
 
 ```ripple
+import { track } from 'ripple';
 
 export component App() {
-  let value = #ripple.track('');
+  let value = track('');
 
   const props = {
     id: "example",

@@ -1,4 +1,4 @@
-import { flushSync } from 'ripple';
+import { flushSync, track } from 'ripple';
 
 describe('head elements', () => {
 	let originalTitle: string;
@@ -29,7 +29,7 @@ describe('head elements', () => {
 
 	it('renders reactive title element', () => {
 		component App() {
-			let title = #ripple.track('Initial Title');
+			let title = track('Initial Title');
 
 			<head>
 				<title>{@title}</title>
@@ -61,7 +61,7 @@ describe('head elements', () => {
 
 	it('renders title with template literal', () => {
 		component App() {
-			let name = #ripple.track('World');
+			let name = track('World');
 
 			<head>
 				<title>{`Hello ${@name}!`}</title>
@@ -90,7 +90,7 @@ describe('head elements', () => {
 
 	it('renders title with computed value', () => {
 		component App() {
-			let count = #ripple.track(0);
+			let count = track(0);
 			let prefix = 'Count: ';
 
 			<head>
@@ -122,7 +122,7 @@ describe('head elements', () => {
 
 	it('handles multiple title updates', () => {
 		component App() {
-			let step = #ripple.track(1);
+			let step = track(1);
 
 			<head>
 				<title>{`Step ${@step} of 3`}</title>
@@ -172,8 +172,8 @@ describe('head elements', () => {
 
 	it('renders title with conditional content', () => {
 		component App() {
-			let showPrefix = #ripple.track(true);
-			let title = #ripple.track('Main Page');
+			let showPrefix = track(true);
+			let title = track('Main Page');
 
 			<head>
 				<title>{@showPrefix ? 'App - ' + @title : @title}</title>

@@ -1,5 +1,17 @@
 # @ripple-ts/prettier-plugin
 
+## 0.3.4
+
+### Patch Changes
+
+- [`92982cd`](https://github.com/Ripple-TS/ripple/commit/92982cd7b918d0afee9334c74765573b30c8a645)
+  Thanks [@trueadm](https://github.com/trueadm)! - feat(compiler): add lazy
+  destructuring syntax (`&{...}` and `&[...]`)
+
+  Lazy destructuring defers property/index access until the binding is read,
+  preserving reactivity for destructured props. Works with default values,
+  compound assignment operators, and update expressions.
+
 ## 0.3.3
 
 ## 0.3.2

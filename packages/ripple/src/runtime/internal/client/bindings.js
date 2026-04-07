@@ -31,6 +31,15 @@ function not_set_function_type_error(name) {
 }
 
 /**
+ * @returns {TypeError}
+ */
+function invalid_select_multiple_value_error() {
+	return new TypeError(
+		'Reactive bound value of a `<select multiple>` element should be an array, but it received a non-array value.',
+	);
+}
+
+/**
  * @param {string} name
  * @param {unknown} maybe_tracked
  * @param {SetFunction | undefined} set_func
@@ -149,6 +158,10 @@ function is_numberlike_input(input) {
 
 /** @param {HTMLOptionElement} option */
 function get_option_value(option) {
+	if ('__value' in option) {
+		return option.__value;
+	}
+
 	return option.value;
 }
 
@@ -168,7 +181,7 @@ function select_option(select, value, mounting = false) {
 
 		// If not an array, warn and keep the selection as is
 		if (!is_array(value)) {
-			// TODO
+			throw invalid_select_multiple_value_error();
 		}
 
 		// Otherwise, update the selection
@@ -192,6 +205,88 @@ function select_option(select, value, mounting = false) {
 	}
 }
 
+/** @type {MutationObserver | undefined} */
+var select_mutation_observer;
+/** @type {Set<HTMLSelectElement> | undefined} */
+var observed_selects;
+var select_observer_options = {
+	childList: true,
+	subtree: true,
+	attributes: true,
+	attributeFilter: ['value'],
+};
+
+/**
+ * @param {MutationRecord[]} entries
+ * @returns {void}
+ */
+function process_select_mutation_entries(entries) {
+	var selects = new Set();
+
+	for (const entry of entries) {
+		const target = /** @type {HTMLElement} */ (entry.target);
+		const select = /** @type {HTMLSelectElement | null} */ (
+			target.nodeName === 'SELECT' ? target : target.closest('select')
+		);
+
+		if (!select || selects.has(select)) {
+			continue;
+		}
+
+		if (observed_selects?.has(select)) {
+			selects.add(select);
+			select_option(select, select.__value);
+		}
+	}
+}
+
+/**
+ * @param {HTMLSelectElement} select
+ * @returns {void}
+ */
+function observe_select(select) {
+	select_mutation_observer ??= new MutationObserver((entries) => {
+		process_select_mutation_entries(entries);
+	});
+
+	observed_selects ??= new Set();
+	observed_selects.add(select);
+	select_mutation_observer.observe(select, select_observer_options);
+}
+
+/**
+ * @param {HTMLSelectElement} select
+ * @returns {void}
+ */
+function unobserve_select(select) {
+	if (!observed_selects?.delete(select)) {
+		return;
+	}
+
+	if (select_mutation_observer) {
+		process_select_mutation_entries(select_mutation_observer.takeRecords());
+	}
+
+	select_mutation_observer?.disconnect();
+
+	for (const current_select of observed_selects) {
+		select_mutation_observer?.observe(current_select, select_observer_options);
+	}
+}
+
+/**
+ * Re-applies the current bound selection when option children change after mount.
+ * @param {HTMLSelectElement} select
+ * @returns {() => void}
+ */
+function init_select(select) {
+	observe_select(select);
+
+	return () => {
+		unobserve_select(select);
+	};
+}
+
 /**
  * @param {unknown} maybe_tracked
  * @param {SetFunction | undefined} set_func
@@ -201,11 +296,13 @@ export function bindValue(maybe_tracked, set_func = undefined) {
 	var { getter, setter } = get_bind_get_set('bindValue()', maybe_tracked, set_func);
 
 	return (node) => {
+		/** @type {undefined | (() => void)} */
 		var clear_event;
 
 		if (node.tagName === 'SELECT') {
 			var select = /** @type {HTMLSelectElement} */ (node);
 			var mounting = true;
+			var clear_observer = init_select(select);
 
 			clear_event = on(select, 'change', async () => {
 				var query = ':checked';
@@ -225,27 +322,41 @@ export function bindValue(maybe_tracked, set_func = undefined) {
 					value = selected_option && get_option_value(selected_option);
 				}
 
+				select.__value = value;
 				setter(value);
 			});
 
 			effect(() => {
 				var value = getter();
 				select_option(select, value, mounting);
+				select.__value = value;
 
 				// Mounting and value undefined -> take selection from dom
 				if (mounting && value === undefined) {
-					/** @type {HTMLOptionElement | null} */
-					var selected_option = /** @type {HTMLOptionElement | null} */ (
-						select.querySelector(':checked')
-					);
-					if (selected_option !== null) {
-						value = get_option_value(selected_option);
+					if (select.multiple) {
+						value = [].map.call(select.querySelectorAll(':checked'), get_option_value);
+						select.__value = value;
 						setter(value);
+					} else {
+						/** @type {HTMLOptionElement | null} */
+						var selected_option = /** @type {HTMLOptionElement | null} */ (
+							select.querySelector(':checked')
+						);
+						if (selected_option !== null) {
+							value = get_option_value(selected_option);
+							select.__value = value;
+							setter(value);
+						}
 					}
 				}
 
 				mounting = false;
 			});
+
+			return () => {
+				clear_event?.();
+				clear_observer();
+			};
 		} else {
 			var input = /** @type {HTMLInputElement} */ (node);
 

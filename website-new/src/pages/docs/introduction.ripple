@@ -9,13 +9,14 @@ const toc = [
 ];
 
 const example_code = `
+import { track } from 'ripple';
 
 export component App() {
   <div class="container">
     <h1>{"Welcome to Ripple!"}</h1>
 
     <div>
-      let count = #ripple.track(0);
+      let count = track(0);
 
       <button onClick={() => @count--}>{"-"}</button>
       <span class="count">{@count}</span>
@@ -108,10 +109,10 @@ export component IntroductionPage() {
 			</li>
 			<li>
 				<strong>{'Reactive Objects'}</strong>
-				{': You can create fully reactive arrays/objects using shorthand syntax '}
-				<code>{'#ripple[]'}</code>
-				{' '}
-				<code>{'#ripple{}'}</code>
+				{': You can create fully reactive arrays/objects using '}
+				<code>{'RippleArray'}</code>
+				{' and '}
+				<code>{'RippleObject'}</code>
 			</li>
 			<li>
 				<strong>{'Component-Based Architecture'}</strong>

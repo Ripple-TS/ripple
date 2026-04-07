@@ -164,18 +164,18 @@ const DOM_PROPERTIES = [
 ];
 
 /** @type {Record<string, string>} */
-const RIPPLE_NAMESPACE_CALL_NAME = {
-	'#ripple.url': 'ripple_url',
-	'#ripple.urlSearchParams': 'ripple_url_search_params',
-	'#ripple.date': 'ripple_date',
-	'#ripple.map': 'ripple_map',
-	'#ripple.set': 'ripple_set',
-	'#ripple.mediaQuery': 'media_query',
-	'#ripple.context': 'context',
-	'#ripple.effect': 'effect',
-	'#ripple.untrack': 'untrack',
-	'#ripple.array': 'ripple_array',
-	'#ripple.object': 'ripple_object',
+const RIPPLE_IMPORT_CALL_NAME = {
+	RippleURL: 'ripple_url',
+	RippleURLSearchParams: 'ripple_url_search_params',
+	RippleDate: 'ripple_date',
+	RippleMap: 'ripple_map',
+	RippleSet: 'ripple_set',
+	MediaQuery: 'media_query',
+	Context: 'context',
+	effect: 'effect',
+	untrack: 'untrack',
+	RippleArray: 'ripple_array',
+	RippleObject: 'ripple_object',
 };
 
 /**
@@ -298,14 +298,17 @@ export function is_ripple_track_call(callee, context) {
 	// Super expressions cannot be Ripple track calls
 	if (callee.type === 'Super') return false;
 
+	if (callee.type === 'Identifier' && (callee.name === 'track' || callee.name === 'trackSplit')) {
+		return is_ripple_import(callee, context);
+	}
+
 	return (
-		(callee.type === 'Identifier' && (callee.name === 'track' || callee.name === 'trackSplit')) ||
-		(callee.type === 'MemberExpression' &&
-			callee.object.type === 'Identifier' &&
-			callee.property.type === 'Identifier' &&
-			(callee.property.name === 'track' || callee.property.name === 'trackSplit') &&
-			!callee.computed &&
-			is_ripple_import(callee, context))
+		callee.type === 'MemberExpression' &&
+		callee.object.type === 'Identifier' &&
+		callee.property.type === 'Identifier' &&
+		(callee.property.name === 'track' || callee.property.name === 'trackSplit') &&
+		!callee.computed &&
+		is_ripple_import(callee, context)
 	);
 }
 
@@ -936,5 +939,14 @@ export function flatten_switch_consequent(consequent) {
  * @returns {string | null}
  */
 export function get_ripple_namespace_call_name(name) {
-	return name == null ? null : (RIPPLE_NAMESPACE_CALL_NAME[name] ?? null);
+	return name == null ? null : (RIPPLE_IMPORT_CALL_NAME[name] ?? null);
+}
+
+/**
+ * Returns true if the given import name requires a __block parameter
+ * @param {string} name
+ * @returns {boolean}
+ */
+export function ripple_import_requires_block(name) {
+	return name !== 'effect' && name !== 'untrack' && name !== 'Context';
 }

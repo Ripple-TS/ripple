@@ -34,8 +34,10 @@ body once a guard branch is hit.
 <Code>
 
 ```ripple
+import { track } from 'ripple';
+
 export component AuthGate() {
-  let is_logged_in = #ripple.track(false);
+  let is_logged_in = track(false);
 
   if (!@is_logged_in) {
     <p>{'Please sign in.'}</p>
@@ -88,8 +90,10 @@ You can also use reactive values with switch statements.
 <Code>
 
 ```ripple
+import { track } from 'ripple';
+
 export component InteractiveStatus() {
-  let status = #ripple.track('loading');
+  let status = track('loading');
 
   <button onClick={() => (@status = 'success')}>{'Success'}</button>
   <button onClick={() => (@status = 'error')}>{'Error'}</button>
@@ -176,7 +180,7 @@ for (const item of items; index i; key item.id) {
 
 **Key Usage Guidelines:**
 
-- **Arrays with `#ripple{}` objects**: Keys are usually unnecessary - object
+- **Arrays with `RippleObject` items**: Keys are usually unnecessary - object
   identity and reactivity handle updates automatically. Identity-based loops are
   more efficient with less bookkeeping.
 - **Arrays with plain objects**: Keys are needed when object reference isn't
@@ -187,8 +191,10 @@ You can use Ripple's reactive arrays to easily compose contents of an array.
 <Code>
 
 ```ripple
+import { RippleArray } from 'ripple';
+
 export component Numbers() {
-  const array = #ripple[1, 2, 3];
+  const array = new RippleArray(1, 2, 3);
 
   for (const item of array; index i) {
     <div>
@@ -237,8 +243,10 @@ You can render dynamic HTML elements by storing the tag name in a tracked variab
 and using the `<@tagName>` syntax:
 
 ```ripple
+import { track } from 'ripple';
+
 export component App() {
-  let tag = #ripple.track('div');
+  let tag = track('div');
 
   <@tag class="dynamic">{'Hello World'}</@tag>
   <button onClick={() => (@tag = @tag === 'div' ? 'span' : 'div')}>
@@ -288,22 +296,24 @@ The `{pending}` clause shows while the component is suspended. The `{catch}`
 clause handles both sync throws and async rejections. Both clauses are optional
 and can be used independently.
 
-### Reactive async with `await #ripple.track(fn)`
+### Reactive async with `await track(fn)`
 
 For async operations that should re-run when reactive dependencies change, use
-`await #ripple.track(fn)`. Any `@tracked` values read inside the function become
+`await track(fn)`. Any `@tracked` values read inside the function become
 dependencies — when they change the operation re-runs and the component
 re-suspends to the nearest `try/pending` boundary.
 
 ```ripple
+import { track } from 'ripple';
+
 export component CitySearch() {
-  let query = #ripple.track('');
+  let query = track('');
 
   // Renders immediately, never suspended
   <input type="text" value={@query} onInput={(e) => (@query = e.target.value)} />
 
   // Re-runs and re-suspends whenever @query changes
-  const city = await #ripple.track(() => fetchCity(@query));
+  const city = await track(() => fetchCity(@query));
 
   // Only renders once city has resolved for the current query
   <p>

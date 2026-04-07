@@ -65,9 +65,6 @@
           "include": "#jsx"
         },
         {
-          "include": "#defer-block"
-        },
-        {
           "include": "#declaration"
         },
         {
@@ -354,12 +351,6 @@
         },
         {
           "include": "#object-literal"
-        },
-        {
-          "include": "#tuple-literal"
-        },
-        {
-          "include": "#record-literal"
         },
         {
           "include": "#expression-operators"
@@ -760,6 +751,48 @@
       "patterns": [
         {
           "name": "meta.object-binding-pattern-variable.js",
+          "begin": "(?<!=|:|^of|[^\\._$[:alnum:]]of|^in|[^\\._$[:alnum:]]in)\\s*(&)(?=\\{)",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.operator.lazy-destructuring.js"
+            }
+          },
+          "end": "(?=$|^|[;,=}]|((?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(of|in)\\s+))",
+          "patterns": [
+            {
+              "include": "#object-binding-pattern"
+            },
+            {
+              "include": "#type-annotation"
+            },
+            {
+              "include": "#comment"
+            }
+          ]
+        },
+        {
+          "name": "meta.array-binding-pattern-variable.js",
+          "begin": "(?<!=|:|^of|[^\\._$[:alnum:]]of|^in|[^\\._$[:alnum:]]in)\\s*(&)(?=\\[)",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.operator.lazy-destructuring.js"
+            }
+          },
+          "end": "(?=$|^|[;,=}]|((?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(of|in)\\s+))",
+          "patterns": [
+            {
+              "include": "#array-binding-pattern"
+            },
+            {
+              "include": "#type-annotation"
+            },
+            {
+              "include": "#comment"
+            }
+          ]
+        },
+        {
+          "name": "meta.object-binding-pattern-variable.js",
           "begin": "(?<!=|:|^of|[^\\._$[:alnum:]]of|^in|[^\\._$[:alnum:]]in)\\s*(?=\\{)",
           "end": "(?=$|^|[;,=}]|((?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(of|in)\\s+))",
           "patterns": [
@@ -794,6 +827,48 @@
     },
     "destructuring-const": {
       "patterns": [
+        {
+          "name": "meta.object-binding-pattern-variable.js",
+          "begin": "(?<!=|:|^of|[^\\._$[:alnum:]]of|^in|[^\\._$[:alnum:]]in)\\s*(&)(?=\\{)",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.operator.lazy-destructuring.js"
+            }
+          },
+          "end": "(?=$|^|[;,=}]|((?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(of|in)\\s+))",
+          "patterns": [
+            {
+              "include": "#object-binding-pattern-const"
+            },
+            {
+              "include": "#type-annotation"
+            },
+            {
+              "include": "#comment"
+            }
+          ]
+        },
+        {
+          "name": "meta.array-binding-pattern-variable.js",
+          "begin": "(?<!=|:|^of|[^\\._$[:alnum:]]of|^in|[^\\._$[:alnum:]]in)\\s*(&)(?=\\[)",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.operator.lazy-destructuring.js"
+            }
+          },
+          "end": "(?=$|^|[;,=}]|((?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(of|in)\\s+))",
+          "patterns": [
+            {
+              "include": "#array-binding-pattern-const"
+            },
+            {
+              "include": "#type-annotation"
+            },
+            {
+              "include": "#comment"
+            }
+          ]
+        },
         {
           "name": "meta.object-binding-pattern-variable.js",
           "begin": "(?<!=|:|^of|[^\\._$[:alnum:]]of|^in|[^\\._$[:alnum:]]in)\\s*(?=\\{)",
@@ -904,9 +979,6 @@
         },
         {
           "include": "#array-literal"
-        },
-        {
-          "include": "#tuple-literal"
         },
         {
           "include": "#numeric-literal"
@@ -1268,12 +1340,15 @@
       }
     },
     "parameter-object-binding-pattern": {
-      "begin": "(?:(\\.\\.\\.)\\s*)?(\\{)",
+      "begin": "(?:(\\.\\.\\.)\\s*)?(&)?(\\{)",
       "beginCaptures": {
         "1": {
           "name": "keyword.operator.rest.js"
         },
         "2": {
+          "name": "keyword.operator.lazy-destructuring.js"
+        },
+        "3": {
           "name": "punctuation.definition.binding-pattern.object.js"
         }
       },
@@ -1290,12 +1365,15 @@
       ]
     },
     "parameter-array-binding-pattern": {
-      "begin": "(?:(\\.\\.\\.)\\s*)?(\\[)",
+      "begin": "(?:(\\.\\.\\.)\\s*)?(&)?(\\[)",
       "beginCaptures": {
         "1": {
           "name": "keyword.operator.rest.js"
         },
         "2": {
+          "name": "keyword.operator.lazy-destructuring.js"
+        },
+        "3": {
           "name": "punctuation.definition.binding-pattern.array.js"
         }
       },
@@ -1335,9 +1413,6 @@
         },
         {
           "include": "#array-literal"
-        },
-        {
-          "include": "#tuple-literal"
         },
         {
           "include": "#numeric-literal"
@@ -1743,9 +1818,6 @@
         },
         {
           "include": "#array-literal"
-        },
-        {
-          "include": "#tuple-literal"
         },
         {
           "include": "#numeric-literal"
@@ -2275,9 +2347,6 @@
                 },
                 {
                   "include": "#array-literal"
-                },
-                {
-                  "include": "#tuple-literal"
                 },
                 {
                   "include": "#comment"
@@ -3238,9 +3307,6 @@
             },
             {
               "include": "#array-literal"
-            },
-            {
-              "include": "#tuple-literal"
             }
           ]
         },
@@ -4024,12 +4090,6 @@
           "include": "#array-literal"
         },
         {
-          "include": "#tuple-literal"
-        },
-        {
-          "include": "#record-literal"
-        },
-        {
           "include": "#this-literal"
         },
         {
@@ -4057,55 +4117,6 @@
         },
         {
           "include": "#punctuation-comma"
-        }
-      ]
-    },
-    "tuple-literal": {
-      "name": "meta.tuple.literal.js",
-      "begin": "(#ripple)(\\[)",
-      "beginCaptures": {
-        "1": {
-          "name": "keyword.control.tuple.js"
-        },
-        "2": {
-          "name": "meta.brace.square.js"
-        }
-      },
-      "end": "\\]",
-      "endCaptures": {
-        "0": {
-          "name": "meta.brace.square.js"
-        }
-      },
-      "patterns": [
-        {
-          "include": "#expression"
-        },
-        {
-          "include": "#punctuation-comma"
-        }
-      ]
-    },
-    "record-literal": {
-      "name": "meta.record.literal.js",
-      "begin": "(#ripple)(\\{)",
-      "beginCaptures": {
-        "1": {
-          "name": "keyword.control.record.js"
-        },
-        "2": {
-          "name": "punctuation.definition.block.js"
-        }
-      },
-      "end": "\\}",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.block.js"
-        }
-      },
-      "patterns": [
-        {
-          "include": "#object-member"
         }
       ]
     },
@@ -6536,9 +6547,6 @@
           "include": "#style-member-expression"
         },
         {
-          "include": "#ripple-member-expression"
-        },
-        {
           "include": "#jsx-ref-modifier"
         },
         {
@@ -6591,9 +6599,6 @@
         },
         {
           "include": "#style-member-expression"
-        },
-        {
-          "include": "#ripple-member-expression"
         },
         {
           "include": "#jsx-html-modifier"
@@ -6733,18 +6738,12 @@
     },
     "server-block": {
       "name": "meta.server-block.js",
-      "begin": "(#ripple)(\\.)(server)\\s*(\\{)",
+      "begin": "(#server)\\s*(\\{)",
       "beginCaptures": {
         "1": {
           "name": "keyword.control.ripple.js"
         },
         "2": {
-          "name": "punctuation.accessor.js"
-        },
-        "3": {
-          "name": "entity.name.function.js"
-        },
-        "4": {
           "name": "punctuation.definition.block.js"
         }
       },
@@ -6760,60 +6759,16 @@
         }
       ]
     },
-    "defer-block": {
-      "name": "meta.defer-block.js",
-      "begin": "(#ripple\\.defer)\\s*(\\{)",
-      "beginCaptures": {
-        "1": {
-          "name": "storage.type.defer.js"
-        },
-        "2": {
-          "name": "punctuation.definition.block.js"
-        }
-      },
-      "end": "\\}",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.block.js"
-        }
-      },
-      "patterns": [
-        {
-          "include": "#component-statements"
-        }
-      ]
-    },
-    "ripple-member-expression": {
-      "name": "meta.ripple-member-expression.js",
-      "match": "(#ripple)(\\.)([_$[:alpha:]][_$[:alnum:]]*)",
-      "captures": {
-        "1": {
-          "name": "keyword.control.ripple.js"
-        },
-        "2": {
-          "name": "punctuation.accessor.js"
-        },
-        "3": {
-          "name": "entity.name.function.js"
-        }
-      }
-    },
     "style-member-expression": {
       "patterns": [
         {
           "name": "meta.style-member-expression.computed.js",
-          "begin": "(#ripple)(\\.)(style)(\\[)",
+          "begin": "(#style)(\\[)",
           "beginCaptures": {
             "1": {
               "name": "keyword.control.ripple.js"
             },
             "2": {
-              "name": "punctuation.accessor.js"
-            },
-            "3": {
-              "name": "entity.name.function.js"
-            },
-            "4": {
               "name": "meta.brace.square.js"
             }
           },
@@ -7105,9 +7060,6 @@
         },
         {
           "include": "#style-member-expression"
-        },
-        {
-          "include": "#ripple-member-expression"
         },
         {
           "include": "#jsx-ref-modifier"

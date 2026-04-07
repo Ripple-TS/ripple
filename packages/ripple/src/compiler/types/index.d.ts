@@ -13,25 +13,7 @@ interface BaseNodeMetaData {
 	scoped?: boolean;
 	path: AST.Node[];
 	has_template?: boolean;
-	source_name?:
-		| string
-		| '#ripple'
-		| '#ripple.map'
-		| '#ripple.set'
-		| '#ripple.server'
-		| '#ripple.style'
-		| '#ripple.array'
-		| '#ripple.object'
-		| '#ripple.effect'
-		| '#ripple.track'
-		| '#ripple.trackSplit'
-		| '#ripple.untrack'
-		| '#ripple.url'
-		| '#ripple.urlSearchParams'
-		| '#ripple.date'
-		| '#ripple.mediaQuery'
-		| '#ripple.context'
-		| '#ripple.validate';
+	source_name?: string | '#server' | '#style';
 	is_capitalized?: boolean;
 	has_await?: boolean;
 	commentContainerId?: number;
@@ -43,6 +25,7 @@ interface BaseNodeMetaData {
 	is_reactive?: boolean;
 	lone_return?: boolean;
 	forceMapping?: boolean;
+	lazy_id?: string;
 }
 
 interface FunctionMetaData extends BaseNodeMetaData {
@@ -123,6 +106,14 @@ declare module 'estree' {
 		optional: boolean;
 	}
 
+	// Lazy destructuring patterns (&{...} and &[...])
+	interface ObjectPattern {
+		lazy?: boolean;
+	}
+	interface ArrayPattern {
+		lazy?: boolean;
+	}
+
 	// We mark the whole node as marked when member is @[expression]
 	// Otherwise, we only mark Identifier nodes
 	interface MemberExpression extends AST.TrackedNode {}
@@ -161,8 +152,6 @@ declare module 'estree' {
 	}
 
 	interface ExpressionMap {
-		RippleArrayExpression: RippleArrayExpression;
-		RippleObjectExpression: RippleObjectExpression;
 		TrackedExpression: TrackedExpression;
 		StyleIdentifier: StyleIdentifier;
 		ServerIdentifier: ServerIdentifier;
@@ -359,19 +348,9 @@ declare module 'estree' {
 	/**
 	 * Tracked Expressions
 	 */
-	interface RippleArrayExpression extends Omit<AST.ArrayExpression, 'type'> {
-		type: 'RippleArrayExpression';
-		elements: (AST.Expression | AST.SpreadElement | null)[];
-	}
-
 	interface TrackedExpression extends AST.BaseExpression {
 		argument: AST.Expression;
 		type: 'TrackedExpression';
-	}
-
-	interface RippleObjectExpression extends Omit<AST.ObjectExpression, 'type'> {
-		type: 'RippleObjectExpression';
-		properties: (AST.Property | AST.SpreadElement)[];
 	}
 
 	/**
@@ -1136,6 +1115,8 @@ export type BindingKind =
 	| 'rest_prop'
 	| 'prop'
 	| 'prop_fallback'
+	| 'lazy'
+	| 'lazy_fallback'
 	| 'index';
 
 /**
@@ -1177,7 +1158,7 @@ export interface Binding {
 	transform?: {
 		read: (node?: AST.Identifier) => AST.Expression;
 		assign?: (node: AST.Pattern, value: AST.Expression) => AST.AssignmentExpression;
-		update?: (node: AST.UpdateExpression) => AST.UpdateExpression;
+		update?: (node: AST.UpdateExpression) => AST.Expression;
 	};
 }
 
