@@ -536,7 +536,7 @@ const visitors = {
 					declarator.id.lazy
 				) {
 					const lazy_id = b.id(state.scope.generate('lazy'));
-					const writable = node.kind === 'let';
+					const writable = node.kind !== 'const';
 					setup_lazy_transforms(declarator.id, lazy_id, state, writable);
 					// Store the generated identifier name on the pattern for the transform phase
 					declarator.id.metadata = { ...declarator.id.metadata, lazy_id: lazy_id.name };
