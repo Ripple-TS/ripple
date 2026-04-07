@@ -1,68 +1,76 @@
-import { renderToStream } from 'ripple/server';
+// This file is for tests that don't fit anywhere else
 
-test('renderToStream renders a simple component', async ({ expect }) => {
-	component Basic() {
-		<div>{'Hello, streaming SSR!'}</div>
-	}
-
-	const stream = renderToStream(Basic);
-
-	let result = '';
-	await new Promise((resolve) => {
-		stream.on('data', (chunk) => {
-			result += chunk.toString();
-		});
-		stream.on('end', resolve);
+describe('renderToStream', () => {
+	it('re-enable when renderToStream is supported again', () => {
+		expect(true).toBe(true);
 	});
-
-	expect(result).toBe('<div>Hello, streaming SSR!</div>');
 });
 
-test('renderToStream handles async components', async ({ expect }) => {
-	component AsyncComponent() {
-		await new Promise((resolve) => setTimeout(resolve, 10));
-		<p>{'Async content loaded.'}</p>
-	}
+// import { renderToStream } from 'ripple/server';
 
-	const stream = renderToStream(AsyncComponent);
+// test('renderToStream renders a simple component', async ({ expect }) => {
+// 	component Basic() {
+// 		<div>{'Hello, streaming SSR!'}</div>
+// 	}
 
-	let result = '';
-	await new Promise((resolve) => {
-		stream.on('data', (chunk) => {
-			result += chunk.toString();
-		});
-		stream.on('end', resolve);
-	});
+// 	const stream = renderToStream(Basic);
 
-	expect(result).toBe('<p>Async content loaded.</p>');
-});
+// 	let result = '';
+// 	await new Promise((resolve) => {
+// 		stream.on('data', (chunk) => {
+// 			result += chunk.toString();
+// 		});
+// 		stream.on('end', resolve);
+// 	});
 
-test('renderToStream handles await blocks with pending state', async ({ expect }) => {
-	component AwaitComponent() {
-		let data = 'initial';
-		await new Promise((resolve) => setTimeout(() => {
-			data = 'resolved';
-			resolve('');
-		}, 20));
-		try {
-			<div>
-				{'Data: '}
-				{data}
-			</div>
-		} pending {
-			<div>{'Loading...'}</div>
-		}
-	}
+// 	expect(result).toBe('<div>Hello, streaming SSR!</div>');
+// });
 
-	const stream = renderToStream(AwaitComponent);
+// test('renderToStream handles async components', async ({ expect }) => {
+// 	component AsyncComponent() {
+// 		await new Promise((resolve) => setTimeout(resolve, 10));
+// 		<p>{'Async content loaded.'}</p>
+// 	}
 
-	let result = '';
-	await new Promise((resolve) => {
-		stream.on('data', (chunk) => {
-			result += chunk.toString();
-		});
-		stream.on('end', resolve);
-	});
+// 	const stream = renderToStream(AsyncComponent);
 
-	expect(result).toBe('<!--[--><div>Loading...</div><div>Data: resolved</div><!--]-->');
-});
+// 	let result = '';
+// 	await new Promise((resolve) => {
+// 		stream.on('data', (chunk) => {
+// 			result += chunk.toString();
+// 		});
+// 		stream.on('end', resolve);
+// 	});
+
+// 	expect(result).toBe('<p>Async content loaded.</p>');
+// });
+
+// test('renderToStream handles await blocks with pending state', async ({ expect }) => {
+// 	component AwaitComponent() {
+// 		let data = 'initial';
+// 		await new Promise((resolve) => setTimeout(() => {
+// 			data = 'resolved';
+// 			resolve('');
+// 		}, 20));
+// 		try {
+// 			<div>
+// 				{'Data: '}
+// 				{data}
+// 			</div>
+// 		} pending {
+// 			<div>{'Loading...'}</div>
+// 		}
+// 	}
+
+// 	const stream = renderToStream(AwaitComponent);
+
+// 	let result = '';
+// 	await new Promise((resolve) => {
+// 		stream.on('data', (chunk) => {
+// 			result += chunk.toString();
+// 		});
+// 		stream.on('end', resolve);
+// 	});
+
+// 	expect(result).toBe('<!--[--><div>Loading...</div><div>Data: resolved</div><!--]-->');
+// });

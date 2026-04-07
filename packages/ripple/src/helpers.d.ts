@@ -7,3 +7,5 @@ export type RequiredPresent<T, K extends keyof T> = Omit<T, K> & Required<Pick<T
 export type Nullable<T> = T | null;
 
 export type Nullish<T> = T | null | undefined;
+
+export type NestedArray<T> = (T | NestedArray<T>)[];

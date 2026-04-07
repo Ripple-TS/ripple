@@ -2,7 +2,7 @@ describe('try block with catch and pending (server)', () => {
 	it('catch block works when component throws before await with pending block', async () => {
 		component ThrowingChild() {
 			throw new Error('sync error');
-			let data = await Promise.resolve('hello');
+			let data = #ripple.trackAsync(() => Promise.resolve('hello'));
 			<p>{data}</p>
 		}
 
@@ -23,7 +23,7 @@ describe('try block with catch and pending (server)', () => {
 
 	it('catch block works when component throws after await with pending block', async () => {
 		component ThrowingAfterAwait() {
-			let data = await Promise.resolve('hello');
+			let data = #ripple.trackAsync(() => Promise.resolve('hello'));
 			throw new Error('error after await');
 			<p>{data}</p>
 		}
@@ -46,7 +46,7 @@ describe('try block with catch and pending (server)', () => {
 	it('catch block works with try/catch/pending when async body rejects', async () => {
 		component App() {
 			try {
-				let data = await Promise.reject(new Error('rejected'));
+				let data = #ripple.trackAsync(() => Promise.reject(new Error('rejected')));
 				<p>{data}</p>
 			} pending {
 				<p>{'loading...'}</p>
@@ -64,7 +64,7 @@ describe('try block with catch and pending (server)', () => {
 		component App() {
 			try {
 				try {
-					let data = await Promise.resolve('resolved');
+					let data = #ripple.trackAsync(() => Promise.resolve('resolved'));
 					<p>{data}</p>
 				} pending {
 					<p>{'inner loading...'}</p>

@@ -1,10 +1,40 @@
 /**
-@import { Component, Dependency, Derived, Tracked } from '#server';
-@import { SSRComponent, renderToStream, render } from 'ripple/server';
+@import { Component, Dependency, Derived, Tracked, Block, TryBlock } from '#server';
+@import { NestedArray } from '#helpers';
+@import { Props } from '#public';
+@import { SSRRenderResult } from 'ripple/server';
+// TODO: Add back renderToStream to the import above when renderToStream is supported again
 */
 
-import { Readable } from 'stream';
-import { DERIVED, UNINITIALIZED, TRACKED } from '../client/constants.js';
+// Export-only Types
+/**
+@typedef {Output} OutputInterface
+ */
+
+// Internal Types
+/**
+@typedef {(output: Output, props?: Props) => void} SSRComponent
+@typedef {{
+	tag: string;
+	parent: undefined | ElementContext;
+	filename: undefined | string;
+	line: number;
+	column: number;
+}} ElementContext
+@typedef {{
+	cancel: () => void,
+}} RegisteredAsyncOperation
+ */
+
+// import { Readable } from 'stream';
+import {
+	DERIVED,
+	UNINITIALIZED,
+	TRACKED,
+	SUSPENSE_PENDING,
+	SUSPENSE_REJECTED,
+	ASYNC_DERIVED_READ_THROWN,
+} from '../client/constants.js';
 import { is_ripple_object, get_descriptor, define_property, is_array } from '../client/utils.js';
 import { escape } from '../../../utils/escaping.js';
 import { is_boolean_attribute } from '../../../compiler/utils.js';
@@ -15,22 +45,51 @@ import {
 	is_tag_valid_with_parent,
 	is_tag_valid_with_ancestor,
 } from '../../../html-tree-validation.js';
+import { get_async_track_result } from '../../../utils/async.js';
+import {
+	cancel_async_operations,
+	component_block,
+	get_closest_catch_block,
+	try_block,
+} from './blocks.js';
+import { COMPONENT_BLOCK, TRY_BLOCK } from './constants.js';
 
 export { escape };
 export { register_component_css as register_css } from './css-registry.js';
 export { hash } from '../../../utils/hashing.js';
 export { context } from './context.js';
+export { try_block, component_block, regular_block } from './blocks.js';
 
 /** @type {null | Component} */
 export let active_component = null;
+/** @type {null | Block} */
+export let active_block = null;
+export let tracking = false;
+/** @type {null | Dependency} */
+let active_dependency = null;
+/** @type {null | Derived} */
+let active_derived_run = null;
+/** @type {ElementContext | undefined} */
+let current_element;
+/** @type {Set<string>} */
+let seen_warnings = new Set();
+
+/**
+ * @returns {void}
+ */
+export function reset_state() {
+	active_component = null;
+	active_block = null;
+	active_dependency = null;
+	active_derived_run = null;
+	current_element = undefined;
+	tracking = false;
+	seen_warnings = new Set();
+	current_element = undefined;
+}
 
 /** @type {number} */
 let clock = 0;
-
-/** @type {null | Dependency} */
-let active_dependency = null;
-
-export let tracking = false;
 
 /**
  * @returns {number}
@@ -139,26 +198,93 @@ function update_derived(computed) {
 
 /**
  * @param {Derived} computed
+ * @param {any} value
+ */
+function update_derived_value(computed, value) {
+	computed.v = value;
+}
+
+/**
+ * @param {Derived} computed
+ * @param {any} value
+ */
+function update_derived_value_clock(computed, value) {
+	computed.v = value;
+	computed.c = increment_clock();
+}
+
+/**
+ * @param {Derived} computed
  */
 function run_derived(computed) {
 	var previous_tracking = tracking;
 	var previous_dependency = active_dependency;
 	var previous_component = active_component;
+	var previous_active_derived_run = active_derived_run;
 
 	try {
-		active_component = computed.co;
 		tracking = true;
 		active_dependency = null;
+		active_component = computed.co;
+		active_derived_run = computed;
 
 		var value = computed.fn();
 
 		computed.d = active_dependency;
 
-		return value;
+		return normalize_derived_value(computed, value, undefined);
+	} catch (error) {
+		computed.d = active_dependency;
+		if (error === ASYNC_DERIVED_READ_THROWN) {
+			var { ap: promise } = get_active_derived();
+			if (computed.ia) {
+				// This must've been thrown by a pending async derived inside a track.async callback.
+				// We're not going to attach any cleanup logic to promises if they fail
+				// as this should be handled by the block logic since something needs to read
+				// these computed/derived values inside blocks
+				// Otherwise, if they're never read, then it really doesn't matter if these promises error out,
+				// or resolve for that matter, since it would mean that they're not being used.
+				if (!computed.ap) {
+					// create and attach a new promise that will resolve once all of its
+					// async derived dependencies have resolved
+					// It's important to create a promise because this async derived might be a dependency
+					// of another sync or async derived, and they would also have to be rerun
+					// once this derived's promise resolves
+					var deferred_promise = new Promise((resolve, reject) => {
+						computed.dr = resolve;
+						computed.dj = (error) => {
+							update_derived_value(computed, SUSPENSE_REJECTED);
+							computed.dr = null;
+							computed.dj = null;
+							reject(error);
+						};
+						computed.ap = deferred_promise;
+					});
+				}
+
+				/** @type {PromiseLike<any>} */ (promise).then(
+					// rerun the derived once the dependent promise resolves
+					() => {
+						run_derived(computed);
+					},
+					(error) => {
+						if (computed.dj) {
+							computed.dj(error);
+						} else {
+							// this is a regular derived that has an async derived dependency
+							update_derived_value(computed, SUSPENSE_REJECTED);
+						}
+					},
+				);
+			}
+			return SUSPENSE_PENDING;
+		}
+		throw error;
 	} finally {
 		tracking = previous_tracking;
 		active_dependency = previous_dependency;
 		active_component = previous_component;
+		active_derived_run = previous_active_derived_run;
 	}
 }
 
@@ -175,26 +301,76 @@ const replacements = {
 	]),
 };
 
-class Output {
-	head = '';
-	body = '';
+export class Output {
+	/** @type {Output} */
+	#root;
+	/** @type {NestedArray<string>} */
+	#head = [];
+	/** @type {NestedArray<string>} */
+	#body = [];
 	/** @type {Set<string>} */
-	css = new Set();
-	/** @type {Promise<any>[]} */
-	promises = [];
-	/** @type {Output | null} */
+	#css = new Set();
+	/** @type {null | Output} */
 	#parent = null;
 	/** @type {import('stream').Readable | null} */
 	#stream = null;
+	/** @type {null | number} */
+	#pending_count = null;
+	/** @type {null | Promise<void>} */
+	#promise = null;
+	/** @type {null | (() => void)} */
+	#promise_resolve = null;
+	/** @type {null | ((reason?: any) => void)} */
+	#promise_reject = null;
+	#is_root = false;
+	/** @type {Set<RegisteredAsyncOperation>} */
+	#async_operations = new Set();
 	/** @type {null | 'head'} */
 	target = null;
+
+	get root() {
+		return this.#root;
+	}
+
+	get body() {
+		return this.#body;
+	}
+
+	get head() {
+		return this.#head;
+	}
+
+	get css() {
+		return this.#css;
+	}
+
+	get promise() {
+		if (this.#is_root) {
+			return /** @type {Promise<void>} */ (this.#promise);
+		}
+
+		throw new Error('getPromise() can only be called on the root Output');
+	}
 
 	/**
 	 * @param {Output | null} parent
 	 * @param {import('stream').Readable | null} stream
 	 */
 	constructor(parent, stream = null) {
-		this.#parent = parent;
+		if (!parent) {
+			this.#root = this;
+			this.#is_root = true;
+			this.#promise = new Promise((resolve, reject) => {
+				this.#promise_resolve = resolve;
+				this.#promise_reject = reject;
+			});
+			this.#pending_count = 1;
+		} else {
+			this.#root = parent.root;
+			this.#parent = parent;
+			this.#parent.body.push(this.body);
+			this.#parent.head.push(this.head);
+		}
 		this.#stream = stream;
 	}
 
@@ -204,15 +380,21 @@ class Output {
 	 */
 	push(str) {
 		if (this.target === 'head') {
-			this.head += str;
+			this.#head.push(str);
 			return;
 		}
 
 		if (this.#stream) {
 			this.#stream.push(str);
 		} else {
-			this.body += str;
+			this.#body.push(str);
 		}
+	}
+
+	clear() {
+		this.#head.length = 0;
+		this.#body.length = 0;
+		this.#css.clear();
 	}
 
 	/**
@@ -220,113 +402,176 @@ class Output {
 	 * @returns {void}
 	 */
 	register_css(hash) {
-		this.css.add(hash);
+		this.#css.add(hash);
+	}
+
+	/**
+	 * @param {RegisteredAsyncOperation} operation
+	 * @return {void}
+	 */
+	registerAsync(operation) {
+		this.#async_operations.add(operation);
+		this.#root._incrementPending();
+	}
+
+	/**
+	 * @param {RegisteredAsyncOperation} operation
+	 * @returns {void}
+	 */
+	resolveAsync(operation) {
+		this.#async_operations.delete(operation);
+		this.#root._decrementPending();
+	}
+
+	cancelAsyncOperations() {
+		for (const operation of this.#async_operations) {
+			operation.cancel();
+			this.#async_operations.delete(operation);
+			this.clear();
+			this.#root._decrementPending();
+		}
+	}
+
+	_incrementPending() {
+		if (this.#is_root) {
+			/** @type {number} */ (this.#pending_count)++;
+			return;
+		}
+		throw new Error('_incrementPending() is an internal method.');
+	}
+
+	_decrementPending() {
+		if (this.#is_root) {
+			/** @type {number} */ (this.#pending_count)--;
+
+			if (this.#pending_count === 0) {
+				this.#promise_resolve?.();
+			}
+			return;
+		}
+		throw new Error('_decrementPending() is an internal method.');
+	}
+
+	branch() {
+		return new Output(this, this.#stream);
 	}
 }
 
-/** @type {render} */
+/**
+ * @param {SSRComponent} component
+ * @returns {Promise<SSRRenderResult>}
+ */
 export async function render(component) {
-	const output = new Output(null, null);
 	let head = '';
 	let body = '';
 	let css = new Set();
 
 	// Reset dev-mode element tracking state at the start of each render
-	reset_element_state();
+	reset_state();
 
-	try {
-		if (component.async) {
-			await component(output, {});
-		} else {
+	const root_block = (active_block = try_block(
+		// since there is no `active_block` yet, the usual automatic block run will be skipped
+		async () => {
+			const output = root_block.o;
 			component(output, {});
-		}
-		if (output.promises.length > 0) {
-			await Promise.all(output.promises);
-		}
+			output._decrementPending();
+			await output.promise;
 
-		head = output.head;
-		body = BLOCK_OPEN + output.body + BLOCK_CLOSE;
-		css = output.css;
-	} catch (error) {
-		console.log(error);
-	} finally {
-		reset_element_state();
-	}
+			head = /** @type {string[]} */ (output.head).flat(Infinity).join('');
+			body =
+				BLOCK_OPEN + /** @type {string[]} */ (output.body).flat(Infinity).join('') + BLOCK_CLOSE;
+			css = output.css;
+		},
+		(error) => {
+			const output = root_block.o;
+			output.clear();
+			console.error(error);
+		},
+		() => {
+			// TODO - allow a global pending in ripple.config.ts
+			// pending would be implemented as part of the streaming rendering support
+		},
+	));
+
+	// Run the block here manually now that we have `active_block` set up
+	// Normally it's run right away when a block is created but because
+	// the `active_block` was not set, it skipped the automatic run
+	run_block(root_block);
+	await root_block.o.promise;
+	reset_state();
+
 	return { head, body, css };
 }
 
-/** @type {renderToStream} */
-export function renderToStream(component) {
-	const stream = new Readable({
-		read() {},
-	});
-	const output = new Output(null, stream);
-	render_in_chunks(component, stream, output);
-	return stream;
-}
-/**
- *
- * @param {SSRComponent} component
- * @param {Readable} stream
- * @param {Output} output
- */
-async function render_in_chunks(component, stream, output) {
-	// Reset dev-mode element tracking state at the start of each render
-	reset_element_state();
+// /** @type {renderToStream} */
+// export function renderToStream(component) {
+// 	const stream = new Readable({
+// 		read() {},
+// 	});
+// 	const output = new Output(null, stream);
+// 	render_in_chunks(component, stream, output);
+// 	return stream;
+// }
+// /**
+//  *
+//  * @param {SSRComponent} component
+//  * @param {Readable} stream
+//  * @param {Output} output
+//  */
+// async function render_in_chunks(component, stream, output) {
+// 	// Reset dev-mode element tracking state at the start of each render
+// 	reset_state();
 
-	try {
-		if (component.async) {
-			await component(output, {});
-		} else {
-			component(output, {});
-		}
-		if (output.promises.length > 0) {
-			await Promise.all(output.promises);
-		}
-		stream.push(null);
-	} catch (error) {
-		console.error(error);
-		stream.emit('error', error);
-	} finally {
-		reset_element_state();
-	}
-}
+// 	try {
+// 		if (component.async) {
+// 			await component(output, {});
+// 		} else {
+// 			component(output, {});
+// 		}
+// 		if (output.promises.length > 0) {
+// 			await Promise.all(output.promises);
+// 		}
+// 		stream.push(null);
+// 	} catch (error) {
+// 		console.error(error);
+// 		stream.emit('error', error);
+// 	} finally {
+// 		reset_state();
+// 	}
+// }
 /**
  * @returns {void}
  */
 export function push_component() {
-	var component = {
+	active_component = {
 		c: null,
 		p: active_component,
 	};
-	active_component = component;
+	active_block = component_block(() => {});
 }
 
 /**
  * @returns {void}
  */
 export function pop_component() {
-	var component = /** @type {Component} */ (active_component);
-	active_component = component.p;
+	active_component = /** @type {Component} */ (active_component).p;
+	active_block = /** @type {Block} */ (active_block).p;
 }
 
 /**
- * @typedef {{
- * 	tag: string;
- * 	parent: undefined | ElementContext;
- *  filename: undefined | string;
- *  line: number;
- *  column: number;
- * }} ElementContext
+ * @param {string} str
+ * @returns {void}
  */
-
-/** @type {ElementContext | undefined} */
-let current_element;
+export function output_push(str) {
+	/** @type {Block} */ (active_block).o.push(str);
+}
 
 /**
- * @type {Set<string>}
+ * @param {Output['target']} target
  */
-let seen_warnings = new Set();
+export function set_output_target(target) {
+	/** @type {Block} */ (active_block).o.target = target;
+}
 
 /**
  * @param {string} message
@@ -396,18 +641,6 @@ export function pop_element() {
 }
 
 /**
- * Resets the dev-mode element tracking state.
- * Called automatically at the start/end of each render to prevent
- * state from leaking between renders (e.g., if a render throws).
- * Also exported for testing purposes.
- * @returns {void}
- */
-export function reset_element_state() {
-	seen_warnings = new Set();
-	current_element = undefined;
-}
-
-/**
  * @param {() => any} fn
  * @returns {Promise<void>}
  */
@@ -436,6 +669,28 @@ export function get(tracked) {
 		update_derived(/** @type {Derived} **/ (tracked));
 		if (tracking) {
 			register_dependency(tracked);
+
+			// When the derived is still pending or rejected, throw to bail out of the
+			// current block so the rest of the component tree can continue processing
+			// (avoiding waterfalls). We check `v === SUSPENSE_PENDING` rather than `aq`
+			// because users can temporarily overwrite `v` on a derived, in which case
+			// the processing should continue without throwing since we assume that the values
+			// are consistent with the code's logic.
+			if (tracked.v === SUSPENSE_PENDING || tracked.v === SUSPENSE_REJECTED) {
+				if (
+					!active_derived_run &&
+					(!active_block || active_block.f & COMPONENT_BLOCK || active_block.f & TRY_BLOCK)
+				) {
+					// if reading directly inside a component or try block,
+					// or not inside a derived function execution
+					// throw a fatal error as this is prohibited
+					throw new Error(
+						'Reads on pending tracked values directly inside component body are prohibited. Use #ripple.trackPending() test for safe access or create another derived instead.',
+					);
+				}
+
+				throw ASYNC_DERIVED_READ_THROWN;
+			}
 		}
 	} else if (tracking) {
 		register_dependency(tracked);
@@ -638,6 +893,10 @@ function derived(v, get, set) {
 		fn: v,
 		v: UNINITIALIZED,
 		ia: false,
+		aa: null,
+		ap: null,
+		dr: null,
+		dj: null,
 	};
 }
 
@@ -688,6 +947,173 @@ export function track_async(v, options = {}, force_eager) {
 }
 
 /**
+ * @returns {Derived}
+ */
+function get_active_derived() {
+	// this should always be a derived with a promise when ASYNC_DERIVED_READ_THROWN is thrown
+	return /** @type {Derived} */ (active_dependency?.t);
+}
+
+/**
+ * @param {Block} block
+ * @returns {void}
+ */
+function register_block_rerun(block) {
+	var computed = get_active_derived();
+
+	var cancelled = false;
+	var try_catch_block = get_closest_catch_block(block);
+	var operation = {
+		cancel: () => {
+			cancelled = true;
+			if (computed.aa) {
+				computed.aa.abort();
+				computed.aa = null;
+				computed.ap = null;
+			}
+			if (computed.dj) {
+				computed.dj();
+				computed.dr = null;
+				computed.dj = null;
+			}
+		},
+	};
+	try_catch_block.o.registerAsync(operation);
+	/** @type {PromiseLike<any>} */ (computed.ap).then(
+		() => {
+			if (cancelled) {
+				return;
+			}
+			reset_state();
+			run_block(block);
+			try_catch_block.o.resolveAsync(operation);
+		},
+		(reason) => {
+			cancel_async_operations(try_catch_block);
+			// should set body, head and css to empty for the try block's output
+			// should render the catch template
+			// remove the registered async operation
+			// all further processing sync or async should stop (maybe throw on sync to trigger the catch)
+			// but only for this try block and downstream, other branches should continue processing as normal
+			// decrement pending count
+			// if we reach the root try block, we need to cancel all other branches with try/catch blocks
+			// maybe we just resolve the main promise and let the rendering finish
+			// looks like we need to check upstream try/catch blocks to make sure they've not already triggered their catch,
+			// or maybe have to go from the top down to identify try/catch blocks and cancel any pending block reruns
+			// we should store the child blocks on blocks, so we can traverse down and find all try/catch blocks to cancel their pending reruns,
+			// -- that is if the upstream try/catch catches an error
+		},
+	);
+	block.o.clear();
+}
+
+/**
+ * @param {Block} block
+ */
+export function run_block(block) {
+	var previous_block = active_block;
+	var previous_component = active_component;
+	try {
+		active_block = block;
+		active_component = block.co;
+		block.fn(block.o);
+	} catch (error) {
+		if (error === ASYNC_DERIVED_READ_THROWN) {
+			register_block_rerun(block);
+			// var promise = get_active_derived_promise();
+
+			// var cancelled = false;
+			// var try_catch_block = get_closest_catch_block(block);
+			// try_catch_block.o.registerAsync({ promise, cancel: () => (cancelled = true) });
+			// promise.then(() => {
+			// 	if (cancelled) {
+			// 		return;
+			// 	}
+			// 	reset_state();
+			// 	run_block(block);
+			// 	// block.o.decrementPending();
+			// });
+			// block.o.clear();
+		} else {
+			var try_catch_block = get_closest_catch_block(block);
+			cancel_async_operations(try_catch_block);
+			// TODO - if we're still in sync code, should we throw instead?
+			// throw error;
+		}
+	} finally {
+		active_block = previous_block;
+		active_component = previous_component;
+	}
+}
+
+/**
+ * @param {Derived} computed
+ * @param {any} value
+ * @param {'deferred' | undefined} type
+ * @returns {any}
+ */
+function normalize_derived_value(computed, value, type) {
+	var async_result = get_async_track_result(value, type);
+
+	// TODO: need a test where a regular track (not derived) attempts to use a pending async derived
+	// this should throw an error
+
+	// TODO: if we're inside a try / resolving block, and we read the async track directly inside but
+	// outside of a derived function, should we also throw error that you cannot read pending async
+	// since we'd have to rerun the try/resolving block which would have to rerun the derived
+	// so we don't want to do this.  Same for the client side.
+	// We can set the try/resolving block with a special type and throw error if it's the active_block
+	// currently, for the server-side, we check this in `update_derived()`
+	// This is also assuming that trackAsync is only allowed directly in components and inside try / resolving blocks
+	// So, need to create tests for this
+
+	if (!computed.ia || async_result === null) {
+		// This means it's a regular derived, so we just return the value
+		return value;
+	}
+
+	computed.aa = async_result.abort_controller;
+	// if computed.ap was a synthetic deferred promise, it's fine to replace it,
+	// as the already attached then-ables would still fire because we attach then() on the real
+	// and call .dr or .dj of the synthetic promise when the real one resolves/rejects
+	// see the logic below for the `!== 'deferred'` check
+	computed.ap = async_result.promise;
+
+	// the updates for the derived value must run first, so that SUSPENSE_PENDING
+	// is replaced by the real value, before any other thenable can run
+	// and read the derived's value
+	async_result.promise.then(
+		(resolved) => {
+			update_derived_value_clock(computed, resolved);
+		},
+		(error) => {
+			update_derived_value(computed, SUSPENSE_REJECTED);
+		},
+	);
+
+	// This thenable for the synthetic promise has to be chained after the one
+	// that replaces SUSPENSE_PENDING with the real resolved value,
+	// so that all those derived dependencies and blocks rerun only when
+	// the synthetic contains the real values
+	if (computed.dr !== null && async_result?.type !== 'deferred') {
+		// This is the real promise result vs the synthetic `deferred`
+		// This means that the derived's callback was finally able to run without throwing
+		// as its async derived dependencies have now resolved.
+		if (async_result !== null) {
+			// the function passed to trackAsync returned a promise
+			async_result.promise.then(computed.dr, computed.dj);
+		} else {
+			// regular derived that previously threw ASYNC_DERIVED_READ_THROWN
+			computed.dr(value);
+		}
+		computed.dr = null;
+		computed.dj = null;
+	}
+
+	return SUSPENSE_PENDING;
+}
+
+/**
  * @param {Record<string|symbol, any>} v
  * @param {(symbol | string)[]} l
  * @returns {Tracked[]}
@@ -715,7 +1141,7 @@ export function track_split(v, l) {
 				t = v[key];
 			} else {
 				t = tracked(undefined);
-				t = define_property(t, '__v', /** @type {PropertyDescriptor} */ (get_descriptor(v, key)));
+				t = define_property(t, 'v', /** @type {PropertyDescriptor} */ (get_descriptor(v, key)));
 			}
 		} else {
 			t = tracked(undefined);

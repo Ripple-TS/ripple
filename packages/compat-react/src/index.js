@@ -58,7 +58,7 @@ function is_inside_try_pending(block) {
 	let current = block;
 
 	while (current) {
-		if (current.f & TRY_BLOCK && current.s.a) {
+		if (current.f & TRY_BLOCK && current.s.p) {
 			return true;
 		}
 		current = current.p;

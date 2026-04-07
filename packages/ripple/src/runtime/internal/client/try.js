@@ -245,7 +245,7 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 	}
 
 	var state = {
-		a: pending_fn !== null,
+		p: pending_fn !== null,
 		b: begin_request,
 		r: complete_request,
 		c: catch_fn !== null ? handle_error : null,
@@ -321,7 +321,7 @@ export function get_pending_boundary(block) {
 
 	while (current !== null) {
 		var state = current.s;
-		if ((current.f & TRY_BLOCK) !== 0 && state.a) {
+		if ((current.f & TRY_BLOCK) !== 0 && state.p) {
 			return current;
 		}
 		current = current.p;
