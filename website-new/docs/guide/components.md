@@ -26,9 +26,9 @@ prop, which you can then render using `<props.children />` (or simply
 `<children />` if you destructured your props).
 
 ```ripple
-import type { Component } from 'ripple';
+import type { Children } from 'ripple';
 
-component Card(props: { children: Component }) {
+component Card(props: { children: Children }) {
   <div class="card">
     <props.children />
   </div>

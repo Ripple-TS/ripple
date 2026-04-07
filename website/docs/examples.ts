@@ -135,9 +135,9 @@ component Card(props: { message: string, className?: string, onClick?: () => voi
 	},
 	{
 		title: 'Children',
-		code: `import type { Component } from 'ripple';
+		code: `import type { Children } from 'ripple';
 
-component Card(props: { children: Component }) {
+component Card(props: { children: Children }) {
   <div class="card">
     <props.children />
   </div>

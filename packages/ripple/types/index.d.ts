@@ -386,10 +386,10 @@ export const MediaQuery: MediaQueryConstructor;
 
 export function Portal<V = HTMLElement>({
 	target,
-	children: Component,
+	children,
 }: {
 	target: V;
-	children?: Component;
+	children?: Children;
 }): void;
 
 export type GetFunction<V> = () => V;
