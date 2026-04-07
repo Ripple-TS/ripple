@@ -1,5 +1,21 @@
 # @ripple-ts/vite-plugin
 
+## 0.3.4
+
+### Patch Changes
+
+- [#807](https://github.com/Ripple-TS/ripple/pull/807)
+  [`56cdf54`](https://github.com/Ripple-TS/ripple/commit/56cdf54afb1b96e49faa273c18e0489ad70897b2)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Upgrade to Vite 8
+
+- [`2956743`](https://github.com/Ripple-TS/ripple/commit/2956743ccbf8ebad6ae9fde27fb8809634fa3a91)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Split the production subpath
+  declarations into a dedicated type file so the exported types resolve cleanly
+  without self-import workarounds.
+
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.3.4
+
 ## 0.3.3
 
 ### Patch Changes
