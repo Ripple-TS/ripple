@@ -1,5 +1,5 @@
 // Basic static components for hydration testing
-import type { Children, Component } from 'ripple';
+import type { Children } from 'ripple';
 
 export component StaticText() {
 	<div>{'Hello World'}</div>
