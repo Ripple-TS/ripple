@@ -1,5 +1,23 @@
 # ripple
 
+## 0.3.5
+
+### Patch Changes
+
+- [#827](https://github.com/Ripple-TS/ripple/pull/827)
+  [`218a72c`](https://github.com/Ripple-TS/ripple/commit/218a72c3e663910636eec1d065c58afe30813c84)
+  Thanks [@trueadm](https://github.com/trueadm)! - fix(compiler): handle
+  UpdateExpression on lazy bindings with default values
+
+  Update expressions (`++`/`--`) on lazy destructured bindings with default values
+  now work correctly. For postfix operations (`count++`), an IIFE captures the
+  fallback value before incrementing. Also added `fallback` function to server
+  runtime.
+
+- Updated dependencies
+  [[`218a72c`](https://github.com/Ripple-TS/ripple/commit/218a72c3e663910636eec1d065c58afe30813c84)]:
+  - ripple@0.3.5
+
 ## 0.3.4
 
 ### Patch Changes

@@ -1,5 +1,7 @@
 # @ripple-ts/prettier-plugin
 
+## 0.3.5
+
 ## 0.3.4
 
 ### Patch Changes
