@@ -1,4 +1,4 @@
-import { track } from 'ripple';
+import { track, trackSplit } from 'ripple';
 
 describe('lazy destructuring', () => {
 	it('supports tracked get() and set() method calls', async () => {
@@ -115,5 +115,17 @@ describe('lazy destructuring', () => {
 
 		const { body } = await render(Test);
 		expect(body).toBeHtml('<pre>Alice-30</pre>');
+	});
+
+	it('treats lazy array destructuring of trackSplit as regular array access', async () => {
+		component Test() {
+			const source = { a: 1, b: 2, c: 3 };
+			const &[a, b, rest] = trackSplit(source, ['a', 'b']);
+			const rest_value = @rest;
+			<pre>{`${@a}-${@b}-${rest_value.c}`}</pre>
+		}
+
+		const { body } = await render(Test);
+		expect(body).toBeHtml('<pre>1-2-3</pre>');
 	});
 });

@@ -743,7 +743,7 @@ export function track_split(v, l) {
 				t = v[key];
 			} else {
 				t = tracked(undefined);
-				t = define_property(t, '__v', /** @type {PropertyDescriptor} */ (get_descriptor(v, key)));
+				t = define_property(t, 'v', /** @type {PropertyDescriptor} */ (get_descriptor(v, key)));
 			}
 		} else {
 			t = tracked(undefined);

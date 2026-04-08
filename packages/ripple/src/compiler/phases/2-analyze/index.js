@@ -793,6 +793,11 @@ const visitors = {
 					const writable = node.kind !== 'const';
 					const init_is_track =
 						declarator.init?.type === 'CallExpression' &&
+						((declarator.init.callee.type === 'Identifier' &&
+							declarator.init.callee.name === 'track') ||
+							(declarator.init.callee.type === 'MemberExpression' &&
+								declarator.init.callee.property.type === 'Identifier' &&
+								declarator.init.callee.property.name === 'track')) &&
 						is_ripple_track_call(declarator.init.callee, context);
 					setup_lazy_transforms(declarator.id, lazy_id, state, writable, !!init_is_track);
 					// Store the generated identifier name on the pattern for the transform phase
