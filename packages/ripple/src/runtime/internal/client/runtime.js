@@ -731,7 +731,7 @@ export function track_async(v, options = {}, force_eager, b) {
  * @param {(Derived | Tracked) | (() => any)} tracked
  * @returns {boolean}
  */
-export function is_tracked_pending(tracked) {
+export function tracked_pending(tracked) {
 	try {
 		if (typeof tracked === 'function') {
 			tracked();

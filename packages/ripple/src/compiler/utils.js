@@ -164,21 +164,21 @@ const DOM_PROPERTIES = [
 ];
 
 // Omits track, trackSplit and trackAsync are they're handled separately
-/** @type {Record<string, string>} */
+/** @type {Record<string, {name: string, requiresBlock?: boolean}>} */
 const RIPPLE_IMPORT_CALL_NAME = {
-	RippleURL: 'ripple_url',
-	RippleURLSearchParams: 'ripple_url_search_params',
-	RippleDate: 'ripple_date',
-	RippleMap: 'ripple_map',
-	RippleSet: 'ripple_set',
-	MediaQuery: 'media_query',
-	Context: 'context',
-	effect: 'effect',
-	untrack: 'untrack',
-	RippleArray: 'ripple_array',
-	RippleObject: 'ripple_object',
-	trackPending: 'is_tracked_pending',
-	peek: 'peek_tracked',
+	RippleArray: { name: 'ripple_array', requiresBlock: true },
+	RippleObject: { name: 'ripple_object', requiresBlock: true },
+	RippleURL: { name: 'ripple_url', requiresBlock: true },
+	RippleURLSearchParams: { name: 'ripple_url_search_params', requiresBlock: true },
+	RippleDate: { name: 'ripple_date', requiresBlock: true },
+	RippleMap: { name: 'ripple_map', requiresBlock: true },
+	RippleSet: { name: 'ripple_set', requiresBlock: true },
+	MediaQuery: { name: 'media_query', requiresBlock: true },
+	Context: { name: 'context' },
+	effect: { name: 'effect' },
+	untrack: { name: 'untrack' },
+	trackPending: { name: 'tracked_pending' },
+	peek: { name: 'peek_tracked' },
 };
 
 /**
@@ -921,7 +921,7 @@ export function flatten_switch_consequent(consequent) {
  * @returns {string | null}
  */
 export function get_ripple_namespace_call_name(name) {
-	return name == null ? null : (RIPPLE_IMPORT_CALL_NAME[name] ?? null);
+	return name == null ? null : (RIPPLE_IMPORT_CALL_NAME[name]?.name ?? null);
 }
 
 /**
@@ -930,7 +930,7 @@ export function get_ripple_namespace_call_name(name) {
  * @returns {boolean}
  */
 export function ripple_import_requires_block(name) {
-	return name !== 'effect' && name !== 'untrack' && name !== 'Context';
+	return name == null ? false : (RIPPLE_IMPORT_CALL_NAME[name]?.requiresBlock ?? false);
 }
 
 /**
