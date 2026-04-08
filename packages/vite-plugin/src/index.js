@@ -627,6 +627,8 @@ export function ripple(inlineOptions = {}) {
 				async handler({ file, modules, server }) {
 					if (this.environment.name !== 'client') return;
 
+					let updated_modules = modules;
+
 					if (file.endsWith('.ripple')) {
 						const filename = file.replace(root, '');
 						const cssId = createVirtualImportId(filename, root, 'style');
@@ -652,17 +654,15 @@ export function ripple(inlineOptions = {}) {
 							const css_module = this.environment.moduleGraph.getModuleById(cssId);
 							if (css_module && !modules.includes(css_module)) {
 								this.environment.moduleGraph.invalidateModule(css_module);
-								return [...modules, css_module];
+								updated_modules = [...modules, css_module];
 							}
 						}
-
-						return;
 					}
 
 					// Non-.ripple files: if all modules self-accept, let Vite
 					// handle. Otherwise invalidate SSR and full-reload.
 					if (modules.length > 0 && modules.every((m) => m.isSelfAccepting)) {
-						return;
+						return updated_modules === modules ? undefined : updated_modules;
 					}
 
 					const ssr = server.environments.ssr;
