@@ -699,8 +699,7 @@ const visitors = {
 
 				// Allow get()/set(...) method access on tracked objects.
 				if (!node.computed && node.property.type === 'Identifier') {
-					is_allowed_tracked_access =
-						node.property.name === 'get' || node.property.name === 'set';
+					is_allowed_tracked_access = node.property.name === 'get' || node.property.name === 'set';
 				}
 
 				if (is_allowed_tracked_access) {
