@@ -533,7 +533,7 @@ const visitors = {
 					if (context.state.metadata?.tracking === false) {
 						context.state.metadata.tracking = true;
 					}
-					if (node.tracked) {
+					if (node.tracked && !binding?.read_unwraps) {
 						return b.call('_$_.get', build_getter(node, context));
 					}
 				}

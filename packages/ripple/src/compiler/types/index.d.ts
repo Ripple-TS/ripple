@@ -1157,9 +1157,11 @@ export interface Binding {
 	/** Transform functions for reading, assigning, and updating this binding */
 	transform?: {
 		read: (node?: AST.Identifier) => AST.Expression;
-		assign?: (node: AST.Pattern, value: AST.Expression) => AST.AssignmentExpression;
+		assign?: (node: AST.Identifier, value: AST.Expression) => AST.Expression;
 		update?: (node: AST.UpdateExpression) => AST.Expression;
 	};
+	/** Whether the read transform already produces an unwrapped value (calls get() internally) */
+	read_unwraps?: boolean;
 }
 
 /**

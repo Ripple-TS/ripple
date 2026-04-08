@@ -334,7 +334,7 @@ const visitors = {
 				(binding.kind === 'lazy' || binding.kind === 'lazy_fallback')
 			) {
 				const transformed = binding.transform.read(node);
-				if (node.tracked) {
+				if (node.tracked && !binding.read_unwraps) {
 					const is_right_side_of_assignment =
 						parent.type === 'AssignmentExpression' && parent.right === node;
 					if (
