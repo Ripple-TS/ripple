@@ -279,7 +279,7 @@ export function Ripple({ component, props }) {
 			}
 
 			const state = {
-				a: true,
+				p: true,
 				b: begin_request,
 				r: complete_request,
 				c: null,
