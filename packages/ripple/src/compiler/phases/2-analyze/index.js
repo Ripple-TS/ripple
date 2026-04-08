@@ -578,6 +578,21 @@ const visitors = {
 			}
 		}
 
+		// Lazy bindings from track() calls (read_unwraps) are inherently reactive —
+		// propagate tracking even without the @ prefix so that control flow (if/for/switch)
+		// and early returns create reactive blocks
+		if (
+			!node.tracked &&
+			binding?.read_unwraps &&
+			is_reference(node, /** @type {AST.Node} */ (parent)) &&
+			binding.node !== node
+		) {
+			mark_as_tracked(context.path);
+			if (context.state.metadata?.tracking === false) {
+				context.state.metadata.tracking = true;
+			}
+		}
+
 		context.next();
 	},
 
