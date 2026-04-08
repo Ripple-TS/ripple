@@ -963,15 +963,22 @@ const visitors = {
 					for (let i = 0; i < declarator.id.elements.length; i++) {
 						const element = declarator.id.elements[i];
 						if (element) {
-							const member_access = b.member(b.id(lazy_id), b.literal(i), true);
-							if (element.type === 'AssignmentPattern') {
-								// Handle default values: let &[count = 0] = track()
-								// Emit: count = __lazy_0[0] ?? 0  (preserves fallback for TS narrowing)
-								new_declarations.push(
-									b.declarator(element.left, b.logical('??', member_access, element.right)),
-								);
+							if (element.type === 'RestElement') {
+								// Handle rest: let &[a, b, ...rest] = someArray
+								// Emit: rest = __lazy_0.slice(i)
+								const slice_call = b.call(b.member(b.id(lazy_id), b.id('slice')), b.literal(i));
+								new_declarations.push(b.declarator(element.argument, slice_call));
 							} else {
-								new_declarations.push(b.declarator(element, member_access));
+								const member_access = b.member(b.id(lazy_id), b.literal(i), true);
+								if (element.type === 'AssignmentPattern') {
+									// Handle default values: let &[count = 0] = track()
+									// Emit: count = __lazy_0[0] ?? 0  (preserves fallback for TS narrowing)
+									new_declarations.push(
+										b.declarator(element.left, b.logical('??', member_access, element.right)),
+									);
+								} else {
+									new_declarations.push(b.declarator(element, member_access));
+								}
 							}
 						}
 					}

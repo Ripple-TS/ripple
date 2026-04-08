@@ -150,6 +150,8 @@ export interface Tracked<V> {
 	'#v': V;
 	readonly 0: V;
 	readonly 1: Tracked<V>;
+	get(): V;
+	set(value: V): void;
 }
 
 // Augment Tracked to be callable when V is a Component
