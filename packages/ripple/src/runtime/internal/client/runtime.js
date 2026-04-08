@@ -340,6 +340,10 @@ class DerivedValue extends TrackedValue {
 	get [0]() {
 		return get_derived(/** @type {Derived} */ (this));
 	}
+	*[Symbol.iterator]() {
+		yield get_derived(/** @type {Derived} */ (this));
+		yield this;
+	}
 }
 
 if (DEV) {
