@@ -1,0 +1,12 @@
+{
+  "name": "ripple-benchmarks",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bench": "node tracked-values.js"
+  },
+  "dependencies": {
+    "ripple": "workspace:*",
+    "tinybench": "^2.9.0"
+  }
+}

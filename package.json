@@ -23,7 +23,8 @@
     "changeset:version": "changeset version",
     "changeset:publish": "changeset publish",
     "regenerate-textmate": "node scripts/regenerate-textmate.js",
-    "copy-tree-sitter-queries": "node ./scripts/copy-tree-sitter-queries.js"
+    "copy-tree-sitter-queries": "node ./scripts/copy-tree-sitter-queries.js",
+    "bench": "node benchmarks/tracked-values.js"
   },
   "devDependencies": {
     "@changesets/changelog-github": "catalog:default",
