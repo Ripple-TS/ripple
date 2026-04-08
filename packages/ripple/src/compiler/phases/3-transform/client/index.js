@@ -966,7 +966,10 @@ const visitors = {
 							const member_access = b.member(b.id(lazy_id), b.literal(i), true);
 							if (element.type === 'AssignmentPattern') {
 								// Handle default values: let &[count = 0] = track()
-								new_declarations.push(b.declarator(element.left, member_access));
+								// Emit: count = __lazy_0[0] ?? 0  (preserves fallback for TS narrowing)
+								new_declarations.push(
+									b.declarator(element.left, b.logical('??', member_access, element.right)),
+								);
 							} else {
 								new_declarations.push(b.declarator(element, member_access));
 							}
