@@ -485,13 +485,22 @@ const visitors = {
 				binding.initial?.type === 'CallExpression' &&
 				is_ripple_track_call(binding.initial.callee, context)
 			) {
-				error(
-					`Accessing a tracked object directly is not allowed, use the \`@\` prefix to read the value inside a tracked object - for example \`@${node.object.name}${node.property.type === 'Identifier' ? `.${node.property.name}` : ''}\``,
-					context.state.analysis.module.filename,
-					node.object,
-					context.state.loose ? context.state.analysis.errors : undefined,
-					context.state.analysis.comments,
-				);
+				// Allow [0] and [1] indexed access on tracked objects
+				if (
+					node.computed &&
+					node.property.type === 'Literal' &&
+					(node.property.value === 0 || node.property.value === 1)
+				) {
+					// pass through
+				} else {
+					error(
+						`Accessing a tracked object directly is not allowed, use the \`@\` prefix to read the value inside a tracked object - for example \`@${node.object.name}${node.property.type === 'Identifier' ? `.${node.property.name}` : ''}\``,
+						context.state.analysis.module.filename,
+						node.object,
+						context.state.loose ? context.state.analysis.errors : undefined,
+						context.state.analysis.comments,
+					);
+				}
 			}
 		}
 
