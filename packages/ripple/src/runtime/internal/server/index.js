@@ -637,18 +637,37 @@ class TrackedValue {
 	}
 }
 
-class DerivedValue extends TrackedValue {
+class DerivedValue {
 	/**
 	 * @param {Function} fn
 	 * @param {{ get?: Function; set?: Function }} a
 	 */
 	constructor(fn, a) {
-		super(UNINITIALIZED, a);
+		this.a = a;
+		this.c = 0;
 		this.co = active_component;
 		/** @type {null | import('#server').Dependency} */
 		this.d = null;
 		this.f = TRACKED | DERIVED;
 		this.fn = fn;
+		this.v = UNINITIALIZED;
+	}
+	get [0]() {
+		return get(/** @type {Derived} */ (this));
+	}
+	set [0](v) {
+		set(/** @type {Derived} */ (this), v);
+	}
+	get [1]() {
+		return this;
+	}
+	/** @returns {2} */
+	get length() {
+		return 2;
+	}
+	*[Symbol.iterator]() {
+		yield get(/** @type {Derived} */ (this));
+		yield this;
 	}
 }
 

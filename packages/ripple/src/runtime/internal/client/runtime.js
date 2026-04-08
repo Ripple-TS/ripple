@@ -321,24 +321,37 @@ class TrackedValue {
 	}
 }
 
-class DerivedValue extends TrackedValue {
+class DerivedValue {
 	/**
 	 * @param {Function} fn
 	 * @param {Block} block
 	 * @param {{ get?: Function; set?: Function }} a
 	 */
 	constructor(fn, block, a) {
-		super(UNINITIALIZED, block, a);
+		this.a = a;
+		this.b = block;
 		/** @type {null | Block[]} */
 		this.blocks = null;
+		this.c = 0;
 		this.co = active_component;
 		/** @type {null | Dependency} */
 		this.d = null;
 		this.f = TRACKED | DERIVED;
 		this.fn = fn;
+		this.__v = UNINITIALIZED;
 	}
 	get [0]() {
 		return get_derived(/** @type {Derived} */ (this));
+	}
+	set [0](v) {
+		set(/** @type {Derived} */ (this), v);
+	}
+	get [1]() {
+		return this;
+	}
+	/** @returns {2} */
+	get length() {
+		return 2;
 	}
 	*[Symbol.iterator]() {
 		yield get_derived(/** @type {Derived} */ (this));
@@ -348,6 +361,7 @@ class DerivedValue extends TrackedValue {
 
 if (DEV) {
 	define_property(TrackedValue.prototype, 'DO_NOT_ACCESS_THIS_OBJECT_DIRECTLY', { value: true });
+	define_property(DerivedValue.prototype, 'DO_NOT_ACCESS_THIS_OBJECT_DIRECTLY', { value: true });
 }
 
 /**
