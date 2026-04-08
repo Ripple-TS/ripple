@@ -1,4 +1,4 @@
-import { set, get } from 'ripple';
+import { get, set, track } from 'ripple';
 
 describe('await in control flow', () => {
 	it('all tests are commented out for now as await in control flow is not yet supported', () => {
@@ -8,7 +8,7 @@ describe('await in control flow', () => {
 	// it('should handle await inside if statement', async () => {
 	// 	component App() {
 	// 		let condition = true;
-	// 		let data = #ripple.track('loading');
+	// 		let data = track('loading');
 
 	// 		if (condition) {
 	// 			await new Promise((resolve) => setTimeout(() => {

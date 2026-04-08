@@ -19,7 +19,7 @@ import {
 	ROOT_BLOCK,
 	CAUGHT_ERROR,
 } from './constants.js';
-import { run_block, active_block, active_component, Output } from './index.js';
+import { run_block, active_block, active_component, Output, set_active_block } from './index.js';
 
 /**
  * @param {number} flags
@@ -45,9 +45,11 @@ function block(flags, fn, state, skip_run = false) {
 
 	if (active_block) {
 		push_block(block, active_block);
+	} else {
+		set_active_block(block);
 	}
 
-	if (active_block && !skip_run) {
+	if (!skip_run) {
 		run_block(block);
 	}
 
@@ -55,12 +57,12 @@ function block(flags, fn, state, skip_run = false) {
 }
 
 /**
- * @param {BlockFunction} fn
- * @param { CatchFunction | null } catch_fn
- * @param { PendingFunction | null } pending_fn
+ * @param {TryFunction} try_fn
+ * @param {CatchFunction | null} catch_fn
+ * @param {PendingFunction | null} pending_fn
  * @returns {TryBlock}
  */
-function create_try_block(fn, catch_fn, pending_fn) {
+export function try_block(try_fn, catch_fn = null, pending_fn = null) {
 	if (!pending_fn && !catch_fn) {
 		throw new Error('try_block must have either pending or catch state');
 	}
@@ -71,23 +73,15 @@ function create_try_block(fn, catch_fn, pending_fn) {
 				? TRY_CATCH_BLOCK
 				: TRY_PENDING_BLOCK;
 
-	return block(flags, fn, { p: pending_fn, c: catch_fn });
-}
+	var b = block(flags, try_fn, { p: pending_fn, c: catch_fn }, true);
 
-/**
- * @param {TryFunction} try_fn
- * @param {CatchFunction | null} catch_fn
- * @param {PendingFunction | null} pending_fn
- * @returns {TryBlock}
- */
-export function try_block(try_fn, catch_fn = null, pending_fn = null) {
 	try {
 		try_fn();
 	} catch (error) {
 		catch_fn?.(/** @type {SSRError} */ (error));
 	}
 
-	return create_try_block(try_fn, catch_fn, pending_fn);
+	return b;
 }
 
 /**

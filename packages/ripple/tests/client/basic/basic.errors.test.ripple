@@ -1,11 +1,11 @@
-import { flushSync } from 'ripple';
+import { flushSync, track, untrack } from 'ripple';
 import { compile } from 'ripple/compiler';
 
 describe('basic client > errors', () => {
 	it('renders with error handling simulation', () => {
 		component Basic() {
-			let hasError = #ripple.track(false);
-			let errorMessage = #ripple.track('');
+			let hasError = track(false);
+			let errorMessage = track('');
 
 			const triggerError = () => {
 				try {
@@ -89,11 +89,11 @@ describe('basic client > errors', () => {
 		);
 	});
 
-	it('errors on mutating tracked value inside computed #ripple.track() evaluation', () => {
+	it('errors on mutating tracked value inside computed track() evaluation', () => {
 		component Basic() {
-			let count = #ripple.track(0);
+			let count = track(0);
 
-			const doubled = #ripple.track(() => {
+			const doubled = track(() => {
 				try {
 					@count *= 2;
 				} catch (e) {
@@ -107,42 +107,39 @@ describe('basic client > errors', () => {
 		render(Basic);
 
 		expect(error).toBe(
-			'Assignments or updates to tracked values are not allowed during computed "#ripple.track(() => ...)" evaluation',
+			'Assignments or updates to tracked values are not allowed during computed "track(() => ...)" evaluation',
 		);
 	});
 
-	it(
-		'errors on mutating tracked value inside #ripple.untrack() in computed #ripple.track() evaluation',
-		() => {
-			component Basic() {
-				let count = #ripple.track(0);
-
-				const doubled = #ripple.track(() => {
-					try {
-						#ripple.untrack(() => {
-							@count *= 2;
-						});
-					} catch (e) {
-						error = (e as Error).message;
-					}
-				});
-
-				<p>{@doubled}</p>
-			}
-
-			render(Basic);
-
-			expect(error).toBe(
-				'Assignments or updates to tracked values are not allowed during computed "#ripple.track(() => ...)" evaluation',
-			);
-		},
-	);
-
-	it('errors on mutating a tracked variable in #ripple.track() getter', () => {
+	it('errors on mutating tracked value inside untrack() in computed track() evaluation', () => {
 		component Basic() {
-			let count = #ripple.track(0);
+			let count = track(0);
 
-			const doubled = #ripple.track(0, (value) => {
+			const doubled = track(() => {
+				try {
+					untrack(() => {
+						@count *= 2;
+					});
+				} catch (e) {
+					error = (e as Error).message;
+				}
+			});
+
+			<p>{@doubled}</p>
+		}
+
+		render(Basic);
+
+		expect(error).toBe(
+			'Assignments or updates to tracked values are not allowed during computed "track(() => ...)" evaluation',
+		);
+	});
+
+	it('errors on mutating a tracked variable in track() getter', () => {
+		component Basic() {
+			let count = track(0);
+
+			const doubled = track(0, (value) => {
 				try {
 					@count += 1;
 				} catch (e) {
@@ -157,7 +154,7 @@ describe('basic client > errors', () => {
 		render(Basic);
 
 		expect(error).toBe(
-			'Assignments or updates to tracked values are not allowed during computed "#ripple.track(() => ...)" evaluation',
+			'Assignments or updates to tracked values are not allowed during computed "track(() => ...)" evaluation',
 		);
 	});
 

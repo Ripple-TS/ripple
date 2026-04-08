@@ -1,7 +1,9 @@
+import { RippleURL, RippleURLSearchParams } from 'ripple';
+
 describe('RippleURLSearchParams > initialization', () => {
 	it('creates empty URLSearchParams with reactivity', () => {
 		component URLTest() {
-			const params = #ripple.urlSearchParams();
+			const params = RippleURLSearchParams();
 
 			<pre>{params.toString()}</pre>
 			<pre>{params.size}</pre>
@@ -15,7 +17,7 @@ describe('RippleURLSearchParams > initialization', () => {
 
 	it('creates URLSearchParams from string with reactivity', () => {
 		component URLTest() {
-			const params = #ripple.urlSearchParams('foo=bar&baz=qux');
+			const params = RippleURLSearchParams('foo=bar&baz=qux');
 
 			<pre>{params.toString()}</pre>
 			<pre>{params.size}</pre>
@@ -31,7 +33,7 @@ describe('RippleURLSearchParams > initialization', () => {
 
 	it('creates URLSearchParams from object with reactivity', () => {
 		component URLTest() {
-			const params = #ripple.urlSearchParams({ foo: 'bar', baz: 'qux' });
+			const params = RippleURLSearchParams({ foo: 'bar', baz: 'qux' });
 
 			<pre>{params.toString()}</pre>
 			<pre>{params.size}</pre>
@@ -45,7 +47,7 @@ describe('RippleURLSearchParams > initialization', () => {
 
 	it('handles URL-encoded characters correctly', () => {
 		component URLTest() {
-			const params = #ripple.urlSearchParams('name=John+Doe&email=john%40example.com');
+			const params = RippleURLSearchParams('name=John+Doe&email=john%40example.com');
 
 			<pre>{params.get('name')}</pre>
 			<pre>{params.get('email')}</pre>

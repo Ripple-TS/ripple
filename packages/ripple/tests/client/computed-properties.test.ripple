@@ -1,10 +1,10 @@
-import { flushSync } from 'ripple';
+import { flushSync, track } from 'ripple';
 
 describe('computed tracked properties', () => {
 	it('should update a property using assignment', () => {
 		component App() {
 			let obj = {
-				[0]: #ripple.track(0),
+				[0]: track(0),
 			};
 
 			<div>{obj.@[0]}</div>
@@ -31,7 +31,7 @@ describe('computed tracked properties', () => {
 	it('should update a property using update expressions', () => {
 		component App() {
 			let obj = {
-				[0]: #ripple.track(0),
+				[0]: track(0),
 			};
 
 			<div>{obj.@[0]}</div>

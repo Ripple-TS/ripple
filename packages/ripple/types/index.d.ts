@@ -201,6 +201,11 @@ export function track<V>(
 // Overload for non-function values
 export function track<V>(value?: V, get?: (v: V) => V, set?: (next: V, prev: V) => V): Tracked<V>;
 
+export function trackAsync<V>(
+	value: () => PromiseLike<V> | { promise: PromiseLike<V>; abortController: AbortController },
+	options?: { lazy?: boolean },
+): Tracked<V>;
+
 export function trackPending<V>(value: Tracked<V> | (() => any)): boolean;
 
 export function trackSplit<V extends Props, const K extends readonly (keyof V)[]>(
@@ -553,31 +558,3 @@ export function bindFiles<V extends FileList>(
 	tracked: Tracked<V | null | undefined> | GetFunction<V | null | undefined>,
 	setter?: SetFunction<V>,
 ): (node: HTMLInputElement) => void;
-
-type ServerBlock = {};
-
-export interface RippleNamespace {
-	array: RippleArrayCallable;
-	object: RippleObjectCallable;
-	context: ContextCallable;
-	date: RippleDateCallable;
-	effect: typeof effect;
-	map: RippleMapCallable;
-	mediaQuery: MediaQueryCallable;
-	set: RippleSetCallable;
-	url: RippleURLCallable;
-	urlSearchParams: RippleURLSearchParamsCallable;
-	untrack: typeof untrack;
-	track: typeof track;
-	trackAsync: <V>(
-		value: () => PromiseLike<V> | { promise: PromiseLike<V>; abortController: AbortController },
-		options?: { lazy?: boolean },
-	) => Tracked<V>;
-	trackPending: typeof trackPending;
-	trackSplit: typeof trackSplit;
-	peek: typeof peek;
-	style: Record<string, string>;
-	server: ServerBlock;
-}
-
-export declare const ripple_namespace: RippleNamespace;

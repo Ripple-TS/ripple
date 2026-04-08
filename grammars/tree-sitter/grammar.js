@@ -539,7 +539,6 @@ module.exports = grammar({
 			choice(
 				$.this,
 				$.super,
-				$.ripple_namespace_identifier,
 				$.identifier,
 				$._reserved_identifier,
 				$.number,
@@ -552,10 +551,6 @@ module.exports = grammar({
 				$.undefined,
 				$.object,
 				$.array,
-				$.reactive_object,
-				$.reactive_array,
-				$.ripple_map_expression,
-				$.ripple_set_expression,
 				$.server_member_expression,
 				$.style_member_expression,
 				$.style_subscript_expression,
@@ -569,13 +564,13 @@ module.exports = grammar({
 				$.jsx_self_closing_element,
 			),
 
-		server_block: ($) => seq('#ripple.server', '{', repeat($.statement), '}'),
+		server_block: ($) => seq('#server', '{', repeat($.statement), '}'),
 
-		server_member_expression: ($) => seq('#ripple.server', '.', field('property', $.identifier)),
+		server_member_expression: ($) => seq('#server', '.', field('property', $.identifier)),
 
-		style_member_expression: ($) => seq('#ripple.style', '.', field('property', $.identifier)),
+		style_member_expression: ($) => seq('#style', '.', field('property', $.identifier)),
 
-		style_subscript_expression: ($) => seq('#ripple.style', '[', field('index', $.expression), ']'),
+		style_subscript_expression: ($) => seq('#style', '[', field('index', $.expression), ']'),
 
 		unbox_expression: ($) =>
 			prec.left(
@@ -590,29 +585,6 @@ module.exports = grammar({
 					),
 				),
 			),
-
-		reactive_object: ($) =>
-			seq(
-				'#ripple{',
-				commaSep(
-					choice(
-						$.pair,
-						$.spread_element,
-						$.method_definition,
-						$.shorthand_property_identifier,
-						$._reserved_identifier,
-					),
-				),
-				optional(','),
-				'}',
-			),
-
-		reactive_array: ($) =>
-			seq('#ripple[', commaSep(choice($.expression, $.spread_element)), optional(','), ']'),
-
-		ripple_map_expression: ($) => seq('#ripple.map', optional($.type_arguments), $.arguments),
-
-		ripple_set_expression: ($) => seq('#ripple.set', optional($.type_arguments), $.arguments),
 
 		yield_expression: ($) => prec.right(seq('yield', optional('*'), optional($.expression))),
 
@@ -972,8 +944,6 @@ module.exports = grammar({
 		},
 
 		private_property_identifier: ($) => /#[a-zA-Z_$][a-zA-Z0-9_$]*/,
-
-		ripple_namespace_identifier: ($) => '#ripple',
 
 		_reserved_identifier: ($) =>
 			choice('arguments', 'await', 'component', 'fragment', 'track', 'untrack'),

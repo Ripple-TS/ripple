@@ -3,7 +3,7 @@ Reactive Primitives - track and unbox
 ==================
 
 component Counter() {
-  let count = #ripple.track(0);
+  let count = track(0);
   <div>{@count}</div>
 }
 
@@ -20,9 +20,7 @@ component Counter() {
             name: (identifier)
             (initializer
               (call_expression
-                function: (member_expression
-                  object: (ripple_namespace_identifier)
-                  property: (identifier))
+                function: (identifier)
                 arguments: (arguments
                   (number)))))))
       (component_statement
@@ -41,52 +39,11 @@ component Counter() {
                 (identifier)))))))))
 
 ==================
-Reactive Arrays
-==================
-
-let items = #ripple[1, 2, 3];
-
----
-
-(program
-  (variable_declaration
-    (variable_declarator
-      name: (identifier)
-      (initializer
-        (reactive_array
-          (number)
-          (number)
-          (number))))))
-
-==================
-Reactive Objects
-==================
-
-let obj = #ripple{a: 1, b: 2};
-
----
-
-(program
-  (variable_declaration
-    (variable_declarator
-      name: (identifier)
-      (initializer
-        (reactive_object
-          (pair
-            key: (property_name
-              (identifier))
-            value: (number))
-          (pair
-            key: (property_name
-              (identifier))
-            value: (number)))))))
-
-==================
 Unbox Expression
 ==================
 
 component App() {
-  let count = #ripple.track(0);
+  let count = track(0);
   <button onClick={() => @count++}>{'+'}</button>
 }
 
@@ -103,9 +60,7 @@ component App() {
             name: (identifier)
             (initializer
               (call_expression
-                function: (member_expression
-                  object: (ripple_namespace_identifier)
-                  property: (identifier))
+                function: (identifier)
                 arguments: (arguments
                   (number)))))))
       (component_statement
@@ -133,48 +88,12 @@ component App() {
                 (identifier)))))))))
 
 ==================
-Tracked Map and Set Shorthand
-==================
-
-const set = new #ripple.set([1, 2, 3]);
-const map = new #ripple.map([['a', 1], ['b', 2]]);
-
----
-
-(program
-  (variable_declaration
-    (variable_declarator
-      name: (identifier)
-      (initializer
-        (new_expression
-          constructor: (ripple_set_expression
-            (arguments
-              (array
-                (number)
-                (number)
-                (number))))))))
-  (variable_declaration
-    (variable_declarator
-      name: (identifier)
-      (initializer
-        (new_expression
-          constructor: (ripple_map_expression
-            (arguments
-              (array
-                (array
-                  (string)
-                  (number))
-                (array
-                  (string)
-                  (number))))))))))
-
-==================
 Ripple Server/Style Member Expressions
 ==================
 
-const serverData = #ripple.server.data;
-const styleClass = #ripple.style.button;
-const styleToken = #ripple.style['button'];
+const serverData = #server.data;
+const styleClass = #style.button;
+const styleToken = #style['button'];
 
 ---
 
@@ -203,7 +122,7 @@ Augmented Assignment with Unbox
 ==================
 
 component App() {
-  let count = #ripple.track(0);
+  let count = track(0);
   <button onClick={() => @count += 1}>{'+'}</button>
 }
 
@@ -220,9 +139,7 @@ component App() {
             name: (identifier)
             (initializer
               (call_expression
-                function: (member_expression
-                  object: (ripple_namespace_identifier)
-                  property: (identifier))
+                function: (identifier)
                 arguments: (arguments
                   (number)))))))
       (component_statement

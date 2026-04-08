@@ -28,6 +28,8 @@ var root_19 = _$_.template(`<!>`, 1, 1);
 var root_18 = _$_.template(`<div class="before">before</div><!>`, 1, 2);
 var root_25 = _$_.template(`<div class="resolved-row"> </div>`, 0);
 
+import { track, trackAsync } from 'ripple';
+
 export function MixedControlFlowStatic(__anchor, _, __block) {
 	_$_.push_component();
 
@@ -60,34 +62,32 @@ export function MixedControlFlowStatic(__anchor, _, __block) {
 								_$_.try(
 									node_2,
 									(__anchor) => {
-										_$_.async(async () => {
-											var div_1 = root_4();
+										var div_1 = root_4();
 
-											{
-												var text = _$_.child(div_1, true);
+										{
+											var text = _$_.child(div_1, true);
 
-												_$_.pop(div_1);
-											}
+											_$_.pop(div_1);
+										}
 
-											_$_.render(
-												(__prev) => {
-													var __a = `A-${_$_.get(pattern).id}`;
+										_$_.render(
+											(__prev) => {
+												var __a = `A-${_$_.get(pattern).id}`;
 
-													if (__prev.a !== __a) {
-														_$_.set_text(text, __prev.a = __a);
-													}
+												if (__prev.a !== __a) {
+													_$_.set_text(text, __prev.a = __a);
+												}
 
-													var __b = `row row-${_$_.get(pattern).id} kind-a`;
+												var __b = `row row-${_$_.get(pattern).id} kind-a`;
 
-													if (__prev.b !== __b) {
-														_$_.set_class(div_1, __prev.b = __b, void 0, true);
-													}
-												},
-												{ a: ' ', b: Symbol() }
-											);
+												if (__prev.b !== __b) {
+													_$_.set_class(div_1, __prev.b = __b, void 0, true);
+												}
+											},
+											{ a: ' ', b: Symbol() }
+										);
 
-											_$_.append(__anchor, div_1);
-										});
+										_$_.append(__anchor, div_1);
 									},
 									null,
 									(__anchor) => {
@@ -111,34 +111,32 @@ export function MixedControlFlowStatic(__anchor, _, __block) {
 								_$_.try(
 									node_3,
 									(__anchor) => {
-										_$_.async(async () => {
-											var div_3 = root_7();
+										var div_3 = root_7();
 
-											{
-												var text_1 = _$_.child(div_3, true);
+										{
+											var text_1 = _$_.child(div_3, true);
 
-												_$_.pop(div_3);
-											}
+											_$_.pop(div_3);
+										}
 
-											_$_.render(
-												(__prev) => {
-													var __a = `B-${_$_.get(pattern).id}`;
+										_$_.render(
+											(__prev) => {
+												var __a = `B-${_$_.get(pattern).id}`;
 
-													if (__prev.a !== __a) {
-														_$_.set_text(text_1, __prev.a = __a);
-													}
+												if (__prev.a !== __a) {
+													_$_.set_text(text_1, __prev.a = __a);
+												}
 
-													var __b = `row row-${_$_.get(pattern).id} kind-b`;
+												var __b = `row row-${_$_.get(pattern).id} kind-b`;
 
-													if (__prev.b !== __b) {
-														_$_.set_class(div_3, __prev.b = __b, void 0, true);
-													}
-												},
-												{ a: ' ', b: Symbol() }
-											);
+												if (__prev.b !== __b) {
+													_$_.set_class(div_3, __prev.b = __b, void 0, true);
+												}
+											},
+											{ a: ' ', b: Symbol() }
+										);
 
-											_$_.append(__anchor, div_3);
-										});
+										_$_.append(__anchor, div_3);
 									},
 									null,
 									(__anchor) => {
@@ -238,34 +236,32 @@ export function MixedControlFlowReactive(__anchor, _, __block) {
 								_$_.try(
 									node_6,
 									(__anchor) => {
-										_$_.async(async () => {
-											var p_1 = root_13();
+										var p_1 = root_13();
 
-											{
-												var text_2 = _$_.child(p_1, true);
+										{
+											var text_2 = _$_.child(p_1, true);
 
-												_$_.pop(p_1);
-											}
+											_$_.pop(p_1);
+										}
 
-											_$_.render(
-												(__prev) => {
-													var __a = `A:${_$_.get(pattern_1).label}`;
+										_$_.render(
+											(__prev) => {
+												var __a = `A:${_$_.get(pattern_1).label}`;
 
-													if (__prev.a !== __a) {
-														_$_.set_text(text_2, __prev.a = __a);
-													}
+												if (__prev.a !== __a) {
+													_$_.set_text(text_2, __prev.a = __a);
+												}
 
-													var __b = `item item-${_$_.get(pattern_1).id}`;
+												var __b = `item item-${_$_.get(pattern_1).id}`;
 
-													if (__prev.b !== __b) {
-														_$_.set_class(p_1, __prev.b = __b, void 0, true);
-													}
-												},
-												{ a: ' ', b: Symbol() }
-											);
+												if (__prev.b !== __b) {
+													_$_.set_class(p_1, __prev.b = __b, void 0, true);
+												}
+											},
+											{ a: ' ', b: Symbol() }
+										);
 
-											_$_.append(__anchor, p_1);
-										});
+										_$_.append(__anchor, p_1);
 									},
 									null,
 									(__anchor) => {
@@ -285,34 +281,32 @@ export function MixedControlFlowReactive(__anchor, _, __block) {
 								_$_.try(
 									node_7,
 									(__anchor) => {
-										_$_.async(async () => {
-											var p_3 = root_16();
+										var p_3 = root_16();
 
-											{
-												var text_3 = _$_.child(p_3, true);
+										{
+											var text_3 = _$_.child(p_3, true);
 
-												_$_.pop(p_3);
-											}
+											_$_.pop(p_3);
+										}
 
-											_$_.render(
-												(__prev) => {
-													var __a = `B:${_$_.get(pattern_1).label}`;
+										_$_.render(
+											(__prev) => {
+												var __a = `B:${_$_.get(pattern_1).label}`;
 
-													if (__prev.a !== __a) {
-														_$_.set_text(text_3, __prev.a = __a);
-													}
+												if (__prev.a !== __a) {
+													_$_.set_text(text_3, __prev.a = __a);
+												}
 
-													var __b = `item item-${_$_.get(pattern_1).id}`;
+												var __b = `item item-${_$_.get(pattern_1).id}`;
 
-													if (__prev.b !== __b) {
-														_$_.set_class(p_3, __prev.b = __b, void 0, true);
-													}
-												},
-												{ a: ' ', b: Symbol() }
-											);
+												if (__prev.b !== __b) {
+													_$_.set_class(p_3, __prev.b = __b, void 0, true);
+												}
+											},
+											{ a: ' ', b: Symbol() }
+										);
 
-											_$_.append(__anchor, p_3);
-										});
+										_$_.append(__anchor, p_3);
 									},
 									null,
 									(__anchor) => {
@@ -390,13 +384,11 @@ export function MixedControlFlowAsyncPending(__anchor, _, __block) {
 							_$_.try(
 								node_11,
 								(__anchor) => {
-									_$_.async(async () => {
-										var fragment_12 = root_22();
-										var node_12 = _$_.first_child_frag(fragment_12);
+									var fragment_12 = root_22();
+									var node_12 = _$_.first_child_frag(fragment_12);
 
-										AsyncRow(node_12, { label: `row-${row}` }, _$_.active_block);
-										_$_.append(__anchor, fragment_12);
-									});
+									AsyncRow(node_12, { label: `row-${row}` }, _$_.active_block);
+									_$_.append(__anchor, fragment_12);
 								},
 								null,
 								(__anchor) => {
@@ -457,25 +449,20 @@ export function MixedControlFlowAsyncPending(__anchor, _, __block) {
 }
 
 function AsyncRow(__anchor, __props, __block) {
-	_$_.async(async () => {
-		_$_.push_component();
+	_$_.push_component();
 
-		let value = (await _$_.maybe_tracked(_$_.with_scope(__block, async () => Promise.resolve(__props.label))))();
+	let value = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(__props.label)), void 0, false, __block);
+	var div_9 = root_25();
 
-		if (_$_.aborted()) return;
+	{
+		var text_5 = _$_.child(div_9, true);
 
-		var div_9 = root_25();
+		text_5.nodeValue = value;
+		_$_.pop(div_9);
+	}
 
-		{
-			var text_5 = _$_.child(div_9, true);
-
-			text_5.nodeValue = value;
-			_$_.pop(div_9);
-		}
-
-		_$_.append(__anchor, div_9);
-		_$_.pop_component();
-	});
+	_$_.append(__anchor, div_9);
+	_$_.pop_component();
 }
 
 _$_.delegate(['click']);

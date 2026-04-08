@@ -109,14 +109,6 @@ Source Code (.ripple) → Parse → Analyze → Transform → Output (JS + CSS)
 - `component` keyword for component declarations
 - JSX with special handling for `@` tracked expressions
 - `#server` blocks for server-only code
-- `#ripple[]` (RippleArray shorthand), `#ripple{}` (RippleObject shorthand),
-  `#ripple.map()` (RippleMap), `#ripple.set()` (RippleSet),` #ripple.array()`
-  (RippleArray), `#ripple.object()` (RippleObject), `#ripple.url()` (RippleURL),
-  `#ripple.urlSearchParams()` (RippleURLSearchParams), `#ripple.Date()`
-  (RippleDate), `#ripple.Context()` (RippleContext), `#ripple.mediaQuery()`
-  (MediaQuery) `#ripple.track()` (track()), `#ripple.trackAsync()` (trackAsync())
-  `#ripple.trackSplit()` (trackSplit()) `#ripple.untrack()` (untrack()),
-  `#ripple.effect()` (effect()),
 - `#style` identifier for scoped CSS classes
 
 **Output:** ESTree-compatible AST with Ripple extensions
@@ -190,20 +182,18 @@ and once with `mode: 'server'`.
 
 ### Key AST Node Types (`packages/ripple/src/compiler/types/`)
 
-| Node Type                | Description                                              |
-| ------------------------ | -------------------------------------------------------- |
-| `Component`              | Component declaration with `id`, `params`, `body`, `css` |
-| `Element`                | HTML/SVG element with `id`, `attributes`, `children`     |
-| `Text`                   | Text node wrapping an expression                         |
-| `ServerBlock`            | `#server { ... }` block with exports tracking            |
-| `TrackedExpression`      | `@expression` tracked reactive value                     |
-| `RippleArrayExpression`  | `#[...]` tracked array literal                           |
-| `RippleObjectExpression` | `#{...}` tracked object literal                          |
-| `Attribute`              | Element attribute with `name`, `value`, `shorthand`      |
-| `RefAttribute`           | `ref={...}` reference binding                            |
-| `SpreadAttribute`        | `{...props}` spread                                      |
-| `StyleIdentifier`        | `#style` compile-time identifier for scoped CSS classes  |
-| `CSS.StyleSheet`         | Parsed CSS with `hash` for scoping                       |
+| Node Type           | Description                                              |
+| ------------------- | -------------------------------------------------------- |
+| `Component`         | Component declaration with `id`, `params`, `body`, `css` |
+| `Element`           | HTML/SVG element with `id`, `attributes`, `children`     |
+| `Text`              | Text node wrapping an expression                         |
+| `ServerBlock`       | `#server { ... }` block with exports tracking            |
+| `TrackedExpression` | `@expression` tracked reactive value                     |
+| `Attribute`         | Element attribute with `name`, `value`, `shorthand`      |
+| `RefAttribute`      | `ref={...}` reference binding                            |
+| `SpreadAttribute`   | `{...props}` spread                                      |
+| `StyleIdentifier`   | `#style` compile-time identifier for scoped CSS classes  |
+| `CSS.StyleSheet`    | Parsed CSS with `hash` for scoping                       |
 
 ## Runtime Architecture
 
@@ -413,11 +403,12 @@ plugin transforms them before Vitest runs:
 ```ripple
 // Example: packages/ripple/tests/client/reactivity.test.ripple
 import { describe, it, expect } from 'vitest';
+import { track } from 'ripple';
 
 component default() {
   describe('tracked', () => {
     it('updates when value changes', async () => {
-      let count = #ripple.track(0);
+      let count = track(0);
       // test implementation
     });
   });

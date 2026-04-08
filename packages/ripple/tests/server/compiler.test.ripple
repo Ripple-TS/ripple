@@ -13,23 +13,6 @@ const errorMap = new ErrorMap();`;
 		expect(result.js.code).toMatchSnapshot();
 	});
 
-	it('compiles imported component with conditional async in SSR', () => {
-		const source = `import { ChildComponent } from './Child.ripple';
-
-export component App() {
-	<div>
-		<ChildComponent message="hello" />
-	</div>
-}`;
-
-		const result = compile(source, 'test.ripple', { mode: 'server' });
-
-		// Should use if-statement instead of ternary to avoid parser issues
-		expect(result.js.code).toContain('if (comp?.async)');
-		expect(result.js.code).toContain('await comp(...args)');
-		expect(result.js.code).toMatchSnapshot();
-	});
-
 	it('removes type assertions from function parameters and leaves default values', () => {
 		const source = `
 function getString(e: string = 'test') {
@@ -98,7 +81,7 @@ export component Layout(props) {
 describe('compiler server block tests', () => {
 	it('compiles server block with with only supported types', () => {
 		const source = `
-#ripple.server {
+#server {
 	function something() {
 		return 'unexported function';
 	}
@@ -136,7 +119,7 @@ describe('compiler server block tests', () => {
 
 	it('throws error for unsupported exported object pattern in server block', () => {
 		const source = `
-#ripple.server {
+#server {
 		const obj = { fn1: () => {}, fn2: () => {} };
 
 		export const { fn1, fn2 } = obj;
@@ -147,7 +130,7 @@ describe('compiler server block tests', () => {
 
 	it('throws error for unsupported exported array pattern in server block', () => {
 		const source = `
-#ripple.server {
+#server {
 		const arr = [() => {}, () => {}];
 
 		export const [fnarr1, fnarr2] = arr;
@@ -158,7 +141,7 @@ describe('compiler server block tests', () => {
 
 	it('throws error for unsupported exported member expression via object in server block', () => {
 		const source = `
-#ripple.server {
+#server {
 		const obj = { fn1: () => {}, fn2: () => {} };
 
 		export const objProp = obj.fn1;
@@ -169,7 +152,7 @@ describe('compiler server block tests', () => {
 
 	it('throws error for unsupported exported member expression via array in server block', () => {
 		const source = `
-#ripple.server {
+#server {
 		const arr = [() => {}, () => {}];
 
 		export const arrIndex0 = arr[0];

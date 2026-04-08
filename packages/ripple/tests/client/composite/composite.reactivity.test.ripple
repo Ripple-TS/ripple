@@ -1,5 +1,5 @@
 import type { Props, Tracked } from 'ripple';
-import { flushSync } from 'ripple';
+import { RippleObject, effect, flushSync, track, trackSplit } from 'ripple';
 
 describe('composite > reactivity', () => {
 	it('renders composite components with object state', () => {
@@ -17,7 +17,7 @@ describe('composite > reactivity', () => {
 		component App() {
 			<div>
 				let obj = {
-					count: #ripple.track(0),
+					count: track(0),
 				};
 
 				<span class="count">{obj.@count}</span>
@@ -55,7 +55,7 @@ describe('composite > reactivity', () => {
 		component App() {
 			<div>
 				let obj = {
-					count: #ripple.track(0),
+					count: track(0),
 				};
 
 				<span class="count">{obj.@count}</span>
@@ -84,7 +84,7 @@ describe('composite > reactivity', () => {
 
 	it('parents and children have isolated state', () => {
 		component Button(props: { count: number }) {
-			let count = #ripple.track(() => props.count);
+			let count = track(() => props.count);
 			<button
 				onClick={() => {
 					@count++;
@@ -96,7 +96,7 @@ describe('composite > reactivity', () => {
 
 		component App() {
 			<div>
-				let count = #ripple.track(0);
+				let count = track(0);
 
 				<button
 					onClick={() => {
@@ -131,7 +131,7 @@ describe('composite > reactivity', () => {
 
 	it('parents and children have isolated connected state (destructured props)', () => {
 		component Button({ count }: { count: number }) {
-			let local_count = #ripple.track(() => count);
+			let local_count = track(() => count);
 			<button
 				onClick={() => {
 					@local_count++;
@@ -143,7 +143,7 @@ describe('composite > reactivity', () => {
 
 		component App() {
 			<div>
-				let count = #ripple.track(0);
+				let count = track(0);
 
 				<button
 					onClick={() => {
@@ -180,11 +180,11 @@ describe('composite > reactivity', () => {
 		let logs: string[] = [];
 
 		component App() {
-			const a = #ripple.track(1);
-			const b = #ripple.track(2);
-			const c = #ripple.track(3);
+			const a = track(1);
+			const b = track(2);
+			const c = track(3);
 
-			const obj = #ripple.track(
+			const obj = track(
 				() => ({
 					@a,
 					@b,
@@ -206,7 +206,7 @@ describe('composite > reactivity', () => {
 		}
 
 		component Child({ a, b, c }: { a: number; b: number; c: number }) {
-			#ripple.effect(() => {
+			effect(() => {
 				logs.push(`Child effect: ${a}, ${b}, ${c}`);
 			});
 
@@ -228,10 +228,10 @@ describe('composite > reactivity', () => {
 	});
 
 	it(
-		'keeps reactivity for spread props via intermediate components and usage of #ripple.trackSplit()',
+		'keeps reactivity for spread props via intermediate components and usage of trackSplit()',
 		() => {
 			component App() {
-				const count = #ripple.track(0);
+				const count = track(0);
 				<CounterWrapper {@count} up={() => @count++} down={() => @count--} />
 			}
 
@@ -242,7 +242,7 @@ describe('composite > reactivity', () => {
 			}
 
 			component Counter(props: Props) {
-				const [count, up, down, rest] = #ripple.trackSplit(props, ['count', 'up', 'down']);
+				const [count, up, down, rest] = trackSplit(props, ['count', 'up', 'down']);
 				<button onClick={() => @up()}>{'UP'}</button>
 				<button onClick={() => @down()}>{'DOWN'}</button>
 				<span {...@rest}>{`Counter: ${@count}`}</span>
@@ -270,18 +270,18 @@ describe('composite > reactivity', () => {
 
 	it('keeps reactivity on elements for element spreads and adds / removes dynamic props', () => {
 		component App() {
-			const count = #ripple.track(0);
+			const count = track(0);
 			<CounterWrapper {@count} up={() => @count++} />
 		}
 
 		component CounterWrapper(props: { count: number; up: () => void }) {
-			const more: { double: Tracked<number>; another?: number; extra: number } = #ripple{
-				double: #ripple.track(() => props.count * 2),
+			const more: { double: Tracked<number>; another?: number; extra: number } = new RippleObject({
+				double: track(() => props.count * 2),
 				another: 0,
 				extra: 100,
-			};
+			});
 
-			#ripple.effect(() => {
+			effect(() => {
 				props.count;
 				if (props.count === 1) {
 					delete more.another;
@@ -302,7 +302,7 @@ describe('composite > reactivity', () => {
 			another?: number;
 			extra: number;
 		}) {
-			const [count, up, rest] = #ripple.trackSplit(props, ['count', 'up']);
+			const [count, up, rest] = trackSplit(props, ['count', 'up']);
 			<div {...@rest}>{`Counter: ${@count} Double: ${props.@double}`}</div>
 			<button onClick={() => @up()}>{'UP'}</button>
 		}

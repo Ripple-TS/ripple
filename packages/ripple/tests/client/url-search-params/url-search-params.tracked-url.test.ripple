@@ -1,9 +1,9 @@
-import { flushSync } from 'ripple';
+import { RippleURL, flushSync } from 'ripple';
 
 describe('RippleURLSearchParams > RippleURL integration', () => {
 	it('integrates with RippleURL', () => {
 		component URLTest() {
-			const url = #ripple.url('https://example.com?foo=bar');
+			const url = RippleURL('https://example.com?foo=bar');
 			const params = url.searchParams;
 
 			<button onClick={() => params.append('baz', 'qux')}>{'add param'}</button>
@@ -31,7 +31,7 @@ describe('RippleURLSearchParams > RippleURL integration', () => {
 
 	it('handles empty search string in URL', () => {
 		component URLTest() {
-			const url = #ripple.url('https://example.com');
+			const url = RippleURL('https://example.com');
 			const params = url.searchParams;
 
 			<button onClick={() => params.append('foo', 'bar')}>{'add first param'}</button>

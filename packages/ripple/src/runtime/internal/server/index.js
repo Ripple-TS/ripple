@@ -1,5 +1,5 @@
 /**
-@import { Component, Dependency, Derived, Tracked, Block, TryBlock } from '#server';
+@import { Component, Dependency, Derived, Tracked, Block } from '#server';
 @import { NestedArray } from '#helpers';
 @import { Props } from '#public';
 @import { SSRRenderResult } from 'ripple/server';
@@ -96,6 +96,13 @@ let clock = 0;
  */
 function increment_clock() {
 	return ++clock;
+}
+
+/**
+ * @param {Block} block
+ */
+export function set_active_block(block) {
+	active_block = block;
 }
 
 /**
@@ -462,16 +469,20 @@ export class Output {
  * @returns {Promise<SSRRenderResult>}
  */
 export async function render(component) {
-	let head = '';
-	let body = '';
-	let css = new Set();
+	var head = '';
+	var body = '';
+	var css = new Set();
+	/** @type {Block | null} */
+	var root_block = null;
 
 	// Reset dev-mode element tracking state at the start of each render
 	reset_state();
 
-	const root_block = (active_block = try_block(
+	try_block(
 		// since there is no `active_block` yet, the usual automatic block run will be skipped
 		async () => {
+			// this will run only once and immediately when we call the `try_block`
+			root_block = /** @type {Block} */ (active_block);
 			const output = root_block.o;
 			component(output, {});
 			output._decrementPending();
@@ -483,7 +494,7 @@ export async function render(component) {
 			css = output.css;
 		},
 		(error) => {
-			const output = root_block.o;
+			const output = /** @type {Block} */ (root_block).o;
 			output.clear();
 			console.error(error);
 		},
@@ -491,13 +502,13 @@ export async function render(component) {
 			// TODO - allow a global pending in ripple.config.ts
 			// pending would be implemented as part of the streaming rendering support
 		},
-	));
+	);
 
 	// Run the block here manually now that we have `active_block` set up
 	// Normally it's run right away when a block is created but because
 	// the `active_block` was not set, it skipped the automatic run
-	run_block(root_block);
-	await root_block.o.promise;
+
+	await /** @type {Block} */ (/** @type {unknown} */ (root_block)).o.promise;
 	reset_state();
 
 	return { head, body, css };
@@ -685,7 +696,7 @@ export function get(tracked) {
 					// or not inside a derived function execution
 					// throw a fatal error as this is prohibited
 					throw new Error(
-						'Reads on pending tracked values directly inside component body are prohibited. Use #ripple.trackPending() test for safe access or create another derived instead.',
+						'Reads on pending tracked values directly inside component body are prohibited. Use trackPending() test for safe access or create another derived instead.',
 					);
 				}
 
@@ -1254,4 +1265,13 @@ ripple_array.from_async = async function (arrayLike, map_fn, thisArg) {
  */
 export function ripple_object(obj) {
 	return obj;
+}
+
+/**
+ * @template K, V
+ * @param {Iterable<readonly [K, V]>} [iterable]
+ * @returns {Map<K, V>}
+ */
+export function ripple_map(iterable) {
+	return new Map(iterable);
 }

@@ -9,6 +9,8 @@ var root_4 = _$_.template(`<div><button class="toggle"> </button></div>`, 0);
 var root_5 = _$_.template(`<button class="child-btn"> </button>`, 0);
 var root_6 = _$_.template(`<div><!><span class="count"> </span></div>`, 0);
 
+import { track } from 'ripple';
+
 export function ClickCounter(__anchor, _, __block) {
 	_$_.push_component();
 

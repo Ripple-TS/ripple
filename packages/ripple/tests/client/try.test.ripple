@@ -1,4 +1,14 @@
-import { bindValue, flushSync, UNINITIALIZED, SUSPENSE_REJECTED, SUSPENSE_PENDING } from 'ripple';
+import {
+	bindValue,
+	effect,
+	flushSync,
+	track,
+	trackAsync,
+	peek,
+	UNINITIALIZED,
+	SUSPENSE_REJECTED,
+	SUSPENSE_PENDING,
+} from 'ripple';
 
 describe('try block with catch and pending', () => {
 	it('catch block works when a child throws synchronously', async () => {
@@ -36,7 +46,7 @@ describe('try block with catch and pending', () => {
 		}
 
 		component ThrowingAfterAsync() {
-			let data = #ripple.trackAsync(() => Promise.resolve('hello'));
+			let data = trackAsync(() => Promise.resolve('hello'));
 			throw new Error('error after await');
 			<p>{data}</p>
 		}
@@ -53,7 +63,7 @@ describe('try block with catch and pending', () => {
 	it('catch block works when trackAsync rejects', async () => {
 		component App() {
 			try {
-				let data = #ripple.trackAsync(() => Promise.reject(new Error('rejected')));
+				let data = trackAsync(() => Promise.reject(new Error('rejected')));
 				<p>{@data}</p>
 			} pending {
 				<p>{'loading...'}</p>
@@ -91,10 +101,10 @@ describe('try block with catch and pending', () => {
 		}
 
 		component App() {
-			let version = #ripple.track(0);
+			let version = track(0);
 
 			try {
-				let data = #ripple.trackAsync(() => createRequest(@version));
+				let data = trackAsync(() => createRequest(@version));
 				<p class="resolved">{@data}</p>
 			} pending {
 				<p class="pending">{'loading...'}</p>
@@ -155,10 +165,10 @@ describe('try block with catch and pending', () => {
 		}
 
 		component App() {
-			let version = #ripple.track(0);
+			let version = track(0);
 
 			try {
-				let data = #ripple.trackAsync(() => {
+				let data = trackAsync(() => {
 					@version;
 					return createRequest(@version);
 				});
@@ -217,10 +227,10 @@ describe('try block', () => {
 		'does not compile ref binds as async callbacks inside try/pending trackAsync branches',
 		async () => {
 			component App() {
-				let value = #ripple.track(1);
+				let value = track(1);
 
 				try {
-					let loaded = #ripple.trackAsync(() => Promise.resolve(@value + 1));
+					let loaded = trackAsync(() => Promise.resolve(@value + 1));
 					<input type="number" {ref bindValue(value)} />
 					<span>{@loaded}</span>
 				} pending {
@@ -250,7 +260,7 @@ describe('try block', () => {
 		}
 
 		component AsyncChild() {
-			let data = #ripple.trackAsync(() => Promise.resolve(['a', 'b', 'c']));
+			let data = trackAsync(() => Promise.resolve(['a', 'b', 'c']));
 
 			<ul>
 				for (let item of @data) {
@@ -274,7 +284,7 @@ describe('try block', () => {
 		'does not crash when async component with tracked state is used inside try/pending',
 		async () => {
 			component App() {
-				let query = #ripple.track('');
+				let query = track('');
 
 				try {
 					<FilteredList {query} />
@@ -284,8 +294,8 @@ describe('try block', () => {
 			}
 
 			component FilteredList({ query }: { query: any }) {
-				let items = #ripple.trackAsync(() => Promise.resolve(['apple', 'banana', 'cherry']));
-				let filtered = #ripple.track(() => @items.filter((item: string) => item.includes(@query)));
+				let items = trackAsync(() => Promise.resolve(['apple', 'banana', 'cherry']));
+				let filtered = track(() => @items.filter((item: string) => item.includes(@query)));
 
 				<ul>
 					for (let item of @filtered) {
@@ -307,7 +317,7 @@ describe('try block', () => {
 	it('if test condition stays synchronous once trackAsync has resolved', async () => {
 		component App() {
 			try {
-				let items = #ripple.trackAsync(() => Promise.resolve(['apple', 'banana', 'cherry']));
+				let items = trackAsync(() => Promise.resolve(['apple', 'banana', 'cherry']));
 
 				if (@items.includes('not-in-list')) {
 					<p>{'not-in-list is in the list!'}</p>
@@ -331,7 +341,7 @@ describe('try block', () => {
 		let pending_effect_teardown_count = 0;
 
 		component PendingChild() {
-			#ripple.effect(() => {
+			effect(() => {
 				return () => {
 					pending_effect_teardown_count++;
 				};
@@ -340,11 +350,11 @@ describe('try block', () => {
 		}
 
 		component App() {
-			let show = #ripple.track(true);
+			let show = track(true);
 
 			if (@show) {
 				try {
-					let data = #ripple.trackAsync(() => new Promise(() => {}));
+					let data = trackAsync(() => new Promise(() => {}));
 					<p class="resolved">{@data}</p>
 				} pending {
 					<PendingChild />
@@ -377,7 +387,7 @@ describe('try block', () => {
 		let resolved_effect_teardown_count = 0;
 
 		component ResolvedChild({ data }: { data: string }) {
-			#ripple.effect(() => {
+			effect(() => {
 				return () => {
 					resolved_effect_teardown_count++;
 				};
@@ -386,11 +396,11 @@ describe('try block', () => {
 		}
 
 		component App() {
-			let show = #ripple.track(true);
+			let show = track(true);
 
 			if (@show) {
 				try {
-					let data = #ripple.trackAsync(() => Promise.resolve('hello'));
+					let data = trackAsync(() => Promise.resolve('hello'));
 					<ResolvedChild {@data} />
 				} pending {
 					<p class="pending">{'loading...'}</p>
@@ -426,7 +436,7 @@ describe('try block', () => {
 		let catch_effect_teardown_count = 0;
 
 		component CatchChild({ error }: { error: Error }) {
-			#ripple.effect(() => {
+			effect(() => {
 				return () => {
 					catch_effect_teardown_count++;
 				};
@@ -435,11 +445,11 @@ describe('try block', () => {
 		}
 
 		component App() {
-			let show = #ripple.track(true);
+			let show = track(true);
 
 			if (@show) {
 				try {
-					let data = #ripple.trackAsync(() => Promise.reject(new Error('fail')));
+					let data = trackAsync(() => Promise.reject(new Error('fail')));
 					<p class="resolved">{@data}</p>
 				} pending {
 					<p class="pending">{'loading...'}</p>
@@ -476,7 +486,7 @@ describe('try block', () => {
 
 		component App() {
 			try {
-				let data = #ripple.trackAsync(() => new Promise(() => {}));
+				let data = trackAsync(() => new Promise(() => {}));
 				<p class="resolved">{@data}</p>
 			} pending {
 				<ThrowingPending />
@@ -513,7 +523,7 @@ describe('try block', () => {
 
 		component Inner() {
 			try {
-				let data = #ripple.trackAsync(() => new Promise(() => {}));
+				let data = trackAsync(() => new Promise(() => {}));
 				<p class="resolved">{@data}</p>
 			} pending {
 				<ThrowingPending />
@@ -541,8 +551,8 @@ describe('try block', () => {
 
 		component App() {
 			try {
-				let name = #ripple.trackAsync(() => first_promise);
-				let length = #ripple.trackAsync(() => {
+				let name = trackAsync(() => first_promise);
+				let length = trackAsync(() => {
 					// Read @name synchronously — throws ASYNC_DERIVED_READ_THROWN
 					// while name is still pending, triggering the deferred mechanism.
 					const n = @name;
@@ -607,8 +617,8 @@ describe('try block', () => {
 
 			component App() {
 				try {
-					let name = #ripple.trackAsync(() => first_promise);
-					let length = #ripple.trackAsync(() => {
+					let name = trackAsync(() => first_promise);
+					let length = trackAsync(() => {
 						const n = @name;
 						return new Promise<number>((resolve) => {
 							second_resolve = resolve;
@@ -665,8 +675,8 @@ describe('try block', () => {
 
 			component App() {
 				try {
-					let name = #ripple.trackAsync(() => first_promise);
-					let length = #ripple.trackAsync(() => {
+					let name = trackAsync(() => first_promise);
+					let length = trackAsync(() => {
 						const n = @name;
 						return new Promise<number>((resolve) => {
 							second_resolve = resolve;
@@ -720,8 +730,8 @@ describe('try block', () => {
 
 			component App() {
 				try {
-					let name = #ripple.trackAsync(() => first_promise);
-					let length = #ripple.trackAsync(() => {
+					let name = trackAsync(() => first_promise);
+					let length = trackAsync(() => {
 						const n = @name;
 						return new Promise<number>((_, reject) => {
 							second_reject = reject;
@@ -771,7 +781,7 @@ describe('try block', () => {
 
 	it('resolved try block without catch bubbles error to parent try/catch', async () => {
 		component ThrowingChild() {
-			let data = #ripple.trackAsync(() => Promise.reject(new Error('async failed')));
+			let data = trackAsync(() => Promise.reject(new Error('async failed')));
 			<p class="resolved">{@data}</p>
 		}
 
@@ -824,7 +834,7 @@ describe('try block', () => {
 
 			component App() {
 				try {
-					data = #ripple.trackAsync(() => user_promise);
+					data = trackAsync(() => user_promise);
 					<p class="resolved">{@data}</p>
 				} pending {
 					<p class="pending">{'loading...'}</p>
@@ -850,7 +860,7 @@ describe('try block', () => {
 			// The user promise was rejected and handled by the runtime
 			expect(promise_settled).toEqual({ type: 'rejected', value: expect.any(Error) });
 			expect((promise_settled as any).value.message).toBe('test rejection');
-			expect(#ripple.peek(data)).toEqual(SUSPENSE_REJECTED);
+			expect(peek(data)).toEqual(SUSPENSE_REJECTED);
 		},
 	);
 
@@ -877,8 +887,8 @@ describe('try block', () => {
 
 			component App() {
 				try {
-					name = #ripple.trackAsync(() => first_promise);
-					length = #ripple.trackAsync(() => {
+					name = trackAsync(() => first_promise);
+					length = trackAsync(() => {
 						const n = @name;
 						return new Promise<number>((resolve) => {
 							resolve(n.length);
@@ -910,7 +920,7 @@ describe('try block', () => {
 			expect(container.querySelector('.caught')?.textContent).toBe('first failed');
 			expect(container.querySelector('.pending')).toBeNull();
 			expect(container.querySelector('.resolved')).toBeNull();
-			expect(#ripple.peek(name)).toEqual(SUSPENSE_REJECTED);
+			expect(peek(name)).toEqual(SUSPENSE_REJECTED);
 
 			// First promise was rejected and handled
 			expect(first_settled).toEqual({ type: 'rejected', value: expect.any(Error) });
@@ -920,7 +930,7 @@ describe('try block', () => {
 			flushSync();
 			expect(container.querySelector('.caught')?.textContent).toBe('first failed');
 			// length never has a chance to run because name access throws and exits the block
-			expect(#ripple.peek(length)).toEqual(SUSPENSE_REJECTED);
+			expect(peek(length)).toEqual(SUSPENSE_REJECTED);
 		},
 	);
 
@@ -945,12 +955,12 @@ describe('try block', () => {
 		let c: any;
 		component App() {
 			try {
-				a = #ripple.trackAsync(() => a_promise);
-				b = #ripple.trackAsync(() => {
+				a = trackAsync(() => a_promise);
+				b = trackAsync(() => {
 					const val = @a;
 					return Promise.resolve(val.toUpperCase());
 				});
-				c = #ripple.trackAsync(() => {
+				c = trackAsync(() => {
 					const val = @b;
 					return Promise.resolve(val.length);
 				});
@@ -985,9 +995,9 @@ describe('try block', () => {
 
 		// A promise was rejected and handled
 		expect(a_settled).toEqual({ type: 'rejected', value: expect.any(Error) });
-		expect(#ripple.peek(a)).toEqual(SUSPENSE_REJECTED);
-		expect(#ripple.peek(b)).toEqual(SUSPENSE_REJECTED);
-		expect(#ripple.peek(c)).toEqual(SUSPENSE_REJECTED);
+		expect(peek(a)).toEqual(SUSPENSE_REJECTED);
+		expect(peek(b)).toEqual(SUSPENSE_REJECTED);
+		expect(peek(c)).toEqual(SUSPENSE_REJECTED);
 
 		// Verify stability — no further state changes from B/C deferreds settling
 		await new Promise((resolve) => setTimeout(resolve, 50));
@@ -1029,8 +1039,8 @@ describe('try block', () => {
 		let count: any;
 		component App() {
 			try {
-				name = #ripple.trackAsync(() => first_promise);
-				count = #ripple.trackAsync(() => second_promise);
+				name = trackAsync(() => first_promise);
+				count = trackAsync(() => second_promise);
 				<p class="resolved">
 					{@name}
 					{' count: '}
@@ -1048,8 +1058,8 @@ describe('try block', () => {
 		flushSync();
 
 		expect(container.querySelector('.pending')?.textContent).toBe('loading...');
-		expect(#ripple.peek(name)).toEqual(SUSPENSE_PENDING);
-		expect(#ripple.peek(count)).toEqual(SUSPENSE_PENDING);
+		expect(peek(name)).toEqual(SUSPENSE_PENDING);
+		expect(peek(count)).toEqual(SUSPENSE_PENDING);
 
 		// Reject the first — catch should render
 		first_reject!(new Error('name failed'));
@@ -1061,8 +1071,8 @@ describe('try block', () => {
 
 		// First promise was rejected
 		expect(first_settled).toEqual({ type: 'rejected', value: expect.any(Error) });
-		expect(#ripple.peek(name)).toEqual(SUSPENSE_REJECTED);
-		expect(#ripple.peek(count)).toEqual(SUSPENSE_PENDING);
+		expect(peek(name)).toEqual(SUSPENSE_REJECTED);
+		expect(peek(count)).toEqual(SUSPENSE_PENDING);
 
 		// Resolve the second — catch should stay stable
 		second_resolve!(42);
@@ -1074,8 +1084,8 @@ describe('try block', () => {
 
 		// Second promise was resolved (by the test), but the boundary already caught
 		expect(second_settled).toEqual({ type: 'resolved', value: 42 });
-		expect(#ripple.peek(name)).toEqual(SUSPENSE_REJECTED);
-		expect(#ripple.peek(count)).toEqual(42);
+		expect(peek(name)).toEqual(SUSPENSE_REJECTED);
+		expect(peek(count)).toEqual(42);
 	});
 
 	it(
@@ -1089,9 +1099,9 @@ describe('try block', () => {
 			let data: any;
 
 			component App() {
-				let show = #ripple.track(false);
+				let show = track(false);
 
-				data = #ripple.trackAsync(() => user_promise, { lazy: true });
+				data = trackAsync(() => user_promise, { lazy: true });
 
 				if (@show) {
 					try {
@@ -1108,7 +1118,7 @@ describe('try block', () => {
 			flushSync();
 
 			// Before triggering, data should be UNINITIALIZED since lazy: true
-			expect(#ripple.peek(data)).toEqual(UNINITIALIZED);
+			expect(peek(data)).toEqual(UNINITIALIZED);
 			expect(container.querySelector('.resolved')).toBeNull();
 			expect(container.querySelector('.pending')).toBeNull();
 
@@ -1119,7 +1129,7 @@ describe('try block', () => {
 			flushSync();
 
 			// Promise not resolved yet — should be SUSPENSE_PENDING
-			expect(#ripple.peek(data)).toEqual(SUSPENSE_PENDING);
+			expect(peek(data)).toEqual(SUSPENSE_PENDING);
 			expect(container.querySelector('.pending')?.textContent).toBe('loading...');
 			expect(container.querySelector('.resolved')).toBeNull();
 
@@ -1162,7 +1172,7 @@ describe('sync error while async deriveds are pending', () => {
 
 			let data: any;
 			component AsyncChild() {
-				data = #ripple.trackAsync(() => user_promise);
+				data = trackAsync(() => user_promise);
 				<p class="async-resolved">{@data}</p>
 			}
 
@@ -1179,7 +1189,7 @@ describe('sync error while async deriveds are pending', () => {
 			expect(container.querySelector('.pending')).toBeNull();
 			expect(container.querySelector('.async-resolved')).toBeNull();
 
-			expect(#ripple.peek(data)).toEqual(SUSPENSE_PENDING);
+			expect(peek(data)).toEqual(SUSPENSE_PENDING);
 
 			// Now resolve the promise that was in-flight
 			resolve_fn!('hello');
@@ -1191,7 +1201,7 @@ describe('sync error while async deriveds are pending', () => {
 			expect(container.querySelector('.async-resolved')).toBeNull();
 			expect(promise_settled).toEqual({ type: 'resolved', value: 'hello' });
 
-			expect(#ripple.peek(data)).toEqual('hello');
+			expect(peek(data)).toEqual('hello');
 
 			// Verify stability after all microtasks drain
 			await new Promise((r) => setTimeout(r, 50));
@@ -1227,7 +1237,7 @@ describe('sync error while async deriveds are pending', () => {
 
 			let data: any;
 			component AsyncChild() {
-				data = #ripple.trackAsync(() => user_promise);
+				data = trackAsync(() => user_promise);
 				<p class="async-resolved">{@data}</p>
 			}
 
@@ -1242,7 +1252,7 @@ describe('sync error while async deriveds are pending', () => {
 			// Catch should be showing from sync error
 			expect(container.querySelector('.caught')?.textContent).toBe('sync boom');
 
-			expect(#ripple.peek(data)).toEqual(SUSPENSE_PENDING);
+			expect(peek(data)).toEqual(SUSPENSE_PENDING);
 
 			// Now reject the in-flight promise
 			reject_fn!(new Error('async failure'));
@@ -1253,7 +1263,7 @@ describe('sync error while async deriveds are pending', () => {
 			expect(container.querySelector('.caught')?.textContent).toBe('sync boom');
 			expect(promise_settled).toEqual({ type: 'rejected', value: expect.any(Error) });
 
-			expect(#ripple.peek(data)).toEqual(SUSPENSE_REJECTED);
+			expect(peek(data)).toEqual(SUSPENSE_REJECTED);
 
 			// Verify stability after all microtasks drain
 			await new Promise((r) => setTimeout(r, 0));
@@ -1300,13 +1310,13 @@ describe('sync error while async deriveds are pending', () => {
 
 			let dataA: any;
 			component ChildA() {
-				dataA = #ripple.trackAsync(() => promise_a);
+				dataA = trackAsync(() => promise_a);
 				<p class="a">{@dataA}</p>
 			}
 
 			let dataB: any;
 			component ChildB() {
-				dataB = #ripple.trackAsync(() => promise_b);
+				dataB = trackAsync(() => promise_b);
 				<p class="b">{@dataB}</p>
 			}
 
@@ -1320,8 +1330,8 @@ describe('sync error while async deriveds are pending', () => {
 
 			expect(container.querySelector('.caught')?.textContent).toBe('sync boom');
 
-			expect(#ripple.peek(dataA)).toEqual(SUSPENSE_PENDING);
-			expect(#ripple.peek(dataB)).toEqual(SUSPENSE_PENDING);
+			expect(peek(dataA)).toEqual(SUSPENSE_PENDING);
+			expect(peek(dataB)).toEqual(SUSPENSE_PENDING);
 
 			// Resolve both promises
 			resolve_a!('hello');
@@ -1336,8 +1346,8 @@ describe('sync error while async deriveds are pending', () => {
 			expect(settled_a).toEqual({ type: 'resolved', value: 'hello' });
 			expect(settled_b).toEqual({ type: 'resolved', value: 42 });
 
-			expect(#ripple.peek(dataA)).toEqual('hello');
-			expect(#ripple.peek(dataB)).toEqual(42);
+			expect(peek(dataA)).toEqual('hello');
+			expect(peek(dataB)).toEqual(42);
 
 			// Verify stability after all microtasks drain
 			await new Promise((r) => setTimeout(r, 50));
@@ -1385,13 +1395,13 @@ describe('sync error while async deriveds are pending', () => {
 
 			let dataA: any;
 			component ChildA() {
-				dataA = #ripple.trackAsync(() => promise_a);
+				dataA = trackAsync(() => promise_a);
 				<p class="a">{@dataA}</p>
 			}
 
 			let dataB: any;
 			component ChildB() {
-				dataB = #ripple.trackAsync(() => promise_b);
+				dataB = trackAsync(() => promise_b);
 				<p class="b">{@dataB}</p>
 			}
 
@@ -1405,8 +1415,8 @@ describe('sync error while async deriveds are pending', () => {
 
 			expect(container.querySelector('.caught')?.textContent).toBe('sync boom');
 
-			expect(#ripple.peek(dataA)).toEqual(SUSPENSE_PENDING);
-			expect(#ripple.peek(dataB)).toEqual(SUSPENSE_PENDING);
+			expect(peek(dataA)).toEqual(SUSPENSE_PENDING);
+			expect(peek(dataB)).toEqual(SUSPENSE_PENDING);
 
 			// Resolve A, reject B
 			resolve_a!('hello');
@@ -1421,8 +1431,8 @@ describe('sync error while async deriveds are pending', () => {
 			expect(settled_a).toEqual({ type: 'resolved', value: 'hello' });
 			expect(settled_b).toEqual({ type: 'rejected', value: expect.any(Error) });
 
-			expect(#ripple.peek(dataA)).toEqual('hello');
-			expect(#ripple.peek(dataB)).toEqual(SUSPENSE_REJECTED);
+			expect(peek(dataA)).toEqual('hello');
+			expect(peek(dataB)).toEqual(SUSPENSE_REJECTED);
 
 			// Verify stability after all microtasks drain
 			await new Promise((r) => setTimeout(r, 50));
@@ -1473,7 +1483,7 @@ describe('sync error while async deriveds are pending', () => {
 
 		component Inner() {
 			try {
-				let data = #ripple.trackAsync(() => Promise.reject(new Error('async no catch')));
+				let data = trackAsync(() => Promise.reject(new Error('async no catch')));
 				<p class="resolved">{@data}</p>
 			} pending {
 				<p class="inner-pending">{'loading...'}</p>
@@ -1506,7 +1516,7 @@ describe('sync error while async deriveds are pending', () => {
 
 			component Inner() {
 				try {
-					let data = #ripple.trackAsync(() => user_promise);
+					let data = trackAsync(() => user_promise);
 					<p class="resolved">{@data}</p>
 				} pending {
 					<p class="inner-pending">{'loading...'}</p>
@@ -1596,7 +1606,7 @@ describe('sync error while async deriveds are pending', () => {
 
 			component Inner() {
 				try {
-					let data = #ripple.trackAsync(() => user_promise);
+					let data = trackAsync(() => user_promise);
 					<p class="resolved">{@data}</p>
 				} catch (err) {
 					<p class="downstream-caught">{(err as Error).message}</p>
@@ -1649,7 +1659,7 @@ describe('sync error while async deriveds are pending', () => {
 
 			component Inner() {
 				try {
-					let data = #ripple.trackAsync(() => user_promise);
+					let data = trackAsync(() => user_promise);
 					throw new Error('synchronous error');
 					<p class="resolved">{@data}</p>
 				} catch (err) {
@@ -1704,7 +1714,7 @@ describe('sync error while async deriveds are pending', () => {
 
 			component Inner() {
 				try {
-					let data = #ripple.trackAsync(() => user_promise);
+					let data = trackAsync(() => user_promise);
 					throw new Error('synchronous error');
 					<p class="resolved">{@data}</p>
 				} catch (err) {

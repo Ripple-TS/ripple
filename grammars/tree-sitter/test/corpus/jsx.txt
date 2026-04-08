@@ -3,7 +3,7 @@ Dynamic Component
 ==================
 
 component App() {
-  let Current = #ripple.track(() => ComponentA);
+  let Current = track(() => ComponentA);
   <@Current />
 }
 
@@ -20,9 +20,7 @@ component App() {
             name: (identifier)
             (initializer
               (call_expression
-                function: (member_expression
-                  object: (ripple_namespace_identifier)
-                  property: (identifier))
+                function: (identifier)
                 arguments: (arguments
                   (arrow_function
                     parameters: (formal_parameters)
@@ -39,7 +37,7 @@ Dynamic Element
 ==================
 
 component App() {
-  let tag = #ripple.track('div');
+  let tag = track('div');
   <@tag>{'content'}</@tag>
 }
 
@@ -56,9 +54,7 @@ component App() {
             name: (identifier)
             (initializer
               (call_expression
-                function: (member_expression
-                  object: (ripple_namespace_identifier)
-                  property: (identifier))
+                function: (identifier)
                 arguments: (arguments
                   (string)))))))
       (component_statement
@@ -218,7 +214,7 @@ Server Block
 ==================
 
 component App() {
-  #ripple.server {
+  #server {
     let data = fetchData();
   }
   <div>{'content'}</div>

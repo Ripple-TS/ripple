@@ -1,144 +1,79 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-import { Portal } from 'ripple/server';
+import { Portal, track } from 'ripple/server';
 
-export async function SimplePortal(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
-		__output.push('<div');
-		__output.push(' class="container"');
+export function SimplePortal(__output) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="container"');
+	__output.push('>');
+
+	{
+		__output.push('<h1');
 		__output.push('>');
 
 		{
-			__output.push('<h1');
-			__output.push('>');
-
-			{
-				__output.push('Main Content');
-			}
-
-			__output.push('</h1>');
-
-			{
-				const comp = Portal;
-
-				const args = [
-					__output,
-					{
-						target: typeof document !== 'undefined' ? document.body : null,
-						children: function children(__output) {
-							_$_.push_component();
-							__output.push('<div');
-							__output.push(' class="portal-content"');
-							__output.push('>');
-
-							{
-								__output.push('Portal content');
-							}
-
-							__output.push('</div>');
-							_$_.pop_component();
-						}
-					}
-				];
-
-				if (comp?.async) {
-					await comp(...args);
-				} else if (comp) {
-					comp(...args);
-				}
-			}
+			__output.push('Main Content');
 		}
 
-		__output.push('</div>');
-		_$_.pop_component();
-	});
-}
-
-SimplePortal.async = true;
-
-export async function ConditionalPortal(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
-
-		let show = _$_.track(true);
-
-		__output.push('<div');
-		__output.push(' class="container"');
-		__output.push('>');
+		__output.push('</h1>');
 
 		{
-			__output.push('<button');
-			__output.push(' class="toggle"');
-			__output.push('>');
+			const comp = Portal;
 
-			{
-				__output.push('Toggle');
-			}
-
-			__output.push('</button>');
-			__output.push('<!--[-->');
-
-			if (_$_.get(show)) {
+			const args = [
+				__output,
 				{
-					const comp = Portal;
+					target: typeof document !== 'undefined' ? document.body : null,
+					children: function children(__output) {
+						_$_.push_component();
+						__output.push('<div');
+						__output.push(' class="portal-content"');
+						__output.push('>');
 
-					const args = [
-						__output,
 						{
-							target: typeof document !== 'undefined' ? document.body : null,
-							children: function children(__output) {
-								_$_.push_component();
-								__output.push('<div');
-								__output.push(' class="portal-content"');
-								__output.push('>');
-
-								{
-									__output.push('Portal is visible');
-								}
-
-								__output.push('</div>');
-								_$_.pop_component();
-							}
+							__output.push('Portal content');
 						}
-					];
 
-					if (comp?.async) {
-						await comp(...args);
-					} else if (comp) {
-						comp(...args);
+						__output.push('</div>');
+						_$_.pop_component();
 					}
 				}
+			];
+
+			if (comp) {
+				comp(...args);
 			}
-
-			__output.push('<!--]-->');
 		}
+	}
 
-		__output.push('</div>');
-		_$_.pop_component();
-	});
+	__output.push('</div>');
+	_$_.pop_component();
 }
 
-ConditionalPortal.async = true;
+export function ConditionalPortal(__output) {
+	_$_.push_component();
 
-export async function PortalWithMainContent(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
-		__output.push('<div');
+	let show = _$_.track(true);
+
+	__output.push('<div');
+	__output.push(' class="container"');
+	__output.push('>');
+
+	{
+		__output.push('<button');
+		__output.push(' class="toggle"');
 		__output.push('>');
 
 		{
-			__output.push('<div');
-			__output.push(' class="main-content"');
-			__output.push('>');
+			__output.push('Toggle');
+		}
 
-			{
-				__output.push('Main page content');
-			}
+		__output.push('</button>');
+		__output.push('<!--[-->');
 
-			__output.push('</div>');
-
+		if (_$_.get(show)) {
 			{
 				const comp = Portal;
 
@@ -153,7 +88,7 @@ export async function PortalWithMainContent(__output) {
 							__output.push('>');
 
 							{
-								__output.push('Modal content');
+								__output.push('Portal is visible');
 							}
 
 							__output.push('</div>');
@@ -162,90 +97,131 @@ export async function PortalWithMainContent(__output) {
 					}
 				];
 
-				if (comp?.async) {
-					await comp(...args);
-				} else if (comp) {
+				if (comp) {
 					comp(...args);
 				}
 			}
-
-			__output.push('<div');
-			__output.push(' class="footer"');
-			__output.push('>');
-
-			{
-				__output.push('Footer');
-			}
-
-			__output.push('</div>');
 		}
 
-		__output.push('</div>');
-		_$_.pop_component();
-	});
+		__output.push('<!--]-->');
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
 }
 
-PortalWithMainContent.async = true;
+export function PortalWithMainContent(__output) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push('>');
 
-export async function NestedContentWithPortal(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
+	{
 		__output.push('<div');
-		__output.push(' class="outer"');
+		__output.push(' class="main-content"');
 		__output.push('>');
 
 		{
-			__output.push('<div');
-			__output.push(' class="inner"');
-			__output.push('>');
+			__output.push('Main page content');
+		}
 
-			{
-				__output.push('<span');
-				__output.push('>');
+		__output.push('</div>');
 
+		{
+			const comp = Portal;
+
+			const args = [
+				__output,
 				{
-					__output.push('Nested content');
-				}
+					target: typeof document !== 'undefined' ? document.body : null,
+					children: function children(__output) {
+						_$_.push_component();
+						__output.push('<div');
+						__output.push(' class="portal-content"');
+						__output.push('>');
 
-				__output.push('</span>');
-			}
-
-			__output.push('</div>');
-
-			{
-				const comp = Portal;
-
-				const args = [
-					__output,
-					{
-						target: typeof document !== 'undefined' ? document.body : null,
-						children: function children(__output) {
-							_$_.push_component();
-							__output.push('<div');
-							__output.push(' class="portal-content"');
-							__output.push('>');
-
-							{
-								__output.push('Portal content');
-							}
-
-							__output.push('</div>');
-							_$_.pop_component();
+						{
+							__output.push('Modal content');
 						}
-					}
-				];
 
-				if (comp?.async) {
-					await comp(...args);
-				} else if (comp) {
-					comp(...args);
+						__output.push('</div>');
+						_$_.pop_component();
+					}
 				}
+			];
+
+			if (comp) {
+				comp(...args);
 			}
 		}
 
+		__output.push('<div');
+		__output.push(' class="footer"');
+		__output.push('>');
+
+		{
+			__output.push('Footer');
+		}
+
 		__output.push('</div>');
-		_$_.pop_component();
-	});
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
 }
 
-NestedContentWithPortal.async = true;
+export function NestedContentWithPortal(__output) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="outer"');
+	__output.push('>');
+
+	{
+		__output.push('<div');
+		__output.push(' class="inner"');
+		__output.push('>');
+
+		{
+			__output.push('<span');
+			__output.push('>');
+
+			{
+				__output.push('Nested content');
+			}
+
+			__output.push('</span>');
+		}
+
+		__output.push('</div>');
+
+		{
+			const comp = Portal;
+
+			const args = [
+				__output,
+				{
+					target: typeof document !== 'undefined' ? document.body : null,
+					children: function children(__output) {
+						_$_.push_component();
+						__output.push('<div');
+						__output.push(' class="portal-content"');
+						__output.push('>');
+
+						{
+							__output.push('Portal content');
+						}
+
+						__output.push('</div>');
+						_$_.pop_component();
+					}
+				}
+			];
+
+			if (comp) {
+				comp(...args);
+			}
+		}
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}

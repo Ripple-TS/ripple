@@ -8,8 +8,10 @@ To manage the content within `<head>`, you may simply use the `<head>` tag
 directly within the component. It works with both static and reactive data.
 
 ```ripple
+import { track } from 'ripple';
+
 export component App() {
-  let curr_step = #ripple.track(0);
+  let curr_step = track(0);
 
   <head>
     <title>{`Step ${@curr_step}`}</title>

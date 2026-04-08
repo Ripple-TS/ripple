@@ -32,9 +32,10 @@ ruleTester.run('control-flow-jsx', rule, {
 		// Valid: for...of without JSX inside effect
 		{
 			code: `
+				import { effect } from 'ripple';
 				component App() {
 					const items = ['Item 1', 'Item 2'];
-					#ripple.effect(() => {
+					effect(() => {
 						let sum = 0;
 						for (const item of items) {
 							sum += item;
@@ -59,13 +60,14 @@ ruleTester.run('control-flow-jsx', rule, {
 		// Valid: for...of without JSX inside effect with untrack
 		{
 			code: `
+				import { RippleArray, track, effect, untrack } from 'ripple';
 				component App() {
-					const items = #ripple.array(1, 2, 3);
-					const sum = #ripple.track(0);
-					#ripple.effect(() => {
+					const items = new RippleArray(1, 2, 3);
+					const sum = track(0);
+					effect(() => {
 						@sum = 0;
 						for (const item of items) {
-							#ripple.untrack(() => {
+							untrack(() => {
 								@sum += item;
 							});
 						}
@@ -105,9 +107,10 @@ ruleTester.run('control-flow-jsx', rule, {
 		// Invalid: for...of with JSX inside effect
 		{
 			code: `
+				import { effect } from 'ripple';
 				component App() {
 					const items = ['Item 1', 'Item 2'];
-					#ripple.effect(() => {
+					effect(() => {
 						for (const item of items) {
 							<div>{item}</div>
 						}
@@ -123,9 +126,10 @@ ruleTester.run('control-flow-jsx', rule, {
 		// Invalid: for...of with JSX deeply nested in effect
 		{
 			code: `
+				import { effect } from 'ripple';
 				component App() {
 					const items = [1, 2, 3];
-					#ripple.effect(() => {
+					effect(() => {
 						for (const item of items) {
 							if (item > 1) {
 								<span>{item}</span>

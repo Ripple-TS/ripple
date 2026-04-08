@@ -65,9 +65,6 @@
           "include": "#jsx"
         },
         {
-          "include": "#defer-block"
-        },
-        {
           "include": "#declaration"
         },
         {
@@ -354,12 +351,6 @@
         },
         {
           "include": "#object-literal"
-        },
-        {
-          "include": "#tuple-literal"
-        },
-        {
-          "include": "#record-literal"
         },
         {
           "include": "#expression-operators"
@@ -906,9 +897,6 @@
           "include": "#array-literal"
         },
         {
-          "include": "#tuple-literal"
-        },
-        {
           "include": "#numeric-literal"
         },
         {
@@ -1337,9 +1325,6 @@
           "include": "#array-literal"
         },
         {
-          "include": "#tuple-literal"
-        },
-        {
           "include": "#numeric-literal"
         },
         {
@@ -1743,9 +1728,6 @@
         },
         {
           "include": "#array-literal"
-        },
-        {
-          "include": "#tuple-literal"
         },
         {
           "include": "#numeric-literal"
@@ -2275,9 +2257,6 @@
                 },
                 {
                   "include": "#array-literal"
-                },
-                {
-                  "include": "#tuple-literal"
                 },
                 {
                   "include": "#comment"
@@ -3238,9 +3217,6 @@
             },
             {
               "include": "#array-literal"
-            },
-            {
-              "include": "#tuple-literal"
             }
           ]
         },
@@ -4024,12 +4000,6 @@
           "include": "#array-literal"
         },
         {
-          "include": "#tuple-literal"
-        },
-        {
-          "include": "#record-literal"
-        },
-        {
           "include": "#this-literal"
         },
         {
@@ -4057,55 +4027,6 @@
         },
         {
           "include": "#punctuation-comma"
-        }
-      ]
-    },
-    "tuple-literal": {
-      "name": "meta.tuple.literal.js",
-      "begin": "(#ripple)(\\[)",
-      "beginCaptures": {
-        "1": {
-          "name": "keyword.control.tuple.js"
-        },
-        "2": {
-          "name": "meta.brace.square.js"
-        }
-      },
-      "end": "\\]",
-      "endCaptures": {
-        "0": {
-          "name": "meta.brace.square.js"
-        }
-      },
-      "patterns": [
-        {
-          "include": "#expression"
-        },
-        {
-          "include": "#punctuation-comma"
-        }
-      ]
-    },
-    "record-literal": {
-      "name": "meta.record.literal.js",
-      "begin": "(#ripple)(\\{)",
-      "beginCaptures": {
-        "1": {
-          "name": "keyword.control.record.js"
-        },
-        "2": {
-          "name": "punctuation.definition.block.js"
-        }
-      },
-      "end": "\\}",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.block.js"
-        }
-      },
-      "patterns": [
-        {
-          "include": "#object-member"
         }
       ]
     },
@@ -6536,9 +6457,6 @@
           "include": "#style-member-expression"
         },
         {
-          "include": "#ripple-member-expression"
-        },
-        {
           "include": "#jsx-ref-modifier"
         },
         {
@@ -6591,9 +6509,6 @@
         },
         {
           "include": "#style-member-expression"
-        },
-        {
-          "include": "#ripple-member-expression"
         },
         {
           "include": "#jsx-html-modifier"
@@ -6733,18 +6648,12 @@
     },
     "server-block": {
       "name": "meta.server-block.js",
-      "begin": "(#ripple)(\\.)(server)\\s*(\\{)",
+      "begin": "(#server)\\s*(\\{)",
       "beginCaptures": {
         "1": {
           "name": "keyword.control.ripple.js"
         },
         "2": {
-          "name": "punctuation.accessor.js"
-        },
-        "3": {
-          "name": "entity.name.function.js"
-        },
-        "4": {
           "name": "punctuation.definition.block.js"
         }
       },
@@ -6760,60 +6669,16 @@
         }
       ]
     },
-    "defer-block": {
-      "name": "meta.defer-block.js",
-      "begin": "(#ripple\\.defer)\\s*(\\{)",
-      "beginCaptures": {
-        "1": {
-          "name": "storage.type.defer.js"
-        },
-        "2": {
-          "name": "punctuation.definition.block.js"
-        }
-      },
-      "end": "\\}",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.block.js"
-        }
-      },
-      "patterns": [
-        {
-          "include": "#component-statements"
-        }
-      ]
-    },
-    "ripple-member-expression": {
-      "name": "meta.ripple-member-expression.js",
-      "match": "(#ripple)(\\.)([_$[:alpha:]][_$[:alnum:]]*)",
-      "captures": {
-        "1": {
-          "name": "keyword.control.ripple.js"
-        },
-        "2": {
-          "name": "punctuation.accessor.js"
-        },
-        "3": {
-          "name": "entity.name.function.js"
-        }
-      }
-    },
     "style-member-expression": {
       "patterns": [
         {
           "name": "meta.style-member-expression.computed.js",
-          "begin": "(#ripple)(\\.)(style)(\\[)",
+          "begin": "(#style)(\\[)",
           "beginCaptures": {
             "1": {
               "name": "keyword.control.ripple.js"
             },
             "2": {
-              "name": "punctuation.accessor.js"
-            },
-            "3": {
-              "name": "entity.name.function.js"
-            },
-            "4": {
               "name": "meta.brace.square.js"
             }
           },
@@ -7105,9 +6970,6 @@
         },
         {
           "include": "#style-member-expression"
-        },
-        {
-          "include": "#ripple-member-expression"
         },
         {
           "include": "#jsx-ref-modifier"

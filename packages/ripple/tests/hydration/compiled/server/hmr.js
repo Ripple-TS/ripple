@@ -1,49 +1,45 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-export async function Layout(__output, { children }) {
-	return _$_.async(async () => {
-		_$_.push_component();
-		__output.push('<div');
-		__output.push(' class="layout"');
+import { track } from 'ripple/server';
+
+export function Layout(__output, { children }) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="layout"');
+	__output.push('>');
+
+	{
+		__output.push('<nav');
+		__output.push(' class="nav"');
 		__output.push('>');
 
 		{
-			__output.push('<nav');
-			__output.push(' class="nav"');
-			__output.push('>');
-
-			{
-				__output.push('Navigation');
-			}
-
-			__output.push('</nav>');
-			__output.push('<main');
-			__output.push(' class="main"');
-			__output.push('>');
-
-			{
-				{
-					const comp = children;
-					const args = [__output, {}];
-
-					if (comp?.async) {
-						await comp(...args);
-					} else if (comp) {
-						comp(...args);
-					}
-				}
-			}
-
-			__output.push('</main>');
+			__output.push('Navigation');
 		}
 
-		__output.push('</div>');
-		_$_.pop_component();
-	});
-}
+		__output.push('</nav>');
+		__output.push('<main');
+		__output.push(' class="main"');
+		__output.push('>');
 
-Layout.async = true;
+		{
+			{
+				const comp = children;
+				const args = [__output, {}];
+
+				if (comp) {
+					comp(...args);
+				}
+			}
+		}
+
+		__output.push('</main>');
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}
 
 export function Content(__output) {
 	_$_.push_component();

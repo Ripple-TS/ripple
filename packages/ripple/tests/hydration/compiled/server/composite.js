@@ -1,32 +1,26 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-export async function Layout(__output, { children }) {
-	return _$_.async(async () => {
-		_$_.push_component();
-		__output.push('<div');
-		__output.push(' class="layout"');
-		__output.push('>');
+export function Layout(__output, { children }) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="layout"');
+	__output.push('>');
 
+	{
 		{
-			{
-				const comp = children;
-				const args = [__output, {}];
+			const comp = children;
+			const args = [__output, {}];
 
-				if (comp?.async) {
-					await comp(...args);
-				} else if (comp) {
-					comp(...args);
-				}
+			if (comp) {
+				comp(...args);
 			}
 		}
+	}
 
-		__output.push('</div>');
-		_$_.pop_component();
-	});
+	__output.push('</div>');
+	_$_.pop_component();
 }
-
-Layout.async = true;
 
 export function SingleChild(__output) {
 	_$_.push_component();

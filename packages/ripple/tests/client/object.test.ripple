@@ -1,10 +1,10 @@
-import { flushSync, RippleObject } from 'ripple';
+import { RippleObject, flushSync } from 'ripple';
 import { TRACKED_OBJECT } from '../../src/runtime/internal/client/constants.js';
 
 describe('RippleObject', () => {
 	it('makes new properties reactive', () => {
 		component ObjectTest() {
-			const obj = #ripple{ a: -1 };
+			const obj = new RippleObject({ a: -1 });
 
 			obj.a = 0;
 
@@ -33,7 +33,7 @@ describe('RippleObject', () => {
 
 	it('makes existing object properties reactive', () => {
 		component ObjectTest() {
-			const obj = #ripple{ a: 0 };
+			const obj = new RippleObject({ a: 0 });
 
 			<pre>{obj.a}</pre>
 			<button
@@ -60,7 +60,7 @@ describe('RippleObject', () => {
 
 	it('checks if property exists via the has trap', () => {
 		component ObjectTest() {
-			const obj = #ripple{ a: -1, b: 1 };
+			const obj = new RippleObject({ a: -1, b: 1 });
 
 			obj.a = 0;
 
@@ -167,7 +167,7 @@ describe('RippleObject', () => {
 
 	it('uses the hash syntax for creating RippleObject', () => {
 		component ObjectTest() {
-			const obj = #ripple{ a: 0, b: 1, c: { d: { e: 8 } } };
+			const obj = new RippleObject({ a: 0, b: 1, c: { d: { e: 8 } } });
 
 			<pre>{obj.a}</pre>
 			<pre>{TRACKED_OBJECT in obj}</pre>

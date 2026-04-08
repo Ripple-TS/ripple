@@ -1,4 +1,4 @@
-import { flushSync, RippleArray } from 'ripple';
+import { flushSync, RippleArray, trackAsync } from 'ripple';
 import { MAX_ARRAY_LENGTH } from '../../../src/runtime/internal/client/constants.js';
 
 describe('RippleArray > static', () => {
@@ -46,7 +46,7 @@ describe('RippleArray > static', () => {
 			}
 
 			component ArrayTest() {
-				let items = #ripple.trackAsync(() => RippleArray.fromAsync([1, 2, 3]));
+				let items = trackAsync(() => RippleArray.fromAsync([1, 2, 3]));
 
 				<button
 					onClick={() => {
@@ -85,9 +85,7 @@ describe('RippleArray > static', () => {
 			}
 
 			component ArrayTest() {
-				let items = #ripple.trackAsync(
-					() => RippleArray.fromAsync([1, 2, 3], (x: number) => x * 2),
-				);
+				let items = trackAsync(() => RippleArray.fromAsync([1, 2, 3], (x: number) => x * 2));
 
 				<button
 					onClick={() => {
@@ -132,7 +130,7 @@ describe('RippleArray > static', () => {
 					}
 
 					try {
-						let items = #ripple.trackAsync(() => RippleArray.fromAsync(throwingIterable()));
+						let items = trackAsync(() => RippleArray.fromAsync(throwingIterable()));
 
 						<ul>
 							for (const item of @items) {
@@ -228,7 +226,7 @@ describe('RippleArray > static', () => {
 				}
 
 				component ArrayTest() {
-					const items = #ripple.trackAsync(() => RippleArray.fromAsync([6]));
+					const items = trackAsync(() => RippleArray.fromAsync([6]));
 
 					<pre>{JSON.stringify(@items)}</pre>
 					<pre>{@items.length}</pre>

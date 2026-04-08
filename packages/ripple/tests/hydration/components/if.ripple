@@ -1,3 +1,5 @@
+import { track } from 'ripple';
+
 // If block components for hydration testing
 
 export component IfTruthy() {
@@ -24,7 +26,7 @@ export component IfElse() {
 }
 
 export component ReactiveIf() {
-	let show = #ripple.track(true);
+	let show = track(true);
 	<button
 		class="toggle"
 		onClick={() => {
@@ -39,7 +41,7 @@ export component ReactiveIf() {
 }
 
 export component ReactiveIfElse() {
-	let isOn = #ripple.track(false);
+	let isOn = track(false);
 	<button
 		class="toggle"
 		onClick={() => {
@@ -56,8 +58,8 @@ export component ReactiveIfElse() {
 }
 
 export component NestedIf() {
-	let outer = #ripple.track(true);
-	let inner = #ripple.track(true);
+	let outer = track(true);
+	let inner = track(true);
 	<button
 		class="outer-toggle"
 		onClick={() => {
@@ -85,7 +87,7 @@ export component NestedIf() {
 }
 
 export component IfElseIfChain() {
-	let status = #ripple.track<'loading' | 'success' | 'error'>('loading');
+	let status = track<'loading' | 'success' | 'error'>('loading');
 	<div>
 		<button
 			class="success"

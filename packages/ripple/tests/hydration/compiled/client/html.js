@@ -88,6 +88,8 @@ var root_83 = _$_.template(`<div class="layout"><template id="page-data"></templ
 var root_85 = _$_.template(`<div class="doc-content"><!></div>`, 0);
 var root_84 = _$_.template(`<!>`, 1, 1);
 
+import { track } from 'ripple';
+
 export function StaticHtml(__anchor, _, __block) {
 	_$_.push_component();
 

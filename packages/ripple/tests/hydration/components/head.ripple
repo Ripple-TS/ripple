@@ -1,3 +1,5 @@
+import { track } from 'ripple';
+
 // Static title
 export component StaticTitle() {
 	<head>
@@ -9,7 +11,7 @@ export component StaticTitle() {
 
 // Reactive title
 export component ReactiveTitle() {
-	let title = #ripple.track('Initial Title');
+	let title = track('Initial Title');
 
 	<head>
 		<title>{@title}</title>
@@ -32,7 +34,7 @@ export component MultipleHeadElements() {
 
 // Head with reactive meta tags
 export component ReactiveMetaTags() {
-	let description = #ripple.track('Initial description');
+	let description = track('Initial description');
 
 	<head>
 		<title>{'My Page'}</title>
@@ -44,7 +46,7 @@ export component ReactiveMetaTags() {
 
 // Title with template literal
 export component TitleWithTemplate() {
-	let name = #ripple.track('World');
+	let name = track('World');
 
 	<head>
 		<title>{`Hello ${@name}!`}</title>
@@ -63,8 +65,8 @@ export component EmptyTitle() {
 
 // Title with conditional content
 export component ConditionalTitle() {
-	let showPrefix = #ripple.track(true);
-	let title = #ripple.track('Main Page');
+	let showPrefix = track(true);
+	let title = track('Main Page');
 
 	<head>
 		<title>{@showPrefix ? 'App - ' + @title : @title}</title>
@@ -75,7 +77,7 @@ export component ConditionalTitle() {
 
 // Title with computed value
 export component ComputedTitle() {
-	let count = #ripple.track(0);
+	let count = track(0);
 	let prefix = 'Count: ';
 
 	<head>

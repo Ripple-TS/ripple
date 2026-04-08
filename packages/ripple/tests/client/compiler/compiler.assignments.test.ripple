@@ -1,4 +1,4 @@
-import { RippleArray } from 'ripple';
+import { RippleArray, effect, track, untrack } from 'ripple';
 import { compile } from 'ripple/compiler';
 
 const EFFECT_BODY_REGEX = /_\$\_\.effect\(\(\) => \{([\s\S]*?)\n\t\}\);/;
@@ -9,9 +9,9 @@ describe('compiler > assignments', () => {
 
 		component App() {
 			let items: number[] = [];
-			let tracked_items = #ripple.track<number[]>([]);
+			let tracked_items = track<number[]>([]);
 			let items2 = new Array();
-			let items3: RippleArray<number> = #ripple[];
+			let items3: RippleArray<number> = new RippleArray();
 			let i = 0;
 
 			logs.push(items[0]);
@@ -108,10 +108,11 @@ describe('compiler > assignments', () => {
 	});
 
 	it('compiles tracked values in effect with assignment expression', () => {
-		const source = `component App() {
-	let count = #ripple.track(0);
+		const source = `import { track, effect } from 'ripple';
+component App() {
+	let count = track(0);
 
-	#ripple.effect(() => {
+	effect(() => {
 		state.count = @count;
 	});
 }`;
@@ -121,11 +122,12 @@ describe('compiler > assignments', () => {
 	});
 
 	it('compiles tracked values in effect with update expressions', () => {
-		const source = `component App() {
-	let count = #ripple.track(5);
+		const source = `import { track, effect, untrack } from 'ripple';
+component App() {
+	let count = track(5);
 
-	#ripple.effect(() => {
-		#ripple.untrack(() => {
+	effect(() => {
+		untrack(() => {
 			state.preIncrement = ++@count;
 			state.postIncrement = @count++;
 			state.preDecrement = --@count;

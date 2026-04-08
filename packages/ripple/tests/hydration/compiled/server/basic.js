@@ -366,39 +366,33 @@ function Actions(__output, { playgroundVisible = false }) {
 	_$_.pop_component();
 }
 
-async function Layout(__output, { children }) {
-	return _$_.async(async () => {
-		_$_.push_component();
-		__output.push('<main');
+function Layout(__output, { children }) {
+	_$_.push_component();
+	__output.push('<main');
+	__output.push('>');
+
+	{
+		__output.push('<div');
+		__output.push(' class="container"');
 		__output.push('>');
 
 		{
-			__output.push('<div');
-			__output.push(' class="container"');
-			__output.push('>');
-
 			{
-				{
-					const comp = children;
-					const args = [__output, {}];
+				const comp = children;
+				const args = [__output, {}];
 
-					if (comp?.async) {
-						await comp(...args);
-					} else if (comp) {
-						comp(...args);
-					}
+				if (comp) {
+					comp(...args);
 				}
 			}
-
-			__output.push('</div>');
 		}
 
-		__output.push('</main>');
-		_$_.pop_component();
-	});
-}
+		__output.push('</div>');
+	}
 
-Layout.async = true;
+	__output.push('</main>');
+	_$_.pop_component();
+}
 
 function Content(__output) {
 	_$_.push_component();

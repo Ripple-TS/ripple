@@ -76,9 +76,9 @@ The parser:
 The parser supports all Ripple syntax including:
 
 - `component` declarations
-- `#ripple.track()` reactive values
+- `track()` reactive values (imported from `ripple`)
 - `@` unboxing operator
-- `#ripple[]` and `#ripple{}` reactive collections
+- Reactive collections (`RippleArray`, `RippleObject`, etc.)
 - JSX-like templating inside components
 - All standard JavaScript/TypeScript syntax
 
@@ -87,8 +87,10 @@ The parser supports all Ripple syntax including:
 Given a `.ripple` file:
 
 ```ripple
+import { track } from 'ripple';
+
 export component Counter() {
-  let count = #ripple.track(0);
+  let count = track(0);
 
   <div>
     <button onClick={() => @count++}>Increment</button>

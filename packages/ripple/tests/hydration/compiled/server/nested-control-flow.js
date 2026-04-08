@@ -358,130 +358,166 @@ export function ForIfSwitchWithDisabled(__output) {
 	_$_.pop_component();
 }
 
-export async function SwitchTry(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
+export function SwitchTry(__output) {
+	_$_.push_component();
 
-		const kind = 'a';
+	const kind = 'a';
 
-		__output.push('<div');
-		__output.push(' class="switch-try"');
-		__output.push('>');
+	__output.push('<div');
+	__output.push(' class="switch-try"');
+	__output.push('>');
 
-		{
+	{
+		__output.push('<!--[-->');
+
+		switch (kind) {
+			case 'a':
+				__output.push('<p');
+				__output.push(' class="resolved-a"');
+				__output.push('>');
+				{
+					__output.push('A resolved');
+				}
+				__output.push('</p>');
+				break;
+
+			default:
+				__output.push('<p');
+				__output.push(' class="default"');
+				__output.push('>');
+				{
+					__output.push('Default');
+				}
+				__output.push('</p>');
+		}
+
+		__output.push('<!--]-->');
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}
+
+export function ForSwitchTry(__output) {
+	_$_.push_component();
+
+	const items = [{ id: 1, kind: 'a' }, { id: 2, kind: 'b' }];
+
+	__output.push('<ul');
+	__output.push(' class="for-switch-try"');
+	__output.push('>');
+
+	{
+		__output.push('<!--[-->');
+
+		for (const item of items) {
 			__output.push('<!--[-->');
 
-			switch (kind) {
+			switch (item.kind) {
 				case 'a':
-					__output.push('<!--[-->');
-					var __pending_pos = __output.body.length;
-					__output.push('<p');
-					__output.push(' class="pending-a"');
+					__output.push('<li');
+					__output.push(_$_.attr('class', `item item-${item.id} kind-a`));
 					__output.push('>');
 					{
-						__output.push('A pending');
+						__output.push(_$_.escape(`A-${item.id}`));
 					}
-					__output.push('</p>');
-					await _$_.async(async () => {
-						__output.body = __output.body.slice(0, __pending_pos);
-						__output.push('<p');
-						__output.push(' class="resolved-a"');
-						__output.push('>');
-
-						{
-							__output.push('A resolved');
-						}
-
-						__output.push('</p>');
-					});
-					__output.push('<!--]-->');
+					__output.push('</li>');
 					break;
 
 				default:
-					__output.push('<p');
-					__output.push(' class="default"');
+					__output.push('<li');
+					__output.push(_$_.attr('class', `item item-${item.id} kind-b`));
 					__output.push('>');
 					{
-						__output.push('Default');
+						__output.push(_$_.escape(`B-${item.id}`));
 					}
-					__output.push('</p>');
+					__output.push('</li>');
 			}
 
 			__output.push('<!--]-->');
 		}
 
-		__output.push('</div>');
-		_$_.pop_component();
-	});
+		__output.push('<!--]-->');
+	}
+
+	__output.push('</ul>');
+	_$_.pop_component();
 }
 
-SwitchTry.async = true;
+export function ForIfTry(__output) {
+	_$_.push_component();
 
-export async function ForSwitchTry(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
+	const items = [{ id: 1, show: true }, { id: 2, show: true }];
 
-		const items = [{ id: 1, kind: 'a' }, { id: 2, kind: 'b' }];
+	__output.push('<ul');
+	__output.push(' class="for-if-try"');
+	__output.push('>');
 
-		__output.push('<ul');
-		__output.push(' class="for-switch-try"');
-		__output.push('>');
+	{
+		__output.push('<!--[-->');
 
-		{
+		for (const item of items) {
 			__output.push('<!--[-->');
 
-			for (const item of items) {
+			if (item.show) {
+				__output.push('<li');
+				__output.push(_$_.attr('class', `item item-${item.id}`));
+				__output.push('>');
+
+				{
+					__output.push(_$_.escape(`item-${item.id}`));
+				}
+
+				__output.push('</li>');
+			}
+
+			__output.push('<!--]-->');
+		}
+
+		__output.push('<!--]-->');
+	}
+
+	__output.push('</ul>');
+	_$_.pop_component();
+}
+
+export function ForIfSwitchTrySingle(__output) {
+	_$_.push_component();
+
+	const items = [{ id: 1, kind: 'a', show: true }];
+
+	__output.push('<ul');
+	__output.push(' class="for-if-switch-try-single"');
+	__output.push('>');
+
+	{
+		__output.push('<!--[-->');
+
+		for (const item of items) {
+			__output.push('<!--[-->');
+
+			if (item.show) {
 				__output.push('<!--[-->');
 
 				switch (item.kind) {
 					case 'a':
-						__output.push('<!--[-->');
-						var __pending_pos_1 = __output.body.length;
 						__output.push('<li');
-						__output.push(_$_.attr('class', `pending pending-${item.id}`));
+						__output.push(_$_.attr('class', `item item-${item.id} kind-a`));
 						__output.push('>');
 						{
-							__output.push(_$_.escape(`pending ${item.id}`));
+							__output.push(_$_.escape(`A-${item.id}`));
 						}
 						__output.push('</li>');
-						await _$_.async(async () => {
-							__output.body = __output.body.slice(0, __pending_pos_1);
-							__output.push('<li');
-							__output.push(_$_.attr('class', `item item-${item.id} kind-a`));
-							__output.push('>');
-
-							{
-								__output.push(_$_.escape(`A-${item.id}`));
-							}
-
-							__output.push('</li>');
-						});
-						__output.push('<!--]-->');
 						break;
 
 					default:
-						__output.push('<!--[-->');
-						var __pending_pos_2 = __output.body.length;
 						__output.push('<li');
-						__output.push(_$_.attr('class', `pending pending-${item.id}`));
+						__output.push(_$_.attr('class', `item item-${item.id} kind-default`));
 						__output.push('>');
 						{
-							__output.push(_$_.escape(`pending ${item.id}`));
+							__output.push(_$_.escape(`D-${item.id}`));
 						}
 						__output.push('</li>');
-						await _$_.async(async () => {
-							__output.body = __output.body.slice(0, __pending_pos_2);
-							__output.push('<li');
-							__output.push(_$_.attr('class', `item item-${item.id} kind-b`));
-							__output.push('>');
-
-							{
-								__output.push(_$_.escape(`B-${item.id}`));
-							}
-
-							__output.push('</li>');
-						});
-						__output.push('<!--]-->');
 				}
 
 				__output.push('<!--]-->');
@@ -490,58 +526,53 @@ export async function ForSwitchTry(__output) {
 			__output.push('<!--]-->');
 		}
 
-		__output.push('</ul>');
-		_$_.pop_component();
-	});
+		__output.push('<!--]-->');
+	}
+
+	__output.push('</ul>');
+	_$_.pop_component();
 }
 
-ForSwitchTry.async = true;
+export function ForIfSwitchTryMulti(__output) {
+	_$_.push_component();
 
-export async function ForIfTry(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
+	const items = [
+		{ id: 1, kind: 'a', show: true },
+		{ id: 2, kind: 'b', show: true }
+	];
 
-		const items = [{ id: 1, show: true }, { id: 2, show: true }];
+	__output.push('<ul');
+	__output.push(' class="for-if-switch-try-multi"');
+	__output.push('>');
 
-		__output.push('<ul');
-		__output.push(' class="for-if-try"');
-		__output.push('>');
+	{
+		__output.push('<!--[-->');
 
-		{
+		for (const item of items) {
 			__output.push('<!--[-->');
 
-			for (const item of items) {
+			if (item.show) {
 				__output.push('<!--[-->');
 
-				if (item.show) {
-					__output.push('<!--[-->');
-
-					var __pending_pos_3 = __output.body.length;
-
-					__output.push('<li');
-					__output.push(_$_.attr('class', `pending pending-${item.id}`));
-					__output.push('>');
-
-					{
-						__output.push(_$_.escape(`pending ${item.id}`));
-					}
-
-					__output.push('</li>');
-
-					await _$_.async(async () => {
-						__output.body = __output.body.slice(0, __pending_pos_3);
+				switch (item.kind) {
+					case 'a':
 						__output.push('<li');
-						__output.push(_$_.attr('class', `item item-${item.id}`));
+						__output.push(_$_.attr('class', `item item-${item.id} kind-a`));
 						__output.push('>');
-
 						{
-							__output.push(_$_.escape(`item-${item.id}`));
+							__output.push(_$_.escape(`A-${item.id}`));
 						}
-
 						__output.push('</li>');
-					});
+						break;
 
-					__output.push('<!--]-->');
+					default:
+						__output.push('<li');
+						__output.push(_$_.attr('class', `item item-${item.id} kind-b`));
+						__output.push('>');
+						{
+							__output.push(_$_.escape(`B-${item.id}`));
+						}
+						__output.push('</li>');
 				}
 
 				__output.push('<!--]-->');
@@ -550,184 +581,9 @@ export async function ForIfTry(__output) {
 			__output.push('<!--]-->');
 		}
 
-		__output.push('</ul>');
-		_$_.pop_component();
-	});
+		__output.push('<!--]-->');
+	}
+
+	__output.push('</ul>');
+	_$_.pop_component();
 }
-
-ForIfTry.async = true;
-
-export async function ForIfSwitchTrySingle(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
-
-		const items = [{ id: 1, kind: 'a', show: true }];
-
-		__output.push('<ul');
-		__output.push(' class="for-if-switch-try-single"');
-		__output.push('>');
-
-		{
-			__output.push('<!--[-->');
-
-			for (const item of items) {
-				__output.push('<!--[-->');
-
-				if (item.show) {
-					__output.push('<!--[-->');
-
-					switch (item.kind) {
-						case 'a':
-							__output.push('<!--[-->');
-							var __pending_pos_4 = __output.body.length;
-							__output.push('<li');
-							__output.push(_$_.attr('class', `pending pending-${item.id}`));
-							__output.push('>');
-							{
-								__output.push(_$_.escape(`pending ${item.id}`));
-							}
-							__output.push('</li>');
-							await _$_.async(async () => {
-								__output.body = __output.body.slice(0, __pending_pos_4);
-								__output.push('<li');
-								__output.push(_$_.attr('class', `item item-${item.id} kind-a`));
-								__output.push('>');
-
-								{
-									__output.push(_$_.escape(`A-${item.id}`));
-								}
-
-								__output.push('</li>');
-							});
-							__output.push('<!--]-->');
-							break;
-
-						default:
-							__output.push('<!--[-->');
-							var __pending_pos_5 = __output.body.length;
-							__output.push('<li');
-							__output.push(_$_.attr('class', `pending pending-${item.id}`));
-							__output.push('>');
-							{
-								__output.push(_$_.escape(`pending ${item.id}`));
-							}
-							__output.push('</li>');
-							await _$_.async(async () => {
-								__output.body = __output.body.slice(0, __pending_pos_5);
-								__output.push('<li');
-								__output.push(_$_.attr('class', `item item-${item.id} kind-default`));
-								__output.push('>');
-
-								{
-									__output.push(_$_.escape(`D-${item.id}`));
-								}
-
-								__output.push('</li>');
-							});
-							__output.push('<!--]-->');
-					}
-
-					__output.push('<!--]-->');
-				}
-
-				__output.push('<!--]-->');
-			}
-
-			__output.push('<!--]-->');
-		}
-
-		__output.push('</ul>');
-		_$_.pop_component();
-	});
-}
-
-ForIfSwitchTrySingle.async = true;
-
-export async function ForIfSwitchTryMulti(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
-
-		const items = [
-			{ id: 1, kind: 'a', show: true },
-			{ id: 2, kind: 'b', show: true }
-		];
-
-		__output.push('<ul');
-		__output.push(' class="for-if-switch-try-multi"');
-		__output.push('>');
-
-		{
-			__output.push('<!--[-->');
-
-			for (const item of items) {
-				__output.push('<!--[-->');
-
-				if (item.show) {
-					__output.push('<!--[-->');
-
-					switch (item.kind) {
-						case 'a':
-							__output.push('<!--[-->');
-							var __pending_pos_6 = __output.body.length;
-							__output.push('<li');
-							__output.push(_$_.attr('class', `pending pending-${item.id}`));
-							__output.push('>');
-							{
-								__output.push(_$_.escape(`pending ${item.id}`));
-							}
-							__output.push('</li>');
-							await _$_.async(async () => {
-								__output.body = __output.body.slice(0, __pending_pos_6);
-								__output.push('<li');
-								__output.push(_$_.attr('class', `item item-${item.id} kind-a`));
-								__output.push('>');
-
-								{
-									__output.push(_$_.escape(`A-${item.id}`));
-								}
-
-								__output.push('</li>');
-							});
-							__output.push('<!--]-->');
-							break;
-
-						default:
-							__output.push('<!--[-->');
-							var __pending_pos_7 = __output.body.length;
-							__output.push('<li');
-							__output.push(_$_.attr('class', `pending pending-${item.id}`));
-							__output.push('>');
-							{
-								__output.push(_$_.escape(`pending ${item.id}`));
-							}
-							__output.push('</li>');
-							await _$_.async(async () => {
-								__output.body = __output.body.slice(0, __pending_pos_7);
-								__output.push('<li');
-								__output.push(_$_.attr('class', `item item-${item.id} kind-b`));
-								__output.push('>');
-
-								{
-									__output.push(_$_.escape(`B-${item.id}`));
-								}
-
-								__output.push('</li>');
-							});
-							__output.push('<!--]-->');
-					}
-
-					__output.push('<!--]-->');
-				}
-
-				__output.push('<!--]-->');
-			}
-
-			__output.push('<!--]-->');
-		}
-
-		__output.push('</ul>');
-		_$_.pop_component();
-	});
-}
-
-ForIfSwitchTryMulti.async = true;

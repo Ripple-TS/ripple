@@ -572,7 +572,7 @@ export function run_block(block) {
 			handle_error(error, block);
 		} else if (active_component?.b === block) {
 			throw new Error(
-				'Reads on pending tracked values directly inside component body are prohibited. Use #ripple.trackPending() test for safe access or create another derived instead.',
+				'Reads on pending tracked values directly inside component body are prohibited. Use trackPending() test for safe access or create another derived instead.',
 			);
 		}
 	} finally {
@@ -1188,7 +1188,7 @@ export function public_set(tracked, value) {
 export function set(tracked, value) {
 	if (!is_mutating_allowed) {
 		throw new Error(
-			'Assignments or updates to tracked values are not allowed during computed "#ripple.track(() => ...)" evaluation',
+			'Assignments or updates to tracked values are not allowed during computed "track(() => ...)" evaluation',
 		);
 	}
 

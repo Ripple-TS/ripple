@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { flushSync } from 'ripple';
+import { Context, flushSync } from 'ripple';
 
 describe('context', () => {
 	it('creates a reactive ref with initial value', () => {
-		const MyContext = #ripple.context<string | null>(null);
+		const MyContext = Context<string | null>(null);
 
 		component Child() {
 			const value = MyContext.get();
@@ -25,7 +25,7 @@ describe('context', () => {
 	});
 
 	it('handles context captured inside a computed tracked', () => {
-		const MyContext = #ripple.context<number | null>(null);
+		const MyContext = Context<number | null>(null);
 
 		const doubleContext = () => {
 			const value = MyContext.get() as number;

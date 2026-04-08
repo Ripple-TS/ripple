@@ -163,37 +163,3 @@ export {
 	bindOffsetWidth,
 	bindOffsetHeight,
 } from './internal/client/bindings.js';
-
-import { RippleMap } from './map.js';
-import { RippleSet } from './set.js';
-import { RippleArray } from './array.js';
-import { RippleObject } from './object.js';
-import { Context } from './internal/client/context.js';
-import { RippleURL } from './url.js';
-import { RippleURLSearchParams } from './url-search-params.js';
-import { RippleDate } from './date.js';
-import { MediaQuery } from './media-query.js';
-import {
-	track,
-	track_split as trackSplit,
-	untrack,
-	ref_prop as createRefKey,
-} from './internal/client/runtime.js';
-import { user_effect as effect } from './internal/client/blocks.js';
-
-export const ripple_namespace = {
-	map: RippleMap,
-	set: RippleSet,
-	array: RippleArray,
-	object: RippleObject,
-	context: Context,
-	url: RippleURL,
-	urlSearchParams: RippleURLSearchParams,
-	date: RippleDate,
-	mediaQuery: MediaQuery,
-	createRefKey,
-	track,
-	trackSplit,
-	effect,
-	untrack,
-};

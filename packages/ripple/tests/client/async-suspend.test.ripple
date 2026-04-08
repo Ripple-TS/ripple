@@ -1,12 +1,12 @@
 import type { Tracked } from 'ripple';
-import { DERIVED_UPDATED, flushSync } from 'ripple';
+import { DERIVED_UPDATED, flushSync, track, trackAsync } from 'ripple';
 
 describe('async suspense', () => {
 	it('hides child content during re-suspension when tracked dependency changes', async () => {
 		let resolve_fn: (() => void) | null = null;
 
 		component Child({ count }: { count: Tracked<number> }) {
-			#ripple.trackAsync(() => {
+			trackAsync(() => {
 				@count;
 				return new Promise<void>((resolve) => {
 					resolve_fn = resolve;
@@ -21,7 +21,7 @@ describe('async suspense', () => {
 		}
 
 		component App() {
-			let count = #ripple.track(0);
+			let count = track(0);
 
 			try {
 				<Child {count} />
@@ -69,7 +69,7 @@ describe('async suspense', () => {
 		let resolve_value: ((value: string) => void) | null = null;
 
 		component Child() {
-			let value = #ripple.trackAsync(
+			let value = trackAsync(
 				() => new Promise<string>((resolve) => {
 					resolve_value = resolve;
 				}),
@@ -79,7 +79,7 @@ describe('async suspense', () => {
 		}
 
 		component App() {
-			let show = #ripple.track(true);
+			let show = track(true);
 
 			<button onClick={() => (@show = false)}>{'Hide'}</button>
 
@@ -138,10 +138,10 @@ describe('async suspense', () => {
 		}
 
 		component App() {
-			let query = #ripple.track('a');
+			let query = track('a');
 
 			try {
-				let value = #ripple.trackAsync(() => createRequest(@query));
+				let value = trackAsync(() => createRequest(@query));
 				<div class="value">{@value}</div>
 			} pending {
 				<div class="pending">{'loading...'}</div>
@@ -199,13 +199,13 @@ describe('async suspense', () => {
 			let pending_render_count = 0;
 
 			component FilteredList({ query }: { query: Tracked<string> }) {
-				let items = #ripple.trackAsync(
+				let items = trackAsync(
 					() => Promise.resolve(
 						!@query ? ['apple', 'banana', 'cherry'] : ['avocado', 'blueberry', 'citrus'],
 					),
 				);
 
-				let filtered = #ripple.track(() => {
+				let filtered = track(() => {
 					return @items.filter((item: string) => item.includes(@query));
 				});
 
@@ -219,7 +219,7 @@ describe('async suspense', () => {
 			}
 
 			component App() {
-				let query = #ripple.track('');
+				let query = track('');
 
 				try {
 					<FilteredList {query} />
@@ -273,16 +273,16 @@ describe('async suspense', () => {
 		let pending_render_count = 0;
 
 		component App() {
-			let query = #ripple.track('');
+			let query = track('');
 
 			try {
-				let items = #ripple.trackAsync(
+				let items = trackAsync(
 					() => Promise.resolve(
 						!@query ? ['apple', 'banana', 'cherry'] : ['avocado', 'blueberry', 'citrus'],
 					),
 				);
 
-				let filtered = #ripple.track(() => {
+				let filtered = track(() => {
 					return @items.filter((item: string) => item.includes(@query));
 				});
 
@@ -331,7 +331,7 @@ describe('async suspense', () => {
 
 	it('throws when trackAsync is used without a try/pending boundary', () => {
 		component App() {
-			let value = #ripple.trackAsync(() => Promise.resolve('test'));
+			let value = trackAsync(() => Promise.resolve('test'));
 			<div>{@value}</div>
 		}
 

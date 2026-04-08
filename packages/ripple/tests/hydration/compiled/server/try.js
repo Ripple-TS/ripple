@@ -1,140 +1,89 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-export async function AsyncListInTryPending(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
+var _$_hoisted_async;
+var _$_hoisted_async_1;
+
+import { trackAsync } from 'ripple/server';
+
+export function AsyncListInTryPending(__output) {
+	_$_.push_component();
+
+	{
+		const comp = AsyncList;
+		const args = [__output, {}];
+
+		comp(...args);
+	}
+
+	_$_.pop_component();
+}
+
+function AsyncList(__output) {
+	_$_.push_component();
+
+	let items = (_$_hoisted_async = _$_hoisted_async ?? _$_.track_async(() => Promise.resolve(['alpha', 'beta', 'gamma']), void 0, false));
+
+	__output.push('<ul');
+	__output.push(' class="items"');
+	__output.push('>');
+
+	{
 		__output.push('<!--[-->');
 
-		var __pending_pos = __output.body.length;
-
-		__output.push('<p');
-		__output.push(' class="loading"');
-		__output.push('>');
-
-		{
-			__output.push('loading...');
-		}
-
-		__output.push('</p>');
-
-		await _$_.async(async () => {
-			__output.body = __output.body.slice(0, __pending_pos);
+		for (let item of _$_.get(items)) {
+			__output.push('<li');
+			__output.push('>');
 
 			{
-				const comp = AsyncList;
-				const args = [__output, {}];
-
-				await comp(...args);
+				__output.push(_$_.escape(item));
 			}
-		});
+
+			__output.push('</li>');
+		}
 
 		__output.push('<!--]-->');
-		_$_.pop_component();
-	});
+	}
+
+	__output.push('</ul>');
+	_$_.pop_component();
 }
 
-AsyncListInTryPending.async = true;
+export function AsyncTryWithLeadingSibling(__output) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="before"');
+	__output.push('>');
 
-async function AsyncList(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
+	{
+		__output.push('before');
+	}
 
-		let items = await Promise.resolve(['alpha', 'beta', 'gamma']);
+	__output.push('</div>');
 
-		if (_$_.aborted()) return;
+	{
+		const comp = AsyncContent;
+		const args = [__output, {}];
 
-		__output.push('<ul');
-		__output.push(' class="items"');
-		__output.push('>');
+		comp(...args);
+	}
 
-		{
-			__output.push('<!--[-->');
-
-			for (let item of items) {
-				__output.push('<li');
-				__output.push('>');
-
-				{
-					__output.push(_$_.escape(item));
-				}
-
-				__output.push('</li>');
-			}
-
-			__output.push('<!--]-->');
-		}
-
-		__output.push('</ul>');
-		_$_.pop_component();
-	});
+	_$_.pop_component();
 }
 
-AsyncList.async = true;
+function AsyncContent(__output) {
+	_$_.push_component();
 
-export async function AsyncTryWithLeadingSibling(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
-		__output.push('<div');
-		__output.push(' class="before"');
-		__output.push('>');
+	let value = (_$_hoisted_async_1 = _$_hoisted_async_1 ?? _$_.track_async(() => Promise.resolve('ready'), void 0, false));
 
-		{
-			__output.push('before');
-		}
+	__output.push('<div');
+	__output.push(' class="resolved"');
+	__output.push('>');
 
-		__output.push('</div>');
-		__output.push('<!--[-->');
+	{
+		__output.push(_$_.escape(value));
+	}
 
-		var __pending_pos_1 = __output.body.length;
-
-		__output.push('<div');
-		__output.push(' class="loading"');
-		__output.push('>');
-
-		{
-			__output.push('loading async content');
-		}
-
-		__output.push('</div>');
-
-		await _$_.async(async () => {
-			__output.body = __output.body.slice(0, __pending_pos_1);
-
-			{
-				const comp = AsyncContent;
-				const args = [__output, {}];
-
-				await comp(...args);
-			}
-		});
-
-		__output.push('<!--]-->');
-		_$_.pop_component();
-	});
+	__output.push('</div>');
+	_$_.pop_component();
 }
-
-AsyncTryWithLeadingSibling.async = true;
-
-async function AsyncContent(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
-
-		let value = await Promise.resolve('ready');
-
-		if (_$_.aborted()) return;
-
-		__output.push('<div');
-		__output.push(' class="resolved"');
-		__output.push('>');
-
-		{
-			__output.push(_$_.escape(value));
-		}
-
-		__output.push('</div>');
-		_$_.pop_component();
-	});
-}
-
-AsyncContent.async = true;

@@ -1,10 +1,10 @@
 import type { PropsWithExtras } from 'ripple';
-import { flushSync, createRefKey } from 'ripple';
+import { createRefKey, flushSync, track, trackSplit } from 'ripple';
 
 describe('dynamic DOM elements', () => {
 	it('renders static dynamic element', () => {
 		component App() {
-			let tag = #ripple.track('div');
+			let tag = track('div');
 
 			<@tag>{'Hello World'}</@tag>
 		}
@@ -19,7 +19,7 @@ describe('dynamic DOM elements', () => {
 	// They can be ignored for now. But we'll fix them via jsx() vs <jsx>
 	it('renders static dynamic element from a plain object with a tracked property', () => {
 		component App() {
-			let obj = { tag: #ripple.track('div') };
+			let obj = { tag: track('div') };
 
 			<obj.@tag>{'Hello World'}</obj.@tag>
 		}
@@ -32,7 +32,7 @@ describe('dynamic DOM elements', () => {
 
 	it('renders static dynamic element from a tracked object with a tracked property', () => {
 		component App() {
-			let obj = #ripple.track({ tag: #ripple.track('div') });
+			let obj = track({ tag: track('div') });
 
 			<@obj.@tag>{'Hello World'}</@obj.@tag>
 		}
@@ -47,7 +47,7 @@ describe('dynamic DOM elements', () => {
 		'renders static dynamic element from a tracked object with a computed tracked property',
 		() => {
 			component App() {
-				let obj = #ripple.track({ tag: #ripple.track('div') });
+				let obj = track({ tag: track('div') });
 
 				<@obj.@['tag']>{'Hello World'}</@obj.@['tag']>
 			}
@@ -61,7 +61,7 @@ describe('dynamic DOM elements', () => {
 
 	it('renders reactive dynamic element', () => {
 		component App() {
-			let tag = #ripple.track('div');
+			let tag = track('div');
 
 			<button
 				onClick={() => {
@@ -92,7 +92,7 @@ describe('dynamic DOM elements', () => {
 
 	it('renders self-closing dynamic element', () => {
 		component App() {
-			let tag = #ripple.track('input');
+			let tag = track('input');
 
 			<@tag type="text" value="test" />
 		}
@@ -106,8 +106,8 @@ describe('dynamic DOM elements', () => {
 
 	it('handles dynamic element with attributes', () => {
 		component App() {
-			let tag = #ripple.track('div');
-			let className = #ripple.track('test-class');
+			let tag = track('div');
+			let className = track('test-class');
 
 			<@tag class={@className} id="test" data-testid="dynamic-element">{'Content'}</@tag>
 		}
@@ -122,8 +122,8 @@ describe('dynamic DOM elements', () => {
 
 	it('handles nested dynamic elements', () => {
 		component App() {
-			let outerTag = #ripple.track('div');
-			let innerTag = #ripple.track('span');
+			let outerTag = track('div');
+			let innerTag = track('span');
 
 			<@outerTag class="outer">
 				<@innerTag class="inner">{'Nested content'}</@innerTag>
@@ -142,8 +142,8 @@ describe('dynamic DOM elements', () => {
 
 	it('handles dynamic element with class object', () => {
 		component App() {
-			let tag = #ripple.track('div');
-			let active = #ripple.track(true);
+			let tag = track('div');
+			let active = track(true);
 
 			<@tag class={{ active: @active, 'dynamic-element': true }}>
 				{'Element with class object'}
@@ -159,7 +159,7 @@ describe('dynamic DOM elements', () => {
 
 	it('handles dynamic element with style object', () => {
 		component App() {
-			let tag = #ripple.track('span');
+			let tag = track('span');
 
 			<@tag
 				style={{
@@ -182,7 +182,7 @@ describe('dynamic DOM elements', () => {
 
 	it('handles dynamic element with spread attributes', () => {
 		component App() {
-			let tag = #ripple.track('section');
+			let tag = track('section');
 			const attrs = {
 				id: 'spread-section',
 				'data-testid': 'spread-test',
@@ -205,7 +205,7 @@ describe('dynamic DOM elements', () => {
 		let capturedElement: HTMLElement | null = null;
 
 		component App() {
-			let tag = #ripple.track('article');
+			let tag = track('article');
 
 			<@tag
 				{ref (node: HTMLElement) => {
@@ -227,7 +227,7 @@ describe('dynamic DOM elements', () => {
 
 	it('handles dynamic element with createRefKey in spread', () => {
 		component App() {
-			let tag = #ripple.track('header');
+			let tag = track('header');
 
 			function elementRef(node: HTMLElement) {
 				// Set an attribute on the element to prove ref was called
@@ -257,8 +257,8 @@ describe('dynamic DOM elements', () => {
 
 	it('has reactive attributes on dynamic elements', () => {
 		component App() {
-			let tag = #ripple.track('div');
-			let count = #ripple.track(0);
+			let tag = track('div');
+			let count = track(0);
 
 			<button
 				onClick={() => {
@@ -311,7 +311,7 @@ describe('dynamic DOM elements', () => {
 
 	it('applies scoped CSS to dynamic elements', () => {
 		component App() {
-			let tag = #ripple.track('div');
+			let tag = track('div');
 
 			<@tag class="test-class">{'Dynamic element'}</@tag>
 
@@ -336,8 +336,8 @@ describe('dynamic DOM elements', () => {
 
 	it('applies scoped CSS to dynamic elements with reactive classes', () => {
 		component App() {
-			let tag = #ripple.track('button');
-			let count = #ripple.track(0);
+			let tag = track('button');
+			let count = track(0);
 
 			<@tag
 				class={@count % 2 ? 'even' : 'odd'}
@@ -410,8 +410,8 @@ describe('dynamic DOM elements', () => {
 			id: string;
 			onClick: EventListener;
 		}>) {
-			const tag = #ripple.track('button');
-			const [rest] = #ripple.trackSplit(props, []);
+			const tag = track('button');
+			const [rest] = trackSplit(props, []);
 			<@tag {...@rest}>{@rest.class}</@tag>
 
 			<style>
@@ -425,7 +425,7 @@ describe('dynamic DOM elements', () => {
 		}
 
 		component App() {
-			const count = #ripple.track(0);
+			const count = track(0);
 			<DynamicButton
 				class={@count % 2 ? 'even' : 'odd'}
 				id={@count % 2 ? 'even' : 'odd'}
@@ -468,7 +468,7 @@ describe('dynamic DOM elements', () => {
 
 	it('adds scoping class to dynamic elements', () => {
 		component App() {
-			let tag = #ripple.track('div');
+			let tag = track('div');
 
 			<@tag class="scoped">
 				<p>{'Scoped dynamic element'}</p>
@@ -491,7 +491,7 @@ describe('dynamic DOM elements', () => {
 
 	it('adds scoping class to dynamic elements when selector targets by tag name', () => {
 		component App() {
-			let tag = #ripple.track('div');
+			let tag = track('div');
 
 			<@tag class="scoped">
 				<p>{'Scoped dynamic element'}</p>
@@ -526,7 +526,7 @@ describe('dynamic DOM elements', () => {
 		}
 
 		component App() {
-			let tag = #ripple.track('div');
+			let tag = track('div');
 
 			<@tag class="scoped">
 				<p>{'Scoped dynamic element'}</p>
@@ -571,7 +571,7 @@ describe('dynamic DOM elements', () => {
 		}
 
 		component App() {
-			let tag = #ripple.track(() => Child);
+			let tag = track(() => Child);
 
 			<@tag />
 
@@ -598,12 +598,12 @@ describe('dynamic DOM elements', () => {
 		let refCallCount = 0;
 
 		component Button(props: any) {
-			const el = #ripple.track('button');
+			const el = track('button');
 			<@el {...props} />
 		}
 
 		component App() {
-			let active = #ripple.track(false);
+			let active = track(false);
 
 			<Button
 				data-active={String(@active)}
@@ -641,14 +641,14 @@ describe('dynamic DOM elements', () => {
 		let capturedElement: HTMLElement | null = null;
 
 		component Button(props: any) {
-			const el = #ripple.track('button');
+			const el = track('button');
 			<@el {...props} />
 		}
 
 		component App() {
-			let active = #ripple.track(false);
+			let active = track(false);
 
-			let buttonProps = #ripple.track(
+			let buttonProps = track(
 				() => ({
 					'data-active': @active,
 				}),
@@ -688,12 +688,12 @@ describe('dynamic DOM elements', () => {
 		let capturedElement: HTMLElement | null = null;
 
 		component Button(props: any) {
-			const el = #ripple.track('button');
+			const el = track('button');
 			<@el {...props} />
 		}
 
 		component App() {
-			let active = #ripple.track(false);
+			let active = track(false);
 
 			<Button
 				data-active={String(@active)}
@@ -730,7 +730,7 @@ describe('dynamic DOM elements', () => {
 
 	it('should remove and add back a text node in a conditional statement with a tracked', () => {
 		component App() {
-			let b = #ripple.track(true);
+			let b = track(true);
 			<div>
 				if (@b) {
 					{'Inside if'}
