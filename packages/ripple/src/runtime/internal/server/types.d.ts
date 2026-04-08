@@ -21,6 +21,8 @@ export type Derived = {
 	v: any;
 	readonly [0]: any;
 	[1]: Derived;
+	get(): any;
+	set(v: any): void;
 	readonly length: 2;
 	[Symbol.iterator](): Iterator<any | Derived>;
 };
@@ -32,6 +34,8 @@ export type Tracked = {
 	v: any;
 	readonly [0]: any;
 	[1]: Tracked;
+	get(): any;
+	set(v: any): void;
 	readonly length: 2;
 	[Symbol.iterator](): Iterator<any | Tracked>;
 };

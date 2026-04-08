@@ -1,6 +1,28 @@
 import { flushSync, track } from 'ripple';
 
 describe('lazy destructuring', () => {
+	it('supports tracked get() and set(v) methods', () => {
+		component Test() {
+			let count = track(1);
+			let doubled = track(() => count.get() * 2);
+
+			<div>{`${count.get()}-${doubled.get()}`}</div>
+			<button
+				onClick={() => {
+					count.set(5);
+				}}
+			>
+				{'set'}
+			</button>
+		}
+
+		render(Test);
+		expect(container.querySelector('div')!.textContent).toBe('1-2');
+		container.querySelector('button')!.click();
+		flushSync();
+		expect(container.querySelector('div')!.textContent).toBe('5-10');
+	});
+
 	it('lazily accesses object properties with const', () => {
 		component Inner(&{ a, b }: { a: number; b: string }) {
 			<pre>{`${a}-${b}`}</pre>

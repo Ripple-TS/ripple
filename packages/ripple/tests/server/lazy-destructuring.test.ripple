@@ -1,4 +1,20 @@
+import { track } from 'ripple';
+
 describe('lazy destructuring', () => {
+	it('supports tracked get() and set() method calls', async () => {
+		component Test() {
+			let count = track(1);
+			let derived = track(() => count.get() * 2);
+
+			count.set(3);
+
+			<pre>{`${count.get()}-${derived.get()}`}</pre>
+		}
+
+		const { body } = await render(Test);
+		expect(body).toBeHtml('<pre>3-6</pre>');
+	});
+
 	it('lazily accesses object properties', async () => {
 		component Inner(&{ a, b }: { a: number; b: string }) {
 			<pre>{`${a}-${b}`}</pre>

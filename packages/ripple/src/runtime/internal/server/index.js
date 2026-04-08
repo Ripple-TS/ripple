@@ -627,6 +627,13 @@ class TrackedValue {
 	get [1]() {
 		return this;
 	}
+	get() {
+		return get(/** @type {Tracked} */ (this));
+	}
+	/** @param {any} */
+	set(v) {
+		set(/** @type {Tracked} */ (this), v);
+	}
 	/** @returns {2} */
 	get length() {
 		return 2;
@@ -660,6 +667,13 @@ class DerivedValue {
 	}
 	get [1]() {
 		return this;
+	}
+	get() {
+		return get(/** @type {Derived} */ (this));
+	}
+	/** @param {any} */
+	set(v) {
+		set(/** @type {Derived} */ (this), v);
 	}
 	/** @returns {2} */
 	get length() {
