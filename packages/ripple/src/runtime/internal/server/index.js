@@ -607,6 +607,51 @@ export function spread_attrs(attrs, css_hash) {
 
 var empty_get_set = { get: undefined, set: undefined };
 
+class TrackedValue {
+	/**
+	 * @param {any} v
+	 * @param {{ get?: Function; set?: Function }} a
+	 */
+	constructor(v, a) {
+		this.a = a;
+		this.c = 0;
+		this.f = TRACKED;
+		this.v = v;
+	}
+	get [0]() {
+		return get(/** @type {Tracked} */ (this));
+	}
+	set [0](v) {
+		set(/** @type {Tracked} */ (this), v);
+	}
+	get [1]() {
+		return this;
+	}
+	/** @returns {2} */
+	get length() {
+		return 2;
+	}
+	*[Symbol.iterator]() {
+		yield get(/** @type {Tracked} */ (this));
+		yield this;
+	}
+}
+
+class DerivedValue extends TrackedValue {
+	/**
+	 * @param {Function} fn
+	 * @param {{ get?: Function; set?: Function }} a
+	 */
+	constructor(fn, a) {
+		super(UNINITIALIZED, a);
+		this.co = active_component;
+		/** @type {null | import('#server').Dependency} */
+		this.d = null;
+		this.f = TRACKED | DERIVED;
+		this.fn = fn;
+	}
+}
+
 /**
  * @param {any} v
  * @param {(value: any) => any} [get]
@@ -614,12 +659,7 @@ var empty_get_set = { get: undefined, set: undefined };
  * @returns {Tracked}
  */
 function tracked(v, get, set) {
-	return {
-		a: get || set ? { get, set } : empty_get_set,
-		c: 0,
-		f: TRACKED,
-		v,
-	};
+	return /** @type {Tracked} */ (new TrackedValue(v, get || set ? { get, set } : empty_get_set));
 }
 
 /**
@@ -636,15 +676,7 @@ export function track(v, get, set) {
 	}
 
 	if (typeof v === 'function') {
-		return {
-			a: get || set ? { get, set } : empty_get_set,
-			c: 0,
-			co: active_component,
-			d: null,
-			f: TRACKED | DERIVED,
-			fn: v,
-			v: UNINITIALIZED,
-		};
+		return /** @type {Derived} */ (new DerivedValue(v, get || set ? { get, set } : empty_get_set));
 	}
 
 	return tracked(v, get, set);

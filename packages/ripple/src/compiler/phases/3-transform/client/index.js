@@ -943,6 +943,45 @@ const visitors = {
 			}
 		}
 
+		// In to_ts mode, transform lazy array patterns into indexed access
+		// so TypeScript infers precise types from Tracked<V>[0] → V
+		if (context.state.to_ts) {
+			/** @type {AST.VariableDeclarator[]} */
+			const new_declarations = [];
+
+			for (const declarator of node.declarations) {
+				if (
+					declarator.id.type === 'ArrayPattern' &&
+					declarator.id.lazy &&
+					declarator.id.metadata?.lazy_id &&
+					declarator.init
+				) {
+					const lazy_id = declarator.id.metadata.lazy_id;
+					// Emit: let __lazy_0 = track(0)
+					new_declarations.push(b.declarator(b.id(lazy_id), declarator.init));
+					// Emit: count = __lazy_0[0], countTracked = __lazy_0[1], ...
+					for (let i = 0; i < declarator.id.elements.length; i++) {
+						const element = declarator.id.elements[i];
+						if (element) {
+							const member_access = b.member(b.id(lazy_id), b.literal(i), true);
+							if (element.type === 'AssignmentPattern') {
+								// Handle default values: let &[count = 0] = track()
+								new_declarations.push(b.declarator(element.left, member_access));
+							} else {
+								new_declarations.push(b.declarator(element, member_access));
+							}
+						}
+					}
+				} else {
+					new_declarations.push(declarator);
+				}
+			}
+
+			if (new_declarations.length !== node.declarations.length) {
+				node.declarations = new_declarations;
+			}
+		}
+
 		return context.next();
 	},
 

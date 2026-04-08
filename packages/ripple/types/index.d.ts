@@ -145,8 +145,11 @@ declare global {
 export function createRefKey(): symbol;
 
 // Base Tracked interface - all tracked values have a '#v' property containing the actual value
+// Supports indexed access: track(0)[0] → value, track(0)[1] → Tracked<V>
 export interface Tracked<V> {
 	'#v': V;
+	readonly 0: V;
+	readonly 1: Tracked<V>;
 }
 
 // Augment Tracked to be callable when V is a Component

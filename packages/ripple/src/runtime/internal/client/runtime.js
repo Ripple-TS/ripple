@@ -289,6 +289,63 @@ export function run_block(block) {
 
 var empty_get_set = { get: undefined, set: undefined };
 
+class TrackedValue {
+	/**
+	 * @param {any} v
+	 * @param {Block} block
+	 * @param {{ get?: Function; set?: Function }} a
+	 */
+	constructor(v, block, a) {
+		this.a = a;
+		this.b = block;
+		this.c = 0;
+		this.f = TRACKED;
+		this.__v = v;
+	}
+	get [0]() {
+		return get_tracked(/** @type {Tracked} */ (this));
+	}
+	set [0](v) {
+		set(/** @type {Tracked} */ (this), v);
+	}
+	get [1]() {
+		return this;
+	}
+	/** @returns {2} */
+	get length() {
+		return 2;
+	}
+	*[Symbol.iterator]() {
+		yield get_tracked(/** @type {Tracked} */ (this));
+		yield this;
+	}
+}
+
+class DerivedValue extends TrackedValue {
+	/**
+	 * @param {Function} fn
+	 * @param {Block} block
+	 * @param {{ get?: Function; set?: Function }} a
+	 */
+	constructor(fn, block, a) {
+		super(UNINITIALIZED, block, a);
+		/** @type {null | Block[]} */
+		this.blocks = null;
+		this.co = active_component;
+		/** @type {null | Dependency} */
+		this.d = null;
+		this.f = TRACKED | DERIVED;
+		this.fn = fn;
+	}
+	get [0]() {
+		return get_derived(/** @type {Derived} */ (this));
+	}
+}
+
+if (DEV) {
+	define_property(TrackedValue.prototype, 'DO_NOT_ACCESS_THIS_OBJECT_DIRECTLY', { value: true });
+}
+
 /**
  *
  * @param {any} v
@@ -298,25 +355,9 @@ var empty_get_set = { get: undefined, set: undefined };
  * @returns {Tracked}
  */
 export function tracked(v, block, get, set) {
-	// TODO: now we expose tracked, we should likely block access in DEV somehow
-	if (DEV) {
-		return {
-			DO_NOT_ACCESS_THIS_OBJECT_DIRECTLY: true,
-			a: get || set ? { get, set } : empty_get_set,
-			b: block || active_block,
-			c: 0,
-			f: TRACKED,
-			__v: v,
-		};
-	}
-
-	return {
-		a: get || set ? { get, set } : empty_get_set,
-		b: block || active_block,
-		c: 0,
-		f: TRACKED,
-		__v: v,
-	};
+	return /** @type {Tracked} */ (
+		new TrackedValue(v, block || active_block, get || set ? { get, set } : empty_get_set)
+	);
 }
 
 /**
@@ -327,32 +368,9 @@ export function tracked(v, block, get, set) {
  * @returns {Derived}
  */
 export function derived(fn, block, get, set) {
-	if (DEV) {
-		return {
-			DO_NOT_ACCESS_THIS_OBJECT_DIRECTLY: true,
-			a: get || set ? { get, set } : empty_get_set,
-			b: block || active_block,
-			blocks: null,
-			c: 0,
-			co: active_component,
-			d: null,
-			f: TRACKED | DERIVED,
-			fn,
-			__v: UNINITIALIZED,
-		};
-	}
-
-	return {
-		a: get || set ? { get, set } : empty_get_set,
-		b: block || active_block,
-		blocks: null,
-		c: 0,
-		co: active_component,
-		d: null,
-		f: TRACKED | DERIVED,
-		fn,
-		__v: UNINITIALIZED,
-	};
+	return /** @type {Derived} */ (
+		new DerivedValue(fn, block || active_block, get || set ? { get, set } : empty_get_set)
+	);
 }
 
 /**

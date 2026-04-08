@@ -19,6 +19,10 @@ export type Derived = {
 	f: number;
 	fn: Function;
 	v: any;
+	readonly [0]: any;
+	[1]: Derived;
+	readonly length: 2;
+	[Symbol.iterator](): Iterator<any | Derived>;
 };
 
 export type Tracked = {
@@ -26,4 +30,8 @@ export type Tracked = {
 	c: number;
 	f: number;
 	v: any;
+	readonly [0]: any;
+	[1]: Tracked;
+	readonly length: 2;
+	[Symbol.iterator](): Iterator<any | Tracked>;
 };
