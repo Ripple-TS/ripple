@@ -2025,6 +2025,24 @@ const visitors = {
 
 		const left = node.left;
 
+		// Handle lazy binding assignments (e.g., value = 5 where value is from let &[value] = track(0))
+		// Must come before the left.tracked check to use the binding's transform
+		if (left.type === 'Identifier') {
+			const binding = context.state.scope?.get(left.name);
+			if (binding?.transform?.assign && binding.node !== left) {
+				let value = /** @type {AST.Expression} */ (context.visit(node.right));
+
+				// For compound operators (+=, -=, *=, /=), expand to read + operation
+				if (node.operator !== '=') {
+					const operator = node.operator.slice(0, -1); // '+=' -> '+'
+					const current = binding.transform.read(left);
+					value = b.binary(/** @type {AST.BinaryOperator} */ (operator), current, value);
+				}
+
+				return binding.transform.assign(left, value);
+			}
+		}
+
 		if (
 			left.type === 'MemberExpression' &&
 			(left.tracked || (left.property.type === 'Identifier' && left.property.tracked))
