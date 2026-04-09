@@ -1,5 +1,5 @@
 import { RuleTester } from 'eslint';
-import rule from '../../src/rules/no-introspect-in-modules.js';
+import rule from '../../src/rules/no-lazy-destructuring-in-modules.js';
 import * as parser from '@ripple-ts/eslint-parser';
 
 const ruleTester = new RuleTester({
@@ -12,61 +12,46 @@ const ruleTester = new RuleTester({
 	},
 });
 
-ruleTester.run('no-introspect-in-modules', rule, {
+ruleTester.run('no-lazy-destructuring-in-modules', rule, {
 	valid: [
-		// Valid: using get() and set() in TypeScript modules
+		// Valid: using .value in TypeScript modules
 		{
 			code: `
-				import { get, set, track, effect } from 'ripple';
+				import { track, effect } from 'ripple';
 
 				export function useCount() {
 					const count = track(1);
-					const double = derived(() => get(count) * 2);
 
 					effect(() => {
-						console.log("count is", get(count));
+						console.log(count.value);
 					});
 
-					return { count, double };
+					return { count };
 				}
 			`,
 			filename: 'countStore.ts',
 		},
-		// Valid: using get() in regular JavaScript
+		// Valid: using .value in regular JavaScript
 		{
 			code: `
-				import { get, track, effect } from 'ripple';
+				import { track, effect } from 'ripple';
 
 				function useCounter() {
 					const count = track(0);
 					effect(() => {
-						console.log(get(count));
+						console.log(count.value);
 					});
 					return { count };
 				}
 			`,
 			filename: 'counter.js',
 		},
-		// Valid: using get/set functions to access tracked values
-		{
-			code: `
-				import { get, set, track } from 'ripple';
-
-				export function useState() {
-					const state = track({ value: 0 });
-					const getValue = () => get(state);
-					const setValue = (v) => set(state, v);
-					return { getValue, setValue };
-				}
-			`,
-			filename: 'state.ts',
-		},
-		// Valid: @ operator in .ripple files should be allowed
+		// Valid: lazy destructuring in .ripple files should be allowed
 		{
 			code: `
 				import { track, effect } from 'ripple';
 				component Counter() {
-					const &[count] = track(0);
+					let &[count] = track(0);
 					effect(() => {
 						console.log(count);
 					});
@@ -75,10 +60,20 @@ ruleTester.run('no-introspect-in-modules', rule, {
 			`,
 			filename: 'Counter.ripple',
 		},
+		// Valid: lazy object destructuring in .ripple files
+		{
+			code: `
+				import { track } from 'ripple';
+				component Child(&{ count, name }: Props) {
+					<div>{count}{name}</div>
+				}
+			`,
+			filename: 'Child.ripple',
+		},
 	],
 	invalid: [
 		{
-			// Invalid: using @ operator in TypeScript module
+			// Invalid: using &[] lazy array destructuring in TypeScript module
 			code: `
 				import { track, effect } from 'ripple';
 				export function useCount() {
@@ -92,12 +87,12 @@ ruleTester.run('no-introspect-in-modules', rule, {
 			filename: 'countStore.ts',
 			errors: [
 				{
-					messageId: 'noIntrospect',
+					messageId: 'noLazyDestructuring',
 				},
 			],
 		},
 		{
-			// Invalid: using @ operator in JavaScript module
+			// Invalid: using &[] in JavaScript module
 			code: `
 				import { track } from 'ripple';
 				function useCounter() {
@@ -109,12 +104,12 @@ ruleTester.run('no-introspect-in-modules', rule, {
 			filename: 'counter.js',
 			errors: [
 				{
-					messageId: 'noIntrospect',
+					messageId: 'noLazyDestructuring',
 				},
 			],
 		},
 		{
-			// Invalid: multiple @ operators in TypeScript module
+			// Invalid: multiple &[] in TypeScript module
 			code: `
 				import { track } from 'ripple';
 				export function useForm() {
@@ -127,15 +122,15 @@ ruleTester.run('no-introspect-in-modules', rule, {
 			filename: 'form.ts',
 			errors: [
 				{
-					messageId: 'noIntrospect',
+					messageId: 'noLazyDestructuring',
 				},
 				{
-					messageId: 'noIntrospect',
+					messageId: 'noLazyDestructuring',
 				},
 			],
 		},
 		{
-			// Invalid: @ operator in TSX file
+			// Invalid: &[] lazy destructuring in TSX file
 			code: `
 				import { track, effect } from 'ripple';
 				export function useData() {
@@ -149,7 +144,7 @@ ruleTester.run('no-introspect-in-modules', rule, {
 			filename: 'hooks.tsx',
 			errors: [
 				{
-					messageId: 'noIntrospect',
+					messageId: 'noLazyDestructuring',
 				},
 			],
 		},
