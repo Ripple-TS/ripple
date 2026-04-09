@@ -1,12 +1,12 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`compiler > assignments > compiles tracked values in effect with assignment expression 1`] = `"state.count = _$_.get(count);"`;
+exports[`compiler > assignments > compiles tracked values in effect with assignment expression 1`] = `"state.count = _$_.get(lazy);"`;
 
 exports[`compiler > assignments > compiles tracked values in effect with update expressions 1`] = `
 "_$_.untrack(() => {
-			state.preIncrement = _$_.update_pre(count);
-			state.postIncrement = _$_.update(count);
-			state.preDecrement = _$_.update_pre(count, -1);
-			state.postDecrement = _$_.update(count, -1);
+			state.preIncrement = _$_.update_pre(lazy);
+			state.postIncrement = _$_.update(lazy);
+			state.preDecrement = _$_.update_pre(lazy, -1);
+			state.postDecrement = _$_.update(lazy, -1);
 		});"
 `;

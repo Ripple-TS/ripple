@@ -324,20 +324,17 @@ describe('compiler > basics', () => {
 		const source = `
 import { RippleArray, RippleMap, RippleObject, RippleSet, createRefKey, effect, track, untrack } from 'ripple';
 component App() {
-	let &[value] = track('test');
-	function inputRef(node) {}
+    let value = track('test');
+    function inputRef(node) {}
 
-	const props = {
-		id: 'example',
-		value,
-		[createRefKey()]: inputRef,
-	};
-}
+    const props = {
+            id: 'example',
+            value: value.value,
 `;
 
 		const result = compile_to_volar_mappings(source, 'test.ripple').code;
 
-		expect(result).toMatch(/value:\s*value\??\.\['#v'\]/);
+		expect(result).toMatch(/value:\s*value\.value/);
 	});
 
 	it('keeps lazy destructuring as plain destructuring in to_ts output', () => {

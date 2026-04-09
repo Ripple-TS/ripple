@@ -34,7 +34,7 @@ describe('basic client', () => {
 			class: { test: boolean };
 		}>) {
 			<div {...rest}>{'Child Component'}</div>
-			<div>{count}</div>
+			<div>{count.value}</div>
 		}
 
 		component Parent() {

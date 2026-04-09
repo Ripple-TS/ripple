@@ -144,10 +144,10 @@ describe('basic server > components & composition', () => {
 		}
 
 		component Basic() {
-			let &[message] = track('Hello');
-			let &[number] = track(1);
+			let &[message, messageTracked] = track('Hello');
+			let &[number, numberTracked] = track(1);
 
-			<ChildComponent text={message} count={number} />
+			<ChildComponent text={messageTracked} count={numberTracked} />
 			<button
 				onClick={() => {
 					message = message === 'Hello' ? 'Goodbye' : 'Hello';

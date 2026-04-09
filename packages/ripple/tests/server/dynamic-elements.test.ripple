@@ -19,8 +19,9 @@ describe('server dynamic DOM elements', () => {
 	it('renders static dynamic element from a plain object with a tracked property', async () => {
 		component App() {
 			let obj = { tag: track('div') };
+			let tag = obj.tag;
 
-			<obj.tag.value>{'Hello World'}</obj.tag.value>
+			<@tag>{'Hello World'}</@tag>
 		}
 
 		const { body } = await render(App);

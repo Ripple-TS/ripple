@@ -135,47 +135,47 @@ describe('basic client > reactivity', () => {
 		let logs: string[] = [];
 
 		component App() {
-			let &[first] = track(0);
-			let &[second] = track(0);
+			let first = track(0);
+			let second = track(0);
 			const arr = [first, second];
 
-			const &[total] = track(() => arr.reduce((a, b) => a + b, 0));
+			const total = track(() => arr.reduce((a, b) => a + b.value, 0));
 
 			<button
 				onClick={() => {
-					first++;
+					first.value++;
 				}}
 			>
-				{'first:' + first}
+				{'first:' + first.value}
 			</button>
 			<button
 				onClick={() => {
-					second++;
+					second.value++;
 				}}
 			>
-				{'second: ' + second}
+				{'second: ' + second.value}
 			</button>
 
 			effect(() => {
 				let _arr: number[] = [];
 
 				arr.forEach((item) => {
-					_arr.push(item);
+					_arr.push(item.value);
 				});
 
 				logs.push(_arr.join(', '));
 			});
 
 			effect(() => {
-				if (arr.map((a) => a).includes(1)) {
+				if (arr.map((a) => a.value).includes(1)) {
 					logs.push('arr includes 1');
 				}
 			});
 
-			<div>{'Sum: ' + total}</div>
-			<div>{'Comma Separated: ' + arr.map((a) => a).join(', ')}</div>
-			<div>{'Number to string: ' + arr.map((a) => String(a))}</div>
-			<div>{'Even numbers: ' + arr.map((a) => a).filter((a) => a % 2 === 0)}</div>
+			<div>{'Sum: ' + total.value}</div>
+			<div>{'Comma Separated: ' + arr.map((a) => a.value).join(', ')}</div>
+			<div>{'Number to string: ' + arr.map((a) => String(a.value))}</div>
+			<div>{'Even numbers: ' + arr.map((a) => a.value).filter((a) => a % 2 === 0)}</div>
 		}
 
 		render(App);

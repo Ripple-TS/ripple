@@ -42,11 +42,11 @@ describe('composite > props', () => {
 
 	it('correctly handles no props', async () => {
 		component Child(props: { foo?: Tracked<number> }) {
-			<div>{props.foo.value}</div>
+			<div>{props.foo?.value}</div>
 		}
 
 		component App() {
-			let &[foo] = track(123);
+			let foo = track(123);
 
 			<Child />
 			<Child {foo} />

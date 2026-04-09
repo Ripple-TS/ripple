@@ -9,15 +9,15 @@ describe('compiler > assignments', () => {
 
 		component App() {
 			let items: number[] = [];
-			let &[tracked_items] = track<number[]>([]);
+			let tracked_items = track<number[]>([]);
 			let items2 = new Array();
 			let items3: RippleArray<number> = new RippleArray();
 			let i = 0;
 
 			logs.push(items[0]);
 			logs.push(items[i]);
-			logs.push(tracked_items[0]);
-			logs.push(tracked_items[i]);
+			logs.push(tracked_items.value[0]);
+			logs.push(tracked_items.value[i]);
 			logs.push(items2[0]);
 			logs.push(items2[i]);
 			logs.push(items3[0]);
@@ -25,8 +25,8 @@ describe('compiler > assignments', () => {
 
 			items[0] = 123;
 			items[i] = 123;
-			tracked_items[0] = 123;
-			tracked_items[i] = 123;
+			tracked_items.value[0] = 123;
+			tracked_items.value[i] = 123;
 			items2[0] = 123;
 			items2[i] = 123;
 			items3[0] = 123;
@@ -34,8 +34,8 @@ describe('compiler > assignments', () => {
 
 			logs.push(items[0]);
 			logs.push(items[i]);
-			logs.push(tracked_items[0]);
-			logs.push(tracked_items[i]);
+			logs.push(tracked_items.value[0]);
+			logs.push(tracked_items.value[i]);
 			logs.push(items2[0]);
 			logs.push(items2[i]);
 			logs.push(items3[0]);
@@ -43,8 +43,8 @@ describe('compiler > assignments', () => {
 
 			items[0]++;
 			items[i]++;
-			tracked_items[0]++;
-			tracked_items[i]++;
+			tracked_items.value[0]++;
+			tracked_items.value[i]++;
 			items2[0]++;
 			items2[i]++;
 			items3[0]++;
@@ -52,8 +52,8 @@ describe('compiler > assignments', () => {
 
 			logs.push(items[0]);
 			logs.push(items[i]);
-			logs.push(tracked_items[0]);
-			logs.push(tracked_items[i]);
+			logs.push(tracked_items.value[0]);
+			logs.push(tracked_items.value[i]);
 			logs.push(items2[0]);
 			logs.push(items2[i]);
 			logs.push(items3[0]);
@@ -61,8 +61,8 @@ describe('compiler > assignments', () => {
 
 			logs.push(--items[0]);
 			logs.push(--items[i]);
-			logs.push(--tracked_items[0]);
-			logs.push(--tracked_items[i]);
+			logs.push(--tracked_items.value[0]);
+			logs.push(--tracked_items.value[i]);
 			logs.push(--items2[0]);
 			logs.push(--items2[i]);
 			logs.push(--items3[0]);
