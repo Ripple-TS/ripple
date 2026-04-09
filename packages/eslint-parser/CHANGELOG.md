@@ -1,5 +1,7 @@
 # @ripple-ts/eslint-parser
 
+## 0.3.7
+
 ## 0.3.6
 
 ## 0.3.5

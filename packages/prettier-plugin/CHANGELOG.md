@@ -1,5 +1,15 @@
 # @ripple-ts/prettier-plugin
 
+## 0.3.7
+
+### Patch Changes
+
+- [#832](https://github.com/Ripple-TS/ripple/pull/832)
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix formatting of TypeScript
+  interface call signatures with conditional types (including `infer`) so Prettier
+  preserves them instead of emitting unknown-node placeholders.
+
 ## 0.3.6
 
 ## 0.3.5

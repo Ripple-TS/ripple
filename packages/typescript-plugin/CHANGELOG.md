@@ -1,5 +1,16 @@
 # @ripple-ts/typescript-plugin
 
+## 0.3.7
+
+### Patch Changes
+
+- Updated dependencies
+  [[`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117),
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117),
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117),
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117)]:
+  - ripple@0.3.7
+
 ## 0.3.6
 
 ### Patch Changes

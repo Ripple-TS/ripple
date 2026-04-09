@@ -1,5 +1,41 @@
 # ripple
 
+## 0.3.7
+
+### Patch Changes
+
+- [#832](https://github.com/Ripple-TS/ripple/pull/832)
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix lazy array rest
+  destructuring for tracked and array-like values by routing rest extraction
+  through a shared `array_slice` helper instead of calling `.slice()` directly on
+  the source.
+
+- [#832](https://github.com/Ripple-TS/ripple/pull/832)
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117)
+  Thanks [@trueadm](https://github.com/trueadm)! - Allow tracked tuple `.length`
+  member access in compiler analysis and simplify tracked direct-access validation
+  into a single combined condition.
+
+- [#832](https://github.com/Ripple-TS/ripple/pull/832)
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix `to_ts` output for lazy
+  array destructuring so it keeps direct destructuring syntax for `track()` and
+  `trackSplit()` instead of expanding through an intermediate `lazy` variable.
+
+- [#832](https://github.com/Ripple-TS/ripple/pull/832)
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117)
+  Thanks [@trueadm](https://github.com/trueadm)! - Replace tracked `get()`/`set()`
+  APIs with a `value` getter/setter across runtime, types, analyzer tracked-access
+  rules, and lazy destructuring tests.
+
+- Updated dependencies
+  [[`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117),
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117),
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117),
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117)]:
+  - ripple@0.3.7
+
 ## 0.3.6
 
 ### Patch Changes
