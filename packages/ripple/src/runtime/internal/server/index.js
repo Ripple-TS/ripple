@@ -2,7 +2,7 @@
 @import { Component, Dependency, Derived, Tracked, Block } from '#server';
 @import { NestedArray } from '#helpers';
 @import { Props } from '#public';
-@import { SSRRenderResult, SSRRenderOptions, SSRStream } from 'ripple/server';
+@import { RenderResult, BaseRenderOptions, RenderStreamResult, Stream, StreamSink } from 'ripple/server';
 */
 
 // Export-only Types
@@ -12,7 +12,7 @@
 
 // Internal Types
 /**
-@typedef {(output: Output, props?: Props) => void} SSRComponent
+@typedef {(output: Output, props?: Props) => void} RenderComponent
 @typedef {{
 	tag: string;
 	parent: undefined | ElementContext;
@@ -57,6 +57,59 @@ export { register_component_css as register_css } from './css-registry.js';
 export { hash } from '../../../utils/hashing.js';
 export { context } from './context.js';
 export { try_block, component_block, regular_block } from './blocks.js';
+
+/**
+ * @returns {Stream}
+ */
+export function create_ssr_stream() {
+	/** @type {ReadableStreamDefaultController<Uint8Array> | null} */
+	var c = null;
+	/** @type {ReadableStream<Uint8Array>} */
+	var stream = new ReadableStream({
+		start(controller) {
+			// this runs synchronously
+			c = controller;
+		},
+	});
+	var encoder = new TextEncoder();
+	var is_closed = false;
+	var controller = /** @type {ReadableStreamDefaultController<Uint8Array>} */ (
+		/** @type {unknown} */ (c)
+	);
+
+	var close = controller.close;
+	var error = controller.error;
+
+	controller.close = function (...args) {
+		is_closed = true;
+		close.call(controller, ...args);
+	};
+
+	controller.error = function (...args) {
+		is_closed = true;
+		error.call(controller, ...args);
+	};
+
+	return {
+		controller,
+		textEncoder: encoder,
+		stream,
+		sink: {
+			push(chunk) {
+				if (is_closed) {
+					return;
+				}
+				controller.enqueue(encoder.encode(chunk));
+			},
+			close() {
+				controller.close();
+			},
+			error(reason) {
+				controller.error(reason);
+			},
+		},
+	};
+}
 
 /** @type {null | Component} */
 export let active_component = null;
@@ -321,8 +374,10 @@ export class Output {
 	#css = new Set();
 	/** @type {null | Output} */
 	#parent = null;
-	/** @type {SSRStream | null} */
-	#stream = null;
+	/** @type {StreamSink | null} */
+	#streamOutput = null;
+	#stream_started = false;
+	#stream_finished = false;
 	/** @type {null | number} */
 	#pending_count = null;
 	/** @type {null | Promise<void>} */
@@ -384,7 +439,7 @@ export class Output {
 	}
 
 	/**
-	 * @param {string | null} str
+	 * @param {string} str
 	 * @returns {void}
 	 */
 	push(str) {
@@ -393,12 +448,10 @@ export class Output {
 			// the client-side can understand and append them appropriately,
 			// or actually, first append and hydrate when the full block is finished
 			// without waiting for the all blocks to finish streaming to make hydration faster
-			/** @type {SSRStream} */
-			(this.#root.#stream).push(str);
+			/** @type {StreamSink} */
+			(this.#root.#streamOutput).push(str);
 			return;
 		}
-
-		str = str === null ? '' : str;
 
 		if (this.target === 'head') {
 			this.#head.push(str);
@@ -485,19 +538,56 @@ export class Output {
 	}
 
 	/**
-	 * @param {SSRStream} stream
+	 * @param {StreamSink} stream
 	 */
 	_setStream(stream) {
 		if (this.#is_root) {
-			this.#stream = stream;
+			this.#streamOutput = stream;
 			return;
 		}
 
 		throw new Error('_setStream() is an internal method.');
 	}
 
+	_startStream() {
+		if (this.#is_root) {
+			this.#stream_started = true;
+			return;
+		}
+
+		throw new Error('_startStream() is an internal method.');
+	}
+
+	_closeStream() {
+		if (this.#is_root) {
+			if (this.#streamOutput && this.#stream_started && !this.#stream_finished) {
+				this.#stream_finished = true;
+				this.#streamOutput.close();
+			}
+			return;
+		}
+
+		throw new Error('_closeStream() is an internal method.');
+	}
+
+	/**
+	 * @param {unknown} reason
+	 * @returns {void}
+	 */
+	_errorStream(reason) {
+		if (this.#is_root) {
+			if (this.#streamOutput && this.#stream_started && !this.#stream_finished) {
+				this.#stream_finished = true;
+				this.#streamOutput.error(reason);
+			}
+			return;
+		}
+
+		throw new Error('_errorStream() is an internal method.');
+	}
+
 	isStreamMode() {
-		return this.#root.#stream !== null;
+		return this.#root.#streamOutput !== null;
 	}
 
 	isSyncRun() {
@@ -510,18 +600,20 @@ export class Output {
 }
 
 /**
- * @param {SSRComponent} component
- * @param {SSRRenderOptions} [options]
- * @returns {Promise<SSRRenderResult>}
+ * @param {RenderComponent} component
+ * @param {BaseRenderOptions} [default_options]
+ * @returns {Promise<RenderResult | RenderStreamResult>}
  */
-export async function render(component, options = {}) {
+export async function render(component, default_options = {}) {
+	/** @type {BaseRenderOptions} */
+	var options = { closeStream: true, ...default_options };
+	/** @type {Error | null } */
+	var top_level_error = null;
 	var head = '';
 	var body = '';
 	var css = new Set();
 	/** @type {Block | null} */
 	var root_block = null;
-	/** @type {SSRStream | null} */
-	var stream = null;
 
 	// Reset dev-mode element tracking state at the start of each render
 	reset_state();
@@ -533,22 +625,15 @@ export async function render(component, options = {}) {
 			root_block = /** @type {Block} */ (active_block);
 			const output = root_block.o;
 			if (options.stream) {
-				// TODO - we need to provide a platform independent stream
-				// via the adapter specified in `ripple.config.ts`,
-				// and not rely on Node's stream implementation directly in the runtime
-				const { Readable } = await import('stream');
-				output._setStream(
-					(stream = new Readable({
-						read() {},
-					})),
-				);
+				output._setStream(options.stream);
 			}
 			component(output, {});
 			output._decrementPending();
 			output._finishSyncRun();
 
 			if (output.isStreamMode()) {
-				sync_buffers_to_string();
+				sync_buffers_to_string(output);
+				output._startStream();
 				output.push(head);
 				output.push(body);
 				// TODO - how do we handle css?, in needs to be inside the head
@@ -559,25 +644,21 @@ export async function render(component, options = {}) {
 			await output.promise;
 
 			if (output.isStreamMode()) {
-				output.push(null);
+				// we already flushed the buffers
+				// and all async operations have completed
+				// just exit
 				return;
 			}
 
-			sync_buffers_to_string();
-
-			function sync_buffers_to_string() {
-				head = /** @type {string[]} */ (output.head).flat(Infinity).join('');
-				body =
-					BLOCK_OPEN + /** @type {string[]} */ (output.body).flat(Infinity).join('') + BLOCK_CLOSE;
-				css = output.css;
-			}
+			sync_buffers_to_string(output);
 		},
 		(error) => {
-			if (stream && !root_block?.o.isSyncRun()) {
-				stream.emit('error', error);
-				return;
-			}
+			// TODO - allow a global error template in ripple.config.ts
+			// We're not going to send the error in the stream stream.error()
+			// as we should send sent the error template
 
+			// store the error to be returned
+			top_level_error = error;
 			console.error(error);
 		},
 		() => {
@@ -589,7 +670,24 @@ export async function render(component, options = {}) {
 	await /** @type {Block} */ (/** @type {unknown} */ (root_block)).o.promise;
 	reset_state();
 
-	return stream ? stream : { head, body, css };
+	const output = /** @type {Block} */ (/** @type {unknown} */ (root_block)).o;
+	if (output.isStreamMode() && options.closeStream) {
+		output._closeStream();
+	}
+
+	return options.stream
+		? { stream: options.stream, topLevelError: top_level_error }
+		: { head, body, css, topLevelError: top_level_error };
+
+	/**
+	 * @param {Output} output
+	 * @returns {void}
+	 */
+	function sync_buffers_to_string(output) {
+		head = /** @type {string[]} */ (output.head).flat(Infinity).join('');
+		body = BLOCK_OPEN + /** @type {string[]} */ (output.body).flat(Infinity).join('') + BLOCK_CLOSE;
+		css = output.css;
+	}
 }
 
 /**

@@ -1,5 +1,4 @@
 import type { Component } from '#public';
-import type { Readable } from 'stream';
 
 // Re-export runtime types for server-compiled components
 export {
@@ -17,21 +16,56 @@ export {
 	RippleURLSearchParams,
 } from './index.js';
 
-export interface SSRRenderResult {
+export interface RenderResult {
 	head: string;
 	body: string;
 	css: Set<string>;
+	topLevelError?: Error | null;
 }
 
-export interface SSRRenderOptions {
-	stream?: boolean;
+export interface RenderStreamResult {
+	stream: StreamSink;
+	topLevelError?: Error | null;
 }
 
-export type SSRStream = Readable;
+export interface StreamSink {
+	push(chunk: string): void;
+	close(): void;
+	error(reason: unknown): void;
+}
 
-export type render = (
+export type WebStream = ReadableStream<Uint8Array>;
+
+export interface Stream {
+	controller: ReadableStreamDefaultController<Uint8Array>;
+	textEncoder: TextEncoder;
+	stream: WebStream;
+	sink: StreamSink;
+}
+
+export interface BaseRenderOptions {
+	stream?: StreamSink;
+	// defaults to true
+	// set to false to add more content
+	closeStream?: boolean;
+}
+
+export interface StreamingRenderOptions extends BaseRenderOptions {
+	stream: StreamSink;
+}
+
+export interface RenderOptions extends BaseRenderOptions {
+	stream?: undefined;
+}
+
+export declare function create__stream(): Stream;
+
+export declare function render(
 	component: Component,
-	options?: SSRRenderOptions,
-) => Promise<SSRRenderResult | SSRStream>;
+	options?: RenderOptions,
+): Promise<RenderResult>;
 
-export const render: render;
+export declare function render(
+	component: Component,
+	options: StreamingRenderOptions,
+): Promise<RenderStreamResult>;
