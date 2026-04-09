@@ -11,6 +11,7 @@
 @typedef {() => void} PendingFunction
  */
 
+import { ASYNC_DERIVED_READ_THROWN } from '../client/constants.js';
 import {
 	TRY_CATCH_BLOCK,
 	TRY_PENDING_BLOCK,
@@ -34,7 +35,7 @@ function block(flags, fn, state, skip_run = false) {
 		co: active_component,
 		f: active_block ? flags : flags | ROOT_BLOCK,
 		fn,
-		o: active_block ? active_block.o.branch() : new Output(null, null),
+		o: active_block ? active_block.o.branch() : new Output(null),
 		p: active_block,
 		s: state,
 		first: null,
@@ -73,15 +74,32 @@ export function try_block(try_fn, catch_fn = null, pending_fn = null) {
 				? TRY_CATCH_BLOCK
 				: TRY_PENDING_BLOCK;
 
-	var b = block(flags, try_fn, { p: pending_fn, c: catch_fn }, true);
+	var created_block = block(flags, try_fn, { p: pending_fn, c: catch_fn }, true);
 
 	try {
 		try_fn();
 	} catch (error) {
-		catch_fn?.(/** @type {SSRError} */ (error));
+		if (created_block.f & TRY_PENDING_BLOCK) {
+			if (error === ASYNC_DERIVED_READ_THROWN) {
+				// we should only end up here in the streaming mode during the sync phase
+				created_block.o.clear();
+				pending_fn?.();
+				// continue processing other try blocks
+				return created_block;
+			}
+			// if an actual error was thrown, we re-throw it and let the try/catch boundary handle it
+			throw error;
+		}
+
+		if (created_block.f & TRY_CATCH_BLOCK) {
+			created_block.o.clear();
+			cancel_async_operations(created_block);
+			// render the catch
+			catch_fn?.(/** @type {SSRError} */ (error));
+		}
 	}
 
-	return b;
+	return created_block;
 }
 
 /**

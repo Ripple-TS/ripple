@@ -1,5 +1,5 @@
 import type { Component } from '#public';
-// import type { Readable } from 'node:stream';
+import type { Readable } from 'stream';
 
 // Re-export runtime types for server-compiled components
 export {
@@ -23,8 +23,15 @@ export interface SSRRenderResult {
 	css: Set<string>;
 }
 
-export type render = (component: Component) => Promise<SSRRenderResult>;
-// export type renderToStream = (component: Component) => Readable;
+export interface SSRRenderOptions {
+	stream?: boolean;
+}
+
+export type SSRStream = Readable;
+
+export type render = (
+	component: Component,
+	options?: SSRRenderOptions,
+) => Promise<SSRRenderResult | SSRStream>;
 
 export const render: render;
-// export const renderToStream: renderToStream;

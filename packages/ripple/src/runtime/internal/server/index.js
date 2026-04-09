@@ -2,13 +2,12 @@
 @import { Component, Dependency, Derived, Tracked, Block } from '#server';
 @import { NestedArray } from '#helpers';
 @import { Props } from '#public';
-@import { SSRRenderResult } from 'ripple/server';
-// TODO: Add back renderToStream to the import above when renderToStream is supported again
+@import { SSRRenderResult, SSRRenderOptions, SSRStream } from 'ripple/server';
 */
 
 // Export-only Types
 /**
-@typedef {Output} OutputInterface
+@typedef {Output} OutputInterface;
  */
 
 // Internal Types
@@ -20,13 +19,12 @@
 	filename: undefined | string;
 	line: number;
 	column: number;
-}} ElementContext
+}} ElementContext;
 @typedef {{
 	cancel: () => void,
-}} RegisteredAsyncOperation
- */
+}} RegisteredAsyncOperation;
+*/
 
-// import { Readable } from 'stream';
 import {
 	DERIVED,
 	UNINITIALIZED,
@@ -251,6 +249,10 @@ function run_derived(computed) {
 				// these computed/derived values inside blocks
 				// Otherwise, if they're never read, then it really doesn't matter if these promises error out,
 				// or resolve for that matter, since it would mean that they're not being used.
+
+				// For the same reason, we're not throwing in the streaming mode of the synchronous phase
+				// to cause the fallback/pending rendering`, because this should only happen on derived reads,
+				// which would be handled by `run_block()`
 				if (!computed.ap) {
 					// create and attach a new promise that will resolve once all of its
 					// async derived dependencies have resolved
@@ -319,7 +321,7 @@ export class Output {
 	#css = new Set();
 	/** @type {null | Output} */
 	#parent = null;
-	/** @type {import('stream').Readable | null} */
+	/** @type {SSRStream | null} */
 	#stream = null;
 	/** @type {null | number} */
 	#pending_count = null;
@@ -330,6 +332,7 @@ export class Output {
 	/** @type {null | ((reason?: any) => void)} */
 	#promise_reject = null;
 	#is_root = false;
+	#sync_run = false;
 	/** @type {Set<RegisteredAsyncOperation>} */
 	#async_operations = new Set();
 	/** @type {null | 'head'} */
@@ -361,9 +364,8 @@ export class Output {
 
 	/**
 	 * @param {Output | null} parent
-	 * @param {import('stream').Readable | null} stream
 	 */
-	constructor(parent, stream = null) {
+	constructor(parent) {
 		if (!parent) {
 			this.#root = this;
 			this.#is_root = true;
@@ -372,30 +374,38 @@ export class Output {
 				this.#promise_reject = reject;
 			});
 			this.#pending_count = 1;
+			this.#sync_run = true;
 		} else {
 			this.#root = parent.root;
 			this.#parent = parent;
 			this.#parent.body.push(this.body);
 			this.#parent.head.push(this.head);
 		}
-		this.#stream = stream;
 	}
 
 	/**
-	 * @param {string} str
+	 * @param {string | null} str
 	 * @returns {void}
 	 */
 	push(str) {
+		if (this.isStreamMode() && !this.isSyncRun()) {
+			// TODO - we need to wrap the resulting block output into something that
+			// the client-side can understand and append them appropriately,
+			// or actually, first append and hydrate when the full block is finished
+			// without waiting for the all blocks to finish streaming to make hydration faster
+			/** @type {SSRStream} */
+			(this.#root.#stream).push(str);
+			return;
+		}
+
+		str = str === null ? '' : str;
+
 		if (this.target === 'head') {
 			this.#head.push(str);
 			return;
 		}
 
-		if (this.#stream) {
-			this.#stream.push(str);
-		} else {
-			this.#body.push(str);
-		}
+		this.#body.push(str);
 	}
 
 	clear() {
@@ -409,6 +419,12 @@ export class Output {
 	 * @returns {void}
 	 */
 	register_css(hash) {
+		if (this.isStreamMode() && !this.isSyncRun()) {
+			// TODO - when we're in the streaming mode and finished the sync render,
+			// We should wrap the css into something that the client-side can understand
+			// and append them into the head immediately
+			return;
+		}
 		this.#css.add(hash);
 	}
 
@@ -459,21 +475,53 @@ export class Output {
 		throw new Error('_decrementPending() is an internal method.');
 	}
 
+	_finishSyncRun() {
+		if (this.#is_root) {
+			this.#sync_run = false;
+			return;
+		}
+
+		throw new Error('_finishSyncRun() is an internal method.');
+	}
+
+	/**
+	 * @param {SSRStream} stream
+	 */
+	_setStream(stream) {
+		if (this.#is_root) {
+			this.#stream = stream;
+			return;
+		}
+
+		throw new Error('_setStream() is an internal method.');
+	}
+
+	isStreamMode() {
+		return this.#root.#stream !== null;
+	}
+
+	isSyncRun() {
+		return this.#root.#sync_run;
+	}
+
 	branch() {
-		return new Output(this, this.#stream);
+		return new Output(this);
 	}
 }
 
 /**
  * @param {SSRComponent} component
+ * @param {SSRRenderOptions} [options]
  * @returns {Promise<SSRRenderResult>}
  */
-export async function render(component) {
+export async function render(component, options = {}) {
 	var head = '';
 	var body = '';
 	var css = new Set();
 	/** @type {Block | null} */
 	var root_block = null;
+	/** @type {SSRStream | null} */
+	var stream = null;
 
 	// Reset dev-mode element tracking state at the start of each render
 	reset_state();
@@ -484,18 +532,52 @@ export async function render(component) {
 			// this will run only once and immediately when we call the `try_block`
 			root_block = /** @type {Block} */ (active_block);
 			const output = root_block.o;
+			if (options.stream) {
+				// TODO - we need to provide a platform independent stream
+				// via the adapter specified in `ripple.config.ts`,
+				// and not rely on Node's stream implementation directly in the runtime
+				const { Readable } = await import('stream');
+				output._setStream(
+					(stream = new Readable({
+						read() {},
+					})),
+				);
+			}
 			component(output, {});
 			output._decrementPending();
+			output._finishSyncRun();
+
+			if (output.isStreamMode()) {
+				sync_buffers_to_string();
+				output.push(head);
+				output.push(body);
+				// TODO - how do we handle css?, in needs to be inside the head
+				// We probably can allocate a buffer inside the head for this
+				// We should have the same order of insertion as for the full async render
+			}
+
 			await output.promise;
 
-			head = /** @type {string[]} */ (output.head).flat(Infinity).join('');
-			body =
-				BLOCK_OPEN + /** @type {string[]} */ (output.body).flat(Infinity).join('') + BLOCK_CLOSE;
-			css = output.css;
+			if (output.isStreamMode()) {
+				output.push(null);
+				return;
+			}
+
+			sync_buffers_to_string();
+
+			function sync_buffers_to_string() {
+				head = /** @type {string[]} */ (output.head).flat(Infinity).join('');
+				body =
+					BLOCK_OPEN + /** @type {string[]} */ (output.body).flat(Infinity).join('') + BLOCK_CLOSE;
+				css = output.css;
+			}
 		},
 		(error) => {
-			const output = /** @type {Block} */ (root_block).o;
-			output.clear();
+			if (stream && !root_block?.o.isSyncRun()) {
+				stream.emit('error', error);
+				return;
+			}
+
 			console.error(error);
 		},
 		() => {
@@ -504,52 +586,12 @@ export async function render(component) {
 		},
 	);
 
-	// Run the block here manually now that we have `active_block` set up
-	// Normally it's run right away when a block is created but because
-	// the `active_block` was not set, it skipped the automatic run
-
 	await /** @type {Block} */ (/** @type {unknown} */ (root_block)).o.promise;
 	reset_state();
 
-	return { head, body, css };
+	return stream ? stream : { head, body, css };
 }
 
-// /** @type {renderToStream} */
-// export function renderToStream(component) {
-// 	const stream = new Readable({
-// 		read() {},
-// 	});
-// 	const output = new Output(null, stream);
-// 	render_in_chunks(component, stream, output);
-// 	return stream;
-// }
-// /**
-//  *
-//  * @param {SSRComponent} component
-//  * @param {Readable} stream
-//  * @param {Output} output
-//  */
-// async function render_in_chunks(component, stream, output) {
-// 	// Reset dev-mode element tracking state at the start of each render
-// 	reset_state();
-
-// 	try {
-// 		if (component.async) {
-// 			await component(output, {});
-// 		} else {
-// 			component(output, {});
-// 		}
-// 		if (output.promises.length > 0) {
-// 			await Promise.all(output.promises);
-// 		}
-// 		stream.push(null);
-// 	} catch (error) {
-// 		console.error(error);
-// 		stream.emit('error', error);
-// 	} finally {
-// 		reset_state();
-// 	}
-// }
 /**
  * @returns {void}
  */
@@ -1001,20 +1043,9 @@ function register_block_rerun(block) {
 		},
 		(reason) => {
 			cancel_async_operations(try_catch_block);
-			// should set body, head and css to empty for the try block's output
-			// should render the catch template
-			// remove the registered async operation
-			// all further processing sync or async should stop (maybe throw on sync to trigger the catch)
-			// but only for this try block and downstream, other branches should continue processing as normal
-			// decrement pending count
-			// if we reach the root try block, we need to cancel all other branches with try/catch blocks
-			// maybe we just resolve the main promise and let the rendering finish
-			// looks like we need to check upstream try/catch blocks to make sure they've not already triggered their catch,
-			// or maybe have to go from the top down to identify try/catch blocks and cancel any pending block reruns
-			// we should store the child blocks on blocks, so we can traverse down and find all try/catch blocks to cancel their pending reruns,
-			// -- that is if the upstream try/catch catches an error
 		},
 	);
+	// clear all output buffers as we'll rerun the block rendering
 	block.o.clear();
 }
 
@@ -1029,27 +1060,25 @@ export function run_block(block) {
 		active_component = block.co;
 		block.fn(block.o);
 	} catch (error) {
+		var output = block.o;
 		if (error === ASYNC_DERIVED_READ_THROWN) {
+			// regardless of the render mode (stream, etc.)
+			// we need to rerun the block when the dependency's promise resolves
 			register_block_rerun(block);
-			// var promise = get_active_derived_promise();
 
-			// var cancelled = false;
-			// var try_catch_block = get_closest_catch_block(block);
-			// try_catch_block.o.registerAsync({ promise, cancel: () => (cancelled = true) });
-			// promise.then(() => {
-			// 	if (cancelled) {
-			// 		return;
-			// 	}
-			// 	reset_state();
-			// 	run_block(block);
-			// 	// block.o.decrementPending();
-			// });
-			// block.o.clear();
+			if (output.isStreamMode() && output.isSyncRun()) {
+				// rethrowing so that the pending block catches it
+				// we should only render fallback/pending in the streaming mode
+				// when in the synchronous phase
+				throw error;
+			}
 		} else {
-			var try_catch_block = get_closest_catch_block(block);
-			cancel_async_operations(try_catch_block);
-			// TODO - if we're still in sync code, should we throw instead?
-			// throw error;
+			if (output.isSyncRun()) {
+				// throw for the catch boundary to catch and to stop processing its children
+				throw error;
+			}
+
+			cancel_async_operations(get_closest_catch_block(block));
 		}
 	} finally {
 		active_block = previous_block;
