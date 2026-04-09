@@ -219,8 +219,7 @@ describe('lazy destructuring', () => {
 	it('supports rest destructuring from iterable array-like tracked values', () => {
 		component Test() {
 			let &[value, ...rest] = track(0);
-			const rest_value = @rest;
-			<pre>{`${value}-${rest_value.length}-${rest_value[0] === value}`}</pre>
+			<pre>{`${value}-${@rest.length}-${@rest[0] === value}`}</pre>
 		}
 
 		render(Test);
