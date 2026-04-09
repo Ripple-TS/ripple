@@ -687,20 +687,15 @@ const visitors = {
 				binding.initial?.type === 'CallExpression' &&
 				is_ripple_track_call(binding.initial.callee, context)
 			) {
-				let is_allowed_tracked_access = false;
-				// Allow [0] and [1] indexed access on tracked objects
-				if (
-					node.computed &&
-					node.property.type === 'Literal' &&
-					(node.property.value === 0 || node.property.value === 1)
-				) {
-					is_allowed_tracked_access = true;
-				}
-
-				// Allow .value property access on tracked objects.
-				if (!node.computed && node.property.type === 'Identifier') {
-					is_allowed_tracked_access = node.property.name === 'value';
-				}
+				const is_allowed_tracked_access =
+					// Allow [0] and [1] indexed access on tracked objects.
+					(node.computed &&
+						node.property.type === 'Literal' &&
+						(node.property.value === 0 || node.property.value === 1)) ||
+					// Allow .value and .length property access on tracked objects.
+					(!node.computed &&
+						node.property.type === 'Identifier' &&
+						(node.property.name === 'value' || node.property.name === 'length'));
 
 				if (is_allowed_tracked_access) {
 					// pass through

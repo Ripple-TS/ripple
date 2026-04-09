@@ -176,4 +176,15 @@ import { track } from 'ripple';
         `;
 		expect(() => compile(code, 'test.ripple')).not.toThrow();
 	});
+
+	it('should allow .length read access on a tracked object', () => {
+		const code = `
+import { track } from 'ripple';
+            export default component App() {
+                let count = track(0);
+                console.log(count.length);
+            }
+        `;
+		expect(() => compile(code, 'test.ripple')).not.toThrow();
+	});
 });
