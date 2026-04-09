@@ -3254,6 +3254,14 @@ const items = [] as unknown[];`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should preserve TSCallSignatureDeclaration with conditional types', async () => {
+			const expected = `interface TrackedCallable<V> {
+  (props: V extends Component<infer P> ? P : never): V extends Component ? void : never;
+}`;
+			const result = await format(expected, { printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should format TSNonNullExpression', async () => {
 			const input = `component Test(){let value:string|null=null;let length=value!.length;<div>{length}</div>}`;
 			const expected = `component Test() {
