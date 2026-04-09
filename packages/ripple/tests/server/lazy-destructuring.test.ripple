@@ -121,8 +121,7 @@ describe('lazy destructuring', () => {
 		component Test() {
 			const source = { a: 1, b: 2, c: 3 };
 			const &[a, b, rest] = trackSplit(source, ['a', 'b']);
-			const rest_value = @rest;
-			<pre>{`${@a}-${@b}-${rest_value.c}`}</pre>
+			<pre>{`${@a}-${@b}-${@rest.c}`}</pre>
 		}
 
 		const { body } = await render(Test);
