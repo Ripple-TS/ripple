@@ -330,6 +330,9 @@ component App() {
     const props = {
             id: 'example',
             value: value.value,
+            [createRefKey()]: inputRef,
+    };
+}
 `;
 
 		const result = compile_to_volar_mappings(source, 'test.ripple').code;
