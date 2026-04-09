@@ -147,8 +147,7 @@ export function createRefKey(): symbol;
 // Base Tracked interface - all tracked values have a '#v' property containing the actual value
 interface TrackedBase<V> {
 	'#v': V;
-	get(): V;
-	set(value: V): void;
+	value: V;
 }
 
 // Augment Tracked to be callable when V is a Component

@@ -1,14 +1,14 @@
 import { track, trackSplit } from 'ripple';
 
 describe('lazy destructuring', () => {
-	it('supports tracked get() and set() method calls', async () => {
+	it('supports tracked value getter and setter', async () => {
 		component Test() {
 			let count = track(1);
-			let derived = track(() => count.get() * 2);
+			let derived = track(() => count.value * 2);
 
-			count.set(3);
+			count.value = 3;
 
-			<pre>{`${count.get()}-${derived.get()}`}</pre>
+			<pre>{`${count.value}-${derived.value}`}</pre>
 		}
 
 		const { body } = await render(Test);

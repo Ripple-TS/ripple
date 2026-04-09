@@ -1,15 +1,15 @@
 import { flushSync, track, trackSplit } from 'ripple';
 
 describe('lazy destructuring', () => {
-	it('supports tracked get() and set(v) methods', () => {
+	it('supports tracked value getter and setter', () => {
 		component Test() {
 			let count = track(1);
-			let doubled = track(() => count.get() * 2);
+			let doubled = track(() => count.value * 2);
 
-			<div>{`${count.get()}-${doubled.get()}`}</div>
+			<div>{`${count.value}-${doubled.value}`}</div>
 			<button
 				onClick={() => {
-					count.set(5);
+					count.value = 5;
 				}}
 			>
 				{'set'}
