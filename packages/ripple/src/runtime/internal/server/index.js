@@ -5,7 +5,13 @@
 
 import { Readable } from 'stream';
 import { DERIVED, UNINITIALIZED, TRACKED } from '../client/constants.js';
-import { is_ripple_object, get_descriptor, define_property, is_array } from '../client/utils.js';
+import {
+	is_ripple_object,
+	get_descriptor,
+	define_property,
+	is_array,
+	array_slice,
+} from '../client/utils.js';
 import { escape } from '../../../utils/escaping.js';
 import { is_boolean_attribute } from '../../../compiler/utils.js';
 import { clsx } from 'clsx';
@@ -20,6 +26,7 @@ export { escape };
 export { register_component_css as register_css } from './css-registry.js';
 export { hash } from '../../../utils/hashing.js';
 export { context } from './context.js';
+export { array_slice };
 
 /** @type {null | Component} */
 export let active_component = null;

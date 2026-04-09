@@ -216,6 +216,28 @@ describe('lazy destructuring', () => {
 		expect(container.querySelector('pre')!.textContent).toBe('1-2-3');
 	});
 
+	it('supports rest destructuring from iterable array-like tracked values', () => {
+		component Test() {
+			let &[value, ...rest] = track(0);
+			const rest_value = @rest;
+			<pre>{`${value}-${rest_value.length}-${rest_value[0] === value}`}</pre>
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('0-1-false');
+	});
+
+	it('supports rest destructuring from length-only array-like sources', () => {
+		component Test() {
+			const source = { 0: 'x', 1: 'y', 2: 'z', length: 3 };
+			const &[first, ...rest] = source;
+			<pre>{`${first}-${rest.join(',')}`}</pre>
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('x-y,z');
+	});
+
 	it('supports update expressions on lazy bindings with default values', () => {
 		component Test() {
 			const obj: { count?: number } = {};

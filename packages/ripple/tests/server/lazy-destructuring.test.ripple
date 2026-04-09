@@ -127,4 +127,26 @@ describe('lazy destructuring', () => {
 		const { body } = await render(Test);
 		expect(body).toBeHtml('<pre>1-2-3</pre>');
 	});
+
+	it('supports rest in lazy array destructuring for tracked tuples (iterable)', async () => {
+		component Test() {
+			let tracked_value = track(0);
+			let &[value, ...rest] = tracked_value;
+			<pre>{`${value}-${@rest.length}-${@rest[0] === tracked_value}`}</pre>
+		}
+
+		const { body } = await render(Test);
+		expect(body).toBeHtml('<pre>0-1-true</pre>');
+	});
+
+	it('supports rest in lazy array destructuring for length-only array-like values', async () => {
+		component Test() {
+			const array_like = { 0: 'x', 1: 'y', 2: 'z', length: 3 };
+			const &[first, ...rest] = array_like;
+			<pre>{`${first}-${rest.join('')}`}</pre>
+		}
+
+		const { body } = await render(Test);
+		expect(body).toBeHtml('<pre>x-yz</pre>');
+	});
 });

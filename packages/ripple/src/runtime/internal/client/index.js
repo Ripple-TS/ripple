@@ -80,6 +80,8 @@ export { switch_block as switch } from './switch.js';
 
 export { template, append, text } from './template.js';
 
+export { array_slice } from './utils.js';
+
 export { ripple_array } from '../../array.js';
 
 export { ripple_object } from '../../object.js';
