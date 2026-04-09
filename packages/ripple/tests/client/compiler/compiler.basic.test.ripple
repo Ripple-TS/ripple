@@ -362,8 +362,11 @@ component App() {
 `;
 		const track_result = compile_to_volar_mappings(track_source, 'test.ripple').code;
 		expect(track_result).toContain('let [value, ...rest] = track(0);');
+		expect(track_result).toContain('const x = value;');
 		expect(track_result).not.toContain('let lazy = track(0)');
 		expect(track_result).not.toContain('.slice(');
+		expect(track_result).not.toContain('_$_.get(');
+		expect(track_result).not.toContain('lazy0');
 	});
 
 	it('preserves generic type args in interface extends for Volar mappings', () => {
