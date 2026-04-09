@@ -225,6 +225,43 @@ count++;                    // Read/write directly
 let &[count, countTracked] = track(0);
 ```
 
+#### Accessing Tracked Values with `.value`
+
+As an alternative to lazy destructuring, you can read and write a tracked value directly using the `.value` property on the `Tracked<V>` object:
+
+```ripple
+import { track } from 'ripple';
+
+const count = track(0);
+
+// Read the current value
+console.log(count.value);  // 0
+
+// Write a new value
+count.value++;
+console.log(count.value);  // 1
+```
+
+Using `&[...]` lazy destructuring is preferred in most cases because it produces cleaner, more readable code. However, `.value` is useful when you need to keep the `Tracked<V>` object around — for example, when storing tracked values in data structures, passing them as props typed as `Tracked<T>`, or when you need both the tracked object and its value in different contexts:
+
+```ripple
+import { track } from 'ripple';
+
+// Storing tracked values in an array — use .value to read/write
+const items = [track(1), track(2), track(3)];
+items[0].value++;  // reactively updates
+
+// Passing tracked objects as props — the child receives the Tracked<T> object
+component Child(props: { count: Tracked<number> }) {
+  <div>{props.count.value}</div>
+}
+
+// Using &[value, trackedValue] gives you both:
+let &[count, countTracked] = track(0);
+count++;                    // convenient direct access via lazy destructuring
+console.log(countTracked.value);  // equivalent: read via .value on the tracked object
+```
+
 Objects can also contain tracked values — use lazy destructuring to access them:
 ```ripple
 import { track } from 'ripple';

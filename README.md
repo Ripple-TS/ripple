@@ -145,6 +145,24 @@ export component App() {
 }
 ```
 
+Alternatively, you can read and write tracked values directly using the `.value`
+property on the `Tracked<V>` object:
+
+```jsx
+import { track } from 'ripple';
+
+export component App() {
+  const count = track(0);
+
+  <div>{count.value}</div>
+  <button onClick={() => count.value++}>{"Increment"}</button>
+}
+```
+
+Using `&[...]` is preferred in most cases for cleaner code, but `.value` is useful
+when you need to keep the `Tracked<V>` object around — for example, when storing
+tracked values in data structures or passing them as `Tracked<T>` props.
+
 **Derived values** automatically update:
 
 ```jsx

@@ -34,6 +34,50 @@ let counter = { current };
 current++;
 ```
 
+### Accessing Tracked Values with `.value`
+
+As an alternative to lazy destructuring, you can read and write a tracked value
+directly using the `.value` property on the `Tracked<V>` object:
+
+```ts
+import { track } from 'ripple'
+
+const count = track(0)
+
+// Read the current value
+console.log(count.value) // 0
+
+// Write a new value
+count.value++
+console.log(count.value) // 1
+```
+
+Using `&[...]` lazy destructuring is preferred in most cases because it produces
+cleaner, more readable code. However, `.value` is useful when you need to keep
+the `Tracked<V>` object around — for example, when storing tracked values in
+data structures, passing them as props typed as `Tracked<T>`, or when you need
+both the tracked object and its value in different contexts:
+
+```ts
+import { track } from 'ripple';
+
+// Storing tracked values in an array — use .value to read/write
+const items = [track(1), track(2), track(3)];
+items[0].value++;  // reactively updates
+
+// Using &[value, trackedValue] gives you both:
+let &[count, countTracked] = track(0);
+count++;                    // convenient direct access via lazy destructuring
+console.log(countTracked.value);  // equivalent: read via .value on the tracked object
+```
+
+::: tip When to use `.value`
+Use `.value` when you need to work with the `Tracked<V>` object directly, such
+as storing tracked values in arrays or objects, or passing them to functions and
+components that expect `Tracked<T>`. Use `&[...]` lazy destructuring for
+everyday reactive variables where you want clean, direct access.
+:::
+
 Tracked derived values are also `Tracked<T>` objects, except that you pass a function
 to `track` rather than a value:
 
