@@ -912,7 +912,7 @@ function NavItem(__anchor, { href, text, active = false }, __block) {
 function SidebarSection(__anchor, { title, children }, __block) {
 	_$_.push_component();
 
-	let expanded = _$_.track(true, void 0, void 0, __block);
+	let lazy = _$_.track(true, void 0, void 0, __block);
 	var section_2 = root_38();
 
 	{
@@ -930,7 +930,7 @@ function SidebarSection(__anchor, { title, children }, __block) {
 
 			var button_1 = _$_.sibling(h2_2);
 
-			button_1.__click = () => _$_.set(expanded, !_$_.get(expanded));
+			button_1.__click = () => _$_.set(lazy, !_$_.get(lazy));
 		}
 
 		_$_.pop(div_29);
@@ -952,7 +952,7 @@ function SidebarSection(__anchor, { title, children }, __block) {
 			};
 
 			_$_.if(node_39, (__render) => {
-				if (_$_.get(expanded)) __render(consequent_4);
+				if (_$_.get(lazy)) __render(consequent_4);
 			});
 		}
 

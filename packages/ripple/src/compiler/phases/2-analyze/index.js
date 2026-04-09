@@ -329,6 +329,35 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 }
 
 /**
+ * Checks if a function parameter has a Tracked<T> type annotation imported from ripple.
+ * This is used to determine if lazy array destructuring should use the track tuple fast path.
+ * @param {AST.ArrayPattern} param - The parameter pattern node
+ * @param {AnalysisContext} context - The analysis context
+ * @returns {boolean}
+ */
+function is_param_tracked_type(param, context) {
+	const annotation = param.typeAnnotation?.typeAnnotation;
+
+	if (
+		annotation?.type === 'TSTypeReference' &&
+		annotation.typeName?.type === 'Identifier' &&
+		annotation.typeName.name === 'Tracked'
+	) {
+		const binding = context.state.scope.get('Tracked');
+
+		return (
+			binding?.declaration_kind === 'import' &&
+			binding.initial !== null &&
+			binding.initial.type === 'ImportDeclaration' &&
+			binding.initial.source.type === 'Literal' &&
+			binding.initial.source.value === 'ripple'
+		);
+	}
+
+	return false;
+}
+
+/**
  * @param {AST.Function} node
  * @param {AnalysisContext} context
  */
@@ -345,7 +374,11 @@ function visit_function(node, context) {
 
 		if ((param.type === 'ObjectPattern' || param.type === 'ArrayPattern') && param.lazy) {
 			const param_id = b.id(context.state.scope.generate('param'));
-			setup_lazy_transforms(param, param_id, context.state, true, false);
+			// For ArrayPattern params with a Tracked<T> type annotation from ripple,
+			// use the track tuple fast path (get/set instead of source[0]/source[1])
+			const is_tracked_type =
+				param.type === 'ArrayPattern' && is_param_tracked_type(param, context);
+			setup_lazy_transforms(param, param_id, context.state, true, is_tracked_type);
 			// Store the generated identifier name on the pattern for the transform phase
 			param.metadata = { ...param.metadata, lazy_id: param_id.name };
 		}
@@ -684,6 +717,8 @@ const visitors = {
 
 			if (
 				binding !== null &&
+				binding.kind !== 'lazy' &&
+				binding.kind !== 'lazy_fallback' &&
 				binding.initial?.type === 'CallExpression' &&
 				is_ripple_track_call(binding.initial.callee, context)
 			) {

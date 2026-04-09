@@ -913,7 +913,7 @@ async function SidebarSection(__output, { title, children }) {
 	return _$_.async(async () => {
 		_$_.push_component();
 
-		let expanded = _$_.track(true);
+		let lazy = _$_.track(true);
 
 		__output.push('<section');
 		__output.push(' class="sidebar-section"');
@@ -946,7 +946,7 @@ async function SidebarSection(__output, { title, children }) {
 			__output.push('</div>');
 			__output.push('<!--[-->');
 
-			if (_$_.get(expanded)) {
+			if (_$_.get(lazy)) {
 				__output.push('<div');
 				__output.push(' class="section-items"');
 				__output.push('>');

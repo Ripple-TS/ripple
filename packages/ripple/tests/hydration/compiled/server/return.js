@@ -1034,7 +1034,7 @@ export function ReactiveReturnTrueToFalse(__output) {
 	_$_.push_component();
 
 	var __r_28 = false;
-	let condition = _$_.track(true);
+	let lazy = _$_.track(true);
 
 	__output.push('<button');
 	__output.push(' class="toggle"');
@@ -1047,7 +1047,7 @@ export function ReactiveReturnTrueToFalse(__output) {
 	__output.push('</button>');
 	__output.push('<!--[-->');
 
-	if (_$_.get(condition)) {
+	if (_$_.get(lazy)) {
 		__output.push('<div');
 		__output.push(' class="guard"');
 		__output.push('>');
@@ -1083,7 +1083,7 @@ export function ReactiveReturnFalseToTrue(__output) {
 	_$_.push_component();
 
 	var __r_29 = false;
-	let condition = _$_.track(false);
+	let lazy_1 = _$_.track(false);
 
 	__output.push('<button');
 	__output.push(' class="toggle"');
@@ -1096,7 +1096,7 @@ export function ReactiveReturnFalseToTrue(__output) {
 	__output.push('</button>');
 	__output.push('<!--[-->');
 
-	if (_$_.get(condition)) {
+	if (_$_.get(lazy_1)) {
 		__output.push('<div');
 		__output.push(' class="guard"');
 		__output.push('>');
@@ -1133,7 +1133,7 @@ export function ReactiveNestedReturn(__output) {
 
 	var __r_30 = false;
 	let a = true;
-	let b = _$_.track(true);
+	let lazy_2 = _$_.track(true);
 
 	__output.push('<button');
 	__output.push(' class="toggle"');
@@ -1158,7 +1158,7 @@ export function ReactiveNestedReturn(__output) {
 		__output.push('</div>');
 		__output.push('<!--[-->');
 
-		if (_$_.get(b)) {
+		if (_$_.get(lazy_2)) {
 			__output.push('<div');
 			__output.push(' class="b"');
 			__output.push('>');
@@ -1507,7 +1507,7 @@ export function ReactiveSiblingReturns(__output) {
 
 	var __r_38 = false;
 	var __r_39 = false;
-	let mode = _$_.track('first');
+	let lazy_3 = _$_.track('first');
 
 	__output.push('<button');
 	__output.push(' class="toggle"');
@@ -1520,7 +1520,7 @@ export function ReactiveSiblingReturns(__output) {
 	__output.push('</button>');
 	__output.push('<!--[-->');
 
-	if (_$_.get(mode) === 'first') {
+	if (_$_.get(lazy_3) === 'first') {
 		__output.push('<div');
 		__output.push(' class="first"');
 		__output.push('>');
@@ -1539,7 +1539,7 @@ export function ReactiveSiblingReturns(__output) {
 	if (!__r_38) {
 		__output.push('<!--[-->');
 
-		if (_$_.get(mode) === 'second') {
+		if (_$_.get(lazy_3) === 'second') {
 			__output.push('<div');
 			__output.push(' class="second"');
 			__output.push('>');
@@ -1578,8 +1578,8 @@ export function ReactiveOuterInnerReturns(__output) {
 	_$_.push_component();
 
 	var __r_40 = false;
-	let a = _$_.track(true);
-	let b = _$_.track(true);
+	let lazy_4 = _$_.track(true);
+	let lazy_5 = _$_.track(true);
 
 	__output.push('<button');
 	__output.push(' class="toggle-a"');
@@ -1601,7 +1601,7 @@ export function ReactiveOuterInnerReturns(__output) {
 	__output.push('</button>');
 	__output.push('<!--[-->');
 
-	if (_$_.get(a)) {
+	if (_$_.get(lazy_4)) {
 		__output.push('<div');
 		__output.push(' class="a"');
 		__output.push('>');
@@ -1613,7 +1613,7 @@ export function ReactiveOuterInnerReturns(__output) {
 		__output.push('</div>');
 		__output.push('<!--[-->');
 
-		if (_$_.get(b)) {
+		if (_$_.get(lazy_5)) {
 			__output.push('<div');
 			__output.push(' class="b"');
 			__output.push('>');
@@ -1638,7 +1638,7 @@ export function ReactiveOuterInnerReturns(__output) {
 		__output.push('>');
 
 		{
-			__output.push(_$_.escape(_$_.get(a) ? 'a-on rest' : 'a-off rest'));
+			__output.push(_$_.escape(_$_.get(lazy_4) ? 'a-on rest' : 'a-off rest'));
 		}
 
 		__output.push('</div>');
@@ -1653,7 +1653,7 @@ export function ReactiveElseIfReturns(__output) {
 
 	var __r_41 = false;
 	var __r_42 = false;
-	let status = _$_.track(0);
+	let lazy_6 = _$_.track(0);
 
 	__output.push('<button');
 	__output.push(' class="toggle"');
@@ -1666,7 +1666,7 @@ export function ReactiveElseIfReturns(__output) {
 	__output.push('</button>');
 	__output.push('<!--[-->');
 
-	if (_$_.get(status) === 0) {
+	if (_$_.get(lazy_6) === 0) {
 		__output.push('<div');
 		__output.push(' class="zero"');
 		__output.push('>');
@@ -1680,7 +1680,7 @@ export function ReactiveElseIfReturns(__output) {
 	} else {
 		__output.push('<!--[-->');
 
-		if (_$_.get(status) === 1) {
+		if (_$_.get(lazy_6) === 1) {
 			__output.push('<div');
 			__output.push(' class="one"');
 			__output.push('>');
@@ -1731,10 +1731,10 @@ export function ReactiveDeepNestedIndependentReturns(__output) {
 	var __r_44 = false;
 	var __r_45 = false;
 	var __r_46 = false;
-	let c1 = _$_.track(false);
-	let c2 = _$_.track(false);
-	let c3 = _$_.track(false);
-	let c4 = _$_.track(false);
+	let lazy_7 = _$_.track(false);
+	let lazy_8 = _$_.track(false);
+	let lazy_9 = _$_.track(false);
+	let lazy_10 = _$_.track(false);
 
 	__output.push('<button');
 	__output.push(' class="toggle-c1"');
@@ -1783,7 +1783,7 @@ export function ReactiveDeepNestedIndependentReturns(__output) {
 	__output.push('</div>');
 	__output.push('<!--[-->');
 
-	if (_$_.get(c1)) {
+	if (_$_.get(lazy_7)) {
 		__output.push('<div');
 		__output.push(' class="hit-1"');
 		__output.push('>');
@@ -1825,7 +1825,7 @@ export function ReactiveDeepNestedIndependentReturns(__output) {
 			__output.push('</div>');
 			__output.push('<!--[-->');
 
-			if (_$_.get(c2)) {
+			if (_$_.get(lazy_8)) {
 				__output.push('<div');
 				__output.push(' class="hit-2"');
 				__output.push('>');
@@ -1867,7 +1867,7 @@ export function ReactiveDeepNestedIndependentReturns(__output) {
 					__output.push('</div>');
 					__output.push('<!--[-->');
 
-					if (_$_.get(c3)) {
+					if (_$_.get(lazy_9)) {
 						__output.push('<div');
 						__output.push(' class="hit-3"');
 						__output.push('>');
@@ -1895,7 +1895,7 @@ export function ReactiveDeepNestedIndependentReturns(__output) {
 						__output.push('</div>');
 						__output.push('<!--[-->');
 
-						if (_$_.get(c4)) {
+						if (_$_.get(lazy_10)) {
 							__output.push('<div');
 							__output.push(' class="hit-4"');
 							__output.push('>');

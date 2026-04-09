@@ -51,13 +51,13 @@ export function SimplePortal(__anchor, _, __block) {
 export function ConditionalPortal(__anchor, _, __block) {
 	_$_.push_component();
 
-	let show = _$_.track(true, void 0, void 0, __block);
+	let lazy = _$_.track(true, void 0, void 0, __block);
 	var div_3 = root_2();
 
 	{
 		var button_1 = _$_.child(div_3);
 
-		button_1.__click = () => _$_.set(show, !_$_.get(show));
+		button_1.__click = () => _$_.set(lazy, !_$_.get(lazy));
 
 		var node_1 = _$_.sibling(button_1);
 
@@ -89,7 +89,7 @@ export function ConditionalPortal(__anchor, _, __block) {
 			};
 
 			_$_.if(node_1, (__render) => {
-				if (_$_.get(show)) __render(consequent);
+				if (_$_.get(lazy)) __render(consequent);
 			});
 		}
 

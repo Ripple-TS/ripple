@@ -20,7 +20,7 @@ describe('server dynamic DOM elements', () => {
 		component App() {
 			let obj = { tag: track('div') };
 
-			<obj.@tag>{'Hello World'}</obj.@tag>
+			<obj.tag.value>{'Hello World'}</obj.tag.value>
 		}
 
 		const { body } = await render(App);
@@ -32,7 +32,7 @@ describe('server dynamic DOM elements', () => {
 		component App() {
 			let obj = track({ tag: track('div') });
 
-			<@obj.@tag>{'Hello World'}</@obj.@tag>
+			<@obj.tag.value>{'Hello World'}</@obj.tag.value>
 		}
 
 		const { body } = await render(App);
@@ -46,7 +46,7 @@ describe('server dynamic DOM elements', () => {
 			component App() {
 				let obj = track({ tag: track('div') });
 
-				<@obj.@['tag']>{'Hello World'}</@obj.@['tag']>
+				<@obj['tag'].value>{'Hello World'}</@obj['tag'].value>
 			}
 
 			const { body } = await render(App);
@@ -70,9 +70,9 @@ describe('server dynamic DOM elements', () => {
 	it('handles dynamic element with attributes', async () => {
 		component App() {
 			let tag = track('div');
-			let className = track('test-class');
+			let &[className] = track('test-class');
 
-			<@tag class={@className} id="test" data-testid="dynamic-element">{'Content'}</@tag>
+			<@tag class={className} id="test" data-testid="dynamic-element">{'Content'}</@tag>
 		}
 		const { body } = await render(App);
 		const { document } = parseHtml(body);
@@ -109,9 +109,9 @@ describe('server dynamic DOM elements', () => {
 	it('handles dynamic element with class object', async () => {
 		component App() {
 			let tag = track('div');
-			let active = track(true);
+			let &[active] = track(true);
 
-			<@tag class={{ active: @active, 'dynamic-element': true }}>
+			<@tag class={{ active: active, 'dynamic-element': true }}>
 				{'Element with class object'}
 			</@tag>
 		}
@@ -262,8 +262,8 @@ describe('server dynamic DOM elements', () => {
 			id: string;
 		}>) {
 			const tag = track('button');
-			const [rest] = trackSplit(props, []);
-			<@tag {...@rest}>{@rest.class}</@tag>
+			const &[rest] = trackSplit(props, []);
+			<@tag {...rest}>{rest.class}</@tag>
 
 			<style>
 				.even {
@@ -276,8 +276,8 @@ describe('server dynamic DOM elements', () => {
 		}
 
 		component App() {
-			const count = track(0);
-			<DynamicButton class={@count % 2 ? 'even' : 'odd'} id={@count % 2 ? 'even' : 'odd'} />
+			const &[count] = track(0);
+			<DynamicButton class={count % 2 ? 'even' : 'odd'} id={count % 2 ? 'even' : 'odd'} />
 		}
 
 		const { body } = await render(App);

@@ -7,10 +7,10 @@ describe('composite > render', () => {
 		}
 
 		component App() {
-			let count = track(0);
+			let &[count] = track(0);
 
-			<button onClick={() => @count++}>{'Increment'}</button>
-			<Button {@count} />
+			<button onClick={() => count++}>{'Increment'}</button>
+			<Button {count} />
 		}
 
 		render(App);

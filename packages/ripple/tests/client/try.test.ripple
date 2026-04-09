@@ -88,8 +88,8 @@ describe('try block', () => {
 			}
 
 			component Child() {
-				let value = track(1);
-				await Promise.resolve(@value + 1);
+				let &[value] = track(1);
+				await Promise.resolve(value + 1);
 
 				<input type="number" {ref bindValue(value)} />
 			}
@@ -152,10 +152,10 @@ describe('try block', () => {
 			component FilteredList({ query }: { query: any }) {
 				let items = await Promise.resolve(['apple', 'banana', 'cherry']);
 				let list = RippleArray.from(items);
-				let filtered = track(() => list.filter((item: string) => item.includes(@query)));
+				let &[filtered] = track(() => list.filter((item: string) => item.includes(query)));
 
 				<ul>
-					for (let item of @filtered) {
+					for (let item of filtered) {
 						<li>{item}</li>
 					}
 				</ul>

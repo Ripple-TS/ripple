@@ -6,7 +6,7 @@ describe('async suspense', () => {
 
 		component Child({ count }: { count: any }) {
 			await track(() => {
-				@count;
+				count;
 				return new Promise<void>((resolve) => {
 					resolve_fn = resolve;
 				});
@@ -16,7 +16,7 @@ describe('async suspense', () => {
 		}
 
 		component App() {
-			let count = track(0);
+			let &[count] = track(0);
 
 			try {
 				<Child {count} />
@@ -24,7 +24,7 @@ describe('async suspense', () => {
 				<div class="pending">{'pending...'}</div>
 			}
 
-			<button onClick={() => @count++}>{'Increment'}</button>
+			<button onClick={() => count++}>{'Increment'}</button>
 		}
 
 		render(App);

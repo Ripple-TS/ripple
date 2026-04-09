@@ -230,10 +230,10 @@ describe('compat-react', () => {
 
 		it('should work with Ripple reactivity', async () => {
 			component App() {
-				let count = track(0);
+				let &[count] = track(0);
 				<div>
-					<div class="ripple-count">{@count}</div>
-					<button onClick={() => @count++}>{'Increment'}</button>
+					<div class="ripple-count">{count}</div>
+					<button onClick={() => count++}>{'Increment'}</button>
 					<tsx:react>
 						<div className="react-message">
 							{'React content is static'}
@@ -464,12 +464,12 @@ describe('compat-react', () => {
 				component AsyncRippleChild() {
 					await sleep(1000);
 
-					let count = track(0);
+					let &[count] = track(0);
 
 					<div>
 						<div class="async-content">{'Loaded!'}</div>
-						<div class="count">{@count}</div>
-						<button onClick={() => @count++}>{'Increment'}</button>
+						<div class="count">{count}</div>
+						<button onClick={() => count++}>{'Increment'}</button>
 					</div>
 				}
 
@@ -549,14 +549,14 @@ describe('compat-react', () => {
 				}
 
 				component App() {
-					let page = track(1);
+					let &[page] = track(1);
 					setPage = (p: number) => {
-						@page = p;
+						page = p;
 					};
 
 					<tsx:react>
 						<Suspense fallback={<div className="loading">Loading...</div>}>
-							<ReactChild page={@page} />
+							<ReactChild page={page} />
 						</Suspense>
 					</tsx:react>
 				}
@@ -629,14 +629,14 @@ describe('compat-react', () => {
 				}
 
 				component App() {
-					let page = track(1);
+					let &[page] = track(1);
 					setPage = (p: number) => {
-						@page = p;
+						page = p;
 					};
 
 					<tsx:react>
 						<Suspense fallback={<div className="loading">Loading...</div>}>
-							<ReactChild page={@page} />
+							<ReactChild page={page} />
 						</Suspense>
 					</tsx:react>
 				}

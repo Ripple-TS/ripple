@@ -29,14 +29,14 @@ describe('lazy destructuring', () => {
 		}
 
 		component Test() {
-			let a = track(1);
-			let b = track('hello');
+			let &[a] = track(1);
+			let &[b] = track('hello');
 
-			<Inner {@a} {@b} />
+			<Inner {a} {b} />
 			<button
 				onClick={() => {
-					@a = 2;
-					@b = 'world';
+					a = 2;
+					b = 'world';
 				}}
 			>
 				{'update'}
@@ -56,14 +56,14 @@ describe('lazy destructuring', () => {
 		}
 
 		component Test() {
-			let first = track(10);
-			let second = track(20);
+			let &[first] = track(10);
+			let &[second] = track(20);
 
-			<Inner {@first} {@second} />
+			<Inner {first} {second} />
 			<button
 				onClick={() => {
-					@first = 30;
-					@second = 40;
+					first = 30;
+					second = 40;
 				}}
 			>
 				{'update'}
@@ -107,12 +107,12 @@ describe('lazy destructuring', () => {
 		}
 
 		component Test() {
-			let count = track(0);
+			let &[count] = track(0);
 
-			<Inner {@count} />
+			<Inner {count} />
 			<button
 				onClick={() => {
-					@count++;
+					count++;
 				}}
 			>
 				{'increment'}
@@ -209,7 +209,7 @@ describe('lazy destructuring', () => {
 		component Test() {
 			const source = { a: 1, b: 2, c: 3 };
 			let &[a, b, rest] = trackSplit(source, ['a', 'b']);
-			<pre>{`${@a}-${@b}-${@rest.c}`}</pre>
+			<pre>{`${a}-${b}-${rest.c}`}</pre>
 		}
 
 		render(Test);
@@ -219,7 +219,7 @@ describe('lazy destructuring', () => {
 	it('supports rest destructuring from iterable array-like tracked values', () => {
 		component Test() {
 			let &[value, ...rest] = track(0);
-			<pre>{`${value}-${@rest.length}-${@rest[0] === value}`}</pre>
+			<pre>{`${value}-${rest.length}-${rest[0] === value}`}</pre>
 		}
 
 		render(Test);

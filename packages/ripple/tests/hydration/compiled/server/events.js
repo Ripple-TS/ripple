@@ -6,7 +6,7 @@ import { track } from 'ripple/server';
 export function ClickCounter(__output) {
 	_$_.push_component();
 
-	let count = _$_.track(0);
+	let lazy = _$_.track(0);
 
 	__output.push('<div');
 	__output.push('>');
@@ -26,7 +26,7 @@ export function ClickCounter(__output) {
 		__output.push('>');
 
 		{
-			__output.push(_$_.escape(_$_.get(count)));
+			__output.push(_$_.escape(_$_.get(lazy)));
 		}
 
 		__output.push('</span>');
@@ -39,7 +39,7 @@ export function ClickCounter(__output) {
 export function IncrementDecrement(__output) {
 	_$_.push_component();
 
-	let count = _$_.track(0);
+	let lazy_1 = _$_.track(0);
 
 	__output.push('<div');
 	__output.push('>');
@@ -59,7 +59,7 @@ export function IncrementDecrement(__output) {
 		__output.push('>');
 
 		{
-			__output.push(_$_.escape(_$_.get(count)));
+			__output.push(_$_.escape(_$_.get(lazy_1)));
 		}
 
 		__output.push('</span>');
@@ -81,8 +81,8 @@ export function IncrementDecrement(__output) {
 export function MultipleEvents(__output) {
 	_$_.push_component();
 
-	let clicks = _$_.track(0);
-	let hovers = _$_.track(0);
+	let lazy_2 = _$_.track(0);
+	let lazy_3 = _$_.track(0);
 
 	__output.push('<div');
 	__output.push('>');
@@ -102,7 +102,7 @@ export function MultipleEvents(__output) {
 		__output.push('>');
 
 		{
-			__output.push(_$_.escape(_$_.get(clicks)));
+			__output.push(_$_.escape(_$_.get(lazy_2)));
 		}
 
 		__output.push('</span>');
@@ -111,7 +111,7 @@ export function MultipleEvents(__output) {
 		__output.push('>');
 
 		{
-			__output.push(_$_.escape(_$_.get(hovers)));
+			__output.push(_$_.escape(_$_.get(lazy_3)));
 		}
 
 		__output.push('</span>');
@@ -124,12 +124,12 @@ export function MultipleEvents(__output) {
 export function MultiStateUpdate(__output) {
 	_$_.push_component();
 
-	let count = _$_.track(0);
-	let lastAction = _$_.track('none');
+	let lazy_4 = _$_.track(0);
+	let lazy_5 = _$_.track('none');
 
 	const handleClick = () => {
-		_$_.update(count);
-		_$_.set(lastAction, 'increment');
+		_$_.update(lazy_4);
+		_$_.set(lazy_5, 'increment');
 	};
 
 	__output.push('<div');
@@ -150,7 +150,7 @@ export function MultiStateUpdate(__output) {
 		__output.push('>');
 
 		{
-			__output.push(_$_.escape(_$_.get(count)));
+			__output.push(_$_.escape(_$_.get(lazy_4)));
 		}
 
 		__output.push('</span>');
@@ -159,7 +159,7 @@ export function MultiStateUpdate(__output) {
 		__output.push('>');
 
 		{
-			__output.push(_$_.escape(_$_.get(lastAction)));
+			__output.push(_$_.escape(_$_.get(lazy_5)));
 		}
 
 		__output.push('</span>');
@@ -172,7 +172,7 @@ export function MultiStateUpdate(__output) {
 export function ToggleButton(__output) {
 	_$_.push_component();
 
-	let isOn = _$_.track(false);
+	let lazy_6 = _$_.track(false);
 
 	__output.push('<div');
 	__output.push('>');
@@ -183,7 +183,7 @@ export function ToggleButton(__output) {
 		__output.push('>');
 
 		{
-			__output.push(_$_.escape(_$_.get(isOn) ? 'ON' : 'OFF'));
+			__output.push(_$_.escape(_$_.get(lazy_6) ? 'ON' : 'OFF'));
 		}
 
 		__output.push('</button>');
@@ -210,7 +210,7 @@ export function ChildButton(__output, props) {
 export function ParentWithChildButton(__output) {
 	_$_.push_component();
 
-	let count = _$_.track(0);
+	let lazy_7 = _$_.track(0);
 
 	__output.push('<div');
 	__output.push('>');
@@ -223,7 +223,7 @@ export function ParentWithChildButton(__output) {
 				__output,
 				{
 					onClick: () => {
-						_$_.update(count);
+						_$_.update(lazy_7);
 					},
 					label: "Click me"
 				}
@@ -237,7 +237,7 @@ export function ParentWithChildButton(__output) {
 		__output.push('>');
 
 		{
-			__output.push(_$_.escape(_$_.get(count)));
+			__output.push(_$_.escape(_$_.get(lazy_7)));
 		}
 
 		__output.push('</span>');

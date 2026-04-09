@@ -48,7 +48,7 @@ export function SwitchStatic(__output) {
 export function SwitchReactive(__output) {
 	_$_.push_component();
 
-	let status = _$_.track('a');
+	let lazy = _$_.track('a');
 
 	__output.push('<button');
 	__output.push(' class="toggle"');
@@ -61,7 +61,7 @@ export function SwitchReactive(__output) {
 	__output.push('</button>');
 	__output.push('<!--[-->');
 
-	switch (_$_.get(status)) {
+	switch (_$_.get(lazy)) {
 		case 'a':
 			__output.push('<div');
 			__output.push(' class="case-a"');
@@ -133,7 +133,7 @@ export function SwitchFallthrough(__output) {
 export function SwitchNumericLevels(__output) {
 	_$_.push_component();
 
-	let level = _$_.track(1);
+	let lazy_1 = _$_.track(1);
 
 	__output.push('<button');
 	__output.push(' class="level-toggle"');
@@ -146,7 +146,7 @@ export function SwitchNumericLevels(__output) {
 	__output.push('</button>');
 	__output.push('<!--[-->');
 
-	switch (_$_.get(level)) {
+	switch (_$_.get(lazy_1)) {
 		case 1:
 			__output.push('<div');
 			__output.push(' class="level-1"');
@@ -185,7 +185,7 @@ export function SwitchNumericLevels(__output) {
 export function SwitchBlockScoped(__output) {
 	_$_.push_component();
 
-	let level = _$_.track(1);
+	let lazy_2 = _$_.track(1);
 
 	__output.push('<button');
 	__output.push(' class="block-toggle"');
@@ -198,7 +198,7 @@ export function SwitchBlockScoped(__output) {
 	__output.push('</button>');
 	__output.push('<!--[-->');
 
-	switch (_$_.get(level)) {
+	switch (_$_.get(lazy_2)) {
 		case 1:
 			__output.push('<div');
 			__output.push(' class="block-1"');
@@ -237,7 +237,7 @@ export function SwitchBlockScoped(__output) {
 export function SwitchNoBreak(__output) {
 	_$_.push_component();
 
-	let level = _$_.track(1);
+	let lazy_3 = _$_.track(1);
 
 	__output.push('<button');
 	__output.push(' class="nobreak-toggle"');
@@ -250,7 +250,7 @@ export function SwitchNoBreak(__output) {
 	__output.push('</button>');
 	__output.push('<!--[-->');
 
-	switch (_$_.get(level)) {
+	switch (_$_.get(lazy_3)) {
 		case 1:
 			__output.push('<div');
 			__output.push(' class="nobreak-1"');

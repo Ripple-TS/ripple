@@ -117,11 +117,11 @@ describe('lazy destructuring', () => {
 		expect(body).toBeHtml('<pre>Alice-30</pre>');
 	});
 
-	it('treats lazy array destructuring of trackSplit as regular array access', async () => {
+	it('treats array destructuring of trackSplit as regular array access', async () => {
 		component Test() {
 			const source = { a: 1, b: 2, c: 3 };
-			const &[a, b, rest] = trackSplit(source, ['a', 'b']);
-			<pre>{`${@a}-${@b}-${@rest.c}`}</pre>
+			const [a, b, rest] = trackSplit(source, ['a', 'b']);
+			<pre>{`${a.value}-${b.value}-${rest.value.c}`}</pre>
 		}
 
 		const { body } = await render(Test);
@@ -132,7 +132,7 @@ describe('lazy destructuring', () => {
 		component Test() {
 			let tracked_value = track(0);
 			let &[value, ...rest] = tracked_value;
-			<pre>{`${value}-${@rest.length}-${@rest[0] === tracked_value}`}</pre>
+			<pre>{`${value}-${rest.length}-${rest[0] === tracked_value}`}</pre>
 		}
 
 		const { body } = await render(Test);

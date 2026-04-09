@@ -196,26 +196,26 @@ export function MixedControlFlowStatic(__anchor, _, __block) {
 export function MixedControlFlowReactive(__anchor, _, __block) {
 	_$_.push_component();
 
-	let show = _$_.track(true, void 0, void 0, __block);
-	let mode = _$_.track('a', void 0, void 0, __block);
-	let items = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }], void 0, void 0, __block);
+	let lazy = _$_.track(true, void 0, void 0, __block);
+	let lazy_1 = _$_.track('a', void 0, void 0, __block);
+	let lazy_2 = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }], void 0, void 0, __block);
 	var fragment_4 = root_9();
 	var button_1 = _$_.first_child_frag(fragment_4);
 
 	button_1.__click = () => {
-		_$_.set(show, !_$_.get(show));
+		_$_.set(lazy, !_$_.get(lazy));
 	};
 
 	var button_2 = _$_.sibling(button_1);
 
 	button_2.__click = () => {
-		_$_.set(mode, _$_.get(mode) === 'a' ? 'b' : 'a');
+		_$_.set(lazy_1, _$_.get(lazy_1) === 'a' ? 'b' : 'a');
 	};
 
 	var button_3 = _$_.sibling(button_2);
 
 	button_3.__click = () => {
-		_$_.set(items, [..._$_.get(items), { id: 3, label: 'Three' }]);
+		_$_.set(lazy_2, [..._$_.get(lazy_2), { id: 3, label: 'Three' }]);
 	};
 
 	var node_4 = _$_.sibling(button_3);
@@ -227,7 +227,7 @@ export function MixedControlFlowReactive(__anchor, _, __block) {
 			{
 				_$_.for_keyed(
 					div_5,
-					() => _$_.get(items),
+					() => _$_.get(lazy_2),
 					(__anchor, pattern_1) => {
 						var fragment_5 = root_11();
 						var node_5 = _$_.first_child_frag(fragment_5);
@@ -330,7 +330,7 @@ export function MixedControlFlowReactive(__anchor, _, __block) {
 							_$_.switch(node_5, () => {
 								var result = [];
 
-								switch (_$_.get(mode)) {
+								switch (_$_.get(lazy_1)) {
 									case 'a':
 										result.push(switch_case_0_1);
 										return result;
@@ -355,7 +355,7 @@ export function MixedControlFlowReactive(__anchor, _, __block) {
 		};
 
 		_$_.if(node_4, (__render) => {
-			if (_$_.get(show)) __render(consequent_1);
+			if (_$_.get(lazy)) __render(consequent_1);
 		});
 	}
 

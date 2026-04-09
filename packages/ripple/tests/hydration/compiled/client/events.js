@@ -14,14 +14,14 @@ import { track } from 'ripple';
 export function ClickCounter(__anchor, _, __block) {
 	_$_.push_component();
 
-	let count = _$_.track(0, void 0, void 0, __block);
+	let lazy = _$_.track(0, void 0, void 0, __block);
 	var div_1 = root();
 
 	{
 		var button_1 = _$_.child(div_1);
 
 		button_1.__click = () => {
-			_$_.update(count);
+			_$_.update(lazy);
 		};
 
 		var span_1 = _$_.sibling(button_1);
@@ -34,7 +34,7 @@ export function ClickCounter(__anchor, _, __block) {
 	}
 
 	_$_.render(() => {
-		_$_.set_text(text, _$_.get(count));
+		_$_.set_text(text, _$_.get(lazy));
 	});
 
 	_$_.append(__anchor, div_1);
@@ -44,14 +44,14 @@ export function ClickCounter(__anchor, _, __block) {
 export function IncrementDecrement(__anchor, _, __block) {
 	_$_.push_component();
 
-	let count = _$_.track(0, void 0, void 0, __block);
+	let lazy_1 = _$_.track(0, void 0, void 0, __block);
 	var div_2 = root_1();
 
 	{
 		var button_2 = _$_.child(div_2);
 
 		button_2.__click = () => {
-			_$_.update(count, -1);
+			_$_.update(lazy_1, -1);
 		};
 
 		var span_2 = _$_.sibling(button_2);
@@ -65,12 +65,12 @@ export function IncrementDecrement(__anchor, _, __block) {
 		var button_3 = _$_.sibling(span_2);
 
 		button_3.__click = () => {
-			_$_.update(count);
+			_$_.update(lazy_1);
 		};
 	}
 
 	_$_.render(() => {
-		_$_.set_text(text_1, _$_.get(count));
+		_$_.set_text(text_1, _$_.get(lazy_1));
 	});
 
 	_$_.append(__anchor, div_2);
@@ -80,19 +80,19 @@ export function IncrementDecrement(__anchor, _, __block) {
 export function MultipleEvents(__anchor, _, __block) {
 	_$_.push_component();
 
-	let clicks = _$_.track(0, void 0, void 0, __block);
-	let hovers = _$_.track(0, void 0, void 0, __block);
+	let lazy_2 = _$_.track(0, void 0, void 0, __block);
+	let lazy_3 = _$_.track(0, void 0, void 0, __block);
 	var div_3 = root_2();
 
 	{
 		var button_4 = _$_.child(div_3);
 
 		button_4.__click = () => {
-			_$_.update(clicks);
+			_$_.update(lazy_2);
 		};
 
 		_$_.event('MouseEnter', button_4, () => {
-			_$_.update(hovers);
+			_$_.update(lazy_3);
 		});
 
 		var span_3 = _$_.sibling(button_4);
@@ -114,13 +114,13 @@ export function MultipleEvents(__anchor, _, __block) {
 
 	_$_.render(
 		(__prev) => {
-			var __a = _$_.get(clicks);
+			var __a = _$_.get(lazy_2);
 
 			if (__prev.a !== __a) {
 				_$_.set_text(text_2, __prev.a = __a);
 			}
 
-			var __b = _$_.get(hovers);
+			var __b = _$_.get(lazy_3);
 
 			if (__prev.b !== __b) {
 				_$_.set_text(text_3, __prev.b = __b);
@@ -136,12 +136,12 @@ export function MultipleEvents(__anchor, _, __block) {
 export function MultiStateUpdate(__anchor, _, __block) {
 	_$_.push_component();
 
-	let count = _$_.track(0, void 0, void 0, __block);
-	let lastAction = _$_.track('none', void 0, void 0, __block);
+	let lazy_4 = _$_.track(0, void 0, void 0, __block);
+	let lazy_5 = _$_.track('none', void 0, void 0, __block);
 
 	const handleClick = () => {
-		_$_.update(count);
-		_$_.set(lastAction, 'increment');
+		_$_.update(lazy_4);
+		_$_.set(lazy_5, 'increment');
 	};
 
 	var div_4 = root_3();
@@ -170,13 +170,13 @@ export function MultiStateUpdate(__anchor, _, __block) {
 
 	_$_.render(
 		(__prev) => {
-			var __a = _$_.get(count);
+			var __a = _$_.get(lazy_4);
 
 			if (__prev.a !== __a) {
 				_$_.set_text(text_4, __prev.a = __a);
 			}
 
-			var __b = _$_.get(lastAction);
+			var __b = _$_.get(lazy_5);
 
 			if (__prev.b !== __b) {
 				_$_.set_text(text_5, __prev.b = __b);
@@ -192,14 +192,14 @@ export function MultiStateUpdate(__anchor, _, __block) {
 export function ToggleButton(__anchor, _, __block) {
 	_$_.push_component();
 
-	let isOn = _$_.track(false, void 0, void 0, __block);
+	let lazy_6 = _$_.track(false, void 0, void 0, __block);
 	var div_5 = root_4();
 
 	{
 		var button_6 = _$_.child(div_5);
 
 		button_6.__click = () => {
-			_$_.set(isOn, !_$_.get(isOn));
+			_$_.set(lazy_6, !_$_.get(lazy_6));
 		};
 
 		{
@@ -210,7 +210,7 @@ export function ToggleButton(__anchor, _, __block) {
 	}
 
 	_$_.render(() => {
-		_$_.set_text(text_6, _$_.get(isOn) ? 'ON' : 'OFF');
+		_$_.set_text(text_6, _$_.get(lazy_6) ? 'ON' : 'OFF');
 	});
 
 	_$_.append(__anchor, div_5);
@@ -241,7 +241,7 @@ export function ChildButton(__anchor, props, __block) {
 export function ParentWithChildButton(__anchor, _, __block) {
 	_$_.push_component();
 
-	let count = _$_.track(0, void 0, void 0, __block);
+	let lazy_7 = _$_.track(0, void 0, void 0, __block);
 	var div_6 = root_6();
 
 	{
@@ -251,7 +251,7 @@ export function ParentWithChildButton(__anchor, _, __block) {
 			node,
 			{
 				onClick: () => {
-					_$_.update(count);
+					_$_.update(lazy_7);
 				},
 				label: "Click me"
 			},
@@ -270,7 +270,7 @@ export function ParentWithChildButton(__anchor, _, __block) {
 	}
 
 	_$_.render(() => {
-		_$_.set_text(text_8, _$_.get(count));
+		_$_.set_text(text_8, _$_.get(lazy_7));
 	});
 
 	_$_.append(__anchor, div_6);

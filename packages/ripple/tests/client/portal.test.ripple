@@ -46,15 +46,15 @@ describe('Portal', () => {
 
 	it('cleans up portal content when destroyed via conditional rendering', () => {
 		component TestPortal() {
-			let open = track(true);
+			let &[open] = track(true);
 
-			if (@open) {
+			if (open) {
 				<Portal target={document.body}>
 					<div class="test-portal">{'Conditional content'}</div>
 				</Portal>
 			}
 
-			<button onClick={() => (@open = false)}>{'Close'}</button>
+			<button onClick={() => (open = false)}>{'Close'}</button>
 		}
 
 		render(TestPortal);
@@ -72,19 +72,19 @@ describe('Portal', () => {
 
 	it('opens and closes portal via conditional rendering', () => {
 		component TestPortal() {
-			let open = track(false);
+			let &[open] = track(false);
 
-			if (@open) {
+			if (open) {
 				<Portal target={document.body}>
 					<div class="test-portal">
 						{'Content'}
-						<button onClick={() => (@open = false)}>{'Close'}</button>
+						<button onClick={() => (open = false)}>{'Close'}</button>
 					</div>
 				</Portal>
 			}
 
-			if (!@open) {
-				<button onClick={() => (@open = true)}>{'Open'}</button>
+			if (!open) {
+				<button onClick={() => (open = true)}>{'Open'}</button>
 			}
 		}
 
@@ -138,13 +138,13 @@ describe('Portal', () => {
 
 	it('handles portal with reactive content', () => {
 		component TestReactivePortal() {
-			let count = track(0);
+			let &[count] = track(0);
 
 			<Portal target={document.body}>
 				<div class="test-portal">
 					{'Count: '}
-					{String(@count)}
-					<button onClick={() => @count++}>{'Increment'}</button>
+					{String(count)}
+					<button onClick={() => count++}>{'Increment'}</button>
 				</div>
 			</Portal>
 		}

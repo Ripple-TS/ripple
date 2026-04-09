@@ -97,9 +97,9 @@ export async function MixedControlFlowReactive(__output) {
 	return _$_.async(async () => {
 		_$_.push_component();
 
-		let show = _$_.track(true);
-		let mode = _$_.track('a');
-		let items = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }]);
+		let lazy = _$_.track(true);
+		let lazy_1 = _$_.track('a');
+		let lazy_2 = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }]);
 
 		__output.push('<button');
 		__output.push(' class="toggle-show"');
@@ -130,7 +130,7 @@ export async function MixedControlFlowReactive(__output) {
 		__output.push('</button>');
 		__output.push('<!--[-->');
 
-		if (_$_.get(show)) {
+		if (_$_.get(lazy)) {
 			__output.push('<div');
 			__output.push(' class="mixed-reactive-list"');
 			__output.push('>');
@@ -138,10 +138,10 @@ export async function MixedControlFlowReactive(__output) {
 			{
 				__output.push('<!--[-->');
 
-				for (const item of _$_.get(items)) {
+				for (const item of _$_.get(lazy_2)) {
 					__output.push('<!--[-->');
 
-					switch (_$_.get(mode)) {
+					switch (_$_.get(lazy_1)) {
 						case 'a':
 							__output.push('<!--[-->');
 							var __pending_pos_2 = __output.body.length;

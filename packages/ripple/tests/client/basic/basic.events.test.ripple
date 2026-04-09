@@ -4,21 +4,21 @@ import { flushSync, track } from 'ripple';
 describe('basic client > events', () => {
 	it('renders with different event types', () => {
 		component Basic() {
-			let focusCount = track(0);
-			let clickCount = track(0);
+			let &[focusCount] = track(0);
+			let &[clickCount] = track(0);
 
 			<button
 				onFocus={() => {
-					@focusCount++;
+					focusCount++;
 				}}
 				onClick={() => {
-					@clickCount++;
+					clickCount++;
 				}}
 			>
 				{'Test Button'}
 			</button>
-			<div class="focus-count">{@focusCount}</div>
-			<div class="click-count">{@clickCount}</div>
+			<div class="focus-count">{focusCount}</div>
+			<div class="click-count">{clickCount}</div>
 		}
 
 		render(Basic);
@@ -38,26 +38,26 @@ describe('basic client > events', () => {
 
 	it('renders with capture events', () => {
 		component Basic() {
-			let captureClicks = track(0);
-			let bubbleClicks = track(0);
+			let &[captureClicks] = track(0);
+			let &[bubbleClicks] = track(0);
 
 			<div
 				onClick={{
 					handleEvent: () => {
-						@captureClicks++;
+						captureClicks++;
 					},
 					capture: true,
 				}}
 			>
 				<button
 					onClick={() => {
-						@bubbleClicks++;
+						bubbleClicks++;
 					}}
 				>
 					{'Click me'}
 				</button>
-				<div class="capture-count">{@captureClicks}</div>
-				<div class="bubble-count">{@bubbleClicks}</div>
+				<div class="capture-count">{captureClicks}</div>
+				<div class="bubble-count">{bubbleClicks}</div>
 			</div>
 		}
 
@@ -76,23 +76,23 @@ describe('basic client > events', () => {
 
 	it('renders with event listeners in spread props', () => {
 		component Basic() {
-			let count = track(0);
+			let &[count] = track(0);
 
 			const minus = {
 				onClick() {
-					@count--;
+					count--;
 				},
 			};
 
 			const plus = {
 				onClick() {
-					@count++;
+					count++;
 				},
 			};
 
 			<div>
 				<button {...minus} class="minus">{'-'}</button>
-				<span class="count">{@count}</span>
+				<span class="count">{count}</span>
 				<button {...plus} class="plus">{'+'}</button>
 			</div>
 		}
@@ -125,24 +125,24 @@ describe('basic client > events', () => {
 
 	it('handles both delegated and non-delegated events in spread props', () => {
 		component Basic() {
-			let clickCount = track(0);
-			let focusCount = track(0);
+			let &[clickCount] = track(0);
+			let &[focusCount] = track(0);
 
 			const mixedHandler = {
 				onClick() {
 					// Delegated event
-					@clickCount++;
+					clickCount++;
 				},
 				onFocus() {
 					// Non-delegated event
-					@focusCount++;
+					focusCount++;
 				},
 			};
 
 			<div>
 				<button {...mixedHandler} class="mixed-button">{'Test'}</button>
-				<span class="click-count">{@clickCount}</span>
-				<span class="focus-count">{@focusCount}</span>
+				<span class="click-count">{clickCount}</span>
+				<span class="focus-count">{focusCount}</span>
 			</div>
 		}
 
@@ -168,31 +168,31 @@ describe('basic client > events', () => {
 
 	it('renders with complex event handling and state updates', () => {
 		component Basic() {
-			let counter = track(0);
-			let history = track<string[]>([]);
-			let isEven = track(true);
+			let &[counter] = track(0);
+			let &[history] = track<string[]>([]);
+			let &[isEven] = track(true);
 
 			const handleIncrement = () => {
-				@counter++;
-				@history = [...@history, `Inc to ${@counter}`];
-				@isEven = @counter % 2 === 0;
+				counter++;
+				history = [...history, `Inc to ${counter}`];
+				isEven = counter % 2 === 0;
 			};
 
 			const handleDecrement = () => {
-				@counter--;
-				@history = [...@history, `Dec to ${@counter}`];
-				@isEven = @counter % 2 === 0;
+				counter--;
+				history = [...history, `Dec to ${counter}`];
+				isEven = counter % 2 === 0;
 			};
 
 			const handleReset = () => {
-				@counter = 0;
-				@history = [...@history, 'Reset'];
-				@isEven = true;
+				counter = 0;
+				history = [...history, 'Reset'];
+				isEven = true;
 			};
 
-			<div class="counter">{@counter}</div>
-			<div class="parity">{@isEven ? 'Even' : 'Odd'}</div>
-			<div class="history-count">{@history.length}</div>
+			<div class="counter">{counter}</div>
+			<div class="parity">{isEven ? 'Even' : 'Odd'}</div>
+			<div class="history-count">{history.length}</div>
 
 			<button class="inc-btn" onClick={handleIncrement}>{'+'}</button>
 			<button class="dec-btn" onClick={handleDecrement}>{'-'}</button>

@@ -13,7 +13,7 @@ import { track } from 'ripple';
 export function TrackedState(__anchor, _, __block) {
 	_$_.push_component();
 
-	let count = _$_.track(0, void 0, void 0, __block);
+	let lazy = _$_.track(0, void 0, void 0, __block);
 	var div_1 = root();
 
 	{
@@ -23,7 +23,7 @@ export function TrackedState(__anchor, _, __block) {
 	}
 
 	_$_.render(() => {
-		_$_.set_text(text, _$_.get(count));
+		_$_.set_text(text, _$_.get(lazy));
 	});
 
 	_$_.append(__anchor, div_1);
@@ -33,7 +33,7 @@ export function TrackedState(__anchor, _, __block) {
 export function CounterWithInitial(__anchor, props, __block) {
 	_$_.push_component();
 
-	let count = _$_.track(props.initial, void 0, void 0, __block);
+	let lazy_1 = _$_.track(props.initial, void 0, void 0, __block);
 	var div_2 = root_1();
 
 	{
@@ -47,7 +47,7 @@ export function CounterWithInitial(__anchor, props, __block) {
 	}
 
 	_$_.render(() => {
-		_$_.set_text(text_1, _$_.get(count));
+		_$_.set_text(text_1, _$_.get(lazy_1));
 	});
 
 	_$_.append(__anchor, div_2);
@@ -68,9 +68,9 @@ export function CounterWrapper(__anchor, _, __block) {
 export function ComputedValues(__anchor, _, __block) {
 	_$_.push_component();
 
-	let a = _$_.track(2, void 0, void 0, __block);
-	let b = _$_.track(3, void 0, void 0, __block);
-	const sum = () => _$_.get(a) + _$_.get(b);
+	let lazy_2 = _$_.track(2, void 0, void 0, __block);
+	let lazy_3 = _$_.track(3, void 0, void 0, __block);
+	const sum = () => _$_.get(lazy_2) + _$_.get(lazy_3);
 	var div_3 = root_3();
 
 	{
@@ -90,9 +90,9 @@ export function ComputedValues(__anchor, _, __block) {
 export function MultipleTracked(__anchor, _, __block) {
 	_$_.push_component();
 
-	let x = _$_.track(10, void 0, void 0, __block);
-	let y = _$_.track(20, void 0, void 0, __block);
-	let z = _$_.track(30, void 0, void 0, __block);
+	let lazy_4 = _$_.track(10, void 0, void 0, __block);
+	let lazy_5 = _$_.track(20, void 0, void 0, __block);
+	let lazy_6 = _$_.track(30, void 0, void 0, __block);
 	var fragment_1 = root_4();
 	var div_4 = _$_.first_child_frag(fragment_1);
 
@@ -122,19 +122,19 @@ export function MultipleTracked(__anchor, _, __block) {
 
 	_$_.render(
 		(__prev) => {
-			var __a = _$_.get(x);
+			var __a = _$_.get(lazy_4);
 
 			if (__prev.a !== __a) {
 				_$_.set_text(text_3, __prev.a = __a);
 			}
 
-			var __b = _$_.get(y);
+			var __b = _$_.get(lazy_5);
 
 			if (__prev.b !== __b) {
 				_$_.set_text(text_4, __prev.b = __b);
 			}
 
-			var __c = _$_.get(z);
+			var __c = _$_.get(lazy_6);
 
 			if (__prev.c !== __c) {
 				_$_.set_text(text_5, __prev.c = __c);
@@ -150,9 +150,9 @@ export function MultipleTracked(__anchor, _, __block) {
 export function DerivedState(__anchor, _, __block) {
 	_$_.push_component();
 
-	let firstName = _$_.track('John', void 0, void 0, __block);
-	let lastName = _$_.track('Doe', void 0, void 0, __block);
-	const fullName = () => `${_$_.get(firstName)} ${_$_.get(lastName)}`;
+	let lazy_7 = _$_.track('John', void 0, void 0, __block);
+	let lazy_8 = _$_.track('Doe', void 0, void 0, __block);
+	const fullName = () => `${_$_.get(lazy_7)} ${_$_.get(lazy_8)}`;
 	var div_7 = root_5();
 
 	{

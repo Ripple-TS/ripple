@@ -4,22 +4,22 @@ import { compile } from 'ripple/compiler';
 describe('basic client > errors', () => {
 	it('renders with error handling simulation', () => {
 		component Basic() {
-			let hasError = track(false);
-			let errorMessage = track('');
+			let &[hasError] = track(false);
+			let &[errorMessage] = track('');
 
 			const triggerError = () => {
 				try {
 					throw new Error('Test error');
 				} catch (e) {
-					@hasError = true;
-					@errorMessage = (e as Error).message;
+					hasError = true;
+					errorMessage = (e as Error).message;
 				}
 			};
 
 			<div>
 				<button onClick={triggerError}>{'Trigger Error'}</button>
-				if (@hasError) {
-					<div class="error">{'Error caught: ' + @errorMessage}</div>
+				if (hasError) {
+					<div class="error">{'Error caught: ' + errorMessage}</div>
 				} else {
 					<div class="success">{'No error'}</div>
 				}
@@ -91,17 +91,17 @@ describe('basic client > errors', () => {
 
 	it('errors on mutating tracked value inside computed track() evaluation', () => {
 		component Basic() {
-			let count = track(0);
+			let &[count] = track(0);
 
-			const doubled = track(() => {
+			const &[doubled] = track(() => {
 				try {
-					@count *= 2;
+					count *= 2;
 				} catch (e) {
 					error = (e as Error).message;
 				}
 			});
 
-			<p>{@doubled}</p>
+			<p>{doubled}</p>
 		}
 
 		render(Basic);
@@ -113,19 +113,19 @@ describe('basic client > errors', () => {
 
 	it('errors on mutating tracked value inside untrack() in computed track() evaluation', () => {
 		component Basic() {
-			let count = track(0);
+			let &[count] = track(0);
 
-			const doubled = track(() => {
+			const &[doubled] = track(() => {
 				try {
 					untrack(() => {
-						@count *= 2;
+						count *= 2;
 					});
 				} catch (e) {
 					error = (e as Error).message;
 				}
 			});
 
-			<p>{@doubled}</p>
+			<p>{doubled}</p>
 		}
 
 		render(Basic);
@@ -137,18 +137,18 @@ describe('basic client > errors', () => {
 
 	it('errors on mutating a tracked variable in track() getter', () => {
 		component Basic() {
-			let count = track(0);
+			let &[count] = track(0);
 
-			const doubled = track(0, (value) => {
+			const &[doubled] = track(0, (value) => {
 				try {
-					@count += 1;
+					count += 1;
 				} catch (e) {
 					error = (e as Error).message;
 				}
 				return value;
 			});
 
-			<p>{@doubled}</p>
+			<p>{doubled}</p>
 		}
 
 		render(Basic);

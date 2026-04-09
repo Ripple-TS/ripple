@@ -324,12 +324,12 @@ describe('compiler > basics', () => {
 		const source = `
 import { RippleArray, RippleMap, RippleObject, RippleSet, createRefKey, effect, track, untrack } from 'ripple';
 component App() {
-	let value = track('test');
+	let &[value] = track('test');
 	function inputRef(node) {}
 
 	const props = {
 		id: 'example',
-		@value,
+		value,
 		[createRefKey()]: inputRef,
 	};
 }
@@ -346,7 +346,7 @@ import { trackSplit } from 'ripple';
 component App() {
 	const source = { a: 1, b: 2, c: 3 };
 	let &[a, b, rest] = trackSplit(source, ['a', 'b']);
-	const sum = @a + @b + @rest.c;
+	const sum = a + b + rest.c;
 }
 `;
 		const track_split_result = compile_to_volar_mappings(track_split_source, 'test.ripple').code;
@@ -393,13 +393,13 @@ export component App(props: Props) {
 		const source = `
 import { track } from 'ripple';
 export component App() {
-	let level = track(1);
+	let &[level] = track(1);
 
 	<button
 		onClick={() => {
-			if (@level === 1) @level = 2;
-			else if (@level === 2) @level = 3;
-			else @level = 1;
+			if (level === 1) level = 2;
+			else if (level === 2) level = 3;
+			else level = 1;
 		}}
 	>
 		{'Toggle'}
@@ -496,10 +496,10 @@ export component App() {
 import { track, effect, untrack } from 'ripple';
 
 component App() {
-	let count = track(0);
+	let &[count] = track(0);
 
 	effect(() => {
-		const snapshot = untrack(() => @count);
+		const snapshot = untrack(() => count);
 		console.log(snapshot);
 	});
 }

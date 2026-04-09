@@ -85,7 +85,7 @@ export function IfElse(__output) {
 export function ReactiveIf(__output) {
 	_$_.push_component();
 
-	let show = _$_.track(true);
+	let lazy = _$_.track(true);
 
 	__output.push('<button');
 	__output.push(' class="toggle"');
@@ -98,7 +98,7 @@ export function ReactiveIf(__output) {
 	__output.push('</button>');
 	__output.push('<!--[-->');
 
-	if (_$_.get(show)) {
+	if (_$_.get(lazy)) {
 		__output.push('<div');
 		__output.push(' class="content"');
 		__output.push('>');
@@ -117,7 +117,7 @@ export function ReactiveIf(__output) {
 export function ReactiveIfElse(__output) {
 	_$_.push_component();
 
-	let isOn = _$_.track(false);
+	let lazy_1 = _$_.track(false);
 
 	__output.push('<button');
 	__output.push(' class="toggle"');
@@ -130,7 +130,7 @@ export function ReactiveIfElse(__output) {
 	__output.push('</button>');
 	__output.push('<!--[-->');
 
-	if (_$_.get(isOn)) {
+	if (_$_.get(lazy_1)) {
 		__output.push('<div');
 		__output.push(' class="on"');
 		__output.push('>');
@@ -159,8 +159,8 @@ export function ReactiveIfElse(__output) {
 export function NestedIf(__output) {
 	_$_.push_component();
 
-	let outer = _$_.track(true);
-	let inner = _$_.track(true);
+	let lazy_2 = _$_.track(true);
+	let lazy_3 = _$_.track(true);
 
 	__output.push('<button');
 	__output.push(' class="outer-toggle"');
@@ -182,7 +182,7 @@ export function NestedIf(__output) {
 	__output.push('</button>');
 	__output.push('<!--[-->');
 
-	if (_$_.get(outer)) {
+	if (_$_.get(lazy_2)) {
 		__output.push('<div');
 		__output.push(' class="outer-content"');
 		__output.push('>');
@@ -191,7 +191,7 @@ export function NestedIf(__output) {
 			__output.push('Outer');
 			__output.push('<!--[-->');
 
-			if (_$_.get(inner)) {
+			if (_$_.get(lazy_3)) {
 				__output.push('<span');
 				__output.push(' class="inner-content"');
 				__output.push('>');
@@ -216,7 +216,7 @@ export function NestedIf(__output) {
 export function IfElseIfChain(__output) {
 	_$_.push_component();
 
-	let status = _$_.track('loading');
+	let lazy_4 = _$_.track('loading');
 
 	__output.push('<div');
 	__output.push('>');
@@ -251,7 +251,7 @@ export function IfElseIfChain(__output) {
 		__output.push('</button>');
 		__output.push('<!--[-->');
 
-		if (_$_.get(status) === 'loading') {
+		if (_$_.get(lazy_4) === 'loading') {
 			__output.push('<div');
 			__output.push(' class="state"');
 			__output.push('>');
@@ -264,7 +264,7 @@ export function IfElseIfChain(__output) {
 		} else {
 			__output.push('<!--[-->');
 
-			if (_$_.get(status) === 'success') {
+			if (_$_.get(lazy_4) === 'success') {
 				__output.push('<div');
 				__output.push(' class="state"');
 				__output.push('>');

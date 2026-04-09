@@ -16,10 +16,10 @@ describe('basic client > get/set functions', () => {
 
 	it('gets tracked value after mutation', () => {
 		component Test() {
-			let count = track(0);
+			let &[count] = track(0);
 
 			<p>{get(count)}</p>
-			<button onClick={() => @count++}>{'increment'}</button>
+			<button onClick={() => count++}>{'increment'}</button>
 		}
 
 		render(Test);
@@ -36,14 +36,14 @@ describe('basic client > get/set functions', () => {
 
 	it('gets tracked value after multiple mutations', () => {
 		component Test() {
-			let count = track(0);
+			let &[count] = track(0);
 
 			<p>{get(count)}</p>
 			<button
 				onClick={() => {
-					@count++;
-					@count++;
-					@count++;
+					count++;
+					count++;
+					count++;
 				}}
 			>
 				{'increment'}

@@ -1559,6 +1559,7 @@ function RipplePlugin(config) {
 						memberExpr.property = this.jsx_parseIdentifier();
 						memberExpr.computed = false;
 					}
+					memberExpr = this.finishNode(memberExpr, 'JSXMemberExpression');
 					while (this.eat(tt.dot)) {
 						let newMemberExpr = /** @type {ESTreeJSX.JSXMemberExpression} */ (
 							this.startNodeAt(
@@ -1571,7 +1572,7 @@ function RipplePlugin(config) {
 						newMemberExpr.computed = false;
 						memberExpr = this.finishNode(newMemberExpr, 'JSXMemberExpression');
 					}
-					return this.finishNode(memberExpr, 'JSXMemberExpression');
+					return memberExpr;
 				}
 				return node;
 			}

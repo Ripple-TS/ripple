@@ -66,11 +66,11 @@ ruleTester.run('no-introspect-in-modules', rule, {
 			code: `
 				import { track, effect } from 'ripple';
 				component Counter() {
-					const count = track(0);
+					const &[count] = track(0);
 					effect(() => {
-						console.log(@count);
+						console.log(count);
 					});
-					<div>{@count}</div>
+					<div>{count}</div>
 				}
 			`,
 			filename: 'Counter.ripple',
@@ -82,9 +82,9 @@ ruleTester.run('no-introspect-in-modules', rule, {
 			code: `
 				import { track, effect } from 'ripple';
 				export function useCount() {
-					const count = track(1);
+					const &[count] = track(1);
 					effect(() => {
-						console.log(@count);
+						console.log(count);
 					});
 					return { count };
 				}
@@ -101,8 +101,8 @@ ruleTester.run('no-introspect-in-modules', rule, {
 			code: `
 				import { track } from 'ripple';
 				function useCounter() {
-					const value = track(42);
-					const result = @value * 2;
+					const &[value] = track(42);
+					const result = value * 2;
 					return result;
 				}
 			`,
@@ -118,9 +118,9 @@ ruleTester.run('no-introspect-in-modules', rule, {
 			code: `
 				import { track } from 'ripple';
 				export function useForm() {
-					const firstName = track('');
-					const lastName = track('');
-					const fullName = @firstName + ' ' + @lastName;
+					const &[firstName] = track('');
+					const &[lastName] = track('');
+					const fullName = firstName + ' ' + lastName;
 					return { fullName };
 				}
 			`,
@@ -139,9 +139,9 @@ ruleTester.run('no-introspect-in-modules', rule, {
 			code: `
 				import { track, effect } from 'ripple';
 				export function useData() {
-					const data = track(null);
+					const &[data] = track(null);
 					effect(() => {
-						console.log(@data);
+						console.log(data);
 					});
 					return data;
 				}

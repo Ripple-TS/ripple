@@ -50,7 +50,7 @@ describe('refs', () => {
 		let logs: string[] = [];
 
 		component App() {
-			let value = track('test');
+			let &[value] = track('test');
 
 			function inputRef(node: HTMLInputElement) {
 				logs.push('ref called');
@@ -58,7 +58,7 @@ describe('refs', () => {
 
 			const props = {
 				id: 'example',
-				@value,
+				value,
 				[createRefKey()]: inputRef,
 			};
 
@@ -81,7 +81,7 @@ describe('refs', () => {
 		let logs: string[] = [];
 
 		component App() {
-			let value = track('test');
+			let &[value] = track('test');
 
 			function inputRef(node: HTMLInputElement) {
 				logs.push('ref called');
@@ -89,7 +89,7 @@ describe('refs', () => {
 
 			const props = {
 				id: 'example',
-				@value,
+				value,
 			};
 
 			<input type="text" {ref inputRef} {...props} />

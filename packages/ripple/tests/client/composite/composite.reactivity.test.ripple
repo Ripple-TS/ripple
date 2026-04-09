@@ -7,10 +7,10 @@ describe('composite > reactivity', () => {
 			<button
 				class="count2"
 				onClick={() => {
-					obj.@count++;
+					obj.count.value++;
 				}}
 			>
-				{obj.@count}
+				{obj.count.value}
 			</button>
 		}
 
@@ -20,7 +20,7 @@ describe('composite > reactivity', () => {
 					count: track(0),
 				};
 
-				<span class="count">{obj.@count}</span>
+				<span class="count">{obj.count.value}</span>
 				<Button {obj} />
 			</div>
 		}
@@ -41,15 +41,15 @@ describe('composite > reactivity', () => {
 			<button
 				class="count2"
 				onClick={() => {
-					obj.@count++;
+					obj.count.value++;
 				}}
 			>
-				{obj.@count}
+				{obj.count.value}
 			</button>
 		}
 
 		component OtherComponent({ obj }: { obj: { count: Tracked<number> } }) {
-			<div class="count3">{obj.@count}</div>
+			<div class="count3">{obj.count.value}</div>
 		}
 
 		component App() {
@@ -58,7 +58,7 @@ describe('composite > reactivity', () => {
 					count: track(0),
 				};
 
-				<span class="count">{obj.@count}</span>
+				<span class="count">{obj.count.value}</span>
 				<span>{' '}</span>
 				if (obj) {
 					<Button {obj} />
@@ -84,28 +84,28 @@ describe('composite > reactivity', () => {
 
 	it('parents and children have isolated state', () => {
 		component Button(props: { count: number }) {
-			let count = track(() => props.count);
+			let &[count] = track(() => props.count);
 			<button
 				onClick={() => {
-					@count++;
+					count++;
 				}}
 			>
-				{'child: ' + @count}
+				{'child: ' + count}
 			</button>
 		}
 
 		component App() {
 			<div>
-				let count = track(0);
+				let &[count] = track(0);
 
 				<button
 					onClick={() => {
-						@count++;
+						count++;
 					}}
 				>
-					{'parent: ' + @count}
+					{'parent: ' + count}
 				</button>
-				<Button {@count} />
+				<Button {count} />
 			</div>
 		}
 
@@ -131,28 +131,28 @@ describe('composite > reactivity', () => {
 
 	it('parents and children have isolated connected state (destructured props)', () => {
 		component Button(&{ count }: { count: number }) {
-			let local_count = track(() => count);
+			let &[local_count] = track(() => count);
 			<button
 				onClick={() => {
-					@local_count++;
+					local_count++;
 				}}
 			>
-				{'child: ' + @local_count}
+				{'child: ' + local_count}
 			</button>
 		}
 
 		component App() {
 			<div>
-				let count = track(0);
+				let &[count] = track(0);
 
 				<button
 					onClick={() => {
-						@count++;
+						count++;
 					}}
 				>
-					{'parent: ' + @count}
+					{'parent: ' + count}
 				</button>
-				<Button {@count} />
+				<Button {count} />
 			</div>
 		}
 
@@ -180,25 +180,25 @@ describe('composite > reactivity', () => {
 		let logs: string[] = [];
 
 		component App() {
-			const a = track(1);
-			const b = track(2);
-			const c = track(3);
+			const &[a] = track(1);
+			const &[b] = track(2);
+			const &[c] = track(3);
 
-			const obj = track(
+			const &[obj] = track(
 				() => ({
-					@a,
-					@b,
-					@c,
+					a,
+					b,
+					c,
 				}),
 			);
 
-			<Child {...@obj} />
+			<Child {...obj} />
 
 			<button
 				onClick={() => {
-					@a++;
-					@b++;
-					@c++;
+					a++;
+					b++;
+					c++;
 				}}
 			>
 				{'Increment all'}
@@ -231,8 +231,8 @@ describe('composite > reactivity', () => {
 		'keeps reactivity for spread props via intermediate components and usage of trackSplit()',
 		() => {
 			component App() {
-				const count = track(0);
-				<CounterWrapper {@count} up={() => @count++} down={() => @count--} />
+				const &[count] = track(0);
+				<CounterWrapper {count} up={() => count++} down={() => count--} />
 			}
 
 			component CounterWrapper(props: Props) {
@@ -242,10 +242,10 @@ describe('composite > reactivity', () => {
 			}
 
 			component Counter(props: Props) {
-				const [count, up, down, rest] = trackSplit(props, ['count', 'up', 'down']);
-				<button onClick={() => @up()}>{'UP'}</button>
-				<button onClick={() => @down()}>{'DOWN'}</button>
-				<span {...@rest}>{`Counter: ${@count}`}</span>
+				const &[count, up, down, rest] = trackSplit(props, ['count', 'up', 'down']);
+				<button onClick={() => up()}>{'UP'}</button>
+				<button onClick={() => down()}>{'DOWN'}</button>
+				<span {...rest}>{`Counter: ${count}`}</span>
 			}
 
 			render(App);
@@ -270,8 +270,8 @@ describe('composite > reactivity', () => {
 
 	it('keeps reactivity on elements for element spreads and adds / removes dynamic props', () => {
 		component App() {
-			const count = track(0);
-			<CounterWrapper {@count} up={() => @count++} />
+			const &[count] = track(0);
+			<CounterWrapper {count} up={() => count++} />
 		}
 
 		component CounterWrapper(props: { count: number; up: () => void }) {
@@ -302,9 +302,9 @@ describe('composite > reactivity', () => {
 			another?: number;
 			extra: number;
 		}) {
-			const [count, up, rest] = trackSplit(props, ['count', 'up']);
-			<div {...@rest}>{`Counter: ${@count} Double: ${props.@double}`}</div>
-			<button onClick={() => @up()}>{'UP'}</button>
+			const &[count, up, rest] = trackSplit(props, ['count', 'up']);
+			<div {...rest}>{`Counter: ${count} Double: ${props.double.value}`}</div>
+			<button onClick={() => up()}>{'UP'}</button>
 		}
 
 		render(App);

@@ -7,7 +7,7 @@ export async function IfWithChildren(__output, { children }) {
 	return _$_.async(async () => {
 		_$_.push_component();
 
-		let expanded = _$_.track(true);
+		let lazy = _$_.track(true);
 
 		__output.push('<div');
 		__output.push(' class="container"');
@@ -26,7 +26,7 @@ export async function IfWithChildren(__output, { children }) {
 			__output.push('</div>');
 			__output.push('<!--[-->');
 
-			if (_$_.get(expanded)) {
+			if (_$_.get(lazy)) {
 				__output.push('<div');
 				__output.push(' class="content"');
 				__output.push('>');
@@ -111,7 +111,7 @@ export function TestIfWithChildren(__output) {
 export function IfWithStaticChildren(__output) {
 	_$_.push_component();
 
-	let expanded = _$_.track(true);
+	let lazy_1 = _$_.track(true);
 
 	__output.push('<div');
 	__output.push(' class="container"');
@@ -130,7 +130,7 @@ export function IfWithStaticChildren(__output) {
 		__output.push('</div>');
 		__output.push('<!--[-->');
 
-		if (_$_.get(expanded)) {
+		if (_$_.get(lazy_1)) {
 			__output.push('<div');
 			__output.push(' class="content"');
 			__output.push('>');
@@ -168,7 +168,7 @@ export async function IfWithSiblingsAndChildren(__output, { children }) {
 	return _$_.async(async () => {
 		_$_.push_component();
 
-		let expanded = _$_.track(true);
+		let lazy_2 = _$_.track(true);
 
 		__output.push('<section');
 		__output.push(' class="group"');
@@ -222,7 +222,7 @@ export async function IfWithSiblingsAndChildren(__output, { children }) {
 			__output.push('</div>');
 			__output.push('<!--[-->');
 
-			if (_$_.get(expanded)) {
+			if (_$_.get(lazy_2)) {
 				__output.push('<div');
 				__output.push(' class="items"');
 				__output.push('>');
@@ -293,7 +293,7 @@ export function TestIfWithSiblingsAndChildren(__output) {
 export function ElementWithChildrenThenIf(__output) {
 	_$_.push_component();
 
-	let show = _$_.track(true);
+	let lazy_3 = _$_.track(true);
 
 	__output.push('<div');
 	__output.push(' class="wrapper"');
@@ -327,7 +327,7 @@ export function ElementWithChildrenThenIf(__output) {
 		__output.push('</div>');
 		__output.push('<!--[-->');
 
-		if (_$_.get(show)) {
+		if (_$_.get(lazy_3)) {
 			__output.push('<div');
 			__output.push(' class="conditional"');
 			__output.push('>');
@@ -358,7 +358,7 @@ export function ElementWithChildrenThenIf(__output) {
 export function DeepNestingThenIf(__output) {
 	_$_.push_component();
 
-	let visible = _$_.track(true);
+	let lazy_4 = _$_.track(true);
 
 	__output.push('<section');
 	__output.push(' class="outer"');
@@ -407,7 +407,7 @@ export function DeepNestingThenIf(__output) {
 		__output.push('</article>');
 		__output.push('<!--[-->');
 
-		if (_$_.get(visible)) {
+		if (_$_.get(lazy_4)) {
 			__output.push('<footer');
 			__output.push(' class="footer"');
 			__output.push('>');
@@ -438,7 +438,7 @@ export function DeepNestingThenIf(__output) {
 export function DomElementChildrenThenSibling(__output) {
 	_$_.push_component();
 
-	let activeTab = _$_.track('code');
+	let lazy_5 = _$_.track('code');
 
 	__output.push('<div');
 	__output.push(' class="tabs"');
@@ -451,7 +451,7 @@ export function DomElementChildrenThenSibling(__output) {
 
 		{
 			__output.push('<button');
-			__output.push(_$_.attr('aria-selected', _$_.get(activeTab) === 'code' ? 'true' : 'false', false));
+			__output.push(_$_.attr('aria-selected', _$_.get(lazy_5) === 'code' ? 'true' : 'false', false));
 			__output.push(' class="tab"');
 			__output.push('>');
 
@@ -461,7 +461,7 @@ export function DomElementChildrenThenSibling(__output) {
 
 			__output.push('</button>');
 			__output.push('<button');
-			__output.push(_$_.attr('aria-selected', _$_.get(activeTab) === 'preview' ? 'true' : 'false', false));
+			__output.push(_$_.attr('aria-selected', _$_.get(lazy_5) === 'preview' ? 'true' : 'false', false));
 			__output.push(' class="tab"');
 			__output.push('>');
 
@@ -480,7 +480,7 @@ export function DomElementChildrenThenSibling(__output) {
 		{
 			__output.push('<!--[-->');
 
-			if (_$_.get(activeTab) === 'code') {
+			if (_$_.get(lazy_5) === 'code') {
 				__output.push('<pre');
 				__output.push(' class="code"');
 				__output.push('>');
@@ -515,7 +515,7 @@ export function DomElementChildrenThenSibling(__output) {
 export function DomChildrenThenStaticSiblings(__output) {
 	_$_.push_component();
 
-	let count = _$_.track(0);
+	let lazy_6 = _$_.track(0);
 
 	__output.push('<div');
 	__output.push(' class="container"');
@@ -532,7 +532,7 @@ export function DomChildrenThenStaticSiblings(__output) {
 			__output.push('>');
 
 			{
-				__output.push(_$_.escape('Item count: ' + String(_$_.get(count))));
+				__output.push(_$_.escape('Item count: ' + String(_$_.get(lazy_6))));
 			}
 
 			__output.push('</li>');

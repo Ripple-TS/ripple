@@ -50,7 +50,7 @@ Layout.async = true;
 export function Content(__output) {
 	_$_.push_component();
 
-	let visible = _$_.track(true);
+	let lazy = _$_.track(true);
 
 	__output.push('<div');
 	__output.push(' class="content"');
@@ -59,7 +59,7 @@ export function Content(__output) {
 	{
 		__output.push('<!--[-->');
 
-		if (_$_.get(visible)) {
+		if (_$_.get(lazy)) {
 			__output.push('<p');
 			__output.push(' class="text"');
 			__output.push('>');

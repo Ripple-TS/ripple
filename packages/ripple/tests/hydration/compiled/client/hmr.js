@@ -33,7 +33,7 @@ export function Layout(__anchor, { children }, __block) {
 export function Content(__anchor, _, __block) {
 	_$_.push_component();
 
-	let visible = _$_.track(true, void 0, void 0, __block);
+	let lazy = _$_.track(true, void 0, void 0, __block);
 	var div_2 = root_1();
 
 	{
@@ -47,7 +47,7 @@ export function Content(__anchor, _, __block) {
 			};
 
 			_$_.if(node_1, (__render) => {
-				if (_$_.get(visible)) __render(consequent);
+				if (_$_.get(lazy)) __render(consequent);
 			});
 		}
 

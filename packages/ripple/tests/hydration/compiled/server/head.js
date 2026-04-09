@@ -30,7 +30,7 @@ export function StaticTitle(__output) {
 export function ReactiveTitle(__output) {
 	_$_.push_component();
 
-	let title = _$_.track('Initial Title');
+	let lazy = _$_.track('Initial Title');
 
 	__output.push('<div');
 	__output.push('>');
@@ -40,7 +40,7 @@ export function ReactiveTitle(__output) {
 		__output.push('>');
 
 		{
-			__output.push(_$_.escape(_$_.get(title)));
+			__output.push(_$_.escape(_$_.get(lazy)));
 		}
 
 		__output.push('</span>');
@@ -48,12 +48,12 @@ export function ReactiveTitle(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--1h8nm28-->');
+	__output.push('<!--9zxmq0-->');
 	__output.push('<title');
 	__output.push('>');
 
 	{
-		__output.push(_$_.escape(_$_.get(title)));
+		__output.push(_$_.escape(_$_.get(lazy)));
 	}
 
 	__output.push('</title>');
@@ -72,7 +72,7 @@ export function MultipleHeadElements(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--9v67ol-->');
+	__output.push('<!--16pnxms-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -96,18 +96,18 @@ export function MultipleHeadElements(__output) {
 export function ReactiveMetaTags(__output) {
 	_$_.push_component();
 
-	let description = _$_.track('Initial description');
+	let lazy_1 = _$_.track('Initial description');
 
 	__output.push('<div');
 	__output.push('>');
 
 	{
-		__output.push(_$_.escape(_$_.get(description)));
+		__output.push(_$_.escape(_$_.get(lazy_1)));
 	}
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--166unm-->');
+	__output.push('<!--w5ribf-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -118,7 +118,7 @@ export function ReactiveMetaTags(__output) {
 	__output.push('</title>');
 	__output.push('<meta');
 	__output.push(' name="description"');
-	__output.push(_$_.attr('content', _$_.get(description), false));
+	__output.push(_$_.attr('content', _$_.get(lazy_1), false));
 	__output.push(' />');
 	__output.target = null;
 	_$_.pop_component();
@@ -127,23 +127,23 @@ export function ReactiveMetaTags(__output) {
 export function TitleWithTemplate(__output) {
 	_$_.push_component();
 
-	let name = _$_.track('World');
+	let lazy_2 = _$_.track('World');
 
 	__output.push('<div');
 	__output.push('>');
 
 	{
-		__output.push(_$_.escape(_$_.get(name)));
+		__output.push(_$_.escape(_$_.get(lazy_2)));
 	}
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--3o3mh2-->');
+	__output.push('<!--2ch862-->');
 	__output.push('<title');
 	__output.push('>');
 
 	{
-		__output.push(_$_.escape(`Hello ${_$_.get(name)}!`));
+		__output.push(_$_.escape(`Hello ${_$_.get(lazy_2)}!`));
 	}
 
 	__output.push('</title>');
@@ -162,7 +162,7 @@ export function EmptyTitle(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--kwo3k6-->');
+	__output.push('<!--u2seuf-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -178,24 +178,24 @@ export function EmptyTitle(__output) {
 export function ConditionalTitle(__output) {
 	_$_.push_component();
 
-	let showPrefix = _$_.track(true);
-	let title = _$_.track('Main Page');
+	let lazy_3 = _$_.track(true);
+	let lazy_4 = _$_.track('Main Page');
 
 	__output.push('<div');
 	__output.push('>');
 
 	{
-		__output.push(_$_.escape(_$_.get(title)));
+		__output.push(_$_.escape(_$_.get(lazy_4)));
 	}
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--c2i5xr-->');
+	__output.push('<!--a0y861-->');
 	__output.push('<title');
 	__output.push('>');
 
 	{
-		__output.push(_$_.escape(_$_.get(showPrefix) ? 'App - ' + _$_.get(title) : _$_.get(title)));
+		__output.push(_$_.escape(_$_.get(lazy_3) ? 'App - ' + _$_.get(lazy_4) : _$_.get(lazy_4)));
 	}
 
 	__output.push('</title>');
@@ -206,7 +206,7 @@ export function ConditionalTitle(__output) {
 export function ComputedTitle(__output) {
 	_$_.push_component();
 
-	let count = _$_.track(0);
+	let lazy_5 = _$_.track(0);
 	let prefix = 'Count: ';
 
 	__output.push('<div');
@@ -217,7 +217,7 @@ export function ComputedTitle(__output) {
 		__output.push('>');
 
 		{
-			__output.push(_$_.escape(_$_.get(count)));
+			__output.push(_$_.escape(_$_.get(lazy_5)));
 		}
 
 		__output.push('</span>');
@@ -225,12 +225,12 @@ export function ComputedTitle(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--1h2z3z5-->');
+	__output.push('<!--1bmcw8x-->');
 	__output.push('<title');
 	__output.push('>');
 
 	{
-		__output.push(_$_.escape(prefix + _$_.get(count)));
+		__output.push(_$_.escape(prefix + _$_.get(lazy_5)));
 	}
 
 	__output.push('</title>');
@@ -249,7 +249,7 @@ export function MultipleHeadBlocks(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--14rv3le-->');
+	__output.push('<!--1lpoxil-->');
 	__output.push('<title');
 	__output.push('>');
 
@@ -258,7 +258,7 @@ export function MultipleHeadBlocks(__output) {
 	}
 
 	__output.push('</title>');
-	__output.push('<!--1eh1mn5-->');
+	__output.push('<!--n4z677-->');
 	__output.push('<meta');
 	__output.push(' name="author"');
 	__output.push(' content="Test Author"');
@@ -278,7 +278,7 @@ export function HeadWithStyle(__output) {
 
 	__output.push('</div>');
 	__output.target = 'head';
-	__output.push('<!--1dxk6yg-->');
+	__output.push('<!--7j37lr-->');
 	__output.push('<title');
 	__output.push('>');
 
