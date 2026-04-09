@@ -208,8 +208,9 @@ export component App() {
 
 ### `ripple/no-lazy-destructuring-in-modules` (error)
 
-Prevents using lazy destructuring (`&[]` / `&{}`) in TypeScript/JavaScript modules.
-In `.ts`/`.js` files, you should use `.value` to read and write tracked values instead.
+Prevents using lazy destructuring (`&[]` / `&{}`) in TypeScript/JavaScript
+modules. In `.ts`/`.js` files, you should use `.value` to read and write tracked
+values instead.
 
 ❌ **Incorrect:**
 
