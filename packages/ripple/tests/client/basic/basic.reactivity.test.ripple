@@ -445,11 +445,11 @@ describe('basic client > reactivity', () => {
 
 		it('returns undefined for non-existent props in track with trackSplit', () => {
 			component App() {
-				const &[a, b, rest] = trackSplit({ a: 1, c: 1 }, ['a', 'b']);
+				const [a, b, rest] = trackSplit({ a: 1, c: 1 }, ['a', 'b']);
 
-				<pre>{a}</pre>
-				<pre>{String(b)}</pre>
-				<pre>{rest.c}</pre>
+				<pre>{a.value}</pre>
+				<pre>{String(b.value)}</pre>
+				<pre>{rest.value.c}</pre>
 			}
 
 			render(App);
@@ -508,14 +508,14 @@ describe('basic client > reactivity', () => {
 				class: string;
 				onClick: () => void;
 			}>) {
-				const &[children, count, rest] = trackSplit(props, ['children', 'count']);
+				const [children, count, rest] = trackSplit(props, ['children', 'count']);
 
-				if (count < 2) {
-					<button {...rest}>
+				if (count.value < 2) {
+					<button {...rest.value}>
 						<@children />
 					</button>
 				}
-				<pre>{count}</pre>
+				<pre>{count.value}</pre>
 			}
 
 			render(App);

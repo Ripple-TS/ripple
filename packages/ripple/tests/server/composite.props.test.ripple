@@ -80,8 +80,8 @@ describe('composite > props', () => {
 
 	it('correctly retains prop accessors and reactivity when using rest props', async () => {
 		component Button(props: Props) {
-			const &[children, rest] = trackSplit(props, ['children']);
-			<button {...rest}>
+			const [children, rest] = trackSplit(props, ['children']);
+			<button {...rest.value}>
 				<@children />
 			</button>
 			<style>
@@ -95,10 +95,10 @@ describe('composite > props', () => {
 		}
 
 		component Toggle(props: { pressed: Tracked<boolean> }) {
-			const &[pressed, rest] = trackSplit(props, ['pressed']);
-			const onClick = () => (pressed = !pressed);
-			<Button {...rest} class={pressed ? 'on' : 'off'} {onClick}>{'button 1'}</Button>
-			<Button class={pressed ? 'on' : 'off'} {onClick}>{'button 2'}</Button>
+			const [pressed, rest] = trackSplit(props, ['pressed']);
+			const onClick = () => (pressed.value = !pressed.value);
+			<Button {...rest.value} class={pressed.value ? 'on' : 'off'} {onClick}>{'button 1'}</Button>
+			<Button class={pressed.value ? 'on' : 'off'} {onClick}>{'button 2'}</Button>
 		}
 
 		component App() {

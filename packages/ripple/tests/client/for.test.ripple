@@ -136,7 +136,7 @@ describe('for statements', () => {
 		component App() {
 			let &[count] = track(0);
 
-			const &[items] = track(
+			let &[items] = track(
 				() => Array.from({ length: count }).map((_, id) => ({ id, label: `Item ${id}` })),
 			);
 

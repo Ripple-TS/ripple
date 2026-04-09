@@ -15,7 +15,7 @@ describe('basic client', () => {
 
 	it('renders tracked state updates', async () => {
 		component Counter() {
-			const &[count] = track(0);
+			let &[count] = track(0);
 
 			count++;
 			count = count + 5;
@@ -66,9 +66,9 @@ describe('basic client', () => {
 
 	it('renders spread props with tracked values', async () => {
 		component SpreadProps() {
-			const &[id] = track('unique-id');
-			const &[isActive] = track(true);
-			const &[styles] = track({ color: 'red', fontSize: '16px' });
+			let &[id] = track('unique-id');
+			let &[isActive] = track(true);
+			let &[styles] = track({ color: 'red', fontSize: '16px' });
 
 			<div {...{ id: id, class: { active: isActive }, style: styles }}>{'Spread Props'}</div>
 		}
@@ -82,7 +82,7 @@ describe('basic client', () => {
 
 	it('handles AssignExpressions with tracked values or properties correctly', async () => {
 		component Assignments() {
-			const &[count] = track(0);
+			let &[count] = track(0);
 			const obj = { value: track(5) };
 
 			count += 10;
@@ -101,7 +101,7 @@ describe('basic client', () => {
 		component Derived() {
 			let &[base] = track(5);
 			let &[multiplier] = track(3);
-			const &[derived] = track(() => base * multiplier);
+			let &[derived] = track(() => base * multiplier);
 
 			<div>{derived}</div>
 
@@ -119,8 +119,8 @@ describe('basic client', () => {
 		component NestedDerived() {
 			let &[a] = track(2);
 			let &[b] = track(3);
-			const &[sum] = track(() => a + b);
-			const &[product] = track(() => sum * 2);
+			let &[sum] = track(() => a + b);
+			let &[product] = track(() => sum * 2);
 
 			<div>{product}</div>
 

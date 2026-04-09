@@ -411,8 +411,8 @@ describe('dynamic DOM elements', () => {
 			onClick: EventListener;
 		}>) {
 			const tag = track('button');
-			const &[rest] = trackSplit(props, []);
-			<@tag {...rest}>{rest.class}</@tag>
+			const [rest] = trackSplit(props, []);
+			<@tag {...rest.value}>{rest.value.class}</@tag>
 
 			<style>
 				.even {
@@ -425,7 +425,7 @@ describe('dynamic DOM elements', () => {
 		}
 
 		component App() {
-			const &[count] = track(0);
+			let &[count] = track(0);
 			<DynamicButton
 				class={count % 2 ? 'even' : 'odd'}
 				id={count % 2 ? 'even' : 'odd'}

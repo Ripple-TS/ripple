@@ -180,11 +180,11 @@ describe('composite > reactivity', () => {
 		let logs: string[] = [];
 
 		component App() {
-			const &[a] = track(1);
-			const &[b] = track(2);
-			const &[c] = track(3);
+			let &[a] = track(1);
+			let &[b] = track(2);
+			let &[c] = track(3);
 
-			const &[obj] = track(
+			let &[obj] = track(
 				() => ({
 					a,
 					b,
@@ -231,7 +231,7 @@ describe('composite > reactivity', () => {
 		'keeps reactivity for spread props via intermediate components and usage of trackSplit()',
 		() => {
 			component App() {
-				const &[count] = track(0);
+				let &[count] = track(0);
 				<CounterWrapper {count} up={() => count++} down={() => count--} />
 			}
 
@@ -242,10 +242,10 @@ describe('composite > reactivity', () => {
 			}
 
 			component Counter(props: Props) {
-				const &[count, up, down, rest] = trackSplit(props, ['count', 'up', 'down']);
-				<button onClick={() => up()}>{'UP'}</button>
-				<button onClick={() => down()}>{'DOWN'}</button>
-				<span {...rest}>{`Counter: ${count}`}</span>
+				let [count, up, down, rest] = trackSplit(props, ['count', 'up', 'down']);
+				<button onClick={() => up.value()}>{'UP'}</button>
+				<button onClick={() => down.value()}>{'DOWN'}</button>
+				<span {...rest.value}>{`Counter: ${count.value}`}</span>
 			}
 
 			render(App);
@@ -270,7 +270,7 @@ describe('composite > reactivity', () => {
 
 	it('keeps reactivity on elements for element spreads and adds / removes dynamic props', () => {
 		component App() {
-			const &[count] = track(0);
+			let &[count] = track(0);
 			<CounterWrapper {count} up={() => count++} />
 		}
 
@@ -302,9 +302,9 @@ describe('composite > reactivity', () => {
 			another?: number;
 			extra: number;
 		}) {
-			const &[count, up, rest] = trackSplit(props, ['count', 'up']);
-			<div {...rest}>{`Counter: ${count} Double: ${props.double.value}`}</div>
-			<button onClick={() => up()}>{'UP'}</button>
+			let [count, up, rest] = trackSplit(props, ['count', 'up']);
+			<div {...rest.value}>{`Counter: ${count.value} Double: ${props.double.value}`}</div>
+			<button onClick={() => up.value()}>{'UP'}</button>
 		}
 
 		render(App);

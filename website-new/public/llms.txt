@@ -370,7 +370,7 @@ let { children, count, class: className, ...rest } = props;
 import { track, effect } from 'ripple';
 
 function createDouble(&[count]) {
-  const &[double] = track(() => count * 2);
+  const double = track(() => count * 2);
 
   effect(() => {
     console.log('Count:', count)

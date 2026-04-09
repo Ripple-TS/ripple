@@ -208,8 +208,8 @@ describe('lazy destructuring', () => {
 	it('does not apply the track tuple fast-path to trackSplit lazy arrays', () => {
 		component Test() {
 			const source = { a: 1, b: 2, c: 3 };
-			let &[a, b, rest] = trackSplit(source, ['a', 'b']);
-			<pre>{`${a}-${b}-${rest.c}`}</pre>
+			let [a, b, rest] = trackSplit(source, ['a', 'b']);
+			<pre>{`${a.value}-${b.value}-${rest.value.c}`}</pre>
 		}
 
 		render(Test);

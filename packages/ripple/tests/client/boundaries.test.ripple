@@ -4,14 +4,14 @@ describe('passing reactivity between boundaries tests', () => {
 	it('can pass reactivity between functions with simple arrays and destructuring', () => {
 		let log: string[] = [];
 
-		function createDouble(&[count, countTracked]: Tracked<number>) {
+		function createDouble(&[count]: Tracked<number>) {
 			const double = track(() => count * 2);
 
 			effect(() => {
 				log.push('Count:' + count);
 			});
 
-			return [double];
+			return double;
 		}
 
 		component App() {

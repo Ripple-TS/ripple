@@ -278,7 +278,7 @@ simply be passed by reference between boundaries:
 import { track, effect } from 'ripple';
 
 function createDouble(&[count]) {
-  const &[double] = track(() => count * 2);
+  const double = track(() => count * 2);
 
   effect(() => {
     console.log('Count:', count)

@@ -51,7 +51,7 @@ describe('MediaQuery', () => {
 		const media = '(min-width: 600px)';
 
 		component App() {
-			const &[medium] = MediaQuery(media);
+			let &[medium] = MediaQuery(media);
 
 			<div>
 				<p>{medium}</p>
@@ -96,7 +96,7 @@ describe('MediaQuery', () => {
 		}
 
 		component Child() {
-			const &[medium] = MediaQuery(media);
+			let &[medium] = MediaQuery(media);
 
 			<div>
 				<p>{medium}</p>
