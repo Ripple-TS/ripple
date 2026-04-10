@@ -2234,6 +2234,37 @@ function RipplePlugin(config) {
 					return node;
 				}
 
+				// &[ or &{ at statement level — lazy destructuring assignment
+				// e.g., &[data] = track(0); or &{x, y} = obj;
+				if (this.type === tt.bitwiseAND) {
+					const charAfterAmp = this.input.charCodeAt(this.end);
+					if (charAfterAmp === 123 || charAfterAmp === 91) {
+						const node = /** @type {AST.ExpressionStatement} */ (this.startNode());
+						const assign_node = /** @type {AST.AssignmentExpression} */ (this.startNode());
+						this.next(); // consume &
+						// Parse the left-hand side (array or object expression)
+						const left = /** @type {AST.ArrayPattern | AST.ObjectPattern} */ (
+							/** @type {unknown} */ (this.parseExprAtom())
+						);
+						// Convert expression to destructuring pattern
+						this.toAssignable(left, false);
+						left.lazy = true;
+						// Expect = operator
+						this.expect(tt.eq);
+						// Parse the right-hand side
+						assign_node.operator = '=';
+						assign_node.left = left;
+						assign_node.right = /** @type {AST.Expression} */ (this.parseMaybeAssign());
+						node.expression = /** @type {AST.AssignmentExpression} */ (
+							this.finishNode(assign_node, 'AssignmentExpression')
+						);
+						this.semicolon();
+						return /** @type {AST.ExpressionStatement} */ (
+							this.finishNode(node, 'ExpressionStatement')
+						);
+					}
+				}
+
 				return super.parseStatement(context, topLevel, exports);
 			}
 

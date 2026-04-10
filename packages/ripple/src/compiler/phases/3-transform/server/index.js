@@ -813,6 +813,19 @@ const visitors = {
 		return statements.length ? b.block(statements) : b.empty;
 	},
 
+	ExpressionStatement(node, context) {
+		// Handle standalone lazy destructuring: &[data] = track(0); → const lazy0 = track(0);
+		if (
+			node.expression.type === 'AssignmentExpression' &&
+			node.expression.left.lazy &&
+			node.expression.left.metadata?.lazy_id
+		) {
+			const right = /** @type {AST.Expression} */ (context.visit(node.expression.right));
+			return b.const(b.id(node.expression.left.metadata.lazy_id), right);
+		}
+		return context.next();
+	},
+
 	VariableDeclaration(node, context) {
 		for (const declarator of node.declarations) {
 			if (!context.state.to_ts) {
@@ -1180,8 +1193,8 @@ const visitors = {
 
 			/** @type {AST.Statement[]} */
 			const init = [];
-			/** @type {AST.Statement[]} */
 			const visited_id = /** @type {AST.Expression} */ (visit(node.id, state));
+			/** @type {AST.Statement[]} */
 			const statements = [
 				b.const(comp_id, is_element_dynamic(node) ? b.call('_$_.get', visited_id) : visited_id),
 				b.const(args_id, b.array(args)),

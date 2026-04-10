@@ -916,6 +916,25 @@ const visitors = {
 		return context.next();
 	},
 
+	ExpressionStatement(node, context) {
+		// Handle standalone lazy destructuring: &[data] = track(0); → const lazy0 = track(0);
+		if (
+			node.expression.type === 'AssignmentExpression' &&
+			node.expression.left.lazy &&
+			node.expression.left.metadata?.lazy_id
+		) {
+			if (context.state.to_ts) {
+				// In TypeScript mode, convert to a regular assignment (drop the pattern)
+				node.expression.left.lazy = false;
+				delete node.expression.left.metadata.lazy_id;
+				return context.next();
+			}
+			const right = /** @type {AST.Expression} */ (context.visit(node.expression.right));
+			return b.const(b.id(node.expression.left.metadata.lazy_id), right);
+		}
+		return context.next();
+	},
+
 	VariableDeclaration(node, context) {
 		for (const declarator of node.declarations) {
 			if (!context.state.to_ts) {

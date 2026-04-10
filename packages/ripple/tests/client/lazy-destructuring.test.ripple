@@ -260,4 +260,59 @@ describe('lazy destructuring', () => {
 		render(Test);
 		expect(container.querySelector('pre')!.textContent).toBe('Alice-30');
 	});
+
+	it('supports standalone lazy array destructuring with track()', () => {
+		component Test() {
+			let count;
+			&[count] = track(0);
+			<div>{count}</div>
+			<button
+				onClick={() => {
+					count++;
+				}}
+			>
+				{'inc'}
+			</button>
+		}
+
+		render(Test);
+		expect(container.querySelector('div')!.textContent).toBe('0');
+		container.querySelector('button')!.click();
+		flushSync();
+		expect(container.querySelector('div')!.textContent).toBe('1');
+	});
+
+	it('supports standalone lazy array destructuring with second element', () => {
+		component Test() {
+			let value;
+			let tracked;
+			&[value, tracked] = track(42);
+			<div>{value}</div>
+			<button
+				onClick={() => {
+					value = 100;
+				}}
+			>
+				{'set'}
+			</button>
+		}
+
+		render(Test);
+		expect(container.querySelector('div')!.textContent).toBe('42');
+		container.querySelector('button')!.click();
+		flushSync();
+		expect(container.querySelector('div')!.textContent).toBe('100');
+	});
+
+	it('supports standalone lazy object destructuring', () => {
+		component Test() {
+			let a;
+			let b;
+			&{ a, b } = { a: 10, b: 20 };
+			<pre>{`${a}-${b}`}</pre>
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('10-20');
+	});
 });

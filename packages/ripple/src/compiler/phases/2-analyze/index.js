@@ -836,6 +836,30 @@ const visitors = {
 		}
 	},
 
+	ExpressionStatement(node, context) {
+		const { state, visit } = context;
+
+		// Handle standalone lazy destructuring assignment: &[data] = track(0);
+		if (
+			node.expression.type === 'AssignmentExpression' &&
+			node.expression.operator === '=' &&
+			(node.expression.left.type === 'ObjectPattern' ||
+				node.expression.left.type === 'ArrayPattern') &&
+			node.expression.left.lazy
+		) {
+			const pattern = /** @type {AST.ObjectPattern | AST.ArrayPattern} */ (node.expression.left);
+			const lazy_id = b.id(state.scope.generate('lazy'));
+			const init = /** @type {AST.Expression} */ (node.expression.right);
+			const init_is_track =
+				init?.type === 'CallExpression' && is_ripple_track_call(init.callee, context) === 'track';
+			setup_lazy_transforms(pattern, lazy_id, state, true, !!init_is_track);
+			// Store the generated identifier name on the pattern for the transform phase
+			pattern.metadata = { ...pattern.metadata, lazy_id: lazy_id.name };
+		}
+
+		context.next();
+	},
+
 	StyleIdentifier(node, context) {
 		const component = is_inside_component(context, true);
 		const parent = context.path.at(-1);
