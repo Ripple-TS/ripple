@@ -413,7 +413,7 @@ function RipplePlugin(config) {
 						/** @type {AST.Property} */ (prop).method = true;
 						/** @type {AST.Property} */ (prop).kind = 'init';
 						/** @type {AST.Property} */ (prop).value = this.parseMethod(false, false);
-						/** @type {any} */ (/** @type {AST.Property} */ (prop).value).typeParameters =
+						/** @type {AST.FunctionExpression} */ (/** @type {AST.Property} */ (prop).value).typeParameters =
 							typeParameters;
 						return;
 					}
@@ -942,10 +942,9 @@ function RipplePlugin(config) {
 				}
 
 				let containsEsc = this.containsEsc;
-				// @ts-ignore — constructor function, not a class
-				let refDestructuringErrors = /** @type {Parse.DestructuringErrors} */ (
-					new DestructuringErrors()
-				);
+				let refDestructuringErrors = new /** @type {new () => Parse.DestructuringErrors} */ (
+					/** @type {unknown} */ (DestructuringErrors)
+				)();
 				let initPos = this.start;
 				let init_expr =
 					awaitAt > -1
