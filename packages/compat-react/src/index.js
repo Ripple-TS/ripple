@@ -66,6 +66,28 @@ function is_inside_try_pending(block) {
 	return false;
 }
 
+/**
+ * @param {ReturnType<typeof createReactCompat>} compat
+ * @param {{ from: string, factory: string }} metadata
+ * @returns {ReturnType<typeof createReactCompat> & { __ripple_compat__: { from: string, factory: string } }}
+ */
+function with_compat_metadata(compat, metadata) {
+	return Object.assign(compat, {
+		__ripple_compat__: metadata,
+	});
+}
+
+/**
+ * @param {typeof createReactCompat} factory
+ * @param {{ from: string, factory: string }} metadata
+ * @returns {(() => ReturnType<typeof createReactCompat> & { __ripple_compat__: { from: string, factory: string } }) & { __ripple_compat__: { from: string, factory: string } }}
+ */
+function create_compat_entry(factory, metadata) {
+	return Object.assign(() => with_compat_metadata(factory(), metadata), {
+		__ripple_compat__: metadata,
+	});
+}
+
 export function createReactCompat() {
 	const root_portals = new Map();
 	/** @type {{ portals: Map<any, any>, update: Function}} */
@@ -173,6 +195,11 @@ export function createReactCompat() {
 		},
 	};
 }
+
+export const reactCompat = create_compat_entry(createReactCompat, {
+	from: '@ripple-ts/compat-react',
+	factory: 'createReactCompat',
+});
 
 /**
  * @param {HTMLSpanElement} node

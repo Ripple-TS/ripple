@@ -1253,21 +1253,29 @@ component App() {
 }
 ```
 
-#### Setting Up React Compat with mount()
+#### Setting Up React Compat with ripple.config.ts
 
-To use `<tsx:react>` blocks, you must configure the React compatibility layer when mounting your Ripple app:
+To use `<tsx:react>` blocks, configure the React compatibility layer in `ripple.config.ts`. The Vite plugin will pick that up automatically, and `mount()` / `hydrate()` will use it without passing compat options manually:
+
+```typescript
+// ripple.config.ts
+import { reactCompat } from '@ripple-ts/compat-react';
+import { defineConfig } from '@ripple-ts/vite-plugin';
+
+export default defineConfig({
+  compat: {
+    react: reactCompat(),
+  },
+});
+```
 
 ```typescript
 // main.ts
 import { mount } from 'ripple';
-import { createReactCompat } from '@ripple-ts/compat-react';
 import { App } from './App.ripple';
 
 mount(App, {
   target: document.getElementById('app')!,
-  compat: {
-    react: createReactCompat(),
-  },
 });
 ```
 
@@ -1432,18 +1440,20 @@ root.render(
 );
 ```
 
-**❌ WRONG: Forgetting createReactCompat() when using tsx:react in Ripple**
+**❌ WRONG: Forgetting reactCompat() in ripple.config.ts when using tsx:react in Ripple**
 ```typescript
-// Wrong: tsx:react blocks won't render
-mount(App, { target: document.getElementById('app')! });
+// Wrong: tsx:react blocks won't render without compat config
+export default defineConfig({});
 ```
 
-**✅ CORRECT: Always configure compat when using tsx:react**
+**✅ CORRECT: Configure compat in ripple.config.ts when using tsx:react**
 ```typescript
-mount(App, {
-  target: document.getElementById('app')!,
+import { reactCompat } from '@ripple-ts/compat-react';
+import { defineConfig } from '@ripple-ts/vite-plugin';
+
+export default defineConfig({
   compat: {
-    react: createReactCompat(),
+    react: reactCompat(),
   },
 });
 ```

@@ -13,9 +13,9 @@
 		<div id="root"><!--ssr-body--></div>
 
 		<script type="module">
+			import 'virtual:ripple-compat';
 			import { mount, hydrate } from 'ripple';
 			import { App } from '/src/App.ripple';
-			import { createReactCompat } from '@ripple-ts/compat-react';
 
 			const target = document.getElementById('root');
 			const anchor = target.firstChild.nextSibling;
@@ -23,16 +23,10 @@
 			if (anchor !== null) {
 				hydrate(App, {
 					target,
-					compat: {
-						react: createReactCompat(),
-					},
 				});
 			} else {
 				mount(App, {
 					target,
-					compat: {
-						react: createReactCompat(),
-					},
 				});
 			}
 		</script>

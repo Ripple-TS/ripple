@@ -99,6 +99,26 @@ declare module '@ripple-ts/vite-plugin' {
 		excludeRippleExternalModules?: boolean;
 	}
 
+	export interface CompatFactoryConfig {
+		/** Module specifier that exports the compat factory */
+		from: string;
+		/** Named export to call. Omit to use the module's default export. */
+		factory?: string;
+	}
+
+	export interface CompatFactory<T = unknown> {
+		(): T;
+		__ripple_compat__: CompatFactoryConfig;
+	}
+
+	export interface CompatEntryValue {
+		__ripple_compat__: CompatFactoryConfig;
+	}
+
+	export type CompatConfigEntry = CompatFactoryConfig | CompatFactory | CompatEntryValue;
+
+	export type CompatConfig = Record<string, CompatConfigEntry>;
+
 	export interface RippleConfigOptions {
 		build?: {
 			/** Output directory for the production build. @default 'dist' */
@@ -119,11 +139,21 @@ declare module '@ripple-ts/vite-plugin' {
 			 */
 			runtime: RuntimePrimitives;
 		};
-		router: {
+		router?: {
 			routes: Route[];
 		};
 		/** Global middlewares applied to all routes */
 		middlewares?: Middleware[];
+		/**
+		 * Client-side TSX compat integrations keyed by kind, e.g. `react` for `<tsx:react>`.
+		 *
+		 * You can either pass a descriptor object or import a compat factory directly,
+		 * as long as that factory export carries Ripple compat metadata.
+		 *
+		 * These are compiled into a browser-side compat registry by the Vite plugin,
+		 * allowing `mount()` / `hydrate()` to pick them up automatically.
+		 */
+		compat?: CompatConfig;
 		platform?: {
 			env: Record<string, string>;
 		};
@@ -163,6 +193,8 @@ declare module '@ripple-ts/vite-plugin' {
 		};
 		/** @default [] */
 		middlewares: Middleware[];
+		/** @default {} */
+		compat: Record<string, CompatFactoryConfig>;
 		platform: {
 			/** @default {} */
 			env: Record<string, string>;

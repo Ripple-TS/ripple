@@ -11,6 +11,18 @@ export declare function createReactCompat(): {
 	createRoot(): () => void | (() => void);
 };
 
+export declare const reactCompat: (() => ReturnType<typeof createReactCompat> & {
+	__ripple_compat__: {
+		from: '@ripple-ts/compat-react';
+		factory: 'createReactCompat';
+	};
+}) & {
+	__ripple_compat__: {
+		from: '@ripple-ts/compat-react';
+		factory: 'createReactCompat';
+	};
+};
+
 export declare function Ripple<P>(component: Component<P>, props?: P): React.JSX.Element;
 
 export declare function RippleRoot(props: { children: React.ReactNode }): React.JSX.Element;
