@@ -19,7 +19,6 @@ const PREC = {
 	CALL: 12,
 	NEW: 13,
 	MEMBER: 14,
-	UNBOX: 15,
 };
 
 module.exports = grammar({
