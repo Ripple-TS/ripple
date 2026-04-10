@@ -29,6 +29,7 @@ export function composite(get_component, node, props) {
 
 	render(
 		() => {
+			// @ts-ignore — get() handles non-tracked values via is_ripple_object() check
 			var component = get(get_component());
 
 			if (b !== null) {

@@ -606,7 +606,7 @@ export function is_element_dynamic(node) {
  * @returns {boolean}
  */
 function is_id_dynamic(node) {
-	if (node.type === 'Identifier' || node.type === 'Literal') {
+	if (node.type === 'Identifier') {
 		return !!node.tracked;
 	}
 
