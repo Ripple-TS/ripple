@@ -1458,8 +1458,20 @@ const visitors = {
 		);
 	},
 
-	TsxCompat(_, context) {
+	TsxCompat(node, context) {
 		mark_control_flow_has_template(context.path);
+
+		const configured_compat_kinds = context.state.configured_compat_kinds;
+		if (configured_compat_kinds !== undefined && !configured_compat_kinds.has(node.kind)) {
+			error(
+				`<tsx:${node.kind}> requires "${node.kind}" compat to be configured in ripple.config.ts.`,
+				context.state.analysis.module.filename,
+				node,
+				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		}
+
 		return context.next();
 	},
 
@@ -1831,6 +1843,8 @@ export function analyze(ast, filename, options = {}) {
 			ancestor_server_block: undefined,
 			to_ts: options.to_ts ?? false,
 			loose,
+			configured_compat_kinds:
+				options.compat_kinds === undefined ? undefined : new Set(options.compat_kinds),
 			metadata: {},
 			mode: options.mode,
 		},

@@ -101,12 +101,6 @@ export function resolveRippleConfig(raw, options = {}) {
 		);
 	}
 
-	if (raw.compat !== undefined) {
-		for (const [kind, entry] of Object.entries(raw.compat)) {
-			normalize_compat_entry(kind, entry);
-		}
-	}
-
 	if (requireAdapter) {
 		if (!raw.adapter) {
 			throw new Error(
