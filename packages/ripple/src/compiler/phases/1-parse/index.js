@@ -413,8 +413,9 @@ function RipplePlugin(config) {
 						/** @type {AST.Property} */ (prop).method = true;
 						/** @type {AST.Property} */ (prop).kind = 'init';
 						/** @type {AST.Property} */ (prop).value = this.parseMethod(false, false);
-						/** @type {AST.FunctionExpression} */ (/** @type {AST.Property} */ (prop).value).typeParameters =
-							typeParameters;
+						/** @type {AST.FunctionExpression} */ (
+							/** @type {AST.Property} */ (prop).value
+						).typeParameters = typeParameters;
 						return;
 					}
 				}
