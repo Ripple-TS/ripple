@@ -861,23 +861,15 @@ module.exports = grammar({
 			),
 
 		jsx_element_name: ($) =>
-			choice(
-				$.identifier,
-				$.jsx_namespace_name,
-				$.jsx_member_name,
-				$.member_expression,
-			),
+			choice($.identifier, $.jsx_namespace_name, $.jsx_member_name, $.member_expression),
 
 		// Non-namespaced variant (used for self-closing elements)
-		jsx_non_namespaced_element_name: ($) => choice($.identifier, $.jsx_member_name, $.member_expression),
+		jsx_non_namespaced_element_name: ($) =>
+			choice($.identifier, $.jsx_member_name, $.member_expression),
 
 		// Support dotted names in JSX element names (e.g. Namespace.Component)
 		// Implemented iteratively to avoid left recursion
-		jsx_member_name: ($) =>
-			seq(
-				$.identifier,
-				repeat1(seq('.', $.identifier)),
-			),
+		jsx_member_name: ($) => seq($.identifier, repeat1(seq('.', $.identifier))),
 
 		jsx_namespace_name: ($) => seq($.identifier, ':', $.identifier),
 
