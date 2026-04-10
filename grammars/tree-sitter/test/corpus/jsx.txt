@@ -20,7 +20,6 @@ component App() {
             name: (identifier)
             (initializer
               (call_expression
-                function: (identifier)
                 arguments: (arguments
                   (arrow_function
                     parameters: (formal_parameters)
@@ -29,8 +28,7 @@ component App() {
         (expression_statement
           (jsx_self_closing_element
             name: (jsx_non_namespaced_element_name
-              (unbox_expression
-                (identifier)))))))))
+              (identifier))))))))
 
 ==================
 Dynamic Element
@@ -54,7 +52,6 @@ component App() {
             name: (identifier)
             (initializer
               (call_expression
-                function: (identifier)
                 arguments: (arguments
                   (string)))))))
       (component_statement
@@ -62,16 +59,14 @@ component App() {
           (jsx_element
             open_tag: (jsx_opening_element
               name: (jsx_element_name
-                (unbox_expression
-                  (identifier))))
+                (identifier)))
             children: (jsx_expression
               (component_statement
                 (expression_statement
                   (string))))
             close_tag: (jsx_closing_element
               name: (jsx_element_name
-                (unbox_expression
-                  (identifier))))))))))
+                (identifier)))))))))
 
 ==================
 JSX Attributes
@@ -151,7 +146,7 @@ JSX Member Expression
 
 component App() {
   <Namespace.Component />
-  <obj.@trackedProp />
+  <obj.trackedProp />
 }
 
 ---

@@ -1654,7 +1654,7 @@ const program =
     onemore: 100,
   };
 
-  // if (props.@count > 1) {
+  // if (props.count > 1) {
   // 	delete more.another;
   // }
 
