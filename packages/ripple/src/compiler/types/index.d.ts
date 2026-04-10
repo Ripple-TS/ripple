@@ -118,12 +118,16 @@ declare module 'estree' {
 	// Otherwise, we only mark Identifier nodes
 	interface MemberExpression {}
 
-	interface SimpleLiteral {}
-	interface RegExpLiteral {}
-	interface BigIntLiteral {}
+	interface SimpleLiteral extends AST.LiteralNode {}
+	interface RegExpLiteral extends AST.LiteralNode {}
+	interface BigIntLiteral extends AST.LiteralNode {}
 
 	interface TrackedNode {
 		tracked?: boolean;
+	}
+
+	interface LiteralNode {
+		was_expression?: boolean;
 	}
 
 	// Include TypeScript node types and Ripple-specific nodes in NodeMap
