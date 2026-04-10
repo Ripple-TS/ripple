@@ -324,10 +324,12 @@ components based on reactive state. Instead of hardcoding which component to sho
 you can store a component in a `Tracked` via `track()`, and update it at runtime.
 When the tracked value changes, Ripple automatically unmounts the previous
 component and mounts the new one. Dynamic components are written with the
-`<@Component />` tag, where the @ both unwraps the tracked reference and tells the
-compiler that the component is dynamic. This makes it straightforward to pass
-components as props or swap them directly within a component, enabling flexible,
-state-driven UIs with minimal boilerplate.
+`<@Component />` tag, where `@` is a special marker that tells the compiler the
+component or element is dynamic — it does not dereference or unwrap the value. The
+expression after `@` is treated as a `Tracked` value, and the runtime handles
+unwrapping it internally. This makes it straightforward to pass components as
+props or swap them directly within a component, enabling flexible, state-driven
+UIs with minimal boilerplate.
 
 <Code>
 
@@ -335,16 +337,16 @@ state-driven UIs with minimal boilerplate.
 import { track } from 'ripple';
 
 export component App() {
-  let swapMe = track(() => Child1);
+  let &[swapMe, swapMeTracked] = track(() => Child1);
 
-  <Child {swapMe} />
+  <Child swapMe={swapMeTracked} />
 
-  <button onClick={() => (@swapMe = @swapMe === Child1 ? Child2 : Child1)}>
+  <button onClick={() => (swapMe = swapMe === Child1 ? Child2 : Child1)}>
     {'Swap Component'}
   </button>
 }
 
-component Child({ swapMe }: { swapMe: Tracked<Component> }) {
+component Child(&{ swapMe }: { swapMe: Tracked<Component> }) {
   <@swapMe />
 }
 

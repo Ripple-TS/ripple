@@ -246,10 +246,10 @@ and using the `<@tagName>` syntax:
 import { track } from 'ripple';
 
 export component App() {
-  let tag = track('div');
+  let &[tag] = track('div');
 
   <@tag class="dynamic">{'Hello World'}</@tag>
-  <button onClick={() => (@tag = @tag === 'div' ? 'span' : 'div')}>
+  <button onClick={() => (tag = tag === 'div' ? 'span' : 'div')}>
     {'Toggle Element'}
   </button>
 }

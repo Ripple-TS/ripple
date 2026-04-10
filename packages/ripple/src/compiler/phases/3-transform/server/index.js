@@ -333,29 +333,7 @@ const visitors = {
 				binding.node !== node &&
 				(binding.kind === 'lazy' || binding.kind === 'lazy_fallback')
 			) {
-				const transformed = binding.transform.read(node);
-				if (node.tracked && !binding.read_unwraps) {
-					const is_right_side_of_assignment =
-						parent.type === 'AssignmentExpression' && parent.right === node;
-					if (
-						(parent.type !== 'AssignmentExpression' && parent.type !== 'UpdateExpression') ||
-						is_right_side_of_assignment
-					) {
-						return b.call('_$_.get', transformed);
-					}
-				}
-				return transformed;
-			}
-
-			if (node.tracked) {
-				const is_right_side_of_assignment =
-					parent.type === 'AssignmentExpression' && parent.right === node;
-				if (
-					(parent.type !== 'AssignmentExpression' && parent.type !== 'UpdateExpression') ||
-					is_right_side_of_assignment
-				) {
-					return b.call('_$_.get', node);
-				}
+				return binding.transform.read(node);
 			}
 
 			return node;
@@ -1203,8 +1181,9 @@ const visitors = {
 			/** @type {AST.Statement[]} */
 			const init = [];
 			/** @type {AST.Statement[]} */
+			const visited_id = /** @type {AST.Expression} */ (visit(node.id, state));
 			const statements = [
-				b.const(comp_id, /** @type {AST.Expression} */ (visit(node.id, state))),
+				b.const(comp_id, is_element_dynamic(node) ? b.call('_$_.get', visited_id) : visited_id),
 				b.const(args_id, b.array(args)),
 			];
 

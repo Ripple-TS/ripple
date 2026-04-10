@@ -250,7 +250,7 @@ component Child({ cls }: { cls: string }) {
 }
 
 component Parent() {
-  let Dynamic = track(() => Child);
+  let &[Dynamic] = track(() => Child);
   <@Dynamic cls={#style.text} />
 
   <style>
