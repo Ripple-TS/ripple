@@ -413,7 +413,9 @@ function RipplePlugin(config) {
 						/** @type {AST.Property} */ (prop).method = true;
 						/** @type {AST.Property} */ (prop).kind = 'init';
 						/** @type {AST.Property} */ (prop).value = this.parseMethod(false, false);
-						/** @type {AST.Property} */ (prop).value.typeParameters = typeParameters;
+						/** @type {AST.FunctionExpression} */ (
+							/** @type {AST.Property} */ (prop).value
+						).typeParameters = typeParameters;
 						return;
 					}
 				}
@@ -705,7 +707,7 @@ function RipplePlugin(config) {
 						// & directly followed by { or [ — lazy destructuring
 						this.next(); // consume &, now current token is { or [
 						const pattern = super.parseBindingAtom();
-						pattern.lazy = true;
+						/** @type {AST.ObjectPattern | AST.ArrayPattern} */ (pattern).lazy = true;
 						return pattern;
 					}
 				}
@@ -898,6 +900,7 @@ function RipplePlugin(config) {
 					return this.parseFor(node, null);
 				}
 
+				// @ts-ignore — acorn internal: isLet accepts 0 args at runtime
 				let isLet = this.isLet();
 				if (this.type === tt._var || this.type === tt._const || isLet) {
 					let init = /** @type {AST.VariableDeclaration} */ (this.startNode()),
@@ -940,7 +943,9 @@ function RipplePlugin(config) {
 				}
 
 				let containsEsc = this.containsEsc;
-				let refDestructuringErrors = new DestructuringErrors();
+				let refDestructuringErrors = new /** @type {new () => Parse.DestructuringErrors} */ (
+					/** @type {unknown} */ (DestructuringErrors)
+				)();
 				let initPos = this.start;
 				let init_expr =
 					awaitAt > -1
@@ -1557,8 +1562,9 @@ function RipplePlugin(config) {
 								if (expression.type === 'Literal') {
 									expression.was_expression = true;
 								}
-								/** @type {ESTreeJSX.JSXExpressionContainer['expression']} */ (attr.value) =
-									expression;
+								// @ts-ignore — intentional AST node conversion from JSX to Ripple
+								/** @type {ESTreeJSX.JSXAttribute} */ (attr).value =
+									/** @type {ESTreeJSX.JSXExpressionContainer['expression']} */ (expression);
 							}
 						}
 					}

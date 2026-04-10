@@ -186,7 +186,9 @@ function select_option(select, value, mounting = false) {
 
 		// Otherwise, update the selection
 		for (var option of select.options) {
-			option.selected = /** @type {string[]} */ (value).includes(get_option_value(option));
+			option.selected = /** @type {string[]} */ (value).includes(
+				/** @type {string} */ (get_option_value(option)),
+			);
 		}
 
 		return;

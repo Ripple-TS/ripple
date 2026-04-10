@@ -1,6 +1,6 @@
 /**
 @import { Component, Dependency, Derived, Tracked } from '#server';
-@import { SSRComponent, renderToStream, render } from 'ripple/server';
+@import { SSRComponent } from 'ripple/server';
 */
 
 import { Readable } from 'stream';
@@ -231,12 +231,12 @@ class Output {
 	}
 }
 
-/** @type {render} */
+/** @type {import('ripple/server').render} */
 export async function render(component) {
 	const output = new Output(null, null);
 	let head = '';
 	let body = '';
-	let css = new Set();
+	let css = /** @type {Set<string>} */ (new Set());
 
 	// Reset dev-mode element tracking state at the start of each render
 	reset_element_state();
@@ -262,7 +262,7 @@ export async function render(component) {
 	return { head, body, css };
 }
 
-/** @type {renderToStream} */
+/** @type {import('ripple/server').renderToStream} */
 export function renderToStream(component) {
 	const stream = new Readable({
 		read() {},

@@ -168,7 +168,7 @@ export function handle_event_propagation(event) {
 				null;
 
 			try {
-				var delegated = current_target['__' + event_name];
+				var delegated = /** @type {Record<string, any>} */ (current_target)['__' + event_name];
 
 				if (delegated !== undefined && !(/** @type {any} */ (current_target).disabled)) {
 					if (is_array(delegated)) {
