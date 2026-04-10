@@ -30,6 +30,7 @@
   "devDependencies": {
     "@changesets/changelog-github": "catalog:default",
     "@changesets/cli": "catalog:default",
+    "@types/node": "catalog:default",
     "@ripple-ts/eslint-plugin": "workspace:*",
     "@ripple-ts/prettier-plugin": "workspace:*",
     "@ripple-ts/vite-plugin": "workspace:*",
