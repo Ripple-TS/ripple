@@ -10,6 +10,14 @@ component App() {
 `;
 
 describe('compiler tsx compat configuration', () => {
+	it('allows tsx compat when no compat config is provided', () => {
+		expect(() =>
+			compile(source, '/src/App.ripple', {
+				mode: 'client',
+			}),
+		).not.toThrow();
+	});
+
 	it('throws when tsx compat kind is not configured', () => {
 		expect(() =>
 			compile(source, '/src/App.ripple', {

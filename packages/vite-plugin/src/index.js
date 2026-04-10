@@ -1162,7 +1162,10 @@ import { hydrate, mount } from 'ripple';
 						mode: ssr ? 'server' : 'client',
 						dev: is_dev,
 						hmr: is_dev && !ssr,
-						compat_kinds: Object.keys(current_ripple_config?.compat ?? {}),
+						compat_kinds:
+							current_ripple_config === null
+								? undefined
+								: Object.keys(current_ripple_config.compat),
 					});
 
 					// Track modules with #server blocks for RPC (client build only)
