@@ -385,6 +385,21 @@ function use_nested({ value: &[count, tracked] }: { value: Tracked<number> }) {
 		expect(js.code).not.toContain('[1]');
 	});
 
+	it('uses tracked fast path for nested lazy params at tuple rest positions', () => {
+		const source = `
+import type { Tracked } from 'ripple';
+function use_tuple_rest({ value: [head, &[count, tracked]] }: { value: [number, ...Tracked<number>[]] }) {
+	count++;
+	return tracked;
+}
+`;
+		const { js } = compile(source, 'tracked-nested-lazy-tuple-rest.ripple', { mode: 'client' });
+
+		// Tuple rest element access should resolve to Tracked<number>, not Tracked<number>[].
+		expect(js.code).toContain('_$_.update(');
+		expect(js.code).not.toContain('[1]');
+	});
+
 	it('preserves generic type args in interface extends for Volar mappings', () => {
 		const source = `
 interface PolymorphicProps<T extends keyof HTMLElementTagNameMap> {

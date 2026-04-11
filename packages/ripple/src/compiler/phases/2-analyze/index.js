@@ -476,7 +476,13 @@ function get_array_element_type_annotation(type_annotation, index, is_rest) {
 
 	if (index < array_type_annotation.elementTypes.length) {
 		const element_type = normalize_tuple_element_type(array_type_annotation.elementTypes[index]);
-		return element_type.type === 'TSRestType' ? element_type.typeAnnotation : element_type;
+		if (element_type.type === 'TSRestType') {
+			const rest_type_annotation = unwrap_type_annotation(element_type.typeAnnotation);
+			return rest_type_annotation?.type === 'TSArrayType'
+				? rest_type_annotation.elementType
+				: element_type.typeAnnotation;
+		}
+		return element_type;
 	}
 
 	const last_element = array_type_annotation.elementTypes.at(-1);
@@ -485,7 +491,10 @@ function get_array_element_type_annotation(type_annotation, index, is_rest) {
 	}
 	const normalized_last_element = normalize_tuple_element_type(last_element);
 	if (normalized_last_element.type === 'TSRestType') {
-		return normalized_last_element.typeAnnotation;
+		const rest_type_annotation = unwrap_type_annotation(normalized_last_element.typeAnnotation);
+		return rest_type_annotation?.type === 'TSArrayType'
+			? rest_type_annotation.elementType
+			: normalized_last_element.typeAnnotation;
 	}
 
 	return undefined;
