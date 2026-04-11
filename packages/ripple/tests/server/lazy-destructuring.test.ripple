@@ -137,6 +137,32 @@ describe('lazy destructuring', () => {
 		expect(body).toBeHtml('<pre>2-2</pre>');
 	});
 
+	it('supports RestElement nested lazy destructuring in non-lazy component params', async () => {
+		component Inner({ values: [head, ...&{ length: rest_length }] }) {
+			<pre>{`${head}-${rest_length}`}</pre>
+		}
+
+		component Test() {
+			<Inner values={[10, 20, 30]} />
+		}
+
+		const { body } = await render(Test);
+		expect(body).toBeHtml('<pre>10-2</pre>');
+	});
+
+	it('supports RestElement nested lazy destructuring in non-lazy function params', async () => {
+		component Test() {
+			function getInfo({ values: [head, ...&{ length: rest_length }] }) {
+				return `${head}-${rest_length}`;
+			}
+
+			<pre>{getInfo({ values: [5, 6, 7, 8] })}</pre>
+		}
+
+		const { body } = await render(Test);
+		expect(body).toBeHtml('<pre>5-3</pre>');
+	});
+
 	it('supports member access on lazy destructured objects', async () => {
 		component Test() {
 			const obj = { user: { name: 'Alice', age: 30 } };

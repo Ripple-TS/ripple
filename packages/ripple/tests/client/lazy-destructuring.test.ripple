@@ -140,6 +140,19 @@ describe('lazy destructuring', () => {
 		expect(container.querySelector('pre')!.textContent).toBe('2-2');
 	});
 
+	it('supports nested lazy rest destructuring in non-lazy component params', () => {
+		component Inner({ values: [head, ...&{ length: rest_length }] }) {
+			<pre>{`${head}-${rest_length}`}</pre>
+		}
+
+		component Test() {
+			<Inner values={[10, 20, 30]} />
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('10-2');
+	});
+
 	it('supports lazy destructuring in function params', () => {
 		component Test() {
 			function getInfo(&{ x, y }: { x: number; y: number }) {
@@ -168,6 +181,20 @@ describe('lazy destructuring', () => {
 
 		render(Test);
 		expect(container.querySelector('pre')!.textContent).toBe('2-2');
+	});
+
+	it('supports nested lazy rest destructuring in non-lazy function params', () => {
+		component Test() {
+			function summarize({ values: [head, ...&{ length: rest_length }] }) {
+				return `${head}-${rest_length}`;
+			}
+
+			const result = summarize({ values: [5, 6, 7, 8] });
+			<pre>{result}</pre>
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('5-3');
 	});
 
 	it('supports let lazy destructuring with assignment writeback', () => {
