@@ -330,14 +330,176 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 }
 
 /**
- * Checks if a function parameter has a Tracked<T> type annotation imported from ripple.
+ * @param {AST.Pattern} pattern
+ * @returns {AST.TypeNode | undefined}
+ */
+function get_pattern_type_annotation(pattern) {
+	return pattern.typeAnnotation?.typeAnnotation;
+}
+
+/**
+ * @param {AST.TypeNode | undefined} type_annotation
+ * @returns {AST.TypeNode | undefined}
+ */
+function unwrap_type_annotation(type_annotation) {
+	/** @type {AST.TypeNode | undefined} */
+	let annotation = type_annotation;
+
+	while (annotation) {
+		if (annotation.type === 'TSParenthesizedType') {
+			annotation = annotation.typeAnnotation;
+			continue;
+		}
+		if (annotation.type === 'TSOptionalType') {
+			annotation = annotation.typeAnnotation;
+			continue;
+		}
+		break;
+	}
+
+	return annotation;
+}
+
+/**
+ * @param {AST.TypeNode} type_annotation
+ * @returns {AST.TypeNode}
+ */
+function normalize_tuple_element_type(type_annotation) {
+	/** @type {AST.TypeNode} */
+	let annotation = type_annotation;
+
+	while (true) {
+		if (annotation.type === 'TSNamedTupleMember') {
+			annotation = annotation.elementType;
+			continue;
+		}
+		if (annotation.type === 'TSParenthesizedType') {
+			annotation = annotation.typeAnnotation;
+			continue;
+		}
+		if (annotation.type === 'TSOptionalType') {
+			annotation = annotation.typeAnnotation;
+			continue;
+		}
+		break;
+	}
+
+	return annotation;
+}
+
+/**
+ * @param {AST.Expression} key
+ * @returns {string | null}
+ */
+function get_object_pattern_key_name(key) {
+	if (key.type === 'Identifier') {
+		return key.name;
+	}
+	if (key.type === 'Literal' && (typeof key.value === 'string' || typeof key.value === 'number')) {
+		return String(key.value);
+	}
+	return null;
+}
+
+/**
+ * @param {AST.PropertyNameNonComputed} key
+ * @returns {string | null}
+ */
+function get_type_property_key_name(key) {
+	if (key.type === 'Identifier') {
+		return key.name;
+	}
+	if (key.type === 'Literal' && (typeof key.value === 'string' || typeof key.value === 'number')) {
+		return String(key.value);
+	}
+	return null;
+}
+
+/**
+ * @param {AST.TypeNode | undefined} type_annotation
+ * @param {AST.Property | AST.RestElement} property
+ * @returns {AST.TypeNode | undefined}
+ */
+function get_object_property_type_annotation(type_annotation, property) {
+	if (property.type === 'RestElement' || property.computed) {
+		return undefined;
+	}
+
+	const object_type_annotation = unwrap_type_annotation(type_annotation);
+	if (object_type_annotation?.type !== 'TSTypeLiteral') {
+		return undefined;
+	}
+
+	const key_name = get_object_pattern_key_name(property.key);
+	if (key_name === null) {
+		return undefined;
+	}
+
+	for (const member of object_type_annotation.members) {
+		if (member.type !== 'TSPropertySignature' || member.computed) {
+			continue;
+		}
+		const member_key_name = get_type_property_key_name(member.key);
+		if (member_key_name === key_name) {
+			return member.typeAnnotation?.typeAnnotation;
+		}
+	}
+
+	return undefined;
+}
+
+/**
+ * @param {AST.TypeNode | undefined} type_annotation
+ * @param {number} index
+ * @param {boolean} is_rest
+ * @returns {AST.TypeNode | undefined}
+ */
+function get_array_element_type_annotation(type_annotation, index, is_rest) {
+	const array_type_annotation = unwrap_type_annotation(type_annotation);
+
+	if (array_type_annotation?.type === 'TSArrayType') {
+		return array_type_annotation.elementType;
+	}
+	if (array_type_annotation?.type !== 'TSTupleType') {
+		return undefined;
+	}
+
+	if (is_rest) {
+		for (let i = array_type_annotation.elementTypes.length - 1; i >= 0; i -= 1) {
+			const element_type = normalize_tuple_element_type(array_type_annotation.elementTypes[i]);
+			if (element_type.type === 'TSRestType') {
+				return element_type.typeAnnotation;
+			}
+		}
+		return undefined;
+	}
+
+	if (index < array_type_annotation.elementTypes.length) {
+		const element_type = normalize_tuple_element_type(array_type_annotation.elementTypes[index]);
+		return element_type.type === 'TSRestType' ? element_type.typeAnnotation : element_type;
+	}
+
+	const last_element = array_type_annotation.elementTypes.at(-1);
+	if (!last_element) {
+		return undefined;
+	}
+	const normalized_last_element = normalize_tuple_element_type(last_element);
+	if (normalized_last_element.type === 'TSRestType') {
+		return normalized_last_element.typeAnnotation;
+	}
+
+	return undefined;
+}
+
+/**
+ * Checks if a parameter source has a Tracked<T> type annotation imported from ripple.
  * This is used to determine if lazy array destructuring should use the track tuple fast path.
- * @param {AST.ArrayPattern} param - The parameter pattern node
+ * @param {AST.TypeNode | undefined} type_annotation - The source type annotation
  * @param {AnalysisContext} context - The analysis context
  * @returns {boolean}
  */
-function is_param_tracked_type(param, context) {
-	const annotation = param.typeAnnotation?.typeAnnotation;
+function is_param_tracked_type(type_annotation, context) {
+	const annotation = unwrap_type_annotation(type_annotation);
 
 	if (
 		annotation?.type === 'TSTypeReference' &&
@@ -362,15 +524,18 @@ function is_param_tracked_type(param, context) {
  * Sets up lazy transforms for any lazy subpatterns nested inside a function or component param.
  * @param {AST.Pattern} pattern
  * @param {AnalysisContext} context
+ * @param {AST.TypeNode | undefined} [type_annotation]
  */
-function setup_nested_lazy_param_transforms(pattern, context) {
+function setup_nested_lazy_param_transforms(pattern, context, type_annotation = undefined) {
+	const pattern_type_annotation = get_pattern_type_annotation(pattern) ?? type_annotation;
+
 	switch (pattern.type) {
 		case 'AssignmentPattern':
-			setup_nested_lazy_param_transforms(pattern.left, context);
+			setup_nested_lazy_param_transforms(pattern.left, context, pattern_type_annotation);
 			return;
 
 		case 'RestElement':
-			setup_nested_lazy_param_transforms(pattern.argument, context);
+			setup_nested_lazy_param_transforms(pattern.argument, context, pattern_type_annotation);
 			return;
 
 		case 'ObjectPattern':
@@ -378,7 +543,8 @@ function setup_nested_lazy_param_transforms(pattern, context) {
 			if (pattern.lazy) {
 				const param_id = b.id(context.state.scope.generate('lazy'));
 				const is_tracked_type =
-					pattern.type === 'ArrayPattern' && is_param_tracked_type(pattern, context);
+					pattern.type === 'ArrayPattern' &&
+					is_param_tracked_type(pattern_type_annotation, context);
 
 				setup_lazy_transforms(pattern, param_id, context.state, true, is_tracked_type);
 				pattern.metadata = { ...pattern.metadata, lazy_id: param_id.name };
@@ -387,16 +553,37 @@ function setup_nested_lazy_param_transforms(pattern, context) {
 
 			if (pattern.type === 'ObjectPattern') {
 				for (const property of pattern.properties) {
+					const property_type_annotation = get_object_property_type_annotation(
+						pattern_type_annotation,
+						property,
+					);
 					if (property.type === 'RestElement') {
-						setup_nested_lazy_param_transforms(property.argument, context);
+						setup_nested_lazy_param_transforms(
+							property.argument,
+							context,
+							property_type_annotation,
+						);
 					} else {
-						setup_nested_lazy_param_transforms(property.value, context);
+						setup_nested_lazy_param_transforms(
+							property.value,
+							context,
+							property_type_annotation,
+						);
 					}
 				}
 			} else {
-				for (const element of pattern.elements) {
+				for (let i = 0; i < pattern.elements.length; i += 1) {
+					const element = pattern.elements[i];
 					if (element !== null) {
-						setup_nested_lazy_param_transforms(element, context);
+						setup_nested_lazy_param_transforms(
+							element,
+							context,
+							get_array_element_type_annotation(
+								pattern_type_annotation,
+								i,
+								element.type === 'RestElement',
+							),
+						);
 					}
 				}
 			}
@@ -420,9 +607,11 @@ function visit_function(node, context) {
 	for (let i = 0; i < node.params.length; i++) {
 		const param_node = node.params[i];
 		const param = param_node.type === 'AssignmentPattern' ? param_node.left : param_node;
+		const param_type_annotation =
+			get_pattern_type_annotation(param) ?? param_node.typeAnnotation?.typeAnnotation;
 
 		if (param.type === 'ObjectPattern' || param.type === 'ArrayPattern') {
-			setup_nested_lazy_param_transforms(param, context);
+			setup_nested_lazy_param_transforms(param, context, param_type_annotation);
 		}
 	}
 
@@ -970,7 +1159,11 @@ const visitors = {
 				if (props.lazy) {
 					setup_lazy_transforms(props, b.id('__props'), context.state, true, false);
 				} else {
-					setup_nested_lazy_param_transforms(props, context);
+					setup_nested_lazy_param_transforms(
+						props,
+						context,
+						get_pattern_type_annotation(props),
+					);
 				}
 			} else if (props.type === 'AssignmentPattern') {
 				error(

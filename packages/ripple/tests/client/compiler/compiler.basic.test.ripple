@@ -369,6 +369,22 @@ component App() {
 		expect(track_result).not.toContain('lazy0');
 	});
 
+	it('uses tracked fast path for nested lazy params typed as Tracked', () => {
+		const source = `
+import type { Tracked } from 'ripple';
+function use_nested({ value: &[count, tracked] }: { value: Tracked<number> }) {
+	count++;
+	return tracked;
+}
+`;
+		const { js } = compile(source, 'tracked-nested-lazy.ripple', { mode: 'client' });
+
+		// Nested lazy array should still use tracked tuple fast path from outer annotation.
+		expect(js.code).toContain('_$_.update(');
+		expect(js.code).not.toContain('[0]');
+		expect(js.code).not.toContain('[1]');
+	});
+
 	it('preserves generic type args in interface extends for Volar mappings', () => {
 		const source = `
 interface PolymorphicProps<T extends keyof HTMLElementTagNameMap> {
