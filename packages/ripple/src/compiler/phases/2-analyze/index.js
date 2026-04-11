@@ -359,6 +359,50 @@ function is_param_tracked_type(param, context) {
 }
 
 /**
+ * Sets up lazy transforms for any lazy subpatterns nested inside a function or component param.
+ * @param {AST.Pattern} pattern
+ * @param {AnalysisContext} context
+ */
+function setup_nested_lazy_param_transforms(pattern, context) {
+	switch (pattern.type) {
+		case 'AssignmentPattern':
+			setup_nested_lazy_param_transforms(pattern.left, context);
+			return;
+
+		case 'ObjectPattern':
+		case 'ArrayPattern': {
+			if (pattern.lazy) {
+				const param_id = b.id(context.state.scope.generate('lazy'));
+				const is_tracked_type =
+					pattern.type === 'ArrayPattern' && is_param_tracked_type(pattern, context);
+
+				setup_lazy_transforms(pattern, param_id, context.state, true, is_tracked_type);
+				pattern.metadata = { ...pattern.metadata, lazy_id: param_id.name };
+				return;
+			}
+
+			if (pattern.type === 'ObjectPattern') {
+				for (const property of pattern.properties) {
+					if (property.type === 'RestElement') {
+						setup_nested_lazy_param_transforms(property.argument, context);
+					} else {
+						setup_nested_lazy_param_transforms(property.value, context);
+					}
+				}
+			} else {
+				for (const element of pattern.elements) {
+					if (element !== null) {
+						setup_nested_lazy_param_transforms(element, context);
+					}
+				}
+			}
+
+			return;
+		}
+	}
+}
+
+/**
  * @param {AST.Function} node
  * @param {AnalysisContext} context
  */
@@ -373,15 +417,8 @@ function visit_function(node, context) {
 		const param_node = node.params[i];
 		const param = param_node.type === 'AssignmentPattern' ? param_node.left : param_node;
 
-		if ((param.type === 'ObjectPattern' || param.type === 'ArrayPattern') && param.lazy) {
-			const param_id = b.id(context.state.scope.generate('param'));
-			// For ArrayPattern params with a Tracked<T> type annotation from ripple,
-			// use the track tuple fast path (get/set instead of source[0]/source[1])
-			const is_tracked_type =
-				param.type === 'ArrayPattern' && is_param_tracked_type(param, context);
-			setup_lazy_transforms(param, param_id, context.state, true, is_tracked_type);
-			// Store the generated identifier name on the pattern for the transform phase
-			param.metadata = { ...param.metadata, lazy_id: param_id.name };
+		if (param.type === 'ObjectPattern' || param.type === 'ArrayPattern') {
+			setup_nested_lazy_param_transforms(param, context);
 		}
 	}
 
@@ -924,9 +961,13 @@ const visitors = {
 		if (node.params.length > 0) {
 			const props = node.params[0];
 
-			if ((props.type === 'ObjectPattern' || props.type === 'ArrayPattern') && props.lazy) {
+			if (props.type === 'ObjectPattern' || props.type === 'ArrayPattern') {
 				// Lazy destructuring: &{...} or &[...] — set up lazy transforms
-				setup_lazy_transforms(props, b.id('__props'), context.state, true, false);
+				if (props.lazy) {
+					setup_lazy_transforms(props, b.id('__props'), context.state, true, false);
+				} else {
+					setup_nested_lazy_param_transforms(props, context);
+				}
 			} else if (props.type === 'AssignmentPattern') {
 				error(
 					'Props are always an object, use destructured props with default values instead',

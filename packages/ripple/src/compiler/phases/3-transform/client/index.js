@@ -58,6 +58,7 @@ import {
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
 	is_ripple_import,
+	replace_lazy_param_pattern,
 	ripple_import_requires_block,
 } from '../../../utils.js';
 import {
@@ -111,16 +112,12 @@ function visit_function(node, context) {
 	// Replace lazy destructuring params with generated identifiers
 	const transformed_params = node.params.map((param) => {
 		const pattern = param.type === 'AssignmentPattern' ? param.left : param;
-		if (
-			(pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') &&
-			pattern.lazy &&
-			pattern.metadata?.lazy_id
-		) {
-			const id = b.id(pattern.metadata.lazy_id);
+		if (pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') {
+			const transformed_pattern = replace_lazy_param_pattern(pattern);
 			if (param.type === 'AssignmentPattern') {
-				return /** @type {AST.AssignmentPattern} */ ({ ...param, left: id });
+				return /** @type {AST.AssignmentPattern} */ ({ ...param, left: transformed_pattern });
 			}
-			return id;
+			return transformed_pattern;
 		}
 		return param;
 	});
@@ -1926,7 +1923,9 @@ const visitors = {
 				delete props_param.typeAnnotation;
 				if (!props_param.lazy) {
 					// Non-lazy destructuring: use the pattern directly as the function param
-					props = props_param;
+					props = /** @type {AST.ObjectPattern | AST.ArrayPattern} */ (
+						replace_lazy_param_pattern(props_param)
+					);
 				}
 				// Lazy destructuring: props stays as __props, bindings resolved via transforms
 			}

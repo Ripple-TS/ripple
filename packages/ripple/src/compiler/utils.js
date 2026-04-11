@@ -674,6 +674,52 @@ function normalize_child(node, normalized, context) {
 }
 
 /**
+ * Replaces any lazy subpatterns in a parameter pattern with their generated identifiers.
+ * This is used by client and server transforms so nested lazy destructuring can coexist
+ * with otherwise normal object/array params.
+ * @param {AST.Pattern} pattern
+ * @returns {AST.Pattern}
+ */
+export function replace_lazy_param_pattern(pattern) {
+	switch (pattern.type) {
+		case 'AssignmentPattern':
+			return { ...pattern, left: replace_lazy_param_pattern(pattern.left) };
+
+		case 'ObjectPattern':
+			if (pattern.lazy && pattern.metadata?.lazy_id) {
+				return /** @type {AST.Pattern} */ (b.id(pattern.metadata.lazy_id));
+			}
+
+			return {
+				...pattern,
+				properties: pattern.properties.map((property) =>
+					property.type === 'RestElement'
+						? { ...property, argument: replace_lazy_param_pattern(property.argument) }
+						: { ...property, value: replace_lazy_param_pattern(property.value) },
+				),
+			};
+
+		case 'ArrayPattern':
+			if (pattern.lazy && pattern.metadata?.lazy_id) {
+				return /** @type {AST.Pattern} */ (b.id(pattern.metadata.lazy_id));
+			}
+
+			return {
+				...pattern,
+				elements: pattern.elements.map((element) =>
+					element === null ? null : replace_lazy_param_pattern(element),
+				),
+			};
+
+		case 'RestElement':
+			return { ...pattern, argument: replace_lazy_param_pattern(pattern.argument) };
+
+		default:
+			return pattern;
+	}
+}
+
+/**
  * @param {CommonContext} context
  */
 export function get_parent_block_node(context) {

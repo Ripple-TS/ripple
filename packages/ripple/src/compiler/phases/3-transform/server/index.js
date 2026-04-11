@@ -27,7 +27,7 @@ import {
 	is_element_dynamic,
 	is_ripple_track_call,
 	is_ripple_import,
-	ripple_import_requires_block,
+	replace_lazy_param_pattern,
 	hash,
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
@@ -355,7 +355,7 @@ const visitors = {
 					// Lazy destructuring: use __props identifier, bindings resolved via transforms
 					props_param_output = b.id('__props');
 				} else {
-					props_param_output = props_param;
+					props_param_output = replace_lazy_param_pattern(props_param);
 				}
 			} else {
 				props_param_output = props_param;
@@ -597,16 +597,12 @@ const visitors = {
 				}
 				// Replace lazy destructuring params with generated identifiers
 				const pattern = param.type === 'AssignmentPattern' ? param.left : param;
-				if (
-					(pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') &&
-					pattern.lazy &&
-					pattern.metadata?.lazy_id
-				) {
-					const id = b.id(pattern.metadata.lazy_id);
+				if (pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') {
+					const transformed_pattern = replace_lazy_param_pattern(pattern);
 					node.params[i] =
 						param.type === 'AssignmentPattern'
-							? /** @type {AST.AssignmentPattern} */ ({ ...param, left: id })
-							: id;
+							? /** @type {AST.AssignmentPattern} */ ({ ...param, left: transformed_pattern })
+							: transformed_pattern;
 				}
 			}
 		}
@@ -626,16 +622,12 @@ const visitors = {
 				}
 				// Replace lazy destructuring params with generated identifiers
 				const pattern = param.type === 'AssignmentPattern' ? param.left : param;
-				if (
-					(pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') &&
-					pattern.lazy &&
-					pattern.metadata?.lazy_id
-				) {
-					const id = b.id(pattern.metadata.lazy_id);
+				if (pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') {
+					const transformed_pattern = replace_lazy_param_pattern(pattern);
 					node.params[i] =
 						param.type === 'AssignmentPattern'
-							? /** @type {AST.AssignmentPattern} */ ({ ...param, left: id })
-							: id;
+							? /** @type {AST.AssignmentPattern} */ ({ ...param, left: transformed_pattern })
+							: transformed_pattern;
 				}
 			}
 		}
@@ -665,16 +657,12 @@ const visitors = {
 			}
 			// Replace lazy destructuring params with generated identifiers
 			const pattern = param.type === 'AssignmentPattern' ? param.left : param;
-			if (
-				(pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') &&
-				pattern.lazy &&
-				pattern.metadata?.lazy_id
-			) {
-				const id = b.id(pattern.metadata.lazy_id);
+			if (pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') {
+				const transformed_pattern = replace_lazy_param_pattern(pattern);
 				node.params[i] =
 					param.type === 'AssignmentPattern'
-						? /** @type {AST.AssignmentPattern} */ ({ ...param, left: id })
-						: id;
+						? /** @type {AST.AssignmentPattern} */ ({ ...param, left: transformed_pattern })
+						: transformed_pattern;
 			}
 		}
 
