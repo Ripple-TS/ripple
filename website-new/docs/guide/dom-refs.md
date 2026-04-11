@@ -16,14 +16,14 @@ function will receive the reference to the underlying DOM element.
 import { track } from 'ripple';
 
 export default component App() {
-  let div = track();
+  let &[div] = track();
 
   const divRef = (node) => {
-    @div = node;
+    div = node;
     console.log('mounted', node);
 
     return () => {
-      @div = undefined;
+      div = undefined;
       console.log('unmounted', node);
     };
   };
@@ -42,13 +42,13 @@ You can also create `{ref}` functions inline.
 import { track } from 'ripple';
 
 export component App() {
-  let div = track();
+  let &[div] = track();
 
   <div
     {ref (node) => {
-      @div = node;
+      div = node;
       console.log('mounted', node);
-      return () => (@div = undefined);
+      return () => (div = undefined);
     }}
   >
     {'Hello world'}
@@ -92,15 +92,15 @@ relying directly on the `{ref ...}` template syntax.
 import { track } from 'ripple';
 
 export component App() {
-  let value = track('');
+  let &[value] = track('');
 
   const props = {
     id: 'example',
-    @value,
+    value,
     [createRefKey()]: (node) => {
       const removeListener = node.addEventListener('input', (e) => {
-        @value = e.target.value;
-        console.log(@value);
+        value = e.target.value;
+        console.log(value);
       });
 
       return () => {

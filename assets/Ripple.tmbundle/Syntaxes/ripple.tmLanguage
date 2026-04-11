@@ -569,84 +569,6 @@
 			<dict>
 				<key>patterns</key>
 				<array>
-					<dict>
-						<key>name</key>
-						<string>meta.unbox.tracked.paren.js</string>
-						<key>begin</key>
-						<string>(?&lt;![_$[:alnum:]])(?:(?&lt;=\.\.\.)|(?&lt;!\.))(\@)(\()</string>
-						<key>beginCaptures</key>
-						<dict>
-							<key>1</key>
-							<dict>
-								<key>name</key>
-								<string>punctuation.section.embedded.begin.js</string>
-							</dict>
-							<key>2</key>
-							<dict>
-								<key>name</key>
-								<string>punctuation.section.embedded.begin.js</string>
-							</dict>
-						</dict>
-						<key>end</key>
-						<string>\)</string>
-						<key>endCaptures</key>
-						<dict>
-							<key>0</key>
-							<dict>
-								<key>name</key>
-								<string>punctuation.section.embedded.end.js</string>
-							</dict>
-						</dict>
-						<key>patterns</key>
-						<array>
-							<dict>
-								<key>include</key>
-								<string>#expression</string>
-							</dict>
-						</array>
-					</dict>
-					<dict>
-						<key>name</key>
-						<string>meta.identifier.tracked.js</string>
-						<key>match</key>
-						<string>(?&lt;![_$[:alnum:]])(?:(?&lt;=\.\.\.)|(?&lt;!\.))(@)([_$[:alpha:]][_$[:alnum:]]*)</string>
-						<key>captures</key>
-						<dict>
-							<key>1</key>
-							<dict>
-								<key>name</key>
-								<string>punctuation.section.embedded.begin.js</string>
-							</dict>
-							<key>2</key>
-							<dict>
-								<key>name</key>
-								<string>variable.other.js</string>
-							</dict>
-						</dict>
-					</dict>
-					<dict>
-						<key>name</key>
-						<string>meta.decorator.js</string>
-						<key>begin</key>
-						<string>(?&lt;![_$[:alnum:]])(?:(?&lt;=\.\.\.)|(?&lt;!\.))\@(?![_$[:alpha:]])</string>
-						<key>beginCaptures</key>
-						<dict>
-							<key>0</key>
-							<dict>
-								<key>name</key>
-								<string>punctuation.decorator.js</string>
-							</dict>
-						</dict>
-						<key>end</key>
-						<string>(?=\s)</string>
-						<key>patterns</key>
-						<array>
-							<dict>
-								<key>include</key>
-								<string>#expression</string>
-							</dict>
-						</array>
-					</dict>
 				</array>
 			</dict>
 			<key>var-expr</key>
@@ -8634,30 +8556,6 @@
 				<key>patterns</key>
 				<array>
 					<dict>
-						<key>name</key>
-						<string>meta.reactive-computed-member-access.ripple</string>
-						<key>match</key>
-						<string>(\.)(\@)(\[)</string>
-						<key>captures</key>
-						<dict>
-							<key>1</key>
-							<dict>
-								<key>name</key>
-								<string>punctuation.accessor.js</string>
-							</dict>
-							<key>2</key>
-							<dict>
-								<key>name</key>
-								<string>punctuation.section.embedded.begin.js</string>
-							</dict>
-							<key>3</key>
-							<dict>
-								<key>name</key>
-								<string>punctuation.definition.computed-property.begin.js</string>
-							</dict>
-						</dict>
-					</dict>
-					<dict>
 						<key>match</key>
 						<string>(?:(\.)|(\?\.(?!\s*[[:digit:]])))</string>
 						<key>captures</key>
@@ -10852,61 +10750,6 @@
 			<dict>
 				<key>patterns</key>
 				<array>
-					<dict>
-						<key>name</key>
-						<string>meta.unbox.tracked.paren.js</string>
-						<key>begin</key>
-						<string>(\@)(\()</string>
-						<key>beginCaptures</key>
-						<dict>
-							<key>1</key>
-							<dict>
-								<key>name</key>
-								<string>punctuation.section.embedded.begin.js</string>
-							</dict>
-							<key>2</key>
-							<dict>
-								<key>name</key>
-								<string>punctuation.section.embedded.begin.js</string>
-							</dict>
-						</dict>
-						<key>end</key>
-						<string>\)</string>
-						<key>endCaptures</key>
-						<dict>
-							<key>0</key>
-							<dict>
-								<key>name</key>
-								<string>punctuation.section.embedded.end.js</string>
-							</dict>
-						</dict>
-						<key>patterns</key>
-						<array>
-							<dict>
-								<key>include</key>
-								<string>#expression</string>
-							</dict>
-						</array>
-					</dict>
-					<dict>
-						<key>name</key>
-						<string>meta.identifier.tracked.js</string>
-						<key>match</key>
-						<string>(@)([_$[:alpha:]][_$[:alnum:]]*)</string>
-						<key>captures</key>
-						<dict>
-							<key>1</key>
-							<dict>
-								<key>name</key>
-								<string>punctuation.section.embedded.begin.js</string>
-							</dict>
-							<key>2</key>
-							<dict>
-								<key>name</key>
-								<string>variable.other.js</string>
-							</dict>
-						</dict>
-					</dict>
 					<dict>
 						<key>include</key>
 						<string>#server-member-expression</string>

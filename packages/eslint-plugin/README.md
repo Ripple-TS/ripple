@@ -175,37 +175,6 @@ export component App() {
 }
 ```
 
-### `ripple/unbox-tracked-values` (error)
-
-Ensures tracked values are unboxed with the `@` operator when used in JSX
-expressions.
-
-❌ **Incorrect:**
-
-```js
-import { track } from 'ripple';
-
-export component App() {
-  let count = track(0);
-
-  // Missing @ operator
-  <div>{count}</div>
-}
-```
-
-✅ **Correct:**
-
-```js
-import { track } from 'ripple';
-
-export component App() {
-  let count = track(0);
-
-  // Properly unboxed with @
-  <div>{@count}</div>
-}
-```
-
 ### `ripple/no-lazy-destructuring-in-modules` (error)
 
 Prevents using lazy destructuring (`&[]` / `&{}`) in TypeScript/JavaScript
@@ -263,7 +232,6 @@ export default [
       'ripple/require-component-export': 'off', // Disable this rule
       'ripple/prefer-oninput': 'error', // Make this an error instead of warning
       'ripple/no-return-in-component': 'error',
-      'ripple/unbox-tracked-values': 'error',
       'ripple/no-lazy-destructuring-in-modules': 'error',
     },
   },

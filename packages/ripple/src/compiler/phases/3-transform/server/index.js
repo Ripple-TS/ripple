@@ -308,29 +308,7 @@ const visitors = {
 				binding.node !== node &&
 				(binding.kind === 'lazy' || binding.kind === 'lazy_fallback')
 			) {
-				const transformed = binding.transform.read(node);
-				if (node.tracked && !binding.read_unwraps) {
-					const is_right_side_of_assignment =
-						parent.type === 'AssignmentExpression' && parent.right === node;
-					if (
-						(parent.type !== 'AssignmentExpression' && parent.type !== 'UpdateExpression') ||
-						is_right_side_of_assignment
-					) {
-						return b.call('_$_.get', transformed);
-					}
-				}
-				return transformed;
-			}
-
-			if (node.tracked) {
-				const is_right_side_of_assignment =
-					parent.type === 'AssignmentExpression' && parent.right === node;
-				if (
-					(parent.type !== 'AssignmentExpression' && parent.type !== 'UpdateExpression') ||
-					is_right_side_of_assignment
-				) {
-					return b.call('_$_.get', node);
-				}
+				return binding.transform.read(node);
 			}
 
 			return node;
@@ -789,6 +767,19 @@ const visitors = {
 		return statements.length ? b.block(statements) : b.empty;
 	},
 
+	ExpressionStatement(node, context) {
+		// Handle standalone lazy destructuring: &[data] = track(0); → const lazy0 = track(0);
+		if (
+			node.expression.type === 'AssignmentExpression' &&
+			node.expression.left.lazy &&
+			node.expression.left.metadata?.lazy_id
+		) {
+			const right = /** @type {AST.Expression} */ (context.visit(node.expression.right));
+			return b.const(b.id(node.expression.left.metadata.lazy_id), right);
+		}
+		return context.next();
+	},
+
 	VariableDeclaration(node, context) {
 		for (const declarator of node.declarations) {
 			if (!context.state.to_ts) {
@@ -1154,9 +1145,10 @@ const visitors = {
 
 			/** @type {AST.Statement[]} */
 			const init = [];
+			const visited_id = /** @type {AST.Expression} */ (visit(node.id, state));
 			/** @type {AST.Statement[]} */
 			const statements = [
-				b.const(comp_id, /** @type {AST.Expression} */ (visit(node.id, state))),
+				b.const(comp_id, is_element_dynamic(node) ? b.call('_$_.get', visited_id) : visited_id),
 				b.const(args_id, b.array(args)),
 			];
 
@@ -1360,53 +1352,6 @@ const visitors = {
 			}
 		}
 
-		if (
-			left.type === 'MemberExpression' &&
-			(left.tracked || (left.property.type === 'Identifier' && left.property.tracked))
-		) {
-			const operator = node.operator;
-			const right = node.right;
-
-			return b.call(
-				'_$_.set_property',
-				/** @type {AST.Expression} */ (context.visit(left.object)),
-				left.computed
-					? /** @type {AST.Expression} */ (context.visit(left.property))
-					: b.literal(/** @type {AST.Identifier} */ (left.property).name),
-				operator === '='
-					? /** @type {AST.Expression} */ (context.visit(right))
-					: b.binary(
-							operator === '+=' ? '+' : operator === '-=' ? '-' : operator === '*=' ? '*' : '/',
-							b.call(
-								'_$_.get_property',
-								/** @type {AST.Expression} */ (context.visit(left.object)),
-								left.computed
-									? /** @type {AST.Expression} */ (context.visit(left.property))
-									: b.literal(/** @type {AST.Identifier} */ (left.property).name),
-								undefined,
-							),
-							/** @type {AST.Expression} */ (context.visit(right)),
-						),
-			);
-		}
-
-		if (left.type === 'Identifier' && left.tracked) {
-			const operator = node.operator;
-			const right = node.right;
-
-			return b.call(
-				'_$_.set',
-				/** @type {AST.Expression} */ (context.visit(left)),
-				operator === '='
-					? /** @type {AST.Expression} */ (context.visit(right))
-					: b.binary(
-							operator === '+=' ? '+' : operator === '-=' ? '-' : operator === '*=' ? '*' : '/',
-							b.call('_$_.get', left),
-							/** @type {AST.Expression} */ (context.visit(right)),
-						),
-			);
-		}
-
 		return context.next();
 	},
 
@@ -1419,39 +1364,6 @@ const visitors = {
 			if (binding?.transform?.update && binding.node !== argument) {
 				return binding.transform.update(node);
 			}
-		}
-
-		if (
-			argument.type === 'MemberExpression' &&
-			(argument.tracked || (argument.property.type === 'Identifier' && argument.property.tracked))
-		) {
-			return b.call(
-				node.prefix ? '_$_.update_pre_property' : '_$_.update_property',
-				/** @type {AST.Expression} */
-				(context.visit(argument.object, { ...context.state, metadata: { tracking: false } })),
-				argument.computed
-					? /** @type {AST.Expression} */ (context.visit(argument.property))
-					: b.literal(/** @type {AST.Identifier} */ (argument.property).name),
-				node.operator === '--' ? b.literal(-1) : undefined,
-			);
-		}
-
-		if (argument.type === 'Identifier' && argument.tracked) {
-			return b.call(
-				node.prefix ? '_$_.update_pre' : '_$_.update',
-				/** @type {AST.Expression} */
-				(context.visit(argument)),
-				node.operator === '--' ? b.literal(-1) : undefined,
-			);
-		}
-
-		if (argument.type === 'TrackedExpression') {
-			return b.call(
-				node.prefix ? '_$_.update_pre' : '_$_.update',
-				/** @type {AST.Expression} */
-				(context.visit(argument.argument)),
-				node.operator === '--' ? b.literal(-1) : undefined,
-			);
 		}
 	},
 
@@ -1555,35 +1467,8 @@ const visitors = {
 		}
 	},
 
-	TrackedExpression(node, context) {
-		return b.call('_$_.get', /** @type {AST.Expression} */ (context.visit(node.argument)));
-	},
-
-	MemberExpression(node, context) {
-		if (
-			node.tracked ||
-			((node.property.type === 'Identifier' || node.property.type === 'Literal') &&
-				node.property.tracked)
-		) {
-			return b.call(
-				'_$_.get_property',
-				/** @type {AST.Expression} */ (context.visit(node.object)),
-				node.computed
-					? /** @type {AST.Expression} */ (context.visit(node.property))
-					: b.literal(/** @type {AST.Identifier} */ (node.property).name),
-				node.optional ? b.true : undefined,
-			);
-		}
-
-		return context.next();
-	},
-
 	Text(node, { visit, state }) {
 		let expression = /** @type {AST.Expression} */ (visit(node.expression, state));
-
-		if (expression.type === 'Identifier' && expression.tracked) {
-			expression = b.call('_$_.get', expression);
-		}
 
 		if (expression.type === 'Literal') {
 			state.init?.push(

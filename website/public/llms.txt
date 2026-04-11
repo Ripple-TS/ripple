@@ -476,7 +476,7 @@ export component App() {
 
 #### Dynamic Component Transport Pattern
 
-Ripple has built-in support for dynamic components, a way to render different components based on reactive state. Instead of hardcoding which component to show, you can store a component in a `Tracked` via `track()`, and update it at runtime. When the tracked value changes, Ripple automatically unmounts the previous component and mounts the new one. Dynamic components are written with the `<@Component />` tag, where the `@` tells the compiler that the component reference is dynamic. This makes it straightforward to pass components as props or swap them directly within a component, enabling flexible, state-driven UIs with minimal boilerplate.
+Ripple has built-in support for dynamic components, a way to render different components based on reactive state. Instead of hardcoding which component to show, you can store a component in a `Tracked` via `track()`, and update it at runtime. When the tracked value changes, Ripple automatically unmounts the previous component and mounts the new one. Dynamic components are written with the `<@Component />` tag, where `@` is a special marker that tells the compiler the component or element is dynamic — it does not dereference or unwrap the value. The expression after `@` (e.g., `swapMe` in `<@swapMe />`) is treated as a `Tracked` value, and the runtime handles unwrapping it internally. This makes it straightforward to pass components as props or swap them directly within a component, enabling flexible, state-driven UIs with minimal boilerplate.
 
 ```ripple
 import { track } from 'ripple';

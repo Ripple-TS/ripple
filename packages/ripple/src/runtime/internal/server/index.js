@@ -33,7 +33,13 @@ import {
 	SUSPENSE_REJECTED,
 	ASYNC_DERIVED_READ_THROWN,
 } from '../client/constants.js';
-import { is_ripple_object, get_descriptor, define_property, is_array, array_slice } from '../client/utils.js';
+import {
+	is_ripple_object,
+	get_descriptor,
+	define_property,
+	is_array,
+	array_slice,
+} from '../client/utils.js';
 import { escape } from '../../../utils/escaping.js';
 import { is_boolean_attribute } from '../../../compiler/utils.js';
 import { clsx } from 'clsx';

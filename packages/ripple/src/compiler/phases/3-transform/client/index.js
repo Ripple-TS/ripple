@@ -515,9 +515,6 @@ const visitors = {
 					if (context.state.metadata?.tracking === false) {
 						context.state.metadata.tracking = true;
 					}
-					if (node.tracked && !binding?.read_unwraps) {
-						return b.call('_$_.get', build_getter(node, context));
-					}
 				}
 				return build_getter(node, context);
 			}
@@ -798,69 +795,9 @@ const visitors = {
 		return b.call('_$_.with_scope', b.id('__block'), b.thunk(new_node));
 	},
 
-	TrackedExpression(node, context) {
-		if (context.state.to_ts) {
-			const visited = /** @type {AST.Expression} */ (context.visit(node.argument));
-			const member = b.member(
-				visited,
-				b.literal('#v'),
-				true,
-				!is_inside_left_side_assignment(node),
-				/** @type {AST.NodeWithLocation} */ (node),
-			);
-			member.tracked = true;
-			return member;
-		}
-		return b.call('_$_.get', /** @type {AST.Expression} */ (context.visit(node.argument)));
-	},
-
 	MemberExpression(node, context) {
 		if (context.state.metadata?.tracking === false) {
 			context.state.metadata.tracking = true;
-		}
-
-		if (
-			node.tracked ||
-			((node.property.type === 'Identifier' || node.property.type === 'Literal') &&
-				node.property.tracked)
-		) {
-			if (context.state.to_ts) {
-				// In TypeScript mode, transform @user.@name or @user.@['name'] or @user?.@name
-				// to user['#v'].name['#v'] or user['#v']['name']['#v'] or user['#v']?.name['#v']
-				const visited_object = /** @type {AST.Expression} */ (context.visit(node.object));
-				const visited_property = /** @type {AST.Expression} */ (context.visit(node.property));
-
-				// Build the member access: object.property or object[property]
-				const member = b.member(
-					visited_object,
-					visited_property,
-					node.computed,
-					node.optional,
-					/** @type {AST.NodeWithLocation} */ (node),
-				);
-
-				// Wrap with ['#v'] access
-				const member_expanded = b.member(
-					member,
-					b.literal('#v'),
-					true,
-					!is_inside_left_side_assignment(node),
-					/** @type {AST.NodeWithLocation} */ (node),
-				);
-				member_expanded.tracked = true;
-				return member_expanded;
-			} else {
-				if (!context.state.to_ts) {
-					return b.call(
-						'_$_.get_property',
-						/** @type {AST.Expression} */ (context.visit(node.object)),
-						node.computed
-							? /** @type {AST.Expression} */ (context.visit(node.property))
-							: b.literal(/** @type {AST.Identifier} */ (node.property).name),
-						node.optional ? b.true : undefined,
-					);
-				}
-			}
 		}
 
 		if (node.object.type === 'MemberExpression' && node.object.optional) {
@@ -902,6 +839,25 @@ const visitors = {
 	ClassExpression(node, context) {
 		if (!context.state.to_ts) {
 			strip_class_typescript_syntax(node, context);
+		}
+		return context.next();
+	},
+
+	ExpressionStatement(node, context) {
+		// Handle standalone lazy destructuring: &[data] = track(0); → const lazy0 = track(0);
+		if (
+			node.expression.type === 'AssignmentExpression' &&
+			node.expression.left.lazy &&
+			node.expression.left.metadata?.lazy_id
+		) {
+			if (context.state.to_ts) {
+				// In TypeScript mode, convert to a regular assignment (drop the pattern)
+				node.expression.left.lazy = false;
+				delete node.expression.left.metadata.lazy_id;
+				return context.next();
+			}
+			const right = /** @type {AST.Expression} */ (context.visit(node.expression.right));
+			return b.const(b.id(node.expression.left.metadata.lazy_id), right);
 		}
 		return context.next();
 	},
@@ -2010,56 +1966,6 @@ const visitors = {
 			}
 		}
 
-		if (
-			left.type === 'MemberExpression' &&
-			(left.tracked || (left.property.type === 'Identifier' && left.property.tracked))
-		) {
-			const operator = node.operator;
-			const right = node.right;
-
-			if (operator !== '=' && context.state.metadata?.tracking === false) {
-				context.state.metadata.tracking = true;
-			}
-
-			return b.call(
-				'_$_.set_property',
-				/** @type {AST.Expression} */ (
-					context.visit(left.object, { ...context.state, metadata: { tracking: false } })
-				),
-				left.computed
-					? /** @type {AST.Expression} */ (context.visit(left.property))
-					: b.literal(/** @type {AST.Identifier} */ (left.property).name),
-				operator === '='
-					? /** @type {AST.Expression} */ (context.visit(right))
-					: b.binary(
-							operator === '+=' ? '+' : operator === '-=' ? '-' : operator === '*=' ? '*' : '/',
-							/** @type {AST.Expression} */ (context.visit(left)),
-							/** @type {AST.Expression} */ (context.visit(right)),
-						),
-			);
-		}
-
-		if (left.type === 'Identifier' && left.tracked) {
-			const operator = node.operator;
-			const right = node.right;
-
-			return b.call(
-				'_$_.set',
-				/** @type {AST.Expression} */ (
-					context.visit(left, { ...context.state, metadata: { tracking: null } })
-				),
-				operator === '='
-					? /** @type {AST.Expression} */ (context.visit(right))
-					: b.binary(
-							operator === '+=' ? '+' : operator === '-=' ? '-' : operator === '*=' ? '*' : '/',
-							/** @type {AST.Expression} */ (
-								context.visit(left, { ...context.state, metadata: { tracking: false } })
-							),
-							/** @type {AST.Expression} */ (context.visit(right)),
-						),
-			);
-		}
-
 		return visit_assignment_expression(node, context, build_assignment) ?? context.next();
 	},
 
@@ -2075,43 +1981,6 @@ const visitors = {
 			if (binding?.transform?.update && binding.node !== argument) {
 				return binding.transform.update(node);
 			}
-		}
-
-		if (
-			argument.type === 'MemberExpression' &&
-			(argument.tracked || (argument.property.type === 'Identifier' && argument.property.tracked))
-		) {
-			if (context.state.metadata?.tracking === false) {
-				context.state.metadata.tracking = true;
-			}
-
-			return b.call(
-				node.prefix ? '_$_.update_pre_property' : '_$_.update_property',
-				/** @type {AST.Expression} */
-				(context.visit(argument.object, { ...context.state, metadata: { tracking: false } })),
-				argument.computed
-					? /** @type {AST.Expression} */ (context.visit(argument.property))
-					: b.literal(/** @type {AST.Identifier} */ (argument.property).name),
-				node.operator === '--' ? b.literal(-1) : undefined,
-			);
-		}
-
-		if (argument.type === 'Identifier' && argument.tracked) {
-			return b.call(
-				node.prefix ? '_$_.update_pre' : '_$_.update',
-				/** @type {AST.Expression} */
-				(context.visit(argument, { ...context.state, metadata: { tracking: null } })),
-				node.operator === '--' ? b.literal(-1) : undefined,
-			);
-		}
-
-		if (argument.type === 'TrackedExpression') {
-			return b.call(
-				node.prefix ? '_$_.update_pre' : '_$_.update',
-				/** @type {AST.Expression} */
-				(context.visit(argument.argument, { ...context.state, metadata: { tracking: null } })),
-				node.operator === '--' ? b.literal(-1) : undefined,
-			);
 		}
 
 		const left = object(/** @type {AST.MemberExpression | AST.Identifier} */ (argument));

@@ -1450,13 +1450,6 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 		}
 
-		case 'TrackedExpression': {
-			/** @type {Doc[]} */
-			const parts = ['@(', path.call(print, 'argument'), ')'];
-			nodeContent = parts;
-			break;
-		}
-
 		case 'StyleIdentifier': {
 			nodeContent = '#style';
 			break;
@@ -3992,12 +3985,7 @@ function printMemberExpression(node, path, options, print) {
 	let result;
 	if (node.computed) {
 		// Check if the MemberExpression itself is tracked to add @ symbol
-		const trackedPrefix = node.tracked ? '@' : '';
-		const openBracket = node.optional
-			? '?.' + trackedPrefix + '['
-			: trackedPrefix
-				? '.' + trackedPrefix + '['
-				: '[';
+		const openBracket = node.optional ? '?.[' : '[';
 		result = [objectPart, openBracket, propertyPart, ']'];
 	} else {
 		const separator = node.optional ? '?.' : '.';
@@ -5873,28 +5861,16 @@ function printJSXMemberExpression(node) {
  */
 function printMemberExpressionSimple(node, options, computed = false) {
 	if (node.type === 'Identifier') {
-		// When computed is true, it means we're inside brackets and tracked is already handled by .@[ or [
-		// So we should NOT add @ prefix in that case
 		return (computed ? '' : node.tracked ? '@' : '') + node.name;
 	}
 
 	if (node.type === 'MemberExpression') {
 		const obj = printMemberExpressionSimple(node.object, options);
-		// For properties, we add the .@ or . prefix, and then pass true to indicate
-		// that we're in a context where tracked has been handled
 		let prop;
 		if (node.computed) {
-			let prefix = '[';
-			if (/** @type {AST.TrackedNode} */ (node.property).tracked) {
-				prefix = '.@[';
-			}
-			prop = prefix + printMemberExpressionSimple(node.property, options, true) + ']';
+			prop = '[' + printMemberExpressionSimple(node.property, options, true) + ']';
 		} else {
-			let prefix = '.';
-			if (/** @type {AST.TrackedNode} */ (node.property).tracked) {
-				prefix = '.@';
-			}
-			prop = prefix + printMemberExpressionSimple(node.property, options, true);
+			prop = '.' + printMemberExpressionSimple(node.property, options, true);
 		}
 		return obj + prop;
 	}
@@ -6325,10 +6301,7 @@ function printAttribute(node, path, options, print) {
 
 	if (isShorthand) {
 		parts.push('{');
-		// Check if the value has tracked property for @count syntax
-		const trackedPrefix =
-			node.value && /** @type {AST.TrackedNode} */ (node.value).tracked ? '@' : '';
-		parts.push(trackedPrefix + node.name.name);
+		parts.push(node.name.name);
 		parts.push('}');
 		return parts;
 	}

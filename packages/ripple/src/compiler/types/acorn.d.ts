@@ -6,6 +6,6 @@
 //
 // The relative import of './parser' loads the augmentation declarations
 // (declare module 'acorn' { ... }) so the re-exported types include
-// Ripple-specific nodes like Component, Element, TrackedExpression, etc.
+// Ripple-specific nodes like Component, Element, etc.
 import './parser.d.ts';
 export * from 'acorn';

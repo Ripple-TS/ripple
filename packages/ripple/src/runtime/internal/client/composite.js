@@ -3,7 +3,7 @@
 import { branch, destroy_block, render, render_spread } from './blocks.js';
 import { COMPOSITE_BLOCK, DEFAULT_NAMESPACE, NAMESPACE_URI } from './constants.js';
 import { hydrate_next, hydrating } from './hydration.js';
-import { active_block, active_namespace, with_ns } from './runtime.js';
+import { active_block, active_namespace, get, with_ns } from './runtime.js';
 import { top_element_to_ns } from './utils.js';
 
 /**
@@ -29,7 +29,8 @@ export function composite(get_component, node, props) {
 
 	render(
 		() => {
-			var component = get_component();
+			// @ts-ignore — get() handles non-tracked values via is_ripple_object() check
+			var component = get(get_component());
 
 			if (b !== null) {
 				destroy_block(b);

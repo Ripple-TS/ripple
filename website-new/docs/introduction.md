@@ -4,12 +4,16 @@ title: Introduction
 
 # Introduction
 
-Ripple is an elegant, compiler-driven language and view library for the web based
-on a superset of JSX, by Dominic Gannaway
-([@trueadm](https://github.com/trueadm)).
+Ripple is an elegant, compiler-driven language and UI framework built on a
+superset of TypeScript.
 
-Like JSX, Ripple is a JS-forward language. It extends JSX to allow for DOM
-elements to be written as statements, rather than expressions.
+It features its own JSX-like templating language, allowing a declarative blend of
+structure and control flow. This makes applications easier for both humans and AI
+to reason about, while delivering a developer experience that ultimately results
+in a better user experience.
+
+Ripple was created by Dominic Gannaway ([@trueadm](https://github.com/trueadm)),
+who has previously worked on React, Svelte, Lexical, and Inferno.
 
 <Code>
 
@@ -21,11 +25,11 @@ export component App() {
     <h1>{'Welcome to Ripple!'}</h1>
 
     <div>
-      let count = track(0);
+      let &[count] = track(0);
 
-      <button onClick={() => @count--}>{'-'}</button>
-      <span class="count">{@count}</span>
-      <button onClick={() => @count++}>{'+'}</button>
+      <button onClick={() => count--}>{'-'}</button>
+      <span class="count">{count}</span>
+      <button onClick={() => count++}>{'+'}</button>
     </div>
   </div>
 
@@ -59,8 +63,8 @@ needed. Prior experience with other frameworks is helpful but not required. :::
 
 ## Features
 
-- **Reactive Primitives**: Built-in reactivity with `track` and `@` reactive
-  syntax on primitives
+- **Reactive Primitives**: Built-in reactivity with `track` and `&[]` lazy
+  destructuring syntax
 - **Reactive Objects**: You can create fully reactive arrays/objects using
   `RippleArray` and `RippleObject`
 - **Component-Based Architecture**: Clean, reusable components with props and

@@ -76,6 +76,28 @@ export component Layout(props) {
 			'`children` cannot be rendered using text interpolation. Use `<children />` instead.',
 		);
 	});
+
+	it('throws error for calling children as a function in SSR mode', () => {
+		const source = `
+export component Layout({ children }) {
+	{children()}
+}`;
+
+		expect(() => compile(source, 'test.ripple', { mode: 'server' })).toThrow(
+			'`children` cannot be called like a regular function. Use element syntax instead, e.g. `<children />` or `<props.children />`.',
+		);
+	});
+
+	it('throws error for calling props.children as a function in SSR mode', () => {
+		const source = `
+export component Layout(props) {
+	{props.children()}
+}`;
+
+		expect(() => compile(source, 'test.ripple', { mode: 'server' })).toThrow(
+			'`children` cannot be called like a regular function. Use element syntax instead, e.g. `<children />` or `<props.children />`.',
+		);
+	});
 });
 
 describe('compiler server block tests', () => {

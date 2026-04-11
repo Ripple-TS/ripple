@@ -182,7 +182,6 @@ and once with `mode: 'server'`.
 | `Element`           | HTML/SVG element with `id`, `attributes`, `children`     |
 | `Text`              | Text node wrapping an expression                         |
 | `ServerBlock`       | `#server { ... }` block with exports tracking            |
-| `TrackedExpression` | Tracked reactive value expression                        |
 | `Attribute`         | Element attribute with `name`, `value`, `shorthand`      |
 | `RefAttribute`      | `ref={...}` reference binding                            |
 | `SpreadAttribute`   | `{...props}` spread                                      |
@@ -590,8 +589,7 @@ The plugin exports three objects required by Prettier:
 
 **AST-based approach:**
 
-- Parser produces ESTree AST with Ripple extensions (Component, Element,
-  TrackedExpression, etc.)
+- Parser produces ESTree AST with Ripple extensions (Component, Element, etc.)
 - Printer recursively walks AST nodes via `printRippleNode()` switch statement
 - Uses Prettier's `doc.builders` API (`concat`, `join`, `group`, `indent`, `line`,
   `hardline`, `softline`, `ifBreak`)

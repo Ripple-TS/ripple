@@ -413,7 +413,9 @@ function RipplePlugin(config) {
 						/** @type {AST.Property} */ (prop).method = true;
 						/** @type {AST.Property} */ (prop).kind = 'init';
 						/** @type {AST.Property} */ (prop).value = this.parseMethod(false, false);
-						/** @type {AST.Property} */ (prop).value.typeParameters = typeParameters;
+						/** @type {AST.FunctionExpression} */ (
+							/** @type {AST.Property} */ (prop).value
+						).typeParameters = typeParameters;
 						return;
 					}
 				}
@@ -666,97 +668,7 @@ function RipplePlugin(config) {
 						}
 					}
 				}
-				if (code === 64) {
-					// @ character
-					// Look ahead to see if this is followed by an opening paren
-					if (this.pos + 1 < this.input.length) {
-						const nextChar = this.input.charCodeAt(this.pos + 1);
-
-						// Check if this is @( for unboxing expression syntax
-						if (nextChar === 40) {
-							// ( character
-							this.pos += 2; // skip '@('
-							return this.finishToken(tt.parenL, '@(');
-						}
-					}
-				}
 				return super.getTokenFromCode(code);
-			}
-
-			/**
-			 * Override parseSubscripts to handle `.@[expression]` syntax for reactive computed member access
-			 * @type {Parse.Parser['parseSubscripts']}
-			 */
-			parseSubscripts(
-				base,
-				startPos,
-				startLoc,
-				noCalls,
-				maybeAsyncArrow,
-				optionalChained,
-				forInit,
-			) {
-				// Check for `.@[` pattern for reactive computed member access
-				const isDotOrOptional = this.type === tt.dot || this.type === tt.questionDot;
-
-				if (isDotOrOptional) {
-					// Check the next two characters without consuming tokens
-					// this.pos currently points AFTER the dot token
-					const nextChar = this.input.charCodeAt(this.pos);
-					const charAfter = this.input.charCodeAt(this.pos + 1);
-
-					// Check for @[ pattern (@ = 64, [ = 91)
-					if (nextChar === 64 && charAfter === 91) {
-						const node = /** @type {AST.MemberExpression} */ (this.startNodeAt(startPos, startLoc));
-						node.object = base;
-						node.computed = true;
-						node.optional = this.type === tt.questionDot;
-						node.tracked = true;
-
-						// Consume the dot/questionDot token
-						this.next();
-
-						// Manually skip the @ character
-						this.pos += 1;
-
-						// Now call finishToken to properly consume the [ bracket
-						this.finishToken(tt.bracketL);
-
-						// Now we're positioned correctly to parse the expression
-						this.next(); // Move to first token inside brackets
-
-						// Parse the expression inside brackets
-						node.property = this.parseExpression();
-
-						// Expect closing bracket
-						this.expect(tt.bracketR);
-
-						// Finish this MemberExpression node
-						base = /** @type {AST.MemberExpression} */ (this.finishNode(node, 'MemberExpression'));
-
-						// Recursively handle any further subscripts (chaining)
-						return this.parseSubscripts(
-							base,
-							startPos,
-							startLoc,
-							noCalls,
-							maybeAsyncArrow,
-							optionalChained,
-							forInit,
-						);
-					}
-				}
-
-				// Fall back to default parseSubscripts implementation
-				return super.parseSubscripts(
-					base,
-					startPos,
-					startLoc,
-					noCalls,
-					maybeAsyncArrow,
-					optionalChained,
-					forInit,
-				);
 			}
 
 			/**
@@ -809,11 +721,6 @@ function RipplePlugin(config) {
 				const lookahead_type = this.lookahead().type;
 				const is_next_call_token = lookahead_type === tt.parenL || lookahead_type === tt.relational;
 
-				// Check if this is @(expression) for unboxing tracked values
-				if (this.type === tt.parenL && this.value === '@(') {
-					return this.parseTrackedExpression();
-				}
-
 				// Check if this is #server identifier for server function calls
 				if (this.type === tt.name && this.value === '#server') {
 					const node = this.startNode();
@@ -852,31 +759,6 @@ function RipplePlugin(config) {
 				}
 
 				return expr;
-			}
-
-			/**
-			 * Parse `@(expression)` syntax for unboxing tracked values
-			 * Creates a TrackedExpression node with the argument property
-			 * @type {Parse.Parser['parseTrackedExpression']}
-			 */
-			parseTrackedExpression() {
-				const node = /** @type {AST.TrackedExpression} */ (this.startNode());
-				this.next(); // consume '@(' token
-				node.argument = this.parseExpression();
-				this.expect(tt.parenR); // expect ')'
-				return this.finishNode(node, 'TrackedExpression');
-			}
-
-			/**
-			 * Override to allow TrackedExpression as a valid lvalue for update expressions
-			 * @type {Parse.Parser['checkLValSimple']}
-			 */
-			checkLValSimple(expr, bindingType, checkClashes) {
-				// Allow TrackedExpression as a valid lvalue for ++/-- operators
-				if (expr.type === 'TrackedExpression') {
-					return;
-				}
-				return super.checkLValSimple(expr, bindingType, checkClashes);
 			}
 
 			/**
@@ -1017,6 +899,7 @@ function RipplePlugin(config) {
 					return this.parseFor(node, null);
 				}
 
+				// @ts-ignore — acorn internal: isLet accepts 0 args at runtime
 				let isLet = this.isLet();
 				if (this.type === tt._var || this.type === tt._const || isLet) {
 					let init = /** @type {AST.VariableDeclaration} */ (this.startNode()),
@@ -1059,7 +942,9 @@ function RipplePlugin(config) {
 				}
 
 				let containsEsc = this.containsEsc;
-				let refDestructuringErrors = new DestructuringErrors();
+				let refDestructuringErrors = new /** @type {new () => Parse.DestructuringErrors} */ (
+					/** @type {unknown} */ (DestructuringErrors)
+				)();
 				let initPos = this.start;
 				let init_expr =
 					awaitAt > -1
@@ -1390,38 +1275,8 @@ function RipplePlugin(config) {
 						)
 					);
 					memberExpr.object = node;
-
-					// Check for .@[expression] syntax for tracked computed member access
-					// After eating the dot, check if the current token is @ followed by [
-					if (this.type.label === '@') {
-						// Check if the next character after @ is [
-						const nextChar = this.input.charCodeAt(this.pos);
-
-						if (nextChar === 91) {
-							// [ character
-							memberExpr.computed = true;
-
-							// Consume the @ token
-							this.next();
-
-							// Now this.type should be bracketL
-							// Consume the [ and parse the expression inside
-							this.expect(tt.bracketL);
-
-							// Parse the expression inside brackets
-							memberExpr.property = /** @type {ESTreeJSX.JSXIdentifier} */ (this.parseExpression());
-							/** @type {AST.TrackedNode} */ (memberExpr.property).tracked = true;
-
-							// Expect closing bracket
-							this.expect(tt.bracketR);
-						} else {
-							this.unexpected();
-						}
-					} else {
-						// Regular dot notation
-						memberExpr.property = this.jsx_parseIdentifier();
-						memberExpr.computed = false;
-					}
+					memberExpr.property = this.jsx_parseIdentifier();
+					memberExpr.computed = false;
 					memberExpr = this.finishNode(memberExpr, 'JSXMemberExpression');
 					while (this.eat(tt.dot)) {
 						let newMemberExpr = /** @type {ESTreeJSX.JSXMemberExpression} */ (
@@ -1737,8 +1592,9 @@ function RipplePlugin(config) {
 								if (expression.type === 'Literal') {
 									expression.was_expression = true;
 								}
-								/** @type {ESTreeJSX.JSXExpressionContainer['expression']} */ (attr.value) =
-									expression;
+								// @ts-ignore — intentional AST node conversion from JSX to Ripple
+								/** @type {ESTreeJSX.JSXAttribute} */ (attr).value =
+									/** @type {ESTreeJSX.JSXExpressionContainer['expression']} */ (expression);
 							}
 						}
 					}
@@ -2262,6 +2118,37 @@ function RipplePlugin(config) {
 						this.unexpected();
 					}
 					return node;
+				}
+
+				// &[ or &{ at statement level — lazy destructuring assignment
+				// e.g., &[data] = track(0); or &{x, y} = obj;
+				if (this.type === tt.bitwiseAND) {
+					const charAfterAmp = this.input.charCodeAt(this.end);
+					if (charAfterAmp === 123 || charAfterAmp === 91) {
+						const node = /** @type {AST.ExpressionStatement} */ (this.startNode());
+						const assign_node = /** @type {AST.AssignmentExpression} */ (this.startNode());
+						this.next(); // consume &
+						// Parse the left-hand side (array or object expression)
+						const left = /** @type {AST.ArrayPattern | AST.ObjectPattern} */ (
+							/** @type {unknown} */ (this.parseExprAtom())
+						);
+						// Convert expression to destructuring pattern
+						this.toAssignable(left, false);
+						left.lazy = true;
+						// Expect = operator
+						this.expect(tt.eq);
+						// Parse the right-hand side
+						assign_node.operator = '=';
+						assign_node.left = left;
+						assign_node.right = /** @type {AST.Expression} */ (this.parseMaybeAssign());
+						node.expression = /** @type {AST.AssignmentExpression} */ (
+							this.finishNode(assign_node, 'AssignmentExpression')
+						);
+						this.semicolon();
+						return /** @type {AST.ExpressionStatement} */ (
+							this.finishNode(node, 'ExpressionStatement')
+						);
+					}
 				}
 
 				return super.parseStatement(context, topLevel, exports);

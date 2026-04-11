@@ -589,21 +589,8 @@ export function is_element_dynamic(node) {
  * @returns {boolean}
  */
 function is_id_dynamic(node) {
-	if (node.type === 'Identifier' || node.type === 'Literal') {
-		if (node.tracked) {
-			return true;
-		}
-
-		return false;
-	} else if (node.type === 'MemberExpression') {
-		if (/** @type {AST.Identifier} */ (node.object).tracked === true) {
-			return true;
-		}
-		if (node.property.type === 'MemberExpression') {
-			return is_id_dynamic(node.property);
-		}
-
-		return !!(/** @type {AST.Identifier} */ (node.property).tracked);
+	if (node.type === 'Identifier') {
+		return !!node.tracked;
 	}
 
 	return false;

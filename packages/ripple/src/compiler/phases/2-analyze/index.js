@@ -4,6 +4,7 @@
 	AnalysisResult,
 	AnalysisState,
 	AnalysisContext,
+	Context,
 	ScopeInterface,
 	Visitors,
 	TopScopedClasses,
@@ -490,18 +491,13 @@ function unwrap_template_expression(expression) {
 
 /**
  * @param {AST.Expression} expression
- * @param {AnalysisState} state
+ * @param {Context<AST.Node, AnalysisState>} context
  * @returns {boolean}
  */
-function is_children_template_expression(expression, state) {
+function is_children_template_expression(expression, context) {
+	const component = context.path.findLast((node) => node.type === 'Component');
+	const component_scope = component ? context.state.scopes.get(component) : null;
 	const unwrapped = unwrap_template_expression(expression);
-
-	if (unwrapped.type === 'TrackedExpression') {
-		return is_children_template_expression(
-			/** @type {AST.Expression} */ (unwrapped.argument),
-			state,
-		);
-	}
 
 	if (unwrapped.type === 'MemberExpression') {
 		let property_name = null;
@@ -520,13 +516,25 @@ function is_children_template_expression(expression, state) {
 			const target = unwrap_template_expression(/** @type {AST.Expression} */ (unwrapped.object));
 
 			if (target.type === 'Identifier') {
-				const binding = state.scope.get(target.name);
-				return binding?.declaration_kind === 'param';
+				const binding = context.state.scope.get(target.name);
+				return binding?.declaration_kind === 'param' && binding.scope === component_scope;
 			}
 		}
 	}
 
-	return unwrapped.type === 'Identifier' && unwrapped.name === 'children';
+	if (unwrapped.type !== 'Identifier' || unwrapped.name !== 'children') {
+		return false;
+	}
+
+	const binding = context.state.scope.get(unwrapped.name);
+	return (
+		(binding?.declaration_kind === 'param' ||
+			binding?.kind === 'prop' ||
+			binding?.kind === 'prop_fallback' ||
+			binding?.kind === 'lazy' ||
+			binding?.kind === 'lazy_fallback') &&
+		binding.scope === component_scope
+	);
 }
 
 /** @type {Visitors<AST.Node, AnalysisState>} */
@@ -637,16 +645,6 @@ const visitors = {
 
 	MemberExpression(node, context) {
 		const parent = context.path.at(-1);
-
-		if (
-			context.state.metadata?.tracking === false &&
-			parent?.type !== 'AssignmentExpression' &&
-			(node.tracked ||
-				((node.property.type === 'Identifier' || node.property.type === 'Literal') &&
-					/** @type {AST.TrackedNode} */ (node.property).tracked))
-		) {
-			context.state.metadata.tracking = true;
-		}
 
 		// Track #style.className or #style['className'] references
 		if (node.object.type === 'StyleIdentifier') {
@@ -767,6 +765,19 @@ const visitors = {
 
 		const callee = node.callee;
 
+		if (
+			!context.path.some((path_node) => path_node.type === 'TsxCompat') &&
+			is_children_template_expression(/** @type {AST.Expression} */ (callee), context)
+		) {
+			error(
+				'`children` cannot be called like a regular function. Use element syntax instead, e.g. `<children />` or `<props.children />`.',
+				context.state.analysis.module.filename,
+				callee,
+				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		}
+
 		if (context.state.function_depth === 0 && is_ripple_track_call(callee, context)) {
 			error(
 				'`track` can only be used within a reactive context, such as a component, function or class that is used or created from a component',
@@ -845,6 +856,30 @@ const visitors = {
 
 			declarator.metadata = { ...metadata, path: [...context.path] };
 		}
+	},
+
+	ExpressionStatement(node, context) {
+		const { state, visit } = context;
+
+		// Handle standalone lazy destructuring assignment: &[data] = track(0);
+		if (
+			node.expression.type === 'AssignmentExpression' &&
+			node.expression.operator === '=' &&
+			(node.expression.left.type === 'ObjectPattern' ||
+				node.expression.left.type === 'ArrayPattern') &&
+			node.expression.left.lazy
+		) {
+			const pattern = /** @type {AST.ObjectPattern | AST.ArrayPattern} */ (node.expression.left);
+			const lazy_id = b.id(state.scope.generate('lazy'));
+			const init = /** @type {AST.Expression} */ (node.expression.right);
+			const init_is_track =
+				init?.type === 'CallExpression' && is_ripple_track_call(init.callee, context) === 'track';
+			setup_lazy_transforms(pattern, lazy_id, state, true, !!init_is_track);
+			// Store the generated identifier name on the pattern for the transform phase
+			pattern.metadata = { ...pattern.metadata, lazy_id: lazy_id.name };
+		}
+
+		context.next();
 	},
 
 	StyleIdentifier(node, context) {
@@ -1441,6 +1476,7 @@ const visitors = {
 
 		const { state, visit, path } = context;
 		const is_dom_element = is_element_dom_element(node);
+		/** @type {Set<AST.Identifier>} */
 		const attribute_names = new Set();
 
 		mark_control_flow_has_template(path);
@@ -1696,12 +1732,7 @@ const visitors = {
 	Text(node, context) {
 		mark_control_flow_has_template(context.path);
 
-		if (
-			is_children_template_expression(
-				/** @type {AST.Expression} */ (node.expression),
-				context.state,
-			)
-		) {
+		if (is_children_template_expression(/** @type {AST.Expression} */ (node.expression), context)) {
 			error(
 				'`children` cannot be rendered using text interpolation. Use `<children />` instead.',
 				context.state.analysis.module.filename,

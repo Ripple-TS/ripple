@@ -302,17 +302,6 @@ export default component App() {
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should format a component with an object reactive bracketed property notation props.@["children"]', async () => {
-			const expected = `component Card(props) {
-  <div class="card">
-    <props.@['children'] />
-  </div>
-}`;
-
-			const result = await format(expected, { singleQuote: true });
-			expect(result).toBeWithNewline(expected);
-		});
-
 		it('should respect print width when using ternary expressions', async () => {
 			const input = `function printMemberExpressionSimple(node, options, computed = false) {
   if (node.type === 'MemberExpression') {
@@ -964,35 +953,6 @@ export component Test({ a, b }: Props) {}`;
 		it('should not strip @ from dynamic self-closing components', async () => {
 			const expected = `component App() {
   <@ripple_object.tracked_basic />
-}`;
-
-			const result = await format(expected, { singleQuote: true, printWidth: 100 });
-			expect(result).toBeWithNewline(expected);
-		});
-
-		it('should keep @ on dynamic object member array expressions', async () => {
-			const expected = `component App() {
-  const obj = {
-    [0]: track(0),
-  };
-
-  <div>{obj.@[0]}</div>
-
-  <button
-    onClick={() => {
-      obj.@[0]++;
-    }}
-  >
-    {'Increment'}
-  </button>
-
-  <button
-    onClick={() => {
-      obj.@[0] += 1;
-    }}
-  >
-    {'Increment'}
-  </button>
 }`;
 
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
@@ -1694,7 +1654,7 @@ const program =
     onemore: 100,
   };
 
-  // if (props.@count > 1) {
+  // if (props.count > 1) {
   // 	delete more.another;
   // }
 

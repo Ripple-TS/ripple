@@ -380,58 +380,7 @@
       ]
     },
     "decorator": {
-      "patterns": [
-        {
-          "name": "meta.unbox.tracked.paren.js",
-          "begin": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(\\@)(\\()",
-          "beginCaptures": {
-            "1": {
-              "name": "punctuation.section.embedded.begin.js"
-            },
-            "2": {
-              "name": "punctuation.section.embedded.begin.js"
-            }
-          },
-          "end": "\\)",
-          "endCaptures": {
-            "0": {
-              "name": "punctuation.section.embedded.end.js"
-            }
-          },
-          "patterns": [
-            {
-              "include": "#expression"
-            }
-          ]
-        },
-        {
-          "name": "meta.identifier.tracked.js",
-          "match": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(@)([_$[:alpha:]][_$[:alnum:]]*)",
-          "captures": {
-            "1": {
-              "name": "punctuation.section.embedded.begin.js"
-            },
-            "2": {
-              "name": "variable.other.js"
-            }
-          }
-        },
-        {
-          "name": "meta.decorator.js",
-          "begin": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))\\@(?![_$[:alpha:]])",
-          "beginCaptures": {
-            "0": {
-              "name": "punctuation.decorator.js"
-            }
-          },
-          "end": "(?=\\s)",
-          "patterns": [
-            {
-              "include": "#expression"
-            }
-          ]
-        }
-      ]
+      "patterns": []
     },
     "var-expr": {
       "patterns": [
@@ -5212,21 +5161,6 @@
     "punctuation-accessor": {
       "patterns": [
         {
-          "name": "meta.reactive-computed-member-access.ripple",
-          "match": "(\\.)(\\@)(\\[)",
-          "captures": {
-            "1": {
-              "name": "punctuation.accessor.js"
-            },
-            "2": {
-              "name": "punctuation.section.embedded.begin.js"
-            },
-            "3": {
-              "name": "punctuation.definition.computed-property.begin.js"
-            }
-          }
-        },
-        {
           "match": "(?:(\\.)|(\\?\\.(?!\\s*[[:digit:]])))",
           "captures": {
             "1": {
@@ -6532,18 +6466,6 @@
     "jsx-attribute-expression": {
       "patterns": [
         {
-          "name": "meta.identifier.tracked.js",
-          "match": "(@)([_$[:alpha:]][_$[:alnum:]]*)",
-          "captures": {
-            "1": {
-              "name": "punctuation.section.embedded.begin.js"
-            },
-            "2": {
-              "name": "variable.other.js"
-            }
-          }
-        },
-        {
           "include": "#style-member-expression"
         },
         {
@@ -6562,41 +6484,6 @@
     },
     "non-jsx-expression": {
       "patterns": [
-        {
-          "name": "meta.unbox.tracked.paren.js",
-          "begin": "(\\@)(\\()",
-          "beginCaptures": {
-            "1": {
-              "name": "punctuation.section.embedded.begin.js"
-            },
-            "2": {
-              "name": "punctuation.section.embedded.begin.js"
-            }
-          },
-          "end": "\\)",
-          "endCaptures": {
-            "0": {
-              "name": "punctuation.section.embedded.end.js"
-            }
-          },
-          "patterns": [
-            {
-              "include": "#expression"
-            }
-          ]
-        },
-        {
-          "name": "meta.identifier.tracked.js",
-          "match": "(@)([_$[:alpha:]][_$[:alnum:]]*)",
-          "captures": {
-            "1": {
-              "name": "punctuation.section.embedded.begin.js"
-            },
-            "2": {
-              "name": "variable.other.js"
-            }
-          }
-        },
         {
           "include": "#style-member-expression"
         },
@@ -7046,18 +6933,6 @@
     },
     "jsx-tsx-attribute-expression": {
       "patterns": [
-        {
-          "name": "meta.identifier.tracked.js",
-          "match": "(@)([_$[:alpha:]][_$[:alnum:]]*)",
-          "captures": {
-            "1": {
-              "name": "punctuation.section.embedded.begin.js"
-            },
-            "2": {
-              "name": "variable.other.js"
-            }
-          }
-        },
         {
           "include": "#style-member-expression"
         },

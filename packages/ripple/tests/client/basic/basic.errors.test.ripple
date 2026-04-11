@@ -89,6 +89,34 @@ describe('basic client > errors', () => {
 		);
 	});
 
+	it('should throw error for calling children as a function', () => {
+		const code = `
+			export component Layout({ children }) {
+				{children()}
+			}
+		`;
+
+		expect(() => {
+			compile(code, 'test.ripple');
+		}).toThrow(
+			'`children` cannot be called like a regular function. Use element syntax instead, e.g. `<children />` or `<props.children />`.',
+		);
+	});
+
+	it('should throw error for calling props.children as a function', () => {
+		const code = `
+			export component Layout(props) {
+				{props.children()}
+			}
+		`;
+
+		expect(() => {
+			compile(code, 'test.ripple');
+		}).toThrow(
+			'`children` cannot be called like a regular function. Use element syntax instead, e.g. `<children />` or `<props.children />`.',
+		);
+	});
+
 	it('errors on mutating tracked value inside computed track() evaluation', () => {
 		component Basic() {
 			let &[count] = track(0);

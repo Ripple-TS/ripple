@@ -2,7 +2,6 @@ import { createRequire } from 'module';
 import noModuleScopeTrack from './rules/no-module-scope-track.js';
 import preferOnInput from './rules/prefer-oninput.js';
 import noReturnInComponent from './rules/no-return-in-component.js';
-import unboxTrackedValues from './rules/unbox-tracked-values.js';
 import controlFlowJsx from './rules/control-flow-jsx.js';
 import noLazyDestructuringInModules from './rules/no-lazy-destructuring-in-modules.js';
 import validForOfKey from './rules/valid-for-of-key.js';
@@ -16,7 +15,6 @@ const plugin = {
 		'no-module-scope-track': noModuleScopeTrack,
 		'prefer-oninput': preferOnInput,
 		'no-return-in-component': noReturnInComponent,
-		'unbox-tracked-values': unboxTrackedValues,
 		'control-flow-jsx': controlFlowJsx,
 		'no-lazy-destructuring-in-modules': noLazyDestructuringInModules,
 		'valid-for-of-key': validForOfKey,
@@ -56,7 +54,6 @@ function createConfig(name: string, files: string[], parser: any) {
 			'ripple/no-module-scope-track': 'error',
 			'ripple/prefer-oninput': 'warn',
 			'ripple/no-return-in-component': 'error',
-			'ripple/unbox-tracked-values': 'error',
 			'ripple/control-flow-jsx': 'error',
 			'ripple/no-lazy-destructuring-in-modules': 'error',
 			'ripple/valid-for-of-key': 'error',

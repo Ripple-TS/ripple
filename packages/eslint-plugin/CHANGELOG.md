@@ -1,5 +1,18 @@
 # @ripple-ts/eslint-plugin
 
+## 0.3.8
+
+### Patch Changes
+
+- [#834](https://github.com/Ripple-TS/ripple/pull/834)
+  [`0b0447d`](https://github.com/Ripple-TS/ripple/commit/0b0447d3713efe7365f48a9dda6b5e6bf6452b02)
+  Thanks [@trueadm](https://github.com/trueadm)! - Replace
+  `no-introspect-in-modules` rule with `no-lazy-destructuring-in-modules` to match
+  the new `&[]`/`&{}` lazy destructuring syntax
+
+- Updated dependencies []:
+  - @ripple-ts/eslint-parser@0.3.8
+
 ## 0.3.7
 
 ### Patch Changes

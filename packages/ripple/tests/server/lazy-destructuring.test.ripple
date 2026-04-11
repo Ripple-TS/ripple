@@ -149,4 +149,27 @@ describe('lazy destructuring', () => {
 		const { body } = await render(Test);
 		expect(body).toBeHtml('<pre>x-yz</pre>');
 	});
+
+	it('supports standalone lazy array destructuring with track()', async () => {
+		component Test() {
+			let count;
+			&[count] = track(0);
+			<div>{count}</div>
+		}
+
+		const { body } = await render(Test);
+		expect(body).toBeHtml('<div>0</div>');
+	});
+
+	it('supports standalone lazy object destructuring', async () => {
+		component Test() {
+			let a;
+			let b;
+			&{ a, b } = { a: 10, b: 20 };
+			<pre>{`${a}-${b}`}</pre>
+		}
+
+		const { body } = await render(Test);
+		expect(body).toBeHtml('<pre>10-20</pre>');
+	});
 });

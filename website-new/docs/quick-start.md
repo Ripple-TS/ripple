@@ -127,9 +127,6 @@ and Sublime Text.
         directory into the opened folder.
      2. You should now be able to select `Ripple` in `View` > `Syntax`.
 
-::: info Are you a Zed, NeoVim, or IntelliJ/WebStorm user? Help us port the Ripple
-extension to your platforms! :::
-
 ## Getting Help
 
 Try joining the [Discord server](https://discord.gg/JBF2ySrh2W), or asking for

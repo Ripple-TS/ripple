@@ -6,6 +6,6 @@
 //
 // The relative import of './index' loads the augmentation declarations
 // (declare module 'estree' { ... }) so the re-exported types include
-// Ripple-specific nodes like Component, Element, TrackedExpression, etc.
+// Ripple-specific nodes like Component, Element, etc.
 import './index';
 export * from 'estree';

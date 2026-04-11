@@ -1126,13 +1126,6 @@ export function convert_source_map_to_mappings(
 						mapping_data_verify_only,
 					);
 
-					if (node.tracked) {
-						mapping.generatedLengths[0] = mapping.generatedLengths[0] + "['#v']".length;
-						if (node.optional) {
-							mapping.generatedLengths[0] = mapping.generatedLengths[0] + '.?'.length;
-						}
-					}
-
 					mappings.push(mapping);
 				}
 
