@@ -369,6 +369,10 @@ function setup_nested_lazy_param_transforms(pattern, context) {
 			setup_nested_lazy_param_transforms(pattern.left, context);
 			return;
 
+		case 'RestElement':
+			setup_nested_lazy_param_transforms(pattern.argument, context);
+			return;
+
 		case 'ObjectPattern':
 		case 'ArrayPattern': {
 			if (pattern.lazy) {
