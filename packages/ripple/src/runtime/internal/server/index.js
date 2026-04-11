@@ -866,6 +866,15 @@ export function ripple_object(obj) {
 }
 
 /**
+ * @template K, V
+ * @param {Iterable<readonly [K, V]>} [iterable]
+ * @returns {Map<K, V>}
+ */
+export function ripple_map(iterable) {
+	return new Map(iterable);
+}
+
+/**
  * Returns the fallback value if the given value is undefined.
  * @template T
  * @param {T | undefined} value
