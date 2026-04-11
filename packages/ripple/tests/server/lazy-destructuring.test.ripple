@@ -137,35 +137,41 @@ describe('lazy destructuring', () => {
 		expect(body).toBeHtml('<pre>2-2</pre>');
 	});
 
-	it('preserves lazy getter/setter behavior for RestElement nested destructuring in non-lazy component params', async () => {
-		component Inner({ values: [head, ...&{ 0: first_rest, length: rest_length }] }) {
-			const before = `${first_rest}-${rest_length}`;
-			rest_length = 0;
-			<pre>{`${head}-${before}-${first_rest}-${rest_length}`}</pre>
-		}
-
-		component Test() {
-			<Inner values={[10, 20, 30]} />
-		}
-
-		const { body } = await render(Test);
-		expect(body).toBeHtml('<pre>10-20-2-undefined-0</pre>');
-	});
-
-	it('preserves lazy getter/setter behavior for RestElement nested destructuring in non-lazy function params', async () => {
-		component Test() {
-			function getInfo({ values: [head, ...&{ 0: first_rest, length: rest_length }] }) {
+	it(
+		'preserves lazy getter/setter behavior for RestElement nested destructuring in non-lazy component params',
+		async () => {
+			component Inner({ values: [head, ...&{ 0: first_rest, length: rest_length }] }) {
 				const before = `${first_rest}-${rest_length}`;
 				rest_length = 0;
-				return `${head}-${before}-${first_rest}-${rest_length}`;
+				<pre>{`${head}-${before}-${first_rest}-${rest_length}`}</pre>
 			}
 
-			<pre>{getInfo({ values: [5, 6, 7] })}</pre>
-		}
+			component Test() {
+				<Inner values={[10, 20, 30]} />
+			}
 
-		const { body } = await render(Test);
-		expect(body).toBeHtml('<pre>5-6-2-undefined-0</pre>');
-	});
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>10-20-2-undefined-0</pre>');
+		},
+	);
+
+	it(
+		'preserves lazy getter/setter behavior for RestElement nested destructuring in non-lazy function params',
+		async () => {
+			component Test() {
+				function getInfo({ values: [head, ...&{ 0: first_rest, length: rest_length }] }) {
+					const before = `${first_rest}-${rest_length}`;
+					rest_length = 0;
+					return `${head}-${before}-${first_rest}-${rest_length}`;
+				}
+
+				<pre>{getInfo({ values: [5, 6, 7] })}</pre>
+			}
+
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>5-6-2-undefined-0</pre>');
+		},
+	);
 
 	it('supports member access on lazy destructured objects', async () => {
 		component Test() {

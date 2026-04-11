@@ -564,11 +564,7 @@ function setup_nested_lazy_param_transforms(pattern, context, type_annotation = 
 							property_type_annotation,
 						);
 					} else {
-						setup_nested_lazy_param_transforms(
-							property.value,
-							context,
-							property_type_annotation,
-						);
+						setup_nested_lazy_param_transforms(property.value, context, property_type_annotation);
 					}
 				}
 			} else {
@@ -1159,11 +1155,7 @@ const visitors = {
 				if (props.lazy) {
 					setup_lazy_transforms(props, b.id('__props'), context.state, true, false);
 				} else {
-					setup_nested_lazy_param_transforms(
-						props,
-						context,
-						get_pattern_type_annotation(props),
-					);
+					setup_nested_lazy_param_transforms(props, context, get_pattern_type_annotation(props));
 				}
 			} else if (props.type === 'AssignmentPattern') {
 				error(

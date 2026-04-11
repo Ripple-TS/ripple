@@ -140,20 +140,23 @@ describe('lazy destructuring', () => {
 		expect(container.querySelector('pre')!.textContent).toBe('2-2');
 	});
 
-	it('preserves lazy getter/setter behavior for nested rest destructuring in non-lazy component params', () => {
-		component Inner({ values: [head, ...&{ length: rest_length, 0: first_rest }] }) {
-			const before = `${first_rest?.value ?? 'nil'}-${rest_length}`;
-			rest_length = 0;
-			<pre>{`${head}-${before}-${first_rest?.value ?? 'nil'}-${rest_length}`}</pre>
-		}
+	it(
+		'preserves lazy getter/setter behavior for nested rest destructuring in non-lazy component params',
+		() => {
+			component Inner({ values: [head, ...&{ length: rest_length, 0: first_rest }] }) {
+				const before = `${first_rest?.value ?? 'nil'}-${rest_length}`;
+				rest_length = 0;
+				<pre>{`${head}-${before}-${first_rest?.value ?? 'nil'}-${rest_length}`}</pre>
+			}
 
-		component Test() {
-			<Inner values={[10, track(20), track(30)]} />
-		}
+			component Test() {
+				<Inner values={[10, track(20), track(30)]} />
+			}
 
-		render(Test);
-		expect(container.querySelector('pre')!.textContent).toBe('10-20-2-nil-0');
-	});
+			render(Test);
+			expect(container.querySelector('pre')!.textContent).toBe('10-20-2-nil-0');
+		},
+	);
 
 	it('supports lazy destructuring in function params', () => {
 		component Test() {
@@ -185,21 +188,24 @@ describe('lazy destructuring', () => {
 		expect(container.querySelector('pre')!.textContent).toBe('2-2');
 	});
 
-	it('preserves lazy getter/setter behavior for nested rest destructuring in non-lazy function params', () => {
-		component Test() {
-			function summarize({ values: [head, ...&{ length: rest_length, 0: first_rest }] }) {
-				const before = `${first_rest?.value ?? 'nil'}-${rest_length}`;
-				rest_length = 0;
-				return `${head}-${before}-${first_rest?.value ?? 'nil'}-${rest_length}`;
+	it(
+		'preserves lazy getter/setter behavior for nested rest destructuring in non-lazy function params',
+		() => {
+			component Test() {
+				function summarize({ values: [head, ...&{ length: rest_length, 0: first_rest }] }) {
+					const before = `${first_rest?.value ?? 'nil'}-${rest_length}`;
+					rest_length = 0;
+					return `${head}-${before}-${first_rest?.value ?? 'nil'}-${rest_length}`;
+				}
+
+				const result = summarize({ values: [5, track(6), track(7)] });
+				<pre>{result}</pre>
 			}
 
-			const result = summarize({ values: [5, track(6), track(7)] });
-			<pre>{result}</pre>
-		}
-
-		render(Test);
-		expect(container.querySelector('pre')!.textContent).toBe('5-6-2-nil-0');
-	});
+			render(Test);
+			expect(container.querySelector('pre')!.textContent).toBe('5-6-2-nil-0');
+		},
+	);
 
 	it('supports let lazy destructuring with assignment writeback', () => {
 		component Test() {
