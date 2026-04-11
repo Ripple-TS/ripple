@@ -23,6 +23,7 @@ interface BaseNodeMetaData {
 	is_reactive?: boolean;
 	lone_return?: boolean;
 	forceMapping?: boolean;
+	lazy_id?: string;
 }
 
 interface FunctionMetaData extends BaseNodeMetaData {
@@ -105,6 +106,14 @@ declare module 'estree' {
 		typeAnnotation?: TSTypeAnnotation | undefined;
 		decorators: TSESTree.Decorator[];
 		optional: boolean;
+	}
+
+	// Lazy destructuring patterns (&{...} and &[...])
+	interface ObjectPattern {
+		lazy?: boolean;
+	}
+	interface ArrayPattern {
+		lazy?: boolean;
 	}
 
 	// We mark the whole node as marked when member is @[expression]
@@ -1112,6 +1121,8 @@ export type BindingKind =
 	| 'rest_prop'
 	| 'prop'
 	| 'prop_fallback'
+	| 'lazy'
+	| 'lazy_fallback'
 	| 'index';
 
 /**
@@ -1152,9 +1163,11 @@ export interface Binding {
 	/** Transform functions for reading, assigning, and updating this binding */
 	transform?: {
 		read: (node?: AST.Identifier) => AST.Expression;
-		assign?: (node: AST.Pattern, value: AST.Expression) => AST.AssignmentExpression;
-		update?: (node: AST.UpdateExpression) => AST.UpdateExpression;
+		assign?: (node: AST.Identifier, value: AST.Expression) => AST.Expression;
+		update?: (node: AST.UpdateExpression) => AST.Expression;
 	};
+	/** Whether the read transform already produces an unwrapped value (calls get() internally) */
+	read_unwraps?: boolean;
 }
 
 /**

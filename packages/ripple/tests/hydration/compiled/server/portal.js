@@ -55,7 +55,7 @@ export function SimplePortal(__output) {
 export function ConditionalPortal(__output) {
 	_$_.push_component();
 
-	let show = _$_.track(true);
+	let lazy = _$_.track(true);
 
 	__output.push('<div');
 	__output.push(' class="container"');
@@ -73,7 +73,7 @@ export function ConditionalPortal(__output) {
 		__output.push('</button>');
 		__output.push('<!--[-->');
 
-		if (_$_.get(show)) {
+		if (_$_.get(lazy)) {
 			{
 				const comp = Portal;
 

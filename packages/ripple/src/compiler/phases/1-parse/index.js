@@ -53,16 +53,6 @@ function DestructuringErrors() {
 }
 
 /**
- * @param {AST.Identifier | ESTreeJSX.JSXIdentifier} node
- * @param {string} name
- */
-function set_tracked_name(node, name) {
-	node.name = name.slice(1);
-	node.metadata ??= { path: [] };
-	node.metadata.source_name = name;
-}
-
-/**
  * Convert JSX node types to regular JavaScript node types
  * @param {ESTreeJSX.JSXIdentifier | ESTreeJSX.JSXMemberExpression | AST.Node} node - The JSX node to convert
  * @returns {AST.Identifier | AST.MemberExpression | AST.Node} The converted node
@@ -678,7 +668,7 @@ function RipplePlugin(config) {
 				}
 				if (code === 64) {
 					// @ character
-					// Look ahead to see if this is followed by a valid identifier character or opening paren
+					// Look ahead to see if this is followed by an opening paren
 					if (this.pos + 1 < this.input.length) {
 						const nextChar = this.input.charCodeAt(this.pos + 1);
 
@@ -688,112 +678,9 @@ function RipplePlugin(config) {
 							this.pos += 2; // skip '@('
 							return this.finishToken(tt.parenL, '@(');
 						}
-
-						// Check if the next character can start an identifier
-						if (
-							(nextChar >= 65 && nextChar <= 90) || // A-Z
-							(nextChar >= 97 && nextChar <= 122) || // a-z
-							nextChar === 95 ||
-							nextChar === 36
-						) {
-							// _ or $
-
-							// Check if we're in an expression context
-							// In JSX expressions, inside parentheses, assignments, etc.
-							// we want to treat @ as an identifier prefix rather than decorator
-							const currentType = this.type;
-							/**
-							 * @param {Parse.TokenType} type
-							 * @param {Parse.Parser} parser
-							 * @param {Parse.TokTypes} tt
-							 * @returns {boolean}
-							 */
-							function inExpression(type, parser, tt) {
-								return (
-									parser.exprAllowed ||
-									type === tt.braceL || // Inside { }
-									type === tt.parenL || // Inside ( )
-									type === tt.eq || // After =
-									type === tt.comma || // After ,
-									type === tt.colon || // After :
-									type === tt.question || // After ?
-									type === tt.logicalOR || // After ||
-									type === tt.logicalAND || // After &&
-									type === tt.dot || // After . (for member expressions like obj.@prop)
-									type === tt.questionDot // After ?. (for optional chaining like obj?.@prop)
-								);
-							}
-
-							/**
-							 * @param {Parse.Parser} parser
-							 * @param {Parse.TokTypes} tt
-							 * @returns {boolean}
-							 */
-							function inAwait(parser, tt) {
-								return currentType === tt.name &&
-									parser.value === 'await' &&
-									parser.canAwait &&
-									parser.preToken
-									? inExpression(parser.preToken, parser, tt)
-									: false;
-							}
-
-							if (inExpression(currentType, this, tt) || inAwait(this, tt)) {
-								return this.readAtIdentifier();
-							}
-						}
 					}
 				}
 				return super.getTokenFromCode(code);
-			}
-
-			/**
-			 * Read an @ prefixed identifier
-			 * @type {Parse.Parser['readAtIdentifier']}
-			 */
-			readAtIdentifier() {
-				const start = this.pos;
-				this.pos++; // skip '@'
-
-				// Read the identifier part manually
-				let word = '';
-				while (this.pos < this.input.length) {
-					const ch = this.input.charCodeAt(this.pos);
-					if (
-						(ch >= 65 && ch <= 90) || // A-Z
-						(ch >= 97 && ch <= 122) || // a-z
-						(ch >= 48 && ch <= 57) || // 0-9
-						ch === 95 ||
-						ch === 36
-					) {
-						// _ or $
-						word += this.input[this.pos++];
-					} else {
-						break;
-					}
-				}
-
-				if (word === '') {
-					this.raise(start, 'Invalid @ identifier');
-				}
-
-				// Return the full identifier including @
-				return this.finishToken(tt.name, '@' + word);
-			}
-
-			/**
-			 * Override parseIdent to mark @ identifiers as tracked
-			 * @type {Parse.Parser['parseIdent']}
-			 */
-			parseIdent(liberal) {
-				const node = /** @type {AST.Identifier &AST.NodeWithLocation} */ (
-					super.parseIdent(liberal)
-				);
-				if (node.name && node.name.startsWith('@')) {
-					set_tracked_name(node, node.name);
-					node.tracked = true;
-				}
-				return node;
 			}
 
 			/**
@@ -870,6 +757,48 @@ function RipplePlugin(config) {
 					optionalChained,
 					forInit,
 				);
+			}
+
+			/**
+			 * Override isLet to recognize `let &{` and `let &[` as variable declarations.
+			 * Acorn's isLet checks the char after `let` and only recognizes `{`, `[`, or identifiers.
+			 * The `&` char (38) is not in that set, so `let &{...}` would not be parsed as a declaration.
+			 * @type {Parse.Parser['isLet']}
+			 */
+			isLet(context) {
+				if (!this.isContextual('let')) return false;
+				const skip = /\s*/y;
+				skip.lastIndex = this.pos;
+				const match = skip.exec(this.input);
+				if (!match) return super.isLet(context);
+				const next = this.pos + match[0].length;
+				const nextCh = this.input.charCodeAt(next);
+				// If next char is &, check if char after & is { or [
+				if (nextCh === 38) {
+					const afterAmp = this.input.charCodeAt(next + 1);
+					if (afterAmp === 123 || afterAmp === 91) return true;
+				}
+				return super.isLet(context);
+			}
+
+			/**
+			 * Parse binding atom - handles lazy destructuring patterns (&{...} and &[...])
+			 * When & is directly followed by { or [, parse as a lazy destructuring pattern.
+			 * The resulting ObjectPattern/ArrayPattern node gets a `lazy: true` flag.
+			 */
+			parseBindingAtom() {
+				if (this.type === tt.bitwiseAND) {
+					// Check that the char immediately after & is { or [ (no whitespace)
+					const charAfterAmp = this.input.charCodeAt(this.end);
+					if (charAfterAmp === 123 || charAfterAmp === 91) {
+						// & directly followed by { or [ — lazy destructuring
+						this.next(); // consume &, now current token is { or [
+						const pattern = super.parseBindingAtom();
+						/** @type {AST.ObjectPattern | AST.ArrayPattern} */ (pattern).lazy = true;
+						return pattern;
+					}
+				}
+				return super.parseBindingAtom();
 			}
 
 			/**
@@ -1299,7 +1228,6 @@ function RipplePlugin(config) {
 			jsx_parseExpressionContainer() {
 				let node = /** @type {ESTreeJSX.JSXExpressionContainer} */ (this.startNode());
 				this.next();
-				let tracked = false;
 
 				if (this.value === 'html') {
 					node.html = true;
@@ -1310,19 +1238,11 @@ function RipplePlugin(config) {
 							'"html" is a Ripple keyword and must be used in the form {html some_content}',
 						);
 					}
-					if (this.type.label === '@') {
-						this.next(); // consume @
-						tracked = true;
-					}
 				}
 
 				node.expression =
 					this.type === tt.braceR ? this.jsx_parseEmptyExpression() : this.parseExpression();
 				this.expect(tt.braceR);
-
-				if (tracked && node.expression.type === 'Identifier') {
-					node.expression.tracked = true;
-				}
 
 				return this.finishNode(node, 'JSXExpressionContainer');
 			}
@@ -1386,10 +1306,6 @@ function RipplePlugin(config) {
 					} else {
 						const id = /** @type {AST.Identifier} */ (this.parseIdentNode());
 						id.tracked = false;
-						if (id.name.startsWith('@')) {
-							set_tracked_name(id, id.name);
-							id.tracked = true;
-						}
 						this.finishNode(id, 'Identifier');
 						/** @type {AST.Attribute} */ (node).name = id;
 						/** @type {AST.Attribute} */ (node).value = id;
@@ -1441,14 +1357,6 @@ function RipplePlugin(config) {
 						// Unexpected token after @
 						this.unexpected();
 					}
-				} else if (
-					(this.type === tt.name || this.type === tstt.jsxName) &&
-					this.value &&
-					/** @type {string} */ (this.value).startsWith('@')
-				) {
-					set_tracked_name(node, /** @type {string} */ (this.value));
-					node.tracked = true;
-					this.next();
 				} else if (this.type === tt.name || this.type.keyword || this.type === tstt.jsxName) {
 					node.name = /** @type {string} */ (this.value);
 					node.tracked = false; // Explicitly mark as not tracked
@@ -1507,15 +1415,14 @@ function RipplePlugin(config) {
 							// Expect closing bracket
 							this.expect(tt.bracketR);
 						} else {
-							// @ not followed by [, treat as regular tracked identifier
-							memberExpr.property = this.jsx_parseIdentifier();
-							memberExpr.computed = false;
+							this.unexpected();
 						}
 					} else {
 						// Regular dot notation
 						memberExpr.property = this.jsx_parseIdentifier();
 						memberExpr.computed = false;
 					}
+					memberExpr = this.finishNode(memberExpr, 'JSXMemberExpression');
 					while (this.eat(tt.dot)) {
 						let newMemberExpr = /** @type {ESTreeJSX.JSXMemberExpression} */ (
 							this.startNodeAt(
@@ -1528,7 +1435,7 @@ function RipplePlugin(config) {
 						newMemberExpr.computed = false;
 						memberExpr = this.finishNode(newMemberExpr, 'JSXMemberExpression');
 					}
-					return this.finishNode(memberExpr, 'JSXMemberExpression');
+					return memberExpr;
 				}
 				return node;
 			}
@@ -2342,53 +2249,6 @@ function RipplePlugin(config) {
 				if (this.value === 'component') {
 					this.awaitPos = 0;
 					return this.parseComponent({ requireName: true, declareName: true });
-				}
-				if (this.type.label === '@') {
-					// Try to parse as an expression statement first using tryParse
-					// This allows us to handle Ripple @ syntax like @count++ without
-					// interfering with legitimate decorator syntax
-					this.skip_decorator = true;
-					const expressionResult = this.tryParse(() => {
-						const node = /** @type {AST.ExpressionStatement} */ (this.startNode());
-						this.next();
-						// Force expression context to ensure @ is tokenized correctly
-						const old_expr_allowed = this.exprAllowed;
-						this.exprAllowed = true;
-						node.expression = this.parseExpression();
-
-						if (node.expression.type === 'UpdateExpression') {
-							/** @type {AST.Expression} */
-							let object = node.expression.argument;
-							while (object.type === 'MemberExpression') {
-								object = /** @type {AST.Expression} */ (object.object);
-							}
-							if (object.type === 'Identifier') {
-								object.tracked = true;
-							}
-						} else if (node.expression.type === 'AssignmentExpression') {
-							/** @type {AST.Expression | AST.Pattern | AST.Identifier} */
-							let object = node.expression.left;
-							while (object.type === 'MemberExpression') {
-								object = /** @type {AST.Expression} */ (object.object);
-							}
-							if (object.type === 'Identifier') {
-								object.tracked = true;
-							}
-						} else if (node.expression.type === 'Identifier') {
-							node.expression.tracked = true;
-						} else {
-							// TODO?
-						}
-
-						this.exprAllowed = old_expr_allowed;
-						return this.finishNode(node, 'ExpressionStatement');
-					});
-					this.skip_decorator = false;
-
-					// If parsing as expression statement succeeded, use that result
-					if (expressionResult.node) {
-						return expressionResult.node;
-					}
 				}
 
 				if (this.type === tstt.jsxTagStart) {

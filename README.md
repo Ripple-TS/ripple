@@ -27,8 +27,8 @@ human and LLM developer experience.
 
 ## Features
 
-- ⚡ **Fine-grained Reactivity**: `track` and `@` syntax with a unique reactivity
-  system
+- ⚡ **Fine-grained Reactivity**: `track` with lazy destructuring for a unique
+  reactivity system
 - 🔥 **Performance**: Industry-leading rendering speed, bundle size, and memory
   usage
 - 📦 **Reactive Collections**: `RippleArray`, `RippleObject`, `RippleMap`,
@@ -116,20 +116,52 @@ export component App() {
 
 ### Reactivity
 
-Create reactive state with `track` and access it with the `@` operator:
+Create reactive state with `track` and use lazy destructuring (`&[]`) to access
+the value directly:
 
 ```jsx
 import { track } from 'ripple';
 
 export component App() {
-  let count = track(0);
+  let &[count] = track(0);
 
   <div>
-    <p>{"Count: "}{@count}</p>
-    <button onClick={() => @count++}>{"Increment"}</button>
+    <p>{"Count: "}{count}</p>
+    <button onClick={() => count++}>{"Increment"}</button>
   </div>
 }
 ```
+
+You can also pass around the tracked value object from the second argument:
+
+```jsx
+import { track } from 'ripple';
+
+export component App() {
+  let &[count, trackedCount] = track(0);
+
+  <div>{count}</div>
+  <IncrementButton {trackedCount} />
+}
+```
+
+Alternatively, you can read and write tracked values directly using the `.value`
+property on the `Tracked<V>` object:
+
+```jsx
+import { track } from 'ripple';
+
+export component App() {
+  const count = track(0);
+
+  <div>{count.value}</div>
+  <button onClick={() => count.value++}>{"Increment"}</button>
+}
+```
+
+Using `&[...]` is preferred in most cases for cleaner code, but `.value` is useful
+when you need to keep the `Tracked<V>` object around — for example, when storing
+tracked values in data structures or passing them as `Tracked<T>` props.
 
 **Derived values** automatically update:
 
@@ -137,15 +169,15 @@ export component App() {
 import { track } from 'ripple';
 
 export component App() {
-  let count = track(0);
-  let double = track(() => @count * 2);
-  let quadruple = track(() => @double * 2);
+  let &[count] = track(0);
+  let &[double] = track(() => count * 2);
+  let &[quadruple] = track(() => double * 2);
 
   <div>
-    <p>{"Count: "}{@count}</p>
-    <p>{"Double: "}{@double}</p>
-    <p>{"Quadruple: "}{@quadruple}</p>
-    <button onClick={() => @count++}>{"Increment"}</button>
+    <p>{"Count: "}{count}</p>
+    <p>{"Double: "}{double}</p>
+    <p>{"Quadruple: "}{quadruple}</p>
+    <button onClick={() => count++}>{"Increment"}</button>
   </div>
 }
 ```
@@ -174,22 +206,22 @@ export component App() {
 
 ### Transporting Reactivity
 
-Pass reactive state across function boundaries:
+Pass the tracked ref (second element) across function boundaries:
 
 ```jsx
 import { track } from 'ripple';
 
-function createDouble(count) {
-  return track(() => @count * 2);
+function createDouble(&[count]) {
+  return track(() => count * 2);
 }
 
 export component App() {
-  let count = track(0);
-  const double = createDouble(count);
+  let &[count, countTracked] = track(0);
+  const &[double] = createDouble(countTracked);
 
   <div>
-    <p>{"Double: "}{@double}</p>
-    <button onClick={() => @count++}>{"Increment"}</button>
+    <p>{"Double: "}{double}</p>
+    <button onClick={() => count++}>{"Increment"}</button>
   </div>
 }
 ```
@@ -202,13 +234,13 @@ export component App() {
 import { track, effect } from 'ripple';
 
 export component App() {
-  let count = track(0);
+  let &[count] = track(0);
 
   effect(() => {
-    console.log('Count changed:', @count);
+    console.log('Count changed:', count);
   });
 
-  <button onClick={() => @count++}>{'Increment'}</button>
+  <button onClick={() => count++}>{'Increment'}</button>
 }
 ```
 
@@ -222,15 +254,15 @@ export component App() {
 import { track } from 'ripple';
 
 export component App() {
-  let condition = track(true);
+  let &[condition] = track(true);
 
   <div>
-    if (@condition) {
+    if (condition) {
       <div>{'True'}</div>
     } else {
       <div>{'False'}</div>
     }
-    <button onClick={() => @condition = !@condition}>{"Toggle"}</button>
+    <button onClick={() => condition = !condition}>{"Toggle"}</button>
   </div>
 }
 ```
@@ -271,15 +303,15 @@ component ComponentThatMayFail(props: { shouldFail: boolean }) {
 import { track } from 'ripple';
 
 export component App() {
-  let shouldFail = track(false);
+  let &[shouldFail] = track(false);
 
   <div>
     try {
-      <ComponentThatMayFail shouldFail={@shouldFail} />
+      <ComponentThatMayFail {shouldFail} />
     } catch (e) {
       <div>{'Error: ' + e.message}</div>
     }
-    <button onClick={() => @shouldFail = !@shouldFail}>{"Toggle Error"}</button>
+    <button onClick={() => shouldFail = !shouldFail}>{"Toggle Error"}</button>
   </div>
 }
 ```
@@ -306,12 +338,12 @@ Use React-style event handlers:
 import { track } from 'ripple';
 
 export component App() {
-  let value = track('');
+  let &[value] = track('');
 
   <div>
     <button onClick={() => console.log('Clicked')}>{'Click'}</button>
-    <input onInput={(e) => @value = e.target.value} />
-    <p>{"You typed: "}{@value}</p>
+    <input onInput={(e) => value = e.target.value} />
+    <p>{"You typed: "}{value}</p>
   </div>
 }
 ```
@@ -342,11 +374,11 @@ export component App() {
 import { track } from 'ripple';
 
 export component App() {
-  let color = track('red');
+  let &[color] = track('red');
 
   <div>
-    <div style={{ color: @color, fontWeight: 'bold' }}>{"Styled text"}</div>
-    <button onClick={() => @color = @color === 'red' ? 'blue' : 'red'}>{"Toggle Color"}</button>
+    <div style={{ color, fontWeight: 'bold' }}>{"Styled text"}</div>
+    <button onClick={() => color = color === 'red' ? 'blue' : 'red'}>{"Toggle Color"}</button>
   </div>
 }
 ```
@@ -365,18 +397,18 @@ import { Context, track } from 'ripple';
 const ThemeContext = new Context();
 
 component Child() {
-  const theme = ThemeContext.get();
-  <div>{"Theme: " + @theme}</div>
+  const &[theme] = ThemeContext.get();
+  <div>{"Theme: " + theme}</div>
 }
 
 export component App() {
-  let theme = track('light');
+  let &[theme, themeTracked] = track('light');
 
-  ThemeContext.set(theme);
+  ThemeContext.set(themeTracked);
 
   <div>
     <Child />
-    <button onClick={() => @theme = @theme === 'light' ? 'dark' : 'light'}>{"Toggle Theme"}</button>
+    <button onClick={() => theme = theme === 'light' ? 'dark' : 'light'}>{"Toggle Theme"}</button>
   </div>
 }
 ```
@@ -391,16 +423,16 @@ Render content outside the component hierarchy:
 import { Portal, track } from 'ripple';
 
 export component App() {
-  let showModal = track(false);
+  let &[showModal] = track(false);
 
   <div>
-    <button onClick={() => @showModal = !@showModal}>{"Toggle Modal"}</button>
+    <button onClick={() => showModal = !showModal}>{"Toggle Modal"}</button>
 
-    if (@showModal) {
+    if (showModal) {
       <Portal target={document.body}>
         <div class="modal">
           <p>{'Modal content'}</p>
-          <button onClick={() => @showModal = false}>{"Close"}</button>
+          <button onClick={() => showModal = false}>{"Close"}</button>
         </div>
       </Portal>
     }

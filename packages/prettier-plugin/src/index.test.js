@@ -291,10 +291,10 @@ export default component App() {
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should format a component with an object reactive property notation props.@children', async () => {
+		it('should format a component with a dynamic component using props member access', async () => {
 			const expected = `component Card(props) {
   <div class="card">
-    <props.@children />
+    <@props.children />
   </div>
 }`;
 
@@ -652,26 +652,26 @@ import { Something, type Props, track } from 'ripple';`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should handle @ prefix', async () => {
+		it('should handle tracked variable with lazy destructuring', async () => {
 			const input = `export default component App() {
   <div>
-    let count = track(0);
-    @count = 2;
-    console.log(@count);
+    let &[count] = track(0);
+    count = 2;
     console.log(count);
-    if (@count > 1) {
-      <button onClick={() => @count++}>{@count}</button>
+    console.log(count);
+    if (count > 1) {
+      <button onClick={() => count++}>{count}</button>
     }
   </div>
 }`;
 			const expected = `export default component App() {
   <div>
-    let count = track(0);
-    @count = 2;
-    console.log(@count);
+    let &[count] = track(0);
+    count = 2;
     console.log(count);
-    if (@count > 1) {
-      <button onClick={() => @count++}>{@count}</button>
+    console.log(count);
+    if (count > 1) {
+      <button onClick={() => count++}>{count}</button>
     }
   </div>
 }`;
@@ -706,19 +706,19 @@ import { Something, type Props, track } from 'ripple';`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should preserve @ symbol in JSX attributes and shorthand syntax', async () => {
+		it('should format JSX attributes with tracked values', async () => {
 			const input = `component App() {
-	const count = track(0);
+	const &[count] = track(0);
 
-	<Counter count={@count} />
-	<Counter {@count} />
+	<Counter count={count} />
+	<Counter {count} />
 }`;
 
 			const expected = `component App() {
-  const count = track(0);
+  const &[count] = track(0);
 
-  <Counter {@count} />
-  <Counter {@count} />
+  <Counter {count} />
+  <Counter {count} />
 }`;
 
 			const result = await format(input, { singleQuote: true });
@@ -963,7 +963,7 @@ export component Test({ a, b }: Props) {}`;
 
 		it('should not strip @ from dynamic self-closing components', async () => {
 			const expected = `component App() {
-  <@ripple_object.@tracked_basic />
+  <@ripple_object.tracked_basic />
 }`;
 
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
@@ -1733,7 +1733,7 @@ const program =
 		});
 
 		it('should keep parents in math subtraction and multiplication', async () => {
-			const expected = `let offset = track(() => (@page - 1) * @limit);`;
+			const expected = `let offset = track(() => (page - 1) * limit);`;
 
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
@@ -2309,18 +2309,18 @@ component Child({ something }) {
 
 		it('should correctly handle call expressions', async () => {
 			const input = `export component App() {
-	const context = track(globalContext.get().theme);
+	const &[context] = track(globalContext.get().theme);
 	<div>
 		<TypedComponent />
-		{@context}
+		{context}
 	</div>
 }`;
 
 			const expected = `export component App() {
-  const context = track(globalContext.get().theme);
+  const &[context] = track(globalContext.get().theme);
   <div>
     <TypedComponent />
-    {@context}
+    {context}
   </div>
 }`;
 
@@ -2742,13 +2742,13 @@ function test() {
 		const expected = `component App() {
   <button
     onClick={() => {
-      @hasError = false;
+      hasError = false;
       try {
-        @hasError = false;
+        hasError = false;
         // @ts-ignore
         obj['nonexistent']();
       } catch {
-        // @hasError = true;
+        // hasError = true;
       }
     }}
   >
@@ -3268,6 +3268,14 @@ const items = [] as unknown[];`;
 			const input = `interface Collection{map<U>(fn:(item:T)=>U):U[];filter(predicate:(item:T)=>boolean):T[]}`;
 			const expected = `interface Collection {\n  map<U>(fn: (item: T) => U): U[];\n  filter(predicate: (item: T) => boolean): T[];\n}`;
 			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve TSCallSignatureDeclaration with conditional types', async () => {
+			const expected = `interface TrackedCallable<V> {
+  (props: V extends Component<infer P> ? P : never): V extends Component ? void : never;
+}`;
+			const result = await format(expected, { printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
 		});
 
@@ -4386,7 +4394,7 @@ component Polygon() {
   // 	<div id="third-top-block">{"Top Scope - Show is true"}</div>
   // }
 
-  <button onClick={() => (@b = !@b)}>{"Toggle b"}</button>
+  <button onClick={() => (b = !b)}>{"Toggle b"}</button>
 }`;
 
 				const result = await format(expected, { printWidth: 100 });
@@ -4409,7 +4417,7 @@ component Polygon() {
   // 	<div>{"Top Scope - Show is true"}</div>
   // }
 
-  <button onClick={() => (@b = !@b)}>{"Toggle b"}</button>
+  <button onClick={() => (b = !b)}>{"Toggle b"}</button>
 }`;
 
 				const result = await format(expected, { printWidth: 100 });
@@ -4837,25 +4845,25 @@ component Polygon() {
 				expect(result).toBeWithNewline(expected);
 			});
 
-			it('should preserve @ symbol in JSX attributes inside <tsx:react>', async () => {
+			it('should format JSX attributes inside <tsx:react>', async () => {
 				const input = `component App() {
-	const count = track(0);
+	const &[count] = track(0);
 
 	<div>
 		<h1>{'Hello, from Ripple!'}</h1>
 		<tsx:react>
-			<Counter count={@count} />
+			<Counter count={count} />
 		</tsx:react>
 	</div>
 }`;
 
 				const expected = `component App() {
-  const count = track(0);
+  const &[count] = track(0);
 
   <div>
     <h1>{'Hello, from Ripple!'}</h1>
     <tsx:react>
-      <Counter count={@count} />
+      <Counter count={count} />
     </tsx:react>
   </div>
 }`;
@@ -4907,7 +4915,7 @@ component App() {
 	<tsx:react>
 		Hello world
 		<DemoContext.Provider value={"Hello from Context!"}>
-			<Child count={@count} />
+			<Child count={count} />
 		</DemoContext.Provider>
 	</tsx:react>
 }`;
@@ -4915,7 +4923,7 @@ component App() {
   <tsx:react>
     Hello world
     <DemoContext.Provider value={"Hello from Context!"}>
-      <Child count={@count} />
+      <Child count={count} />
     </DemoContext.Provider>
   </tsx:react>
 }`;
@@ -4972,7 +4980,7 @@ component App() {
 				const input = `component Test() {
   <button
     onClick={() => {
-if (@status === 'a') @status = 'b'; else if (@status === 'b') @status = 'c'; else @status =
+if (status === 'a') status = 'b'; else if (status === 'b') status = 'c'; else status =
   'a';
 }}
   >
@@ -4982,9 +4990,9 @@ if (@status === 'a') @status = 'b'; else if (@status === 'b') @status = 'c'; els
 				const expected = `component Test() {
   <button
     onClick={() => {
-      if (@status === 'a') @status = 'b';
-      else if (@status === 'b') @status = 'c';
-      else @status = 'a';
+      if (status === 'a') status = 'b';
+      else if (status === 'b') status = 'c';
+      else status = 'a';
     }}
   >
     {'Click'}

@@ -70,8 +70,8 @@ import { track } from 'ripple';
 		const code = `
 import { track } from 'ripple';
             export default component App() {
-                let count = track(0);
-                console.log(@count);
+                let &[count] = track(0);
+                console.log(count);
             }
         `;
 		expect(() => compile(code, 'test.ripple')).not.toThrow();
@@ -121,4 +121,70 @@ import { get, track } from 'ripple';
 			expect(() => compile(code, 'test.ripple')).not.toThrow();
 		},
 	);
+
+	it('should allow indexed [0] access on a tracked object', () => {
+		const code = `
+import { track } from 'ripple';
+            export default component App() {
+                let count = track(0);
+                console.log(count[0]);
+            }
+        `;
+		expect(() => compile(code, 'test.ripple')).not.toThrow();
+	});
+
+	it('should allow indexed [1] access on a tracked object', () => {
+		const code = `
+import { track } from 'ripple';
+            export default component App() {
+                let count = track(0);
+                let raw = count[1];
+            }
+        `;
+		expect(() => compile(code, 'test.ripple')).not.toThrow();
+	});
+
+	it('should allow [0] write on a tracked object', () => {
+		const code = `
+import { track } from 'ripple';
+            export default component App() {
+                let count = track(0);
+                count[0] = 5;
+            }
+        `;
+		expect(() => compile(code, 'test.ripple')).not.toThrow();
+	});
+
+	it('should allow .value read access on a tracked object', () => {
+		const code = `
+import { track } from 'ripple';
+            export default component App() {
+                let count = track(0);
+                console.log(count.value);
+            }
+        `;
+		expect(() => compile(code, 'test.ripple')).not.toThrow();
+	});
+
+	it('should allow .value assignment on a tracked object', () => {
+		const code = `
+import { track } from 'ripple';
+            export default component App() {
+                let count = track(0);
+                count.value = 5;
+            }
+        `;
+		expect(() => compile(code, 'test.ripple')).not.toThrow();
+	});
+
+	it('should allow .length read access on a tracked object', () => {
+		const code = `
+import { track } from 'ripple';
+            export default component App() {
+                let count = track(0);
+                console.log(count.length);
+            }
+        `;
+		expect(() => compile(code, 'test.ripple')).not.toThrow();
+	});
 });

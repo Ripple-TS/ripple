@@ -543,8 +543,6 @@ export namespace Parse {
 		 */
 		finishToken(type: TokenType, val?: string | number | RegExp | bigint): void;
 
-		readAtIdentifier(): void;
-
 		/**
 		 * Read a token based on character code
 		 * Called by nextToken() for each character

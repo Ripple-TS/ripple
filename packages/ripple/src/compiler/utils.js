@@ -267,31 +267,36 @@ export function is_component_level_function(context) {
 }
 
 /**
- * Returns true if callee is a Ripple track call
+ * Returns the matched Ripple tracking call name
  * @param {AST.Expression | AST.Super} callee
  * @param {CommonContext} context
- * @returns {boolean}
+ * @returns {'track' | 'trackAsync' | 'trackSplit' | null}
  */
 export function is_ripple_track_call(callee, context) {
 	// Super expressions cannot be Ripple track calls
-	if (callee.type === 'Super') return false;
+	if (callee.type === 'Super') return null;
 
-	if (callee.type === 'Identifier' && (callee.name === 'track' || callee.name === 'trackSplit')) {
-		return is_ripple_import(callee, context);
+	if (
+		callee.type === 'Identifier' &&
+		(callee.name === 'track' || callee.name === 'trackSplit' || callee.name === 'trackAsync')
+	) {
+		return is_ripple_import(callee, context) ? callee.name : null;
 	}
 
-	return (
-		(callee.type === 'Identifier' &&
-			(callee.name === 'track' || callee.name === 'trackSplit' || callee.name === 'trackAsync')) ||
-		(callee.type === 'MemberExpression' &&
-			callee.object.type === 'Identifier' &&
-			callee.property.type === 'Identifier' &&
-			(callee.property.name === 'track' ||
-				callee.property.name === 'trackSplit' ||
-				callee.property.name === 'trackAsync') &&
-			!callee.computed &&
-			is_ripple_import(callee, context))
-	);
+	if (
+		callee.type === 'MemberExpression' &&
+		callee.object.type === 'Identifier' &&
+		callee.property.type === 'Identifier' &&
+		(callee.property.name === 'track' ||
+			callee.property.name === 'trackSplit' ||
+			callee.property.name === 'trackAsync') &&
+		!callee.computed &&
+		is_ripple_import(callee, context)
+	) {
+		return callee.property.name;
+	}
+
+	return null;
 }
 
 /**

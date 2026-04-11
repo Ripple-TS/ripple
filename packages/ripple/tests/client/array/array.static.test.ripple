@@ -46,17 +46,17 @@ describe('RippleArray > static', () => {
 			}
 
 			component ArrayTest() {
-				let items = trackAsync(() => RippleArray.fromAsync([1, 2, 3]));
+				let &[items] = trackAsync(() => RippleArray.fromAsync([1, 2, 3]));
 
 				<button
 					onClick={() => {
-						@items.push(4);
+						items.push(4);
 					}}
 				>
 					{'add item'}
 				</button>
 
-				<pre>{JSON.stringify(@items)}</pre>
+				<pre>{JSON.stringify(items)}</pre>
 			}
 
 			render(Parent);
@@ -85,16 +85,16 @@ describe('RippleArray > static', () => {
 			}
 
 			component ArrayTest() {
-				let items = trackAsync(() => RippleArray.fromAsync([1, 2, 3], (x: number) => x * 2));
+				let &[items] = trackAsync(() => RippleArray.fromAsync([1, 2, 3], (x: number) => x * 2));
 
 				<button
 					onClick={() => {
-						@items.push(8);
+						items.push(8);
 					}}
 				>
 					{'add item'}
 				</button>
-				<pre>{JSON.stringify(@items)}</pre>
+				<pre>{JSON.stringify(items)}</pre>
 			}
 
 			render(Parent);
@@ -130,10 +130,10 @@ describe('RippleArray > static', () => {
 					}
 
 					try {
-						let items = trackAsync(() => RippleArray.fromAsync(throwingIterable()));
+						let &[items] = trackAsync(() => RippleArray.fromAsync(throwingIterable()));
 
 						<ul>
-							for (const item of @items) {
+							for (const item of items) {
 								<li>{item}</li>
 							}
 						</ul>
@@ -226,10 +226,10 @@ describe('RippleArray > static', () => {
 				}
 
 				component ArrayTest() {
-					const items = trackAsync(() => RippleArray.fromAsync([6]));
+					let &[items] = trackAsync(() => RippleArray.fromAsync([6]));
 
-					<pre>{JSON.stringify(@items)}</pre>
-					<pre>{@items.length}</pre>
+					<pre>{JSON.stringify(items)}</pre>
+					<pre>{items.length}</pre>
 				}
 
 				render(Parent);

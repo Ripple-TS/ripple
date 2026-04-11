@@ -7,11 +7,11 @@ describe('computed tracked properties', () => {
 				[0]: track(0),
 			};
 
-			<div>{obj.@[0]}</div>
+			<div>{obj[0].value}</div>
 
 			<button
 				onClick={() => {
-					obj.@[0] += 1;
+					obj[0].value += 1;
 				}}
 			>
 				{'Increment'}
@@ -34,11 +34,11 @@ describe('computed tracked properties', () => {
 				[0]: track(0),
 			};
 
-			<div>{obj.@[0]}</div>
+			<div>{obj[0].value}</div>
 
 			<button
 				onClick={() => {
-					obj.@[0]++;
+					obj[0].value++;
 				}}
 			>
 				{'Increment'}

@@ -31,9 +31,9 @@ export component MixedControlFlowStatic() {
 }
 
 export component MixedControlFlowReactive() {
-	let show = track(true);
-	let mode = track<'a' | 'b'>('a');
-	let items = track([
+	let &[show] = track(true);
+	let &[mode] = track<'a' | 'b'>('a');
+	let &[items] = track([
 		{ id: 1, label: 'One' },
 		{ id: 2, label: 'Two' },
 	]);
@@ -41,7 +41,7 @@ export component MixedControlFlowReactive() {
 	<button
 		class="toggle-show"
 		onClick={() => {
-			@show = !@show;
+			show = !show;
 		}}
 	>
 		{'Toggle Show'}
@@ -49,7 +49,7 @@ export component MixedControlFlowReactive() {
 	<button
 		class="toggle-mode"
 		onClick={() => {
-			@mode = @mode === 'a' ? 'b' : 'a';
+			mode = mode === 'a' ? 'b' : 'a';
 		}}
 	>
 		{'Toggle Mode'}
@@ -57,16 +57,16 @@ export component MixedControlFlowReactive() {
 	<button
 		class="add-item"
 		onClick={() => {
-			@items = [...@items, { id: 3, label: 'Three' }];
+			items = [...items, { id: 3, label: 'Three' }];
 		}}
 	>
 		{'Add Item'}
 	</button>
 
-	if (@show) {
+	if (show) {
 		<div class="mixed-reactive-list">
-			for (const item of @items; key item.id) {
-				switch (@mode) {
+			for (const item of items; key item.id) {
+				switch (mode) {
 					case 'a':
 						try {
 							<p class={`item item-${item.id}`}>{`A:${item.label}`}</p>

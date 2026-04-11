@@ -18,7 +18,7 @@ describe('composite > dynamic components', () => {
 		expect(container.textContent).toBe('Basic Component');
 	});
 
-	it('supports rendering composite components using <object.@component> syntax', () => {
+	it('supports rendering composite components from object properties', () => {
 		component App() {
 			component basic() {
 				<div>{'Basic Component'}</div>
@@ -30,7 +30,8 @@ describe('composite > dynamic components', () => {
 				tracked_basic,
 			};
 
-			<obj.@tracked_basic />
+			const comp = obj.tracked_basic;
+			<@comp />
 		}
 
 		render(App);
@@ -39,7 +40,7 @@ describe('composite > dynamic components', () => {
 		expect(container.textContent).toBe('Basic Component');
 	});
 
-	it('supports rendering composite components using <@object.@component> syntax', () => {
+	it('supports rendering composite components from tracked object properties', () => {
 		component App() {
 			component basic() {
 				<div>{'Basic Component'}</div>
@@ -51,9 +52,10 @@ describe('composite > dynamic components', () => {
 				tracked_basic,
 			};
 
-			const ripple_object = track(obj);
+			let &[inner] = track(obj);
 
-			<@ripple_object.@tracked_basic />
+			const comp = inner.tracked_basic;
+			<@comp />
 		}
 
 		render(App);
@@ -72,15 +74,13 @@ describe('composite > dynamic components', () => {
 		}
 
 		component App() {
-			let thing = track(() => Child1);
+			let &[thing] = track(() => Child1);
 
 			<div id="container">
 				<@thing />
 			</div>
 
-			<button onClick={() => (@thing = @thing === Child1 ? Child2 : Child1)}>
-				{'Change Child'}
-			</button>
+			<button onClick={() => (thing = thing === Child1 ? Child2 : Child1)}>{'Change Child'}</button>
 		}
 
 		render(App);

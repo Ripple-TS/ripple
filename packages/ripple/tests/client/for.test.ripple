@@ -101,19 +101,19 @@ describe('for statements', () => {
 
 	it('correctly handles keyed for...of loops', () => {
 		component App() {
-			let items = track([
+			let &[items] = track([
 				{ id: 1, text: 'Item 1' },
 				{ id: 2, text: 'Item 2' },
 				{ id: 3, text: 'Item 3' },
 			]);
 
-			for (let item of @items; index i; key item.id) {
+			for (let item of items; index i; key item.id) {
 				<div>{i + ':' + item.text}</div>
 			}
 
 			<button
 				onClick={() => {
-					@items = @items.toReversed();
+					items = items.toReversed();
 				}}
 			>
 				{'Reverse'}
@@ -134,23 +134,23 @@ describe('for statements', () => {
 
 	it('keyed for over derived updates sibling text nodes', () => {
 		component App() {
-			let count = track(0);
+			let &[count] = track(0);
 
-			const items = track(
-				() => Array.from({ length: @count }).map((_, id) => ({ id, label: `Item ${id}` })),
+			let &[items] = track(
+				() => Array.from({ length: count }).map((_, id) => ({ id, label: `Item ${id}` })),
 			);
 
 			<button
 				onClick={() => {
-					@count++;
+					count++;
 				}}
 			>
 				{'Add'}
 			</button>
-			for (const item of @items; key item.id) {
+			for (const item of items; key item.id) {
 				<div class="item">{item.label}</div>
 			}
-			<p class="count">{@count}</p>
+			<p class="count">{count}</p>
 		}
 
 		render(App);
@@ -175,17 +175,17 @@ describe('for statements', () => {
 
 	it('keyed for with 32+ items: full reversal updates values via Map path', () => {
 		component App() {
-			let items = track(Array.from({ length: 40 }, (_, i) => ({ id: i, text: `Item ${i}` })));
+			let &[items] = track(Array.from({ length: 40 }, (_, i) => ({ id: i, text: `Item ${i}` })));
 
 			<div>
-				for (let item of @items; index idx; key item.id) {
+				for (let item of items; index idx; key item.id) {
 					<span class="item">{idx + ':' + item.text}</span>
 				}
 			</div>
 
 			<button
 				onClick={() => {
-					@items = @items.toReversed();
+					items = items.toReversed();
 				}}
 			>
 				{'Reverse'}
@@ -208,26 +208,26 @@ describe('for statements', () => {
 
 	it('handles updating with new objects with same key', () => {
 		component App() {
-			let items = track([
+			let &[items] = track([
 				{ id: 1, text: 'Item 1' },
 				{ id: 2, text: 'Item 2' },
 				{ id: 3, text: 'Item 3' },
 			]);
 
-			for (let item of @items; index i; key item.id) {
+			for (let item of items; index i; key item.id) {
 				<div>{i + ':' + item.text}</div>
 			}
 
 			<button
 				onClick={() => {
-					@items[0].id = 3;
-					@items[1].id = 2;
-					@items[2].id = 1;
+					items[0].id = 3;
+					items[1].id = 2;
+					items[2].id = 1;
 
-					@items = [
-						{ ...@items[0], text: 'Item 1!' },
-						{ ...@items[1], text: 'Item 2!' },
-						{ ...@items[2], text: 'Item 3!' },
+					items = [
+						{ ...items[0], text: 'Item 1!' },
+						{ ...items[1], text: 'Item 2!' },
+						{ ...items[2], text: 'Item 3!' },
 					];
 				}}
 			>
@@ -249,17 +249,17 @@ describe('for statements', () => {
 		const objects = Array.from({ length: 50 }, (_, i) => ({ id: i, text: `Obj ${i}` }));
 
 		component App() {
-			let items = track(objects.slice());
+			let &[items] = track(objects.slice());
 
 			<div>
-				for (const item of @items) {
+				for (const item of items) {
 					<span class="item">{item.text}</span>
 				}
 			</div>
 
 			<button
 				onClick={() => {
-					@items = objects.slice(15).reverse();
+					items = objects.slice(15).reverse();
 				}}
 			>
 				{'Trim and reverse'}

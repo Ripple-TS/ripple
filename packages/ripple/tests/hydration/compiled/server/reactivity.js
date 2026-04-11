@@ -6,14 +6,14 @@ import { track } from 'ripple/server';
 export function TrackedState(__output) {
 	_$_.push_component();
 
-	let count = _$_.track(0);
+	let lazy = _$_.track(0);
 
 	__output.push('<div');
 	__output.push(' class="count"');
 	__output.push('>');
 
 	{
-		__output.push(_$_.escape(_$_.get(count)));
+		__output.push(_$_.escape(_$_.get(lazy)));
 	}
 
 	__output.push('</div>');
@@ -23,7 +23,7 @@ export function TrackedState(__output) {
 export function CounterWithInitial(__output, props) {
 	_$_.push_component();
 
-	let count = _$_.track(props.initial);
+	let lazy_1 = _$_.track(props.initial);
 
 	__output.push('<div');
 	__output.push('>');
@@ -34,7 +34,7 @@ export function CounterWithInitial(__output, props) {
 		__output.push('>');
 
 		{
-			__output.push(_$_.escape(_$_.get(count)));
+			__output.push(_$_.escape(_$_.get(lazy_1)));
 		}
 
 		__output.push('</span>');
@@ -60,9 +60,9 @@ export function CounterWrapper(__output) {
 export function ComputedValues(__output) {
 	_$_.push_component();
 
-	let a = _$_.track(2);
-	let b = _$_.track(3);
-	const sum = () => _$_.get(a) + _$_.get(b);
+	let lazy_2 = _$_.track(2);
+	let lazy_3 = _$_.track(3);
+	const sum = () => _$_.get(lazy_2) + _$_.get(lazy_3);
 
 	__output.push('<div');
 	__output.push(' class="sum"');
@@ -79,16 +79,16 @@ export function ComputedValues(__output) {
 export function MultipleTracked(__output) {
 	_$_.push_component();
 
-	let x = _$_.track(10);
-	let y = _$_.track(20);
-	let z = _$_.track(30);
+	let lazy_4 = _$_.track(10);
+	let lazy_5 = _$_.track(20);
+	let lazy_6 = _$_.track(30);
 
 	__output.push('<div');
 	__output.push(' class="x"');
 	__output.push('>');
 
 	{
-		__output.push(_$_.escape(_$_.get(x)));
+		__output.push(_$_.escape(_$_.get(lazy_4)));
 	}
 
 	__output.push('</div>');
@@ -97,7 +97,7 @@ export function MultipleTracked(__output) {
 	__output.push('>');
 
 	{
-		__output.push(_$_.escape(_$_.get(y)));
+		__output.push(_$_.escape(_$_.get(lazy_5)));
 	}
 
 	__output.push('</div>');
@@ -106,7 +106,7 @@ export function MultipleTracked(__output) {
 	__output.push('>');
 
 	{
-		__output.push(_$_.escape(_$_.get(z)));
+		__output.push(_$_.escape(_$_.get(lazy_6)));
 	}
 
 	__output.push('</div>');
@@ -116,9 +116,9 @@ export function MultipleTracked(__output) {
 export function DerivedState(__output) {
 	_$_.push_component();
 
-	let firstName = _$_.track('John');
-	let lastName = _$_.track('Doe');
-	const fullName = () => `${_$_.get(firstName)} ${_$_.get(lastName)}`;
+	let lazy_7 = _$_.track('John');
+	let lazy_8 = _$_.track('Doe');
+	const fullName = () => `${_$_.get(lazy_7)} ${_$_.get(lazy_8)}`;
 
 	__output.push('<div');
 	__output.push(' class="name"');

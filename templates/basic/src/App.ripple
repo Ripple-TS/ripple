@@ -1,7 +1,7 @@
 import { track } from 'ripple';
 
 export component App() {
-	let count = track(0);
+	let &[count] = track(0);
 
 	<div class="app">
 		<div class="card">
@@ -10,9 +10,9 @@ export component App() {
 			<p class="subtitle">{'The elegant TypeScript UI framework.'}</p>
 
 			<div class="counter">
-				<button onClick={() => @count--}>{'-'}</button>
-				<span class="count">{@count}</span>
-				<button onClick={() => @count++}>{'+'}</button>
+				<button onClick={() => count--}>{'-'}</button>
+				<span class="count">{count}</span>
+				<button onClick={() => count++}>{'+'}</button>
 			</div>
 
 			<div class="links">

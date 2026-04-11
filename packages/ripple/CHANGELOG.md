@@ -1,5 +1,138 @@
 # ripple
 
+## 0.3.7
+
+### Patch Changes
+
+- [#832](https://github.com/Ripple-TS/ripple/pull/832)
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix lazy array rest
+  destructuring for tracked and array-like values by routing rest extraction
+  through a shared `array_slice` helper instead of calling `.slice()` directly on
+  the source.
+
+- [#832](https://github.com/Ripple-TS/ripple/pull/832)
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117)
+  Thanks [@trueadm](https://github.com/trueadm)! - Allow tracked tuple `.length`
+  member access in compiler analysis and simplify tracked direct-access validation
+  into a single combined condition.
+
+- [#832](https://github.com/Ripple-TS/ripple/pull/832)
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix `to_ts` output for lazy
+  array destructuring so it keeps direct destructuring syntax for `track()` and
+  `trackSplit()` instead of expanding through an intermediate `lazy` variable.
+
+- [#832](https://github.com/Ripple-TS/ripple/pull/832)
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117)
+  Thanks [@trueadm](https://github.com/trueadm)! - Replace tracked `get()`/`set()`
+  APIs with a `value` getter/setter across runtime, types, analyzer tracked-access
+  rules, and lazy destructuring tests.
+
+- Updated dependencies
+  [[`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117),
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117),
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117),
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117)]:
+  - ripple@0.3.7
+
+## 0.3.6
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.6
+
+## 0.3.5
+
+### Patch Changes
+
+- [#827](https://github.com/Ripple-TS/ripple/pull/827)
+  [`218a72c`](https://github.com/Ripple-TS/ripple/commit/218a72c3e663910636eec1d065c58afe30813c84)
+  Thanks [@trueadm](https://github.com/trueadm)! - fix(compiler): handle
+  UpdateExpression on lazy bindings with default values
+
+  Update expressions (`++`/`--`) on lazy destructured bindings with default values
+  now work correctly. For postfix operations (`count++`), an IIFE captures the
+  fallback value before incrementing. Also added `fallback` function to server
+  runtime.
+
+- Updated dependencies
+  [[`218a72c`](https://github.com/Ripple-TS/ripple/commit/218a72c3e663910636eec1d065c58afe30813c84)]:
+  - ripple@0.3.5
+
+## 0.3.4
+
+### Patch Changes
+
+- [`92982cd`](https://github.com/Ripple-TS/ripple/commit/92982cd7b918d0afee9334c74765573b30c8a645)
+  Thanks [@trueadm](https://github.com/trueadm)! - feat(compiler): add lazy
+  destructuring syntax (`&{...}` and `&[...]`)
+
+  Lazy destructuring defers property/index access until the binding is read,
+  preserving reactivity for destructured props. Works with default values,
+  compound assignment operators, and update expressions.
+
+- [#814](https://github.com/Ripple-TS/ripple/pull/814)
+  [`747ae1f`](https://github.com/Ripple-TS/ripple/commit/747ae1fc7948e994eeb521f3ed78711c9dd3e802)
+  Thanks [@RazinShafayet2007](https://github.com/RazinShafayet2007)! -
+  fix(compiler): strip TypeScript class syntax from JS output
+
+  This fixes compiler output for `.ripple` classes by stripping TypeScript-only
+  `implements` clauses and `extends` type arguments from emitted JavaScript.
+
+- [#820](https://github.com/Ripple-TS/ripple/pull/820)
+  [`abe1caa`](https://github.com/Ripple-TS/ripple/commit/abe1caa6ab636722099a6ecd4cafbf117d208ec2)
+  Thanks [@RazinShafayet2007](https://github.com/RazinShafayet2007)! - fix: sync
+  `<select>` `bindValue` with typed and dynamic options
+
+- [#817](https://github.com/Ripple-TS/ripple/pull/817)
+  [`046d0ba`](https://github.com/Ripple-TS/ripple/commit/046d0baf190d161c3b851799080d11eb4f95e094)
+  Thanks [@RazinShafayet2007](https://github.com/RazinShafayet2007)! -
+  fix(compiler): preserve class `extends` generics in volar output
+
+- [`79a920e`](https://github.com/Ripple-TS/ripple/commit/79a920e30f0f35f2ec07ff8d52dc709f8bb74c77)
+  Thanks [@trueadm](https://github.com/trueadm)! - Remove `#ripple` namespace
+  syntax in favor of direct imports from `'ripple'`
+
+  The `#ripple` namespace (`#ripple.track()`, `#ripple.effect()`,
+  `#ripple.array()`, etc.) has been removed. All reactive APIs are now accessed
+  via standard imports:
+
+  ```ripple
+  import {
+    track,
+    effect,
+    untrack,
+    Context,
+    RippleArray,
+    RippleObject,
+  } from 'ripple';
+  ```
+
+  - `#ripple.track(value)` → `track(value)`
+  - `#ripple.effect(fn)` → `effect(fn)`
+  - `#ripple.untrack(fn)` → `untrack(fn)`
+  - `#ripple.context(value)` → `new Context(value)`
+  - `#ripple[1, 2, 3]` → `new RippleArray(1, 2, 3)`
+  - `#ripple{ key: value }` → `new RippleObject({ key: value })`
+  - `#ripple.style` → `#style`
+  - `#ripple.server` → `#server`
+
+- [#824](https://github.com/Ripple-TS/ripple/pull/824)
+  [`83807a4`](https://github.com/Ripple-TS/ripple/commit/83807a412603ff49c398f9365b011fd4b4a5f8bf)
+  Thanks [@RazinShafayet2007](https://github.com/RazinShafayet2007)! -
+  fix(parser): avoid hanging on unclosed tsx compat tags
+
+- Updated dependencies
+  [[`92982cd`](https://github.com/Ripple-TS/ripple/commit/92982cd7b918d0afee9334c74765573b30c8a645),
+  [`747ae1f`](https://github.com/Ripple-TS/ripple/commit/747ae1fc7948e994eeb521f3ed78711c9dd3e802),
+  [`abe1caa`](https://github.com/Ripple-TS/ripple/commit/abe1caa6ab636722099a6ecd4cafbf117d208ec2),
+  [`046d0ba`](https://github.com/Ripple-TS/ripple/commit/046d0baf190d161c3b851799080d11eb4f95e094),
+  [`79a920e`](https://github.com/Ripple-TS/ripple/commit/79a920e30f0f35f2ec07ff8d52dc709f8bb74c77),
+  [`83807a4`](https://github.com/Ripple-TS/ripple/commit/83807a412603ff49c398f9365b011fd4b4a5f8bf)]:
+  - ripple@0.3.4
+
 ## 0.3.3
 
 ### Patch Changes

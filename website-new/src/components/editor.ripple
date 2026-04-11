@@ -15,21 +15,21 @@ const CURSOR = '<span class="typing-cursor">|</span>';
 
 export component Editor() {
 	let nodeRef: Tracked<HTMLElement> = track();
-	let loading = track(true);
-	let content = track('');
+	let &[loading] = track(true);
+	let &[content] = track('');
 
 	effect(() => {
-		if (@nodeRef) {
+		if (nodeRef.value) {
 			#server.fetchMessage().then((message: string) => {
-				@content = message;
+				content = message;
 
-				@loading = false;
+				loading = false;
 			});
 		}
 	});
 
 	effect(() => {
-		if (!@content) {
+		if (!content) {
 			return;
 		}
 
@@ -39,17 +39,17 @@ export component Editor() {
 		function addChar() {
 			charIndex += STEP;
 
-			if (charIndex < @content.length) {
-				@nodeRef.innerHTML = @content.substring(0, charIndex) + CURSOR;
+			if (charIndex < content.length) {
+				nodeRef.value.innerHTML = content.substring(0, charIndex) + CURSOR;
 				timeoutId = window.setTimeout(addChar, INTERVAL);
 			} else {
-				@nodeRef.innerHTML = @content;
+				nodeRef.value.innerHTML = content;
 			}
 		}
 
 		timeoutId = window.setTimeout(addChar, 1000);
 
-		if (charIndex >= @content.length) {
+		if (charIndex >= content.length) {
 			window.clearTimeout(timeoutId);
 		}
 
@@ -69,7 +69,7 @@ export component Editor() {
 		</div>
 		<div class="editor-content">
 			<pre class="editor-code" {ref bindNode(nodeRef)}>
-				if (@loading) {
+				if (loading) {
 					<span class="editor-loader">{'Loading...'}</span>
 				}
 			</pre>

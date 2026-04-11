@@ -109,7 +109,7 @@ describe('use value()', () => {
 			const text = track('');
 
 			effect(() => {
-				logs.push('text changed', @text);
+				logs.push('text changed', text.value);
 			});
 
 			<input type="text" {ref bindValue(text)} />
@@ -155,7 +155,7 @@ describe('use value()', () => {
 			const text = track('foo');
 
 			effect(() => {
-				logs.push('text changed', @text);
+				logs.push('text changed', text.value);
 			});
 
 			<input type="text" {ref bindValue(text)} />
@@ -201,7 +201,7 @@ describe('use value()', () => {
 
 			<div>
 				<input type="text" {ref bindValue(text)} />
-				<button onClick={() => (@text = 'updated')}>{'Update'}</button>
+				<button onClick={() => (text.value = 'updated')}>{'Update'}</button>
 			</div>
 		}
 		render(App);
@@ -248,7 +248,7 @@ describe('use value()', () => {
 			const value = track(false);
 
 			effect(() => {
-				logs.push('checked changed', @value);
+				logs.push('checked changed', value.value);
 			});
 
 			<input type="checkbox" {ref bindChecked(value)} />
@@ -294,7 +294,7 @@ describe('use value()', () => {
 
 			<div>
 				<input type="checkbox" {ref bindChecked(value)} />
-				<button onClick={() => (@value = true)}>{'Check'}</button>
+				<button onClick={() => (value.value = true)}>{'Check'}</button>
 			</div>
 		}
 		render(App);
@@ -344,7 +344,7 @@ describe('use value()', () => {
 			const value = track(false);
 
 			effect(() => {
-				logs.push('indeterminate changed', @value);
+				logs.push('indeterminate changed', value.value);
 			});
 
 			<input type="checkbox" {ref bindIndeterminate(value)} />
@@ -398,7 +398,7 @@ describe('use value()', () => {
 
 			<div>
 				<input type="checkbox" {ref bindIndeterminate(value)} />
-				<button onClick={() => (@value = true)}>{'Set Indeterminate'}</button>
+				<button onClick={() => (value.value = true)}>{'Set Indeterminate'}</button>
 			</div>
 		}
 		render(App);
@@ -451,7 +451,7 @@ describe('use value()', () => {
 			const select = track('2');
 
 			effect(() => {
-				logs.push('select changed', @select);
+				logs.push('select changed', select.value);
 			});
 
 			<select {ref bindValue(select)}>
@@ -511,7 +511,7 @@ describe('use value()', () => {
 					<option value="2">{'Two'}</option>
 					<option value="3">{'Three'}</option>
 				</select>
-				<button onClick={() => (@select = '3')}>{'Update'}</button>
+				<button onClick={() => (select.value = '3')}>{'Update'}</button>
 			</div>
 		}
 
@@ -564,7 +564,7 @@ describe('use value()', () => {
 			const selected = track(['b']);
 
 			effect(() => {
-				logs.push('selected changed', JSON.stringify(@selected));
+				logs.push('selected changed', JSON.stringify(selected.value));
 			});
 
 			<div>
@@ -672,7 +672,7 @@ describe('use value()', () => {
 			const selected = track('b');
 
 			effect(() => {
-				logs.push('selected changed', @selected);
+				logs.push('selected changed', selected.value);
 			});
 
 			<div>
@@ -782,7 +782,7 @@ describe('use value()', () => {
 				<input type="checkbox" value="a" {ref bindGroup(selected)} />
 				<input type="checkbox" value="b" {ref bindGroup(selected)} />
 				<input type="checkbox" value="c" {ref bindGroup(selected)} />
-				<button onClick={() => (@selected = ['b', 'c'])}>{'Update'}</button>
+				<button onClick={() => (selected.value = ['b', 'c'])}>{'Update'}</button>
 			</div>
 		}
 
@@ -854,7 +854,7 @@ describe('use value()', () => {
 				<input type="radio" name="test" value="a" {ref bindGroup(selected)} />
 				<input type="radio" name="test" value="b" {ref bindGroup(selected)} />
 				<input type="radio" name="test" value="c" {ref bindGroup(selected)} />
-				<button onClick={() => (@selected = 'c')}>{'Update'}</button>
+				<button onClick={() => (selected.value = 'c')}>{'Update'}</button>
 			</div>
 		}
 
@@ -1027,7 +1027,7 @@ describe('use value()', () => {
 
 			<div>
 				<input type="number" {ref bindValue(value)} />
-				<button onClick={() => (@value = 99)}>{'Update'}</button>
+				<button onClick={() => (value.value = 99)}>{'Update'}</button>
 			</div>
 		}
 
@@ -1123,7 +1123,7 @@ describe('use value()', () => {
 
 			<div>
 				<input type="range" min="0" max="100" {ref bindValue(value)} />
-				<button onClick={() => (@value = 80)}>{'Update'}</button>
+				<button onClick={() => (value.value = 80)}>{'Update'}</button>
 			</div>
 		}
 
@@ -1259,7 +1259,7 @@ describe('use value()', () => {
 
 			<div>
 				<input type="date" {ref bindValue(value)} />
-				<button onClick={() => (@value = '2025-12-31')}>{'Update'}</button>
+				<button onClick={() => (value.value = '2025-12-31')}>{'Update'}</button>
 			</div>
 		}
 
@@ -1339,7 +1339,7 @@ describe('use value()', () => {
 		component App() {
 			const selected = track(['2', '3']);
 
-			<select multiple {ref bindValue(() => @selected, (v) => (@selected = v))}>
+			<select multiple {ref bindValue(() => selected.value, (v) => (selected.value = v))}>
 				<option value="1">{'One'}</option>
 				<option value="2">{'Two'}</option>
 				<option value="3">{'Three'}</option>
@@ -1380,7 +1380,7 @@ describe('use value()', () => {
 					<option value="3">{'Three'}</option>
 					<option value="4">{'Four'}</option>
 				</select>
-				<button onClick={() => (@selected = ['2', '4'])}>{'Update'}</button>
+				<button onClick={() => (selected.value = ['2', '4'])}>{'Update'}</button>
 			</div>
 		}
 
@@ -1412,13 +1412,13 @@ describe('use value()', () => {
 				const selected = track(['1']);
 
 				<div>
-					<select multiple {ref bindValue(() => @selected, (v) => (@selected = v))}>
+					<select multiple {ref bindValue(() => selected.value, (v) => (selected.value = v))}>
 						<option value="1">{'One'}</option>
 						<option value="2">{'Two'}</option>
 						<option value="3">{'Three'}</option>
 						<option value="4">{'Four'}</option>
 					</select>
-					<button onClick={() => (@selected = ['2', '4'])}>{'Update'}</button>
+					<button onClick={() => (selected.value = ['2', '4'])}>{'Update'}</button>
 				</div>
 			}
 
@@ -1468,7 +1468,7 @@ describe('use value()', () => {
 			component App() {
 				const selected = track();
 
-				<select {ref bindValue(() => @selected, (v) => (@selected = v))}>
+				<select {ref bindValue(() => selected.value, (v) => (selected.value = v))}>
 					<option value="1">{'One'}</option>
 					<option value="2">{'Two'}</option>
 				</select>
@@ -1505,7 +1505,7 @@ describe('use value()', () => {
 		component App() {
 			const selected = track();
 
-			<select {ref bindValue(() => @selected, (v) => (@selected = v))}>
+			<select {ref bindValue(() => selected.value, (v) => (selected.value = v))}>
 				<option value="1" disabled>{'One'}</option>
 				<option value="2">{'Two'}</option>
 			</select>
@@ -1545,7 +1545,7 @@ describe('use value()', () => {
 		component App() {
 			const selected = track(2);
 
-			<select {ref bindValue(() => @selected, (v) => (@selected = v))}>
+			<select {ref bindValue(() => selected.value, (v) => (selected.value = v))}>
 				<option value={1}>{'One'}</option>
 				<option value={2}>{'Two'}</option>
 				<option value={3}>{'Three'}</option>
@@ -1570,7 +1570,7 @@ describe('use value()', () => {
 			const selected = track(2);
 
 			effect(() => {
-				logs.push(@selected);
+				logs.push(selected.value);
 			});
 
 			<select {ref bindValue(selected)}>
@@ -1676,7 +1676,7 @@ describe('use value()', () => {
 			);
 
 			<input type="text" {ref bindValue(value)} />
-			<div>{@value}</div>
+			<div>{value.value}</div>
 		}
 
 		render(App);
@@ -1712,7 +1712,7 @@ describe('use value()', () => {
 			);
 
 			<input type="text" {ref bindValue(value)} />
-			<div>{@value}</div>
+			<div>{value.value}</div>
 		}
 
 		render(App);
@@ -1748,7 +1748,7 @@ describe('use value()', () => {
 			);
 
 			<input type="text" {ref bindValue(value)} />
-			<div>{@value}</div>
+			<div>{value.value}</div>
 		}
 
 		render(App);
@@ -1786,16 +1786,16 @@ describe('use value()', () => {
 				);
 
 				effect(() => {
-					@value;
+					value.value;
 
 					untrack(() => {
-						if (@value.includes('a')) {
-							@value = @value.replace(/a/g, '');
+						if (value.value.includes('a')) {
+							value.value = value.value.replace(/a/g, '');
 						}
 					});
 				});
 				<input type="text" {ref bindValue(value)} />
-				<div>{@value}</div>
+				<div>{value.value}</div>
 			}
 
 			render(App);
@@ -1821,13 +1821,13 @@ describe('use value()', () => {
 			let value = track('');
 			const value_accessors: [GetFunction<string>, SetFunction<string>] = [
 				() => {
-					return @value;
+					return value.value;
 				},
 				(v: string) => {
 					if (v.includes('c')) {
 						v = v.replace(/c/g, '');
 					}
-					@value = v;
+					value.value = v;
 				},
 			];
 
@@ -1853,13 +1853,13 @@ describe('use value()', () => {
 			let value = track('');
 			const value_accessors: [GetFunction<string>, SetFunction<string>] = [
 				() => {
-					if (@value.includes('c')) {
-						return @value.replace(/c/g, '');
+					if (value.value.includes('c')) {
+						return value.value.replace(/c/g, '');
 					}
-					return @value;
+					return value.value;
 				},
 				(v: string) => {
-					@value = v;
+					value.value = v;
 				},
 			];
 
@@ -1887,13 +1887,13 @@ describe('use value()', () => {
 				let value = track('');
 				const value_accessors: [GetFunction<string>, SetFunction<string>] = [
 					() => {
-						return @value.replace(/[c,b]+/g, '');
+						return value.value.replace(/[c,b]+/g, '');
 					},
 					(v: string) => {
 						if (v.includes('c')) {
 							v = v.replace(/c/g, '');
 						}
-						@value = v;
+						value.value = v;
 					},
 				];
 
@@ -1922,22 +1922,22 @@ describe('use value()', () => {
 				let value = track('');
 				const value_accessors: [GetFunction<string>, SetFunction<string>] = [
 					() => {
-						return @value;
+						return value.value;
 					},
 					(v: string) => {
 						if (v.includes('c')) {
 							v = v.replace(/c/g, '');
 						}
-						@value = v;
+						value.value = v;
 					},
 				];
 
 				effect(() => {
-					@value;
+					value.value;
 
 					untrack(() => {
-						if (@value.includes('a')) {
-							@value = @value.replace(/a/g, '');
+						if (value.value.includes('a')) {
+							value.value = value.value.replace(/a/g, '');
 						}
 					});
 				});
@@ -1966,7 +1966,7 @@ describe('use value()', () => {
 				let value = track('');
 				const value_accessors: [GetFunction<string>, SetFunction<string>] = [
 					() => {
-						return @value;
+						return value.value;
 					},
 					(v: string) => {
 						// no update
@@ -1974,7 +1974,7 @@ describe('use value()', () => {
 				];
 
 				<input type="text" {ref bindValue(...value_accessors)} />
-				<div>{@value}</div>
+				<div>{value.value}</div>
 			}
 
 			render(App);
@@ -2009,7 +2009,7 @@ describe('use value()', () => {
 				);
 
 				<input type="text" {ref bindValue(value)} />
-				<div>{@value}</div>
+				<div>{value.value}</div>
 			}
 
 			render(App);
@@ -2038,7 +2038,7 @@ describe('bindClientWidth and bindClientHeight', () => {
 			const width = track(0);
 
 			effect(() => {
-				logs.push(@width);
+				logs.push(width.value);
 			});
 
 			<div {ref bindClientWidth(width)} />
@@ -2100,7 +2100,7 @@ describe('bindClientWidth and bindClientHeight', () => {
 			const height = track(0);
 
 			effect(() => {
-				logs.push(@height);
+				logs.push(height.value);
 			});
 
 			<div {ref bindClientHeight(height)} />
@@ -2163,7 +2163,7 @@ describe('bindOffsetWidth and bindOffsetHeight', () => {
 			const width = track(0);
 
 			effect(() => {
-				logs.push(@width);
+				logs.push(width.value);
 			});
 
 			<div {ref bindOffsetWidth(width)} />
@@ -2225,7 +2225,7 @@ describe('bindOffsetWidth and bindOffsetHeight', () => {
 			const height = track(0);
 
 			effect(() => {
-				logs.push(@height);
+				logs.push(height.value);
 			});
 
 			<div {ref bindOffsetHeight(height)} />
@@ -2288,7 +2288,7 @@ describe('bindContentRect', () => {
 			const rect = track(null);
 
 			effect(() => {
-				if (@rect) logs.push(@rect);
+				if (rect.value) logs.push(rect.value);
 			});
 
 			<div {ref bindContentRect(rect)} />
@@ -2356,7 +2356,7 @@ describe('bindContentBoxSize', () => {
 			const boxSize = track(null);
 
 			effect(() => {
-				if (@boxSize) logs.push(@boxSize);
+				if (boxSize.value) logs.push(boxSize.value);
 			});
 
 			<div {ref bindContentBoxSize(boxSize)} />
@@ -2425,7 +2425,7 @@ describe('bindBorderBoxSize', () => {
 			const boxSize = track(null);
 
 			effect(() => {
-				if (@boxSize) logs.push(@boxSize);
+				if (boxSize.value) logs.push(boxSize.value);
 			});
 
 			<div {ref bindBorderBoxSize(boxSize)} />
@@ -2494,7 +2494,7 @@ describe('bindDevicePixelContentBoxSize', () => {
 			const boxSize = track(null);
 
 			effect(() => {
-				if (@boxSize) logs.push(@boxSize);
+				if (boxSize.value) logs.push(boxSize.value);
 			});
 
 			<div {ref bindDevicePixelContentBoxSize(boxSize)} />
@@ -2563,7 +2563,7 @@ describe('bindInnerHTML', () => {
 			const html = track('<strong>Hello</strong>');
 
 			effect(() => {
-				logs.push(@html);
+				logs.push(html.value);
 			});
 
 			<div contenteditable="true" {ref bindInnerHTML(html)} />
@@ -2617,7 +2617,7 @@ describe('bindInnerHTML', () => {
 
 			<div>
 				<div contenteditable="true" {ref bindInnerHTML(html)} />
-				<button onClick={() => (@html = '<p>Updated</p>')}>{'Update'}</button>
+				<button onClick={() => (html.value = '<p>Updated</p>')}>{'Update'}</button>
 			</div>
 		}
 
@@ -2704,7 +2704,7 @@ describe('bindInnerText', () => {
 			const text = track('Hello World');
 
 			effect(() => {
-				logs.push(@text);
+				logs.push(text.value);
 			});
 
 			<div contenteditable="true" {ref bindInnerText(text)} />
@@ -2757,7 +2757,7 @@ describe('bindInnerText', () => {
 
 			<div>
 				<div contenteditable="true" {ref bindInnerText(text)} />
-				<button onClick={() => (@text = 'After')}>{'Update'}</button>
+				<button onClick={() => (text.value = 'After')}>{'Update'}</button>
 			</div>
 		}
 
@@ -2811,7 +2811,7 @@ describe('bindTextContent', () => {
 			const text = track('Sample text');
 
 			effect(() => {
-				logs.push(@text);
+				logs.push(text.value);
 			});
 
 			<div contenteditable="true" {ref bindTextContent(text)} />
@@ -2865,7 +2865,7 @@ describe('bindTextContent', () => {
 
 			<div>
 				<div contenteditable="true" {ref bindTextContent(text)} />
-				<button onClick={() => (@text = 'End')}>{'Update'}</button>
+				<button onClick={() => (text.value = 'End')}>{'Update'}</button>
 			</div>
 		}
 
@@ -2955,7 +2955,7 @@ describe('bindNode', () => {
 			const nodeRef = track(null);
 
 			effect(() => {
-				capturedNode = @nodeRef;
+				capturedNode = nodeRef.value;
 			});
 
 			<div {ref bindNode(nodeRef)} />
@@ -2998,8 +2998,8 @@ describe('bindNode', () => {
 				<input type="text" {ref bindNode(inputRef)} />
 				<button
 					onClick={() => {
-						if (@inputRef) {
-							@inputRef.value = 'Set by ref';
+						if (inputRef.value) {
+							inputRef.value.value = 'Set by ref';
 						}
 					}}
 				>
@@ -3068,8 +3068,8 @@ describe('bindFiles', () => {
 			const files = track(null);
 
 			effect(() => {
-				@files;
-				if (@files) logs.push(@files);
+				files.value;
+				if (files.value) logs.push(files.value);
 			});
 
 			<input type="file" multiple {ref bindFiles(files)} />
@@ -3154,7 +3154,7 @@ describe('bindFiles', () => {
 			const files = track<FileList | null>(null);
 
 			effect(() => {
-				capturedFiles = @files;
+				capturedFiles = files.value;
 			});
 
 			<input type="file" {ref bindFiles(files)} />
@@ -3228,16 +3228,16 @@ describe('bindFiles', () => {
 			const input = track<HTMLInputElement | null>(null);
 
 			effect(() => {
-				capturedFiles = @files;
+				capturedFiles = files.value;
 			});
 
 			<div>
 				<input type="file" {ref bindFiles<FileList>(files)} {ref bindNode(input)} />
 				<button
 					onClick={() => {
-						if (@input) {
-							@input.files = new DataTransfer().files;
-							@input.dispatchEvent(new Event('change', { bubbles: true }));
+						if (input.value) {
+							input.value.files = new DataTransfer().files;
+							input.value.dispatchEvent(new Event('change', { bubbles: true }));
 						}
 					}}
 				>
@@ -3292,9 +3292,9 @@ describe('bindFiles', () => {
 				/>
 				<button
 					onClick={() => {
-						if (@input) {
-							@input.files = new DataTransfer().files;
-							@input.dispatchEvent(new Event('change', { bubbles: true }));
+						if (input.value) {
+							input.value.files = new DataTransfer().files;
+							input.value.dispatchEvent(new Event('change', { bubbles: true }));
 						}
 					}}
 				>
@@ -3337,9 +3337,9 @@ describe('bindFiles', () => {
 			const files = track<FileList | null>(null);
 
 			effect(() => {
-				@files;
-				if (@files) {
-					fileCounts.push(@files.length);
+				files.value;
+				if (files.value) {
+					fileCounts.push(files.value.length);
 				}
 			});
 
@@ -3438,9 +3438,9 @@ describe('bindFiles', () => {
 			const files = track<FileList | null>(null);
 
 			effect(() => {
-				@files;
-				if (@files && @files.length > 0) {
-					capturedFile = @files[0];
+				files.value;
+				if (files.value && files.value.length > 0) {
+					capturedFile = files.value[0];
 				}
 			});
 
@@ -3514,7 +3514,7 @@ describe('bindFiles', () => {
 			const files = track(null);
 
 			effect(() => {
-				logs.push(@files);
+				logs.push(files.value);
 			});
 
 			<input type="file" {ref bindFiles(files)} />
@@ -3769,7 +3769,7 @@ describe('error handling', () => {
 		expect(() => {
 			component App() {
 				const value = track('');
-				<input type="text" {ref bindValue(() => @value)} />
+				<input type="text" {ref bindValue(() => value.value)} />
 			}
 			render(App);
 		}).toThrow(
@@ -3782,7 +3782,7 @@ describe('error handling', () => {
 			component App() {
 				const value = track('');
 				// @ts-expect-error invalid argument
-				<input type="text" {ref bindValue(() => @value, 5)} />
+				<input type="text" {ref bindValue(() => value.value, 5)} />
 			}
 			render(App);
 		}).toThrow(
@@ -3818,7 +3818,7 @@ describe('error handling', () => {
 				component App() {
 					const value = track('2');
 
-					<select multiple {ref bindValue(() => @value, (v) => (@value = v))}>
+					<select multiple {ref bindValue(() => value.value, (v) => (value.value = v))}>
 						<option value="1">{'One'}</option>
 						<option value="2">{'Two'}</option>
 					</select>

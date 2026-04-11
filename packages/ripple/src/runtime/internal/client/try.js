@@ -1,6 +1,12 @@
 /** @import { Block } from '#client' */
 
-import { branch, create_try_block, destroy_block, is_destroyed, move_block } from './blocks.js';
+import {
+	boundary_fn_running_block,
+	create_try_block,
+	destroy_block,
+	is_destroyed,
+	move_block,
+} from './blocks.js';
 import { TRY_BLOCK } from './constants.js';
 import {
 	hydrate_next,
@@ -25,12 +31,12 @@ import { active_block, queue_microtask, with_block } from './runtime.js';
 
 /**
  * @param {Node} node
- * @param {(anchor: Node, block?: Block) => void} fn
+ * @param {(anchor: Node, block?: Block) => void} try_fn
  * @param {CatchFunction | null} catch_fn
  * @param {PendingFunction | null} [pending_fn=null]
  * @returns {void}
  */
-export function try_block(node, fn, catch_fn, pending_fn = null) {
+export function try_block(node, try_fn, catch_fn, pending_fn = null) {
 	var anchor = node;
 	var pending_count = 0;
 	var request_version = 0;
@@ -65,10 +71,10 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 			mode = 'resolved';
 			if (active_block !== try_block) {
 				with_block(try_block, () => {
-					resolved_branch = branch(() => fn(anchor));
+					resolved_branch = boundary_fn_running_block(() => try_fn(anchor));
 				});
 			} else {
-				resolved_branch = branch(() => fn(anchor));
+				resolved_branch = boundary_fn_running_block(() => try_fn(anchor));
 			}
 		}
 	}
@@ -102,7 +108,7 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 		mode = 'pending';
 
 		var create_pending = () => {
-			pending_branch = branch(() => {
+			pending_branch = boundary_fn_running_block(() => {
 				/** @type {PendingFunction} */ (pending_fn)(anchor);
 			});
 		};
@@ -151,7 +157,7 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 		mode = 'catch';
 
 		var create_catch = () => {
-			catch_branch = branch(() => {
+			catch_branch = boundary_fn_running_block(() => {
 				/** @type {CatchFunction} */ (catch_fn)(anchor, error, render_resolved);
 			});
 		};
@@ -308,7 +314,7 @@ export function try_block(node, fn, catch_fn, pending_fn = null) {
 	}
 
 	try_block = create_try_block(() => {
-		resolved_branch = branch(() => fn(anchor));
+		resolved_branch = boundary_fn_running_block(() => try_fn(anchor));
 	}, state);
 }
 

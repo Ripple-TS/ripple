@@ -64,19 +64,21 @@ if (versionParam === 'latest') {
 const version = ref(versionParam || latest)
 
 const defaultContent = `
+import { track } from 'ripple';
+
 export default component Counter() {
-  let count = #ripple.track(0);
-  let double = #ripple.track(() => @count * 2);
+  let &[count] = track(0);
+  let &[double] = track(() => count * 2);
 
   <div class="container">
     <h2>{'Counter'}</h2>
-    <p>{\`Count: \${@count}\`}</p>
-    <p>{\`Double: \${@double}\`}</p>
+    <p>{\`Count: \${count}\`}</p>
+    <p>{\`Double: \${double}\`}</p>
 
-    <button onClick={() => @count--}>{'-'}</button>
-    <button onClick={() => @count++}>{'+'}</button>
-    if (@count !== 0) {
-      <div><button onClick={() => @count = 0}>{'Reset'}</button></div>
+    <button onClick={() => count--}>{'-'}</button>
+    <button onClick={() => count++}>{'+'}</button>
+    if (count !== 0) {
+      <div><button onClick={() => count = 0}>{'Reset'}</button></div>
     }
   </div>
 

@@ -79,12 +79,12 @@ export function SwitchStatic(__anchor, _, __block) {
 export function SwitchReactive(__anchor, _, __block) {
 	_$_.push_component();
 
-	let status = _$_.track('a', void 0, void 0, __block);
+	let lazy = _$_.track('a', void 0, void 0, __block);
 	var fragment_3 = root_4();
 	var button_1 = _$_.first_child_frag(fragment_3);
 
 	button_1.__click = () => {
-		if (_$_.get(status) === 'a') _$_.set(status, 'b'); else if (_$_.get(status) === 'b') _$_.set(status, 'c'); else _$_.set(status, 'a');
+		if (_$_.get(lazy) === 'a') _$_.set(lazy, 'b'); else if (_$_.get(lazy) === 'b') _$_.set(lazy, 'c'); else _$_.set(lazy, 'a');
 	};
 
 	var node_1 = _$_.sibling(button_1);
@@ -111,7 +111,7 @@ export function SwitchReactive(__anchor, _, __block) {
 		_$_.switch(node_1, () => {
 			var result = [];
 
-			switch (_$_.get(status)) {
+			switch (_$_.get(lazy)) {
 				case 'a':
 					result.push(switch_case_0_1);
 					return result;
@@ -175,12 +175,12 @@ export function SwitchFallthrough(__anchor, _, __block) {
 export function SwitchNumericLevels(__anchor, _, __block) {
 	_$_.push_component();
 
-	let level = _$_.track(1, void 0, void 0, __block);
+	let lazy_1 = _$_.track(1, void 0, void 0, __block);
 	var fragment_8 = root_11();
 	var button_2 = _$_.first_child_frag(fragment_8);
 
 	button_2.__click = () => {
-		if (_$_.get(level) === 1) _$_.set(level, 2); else if (_$_.get(level) === 2) _$_.set(level, 3); else _$_.set(level, 1);
+		if (_$_.get(lazy_1) === 1) _$_.set(lazy_1, 2); else if (_$_.get(lazy_1) === 2) _$_.set(lazy_1, 3); else _$_.set(lazy_1, 1);
 	};
 
 	var node_3 = _$_.sibling(button_2);
@@ -207,7 +207,7 @@ export function SwitchNumericLevels(__anchor, _, __block) {
 		_$_.switch(node_3, () => {
 			var result = [];
 
-			switch (_$_.get(level)) {
+			switch (_$_.get(lazy_1)) {
 				case 1:
 					result.push(switch_case_0_3);
 					return result;
@@ -230,12 +230,12 @@ export function SwitchNumericLevels(__anchor, _, __block) {
 export function SwitchBlockScoped(__anchor, _, __block) {
 	_$_.push_component();
 
-	let level = _$_.track(1, void 0, void 0, __block);
+	let lazy_2 = _$_.track(1, void 0, void 0, __block);
 	var fragment_12 = root_15();
 	var button_3 = _$_.first_child_frag(fragment_12);
 
 	button_3.__click = () => {
-		if (_$_.get(level) === 1) _$_.set(level, 2); else if (_$_.get(level) === 2) _$_.set(level, 3); else _$_.set(level, 1);
+		if (_$_.get(lazy_2) === 1) _$_.set(lazy_2, 2); else if (_$_.get(lazy_2) === 2) _$_.set(lazy_2, 3); else _$_.set(lazy_2, 1);
 	};
 
 	var node_4 = _$_.sibling(button_3);
@@ -262,7 +262,7 @@ export function SwitchBlockScoped(__anchor, _, __block) {
 		_$_.switch(node_4, () => {
 			var result = [];
 
-			switch (_$_.get(level)) {
+			switch (_$_.get(lazy_2)) {
 				case 1:
 					result.push(switch_case_0_4);
 					return result;
@@ -285,12 +285,12 @@ export function SwitchBlockScoped(__anchor, _, __block) {
 export function SwitchNoBreak(__anchor, _, __block) {
 	_$_.push_component();
 
-	let level = _$_.track(1, void 0, void 0, __block);
+	let lazy_3 = _$_.track(1, void 0, void 0, __block);
 	var fragment_16 = root_19();
 	var button_4 = _$_.first_child_frag(fragment_16);
 
 	button_4.__click = () => {
-		if (_$_.get(level) === 1) _$_.set(level, 2); else if (_$_.get(level) === 2) _$_.set(level, 3); else _$_.set(level, 1);
+		if (_$_.get(lazy_3) === 1) _$_.set(lazy_3, 2); else if (_$_.get(lazy_3) === 2) _$_.set(lazy_3, 3); else _$_.set(lazy_3, 1);
 	};
 
 	var node_5 = _$_.sibling(button_4);
@@ -317,7 +317,7 @@ export function SwitchNoBreak(__anchor, _, __block) {
 		_$_.switch(node_5, () => {
 			var result = [];
 
-			switch (_$_.get(level)) {
+			switch (_$_.get(lazy_3)) {
 				case 1:
 					result.push(switch_case_0_5);
 

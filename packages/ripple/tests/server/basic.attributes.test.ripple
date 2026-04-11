@@ -19,9 +19,9 @@ describe('basic server > attribute rendering', () => {
 
 	it('render dynamic class attribute', async () => {
 		component Basic() {
-			let active = track(false);
+			let &[active] = track(false);
 
-			<div class={@active ? 'active' : 'inactive'}>{'Dynamic Class'}</div>
+			<div class={active ? 'active' : 'inactive'}>{'Dynamic Class'}</div>
 
 			<style>
 				.active {
@@ -89,9 +89,9 @@ describe('basic server > attribute rendering', () => {
 
 	it('render dynamic class object', async () => {
 		component Basic() {
-			let active = track(false);
+			let &[active] = track(false);
 
-			<div class={{ active: @active, inactive: !@active }}>{'Dynamic Class'}</div>
+			<div class={{ active: active, inactive: !active }}>{'Dynamic Class'}</div>
 
 			<style>
 				.active {
@@ -116,10 +116,10 @@ describe('basic server > attribute rendering', () => {
 		'applies scoped ripple class to multiple elements with dynamic class expressions',
 		async () => {
 			component Basic() {
-				let selected = track(1);
+				let &[selected] = track(1);
 
-				<div class={@selected === 0 ? 'selected' : ''}>{`div 1`}</div>
-				<div class={@selected === 0 ? 'selected' : ''}>{`div 2`}</div>
+				<div class={selected === 0 ? 'selected' : ''}>{`div 1`}</div>
+				<div class={selected === 0 ? 'selected' : ''}>{`div 2`}</div>
 
 				<style>
 					div {
@@ -147,9 +147,9 @@ describe('basic server > attribute rendering', () => {
 
 	it('render dynamic id attribute', async () => {
 		component Basic() {
-			let count = track(0);
+			let &[count] = track(0);
 
-			<div id={`item-${@count}`}>{'Dynamic ID'}</div>
+			<div id={`item-${count}`}>{'Dynamic ID'}</div>
 		}
 
 		const { body } = await render(Basic);
@@ -162,9 +162,9 @@ describe('basic server > attribute rendering', () => {
 
 	it('render dynamic style attribute', async () => {
 		component Basic() {
-			let color = track('red');
+			let &[color] = track('red');
 
-			<div style={`color: ${@color}; font-weight: bold;`}>{'Dynamic Style'}</div>
+			<div style={`color: ${color}; font-weight: bold;`}>{'Dynamic Style'}</div>
 		}
 
 		const { body } = await render(Basic);
@@ -178,9 +178,9 @@ describe('basic server > attribute rendering', () => {
 
 	it('render style attribute as dynamic object', async () => {
 		component Basic() {
-			let color = track('red');
+			let &[color] = track('red');
 
-			<div style={{ color: @color, fontWeight: 'bold' }}>{'Dynamic Style'}</div>
+			<div style={{ color: color, fontWeight: 'bold' }}>{'Dynamic Style'}</div>
 		}
 
 		const { body } = await render(Basic);
@@ -194,9 +194,9 @@ describe('basic server > attribute rendering', () => {
 
 	it('render tracked variable as style attribute', async () => {
 		component Basic() {
-			let style = track({ color: 'red', fontWeight: 'bold' });
+			let &[style] = track({ color: 'red', fontWeight: 'bold' });
 
-			<div {@style}>{'Dynamic Style'}</div>
+			<div {style}>{'Dynamic Style'}</div>
 		}
 
 		const { body } = await render(Basic);
@@ -277,10 +277,10 @@ describe('basic server > attribute rendering', () => {
 
 	it('render dynamic boolean attributes as false', async () => {
 		component Basic() {
-			let disabled = track(false);
-			let checked = track(false);
+			let &[disabled] = track(false);
+			let &[checked] = track(false);
 
-			<input type="checkbox" {@disabled} {@checked} />
+			<input type="checkbox" {disabled} {checked} />
 		}
 
 		const { body } = await render(Basic);
@@ -312,10 +312,10 @@ describe('basic server > attribute rendering', () => {
 
 	it('render dynamic boolean attributes as true', async () => {
 		component Basic() {
-			let disabled = track(true);
-			let checked = track(true);
+			let &[disabled] = track(true);
+			let &[checked] = track(true);
 
-			<input type="checkbox" {@disabled} {@checked} />
+			<input type="checkbox" {disabled} {checked} />
 		}
 
 		const { body } = await render(Basic);
@@ -347,10 +347,10 @@ describe('basic server > attribute rendering', () => {
 
 	it('render multiple dynamic attributes', async () => {
 		component Basic() {
-			let theme = track('light');
-			let size = track('medium');
+			let &[theme] = track('light');
+			let &[size] = track('medium');
 
-			<div class={`theme-${@theme} size-${@size}`} data-theme={@theme} data-size={@size}>
+			<div class={`theme-${theme} size-${size}`} data-theme={theme} data-size={size}>
 				{'Multiple Dynamic Attributes'}
 			</div>
 		}
@@ -367,12 +367,12 @@ describe('basic server > attribute rendering', () => {
 
 	it('render conditional attributes', async () => {
 		component Basic() {
-			let showTitle = track(false);
-			let showAria = track(false);
+			let &[showTitle] = track(false);
+			let &[showAria] = track(false);
 
 			<div
-				title={@showTitle ? 'This is a title' : undefined}
-				aria-label={@showAria ? 'Accessible label' : undefined}
+				title={showTitle ? 'This is a title' : undefined}
+				aria-label={showAria ? 'Accessible label' : undefined}
 			>
 				{'Conditional Attributes'}
 			</div>
@@ -389,14 +389,14 @@ describe('basic server > attribute rendering', () => {
 
 	it('render spread attributes', async () => {
 		component Basic() {
-			let attrs = track<TestAttributes>(
+			let &[attrs] = track<TestAttributes>(
 				{
 					class: 'initial',
 					id: 'test-1',
 				},
 			);
 
-			<div {...@attrs}>{'Spread Attributes'}</div>
+			<div {...attrs}>{'Spread Attributes'}</div>
 		}
 
 		const { body } = await render(Basic);
@@ -411,14 +411,14 @@ describe('basic server > attribute rendering', () => {
 
 	it('renders with reactive attributes with nested reactive attributes', async () => {
 		component Basic() {
-			let value = track('parent-class');
+			let &[value] = track('parent-class');
 
-			<p class={@value}>{'Colored parent value'}</p>
+			<p class={value}>{'Colored parent value'}</p>
 
 			<div>
-				let nested = track('nested-class');
+				let &[nested] = track('nested-class');
 
-				<p class={@nested}>{'Colored nested value'}</p>
+				<p class={nested}>{'Colored nested value'}</p>
 			</div>
 		}
 

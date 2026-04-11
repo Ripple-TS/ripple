@@ -100,7 +100,7 @@ export function KeyedForLoop(__output) {
 export function ReactiveForLoopAdd(__output) {
 	_$_.push_component();
 
-	let items = _$_.track(['A', 'B']);
+	let lazy = _$_.track(['A', 'B']);
 
 	__output.push('<button');
 	__output.push(' class="add"');
@@ -117,7 +117,7 @@ export function ReactiveForLoopAdd(__output) {
 	{
 		__output.push('<!--[-->');
 
-		for (const item of _$_.get(items)) {
+		for (const item of _$_.get(lazy)) {
 			__output.push('<li');
 			__output.push('>');
 
@@ -138,7 +138,7 @@ export function ReactiveForLoopAdd(__output) {
 export function ReactiveForLoopRemove(__output) {
 	_$_.push_component();
 
-	let items = _$_.track(['A', 'B', 'C']);
+	let lazy_1 = _$_.track(['A', 'B', 'C']);
 
 	__output.push('<button');
 	__output.push(' class="remove"');
@@ -155,7 +155,7 @@ export function ReactiveForLoopRemove(__output) {
 	{
 		__output.push('<!--[-->');
 
-		for (const item of _$_.get(items)) {
+		for (const item of _$_.get(lazy_1)) {
 			__output.push('<li');
 			__output.push('>');
 
@@ -176,7 +176,7 @@ export function ReactiveForLoopRemove(__output) {
 export function ForLoopInteractive(__output) {
 	_$_.push_component();
 
-	let counts = _$_.track([0, 0, 0]);
+	let lazy_2 = _$_.track([0, 0, 0]);
 
 	__output.push('<div');
 	__output.push('>');
@@ -186,7 +186,7 @@ export function ForLoopInteractive(__output) {
 
 		var i = 0;
 
-		for (const count of _$_.get(counts)) {
+		for (const count of _$_.get(lazy_2)) {
 			__output.push('<div');
 			__output.push(_$_.attr('class', `item-${i}`));
 			__output.push('>');
@@ -357,7 +357,7 @@ export function ForLoopComplexObjects(__output) {
 export function KeyedForLoopReorder(__output) {
 	_$_.push_component();
 
-	let items = _$_.track([
+	let lazy_3 = _$_.track([
 		{ id: 1, name: 'First' },
 		{ id: 2, name: 'Second' },
 		{ id: 3, name: 'Third' }
@@ -378,7 +378,7 @@ export function KeyedForLoopReorder(__output) {
 	{
 		__output.push('<!--[-->');
 
-		for (const item of _$_.get(items)) {
+		for (const item of _$_.get(lazy_3)) {
 			__output.push('<li');
 			__output.push(_$_.attr('class', `item-${item.id}`));
 			__output.push('>');
@@ -400,7 +400,7 @@ export function KeyedForLoopReorder(__output) {
 export function KeyedForLoopUpdate(__output) {
 	_$_.push_component();
 
-	let items = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }]);
+	let lazy_4 = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }]);
 
 	__output.push('<button');
 	__output.push(' class="update"');
@@ -417,7 +417,7 @@ export function KeyedForLoopUpdate(__output) {
 	{
 		__output.push('<!--[-->');
 
-		for (const item of _$_.get(items)) {
+		for (const item of _$_.get(lazy_4)) {
 			__output.push('<li');
 			__output.push(_$_.attr('class', `item-${item.id}`));
 			__output.push('>');
@@ -439,7 +439,7 @@ export function KeyedForLoopUpdate(__output) {
 export function ForLoopMixedOperations(__output) {
 	_$_.push_component();
 
-	let items = _$_.track(['A', 'B', 'C', 'D']);
+	let lazy_5 = _$_.track(['A', 'B', 'C', 'D']);
 
 	__output.push('<button');
 	__output.push(' class="shuffle"');
@@ -456,7 +456,7 @@ export function ForLoopMixedOperations(__output) {
 	{
 		__output.push('<!--[-->');
 
-		for (const item of _$_.get(items)) {
+		for (const item of _$_.get(lazy_5)) {
 			__output.push('<li');
 			__output.push(_$_.attr('class', `item-${item}`));
 			__output.push('>');
@@ -478,8 +478,8 @@ export function ForLoopMixedOperations(__output) {
 export function ForLoopInsideIf(__output) {
 	_$_.push_component();
 
-	let showList = _$_.track(true);
-	let items = _$_.track(['X', 'Y', 'Z']);
+	let lazy_6 = _$_.track(true);
+	let lazy_7 = _$_.track(['X', 'Y', 'Z']);
 
 	__output.push('<button');
 	__output.push(' class="toggle"');
@@ -501,7 +501,7 @@ export function ForLoopInsideIf(__output) {
 	__output.push('</button>');
 	__output.push('<!--[-->');
 
-	if (_$_.get(showList)) {
+	if (_$_.get(lazy_6)) {
 		__output.push('<ul');
 		__output.push(' class="list"');
 		__output.push('>');
@@ -509,7 +509,7 @@ export function ForLoopInsideIf(__output) {
 		{
 			__output.push('<!--[-->');
 
-			for (const item of _$_.get(items)) {
+			for (const item of _$_.get(lazy_7)) {
 				__output.push('<li');
 				__output.push('>');
 
@@ -533,7 +533,7 @@ export function ForLoopInsideIf(__output) {
 export function ForLoopEmptyToPopulated(__output) {
 	_$_.push_component();
 
-	let items = _$_.track([]);
+	let lazy_8 = _$_.track([]);
 
 	__output.push('<button');
 	__output.push(' class="populate"');
@@ -551,7 +551,7 @@ export function ForLoopEmptyToPopulated(__output) {
 	{
 		__output.push('<!--[-->');
 
-		for (const item of _$_.get(items)) {
+		for (const item of _$_.get(lazy_8)) {
 			__output.push('<li');
 			__output.push('>');
 
@@ -572,7 +572,7 @@ export function ForLoopEmptyToPopulated(__output) {
 export function ForLoopPopulatedToEmpty(__output) {
 	_$_.push_component();
 
-	let items = _$_.track(['One', 'Two', 'Three']);
+	let lazy_9 = _$_.track(['One', 'Two', 'Three']);
 
 	__output.push('<button');
 	__output.push(' class="clear"');
@@ -590,7 +590,7 @@ export function ForLoopPopulatedToEmpty(__output) {
 	{
 		__output.push('<!--[-->');
 
-		for (const item of _$_.get(items)) {
+		for (const item of _$_.get(lazy_9)) {
 			__output.push('<li');
 			__output.push('>');
 
@@ -611,7 +611,7 @@ export function ForLoopPopulatedToEmpty(__output) {
 export function NestedForLoopReactive(__output) {
 	_$_.push_component();
 
-	let grid = _$_.track([[1, 2], [3, 4]]);
+	let lazy_10 = _$_.track([[1, 2], [3, 4]]);
 
 	__output.push('<button');
 	__output.push(' class="add-row"');
@@ -640,7 +640,7 @@ export function NestedForLoopReactive(__output) {
 
 		var rowIndex = 0;
 
-		for (const row of _$_.get(grid)) {
+		for (const row of _$_.get(lazy_10)) {
 			__output.push('<div');
 			__output.push(_$_.attr('class', `row-${rowIndex}`));
 			__output.push('>');
@@ -779,7 +779,7 @@ export function ForLoopDeeplyNested(__output) {
 export function ForLoopIndexUpdate(__output) {
 	_$_.push_component();
 
-	let items = _$_.track(['First', 'Second', 'Third']);
+	let lazy_11 = _$_.track(['First', 'Second', 'Third']);
 
 	__output.push('<button');
 	__output.push(' class="prepend"');
@@ -798,7 +798,7 @@ export function ForLoopIndexUpdate(__output) {
 
 		var i = 0;
 
-		for (const item of _$_.get(items)) {
+		for (const item of _$_.get(lazy_11)) {
 			__output.push('<li');
 			__output.push(_$_.attr('class', `item-${i}`));
 			__output.push('>');
@@ -821,7 +821,7 @@ export function ForLoopIndexUpdate(__output) {
 export function KeyedForLoopWithIndex(__output) {
 	_$_.push_component();
 
-	let items = _$_.track([
+	let lazy_12 = _$_.track([
 		{ id: 'a', value: 'Alpha' },
 		{ id: 'b', value: 'Beta' },
 		{ id: 'c', value: 'Gamma' }
@@ -844,7 +844,7 @@ export function KeyedForLoopWithIndex(__output) {
 
 		var i = 0;
 
-		for (const item of _$_.get(items)) {
+		for (const item of _$_.get(lazy_12)) {
 			__output.push('<li');
 			__output.push(_$_.attr('data-index', i, false));
 			__output.push(_$_.attr('class', `item-${item.id}`));
@@ -868,7 +868,7 @@ export function KeyedForLoopWithIndex(__output) {
 export function ForLoopWithSiblings(__output) {
 	_$_.push_component();
 
-	let items = _$_.track(['A', 'B']);
+	let lazy_13 = _$_.track(['A', 'B']);
 
 	__output.push('<div');
 	__output.push(' class="wrapper"');
@@ -886,7 +886,7 @@ export function ForLoopWithSiblings(__output) {
 		__output.push('</header>');
 		__output.push('<!--[-->');
 
-		for (const item of _$_.get(items)) {
+		for (const item of _$_.get(lazy_13)) {
 			__output.push('<div');
 			__output.push(_$_.attr('class', `item-${item}`));
 			__output.push('>');
@@ -957,7 +957,7 @@ export function ForLoopItemState(__output) {
 function TodoItem(__output, props) {
 	_$_.push_component();
 
-	let done = _$_.track(false);
+	let lazy_14 = _$_.track(false);
 
 	__output.push('<div');
 	__output.push(_$_.attr('class', `todo-${props.id}`));
@@ -966,11 +966,11 @@ function TodoItem(__output, props) {
 	{
 		__output.push('<input');
 		__output.push(' type="checkbox"');
-		__output.push(_$_.attr('checked', _$_.get(done), true));
+		__output.push(_$_.attr('checked', _$_.get(lazy_14), true));
 		__output.push(' class="checkbox"');
 		__output.push(' />');
 		__output.push('<span');
-		__output.push(_$_.attr('class', _$_.get(done) ? 'completed' : 'pending'));
+		__output.push(_$_.attr('class', _$_.get(lazy_14) ? 'completed' : 'pending'));
 		__output.push('>');
 
 		{
@@ -1017,7 +1017,7 @@ export function ForLoopSingleItem(__output) {
 export function ForLoopAddAtBeginning(__output) {
 	_$_.push_component();
 
-	let items = _$_.track(['B', 'C']);
+	let lazy_15 = _$_.track(['B', 'C']);
 
 	__output.push('<button');
 	__output.push(' class="prepend"');
@@ -1034,7 +1034,7 @@ export function ForLoopAddAtBeginning(__output) {
 	{
 		__output.push('<!--[-->');
 
-		for (const item of _$_.get(items)) {
+		for (const item of _$_.get(lazy_15)) {
 			__output.push('<li');
 			__output.push(_$_.attr('class', `item-${item}`));
 			__output.push('>');
@@ -1056,7 +1056,7 @@ export function ForLoopAddAtBeginning(__output) {
 export function ForLoopAddInMiddle(__output) {
 	_$_.push_component();
 
-	let items = _$_.track(['A', 'C']);
+	let lazy_16 = _$_.track(['A', 'C']);
 
 	__output.push('<button');
 	__output.push(' class="insert"');
@@ -1073,7 +1073,7 @@ export function ForLoopAddInMiddle(__output) {
 	{
 		__output.push('<!--[-->');
 
-		for (const item of _$_.get(items)) {
+		for (const item of _$_.get(lazy_16)) {
 			__output.push('<li');
 			__output.push(_$_.attr('class', `item-${item}`));
 			__output.push('>');
@@ -1095,7 +1095,7 @@ export function ForLoopAddInMiddle(__output) {
 export function ForLoopRemoveFromMiddle(__output) {
 	_$_.push_component();
 
-	let items = _$_.track(['A', 'B', 'C']);
+	let lazy_17 = _$_.track(['A', 'B', 'C']);
 
 	__output.push('<button');
 	__output.push(' class="remove-middle"');
@@ -1112,7 +1112,7 @@ export function ForLoopRemoveFromMiddle(__output) {
 	{
 		__output.push('<!--[-->');
 
-		for (const item of _$_.get(items)) {
+		for (const item of _$_.get(lazy_17)) {
 			__output.push('<li');
 			__output.push(_$_.attr('class', `item-${item}`));
 			__output.push('>');
@@ -1168,7 +1168,7 @@ export function ForLoopLargeList(__output) {
 export function ForLoopSwap(__output) {
 	_$_.push_component();
 
-	let items = _$_.track(['A', 'B', 'C', 'D']);
+	let lazy_18 = _$_.track(['A', 'B', 'C', 'D']);
 
 	__output.push('<button');
 	__output.push(' class="swap"');
@@ -1185,7 +1185,7 @@ export function ForLoopSwap(__output) {
 	{
 		__output.push('<!--[-->');
 
-		for (const item of _$_.get(items)) {
+		for (const item of _$_.get(lazy_18)) {
 			__output.push('<li');
 			__output.push(_$_.attr('class', `item-${item}`));
 			__output.push('>');
@@ -1207,7 +1207,7 @@ export function ForLoopSwap(__output) {
 export function ForLoopReverse(__output) {
 	_$_.push_component();
 
-	let items = _$_.track(['A', 'B', 'C', 'D']);
+	let lazy_19 = _$_.track(['A', 'B', 'C', 'D']);
 
 	__output.push('<button');
 	__output.push(' class="reverse"');
@@ -1224,7 +1224,7 @@ export function ForLoopReverse(__output) {
 	{
 		__output.push('<!--[-->');
 
-		for (const item of _$_.get(items)) {
+		for (const item of _$_.get(lazy_19)) {
 			__output.push('<li');
 			__output.push(_$_.attr('class', `item-${item}`));
 			__output.push('>');

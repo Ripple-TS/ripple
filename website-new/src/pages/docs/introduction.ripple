@@ -16,11 +16,11 @@ export component App() {
     <h1>{"Welcome to Ripple!"}</h1>
 
     <div>
-      let count = track(0);
+      let &[count] = track(0);
 
-      <button onClick={() => @count--}>{"-"}</button>
-      <span class="count">{@count}</span>
-      <button onClick={() => @count++}>{"+"}</button>
+      <button onClick={() => count--}>{"-"}</button>
+      <span class="count">{count}</span>
+      <button onClick={() => count++}>{"+"}</button>
     </div>
   </div>
 
@@ -103,9 +103,9 @@ export component IntroductionPage() {
 				<strong>{'Reactive Primitives'}</strong>
 				{': Built-in reactivity with '}
 				<code>{'track'}</code>
-				{' and '}
-				<code>{'@'}</code>
-				{' reactive syntax on primitives'}
+				{' and lazy destructuring '}
+				<code>{'&[]'}</code>
+				{' syntax on primitives'}
 			</li>
 			<li>
 				<strong>{'Reactive Objects'}</strong>

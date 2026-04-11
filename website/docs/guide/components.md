@@ -27,9 +27,9 @@ write HTML. By default, Ripple will make the content available as the
 `<children />` if you destructured your props).
 
 ```ripple
-import type { Component } from 'ripple';
+import type { Children } from 'ripple';
 
-component Card(props: { children: Component }) {
+component Card(props: { children: Children }) {
 	<div class="card">
 		<props.children />
 	</div>

@@ -33,7 +33,7 @@ import {
 	SUSPENSE_REJECTED,
 	ASYNC_DERIVED_READ_THROWN,
 } from '../client/constants.js';
-import { is_ripple_object, get_descriptor, define_property, is_array } from '../client/utils.js';
+import { is_ripple_object, get_descriptor, define_property, is_array, array_slice } from '../client/utils.js';
 import { escape } from '../../../utils/escaping.js';
 import { is_boolean_attribute } from '../../../compiler/utils.js';
 import { clsx } from 'clsx';
@@ -57,6 +57,7 @@ export { register_component_css as register_css } from './css-registry.js';
 export { hash } from '../../../utils/hashing.js';
 export { context } from './context.js';
 export { try_block, component_block, regular_block } from './blocks.js';
+export { array_slice };
 
 /**
  * @returns {Stream}
@@ -1013,6 +1014,89 @@ export function spread_attrs(attrs, css_hash) {
 
 var empty_get_set = { get: undefined, set: undefined };
 
+class TrackedValue {
+	/**
+	 * @param {any} v
+	 * @param {{ get?: Function; set?: Function }} a
+	 */
+	constructor(v, a) {
+		this.a = a;
+		this.c = 0;
+		this.f = TRACKED;
+		this.v = v;
+	}
+	get [0]() {
+		return get(/** @type {Tracked} */ (this));
+	}
+	set [0](v) {
+		set(/** @type {Tracked} */ (this), v);
+	}
+	get [1]() {
+		return this;
+	}
+	get value() {
+		return get(/** @type {Tracked} */ (this));
+	}
+	/** @param {any} v */
+	set value(v) {
+		set(/** @type {Tracked} */ (this), v);
+	}
+	/** @returns {2} */
+	get length() {
+		return 2;
+	}
+	*[Symbol.iterator]() {
+		yield get(/** @type {Tracked} */ (this));
+		yield this;
+	}
+}
+
+class DerivedValue {
+	/**
+	 * @param {Function} fn
+	 * @param {{ get?: Function; set?: Function }} a
+	 */
+	constructor(fn, a) {
+		this.a = a;
+		this.c = 0;
+		this.co = active_component;
+		/** @type {null | import('#server').Dependency} */
+		this.d = null;
+		this.f = TRACKED | DERIVED;
+		this.fn = fn;
+		this.v = UNINITIALIZED;
+		this.ia = false;
+		this.aa = null;
+		this.ap = null;
+		this.dr = null;
+		this.dj = null;
+	}
+	get [0]() {
+		return get(/** @type {Derived} */ (this));
+	}
+	set [0](v) {
+		set(/** @type {Derived} */ (this), v);
+	}
+	get [1]() {
+		return this;
+	}
+	get value() {
+		return get(/** @type {Derived} */ (this));
+	}
+	/** @param {any} v */
+	set value(v) {
+		set(/** @type {Derived} */ (this), v);
+	}
+	/** @returns {2} */
+	get length() {
+		return 2;
+	}
+	*[Symbol.iterator]() {
+		yield get(/** @type {Derived} */ (this));
+		yield this;
+	}
+}
+
 /**
  * @param {any} v
  * @param {(value: any) => any} [get]
@@ -1020,12 +1104,7 @@ var empty_get_set = { get: undefined, set: undefined };
  * @returns {Tracked}
  */
 function tracked(v, get, set) {
-	return {
-		a: get || set ? { get, set } : empty_get_set,
-		c: 0,
-		f: TRACKED,
-		v,
-	};
+	return /** @type {Tracked} */ (new TrackedValue(v, get || set ? { get, set } : empty_get_set));
 }
 
 /**
@@ -1035,20 +1114,7 @@ function tracked(v, get, set) {
  * @returns {Derived}
  */
 function derived(v, get, set) {
-	return {
-		a: get || set ? { get, set } : empty_get_set,
-		c: 0,
-		co: active_component,
-		d: null,
-		f: TRACKED | DERIVED,
-		fn: v,
-		v: UNINITIALIZED,
-		ia: false,
-		aa: null,
-		ap: null,
-		dr: null,
-		dj: null,
-	};
+	return /** @type {Derived} */ (new DerivedValue(v, get || set ? { get, set } : empty_get_set));
 }
 
 /**
@@ -1401,4 +1467,15 @@ export function ripple_object(obj) {
  */
 export function ripple_map(iterable) {
 	return new Map(iterable);
+}
+
+/**
+ * Returns the fallback value if the given value is undefined.
+ * @template T
+ * @param {T | undefined} value
+ * @param {T} fallback
+ * @returns {T}
+ */
+export function fallback(value, fallback) {
+	return value === undefined ? fallback : value;
 }

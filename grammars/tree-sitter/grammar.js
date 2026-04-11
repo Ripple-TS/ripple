@@ -474,7 +474,12 @@ module.exports = grammar({
 
 		rest_parameter: ($) => seq('...', $.identifier, optional($._type_annotation)),
 
-		_destructuring_pattern: ($) => choice($.object_pattern, $.array_pattern),
+		_destructuring_pattern: ($) =>
+			choice($.object_pattern, $.array_pattern, $.lazy_object_pattern, $.lazy_array_pattern),
+
+		lazy_object_pattern: ($) => seq('&', $.object_pattern),
+
+		lazy_array_pattern: ($) => seq('&', $.array_pattern),
 
 		object_pattern: ($) =>
 			seq(

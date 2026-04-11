@@ -37,9 +37,9 @@ component body once a guard branch is hit.
 import { track } from 'ripple';
 
 export component AuthGate() {
-  let is_logged_in = track(false);
+  let &[is_logged_in] = track(false);
 
-  if (!@is_logged_in) {
+  if (!is_logged_in) {
     <p>{'Please sign in.'}</p>
     return;
   }
@@ -92,13 +92,13 @@ You can also use reactive values with switch statements.
 import { track } from 'ripple';
 
 export component InteractiveStatus() {
-  let status = track('loading');
+  let &[status] = track('loading');
 
-  <button onClick={() => @status = 'success'}>{'Success'}</button>
-  <button onClick={() => @status = 'error'}>{'Error'}</button>
+  <button onClick={() => status = 'success'}>{'Success'}</button>
+  <button onClick={() => status = 'error'}>{'Error'}</button>
 
   <div>
-    switch (@status) {
+    switch (status) {
       case 'init':
          <p>{'Init'}</p>
          // fall-through to the next
@@ -231,10 +231,10 @@ You can render dynamic HTML elements by storing the tag name in a tracked variab
 import { track } from 'ripple';
 
 export component App() {
-	let tag = track('div');
+	let &[tag] = track('div');
 
 	<@tag class="dynamic">{'Hello World'}</@tag>
-	<button onClick={() => @tag = @tag === 'div' ? 'span' : 'div'}>{'Toggle Element'}</button>
+	<button onClick={() => tag = tag === 'div' ? 'span' : 'div'}>{'Toggle Element'}</button>
 }
 ```
 
@@ -279,7 +279,7 @@ and can be used independently.
 ### Reactive async with `await track(fn)`
 
 For async operations that should re-run when reactive dependencies change, use
-`await track(fn)`. Any `@tracked` values read inside the function become
+`await track(fn)`. Any tracked values read inside the function become
 dependencies — when they change the operation re-runs and the component
 re-suspends to the nearest `try/pending` boundary.
 
@@ -287,22 +287,22 @@ re-suspends to the nearest `try/pending` boundary.
 import { track } from 'ripple';
 
 export component CitySearch() {
-  let query = track('');
+  let &[query] = track('');
 
   // Renders immediately, never suspended
-  <input type="text" value={@query} onInput={e => @query = e.target.value} />
+  <input type="text" value={query} onInput={e => query = e.target.value} />
 
-  // Re-runs and re-suspends whenever @query changes
-  const city = await track(() => fetchCity(@query));
+  // Re-runs and re-suspends whenever query changes
+  const city = await track(() => fetchCity(query));
 
   // Only renders once city has resolved for the current query
-  <p>{'Showing: '}{@query}</p>
+  <p>{'Showing: '}{query}</p>
   <CityCard city={city} />
 }
 ```
 
 ::: info Note
-When `@query` changes, everything above the `await track` line stays visible.
+When `query` changes, everything above the `await track` line stays visible.
 Only the content below re-suspends and shows `{pending}` until the new fetch
 resolves.
 :::

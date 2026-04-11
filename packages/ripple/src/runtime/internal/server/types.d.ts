@@ -26,6 +26,11 @@ export type Derived = {
 	ap: PromiseLike<any> | null;
 	dr: ((value?: any) => void) | null;
 	dj: ((reason?: any) => void) | null;
+	readonly [0]: any;
+	[1]: Derived;
+	value: any;
+	readonly length: 2;
+	[Symbol.iterator](): Iterator<any | Derived>;
 };
 
 export type Tracked = {
@@ -33,6 +38,11 @@ export type Tracked = {
 	c: number;
 	f: number;
 	v: any;
+	readonly [0]: any;
+	[1]: Tracked;
+	value: any;
+	readonly length: 2;
+	[Symbol.iterator](): Iterator<any | Tracked>;
 };
 
 export type Block = {

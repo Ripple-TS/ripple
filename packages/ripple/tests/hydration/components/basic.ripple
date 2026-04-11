@@ -1,5 +1,5 @@
 // Basic static components for hydration testing
-import type { Component } from 'ripple';
+import type { Children } from 'ripple';
 
 export component StaticText() {
 	<div>{'Hello World'}</div>
@@ -97,7 +97,7 @@ component Actions({ playgroundVisible = false }: { playgroundVisible: boolean })
 	</div>
 }
 
-component Layout({ children }: { children: Component }) {
+component Layout({ children }: { children: Children }) {
 	<main>
 		<div class="container">
 			<children />

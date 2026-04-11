@@ -16,8 +16,8 @@ describe('compiler > assignments', () => {
 
 			logs.push(items[0]);
 			logs.push(items[i]);
-			logs.push(@tracked_items[0]);
-			logs.push(@tracked_items[i]);
+			logs.push(tracked_items.value[0]);
+			logs.push(tracked_items.value[i]);
 			logs.push(items2[0]);
 			logs.push(items2[i]);
 			logs.push(items3[0]);
@@ -25,8 +25,8 @@ describe('compiler > assignments', () => {
 
 			items[0] = 123;
 			items[i] = 123;
-			@tracked_items[0] = 123;
-			@tracked_items[i] = 123;
+			tracked_items.value[0] = 123;
+			tracked_items.value[i] = 123;
 			items2[0] = 123;
 			items2[i] = 123;
 			items3[0] = 123;
@@ -34,8 +34,8 @@ describe('compiler > assignments', () => {
 
 			logs.push(items[0]);
 			logs.push(items[i]);
-			logs.push(@tracked_items[0]);
-			logs.push(@tracked_items[i]);
+			logs.push(tracked_items.value[0]);
+			logs.push(tracked_items.value[i]);
 			logs.push(items2[0]);
 			logs.push(items2[i]);
 			logs.push(items3[0]);
@@ -43,8 +43,8 @@ describe('compiler > assignments', () => {
 
 			items[0]++;
 			items[i]++;
-			@tracked_items[0]++;
-			@tracked_items[i]++;
+			tracked_items.value[0]++;
+			tracked_items.value[i]++;
 			items2[0]++;
 			items2[i]++;
 			items3[0]++;
@@ -52,8 +52,8 @@ describe('compiler > assignments', () => {
 
 			logs.push(items[0]);
 			logs.push(items[i]);
-			logs.push(@tracked_items[0]);
-			logs.push(@tracked_items[i]);
+			logs.push(tracked_items.value[0]);
+			logs.push(tracked_items.value[i]);
 			logs.push(items2[0]);
 			logs.push(items2[i]);
 			logs.push(items3[0]);
@@ -61,8 +61,8 @@ describe('compiler > assignments', () => {
 
 			logs.push(--items[0]);
 			logs.push(--items[i]);
-			logs.push(--@tracked_items[0]);
-			logs.push(--@tracked_items[i]);
+			logs.push(--tracked_items.value[0]);
+			logs.push(--tracked_items.value[i]);
 			logs.push(--items2[0]);
 			logs.push(--items2[i]);
 			logs.push(--items3[0]);
@@ -110,10 +110,10 @@ describe('compiler > assignments', () => {
 	it('compiles tracked values in effect with assignment expression', () => {
 		const source = `import { track, effect } from 'ripple';
 component App() {
-	let count = track(0);
+	let &[count] = track(0);
 
 	effect(() => {
-		state.count = @count;
+		state.count = count;
 	});
 }`;
 		const result = compile(source, 'test.ripple');
@@ -124,14 +124,14 @@ component App() {
 	it('compiles tracked values in effect with update expressions', () => {
 		const source = `import { track, effect, untrack } from 'ripple';
 component App() {
-	let count = track(5);
+	let &[count] = track(5);
 
 	effect(() => {
 		untrack(() => {
-			state.preIncrement = ++@count;
-			state.postIncrement = @count++;
-			state.preDecrement = --@count;
-			state.postDecrement = @count--;
+			state.preIncrement = ++count;
+			state.postIncrement = count++;
+			state.preDecrement = --count;
+			state.postDecrement = count--;
 		});
 	});
 }`;

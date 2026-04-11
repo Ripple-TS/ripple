@@ -1,5 +1,57 @@
 # @ripple-ts/vite-plugin
 
+## 0.3.7
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.3.7
+
+## 0.3.6
+
+### Patch Changes
+
+- [#819](https://github.com/Ripple-TS/ripple/pull/819)
+  [`472c4c4`](https://github.com/Ripple-TS/ripple/commit/472c4c4b80a69ed22a258a3f3c03c4ca2d20a95b)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix HMR update causing
+  component styling to disappear
+
+  When editing a component's scoped CSS, the CSS hash changes but the virtual CSS
+  module was not being invalidated or included in the HMR update. This caused the
+  browser to keep stale CSS selectors that no longer matched the component's new
+  hash-scoped class names, making all styling disappear until a full dev server
+  restart.
+
+  The fix eagerly re-compiles the `.ripple` file in the `hotUpdate` hook to update
+  the CSS cache, then invalidates and includes the virtual CSS module in the HMR
+  update so the browser receives fresh CSS in sync with the re-rendered component.
+
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.3.6
+
+## 0.3.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.3.5
+
+## 0.3.4
+
+### Patch Changes
+
+- [#807](https://github.com/Ripple-TS/ripple/pull/807)
+  [`56cdf54`](https://github.com/Ripple-TS/ripple/commit/56cdf54afb1b96e49faa273c18e0489ad70897b2)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Upgrade to Vite 8
+
+- [`2956743`](https://github.com/Ripple-TS/ripple/commit/2956743ccbf8ebad6ae9fde27fb8809634fa3a91)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Split the production subpath
+  declarations into a dedicated type file so the exported types resolve cleanly
+  without self-import workarounds.
+
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.3.4
+
 ## 0.3.3
 
 ### Patch Changes

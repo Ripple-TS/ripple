@@ -206,10 +206,11 @@ export component App() {
 }
 ```
 
-### `ripple/no-introspect-in-modules` (error)
+### `ripple/no-lazy-destructuring-in-modules` (error)
 
-Prevents using the `@` introspection operator in TypeScript/JavaScript modules. In
-`.ts`/`.js` files, you should use `get()` and `set()` functions instead.
+Prevents using lazy destructuring (`&[]` / `&{}`) in TypeScript/JavaScript
+modules. In `.ts`/`.js` files, you should use `.value` to read and write tracked
+values instead.
 
 ❌ **Incorrect:**
 
@@ -218,9 +219,9 @@ Prevents using the `@` introspection operator in TypeScript/JavaScript modules. 
 import { track, effect } from 'ripple';
 
 export function useCount() {
-  const count = track(1);
+  const &[count] = track(1);
   effect(() => {
-    console.log(@count); // Error: Cannot use @ in TypeScript modules
+    console.log(count); // Error: Cannot use &[] in TypeScript modules
   });
   return { count };
 }
@@ -230,24 +231,24 @@ export function useCount() {
 
 ```ts
 // count.ts
-import { track, effect, get, set } from 'ripple';
+import { track, effect } from 'ripple';
 
 export function useCount() {
   const count = track(1);
 
-  // Use get() to read tracked values
-  const double = track(() => get(count) * 2);
+  // Use .value to read tracked values
+  const double = track(() => count.value * 2);
 
   effect(() => {
-    console.log('count is', get(count));
+    console.log('count is', count.value);
   });
 
   return { count, double };
 }
 ```
 
-**Note:** The `@` operator is only valid in `.ripple` component files. In
-TypeScript modules, use `get()` to read values and `set()` to update them.
+**Note:** Lazy destructuring (`&[]` / `&{}`) is only valid in `.ripple` component
+files. In TypeScript modules, use `.value` to read and write tracked values.
 
 ## Custom Configuration
 
@@ -263,7 +264,7 @@ export default [
       'ripple/prefer-oninput': 'error', // Make this an error instead of warning
       'ripple/no-return-in-component': 'error',
       'ripple/unbox-tracked-values': 'error',
-      'ripple/no-introspect-in-modules': 'error',
+      'ripple/no-lazy-destructuring-in-modules': 'error',
     },
   },
 ];

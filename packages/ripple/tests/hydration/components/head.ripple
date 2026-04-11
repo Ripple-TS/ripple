@@ -11,13 +11,13 @@ export component StaticTitle() {
 
 // Reactive title
 export component ReactiveTitle() {
-	let title = track('Initial Title');
+	let &[title] = track('Initial Title');
 
 	<head>
-		<title>{@title}</title>
+		<title>{title}</title>
 	</head>
 	<div>
-		<span>{@title}</span>
+		<span>{title}</span>
 	</div>
 }
 
@@ -34,25 +34,25 @@ export component MultipleHeadElements() {
 
 // Head with reactive meta tags
 export component ReactiveMetaTags() {
-	let description = track('Initial description');
+	let &[description] = track('Initial description');
 
 	<head>
 		<title>{'My Page'}</title>
-		<meta name="description" content={@description} />
+		<meta name="description" content={description} />
 	</head>
 
-	<div>{@description}</div>
+	<div>{description}</div>
 }
 
 // Title with template literal
 export component TitleWithTemplate() {
-	let name = track('World');
+	let &[name] = track('World');
 
 	<head>
-		<title>{`Hello ${@name}!`}</title>
+		<title>{`Hello ${name}!`}</title>
 	</head>
 
-	<div>{@name}</div>
+	<div>{name}</div>
 }
 
 // Empty title
@@ -65,26 +65,26 @@ export component EmptyTitle() {
 
 // Title with conditional content
 export component ConditionalTitle() {
-	let showPrefix = track(true);
-	let title = track('Main Page');
+	let &[showPrefix] = track(true);
+	let &[title] = track('Main Page');
 
 	<head>
-		<title>{@showPrefix ? 'App - ' + @title : @title}</title>
+		<title>{showPrefix ? 'App - ' + title : title}</title>
 	</head>
 
-	<div>{@title}</div>
+	<div>{title}</div>
 }
 
 // Title with computed value
 export component ComputedTitle() {
-	let count = track(0);
+	let &[count] = track(0);
 	let prefix = 'Count: ';
 
 	<head>
-		<title>{prefix + @count}</title>
+		<title>{prefix + count}</title>
 	</head>
 	<div>
-		<span>{@count}</span>
+		<span>{count}</span>
 	</div>
 }
 

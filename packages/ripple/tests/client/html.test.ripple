@@ -14,13 +14,13 @@ describe('html directive', () => {
 
 	it('renders dynamic html', () => {
 		component App() {
-			let str = track('<div>Test</div>');
+			let &[str] = track('<div>Test</div>');
 
-			{html @str}
+			{html str}
 
 			<button
 				onClick={() => {
-					@str = '<div>Updated</div>';
+					str = '<div>Updated</div>';
 				}}
 			>
 				{'Update'}

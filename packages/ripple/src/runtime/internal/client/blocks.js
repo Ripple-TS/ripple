@@ -12,6 +12,7 @@ import {
 	ROOT_BLOCK,
 	TRY_BLOCK,
 	HEAD_BLOCK,
+	DIRECT_CHILD_BLOCK,
 } from './constants.js';
 import { next_sibling } from './operations.js';
 import { apply_element_spread } from './render.js';
@@ -151,6 +152,15 @@ export function root(fn, compat) {
  */
 export function create_try_block(fn, state) {
 	return block(TRY_BLOCK, fn, state);
+}
+
+/**
+ * @param {() => void} fn
+ * @param {number} [flags]
+ * @param {any} [state]
+ */
+export function boundary_fn_running_block(fn, flags = 0, state = null) {
+	return branch(fn, DIRECT_CHILD_BLOCK | flags, state);
 }
 
 /**

@@ -19,8 +19,8 @@ ruleTester.run('unbox-tracked-values', rule, {
 			code: `
 				import { track } from 'ripple';
 				component Counter() {
-					const count = track(0);
-					<div>{@count}</div>
+					const &[count] = track(0);
+					<div>{count}</div>
 				}
 			`,
 		},
@@ -29,9 +29,9 @@ ruleTester.run('unbox-tracked-values', rule, {
 			code: `
 				import { track } from 'ripple';
 				component App() {
-					const value = track(42);
-					const doubled = track(@value * 2);
-					<span>{@doubled}</span>
+					const &[value] = track(42);
+					const &[doubled] = track(value * 2);
+					<span>{doubled}</span>
 				}
 			`,
 		},
@@ -40,8 +40,8 @@ ruleTester.run('unbox-tracked-values', rule, {
 			code: `
 				import { track } from 'ripple';
 				component Form() {
-					const name = track('');
-					<input value={@name} />
+					const &[name] = track('');
+					<input value={name} />
 				}
 			`,
 		},

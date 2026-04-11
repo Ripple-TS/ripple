@@ -8,7 +8,7 @@
     "activeEditor": "script",
     "script": {
       "language": "ripple",
-      "content": "import type { Component } from \"ripple\"\nimport { track } from \"ripple\"\n\nexport default component App() {\n  <div class=\"container\">\n    let count = track(0);\n\n    <button onClick={() => @count++}>{@count}</button>\n\n    if (@count > 1) {\n      <div>{'Greater than 1!'}</div>\n    }\n  </div>\n\n  <style>\n    button {\n      padding: 1rem;\n      font-size: 1rem;\n      cursor: pointer;\n    }\n  </style>\n}\n"
+      "content": "import type { Component } from \"ripple\"\nimport { track } from \"ripple\"\n\nexport default component App() {\n  <div class=\"container\">\n    let &[count] = track(0);\n\n    <button onClick={() => count++}>{count}</button>\n\n    if (count > 1) {\n      <div>{'Greater than 1!'}</div>\n    }\n  </div>\n\n  <style>\n    button {\n      padding: 1rem;\n      font-size: 1rem;\n      cursor: pointer;\n    }\n  </style>\n}\n"
     },
     "style": {
       "language": "css",

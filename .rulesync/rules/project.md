@@ -107,7 +107,8 @@ Source Code (.ripple) → Parse → Analyze → Transform → Output (JS + CSS)
 **Ripple-specific syntax handled:**
 
 - `component` keyword for component declarations
-- JSX with special handling for `@` tracked expressions
+- `&[]` / `&{}` lazy destructuring for reactive variable access
+- JSX with special handling for tracked expressions
 - `#server` blocks for server-only code
 - `#style` identifier for scoped CSS classes
 
@@ -188,7 +189,7 @@ and once with `mode: 'server'`.
 | `Element`           | HTML/SVG element with `id`, `attributes`, `children`     |
 | `Text`              | Text node wrapping an expression                         |
 | `ServerBlock`       | `#server { ... }` block with exports tracking            |
-| `TrackedExpression` | `@expression` tracked reactive value                     |
+| `TrackedExpression` | Tracked reactive value expression                        |
 | `Attribute`         | Element attribute with `name`, `value`, `shorthand`      |
 | `RefAttribute`      | `ref={...}` reference binding                            |
 | `SpreadAttribute`   | `{...props}` spread                                      |
@@ -230,6 +231,50 @@ and once with `mode: 'server'`.
 - `derived(fn, block)` - Creates a computed/derived value
 - `get(tracked)` - Reads value, registers dependency
 - `set(tracked, value)` - Updates value, schedules updates
+
+**Lazy destructuring (`&[]` / `&{}`):**
+
+In `.ripple` files, `&[]` and `&{}` provide compile-time lazy destructuring that
+preserves reactivity. The compiler transforms variable accesses into deferred
+property lookups on the source object:
+
+```ripple
+// &[] with track() — unwraps the Tracked<V> value
+let &[count] = track(0);  // count reads/writes the tracked value directly
+count++;                   // compiles to set(tracked, get(tracked) + 1)
+
+// &[value, trackedObj] — second element gives access to the Tracked object
+let &[count, countTracked] = track(0);
+
+// &{} with props — lazy property access preserves reactivity
+component Child(&{ name, age }: Props) {
+  <div>{name} is {age}</div>  // each access compiles to a getter call
+}
+```
+
+**`.value` property access:**
+
+As an alternative to `&[]`, tracked values can be read/written via `.value`:
+
+```ripple
+const count = track(0);
+count.value++; // read + write via .value
+```
+
+`.value` is useful when you need the `Tracked<V>` object itself (e.g., passing as
+props typed `Tracked<T>`, storing in data structures). `&[]` is preferred for
+cleaner code in most cases.
+
+**Key heuristics for AI agents working with tests:**
+
+- `track()` returns a `Tracked<V>` — use `&[var]` to unwrap, or `.value` to access
+- `trackSplit()` returns raw `Tracked` values — use regular `[]` destructuring +
+  `.value`, NOT `&[]`
+- `const &[var]` is valid when you don't mutate; use `let &[var]` when mutation is
+  needed
+- `&[var]` in function params is valid for accepting `Tracked` values
+- `bindValue()` and similar APIs need the `Tracked` object, not the unwrapped
+  value
 
 **Implementation details:**
 
@@ -408,7 +453,8 @@ import { track } from 'ripple';
 component default() {
   describe('tracked', () => {
     it('updates when value changes', async () => {
-      let count = track(0);
+      let &[count] = track(0);
+      count++;
       // test implementation
     });
   });

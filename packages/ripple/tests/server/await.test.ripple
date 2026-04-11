@@ -8,16 +8,16 @@ describe('await in control flow', () => {
 	// it('should handle await inside if statement', async () => {
 	// 	component App() {
 	// 		let condition = true;
-	// 		let data = track('loading');
+	// 		let &[data] = track('loading');
 
 	// 		if (condition) {
 	// 			await new Promise((resolve) => setTimeout(() => {
-	// 				@data = 'loaded';
+	// 				data = 'loaded';
 	// 				resolve();
 	// 			}, 10));
 	// 		}
 
-	// 		<div>{@data}</div>
+	// 		<div>{data}</div>
 	// 	}
 
 	// 	const { body } = await render(App);

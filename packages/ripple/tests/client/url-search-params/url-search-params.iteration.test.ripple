@@ -4,10 +4,10 @@ describe('RippleURLSearchParams > iteration', () => {
 	it('handles keys method with reactivity', () => {
 		component URLTest() {
 			const params = RippleURLSearchParams('foo=bar&baz=qux');
-			let keys = track(() => Array.from(params.keys()));
+			let &[keys] = track(() => Array.from(params.keys()));
 
 			<button onClick={() => params.append('new', 'value')}>{'add param'}</button>
-			<pre>{JSON.stringify(@keys)}</pre>
+			<pre>{JSON.stringify(keys)}</pre>
 		}
 
 		render(URLTest);
@@ -27,10 +27,10 @@ describe('RippleURLSearchParams > iteration', () => {
 	it('handles values method with reactivity', () => {
 		component URLTest() {
 			const params = RippleURLSearchParams('foo=bar&baz=qux');
-			let values = track(() => Array.from(params.values()));
+			let &[values] = track(() => Array.from(params.values()));
 
 			<button onClick={() => params.set('foo', 'updated')}>{'update foo'}</button>
-			<pre>{JSON.stringify(@values)}</pre>
+			<pre>{JSON.stringify(values)}</pre>
 		}
 
 		render(URLTest);
@@ -50,10 +50,10 @@ describe('RippleURLSearchParams > iteration', () => {
 	it('handles entries method with reactivity', () => {
 		component URLTest() {
 			const params = RippleURLSearchParams('foo=bar&baz=qux');
-			let entries = track(() => Array.from(params.entries()));
+			let &[entries] = track(() => Array.from(params.entries()));
 
 			<button onClick={() => params.append('new', 'value')}>{'add param'}</button>
-			<pre>{JSON.stringify(@entries)}</pre>
+			<pre>{JSON.stringify(entries)}</pre>
 		}
 
 		render(URLTest);
@@ -75,10 +75,10 @@ describe('RippleURLSearchParams > iteration', () => {
 	it('handles Symbol.iterator with reactivity', () => {
 		component URLTest() {
 			const params = RippleURLSearchParams('foo=bar&baz=qux');
-			let entries = track(() => Array.from(params));
+			let &[entries] = track(() => Array.from(params));
 
 			<button onClick={() => params.delete('foo')}>{'delete foo'}</button>
-			<pre>{JSON.stringify(@entries)}</pre>
+			<pre>{JSON.stringify(entries)}</pre>
 		}
 
 		render(URLTest);
@@ -126,7 +126,7 @@ describe('RippleURLSearchParams > iteration', () => {
 	it('handles forEach iteration', () => {
 		component URLTest() {
 			const params = RippleURLSearchParams('a=1&b=2&c=3');
-			let sum = track(() => {
+			let &[sum] = track(() => {
 				let total = 0;
 				// Access the params reactively through entries
 				for (const [key, value] of params.entries()) {
@@ -136,7 +136,7 @@ describe('RippleURLSearchParams > iteration', () => {
 			});
 
 			<button onClick={() => params.append('d', '4')}>{'add d=4'}</button>
-			<pre>{@sum}</pre>
+			<pre>{sum}</pre>
 		}
 
 		render(URLTest);

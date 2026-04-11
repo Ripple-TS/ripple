@@ -1,4 +1,4 @@
-import type { Component } from 'ripple';
+import type { Children } from 'ripple';
 
 export component DocHeading({
 	level,
@@ -7,7 +7,7 @@ export component DocHeading({
 }: {
 	level: number;
 	id: string;
-	children: Component;
+	children: Children;
 }) {
 	switch (level) {
 		case 1: {

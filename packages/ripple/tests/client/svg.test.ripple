@@ -290,7 +290,7 @@ describe('SVG namespace handling', () => {
 		}
 
 		component App() {
-			let dynTag = track('polygon');
+			let &[dynTag] = track('polygon');
 			<SVG>
 				<@dynTag points="0,0 30,0 15,10" />
 			</SVG>
@@ -317,7 +317,7 @@ describe('SVG namespace handling', () => {
 		}
 
 		component App() {
-			let Component = track(() => Polygon);
+			let &[Component] = track(() => Polygon);
 			<SVG>
 				<@Component points="0,0 30,0 15,10" />
 			</SVG>
@@ -334,19 +334,19 @@ describe('SVG namespace handling', () => {
 
 	it('should render SVG as a dynamic top element with any dynamic children elements', () => {
 		component SVG({ children }: PropsWithChildren<{}>) {
-			const tag = track('svg');
+			let &[tag] = track('svg');
 			<@tag width={100} height={50} fill="red" viewBox="0 0 30 10" preserveAspectRatio="none">
 				<children />
 			</@tag>
 		}
 
 		component Polygon({ points }: PropsWithExtras<{ points: string }>) {
-			let dynTag = track('polygon');
+			let &[dynTag] = track('polygon');
 			<@dynTag {points} />
 		}
 
 		component App() {
-			let Component = track(() => Polygon);
+			let &[Component] = track(() => Polygon);
 			<SVG>
 				<@Component points="0,0 30,0 15,10" />
 			</SVG>

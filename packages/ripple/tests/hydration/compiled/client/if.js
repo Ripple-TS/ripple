@@ -102,12 +102,12 @@ export function IfElse(__anchor, _, __block) {
 export function ReactiveIf(__anchor, _, __block) {
 	_$_.push_component();
 
-	let show = _$_.track(true, void 0, void 0, __block);
+	let lazy = _$_.track(true, void 0, void 0, __block);
 	var fragment_3 = root_7();
 	var button_1 = _$_.first_child_frag(fragment_3);
 
 	button_1.__click = () => {
-		_$_.set(show, !_$_.get(show));
+		_$_.set(lazy, !_$_.get(lazy));
 	};
 
 	var node_3 = _$_.sibling(button_1);
@@ -120,7 +120,7 @@ export function ReactiveIf(__anchor, _, __block) {
 		};
 
 		_$_.if(node_3, (__render) => {
-			if (_$_.get(show)) __render(consequent_3);
+			if (_$_.get(lazy)) __render(consequent_3);
 		});
 	}
 
@@ -131,12 +131,12 @@ export function ReactiveIf(__anchor, _, __block) {
 export function ReactiveIfElse(__anchor, _, __block) {
 	_$_.push_component();
 
-	let isOn = _$_.track(false, void 0, void 0, __block);
+	let lazy_1 = _$_.track(false, void 0, void 0, __block);
 	var fragment_4 = root_9();
 	var button_2 = _$_.first_child_frag(fragment_4);
 
 	button_2.__click = () => {
-		_$_.set(isOn, !_$_.get(isOn));
+		_$_.set(lazy_1, !_$_.get(lazy_1));
 	};
 
 	var node_4 = _$_.sibling(button_2);
@@ -155,7 +155,7 @@ export function ReactiveIfElse(__anchor, _, __block) {
 		};
 
 		_$_.if(node_4, (__render) => {
-			if (_$_.get(isOn)) __render(consequent_4); else __render(alternate_1, false);
+			if (_$_.get(lazy_1)) __render(consequent_4); else __render(alternate_1, false);
 		});
 	}
 
@@ -166,19 +166,19 @@ export function ReactiveIfElse(__anchor, _, __block) {
 export function NestedIf(__anchor, _, __block) {
 	_$_.push_component();
 
-	let outer = _$_.track(true, void 0, void 0, __block);
-	let inner = _$_.track(true, void 0, void 0, __block);
+	let lazy_2 = _$_.track(true, void 0, void 0, __block);
+	let lazy_3 = _$_.track(true, void 0, void 0, __block);
 	var fragment_5 = root_12();
 	var button_3 = _$_.first_child_frag(fragment_5);
 
 	button_3.__click = () => {
-		_$_.set(outer, !_$_.get(outer));
+		_$_.set(lazy_2, !_$_.get(lazy_2));
 	};
 
 	var button_4 = _$_.sibling(button_3);
 
 	button_4.__click = () => {
-		_$_.set(inner, !_$_.get(inner));
+		_$_.set(lazy_3, !_$_.get(lazy_3));
 	};
 
 	var node_5 = _$_.sibling(button_4);
@@ -199,7 +199,7 @@ export function NestedIf(__anchor, _, __block) {
 					};
 
 					_$_.if(node_6, (__render) => {
-						if (_$_.get(inner)) __render(consequent_5);
+						if (_$_.get(lazy_3)) __render(consequent_5);
 					});
 				}
 
@@ -210,7 +210,7 @@ export function NestedIf(__anchor, _, __block) {
 		};
 
 		_$_.if(node_5, (__render) => {
-			if (_$_.get(outer)) __render(consequent_6);
+			if (_$_.get(lazy_2)) __render(consequent_6);
 		});
 	}
 
@@ -221,26 +221,26 @@ export function NestedIf(__anchor, _, __block) {
 export function IfElseIfChain(__anchor, _, __block) {
 	_$_.push_component();
 
-	let status = _$_.track('loading', void 0, void 0, __block);
+	let lazy_4 = _$_.track('loading', void 0, void 0, __block);
 	var div_9 = root_15();
 
 	{
 		var button_5 = _$_.child(div_9);
 
 		button_5.__click = () => {
-			_$_.set(status, 'success');
+			_$_.set(lazy_4, 'success');
 		};
 
 		var button_6 = _$_.sibling(button_5);
 
 		button_6.__click = () => {
-			_$_.set(status, 'error');
+			_$_.set(lazy_4, 'error');
 		};
 
 		var button_7 = _$_.sibling(button_6);
 
 		button_7.__click = () => {
-			_$_.set(status, 'loading');
+			_$_.set(lazy_4, 'loading');
 		};
 
 		var node_7 = _$_.sibling(button_7);
@@ -270,7 +270,7 @@ export function IfElseIfChain(__anchor, _, __block) {
 					};
 
 					_$_.if(node_8, (__render) => {
-						if (_$_.get(status) === 'success') __render(consequent_8); else __render(alternate_2, false);
+						if (_$_.get(lazy_4) === 'success') __render(consequent_8); else __render(alternate_2, false);
 					});
 				}
 
@@ -278,7 +278,7 @@ export function IfElseIfChain(__anchor, _, __block) {
 			};
 
 			_$_.if(node_7, (__render) => {
-				if (_$_.get(status) === 'loading') __render(consequent_7); else __render(alternate_3, false);
+				if (_$_.get(lazy_4) === 'loading') __render(consequent_7); else __render(alternate_3, false);
 			});
 		}
 

@@ -238,7 +238,7 @@ function Header(__anchor, _, __block) {
 	_$_.pop_component();
 }
 
-function Actions(__anchor, __props, __block) {
+function Actions(__anchor, { playgroundVisible = false }, __block) {
 	_$_.push_component();
 
 	var div_8 = root_15();
@@ -256,7 +256,7 @@ function Actions(__anchor, __props, __block) {
 			};
 
 			_$_.if(node_5, (__render) => {
-				if (_$_.fallback(__props.playgroundVisible, false)) __render(consequent);
+				if (playgroundVisible) __render(consequent);
 			});
 		}
 
@@ -267,7 +267,7 @@ function Actions(__anchor, __props, __block) {
 	_$_.pop_component();
 }
 
-function Layout(__anchor, __props, __block) {
+function Layout(__anchor, { children }, __block) {
 	_$_.push_component();
 
 	var main_1 = root_17();
@@ -278,7 +278,7 @@ function Layout(__anchor, __props, __block) {
 		{
 			var node_6 = _$_.child(div_9);
 
-			_$_.composite(() => __props.children, node_6, {});
+			children(node_6, {}, _$_.active_block);
 			_$_.pop(div_9);
 		}
 	}

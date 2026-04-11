@@ -24,16 +24,16 @@ var root_19 = _$_.template(`<div class="wrapper"><ul class="features"><li><stron
 
 import { track } from 'ripple';
 
-export function IfWithChildren(__anchor, __props, __block) {
+export function IfWithChildren(__anchor, { children }, __block) {
 	_$_.push_component();
 
-	let expanded = _$_.track(true, void 0, void 0, __block);
+	let lazy = _$_.track(true, void 0, void 0, __block);
 	var div_1 = root();
 
 	{
 		var div_2 = _$_.child(div_1);
 
-		div_2.__click = () => _$_.set(expanded, !_$_.get(expanded));
+		div_2.__click = () => _$_.set(lazy, !_$_.get(lazy));
 
 		var node = _$_.sibling(div_2);
 
@@ -44,7 +44,7 @@ export function IfWithChildren(__anchor, __props, __block) {
 				{
 					var node_1 = _$_.child(div_3);
 
-					_$_.composite(() => __props.children, node_1, {});
+					children(node_1, {}, _$_.active_block);
 					_$_.pop(div_3);
 				}
 
@@ -52,7 +52,7 @@ export function IfWithChildren(__anchor, __props, __block) {
 			};
 
 			_$_.if(node, (__render) => {
-				if (_$_.get(expanded)) __render(consequent);
+				if (_$_.get(lazy)) __render(consequent);
 			});
 		}
 
@@ -63,7 +63,7 @@ export function IfWithChildren(__anchor, __props, __block) {
 	_$_.pop_component();
 }
 
-export function ChildItem(__anchor, __props, __block) {
+export function ChildItem(__anchor, { text }, __block) {
 	_$_.push_component();
 
 	var div_4 = root_2();
@@ -71,12 +71,9 @@ export function ChildItem(__anchor, __props, __block) {
 	{
 		var text_1 = _$_.child(div_4, true);
 
+		text_1.nodeValue = text;
 		_$_.pop(div_4);
 	}
-
-	_$_.render(() => {
-		_$_.set_text(text_1, __props.text);
-	});
 
 	_$_.append(__anchor, div_4);
 	_$_.pop_component();
@@ -116,13 +113,13 @@ export function TestIfWithChildren(__anchor, _, __block) {
 export function IfWithStaticChildren(__anchor, _, __block) {
 	_$_.push_component();
 
-	let expanded = _$_.track(true, void 0, void 0, __block);
+	let lazy_1 = _$_.track(true, void 0, void 0, __block);
 	var div_5 = root_5();
 
 	{
 		var div_6 = _$_.child(div_5);
 
-		div_6.__click = () => _$_.set(expanded, !_$_.get(expanded));
+		div_6.__click = () => _$_.set(lazy_1, !_$_.get(lazy_1));
 
 		var node_5 = _$_.sibling(div_6);
 
@@ -134,7 +131,7 @@ export function IfWithStaticChildren(__anchor, _, __block) {
 			};
 
 			_$_.if(node_5, (__render) => {
-				if (_$_.get(expanded)) __render(consequent_1);
+				if (_$_.get(lazy_1)) __render(consequent_1);
 			});
 		}
 
@@ -145,16 +142,16 @@ export function IfWithStaticChildren(__anchor, _, __block) {
 	_$_.pop_component();
 }
 
-export function IfWithSiblingsAndChildren(__anchor, __props, __block) {
+export function IfWithSiblingsAndChildren(__anchor, { children }, __block) {
 	_$_.push_component();
 
-	let expanded = _$_.track(true, void 0, void 0, __block);
+	let lazy_2 = _$_.track(true, void 0, void 0, __block);
 	var section_1 = root_7();
 
 	{
 		var div_8 = _$_.child(section_1);
 
-		div_8.__click = () => _$_.set(expanded, !_$_.get(expanded));
+		div_8.__click = () => _$_.set(lazy_2, !_$_.get(lazy_2));
 		_$_.pop(div_8);
 
 		var node_6 = _$_.sibling(div_8);
@@ -166,7 +163,7 @@ export function IfWithSiblingsAndChildren(__anchor, __props, __block) {
 				{
 					var node_7 = _$_.child(div_9);
 
-					_$_.composite(() => __props.children, node_7, {});
+					children(node_7, {}, _$_.active_block);
 					_$_.pop(div_9);
 				}
 
@@ -174,7 +171,7 @@ export function IfWithSiblingsAndChildren(__anchor, __props, __block) {
 			};
 
 			_$_.if(node_6, (__render) => {
-				if (_$_.get(expanded)) __render(consequent_2);
+				if (_$_.get(lazy_2)) __render(consequent_2);
 			});
 		}
 
@@ -219,7 +216,7 @@ export function TestIfWithSiblingsAndChildren(__anchor, _, __block) {
 export function ElementWithChildrenThenIf(__anchor, _, __block) {
 	_$_.push_component();
 
-	let show = _$_.track(true, void 0, void 0, __block);
+	let lazy_3 = _$_.track(true, void 0, void 0, __block);
 	var fragment_4 = root_11();
 	var div_11 = _$_.first_child_frag(fragment_4);
 
@@ -238,7 +235,7 @@ export function ElementWithChildrenThenIf(__anchor, _, __block) {
 			};
 
 			_$_.if(node_11, (__render) => {
-				if (_$_.get(show)) __render(consequent_3);
+				if (_$_.get(lazy_3)) __render(consequent_3);
 			});
 		}
 
@@ -247,7 +244,7 @@ export function ElementWithChildrenThenIf(__anchor, _, __block) {
 
 	var button_1 = _$_.sibling(div_11);
 
-	button_1.__click = () => _$_.set(show, !_$_.get(show));
+	button_1.__click = () => _$_.set(lazy_3, !_$_.get(lazy_3));
 	_$_.next();
 	_$_.append(__anchor, fragment_4, true);
 	_$_.pop_component();
@@ -256,7 +253,7 @@ export function ElementWithChildrenThenIf(__anchor, _, __block) {
 export function DeepNestingThenIf(__anchor, _, __block) {
 	_$_.push_component();
 
-	let visible = _$_.track(true, void 0, void 0, __block);
+	let lazy_4 = _$_.track(true, void 0, void 0, __block);
 	var fragment_5 = root_13();
 	var section_2 = _$_.first_child_frag(fragment_5);
 
@@ -275,7 +272,7 @@ export function DeepNestingThenIf(__anchor, _, __block) {
 			};
 
 			_$_.if(node_12, (__render) => {
-				if (_$_.get(visible)) __render(consequent_4);
+				if (_$_.get(lazy_4)) __render(consequent_4);
 			});
 		}
 
@@ -284,7 +281,7 @@ export function DeepNestingThenIf(__anchor, _, __block) {
 
 	var button_2 = _$_.sibling(section_2);
 
-	button_2.__click = () => _$_.set(visible, !_$_.get(visible));
+	button_2.__click = () => _$_.set(lazy_4, !_$_.get(lazy_4));
 	_$_.next();
 	_$_.append(__anchor, fragment_5, true);
 	_$_.pop_component();
@@ -293,7 +290,7 @@ export function DeepNestingThenIf(__anchor, _, __block) {
 export function DomElementChildrenThenSibling(__anchor, _, __block) {
 	_$_.push_component();
 
-	let activeTab = _$_.track('code', void 0, void 0, __block);
+	let lazy_5 = _$_.track('code', void 0, void 0, __block);
 	var div_13 = root_15();
 
 	{
@@ -302,11 +299,11 @@ export function DomElementChildrenThenSibling(__anchor, _, __block) {
 		{
 			var button_3 = _$_.child(div_14);
 
-			button_3.__click = () => _$_.set(activeTab, 'code');
+			button_3.__click = () => _$_.set(lazy_5, 'code');
 
 			var button_4 = _$_.sibling(button_3);
 
-			button_4.__click = () => _$_.set(activeTab, 'preview');
+			button_4.__click = () => _$_.set(lazy_5, 'preview');
 		}
 
 		_$_.pop(div_14);
@@ -330,7 +327,7 @@ export function DomElementChildrenThenSibling(__anchor, _, __block) {
 				};
 
 				_$_.if(node_13, (__render) => {
-					if (_$_.get(activeTab) === 'code') __render(consequent_5); else __render(alternate, false);
+					if (_$_.get(lazy_5) === 'code') __render(consequent_5); else __render(alternate, false);
 				});
 			}
 
@@ -340,13 +337,13 @@ export function DomElementChildrenThenSibling(__anchor, _, __block) {
 
 	_$_.render(
 		(__prev) => {
-			var __a = _$_.get(activeTab) === 'code' ? 'true' : 'false';
+			var __a = _$_.get(lazy_5) === 'code' ? 'true' : 'false';
 
 			if (__prev.a !== __a) {
 				_$_.set_attribute(button_3, 'aria-selected', __prev.a = __a);
 			}
 
-			var __b = _$_.get(activeTab) === 'preview' ? 'true' : 'false';
+			var __b = _$_.get(lazy_5) === 'preview' ? 'true' : 'false';
 
 			if (__prev.b !== __b) {
 				_$_.set_attribute(button_4, 'aria-selected', __prev.b = __b);
@@ -362,7 +359,7 @@ export function DomElementChildrenThenSibling(__anchor, _, __block) {
 export function DomChildrenThenStaticSiblings(__anchor, _, __block) {
 	_$_.push_component();
 
-	let count = _$_.track(0, void 0, void 0, __block);
+	let lazy_6 = _$_.track(0, void 0, void 0, __block);
 	var fragment_6 = root_18();
 	var div_17 = _$_.first_child_frag(fragment_6);
 
@@ -384,11 +381,11 @@ export function DomChildrenThenStaticSiblings(__anchor, _, __block) {
 
 	var button_5 = _$_.sibling(div_17);
 
-	button_5.__click = () => _$_.update(count);
+	button_5.__click = () => _$_.update(lazy_6);
 	_$_.next();
 
 	_$_.render(() => {
-		_$_.set_text(text_2, 'Item count: ' + _$_.with_scope(__block, () => String(_$_.get(count))));
+		_$_.set_text(text_2, 'Item count: ' + _$_.with_scope(__block, () => String(_$_.get(lazy_6))));
 	});
 
 	_$_.append(__anchor, fragment_6, true);

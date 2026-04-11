@@ -8,6 +8,7 @@ packages:
   - website
   - grammars/tree-sitter
   - website-new
+  - benchmarks
 catalogs:
   default:
     "@changesets/changelog-github": ^0.6.0

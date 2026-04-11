@@ -15,12 +15,12 @@ describe('basic client', () => {
 
 	it('renders tracked state updates', async () => {
 		component Counter() {
-			const count = track(0);
+			let &[count] = track(0);
 
-			@count++;
-			@count = @count + 5;
+			count++;
+			count = count + 5;
 
-			<div>{@count}</div>
+			<div>{count}</div>
 		}
 
 		const { body } = await render(Counter);
@@ -34,7 +34,7 @@ describe('basic client', () => {
 			class: { test: boolean };
 		}>) {
 			<div {...rest}>{'Child Component'}</div>
-			<div>{@count}</div>
+			<div>{count.value}</div>
 		}
 
 		component Parent() {
@@ -53,10 +53,10 @@ describe('basic client', () => {
 		component ObjCounter() {
 			const obj = { count: track(2) };
 
-			obj.@count += 3;
-			obj.@count = obj.@count + 1;
+			obj.count.value += 3;
+			obj.count.value = obj.count.value + 1;
 
-			<div>{obj.@count}</div>
+			<div>{obj.count.value}</div>
 		}
 
 		const { body } = await render(ObjCounter);
@@ -66,11 +66,11 @@ describe('basic client', () => {
 
 	it('renders spread props with tracked values', async () => {
 		component SpreadProps() {
-			const id = track('unique-id');
-			const isActive = track(true);
-			const styles = track({ color: 'red', fontSize: '16px' });
+			let &[id] = track('unique-id');
+			let &[isActive] = track(true);
+			let &[styles] = track({ color: 'red', fontSize: '16px' });
 
-			<div {...{ id: @id, class: { active: @isActive }, style: @styles }}>{'Spread Props'}</div>
+			<div {...{ id: id, class: { active: isActive }, style: styles }}>{'Spread Props'}</div>
 		}
 
 		const { body } = await render(SpreadProps);
@@ -82,14 +82,14 @@ describe('basic client', () => {
 
 	it('handles AssignExpressions with tracked values or properties correctly', async () => {
 		component Assignments() {
-			const count = track(0);
+			let &[count] = track(0);
 			const obj = { value: track(5) };
 
-			@count += 10;
-			obj.@value *= 2;
+			count += 10;
+			obj.value.value *= 2;
 
-			<div>{@count}</div>
-			<div>{obj.@value}</div>
+			<div>{count}</div>
+			<div>{obj.value.value}</div>
 		}
 
 		const { body } = await render(Assignments);
@@ -99,16 +99,15 @@ describe('basic client', () => {
 
 	it(`handles derived changes via tracked dependencies' changes`, async () => {
 		component Derived() {
-			let base = track(5);
-			let multiplier = track(3);
-			const derived = track(() => @base * @multiplier);
+			let &[base] = track(5);
+			let &[multiplier] = track(3);
+			let &[derived] = track(() => base * multiplier);
 
-			<div>{@derived}</div>
+			<div>{derived}</div>
 
-			@base += 2;
+			base += 2;
 
-
-			<div>{@derived}</div>
+			<div>{derived}</div>
 		}
 
 		const { body } = await render(Derived);
@@ -118,17 +117,16 @@ describe('basic client', () => {
 
 	it(`handles derived changes based on another derived's dependencies' changes`, async () => {
 		component NestedDerived() {
-			let a = track(2);
-			let b = track(3);
-			const sum = track(() => @a + @b);
-			const product = track(() => @sum * 2);
+			let &[a] = track(2);
+			let &[b] = track(3);
+			let &[sum] = track(() => a + b);
+			let &[product] = track(() => sum * 2);
 
-			<div>{@product}</div>
+			<div>{product}</div>
 
-			@a = 4;
+			a = 4;
 
-
-			<div>{@product}</div>
+			<div>{product}</div>
 		}
 
 		const { body } = await render(NestedDerived);
@@ -138,20 +136,20 @@ describe('basic client', () => {
 
 	it('handles lexical scopes correctly', async () => {
 		component LexicalScopes() {
-			let x = track(1);
-			<div>{@x}</div>
+			let &[x] = track(1);
+			<div>{x}</div>
 
 			<div>
-				let x = track(10);
-				{@x}
+				let &[x] = track(10);
+				{x}
 			</div>
 
 			<div>
-				let x = track(12);
-				{@x}
+				let &[x] = track(12);
+				{x}
 				<span>
-					let x = track(15);
-					{@x}
+					let &[x] = track(15);
+					{x}
 				</span>
 			</div>
 		}

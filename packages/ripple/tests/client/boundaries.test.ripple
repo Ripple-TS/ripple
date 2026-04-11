@@ -4,25 +4,25 @@ describe('passing reactivity between boundaries tests', () => {
 	it('can pass reactivity between functions with simple arrays and destructuring', () => {
 		let log: string[] = [];
 
-		function createDouble([count]: [Tracked<number>]) {
-			const double = track(() => @count * 2);
+		function createDouble(&[count]: Tracked<number>) {
+			const double = track(() => count * 2);
 
 			effect(() => {
-				log.push('Count:' + @count);
+				log.push('Count:' + count);
 			});
 
-			return [double];
+			return double;
 		}
 
 		component App() {
-			let count = track(0);
+			let &[count, countTracked] = track(0);
 
-			const [double] = createDouble([count]);
+			const &[double] = createDouble(countTracked);
 
-			<div>{'Double: ' + @double}</div>
+			<div>{'Double: ' + double}</div>
 			<button
 				onClick={() => {
-					@count++;
+					count++;
 				}}
 			>
 				{'Increment'}
@@ -54,10 +54,10 @@ describe('passing reactivity between boundaries tests', () => {
 		let log: string[] = [];
 
 		function createDouble({ count }: { count: Tracked<number> }) {
-			const double = track(() => @count * 2);
+			const double = track(() => count.value * 2);
 
 			effect(() => {
-				log.push('Count:' + @count);
+				log.push('Count:' + count.value);
 			});
 
 			return { double };
@@ -68,10 +68,10 @@ describe('passing reactivity between boundaries tests', () => {
 
 			const { double } = createDouble({ count });
 
-			<div>{'Double: ' + @double}</div>
+			<div>{'Double: ' + double.value}</div>
 			<button
 				onClick={() => {
-					@count++;
+					count.value++;
 				}}
 			>
 				{'Increment'}

@@ -8,10 +8,10 @@ describe('composite > props', () => {
 		}
 
 		component App() {
-			let foo = track(123);
+			let &[foo] = track(123);
 
 			<Child />
-			<Child {@foo} />
+			<Child {foo} />
 		}
 
 		render(App);
@@ -40,7 +40,7 @@ describe('composite > props', () => {
 
 	it('correctly handles no props', () => {
 		component Child(props: { foo?: Tracked<number> }) {
-			<div>{props.@foo}</div>
+			<div>{props.foo?.value}</div>
 		}
 
 		component App() {
@@ -62,10 +62,10 @@ describe('composite > props', () => {
 		}
 
 		component App() {
-			let foo = track(123);
+			let &[foo] = track(123);
 
 			<Child />
-			<Child {@foo} />
+			<Child {foo} />
 		}
 
 		render(App);
@@ -79,10 +79,10 @@ describe('composite > props', () => {
 
 		component Counter({ count }: { count: Tracked<number> }) {
 			effect(() => {
-				logs.push(@count);
+				logs.push(count.value);
 			});
 
-			<button onClick={() => (@count = @count + 1)}>{'+'}</button>
+			<button onClick={() => (count.value = count.value + 1)}>{'+'}</button>
 		}
 
 		component App() {
@@ -108,7 +108,7 @@ describe('composite > props', () => {
 	it('correctly retains prop accessors and reactivity when using rest props', () => {
 		component Button(props: Props) {
 			const [children, rest] = trackSplit(props, ['children']);
-			<button {...@rest}>
+			<button {...rest.value}>
 				<@children />
 			</button>
 			<style>
@@ -123,9 +123,9 @@ describe('composite > props', () => {
 
 		component Toggle(props: { pressed: Tracked<boolean> }) {
 			const [pressed, rest] = trackSplit(props, ['pressed']);
-			const onClick = () => (@pressed = !@pressed);
-			<Button {...@rest} class={@pressed ? 'on' : 'off'} {onClick}>{'button 1'}</Button>
-			<Button class={@pressed ? 'on' : 'off'} {onClick}>{'button 2'}</Button>
+			const onClick = () => (pressed.value = !pressed.value);
+			<Button {...rest.value} class={pressed.value ? 'on' : 'off'} {onClick}>{'button 1'}</Button>
+			<Button class={pressed.value ? 'on' : 'off'} {onClick}>{'button 2'}</Button>
 		}
 
 		component App() {

@@ -177,12 +177,12 @@ export function KeyedForLoop(__anchor, _, __block) {
 export function ReactiveForLoopAdd(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = _$_.track(['A', 'B'], void 0, void 0, __block);
+	let lazy = _$_.track(['A', 'B'], void 0, void 0, __block);
 	var fragment = root_6();
 	var button_1 = _$_.first_child_frag(fragment);
 
 	button_1.__click = () => {
-		_$_.set(items, [..._$_.get(items), 'C']);
+		_$_.set(lazy, [..._$_.get(lazy), 'C']);
 	};
 
 	var ul_4 = _$_.sibling(button_1);
@@ -190,7 +190,7 @@ export function ReactiveForLoopAdd(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_4,
-			() => _$_.get(items),
+			() => _$_.get(lazy),
 			(__anchor, item) => {
 				var li_4 = root_7();
 
@@ -217,12 +217,12 @@ export function ReactiveForLoopAdd(__anchor, _, __block) {
 export function ReactiveForLoopRemove(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = _$_.track(['A', 'B', 'C'], void 0, void 0, __block);
+	let lazy_1 = _$_.track(['A', 'B', 'C'], void 0, void 0, __block);
 	var fragment_1 = root_8();
 	var button_2 = _$_.first_child_frag(fragment_1);
 
 	button_2.__click = () => {
-		_$_.set(items, _$_.with_scope(__block, () => _$_.get(items).slice(0, -1)));
+		_$_.set(lazy_1, _$_.with_scope(__block, () => _$_.get(lazy_1).slice(0, -1)));
 	};
 
 	var ul_5 = _$_.sibling(button_2);
@@ -230,7 +230,7 @@ export function ReactiveForLoopRemove(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_5,
-			() => _$_.get(items),
+			() => _$_.get(lazy_1),
 			(__anchor, item) => {
 				var li_5 = root_9();
 
@@ -257,13 +257,13 @@ export function ReactiveForLoopRemove(__anchor, _, __block) {
 export function ForLoopInteractive(__anchor, _, __block) {
 	_$_.push_component();
 
-	let counts = _$_.track([0, 0, 0], void 0, void 0, __block);
+	let lazy_2 = _$_.track([0, 0, 0], void 0, void 0, __block);
 	var div_1 = root_10();
 
 	{
 		_$_.for(
 			div_1,
-			() => _$_.get(counts),
+			() => _$_.get(lazy_2),
 			(__anchor, count, i) => {
 				var div_2 = root_11();
 
@@ -280,10 +280,10 @@ export function ForLoopInteractive(__anchor, _, __block) {
 					var button_3 = _$_.sibling(span_1);
 
 					button_3.__click = () => {
-						const newCounts = [..._$_.get(counts)];
+						const newCounts = [..._$_.get(lazy_2)];
 
 						newCounts[_$_.get(i)]++;
-						_$_.set(counts, newCounts);
+						_$_.set(lazy_2, newCounts);
 					};
 				}
 
@@ -464,7 +464,7 @@ export function ForLoopComplexObjects(__anchor, _, __block) {
 export function KeyedForLoopReorder(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = _$_.track(
+	let lazy_3 = _$_.track(
 		[
 			{ id: 1, name: 'First' },
 			{ id: 2, name: 'Second' },
@@ -479,7 +479,7 @@ export function KeyedForLoopReorder(__anchor, _, __block) {
 	var button_4 = _$_.first_child_frag(fragment_2);
 
 	button_4.__click = () => {
-		_$_.set(items, [_$_.get(items)[2], _$_.get(items)[0], _$_.get(items)[1]]);
+		_$_.set(lazy_3, [_$_.get(lazy_3)[2], _$_.get(lazy_3)[0], _$_.get(lazy_3)[1]]);
 	};
 
 	var ul_6 = _$_.sibling(button_4);
@@ -487,7 +487,7 @@ export function KeyedForLoopReorder(__anchor, _, __block) {
 	{
 		_$_.for_keyed(
 			ul_6,
-			() => _$_.get(items),
+			() => _$_.get(lazy_3),
 			(__anchor, pattern_2) => {
 				var li_6 = root_20();
 
@@ -531,12 +531,12 @@ export function KeyedForLoopReorder(__anchor, _, __block) {
 export function KeyedForLoopUpdate(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], void 0, void 0, __block);
+	let lazy_4 = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], void 0, void 0, __block);
 	var fragment_3 = root_21();
 	var button_5 = _$_.first_child_frag(fragment_3);
 
 	button_5.__click = () => {
-		_$_.set(items, _$_.with_scope(__block, () => _$_.get(items).map((item) => item.id === 1 ? { ...item, name: 'Updated' } : item)));
+		_$_.set(lazy_4, _$_.with_scope(__block, () => _$_.get(lazy_4).map((item) => item.id === 1 ? { ...item, name: 'Updated' } : item)));
 	};
 
 	var ul_7 = _$_.sibling(button_5);
@@ -544,7 +544,7 @@ export function KeyedForLoopUpdate(__anchor, _, __block) {
 	{
 		_$_.for_keyed(
 			ul_7,
-			() => _$_.get(items),
+			() => _$_.get(lazy_4),
 			(__anchor, pattern_3) => {
 				var li_7 = root_22();
 
@@ -588,12 +588,12 @@ export function KeyedForLoopUpdate(__anchor, _, __block) {
 export function ForLoopMixedOperations(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = _$_.track(['A', 'B', 'C', 'D'], void 0, void 0, __block);
+	let lazy_5 = _$_.track(['A', 'B', 'C', 'D'], void 0, void 0, __block);
 	var fragment_4 = root_23();
 	var button_6 = _$_.first_child_frag(fragment_4);
 
 	button_6.__click = () => {
-		_$_.set(items, ['D', 'C', 'A', 'E']);
+		_$_.set(lazy_5, ['D', 'C', 'A', 'E']);
 	};
 
 	var ul_8 = _$_.sibling(button_6);
@@ -601,7 +601,7 @@ export function ForLoopMixedOperations(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_8,
-			() => _$_.get(items),
+			() => _$_.get(lazy_5),
 			(__anchor, item) => {
 				var li_8 = root_24();
 
@@ -630,19 +630,19 @@ export function ForLoopMixedOperations(__anchor, _, __block) {
 export function ForLoopInsideIf(__anchor, _, __block) {
 	_$_.push_component();
 
-	let showList = _$_.track(true, void 0, void 0, __block);
-	let items = _$_.track(['X', 'Y', 'Z'], void 0, void 0, __block);
+	let lazy_6 = _$_.track(true, void 0, void 0, __block);
+	let lazy_7 = _$_.track(['X', 'Y', 'Z'], void 0, void 0, __block);
 	var fragment_5 = root_25();
 	var button_7 = _$_.first_child_frag(fragment_5);
 
 	button_7.__click = () => {
-		_$_.set(showList, !_$_.get(showList));
+		_$_.set(lazy_6, !_$_.get(lazy_6));
 	};
 
 	var button_8 = _$_.sibling(button_7);
 
 	button_8.__click = () => {
-		_$_.set(items, [..._$_.get(items), 'W']);
+		_$_.set(lazy_7, [..._$_.get(lazy_7), 'W']);
 	};
 
 	var node = _$_.sibling(button_8);
@@ -654,7 +654,7 @@ export function ForLoopInsideIf(__anchor, _, __block) {
 			{
 				_$_.for(
 					ul_9,
-					() => _$_.get(items),
+					() => _$_.get(lazy_7),
 					(__anchor, item) => {
 						var li_9 = root_27();
 
@@ -677,7 +677,7 @@ export function ForLoopInsideIf(__anchor, _, __block) {
 		};
 
 		_$_.if(node, (__render) => {
-			if (_$_.get(showList)) __render(consequent);
+			if (_$_.get(lazy_6)) __render(consequent);
 		});
 	}
 
@@ -688,12 +688,12 @@ export function ForLoopInsideIf(__anchor, _, __block) {
 export function ForLoopEmptyToPopulated(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = _$_.track([], void 0, void 0, __block);
+	let lazy_8 = _$_.track([], void 0, void 0, __block);
 	var fragment_6 = root_28();
 	var button_9 = _$_.first_child_frag(fragment_6);
 
 	button_9.__click = () => {
-		_$_.set(items, ['One', 'Two', 'Three']);
+		_$_.set(lazy_8, ['One', 'Two', 'Three']);
 	};
 
 	var ul_10 = _$_.sibling(button_9);
@@ -701,7 +701,7 @@ export function ForLoopEmptyToPopulated(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_10,
-			() => _$_.get(items),
+			() => _$_.get(lazy_8),
 			(__anchor, item) => {
 				var li_10 = root_29();
 
@@ -728,12 +728,12 @@ export function ForLoopEmptyToPopulated(__anchor, _, __block) {
 export function ForLoopPopulatedToEmpty(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = _$_.track(['One', 'Two', 'Three'], void 0, void 0, __block);
+	let lazy_9 = _$_.track(['One', 'Two', 'Three'], void 0, void 0, __block);
 	var fragment_7 = root_30();
 	var button_10 = _$_.first_child_frag(fragment_7);
 
 	button_10.__click = () => {
-		_$_.set(items, []);
+		_$_.set(lazy_9, []);
 	};
 
 	var ul_11 = _$_.sibling(button_10);
@@ -741,7 +741,7 @@ export function ForLoopPopulatedToEmpty(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_11,
-			() => _$_.get(items),
+			() => _$_.get(lazy_9),
 			(__anchor, item) => {
 				var li_11 = root_31();
 
@@ -768,21 +768,21 @@ export function ForLoopPopulatedToEmpty(__anchor, _, __block) {
 export function NestedForLoopReactive(__anchor, _, __block) {
 	_$_.push_component();
 
-	let grid = _$_.track([[1, 2], [3, 4]], void 0, void 0, __block);
+	let lazy_10 = _$_.track([[1, 2], [3, 4]], void 0, void 0, __block);
 	var fragment_8 = root_32();
 	var button_11 = _$_.first_child_frag(fragment_8);
 
 	button_11.__click = () => {
-		_$_.set(grid, [..._$_.get(grid), [5, 6]]);
+		_$_.set(lazy_10, [..._$_.get(lazy_10), [5, 6]]);
 	};
 
 	var button_12 = _$_.sibling(button_11);
 
 	button_12.__click = () => {
-		const newGrid = _$_.with_scope(__block, () => _$_.get(grid).map((row) => [...row]));
+		const newGrid = _$_.with_scope(__block, () => _$_.get(lazy_10).map((row) => [...row]));
 
 		newGrid[0][0] = 99;
-		_$_.set(grid, newGrid);
+		_$_.set(lazy_10, newGrid);
 	};
 
 	var div_8 = _$_.sibling(button_12);
@@ -790,7 +790,7 @@ export function NestedForLoopReactive(__anchor, _, __block) {
 	{
 		_$_.for(
 			div_8,
-			() => _$_.get(grid),
+			() => _$_.get(lazy_10),
 			(__anchor, row, rowIndex) => {
 				var div_9 = root_33();
 
@@ -976,12 +976,12 @@ export function ForLoopDeeplyNested(__anchor, _, __block) {
 export function ForLoopIndexUpdate(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = _$_.track(['First', 'Second', 'Third'], void 0, void 0, __block);
+	let lazy_11 = _$_.track(['First', 'Second', 'Third'], void 0, void 0, __block);
 	var fragment_9 = root_39();
 	var button_13 = _$_.first_child_frag(fragment_9);
 
 	button_13.__click = () => {
-		_$_.set(items, ['Zeroth', ..._$_.get(items)]);
+		_$_.set(lazy_11, ['Zeroth', ..._$_.get(lazy_11)]);
 	};
 
 	var ul_13 = _$_.sibling(button_13);
@@ -989,7 +989,7 @@ export function ForLoopIndexUpdate(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_13,
-			() => _$_.get(items),
+			() => _$_.get(lazy_11),
 			(__anchor, item, i) => {
 				var li_13 = root_40();
 
@@ -1032,7 +1032,7 @@ export function ForLoopIndexUpdate(__anchor, _, __block) {
 export function KeyedForLoopWithIndex(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = _$_.track(
+	let lazy_12 = _$_.track(
 		[
 			{ id: 'a', value: 'Alpha' },
 			{ id: 'b', value: 'Beta' },
@@ -1047,7 +1047,11 @@ export function KeyedForLoopWithIndex(__anchor, _, __block) {
 	var button_14 = _$_.first_child_frag(fragment_10);
 
 	button_14.__click = () => {
-		_$_.set(items, [_$_.get(items)[1], _$_.get(items)[2], _$_.get(items)[0]]);
+		_$_.set(lazy_12, [
+			_$_.get(lazy_12)[1],
+			_$_.get(lazy_12)[2],
+			_$_.get(lazy_12)[0]
+		]);
 	};
 
 	var ul_14 = _$_.sibling(button_14);
@@ -1055,7 +1059,7 @@ export function KeyedForLoopWithIndex(__anchor, _, __block) {
 	{
 		_$_.for_keyed(
 			ul_14,
-			() => _$_.get(items),
+			() => _$_.get(lazy_12),
 			(__anchor, pattern_6, i) => {
 				var li_14 = root_42();
 
@@ -1105,7 +1109,7 @@ export function KeyedForLoopWithIndex(__anchor, _, __block) {
 export function ForLoopWithSiblings(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = _$_.track(['A', 'B'], void 0, void 0, __block);
+	let lazy_13 = _$_.track(['A', 'B'], void 0, void 0, __block);
 	var fragment_11 = root_43();
 	var div_13 = _$_.first_child_frag(fragment_11);
 
@@ -1115,7 +1119,7 @@ export function ForLoopWithSiblings(__anchor, _, __block) {
 
 		_$_.for(
 			node_2,
-			() => _$_.get(items),
+			() => _$_.get(lazy_13),
 			(__anchor, item) => {
 				var div_14 = root_44();
 
@@ -1139,7 +1143,7 @@ export function ForLoopWithSiblings(__anchor, _, __block) {
 	var button_15 = _$_.sibling(div_13);
 
 	button_15.__click = () => {
-		_$_.set(items, [..._$_.get(items), 'C']);
+		_$_.set(lazy_13, [..._$_.get(lazy_13), 'C']);
 	};
 
 	_$_.next();
@@ -1196,14 +1200,14 @@ export function ForLoopItemState(__anchor, _, __block) {
 function TodoItem(__anchor, props, __block) {
 	_$_.push_component();
 
-	let done = _$_.track(false, void 0, void 0, __block);
+	let lazy_14 = _$_.track(false, void 0, void 0, __block);
 	var div_16 = root_47();
 
 	{
 		var input_1 = _$_.child(div_16);
 
 		input_1.__change = (e) => {
-			_$_.set(done, e.target.checked);
+			_$_.set(lazy_14, e.target.checked);
 		};
 
 		var span_7 = _$_.sibling(input_1);
@@ -1217,7 +1221,7 @@ function TodoItem(__anchor, props, __block) {
 
 	_$_.render(
 		(__prev) => {
-			var __a = _$_.get(done);
+			var __a = _$_.get(lazy_14);
 
 			if (__prev.a !== __a) {
 				_$_.set_checked(input_1, __prev.a = __a);
@@ -1229,7 +1233,7 @@ function TodoItem(__anchor, props, __block) {
 				_$_.set_text(text_24, __prev.b = __b);
 			}
 
-			var __c = _$_.get(done) ? 'completed' : 'pending';
+			var __c = _$_.get(lazy_14) ? 'completed' : 'pending';
 
 			if (__prev.c !== __c) {
 				_$_.set_class(span_7, __prev.c = __c, void 0, true);
@@ -1283,12 +1287,12 @@ export function ForLoopSingleItem(__anchor, _, __block) {
 export function ForLoopAddAtBeginning(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = _$_.track(['B', 'C'], void 0, void 0, __block);
+	let lazy_15 = _$_.track(['B', 'C'], void 0, void 0, __block);
 	var fragment_13 = root_50();
 	var button_16 = _$_.first_child_frag(fragment_13);
 
 	button_16.__click = () => {
-		_$_.set(items, ['A', ..._$_.get(items)]);
+		_$_.set(lazy_15, ['A', ..._$_.get(lazy_15)]);
 	};
 
 	var ul_16 = _$_.sibling(button_16);
@@ -1296,7 +1300,7 @@ export function ForLoopAddAtBeginning(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_16,
-			() => _$_.get(items),
+			() => _$_.get(lazy_15),
 			(__anchor, item) => {
 				var li_16 = root_51();
 
@@ -1325,15 +1329,15 @@ export function ForLoopAddAtBeginning(__anchor, _, __block) {
 export function ForLoopAddInMiddle(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = _$_.track(['A', 'C'], void 0, void 0, __block);
+	let lazy_16 = _$_.track(['A', 'C'], void 0, void 0, __block);
 	var fragment_14 = root_52();
 	var button_17 = _$_.first_child_frag(fragment_14);
 
 	button_17.__click = () => {
-		const copy = [..._$_.get(items)];
+		const copy = [..._$_.get(lazy_16)];
 
 		_$_.with_scope(__block, () => copy.splice(1, 0, 'B'));
-		_$_.set(items, copy);
+		_$_.set(lazy_16, copy);
 	};
 
 	var ul_17 = _$_.sibling(button_17);
@@ -1341,7 +1345,7 @@ export function ForLoopAddInMiddle(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_17,
-			() => _$_.get(items),
+			() => _$_.get(lazy_16),
 			(__anchor, item) => {
 				var li_17 = root_53();
 
@@ -1370,12 +1374,12 @@ export function ForLoopAddInMiddle(__anchor, _, __block) {
 export function ForLoopRemoveFromMiddle(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = _$_.track(['A', 'B', 'C'], void 0, void 0, __block);
+	let lazy_17 = _$_.track(['A', 'B', 'C'], void 0, void 0, __block);
 	var fragment_15 = root_54();
 	var button_18 = _$_.first_child_frag(fragment_15);
 
 	button_18.__click = () => {
-		_$_.set(items, _$_.with_scope(__block, () => _$_.get(items).filter((item) => item !== 'B')));
+		_$_.set(lazy_17, _$_.with_scope(__block, () => _$_.get(lazy_17).filter((item) => item !== 'B')));
 	};
 
 	var ul_18 = _$_.sibling(button_18);
@@ -1383,7 +1387,7 @@ export function ForLoopRemoveFromMiddle(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_18,
-			() => _$_.get(items),
+			() => _$_.get(lazy_17),
 			(__anchor, item) => {
 				var li_18 = root_55();
 
@@ -1448,15 +1452,15 @@ export function ForLoopLargeList(__anchor, _, __block) {
 export function ForLoopSwap(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = _$_.track(['A', 'B', 'C', 'D'], void 0, void 0, __block);
+	let lazy_18 = _$_.track(['A', 'B', 'C', 'D'], void 0, void 0, __block);
 	var fragment_16 = root_58();
 	var button_19 = _$_.first_child_frag(fragment_16);
 
 	button_19.__click = () => {
-		const copy = [..._$_.get(items)];
+		const copy = [..._$_.get(lazy_18)];
 
 		[copy[0], copy[3]] = [copy[3], copy[0]];
-		_$_.set(items, copy);
+		_$_.set(lazy_18, copy);
 	};
 
 	var ul_20 = _$_.sibling(button_19);
@@ -1464,7 +1468,7 @@ export function ForLoopSwap(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_20,
-			() => _$_.get(items),
+			() => _$_.get(lazy_18),
 			(__anchor, item) => {
 				var li_20 = root_59();
 
@@ -1493,12 +1497,12 @@ export function ForLoopSwap(__anchor, _, __block) {
 export function ForLoopReverse(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = _$_.track(['A', 'B', 'C', 'D'], void 0, void 0, __block);
+	let lazy_19 = _$_.track(['A', 'B', 'C', 'D'], void 0, void 0, __block);
 	var fragment_17 = root_60();
 	var button_20 = _$_.first_child_frag(fragment_17);
 
 	button_20.__click = () => {
-		_$_.set(items, _$_.with_scope(__block, () => [..._$_.get(items)].reverse()));
+		_$_.set(lazy_19, _$_.with_scope(__block, () => [..._$_.get(lazy_19)].reverse()));
 	};
 
 	var ul_21 = _$_.sibling(button_20);
@@ -1506,7 +1510,7 @@ export function ForLoopReverse(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_21,
-			() => _$_.get(items),
+			() => _$_.get(lazy_19),
 			(__anchor, item) => {
 				var li_21 = root_61();
 

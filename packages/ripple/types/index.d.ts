@@ -1,5 +1,8 @@
 export type Component<T = Record<string, any>> = (props: T) => void;
 
+/** Type for JSX children - accepts single child, multiple children, or no children */
+export type Children = Component | readonly Component[];
+
 export type CompatApi = {
 	createRoot: () => void;
 	createComponent: (node: any, children_fn: () => any) => void;
@@ -141,21 +144,24 @@ declare global {
 
 export function createRefKey(): symbol;
 
-// Base Tracked interface - all tracked values have a '#v' property containing the actual value
-export interface Tracked<V> {
-	'#v': V;
-}
-
-// Augment Tracked to be callable when V is a Component
-// This allows <@Something /> to work in JSX when Something is Tracked<Component>
-export interface Tracked<V> {
-	(props: V extends Component<infer P> ? P : never): V extends Component ? void : never;
-}
-
 export const UNINITIALIZED: unique symbol;
 export const DERIVED_UPDATED: unique symbol;
 export const SUSPENSE_PENDING: unique symbol;
 export const SUSPENSE_REJECTED: unique symbol;
+
+// Base Tracked interface - all tracked values have a '#v' property containing the actual value
+interface TrackedBase<V> {
+	'#v': V;
+	value: V;
+}
+// Augment Tracked to be callable when V is a Component
+// This allows <@Something /> to work in JSX when Something is Tracked<Component>
+interface TrackedCallable<V> {
+	(props: V extends Component<infer P> ? P : never): V extends Component ? void : never;
+}
+// Supports indexed access: track(0)[0] → value, track(0)[1] → Tracked<V>
+// And destructuring `const [one, two] = track(0);`
+export type Tracked<V> = [V, Tracked<V>] & TrackedBase<V> & TrackedCallable<V>;
 
 // Helper type to infer component type from a function that returns a component
 // If T is a function returning a Component, extract the Component type itself, not the return type (void)
@@ -164,10 +170,10 @@ export type InferComponent<T> = T extends () => infer R ? (R extends Component<a
 export type Props<K extends PropertyKey = any, V = unknown> = Record<K, V>;
 export type PropsWithExtras<T extends object> = Props & T & Record<string, unknown>;
 export type PropsWithChildren<T extends object = {}> = Expand<
-	Omit<T, 'children'> & { children: Component }
+	Omit<T, 'children'> & { children: Children }
 >;
 export type PropsWithChildrenOptional<T extends object = {}> = Expand<
-	Omit<T, 'children'> & { children?: Component }
+	Omit<T, 'children'> & { children?: Children }
 >;
 export type PropsNoChildren<T extends object = {}> = Expand<T>;
 
@@ -397,10 +403,10 @@ export const MediaQuery: MediaQueryConstructor;
 
 export function Portal<V = HTMLElement>({
 	target,
-	children: Component,
+	children,
 }: {
 	target: V;
-	children?: Component;
+	children?: Children;
 }): void;
 
 export type GetFunction<V> = () => V;

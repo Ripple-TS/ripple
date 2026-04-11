@@ -21,7 +21,7 @@ describe('dynamic DOM elements', () => {
 		component App() {
 			let obj = { tag: track('div') };
 
-			<obj.@tag>{'Hello World'}</obj.@tag>
+			<obj.tag.value>{'Hello World'}</obj.tag.value>
 		}
 		render(App);
 
@@ -33,8 +33,9 @@ describe('dynamic DOM elements', () => {
 	it('renders static dynamic element from a tracked object with a tracked property', () => {
 		component App() {
 			let obj = track({ tag: track('div') });
+			let tag = obj.value.tag;
 
-			<@obj.@tag>{'Hello World'}</@obj.@tag>
+			<@tag>{'Hello World'}</@tag>
 		}
 		render(App);
 
@@ -48,8 +49,9 @@ describe('dynamic DOM elements', () => {
 		() => {
 			component App() {
 				let obj = track({ tag: track('div') });
+				let tag = obj.value['tag'];
 
-				<@obj.@['tag']>{'Hello World'}</@obj.@['tag']>
+				<@tag>{'Hello World'}</@tag>
 			}
 			render(App);
 
@@ -61,11 +63,11 @@ describe('dynamic DOM elements', () => {
 
 	it('renders reactive dynamic element', () => {
 		component App() {
-			let tag = track('div');
+			let &[tag] = track('div');
 
 			<button
 				onClick={() => {
-					@tag = 'span';
+					tag = 'span';
 				}}
 			>
 				{'Change Tag'}
@@ -107,9 +109,9 @@ describe('dynamic DOM elements', () => {
 	it('handles dynamic element with attributes', () => {
 		component App() {
 			let tag = track('div');
-			let className = track('test-class');
+			let &[className] = track('test-class');
 
-			<@tag class={@className} id="test" data-testid="dynamic-element">{'Content'}</@tag>
+			<@tag class={className} id="test" data-testid="dynamic-element">{'Content'}</@tag>
 		}
 		render(App);
 
@@ -143,11 +145,9 @@ describe('dynamic DOM elements', () => {
 	it('handles dynamic element with class object', () => {
 		component App() {
 			let tag = track('div');
-			let active = track(true);
+			let &[active] = track(true);
 
-			<@tag class={{ active: @active, 'dynamic-element': true }}>
-				{'Element with class object'}
-			</@tag>
+			<@tag class={{ active: active, 'dynamic-element': true }}>{'Element with class object'}</@tag>
 		}
 		render(App);
 
@@ -258,22 +258,22 @@ describe('dynamic DOM elements', () => {
 	it('has reactive attributes on dynamic elements', () => {
 		component App() {
 			let tag = track('div');
-			let count = track(0);
+			let &[count] = track(0);
 
 			<button
 				onClick={() => {
-					@count++;
+					count++;
 				}}
 			>
 				{'Increment'}
 			</button>
 			<@tag
-				id={@count % 2 ? 'even' : 'odd'}
-				class={@count % 2 ? 'even-class' : 'odd-class'}
-				data-count={@count}
+				id={count % 2 ? 'even' : 'odd'}
+				class={count % 2 ? 'even-class' : 'odd-class'}
+				data-count={count}
 			>
 				{'Count: '}
-				{@count}
+				{count}
 			</@tag>
 		}
 
@@ -337,17 +337,17 @@ describe('dynamic DOM elements', () => {
 	it('applies scoped CSS to dynamic elements with reactive classes', () => {
 		component App() {
 			let tag = track('button');
-			let count = track(0);
+			let &[count] = track(0);
 
 			<@tag
-				class={@count % 2 ? 'even' : 'odd'}
-				id={@count % 2 ? 'even' : 'odd'}
+				class={count % 2 ? 'even' : 'odd'}
+				id={count % 2 ? 'even' : 'odd'}
 				onClick={() => {
-					@count++;
+					count++;
 				}}
 			>
 				{'Count: '}
-				{@count}
+				{count}
 			</@tag>
 
 			<style>
@@ -412,7 +412,7 @@ describe('dynamic DOM elements', () => {
 		}>) {
 			const tag = track('button');
 			const [rest] = trackSplit(props, []);
-			<@tag {...@rest}>{@rest.class}</@tag>
+			<@tag {...rest.value}>{rest.value.class}</@tag>
 
 			<style>
 				.even {
@@ -425,12 +425,12 @@ describe('dynamic DOM elements', () => {
 		}
 
 		component App() {
-			const count = track(0);
+			let &[count] = track(0);
 			<DynamicButton
-				class={@count % 2 ? 'even' : 'odd'}
-				id={@count % 2 ? 'even' : 'odd'}
+				class={count % 2 ? 'even' : 'odd'}
+				id={count % 2 ? 'even' : 'odd'}
 				onClick={() => {
-					@count++;
+					count++;
 				}}
 			/>
 		}
@@ -603,12 +603,12 @@ describe('dynamic DOM elements', () => {
 		}
 
 		component App() {
-			let active = track(false);
+			let &[active] = track(false);
 
 			<Button
-				data-active={String(@active)}
+				data-active={String(active)}
 				onClick={() => {
-					@active = !@active;
+					active = !active;
 				}}
 				{ref (el: HTMLElement) => {
 					capturedElement = el;
@@ -646,25 +646,25 @@ describe('dynamic DOM elements', () => {
 		}
 
 		component App() {
-			let active = track(false);
+			let &[active] = track(false);
 
-			let buttonProps = track(
+			let &[buttonProps] = track(
 				() => ({
-					'data-active': @active,
+					'data-active': active,
 				}),
 			);
 
 			<Button
-				{...@buttonProps}
+				{...buttonProps}
 				onClick={() => {
-					@active = !@active;
+					active = !active;
 				}}
 				{ref (el: HTMLElement) => {
 					capturedElement = el;
 				}}
 			>
 				{'content: '}
-				{@active}
+				{active}
 			</Button>
 		}
 
@@ -693,12 +693,12 @@ describe('dynamic DOM elements', () => {
 		}
 
 		component App() {
-			let active = track(false);
+			let &[active] = track(false);
 
 			<Button
-				data-active={String(@active)}
+				data-active={String(active)}
 				onClick={() => {
-					@active = !@active;
+					active = !active;
 				}}
 				{ref (el: HTMLElement) => {
 					capturedElement = el;
@@ -730,13 +730,13 @@ describe('dynamic DOM elements', () => {
 
 	it('should remove and add back a text node in a conditional statement with a tracked', () => {
 		component App() {
-			let b = track(true);
+			let &[b] = track(true);
 			<div>
-				if (@b) {
+				if (b) {
 					{'Inside if'}
 				}
 			</div>
-			<button onClick={() => (@b = !@b)}>{'Toggle b'}</button>
+			<button onClick={() => (b = !b)}>{'Toggle b'}</button>
 		}
 
 		render(App);

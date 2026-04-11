@@ -108,6 +108,23 @@ function visit_function(node, context) {
 		}
 	}
 
+	// Replace lazy destructuring params with generated identifiers
+	const transformed_params = node.params.map((param) => {
+		const pattern = param.type === 'AssignmentPattern' ? param.left : param;
+		if (
+			(pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') &&
+			pattern.lazy &&
+			pattern.metadata?.lazy_id
+		) {
+			const id = b.id(pattern.metadata.lazy_id);
+			if (param.type === 'AssignmentPattern') {
+				return /** @type {AST.AssignmentPattern} */ ({ ...param, left: id });
+			}
+			return id;
+		}
+		return param;
+	});
+
 	let body = /** @type {AST.BlockStatement | AST.Expression} */ (
 		context.visit(node.body, {
 			...state,
@@ -126,7 +143,7 @@ function visit_function(node, context) {
 
 	return {
 		...node,
-		params: node.params.map((param) => context.visit(param, state)),
+		params: transformed_params.map((param) => context.visit(param, state)),
 		body,
 	};
 }
@@ -490,13 +507,15 @@ const visitors = {
 						binding?.kind === 'prop' ||
 						binding?.kind === 'index' ||
 						binding?.kind === 'prop_fallback' ||
+						binding?.kind === 'lazy' ||
+						binding?.kind === 'lazy_fallback' ||
 						binding?.kind === 'for_pattern') &&
 					binding?.node !== node
 				) {
 					if (context.state.metadata?.tracking === false) {
 						context.state.metadata.tracking = true;
 					}
-					if (node.tracked) {
+					if (node.tracked && !binding?.read_unwraps) {
 						return b.call('_$_.get', build_getter(node, context));
 					}
 				}
@@ -589,20 +608,13 @@ const visitors = {
 			}
 		}
 
-		if (!context.state.to_ts && is_ripple_track_call(callee, context)) {
+		const matched_track_call = !context.state.to_ts ? is_ripple_track_call(callee, context) : null;
+		if (matched_track_call) {
 			const track_method_name =
-				callee.type === 'Identifier'
-					? callee.name === 'trackSplit'
-						? 'track_split'
-						: callee.name === 'trackAsync'
-							? 'track_async'
-							: 'track'
-					: callee.type === 'MemberExpression' && callee.property.type === 'Identifier'
-						? callee.property.name === 'trackSplit'
-							? 'track_split'
-							: callee.property.name === 'trackAsync'
-								? 'track_async'
-								: 'track'
+				matched_track_call === 'trackSplit'
+					? 'track_split'
+					: matched_track_call === 'trackAsync'
+						? 'track_async'
 						: 'track';
 
 			if (callee.type === 'Identifier' && callee.name === 'track') {
@@ -898,6 +910,29 @@ const visitors = {
 		for (const declarator of node.declarations) {
 			if (!context.state.to_ts) {
 				delete declarator.id.typeAnnotation;
+
+				// Replace lazy destructuring patterns with the generated identifier
+				if (
+					(declarator.id.type === 'ObjectPattern' || declarator.id.type === 'ArrayPattern') &&
+					declarator.id.lazy &&
+					declarator.id.metadata?.lazy_id
+				) {
+					declarator.id = b.id(declarator.id.metadata.lazy_id);
+				}
+			}
+		}
+
+		if (context.state.to_ts) {
+			for (const declarator of node.declarations) {
+				if (
+					(declarator.id.type === 'ObjectPattern' || declarator.id.type === 'ArrayPattern') &&
+					declarator.id.lazy
+				) {
+					declarator.id.lazy = false;
+					if (declarator.id.metadata?.lazy_id) {
+						delete declarator.id.metadata.lazy_id;
+					}
+				}
 			}
 		}
 
@@ -1892,6 +1927,7 @@ const visitors = {
 			return func;
 		}
 
+		/** @type {AST.Identifier | AST.ObjectPattern | AST.ArrayPattern} */
 		let props = b.id('__props');
 
 		if (node.params.length > 0) {
@@ -1900,8 +1936,13 @@ const visitors = {
 			if (props_param.type === 'Identifier') {
 				delete props_param.typeAnnotation;
 				props = props_param;
-			} else if (props_param.type === 'ObjectPattern') {
+			} else if (props_param.type === 'ObjectPattern' || props_param.type === 'ArrayPattern') {
 				delete props_param.typeAnnotation;
+				if (!props_param.lazy) {
+					// Non-lazy destructuring: use the pattern directly as the function param
+					props = props_param;
+				}
+				// Lazy destructuring: props stays as __props, bindings resolved via transforms
 			}
 		}
 
@@ -1950,6 +1991,24 @@ const visitors = {
 		}
 
 		const left = node.left;
+
+		// Handle lazy binding assignments (e.g., value = 5 where value is from let &[value] = track(0))
+		// Must come before the left.tracked check to use the binding's transform
+		if (left.type === 'Identifier') {
+			const binding = context.state.scope?.get(left.name);
+			if (binding?.transform?.assign && binding.node !== left) {
+				let value = /** @type {AST.Expression} */ (context.visit(node.right));
+
+				// For compound operators (+=, -=, *=, /=), expand to read + operation
+				if (node.operator !== '=') {
+					const operator = node.operator.slice(0, -1); // '+=' -> '+'
+					const current = binding.transform.read(left);
+					value = b.binary(/** @type {AST.BinaryOperator} */ (operator), current, value);
+				}
+
+				return binding.transform.assign(left, value);
+			}
+		}
 
 		if (
 			left.type === 'MemberExpression' &&
@@ -2009,6 +2068,14 @@ const visitors = {
 			return context.next();
 		}
 		const argument = node.argument;
+
+		// Handle lazy binding updates (e.g., a++ where a is from let &{a} = obj)
+		if (argument.type === 'Identifier') {
+			const binding = context.state.scope?.get(argument.name);
+			if (binding?.transform?.update && binding.node !== argument) {
+				return binding.transform.update(node);
+			}
+		}
 
 		if (
 			argument.type === 'MemberExpression' &&
@@ -2431,7 +2498,13 @@ const visitors = {
 		const id = context.state.flush_node?.();
 		const handler = /** @type {AST.CatchClause | null} */ (node.handler);
 		const pending = /** @type {AST.BlockStatement | null} */ (node.pending);
-		let body = transform_body(node.block.body, context);
+		let body = transform_body(node.block.body, {
+			...context,
+			state: {
+				...context.state,
+				scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.block)),
+			},
+		});
 
 		if (handler?.param) {
 			delete handler.param.typeAnnotation;
@@ -2454,11 +2527,30 @@ const visitors = {
 											? [handler.param]
 											: []),
 								],
-								b.block(transform_body(handler.body.body, context)),
+								b.block(
+									transform_body(handler.body.body, {
+										...context,
+										state: {
+											...context.state,
+											scope: /** @type {ScopeInterface} */ (context.state.scopes.get(handler.body)),
+										},
+									}),
+								),
 							),
 					pending === null
 						? undefined
-						: b.arrow([b.id('__anchor')], b.block(transform_body(pending.body, context))),
+						: b.arrow(
+								[b.id('__anchor')],
+								b.block(
+									transform_body(pending.body, {
+										...context,
+										state: {
+											...context.state,
+											scope: /** @type {ScopeInterface} */ (context.state.scopes.get(pending)),
+										},
+									}),
+								),
+							),
 				),
 			),
 		);

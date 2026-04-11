@@ -2036,11 +2036,15 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 
 		case 'ObjectPattern':
-			nodeContent = printObjectPattern(node, path, options, print);
+			nodeContent = node.lazy
+				? ['&', printObjectPattern(node, path, options, print)]
+				: printObjectPattern(node, path, options, print);
 			break;
 
 		case 'ArrayPattern':
-			nodeContent = printArrayPattern(node, path, options, print);
+			nodeContent = node.lazy
+				? ['&', printArrayPattern(node, path, options, print)]
+				: printArrayPattern(node, path, options, print);
 			break;
 
 		case 'Property':
@@ -2070,6 +2074,10 @@ function printRippleNode(node, path, options, print, args) {
 
 		case 'TSMethodSignature':
 			nodeContent = printTSMethodSignature(node, path, options, print);
+			break;
+
+		case 'TSCallSignatureDeclaration':
+			nodeContent = printTSCallSignatureDeclaration(node, path, options, print);
 			break;
 
 		case 'TSEnumMember':
@@ -2149,6 +2157,9 @@ function printRippleNode(node, path, options, print, args) {
 
 		case 'TSConditionalType':
 			nodeContent = printTSConditionalType(node, path, options, print);
+			break;
+		case 'TSInferType':
+			nodeContent = ['infer ', path.call(print, 'typeParameter')];
 			break;
 
 		case 'TSMappedType':
@@ -5171,6 +5182,46 @@ function printTSMethodSignature(node, path, options, print) {
 	parts.push(')');
 
 	// Return type annotation
+	if (node.typeAnnotation) {
+		parts.push(': ');
+		parts.push(path.call(print, 'typeAnnotation'));
+	}
+
+	return parts;
+}
+
+/**
+ * Print a TypeScript call signature in an interface
+ * @param {AST.TSCallSignatureDeclaration} node - The call signature node
+ * @param {AstPath<AST.TSCallSignatureDeclaration>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
+function printTSCallSignatureDeclaration(node, path, options, print) {
+	/** @type {Doc[]} */
+	const parts = [];
+
+	// Add TypeScript generics/type parameters if present
+	if (node.typeParameters) {
+		const type_params = path.call(print, 'typeParameters');
+		if (Array.isArray(type_params)) {
+			parts.push(...type_params);
+		} else {
+			parts.push(type_params);
+		}
+	}
+
+	parts.push('(');
+	if (node.parameters && node.parameters.length > 0) {
+		const params = path.map(print, 'parameters');
+		for (let i = 0; i < params.length; i++) {
+			if (i > 0) parts.push(', ');
+			parts.push(params[i]);
+		}
+	}
+	parts.push(')');
+
 	if (node.typeAnnotation) {
 		parts.push(': ');
 		parts.push(path.call(print, 'typeAnnotation'));

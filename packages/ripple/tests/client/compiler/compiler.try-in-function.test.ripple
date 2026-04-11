@@ -71,22 +71,24 @@ describe('compiler > Volar transform does not duplicate try blocks from function
 	});
 
 	it('try at component top level is preserved', () => {
-		const source = `export component App() {
+		const source = `import { trackAsync } from 'ripple';
+export component App() {
 	try {
-		await fetch('/api');
+		let &[data] = trackAsync(() => fetch('/api'));
 	} catch (e) {}
 	<div>{"hi"}</div>
 }`;
 		const result = compile_to_volar_mappings(source, 'test.ripple').code;
 
 		expect(count_occurrences(result, 'try {')).toBe(1);
-		expect(count_occurrences(result, 'await fetch')).toBe(1);
+		expect(count_occurrences(result, 'trackAsync(() => fetch(\'/api\'))')).toBe(1);
 	});
 
 	it('component-level try and function-level try coexist without duplication', () => {
-		const source = `export component App() {
+		const source = `import { trackAsync } from 'ripple';
+export component App() {
 	try {
-		await fetch('/init');
+		let &[data] = trackAsync(() => fetch('/init'));
 	} catch (e) {}
 
 	async function refresh() {
@@ -99,7 +101,7 @@ describe('compiler > Volar transform does not duplicate try blocks from function
 		const result = compile_to_volar_mappings(source, 'test.ripple').code;
 
 		expect(count_occurrences(result, 'try {')).toBe(2);
-		expect(count_occurrences(result, 'await fetch(\'/init\')')).toBe(1);
+		expect(count_occurrences(result, 'trackAsync(() => fetch(\'/init\'))')).toBe(1);
 		expect(count_occurrences(result, 'await fetch(\'/refresh\')')).toBe(1);
 	});
 

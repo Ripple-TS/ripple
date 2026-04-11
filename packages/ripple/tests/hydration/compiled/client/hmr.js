@@ -9,7 +9,7 @@ var root_3 = _$_.template(`<!>`, 1, 1);
 
 import { track } from 'ripple';
 
-export function Layout(__anchor, __props, __block) {
+export function Layout(__anchor, { children }, __block) {
 	_$_.push_component();
 
 	var div_1 = root();
@@ -21,7 +21,7 @@ export function Layout(__anchor, __props, __block) {
 		{
 			var node = _$_.child(main_1);
 
-			_$_.composite(() => __props.children, node, {});
+			children(node, {}, _$_.active_block);
 			_$_.pop(main_1);
 		}
 	}
@@ -33,7 +33,7 @@ export function Layout(__anchor, __props, __block) {
 export function Content(__anchor, _, __block) {
 	_$_.push_component();
 
-	let visible = _$_.track(true, void 0, void 0, __block);
+	let lazy = _$_.track(true, void 0, void 0, __block);
 	var div_2 = root_1();
 
 	{
@@ -47,7 +47,7 @@ export function Content(__anchor, _, __block) {
 			};
 
 			_$_.if(node_1, (__render) => {
-				if (_$_.get(visible)) __render(consequent);
+				if (_$_.get(lazy)) __render(consequent);
 			});
 		}
 

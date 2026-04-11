@@ -27,16 +27,16 @@ describe('basic client > rendering & text', () => {
 
 	it('renders dynamic text', () => {
 		component Basic() {
-			let text = track('Hello World');
+			let &[text] = track('Hello World');
 
 			<button
 				onClick={() => {
-					@text = 'Hello Ripple';
+					text = 'Hello Ripple';
 				}}
 			>
 				{'Change Text'}
 			</button>
-			<div>{@text}</div>
+			<div>{text}</div>
 		}
 
 		render(Basic);
@@ -104,24 +104,24 @@ describe('basic client > rendering & text', () => {
 
 	it('renders with mixed static and dynamic content', () => {
 		component Basic() {
-			let name = track('World');
-			let count = track(0);
+			let &[name] = track('World');
+			let &[count] = track(0);
 			const staticMessage = 'Welcome to Ripple!';
 
 			<div class="mixed-content">
 				<h1>{staticMessage}</h1>
-				<p class="greeting">{'Hello, ' + @name + '!'}</p>
-				<p class="notifications">{'You have ' + @count + ' notifications'}</p>
+				<p class="greeting">{'Hello, ' + name + '!'}</p>
+				<p class="notifications">{'You have ' + count + ' notifications'}</p>
 				<button
 					onClick={() => {
-						@count++;
+						count++;
 					}}
 				>
 					{'Add Notification'}
 				</button>
 				<button
 					onClick={() => {
-						@name = @name === 'World' ? 'User' : 'World';
+						name = name === 'World' ? 'User' : 'World';
 					}}
 				>
 					{'Toggle Name'}
@@ -151,11 +151,11 @@ describe('basic client > rendering & text', () => {
 
 	it('basic operations', () => {
 		component App() {
-			let count = track(0);
-			<div>{@count++}</div>
-			<div>{++@count}</div>
+			let &[count] = track(0);
+			<div>{count++}</div>
+			<div>{++count}</div>
 			<div>{5}</div>
-			<div>{@count}</div>
+			<div>{count}</div>
 		}
 
 		render(App);
@@ -164,27 +164,27 @@ describe('basic client > rendering & text', () => {
 
 	it('renders with conditional rendering using if statements', () => {
 		component Basic() {
-			let showContent = track(false);
-			let userRole = track('guest');
+			let &[showContent] = track(false);
+			let &[userRole] = track('guest');
 
 			<button
 				onClick={() => {
-					@showContent = !@showContent;
+					showContent = !showContent;
 				}}
 			>
 				{'Toggle Content'}
 			</button>
 			<button
 				onClick={() => {
-					@userRole = @userRole === 'guest' ? 'admin' : 'guest';
+					userRole = userRole === 'guest' ? 'admin' : 'guest';
 				}}
 			>
 				{'Toggle Role'}
 			</button>
 
 			<div class="content">
-				if (@showContent) {
-					if (@userRole === 'admin') {
+				if (showContent) {
+					if (userRole === 'admin') {
 						<div class="admin-content">{'Admin content'}</div>
 					} else {
 						<div class="user-content">{'User content'}</div>

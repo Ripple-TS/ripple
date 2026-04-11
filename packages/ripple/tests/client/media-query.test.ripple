@@ -51,10 +51,10 @@ describe('MediaQuery', () => {
 		const media = '(min-width: 600px)';
 
 		component App() {
-			const medium = MediaQuery(media);
+			let &[medium] = MediaQuery(media);
 
 			<div>
-				<p>{@medium}</p>
+				<p>{medium}</p>
 			</div>
 		}
 
@@ -86,20 +86,20 @@ describe('MediaQuery', () => {
 		const media = '(min-width: 600px)';
 
 		component App() {
-			let show = track(true);
+			let &[show] = track(true);
 
-			if (@show) {
+			if (show) {
 				<Child />
 			}
 
-			<button onClick={() => (@show = !@show)}>{'Toggle Child'}</button>
+			<button onClick={() => (show = !show)}>{'Toggle Child'}</button>
 		}
 
 		component Child() {
-			const medium = MediaQuery(media);
+			let &[medium] = MediaQuery(media);
 
 			<div>
-				<p>{@medium}</p>
+				<p>{medium}</p>
 			</div>
 		}
 

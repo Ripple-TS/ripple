@@ -229,13 +229,13 @@ component NavItem({
 }
 
 component SidebarSection({ title, children }: { title: string; children: any }) {
-	let expanded = track(true);
+	let &[expanded] = track(true);
 	<section class="sidebar-section">
 		<div class="section-header">
 			<h2>{title}</h2>
-			<button onClick={() => (@expanded = !@expanded)}>{'Toggle'}</button>
+			<button onClick={() => (expanded = !expanded)}>{'Toggle'}</button>
 		</div>
-		if (@expanded) {
+		if (expanded) {
 			<div class="section-items">
 				<children />
 			</div>

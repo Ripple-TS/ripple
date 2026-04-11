@@ -20,11 +20,11 @@ export component App() {
     <h1>{"Welcome to Ripple!"}</h1>
 
     <div>
-      let count = track(0);
+      let &[count] = track(0);
 
-      <button onClick={() => @count--}>{"-"}</button>
-      <span class="count">{@count}</span>
-      <button onClick={() => @count++}>{"+"}</button>
+      <button onClick={() => count--}>{"-"}</button>
+      <span class="count">{count}</span>
+      <button onClick={() => count++}>{"+"}</button>
     </div>
   </div>
 
@@ -59,7 +59,7 @@ needed. Prior experience with other frameworks is helpful but not required.
 
 ## Features
 
-- **Reactive Primitives**: Built-in reactivity with `track` and `@` reactive syntax on primitives
+- **Reactive Primitives**: Built-in reactivity with `track` and `&[]` lazy destructuring syntax
 - **Reactive Objects**: You can create fully reactive arrays/objects using `RippleArray` and `RippleObject`
 - **Component-Based Architecture**: Clean, reusable components with props and children
 - **Template Syntax**: Familiar templating with Ripple-specific enhancements

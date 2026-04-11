@@ -15,18 +15,18 @@ export component SwitchStatic() {
 }
 
 export component SwitchReactive() {
-	let status = track<'a' | 'b' | 'c'>('a');
+	let &[status] = track<'a' | 'b' | 'c'>('a');
 	<button
 		class="toggle"
 		onClick={() => {
-			if (@status === 'a') @status = 'b';
-			else if (@status === 'b') @status = 'c';
-			else @status = 'a';
+			if (status === 'a') status = 'b';
+			else if (status === 'b') status = 'c';
+			else status = 'a';
 		}}
 	>
 		{'Toggle'}
 	</button>
-	switch (@status) {
+	switch (status) {
 		case 'a':
 			<div class="case-a">{'Case A'}</div>
 			break;
@@ -51,18 +51,18 @@ export component SwitchFallthrough() {
 }
 
 export component SwitchNumericLevels() {
-	let level = track<1 | 2 | 3>(1);
+	let &[level] = track<1 | 2 | 3>(1);
 	<button
 		class="level-toggle"
 		onClick={() => {
-			if (@level === 1) @level = 2;
-			else if (@level === 2) @level = 3;
-			else @level = 1;
+			if (level === 1) level = 2;
+			else if (level === 2) level = 3;
+			else level = 1;
 		}}
 	>
 		{'Toggle Level'}
 	</button>
-	switch (@level) {
+	switch (level) {
 		case 1:
 			<div class="level-1">{'Level 1'}</div>
 			break;
@@ -76,18 +76,18 @@ export component SwitchNumericLevels() {
 }
 
 export component SwitchBlockScoped() {
-	let level = track<1 | 2 | 3>(1);
+	let &[level] = track<1 | 2 | 3>(1);
 	<button
 		class="block-toggle"
 		onClick={() => {
-			if (@level === 1) @level = 2;
-			else if (@level === 2) @level = 3;
-			else @level = 1;
+			if (level === 1) level = 2;
+			else if (level === 2) level = 3;
+			else level = 1;
 		}}
 	>
 		{'Toggle'}
 	</button>
-	switch (@level) {
+	switch (level) {
 		case 1: {
 			<div class="block-1">{'Block 1'}</div>
 			break;
@@ -104,18 +104,18 @@ export component SwitchBlockScoped() {
 }
 
 export component SwitchNoBreak() {
-	let level = track<1 | 2 | 3>(1);
+	let &[level] = track<1 | 2 | 3>(1);
 	<button
 		class="nobreak-toggle"
 		onClick={() => {
-			if (@level === 1) @level = 2;
-			else if (@level === 2) @level = 3;
-			else @level = 1;
+			if (level === 1) level = 2;
+			else if (level === 2) level = 3;
+			else level = 1;
 		}}
 	>
 		{'Toggle'}
 	</button>
-	switch (@level) {
+	switch (level) {
 		case 1: {
 			<div class="nobreak-1">{'NoBreak 1'}</div>
 		}
