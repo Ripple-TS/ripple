@@ -22,7 +22,7 @@ export var DESTROYED = 1 << 20;
 export var CONTROL_FLOW_BLOCK = FOR_BLOCK | IF_BLOCK | SWITCH_BLOCK | TRY_BLOCK | COMPOSITE_BLOCK;
 
 /** @type {unique symbol} */
-export const UNINITIALIZED = Symbol();
+export const UNINITIALIZED = Symbol('uninitialized');
 /** @type {unique symbol} */
 export const TRACKED_ARRAY = Symbol();
 /** @type {unique symbol} */
@@ -41,10 +41,10 @@ export const NAMESPACE_URI = {
 	mathml: 'http://www.w3.org/1998/Math/MathML',
 };
 /** @type {unique symbol} */
-export const DERIVED_UPDATED = Symbol();
+export const DERIVED_UPDATED = Symbol('derived_updated');
 /** @type {unique symbol} */
-export const SUSPENSE_PENDING = Symbol();
+export const SUSPENSE_PENDING = Symbol('suspense_pending');
 /** @type {unique symbol} */
-export const SUSPENSE_REJECTED = Symbol();
+export const SUSPENSE_REJECTED = Symbol('suspense_rejected');
 /** @type {unique symbol} */
-export const ASYNC_DERIVED_READ_THROWN = Symbol();
+export const ASYNC_DERIVED_READ_THROWN = Symbol('async_derived_read_thrown');

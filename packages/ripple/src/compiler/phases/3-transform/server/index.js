@@ -63,6 +63,22 @@ function is_template_or_control_flow(node) {
 }
 
 /**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function should_wrap_node_in_regular_block(node) {
+	return is_template_or_control_flow(node) && node.type !== 'TryStatement';
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_head_element(node) {
+	return node.type === 'Element' && node.id.type === 'Identifier' && node.id.name === 'head';
+}
+
+/**
  * Builds a negated AND condition from return flag names: !__r_1 && !__r_2 && ...
  * @param {string[]} flags
  * @returns {AST.Expression}
@@ -111,6 +127,8 @@ function collect_returns_from_children(children) {
 function transform_children(children, context) {
 	const { visit, state } = context;
 	const normalized = normalize_children(children, context);
+	const should_wrap_in_regular_block =
+		state.component !== undefined && !state.skip_regular_blocks && !state.in_regular_block;
 
 	const all_returns = collect_returns_from_children(normalized);
 	/** @type {Map<AST.ReturnStatement, { name: string, tracked: boolean }>} */
@@ -146,8 +164,20 @@ function transform_children(children, context) {
 		}
 	};
 
+	/**
+	 * @param {AST.Statement[]} statements
+	 * @returns {AST.Statement[]}
+	 */
+	const wrap_regular_block = (statements) => {
+		if (!should_wrap_in_regular_block || statements.length === 0) {
+			return statements;
+		}
+
+		return [b.stmt(b.call('_$_.regular_block', b.arrow([], b.block(statements))))];
+	};
+
 	/** @param {AST.Node} node */
-	const process_node = (node) => {
+	const process_node = (node, local_state = state) => {
 		if (node.type === 'BreakStatement') {
 			state.init?.push(b.break);
 			return;
@@ -164,7 +194,9 @@ function transform_children(children, context) {
 			node.type === 'ReturnStatement' ||
 			node.type === 'Component'
 		) {
-			state.init?.push(/** @type {AST.Statement} */ (visit(node, { ...state, return_flags })));
+			state.init?.push(
+				/** @type {AST.Statement} */ (visit(node, { ...local_state, return_flags })),
+			);
 			if (node.type === 'ReturnStatement') {
 				const info = return_flags.get(node);
 				if (info && !accumulated_flags.includes(info.name)) {
@@ -172,7 +204,7 @@ function transform_children(children, context) {
 				}
 			}
 		} else {
-			visit(node, { ...state, return_flags });
+			visit(node, { ...local_state, return_flags });
 		}
 	};
 
@@ -193,9 +225,10 @@ function transform_children(children, context) {
 		const wrapped = [];
 		const saved_init = state.init;
 		state.init = wrapped;
+		const wrapped_state = { ...state, init: wrapped, in_regular_block: true };
 
 		for (const group_node of group) {
-			process_node(group_node);
+			process_node(group_node, wrapped_state);
 		}
 
 		state.init = saved_init;
@@ -203,18 +236,43 @@ function transform_children(children, context) {
 
 		const guard = build_return_guard(guard_flags);
 		state.init?.push(
-			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN))),
+			...wrap_regular_block([
+				b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))),
+				b.if(guard, b.block(wrapped)),
+				b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))),
+			]),
 		);
-		state.init?.push(b.if(guard, b.block(wrapped)));
-		state.init?.push(
-			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_CLOSE))),
-		);
+	};
+
+	/**
+	 * @param {AST.Node} node
+	 * @returns {void}
+	 */
+	const process_wrapped_template_or_control_flow = (node) => {
+		/** @type {AST.Statement[]} */
+		const wrapped = [];
+		const saved_init = state.init;
+		state.init = wrapped;
+		const wrapped_state = { ...state, init: wrapped, in_regular_block: true };
+		process_node(node, wrapped_state);
+		state.init = saved_init;
+
+		if (wrapped.length === 0) {
+			return;
+		}
+
+		state.init?.push(...wrap_regular_block(wrapped));
 	};
 
 	for (let idx = 0; idx < normalized.length; idx++) {
 		const node = normalized[idx];
 
-		if (accumulated_flags.length > 0 && is_template_or_control_flow(node)) {
+		if (is_head_element(node)) {
+			flush_pending_group();
+			continue;
+		}
+
+		if (accumulated_flags.length > 0 && should_wrap_node_in_regular_block(node)) {
 			if (pending_group.length === 0) {
 				pending_guard_flags = [...accumulated_flags];
 			}
@@ -228,22 +286,23 @@ function transform_children(children, context) {
 		}
 
 		flush_pending_group();
-		process_node(node);
+
+		if (should_wrap_node_in_regular_block(node)) {
+			process_wrapped_template_or_control_flow(node);
+		} else {
+			process_node(node);
+		}
 		push_return_flags(node.metadata?.has_return ? node.metadata.returns : undefined);
 	}
 
 	flush_pending_group();
 
 	const head_elements = /** @type {AST.Element[]} */ (
-		children.filter(
-			(node) => node.type === 'Element' && node.id.type === 'Identifier' && node.id.name === 'head',
-		)
+		children.filter((node) => is_head_element(node))
 	);
 
 	if (head_elements.length) {
-		state.init?.push(
-			b.stmt(b.assignment('=', b.member(b.id('__output'), b.id('target')), b.literal('head'))),
-		);
+		state.init?.push(b.stmt(b.call(b.id('_$_.set_output_target'), b.literal('head'))));
 		for (let i = 0; i < head_elements.length; i++) {
 			const head_element = head_elements[i];
 			// Generate a hash for this head element to match client-side hydration
@@ -252,17 +311,17 @@ function transform_children(children, context) {
 			const hash_value = hash(hash_source);
 
 			// Emit hydration marker comment with hash
-			state.init?.push(
-				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(`<!--${hash_value}-->`))),
-			);
+			state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(`<!--${hash_value}-->`))));
 
-			transform_children(head_element.children, context);
+			transform_children(head_element.children, {
+				...context,
+				state: { ...state, skip_regular_blocks: true },
+			});
 
 			// No closing marker needed for head elements - the hash is sufficient
 		}
-		state.init?.push(
-			b.stmt(b.assignment('=', b.member(b.id('__output'), b.id('target')), b.literal(null))),
-		);
+
+		state.init?.push(b.stmt(b.call(b.id('_$_.set_output_target'), b.literal(null))));
 	}
 }
 
@@ -347,10 +406,7 @@ const visitors = {
 			context.state.stylesheets.push(node.css);
 
 			// Register CSS hash during rendering
-			body_statements.push(
-				hash,
-				b.stmt(b.call(b.member(b.id('__output'), b.id('register_css')), hash_id)),
-			);
+			body_statements.push(hash, b.stmt(b.call(b.id('_$_.output_register_css'), hash_id)));
 
 			if (node.metadata.styleIdentifierPresent) {
 				/** @type {AST.Property[]} */
@@ -381,7 +437,7 @@ const visitors = {
 
 		let component_fn = b.function(
 			node.id,
-			props_param_output ? [b.id('__output'), props_param_output] : [b.id('__output')],
+			props_param_output ? [props_param_output] : [],
 			b.block(body_statements),
 		);
 
@@ -431,37 +487,26 @@ const visitors = {
 						? 'track_async'
 						: 'track';
 
+			/** @type {(AST.Expression | AST.SpreadElement)[]} */
+			let call_args;
 			if (track_method_name === 'track_async') {
-				const hoisted_name = b.id(state.scope.generate('_$_hoisted_async'));
-				state.hoisted.push(b.var(hoisted_name));
-
-				// cache the async derived in a hoisted as we'd be rerunning component trees
-				// (_$_hoisted_async = _$_hoisted_async ?? _$_.track_async(() => promise, void 0, false))
-				return b.parenthesized(
-					b.assignment(
-						'=',
-						hoisted_name,
-						b.logical('??', hoisted_name, {
-							...node,
-							callee: b.member(b.id('_$_'), b.id(track_method_name)),
-							arguments: [
-								/** @type {AST.Expression} */ (context.visit(node.arguments[0])),
-								/** @type {AST.Expression} */ (
-									node.arguments.length > 1 ? context.visit(node.arguments[1]) : b.void0
-								),
-								b.literal(parent?.type === 'ExpressionStatement'),
-							],
-						}),
+				call_args = [
+					/** @type {AST.Expression} */ (context.visit(node.arguments[0])),
+					/** @type {AST.Expression} */ (
+						node.arguments.length > 1 ? context.visit(node.arguments[1]) : b.void0
 					),
+					b.literal(parent?.type === 'ExpressionStatement'),
+				];
+			} else {
+				call_args = /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+					node.arguments.map((arg) => context.visit(arg))
 				);
 			}
 
 			return {
 				...node,
 				callee: b.member(b.id('_$_'), b.id(track_method_name)),
-				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
-					node.arguments.map((arg) => context.visit(arg))
-				),
+				arguments: call_args,
 			};
 		}
 
@@ -837,7 +882,7 @@ const visitors = {
 			state.init?.push(
 				b.stmt(
 					b.call(
-						b.member(b.id('__output'), b.id('push')),
+						b.id('_$_.output_push'),
 						dynamic_name
 							? b.template([b.quasi('<', false), b.quasi('', false)], [tag_name])
 							: b.literal('<' + /** @type {AST.Literal} */ (tag_name).value),
@@ -870,9 +915,7 @@ const visitors = {
 							: `="${value === true ? '' : escape_html(value, true)}"`
 					}`;
 
-					state.init?.push(
-						b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(attr_str))),
-					);
+					state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(attr_str))));
 				}
 			};
 
@@ -908,7 +951,7 @@ const visitors = {
 						state.init?.push(
 							b.stmt(
 								b.call(
-									b.member(b.id('__output'), b.id('push')),
+									b.id('_$_.output_push'),
 									b.call(
 										'_$_.attr',
 										b.literal(name),
@@ -949,10 +992,7 @@ const visitors = {
 
 					state.init?.push(
 						b.stmt(
-							b.call(
-								b.member(b.id('__output'), b.id('push')),
-								b.call('_$_.attr', b.literal('class'), expression),
-							),
+							b.call(b.id('_$_.output_push'), b.call('_$_.attr', b.literal('class'), expression)),
 						),
 					);
 				}
@@ -964,7 +1004,7 @@ const visitors = {
 				state.init?.push(
 					b.stmt(
 						b.call(
-							b.member(b.id('__output'), b.id('push')),
+							b.id('_$_.output_push'),
 							b.call(
 								'_$_.spread_attrs',
 								b.object(spread_attributes),
@@ -976,12 +1016,7 @@ const visitors = {
 			}
 
 			state.init?.push(
-				b.stmt(
-					b.call(
-						b.member(b.id('__output'), b.id('push')),
-						b.literal(use_self_closing_syntax ? ' />' : '>'),
-					),
-				),
+				b.stmt(b.call(b.id('_$_.output_push'), b.literal(use_self_closing_syntax ? ' />' : '>'))),
 			);
 
 			// In dev mode, emit push_element for runtime nesting validation
@@ -1031,7 +1066,7 @@ const visitors = {
 					state.init?.push(
 						b.stmt(
 							b.call(
-								b.member(b.id('__output'), b.id('push')),
+								b.id('_$_.output_push'),
 								dynamic_name
 									? b.template([b.quasi('</', false), b.quasi('>', false)], [tag_name])
 									: b.literal('</' + /** @type {AST.Literal} */ (tag_name).value + '>'),
@@ -1131,7 +1166,7 @@ const visitors = {
 				props.push(b.prop('init', b.id('children'), children));
 			}
 
-			const args = [b.id('__output'), b.object(props)];
+			const args = [b.object(props)];
 
 			// Check if this is a locally defined component
 			const component_name = node.id.type === 'Identifier' ? node.id.name : null;
@@ -1169,9 +1204,7 @@ const visitors = {
 					}),
 				);
 
-				statements.push(
-					b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN))),
-				);
+				statements.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
 
 				statements.push(
 					b.if(
@@ -1182,9 +1215,7 @@ const visitors = {
 					),
 				);
 
-				statements.push(
-					b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_CLOSE))),
-				);
+				statements.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))));
 			}
 
 			state.init?.push(b.block(statements));
@@ -1222,17 +1253,13 @@ const visitors = {
 			);
 		}
 
-		context.state.init?.push(
-			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN))),
-		);
+		context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
 
 		context.state.init?.push(
 			b.switch(/** @type {AST.Expression} */ (context.visit(node.discriminant)), cases),
 		);
 
-		context.state.init?.push(
-			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_CLOSE))),
-		);
+		context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))));
 	},
 
 	ForOfStatement(node, context) {
@@ -1242,9 +1269,7 @@ const visitors = {
 		}
 		const body_scope = context.state.scopes.get(node.body);
 
-		context.state.init?.push(
-			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN))),
-		);
+		context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
 
 		const body = transform_body(/** @type {AST.BlockStatement} */ (node.body).body, {
 			...context,
@@ -1265,9 +1290,7 @@ const visitors = {
 			),
 		);
 
-		context.state.init?.push(
-			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_CLOSE))),
-		);
+		context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))));
 	},
 
 	IfStatement(node, context) {
@@ -1291,9 +1314,7 @@ const visitors = {
 			}),
 		);
 
-		context.state.init?.push(
-			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_OPEN))),
-		);
+		context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
 
 		/** @type {AST.BlockStatement | AST.IfStatement | null} */
 		let alternate = null;
@@ -1316,9 +1337,7 @@ const visitors = {
 			b.if(/** @type {AST.Expression} */ (context.visit(node.test)), consequent, alternate),
 		);
 
-		context.state.init?.push(
-			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(BLOCK_CLOSE))),
-		);
+		context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))));
 	},
 
 	ReturnStatement(node, context) {
@@ -1412,9 +1431,6 @@ const visitors = {
 			return context.next();
 		}
 
-		// TODO: keep for now
-		const has_pending = node.pending !== null;
-
 		const body = transform_body(node.block.body, {
 			...context,
 			state: {
@@ -1423,8 +1439,11 @@ const visitors = {
 			},
 		});
 
-		/** @type {AST.CatchClause | null} */
-		let catch_clause = null;
+		const try_fn = b.arrow([], b.block(body));
+
+		/** @type {AST.Expression} */
+		let catch_fn = b.literal(null);
+
 		const handler = node.handler;
 		if (handler) {
 			if (handler.param) {
@@ -1444,9 +1463,8 @@ const visitors = {
 				);
 			}
 
-			catch_clause = b.catch_clause(
-				handler.param || b.id('error'),
-				null,
+			catch_fn = b.arrow(
+				[handler.param || b.id('error')],
 				b.block([
 					...(reset ? [reset] : []),
 					...transform_body(handler.body.body, {
@@ -1460,11 +1478,22 @@ const visitors = {
 			);
 		}
 
-		if (catch_clause) {
-			context.state.init?.push(b.try(b.block(body), catch_clause));
-		} else {
-			context.state.init?.push(...body);
-		}
+		const pending_fn = node.pending
+			? b.arrow(
+					[],
+					b.block(
+						transform_body(node.pending.body, {
+							...context,
+							state: {
+								...context.state,
+								scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.pending)),
+							},
+						}),
+					),
+				)
+			: b.literal(null);
+
+		context.state.init?.push(b.stmt(b.call('_$_.try_block', try_fn, catch_fn, pending_fn)));
 	},
 
 	Text(node, { visit, state }) {
@@ -1472,14 +1501,10 @@ const visitors = {
 
 		if (expression.type === 'Literal') {
 			state.init?.push(
-				b.stmt(
-					b.call(b.member(b.id('__output'), b.id('push')), b.literal(escape(expression.value))),
-				),
+				b.stmt(b.call(b.id('_$_.output_push'), b.literal(escape(expression.value)))),
 			);
 		} else {
-			state.init?.push(
-				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.call('_$_.escape', expression))),
-			);
+			state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.call('_$_.escape', expression))));
 		}
 	},
 
@@ -1491,15 +1516,11 @@ const visitors = {
 			const value = String(expression.value ?? '');
 			const hash_value = hash(value);
 			// Push hash comment
-			state.init?.push(
-				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(`<!--${hash_value}-->`))),
-			);
+			state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(`<!--${hash_value}-->`))));
 			// Push the HTML content
-			state.init?.push(b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(value))));
+			state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(value))));
 			// Push empty comment as end marker
-			state.init?.push(
-				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal('<!---->'))),
-			);
+			state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal('<!---->'))));
 		} else {
 			// For dynamic values, compute hash at runtime
 			// Create a variable to store the value
@@ -1512,7 +1533,7 @@ const visitors = {
 				state.init?.push(
 					b.stmt(
 						b.call(
-							b.member(b.id('__output'), b.id('push')),
+							b.id('_$_.output_push'),
 							b.binary(
 								'+',
 								b.binary('+', b.literal('<!--'), b.call('_$_.hash', b.id(value_id))),
@@ -1522,19 +1543,15 @@ const visitors = {
 					),
 				);
 				// Push the HTML content
-				state.init?.push(b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.id(value_id))));
+				state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.id(value_id))));
 				// Push empty comment as end marker
-				state.init?.push(
-					b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal('<!---->'))),
-				);
+				state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal('<!---->'))));
 			}
 		}
 	},
 
 	ScriptContent(node, context) {
-		context.state.init?.push(
-			b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.literal(node.content))),
-		);
+		context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(node.content))));
 	},
 
 	ServerBlock(node, context) {
@@ -1639,7 +1656,6 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 		to_ts: false,
 		metadata: {},
 		dev,
-		hoisted: [],
 	};
 
 	state.imports.add(`import * as _$_ from 'ripple/internal/server'`);
@@ -1670,10 +1686,6 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 		} else {
 			body.push(import_node);
 		}
-	}
-
-	for (const hoisted of state.hoisted) {
-		body.push(hoisted);
 	}
 
 	body.push(...program.body);

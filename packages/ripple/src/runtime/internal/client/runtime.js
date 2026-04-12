@@ -487,8 +487,9 @@ function run_derived(computed) {
 	} catch (error) {
 		computed.d = active_dependency;
 		if (error === ASYNC_DERIVED_READ_THROWN) {
-			if (computed.ia && !computed.dr && !computed.dj) {
-				// Only trackAsync deriveds need a deferred boundary request.
+			if (!computed.dr && !computed.dj) {
+				// any regular or async derived needs deferred promise,
+				// as they can be dependencies for other deriveds
 				// Only create the synthetic promise once in case
 				// there are multiple async dependencies used in the derived
 				var deferred_promise = new Promise((resolve, reject) => {
@@ -594,6 +595,7 @@ export function run_block(block) {
 
 var empty_get_set = { get: undefined, set: undefined };
 
+/** @type {Tracked} */
 class TrackedValue {
 	/**
 	 * @param {any} v
@@ -608,31 +610,32 @@ class TrackedValue {
 		this.__v = v;
 	}
 	get [0]() {
-		return get_tracked(/** @type {Tracked} */ (this));
+		return get_tracked(this);
 	}
 	set [0](v) {
-		set(/** @type {Tracked} */ (this), v);
+		set(this, v);
 	}
 	get [1]() {
 		return this;
 	}
 	get value() {
-		return get_tracked(/** @type {Tracked} */ (this));
+		return get_tracked(this);
 	}
 	/** @param {any} v */
 	set value(v) {
-		set(/** @type {Tracked} */ (this), v);
+		set(this, v);
 	}
 	/** @returns {2} */
 	get length() {
 		return 2;
 	}
 	*[Symbol.iterator]() {
-		yield get_tracked(/** @type {Tracked} */ (this));
+		yield get_tracked(this);
 		yield this;
 	}
 }
 
+/** @type {Derived} */
 class DerivedValue {
 	/**
 	 * @param {Function} fn
@@ -664,27 +667,27 @@ class DerivedValue {
 		this.__v = UNINITIALIZED;
 	}
 	get [0]() {
-		return get_derived(/** @type {Derived} */ (this));
+		return get_derived(this);
 	}
 	set [0](v) {
-		set(/** @type {Derived} */ (this), v);
+		set(this, v);
 	}
 	get [1]() {
 		return this;
 	}
 	get value() {
-		return get_derived(/** @type {Derived} */ (this));
+		return get_derived(this);
 	}
 	/** @param {any} v */
 	set value(v) {
-		set(/** @type {Derived} */ (this), v);
+		set(this, v);
 	}
 	/** @returns {2} */
 	get length() {
 		return 2;
 	}
 	*[Symbol.iterator]() {
-		yield get_derived(/** @type {Derived} */ (this));
+		yield get_derived(this);
 		yield this;
 	}
 }
@@ -778,7 +781,7 @@ export function track_async(v, options = {}, force_eager, b) {
  * @param {(Derived | Tracked) | (() => any)} tracked
  * @returns {boolean}
  */
-export function tracked_pending(tracked) {
+export function is_tracked_pending(tracked) {
 	try {
 		if (typeof tracked === 'function') {
 			tracked();

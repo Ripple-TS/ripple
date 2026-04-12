@@ -115,6 +115,7 @@ export {
 	track_split as trackSplit,
 	untrack,
 	tick,
+	is_tracked_pending as trackPending,
 	peek_tracked as peek,
 } from './internal/client/runtime.js';
 

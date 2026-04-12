@@ -608,12 +608,15 @@ export class Output {
 
 /**
  * @param {RenderComponent} component
- * @param {BaseRenderOptions} [default_options]
+ * @param {BaseRenderOptions} [passed_in_options]
  * @returns {Promise<RenderResult | RenderStreamResult>}
  */
-export async function render(component, default_options = {}) {
+export async function render(component, passed_in_options = {}) {
 	/** @type {BaseRenderOptions} */
-	var options = { closeStream: true, ...default_options };
+	var options = {
+		...(passed_in_options.stream ? { closeStream: true } : {}),
+		...passed_in_options,
+	};
 	/** @type {Error | null } */
 	var top_level_error = null;
 	var head = '';
@@ -729,6 +732,14 @@ export function output_push(str) {
  */
 export function set_output_target(target) {
 	/** @type {Block} */ (active_block).o.target = target;
+}
+
+/**
+ * @param {string} hash
+ * @returns {void}
+ */
+export function output_register_css(hash) {
+	/** @type {Block} */ (active_block).o.register_css(hash);
 }
 
 /**
@@ -1020,6 +1031,7 @@ export function spread_attrs(attrs, css_hash) {
 
 var empty_get_set = { get: undefined, set: undefined };
 
+/** @type {Tracked} */
 class TrackedValue {
 	/**
 	 * @param {any} v
@@ -1057,6 +1069,7 @@ class TrackedValue {
 	}
 }
 
+/** @type {Derived} */
 class DerivedValue {
 	/**
 	 * @param {Function} fn
@@ -1064,9 +1077,11 @@ class DerivedValue {
 	 */
 	constructor(fn, a) {
 		this.a = a;
+		// we always should have an active block
+		// even in async we rerun blocks so we can rely on this
+		this.b = /** @type {Block} */ (active_block);
 		this.c = 0;
 		this.co = active_component;
-		/** @type {null | import('#server').Dependency} */
 		this.d = null;
 		this.f = TRACKED | DERIVED;
 		this.fn = fn;
@@ -1170,6 +1185,38 @@ export function track_async(v, options = {}, force_eager) {
 }
 
 /**
+ * @param {(Derived | Tracked) | (() => any)} tracked
+ * @returns {boolean}
+ */
+export function is_tracked_pending(tracked) {
+	try {
+		if (typeof tracked === 'function') {
+			tracked();
+		} else {
+			get(tracked);
+		}
+		return false;
+	} catch (error) {
+		if (error === ASYNC_DERIVED_READ_THROWN) {
+			return true;
+		}
+		throw error;
+	}
+}
+
+/**
+ * @param {Tracked | Derived} tracked
+ * @return {any}
+ */
+export function peek_tracked(tracked) {
+	if (!is_ripple_object(tracked)) {
+		return tracked;
+	}
+
+	return tracked.v;
+}
+
+/**
  * @returns {Derived}
  */
 function get_active_derived() {
@@ -1211,7 +1258,15 @@ function register_block_rerun(block) {
 			run_block(block);
 			try_catch_block.o.resolveAsync(operation);
 		},
-		(reason) => {
+		() => {
+			if (cancelled) {
+				return;
+			}
+			// reset_state();
+			// run_block(block);
+			// if (!cancelled) {
+			// 	try_catch_block.o.resolveAsync(operation);
+			// }
 			cancel_async_operations(try_catch_block);
 		},
 	);
@@ -1225,9 +1280,13 @@ function register_block_rerun(block) {
 export function run_block(block) {
 	var previous_block = active_block;
 	var previous_component = active_component;
+	var previous_tracking = tracking;
+	var previous_dependency = active_dependency;
 	try {
 		active_block = block;
 		active_component = block.co;
+		tracking = true;
+		active_dependency = null;
 		block.fn(block.o);
 	} catch (error) {
 		var output = block.o;
@@ -1253,6 +1312,8 @@ export function run_block(block) {
 	} finally {
 		active_block = previous_block;
 		active_component = previous_component;
+		tracking = previous_tracking;
+		active_dependency = previous_dependency;
 	}
 }
 
@@ -1289,15 +1350,20 @@ function normalize_derived_value(computed, value, type) {
 	// see the logic below for the `!== 'deferred'` check
 	computed.ap = async_result.promise;
 
-	// the updates for the derived value must run first, so that SUSPENSE_PENDING
-	// is replaced by the real value, before any other thenable can run
-	// and read the derived's value
+	// this has to be the real promise that was returned by the async derived's function
 	async_result.promise.then(
 		(resolved) => {
+			// the updates for the derived value must run first, so that SUSPENSE_PENDING
+			// is replaced by the real value, before any other thenable can run
+			// and read the derived's value
 			update_derived_value_clock(computed, resolved);
 		},
 		(error) => {
 			update_derived_value(computed, SUSPENSE_REJECTED);
+			// this has to be an async failure so,
+			// we need to find the closest catch block and cancel all operations
+			// clear output, etc.
+			cancel_async_operations(get_closest_catch_block(computed.b));
 		},
 	);
 

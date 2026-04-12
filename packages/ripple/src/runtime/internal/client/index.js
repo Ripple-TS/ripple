@@ -58,7 +58,7 @@ export {
 	update_pre_property,
 	track,
 	track_async,
-	tracked_pending,
+	is_tracked_pending,
 	peek_tracked,
 	track_split,
 	push_component,

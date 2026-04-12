@@ -177,7 +177,7 @@ const RIPPLE_IMPORT_CALL_NAME = {
 	Context: { name: 'context' },
 	effect: { name: 'effect' },
 	untrack: { name: 'untrack' },
-	trackPending: { name: 'tracked_pending' },
+	trackPending: { name: 'is_tracked_pending' },
 	peek: { name: 'peek_tracked' },
 };
 

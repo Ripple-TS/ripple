@@ -1287,7 +1287,6 @@ export interface TransformServerState extends BaseState {
 	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
 	dev?: boolean;
 	return_flags?: Map<AST.ReturnStatement, { name: string; tracked: boolean }>;
-	hoisted: Array<AST.Statement>;
 }
 
 type UpdateList = Array<

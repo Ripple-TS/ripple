@@ -15,6 +15,7 @@ export type Dependency = {
 
 export type Derived = {
 	a: { get?: Function; set?: Function };
+	b: Block;
 	c: number;
 	co: null | Component;
 	d: null | Dependency;
