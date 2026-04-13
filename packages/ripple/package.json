@@ -64,8 +64,14 @@
     "./internal/client": {
       "default": "./src/runtime/internal/client/index.js"
     },
+    "./internal/client-types": {
+      "types": "./src/runtime/internal/client/types.d.ts"
+    },
     "./internal/server": {
       "default": "./src/runtime/internal/server/index.js"
+    },
+    "./internal/server-types": {
+      "types": "./src/runtime/internal/server/types.d.ts"
     },
     "./jsx-runtime": {
       "types": "./src/jsx-runtime.d.ts",

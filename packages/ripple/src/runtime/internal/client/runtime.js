@@ -159,7 +159,7 @@ export function run_teardown(block) {
 
 /**
  * @param {Block} block
- * @param {() => void} fn
+ * @param {() => any} fn
  */
 export function with_block(block, fn) {
 	var prev_block = active_block;

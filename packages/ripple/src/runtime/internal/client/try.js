@@ -286,7 +286,9 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null) {
 				has_resolved = true;
 				mode = 'resolved';
 			});
-
+			// this is more just in case here and shouldn't really cause anything to run
+			// most likely the scheduling is already there
+			// leaving it here in case there are some weird edge cases
 			queue_microtask();
 		}
 

@@ -1,5 +1,6 @@
 /** @import { Tsx } from '../types' */
 /** @import { ReactNode } from 'react' */
+/** @import { Block } from 'ripple/internal/client-types' */
 
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import {
@@ -28,6 +29,10 @@ import {
 	destroy_block,
 	root,
 	init_operations,
+	resume_block,
+	is_destroyed,
+	queue_post_block_flush_callback,
+	schedule_update,
 } from 'ripple/internal/client';
 import { Context } from 'ripple';
 
@@ -51,10 +56,11 @@ function map_portals(portals) {
 }
 
 /**
- * @param {any} block
+ * @param {Block} block
  * @returns {boolean}
  */
 function is_inside_try_pending(block) {
+	/** @type {Block | null} */
 	let current = block;
 
 	while (current) {
@@ -92,7 +98,6 @@ export function createReactCompat() {
 				react_node = children_fn(tsx);
 				trigger?.();
 			});
-			// @ts-ignore
 			target_element.__ripple_block = e;
 
 			/**
@@ -186,9 +191,9 @@ function get_block_from_dom(node) {
 	/** @type {null | ParentNode} */
 	let current = node;
 	while (current) {
-		const b = /** @type {any} */ (current).__ripple_block;
+		const b = /** @type {Element} */ (current).__ripple_block;
 		if (b) {
-			return /** @type {any} */ (b);
+			return b;
 		}
 		current = current.parentNode;
 	}
@@ -234,20 +239,48 @@ export function Ripple({ component, props }) {
 		const proxied_props = proxy_props(() => get_tracked(tracked_props));
 		frag.append(anchor);
 
-		/** @type {any} */
+		/** @type {Block} */
 		const b = with_block(block, () => {
 			PortalContext.set({ portals, update });
 
 			let pending_count = 0;
 			let request_version = 0;
+			let has_resolved = false;
+			/** @type {Set<number>} */
+			const active_requests = new Set();
 			/** @type {((value?: unknown) => void) | null} */
 			let resolve_fn = null;
+			/** @type {Map<number, (reason: any) => void>} */
+			const pending_deferreds = new Map();
+			/** @type {Set<Block>} */
+			const paused_blocks = new Set();
+			/** @type {Block | null} */
+			let boundary_block = null;
+
+			function resume_paused_blocks() {
+				if (paused_blocks.size === 0) {
+					return;
+				}
+
+				const blocks = paused_blocks;
+				paused_blocks.clear();
+
+				for (const block of blocks) {
+					if (!is_destroyed(block)) {
+						resume_block(block);
+					}
+				}
+			}
 
 			function begin_request() {
 				const request_id = ++request_version;
+				active_requests.add(request_id);
 				pending_count++;
 
-				if (suspense_ref.current === null) {
+				// Only suspend via React on the initial load. After the first
+				// resolution, subsequent async requests keep the existing
+				// resolved content visible (stale-while-revalidate).
+				if (suspense_ref.current === null && !has_resolved) {
 					const promise = new Promise((_resolve) => {
 						resolve_fn = _resolve;
 					});
@@ -259,20 +292,61 @@ export function Ripple({ component, props }) {
 			}
 
 			/**
+			 * @param {number} old_request_id
+			 * @returns {number}
+			 */
+			function replace_request(old_request_id) {
+				active_requests.delete(old_request_id);
+				pending_deferreds.delete(old_request_id);
+				// pending_count unchanged — one out, one in
+				const request_id = ++request_version;
+				active_requests.add(request_id);
+				return request_id;
+			}
+
+			/**
 			 * @param {number} request_id
 			 * @param {boolean} [render_resolved_branch=true]
 			 * @returns {boolean}
 			 */
 			function complete_request(request_id, render_resolved_branch = true) {
+				if (!active_requests.delete(request_id)) {
+					return false;
+				}
+
+				pending_deferreds.delete(request_id);
 				pending_count--;
 
 				if (pending_count <= 0) {
 					pending_count = 0;
-					if (resolve_fn !== null) {
-						resolve_fn();
-						resolve_fn = null;
+
+					if (!render_resolved_branch) {
+						paused_blocks.clear();
+						return true;
 					}
-					suspense_ref.current = null;
+
+					resume_paused_blocks();
+
+					// Schedule the boundary block for update so that child blocks
+					// (e.g. render blocks using trackPending) get re-checked during
+					// the flush and re-run if their dependencies are dirty.
+					if (boundary_block !== null && !is_destroyed(boundary_block)) {
+						schedule_update(boundary_block);
+					}
+
+					queue_post_block_flush_callback(() => {
+						if (pending_count > 0) {
+							return;
+						}
+
+						has_resolved = true;
+
+						if (resolve_fn !== null) {
+							resolve_fn();
+							resolve_fn = null;
+						}
+						suspense_ref.current = null;
+					});
 				}
 
 				return true;
@@ -283,15 +357,26 @@ export function Ripple({ component, props }) {
 				b: begin_request,
 				r: complete_request,
 				c: null,
+				/** @param {number} request_id @param {(reason: any) => void} reject_fn */
+				rd: (request_id, reject_fn) => {
+					pending_deferreds.set(request_id, reject_fn);
+				},
+				/** @param {Block} block */
+				pb: (block) => {
+					paused_blocks.add(block);
+				},
+				rp: replace_request,
 			};
 
-			return branch(
+			boundary_block = branch(
 				() => {
 					component(anchor, proxied_props);
 				},
 				TRY_BLOCK,
 				state,
 			);
+
+			return boundary_block;
 		});
 
 		span.append(frag);

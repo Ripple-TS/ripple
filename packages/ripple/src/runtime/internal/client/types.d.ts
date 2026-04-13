@@ -92,6 +92,7 @@ declare global {
 			value?: string;
 		};
 		__click?: () => void;
+		__ripple_block?: Block;
 	}
 
 	interface Event {

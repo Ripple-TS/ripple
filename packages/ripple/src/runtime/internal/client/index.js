@@ -26,6 +26,8 @@ export {
 	move_block,
 	root,
 	user_effect as effect,
+	resume_block,
+	is_destroyed,
 } from './blocks.js';
 
 export {
@@ -73,6 +75,8 @@ export {
 	with_block,
 	with_ns,
 	handle_error,
+	queue_post_block_flush_callback,
+	schedule_update,
 } from './runtime.js';
 
 export { composite } from './composite.js';
