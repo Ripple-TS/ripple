@@ -1,5 +1,5 @@
 import type { Tracked } from 'ripple';
-import { DERIVED_UPDATED, flushSync, track, trackAsync } from 'ripple';
+import { DERIVED_UPDATED, effect, flushSync, track, trackAsync } from 'ripple';
 
 describe('async suspense', () => {
 	it('hides child content during re-suspension when tracked dependency changes', async () => {
@@ -328,6 +328,258 @@ describe('async suspense', () => {
 		expect(container.innerHTML).not.toContain('banana');
 		expect(container.innerHTML).not.toContain('cherry');
 		expect(container.querySelector('pre')!.textContent).toBe('["avocado","blueberry","citrus"]');
+	});
+
+	it(
+		'defers paused async consumer blocks until chained async requests settle with render only running once',
+		async () => {
+			let resolve_double: ((value: number) => void) | null = null;
+			let resolve_quadruple: ((value: number) => void) | null = null;
+			let double_effect_runs = 0;
+			let quadruple_effect_runs = 0;
+			let times_rendered = 0;
+			component Child(&{ count }: { count: number }) {
+				const &[double]: [number] = trackAsync(() => {
+					const result = count * 2;
+
+					return new Promise<number>((resolve) => {
+						resolve_double = () => resolve(result);
+					});
+				});
+
+				const &[quadruple]: [number] = trackAsync(() => {
+					const result = double * 2;
+
+					return new Promise<number>((resolve) => {
+						resolve_quadruple = () => resolve(result);
+					});
+				});
+
+				effect(() => {
+					double;
+					double_effect_runs += 1;
+				});
+
+				effect(() => {
+					quadruple;
+					quadruple_effect_runs += 1;
+				});
+
+				<div class="double">{double}</div>
+				<div class="quadruple">{quadruple}</div>
+				<div class="times-rendered">
+					{'times: '}
+					{++times_rendered}
+				</div>
+			}
+
+			component App() {
+				let &[count] = track(2);
+
+				try {
+					<Child {count} />
+				} pending {
+					<div class="pending">{'Loading...'}</div>
+				}
+
+				<button onClick={() => count++}>{'Increment'}</button>
+			}
+
+			render(App);
+
+			const button = container.querySelector('button') as HTMLButtonElement;
+
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			expect(container.innerHTML).toContain('Loading...');
+			expect(double_effect_runs).toBe(0);
+			expect(quadruple_effect_runs).toBe(0);
+
+			(resolve_double as (value: number) => void)(4);
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			expect(container.innerHTML).toContain('Loading...');
+			expect(double_effect_runs).toBe(0);
+			expect(quadruple_effect_runs).toBe(0);
+
+			(resolve_quadruple as (value: number) => void)(8);
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			expect(container.innerHTML).not.toContain('Loading...');
+			expect(container.querySelector('.double')!.textContent).toBe('4');
+			expect(container.querySelector('.quadruple')!.textContent).toBe('8');
+			expect(double_effect_runs).toBe(1);
+			expect(quadruple_effect_runs).toBe(1);
+			expect(times_rendered).toBe(1);
+
+			button.click();
+			flushSync();
+
+			(resolve_double as (value: number) => void)(6);
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			(resolve_quadruple as (value: number) => void)(12);
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			expect(container.querySelector('.double')!.textContent).toBe('6');
+			expect(container.querySelector('.quadruple')!.textContent).toBe('12');
+			expect(container.querySelector('.times-rendered')!.textContent).toBe('times: 2');
+			expect(times_rendered).toBe(2);
+		},
+	);
+
+	it(
+		'chained async requests settle with render only running once when multiple consecutive requests are fired off',
+		async () => {
+			let resolve_double: ((value: number) => void) | null = null;
+			let resolve_quadruple: ((value: number) => void) | null = null;
+			let double_effect_runs = 0;
+			let quadruple_effect_runs = 0;
+			let times_rendered = 0;
+			component Child(&{ count }: { count: number }) {
+				const &[double]: [number] = trackAsync(() => {
+					const result = count * 2;
+
+					return new Promise<number>((resolve) => {
+						resolve_double = () => resolve(result);
+					});
+				});
+
+				const &[quadruple]: [number] = trackAsync(() => {
+					const result = double * 2;
+
+					return new Promise<number>((resolve) => {
+						resolve_quadruple = () => resolve(result);
+					});
+				});
+
+				effect(() => {
+					double;
+					double_effect_runs += 1;
+				});
+
+				effect(() => {
+					quadruple;
+					quadruple_effect_runs += 1;
+				});
+
+				<div class="double">{double}</div>
+				<div class="quadruple">{quadruple}</div>
+				<div class="times-rendered">
+					{'times: '}
+					{++times_rendered}
+				</div>
+			}
+
+			component App() {
+				let &[count] = track(2);
+
+				try {
+					<Child {count} />
+				} pending {
+					<div class="pending">{'Loading...'}</div>
+				}
+
+				<button onClick={() => count++}>{'Increment'}</button>
+			}
+
+			render(App);
+
+			const button = container.querySelector('button') as HTMLButtonElement;
+
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			expect(container.innerHTML).toContain('Loading...');
+			expect(double_effect_runs).toBe(0);
+			expect(quadruple_effect_runs).toBe(0);
+
+			(resolve_double as (value: number) => void)(4);
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			expect(container.innerHTML).toContain('Loading...');
+			expect(double_effect_runs).toBe(0);
+			expect(quadruple_effect_runs).toBe(0);
+
+			(resolve_quadruple as (value: number) => void)(8);
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			expect(container.innerHTML).not.toContain('Loading...');
+			expect(container.querySelector('.double')!.textContent).toBe('4');
+			expect(container.querySelector('.quadruple')!.textContent).toBe('8');
+			expect(double_effect_runs).toBe(1);
+			expect(quadruple_effect_runs).toBe(1);
+			expect(times_rendered).toBe(1);
+
+			button.click();
+			flushSync();
+			button.click();
+			flushSync();
+			button.click();
+			flushSync();
+
+			(resolve_double as (value: number) => void)(10);
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			(resolve_quadruple as (value: number) => void)(12);
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			expect(container.querySelector('.double')!.textContent).toBe('10');
+			expect(container.querySelector('.quadruple')!.textContent).toBe('20');
+			expect(container.querySelector('.times-rendered')!.textContent).toBe('times: 2');
+			expect(times_rendered).toBe(2);
+		},
+	);
+
+	it('resolves chained async values without explicit flushSync', async () => {
+		let times_rendered = 0;
+		component Child(&{ count }: { count: number }) {
+			const &[double]: [number] = trackAsync(() => {
+				const result = count * 2;
+
+				return new Promise<number>((resolve) => {
+					setTimeout(() => resolve(result), 0);
+				});
+			});
+
+			const &[quadruple]: [number] = trackAsync(() => {
+				const result = double * 2;
+
+				return new Promise<number>((resolve) => {
+					setTimeout(() => resolve(result), 0);
+				});
+			});
+
+			<div class="double">{double}</div>
+			<div class="quadruple">{quadruple}</div>
+			<div class="times-rendered">
+				{'times: '}
+				{++times_rendered}
+			</div>
+		}
+
+		component App() {
+			let &[count] = track(0);
+
+			<button onClick={() => count++}>{count}</button>
+
+			try {
+				<Child {count} />
+			} pending {
+				<div class="pending">{'Loading...'}</div>
+			}
+		}
+
+		render(App);
+
+		await new Promise((resolve) => setTimeout(resolve, 10));
+
+		expect(container.innerHTML).not.toContain('Loading...');
+		expect(container.querySelector('.double')!.textContent).toBe('0');
+		expect(container.querySelector('.quadruple')!.textContent).toBe('0');
+		expect(container.querySelector('.times-rendered')!.textContent).toBe('times: 1');
+		expect(times_rendered).toBe(1);
 	});
 
 	it('throws when trackAsync is used without a try/pending boundary', () => {

@@ -37,7 +37,6 @@ export type Derived = {
 	a: { get?: Function; set?: Function };
 	aa: AbortController | null;
 	ap: PromiseLike<any> | null;
-	aq: boolean;
 	as: Block | null;
 	at: Block | null;
 	ai: number;

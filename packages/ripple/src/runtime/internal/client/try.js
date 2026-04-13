@@ -6,6 +6,7 @@ import {
 	destroy_block,
 	is_destroyed,
 	move_block,
+	resume_block,
 } from './blocks.js';
 import { TRY_BLOCK } from './constants.js';
 import {
@@ -17,7 +18,12 @@ import {
 	skip_to_hydration_end,
 } from './hydration.js';
 import { get_next_sibling } from './operations.js';
-import { active_block, queue_microtask, with_block } from './runtime.js';
+import {
+	active_block,
+	queue_microtask,
+	queue_post_block_flush_callback,
+	with_block,
+} from './runtime.js';
 
 /**
 	@typedef {(
@@ -57,6 +63,44 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null) {
 	var mode = 'resolved';
 	/** @type {Map<number, (reason: any) => void>} */
 	var pending_deferreds = new Map();
+	/** @type {Set<Block>} */
+	var paused_blocks = new Set();
+
+	function clear_paused_blocks() {
+		paused_blocks.clear();
+	}
+
+	/**
+	 * @returns {boolean}
+	 */
+	function resume_paused_blocks() {
+		if (paused_blocks.size === 0) {
+			return false;
+		}
+
+		var blocks = paused_blocks;
+		paused_blocks = new Set();
+		var resumed = false;
+
+		for (var block of blocks) {
+			if (!is_destroyed(block)) {
+				resume_block(block);
+				resumed = true;
+			}
+		}
+
+		return resumed;
+	}
+
+	function show_resolved_fragment() {
+		if (offscreen_fragment !== null) {
+			/** @type {ChildNode} */ (anchor).before(offscreen_fragment);
+			offscreen_fragment = null;
+		}
+
+		has_resolved = true;
+		mode = 'resolved';
+	}
 
 	function render_resolved() {
 		if (
@@ -137,6 +181,7 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null) {
 	function handle_error(error) {
 		pending_count = 0;
 		active_requests.clear();
+		clear_paused_blocks();
 
 		// Reject all pending deferred promises so dependent deriveds' settle
 		// handlers fire and clean up. The settle will see the request already
@@ -178,14 +223,9 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null) {
 		var request_id = ++request_version;
 		active_requests.add(request_id);
 
-		if (pending_count++ === 0 && pending_fn !== null) {
+		if (pending_count++ === 0 && pending_fn !== null && !has_resolved) {
 			queue_microtask(() => {
-				if (
-					try_block !== null &&
-					!is_destroyed(try_block) &&
-					pending_count > 0 &&
-					mode !== 'pending'
-				) {
+				if (try_block !== null && !is_destroyed(try_block) && pending_count > 0 && !has_resolved) {
 					render_pending();
 				}
 			});
@@ -222,29 +262,32 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null) {
 		pending_count--;
 
 		if (pending_count === 0) {
-			// Async resolved before pending microtask fired
-			if (mode !== 'pending') {
-				has_resolved = true;
+			if (!show_resolved_branch) {
+				clear_paused_blocks();
 				return true;
 			}
 
-			// Transitioning from pending back
-			if (try_block !== null && !is_destroyed(try_block)) {
-				destroy_pending();
+			resume_paused_blocks();
 
-				if (show_resolved_branch) {
-					// Move resolved DOM back
-					if (offscreen_fragment !== null) {
-						/** @type {ChildNode} */ (anchor).before(offscreen_fragment);
-						offscreen_fragment = null;
-					}
-
-					has_resolved = true;
-					mode = 'resolved';
-				} else {
-					// Rejection path — keep resolved content offscreen for handle_error
+			queue_post_block_flush_callback(() => {
+				// run this only after the blocks have a chance to run
+				// and find more pending requests (and pause themselves) before we are
+				// certain to render the resolved state.
+				// Otherwise, we'll have multiple renders.
+				if (try_block === null || is_destroyed(try_block) || pending_count > 0) {
+					return;
 				}
-			}
+
+				if (mode === 'pending') {
+					destroy_pending();
+					show_resolved_fragment();
+				}
+
+				has_resolved = true;
+				mode = 'resolved';
+			});
+
+			queue_microtask();
 		}
 
 		return true;
@@ -258,6 +301,10 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null) {
 		/** @param {number} request_id @param {(reason: any) => void} reject_fn */
 		rd: (request_id, reject_fn) => {
 			pending_deferreds.set(request_id, reject_fn);
+		},
+		/** @param {Block} block */
+		pb: (block) => {
+			paused_blocks.add(block);
 		},
 		rp: replace_request,
 	};
@@ -392,6 +439,17 @@ export function complete_boundary_request(boundary, request_id, show_resolved_br
 export function register_boundary_deferred(boundary, request_id, reject_fn) {
 	if (boundary !== null && !is_destroyed(boundary) && boundary.s?.rd) {
 		boundary.s.rd(request_id, reject_fn);
+	}
+}
+
+/**
+ * @param {Block | null} boundary
+ * @param {Block} block
+ * @returns {void}
+ */
+export function register_boundary_paused_block(boundary, block) {
+	if (boundary !== null && !is_destroyed(boundary) && boundary.s?.pb) {
+		boundary.s.pb(block);
 	}
 }
 
