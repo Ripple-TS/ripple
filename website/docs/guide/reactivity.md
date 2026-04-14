@@ -214,7 +214,7 @@ const &{ a, b } = someObject;     // read-only lazy access
 let &{ x, y } = mutableObject;    // supports assignment: x = 5 writes back
 ```
 
-::: tip When to use lazy destructuring
+::: info When to use lazy destructuring
 Use `&{...}` whenever you destructure reactive props or tracked objects and need
 the variables to remain reactive. Regular destructuring (`{ a, b } = obj`)
 eagerly copies values and loses reactivity.
@@ -254,7 +254,10 @@ import { trackSplit, track } from 'ripple';
 component Child(props: PropsWithChildren<{ count: Tracked<number>, className: string }>) {
   // children, count are always reactive
   // but className is passed in as a read-only reactive value
-  const &[children, count, className, rest] = trackSplit(props, ['children', 'count', 'class']);
+  const [children, countTracked, classNameTracked, restTracked] = trackSplit(props, ['children', 'count', 'class']);
+	let &[count] = countTracked;
+	const &[className] = classNameTracked;
+	const &[rest] = restTracked;
 
   <button class={className} {...rest}><@children /></button>
   <pre>{`Count is: ${count}`}</pre>
@@ -484,7 +487,7 @@ export component App() {
 	let &[second] = track(2);
 	const arr = [first, second];
 
-	const &[total] = track(() => arr.reduce((a, b) => a + b.value, 0));
+	const &[total] = track(() => arr.reduce((a, b) => a + b, 0));
 
 	effect(() => {
 		console.log(total);

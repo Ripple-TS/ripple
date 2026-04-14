@@ -255,11 +255,13 @@ component Child(props: PropsWithChildren<{
 }>) {
   // children, count are always reactive
   // but className is passed in as a read-only reactive value
-  const &[children, count, className, rest] = trackSplit(props, [
-    'children',
-    'count',
-    'class',
-  ]);
+  const [children, countTracked, classNameTracked, restTracked] = trackSplit(
+    props,
+    ['children', 'count', 'class'],
+  );
+  let &[count] = countTracked;
+  const &[className] = classNameTracked;
+  const &[rest] = restTracked;
 
   <button class={className} {...rest}>
     <@children />
@@ -503,7 +505,7 @@ export component App() {
   let &[second] = track(2);
   const arr = [first, second];
 
-  const &[total] = track(() => arr.reduce((a, b) => a + b.value, 0));
+  const &[total] = track(() => arr.reduce((a, b) => a + b, 0));
 
   effect(() => {
     console.log(total);
