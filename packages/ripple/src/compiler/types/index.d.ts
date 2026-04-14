@@ -601,6 +601,7 @@ declare module 'estree-jsx' {
 
 	interface JSXExpressionContainer {
 		html?: boolean;
+		text?: boolean;
 	}
 
 	interface JSXMemberExpression {

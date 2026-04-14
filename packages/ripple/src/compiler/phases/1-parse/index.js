@@ -1124,6 +1124,15 @@ function RipplePlugin(config) {
 							'"html" is a Ripple keyword and must be used in the form {html some_content}',
 						);
 					}
+				} else if (this.value === 'text') {
+					node.text = true;
+					this.next();
+					if (this.type === tt.braceR) {
+						this.raise(
+							this.start,
+							'"text" is a Ripple keyword and must be used in the form {text some_value}',
+						);
+					}
 				}
 
 				node.expression =
@@ -1909,12 +1918,13 @@ function RipplePlugin(config) {
 				if (this.type === tt.braceL) {
 					const node = this.jsx_parseExpressionContainer();
 					// Keep JSXEmptyExpression as-is (for prettier to handle comments)
-					// but convert other expressions to Text/Html nodes
+					// but convert other expressions to Html/Text nodes
 					if (node.expression.type !== 'JSXEmptyExpression') {
 						/** @type {AST.Html | AST.TextNode} */ (/** @type {unknown} */ (node)).type = node.html
 							? 'Html'
 							: 'Text';
 						delete node.html;
+						delete node.text;
 					}
 					body.push(node);
 				} else if (this.type === tt.braceR) {

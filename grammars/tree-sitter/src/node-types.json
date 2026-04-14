@@ -4204,6 +4204,10 @@
     "named": false
   },
   {
+    "type": "text",
+    "named": false
+  },
+  {
     "type": "this",
     "named": true
   },

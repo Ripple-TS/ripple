@@ -5843,6 +5843,19 @@
                   ]
                 },
                 {
+                  "type": "SEQ",
+                  "members": [
+                    {
+                      "type": "STRING",
+                      "value": "text"
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "expression"
+                    }
+                  ]
+                },
+                {
                   "type": "REPEAT1",
                   "content": {
                     "type": "SYMBOL",
