@@ -1,5 +1,5 @@
 import type { PropsWithExtras } from 'ripple';
-import { createRefKey, track, trackSplit } from 'ripple';
+import { createRefKey, track } from 'ripple';
 
 describe('server dynamic DOM elements', () => {
 	it('renders static dynamic element', async () => {
@@ -258,13 +258,12 @@ describe('server dynamic DOM elements', () => {
 	});
 
 	it('handles spread attributes with class and CSS scoping', async () => {
-		component DynamicButton(props: PropsWithExtras<{
+		component DynamicButton(&{ ...rest }: PropsWithExtras<{
 			class: string;
 			id: string;
 		}>) {
 			const tag = track('button');
-			const [rest] = trackSplit(props, []);
-			<@tag {...rest.value}>{rest.value.class}</@tag>
+			<@tag {...rest}>{rest.class}</@tag>
 
 			<style>
 				.even {

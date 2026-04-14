@@ -341,18 +341,6 @@ component App() {
 	});
 
 	it('keeps lazy destructuring as plain destructuring in to_ts output', () => {
-		const track_split_source = `
-import { trackSplit } from 'ripple';
-component App() {
-	const source = { a: 1, b: 2, c: 3 };
-	let &[a, b, rest] = trackSplit(source, ['a', 'b']);
-	const sum = a + b + rest.c;
-}
-`;
-		const track_split_result = compile_to_volar_mappings(track_split_source, 'test.ripple').code;
-		expect(track_split_result).toContain('let [a, b, rest] = trackSplit(source, [\'a\', \'b\']);');
-		expect(track_split_result).not.toContain('let lazy = trackSplit');
-
 		const track_source = `
 import { track } from 'ripple';
 component App() {

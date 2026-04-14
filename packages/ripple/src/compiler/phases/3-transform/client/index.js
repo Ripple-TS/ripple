@@ -630,7 +630,7 @@ const visitors = {
 
 		const matched_track_call = !context.state.to_ts ? is_ripple_track_call(callee, context) : null;
 		if (matched_track_call) {
-			const track_method_name = matched_track_call === 'trackSplit' ? 'track_split' : 'track';
+			const track_method_name = 'track';
 
 			if (callee.type === 'Identifier' && callee.name === 'track') {
 				if (node.arguments.length === 0) {

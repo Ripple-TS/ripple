@@ -703,6 +703,24 @@ function tracked(v, get, set) {
 }
 
 /**
+ * @param {Record<string, unknown>} obj
+ * @param {string[]} exclude_keys
+ * @returns {Record<string, unknown>}
+ */
+export function exclude_from_object(obj, exclude_keys) {
+	/** @type {Record<string, unknown>} */
+	var new_obj = {};
+
+	for (const key of Object.keys(obj)) {
+		if (!exclude_keys.includes(key)) {
+			new_obj[key] = obj[key];
+		}
+	}
+
+	return new_obj;
+}
+
+/**
  * @param {any} v
  * @param {(value: any) => any} [get]
  * @param {(next: any, prev: any) => any} [set]
@@ -720,57 +738,6 @@ export function track(v, get, set) {
 	}
 
 	return tracked(v, get, set);
-}
-
-/**
- * @param {Record<string|symbol, any>} v
- * @param {(symbol | string)[]} l
- * @returns {Tracked[]}
- */
-export function track_split(v, l) {
-	var is_tracked = is_ripple_object(v);
-
-	if (is_tracked || typeof v !== 'object' || v === null || is_array(v)) {
-		throw new TypeError('Invalid value: expected a non-tracked object');
-	}
-
-	/** @type {Tracked[]} */
-	var out = [];
-	/** @type {Record<string|symbol, any>} */
-	var rest = {};
-	/** @type {Record<PropertyKey, 1>} */
-	var done = {};
-	var props = Reflect.ownKeys(v);
-
-	for (let i = 0, key, t; i < l.length; i++) {
-		key = l[i];
-
-		if (props.includes(key)) {
-			if (is_ripple_object(v[key])) {
-				t = v[key];
-			} else {
-				t = tracked(undefined);
-				t = define_property(t, 'v', /** @type {PropertyDescriptor} */ (get_descriptor(v, key)));
-			}
-		} else {
-			t = tracked(undefined);
-		}
-
-		out[i] = t;
-		done[key] = 1;
-	}
-
-	for (let i = 0, key; i < props.length; i++) {
-		key = props[i];
-		if (done[key]) {
-			continue;
-		}
-		define_property(rest, key, /** @type {PropertyDescriptor} */ (get_descriptor(v, key)));
-	}
-
-	out.push(tracked(rest));
-
-	return out;
 }
 
 /**

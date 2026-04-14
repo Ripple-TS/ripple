@@ -1,5 +1,5 @@
 import type { Props, Tracked } from 'ripple';
-import { RippleObject, effect, flushSync, track, trackSplit } from 'ripple';
+import { RippleObject, effect, flushSync, track } from 'ripple';
 
 describe('composite > reactivity', () => {
 	it('renders composite components with object state', () => {
@@ -227,46 +227,42 @@ describe('composite > reactivity', () => {
 		expect(logs).toEqual(['Child effect: 1, 2, 3', 'Child effect: 2, 3, 4']);
 	});
 
-	it(
-		'keeps reactivity for spread props via intermediate components and usage of trackSplit()',
-		() => {
-			component App() {
-				let &[count] = track(0);
-				<CounterWrapper {count} up={() => count++} down={() => count--} />
-			}
+	it('keeps reactivity for spread props via intermediate components and lazy destructuring', () => {
+		component App() {
+			let &[count] = track(0);
+			<CounterWrapper {count} up={() => count++} down={() => count--} />
+		}
 
-			component CounterWrapper(props: Props) {
-				<div>
-					<Counter {...props} />
-				</div>
-			}
+		component CounterWrapper(props: Props) {
+			<div>
+				<Counter {...props} />
+			</div>
+		}
 
-			component Counter(props: Props) {
-				let [count, up, down, rest] = trackSplit(props, ['count', 'up', 'down']);
-				<button onClick={() => up.value()}>{'UP'}</button>
-				<button onClick={() => down.value()}>{'DOWN'}</button>
-				<span {...rest.value}>{`Counter: ${count.value}`}</span>
-			}
+		component Counter(&{ count, up, down, ...rest }: Props) {
+			<button onClick={() => up()}>{'UP'}</button>
+			<button onClick={() => down()}>{'DOWN'}</button>
+			<span {...rest}>{`Counter: ${count}`}</span>
+		}
 
-			render(App);
+		render(App);
 
-			const buttonIncrement = container.querySelectorAll('button')[0];
-			const buttonDecrement = container.querySelectorAll('button')[1];
-			const span = container.querySelector('span');
+		const buttonIncrement = container.querySelectorAll('button')[0];
+		const buttonDecrement = container.querySelectorAll('button')[1];
+		const span = container.querySelector('span');
 
-			expect(span.textContent).toBe('Counter: 0');
+		expect(span.textContent).toBe('Counter: 0');
 
-			buttonIncrement.click();
-			flushSync();
+		buttonIncrement.click();
+		flushSync();
 
-			expect(span.textContent).toBe('Counter: 1');
+		expect(span.textContent).toBe('Counter: 1');
 
-			buttonDecrement.click();
-			flushSync();
+		buttonDecrement.click();
+		flushSync();
 
-			expect(span.textContent).toBe('Counter: 0');
-		},
-	);
+		expect(span.textContent).toBe('Counter: 0');
+	});
 
 	it('keeps reactivity on elements for element spreads and adds / removes dynamic props', () => {
 		component App() {
@@ -295,16 +291,19 @@ describe('composite > reactivity', () => {
 			</div>
 		}
 
-		component Counter(props: {
+		component Counter(&{
+			count,
+			up,
+			...rest
+		}: {
 			count: number;
 			up: () => void;
 			double: Tracked<number>;
 			another?: number;
 			extra: number;
 		}) {
-			let [count, up, rest] = trackSplit(props, ['count', 'up']);
-			<div {...rest.value}>{`Counter: ${count.value} Double: ${props.double.value}`}</div>
-			<button onClick={() => up.value()}>{'UP'}</button>
+			<div {...rest}>{`Counter: ${count} Double: ${rest.double.value}`}</div>
+			<button onClick={() => up()}>{'UP'}</button>
 		}
 
 		render(App);

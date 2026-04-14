@@ -1,8 +1,8 @@
-import { get, set, untrack, track, track_split } from './internal/server/index.js';
+import { get, set, untrack, track } from './internal/server/index.js';
 
 export { Context } from './internal/server/context.js';
 
-export { get, set, untrack, track, track_split as trackSplit };
+export { get, set, untrack, track };
 
 function noop() {}
 

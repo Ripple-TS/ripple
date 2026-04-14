@@ -3107,26 +3107,6 @@ const items = [] as unknown[];`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should format nested generics types', async () => {
-			const expected = `component Test() {
-  const [children, rest] = trackSplit<
-    PropsWithChildren<{
-      class: string;
-      id: string;
-      onClick: EventListener;
-    }>,
-    keyof PropsWithChildren<{
-      class: string;
-      id: string;
-      onClick: EventListener;
-    }>
-  >(props as Props, ['children']);
-}`;
-
-			const result = await format(expected, { singleQuote: true });
-			expect(result).toBeWithNewline(expected);
-		});
-
 		it('should format TypeScript tuple types (TSTupleType)', async () => {
 			const input = `type T = [string, number, boolean];`;
 			const expected = `type T = [string, number, boolean];`;

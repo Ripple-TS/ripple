@@ -1,4 +1,4 @@
-import { flushSync, track, trackSplit } from 'ripple';
+import { flushSync, track } from 'ripple';
 
 describe('lazy destructuring', () => {
 	it('supports tracked value getter and setter', () => {
@@ -271,17 +271,6 @@ describe('lazy destructuring', () => {
 
 		render(Test);
 		expect(container.querySelector('pre')!.textContent).toBe('1-99');
-	});
-
-	it('does not apply the track tuple fast-path to trackSplit lazy arrays', () => {
-		component Test() {
-			const source = { a: 1, b: 2, c: 3 };
-			let [a, b, rest] = trackSplit(source, ['a', 'b']);
-			<pre>{`${a.value}-${b.value}-${rest.value.c}`}</pre>
-		}
-
-		render(Test);
-		expect(container.querySelector('pre')!.textContent).toBe('1-2-3');
 	});
 
 	it('supports rest destructuring from iterable array-like tracked values', () => {

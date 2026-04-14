@@ -176,19 +176,6 @@ export type PropsNoChildren<T extends object = {}> = Expand<T>;
 
 type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
 
-type WrapTracked<V> = V extends Tracked<any> ? V : Tracked<V>;
-
-type PickKeys<T, K extends readonly (keyof T)[]> = {
-	[I in keyof K]: WrapTracked<T[K[I] & keyof T]>;
-};
-
-type RestKeys<T, K extends readonly (keyof T)[]> = Expand<Omit<T, K[number]>>;
-
-type SplitResult<T extends Props, K extends readonly (keyof T)[]> = [
-	...PickKeys<T, K>,
-	Tracked<RestKeys<T, K>>,
-];
-
 export function get<V>(tracked: Tracked<V>): V;
 
 export function set<V>(tracked: Tracked<V>, value: V): void;
@@ -203,11 +190,6 @@ export function track<V>(
 ): Tracked<InferComponent<V>>;
 // Overload for non-function values
 export function track<V>(value?: V, get?: (v: V) => V, set?: (next: V, prev: V) => V): Tracked<V>;
-
-export function trackSplit<V extends Props, const K extends readonly (keyof V)[]>(
-	value: V,
-	splitKeys: K,
-): SplitResult<V, K>;
 
 export interface AddEventOptions extends ExtendedEventOptions {
 	customName?: string;
@@ -568,7 +550,6 @@ export interface RippleNamespace {
 	urlSearchParams: RippleURLSearchParamsCallable;
 	untrack: typeof untrack;
 	track: typeof track;
-	trackSplit: typeof trackSplit;
 	style: Record<string, string>;
 	server: ServerBlock;
 }

@@ -52,7 +52,6 @@ export {
 	update_property,
 	update_pre_property,
 	track,
-	track_split,
 	push_component,
 	pop_component,
 	untrack,

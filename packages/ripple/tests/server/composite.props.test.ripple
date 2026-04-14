@@ -1,4 +1,4 @@
-import { track, trackSplit } from 'ripple';
+import { track } from 'ripple';
 import type { Tracked, Props } from 'ripple';
 
 describe('composite > props', () => {
@@ -79,9 +79,8 @@ describe('composite > props', () => {
 	});
 
 	it('correctly retains prop accessors and reactivity when using rest props', async () => {
-		component Button(props: Props) {
-			const [children, rest] = trackSplit(props, ['children']);
-			<button {...rest.value}>
+		component Button(&{ children, ...rest }: Props) {
+			<button {...rest}>
 				<@children />
 			</button>
 			<style>
@@ -94,10 +93,9 @@ describe('composite > props', () => {
 			</style>
 		}
 
-		component Toggle(props: { pressed: Tracked<boolean> }) {
-			const [pressed, rest] = trackSplit(props, ['pressed']);
+		component Toggle(&{ pressed, ...rest }: { pressed: Tracked<boolean> }) {
 			const onClick = () => (pressed.value = !pressed.value);
-			<Button {...rest.value} class={pressed.value ? 'on' : 'off'} {onClick}>{'button 1'}</Button>
+			<Button {...rest} class={pressed.value ? 'on' : 'off'} {onClick}>{'button 1'}</Button>
 			<Button class={pressed.value ? 'on' : 'off'} {onClick}>{'button 2'}</Button>
 		}
 

@@ -1,5 +1,5 @@
 import type { Tracked } from 'ripple';
-import { track, trackSplit } from 'ripple';
+import { track } from 'ripple';
 
 describe('lazy destructuring', () => {
 	it('supports tracked value getter and setter', async () => {
@@ -182,17 +182,6 @@ describe('lazy destructuring', () => {
 
 		const { body } = await render(Test);
 		expect(body).toBeHtml('<pre>Alice-30</pre>');
-	});
-
-	it('treats array destructuring of trackSplit as regular array access', async () => {
-		component Test() {
-			const source = { a: 1, b: 2, c: 3 };
-			const [a, b, rest] = trackSplit(source, ['a', 'b']);
-			<pre>{`${a.value}-${b.value}-${rest.value.c}`}</pre>
-		}
-
-		const { body } = await render(Test);
-		expect(body).toBeHtml('<pre>1-2-3</pre>');
 	});
 
 	it('supports rest in lazy array destructuring for tracked tuples (iterable)', async () => {

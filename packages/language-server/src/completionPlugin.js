@@ -228,15 +228,6 @@ const RIPPLE_SNIPPETS = [
 		sortText: '0-track-getter-setter',
 	},
 	{
-		label: 'trackSplit',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Split props with trackSplit',
-		documentation: 'Destructure props while preserving reactivity',
-		insertText: "const [${1:children}, ${2:rest}] = trackSplit(props, [${3:'children'}]);",
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-trackSplit',
-	},
-	{
 		label: 'effect',
 		kind: CompletionItemKind.Snippet,
 		detail: 'Create an effect',
@@ -342,14 +333,6 @@ const RIPPLE_IMPORTS = [
 		insertText: "import { effect } from 'ripple';",
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-import-effect',
-	},
-	{
-		label: 'import trackSplit',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Import trackSplit from ripple',
-		insertText: "import { trackSplit } from 'ripple';",
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-import-trackSplit',
 	},
 	{
 		label: 'import untrack',

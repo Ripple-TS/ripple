@@ -500,7 +500,7 @@ const visitors = {
 
 		const track_call_name = is_ripple_track_call(callee, context);
 		if (track_call_name) {
-			const track_method_name = track_call_name === 'trackSplit' ? 'track_split' : 'track';
+			const track_method_name = 'track';
 
 			return {
 				...node,

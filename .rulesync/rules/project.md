@@ -267,8 +267,6 @@ cleaner code in most cases.
 **Key heuristics for AI agents working with tests:**
 
 - `track()` returns a `Tracked<V>` — use `&[var]` to unwrap, or `.value` to access
-- `trackSplit()` returns raw `Tracked` values — use regular `[]` destructuring +
-  `.value`, NOT `&[]`
 - `const &[var]` is valid when you don't mutate; use `let &[var]` when mutation is
   needed
 - `&[var]` in function params is valid for accepting `Tracked` values

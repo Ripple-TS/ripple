@@ -292,25 +292,25 @@ export function is_component_level_function(context) {
  * Returns the matched Ripple tracking call name
  * @param {AST.Expression | AST.Super} callee
  * @param {CommonContext} context
- * @returns {'track' | 'trackSplit' | null}
+ * @returns {'track' | null}
  */
 export function is_ripple_track_call(callee, context) {
 	// Super expressions cannot be Ripple track calls
 	if (callee.type === 'Super') return null;
 
-	if (callee.type === 'Identifier' && (callee.name === 'track' || callee.name === 'trackSplit')) {
-		return is_ripple_import(callee, context) ? callee.name : null;
+	if (callee.type === 'Identifier' && callee.name === 'track') {
+		return is_ripple_import(callee, context) ? 'track' : null;
 	}
 
 	if (
 		callee.type === 'MemberExpression' &&
 		callee.object.type === 'Identifier' &&
 		callee.property.type === 'Identifier' &&
-		(callee.property.name === 'track' || callee.property.name === 'trackSplit') &&
+		callee.property.name === 'track' &&
 		!callee.computed &&
 		is_ripple_import(callee, context)
 	) {
-		return callee.property.name;
+		return 'track';
 	}
 
 	return null;
