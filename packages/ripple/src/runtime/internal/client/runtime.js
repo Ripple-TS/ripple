@@ -1,4 +1,4 @@
-/** @import { Block, Component, Dependency, Derived, Tracked } from '#client' */
+/** @import { Block, Component, Dependency, Derived, Tracked, BlockWithTryBoundaryAndCatch, AsyncBoundaryEntry } from '#client' */
 /** @import { NAMESPACE_URI } from './constants.js' */
 
 import { DEV } from 'esm-env';
@@ -222,21 +222,84 @@ function destroy_computed_children(computed) {
 }
 
 /**
+ * Complete boundary requests on all entries and reset their request state.
+ * Entries with no active request (i === 0 or t === null) are skipped for completion
+ * but still cleared.
+ * @param {NonNullable<Derived['ab']>} entries
+ * @param {boolean} [show_resolved]
+ */
+function complete_and_clear_async_entries(entries, show_resolved) {
+	for (var j = 0; j < entries.length; j++) {
+		var entry = entries[j];
+		if (entry.i > 0 && entry.t !== null) {
+			complete_boundary_request(entry.t, entry.i, show_resolved);
+		}
+		entry.t = null;
+		entry.i = 0;
+	}
+}
+
+/**
+ * Add or update a boundary entry on a derived. If an entry with the same boundary
+ * already exists, its source block is updated. Otherwise a new entry is appended.
+ * @param {Derived} computed
+ * @param {Block} source_block
+ * @param {Block} boundary
+ * @return {AsyncBoundaryEntry} The upserted entry
+ */
+function upsert_async_boundary_entry(computed, source_block, boundary) {
+	var entries = computed.ab;
+	/** @type {AsyncBoundaryEntry} */
+	var entry;
+	if (entries === null) {
+		entry = { s: source_block, t: boundary, i: 0 };
+		computed.ab = [entry];
+	} else {
+		for (var j = 0; j < entries.length; j++) {
+			entry = entries[j];
+			if (entries[j].t === boundary) {
+				entries[j].s = source_block;
+				return entry;
+			}
+		}
+		entry = { s: source_block, t: boundary, i: 0 };
+		entries.push(entry);
+	}
+
+	return entry;
+}
+
+/**
+ * @param {Derived['ab']} entries
+ * @returns {boolean}
+ */
+function are_async_entries_destroyed(entries) {
+	var all_destroyed = true;
+	if (entries !== null) {
+		for (var j = 0; j < entries.length; j++) {
+			if (!is_destroyed(entries[j].s)) {
+				all_destroyed = false;
+				break;
+			}
+		}
+	}
+	return all_destroyed;
+}
+
+/**
  * @param {Derived} computed
  * @returns {void}
  */
 function clear_prev_async_request(computed) {
 	abort_async_derived_request(computed);
 
-	if (computed.ai > 0) {
-		complete_boundary_request(computed.at, computed.ai, false);
+	var entries = computed.ab;
+	if (entries !== null) {
+		complete_and_clear_async_entries(entries, false);
 	}
 
 	computed.aa = null;
 	computed.ap = null;
-	// Preserve computed.as so dirty-check re-evaluations can find the boundary
-	computed.at = null;
-	computed.ai = 0;
 	// Do not clear dr/dj here — they are managed by the self-chain block
 	// in normalize_derived_value and by settle_async_derived.
 }
@@ -254,42 +317,34 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
 		return;
 	}
 
-	var source_block = computed.as;
-	var boundary = computed.at;
-	var request_id = computed.ai;
+	var entries = computed.ab;
 	var is_internal_abort =
 		value === DERIVED_UPDATED || abort_controller?.signal?.reason === DERIVED_UPDATED;
 
 	computed.aa = null;
 	computed.ap = null;
-	// Preserve computed.as so dirty-check re-evaluations can find the boundary
-	computed.at = null;
-	computed.ai = 0;
 	computed.dr = null;
 	computed.dj = null;
 
-	if (
-		source_block === null ||
-		is_destroyed(source_block) ||
-		(boundary !== null && is_destroyed(boundary))
-	) {
+	if (entries === null || are_async_entries_destroyed(entries)) {
 		if (fulfilled) {
 			update_derived_value_clock(computed, value);
 		} else {
 			update_derived_value(computed, SUSPENSE_REJECTED);
 		}
+		// Clear request state
+		if (entries !== null) {
+			complete_and_clear_async_entries(entries);
+		}
 		return;
 	}
 
 	if (fulfilled) {
-		var has_changed = value !== computed.__v || !computed.ah;
-
-		if (has_changed) {
+		if (value !== computed.__v) {
 			update_derived_value_clock(computed, value);
 		}
-		computed.ah = true;
 
-		complete_boundary_request(boundary, request_id);
+		complete_and_clear_async_entries(entries);
 		// Always schedule a flush so the eager eval loop can re-evaluate
 		// dependent async deriveds that are now dirty (e.g. chained trackAsync).
 		queue_microtask();
@@ -298,28 +353,36 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
 	}
 
 	if (is_internal_abort) {
-		complete_boundary_request(boundary, request_id, false);
+		complete_and_clear_async_entries(entries, false);
 		return;
 	}
 
 	update_derived_value(computed, SUSPENSE_REJECTED);
 
-	// This will show the catch block, which will destroy the pending and resolved
-	// on the same boundary as the catch
-	var boundary_with_catch = handle_error(value, source_block);
+	// For promise rejections, route the error to the nearest catch boundary
+	// of each source block. Deduplicate to avoid triggering the same catch twice.
+	/** @type {Set<Block>} */
+	var seen_catch = new Set();
+	for (var j = 0; j < entries.length; j++) {
+		var entry = entries[j];
+		if (is_destroyed(entry.s)) continue;
 
-	// if the catch is inside the pending boundary, we need to show the resolved block
-	// because the catch is located on it
-	// it's safe to show now since the catch has already rendered via handle_error above
-	var should_show_resolved =
-		/* catch on the boundary */
-		boundary_with_catch === boundary ||
-		/* catch outside the boundary */
-		boundary == null ||
-		is_destroyed(boundary)
-			? false
-			: /* catch inside boundary */ true;
-	complete_boundary_request(boundary, request_id, should_show_resolved);
+		var boundary_with_catch = get_boundary_with_catch(entry.s);
+		if (boundary_with_catch !== null && !seen_catch.has(boundary_with_catch)) {
+			seen_catch.add(boundary_with_catch);
+			boundary_with_catch.s.c(value);
+		}
+
+		// if the catch is inside the pending boundary, we need to show the resolved block
+		// because the catch is located on it
+		var should_show_resolved =
+			boundary_with_catch === entry.t || entry.t == null || is_destroyed(entry.t) ? false : true;
+		if (entry.i > 0 && entry.t !== null) {
+			complete_boundary_request(entry.t, entry.i, should_show_resolved);
+		}
+		entry.t = null;
+		entry.i = 0;
+	}
 }
 
 /**
@@ -362,50 +425,84 @@ function normalize_derived_value(computed, value, source_block, type) {
 
 	if (async_result === null) {
 		// When we just resolved a deferred, don't clear the async request — the
-		// deferred's settle handler needs computed.at/computed.ai to properly
-		// complete the boundary request and trigger resume.
+		// deferred's settle handler needs computed.ab entries to properly
+		// complete the boundary requests and trigger resume.
 		if (!resolved_deferred) {
 			clear_prev_async_request(computed);
 		}
-		computed.ah = true;
 		return value;
 	}
 
+	var entries = computed.ab;
+
 	// When run_derived is called from dirty-checking (is_block_dirty → is_tracking_dirty →
 	// update_derived), there is no active block context so source_block will be null.
-	// Fall back to the previously stored source block from the last async request.
-	if (source_block === null && computed.as !== null && !is_destroyed(computed.as)) {
-		source_block = computed.as;
+	// Fall back to the previously stored entries from the last async request.
+	if (source_block === null && entries !== null && entries.length > 0) {
+		// Use first non-destroyed entry as the primary source for validation
+		for (var j = 0; j < entries.length; j++) {
+			if (!is_destroyed(entries[j].s)) {
+				source_block = entries[j].s;
+				break;
+			}
+		}
 	}
 
-	var boundary = source_block === null ? null : get_pending_boundary(source_block);
+	// Recompute boundaries for entries whose t was cleared (by settle/clear_prev)
+	// before the upsert, so deduplication by .t works correctly.
+	if (entries !== null) {
+		for (var j = 0; j < entries.length; j++) {
+			var entry = entries[j];
+			if (!is_destroyed(entry.s)) {
+				entry.t = get_pending_boundary(entry.s);
+			}
+		}
+	}
 
-	if (source_block !== null && boundary === null) {
-		throw new Error('Missing parent `try { ... } pending { ... }` statement');
+	// Ensure the current source_block is represented in entries
+	if (source_block !== null) {
+		var source_boundary = get_pending_boundary(source_block);
+		if (source_boundary === null) {
+			throw new Error('Missing parent `try { ... } pending { ... }` statement');
+		}
+		upsert_async_boundary_entry(computed, source_block, source_boundary);
+		entries = computed.ab;
+	}
+
+	if (entries === null || entries.length === 0) {
+		// No source blocks at all — nothing to track
+		clear_prev_async_request(computed);
+		return value;
 	}
 
 	var version = computed.av + 1;
 	var abort_controller = async_result.abort_controller;
-	var has_pending_request = computed.ai > 0;
-	var request_id = 0;
 
-	if (has_pending_request && boundary !== null) {
-		// Replacing one async request with another on the same boundary.
-		// e.g. deferred synthetic promise with the real one, or cancelling the previous and start new
-		abort_async_derived_request(computed);
-		request_id = replace_boundary_request(/** @type {Block} */ (boundary), computed.ai);
-	} else {
-		// No active request to replace — clear old state and maybe start fresh.
+	// Begin or replace requests on all boundary entries
+	var has_any_pending = false;
+	for (var j = 0; j < entries.length; j++) {
+		var entry = entries[j];
+		if (entry.t === null || is_destroyed(entry.s) || is_destroyed(entry.t)) {
+			continue;
+		}
+
+		if (entry.i > 0) {
+			// Replacing one async request with another on the same boundary.
+			abort_async_derived_request(computed);
+			entry.i = replace_boundary_request(/** @type {Block} */ (entry.t), entry.i);
+		} else {
+			entry.i = begin_boundary_request(/** @type {Block} */ (entry.t));
+		}
+		has_any_pending = true;
+	}
+
+	if (!has_any_pending) {
 		clear_prev_async_request(computed);
-		request_id = boundary !== null ? begin_boundary_request(/** @type {Block} */ (boundary)) : 0;
 	}
 
 	computed.av = version;
 	computed.aa = abort_controller;
 	computed.ap = async_result.promise;
-	computed.as = source_block;
-	computed.at = boundary;
-	computed.ai = request_id;
 
 	/**
 	 * @param {boolean} fulfilled
@@ -421,17 +518,16 @@ function normalize_derived_value(computed, value, source_block, type) {
 		}
 	};
 
-	// Register the deferred reject with the boundary so that if the
+	// Register the deferred reject with each boundary so that if any
 	// boundary enters catch mode (from another derived rejecting),
 	// it can reject this deferred and trigger proper cleanup.
-	// Must be after computed.at and computed.ai are populated
-	if (
-		async_result.type === 'deferred' &&
-		computed.at !== null &&
-		computed.ai !== 0 &&
-		computed.dj !== null
-	) {
-		register_boundary_deferred(computed.at, computed.ai, computed.dj);
+	if (async_result.type === 'deferred' && computed.dj !== null) {
+		for (var j = 0; j < entries.length; j++) {
+			var entry = entries[j];
+			if (entry.t !== null && entry.i !== 0) {
+				register_boundary_deferred(entry.t, entry.i, computed.dj);
+			}
+		}
 	}
 
 	async_result.promise.then(
@@ -526,7 +622,7 @@ function run_derived(computed) {
 /**
  * @param {unknown} error
  * @param {Block} block
- * @returns {Block}
+ * @returns {BlockWithTryBoundaryAndCatch}
  */
 export function handle_error(error, block) {
 	var boundary_with_catch = get_boundary_with_catch(block);
@@ -658,15 +754,11 @@ class DerivedValue {
 	constructor(fn, block, a) {
 		this.a = a;
 		this.aa = null;
+		this.ab = null;
 		this.ap = null;
-		this.as = null;
-		this.at = null;
-		this.ai = 0;
 		this.av = 0;
-		this.ah = false;
 		this.dr = null;
 		this.dj = null;
-		this.ia = false;
 		this.b = block;
 		/** @type {null | Block[]} */
 		this.blocks = null;
@@ -781,7 +873,6 @@ export function track_async(v, options = {}, force_eager, b) {
 	}
 
 	var d = derived(v, target_block, undefined, undefined);
-	d.ia = true;
 	if (options.lazy && !force_eager) {
 		return d;
 	}
@@ -1025,6 +1116,21 @@ function flush_updates(root_block) {
 }
 
 /**
+ * Returns true if the derived has boundary entries and ALL source blocks are destroyed
+ * with no active requests, meaning this derived can be removed from eager evaluation.
+ * @param {Derived} d
+ * @returns {boolean}
+ */
+function all_source_blocks_destroyed(d) {
+	var entries = d.ab;
+	if (entries === null || entries.length === 0) return false;
+	for (var j = 0; j < entries.length; j++) {
+		if (!is_destroyed(entries[j].s) || entries[j].i > 0) return false;
+	}
+	return true;
+}
+
+/**
  * @param {Block[]} root_blocks
  */
 function flush_queued_root_blocks(root_blocks) {
@@ -1033,7 +1139,7 @@ function flush_queued_root_blocks(root_blocks) {
 	// necessary because paused blocks are skipped by flush_updates,
 	// but their async derived deps still need re-evaluation.
 	for (var d of eager_async_derived_collection) {
-		if (is_destroyed(d.b) || (d.as !== null && is_destroyed(d.as) && d.ai === 0)) {
+		if (is_destroyed(d.b) || all_source_blocks_destroyed(d)) {
 			eager_async_derived_collection.delete(d);
 		} else {
 			update_derived(d);
@@ -1169,17 +1275,6 @@ function register_dependency(tracked) {
 export function get_derived(computed) {
 	update_derived(computed);
 
-	// When an async-capable derived is read from a new block context (e.g. after a try
-	// branch re-render), update the stored source block so that future async requests
-	// from dirty-checking (where active_block is null) can find the correct boundary.
-	if (computed.ah && active_block !== null) {
-		var current_source = active_async_source_block ?? active_block;
-		if (current_source !== null && current_source !== computed.as) {
-			computed.as = current_source;
-			computed.at = get_pending_boundary(current_source);
-		}
-	}
-
 	if (tracking) {
 		register_dependency(computed);
 	}
@@ -1191,6 +1286,22 @@ export function get_derived(computed) {
 	// the processing should continue without throwing since we assume that the values
 	// are consistent with the code's logic.
 	if (computed.__v === SUSPENSE_PENDING || computed.__v === SUSPENSE_REJECTED) {
+		// When a pending async derived is read from a block under a different
+		// try/pending boundary than where trackAsync was called, register
+		// that boundary on the derived and begin a request so it will be
+		// completed when the promise settles.
+		if (computed.__v === SUSPENSE_PENDING && computed.ab !== null && active_block !== null) {
+			var current_source = active_async_source_block ?? active_block;
+			if (current_source !== null) {
+				var boundary = get_pending_boundary(current_source);
+				if (boundary !== null) {
+					var entry = upsert_async_boundary_entry(computed, current_source, boundary);
+					if (entry.i === 0) {
+						entry.i = begin_boundary_request(boundary);
+					}
+				}
+			}
+		}
 		throw ASYNC_DERIVED_READ_THROWN;
 	}
 

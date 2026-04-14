@@ -1,6 +1,6 @@
 /** @import { Tsx } from '../types' */
 /** @import { ReactNode } from 'react' */
-/** @import { Block } from 'ripple/internal/client-types' */
+/** @import { Block, BlockWithTryBoundary, TryBoundaryState } from 'ripple/internal/client-types' */
 
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import {
@@ -64,7 +64,7 @@ function is_inside_try_pending(block) {
 	let current = block;
 
 	while (current) {
-		if (current.f & TRY_BLOCK && current.s.p) {
+		if (current.f & TRY_BLOCK && /** @type {BlockWithTryBoundary} */ (current).s.p) {
 			return true;
 		}
 		current = current.p;
@@ -352,6 +352,7 @@ export function Ripple({ component, props }) {
 				return true;
 			}
 
+			/** @type {TryBoundaryState} */
 			const state = {
 				p: true,
 				b: begin_request,

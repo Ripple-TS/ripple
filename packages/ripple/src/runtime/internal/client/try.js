@@ -1,4 +1,4 @@
-/** @import { Block } from '#client' */
+/** @import { Block, TryBoundaryState, BlockWithTryBoundary, BlockWithTryBoundaryAndCatch } from '#client' */
 
 import {
 	boundary_fn_running_block,
@@ -30,7 +30,7 @@ import {
 		anchor: Node,
 		error: any,
 		reset?: () => void
-	) => void} CatchFunction
+	) => void} CatchFunction;
 
 	@typedef {(anchor: Node) => void} PendingFunction
  */
@@ -299,6 +299,7 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null) {
 		return true;
 	}
 
+	/** @type {TryBoundaryState} */
 	var state = {
 		p: pending_fn !== null,
 		b: begin_request,
@@ -373,15 +374,15 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null) {
 
 /**
  * @param {Block | null} block
- * @returns {Block | null}
+ * @returns {BlockWithTryBoundary | null}
  */
 export function get_pending_boundary(block) {
 	var current = block;
 
 	while (current !== null) {
-		var state = current.s;
+		var state = /** @type {BlockWithTryBoundary} */ (current).s;
 		if ((current.f & TRY_BLOCK) !== 0 && state.p) {
-			return current;
+			return /** @type {BlockWithTryBoundary} */ (current);
 		}
 		current = current.p;
 	}
@@ -391,15 +392,16 @@ export function get_pending_boundary(block) {
 
 /**
  * @param {Block} block
- * @returns {Block | null}
+ * @returns {BlockWithTryBoundaryAndCatch | null}
  */
 export function get_boundary_with_catch(block) {
 	/** @type {Block | null} */
 	var current = block;
 
 	while (current !== null) {
-		if ((current.f & TRY_BLOCK) !== 0 && current.s.c !== null) {
-			return current;
+		var state = /** @type {BlockWithTryBoundary} */ (current).s;
+		if ((current.f & TRY_BLOCK) !== 0 && state.c !== null) {
+			return /** @type {BlockWithTryBoundaryAndCatch} */ (current);
 		}
 		current = current.p;
 	}
@@ -408,7 +410,7 @@ export function get_boundary_with_catch(block) {
 }
 
 /**
- * @param {Block} boundary
+ * @param {BlockWithTryBoundary} boundary
  * @returns {number}
  */
 export function begin_boundary_request(boundary) {
@@ -416,7 +418,7 @@ export function begin_boundary_request(boundary) {
 }
 
 /**
- * @param {Block} boundary
+ * @param {BlockWithTryBoundary} boundary
  * @param {number} old_request_id
  * @returns {number}
  */
@@ -425,7 +427,7 @@ export function replace_boundary_request(boundary, old_request_id) {
 }
 
 /**
- * @param {Block | null} boundary
+ * @param {BlockWithTryBoundary | null} boundary
  * @param {number} request_id
  * @param {boolean} [show_resolved_branch=true]
  * @returns {boolean}
@@ -437,7 +439,7 @@ export function complete_boundary_request(boundary, request_id, show_resolved_br
 }
 
 /**
- * @param {Block | null} boundary
+ * @param {BlockWithTryBoundary | null} boundary
  * @param {number} request_id
  * @param {(reason: any) => void} reject_fn
  * @returns {void}
@@ -449,7 +451,7 @@ export function register_boundary_deferred(boundary, request_id, reject_fn) {
 }
 
 /**
- * @param {Block | null} boundary
+ * @param {BlockWithTryBoundary | null} boundary
  * @param {Block} block
  * @returns {void}
  */

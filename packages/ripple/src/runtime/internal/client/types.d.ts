@@ -32,19 +32,21 @@ export type Tracked<V = any> = {
 	[Symbol.iterator](): Iterator<V | Tracked<V>>;
 };
 
+export type AsyncBoundaryEntry = {
+	s: Block; // source block
+	t: Block | null; // boundary block
+	i: number; // request id, 0 if no pending request
+};
+
 export type Derived = {
 	DO_NOT_ACCESS_THIS_OBJECT_DIRECTLY?: true;
 	a: { get?: Function; set?: Function };
 	aa: AbortController | null;
+	ab: AsyncBoundaryEntry[] | null;
 	ap: PromiseLike<any> | null;
-	as: Block | null;
-	at: Block | null;
-	ai: number;
-	av: number;
-	ah: boolean;
-	dr: ((value: any) => void) | null;
-	dj: ((reason: any) => void) | null;
-	ia: boolean;
+	av: number; // staleness guard against resolving when multiple requests were fired
+	dr: ((value: any) => void) | null; // deferred / synthetic promise resolve function
+	dj: ((reason: any) => void) | null; // deferred / synthetic promise reject function
 	b: Block;
 	blocks: null | Block[];
 	c: number;
@@ -73,6 +75,24 @@ export type Block = {
 	s: any;
 	// teardown function
 	t: (() => {}) | null;
+};
+
+export type TryBoundaryState = {
+	p: boolean; // whether pending_fn exists
+	b: () => number; // begin request, returns request id
+	r: (request_id: number, show_resolved_branch?: boolean) => boolean; // complete request, returns whether the request was active
+	c: ((error: any) => void) | null; // catch function
+	rd: (request_id: number, reject_fn: (reason: any) => void) => void; // register deferred reject function
+	pb: (block: Block) => void; // register paused block
+	rp: (old_request_id: number) => number; // replace request, returns new request id
+};
+
+export type BlockWithTryBoundary = Omit<Block, 's'> & {
+	s: TryBoundaryState;
+};
+
+export type BlockWithTryBoundaryAndCatch = Omit<BlockWithTryBoundary, 's'> & {
+	s: TryBoundaryState & { c: NonNullable<TryBoundaryState['c']> };
 };
 
 export type CompatApi = {

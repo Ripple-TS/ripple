@@ -582,6 +582,85 @@ describe('async suspense', () => {
 		expect(times_rendered).toBe(1);
 	});
 
+	it(
+		'registers async derived under multiple try/pending boundaries across components',
+		async () => {
+			let resolve_fn: ((value: string[]) => void) | null = null;
+
+			component Child({ itemsTracked }: { itemsTracked: Tracked<string[]> }) {
+				try {
+					<div class="child-content">
+						{'child: '}
+						{itemsTracked.value.join(', ')}
+					</div>
+				} pending {
+					<div class="child-pending">{'child loading...'}</div>
+				}
+			}
+
+			component App() {
+				let &[query] = track('initial');
+
+				try {
+					let &[items, itemsTracked] = trackAsync(() => {
+						const q = query;
+						return new Promise<string[]>((resolve) => {
+							resolve_fn = resolve;
+						});
+					});
+
+					<div class="parent-content">
+						{'parent: '}
+						{items.join(', ')}
+					</div>
+					<Child {itemsTracked} />
+				} pending {
+					<div class="parent-pending">{'parent loading...'}</div>
+				}
+
+				<button onClick={() => (query = 'next')}>{'Change'}</button>
+			}
+
+			render(App);
+
+			// Initial: parent pending, child not yet rendered
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			expect(container.innerHTML).toContain('parent loading...');
+			expect(container.innerHTML).not.toContain('parent-content');
+			expect(container.innerHTML).not.toContain('child-content');
+
+			// Resolve first request — both parent and child should show content,
+			// child reading the derived registers its own try boundary on the same derived
+			(resolve_fn as (value: string[]) => void)(['apple', 'banana']);
+			await new Promise((resolve) => setTimeout(resolve, 0));
+
+			expect(container.innerHTML).toContain('parent: apple, banana');
+			expect(container.innerHTML).toContain('child: apple, banana');
+			expect(container.innerHTML).not.toContain('parent loading...');
+			expect(container.innerHTML).not.toContain('child loading...');
+
+			// Trigger re-fetch — derived now has entries for both parent and child boundaries
+			const button = container.querySelector('button') as HTMLButtonElement;
+			button.click();
+			flushSync();
+			await new Promise((resolve) => setTimeout(resolve, 0));
+
+			// After has_resolved, re-fetch keeps resolved branch visible (no re-suspension)
+			expect(container.innerHTML).not.toContain('parent loading...');
+			expect(container.innerHTML).not.toContain('child loading...');
+
+			// Resolve second request — both should update in place
+			(resolve_fn as (value: string[]) => void)(['cherry', 'date']);
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+
+			expect(container.innerHTML).toContain('parent: cherry, date');
+			expect(container.innerHTML).toContain('child: cherry, date');
+			expect(container.innerHTML).not.toContain('parent loading...');
+			expect(container.innerHTML).not.toContain('child loading...');
+		},
+	);
+
 	it('throws when trackAsync is used without a try/pending boundary', () => {
 		component App() {
 			let &[value] = trackAsync(() => Promise.resolve('test'));
