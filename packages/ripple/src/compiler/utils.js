@@ -631,7 +631,13 @@ export function normalize_children(children, context) {
 		const child = normalized[i];
 		const prev_child = normalized[i - 1];
 
-		if (child.type === 'Text' && prev_child?.type === 'Text') {
+		if (
+			(child.type === 'RippleExpression' || child.type === 'Text') &&
+			(prev_child?.type === 'RippleExpression' || prev_child?.type === 'Text')
+		) {
+			if (prev_child.type === 'Text' || child.type === 'Text') {
+				prev_child.type = 'Text';
+			}
 			if (child.expression.type === 'Literal' && prev_child.expression.type === 'Literal') {
 				prev_child.expression = b.literal(
 					prev_child.expression.value + String(child.expression.value),

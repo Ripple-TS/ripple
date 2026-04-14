@@ -2907,6 +2907,18 @@ const items = [] as unknown[];`;
 		expect(result).toBeWithNewline(expected);
 	});
 
+  it('should format expression and explicit text interpolation syntax correctly', async () => {
+    const input = `export component App(){<div>{message}</div><div>{text message}</div>}`;
+
+    const expected = `export component App() {
+  <div>{message}</div>
+  <div>{text message}</div>
+}`;
+
+    const result = await format(input, { singleQuote: true });
+    expect(result).toBeWithNewline(expected);
+  });
+
 	it('should not insert a new line between js and jsx if not provided', async () => {
 		const expected = `export component App() {
   let text = 'something';

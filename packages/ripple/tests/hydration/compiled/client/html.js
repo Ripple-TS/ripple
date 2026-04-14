@@ -496,7 +496,7 @@ export function DocLayout(
 						var a_2 = _$_.child(nav_1);
 
 						{
-							var text_1 = _$_.child(a_2, true);
+							var expression = _$_.child(a_2, true);
 
 							_$_.pop(a_2);
 						}
@@ -507,7 +507,7 @@ export function DocLayout(
 							var __a = nextLink.text;
 
 							if (__prev.a !== __a) {
-								_$_.set_text(text_1, __prev.a = __a);
+								_$_.set_text(expression, __prev.a = __a);
 							}
 
 							var __b = nextLink.href;
@@ -556,7 +556,7 @@ export function DocLayout(
 										var a_3 = _$_.child(li_1);
 
 										{
-											var text_2 = _$_.child(a_3, true);
+											var expression_1 = _$_.child(a_3, true);
 
 											_$_.pop(a_3);
 										}
@@ -567,7 +567,7 @@ export function DocLayout(
 											var __a = item.text;
 
 											if (__prev.a !== __a) {
-												_$_.set_text(text_2, __prev.a = __a);
+												_$_.set_text(expression_1, __prev.a = __a);
 											}
 
 											var __b = item.href;
@@ -840,9 +840,9 @@ export function HtmlAfterSwitchInChildren(__anchor, _, __block) {
 						children(__anchor, _, __block) {
 							_$_.push_component();
 
-							var text_3 = _$_.text('Title');
+							var expression_2 = _$_.text('Title');
 
-							_$_.append(__anchor, text_3);
+							_$_.append(__anchor, expression_2);
 							_$_.pop_component();
 						}
 					},
@@ -895,9 +895,9 @@ function NavItem(__anchor, { href, text: label, active = false }, __block) {
 			var span_1 = _$_.child(a_4);
 
 			{
-				var text_4 = _$_.child(span_1, true);
+				var expression_3 = _$_.child(span_1, true);
 
-				text_4.nodeValue = label;
+				expression_3.nodeValue = label;
 				_$_.pop(span_1);
 			}
 		}
@@ -922,9 +922,9 @@ function SidebarSection(__anchor, { title, children }, __block) {
 			var h2_2 = _$_.child(div_29);
 
 			{
-				var text_5 = _$_.child(h2_2, true);
+				var expression_4 = _$_.child(h2_2, true);
 
-				text_5.nodeValue = title;
+				expression_4.nodeValue = title;
 				_$_.pop(h2_2);
 			}
 
@@ -1463,7 +1463,7 @@ function DocsLayoutInner(
 										var a_5 = _$_.child(nav_4);
 
 										{
-											var text_6 = _$_.child(a_5, true);
+											var expression_5 = _$_.child(a_5, true);
 
 											_$_.pop(a_5);
 										}
@@ -1474,7 +1474,7 @@ function DocsLayoutInner(
 											var __a = nextLink.text;
 
 											if (__prev.a !== __a) {
-												_$_.set_text(text_6, __prev.a = __a);
+												_$_.set_text(expression_5, __prev.a = __a);
 											}
 
 											var __b = nextLink.href;
@@ -1678,7 +1678,7 @@ function DocsLayoutExact(
 													var span_2 = _$_.child(a_7);
 
 													{
-														var text_7 = _$_.child(span_2, true);
+														var expression_6 = _$_.child(span_2, true);
 
 														_$_.pop(span_2);
 													}
@@ -1689,7 +1689,7 @@ function DocsLayoutExact(
 														var __a = prevLink.text;
 
 														if (__prev.a !== __a) {
-															_$_.set_text(text_7, __prev.a = __a);
+															_$_.set_text(expression_6, __prev.a = __a);
 														}
 
 														var __b = prevLink.href;
@@ -1725,7 +1725,7 @@ function DocsLayoutExact(
 													var span_4 = _$_.child(a_8);
 
 													{
-														var text_8 = _$_.child(span_4, true);
+														var expression_7 = _$_.child(span_4, true);
 
 														_$_.pop(span_4);
 													}
@@ -1736,7 +1736,7 @@ function DocsLayoutExact(
 														var __a = nextLink.text;
 
 														if (__prev.a !== __a) {
-															_$_.set_text(text_8, __prev.a = __a);
+															_$_.set_text(expression_7, __prev.a = __a);
 														}
 
 														var __b = nextLink.href;
@@ -1796,7 +1796,7 @@ function DocsLayoutExact(
 												var a_9 = root_76();
 
 												{
-													var text_9 = _$_.child(a_9, true);
+													var expression_8 = _$_.child(a_9, true);
 
 													_$_.pop(a_9);
 												}
@@ -1806,7 +1806,7 @@ function DocsLayoutExact(
 														var __a = item.text;
 
 														if (__prev.a !== __a) {
-															_$_.set_text(text_9, __prev.a = __a);
+															_$_.set_text(expression_8, __prev.a = __a);
 														}
 
 														var __b = item.href;

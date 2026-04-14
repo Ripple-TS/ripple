@@ -1771,7 +1771,10 @@ const visitors = {
 				if (/** @type {AST.Identifier} */ (node.id).name === 'title') {
 					const children = normalize_children(node.children, context);
 
-					if (children.length !== 1 || children[0].type !== 'Text') {
+					if (
+						children.length !== 1 ||
+						(children[0].type !== 'RippleExpression' && children[0].type !== 'Text')
+					) {
 						// TODO: could transform children as something, e.g. Text Node, and avoid a fatal error
 						error(
 							'<title> must have only contain text nodes',
@@ -1926,7 +1929,9 @@ const visitors = {
 					}
 				} else if (child.type !== 'EmptyStatement') {
 					implicit_children.push(
-						child.type === 'Text' || child.type === 'Html' ? child.expression : child,
+						child.type === 'RippleExpression' || child.type === 'Text' || child.type === 'Html'
+							? child.expression
+							: child,
 					);
 				}
 			}
@@ -1964,6 +1969,22 @@ const visitors = {
 			...node,
 			children: node.children.map((child) => visit(child)),
 		};
+	},
+
+	RippleExpression(node, context) {
+		mark_control_flow_has_template(context.path);
+
+		if (is_children_template_expression(/** @type {AST.Expression} */ (node.expression), context)) {
+			error(
+				'`children` cannot be rendered using text interpolation. Use `<children />` instead.',
+				context.state.analysis.module.filename,
+				node.expression,
+				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		}
+
+		context.next();
 	},
 
 	Text(node, context) {

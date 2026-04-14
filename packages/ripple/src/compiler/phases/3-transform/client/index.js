@@ -1577,7 +1577,8 @@ const visitors = {
 							child.type === 'Html' ||
 							(child.type === 'Element' &&
 								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
-							(child.type === 'Text' && child.expression.type !== 'Literal'),
+							((child.type === 'RippleExpression' || child.type === 'Text') &&
+								child.expression.type !== 'Literal'),
 					);
 
 				if (needs_pop) {
@@ -2638,7 +2639,7 @@ function join_template(items) {
 function transform_ts_child(node, context) {
 	const { state, visit } = context;
 
-	if (node.type === 'Text') {
+	if (node.type === 'RippleExpression' || node.type === 'Text') {
 		state.init?.push(b.stmt(/** @type {AST.Expression} */ (visit(node.expression, { ...state }))));
 	} else if (node.type === 'Html') {
 		// Do we need to do something special here?
@@ -3081,6 +3082,7 @@ function transform_ts_child(node, context) {
 function is_template_or_control_flow(node) {
 	return (
 		node.type === 'Element' ||
+		node.type === 'RippleExpression' ||
 		node.type === 'Text' ||
 		node.type === 'Html' ||
 		node.type === 'TsxCompat' ||
@@ -3179,7 +3181,7 @@ function element_has_dynamic_content(element) {
 		) {
 			return true;
 		}
-		if (child.type === 'Text' && child.expression.type !== 'Literal') {
+		if ((child.type === 'RippleExpression' || child.type === 'Text') && child.expression.type !== 'Literal') {
 			return true;
 		}
 		// Non-DOM element (component)
@@ -3365,6 +3367,8 @@ function transform_children(children, context) {
 		return b.id(
 			node.type == 'Element' && is_element_dom_element(node)
 				? state.scope.generate(/** @type {AST.Identifier} */ (node.id).name)
+				: node.type == 'RippleExpression'
+					? state.scope.generate('expression')
 				: node.type == 'Text'
 					? state.scope.generate('text')
 					: state.scope.generate('node'),
@@ -3521,11 +3525,11 @@ function transform_children(children, context) {
 			/** @type {AST.Expression | undefined} */
 			let expression = undefined;
 			let is_create_text_only = false;
-			if (node.type === 'Text' || node.type === 'Html') {
+			if (node.type === 'RippleExpression' || node.type === 'Text' || node.type === 'Html') {
 				metadata = { tracking: false, await: false };
 				expression = /** @type {AST.Expression} */ (visit(node.expression, { ...state, metadata }));
 				is_create_text_only =
-					node.type === 'Text' && normalized.length === 1 && expression.type === 'Literal';
+					node.type !== 'Html' && normalized.length === 1 && expression.type === 'Literal';
 			}
 
 			if (initial === null && root && !is_create_text_only) {
@@ -3621,7 +3625,8 @@ function transform_children(children, context) {
 							child.type === 'Html' ||
 							(child.type === 'Element' &&
 								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
-							(child.type === 'Text' && child.expression.type !== 'Literal'),
+							((child.type === 'RippleExpression' || child.type === 'Text') &&
+								child.expression.type !== 'Literal'),
 					);
 
 					// Add pop() if we have DOM element children AND the Element visitor didn't already add pop()
@@ -3637,7 +3642,7 @@ function transform_children(children, context) {
 								// Components always generate sibling()
 								needs_sibling_call = true;
 							}
-						} else if (next_node.type === 'Text') {
+						} else if (next_node.type === 'RippleExpression' || next_node.type === 'Text') {
 							// Only dynamic text generates sibling()
 							needs_sibling_call = next_node.expression.type !== 'Literal';
 						} else if (
@@ -3683,7 +3688,7 @@ function transform_children(children, context) {
 							),
 						),
 				});
-			} else if (node.type === 'Text') {
+			} else if (node.type === 'RippleExpression' || node.type === 'Text') {
 				if (metadata?.tracking) {
 					skipped = 0;
 					state.template?.push(' ');

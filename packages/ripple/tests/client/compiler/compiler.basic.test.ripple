@@ -48,15 +48,19 @@ describe('compiler > basics', () => {
 		const source = `export component App() {
 	const markup = '<span>Not HTML</span>';
 
+	<div>{markup}</div>
 	<div>{text markup}</div>
 }`;
 
 		const ast = parse(source);
 		const component_node = (ast.body[0] as AST.ExportNamedDeclaration).declaration as unknown as AST.Component;
 		const elements = component_node.body.filter((node) => node.type === 'Element') as AST.Element[];
-		const explicit_text = elements[0].children[0] as AST.TextNode;
+		const expression = elements[0].children[0] as AST.Node & { expression: AST.Expression };
+		const explicit_text = elements[1].children[0] as AST.TextNode;
 
-		expect(elements).toHaveLength(1);
+		expect(elements).toHaveLength(2);
+		expect(expression.type).toBe('RippleExpression');
+		expect((expression.expression as AST.Identifier).name).toBe('markup');
 		expect(explicit_text.type).toBe('Text');
 		expect((explicit_text.expression as AST.Identifier).name).toBe('markup');
 

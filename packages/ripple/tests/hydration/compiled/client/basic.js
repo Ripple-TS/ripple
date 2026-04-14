@@ -129,13 +129,13 @@ export function Greeting(__anchor, props, __block) {
 	var div_6 = root_9();
 
 	{
-		var text = _$_.child(div_6, true);
+		var expression = _$_.child(div_6, true);
 
 		_$_.pop(div_6);
 	}
 
 	_$_.render(() => {
-		_$_.set_text(text, 'Hello ' + _$_.with_scope(__block, () => String(props.name)));
+		_$_.set_text(expression, 'Hello ' + _$_.with_scope(__block, () => String(props.name)));
 	});
 
 	_$_.append(__anchor, div_6);
@@ -162,16 +162,16 @@ export function ExpressionContent(__anchor, _, __block) {
 	var div_7 = _$_.first_child_frag(fragment_4);
 
 	{
-		var text_1 = _$_.child(div_7, true);
+		var expression_1 = _$_.child(div_7, true);
 
-		text_1.nodeValue = value;
+		expression_1.nodeValue = value;
 		_$_.pop(div_7);
 	}
 
 	var span_2 = _$_.sibling(div_7);
 
 	{
-		var text_2 = _$_.child(span_2, true);
+		var expression_2 = _$_.child(span_2, true);
 
 		_$_.pop(span_2);
 	}
@@ -179,7 +179,7 @@ export function ExpressionContent(__anchor, _, __block) {
 	_$_.next();
 
 	_$_.render(() => {
-		_$_.set_text(text_2, _$_.with_scope(__block, () => label.toUpperCase()));
+		_$_.set_text(expression_2, _$_.with_scope(__block, () => label.toUpperCase()));
 	});
 
 	_$_.append(__anchor, fragment_4, true);
@@ -208,18 +208,18 @@ export function StaticChildWithSiblings(__anchor, _, __block) {
 	var span_3 = _$_.sibling(node_4);
 
 	{
-		var text_3 = _$_.child(span_3, true);
+		var expression_3 = _$_.child(span_3, true);
 
-		text_3.nodeValue = foo;
+		expression_3.nodeValue = foo;
 		_$_.pop(span_3);
 	}
 
 	var span_4 = _$_.sibling(span_3);
 
 	{
-		var text_4 = _$_.child(span_4, true);
+		var expression_4 = _$_.child(span_4, true);
 
-		text_4.nodeValue = foo;
+		expression_4.nodeValue = foo;
 		_$_.pop(span_4);
 	}
 

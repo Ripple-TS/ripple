@@ -51,6 +51,7 @@ import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../../constants.js';
 function is_template_or_control_flow(node) {
 	return (
 		node.type === 'Element' ||
+		node.type === 'RippleExpression' ||
 		node.type === 'Text' ||
 		node.type === 'Html' ||
 		node.type === 'TsxCompat' ||
@@ -1615,7 +1616,7 @@ const visitors = {
 		return context.next();
 	},
 
-	Text(node, { visit, state }) {
+	RippleExpression(node, { visit, state }) {
 		const metadata = { await: false };
 		let expression = /** @type {AST.Expression} */ (visit(node.expression, { ...state, metadata }));
 
@@ -1628,6 +1629,30 @@ const visitors = {
 		} else {
 			state.init?.push(
 				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.call('_$_.escape', expression))),
+			);
+		}
+	},
+
+	Text(node, context) {
+		const metadata = { await: false };
+		let expression = /** @type {AST.Expression} */ (
+			context.visit(node.expression, { ...context.state, metadata })
+		);
+
+		if (expression.type === 'Literal') {
+			context.state.init?.push(
+				b.stmt(
+					b.call(
+						b.member(b.id('__output'), b.id('push')),
+						b.literal(escape(expression.value)),
+					),
+				),
+			);
+		} else {
+			context.state.init?.push(
+				b.stmt(
+					b.call(b.member(b.id('__output'), b.id('push')), b.call('_$_.escape', expression)),
+				),
 			);
 		}
 	},

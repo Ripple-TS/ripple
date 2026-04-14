@@ -92,7 +92,7 @@ export function ForIf(__anchor, _, __block) {
 						var li_1 = root_2();
 
 						{
-							var text = _$_.child(li_1, true);
+							var expression = _$_.child(li_1, true);
 
 							_$_.pop(li_1);
 						}
@@ -102,7 +102,7 @@ export function ForIf(__anchor, _, __block) {
 								var __a = _$_.get(pattern).label;
 
 								if (__prev.a !== __a) {
-									_$_.set_text(text, __prev.a = __a);
+									_$_.set_text(expression, __prev.a = __a);
 								}
 
 								var __b = `item item-${_$_.get(pattern).id}`;
@@ -160,7 +160,7 @@ export function ForSwitch(__anchor, _, __block) {
 						var li_2 = _$_.first_child_frag(fragment_2);
 
 						{
-							var text_1 = _$_.child(li_2, true);
+							var expression_1 = _$_.child(li_2, true);
 
 							_$_.pop(li_2);
 						}
@@ -170,7 +170,7 @@ export function ForSwitch(__anchor, _, __block) {
 								var __a = `A-${_$_.get(pattern_1).id}`;
 
 								if (__prev.a !== __a) {
-									_$_.set_text(text_1, __prev.a = __a);
+									_$_.set_text(expression_1, __prev.a = __a);
 								}
 
 								var __b = `item item-${_$_.get(pattern_1).id} kind-a`;
@@ -189,7 +189,7 @@ export function ForSwitch(__anchor, _, __block) {
 						var li_3 = root_6();
 
 						{
-							var text_2 = _$_.child(li_3, true);
+							var expression_2 = _$_.child(li_3, true);
 
 							_$_.pop(li_3);
 						}
@@ -199,7 +199,7 @@ export function ForSwitch(__anchor, _, __block) {
 								var __a = `B-${_$_.get(pattern_1).id}`;
 
 								if (__prev.a !== __a) {
-									_$_.set_text(text_2, __prev.a = __a);
+									_$_.set_text(expression_2, __prev.a = __a);
 								}
 
 								var __b = `item item-${_$_.get(pattern_1).id} kind-b`;
@@ -383,7 +383,7 @@ export function ForIfSwitchSingle(__anchor, _, __block) {
 								var li_4 = _$_.first_child_frag(fragment_9);
 
 								{
-									var text_3 = _$_.child(li_4, true);
+									var expression_3 = _$_.child(li_4, true);
 
 									_$_.pop(li_4);
 								}
@@ -393,7 +393,7 @@ export function ForIfSwitchSingle(__anchor, _, __block) {
 										var __a = `A-${_$_.get(pattern_2).id}`;
 
 										if (__prev.a !== __a) {
-											_$_.set_text(text_3, __prev.a = __a);
+											_$_.set_text(expression_3, __prev.a = __a);
 										}
 
 										var __b = `item item-${_$_.get(pattern_2).id} kind-a`;
@@ -412,7 +412,7 @@ export function ForIfSwitchSingle(__anchor, _, __block) {
 								var li_5 = root_19();
 
 								{
-									var text_4 = _$_.child(li_5, true);
+									var expression_4 = _$_.child(li_5, true);
 
 									_$_.pop(li_5);
 								}
@@ -422,7 +422,7 @@ export function ForIfSwitchSingle(__anchor, _, __block) {
 										var __a = `D-${_$_.get(pattern_2).id}`;
 
 										if (__prev.a !== __a) {
-											_$_.set_text(text_4, __prev.a = __a);
+											_$_.set_text(expression_4, __prev.a = __a);
 										}
 
 										var __b = `item item-${_$_.get(pattern_2).id} kind-default`;
@@ -502,7 +502,7 @@ export function ForIfSwitchMulti(__anchor, _, __block) {
 								var li_6 = _$_.first_child_frag(fragment_12);
 
 								{
-									var text_5 = _$_.child(li_6, true);
+									var expression_5 = _$_.child(li_6, true);
 
 									_$_.pop(li_6);
 								}
@@ -512,7 +512,7 @@ export function ForIfSwitchMulti(__anchor, _, __block) {
 										var __a = `A-${_$_.get(pattern_3).id}`;
 
 										if (__prev.a !== __a) {
-											_$_.set_text(text_5, __prev.a = __a);
+											_$_.set_text(expression_5, __prev.a = __a);
 										}
 
 										var __b = `item item-${_$_.get(pattern_3).id} kind-a`;
@@ -531,7 +531,7 @@ export function ForIfSwitchMulti(__anchor, _, __block) {
 								var li_7 = root_24();
 
 								{
-									var text_6 = _$_.child(li_7, true);
+									var expression_6 = _$_.child(li_7, true);
 
 									_$_.pop(li_7);
 								}
@@ -541,7 +541,7 @@ export function ForIfSwitchMulti(__anchor, _, __block) {
 										var __a = `B-${_$_.get(pattern_3).id}`;
 
 										if (__prev.a !== __a) {
-											_$_.set_text(text_6, __prev.a = __a);
+											_$_.set_text(expression_6, __prev.a = __a);
 										}
 
 										var __b = `item item-${_$_.get(pattern_3).id} kind-b`;
@@ -622,7 +622,7 @@ export function ForIfSwitchWithDisabled(__anchor, _, __block) {
 								var li_8 = _$_.first_child_frag(fragment_15);
 
 								{
-									var text_7 = _$_.child(li_8, true);
+									var expression_7 = _$_.child(li_8, true);
 
 									_$_.pop(li_8);
 								}
@@ -632,7 +632,7 @@ export function ForIfSwitchWithDisabled(__anchor, _, __block) {
 										var __a = `A-${_$_.get(pattern_4).id}`;
 
 										if (__prev.a !== __a) {
-											_$_.set_text(text_7, __prev.a = __a);
+											_$_.set_text(expression_7, __prev.a = __a);
 										}
 
 										var __b = `item item-${_$_.get(pattern_4).id} kind-a`;
@@ -651,7 +651,7 @@ export function ForIfSwitchWithDisabled(__anchor, _, __block) {
 								var li_9 = root_29();
 
 								{
-									var text_8 = _$_.child(li_9, true);
+									var expression_8 = _$_.child(li_9, true);
 
 									_$_.pop(li_9);
 								}
@@ -661,7 +661,7 @@ export function ForIfSwitchWithDisabled(__anchor, _, __block) {
 										var __a = `B-${_$_.get(pattern_4).id}`;
 
 										if (__prev.a !== __a) {
-											_$_.set_text(text_8, __prev.a = __a);
+											_$_.set_text(expression_8, __prev.a = __a);
 										}
 
 										var __b = `item item-${_$_.get(pattern_4).id} kind-b`;
@@ -800,7 +800,7 @@ export function ForSwitchTry(__anchor, _, __block) {
 									var li_10 = root_38();
 
 									{
-										var text_9 = _$_.child(li_10, true);
+										var expression_9 = _$_.child(li_10, true);
 
 										_$_.pop(li_10);
 									}
@@ -810,7 +810,7 @@ export function ForSwitchTry(__anchor, _, __block) {
 											var __a = `A-${_$_.get(pattern_5).id}`;
 
 											if (__prev.a !== __a) {
-												_$_.set_text(text_9, __prev.a = __a);
+												_$_.set_text(expression_9, __prev.a = __a);
 											}
 
 											var __b = `item item-${_$_.get(pattern_5).id} kind-a`;
@@ -830,7 +830,7 @@ export function ForSwitchTry(__anchor, _, __block) {
 								var li_11 = root_39();
 
 								{
-									var text_10 = _$_.child(li_11, true);
+									var expression_10 = _$_.child(li_11, true);
 
 									_$_.pop(li_11);
 								}
@@ -840,7 +840,7 @@ export function ForSwitchTry(__anchor, _, __block) {
 										var __a = `pending ${_$_.get(pattern_5).id}`;
 
 										if (__prev.a !== __a) {
-											_$_.set_text(text_10, __prev.a = __a);
+											_$_.set_text(expression_10, __prev.a = __a);
 										}
 
 										var __b = `pending pending-${_$_.get(pattern_5).id}`;
@@ -870,7 +870,7 @@ export function ForSwitchTry(__anchor, _, __block) {
 									var li_12 = root_41();
 
 									{
-										var text_11 = _$_.child(li_12, true);
+										var expression_11 = _$_.child(li_12, true);
 
 										_$_.pop(li_12);
 									}
@@ -880,7 +880,7 @@ export function ForSwitchTry(__anchor, _, __block) {
 											var __a = `B-${_$_.get(pattern_5).id}`;
 
 											if (__prev.a !== __a) {
-												_$_.set_text(text_11, __prev.a = __a);
+												_$_.set_text(expression_11, __prev.a = __a);
 											}
 
 											var __b = `item item-${_$_.get(pattern_5).id} kind-b`;
@@ -900,7 +900,7 @@ export function ForSwitchTry(__anchor, _, __block) {
 								var li_13 = root_42();
 
 								{
-									var text_12 = _$_.child(li_13, true);
+									var expression_12 = _$_.child(li_13, true);
 
 									_$_.pop(li_13);
 								}
@@ -910,7 +910,7 @@ export function ForSwitchTry(__anchor, _, __block) {
 										var __a = `pending ${_$_.get(pattern_5).id}`;
 
 										if (__prev.a !== __a) {
-											_$_.set_text(text_12, __prev.a = __a);
+											_$_.set_text(expression_12, __prev.a = __a);
 										}
 
 										var __b = `pending pending-${_$_.get(pattern_5).id}`;
@@ -983,7 +983,7 @@ export function ForIfTry(__anchor, _, __block) {
 									var li_14 = root_46();
 
 									{
-										var text_13 = _$_.child(li_14, true);
+										var expression_13 = _$_.child(li_14, true);
 
 										_$_.pop(li_14);
 									}
@@ -993,7 +993,7 @@ export function ForIfTry(__anchor, _, __block) {
 											var __a = `item-${_$_.get(pattern_6).id}`;
 
 											if (__prev.a !== __a) {
-												_$_.set_text(text_13, __prev.a = __a);
+												_$_.set_text(expression_13, __prev.a = __a);
 											}
 
 											var __b = `item item-${_$_.get(pattern_6).id}`;
@@ -1013,7 +1013,7 @@ export function ForIfTry(__anchor, _, __block) {
 								var li_15 = root_47();
 
 								{
-									var text_14 = _$_.child(li_15, true);
+									var expression_14 = _$_.child(li_15, true);
 
 									_$_.pop(li_15);
 								}
@@ -1023,7 +1023,7 @@ export function ForIfTry(__anchor, _, __block) {
 										var __a = `pending ${_$_.get(pattern_6).id}`;
 
 										if (__prev.a !== __a) {
-											_$_.set_text(text_14, __prev.a = __a);
+											_$_.set_text(expression_14, __prev.a = __a);
 										}
 
 										var __b = `pending pending-${_$_.get(pattern_6).id}`;
@@ -1091,7 +1091,7 @@ export function ForIfSwitchTrySingle(__anchor, _, __block) {
 											var li_16 = root_52();
 
 											{
-												var text_15 = _$_.child(li_16, true);
+												var expression_15 = _$_.child(li_16, true);
 
 												_$_.pop(li_16);
 											}
@@ -1101,7 +1101,7 @@ export function ForIfSwitchTrySingle(__anchor, _, __block) {
 													var __a = `A-${_$_.get(pattern_7).id}`;
 
 													if (__prev.a !== __a) {
-														_$_.set_text(text_15, __prev.a = __a);
+														_$_.set_text(expression_15, __prev.a = __a);
 													}
 
 													var __b = `item item-${_$_.get(pattern_7).id} kind-a`;
@@ -1121,7 +1121,7 @@ export function ForIfSwitchTrySingle(__anchor, _, __block) {
 										var li_17 = root_53();
 
 										{
-											var text_16 = _$_.child(li_17, true);
+											var expression_16 = _$_.child(li_17, true);
 
 											_$_.pop(li_17);
 										}
@@ -1131,7 +1131,7 @@ export function ForIfSwitchTrySingle(__anchor, _, __block) {
 												var __a = `pending ${_$_.get(pattern_7).id}`;
 
 												if (__prev.a !== __a) {
-													_$_.set_text(text_16, __prev.a = __a);
+													_$_.set_text(expression_16, __prev.a = __a);
 												}
 
 												var __b = `pending pending-${_$_.get(pattern_7).id}`;
@@ -1161,7 +1161,7 @@ export function ForIfSwitchTrySingle(__anchor, _, __block) {
 											var li_18 = root_55();
 
 											{
-												var text_17 = _$_.child(li_18, true);
+												var expression_17 = _$_.child(li_18, true);
 
 												_$_.pop(li_18);
 											}
@@ -1171,7 +1171,7 @@ export function ForIfSwitchTrySingle(__anchor, _, __block) {
 													var __a = `D-${_$_.get(pattern_7).id}`;
 
 													if (__prev.a !== __a) {
-														_$_.set_text(text_17, __prev.a = __a);
+														_$_.set_text(expression_17, __prev.a = __a);
 													}
 
 													var __b = `item item-${_$_.get(pattern_7).id} kind-default`;
@@ -1191,7 +1191,7 @@ export function ForIfSwitchTrySingle(__anchor, _, __block) {
 										var li_19 = root_56();
 
 										{
-											var text_18 = _$_.child(li_19, true);
+											var expression_18 = _$_.child(li_19, true);
 
 											_$_.pop(li_19);
 										}
@@ -1201,7 +1201,7 @@ export function ForIfSwitchTrySingle(__anchor, _, __block) {
 												var __a = `pending ${_$_.get(pattern_7).id}`;
 
 												if (__prev.a !== __a) {
-													_$_.set_text(text_18, __prev.a = __a);
+													_$_.set_text(expression_18, __prev.a = __a);
 												}
 
 												var __b = `pending pending-${_$_.get(pattern_7).id}`;
@@ -1291,7 +1291,7 @@ export function ForIfSwitchTryMulti(__anchor, _, __block) {
 											var li_20 = root_61();
 
 											{
-												var text_19 = _$_.child(li_20, true);
+												var expression_19 = _$_.child(li_20, true);
 
 												_$_.pop(li_20);
 											}
@@ -1301,7 +1301,7 @@ export function ForIfSwitchTryMulti(__anchor, _, __block) {
 													var __a = `A-${_$_.get(pattern_8).id}`;
 
 													if (__prev.a !== __a) {
-														_$_.set_text(text_19, __prev.a = __a);
+														_$_.set_text(expression_19, __prev.a = __a);
 													}
 
 													var __b = `item item-${_$_.get(pattern_8).id} kind-a`;
@@ -1321,7 +1321,7 @@ export function ForIfSwitchTryMulti(__anchor, _, __block) {
 										var li_21 = root_62();
 
 										{
-											var text_20 = _$_.child(li_21, true);
+											var expression_20 = _$_.child(li_21, true);
 
 											_$_.pop(li_21);
 										}
@@ -1331,7 +1331,7 @@ export function ForIfSwitchTryMulti(__anchor, _, __block) {
 												var __a = `pending ${_$_.get(pattern_8).id}`;
 
 												if (__prev.a !== __a) {
-													_$_.set_text(text_20, __prev.a = __a);
+													_$_.set_text(expression_20, __prev.a = __a);
 												}
 
 												var __b = `pending pending-${_$_.get(pattern_8).id}`;
@@ -1361,7 +1361,7 @@ export function ForIfSwitchTryMulti(__anchor, _, __block) {
 											var li_22 = root_64();
 
 											{
-												var text_21 = _$_.child(li_22, true);
+												var expression_21 = _$_.child(li_22, true);
 
 												_$_.pop(li_22);
 											}
@@ -1371,7 +1371,7 @@ export function ForIfSwitchTryMulti(__anchor, _, __block) {
 													var __a = `B-${_$_.get(pattern_8).id}`;
 
 													if (__prev.a !== __a) {
-														_$_.set_text(text_21, __prev.a = __a);
+														_$_.set_text(expression_21, __prev.a = __a);
 													}
 
 													var __b = `item item-${_$_.get(pattern_8).id} kind-b`;
@@ -1391,7 +1391,7 @@ export function ForIfSwitchTryMulti(__anchor, _, __block) {
 										var li_23 = root_65();
 
 										{
-											var text_22 = _$_.child(li_23, true);
+											var expression_22 = _$_.child(li_23, true);
 
 											_$_.pop(li_23);
 										}
@@ -1401,7 +1401,7 @@ export function ForIfSwitchTryMulti(__anchor, _, __block) {
 												var __a = `pending ${_$_.get(pattern_8).id}`;
 
 												if (__prev.a !== __a) {
-													_$_.set_text(text_22, __prev.a = __a);
+													_$_.set_text(expression_22, __prev.a = __a);
 												}
 
 												var __b = `pending pending-${_$_.get(pattern_8).id}`;
