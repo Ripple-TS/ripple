@@ -15,9 +15,9 @@ describe('basic client > rendering & text', () => {
 
 	it('renders semi-dynamic text', () => {
 		component Basic() {
-			let text = 'Hello World';
+			let message = 'Hello World';
 
-			<div>{text}</div>
+			<div>{message}</div>
 		}
 
 		render(Basic);
@@ -25,18 +25,33 @@ describe('basic client > rendering & text', () => {
 		expect(container).toMatchSnapshot();
 	});
 
+	it('renders explicit text interpolation without creating HTML', () => {
+		component Basic() {
+			let markup = '<span>Not HTML</span>';
+
+			<div>{text markup}</div>
+		}
+
+		render(Basic);
+
+		const div = container.querySelector('div');
+
+		expect(div.textContent).toBe('<span>Not HTML</span>');
+		expect(div.querySelector('span')).toBeNull();
+	});
+
 	it('renders dynamic text', () => {
 		component Basic() {
-			let &[text] = track('Hello World');
+			let &[message] = track('Hello World');
 
 			<button
 				onClick={() => {
-					text = 'Hello Ripple';
+					message = 'Hello Ripple';
 				}}
 			>
 				{'Change Text'}
 			</button>
-			<div>{text}</div>
+			<div>{message}</div>
 		}
 
 		render(Basic);

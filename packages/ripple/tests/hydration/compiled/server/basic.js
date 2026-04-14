@@ -203,7 +203,7 @@ export function ExpressionContent(__output) {
 	_$_.push_component();
 
 	const value = 42;
-	const text = 'computed';
+	const label = 'computed';
 
 	__output.push('<div');
 	__output.push('>');
@@ -217,7 +217,7 @@ export function ExpressionContent(__output) {
 	__output.push('>');
 
 	{
-		__output.push(_$_.escape(text.toUpperCase()));
+		__output.push(_$_.escape(label.toUpperCase()));
 	}
 
 	__output.push('</span>');

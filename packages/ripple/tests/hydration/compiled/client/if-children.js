@@ -63,7 +63,7 @@ export function IfWithChildren(__anchor, { children }, __block) {
 	_$_.pop_component();
 }
 
-export function ChildItem(__anchor, { text }, __block) {
+export function ChildItem(__anchor, { text: label }, __block) {
 	_$_.push_component();
 
 	var div_4 = root_2();
@@ -71,7 +71,7 @@ export function ChildItem(__anchor, { text }, __block) {
 	{
 		var text_1 = _$_.child(div_4, true);
 
-		text_1.nodeValue = text;
+		text_1.nodeValue = label;
 		_$_.pop(div_4);
 	}
 

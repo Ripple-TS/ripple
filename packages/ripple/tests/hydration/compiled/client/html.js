@@ -865,7 +865,7 @@ export function HtmlAfterSwitchInChildren(__anchor, _, __block) {
 	_$_.pop_component();
 }
 
-function NavItem(__anchor, { href, text, active = false }, __block) {
+function NavItem(__anchor, { href, text: label, active = false }, __block) {
 	_$_.push_component();
 
 	var div_27 = root_36();
@@ -897,7 +897,7 @@ function NavItem(__anchor, { href, text, active = false }, __block) {
 			{
 				var text_4 = _$_.child(span_1, true);
 
-				text_4.nodeValue = text;
+				text_4.nodeValue = label;
 				_$_.pop(span_1);
 			}
 		}

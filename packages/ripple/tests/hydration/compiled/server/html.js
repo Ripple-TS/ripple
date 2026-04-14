@@ -870,7 +870,7 @@ export function HtmlAfterSwitchInChildren(__output) {
 	_$_.pop_component();
 }
 
-function NavItem(__output, { href, text, active = false }) {
+function NavItem(__output, { href, text: label, active = false }) {
 	_$_.push_component();
 	__output.push('<div');
 	__output.push(_$_.attr('class', `nav-item${active ? ' active' : ''}`));
@@ -896,7 +896,7 @@ function NavItem(__output, { href, text, active = false }) {
 			__output.push('>');
 
 			{
-				__output.push(_$_.escape(text));
+				__output.push(_$_.escape(label));
 			}
 
 			__output.push('</span>');

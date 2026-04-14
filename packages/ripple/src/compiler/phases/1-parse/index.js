@@ -1115,7 +1115,7 @@ function RipplePlugin(config) {
 				let node = /** @type {ESTreeJSX.JSXExpressionContainer} */ (this.startNode());
 				this.next();
 
-				if (this.value === 'html') {
+				if (this.type === tt.name && this.value === 'html') {
 					node.html = true;
 					this.next();
 					if (this.type === tt.braceR) {
@@ -1124,7 +1124,7 @@ function RipplePlugin(config) {
 							'"html" is a Ripple keyword and must be used in the form {html some_content}',
 						);
 					}
-				} else if (this.value === 'text') {
+				} else if (this.type === tt.name && this.value === 'text') {
 					node.text = true;
 					this.next();
 					if (this.type === tt.braceR) {
@@ -1337,16 +1337,12 @@ function RipplePlugin(config) {
 					const clause = /** @type {AST.CatchClause} */ (this.startNode());
 					this.next();
 					if (this.eat(tt.parenL)) {
-						clause.param = this.parseCatchClauseParam();
+						clause.param = this.parseBindingAtom();
+						this.expect(tt.parenR);
 					} else {
-						if (this.options.ecmaVersion < 10) {
-							this.unexpected();
-						}
 						clause.param = null;
-						this.enterScope(0);
 					}
-					clause.body = this.parseBlock(false);
-					this.exitScope();
+					clause.body = this.parseBlock();
 					node.handler = this.finishNode(clause, 'CatchClause');
 				}
 				node.finalizer = this.eat(tt._finally) ? this.parseBlock() : null;

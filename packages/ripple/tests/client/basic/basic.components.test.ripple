@@ -7,6 +7,7 @@ import type {
 	PropsWithChildrenOptional,
 } from 'ripple';
 import { flushSync, track } from 'ripple';
+import { did_error } from '../capture-error.js';
 
 describe('basic client > components & composition', () => {
 	it('renders with component composition and children', () => {
@@ -233,60 +234,40 @@ describe('basic client > components & composition', () => {
 
 			const obj2 = null;
 
+			function trigger_nonexistent() {
+				hasError = did_error(() => {
+					// @ts-ignore
+					obj['nonexistent']();
+				});
+			}
+
+			function trigger_nonexistent_chaining() {
+				hasError = did_error(() => {
+					// @ts-ignore
+					obj['nonexistent']?.();
+				});
+			}
+
+			function trigger_object_null() {
+				hasError = did_error(() => {
+					// @ts-ignore
+					obj2['nonexistent']();
+				});
+			}
+
+			function trigger_object_null_chained() {
+				hasError = did_error(() => {
+					// @ts-ignore
+					obj2?.['nonexistent']?.();
+				});
+			}
+
 			<button onClick={() => obj['increment']()}>{'Increment'}</button>
 			<button onClick={() => obj[SYMBOL_PROP]()}>{'Increment'}</button>
-			<button
-				onClick={() => {
-					hasError = false;
-					try {
-						// @ts-ignore
-						obj['nonexistent']();
-					} catch {
-						hasError = true;
-					}
-				}}
-			>
-				{'Nonexistent'}
-			</button>
-			<button
-				onClick={() => {
-					hasError = false;
-					try {
-						// @ts-ignore
-						obj['nonexistent']?.();
-					} catch {
-						hasError = true;
-					}
-				}}
-			>
-				{'Nonexistent chaining'}
-			</button>
-			<button
-				onClick={() => {
-					hasError = false;
-					try {
-						// @ts-ignore
-						obj2['nonexistent']();
-					} catch {
-						hasError = true;
-					}
-				}}
-			>
-				{'Object null'}
-			</button>
-			<button
-				onClick={() => {
-					hasError = false;
-					try {
-						// @ts-ignore
-						obj2?.['nonexistent']?.();
-					} catch {
-						hasError = true;
-					}
-				}}
-			>
-				{'Object null chained'}
-			</button>
+			<button onClick={trigger_nonexistent}>{'Nonexistent'}</button>
+			<button onClick={trigger_nonexistent_chaining}>{'Nonexistent chaining'}</button>
+			<button onClick={trigger_object_null}>{'Object null'}</button>
+			<button onClick={trigger_object_null_chained}>{'Object null chained'}</button>
 			<button onClick={() => obj.arr[obj.arr.length - 1]()}>{'BinaryExpression prop'}</button>
 
 			<span>{obj.count.value}</span>
@@ -382,9 +363,9 @@ describe('basic client > components & composition', () => {
 		}
 
 		component App() {
-			let text = '';
+			let content = '';
 			<Button>{''}</Button>
-			<Button>{text}</Button>
+			<Button>{content}</Button>
 		}
 
 		expect(() => {

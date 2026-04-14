@@ -335,7 +335,7 @@ component SidebarGroup({
 
 component SidebarItem({
 	href,
-	text,
+	text: label,
 	external = false,
 	active = false,
 	hasActive = false,
@@ -355,11 +355,11 @@ component SidebarItem({
 			<div class="indicator" />
 			if (external) {
 				<a {href} target="_blank" rel="noreferrer" class="link link doc-external-link-icon">
-					<p class="text">{text}</p>
+					<p class="text">{label}</p>
 				</a>
 			} else {
 				<a {href} class="link link">
-					<p class="text">{text}</p>
+					<p class="text">{label}</p>
 				</a>
 			}
 		</div>

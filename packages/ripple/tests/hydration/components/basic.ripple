@@ -60,9 +60,9 @@ export component WithGreeting() {
 
 export component ExpressionContent() {
 	const value = 42;
-	const text = 'computed';
+	const label = 'computed';
 	<div>{value}</div>
-	<span>{text.toUpperCase()}</span>
+	<span>{label.toUpperCase()}</span>
 }
 
 // Test for static content in child component followed by sibling content

@@ -16,8 +16,8 @@ export component IfWithChildren({ children }: { children: any }) {
 	</div>
 }
 
-export component ChildItem({ text }: { text: string }) {
-	<div class="item">{text}</div>
+export component ChildItem({ text: label }: { text: string }) {
+	<div class="item">{label}</div>
 }
 
 export component TestIfWithChildren() {

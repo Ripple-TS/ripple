@@ -211,7 +211,7 @@ export component HtmlAfterSwitchInChildren() {
 
 component NavItem({
 	href,
-	text,
+	text: label,
 	active = false,
 }: {
 	href: string;
@@ -223,7 +223,7 @@ component NavItem({
 			<div class="indicator" />
 		}
 		<a {href}>
-			<span>{text}</span>
+			<span>{label}</span>
 		</a>
 	</div>
 }

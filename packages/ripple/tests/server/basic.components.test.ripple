@@ -211,9 +211,9 @@ describe('basic server > components & composition', () => {
 		}
 
 		component App() {
-			let text = '';
+			let content = '';
 			<Button>{''}</Button>
-			<Button>{text}</Button>
+			<Button>{content}</Button>
 		}
 
 		const { body } = await render(App);

@@ -57,14 +57,14 @@ export async function IfWithChildren(__output, { children }) {
 
 IfWithChildren.async = true;
 
-export function ChildItem(__output, { text }) {
+export function ChildItem(__output, { text: label }) {
 	_$_.push_component();
 	__output.push('<div');
 	__output.push(' class="item"');
 	__output.push('>');
 
 	{
-		__output.push(_$_.escape(text));
+		__output.push(_$_.escape(label));
 	}
 
 	__output.push('</div>');

@@ -44,6 +44,36 @@ describe('compiler > basics', () => {
 		).toEqual(style3);
 	});
 
+	it('parses explicit text interpolation and reserves the text keyword', () => {
+		const source = `export component App() {
+	const markup = '<span>Not HTML</span>';
+
+	<div>{text markup}</div>
+}`;
+
+		const ast = parse(source);
+		const component_node = (ast.body[0] as AST.ExportNamedDeclaration).declaration as unknown as AST.Component;
+		const elements = component_node.body.filter((node) => node.type === 'Element') as AST.Element[];
+		const explicit_text = elements[0].children[0] as AST.TextNode;
+
+		expect(elements).toHaveLength(1);
+		expect(explicit_text.type).toBe('Text');
+		expect((explicit_text.expression as AST.Identifier).name).toBe('markup');
+
+		const { js } = compile(source, 'text-directive.ripple', { mode: 'client' });
+		expect(js.code).not.toContain('_$_.html');
+
+		const invalid_source = `export component App() {
+	const text = 'plain';
+
+	<div>{text}</div>
+}`;
+
+		expect(() => parse(invalid_source)).toThrow(
+			'"text" is a Ripple keyword and must be used in the form {text some_value}',
+		);
+	});
+
 	it('renders without crashing', () => {
 		component App() {
 			let foo: Record<string, number>;
