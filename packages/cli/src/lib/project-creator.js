@@ -228,10 +228,10 @@ import { ripple } from '@ripple-ts/vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-\tplugins: [ripple(), tailwindcss()],
-\tserver: {
-\t\tport: 3000
-\t}
+	plugins: [ripple(), tailwindcss()],
+	server: {
+		port: 3000
+	}
 });
 `;
 		writeFileSync(join(projectPath, 'vite.config.js'), viteConfig);
@@ -243,6 +243,13 @@ export default defineConfig({
 			{
 				'tailwindCSS.includeLanguages': {
 					ripple: 'html',
+				},
+				'tailwindCSS.classAttributes': ['class', 'className'],
+				'files.associations': {
+					'*.ripple': 'ripple',
+				},
+				'editor.quickSuggestions': {
+					strings: true,
 				},
 			},
 			null,

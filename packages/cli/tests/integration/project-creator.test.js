@@ -312,6 +312,9 @@ describe('createProject integration tests', () => {
 			readFileSync(join(projectPath, '.vscode', 'settings.json'), 'utf-8'),
 		);
 		expect(vscodeSettings['tailwindCSS.includeLanguages']).toEqual({ ripple: 'html' });
+		expect(vscodeSettings['tailwindCSS.classAttributes']).toEqual(['class', 'className']);
+		expect(vscodeSettings['files.associations']).toEqual({ '*.ripple': 'ripple' });
+		expect(vscodeSettings['editor.quickSuggestions']).toEqual({ strings: true });
 	});
 
 	it('should configure Bootstrap correctly', async () => {
