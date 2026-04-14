@@ -3181,7 +3181,10 @@ function element_has_dynamic_content(element) {
 		) {
 			return true;
 		}
-		if ((child.type === 'RippleExpression' || child.type === 'Text') && child.expression.type !== 'Literal') {
+		if (
+			(child.type === 'RippleExpression' || child.type === 'Text') &&
+			child.expression.type !== 'Literal'
+		) {
 			return true;
 		}
 		// Non-DOM element (component)
@@ -3369,9 +3372,9 @@ function transform_children(children, context) {
 				? state.scope.generate(/** @type {AST.Identifier} */ (node.id).name)
 				: node.type == 'RippleExpression'
 					? state.scope.generate('expression')
-				: node.type == 'Text'
-					? state.scope.generate('text')
-					: state.scope.generate('node'),
+					: node.type == 'Text'
+						? state.scope.generate('text')
+						: state.scope.generate('node'),
 			/** @type {AST.NodeWithLocation} */ (node.type === 'Element' ? node.openingElement : node),
 		);
 	};

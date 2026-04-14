@@ -1642,17 +1642,12 @@ const visitors = {
 		if (expression.type === 'Literal') {
 			context.state.init?.push(
 				b.stmt(
-					b.call(
-						b.member(b.id('__output'), b.id('push')),
-						b.literal(escape(expression.value)),
-					),
+					b.call(b.member(b.id('__output'), b.id('push')), b.literal(escape(expression.value))),
 				),
 			);
 		} else {
 			context.state.init?.push(
-				b.stmt(
-					b.call(b.member(b.id('__output'), b.id('push')), b.call('_$_.escape', expression)),
-				),
+				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.call('_$_.escape', expression))),
 			);
 		}
 	},

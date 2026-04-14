@@ -312,8 +312,9 @@ function get_descendant_elements(node, adjacent_only) {
 				current_node.type === 'Text' ||
 				current_node.type === 'Html') &&
 			/** @type {AST.RippleExpression | AST.Html | AST.TextNode} */ (current_node).expression &&
-			typeof /** @type {AST.RippleExpression | AST.Html | AST.TextNode} */ (current_node).expression ===
-				'object'
+			typeof (
+				/** @type {AST.RippleExpression | AST.Html | AST.TextNode} */ (current_node).expression
+			) === 'object'
 		) {
 			visit(
 				/** @type {AST.RippleExpression | AST.Html | AST.TextNode} */ (current_node).expression,
