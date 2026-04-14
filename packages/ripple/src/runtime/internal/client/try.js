@@ -179,6 +179,10 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null) {
 	 * @returns {void}
 	 */
 	function handle_error(error) {
+		if (mode === 'catch') {
+			// we don't want to do this again and render catch block again
+			return;
+		}
 		pending_count = 0;
 		active_requests.clear();
 		clear_paused_blocks();
