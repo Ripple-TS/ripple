@@ -163,11 +163,11 @@ component Separate() {
 }
 
 export default component App() {
-	<Composite PropComp={Separate}>
-		component InlineComp() {
-			<p>{\`I'm an inline component.\`}</p>
-		}
-	</Composite>
+	component InlineComp() {
+		<p>{\`I'm an inline component.\`}</p>
+	}
+
+	<Composite PropComp={Separate} {InlineComp} />
 }
 `,
 	},
@@ -188,11 +188,12 @@ component CustomHeader() {
 }
 
 export default component App() {
-	<Card Header={CustomHeader}> // <- Header passed in as a prop
+	component Footer() {
+		<p>{'Card footer'}</p>
+	}
+
+	<Card Header={CustomHeader} {Footer}> // <- Header and Footer passed in as props
 		<p>{'Card content here'}</p>
-		component Footer() {     // <- Footer passed in as a inline component
-			<p>{'Card footer'}</p>
-		}
 	</Card>
 }
 `,

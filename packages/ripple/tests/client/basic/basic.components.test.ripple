@@ -18,11 +18,11 @@ describe('basic client > components & composition', () => {
 		}
 
 		component Basic() {
-			<Card>
-				component children() {
-					<p>{'Card content here'}</p>
-				}
-			</Card>
+			component children() {
+				<p>{'Card content here'}</p>
+			}
+
+			<Card {children} />
 		}
 
 		render(Basic);
@@ -44,11 +44,11 @@ describe('basic client > components & composition', () => {
 		}
 
 		component Basic() {
-			<Card>
-				component test() {
-					<p>{'Card content here'}</p>
-				}
-			</Card>
+			component test() {
+				<p>{'Card content here'}</p>
+			}
+
+			<Card {test} />
 		}
 
 		render(Basic);
@@ -60,7 +60,7 @@ describe('basic client > components & composition', () => {
 		expect(paragraph).toBeFalsy();
 	});
 
-	it('allows tracked variable and slot component with same name in nested scope', () => {
+	it('allows tracked variables alongside explicit component props', () => {
 		component Card(props: PropsWithChildrenOptional<{ test?: Component }>) {
 			<div class="card">
 				if (props.children) {
@@ -71,11 +71,12 @@ describe('basic client > components & composition', () => {
 
 		component Basic() {
 			let &[test] = track(false);
-			<Card>
-				component test() {
-					<p>{'Card content here'}</p>
-				}
-			</Card>
+
+			component TestSlot() {
+				<p>{'Card content here'}</p>
+			}
+
+			<Card test={TestSlot} />
 			<div>{test ? 'yes' : 'no'}</div>
 		}
 
@@ -334,14 +335,14 @@ describe('basic client > components & composition', () => {
 		};
 
 		component App() {
+			component children() {
+				<span>{'Click me!'}</span>
+			}
+
 			<div>
 				<h1>{'Component as Property Test'}</h1>
 				<UI.span />
-				<UI.button>
-					component children() {
-						<span>{'Click me!'}</span>
-					}
-				</UI.button>
+				<UI.button {children} />
 			</div>
 		}
 

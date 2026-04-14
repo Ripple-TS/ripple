@@ -38,14 +38,16 @@ describe('composite > render', () => {
 		}
 
 		component App() {
-			<Button>
-				component A() {
-					<div>{'I am A'}</div>
-				}
+			component A() {
+				<div>{'I am A'}</div>
+			}
+
+			component B() {
+				<div>{'I am B'}</div>
+			}
+
+			<Button {A} {B}>
 				<div>{'other text'}</div>
-				component B() {
-					<div>{'I am B'}</div>
-				}
 			</Button>
 		}
 

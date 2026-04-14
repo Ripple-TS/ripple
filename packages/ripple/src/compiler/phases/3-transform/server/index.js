@@ -1120,26 +1120,7 @@ const visitors = {
 				}
 			}
 
-			const children_filtered = [];
-
-			for (const child of node.children) {
-				if (child.type === 'Component') {
-					// in this case, id cannot be null
-					// as these are direct children of the component
-					const id = /** @type {AST.Identifier} */ (child.id);
-					props.push(
-						b.prop(
-							'init',
-							id,
-							/** @type {AST.Expression} */ (
-								visit(child, { ...state, namespace: child_namespace })
-							),
-						),
-					);
-				} else {
-					children_filtered.push(child);
-				}
-			}
+			const children_filtered = node.children.filter((child) => child.type !== 'EmptyStatement');
 
 			if (children_prop) {
 				props.push(b.prop('init', b.id('children'), children_prop));

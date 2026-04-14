@@ -40,20 +40,19 @@ export component App() {
     <p>{'Card content here'}</p>
   </Card>
 
-  // or explicitly!
-  <Card>
-    component children() {
-      <p>{'Card content here'}</p>
-    }
-  </Card>
+  // or pass children explicitly as a prop.
+  component children() {
+    <p>{'Card content here'}</p>
+  }
+
+  <Card {children} />
 }
 ```
 
 ### Named Children
 
-If you need to pass more than one child to a component, you can either pass the
-child as a prop or define a component with the same name as the prop within the
-scope of the parent.
+If you need to pass more than one child to a component, pass each child as an
+explicit prop on the component element.
 
 ::: warning Note The child you pass in MUST be a component, not just templates!
 :::
@@ -71,11 +70,11 @@ component Separate() {
 }
 
 export component App() {
-  <Composite PropComp={Separate}>
-    component InlineComp() {
-      <p>{`I'm an inline component.`}</p>
-    }
-  </Composite>
+  component InlineComp() {
+    <p>{`I'm an inline component.`}</p>
+  }
+
+  <Composite PropComp={Separate} {InlineComp} />
 }
 ```
 
@@ -107,14 +106,14 @@ component CustomHeader() {
 }
 
 export component App() {
-  <Card Header={CustomHeader}>
+  component Footer() {
+    <button>{'Cancel'}</button>
+    <button>{'OK'}</button>
+  }
+
+  <Card Header={CustomHeader} {Footer}>
     // <- Header passed in as a prop
     <p>{'Card content here'}</p>
-    component Footer() {
-      // <- Footer passed in as a inline component
-      <button>{'Cancel'}</button>
-      <button>{'OK'}</button>
-    }
   </Card>
 }
 ```

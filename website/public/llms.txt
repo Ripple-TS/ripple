@@ -17,11 +17,11 @@ Ripple is a TypeScript UI framework that combines the best parts of React, Solid
 # Create new project from template
 npx degit Ripple-TS/ripple/templates/basic my-app
 cd my-app
-npm i && npm run dev
+pnpm install && pnpm dev
 
 # Or install in existing project
-npm install ripple
-npm install --save-dev '@ripple-ts/vite-plugin'  # For Vite integration
+pnpm add ripple
+pnpm add -D '@ripple-ts/vite-plugin'  # For Vite integration
 ```
 
 ## Core Syntax & Concepts
@@ -584,19 +584,26 @@ component ErrorBoundary() {
 
 ### Children Components
 
-Use `children` prop for component composition. Use `Children` type to accept one or more children:
+Use the `children` prop for component composition. Use the `Children` type to accept one or more children. If you need to pass additional child components such as `Header`, `Footer`, or `InlineComp`, define them in scope and pass them as explicit props on the component element. Do not declare `component Foo() {}` directly inside another component's child content.
 
 ```ripple
-import type { Children } from 'ripple';
+import type { Children, Component } from 'ripple';
 
-component Card(props: { children: Children }) {
+component Card(props: { children: Children; Footer?: Component }) {
   <div class="card">
-    <children />
+    <props.children />
+    if (props.Footer) {
+      <props.Footer />
+    }
   </div>
 }
 
+component Footer() {
+  <button>{'OK'}</button>
+}
+
 // Usage
-<Card>
+<Card Footer={Footer}>
   <p>{"Card content here"}</p>
 </Card>
 ```
@@ -1159,7 +1166,7 @@ Ripple provides a compatibility layer for integrating with React applications. T
 #### Installation
 
 ```bash
-npm install @ripple-ts/compat-react
+pnpm add @ripple-ts/compat-react
 ```
 
 #### Using React Components in Ripple (tsx:react)

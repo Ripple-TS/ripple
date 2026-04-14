@@ -1919,31 +1919,21 @@ const visitors = {
 			}
 			/** @type {(AST.Node | AST.Expression)[]} */
 			let implicit_children = [];
-			/** @type {AST.Identifier[]} */
-			let explicit_children = [];
 
 			for (const child of node.children) {
 				if (child.type === 'Component') {
-					if (child.id?.name === 'children') {
-						explicit_children.push(child.id);
-					}
+					error(
+						'Component declarations cannot be used inside composite component children. Pass them as explicit props on the template element instead.',
+						state.analysis.module.filename,
+						child.id || child,
+						context.state.loose ? context.state.analysis.errors : undefined,
+						context.state.analysis.comments,
+					);
 				} else if (child.type !== 'EmptyStatement') {
 					implicit_children.push(
 						child.type === 'RippleExpression' || child.type === 'Text' || child.type === 'Html'
 							? child.expression
 							: child,
-					);
-				}
-			}
-
-			if (implicit_children.length > 0 && explicit_children.length > 0) {
-				for (const item of [...explicit_children, ...implicit_children]) {
-					error(
-						'Cannot have both implicit and explicit children',
-						state.analysis.module.filename,
-						item,
-						context.state.loose ? context.state.analysis.errors : undefined,
-						context.state.analysis.comments,
 					);
 				}
 			}
