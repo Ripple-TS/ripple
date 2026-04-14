@@ -211,21 +211,9 @@ function updatePackageJson(projectPath, projectName, packageManager, stylingFram
  */
 function configureStyling(projectPath, stylingFramework) {
 	if (stylingFramework === 'tailwind') {
-		const tailwindConfig = `import type { Config } from 'tailwindcss';
-export default {
-	content: [
-		"./index.html",
-		"./src/**/*.{ts,ripple}",
-	],
-	theme: {
-		extend: {},
-	},
-	plugins: []
-} satisfies Config
-`;
-		writeFileSync(join(projectPath, 'tailwind.config.ts'), tailwindConfig);
-		const mainCss = `@import "tailwindcss";
-@config "../tailwind.config.ts";`;
+		// Tailwind v4 uses CSS-first configuration — no JS config file needed.
+		// Content sources are auto-detected, and theme customization uses @theme in CSS.
+		const mainCss = `@import "tailwindcss";\n`;
 		writeFileSync(join(projectPath, 'src', 'index.css'), mainCss);
 
 		const mainTs = readFileSync(join(projectPath, 'src', 'index.ts'), 'utf-8');
@@ -240,13 +228,27 @@ import { ripple } from '@ripple-ts/vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-	plugins: [ripple(), tailwindcss()],
-	server: {
-		port: 3000
-	}
+\tplugins: [ripple(), tailwindcss()],
+\tserver: {
+\t\tport: 3000
+\t}
 });
 `;
 		writeFileSync(join(projectPath, 'vite.config.js'), viteConfig);
+
+		// Add VS Code settings for Tailwind IntelliSense in .ripple files
+		const vscodePath = join(projectPath, '.vscode');
+		mkdirSync(vscodePath, { recursive: true });
+		const vscodeSettings = JSON.stringify(
+			{
+				'tailwindCSS.includeLanguages': {
+					ripple: 'html',
+				},
+			},
+			null,
+			'\t',
+		);
+		writeFileSync(join(vscodePath, 'settings.json'), vscodeSettings + '\n');
 	} else if (stylingFramework === 'bootstrap') {
 		const mainTs = readFileSync(join(projectPath, 'src', 'index.ts'), 'utf-8');
 		const newMainTs = "import 'bootstrap/dist/css/bootstrap.min.css';\n" + mainTs;
