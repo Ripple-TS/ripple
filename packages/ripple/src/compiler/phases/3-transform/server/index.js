@@ -1151,19 +1151,11 @@ const visitors = {
 				);
 
 				if (children_prop) {
-					if (children_prop.value.type === 'ArrowFunctionExpression') {
-						children_prop.value.body = b.logical(
-							'??',
-							/** @type {AST.Expression} */ (children_prop.value.body),
-							children,
-						);
-					} else {
-						children_prop.value = b.logical(
-							'??',
-							/** @type {AST.Expression} */ (children_prop.value),
-							children,
-						);
-					}
+					children_prop.value = b.logical(
+						'??',
+						/** @type {AST.Expression} */ (children_prop.value),
+						children,
+					);
 				} else {
 					children_prop = b.prop('init', b.id('children'), children);
 				}
