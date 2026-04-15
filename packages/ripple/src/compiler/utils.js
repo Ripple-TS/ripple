@@ -1122,7 +1122,10 @@ export function jsx_to_ripple_node(node) {
 						type: 'Attribute',
 						name: {
 							type: 'Identifier',
-							name: attr.name.type === 'JSXIdentifier' ? attr.name.name : attr.name.name,
+							name:
+								attr.name.type === 'JSXIdentifier'
+									? attr.name.name
+									: attr.name.namespace.name + ':' + attr.name.name.name,
 							tracked: is_dynamic,
 							start: attr.name.start,
 							end: attr.name.end,
@@ -1148,7 +1151,9 @@ export function jsx_to_ripple_node(node) {
 			})
 			.filter(Boolean);
 
-		const children = node.children.map(jsx_to_ripple_node).flat().filter(Boolean);
+		const children = /** @type {AST.Node[]} */ (
+			/** @type {AST.Node[]} */ (node.children).map(jsx_to_ripple_node).flat().filter(Boolean)
+		);
 
 		return /** @type {AST.Node} */ ({
 			type: 'Element',
@@ -1189,7 +1194,9 @@ export function jsx_to_ripple_node(node) {
 	}
 
 	if (node.type === 'JSXFragment') {
-		return node.children.map(jsx_to_ripple_node).flat().filter(Boolean);
+		return /** @type {AST.Node[]} */ (
+			/** @type {AST.Node[]} */ (node.children).map(jsx_to_ripple_node).flat().filter(Boolean)
+		);
 	}
 
 	return node;

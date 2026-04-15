@@ -88,7 +88,9 @@ function expression_has_side_effects(node) {
 			return node.properties.some((prop) =>
 				prop.type === 'SpreadElement'
 					? expression_has_side_effects(prop.argument)
-					: expression_has_side_effects(prop.value),
+					: expression_has_side_effects(prop.value) ||
+						(prop.computed &&
+							expression_has_side_effects(/** @type {AST.Expression} */ (prop.key))),
 			);
 		case 'SpreadElement':
 			return expression_has_side_effects(node.argument);
