@@ -59,9 +59,19 @@ export type Block = {
 	prev: Block | null;
 };
 
+export type TryBlockState = {
+	p?: PendingFunction | null;
+	c?: CatchFunction | null;
+};
+
 export type TryBlock = Block & {
-	s: {
-		p: PendingFunction | null;
-		c: CatchFunction | null;
-	};
+	s: TryBlockState;
+};
+
+export type TryBlockWithCatch = TryBlock & {
+	s: TryBlockState & { c: CatchFunction };
+};
+
+export type TryBlockWithPending = TryBlock & {
+	s: TryBlockState & { p: PendingFunction };
 };

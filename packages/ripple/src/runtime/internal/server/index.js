@@ -1,5 +1,5 @@
 /**
-@import { Component, Dependency, Derived, Tracked, Block } from '#server';
+@import { Component, Dependency, Derived, Tracked, Block, TryBlockWithCatch } from '#server';
 @import { NestedArray } from '#helpers';
 @import { Props } from '#public';
 @import { RenderResult, BaseRenderOptions, RenderStreamResult, Stream, StreamSink } from 'ripple/server';
@@ -302,21 +302,10 @@ function run_derived(computed) {
 		computed.d = active_dependency;
 		if (error === ASYNC_DERIVED_READ_THROWN) {
 			if (!computed.dr && !computed.dj) {
-				// This must've been thrown by a pending async derived inside a track.async callback.
-				// We're not going to attach any cleanup logic to promises if they fail
-				// as this should be handled by the block logic since something needs to read
-				// these computed/derived values inside blocks
-				// Otherwise, if they're never read, then it really doesn't matter if these promises error out,
-				// or resolve for that matter, since it would mean that they're not being used.
-
-				// For the same reason, we're not throwing in the streaming mode of the synchronous phase
-				// to cause the fallback/pending rendering`, because this should only happen on derived reads,
-				// which would be handled by `run_block()`
-				// create and attach a new promise that will resolve once all of its
-				// async derived dependencies have resolved
-				// It's important to create a promise because this async derived might be a dependency
-				// of another sync or async derived, and they would also have to be rerun
-				// once this derived's promise resolves
+				// any regular or async derived needs deferred promise,
+				// as they can be dependencies for other deriveds.
+				// Only create the synthetic promise once in case
+				// there are multiple async dependencies used in the derived
 				var deferred_promise = new Promise((resolve, reject) => {
 					computed.dr = resolve;
 					computed.dj = (error) => {
@@ -325,7 +314,6 @@ function run_derived(computed) {
 						computed.dj = null;
 						reject(error);
 					};
-					computed.ap = deferred_promise;
 				});
 
 				if (computed.d?.t.v === SUSPENSE_PENDING) {
@@ -338,12 +326,13 @@ function run_derived(computed) {
 							if (computed.dj) {
 								computed.dj(error);
 							} else {
-								// this is a regular derived that has an async derived dependency
 								update_derived_value(computed, SUSPENSE_REJECTED);
 							}
 						},
 					);
 				}
+
+				return normalize_derived_value(computed, deferred_promise, 'deferred');
 			}
 			return SUSPENSE_PENDING;
 		}
@@ -629,7 +618,7 @@ export async function render(component, passed_in_options = {}) {
 
 	try_block(
 		// since there is no `active_block` yet, the usual automatic block run will be skipped
-		async () => {
+		() => {
 			// this will run only once and immediately when we call the `try_block`
 			root_block = /** @type {Block} */ (active_block);
 			const output = root_block.o;
@@ -649,17 +638,6 @@ export async function render(component, passed_in_options = {}) {
 				// We probably can allocate a buffer inside the head for this
 				// We should have the same order of insertion as for the full async render
 			}
-
-			await output.promise;
-
-			if (output.isStreamMode()) {
-				// we already flushed the buffers
-				// and all async operations have completed
-				// just exit
-				return;
-			}
-
-			sync_buffers_to_string(output);
 		},
 		(error) => {
 			// TODO - allow a global error template in ripple.config.ts
@@ -682,6 +660,10 @@ export async function render(component, passed_in_options = {}) {
 	const output = /** @type {Block} */ (/** @type {unknown} */ (root_block)).o;
 	if (output.isStreamMode() && options.closeStream) {
 		output._closeStream();
+	}
+
+	if (!output.isStreamMode()) {
+		sync_buffers_to_string(output);
 	}
 
 	return options.stream
@@ -1224,6 +1206,20 @@ function get_active_derived() {
 }
 
 /**
+ * Routes an error to the nearest catch boundary: clears output, cancels
+ * pending async work, and invokes the catch handler if one exists.
+ * @param {TryBlockWithCatch} catch_block
+ * @param {any} error
+ */
+function route_error_to_catch_block(catch_block, error) {
+	catch_block.o.clear();
+	cancel_async_operations(catch_block);
+	reset_state();
+	set_active_block(catch_block);
+	catch_block.s.c(error);
+}
+
+/**
  * @param {Block} block
  * @returns {void}
  */
@@ -1254,19 +1250,18 @@ function register_block_rerun(block) {
 				return;
 			}
 			reset_state();
-			run_block(block);
-			try_catch_block.o.resolveAsync(operation);
+			try {
+				run_block(block);
+				try_catch_block.o.resolveAsync(operation);
+			} catch (error) {
+				route_error_to_catch_block(try_catch_block, error);
+			}
 		},
-		() => {
+		(error) => {
 			if (cancelled) {
 				return;
 			}
-			// reset_state();
-			// run_block(block);
-			// if (!cancelled) {
-			// 	try_catch_block.o.resolveAsync(operation);
-			// }
-			cancel_async_operations(try_catch_block);
+			route_error_to_catch_block(try_catch_block, error);
 		},
 	);
 	// clear all output buffers as we'll rerun the block rendering
@@ -1301,12 +1296,10 @@ export function run_block(block) {
 				throw error;
 			}
 		} else {
-			if (output.isSyncRun()) {
-				// throw for the catch boundary to catch and to stop processing its children
-				throw error;
-			}
-
-			cancel_async_operations(get_closest_catch_block(block));
+			// always re-throw real errors
+			// during sync, try_block's catch handles it;
+			// during async, the register_block_rerun() try/catch handles it
+			throw error;
 		}
 	} finally {
 		active_block = previous_block;
@@ -1337,8 +1330,8 @@ function normalize_derived_value(computed, value, type) {
 	// This is also assuming that trackAsync is only allowed directly in components and inside try / resolving blocks
 	// So, need to create tests for this
 
-	if (!computed.ia || async_result === null) {
-		// This means it's a regular derived, so we just return the value
+	if (async_result === null || (!computed.ia && async_result.type !== 'deferred')) {
+		// This means it's a regular derived (non-async, non-deferred), so we just return the value
 		return value;
 	}
 
@@ -1359,10 +1352,7 @@ function normalize_derived_value(computed, value, type) {
 		},
 		(error) => {
 			update_derived_value(computed, SUSPENSE_REJECTED);
-			// this has to be an async failure so,
-			// we need to find the closest catch block and cancel all operations
-			// clear output, etc.
-			cancel_async_operations(get_closest_catch_block(computed.b));
+			route_error_to_catch_block(get_closest_catch_block(computed.b), error);
 		},
 	);
 

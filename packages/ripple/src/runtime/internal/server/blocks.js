@@ -1,5 +1,5 @@
 /**
-@import { Block, TryBlock } from '#server';
+@import { Block, TryBlock, TryBlockWithCatch } from '#server';
 @import { OutputInterface } from './index.js';
  */
 
@@ -75,20 +75,18 @@ export function try_block(try_fn, catch_fn = null, pending_fn = null) {
 				: TRY_PENDING_BLOCK;
 
 	var created_block = block(flags, try_fn, { p: pending_fn, c: catch_fn }, true);
+	var previous_block = /** @type {Block} */ (active_block);
+	set_active_block(created_block);
 
 	try {
 		try_fn();
 	} catch (error) {
-		if (created_block.f & TRY_PENDING_BLOCK) {
-			if (error === ASYNC_DERIVED_READ_THROWN) {
-				// we should only end up here in the streaming mode during the sync phase
-				created_block.o.clear();
-				pending_fn?.();
-				// continue processing other try blocks
-				return created_block;
-			}
-			// if an actual error was thrown, we re-throw it and let the try/catch boundary handle it
-			throw error;
+		if (error === ASYNC_DERIVED_READ_THROWN && created_block.f & TRY_PENDING_BLOCK) {
+			// we should only end up here in the streaming mode during the sync phase
+			created_block.o.clear();
+			pending_fn?.();
+			// continue processing other try blocks
+			return created_block;
 		}
 
 		if (created_block.f & TRY_CATCH_BLOCK) {
@@ -96,7 +94,12 @@ export function try_block(try_fn, catch_fn = null, pending_fn = null) {
 			cancel_async_operations(created_block);
 			// render the catch
 			catch_fn?.(/** @type {SSRError} */ (error));
+		} else {
+			// no catch handler, re-throw for an outer boundary to handle
+			throw error;
 		}
+	} finally {
+		set_active_block(previous_block);
 	}
 
 	return created_block;
@@ -120,7 +123,7 @@ export function component_block(fn) {
 
 /**
  * @param {Block} block
- * @returns {Block}
+ * @returns {TryBlockWithCatch}
  */
 export function get_closest_catch_block(block) {
 	var current = block;
