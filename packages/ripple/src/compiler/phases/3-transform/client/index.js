@@ -1689,7 +1689,9 @@ const visitors = {
 						let property =
 							attr.value === null
 								? b.literal(true)
-								: /** @type {AST.Expression} */ (visit(attr.value, { ...state, metadata }));
+								: /** @type {AST.Expression} */ (
+										visit(attr.value, { ...state, flush_node: null, metadata })
+									);
 
 						if (attr.name.name === 'class' && node.metadata.scoped && state.component?.css) {
 							if (property.type === 'Literal') {
@@ -1737,7 +1739,9 @@ const visitors = {
 							b.prop(
 								'init',
 								b.key(attr.name.name),
-								/** @type {AST.Expression} */ (visit(/** @type {AST.Node} */ (attr.value), state)),
+								/** @type {AST.Expression} */ (
+									visit(/** @type {AST.Node} */ (attr.value), { ...state, flush_node: null })
+								),
 							),
 						);
 					}
@@ -1745,7 +1749,13 @@ const visitors = {
 					props.push(
 						b.spread(
 							/** @type {AST.Expression} */
-							(visit(attr.argument, { ...state, metadata: { ...state.metadata } })),
+							(
+								visit(attr.argument, {
+									...state,
+									flush_node: null,
+									metadata: { ...state.metadata },
+								})
+							),
 						),
 					);
 				} else if (attr.type === 'RefAttribute') {
@@ -1756,7 +1766,9 @@ const visitors = {
 						b.prop(
 							'init',
 							b.id(ref_id),
-							/** @type {AST.Expression} */ (visit(attr.argument, { ...state, metadata })),
+							/** @type {AST.Expression} */ (
+								visit(attr.argument, { ...state, flush_node: null, metadata })
+							),
 							true,
 						),
 					);

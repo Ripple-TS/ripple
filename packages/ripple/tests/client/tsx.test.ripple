@@ -241,4 +241,246 @@ describe('tsx expression', () => {
 		expect(div.getAttribute('data-index')).toBe('1');
 		expect(div.title).toBe('Item 1');
 	});
+
+	it('renders tsx passed directly as component prop', () => {
+		component Wrapper(&{ content }: { content: any }) {
+			<div class="wrapper">{content}</div>
+		}
+
+		component App() {
+			<Wrapper content={<tsx><span class="inner">direct prop</span></tsx>} />
+		}
+		render(App);
+		const wrapper = container.querySelector('.wrapper');
+		expect(wrapper).toBeTruthy();
+		expect(wrapper.querySelector('.inner')).toBeTruthy();
+		expect(wrapper.textContent).toBe('direct prop');
+	});
+
+	it('renders tsx passed directly as children prop', () => {
+		component Card(&{ title, children }: { title: any; children: any }) {
+			<div class="card">
+				<h2 class="card-title">{title}</h2>
+				<div class="card-body">{children}</div>
+			</div>
+		}
+
+		component App() {
+			<Card
+				title={<tsx><span class="bold">Title</span></tsx>}
+				children={<tsx><p>Card content here</p></tsx>}
+			/>
+		}
+		render(App);
+		const card = container.querySelector('.card');
+		expect(card.querySelector('.card-title .bold').textContent).toBe('Title');
+		expect(card.querySelector('.card-body p').textContent).toBe('Card content here');
+	});
+
+	it('renders tsx from function defined outside component', () => {
+		function createBadge(label: string) {
+			return <tsx>
+				<span class="badge">
+					{label}
+				</span>
+			</tsx>;
+		}
+
+		component App() {
+			const badge = createBadge('New');
+			{badge}
+		}
+		render(App);
+		expect(container.querySelector('.badge')).toBeTruthy();
+		expect(container.querySelector('.badge').textContent).toBe('New');
+	});
+
+	it('renders tsx from function with multiple elements', () => {
+		function createListItem(item: string) {
+			return <tsx>
+				<li class="list-item">
+					{item}
+				</li>
+			</tsx>;
+		}
+
+		component App() {
+			const items = ['Apple', 'Banana', 'Cherry'];
+			<ul>
+				for (const item of items) {
+					{createListItem(item)}
+				}
+			</ul>
+		}
+		render(App);
+		const listItems = container.querySelectorAll('.list-item');
+		expect(listItems.length).toBe(3);
+		expect(listItems[0].textContent).toBe('Apple');
+		expect(listItems[1].textContent).toBe('Banana');
+		expect(listItems[2].textContent).toBe('Cherry');
+	});
+
+	it('renders tsx from factory function passed to component', () => {
+		component List(&{ renderItem, items }: { renderItem: (item: string) => any; items: string[] }) {
+			<ul class="list">
+				for (const item of items) {
+					{renderItem(item)}
+				}
+			</ul>
+		}
+
+		function itemRenderer(item: string) {
+			return <tsx>
+				<li>
+					<span class="item-content">
+						{item}
+					</span>
+				</li>
+			</tsx>;
+		}
+
+		component App() {
+			<List items={['One', 'Two', 'Three']} renderItem={itemRenderer} />
+		}
+		render(App);
+		const items = container.querySelectorAll('.item-content');
+		expect(items.length).toBe(3);
+		expect(items[0].textContent).toBe('One');
+		expect(items[1].textContent).toBe('Two');
+		expect(items[2].textContent).toBe('Three');
+	});
+
+	it('renders tsx from function with reactive state', () => {
+		function createCounter(label: string, getCount: () => number) {
+			return <tsx>
+				<div class="counter-display">
+					<span class="label">
+						{label}
+					</span>
+					<span class="count">
+						{getCount()}
+					</span>
+				</div>
+			</tsx>;
+		}
+
+		component App() {
+			let &[count] = track(0);
+			const counterElement = createCounter('Count:', () => count);
+			{counterElement}
+			<button onClick={() => count++}>{'increment'}</button>
+		}
+		render(App);
+		expect(container.querySelector('.label').textContent).toBe('Count:');
+		expect(container.querySelector('.count').textContent).toBe('0');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('.count').textContent).toBe('1');
+	});
+
+	it('renders nested tsx from multiple functions', () => {
+		function createIcon(name: string) {
+			return <tsx><i class={'icon icon-' + name}></i></tsx>;
+		}
+
+		function createButton(icon: string, label: string) {
+			return <tsx>
+				<button class="icon-button">
+					{createIcon(icon)}
+					<span class="btn-label">
+						{label}
+					</span>
+				</button>
+			</tsx>;
+		}
+
+		component App() {
+			const btn = createButton('save', 'Save');
+			{btn}
+		}
+		render(App);
+		const button = container.querySelector('.icon-button');
+		expect(button).toBeTruthy();
+		expect(button.querySelector('.icon-save')).toBeTruthy();
+		expect(button.querySelector('.btn-label').textContent).toBe('Save');
+	});
+
+	it('renders tsx as prop with fallback in component', () => {
+		component Alert(&{ icon, message }: { icon?: any; message: string }) {
+			<div class="alert">
+				{icon}
+				<span class="message">{message}</span>
+			</div>
+		}
+
+		component App() {
+			<Alert message="No icon" />
+			<Alert icon={<tsx><span class="custom-icon">✓</span></tsx>} message="Custom icon" />
+		}
+		render(App);
+		const alerts = container.querySelectorAll('.alert');
+		expect(alerts[0].querySelector('.message').textContent).toBe('No icon');
+		expect(alerts[1].querySelector('.custom-icon')).toBeTruthy();
+		expect(alerts[1].querySelector('.message').textContent).toBe('Custom icon');
+	});
+
+	it('renders tsx stored in array via function', () => {
+		function createItem(className: string, content: string) {
+			return <tsx>
+				<div class={className}>
+					{content}
+				</div>
+			</tsx>;
+		}
+
+		component App() {
+			const items = [
+				{ className: 'item-a', content: 'A' },
+				{ className: 'item-b', content: 'B' },
+				{ className: 'item-c', content: 'C' },
+			];
+
+			<div class="container">
+				for (const item of items) {
+					{createItem(item.className, item.content)}
+				}
+			</div>
+		}
+		render(App);
+		const container_el = container.querySelector('.container');
+		expect(container_el.querySelector('.item-a').textContent).toBe('A');
+		expect(container_el.querySelector('.item-b').textContent).toBe('B');
+		expect(container_el.querySelector('.item-c').textContent).toBe('C');
+	});
+
+	it('renders tsx conditionally from function', () => {
+		function createContent(type: string) {
+			if (type === 'success') {
+				return <tsx><div class="success">Success!</div></tsx>;
+			} else if (type === 'error') {
+				return <tsx><div class="error">Error!</div></tsx>;
+			}
+			return <tsx><div class="default">Default</div></tsx>;
+		}
+
+		component App() {
+			let &[status] = track('default');
+			{createContent(status)}
+			<button class="set-success" onClick={() => (status = 'success')}>{'Success'}</button>
+			<button class="set-error" onClick={() => (status = 'error')}>{'Error'}</button>
+		}
+		render(App);
+		expect(container.querySelector('.default')).toBeTruthy();
+
+		container.querySelector('.set-success').click();
+		flushSync();
+		expect(container.querySelector('.success')).toBeTruthy();
+		expect(container.querySelector('.default')).toBeFalsy();
+
+		container.querySelector('.set-error').click();
+		flushSync();
+		expect(container.querySelector('.error')).toBeTruthy();
+		expect(container.querySelector('.success')).toBeFalsy();
+	});
 });
