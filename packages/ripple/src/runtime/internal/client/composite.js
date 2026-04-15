@@ -74,9 +74,9 @@ export function composite(get_component, node, props) {
 						element.appendChild(child_anchor);
 
 						if (ns !== DEFAULT_NAMESPACE) {
-							with_ns(ns, () => props.children.render(child_anchor, {}, block));
+							with_ns(ns, () => props.children.render(child_anchor, block));
 						} else {
-							props.children.render(child_anchor, {}, block);
+							props.children.render(child_anchor, block);
 						}
 					}
 				};

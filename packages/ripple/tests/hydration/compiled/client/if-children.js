@@ -88,9 +88,7 @@ export function TestIfWithChildren(__anchor, _, __block) {
 	IfWithChildren(
 		node_1,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var fragment_1 = root_4();
 				var node_2 = _$_.first_child_frag(fragment_1);
 
@@ -100,7 +98,6 @@ export function TestIfWithChildren(__anchor, _, __block) {
 
 				ChildItem(node_3, { text: "Item 2" }, _$_.active_block);
 				_$_.append(__anchor, fragment_1);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block
@@ -191,9 +188,7 @@ export function TestIfWithSiblingsAndChildren(__anchor, _, __block) {
 	IfWithSiblingsAndChildren(
 		node_6,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var fragment_3 = root_10();
 				var node_7 = _$_.first_child_frag(fragment_3);
 
@@ -203,7 +198,6 @@ export function TestIfWithSiblingsAndChildren(__anchor, _, __block) {
 
 				ChildItem(node_8, { text: "Item B" }, _$_.active_block);
 				_$_.append(__anchor, fragment_3);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block

@@ -1216,6 +1216,7 @@ const visitors = {
 				visit(children_component, {
 					...state,
 					namespace: state.namespace,
+					is_ripple_element: true,
 				})
 			),
 		);
@@ -1799,6 +1800,7 @@ const visitors = {
 								: {}),
 							scope: /** @type {ScopeInterface} */ (component_scope),
 							namespace: child_namespace,
+							is_ripple_element: true,
 						})
 					),
 				);
@@ -2016,30 +2018,44 @@ const visitors = {
 		}
 
 		const component_scope = context.state.scopes.get(node) || context.state.scope;
-		const body_statements = [
-			b.stmt(b.call('_$_.push_component')),
-			...transform_body(node.body, {
-				...context,
-				state: {
-					...context.state,
-					flush_node: null,
-					component: node,
-					metadata,
-					scope: component_scope,
-				},
-			}),
-			b.stmt(b.call('_$_.pop_component')),
-		];
+		const is_ripple_element = context.state.is_ripple_element;
+		const transformed_body = transform_body(node.body, {
+			...context,
+			state: {
+				...context.state,
+				flush_node: null,
+				component: node,
+				metadata,
+				scope: component_scope,
+				is_ripple_element: false,
+			},
+		});
+
+		// RippleElement render functions don't need push/pop component context
+		// since they inherit context from where they're used
+		const body_statements = is_ripple_element
+			? transformed_body
+			: [
+					b.stmt(b.call('_$_.push_component')),
+					...transformed_body,
+					b.stmt(b.call('_$_.pop_component')),
+				];
 
 		if (node.css !== null && node.css) {
 			context.state.stylesheets.push(node.css);
 		}
 
+		// RippleElement render functions use simpler params: [__anchor, __block]
+		// Regular components use: [__anchor, props, __block] or [__anchor, _, __block]
+		const params = is_ripple_element
+			? [b.id('__anchor'), b.id('__block')]
+			: node.params.length > 0
+				? [b.id('__anchor'), props, b.id('__block')]
+				: [b.id('__anchor'), b.id('_'), b.id('__block')];
+
 		const func = b.function(
 			node.id,
-			node.params.length > 0
-				? [b.id('__anchor'), props, b.id('__block')]
-				: [b.id('__anchor'), b.id('_'), b.id('__block')],
+			params,
 			b.block([
 				...style_statements,
 				...(prop_statements ?? []),

@@ -84,7 +84,7 @@ export function expression(node, get_value) {
 
 			child_block = branch(() => {
 				var block = active_block;
-				next_value.render(end ?? anchor, {}, block);
+				next_value.render(end ?? anchor, block);
 			});
 
 			// Update parent branch's s.start to include content inserted before anchor.

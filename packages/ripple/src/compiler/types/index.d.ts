@@ -1335,6 +1335,7 @@ export interface TransformClientState extends BaseState {
 	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
 	skip_children_traversal: boolean;
 	return_flags?: Map<AST.ReturnStatement, { name: string; tracked: boolean }>;
+	is_ripple_element?: boolean;
 }
 
 /** Override zimmerframe types and provide our own */

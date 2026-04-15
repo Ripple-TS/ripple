@@ -342,9 +342,7 @@ export function WebsiteIndex(__anchor, _, __block) {
 	Layout(
 		node_7,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var fragment_10 = root_22();
 				var node_8 = _$_.first_child_frag(fragment_10);
 
@@ -362,7 +360,6 @@ export function WebsiteIndex(__anchor, _, __block) {
 
 				Actions(node_11, { playgroundVisible: false }, _$_.active_block);
 				_$_.append(__anchor, fragment_10);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block
