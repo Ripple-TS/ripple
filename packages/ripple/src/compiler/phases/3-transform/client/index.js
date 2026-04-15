@@ -1692,7 +1692,7 @@ const visitors = {
 			const is_spreading = node.attributes.some((attr) => attr.type === 'SpreadAttribute');
 			/** @type {(AST.Property | AST.SpreadElement)[]} */
 			const props = [];
-			/** @type {AST.Expression | AST.BlockStatement | null} */
+			/** @type {AST.Property | null} */
 			let children_prop = null;
 
 			for (const attr of node.attributes) {
@@ -1714,7 +1714,11 @@ const visitors = {
 
 						if (metadata.tracking || attr.name.tracked) {
 							if (attr.name.name === 'children') {
-								children_prop = b.thunk(b.call('_$_.normalize_children', property));
+								children_prop = b.prop(
+									'get',
+									b.id('children'),
+									b.function(null, [], b.block([b.return(b.call('_$_.normalize_children', property))])),
+								);
 								continue;
 							}
 
@@ -1726,13 +1730,20 @@ const visitors = {
 								),
 							);
 						} else {
+							if (attr.name.name === 'children') {
+								children_prop = b.prop(
+									'init',
+									b.id('children'),
+									b.call('_$_.normalize_children', property),
+								);
+								continue;
+							}
+
 							props.push(
 								b.prop(
 									'init',
 									b.key(attr.name.name),
-									attr.name.name === 'children'
-										? b.call('_$_.normalize_children', property)
-										: property,
+									property,
 								),
 							);
 						}
@@ -1809,16 +1820,32 @@ const visitors = {
 				);
 
 				if (children_prop) {
-					/** @type {AST.ArrowFunctionExpression} */ (children_prop).body = b.logical(
-						'??',
-						/** @type {AST.Expression} */ (
-							/** @type {AST.ArrowFunctionExpression} */ (children_prop).body
-						),
-						children,
-					);
+					if (children_prop.kind === 'get') {
+						/** @type {AST.ReturnStatement} */ (
+							/** @type {AST.FunctionExpression} */ (children_prop.value).body.body[0]
+						).argument = b.logical(
+							'??',
+							/** @type {AST.Expression} */ (
+								/** @type {AST.ReturnStatement} */ (
+									/** @type {AST.FunctionExpression} */ (children_prop.value).body.body[0]
+								).argument
+							),
+							children,
+						);
+					} else {
+						children_prop.value = b.logical(
+							'??',
+							/** @type {AST.Expression} */ (children_prop.value),
+							children,
+						);
+					}
 				} else {
-					props.push(b.prop('init', b.id('children'), children));
+					children_prop = b.prop('init', b.id('children'), children);
 				}
+			}
+
+			if (children_prop) {
+				props.push(children_prop);
 			}
 
 			const metadata = { tracking: false, await: false };

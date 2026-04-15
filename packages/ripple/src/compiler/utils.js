@@ -113,6 +113,8 @@ const DOM_BOOLEAN_ATTRIBUTES = [
 	'controls',
 	'default',
 	'disabled',
+	'formnovalidate',
+	'hidden',
 	'inert',
 	'ismap',
 	'loop',

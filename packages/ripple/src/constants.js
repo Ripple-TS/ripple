@@ -7,14 +7,10 @@ export const TEMPLATE_MATHML_NAMESPACE = 1 << 6;
 
 export const HYDRATION_START = '[';
 export const HYDRATION_END = ']';
-export const HYDRATION_EXPRESSION_START = 'r';
-export const HYDRATION_EXPRESSION_END = '/r';
 export const HYDRATION_ERROR = {};
 
 export const BLOCK_OPEN = `<!--${HYDRATION_START}-->`;
 export const BLOCK_CLOSE = `<!--${HYDRATION_END}-->`;
-export const EXPRESSION_OPEN = `<!--${HYDRATION_EXPRESSION_START}-->`;
-export const EXPRESSION_CLOSE = `<!--${HYDRATION_EXPRESSION_END}-->`;
 export const EMPTY_COMMENT = `<!---->`;
 
 export const ELEMENT_NODE = 1;

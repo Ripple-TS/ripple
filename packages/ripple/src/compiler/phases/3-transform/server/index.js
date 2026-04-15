@@ -1163,7 +1163,7 @@ const visitors = {
 		} else {
 			/** @type {(AST.Property | AST.SpreadElement)[]} */
 			const props = [];
-			/** @type {AST.Expression | null} */
+			/** @type {AST.Property | null} */
 			let children_prop = null;
 
 			const apply_parent_css_scope = state.applyParentCssScope;
@@ -1183,9 +1183,13 @@ const visitors = {
 									);
 
 						if (attr.name.name === 'children') {
-							children_prop = attr.name.tracked
-								? b.thunk(b.call('_$_.normalize_children', property))
-								: b.call('_$_.normalize_children', property);
+							children_prop = b.prop(
+								'init',
+								b.id('children'),
+								attr.name.tracked
+									? b.thunk(b.call('_$_.normalize_children', property))
+									: b.call('_$_.normalize_children', property),
+							);
 							continue;
 						}
 
@@ -1203,10 +1207,6 @@ const visitors = {
 			}
 
 			const children_filtered = node.children.filter((child) => child.type !== 'EmptyStatement');
-
-			if (children_prop) {
-				props.push(b.prop('init', b.id('children'), children_prop));
-			}
 
 			if (children_filtered.length > 0) {
 				const component_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node));
@@ -1229,7 +1229,27 @@ const visitors = {
 					),
 				);
 
-				props.push(b.prop('init', b.id('children'), children));
+				if (children_prop) {
+					if (children_prop.value.type === 'ArrowFunctionExpression') {
+						children_prop.value.body = b.logical(
+							'??',
+							/** @type {AST.Expression} */ (children_prop.value.body),
+							children,
+						);
+					} else {
+						children_prop.value = b.logical(
+							'??',
+							/** @type {AST.Expression} */ (children_prop.value),
+							children,
+						);
+					}
+				} else {
+					children_prop = b.prop('init', b.id('children'), children);
+				}
+			}
+
+			if (children_prop) {
+				props.push(children_prop);
 			}
 
 			// For SSR, determine if we should await based on component metadata
