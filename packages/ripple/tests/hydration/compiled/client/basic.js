@@ -13,14 +13,14 @@ var root_8 = _$_.template(`<!><!>`, 1, 2);
 var root_9 = _$_.template(`<div> </div>`, 0);
 var root_10 = _$_.template(`<!>`, 1, 1);
 var root_11 = _$_.template(`<div> </div><span> </span>`, 1, 2);
-var root_12 = _$_.template(`<div class="text-prop"> </div>`, 0);
+var root_12 = _$_.template(`<div class="text-prop"><!></div>`, 0);
 var root_13 = _$_.template(`<!><button class="show-text">Show</button>`, 1, 2);
 var root_14 = _$_.template(`<h1 class="sr-only">heading</h1><p class="subtitle">first paragraph</p><p class="subtitle">second paragraph</p>`, 1, 3);
 var root_15 = _$_.template(`<!><span class="sibling1"> </span><span class="sibling2"> </span>`, 1, 3);
 var root_16 = _$_.template(`<h1 class="sr-only">Ripple</h1><img src="/images/logo.png" alt="Logo" class="logo"><p class="subtitle">the elegant TypeScript UI framework</p>`, 1, 3);
 var root_18 = _$_.template(`<a href="/playground" class="playground-link">Playground</a>`, 0);
 var root_17 = _$_.template(`<div class="social-links"><a href="https://github.com" class="github-link">GitHub</a><a href="https://discord.com" class="discord-link">Discord</a><!></div>`, 0);
-var root_19 = _$_.template(`<main><div class="container"> </div></main>`, 0);
+var root_19 = _$_.template(`<main><div class="container"><!></div></main>`, 0);
 var root_20 = _$_.template(`<div class="content"><p>Some content here</p></div>`, 0);
 var root_22 = _$_.template(`<!><!><!><!>`, 1, 4);
 var root_21 = _$_.template(`<!>`, 1, 1);
@@ -189,7 +189,7 @@ function TextProp(__anchor, __props, __block) {
 	var div_8 = root_12();
 
 	{
-		var expression_3 = _$_.child(div_8, true);
+		var expression_3 = _$_.child(div_8);
 
 		_$_.expression(expression_3, () => __props.children);
 		_$_.pop(div_8);
@@ -313,7 +313,7 @@ function Layout(__anchor, { children }, __block) {
 		var div_10 = _$_.child(main_1);
 
 		{
-			var expression_6 = _$_.child(div_10, true);
+			var expression_6 = _$_.child(div_10);
 
 			_$_.expression(expression_6, () => children);
 			_$_.pop(div_10);

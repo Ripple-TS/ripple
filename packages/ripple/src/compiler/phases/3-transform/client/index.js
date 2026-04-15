@@ -3821,7 +3821,10 @@ function transform_children(children, context) {
 						skipped++;
 						state.template?.push(escape_html(expr.value));
 					}
-				} else if (normalized.length === 1) {
+				} else if (
+					normalized.length === 1 &&
+					!is_children_template_expression(node.expression, state.scope)
+				) {
 					skipped++;
 					state.template?.push(' ');
 					const id = flush_node(true);

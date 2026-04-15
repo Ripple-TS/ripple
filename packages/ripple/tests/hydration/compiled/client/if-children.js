@@ -1,14 +1,14 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root_1 = _$_.template(`<div class="content"> </div>`, 0);
+var root_1 = _$_.template(`<div class="content"><!></div>`, 0);
 var root = _$_.template(`<div class="container"><div role="button" class="header">Toggle</div><!></div>`, 0);
 var root_2 = _$_.template(`<div class="item"> </div>`, 0);
 var root_4 = _$_.template(`<!><!>`, 1, 2);
 var root_3 = _$_.template(`<!>`, 1, 1);
 var root_6 = _$_.template(`<div class="content"><span>Static child 1</span><span>Static child 2</span></div>`, 0);
 var root_5 = _$_.template(`<div class="container"><div role="button" class="header">Toggle</div><!></div>`, 0);
-var root_8 = _$_.template(`<div class="items"> </div>`, 0);
+var root_8 = _$_.template(`<div class="items"><!></div>`, 0);
 var root_7 = _$_.template(`<section class="group"><div role="button" class="item"><div class="indicator"></div><h2 class="text">Title</h2><div class="caret"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></div></div><!></section>`, 0);
 var root_10 = _$_.template(`<!><!>`, 1, 2);
 var root_9 = _$_.template(`<!>`, 1, 1);
@@ -42,7 +42,7 @@ export function IfWithChildren(__anchor, { children }, __block) {
 				var div_3 = root_1();
 
 				{
-					var expression = _$_.child(div_3, true);
+					var expression = _$_.child(div_3);
 
 					_$_.expression(expression, () => children);
 					_$_.pop(div_3);
@@ -161,7 +161,7 @@ export function IfWithSiblingsAndChildren(__anchor, { children }, __block) {
 				var div_9 = root_8();
 
 				{
-					var expression_2 = _$_.child(div_9, true);
+					var expression_2 = _$_.child(div_9);
 
 					_$_.expression(expression_2, () => children);
 					_$_.pop(div_9);
