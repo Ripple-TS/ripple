@@ -1990,9 +1990,10 @@ function RipplePlugin(config) {
 									end: this.pos,
 								});
 								body.push(node);
-
-								this.next();
 							}
+
+							// Always call next() to ensure parser makes progress
+							this.next();
 						}
 					}
 				}
@@ -2054,9 +2055,9 @@ function RipplePlugin(config) {
 									end: this.pos,
 								});
 								body.push(node);
-
-								this.next();
 							}
+
+							this.next();
 						}
 					}
 				}
