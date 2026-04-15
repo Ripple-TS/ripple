@@ -190,9 +190,7 @@ reactivity:
 ```ripple
 component Child(&{ count, className, children }: Props) {
   // count, className, children are lazily read from the props object
-  <button class={className}>
-    {children}
-  </button>
+  <button class={className}>{children}</button>
   <pre>{`Count is: ${count}`}</pre>
 }
 ```
