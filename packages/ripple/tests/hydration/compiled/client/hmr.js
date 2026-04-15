@@ -21,13 +21,10 @@ export function Layout(__anchor, { children }, __block) {
 		{
 			var expression = _$_.child(main_1);
 
+			_$_.expression(expression, () => children);
 			_$_.pop(main_1);
 		}
 	}
-
-	_$_.render(() => {
-		_$_.expression(expression, () => children);
-	});
 
 	_$_.append(__anchor, div_1);
 	_$_.pop_component();
@@ -70,15 +67,12 @@ export function LayoutWithContent(__anchor, _, __block) {
 	Layout(
 		node_1,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var fragment_1 = root_4();
 				var node_2 = _$_.first_child_frag(fragment_1);
 
 				Content(node_2, {}, _$_.active_block);
 				_$_.append(__anchor, fragment_1);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block

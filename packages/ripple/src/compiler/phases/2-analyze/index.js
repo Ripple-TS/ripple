@@ -41,6 +41,123 @@ import { validate_nesting } from './validation.js';
 
 const valid_in_head = new Set(['title', 'base', 'link', 'meta', 'style', 'script', 'noscript']);
 
+const mutating_method_names = new Set([
+	'add',
+	'append',
+	'clear',
+	'copyWithin',
+	'delete',
+	'fill',
+	'pop',
+	'push',
+	'reverse',
+	'set',
+	'shift',
+	'sort',
+	'splice',
+	'unshift',
+]);
+
+/**
+ * @param {AST.MemberExpression} node
+ * @returns {string | null}
+ */
+function get_member_name(node) {
+	if (!node.computed && node.property.type === 'Identifier') {
+		return node.property.name;
+	}
+
+	if (node.computed && node.property.type === 'Literal') {
+		return typeof node.property.value === 'string' ? node.property.value : null;
+	}
+
+	return null;
+}
+
+/**
+ * @param {AST.CallExpression} node
+ * @returns {boolean}
+ */
+function is_mutating_call_expression(node) {
+	return (
+		node.callee.type === 'MemberExpression' &&
+		mutating_method_names.has(get_member_name(node.callee) ?? '')
+	);
+}
+
+/**
+ * Check if an expression contains side effects or other impure operations.
+ * Template expressions should be pure reads.
+ * @param {AST.Expression | AST.SpreadElement | AST.Super | AST.Pattern} node
+ * @returns {boolean}
+ */
+function expression_has_side_effects(node) {
+	switch (node.type) {
+		case 'AssignmentExpression':
+		case 'UpdateExpression':
+			return true;
+		case 'SequenceExpression':
+			return node.expressions.some(expression_has_side_effects);
+		case 'ConditionalExpression':
+			return (
+				expression_has_side_effects(node.test) ||
+				expression_has_side_effects(node.consequent) ||
+				expression_has_side_effects(node.alternate)
+			);
+		case 'LogicalExpression':
+		case 'BinaryExpression':
+			return (
+				expression_has_side_effects(/** @type {AST.Expression} */ (node.left)) ||
+				expression_has_side_effects(node.right)
+			);
+		case 'UnaryExpression':
+			// delete operator has side effects (removes object properties)
+			if (node.operator === 'delete') return true;
+			return expression_has_side_effects(node.argument);
+		case 'AwaitExpression':
+			return expression_has_side_effects(node.argument);
+		case 'ChainExpression':
+			return expression_has_side_effects(node.expression);
+		case 'MemberExpression':
+			return (
+				expression_has_side_effects(node.object) ||
+				(node.computed &&
+					expression_has_side_effects(/** @type {AST.Expression} */ (node.property)))
+			);
+		case 'CallExpression':
+			return (
+				is_mutating_call_expression(node) ||
+				expression_has_side_effects(node.callee) ||
+				node.arguments.some(expression_has_side_effects)
+			);
+		case 'NewExpression':
+			return (
+				expression_has_side_effects(node.callee) || node.arguments.some(expression_has_side_effects)
+			);
+		case 'TemplateLiteral':
+			return node.expressions.some(expression_has_side_effects);
+		case 'TaggedTemplateExpression':
+			return (
+				expression_has_side_effects(node.tag) ||
+				node.quasi.expressions.some(expression_has_side_effects)
+			);
+		case 'ArrayExpression':
+			return node.elements.some((el) => el !== null && expression_has_side_effects(el));
+		case 'ObjectExpression':
+			return node.properties.some((prop) =>
+				prop.type === 'SpreadElement'
+					? expression_has_side_effects(prop.argument)
+					: expression_has_side_effects(prop.value) ||
+						(prop.computed &&
+							expression_has_side_effects(/** @type {AST.Expression} */ (prop.key))),
+			);
+		case 'SpreadElement':
+			return expression_has_side_effects(node.argument);
+		default:
+			return false;
+	}
+}
+
 /**
  * @param {AnalysisContext['path']} path
  */
@@ -63,6 +180,7 @@ function mark_control_flow_has_template(path) {
 			node.type === 'TryStatement' ||
 			node.type === 'IfStatement' ||
 			node.type === 'SwitchStatement' ||
+			node.type === 'Tsx' ||
 			node.type === 'TsxCompat'
 		) {
 			node.metadata.has_template = true;
@@ -125,7 +243,11 @@ function setup_lazy_transforms(pattern, source_id, state, writable, is_track_cal
 
 						if (node.prefix) {
 							// ++count: return new value
-							return b.assignment('=', member, b.binary('+', fallback_read, delta));
+							return b.assignment(
+								'=',
+								/** @type {AST.Pattern} */ (member),
+								b.binary('+', fallback_read, delta),
+							);
 						} else {
 							// count++: return old value, write new value
 							// Use IIFE to declare temp variable
@@ -135,7 +257,13 @@ function setup_lazy_transforms(pattern, source_id, state, writable, is_track_cal
 									[],
 									b.block([
 										b.var(temp, fallback_read),
-										b.stmt(b.assignment('=', member, b.binary('+', temp, delta))),
+										b.stmt(
+											b.assignment(
+												'=',
+												/** @type {AST.Pattern} */ (member),
+												b.binary('+', temp, delta),
+											),
+										),
 										b.return(temp),
 									]),
 								),
@@ -198,7 +326,12 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 			if (i === 0) {
 				// Fast path for index 0: use _$_.get(source) instead of source[0]
 				const read_expr = has_fallback
-					? () => b.call('_$_.fallback', b.call('_$_.get', source_id), fallback_value)
+					? () =>
+							b.call(
+								'_$_.fallback',
+								b.call('_$_.get', source_id),
+								/** @type {AST.Expression} */ (fallback_value),
+							)
 					: () => b.call('_$_.get', source_id);
 
 				// Signal that read already produces an unwrapped value (calls _$_.get internally)
@@ -247,6 +380,7 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 					} else {
 						binding.transform.update = (node) => {
 							const fn_name = node.prefix ? '_$_.update_pre' : '_$_.update';
+							/** @type {AST.Expression[]} */
 							const args = [source_id];
 							if (node.operator === '--') {
 								args.push(b.literal(-1));
@@ -280,7 +414,10 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 				binding.kind = path.has_default_value ? 'lazy_fallback' : 'lazy';
 
 				binding.transform = {
-					read: (_) => path.expression(base_expression(source_id)),
+					read: (_) =>
+						path.expression(
+							/** @type {AST.Identifier | AST.CallExpression} */ (base_expression(source_id)),
+						),
 				};
 
 				if (writable) {
@@ -288,7 +425,7 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 						return b.assignment(
 							'=',
 							/** @type {AST.MemberExpression} */ (
-								path.update_expression(base_expression(source_id))
+								path.update_expression(/** @type {AST.Identifier} */ (base_expression(source_id)))
 							),
 							value,
 						);
@@ -296,12 +433,20 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 
 					if (path.has_default_value) {
 						binding.transform.update = (node) => {
-							const member = path.update_expression(base_expression(source_id));
-							const fallback_read = path.expression(base_expression(source_id));
+							const member = path.update_expression(
+								/** @type {AST.Identifier} */ (base_expression(source_id)),
+							);
+							const fallback_read = path.expression(
+								/** @type {AST.Identifier | AST.CallExpression} */ (base_expression(source_id)),
+							);
 							const delta = node.operator === '++' ? b.literal(1) : b.literal(-1);
 
 							if (node.prefix) {
-								return b.assignment('=', member, b.binary('+', fallback_read, delta));
+								return b.assignment(
+									'=',
+									/** @type {AST.Pattern} */ (member),
+									b.binary('+', fallback_read, delta),
+								);
 							} else {
 								const temp = b.id('_v');
 								return b.call(
@@ -309,7 +454,13 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 										[],
 										b.block([
 											b.var(temp, fallback_read),
-											b.stmt(b.assignment('=', member, b.binary('+', temp, delta))),
+											b.stmt(
+												b.assignment(
+													'=',
+													/** @type {AST.Pattern} */ (member),
+													b.binary('+', temp, delta),
+												),
+											),
 											b.return(temp),
 										]),
 									),
@@ -320,7 +471,7 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 						binding.transform.update = (node) =>
 							b.update(
 								node.operator,
-								path.update_expression(base_expression(source_id)),
+								path.update_expression(/** @type {AST.Identifier} */ (base_expression(source_id))),
 								node.prefix,
 							);
 					}
@@ -348,11 +499,11 @@ function unwrap_type_annotation(type_annotation) {
 
 	while (annotation) {
 		if (annotation.type === 'TSParenthesizedType') {
-			annotation = annotation.typeAnnotation;
+			annotation = /** @type {AST.TypeNode | undefined} */ (annotation.typeAnnotation);
 			continue;
 		}
 		if (annotation.type === 'TSOptionalType') {
-			annotation = annotation.typeAnnotation;
+			annotation = /** @type {AST.TypeNode | undefined} */ (annotation.typeAnnotation);
 			continue;
 		}
 		break;
@@ -375,11 +526,11 @@ function normalize_tuple_element_type(type_annotation) {
 			continue;
 		}
 		if (annotation.type === 'TSParenthesizedType') {
-			annotation = annotation.typeAnnotation;
+			annotation = /** @type {AST.TypeNode} */ (annotation.typeAnnotation);
 			continue;
 		}
 		if (annotation.type === 'TSOptionalType') {
-			annotation = annotation.typeAnnotation;
+			annotation = /** @type {AST.TypeNode} */ (annotation.typeAnnotation);
 			continue;
 		}
 		break;
@@ -431,7 +582,7 @@ function get_object_property_type_annotation(type_annotation, property) {
 		return undefined;
 	}
 
-	const key_name = get_object_pattern_key_name(property.key);
+	const key_name = get_object_pattern_key_name(/** @type {AST.Expression} */ (property.key));
 	if (key_name === null) {
 		return undefined;
 	}
@@ -928,7 +1079,9 @@ const visitors = {
 		const callee = node.callee;
 
 		if (
-			!context.path.some((path_node) => path_node.type === 'TsxCompat') &&
+			!context.path.some(
+				(path_node) => path_node.type === 'TsxCompat' || path_node.type === 'Tsx',
+			) &&
 			is_children_template_expression(/** @type {AST.Expression} */ (callee), context)
 		) {
 			error(
@@ -1415,6 +1568,7 @@ const visitors = {
 			...node.metadata,
 			has_template: false,
 			has_await: false,
+			has_throw: false,
 		};
 
 		const test_metadata = { tracking: false };
@@ -1436,7 +1590,7 @@ const visitors = {
 			node.metadata.lone_return = true;
 		}
 
-		if (!node.metadata.has_template && !node.metadata.has_return) {
+		if (!node.metadata.has_template && !node.metadata.has_return && !node.metadata.has_throw) {
 			error(
 				'Component if statements must contain a template in their "then" body. Move the if statement into an effect if it does not render anything.',
 				context.state.analysis.module.filename,
@@ -1451,9 +1605,10 @@ const visitors = {
 			const saved_returns = node.metadata.returns;
 			node.metadata.has_template = false;
 			node.metadata.has_await = false;
+			node.metadata.has_throw = false;
 			context.visit(node.alternate, context.state);
 
-			if (!node.metadata.has_template && !node.metadata.has_return) {
+			if (!node.metadata.has_template && !node.metadata.has_return && !node.metadata.has_throw) {
 				error(
 					'Component if statements must contain a template in their "else" body. Move the if statement into an effect if it does not render anything.',
 					context.state.analysis.module.filename,
@@ -1520,6 +1675,33 @@ const visitors = {
 			ancestor.metadata.returns.push(node);
 			ancestor.metadata.has_return = true;
 		}
+	},
+
+	ThrowStatement(node, context) {
+		if (!is_inside_component(context)) {
+			return context.next();
+		}
+
+		for (let i = context.path.length - 1; i >= 0; i--) {
+			const ancestor = context.path[i];
+
+			if (
+				ancestor.type === 'Component' ||
+				ancestor.type === 'FunctionExpression' ||
+				ancestor.type === 'ArrowFunctionExpression' ||
+				ancestor.type === 'FunctionDeclaration'
+			) {
+				break;
+			}
+
+			if (ancestor.type === 'IfStatement') {
+				if (!ancestor.metadata.has_throw) {
+					ancestor.metadata.has_throw = true;
+				}
+			}
+		}
+
+		context.next();
 	},
 
 	TryStatement(node, context) {
@@ -1617,7 +1799,7 @@ const visitors = {
 	},
 
 	JSXElement(node, context) {
-		const inside_tsx_compat = context.path.some((n) => n.type === 'TsxCompat');
+		const inside_tsx_compat = context.path.some((n) => n.type === 'TsxCompat' || n.type === 'Tsx');
 
 		if (inside_tsx_compat) {
 			return context.next();
@@ -1628,6 +1810,11 @@ const visitors = {
 			context.state.analysis.module.filename,
 			node,
 		);
+	},
+
+	Tsx(_, context) {
+		mark_control_flow_has_template(context.path);
+		return context.next();
 	},
 
 	TsxCompat(node, context) {
@@ -1921,6 +2108,16 @@ const visitors = {
 
 	RippleExpression(node, context) {
 		mark_control_flow_has_template(context.path);
+
+		if (expression_has_side_effects(node.expression)) {
+			error(
+				'Template expressions must not contain side effects.',
+				context.state.analysis.module.filename,
+				node.expression,
+				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		}
 
 		context.next();
 	},

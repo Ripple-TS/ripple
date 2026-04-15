@@ -135,12 +135,9 @@ export function Greeting(__anchor, props, __block) {
 	{
 		var expression = _$_.child(div_6, true);
 
+		_$_.expression(expression, () => 'Hello ' + _$_.with_scope(__block, () => String(props.name)));
 		_$_.pop(div_6);
 	}
-
-	_$_.render(() => {
-		_$_.set_text(expression, 'Hello ' + _$_.with_scope(__block, () => String(props.name)));
-	});
 
 	_$_.append(__anchor, div_6);
 	_$_.pop_component();
@@ -168,7 +165,7 @@ export function ExpressionContent(__anchor, _, __block) {
 	{
 		var expression_1 = _$_.child(div_7, true);
 
-		expression_1.nodeValue = value;
+		_$_.expression(expression_1, () => value);
 		_$_.pop(div_7);
 	}
 
@@ -177,15 +174,11 @@ export function ExpressionContent(__anchor, _, __block) {
 	{
 		var expression_2 = _$_.child(span_2, true);
 
+		_$_.expression(expression_2, () => _$_.with_scope(__block, () => label.toUpperCase()));
 		_$_.pop(span_2);
 	}
 
 	_$_.next();
-
-	_$_.render(() => {
-		_$_.set_text(expression_2, _$_.with_scope(__block, () => label.toUpperCase()));
-	});
-
 	_$_.append(__anchor, fragment_4, true);
 	_$_.pop_component();
 }
@@ -198,12 +191,9 @@ function TextProp(__anchor, __props, __block) {
 	{
 		var expression_3 = _$_.child(div_8);
 
+		_$_.expression(expression_3, () => __props.children);
 		_$_.pop(div_8);
 	}
-
-	_$_.render(() => {
-		_$_.expression(expression_3, () => __props.children);
-	});
 
 	_$_.append(__anchor, div_8);
 	_$_.pop_component();
@@ -257,7 +247,7 @@ export function StaticChildWithSiblings(__anchor, _, __block) {
 	{
 		var expression_4 = _$_.child(span_3, true);
 
-		expression_4.nodeValue = foo;
+		_$_.expression(expression_4, () => foo);
 		_$_.pop(span_3);
 	}
 
@@ -266,7 +256,7 @@ export function StaticChildWithSiblings(__anchor, _, __block) {
 	{
 		var expression_5 = _$_.child(span_4, true);
 
-		expression_5.nodeValue = foo;
+		_$_.expression(expression_5, () => foo);
 		_$_.pop(span_4);
 	}
 
@@ -325,13 +315,10 @@ function Layout(__anchor, { children }, __block) {
 		{
 			var expression_6 = _$_.child(div_10);
 
+			_$_.expression(expression_6, () => children);
 			_$_.pop(div_10);
 		}
 	}
-
-	_$_.render(() => {
-		_$_.expression(expression_6, () => children);
-	});
 
 	_$_.append(__anchor, main_1);
 	_$_.pop_component();
@@ -355,9 +342,7 @@ export function WebsiteIndex(__anchor, _, __block) {
 	Layout(
 		node_7,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var fragment_10 = root_22();
 				var node_8 = _$_.first_child_frag(fragment_10);
 
@@ -375,7 +360,6 @@ export function WebsiteIndex(__anchor, _, __block) {
 
 				Actions(node_11, { playgroundVisible: false }, _$_.active_block);
 				_$_.append(__anchor, fragment_10);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block

@@ -52,6 +52,7 @@ exports[`basic client > rendering & text > should handle lexical scopes correctl
 <div>
   <section>
     Nested scope variable
+    <!---->
   </section>
   
 </div>

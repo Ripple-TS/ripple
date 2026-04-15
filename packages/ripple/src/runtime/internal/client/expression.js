@@ -1,12 +1,27 @@
 /** @import { Block } from '#client' */
 
 import { branch, destroy_block, render } from './blocks.js';
-import { UNINITIALIZED } from './constants.js';
+import { BRANCH_BLOCK, UNINITIALIZED } from './constants.js';
 import { create_text, get_next_sibling } from './operations.js';
 import { active_block } from './runtime.js';
 import { hydrating, set_hydrate_node } from './hydration.js';
 import { COMMENT_NODE, HYDRATION_END, HYDRATION_START, TEXT_NODE } from '../../../constants.js';
 import { is_ripple_element } from '../../element.js';
+
+/**
+ * Finds the nearest enclosing BRANCH_BLOCK in the block hierarchy.
+ * @param {Block | null} block
+ * @returns {Block | null}
+ */
+function find_enclosing_branch(block) {
+	while (block !== null) {
+		if ((block.f & BRANCH_BLOCK) !== 0) {
+			return block;
+		}
+		block = block.p;
+	}
+	return null;
+}
 
 /**
  * @param {Node} node
@@ -25,6 +40,10 @@ export function expression(node, get_value) {
 	var value = UNINITIALIZED;
 	var is_element = false;
 	var initialized = false;
+	/** @type {Block | null} */
+	var modified_parent_branch = null;
+	/** @type {Node | null} */
+	var original_parent_start = null;
 
 	render(() => {
 		var next_value = get_value();
@@ -53,6 +72,12 @@ export function expression(node, get_value) {
 			if (child_block !== null) {
 				destroy_block(child_block);
 				child_block = null;
+				// Restore parent branch's start since we may update it again below
+				if (modified_parent_branch !== null && modified_parent_branch.s !== null) {
+					modified_parent_branch.s.start = original_parent_start;
+					modified_parent_branch = null;
+					original_parent_start = null;
+				}
 			}
 
 			if (end !== null && (initialized || !hydrating)) {
@@ -63,10 +88,40 @@ export function expression(node, get_value) {
 				set_hydrate_node(get_next_sibling(anchor) ?? end);
 			}
 
+			// Find the enclosing branch block BEFORE creating child_block
+			// so we can update its s.start to include content inserted before anchor
+			var parent_branch = find_enclosing_branch(active_block);
+
 			child_block = branch(() => {
 				var block = active_block;
-				next_value.render(end ?? anchor, {}, block);
+				next_value.render(end ?? anchor, block);
 			});
+
+			// Update parent branch's s.start to include content inserted before anchor.
+			// This ensures that when the parent branch is destroyed, the full DOM range
+			// (including RippleElement content) is removed.
+			if (
+				parent_branch !== null &&
+				parent_branch.s !== null &&
+				child_block.s !== null &&
+				child_block.s.start !== null
+			) {
+				// The child inserted content before the anchor. Update parent's start
+				// to encompass this content.
+				var child_start = child_block.s.start;
+				var parent_start = parent_branch.s.start;
+
+				// If parent's start is the anchor (or comes after child's start),
+				// update it to include the child's content
+				if (parent_start === anchor || parent_start === end) {
+					// Save original so we can restore it when switching to non-RippleElement
+					if (modified_parent_branch === null) {
+						modified_parent_branch = parent_branch;
+						original_parent_start = parent_start;
+					}
+					parent_branch.s.start = child_start;
+				}
+			}
 
 			value = next_value;
 			is_element = true;
@@ -89,6 +144,13 @@ export function expression(node, get_value) {
 		if (child_block !== null) {
 			destroy_block(child_block);
 			child_block = null;
+			// Restore parent branch's start to original value since the child's DOM nodes
+			// have been removed and the old start reference would be stale
+			if (modified_parent_branch !== null && modified_parent_branch.s !== null) {
+				modified_parent_branch.s.start = original_parent_start;
+				modified_parent_branch = null;
+				original_parent_start = null;
+			}
 		}
 
 		if (is_hydration_marker) {

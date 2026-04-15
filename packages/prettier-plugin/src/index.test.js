@@ -1757,7 +1757,7 @@ files = [...(files ?? []), ...dt.files];`;
   },
   button: component({ children }) {
     <button>
-      <children />
+      {children}
     </button>
   },
 };`;
@@ -2363,7 +2363,7 @@ message.push(/* Some test comment */ greet(/* Some text */ \`Ripple\`));`;
 	it('should not move commented composite elements to the outside of parent element', async () => {
 		const expected = `component Child({ children, NonExistent, ...props }) {
   <div {...props}>
-    // <children />
+    // {children}
     // <NonExistent />
   </div>
 }`;
@@ -4305,7 +4305,7 @@ export component App() {
     {test}
     <polygon points="0,0 30,0 15,10" />
   </svg>
-  // <div><children /></div>
+  // <div>{children}</div>
 }
 
 component Polygon() {

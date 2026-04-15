@@ -22,6 +22,7 @@ interface BaseNodeMetaData {
 	inside_component_top_level?: boolean;
 	returns?: AST.ReturnStatement[];
 	has_return?: boolean;
+	has_throw?: boolean;
 	is_reactive?: boolean;
 	lone_return?: boolean;
 	forceMapping?: boolean;
@@ -116,7 +117,9 @@ declare module 'estree' {
 
 	// We mark the whole node as marked when member is @[expression]
 	// Otherwise, we only mark Identifier nodes
-	interface MemberExpression {}
+	interface MemberExpression {
+		tracked?: boolean;
+	}
 
 	interface SimpleLiteral extends AST.LiteralNode {}
 	interface RegExpLiteral extends AST.LiteralNode {}
@@ -133,6 +136,7 @@ declare module 'estree' {
 	// Include TypeScript node types and Ripple-specific nodes in NodeMap
 	interface NodeMap {
 		Component: Component;
+		Tsx: Tsx;
 		TsxCompat: TsxCompat;
 		RippleExpression: RippleExpression;
 		Html: Html;
@@ -268,6 +272,16 @@ declare module 'estree' {
 		};
 		default: boolean;
 		typeParameters?: AST.TSTypeParameterDeclaration;
+	}
+
+	interface Tsx extends AST.BaseNode {
+		type: 'Tsx';
+		attributes: Array<any>;
+		children: ESTreeJSX.JSXElement['children'];
+		selfClosing?: boolean;
+		unclosed?: boolean;
+		openingElement: ESTreeJSX.JSXOpeningElement;
+		closingElement: ESTreeJSX.JSXClosingElement;
 	}
 
 	interface TsxCompat extends AST.BaseNode {
@@ -406,7 +420,7 @@ declare module 'estree' {
 
 	export type RippleStatement = AST.Statement | TSESTree.Statement;
 
-	export type NodeWithChildren = AST.Element | AST.TsxCompat;
+	export type NodeWithChildren = AST.Element | AST.Tsx | AST.TsxCompat;
 
 	export namespace CSS {
 		export interface BaseNode extends AST.NodeWithMaybeComments {
@@ -1291,6 +1305,7 @@ export interface TransformServerState extends BaseState {
 	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
 	dev?: boolean;
 	return_flags?: Map<AST.ReturnStatement, { name: string; tracked: boolean }>;
+	template_child?: boolean;
 }
 
 type UpdateList = Array<
@@ -1324,6 +1339,7 @@ export interface TransformClientState extends BaseState {
 	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
 	skip_children_traversal: boolean;
 	return_flags?: Map<AST.ReturnStatement, { name: string; tracked: boolean }>;
+	is_ripple_element?: boolean;
 }
 
 /** Override zimmerframe types and provide our own */

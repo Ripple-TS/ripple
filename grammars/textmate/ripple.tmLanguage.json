@@ -6208,6 +6208,9 @@
           "include": "#jsx-tag-style"
         },
         {
+          "include": "#jsx-tag-tsx"
+        },
+        {
           "include": "#jsx-tag-tsx-react"
         },
         {
@@ -6423,6 +6426,9 @@
           "include": "#jsx-tag-style"
         },
         {
+          "include": "#jsx-tag-tsx"
+        },
+        {
           "include": "#jsx-tag-tsx-react"
         },
         {
@@ -6492,6 +6498,12 @@
         },
         {
           "include": "#jsx-text-modifier"
+        },
+        {
+          "include": "#jsx-tag-tsx"
+        },
+        {
+          "include": "#jsx-tag-tsx-react"
         },
         {
           "include": "#expressionWithoutIdentifiers"
@@ -6707,9 +6719,50 @@
       "name": "invalid.illegal.attribute.js",
       "match": "\\S+"
     },
+    "jsx-tag-tsx": {
+      "name": "tsx.tag.js",
+      "begin": "(?:[ \\t]*)(<)(tsx)(?![^>]*/>)(?=\\s*>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.js"
+        },
+        "2": {
+          "name": "entity.name.tag.js"
+        }
+      },
+      "end": "(</)\\s*(tsx)\\s*(>)",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.js"
+        },
+        "2": {
+          "name": "entity.name.tag.js"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.js"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(>)",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.end.js"
+            }
+          },
+          "end": "(?=</tsx>)",
+          "contentName": "meta.tsx.children.js",
+          "patterns": [
+            {
+              "include": "#jsx-tsx-children"
+            }
+          ]
+        }
+      ]
+    },
     "jsx-tag-tsx-react": {
       "name": "tsx.tag.js",
-      "begin": "(<)\\s*(tsx)\\s*(:)\\s*(react)\\b(?![^>]*/>)(?=[^>]*>)",
+      "begin": "(?:[ \\t]*)(<)\\s*(tsx)\\s*(:)\\s*(react)\\b(?![^>]*/>)(?=[^>]*>)",
       "beginCaptures": {
         "1": {
           "name": "punctuation.definition.tag.begin.js"

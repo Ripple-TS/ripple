@@ -32,6 +32,7 @@ import {
 	hash,
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
+	jsx_to_ripple_node,
 } from '../../../utils.js';
 import { escape } from '../../../../utils/escaping.js';
 import { is_event_attribute } from '../../../../utils/events.js';
@@ -55,6 +56,7 @@ function is_template_or_control_flow(node) {
 		node.type === 'RippleExpression' ||
 		node.type === 'Text' ||
 		node.type === 'Html' ||
+		node.type === 'Tsx' ||
 		node.type === 'TsxCompat' ||
 		node.type === 'IfStatement' ||
 		node.type === 'ForOfStatement' ||
@@ -199,7 +201,7 @@ function transform_children(children, context) {
 				}
 			}
 		} else {
-			visit(node, { ...state, return_flags });
+			visit(node, { ...state, return_flags, template_child: true });
 		}
 	};
 
@@ -409,7 +411,9 @@ const visitors = {
 
 		let component_fn = b.function(
 			node.id,
-			node.params.length > 0 ? [b.id('__output'), props_param_output] : [b.id('__output')],
+			node.params.length > 0
+				? [b.id('__output'), /** @type {AST.Pattern} */ (props_param_output)]
+				: [b.id('__output')],
 			b.block([
 				...(metadata.await
 					? [b.return(b.call('_$_.async', b.thunk(b.block(body_statements), true)))]
@@ -807,6 +811,8 @@ const visitors = {
 		// Handle standalone lazy destructuring: &[data] = track(0); → const lazy0 = track(0);
 		if (
 			node.expression.type === 'AssignmentExpression' &&
+			(node.expression.left.type === 'ObjectPattern' ||
+				node.expression.left.type === 'ArrayPattern') &&
 			node.expression.left.lazy &&
 			node.expression.left.metadata?.lazy_id
 		) {
@@ -1651,6 +1657,37 @@ const visitors = {
 			context.state.init?.push(
 				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.call('_$_.escape', expression))),
 			);
+		}
+	},
+
+	Tsx(node, { visit, state }) {
+		const converted_children = node.children
+			.map((child) => jsx_to_ripple_node(/** @type {AST.Node} */ (child)))
+			.flat()
+			.filter((child) => child != null);
+
+		/** @type {AST.Statement[]} */
+		const init = [];
+		transform_children(
+			converted_children,
+			/** @type {TransformServerContext} */ ({
+				visit,
+				state: {
+					...state,
+					init,
+				},
+			}),
+		);
+
+		if (state.template_child) {
+			// Template body: push children statements inline
+			if (init.length > 0) {
+				state.init?.push(b.block(init));
+			}
+		} else {
+			// Expression context: return ripple_element(render_fn)
+			const render_fn = b.function(b.id('render_children'), [b.id('__output')], b.block(init));
+			return b.call('_$_.ripple_element', render_fn);
 		}
 	},
 

@@ -72,7 +72,7 @@ export function Portal(_, props) {
 
 			b = branch(() => {
 				if (is_ripple_element(children)) {
-					children.render(/** @type {Text} */ (anchor), {}, block);
+					children.render(/** @type {Text} */ (anchor), block);
 				}
 			});
 

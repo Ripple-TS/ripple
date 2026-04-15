@@ -61,6 +61,7 @@ import {
 	is_ripple_import,
 	replace_lazy_param_pattern,
 	ripple_import_requires_block,
+	jsx_to_ripple_node,
 } from '../../../utils.js';
 import {
 	CSS_HASH_IDENTIFIER,
@@ -858,6 +859,8 @@ const visitors = {
 		// Handle standalone lazy destructuring: &[data] = track(0); → const lazy0 = track(0);
 		if (
 			node.expression.type === 'AssignmentExpression' &&
+			(node.expression.left.type === 'ObjectPattern' ||
+				node.expression.left.type === 'ArrayPattern') &&
 			node.expression.left.lazy &&
 			node.expression.left.metadata?.lazy_id
 		) {
@@ -1140,6 +1143,16 @@ const visitors = {
 	TsxCompat(node, context) {
 		const { state, visit } = context;
 
+		// to_ts mode: produce a JSX fragment
+		if (state.to_ts) {
+			const children = /** @type {AST.TsxCompat['children']} */ (
+				node.children
+					.map((child) => visit(/** @type {AST.Node} */ (child), state))
+					.filter((child) => child.type !== 'JSXText' || child.value.trim() !== '')
+			);
+			return b.jsx_fragment(children);
+		}
+
 		state.template?.push('<!>');
 
 		const normalized_children = node.children.filter((child) => {
@@ -1175,6 +1188,58 @@ const visitors = {
 		context.state.init?.push(
 			b.stmt(b.call('_$_.tsx_compat', b.literal(node.kind), id, children_fn)),
 		);
+	},
+
+	Tsx(node, context) {
+		const { state, visit } = context;
+
+		// to_ts mode: produce a JSX fragment
+		if (state.to_ts) {
+			const children = /** @type {AST.Tsx['children']} */ (
+				node.children
+					.map((child) => visit(/** @type {AST.Node} */ (child), state))
+					.filter((child) => child.type !== 'JSXText' || child.value.trim() !== '')
+			);
+			return b.jsx_fragment(children);
+		}
+
+		const children_filtered = node.children
+			.map((child) => jsx_to_ripple_node(/** @type {AST.Node} */ (child)))
+			.flat()
+			.filter(
+				(child) => child != null && child.type !== 'EmptyStatement' && child.type !== 'Component',
+			);
+
+		const children_component = b.component(b.id('render_children'), [], children_filtered);
+
+		const element = b.call(
+			'_$_.ripple_element',
+			/** @type {AST.Expression} */ (
+				visit(children_component, {
+					...state,
+					namespace: state.namespace,
+					is_ripple_element: true,
+				})
+			),
+		);
+
+		// Template body context: push to template and schedule init
+		if (state.flush_node) {
+			state.template?.push('<!>');
+
+			const id = state.flush_node(false);
+
+			const call = b.call('_$_.expression', id, b.thunk(element));
+			state.init?.push(
+				state.namespace !== DEFAULT_NAMESPACE
+					? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(call)))
+					: b.stmt(call),
+			);
+			return;
+		}
+
+		// Expression context: return the ripple_element directly as an expression value
+		return element;
 	},
 
 	Element(node, context) {
@@ -1574,6 +1639,7 @@ const visitors = {
 							child.type === 'TryStatement' ||
 							child.type === 'ForOfStatement' ||
 							child.type === 'SwitchStatement' ||
+							child.type === 'Tsx' ||
 							child.type === 'TsxCompat' ||
 							child.type === 'Html' ||
 							(child.type === 'Element' &&
@@ -1623,7 +1689,9 @@ const visitors = {
 						let property =
 							attr.value === null
 								? b.literal(true)
-								: /** @type {AST.Expression} */ (visit(attr.value, { ...state, metadata }));
+								: /** @type {AST.Expression} */ (
+										visit(attr.value, { ...state, flush_node: null, metadata })
+									);
 
 						if (attr.name.name === 'class' && node.metadata.scoped && state.component?.css) {
 							if (property.type === 'Literal') {
@@ -1671,7 +1739,9 @@ const visitors = {
 							b.prop(
 								'init',
 								b.key(attr.name.name),
-								/** @type {AST.Expression} */ (visit(/** @type {AST.Node} */ (attr.value), state)),
+								/** @type {AST.Expression} */ (
+									visit(/** @type {AST.Node} */ (attr.value), { ...state, flush_node: null })
+								),
 							),
 						);
 					}
@@ -1679,7 +1749,13 @@ const visitors = {
 					props.push(
 						b.spread(
 							/** @type {AST.Expression} */
-							(visit(attr.argument, { ...state, metadata: { ...state.metadata } })),
+							(
+								visit(attr.argument, {
+									...state,
+									flush_node: null,
+									metadata: { ...state.metadata },
+								})
+							),
 						),
 					);
 				} else if (attr.type === 'RefAttribute') {
@@ -1690,7 +1766,9 @@ const visitors = {
 						b.prop(
 							'init',
 							b.id(ref_id),
-							/** @type {AST.Expression} */ (visit(attr.argument, { ...state, metadata })),
+							/** @type {AST.Expression} */ (
+								visit(attr.argument, { ...state, flush_node: null, metadata })
+							),
 							true,
 						),
 					);
@@ -1736,6 +1814,7 @@ const visitors = {
 								: {}),
 							scope: /** @type {ScopeInterface} */ (component_scope),
 							namespace: child_namespace,
+							is_ripple_element: true,
 						})
 					),
 				);
@@ -1953,30 +2032,44 @@ const visitors = {
 		}
 
 		const component_scope = context.state.scopes.get(node) || context.state.scope;
-		const body_statements = [
-			b.stmt(b.call('_$_.push_component')),
-			...transform_body(node.body, {
-				...context,
-				state: {
-					...context.state,
-					flush_node: null,
-					component: node,
-					metadata,
-					scope: component_scope,
-				},
-			}),
-			b.stmt(b.call('_$_.pop_component')),
-		];
+		const is_ripple_element = context.state.is_ripple_element;
+		const transformed_body = transform_body(node.body, {
+			...context,
+			state: {
+				...context.state,
+				flush_node: null,
+				component: node,
+				metadata,
+				scope: component_scope,
+				is_ripple_element: false,
+			},
+		});
+
+		// RippleElement render functions don't need push/pop component context
+		// since they inherit context from where they're used
+		const body_statements = is_ripple_element
+			? transformed_body
+			: [
+					b.stmt(b.call('_$_.push_component')),
+					...transformed_body,
+					b.stmt(b.call('_$_.pop_component')),
+				];
 
 		if (node.css !== null && node.css) {
 			context.state.stylesheets.push(node.css);
 		}
 
+		// RippleElement render functions use simpler params: [__anchor, __block]
+		// Regular components use: [__anchor, props, __block] or [__anchor, _, __block]
+		const params = is_ripple_element
+			? [b.id('__anchor'), b.id('__block')]
+			: node.params.length > 0
+				? [b.id('__anchor'), props, b.id('__block')]
+				: [b.id('__anchor'), b.id('_'), b.id('__block')];
+
 		const func = b.function(
 			node.id,
-			node.params.length > 0
-				? [b.id('__anchor'), props, b.id('__block')]
-				: [b.id('__anchor'), b.id('_'), b.id('__block')],
+			params,
 			b.block([
 				...style_statements,
 				...(prop_statements ?? []),
@@ -2821,7 +2914,10 @@ function transform_ts_child(node, context) {
 			}
 		}
 
-		if (/** @type {AST.Node} */ (node.id).type !== 'MemberExpression' && node.id.tracked) {
+		if (
+			/** @type {AST.Node} */ (node.id).type !== 'MemberExpression' &&
+			/** @type {AST.Identifier} */ (node.id).tracked
+		) {
 			// This is just temporary until we remove capitalization
 			// The `is_capitalized` was never handled for MemberExpression
 			// but it should've been for the `object` part because it starts the tag
@@ -3064,6 +3160,18 @@ function transform_ts_child(node, context) {
 		);
 
 		state.init?.push(b.stmt(b.jsx_fragment(children)));
+	} else if (node.type === 'Tsx') {
+		const children = /** @type {AST.Tsx['children']} */ (
+			node.children
+				.map((child) => visit(/** @type {AST.Node} */ (child), state))
+				.filter((child) => child.type !== 'JSXText' || child.value.trim() !== '')
+		);
+
+		const result = b.jsx_fragment(children);
+		if (!state.init) {
+			return result;
+		}
+		state.init.push(b.stmt(result));
 	} else if (node.type === 'JSXExpressionContainer') {
 		// JSX comments {/* ... */} are JSXExpressionContainer with JSXEmptyExpression
 		// These should be preserved in the output as-is for prettier to handle
@@ -3105,6 +3213,7 @@ function is_template_or_control_flow(node) {
 		node.type === 'RippleExpression' ||
 		node.type === 'Text' ||
 		node.type === 'Html' ||
+		node.type === 'Tsx' ||
 		node.type === 'TsxCompat' ||
 		node.type === 'IfStatement' ||
 		node.type === 'ForOfStatement' ||
@@ -3196,6 +3305,7 @@ function element_has_dynamic_content(element) {
 			child.type === 'TryStatement' ||
 			child.type === 'ForOfStatement' ||
 			child.type === 'SwitchStatement' ||
+			child.type === 'Tsx' ||
 			child.type === 'TsxCompat' ||
 			child.type === 'Html'
 		) {
@@ -3371,6 +3481,7 @@ function transform_children(children, context) {
 				node.type === 'TryStatement' ||
 				node.type === 'ForOfStatement' ||
 				node.type === 'SwitchStatement' ||
+				node.type === 'Tsx' ||
 				node.type === 'TsxCompat' ||
 				node.type === 'Html' ||
 				(node.type === 'Element' &&
@@ -3383,6 +3494,15 @@ function transform_children(children, context) {
 				(node) =>
 					node.type === 'RippleExpression' &&
 					is_children_template_expression(node.expression, state.scope),
+			)) ||
+		// At root level, non-literal expressions need a fragment template so the
+		// anchor has a parent node. Without a parent, expression()'s .before() call
+		// is a no-op when the value is a RippleElement.
+		(root &&
+			normalized.some(
+				(node) =>
+					node.type === 'RippleExpression' &&
+					/** @type {AST.RippleExpression} */ (node).expression.type !== 'Literal',
 			)) ||
 		normalized.filter(
 			(node) => node.type !== 'VariableDeclaration' && node.type !== 'EmptyStatement',
@@ -3652,6 +3772,7 @@ function transform_children(children, context) {
 							child.type === 'TryStatement' ||
 							child.type === 'ForOfStatement' ||
 							child.type === 'SwitchStatement' ||
+							child.type === 'Tsx' ||
 							child.type === 'TsxCompat' ||
 							child.type === 'Html' ||
 							(child.type === 'Element' &&
@@ -3682,6 +3803,7 @@ function transform_children(children, context) {
 							next_node.type === 'TryStatement' ||
 							next_node.type === 'ForOfStatement' ||
 							next_node.type === 'SwitchStatement' ||
+							next_node.type === 'Tsx' ||
 							next_node.type === 'TsxCompat'
 						) {
 							needs_sibling_call = true;
@@ -3693,7 +3815,7 @@ function transform_children(children, context) {
 						}
 					}
 				}
-			} else if (node.type === 'TsxCompat') {
+			} else if (node.type === 'TsxCompat' || node.type === 'Tsx') {
 				skipped = 0;
 
 				visit(node, {
@@ -3721,10 +3843,6 @@ function transform_children(children, context) {
 				});
 			} else if (node.type === 'RippleExpression') {
 				const expr = /** @type {AST.Expression} */ (expression);
-				const is_children_expression = is_children_template_expression(
-					node.expression,
-					state.scope,
-				);
 
 				if (expr.type === 'Literal') {
 					if (normalized.length === 1) {
@@ -3743,60 +3861,29 @@ function transform_children(children, context) {
 						skipped++;
 						state.template?.push(escape_html(expr.value));
 					}
-				} else if (is_children_expression) {
+				} else if (
+					normalized.length === 1 &&
+					!is_children_template_expression(node.expression, state.scope)
+				) {
+					skipped++;
+					state.template?.push(' ');
+					const id = flush_node(true);
+					const call = b.call('_$_.expression', id, b.thunk(expr));
+					state.init?.push(
+						state.namespace !== DEFAULT_NAMESPACE
+							? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(call)))
+							: b.stmt(call),
+					);
+				} else {
 					skipped = 0;
 					state.template?.push('<!>');
 					const id = flush_node(false);
-					state.update?.push({
-						operation: () => {
-							const call = b.call('_$_.expression', id, b.thunk(expr));
-							return state.namespace !== DEFAULT_NAMESPACE
-								? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(call)))
-								: b.stmt(call);
-						},
-					});
-					if (metadata?.await) {
-						/** @type {NonNullable<TransformClientState['update']>} */ (state.update).async = true;
-					}
-				} else if (metadata?.tracking) {
-					skipped = 0;
-					state.template?.push(' ');
-					const id = flush_node(true);
-					state.update?.push({
-						operation: (key) => b.stmt(b.call('_$_.set_text', id, key)),
-						expression: expr,
-						identity: node.expression,
-						initial: b.literal(' '),
-					});
-					if (metadata.await) {
-						/** @type {NonNullable<TransformClientState['update']>} */ (state.update).async = true;
-					}
-				} else if (normalized.length === 1) {
-					skipped++;
-					const id = flush_node(true);
-					state.template?.push(' ');
+					const call = b.call('_$_.expression', id, b.thunk(expr));
 					state.init?.push(
-						b.stmt(
-							b.assignment(
-								'=',
-								b.member(/** @type {AST.Identifier} */ (id), b.id('nodeValue')),
-								expr,
-							),
-						),
+						state.namespace !== DEFAULT_NAMESPACE
+							? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(call)))
+							: b.stmt(call),
 					);
-				} else {
-					skipped++;
-					state.template?.push(' ');
-					const id = flush_node(true);
-					state.update?.push({
-						operation: (key) => b.stmt(b.call('_$_.set_text', id, key)),
-						expression: expr,
-						identity: node.expression,
-						initial: b.literal(' '),
-					});
-					if (metadata?.await) {
-						/** @type {NonNullable<TransformClientState['update']>} */ (state.update).async = true;
-					}
 				}
 			} else if (node.type === 'Text') {
 				if (metadata?.tracking) {
@@ -4399,7 +4486,10 @@ function create_tsx_with_typescript_support(comments) {
 					// Shorthand object properties require an Identifier value. When the
 					// transformed value is a tracked MemberExpression (for example
 					// @value), emit longhand to keep valid output.
-					if (node.value.type === 'MemberExpression' && node.value.tracked) {
+					if (
+						node.value.type === 'MemberExpression' &&
+						/** @type {AST.MemberExpression & { tracked?: boolean }} */ (node.value).tracked
+					) {
 						context.visit(node.key);
 						context.write(': ');
 						context.visit(node.value);

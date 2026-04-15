@@ -226,13 +226,10 @@ export function HtmlWrapper(__anchor, { children }, __block) {
 		{
 			var expression = _$_.child(div_7);
 
+			_$_.expression(expression, () => children);
 			_$_.pop(div_7);
 		}
 	}
-
-	_$_.render(() => {
-		_$_.expression(expression, () => children);
-	});
 
 	_$_.append(__anchor, div_6);
 	_$_.pop_component();
@@ -248,9 +245,7 @@ export function HtmlInChildren(__anchor, _, __block) {
 	HtmlWrapper(
 		node_7,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_8 = root_8();
 
 				{
@@ -264,7 +259,6 @@ export function HtmlInChildren(__anchor, _, __block) {
 				});
 
 				_$_.append(__anchor, div_8);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block
@@ -284,9 +278,7 @@ export function HtmlInChildrenWithSiblings(__anchor, _, __block) {
 	HtmlWrapper(
 		node_9,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var fragment_2 = root_10();
 				var h1_1 = _$_.first_child_frag(fragment_2);
 				var div_9 = _$_.sibling(h1_1);
@@ -304,7 +296,6 @@ export function HtmlInChildrenWithSiblings(__anchor, _, __block) {
 				});
 
 				_$_.append(__anchor, fragment_2, true);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block
@@ -325,9 +316,7 @@ export function MultipleHtmlInChildren(__anchor, _, __block) {
 	HtmlWrapper(
 		node_11,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_10 = root_12();
 
 				{
@@ -346,7 +335,6 @@ export function MultipleHtmlInChildren(__anchor, _, __block) {
 				);
 
 				_$_.append(__anchor, div_10);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block
@@ -406,9 +394,7 @@ export function HtmlWithCommentsInChildren(__anchor, _, __block) {
 	HtmlWrapper(
 		node_16,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_13 = root_16();
 
 				{
@@ -422,7 +408,6 @@ export function HtmlWithCommentsInChildren(__anchor, _, __block) {
 				});
 
 				_$_.append(__anchor, div_13);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block
@@ -462,6 +447,7 @@ export function DocLayout(
 				{
 					var expression_1 = _$_.child(div_15);
 
+					_$_.expression(expression_1, () => children);
 					_$_.pop(div_15);
 				}
 			}
@@ -500,26 +486,14 @@ export function DocLayout(
 						{
 							var expression_2 = _$_.child(a_2, true);
 
+							_$_.expression(expression_2, () => nextLink.text);
 							_$_.pop(a_2);
 						}
 					}
 
-					_$_.render(
-						(__prev) => {
-							var __a = nextLink.text;
-
-							if (__prev.a !== __a) {
-								_$_.set_text(expression_2, __prev.a = __a);
-							}
-
-							var __b = nextLink.href;
-
-							if (__prev.b !== __b) {
-								_$_.set_attribute(a_2, 'href', __prev.b = __b);
-							}
-						},
-						{ a: ' ', b: void 0 }
-					);
+					_$_.render(() => {
+						_$_.set_attribute(a_2, 'href', nextLink.href);
+					});
 
 					_$_.append(__anchor, nav_1);
 				};
@@ -560,26 +534,14 @@ export function DocLayout(
 										{
 											var expression_3 = _$_.child(a_3, true);
 
+											_$_.expression(expression_3, () => item.text);
 											_$_.pop(a_3);
 										}
 									}
 
-									_$_.render(
-										(__prev) => {
-											var __a = item.text;
-
-											if (__prev.a !== __a) {
-												_$_.set_text(expression_3, __prev.a = __a);
-											}
-
-											var __b = item.href;
-
-											if (__prev.b !== __b) {
-												_$_.set_attribute(a_3, 'href', __prev.b = __b);
-											}
-										},
-										{ a: ' ', b: void 0 }
-									);
+									_$_.render(() => {
+										_$_.set_attribute(a_3, 'href', item.href);
+									});
 
 									_$_.append(__anchor, li_1);
 								},
@@ -602,10 +564,6 @@ export function DocLayout(
 		}
 	}
 
-	_$_.render(() => {
-		_$_.expression(expression_1, () => children);
-	});
-
 	_$_.append(__anchor, div_14);
 	_$_.pop_component();
 }
@@ -627,9 +585,7 @@ export function HtmlWithServerData(__anchor, _, __block) {
 				{ href: '#features', text: 'Features' }
 			],
 
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_19 = root_24();
 
 				{
@@ -643,7 +599,6 @@ export function HtmlWithServerData(__anchor, _, __block) {
 				});
 
 				_$_.append(__anchor, div_19);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block
@@ -663,9 +618,7 @@ export function HtmlWithClientDefaults(__anchor, _, __block) {
 	DocLayout(
 		node_24,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_20 = root_26();
 
 				{
@@ -679,7 +632,6 @@ export function HtmlWithClientDefaults(__anchor, _, __block) {
 				});
 
 				_$_.append(__anchor, div_20);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block
@@ -699,9 +651,7 @@ export function HtmlWithUndefinedContent(__anchor, _, __block) {
 	DocLayout(
 		node_26,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_21 = root_28();
 
 				{
@@ -715,7 +665,6 @@ export function HtmlWithUndefinedContent(__anchor, _, __block) {
 				});
 
 				_$_.append(__anchor, div_21);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block
@@ -738,12 +687,9 @@ function DynamicHeading(__anchor, { level, children }, __block) {
 			{
 				var expression_4 = _$_.child(h1_2);
 
+				_$_.expression(expression_4, () => children);
 				_$_.pop(h1_2);
 			}
-
-			_$_.render(() => {
-				_$_.expression(expression_4, () => children);
-			});
 
 			_$_.append(__anchor, h1_2);
 		};
@@ -754,12 +700,9 @@ function DynamicHeading(__anchor, { level, children }, __block) {
 			{
 				var expression_5 = _$_.child(h2_1);
 
+				_$_.expression(expression_5, () => children);
 				_$_.pop(h2_1);
 			}
-
-			_$_.render(() => {
-				_$_.expression(expression_5, () => children);
-			});
 
 			_$_.append(__anchor, h2_1);
 		};
@@ -821,13 +764,10 @@ function ContentWrapper(__anchor, { children }, __block) {
 		{
 			var expression_6 = _$_.child(div_26);
 
+			_$_.expression(expression_6, () => children);
 			_$_.pop(div_26);
 		}
 	}
-
-	_$_.render(() => {
-		_$_.expression(expression_6, () => children);
-	});
 
 	_$_.append(__anchor, div_25);
 	_$_.pop_component();
@@ -842,9 +782,7 @@ export function HtmlAfterSwitchInChildren(__anchor, _, __block) {
 	ContentWrapper(
 		node_30,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var fragment_10 = root_35();
 				var node_31 = _$_.first_child_frag(fragment_10);
 
@@ -852,13 +790,10 @@ export function HtmlAfterSwitchInChildren(__anchor, _, __block) {
 					node_31,
 					{
 						level: 1,
-						children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-							_$_.push_component();
-
+						children: _$_.ripple_element(function render_children(__anchor, __block) {
 							var expression_7 = _$_.text('Title');
 
 							_$_.append(__anchor, expression_7);
-							_$_.pop_component();
 						})
 					},
 					_$_.active_block
@@ -870,7 +805,6 @@ export function HtmlAfterSwitchInChildren(__anchor, _, __block) {
 
 				CodeBlock(node_32, { code: "const x = 1;" }, _$_.active_block);
 				_$_.append(__anchor, fragment_10);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block
@@ -912,7 +846,7 @@ function NavItem(__anchor, { href, text: label, active = false }, __block) {
 			{
 				var expression_8 = _$_.child(span_1, true);
 
-				expression_8.nodeValue = label;
+				_$_.expression(expression_8, () => label);
 				_$_.pop(span_1);
 			}
 		}
@@ -939,7 +873,7 @@ function SidebarSection(__anchor, { title, children }, __block) {
 			{
 				var expression_9 = _$_.child(h2_2, true);
 
-				expression_9.nodeValue = title;
+				_$_.expression(expression_9, () => title);
 				_$_.pop(h2_2);
 			}
 
@@ -959,12 +893,9 @@ function SidebarSection(__anchor, { title, children }, __block) {
 				{
 					var expression_10 = _$_.child(div_30);
 
+					_$_.expression(expression_10, () => children);
 					_$_.pop(div_30);
 				}
-
-				_$_.render(() => {
-					_$_.expression(expression_10, () => children);
-				});
 
 				_$_.append(__anchor, div_30);
 			};
@@ -999,9 +930,7 @@ function SideNav(__anchor, { currentPath }, __block) {
 					node_35,
 					{
 						title: "Getting Started",
-						children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-							_$_.push_component();
-
+						children: _$_.ripple_element(function render_children(__anchor, __block) {
 							var fragment_11 = root_41();
 							var node_36 = _$_.first_child_frag(fragment_11);
 
@@ -1028,7 +957,6 @@ function SideNav(__anchor, { currentPath }, __block) {
 							);
 
 							_$_.append(__anchor, fragment_11);
-							_$_.pop_component();
 						})
 					},
 					_$_.active_block
@@ -1046,9 +974,7 @@ function SideNav(__anchor, { currentPath }, __block) {
 					node_38,
 					{
 						title: "Guide",
-						children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-							_$_.push_component();
-
+						children: _$_.ripple_element(function render_children(__anchor, __block) {
 							var fragment_12 = root_42();
 							var node_39 = _$_.first_child_frag(fragment_12);
 
@@ -1075,7 +1001,6 @@ function SideNav(__anchor, { currentPath }, __block) {
 							);
 
 							_$_.append(__anchor, fragment_12);
-							_$_.pop_component();
 						})
 					},
 					_$_.active_block
@@ -1164,13 +1089,10 @@ function ArticleWrapper(__anchor, { children }, __block) {
 		{
 			var expression_11 = _$_.child(div_37);
 
+			_$_.expression(expression_11, () => children);
 			_$_.pop(div_37);
 		}
 	}
-
-	_$_.render(() => {
-		_$_.expression(expression_11, () => children);
-	});
 
 	_$_.append(__anchor, article_2);
 	_$_.pop_component();
@@ -1196,13 +1118,10 @@ export function ArticleWithChildrenThenSibling(__anchor, _, __block) {
 		ArticleWrapper(
 			node_45,
 			{
-				children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-					_$_.push_component();
-
+				children: _$_.ripple_element(function render_children(__anchor, __block) {
 					var fragment_13 = root_49();
 
 					_$_.append(__anchor, fragment_13);
-					_$_.pop_component();
 				})
 			},
 			_$_.active_block
@@ -1258,9 +1177,7 @@ export function ArticleWithHtmlChildThenSibling(__anchor, _, __block) {
 		ArticleWrapper(
 			node_49,
 			{
-				children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-					_$_.push_component();
-
+				children: _$_.ripple_element(function render_children(__anchor, __block) {
 					var div_41 = root_53();
 
 					{
@@ -1274,7 +1191,6 @@ export function ArticleWithHtmlChildThenSibling(__anchor, _, __block) {
 					});
 
 					_$_.append(__anchor, div_41);
-					_$_.pop_component();
 				})
 			},
 			_$_.active_block
@@ -1318,6 +1234,7 @@ function InlineArticleLayout(__anchor, { children }, __block) {
 			{
 				var expression_12 = _$_.child(div_44);
 
+				_$_.expression(expression_12, () => children);
 				_$_.pop(div_44);
 			}
 		}
@@ -1344,10 +1261,6 @@ function InlineArticleLayout(__anchor, { children }, __block) {
 		_$_.pop(div_43);
 	}
 
-	_$_.render(() => {
-		_$_.expression(expression_12, () => children);
-	});
-
 	_$_.append(__anchor, div_43);
 	_$_.pop_component();
 }
@@ -1362,9 +1275,7 @@ export function InlineArticleWithHtmlChild(__anchor, _, __block) {
 	InlineArticleLayout(
 		node_55,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_46 = root_58();
 
 				{
@@ -1378,7 +1289,6 @@ export function InlineArticleWithHtmlChild(__anchor, _, __block) {
 				});
 
 				_$_.append(__anchor, div_46);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block
@@ -1456,6 +1366,7 @@ function DocsLayoutInner(
 								{
 									var expression_13 = _$_.child(div_49);
 
+									_$_.expression(expression_13, () => children);
 									_$_.pop(div_49);
 								}
 							}
@@ -1488,26 +1399,14 @@ function DocsLayoutInner(
 										{
 											var expression_14 = _$_.child(a_5, true);
 
+											_$_.expression(expression_14, () => nextLink.text);
 											_$_.pop(a_5);
 										}
 									}
 
-									_$_.render(
-										(__prev) => {
-											var __a = nextLink.text;
-
-											if (__prev.a !== __a) {
-												_$_.set_text(expression_14, __prev.a = __a);
-											}
-
-											var __b = nextLink.href;
-
-											if (__prev.b !== __b) {
-												_$_.set_attribute(a_5, 'href', __prev.b = __b);
-											}
-										},
-										{ a: ' ', b: void 0 }
-									);
+									_$_.render(() => {
+										_$_.set_attribute(a_5, 'href', nextLink.href);
+									});
 
 									_$_.append(__anchor, nav_4);
 								};
@@ -1532,10 +1431,6 @@ function DocsLayoutInner(
 		_$_.pop(div_47);
 	}
 
-	_$_.render(() => {
-		_$_.expression(expression_13, () => children);
-	});
-
 	_$_.append(__anchor, div_47);
 	_$_.pop_component();
 }
@@ -1552,9 +1447,7 @@ export function DocsLayoutWithData(__anchor, _, __block) {
 		{
 			editPath: "docs/styling.md",
 			nextLink: { href: '/next', text: 'Next' },
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_54 = root_66();
 
 				{
@@ -1568,7 +1461,6 @@ export function DocsLayoutWithData(__anchor, _, __block) {
 				});
 
 				_$_.append(__anchor, div_54);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block
@@ -1588,9 +1480,7 @@ export function DocsLayoutWithoutData(__anchor, _, __block) {
 	DocsLayoutInner(
 		node_64,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_55 = root_68();
 
 				{
@@ -1604,7 +1494,6 @@ export function DocsLayoutWithoutData(__anchor, _, __block) {
 				});
 
 				_$_.append(__anchor, div_55);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block
@@ -1661,6 +1550,7 @@ function DocsLayoutExact(
 								{
 									var expression_15 = _$_.child(div_58);
 
+									_$_.expression(expression_15, () => children);
 									_$_.pop(div_58);
 								}
 							}
@@ -1706,26 +1596,14 @@ function DocsLayoutExact(
 													{
 														var expression_16 = _$_.child(span_2, true);
 
+														_$_.expression(expression_16, () => prevLink.text);
 														_$_.pop(span_2);
 													}
 												}
 
-												_$_.render(
-													(__prev) => {
-														var __a = prevLink.text;
-
-														if (__prev.a !== __a) {
-															_$_.set_text(expression_16, __prev.a = __a);
-														}
-
-														var __b = prevLink.href;
-
-														if (__prev.b !== __b) {
-															_$_.set_attribute(a_7, 'href', __prev.b = __b);
-														}
-													},
-													{ a: ' ', b: void 0 }
-												);
+												_$_.render(() => {
+													_$_.set_attribute(a_7, 'href', prevLink.href);
+												});
 
 												_$_.append(__anchor, a_7);
 											};
@@ -1753,26 +1631,14 @@ function DocsLayoutExact(
 													{
 														var expression_17 = _$_.child(span_4, true);
 
+														_$_.expression(expression_17, () => nextLink.text);
 														_$_.pop(span_4);
 													}
 												}
 
-												_$_.render(
-													(__prev) => {
-														var __a = nextLink.text;
-
-														if (__prev.a !== __a) {
-															_$_.set_text(expression_17, __prev.a = __a);
-														}
-
-														var __b = nextLink.href;
-
-														if (__prev.b !== __b) {
-															_$_.set_attribute(a_8, 'href', __prev.b = __b);
-														}
-													},
-													{ a: ' ', b: void 0 }
-												);
+												_$_.render(() => {
+													_$_.set_attribute(a_8, 'href', nextLink.href);
+												});
 
 												_$_.append(__anchor, a_8);
 											};
@@ -1824,25 +1690,13 @@ function DocsLayoutExact(
 												{
 													var expression_18 = _$_.child(a_9, true);
 
+													_$_.expression(expression_18, () => item.text);
 													_$_.pop(a_9);
 												}
 
-												_$_.render(
-													(__prev) => {
-														var __a = item.text;
-
-														if (__prev.a !== __a) {
-															_$_.set_text(expression_18, __prev.a = __a);
-														}
-
-														var __b = item.href;
-
-														if (__prev.b !== __b) {
-															_$_.set_attribute(a_9, 'href', __prev.b = __b);
-														}
-													},
-													{ a: ' ', b: void 0 }
-												);
+												_$_.render(() => {
+													_$_.set_attribute(a_9, 'href', item.href);
+												});
 
 												_$_.append(__anchor, a_9);
 											},
@@ -1872,10 +1726,6 @@ function DocsLayoutExact(
 		_$_.pop(div_56);
 	}
 
-	_$_.render(() => {
-		_$_.expression(expression_15, () => children);
-	});
-
 	_$_.append(__anchor, div_56);
 	_$_.pop_component();
 }
@@ -1898,9 +1748,7 @@ export function DocsLayoutExactWithData(__anchor, _, __block) {
 				{ href: '#usage', text: 'Usage' }
 			],
 
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_64 = root_78();
 
 				{
@@ -1914,7 +1762,6 @@ export function DocsLayoutExactWithData(__anchor, _, __block) {
 				});
 
 				_$_.append(__anchor, div_64);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block
@@ -1942,9 +1789,7 @@ export function DocsLayoutExactWithoutData(__anchor, _, __block) {
 			prevLink,
 			nextLink,
 			toc,
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_65 = root_80();
 
 				{
@@ -1958,7 +1803,6 @@ export function DocsLayoutExactWithoutData(__anchor, _, __block) {
 				});
 
 				_$_.append(__anchor, div_65);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block
@@ -2017,22 +1861,14 @@ function LayoutWithTemplate(__anchor, { children, data }, __block) {
 		{
 			var expression_19 = _$_.child(main_4);
 
+			_$_.expression(expression_19, () => children);
 			_$_.pop(main_4);
 		}
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = _$_.with_scope(__block, () => JSON.stringify(data));
-
-			if (__prev.a !== __a) {
-				template_3.innerHTML = __prev.a = __a;
-			}
-
-			_$_.expression(expression_19, () => children);
-		},
-		{ a: '' }
-	);
+	_$_.render(() => {
+		template_3.innerHTML = _$_.with_scope(__block, () => JSON.stringify(data));
+	});
 
 	_$_.append(__anchor, div_68);
 	_$_.pop_component();
@@ -2049,9 +1885,7 @@ export function NestedTemplateInLayout(__anchor, _, __block) {
 		node_78,
 		{
 			data: doc,
-			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_69 = root_85();
 
 				{
@@ -2065,7 +1899,6 @@ export function NestedTemplateInLayout(__anchor, _, __block) {
 				});
 
 				_$_.append(__anchor, div_69);
-				_$_.pop_component();
 			})
 		},
 		_$_.active_block

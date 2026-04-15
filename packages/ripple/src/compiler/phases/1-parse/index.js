@@ -1358,7 +1358,9 @@ function RipplePlugin(config) {
 
 			/** @type {Parse.Parser['jsx_readToken']} */
 			jsx_readToken() {
-				const inside_tsx_compat = this.#path.findLast((n) => n.type === 'TsxCompat');
+				const inside_tsx_compat = this.#path.findLast(
+					(n) => n.type === 'TsxCompat' || n.type === 'Tsx',
+				);
 				if (inside_tsx_compat) {
 					return super.jsx_readToken();
 				}
@@ -1510,6 +1512,48 @@ function RipplePlugin(config) {
 			}
 
 			/**
+			 * Override jsx_parseElement to intercept expression-level JSX.
+			 * This is called by acorn-jsx's parseExprAtom when it encounters <
+			 * in expression position. Only <tsx> and <tsx:*> are allowed.
+			 * @type {Parse.Parser['jsx_parseElement']}
+			 */
+			jsx_parseElement() {
+				const inside_tsx = this.#path.findLast((n) => n.type === 'TsxCompat' || n.type === 'Tsx');
+				if (inside_tsx) {
+					// Inside tsx/tsx:*, let acorn-jsx handle it normally
+					return super.jsx_parseElement();
+				}
+
+				// Check if the element being parsed IS a <tsx> or <tsx:*> tag
+				// Current token is jsxTagStart, this.end is position after '<'
+				const tag_name_start = this.end;
+				const char_after_tsx = this.input.charCodeAt(tag_name_start + 3);
+				const is_tsx_tag =
+					this.input.startsWith('tsx', tag_name_start) &&
+					(tag_name_start + 3 >= this.input.length ||
+						char_after_tsx === 62 || // >
+						char_after_tsx === 47 || // / (self-closing)
+						char_after_tsx === 32 || // space
+						char_after_tsx === 9 || // tab
+						char_after_tsx === 10 || // newline
+						char_after_tsx === 13 || // carriage return
+						char_after_tsx === 58); // : (tsx:react)
+
+				if (is_tsx_tag) {
+					// Use Ripple's parseElement to create a Tsx/TsxCompat node
+					this.next();
+					return /** @type {import('estree-jsx').JSXElement} */ (
+						/** @type {unknown} */ (this.parseElement())
+					);
+				}
+
+				this.raise(
+					this.start,
+					'JSX elements cannot be used as expressions. Wrap with `<tsx>...</tsx>` or use elements as statements within a component.',
+				);
+			}
+
+			/**
 			 * @type {Parse.Parser['parseElement']}
 			 */
 			parseElement() {
@@ -1520,7 +1564,7 @@ function RipplePlugin(config) {
 				const start = this.start - 1;
 				const position = new acorn.Position(this.curLine, start - this.lineStart);
 
-				const element = /** @type {AST.Element | AST.TsxCompat} */ (this.startNode());
+				const element = /** @type {AST.Element | AST.Tsx | AST.TsxCompat} */ (this.startNode());
 				element.start = start;
 				/** @type {AST.NodeWithLocation} */ (element).loc.start = position;
 				element.metadata = { path: [] };
@@ -1535,6 +1579,8 @@ function RipplePlugin(config) {
 
 				// Check if this is a namespaced element (tsx:react)
 				const is_tsx_compat = open.name.type === 'JSXNamespacedName';
+				const is_tsx =
+					!is_tsx_compat && open.name.type === 'JSXIdentifier' && open.name.name === 'tsx';
 
 				if (is_tsx_compat) {
 					const namespace_node = /** @type {ESTreeJSX.JSXNamespacedName} */ (open.name);
@@ -1546,6 +1592,15 @@ function RipplePlugin(config) {
 						this.raise(
 							open.start,
 							`TSX compatibility elements cannot be self-closing. '<${tagName} />' must have a closing tag '</${tagName}>'.`,
+						);
+					}
+				} else if (is_tsx) {
+					/** @type {AST.Tsx} */ (element).type = 'Tsx';
+
+					if (open.selfClosing) {
+						this.raise(
+							open.start,
+							`TSX elements cannot be self-closing. '<tsx />' must have a closing tag '</tsx>'.`,
 						);
 					}
 				} else {
@@ -1575,7 +1630,7 @@ function RipplePlugin(config) {
 					}
 				}
 
-				if (!is_tsx_compat) {
+				if (!is_tsx_compat && !is_tsx) {
 					/** @type {AST.Element} */ (element).id = /** @type {AST.Identifier} */ (
 						convert_from_jsx(/** @type {ESTreeJSX.JSXIdentifier} */ (open.name))
 					);
@@ -1745,6 +1800,7 @@ function RipplePlugin(config) {
 						const insideTemplate =
 							parent?.type === 'Component' ||
 							parent?.type === 'Element' ||
+							parent?.type === 'Tsx' ||
 							parent?.type === 'TsxCompat';
 
 						if (curContext === tstc.tc_expr && !insideTemplate) {
@@ -1757,7 +1813,30 @@ function RipplePlugin(config) {
 						this.parseTemplateBody(/** @type {AST.Element} */ (element).children);
 						this.exitScope();
 
-						if (element.type === 'TsxCompat') {
+						if (element.type === 'Tsx') {
+							this.#path.pop();
+
+							if (!element.unclosed) {
+								const raise_error = () => {
+									this.raise(this.start, `Expected closing tag '</tsx>'`);
+								};
+
+								this.next();
+								// we should expect to see </tsx>
+								if (this.value !== '/') {
+									raise_error();
+								}
+								this.next();
+								if (this.value !== 'tsx') {
+									raise_error();
+								}
+								this.next();
+								if (this.type !== tstt.jsxTagEnd) {
+									raise_error();
+								}
+								this.next();
+							}
+						} else if (element.type === 'TsxCompat') {
 							this.#path.pop();
 
 							if (!element.unclosed) {
@@ -1813,6 +1892,7 @@ function RipplePlugin(config) {
 					const insideTemplate =
 						parent?.type === 'Component' ||
 						parent?.type === 'Element' ||
+						parent?.type === 'Tsx' ||
 						parent?.type === 'TsxCompat';
 
 					if (curContext === tstc.tc_expr && !insideTemplate) {
@@ -1820,7 +1900,7 @@ function RipplePlugin(config) {
 					}
 				}
 
-				if (element.closingElement && !is_tsx_compat) {
+				if (element.closingElement && !is_tsx_compat && !is_tsx) {
 					/** @type {unknown} */ (element.closingElement.name) = convert_from_jsx(
 						element.closingElement.name,
 					);
@@ -1836,6 +1916,7 @@ function RipplePlugin(config) {
 			parseTemplateBody(body) {
 				const inside_func =
 					this.context.some((n) => n.token === 'function') || this.scopeStack.length > 1;
+				const inside_tsx = this.#path.findLast((n) => n.type === 'Tsx');
 				const inside_tsx_compat = this.#path.findLast((n) => n.type === 'TsxCompat');
 
 				if (!inside_func) {
@@ -1847,6 +1928,75 @@ function RipplePlugin(config) {
 					}
 				}
 
+				if (inside_tsx) {
+					this.exprAllowed = true;
+
+					while (true) {
+						if (this.type === tt.eof || this.pos >= this.input.length || this.type === tt.braceR) {
+							if (!this.#loose) {
+								this.raise(
+									this.start,
+									`Unclosed tag '<tsx>'. Expected '</tsx>' before end of component.`,
+								);
+							} else {
+								inside_tsx.unclosed = true;
+								/** @type {AST.NodeWithLocation} */ (inside_tsx).loc.end = {
+									.../** @type {AST.SourceLocation} */ (inside_tsx.openingElement.loc).end,
+								};
+								inside_tsx.end = inside_tsx.openingElement.end;
+							}
+							return;
+						}
+
+						if (this.input.slice(this.pos, this.pos + 4) === '/tsx') {
+							const after = this.input.charCodeAt(this.pos + 4);
+							// Make sure it's </tsx> and not </tsx:...>
+							if (after === 62 /* > */) {
+								return;
+							}
+						}
+
+						if (this.type === tt.braceL) {
+							const node = this.jsx_parseExpressionContainer();
+							body.push(node);
+						} else if (this.type === tstt.jsxTagStart) {
+							// Parse JSX element
+							const node = super.parseExpression();
+							body.push(node);
+						} else {
+							const start = this.start;
+							this.pos = start;
+							let text = '';
+
+							while (this.pos < this.input.length) {
+								const ch = this.input.charCodeAt(this.pos);
+
+								// Stop at opening tag, expression, or the component-closing brace
+								if (ch === 60 || ch === 123 || ch === 125) {
+									// < or { or }
+									break;
+								}
+
+								text += this.input[this.pos];
+								this.pos++;
+							}
+
+							if (text) {
+								const node = /** @type {ESTreeJSX.JSXText} */ ({
+									type: 'JSXText',
+									value: text,
+									raw: text,
+									start,
+									end: this.pos,
+								});
+								body.push(node);
+							}
+
+							// Always call next() to ensure parser makes progress
+							this.next();
+						}
+					}
+				}
 				if (inside_tsx_compat) {
 					this.exprAllowed = true;
 
@@ -1950,7 +2100,9 @@ function RipplePlugin(config) {
 						const currentElement = this.#path[this.#path.length - 1];
 						if (
 							!currentElement ||
-							(currentElement.type !== 'Element' && currentElement.type !== 'TsxCompat')
+							(currentElement.type !== 'Element' &&
+								currentElement.type !== 'Tsx' &&
+								currentElement.type !== 'TsxCompat')
 						) {
 							this.raise(this.start, 'Unexpected closing tag');
 						}
@@ -1962,6 +2114,12 @@ function RipplePlugin(config) {
 
 						if (currentElement.type === 'TsxCompat') {
 							openingTagName = 'tsx:' + currentElement.kind;
+							closingTagName =
+								closingElement.name?.type === 'JSXNamespacedName'
+									? closingElement.name.namespace.name + ':' + closingElement.name.name.name
+									: this.getElementName(closingElement.name);
+						} else if (currentElement.type === 'Tsx') {
+							openingTagName = 'tsx';
 							closingTagName =
 								closingElement.name?.type === 'JSXNamespacedName'
 									? closingElement.name.namespace.name + ':' + closingElement.name.name.name
@@ -1987,12 +2145,16 @@ function RipplePlugin(config) {
 									const elem = this.#path[this.#path.length - 1];
 
 									// Stop at non-Element boundaries (Component, etc.)
-									if (elem.type !== 'Element' && elem.type !== 'TsxCompat') {
+									if (elem.type !== 'Element' && elem.type !== 'Tsx' && elem.type !== 'TsxCompat') {
 										break;
 									}
 
 									const elemName =
-										elem.type === 'TsxCompat' ? 'tsx:' + elem.kind : this.getElementName(elem.id);
+										elem.type === 'TsxCompat'
+											? 'tsx:' + elem.kind
+											: elem.type === 'Tsx'
+												? 'tsx'
+												: this.getElementName(elem.id);
 
 									// Found matching opening tag
 									if (elemName === closingTagName) {
