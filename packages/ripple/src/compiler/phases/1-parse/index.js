@@ -1527,13 +1527,17 @@ function RipplePlugin(config) {
 				// Check if the element being parsed IS a <tsx> or <tsx:*> tag
 				// Current token is jsxTagStart, this.end is position after '<'
 				const tag_name_start = this.end;
+				const char_after_tsx = this.input.charCodeAt(tag_name_start + 3);
 				const is_tsx_tag =
 					this.input.startsWith('tsx', tag_name_start) &&
 					(tag_name_start + 3 >= this.input.length ||
-						this.input.charCodeAt(tag_name_start + 3) === 62 || // >
-						this.input.charCodeAt(tag_name_start + 3) === 32 || // space
-						this.input.charCodeAt(tag_name_start + 3) === 9 || // tab
-						this.input.charCodeAt(tag_name_start + 3) === 58); // : (tsx:react)
+						char_after_tsx === 62 || // >
+						char_after_tsx === 47 || // / (self-closing)
+						char_after_tsx === 32 || // space
+						char_after_tsx === 9 || // tab
+						char_after_tsx === 10 || // newline
+						char_after_tsx === 13 || // carriage return
+						char_after_tsx === 58); // : (tsx:react)
 
 				if (is_tsx_tag) {
 					// Use Ripple's parseElement to create a Tsx/TsxCompat node
