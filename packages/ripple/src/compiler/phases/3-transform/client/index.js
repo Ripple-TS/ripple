@@ -1220,20 +1220,18 @@ const visitors = {
 			),
 		);
 
-		// Template body context: push to template and schedule update
+		// Template body context: push to template and schedule init
 		if (state.flush_node) {
 			state.template?.push('<!>');
 
 			const id = state.flush_node(false);
 
-			state.update?.push({
-				operation: () => {
-					const call = b.call('_$_.expression', id, b.thunk(element));
-					return state.namespace !== DEFAULT_NAMESPACE
-						? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(call)))
-						: b.stmt(call);
-				},
-			});
+			const call = b.call('_$_.expression', id, b.thunk(element));
+			state.init?.push(
+				state.namespace !== DEFAULT_NAMESPACE
+					? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(call)))
+					: b.stmt(call),
+			);
 			return;
 		}
 
@@ -3463,6 +3461,15 @@ function transform_children(children, context) {
 				(node) =>
 					node.type === 'RippleExpression' &&
 					is_children_template_expression(node.expression, state.scope),
+			)) ||
+		// At root level, non-literal expressions need a fragment template so the
+		// anchor has a parent node. Without a parent, expression()'s .before() call
+		// is a no-op when the value is a RippleElement.
+		(root &&
+			normalized.some(
+				(node) =>
+					node.type === 'RippleExpression' &&
+					/** @type {AST.RippleExpression} */ (node).expression.type !== 'Literal',
 			)) ||
 		normalized.filter(
 			(node) => node.type !== 'VariableDeclaration' && node.type !== 'EmptyStatement',

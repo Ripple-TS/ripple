@@ -1,0 +1,131 @@
+import { flushSync, track } from 'ripple';
+
+describe('tsx expression', () => {
+	it('renders a basic tsx element', () => {
+		component App() {
+			const el = <tsx><div>hello world</div></tsx>;
+			{el}
+		}
+		render(App);
+		expect(container.textContent).toBe('hello world');
+		expect(container.querySelector('div')).toBeTruthy();
+	});
+
+	it('renders a tsx element assigned to a variable', () => {
+		component App() {
+			const el = <tsx><span class="test">content</span></tsx>;
+			{el}
+		}
+		render(App);
+		const span = container.querySelector('span.test');
+		expect(span).toBeTruthy();
+		expect(span.textContent).toBe('content');
+	});
+
+	it('renders a tsx element with multiple children', () => {
+		component App() {
+			const el = <tsx><div>first</div><div>second</div></tsx>;
+			{el}
+		}
+		render(App);
+		const divs = container.querySelectorAll('div');
+		expect(divs.length).toBe(2);
+		expect(divs[0].textContent).toBe('first');
+		expect(divs[1].textContent).toBe('second');
+	});
+
+	it('renders a tsx element with nested elements', () => {
+		component App() {
+			const el = <tsx>
+				<div class="outer">
+					<span class="inner">nested</span>
+				</div>
+			</tsx>;
+			{el}
+		}
+		render(App);
+		const outer = container.querySelector('div.outer');
+		expect(outer).toBeTruthy();
+		const inner = outer.querySelector('span.inner');
+		expect(inner).toBeTruthy();
+		expect(inner.textContent).toBe('nested');
+	});
+
+	it('renders a tsx element inline in a parent element', () => {
+		component App() {
+			const el = <tsx><span>inline</span></tsx>;
+			<div class="parent">{el}</div>
+		}
+		render(App);
+		const parent = container.querySelector('div.parent');
+		expect(parent).toBeTruthy();
+		expect(parent.querySelector('span')).toBeTruthy();
+		expect(parent.textContent).toBe('inline');
+	});
+
+	it('renders a tsx element with reactive expressions', () => {
+		component App() {
+			let &[count] = track(0);
+			const el = <tsx>
+				<div>
+					{'count: ' + count}
+				</div>
+			</tsx>;
+			{el}
+			<button onClick={() => count++}>{'increment'}</button>
+		}
+		render(App);
+		expect(container.querySelector('div').textContent).toBe('count: 0');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('div').textContent).toBe('count: 1');
+	});
+
+	it('conditionally renders tsx elements', () => {
+		component App() {
+			let &[show] = track(true);
+			const el = <tsx><div class="tsx-content">visible</div></tsx>;
+
+			if (show) {
+				{el}
+			}
+			<button onClick={() => (show = !show)}>{'toggle'}</button>
+		}
+		render(App);
+		expect(container.querySelector('.tsx-content')).toBeTruthy();
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('.tsx-content')).toBeFalsy();
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('.tsx-content')).toBeTruthy();
+	});
+
+	it('renders tsx element passed as children prop', () => {
+		component Child(&{ children }: { children: any }) {
+			<div class="wrapper">{children}</div>
+		}
+
+		component App() {
+			const el = <tsx><span>from tsx</span></tsx>;
+			<Child children={el} />
+		}
+		render(App);
+		const wrapper = container.querySelector('.wrapper');
+		expect(wrapper).toBeTruthy();
+		expect(wrapper.querySelector('span')).toBeTruthy();
+		expect(wrapper.textContent).toBe('from tsx');
+	});
+
+	it('renders tsx element with text content only', () => {
+		component App() {
+			const el = <tsx>just text</tsx>;
+			{el}
+		}
+		render(App);
+		expect(container.textContent).toBe('just text');
+	});
+});
