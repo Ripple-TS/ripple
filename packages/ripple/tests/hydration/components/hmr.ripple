@@ -11,9 +11,7 @@ import { track } from 'ripple';
 export component Layout({ children }: { children: any }) {
 	<div class="layout">
 		<nav class="nav">{'Navigation'}</nav>
-		<main class="main">
-			<children />
-		</main>
+		<main class="main">{children}</main>
 	</div>
 }
 

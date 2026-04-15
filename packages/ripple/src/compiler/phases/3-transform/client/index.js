@@ -80,6 +80,86 @@ import { should_preserve_comment, format_comment } from '../../../comment-utils.
 import { set_location } from '../../../../utils/builders.js';
 
 /**
+ * @param {AST.Expression} expression
+ * @returns {AST.Expression}
+ */
+function unwrap_template_expression(expression) {
+	/** @type {AST.Expression} */
+	let node = expression;
+
+	while (true) {
+		if (
+			node.type === 'ParenthesizedExpression' ||
+			node.type === 'TSAsExpression' ||
+			node.type === 'TSSatisfiesExpression' ||
+			node.type === 'TSNonNullExpression' ||
+			node.type === 'TSInstantiationExpression'
+		) {
+			node = /** @type {AST.Expression} */ (node.expression);
+			continue;
+		}
+
+		if (node.type === 'ChainExpression') {
+			node = /** @type {AST.Expression} */ (node.expression);
+			continue;
+		}
+
+		break;
+	}
+
+	return node;
+}
+
+/**
+ * @param {AST.Expression} expression
+ * @param {TransformClientState} state
+ * @returns {boolean}
+ */
+function is_children_render_expression(expression, state) {
+	if (state.scope == null) {
+		return false;
+	}
+
+	const unwrapped = unwrap_template_expression(expression);
+
+	if (unwrapped.type === 'MemberExpression') {
+		let property_name = null;
+
+		if (!unwrapped.computed && unwrapped.property.type === 'Identifier') {
+			property_name = unwrapped.property.name;
+		} else if (
+			unwrapped.computed &&
+			unwrapped.property.type === 'Literal' &&
+			typeof unwrapped.property.value === 'string'
+		) {
+			property_name = unwrapped.property.value;
+		}
+
+		if (property_name === 'children') {
+			const target = unwrap_template_expression(/** @type {AST.Expression} */ (unwrapped.object));
+
+			if (target.type === 'Identifier') {
+				const binding = state.scope.get(target.name);
+				return binding?.declaration_kind === 'param';
+			}
+		}
+	}
+
+	if (unwrapped.type !== 'Identifier' || unwrapped.name !== 'children') {
+		return false;
+	}
+
+	const binding = state.scope.get(unwrapped.name);
+	return (
+		binding?.declaration_kind === 'param' ||
+		binding?.kind === 'prop' ||
+		binding?.kind === 'prop_fallback' ||
+		binding?.kind === 'lazy' ||
+		binding?.kind === 'lazy_fallback'
+	);
+}
+
+/**
  *
  * @param {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression} node
  * @param {TransformClientContext} context
@@ -1634,7 +1714,7 @@ const visitors = {
 
 						if (metadata.tracking || attr.name.tracked) {
 							if (attr.name.name === 'children') {
-								children_prop = b.thunk(property);
+								children_prop = b.thunk(b.call('_$_.normalize_children', property));
 								continue;
 							}
 
@@ -1646,7 +1726,15 @@ const visitors = {
 								),
 							);
 						} else {
-							props.push(b.prop('init', b.key(attr.name.name), property));
+							props.push(
+								b.prop(
+									'init',
+									b.key(attr.name.name),
+									attr.name.name === 'children'
+										? b.call('_$_.normalize_children', property)
+										: property,
+								),
+							);
 						}
 					} else {
 						props.push(
@@ -1699,22 +1787,25 @@ const visitors = {
 
 			if (children_filtered.length > 0) {
 				const component_scope = state.scopes.get(node);
-				const children_component = b.component(b.id('children'), [], children_filtered);
+				const children_component = b.component(b.id('render_children'), [], children_filtered);
 
-				const children = /** @type {AST.Expression} */ (
-					visit(children_component, {
-						...state,
-						...(apply_parent_css_scope ||
-						(is_dynamic_element && node.metadata.scoped && state.component?.css)
-							? {
-									applyParentCssScope:
-										apply_parent_css_scope ||
-										/** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash,
-								}
-							: {}),
-						scope: /** @type {ScopeInterface} */ (component_scope),
-						namespace: child_namespace,
-					})
+				const children = b.call(
+					'_$_.ripple_element',
+					/** @type {AST.Expression} */ (
+						visit(children_component, {
+							...state,
+							...(apply_parent_css_scope ||
+							(is_dynamic_element && node.metadata.scoped && state.component?.css)
+								? {
+										applyParentCssScope:
+											apply_parent_css_scope ||
+											/** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash,
+									}
+								: {}),
+							scope: /** @type {ScopeInterface} */ (component_scope),
+							namespace: child_namespace,
+						})
+					),
 				);
 
 				if (children_prop) {
@@ -3337,6 +3428,13 @@ function transform_children(children, context) {
 				(node.type === 'Element' &&
 					(node.id.type !== 'Identifier' || !is_element_dom_element(node))),
 		) ||
+		(normalized.filter(
+			(node) => node.type !== 'VariableDeclaration' && node.type !== 'EmptyStatement',
+		).length === 1 &&
+			normalized.some(
+				(node) =>
+					node.type === 'RippleExpression' && is_children_render_expression(node.expression, state),
+			)) ||
 		normalized.filter(
 			(node) => node.type !== 'VariableDeclaration' && node.type !== 'EmptyStatement',
 		).length > 1;
@@ -3672,7 +3770,83 @@ function transform_children(children, context) {
 							),
 						),
 				});
-			} else if (node.type === 'RippleExpression' || node.type === 'Text') {
+			} else if (node.type === 'RippleExpression') {
+				const expr = /** @type {AST.Expression} */ (expression);
+				const is_children_expression = is_children_render_expression(node.expression, state);
+
+				if (expr.type === 'Literal') {
+					if (normalized.length === 1) {
+						skipped++;
+						if (
+							/** @type {NonNullable<TransformClientState['template']>} */ (state.template).length >
+							0
+						) {
+							state.template?.push(escape_html(expr.value));
+						} else {
+							const id = flush_node(true);
+							state.init?.push(b.var(/** @type {AST.Identifier} */ (id), b.call('_$_.text', expr)));
+							state.final?.push(b.stmt(b.call('_$_.append', b.id('__anchor'), id)));
+						}
+					} else {
+						skipped++;
+						state.template?.push(escape_html(expr.value));
+					}
+				} else if (is_children_expression) {
+					skipped = 0;
+					state.template?.push('<!>');
+					const id = flush_node(false);
+					state.update?.push({
+						operation: () => {
+							const call = b.call('_$_.expression', id, b.thunk(expr));
+							return state.namespace !== DEFAULT_NAMESPACE
+								? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(call)))
+								: b.stmt(call);
+						},
+					});
+					if (metadata?.await) {
+						/** @type {NonNullable<TransformClientState['update']>} */ (state.update).async = true;
+					}
+				} else if (metadata?.tracking) {
+					skipped = 0;
+					state.template?.push(' ');
+					const id = flush_node(true);
+					state.update?.push({
+						operation: (key) => b.stmt(b.call('_$_.set_text', id, key)),
+						expression: expr,
+						identity: node.expression,
+						initial: b.literal(' '),
+					});
+					if (metadata.await) {
+						/** @type {NonNullable<TransformClientState['update']>} */ (state.update).async = true;
+					}
+				} else if (normalized.length === 1) {
+					skipped++;
+					const id = flush_node(true);
+					state.template?.push(' ');
+					state.init?.push(
+						b.stmt(
+							b.assignment(
+								'=',
+								b.member(/** @type {AST.Identifier} */ (id), b.id('nodeValue')),
+								expr,
+							),
+						),
+					);
+				} else {
+					skipped++;
+					state.template?.push(' ');
+					const id = flush_node(true);
+					state.update?.push({
+						operation: (key) => b.stmt(b.call('_$_.set_text', id, key)),
+						expression: expr,
+						identity: node.expression,
+						initial: b.literal(' '),
+					});
+					if (metadata?.await) {
+						/** @type {NonNullable<TransformClientState['update']>} */ (state.update).async = true;
+					}
+				}
+			} else if (node.type === 'Text') {
 				if (metadata?.tracking) {
 					skipped = 0;
 					state.template?.push(' ');

@@ -99,9 +99,7 @@ component Actions({ playgroundVisible = false }: { playgroundVisible: boolean })
 
 component Layout({ children }: { children: Children }) {
 	<main>
-		<div class="container">
-			<children />
-		</div>
+		<div class="container">{children}</div>
 	</main>
 }
 

@@ -1,7 +1,14 @@
 export type Component<T = Record<string, any>> = (props: T) => void;
 
-/** Type for JSX children - accepts single child, multiple children, or no children */
-export type Children = Component | readonly Component[];
+declare const RIPPLE_ELEMENT: unique symbol;
+
+export type RippleElement = {
+	readonly render: Function;
+	readonly [RIPPLE_ELEMENT]: true;
+};
+
+/** Type for implicit children fragments rendered with `{children}`. */
+export type Children = RippleElement;
 
 export type CompatApi = {
 	createRoot: () => void;

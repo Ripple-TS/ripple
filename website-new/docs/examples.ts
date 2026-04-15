@@ -139,7 +139,7 @@ component Card(props: { message: string, className?: string, onClick?: () => voi
 
 component Card(props: { children: Children }) {
   <div class="card">
-    <props.children />
+    {props.children}
   </div>
 }
 
@@ -177,7 +177,7 @@ export default component App() {
 	<fieldset>
 		<Header />
 		<hr />
-		<children />
+		{children}
 		<hr />
 		<Footer />
 	</fieldset>
@@ -631,16 +631,16 @@ export default component App() {
 }
 
 component Child({ Button, children }) {
-  <@Button><children /></@Button>
+  <@Button>{children}</@Button>
 }
 
 component AnotherChild(props) {
-  <props.@Button><props.children /></props.@Button>
+  <props.@Button>{props.children}</props.@Button>
 }
 
 component SomeButton({ children }) {
   <button onClick={() => alert('Clicked')}>
-		<children />
+		{children}
 	</button>
 }
 

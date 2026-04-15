@@ -12,9 +12,7 @@ import { did_error } from '../capture-error.js';
 describe('basic client > components & composition', () => {
 	it('renders with component composition and children', () => {
 		component Card(props: PropsWithChildren<{}>) {
-			<div class="card">
-				<props.children />
-			</div>
+			<div class="card">{props.children}</div>
 		}
 
 		component Basic() {
@@ -38,7 +36,7 @@ describe('basic client > components & composition', () => {
 		component Card(props: PropsWithChildrenOptional<{ test?: Component }>) {
 			<div class="card">
 				if (props.children) {
-					<props.children />
+					{props.children}
 				}
 			</div>
 		}
@@ -64,7 +62,7 @@ describe('basic client > components & composition', () => {
 		component Card(props: PropsWithChildrenOptional<{ test?: Component }>) {
 			<div class="card">
 				if (props.children) {
-					<props.children />
+					{props.children}
 				}
 			</div>
 		}
@@ -92,9 +90,7 @@ describe('basic client > components & composition', () => {
 
 	it('renders a component when children is set a component prop', () => {
 		component Card(props: PropsWithChildren<{}>) {
-			<div class="card">
-				<props.children />
-			</div>
+			<div class="card">{props.children}</div>
 		}
 
 		component Basic() {
@@ -328,9 +324,7 @@ describe('basic client > components & composition', () => {
 				<span>{'Hello from Span'}</span>
 			},
 			button: component({ children }: PropsWithChildren<{}>) {
-				<button>
-					<children />
-				</button>
+				<button>{children}</button>
 			},
 		};
 
@@ -360,7 +354,7 @@ describe('basic client > components & composition', () => {
 
 	it('handles empty string children', () => {
 		component Button({ children }: PropsWithChildren<{}>) {
-			<children />
+			{children}
 		}
 
 		component App() {

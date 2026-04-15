@@ -22,16 +22,14 @@ within `effect()` to ensure they only run when intended.
 
 To pass elements to be nested within a component, simply nest them as you would
 write HTML. By default, Ripple will make the content available as the `children`
-prop, which you can then render using `<props.children />` (or simply
-`<children />` if you destructured your props).
+prop, which you can then render using `{props.children}` (or simply `{children}`
+if you destructured your props).
 
 ```ripple
 import type { Children } from 'ripple';
 
 component Card(props: { children: Children }) {
-  <div class="card">
-    <props.children />
-  </div>
+  <div class="card">{props.children}</div>
 }
 
 export component App() {
@@ -48,77 +46,6 @@ export component App() {
   <Card {children} />
 }
 ```
-
-### Named Children
-
-If you need to pass more than one child to a component, pass each child as an
-explicit prop on the component element.
-
-::: warning Note The child you pass in MUST be a component, not just templates!
-:::
-
-<Code>
-
-```ripple
-component Composite({ PropComp, InlineComp }) {
-  <PropComp />
-  <InlineComp />
-}
-
-component Separate() {
-  <p>{`I'm a separate component.`}</p>
-}
-
-export component App() {
-  component InlineComp() {
-    <p>{`I'm an inline component.`}</p>
-  }
-
-  <Composite PropComp={Separate} {InlineComp} />
-}
-```
-
-</Code>
-
-## Example: Card Component Using Child Composition
-
-Using what we've learnt, let's make a versatile card component that can display an
-optional header and footer.
-
-This pattern is commonly achieved with "slots" from Vue/Web Components, "render
-props" from React, and "snippets" from Svelte.
-
-<Code>
-
-```ripple
-component Card({ children, Header, Footer }) {
-  <fieldset>
-    <Header />
-    <hr />
-    <children />
-    <hr />
-    <Footer />
-  </fieldset>
-}
-
-component CustomHeader() {
-  <h1>{'Card Title'}</h1>
-}
-
-export component App() {
-  component Footer() {
-    <button>{'Cancel'}</button>
-    <button>{'OK'}</button>
-  }
-
-  <Card Header={CustomHeader} {Footer}>
-    // <- Header passed in as a prop
-    <p>{'Card content here'}</p>
-  </Card>
-}
-```
-
-</Code>
 
 ## Reactive Props
 

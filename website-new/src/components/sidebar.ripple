@@ -250,9 +250,7 @@ component SidebarGroup({
 			</div>
 		</div>
 		if (expanded) {
-			<div class="items">
-				<children />
-			</div>
+			<div class="items">{children}</div>
 		}
 	</section>
 

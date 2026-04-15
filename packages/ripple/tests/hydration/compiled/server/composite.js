@@ -1,32 +1,35 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-export async function Layout(__output, __props) {
-	return _$_.async(async () => {
-		_$_.push_component();
-		__output.push('<div');
-		__output.push(' class="layout"');
-		__output.push('>');
+export function Layout(__output, __props) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="layout"');
+	__output.push('>');
 
-		{
-			{
-				const comp = __props.children;
-				const args = [__output, {}];
+	{
+		_$_.render_expression(__output, __props.children);
+	}
 
-				if (comp?.async) {
-					await comp(...args);
-				} else if (comp) {
-					comp(...args);
-				}
-			}
-		}
-
-		__output.push('</div>');
-		_$_.pop_component();
-	});
+	__output.push('</div>');
+	_$_.pop_component();
 }
 
-Layout.async = true;
+export function TextWrappedLayout(__output, __props) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="layout"');
+	__output.push('>');
+
+	{
+		__output.push('before');
+		_$_.render_expression(__output, __props.children);
+		__output.push('after');
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}
 
 export function SingleChild(__output) {
 	_$_.push_component();
@@ -85,7 +88,7 @@ export function LayoutWithSingleChild(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 
 					{
@@ -96,7 +99,7 @@ export function LayoutWithSingleChild(__output) {
 					}
 
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 
@@ -115,7 +118,7 @@ export function LayoutWithMultipleChildren(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 
 					{
@@ -135,7 +138,7 @@ export function LayoutWithMultipleChildren(__output) {
 
 					__output.push('</div>');
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 
@@ -154,7 +157,7 @@ export function LayoutWithMultiRootChild(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 
 					{
@@ -165,7 +168,37 @@ export function LayoutWithMultiRootChild(__output) {
 					}
 
 					_$_.pop_component();
-				}
+				})
+			}
+		];
+
+		comp(...args);
+	}
+
+	_$_.pop_component();
+}
+
+export function LayoutWithTextAroundChildren(__output) {
+	_$_.push_component();
+
+	{
+		const comp = TextWrappedLayout;
+
+		const args = [
+			__output,
+			{
+				children: _$_.ripple_element(function render_children(__output) {
+					_$_.push_component();
+
+					{
+						const comp = SingleChild;
+						const args = [__output, {}];
+
+						comp(...args);
+					}
+
+					_$_.pop_component();
+				})
 			}
 		];
 

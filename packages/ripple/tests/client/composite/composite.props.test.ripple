@@ -107,9 +107,7 @@ describe('composite > props', () => {
 
 	it('correctly retains prop accessors and reactivity when using rest props', () => {
 		component Button(&{ children, ...rest }: Props) {
-			<button {...rest}>
-				<@children />
-			</button>
+			<button {...rest}>{children}</button>
 			<style>
 				.on {
 					color: blue;

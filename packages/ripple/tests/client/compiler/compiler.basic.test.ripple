@@ -467,7 +467,7 @@ export component App() {
 		const code = `
 component Card(props) {
 	<div class="card">
-		<props.children />
+		{props.children}
 	</div>
 }
 

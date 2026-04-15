@@ -999,7 +999,7 @@ const visitors = {
 			is_children_template_expression(/** @type {AST.Expression} */ (callee), context)
 		) {
 			error(
-				'`children` cannot be called like a regular function. Use element syntax instead, e.g. `<children />` or `<props.children />`.',
+				'`children` cannot be called like a regular function. Render it with `{children}` or `{props.children}` instead.',
 				context.state.analysis.module.filename,
 				callee,
 				context.state.loose ? context.state.analysis.errors : undefined,
@@ -1718,6 +1718,19 @@ const visitors = {
 
 		mark_control_flow_has_template(path);
 
+		if (
+			!is_dom_element &&
+			is_children_template_expression(/** @type {AST.Expression} */ (node.id), context)
+		) {
+			error(
+				'`children` cannot be rendered as a component. Render it with `{children}` or `{props.children}` instead.',
+				state.analysis.module.filename,
+				node.id,
+				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		}
+
 		validate_nesting(node, context);
 
 		// Store capitalized name for dynamic components/elements
@@ -1964,16 +1977,6 @@ const visitors = {
 	RippleExpression(node, context) {
 		mark_control_flow_has_template(context.path);
 
-		if (is_children_template_expression(/** @type {AST.Expression} */ (node.expression), context)) {
-			error(
-				'`children` cannot be rendered using text interpolation. Use `<children />` instead.',
-				context.state.analysis.module.filename,
-				node.expression,
-				context.state.loose ? context.state.analysis.errors : undefined,
-				context.state.analysis.comments,
-			);
-		}
-
 		context.next();
 	},
 
@@ -1982,7 +1985,7 @@ const visitors = {
 
 		if (is_children_template_expression(/** @type {AST.Expression} */ (node.expression), context)) {
 			error(
-				'`children` cannot be rendered using text interpolation. Use `<children />` instead.',
+				'`children` cannot be rendered using explicit text interpolation. Use `{children}` or `{props.children}` instead.',
 				context.state.analysis.module.filename,
 				node.expression,
 				context.state.loose ? context.state.analysis.errors : undefined,

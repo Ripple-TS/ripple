@@ -366,39 +366,26 @@ function Actions(__output, { playgroundVisible = false }) {
 	_$_.pop_component();
 }
 
-async function Layout(__output, { children }) {
-	return _$_.async(async () => {
-		_$_.push_component();
-		__output.push('<main');
+function Layout(__output, { children }) {
+	_$_.push_component();
+	__output.push('<main');
+	__output.push('>');
+
+	{
+		__output.push('<div');
+		__output.push(' class="container"');
 		__output.push('>');
 
 		{
-			__output.push('<div');
-			__output.push(' class="container"');
-			__output.push('>');
-
-			{
-				{
-					const comp = children;
-					const args = [__output, {}];
-
-					if (comp?.async) {
-						await comp(...args);
-					} else if (comp) {
-						comp(...args);
-					}
-				}
-			}
-
-			__output.push('</div>');
+			_$_.render_expression(__output, children);
 		}
 
-		__output.push('</main>');
-		_$_.pop_component();
-	});
-}
+		__output.push('</div>');
+	}
 
-Layout.async = true;
+	__output.push('</main>');
+	_$_.pop_component();
+}
 
 function Content(__output) {
 	_$_.push_component();
@@ -430,7 +417,7 @@ export function WebsiteIndex(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 
 					{
@@ -462,7 +449,7 @@ export function WebsiteIndex(__output) {
 					}
 
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 

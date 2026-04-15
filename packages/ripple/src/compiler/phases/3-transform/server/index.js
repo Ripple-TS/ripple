@@ -44,6 +44,86 @@ import {
 import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../../constants.js';
 
 /**
+ * @param {AST.Expression} expression
+ * @returns {AST.Expression}
+ */
+function unwrap_template_expression(expression) {
+	/** @type {AST.Expression} */
+	let node = expression;
+
+	while (true) {
+		if (
+			node.type === 'ParenthesizedExpression' ||
+			node.type === 'TSAsExpression' ||
+			node.type === 'TSSatisfiesExpression' ||
+			node.type === 'TSNonNullExpression' ||
+			node.type === 'TSInstantiationExpression'
+		) {
+			node = /** @type {AST.Expression} */ (node.expression);
+			continue;
+		}
+
+		if (node.type === 'ChainExpression') {
+			node = /** @type {AST.Expression} */ (node.expression);
+			continue;
+		}
+
+		break;
+	}
+
+	return node;
+}
+
+/**
+ * @param {AST.Expression} expression
+ * @param {TransformServerState} state
+ * @returns {boolean}
+ */
+function is_children_render_expression(expression, state) {
+	if (state.scope == null) {
+		return false;
+	}
+
+	const unwrapped = unwrap_template_expression(expression);
+
+	if (unwrapped.type === 'MemberExpression') {
+		let property_name = null;
+
+		if (!unwrapped.computed && unwrapped.property.type === 'Identifier') {
+			property_name = unwrapped.property.name;
+		} else if (
+			unwrapped.computed &&
+			unwrapped.property.type === 'Literal' &&
+			typeof unwrapped.property.value === 'string'
+		) {
+			property_name = unwrapped.property.value;
+		}
+
+		if (property_name === 'children') {
+			const target = unwrap_template_expression(/** @type {AST.Expression} */ (unwrapped.object));
+
+			if (target.type === 'Identifier') {
+				const binding = state.scope.get(target.name);
+				return binding?.declaration_kind === 'param';
+			}
+		}
+	}
+
+	if (unwrapped.type !== 'Identifier' || unwrapped.name !== 'children') {
+		return false;
+	}
+
+	const binding = state.scope.get(unwrapped.name);
+	return (
+		binding?.declaration_kind === 'param' ||
+		binding?.kind === 'prop' ||
+		binding?.kind === 'prop_fallback' ||
+		binding?.kind === 'lazy' ||
+		binding?.kind === 'lazy_fallback'
+	);
+}
+
+/**
  * Checks if a node is template or control-flow content that should be wrapped when return flags are active
  * @param {AST.Node} node
  * @returns {boolean}
@@ -1103,7 +1183,9 @@ const visitors = {
 									);
 
 						if (attr.name.name === 'children') {
-							children_prop = attr.name.tracked ? b.thunk(property) : property;
+							children_prop = attr.name.tracked
+								? b.thunk(b.call('_$_.normalize_children', property))
+								: b.call('_$_.normalize_children', property);
 							continue;
 						}
 
@@ -1128,20 +1210,23 @@ const visitors = {
 
 			if (children_filtered.length > 0) {
 				const component_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node));
-				const children = /** @type {AST.Expression} */ (
-					visit(b.component(b.id('children'), [], children_filtered), {
-						...context.state,
-						...(apply_parent_css_scope ||
-						(is_element_dynamic(node) && node.metadata.scoped && state.component?.css)
-							? {
-									applyParentCssScope:
-										apply_parent_css_scope ||
-										/** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash,
-								}
-							: {}),
-						scope: component_scope,
-						namespace: child_namespace,
-					})
+				const children = b.call(
+					'_$_.ripple_element',
+					/** @type {AST.Expression} */ (
+						visit(b.component(b.id('render_children'), [], children_filtered), {
+							...context.state,
+							...(apply_parent_css_scope ||
+							(is_element_dynamic(node) && node.metadata.scoped && state.component?.css)
+								? {
+										applyParentCssScope:
+											apply_parent_css_scope ||
+											/** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash,
+									}
+								: {}),
+							scope: component_scope,
+							namespace: child_namespace,
+						})
+					),
 				);
 
 				props.push(b.prop('init', b.id('children'), children));
@@ -1600,6 +1685,7 @@ const visitors = {
 	RippleExpression(node, { visit, state }) {
 		const metadata = { await: false };
 		let expression = /** @type {AST.Expression} */ (visit(node.expression, { ...state, metadata }));
+		const is_children_expression = is_children_render_expression(node.expression, state);
 
 		if (expression.type === 'Literal') {
 			state.init?.push(
@@ -1607,6 +1693,8 @@ const visitors = {
 					b.call(b.member(b.id('__output'), b.id('push')), b.literal(escape(expression.value))),
 				),
 			);
+		} else if (is_children_expression) {
+			state.init?.push(b.stmt(b.call('_$_.render_expression', b.id('__output'), expression)));
 		} else {
 			state.init?.push(
 				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.call('_$_.escape', expression))),

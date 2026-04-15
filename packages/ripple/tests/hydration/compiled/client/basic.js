@@ -276,12 +276,15 @@ function Layout(__anchor, { children }, __block) {
 		var div_9 = _$_.child(main_1);
 
 		{
-			var node_6 = _$_.child(div_9);
+			var expression_5 = _$_.child(div_9);
 
-			children(node_6, {}, _$_.active_block);
 			_$_.pop(div_9);
 		}
 	}
+
+	_$_.render(() => {
+		_$_.expression(expression_5, () => children);
+	});
 
 	_$_.append(__anchor, main_1);
 	_$_.pop_component();
@@ -300,33 +303,33 @@ export function WebsiteIndex(__anchor, _, __block) {
 	_$_.push_component();
 
 	var fragment_8 = root_19();
-	var node_7 = _$_.first_child_frag(fragment_8);
+	var node_6 = _$_.first_child_frag(fragment_8);
 
 	Layout(
-		node_7,
+		node_6,
 		{
-			children(__anchor, _, __block) {
+			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
 				_$_.push_component();
 
 				var fragment_9 = root_20();
-				var node_8 = _$_.first_child_frag(fragment_9);
+				var node_7 = _$_.first_child_frag(fragment_9);
 
-				Header(node_8, {}, _$_.active_block);
+				Header(node_7, {}, _$_.active_block);
+
+				var node_8 = _$_.sibling(node_7);
+
+				Actions(node_8, { playgroundVisible: true }, _$_.active_block);
 
 				var node_9 = _$_.sibling(node_8);
 
-				Actions(node_9, { playgroundVisible: true }, _$_.active_block);
+				Content(node_9, {}, _$_.active_block);
 
 				var node_10 = _$_.sibling(node_9);
 
-				Content(node_10, {}, _$_.active_block);
-
-				var node_11 = _$_.sibling(node_10);
-
-				Actions(node_11, { playgroundVisible: false }, _$_.active_block);
+				Actions(node_10, { playgroundVisible: false }, _$_.active_block);
 				_$_.append(__anchor, fragment_9);
 				_$_.pop_component();
-			}
+			})
 		},
 		_$_.active_block
 	);
@@ -352,9 +355,9 @@ export function ComponentAsLastSibling(__anchor, _, __block) {
 	{
 		var h1_1 = _$_.child(div_11);
 		var p_1 = _$_.sibling(h1_1);
-		var node_12 = _$_.sibling(p_1);
+		var node_11 = _$_.sibling(p_1);
 
-		LastChild(node_12, {}, _$_.active_block);
+		LastChild(node_11, {}, _$_.active_block);
 		_$_.pop(div_11);
 	}
 
@@ -369,9 +372,9 @@ function InnerContent(__anchor, _, __block) {
 
 	{
 		var span_5 = _$_.child(div_12);
-		var node_13 = _$_.sibling(span_5);
+		var node_12 = _$_.sibling(span_5);
 
-		LastChild(node_13, {}, _$_.active_block);
+		LastChild(node_12, {}, _$_.active_block);
 		_$_.pop(div_12);
 	}
 
@@ -386,9 +389,9 @@ export function NestedComponentAsLastSibling(__anchor, _, __block) {
 
 	{
 		var h2_1 = _$_.child(section_1);
-		var node_14 = _$_.sibling(h2_1);
+		var node_13 = _$_.sibling(h2_1);
 
-		InnerContent(node_14, {}, _$_.active_block);
+		InnerContent(node_13, {}, _$_.active_block);
 		_$_.pop(section_1);
 	}
 

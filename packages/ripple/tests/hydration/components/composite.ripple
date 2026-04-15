@@ -1,8 +1,14 @@
 import type { Children } from 'ripple';
 
 export component Layout(&{ children }: { children?: Children }) {
+	<div class="layout">{children}</div>
+}
+
+export component TextWrappedLayout(&{ children }: { children?: Children }) {
 	<div class="layout">
-		<children />
+		{text 'before'}
+		{children}
+		{text 'after'}
 	</div>
 }
 
@@ -36,4 +42,10 @@ export component LayoutWithMultiRootChild() {
 	<Layout>
 		<MultiRootChild />
 	</Layout>
+}
+
+export component LayoutWithTextAroundChildren() {
+	<TextWrappedLayout>
+		<SingleChild />
+	</TextWrappedLayout>
 }

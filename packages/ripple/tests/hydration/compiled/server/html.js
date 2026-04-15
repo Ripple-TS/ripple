@@ -133,40 +133,27 @@ export function HtmlWithReactivity(__output) {
 	_$_.pop_component();
 }
 
-export async function HtmlWrapper(__output, { children }) {
-	return _$_.async(async () => {
-		_$_.push_component();
+export function HtmlWrapper(__output, { children }) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="wrapper"');
+	__output.push('>');
+
+	{
 		__output.push('<div');
-		__output.push(' class="wrapper"');
+		__output.push(' class="inner"');
 		__output.push('>');
 
 		{
-			__output.push('<div');
-			__output.push(' class="inner"');
-			__output.push('>');
-
-			{
-				{
-					const comp = children;
-					const args = [__output, {}];
-
-					if (comp?.async) {
-						await comp(...args);
-					} else if (comp) {
-						comp(...args);
-					}
-				}
-			}
-
-			__output.push('</div>');
+			_$_.render_expression(__output, children);
 		}
 
 		__output.push('</div>');
-		_$_.pop_component();
-	});
-}
+	}
 
-HtmlWrapper.async = true;
+	__output.push('</div>');
+	_$_.pop_component();
+}
 
 export function HtmlInChildren(__output) {
 	_$_.push_component();
@@ -179,7 +166,7 @@ export function HtmlInChildren(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 					__output.push('<div');
 					__output.push(' class="vp-doc"');
@@ -195,7 +182,7 @@ export function HtmlInChildren(__output) {
 
 					__output.push('</div>');
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 
@@ -216,7 +203,7 @@ export function HtmlInChildrenWithSiblings(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 					__output.push('<h1');
 					__output.push('>');
@@ -240,7 +227,7 @@ export function HtmlInChildrenWithSiblings(__output) {
 
 					__output.push('</div>');
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 
@@ -262,7 +249,7 @@ export function MultipleHtmlInChildren(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 					__output.push('<div');
 					__output.push(' class="doc"');
@@ -284,7 +271,7 @@ export function MultipleHtmlInChildren(__output) {
 
 					__output.push('</div>');
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 
@@ -345,7 +332,7 @@ export function HtmlWithCommentsInChildren(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 					__output.push('<div');
 					__output.push(' class="vp-doc"');
@@ -361,7 +348,7 @@ export function HtmlWithCommentsInChildren(__output) {
 
 					__output.push('</div>');
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 
@@ -385,160 +372,147 @@ function DocFooter(__output) {
 	_$_.pop_component();
 }
 
-export async function DocLayout(
+export function DocLayout(
 	__output,
 	{ children, editPath = '', nextLink = null, toc = [] }
 ) {
-	return _$_.async(async () => {
-		_$_.push_component();
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="layout"');
+	__output.push('>');
+
+	{
 		__output.push('<div');
-		__output.push(' class="layout"');
+		__output.push(' class="content-container"');
 		__output.push('>');
 
 		{
-			__output.push('<div');
-			__output.push(' class="content-container"');
+			__output.push('<article');
 			__output.push('>');
 
 			{
-				__output.push('<article');
+				__output.push('<div');
 				__output.push('>');
 
 				{
-					__output.push('<div');
-					__output.push('>');
-
-					{
-						{
-							const comp = children;
-							const args = [__output, {}];
-
-							if (comp?.async) {
-								await comp(...args);
-							} else if (comp) {
-								comp(...args);
-							}
-						}
-					}
-
-					__output.push('</div>');
+					_$_.render_expression(__output, children);
 				}
 
-				__output.push('</article>');
-				__output.push('<!--[-->');
+				__output.push('</div>');
+			}
 
-				if (editPath) {
-					__output.push('<div');
-					__output.push(' class="edit-link"');
-					__output.push('>');
+			__output.push('</article>');
+			__output.push('<!--[-->');
 
-					{
-						__output.push('<a');
-						__output.push(_$_.attr('href', `https://github.com/edit/${editPath}`, false));
-						__output.push('>');
-
-						{
-							__output.push('Edit');
-						}
-
-						__output.push('</a>');
-					}
-
-					__output.push('</div>');
-				}
-
-				__output.push('<!--]-->');
-				__output.push('<!--[-->');
-
-				if (nextLink) {
-					__output.push('<nav');
-					__output.push(' class="prev-next"');
-					__output.push('>');
-
-					{
-						__output.push('<a');
-						__output.push(_$_.attr('href', nextLink.href, false));
-						__output.push('>');
-
-						{
-							__output.push(_$_.escape(nextLink.text));
-						}
-
-						__output.push('</a>');
-					}
-
-					__output.push('</nav>');
-				}
-
-				__output.push('<!--]-->');
+			if (editPath) {
+				__output.push('<div');
+				__output.push(' class="edit-link"');
+				__output.push('>');
 
 				{
-					const comp = DocFooter;
-					const args = [__output, {}];
-
-					comp(...args);
-				}
-			}
-
-			__output.push('</div>');
-			__output.push('<aside');
-			__output.push('>');
-
-			{
-				__output.push('<!--[-->');
-
-				if (toc.length > 0) {
-					__output.push('<div');
-					__output.push(' class="toc"');
+					__output.push('<a');
+					__output.push(_$_.attr('href', `https://github.com/edit/${editPath}`, false));
 					__output.push('>');
 
 					{
-						__output.push('<ul');
-						__output.push('>');
-
-						{
-							__output.push('<!--[-->');
-
-							for (const item of toc) {
-								__output.push('<li');
-								__output.push('>');
-
-								{
-									__output.push('<a');
-									__output.push(_$_.attr('href', item.href, false));
-									__output.push('>');
-
-									{
-										__output.push(_$_.escape(item.text));
-									}
-
-									__output.push('</a>');
-								}
-
-								__output.push('</li>');
-							}
-
-							__output.push('<!--]-->');
-						}
-
-						__output.push('</ul>');
+						__output.push('Edit');
 					}
 
-					__output.push('</div>');
+					__output.push('</a>');
 				}
 
-				__output.push('<!--]-->');
+				__output.push('</div>');
 			}
 
-			__output.push('</aside>');
+			__output.push('<!--]-->');
+			__output.push('<!--[-->');
+
+			if (nextLink) {
+				__output.push('<nav');
+				__output.push(' class="prev-next"');
+				__output.push('>');
+
+				{
+					__output.push('<a');
+					__output.push(_$_.attr('href', nextLink.href, false));
+					__output.push('>');
+
+					{
+						__output.push(_$_.escape(nextLink.text));
+					}
+
+					__output.push('</a>');
+				}
+
+				__output.push('</nav>');
+			}
+
+			__output.push('<!--]-->');
+
+			{
+				const comp = DocFooter;
+				const args = [__output, {}];
+
+				comp(...args);
+			}
 		}
 
 		__output.push('</div>');
-		_$_.pop_component();
-	});
-}
+		__output.push('<aside');
+		__output.push('>');
 
-DocLayout.async = true;
+		{
+			__output.push('<!--[-->');
+
+			if (toc.length > 0) {
+				__output.push('<div');
+				__output.push(' class="toc"');
+				__output.push('>');
+
+				{
+					__output.push('<ul');
+					__output.push('>');
+
+					{
+						__output.push('<!--[-->');
+
+						for (const item of toc) {
+							__output.push('<li');
+							__output.push('>');
+
+							{
+								__output.push('<a');
+								__output.push(_$_.attr('href', item.href, false));
+								__output.push('>');
+
+								{
+									__output.push(_$_.escape(item.text));
+								}
+
+								__output.push('</a>');
+							}
+
+							__output.push('</li>');
+						}
+
+						__output.push('<!--]-->');
+					}
+
+					__output.push('</ul>');
+				}
+
+				__output.push('</div>');
+			}
+
+			__output.push('<!--]-->');
+		}
+
+		__output.push('</aside>');
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}
 
 export function HtmlWithServerData(__output) {
 	_$_.push_component();
@@ -558,7 +532,7 @@ export function HtmlWithServerData(__output) {
 					{ href: '#features', text: 'Features' }
 				],
 
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 					__output.push('<div');
 					__output.push(' class="vp-doc"');
@@ -574,7 +548,7 @@ export function HtmlWithServerData(__output) {
 
 					__output.push('</div>');
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 
@@ -595,7 +569,7 @@ export function HtmlWithClientDefaults(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 					__output.push('<div');
 					__output.push(' class="vp-doc"');
@@ -611,7 +585,7 @@ export function HtmlWithClientDefaults(__output) {
 
 					__output.push('</div>');
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 
@@ -632,7 +606,7 @@ export function HtmlWithUndefinedContent(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 					__output.push('<div');
 					__output.push(' class="vp-doc"');
@@ -648,7 +622,7 @@ export function HtmlWithUndefinedContent(__output) {
 
 					__output.push('</div>');
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 
@@ -658,55 +632,33 @@ export function HtmlWithUndefinedContent(__output) {
 	_$_.pop_component();
 }
 
-async function DynamicHeading(__output, { level, children }) {
-	return _$_.async(async () => {
-		_$_.push_component();
-		__output.push('<!--[-->');
+function DynamicHeading(__output, { level, children }) {
+	_$_.push_component();
+	__output.push('<!--[-->');
 
-		switch (level) {
-			case 1:
-				__output.push('<h1');
-				__output.push(' class="heading"');
-				__output.push('>');
-				{
-					{
-						const comp = children;
-						const args = [__output, {}];
+	switch (level) {
+		case 1:
+			__output.push('<h1');
+			__output.push(' class="heading"');
+			__output.push('>');
+			{
+				_$_.render_expression(__output, children);
+			}
+			__output.push('</h1>');
 
-						if (comp?.async) {
-							await comp(...args);
-						} else if (comp) {
-							comp(...args);
-						}
-					}
-				}
-				__output.push('</h1>');
+		case 2:
+			__output.push('<h2');
+			__output.push(' class="heading"');
+			__output.push('>');
+			{
+				_$_.render_expression(__output, children);
+			}
+			__output.push('</h2>');
+	}
 
-			case 2:
-				__output.push('<h2');
-				__output.push(' class="heading"');
-				__output.push('>');
-				{
-					{
-						const comp = children;
-						const args = [__output, {}];
-
-						if (comp?.async) {
-							await comp(...args);
-						} else if (comp) {
-							comp(...args);
-						}
-					}
-				}
-				__output.push('</h2>');
-		}
-
-		__output.push('<!--]-->');
-		_$_.pop_component();
-	});
+	__output.push('<!--]-->');
+	_$_.pop_component();
 }
-
-DynamicHeading.async = true;
 
 function CodeBlock(__output, { code }) {
 	_$_.push_component();
@@ -762,40 +714,27 @@ function CodeBlock(__output, { code }) {
 	_$_.pop_component();
 }
 
-async function ContentWrapper(__output, { children }) {
-	return _$_.async(async () => {
-		_$_.push_component();
+function ContentWrapper(__output, { children }) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="wrapper"');
+	__output.push('>');
+
+	{
 		__output.push('<div');
-		__output.push(' class="wrapper"');
+		__output.push(' class="inner"');
 		__output.push('>');
 
 		{
-			__output.push('<div');
-			__output.push(' class="inner"');
-			__output.push('>');
-
-			{
-				{
-					const comp = children;
-					const args = [__output, {}];
-
-					if (comp?.async) {
-						await comp(...args);
-					} else if (comp) {
-						comp(...args);
-					}
-				}
-			}
-
-			__output.push('</div>');
+			_$_.render_expression(__output, children);
 		}
 
 		__output.push('</div>');
-		_$_.pop_component();
-	});
-}
+	}
 
-ContentWrapper.async = true;
+	__output.push('</div>');
+	_$_.pop_component();
+}
 
 export function HtmlAfterSwitchInChildren(__output) {
 	_$_.push_component();
@@ -806,7 +745,7 @@ export function HtmlAfterSwitchInChildren(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 
 					{
@@ -816,11 +755,11 @@ export function HtmlAfterSwitchInChildren(__output) {
 							__output,
 							{
 								level: 1,
-								children: function children(__output) {
+								children: _$_.ripple_element(function render_children(__output) {
 									_$_.push_component();
 									__output.push('Title');
 									_$_.pop_component();
-								}
+								})
 							}
 						];
 
@@ -860,7 +799,7 @@ export function HtmlAfterSwitchInChildren(__output) {
 
 					__output.push('</p>');
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 
@@ -909,73 +848,60 @@ function NavItem(__output, { href, text: label, active = false }) {
 	_$_.pop_component();
 }
 
-async function SidebarSection(__output, { title, children }) {
-	return _$_.async(async () => {
-		_$_.push_component();
+function SidebarSection(__output, { title, children }) {
+	_$_.push_component();
 
-		let lazy = _$_.track(true);
+	let lazy = _$_.track(true);
 
-		__output.push('<section');
-		__output.push(' class="sidebar-section"');
+	__output.push('<section');
+	__output.push(' class="sidebar-section"');
+	__output.push('>');
+
+	{
+		__output.push('<div');
+		__output.push(' class="section-header"');
 		__output.push('>');
 
 		{
-			__output.push('<div');
-			__output.push(' class="section-header"');
+			__output.push('<h2');
 			__output.push('>');
 
 			{
-				__output.push('<h2');
-				__output.push('>');
+				__output.push(_$_.escape(title));
+			}
 
-				{
-					__output.push(_$_.escape(title));
-				}
+			__output.push('</h2>');
+			__output.push('<button');
+			__output.push('>');
 
-				__output.push('</h2>');
-				__output.push('<button');
-				__output.push('>');
+			{
+				__output.push('Toggle');
+			}
 
-				{
-					__output.push('Toggle');
-				}
+			__output.push('</button>');
+		}
 
-				__output.push('</button>');
+		__output.push('</div>');
+		__output.push('<!--[-->');
+
+		if (_$_.get(lazy)) {
+			__output.push('<div');
+			__output.push(' class="section-items"');
+			__output.push('>');
+
+			{
+				_$_.render_expression(__output, children);
 			}
 
 			__output.push('</div>');
-			__output.push('<!--[-->');
-
-			if (_$_.get(lazy)) {
-				__output.push('<div');
-				__output.push(' class="section-items"');
-				__output.push('>');
-
-				{
-					{
-						const comp = children;
-						const args = [__output, {}];
-
-						if (comp?.async) {
-							await comp(...args);
-						} else if (comp) {
-							comp(...args);
-						}
-					}
-				}
-
-				__output.push('</div>');
-			}
-
-			__output.push('<!--]-->');
 		}
 
-		__output.push('</section>');
-		_$_.pop_component();
-	});
-}
+		__output.push('<!--]-->');
+	}
 
-SidebarSection.async = true;
+	__output.push('</section>');
+	_$_.pop_component();
+}
 
 function SideNav(__output, { currentPath }) {
 	_$_.push_component();
@@ -1000,7 +926,7 @@ function SideNav(__output, { currentPath }) {
 						__output,
 						{
 							title: "Getting Started",
-							children: function children(__output) {
+							children: _$_.ripple_element(function render_children(__output) {
 								_$_.push_component();
 
 								{
@@ -1034,7 +960,7 @@ function SideNav(__output, { currentPath }) {
 								}
 
 								_$_.pop_component();
-							}
+							})
 						}
 					];
 
@@ -1055,7 +981,7 @@ function SideNav(__output, { currentPath }) {
 						__output,
 						{
 							title: "Guide",
-							children: function children(__output) {
+							children: _$_.ripple_element(function render_children(__output) {
 								_$_.push_component();
 
 								{
@@ -1089,7 +1015,7 @@ function SideNav(__output, { currentPath }) {
 								}
 
 								_$_.pop_component();
-							}
+							})
 						}
 					];
 
@@ -1233,39 +1159,26 @@ export function LayoutWithSidebarAndMain(__output) {
 	_$_.pop_component();
 }
 
-async function ArticleWrapper(__output, { children }) {
-	return _$_.async(async () => {
-		_$_.push_component();
-		__output.push('<article');
-		__output.push(' class="doc-content"');
+function ArticleWrapper(__output, { children }) {
+	_$_.push_component();
+	__output.push('<article');
+	__output.push(' class="doc-content"');
+	__output.push('>');
+
+	{
+		__output.push('<div');
 		__output.push('>');
 
 		{
-			__output.push('<div');
-			__output.push('>');
-
-			{
-				{
-					const comp = children;
-					const args = [__output, {}];
-
-					if (comp?.async) {
-						await comp(...args);
-					} else if (comp) {
-						comp(...args);
-					}
-				}
-			}
-
-			__output.push('</div>');
+			_$_.render_expression(__output, children);
 		}
 
-		__output.push('</article>');
-		_$_.pop_component();
-	});
-}
+		__output.push('</div>');
+	}
 
-ArticleWrapper.async = true;
+	__output.push('</article>');
+	_$_.pop_component();
+}
 
 function SimpleFooter(__output) {
 	_$_.push_component();
@@ -1294,7 +1207,7 @@ export function ArticleWithChildrenThenSibling(__output) {
 			const args = [
 				__output,
 				{
-					children: function children(__output) {
+					children: _$_.ripple_element(function render_children(__output) {
 						_$_.push_component();
 						__output.push('<h1');
 						__output.push('>');
@@ -1313,7 +1226,7 @@ export function ArticleWithChildrenThenSibling(__output) {
 
 						__output.push('</p>');
 						_$_.pop_component();
-					}
+					})
 				}
 			];
 
@@ -1395,7 +1308,7 @@ export function ArticleWithHtmlChildThenSibling(__output) {
 			const args = [
 				__output,
 				{
-					children: function children(__output) {
+					children: _$_.ripple_element(function render_children(__output) {
 						_$_.push_component();
 						__output.push('<div');
 						__output.push(' class="doc-content"');
@@ -1411,7 +1324,7 @@ export function ArticleWithHtmlChildThenSibling(__output) {
 
 						__output.push('</div>');
 						_$_.pop_component();
-					}
+					})
 				}
 			];
 
@@ -1454,77 +1367,64 @@ export function ArticleWithHtmlChildThenSibling(__output) {
 	_$_.pop_component();
 }
 
-async function InlineArticleLayout(__output, { children }) {
-	return _$_.async(async () => {
-		_$_.push_component();
-		__output.push('<div');
-		__output.push(' class="content-container"');
+function InlineArticleLayout(__output, { children }) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="content-container"');
+	__output.push('>');
+
+	{
+		__output.push('<article');
+		__output.push(' class="doc-content"');
 		__output.push('>');
 
 		{
-			__output.push('<article');
-			__output.push(' class="doc-content"');
+			__output.push('<div');
 			__output.push('>');
 
 			{
-				__output.push('<div');
-				__output.push('>');
-
-				{
-					{
-						const comp = children;
-						const args = [__output, {}];
-
-						if (comp?.async) {
-							await comp(...args);
-						} else if (comp) {
-							comp(...args);
-						}
-					}
-				}
-
-				__output.push('</div>');
+				_$_.render_expression(__output, children);
 			}
 
-			__output.push('</article>');
-			__output.push('<!--[-->');
-
-			if (true) {
-				__output.push('<div');
-				__output.push(' class="edit-link"');
-				__output.push('>');
-
-				{
-					__output.push('<a');
-					__output.push(' href="/edit"');
-					__output.push('>');
-
-					{
-						__output.push('Edit');
-					}
-
-					__output.push('</a>');
-				}
-
-				__output.push('</div>');
-			}
-
-			__output.push('<!--]-->');
-
-			{
-				const comp = SimpleFooter;
-				const args = [__output, {}];
-
-				comp(...args);
-			}
+			__output.push('</div>');
 		}
 
-		__output.push('</div>');
-		_$_.pop_component();
-	});
-}
+		__output.push('</article>');
+		__output.push('<!--[-->');
 
-InlineArticleLayout.async = true;
+		if (true) {
+			__output.push('<div');
+			__output.push(' class="edit-link"');
+			__output.push('>');
+
+			{
+				__output.push('<a');
+				__output.push(' href="/edit"');
+				__output.push('>');
+
+				{
+					__output.push('Edit');
+				}
+
+				__output.push('</a>');
+			}
+
+			__output.push('</div>');
+		}
+
+		__output.push('<!--]-->');
+
+		{
+			const comp = SimpleFooter;
+			const args = [__output, {}];
+
+			comp(...args);
+		}
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}
 
 export function InlineArticleWithHtmlChild(__output) {
 	_$_.push_component();
@@ -1537,7 +1437,7 @@ export function InlineArticleWithHtmlChild(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 					__output.push('<div');
 					__output.push(' class="doc-content"');
@@ -1553,7 +1453,7 @@ export function InlineArticleWithHtmlChild(__output) {
 
 					__output.push('</div>');
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 
@@ -1605,134 +1505,121 @@ function FooterStub(__output) {
 	_$_.pop_component();
 }
 
-async function DocsLayoutInner(__output, { children, editPath = '', nextLink = null }) {
-	return _$_.async(async () => {
-		_$_.push_component();
+function DocsLayoutInner(__output, { children, editPath = '', nextLink = null }) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="layout"');
+	__output.push('>');
+
+	{
+		{
+			const comp = HeaderStub;
+			const args = [__output, {}];
+
+			comp(...args);
+		}
+
 		__output.push('<div');
-		__output.push(' class="layout"');
+		__output.push(' class="docs-wrapper"');
 		__output.push('>');
 
 		{
 			{
-				const comp = HeaderStub;
+				const comp = SidebarStub;
 				const args = [__output, {}];
 
 				comp(...args);
 			}
 
-			__output.push('<div');
-			__output.push(' class="docs-wrapper"');
+			__output.push('<main');
+			__output.push(' class="docs-main"');
 			__output.push('>');
 
 			{
-				{
-					const comp = SidebarStub;
-					const args = [__output, {}];
-
-					comp(...args);
-				}
-
-				__output.push('<main');
-				__output.push(' class="docs-main"');
+				__output.push('<div');
+				__output.push(' class="docs-container"');
 				__output.push('>');
 
 				{
 					__output.push('<div');
-					__output.push(' class="docs-container"');
+					__output.push(' class="content"');
 					__output.push('>');
 
 					{
 						__output.push('<div');
-						__output.push(' class="content"');
+						__output.push(' class="content-container"');
 						__output.push('>');
 
 						{
-							__output.push('<div');
-							__output.push(' class="content-container"');
+							__output.push('<article');
+							__output.push(' class="doc-content"');
 							__output.push('>');
 
 							{
-								__output.push('<article');
-								__output.push(' class="doc-content"');
+								__output.push('<div');
 								__output.push('>');
 
 								{
-									__output.push('<div');
-									__output.push('>');
-
-									{
-										{
-											const comp = children;
-											const args = [__output, {}];
-
-											if (comp?.async) {
-												await comp(...args);
-											} else if (comp) {
-												comp(...args);
-											}
-										}
-									}
-
-									__output.push('</div>');
+									_$_.render_expression(__output, children);
 								}
 
-								__output.push('</article>');
-								__output.push('<!--[-->');
-
-								if (editPath) {
-									__output.push('<div');
-									__output.push(' class="edit-link"');
-									__output.push('>');
-
-									{
-										__output.push('<a');
-										__output.push(' href="/edit"');
-										__output.push('>');
-
-										{
-											__output.push('Edit on GitHub');
-										}
-
-										__output.push('</a>');
-									}
-
-									__output.push('</div>');
-								}
-
-								__output.push('<!--]-->');
-								__output.push('<!--[-->');
-
-								if (nextLink) {
-									__output.push('<nav');
-									__output.push(' class="prev-next"');
-									__output.push('>');
-
-									{
-										__output.push('<a');
-										__output.push(_$_.attr('href', nextLink.href, false));
-										__output.push('>');
-
-										{
-											__output.push(_$_.escape(nextLink.text));
-										}
-
-										__output.push('</a>');
-									}
-
-									__output.push('</nav>');
-								}
-
-								__output.push('<!--]-->');
-
-								{
-									const comp = FooterStub;
-									const args = [__output, {}];
-
-									comp(...args);
-								}
+								__output.push('</div>');
 							}
 
-							__output.push('</div>');
+							__output.push('</article>');
+							__output.push('<!--[-->');
+
+							if (editPath) {
+								__output.push('<div');
+								__output.push(' class="edit-link"');
+								__output.push('>');
+
+								{
+									__output.push('<a');
+									__output.push(' href="/edit"');
+									__output.push('>');
+
+									{
+										__output.push('Edit on GitHub');
+									}
+
+									__output.push('</a>');
+								}
+
+								__output.push('</div>');
+							}
+
+							__output.push('<!--]-->');
+							__output.push('<!--[-->');
+
+							if (nextLink) {
+								__output.push('<nav');
+								__output.push(' class="prev-next"');
+								__output.push('>');
+
+								{
+									__output.push('<a');
+									__output.push(_$_.attr('href', nextLink.href, false));
+									__output.push('>');
+
+									{
+										__output.push(_$_.escape(nextLink.text));
+									}
+
+									__output.push('</a>');
+								}
+
+								__output.push('</nav>');
+							}
+
+							__output.push('<!--]-->');
+
+							{
+								const comp = FooterStub;
+								const args = [__output, {}];
+
+								comp(...args);
+							}
 						}
 
 						__output.push('</div>');
@@ -1741,18 +1628,18 @@ async function DocsLayoutInner(__output, { children, editPath = '', nextLink = n
 					__output.push('</div>');
 				}
 
-				__output.push('</main>');
+				__output.push('</div>');
 			}
 
-			__output.push('</div>');
+			__output.push('</main>');
 		}
 
 		__output.push('</div>');
-		_$_.pop_component();
-	});
-}
+	}
 
-DocsLayoutInner.async = true;
+	__output.push('</div>');
+	_$_.pop_component();
+}
 
 export function DocsLayoutWithData(__output) {
 	_$_.push_component();
@@ -1767,7 +1654,7 @@ export function DocsLayoutWithData(__output) {
 			{
 				editPath: "docs/styling.md",
 				nextLink: { href: '/next', text: 'Next' },
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 					__output.push('<div');
 					__output.push(' class="doc-content"');
@@ -1783,7 +1670,7 @@ export function DocsLayoutWithData(__output) {
 
 					__output.push('</div>');
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 
@@ -1804,7 +1691,7 @@ export function DocsLayoutWithoutData(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 					__output.push('<div');
 					__output.push(' class="doc-content"');
@@ -1820,7 +1707,7 @@ export function DocsLayoutWithoutData(__output) {
 
 					__output.push('</div>');
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 
@@ -1830,7 +1717,7 @@ export function DocsLayoutWithoutData(__output) {
 	_$_.pop_component();
 }
 
-async function DocsLayoutExact(
+function DocsLayoutExact(
 	__output,
 	{
 		children,
@@ -1840,241 +1727,228 @@ async function DocsLayoutExact(
 		toc = []
 	}
 ) {
-	return _$_.async(async () => {
-		_$_.push_component();
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="layout"');
+	__output.push('>');
+
+	{
+		{
+			const comp = HeaderStub;
+			const args = [__output, {}];
+
+			comp(...args);
+		}
+
 		__output.push('<div');
-		__output.push(' class="layout"');
+		__output.push(' class="docs-wrapper"');
 		__output.push('>');
 
 		{
 			{
-				const comp = HeaderStub;
+				const comp = SidebarStub;
 				const args = [__output, {}];
 
 				comp(...args);
 			}
 
-			__output.push('<div');
-			__output.push(' class="docs-wrapper"');
+			__output.push('<main');
+			__output.push(' class="docs-main"');
 			__output.push('>');
 
 			{
-				{
-					const comp = SidebarStub;
-					const args = [__output, {}];
-
-					comp(...args);
-				}
-
-				__output.push('<main');
-				__output.push(' class="docs-main"');
+				__output.push('<div');
+				__output.push(' class="docs-container"');
 				__output.push('>');
 
 				{
 					__output.push('<div');
-					__output.push(' class="docs-container"');
+					__output.push(' class="content"');
 					__output.push('>');
 
 					{
 						__output.push('<div');
-						__output.push(' class="content"');
+						__output.push(' class="content-container"');
 						__output.push('>');
 
 						{
-							__output.push('<div');
-							__output.push(' class="content-container"');
+							__output.push('<article');
+							__output.push(' class="doc-content"');
 							__output.push('>');
 
 							{
-								__output.push('<article');
-								__output.push(' class="doc-content"');
+								__output.push('<div');
 								__output.push('>');
 
 								{
-									__output.push('<div');
-									__output.push('>');
-
-									{
-										{
-											const comp = children;
-											const args = [__output, {}];
-
-											if (comp?.async) {
-												await comp(...args);
-											} else if (comp) {
-												comp(...args);
-											}
-										}
-									}
-
-									__output.push('</div>');
+									_$_.render_expression(__output, children);
 								}
 
-								__output.push('</article>');
-								__output.push('<!--[-->');
-
-								if (editPath) {
-									__output.push('<div');
-									__output.push(' class="edit-link"');
-									__output.push('>');
-
-									{
-										__output.push('<a');
-										__output.push(_$_.attr('href', `/edit/${editPath}`, false));
-										__output.push('>');
-
-										{
-											__output.push('Edit on GitHub');
-										}
-
-										__output.push('</a>');
-									}
-
-									__output.push('</div>');
-								}
-
-								__output.push('<!--]-->');
-								__output.push('<!--[-->');
-
-								if (prevLink || nextLink) {
-									__output.push('<nav');
-									__output.push(' class="prev-next"');
-									__output.push('>');
-
-									{
-										__output.push('<!--[-->');
-
-										if (prevLink) {
-											__output.push('<a');
-											__output.push(_$_.attr('href', prevLink.href, false));
-											__output.push(' class="pager prev"');
-											__output.push('>');
-
-											{
-												__output.push('<span');
-												__output.push(' class="title"');
-												__output.push('>');
-
-												{
-													__output.push(_$_.escape(prevLink.text));
-												}
-
-												__output.push('</span>');
-											}
-
-											__output.push('</a>');
-										} else {
-											__output.push('<span');
-											__output.push('>');
-											__output.push('</span>');
-										}
-
-										__output.push('<!--]-->');
-										__output.push('<!--[-->');
-
-										if (nextLink) {
-											__output.push('<a');
-											__output.push(_$_.attr('href', nextLink.href, false));
-											__output.push(' class="pager next"');
-											__output.push('>');
-
-											{
-												__output.push('<span');
-												__output.push(' class="title"');
-												__output.push('>');
-
-												{
-													__output.push(_$_.escape(nextLink.text));
-												}
-
-												__output.push('</span>');
-											}
-
-											__output.push('</a>');
-										}
-
-										__output.push('<!--]-->');
-									}
-
-									__output.push('</nav>');
-								}
-
-								__output.push('<!--]-->');
-
-								{
-									const comp = FooterStub;
-									const args = [__output, {}];
-
-									comp(...args);
-								}
+								__output.push('</div>');
 							}
 
-							__output.push('</div>');
-						}
-
-						__output.push('</div>');
-						__output.push('<aside');
-						__output.push(' class="aside"');
-						__output.push('>');
-
-						{
+							__output.push('</article>');
 							__output.push('<!--[-->');
 
-							if (toc.length > 0) {
+							if (editPath) {
 								__output.push('<div');
-								__output.push(' class="aside-content"');
+								__output.push(' class="edit-link"');
 								__output.push('>');
 
 								{
-									__output.push('<nav');
-									__output.push(' class="outline"');
+									__output.push('<a');
+									__output.push(_$_.attr('href', `/edit/${editPath}`, false));
 									__output.push('>');
 
 									{
-										__output.push('<!--[-->');
-
-										for (const item of toc) {
-											__output.push('<a');
-											__output.push(_$_.attr('href', item.href, false));
-											__output.push('>');
-
-											{
-												__output.push(_$_.escape(item.text));
-											}
-
-											__output.push('</a>');
-										}
-
-										__output.push('<!--]-->');
+										__output.push('Edit on GitHub');
 									}
 
-									__output.push('</nav>');
+									__output.push('</a>');
 								}
 
 								__output.push('</div>');
 							}
 
 							__output.push('<!--]-->');
+							__output.push('<!--[-->');
+
+							if (prevLink || nextLink) {
+								__output.push('<nav');
+								__output.push(' class="prev-next"');
+								__output.push('>');
+
+								{
+									__output.push('<!--[-->');
+
+									if (prevLink) {
+										__output.push('<a');
+										__output.push(_$_.attr('href', prevLink.href, false));
+										__output.push(' class="pager prev"');
+										__output.push('>');
+
+										{
+											__output.push('<span');
+											__output.push(' class="title"');
+											__output.push('>');
+
+											{
+												__output.push(_$_.escape(prevLink.text));
+											}
+
+											__output.push('</span>');
+										}
+
+										__output.push('</a>');
+									} else {
+										__output.push('<span');
+										__output.push('>');
+										__output.push('</span>');
+									}
+
+									__output.push('<!--]-->');
+									__output.push('<!--[-->');
+
+									if (nextLink) {
+										__output.push('<a');
+										__output.push(_$_.attr('href', nextLink.href, false));
+										__output.push(' class="pager next"');
+										__output.push('>');
+
+										{
+											__output.push('<span');
+											__output.push(' class="title"');
+											__output.push('>');
+
+											{
+												__output.push(_$_.escape(nextLink.text));
+											}
+
+											__output.push('</span>');
+										}
+
+										__output.push('</a>');
+									}
+
+									__output.push('<!--]-->');
+								}
+
+								__output.push('</nav>');
+							}
+
+							__output.push('<!--]-->');
+
+							{
+								const comp = FooterStub;
+								const args = [__output, {}];
+
+								comp(...args);
+							}
 						}
 
-						__output.push('</aside>');
+						__output.push('</div>');
 					}
 
 					__output.push('</div>');
+					__output.push('<aside');
+					__output.push(' class="aside"');
+					__output.push('>');
+
+					{
+						__output.push('<!--[-->');
+
+						if (toc.length > 0) {
+							__output.push('<div');
+							__output.push(' class="aside-content"');
+							__output.push('>');
+
+							{
+								__output.push('<nav');
+								__output.push(' class="outline"');
+								__output.push('>');
+
+								{
+									__output.push('<!--[-->');
+
+									for (const item of toc) {
+										__output.push('<a');
+										__output.push(_$_.attr('href', item.href, false));
+										__output.push('>');
+
+										{
+											__output.push(_$_.escape(item.text));
+										}
+
+										__output.push('</a>');
+									}
+
+									__output.push('<!--]-->');
+								}
+
+								__output.push('</nav>');
+							}
+
+							__output.push('</div>');
+						}
+
+						__output.push('<!--]-->');
+					}
+
+					__output.push('</aside>');
 				}
 
-				__output.push('</main>');
+				__output.push('</div>');
 			}
 
-			__output.push('</div>');
+			__output.push('</main>');
 		}
 
 		__output.push('</div>');
-		_$_.pop_component();
-	});
-}
+	}
 
-DocsLayoutExact.async = true;
+	__output.push('</div>');
+	_$_.pop_component();
+}
 
 export function DocsLayoutExactWithData(__output) {
 	_$_.push_component();
@@ -2095,7 +1969,7 @@ export function DocsLayoutExactWithData(__output) {
 					{ href: '#usage', text: 'Usage' }
 				],
 
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 					__output.push('<div');
 					__output.push(' class="doc-content"');
@@ -2111,7 +1985,7 @@ export function DocsLayoutExactWithData(__output) {
 
 					__output.push('</div>');
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 
@@ -2140,7 +2014,7 @@ export function DocsLayoutExactWithoutData(__output) {
 				prevLink,
 				nextLink,
 				toc,
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 					__output.push('<div');
 					__output.push(' class="doc-content"');
@@ -2156,7 +2030,7 @@ export function DocsLayoutExactWithoutData(__output) {
 
 					__output.push('</div>');
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 
@@ -2249,52 +2123,39 @@ export function TemplateWithHtmlAndSiblings(__output) {
 	_$_.pop_component();
 }
 
-async function LayoutWithTemplate(__output, { children, data }) {
-	return _$_.async(async () => {
-		_$_.push_component();
-		__output.push('<div');
-		__output.push(' class="layout"');
+function LayoutWithTemplate(__output, { children, data }) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="layout"');
+	__output.push('>');
+
+	{
+		__output.push('<template');
+		__output.push(' id="page-data"');
 		__output.push('>');
 
 		{
-			__output.push('<template');
-			__output.push(' id="page-data"');
-			__output.push('>');
+			const html_value_25 = String(JSON.stringify(data) ?? '');
 
-			{
-				const html_value_25 = String(JSON.stringify(data) ?? '');
-
-				__output.push('<!--' + _$_.hash(html_value_25) + '-->');
-				__output.push(html_value_25);
-				__output.push('<!---->');
-			}
-
-			__output.push('</template>');
-			__output.push('<main');
-			__output.push('>');
-
-			{
-				{
-					const comp = children;
-					const args = [__output, {}];
-
-					if (comp?.async) {
-						await comp(...args);
-					} else if (comp) {
-						comp(...args);
-					}
-				}
-			}
-
-			__output.push('</main>');
+			__output.push('<!--' + _$_.hash(html_value_25) + '-->');
+			__output.push(html_value_25);
+			__output.push('<!---->');
 		}
 
-		__output.push('</div>');
-		_$_.pop_component();
-	});
-}
+		__output.push('</template>');
+		__output.push('<main');
+		__output.push('>');
 
-LayoutWithTemplate.async = true;
+		{
+			_$_.render_expression(__output, children);
+		}
+
+		__output.push('</main>');
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}
 
 export function NestedTemplateInLayout(__output) {
 	_$_.push_component();
@@ -2308,7 +2169,7 @@ export function NestedTemplateInLayout(__output) {
 			__output,
 			{
 				data: doc,
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 					__output.push('<div');
 					__output.push(' class="doc-content"');
@@ -2324,7 +2185,7 @@ export function NestedTemplateInLayout(__output) {
 
 					__output.push('</div>');
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 

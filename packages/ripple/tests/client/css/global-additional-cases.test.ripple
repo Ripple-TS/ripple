@@ -353,7 +353,7 @@ export component Test({ children }) {
 	<div>
 		<p class="before">{'before'}</p>
 
-		<children />
+		{children}
 
 		<p class="foo">
 			<span>{'foo'}</span>
@@ -379,8 +379,8 @@ export component Test({ children }) {
 		const { css } = compile(source, 'test.ripple');
 
 		expect(css).toMatch(/\.before\.ripple-[a-z0-9]+ \+ \.foo:where\(\.ripple-[a-z0-9]+\) {/);
-		expect((css.match(/\.x\ /g) || []).length).toBe(5);
-		expect((css.match(/\(unused\) :global\(\.x\) /g) || []).length).toBe(1);
+		expect((css.match(/\.x\ /g) || []).length).toBe(0);
+		expect((css.match(/\(unused\) :global\(\.x\) /g) || []).length).toBe(6);
 		expect(css).toContain('(unused) :global(.x) + .bar {');
 	});
 

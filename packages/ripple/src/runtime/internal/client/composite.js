@@ -5,6 +5,7 @@ import { COMPOSITE_BLOCK, DEFAULT_NAMESPACE, NAMESPACE_URI } from './constants.j
 import { hydrate_next, hydrating } from './hydration.js';
 import { active_block, active_namespace, get, with_ns } from './runtime.js';
 import { top_element_to_ns } from './utils.js';
+import { is_ripple_element } from '../../element.js';
 
 /**
  * @typedef {((anchor: Node, props: Record<string, any>, block: Block | null) => void)} ComponentFunction
@@ -45,13 +46,14 @@ export function composite(get_component, node, props) {
 				});
 			} else if (component != null) {
 				// Custom element - only create if component is not null/undefined
+				const ns = top_element_to_ns(component, active_namespace);
 				var run = () => {
 					var block = /** @type {Block} */ (active_block);
 
 					var element =
-						active_namespace !== DEFAULT_NAMESPACE
+						ns !== DEFAULT_NAMESPACE
 							? document.createElementNS(
-									NAMESPACE_URI[active_namespace],
+									NAMESPACE_URI[ns],
 									/** @type {keyof HTMLElementTagNameMap} */ (component),
 								)
 							: document.createElement(/** @type {keyof HTMLElementTagNameMap} */ (component));
@@ -67,15 +69,17 @@ export function composite(get_component, node, props) {
 
 					render_spread(element, () => props || {});
 
-					if (typeof props?.children === 'function') {
+					if (is_ripple_element(props?.children)) {
 						var child_anchor = document.createComment('');
 						element.appendChild(child_anchor);
 
-						props?.children?.(child_anchor, {}, block);
+						if (ns !== DEFAULT_NAMESPACE) {
+							with_ns(ns, () => props.children.render(child_anchor, {}, block));
+						} else {
+							props.children.render(child_anchor, {}, block);
+						}
 					}
 				};
-
-				const ns = top_element_to_ns(component, active_namespace);
 
 				if (ns !== active_namespace) {
 					// support top-level dynamic element svg/math <@tag />

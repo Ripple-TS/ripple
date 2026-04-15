@@ -17,6 +17,7 @@ import { is_boolean_attribute } from '../../../compiler/utils.js';
 import { clsx } from 'clsx';
 import { normalize_css_property_name } from '../../../utils/normalize_css_property_name.js';
 import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../constants.js';
+import { is_ripple_element, normalize_children, ripple_element } from '../../element.js';
 import {
 	is_tag_valid_with_parent,
 	is_tag_valid_with_ancestor,
@@ -27,6 +28,24 @@ export { register_component_css as register_css } from './css-registry.js';
 export { hash } from '../../../utils/hashing.js';
 export { context } from './context.js';
 export { array_slice };
+export { ripple_element, normalize_children };
+
+/**
+ * @param {Output} output
+ * @param {any} value
+ * @returns {void}
+ */
+export function render_expression(output, value) {
+	output.push(BLOCK_OPEN);
+
+	if (is_ripple_element(value)) {
+		value.render(output, {});
+	} else {
+		output.push(escape(value ?? ''));
+	}
+
+	output.push(BLOCK_CLOSE);
+}
 
 /** @type {null | Component} */
 export let active_component = null;
@@ -596,7 +615,7 @@ export function spread_attrs(attrs, css_hash) {
 	for (name in attrs) {
 		var value = attrs[name];
 
-		if (typeof value === 'function') continue;
+		if (name === 'children' || typeof value === 'function' || is_ripple_element(value)) continue;
 
 		if (is_ripple_object(value)) {
 			value = get(value);

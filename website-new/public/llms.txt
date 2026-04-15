@@ -505,7 +505,7 @@ import type { Children } from 'ripple';
 
 component Card(props: { children: Children }) {
   <div class="card">
-    <children />
+    {children}
   </div>
 }
 

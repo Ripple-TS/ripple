@@ -354,7 +354,7 @@ const &{ a, ...rest } = props;
 ```ripple
 component Child(&{ count, className, children }: Props) {
   // count, className, children are lazily read from __props
-  <button class={className}><children /></button>
+  <button class={className}>{children}</button>
   <pre>{`Count is: ${count}`}</pre>
 }
 ```
@@ -591,7 +591,7 @@ import type { Children, Component } from 'ripple';
 
 component Card(props: { children: Children; Footer?: Component }) {
   <div class="card">
-    <props.children />
+    {props.children}
     if (props.Footer) {
       <props.Footer />
     }

@@ -38,9 +38,7 @@ export component HtmlWithReactivity() {
 
 export component HtmlWrapper({ children }: { children: any }) {
 	<div class="wrapper">
-		<div class="inner">
-			<children />
-		</div>
+		<div class="inner">{children}</div>
 	</div>
 }
 
@@ -105,9 +103,7 @@ export component DocLayout({
 	<div class="layout">
 		<div class="content-container">
 			<article>
-				<div>
-					<children />
-				</div>
+				<div>{children}</div>
 			</article>
 			if (editPath) {
 				<div class="edit-link">
@@ -168,14 +164,10 @@ export component HtmlWithUndefinedContent() {
 component DynamicHeading({ level, children }: { level: number; children: any }) {
 	switch (level) {
 		case 1: {
-			<h1 class="heading">
-				<children />
-			</h1>
+			<h1 class="heading">{children}</h1>
 		}
 		case 2: {
-			<h2 class="heading">
-				<children />
-			</h2>
+			<h2 class="heading">{children}</h2>
 		}
 	}
 }
@@ -193,9 +185,7 @@ component CodeBlock({ code }: { code: string }) {
 
 component ContentWrapper({ children }: { children: any }) {
 	<div class="wrapper">
-		<div class="inner">
-			<children />
-		</div>
+		<div class="inner">{children}</div>
 	</div>
 }
 
@@ -236,9 +226,7 @@ component SidebarSection({ title, children }: { title: string; children: any }) 
 			<button onClick={() => (expanded = !expanded)}>{'Toggle'}</button>
 		</div>
 		if (expanded) {
-			<div class="section-items">
-				<children />
-			</div>
+			<div class="section-items">{children}</div>
 		}
 	</section>
 }
@@ -293,9 +281,7 @@ export component LayoutWithSidebarAndMain() {
 
 component ArticleWrapper({ children }: { children: any }) {
 	<article class="doc-content">
-		<div>
-			<children />
-		</div>
+		<div>{children}</div>
 	</article>
 }
 
@@ -341,9 +327,7 @@ export component ArticleWithHtmlChildThenSibling() {
 component InlineArticleLayout({ children }: { children: any }) {
 	<div class="content-container">
 		<article class="doc-content">
-			<div>
-				<children />
-			</div>
+			<div>{children}</div>
 		</article>
 		if (true) {
 			<div class="edit-link">
@@ -391,9 +375,7 @@ component DocsLayoutInner({
 					<div class="content">
 						<div class="content-container">
 							<article class="doc-content">
-								<div>
-									<children />
-								</div>
+								<div>{children}</div>
 							</article>
 							if (editPath) {
 								<div class="edit-link">
@@ -450,9 +432,7 @@ component DocsLayoutExact({
 					<div class="content">
 						<div class="content-container">
 							<article class="doc-content">
-								<div>
-									<children />
-								</div>
+								<div>{children}</div>
 							</article>
 							if (editPath) {
 								<div class="edit-link">
@@ -542,9 +522,7 @@ export component TemplateWithHtmlAndSiblings() {
 component LayoutWithTemplate({ children, data }: { children: any; data: object }) {
 	<div class="layout">
 		<template id="page-data">{html JSON.stringify(data)}</template>
-		<main>
-			<children />
-		</main>
+		<main>{children}</main>
 	</div>
 }
 
