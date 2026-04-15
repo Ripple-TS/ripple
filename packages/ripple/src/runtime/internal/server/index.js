@@ -301,8 +301,7 @@ function run_derived(computed) {
 	} catch (error) {
 		computed.d = active_dependency;
 		if (error === ASYNC_DERIVED_READ_THROWN) {
-			var { ap: promise } = get_active_derived();
-			if (computed.ia) {
+			if (!computed.dr && !computed.dj) {
 				// This must've been thrown by a pending async derived inside a track.async callback.
 				// We're not going to attach any cleanup logic to promises if they fail
 				// as this should be handled by the block logic since something needs to read
@@ -313,38 +312,38 @@ function run_derived(computed) {
 				// For the same reason, we're not throwing in the streaming mode of the synchronous phase
 				// to cause the fallback/pending rendering`, because this should only happen on derived reads,
 				// which would be handled by `run_block()`
-				if (!computed.ap) {
-					// create and attach a new promise that will resolve once all of its
-					// async derived dependencies have resolved
-					// It's important to create a promise because this async derived might be a dependency
-					// of another sync or async derived, and they would also have to be rerun
-					// once this derived's promise resolves
-					var deferred_promise = new Promise((resolve, reject) => {
-						computed.dr = resolve;
-						computed.dj = (error) => {
-							update_derived_value(computed, SUSPENSE_REJECTED);
-							computed.dr = null;
-							computed.dj = null;
-							reject(error);
-						};
-						computed.ap = deferred_promise;
-					});
-				}
+				// create and attach a new promise that will resolve once all of its
+				// async derived dependencies have resolved
+				// It's important to create a promise because this async derived might be a dependency
+				// of another sync or async derived, and they would also have to be rerun
+				// once this derived's promise resolves
+				var deferred_promise = new Promise((resolve, reject) => {
+					computed.dr = resolve;
+					computed.dj = (error) => {
+						update_derived_value(computed, SUSPENSE_REJECTED);
+						computed.dr = null;
+						computed.dj = null;
+						reject(error);
+					};
+					computed.ap = deferred_promise;
+				});
 
-				/** @type {PromiseLike<any>} */ (promise).then(
-					// rerun the derived once the dependent promise resolves
-					() => {
-						run_derived(computed);
-					},
-					(error) => {
-						if (computed.dj) {
-							computed.dj(error);
-						} else {
-							// this is a regular derived that has an async derived dependency
-							update_derived_value(computed, SUSPENSE_REJECTED);
-						}
-					},
-				);
+				if (computed.d?.t.v === SUSPENSE_PENDING) {
+					/** @type {PromiseLike<any>} */ (/** @type {Derived}*/ (computed.d.t).ap).then(
+						// rerun the derived once the dependent promise resolves
+						() => {
+							run_derived(computed);
+						},
+						(error) => {
+							if (computed.dj) {
+								computed.dj(error);
+							} else {
+								// this is a regular derived that has an async derived dependency
+								update_derived_value(computed, SUSPENSE_REJECTED);
+							}
+						},
+					);
+				}
 			}
 			return SUSPENSE_PENDING;
 		}
