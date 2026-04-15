@@ -5451,14 +5451,29 @@ function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
 		return childDoc.length <= 20 && !childDoc.includes('\n');
 	}
 
-	// Always inline simple text content and JSX expressions if they fit
-	if (
-		firstChild.type === 'RippleExpression' ||
-		firstChild.type === 'Text' ||
-		firstChild.type === 'Html' ||
-		firstChild.type === 'JSXExpressionContainer'
-	) {
+	// Always inline Html and Text nodes — they are short prefixed expressions ({html ...}, {text ...})
+	if (firstChild.type === 'Text' || firstChild.type === 'Html') {
 		return true;
+	}
+
+	// Inline JSX expressions if they fit, but respect original multi-line formatting
+	// for non-literal expressions (e.g. {children} should stay multi-line if written that way)
+	if (firstChild.type === 'RippleExpression' || firstChild.type === 'JSXExpressionContainer') {
+		if (wasOriginallySingleLine(parentNode)) {
+			return true;
+		}
+		// For multi-line parents, only inline if the expression is a simple literal
+		const expr = firstChild.expression;
+		if (
+			expr &&
+			(expr.type === 'Literal' ||
+				expr.type === 'StringLiteral' ||
+				expr.type === 'NumericLiteral' ||
+				expr.type === 'TemplateLiteral')
+		) {
+			return true;
+		}
+		return false;
 	}
 
 	// Respect original formatting for elements: if parent was originally multi-line, keep it multi-line

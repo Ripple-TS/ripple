@@ -247,3 +247,40 @@ malformed HTML.
 
 As raw HTML is not managed by Ripple, scoped styles do not apply to it. To style
 raw content, refer to [Styling](/docs/guide/styling#Global-Styles).
+
+## Explicit Text
+
+By default, a `{expression}` in a template can render either text or a fragment.
+If you know the expression will always be text, you can use the `{text}` directive
+to make that explicit:
+
+```ripple
+export component Frame({ children }) {
+  <div class="frame">
+    {text 'before'}
+    {children}
+    {text 'after'}
+  </div>
+}
+```
+
+The `{text}` directive guarantees the expression is treated as text content. Like
+regular expressions, the value is HTML-escaped to prevent script injections.
+Unlike `{html}`, the content is never parsed as HTML.
+
+This is particularly useful when you have text alongside `{children}`, since the
+compiler can optimize `{text}` expressions more efficiently than general
+expressions that might need to handle component rendering.
+
+```ripple
+export component App() {
+  const markup = '<span>Not HTML</span>';
+
+  // Renders the literal string "<span>Not HTML</span>" as text
+  <div>{text markup}</div>
+}
+```
+
+::: info `text` is a reserved keyword in Ripple expressions. You cannot use `text`
+as a variable name inside `{braces}`. If you need a variable called `text`, rename
+it or use a different name. :::
