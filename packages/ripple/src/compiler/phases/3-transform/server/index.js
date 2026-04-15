@@ -23,6 +23,7 @@ import {
 	is_inside_component,
 	is_void_element,
 	normalize_children,
+	is_children_template_expression,
 	is_binding_function,
 	is_element_dynamic,
 	is_ripple_track_call,
@@ -42,86 +43,6 @@ import {
 	obfuscate_identifier,
 } from '../../../identifier-utils.js';
 import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../../constants.js';
-
-/**
- * @param {AST.Expression} expression
- * @returns {AST.Expression}
- */
-function unwrap_template_expression(expression) {
-	/** @type {AST.Expression} */
-	let node = expression;
-
-	while (true) {
-		if (
-			node.type === 'ParenthesizedExpression' ||
-			node.type === 'TSAsExpression' ||
-			node.type === 'TSSatisfiesExpression' ||
-			node.type === 'TSNonNullExpression' ||
-			node.type === 'TSInstantiationExpression'
-		) {
-			node = /** @type {AST.Expression} */ (node.expression);
-			continue;
-		}
-
-		if (node.type === 'ChainExpression') {
-			node = /** @type {AST.Expression} */ (node.expression);
-			continue;
-		}
-
-		break;
-	}
-
-	return node;
-}
-
-/**
- * @param {AST.Expression} expression
- * @param {TransformServerState} state
- * @returns {boolean}
- */
-function is_children_render_expression(expression, state) {
-	if (state.scope == null) {
-		return false;
-	}
-
-	const unwrapped = unwrap_template_expression(expression);
-
-	if (unwrapped.type === 'MemberExpression') {
-		let property_name = null;
-
-		if (!unwrapped.computed && unwrapped.property.type === 'Identifier') {
-			property_name = unwrapped.property.name;
-		} else if (
-			unwrapped.computed &&
-			unwrapped.property.type === 'Literal' &&
-			typeof unwrapped.property.value === 'string'
-		) {
-			property_name = unwrapped.property.value;
-		}
-
-		if (property_name === 'children') {
-			const target = unwrap_template_expression(/** @type {AST.Expression} */ (unwrapped.object));
-
-			if (target.type === 'Identifier') {
-				const binding = state.scope.get(target.name);
-				return binding?.declaration_kind === 'param';
-			}
-		}
-	}
-
-	if (unwrapped.type !== 'Identifier' || unwrapped.name !== 'children') {
-		return false;
-	}
-
-	const binding = state.scope.get(unwrapped.name);
-	return (
-		binding?.declaration_kind === 'param' ||
-		binding?.kind === 'prop' ||
-		binding?.kind === 'prop_fallback' ||
-		binding?.kind === 'lazy' ||
-		binding?.kind === 'lazy_fallback'
-	);
-}
 
 /**
  * Checks if a node is template or control-flow content that should be wrapped when return flags are active
@@ -1705,7 +1626,10 @@ const visitors = {
 	RippleExpression(node, { visit, state }) {
 		const metadata = { await: false };
 		let expression = /** @type {AST.Expression} */ (visit(node.expression, { ...state, metadata }));
-		const is_children_expression = is_children_render_expression(node.expression, state);
+		const is_children_expression = is_children_template_expression(
+			node.expression,
+			state.scope,
+		);
 
 		if (expression.type === 'Literal') {
 			state.init?.push(

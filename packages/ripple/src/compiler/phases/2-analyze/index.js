@@ -26,6 +26,7 @@ import {
 	is_inside_component,
 	is_ripple_track_call,
 	is_void_element,
+	is_children_template_expression as is_children_template_expression_in_scope,
 	normalize_children,
 	is_binding_function,
 	is_inside_try_block,
@@ -689,80 +690,16 @@ function error_return_keyword(node, context, message) {
 
 /**
  * @param {AST.Expression} expression
- * @returns {AST.Expression}
- */
-function unwrap_template_expression(expression) {
-	/** @type {AST.Expression} */
-	let node = expression;
-
-	while (true) {
-		if (
-			node.type === 'ParenthesizedExpression' ||
-			node.type === 'TSAsExpression' ||
-			node.type === 'TSSatisfiesExpression' ||
-			node.type === 'TSNonNullExpression' ||
-			node.type === 'TSInstantiationExpression'
-		) {
-			node = /** @type {AST.Expression} */ (node.expression);
-			continue;
-		}
-
-		if (node.type === 'ChainExpression') {
-			node = /** @type {AST.Expression} */ (node.expression);
-			continue;
-		}
-
-		break;
-	}
-
-	return node;
-}
-
-/**
- * @param {AST.Expression} expression
  * @param {Context<AST.Node, AnalysisState>} context
  * @returns {boolean}
  */
 function is_children_template_expression(expression, context) {
 	const component = context.path.findLast((node) => node.type === 'Component');
 	const component_scope = component ? context.state.scopes.get(component) : null;
-	const unwrapped = unwrap_template_expression(expression);
-
-	if (unwrapped.type === 'MemberExpression') {
-		let property_name = null;
-
-		if (!unwrapped.computed && unwrapped.property.type === 'Identifier') {
-			property_name = unwrapped.property.name;
-		} else if (
-			unwrapped.computed &&
-			unwrapped.property.type === 'Literal' &&
-			typeof unwrapped.property.value === 'string'
-		) {
-			property_name = unwrapped.property.value;
-		}
-
-		if (property_name === 'children') {
-			const target = unwrap_template_expression(/** @type {AST.Expression} */ (unwrapped.object));
-
-			if (target.type === 'Identifier') {
-				const binding = context.state.scope.get(target.name);
-				return binding?.declaration_kind === 'param' && binding.scope === component_scope;
-			}
-		}
-	}
-
-	if (unwrapped.type !== 'Identifier' || unwrapped.name !== 'children') {
-		return false;
-	}
-
-	const binding = context.state.scope.get(unwrapped.name);
-	return (
-		(binding?.declaration_kind === 'param' ||
-			binding?.kind === 'prop' ||
-			binding?.kind === 'prop_fallback' ||
-			binding?.kind === 'lazy' ||
-			binding?.kind === 'lazy_fallback') &&
-		binding.scope === component_scope
+	return is_children_template_expression_in_scope(
+		expression,
+		context.state.scope,
+		component_scope,
 	);
 }
 

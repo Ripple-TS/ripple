@@ -53,6 +53,7 @@ import {
 	determine_namespace_for_children,
 	index_to_key,
 	is_element_dynamic,
+	is_children_template_expression,
 	is_inside_left_side_assignment,
 	hash,
 	flatten_switch_consequent,
@@ -78,86 +79,6 @@ import {
 import { createHash } from 'node:crypto';
 import { should_preserve_comment, format_comment } from '../../../comment-utils.js';
 import { set_location } from '../../../../utils/builders.js';
-
-/**
- * @param {AST.Expression} expression
- * @returns {AST.Expression}
- */
-function unwrap_template_expression(expression) {
-	/** @type {AST.Expression} */
-	let node = expression;
-
-	while (true) {
-		if (
-			node.type === 'ParenthesizedExpression' ||
-			node.type === 'TSAsExpression' ||
-			node.type === 'TSSatisfiesExpression' ||
-			node.type === 'TSNonNullExpression' ||
-			node.type === 'TSInstantiationExpression'
-		) {
-			node = /** @type {AST.Expression} */ (node.expression);
-			continue;
-		}
-
-		if (node.type === 'ChainExpression') {
-			node = /** @type {AST.Expression} */ (node.expression);
-			continue;
-		}
-
-		break;
-	}
-
-	return node;
-}
-
-/**
- * @param {AST.Expression} expression
- * @param {TransformClientState} state
- * @returns {boolean}
- */
-function is_children_render_expression(expression, state) {
-	if (state.scope == null) {
-		return false;
-	}
-
-	const unwrapped = unwrap_template_expression(expression);
-
-	if (unwrapped.type === 'MemberExpression') {
-		let property_name = null;
-
-		if (!unwrapped.computed && unwrapped.property.type === 'Identifier') {
-			property_name = unwrapped.property.name;
-		} else if (
-			unwrapped.computed &&
-			unwrapped.property.type === 'Literal' &&
-			typeof unwrapped.property.value === 'string'
-		) {
-			property_name = unwrapped.property.value;
-		}
-
-		if (property_name === 'children') {
-			const target = unwrap_template_expression(/** @type {AST.Expression} */ (unwrapped.object));
-
-			if (target.type === 'Identifier') {
-				const binding = state.scope.get(target.name);
-				return binding?.declaration_kind === 'param';
-			}
-		}
-	}
-
-	if (unwrapped.type !== 'Identifier' || unwrapped.name !== 'children') {
-		return false;
-	}
-
-	const binding = state.scope.get(unwrapped.name);
-	return (
-		binding?.declaration_kind === 'param' ||
-		binding?.kind === 'prop' ||
-		binding?.kind === 'prop_fallback' ||
-		binding?.kind === 'lazy' ||
-		binding?.kind === 'lazy_fallback'
-	);
-}
 
 /**
  *
@@ -3458,7 +3379,8 @@ function transform_children(children, context) {
 		).length === 1 &&
 			normalized.some(
 				(node) =>
-					node.type === 'RippleExpression' && is_children_render_expression(node.expression, state),
+					node.type === 'RippleExpression' &&
+						is_children_template_expression(node.expression, state.scope),
 			)) ||
 		normalized.filter(
 			(node) => node.type !== 'VariableDeclaration' && node.type !== 'EmptyStatement',
@@ -3797,7 +3719,10 @@ function transform_children(children, context) {
 				});
 			} else if (node.type === 'RippleExpression') {
 				const expr = /** @type {AST.Expression} */ (expression);
-				const is_children_expression = is_children_render_expression(node.expression, state);
+				const is_children_expression = is_children_template_expression(
+					node.expression,
+					state.scope,
+				);
 
 				if (expr.type === 'Literal') {
 					if (normalized.length === 1) {

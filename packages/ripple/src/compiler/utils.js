@@ -636,9 +636,9 @@ export function normalize_children(children, context) {
 		) {
 			if (
 				(child.type === 'RippleExpression' &&
-					is_children_template_expression_for_normalization(child.expression, context)) ||
+					is_children_template_expression(child.expression, context.state.scope)) ||
 				(prev_child.type === 'RippleExpression' &&
-					is_children_template_expression_for_normalization(prev_child.expression, context))
+					is_children_template_expression(prev_child.expression, context.state.scope))
 			) {
 				continue;
 			}
@@ -668,7 +668,7 @@ export function normalize_children(children, context) {
  * @param {AST.Expression} expression
  * @returns {AST.Expression}
  */
-function unwrap_template_expression_for_normalization(expression) {
+export function unwrap_template_expression(expression) {
 	/** @type {AST.Expression} */
 	let node = expression;
 
@@ -697,11 +697,16 @@ function unwrap_template_expression_for_normalization(expression) {
 
 /**
  * @param {AST.Expression} expression
- * @param {CommonContext} context
+	 * @param {ScopeInterface | null | undefined} scope
+	 * @param {ScopeInterface | null} [component_scope]
  * @returns {boolean}
  */
-function is_children_template_expression_for_normalization(expression, context) {
-	const unwrapped = unwrap_template_expression_for_normalization(expression);
+export function is_children_template_expression(expression, scope, component_scope = null) {
+	if (scope == null) {
+		return false;
+	}
+
+	const unwrapped = unwrap_template_expression(expression);
 
 	if (unwrapped.type === 'MemberExpression') {
 		let property_name = null;
@@ -717,13 +722,16 @@ function is_children_template_expression_for_normalization(expression, context) 
 		}
 
 		if (property_name === 'children') {
-			const target = unwrap_template_expression_for_normalization(
+			const target = unwrap_template_expression(
 				/** @type {AST.Expression} */ (unwrapped.object),
 			);
 
 			if (target.type === 'Identifier') {
-				const binding = context.state.scope.get(target.name);
-				return binding?.declaration_kind === 'param';
+				const binding = scope.get(target.name);
+				return (
+					binding?.declaration_kind === 'param' &&
+					(component_scope === null || binding.scope === component_scope)
+				);
 			}
 		}
 	}
@@ -732,13 +740,16 @@ function is_children_template_expression_for_normalization(expression, context) 
 		return false;
 	}
 
-	const binding = context.state.scope.get(unwrapped.name);
+	const binding = scope.get(unwrapped.name);
 	return (
-		binding?.declaration_kind === 'param' ||
-		binding?.kind === 'prop' ||
-		binding?.kind === 'prop_fallback' ||
-		binding?.kind === 'lazy' ||
-		binding?.kind === 'lazy_fallback'
+		(
+			binding?.declaration_kind === 'param' ||
+			binding?.kind === 'prop' ||
+			binding?.kind === 'prop_fallback' ||
+			binding?.kind === 'lazy' ||
+			binding?.kind === 'lazy_fallback'
+		) &&
+		(component_scope === null || binding.scope === component_scope)
 	);
 }
 
