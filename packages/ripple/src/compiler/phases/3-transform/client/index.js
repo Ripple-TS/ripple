@@ -1713,7 +1713,7 @@ const visitors = {
 				}
 			}
 
-			const children_filtered = node.children.filter((child) => child.type !== 'EmptyStatement');
+			const children_filtered = node.children.filter((child) => child.type !== 'EmptyStatement' && child.type !== 'Component');
 
 			if (children_filtered.length > 0) {
 				const component_scope = state.scopes.get(node);
