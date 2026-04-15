@@ -1,13 +1,12 @@
 /** @import { Block } from '#client' */
 
 import { branch, destroy_block, render } from './blocks.js';
+import { UNINITIALIZED } from './constants.js';
 import { create_text, get_next_sibling } from './operations.js';
 import { active_block } from './runtime.js';
 import { hydrating, set_hydrate_node } from './hydration.js';
 import { COMMENT_NODE, HYDRATION_END, HYDRATION_START, TEXT_NODE } from '../../../constants.js';
 import { is_ripple_element } from '../../element.js';
-
-const UNINITIALIZED = Symbol();
 
 /**
  * @param {Node} node
@@ -98,6 +97,7 @@ export function expression(node, get_value) {
 			if (next_text === '') {
 				if (text !== null) {
 					text.remove();
+					text = null;
 				}
 			} else if (text === null) {
 				text = create_text(next_text);

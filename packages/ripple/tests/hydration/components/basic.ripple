@@ -1,4 +1,5 @@
 // Basic static components for hydration testing
+import { track } from 'ripple';
 import type { Children } from 'ripple';
 
 export component StaticText() {
@@ -63,6 +64,21 @@ export component ExpressionContent() {
 	const label = 'computed';
 	<div>{value}</div>
 	<span>{label.toUpperCase()}</span>
+}
+
+component TextProp(&{ children }: { children: string }) {
+	<div class="text-prop">{children}</div>
+}
+
+export component ServerTextPropWithContent() {
+	<TextProp children="hello" />
+}
+
+export component ClientTextPropRestoresAfterHydration() {
+	let &[show] = track(false);
+
+	<TextProp children={show ? 'hello' : ''} />
+	<button class="show-text" onClick={() => (show = true)}>{'Show'}</button>
 }
 
 // Test for static content in child component followed by sibling content

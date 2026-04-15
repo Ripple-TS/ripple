@@ -209,6 +209,28 @@ describe('basic client > components & composition', () => {
 		expect(countDiv.textContent).toBe('3');
 	});
 
+	it('updates explicit text children props reactively', () => {
+		component TextProp(&{ children }: PropsWithChildren<{}>) {
+			<div class="text-prop">{children}</div>
+		}
+
+		component Basic() {
+			let &[show] = track(false);
+
+			<TextProp children={show ? 'hello' : ''} />
+			<button class="show-text" onClick={() => (show = true)}>{'Show'}</button>
+		}
+
+		render(Basic);
+
+		expect(container.querySelector('.text-prop')?.textContent).toBe('');
+
+		container.querySelector('.show-text')?.click();
+		flushSync();
+
+		expect(container.querySelector('.text-prop')?.textContent).toBe('hello');
+	});
+
 	it('it retains this context with bracketed prop functions and keeps original chaining', () => {
 		component App() {
 			const SYMBOL_PROP = Symbol();
