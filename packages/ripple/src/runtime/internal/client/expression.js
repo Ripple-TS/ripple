@@ -40,6 +40,10 @@ export function expression(node, get_value) {
 	var value = UNINITIALIZED;
 	var is_element = false;
 	var initialized = false;
+	/** @type {Block | null} */
+	var modified_parent_branch = null;
+	/** @type {Node | null} */
+	var original_parent_start = null;
 
 	render(() => {
 		var next_value = get_value();
@@ -68,6 +72,12 @@ export function expression(node, get_value) {
 			if (child_block !== null) {
 				destroy_block(child_block);
 				child_block = null;
+				// Restore parent branch's start since we may update it again below
+				if (modified_parent_branch !== null && modified_parent_branch.s !== null) {
+					modified_parent_branch.s.start = original_parent_start;
+					modified_parent_branch = null;
+					original_parent_start = null;
+				}
 			}
 
 			if (end !== null && (initialized || !hydrating)) {
@@ -104,6 +114,11 @@ export function expression(node, get_value) {
 				// If parent's start is the anchor (or comes after child's start),
 				// update it to include the child's content
 				if (parent_start === anchor || parent_start === end) {
+					// Save original so we can restore it when switching to non-RippleElement
+					if (modified_parent_branch === null) {
+						modified_parent_branch = parent_branch;
+						original_parent_start = parent_start;
+					}
 					parent_branch.s.start = child_start;
 				}
 			}
@@ -129,6 +144,13 @@ export function expression(node, get_value) {
 		if (child_block !== null) {
 			destroy_block(child_block);
 			child_block = null;
+			// Restore parent branch's start to original value since the child's DOM nodes
+			// have been removed and the old start reference would be stale
+			if (modified_parent_branch !== null && modified_parent_branch.s !== null) {
+				modified_parent_branch.s.start = original_parent_start;
+				modified_parent_branch = null;
+				original_parent_start = null;
+			}
 		}
 
 		if (is_hydration_marker) {
