@@ -128,4 +128,117 @@ describe('tsx expression', () => {
 		render(App);
 		expect(container.textContent).toBe('just text');
 	});
+
+	it('renders tsx element with static attributes', () => {
+		component App() {
+			const el = <tsx>
+				<div id="my-id" class="my-class" data-testid="test" aria-label="label">content</div>
+			</tsx>;
+			{el}
+		}
+		render(App);
+		const div = container.querySelector('div');
+		expect(div.id).toBe('my-id');
+		expect(div.className).toBe('my-class');
+		expect(div.getAttribute('data-testid')).toBe('test');
+		expect(div.getAttribute('aria-label')).toBe('label');
+	});
+
+	it('renders tsx element with dynamic attribute values', () => {
+		component App() {
+			let &[name] = track('initial');
+			const el = <tsx><div id={name} class={'cls-' + name}>content</div></tsx>;
+			{el}
+			<button onClick={() => (name = 'updated')}>{'update'}</button>
+		}
+		render(App);
+		const div = container.querySelector('div');
+		expect(div.id).toBe('initial');
+		expect(div.className).toBe('cls-initial');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(div.id).toBe('updated');
+		expect(div.className).toBe('cls-updated');
+	});
+
+	it('renders tsx element with event handlers', () => {
+		component App() {
+			let &[clicked] = track(false);
+			const el = <tsx>
+				<button onClick={() => (clicked = true)}>
+					{'click me'}
+				</button>
+			</tsx>;
+			{el}
+			<div class="status">{clicked ? 'clicked' : 'not clicked'}</div>
+		}
+		render(App);
+		expect(container.querySelector('.status').textContent).toBe('not clicked');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('.status').textContent).toBe('clicked');
+	});
+
+	it('renders tsx element with boolean attributes', () => {
+		component App() {
+			let &[isDisabled] = track(true);
+			const el = <tsx>
+				<button disabled={isDisabled}>
+					{'btn'}
+				</button>
+			</tsx>;
+			{el}
+			<button class="toggle" onClick={() => (isDisabled = !isDisabled)}>{'toggle'}</button>
+		}
+		render(App);
+		expect(container.querySelector('button:not(.toggle)').disabled).toBe(true);
+
+		container.querySelector('.toggle').click();
+		flushSync();
+		expect(container.querySelector('button:not(.toggle)').disabled).toBe(false);
+	});
+
+	it('renders tsx element with style attribute', () => {
+		component App() {
+			let &[color] = track('red');
+			const el = <tsx><div style={'color: ' + color}>styled</div></tsx>;
+			{el}
+			<button onClick={() => (color = 'blue')}>{'change color'}</button>
+		}
+		render(App);
+		expect(container.querySelector('div').style.color).toBe('red');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('div').style.color).toBe('blue');
+	});
+
+	it('renders tsx element with multiple dynamic attributes', () => {
+		component App() {
+			let &[index] = track(0);
+			const el = <tsx>
+				<div id={'item-' + index} class={'item pos-' + index} data-index={index} title={'Item ' +
+					index}>
+					{'Item ' + index}
+				</div>
+			</tsx>;
+			{el}
+			<button onClick={() => index++}>{'next'}</button>
+		}
+		render(App);
+		const div = container.querySelector('div');
+		expect(div.id).toBe('item-0');
+		expect(div.className).toBe('item pos-0');
+		expect(div.getAttribute('data-index')).toBe('0');
+		expect(div.title).toBe('Item 0');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(div.id).toBe('item-1');
+		expect(div.className).toBe('item pos-1');
+		expect(div.getAttribute('data-index')).toBe('1');
+		expect(div.title).toBe('Item 1');
+	});
 });
