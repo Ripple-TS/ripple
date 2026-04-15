@@ -1717,7 +1717,11 @@ const visitors = {
 								children_prop = b.prop(
 									'get',
 									b.id('children'),
-									b.function(null, [], b.block([b.return(b.call('_$_.normalize_children', property))])),
+									b.function(
+										null,
+										[],
+										b.block([b.return(b.call('_$_.normalize_children', property))]),
+									),
 								);
 								continue;
 							}
@@ -1739,13 +1743,7 @@ const visitors = {
 								continue;
 							}
 
-							props.push(
-								b.prop(
-									'init',
-									b.key(attr.name.name),
-									property,
-								),
-							);
+							props.push(b.prop('init', b.key(attr.name.name), property));
 						}
 					} else {
 						props.push(
