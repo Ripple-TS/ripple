@@ -1211,16 +1211,18 @@ export function jsx_to_ripple_node(node) {
 			/** @type {AST.Node[]} */ (node.children).map(jsx_to_ripple_node).flat().filter(Boolean)
 		);
 
-		return /** @type {AST.Node} */ ({
-			type: 'Element',
-			id,
-			attributes,
-			children,
-			selfClosing: opening.selfClosing,
-			metadata: { scoped: false, path: [] },
-			start: node.start,
-			end: node.end,
-		});
+		return /** @type {AST.Element} */ (
+			/** @type {unknown} */ ({
+				type: 'Element',
+				id,
+				attributes,
+				children,
+				selfClosing: opening.selfClosing,
+				metadata: { scoped: false, path: /** @type {string[]} */ ([]) },
+				start: node.start,
+				end: node.end,
+			})
+		);
 	}
 
 	if (node.type === 'JSXText') {
