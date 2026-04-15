@@ -117,7 +117,9 @@ declare module 'estree' {
 
 	// We mark the whole node as marked when member is @[expression]
 	// Otherwise, we only mark Identifier nodes
-	interface MemberExpression {}
+	interface MemberExpression {
+		tracked?: boolean;
+	}
 
 	interface SimpleLiteral extends AST.LiteralNode {}
 	interface RegExpLiteral extends AST.LiteralNode {}

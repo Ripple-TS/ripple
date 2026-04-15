@@ -2902,7 +2902,10 @@ function transform_ts_child(node, context) {
 			}
 		}
 
-		if (/** @type {AST.Node} */ (node.id).type !== 'MemberExpression' && node.id.tracked) {
+		if (
+			/** @type {AST.Node} */ (node.id).type !== 'MemberExpression' &&
+			/** @type {AST.Identifier} */ (node.id).tracked
+		) {
 			// This is just temporary until we remove capitalization
 			// The `is_capitalized` was never handled for MemberExpression
 			// but it should've been for the `object` part because it starts the tag
