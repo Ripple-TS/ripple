@@ -1236,6 +1236,7 @@ export function jsx_to_ripple_node(node) {
 				start: node.start,
 				end: node.end,
 			},
+			metadata: {},
 			start: node.start,
 			end: node.end,
 		});
@@ -1246,6 +1247,7 @@ export function jsx_to_ripple_node(node) {
 		return /** @type {AST.Node} */ ({
 			type: 'RippleExpression',
 			expression: node.expression,
+			metadata: {},
 			start: node.start,
 			end: node.end,
 		});
