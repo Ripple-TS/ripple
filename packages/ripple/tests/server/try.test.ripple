@@ -108,7 +108,11 @@ describe('trackAsync directly in component body (server)', () => {
 			try {
 				let &[a] = trackAsync(() => Promise.resolve('hello'));
 				let &[b] = trackAsync(() => Promise.resolve('world'));
-				<p>{a}{' '}{b}</p>
+				<p>
+					{a}
+					{' '}
+					{b}
+				</p>
 			} catch (err) {
 				<p>{'error'}</p>
 			}
@@ -159,7 +163,7 @@ describe('trackAsync directly in component body (server)', () => {
 	it('chained trackAsync catches when first rejects', async () => {
 		component App() {
 			try {
-				let &[name] = trackAsync(() => Promise.reject(new Error('first failed')));
+				let &[name] = trackAsync(() => Promise.reject<string>(new Error('first failed')));
 				let &[upper] = trackAsync(() => {
 					const n = name;
 					return Promise.resolve(n.toUpperCase());
@@ -302,39 +306,42 @@ describe('nested child components with try/catch boundaries (server)', () => {
 		expect(body).not.toContain('loading...');
 	});
 
-	it('multiple nested levels: error propagates through pending-only boundaries to nearest catch', async () => {
-		component ThrowingChild() {
-			throw new Error('deep error');
-			<p>{'should not render'}</p>
-		}
-
-		component Level3() {
-			try {
-				<ThrowingChild />
-			} pending {
-				<p>{'level3 loading'}</p>
+	it(
+		'multiple nested levels: error propagates through pending-only boundaries to nearest catch',
+		async () => {
+			component ThrowingChild() {
+				throw new Error('deep error');
+				<p>{'should not render'}</p>
 			}
-		}
 
-		component Level2() {
-			try {
-				<Level3 />
-			} pending {
-				<p>{'level2 loading'}</p>
+			component Level3() {
+				try {
+					<ThrowingChild />
+				} pending {
+					<p>{'level3 loading'}</p>
+				}
 			}
-		}
 
-		component App() {
-			try {
-				<Level2 />
-			} catch (err: Error) {
-				<p>{err.message}</p>
+			component Level2() {
+				try {
+					<Level3 />
+				} pending {
+					<p>{'level2 loading'}</p>
+				}
 			}
-		}
 
-		const { body } = await render(App);
-		expect(body).toContain('deep error');
-	});
+			component App() {
+				try {
+					<Level2 />
+				} catch (err: Error) {
+					<p>{err.message}</p>
+				}
+			}
+
+			const { body } = await render(App);
+			expect(body).toContain('deep error');
+		},
+	);
 
 	it('sibling components: one fails, the other does not affect catch', async () => {
 		component GoodChild() {

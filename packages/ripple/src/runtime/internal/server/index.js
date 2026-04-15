@@ -1212,7 +1212,8 @@ function get_active_derived() {
  * @param {any} error
  */
 function route_error_to_catch_block(catch_block, error) {
-	catch_block.o.clear();
+	// cancel async should also clear the output
+	// for this block and all its children
 	cancel_async_operations(catch_block);
 	reset_state();
 	set_active_block(catch_block);
@@ -1236,11 +1237,10 @@ function register_block_rerun(block) {
 				computed.aa = null;
 				computed.ap = null;
 			}
-			if (computed.dj) {
-				computed.dj();
-				computed.dr = null;
-				computed.dj = null;
-			}
+			// null out deferred resolve/reject without calling dj(),
+			// to avoid rejecting the deferred promise with undefined
+			computed.dr = null;
+			computed.dj = null;
 		},
 	};
 	try_catch_block.o.registerAsync(operation);

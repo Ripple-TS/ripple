@@ -151,12 +151,20 @@ export function cancel_async_operations(block) {
 	}
 
 	if (block.f & TRY_CATCH_BLOCK) {
+		if (block.f & CAUGHT_ERROR) {
+			// already handling an error — skip
+			return;
+		}
+
 		block.o.cancelAsyncOperations();
 		block.f |= CAUGHT_ERROR;
 	}
 
-	cancel_async_operations(block.first);
-	cancel_async_operations(block.next);
+	var child = block.first;
+	while (child !== null) {
+		cancel_async_operations(child);
+		child = child.next;
+	}
 }
 
 /**
