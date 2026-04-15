@@ -1,5 +1,17 @@
 # ripple
 
+## 0.3.10
+
+### Patch Changes
+
+- [`aef1253`](https://github.com/Ripple-TS/ripple/commit/aef1253dd79c067a8358172d502dc21d8a9a9085)
+  Thanks [@trueadm](https://github.com/trueadm)! - Replace `<children />` with
+  `{children}` expression syntax for rendering component children
+
+- Updated dependencies
+  [[`aef1253`](https://github.com/Ripple-TS/ripple/commit/aef1253dd79c067a8358172d502dc21d8a9a9085)]:
+  - ripple@0.3.10
+
 ## 0.3.9
 
 ### Patch Changes

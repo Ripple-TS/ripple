@@ -1,5 +1,7 @@
 # @ripple-ts/rollup-plugin
 
+## 0.3.10
+
 ## 0.3.9
 
 ## 0.3.8
