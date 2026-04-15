@@ -39,7 +39,13 @@ export function render_expression(output, value) {
 	output.push(BLOCK_OPEN);
 
 	if (is_ripple_element(value)) {
-		value.render(output, {});
+		var result = value.render(output, {});
+
+		if (result && typeof result.then === 'function') {
+			return result.then(() => {
+				output.push(BLOCK_CLOSE);
+			});
+		}
 	} else {
 		output.push(escape(value ?? ''));
 	}
