@@ -697,8 +697,8 @@ export function unwrap_template_expression(expression) {
 
 /**
  * @param {AST.Expression} expression
-	 * @param {ScopeInterface | null | undefined} scope
-	 * @param {ScopeInterface | null} [component_scope]
+ * @param {ScopeInterface | null | undefined} scope
+ * @param {ScopeInterface | null} [component_scope]
  * @returns {boolean}
  */
 export function is_children_template_expression(expression, scope, component_scope = null) {
@@ -722,9 +722,7 @@ export function is_children_template_expression(expression, scope, component_sco
 		}
 
 		if (property_name === 'children') {
-			const target = unwrap_template_expression(
-				/** @type {AST.Expression} */ (unwrapped.object),
-			);
+			const target = unwrap_template_expression(/** @type {AST.Expression} */ (unwrapped.object));
 
 			if (target.type === 'Identifier') {
 				const binding = scope.get(target.name);
@@ -742,13 +740,11 @@ export function is_children_template_expression(expression, scope, component_sco
 
 	const binding = scope.get(unwrapped.name);
 	return (
-		(
-			binding?.declaration_kind === 'param' ||
+		(binding?.declaration_kind === 'param' ||
 			binding?.kind === 'prop' ||
 			binding?.kind === 'prop_fallback' ||
 			binding?.kind === 'lazy' ||
-			binding?.kind === 'lazy_fallback'
-		) &&
+			binding?.kind === 'lazy_fallback') &&
 		(component_scope === null || binding.scope === component_scope)
 	);
 }

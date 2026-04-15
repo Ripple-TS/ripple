@@ -3380,7 +3380,7 @@ function transform_children(children, context) {
 			normalized.some(
 				(node) =>
 					node.type === 'RippleExpression' &&
-						is_children_template_expression(node.expression, state.scope),
+					is_children_template_expression(node.expression, state.scope),
 			)) ||
 		normalized.filter(
 			(node) => node.type !== 'VariableDeclaration' && node.type !== 'EmptyStatement',

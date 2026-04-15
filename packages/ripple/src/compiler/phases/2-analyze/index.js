@@ -696,11 +696,7 @@ function error_return_keyword(node, context, message) {
 function is_children_template_expression(expression, context) {
 	const component = context.path.findLast((node) => node.type === 'Component');
 	const component_scope = component ? context.state.scopes.get(component) : null;
-	return is_children_template_expression_in_scope(
-		expression,
-		context.state.scope,
-		component_scope,
-	);
+	return is_children_template_expression_in_scope(expression, context.state.scope, component_scope);
 }
 
 /** @type {Visitors<AST.Node, AnalysisState>} */

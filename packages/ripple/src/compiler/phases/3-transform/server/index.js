@@ -1626,10 +1626,7 @@ const visitors = {
 	RippleExpression(node, { visit, state }) {
 		const metadata = { await: false };
 		let expression = /** @type {AST.Expression} */ (visit(node.expression, { ...state, metadata }));
-		const is_children_expression = is_children_template_expression(
-			node.expression,
-			state.scope,
-		);
+		const is_children_expression = is_children_template_expression(node.expression, state.scope);
 
 		if (expression.type === 'Literal') {
 			state.init?.push(
