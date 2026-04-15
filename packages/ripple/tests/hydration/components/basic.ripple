@@ -70,11 +70,7 @@ component TextProp(&{ children }: { children: string }) {
 	<div class="text-prop">{children}</div>
 }
 
-export component ServerTextPropWithContent() {
-	<TextProp children="hello" />
-}
-
-export component ClientTextPropRestoresAfterHydration() {
+export component TextPropWithToggle() {
 	let &[show] = track(false);
 
 	<TextProp children={show ? 'hello' : ''} />

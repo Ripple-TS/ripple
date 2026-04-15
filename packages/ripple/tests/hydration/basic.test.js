@@ -62,13 +62,13 @@ describe('hydration > basic', () => {
 
 	it('restores text children after hydrating away initial server text', async () => {
 		await hydrateComponent(
-			ServerComponents.ServerTextPropWithContent,
-			ClientComponents.ClientTextPropRestoresAfterHydration,
+			ServerComponents.TextPropWithToggle,
+			ClientComponents.TextPropWithToggle,
 		);
 
 		expect(container.querySelector('.text-prop')?.textContent).toBe('');
 
-		/** @type {any} */ (container.querySelector('.show-text'))?.__click();
+		/** @type {any} */ (container.querySelector('.show-text'))?.click();
 		flushSync();
 
 		expect(container.querySelector('.text-prop')?.textContent).toBe('hello');

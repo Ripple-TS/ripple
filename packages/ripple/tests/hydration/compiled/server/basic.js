@@ -240,20 +240,7 @@ function TextProp(__output, __props) {
 	_$_.pop_component();
 }
 
-export function ServerTextPropWithContent(__output) {
-	_$_.push_component();
-
-	{
-		const comp = TextProp;
-		const args = [__output, { children: _$_.normalize_children("hello") }];
-
-		comp(...args);
-	}
-
-	_$_.pop_component();
-}
-
-export function ClientTextPropRestoresAfterHydration(__output) {
+export function TextPropWithToggle(__output) {
 	_$_.push_component();
 
 	let lazy = _$_.track(false);
