@@ -1089,6 +1089,45 @@ export function ripple_import_requires_block(name) {
 }
 
 /**
+ * Converts a JSXMemberExpression to an AST MemberExpression.
+ * e.g., <Foo.Bar.Baz> → MemberExpression(MemberExpression(Foo, Bar), Baz)
+ * @param {import('estree-jsx').JSXMemberExpression} jsx_member
+ * @returns {AST.MemberExpression}
+ */
+function jsx_member_expression_to_member_expression(jsx_member) {
+	/** @type {AST.Expression} */
+	let object;
+
+	if (jsx_member.object.type === 'JSXMemberExpression') {
+		// Recursively convert nested member expressions
+		object = jsx_member_expression_to_member_expression(jsx_member.object);
+	} else {
+		// Base case: JSXIdentifier
+		object = /** @type {AST.Identifier} */ ({
+			type: 'Identifier',
+			name: jsx_member.object.name,
+			start: jsx_member.object.start,
+			end: jsx_member.object.end,
+		});
+	}
+
+	return /** @type {AST.MemberExpression} */ ({
+		type: 'MemberExpression',
+		object,
+		property: /** @type {AST.Identifier} */ ({
+			type: 'Identifier',
+			name: jsx_member.property.name,
+			start: jsx_member.property.start,
+			end: jsx_member.property.end,
+		}),
+		computed: false,
+		optional: false,
+		start: jsx_member.start,
+		end: jsx_member.end,
+	});
+}
+
+/**
  * Converts a JSX AST node (JSXElement, JSXText, etc.) to a Ripple AST node
  * (Element, Text, RippleExpression) for processing inside `<tsx>` blocks.
  * @param {AST.Node} node
@@ -1099,20 +1138,37 @@ export function jsx_to_ripple_node(node) {
 		const opening = node.openingElement;
 		const name = opening.name;
 
-		const id =
-			name.type === 'JSXIdentifier'
-				? /** @type {AST.Identifier} */ ({
-						type: 'Identifier',
-						name: name.name,
-						start: name.start,
-						end: name.end,
-					})
-				: /** @type {AST.Identifier} */ ({
-						type: 'Identifier',
-						name: 'unknown',
-						start: name.start,
-						end: name.end,
-					});
+		/** @type {AST.Identifier | AST.MemberExpression} */
+		let id;
+
+		if (name.type === 'JSXIdentifier') {
+			id = /** @type {AST.Identifier} */ ({
+				type: 'Identifier',
+				name: name.name,
+				start: name.start,
+				end: name.end,
+			});
+		} else if (name.type === 'JSXMemberExpression') {
+			// Convert JSXMemberExpression to MemberExpression
+			// e.g., <Foo.Bar.Baz> → MemberExpression(MemberExpression(Foo, Bar), Baz)
+			id = jsx_member_expression_to_member_expression(name);
+		} else if (name.type === 'JSXNamespacedName') {
+			// For JSXNamespacedName like <namespace:element>, create an identifier with the full name
+			id = /** @type {AST.Identifier} */ ({
+				type: 'Identifier',
+				name: name.namespace.name + ':' + name.name.name,
+				start: name.start,
+				end: name.end,
+			});
+		} else {
+			// Fallback - should not reach here
+			id = /** @type {AST.Identifier} */ ({
+				type: 'Identifier',
+				name: 'unknown',
+				start: /** @type {any} */ (name).start,
+				end: /** @type {any} */ (name).end,
+			});
+		}
 
 		const attributes = opening.attributes
 			.map((attr) => {
