@@ -5464,10 +5464,7 @@ function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
 		}
 		// For multi-line parents, only inline if the expression is a simple literal
 		const expr = firstChild.expression;
-		if (
-			expr &&
-			(expr.type === 'Literal' || expr.type === 'TemplateLiteral')
-		) {
+		if (expr && (expr.type === 'Literal' || expr.type === 'TemplateLiteral')) {
 			return true;
 		}
 		return false;
