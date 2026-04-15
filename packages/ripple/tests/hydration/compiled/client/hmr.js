@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div class="layout"><nav class="nav">Navigation</nav><main class="main"><!></main></div>`, 0);
+var root = _$_.template(`<div class="layout"><nav class="nav">Navigation</nav><main class="main"> </main></div>`, 0);
 var root_2 = _$_.template(`<p class="text">Hello world</p>`, 0);
 var root_1 = _$_.template(`<div class="content"><!></div>`, 0);
 var root_4 = _$_.template(`<!>`, 1, 1);
@@ -19,15 +19,12 @@ export function Layout(__anchor, { children }, __block) {
 		var main_1 = _$_.sibling(nav_1);
 
 		{
-			var expression = _$_.child(main_1);
+			var expression = _$_.child(main_1, true);
 
+			_$_.expression(expression, () => children);
 			_$_.pop(main_1);
 		}
 	}
-
-	_$_.render(() => {
-		_$_.expression(expression, () => children);
-	});
 
 	_$_.append(__anchor, div_1);
 	_$_.pop_component();

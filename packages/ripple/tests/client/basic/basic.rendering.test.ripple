@@ -167,8 +167,10 @@ describe('basic client > rendering & text', () => {
 	it('basic operations', () => {
 		component App() {
 			let &[count] = track(0);
-			<div>{count++}</div>
-			<div>{++count}</div>
+			const a = count++;
+			const b = ++count;
+			<div>{a}</div>
+			<div>{b}</div>
 			<div>{5}</div>
 			<div>{count}</div>
 		}

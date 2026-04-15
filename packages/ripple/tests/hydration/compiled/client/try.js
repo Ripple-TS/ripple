@@ -60,7 +60,7 @@ function AsyncList(__anchor, _, __block) {
 					{
 						var expression = _$_.child(li_1, true);
 
-						expression.nodeValue = item;
+						_$_.expression(expression, () => item);
 						_$_.pop(li_1);
 					}
 
@@ -120,7 +120,7 @@ function AsyncContent(__anchor, _, __block) {
 		{
 			var expression_1 = _$_.child(div_3, true);
 
-			expression_1.nodeValue = value;
+			_$_.expression(expression_1, () => value);
 			_$_.pop(div_3);
 		}
 

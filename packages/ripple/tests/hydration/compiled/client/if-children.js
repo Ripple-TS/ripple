@@ -1,14 +1,14 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root_1 = _$_.template(`<div class="content"><!></div>`, 0);
+var root_1 = _$_.template(`<div class="content"> </div>`, 0);
 var root = _$_.template(`<div class="container"><div role="button" class="header">Toggle</div><!></div>`, 0);
 var root_2 = _$_.template(`<div class="item"> </div>`, 0);
 var root_4 = _$_.template(`<!><!>`, 1, 2);
 var root_3 = _$_.template(`<!>`, 1, 1);
 var root_6 = _$_.template(`<div class="content"><span>Static child 1</span><span>Static child 2</span></div>`, 0);
 var root_5 = _$_.template(`<div class="container"><div role="button" class="header">Toggle</div><!></div>`, 0);
-var root_8 = _$_.template(`<div class="items"><!></div>`, 0);
+var root_8 = _$_.template(`<div class="items"> </div>`, 0);
 var root_7 = _$_.template(`<section class="group"><div role="button" class="item"><div class="indicator"></div><h2 class="text">Title</h2><div class="caret"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></div></div><!></section>`, 0);
 var root_10 = _$_.template(`<!><!>`, 1, 2);
 var root_9 = _$_.template(`<!>`, 1, 1);
@@ -42,14 +42,11 @@ export function IfWithChildren(__anchor, { children }, __block) {
 				var div_3 = root_1();
 
 				{
-					var expression = _$_.child(div_3);
+					var expression = _$_.child(div_3, true);
 
+					_$_.expression(expression, () => children);
 					_$_.pop(div_3);
 				}
-
-				_$_.render(() => {
-					_$_.expression(expression, () => children);
-				});
 
 				_$_.append(__anchor, div_3);
 			};
@@ -74,7 +71,7 @@ export function ChildItem(__anchor, { text: label }, __block) {
 	{
 		var expression_1 = _$_.child(div_4, true);
 
-		expression_1.nodeValue = label;
+		_$_.expression(expression_1, () => label);
 		_$_.pop(div_4);
 	}
 
@@ -164,14 +161,11 @@ export function IfWithSiblingsAndChildren(__anchor, { children }, __block) {
 				var div_9 = root_8();
 
 				{
-					var expression_2 = _$_.child(div_9);
+					var expression_2 = _$_.child(div_9, true);
 
+					_$_.expression(expression_2, () => children);
 					_$_.pop(div_9);
 				}
-
-				_$_.render(() => {
-					_$_.expression(expression_2, () => children);
-				});
 
 				_$_.append(__anchor, div_9);
 			};
@@ -378,6 +372,7 @@ export function DomChildrenThenStaticSiblings(__anchor, _, __block) {
 			{
 				var expression_3 = _$_.child(li_1, true);
 
+				_$_.expression(expression_3, () => 'Item count: ' + _$_.with_scope(__block, () => String(_$_.get(lazy_6))));
 				_$_.pop(li_1);
 			}
 		}
@@ -389,11 +384,6 @@ export function DomChildrenThenStaticSiblings(__anchor, _, __block) {
 
 	button_5.__click = () => _$_.update(lazy_6);
 	_$_.next();
-
-	_$_.render(() => {
-		_$_.set_text(expression_3, 'Item count: ' + _$_.with_scope(__block, () => String(_$_.get(lazy_6))));
-	});
-
 	_$_.append(__anchor, fragment_6, true);
 	_$_.pop_component();
 }

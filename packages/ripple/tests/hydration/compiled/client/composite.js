@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div class="layout"><!></div>`, 0);
+var root = _$_.template(`<div class="layout"> </div>`, 0);
 var root_1 = _$_.template(`<div class="layout">before<!>after</div>`, 0);
 var root_2 = _$_.template(`<div class="single">single</div>`, 0);
 var root_3 = _$_.template(`<h1>title</h1><p>description</p>`, 1, 2);
@@ -21,14 +21,11 @@ export function Layout(__anchor, __props, __block) {
 	var div_1 = root();
 
 	{
-		var expression = _$_.child(div_1);
+		var expression = _$_.child(div_1, true);
 
+		_$_.expression(expression, () => __props.children);
 		_$_.pop(div_1);
 	}
-
-	_$_.render(() => {
-		_$_.expression(expression, () => __props.children);
-	});
 
 	_$_.append(__anchor, div_1);
 	_$_.pop_component();
@@ -43,12 +40,9 @@ export function TextWrappedLayout(__anchor, __props, __block) {
 		var text = _$_.child(div_2);
 		var expression_1 = _$_.sibling(text);
 
+		_$_.expression(expression_1, () => __props.children);
 		_$_.pop(div_2);
 	}
-
-	_$_.render(() => {
-		_$_.expression(expression_1, () => __props.children);
-	});
 
 	_$_.append(__anchor, div_2);
 	_$_.pop_component();

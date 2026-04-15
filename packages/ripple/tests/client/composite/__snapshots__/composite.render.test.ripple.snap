@@ -29,7 +29,7 @@ exports[`composite > render > render simple text as children 1`] = `
     class="my-button"
   >
     Click Me
-    <!---->
+    
   </button>
   <!---->
   

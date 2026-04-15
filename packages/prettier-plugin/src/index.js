@@ -2194,6 +2194,10 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printTsxCompat(node, path, options, print);
 			break;
 
+		case 'Tsx':
+			nodeContent = printTsx(node, path, options, print);
+			break;
+
 		case 'JSXElement':
 			nodeContent = printJSXElement(node, path, options, print);
 			break;
@@ -5546,6 +5550,53 @@ function createElementLevelCommentPartsTrimmed(comments) {
 		parts.pop();
 	}
 	return parts;
+}
+
+/**
+ * Print a Tsx node - renders Ripple template children inside <tsx>...</tsx>
+ * @param {AST.Tsx} node - The Tsx node
+ * @param {AstPath<AST.Tsx>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
+function printTsx(node, path, options, print) {
+	const tagName = '<tsx>';
+	const closingTagName = '</tsx>';
+
+	const hasChildren = Array.isArray(node.children) && node.children.length > 0;
+
+	if (!hasChildren) {
+		return [tagName, closingTagName];
+	}
+
+	// Print children - these are Ripple template children (Element, Text, etc.)
+	const printedChildren = [];
+
+	for (let i = 0; i < node.children.length; i++) {
+		const child = node.children[i];
+
+		if (child.type === 'JSXText') {
+			const text = child.value.trim();
+			if (!text) continue;
+			printedChildren.push(text);
+		} else {
+			const printedChild = path.call(print, 'children', i);
+			printedChildren.push(printedChild);
+		}
+	}
+
+	if (printedChildren.length === 0) {
+		return [tagName, closingTagName];
+	}
+
+	// Use softline to allow single-line when content fits
+	return group([
+		tagName,
+		indent([softline, join(softline, printedChildren)]),
+		softline,
+		closingTagName,
+	]);
 }
 
 /**

@@ -13,14 +13,14 @@ var root_8 = _$_.template(`<!><!>`, 1, 2);
 var root_9 = _$_.template(`<div> </div>`, 0);
 var root_10 = _$_.template(`<!>`, 1, 1);
 var root_11 = _$_.template(`<div> </div><span> </span>`, 1, 2);
-var root_12 = _$_.template(`<div class="text-prop"><!></div>`, 0);
+var root_12 = _$_.template(`<div class="text-prop"> </div>`, 0);
 var root_13 = _$_.template(`<!><button class="show-text">Show</button>`, 1, 2);
 var root_14 = _$_.template(`<h1 class="sr-only">heading</h1><p class="subtitle">first paragraph</p><p class="subtitle">second paragraph</p>`, 1, 3);
 var root_15 = _$_.template(`<!><span class="sibling1"> </span><span class="sibling2"> </span>`, 1, 3);
 var root_16 = _$_.template(`<h1 class="sr-only">Ripple</h1><img src="/images/logo.png" alt="Logo" class="logo"><p class="subtitle">the elegant TypeScript UI framework</p>`, 1, 3);
 var root_18 = _$_.template(`<a href="/playground" class="playground-link">Playground</a>`, 0);
 var root_17 = _$_.template(`<div class="social-links"><a href="https://github.com" class="github-link">GitHub</a><a href="https://discord.com" class="discord-link">Discord</a><!></div>`, 0);
-var root_19 = _$_.template(`<main><div class="container"><!></div></main>`, 0);
+var root_19 = _$_.template(`<main><div class="container"> </div></main>`, 0);
 var root_20 = _$_.template(`<div class="content"><p>Some content here</p></div>`, 0);
 var root_22 = _$_.template(`<!><!><!><!>`, 1, 4);
 var root_21 = _$_.template(`<!>`, 1, 1);
@@ -135,12 +135,9 @@ export function Greeting(__anchor, props, __block) {
 	{
 		var expression = _$_.child(div_6, true);
 
+		_$_.expression(expression, () => 'Hello ' + _$_.with_scope(__block, () => String(props.name)));
 		_$_.pop(div_6);
 	}
-
-	_$_.render(() => {
-		_$_.set_text(expression, 'Hello ' + _$_.with_scope(__block, () => String(props.name)));
-	});
 
 	_$_.append(__anchor, div_6);
 	_$_.pop_component();
@@ -168,7 +165,7 @@ export function ExpressionContent(__anchor, _, __block) {
 	{
 		var expression_1 = _$_.child(div_7, true);
 
-		expression_1.nodeValue = value;
+		_$_.expression(expression_1, () => value);
 		_$_.pop(div_7);
 	}
 
@@ -177,15 +174,11 @@ export function ExpressionContent(__anchor, _, __block) {
 	{
 		var expression_2 = _$_.child(span_2, true);
 
+		_$_.expression(expression_2, () => _$_.with_scope(__block, () => label.toUpperCase()));
 		_$_.pop(span_2);
 	}
 
 	_$_.next();
-
-	_$_.render(() => {
-		_$_.set_text(expression_2, _$_.with_scope(__block, () => label.toUpperCase()));
-	});
-
 	_$_.append(__anchor, fragment_4, true);
 	_$_.pop_component();
 }
@@ -196,14 +189,11 @@ function TextProp(__anchor, __props, __block) {
 	var div_8 = root_12();
 
 	{
-		var expression_3 = _$_.child(div_8);
+		var expression_3 = _$_.child(div_8, true);
 
+		_$_.expression(expression_3, () => __props.children);
 		_$_.pop(div_8);
 	}
-
-	_$_.render(() => {
-		_$_.expression(expression_3, () => __props.children);
-	});
 
 	_$_.append(__anchor, div_8);
 	_$_.pop_component();
@@ -257,7 +247,7 @@ export function StaticChildWithSiblings(__anchor, _, __block) {
 	{
 		var expression_4 = _$_.child(span_3, true);
 
-		expression_4.nodeValue = foo;
+		_$_.expression(expression_4, () => foo);
 		_$_.pop(span_3);
 	}
 
@@ -266,7 +256,7 @@ export function StaticChildWithSiblings(__anchor, _, __block) {
 	{
 		var expression_5 = _$_.child(span_4, true);
 
-		expression_5.nodeValue = foo;
+		_$_.expression(expression_5, () => foo);
 		_$_.pop(span_4);
 	}
 
@@ -323,15 +313,12 @@ function Layout(__anchor, { children }, __block) {
 		var div_10 = _$_.child(main_1);
 
 		{
-			var expression_6 = _$_.child(div_10);
+			var expression_6 = _$_.child(div_10, true);
 
+			_$_.expression(expression_6, () => children);
 			_$_.pop(div_10);
 		}
 	}
-
-	_$_.render(() => {
-		_$_.expression(expression_6, () => children);
-	});
 
 	_$_.append(__anchor, main_1);
 	_$_.pop_component();

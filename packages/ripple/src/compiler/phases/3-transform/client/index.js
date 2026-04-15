@@ -61,6 +61,7 @@ import {
 	is_ripple_import,
 	replace_lazy_param_pattern,
 	ripple_import_requires_block,
+	jsx_to_ripple_node,
 } from '../../../utils.js';
 import {
 	CSS_HASH_IDENTIFIER,
@@ -1140,6 +1141,16 @@ const visitors = {
 	TsxCompat(node, context) {
 		const { state, visit } = context;
 
+		// to_ts mode: produce a JSX fragment
+		if (state.to_ts) {
+			const children = /** @type {AST.TsxCompat['children']} */ (
+				node.children
+					.map((child) => visit(/** @type {AST.Node} */ (child), state))
+					.filter((child) => child.type !== 'JSXText' || child.value.trim() !== '')
+			);
+			return b.jsx_fragment(children);
+		}
+
 		state.template?.push('<!>');
 
 		const normalized_children = node.children.filter((child) => {
@@ -1175,6 +1186,59 @@ const visitors = {
 		context.state.init?.push(
 			b.stmt(b.call('_$_.tsx_compat', b.literal(node.kind), id, children_fn)),
 		);
+	},
+
+	Tsx(node, context) {
+		const { state, visit } = context;
+
+		// to_ts mode: produce a JSX fragment
+		if (state.to_ts) {
+			const children = /** @type {AST.Tsx['children']} */ (
+				node.children
+					.map((child) => visit(/** @type {AST.Node} */ (child), state))
+					.filter((child) => child.type !== 'JSXText' || child.value.trim() !== '')
+			);
+			return b.jsx_fragment(children);
+		}
+
+		const children_filtered = node.children
+			.map((child) => jsx_to_ripple_node(/** @type {AST.Node} */ (child)))
+			.flat()
+			.filter(
+				(child) => child != null && child.type !== 'EmptyStatement' && child.type !== 'Component',
+			);
+
+		const children_component = b.component(b.id('render_children'), [], children_filtered);
+
+		const element = b.call(
+			'_$_.ripple_element',
+			/** @type {AST.Expression} */ (
+				visit(children_component, {
+					...state,
+					namespace: state.namespace,
+				})
+			),
+		);
+
+		// Template body context: push to template and schedule update
+		if (state.flush_node) {
+			state.template?.push('<!>');
+
+			const id = state.flush_node(false);
+
+			state.update?.push({
+				operation: () => {
+					const call = b.call('_$_.expression', id, b.thunk(element));
+					return state.namespace !== DEFAULT_NAMESPACE
+						? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(call)))
+						: b.stmt(call);
+				},
+			});
+			return;
+		}
+
+		// Expression context: return the ripple_element directly as an expression value
+		return element;
 	},
 
 	Element(node, context) {
@@ -1574,6 +1638,7 @@ const visitors = {
 							child.type === 'TryStatement' ||
 							child.type === 'ForOfStatement' ||
 							child.type === 'SwitchStatement' ||
+							child.type === 'Tsx' ||
 							child.type === 'TsxCompat' ||
 							child.type === 'Html' ||
 							(child.type === 'Element' &&
@@ -3064,6 +3129,18 @@ function transform_ts_child(node, context) {
 		);
 
 		state.init?.push(b.stmt(b.jsx_fragment(children)));
+	} else if (node.type === 'Tsx') {
+		const children = /** @type {AST.Tsx['children']} */ (
+			node.children
+				.map((child) => visit(/** @type {AST.Node} */ (child), state))
+				.filter((child) => child.type !== 'JSXText' || child.value.trim() !== '')
+		);
+
+		const result = b.jsx_fragment(children);
+		if (!state.init) {
+			return result;
+		}
+		state.init.push(b.stmt(result));
 	} else if (node.type === 'JSXExpressionContainer') {
 		// JSX comments {/* ... */} are JSXExpressionContainer with JSXEmptyExpression
 		// These should be preserved in the output as-is for prettier to handle
@@ -3105,6 +3182,7 @@ function is_template_or_control_flow(node) {
 		node.type === 'RippleExpression' ||
 		node.type === 'Text' ||
 		node.type === 'Html' ||
+		node.type === 'Tsx' ||
 		node.type === 'TsxCompat' ||
 		node.type === 'IfStatement' ||
 		node.type === 'ForOfStatement' ||
@@ -3196,6 +3274,7 @@ function element_has_dynamic_content(element) {
 			child.type === 'TryStatement' ||
 			child.type === 'ForOfStatement' ||
 			child.type === 'SwitchStatement' ||
+			child.type === 'Tsx' ||
 			child.type === 'TsxCompat' ||
 			child.type === 'Html'
 		) {
@@ -3371,6 +3450,7 @@ function transform_children(children, context) {
 				node.type === 'TryStatement' ||
 				node.type === 'ForOfStatement' ||
 				node.type === 'SwitchStatement' ||
+				node.type === 'Tsx' ||
 				node.type === 'TsxCompat' ||
 				node.type === 'Html' ||
 				(node.type === 'Element' &&
@@ -3652,6 +3732,7 @@ function transform_children(children, context) {
 							child.type === 'TryStatement' ||
 							child.type === 'ForOfStatement' ||
 							child.type === 'SwitchStatement' ||
+							child.type === 'Tsx' ||
 							child.type === 'TsxCompat' ||
 							child.type === 'Html' ||
 							(child.type === 'Element' &&
@@ -3682,6 +3763,7 @@ function transform_children(children, context) {
 							next_node.type === 'TryStatement' ||
 							next_node.type === 'ForOfStatement' ||
 							next_node.type === 'SwitchStatement' ||
+							next_node.type === 'Tsx' ||
 							next_node.type === 'TsxCompat'
 						) {
 							needs_sibling_call = true;
@@ -3693,7 +3775,7 @@ function transform_children(children, context) {
 						}
 					}
 				}
-			} else if (node.type === 'TsxCompat') {
+			} else if (node.type === 'TsxCompat' || node.type === 'Tsx') {
 				skipped = 0;
 
 				visit(node, {
@@ -3721,10 +3803,6 @@ function transform_children(children, context) {
 				});
 			} else if (node.type === 'RippleExpression') {
 				const expr = /** @type {AST.Expression} */ (expression);
-				const is_children_expression = is_children_template_expression(
-					node.expression,
-					state.scope,
-				);
 
 				if (expr.type === 'Literal') {
 					if (normalized.length === 1) {
@@ -3743,60 +3821,26 @@ function transform_children(children, context) {
 						skipped++;
 						state.template?.push(escape_html(expr.value));
 					}
-				} else if (is_children_expression) {
+				} else if (normalized.length === 1) {
+					skipped++;
+					state.template?.push(' ');
+					const id = flush_node(true);
+					const call = b.call('_$_.expression', id, b.thunk(expr));
+					state.init?.push(
+						state.namespace !== DEFAULT_NAMESPACE
+							? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(call)))
+							: b.stmt(call),
+					);
+				} else {
 					skipped = 0;
 					state.template?.push('<!>');
 					const id = flush_node(false);
-					state.update?.push({
-						operation: () => {
-							const call = b.call('_$_.expression', id, b.thunk(expr));
-							return state.namespace !== DEFAULT_NAMESPACE
-								? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(call)))
-								: b.stmt(call);
-						},
-					});
-					if (metadata?.await) {
-						/** @type {NonNullable<TransformClientState['update']>} */ (state.update).async = true;
-					}
-				} else if (metadata?.tracking) {
-					skipped = 0;
-					state.template?.push(' ');
-					const id = flush_node(true);
-					state.update?.push({
-						operation: (key) => b.stmt(b.call('_$_.set_text', id, key)),
-						expression: expr,
-						identity: node.expression,
-						initial: b.literal(' '),
-					});
-					if (metadata.await) {
-						/** @type {NonNullable<TransformClientState['update']>} */ (state.update).async = true;
-					}
-				} else if (normalized.length === 1) {
-					skipped++;
-					const id = flush_node(true);
-					state.template?.push(' ');
+					const call = b.call('_$_.expression', id, b.thunk(expr));
 					state.init?.push(
-						b.stmt(
-							b.assignment(
-								'=',
-								b.member(/** @type {AST.Identifier} */ (id), b.id('nodeValue')),
-								expr,
-							),
-						),
+						state.namespace !== DEFAULT_NAMESPACE
+							? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(call)))
+							: b.stmt(call),
 					);
-				} else {
-					skipped++;
-					state.template?.push(' ');
-					const id = flush_node(true);
-					state.update?.push({
-						operation: (key) => b.stmt(b.call('_$_.set_text', id, key)),
-						expression: expr,
-						identity: node.expression,
-						initial: b.literal(' '),
-					});
-					if (metadata?.await) {
-						/** @type {NonNullable<TransformClientState['update']>} */ (state.update).async = true;
-					}
 				}
 			} else if (node.type === 'Text') {
 				if (metadata?.tracking) {

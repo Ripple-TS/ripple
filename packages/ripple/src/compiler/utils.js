@@ -1087,3 +1087,110 @@ export function get_ripple_namespace_call_name(name) {
 export function ripple_import_requires_block(name) {
 	return name !== 'effect' && name !== 'untrack' && name !== 'Context';
 }
+
+/**
+ * Converts a JSX AST node (JSXElement, JSXText, etc.) to a Ripple AST node
+ * (Element, Text, RippleExpression) for processing inside `<tsx>` blocks.
+ * @param {AST.Node} node
+ * @returns {AST.Node | AST.Node[] | null}
+ */
+export function jsx_to_ripple_node(node) {
+	if (node.type === 'JSXElement') {
+		const opening = node.openingElement;
+		const name = opening.name;
+
+		const id =
+			name.type === 'JSXIdentifier'
+				? /** @type {AST.Identifier} */ ({
+						type: 'Identifier',
+						name: name.name,
+						start: name.start,
+						end: name.end,
+					})
+				: /** @type {AST.Identifier} */ ({
+						type: 'Identifier',
+						name: 'unknown',
+						start: name.start,
+						end: name.end,
+					});
+
+		const attributes = opening.attributes
+			.map((attr) => {
+				if (attr.type === 'JSXAttribute') {
+					const is_dynamic = attr.value && attr.value.type === 'JSXExpressionContainer';
+					return /** @type {AST.Node} */ ({
+						type: 'Attribute',
+						name: {
+							type: 'Identifier',
+							name: attr.name.type === 'JSXIdentifier' ? attr.name.name : attr.name.name,
+							tracked: is_dynamic,
+							start: attr.name.start,
+							end: attr.name.end,
+						},
+						value: attr.value
+							? attr.value.type === 'JSXExpressionContainer'
+								? attr.value.expression
+								: attr.value
+							: null,
+						shorthand: false,
+						start: attr.start,
+						end: attr.end,
+					});
+				} else if (attr.type === 'JSXSpreadAttribute') {
+					return /** @type {AST.Node} */ ({
+						type: 'SpreadAttribute',
+						argument: attr.argument,
+						start: attr.start,
+						end: attr.end,
+					});
+				}
+				return null;
+			})
+			.filter(Boolean);
+
+		const children = node.children.map(jsx_to_ripple_node).flat().filter(Boolean);
+
+		return /** @type {AST.Node} */ ({
+			type: 'Element',
+			id,
+			attributes,
+			children,
+			selfClosing: opening.selfClosing,
+			metadata: { scoped: false },
+			start: node.start,
+			end: node.end,
+		});
+	}
+
+	if (node.type === 'JSXText') {
+		if (node.value.trim() === '') return null;
+		return /** @type {AST.Node} */ ({
+			type: 'Text',
+			expression: {
+				type: 'Literal',
+				value: node.value,
+				raw: JSON.stringify(node.value),
+				start: node.start,
+				end: node.end,
+			},
+			start: node.start,
+			end: node.end,
+		});
+	}
+
+	if (node.type === 'JSXExpressionContainer') {
+		if (node.expression.type === 'JSXEmptyExpression') return null;
+		return /** @type {AST.Node} */ ({
+			type: 'RippleExpression',
+			expression: node.expression,
+			start: node.start,
+			end: node.end,
+		});
+	}
+
+	if (node.type === 'JSXFragment') {
+		return node.children.map(jsx_to_ripple_node).flat().filter(Boolean);
+	}
+
+	return node;
+}

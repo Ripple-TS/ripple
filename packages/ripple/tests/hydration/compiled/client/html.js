@@ -7,7 +7,7 @@ var root_2 = _$_.template(`<div><!></div>`, 0);
 var root_3 = _$_.template(`<section><!></section>`, 0);
 var root_4 = _$_.template(`<div><!><!></div>`, 0);
 var root_5 = _$_.template(`<div><!><button>Increment</button></div>`, 0);
-var root_6 = _$_.template(`<div class="wrapper"><div class="inner"><!></div></div>`, 0);
+var root_6 = _$_.template(`<div class="wrapper"><div class="inner"> </div></div>`, 0);
 var root_8 = _$_.template(`<div class="vp-doc"><!></div>`, 0);
 var root_7 = _$_.template(`<!>`, 1, 1);
 var root_10 = _$_.template(`<h1>Title</h1><div class="content"><!></div>`, 1, 2);
@@ -23,23 +23,23 @@ var root_19 = _$_.template(`<div class="edit-link"><a>Edit</a></div>`, 0);
 var root_20 = _$_.template(`<nav class="prev-next"><a> </a></nav>`, 0);
 var root_22 = _$_.template(`<li><a> </a></li>`, 0);
 var root_21 = _$_.template(`<div class="toc"><ul></ul></div>`, 0);
-var root_18 = _$_.template(`<div class="layout"><div class="content-container"><article><div><!></div></article><!><!><!></div><aside><!></aside></div>`, 0);
+var root_18 = _$_.template(`<div class="layout"><div class="content-container"><article><div> </div></article><!><!><!></div><aside><!></aside></div>`, 0);
 var root_24 = _$_.template(`<div class="vp-doc"><!></div>`, 0);
 var root_23 = _$_.template(`<!>`, 1, 1);
 var root_26 = _$_.template(`<div class="vp-doc"><!></div>`, 0);
 var root_25 = _$_.template(`<!>`, 1, 1);
 var root_28 = _$_.template(`<div class="vp-doc"><!></div>`, 0);
 var root_27 = _$_.template(`<!>`, 1, 1);
-var root_30 = _$_.template(`<h1 class="heading"><!></h1>`, 0);
-var root_31 = _$_.template(`<h2 class="heading"><!></h2>`, 0);
+var root_30 = _$_.template(`<h1 class="heading"> </h1>`, 0);
+var root_31 = _$_.template(`<h2 class="heading"> </h2>`, 0);
 var root_29 = _$_.template(`<!>`, 1, 1);
 var root_32 = _$_.template(`<div class="code-block"><div class="header"><button>Copy</button><span class="lang">js</span></div><div class="content"><!></div></div>`, 0);
-var root_33 = _$_.template(`<div class="wrapper"><div class="inner"><!></div></div>`, 0);
+var root_33 = _$_.template(`<div class="wrapper"><div class="inner"> </div></div>`, 0);
 var root_35 = _$_.template(`<!><p>First paragraph</p><p>Second paragraph</p><!><p>After code</p>`, 1, 5);
 var root_34 = _$_.template(`<!>`, 1, 1);
 var root_37 = _$_.template(`<div class="indicator"></div>`, 0);
 var root_36 = _$_.template(`<div><!><a><span> </span></a></div>`, 0);
-var root_39 = _$_.template(`<div class="section-items"><!></div>`, 0);
+var root_39 = _$_.template(`<div class="section-items"> </div>`, 0);
 var root_38 = _$_.template(`<section class="sidebar-section"><div class="section-header"><h2> </h2><button>Toggle</button></div><!></section>`, 0);
 var root_41 = _$_.template(`<!><!>`, 1, 2);
 var root_42 = _$_.template(`<!><!>`, 1, 2);
@@ -47,7 +47,7 @@ var root_40 = _$_.template(`<aside class="sidebar"><nav><div class="group"><!></
 var root_43 = _$_.template(`<header class="page-header"><div class="logo">MyApp</div></header>`, 0);
 var root_45 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
 var root_44 = _$_.template(`<div class="layout"><!><div class="content-wrapper"><!><main class="main-content"><div class="article"><div><h1>Introduction</h1><p>Welcome to the docs.</p></div></div><!><!></main></div></div>`, 0);
-var root_46 = _$_.template(`<article class="doc-content"><div><!></div></article>`, 0);
+var root_46 = _$_.template(`<article class="doc-content"><div> </div></article>`, 0);
 var root_47 = _$_.template(`<footer class="doc-footer">Footer</footer>`, 0);
 var root_49 = _$_.template(`<h1>Title</h1><p>Content goes here.</p>`, 1, 2);
 var root_50 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
@@ -57,7 +57,7 @@ var root_53 = _$_.template(`<div class="doc-content"><!></div>`, 0);
 var root_54 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
 var root_52 = _$_.template(`<div class="content-container"><!><!><!></div>`, 0);
 var root_56 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
-var root_55 = _$_.template(`<div class="content-container"><article class="doc-content"><div><!></div></article><!><!></div>`, 0);
+var root_55 = _$_.template(`<div class="content-container"><article class="doc-content"><div> </div></article><!><!></div>`, 0);
 var root_58 = _$_.template(`<div class="doc-content"><!></div>`, 0);
 var root_57 = _$_.template(`<!>`, 1, 1);
 var root_59 = _$_.template(`<header class="header">Header</header>`, 0);
@@ -65,7 +65,7 @@ var root_60 = _$_.template(`<aside class="sidebar">Sidebar</aside>`, 0);
 var root_61 = _$_.template(`<footer class="footer">Footer</footer>`, 0);
 var root_63 = _$_.template(`<div class="edit-link"><a href="/edit">Edit on GitHub</a></div>`, 0);
 var root_64 = _$_.template(`<nav class="prev-next"><a> </a></nav>`, 0);
-var root_62 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article><!><!><!></div></div></div></main></div></div>`, 0);
+var root_62 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div> </div></article><!><!><!></div></div></div></main></div></div>`, 0);
 var root_66 = _$_.template(`<div class="doc-content"><!></div>`, 0);
 var root_65 = _$_.template(`<!>`, 1, 1);
 var root_68 = _$_.template(`<div class="doc-content"><!></div>`, 0);
@@ -77,14 +77,14 @@ var root_74 = _$_.template(`<a class="pager next"><span class="title"> </span></
 var root_71 = _$_.template(`<nav class="prev-next"><!><!></nav>`, 0);
 var root_76 = _$_.template(`<a> </a>`, 0);
 var root_75 = _$_.template(`<div class="aside-content"><nav class="outline"></nav></div>`, 0);
-var root_69 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article><!><!><!></div></div><aside class="aside"><!></aside></div></main></div></div>`, 0);
+var root_69 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div> </div></article><!><!><!></div></div><aside class="aside"><!></aside></div></main></div></div>`, 0);
 var root_78 = _$_.template(`<div class="doc-content"><!></div>`, 0);
 var root_77 = _$_.template(`<!>`, 1, 1);
 var root_80 = _$_.template(`<div class="doc-content"><!></div>`, 0);
 var root_79 = _$_.template(`<!>`, 1, 1);
 var root_81 = _$_.template(`<div><template id="t1"></template><p class="content">Main content</p></div>`, 0);
 var root_82 = _$_.template(`<div class="wrapper"><h1>Title</h1><template id="data-template"></template><p class="after-template">Content after template</p></div>`, 0);
-var root_83 = _$_.template(`<div class="layout"><template id="page-data"></template><main><!></main></div>`, 0);
+var root_83 = _$_.template(`<div class="layout"><template id="page-data"></template><main> </main></div>`, 0);
 var root_85 = _$_.template(`<div class="doc-content"><!></div>`, 0);
 var root_84 = _$_.template(`<!>`, 1, 1);
 
@@ -224,15 +224,12 @@ export function HtmlWrapper(__anchor, { children }, __block) {
 		var div_7 = _$_.child(div_6);
 
 		{
-			var expression = _$_.child(div_7);
+			var expression = _$_.child(div_7, true);
 
+			_$_.expression(expression, () => children);
 			_$_.pop(div_7);
 		}
 	}
-
-	_$_.render(() => {
-		_$_.expression(expression, () => children);
-	});
 
 	_$_.append(__anchor, div_6);
 	_$_.pop_component();
@@ -460,8 +457,9 @@ export function DocLayout(
 				var div_15 = _$_.child(article_1);
 
 				{
-					var expression_1 = _$_.child(div_15);
+					var expression_1 = _$_.child(div_15, true);
 
+					_$_.expression(expression_1, () => children);
 					_$_.pop(div_15);
 				}
 			}
@@ -500,26 +498,14 @@ export function DocLayout(
 						{
 							var expression_2 = _$_.child(a_2, true);
 
+							_$_.expression(expression_2, () => nextLink.text);
 							_$_.pop(a_2);
 						}
 					}
 
-					_$_.render(
-						(__prev) => {
-							var __a = nextLink.text;
-
-							if (__prev.a !== __a) {
-								_$_.set_text(expression_2, __prev.a = __a);
-							}
-
-							var __b = nextLink.href;
-
-							if (__prev.b !== __b) {
-								_$_.set_attribute(a_2, 'href', __prev.b = __b);
-							}
-						},
-						{ a: ' ', b: void 0 }
-					);
+					_$_.render(() => {
+						_$_.set_attribute(a_2, 'href', nextLink.href);
+					});
 
 					_$_.append(__anchor, nav_1);
 				};
@@ -560,26 +546,14 @@ export function DocLayout(
 										{
 											var expression_3 = _$_.child(a_3, true);
 
+											_$_.expression(expression_3, () => item.text);
 											_$_.pop(a_3);
 										}
 									}
 
-									_$_.render(
-										(__prev) => {
-											var __a = item.text;
-
-											if (__prev.a !== __a) {
-												_$_.set_text(expression_3, __prev.a = __a);
-											}
-
-											var __b = item.href;
-
-											if (__prev.b !== __b) {
-												_$_.set_attribute(a_3, 'href', __prev.b = __b);
-											}
-										},
-										{ a: ' ', b: void 0 }
-									);
+									_$_.render(() => {
+										_$_.set_attribute(a_3, 'href', item.href);
+									});
 
 									_$_.append(__anchor, li_1);
 								},
@@ -601,10 +575,6 @@ export function DocLayout(
 			_$_.pop(aside_1);
 		}
 	}
-
-	_$_.render(() => {
-		_$_.expression(expression_1, () => children);
-	});
 
 	_$_.append(__anchor, div_14);
 	_$_.pop_component();
@@ -736,14 +706,11 @@ function DynamicHeading(__anchor, { level, children }, __block) {
 			var h1_2 = root_30();
 
 			{
-				var expression_4 = _$_.child(h1_2);
+				var expression_4 = _$_.child(h1_2, true);
 
+				_$_.expression(expression_4, () => children);
 				_$_.pop(h1_2);
 			}
-
-			_$_.render(() => {
-				_$_.expression(expression_4, () => children);
-			});
 
 			_$_.append(__anchor, h1_2);
 		};
@@ -752,14 +719,11 @@ function DynamicHeading(__anchor, { level, children }, __block) {
 			var h2_1 = root_31();
 
 			{
-				var expression_5 = _$_.child(h2_1);
+				var expression_5 = _$_.child(h2_1, true);
 
+				_$_.expression(expression_5, () => children);
 				_$_.pop(h2_1);
 			}
-
-			_$_.render(() => {
-				_$_.expression(expression_5, () => children);
-			});
 
 			_$_.append(__anchor, h2_1);
 		};
@@ -819,15 +783,12 @@ function ContentWrapper(__anchor, { children }, __block) {
 		var div_26 = _$_.child(div_25);
 
 		{
-			var expression_6 = _$_.child(div_26);
+			var expression_6 = _$_.child(div_26, true);
 
+			_$_.expression(expression_6, () => children);
 			_$_.pop(div_26);
 		}
 	}
-
-	_$_.render(() => {
-		_$_.expression(expression_6, () => children);
-	});
 
 	_$_.append(__anchor, div_25);
 	_$_.pop_component();
@@ -912,7 +873,7 @@ function NavItem(__anchor, { href, text: label, active = false }, __block) {
 			{
 				var expression_8 = _$_.child(span_1, true);
 
-				expression_8.nodeValue = label;
+				_$_.expression(expression_8, () => label);
 				_$_.pop(span_1);
 			}
 		}
@@ -939,7 +900,7 @@ function SidebarSection(__anchor, { title, children }, __block) {
 			{
 				var expression_9 = _$_.child(h2_2, true);
 
-				expression_9.nodeValue = title;
+				_$_.expression(expression_9, () => title);
 				_$_.pop(h2_2);
 			}
 
@@ -957,14 +918,11 @@ function SidebarSection(__anchor, { title, children }, __block) {
 				var div_30 = root_39();
 
 				{
-					var expression_10 = _$_.child(div_30);
+					var expression_10 = _$_.child(div_30, true);
 
+					_$_.expression(expression_10, () => children);
 					_$_.pop(div_30);
 				}
-
-				_$_.render(() => {
-					_$_.expression(expression_10, () => children);
-				});
 
 				_$_.append(__anchor, div_30);
 			};
@@ -1162,15 +1120,12 @@ function ArticleWrapper(__anchor, { children }, __block) {
 		var div_37 = _$_.child(article_2);
 
 		{
-			var expression_11 = _$_.child(div_37);
+			var expression_11 = _$_.child(div_37, true);
 
+			_$_.expression(expression_11, () => children);
 			_$_.pop(div_37);
 		}
 	}
-
-	_$_.render(() => {
-		_$_.expression(expression_11, () => children);
-	});
 
 	_$_.append(__anchor, article_2);
 	_$_.pop_component();
@@ -1316,8 +1271,9 @@ function InlineArticleLayout(__anchor, { children }, __block) {
 			var div_44 = _$_.child(article_3);
 
 			{
-				var expression_12 = _$_.child(div_44);
+				var expression_12 = _$_.child(div_44, true);
 
+				_$_.expression(expression_12, () => children);
 				_$_.pop(div_44);
 			}
 		}
@@ -1343,10 +1299,6 @@ function InlineArticleLayout(__anchor, { children }, __block) {
 		SimpleFooter(node_54, {}, _$_.active_block);
 		_$_.pop(div_43);
 	}
-
-	_$_.render(() => {
-		_$_.expression(expression_12, () => children);
-	});
 
 	_$_.append(__anchor, div_43);
 	_$_.pop_component();
@@ -1454,8 +1406,9 @@ function DocsLayoutInner(
 								var div_49 = _$_.child(article_4);
 
 								{
-									var expression_13 = _$_.child(div_49);
+									var expression_13 = _$_.child(div_49, true);
 
+									_$_.expression(expression_13, () => children);
 									_$_.pop(div_49);
 								}
 							}
@@ -1488,26 +1441,14 @@ function DocsLayoutInner(
 										{
 											var expression_14 = _$_.child(a_5, true);
 
+											_$_.expression(expression_14, () => nextLink.text);
 											_$_.pop(a_5);
 										}
 									}
 
-									_$_.render(
-										(__prev) => {
-											var __a = nextLink.text;
-
-											if (__prev.a !== __a) {
-												_$_.set_text(expression_14, __prev.a = __a);
-											}
-
-											var __b = nextLink.href;
-
-											if (__prev.b !== __b) {
-												_$_.set_attribute(a_5, 'href', __prev.b = __b);
-											}
-										},
-										{ a: ' ', b: void 0 }
-									);
+									_$_.render(() => {
+										_$_.set_attribute(a_5, 'href', nextLink.href);
+									});
 
 									_$_.append(__anchor, nav_4);
 								};
@@ -1531,10 +1472,6 @@ function DocsLayoutInner(
 
 		_$_.pop(div_47);
 	}
-
-	_$_.render(() => {
-		_$_.expression(expression_13, () => children);
-	});
 
 	_$_.append(__anchor, div_47);
 	_$_.pop_component();
@@ -1659,8 +1596,9 @@ function DocsLayoutExact(
 								var div_58 = _$_.child(article_5);
 
 								{
-									var expression_15 = _$_.child(div_58);
+									var expression_15 = _$_.child(div_58, true);
 
+									_$_.expression(expression_15, () => children);
 									_$_.pop(div_58);
 								}
 							}
@@ -1706,26 +1644,14 @@ function DocsLayoutExact(
 													{
 														var expression_16 = _$_.child(span_2, true);
 
+														_$_.expression(expression_16, () => prevLink.text);
 														_$_.pop(span_2);
 													}
 												}
 
-												_$_.render(
-													(__prev) => {
-														var __a = prevLink.text;
-
-														if (__prev.a !== __a) {
-															_$_.set_text(expression_16, __prev.a = __a);
-														}
-
-														var __b = prevLink.href;
-
-														if (__prev.b !== __b) {
-															_$_.set_attribute(a_7, 'href', __prev.b = __b);
-														}
-													},
-													{ a: ' ', b: void 0 }
-												);
+												_$_.render(() => {
+													_$_.set_attribute(a_7, 'href', prevLink.href);
+												});
 
 												_$_.append(__anchor, a_7);
 											};
@@ -1753,26 +1679,14 @@ function DocsLayoutExact(
 													{
 														var expression_17 = _$_.child(span_4, true);
 
+														_$_.expression(expression_17, () => nextLink.text);
 														_$_.pop(span_4);
 													}
 												}
 
-												_$_.render(
-													(__prev) => {
-														var __a = nextLink.text;
-
-														if (__prev.a !== __a) {
-															_$_.set_text(expression_17, __prev.a = __a);
-														}
-
-														var __b = nextLink.href;
-
-														if (__prev.b !== __b) {
-															_$_.set_attribute(a_8, 'href', __prev.b = __b);
-														}
-													},
-													{ a: ' ', b: void 0 }
-												);
+												_$_.render(() => {
+													_$_.set_attribute(a_8, 'href', nextLink.href);
+												});
 
 												_$_.append(__anchor, a_8);
 											};
@@ -1824,25 +1738,13 @@ function DocsLayoutExact(
 												{
 													var expression_18 = _$_.child(a_9, true);
 
+													_$_.expression(expression_18, () => item.text);
 													_$_.pop(a_9);
 												}
 
-												_$_.render(
-													(__prev) => {
-														var __a = item.text;
-
-														if (__prev.a !== __a) {
-															_$_.set_text(expression_18, __prev.a = __a);
-														}
-
-														var __b = item.href;
-
-														if (__prev.b !== __b) {
-															_$_.set_attribute(a_9, 'href', __prev.b = __b);
-														}
-													},
-													{ a: ' ', b: void 0 }
-												);
+												_$_.render(() => {
+													_$_.set_attribute(a_9, 'href', item.href);
+												});
 
 												_$_.append(__anchor, a_9);
 											},
@@ -1871,10 +1773,6 @@ function DocsLayoutExact(
 
 		_$_.pop(div_56);
 	}
-
-	_$_.render(() => {
-		_$_.expression(expression_15, () => children);
-	});
 
 	_$_.append(__anchor, div_56);
 	_$_.pop_component();
@@ -2015,24 +1913,16 @@ function LayoutWithTemplate(__anchor, { children, data }, __block) {
 		var main_4 = _$_.sibling(template_3);
 
 		{
-			var expression_19 = _$_.child(main_4);
+			var expression_19 = _$_.child(main_4, true);
 
+			_$_.expression(expression_19, () => children);
 			_$_.pop(main_4);
 		}
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = _$_.with_scope(__block, () => JSON.stringify(data));
-
-			if (__prev.a !== __a) {
-				template_3.innerHTML = __prev.a = __a;
-			}
-
-			_$_.expression(expression_19, () => children);
-		},
-		{ a: '' }
-	);
+	_$_.render(() => {
+		template_3.innerHTML = _$_.with_scope(__block, () => JSON.stringify(data));
+	});
 
 	_$_.append(__anchor, div_68);
 	_$_.pop_component();

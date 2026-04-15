@@ -82,7 +82,7 @@ export function StaticForLoop(__anchor, _, __block) {
 				{
 					var expression = _$_.child(li_1, true);
 
-					expression.nodeValue = item;
+					_$_.expression(expression, () => item);
 					_$_.pop(li_1);
 				}
 
@@ -114,12 +114,9 @@ export function ForLoopWithIndex(__anchor, _, __block) {
 				{
 					var expression_1 = _$_.child(li_2, true);
 
+					_$_.expression(expression_1, () => `${_$_.get(i)}: ${item}`);
 					_$_.pop(li_2);
 				}
-
-				_$_.render(() => {
-					_$_.set_text(expression_1, `${_$_.get(i)}: ${item}`);
-				});
 
 				_$_.append(__anchor, li_2);
 			},
@@ -154,12 +151,9 @@ export function KeyedForLoop(__anchor, _, __block) {
 				{
 					var expression_2 = _$_.child(li_3, true);
 
+					_$_.expression(expression_2, () => _$_.get(pattern).name);
 					_$_.pop(li_3);
 				}
-
-				_$_.render(() => {
-					_$_.set_text(expression_2, _$_.get(pattern).name);
-				});
 
 				_$_.append(__anchor, li_3);
 			},
@@ -197,7 +191,7 @@ export function ReactiveForLoopAdd(__anchor, _, __block) {
 				{
 					var expression_3 = _$_.child(li_4, true);
 
-					expression_3.nodeValue = item;
+					_$_.expression(expression_3, () => item);
 					_$_.pop(li_4);
 				}
 
@@ -237,7 +231,7 @@ export function ReactiveForLoopRemove(__anchor, _, __block) {
 				{
 					var expression_4 = _$_.child(li_5, true);
 
-					expression_4.nodeValue = item;
+					_$_.expression(expression_4, () => item);
 					_$_.pop(li_5);
 				}
 
@@ -273,7 +267,7 @@ export function ForLoopInteractive(__anchor, _, __block) {
 					{
 						var expression_5 = _$_.child(span_1, true);
 
-						expression_5.nodeValue = count;
+						_$_.expression(expression_5, () => count);
 						_$_.pop(span_1);
 					}
 
@@ -326,7 +320,7 @@ export function NestedForLoop(__anchor, _, __block) {
 							{
 								var expression_6 = _$_.child(span_2, true);
 
-								expression_6.nodeValue = cell;
+								_$_.expression(expression_6, () => cell);
 								_$_.pop(span_2);
 							}
 
@@ -374,7 +368,7 @@ export function EmptyForLoop(__anchor, _, __block) {
 				{
 					var expression_7 = _$_.child(span_3, true);
 
-					expression_7.nodeValue = item;
+					_$_.expression(expression_7, () => item);
 					_$_.pop(span_3);
 				}
 
@@ -413,6 +407,7 @@ export function ForLoopComplexObjects(__anchor, _, __block) {
 					{
 						var expression_8 = _$_.child(span_4, true);
 
+						_$_.expression(expression_8, () => _$_.get(pattern_1).name);
 						_$_.pop(span_4);
 					}
 
@@ -421,32 +416,14 @@ export function ForLoopComplexObjects(__anchor, _, __block) {
 					{
 						var expression_9 = _$_.child(span_5, true);
 
+						_$_.expression(expression_9, () => _$_.get(pattern_1).role);
 						_$_.pop(span_5);
 					}
 				}
 
-				_$_.render(
-					(__prev) => {
-						var __a = _$_.get(pattern_1).name;
-
-						if (__prev.a !== __a) {
-							_$_.set_text(expression_8, __prev.a = __a);
-						}
-
-						var __b = _$_.get(pattern_1).role;
-
-						if (__prev.b !== __b) {
-							_$_.set_text(expression_9, __prev.b = __b);
-						}
-
-						var __c = `user-${_$_.get(pattern_1).id}`;
-
-						if (__prev.c !== __c) {
-							_$_.set_class(div_7, __prev.c = __c, void 0, true);
-						}
-					},
-					{ a: ' ', b: ' ', c: Symbol() }
-				);
+				_$_.render(() => {
+					_$_.set_class(div_7, `user-${_$_.get(pattern_1).id}`, void 0, true);
+				});
 
 				_$_.append(__anchor, div_7);
 			},
@@ -494,25 +471,13 @@ export function KeyedForLoopReorder(__anchor, _, __block) {
 				{
 					var expression_10 = _$_.child(li_6, true);
 
+					_$_.expression(expression_10, () => _$_.get(pattern_2).name);
 					_$_.pop(li_6);
 				}
 
-				_$_.render(
-					(__prev) => {
-						var __a = _$_.get(pattern_2).name;
-
-						if (__prev.a !== __a) {
-							_$_.set_text(expression_10, __prev.a = __a);
-						}
-
-						var __b = `item-${_$_.get(pattern_2).id}`;
-
-						if (__prev.b !== __b) {
-							_$_.set_class(li_6, __prev.b = __b, void 0, true);
-						}
-					},
-					{ a: ' ', b: Symbol() }
-				);
+				_$_.render(() => {
+					_$_.set_class(li_6, `item-${_$_.get(pattern_2).id}`, void 0, true);
+				});
 
 				_$_.append(__anchor, li_6);
 			},
@@ -551,25 +516,13 @@ export function KeyedForLoopUpdate(__anchor, _, __block) {
 				{
 					var expression_11 = _$_.child(li_7, true);
 
+					_$_.expression(expression_11, () => _$_.get(pattern_3).name);
 					_$_.pop(li_7);
 				}
 
-				_$_.render(
-					(__prev) => {
-						var __a = _$_.get(pattern_3).name;
-
-						if (__prev.a !== __a) {
-							_$_.set_text(expression_11, __prev.a = __a);
-						}
-
-						var __b = `item-${_$_.get(pattern_3).id}`;
-
-						if (__prev.b !== __b) {
-							_$_.set_class(li_7, __prev.b = __b, void 0, true);
-						}
-					},
-					{ a: ' ', b: Symbol() }
-				);
+				_$_.render(() => {
+					_$_.set_class(li_7, `item-${_$_.get(pattern_3).id}`, void 0, true);
+				});
 
 				_$_.append(__anchor, li_7);
 			},
@@ -610,7 +563,7 @@ export function ForLoopMixedOperations(__anchor, _, __block) {
 				{
 					var expression_12 = _$_.child(li_8, true);
 
-					expression_12.nodeValue = item;
+					_$_.expression(expression_12, () => item);
 					_$_.pop(li_8);
 				}
 
@@ -661,7 +614,7 @@ export function ForLoopInsideIf(__anchor, _, __block) {
 						{
 							var expression_13 = _$_.child(li_9, true);
 
-							expression_13.nodeValue = item;
+							_$_.expression(expression_13, () => item);
 							_$_.pop(li_9);
 						}
 
@@ -708,7 +661,7 @@ export function ForLoopEmptyToPopulated(__anchor, _, __block) {
 				{
 					var expression_14 = _$_.child(li_10, true);
 
-					expression_14.nodeValue = item;
+					_$_.expression(expression_14, () => item);
 					_$_.pop(li_10);
 				}
 
@@ -748,7 +701,7 @@ export function ForLoopPopulatedToEmpty(__anchor, _, __block) {
 				{
 					var expression_15 = _$_.child(li_11, true);
 
-					expression_15.nodeValue = item;
+					_$_.expression(expression_15, () => item);
 					_$_.pop(li_11);
 				}
 
@@ -804,7 +757,7 @@ export function NestedForLoopReactive(__anchor, _, __block) {
 							{
 								var expression_16 = _$_.child(span_6, true);
 
-								expression_16.nodeValue = cell;
+								_$_.expression(expression_16, () => cell);
 								_$_.pop(span_6);
 							}
 
@@ -872,6 +825,7 @@ export function ForLoopDeeplyNested(__anchor, _, __block) {
 					{
 						var expression_17 = _$_.child(h2_1, true);
 
+						_$_.expression(expression_17, () => _$_.get(pattern_4).name);
 						_$_.pop(h2_1);
 					}
 
@@ -889,6 +843,7 @@ export function ForLoopDeeplyNested(__anchor, _, __block) {
 								{
 									var expression_18 = _$_.child(h3_1, true);
 
+									_$_.expression(expression_18, () => _$_.get(pattern_5).name);
 									_$_.pop(h3_1);
 								}
 
@@ -904,7 +859,7 @@ export function ForLoopDeeplyNested(__anchor, _, __block) {
 											{
 												var expression_19 = _$_.child(li_12, true);
 
-												expression_19.nodeValue = member;
+												_$_.expression(expression_19, () => member);
 												_$_.pop(li_12);
 											}
 
@@ -917,22 +872,9 @@ export function ForLoopDeeplyNested(__anchor, _, __block) {
 								}
 							}
 
-							_$_.render(
-								(__prev) => {
-									var __a = _$_.get(pattern_5).name;
-
-									if (__prev.a !== __a) {
-										_$_.set_text(expression_18, __prev.a = __a);
-									}
-
-									var __b = `team-${_$_.get(pattern_5).id}`;
-
-									if (__prev.b !== __b) {
-										_$_.set_class(div_12, __prev.b = __b, void 0, true);
-									}
-								},
-								{ a: ' ', b: Symbol() }
-							);
+							_$_.render(() => {
+								_$_.set_class(div_12, `team-${_$_.get(pattern_5).id}`, void 0, true);
+							});
 
 							_$_.append(__anchor, div_12);
 						},
@@ -943,22 +885,9 @@ export function ForLoopDeeplyNested(__anchor, _, __block) {
 					_$_.pop(div_11);
 				}
 
-				_$_.render(
-					(__prev) => {
-						var __a = _$_.get(pattern_4).name;
-
-						if (__prev.a !== __a) {
-							_$_.set_text(expression_17, __prev.a = __a);
-						}
-
-						var __b = `dept-${_$_.get(pattern_4).id}`;
-
-						if (__prev.b !== __b) {
-							_$_.set_class(div_11, __prev.b = __b, void 0, true);
-						}
-					},
-					{ a: ' ', b: Symbol() }
-				);
+				_$_.render(() => {
+					_$_.set_class(div_11, `dept-${_$_.get(pattern_4).id}`, void 0, true);
+				});
 
 				_$_.append(__anchor, div_11);
 			},
@@ -996,25 +925,13 @@ export function ForLoopIndexUpdate(__anchor, _, __block) {
 				{
 					var expression_20 = _$_.child(li_13, true);
 
+					_$_.expression(expression_20, () => `[${_$_.get(i)}] ${item}`);
 					_$_.pop(li_13);
 				}
 
-				_$_.render(
-					(__prev) => {
-						var __a = `[${_$_.get(i)}] ${item}`;
-
-						if (__prev.a !== __a) {
-							_$_.set_text(expression_20, __prev.a = __a);
-						}
-
-						var __b = `item-${_$_.get(i)}`;
-
-						if (__prev.b !== __b) {
-							_$_.set_class(li_13, __prev.b = __b, void 0, true);
-						}
-					},
-					{ a: ' ', b: Symbol() }
-				);
+				_$_.render(() => {
+					_$_.set_class(li_13, `item-${_$_.get(i)}`, void 0, true);
+				});
 
 				_$_.append(__anchor, li_13);
 			},
@@ -1066,30 +983,25 @@ export function KeyedForLoopWithIndex(__anchor, _, __block) {
 				{
 					var expression_21 = _$_.child(li_14, true);
 
+					_$_.expression(expression_21, () => `[${_$_.get(i)}] ${_$_.get(pattern_6).id}: ${_$_.get(pattern_6).value}`);
 					_$_.pop(li_14);
 				}
 
 				_$_.render(
 					(__prev) => {
-						var __a = `[${_$_.get(i)}] ${_$_.get(pattern_6).id}: ${_$_.get(pattern_6).value}`;
+						var __a = _$_.get(i);
 
 						if (__prev.a !== __a) {
-							_$_.set_text(expression_21, __prev.a = __a);
+							_$_.set_attribute(li_14, 'data-index', __prev.a = __a);
 						}
 
-						var __b = _$_.get(i);
+						var __b = `item-${_$_.get(pattern_6).id}`;
 
 						if (__prev.b !== __b) {
-							_$_.set_attribute(li_14, 'data-index', __prev.b = __b);
-						}
-
-						var __c = `item-${_$_.get(pattern_6).id}`;
-
-						if (__prev.c !== __c) {
-							_$_.set_class(li_14, __prev.c = __c, void 0, true);
+							_$_.set_class(li_14, __prev.b = __b, void 0, true);
 						}
 					},
-					{ a: ' ', b: void 0, c: Symbol() }
+					{ a: void 0, b: Symbol() }
 				);
 
 				_$_.append(__anchor, li_14);
@@ -1128,7 +1040,7 @@ export function ForLoopWithSiblings(__anchor, _, __block) {
 				{
 					var expression_22 = _$_.child(div_14, true);
 
-					expression_22.nodeValue = item;
+					_$_.expression(expression_22, () => item);
 					_$_.pop(div_14);
 				}
 
@@ -1215,6 +1127,7 @@ function TodoItem(__anchor, props, __block) {
 		{
 			var expression_23 = _$_.child(span_7, true);
 
+			_$_.expression(expression_23, () => props.text);
 			_$_.pop(span_7);
 		}
 	}
@@ -1227,25 +1140,19 @@ function TodoItem(__anchor, props, __block) {
 				_$_.set_checked(input_1, __prev.a = __a);
 			}
 
-			var __b = props.text;
+			var __b = _$_.get(lazy_14) ? 'completed' : 'pending';
 
 			if (__prev.b !== __b) {
-				_$_.set_text(expression_23, __prev.b = __b);
+				_$_.set_class(span_7, __prev.b = __b, void 0, true);
 			}
 
-			var __c = _$_.get(lazy_14) ? 'completed' : 'pending';
+			var __c = `todo-${props.id}`;
 
 			if (__prev.c !== __c) {
-				_$_.set_class(span_7, __prev.c = __c, void 0, true);
-			}
-
-			var __d = `todo-${props.id}`;
-
-			if (__prev.d !== __d) {
-				_$_.set_class(div_16, __prev.d = __d, void 0, true);
+				_$_.set_class(div_16, __prev.c = __c, void 0, true);
 			}
 		},
-		{ a: void 0, b: ' ', c: Symbol(), d: Symbol() }
+		{ a: void 0, b: Symbol(), c: Symbol() }
 	);
 
 	_$_.append(__anchor, div_16);
@@ -1268,7 +1175,7 @@ export function ForLoopSingleItem(__anchor, _, __block) {
 				{
 					var expression_24 = _$_.child(li_15, true);
 
-					expression_24.nodeValue = item;
+					_$_.expression(expression_24, () => item);
 					_$_.pop(li_15);
 				}
 
@@ -1309,7 +1216,7 @@ export function ForLoopAddAtBeginning(__anchor, _, __block) {
 				{
 					var expression_25 = _$_.child(li_16, true);
 
-					expression_25.nodeValue = item;
+					_$_.expression(expression_25, () => item);
 					_$_.pop(li_16);
 				}
 
@@ -1354,7 +1261,7 @@ export function ForLoopAddInMiddle(__anchor, _, __block) {
 				{
 					var expression_26 = _$_.child(li_17, true);
 
-					expression_26.nodeValue = item;
+					_$_.expression(expression_26, () => item);
 					_$_.pop(li_17);
 				}
 
@@ -1396,7 +1303,7 @@ export function ForLoopRemoveFromMiddle(__anchor, _, __block) {
 				{
 					var expression_27 = _$_.child(li_18, true);
 
-					expression_27.nodeValue = item;
+					_$_.expression(expression_27, () => item);
 					_$_.pop(li_18);
 				}
 
@@ -1429,7 +1336,7 @@ export function ForLoopLargeList(__anchor, _, __block) {
 				{
 					var expression_28 = _$_.child(li_19, true);
 
-					expression_28.nodeValue = item;
+					_$_.expression(expression_28, () => item);
 					_$_.pop(li_19);
 				}
 
@@ -1477,7 +1384,7 @@ export function ForLoopSwap(__anchor, _, __block) {
 				{
 					var expression_29 = _$_.child(li_20, true);
 
-					expression_29.nodeValue = item;
+					_$_.expression(expression_29, () => item);
 					_$_.pop(li_20);
 				}
 
@@ -1519,7 +1426,7 @@ export function ForLoopReverse(__anchor, _, __block) {
 				{
 					var expression_30 = _$_.child(li_21, true);
 
-					expression_30.nodeValue = item;
+					_$_.expression(expression_30, () => item);
 					_$_.pop(li_21);
 				}
 

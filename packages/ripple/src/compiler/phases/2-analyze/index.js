@@ -42,6 +42,62 @@ import { validate_nesting } from './validation.js';
 const valid_in_head = new Set(['title', 'base', 'link', 'meta', 'style', 'script', 'noscript']);
 
 /**
+ * Check if an expression contains side effects (assignments or updates).
+ * Template expressions should be pure reads — writes belong outside the template.
+ * @param {AST.Expression | AST.SpreadElement | AST.Super | AST.Pattern} node
+ * @returns {boolean}
+ */
+function expression_has_side_effects(node) {
+	switch (node.type) {
+		case 'AssignmentExpression':
+		case 'UpdateExpression':
+			return true;
+		case 'SequenceExpression':
+			return node.expressions.some(expression_has_side_effects);
+		case 'ConditionalExpression':
+			return (
+				expression_has_side_effects(node.test) ||
+				expression_has_side_effects(node.consequent) ||
+				expression_has_side_effects(node.alternate)
+			);
+		case 'LogicalExpression':
+		case 'BinaryExpression':
+			return expression_has_side_effects(node.left) || expression_has_side_effects(node.right);
+		case 'UnaryExpression':
+			return expression_has_side_effects(node.argument);
+		case 'MemberExpression':
+			return (
+				expression_has_side_effects(node.object) ||
+				(node.computed && expression_has_side_effects(node.property))
+			);
+		case 'CallExpression':
+		case 'NewExpression':
+			return (
+				expression_has_side_effects(node.callee) || node.arguments.some(expression_has_side_effects)
+			);
+		case 'TemplateLiteral':
+			return node.expressions.some(expression_has_side_effects);
+		case 'TaggedTemplateExpression':
+			return (
+				expression_has_side_effects(node.tag) ||
+				node.quasi.expressions.some(expression_has_side_effects)
+			);
+		case 'ArrayExpression':
+			return node.elements.some((el) => el !== null && expression_has_side_effects(el));
+		case 'ObjectExpression':
+			return node.properties.some((prop) =>
+				prop.type === 'SpreadElement'
+					? expression_has_side_effects(prop.argument)
+					: expression_has_side_effects(prop.value),
+			);
+		case 'SpreadElement':
+			return expression_has_side_effects(node.argument);
+		default:
+			return false;
+	}
+}
+
+/**
  * @param {AnalysisContext['path']} path
  */
 function mark_control_flow_has_template(path) {
@@ -63,6 +119,7 @@ function mark_control_flow_has_template(path) {
 			node.type === 'TryStatement' ||
 			node.type === 'IfStatement' ||
 			node.type === 'SwitchStatement' ||
+			node.type === 'Tsx' ||
 			node.type === 'TsxCompat'
 		) {
 			node.metadata.has_template = true;
@@ -928,7 +985,9 @@ const visitors = {
 		const callee = node.callee;
 
 		if (
-			!context.path.some((path_node) => path_node.type === 'TsxCompat') &&
+			!context.path.some(
+				(path_node) => path_node.type === 'TsxCompat' || path_node.type === 'Tsx',
+			) &&
 			is_children_template_expression(/** @type {AST.Expression} */ (callee), context)
 		) {
 			error(
@@ -1646,7 +1705,7 @@ const visitors = {
 	},
 
 	JSXElement(node, context) {
-		const inside_tsx_compat = context.path.some((n) => n.type === 'TsxCompat');
+		const inside_tsx_compat = context.path.some((n) => n.type === 'TsxCompat' || n.type === 'Tsx');
 
 		if (inside_tsx_compat) {
 			return context.next();
@@ -1657,6 +1716,11 @@ const visitors = {
 			context.state.analysis.module.filename,
 			node,
 		);
+	},
+
+	Tsx(_, context) {
+		mark_control_flow_has_template(context.path);
+		return context.next();
 	},
 
 	TsxCompat(_, context) {
@@ -1938,6 +2002,16 @@ const visitors = {
 
 	RippleExpression(node, context) {
 		mark_control_flow_has_template(context.path);
+
+		if (expression_has_side_effects(node.expression)) {
+			error(
+				'Template expressions must not contain assignments or updates..',
+				context.state.analysis.module.filename,
+				node.expression,
+				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		}
 
 		context.next();
 	},
