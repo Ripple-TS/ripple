@@ -1217,7 +1217,7 @@ export function jsx_to_ripple_node(node) {
 			attributes,
 			children,
 			selfClosing: opening.selfClosing,
-			metadata: { scoped: false },
+			metadata: { scoped: false, path: [] },
 			start: node.start,
 			end: node.end,
 		});
