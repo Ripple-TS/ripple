@@ -47,6 +47,7 @@ export type Derived = {
 	av: number; // staleness guard against resolving when multiple requests were fired
 	dr: ((value: any) => void) | null; // deferred / synthetic promise resolve function
 	dj: ((reason: any) => void) | null; // deferred / synthetic promise reject function
+	e: boolean; // eagerly run flag
 	b: Block;
 	blocks: null | Block[];
 	c: number;

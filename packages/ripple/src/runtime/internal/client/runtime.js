@@ -91,7 +91,19 @@ let active_dependency = null;
 /** @type {null | Block} */
 let active_async_source_block = null;
 /** @type {Set<Derived>} */
-var eager_async_derived_collection = new Set();
+var eager_async_derived_queued = new Set();
+
+/**
+ * Tracks which dependencies trigger eager re-evaluation of async deriveds.
+ * - `blocks`: Maps a dep's block to the deps from that block (for cleanup on destroy)
+ * - `deps`: Maps a dep (Tracked or Derived) to the Set of async deriveds that depend on it
+ */
+var async_derived = {
+	/** @type {Map<Block, Set<Tracked | Derived>>} */
+	blocks: new Map(),
+	/** @type {Map<Tracked | Derived, Set<Derived>>} */
+	deps: new Map(),
+};
 
 export let tracking = false;
 export let teardown = false;
@@ -205,6 +217,7 @@ function update_derived_value(computed, value) {
 function update_derived_value_clock(computed, value) {
 	computed.__v = value;
 	computed.c = increment_clock();
+	notify_async_derived_deps(computed);
 }
 
 /**
@@ -317,6 +330,13 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
 		return;
 	}
 
+	if (fulfilled) {
+		if (computed.e) {
+			console.log('registering async');
+			register_async_derived_deps(computed);
+		}
+	}
+
 	var entries = computed.ab;
 	var is_internal_abort =
 		value === DERIVED_UPDATED || abort_controller?.signal?.reason === DERIVED_UPDATED;
@@ -345,7 +365,7 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
 		}
 
 		complete_and_clear_async_entries(entries);
-		// Always schedule a flush so the eager eval loop can re-evaluate
+		// Schedule a flush so the eager eval loop can re-evaluate
 		// dependent async deriveds that are now dirty (e.g. chained trackAsync).
 		queue_microtask();
 
@@ -759,6 +779,7 @@ class DerivedValue {
 		this.av = 0;
 		this.dr = null;
 		this.dj = null;
+		this.e = false;
 		this.b = block;
 		/** @type {null | Block[]} */
 		this.blocks = null;
@@ -876,8 +897,8 @@ export function track_async(v, options = {}, force_eager, b) {
 	if (options.lazy && !force_eager) {
 		return d;
 	}
+	d.e = true;
 	update_derived(d);
-	eager_async_derived_collection.add(d);
 	return d;
 }
 
@@ -1115,19 +1136,112 @@ function flush_updates(root_block) {
 	}
 }
 
+// /**
+//  * Returns true if the derived has boundary entries and ALL source blocks are destroyed
+//  * with no active requests, meaning this derived can be removed from eager evaluation.
+//  * @param {Derived} d
+//  * @returns {boolean}
+//  */
+// function all_source_blocks_destroyed(d) {
+// 	var entries = d.ab;
+// 	if (entries === null || entries.length === 0) return false;
+// 	for (var j = 0; j < entries.length; j++) {
+// 		if (!is_destroyed(entries[j].s) || entries[j].i > 0) return false;
+// 	}
+// 	return true;
+// }
+
 /**
- * Returns true if the derived has boundary entries and ALL source blocks are destroyed
- * with no active requests, meaning this derived can be removed from eager evaluation.
+ * Push an async derived into the eager collection for re-evaluation
+ * This should happen only when the derived's deps have changed
  * @param {Derived} d
- * @returns {boolean}
  */
-function all_source_blocks_destroyed(d) {
-	var entries = d.ab;
-	if (entries === null || entries.length === 0) return false;
-	for (var j = 0; j < entries.length; j++) {
-		if (!is_destroyed(entries[j].s) || entries[j].i > 0) return false;
+function queue_eager_async_derived(d) {
+	eager_async_derived_queued.add(d);
+}
+
+/**
+ * Traverse the dependency chain of an async derived and register its deps
+ * in async_derived_deps so that set() can trigger eager re-evaluation.
+ * @param {Derived} derived
+ */
+function register_async_derived_deps(derived) {
+	var dep = derived.d;
+	while (dep !== null) {
+		var t = dep.t;
+		var deps = async_derived.deps;
+		var existing = deps.get(t);
+		if (existing === undefined) {
+			existing = new Set();
+			deps.set(t, existing);
+			// Register for block cleanup
+			var blocks = async_derived.blocks;
+			var block_deps = blocks.get(t.b);
+			if (block_deps === undefined) {
+				blocks.set(t.b, new Set([t]));
+			} else {
+				block_deps.add(t);
+			}
+		}
+		existing.add(derived);
+		dep = dep.n;
 	}
-	return true;
+	console.log(
+		'**** REgistered run and size is: ',
+		async_derived.deps.size,
+		async_derived.blocks.size,
+	);
+}
+
+/**
+ * Notify async deriveds that depend on a given dep that it has changed,
+ * pushing them into the eager collection for re-evaluation.
+ * @param {Tracked | Derived} dep
+ */
+function notify_async_derived_deps(dep) {
+	var deps = async_derived.deps;
+	var deriveds = deps.get(dep);
+	if (!deriveds) {
+		return;
+	}
+	for (var d of deriveds) {
+		queue_eager_async_derived(d);
+		// check if this derived is a dep of another async derived
+		var other_deps = deps.get(d);
+		if (!other_deps) {
+			// we don't have this derived as a dep
+			continue;
+		}
+
+		for (var other_d of other_deps) {
+			queue_eager_async_derived(other_d);
+		}
+	}
+}
+
+/**
+ * Clean up async_derived_deps entries for a destroyed block.
+ * @param {Block} block
+ */
+export function cleanup_async_derived_deps(block) {
+	var block_deps = async_derived.blocks.get(block);
+	if (block_deps !== undefined) {
+		for (var dep of block_deps) {
+			var deps = async_derived.deps;
+			var deriveds = deps.get(dep);
+			if (!deriveds) {
+				// this shouldn't happen, done for types
+				continue;
+			}
+			for (var d of deriveds) {
+				if (d.b === block) {
+					deps.delete(d);
+				}
+			}
+			deps.delete(dep);
+		}
+		async_derived.blocks.delete(block);
+	}
 }
 
 /**
@@ -1138,11 +1252,12 @@ function flush_queued_root_blocks(root_blocks) {
 	// aborted and new ones started before blocks flush. This is
 	// necessary because paused blocks are skipped by flush_updates,
 	// but their async derived deps still need re-evaluation.
-	for (var d of eager_async_derived_collection) {
-		if (is_destroyed(d.b) || all_source_blocks_destroyed(d)) {
-			eager_async_derived_collection.delete(d);
-		} else {
-			update_derived(d);
+	if (eager_async_derived_queued.size > 0) {
+		var to_process = [...eager_async_derived_queued];
+		eager_async_derived_queued.clear();
+		console.log('running eager async derived', to_process.length);
+		for (var i = 0; i < to_process.length; i++) {
+			update_derived(to_process[i]);
 		}
 	}
 
@@ -1398,6 +1513,7 @@ export function set(tracked, value) {
 
 		tracked.__v = value;
 		tracked.c = increment_clock();
+		notify_async_derived_deps(tracked);
 		schedule_update(tracked_block);
 	}
 }

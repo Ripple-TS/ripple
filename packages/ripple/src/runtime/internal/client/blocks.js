@@ -20,6 +20,7 @@ import {
 	active_block,
 	active_component,
 	active_reaction,
+	cleanup_async_derived_deps,
 	create_component_ctx,
 	is_block_dirty,
 	run_block,
@@ -419,6 +420,8 @@ export function destroy_block(block, remove_dom = true) {
 	destroy_block_children(block, remove_dom && !removed);
 
 	run_teardown(block);
+
+	cleanup_async_derived_deps(block);
 
 	var parent = block.p;
 
