@@ -134,6 +134,7 @@ declare module 'estree' {
 	interface NodeMap {
 		Component: Component;
 		TsxCompat: TsxCompat;
+		RippleExpression: RippleExpression;
 		Html: Html;
 		Element: Element;
 		Text: TextNode;
@@ -282,7 +283,13 @@ declare module 'estree' {
 
 	interface Html extends AST.BaseNode {
 		type: 'Html';
-		expression: Expression;
+		expression: AST.Expression;
+	}
+
+	export interface RippleExpression extends AST.BaseExpression {
+		type: 'RippleExpression';
+		expression: AST.Expression;
+		loc?: AST.SourceLocation;
 	}
 
 	interface Element extends AST.BaseNode {
@@ -601,6 +608,7 @@ declare module 'estree-jsx' {
 
 	interface JSXExpressionContainer {
 		html?: boolean;
+		text?: boolean;
 	}
 
 	interface JSXMemberExpression {

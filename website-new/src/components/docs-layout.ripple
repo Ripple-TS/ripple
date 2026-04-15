@@ -40,9 +40,7 @@ export component DocsLayout({
 					<div class="content">
 						<div class="content-container">
 							<article class="doc-content">
-								<div>
-									<children />
-								</div>
+								<div>{children}</div>
 							</article>
 							if (editPath) {
 								<div class="edit-link">

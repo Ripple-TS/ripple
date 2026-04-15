@@ -44,6 +44,40 @@ describe('compiler > basics', () => {
 		).toEqual(style3);
 	});
 
+	it('parses explicit text interpolation and reserves the text keyword', () => {
+		const source = `export component App() {
+	const markup = '<span>Not HTML</span>';
+
+	<div>{markup}</div>
+	<div>{text markup}</div>
+}`;
+
+		const ast = parse(source);
+		const component_node = (ast.body[0] as AST.ExportNamedDeclaration).declaration as unknown as AST.Component;
+		const elements = component_node.body.filter((node) => node.type === 'Element') as AST.Element[];
+		const expression = elements[0].children[0] as AST.Node & { expression: AST.Expression };
+		const explicit_text = elements[1].children[0] as AST.TextNode;
+
+		expect(elements).toHaveLength(2);
+		expect(expression.type).toBe('RippleExpression');
+		expect((expression.expression as AST.Identifier).name).toBe('markup');
+		expect(explicit_text.type).toBe('Text');
+		expect((explicit_text.expression as AST.Identifier).name).toBe('markup');
+
+		const { js } = compile(source, 'text-directive.ripple', { mode: 'client' });
+		expect(js.code).not.toContain('_$_.html');
+
+		const invalid_source = `export component App() {
+	const text = 'plain';
+
+	<div>{text}</div>
+}`;
+
+		expect(() => parse(invalid_source)).toThrow(
+			'"text" is a Ripple keyword and must be used in the form {text some_value}',
+		);
+	});
+
 	it('renders without crashing', () => {
 		component App() {
 			let foo: Record<string, number>;
@@ -341,18 +375,6 @@ component App() {
 	});
 
 	it('keeps lazy destructuring as plain destructuring in to_ts output', () => {
-		const track_split_source = `
-import { trackSplit } from 'ripple';
-component App() {
-	const source = { a: 1, b: 2, c: 3 };
-	let &[a, b, rest] = trackSplit(source, ['a', 'b']);
-	const sum = a + b + rest.c;
-}
-`;
-		const track_split_result = compile_to_volar_mappings(track_split_source, 'test.ripple').code;
-		expect(track_split_result).toContain('let [a, b, rest] = trackSplit(source, [\'a\', \'b\']);');
-		expect(track_split_result).not.toContain('let lazy = trackSplit');
-
 		const track_source = `
 import { track } from 'ripple';
 component App() {
@@ -367,6 +389,37 @@ component App() {
 		expect(track_result).not.toContain('.slice(');
 		expect(track_result).not.toContain('_$_.get(');
 		expect(track_result).not.toContain('lazy0');
+	});
+
+	it('uses tracked fast path for nested lazy params typed as Tracked', () => {
+		const source = `
+import type { Tracked } from 'ripple';
+function use_nested({ value: &[count, tracked] }: { value: Tracked<number> }) {
+	count++;
+	return tracked;
+}
+`;
+		const { js } = compile(source, 'tracked-nested-lazy.ripple', { mode: 'client' });
+
+		// Nested lazy array should still use tracked tuple fast path from outer annotation.
+		expect(js.code).toContain('_$_.update(');
+		expect(js.code).not.toContain('[0]');
+		expect(js.code).not.toContain('[1]');
+	});
+
+	it('uses tracked fast path for nested lazy params at tuple rest positions', () => {
+		const source = `
+import type { Tracked } from 'ripple';
+function use_tuple_rest({ value: [head, &[count, tracked]] }: { value: [number, ...Tracked<number>[]] }) {
+	count++;
+	return tracked;
+}
+`;
+		const { js } = compile(source, 'tracked-nested-lazy-tuple-rest.ripple', { mode: 'client' });
+
+		// Tuple rest element access should resolve to Tracked<number>, not Tracked<number>[].
+		expect(js.code).toContain('_$_.update(');
+		expect(js.code).not.toContain('[1]');
 	});
 
 	it('preserves generic type args in interface extends for Volar mappings', () => {
@@ -414,16 +467,16 @@ export component App() {
 		const code = `
 component Card(props) {
 	<div class="card">
-		<props.children />
+		{props.children}
 	</div>
 }
 
 export component App() {
-	<Card>
 		component children() {
 			<p>{'Card content here'}</p>
 		}
-	</Card>
+
+		<Card {children} />
 
 	const test = 5;
 
@@ -433,7 +486,7 @@ export component App() {
 		expect(() => compile(code, 'test.ripple')).not.toThrow();
 	});
 
-	it('converts nested component children into props in Volar mappings', () => {
+	it('rejects component declarations inside composite children', () => {
 		const source = `
 export component App() {
 	<ark.div class="host-class" data-value="42">
@@ -443,11 +496,47 @@ export component App() {
 	</ark.div>
 }
 `;
+
+		expect(() => compile_to_volar_mappings(source, 'test.ripple')).toThrow(
+			/Component declarations cannot be used inside composite component children/,
+		);
+	});
+
+	it('preserves explicit component props in Volar mappings', () => {
+		const source = `
+export component App() {
+	component asChild({ children, href, ...rest }: { href: string; [key: string]: any }) {
+		<a id="aschild-anchor" {href} {...rest} data-extra="yes">{'Link'}</a>
+	}
+
+	<ark.div class="host-class" data-value="42" {asChild} />
+}
+`;
 		const result = compile_to_volar_mappings(source, 'test.ripple').code;
 
-		expect(result).toContain('<ark.div class="host-class" data-value="42" asChild={');
+		expect(result).toContain('<ark.div class="host-class" data-value="42" asChild={asChild}');
 		expect(result).not.toContain('children={() =>');
-		expect(result).not.toContain('function asChild');
+	});
+
+	it('merges explicit children prop with implicit children in client output', () => {
+		const source = `
+component Card(props) {
+	<div>{props.children}</div>
+}
+
+export component App() {
+	const fallback = 'fallback';
+
+	<Card children={fallback}>
+		<span>{'content'}</span>
+	</Card>
+}
+`;
+
+		const result = compile(source, 'test.ripple', { mode: 'client' }).js.code;
+
+		expect((result.match(/children:/g) || []).length).toBe(1);
+		expect(result).toContain('children: _$_.normalize_children(fallback) ?? _$_.ripple_element(');
 	});
 
 	it('should not error on `this` MemberExpression with a UpdateExpression', () => {

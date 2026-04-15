@@ -26,6 +26,7 @@ import {
 	is_inside_component,
 	is_ripple_track_call,
 	is_void_element,
+	is_children_template_expression as is_children_template_expression_in_scope,
 	normalize_children,
 	is_binding_function,
 	is_inside_try_block,
@@ -330,14 +331,185 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 }
 
 /**
- * Checks if a function parameter has a Tracked<T> type annotation imported from ripple.
+ * @param {AST.Pattern} pattern
+ * @returns {AST.TypeNode | undefined}
+ */
+function get_pattern_type_annotation(pattern) {
+	return pattern.typeAnnotation?.typeAnnotation;
+}
+
+/**
+ * @param {AST.TypeNode | undefined} type_annotation
+ * @returns {AST.TypeNode | undefined}
+ */
+function unwrap_type_annotation(type_annotation) {
+	/** @type {AST.TypeNode | undefined} */
+	let annotation = type_annotation;
+
+	while (annotation) {
+		if (annotation.type === 'TSParenthesizedType') {
+			annotation = annotation.typeAnnotation;
+			continue;
+		}
+		if (annotation.type === 'TSOptionalType') {
+			annotation = annotation.typeAnnotation;
+			continue;
+		}
+		break;
+	}
+
+	return annotation;
+}
+
+/**
+ * @param {AST.TypeNode} type_annotation
+ * @returns {AST.TypeNode}
+ */
+function normalize_tuple_element_type(type_annotation) {
+	/** @type {AST.TypeNode} */
+	let annotation = type_annotation;
+
+	while (true) {
+		if (annotation.type === 'TSNamedTupleMember') {
+			annotation = annotation.elementType;
+			continue;
+		}
+		if (annotation.type === 'TSParenthesizedType') {
+			annotation = annotation.typeAnnotation;
+			continue;
+		}
+		if (annotation.type === 'TSOptionalType') {
+			annotation = annotation.typeAnnotation;
+			continue;
+		}
+		break;
+	}
+
+	return annotation;
+}
+
+/**
+ * @param {AST.Expression} key
+ * @returns {string | null}
+ */
+function get_object_pattern_key_name(key) {
+	if (key.type === 'Identifier') {
+		return key.name;
+	}
+	if (key.type === 'Literal' && (typeof key.value === 'string' || typeof key.value === 'number')) {
+		return String(key.value);
+	}
+	return null;
+}
+
+/**
+ * @param {AST.PropertyNameNonComputed} key
+ * @returns {string | null}
+ */
+function get_type_property_key_name(key) {
+	if (key.type === 'Identifier') {
+		return key.name;
+	}
+	if (key.type === 'Literal' && (typeof key.value === 'string' || typeof key.value === 'number')) {
+		return String(key.value);
+	}
+	return null;
+}
+
+/**
+ * @param {AST.TypeNode | undefined} type_annotation
+ * @param {AST.Property | AST.RestElement} property
+ * @returns {AST.TypeNode | undefined}
+ */
+function get_object_property_type_annotation(type_annotation, property) {
+	if (property.type === 'RestElement' || property.computed) {
+		return undefined;
+	}
+
+	const object_type_annotation = unwrap_type_annotation(type_annotation);
+	if (object_type_annotation?.type !== 'TSTypeLiteral') {
+		return undefined;
+	}
+
+	const key_name = get_object_pattern_key_name(property.key);
+	if (key_name === null) {
+		return undefined;
+	}
+
+	for (const member of object_type_annotation.members) {
+		if (member.type !== 'TSPropertySignature' || member.computed) {
+			continue;
+		}
+		const member_key_name = get_type_property_key_name(member.key);
+		if (member_key_name === key_name) {
+			return member.typeAnnotation?.typeAnnotation;
+		}
+	}
+
+	return undefined;
+}
+
+/**
+ * @param {AST.TypeNode | undefined} type_annotation
+ * @param {number} index
+ * @param {boolean} is_rest
+ * @returns {AST.TypeNode | undefined}
+ */
+function get_array_element_type_annotation(type_annotation, index, is_rest) {
+	const array_type_annotation = unwrap_type_annotation(type_annotation);
+
+	if (array_type_annotation?.type === 'TSArrayType') {
+		return array_type_annotation.elementType;
+	}
+	if (array_type_annotation?.type !== 'TSTupleType') {
+		return undefined;
+	}
+
+	if (is_rest) {
+		for (let i = array_type_annotation.elementTypes.length - 1; i >= 0; i -= 1) {
+			const element_type = normalize_tuple_element_type(array_type_annotation.elementTypes[i]);
+			if (element_type.type === 'TSRestType') {
+				return element_type.typeAnnotation;
+			}
+		}
+		return undefined;
+	}
+
+	if (index < array_type_annotation.elementTypes.length) {
+		const element_type = normalize_tuple_element_type(array_type_annotation.elementTypes[index]);
+		if (element_type.type === 'TSRestType') {
+			const rest_type_annotation = unwrap_type_annotation(element_type.typeAnnotation);
+			return rest_type_annotation?.type === 'TSArrayType'
+				? rest_type_annotation.elementType
+				: element_type.typeAnnotation;
+		}
+		return element_type;
+	}
+
+	const last_element = array_type_annotation.elementTypes.at(-1);
+	if (!last_element) {
+		return undefined;
+	}
+	const normalized_last_element = normalize_tuple_element_type(last_element);
+	if (normalized_last_element.type === 'TSRestType') {
+		const rest_type_annotation = unwrap_type_annotation(normalized_last_element.typeAnnotation);
+		return rest_type_annotation?.type === 'TSArrayType'
+			? rest_type_annotation.elementType
+			: normalized_last_element.typeAnnotation;
+	}
+
+	return undefined;
+}
+
+/**
+ * Checks if a parameter source has a Tracked<T> type annotation imported from ripple.
  * This is used to determine if lazy array destructuring should use the track tuple fast path.
- * @param {AST.ArrayPattern} param - The parameter pattern node
+ * @param {AST.TypeNode | undefined} type_annotation - The source type annotation
  * @param {AnalysisContext} context - The analysis context
  * @returns {boolean}
  */
-function is_param_tracked_type(param, context) {
-	const annotation = param.typeAnnotation?.typeAnnotation;
+function is_param_tracked_type(type_annotation, context) {
+	const annotation = unwrap_type_annotation(type_annotation);
 
 	if (
 		annotation?.type === 'TSTypeReference' &&
@@ -359,6 +531,75 @@ function is_param_tracked_type(param, context) {
 }
 
 /**
+ * Sets up lazy transforms for any lazy subpatterns nested inside a function or component param.
+ * @param {AST.Pattern} pattern
+ * @param {AnalysisContext} context
+ * @param {AST.TypeNode | undefined} [type_annotation]
+ */
+function setup_nested_lazy_param_transforms(pattern, context, type_annotation = undefined) {
+	const pattern_type_annotation = get_pattern_type_annotation(pattern) ?? type_annotation;
+
+	switch (pattern.type) {
+		case 'AssignmentPattern':
+			setup_nested_lazy_param_transforms(pattern.left, context, pattern_type_annotation);
+			return;
+
+		case 'RestElement':
+			setup_nested_lazy_param_transforms(pattern.argument, context, pattern_type_annotation);
+			return;
+
+		case 'ObjectPattern':
+		case 'ArrayPattern': {
+			if (pattern.lazy) {
+				const param_id = b.id(context.state.scope.generate('lazy'));
+				const is_tracked_type =
+					pattern.type === 'ArrayPattern' &&
+					is_param_tracked_type(pattern_type_annotation, context);
+
+				setup_lazy_transforms(pattern, param_id, context.state, true, is_tracked_type);
+				pattern.metadata = { ...pattern.metadata, lazy_id: param_id.name };
+				return;
+			}
+
+			if (pattern.type === 'ObjectPattern') {
+				for (const property of pattern.properties) {
+					const property_type_annotation = get_object_property_type_annotation(
+						pattern_type_annotation,
+						property,
+					);
+					if (property.type === 'RestElement') {
+						setup_nested_lazy_param_transforms(
+							property.argument,
+							context,
+							property_type_annotation,
+						);
+					} else {
+						setup_nested_lazy_param_transforms(property.value, context, property_type_annotation);
+					}
+				}
+			} else {
+				for (let i = 0; i < pattern.elements.length; i += 1) {
+					const element = pattern.elements[i];
+					if (element !== null) {
+						setup_nested_lazy_param_transforms(
+							element,
+							context,
+							get_array_element_type_annotation(
+								pattern_type_annotation,
+								i,
+								element.type === 'RestElement',
+							),
+						);
+					}
+				}
+			}
+
+			return;
+		}
+	}
+}
+
+/**
  * @param {AST.Function} node
  * @param {AnalysisContext} context
  */
@@ -372,16 +613,11 @@ function visit_function(node, context) {
 	for (let i = 0; i < node.params.length; i++) {
 		const param_node = node.params[i];
 		const param = param_node.type === 'AssignmentPattern' ? param_node.left : param_node;
+		const param_type_annotation =
+			get_pattern_type_annotation(param) ?? param_node.typeAnnotation?.typeAnnotation;
 
-		if ((param.type === 'ObjectPattern' || param.type === 'ArrayPattern') && param.lazy) {
-			const param_id = b.id(context.state.scope.generate('param'));
-			// For ArrayPattern params with a Tracked<T> type annotation from ripple,
-			// use the track tuple fast path (get/set instead of source[0]/source[1])
-			const is_tracked_type =
-				param.type === 'ArrayPattern' && is_param_tracked_type(param, context);
-			setup_lazy_transforms(param, param_id, context.state, true, is_tracked_type);
-			// Store the generated identifier name on the pattern for the transform phase
-			param.metadata = { ...param.metadata, lazy_id: param_id.name };
+		if (param.type === 'ObjectPattern' || param.type === 'ArrayPattern') {
+			setup_nested_lazy_param_transforms(param, context, param_type_annotation);
 		}
 	}
 
@@ -454,81 +690,13 @@ function error_return_keyword(node, context, message) {
 
 /**
  * @param {AST.Expression} expression
- * @returns {AST.Expression}
- */
-function unwrap_template_expression(expression) {
-	/** @type {AST.Expression} */
-	let node = expression;
-
-	while (true) {
-		if (
-			node.type === 'ParenthesizedExpression' ||
-			node.type === 'TSAsExpression' ||
-			node.type === 'TSSatisfiesExpression' ||
-			node.type === 'TSNonNullExpression' ||
-			node.type === 'TSInstantiationExpression'
-		) {
-			node = /** @type {AST.Expression} */ (node.expression);
-			continue;
-		}
-
-		if (node.type === 'ChainExpression') {
-			node = /** @type {AST.Expression} */ (node.expression);
-			continue;
-		}
-
-		break;
-	}
-
-	return node;
-}
-
-/**
- * @param {AST.Expression} expression
  * @param {Context<AST.Node, AnalysisState>} context
  * @returns {boolean}
  */
 function is_children_template_expression(expression, context) {
 	const component = context.path.findLast((node) => node.type === 'Component');
 	const component_scope = component ? context.state.scopes.get(component) : null;
-	const unwrapped = unwrap_template_expression(expression);
-
-	if (unwrapped.type === 'MemberExpression') {
-		let property_name = null;
-
-		if (!unwrapped.computed && unwrapped.property.type === 'Identifier') {
-			property_name = unwrapped.property.name;
-		} else if (
-			unwrapped.computed &&
-			unwrapped.property.type === 'Literal' &&
-			typeof unwrapped.property.value === 'string'
-		) {
-			property_name = unwrapped.property.value;
-		}
-
-		if (property_name === 'children') {
-			const target = unwrap_template_expression(/** @type {AST.Expression} */ (unwrapped.object));
-
-			if (target.type === 'Identifier') {
-				const binding = context.state.scope.get(target.name);
-				return binding?.declaration_kind === 'param' && binding.scope === component_scope;
-			}
-		}
-	}
-
-	if (unwrapped.type !== 'Identifier' || unwrapped.name !== 'children') {
-		return false;
-	}
-
-	const binding = context.state.scope.get(unwrapped.name);
-	return (
-		(binding?.declaration_kind === 'param' ||
-			binding?.kind === 'prop' ||
-			binding?.kind === 'prop_fallback' ||
-			binding?.kind === 'lazy' ||
-			binding?.kind === 'lazy_fallback') &&
-		binding.scope === component_scope
-	);
+	return is_children_template_expression_in_scope(expression, context.state.scope, component_scope);
 }
 
 /** @type {Visitors<AST.Node, AnalysisState>} */
@@ -764,7 +932,7 @@ const visitors = {
 			is_children_template_expression(/** @type {AST.Expression} */ (callee), context)
 		) {
 			error(
-				'`children` cannot be called like a regular function. Use element syntax instead, e.g. `<children />` or `<props.children />`.',
+				'`children` cannot be called like a regular function. Render it with `{children}` or `{props.children}` instead.',
 				context.state.analysis.module.filename,
 				callee,
 				context.state.loose ? context.state.analysis.errors : undefined,
@@ -924,9 +1092,13 @@ const visitors = {
 		if (node.params.length > 0) {
 			const props = node.params[0];
 
-			if ((props.type === 'ObjectPattern' || props.type === 'ArrayPattern') && props.lazy) {
+			if (props.type === 'ObjectPattern' || props.type === 'ArrayPattern') {
 				// Lazy destructuring: &{...} or &[...] — set up lazy transforms
-				setup_lazy_transforms(props, b.id('__props'), context.state, true, false);
+				if (props.lazy) {
+					setup_lazy_transforms(props, b.id('__props'), context.state, true, false);
+				} else {
+					setup_nested_lazy_param_transforms(props, context, get_pattern_type_annotation(props));
+				}
 			} else if (props.type === 'AssignmentPattern') {
 				error(
 					'Props are always an object, use destructured props with default values instead',
@@ -1491,6 +1663,19 @@ const visitors = {
 
 		mark_control_flow_has_template(path);
 
+		if (
+			!is_dom_element &&
+			is_children_template_expression(/** @type {AST.Expression} */ (node.id), context)
+		) {
+			error(
+				'`children` cannot be rendered as a component. Render it with `{children}` or `{props.children}` instead.',
+				state.analysis.module.filename,
+				node.id,
+				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		}
+
 		validate_nesting(node, context);
 
 		// Store capitalized name for dynamic components/elements
@@ -1544,7 +1729,10 @@ const visitors = {
 				if (/** @type {AST.Identifier} */ (node.id).name === 'title') {
 					const children = normalize_children(node.children, context);
 
-					if (children.length !== 1 || children[0].type !== 'Text') {
+					if (
+						children.length !== 1 ||
+						(children[0].type !== 'RippleExpression' && children[0].type !== 'Text')
+					) {
 						// TODO: could transform children as something, e.g. Text Node, and avoid a fatal error
 						error(
 							'<title> must have only contain text nodes',
@@ -1689,29 +1877,21 @@ const visitors = {
 			}
 			/** @type {(AST.Node | AST.Expression)[]} */
 			let implicit_children = [];
-			/** @type {AST.Identifier[]} */
-			let explicit_children = [];
 
 			for (const child of node.children) {
 				if (child.type === 'Component') {
-					if (child.id?.name === 'children') {
-						explicit_children.push(child.id);
-					}
-				} else if (child.type !== 'EmptyStatement') {
-					implicit_children.push(
-						child.type === 'Text' || child.type === 'Html' ? child.expression : child,
-					);
-				}
-			}
-
-			if (implicit_children.length > 0 && explicit_children.length > 0) {
-				for (const item of [...explicit_children, ...implicit_children]) {
 					error(
-						'Cannot have both implicit and explicit children',
+						'Component declarations cannot be used inside composite component children. Pass them as explicit props on the template element instead.',
 						state.analysis.module.filename,
-						item,
+						child.id || child,
 						context.state.loose ? context.state.analysis.errors : undefined,
 						context.state.analysis.comments,
+					);
+				} else if (child.type !== 'EmptyStatement') {
+					implicit_children.push(
+						child.type === 'RippleExpression' || child.type === 'Text' || child.type === 'Html'
+							? child.expression
+							: child,
 					);
 				}
 			}
@@ -1739,12 +1919,18 @@ const visitors = {
 		};
 	},
 
+	RippleExpression(node, context) {
+		mark_control_flow_has_template(context.path);
+
+		context.next();
+	},
+
 	Text(node, context) {
 		mark_control_flow_has_template(context.path);
 
 		if (is_children_template_expression(/** @type {AST.Expression} */ (node.expression), context)) {
 			error(
-				'`children` cannot be rendered using text interpolation. Use `<children />` instead.',
+				'`children` cannot be rendered using explicit text interpolation. Use `{children}` or `{props.children}` instead.',
 				context.state.analysis.module.filename,
 				node.expression,
 				context.state.loose ? context.state.analysis.errors : undefined,

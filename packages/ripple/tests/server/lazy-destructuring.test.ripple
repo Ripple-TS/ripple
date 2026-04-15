@@ -1,4 +1,5 @@
-import { track, trackSplit } from 'ripple';
+import type { Tracked } from 'ripple';
+import { track } from 'ripple';
 
 describe('lazy destructuring', () => {
 	it('supports tracked value getter and setter', async () => {
@@ -30,13 +31,27 @@ describe('lazy destructuring', () => {
 
 	it('supports default values in lazy object destructuring', async () => {
 		component Test() {
-			const obj = { a: 5 };
+			const obj: { a: number; b?: number } = { a: 5 };
 			const &{ a, b = 99 } = obj;
 			<pre>{`${a}-${b}`}</pre>
 		}
 
 		const { body } = await render(Test);
 		expect(body).toBeHtml('<pre>5-99</pre>');
+	});
+
+	it('supports nested lazy destructuring in non-lazy component params', async () => {
+		component Inner({ something: &[first, second] }: { something: Tracked<number> }) {
+			first = second.value + 1;
+			<pre>{`${first}-${second.value}`}</pre>
+		}
+
+		component Test() {
+			<Inner something={track(1)} />
+		}
+
+		const { body } = await render(Test);
+		expect(body).toBeHtml('<pre>2-2</pre>');
 	});
 
 	it('supports let lazy destructuring with assignment writeback', async () => {
@@ -106,6 +121,58 @@ describe('lazy destructuring', () => {
 		expect(body).toBeHtml('<pre>15-105</pre>');
 	});
 
+	it('supports nested lazy destructuring in non-lazy function params', async () => {
+		component Test() {
+			const something = track(1);
+
+			function getInfo({ something: &[first, second] }: { something: Tracked<number> }) {
+				first = second.value + 1;
+				return `${first}-${second.value}`;
+			}
+
+			<pre>{getInfo({ something })}</pre>
+		}
+
+		const { body } = await render(Test);
+		expect(body).toBeHtml('<pre>2-2</pre>');
+	});
+
+	it(
+		'preserves lazy getter/setter behavior for RestElement nested destructuring in non-lazy component params',
+		async () => {
+			component Inner({ values: [head, ...&{ 0: first_rest, length: rest_length }] }) {
+				const before = `${first_rest}-${rest_length}`;
+				rest_length = 0;
+				<pre>{`${head}-${before}-${first_rest}-${rest_length}`}</pre>
+			}
+
+			component Test() {
+				<Inner values={[10, 20, 30]} />
+			}
+
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>10-20-2-undefined-0</pre>');
+		},
+	);
+
+	it(
+		'preserves lazy getter/setter behavior for RestElement nested destructuring in non-lazy function params',
+		async () => {
+			component Test() {
+				function getInfo({ values: [head, ...&{ 0: first_rest, length: rest_length }] }) {
+					const before = `${first_rest}-${rest_length}`;
+					rest_length = 0;
+					return `${head}-${before}-${first_rest}-${rest_length}`;
+				}
+
+				<pre>{getInfo({ values: [5, 6, 7] })}</pre>
+			}
+
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>5-6-2-undefined-0</pre>');
+		},
+	);
+
 	it('supports member access on lazy destructured objects', async () => {
 		component Test() {
 			const obj = { user: { name: 'Alice', age: 30 } };
@@ -115,17 +182,6 @@ describe('lazy destructuring', () => {
 
 		const { body } = await render(Test);
 		expect(body).toBeHtml('<pre>Alice-30</pre>');
-	});
-
-	it('treats array destructuring of trackSplit as regular array access', async () => {
-		component Test() {
-			const source = { a: 1, b: 2, c: 3 };
-			const [a, b, rest] = trackSplit(source, ['a', 'b']);
-			<pre>{`${a.value}-${b.value}-${rest.value.c}`}</pre>
-		}
-
-		const { body } = await render(Test);
-		expect(body).toBeHtml('<pre>1-2-3</pre>');
 	});
 
 	it('supports rest in lazy array destructuring for tracked tuples (iterable)', async () => {

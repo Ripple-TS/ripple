@@ -70,9 +70,7 @@ describe('basic client > errors', () => {
 
 		expect(() => {
 			compile(code, 'test.ripple');
-		}).toThrow(
-			'`children` cannot be rendered using text interpolation. Use `<children />` instead.',
-		);
+		}).not.toThrow();
 	});
 
 	it('should throw error for interpolating props.children as text', () => {
@@ -84,9 +82,7 @@ describe('basic client > errors', () => {
 
 		expect(() => {
 			compile(code, 'test.ripple');
-		}).toThrow(
-			'`children` cannot be rendered using text interpolation. Use `<children />` instead.',
-		);
+		}).not.toThrow();
 	});
 
 	it('should throw error for calling children as a function', () => {
@@ -99,7 +95,7 @@ describe('basic client > errors', () => {
 		expect(() => {
 			compile(code, 'test.ripple');
 		}).toThrow(
-			'`children` cannot be called like a regular function. Use element syntax instead, e.g. `<children />` or `<props.children />`.',
+			'`children` cannot be called like a regular function. Render it with `{children}` or `{props.children}` instead.',
 		);
 	});
 
@@ -113,7 +109,7 @@ describe('basic client > errors', () => {
 		expect(() => {
 			compile(code, 'test.ripple');
 		}).toThrow(
-			'`children` cannot be called like a regular function. Use element syntax instead, e.g. `<children />` or `<props.children />`.',
+			'`children` cannot be called like a regular function. Render it with `{children}` or `{props.children}` instead.',
 		);
 	});
 

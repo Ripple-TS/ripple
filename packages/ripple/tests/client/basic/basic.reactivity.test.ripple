@@ -1,5 +1,5 @@
 import type { PropsWithChildren, Tracked } from 'ripple';
-import { effect, flushSync, track, trackSplit, untrack } from 'ripple';
+import { effect, flushSync, track, untrack } from 'ripple';
 
 describe('basic client > reactivity', () => {
 	it('renders multiple reactive lexical blocks', () => {
@@ -384,162 +384,17 @@ describe('basic client > reactivity', () => {
 		expect(state.finalValue).toBe(5);
 	});
 
-	describe('track/trackSplit APIs', () => {
-		it('errors on invalid value as null for track with trackSplit', () => {
-			component App() {
-				let &[message] = track('');
+	it('returns the same tracked object if plain track is called with a tracked object', () => {
+		component App() {
+			const t = track({ a: 1, b: 2, c: 3 });
+			const doublet = track(t);
 
-				try {
-					const [a, b, rest] = trackSplit(null, ['a', 'b']);
-				} catch (e) {
-					message = (e as Error).message;
-				}
+			<pre>{t === doublet}</pre>
+		}
 
-				<pre>{message}</pre>
-			}
+		render(App);
 
-			render(App);
-
-			const pre = container.querySelectorAll('pre')[0];
-			expect(pre.textContent).toBe('Invalid value: expected a non-tracked object');
-		});
-
-		it('errors on invalid value as array for track with trackSplit', () => {
-			component App() {
-				let &[message] = track('');
-
-				try {
-					const [a, b, rest] = trackSplit([1, 2, 3], ['a', 'b']);
-				} catch (e) {
-					message = (e as Error).message;
-				}
-
-				<pre>{message}</pre>
-			}
-
-			render(App);
-
-			const pre = container.querySelectorAll('pre')[0];
-			expect(pre.textContent).toBe('Invalid value: expected a non-tracked object');
-		});
-
-		it('errors on invalid value as tracked for track with trackSplit', () => {
-			component App() {
-				const t = track({ a: 1, b: 2, c: 3 });
-				let &[message] = track('');
-
-				try {
-					const [a, b, rest] = trackSplit(t, ['a', 'b']);
-				} catch (e) {
-					message = (e as Error).message;
-				}
-
-				<pre>{message}</pre>
-			}
-
-			render(App);
-
-			const pre = container.querySelectorAll('pre')[0];
-			expect(pre.textContent).toBe('Invalid value: expected a non-tracked object');
-		});
-
-		it('returns undefined for non-existent props in track with trackSplit', () => {
-			component App() {
-				const [a, b, rest] = trackSplit({ a: 1, c: 1 }, ['a', 'b']);
-
-				<pre>{a.value}</pre>
-				<pre>{String(b.value)}</pre>
-				<pre>{rest.value.c}</pre>
-			}
-
-			render(App);
-
-			const preA = container.querySelectorAll('pre')[0];
-			const preB = container.querySelectorAll('pre')[1];
-			const preC = container.querySelectorAll('pre')[2];
-
-			expect(preA.textContent).toBe('1');
-			expect(preB.textContent).toBe('undefined');
-			expect(preC.textContent).toBe('1');
-		});
-
-		it('returns the same tracked object if plain track is called with a tracked object', () => {
-			component App() {
-				const t = track({ a: 1, b: 2, c: 3 });
-				const doublet = track(t);
-
-				<pre>{t === doublet}</pre>
-			}
-
-			render(App);
-
-			const pre = container.querySelectorAll('pre')[0];
-			expect(pre.textContent).toBe('true');
-		});
-
-		it('can retain reactivity for destructure rest via track trackSplit', () => {
-			let logs: string[] = [];
-
-			component App() {
-				let &[count] = track(0);
-				let &[name] = track('Click Me');
-
-				function buttonRef(el: HTMLButtonElement) {
-					logs.push('ref called');
-					return () => {
-						logs.push('cleanup ref');
-					};
-				}
-
-				<Child
-					class="my-button"
-					onClick={() => name === 'Click Me' ? name = 'Clicked' : name = 'Click Me'}
-					{count}
-					{ref buttonRef}
-				>
-					{name}
-				</Child>
-
-				<button onClick={() => count++}>{'Increment Count'}</button>
-			}
-
-			component Child(props: PropsWithChildren<{
-				count: Tracked<number>;
-				class: string;
-				onClick: () => void;
-			}>) {
-				const [children, count, rest] = trackSplit(props, ['children', 'count']);
-
-				if (count.value < 2) {
-					<button {...rest.value}>
-						<@children />
-					</button>
-				}
-				<pre>{count.value}</pre>
-			}
-
-			render(App);
-			flushSync();
-
-			const buttonClickMe = container.querySelectorAll('button')[0];
-			const buttonIncrement = container.querySelectorAll('button')[1];
-			const countPre = container.querySelector('pre');
-
-			expect(buttonClickMe.textContent).toBe('Click Me');
-			expect(countPre.textContent).toBe('0');
-			expect(logs).toEqual(['ref called']);
-
-			buttonClickMe.click();
-			buttonIncrement.click();
-			flushSync();
-
-			expect(buttonClickMe.textContent).toBe('Clicked');
-			expect(countPre.textContent).toBe('1');
-
-			buttonIncrement.click();
-			flushSync();
-
-			expect(logs).toEqual(['ref called', 'cleanup ref']);
-		});
+		const pre = container.querySelectorAll('pre')[0];
+		expect(pre.textContent).toBe('true');
 	});
 });

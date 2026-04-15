@@ -188,8 +188,8 @@ export function NestedIf(__anchor, _, __block) {
 			var div_8 = root_13();
 
 			{
-				var text = _$_.child(div_8);
-				var node_6 = _$_.sibling(text);
+				var expression = _$_.child(div_8);
+				var node_6 = _$_.sibling(expression);
 
 				{
 					var consequent_5 = (__anchor) => {

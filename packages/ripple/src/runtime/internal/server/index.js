@@ -17,6 +17,7 @@ import { is_boolean_attribute } from '../../../compiler/utils.js';
 import { clsx } from 'clsx';
 import { normalize_css_property_name } from '../../../utils/normalize_css_property_name.js';
 import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../constants.js';
+import { is_ripple_element, normalize_children, ripple_element } from '../../element.js';
 import {
 	is_tag_valid_with_parent,
 	is_tag_valid_with_ancestor,
@@ -27,6 +28,30 @@ export { register_component_css as register_css } from './css-registry.js';
 export { hash } from '../../../utils/hashing.js';
 export { context } from './context.js';
 export { array_slice };
+export { ripple_element, normalize_children };
+
+/**
+ * @param {Output} output
+ * @param {any} value
+ * @returns {void}
+ */
+export function render_expression(output, value) {
+	output.push(BLOCK_OPEN);
+
+	if (is_ripple_element(value)) {
+		var result = value.render(output, {});
+
+		if (result && typeof result.then === 'function') {
+			return result.then(() => {
+				output.push(BLOCK_CLOSE);
+			});
+		}
+	} else {
+		output.push(escape(value ?? ''));
+	}
+
+	output.push(BLOCK_CLOSE);
+}
 
 /** @type {null | Component} */
 export let active_component = null;
@@ -596,7 +621,7 @@ export function spread_attrs(attrs, css_hash) {
 	for (name in attrs) {
 		var value = attrs[name];
 
-		if (typeof value === 'function') continue;
+		if (name === 'children' || typeof value === 'function' || is_ripple_element(value)) continue;
 
 		if (is_ripple_object(value)) {
 			value = get(value);
@@ -703,6 +728,24 @@ function tracked(v, get, set) {
 }
 
 /**
+ * @param {Record<string, unknown>} obj
+ * @param {string[]} exclude_keys
+ * @returns {Record<string, unknown>}
+ */
+export function exclude_from_object(obj, exclude_keys) {
+	/** @type {Record<string, unknown>} */
+	var new_obj = {};
+
+	for (const key of Object.keys(obj)) {
+		if (!exclude_keys.includes(key)) {
+			new_obj[key] = obj[key];
+		}
+	}
+
+	return new_obj;
+}
+
+/**
  * @param {any} v
  * @param {(value: any) => any} [get]
  * @param {(next: any, prev: any) => any} [set]
@@ -720,57 +763,6 @@ export function track(v, get, set) {
 	}
 
 	return tracked(v, get, set);
-}
-
-/**
- * @param {Record<string|symbol, any>} v
- * @param {(symbol | string)[]} l
- * @returns {Tracked[]}
- */
-export function track_split(v, l) {
-	var is_tracked = is_ripple_object(v);
-
-	if (is_tracked || typeof v !== 'object' || v === null || is_array(v)) {
-		throw new TypeError('Invalid value: expected a non-tracked object');
-	}
-
-	/** @type {Tracked[]} */
-	var out = [];
-	/** @type {Record<string|symbol, any>} */
-	var rest = {};
-	/** @type {Record<PropertyKey, 1>} */
-	var done = {};
-	var props = Reflect.ownKeys(v);
-
-	for (let i = 0, key, t; i < l.length; i++) {
-		key = l[i];
-
-		if (props.includes(key)) {
-			if (is_ripple_object(v[key])) {
-				t = v[key];
-			} else {
-				t = tracked(undefined);
-				t = define_property(t, 'v', /** @type {PropertyDescriptor} */ (get_descriptor(v, key)));
-			}
-		} else {
-			t = tracked(undefined);
-		}
-
-		out[i] = t;
-		done[key] = 1;
-	}
-
-	for (let i = 0, key; i < props.length; i++) {
-		key = props[i];
-		if (done[key]) {
-			continue;
-		}
-		define_property(rest, key, /** @type {PropertyDescriptor} */ (get_descriptor(v, key)));
-	}
-
-	out.push(tracked(rest));
-
-	return out;
 }
 
 /**
@@ -863,6 +855,15 @@ ripple_array.from_async = async function (arrayLike, map_fn, thisArg) {
  */
 export function ripple_object(obj) {
 	return obj;
+}
+
+/**
+ * @template K, V
+ * @param {Iterable<readonly [K, V]>} [iterable]
+ * @returns {Map<K, V>}
+ */
+export function ripple_map(iterable) {
+	return new Map(iterable);
 }
 
 /**

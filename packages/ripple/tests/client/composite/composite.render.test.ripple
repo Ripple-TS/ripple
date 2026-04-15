@@ -32,20 +32,22 @@ describe('composite > render', () => {
 		component Button({ A, B, children }: { A: () => void; B: () => void; children: () => void }) {
 			<div>
 				<A />
-				<children />
+				{children}
 				<B />
 			</div>
 		}
 
 		component App() {
-			<Button>
-				component A() {
-					<div>{'I am A'}</div>
-				}
+			component A() {
+				<div>{'I am A'}</div>
+			}
+
+			component B() {
+				<div>{'I am B'}</div>
+			}
+
+			<Button {A} {B}>
 				<div>{'other text'}</div>
-				component B() {
-					<div>{'I am B'}</div>
-				}
 			</Button>
 		}
 
@@ -62,13 +64,43 @@ describe('composite > render', () => {
 		}
 
 		component Child({ children, ...rest }: { children: string; class: string }) {
-			<button {...rest}>
-				<children />
-			</button>
+			<button {...rest}>{children}</button>
 		}
 
 		render(App);
 		expect(container).toMatchSnapshot();
+	});
+
+	it('renders explicit text around children', () => {
+		component Frame({ children }) {
+			<div class="frame">
+				{text 'before'}
+				{children}
+				{text 'after'}
+			</div>
+		}
+
+		component App() {
+			<Frame>
+				<span class="middle">{'middle'}</span>
+			</Frame>
+		}
+
+		render(App);
+
+		const frame = /** @type {HTMLDivElement} */ (container.querySelector('.frame'));
+		const nodes = Array.from(frame.childNodes).filter(
+			(node) => node.nodeType !== Node.COMMENT_NODE,
+		);
+
+		expect(nodes).toHaveLength(3);
+		expect(nodes[0].nodeType).toBe(Node.TEXT_NODE);
+		expect(nodes[0].textContent).toBe('before');
+		expect((/** @type {HTMLElement} */ (nodes[1])).outerHTML).toBe(
+			'<span class="middle">middle</span>',
+		);
+		expect(nodes[2].nodeType).toBe(Node.TEXT_NODE);
+		expect(nodes[2].textContent).toBe('after');
 	});
 
 	it('preserves distinct scoped ripple hashes for wrapper and child content', () => {
@@ -76,7 +108,7 @@ describe('composite > render', () => {
 			component Wrapper({ children }) {
 				<div class="green">
 					{'Wrapper'}
-					<children />
+					{children}
 				</div>
 
 				<style>
@@ -141,7 +173,7 @@ describe('composite > render', () => {
 			[key: string]: any;
 		}) {
 			<div {...props}>
-				<children />
+				{children}
 				// @ts-expect-error - intentionally testing behavior when a component is undefined
 				<NonExistent />
 			</div>

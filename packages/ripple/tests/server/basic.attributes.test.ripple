@@ -345,6 +345,56 @@ describe('basic server > attribute rendering', () => {
 		expect(body).toBeHtml('<input type="checkbox" disabled checked />');
 	});
 
+	it('renders formnovalidate as a boolean attribute', async () => {
+		component Basic() {
+			let &[formnovalidate] = track(true);
+
+			<button {formnovalidate}>{'Submit'}</button>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const button = document.querySelector('button');
+
+		expect(button.hasAttribute('formnovalidate')).toBe(true);
+		expect(button.getAttribute('formnovalidate')).toBe('');
+		expect(body).toBeHtml('<button formnovalidate>Submit</button>');
+	});
+
+	it('renders hidden as a boolean attribute when true', async () => {
+		component Basic() {
+			let &[hidden] = track(true);
+
+			<div {hidden}>{'Hidden content'}</div>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const div = document.querySelector('div');
+
+		expect(div.hasAttribute('hidden')).toBe(true);
+		expect(div.getAttribute('hidden')).toBe('');
+		expect(body).toBeHtml('<div hidden>Hidden content</div>');
+	});
+
+	it('does not render hidden when false', async () => {
+		component Basic() {
+			let &[hidden] = track(false);
+
+			<div {hidden}>{'Visible content'}</div>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const div = document.querySelector('div');
+
+		expect(div.hasAttribute('hidden')).toBe(false);
+		expect(body).toBeHtml('<div>Visible content</div>');
+	});
+
 	it('render multiple dynamic attributes', async () => {
 		component Basic() {
 			let &[theme] = track('light');

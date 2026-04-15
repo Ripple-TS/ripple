@@ -17,13 +17,13 @@ export function TrackedState(__anchor, _, __block) {
 	var div_1 = root();
 
 	{
-		var text = _$_.child(div_1, true);
+		var expression = _$_.child(div_1, true);
 
 		_$_.pop(div_1);
 	}
 
 	_$_.render(() => {
-		_$_.set_text(text, _$_.get(lazy));
+		_$_.set_text(expression, _$_.get(lazy));
 	});
 
 	_$_.append(__anchor, div_1);
@@ -40,14 +40,14 @@ export function CounterWithInitial(__anchor, props, __block) {
 		var span_1 = _$_.child(div_2);
 
 		{
-			var text_1 = _$_.child(span_1, true);
+			var expression_1 = _$_.child(span_1, true);
 
 			_$_.pop(span_1);
 		}
 	}
 
 	_$_.render(() => {
-		_$_.set_text(text_1, _$_.get(lazy_1));
+		_$_.set_text(expression_1, _$_.get(lazy_1));
 	});
 
 	_$_.append(__anchor, div_2);
@@ -74,13 +74,13 @@ export function ComputedValues(__anchor, _, __block) {
 	var div_3 = root_3();
 
 	{
-		var text_2 = _$_.child(div_3, true);
+		var expression_2 = _$_.child(div_3, true);
 
 		_$_.pop(div_3);
 	}
 
 	_$_.render(() => {
-		_$_.set_text(text_2, sum());
+		_$_.set_text(expression_2, sum());
 	});
 
 	_$_.append(__anchor, div_3);
@@ -97,7 +97,7 @@ export function MultipleTracked(__anchor, _, __block) {
 	var div_4 = _$_.first_child_frag(fragment_1);
 
 	{
-		var text_3 = _$_.child(div_4, true);
+		var expression_3 = _$_.child(div_4, true);
 
 		_$_.pop(div_4);
 	}
@@ -105,7 +105,7 @@ export function MultipleTracked(__anchor, _, __block) {
 	var div_5 = _$_.sibling(div_4);
 
 	{
-		var text_4 = _$_.child(div_5, true);
+		var expression_4 = _$_.child(div_5, true);
 
 		_$_.pop(div_5);
 	}
@@ -113,7 +113,7 @@ export function MultipleTracked(__anchor, _, __block) {
 	var div_6 = _$_.sibling(div_5);
 
 	{
-		var text_5 = _$_.child(div_6, true);
+		var expression_5 = _$_.child(div_6, true);
 
 		_$_.pop(div_6);
 	}
@@ -125,19 +125,19 @@ export function MultipleTracked(__anchor, _, __block) {
 			var __a = _$_.get(lazy_4);
 
 			if (__prev.a !== __a) {
-				_$_.set_text(text_3, __prev.a = __a);
+				_$_.set_text(expression_3, __prev.a = __a);
 			}
 
 			var __b = _$_.get(lazy_5);
 
 			if (__prev.b !== __b) {
-				_$_.set_text(text_4, __prev.b = __b);
+				_$_.set_text(expression_4, __prev.b = __b);
 			}
 
 			var __c = _$_.get(lazy_6);
 
 			if (__prev.c !== __c) {
-				_$_.set_text(text_5, __prev.c = __c);
+				_$_.set_text(expression_5, __prev.c = __c);
 			}
 		},
 		{ a: ' ', b: ' ', c: ' ' }
@@ -156,13 +156,13 @@ export function DerivedState(__anchor, _, __block) {
 	var div_7 = root_5();
 
 	{
-		var text_6 = _$_.child(div_7, true);
+		var expression_6 = _$_.child(div_7, true);
 
 		_$_.pop(div_7);
 	}
 
 	_$_.render(() => {
-		_$_.set_text(text_6, fullName());
+		_$_.set_text(expression_6, fullName());
 	});
 
 	_$_.append(__anchor, div_7);

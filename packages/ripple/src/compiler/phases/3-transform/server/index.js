@@ -23,11 +23,12 @@ import {
 	is_inside_component,
 	is_void_element,
 	normalize_children,
+	is_children_template_expression,
 	is_binding_function,
 	is_element_dynamic,
 	is_ripple_track_call,
 	is_ripple_import,
-	ripple_import_requires_block,
+	replace_lazy_param_pattern,
 	hash,
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
@@ -51,6 +52,7 @@ import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../../constants.js';
 function is_template_or_control_flow(node) {
 	return (
 		node.type === 'Element' ||
+		node.type === 'RippleExpression' ||
 		node.type === 'Text' ||
 		node.type === 'Html' ||
 		node.type === 'TsxCompat' ||
@@ -355,7 +357,7 @@ const visitors = {
 					// Lazy destructuring: use __props identifier, bindings resolved via transforms
 					props_param_output = b.id('__props');
 				} else {
-					props_param_output = props_param;
+					props_param_output = replace_lazy_param_pattern(props_param);
 				}
 			} else {
 				props_param_output = props_param;
@@ -500,7 +502,7 @@ const visitors = {
 
 		const track_call_name = is_ripple_track_call(callee, context);
 		if (track_call_name) {
-			const track_method_name = track_call_name === 'trackSplit' ? 'track_split' : 'track';
+			const track_method_name = 'track';
 
 			return {
 				...node,
@@ -597,16 +599,12 @@ const visitors = {
 				}
 				// Replace lazy destructuring params with generated identifiers
 				const pattern = param.type === 'AssignmentPattern' ? param.left : param;
-				if (
-					(pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') &&
-					pattern.lazy &&
-					pattern.metadata?.lazy_id
-				) {
-					const id = b.id(pattern.metadata.lazy_id);
+				if (pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') {
+					const transformed_pattern = replace_lazy_param_pattern(pattern);
 					node.params[i] =
 						param.type === 'AssignmentPattern'
-							? /** @type {AST.AssignmentPattern} */ ({ ...param, left: id })
-							: id;
+							? /** @type {AST.AssignmentPattern} */ ({ ...param, left: transformed_pattern })
+							: transformed_pattern;
 				}
 			}
 		}
@@ -626,16 +624,12 @@ const visitors = {
 				}
 				// Replace lazy destructuring params with generated identifiers
 				const pattern = param.type === 'AssignmentPattern' ? param.left : param;
-				if (
-					(pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') &&
-					pattern.lazy &&
-					pattern.metadata?.lazy_id
-				) {
-					const id = b.id(pattern.metadata.lazy_id);
+				if (pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') {
+					const transformed_pattern = replace_lazy_param_pattern(pattern);
 					node.params[i] =
 						param.type === 'AssignmentPattern'
-							? /** @type {AST.AssignmentPattern} */ ({ ...param, left: id })
-							: id;
+							? /** @type {AST.AssignmentPattern} */ ({ ...param, left: transformed_pattern })
+							: transformed_pattern;
 				}
 			}
 		}
@@ -665,16 +659,12 @@ const visitors = {
 			}
 			// Replace lazy destructuring params with generated identifiers
 			const pattern = param.type === 'AssignmentPattern' ? param.left : param;
-			if (
-				(pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') &&
-				pattern.lazy &&
-				pattern.metadata?.lazy_id
-			) {
-				const id = b.id(pattern.metadata.lazy_id);
+			if (pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') {
+				const transformed_pattern = replace_lazy_param_pattern(pattern);
 				node.params[i] =
 					param.type === 'AssignmentPattern'
-						? /** @type {AST.AssignmentPattern} */ ({ ...param, left: id })
-						: id;
+						? /** @type {AST.AssignmentPattern} */ ({ ...param, left: transformed_pattern })
+						: transformed_pattern;
 			}
 		}
 
@@ -1094,7 +1084,7 @@ const visitors = {
 		} else {
 			/** @type {(AST.Property | AST.SpreadElement)[]} */
 			const props = [];
-			/** @type {AST.Expression | null} */
+			/** @type {AST.Property | null} */
 			let children_prop = null;
 
 			const apply_parent_css_scope = state.applyParentCssScope;
@@ -1114,7 +1104,11 @@ const visitors = {
 									);
 
 						if (attr.name.name === 'children') {
-							children_prop = attr.name.tracked ? b.thunk(property) : property;
+							children_prop = b.prop(
+								'init',
+								b.id('children'),
+								b.call('_$_.normalize_children', property),
+							);
 							continue;
 						}
 
@@ -1131,50 +1125,44 @@ const visitors = {
 				}
 			}
 
-			const children_filtered = [];
+			const children_filtered = node.children.filter(
+				(child) => child.type !== 'EmptyStatement' && child.type !== 'Component',
+			);
 
-			for (const child of node.children) {
-				if (child.type === 'Component') {
-					// in this case, id cannot be null
-					// as these are direct children of the component
-					const id = /** @type {AST.Identifier} */ (child.id);
-					props.push(
-						b.prop(
-							'init',
-							id,
-							/** @type {AST.Expression} */ (
-								visit(child, { ...state, namespace: child_namespace })
-							),
-						),
+			if (children_filtered.length > 0) {
+				const component_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node));
+				const children = b.call(
+					'_$_.ripple_element',
+					/** @type {AST.Expression} */ (
+						visit(b.component(b.id('render_children'), [], children_filtered), {
+							...context.state,
+							...(apply_parent_css_scope ||
+							(is_element_dynamic(node) && node.metadata.scoped && state.component?.css)
+								? {
+										applyParentCssScope:
+											apply_parent_css_scope ||
+											/** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash,
+									}
+								: {}),
+							scope: component_scope,
+							namespace: child_namespace,
+						})
+					),
+				);
+
+				if (children_prop) {
+					children_prop.value = b.logical(
+						'??',
+						/** @type {AST.Expression} */ (children_prop.value),
+						children,
 					);
 				} else {
-					children_filtered.push(child);
+					children_prop = b.prop('init', b.id('children'), children);
 				}
 			}
 
 			if (children_prop) {
-				props.push(b.prop('init', b.id('children'), children_prop));
-			}
-
-			if (children_filtered.length > 0) {
-				const component_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node));
-				const children = /** @type {AST.Expression} */ (
-					visit(b.component(b.id('children'), [], children_filtered), {
-						...context.state,
-						...(apply_parent_css_scope ||
-						(is_element_dynamic(node) && node.metadata.scoped && state.component?.css)
-							? {
-									applyParentCssScope:
-										apply_parent_css_scope ||
-										/** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash,
-								}
-							: {}),
-						scope: component_scope,
-						namespace: child_namespace,
-					})
-				);
-
-				props.push(b.prop('init', b.id('children'), children));
+				props.push(children_prop);
 			}
 
 			// For SSR, determine if we should await based on component metadata
@@ -1627,9 +1615,10 @@ const visitors = {
 		return context.next();
 	},
 
-	Text(node, { visit, state }) {
+	RippleExpression(node, { visit, state }) {
 		const metadata = { await: false };
 		let expression = /** @type {AST.Expression} */ (visit(node.expression, { ...state, metadata }));
+		const is_children_expression = is_children_template_expression(node.expression, state.scope);
 
 		if (expression.type === 'Literal') {
 			state.init?.push(
@@ -1637,8 +1626,29 @@ const visitors = {
 					b.call(b.member(b.id('__output'), b.id('push')), b.literal(escape(expression.value))),
 				),
 			);
+		} else if (is_children_expression) {
+			state.init?.push(b.stmt(b.call('_$_.render_expression', b.id('__output'), expression)));
 		} else {
 			state.init?.push(
+				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.call('_$_.escape', expression))),
+			);
+		}
+	},
+
+	Text(node, context) {
+		const metadata = { await: false };
+		let expression = /** @type {AST.Expression} */ (
+			context.visit(node.expression, { ...context.state, metadata })
+		);
+
+		if (expression.type === 'Literal') {
+			context.state.init?.push(
+				b.stmt(
+					b.call(b.member(b.id('__output'), b.id('push')), b.literal(escape(expression.value))),
+				),
+			);
+		} else {
+			context.state.init?.push(
 				b.stmt(b.call(b.member(b.id('__output'), b.id('push')), b.call('_$_.escape', expression))),
 			);
 		}

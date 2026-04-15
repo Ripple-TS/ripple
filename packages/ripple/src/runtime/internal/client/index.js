@@ -52,7 +52,6 @@ export {
 	update_property,
 	update_pre_property,
 	track,
-	track_split,
 	push_component,
 	pop_component,
 	untrack,
@@ -106,6 +105,8 @@ export { script } from './script.js';
 
 export { html } from './html.js';
 
+export { expression } from './expression.js';
+
 export { rpc } from './rpc.js';
 
 export { tsx_compat } from './compat.js';
@@ -115,3 +116,5 @@ export { TRY_BLOCK, HMR } from './constants.js';
 export { hmr } from './hmr.js';
 
 export { pop, next } from './hydration.js';
+
+export { ripple_element, normalize_children } from '../../element.js';

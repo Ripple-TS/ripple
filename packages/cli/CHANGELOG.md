@@ -1,5 +1,14 @@
 # @ripple-ts/cli
 
+## 0.3.9
+
+### Patch Changes
+
+- [#844](https://github.com/Ripple-TS/ripple/pull/844)
+  [`3c1263a`](https://github.com/Ripple-TS/ripple/commit/3c1263a0fc9c0cc4466ae4e1ea94b5a49b03728f)
+  Thanks [@RazinShafayet2007](https://github.com/RazinShafayet2007)! - fix(cli):
+  update Tailwind scaffolding to v4 CSS-first config
+
 ## 0.3.8
 
 ## 0.3.7

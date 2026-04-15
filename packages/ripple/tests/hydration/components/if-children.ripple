@@ -9,15 +9,13 @@ export component IfWithChildren({ children }: { children: any }) {
 	<div class="container">
 		<div class="header" role="button" onClick={() => (expanded = !expanded)}>{'Toggle'}</div>
 		if (expanded) {
-			<div class="content">
-				<children />
-			</div>
+			<div class="content">{children}</div>
 		}
 	</div>
 }
 
-export component ChildItem({ text }: { text: string }) {
-	<div class="item">{text}</div>
+export component ChildItem({ text: label }: { text: string }) {
+	<div class="item">{label}</div>
 }
 
 export component TestIfWithChildren() {
@@ -57,9 +55,7 @@ export component IfWithSiblingsAndChildren({ children }: { children: any }) {
 			</div>
 		</div>
 		if (expanded) {
-			<div class="items">
-				<children />
-			</div>
+			<div class="items">{children}</div>
 		}
 	</section>
 }

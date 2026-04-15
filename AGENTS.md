@@ -180,17 +180,17 @@ and once with `mode: 'server'`.
 
 ### Key AST Node Types (`packages/ripple/src/compiler/types/`)
 
-| Node Type           | Description                                              |
-| ------------------- | -------------------------------------------------------- |
-| `Component`         | Component declaration with `id`, `params`, `body`, `css` |
-| `Element`           | HTML/SVG element with `id`, `attributes`, `children`     |
-| `Text`              | Text node wrapping an expression                         |
-| `ServerBlock`       | `#server { ... }` block with exports tracking            |
-| `Attribute`         | Element attribute with `name`, `value`, `shorthand`      |
-| `RefAttribute`      | `ref={...}` reference binding                            |
-| `SpreadAttribute`   | `{...props}` spread                                      |
-| `StyleIdentifier`   | `#style` compile-time identifier for scoped CSS classes  |
-| `CSS.StyleSheet`    | Parsed CSS with `hash` for scoping                       |
+| Node Type         | Description                                              |
+| ----------------- | -------------------------------------------------------- |
+| `Component`       | Component declaration with `id`, `params`, `body`, `css` |
+| `Element`         | HTML/SVG element with `id`, `attributes`, `children`     |
+| `Text`            | Text node wrapping an expression                         |
+| `ServerBlock`     | `#server { ... }` block with exports tracking            |
+| `Attribute`       | Element attribute with `name`, `value`, `shorthand`      |
+| `RefAttribute`    | `ref={...}` reference binding                            |
+| `SpreadAttribute` | `{...props}` spread                                      |
+| `StyleIdentifier` | `#style` compile-time identifier for scoped CSS classes  |
+| `CSS.StyleSheet`  | Parsed CSS with `hash` for scoping                       |
 
 ## Runtime Architecture
 
@@ -264,8 +264,6 @@ cleaner code in most cases.
 **Key heuristics for AI agents working with tests:**
 
 - `track()` returns a `Tracked<V>` — use `&[var]` to unwrap, or `.value` to access
-- `trackSplit()` returns raw `Tracked` values — use regular `[]` destructuring +
-  `.value`, NOT `&[]`
 - `const &[var]` is valid when you don't mutate; use `let &[var]` when mutation is
   needed
 - `&[var]` in function params is valid for accepting `Tracked` values

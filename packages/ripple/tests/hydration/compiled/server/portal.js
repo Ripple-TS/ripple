@@ -27,7 +27,7 @@ export async function SimplePortal(__output) {
 					__output,
 					{
 						target: typeof document !== 'undefined' ? document.body : null,
-						children: function children(__output) {
+						children: _$_.ripple_element(function render_children(__output) {
 							_$_.push_component();
 							__output.push('<div');
 							__output.push(' class="portal-content"');
@@ -39,7 +39,7 @@ export async function SimplePortal(__output) {
 
 							__output.push('</div>');
 							_$_.pop_component();
-						}
+						})
 					}
 				];
 
@@ -88,7 +88,7 @@ export async function ConditionalPortal(__output) {
 						__output,
 						{
 							target: typeof document !== 'undefined' ? document.body : null,
-							children: function children(__output) {
+							children: _$_.ripple_element(function render_children(__output) {
 								_$_.push_component();
 								__output.push('<div');
 								__output.push(' class="portal-content"');
@@ -100,7 +100,7 @@ export async function ConditionalPortal(__output) {
 
 								__output.push('</div>');
 								_$_.pop_component();
-							}
+							})
 						}
 					];
 
@@ -146,7 +146,7 @@ export async function PortalWithMainContent(__output) {
 					__output,
 					{
 						target: typeof document !== 'undefined' ? document.body : null,
-						children: function children(__output) {
+						children: _$_.ripple_element(function render_children(__output) {
 							_$_.push_component();
 							__output.push('<div');
 							__output.push(' class="portal-content"');
@@ -158,7 +158,7 @@ export async function PortalWithMainContent(__output) {
 
 							__output.push('</div>');
 							_$_.pop_component();
-						}
+						})
 					}
 				];
 
@@ -219,7 +219,7 @@ export async function NestedContentWithPortal(__output) {
 					__output,
 					{
 						target: typeof document !== 'undefined' ? document.body : null,
-						children: function children(__output) {
+						children: _$_.ripple_element(function render_children(__output) {
 							_$_.push_component();
 							__output.push('<div');
 							__output.push(' class="portal-content"');
@@ -231,7 +231,7 @@ export async function NestedContentWithPortal(__output) {
 
 							__output.push('</div>');
 							_$_.pop_component();
-						}
+						})
 					}
 				];
 

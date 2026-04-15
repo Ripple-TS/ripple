@@ -66,7 +66,7 @@ export function MixedControlFlowStatic(__anchor, _, __block) {
 											var div_1 = root_4();
 
 											{
-												var text = _$_.child(div_1, true);
+												var expression = _$_.child(div_1, true);
 
 												_$_.pop(div_1);
 											}
@@ -76,7 +76,7 @@ export function MixedControlFlowStatic(__anchor, _, __block) {
 													var __a = `A-${_$_.get(pattern).id}`;
 
 													if (__prev.a !== __a) {
-														_$_.set_text(text, __prev.a = __a);
+														_$_.set_text(expression, __prev.a = __a);
 													}
 
 													var __b = `row row-${_$_.get(pattern).id} kind-a`;
@@ -117,7 +117,7 @@ export function MixedControlFlowStatic(__anchor, _, __block) {
 											var div_3 = root_7();
 
 											{
-												var text_1 = _$_.child(div_3, true);
+												var expression_1 = _$_.child(div_3, true);
 
 												_$_.pop(div_3);
 											}
@@ -127,7 +127,7 @@ export function MixedControlFlowStatic(__anchor, _, __block) {
 													var __a = `B-${_$_.get(pattern).id}`;
 
 													if (__prev.a !== __a) {
-														_$_.set_text(text_1, __prev.a = __a);
+														_$_.set_text(expression_1, __prev.a = __a);
 													}
 
 													var __b = `row row-${_$_.get(pattern).id} kind-b`;
@@ -244,7 +244,7 @@ export function MixedControlFlowReactive(__anchor, _, __block) {
 											var p_1 = root_13();
 
 											{
-												var text_2 = _$_.child(p_1, true);
+												var expression_2 = _$_.child(p_1, true);
 
 												_$_.pop(p_1);
 											}
@@ -254,7 +254,7 @@ export function MixedControlFlowReactive(__anchor, _, __block) {
 													var __a = `A:${_$_.get(pattern_1).label}`;
 
 													if (__prev.a !== __a) {
-														_$_.set_text(text_2, __prev.a = __a);
+														_$_.set_text(expression_2, __prev.a = __a);
 													}
 
 													var __b = `item item-${_$_.get(pattern_1).id}`;
@@ -291,7 +291,7 @@ export function MixedControlFlowReactive(__anchor, _, __block) {
 											var p_3 = root_16();
 
 											{
-												var text_3 = _$_.child(p_3, true);
+												var expression_3 = _$_.child(p_3, true);
 
 												_$_.pop(p_3);
 											}
@@ -301,7 +301,7 @@ export function MixedControlFlowReactive(__anchor, _, __block) {
 													var __a = `B:${_$_.get(pattern_1).label}`;
 
 													if (__prev.a !== __a) {
-														_$_.set_text(text_3, __prev.a = __a);
+														_$_.set_text(expression_3, __prev.a = __a);
 													}
 
 													var __b = `item item-${_$_.get(pattern_1).id}`;
@@ -407,9 +407,9 @@ export function MixedControlFlowAsyncPending(__anchor, _, __block) {
 									_$_.set_class(div_7, `pending-row pending-row-${row}`, void 0, true);
 
 									{
-										var text_4 = _$_.child(div_7, true);
+										var expression_4 = _$_.child(div_7, true);
 
-										text_4.nodeValue = `pending ${row}`;
+										expression_4.nodeValue = `pending ${row}`;
 										_$_.pop(div_7);
 									}
 
@@ -469,9 +469,9 @@ function AsyncRow(__anchor, { label }, __block) {
 		var div_9 = root_25();
 
 		{
-			var text_5 = _$_.child(div_9, true);
+			var expression_5 = _$_.child(div_9, true);
 
-			text_5.nodeValue = value;
+			expression_5.nodeValue = value;
 			_$_.pop(div_9);
 		}
 

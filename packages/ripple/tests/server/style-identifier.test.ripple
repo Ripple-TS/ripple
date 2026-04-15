@@ -190,7 +190,7 @@ describe('#style identifier (server)', () => {
 		component Wrapper({ children }) {
 			<div class="green">
 				{'Wrapper'}
-				<children />
+				{children}
 			</div>
 
 			<style>
@@ -235,9 +235,7 @@ describe('#style identifier (server)', () => {
 
 	it('applies caller scoped hash to slotted children through dynamic components', async () => {
 		component Wrapper({ children }) {
-			<section>
-				<children />
-			</section>
+			<section>{children}</section>
 		}
 
 		component App() {

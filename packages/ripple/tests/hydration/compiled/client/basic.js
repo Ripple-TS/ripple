@@ -13,19 +13,23 @@ var root_8 = _$_.template(`<!><!>`, 1, 2);
 var root_9 = _$_.template(`<div> </div>`, 0);
 var root_10 = _$_.template(`<!>`, 1, 1);
 var root_11 = _$_.template(`<div> </div><span> </span>`, 1, 2);
-var root_12 = _$_.template(`<h1 class="sr-only">heading</h1><p class="subtitle">first paragraph</p><p class="subtitle">second paragraph</p>`, 1, 3);
-var root_13 = _$_.template(`<!><span class="sibling1"> </span><span class="sibling2"> </span>`, 1, 3);
-var root_14 = _$_.template(`<h1 class="sr-only">Ripple</h1><img src="/images/logo.png" alt="Logo" class="logo"><p class="subtitle">the elegant TypeScript UI framework</p>`, 1, 3);
-var root_16 = _$_.template(`<a href="/playground" class="playground-link">Playground</a>`, 0);
-var root_15 = _$_.template(`<div class="social-links"><a href="https://github.com" class="github-link">GitHub</a><a href="https://discord.com" class="discord-link">Discord</a><!></div>`, 0);
-var root_17 = _$_.template(`<main><div class="container"><!></div></main>`, 0);
-var root_18 = _$_.template(`<div class="content"><p>Some content here</p></div>`, 0);
-var root_20 = _$_.template(`<!><!><!><!>`, 1, 4);
-var root_19 = _$_.template(`<!>`, 1, 1);
-var root_21 = _$_.template(`<footer class="last-child">I am the last child</footer>`, 0);
-var root_22 = _$_.template(`<div class="wrapper"><h1>Header</h1><p>Some content</p><!></div>`, 0);
-var root_23 = _$_.template(`<div class="inner"><span>Inner text</span><!></div>`, 0);
-var root_24 = _$_.template(`<section class="outer"><h2>Section title</h2><!></section>`, 0);
+var root_12 = _$_.template(`<div class="text-prop"><!></div>`, 0);
+var root_13 = _$_.template(`<!><button class="show-text">Show</button>`, 1, 2);
+var root_14 = _$_.template(`<h1 class="sr-only">heading</h1><p class="subtitle">first paragraph</p><p class="subtitle">second paragraph</p>`, 1, 3);
+var root_15 = _$_.template(`<!><span class="sibling1"> </span><span class="sibling2"> </span>`, 1, 3);
+var root_16 = _$_.template(`<h1 class="sr-only">Ripple</h1><img src="/images/logo.png" alt="Logo" class="logo"><p class="subtitle">the elegant TypeScript UI framework</p>`, 1, 3);
+var root_18 = _$_.template(`<a href="/playground" class="playground-link">Playground</a>`, 0);
+var root_17 = _$_.template(`<div class="social-links"><a href="https://github.com" class="github-link">GitHub</a><a href="https://discord.com" class="discord-link">Discord</a><!></div>`, 0);
+var root_19 = _$_.template(`<main><div class="container"><!></div></main>`, 0);
+var root_20 = _$_.template(`<div class="content"><p>Some content here</p></div>`, 0);
+var root_22 = _$_.template(`<!><!><!><!>`, 1, 4);
+var root_21 = _$_.template(`<!>`, 1, 1);
+var root_23 = _$_.template(`<footer class="last-child">I am the last child</footer>`, 0);
+var root_24 = _$_.template(`<div class="wrapper"><h1>Header</h1><p>Some content</p><!></div>`, 0);
+var root_25 = _$_.template(`<div class="inner"><span>Inner text</span><!></div>`, 0);
+var root_26 = _$_.template(`<section class="outer"><h2>Section title</h2><!></section>`, 0);
+
+import { track } from 'ripple';
 
 export function StaticText(__anchor, _, __block) {
 	_$_.push_component();
@@ -129,13 +133,13 @@ export function Greeting(__anchor, props, __block) {
 	var div_6 = root_9();
 
 	{
-		var text_1 = _$_.child(div_6, true);
+		var expression = _$_.child(div_6, true);
 
 		_$_.pop(div_6);
 	}
 
 	_$_.render(() => {
-		_$_.set_text(text_1, 'Hello ' + _$_.with_scope(__block, () => String(props.name)));
+		_$_.set_text(expression, 'Hello ' + _$_.with_scope(__block, () => String(props.name)));
 	});
 
 	_$_.append(__anchor, div_6);
@@ -157,21 +161,21 @@ export function ExpressionContent(__anchor, _, __block) {
 	_$_.push_component();
 
 	const value = 42;
-	const text = 'computed';
+	const label = 'computed';
 	var fragment_4 = root_11();
 	var div_7 = _$_.first_child_frag(fragment_4);
 
 	{
-		var text_2 = _$_.child(div_7, true);
+		var expression_1 = _$_.child(div_7, true);
 
-		text_2.nodeValue = value;
+		expression_1.nodeValue = value;
 		_$_.pop(div_7);
 	}
 
 	var span_2 = _$_.sibling(div_7);
 
 	{
-		var text_3 = _$_.child(span_2, true);
+		var expression_2 = _$_.child(span_2, true);
 
 		_$_.pop(span_2);
 	}
@@ -179,20 +183,63 @@ export function ExpressionContent(__anchor, _, __block) {
 	_$_.next();
 
 	_$_.render(() => {
-		_$_.set_text(text_3, _$_.with_scope(__block, () => text.toUpperCase()));
+		_$_.set_text(expression_2, _$_.with_scope(__block, () => label.toUpperCase()));
 	});
 
 	_$_.append(__anchor, fragment_4, true);
 	_$_.pop_component();
 }
 
+function TextProp(__anchor, __props, __block) {
+	_$_.push_component();
+
+	var div_8 = root_12();
+
+	{
+		var expression_3 = _$_.child(div_8);
+
+		_$_.pop(div_8);
+	}
+
+	_$_.render(() => {
+		_$_.expression(expression_3, () => __props.children);
+	});
+
+	_$_.append(__anchor, div_8);
+	_$_.pop_component();
+}
+
+export function TextPropWithToggle(__anchor, _, __block) {
+	_$_.push_component();
+
+	let lazy = _$_.track(false, void 0, void 0, __block);
+	var fragment_5 = root_13();
+	var node_4 = _$_.first_child_frag(fragment_5);
+
+	TextProp(
+		node_4,
+		{
+			get children() {
+				return _$_.normalize_children(_$_.get(lazy) ? 'hello' : '');
+			}
+		},
+		_$_.active_block
+	);
+
+	var button_1 = _$_.sibling(node_4);
+
+	button_1.__click = () => _$_.set(lazy, true);
+	_$_.append(__anchor, fragment_5);
+	_$_.pop_component();
+}
+
 function StaticHeader(__anchor, _, __block) {
 	_$_.push_component();
 
-	var fragment_5 = root_12();
+	var fragment_6 = root_14();
 
 	_$_.next(2);
-	_$_.append(__anchor, fragment_5, true);
+	_$_.append(__anchor, fragment_6, true);
 	_$_.pop_component();
 }
 
@@ -200,88 +247,91 @@ export function StaticChildWithSiblings(__anchor, _, __block) {
 	_$_.push_component();
 
 	const foo = 'bar';
-	var fragment_6 = root_13();
-	var node_4 = _$_.first_child_frag(fragment_6);
+	var fragment_7 = root_15();
+	var node_5 = _$_.first_child_frag(fragment_7);
 
-	StaticHeader(node_4, {}, _$_.active_block);
+	StaticHeader(node_5, {}, _$_.active_block);
 
-	var span_3 = _$_.sibling(node_4);
+	var span_3 = _$_.sibling(node_5);
 
 	{
-		var text_4 = _$_.child(span_3, true);
+		var expression_4 = _$_.child(span_3, true);
 
-		text_4.nodeValue = foo;
+		expression_4.nodeValue = foo;
 		_$_.pop(span_3);
 	}
 
 	var span_4 = _$_.sibling(span_3);
 
 	{
-		var text_5 = _$_.child(span_4, true);
+		var expression_5 = _$_.child(span_4, true);
 
-		text_5.nodeValue = foo;
+		expression_5.nodeValue = foo;
 		_$_.pop(span_4);
 	}
 
 	_$_.next();
-	_$_.append(__anchor, fragment_6, true);
+	_$_.append(__anchor, fragment_7, true);
 	_$_.pop_component();
 }
 
 function Header(__anchor, _, __block) {
 	_$_.push_component();
 
-	var fragment_7 = root_14();
+	var fragment_8 = root_16();
 
 	_$_.next(2);
-	_$_.append(__anchor, fragment_7, true);
+	_$_.append(__anchor, fragment_8, true);
 	_$_.pop_component();
 }
 
 function Actions(__anchor, { playgroundVisible = false }, __block) {
 	_$_.push_component();
 
-	var div_8 = root_15();
+	var div_9 = root_17();
 
 	{
-		var a_2 = _$_.child(div_8);
+		var a_2 = _$_.child(div_9);
 		var a_1 = _$_.sibling(a_2);
-		var node_5 = _$_.sibling(a_1);
+		var node_6 = _$_.sibling(a_1);
 
 		{
 			var consequent = (__anchor) => {
-				var a_3 = root_16();
+				var a_3 = root_18();
 
 				_$_.append(__anchor, a_3);
 			};
 
-			_$_.if(node_5, (__render) => {
+			_$_.if(node_6, (__render) => {
 				if (playgroundVisible) __render(consequent);
 			});
 		}
 
-		_$_.pop(div_8);
+		_$_.pop(div_9);
 	}
 
-	_$_.append(__anchor, div_8);
+	_$_.append(__anchor, div_9);
 	_$_.pop_component();
 }
 
 function Layout(__anchor, { children }, __block) {
 	_$_.push_component();
 
-	var main_1 = root_17();
+	var main_1 = root_19();
 
 	{
-		var div_9 = _$_.child(main_1);
+		var div_10 = _$_.child(main_1);
 
 		{
-			var node_6 = _$_.child(div_9);
+			var expression_6 = _$_.child(div_10);
 
-			children(node_6, {}, _$_.active_block);
-			_$_.pop(div_9);
+			_$_.pop(div_10);
 		}
 	}
+
+	_$_.render(() => {
+		_$_.expression(expression_6, () => children);
+	});
 
 	_$_.append(__anchor, main_1);
 	_$_.pop_component();
@@ -290,26 +340,26 @@ function Layout(__anchor, { children }, __block) {
 function Content(__anchor, _, __block) {
 	_$_.push_component();
 
-	var div_10 = root_18();
+	var div_11 = root_20();
 
-	_$_.append(__anchor, div_10);
+	_$_.append(__anchor, div_11);
 	_$_.pop_component();
 }
 
 export function WebsiteIndex(__anchor, _, __block) {
 	_$_.push_component();
 
-	var fragment_8 = root_19();
-	var node_7 = _$_.first_child_frag(fragment_8);
+	var fragment_9 = root_21();
+	var node_7 = _$_.first_child_frag(fragment_9);
 
 	Layout(
 		node_7,
 		{
-			children(__anchor, _, __block) {
+			children: _$_.ripple_element(function render_children(__anchor, _, __block) {
 				_$_.push_component();
 
-				var fragment_9 = root_20();
-				var node_8 = _$_.first_child_frag(fragment_9);
+				var fragment_10 = root_22();
+				var node_8 = _$_.first_child_frag(fragment_10);
 
 				Header(node_8, {}, _$_.active_block);
 
@@ -324,21 +374,21 @@ export function WebsiteIndex(__anchor, _, __block) {
 				var node_11 = _$_.sibling(node_10);
 
 				Actions(node_11, { playgroundVisible: false }, _$_.active_block);
-				_$_.append(__anchor, fragment_9);
+				_$_.append(__anchor, fragment_10);
 				_$_.pop_component();
-			}
+			})
 		},
 		_$_.active_block
 	);
 
-	_$_.append(__anchor, fragment_8);
+	_$_.append(__anchor, fragment_9);
 	_$_.pop_component();
 }
 
 function LastChild(__anchor, _, __block) {
 	_$_.push_component();
 
-	var footer_1 = root_21();
+	var footer_1 = root_23();
 
 	_$_.append(__anchor, footer_1);
 	_$_.pop_component();
@@ -347,31 +397,14 @@ function LastChild(__anchor, _, __block) {
 export function ComponentAsLastSibling(__anchor, _, __block) {
 	_$_.push_component();
 
-	var div_11 = root_22();
+	var div_12 = root_24();
 
 	{
-		var h1_1 = _$_.child(div_11);
+		var h1_1 = _$_.child(div_12);
 		var p_1 = _$_.sibling(h1_1);
 		var node_12 = _$_.sibling(p_1);
 
 		LastChild(node_12, {}, _$_.active_block);
-		_$_.pop(div_11);
-	}
-
-	_$_.append(__anchor, div_11);
-	_$_.pop_component();
-}
-
-function InnerContent(__anchor, _, __block) {
-	_$_.push_component();
-
-	var div_12 = root_23();
-
-	{
-		var span_5 = _$_.child(div_12);
-		var node_13 = _$_.sibling(span_5);
-
-		LastChild(node_13, {}, _$_.active_block);
 		_$_.pop(div_12);
 	}
 
@@ -379,10 +412,27 @@ function InnerContent(__anchor, _, __block) {
 	_$_.pop_component();
 }
 
+function InnerContent(__anchor, _, __block) {
+	_$_.push_component();
+
+	var div_13 = root_25();
+
+	{
+		var span_5 = _$_.child(div_13);
+		var node_13 = _$_.sibling(span_5);
+
+		LastChild(node_13, {}, _$_.active_block);
+		_$_.pop(div_13);
+	}
+
+	_$_.append(__anchor, div_13);
+	_$_.pop_component();
+}
+
 export function NestedComponentAsLastSibling(__anchor, _, __block) {
 	_$_.push_component();
 
-	var section_1 = root_24();
+	var section_1 = root_26();
 
 	{
 		var h2_1 = _$_.child(section_1);
@@ -395,3 +445,5 @@ export function NestedComponentAsLastSibling(__anchor, _, __block) {
 	_$_.append(__anchor, section_1);
 	_$_.pop_component();
 }
+
+_$_.delegate(['click']);

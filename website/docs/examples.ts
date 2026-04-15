@@ -139,7 +139,7 @@ component Card(props: { message: string, className?: string, onClick?: () => voi
 
 component Card(props: { children: Children }) {
   <div class="card">
-    <props.children />
+    {props.children}
   </div>
 }
 
@@ -177,7 +177,7 @@ export default component App() {
 	<fieldset>
 		<Header />
 		<hr />
-		<children />
+		{children}
 		<hr />
 		<Footer />
 	</fieldset>
@@ -552,48 +552,6 @@ export default component App() {
 `,
 	},
 	{
-		title: 'trackSplit',
-		code: `import { track, trackSplit } from 'ripple';
-import type { PropsWithChildren, Tracked } from 'ripple';
-
-component Child(props: PropsWithChildren<{ count: Tracked<number> }>) {
-  const &[children, count, className, rest] = trackSplit(props, ['children', 'count', 'class']);
-
-  <button class={className} {...rest}><@children /></button>
-  <pre>{\`Count is: \${count}\`}</pre>
-  <button onClick={() => count++}>{'Increment Count'}</button>
-}
-
-export default component App() {
-    let &[count, countTracked] = track(0,
-    (current) => {
-      console.log('getter', current);
-      return current;
-    },
-    (next) => {
-      console.log('setter', next);
-      return next;
-    }
-  );
-  let &[className] = track('shadow');
-  let &[name] = track('Click Me');
-
-  function buttonRef(el) {
-    console.log('ref called with', el);
-    return () => {
-      console.log('cleanup ref for', el);
-    };
-  }
-
-  <Child
-    class={className}
-    onClick={() => { name === 'Click Me' ? name = 'Clicked' : name = 'Click Me'; className = ''}}
-    count={countTracked}
-    {ref buttonRef}
-  >{name}</Child>;
-}`,
-	},
-	{
 		title: 'Transporting Reactivity',
 		code: `import { effect, track } from 'ripple';
 
@@ -672,16 +630,16 @@ export default component App() {
 }
 
 component Child({ Button, children }) {
-  <@Button><children /></@Button>
+  <@Button>{children}</@Button>
 }
 
 component AnotherChild(&{ Button, children }) {
-  <@Button><children /></@Button>
+  <@Button>{children}</@Button>
 }
 
 component SomeButton({ children }) {
   <button onClick={() => alert('Clicked')}>
-		<children />
+		{children}
 	</button>
 }
 

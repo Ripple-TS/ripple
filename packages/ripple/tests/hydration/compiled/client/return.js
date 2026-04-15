@@ -1709,13 +1709,13 @@ export function ReactiveOuterInnerReturns(__anchor, _, __block) {
 		var div_39 = root_113();
 
 		{
-			var text = _$_.child(div_39, true);
+			var expression = _$_.child(div_39, true);
 
 			_$_.pop(div_39);
 		}
 
 		_$_.render(() => {
-			_$_.set_text(text, _$_.get(lazy_4) ? 'a-on rest' : 'a-off rest');
+			_$_.set_text(expression, _$_.get(lazy_4) ? 'a-on rest' : 'a-off rest');
 		});
 
 		_$_.append(__anchor, div_39);

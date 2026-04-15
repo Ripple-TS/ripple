@@ -1115,13 +1115,22 @@ function RipplePlugin(config) {
 				let node = /** @type {ESTreeJSX.JSXExpressionContainer} */ (this.startNode());
 				this.next();
 
-				if (this.value === 'html') {
+				if (this.type === tt.name && this.value === 'html') {
 					node.html = true;
 					this.next();
 					if (this.type === tt.braceR) {
 						this.raise(
 							this.start,
 							'"html" is a Ripple keyword and must be used in the form {html some_content}',
+						);
+					}
+				} else if (this.type === tt.name && this.value === 'text') {
+					node.text = true;
+					this.next();
+					if (this.type === tt.braceR) {
+						this.raise(
+							this.start,
+							'"text" is a Ripple keyword and must be used in the form {text some_value}',
 						);
 					}
 				}
@@ -1328,16 +1337,12 @@ function RipplePlugin(config) {
 					const clause = /** @type {AST.CatchClause} */ (this.startNode());
 					this.next();
 					if (this.eat(tt.parenL)) {
-						clause.param = this.parseCatchClauseParam();
+						clause.param = this.parseBindingAtom();
+						this.expect(tt.parenR);
 					} else {
-						if (this.options.ecmaVersion < 10) {
-							this.unexpected();
-						}
 						clause.param = null;
-						this.enterScope(0);
 					}
-					clause.body = this.parseBlock(false);
-					this.exitScope();
+					clause.body = this.parseBlock();
 					node.handler = this.finishNode(clause, 'CatchClause');
 				}
 				node.finalizer = this.eat(tt._finally) ? this.parseBlock() : null;
@@ -1909,12 +1914,13 @@ function RipplePlugin(config) {
 				if (this.type === tt.braceL) {
 					const node = this.jsx_parseExpressionContainer();
 					// Keep JSXEmptyExpression as-is (for prettier to handle comments)
-					// but convert other expressions to Text/Html nodes
+					// but convert other expressions to Html/RippleExpression/Text nodes
 					if (node.expression.type !== 'JSXEmptyExpression') {
-						/** @type {AST.Html | AST.TextNode} */ (/** @type {unknown} */ (node)).type = node.html
-							? 'Html'
-							: 'Text';
+						/** @type {AST.RippleExpression | AST.Html | AST.TextNode} */ (
+							/** @type {unknown} */ (node)
+						).type = node.html ? 'Html' : node.text ? 'Text' : 'RippleExpression';
 						delete node.html;
+						delete node.text;
 					}
 					body.push(node);
 				} else if (this.type === tt.braceR) {
@@ -2050,12 +2056,16 @@ function RipplePlugin(config) {
 					this.context.some((c) => c === tstc.tc_expr)
 				) {
 					const node = this.jsx_parseExpressionContainer();
-					// Keep JSXEmptyExpression as-is (don't convert to Text)
+					// Keep JSXEmptyExpression as-is (don't convert to RippleExpression/Text/Html)
 					if (node.expression.type !== 'JSXEmptyExpression') {
-						/** @type {AST.TextNode} */ (/** @type {unknown} */ (node)).type = 'Text';
+						/** @type {AST.RippleExpression | AST.Html | AST.TextNode} */ (
+							/** @type {unknown} */ (node)
+						).type = node.html ? 'Html' : node.text ? 'Text' : 'RippleExpression';
+						delete node.html;
+						delete node.text;
 					}
 
-					return /** @type {ESTreeJSX.JSXEmptyExpression | AST.TextNode | ESTreeJSX.JSXExpressionContainer} */ (
+					return /** @type {ESTreeJSX.JSXEmptyExpression | AST.RippleExpression | AST.Html | AST.TextNode | ESTreeJSX.JSXExpressionContainer} */ (
 						/** @type {unknown} */ (node)
 					);
 				}

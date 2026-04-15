@@ -58,9 +58,9 @@ function AsyncList(__anchor, _, __block) {
 					var li_1 = root_4();
 
 					{
-						var text = _$_.child(li_1, true);
+						var expression = _$_.child(li_1, true);
 
-						text.nodeValue = item;
+						expression.nodeValue = item;
 						_$_.pop(li_1);
 					}
 
@@ -118,9 +118,9 @@ function AsyncContent(__anchor, _, __block) {
 		var div_3 = root_8();
 
 		{
-			var text_1 = _$_.child(div_3, true);
+			var expression_1 = _$_.child(div_3, true);
 
-			text_1.nodeValue = value;
+			expression_1.nodeValue = value;
 			_$_.pop(div_3);
 		}
 

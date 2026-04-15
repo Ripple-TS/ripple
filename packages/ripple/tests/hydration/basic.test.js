@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { flushSync } from 'ripple';
 import { hydrateComponent, container } from '../setup-hydration.js';
 
 // Import server-compiled components
@@ -57,6 +58,28 @@ describe('hydration > basic', () => {
 	it('hydrates expression content', async () => {
 		await hydrateComponent(ServerComponents.ExpressionContent, ClientComponents.ExpressionContent);
 		expect(container.innerHTML).toBeHtml('<div>42</div><span>COMPUTED</span>');
+	});
+
+	it('restores text children after hydrating away initial server text', async () => {
+		await hydrateComponent(
+			ServerComponents.TextPropWithToggle,
+			ClientComponents.TextPropWithToggle,
+		);
+
+		expect(container.querySelector('.text-prop')?.textContent).toBe('');
+
+		/** @type {any} */ (container.querySelector('.show-text'))?.click();
+		flushSync();
+
+		expect(container.querySelector('.text-prop')?.textContent).toBe('hello');
+
+		// Verify text is placed between hydration markers, not before anchor
+		const innerHTML = container.querySelector('.text-prop')?.innerHTML ?? '';
+		const textIndex = innerHTML.indexOf('hello');
+		const startMarker = innerHTML.indexOf('<!--[-->');
+		const endMarker = innerHTML.indexOf('<!--]-->');
+		expect(textIndex).toBeGreaterThan(startMarker);
+		expect(textIndex).toBeLessThan(endMarker);
 	});
 
 	it('hydrates static child component followed by sibling content', async () => {

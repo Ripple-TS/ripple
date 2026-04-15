@@ -756,9 +756,10 @@ function printRippleNode(node, path, options, print, args) {
 	const suppressLeadingComments = args && args.suppressLeadingComments;
 	const suppressExpressionLeadingComments = args && args.suppressExpressionLeadingComments;
 
-	// For Text and Html nodes, don't add leading comments here - they should be handled
+	// For RippleExpression, Text, and Html nodes, don't add leading comments here - they should be handled
 	// as separate children within the element, not as part of the expression
-	const shouldSkipLeadingComments = node.type === 'Text' || node.type === 'Html';
+	const shouldSkipLeadingComments =
+		node.type === 'RippleExpression' || node.type === 'Text' || node.type === 'Html';
 
 	// Handle leading comments
 	if (node.leadingComments && !shouldSkipLeadingComments && !suppressLeadingComments) {
@@ -2219,11 +2220,19 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printAttribute(node, path, options, print);
 			break;
 
-		case 'Text': {
+		case 'RippleExpression': {
 			const expressionDoc = suppressExpressionLeadingComments
 				? path.call((exprPath) => print(exprPath, { suppressLeadingComments: true }), 'expression')
 				: path.call(print, 'expression');
 			nodeContent = ['{', expressionDoc, '}'];
+			break;
+		}
+
+		case 'Text': {
+			const expressionDoc = suppressExpressionLeadingComments
+				? path.call((exprPath) => print(exprPath, { suppressLeadingComments: true }), 'expression')
+				: path.call(print, 'expression');
+			nodeContent = ['{text ', expressionDoc, '}'];
 			break;
 		}
 
@@ -5444,6 +5453,7 @@ function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
 
 	// Always inline simple text content and JSX expressions if they fit
 	if (
+		firstChild.type === 'RippleExpression' ||
 		firstChild.type === 'Text' ||
 		firstChild.type === 'Html' ||
 		firstChild.type === 'JSXExpressionContainer'
@@ -5922,7 +5932,7 @@ function printElement(element, path, options, print) {
 		const openingEnd = /** @type {AST.NodeWithLocation} */ (node.openingElement).end;
 		for (const child of node.children) {
 			if (
-				(child.type === 'Text' || child.type === 'Html') &&
+				(child.type === 'RippleExpression' || child.type === 'Text' || child.type === 'Html') &&
 				Array.isArray(child.leadingComments)
 			) {
 				for (const comment of child.leadingComments) {
@@ -6091,7 +6101,10 @@ function printElement(element, path, options, print) {
 			}
 		}
 
-		const isTextLikeChild = currentChild.type === 'Text' || currentChild.type === 'Html';
+		const isTextLikeChild =
+			currentChild.type === 'RippleExpression' ||
+			currentChild.type === 'Text' ||
+			currentChild.type === 'Html';
 		const hasTextLeadingComments =
 			shouldLiftTextLevelComments &&
 			isTextLikeChild &&
@@ -6189,8 +6202,10 @@ function printElement(element, path, options, print) {
 					: nextChild;
 			const whitespaceLinesCount = getBlankLinesBetweenNodes(currentChild, whitespaceTarget);
 			const isTextOrHtmlChild =
+				currentChild.type === 'RippleExpression' ||
 				currentChild.type === 'Text' ||
 				currentChild.type === 'Html' ||
+				nextChild.type === 'RippleExpression' ||
 				nextChild.type === 'Text' ||
 				nextChild.type === 'Html';
 

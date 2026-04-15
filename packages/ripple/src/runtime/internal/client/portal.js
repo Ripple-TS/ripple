@@ -12,10 +12,11 @@ import {
 	set_hydrating,
 	set_hydrate_node,
 } from './hydration.js';
+import { is_ripple_element } from '../../element.js';
 
 /**
  * @param {any} _
- * @param {{ target: Element, children: (anchor: Node, props: {}, block: Block) => void }} props
+ * @param {{ target: Element, children: import('../../element.js').RippleElement }} props
  * @returns {void}
  */
 export function Portal(_, props) {
@@ -26,7 +27,7 @@ export function Portal(_, props) {
 
 	/** @type {Element | symbol} */
 	let target = UNINITIALIZED;
-	/** @type {((anchor: Node, props: {}, block: Block) => void) | symbol} */
+	/** @type {import('../../element.js').RippleElement | symbol} */
 	let children = UNINITIALIZED;
 	/** @type {Block | null} */
 	var b = null;
@@ -44,8 +45,13 @@ export function Portal(_, props) {
 
 	try {
 		render(() => {
-			if (target === (target = props.target)) return;
-			if (children === (children = props.children)) return;
+			const next_target = props.target;
+			const next_children = props.children;
+
+			if (target === next_target && children === next_children) return;
+
+			target = next_target;
+			children = next_children;
 
 			if (b !== null) {
 				destroy_block(b);
@@ -65,8 +71,8 @@ export function Portal(_, props) {
 			var block = /** @type {Block} */ (active_block);
 
 			b = branch(() => {
-				if (typeof children === 'function') {
-					children(/** @type {Text} */ (anchor), {}, block);
+				if (is_ripple_element(children)) {
+					children.render(/** @type {Text} */ (anchor), {}, block);
 				}
 			});
 

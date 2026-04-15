@@ -292,25 +292,25 @@ export function is_component_level_function(context) {
  * Returns the matched Ripple tracking call name
  * @param {AST.Expression | AST.Super} callee
  * @param {CommonContext} context
- * @returns {'track' | 'trackSplit' | null}
+ * @returns {'track' | null}
  */
 export function is_ripple_track_call(callee, context) {
 	// Super expressions cannot be Ripple track calls
 	if (callee.type === 'Super') return null;
 
-	if (callee.type === 'Identifier' && (callee.name === 'track' || callee.name === 'trackSplit')) {
-		return is_ripple_import(callee, context) ? callee.name : null;
+	if (callee.type === 'Identifier' && callee.name === 'track') {
+		return is_ripple_import(callee, context) ? 'track' : null;
 	}
 
 	if (
 		callee.type === 'MemberExpression' &&
 		callee.object.type === 'Identifier' &&
 		callee.property.type === 'Identifier' &&
-		(callee.property.name === 'track' || callee.property.name === 'trackSplit') &&
+		callee.property.name === 'track' &&
 		!callee.computed &&
 		is_ripple_import(callee, context)
 	) {
-		return callee.property.name;
+		return 'track';
 	}
 
 	return null;
@@ -631,7 +631,22 @@ export function normalize_children(children, context) {
 		const child = normalized[i];
 		const prev_child = normalized[i - 1];
 
-		if (child.type === 'Text' && prev_child?.type === 'Text') {
+		if (
+			(child.type === 'RippleExpression' || child.type === 'Text') &&
+			(prev_child?.type === 'RippleExpression' || prev_child?.type === 'Text')
+		) {
+			if (
+				(child.type === 'RippleExpression' &&
+					is_children_template_expression(child.expression, context.state.scope)) ||
+				(prev_child.type === 'RippleExpression' &&
+					is_children_template_expression(prev_child.expression, context.state.scope))
+			) {
+				continue;
+			}
+
+			if (prev_child.type === 'Text' || child.type === 'Text') {
+				prev_child.type = 'Text';
+			}
 			if (child.expression.type === 'Literal' && prev_child.expression.type === 'Literal') {
 				prev_child.expression = b.literal(
 					prev_child.expression.value + String(child.expression.value),
@@ -648,6 +663,91 @@ export function normalize_children(children, context) {
 	}
 
 	return normalized;
+}
+
+/**
+ * @param {AST.Expression} expression
+ * @returns {AST.Expression}
+ */
+export function unwrap_template_expression(expression) {
+	/** @type {AST.Expression} */
+	let node = expression;
+
+	while (true) {
+		if (
+			node.type === 'ParenthesizedExpression' ||
+			node.type === 'TSAsExpression' ||
+			node.type === 'TSSatisfiesExpression' ||
+			node.type === 'TSNonNullExpression' ||
+			node.type === 'TSInstantiationExpression'
+		) {
+			node = /** @type {AST.Expression} */ (node.expression);
+			continue;
+		}
+
+		if (node.type === 'ChainExpression') {
+			node = /** @type {AST.Expression} */ (node.expression);
+			continue;
+		}
+
+		break;
+	}
+
+	return node;
+}
+
+/**
+ * @param {AST.Expression} expression
+ * @param {ScopeInterface | null | undefined} scope
+ * @param {ScopeInterface | null} [component_scope]
+ * @returns {boolean}
+ */
+export function is_children_template_expression(expression, scope, component_scope = null) {
+	if (scope == null) {
+		return false;
+	}
+
+	const unwrapped = unwrap_template_expression(expression);
+
+	if (unwrapped.type === 'MemberExpression') {
+		let property_name = null;
+
+		if (!unwrapped.computed && unwrapped.property.type === 'Identifier') {
+			property_name = unwrapped.property.name;
+		} else if (
+			unwrapped.computed &&
+			unwrapped.property.type === 'Literal' &&
+			typeof unwrapped.property.value === 'string'
+		) {
+			property_name = unwrapped.property.value;
+		}
+
+		if (property_name === 'children') {
+			const target = unwrap_template_expression(/** @type {AST.Expression} */ (unwrapped.object));
+
+			if (target.type === 'Identifier') {
+				const binding = scope.get(target.name);
+				return (
+					binding?.declaration_kind === 'param' &&
+					(component_scope === null || binding.scope === component_scope)
+				);
+			}
+		}
+	}
+
+	if (unwrapped.type !== 'Identifier' || unwrapped.name !== 'children') {
+		return false;
+	}
+
+	const binding = scope.get(unwrapped.name);
+	return (
+		(binding?.declaration_kind === 'param' ||
+			binding?.kind === 'prop' ||
+			binding?.kind === 'prop_fallback' ||
+			binding?.kind === 'lazy' ||
+			binding?.kind === 'lazy_fallback') &&
+		(component_scope === null || binding.scope === component_scope)
+	);
 }
 
 /**
@@ -670,6 +770,52 @@ function normalize_child(node, normalized, context) {
 		return;
 	} else {
 		normalized.push(node);
+	}
+}
+
+/**
+ * Replaces any lazy subpatterns in a parameter pattern with their generated identifiers.
+ * This is used by client and server transforms so nested lazy destructuring can coexist
+ * with otherwise normal object/array params.
+ * @param {AST.Pattern} pattern
+ * @returns {AST.Pattern}
+ */
+export function replace_lazy_param_pattern(pattern) {
+	switch (pattern.type) {
+		case 'AssignmentPattern':
+			return { ...pattern, left: replace_lazy_param_pattern(pattern.left) };
+
+		case 'ObjectPattern':
+			if (pattern.lazy && pattern.metadata?.lazy_id) {
+				return /** @type {AST.Pattern} */ (b.id(pattern.metadata.lazy_id));
+			}
+
+			return {
+				...pattern,
+				properties: pattern.properties.map((property) =>
+					property.type === 'RestElement'
+						? { ...property, argument: replace_lazy_param_pattern(property.argument) }
+						: { ...property, value: replace_lazy_param_pattern(property.value) },
+				),
+			};
+
+		case 'ArrayPattern':
+			if (pattern.lazy && pattern.metadata?.lazy_id) {
+				return /** @type {AST.Pattern} */ (b.id(pattern.metadata.lazy_id));
+			}
+
+			return {
+				...pattern,
+				elements: pattern.elements.map((element) =>
+					element === null ? null : replace_lazy_param_pattern(element),
+				),
+			};
+
+		case 'RestElement':
+			return { ...pattern, argument: replace_lazy_param_pattern(pattern.argument) };
+
+		default:
+			return pattern;
 	}
 }
 

@@ -3,49 +3,36 @@ import * as _$_ from 'ripple/internal/server';
 
 import { track } from 'ripple/server';
 
-export async function Layout(__output, { children }) {
-	return _$_.async(async () => {
-		_$_.push_component();
-		__output.push('<div');
-		__output.push(' class="layout"');
+export function Layout(__output, { children }) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="layout"');
+	__output.push('>');
+
+	{
+		__output.push('<nav');
+		__output.push(' class="nav"');
 		__output.push('>');
 
 		{
-			__output.push('<nav');
-			__output.push(' class="nav"');
-			__output.push('>');
-
-			{
-				__output.push('Navigation');
-			}
-
-			__output.push('</nav>');
-			__output.push('<main');
-			__output.push(' class="main"');
-			__output.push('>');
-
-			{
-				{
-					const comp = children;
-					const args = [__output, {}];
-
-					if (comp?.async) {
-						await comp(...args);
-					} else if (comp) {
-						comp(...args);
-					}
-				}
-			}
-
-			__output.push('</main>');
+			__output.push('Navigation');
 		}
 
-		__output.push('</div>');
-		_$_.pop_component();
-	});
-}
+		__output.push('</nav>');
+		__output.push('<main');
+		__output.push(' class="main"');
+		__output.push('>');
 
-Layout.async = true;
+		{
+			_$_.render_expression(__output, children);
+		}
+
+		__output.push('</main>');
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}
 
 export function Content(__output) {
 	_$_.push_component();
@@ -87,7 +74,7 @@ export function LayoutWithContent(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 
 					{
@@ -98,7 +85,7 @@ export function LayoutWithContent(__output) {
 					}
 
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 

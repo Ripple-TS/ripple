@@ -427,58 +427,6 @@ export function track(v, get, set, b) {
 }
 
 /**
- * @param {Record<string|symbol, any>} v
- * @param {(symbol | string)[]} l
- * @param {Block} b
- * @returns {Tracked[]}
- */
-export function track_split(v, l, b) {
-	var is_tracked = is_ripple_object(v);
-
-	if (is_tracked || typeof v !== 'object' || v === null || is_array(v)) {
-		throw new TypeError('Invalid value: expected a non-tracked object');
-	}
-
-	/** @type {Tracked[]} */
-	var out = [];
-	/** @type {Record<string|symbol, any>} */
-	var rest = {};
-	/** @type {Record<PropertyKey, 1>} */
-	var done = {};
-	var props = Reflect.ownKeys(v);
-
-	for (let i = 0, key, t; i < l.length; i++) {
-		key = l[i];
-
-		if (props.includes(key)) {
-			if (is_ripple_object(v[key])) {
-				t = v[key];
-			} else {
-				t = tracked(undefined, b);
-				t = define_property(t, '__v', /** @type {PropertyDescriptor} */ (get_descriptor(v, key)));
-			}
-		} else {
-			t = tracked(undefined, b);
-		}
-
-		out[i] = t;
-		done[key] = 1;
-	}
-
-	for (let i = 0, key; i < props.length; i++) {
-		key = props[i];
-		if (done[key]) {
-			continue;
-		}
-		define_property(rest, key, /** @type {PropertyDescriptor} */ (get_descriptor(v, key)));
-	}
-
-	out.push(tracked(rest, b));
-
-	return out;
-}
-
-/**
  * @param {Tracked | Derived} tracked
  * @returns {Dependency}
  */
