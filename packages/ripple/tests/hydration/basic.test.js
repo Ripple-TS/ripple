@@ -72,6 +72,14 @@ describe('hydration > basic', () => {
 		flushSync();
 
 		expect(container.querySelector('.text-prop')?.textContent).toBe('hello');
+
+		// Verify text is placed between hydration markers, not before anchor
+		const innerHTML = container.querySelector('.text-prop')?.innerHTML ?? '';
+		const textIndex = innerHTML.indexOf('hello');
+		const startMarker = innerHTML.indexOf('<!--[-->');
+		const endMarker = innerHTML.indexOf('<!--]-->');
+		expect(textIndex).toBeGreaterThan(startMarker);
+		expect(textIndex).toBeLessThan(endMarker);
 	});
 
 	it('hydrates static child component followed by sibling content', async () => {

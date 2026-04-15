@@ -113,7 +113,7 @@ export function expression(node, get_value) {
 				}
 			} else if (text === null) {
 				text = create_text(next_text);
-				anchor.before(text);
+				(end ?? anchor).before(text);
 			} else if (text.nodeValue !== next_text) {
 				text.nodeValue = next_text;
 			}
