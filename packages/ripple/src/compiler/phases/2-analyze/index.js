@@ -1415,6 +1415,7 @@ const visitors = {
 			...node.metadata,
 			has_template: false,
 			has_await: false,
+			has_throw: false,
 		};
 
 		const test_metadata = { tracking: false };
@@ -1436,7 +1437,7 @@ const visitors = {
 			node.metadata.lone_return = true;
 		}
 
-		if (!node.metadata.has_template && !node.metadata.has_return) {
+		if (!node.metadata.has_template && !node.metadata.has_return && !node.metadata.has_throw) {
 			error(
 				'Component if statements must contain a template in their "then" body. Move the if statement into an effect if it does not render anything.',
 				context.state.analysis.module.filename,
@@ -1451,9 +1452,10 @@ const visitors = {
 			const saved_returns = node.metadata.returns;
 			node.metadata.has_template = false;
 			node.metadata.has_await = false;
+			node.metadata.has_throw = false;
 			context.visit(node.alternate, context.state);
 
-			if (!node.metadata.has_template && !node.metadata.has_return) {
+			if (!node.metadata.has_template && !node.metadata.has_return && !node.metadata.has_throw) {
 				error(
 					'Component if statements must contain a template in their "else" body. Move the if statement into an effect if it does not render anything.',
 					context.state.analysis.module.filename,
@@ -1520,6 +1522,33 @@ const visitors = {
 			ancestor.metadata.returns.push(node);
 			ancestor.metadata.has_return = true;
 		}
+	},
+
+	ThrowStatement(node, context) {
+		if (!is_inside_component(context)) {
+			return context.next();
+		}
+
+		for (let i = context.path.length - 1; i >= 0; i--) {
+			const ancestor = context.path[i];
+
+			if (
+				ancestor.type === 'Component' ||
+				ancestor.type === 'FunctionExpression' ||
+				ancestor.type === 'ArrowFunctionExpression' ||
+				ancestor.type === 'FunctionDeclaration'
+			) {
+				break;
+			}
+
+			if (ancestor.type === 'IfStatement') {
+				if (!ancestor.metadata.has_throw) {
+					ancestor.metadata.has_throw = true;
+				}
+			}
+		}
+
+		context.next();
 	},
 
 	TryStatement(node, context) {

@@ -2498,3 +2498,104 @@ describe('early return in client components', () => {
 		});
 	});
 });
+
+describe('throw statements in if blocks', () => {
+	it('allows if statement with throw in then body', () => {
+		const code = `
+			export default component App() {
+				let error = true;
+				if (error) {
+					throw new Error('Test error');
+				}
+				<div>{'no error'}</div>
+			}
+		`;
+		expect(() => {
+			compile(code, 'test.ripple');
+		}).not.toThrow();
+	});
+
+	it('allows if statement with throw in else body', () => {
+		const code = `
+			export default component App() {
+				let error = false;
+				if (error) {
+					<div>{'no error'}</div>
+				} else {
+					throw new Error('Test error');
+				}
+			}
+		`;
+		expect(() => {
+			compile(code, 'test.ripple');
+		}).not.toThrow();
+	});
+
+	it('allows if statement with throw in both bodies', () => {
+		const code = `
+			export default component App() {
+				let mode = 'error';
+				if (mode === 'a') {
+					<div>{'a'}</div>
+				} else if (mode === 'b') {
+					<div>{'b'}</div>
+				} else {
+					throw new Error('Unknown mode');
+				}
+			}
+		`;
+		expect(() => {
+			compile(code, 'test.ripple');
+		}).not.toThrow();
+	});
+
+	it('allows nested if with throw', () => {
+		const code = `
+			export default component App() {
+				let a = true;
+				let b = true;
+				if (a) {
+					if (b) {
+						throw new Error('Both true');
+					}
+					<div>{'a only'}</div>
+				}
+				<div>{'rest'}</div>
+			}
+		`;
+		expect(() => {
+			compile(code, 'test.ripple');
+		}).not.toThrow();
+	});
+
+	it('allows throw with reactive condition', () => {
+		const code = `
+			export default component App() {
+				let &[error] = track(false);
+				if (error) {
+					throw new Error('Error occurred');
+				}
+				<div>{'success'}</div>
+			}
+		`;
+		expect(() => {
+			compile(code, 'test.ripple');
+		}).not.toThrow();
+	});
+
+	it('allows throw with template in then body and throw in else body', () => {
+		const code = `
+			export default component App() {
+				let error = true;
+				if (error) {
+					<div>{'error case'}</div>
+				} else {
+					throw new Error('No error');
+				}
+			}
+		`;
+		expect(() => {
+			compile(code, 'test.ripple');
+		}).not.toThrow();
+	});
+});

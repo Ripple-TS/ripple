@@ -22,6 +22,7 @@ interface BaseNodeMetaData {
 	inside_component_top_level?: boolean;
 	returns?: AST.ReturnStatement[];
 	has_return?: boolean;
+	has_throw?: boolean;
 	is_reactive?: boolean;
 	lone_return?: boolean;
 	forceMapping?: boolean;
