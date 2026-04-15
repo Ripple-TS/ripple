@@ -5466,10 +5466,7 @@ function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
 		const expr = firstChild.expression;
 		if (
 			expr &&
-			(expr.type === 'Literal' ||
-				expr.type === 'StringLiteral' ||
-				expr.type === 'NumericLiteral' ||
-				expr.type === 'TemplateLiteral')
+			(expr.type === 'Literal' || expr.type === 'TemplateLiteral')
 		) {
 			return true;
 		}
