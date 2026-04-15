@@ -859,6 +859,8 @@ const visitors = {
 		// Handle standalone lazy destructuring: &[data] = track(0); → const lazy0 = track(0);
 		if (
 			node.expression.type === 'AssignmentExpression' &&
+			(node.expression.left.type === 'ObjectPattern' ||
+				node.expression.left.type === 'ArrayPattern') &&
 			node.expression.left.lazy &&
 			node.expression.left.metadata?.lazy_id
 		) {
@@ -4469,7 +4471,10 @@ function create_tsx_with_typescript_support(comments) {
 					// Shorthand object properties require an Identifier value. When the
 					// transformed value is a tracked MemberExpression (for example
 					// @value), emit longhand to keep valid output.
-					if (node.value.type === 'MemberExpression' && node.value.tracked) {
+					if (
+						node.value.type === 'MemberExpression' &&
+						/** @type {AST.MemberExpression & { tracked?: boolean }} */ (node.value).tracked
+					) {
 						context.visit(node.key);
 						context.write(': ');
 						context.visit(node.value);

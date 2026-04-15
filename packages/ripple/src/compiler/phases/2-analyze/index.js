@@ -62,13 +62,17 @@ function expression_has_side_effects(node) {
 			);
 		case 'LogicalExpression':
 		case 'BinaryExpression':
-			return expression_has_side_effects(node.left) || expression_has_side_effects(node.right);
+			return (
+				expression_has_side_effects(/** @type {AST.Expression} */ (node.left)) ||
+				expression_has_side_effects(node.right)
+			);
 		case 'UnaryExpression':
 			return expression_has_side_effects(node.argument);
 		case 'MemberExpression':
 			return (
 				expression_has_side_effects(node.object) ||
-				(node.computed && expression_has_side_effects(node.property))
+				(node.computed &&
+					expression_has_side_effects(/** @type {AST.Expression} */ (node.property)))
 			);
 		case 'CallExpression':
 		case 'NewExpression':
@@ -184,7 +188,11 @@ function setup_lazy_transforms(pattern, source_id, state, writable, is_track_cal
 
 						if (node.prefix) {
 							// ++count: return new value
-							return b.assignment('=', member, b.binary('+', fallback_read, delta));
+							return b.assignment(
+								'=',
+								/** @type {AST.Pattern} */ (member),
+								b.binary('+', fallback_read, delta),
+							);
 						} else {
 							// count++: return old value, write new value
 							// Use IIFE to declare temp variable
@@ -194,7 +202,13 @@ function setup_lazy_transforms(pattern, source_id, state, writable, is_track_cal
 									[],
 									b.block([
 										b.var(temp, fallback_read),
-										b.stmt(b.assignment('=', member, b.binary('+', temp, delta))),
+										b.stmt(
+											b.assignment(
+												'=',
+												/** @type {AST.Pattern} */ (member),
+												b.binary('+', temp, delta),
+											),
+										),
 										b.return(temp),
 									]),
 								),
@@ -257,7 +271,12 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 			if (i === 0) {
 				// Fast path for index 0: use _$_.get(source) instead of source[0]
 				const read_expr = has_fallback
-					? () => b.call('_$_.fallback', b.call('_$_.get', source_id), fallback_value)
+					? () =>
+							b.call(
+								'_$_.fallback',
+								b.call('_$_.get', source_id),
+								/** @type {AST.Expression} */ (fallback_value),
+							)
 					: () => b.call('_$_.get', source_id);
 
 				// Signal that read already produces an unwrapped value (calls _$_.get internally)
@@ -306,6 +325,7 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 					} else {
 						binding.transform.update = (node) => {
 							const fn_name = node.prefix ? '_$_.update_pre' : '_$_.update';
+							/** @type {AST.Expression[]} */
 							const args = [source_id];
 							if (node.operator === '--') {
 								args.push(b.literal(-1));
@@ -339,7 +359,10 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 				binding.kind = path.has_default_value ? 'lazy_fallback' : 'lazy';
 
 				binding.transform = {
-					read: (_) => path.expression(base_expression(source_id)),
+					read: (_) =>
+						path.expression(
+							/** @type {AST.Identifier | AST.CallExpression} */ (base_expression(source_id)),
+						),
 				};
 
 				if (writable) {
@@ -347,7 +370,7 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 						return b.assignment(
 							'=',
 							/** @type {AST.MemberExpression} */ (
-								path.update_expression(base_expression(source_id))
+								path.update_expression(/** @type {AST.Identifier} */ (base_expression(source_id)))
 							),
 							value,
 						);
@@ -355,12 +378,20 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 
 					if (path.has_default_value) {
 						binding.transform.update = (node) => {
-							const member = path.update_expression(base_expression(source_id));
-							const fallback_read = path.expression(base_expression(source_id));
+							const member = path.update_expression(
+								/** @type {AST.Identifier} */ (base_expression(source_id)),
+							);
+							const fallback_read = path.expression(
+								/** @type {AST.Identifier | AST.CallExpression} */ (base_expression(source_id)),
+							);
 							const delta = node.operator === '++' ? b.literal(1) : b.literal(-1);
 
 							if (node.prefix) {
-								return b.assignment('=', member, b.binary('+', fallback_read, delta));
+								return b.assignment(
+									'=',
+									/** @type {AST.Pattern} */ (member),
+									b.binary('+', fallback_read, delta),
+								);
 							} else {
 								const temp = b.id('_v');
 								return b.call(
@@ -368,7 +399,13 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 										[],
 										b.block([
 											b.var(temp, fallback_read),
-											b.stmt(b.assignment('=', member, b.binary('+', temp, delta))),
+											b.stmt(
+												b.assignment(
+													'=',
+													/** @type {AST.Pattern} */ (member),
+													b.binary('+', temp, delta),
+												),
+											),
 											b.return(temp),
 										]),
 									),
@@ -379,7 +416,7 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 						binding.transform.update = (node) =>
 							b.update(
 								node.operator,
-								path.update_expression(base_expression(source_id)),
+								path.update_expression(/** @type {AST.Identifier} */ (base_expression(source_id))),
 								node.prefix,
 							);
 					}
@@ -407,11 +444,11 @@ function unwrap_type_annotation(type_annotation) {
 
 	while (annotation) {
 		if (annotation.type === 'TSParenthesizedType') {
-			annotation = annotation.typeAnnotation;
+			annotation = /** @type {AST.TypeNode | undefined} */ (annotation.typeAnnotation);
 			continue;
 		}
 		if (annotation.type === 'TSOptionalType') {
-			annotation = annotation.typeAnnotation;
+			annotation = /** @type {AST.TypeNode | undefined} */ (annotation.typeAnnotation);
 			continue;
 		}
 		break;
@@ -434,11 +471,11 @@ function normalize_tuple_element_type(type_annotation) {
 			continue;
 		}
 		if (annotation.type === 'TSParenthesizedType') {
-			annotation = annotation.typeAnnotation;
+			annotation = /** @type {AST.TypeNode} */ (annotation.typeAnnotation);
 			continue;
 		}
 		if (annotation.type === 'TSOptionalType') {
-			annotation = annotation.typeAnnotation;
+			annotation = /** @type {AST.TypeNode} */ (annotation.typeAnnotation);
 			continue;
 		}
 		break;
@@ -490,7 +527,7 @@ function get_object_property_type_annotation(type_annotation, property) {
 		return undefined;
 	}
 
-	const key_name = get_object_pattern_key_name(property.key);
+	const key_name = get_object_pattern_key_name(/** @type {AST.Expression} */ (property.key));
 	if (key_name === null) {
 		return undefined;
 	}

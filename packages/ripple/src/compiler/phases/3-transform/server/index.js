@@ -411,7 +411,9 @@ const visitors = {
 
 		let component_fn = b.function(
 			node.id,
-			node.params.length > 0 ? [b.id('__output'), props_param_output] : [b.id('__output')],
+			node.params.length > 0
+				? [b.id('__output'), /** @type {AST.Pattern} */ (props_param_output)]
+				: [b.id('__output')],
 			b.block([
 				...(metadata.await
 					? [b.return(b.call('_$_.async', b.thunk(b.block(body_statements), true)))]
@@ -809,6 +811,8 @@ const visitors = {
 		// Handle standalone lazy destructuring: &[data] = track(0); → const lazy0 = track(0);
 		if (
 			node.expression.type === 'AssignmentExpression' &&
+			(node.expression.left.type === 'ObjectPattern' ||
+				node.expression.left.type === 'ArrayPattern') &&
 			node.expression.left.lazy &&
 			node.expression.left.metadata?.lazy_id
 		) {
