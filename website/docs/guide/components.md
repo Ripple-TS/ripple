@@ -41,12 +41,12 @@ export component App() {
 		<p>{"Card content here"}</p>
 	</Card>
 
-	// or explicitly!
-	<Card>
-		component children() {
-			<p>{"Card content here"}</p>
-		}
-	</Card>
+	// or pass children explicitly as a prop.
+	component children() {
+		<p>{"Card content here"}</p>
+	}
+
+	<Card {children} />
 }
 ```
 
