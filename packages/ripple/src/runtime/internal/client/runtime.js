@@ -1133,21 +1133,6 @@ function flush_updates(root_block) {
 	}
 }
 
-// /**
-//  * Returns true if the derived has boundary entries and ALL source blocks are destroyed
-//  * with no active requests, meaning this derived can be removed from eager evaluation.
-//  * @param {Derived} d
-//  * @returns {boolean}
-//  */
-// function all_source_blocks_destroyed(d) {
-// 	var entries = d.ab;
-// 	if (entries === null || entries.length === 0) return false;
-// 	for (var j = 0; j < entries.length; j++) {
-// 		if (!is_destroyed(entries[j].s) || entries[j].i > 0) return false;
-// 	}
-// 	return true;
-// }
-
 /**
  * Push an async derived into the eager collection for re-evaluation
  * This should happen only when the derived's deps have changed
