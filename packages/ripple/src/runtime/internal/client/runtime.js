@@ -330,16 +330,13 @@ function settle_async_derived(computed, version, fulfilled, value, abort_control
 		return;
 	}
 
-	if (fulfilled) {
-		if (computed.e) {
-			console.log('registering async');
-			register_async_derived_deps(computed);
-		}
-	}
-
 	var entries = computed.ab;
 	var is_internal_abort =
 		value === DERIVED_UPDATED || abort_controller?.signal?.reason === DERIVED_UPDATED;
+
+	if (fulfilled && computed.e) {
+		register_async_derived_deps(computed);
+	}
 
 	computed.aa = null;
 	computed.ap = null;
@@ -1186,11 +1183,6 @@ function register_async_derived_deps(derived) {
 		existing.add(derived);
 		dep = dep.n;
 	}
-	console.log(
-		'**** REgistered run and size is: ',
-		async_derived.deps.size,
-		async_derived.blocks.size,
-	);
 }
 
 /**
@@ -1255,7 +1247,6 @@ function flush_queued_root_blocks(root_blocks) {
 	if (eager_async_derived_queued.size > 0) {
 		var to_process = [...eager_async_derived_queued];
 		eager_async_derived_queued.clear();
-		console.log('running eager async derived', to_process.length);
 		for (var i = 0; i < to_process.length; i++) {
 			update_derived(to_process[i]);
 		}
