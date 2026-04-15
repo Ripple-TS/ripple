@@ -68,6 +68,10 @@ function expression_has_side_effects(node) {
 			);
 		case 'UnaryExpression':
 			return expression_has_side_effects(node.argument);
+		case 'AwaitExpression':
+			return expression_has_side_effects(node.argument);
+		case 'ChainExpression':
+			return expression_has_side_effects(node.expression);
 		case 'MemberExpression':
 			return (
 				expression_has_side_effects(node.object) ||
