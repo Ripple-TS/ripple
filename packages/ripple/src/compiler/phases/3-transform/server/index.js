@@ -1107,9 +1107,7 @@ const visitors = {
 							children_prop = b.prop(
 								'init',
 								b.id('children'),
-								attr.name.tracked
-									? b.thunk(b.call('_$_.normalize_children', property))
-									: b.call('_$_.normalize_children', property),
+								b.call('_$_.normalize_children', property),
 							);
 							continue;
 						}
