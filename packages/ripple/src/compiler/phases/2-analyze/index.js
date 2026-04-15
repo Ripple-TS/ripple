@@ -41,9 +41,53 @@ import { validate_nesting } from './validation.js';
 
 const valid_in_head = new Set(['title', 'base', 'link', 'meta', 'style', 'script', 'noscript']);
 
+const mutating_method_names = new Set([
+	'add',
+	'append',
+	'clear',
+	'copyWithin',
+	'delete',
+	'fill',
+	'pop',
+	'push',
+	'reverse',
+	'set',
+	'shift',
+	'sort',
+	'splice',
+	'unshift',
+]);
+
 /**
- * Check if an expression contains side effects (assignments or updates).
- * Template expressions should be pure reads — writes belong outside the template.
+ * @param {AST.MemberExpression} node
+ * @returns {string | null}
+ */
+function get_member_name(node) {
+	if (!node.computed && node.property.type === 'Identifier') {
+		return node.property.name;
+	}
+
+	if (node.computed && node.property.type === 'Literal') {
+		return typeof node.property.value === 'string' ? node.property.value : null;
+	}
+
+	return null;
+}
+
+/**
+ * @param {AST.CallExpression} node
+ * @returns {boolean}
+ */
+function is_mutating_call_expression(node) {
+	return (
+		node.callee.type === 'MemberExpression' &&
+		mutating_method_names.has(get_member_name(node.callee) ?? '')
+	);
+}
+
+/**
+ * Check if an expression contains side effects or other impure operations.
+ * Template expressions should be pure reads.
  * @param {AST.Expression | AST.SpreadElement | AST.Super | AST.Pattern} node
  * @returns {boolean}
  */
@@ -81,6 +125,11 @@ function expression_has_side_effects(node) {
 					expression_has_side_effects(/** @type {AST.Expression} */ (node.property)))
 			);
 		case 'CallExpression':
+			return (
+				is_mutating_call_expression(node) ||
+				expression_has_side_effects(node.callee) ||
+				node.arguments.some(expression_has_side_effects)
+			);
 		case 'NewExpression':
 			return (
 				expression_has_side_effects(node.callee) || node.arguments.some(expression_has_side_effects)
@@ -2050,7 +2099,7 @@ const visitors = {
 
 		if (expression_has_side_effects(node.expression)) {
 			error(
-				'Template expressions must not contain assignments or updates..',
+				'Template expressions must not contain side effects.',
 				context.state.analysis.module.filename,
 				node.expression,
 				context.state.loose ? context.state.analysis.errors : undefined,
