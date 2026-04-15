@@ -67,6 +67,8 @@ function expression_has_side_effects(node) {
 				expression_has_side_effects(node.right)
 			);
 		case 'UnaryExpression':
+			// delete operator has side effects (removes object properties)
+			if (node.operator === 'delete') return true;
 			return expression_has_side_effects(node.argument);
 		case 'AwaitExpression':
 			return expression_has_side_effects(node.argument);
