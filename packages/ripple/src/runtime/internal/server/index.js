@@ -1141,11 +1141,9 @@ export function track(v, get, set) {
 
 /**
  * @param {any} v
- * @param {{ lazy?: boolean } | undefined} options
- * @param {boolean} force_eager
  * @returns {Derived | void}
  */
-export function track_async(v, options = {}, force_eager) {
+export function track_async(v) {
 	if (is_ripple_object(v)) {
 		return v;
 	}
@@ -1158,9 +1156,6 @@ export function track_async(v, options = {}, force_eager) {
 
 	var d = derived(v, undefined, undefined);
 	d.ia = true;
-	if (options.lazy && !force_eager) {
-		return d;
-	}
 	update_derived(d);
 	return d;
 }

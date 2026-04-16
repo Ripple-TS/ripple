@@ -8,6 +8,7 @@ import {
 	DESTROYED,
 	EFFECT_BLOCK,
 	PAUSED,
+	PRE_EFFECT_BLOCK,
 	RENDER_BLOCK,
 	ROOT_BLOCK,
 	TRY_BLOCK,
@@ -20,7 +21,6 @@ import {
 	active_block,
 	active_component,
 	active_reaction,
-	cleanup_async_derived_deps,
 	create_component_ctx,
 	is_block_dirty,
 	run_block,
@@ -58,6 +58,14 @@ export function user_effect(fn) {
  */
 export function effect(fn) {
 	return block(EFFECT_BLOCK, fn);
+}
+
+/**
+ * Creates a pre-effect block that runs eagerly before render blocks in the flush cycle.
+ * @param {Function} fn
+ */
+export function pre_effect(fn) {
+	return block(PRE_EFFECT_BLOCK, fn);
 }
 
 /**
@@ -207,8 +215,8 @@ export function block(flags, fn, state = null, co) {
 		(/** @type {Derived} */ (active_reaction).blocks ??= []).push(block);
 	}
 
-	if (active_block !== null) {
-		push_block(block, active_block);
+	if (block.p !== null) {
+		push_block(block, block.p);
 	}
 
 	if ((flags & EFFECT_BLOCK) !== 0) {
@@ -420,8 +428,6 @@ export function destroy_block(block, remove_dom = true) {
 	destroy_block_children(block, remove_dom && !removed);
 
 	run_teardown(block);
-
-	cleanup_async_derived_deps(block);
 
 	var parent = block.p;
 

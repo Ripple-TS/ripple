@@ -9,15 +9,16 @@ export var SWITCH_BLOCK = 1 << 8;
 export var COMPOSITE_BLOCK = 1 << 9;
 export var ASYNC_BLOCK = 1 << 10;
 export var HEAD_BLOCK = 1 << 11;
-export var DIRECT_CHILD_BLOCK = 1 << 12;
-export var CONTAINS_UPDATE = 1 << 13;
-export var CONTAINS_TEARDOWN = 1 << 14;
-export var BLOCK_HAS_RUN = 1 << 15;
-export var TRACKED = 1 << 16;
-export var DERIVED = 1 << 17;
-export var DEFERRED = 1 << 18;
-export var PAUSED = 1 << 19;
-export var DESTROYED = 1 << 20;
+export var PRE_EFFECT_BLOCK = 1 << 12;
+export var DIRECT_CHILD_BLOCK = 1 << 13;
+export var CONTAINS_UPDATE = 1 << 14;
+export var CONTAINS_TEARDOWN = 1 << 15;
+export var BLOCK_HAS_RUN = 1 << 16;
+export var TRACKED = 1 << 17;
+export var DERIVED = 1 << 18;
+export var DEFERRED = 1 << 19;
+export var PAUSED = 1 << 20;
+export var DESTROYED = 1 << 21;
 
 export var CONTROL_FLOW_BLOCK = FOR_BLOCK | IF_BLOCK | SWITCH_BLOCK | TRY_BLOCK | COMPOSITE_BLOCK;
 

@@ -629,10 +629,6 @@ const visitors = {
 			if (track_method_name === 'track_async') {
 				call_args = [
 					/** @type {AST.Expression} */ (context.visit(node.arguments[0])),
-					/** @type {AST.Expression} */ (
-						node.arguments.length > 1 ? context.visit(node.arguments[1]) : b.void0
-					),
-					b.literal(parent?.type === 'ExpressionStatement'),
 					b.id('__block'),
 				];
 			} else {

@@ -46,7 +46,6 @@ export {
 	get,
 	get_tracked,
 	get_derived,
-	get_tracked_raw,
 	set,
 	tracked,
 	spread_props,

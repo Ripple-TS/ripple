@@ -23,6 +23,7 @@ export type Tracked<V = any> = {
 	a: { get?: Function; set?: Function };
 	b: Block;
 	c: number;
+	d: null | DeferredTrackedEntry[];
 	f: number;
 	__v: V;
 	readonly [0]: V;
@@ -32,22 +33,14 @@ export type Tracked<V = any> = {
 	[Symbol.iterator](): Iterator<V | Tracked<V>>;
 };
 
-export type AsyncBoundaryEntry = {
-	s: Block; // source block
-	t: Block | null; // boundary block
-	i: number; // request id, 0 if no pending request
+export type DeferredTrackedEntry = {
+	b: Block; // boundary block
+	r: number; // request version id
 };
 
 export type Derived = {
 	DO_NOT_ACCESS_THIS_OBJECT_DIRECTLY?: true;
 	a: { get?: Function; set?: Function };
-	aa: AbortController | null;
-	ab: AsyncBoundaryEntry[] | null;
-	ap: PromiseLike<any> | null;
-	av: number; // staleness guard against resolving when multiple requests were fired
-	dr: ((value: any) => void) | null; // deferred / synthetic promise resolve function
-	dj: ((reason: any) => void) | null; // deferred / synthetic promise reject function
-	e: boolean; // eagerly run flag
 	b: Block;
 	blocks: null | Block[];
 	c: number;

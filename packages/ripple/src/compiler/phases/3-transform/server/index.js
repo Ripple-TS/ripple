@@ -460,9 +460,6 @@ const visitors = {
 		}
 
 		const callee = node.callee;
-		const parent = context.path.at(-1);
-		const source_name = callee.type === 'Identifier' ? callee.metadata?.source_name : undefined;
-		const ripple_runtime_method = get_ripple_namespace_call_name(source_name);
 
 		// Handle direct calls to ripple-imported functions: effect(), untrack(), RippleArray(), etc.
 		if (callee.type === 'Identifier' && is_ripple_import(callee, context)) {
@@ -487,26 +484,12 @@ const visitors = {
 						? 'track_async'
 						: 'track';
 
-			/** @type {(AST.Expression | AST.SpreadElement)[]} */
-			let call_args;
-			if (track_method_name === 'track_async') {
-				call_args = [
-					/** @type {AST.Expression} */ (context.visit(node.arguments[0])),
-					/** @type {AST.Expression} */ (
-						node.arguments.length > 1 ? context.visit(node.arguments[1]) : b.void0
-					),
-					b.literal(parent?.type === 'ExpressionStatement'),
-				];
-			} else {
-				call_args = /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
-					node.arguments.map((arg) => context.visit(arg))
-				);
-			}
-
 			return {
 				...node,
 				callee: b.member(b.id('_$_'), b.id(track_method_name)),
-				arguments: call_args,
+				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+					node.arguments.map((arg) => context.visit(arg))
+				),
 			};
 		}
 

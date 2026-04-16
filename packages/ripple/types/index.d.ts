@@ -209,7 +209,6 @@ export function track<V>(value?: V, get?: (v: V) => V, set?: (next: V, prev: V) 
 
 export function trackAsync<V>(
 	value: () => PromiseLike<V> | { promise: PromiseLike<V>; abortController: AbortController },
-	options?: { lazy?: boolean },
 ): Tracked<V>;
 
 export function trackPending<V>(value: Tracked<V> | (() => any)): boolean;

@@ -1090,62 +1090,6 @@ describe('try block', () => {
 		expect(peek(name)).toEqual(SUSPENSE_REJECTED);
 		expect(peek(count)).toEqual(42);
 	});
-
-	it(
-		'lazy trackAsync starts as UNINITIALIZED, transitions to SUSPENSE_PENDING when triggered, then resolves',
-		async () => {
-			let resolve_fn: (value: string) => void;
-			const user_promise = new Promise<string>((resolve) => {
-				resolve_fn = resolve;
-			});
-
-			let data: any;
-
-			component App() {
-				let &[show] = track(false);
-
-				data = trackAsync(() => user_promise, { lazy: true });
-
-				if (show) {
-					try {
-						<p class="resolved">{data.value}</p>
-					} pending {
-						<p class="pending">{'loading...'}</p>
-					}
-				}
-
-				<button class="trigger" onClick={() => (show = true)}>{'Show'}</button>
-			}
-
-			render(App);
-			flushSync();
-
-			// Before triggering, data should be UNINITIALIZED since lazy: true
-			expect(peek(data)).toEqual(UNINITIALIZED);
-			expect(container.querySelector('.resolved')).toBeNull();
-			expect(container.querySelector('.pending')).toBeNull();
-
-			// Click button to set show = true
-			(container.querySelector('.trigger') as HTMLButtonElement).click();
-			flushSync();
-			await new Promise((resolve) => setTimeout(resolve, 0));
-			flushSync();
-
-			// Promise not resolved yet — should be SUSPENSE_PENDING
-			expect(peek(data)).toEqual(SUSPENSE_PENDING);
-			expect(container.querySelector('.pending')?.textContent).toBe('loading...');
-			expect(container.querySelector('.resolved')).toBeNull();
-
-			// Resolve the promise
-			resolve_fn!('lazy loaded');
-			await new Promise((resolve) => setTimeout(resolve, 0));
-			flushSync();
-
-			// Now the resolved template should render
-			expect(container.querySelector('.resolved')?.textContent).toBe('lazy loaded');
-			expect(container.querySelector('.pending')).toBeNull();
-		},
-	);
 });
 
 describe('sync error while async deriveds are pending', () => {
