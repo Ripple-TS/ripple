@@ -357,7 +357,32 @@ export function Ripple({ component, props }) {
 				p: true,
 				b: begin_request,
 				r: complete_request,
-				c: null,
+				c: (error) => {
+					pending_count = 0;
+					active_requests.clear();
+
+					if (pending_deferreds.size > 0) {
+						for (var [, reject_fn] of pending_deferreds) {
+							reject_fn(error);
+						}
+						pending_deferreds.clear();
+					}
+
+					paused_blocks.clear();
+
+					// Resolve React Suspense promise to prevent it from hanging
+					has_resolved = true;
+					if (resolve_fn !== null) {
+						resolve_fn();
+						resolve_fn = null;
+					}
+					suspense_ref.current = null;
+
+					// Propagate the error to the next catch boundary up the tree
+					if (boundary_block !== null && boundary_block.p !== null) {
+						handle_error(error, boundary_block.p);
+					}
+				},
 				/** @param {number} request_id @param {(reason: any) => void} reject_fn */
 				rd: (request_id, reject_fn) => {
 					pending_deferreds.set(request_id, reject_fn);

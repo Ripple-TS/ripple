@@ -688,6 +688,82 @@ describe('compat-react', () => {
 				vi.useRealTimers();
 			}
 		});
+
+		it(
+			'should reject pending deferreds and clean up when async error occurs during Suspense',
+			async () => {
+				vi.useFakeTimers();
+
+				try {
+					let rejectFetch: (error: Error) => void;
+					let fetchBResolved = false;
+
+					function fetchA() {
+						return new Promise((_resolve, reject) => {
+							rejectFetch = reject;
+						});
+					}
+
+					function fetchB() {
+						return new Promise((resolve) => {
+							// This one never resolves on its own
+							setTimeout(() => {
+								fetchBResolved = true;
+								resolve('B done');
+							}, 5000);
+						});
+					}
+
+					component AsyncRippleChild() {
+						const resultA = trackAsync(() => fetchA());
+						const resultB = trackAsync(() => fetchB());
+						if (!trackPending(resultA) && !trackPending(resultB)) {
+							<div class="content">{'Both loaded!'}</div>
+						}
+					}
+
+					function ReactChild() {
+						return jsx(Ripple, { component: AsyncRippleChild });
+					}
+
+					component App() {
+						try {
+							<tsx:react>
+								<Suspense fallback={<div className="loading">Loading...</div>}>
+									<ReactChild />
+								</Suspense>
+							</tsx:react>
+						} catch (e) {
+							<div class="error">{'Caught error'}</div>
+						}
+					}
+
+					await act(async () => {
+						render(App);
+					});
+
+					// Initially shows loading state
+					expect(container.querySelector('.loading')).toBeTruthy();
+					expect(container.querySelector('.content')).toBeFalsy();
+
+					// Reject the first async operation — should route error to catch boundary
+					await act(async () => {
+						rejectFetch(new Error('Fetch A failed'));
+						await vi.advanceTimersByTimeAsync(0);
+					});
+
+					// Should show error caught by Ripple try/catch
+					expect(container.querySelector('.error')).toBeTruthy();
+					expect(container.querySelector('.error').textContent).toBe('Caught error');
+					expect(container.querySelector('.loading')).toBeFalsy();
+
+					// fetchB should NOT have resolved (it was cleaned up)
+					expect(fetchBResolved).toBe(false);
+				} finally {
+					vi.useRealTimers();
+				}
+			},
+		);
 	});
 
 	describe('Ripple in React app', () => {
