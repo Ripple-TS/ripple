@@ -1,26 +1,23 @@
 export type Component<T = Record<string, any>> = (props: T) => void;
 
-/** Type for JSX children - accepts single child, multiple children, or no children */
-export type Children = Component | readonly Component[];
+declare const RIPPLE_ELEMENT: unique symbol;
 
-export type CompatApi = {
-	createRoot: () => void;
-	createComponent: (node: any, children_fn: () => any) => void;
-	jsx: (type: any, props: any) => any;
+export type RippleElement = {
+	readonly render: Function;
+	readonly [RIPPLE_ELEMENT]: true;
 };
 
-export type CompatOptions = {
-	[key: string]: CompatApi;
-};
+/** Type for implicit children fragments rendered with `{children}`. */
+export type Children = RippleElement;
 
 export function mount(
 	component: Component,
-	options: { target: HTMLElement; props?: Record<string, any>; compat?: CompatOptions },
+	options: { target: HTMLElement; props?: Record<string, any> },
 ): () => void;
 
 export function hydrate(
 	component: Component,
-	options: { target: HTMLElement; props?: Record<string, any>; compat?: CompatOptions },
+	options: { target: HTMLElement; props?: Record<string, any> },
 ): () => void;
 
 export function tick(): Promise<void>;
@@ -179,19 +176,6 @@ export type PropsNoChildren<T extends object = {}> = Expand<T>;
 
 type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
 
-type WrapTracked<V> = V extends Tracked<any> ? V : Tracked<V>;
-
-type PickKeys<T, K extends readonly (keyof T)[]> = {
-	[I in keyof K]: WrapTracked<T[K[I] & keyof T]>;
-};
-
-type RestKeys<T, K extends readonly (keyof T)[]> = Expand<Omit<T, K[number]>>;
-
-type SplitResult<T extends Props, K extends readonly (keyof T)[]> = [
-	...PickKeys<T, K>,
-	Tracked<RestKeys<T, K>>,
-];
-
 export function get<V>(tracked: Tracked<V>): V;
 
 export function set<V>(tracked: Tracked<V>, value: V): void;
@@ -212,11 +196,6 @@ export function trackAsync<V>(
 ): Tracked<V>;
 
 export function trackPending<V>(value: Tracked<V> | (() => any)): boolean;
-
-export function trackSplit<V extends Props, const K extends readonly (keyof V)[]>(
-	value: V,
-	splitKeys: K,
-): SplitResult<V, K>;
 
 export function peek<V>(tracked: Tracked<V>): V;
 

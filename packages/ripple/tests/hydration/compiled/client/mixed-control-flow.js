@@ -397,9 +397,9 @@ export function MixedControlFlowAsyncPending(__anchor, _, __block) {
 									_$_.set_class(div_7, `pending-row pending-row-${row}`, void 0, true);
 
 									{
-										var text_4 = _$_.child(div_7, true);
+										var expression_4 = _$_.child(div_7, true);
 
-										text_4.nodeValue = `pending ${row}`;
+										_$_.expression(expression_4, () => `pending ${row}`);
 										_$_.pop(div_7);
 									}
 

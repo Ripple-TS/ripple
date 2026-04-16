@@ -7,21 +7,20 @@ import type {
 	PropsWithChildrenOptional,
 } from 'ripple';
 import { flushSync, track } from 'ripple';
+import { did_error } from '../capture-error.js';
 
 describe('basic client > components & composition', () => {
 	it('renders with component composition and children', () => {
 		component Card(props: PropsWithChildren<{}>) {
-			<div class="card">
-				<props.children />
-			</div>
+			<div class="card">{props.children}</div>
 		}
 
 		component Basic() {
-			<Card>
-				component children() {
-					<p>{'Card content here'}</p>
-				}
-			</Card>
+			component children() {
+				<p>{'Card content here'}</p>
+			}
+
+			<Card {children} />
 		}
 
 		render(Basic);
@@ -37,17 +36,17 @@ describe('basic client > components & composition', () => {
 		component Card(props: PropsWithChildrenOptional<{ test?: Component }>) {
 			<div class="card">
 				if (props.children) {
-					<props.children />
+					{props.children}
 				}
 			</div>
 		}
 
 		component Basic() {
-			<Card>
-				component test() {
-					<p>{'Card content here'}</p>
-				}
-			</Card>
+			component test() {
+				<p>{'Card content here'}</p>
+			}
+
+			<Card {test} />
 		}
 
 		render(Basic);
@@ -59,22 +58,23 @@ describe('basic client > components & composition', () => {
 		expect(paragraph).toBeFalsy();
 	});
 
-	it('allows tracked variable and slot component with same name in nested scope', () => {
+	it('allows tracked variables alongside explicit component props', () => {
 		component Card(props: PropsWithChildrenOptional<{ test?: Component }>) {
 			<div class="card">
 				if (props.children) {
-					<props.children />
+					{props.children}
 				}
 			</div>
 		}
 
 		component Basic() {
 			let &[test] = track(false);
-			<Card>
-				component test() {
-					<p>{'Card content here'}</p>
-				}
-			</Card>
+
+			component TestSlot() {
+				<p>{'Card content here'}</p>
+			}
+
+			<Card test={TestSlot} />
 			<div>{test ? 'yes' : 'no'}</div>
 		}
 
@@ -90,9 +90,7 @@ describe('basic client > components & composition', () => {
 
 	it('renders a component when children is set a component prop', () => {
 		component Card(props: PropsWithChildren<{}>) {
-			<div class="card">
-				<props.children />
-			</div>
+			<div class="card">{props.children}</div>
 		}
 
 		component Basic() {
@@ -211,6 +209,28 @@ describe('basic client > components & composition', () => {
 		expect(countDiv.textContent).toBe('3');
 	});
 
+	it('updates explicit text children props reactively', () => {
+		component TextProp(&{ children }: PropsWithChildren<{}>) {
+			<div class="text-prop">{children}</div>
+		}
+
+		component Basic() {
+			let &[show] = track(false);
+
+			<TextProp children={show ? 'hello' : ''} />
+			<button class="show-text" onClick={() => (show = true)}>{'Show'}</button>
+		}
+
+		render(Basic);
+
+		expect(container.querySelector('.text-prop')?.textContent).toBe('');
+
+		container.querySelector('.show-text')?.click();
+		flushSync();
+
+		expect(container.querySelector('.text-prop')?.textContent).toBe('hello');
+	});
+
 	it('it retains this context with bracketed prop functions and keeps original chaining', () => {
 		component App() {
 			const SYMBOL_PROP = Symbol();
@@ -233,60 +253,40 @@ describe('basic client > components & composition', () => {
 
 			const obj2 = null;
 
+			function trigger_nonexistent() {
+				hasError = did_error(() => {
+					// @ts-ignore
+					obj['nonexistent']();
+				});
+			}
+
+			function trigger_nonexistent_chaining() {
+				hasError = did_error(() => {
+					// @ts-ignore
+					obj['nonexistent']?.();
+				});
+			}
+
+			function trigger_object_null() {
+				hasError = did_error(() => {
+					// @ts-ignore
+					obj2['nonexistent']();
+				});
+			}
+
+			function trigger_object_null_chained() {
+				hasError = did_error(() => {
+					// @ts-ignore
+					obj2?.['nonexistent']?.();
+				});
+			}
+
 			<button onClick={() => obj['increment']()}>{'Increment'}</button>
 			<button onClick={() => obj[SYMBOL_PROP]()}>{'Increment'}</button>
-			<button
-				onClick={() => {
-					hasError = false;
-					try {
-						// @ts-ignore
-						obj['nonexistent']();
-					} catch {
-						hasError = true;
-					}
-				}}
-			>
-				{'Nonexistent'}
-			</button>
-			<button
-				onClick={() => {
-					hasError = false;
-					try {
-						// @ts-ignore
-						obj['nonexistent']?.();
-					} catch {
-						hasError = true;
-					}
-				}}
-			>
-				{'Nonexistent chaining'}
-			</button>
-			<button
-				onClick={() => {
-					hasError = false;
-					try {
-						// @ts-ignore
-						obj2['nonexistent']();
-					} catch {
-						hasError = true;
-					}
-				}}
-			>
-				{'Object null'}
-			</button>
-			<button
-				onClick={() => {
-					hasError = false;
-					try {
-						// @ts-ignore
-						obj2?.['nonexistent']?.();
-					} catch {
-						hasError = true;
-					}
-				}}
-			>
-				{'Object null chained'}
-			</button>
+			<button onClick={trigger_nonexistent}>{'Nonexistent'}</button>
+			<button onClick={trigger_nonexistent_chaining}>{'Nonexistent chaining'}</button>
+			<button onClick={trigger_object_null}>{'Object null'}</button>
+			<button onClick={trigger_object_null_chained}>{'Object null chained'}</button>
 			<button onClick={() => obj.arr[obj.arr.length - 1]()}>{'BinaryExpression prop'}</button>
 
 			<span>{obj.count.value}</span>
@@ -346,21 +346,19 @@ describe('basic client > components & composition', () => {
 				<span>{'Hello from Span'}</span>
 			},
 			button: component({ children }: PropsWithChildren<{}>) {
-				<button>
-					<children />
-				</button>
+				<button>{children}</button>
 			},
 		};
 
 		component App() {
+			component children() {
+				<span>{'Click me!'}</span>
+			}
+
 			<div>
 				<h1>{'Component as Property Test'}</h1>
 				<UI.span />
-				<UI.button>
-					component children() {
-						<span>{'Click me!'}</span>
-					}
-				</UI.button>
+				<UI.button {children} />
 			</div>
 		}
 
@@ -378,13 +376,13 @@ describe('basic client > components & composition', () => {
 
 	it('handles empty string children', () => {
 		component Button({ children }: PropsWithChildren<{}>) {
-			<children />
+			{children}
 		}
 
 		component App() {
-			let text = '';
+			let content = '';
 			<Button>{''}</Button>
-			<Button>{text}</Button>
+			<Button>{content}</Button>
 		}
 
 		expect(() => {

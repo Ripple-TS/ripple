@@ -17,8 +17,10 @@ class RippleFileType private constructor() : LanguageFileType(RippleLanguage) {
 		@JvmField
 		val INSTANCE = RippleFileType()
 
+		private val EXTENSIONS = setOf("ripple", "tsrx")
+
 		fun isRippleFile(file: VirtualFile): Boolean {
-			return file.extension.equals("ripple", ignoreCase = true)
+			return file.extension?.lowercase() in EXTENSIONS
 		}
 	}
 }

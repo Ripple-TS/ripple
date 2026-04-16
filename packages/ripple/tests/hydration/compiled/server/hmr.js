@@ -81,7 +81,7 @@ export function LayoutWithContent(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 
 					{
@@ -92,7 +92,7 @@ export function LayoutWithContent(__output) {
 					}
 
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 

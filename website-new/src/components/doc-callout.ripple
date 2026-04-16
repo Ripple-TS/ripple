@@ -11,6 +11,6 @@ export component DocCallout({
 		if (title) {
 			<p class="custom-block-title">{title}</p>
 		}
-		<children />
+		{children}
 	</div>
 }

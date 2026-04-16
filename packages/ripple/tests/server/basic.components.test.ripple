@@ -10,17 +10,15 @@ import type {
 describe('basic server > components & composition', () => {
 	it('renders with component composition and children', async () => {
 		component Card(props: PropsWithChildren<{}>) {
-			<div class="card">
-				<props.children />
-			</div>
+			<div class="card">{props.children}</div>
 		}
 
 		component Basic() {
-			<Card>
-				component children() {
-					<p>{'Card content here'}</p>
-				}
-			</Card>
+			component children() {
+				<p>{'Card content here'}</p>
+			}
+
+			<Card {children} />
 		}
 
 		const { body } = await render(Basic);
@@ -37,16 +35,16 @@ describe('basic server > components & composition', () => {
 		component Card(props: PropsWithChildrenOptional<{ test: Component }>) {
 			<div class="card">
 				// @ts-expect-error - ripple automatically handles falsy children
-				<props.children />
+				{props.children}
 			</div>
 		}
 
 		component Basic() {
-			<Card>
-				component test() {
-					<p>{'Card content here'}</p>
-				}
-			</Card>
+			component test() {
+				<p>{'Card content here'}</p>
+			}
+
+			<Card {test} />
 		}
 
 		const { body } = await render(Basic);
@@ -62,9 +60,7 @@ describe('basic server > components & composition', () => {
 
 	it('renders a component when children is set a component prop', async () => {
 		component Card(props: PropsWithChildren<{}>) {
-			<div class="card">
-				<props.children />
-			</div>
+			<div class="card">{props.children}</div>
 		}
 
 		component Basic() {
@@ -174,21 +170,19 @@ describe('basic server > components & composition', () => {
 				<span>{'Hello from Span'}</span>
 			},
 			button: component({ children }: PropsWithChildren<{}>) {
-				<button>
-					<children />
-				</button>
+				<button>{children}</button>
 			},
 		};
 
 		component App() {
+			component children() {
+				<span>{'Click me!'}</span>
+			}
+
 			<div>
 				<h1>{'Component as Property Test'}</h1>
 				<UI.span />
-				<UI.button>
-					component children() {
-						<span>{'Click me!'}</span>
-					}
-				</UI.button>
+				<UI.button {children} />
 			</div>
 		}
 
@@ -207,13 +201,13 @@ describe('basic server > components & composition', () => {
 
 	it('handles empty string children', async () => {
 		component Button({ children }: PropsWithChildren<{}>) {
-			<children />
+			{children}
 		}
 
 		component App() {
-			let text = '';
+			let content = '';
 			<Button>{''}</Button>
-			<Button>{text}</Button>
+			<Button>{content}</Button>
 		}
 
 		const { body } = await render(App);

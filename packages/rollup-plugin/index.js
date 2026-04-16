@@ -10,7 +10,7 @@ const PREFIX = '[@ripple-ts/rollup-plugin]';
  */
 export default function (options = {}) {
 	const { compilerOptions = {}, ...rest } = options;
-	const extensions = ['.ripple'];
+	const extensions = ['.ripple', '.tsrx'];
 	const filter = createFilter(rest.include, rest.exclude);
 
 	// [filename]:[chunk]
@@ -42,14 +42,14 @@ export default function (options = {}) {
 		},
 
 		/**
-		 * Transforms a `.ripple` file into a `.js` file.
+		 * Transforms a Ripple source file into a `.js` file.
 		 * NOTE: If `emitCss`, append static `import` to virtual CSS file.
 		 */
 		async transform(code, id) {
-			if (!filter(id) || !id.endsWith('.ripple')) return null;
+			if (!filter(id)) return null;
 
 			const extension = path.extname(id);
-			if (!~extensions.indexOf(extension)) return null;
+			if (!extensions.includes(extension)) return null;
 
 			const filename = path.relative(process.cwd(), id);
 

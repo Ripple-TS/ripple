@@ -98,6 +98,7 @@ interface SharedCompileOptions {
 export interface CompileOptions extends SharedCompileOptions {
 	mode?: 'client' | 'server';
 	hmr?: boolean;
+	compat_kinds?: string[];
 }
 
 export interface ParseOptions {
@@ -106,7 +107,8 @@ export interface ParseOptions {
 	comments?: AST.CommentWithLocation[];
 }
 
-export interface AnalyzeOptions extends ParseOptions, Pick<CompileOptions, 'mode'> {
+export interface AnalyzeOptions
+	extends ParseOptions, Pick<CompileOptions, 'mode' | 'compat_kinds'> {
 	errors?: RippleCompileError[];
 	to_ts?: boolean;
 }

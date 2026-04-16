@@ -190,9 +190,7 @@ reactivity:
 ```ripple
 component Child(&{ count, className, children }: Props) {
   // count, className, children are lazily read from the props object
-  <button class={className}>
-    <@children />
-  </button>
+  <button class={className}>{children}</button>
   <pre>{`Count is: ${count}`}</pre>
 }
 ```
@@ -216,111 +214,6 @@ let &{ x, y } = mutableObject; // supports assignment: x = 5 writes back
 reactive props or tracked objects and need the variables to remain reactive.
 Regular destructuring (`{ a, b } = obj`) eagerly copies values and loses
 reactivity. :::
-
-#### trackSplit Function
-
-The `trackSplit` function is an alternative approach that "splits" a plain object
-— such as component props — into individually boxed `Tracked<V>` variables and an
-extra `rest` property containing the remaining unspecified object properties.
-Unlike lazy destructuring, `trackSplit` creates actual `Tracked` wrappers that can
-be passed by reference across boundaries.
-
-```ripple
-import { trackSplit } from 'ripple';
-
-const &[children, count, rest] = trackSplit(props, ['children', 'count']);
-```
-
-For most cases, lazy destructuring (`&{...}`) is simpler and preferred. Use
-`trackSplit` when you need individually boxed `Tracked` values that can be
-transported to other functions or components by reference.
-
-::: info Note boxed / wrapped `Tracked` objects are always reactive since they
-cross function boundaries by reference. Props that were not declared with
-`track()` are never reactive and always render the same value that was initially
-passed in. :::
-
-A full example utilizing various Ripple constructs demonstrates the `split` option
-usage:
-
-<Code console>
-
-```ripple
-import type { PropsWithChildren, Tracked } from 'ripple';
-import { trackSplit, track } from 'ripple';
-
-component Child(props: PropsWithChildren<{
-  count: Tracked<number>;
-  className: string;
-}>) {
-  // children, count are always reactive
-  // but className is passed in as a read-only reactive value
-  const &[children, count, className, rest] = trackSplit(props, [
-    'children',
-    'count',
-    'class',
-  ]);
-
-  <button class={className} {...rest}>
-    <@children />
-  </button>
-  <pre>{`Count is: ${count}`}</pre>
-  <button onClick={() => count++}>{'Increment Count'}</button>
-}
-
-export component App() {
-  let &[count] = track(
-    0,
-    (current) => {
-      console.log('getter', current);
-      return current;
-    },
-    (next) => {
-      console.log('setter', next);
-      return next;
-    },
-  );
-  let &[className] = track('shadow');
-  let &[name] = track('Click Me');
-
-  function buttonRef(el) {
-    console.log('ref called with', el);
-    return () => {
-      console.log('cleanup ref for', el);
-    };
-  }
-
-  <Child
-    class={className}
-    onClick={() => {
-      name === 'Click Me' ? name = 'Clicked' : name = 'Click Me';
-      className = '';
-    }}
-    {count}
-    {ref buttonRef}
-  >
-    {name}
-  </Child>
-}
-```
-
-</Code>
-
-With regular destructuring (without `&`), the `class` property would lose its
-reactivity:
-
-```ripple
-// ❌ WRONG class / className reactivity would be lost
-let { children, count, class: className, ...rest } = props;
-
-// ✅ CORRECT use lazy destructuring to preserve reactivity
-let &{ children, count, class: className, ...rest } = props;
-```
-
-::: info Note Make sure the resulting `rest`, if it's going to be spread onto a
-dom element, does not contain `Tracked` values. Otherwise, you'd be spreading not
-the actual values but the boxed ones, which are objects that will appear as
-`[Object object]` on the dom element. :::
 
 ## Transporting Reactivity
 
@@ -503,7 +396,7 @@ export component App() {
   let &[second] = track(2);
   const arr = [first, second];
 
-  const &[total] = track(() => arr.reduce((a, b) => a + b.value, 0));
+  const &[total] = track(() => arr.reduce((a, b) => a + b, 0));
 
   effect(() => {
     console.log(total);

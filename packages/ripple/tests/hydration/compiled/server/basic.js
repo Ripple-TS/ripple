@@ -1,6 +1,8 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
+import { track } from 'ripple/server';
+
 export function StaticText(__output) {
 	_$_.push_component();
 	__output.push('<div');
@@ -203,7 +205,7 @@ export function ExpressionContent(__output) {
 	_$_.push_component();
 
 	const value = 42;
-	const text = 'computed';
+	const label = 'computed';
 
 	__output.push('<div');
 	__output.push('>');
@@ -217,10 +219,54 @@ export function ExpressionContent(__output) {
 	__output.push('>');
 
 	{
-		__output.push(_$_.escape(text.toUpperCase()));
+		__output.push(_$_.escape(label.toUpperCase()));
 	}
 
 	__output.push('</span>');
+	_$_.pop_component();
+}
+
+function TextProp(__output, __props) {
+	_$_.push_component();
+	__output.push('<div');
+	__output.push(' class="text-prop"');
+	__output.push('>');
+
+	{
+		_$_.render_expression(__output, __props.children);
+	}
+
+	__output.push('</div>');
+	_$_.pop_component();
+}
+
+export function TextPropWithToggle(__output) {
+	_$_.push_component();
+
+	let lazy = _$_.track(false);
+
+	{
+		const comp = TextProp;
+
+		const args = [
+			__output,
+			{
+				children: _$_.normalize_children(_$_.get(lazy) ? 'hello' : '')
+			}
+		];
+
+		comp(...args);
+	}
+
+	__output.push('<button');
+	__output.push(' class="show-text"');
+	__output.push('>');
+
+	{
+		__output.push('Show');
+	}
+
+	__output.push('</button>');
 	_$_.pop_component();
 }
 
@@ -424,7 +470,7 @@ export function WebsiteIndex(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 
 					{
@@ -456,7 +502,7 @@ export function WebsiteIndex(__output) {
 					}
 
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 

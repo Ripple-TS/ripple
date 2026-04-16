@@ -54,6 +54,15 @@ const protocol = require('@volar/language-server/protocol');
 /** @type {typeof import('vscode-languageclient/node')} */
 const lsp = require('vscode-languageclient/node');
 const { activateAutoInsertion, createLabsInfo } = require('@volar/vscode');
+const RIPPLE_FILE_SELECTORS = ['**/*.ripple', '**/*.tsrx'];
+
+/**
+ * @param {string} file_path
+ * @returns {boolean}
+ */
+function is_ripple_file_path(file_path) {
+	return file_path.endsWith('.ripple') || file_path.endsWith('.tsrx');
+}
 
 /** @type {import('vscode-languageclient/node').LanguageClient | undefined} */
 let client;
@@ -360,7 +369,7 @@ function addCustomCommands(context) {
 						console.warn('[Ripple] Definition has no uri:', d);
 						return false;
 					}
-					const isRipple = uri.path.endsWith('.ripple');
+					const isRipple = is_ripple_file_path(uri.path);
 					console.log('[Ripple] Checking definition:', uri.path, 'isRipple:', isRipple);
 					return isRipple;
 				});
@@ -400,7 +409,7 @@ async function configurePrettier() {
 		// Tell Prettier extension to enable formatting for ripple language
 		await config.update(
 			'prettier.documentSelectors',
-			['**/*.ripple'],
+			RIPPLE_FILE_SELECTORS,
 			vscode.ConfigurationTarget.Global,
 		);
 

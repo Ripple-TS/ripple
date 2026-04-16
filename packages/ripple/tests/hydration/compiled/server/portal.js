@@ -81,7 +81,7 @@ export function ConditionalPortal(__output) {
 					__output,
 					{
 						target: typeof document !== 'undefined' ? document.body : null,
-						children: function children(__output) {
+						children: _$_.ripple_element(function render_children(__output) {
 							_$_.push_component();
 							__output.push('<div');
 							__output.push(' class="portal-content"');
@@ -93,7 +93,7 @@ export function ConditionalPortal(__output) {
 
 							__output.push('</div>');
 							_$_.pop_component();
-						}
+						})
 					}
 				];
 

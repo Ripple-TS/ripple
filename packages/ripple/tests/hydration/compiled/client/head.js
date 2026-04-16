@@ -40,8 +40,9 @@ export function ReactiveTitle(__anchor, _, __block) {
 		var span_1 = _$_.child(div_2);
 
 		{
-			var text = _$_.child(span_1, true);
+			var expression = _$_.child(span_1, true);
 
+			_$_.expression(expression, () => _$_.get(lazy));
 			_$_.pop(span_1);
 		}
 	}
@@ -50,10 +51,6 @@ export function ReactiveTitle(__anchor, _, __block) {
 		_$_.render(() => {
 			_$_.document.title = _$_.get(lazy);
 		});
-	});
-
-	_$_.render(() => {
-		_$_.set_text(text, _$_.get(lazy));
 	});
 
 	_$_.append(__anchor, div_2);
@@ -84,8 +81,9 @@ export function ReactiveMetaTags(__anchor, _, __block) {
 	var div_4 = root_4();
 
 	{
-		var text_1 = _$_.child(div_4, true);
+		var expression_1 = _$_.child(div_4, true);
 
+		_$_.expression(expression_1, () => _$_.get(lazy_1));
 		_$_.pop(div_4);
 	}
 
@@ -95,10 +93,6 @@ export function ReactiveMetaTags(__anchor, _, __block) {
 		_$_.document.title = 'My Page';
 		_$_.set_attribute(meta_1, 'content');
 		_$_.append(__anchor, meta_1);
-	});
-
-	_$_.render(() => {
-		_$_.set_text(text_1, _$_.get(lazy_1));
 	});
 
 	_$_.append(__anchor, div_4);
@@ -112,8 +106,9 @@ export function TitleWithTemplate(__anchor, _, __block) {
 	var div_5 = root_6();
 
 	{
-		var text_2 = _$_.child(div_5, true);
+		var expression_2 = _$_.child(div_5, true);
 
+		_$_.expression(expression_2, () => _$_.get(lazy_2));
 		_$_.pop(div_5);
 	}
 
@@ -121,10 +116,6 @@ export function TitleWithTemplate(__anchor, _, __block) {
 		_$_.render(() => {
 			_$_.document.title = `Hello ${_$_.get(lazy_2)}!`;
 		});
-	});
-
-	_$_.render(() => {
-		_$_.set_text(text_2, _$_.get(lazy_2));
 	});
 
 	_$_.append(__anchor, div_5);
@@ -152,8 +143,9 @@ export function ConditionalTitle(__anchor, _, __block) {
 	var div_7 = root_8();
 
 	{
-		var text_3 = _$_.child(div_7, true);
+		var expression_3 = _$_.child(div_7, true);
 
+		_$_.expression(expression_3, () => _$_.get(lazy_4));
 		_$_.pop(div_7);
 	}
 
@@ -161,10 +153,6 @@ export function ConditionalTitle(__anchor, _, __block) {
 		_$_.render(() => {
 			_$_.document.title = _$_.get(lazy_3) ? 'App - ' + _$_.get(lazy_4) : _$_.get(lazy_4);
 		});
-	});
-
-	_$_.render(() => {
-		_$_.set_text(text_3, _$_.get(lazy_4));
 	});
 
 	_$_.append(__anchor, div_7);
@@ -182,8 +170,9 @@ export function ComputedTitle(__anchor, _, __block) {
 		var span_2 = _$_.child(div_8);
 
 		{
-			var text_4 = _$_.child(span_2, true);
+			var expression_4 = _$_.child(span_2, true);
 
+			_$_.expression(expression_4, () => _$_.get(lazy_5));
 			_$_.pop(span_2);
 		}
 	}
@@ -192,10 +181,6 @@ export function ComputedTitle(__anchor, _, __block) {
 		_$_.render(() => {
 			_$_.document.title = prefix + _$_.get(lazy_5);
 		});
-	});
-
-	_$_.render(() => {
-		_$_.set_text(text_4, _$_.get(lazy_5));
 	});
 
 	_$_.append(__anchor, div_8);

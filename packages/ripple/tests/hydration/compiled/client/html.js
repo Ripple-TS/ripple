@@ -224,9 +224,9 @@ export function HtmlWrapper(__anchor, { children }, __block) {
 		var div_7 = _$_.child(div_6);
 
 		{
-			var node_7 = _$_.child(div_7);
+			var expression = _$_.child(div_7);
 
-			children(node_7, {}, _$_.active_block);
+			_$_.expression(expression, () => children);
 			_$_.pop(div_7);
 		}
 	}
@@ -240,29 +240,26 @@ export function HtmlInChildren(__anchor, _, __block) {
 
 	const content = '<p><strong>Bold</strong> text</p>';
 	var fragment = root_7();
-	var node_8 = _$_.first_child_frag(fragment);
+	var node_7 = _$_.first_child_frag(fragment);
 
 	HtmlWrapper(
-		node_8,
+		node_7,
 		{
-			children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_8 = root_8();
 
 				{
-					var node_9 = _$_.child(div_8);
+					var node_8 = _$_.child(div_8);
 
 					_$_.pop(div_8);
 				}
 
 				_$_.render(() => {
-					_$_.html(node_9, () => content);
+					_$_.html(node_8, () => content);
 				});
 
 				_$_.append(__anchor, div_8);
-				_$_.pop_component();
-			}
+			})
 		},
 		_$_.active_block
 	);
@@ -276,20 +273,18 @@ export function HtmlInChildrenWithSiblings(__anchor, _, __block) {
 
 	const content = '<p>Dynamic content</p>';
 	var fragment_1 = root_9();
-	var node_10 = _$_.first_child_frag(fragment_1);
+	var node_9 = _$_.first_child_frag(fragment_1);
 
 	HtmlWrapper(
-		node_10,
+		node_9,
 		{
-			children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var fragment_2 = root_10();
 				var h1_1 = _$_.first_child_frag(fragment_2);
 				var div_9 = _$_.sibling(h1_1);
 
 				{
-					var node_11 = _$_.child(div_9);
+					var node_10 = _$_.child(div_9);
 
 					_$_.pop(div_9);
 				}
@@ -297,12 +292,11 @@ export function HtmlInChildrenWithSiblings(__anchor, _, __block) {
 				_$_.next();
 
 				_$_.render(() => {
-					_$_.html(node_11, () => content);
+					_$_.html(node_10, () => content);
 				});
 
 				_$_.append(__anchor, fragment_2, true);
-				_$_.pop_component();
-			}
+			})
 		},
 		_$_.active_block
 	);
@@ -317,34 +311,31 @@ export function MultipleHtmlInChildren(__anchor, _, __block) {
 	const html1 = '<p>First</p>';
 	const html2 = '<p>Second</p>';
 	var fragment_3 = root_11();
-	var node_12 = _$_.first_child_frag(fragment_3);
+	var node_11 = _$_.first_child_frag(fragment_3);
 
 	HtmlWrapper(
-		node_12,
+		node_11,
 		{
-			children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_10 = root_12();
 
 				{
-					var node_13 = _$_.child(div_10);
-					var node_14 = _$_.sibling(node_13);
+					var node_12 = _$_.child(div_10);
+					var node_13 = _$_.sibling(node_12);
 
 					_$_.pop(div_10);
 				}
 
 				_$_.render(
 					(__prev) => {
-						_$_.html(node_13, () => html1);
-						_$_.html(node_14, () => html2);
+						_$_.html(node_12, () => html1);
+						_$_.html(node_13, () => html2);
 					},
 					{}
 				);
 
 				_$_.append(__anchor, div_10);
-				_$_.pop_component();
-			}
+			})
 		},
 		_$_.active_block
 	);
@@ -360,13 +351,13 @@ export function HtmlWithComments(__anchor, _, __block) {
 	var div_11 = root_13();
 
 	{
-		var node_15 = _$_.child(div_11);
+		var node_14 = _$_.child(div_11);
 
 		_$_.pop(div_11);
 	}
 
 	_$_.render(() => {
-		_$_.html(node_15, () => content);
+		_$_.html(node_14, () => content);
 	});
 
 	_$_.append(__anchor, div_11);
@@ -380,13 +371,13 @@ export function HtmlWithEmptyComment(__anchor, _, __block) {
 	var div_12 = root_14();
 
 	{
-		var node_16 = _$_.child(div_12);
+		var node_15 = _$_.child(div_12);
 
 		_$_.pop(div_12);
 	}
 
 	_$_.render(() => {
-		_$_.html(node_16, () => content);
+		_$_.html(node_15, () => content);
 	});
 
 	_$_.append(__anchor, div_12);
@@ -398,29 +389,26 @@ export function HtmlWithCommentsInChildren(__anchor, _, __block) {
 
 	const content = '<h2 id="intro">Introduction</h2><p>Some text</p><!-- TODO --><p>More text</p>';
 	var fragment_4 = root_15();
-	var node_17 = _$_.first_child_frag(fragment_4);
+	var node_16 = _$_.first_child_frag(fragment_4);
 
 	HtmlWrapper(
-		node_17,
+		node_16,
 		{
-			children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_13 = root_16();
 
 				{
-					var node_18 = _$_.child(div_13);
+					var node_17 = _$_.child(div_13);
 
 					_$_.pop(div_13);
 				}
 
 				_$_.render(() => {
-					_$_.html(node_18, () => content);
+					_$_.html(node_17, () => content);
 				});
 
 				_$_.append(__anchor, div_13);
-				_$_.pop_component();
-			}
+			})
 		},
 		_$_.active_block
 	);
@@ -457,16 +445,16 @@ export function DocLayout(
 				var div_15 = _$_.child(article_1);
 
 				{
-					var node_19 = _$_.child(div_15);
+					var expression_1 = _$_.child(div_15);
 
-					children(node_19, {}, _$_.active_block);
+					_$_.expression(expression_1, () => children);
 					_$_.pop(div_15);
 				}
 			}
 
 			_$_.pop(article_1);
 
-			var node_20 = _$_.sibling(article_1);
+			var node_18 = _$_.sibling(article_1);
 
 			{
 				var consequent = (__anchor) => {
@@ -481,12 +469,12 @@ export function DocLayout(
 					_$_.append(__anchor, div_17);
 				};
 
-				_$_.if(node_20, (__render) => {
+				_$_.if(node_18, (__render) => {
 					if (editPath) __render(consequent);
 				});
 			}
 
-			var node_21 = _$_.sibling(node_20);
+			var node_19 = _$_.sibling(node_18);
 
 			{
 				var consequent_1 = (__anchor) => {
@@ -496,47 +484,35 @@ export function DocLayout(
 						var a_2 = _$_.child(nav_1);
 
 						{
-							var text_1 = _$_.child(a_2, true);
+							var expression_2 = _$_.child(a_2, true);
 
+							_$_.expression(expression_2, () => nextLink.text);
 							_$_.pop(a_2);
 						}
 					}
 
-					_$_.render(
-						(__prev) => {
-							var __a = nextLink.text;
-
-							if (__prev.a !== __a) {
-								_$_.set_text(text_1, __prev.a = __a);
-							}
-
-							var __b = nextLink.href;
-
-							if (__prev.b !== __b) {
-								_$_.set_attribute(a_2, 'href', __prev.b = __b);
-							}
-						},
-						{ a: ' ', b: void 0 }
-					);
+					_$_.render(() => {
+						_$_.set_attribute(a_2, 'href', nextLink.href);
+					});
 
 					_$_.append(__anchor, nav_1);
 				};
 
-				_$_.if(node_21, (__render) => {
+				_$_.if(node_19, (__render) => {
 					if (nextLink) __render(consequent_1);
 				});
 			}
 
-			var node_22 = _$_.sibling(node_21);
+			var node_20 = _$_.sibling(node_19);
 
-			DocFooter(node_22, {}, _$_.active_block);
+			DocFooter(node_20, {}, _$_.active_block);
 			_$_.pop(div_16);
 		}
 
 		var aside_1 = _$_.sibling(div_16);
 
 		{
-			var node_23 = _$_.child(aside_1);
+			var node_21 = _$_.child(aside_1);
 
 			{
 				var consequent_2 = (__anchor) => {
@@ -556,28 +532,16 @@ export function DocLayout(
 										var a_3 = _$_.child(li_1);
 
 										{
-											var text_2 = _$_.child(a_3, true);
+											var expression_3 = _$_.child(a_3, true);
 
+											_$_.expression(expression_3, () => item.text);
 											_$_.pop(a_3);
 										}
 									}
 
-									_$_.render(
-										(__prev) => {
-											var __a = item.text;
-
-											if (__prev.a !== __a) {
-												_$_.set_text(text_2, __prev.a = __a);
-											}
-
-											var __b = item.href;
-
-											if (__prev.b !== __b) {
-												_$_.set_attribute(a_3, 'href', __prev.b = __b);
-											}
-										},
-										{ a: ' ', b: void 0 }
-									);
+									_$_.render(() => {
+										_$_.set_attribute(a_3, 'href', item.href);
+									});
 
 									_$_.append(__anchor, li_1);
 								},
@@ -591,7 +555,7 @@ export function DocLayout(
 					_$_.append(__anchor, div_18);
 				};
 
-				_$_.if(node_23, (__render) => {
+				_$_.if(node_21, (__render) => {
 					if (toc.length > 0) __render(consequent_2);
 				});
 			}
@@ -609,10 +573,10 @@ export function HtmlWithServerData(__anchor, _, __block) {
 
 	const content = '<h1 id="intro" class="doc-h1">Introduction</h1><p>Ripple is a framework.</p>';
 	var fragment_5 = root_23();
-	var node_24 = _$_.first_child_frag(fragment_5);
+	var node_22 = _$_.first_child_frag(fragment_5);
 
 	DocLayout(
-		node_24,
+		node_22,
 		{
 			editPath: "docs/introduction.md",
 			nextLink: { href: '/docs/quick-start', text: 'Quick Start' },
@@ -621,24 +585,21 @@ export function HtmlWithServerData(__anchor, _, __block) {
 				{ href: '#features', text: 'Features' }
 			],
 
-			children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_19 = root_24();
 
 				{
-					var node_25 = _$_.child(div_19);
+					var node_23 = _$_.child(div_19);
 
 					_$_.pop(div_19);
 				}
 
 				_$_.render(() => {
-					_$_.html(node_25, () => content);
+					_$_.html(node_23, () => content);
 				});
 
 				_$_.append(__anchor, div_19);
-				_$_.pop_component();
-			}
+			})
 		},
 		_$_.active_block
 	);
@@ -652,29 +613,26 @@ export function HtmlWithClientDefaults(__anchor, _, __block) {
 
 	const content = '<h1 id="intro" class="doc-h1">Introduction</h1><p>Ripple is a framework.</p>';
 	var fragment_6 = root_25();
-	var node_26 = _$_.first_child_frag(fragment_6);
+	var node_24 = _$_.first_child_frag(fragment_6);
 
 	DocLayout(
-		node_26,
+		node_24,
 		{
-			children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_20 = root_26();
 
 				{
-					var node_27 = _$_.child(div_20);
+					var node_25 = _$_.child(div_20);
 
 					_$_.pop(div_20);
 				}
 
 				_$_.render(() => {
-					_$_.html(node_27, () => content);
+					_$_.html(node_25, () => content);
 				});
 
 				_$_.append(__anchor, div_20);
-				_$_.pop_component();
-			}
+			})
 		},
 		_$_.active_block
 	);
@@ -688,29 +646,26 @@ export function HtmlWithUndefinedContent(__anchor, _, __block) {
 
 	const content = undefined;
 	var fragment_7 = root_27();
-	var node_28 = _$_.first_child_frag(fragment_7);
+	var node_26 = _$_.first_child_frag(fragment_7);
 
 	DocLayout(
-		node_28,
+		node_26,
 		{
-			children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_21 = root_28();
 
 				{
-					var node_29 = _$_.child(div_21);
+					var node_27 = _$_.child(div_21);
 
 					_$_.pop(div_21);
 				}
 
 				_$_.render(() => {
-					_$_.html(node_29, () => content);
+					_$_.html(node_27, () => content);
 				});
 
 				_$_.append(__anchor, div_21);
-				_$_.pop_component();
-			}
+			})
 		},
 		_$_.active_block
 	);
@@ -723,16 +678,16 @@ function DynamicHeading(__anchor, { level, children }, __block) {
 	_$_.push_component();
 
 	var fragment_8 = root_29();
-	var node_30 = _$_.first_child_frag(fragment_8);
+	var node_28 = _$_.first_child_frag(fragment_8);
 
 	{
 		var switch_case_0 = (__anchor) => {
 			var h1_2 = root_30();
 
 			{
-				var node_31 = _$_.child(h1_2);
+				var expression_4 = _$_.child(h1_2);
 
-				children(node_31, {}, _$_.active_block);
+				_$_.expression(expression_4, () => children);
 				_$_.pop(h1_2);
 			}
 
@@ -743,16 +698,16 @@ function DynamicHeading(__anchor, { level, children }, __block) {
 			var h2_1 = root_31();
 
 			{
-				var node_32 = _$_.child(h2_1);
+				var expression_5 = _$_.child(h2_1);
 
-				children(node_32, {}, _$_.active_block);
+				_$_.expression(expression_5, () => children);
 				_$_.pop(h2_1);
 			}
 
 			_$_.append(__anchor, h2_1);
 		};
 
-		_$_.switch(node_30, () => {
+		_$_.switch(node_28, () => {
 			var result = [];
 
 			switch (level) {
@@ -784,14 +739,14 @@ function CodeBlock(__anchor, { code }, __block) {
 		var div_24 = _$_.sibling(div_23);
 
 		{
-			var node_33 = _$_.child(div_24);
+			var node_29 = _$_.child(div_24);
 
 			_$_.pop(div_24);
 		}
 	}
 
 	_$_.render(() => {
-		_$_.html(node_33, () => highlighted);
+		_$_.html(node_29, () => highlighted);
 	});
 
 	_$_.append(__anchor, div_22);
@@ -807,9 +762,9 @@ function ContentWrapper(__anchor, { children }, __block) {
 		var div_26 = _$_.child(div_25);
 
 		{
-			var node_34 = _$_.child(div_26);
+			var expression_6 = _$_.child(div_26);
 
-			children(node_34, {}, _$_.active_block);
+			_$_.expression(expression_6, () => children);
 			_$_.pop(div_26);
 		}
 	}
@@ -822,41 +777,35 @@ export function HtmlAfterSwitchInChildren(__anchor, _, __block) {
 	_$_.push_component();
 
 	var fragment_9 = root_34();
-	var node_35 = _$_.first_child_frag(fragment_9);
+	var node_30 = _$_.first_child_frag(fragment_9);
 
 	ContentWrapper(
-		node_35,
+		node_30,
 		{
-			children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var fragment_10 = root_35();
-				var node_36 = _$_.first_child_frag(fragment_10);
+				var node_31 = _$_.first_child_frag(fragment_10);
 
 				DynamicHeading(
-					node_36,
+					node_31,
 					{
 						level: 1,
-						children(__anchor, _, __block) {
-							_$_.push_component();
+						children: _$_.ripple_element(function render_children(__anchor, __block) {
+							var expression_7 = _$_.text('Title');
 
-							var text_3 = _$_.text('Title');
-
-							_$_.append(__anchor, text_3);
-							_$_.pop_component();
-						}
+							_$_.append(__anchor, expression_7);
+						})
 					},
 					_$_.active_block
 				);
 
-				var p_2 = _$_.sibling(node_36);
+				var p_2 = _$_.sibling(node_31);
 				var p_1 = _$_.sibling(p_2);
-				var node_37 = _$_.sibling(p_1);
+				var node_32 = _$_.sibling(p_1);
 
-				CodeBlock(node_37, { code: "const x = 1;" }, _$_.active_block);
+				CodeBlock(node_32, { code: "const x = 1;" }, _$_.active_block);
 				_$_.append(__anchor, fragment_10);
-				_$_.pop_component();
-			}
+			})
 		},
 		_$_.active_block
 	);
@@ -865,7 +814,7 @@ export function HtmlAfterSwitchInChildren(__anchor, _, __block) {
 	_$_.pop_component();
 }
 
-function NavItem(__anchor, { href, text, active = false }, __block) {
+function NavItem(__anchor, { href, text: label, active = false }, __block) {
 	_$_.push_component();
 
 	var div_27 = root_36();
@@ -873,7 +822,7 @@ function NavItem(__anchor, { href, text, active = false }, __block) {
 	_$_.set_class(div_27, `nav-item${active ? ' active' : ''}`, void 0, true);
 
 	{
-		var node_38 = _$_.child(div_27);
+		var node_33 = _$_.child(div_27);
 
 		{
 			var consequent_3 = (__anchor) => {
@@ -882,12 +831,12 @@ function NavItem(__anchor, { href, text, active = false }, __block) {
 				_$_.append(__anchor, div_28);
 			};
 
-			_$_.if(node_38, (__render) => {
+			_$_.if(node_33, (__render) => {
 				if (active) __render(consequent_3);
 			});
 		}
 
-		var a_4 = _$_.sibling(node_38);
+		var a_4 = _$_.sibling(node_33);
 
 		_$_.set_attribute(a_4, 'href', href);
 
@@ -895,9 +844,9 @@ function NavItem(__anchor, { href, text, active = false }, __block) {
 			var span_1 = _$_.child(a_4);
 
 			{
-				var text_4 = _$_.child(span_1, true);
+				var expression_8 = _$_.child(span_1, true);
 
-				text_4.nodeValue = text;
+				_$_.expression(expression_8, () => label);
 				_$_.pop(span_1);
 			}
 		}
@@ -922,9 +871,9 @@ function SidebarSection(__anchor, { title, children }, __block) {
 			var h2_2 = _$_.child(div_29);
 
 			{
-				var text_5 = _$_.child(h2_2, true);
+				var expression_9 = _$_.child(h2_2, true);
 
-				text_5.nodeValue = title;
+				_$_.expression(expression_9, () => title);
 				_$_.pop(h2_2);
 			}
 
@@ -935,23 +884,23 @@ function SidebarSection(__anchor, { title, children }, __block) {
 
 		_$_.pop(div_29);
 
-		var node_39 = _$_.sibling(div_29);
+		var node_34 = _$_.sibling(div_29);
 
 		{
 			var consequent_4 = (__anchor) => {
 				var div_30 = root_39();
 
 				{
-					var node_40 = _$_.child(div_30);
+					var expression_10 = _$_.child(div_30);
 
-					children(node_40, {}, _$_.active_block);
+					_$_.expression(expression_10, () => children);
 					_$_.pop(div_30);
 				}
 
 				_$_.append(__anchor, div_30);
 			};
 
-			_$_.if(node_39, (__render) => {
+			_$_.if(node_34, (__render) => {
 				if (_$_.get(lazy)) __render(consequent_4);
 			});
 		}
@@ -975,20 +924,18 @@ function SideNav(__anchor, { currentPath }, __block) {
 			var div_31 = _$_.child(nav_2);
 
 			{
-				var node_41 = _$_.child(div_31);
+				var node_35 = _$_.child(div_31);
 
 				SidebarSection(
-					node_41,
+					node_35,
 					{
 						title: "Getting Started",
-						children(__anchor, _, __block) {
-							_$_.push_component();
-
+						children: _$_.ripple_element(function render_children(__anchor, __block) {
 							var fragment_11 = root_41();
-							var node_42 = _$_.first_child_frag(fragment_11);
+							var node_36 = _$_.first_child_frag(fragment_11);
 
 							NavItem(
-								node_42,
+								node_36,
 								{
 									href: "/intro",
 									text: "Introduction",
@@ -997,10 +944,10 @@ function SideNav(__anchor, { currentPath }, __block) {
 								_$_.active_block
 							);
 
-							var node_43 = _$_.sibling(node_42);
+							var node_37 = _$_.sibling(node_36);
 
 							NavItem(
-								node_43,
+								node_37,
 								{
 									href: "/start",
 									text: "Quick Start",
@@ -1010,8 +957,7 @@ function SideNav(__anchor, { currentPath }, __block) {
 							);
 
 							_$_.append(__anchor, fragment_11);
-							_$_.pop_component();
-						}
+						})
 					},
 					_$_.active_block
 				);
@@ -1022,20 +968,18 @@ function SideNav(__anchor, { currentPath }, __block) {
 			var div_32 = _$_.sibling(div_31);
 
 			{
-				var node_44 = _$_.child(div_32);
+				var node_38 = _$_.child(div_32);
 
 				SidebarSection(
-					node_44,
+					node_38,
 					{
 						title: "Guide",
-						children(__anchor, _, __block) {
-							_$_.push_component();
-
+						children: _$_.ripple_element(function render_children(__anchor, __block) {
 							var fragment_12 = root_42();
-							var node_45 = _$_.first_child_frag(fragment_12);
+							var node_39 = _$_.first_child_frag(fragment_12);
 
 							NavItem(
-								node_45,
+								node_39,
 								{
 									href: "/guide/app",
 									text: "Application",
@@ -1044,10 +988,10 @@ function SideNav(__anchor, { currentPath }, __block) {
 								_$_.active_block
 							);
 
-							var node_46 = _$_.sibling(node_45);
+							var node_40 = _$_.sibling(node_39);
 
 							NavItem(
-								node_46,
+								node_40,
 								{
 									href: "/guide/syntax",
 									text: "Syntax",
@@ -1057,8 +1001,7 @@ function SideNav(__anchor, { currentPath }, __block) {
 							);
 
 							_$_.append(__anchor, fragment_12);
-							_$_.pop_component();
-						}
+						})
 					},
 					_$_.active_block
 				);
@@ -1087,25 +1030,25 @@ export function LayoutWithSidebarAndMain(__anchor, _, __block) {
 	var div_33 = root_44();
 
 	{
-		var node_47 = _$_.child(div_33);
+		var node_41 = _$_.child(div_33);
 
-		PageHeader(node_47, {}, _$_.active_block);
+		PageHeader(node_41, {}, _$_.active_block);
 
-		var div_34 = _$_.sibling(node_47);
+		var div_34 = _$_.sibling(node_41);
 
 		{
-			var node_48 = _$_.child(div_34);
+			var node_42 = _$_.child(div_34);
 
-			SideNav(node_48, { currentPath: "/intro" }, _$_.active_block);
+			SideNav(node_42, { currentPath: "/intro" }, _$_.active_block);
 
-			var main_1 = _$_.sibling(node_48);
+			var main_1 = _$_.sibling(node_42);
 
 			{
 				var div_35 = _$_.child(main_1);
 
 				_$_.pop(div_35);
 
-				var node_49 = _$_.sibling(div_35);
+				var node_43 = _$_.sibling(div_35);
 
 				{
 					var consequent_5 = (__anchor) => {
@@ -1114,14 +1057,14 @@ export function LayoutWithSidebarAndMain(__anchor, _, __block) {
 						_$_.append(__anchor, div_36);
 					};
 
-					_$_.if(node_49, (__render) => {
+					_$_.if(node_43, (__render) => {
 						if (true) __render(consequent_5);
 					});
 				}
 
-				var node_50 = _$_.sibling(node_49);
+				var node_44 = _$_.sibling(node_43);
 
-				PageHeader(node_50, {}, _$_.active_block);
+				PageHeader(node_44, {}, _$_.active_block);
 				_$_.pop(main_1);
 			}
 
@@ -1144,9 +1087,9 @@ function ArticleWrapper(__anchor, { children }, __block) {
 		var div_37 = _$_.child(article_2);
 
 		{
-			var node_51 = _$_.child(div_37);
+			var expression_11 = _$_.child(div_37);
 
-			children(node_51, {}, _$_.active_block);
+			_$_.expression(expression_11, () => children);
 			_$_.pop(div_37);
 		}
 	}
@@ -1170,24 +1113,21 @@ export function ArticleWithChildrenThenSibling(__anchor, _, __block) {
 	var div_38 = root_48();
 
 	{
-		var node_52 = _$_.child(div_38);
+		var node_45 = _$_.child(div_38);
 
 		ArticleWrapper(
-			node_52,
+			node_45,
 			{
-				children(__anchor, _, __block) {
-					_$_.push_component();
-
+				children: _$_.ripple_element(function render_children(__anchor, __block) {
 					var fragment_13 = root_49();
 
 					_$_.append(__anchor, fragment_13);
-					_$_.pop_component();
-				}
+				})
 			},
 			_$_.active_block
 		);
 
-		var node_53 = _$_.sibling(node_52);
+		var node_46 = _$_.sibling(node_45);
 
 		{
 			var consequent_6 = (__anchor) => {
@@ -1196,12 +1136,12 @@ export function ArticleWithChildrenThenSibling(__anchor, _, __block) {
 				_$_.append(__anchor, div_39);
 			};
 
-			_$_.if(node_53, (__render) => {
+			_$_.if(node_46, (__render) => {
 				if (true) __render(consequent_6);
 			});
 		}
 
-		var node_54 = _$_.sibling(node_53);
+		var node_47 = _$_.sibling(node_46);
 
 		{
 			var consequent_7 = (__anchor) => {
@@ -1210,14 +1150,14 @@ export function ArticleWithChildrenThenSibling(__anchor, _, __block) {
 				_$_.append(__anchor, nav_3);
 			};
 
-			_$_.if(node_54, (__render) => {
+			_$_.if(node_47, (__render) => {
 				if (true) __render(consequent_7);
 			});
 		}
 
-		var node_55 = _$_.sibling(node_54);
+		var node_48 = _$_.sibling(node_47);
 
-		SimpleFooter(node_55, {}, _$_.active_block);
+		SimpleFooter(node_48, {}, _$_.active_block);
 		_$_.pop(div_38);
 	}
 
@@ -1232,34 +1172,31 @@ export function ArticleWithHtmlChildThenSibling(__anchor, _, __block) {
 	var div_40 = root_52();
 
 	{
-		var node_56 = _$_.child(div_40);
+		var node_49 = _$_.child(div_40);
 
 		ArticleWrapper(
-			node_56,
+			node_49,
 			{
-				children(__anchor, _, __block) {
-					_$_.push_component();
-
+				children: _$_.ripple_element(function render_children(__anchor, __block) {
 					var div_41 = root_53();
 
 					{
-						var node_57 = _$_.child(div_41);
+						var node_50 = _$_.child(div_41);
 
 						_$_.pop(div_41);
 					}
 
 					_$_.render(() => {
-						_$_.html(node_57, () => htmlContent);
+						_$_.html(node_50, () => htmlContent);
 					});
 
 					_$_.append(__anchor, div_41);
-					_$_.pop_component();
-				}
+				})
 			},
 			_$_.active_block
 		);
 
-		var node_58 = _$_.sibling(node_56);
+		var node_51 = _$_.sibling(node_49);
 
 		{
 			var consequent_8 = (__anchor) => {
@@ -1268,14 +1205,14 @@ export function ArticleWithHtmlChildThenSibling(__anchor, _, __block) {
 				_$_.append(__anchor, div_42);
 			};
 
-			_$_.if(node_58, (__render) => {
+			_$_.if(node_51, (__render) => {
 				if (true) __render(consequent_8);
 			});
 		}
 
-		var node_59 = _$_.sibling(node_58);
+		var node_52 = _$_.sibling(node_51);
 
-		SimpleFooter(node_59, {}, _$_.active_block);
+		SimpleFooter(node_52, {}, _$_.active_block);
 		_$_.pop(div_40);
 	}
 
@@ -1295,16 +1232,16 @@ function InlineArticleLayout(__anchor, { children }, __block) {
 			var div_44 = _$_.child(article_3);
 
 			{
-				var node_60 = _$_.child(div_44);
+				var expression_12 = _$_.child(div_44);
 
-				children(node_60, {}, _$_.active_block);
+				_$_.expression(expression_12, () => children);
 				_$_.pop(div_44);
 			}
 		}
 
 		_$_.pop(article_3);
 
-		var node_61 = _$_.sibling(article_3);
+		var node_53 = _$_.sibling(article_3);
 
 		{
 			var consequent_9 = (__anchor) => {
@@ -1313,14 +1250,14 @@ function InlineArticleLayout(__anchor, { children }, __block) {
 				_$_.append(__anchor, div_45);
 			};
 
-			_$_.if(node_61, (__render) => {
+			_$_.if(node_53, (__render) => {
 				if (true) __render(consequent_9);
 			});
 		}
 
-		var node_62 = _$_.sibling(node_61);
+		var node_54 = _$_.sibling(node_53);
 
-		SimpleFooter(node_62, {}, _$_.active_block);
+		SimpleFooter(node_54, {}, _$_.active_block);
 		_$_.pop(div_43);
 	}
 
@@ -1333,29 +1270,26 @@ export function InlineArticleWithHtmlChild(__anchor, _, __block) {
 
 	const htmlContent = '<pre><code>const x = 1;</code></pre>';
 	var fragment_14 = root_57();
-	var node_63 = _$_.first_child_frag(fragment_14);
+	var node_55 = _$_.first_child_frag(fragment_14);
 
 	InlineArticleLayout(
-		node_63,
+		node_55,
 		{
-			children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_46 = root_58();
 
 				{
-					var node_64 = _$_.child(div_46);
+					var node_56 = _$_.child(div_46);
 
 					_$_.pop(div_46);
 				}
 
 				_$_.render(() => {
-					_$_.html(node_64, () => htmlContent);
+					_$_.html(node_56, () => htmlContent);
 				});
 
 				_$_.append(__anchor, div_46);
-				_$_.pop_component();
-			}
+			})
 		},
 		_$_.active_block
 	);
@@ -1401,18 +1335,18 @@ function DocsLayoutInner(
 	var div_47 = root_62();
 
 	{
-		var node_65 = _$_.child(div_47);
+		var node_57 = _$_.child(div_47);
 
-		HeaderStub(node_65, {}, _$_.active_block);
+		HeaderStub(node_57, {}, _$_.active_block);
 
-		var div_48 = _$_.sibling(node_65);
+		var div_48 = _$_.sibling(node_57);
 
 		{
-			var node_66 = _$_.child(div_48);
+			var node_58 = _$_.child(div_48);
 
-			SidebarStub(node_66, {}, _$_.active_block);
+			SidebarStub(node_58, {}, _$_.active_block);
 
-			var main_2 = _$_.sibling(node_66);
+			var main_2 = _$_.sibling(node_58);
 
 			{
 				var div_52 = _$_.child(main_2);
@@ -1430,16 +1364,16 @@ function DocsLayoutInner(
 								var div_49 = _$_.child(article_4);
 
 								{
-									var node_67 = _$_.child(div_49);
+									var expression_13 = _$_.child(div_49);
 
-									children(node_67, {}, _$_.active_block);
+									_$_.expression(expression_13, () => children);
 									_$_.pop(div_49);
 								}
 							}
 
 							_$_.pop(article_4);
 
-							var node_68 = _$_.sibling(article_4);
+							var node_59 = _$_.sibling(article_4);
 
 							{
 								var consequent_10 = (__anchor) => {
@@ -1448,12 +1382,12 @@ function DocsLayoutInner(
 									_$_.append(__anchor, div_53);
 								};
 
-								_$_.if(node_68, (__render) => {
+								_$_.if(node_59, (__render) => {
 									if (editPath) __render(consequent_10);
 								});
 							}
 
-							var node_69 = _$_.sibling(node_68);
+							var node_60 = _$_.sibling(node_59);
 
 							{
 								var consequent_11 = (__anchor) => {
@@ -1463,40 +1397,28 @@ function DocsLayoutInner(
 										var a_5 = _$_.child(nav_4);
 
 										{
-											var text_6 = _$_.child(a_5, true);
+											var expression_14 = _$_.child(a_5, true);
 
+											_$_.expression(expression_14, () => nextLink.text);
 											_$_.pop(a_5);
 										}
 									}
 
-									_$_.render(
-										(__prev) => {
-											var __a = nextLink.text;
-
-											if (__prev.a !== __a) {
-												_$_.set_text(text_6, __prev.a = __a);
-											}
-
-											var __b = nextLink.href;
-
-											if (__prev.b !== __b) {
-												_$_.set_attribute(a_5, 'href', __prev.b = __b);
-											}
-										},
-										{ a: ' ', b: void 0 }
-									);
+									_$_.render(() => {
+										_$_.set_attribute(a_5, 'href', nextLink.href);
+									});
 
 									_$_.append(__anchor, nav_4);
 								};
 
-								_$_.if(node_69, (__render) => {
+								_$_.if(node_60, (__render) => {
 									if (nextLink) __render(consequent_11);
 								});
 							}
 
-							var node_70 = _$_.sibling(node_69);
+							var node_61 = _$_.sibling(node_60);
 
-							FooterStub(node_70, {}, _$_.active_block);
+							FooterStub(node_61, {}, _$_.active_block);
 							_$_.pop(div_50);
 						}
 					}
@@ -1518,31 +1440,28 @@ export function DocsLayoutWithData(__anchor, _, __block) {
 
 	const htmlContent = '<h1>Title</h1><p>Content</p>';
 	var fragment_15 = root_65();
-	var node_71 = _$_.first_child_frag(fragment_15);
+	var node_62 = _$_.first_child_frag(fragment_15);
 
 	DocsLayoutInner(
-		node_71,
+		node_62,
 		{
 			editPath: "docs/styling.md",
 			nextLink: { href: '/next', text: 'Next' },
-			children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_54 = root_66();
 
 				{
-					var node_72 = _$_.child(div_54);
+					var node_63 = _$_.child(div_54);
 
 					_$_.pop(div_54);
 				}
 
 				_$_.render(() => {
-					_$_.html(node_72, () => htmlContent);
+					_$_.html(node_63, () => htmlContent);
 				});
 
 				_$_.append(__anchor, div_54);
-				_$_.pop_component();
-			}
+			})
 		},
 		_$_.active_block
 	);
@@ -1556,29 +1475,26 @@ export function DocsLayoutWithoutData(__anchor, _, __block) {
 
 	const htmlContent = undefined;
 	var fragment_16 = root_67();
-	var node_73 = _$_.first_child_frag(fragment_16);
+	var node_64 = _$_.first_child_frag(fragment_16);
 
 	DocsLayoutInner(
-		node_73,
+		node_64,
 		{
-			children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_55 = root_68();
 
 				{
-					var node_74 = _$_.child(div_55);
+					var node_65 = _$_.child(div_55);
 
 					_$_.pop(div_55);
 				}
 
 				_$_.render(() => {
-					_$_.html(node_74, () => htmlContent);
+					_$_.html(node_65, () => htmlContent);
 				});
 
 				_$_.append(__anchor, div_55);
-				_$_.pop_component();
-			}
+			})
 		},
 		_$_.active_block
 	);
@@ -1603,18 +1519,18 @@ function DocsLayoutExact(
 	var div_56 = root_69();
 
 	{
-		var node_75 = _$_.child(div_56);
+		var node_66 = _$_.child(div_56);
 
-		HeaderStub(node_75, {}, _$_.active_block);
+		HeaderStub(node_66, {}, _$_.active_block);
 
-		var div_57 = _$_.sibling(node_75);
+		var div_57 = _$_.sibling(node_66);
 
 		{
-			var node_76 = _$_.child(div_57);
+			var node_67 = _$_.child(div_57);
 
-			SidebarStub(node_76, {}, _$_.active_block);
+			SidebarStub(node_67, {}, _$_.active_block);
 
-			var main_3 = _$_.sibling(node_76);
+			var main_3 = _$_.sibling(node_67);
 
 			{
 				var div_61 = _$_.child(main_3);
@@ -1632,16 +1548,16 @@ function DocsLayoutExact(
 								var div_58 = _$_.child(article_5);
 
 								{
-									var node_77 = _$_.child(div_58);
+									var expression_15 = _$_.child(div_58);
 
-									children(node_77, {}, _$_.active_block);
+									_$_.expression(expression_15, () => children);
 									_$_.pop(div_58);
 								}
 							}
 
 							_$_.pop(article_5);
 
-							var node_78 = _$_.sibling(article_5);
+							var node_68 = _$_.sibling(article_5);
 
 							{
 								var consequent_12 = (__anchor) => {
@@ -1656,19 +1572,19 @@ function DocsLayoutExact(
 									_$_.append(__anchor, div_62);
 								};
 
-								_$_.if(node_78, (__render) => {
+								_$_.if(node_68, (__render) => {
 									if (editPath) __render(consequent_12);
 								});
 							}
 
-							var node_79 = _$_.sibling(node_78);
+							var node_69 = _$_.sibling(node_68);
 
 							{
 								var consequent_15 = (__anchor) => {
 									var nav_5 = root_71();
 
 									{
-										var node_80 = _$_.child(nav_5);
+										var node_70 = _$_.child(nav_5);
 
 										{
 											var consequent_13 = (__anchor) => {
@@ -1678,28 +1594,16 @@ function DocsLayoutExact(
 													var span_2 = _$_.child(a_7);
 
 													{
-														var text_7 = _$_.child(span_2, true);
+														var expression_16 = _$_.child(span_2, true);
 
+														_$_.expression(expression_16, () => prevLink.text);
 														_$_.pop(span_2);
 													}
 												}
 
-												_$_.render(
-													(__prev) => {
-														var __a = prevLink.text;
-
-														if (__prev.a !== __a) {
-															_$_.set_text(text_7, __prev.a = __a);
-														}
-
-														var __b = prevLink.href;
-
-														if (__prev.b !== __b) {
-															_$_.set_attribute(a_7, 'href', __prev.b = __b);
-														}
-													},
-													{ a: ' ', b: void 0 }
-												);
+												_$_.render(() => {
+													_$_.set_attribute(a_7, 'href', prevLink.href);
+												});
 
 												_$_.append(__anchor, a_7);
 											};
@@ -1710,12 +1614,12 @@ function DocsLayoutExact(
 												_$_.append(__anchor, span_3);
 											};
 
-											_$_.if(node_80, (__render) => {
+											_$_.if(node_70, (__render) => {
 												if (prevLink) __render(consequent_13); else __render(alternate, false);
 											});
 										}
 
-										var node_81 = _$_.sibling(node_80);
+										var node_71 = _$_.sibling(node_70);
 
 										{
 											var consequent_14 = (__anchor) => {
@@ -1725,33 +1629,21 @@ function DocsLayoutExact(
 													var span_4 = _$_.child(a_8);
 
 													{
-														var text_8 = _$_.child(span_4, true);
+														var expression_17 = _$_.child(span_4, true);
 
+														_$_.expression(expression_17, () => nextLink.text);
 														_$_.pop(span_4);
 													}
 												}
 
-												_$_.render(
-													(__prev) => {
-														var __a = nextLink.text;
-
-														if (__prev.a !== __a) {
-															_$_.set_text(text_8, __prev.a = __a);
-														}
-
-														var __b = nextLink.href;
-
-														if (__prev.b !== __b) {
-															_$_.set_attribute(a_8, 'href', __prev.b = __b);
-														}
-													},
-													{ a: ' ', b: void 0 }
-												);
+												_$_.render(() => {
+													_$_.set_attribute(a_8, 'href', nextLink.href);
+												});
 
 												_$_.append(__anchor, a_8);
 											};
 
-											_$_.if(node_81, (__render) => {
+											_$_.if(node_71, (__render) => {
 												if (nextLink) __render(consequent_14);
 											});
 										}
@@ -1762,14 +1654,14 @@ function DocsLayoutExact(
 									_$_.append(__anchor, nav_5);
 								};
 
-								_$_.if(node_79, (__render) => {
+								_$_.if(node_69, (__render) => {
 									if (prevLink || nextLink) __render(consequent_15);
 								});
 							}
 
-							var node_82 = _$_.sibling(node_79);
+							var node_72 = _$_.sibling(node_69);
 
-							FooterStub(node_82, {}, _$_.active_block);
+							FooterStub(node_72, {}, _$_.active_block);
 							_$_.pop(div_59);
 						}
 					}
@@ -1779,7 +1671,7 @@ function DocsLayoutExact(
 					var aside_4 = _$_.sibling(div_60);
 
 					{
-						var node_83 = _$_.child(aside_4);
+						var node_73 = _$_.child(aside_4);
 
 						{
 							var consequent_16 = (__anchor) => {
@@ -1796,27 +1688,15 @@ function DocsLayoutExact(
 												var a_9 = root_76();
 
 												{
-													var text_9 = _$_.child(a_9, true);
+													var expression_18 = _$_.child(a_9, true);
 
+													_$_.expression(expression_18, () => item.text);
 													_$_.pop(a_9);
 												}
 
-												_$_.render(
-													(__prev) => {
-														var __a = item.text;
-
-														if (__prev.a !== __a) {
-															_$_.set_text(text_9, __prev.a = __a);
-														}
-
-														var __b = item.href;
-
-														if (__prev.b !== __b) {
-															_$_.set_attribute(a_9, 'href', __prev.b = __b);
-														}
-													},
-													{ a: ' ', b: void 0 }
-												);
+												_$_.render(() => {
+													_$_.set_attribute(a_9, 'href', item.href);
+												});
 
 												_$_.append(__anchor, a_9);
 											},
@@ -1830,7 +1710,7 @@ function DocsLayoutExact(
 								_$_.append(__anchor, div_63);
 							};
 
-							_$_.if(node_83, (__render) => {
+							_$_.if(node_73, (__render) => {
 								if (toc.length > 0) __render(consequent_16);
 							});
 						}
@@ -1855,10 +1735,10 @@ export function DocsLayoutExactWithData(__anchor, _, __block) {
 
 	const htmlContent = '<h1>Styling Guide</h1><p>Content</p>';
 	var fragment_17 = root_77();
-	var node_84 = _$_.first_child_frag(fragment_17);
+	var node_74 = _$_.first_child_frag(fragment_17);
 
 	DocsLayoutExact(
-		node_84,
+		node_74,
 		{
 			editPath: "docs/guide/styling.md",
 			prevLink: { href: '/prev', text: 'Previous' },
@@ -1868,24 +1748,21 @@ export function DocsLayoutExactWithData(__anchor, _, __block) {
 				{ href: '#usage', text: 'Usage' }
 			],
 
-			children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_64 = root_78();
 
 				{
-					var node_85 = _$_.child(div_64);
+					var node_75 = _$_.child(div_64);
 
 					_$_.pop(div_64);
 				}
 
 				_$_.render(() => {
-					_$_.html(node_85, () => htmlContent);
+					_$_.html(node_75, () => htmlContent);
 				});
 
 				_$_.append(__anchor, div_64);
-				_$_.pop_component();
-			}
+			})
 		},
 		_$_.active_block
 	);
@@ -1903,33 +1780,30 @@ export function DocsLayoutExactWithoutData(__anchor, _, __block) {
 	const nextLink = undefined;
 	const toc = undefined;
 	var fragment_18 = root_79();
-	var node_86 = _$_.first_child_frag(fragment_18);
+	var node_76 = _$_.first_child_frag(fragment_18);
 
 	DocsLayoutExact(
-		node_86,
+		node_76,
 		{
 			editPath,
 			prevLink,
 			nextLink,
 			toc,
-			children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_65 = root_80();
 
 				{
-					var node_87 = _$_.child(div_65);
+					var node_77 = _$_.child(div_65);
 
 					_$_.pop(div_65);
 				}
 
 				_$_.render(() => {
-					_$_.html(node_87, () => htmlContent);
+					_$_.html(node_77, () => htmlContent);
 				});
 
 				_$_.append(__anchor, div_65);
-				_$_.pop_component();
-			}
+			})
 		},
 		_$_.active_block
 	);
@@ -1985,9 +1859,9 @@ function LayoutWithTemplate(__anchor, { children, data }, __block) {
 		var main_4 = _$_.sibling(template_3);
 
 		{
-			var node_88 = _$_.child(main_4);
+			var expression_19 = _$_.child(main_4);
 
-			children(node_88, {}, _$_.active_block);
+			_$_.expression(expression_19, () => children);
 			_$_.pop(main_4);
 		}
 	}
@@ -2005,30 +1879,27 @@ export function NestedTemplateInLayout(__anchor, _, __block) {
 
 	const doc = { title: 'Comparison', html: '<p>Content</p>' };
 	var fragment_19 = root_84();
-	var node_89 = _$_.first_child_frag(fragment_19);
+	var node_78 = _$_.first_child_frag(fragment_19);
 
 	LayoutWithTemplate(
-		node_89,
+		node_78,
 		{
 			data: doc,
-			children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.ripple_element(function render_children(__anchor, __block) {
 				var div_69 = root_85();
 
 				{
-					var node_90 = _$_.child(div_69);
+					var node_79 = _$_.child(div_69);
 
 					_$_.pop(div_69);
 				}
 
 				_$_.render(() => {
-					_$_.html(node_90, () => doc.html);
+					_$_.html(node_79, () => doc.html);
 				});
 
 				_$_.append(__anchor, div_69);
-				_$_.pop_component();
-			}
+			})
 		},
 		_$_.active_block
 	);

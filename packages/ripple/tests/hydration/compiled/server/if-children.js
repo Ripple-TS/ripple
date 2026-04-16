@@ -58,7 +58,7 @@ export function ChildItem(__output, { text }) {
 	__output.push('>');
 
 	{
-		__output.push(_$_.escape(text));
+		__output.push(_$_.escape(label));
 	}
 
 	__output.push('</div>');
@@ -74,7 +74,7 @@ export function TestIfWithChildren(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 
 					{
@@ -92,7 +92,7 @@ export function TestIfWithChildren(__output) {
 					}
 
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 
@@ -250,7 +250,7 @@ export function TestIfWithSiblingsAndChildren(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 
 					{
@@ -268,7 +268,7 @@ export function TestIfWithSiblingsAndChildren(__output) {
 					}
 
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 

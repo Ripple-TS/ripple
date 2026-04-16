@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import prettier from 'prettier';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { languages } from './index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -39,6 +40,16 @@ expect.extend({
 });
 
 describe('prettier-plugin', () => {
+	it('registers .tsrx as a supported file extension', () => {
+		const ripple_language = languages?.[0];
+
+		if (!ripple_language) {
+			throw new Error('Missing Ripple language metadata');
+		}
+
+		expect(ripple_language.extensions).toContain('.tsrx');
+	});
+
 	/**
 	 * @param {string} code
 	 * @param {import('prettier').Options} [options]
@@ -1757,7 +1768,7 @@ files = [...(files ?? []), ...dt.files];`;
   },
   button: component({ children }) {
     <button>
-      <children />
+      {children}
     </button>
   },
 };`;
@@ -2380,7 +2391,7 @@ message.push(/* Some test comment */ greet(/* Some text */ \`Ripple\`));`;
 	it('should not move commented composite elements to the outside of parent element', async () => {
 		const expected = `component Child({ children, NonExistent, ...props }) {
   <div {...props}>
-    // <children />
+    // {children}
     // <NonExistent />
   </div>
 }`;
@@ -2924,6 +2935,18 @@ const items = [] as unknown[];`;
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('should format expression and explicit text interpolation syntax correctly', async () => {
+		const input = `export component App(){<div>{message}</div><div>{text message}</div>}`;
+
+		const expected = `export component App() {
+  <div>{message}</div>
+  <div>{text message}</div>
+}`;
+
+		const result = await format(input, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
 	it('should not insert a new line between js and jsx if not provided', async () => {
 		const expected = `export component App() {
   let text = 'something';
@@ -3121,26 +3144,6 @@ const items = [] as unknown[];`;
 }`;
 
 			const result = await format(input, { singleQuote: true });
-			expect(result).toBeWithNewline(expected);
-		});
-
-		it('should format nested generics types', async () => {
-			const expected = `component Test() {
-  const [children, rest] = trackSplit<
-    PropsWithChildren<{
-      class: string;
-      id: string;
-      onClick: EventListener;
-    }>,
-    keyof PropsWithChildren<{
-      class: string;
-      id: string;
-      onClick: EventListener;
-    }>
-  >(props as Props, ['children']);
-}`;
-
-			const result = await format(expected, { singleQuote: true });
 			expect(result).toBeWithNewline(expected);
 		});
 
@@ -4330,7 +4333,7 @@ export component App() {
     {test}
     <polygon points="0,0 30,0 15,10" />
   </svg>
-  // <div><children /></div>
+  // <div>{children}</div>
 }
 
 component Polygon() {

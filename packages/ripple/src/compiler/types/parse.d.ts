@@ -1168,7 +1168,7 @@ export namespace Parse {
 
 		parseServerBlock(): AST.ServerBlock;
 
-		parseElement(): AST.Element | AST.TsxCompat;
+		parseElement(): AST.Element | AST.Tsx | AST.TsxCompat;
 
 		parseTemplateBody(
 			body: (AST.Statement | AST.Node | ESTreeJSX.JSXText | ESTreeJSX.JSXElement['children'])[],
@@ -1197,6 +1197,8 @@ export namespace Parse {
 			topLevel?: boolean,
 			exports?: AST.ExportSpecifier,
 		):
+			| AST.RippleExpression
+			| AST.Html
 			| AST.TextNode
 			| ESTreeJSX.JSXEmptyExpression
 			| ESTreeJSX.JSXExpressionContainer

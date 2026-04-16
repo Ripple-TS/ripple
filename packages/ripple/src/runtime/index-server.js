@@ -6,7 +6,6 @@ export {
 	set,
 	untrack,
 	track,
-	track_split as trackSplit,
 	track_async as trackAsync,
 	is_tracked_pending as trackPending,
 	peek_tracked as peek,

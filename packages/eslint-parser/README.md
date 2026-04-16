@@ -3,8 +3,9 @@
 [![npm version](https://img.shields.io/npm/v/%40ripple-ts%2Feslint-parser?logo=npm)](https://www.npmjs.com/package/@ripple-ts/eslint-parser)
 [![npm downloads](https://img.shields.io/npm/dm/%40ripple-ts%2Feslint-parser?logo=npm&label=downloads)](https://www.npmjs.com/package/@ripple-ts/eslint-parser)
 
-ESLint parser for Ripple (.ripple files). This parser enables ESLint to understand
-and lint `.ripple` files by leveraging Ripple's built-in compiler.
+ESLint parser for Ripple component files. This parser enables ESLint to understand
+and lint `.tsrx` files by default, while also supporting `.ripple` files through
+Ripple's built-in compiler.
 
 ## Installation
 
@@ -29,7 +30,7 @@ import ripplePlugin from '@ripple-ts/eslint-plugin';
 
 export default [
   {
-    files: ['**/*.ripple'],
+    files: ['**/*.{tsrx,ripple}'],
     languageOptions: {
       parser: rippleParser,
     },
@@ -49,7 +50,7 @@ export default [
 {
   "overrides": [
     {
-      "files": ["*.ripple"],
+      "files": ["*.tsrx", "*.ripple"],
       "parser": "@ripple-ts/eslint-parser",
       "plugins": ["ripple"],
       "extends": ["plugin:ripple/recommended"]
@@ -60,14 +61,14 @@ export default [
 
 ## How It Works
 
-This parser uses Ripple's compiler (`ripple/compiler`) to parse `.ripple` files
-into an ESTree-compatible AST that ESLint can analyze. The Ripple compiler already
-outputs ESTree-compliant ASTs, making integration straightforward.
+This parser uses Ripple's compiler (`ripple/compiler`) to parse Ripple component
+files into an ESTree-compatible AST that ESLint can analyze. The Ripple compiler
+already outputs ESTree-compliant ASTs, making integration straightforward.
 
 The parser:
 
 1. Loads the Ripple compiler
-2. Parses the `.ripple` source code
+2. Parses the component source code (`.tsrx` or `.ripple`)
 3. Returns the ESTree AST to ESLint
 4. Allows ESLint rules to analyze Ripple-specific patterns
 
@@ -84,7 +85,7 @@ The parser supports all Ripple syntax including:
 
 ## Example
 
-Given a `.ripple` file:
+Given a `.tsrx` file:
 
 ```ripple
 import { track } from 'ripple';

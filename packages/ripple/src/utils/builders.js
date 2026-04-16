@@ -514,6 +514,36 @@ export function ts_intersection_type(types, loc_info) {
 }
 
 /**
+ * @param {'string' | 'number' | 'boolean' | 'any' | 'void' | 'null' | 'undefined' | 'never' | 'unknown' | 'bigint' | 'symbol' | 'object'} keyword
+ * @param {AST.NodeWithLocation} [loc_info]
+ * @returns {AST.TypeNode}
+ */
+export function ts_keyword_type(keyword, loc_info) {
+	/** @type {Record<string, string>} */
+	const keyword_to_type = {
+		string: 'TSStringKeyword',
+		number: 'TSNumberKeyword',
+		boolean: 'TSBooleanKeyword',
+		any: 'TSAnyKeyword',
+		void: 'TSVoidKeyword',
+		null: 'TSNullKeyword',
+		undefined: 'TSUndefinedKeyword',
+		never: 'TSNeverKeyword',
+		unknown: 'TSUnknownKeyword',
+		bigint: 'TSBigIntKeyword',
+		symbol: 'TSSymbolKeyword',
+		object: 'TSObjectKeyword',
+	};
+
+	const node = /** @type {AST.TypeNode} */ ({
+		type: keyword_to_type[keyword],
+		metadata: { path: [] },
+	});
+
+	return set_location(node, loc_info);
+}
+
+/**
  * @param {AST.Node} type_annotation
  * @param {AST.NodeWithLocation} [loc_info]
  * @returns {AST.TSTypeAnnotation}

@@ -26,6 +26,7 @@ import {
 	is_inside_component,
 	is_ripple_track_call,
 	is_void_element,
+	is_children_template_expression as is_children_template_expression_in_scope,
 	normalize_children,
 	is_binding_function,
 	is_inside_try_block,
@@ -39,6 +40,123 @@ import { is_event_attribute } from '../../../utils/events.js';
 import { validate_nesting } from './validation.js';
 
 const valid_in_head = new Set(['title', 'base', 'link', 'meta', 'style', 'script', 'noscript']);
+
+const mutating_method_names = new Set([
+	'add',
+	'append',
+	'clear',
+	'copyWithin',
+	'delete',
+	'fill',
+	'pop',
+	'push',
+	'reverse',
+	'set',
+	'shift',
+	'sort',
+	'splice',
+	'unshift',
+]);
+
+/**
+ * @param {AST.MemberExpression} node
+ * @returns {string | null}
+ */
+function get_member_name(node) {
+	if (!node.computed && node.property.type === 'Identifier') {
+		return node.property.name;
+	}
+
+	if (node.computed && node.property.type === 'Literal') {
+		return typeof node.property.value === 'string' ? node.property.value : null;
+	}
+
+	return null;
+}
+
+/**
+ * @param {AST.CallExpression} node
+ * @returns {boolean}
+ */
+function is_mutating_call_expression(node) {
+	return (
+		node.callee.type === 'MemberExpression' &&
+		mutating_method_names.has(get_member_name(node.callee) ?? '')
+	);
+}
+
+/**
+ * Check if an expression contains side effects or other impure operations.
+ * Template expressions should be pure reads.
+ * @param {AST.Expression | AST.SpreadElement | AST.Super | AST.Pattern} node
+ * @returns {boolean}
+ */
+function expression_has_side_effects(node) {
+	switch (node.type) {
+		case 'AssignmentExpression':
+		case 'UpdateExpression':
+			return true;
+		case 'SequenceExpression':
+			return node.expressions.some(expression_has_side_effects);
+		case 'ConditionalExpression':
+			return (
+				expression_has_side_effects(node.test) ||
+				expression_has_side_effects(node.consequent) ||
+				expression_has_side_effects(node.alternate)
+			);
+		case 'LogicalExpression':
+		case 'BinaryExpression':
+			return (
+				expression_has_side_effects(/** @type {AST.Expression} */ (node.left)) ||
+				expression_has_side_effects(node.right)
+			);
+		case 'UnaryExpression':
+			// delete operator has side effects (removes object properties)
+			if (node.operator === 'delete') return true;
+			return expression_has_side_effects(node.argument);
+		case 'AwaitExpression':
+			return expression_has_side_effects(node.argument);
+		case 'ChainExpression':
+			return expression_has_side_effects(node.expression);
+		case 'MemberExpression':
+			return (
+				expression_has_side_effects(node.object) ||
+				(node.computed &&
+					expression_has_side_effects(/** @type {AST.Expression} */ (node.property)))
+			);
+		case 'CallExpression':
+			return (
+				is_mutating_call_expression(node) ||
+				expression_has_side_effects(node.callee) ||
+				node.arguments.some(expression_has_side_effects)
+			);
+		case 'NewExpression':
+			return (
+				expression_has_side_effects(node.callee) || node.arguments.some(expression_has_side_effects)
+			);
+		case 'TemplateLiteral':
+			return node.expressions.some(expression_has_side_effects);
+		case 'TaggedTemplateExpression':
+			return (
+				expression_has_side_effects(node.tag) ||
+				node.quasi.expressions.some(expression_has_side_effects)
+			);
+		case 'ArrayExpression':
+			return node.elements.some((el) => el !== null && expression_has_side_effects(el));
+		case 'ObjectExpression':
+			return node.properties.some((prop) =>
+				prop.type === 'SpreadElement'
+					? expression_has_side_effects(prop.argument)
+					: expression_has_side_effects(prop.value) ||
+						(prop.computed &&
+							expression_has_side_effects(/** @type {AST.Expression} */ (prop.key))),
+			);
+		case 'SpreadElement':
+			return expression_has_side_effects(node.argument);
+		default:
+			return false;
+	}
+}
 
 /**
  * @param {AnalysisContext['path']} path
@@ -62,6 +180,7 @@ function mark_control_flow_has_template(path) {
 			node.type === 'TryStatement' ||
 			node.type === 'IfStatement' ||
 			node.type === 'SwitchStatement' ||
+			node.type === 'Tsx' ||
 			node.type === 'TsxCompat'
 		) {
 			node.metadata.has_template = true;
@@ -124,7 +243,11 @@ function setup_lazy_transforms(pattern, source_id, state, writable, is_track_cal
 
 						if (node.prefix) {
 							// ++count: return new value
-							return b.assignment('=', member, b.binary('+', fallback_read, delta));
+							return b.assignment(
+								'=',
+								/** @type {AST.Pattern} */ (member),
+								b.binary('+', fallback_read, delta),
+							);
 						} else {
 							// count++: return old value, write new value
 							// Use IIFE to declare temp variable
@@ -134,7 +257,13 @@ function setup_lazy_transforms(pattern, source_id, state, writable, is_track_cal
 									[],
 									b.block([
 										b.var(temp, fallback_read),
-										b.stmt(b.assignment('=', member, b.binary('+', temp, delta))),
+										b.stmt(
+											b.assignment(
+												'=',
+												/** @type {AST.Pattern} */ (member),
+												b.binary('+', temp, delta),
+											),
+										),
 										b.return(temp),
 									]),
 								),
@@ -252,6 +381,7 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 					} else {
 						binding.transform.update = (node) => {
 							const fn_name = node.prefix ? '_$_.update_pre' : '_$_.update';
+							/** @type {AST.Expression[]} */
 							const args = [source_id];
 							if (node.operator === '--') {
 								args.push(b.literal(-1));
@@ -285,7 +415,10 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 				binding.kind = path.has_default_value ? 'lazy_fallback' : 'lazy';
 
 				binding.transform = {
-					read: (_) => path.expression(base_expression(source_id)),
+					read: (_) =>
+						path.expression(
+							/** @type {AST.Identifier | AST.CallExpression} */ (base_expression(source_id)),
+						),
 				};
 
 				if (writable) {
@@ -293,7 +426,7 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 						return b.assignment(
 							'=',
 							/** @type {AST.MemberExpression} */ (
-								path.update_expression(base_expression(source_id))
+								path.update_expression(/** @type {AST.Identifier} */ (base_expression(source_id)))
 							),
 							value,
 						);
@@ -301,12 +434,20 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 
 					if (path.has_default_value) {
 						binding.transform.update = (node) => {
-							const member = path.update_expression(base_expression(source_id));
-							const fallback_read = path.expression(base_expression(source_id));
+							const member = path.update_expression(
+								/** @type {AST.Identifier} */ (base_expression(source_id)),
+							);
+							const fallback_read = path.expression(
+								/** @type {AST.Identifier | AST.CallExpression} */ (base_expression(source_id)),
+							);
 							const delta = node.operator === '++' ? b.literal(1) : b.literal(-1);
 
 							if (node.prefix) {
-								return b.assignment('=', member, b.binary('+', fallback_read, delta));
+								return b.assignment(
+									'=',
+									/** @type {AST.Pattern} */ (member),
+									b.binary('+', fallback_read, delta),
+								);
 							} else {
 								const temp = b.id('_v');
 								return b.call(
@@ -314,7 +455,13 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 										[],
 										b.block([
 											b.var(temp, fallback_read),
-											b.stmt(b.assignment('=', member, b.binary('+', temp, delta))),
+											b.stmt(
+												b.assignment(
+													'=',
+													/** @type {AST.Pattern} */ (member),
+													b.binary('+', temp, delta),
+												),
+											),
 											b.return(temp),
 										]),
 									),
@@ -325,7 +472,7 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 						binding.transform.update = (node) =>
 							b.update(
 								node.operator,
-								path.update_expression(base_expression(source_id)),
+								path.update_expression(/** @type {AST.Identifier} */ (base_expression(source_id))),
 								node.prefix,
 							);
 					}
@@ -336,14 +483,185 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 }
 
 /**
- * Checks if a function parameter has a Tracked<T> type annotation imported from ripple.
+ * @param {AST.Pattern} pattern
+ * @returns {AST.TypeNode | undefined}
+ */
+function get_pattern_type_annotation(pattern) {
+	return pattern.typeAnnotation?.typeAnnotation;
+}
+
+/**
+ * @param {AST.TypeNode | undefined} type_annotation
+ * @returns {AST.TypeNode | undefined}
+ */
+function unwrap_type_annotation(type_annotation) {
+	/** @type {AST.TypeNode | undefined} */
+	let annotation = type_annotation;
+
+	while (annotation) {
+		if (annotation.type === 'TSParenthesizedType') {
+			annotation = /** @type {AST.TypeNode | undefined} */ (annotation.typeAnnotation);
+			continue;
+		}
+		if (annotation.type === 'TSOptionalType') {
+			annotation = /** @type {AST.TypeNode | undefined} */ (annotation.typeAnnotation);
+			continue;
+		}
+		break;
+	}
+
+	return annotation;
+}
+
+/**
+ * @param {AST.TypeNode} type_annotation
+ * @returns {AST.TypeNode}
+ */
+function normalize_tuple_element_type(type_annotation) {
+	/** @type {AST.TypeNode} */
+	let annotation = type_annotation;
+
+	while (true) {
+		if (annotation.type === 'TSNamedTupleMember') {
+			annotation = annotation.elementType;
+			continue;
+		}
+		if (annotation.type === 'TSParenthesizedType') {
+			annotation = /** @type {AST.TypeNode} */ (annotation.typeAnnotation);
+			continue;
+		}
+		if (annotation.type === 'TSOptionalType') {
+			annotation = /** @type {AST.TypeNode} */ (annotation.typeAnnotation);
+			continue;
+		}
+		break;
+	}
+
+	return annotation;
+}
+
+/**
+ * @param {AST.Expression} key
+ * @returns {string | null}
+ */
+function get_object_pattern_key_name(key) {
+	if (key.type === 'Identifier') {
+		return key.name;
+	}
+	if (key.type === 'Literal' && (typeof key.value === 'string' || typeof key.value === 'number')) {
+		return String(key.value);
+	}
+	return null;
+}
+
+/**
+ * @param {AST.PropertyNameNonComputed} key
+ * @returns {string | null}
+ */
+function get_type_property_key_name(key) {
+	if (key.type === 'Identifier') {
+		return key.name;
+	}
+	if (key.type === 'Literal' && (typeof key.value === 'string' || typeof key.value === 'number')) {
+		return String(key.value);
+	}
+	return null;
+}
+
+/**
+ * @param {AST.TypeNode | undefined} type_annotation
+ * @param {AST.Property | AST.RestElement} property
+ * @returns {AST.TypeNode | undefined}
+ */
+function get_object_property_type_annotation(type_annotation, property) {
+	if (property.type === 'RestElement' || property.computed) {
+		return undefined;
+	}
+
+	const object_type_annotation = unwrap_type_annotation(type_annotation);
+	if (object_type_annotation?.type !== 'TSTypeLiteral') {
+		return undefined;
+	}
+
+	const key_name = get_object_pattern_key_name(/** @type {AST.Expression} */ (property.key));
+	if (key_name === null) {
+		return undefined;
+	}
+
+	for (const member of object_type_annotation.members) {
+		if (member.type !== 'TSPropertySignature' || member.computed) {
+			continue;
+		}
+		const member_key_name = get_type_property_key_name(member.key);
+		if (member_key_name === key_name) {
+			return member.typeAnnotation?.typeAnnotation;
+		}
+	}
+
+	return undefined;
+}
+
+/**
+ * @param {AST.TypeNode | undefined} type_annotation
+ * @param {number} index
+ * @param {boolean} is_rest
+ * @returns {AST.TypeNode | undefined}
+ */
+function get_array_element_type_annotation(type_annotation, index, is_rest) {
+	const array_type_annotation = unwrap_type_annotation(type_annotation);
+
+	if (array_type_annotation?.type === 'TSArrayType') {
+		return array_type_annotation.elementType;
+	}
+	if (array_type_annotation?.type !== 'TSTupleType') {
+		return undefined;
+	}
+
+	if (is_rest) {
+		for (let i = array_type_annotation.elementTypes.length - 1; i >= 0; i -= 1) {
+			const element_type = normalize_tuple_element_type(array_type_annotation.elementTypes[i]);
+			if (element_type.type === 'TSRestType') {
+				return element_type.typeAnnotation;
+			}
+		}
+		return undefined;
+	}
+
+	if (index < array_type_annotation.elementTypes.length) {
+		const element_type = normalize_tuple_element_type(array_type_annotation.elementTypes[index]);
+		if (element_type.type === 'TSRestType') {
+			const rest_type_annotation = unwrap_type_annotation(element_type.typeAnnotation);
+			return rest_type_annotation?.type === 'TSArrayType'
+				? rest_type_annotation.elementType
+				: element_type.typeAnnotation;
+		}
+		return element_type;
+	}
+
+	const last_element = array_type_annotation.elementTypes.at(-1);
+	if (!last_element) {
+		return undefined;
+	}
+	const normalized_last_element = normalize_tuple_element_type(last_element);
+	if (normalized_last_element.type === 'TSRestType') {
+		const rest_type_annotation = unwrap_type_annotation(normalized_last_element.typeAnnotation);
+		return rest_type_annotation?.type === 'TSArrayType'
+			? rest_type_annotation.elementType
+			: normalized_last_element.typeAnnotation;
+	}
+
+	return undefined;
+}
+
+/**
+ * Checks if a parameter source has a Tracked<T> type annotation imported from ripple.
  * This is used to determine if lazy array destructuring should use the track tuple fast path.
- * @param {AST.ArrayPattern} param - The parameter pattern node
+ * @param {AST.TypeNode | undefined} type_annotation - The source type annotation
  * @param {AnalysisContext} context - The analysis context
  * @returns {boolean}
  */
-function is_param_tracked_type(param, context) {
-	const annotation = param.typeAnnotation?.typeAnnotation;
+function is_param_tracked_type(type_annotation, context) {
+	const annotation = unwrap_type_annotation(type_annotation);
 
 	if (
 		annotation?.type === 'TSTypeReference' &&
@@ -365,6 +683,75 @@ function is_param_tracked_type(param, context) {
 }
 
 /**
+ * Sets up lazy transforms for any lazy subpatterns nested inside a function or component param.
+ * @param {AST.Pattern} pattern
+ * @param {AnalysisContext} context
+ * @param {AST.TypeNode | undefined} [type_annotation]
+ */
+function setup_nested_lazy_param_transforms(pattern, context, type_annotation = undefined) {
+	const pattern_type_annotation = get_pattern_type_annotation(pattern) ?? type_annotation;
+
+	switch (pattern.type) {
+		case 'AssignmentPattern':
+			setup_nested_lazy_param_transforms(pattern.left, context, pattern_type_annotation);
+			return;
+
+		case 'RestElement':
+			setup_nested_lazy_param_transforms(pattern.argument, context, pattern_type_annotation);
+			return;
+
+		case 'ObjectPattern':
+		case 'ArrayPattern': {
+			if (pattern.lazy) {
+				const param_id = b.id(context.state.scope.generate('lazy'));
+				const is_tracked_type =
+					pattern.type === 'ArrayPattern' &&
+					is_param_tracked_type(pattern_type_annotation, context);
+
+				setup_lazy_transforms(pattern, param_id, context.state, true, is_tracked_type);
+				pattern.metadata = { ...pattern.metadata, lazy_id: param_id.name };
+				return;
+			}
+
+			if (pattern.type === 'ObjectPattern') {
+				for (const property of pattern.properties) {
+					const property_type_annotation = get_object_property_type_annotation(
+						pattern_type_annotation,
+						property,
+					);
+					if (property.type === 'RestElement') {
+						setup_nested_lazy_param_transforms(
+							property.argument,
+							context,
+							property_type_annotation,
+						);
+					} else {
+						setup_nested_lazy_param_transforms(property.value, context, property_type_annotation);
+					}
+				}
+			} else {
+				for (let i = 0; i < pattern.elements.length; i += 1) {
+					const element = pattern.elements[i];
+					if (element !== null) {
+						setup_nested_lazy_param_transforms(
+							element,
+							context,
+							get_array_element_type_annotation(
+								pattern_type_annotation,
+								i,
+								element.type === 'RestElement',
+							),
+						);
+					}
+				}
+			}
+
+			return;
+		}
+	}
+}
+
+/**
  * @param {AST.Function} node
  * @param {AnalysisContext} context
  */
@@ -378,16 +765,11 @@ function visit_function(node, context) {
 	for (let i = 0; i < node.params.length; i++) {
 		const param_node = node.params[i];
 		const param = param_node.type === 'AssignmentPattern' ? param_node.left : param_node;
+		const param_type_annotation =
+			get_pattern_type_annotation(param) ?? param_node.typeAnnotation?.typeAnnotation;
 
-		if ((param.type === 'ObjectPattern' || param.type === 'ArrayPattern') && param.lazy) {
-			const param_id = b.id(context.state.scope.generate('param'));
-			// For ArrayPattern params with a Tracked<T> type annotation from ripple,
-			// use the track tuple fast path (get/set instead of source[0]/source[1])
-			const is_tracked_type =
-				param.type === 'ArrayPattern' && is_param_tracked_type(param, context);
-			setup_lazy_transforms(param, param_id, context.state, true, is_tracked_type);
-			// Store the generated identifier name on the pattern for the transform phase
-			param.metadata = { ...param.metadata, lazy_id: param_id.name };
+		if (param.type === 'ObjectPattern' || param.type === 'ArrayPattern') {
+			setup_nested_lazy_param_transforms(param, context, param_type_annotation);
 		}
 	}
 
@@ -460,81 +842,13 @@ function error_return_keyword(node, context, message) {
 
 /**
  * @param {AST.Expression} expression
- * @returns {AST.Expression}
- */
-function unwrap_template_expression(expression) {
-	/** @type {AST.Expression} */
-	let node = expression;
-
-	while (true) {
-		if (
-			node.type === 'ParenthesizedExpression' ||
-			node.type === 'TSAsExpression' ||
-			node.type === 'TSSatisfiesExpression' ||
-			node.type === 'TSNonNullExpression' ||
-			node.type === 'TSInstantiationExpression'
-		) {
-			node = /** @type {AST.Expression} */ (node.expression);
-			continue;
-		}
-
-		if (node.type === 'ChainExpression') {
-			node = /** @type {AST.Expression} */ (node.expression);
-			continue;
-		}
-
-		break;
-	}
-
-	return node;
-}
-
-/**
- * @param {AST.Expression} expression
  * @param {Context<AST.Node, AnalysisState>} context
  * @returns {boolean}
  */
 function is_children_template_expression(expression, context) {
 	const component = context.path.findLast((node) => node.type === 'Component');
 	const component_scope = component ? context.state.scopes.get(component) : null;
-	const unwrapped = unwrap_template_expression(expression);
-
-	if (unwrapped.type === 'MemberExpression') {
-		let property_name = null;
-
-		if (!unwrapped.computed && unwrapped.property.type === 'Identifier') {
-			property_name = unwrapped.property.name;
-		} else if (
-			unwrapped.computed &&
-			unwrapped.property.type === 'Literal' &&
-			typeof unwrapped.property.value === 'string'
-		) {
-			property_name = unwrapped.property.value;
-		}
-
-		if (property_name === 'children') {
-			const target = unwrap_template_expression(/** @type {AST.Expression} */ (unwrapped.object));
-
-			if (target.type === 'Identifier') {
-				const binding = context.state.scope.get(target.name);
-				return binding?.declaration_kind === 'param' && binding.scope === component_scope;
-			}
-		}
-	}
-
-	if (unwrapped.type !== 'Identifier' || unwrapped.name !== 'children') {
-		return false;
-	}
-
-	const binding = context.state.scope.get(unwrapped.name);
-	return (
-		(binding?.declaration_kind === 'param' ||
-			binding?.kind === 'prop' ||
-			binding?.kind === 'prop_fallback' ||
-			binding?.kind === 'lazy' ||
-			binding?.kind === 'lazy_fallback') &&
-		binding.scope === component_scope
-	);
+	return is_children_template_expression_in_scope(expression, context.state.scope, component_scope);
 }
 
 /** @type {Visitors<AST.Node, AnalysisState>} */
@@ -766,11 +1080,13 @@ const visitors = {
 		const callee = node.callee;
 
 		if (
-			!context.path.some((path_node) => path_node.type === 'TsxCompat') &&
+			!context.path.some(
+				(path_node) => path_node.type === 'TsxCompat' || path_node.type === 'Tsx',
+			) &&
 			is_children_template_expression(/** @type {AST.Expression} */ (callee), context)
 		) {
 			error(
-				'`children` cannot be called like a regular function. Use element syntax instead, e.g. `<children />` or `<props.children />`.',
+				'`children` cannot be called like a regular function. Render it with `{children}` or `{props.children}` instead.',
 				context.state.analysis.module.filename,
 				callee,
 				context.state.loose ? context.state.analysis.errors : undefined,
@@ -935,9 +1251,13 @@ const visitors = {
 		if (node.params.length > 0) {
 			const props = node.params[0];
 
-			if ((props.type === 'ObjectPattern' || props.type === 'ArrayPattern') && props.lazy) {
+			if (props.type === 'ObjectPattern' || props.type === 'ArrayPattern') {
 				// Lazy destructuring: &{...} or &[...] — set up lazy transforms
-				setup_lazy_transforms(props, b.id('__props'), context.state, true, false);
+				if (props.lazy) {
+					setup_lazy_transforms(props, b.id('__props'), context.state, true, false);
+				} else {
+					setup_nested_lazy_param_transforms(props, context, get_pattern_type_annotation(props));
+				}
 			} else if (props.type === 'AssignmentPattern') {
 				error(
 					'Props are always an object, use destructured props with default values instead',
@@ -1249,6 +1569,7 @@ const visitors = {
 		node.metadata = {
 			...node.metadata,
 			has_template: false,
+			has_throw: false,
 		};
 
 		const test_metadata = { tracking: false };
@@ -1270,7 +1591,7 @@ const visitors = {
 			node.metadata.lone_return = true;
 		}
 
-		if (!node.metadata.has_template && !node.metadata.has_return) {
+		if (!node.metadata.has_template && !node.metadata.has_return && !node.metadata.has_throw) {
 			error(
 				'Component if statements must contain a template in their "then" body. Move the if statement into an effect if it does not render anything.',
 				context.state.analysis.module.filename,
@@ -1284,9 +1605,10 @@ const visitors = {
 			const saved_has_return = node.metadata.has_return;
 			const saved_returns = node.metadata.returns;
 			node.metadata.has_template = false;
+			node.metadata.has_throw = false;
 			context.visit(node.alternate, context.state);
 
-			if (!node.metadata.has_template && !node.metadata.has_return) {
+			if (!node.metadata.has_template && !node.metadata.has_return && !node.metadata.has_throw) {
 				error(
 					'Component if statements must contain a template in their "else" body. Move the if statement into an effect if it does not render anything.',
 					context.state.analysis.module.filename,
@@ -1353,6 +1675,33 @@ const visitors = {
 			ancestor.metadata.returns.push(node);
 			ancestor.metadata.has_return = true;
 		}
+	},
+
+	ThrowStatement(node, context) {
+		if (!is_inside_component(context)) {
+			return context.next();
+		}
+
+		for (let i = context.path.length - 1; i >= 0; i--) {
+			const ancestor = context.path[i];
+
+			if (
+				ancestor.type === 'Component' ||
+				ancestor.type === 'FunctionExpression' ||
+				ancestor.type === 'ArrowFunctionExpression' ||
+				ancestor.type === 'FunctionDeclaration'
+			) {
+				break;
+			}
+
+			if (ancestor.type === 'IfStatement') {
+				if (!ancestor.metadata.has_throw) {
+					ancestor.metadata.has_throw = true;
+				}
+			}
+		}
+
+		context.next();
 	},
 
 	TryStatement(node, context) {
@@ -1447,7 +1796,7 @@ const visitors = {
 	},
 
 	JSXElement(node, context) {
-		const inside_tsx_compat = context.path.some((n) => n.type === 'TsxCompat');
+		const inside_tsx_compat = context.path.some((n) => n.type === 'TsxCompat' || n.type === 'Tsx');
 
 		if (inside_tsx_compat) {
 			return context.next();
@@ -1460,8 +1809,25 @@ const visitors = {
 		);
 	},
 
-	TsxCompat(_, context) {
+	Tsx(_, context) {
 		mark_control_flow_has_template(context.path);
+		return context.next();
+	},
+
+	TsxCompat(node, context) {
+		mark_control_flow_has_template(context.path);
+
+		const configured_compat_kinds = context.state.configured_compat_kinds;
+		if (configured_compat_kinds !== undefined && !configured_compat_kinds.has(node.kind)) {
+			error(
+				`<tsx:${node.kind}> requires "${node.kind}" compat to be configured in ripple.config.ts.`,
+				context.state.analysis.module.filename,
+				node,
+				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		}
+
 		return context.next();
 	},
 
@@ -1480,6 +1846,19 @@ const visitors = {
 		const attribute_names = new Set();
 
 		mark_control_flow_has_template(path);
+
+		if (
+			!is_dom_element &&
+			is_children_template_expression(/** @type {AST.Expression} */ (node.id), context)
+		) {
+			error(
+				'`children` cannot be rendered as a component. Render it with `{children}` or `{props.children}` instead.',
+				state.analysis.module.filename,
+				node.id,
+				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		}
 
 		validate_nesting(node, context);
 
@@ -1534,7 +1913,10 @@ const visitors = {
 				if (/** @type {AST.Identifier} */ (node.id).name === 'title') {
 					const children = normalize_children(node.children, context);
 
-					if (children.length !== 1 || children[0].type !== 'Text') {
+					if (
+						children.length !== 1 ||
+						(children[0].type !== 'RippleExpression' && children[0].type !== 'Text')
+					) {
 						// TODO: could transform children as something, e.g. Text Node, and avoid a fatal error
 						error(
 							'<title> must have only contain text nodes',
@@ -1679,29 +2061,21 @@ const visitors = {
 			}
 			/** @type {(AST.Node | AST.Expression)[]} */
 			let implicit_children = [];
-			/** @type {AST.Identifier[]} */
-			let explicit_children = [];
 
 			for (const child of node.children) {
 				if (child.type === 'Component') {
-					if (child.id?.name === 'children') {
-						explicit_children.push(child.id);
-					}
-				} else if (child.type !== 'EmptyStatement') {
-					implicit_children.push(
-						child.type === 'Text' || child.type === 'Html' ? child.expression : child,
-					);
-				}
-			}
-
-			if (implicit_children.length > 0 && explicit_children.length > 0) {
-				for (const item of [...explicit_children, ...implicit_children]) {
 					error(
-						'Cannot have both implicit and explicit children',
+						'Component declarations cannot be used inside composite component children. Pass them as explicit props on the template element instead.',
 						state.analysis.module.filename,
-						item,
+						child.id || child,
 						context.state.loose ? context.state.analysis.errors : undefined,
 						context.state.analysis.comments,
+					);
+				} else if (child.type !== 'EmptyStatement') {
+					implicit_children.push(
+						child.type === 'RippleExpression' || child.type === 'Text' || child.type === 'Html'
+							? child.expression
+							: child,
 					);
 				}
 			}
@@ -1729,12 +2103,28 @@ const visitors = {
 		};
 	},
 
+	RippleExpression(node, context) {
+		mark_control_flow_has_template(context.path);
+
+		if (expression_has_side_effects(node.expression)) {
+			error(
+				'Template expressions must not contain side effects.',
+				context.state.analysis.module.filename,
+				node.expression,
+				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		}
+
+		context.next();
+	},
+
 	Text(node, context) {
 		mark_control_flow_has_template(context.path);
 
 		if (is_children_template_expression(/** @type {AST.Expression} */ (node.expression), context)) {
 			error(
-				'`children` cannot be rendered using text interpolation. Use `<children />` instead.',
+				'`children` cannot be rendered using explicit text interpolation. Use `{children}` or `{props.children}` instead.',
 				context.state.analysis.module.filename,
 				node.expression,
 				context.state.loose ? context.state.analysis.errors : undefined,
@@ -1816,6 +2206,8 @@ export function analyze(ast, filename, options = {}) {
 			ancestor_server_block: undefined,
 			to_ts: options.to_ts ?? false,
 			loose,
+			configured_compat_kinds:
+				options.compat_kinds === undefined ? undefined : new Set(options.compat_kinds),
 			metadata: {},
 			mode: options.mode,
 		},

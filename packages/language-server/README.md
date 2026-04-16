@@ -43,7 +43,7 @@ It uses this language server internally.
 3. Add a new language server in it
 4. Specify `ripple-language-server --stdio` as the command in it.
 5. Go to `Mappings` —> `File name patterns` and add a new value with
-   `File name patterns` set to `*.ripple` and `Language Id` set to `ripple.
+   `File name patterns` set to `*.tsrx` and `Language Id` set to `ripple`.
 
 #### Neovim (v0.11+)
 
@@ -90,7 +90,7 @@ release:
 5. Copy the `Ripple.sublime-package` file into `Installed Packages/` and restart
    Sublime Text.
 
-Diagnostics, completions, and other features should work in `.ripple` files now.
+Diagnostics, completions, and other features should work in `.tsrx` files now.
 
 ## Standalone Usage
 

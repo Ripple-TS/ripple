@@ -1,6 +1,6 @@
 /** @import { LanguageServicePlugin } from '@volar/language-server' */
 
-const { getVirtualCode, createLogging } = require('./utils.js');
+const { getVirtualCode, createLogging, is_ripple_document } = require('./utils.js');
 
 const { log } = createLogging('[Ripple Auto-Insert Plugin]');
 
@@ -55,7 +55,7 @@ function createAutoInsertPlugin() {
 				 * @returns {Promise<string | null>}
 				 */
 				async provideAutoInsertSnippet(document, position, lastChange, _token) {
-					if (!document.uri.endsWith('.ripple')) {
+					if (!is_ripple_document(document.uri)) {
 						return null;
 					}
 

@@ -270,16 +270,13 @@ export function is_component_level_function(context) {
  * Returns the matched Ripple tracking call name
  * @param {AST.Expression | AST.Super} callee
  * @param {CommonContext} context
- * @returns {'track' | 'trackAsync' | 'trackSplit' | null}
+ * @returns {'track' | 'trackAsync' | null}
  */
 export function is_ripple_track_call(callee, context) {
 	// Super expressions cannot be Ripple track calls
 	if (callee.type === 'Super') return null;
 
-	if (
-		callee.type === 'Identifier' &&
-		(callee.name === 'track' || callee.name === 'trackSplit' || callee.name === 'trackAsync')
-	) {
+	if (callee.type === 'Identifier' && (callee.name === 'track' || callee.name === 'trackAsync')) {
 		return is_ripple_import(callee, context) ? callee.name : null;
 	}
 
@@ -287,13 +284,11 @@ export function is_ripple_track_call(callee, context) {
 		callee.type === 'MemberExpression' &&
 		callee.object.type === 'Identifier' &&
 		callee.property.type === 'Identifier' &&
-		(callee.property.name === 'track' ||
-			callee.property.name === 'trackSplit' ||
-			callee.property.name === 'trackAsync') &&
+		(callee.property.name === 'track' || callee.property.name === 'trackAsync') &&
 		!callee.computed &&
 		is_ripple_import(callee, context)
 	) {
-		return callee.property.name;
+		return 'track';
 	}
 
 	return null;
@@ -614,7 +609,22 @@ export function normalize_children(children, context) {
 		const child = normalized[i];
 		const prev_child = normalized[i - 1];
 
-		if (child.type === 'Text' && prev_child?.type === 'Text') {
+		if (
+			(child.type === 'RippleExpression' || child.type === 'Text') &&
+			(prev_child?.type === 'RippleExpression' || prev_child?.type === 'Text')
+		) {
+			if (
+				(child.type === 'RippleExpression' &&
+					is_children_template_expression(child.expression, context.state.scope)) ||
+				(prev_child.type === 'RippleExpression' &&
+					is_children_template_expression(prev_child.expression, context.state.scope))
+			) {
+				continue;
+			}
+
+			if (prev_child.type === 'Text' || child.type === 'Text') {
+				prev_child.type = 'Text';
+			}
 			if (child.expression.type === 'Literal' && prev_child.expression.type === 'Literal') {
 				prev_child.expression = b.literal(
 					prev_child.expression.value + String(child.expression.value),
@@ -631,6 +641,91 @@ export function normalize_children(children, context) {
 	}
 
 	return normalized;
+}
+
+/**
+ * @param {AST.Expression} expression
+ * @returns {AST.Expression}
+ */
+export function unwrap_template_expression(expression) {
+	/** @type {AST.Expression} */
+	let node = expression;
+
+	while (true) {
+		if (
+			node.type === 'ParenthesizedExpression' ||
+			node.type === 'TSAsExpression' ||
+			node.type === 'TSSatisfiesExpression' ||
+			node.type === 'TSNonNullExpression' ||
+			node.type === 'TSInstantiationExpression'
+		) {
+			node = /** @type {AST.Expression} */ (node.expression);
+			continue;
+		}
+
+		if (node.type === 'ChainExpression') {
+			node = /** @type {AST.Expression} */ (node.expression);
+			continue;
+		}
+
+		break;
+	}
+
+	return node;
+}
+
+/**
+ * @param {AST.Expression} expression
+ * @param {ScopeInterface | null | undefined} scope
+ * @param {ScopeInterface | null} [component_scope]
+ * @returns {boolean}
+ */
+export function is_children_template_expression(expression, scope, component_scope = null) {
+	if (scope == null) {
+		return false;
+	}
+
+	const unwrapped = unwrap_template_expression(expression);
+
+	if (unwrapped.type === 'MemberExpression') {
+		let property_name = null;
+
+		if (!unwrapped.computed && unwrapped.property.type === 'Identifier') {
+			property_name = unwrapped.property.name;
+		} else if (
+			unwrapped.computed &&
+			unwrapped.property.type === 'Literal' &&
+			typeof unwrapped.property.value === 'string'
+		) {
+			property_name = unwrapped.property.value;
+		}
+
+		if (property_name === 'children') {
+			const target = unwrap_template_expression(/** @type {AST.Expression} */ (unwrapped.object));
+
+			if (target.type === 'Identifier') {
+				const binding = scope.get(target.name);
+				return (
+					binding?.declaration_kind === 'param' &&
+					(component_scope === null || binding.scope === component_scope)
+				);
+			}
+		}
+	}
+
+	if (unwrapped.type !== 'Identifier' || unwrapped.name !== 'children') {
+		return false;
+	}
+
+	const binding = scope.get(unwrapped.name);
+	return (
+		(binding?.declaration_kind === 'param' ||
+			binding?.kind === 'prop' ||
+			binding?.kind === 'prop_fallback' ||
+			binding?.kind === 'lazy' ||
+			binding?.kind === 'lazy_fallback') &&
+		(component_scope === null || binding.scope === component_scope)
+	);
 }
 
 /**
@@ -653,6 +748,52 @@ function normalize_child(node, normalized, context) {
 		return;
 	} else {
 		normalized.push(node);
+	}
+}
+
+/**
+ * Replaces any lazy subpatterns in a parameter pattern with their generated identifiers.
+ * This is used by client and server transforms so nested lazy destructuring can coexist
+ * with otherwise normal object/array params.
+ * @param {AST.Pattern} pattern
+ * @returns {AST.Pattern}
+ */
+export function replace_lazy_param_pattern(pattern) {
+	switch (pattern.type) {
+		case 'AssignmentPattern':
+			return { ...pattern, left: replace_lazy_param_pattern(pattern.left) };
+
+		case 'ObjectPattern':
+			if (pattern.lazy && pattern.metadata?.lazy_id) {
+				return /** @type {AST.Pattern} */ (b.id(pattern.metadata.lazy_id));
+			}
+
+			return {
+				...pattern,
+				properties: pattern.properties.map((property) =>
+					property.type === 'RestElement'
+						? { ...property, argument: replace_lazy_param_pattern(property.argument) }
+						: { ...property, value: replace_lazy_param_pattern(property.value) },
+				),
+			};
+
+		case 'ArrayPattern':
+			if (pattern.lazy && pattern.metadata?.lazy_id) {
+				return /** @type {AST.Pattern} */ (b.id(pattern.metadata.lazy_id));
+			}
+
+			return {
+				...pattern,
+				elements: pattern.elements.map((element) =>
+					element === null ? null : replace_lazy_param_pattern(element),
+				),
+			};
+
+		case 'RestElement':
+			return { ...pattern, argument: replace_lazy_param_pattern(pattern.argument) };
+
+		default:
+			return pattern;
 	}
 }
 
@@ -940,4 +1081,178 @@ export function strip_class_typescript_syntax(node, context) {
 	} else if (node.superClass && 'typeArguments' in node.superClass) {
 		delete node.superClass.typeArguments;
 	}
+}
+
+/**
+ * Converts a JSXMemberExpression to an AST MemberExpression.
+ * e.g., <Foo.Bar.Baz> → MemberExpression(MemberExpression(Foo, Bar), Baz)
+ * @param {import('estree-jsx').JSXMemberExpression} jsx_member
+ * @returns {AST.MemberExpression}
+ */
+function jsx_member_expression_to_member_expression(jsx_member) {
+	/** @type {AST.Expression} */
+	let object;
+
+	if (jsx_member.object.type === 'JSXMemberExpression') {
+		// Recursively convert nested member expressions
+		object = jsx_member_expression_to_member_expression(jsx_member.object);
+	} else {
+		// Base case: JSXIdentifier
+		object = /** @type {AST.Identifier} */ ({
+			type: 'Identifier',
+			name: jsx_member.object.name,
+			start: jsx_member.object.start,
+			end: jsx_member.object.end,
+		});
+	}
+
+	return /** @type {AST.MemberExpression} */ ({
+		type: 'MemberExpression',
+		object,
+		property: /** @type {AST.Identifier} */ ({
+			type: 'Identifier',
+			name: jsx_member.property.name,
+			start: jsx_member.property.start,
+			end: jsx_member.property.end,
+		}),
+		computed: false,
+		optional: false,
+		start: jsx_member.start,
+		end: jsx_member.end,
+	});
+}
+
+/**
+ * Converts a JSX AST node (JSXElement, JSXText, etc.) to a Ripple AST node
+ * (Element, Text, RippleExpression) for processing inside `<tsx>` blocks.
+ * @param {AST.Node} node
+ * @returns {AST.Node | AST.Node[] | null}
+ */
+export function jsx_to_ripple_node(node) {
+	if (node.type === 'JSXElement') {
+		const opening = node.openingElement;
+		const name = opening.name;
+
+		/** @type {AST.Identifier | AST.MemberExpression} */
+		let id;
+
+		if (name.type === 'JSXIdentifier') {
+			id = /** @type {AST.Identifier} */ ({
+				type: 'Identifier',
+				name: name.name,
+				start: name.start,
+				end: name.end,
+			});
+		} else if (name.type === 'JSXMemberExpression') {
+			// Convert JSXMemberExpression to MemberExpression
+			// e.g., <Foo.Bar.Baz> → MemberExpression(MemberExpression(Foo, Bar), Baz)
+			id = jsx_member_expression_to_member_expression(name);
+		} else if (name.type === 'JSXNamespacedName') {
+			// For JSXNamespacedName like <namespace:element>, create an identifier with the full name
+			id = /** @type {AST.Identifier} */ ({
+				type: 'Identifier',
+				name: name.namespace.name + ':' + name.name.name,
+				start: name.start,
+				end: name.end,
+			});
+		} else {
+			// Fallback - should not reach here
+			id = /** @type {AST.Identifier} */ ({
+				type: 'Identifier',
+				name: 'unknown',
+				start: /** @type {any} */ (name).start,
+				end: /** @type {any} */ (name).end,
+			});
+		}
+
+		const attributes = opening.attributes
+			.map((attr) => {
+				if (attr.type === 'JSXAttribute') {
+					const is_dynamic = attr.value && attr.value.type === 'JSXExpressionContainer';
+					return /** @type {AST.Node} */ ({
+						type: 'Attribute',
+						name: {
+							type: 'Identifier',
+							name:
+								attr.name.type === 'JSXIdentifier'
+									? attr.name.name
+									: attr.name.namespace.name + ':' + attr.name.name.name,
+							tracked: is_dynamic,
+							start: attr.name.start,
+							end: attr.name.end,
+						},
+						value: attr.value
+							? attr.value.type === 'JSXExpressionContainer'
+								? attr.value.expression
+								: attr.value
+							: null,
+						shorthand: false,
+						start: attr.start,
+						end: attr.end,
+					});
+				} else if (attr.type === 'JSXSpreadAttribute') {
+					return /** @type {AST.Node} */ ({
+						type: 'SpreadAttribute',
+						argument: attr.argument,
+						start: attr.start,
+						end: attr.end,
+					});
+				}
+				return null;
+			})
+			.filter(Boolean);
+
+		const children = /** @type {AST.Node[]} */ (
+			/** @type {AST.Node[]} */ (node.children).map(jsx_to_ripple_node).flat().filter(Boolean)
+		);
+
+		return /** @type {AST.Element} */ (
+			/** @type {unknown} */ ({
+				type: 'Element',
+				id,
+				attributes,
+				children,
+				selfClosing: opening.selfClosing,
+				metadata: { scoped: false, path: /** @type {string[]} */ ([]) },
+				start: node.start,
+				end: node.end,
+			})
+		);
+	}
+
+	if (node.type === 'JSXText') {
+		if (node.value.trim() === '') return null;
+		return /** @type {AST.Node} */ ({
+			type: 'Text',
+			expression: {
+				type: 'Literal',
+				value: node.value,
+				raw: JSON.stringify(node.value),
+				start: node.start,
+				end: node.end,
+			},
+			metadata: {},
+			start: node.start,
+			end: node.end,
+		});
+	}
+
+	if (node.type === 'JSXExpressionContainer') {
+		if (node.expression.type === 'JSXEmptyExpression') return null;
+		return /** @type {AST.Node} */ ({
+			type: 'RippleExpression',
+			expression: node.expression,
+			metadata: {},
+			start: node.start,
+			end: node.end,
+		});
+	}
+
+	if (node.type === 'JSXFragment') {
+		return /** @type {AST.Node[]} */ (
+			/** @type {AST.Node[]} */ (node.children).map(jsx_to_ripple_node).flat().filter(Boolean)
+		);
+	}
+
+	return node;
 }

@@ -32,20 +32,22 @@ describe('composite > render', () => {
 		component Button({ A, B, children }: { A: () => void; B: () => void; children: () => void }) {
 			<div>
 				<A />
-				<children />
+				{children}
 				<B />
 			</div>
 		}
 
 		component App() {
-			<Button>
-				component A() {
-					<div>{'I am A'}</div>
-				}
+			component A() {
+				<div>{'I am A'}</div>
+			}
+
+			component B() {
+				<div>{'I am B'}</div>
+			}
+
+			<Button {A} {B}>
 				<div>{'other text'}</div>
-				component B() {
-					<div>{'I am B'}</div>
-				}
 			</Button>
 		}
 
@@ -62,13 +64,43 @@ describe('composite > render', () => {
 		}
 
 		component Child({ children, ...rest }: { children: string; class: string }) {
-			<button {...rest}>
-				<children />
-			</button>
+			<button {...rest}>{children}</button>
 		}
 
 		render(App);
 		expect(container).toMatchSnapshot();
+	});
+
+	it('renders explicit text around children', () => {
+		component Frame({ children }) {
+			<div class="frame">
+				{text 'before'}
+				{children}
+				{text 'after'}
+			</div>
+		}
+
+		component App() {
+			<Frame>
+				<span class="middle">{'middle'}</span>
+			</Frame>
+		}
+
+		render(App);
+
+		const frame = /** @type {HTMLDivElement} */ (container.querySelector('.frame'));
+		const nodes = Array.from(frame.childNodes).filter(
+			(node) => node.nodeType !== Node.COMMENT_NODE,
+		);
+
+		expect(nodes).toHaveLength(3);
+		expect(nodes[0].nodeType).toBe(Node.TEXT_NODE);
+		expect(nodes[0].textContent).toBe('before');
+		expect((/** @type {HTMLElement} */ (nodes[1])).outerHTML).toBe(
+			'<span class="middle">middle</span>',
+		);
+		expect(nodes[2].nodeType).toBe(Node.TEXT_NODE);
+		expect(nodes[2].textContent).toBe('after');
 	});
 
 	it('preserves distinct scoped ripple hashes for wrapper and child content', () => {
@@ -76,7 +108,7 @@ describe('composite > render', () => {
 			component Wrapper({ children }) {
 				<div class="green">
 					{'Wrapper'}
-					<children />
+					{children}
 				</div>
 
 				<style>
@@ -141,7 +173,7 @@ describe('composite > render', () => {
 			[key: string]: any;
 		}) {
 			<div {...props}>
-				<children />
+				{children}
 				// @ts-expect-error - intentionally testing behavior when a component is undefined
 				<NonExistent />
 			</div>
@@ -158,5 +190,51 @@ describe('composite > render', () => {
 
 		expect(undefinedTag).toBeNull();
 		expect(div.innerHTML).not.toContain('<undefined');
+	});
+});
+
+describe('scoped styles with children', () => {
+	it('generates correct CSS hashes for wrapper and child with empty style in App', () => {
+		component Wrapper(&{ children }: { children?: Component }) {
+			<div class="green">
+				{'Wrapper'}
+				{children}
+			</div>
+
+			<style>
+				.green {
+					color: green;
+				}
+			</style>
+		}
+
+		component Child() {
+			<div class="red">{'Child'}</div>
+
+			<style>
+				.red {
+					color: red;
+				}
+			</style>
+		}
+
+		component App() {
+			<Wrapper>
+				<Child />
+			</Wrapper>
+			<style></style>
+		}
+
+		render(App);
+
+		const wrapper = container.querySelector('.green');
+		const child = container.querySelector('.red');
+
+		const wrapper_classes = Array.from(wrapper.classList).filter((c) => c.startsWith('ripple-'));
+		const child_classes = Array.from(child.classList).filter((c) => c.startsWith('ripple-'));
+
+		expect(wrapper_classes).toHaveLength(1);
+		expect(child_classes).toHaveLength(1);
+		expect(wrapper_classes[0]).not.toBe(child_classes[0]);
 	});
 });

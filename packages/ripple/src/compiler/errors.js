@@ -59,7 +59,7 @@ function is_ripple_error_suppress_comment(comment) {
 }
 
 /**
- * @param {AST.Node} node
+ * @param {AST.Node | AST.NodeWithLocation} node
  * @param {AST.CommentWithLocation[]} comments
  */
 function is_ripple_error_suppressed(node, comments) {

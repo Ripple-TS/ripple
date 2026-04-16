@@ -1,6 +1,6 @@
 name = "Ripple"
 grammar = "ripple"
-path_suffixes = ["ripple"]
+path_suffixes = ["ripple", "tsrx"]
 line_comments = ["//"]
 block_comment = ["/*", "*/"]
 tab_size = 2

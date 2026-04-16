@@ -1,9 +1,9 @@
 export component DocBadge({
 	type = 'info',
-	text,
+	text: label,
 }: {
 	type?: 'info' | 'warning' | 'danger';
 	text: string;
 }) {
-	<span class={`badge ${type}`}>{text}</span>
+	<span class={`badge ${type}`}>{label}</span>
 }

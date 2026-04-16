@@ -13,6 +13,18 @@ describe('basic client', () => {
 		expect(body).toBeHtml('<div>Hello World</div>');
 	});
 
+	it('renders explicit text interpolation as escaped text', async () => {
+		component Basic() {
+			let markup = '<span>Not HTML</span>';
+
+			<div>{text markup}</div>
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toBeHtml('<div>&lt;span>Not HTML&lt;/span></div>');
+	});
+
 	it('renders tracked state updates', async () => {
 		component Counter() {
 			let &[count] = track(0);

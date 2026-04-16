@@ -139,7 +139,7 @@ component Card(props: { message: string, className?: string, onClick?: () => voi
 
 component Card(props: { children: Children }) {
   <div class="card">
-    <props.children />
+    {props.children}
   </div>
 }
 
@@ -153,7 +153,9 @@ export default component App() {
 	},
 	{
 		title: 'Named Children',
-		code: `component Composite({ PropComp, InlineComp }) {
+		code: `import type { Component } from 'ripple';
+
+component Composite(&{ PropComp, InlineComp }) {
 	<PropComp />
 	<InlineComp />
 }
@@ -162,24 +164,30 @@ component Separate() {
 	<p>{\`I'm a separate component.\`}</p>
 }
 
+component InlineComp() {
+	<p>{\`I'm an inline component.\`}</p>
+}
+
 export default component App() {
-	<Composite PropComp={Separate}>
-		component InlineComp() {
-			<p>{\`I'm an inline component.\`}</p>
-		}
-	</Composite>
+	<Composite PropComp={Separate} InlineComp={InlineComp} />
 }
 `,
 	},
 	{
 		title: 'Child Composition',
-		code: `component Card({ children, Header, Footer }) {
+		code: `import type { Children, Component } from 'ripple';
+
+component Card(&{ children, Header, Footer }) {
 	<fieldset>
-		<Header />
+		if (Header) {
+			<Header />
+		}
 		<hr />
-		<children />
-		<hr />
-		<Footer />
+		{children}
+		if (Footer) {
+			<hr />
+			<Footer />
+		}
 	</fieldset>
 }
 
@@ -187,12 +195,13 @@ component CustomHeader() {
 	<h1>{'Card Title'}</h1>
 }
 
+component Footer() {
+	<p>{'Card footer'}</p>
+}
+
 export default component App() {
-	<Card Header={CustomHeader}> // <- Header passed in as a prop
+	<Card Header={CustomHeader} Footer={Footer}>
 		<p>{'Card content here'}</p>
-		component Footer() {     // <- Footer passed in as a inline component
-			<p>{'Card footer'}</p>
-		}
 	</Card>
 }
 `,
@@ -552,48 +561,6 @@ export default component App() {
 `,
 	},
 	{
-		title: 'trackSplit',
-		code: `import { track, trackSplit } from 'ripple';
-import type { PropsWithChildren, Tracked } from 'ripple';
-
-component Child(props: PropsWithChildren<{ count: Tracked<number> }>) {
-  const &[children, count, className, rest] = trackSplit(props, ['children', 'count', 'class']);
-
-  <button class={className} {...rest}><@children /></button>
-  <pre>{\`Count is: \${count}\`}</pre>
-  <button onClick={() => count++}>{'Increment Count'}</button>
-}
-
-export default component App() {
-    let &[count, countTracked] = track(0,
-    (current) => {
-      console.log('getter', current);
-      return current;
-    },
-    (next) => {
-      console.log('setter', next);
-      return next;
-    }
-  );
-  let &[className] = track('shadow');
-  let &[name] = track('Click Me');
-
-  function buttonRef(el) {
-    console.log('ref called with', el);
-    return () => {
-      console.log('cleanup ref for', el);
-    };
-  }
-
-  <Child
-    class={className}
-    onClick={() => { name === 'Click Me' ? name = 'Clicked' : name = 'Click Me'; className = ''}}
-    count={countTracked}
-    {ref buttonRef}
-  >{name}</Child>;
-}`,
-	},
-	{
 		title: 'Transporting Reactivity',
 		code: `import { effect, track } from 'ripple';
 
@@ -672,16 +639,16 @@ export default component App() {
 }
 
 component Child({ Button, children }) {
-  <@Button><children /></@Button>
+  <@Button>{children}</@Button>
 }
 
 component AnotherChild(&{ Button, children }) {
-  <@Button><children /></@Button>
+  <@Button>{children}</@Button>
 }
 
 component SomeButton({ children }) {
   <button onClick={() => alert('Clicked')}>
-		<children />
+		{children}
 	</button>
 }
 

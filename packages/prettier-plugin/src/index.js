@@ -80,7 +80,7 @@ export const languages = [
 	{
 		name: 'ripple',
 		parsers: ['ripple'],
-		extensions: ['.ripple'],
+		extensions: ['.ripple', '.tsrx'],
 		vscodeLanguageIds: ['ripple'],
 	},
 ];
@@ -756,9 +756,10 @@ function printRippleNode(node, path, options, print, args) {
 	const suppressLeadingComments = args && args.suppressLeadingComments;
 	const suppressExpressionLeadingComments = args && args.suppressExpressionLeadingComments;
 
-	// For Text and Html nodes, don't add leading comments here - they should be handled
+	// For RippleExpression, Text, and Html nodes, don't add leading comments here - they should be handled
 	// as separate children within the element, not as part of the expression
-	const shouldSkipLeadingComments = node.type === 'Text' || node.type === 'Html';
+	const shouldSkipLeadingComments =
+		node.type === 'RippleExpression' || node.type === 'Text' || node.type === 'Html';
 
 	// Handle leading comments
 	if (node.leadingComments && !shouldSkipLeadingComments && !suppressLeadingComments) {
@@ -2193,6 +2194,10 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printTsxCompat(node, path, options, print);
 			break;
 
+		case 'Tsx':
+			nodeContent = printTsx(node, path, options, print);
+			break;
+
 		case 'JSXElement':
 			nodeContent = printJSXElement(node, path, options, print);
 			break;
@@ -2219,11 +2224,19 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printAttribute(node, path, options, print);
 			break;
 
-		case 'Text': {
+		case 'RippleExpression': {
 			const expressionDoc = suppressExpressionLeadingComments
 				? path.call((exprPath) => print(exprPath, { suppressLeadingComments: true }), 'expression')
 				: path.call(print, 'expression');
 			nodeContent = ['{', expressionDoc, '}'];
+			break;
+		}
+
+		case 'Text': {
+			const expressionDoc = suppressExpressionLeadingComments
+				? path.call((exprPath) => print(exprPath, { suppressLeadingComments: true }), 'expression')
+				: path.call(print, 'expression');
+			nodeContent = ['{text ', expressionDoc, '}'];
 			break;
 		}
 
@@ -5446,13 +5459,23 @@ function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
 		return childDoc.length <= 20 && !childDoc.includes('\n');
 	}
 
-	// Always inline simple text content and JSX expressions if they fit
-	if (
-		firstChild.type === 'Text' ||
-		firstChild.type === 'Html' ||
-		firstChild.type === 'JSXExpressionContainer'
-	) {
+	// Always inline Html and Text nodes — they are short prefixed expressions ({html ...}, {text ...})
+	if (firstChild.type === 'Text' || firstChild.type === 'Html') {
 		return true;
+	}
+
+	// Inline JSX expressions if they fit, but respect original multi-line formatting
+	// for non-literal expressions (e.g. {children} should stay multi-line if written that way)
+	if (firstChild.type === 'RippleExpression' || firstChild.type === 'JSXExpressionContainer') {
+		if (wasOriginallySingleLine(parentNode)) {
+			return true;
+		}
+		// For multi-line parents, only inline if the expression is a simple literal
+		const expr = firstChild.expression;
+		if (expr && (expr.type === 'Literal' || expr.type === 'TemplateLiteral')) {
+			return true;
+		}
+		return false;
 	}
 
 	// Respect original formatting for elements: if parent was originally multi-line, keep it multi-line
@@ -5531,6 +5554,53 @@ function createElementLevelCommentPartsTrimmed(comments) {
 		parts.pop();
 	}
 	return parts;
+}
+
+/**
+ * Print a Tsx node - renders Ripple template children inside <tsx>...</tsx>
+ * @param {AST.Tsx} node - The Tsx node
+ * @param {AstPath<AST.Tsx>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
+function printTsx(node, path, options, print) {
+	const tagName = '<tsx>';
+	const closingTagName = '</tsx>';
+
+	const hasChildren = Array.isArray(node.children) && node.children.length > 0;
+
+	if (!hasChildren) {
+		return [tagName, closingTagName];
+	}
+
+	// Print children - these are Ripple template children (Element, Text, etc.)
+	const printedChildren = [];
+
+	for (let i = 0; i < node.children.length; i++) {
+		const child = node.children[i];
+
+		if (child.type === 'JSXText') {
+			const text = child.value.trim();
+			if (!text) continue;
+			printedChildren.push(text);
+		} else {
+			const printedChild = path.call(print, 'children', i);
+			printedChildren.push(printedChild);
+		}
+	}
+
+	if (printedChildren.length === 0) {
+		return [tagName, closingTagName];
+	}
+
+	// Use softline to allow single-line when content fits
+	return group([
+		tagName,
+		indent([softline, join(softline, printedChildren)]),
+		softline,
+		closingTagName,
+	]);
 }
 
 /**
@@ -5926,7 +5996,7 @@ function printElement(element, path, options, print) {
 		const openingEnd = /** @type {AST.NodeWithLocation} */ (node.openingElement).end;
 		for (const child of node.children) {
 			if (
-				(child.type === 'Text' || child.type === 'Html') &&
+				(child.type === 'RippleExpression' || child.type === 'Text' || child.type === 'Html') &&
 				Array.isArray(child.leadingComments)
 			) {
 				for (const comment of child.leadingComments) {
@@ -6095,7 +6165,10 @@ function printElement(element, path, options, print) {
 			}
 		}
 
-		const isTextLikeChild = currentChild.type === 'Text' || currentChild.type === 'Html';
+		const isTextLikeChild =
+			currentChild.type === 'RippleExpression' ||
+			currentChild.type === 'Text' ||
+			currentChild.type === 'Html';
 		const hasTextLeadingComments =
 			shouldLiftTextLevelComments &&
 			isTextLikeChild &&
@@ -6193,8 +6266,10 @@ function printElement(element, path, options, print) {
 					: nextChild;
 			const whitespaceLinesCount = getBlankLinesBetweenNodes(currentChild, whitespaceTarget);
 			const isTextOrHtmlChild =
+				currentChild.type === 'RippleExpression' ||
 				currentChild.type === 'Text' ||
 				currentChild.type === 'Html' ||
+				nextChild.type === 'RippleExpression' ||
 				nextChild.type === 'Text' ||
 				nextChild.type === 'Html';
 

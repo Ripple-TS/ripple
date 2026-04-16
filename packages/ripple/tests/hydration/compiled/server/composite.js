@@ -79,7 +79,7 @@ export function LayoutWithSingleChild(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 
 					{
@@ -90,7 +90,7 @@ export function LayoutWithSingleChild(__output) {
 					}
 
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 
@@ -109,7 +109,7 @@ export function LayoutWithMultipleChildren(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 
 					{
@@ -129,7 +129,7 @@ export function LayoutWithMultipleChildren(__output) {
 
 					__output.push('</div>');
 					_$_.pop_component();
-				}
+				})
 			}
 		];
 
@@ -148,7 +148,7 @@ export function LayoutWithMultiRootChild(__output) {
 		const args = [
 			__output,
 			{
-				children: function children(__output) {
+				children: _$_.ripple_element(function render_children(__output) {
 					_$_.push_component();
 
 					{
@@ -159,7 +159,37 @@ export function LayoutWithMultiRootChild(__output) {
 					}
 
 					_$_.pop_component();
-				}
+				})
+			}
+		];
+
+		comp(...args);
+	}
+
+	_$_.pop_component();
+}
+
+export function LayoutWithTextAroundChildren(__output) {
+	_$_.push_component();
+
+	{
+		const comp = TextWrappedLayout;
+
+		const args = [
+			__output,
+			{
+				children: _$_.ripple_element(function render_children(__output) {
+					_$_.push_component();
+
+					{
+						const comp = SingleChild;
+						const args = [__output, {}];
+
+						comp(...args);
+					}
+
+					_$_.pop_component();
+				})
 			}
 		];
 

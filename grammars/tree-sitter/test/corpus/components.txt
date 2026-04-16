@@ -124,7 +124,7 @@ Children Prop
 
 component Card({ children }) {
   <div class="card">
-    <children />
+    {children}
   </div>
 }
 

@@ -17,6 +17,15 @@ const path = require('path');
 const { createLogging, DEBUG } = require('./utils.js');
 
 const { log, logWarning, logError } = createLogging('[Ripple Language]');
+const RIPPLE_EXTENSIONS = ['.ripple', '.tsrx'];
+
+/**
+ * @param {string} file_name
+ * @returns {boolean}
+ */
+function is_ripple_file(file_name) {
+	return RIPPLE_EXTENSIONS.some((extension) => file_name.endsWith(extension));
+}
 
 /**
  * @returns {RippleLanguagePlugin}
@@ -30,7 +39,7 @@ function getRippleLanguagePlugin() {
 				typeof fileNameOrUri === 'string'
 					? fileNameOrUri
 					: fileNameOrUri.fsPath.replace(/\\/g, '/');
-			if (file_name.endsWith('.ripple')) {
+			if (is_ripple_file(file_name)) {
 				log('Identified Ripple file:', file_name);
 				return 'ripple';
 			}
@@ -63,7 +72,11 @@ function getRippleLanguagePlugin() {
 		},
 
 		typescript: {
-			extraFileExtensions: [{ extension: 'ripple', isMixedContent: false, scriptKind: 7 }],
+			extraFileExtensions: RIPPLE_EXTENSIONS.map((extension) => ({
+				extension: extension.slice(1),
+				isMixedContent: false,
+				scriptKind: 7,
+			})),
 			/**
 			 * @param {VirtualCode} ripple_code
 			 */

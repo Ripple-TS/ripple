@@ -293,14 +293,28 @@ describe('createProject integration tests', () => {
 		expect(packageJson.devDependencies).toHaveProperty('tailwindcss');
 		expect(packageJson.devDependencies).toHaveProperty('@tailwindcss/vite');
 
-		expect(existsSync(join(projectPath, 'tailwind.config.ts'))).toBe(true);
+		// Tailwind v4 uses CSS-first config — no JS/TS config file should be generated
+		expect(existsSync(join(projectPath, 'tailwind.config.ts'))).toBe(false);
+
 		expect(readFileSync(join(projectPath, 'src', 'index.ts'), 'utf-8')).toContain(
 			"import './index.css';\n",
 		);
 		expect(existsSync(join(projectPath, 'src', 'index.css'))).toBe(true);
-		expect(readFileSync(join(projectPath, 'src', 'index.css'), 'utf-8')).toContain(
-			'@import "tailwindcss"',
+
+		const cssContent = readFileSync(join(projectPath, 'src', 'index.css'), 'utf-8');
+		expect(cssContent).toContain('@import "tailwindcss"');
+		// v4 should NOT use @config directive (crashes with .ts files)
+		expect(cssContent).not.toContain('@config');
+
+		// VS Code settings should be generated for .ripple IntelliSense
+		expect(existsSync(join(projectPath, '.vscode', 'settings.json'))).toBe(true);
+		const vscodeSettings = JSON.parse(
+			readFileSync(join(projectPath, '.vscode', 'settings.json'), 'utf-8'),
 		);
+		expect(vscodeSettings['tailwindCSS.includeLanguages']).toEqual({ ripple: 'html' });
+		expect(vscodeSettings['tailwindCSS.classAttributes']).toEqual(['class', 'className']);
+		expect(vscodeSettings['files.associations']).toEqual({ '*.ripple': 'ripple' });
+		expect(vscodeSettings['editor.quickSuggestions']).toEqual({ strings: true });
 	});
 
 	it('should configure Bootstrap correctly', async () => {

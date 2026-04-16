@@ -16,8 +16,8 @@ const rule: Rule.RuleModule = {
 	create(context) {
 		const filename = context.filename;
 
-		// Skip .ripple files where lazy destructuring is valid
-		if (filename && filename.endsWith('.ripple')) {
+		// Skip component files where lazy destructuring is valid
+		if (filename && (filename.endsWith('.ripple') || filename.endsWith('.tsrx'))) {
 			return {};
 		}
 

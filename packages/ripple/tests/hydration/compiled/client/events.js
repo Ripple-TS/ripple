@@ -27,15 +27,12 @@ export function ClickCounter(__anchor, _, __block) {
 		var span_1 = _$_.sibling(button_1);
 
 		{
-			var text = _$_.child(span_1, true);
+			var expression = _$_.child(span_1, true);
 
+			_$_.expression(expression, () => _$_.get(lazy));
 			_$_.pop(span_1);
 		}
 	}
-
-	_$_.render(() => {
-		_$_.set_text(text, _$_.get(lazy));
-	});
 
 	_$_.append(__anchor, div_1);
 	_$_.pop_component();
@@ -57,8 +54,9 @@ export function IncrementDecrement(__anchor, _, __block) {
 		var span_2 = _$_.sibling(button_2);
 
 		{
-			var text_1 = _$_.child(span_2, true);
+			var expression_1 = _$_.child(span_2, true);
 
+			_$_.expression(expression_1, () => _$_.get(lazy_1));
 			_$_.pop(span_2);
 		}
 
@@ -68,10 +66,6 @@ export function IncrementDecrement(__anchor, _, __block) {
 			_$_.update(lazy_1);
 		};
 	}
-
-	_$_.render(() => {
-		_$_.set_text(text_1, _$_.get(lazy_1));
-	});
 
 	_$_.append(__anchor, div_2);
 	_$_.pop_component();
@@ -98,36 +92,21 @@ export function MultipleEvents(__anchor, _, __block) {
 		var span_3 = _$_.sibling(button_4);
 
 		{
-			var text_2 = _$_.child(span_3, true);
+			var expression_2 = _$_.child(span_3, true);
 
+			_$_.expression(expression_2, () => _$_.get(lazy_2));
 			_$_.pop(span_3);
 		}
 
 		var span_4 = _$_.sibling(span_3);
 
 		{
-			var text_3 = _$_.child(span_4, true);
+			var expression_3 = _$_.child(span_4, true);
 
+			_$_.expression(expression_3, () => _$_.get(lazy_3));
 			_$_.pop(span_4);
 		}
 	}
-
-	_$_.render(
-		(__prev) => {
-			var __a = _$_.get(lazy_2);
-
-			if (__prev.a !== __a) {
-				_$_.set_text(text_2, __prev.a = __a);
-			}
-
-			var __b = _$_.get(lazy_3);
-
-			if (__prev.b !== __b) {
-				_$_.set_text(text_3, __prev.b = __b);
-			}
-		},
-		{ a: ' ', b: ' ' }
-	);
 
 	_$_.append(__anchor, div_3);
 	_$_.pop_component();
@@ -154,36 +133,21 @@ export function MultiStateUpdate(__anchor, _, __block) {
 		var span_5 = _$_.sibling(button_5);
 
 		{
-			var text_4 = _$_.child(span_5, true);
+			var expression_4 = _$_.child(span_5, true);
 
+			_$_.expression(expression_4, () => _$_.get(lazy_4));
 			_$_.pop(span_5);
 		}
 
 		var span_6 = _$_.sibling(span_5);
 
 		{
-			var text_5 = _$_.child(span_6, true);
+			var expression_5 = _$_.child(span_6, true);
 
+			_$_.expression(expression_5, () => _$_.get(lazy_5));
 			_$_.pop(span_6);
 		}
 	}
-
-	_$_.render(
-		(__prev) => {
-			var __a = _$_.get(lazy_4);
-
-			if (__prev.a !== __a) {
-				_$_.set_text(text_4, __prev.a = __a);
-			}
-
-			var __b = _$_.get(lazy_5);
-
-			if (__prev.b !== __b) {
-				_$_.set_text(text_5, __prev.b = __b);
-			}
-		},
-		{ a: ' ', b: ' ' }
-	);
 
 	_$_.append(__anchor, div_4);
 	_$_.pop_component();
@@ -203,15 +167,12 @@ export function ToggleButton(__anchor, _, __block) {
 		};
 
 		{
-			var text_6 = _$_.child(button_6, true);
+			var expression_6 = _$_.child(button_6, true);
 
+			_$_.expression(expression_6, () => _$_.get(lazy_6) ? 'ON' : 'OFF');
 			_$_.pop(button_6);
 		}
 	}
-
-	_$_.render(() => {
-		_$_.set_text(text_6, _$_.get(lazy_6) ? 'ON' : 'OFF');
-	});
 
 	_$_.append(__anchor, div_5);
 	_$_.pop_component();
@@ -225,14 +186,11 @@ export function ChildButton(__anchor, props, __block) {
 	_$_.render_event('Click', button_7, () => props.onClick);
 
 	{
-		var text_7 = _$_.child(button_7, true);
+		var expression_7 = _$_.child(button_7, true);
 
+		_$_.expression(expression_7, () => props.label);
 		_$_.pop(button_7);
 	}
-
-	_$_.render(() => {
-		_$_.set_text(text_7, props.label);
-	});
 
 	_$_.append(__anchor, button_7);
 	_$_.pop_component();
@@ -261,17 +219,14 @@ export function ParentWithChildButton(__anchor, _, __block) {
 		var span_7 = _$_.sibling(node);
 
 		{
-			var text_8 = _$_.child(span_7, true);
+			var expression_8 = _$_.child(span_7, true);
 
+			_$_.expression(expression_8, () => _$_.get(lazy_7));
 			_$_.pop(span_7);
 		}
 
 		_$_.pop(div_6);
 	}
-
-	_$_.render(() => {
-		_$_.set_text(text_8, _$_.get(lazy_7));
-	});
 
 	_$_.append(__anchor, div_6);
 	_$_.pop_component();
