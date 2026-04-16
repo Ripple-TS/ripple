@@ -564,11 +564,6 @@ export function track_async(fn, b) {
 		throw new Error('Missing parent `try { ... } pending { ... }` statement');
 	}
 
-	// Set to pending
-	if (t.__v !== SUSPENSE_PENDING) {
-		update_tracked_value_clock(t, SUSPENSE_PENDING);
-	}
-
 	request_id = begin_boundary_request(boundary);
 
 	pre_effect(() => {

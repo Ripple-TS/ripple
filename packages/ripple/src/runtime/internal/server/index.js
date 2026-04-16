@@ -800,7 +800,7 @@ export function get(tracked) {
 			);
 		}
 
-		// this show be caught by the run_block and the block will be re-run
+		// this will be caught by the run_block and the block will be re-run
 		// once the async tracked dependency's promise resolves
 		throw ASYNC_DERIVED_READ_THROWN;
 	}
