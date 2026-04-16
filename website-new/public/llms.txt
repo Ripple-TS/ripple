@@ -7,7 +7,7 @@ Ripple is a TypeScript UI framework that combines the best parts of React, Solid
 **Key Characteristics:**
 - **Performance**: Fine-grain rendering, with industry-leading performance, bundle-size and memory usage
 - **TypeScript-first**: Full TypeScript integration with type checking
-- **JSX-like syntax**: Familiar templating with Ripple-specific enhancements
+- **JSX-like syntax**: Familiar templating with TSRX-specific enhancements
 - **Reactive state**: Built-in reactivity with `track` and `&[]` lazy destructuring syntax
 - **Component-based**: Clean, reusable components with props and children
 
@@ -102,6 +102,65 @@ component App() {
 ```
 
 This design enforces clear separation between component templates and regular JavaScript logic, making code more predictable and easier to analyze.
+
+### Using `<tsx>` for JSX Expression Values
+
+**IMPORTANT**: Regular Ripple elements are statement-based and can only appear directly inside component bodies or nested template blocks. If you need to create JSX as a value in expression position, wrap it in `<tsx>...</tsx>`.
+
+Use `<tsx>` when you need to:
+- assign JSX to a variable
+- return JSX from a helper function
+- pass JSX directly as a prop or `children`
+- build reusable render factories
+
+```ripple
+// ✅ CORRECT - JSX used as an expression value via <tsx>
+component App() {
+  const title = <tsx><span class="title">Title</span></tsx>;
+
+  <div>{title}</div>
+}
+
+// ✅ CORRECT - returning JSX from a helper function
+function createBadge(label: string) {
+  return <tsx>
+    <span class="badge">{label}</span>
+  </tsx>;
+}
+
+component App() {
+  {createBadge('New')}
+}
+
+// ✅ CORRECT - passing JSX directly as props
+component Card(props: { title: any; children: any }) {
+  <section>
+    <h2>{props.title}</h2>
+    <div>{props.children}</div>
+  </section>
+}
+
+component App() {
+  <Card
+    title={<tsx><span>Settings</span></tsx>}
+    children={<tsx><p>Card body</p></tsx>}
+  />
+}
+```
+
+**LLM DO:**
+- Use plain `<tsx>` when JSX must exist in expression position.
+- Treat `<tsx>` output as a renderable value that can be stored, returned, and passed around.
+- Keep using normal Ripple syntax and semantics inside plain `<tsx>` blocks.
+
+**LLM DON'T:**
+- Do not write `const el = <div />;` directly in Ripple code.
+- Do not confuse plain `<tsx>` with `<tsx:react>`.
+- Do not require React compat for plain `<tsx>`.
+
+**Key distinction:**
+- `<tsx>`: expression-form Ripple JSX value
+- `<tsx:react>`: React compatibility block with React JSX semantics and compat setup
 
 ### ⚠️ Critical: Early Returns Are Guard Exits, Not JSX Returns
 
