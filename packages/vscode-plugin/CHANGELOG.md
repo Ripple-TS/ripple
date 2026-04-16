@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.3.12
+
+### Patch Changes
+
+- [#859](https://github.com/Ripple-TS/ripple/pull/859)
+  [`cdd31ba`](https://github.com/Ripple-TS/ripple/commit/cdd31ba4c07ce504b01d56533e19a6ba37879f5a)
+  Thanks [@trueadm](https://github.com/trueadm)! - Make the VS Code language label
+  display as TSRX while preserving the existing `ripple` language id and both
+  `.ripple` and `.tsrx` file associations.
+
+- Updated dependencies
+  [[`cdd31ba`](https://github.com/Ripple-TS/ripple/commit/cdd31ba4c07ce504b01d56533e19a6ba37879f5a)]:
+  - @ripple-ts/typescript-plugin@0.3.12
+  - @ripple-ts/language-server@0.3.12
+  - ripple@0.3.12
+
 ## 0.3.11
 
 ### Patch Changes
