@@ -316,55 +316,15 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null) {
 		rp: replace_request,
 	};
 
-	if (hydrating && pending_fn !== null) {
-		// SSR emits <!--[-->_try <pending_html> <resolved_html> <!--]-->_try
-		// Advance past the opening marker, discard SSR content, and recreate fresh
-		// client-side DOM in non-hydrating mode.
-		hydrate_next(); // consume <!--[-->_try
-		var end = skip_to_hydration_end(); // find matching <!--]-->_try
-		// Remove SSR pending+resolved nodes that sit between the two markers
-		var n = hydrate_node;
-		while (n !== null && n !== end) {
-			var next_n = get_next_sibling(n);
-			if (n.parentNode) n.parentNode.removeChild(n);
-			n = next_n;
+	if (hydrating && (pending_fn !== null || catch_fn !== null)) {
+		// Server wraps try_fn body with <!--[-->...<!--]--> markers when pending or catch is present.
+		// Server resolves all async content fully (pending is only for future streaming SSR),
+		// so the SSR HTML contains resolved content.
+		// Mark as already resolved so begin_request's microtask won't transition to pending.
+		if (pending_fn !== null) {
+			has_resolved = true;
 		}
-		set_hydrate_node(end); // position cursor at <!--]-->_try
-		set_hydrating(false);
-
-		// Save a reference to the nearest ancestor branch-block so we can update its
-		// DOM-range tracking (s.start) to cover the fresh client-side nodes we are
-		// about to insert.  Without this, destroy_block on the parent would try to
-		// remove the already-removed SSR node and miss the new content entirely.
-		var hydration_parent = active_block;
-		// Remember what was before anchor so we can find the first new node afterward.
-		var prev_sibling_before = anchor.previousSibling;
-
-		try_block = create_try_block(() => {
-			render_resolved();
-		}, state);
-
-		// fn(anchor) inserted new DOM immediately before `anchor`.
-		// Find the first of those newly inserted nodes and update the parent block's
-		// s.start so that destroy_block can later remove both the hydration markers
-		// (<!--[-->/<!--]-->) and the fresh content in one range sweep.
-		var new_first =
-			prev_sibling_before !== null
-				? get_next_sibling(prev_sibling_before)
-				: anchor.parentNode
-					? anchor.parentNode.firstChild
-					: null;
-		if (
-			new_first !== null &&
-			new_first !== anchor &&
-			hydration_parent !== null &&
-			hydration_parent.s !== null
-		) {
-			hydration_parent.s.start = new_first;
-		}
-
-		set_hydrating(true);
-		return;
+		hydrate_next(); // consume <!--[-->
 	}
 
 	try_block = create_try_block(() => {

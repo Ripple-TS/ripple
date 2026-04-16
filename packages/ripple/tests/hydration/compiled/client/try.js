@@ -43,20 +43,20 @@ export function AsyncListInTryPending(__anchor, _, __block) {
 function AsyncList(__anchor, _, __block) {
 	_$_.push_component();
 
-	let items = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(['alpha', 'beta', 'gamma'])), void 0, false, __block);
+	let lazy = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(['alpha', 'beta', 'gamma'])), __block);
 	var ul_1 = root_3();
 
 	{
 		_$_.for(
 			ul_1,
-			() => _$_.get(items),
+			() => _$_.get(lazy),
 			(__anchor, item) => {
 				var li_1 = root_4();
 
 				{
-					var text = _$_.child(li_1, true);
+					var expression = _$_.child(li_1, true);
 
-					text.nodeValue = item;
+					_$_.expression(expression, () => item);
 					_$_.pop(li_1);
 				}
 
@@ -103,13 +103,13 @@ export function AsyncTryWithLeadingSibling(__anchor, _, __block) {
 function AsyncContent(__anchor, _, __block) {
 	_$_.push_component();
 
-	let value = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('ready')), void 0, false, __block);
+	let lazy_1 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('ready')), __block);
 	var div_3 = root_8();
 
 	{
-		var text_1 = _$_.child(div_3, true);
+		var expression_1 = _$_.child(div_3, true);
 
-		text_1.nodeValue = value;
+		_$_.expression(expression_1, () => _$_.get(lazy_1));
 		_$_.pop(div_3);
 	}
 

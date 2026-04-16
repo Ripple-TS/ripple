@@ -1,89 +1,151 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-var _$_hoisted_async;
-var _$_hoisted_async_1;
-
 import { trackAsync } from 'ripple/server';
 
-export function AsyncListInTryPending(__output) {
+export function AsyncListInTryPending() {
 	_$_.push_component();
 
-	{
-		const comp = AsyncList;
-		const args = [__output, {}];
+	_$_.try_block(
+		() => {
+			_$_.output_push('<!--[-->');
 
-		comp(...args);
-	}
+			_$_.regular_block(() => {
+				{
+					const comp = AsyncList;
+					const args = [{}];
+
+					comp(...args);
+				}
+			});
+
+			_$_.output_push('<!--]-->');
+		},
+		null,
+		() => {
+			_$_.output_push('<!--[-->');
+
+			_$_.regular_block(() => {
+				_$_.output_push('<p');
+				_$_.output_push(' class="loading"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('loading...');
+				}
+
+				_$_.output_push('</p>');
+			});
+
+			_$_.output_push('<!--]-->');
+		}
+	);
 
 	_$_.pop_component();
 }
 
-function AsyncList(__output) {
+function AsyncList() {
 	_$_.push_component();
 
-	let items = (_$_hoisted_async = _$_hoisted_async ?? _$_.track_async(() => Promise.resolve(['alpha', 'beta', 'gamma']), void 0, false));
+	let lazy = _$_.track_async(() => Promise.resolve(['alpha', 'beta', 'gamma']));
 
-	__output.push('<ul');
-	__output.push(' class="items"');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<ul');
+		_$_.output_push(' class="items"');
+		_$_.output_push('>');
 
-	{
-		__output.push('<!--[-->');
+		{
+			_$_.output_push('<!--[-->');
 
-		for (let item of _$_.get(items)) {
-			__output.push('<li');
-			__output.push('>');
+			for (let item of _$_.get(lazy)) {
+				_$_.output_push('<li');
+				_$_.output_push('>');
 
-			{
-				__output.push(_$_.escape(item));
+				{
+					_$_.output_push(_$_.escape(item));
+				}
+
+				_$_.output_push('</li>');
 			}
 
-			__output.push('</li>');
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('<!--]-->');
-	}
-
-	__output.push('</ul>');
-	_$_.pop_component();
-}
-
-export function AsyncTryWithLeadingSibling(__output) {
-	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="before"');
-	__output.push('>');
-
-	{
-		__output.push('before');
-	}
-
-	__output.push('</div>');
-
-	{
-		const comp = AsyncContent;
-		const args = [__output, {}];
-
-		comp(...args);
-	}
+		_$_.output_push('</ul>');
+	});
 
 	_$_.pop_component();
 }
 
-function AsyncContent(__output) {
+export function AsyncTryWithLeadingSibling() {
 	_$_.push_component();
 
-	let value = (_$_hoisted_async_1 = _$_hoisted_async_1 ?? _$_.track_async(() => Promise.resolve('ready'), void 0, false));
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="before"');
+		_$_.output_push('>');
 
-	__output.push('<div');
-	__output.push(' class="resolved"');
-	__output.push('>');
+		{
+			_$_.output_push('before');
+		}
 
-	{
-		__output.push(_$_.escape(value));
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('</div>');
+	_$_.try_block(
+		() => {
+			_$_.output_push('<!--[-->');
+
+			_$_.regular_block(() => {
+				{
+					const comp = AsyncContent;
+					const args = [{}];
+
+					comp(...args);
+				}
+			});
+
+			_$_.output_push('<!--]-->');
+		},
+		null,
+		() => {
+			_$_.output_push('<!--[-->');
+
+			_$_.regular_block(() => {
+				_$_.output_push('<div');
+				_$_.output_push(' class="loading"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('loading async content');
+				}
+
+				_$_.output_push('</div>');
+			});
+
+			_$_.output_push('<!--]-->');
+		}
+	);
+
+	_$_.pop_component();
+}
+
+function AsyncContent() {
+	_$_.push_component();
+
+	let lazy_1 = _$_.track_async(() => Promise.resolve('ready'));
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="resolved"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push(_$_.escape(_$_.get(lazy_1)));
+		}
+
+		_$_.output_push('</div>');
+	});
+
 	_$_.pop_component();
 }

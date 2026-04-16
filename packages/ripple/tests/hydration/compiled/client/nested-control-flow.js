@@ -689,27 +689,15 @@ export function ForSwitchTry(__anchor, _, __block) {
 								var li_10 = root_38();
 
 								{
-									var text_9 = _$_.child(li_10, true);
+									var expression_9 = _$_.child(li_10, true);
 
+									_$_.expression(expression_9, () => `A-${_$_.get(pattern_5).id}`);
 									_$_.pop(li_10);
 								}
 
-								_$_.render(
-									(__prev) => {
-										var __a = `A-${_$_.get(pattern_5).id}`;
-
-										if (__prev.a !== __a) {
-											_$_.set_text(text_9, __prev.a = __a);
-										}
-
-										var __b = `item item-${_$_.get(pattern_5).id} kind-a`;
-
-										if (__prev.b !== __b) {
-											_$_.set_class(li_10, __prev.b = __b, void 0, true);
-										}
-									},
-									{ a: ' ', b: Symbol() }
-								);
+								_$_.render(() => {
+									_$_.set_class(li_10, `item item-${_$_.get(pattern_5).id} kind-a`, void 0, true);
+								});
 
 								_$_.append(__anchor, li_10);
 							},
@@ -745,27 +733,15 @@ export function ForSwitchTry(__anchor, _, __block) {
 								var li_12 = root_41();
 
 								{
-									var text_11 = _$_.child(li_12, true);
+									var expression_11 = _$_.child(li_12, true);
 
+									_$_.expression(expression_11, () => `B-${_$_.get(pattern_5).id}`);
 									_$_.pop(li_12);
 								}
 
-								_$_.render(
-									(__prev) => {
-										var __a = `B-${_$_.get(pattern_5).id}`;
-
-										if (__prev.a !== __a) {
-											_$_.set_text(text_11, __prev.a = __a);
-										}
-
-										var __b = `item item-${_$_.get(pattern_5).id} kind-b`;
-
-										if (__prev.b !== __b) {
-											_$_.set_class(li_12, __prev.b = __b, void 0, true);
-										}
-									},
-									{ a: ' ', b: Symbol() }
-								);
+								_$_.render(() => {
+									_$_.set_class(li_12, `item item-${_$_.get(pattern_5).id} kind-b`, void 0, true);
+								});
 
 								_$_.append(__anchor, li_12);
 							},
@@ -844,27 +820,15 @@ export function ForIfTry(__anchor, _, __block) {
 								var li_14 = root_46();
 
 								{
-									var text_13 = _$_.child(li_14, true);
+									var expression_13 = _$_.child(li_14, true);
 
+									_$_.expression(expression_13, () => `item-${_$_.get(pattern_6).id}`);
 									_$_.pop(li_14);
 								}
 
-								_$_.render(
-									(__prev) => {
-										var __a = `item-${_$_.get(pattern_6).id}`;
-
-										if (__prev.a !== __a) {
-											_$_.set_text(text_13, __prev.a = __a);
-										}
-
-										var __b = `item item-${_$_.get(pattern_6).id}`;
-
-										if (__prev.b !== __b) {
-											_$_.set_class(li_14, __prev.b = __b, void 0, true);
-										}
-									},
-									{ a: ' ', b: Symbol() }
-								);
+								_$_.render(() => {
+									_$_.set_class(li_14, `item item-${_$_.get(pattern_6).id}`, void 0, true);
+								});
 
 								_$_.append(__anchor, li_14);
 							},
@@ -938,27 +902,15 @@ export function ForIfSwitchTrySingle(__anchor, _, __block) {
 										var li_16 = root_52();
 
 										{
-											var text_15 = _$_.child(li_16, true);
+											var expression_15 = _$_.child(li_16, true);
 
+											_$_.expression(expression_15, () => `A-${_$_.get(pattern_7).id}`);
 											_$_.pop(li_16);
 										}
 
-										_$_.render(
-											(__prev) => {
-												var __a = `A-${_$_.get(pattern_7).id}`;
-
-												if (__prev.a !== __a) {
-													_$_.set_text(text_15, __prev.a = __a);
-												}
-
-												var __b = `item item-${_$_.get(pattern_7).id} kind-a`;
-
-												if (__prev.b !== __b) {
-													_$_.set_class(li_16, __prev.b = __b, void 0, true);
-												}
-											},
-											{ a: ' ', b: Symbol() }
-										);
+										_$_.render(() => {
+											_$_.set_class(li_16, `item item-${_$_.get(pattern_7).id} kind-a`, void 0, true);
+										});
 
 										_$_.append(__anchor, li_16);
 									},
@@ -994,27 +946,15 @@ export function ForIfSwitchTrySingle(__anchor, _, __block) {
 										var li_18 = root_55();
 
 										{
-											var text_17 = _$_.child(li_18, true);
+											var expression_17 = _$_.child(li_18, true);
 
+											_$_.expression(expression_17, () => `D-${_$_.get(pattern_7).id}`);
 											_$_.pop(li_18);
 										}
 
-										_$_.render(
-											(__prev) => {
-												var __a = `D-${_$_.get(pattern_7).id}`;
-
-												if (__prev.a !== __a) {
-													_$_.set_text(text_17, __prev.a = __a);
-												}
-
-												var __b = `item item-${_$_.get(pattern_7).id} kind-default`;
-
-												if (__prev.b !== __b) {
-													_$_.set_class(li_18, __prev.b = __b, void 0, true);
-												}
-											},
-											{ a: ' ', b: Symbol() }
-										);
+										_$_.render(() => {
+											_$_.set_class(li_18, `item item-${_$_.get(pattern_7).id} kind-default`, void 0, true);
+										});
 
 										_$_.append(__anchor, li_18);
 									},
@@ -1110,27 +1050,15 @@ export function ForIfSwitchTryMulti(__anchor, _, __block) {
 										var li_20 = root_61();
 
 										{
-											var text_19 = _$_.child(li_20, true);
+											var expression_19 = _$_.child(li_20, true);
 
+											_$_.expression(expression_19, () => `A-${_$_.get(pattern_8).id}`);
 											_$_.pop(li_20);
 										}
 
-										_$_.render(
-											(__prev) => {
-												var __a = `A-${_$_.get(pattern_8).id}`;
-
-												if (__prev.a !== __a) {
-													_$_.set_text(text_19, __prev.a = __a);
-												}
-
-												var __b = `item item-${_$_.get(pattern_8).id} kind-a`;
-
-												if (__prev.b !== __b) {
-													_$_.set_class(li_20, __prev.b = __b, void 0, true);
-												}
-											},
-											{ a: ' ', b: Symbol() }
-										);
+										_$_.render(() => {
+											_$_.set_class(li_20, `item item-${_$_.get(pattern_8).id} kind-a`, void 0, true);
+										});
 
 										_$_.append(__anchor, li_20);
 									},
@@ -1166,27 +1094,15 @@ export function ForIfSwitchTryMulti(__anchor, _, __block) {
 										var li_22 = root_64();
 
 										{
-											var text_21 = _$_.child(li_22, true);
+											var expression_21 = _$_.child(li_22, true);
 
+											_$_.expression(expression_21, () => `B-${_$_.get(pattern_8).id}`);
 											_$_.pop(li_22);
 										}
 
-										_$_.render(
-											(__prev) => {
-												var __a = `B-${_$_.get(pattern_8).id}`;
-
-												if (__prev.a !== __a) {
-													_$_.set_text(text_21, __prev.a = __a);
-												}
-
-												var __b = `item item-${_$_.get(pattern_8).id} kind-b`;
-
-												if (__prev.b !== __b) {
-													_$_.set_class(li_22, __prev.b = __b, void 0, true);
-												}
-											},
-											{ a: ' ', b: Symbol() }
-										);
+										_$_.render(() => {
+											_$_.set_class(li_22, `item item-${_$_.get(pattern_8).id} kind-b`, void 0, true);
+										});
 
 										_$_.append(__anchor, li_22);
 									},

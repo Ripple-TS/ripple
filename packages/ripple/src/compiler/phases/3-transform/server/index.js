@@ -1404,6 +1404,9 @@ const visitors = {
 			return context.next();
 		}
 
+		const has_pending = node.pending !== null;
+		const has_catch = node.handler !== null;
+
 		const body = transform_body(node.block.body, {
 			...context,
 			state: {
@@ -1412,7 +1415,19 @@ const visitors = {
 			},
 		});
 
-		const try_fn = b.arrow([], b.block(body));
+		// Wrap try_fn body with hydration markers when pending or catch is present
+		const try_fn = b.arrow(
+			[],
+			b.block(
+				has_pending || has_catch
+					? [
+							b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))),
+							...body,
+							b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))),
+						]
+					: body,
+			),
+		);
 
 		/** @type {AST.Expression} */
 		let catch_fn = b.literal(null);
@@ -1439,6 +1454,7 @@ const visitors = {
 			catch_fn = b.arrow(
 				[handler.param || b.id('error')],
 				b.block([
+					b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))),
 					...(reset ? [reset] : []),
 					...transform_body(handler.body.body, {
 						...context,
@@ -1447,24 +1463,33 @@ const visitors = {
 							scope: /** @type {ScopeInterface} */ (context.state.scopes.get(handler.body)),
 						},
 					}),
+					b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))),
 				]),
 			);
 		}
 
-		const pending_fn = node.pending
-			? b.arrow(
-					[],
-					b.block(
-						transform_body(node.pending.body, {
-							...context,
-							state: {
-								...context.state,
-								scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.pending)),
-							},
-						}),
-					),
-				)
-			: b.literal(null);
+		const pending_body = node.pending
+			? transform_body(node.pending.body, {
+					...context,
+					state: {
+						...context.state,
+						scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.pending)),
+					},
+				})
+			: null;
+
+		// Wrap pending_fn body with hydration markers
+		const pending_fn =
+			pending_body !== null
+				? b.arrow(
+						[],
+						b.block([
+							b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))),
+							...pending_body,
+							b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))),
+						]),
+					)
+				: b.literal(null);
 
 		context.state.init?.push(b.stmt(b.call('_$_.try_block', try_fn, catch_fn, pending_fn)));
 	},

@@ -3,290 +3,325 @@ import * as _$_ from 'ripple/internal/server';
 
 import { track } from 'ripple/server';
 
-export function StaticTitle(__output) {
+export function StaticTitle() {
 	_$_.push_component();
-	__output.push('<div');
-	__output.push('>');
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Content');
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.set_output_target('head');
+	_$_.output_push('<!--qwqurq-->');
+	_$_.output_push('<title');
+	_$_.output_push('>');
 
 	{
-		__output.push('Content');
+		_$_.output_push('Static Test Title');
 	}
 
-	__output.push('</div>');
-	__output.target = 'head';
-	__output.push('<!--qwqurq-->');
-	__output.push('<title');
-	__output.push('>');
-
-	{
-		__output.push('Static Test Title');
-	}
-
-	__output.push('</title>');
-	__output.target = null;
+	_$_.output_push('</title>');
+	_$_.set_output_target(null);
 	_$_.pop_component();
 }
 
-export function ReactiveTitle(__output) {
+export function ReactiveTitle() {
 	_$_.push_component();
 
 	let lazy = _$_.track('Initial Title');
 
-	__output.push('<div');
-	__output.push('>');
-
-	{
-		__output.push('<span');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
 		{
-			__output.push(_$_.escape(_$_.get(lazy)));
+			_$_.output_push('<span');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push(_$_.escape(_$_.get(lazy)));
+			}
+
+			_$_.output_push('</span>');
 		}
 
-		__output.push('</span>');
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('</div>');
-	__output.target = 'head';
-	__output.push('<!--9zxmq0-->');
-	__output.push('<title');
-	__output.push('>');
+	_$_.set_output_target('head');
+	_$_.output_push('<!--9zxmq0-->');
+	_$_.output_push('<title');
+	_$_.output_push('>');
 
 	{
-		__output.push(_$_.escape(_$_.get(lazy)));
+		_$_.output_push(_$_.escape(_$_.get(lazy)));
 	}
 
-	__output.push('</title>');
-	__output.target = null;
+	_$_.output_push('</title>');
+	_$_.set_output_target(null);
 	_$_.pop_component();
 }
 
-export function MultipleHeadElements(__output) {
+export function MultipleHeadElements() {
 	_$_.push_component();
-	__output.push('<div');
-	__output.push('>');
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Page content');
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.set_output_target('head');
+	_$_.output_push('<!--16pnxms-->');
+	_$_.output_push('<title');
+	_$_.output_push('>');
 
 	{
-		__output.push('Page content');
+		_$_.output_push('Page Title');
 	}
 
-	__output.push('</div>');
-	__output.target = 'head';
-	__output.push('<!--16pnxms-->');
-	__output.push('<title');
-	__output.push('>');
-
-	{
-		__output.push('Page Title');
-	}
-
-	__output.push('</title>');
-	__output.push('<meta');
-	__output.push(' name="description"');
-	__output.push(' content="Page description"');
-	__output.push(' />');
-	__output.push('<link');
-	__output.push(' rel="stylesheet"');
-	__output.push(' href="/styles.css"');
-	__output.push(' />');
-	__output.target = null;
+	_$_.output_push('</title>');
+	_$_.output_push('<meta');
+	_$_.output_push(' name="description"');
+	_$_.output_push(' content="Page description"');
+	_$_.output_push(' />');
+	_$_.output_push('<link');
+	_$_.output_push(' rel="stylesheet"');
+	_$_.output_push(' href="/styles.css"');
+	_$_.output_push(' />');
+	_$_.set_output_target(null);
 	_$_.pop_component();
 }
 
-export function ReactiveMetaTags(__output) {
+export function ReactiveMetaTags() {
 	_$_.push_component();
 
 	let lazy_1 = _$_.track('Initial description');
 
-	__output.push('<div');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push(_$_.escape(_$_.get(lazy_1)));
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.set_output_target('head');
+	_$_.output_push('<!--w5ribf-->');
+	_$_.output_push('<title');
+	_$_.output_push('>');
 
 	{
-		__output.push(_$_.escape(_$_.get(lazy_1)));
+		_$_.output_push('My Page');
 	}
 
-	__output.push('</div>');
-	__output.target = 'head';
-	__output.push('<!--w5ribf-->');
-	__output.push('<title');
-	__output.push('>');
-
-	{
-		__output.push('My Page');
-	}
-
-	__output.push('</title>');
-	__output.push('<meta');
-	__output.push(' name="description"');
-	__output.push(_$_.attr('content', _$_.get(lazy_1), false));
-	__output.push(' />');
-	__output.target = null;
+	_$_.output_push('</title>');
+	_$_.output_push('<meta');
+	_$_.output_push(' name="description"');
+	_$_.output_push(_$_.attr('content', _$_.get(lazy_1), false));
+	_$_.output_push(' />');
+	_$_.set_output_target(null);
 	_$_.pop_component();
 }
 
-export function TitleWithTemplate(__output) {
+export function TitleWithTemplate() {
 	_$_.push_component();
 
 	let lazy_2 = _$_.track('World');
 
-	__output.push('<div');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push(_$_.escape(_$_.get(lazy_2)));
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.set_output_target('head');
+	_$_.output_push('<!--2ch862-->');
+	_$_.output_push('<title');
+	_$_.output_push('>');
 
 	{
-		__output.push(_$_.escape(_$_.get(lazy_2)));
+		_$_.output_push(_$_.escape(`Hello ${_$_.get(lazy_2)}!`));
 	}
 
-	__output.push('</div>');
-	__output.target = 'head';
-	__output.push('<!--2ch862-->');
-	__output.push('<title');
-	__output.push('>');
-
-	{
-		__output.push(_$_.escape(`Hello ${_$_.get(lazy_2)}!`));
-	}
-
-	__output.push('</title>');
-	__output.target = null;
+	_$_.output_push('</title>');
+	_$_.set_output_target(null);
 	_$_.pop_component();
 }
 
-export function EmptyTitle(__output) {
+export function EmptyTitle() {
 	_$_.push_component();
-	__output.push('<div');
-	__output.push('>');
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Empty title test');
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.set_output_target('head');
+	_$_.output_push('<!--u2seuf-->');
+	_$_.output_push('<title');
+	_$_.output_push('>');
 
 	{
-		__output.push('Empty title test');
+		_$_.output_push('');
 	}
 
-	__output.push('</div>');
-	__output.target = 'head';
-	__output.push('<!--u2seuf-->');
-	__output.push('<title');
-	__output.push('>');
-
-	{
-		__output.push('');
-	}
-
-	__output.push('</title>');
-	__output.target = null;
+	_$_.output_push('</title>');
+	_$_.set_output_target(null);
 	_$_.pop_component();
 }
 
-export function ConditionalTitle(__output) {
+export function ConditionalTitle() {
 	_$_.push_component();
 
 	let lazy_3 = _$_.track(true);
 	let lazy_4 = _$_.track('Main Page');
 
-	__output.push('<div');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push(_$_.escape(_$_.get(lazy_4)));
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.set_output_target('head');
+	_$_.output_push('<!--a0y861-->');
+	_$_.output_push('<title');
+	_$_.output_push('>');
 
 	{
-		__output.push(_$_.escape(_$_.get(lazy_4)));
+		_$_.output_push(_$_.escape(_$_.get(lazy_3) ? 'App - ' + _$_.get(lazy_4) : _$_.get(lazy_4)));
 	}
 
-	__output.push('</div>');
-	__output.target = 'head';
-	__output.push('<!--a0y861-->');
-	__output.push('<title');
-	__output.push('>');
-
-	{
-		__output.push(_$_.escape(_$_.get(lazy_3) ? 'App - ' + _$_.get(lazy_4) : _$_.get(lazy_4)));
-	}
-
-	__output.push('</title>');
-	__output.target = null;
+	_$_.output_push('</title>');
+	_$_.set_output_target(null);
 	_$_.pop_component();
 }
 
-export function ComputedTitle(__output) {
+export function ComputedTitle() {
 	_$_.push_component();
 
 	let lazy_5 = _$_.track(0);
 	let prefix = 'Count: ';
 
-	__output.push('<div');
-	__output.push('>');
-
-	{
-		__output.push('<span');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
 		{
-			__output.push(_$_.escape(_$_.get(lazy_5)));
+			_$_.output_push('<span');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push(_$_.escape(_$_.get(lazy_5)));
+			}
+
+			_$_.output_push('</span>');
 		}
 
-		__output.push('</span>');
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('</div>');
-	__output.target = 'head';
-	__output.push('<!--1bmcw8x-->');
-	__output.push('<title');
-	__output.push('>');
+	_$_.set_output_target('head');
+	_$_.output_push('<!--1bmcw8x-->');
+	_$_.output_push('<title');
+	_$_.output_push('>');
 
 	{
-		__output.push(_$_.escape(prefix + _$_.get(lazy_5)));
+		_$_.output_push(_$_.escape(prefix + _$_.get(lazy_5)));
 	}
 
-	__output.push('</title>');
-	__output.target = null;
+	_$_.output_push('</title>');
+	_$_.set_output_target(null);
 	_$_.pop_component();
 }
 
-export function MultipleHeadBlocks(__output) {
+export function MultipleHeadBlocks() {
 	_$_.push_component();
-	__output.push('<div');
-	__output.push('>');
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Content');
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.set_output_target('head');
+	_$_.output_push('<!--1lpoxil-->');
+	_$_.output_push('<title');
+	_$_.output_push('>');
 
 	{
-		__output.push('Content');
+		_$_.output_push('First Head');
 	}
 
-	__output.push('</div>');
-	__output.target = 'head';
-	__output.push('<!--1lpoxil-->');
-	__output.push('<title');
-	__output.push('>');
-
-	{
-		__output.push('First Head');
-	}
-
-	__output.push('</title>');
-	__output.push('<!--n4z677-->');
-	__output.push('<meta');
-	__output.push(' name="author"');
-	__output.push(' content="Test Author"');
-	__output.push(' />');
-	__output.target = null;
+	_$_.output_push('</title>');
+	_$_.output_push('<!--n4z677-->');
+	_$_.output_push('<meta');
+	_$_.output_push(' name="author"');
+	_$_.output_push(' content="Test Author"');
+	_$_.output_push(' />');
+	_$_.set_output_target(null);
 	_$_.pop_component();
 }
 
-export function HeadWithStyle(__output) {
+export function HeadWithStyle() {
 	_$_.push_component();
-	__output.push('<div');
-	__output.push('>');
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Styled content');
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.set_output_target('head');
+	_$_.output_push('<!--7j37lr-->');
+	_$_.output_push('<title');
+	_$_.output_push('>');
 
 	{
-		__output.push('Styled content');
+		_$_.output_push('Styled Page');
 	}
 
-	__output.push('</div>');
-	__output.target = 'head';
-	__output.push('<!--7j37lr-->');
-	__output.push('<title');
-	__output.push('>');
-
-	{
-		__output.push('Styled Page');
-	}
-
-	__output.push('</title>');
-	__output.target = null;
+	_$_.output_push('</title>');
+	_$_.set_output_target(null);
 	_$_.pop_component();
 }

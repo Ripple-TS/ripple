@@ -3,218 +3,252 @@ import * as _$_ from 'ripple/internal/server';
 
 import { track } from 'ripple/server';
 
-export function DirectReturn(__output) {
+export function DirectReturn() {
 	_$_.push_component();
 
 	var __r = false;
 
-	__output.push('<div');
-	__output.push(' class="before"');
-	__output.push('>');
-
-	{
-		__output.push('before');
-	}
-
-	__output.push('</div>');
-	__r = true;
-	__output.push('<!--[-->');
-
-	if (!__r) {
-		__output.push('<div');
-		__output.push(' class="after"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="before"');
+		_$_.output_push('>');
 
 		{
-			__output.push('after');
+			_$_.output_push('before');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('<!--]-->');
+	__r = true;
+
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (!__r) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="after"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('after');
+			}
+
+			_$_.output_push('</div>');
+		}
+
+		_$_.output_push('<!--]-->');
+	});
+
 	_$_.pop_component();
 }
 
-export function ConditionalReturnTrue(__output) {
+export function ConditionalReturnTrue() {
 	_$_.push_component();
 
 	var __r_1 = false;
 	let condition = true;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (condition) {
-		__output.push('<div');
-		__output.push(' class="guard"');
-		__output.push('>');
+		if (condition) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="guard"');
+			_$_.output_push('>');
 
-		{
-			__output.push('guard hit');
+			{
+				_$_.output_push('guard hit');
+			}
+
+			_$_.output_push('</div>');
+			__r_1 = true;
 		}
 
-		__output.push('</div>');
-		__r_1 = true;
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_1) {
-		__output.push('<div');
-		__output.push(' class="rest"');
-		__output.push('>');
+		if (!__r_1) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="rest"');
+			_$_.output_push('>');
 
-		{
-			__output.push('rest');
+			{
+				_$_.output_push('rest');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function ConditionalReturnFalse(__output) {
+export function ConditionalReturnFalse() {
 	_$_.push_component();
 
 	var __r_2 = false;
 	let condition = false;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (condition) {
-		__output.push('<div');
-		__output.push(' class="guard"');
-		__output.push('>');
+		if (condition) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="guard"');
+			_$_.output_push('>');
 
-		{
-			__output.push('guard hit');
+			{
+				_$_.output_push('guard hit');
+			}
+
+			_$_.output_push('</div>');
+			__r_2 = true;
 		}
 
-		__output.push('</div>');
-		__r_2 = true;
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_2) {
-		__output.push('<div');
-		__output.push(' class="rest"');
-		__output.push('>');
+		if (!__r_2) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="rest"');
+			_$_.output_push('>');
 
-		{
-			__output.push('rest');
+			{
+				_$_.output_push('rest');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function ContentBeforeAfterReturn(__output) {
+export function ContentBeforeAfterReturn() {
 	_$_.push_component();
 
 	var __r_3 = false;
 	let shouldReturn = true;
 
-	__output.push('<div');
-	__output.push(' class="before"');
-	__output.push('>');
-
-	{
-		__output.push('before');
-	}
-
-	__output.push('</div>');
-	__output.push('<!--[-->');
-
-	if (shouldReturn) {
-		__output.push('<div');
-		__output.push(' class="guard"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="before"');
+		_$_.output_push('>');
 
 		{
-			__output.push('guard');
+			_$_.output_push('before');
 		}
 
-		__output.push('</div>');
-		__r_3 = true;
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_3) {
-		__output.push('<div');
-		__output.push(' class="after"');
-		__output.push('>');
+		if (shouldReturn) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="guard"');
+			_$_.output_push('>');
 
-		{
-			__output.push('after');
+			{
+				_$_.output_push('guard');
+			}
+
+			_$_.output_push('</div>');
+			__r_3 = true;
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (!__r_3) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="after"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('after');
+			}
+
+			_$_.output_push('</div>');
+		}
+
+		_$_.output_push('<!--]-->');
+	});
+
 	_$_.pop_component();
 }
 
-export function MultipleElementsAfterGuard(__output) {
+export function MultipleElementsAfterGuard() {
 	_$_.push_component();
 
 	var __r_4 = false;
 	let shouldReturn = false;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (shouldReturn) {
-		__output.push('<div');
-		__output.push(' class="guard"');
-		__output.push('>');
+		if (shouldReturn) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="guard"');
+			_$_.output_push('>');
 
-		{
-			__output.push('guard');
+			{
+				_$_.output_push('guard');
+			}
+
+			_$_.output_push('</div>');
+			__r_4 = true;
 		}
 
-		__output.push('</div>');
-		__r_4 = true;
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_4) {
-		__output.push('<div');
-		__output.push(' class="first"');
-		__output.push('>');
+		if (!__r_4) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="first"');
+			_$_.output_push('>');
 
-		{
-			__output.push('first');
+			{
+				_$_.output_push('first');
+			}
+
+			_$_.output_push('</div>');
+			_$_.output_push('<div');
+			_$_.output_push(' class="second"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('second');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-		__output.push('<div');
-		__output.push(' class="second"');
-		__output.push('>');
+		_$_.output_push('<!--]-->');
+	});
 
-		{
-			__output.push('second');
-		}
-
-		__output.push('</div>');
-	}
-
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function MultipleReturnsFirstHits(__output) {
+export function MultipleReturnsFirstHits() {
 	_$_.push_component();
 
 	var __r_5 = false;
@@ -222,63 +256,72 @@ export function MultipleReturnsFirstHits(__output) {
 	let a = true;
 	let b = true;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (a) {
-		__output.push('<div');
-		__output.push(' class="first"');
-		__output.push('>');
-
-		{
-			__output.push('first guard');
-		}
-
-		__output.push('</div>');
-		__r_5 = true;
-	}
-
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
-
-	if (!__r_5) {
-		__output.push('<!--[-->');
-
-		if (b) {
-			__output.push('<div');
-			__output.push(' class="second"');
-			__output.push('>');
+		if (a) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="first"');
+			_$_.output_push('>');
 
 			{
-				__output.push('second guard');
+				_$_.output_push('first guard');
 			}
 
-			__output.push('</div>');
-			__r_6 = true;
+			_$_.output_push('</div>');
+			__r_5 = true;
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_5 && !__r_6) {
-		__output.push('<div');
-		__output.push(' class="rest"');
-		__output.push('>');
+		if (!__r_5) {
+			_$_.output_push('<!--[-->');
 
-		{
-			__output.push('rest');
+			if (b) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="second"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('second guard');
+				}
+
+				_$_.output_push('</div>');
+				__r_6 = true;
+			}
+
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (!__r_5 && !__r_6) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="rest"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('rest');
+			}
+
+			_$_.output_push('</div>');
+		}
+
+		_$_.output_push('<!--]-->');
+	});
+
 	_$_.pop_component();
 }
 
-export function MultipleReturnsSecondHits(__output) {
+export function MultipleReturnsSecondHits() {
 	_$_.push_component();
 
 	var __r_7 = false;
@@ -286,63 +329,72 @@ export function MultipleReturnsSecondHits(__output) {
 	let a = false;
 	let b = true;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (a) {
-		__output.push('<div');
-		__output.push(' class="first"');
-		__output.push('>');
-
-		{
-			__output.push('first guard');
-		}
-
-		__output.push('</div>');
-		__r_7 = true;
-	}
-
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
-
-	if (!__r_7) {
-		__output.push('<!--[-->');
-
-		if (b) {
-			__output.push('<div');
-			__output.push(' class="second"');
-			__output.push('>');
+		if (a) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="first"');
+			_$_.output_push('>');
 
 			{
-				__output.push('second guard');
+				_$_.output_push('first guard');
 			}
 
-			__output.push('</div>');
-			__r_8 = true;
+			_$_.output_push('</div>');
+			__r_7 = true;
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_7 && !__r_8) {
-		__output.push('<div');
-		__output.push(' class="rest"');
-		__output.push('>');
+		if (!__r_7) {
+			_$_.output_push('<!--[-->');
 
-		{
-			__output.push('rest');
+			if (b) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="second"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('second guard');
+				}
+
+				_$_.output_push('</div>');
+				__r_8 = true;
+			}
+
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (!__r_7 && !__r_8) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="rest"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('rest');
+			}
+
+			_$_.output_push('</div>');
+		}
+
+		_$_.output_push('<!--]-->');
+	});
+
 	_$_.pop_component();
 }
 
-export function MultipleReturnsNoneHit(__output) {
+export function MultipleReturnsNoneHit() {
 	_$_.push_component();
 
 	var __r_9 = false;
@@ -350,231 +402,258 @@ export function MultipleReturnsNoneHit(__output) {
 	let a = false;
 	let b = false;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (a) {
-		__output.push('<div');
-		__output.push(' class="first"');
-		__output.push('>');
-
-		{
-			__output.push('first guard');
-		}
-
-		__output.push('</div>');
-		__r_9 = true;
-	}
-
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
-
-	if (!__r_9) {
-		__output.push('<!--[-->');
-
-		if (b) {
-			__output.push('<div');
-			__output.push(' class="second"');
-			__output.push('>');
+		if (a) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="first"');
+			_$_.output_push('>');
 
 			{
-				__output.push('second guard');
+				_$_.output_push('first guard');
 			}
 
-			__output.push('</div>');
-			__r_10 = true;
+			_$_.output_push('</div>');
+			__r_9 = true;
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_9 && !__r_10) {
-		__output.push('<div');
-		__output.push(' class="rest"');
-		__output.push('>');
+		if (!__r_9) {
+			_$_.output_push('<!--[-->');
 
-		{
-			__output.push('rest');
+			if (b) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="second"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('second guard');
+				}
+
+				_$_.output_push('</div>');
+				__r_10 = true;
+			}
+
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (!__r_9 && !__r_10) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="rest"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('rest');
+			}
+
+			_$_.output_push('</div>');
+		}
+
+		_$_.output_push('<!--]-->');
+	});
+
 	_$_.pop_component();
 }
 
-export function NestedReturnsAllTrue(__output) {
+export function NestedReturnsAllTrue() {
 	_$_.push_component();
 
 	var __r_11 = false;
 	let a = true;
 	let b = true;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (a) {
-		__output.push('<div');
-		__output.push(' class="a"');
-		__output.push('>');
-
-		{
-			__output.push('a is true');
-		}
-
-		__output.push('</div>');
-		__output.push('<!--[-->');
-
-		if (b) {
-			__output.push('<div');
-			__output.push(' class="b"');
-			__output.push('>');
+		if (a) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="a"');
+			_$_.output_push('>');
 
 			{
-				__output.push('b is true');
+				_$_.output_push('a is true');
 			}
 
-			__output.push('</div>');
-			__r_11 = true;
+			_$_.output_push('</div>');
+			_$_.output_push('<!--[-->');
+
+			if (b) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="b"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('b is true');
+				}
+
+				_$_.output_push('</div>');
+				__r_11 = true;
+			}
+
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_11) {
-		__output.push('<div');
-		__output.push(' class="rest"');
-		__output.push('>');
+		if (!__r_11) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="rest"');
+			_$_.output_push('>');
 
-		{
-			__output.push('rest');
+			{
+				_$_.output_push('rest');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function NestedReturnsInnerFalse(__output) {
+export function NestedReturnsInnerFalse() {
 	_$_.push_component();
 
 	var __r_12 = false;
 	let a = true;
 	let b = false;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (a) {
-		__output.push('<div');
-		__output.push(' class="a"');
-		__output.push('>');
-
-		{
-			__output.push('a is true');
-		}
-
-		__output.push('</div>');
-		__output.push('<!--[-->');
-
-		if (b) {
-			__output.push('<div');
-			__output.push(' class="b"');
-			__output.push('>');
+		if (a) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="a"');
+			_$_.output_push('>');
 
 			{
-				__output.push('b is true');
+				_$_.output_push('a is true');
 			}
 
-			__output.push('</div>');
-			__r_12 = true;
+			_$_.output_push('</div>');
+			_$_.output_push('<!--[-->');
+
+			if (b) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="b"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('b is true');
+				}
+
+				_$_.output_push('</div>');
+				__r_12 = true;
+			}
+
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_12) {
-		__output.push('<div');
-		__output.push(' class="rest"');
-		__output.push('>');
+		if (!__r_12) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="rest"');
+			_$_.output_push('>');
 
-		{
-			__output.push('rest');
+			{
+				_$_.output_push('rest');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function NestedReturnsOuterFalse(__output) {
+export function NestedReturnsOuterFalse() {
 	_$_.push_component();
 
 	var __r_13 = false;
 	let a = false;
 	let b = true;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (a) {
-		__output.push('<div');
-		__output.push(' class="a"');
-		__output.push('>');
-
-		{
-			__output.push('a is true');
-		}
-
-		__output.push('</div>');
-		__output.push('<!--[-->');
-
-		if (b) {
-			__output.push('<div');
-			__output.push(' class="b"');
-			__output.push('>');
+		if (a) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="a"');
+			_$_.output_push('>');
 
 			{
-				__output.push('b is true');
+				_$_.output_push('a is true');
 			}
 
-			__output.push('</div>');
-			__r_13 = true;
+			_$_.output_push('</div>');
+			_$_.output_push('<!--[-->');
+
+			if (b) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="b"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('b is true');
+				}
+
+				_$_.output_push('</div>');
+				__r_13 = true;
+			}
+
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_13) {
-		__output.push('<div');
-		__output.push(' class="rest"');
-		__output.push('>');
+		if (!__r_13) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="rest"');
+			_$_.output_push('>');
 
-		{
-			__output.push('rest');
+			{
+				_$_.output_push('rest');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function DeeplyNestedReturnsAllTrue(__output) {
+export function DeeplyNestedReturnsAllTrue() {
 	_$_.push_component();
 
 	var __r_14 = false;
@@ -582,71 +661,77 @@ export function DeeplyNestedReturnsAllTrue(__output) {
 	let b = true;
 	let c = true;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (a) {
-		__output.push('<div');
-		__output.push(' class="a"');
-		__output.push('>');
-
-		{
-			__output.push('a');
-		}
-
-		__output.push('</div>');
-		__output.push('<!--[-->');
-
-		if (b) {
-			__output.push('<div');
-			__output.push(' class="b"');
-			__output.push('>');
+		if (a) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="a"');
+			_$_.output_push('>');
 
 			{
-				__output.push('b');
+				_$_.output_push('a');
 			}
 
-			__output.push('</div>');
-			__output.push('<!--[-->');
+			_$_.output_push('</div>');
+			_$_.output_push('<!--[-->');
 
-			if (c) {
-				__output.push('<div');
-				__output.push(' class="c"');
-				__output.push('>');
+			if (b) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="b"');
+				_$_.output_push('>');
 
 				{
-					__output.push('c');
+					_$_.output_push('b');
 				}
 
-				__output.push('</div>');
-				__r_14 = true;
+				_$_.output_push('</div>');
+				_$_.output_push('<!--[-->');
+
+				if (c) {
+					_$_.output_push('<div');
+					_$_.output_push(' class="c"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('c');
+					}
+
+					_$_.output_push('</div>');
+					__r_14 = true;
+				}
+
+				_$_.output_push('<!--]-->');
 			}
 
-			__output.push('<!--]-->');
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_14) {
-		__output.push('<div');
-		__output.push(' class="rest"');
-		__output.push('>');
+		if (!__r_14) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="rest"');
+			_$_.output_push('>');
 
-		{
-			__output.push('rest');
+			{
+				_$_.output_push('rest');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function DeeplyNestedReturnsInnermostFalse(__output) {
+export function DeeplyNestedReturnsInnermostFalse() {
 	_$_.push_component();
 
 	var __r_15 = false;
@@ -654,71 +739,77 @@ export function DeeplyNestedReturnsInnermostFalse(__output) {
 	let b = true;
 	let c = false;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (a) {
-		__output.push('<div');
-		__output.push(' class="a"');
-		__output.push('>');
-
-		{
-			__output.push('a');
-		}
-
-		__output.push('</div>');
-		__output.push('<!--[-->');
-
-		if (b) {
-			__output.push('<div');
-			__output.push(' class="b"');
-			__output.push('>');
+		if (a) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="a"');
+			_$_.output_push('>');
 
 			{
-				__output.push('b');
+				_$_.output_push('a');
 			}
 
-			__output.push('</div>');
-			__output.push('<!--[-->');
+			_$_.output_push('</div>');
+			_$_.output_push('<!--[-->');
 
-			if (c) {
-				__output.push('<div');
-				__output.push(' class="c"');
-				__output.push('>');
+			if (b) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="b"');
+				_$_.output_push('>');
 
 				{
-					__output.push('c');
+					_$_.output_push('b');
 				}
 
-				__output.push('</div>');
-				__r_15 = true;
+				_$_.output_push('</div>');
+				_$_.output_push('<!--[-->');
+
+				if (c) {
+					_$_.output_push('<div');
+					_$_.output_push(' class="c"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('c');
+					}
+
+					_$_.output_push('</div>');
+					__r_15 = true;
+				}
+
+				_$_.output_push('<!--]-->');
 			}
 
-			__output.push('<!--]-->');
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_15) {
-		__output.push('<div');
-		__output.push(' class="rest"');
-		__output.push('>');
+		if (!__r_15) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="rest"');
+			_$_.output_push('>');
 
-		{
-			__output.push('rest');
+			{
+				_$_.output_push('rest');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function ElseIfChainFirst(__output) {
+export function ElseIfChainFirst() {
 	_$_.push_component();
 
 	var __r_16 = false;
@@ -726,69 +817,75 @@ export function ElseIfChainFirst(__output) {
 	var __r_18 = false;
 	let value = 1;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (value === 1) {
-		__output.push('<div');
-		__output.push(' class="one"');
-		__output.push('>');
-
-		{
-			__output.push('one');
-		}
-
-		__output.push('</div>');
-		__r_16 = true;
-	} else {
-		__output.push('<!--[-->');
-
-		if (value === 2) {
-			__output.push('<div');
-			__output.push(' class="two"');
-			__output.push('>');
+		if (value === 1) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="one"');
+			_$_.output_push('>');
 
 			{
-				__output.push('two');
+				_$_.output_push('one');
 			}
 
-			__output.push('</div>');
-			__r_17 = true;
+			_$_.output_push('</div>');
+			__r_16 = true;
 		} else {
-			__output.push('<div');
-			__output.push(' class="other"');
-			__output.push('>');
+			_$_.output_push('<!--[-->');
 
-			{
-				__output.push('other');
+			if (value === 2) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="two"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('two');
+				}
+
+				_$_.output_push('</div>');
+				__r_17 = true;
+			} else {
+				_$_.output_push('<div');
+				_$_.output_push(' class="other"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('other');
+				}
+
+				_$_.output_push('</div>');
+				__r_18 = true;
 			}
 
-			__output.push('</div>');
-			__r_18 = true;
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_16 && !__r_17 && !__r_18) {
-		__output.push('<div');
-		__output.push(' class="never"');
-		__output.push('>');
+		if (!__r_16 && !__r_17 && !__r_18) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="never"');
+			_$_.output_push('>');
 
-		{
-			__output.push('never reached');
+			{
+				_$_.output_push('never reached');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function ElseIfChainSecond(__output) {
+export function ElseIfChainSecond() {
 	_$_.push_component();
 
 	var __r_19 = false;
@@ -796,69 +893,75 @@ export function ElseIfChainSecond(__output) {
 	var __r_21 = false;
 	let value = 2;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (value === 1) {
-		__output.push('<div');
-		__output.push(' class="one"');
-		__output.push('>');
-
-		{
-			__output.push('one');
-		}
-
-		__output.push('</div>');
-		__r_19 = true;
-	} else {
-		__output.push('<!--[-->');
-
-		if (value === 2) {
-			__output.push('<div');
-			__output.push(' class="two"');
-			__output.push('>');
+		if (value === 1) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="one"');
+			_$_.output_push('>');
 
 			{
-				__output.push('two');
+				_$_.output_push('one');
 			}
 
-			__output.push('</div>');
-			__r_20 = true;
+			_$_.output_push('</div>');
+			__r_19 = true;
 		} else {
-			__output.push('<div');
-			__output.push(' class="other"');
-			__output.push('>');
+			_$_.output_push('<!--[-->');
 
-			{
-				__output.push('other');
+			if (value === 2) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="two"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('two');
+				}
+
+				_$_.output_push('</div>');
+				__r_20 = true;
+			} else {
+				_$_.output_push('<div');
+				_$_.output_push(' class="other"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('other');
+				}
+
+				_$_.output_push('</div>');
+				__r_21 = true;
 			}
 
-			__output.push('</div>');
-			__r_21 = true;
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_19 && !__r_20 && !__r_21) {
-		__output.push('<div');
-		__output.push(' class="never"');
-		__output.push('>');
+		if (!__r_19 && !__r_20 && !__r_21) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="never"');
+			_$_.output_push('>');
 
-		{
-			__output.push('never reached');
+			{
+				_$_.output_push('never reached');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function ElseIfChainElse(__output) {
+export function ElseIfChainElse() {
 	_$_.push_component();
 
 	var __r_22 = false;
@@ -866,557 +969,635 @@ export function ElseIfChainElse(__output) {
 	var __r_24 = false;
 	let value = 3;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (value === 1) {
-		__output.push('<div');
-		__output.push(' class="one"');
-		__output.push('>');
-
-		{
-			__output.push('one');
-		}
-
-		__output.push('</div>');
-		__r_22 = true;
-	} else {
-		__output.push('<!--[-->');
-
-		if (value === 2) {
-			__output.push('<div');
-			__output.push(' class="two"');
-			__output.push('>');
+		if (value === 1) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="one"');
+			_$_.output_push('>');
 
 			{
-				__output.push('two');
+				_$_.output_push('one');
 			}
 
-			__output.push('</div>');
-			__r_23 = true;
+			_$_.output_push('</div>');
+			__r_22 = true;
 		} else {
-			__output.push('<div');
-			__output.push(' class="other"');
-			__output.push('>');
+			_$_.output_push('<!--[-->');
 
-			{
-				__output.push('other');
+			if (value === 2) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="two"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('two');
+				}
+
+				_$_.output_push('</div>');
+				__r_23 = true;
+			} else {
+				_$_.output_push('<div');
+				_$_.output_push(' class="other"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('other');
+				}
+
+				_$_.output_push('</div>');
+				__r_24 = true;
 			}
 
-			__output.push('</div>');
-			__r_24 = true;
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_22 && !__r_23 && !__r_24) {
-		__output.push('<div');
-		__output.push(' class="never"');
-		__output.push('>');
+		if (!__r_22 && !__r_23 && !__r_24) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="never"');
+			_$_.output_push('>');
 
-		{
-			__output.push('never reached');
+			{
+				_$_.output_push('never reached');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function ReturnWithElseNoReturn(__output) {
+export function ReturnWithElseNoReturn() {
 	_$_.push_component();
 
 	var __r_25 = false;
 	let condition = false;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (condition) {
-		__output.push('<div');
-		__output.push(' class="true"');
-		__output.push('>');
+		if (condition) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="true"');
+			_$_.output_push('>');
 
-		{
-			__output.push('condition true');
+			{
+				_$_.output_push('condition true');
+			}
+
+			_$_.output_push('</div>');
+			__r_25 = true;
+		} else {
+			_$_.output_push('<div');
+			_$_.output_push(' class="false"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('condition false');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-		__r_25 = true;
-	} else {
-		__output.push('<div');
-		__output.push(' class="false"');
-		__output.push('>');
+		_$_.output_push('<!--]-->');
+	});
 
-		{
-			__output.push('condition false');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (!__r_25) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="after"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('after if-else');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
-
-	if (!__r_25) {
-		__output.push('<div');
-		__output.push(' class="after"');
-		__output.push('>');
-
-		{
-			__output.push('after if-else');
-		}
-
-		__output.push('</div>');
-	}
-
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function ReturnWithElseBothReturn(__output) {
+export function ReturnWithElseBothReturn() {
 	_$_.push_component();
 
 	var __r_26 = false;
 	var __r_27 = false;
 	let condition = false;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (condition) {
-		__output.push('<div');
-		__output.push(' class="true"');
-		__output.push('>');
+		if (condition) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="true"');
+			_$_.output_push('>');
 
-		{
-			__output.push('condition true');
+			{
+				_$_.output_push('condition true');
+			}
+
+			_$_.output_push('</div>');
+			__r_26 = true;
+		} else {
+			_$_.output_push('<div');
+			_$_.output_push(' class="false"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('condition false');
+			}
+
+			_$_.output_push('</div>');
+			__r_27 = true;
 		}
 
-		__output.push('</div>');
-		__r_26 = true;
-	} else {
-		__output.push('<div');
-		__output.push(' class="false"');
-		__output.push('>');
+		_$_.output_push('<!--]-->');
+	});
 
-		{
-			__output.push('condition false');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (!__r_26 && !__r_27) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="never"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('never reached');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-		__r_27 = true;
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
-
-	if (!__r_26 && !__r_27) {
-		__output.push('<div');
-		__output.push(' class="never"');
-		__output.push('>');
-
-		{
-			__output.push('never reached');
-		}
-
-		__output.push('</div>');
-	}
-
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function ReactiveReturnTrueToFalse(__output) {
+export function ReactiveReturnTrueToFalse() {
 	_$_.push_component();
 
 	var __r_28 = false;
 	let lazy = _$_.track(true);
 
-	__output.push('<button');
-	__output.push(' class="toggle"');
-	__output.push('>');
-
-	{
-		__output.push('Toggle');
-	}
-
-	__output.push('</button>');
-	__output.push('<!--[-->');
-
-	if (_$_.get(lazy)) {
-		__output.push('<div');
-		__output.push(' class="guard"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="toggle"');
+		_$_.output_push('>');
 
 		{
-			__output.push('guard hit');
+			_$_.output_push('Toggle');
 		}
 
-		__output.push('</div>');
-		__r_28 = true;
-	}
+		_$_.output_push('</button>');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_28) {
-		__output.push('<div');
-		__output.push(' class="rest"');
-		__output.push('>');
+		if (_$_.get(lazy)) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="guard"');
+			_$_.output_push('>');
 
-		{
-			__output.push('rest');
+			{
+				_$_.output_push('guard hit');
+			}
+
+			_$_.output_push('</div>');
+			__r_28 = true;
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (!__r_28) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="rest"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('rest');
+			}
+
+			_$_.output_push('</div>');
+		}
+
+		_$_.output_push('<!--]-->');
+	});
+
 	_$_.pop_component();
 }
 
-export function ReactiveReturnFalseToTrue(__output) {
+export function ReactiveReturnFalseToTrue() {
 	_$_.push_component();
 
 	var __r_29 = false;
 	let lazy_1 = _$_.track(false);
 
-	__output.push('<button');
-	__output.push(' class="toggle"');
-	__output.push('>');
-
-	{
-		__output.push('Toggle');
-	}
-
-	__output.push('</button>');
-	__output.push('<!--[-->');
-
-	if (_$_.get(lazy_1)) {
-		__output.push('<div');
-		__output.push(' class="guard"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="toggle"');
+		_$_.output_push('>');
 
 		{
-			__output.push('guard hit');
+			_$_.output_push('Toggle');
 		}
 
-		__output.push('</div>');
-		__r_29 = true;
-	}
+		_$_.output_push('</button>');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_29) {
-		__output.push('<div');
-		__output.push(' class="rest"');
-		__output.push('>');
+		if (_$_.get(lazy_1)) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="guard"');
+			_$_.output_push('>');
 
-		{
-			__output.push('rest');
+			{
+				_$_.output_push('guard hit');
+			}
+
+			_$_.output_push('</div>');
+			__r_29 = true;
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (!__r_29) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="rest"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('rest');
+			}
+
+			_$_.output_push('</div>');
+		}
+
+		_$_.output_push('<!--]-->');
+	});
+
 	_$_.pop_component();
 }
 
-export function ReactiveNestedReturn(__output) {
+export function ReactiveNestedReturn() {
 	_$_.push_component();
 
 	var __r_30 = false;
 	let a = true;
 	let lazy_2 = _$_.track(true);
 
-	__output.push('<button');
-	__output.push(' class="toggle"');
-	__output.push('>');
-
-	{
-		__output.push('Toggle');
-	}
-
-	__output.push('</button>');
-	__output.push('<!--[-->');
-
-	if (a) {
-		__output.push('<div');
-		__output.push(' class="a"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="toggle"');
+		_$_.output_push('>');
 
 		{
-			__output.push('a');
+			_$_.output_push('Toggle');
 		}
 
-		__output.push('</div>');
-		__output.push('<!--[-->');
+		_$_.output_push('</button>');
+	});
 
-		if (_$_.get(lazy_2)) {
-			__output.push('<div');
-			__output.push(' class="b"');
-			__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (a) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="a"');
+			_$_.output_push('>');
 
 			{
-				__output.push('b');
+				_$_.output_push('a');
 			}
 
-			__output.push('</div>');
-			__r_30 = true;
+			_$_.output_push('</div>');
+			_$_.output_push('<!--[-->');
+
+			if (_$_.get(lazy_2)) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="b"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('b');
+				}
+
+				_$_.output_push('</div>');
+				__r_30 = true;
+			}
+
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_30) {
-		__output.push('<div');
-		__output.push(' class="rest"');
-		__output.push('>');
+		if (!__r_30) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="rest"');
+			_$_.output_push('>');
 
-		{
-			__output.push('rest');
+			{
+				_$_.output_push('rest');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function ReturnInNestedElement(__output) {
+export function ReturnInNestedElement() {
 	_$_.push_component();
 
 	var __r_31 = false;
 	let show = true;
 
-	__output.push('<div');
-	__output.push(' class="outer"');
-	__output.push('>');
-
-	{
-		__output.push('<span');
-		__output.push(' class="label"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="outer"');
+		_$_.output_push('>');
 
 		{
-			__output.push('outer');
-		}
-
-		__output.push('</span>');
-		__output.push('<!--[-->');
-
-		if (show) {
-			__output.push('<p');
-			__output.push(' class="inner"');
-			__output.push('>');
+			_$_.output_push('<span');
+			_$_.output_push(' class="label"');
+			_$_.output_push('>');
 
 			{
-				__output.push('inner');
+				_$_.output_push('outer');
 			}
 
-			__output.push('</p>');
-			__r_31 = true;
+			_$_.output_push('</span>');
+			_$_.output_push('<!--[-->');
+
+			if (show) {
+				_$_.output_push('<p');
+				_$_.output_push(' class="inner"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('inner');
+				}
+
+				_$_.output_push('</p>');
+				__r_31 = true;
+			}
+
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('</div>');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_31) {
-		__output.push('<div');
-		__output.push(' class="after"');
-		__output.push('>');
+		if (!__r_31) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="after"');
+			_$_.output_push('>');
 
-		{
-			__output.push('after');
+			{
+				_$_.output_push('after');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function ReturnWithMultipleElements(__output) {
+export function ReturnWithMultipleElements() {
 	_$_.push_component();
 
 	var __r_32 = false;
 	let shouldReturn = true;
 
-	__output.push('<h1');
-	__output.push(' class="title"');
-	__output.push('>');
-
-	{
-		__output.push('title');
-	}
-
-	__output.push('</h1>');
-	__output.push('<p');
-	__output.push(' class="desc"');
-	__output.push('>');
-
-	{
-		__output.push('description');
-	}
-
-	__output.push('</p>');
-	__output.push('<!--[-->');
-
-	if (shouldReturn) {
-		__output.push('<div');
-		__output.push(' class="guard"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<h1');
+		_$_.output_push(' class="title"');
+		_$_.output_push('>');
 
 		{
-			__output.push('guard');
+			_$_.output_push('title');
 		}
 
-		__output.push('</div>');
-		__output.push('<span');
-		__output.push(' class="guard-span"');
-		__output.push('>');
+		_$_.output_push('</h1>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<p');
+		_$_.output_push(' class="desc"');
+		_$_.output_push('>');
 
 		{
-			__output.push('guard span');
+			_$_.output_push('description');
 		}
 
-		__output.push('</span>');
-		__r_32 = true;
-	}
+		_$_.output_push('</p>');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_32) {
-		__output.push('<footer');
-		__output.push(' class="footer"');
-		__output.push('>');
+		if (shouldReturn) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="guard"');
+			_$_.output_push('>');
 
-		{
-			__output.push('footer');
+			{
+				_$_.output_push('guard');
+			}
+
+			_$_.output_push('</div>');
+			_$_.output_push('<span');
+			_$_.output_push(' class="guard-span"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('guard span');
+			}
+
+			_$_.output_push('</span>');
+			__r_32 = true;
 		}
 
-		__output.push('</footer>');
-		__output.push('<nav');
-		__output.push(' class="nav"');
-		__output.push('>');
+		_$_.output_push('<!--]-->');
+	});
 
-		{
-			__output.push('nav');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (!__r_32) {
+			_$_.output_push('<footer');
+			_$_.output_push(' class="footer"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('footer');
+			}
+
+			_$_.output_push('</footer>');
+			_$_.output_push('<nav');
+			_$_.output_push(' class="nav"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('nav');
+			}
+
+			_$_.output_push('</nav>');
 		}
 
-		__output.push('</nav>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function ReturnAtBeginning(__output) {
+export function ReturnAtBeginning() {
 	_$_.push_component();
 
 	var __r_33 = false;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (true) {
-		__output.push('<div');
-		__output.push(' class="early"');
-		__output.push('>');
+		if (true) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="early"');
+			_$_.output_push('>');
 
-		{
-			__output.push('early exit');
+			{
+				_$_.output_push('early exit');
+			}
+
+			_$_.output_push('</div>');
+			__r_33 = true;
 		}
 
-		__output.push('</div>');
-		__r_33 = true;
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_33) {
-		__output.push('<div');
-		__output.push(' class="never1"');
-		__output.push('>');
+		if (!__r_33) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="never1"');
+			_$_.output_push('>');
 
-		{
-			__output.push('never reached 1');
+			{
+				_$_.output_push('never reached 1');
+			}
+
+			_$_.output_push('</div>');
+			_$_.output_push('<div');
+			_$_.output_push(' class="never2"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('never reached 2');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-		__output.push('<div');
-		__output.push(' class="never2"');
-		__output.push('>');
+		_$_.output_push('<!--]-->');
+	});
 
-		{
-			__output.push('never reached 2');
-		}
-
-		__output.push('</div>');
-	}
-
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function ReturnAtEnd(__output) {
+export function ReturnAtEnd() {
 	_$_.push_component();
 
 	var __r_34 = false;
 
-	__output.push('<div');
-	__output.push(' class="first"');
-	__output.push('>');
-
-	{
-		__output.push('first');
-	}
-
-	__output.push('</div>');
-	__output.push('<div');
-	__output.push(' class="second"');
-	__output.push('>');
-
-	{
-		__output.push('second');
-	}
-
-	__output.push('</div>');
-	__output.push('<!--[-->');
-
-	if (true) {
-		__output.push('<div');
-		__output.push(' class="third"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="first"');
+		_$_.output_push('>');
 
 		{
-			__output.push('third');
+			_$_.output_push('first');
 		}
 
-		__output.push('</div>');
-		__r_34 = true;
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('<!--]-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="second"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('second');
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (true) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="third"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('third');
+			}
+
+			_$_.output_push('</div>');
+			__r_34 = true;
+		}
+
+		_$_.output_push('<!--]-->');
+	});
+
 	_$_.pop_component();
 }
 
-export function MultipleSiblingReturns(__output) {
+export function MultipleSiblingReturns() {
 	_$_.push_component();
 
 	var __r_35 = false;
@@ -1424,307 +1605,352 @@ export function MultipleSiblingReturns(__output) {
 	var __r_37 = false;
 	let mode = 'b';
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (mode === 'a') {
-		__output.push('<div');
-		__output.push(' class="mode-a"');
-		__output.push('>');
-
-		{
-			__output.push('mode A');
-		}
-
-		__output.push('</div>');
-		__r_35 = true;
-	}
-
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
-
-	if (!__r_35) {
-		__output.push('<!--[-->');
-
-		if (mode === 'b') {
-			__output.push('<div');
-			__output.push(' class="mode-b"');
-			__output.push('>');
+		if (mode === 'a') {
+			_$_.output_push('<div');
+			_$_.output_push(' class="mode-a"');
+			_$_.output_push('>');
 
 			{
-				__output.push('mode B');
+				_$_.output_push('mode A');
 			}
 
-			__output.push('</div>');
-			__r_36 = true;
+			_$_.output_push('</div>');
+			__r_35 = true;
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_35 && !__r_36) {
-		__output.push('<!--[-->');
+		if (!__r_35) {
+			_$_.output_push('<!--[-->');
 
-		if (mode === 'c') {
-			__output.push('<div');
-			__output.push(' class="mode-c"');
-			__output.push('>');
+			if (mode === 'b') {
+				_$_.output_push('<div');
+				_$_.output_push(' class="mode-b"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('mode B');
+				}
+
+				_$_.output_push('</div>');
+				__r_36 = true;
+			}
+
+			_$_.output_push('<!--]-->');
+		}
+
+		_$_.output_push('<!--]-->');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (!__r_35 && !__r_36) {
+			_$_.output_push('<!--[-->');
+
+			if (mode === 'c') {
+				_$_.output_push('<div');
+				_$_.output_push(' class="mode-c"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('mode C');
+				}
+
+				_$_.output_push('</div>');
+				__r_37 = true;
+			}
+
+			_$_.output_push('<!--]-->');
+		}
+
+		_$_.output_push('<!--]-->');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (!__r_35 && !__r_36 && !__r_37) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="default"');
+			_$_.output_push('>');
 
 			{
-				__output.push('mode C');
+				_$_.output_push('default mode');
 			}
 
-			__output.push('</div>');
-			__r_37 = true;
+			_$_.output_push('</div>');
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
-
-	if (!__r_35 && !__r_36 && !__r_37) {
-		__output.push('<div');
-		__output.push(' class="default"');
-		__output.push('>');
-
-		{
-			__output.push('default mode');
-		}
-
-		__output.push('</div>');
-	}
-
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function ReactiveSiblingReturns(__output) {
+export function ReactiveSiblingReturns() {
 	_$_.push_component();
 
 	var __r_38 = false;
 	var __r_39 = false;
 	let lazy_3 = _$_.track('first');
 
-	__output.push('<button');
-	__output.push(' class="toggle"');
-	__output.push('>');
-
-	{
-		__output.push('Toggle');
-	}
-
-	__output.push('</button>');
-	__output.push('<!--[-->');
-
-	if (_$_.get(lazy_3) === 'first') {
-		__output.push('<div');
-		__output.push(' class="first"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="toggle"');
+		_$_.output_push('>');
 
 		{
-			__output.push('first guard');
+			_$_.output_push('Toggle');
 		}
 
-		__output.push('</div>');
-		__r_38 = true;
-	}
+		_$_.output_push('</button>');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_38) {
-		__output.push('<!--[-->');
-
-		if (_$_.get(lazy_3) === 'second') {
-			__output.push('<div');
-			__output.push(' class="second"');
-			__output.push('>');
+		if (_$_.get(lazy_3) === 'first') {
+			_$_.output_push('<div');
+			_$_.output_push(' class="first"');
+			_$_.output_push('>');
 
 			{
-				__output.push('second guard');
+				_$_.output_push('first guard');
 			}
 
-			__output.push('</div>');
-			__r_39 = true;
+			_$_.output_push('</div>');
+			__r_38 = true;
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_38 && !__r_39) {
-		__output.push('<div');
-		__output.push(' class="rest"');
-		__output.push('>');
+		if (!__r_38) {
+			_$_.output_push('<!--[-->');
 
-		{
-			__output.push('rest');
+			if (_$_.get(lazy_3) === 'second') {
+				_$_.output_push('<div');
+				_$_.output_push(' class="second"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('second guard');
+				}
+
+				_$_.output_push('</div>');
+				__r_39 = true;
+			}
+
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (!__r_38 && !__r_39) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="rest"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('rest');
+			}
+
+			_$_.output_push('</div>');
+		}
+
+		_$_.output_push('<!--]-->');
+	});
+
 	_$_.pop_component();
 }
 
-export function ReactiveOuterInnerReturns(__output) {
+export function ReactiveOuterInnerReturns() {
 	_$_.push_component();
 
 	var __r_40 = false;
 	let lazy_4 = _$_.track(true);
 	let lazy_5 = _$_.track(true);
 
-	__output.push('<button');
-	__output.push(' class="toggle-a"');
-	__output.push('>');
-
-	{
-		__output.push('Toggle A');
-	}
-
-	__output.push('</button>');
-	__output.push('<button');
-	__output.push(' class="toggle-b"');
-	__output.push('>');
-
-	{
-		__output.push('Toggle B');
-	}
-
-	__output.push('</button>');
-	__output.push('<!--[-->');
-
-	if (_$_.get(lazy_4)) {
-		__output.push('<div');
-		__output.push(' class="a"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="toggle-a"');
+		_$_.output_push('>');
 
 		{
-			__output.push('a');
+			_$_.output_push('Toggle A');
 		}
 
-		__output.push('</div>');
-		__output.push('<!--[-->');
+		_$_.output_push('</button>');
+	});
 
-		if (_$_.get(lazy_5)) {
-			__output.push('<div');
-			__output.push(' class="b"');
-			__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="toggle-b"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Toggle B');
+		}
+
+		_$_.output_push('</button>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (_$_.get(lazy_4)) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="a"');
+			_$_.output_push('>');
 
 			{
-				__output.push('b');
+				_$_.output_push('a');
 			}
 
-			__output.push('</div>');
-			__r_40 = true;
+			_$_.output_push('</div>');
+			_$_.output_push('<!--[-->');
+
+			if (_$_.get(lazy_5)) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="b"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('b');
+				}
+
+				_$_.output_push('</div>');
+				__r_40 = true;
+			}
+
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_40) {
-		__output.push('<div');
-		__output.push(' class="rest"');
-		__output.push('>');
+		if (!__r_40) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="rest"');
+			_$_.output_push('>');
 
-		{
-			__output.push(_$_.escape(_$_.get(lazy_4) ? 'a-on rest' : 'a-off rest'));
+			{
+				_$_.output_push(_$_.escape(_$_.get(lazy_4) ? 'a-on rest' : 'a-off rest'));
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function ReactiveElseIfReturns(__output) {
+export function ReactiveElseIfReturns() {
 	_$_.push_component();
 
 	var __r_41 = false;
 	var __r_42 = false;
 	let lazy_6 = _$_.track(0);
 
-	__output.push('<button');
-	__output.push(' class="toggle"');
-	__output.push('>');
-
-	{
-		__output.push('Toggle');
-	}
-
-	__output.push('</button>');
-	__output.push('<!--[-->');
-
-	if (_$_.get(lazy_6) === 0) {
-		__output.push('<div');
-		__output.push(' class="zero"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="toggle"');
+		_$_.output_push('>');
 
 		{
-			__output.push('zero');
+			_$_.output_push('Toggle');
 		}
 
-		__output.push('</div>');
-		__r_41 = true;
-	} else {
-		__output.push('<!--[-->');
+		_$_.output_push('</button>');
+	});
 
-		if (_$_.get(lazy_6) === 1) {
-			__output.push('<div');
-			__output.push(' class="one"');
-			__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (_$_.get(lazy_6) === 0) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="zero"');
+			_$_.output_push('>');
 
 			{
-				__output.push('one');
+				_$_.output_push('zero');
 			}
 
-			__output.push('</div>');
-			__r_42 = true;
+			_$_.output_push('</div>');
+			__r_41 = true;
+		} else {
+			_$_.output_push('<!--[-->');
+
+			if (_$_.get(lazy_6) === 1) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="one"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('one');
+				}
+
+				_$_.output_push('</div>');
+				__r_42 = true;
+			}
+
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_41 && !__r_42) {
-		__output.push('<div');
-		__output.push(' class="rest"');
-		__output.push('>');
+		if (!__r_41 && !__r_42) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="rest"');
+			_$_.output_push('>');
 
-		{
-			__output.push('rest');
+			{
+				_$_.output_push('rest');
+			}
+
+			_$_.output_push('</div>');
+			_$_.output_push('<div');
+			_$_.output_push(' class="tail"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('tail');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-		__output.push('<div');
-		__output.push(' class="tail"');
-		__output.push('>');
+		_$_.output_push('<!--]-->');
+	});
 
-		{
-			__output.push('tail');
-		}
-
-		__output.push('</div>');
-	}
-
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function ReactiveDeepNestedIndependentReturns(__output) {
+export function ReactiveDeepNestedIndependentReturns() {
 	_$_.push_component();
 
 	var __r_43 = false;
@@ -1736,235 +1962,259 @@ export function ReactiveDeepNestedIndependentReturns(__output) {
 	let lazy_9 = _$_.track(false);
 	let lazy_10 = _$_.track(false);
 
-	__output.push('<button');
-	__output.push(' class="toggle-c1"');
-	__output.push('>');
-
-	{
-		__output.push('Toggle C1');
-	}
-
-	__output.push('</button>');
-	__output.push('<button');
-	__output.push(' class="toggle-c2"');
-	__output.push('>');
-
-	{
-		__output.push('Toggle C2');
-	}
-
-	__output.push('</button>');
-	__output.push('<button');
-	__output.push(' class="toggle-c3"');
-	__output.push('>');
-
-	{
-		__output.push('Toggle C3');
-	}
-
-	__output.push('</button>');
-	__output.push('<button');
-	__output.push(' class="toggle-c4"');
-	__output.push('>');
-
-	{
-		__output.push('Toggle C4');
-	}
-
-	__output.push('</button>');
-	__output.push('<div');
-	__output.push(' class="top"');
-	__output.push('>');
-
-	{
-		__output.push('top');
-	}
-
-	__output.push('</div>');
-	__output.push('<!--[-->');
-
-	if (_$_.get(lazy_7)) {
-		__output.push('<div');
-		__output.push(' class="hit-1"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="toggle-c1"');
+		_$_.output_push('>');
 
 		{
-			__output.push('hit-1');
+			_$_.output_push('Toggle C1');
 		}
 
-		__output.push('</div>');
-		__r_43 = true;
-	}
+		_$_.output_push('</button>');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
-
-	if (!__r_43) {
-		__output.push('<div');
-		__output.push(' class="middle"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="toggle-c2"');
+		_$_.output_push('>');
 
 		{
-			__output.push('middle');
+			_$_.output_push('Toggle C2');
 		}
 
-		__output.push('</div>');
-		__output.push('<section');
-		__output.push(' class="nest-1"');
-		__output.push('>');
+		_$_.output_push('</button>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="toggle-c3"');
+		_$_.output_push('>');
 
 		{
-			__output.push('<div');
-			__output.push(' class="nest-1-a"');
-			__output.push('>');
+			_$_.output_push('Toggle C3');
+		}
+
+		_$_.output_push('</button>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="toggle-c4"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Toggle C4');
+		}
+
+		_$_.output_push('</button>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="top"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('top');
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (_$_.get(lazy_7)) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="hit-1"');
+			_$_.output_push('>');
 
 			{
-				__output.push('nest-1-a');
+				_$_.output_push('hit-1');
 			}
 
-			__output.push('</div>');
-			__output.push('<!--[-->');
+			_$_.output_push('</div>');
+			__r_43 = true;
+		}
 
-			if (_$_.get(lazy_8)) {
-				__output.push('<div');
-				__output.push(' class="hit-2"');
-				__output.push('>');
+		_$_.output_push('<!--]-->');
+	});
 
-				{
-					__output.push('hit-2');
-				}
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-				__output.push('</div>');
-				__r_44 = true;
+		if (!__r_43) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="middle"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('middle');
 			}
 
-			__output.push('<!--]-->');
-			__output.push('<!--[-->');
+			_$_.output_push('</div>');
+			_$_.output_push('<section');
+			_$_.output_push(' class="nest-1"');
+			_$_.output_push('>');
 
-			if (!__r_44) {
-				__output.push('<div');
-				__output.push(' class="nest-1-b"');
-				__output.push('>');
+			{
+				_$_.output_push('<div');
+				_$_.output_push(' class="nest-1-a"');
+				_$_.output_push('>');
 
 				{
-					__output.push('nest-1-b');
+					_$_.output_push('nest-1-a');
 				}
 
-				__output.push('</div>');
-				__output.push('<section');
-				__output.push(' class="nest-2"');
-				__output.push('>');
+				_$_.output_push('</div>');
+				_$_.output_push('<!--[-->');
 
-				{
-					__output.push('<div');
-					__output.push(' class="nest-2-a"');
-					__output.push('>');
+				if (_$_.get(lazy_8)) {
+					_$_.output_push('<div');
+					_$_.output_push(' class="hit-2"');
+					_$_.output_push('>');
 
 					{
-						__output.push('nest-2-a');
+						_$_.output_push('hit-2');
 					}
 
-					__output.push('</div>');
-					__output.push('<!--[-->');
-
-					if (_$_.get(lazy_9)) {
-						__output.push('<div');
-						__output.push(' class="hit-3"');
-						__output.push('>');
-
-						{
-							__output.push('hit-3');
-						}
-
-						__output.push('</div>');
-						__r_45 = true;
-					}
-
-					__output.push('<!--]-->');
-					__output.push('<!--[-->');
-
-					if (!__r_45) {
-						__output.push('<div');
-						__output.push(' class="nest-2-b"');
-						__output.push('>');
-
-						{
-							__output.push('nest-2-b');
-						}
-
-						__output.push('</div>');
-						__output.push('<!--[-->');
-
-						if (_$_.get(lazy_10)) {
-							__output.push('<div');
-							__output.push(' class="hit-4"');
-							__output.push('>');
-
-							{
-								__output.push('hit-4');
-							}
-
-							__output.push('</div>');
-							__r_46 = true;
-						}
-
-						__output.push('<!--]-->');
-					}
-
-					__output.push('<!--]-->');
+					_$_.output_push('</div>');
+					__r_44 = true;
 				}
 
-				__output.push('</section>');
+				_$_.output_push('<!--]-->');
+				_$_.output_push('<!--[-->');
+
+				if (!__r_44) {
+					_$_.output_push('<div');
+					_$_.output_push(' class="nest-1-b"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('nest-1-b');
+					}
+
+					_$_.output_push('</div>');
+					_$_.output_push('<section');
+					_$_.output_push(' class="nest-2"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('<div');
+						_$_.output_push(' class="nest-2-a"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('nest-2-a');
+						}
+
+						_$_.output_push('</div>');
+						_$_.output_push('<!--[-->');
+
+						if (_$_.get(lazy_9)) {
+							_$_.output_push('<div');
+							_$_.output_push(' class="hit-3"');
+							_$_.output_push('>');
+
+							{
+								_$_.output_push('hit-3');
+							}
+
+							_$_.output_push('</div>');
+							__r_45 = true;
+						}
+
+						_$_.output_push('<!--]-->');
+						_$_.output_push('<!--[-->');
+
+						if (!__r_45) {
+							_$_.output_push('<div');
+							_$_.output_push(' class="nest-2-b"');
+							_$_.output_push('>');
+
+							{
+								_$_.output_push('nest-2-b');
+							}
+
+							_$_.output_push('</div>');
+							_$_.output_push('<!--[-->');
+
+							if (_$_.get(lazy_10)) {
+								_$_.output_push('<div');
+								_$_.output_push(' class="hit-4"');
+								_$_.output_push('>');
+
+								{
+									_$_.output_push('hit-4');
+								}
+
+								_$_.output_push('</div>');
+								__r_46 = true;
+							}
+
+							_$_.output_push('<!--]-->');
+						}
+
+						_$_.output_push('<!--]-->');
+					}
+
+					_$_.output_push('</section>');
+				}
+
+				_$_.output_push('<!--]-->');
 			}
 
-			__output.push('<!--]-->');
+			_$_.output_push('</section>');
 		}
 
-		__output.push('</section>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (!__r_43 && !__r_44 && !__r_45 && !__r_46) {
-		__output.push('<div');
-		__output.push(' class="root-1"');
-		__output.push('>');
+		if (!__r_43 && !__r_44 && !__r_45 && !__r_46) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="root-1"');
+			_$_.output_push('>');
 
-		{
-			__output.push('root-1');
+			{
+				_$_.output_push('root-1');
+			}
+
+			_$_.output_push('</div>');
+			_$_.output_push('<div');
+			_$_.output_push(' class="root-2"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('root-2');
+			}
+
+			_$_.output_push('</div>');
+			_$_.output_push('<div');
+			_$_.output_push(' class="root-3"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('root-3');
+			}
+
+			_$_.output_push('</div>');
+			_$_.output_push('<div');
+			_$_.output_push(' class="root-4"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('root-4');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-		__output.push('<div');
-		__output.push(' class="root-2"');
-		__output.push('>');
+		_$_.output_push('<!--]-->');
+	});
 
-		{
-			__output.push('root-2');
-		}
-
-		__output.push('</div>');
-		__output.push('<div');
-		__output.push(' class="root-3"');
-		__output.push('>');
-
-		{
-			__output.push('root-3');
-		}
-
-		__output.push('</div>');
-		__output.push('<div');
-		__output.push(' class="root-4"');
-		__output.push('>');
-
-		{
-			__output.push('root-4');
-		}
-
-		__output.push('</div>');
-	}
-
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }

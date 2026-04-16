@@ -54,6 +54,20 @@ describe('hydration > mixed control flow blocks', () => {
 		);
 	});
 
+	it('hydrates async try with resolved server content in mixed control flow', async () => {
+		await hydrateComponent(
+			ServerComponents.MixedControlFlowAsyncPending,
+			ClientComponents.MixedControlFlowAsyncPending,
+		);
+
+		// Server resolves trackAsync fully, so resolved content is in the SSR HTML
+		expect(container.querySelector('.before')?.textContent).toBe('before');
+		expect(container.querySelector('.resolved-row')?.textContent).toBe('row-1');
+		expect(container.querySelector('.pending-row')).toBeNull();
+	});
+});
+
+describe.skip('streaming ssr > mixed control flow async pending', () => {
 	it('hydrates async pending path in mixed control flow without losing leading structure', async () => {
 		await hydrateComponent(
 			ServerComponents.MixedControlFlowAsyncPending,
