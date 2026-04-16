@@ -24,6 +24,8 @@ const IMPORT_EXPORT_REGEX = {
 	from: /from\s*['"][^'"]*['"]\s*;?/,
 };
 
+const RIPPLE_EXTENSIONS = ['.ripple', '.tsrx'];
+
 /** @type {is_identifier_obfuscated}  */
 let is_identifier_obfuscated;
 /** @type {deobfuscate_identifier} */
@@ -150,9 +152,19 @@ function isInsideExport(text, start) {
 	return isInsideImportOrExport('export', text, start);
 }
 
+/**
+ * @param {string} document_uri
+ * @returns {boolean}
+ */
+function is_ripple_document(document_uri) {
+	return RIPPLE_EXTENSIONS.some((extension) => document_uri.endsWith(extension));
+}
+
 module.exports = {
+	RIPPLE_EXTENSIONS,
 	getVirtualCode,
 	getWordFromPosition,
+	is_ripple_document,
 	isInsideImport,
 	isInsideExport,
 	createLogging,

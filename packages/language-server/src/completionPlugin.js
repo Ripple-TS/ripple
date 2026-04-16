@@ -1,18 +1,15 @@
 /** @import { LanguageServicePlugin, TextEdit, CompletionItem } from '@volar/language-server'; */
 
 const { CompletionItemKind, InsertTextFormat } = require('@volar/language-server');
-const { getVirtualCode, createLogging, isInsideImport, isInsideExport } = require('./utils.js');
+const {
+	getVirtualCode,
+	createLogging,
+	isInsideImport,
+	isInsideExport,
+	is_ripple_document,
+} = require('./utils.js');
 
 const { log } = createLogging('[Ripple Completion Plugin]');
-const RIPPLE_EXTENSIONS = ['.ripple', '.tsrx'];
-
-/**
- * @param {string} document_uri
- * @returns {boolean}
- */
-function is_ripple_document(document_uri) {
-	return RIPPLE_EXTENSIONS.some((extension) => document_uri.endsWith(extension));
-}
 
 /**
  * Snippets that require auto-import from 'ripple'

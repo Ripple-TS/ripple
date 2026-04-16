@@ -1,8 +1,8 @@
 {
   "name": "@ripple-ts/vscode-plugin",
-  "displayName": "Ripple TS for VS Code",
+  "displayName": "TSRX for VS Code",
   "publisher": "ripple-ts",
-  "description": "Ripple JavaScript/TypeScript language support",
+  "description": "TSRX JavaScript/TypeScript language support",
   "version": "0.3.10",
   "private": true,
   "author": "Dominic Gannaway",
@@ -90,10 +90,10 @@
       {
         "id": "ripple",
         "aliases": [
-          "Ripple",
-          "ripple",
           "TSRX",
-          "tsrx"
+          "tsrx",
+          "Ripple",
+          "ripple"
         ],
         "extensions": [
           ".ripple",

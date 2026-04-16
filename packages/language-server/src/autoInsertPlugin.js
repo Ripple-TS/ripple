@@ -1,17 +1,8 @@
 /** @import { LanguageServicePlugin } from '@volar/language-server' */
 
-const { getVirtualCode, createLogging } = require('./utils.js');
+const { getVirtualCode, createLogging, is_ripple_document } = require('./utils.js');
 
 const { log } = createLogging('[Ripple Auto-Insert Plugin]');
-const RIPPLE_EXTENSIONS = ['.ripple', '.tsrx'];
-
-/**
- * @param {string} document_uri
- * @returns {boolean}
- */
-function is_ripple_document(document_uri) {
-	return RIPPLE_EXTENSIONS.some((extension) => document_uri.endsWith(extension));
-}
 
 /**
  * List of HTML void/self-closing elements that don't need closing tags

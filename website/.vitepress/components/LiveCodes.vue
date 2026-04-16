@@ -107,7 +107,7 @@ const mountRoot =
 	'<scr' +
 	`ipt type="module">
 	import { mount } from 'ripple';
-	import * as script from "./script.tsrx";
+	import * as script from "./script.ripple";
 
   const exports = Object.keys(script);
   const App = exports.length === 1
@@ -138,6 +138,7 @@ const config: Partial<Config> = {
 	activeEditor: 'script',
 	script: {
 		language: 'ripple',
+		title: 'TSRX',
 		content: props.code ?? defaultContent,
 	},
 	markup: {
@@ -384,6 +385,7 @@ const loadExample = async (example: { title: string; code: string }) => {
 		title: example.title,
 		script: {
 			language: 'ripple',
+			title: 'TSRX',
 			content: example.code,
 		},
 		...(example.code.includes('console.')
