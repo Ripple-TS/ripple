@@ -2106,16 +2106,6 @@ const visitors = {
 	RippleExpression(node, context) {
 		mark_control_flow_has_template(context.path);
 
-		if (expression_has_side_effects(node.expression)) {
-			error(
-				'Template expressions must not contain side effects.',
-				context.state.analysis.module.filename,
-				node.expression,
-				context.state.loose ? context.state.analysis.errors : undefined,
-				context.state.analysis.comments,
-			);
-		}
-
 		context.next();
 	},
 

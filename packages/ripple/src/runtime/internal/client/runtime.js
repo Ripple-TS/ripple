@@ -963,8 +963,9 @@ function flush_microtasks() {
 
 	flush_count++;
 	if (flush_count > 1001) {
-		flush_count = 0;
-		return;
+		throw new Error(
+			'Maximum update depth exceeded. This typically indicates that an effect reads and writes the same piece of state.',
+		);
 	}
 	var previous_queued_root_blocks = queued_root_blocks;
 	queued_root_blocks = [];
