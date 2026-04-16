@@ -215,8 +215,8 @@ export function block(flags, fn, state = null, co) {
 		(/** @type {Derived} */ (active_reaction).blocks ??= []).push(block);
 	}
 
-	if (block.p !== null) {
-		push_block(block, block.p);
+	if (active_block !== null) {
+		push_block(block, active_block);
 	}
 
 	if ((flags & EFFECT_BLOCK) !== 0) {
