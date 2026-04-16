@@ -44,13 +44,13 @@ export component Content() {
 			<li>
 				<strong>{'Prettier Support'}</strong>
 				{'- Full Prettier formatting support for'}
-				<code>{'.ripple'}</code>
+				<code>{'.tsrx'}</code>
 				{'modules'}
 			</li>
 			<li>
 				<strong>{'ESLint Support'}</strong>
 				{'- Full ESLint integration for'}
-				<code>{'.ripple'}</code>
+				<code>{'.tsrx'}</code>
 				{'modules'}
 			</li>
 		</ul>

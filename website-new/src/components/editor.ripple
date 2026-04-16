@@ -65,7 +65,7 @@ export component Editor() {
 				<div class="editor-dot yellow" />
 				<div class="editor-dot green" />
 			</div>
-			<div class="editor-tab">{'Examples.ripple'}</div>
+			<div class="editor-tab">{'Examples.tsrx'}</div>
 		</div>
 		<div class="editor-content">
 			<pre class="editor-code" {ref bindNode(nodeRef)}>

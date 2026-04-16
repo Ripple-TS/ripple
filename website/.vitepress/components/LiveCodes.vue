@@ -107,7 +107,7 @@ const mountRoot =
 	'<scr' +
 	`ipt type="module">
 	import { mount } from 'ripple';
-	import * as script from "./script.ripple";
+	import * as script from "./script.tsrx";
 
   const exports = Object.keys(script);
   const App = exports.length === 1
