@@ -37,8 +37,6 @@ human and LLM developer experience.
 - 🛠️ **Developer Tools**: VSCode extension, Prettier, and ESLint support
 - 🎨 **Scoped Styling**: Component-level CSS with automatic scoping
 
-> **Note:** SSR support is coming soon! Currently SPA-only.
-
 ## 🚀 Quick Start
 
 ### Using CLI (Recommended)
