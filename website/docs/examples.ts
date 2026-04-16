@@ -153,7 +153,9 @@ export default component App() {
 	},
 	{
 		title: 'Named Children',
-		code: `component Composite({ PropComp, InlineComp }) {
+		code: `import type { Component } from 'ripple';
+
+component Composite(&{ PropComp, InlineComp }) {
 	<PropComp />
 	<InlineComp />
 }
@@ -162,24 +164,30 @@ component Separate() {
 	<p>{\`I'm a separate component.\`}</p>
 }
 
+component InlineComp() {
+	<p>{\`I'm an inline component.\`}</p>
+}
+
 export default component App() {
-	<Composite PropComp={Separate}>
-		component InlineComp() {
-			<p>{\`I'm an inline component.\`}</p>
-		}
-	</Composite>
+	<Composite PropComp={Separate} InlineComp={InlineComp} />
 }
 `,
 	},
 	{
 		title: 'Child Composition',
-		code: `component Card({ children, Header, Footer }) {
+		code: `import type { Children, Component } from 'ripple';
+
+component Card(&{ children, Header, Footer }) {
 	<fieldset>
-		<Header />
+		if (Header) {
+			<Header />
+		}
 		<hr />
 		{children}
-		<hr />
-		<Footer />
+		if (Footer) {
+			<hr />
+			<Footer />
+		}
 	</fieldset>
 }
 
@@ -187,12 +195,13 @@ component CustomHeader() {
 	<h1>{'Card Title'}</h1>
 }
 
+component Footer() {
+	<p>{'Card footer'}</p>
+}
+
 export default component App() {
-	<Card Header={CustomHeader}> // <- Header passed in as a prop
+	<Card Header={CustomHeader} Footer={Footer}>
 		<p>{'Card content here'}</p>
-		component Footer() {     // <- Footer passed in as a inline component
-			<p>{'Card footer'}</p>
-		}
 	</Card>
 }
 `,
