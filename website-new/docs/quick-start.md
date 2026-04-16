@@ -35,8 +35,8 @@ Ripple maintains a Volar-based
 [VSCode extension](https://marketplace.visualstudio.com/items?itemName=Ripple-TS.ripple-ts-vscode-plugin).
 
 It provides syntax highlighting for `.tsrx` files by default, real-time
-diagnostics for compilation errors, and typescript integration for type
-checking and autocompletion.
+diagnostics for compilation errors, and typescript integration for type checking
+and autocompletion.
 
 If you're using a fork of VSCode, the extension is also available on
 [OpenVSX](https://open-vsx.org/extension/ripple-ts/vscode-plugin).

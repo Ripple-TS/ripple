@@ -78,7 +78,7 @@ On the server, use the `render()` function from `ripple/server` to generate HTML
 ```js
 // server.js
 import { render } from 'ripple/server'
-import { App } from './App.tsrx';
+import { App } from './App.tsrx'
 
 const html = render(App, {
 	props: { title: 'Hello world!' },

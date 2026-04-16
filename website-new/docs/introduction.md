@@ -75,7 +75,8 @@ needed. Prior experience with other frameworks is helpful but not required. :::
 - **TypeScript Support**: Full TypeScript integration with type checking
 - **VSCode Integration**: Rich editor support with diagnostics, syntax
   highlighting, and IntelliSense
-- **Prettier Support**: Full Prettier formatting support for `.tsrx` modules by default
+- **Prettier Support**: Full Prettier formatting support for `.tsrx` modules by
+  default
 - **ESLint Support**: linting support for `.tsrx` modules by default
 
 ## Server-Side Rendering

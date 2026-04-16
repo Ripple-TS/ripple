@@ -18,10 +18,10 @@ to [Inferno](https://github.com/infernojs/inferno),
 [Lexical](https://github.com/facebook/lexical), and
 [Svelte 5](https://github.com/sveltejs/svelte).
 
-**Key Philosophy:** Ripple is TS-first with `.tsrx` as its default component
-file extension, while preserving `.ripple` compatibility during the transition.
-This allows seamless TypeScript integration and a unique syntax that enhances
-both human and LLM developer experience.
+**Key Philosophy:** Ripple is TS-first with `.tsrx` as its default component file
+extension, while preserving `.ripple` compatibility during the transition. This
+allows seamless TypeScript integration and a unique syntax that enhances both
+human and LLM developer experience.
 
 📚 **[Full Documentation](https://www.ripplejs.com/docs)** | 🎮
 **[Interactive Playground](https://www.ripplejs.com/playground)**
@@ -34,7 +34,8 @@ both human and LLM developer experience.
   usage
 - 📦 **Reactive Collections**: `RippleArray`, `RippleObject`, `RippleMap`,
   `RippleSet` imported from `'ripple'` with full reactivity
-- 🎯 **TypeScript First**: Complete type safety with the default `.tsrx` component extension
+- 🎯 **TypeScript First**: Complete type safety with the default `.tsrx` component
+  extension
 - 🛠️ **Developer Tools**: VSCode extension, Prettier, and ESLint support
 - 🎨 **Scoped Styling**: Component-level CSS with automatic scoping
 

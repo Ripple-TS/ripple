@@ -32,11 +32,13 @@ export default [...ripple.configs.recommended];
 
 The plugin automatically:
 
-- Detects and uses `@ripple-ts/eslint-parser` if installed for `.tsrx` and `.ripple` files
+- Detects and uses `@ripple-ts/eslint-parser` if installed for `.tsrx` and
+  `.ripple` files
 - Detects and uses `@typescript-eslint/parser` if installed for `.ts`/`.tsx` files
 - Excludes `.d.ts` files, `node_modules`, `dist`, and `build` directories from
   linting
-- Works with both `.ts`/`.tsx` and Ripple component files (`.tsrx` by default, plus `.ripple`)
+- Works with both `.ts`/`.tsx` and Ripple component files (`.tsrx` by default,
+  plus `.ripple`)
 
 ### Legacy Config (.eslintrc)
 
@@ -217,8 +219,8 @@ export function useCount() {
 ```
 
 **Note:** Lazy destructuring (`&[]` / `&{}`) is only valid in Ripple component
-files (`.tsrx` by default, plus `.ripple`). In TypeScript modules, use `.value`
-to read and write tracked values.
+files (`.tsrx` by default, plus `.ripple`). In TypeScript modules, use `.value` to
+read and write tracked values.
 
 ## Custom Configuration
 
