@@ -9,10 +9,10 @@ export component AsyncListInTryPending() {
 }
 
 component AsyncList() {
-	let items = trackAsync(() => Promise.resolve(['alpha', 'beta', 'gamma']));
+	let &[items] = trackAsync(() => Promise.resolve(['alpha', 'beta', 'gamma']));
 
 	<ul class="items">
-		for (let item of @items) {
+		for (let item of items) {
 			<li>{item}</li>
 		}
 	</ul>
@@ -28,6 +28,6 @@ export component AsyncTryWithLeadingSibling() {
 }
 
 component AsyncContent() {
-	let value = trackAsync(() => Promise.resolve('ready'));
+	let &[value] = trackAsync(() => Promise.resolve('ready'));
 	<div class="resolved">{value}</div>
 }
