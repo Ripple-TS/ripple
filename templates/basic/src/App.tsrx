@@ -31,7 +31,7 @@ export component App() {
 			<p class="info">{'This is a basic Ripple application template.'}</p>
 			<p class="edit-hint">
 				{'Edit '}
-				<code>{'src/App.ripple'}</code>
+				<code>{'src/App.tsrx'}</code>
 				{' to get started.'}
 			</p>
 		</div>

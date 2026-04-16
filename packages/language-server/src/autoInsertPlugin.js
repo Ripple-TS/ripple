@@ -3,6 +3,15 @@
 const { getVirtualCode, createLogging } = require('./utils.js');
 
 const { log } = createLogging('[Ripple Auto-Insert Plugin]');
+const RIPPLE_EXTENSIONS = ['.ripple', '.tsrx'];
+
+/**
+ * @param {string} document_uri
+ * @returns {boolean}
+ */
+function is_ripple_document(document_uri) {
+	return RIPPLE_EXTENSIONS.some((extension) => document_uri.endsWith(extension));
+}
 
 /**
  * List of HTML void/self-closing elements that don't need closing tags
@@ -55,7 +64,7 @@ function createAutoInsertPlugin() {
 				 * @returns {Promise<string | null>}
 				 */
 				async provideAutoInsertSnippet(document, position, lastChange, _token) {
-					if (!document.uri.endsWith('.ripple')) {
+					if (!is_ripple_document(document.uri)) {
 						return null;
 					}
 

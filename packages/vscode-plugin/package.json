@@ -91,10 +91,13 @@
         "id": "ripple",
         "aliases": [
           "Ripple",
-          "ripple"
+          "ripple",
+          "TSRX",
+          "tsrx"
         ],
         "extensions": [
-          ".ripple"
+          ".ripple",
+          ".tsrx"
         ],
         "icon": {
           "light": "icons/logo.png",

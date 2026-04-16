@@ -40,6 +40,16 @@ const VIRTUAL_HYDRATE_ID = 'virtual:ripple-hydrate';
 const RESOLVED_VIRTUAL_HYDRATE_ID = '\0virtual:ripple-hydrate';
 const VIRTUAL_COMPAT_ID = 'virtual:ripple-compat';
 const RESOLVED_VIRTUAL_COMPAT_ID = '\0virtual:ripple-compat';
+const RIPPLE_EXTENSIONS = ['.ripple', '.tsrx'];
+const RIPPLE_EXTENSION_PATTERN = /\.(?:ripple|tsrx)$/;
+
+/**
+ * @param {string} file_name
+ * @returns {boolean}
+ */
+function is_ripple_module_path(file_name) {
+	return RIPPLE_EXTENSIONS.some((extension) => file_name.endsWith(extension));
+}
 
 // Dev server always runs in Node — use node:async_hooks as default runtime
 // If the user provides adapter.runtime in their config, that will be used instead.
@@ -176,9 +186,9 @@ function hasRippleSource(packageJsonPath, subpath = '.') {
 		/** @type {PackageJson} */
 		const pkgJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
-		// Check if main/module/exports point to .ripple files
+		// Check if main/module/exports point to Ripple source files
 		/** @param {string | undefined} p */
-		const checkPath = (p) => p && typeof p === 'string' && p.endsWith('.ripple');
+		const checkPath = (p) => p && typeof p === 'string' && is_ripple_module_path(p);
 
 		// Handle exports field (modern)
 		if (pkgJson.exports) {
@@ -232,7 +242,7 @@ function hasRippleSource(packageJsonPath, subpath = '.') {
 			}
 		}
 
-		// Last resort: scan the package directory for .ripple files
+		// Last resort: scan the package directory for Ripple source files
 		const packageDir = packageJsonPath.replace('/package.json', '');
 		return hasRippleFilesInDirectory(packageDir);
 	} catch (e) {
@@ -241,7 +251,7 @@ function hasRippleSource(packageJsonPath, subpath = '.') {
 }
 
 /**
- * Recursively check if a directory contains any .ripple files
+ * Recursively check if a directory contains any Ripple source files
  * @param {string} dir
  * @param {number} [maxDepth=3]
  * @returns {boolean}
@@ -258,7 +268,7 @@ function hasRippleFilesInDirectory(dir, maxDepth = 3) {
 				continue;
 			}
 
-			if (entry.isFile() && entry.name.endsWith('.ripple')) {
+			if (entry.isFile() && is_ripple_module_path(entry.name)) {
 				return true;
 			}
 
@@ -699,18 +709,18 @@ export function ripple(inlineOptions = {}) {
 			},
 
 			/**
-			 * Handle HMR for .ripple files.
+			 * Handle HMR for Ripple source files.
 			 *
 			 * Inspired by vite-plugin-svelte's approach: instead of manually
 			 * re-compiling in hotUpdate, we use `transformRequest` to run the
 			 * full Vite pipeline (load → transform). This updates cssCache
 			 * via the existing transform hook and avoids double-compilation.
 			 *
-			 * After the .ripple file is re-transformed, we invalidate and
+			 * After the source file is re-transformed, we invalidate and
 			 * include the virtual CSS module in the HMR update so the browser
 			 * receives fresh CSS in sync with the re-rendered component.
 			 *
-			 * For non-.ripple files that don't self-accept, we invalidate
+			 * For non-Ripple files that don't self-accept, we invalidate
 			 * SSR modules and trigger a full reload.
 			 */
 			hotUpdate: {
@@ -720,7 +730,7 @@ export function ripple(inlineOptions = {}) {
 
 					let updated_modules = modules;
 
-					if (file.endsWith('.ripple')) {
+					if (is_ripple_module_path(file)) {
 						const filename = file.replace(root, '');
 						const cssId = createVirtualImportId(filename, root, 'style');
 
@@ -729,7 +739,7 @@ export function ripple(inlineOptions = {}) {
 
 						// Use transformRequest to run the standard Vite pipeline.
 						// This triggers our transform hook which re-compiles the
-						// .ripple file and updates cssCache as a side-effect.
+						// source file and updates cssCache as a side-effect.
 						try {
 							await this.environment.transformRequest(filename);
 						} catch {
@@ -750,7 +760,7 @@ export function ripple(inlineOptions = {}) {
 						}
 					}
 
-					// Non-.ripple files: if all modules self-accept, let Vite
+					// Non-Ripple files: if all modules self-accept, let Vite
 					// handle. Otherwise invalidate SSR and full-reload.
 					if (modules.length > 0 && modules.every((m) => m.isSelfAccepting)) {
 						return updated_modules === modules ? undefined : updated_modules;
@@ -1149,7 +1159,7 @@ import { hydrate, mount } from 'ripple';
 			},
 
 			transform: {
-				filter: { id: /\.ripple$/ },
+				filter: { id: RIPPLE_EXTENSION_PATTERN },
 
 				async handler(code, id, opts) {
 					const filename = id.replace(root, '');

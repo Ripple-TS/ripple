@@ -4,6 +4,15 @@ const { CompletionItemKind, InsertTextFormat } = require('@volar/language-server
 const { getVirtualCode, createLogging, isInsideImport, isInsideExport } = require('./utils.js');
 
 const { log } = createLogging('[Ripple Completion Plugin]');
+const RIPPLE_EXTENSIONS = ['.ripple', '.tsrx'];
+
+/**
+ * @param {string} document_uri
+ * @returns {boolean}
+ */
+function is_ripple_document(document_uri) {
+	return RIPPLE_EXTENSIONS.some((extension) => document_uri.endsWith(extension));
+}
 
 /**
  * Snippets that require auto-import from 'ripple'
@@ -374,7 +383,7 @@ function createCompletionPlugin() {
 				// This ensures TypeScript/JavaScript completions are still shown alongside Ripple snippets
 				isAdditionalCompletion: true,
 				async provideCompletionItems(document, position, completionContext, _token) {
-					if (!document.uri.endsWith('.ripple')) {
+					if (!is_ripple_document(document.uri)) {
 						return { items: [], isIncomplete: false };
 					}
 

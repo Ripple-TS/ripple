@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import prettier from 'prettier';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { languages } from './index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -39,6 +40,16 @@ expect.extend({
 });
 
 describe('prettier-plugin', () => {
+	it('registers .tsrx as a supported file extension', () => {
+		const ripple_language = languages?.[0];
+
+		if (!ripple_language) {
+			throw new Error('Missing Ripple language metadata');
+		}
+
+		expect(ripple_language.extensions).toContain('.tsrx');
+	});
+
 	/**
 	 * @param {string} code
 	 * @param {import('prettier').Options} [options]

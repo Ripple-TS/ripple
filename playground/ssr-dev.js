@@ -7,7 +7,7 @@ import { executeServerFunction } from 'ripple/server';
 
 const PORT = process.env.PORT || '5173';
 const DEBUG = process.env.DEBUG_APP === 'true';
-const APP_PATH = path.resolve(DEBUG ? './debug/server/App.js' : './src/App.ripple');
+const APP_PATH = path.resolve(DEBUG ? './debug/server/App.js' : './src/App.tsrx');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
