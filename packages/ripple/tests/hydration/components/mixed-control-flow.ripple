@@ -109,6 +109,6 @@ export component MixedControlFlowAsyncPending() {
 }
 
 component AsyncRow({ label }: { label: string }) {
-	let value = trackAsync(() => Promise.resolve(label));
+	let &[value] = trackAsync(() => Promise.resolve(label));
 	<div class="resolved-row">{value}</div>
 }
