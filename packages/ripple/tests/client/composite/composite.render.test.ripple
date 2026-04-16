@@ -192,3 +192,49 @@ describe('composite > render', () => {
 		expect(div.innerHTML).not.toContain('<undefined');
 	});
 });
+
+describe('scoped styles with children', () => {
+	it('generates correct CSS hashes for wrapper and child with empty style in App', () => {
+		component Wrapper(&{ children }: { children?: Component }) {
+			<div class="green">
+				{'Wrapper'}
+				{children}
+			</div>
+
+			<style>
+				.green {
+					color: green;
+				}
+			</style>
+		}
+
+		component Child() {
+			<div class="red">{'Child'}</div>
+
+			<style>
+				.red {
+					color: red;
+				}
+			</style>
+		}
+
+		component App() {
+			<Wrapper>
+				<Child />
+			</Wrapper>
+			<style></style>
+		}
+
+		render(App);
+
+		const wrapper = container.querySelector('.green');
+		const child = container.querySelector('.red');
+
+		const wrapper_classes = Array.from(wrapper.classList).filter((c) => c.startsWith('ripple-'));
+		const child_classes = Array.from(child.classList).filter((c) => c.startsWith('ripple-'));
+
+		expect(wrapper_classes).toHaveLength(1);
+		expect(child_classes).toHaveLength(1);
+		expect(wrapper_classes[0]).not.toBe(child_classes[0]);
+	});
+});

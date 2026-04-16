@@ -404,7 +404,13 @@ const visitors = {
 			b.stmt(b.call('_$_.push_component')),
 			...transform_body(node.body, {
 				...context,
-				state: { ...context.state, component: node, metadata },
+				state: {
+					...context.state,
+					component: node,
+					metadata,
+					applyParentCssScope:
+						node.id?.name === 'render_children' ? context.state.applyParentCssScope : undefined,
+				},
 			}),
 			b.stmt(b.call('_$_.pop_component')),
 		);

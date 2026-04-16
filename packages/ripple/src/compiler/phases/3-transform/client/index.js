@@ -2033,6 +2033,7 @@ const visitors = {
 
 		const component_scope = context.state.scopes.get(node) || context.state.scope;
 		const is_ripple_element = context.state.is_ripple_element;
+		const is_synthetic_children = node.id?.name === 'render_children';
 		const transformed_body = transform_body(node.body, {
 			...context,
 			state: {
@@ -2042,6 +2043,7 @@ const visitors = {
 				metadata,
 				scope: component_scope,
 				is_ripple_element: false,
+				applyParentCssScope: is_synthetic_children ? context.state.applyParentCssScope : undefined,
 			},
 		});
 
