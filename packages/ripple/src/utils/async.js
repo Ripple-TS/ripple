@@ -1,11 +1,4 @@
 /**
-@import { Derived as ClientDerived } from '#client';
-@import { Derived as ServerDerived } from '#server';
-*/
-
-import { DERIVED_UPDATED } from '../runtime/internal/client/constants.js';
-
-/**
  * @param {any} value
  * @returns {value is PromiseLike<any>}
  */
@@ -39,17 +32,4 @@ export function get_async_track_result(value, type) {
 	}
 
 	return null;
-}
-
-/**
- * @param {ClientDerived | ServerDerived} computed
- * @returns {boolean}
- */
-export function abort_async_derived_request(computed) {
-	var abort_controller = computed.aa;
-	if (abort_controller?.signal.aborted === false) {
-		abort_controller.abort(DERIVED_UPDATED);
-		return true;
-	}
-	return false;
 }

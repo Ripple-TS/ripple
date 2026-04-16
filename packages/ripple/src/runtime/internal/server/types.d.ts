@@ -22,11 +22,6 @@ export type Derived = {
 	f: number;
 	fn: Function;
 	v: any;
-	ia: boolean;
-	aa: AbortController | null;
-	ap: PromiseLike<any> | null;
-	dr: ((value?: any) => void) | null;
-	dj: ((reason?: any) => void) | null;
 	readonly [0]: any;
 	[1]: Derived;
 	value: any;
@@ -39,6 +34,8 @@ export type Tracked = {
 	c: number;
 	f: number;
 	v: any;
+	aa: AbortController | null;
+	ap: PromiseLike<any> | null;
 	readonly [0]: any;
 	[1]: Tracked;
 	value: any;

@@ -937,7 +937,7 @@ function flush_updates(root_block) {
 
 	var arr_length = 0;
 
-	// Phase 1: pre-effects (update tracked values before render blocks read them)
+	// Phase 1: pre-effects (e.g. update tracked values before render blocks read them)
 	arr_length = pre_effects.length;
 	for (var i = 0; i < arr_length; i++) {
 		var block = pre_effects[i];

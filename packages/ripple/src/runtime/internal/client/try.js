@@ -187,7 +187,7 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null) {
 		active_requests.clear();
 		clear_paused_blocks();
 
-		// Reject all pending deferred promises so dependent deriveds' settle
+		// Reject all pending deferred promises so dependent async tracked settle
 		// handlers fire and clean up. The settle will see the request already
 		// cleared and skip error routing, avoiding double-catch.
 		if (pending_deferreds.size > 0) {

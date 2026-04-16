@@ -32,6 +32,7 @@ import {
 	SUSPENSE_PENDING,
 	SUSPENSE_REJECTED,
 	ASYNC_DERIVED_READ_THROWN,
+	DERIVED_UPDATED,
 } from '../client/constants.js';
 import {
 	is_ripple_object,
@@ -125,8 +126,7 @@ export let active_block = null;
 export let tracking = false;
 /** @type {null | Dependency} */
 let active_dependency = null;
-/** @type {null | Derived} */
-let active_derived_run = null;
+let inside_async_track = false;
 /** @type {ElementContext | undefined} */
 let current_element;
 /** @type {Set<string>} */
@@ -139,8 +139,7 @@ export function reset_state() {
 	active_component = null;
 	active_block = null;
 	active_dependency = null;
-	active_derived_run = null;
-	current_element = undefined;
+	inside_async_track = false;
 	tracking = false;
 	seen_warnings = new Set();
 	current_element = undefined;
@@ -262,18 +261,10 @@ function update_derived(computed) {
 }
 
 /**
- * @param {Derived} computed
+ * @param {Tracked} computed
  * @param {any} value
  */
-function update_derived_value(computed, value) {
-	computed.v = value;
-}
-
-/**
- * @param {Derived} computed
- * @param {any} value
- */
-function update_derived_value_clock(computed, value) {
+function update_tracked_value_clock(computed, value) {
 	computed.v = value;
 	computed.c = increment_clock();
 }
@@ -285,54 +276,27 @@ function run_derived(computed) {
 	var previous_tracking = tracking;
 	var previous_dependency = active_dependency;
 	var previous_component = active_component;
-	var previous_active_derived_run = active_derived_run;
 
 	try {
 		tracking = true;
 		active_dependency = null;
 		active_component = computed.co;
-		active_derived_run = computed;
 
 		var value = computed.fn();
 
 		computed.d = active_dependency;
 
-		return normalize_derived_value(computed, value, undefined);
+		return value;
 	} catch (error) {
 		computed.d = active_dependency;
 		if (error === ASYNC_DERIVED_READ_THROWN) {
-			if (!computed.dr && !computed.dj) {
-				// any regular or async derived needs deferred promise,
-				// as they can be dependencies for other deriveds.
-				// Only create the synthetic promise once in case
-				// there are multiple async dependencies used in the derived
-				var deferred_promise = new Promise((resolve, reject) => {
-					computed.dr = resolve;
-					computed.dj = (error) => {
-						update_derived_value(computed, SUSPENSE_REJECTED);
-						computed.dr = null;
-						computed.dj = null;
-						reject(error);
-					};
-				});
-
-				if (computed.d?.t.v === SUSPENSE_PENDING) {
-					/** @type {PromiseLike<any>} */ (/** @type {Derived}*/ (computed.d.t).ap).then(
-						// rerun the derived once the dependent promise resolves
-						() => {
-							run_derived(computed);
-						},
-						(error) => {
-							if (computed.dj) {
-								computed.dj(error);
-							} else {
-								update_derived_value(computed, SUSPENSE_REJECTED);
-							}
-						},
-					);
+			// Check if any dependency is rejected — if so, propagate rejection
+			var dep = active_dependency;
+			while (dep !== null) {
+				if (dep.t.v === SUSPENSE_REJECTED) {
+					return SUSPENSE_REJECTED;
 				}
-
-				return normalize_derived_value(computed, deferred_promise, 'deferred');
+				dep = dep.n;
 			}
 			return SUSPENSE_PENDING;
 		}
@@ -341,7 +305,6 @@ function run_derived(computed) {
 		tracking = previous_tracking;
 		active_dependency = previous_dependency;
 		active_component = previous_component;
-		active_derived_run = previous_active_derived_run;
 	}
 }
 
@@ -819,31 +782,27 @@ export function get(tracked) {
 		update_derived(/** @type {Derived} **/ (tracked));
 		if (tracking) {
 			register_dependency(tracked);
-
-			// When the derived is still pending or rejected, throw to bail out of the
-			// current block so the rest of the component tree can continue processing
-			// (avoiding waterfalls). We check `v === SUSPENSE_PENDING` rather than `aq`
-			// because users can temporarily overwrite `v` on a derived, in which case
-			// the processing should continue without throwing since we assume that the values
-			// are consistent with the code's logic.
-			if (tracked.v === SUSPENSE_PENDING || tracked.v === SUSPENSE_REJECTED) {
-				if (
-					!active_derived_run &&
-					(!active_block || active_block.f & COMPONENT_BLOCK || active_block.f & TRY_BLOCK)
-				) {
-					// if reading directly inside a component or try block,
-					// or not inside a derived function execution
-					// throw a fatal error as this is prohibited
-					throw new Error(
-						'Reads on pending tracked values directly inside component body are prohibited. Use trackPending() test for safe access or create another derived instead.',
-					);
-				}
-
-				throw ASYNC_DERIVED_READ_THROWN;
-			}
 		}
 	} else if (tracking) {
 		register_dependency(tracked);
+	}
+
+	if (tracked.v === SUSPENSE_PENDING || tracked.v === SUSPENSE_REJECTED) {
+		var is_try_block = false;
+		if (
+			!inside_async_track &&
+			(!active_block ||
+				active_block.f & COMPONENT_BLOCK ||
+				(is_try_block = (active_block.f & TRY_BLOCK) !== 0))
+		) {
+			throw new Error(
+				`Reads on pending tracked or derived values directly inside ${is_try_block ? 'try' : 'component'} body are prohibited. Use trackPending() test for safe access or create another derived instead.`,
+			);
+		}
+
+		// this show be caught by the run_block and the block will be re-run
+		// once the async tracked dependency's promise resolves
+		throw ASYNC_DERIVED_READ_THROWN;
 	}
 
 	var g = tracked.a.get;
@@ -1020,6 +979,8 @@ class TrackedValue {
 	 */
 	constructor(v, a) {
 		this.a = a;
+		this.aa = null;
+		this.ap = null;
 		this.c = 0;
 		this.f = TRACKED;
 		this.v = v;
@@ -1064,14 +1025,9 @@ class DerivedValue {
 		this.c = 0;
 		this.co = active_component;
 		this.d = null;
-		this.f = TRACKED | DERIVED;
+		this.f = DERIVED;
 		this.fn = fn;
 		this.v = UNINITIALIZED;
-		this.ia = false;
-		this.aa = null;
-		this.ap = null;
-		this.dr = null;
-		this.dj = null;
 	}
 	get [0]() {
 		return get(/** @type {Derived} */ (this));
@@ -1140,8 +1096,126 @@ export function track(v, get, set) {
 }
 
 /**
+ * Runs the async tracked function, handling sync results, async results,
+ * and chained cases where fn() reads a pending dependency.
+ * @param {Tracked} t
+ * @param {() => any} fn
+ * @param {Block} block
+ * @param {((value?: any) => void) | null} dr
+ * @param {((reason?: any) => void) | null} dj
+ */
+function run_track_async(t, fn, block, dr, dj) {
+	var previous_tracking = tracking;
+	var previous_dependency = active_dependency;
+	var previous_inside = inside_async_track;
+	tracking = true;
+	active_dependency = null;
+	inside_async_track = true;
+
+	var result;
+	/** @type {Dependency | null} */
+	var caught_dep = null;
+	var caught = false;
+
+	try {
+		result = fn();
+	} catch (error) {
+		caught_dep = active_dependency;
+		caught = true;
+
+		if (error !== ASYNC_DERIVED_READ_THROWN) {
+			throw error;
+		}
+	} finally {
+		tracking = previous_tracking;
+		active_dependency = previous_dependency;
+		inside_async_track = previous_inside;
+	}
+
+	if (caught) {
+		// Chained case: fn() read a pending tracked/derived dependency
+		// Check if any dependency is rejected
+		var dep = /** @type {Dependency | null} */ (caught_dep);
+		while (dep !== null) {
+			if (dep.t.v === SUSPENSE_REJECTED) {
+				update_tracked_value_clock(t, SUSPENSE_REJECTED);
+				if (dj) {
+					dj(new Error('Upstream dependency rejected'));
+				}
+				return;
+			}
+			dep = dep.n;
+		}
+
+		// Create synthetic promise if first time (for downstream chaining)
+		if (!dr) {
+			t.ap = new Promise((resolve, reject) => {
+				dr = resolve;
+				dj = reject;
+			});
+		}
+
+		// Find the pending dependency with a promise and chain on it
+		dep = /** @type {Dependency | null} */ (caught_dep);
+		while (dep !== null) {
+			var dep_tracked = /** @type {Tracked} */ (dep.t);
+			if ((dep_tracked.f & TRACKED) !== 0 && dep_tracked.v === SUSPENSE_PENDING && dep_tracked.ap) {
+				/** @type {PromiseLike<any>} */ (dep_tracked.ap).then(
+					() => run_track_async(t, fn, block, dr, dj),
+					(error) => {
+						update_tracked_value_clock(t, SUSPENSE_REJECTED);
+						if (dj) {
+							dj(error);
+						}
+						route_error_to_catch_block(get_closest_catch_block(block), error);
+					},
+				);
+				return;
+			}
+			dep = dep.n;
+		}
+		return;
+	}
+
+	// Handle the result
+	var async_result = get_async_track_result(result);
+
+	if (async_result === null) {
+		// Sync result
+		update_tracked_value_clock(t, result);
+		if (dr) {
+			dr(result);
+		}
+		return;
+	}
+
+	t.aa = async_result.abort_controller;
+
+	if (!dr) {
+		// First run, no chaining — set real promise directly
+		t.ap = async_result.promise;
+	}
+
+	async_result.promise.then(
+		(resolved) => {
+			update_tracked_value_clock(t, resolved);
+			if (dr) {
+				dr(resolved);
+			}
+		},
+		(error) => {
+			update_tracked_value_clock(t, SUSPENSE_REJECTED);
+			if (dj) {
+				dj(error);
+			}
+			route_error_to_catch_block(get_closest_catch_block(block), error);
+		},
+	);
+}
+
+/**
  * @param {any} v
- * @returns {Derived | void}
+ * @returns {Tracked | void}
  */
 export function track_async(v) {
 	if (is_ripple_object(v)) {
@@ -1154,10 +1228,10 @@ export function track_async(v) {
 		);
 	}
 
-	var d = derived(v, undefined, undefined);
-	d.ia = true;
-	update_derived(d);
-	return d;
+	var t = tracked(SUSPENSE_PENDING);
+	var block = /** @type {Block} */ (active_block);
+	run_track_async(t, v, block, null, null);
+	return t;
 }
 
 /**
@@ -1193,14 +1267,6 @@ export function peek_tracked(tracked) {
 }
 
 /**
- * @returns {Derived}
- */
-function get_active_derived() {
-	// this should always be a derived with a promise when ASYNC_DERIVED_READ_THROWN is thrown
-	return /** @type {Derived} */ (active_dependency?.t);
-}
-
-/**
  * Routes an error to the nearest catch boundary: clears output, cancels
  * pending async work, and invokes the catch handler if one exists.
  * @param {TryBlockWithCatch} catch_block
@@ -1220,26 +1286,35 @@ function route_error_to_catch_block(catch_block, error) {
  * @returns {void}
  */
 function register_block_rerun(block) {
-	var computed = get_active_derived();
+	// Find the pending dependency with a promise in the dependency chain.
+	var dep_entry = active_dependency;
+	// tracked async must exist as otherwise we wouldn't have thrown the ASYNC_DERIVED_READ_THROWN
+	/** @type {Tracked | null} */
+	var t = null;
+	while (dep_entry !== null) {
+		var d = /** @type {Tracked} */ (dep_entry.t);
+		if ((d.f & TRACKED) !== 0 && d.v === SUSPENSE_PENDING && d.ap) {
+			t = d;
+			break;
+		}
+		dep_entry = dep_entry.n;
+	}
 
 	var cancelled = false;
 	var try_catch_block = get_closest_catch_block(block);
 	var operation = {
 		cancel: () => {
 			cancelled = true;
-			if (computed.aa) {
-				computed.aa.abort();
-				computed.aa = null;
-				computed.ap = null;
+			if (t && t.aa) {
+				t.aa.abort(DERIVED_UPDATED);
+				t.aa = null;
+				t.ap = null;
 			}
-			// null out deferred resolve/reject without calling dj(),
-			// to avoid rejecting the deferred promise with undefined
-			computed.dr = null;
-			computed.dj = null;
 		},
 	};
+
 	try_catch_block.o.registerAsync(operation);
-	/** @type {PromiseLike<any>} */ (computed.ap).then(
+	/** @type {PromiseLike<any>} */ (/** @type {Tracked} */ (t).ap).then(
 		() => {
 			if (cancelled) {
 				return;
@@ -1271,6 +1346,7 @@ export function run_block(block) {
 	var previous_component = active_component;
 	var previous_tracking = tracking;
 	var previous_dependency = active_dependency;
+	var previous_element = current_element;
 	try {
 		active_block = block;
 		active_component = block.co;
@@ -1301,76 +1377,8 @@ export function run_block(block) {
 		active_component = previous_component;
 		tracking = previous_tracking;
 		active_dependency = previous_dependency;
+		current_element = previous_element;
 	}
-}
-
-/**
- * @param {Derived} computed
- * @param {any} value
- * @param {'deferred' | undefined} type
- * @returns {any}
- */
-function normalize_derived_value(computed, value, type) {
-	var async_result = get_async_track_result(value, type);
-
-	// TODO: need a test where a regular track (not derived) attempts to use a pending async derived
-	// this should throw an error
-
-	// TODO: if we're inside a try / resolving block, and we read the async track directly inside but
-	// outside of a derived function, should we also throw error that you cannot read pending async
-	// since we'd have to rerun the try/resolving block which would have to rerun the derived
-	// so we don't want to do this.  Same for the client side.
-	// We can set the try/resolving block with a special type and throw error if it's the active_block
-	// currently, for the server-side, we check this in `update_derived()`
-	// This is also assuming that trackAsync is only allowed directly in components and inside try / resolving blocks
-	// So, need to create tests for this
-
-	if (async_result === null || (!computed.ia && async_result.type !== 'deferred')) {
-		// This means it's a regular derived (non-async, non-deferred), so we just return the value
-		return value;
-	}
-
-	computed.aa = async_result.abort_controller;
-	// if computed.ap was a synthetic deferred promise, it's fine to replace it,
-	// as the already attached then-ables would still fire because we attach then() on the real
-	// and call .dr or .dj of the synthetic promise when the real one resolves/rejects
-	// see the logic below for the `!== 'deferred'` check
-	computed.ap = async_result.promise;
-
-	// this has to be the real promise that was returned by the async derived's function
-	async_result.promise.then(
-		(resolved) => {
-			// the updates for the derived value must run first, so that SUSPENSE_PENDING
-			// is replaced by the real value, before any other thenable can run
-			// and read the derived's value
-			update_derived_value_clock(computed, resolved);
-		},
-		(error) => {
-			update_derived_value(computed, SUSPENSE_REJECTED);
-			route_error_to_catch_block(get_closest_catch_block(computed.b), error);
-		},
-	);
-
-	// This thenable for the synthetic promise has to be chained after the one
-	// that replaces SUSPENSE_PENDING with the real resolved value,
-	// so that all those derived dependencies and blocks rerun only when
-	// the synthetic contains the real values
-	if (computed.dr !== null && async_result?.type !== 'deferred') {
-		// This is the real promise result vs the synthetic `deferred`
-		// This means that the derived's callback was finally able to run without throwing
-		// as its async derived dependencies have now resolved.
-		if (async_result !== null) {
-			// the function passed to trackAsync returned a promise
-			async_result.promise.then(computed.dr, computed.dj);
-		} else {
-			// regular derived that previously threw ASYNC_DERIVED_READ_THROWN
-			computed.dr(value);
-		}
-		computed.dr = null;
-		computed.dj = null;
-	}
-
-	return SUSPENSE_PENDING;
 }
 
 /**
