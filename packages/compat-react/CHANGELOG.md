@@ -1,5 +1,26 @@
 # @ripple-ts/compat-react
 
+## 0.3.11
+
+### Patch Changes
+
+- [#840](https://github.com/Ripple-TS/ripple/pull/840)
+  [`13323dd`](https://github.com/Ripple-TS/ripple/commit/13323dddbcb68e1e8e373142884a7c54fbb76cd7)
+  Thanks [@trueadm](https://github.com/trueadm)! - Remove the `compat` option from
+  `mount()` and `hydrate()`, and stop exporting the old public compat types from
+  `ripple`. Compat integrations are now expected to be provided by the Vite plugin
+  via `ripple.config.ts`, while direct runtime tests can seed the generated global
+  compat registry.
+
+  Also add the `reactCompat()` config-facing helper from `@ripple-ts/compat-react`
+  for use in `ripple.config.ts`.
+
+- Updated dependencies
+  [[`6792c70`](https://github.com/Ripple-TS/ripple/commit/6792c700db30ec0c25077bf8892753f18eddc5cc),
+  [`f2624a6`](https://github.com/Ripple-TS/ripple/commit/f2624a6596479480c47317ea3030863214a6e2b3),
+  [`13323dd`](https://github.com/Ripple-TS/ripple/commit/13323dddbcb68e1e8e373142884a7c54fbb76cd7)]:
+  - ripple@0.3.11
+
 ## 0.3.10
 
 ### Patch Changes
