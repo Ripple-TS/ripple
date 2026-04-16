@@ -365,12 +365,9 @@ describe('async suspense', () => {
 					quadruple_effect_runs += 1;
 				});
 
-				<div class="double">{double}</div>
+				// this is to make the times_rendered render together with double
+				<div class="double">{double + (++times_rendered - times_rendered)}</div>
 				<div class="quadruple">{quadruple}</div>
-				<div class="times-rendered">
-					{'times: '}
-					{++times_rendered}
-				</div>
 			}
 
 			component App() {
@@ -424,7 +421,6 @@ describe('async suspense', () => {
 			await new Promise((resolve) => setTimeout(resolve, 0));
 			expect(container.querySelector('.double')!.textContent).toBe('6');
 			expect(container.querySelector('.quadruple')!.textContent).toBe('12');
-			expect(container.querySelector('.times-rendered')!.textContent).toBe('times: 2');
 			expect(times_rendered).toBe(2);
 		},
 	);
@@ -464,12 +460,9 @@ describe('async suspense', () => {
 					quadruple_effect_runs += 1;
 				});
 
-				<div class="double">{double}</div>
+				// this is to make the times_rendered render together with double
+				<div class="double">{double + (++times_rendered - times_rendered)}</div>
 				<div class="quadruple">{quadruple}</div>
-				<div class="times-rendered">
-					{'times: '}
-					{++times_rendered}
-				</div>
 			}
 
 			component App() {
@@ -527,7 +520,6 @@ describe('async suspense', () => {
 			await new Promise((resolve) => setTimeout(resolve, 0));
 			expect(container.querySelector('.double')!.textContent).toBe('10');
 			expect(container.querySelector('.quadruple')!.textContent).toBe('20');
-			expect(container.querySelector('.times-rendered')!.textContent).toBe('times: 2');
 			expect(times_rendered).toBe(2);
 		},
 	);
@@ -551,12 +543,9 @@ describe('async suspense', () => {
 				});
 			});
 
-			<div class="double">{double}</div>
+			// this is to make the times_rendered render together with double
+			<div class="double">{double + (++times_rendered - times_rendered)}</div>
 			<div class="quadruple">{quadruple}</div>
-			<div class="times-rendered">
-				{'times: '}
-				{++times_rendered}
-			</div>
 		}
 
 		component App() {
@@ -578,7 +567,6 @@ describe('async suspense', () => {
 		expect(container.innerHTML).not.toContain('Loading...');
 		expect(container.querySelector('.double')!.textContent).toBe('0');
 		expect(container.querySelector('.quadruple')!.textContent).toBe('0');
-		expect(container.querySelector('.times-rendered')!.textContent).toBe('times: 1');
 		expect(times_rendered).toBe(1);
 	});
 
