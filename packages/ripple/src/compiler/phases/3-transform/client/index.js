@@ -2032,9 +2032,7 @@ const visitors = {
 
 		const func = b.function(
 			node.id,
-			node.params.length > 0
-				? [b.id('__anchor'), props, b.id('__block')]
-				: [b.id('__anchor'), b.id('_'), b.id('__block')],
+			params,
 			b.block([...style_statements, ...(prop_statements ?? []), ...body_statements]),
 		);
 

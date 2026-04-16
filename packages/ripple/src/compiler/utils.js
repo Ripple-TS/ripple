@@ -288,7 +288,7 @@ export function is_ripple_track_call(callee, context) {
 		!callee.computed &&
 		is_ripple_import(callee, context)
 	) {
-		return 'track';
+		return callee.property.name;
 	}
 
 	return null;

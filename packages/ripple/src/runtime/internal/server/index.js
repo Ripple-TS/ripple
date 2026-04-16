@@ -12,7 +12,7 @@
 
 // Internal Types
 /**
-@typedef {(output: Output, props?: Props) => void} RenderComponent
+@typedef {(props?: Props) => void} RenderComponent
 @typedef {{
 	tag: string;
 	parent: undefined | ElementContext;
@@ -606,7 +606,7 @@ export async function render(component, passed_in_options = {}) {
 			if (options.stream) {
 				output._setStream(options.stream);
 			}
-			component(output, {});
+			component({});
 			output._decrementPending();
 			output._finishSyncRun();
 

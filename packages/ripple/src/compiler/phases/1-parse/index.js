@@ -1372,7 +1372,8 @@ function RipplePlugin(config) {
 						clause.resetParam = null;
 						this.enterScope(0);
 					}
-					clause.body = this.parseBlock();
+					clause.body = this.parseBlock(false);
+					this.exitScope();
 					node.handler = this.finishNode(clause, 'CatchClause');
 				}
 				node.finalizer = this.eat(tt._finally) ? this.parseBlock() : null;
