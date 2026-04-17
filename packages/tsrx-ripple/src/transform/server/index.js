@@ -12,11 +12,11 @@
 import {
 	builders,
 	escape,
-	is_event_attribute,
-	render_stylesheets,
+	isEventAttribute,
+	renderStylesheets,
 	STYLE_IDENTIFIER,
 	CSS_HASH_IDENTIFIER,
-	obfuscate_identifier,
+	obfuscateIdentifier,
 	BLOCK_CLOSE,
 	BLOCK_OPEN,
 } from '@tsrx/core';
@@ -56,7 +56,7 @@ import { createHash } from 'node:crypto';
 function is_template_or_control_flow(node) {
 	return (
 		node.type === 'Element' ||
-		node.type === 'RippleExpression' ||
+		node.type === 'TSRXExpression' ||
 		node.type === 'Text' ||
 		node.type === 'Html' ||
 		node.type === 'Tsx' ||
@@ -917,7 +917,7 @@ const visitors = {
 							continue;
 						}
 
-						if (is_event_attribute(name)) {
+						if (isEventAttribute(name)) {
 							continue;
 						}
 						const metadata = { tracking: false };
@@ -1385,7 +1385,7 @@ const visitors = {
 			const locals = state.server_block_locals;
 			for (const spec of node.specifiers) {
 				const original_name = spec.local.name;
-				const name = obfuscate_identifier(original_name);
+				const name = obfuscateIdentifier(original_name);
 				spec.local = b.id(name);
 				locals.push(b.const(original_name, b.id(name)));
 			}
@@ -1496,7 +1496,7 @@ const visitors = {
 		context.state.init?.push(b.stmt(b.call('_$_.try_block', try_fn, catch_fn, pending_fn)));
 	},
 
-	RippleExpression(node, { visit, state }) {
+	TSRXExpression(node, { visit, state }) {
 		let expression = /** @type {AST.Expression} */ (visit(node.expression, state));
 		const is_children_expression = is_children_template_expression(node.expression, state.scope);
 
@@ -1708,13 +1708,13 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 
 	const program = /** @type {AST.Program} */ (walk(analysis.ast, { ...state }, visitors));
 
-	const css = render_stylesheets(state.stylesheets, minify_css);
+	const css = renderStylesheets(state.stylesheets, minify_css);
 
 	// Add CSS registration if there are stylesheets
 	if (state.stylesheets.length > 0 && css) {
 		// Register each stylesheet's CSS
 		for (const stylesheet of state.stylesheets) {
-			const css_for_component = render_stylesheets([stylesheet]);
+			const css_for_component = renderStylesheets([stylesheet]);
 			/** @type {AST.Program} */ (program).body.push(
 				b.stmt(
 					b.call('_$_.register_css', b.literal(stylesheet.hash), b.literal(css_for_component)),

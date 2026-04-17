@@ -1,10 +1,10 @@
 import type * as AST from 'estree';
 import type * as ESTreeJSX from 'estree-jsx';
 import type { TSESTree } from '@typescript-eslint/types';
-import type { Parse } from './parse';
+import type { Parse } from './parse.js';
 import type * as ESRap from 'esrap';
 import type { Position } from 'acorn';
-import type { RequireAllOrNone } from '../src/helpers';
+import type { RequireAllOrNone } from '../src/helpers.js';
 
 export type { Parse };
 
@@ -163,7 +163,7 @@ declare module 'estree' {
 		Component: Component;
 		Tsx: Tsx;
 		TsxCompat: TsxCompat;
-		RippleExpression: RippleExpression;
+		TSRXExpression: TSRXExpression;
 		Html: Html;
 		Element: Element;
 		Text: TextNode;
@@ -329,8 +329,8 @@ declare module 'estree' {
 		expression: AST.Expression;
 	}
 
-	export interface RippleExpression extends AST.BaseExpression {
-		type: 'RippleExpression';
+	export interface TSRXExpression extends AST.BaseExpression {
+		type: 'TSRXExpression';
 		expression: AST.Expression;
 		loc?: AST.SourceLocation;
 	}
@@ -339,7 +339,7 @@ declare module 'estree' {
 		type: 'Element';
 		// MemberExpression for namespaced or dynamic elements
 		id: AST.Identifier | AST.MemberExpression;
-		attributes: RippleAttribute[];
+		attributes: TSRXAttribute[];
 		children: AST.Node[];
 		selfClosing?: boolean;
 		unclosed?: boolean;
@@ -421,33 +421,33 @@ declare module 'estree' {
 	 * Ripple's extended Declaration type that includes Component
 	 * Use this instead of Declaration when you need Component support
 	 */
-	export type RippleDeclaration = AST.Declaration | Component | AST.TSDeclareFunction;
+	export type TSRXDeclaration = AST.Declaration | Component | AST.TSDeclareFunction;
 
 	/**
 	 * Ripple's extended ExportNamedDeclaration with Component support
 	 */
-	interface RippleExportNamedDeclaration extends Omit<AST.ExportNamedDeclaration, 'declaration'> {
-		declaration?: RippleDeclaration | null | undefined;
+	interface TSRXExportNamedDeclaration extends Omit<AST.ExportNamedDeclaration, 'declaration'> {
+		declaration?: TSRXDeclaration | null | undefined;
 	}
 
 	/**
 	 * Ripple's extended Program with Component support
 	 */
-	interface RippleProgram extends Omit<Program, 'body'> {
+	interface TSRXProgram extends Omit<Program, 'body'> {
 		body: (Program['body'][number] | Component | FunctionExpression)[];
 	}
 
-	interface RippleMethodDefinition extends Omit<AST.MethodDefinition, 'value'> {
+	interface TSRXMethodDefinition extends Omit<AST.MethodDefinition, 'value'> {
 		value: AST.MethodDefinition['value'] | Component;
 	}
 
-	interface RippleProperty extends Omit<AST.Property, 'value'> {
+	interface TSRXProperty extends Omit<AST.Property, 'value'> {
 		value: AST.Property['value'] | Component;
 	}
 
-	export type RippleAttribute = AST.Attribute | AST.SpreadAttribute | AST.RefAttribute;
+	export type TSRXAttribute = AST.Attribute | AST.SpreadAttribute | AST.RefAttribute;
 
-	export type RippleStatement = AST.Statement | TSESTree.Statement;
+	export type TSRXStatement = AST.Statement | TSESTree.Statement;
 
 	export type NodeWithChildren = AST.Element | AST.Tsx | AST.TsxCompat;
 
@@ -658,11 +658,11 @@ declare module 'estree-jsx' {
 		computed?: boolean;
 	}
 
-	interface RippleJSXOpeningElement extends Omit<JSXOpeningElement, 'name'> {
+	interface TSRXJSXOpeningElement extends Omit<JSXOpeningElement, 'name'> {
 		name: AST.MemberExpression | JSXIdentifier | JSXNamespacedName;
 	}
 
-	interface RippleJSXClosingElement extends Omit<JSXClosingElement, 'name'> {
+	interface TSRXJSXClosingElement extends Omit<JSXClosingElement, 'name'> {
 		name: AST.MemberExpression | JSXIdentifier | JSXNamespacedName;
 	}
 
@@ -1144,7 +1144,7 @@ export interface AnalysisResult {
 /**
  * Configuration for Ripple parser plugin
  */
-export interface RipplePluginConfig {
+export interface TSRXPluginConfig {
 	allowSatisfies?: boolean;
 }
 
@@ -1224,7 +1224,7 @@ export interface Binding {
 /**
  * Root scope manager
  */
-export interface ScopeRoot {
+export interface ScopeRootInterface {
 	/** Set of conflicting/reserved names */
 	conflicts: Set<string>;
 	/** Generate unique identifier name */
@@ -1232,7 +1232,7 @@ export interface ScopeRoot {
 }
 
 export interface ScopeConstructorInterface {
-	root: ScopeRoot;
+	root: ScopeRootInterface;
 	parent: ScopeInterface | null;
 	porous: boolean;
 	error_options: {
@@ -1255,7 +1255,7 @@ export type ScopeConstructorParameters = [
  */
 export interface ScopeInterface {
 	/** Root scope manager */
-	root: ScopeRoot;
+	root: ScopeRootInterface;
 	/** Parent scope */
 	parent: ScopeInterface | null;
 	/** Map of declared bindings */

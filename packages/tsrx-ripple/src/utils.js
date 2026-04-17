@@ -4,49 +4,25 @@
  */
 
 import {
-	build_assignment_value,
-	extract_paths,
+	buildAssignmentValue,
+	extractPaths,
 	builders,
-	is_capture_event,
-	is_non_delegated,
-	normalize_event_name,
+	isBooleanAttribute,
+	isCaptureEvent,
+	isDomProperty,
+	isNonDelegated,
+	isVoidElement,
+	normalizeEventName,
 	hash,
 } from '@tsrx/core';
 const b = builders;
 
 export { hash };
 
-const VOID_ELEMENT_NAMES = [
-	'area',
-	'base',
-	'br',
-	'col',
-	'command',
-	'embed',
-	'hr',
-	'img',
-	'input',
-	'keygen',
-	'link',
-	'meta',
-	'param',
-	'source',
-	'track',
-	'wbr',
-];
-
-/**
- * Returns `true` if `name` is of a void element
- * @param {string} name
- */
-/**
- * Returns true if name is a void element
- * @param {string} name
- * @returns {boolean}
- */
-export function is_void_element(name) {
-	return VOID_ELEMENT_NAMES.includes(name) || name.toLowerCase() === '!doctype';
-}
+// Re-export under the framework's snake_case internal convention.
+export const is_void_element = isVoidElement;
+export const is_boolean_attribute = isBooleanAttribute;
+export const is_dom_property = isDomProperty;
 
 const RESERVED_WORDS = [
 	'arguments',
@@ -108,68 +84,6 @@ export function is_reserved(word) {
 	return RESERVED_WORDS.includes(word);
 }
 
-/**
- * Attributes that are boolean, i.e. they are present or not present.
- */
-const DOM_BOOLEAN_ATTRIBUTES = [
-	'allowfullscreen',
-	'async',
-	'autofocus',
-	'autoplay',
-	'checked',
-	'controls',
-	'default',
-	'disabled',
-	'formnovalidate',
-	'hidden',
-	'indeterminate',
-	'inert',
-	'ismap',
-	'loop',
-	'multiple',
-	'muted',
-	'nomodule',
-	'novalidate',
-	'open',
-	'playsinline',
-	'readonly',
-	'required',
-	'reversed',
-	'seamless',
-	'selected',
-	'webkitdirectory',
-	'defer',
-	'disablepictureinpicture',
-	'disableremoteplayback',
-];
-
-/**
- * Returns true if name is a boolean DOM attribute
- * @param {string} name
- * @returns {boolean}
- */
-export function is_boolean_attribute(name) {
-	return DOM_BOOLEAN_ATTRIBUTES.includes(name);
-}
-
-const DOM_PROPERTIES = [
-	...DOM_BOOLEAN_ATTRIBUTES,
-	'formNoValidate',
-	'isMap',
-	'noModule',
-	'playsInline',
-	'readOnly',
-	'value',
-	'volume',
-	'defaultValue',
-	'defaultChecked',
-	'srcObject',
-	'noValidate',
-	'allowFullscreen',
-	'disablePictureInPicture',
-	'disableRemotePlayback',
-];
-
 // Omits track, trackSplit and trackAsync are they're handled separately
 /** @type {Record<string, {name: string, requiresBlock?: boolean}>} */
 const RIPPLE_IMPORT_CALL_NAME = {
@@ -189,15 +103,6 @@ const RIPPLE_IMPORT_CALL_NAME = {
 };
 
 /**
- * Returns true if name is a DOM property
- * @param {string} name
- * @returns {boolean}
- */
-export function is_dom_property(name) {
-	return DOM_PROPERTIES.includes(name);
-}
-
-/**
  * Determines if an event handler can be delegated
  * @param {string} event_name
  * @param {AST.Node} handler
@@ -208,8 +113,8 @@ export function is_delegated_event(event_name, handler, context) {
 	// Handle delegated event handlers. Bail out if not a delegated event.
 	if (
 		!handler ||
-		is_capture_event(event_name) ||
-		is_non_delegated(normalize_event_name(event_name)) ||
+		isCaptureEvent(event_name) ||
+		isNonDelegated(normalizeEventName(event_name)) ||
 		(handler.type !== 'FunctionExpression' &&
 			handler.type !== 'ArrowFunctionExpression' &&
 			!is_declared_function_within_component(/** @type {AST.Identifier}*/ (handler), context))
@@ -442,7 +347,7 @@ export function visit_assignment_expression(node, context, build_assignment) {
 
 		let changed = false;
 
-		const assignments = extract_paths(node.left).map((path) => {
+		const assignments = extractPaths(node.left).map((path) => {
 			const value = path.expression?.(rhs);
 
 			let assignment = build_assignment('=', path.node, value, context);
@@ -524,7 +429,7 @@ export function build_assignment(operator, left, right, context) {
 		const assign_fn = transform?.assign;
 		if (assign_fn) {
 			let value = /** @type {AST.Expression} */ (
-				context.visit(build_assignment_value(operator, left, right))
+				context.visit(buildAssignmentValue(operator, left, right))
 			);
 
 			return assign_fn(object, value);
@@ -617,13 +522,13 @@ export function normalize_children(children, context) {
 		const prev_child = normalized[i - 1];
 
 		if (
-			(child.type === 'RippleExpression' || child.type === 'Text') &&
-			(prev_child?.type === 'RippleExpression' || prev_child?.type === 'Text')
+			(child.type === 'TSRXExpression' || child.type === 'Text') &&
+			(prev_child?.type === 'TSRXExpression' || prev_child?.type === 'Text')
 		) {
 			if (
-				(child.type === 'RippleExpression' &&
+				(child.type === 'TSRXExpression' &&
 					is_children_template_expression(child.expression, context.state.scope)) ||
-				(prev_child.type === 'RippleExpression' &&
+				(prev_child.type === 'TSRXExpression' &&
 					is_children_template_expression(prev_child.expression, context.state.scope))
 			) {
 				continue;
@@ -1131,7 +1036,7 @@ function jsx_member_expression_to_member_expression(jsx_member) {
 
 /**
  * Converts a JSX AST node (JSXElement, JSXText, etc.) to a Ripple AST node
- * (Element, Text, RippleExpression) for processing inside `<tsx>` blocks.
+ * (Element, Text, TSRXExpression) for processing inside `<tsx>` blocks.
  * @param {AST.Node} node
  * @returns {AST.Node | AST.Node[] | null}
  */
@@ -1247,7 +1152,7 @@ export function jsx_to_ripple_node(node) {
 	if (node.type === 'JSXExpressionContainer') {
 		if (node.expression.type === 'JSXEmptyExpression') return null;
 		return /** @type {AST.Node} */ ({
-			type: 'RippleExpression',
+			type: 'TSRXExpression',
 			expression: node.expression,
 			metadata: {},
 			start: node.start,

@@ -14,7 +14,7 @@ import type * as acorn from 'acorn';
 import type * as AST from 'estree';
 import type * as ESTreeJSX from 'estree-jsx';
 import type * as ESRap from 'esrap';
-import type * as CoreCompiler from './index';
+import type * as CoreCompiler from './index.js';
 import type { RawSourceMap } from 'source-map';
 
 type ForInit = boolean | 'await';
@@ -1196,7 +1196,7 @@ export namespace Parse {
 			topLevel?: boolean,
 			exports?: AST.ExportSpecifier,
 		):
-			| AST.RippleExpression
+			| AST.TSRXExpression
 			| AST.Html
 			| AST.TextNode
 			| ESTreeJSX.JSXEmptyExpression
@@ -1634,7 +1634,7 @@ export namespace Parse {
 		 * Parse JSX attribute (name="value" or {spread})
 		 * @returns JSXAttribute or JSXSpreadAttribute
 		 */
-		jsx_parseAttribute(): AST.RippleAttribute | ESTreeJSX.JSXAttribute;
+		jsx_parseAttribute(): AST.TSRXAttribute | ESTreeJSX.JSXAttribute;
 
 		/**
 		 * Parse JSX opening element at position

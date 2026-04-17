@@ -1,5 +1,15 @@
 # @ripple-ts/vite-plugin
 
+## 0.3.13
+
+### Patch Changes
+
+- [`6e11177`](https://github.com/Ripple-TS/ripple/commit/6e111778cae4e7d9876e51e293520f0859eb5890)
+  Thanks [@trueadm](https://github.com/trueadm)! - Add `.rsrx` support across
+  Ripple tooling and rename the repository's tracked `.ripple` modules to `.rsrx`.
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.3.13
+
 ## 0.3.12
 
 ### Patch Changes

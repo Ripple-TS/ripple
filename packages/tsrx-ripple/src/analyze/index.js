@@ -18,14 +18,14 @@
 
 import {
 	builders,
-	create_scopes,
+	createScopes,
 	ScopeRoot,
-	is_void_element,
-	extract_paths,
-	analyze_css,
+	isVoidElement,
+	extractPaths,
+	analyzeCss,
 	error,
-	is_event_attribute,
-	validate_nesting,
+	isEventAttribute,
+	validateNesting,
 } from '@tsrx/core';
 const b = builders;
 import { walk } from 'zimmerframe';
@@ -210,7 +210,7 @@ function setup_lazy_transforms(pattern, source_id, state, writable, is_track_cal
 		return;
 	}
 
-	const paths = extract_paths(pattern);
+	const paths = extractPaths(pattern);
 
 	for (const path of paths) {
 		const name = /** @type {AST.Identifier} */ (path.node).name;
@@ -299,7 +299,7 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 
 		// Rest elements — fall back to generic source.slice(i)
 		if (element.type === 'RestElement') {
-			const rest_paths = extract_paths(pattern);
+			const rest_paths = extractPaths(pattern);
 			for (const path of rest_paths) {
 				if (!path.is_rest) continue;
 				const name = /** @type {AST.Identifier} */ (path.node).name;
@@ -410,7 +410,7 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 						? (object) => object
 						: (object) => b.member(object, b.literal(i), true);
 
-			const inner_paths = extract_paths(element);
+			const inner_paths = extractPaths(element);
 			for (const path of inner_paths) {
 				const name = /** @type {AST.Identifier} */ (path.node).name;
 				const binding = state.scope.get(name);
@@ -1294,7 +1294,7 @@ const visitors = {
 
 		if (css !== null) {
 			// Analyze CSS to set global selector metadata
-			analyze_css(css);
+			analyzeCss(css);
 
 			for (const node of elements) {
 				prune_css(css, node, metadata.styleClasses, topScopedClasses);
@@ -1399,7 +1399,7 @@ const visitors = {
 		if (node.key) {
 			const state = context.state;
 			const pattern = /** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id;
-			const paths = extract_paths(pattern);
+			const paths = extractPaths(pattern);
 			const scope = /** @type {ScopeInterface} */ (state.scopes.get(node));
 			/** @type {AST.Identifier | AST.Pattern} */
 			let pattern_id;
@@ -1456,7 +1456,7 @@ const visitors = {
 		}
 
 		const exports = server_block.metadata.exports;
-		const declaration = /** @type {AST.RippleExportNamedDeclaration} */ (node).declaration;
+		const declaration = /** @type {AST.TSRXExportNamedDeclaration} */ (node).declaration;
 
 		if (declaration && declaration.type === 'FunctionDeclaration') {
 			exports.add(declaration.id.name);
@@ -1500,7 +1500,7 @@ const visitors = {
 							continue;
 						}
 					} else if (decl.id.type === 'ObjectPattern' || decl.id.type === 'ArrayPattern') {
-						const paths = extract_paths(decl.id);
+						const paths = extractPaths(decl.id);
 						for (const path of paths) {
 							error(
 								'Not implemented: Exported object or array patterns are not supported in server blocks.',
@@ -1864,7 +1864,7 @@ const visitors = {
 			);
 		}
 
-		validate_nesting(node, context);
+		validateNesting(node, context);
 
 		// Store capitalized name for dynamic components/elements
 		// TODO: this is not quite right as the node.id could be a member expression
@@ -1919,7 +1919,7 @@ const visitors = {
 
 					if (
 						children.length !== 1 ||
-						(children[0].type !== 'RippleExpression' && children[0].type !== 'Text')
+						(children[0].type !== 'TSRXExpression' && children[0].type !== 'Text')
 					) {
 						// TODO: could transform children as something, e.g. Text Node, and avoid a fatal error
 						error(
@@ -1960,7 +1960,7 @@ const visitors = {
 				}
 			}
 
-			const is_void = is_void_element(/** @type {AST.Identifier} */ (node.id).name);
+			const is_void = isVoidElement(/** @type {AST.Identifier} */ (node.id).name);
 
 			if (state.elements) {
 				state.elements.push(node);
@@ -2021,7 +2021,7 @@ const visitors = {
 							);
 						}
 
-						if (is_event_attribute(attr.name.name)) {
+						if (isEventAttribute(attr.name.name)) {
 							const handler = visit(/** @type {AST.Expression} */ (attr.value), state);
 							const is_delegated = is_delegated_event(attr.name.name, handler, context);
 
@@ -2077,7 +2077,7 @@ const visitors = {
 					);
 				} else if (child.type !== 'EmptyStatement') {
 					implicit_children.push(
-						child.type === 'RippleExpression' || child.type === 'Text' || child.type === 'Html'
+						child.type === 'TSRXExpression' || child.type === 'Text' || child.type === 'Html'
 							? child.expression
 							: child,
 					);
@@ -2107,7 +2107,7 @@ const visitors = {
 		};
 	},
 
-	RippleExpression(node, context) {
+	TSRXExpression(node, context) {
 		mark_control_flow_has_template(context.path);
 
 		context.next();
@@ -2169,7 +2169,7 @@ export function analyze(ast, filename, options = {}) {
 	const comments = options.comments ?? [];
 	const loose = options.loose ?? false;
 
-	const { scope, scopes } = create_scopes(ast, scope_root, null, {
+	const { scope, scopes } = createScopes(ast, scope_root, null, {
 		loose,
 		errors,
 		filename,

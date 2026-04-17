@@ -1,13 +1,10 @@
 /** @import * as AST from 'estree' */
 /** @import { CompileOptions, CompileError, PostProcessingChanges, LineOffsets, ParseOptions } from '../types/index' */
 
-import { createParser, convert_source_map_to_mappings } from '@tsrx/core';
-import { RipplePlugin } from './plugin.js';
+import { convertSourceMapToMappings, parseModule } from '@tsrx/core';
 import { analyze } from './analyze/index.js';
 import { transform_client } from './transform/client/index.js';
 import { transform_server } from './transform/server/index.js';
-
-const parse_module = createParser(RipplePlugin());
 
 /**
  * Parse Ripple source code to ESTree AST
@@ -17,7 +14,7 @@ const parse_module = createParser(RipplePlugin());
  * @returns {AST.Program}
  */
 export function parse(source, filename, options) {
-	return parse_module(source, filename, options);
+	return parseModule(source, filename, options);
 }
 
 /**
@@ -28,7 +25,7 @@ export function parse(source, filename, options) {
  * @returns {object}
  */
 export function compile(source, filename, options = {}) {
-	const ast = parse_module(source, filename, undefined);
+	const ast = parseModule(source, filename, undefined);
 	const analysis = analyze(ast, filename, options);
 	const result =
 		options.mode === 'server'
@@ -61,7 +58,7 @@ export function compile(source, filename, options = {}) {
 export function compile_to_volar_mappings(source, filename, options = {}) {
 	const errors = /** @type {CompileError[]} */ ([]);
 	const comments = /** @type {AST.CommentWithLocation[]} */ ([]);
-	const ast = parse_module(source, filename, { ...options, errors, comments });
+	const ast = parseModule(source, filename, { ...options, errors, comments });
 	const analysis = analyze(ast, filename, {
 		to_ts: true,
 		loose: !!options?.loose,
@@ -77,7 +74,7 @@ export function compile_to_volar_mappings(source, filename, options = {}) {
 	);
 
 	return {
-		...convert_source_map_to_mappings(
+		...convertSourceMapToMappings(
 			transformed.ast,
 			ast,
 			source,

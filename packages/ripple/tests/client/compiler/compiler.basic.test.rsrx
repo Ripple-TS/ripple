@@ -1,5 +1,5 @@
 import { parse, compile, compile_to_volar_mappings } from '@tsrx/ripple';
-import { obfuscate_identifier } from '@tsrx/core';
+import { obfuscateIdentifier } from '@tsrx/core';
 import type * as AST from 'estree';
 
 function count_occurrences(string: string, subString: string): number {
@@ -59,7 +59,7 @@ describe('compiler > basics', () => {
 		const explicit_text = elements[1].children[0] as AST.TextNode;
 
 		expect(elements).toHaveLength(2);
-		expect(expression.type).toBe('RippleExpression');
+		expect(expression.type).toBe('TSRXExpression');
 		expect((expression.expression as AST.Identifier).name).toBe('markup');
 		expect(explicit_text.type).toBe('Text');
 		expect((explicit_text.expression as AST.Identifier).name).toBe('markup');
@@ -321,15 +321,15 @@ describe('compiler > basics', () => {
 	// `;
 	// 			const result = compile_to_volar_mappings(source, 'test.ripple').code;
 
-	// 			expect(count_occurrences(result, obfuscate_identifier('RippleArray'))).toBe(2);
+	// 			expect(count_occurrences(result, obfuscateIdentifier('RippleArray'))).toBe(2);
 	// 			expect(count_occurrences(result, 'TA')).toBe(1);
-	// 			expect(count_occurrences(result, obfuscate_identifier('RippleObject'))).toBe(2);
+	// 			expect(count_occurrences(result, obfuscateIdentifier('RippleObject'))).toBe(2);
 	// 			expect(count_occurrences(result, 'TO')).toBe(1);
-	// 			expect(count_occurrences(result, obfuscate_identifier('RippleSet'))).toBe(2);
+	// 			expect(count_occurrences(result, obfuscateIdentifier('RippleSet'))).toBe(2);
 	// 			expect(count_occurrences(result, 'TS')).toBe(1);
-	// 			expect(count_occurrences(result, obfuscate_identifier('RippleMap'))).toBe(2);
+	// 			expect(count_occurrences(result, obfuscateIdentifier('RippleMap'))).toBe(2);
 	// 			expect(count_occurrences(result, 'TM')).toBe(1);
-	// 			expect(count_occurrences(result, obfuscate_identifier('createRefKey'))).toBe(2);
+	// 			expect(count_occurrences(result, obfuscateIdentifier('createRefKey'))).toBe(2);
 	// 			expect(count_occurrences(result, 'crk')).toBe(1);
 	// 		},
 	// 	);
@@ -347,11 +347,11 @@ describe('compiler > basics', () => {
 	// `;
 	// 		const result = compile_to_volar_mappings(source, 'test.ripple').code;
 
-	// 		expect(count_occurrences(result, obfuscate_identifier('RippleArray'))).toBe(2);
-	// 		expect(count_occurrences(result, obfuscate_identifier('RippleObject'))).toBe(2);
-	// 		expect(count_occurrences(result, obfuscate_identifier('RippleSet'))).toBe(2);
-	// 		expect(count_occurrences(result, obfuscate_identifier('RippleMap'))).toBe(2);
-	// 		expect(count_occurrences(result, obfuscate_identifier('createRefKey'))).toBe(2);
+	// 		expect(count_occurrences(result, obfuscateIdentifier('RippleArray'))).toBe(2);
+	// 		expect(count_occurrences(result, obfuscateIdentifier('RippleObject'))).toBe(2);
+	// 		expect(count_occurrences(result, obfuscateIdentifier('RippleSet'))).toBe(2);
+	// 		expect(count_occurrences(result, obfuscateIdentifier('RippleMap'))).toBe(2);
+	// 		expect(count_occurrences(result, obfuscateIdentifier('createRefKey'))).toBe(2);
 	// 	});
 
 	it('prints longhand tracked property values in to_ts output while preserving [\'#v\']', () => {

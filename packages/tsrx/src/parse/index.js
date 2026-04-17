@@ -113,7 +113,7 @@ export function isWhitespaceTextNode(node) {
 /**
  * Create a parser by composing Acorn with TypeScript/JSX support and optional framework plugins.
  *
- * This is the core factory for building tsrx-based parsers. Framework plugins (like RipplePlugin)
+ * This is the core factory for building tsrx-based parsers. Framework plugins (like TSRXPlugin)
  * extend the base parser with framework-specific syntax.
  *
  * @param {...(AcornPlugin | Function)} plugins - Framework parser plugins to compose

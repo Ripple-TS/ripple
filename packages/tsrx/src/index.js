@@ -1,14 +1,15 @@
 /**
  * @tsrx/core - Core compiler infrastructure for tsrx-based frameworks
  *
- * Re-exports key modules for convenience.
+ * Public API surface uses camelCase. Internal modules retain snake_case per
+ * the project's code conventions; the exports below alias them at the boundary.
  */
 
 // Parse
+export { parse_module as parseModule } from './parse/parse-module.js';
 export {
-	createParser,
-	get_comment_handlers,
-	convert_from_jsx,
+	get_comment_handlers as getCommentHandlers,
+	convert_from_jsx as convertFromJsx,
 	skipWhitespace,
 	isWhitespaceTextNode,
 	BINDING_TYPES,
@@ -16,10 +17,10 @@ export {
 	acorn,
 	tsPlugin,
 } from './parse/index.js';
-export { parse_style } from './parse/style.js';
+export { parse_style as parseStyle } from './parse/style.js';
 
 // Scope
-export { create_scopes, ScopeRoot, Scope } from './scope.js';
+export { create_scopes as createScopes, ScopeRoot, Scope } from './scope.js';
 
 // Errors
 export { error } from './errors.js';
@@ -51,91 +52,88 @@ export {
 	STYLE_IDENTIFIER,
 	SERVER_IDENTIFIER,
 	CSS_HASH_IDENTIFIER,
-	obfuscate_identifier,
-	is_identifier_obfuscated,
-	deobfuscate_identifier,
+	obfuscate_identifier as obfuscateIdentifier,
+	is_identifier_obfuscated as isIdentifierObfuscated,
+	deobfuscate_identifier as deobfuscateIdentifier,
 } from './identifier-utils.js';
 
 // Comment utils
 export {
-	is_ts_pragma,
-	is_triple_slash_directive,
-	is_jsdoc_ts_annotation,
-	should_preserve_comment,
-	format_comment,
+	is_ts_pragma as isTsPragma,
+	is_triple_slash_directive as isTripleSlashDirective,
+	is_jsdoc_ts_annotation as isJsdocTsAnnotation,
+	should_preserve_comment as shouldPreserveComment,
+	format_comment as formatComment,
 } from './comment-utils.js';
 
 // Generic utils
 export {
 	hash,
-	is_void_element,
-	is_reserved,
-	is_boolean_attribute,
-	is_dom_property,
+	is_void_element as isVoidElement,
+	is_reserved as isReserved,
+	is_boolean_attribute as isBooleanAttribute,
+	is_dom_property as isDomProperty,
 } from './utils.js';
 
 // AST utils
 export {
 	object,
-	unwrap_pattern,
-	extract_identifiers,
-	extract_paths,
-	build_fallback,
-	build_assignment_value,
+	unwrap_pattern as unwrapPattern,
+	extract_identifiers as extractIdentifiers,
+	extract_paths as extractPaths,
+	build_fallback as buildFallback,
+	build_assignment_value as buildAssignmentValue,
 } from './utils/ast.js';
 
-// Builders (namespace re-export)
+// Builders (namespace re-export — members mirror AST node kinds)
 export * as builders from './utils/builders.js';
 
 // Also export individual builder utilities used directly
-export { set_location } from './utils/builders.js';
+export { set_location as setLocation } from './utils/builders.js';
 
 // Event utils
 export {
-	is_non_delegated,
-	is_event_attribute,
-	is_capture_event,
-	get_original_event_name,
-	normalize_event_name,
-	event_name_from_capture,
-	get_attribute_event_name,
-	is_passive_event,
+	is_non_delegated as isNonDelegated,
+	is_event_attribute as isEventAttribute,
+	is_capture_event as isCaptureEvent,
+	get_original_event_name as getOriginalEventName,
+	normalize_event_name as normalizeEventName,
+	event_name_from_capture as eventNameFromCapture,
+	get_attribute_event_name as getAttributeEventName,
+	is_passive_event as isPassiveEvent,
 } from './utils/events.js';
-
-// Hashing (also available via utils.hash)
-// Already exported via ./utils.js
 
 // Patterns
 export {
-	regex_whitespace,
-	regex_whitespaces,
-	regex_starts_with_newline,
-	regex_starts_with_whitespace,
-	regex_starts_with_whitespaces,
-	regex_ends_with_whitespace,
-	regex_ends_with_whitespaces,
-	regex_not_whitespace,
-	regex_whitespaces_strict,
-	regex_only_whitespaces,
-	regex_newline_characters,
-	regex_not_newline_characters,
-	regex_is_valid_identifier,
-	regex_invalid_identifier_chars,
-	regex_starts_with_vowel,
-	regex_heading_tags,
-	regex_illegal_attribute_character,
+	regex_whitespace as regexWhitespace,
+	regex_whitespaces as regexWhitespaces,
+	regex_starts_with_newline as regexStartsWithNewline,
+	regex_starts_with_whitespace as regexStartsWithWhitespace,
+	regex_starts_with_whitespaces as regexStartsWithWhitespaces,
+	regex_ends_with_whitespace as regexEndsWithWhitespace,
+	regex_ends_with_whitespaces as regexEndsWithWhitespaces,
+	regex_not_whitespace as regexNotWhitespace,
+	regex_whitespaces_strict as regexWhitespacesStrict,
+	regex_only_whitespaces as regexOnlyWhitespaces,
+	regex_newline_characters as regexNewlineCharacters,
+	regex_not_newline_characters as regexNotNewlineCharacters,
+	regex_is_valid_identifier as regexIsValidIdentifier,
+	regex_invalid_identifier_chars as regexInvalidIdentifierChars,
+	regex_starts_with_vowel as regexStartsWithVowel,
+	regex_heading_tags as regexHeadingTags,
+	regex_illegal_attribute_character as regexIllegalAttributeCharacter,
 } from './utils/patterns.js';
 
 // Sanitize
-export { sanitize_template_string } from './utils/sanitize_template_string.js';
+export { sanitize_template_string as sanitizeTemplateString } from './utils/sanitize_template_string.js';
 
 // Escaping
 export { escape } from './utils/escaping.js';
 
 // Transform
-export { render_stylesheets } from './transform/stylesheet.js';
-export { convert_source_map_to_mappings } from './transform/segments.js';
+export { render_stylesheets as renderStylesheets } from './transform/stylesheet.js';
+export { convert_source_map_to_mappings as convertSourceMapToMappings } from './transform/segments.js';
 
 // Analyze
-export { analyze_css } from './analyze/css-analyze.js';
-export { validate_nesting } from './analyze/validation.js';
+export { analyze_css as analyzeCss } from './analyze/css-analyze.js';
+export { validate_nesting as validateNesting } from './analyze/validation.js';

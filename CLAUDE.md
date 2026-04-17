@@ -46,12 +46,12 @@ packages/
 ├── tsrx/*                      # Core compiler infrastructure (@tsrx/core)
 │   └── src/
 │       ├── parse/              # Parser factory (createParser), comment handlers
+│       ├── plugin.js           # TSRXPlugin for Acorn parser
 │       ├── scope.js            # Scope and binding management
 │       ├── utils.js            # Compiler utilities, constants
 │       └── types/              # AST type definitions (estree augmentations)
 ├── tsrx-ripple/*               # Ripple-specific compiler (@tsrx/ripple)
 │   └── src/
-│       ├── plugin.js           # RipplePlugin for Acorn parser
 │       ├── parse/              # Ripple parser (parse(), style parsing)
 │       ├── analyze/            # Scope analysis, CSS pruning, validation
 │       ├── transform/          # Client/server code generation
@@ -102,7 +102,7 @@ Source Code (.ripple) → Parse → Analyze → Transform → Output (JS + CSS)
 ### Phase 1: Parse (`packages/tsrx-ripple/src/parse/`, `packages/tsrx/src/parse/`)
 
 **Parser:** Acorn extended with `@sveltejs/acorn-typescript` and custom
-`RipplePlugin`
+`TSRXPlugin`
 
 **Ripple-specific syntax handled:**
 
@@ -558,7 +558,7 @@ block.c; // context
 
 - Core compiler infra (parser factory, scope, utilities): `packages/tsrx/src/`
 - Ripple-specific compiler: `packages/tsrx-ripple/src/`
-- Parser changes: modify `RipplePlugin` in `packages/tsrx-ripple/src/plugin.js`
+- Parser changes: modify `TSRXPlugin` in `packages/tsrx/src/plugin.js`
 - Scope-related changes in `packages/tsrx/src/scope.js` - track bindings with
   appropriate `kind`
 - CSS changes: `analyze/css-analyze.js` for parsing, `analyze/prune.js` for dead

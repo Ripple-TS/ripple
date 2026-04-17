@@ -12,6 +12,7 @@
   },
   "exports": {
     ".": {
+      "types": "./src/index.js",
       "default": "./src/index.js"
     },
     "./types": {
