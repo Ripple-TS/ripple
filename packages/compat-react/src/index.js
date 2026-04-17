@@ -280,7 +280,7 @@ export function Ripple({ component, props }) {
 			/** @type {Map<number, (reason: any) => void>} */
 			const pending_deferreds = new Map();
 			/** @type {Set<Block>} */
-			const paused_blocks = new Set();
+			let paused_blocks = new Set();
 			/** @type {Block | null} */
 			let boundary_block = null;
 
@@ -290,7 +290,7 @@ export function Ripple({ component, props }) {
 				}
 
 				const blocks = paused_blocks;
-				paused_blocks.clear();
+				paused_blocks = new Set();
 
 				for (const block of blocks) {
 					if (!is_destroyed(block)) {
