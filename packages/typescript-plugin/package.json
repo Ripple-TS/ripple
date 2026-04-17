@@ -21,8 +21,7 @@
   },
   "dependencies": {
     "@volar/language-core": "catalog:default",
-    "@volar/typescript": "catalog:default",
-    "@tsrx/ripple": "workspace:*"
+    "@volar/typescript": "catalog:default"
   },
   "devDependencies": {
     "@types/node": "catalog:default",
@@ -30,7 +29,7 @@
   },
   "peerDependencies": {
     "typescript": "catalog:peer",
-    "ripple": "workspace:*"
+    "@tsrx/ripple": "workspace:*"
   },
   "publishConfig": {
     "access": "public"
