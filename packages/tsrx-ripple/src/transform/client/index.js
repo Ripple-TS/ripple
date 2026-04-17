@@ -32,19 +32,19 @@ import {
 	TEMPLATE_SVG_NAMESPACE,
 	TEMPLATE_MATHML_NAMESPACE,
 	DEFAULT_NAMESPACE,
-	sanitize_template_string,
+	sanitizeTemplateString,
 	CSS_HASH_IDENTIFIER,
 	STYLE_IDENTIFIER,
 	SERVER_IDENTIFIER,
-	obfuscate_identifier,
+	obfuscateIdentifier,
 	object,
-	render_stylesheets,
-	get_original_event_name,
-	is_event_attribute,
-	normalize_event_name,
-	should_preserve_comment,
-	format_comment,
-	set_location,
+	renderStylesheets,
+	getOriginalEventName,
+	isEventAttribute,
+	normalizeEventName,
+	shouldPreserveComment,
+	formatComment,
+	setLocation,
 } from '@tsrx/core';
 const b = builders;
 import {
@@ -364,7 +364,7 @@ function visit_title_element(node, context) {
  */
 function set_hidden_import_from_ripple(name, context, is_obfuscated = false) {
 	if (!is_obfuscated) {
-		name = obfuscate_identifier(name);
+		name = obfuscateIdentifier(name);
 	}
 	if (!context.state.imports.has(`import { ${name} } from 'ripple/compiler/internal/import'`)) {
 		context.state.imports.add(`import { ${name} } from 'ripple/compiler/internal/import'`);
@@ -542,7 +542,7 @@ const visitors = {
 			const locals = state.server_block_locals;
 			for (const spec of node.specifiers) {
 				const original_name = spec.local.name;
-				const name = obfuscate_identifier(original_name);
+				const name = obfuscateIdentifier(original_name);
 				if (
 					spec.type !== 'ImportSpecifier' ||
 					(spec.imported && /** @type {AST.Identifier} */ (spec.imported).name !== spec.local.name)
@@ -1223,7 +1223,7 @@ const visitors = {
 
 		if (context.state.inside_head) {
 			if (node.id.type === 'Identifier' && node.id.name === 'style') {
-				state.template?.push(`<style>${sanitize_template_string(node.css)}</style>`);
+				state.template?.push(`<style>${sanitizeTemplateString(node.css)}</style>`);
 				return;
 			}
 			if (node.id.type === 'Identifier' && node.id.name === 'script') {
@@ -1385,7 +1385,7 @@ const visitors = {
 							continue;
 						}
 
-						if (is_event_attribute(name)) {
+						if (isEventAttribute(name)) {
 							const metadata = { tracking: false };
 							let handler = /** @type {AST.Expression} */ (
 								visit(attr.value, { ...state, metadata })
@@ -1393,7 +1393,7 @@ const visitors = {
 							const id = state.flush_node?.();
 
 							if (attr.metadata?.delegated) {
-								const event_name = normalize_event_name(name);
+								const event_name = normalizeEventName(name);
 
 								if (!state.events.has(event_name)) {
 									state.events.add(event_name);
@@ -1409,7 +1409,7 @@ const visitors = {
 									),
 								);
 							} else {
-								const event_name = get_original_event_name(name);
+								const event_name = getOriginalEventName(name);
 								// Check if handler is reactive (contains tracking)
 								if (metadata.tracking) {
 									// Use reactive_event with a thunk to re-evaluate when dependencies change
@@ -1620,7 +1620,7 @@ const visitors = {
 							child.type === 'Html' ||
 							(child.type === 'Element' &&
 								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
-							((child.type === 'RippleExpression' || child.type === 'Text') &&
+							((child.type === 'TSRXExpression' || child.type === 'Text') &&
 								child.expression.type !== 'Literal'),
 					);
 
@@ -2419,7 +2419,7 @@ const visitors = {
 		// Remove TSDeclareFunction nodes (function overload signatures) in JavaScript mode
 		if (
 			!context.state.to_ts &&
-			/** @type {AST.RippleDeclaration} */ (node.declaration)?.type === 'TSDeclareFunction'
+			/** @type {AST.TSRXDeclaration} */ (node.declaration)?.type === 'TSDeclareFunction'
 		) {
 			return b.empty;
 		}
@@ -2638,7 +2638,7 @@ const visitors = {
 	},
 
 	ScriptContent(node, context) {
-		return b.literal(sanitize_template_string(node.content));
+		return b.literal(sanitizeTemplateString(node.content));
 	},
 
 	Program(node, context) {
@@ -2696,7 +2696,7 @@ function join_template(items) {
 	}
 
 	for (const quasi of template.quasis) {
-		quasi.value.raw = sanitize_template_string(/** @type {string} */ (quasi.value.cooked));
+		quasi.value.raw = sanitizeTemplateString(/** @type {string} */ (quasi.value.cooked));
 	}
 
 	quasi.tail = true;
@@ -2711,7 +2711,7 @@ function join_template(items) {
 function transform_ts_child(node, context) {
 	const { state, visit } = context;
 
-	if (node.type === 'RippleExpression' || node.type === 'Text') {
+	if (node.type === 'TSRXExpression' || node.type === 'Text') {
 		state.init?.push(b.stmt(/** @type {AST.Expression} */ (visit(node.expression, { ...state }))));
 	} else if (node.type === 'Html') {
 		// Do we need to do something special here?
@@ -2911,9 +2911,9 @@ function transform_ts_child(node, context) {
 			const member = /** @type {AST.MemberExpression} */ (visit(node.id, { ...state }));
 
 			node.id = member;
-			/** @type {ESTreeJSX.RippleJSXOpeningElement} */ (node.openingElement).name = member;
+			/** @type {ESTreeJSX.TSRXJSXOpeningElement} */ (node.openingElement).name = member;
 			if (node.closingElement) {
-				/** @type {ESTreeJSX.RippleJSXClosingElement} */ (node.closingElement).name = set_location(
+				/** @type {ESTreeJSX.TSRXJSXClosingElement} */ (node.closingElement).name = setLocation(
 					{ ...member },
 					/** @type {AST.NodeWithLocation} */ (node.closingElement.name),
 					true,
@@ -3166,7 +3166,7 @@ function transform_ts_child(node, context) {
 function is_template_or_control_flow(node) {
 	return (
 		node.type === 'Element' ||
-		node.type === 'RippleExpression' ||
+		node.type === 'TSRXExpression' ||
 		node.type === 'Text' ||
 		node.type === 'Html' ||
 		node.type === 'Tsx' ||
@@ -3268,7 +3268,7 @@ function element_has_dynamic_content(element) {
 			return true;
 		}
 		if (
-			(child.type === 'RippleExpression' || child.type === 'Text') &&
+			(child.type === 'TSRXExpression' || child.type === 'Text') &&
 			child.expression.type !== 'Literal'
 		) {
 			return true;
@@ -3448,7 +3448,7 @@ function transform_children(children, context) {
 		).length === 1 &&
 			normalized.some(
 				(node) =>
-					node.type === 'RippleExpression' &&
+					node.type === 'TSRXExpression' &&
 					is_children_template_expression(node.expression, state.scope),
 			)) ||
 		// At root level, non-literal expressions need a fragment template so the
@@ -3457,8 +3457,8 @@ function transform_children(children, context) {
 		(root &&
 			normalized.some(
 				(node) =>
-					node.type === 'RippleExpression' &&
-					/** @type {AST.RippleExpression} */ (node).expression.type !== 'Literal',
+					node.type === 'TSRXExpression' &&
+					/** @type {AST.TSRXExpression} */ (node).expression.type !== 'Literal',
 			)) ||
 		normalized.filter(
 			(node) => node.type !== 'VariableDeclaration' && node.type !== 'EmptyStatement',
@@ -3474,7 +3474,7 @@ function transform_children(children, context) {
 		return b.id(
 			node.type == 'Element' && is_element_dom_element(node)
 				? state.scope.generate(/** @type {AST.Identifier} */ (node.id).name)
-				: node.type == 'RippleExpression'
+				: node.type == 'TSRXExpression'
 					? state.scope.generate('expression')
 					: node.type == 'Text'
 						? state.scope.generate('text')
@@ -3625,7 +3625,7 @@ function transform_children(children, context) {
 			/** @type {AST.Expression | undefined} */
 			let expression = undefined;
 			let is_create_text_only = false;
-			if (node.type === 'RippleExpression' || node.type === 'Text' || node.type === 'Html') {
+			if (node.type === 'TSRXExpression' || node.type === 'Text' || node.type === 'Html') {
 				metadata = { tracking: false };
 				expression = /** @type {AST.Expression} */ (visit(node.expression, { ...state, metadata }));
 				is_create_text_only =
@@ -3726,7 +3726,7 @@ function transform_children(children, context) {
 							child.type === 'Html' ||
 							(child.type === 'Element' &&
 								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
-							((child.type === 'RippleExpression' || child.type === 'Text') &&
+							((child.type === 'TSRXExpression' || child.type === 'Text') &&
 								child.expression.type !== 'Literal'),
 					);
 
@@ -3743,7 +3743,7 @@ function transform_children(children, context) {
 								// Components always generate sibling()
 								needs_sibling_call = true;
 							}
-						} else if (next_node.type === 'RippleExpression' || next_node.type === 'Text') {
+						} else if (next_node.type === 'TSRXExpression' || next_node.type === 'Text') {
 							// Only dynamic text generates sibling()
 							needs_sibling_call = next_node.expression.type !== 'Literal';
 						} else if (
@@ -3790,7 +3790,7 @@ function transform_children(children, context) {
 							),
 						),
 				});
-			} else if (node.type === 'RippleExpression') {
+			} else if (node.type === 'TSRXExpression') {
 				const expr = /** @type {AST.Expression} */ (expression);
 
 				if (expr.type === 'Literal') {
@@ -4063,7 +4063,7 @@ function transform_body(body, { visit, state }) {
  * @returns {Visitors<AST.Node, TransformClientState>} TSX language handler with TypeScript return type support
  */
 function create_tsx_with_typescript_support(comments) {
-	const preserved_comments = comments?.filter(should_preserve_comment) ?? [];
+	const preserved_comments = comments?.filter(shouldPreserveComment) ?? [];
 	// Don't pass comments to esrap - we handle them manually via flush_comments_before
 	// because esrap's built-in comment handling requires all intermediate nodes to have loc
 	const base_tsx = /** @type {Visitors<AST.Node, TransformClientState>} */ (tsx());
@@ -4095,7 +4095,7 @@ function create_tsx_with_typescript_support(comments) {
 					context.newline();
 				}
 				// Write the comment
-				context.write(format_comment(comment));
+				context.write(formatComment(comment));
 				context.newline();
 				comment_index++;
 			} else {
@@ -5059,7 +5059,7 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 
 	const program = /** @type {AST.Program} */ (walk(analysis.ast, { ...state }, visitors));
 
-	/** @type {AST.RippleProgram['body']} */
+	/** @type {AST.TSRXProgram['body']} */
 	let body = [];
 
 	for (const import_node of state.imports) {
@@ -5095,7 +5095,7 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 		// Walk the body to find components and inject HMR wrapping.
 		// After the walk, Component nodes become FunctionExpression nodes
 		// (via b.function() which creates FunctionExpression).
-		/** @type {AST.RippleProgram['body']} */
+		/** @type {AST.TSRXProgram['body']} */
 		const hmr_body = [];
 
 		for (const node of body) {
@@ -5166,7 +5166,7 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 		body = hmr_body;
 	}
 
-	/** @type {AST.RippleProgram['body']} */ (program.body) = body;
+	/** @type {AST.TSRXProgram['body']} */ (program.body) = body;
 
 	const language_handler = to_ts
 		? create_tsx_with_typescript_support(analysis.comments)
@@ -5251,7 +5251,7 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 		js.line_offsets = line_offsets;
 	}
 
-	const css = render_stylesheets(state.stylesheets, minify_css);
+	const css = renderStylesheets(state.stylesheets, minify_css);
 
 	return {
 		ast: program,

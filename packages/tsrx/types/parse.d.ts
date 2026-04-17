@@ -1196,7 +1196,7 @@ export namespace Parse {
 			topLevel?: boolean,
 			exports?: AST.ExportSpecifier,
 		):
-			| AST.RippleExpression
+			| AST.TSRXExpression
 			| AST.Html
 			| AST.TextNode
 			| ESTreeJSX.JSXEmptyExpression
@@ -1634,7 +1634,7 @@ export namespace Parse {
 		 * Parse JSX attribute (name="value" or {spread})
 		 * @returns JSXAttribute or JSXSpreadAttribute
 		 */
-		jsx_parseAttribute(): AST.RippleAttribute | ESTreeJSX.JSXAttribute;
+		jsx_parseAttribute(): AST.TSRXAttribute | ESTreeJSX.JSXAttribute;
 
 		/**
 		 * Parse JSX opening element at position

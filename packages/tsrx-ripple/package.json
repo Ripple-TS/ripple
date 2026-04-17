@@ -15,16 +15,12 @@
       "types": "./types/index.d.ts",
       "default": "./src/index.js"
     },
-    "./plugin": {
-      "default": "./src/plugin.js"
-    },
     "./types": {
       "types": "./types/index.d.ts"
     }
   },
   "dependencies": {
     "@tsrx/core": "workspace:*",
-    "acorn": "catalog:default",
     "zimmerframe": "catalog:default",
     "esrap": "catalog:default",
     "is-reference": "catalog:default"

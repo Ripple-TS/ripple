@@ -756,10 +756,10 @@ function printRippleNode(node, path, options, print, args) {
 	const suppressLeadingComments = args && args.suppressLeadingComments;
 	const suppressExpressionLeadingComments = args && args.suppressExpressionLeadingComments;
 
-	// For RippleExpression, Text, and Html nodes, don't add leading comments here - they should be handled
+	// For TSRXExpression, Text, and Html nodes, don't add leading comments here - they should be handled
 	// as separate children within the element, not as part of the expression
 	const shouldSkipLeadingComments =
-		node.type === 'RippleExpression' || node.type === 'Text' || node.type === 'Html';
+		node.type === 'TSRXExpression' || node.type === 'Text' || node.type === 'Html';
 
 	// Handle leading comments
 	if (node.leadingComments && !shouldSkipLeadingComments && !suppressLeadingComments) {
@@ -2224,7 +2224,7 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printAttribute(node, path, options, print);
 			break;
 
-		case 'RippleExpression': {
+		case 'TSRXExpression': {
 			const expressionDoc = suppressExpressionLeadingComments
 				? path.call((exprPath) => print(exprPath, { suppressLeadingComments: true }), 'expression')
 				: path.call(print, 'expression');
@@ -3889,7 +3889,7 @@ function printPropertyDefinition(node, path, options, print) {
 function printMethodDefinition(node, path, options, print) {
 	/** @type {Doc[]} */
 	const parts = [];
-	const is_component = /** @type {AST.RippleMethodDefinition} */ (node).value?.type === 'Component';
+	const is_component = /** @type {AST.TSRXMethodDefinition} */ (node).value?.type === 'Component';
 
 	// Access modifiers (public, private, protected)
 	if (node.accessibility) {
@@ -4858,7 +4858,7 @@ function printProperty(node, path, options, print) {
 		return path.call(print, 'key');
 	}
 
-	const is_component = /** @type {AST.RippleProperty} */ (node).value?.type === 'Component';
+	const is_component = /** @type {AST.TSRXProperty} */ (node).value?.type === 'Component';
 
 	// Handle getter/setter methods
 	if (node.kind === 'get' || node.kind === 'set') {
@@ -5466,7 +5466,7 @@ function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
 
 	// Inline JSX expressions if they fit, but respect original multi-line formatting
 	// for non-literal expressions (e.g. {children} should stay multi-line if written that way)
-	if (firstChild.type === 'RippleExpression' || firstChild.type === 'JSXExpressionContainer') {
+	if (firstChild.type === 'TSRXExpression' || firstChild.type === 'JSXExpressionContainer') {
 		if (wasOriginallySingleLine(parentNode)) {
 			return true;
 		}
@@ -5996,7 +5996,7 @@ function printElement(element, path, options, print) {
 		const openingEnd = /** @type {AST.NodeWithLocation} */ (node.openingElement).end;
 		for (const child of node.children) {
 			if (
-				(child.type === 'RippleExpression' || child.type === 'Text' || child.type === 'Html') &&
+				(child.type === 'TSRXExpression' || child.type === 'Text' || child.type === 'Html') &&
 				Array.isArray(child.leadingComments)
 			) {
 				for (const comment of child.leadingComments) {
@@ -6166,7 +6166,7 @@ function printElement(element, path, options, print) {
 		}
 
 		const isTextLikeChild =
-			currentChild.type === 'RippleExpression' ||
+			currentChild.type === 'TSRXExpression' ||
 			currentChild.type === 'Text' ||
 			currentChild.type === 'Html';
 		const hasTextLeadingComments =
@@ -6266,10 +6266,10 @@ function printElement(element, path, options, print) {
 					: nextChild;
 			const whitespaceLinesCount = getBlankLinesBetweenNodes(currentChild, whitespaceTarget);
 			const isTextOrHtmlChild =
-				currentChild.type === 'RippleExpression' ||
+				currentChild.type === 'TSRXExpression' ||
 				currentChild.type === 'Text' ||
 				currentChild.type === 'Html' ||
-				nextChild.type === 'RippleExpression' ||
+				nextChild.type === 'TSRXExpression' ||
 				nextChild.type === 'Text' ||
 				nextChild.type === 'Html';
 

@@ -2,7 +2,7 @@
 /** @import { LanguageServiceContext, Mapper, SourceScript } from '@volar/language-server' */
 /** @import {RippleVirtualCode} from '@ripple-ts/typescript-plugin/src/language.js' */
 // @ts-expect-error: ESM type import is fine
-/** @import {is_identifier_obfuscated, deobfuscate_identifier, IDENTIFIER_OBFUSCATION_PREFIX} from '@tsrx/core' */
+/** @import {isIdentifierObfuscated, deobfuscateIdentifier, IDENTIFIER_OBFUSCATION_PREFIX} from '@tsrx/core' */
 
 const { URI } = require('vscode-uri');
 const {

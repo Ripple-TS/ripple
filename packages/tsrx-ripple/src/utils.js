@@ -4,12 +4,12 @@
  */
 
 import {
-	build_assignment_value,
-	extract_paths,
+	buildAssignmentValue,
+	extractPaths,
 	builders,
-	is_capture_event,
-	is_non_delegated,
-	normalize_event_name,
+	isCaptureEvent,
+	isNonDelegated,
+	normalizeEventName,
 	hash,
 } from '@tsrx/core';
 const b = builders;
@@ -208,8 +208,8 @@ export function is_delegated_event(event_name, handler, context) {
 	// Handle delegated event handlers. Bail out if not a delegated event.
 	if (
 		!handler ||
-		is_capture_event(event_name) ||
-		is_non_delegated(normalize_event_name(event_name)) ||
+		isCaptureEvent(event_name) ||
+		isNonDelegated(normalizeEventName(event_name)) ||
 		(handler.type !== 'FunctionExpression' &&
 			handler.type !== 'ArrowFunctionExpression' &&
 			!is_declared_function_within_component(/** @type {AST.Identifier}*/ (handler), context))
@@ -442,7 +442,7 @@ export function visit_assignment_expression(node, context, build_assignment) {
 
 		let changed = false;
 
-		const assignments = extract_paths(node.left).map((path) => {
+		const assignments = extractPaths(node.left).map((path) => {
 			const value = path.expression?.(rhs);
 
 			let assignment = build_assignment('=', path.node, value, context);
@@ -524,7 +524,7 @@ export function build_assignment(operator, left, right, context) {
 		const assign_fn = transform?.assign;
 		if (assign_fn) {
 			let value = /** @type {AST.Expression} */ (
-				context.visit(build_assignment_value(operator, left, right))
+				context.visit(buildAssignmentValue(operator, left, right))
 			);
 
 			return assign_fn(object, value);
@@ -617,13 +617,13 @@ export function normalize_children(children, context) {
 		const prev_child = normalized[i - 1];
 
 		if (
-			(child.type === 'RippleExpression' || child.type === 'Text') &&
-			(prev_child?.type === 'RippleExpression' || prev_child?.type === 'Text')
+			(child.type === 'TSRXExpression' || child.type === 'Text') &&
+			(prev_child?.type === 'TSRXExpression' || prev_child?.type === 'Text')
 		) {
 			if (
-				(child.type === 'RippleExpression' &&
+				(child.type === 'TSRXExpression' &&
 					is_children_template_expression(child.expression, context.state.scope)) ||
-				(prev_child.type === 'RippleExpression' &&
+				(prev_child.type === 'TSRXExpression' &&
 					is_children_template_expression(prev_child.expression, context.state.scope))
 			) {
 				continue;
@@ -1131,7 +1131,7 @@ function jsx_member_expression_to_member_expression(jsx_member) {
 
 /**
  * Converts a JSX AST node (JSXElement, JSXText, etc.) to a Ripple AST node
- * (Element, Text, RippleExpression) for processing inside `<tsx>` blocks.
+ * (Element, Text, TSRXExpression) for processing inside `<tsx>` blocks.
  * @param {AST.Node} node
  * @returns {AST.Node | AST.Node[] | null}
  */
@@ -1247,7 +1247,7 @@ export function jsx_to_ripple_node(node) {
 	if (node.type === 'JSXExpressionContainer') {
 		if (node.expression.type === 'JSXEmptyExpression') return null;
 		return /** @type {AST.Node} */ ({
-			type: 'RippleExpression',
+			type: 'TSRXExpression',
 			expression: node.expression,
 			metadata: {},
 			start: node.start,

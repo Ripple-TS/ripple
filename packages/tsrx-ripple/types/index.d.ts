@@ -18,7 +18,7 @@ export type * from '@tsrx/core/types';
 /**
  * Backward-compatible alias for CompileError
  */
-export type RippleCompileError = CompileError;
+export type TSRXCompileError = CompileError;
 
 /**
  * Parse Ripple source code to ESTree AST

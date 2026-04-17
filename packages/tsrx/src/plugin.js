@@ -8,24 +8,26 @@ import * as acorn from 'acorn';
 import { walk } from 'zimmerframe';
 import {
 	parse_style,
-	regex_newline_characters,
-	error,
+} from './parse/style.js';
+import {
 	convert_from_jsx,
 	skipWhitespace,
 	isWhitespaceTextNode,
 	BINDING_TYPES,
 	DestructuringErrors,
-} from '@tsrx/core';
+} from './parse/index.js';
+import { regex_newline_characters } from './utils/patterns.js';
+import { error } from './errors.js';
 
 /**
  * Acorn parser plugin for Ripple syntax extensions.
  * Adds support for: component declarations, &[]/&{} lazy destructuring,
  * #server blocks, #style identifiers, and enhanced JSX handling.
  *
- * @param {import('../types/index').RipplePluginConfig} [config] - Plugin configuration
+ * @param {import('../types/index').TSRXPluginConfig} [config] - Plugin configuration
  * @returns {(Parser: Parse.ParserConstructor) => Parse.ParserConstructor} Parser extension function
  */
-export function RipplePlugin(config) {
+export function TSRXPlugin(config) {
 	return (/** @type {Parse.ParserConstructor} */ Parser) => {
 		const original = acorn.Parser.prototype;
 		const tt = Parser.tokTypes || acorn.tokTypes;
@@ -36,7 +38,7 @@ export function RipplePlugin(config) {
 		const tstt = Parser.acornTypeScript.tokTypes;
 		const tstc = Parser.acornTypeScript.tokContexts;
 
-		class RippleParser extends Parser {
+		class TSRXParser extends Parser {
 			/** @type {AST.Node[]} */
 			#path = [];
 			#commentContextId = 0;
@@ -176,7 +178,7 @@ export function RipplePlugin(config) {
 
 							// Parse component without name (skipName: true)
 							const component_node = this.parseComponent({ skipName: true });
-							/** @type {AST.RippleProperty} */ (prop).value = component_node;
+							/** @type {AST.TSRXProperty} */ (prop).value = component_node;
 						} else if (isStringLiteral) {
 							// For string literal names, consume 'component'
 							// parse the string key, then parse component without name
@@ -186,12 +188,12 @@ export function RipplePlugin(config) {
 
 							// Parse component without name (skipName: true)
 							const component_node = this.parseComponent({ skipName: true });
-							/** @type {AST.RippleProperty} */ (prop).value = component_node;
+							/** @type {AST.TSRXProperty} */ (prop).value = component_node;
 						} else {
 							const component_node = this.parseComponent({ requireName: true });
 
 							prop.key = /** @type {AST.Identifier} */ (component_node.id);
-							/** @type {AST.RippleProperty} */ (prop).value = component_node;
+							/** @type {AST.TSRXProperty} */ (prop).value = component_node;
 							prop.computed = false;
 						}
 
@@ -235,7 +237,7 @@ export function RipplePlugin(config) {
 
 							// Parse component without name (skipName: true)
 							const component_node = this.parseComponent({ skipName: true });
-							/** @type {AST.RippleMethodDefinition} */ (node).value = component_node;
+							/** @type {AST.TSRXMethodDefinition} */ (node).value = component_node;
 						} else if (isStringLiteral) {
 							// For string literal names, consume 'component'
 							// parse the string key, then parse component without name
@@ -245,13 +247,13 @@ export function RipplePlugin(config) {
 
 							// Parse component without name (skipName: true)
 							const component_node = this.parseComponent({ skipName: true });
-							/** @type {AST.RippleMethodDefinition} */ (node).value = component_node;
+							/** @type {AST.TSRXMethodDefinition} */ (node).value = component_node;
 						} else {
 							// Use parseComponent which handles consuming 'component', parsing name, params, and body
 							const component_node = this.parseComponent({ requireName: true });
 
 							node.key = /** @type {AST.Identifier} */ (component_node.id);
-							/** @type {AST.RippleMethodDefinition} */ (node).value = component_node;
+							/** @type {AST.TSRXMethodDefinition} */ (node).value = component_node;
 							node.computed = false;
 						}
 
@@ -1057,7 +1059,7 @@ export function RipplePlugin(config) {
 			 * @type {Parse.Parser['jsx_parseAttribute']}
 			 */
 			jsx_parseAttribute() {
-				let node = /** @type {AST.RippleAttribute | ESTreeJSX.JSXAttribute} */ (this.startNode());
+				let node = /** @type {AST.TSRXAttribute | ESTreeJSX.JSXAttribute} */ (this.startNode());
 
 				if (this.eat(tt.braceL)) {
 					if (this.value === 'ref') {
@@ -1979,11 +1981,11 @@ export function RipplePlugin(config) {
 				if (this.type === tt.braceL) {
 					const node = this.jsx_parseExpressionContainer();
 					// Keep JSXEmptyExpression as-is (for prettier to handle comments)
-					// but convert other expressions to Html/RippleExpression/Text nodes
+					// but convert other expressions to Html/TSRXExpression/Text nodes
 					if (node.expression.type !== 'JSXEmptyExpression') {
-						/** @type {AST.RippleExpression | AST.Html | AST.TextNode} */ (
+						/** @type {AST.TSRXExpression | AST.Html | AST.TextNode} */ (
 							/** @type {unknown} */ (node)
-						).type = node.html ? 'Html' : node.text ? 'Text' : 'RippleExpression';
+						).type = node.html ? 'Html' : node.text ? 'Text' : 'TSRXExpression';
 						delete node.html;
 						delete node.text;
 					}
@@ -2133,16 +2135,16 @@ export function RipplePlugin(config) {
 					this.context.some((c) => c === tstc.tc_expr)
 				) {
 					const node = this.jsx_parseExpressionContainer();
-					// Keep JSXEmptyExpression as-is (don't convert to RippleExpression/Text/Html)
+					// Keep JSXEmptyExpression as-is (don't convert to TSRXExpression/Text/Html)
 					if (node.expression.type !== 'JSXEmptyExpression') {
-						/** @type {AST.RippleExpression | AST.Html | AST.TextNode} */ (
+						/** @type {AST.TSRXExpression | AST.Html | AST.TextNode} */ (
 							/** @type {unknown} */ (node)
-						).type = node.html ? 'Html' : node.text ? 'Text' : 'RippleExpression';
+						).type = node.html ? 'Html' : node.text ? 'Text' : 'TSRXExpression';
 						delete node.html;
 						delete node.text;
 					}
 
-					return /** @type {ESTreeJSX.JSXEmptyExpression | AST.RippleExpression | AST.Html | AST.TextNode | ESTreeJSX.JSXExpressionContainer} */ (
+					return /** @type {ESTreeJSX.JSXEmptyExpression | AST.TSRXExpression | AST.Html | AST.TextNode | ESTreeJSX.JSXExpressionContainer} */ (
 						/** @type {unknown} */ (node)
 					);
 				}
@@ -2244,6 +2246,6 @@ export function RipplePlugin(config) {
 			}
 		}
 
-		return /** @type {Parse.ParserConstructor} */ (RippleParser);
+		return /** @type {Parse.ParserConstructor} */ (TSRXParser);
 	};
 }

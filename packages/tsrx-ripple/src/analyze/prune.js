@@ -308,16 +308,16 @@ function get_descendant_elements(node, adjacent_only) {
 
 		// For template nodes and interpolation expressions
 		if (
-			(current_node.type === 'RippleExpression' ||
+			(current_node.type === 'TSRXExpression' ||
 				current_node.type === 'Text' ||
 				current_node.type === 'Html') &&
-			/** @type {AST.RippleExpression | AST.Html | AST.TextNode} */ (current_node).expression &&
+			/** @type {AST.TSRXExpression | AST.Html | AST.TextNode} */ (current_node).expression &&
 			typeof (
-				/** @type {AST.RippleExpression | AST.Html | AST.TextNode} */ (current_node).expression
+				/** @type {AST.TSRXExpression | AST.Html | AST.TextNode} */ (current_node).expression
 			) === 'object'
 		) {
 			visit(
-				/** @type {AST.RippleExpression | AST.Html | AST.TextNode} */ (current_node).expression,
+				/** @type {AST.TSRXExpression | AST.Html | AST.TextNode} */ (current_node).expression,
 				depth + 1,
 			);
 		}
@@ -417,7 +417,7 @@ function get_possible_element_siblings(node, direction, adjacent_only) {
 		// Stop at non-whitespace text nodes for adjacent selectors
 		else if (
 			adjacent_only &&
-			(sibling.type === 'RippleExpression' || sibling.type === 'Text') &&
+			(sibling.type === 'TSRXExpression' || sibling.type === 'Text') &&
 			sibling.expression.type === 'Literal' &&
 			typeof sibling.expression.value === 'string' &&
 			sibling.expression.value.trim()

@@ -1,5 +1,5 @@
 /** @import { CodeMapping } from '@tsrx/ripple' */
-/** @import {RippleCompileError, VolarMappingsResult} from '@tsrx/ripple' */
+/** @import {TSRXCompileError, VolarMappingsResult} from '@tsrx/ripple' */
 /** @import * as RippleCompiler from '@tsrx/ripple' */
 
 /** @typedef {Map<string, CodeMapping>} CachedMappings */
@@ -114,9 +114,9 @@ class RippleVirtualCode {
 	embeddedCodes = [];
 	/** @type {CodeMapping[]} */
 	mappings = [];
-	/** @type {RippleCompileError[]} */
+	/** @type {TSRXCompileError[]} */
 	fatalErrors = [];
-	/** @type {RippleCompileError[]} */
+	/** @type {TSRXCompileError[]} */
 	usageErrors = [];
 	/** @type {IScriptSnapshot} */
 	snapshot;
@@ -242,7 +242,7 @@ class RippleVirtualCode {
 				log('Compilation successful, generated code length:', transpiled?.code?.length || 0);
 			}
 		} catch (e) {
-			const error = /** @type {RippleCompileError} */ (e);
+			const error = /** @type {TSRXCompileError} */ (e);
 			logError('Ripple compilation failed for', this.fileName, ':', error);
 			error.type = 'fatal';
 			this.fatalErrors.push(error);

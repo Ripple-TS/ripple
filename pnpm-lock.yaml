@@ -654,9 +654,6 @@ importers:
       '@tsrx/core':
         specifier: workspace:*
         version: link:../tsrx
-      acorn:
-        specifier: catalog:default
-        version: 8.16.0
       esrap:
         specifier: catalog:default
         version: 2.2.3
