@@ -50,6 +50,24 @@ function resolvePackagePath(packageName, workspaceRoot) {
 		}
 	}
 
+	// Scan all workspace package directories (handles cases where directory name
+	// doesn't match the package name, e.g. @tsrx/ripple -> packages/tsrx-ripple)
+	const packagesDir = path.join(workspaceRoot, 'packages');
+	if (fs.existsSync(packagesDir)) {
+		const dirs = fs.readdirSync(packagesDir, { withFileTypes: true });
+		for (const dir of dirs) {
+			if (!dir.isDirectory()) continue;
+			const candidatePath = path.join(packagesDir, dir.name);
+			const candidatePkgJson = path.join(candidatePath, 'package.json');
+			if (fs.existsSync(candidatePkgJson)) {
+				const pkg = JSON.parse(fs.readFileSync(candidatePkgJson, 'utf8'));
+				if (pkg.name === packageName) {
+					return candidatePath;
+				}
+			}
+		}
+	}
+
 	// Search in .pnpm store
 	const pnpmStore = path.join(workspaceRoot, 'node_modules/.pnpm');
 	if (fs.existsSync(pnpmStore)) {

@@ -473,12 +473,6 @@ importers:
       '@ripple-ts/typescript-plugin':
         specifier: workspace:*
         version: link:../typescript-plugin
-      '@tsrx/core':
-        specifier: workspace:*
-        version: link:../tsrx
-      '@tsrx/ripple':
-        specifier: workspace:*
-        version: link:../tsrx-ripple
       '@volar/language-server':
         specifier: catalog:default
         version: 2.4.28
@@ -498,9 +492,9 @@ importers:
         specifier: catalog:default
         version: 3.1.0
     devDependencies:
-      ripple:
+      '@tsrx/ripple':
         specifier: workspace:*
-        version: link:../ripple
+        version: link:../tsrx-ripple
 
   packages/nvim-plugin: {}
 
@@ -697,9 +691,6 @@ importers:
       '@volar/typescript':
         specifier: catalog:default
         version: 2.4.28
-      ripple:
-        specifier: workspace:*
-        version: link:../ripple
       typescript:
         specifier: catalog:peer
         version: 5.9.3
@@ -741,6 +732,9 @@ importers:
       '@ripple-ts/typescript-plugin':
         specifier: workspace:*
         version: link:../typescript-plugin
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../tsrx-ripple
       '@volar/language-core':
         specifier: catalog:default
         version: 2.4.28
@@ -753,9 +747,6 @@ importers:
       '@volar/vscode':
         specifier: catalog:default
         version: 2.4.28
-      ripple:
-        specifier: workspace:*
-        version: link:../ripple
       typescript:
         specifier: catalog:vscode
         version: 5.9.3
