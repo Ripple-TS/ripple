@@ -1,5 +1,5 @@
-/** @import * as AST from 'estree' */
-/** @import * as ESTreeJSX from 'estree-jsx' */
+/** @import * as AST from '@tsrx/core/types/estree' */
+/** @import * as ESTreeJSX from '@tsrx/core/types/estree-jsx' */
 
 import { regex_is_valid_identifier } from './patterns.js';
 import { sanitize_template_string } from './sanitize_template_string.js';

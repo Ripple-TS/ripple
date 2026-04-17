@@ -33,15 +33,6 @@
       "types": "./types/server.d.ts",
       "default": "./src/server/index.js"
     },
-    "./types/estree": {
-      "types": "./src/compiler/types/estree.d.ts"
-    },
-    "./types/estree-jsx": {
-      "types": "./src/compiler/types/estree-jsx.d.ts"
-    },
-    "./types/acorn": {
-      "types": "./src/compiler/types/acorn.d.ts"
-    },
     "./compiler/internal/import": {
       "types": "./src/compiler/types/import.d.ts"
     },
@@ -75,23 +66,13 @@
     "#client": "./src/runtime/internal/client/types.d.ts",
     "#client/constants": "./src/internal/client/constants.js",
     "#server": "./src/runtime/internal/server/types.d.ts",
-    "#compiler": "./src/compiler/types/index.d.ts",
-    "#parser": "./src/compiler/types/parse.d.ts",
     "#public": "./types/index.d.ts",
     "#helpers": "./src/helpers.d.ts"
   },
   "dependencies": {
-    "@jridgewell/sourcemap-codec": "catalog:default",
-    "@sveltejs/acorn-typescript": "catalog:default",
-    "acorn": "catalog:default",
     "clsx": "catalog:default",
     "devalue": "catalog:default",
     "esm-env": "catalog:default",
-    "esrap": "catalog:default",
-    "is-reference": "catalog:default",
-    "magic-string": "catalog:default",
-    "muggle-string": "catalog:default",
-    "zimmerframe": "catalog:default",
     "@types/estree": "catalog:default",
     "@types/estree-jsx": "catalog:default"
   },

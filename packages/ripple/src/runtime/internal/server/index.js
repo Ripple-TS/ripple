@@ -36,7 +36,7 @@ import {
 } from '../client/constants.js';
 import { is_ripple_object, array_slice } from '../client/utils.js';
 import { escape } from '../../../utils/escaping.js';
-import { is_boolean_attribute } from '../../../compiler/utils.js';
+import { is_boolean_attribute } from '../../../utils/attributes.js';
 import { clsx } from 'clsx';
 import { normalize_css_property_name } from '../../../utils/normalize_css_property_name.js';
 import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../constants.js';

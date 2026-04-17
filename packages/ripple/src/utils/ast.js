@@ -1,4 +1,4 @@
-/** @import * as AST from 'estree' */
+/** @import * as AST from '@tsrx/core/types/estree' */
 
 /**
  * Represents the path of a destructured assignment from either a declaration
