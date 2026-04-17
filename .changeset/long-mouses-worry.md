@@ -7,6 +7,15 @@
 ---
 
 Add a release changeset for the async tracking work introduced in commit
-`4eb4d6851573d771d65f1e85b1b442ad3cdc53d2`, including `trackAsync`/`trackPending`
-runtime and compiler updates, compat-react async boundary behavior, and related
-editor tooling updates.
+`4eb4d6851573d771d65f1e85b1b442ad3cdc53d2`.
+
+This ships async tracking as a first-class feature in Ripple:
+
+- add `trackAsync()` and `trackPending()` support so async values can be read
+  through Ripple's reactive runtime without using direct component-level `await`
+- update compiler/runtime behavior for `try`/`catch`/`pending` boundaries so
+  async pending and error states can render and recover correctly in client and
+  SSR paths
+- align `@ripple-ts/compat-react` async boundary behavior with the new Ripple
+  async tracking semantics
+- update editor/tooling integration to match the new async syntax/runtime shape
