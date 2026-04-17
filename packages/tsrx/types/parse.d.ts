@@ -14,7 +14,7 @@ import type * as acorn from 'acorn';
 import type * as AST from 'estree';
 import type * as ESTreeJSX from 'estree-jsx';
 import type * as ESRap from 'esrap';
-import type * as CoreCompiler from './index';
+import type * as CoreCompiler from './index.js';
 import type { RawSourceMap } from 'source-map';
 
 type ForInit = boolean | 'await';

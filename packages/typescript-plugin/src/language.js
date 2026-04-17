@@ -8,6 +8,8 @@
 /** @typedef {import('@volar/language-core').IScriptSnapshot} IScriptSnapshot */
 /** @typedef {import('@volar/language-core').VirtualCode} VirtualCode */
 /** @typedef {string | { fsPath: string }} ScriptId */
+// Side-effect import: augments @volar/language-core's LanguagePlugin with the `typescript` field.
+/** @typedef {import('@volar/typescript')} _VolarTypeScriptAugmentation */
 /** @typedef {import('@volar/language-core').LanguagePlugin<ScriptId, VirtualCode>} RippleLanguagePlugin */
 
 const ts = require('typescript');

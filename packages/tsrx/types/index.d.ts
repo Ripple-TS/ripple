@@ -1,10 +1,10 @@
 import type * as AST from 'estree';
 import type * as ESTreeJSX from 'estree-jsx';
 import type { TSESTree } from '@typescript-eslint/types';
-import type { Parse } from './parse';
+import type { Parse } from './parse.js';
 import type * as ESRap from 'esrap';
 import type { Position } from 'acorn';
-import type { RequireAllOrNone } from '../src/helpers';
+import type { RequireAllOrNone } from '../src/helpers.js';
 
 export type { Parse };
 
