@@ -768,22 +768,6 @@ export function pop_element() {
 }
 
 /**
- * @param {() => any} fn
- * @returns {Promise<void>}
- */
-export async function async(fn) {
-	await fn();
-}
-
-/**
- * @returns {boolean}
- */
-export function aborted() {
-	// For SSR, we don't abort rendering
-	return false;
-}
-
-/**
  * @param {any} tracked
  * @returns {any}
  */

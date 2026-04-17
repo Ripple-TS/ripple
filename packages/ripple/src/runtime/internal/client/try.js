@@ -420,13 +420,3 @@ export function register_boundary_paused_block(boundary, block) {
 		boundary.s.pb(block);
 	}
 }
-
-/**
- * @returns {boolean}
- */
-export function aborted() {
-	if (active_block === null) {
-		return true;
-	}
-	return is_destroyed(active_block);
-}

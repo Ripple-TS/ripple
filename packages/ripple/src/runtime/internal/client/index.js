@@ -83,7 +83,7 @@ export { for_block as for, for_block_keyed as for_keyed } from './for.js';
 
 export { if_block as if } from './if.js';
 
-export { try_block as try, aborted, get_pending_boundary } from './try.js';
+export { try_block as try, get_pending_boundary } from './try.js';
 
 export { switch_block as switch } from './switch.js';
 
