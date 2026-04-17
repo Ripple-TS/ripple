@@ -602,7 +602,7 @@ function normalizeFileNameOrUri(fileNameOrUri) {
  */
 function getRippleCompiler(normalized_file_name) {
 	const dir = getRippleDirForFile(normalized_file_name);
-	const ripple_path = dir ? path.join(dir, 'src', 'compiler', 'index.js') : undefined;
+	const ripple_path = dir ? path.join(dir, 'src', 'index.js') : undefined;
 	if (ripple_path) {
 		return /** @type {RippleCompiler} */ (require(ripple_path));
 	}
@@ -613,7 +613,7 @@ function getRippleCompiler(normalized_file_name) {
  * @returns {string | undefined}
  */
 function getRippleDirForFile(normalized_file_name) {
-	const ripple_src_dir = ['node_modules', 'ripple'];
+	const ripple_src_dir = ['node_modules', '@tsrx', 'ripple'];
 
 	const parts = normalized_file_name.split('/');
 
@@ -637,7 +637,7 @@ function getRippleDirForFile(normalized_file_name) {
 		}
 	}
 
-	const warn_message = `Ripple src directory not found in workspace for ${normalized_file_name}. \
+	const warn_message = `@tsrx/ripple not found in workspace for ${normalized_file_name}. \
 		Using packaged version`;
 
 	if (packaged_dir) {
