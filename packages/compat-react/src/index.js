@@ -344,9 +344,7 @@ export function Ripple({ component, props }) {
 				pending_deferreds.delete(request_id);
 				pending_count--;
 
-				if (pending_count <= 0) {
-					pending_count = 0;
-
+				if (pending_count === 0) {
 					if (!render_resolved_branch) {
 						paused_blocks.clear();
 						return true;

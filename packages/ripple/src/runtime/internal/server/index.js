@@ -34,13 +34,7 @@ import {
 	ASYNC_DERIVED_READ_THROWN,
 	DERIVED_UPDATED,
 } from '../client/constants.js';
-import {
-	is_ripple_object,
-	get_descriptor,
-	define_property,
-	is_array,
-	array_slice,
-} from '../client/utils.js';
+import { is_ripple_object, array_slice } from '../client/utils.js';
 import { escape } from '../../../utils/escaping.js';
 import { is_boolean_attribute } from '../../../compiler/utils.js';
 import { clsx } from 'clsx';
@@ -67,6 +61,8 @@ export { context } from './context.js';
 export { try_block, component_block, regular_block } from './blocks.js';
 export { array_slice };
 export { ripple_element, normalize_children };
+
+export function noop() {}
 
 /**
  * @param {any} value

@@ -1,4 +1,4 @@
-import { output_push } from './internal/server/index.js';
+import { output_push, noop } from './internal/server/index.js';
 
 export { Context } from './internal/server/context.js';
 export {
@@ -17,7 +17,6 @@ export {
 	SUSPENSE_REJECTED,
 } from './internal/client/constants.js';
 
-export function noop() {}
 export const effect = noop;
 export const createRefKey = noop;
 export const on = noop;
