@@ -1,5 +1,13 @@
 # @ripple-ts/typescript-plugin
 
+## 0.3.14
+
+### Patch Changes
+
+- Updated dependencies
+  [[`228f1bb`](https://github.com/Ripple-TS/ripple/commit/228f1bb36cd3e8506c422ed0997164bf5a0b5fe2)]:
+  - @tsrx/ripple@0.0.2
+
 ## 0.3.13
 
 ### Patch Changes
