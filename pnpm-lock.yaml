@@ -772,30 +772,30 @@ importers:
 
   packages/zed-plugin: {}
 
-  playground:
+  playground/ripple:
     dependencies:
       '@ripple-ts/compat-react':
         specifier: workspace:*
-        version: link:../packages/compat-react
+        version: link:../../packages/compat-react
       tailwindcss:
         specifier: catalog:peer
         version: 4.2.1
     devDependencies:
       '@ripple-ts/eslint-plugin':
         specifier: workspace:*
-        version: link:../packages/eslint-plugin
+        version: link:../../packages/eslint-plugin
       '@ripple-ts/typescript-plugin':
         specifier: workspace:*
-        version: link:../packages/typescript-plugin
+        version: link:../../packages/typescript-plugin
       '@ripple-ts/vite-plugin':
         specifier: workspace:*
-        version: link:../packages/vite-plugin
+        version: link:../../packages/vite-plugin
       '@tailwindcss/vite':
         specifier: catalog:default
         version: 4.2.1(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
       '@tsrx/ripple':
         specifier: workspace:*
-        version: link:../packages/tsrx-ripple
+        version: link:../../packages/tsrx-ripple
       '@typescript-eslint/parser':
         specifier: catalog:default
         version: 8.56.1(eslint@10.0.2(jiti@2.6.1))(typescript@5.9.3)
@@ -807,7 +807,7 @@ importers:
         version: 1.0.0-next.28
       ripple:
         specifier: workspace:*
-        version: link:../packages/ripple
+        version: link:../../packages/ripple
       typescript:
         specifier: catalog:default
         version: 5.9.3
@@ -7009,6 +7009,14 @@ snapshots:
     optionalDependencies:
       vite: 7.3.1(@types/node@24.11.0)(jiti@2.6.1)(lightningcss@1.32.0)
 
+  '@vitest/mocker@4.0.18(vite@7.3.1(@types/node@25.3.3)(jiti@2.6.1)(lightningcss@1.32.0))':
+    dependencies:
+      '@vitest/spy': 4.0.18
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+    optionalDependencies:
+      vite: 7.3.1(@types/node@25.3.3)(jiti@2.6.1)(lightningcss@1.32.0)
+
   '@vitest/pretty-format@4.0.18':
     dependencies:
       tinyrainbow: 3.0.3
@@ -10180,7 +10188,7 @@ snapshots:
   vitest@4.0.18(@types/node@25.3.3)(jiti@2.6.1)(jsdom@28.1.0)(lightningcss@1.32.0):
     dependencies:
       '@vitest/expect': 4.0.18
-      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@24.11.0)(jiti@2.6.1)(lightningcss@1.32.0))
+      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@25.3.3)(jiti@2.6.1)(lightningcss@1.32.0))
       '@vitest/pretty-format': 4.0.18
       '@vitest/runner': 4.0.18
       '@vitest/snapshot': 4.0.18

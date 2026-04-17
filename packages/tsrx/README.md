@@ -73,7 +73,111 @@ component Greeting() {
 Elsewhere (outside a `component` body), JSX remains an expression, as in standard
 JSX.
 
-### 3. Lazy destructuring: `&[]` and `&{}`
+### 4. Control-flow statements in `component` bodies
+
+Inside a `component` body, the standard JavaScript control-flow keywords `if`,
+`else`, `for`, `switch`, and `try` gain an additional role: their branches may
+contain JSX-as-statements (§2) describing conditionally- or repeatedly-rendered
+output. The keywords retain their usual JavaScript syntax — no new grammar is
+introduced — but framework compilers treat them as _reactive_ boundaries.
+
+```tsx
+component List(props: { items: Item[]; showHeader: boolean }) {
+  if (props.showHeader) {
+    <h1>{'Items'}</h1>
+  } else {
+    <h2>{'(no header)'}</h2>
+  }
+
+  for (const item of props.items) {
+    <li>{item.name}</li>
+  }
+
+  switch (props.items.length) {
+    case 0:
+      <p>{'empty'}</p>
+      break;
+    default:
+      <p>{'has items'}</p>
+  }
+
+  try {
+    <AsyncThing />
+  } catch (e) {
+    <pre>{String(e)}</pre>
+  }
+}
+```
+
+**Early returns.** A bare `return;` (or `return` at the end of a branch) is a
+valid statement inside a `component` body and short-circuits any remaining
+rendering in the current branch. This composes naturally with the control-flow
+forms above:
+
+```tsx
+component Page(props: { user: User | null }) {
+  if (props.user == null) {
+    <LoginPrompt />
+    return;
+  }
+
+  <Dashboard user={props.user} />
+}
+```
+
+Because a `component` body does not produce a value, `return` never carries an
+expression — it only marks a rendering short-circuit.
+
+**Nesting inside elements.** Control-flow statements may appear directly as
+children of a JSX element, not only at the top level of the component body. Their
+branches contribute children to the enclosing element in source order:
+
+```tsx
+component Menu(props: { items: Item[]; loading: boolean }) {
+  <ul>
+    if (props.loading) {
+      <li>{'loading…'}</li>
+    } else {
+      for (const item of props.items) {
+        <li>
+          <a href={item.href}>{item.label}</a>
+          if (item.badge) {
+            <span class="badge">{item.badge}</span>
+          }
+        </li>
+      }
+    }
+  </ul>
+}
+```
+
+Any control-flow form that is legal at the component-body level is also legal as a
+child of a JSX element, and may be nested to arbitrary depth.
+
+TSRX only describes what is syntactically permitted. The reactive semantics
+(dependency tracking, list reconciliation, error boundaries, suspense) are the
+responsibility of the framework compiler.
+
+### 5. JSX escape hatch: `<tsx>...</tsx>`
+
+Because JSX inside a `component` body is a _statement_ (§2), the element itself
+has no value. To embed regular _expression_-form JSX — e.g. when a third-party
+library accepts a JSX tree as a value — wrap it in the reserved `<tsx>` element.
+Its children are parsed as standard JSX expressions and the whole form evaluates
+to the JSX expression value (or an array of values if there are multiple
+children).
+
+```tsx
+component Page() {
+  const header = <tsx><h1>{'Hello'}</h1></tsx>;
+  renderSomewhereElse(header);
+}
+```
+
+`<tsx>` is a reserved tag name in TSRX. It has no runtime representation of its
+own — the framework compiler unwraps it into the underlying JSX expression.
+
+### 6. Lazy destructuring: `&[]` and `&{}`
 
 Two new destructuring forms prefixed with `&` bind by _reference_ rather than by
 value. Each bound name compiles to a lazy property lookup on the source, so reads
@@ -87,7 +191,7 @@ let &{ name, age } = props;   // object-style lazy destructure
 Semantics are provided by the framework compiler. TSRX only defines the syntax and
 the AST shape (`kind: 'lazy'` binding patterns).
 
-### 4. `#server` blocks
+### 7. `#server` blocks
 
 A `#server { ... }` block marks a lexical region whose contents are intended for
 the server compile target. TSRX parses the block and records its exports;
@@ -99,7 +203,7 @@ framework compilers decide how to emit or strip it per target.
 }
 ```
 
-### 5. `#style` identifier
+### 8. `#style` identifier
 
 `#style` is a reserved identifier that refers, at compile time, to the set of
 scoped CSS classes declared in the current module. It is legal only in positions
@@ -109,7 +213,7 @@ where the framework compiler expects a class-name value.
 <div class={#style.card} />
 ```
 
-### 6. Scoped CSS blocks
+### 9. Scoped CSS blocks
 
 A `component` may contain a trailing CSS block (delimited by the framework
 compiler's chosen grammar). The block is parsed into a `CSS.StyleSheet` AST node
