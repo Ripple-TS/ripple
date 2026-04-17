@@ -6,6 +6,8 @@ import { print } from 'esrap';
 import tsx from 'esrap/languages/tsx';
 import { renderStylesheets, setLocation } from '@tsrx/core';
 
+let local_statement_component_index = 0;
+
 /**
  * Transform a parsed tsrx-react AST into a TSX/JSX module.
  *
@@ -25,6 +27,7 @@ import { renderStylesheets, setLocation } from '@tsrx/core';
 export function transform(ast, source, filename) {
 	/** @type {any[]} */
 	const stylesheets = [];
+	local_statement_component_index = 0;
 
 	walk(/** @type {any} */ (ast), null, {
 		Component(node, { next, state }) {
@@ -65,7 +68,9 @@ export function transform(ast, source, filename) {
 		},
 	});
 
-	const result = print(/** @type {any} */ (transformed), tsx(), {
+	const expanded = expand_component_helpers(/** @type {AST.Program} */ (transformed));
+
+	const result = print(/** @type {any} */ (expanded), tsx(), {
 		sourceMapSource: filename,
 		sourceMapContent: source,
 	});
@@ -80,7 +85,7 @@ export function transform(ast, source, filename) {
 				}
 			: null;
 
-	return { ast: /** @type {AST.Program} */ (transformed), code: result.code, map: result.map, css };
+	return { ast: expanded, code: result.code, map: result.map, css };
 }
 
 /**
@@ -88,13 +93,18 @@ export function transform(ast, source, filename) {
  * @returns {AST.FunctionDeclaration}
  */
 function component_to_function_declaration(component) {
+	const helper_state = create_helper_state(component.id?.name || 'Component');
 	const fn = /** @type {any} */ ({
 		type: 'FunctionDeclaration',
 		id: component.id,
 		params: component.params || [],
 		body: {
 			type: 'BlockStatement',
-			body: build_render_statements(/** @type {any[]} */ (component.body), false),
+			body: build_component_statements(
+				/** @type {any[]} */ (component.body),
+				helper_state,
+				collect_param_bindings(component.params || []),
+			),
 			metadata: { path: [] },
 		},
 		async: false,
@@ -106,8 +116,91 @@ function component_to_function_declaration(component) {
 		},
 	});
 
+	fn.metadata.generated_helpers = helper_state.helpers;
+
 	setLocation(fn, /** @type {any} */ (component), true);
 	return fn;
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] }} helper_state
+ * @param {Map<string, AST.Identifier>} available_bindings
+ * @returns {any[]}
+ */
+function build_component_statements(body_nodes, helper_state, available_bindings) {
+	const split_index = find_hook_safe_split_index(body_nodes);
+	if (split_index === -1) {
+		return build_render_statements(body_nodes, false);
+	}
+
+	const statements = [];
+	const render_nodes = [];
+	const bindings = new Map(available_bindings);
+
+	for (let i = 0; i < split_index; i += 1) {
+		const child = body_nodes[i];
+
+		if (is_bare_return_statement(child)) {
+			statements.push(create_component_return_statement(render_nodes, child));
+			return statements;
+		}
+
+		if (is_lone_return_if_statement(child)) {
+			statements.push(create_component_lone_return_if_statement(child, render_nodes));
+			continue;
+		}
+
+		if (is_jsx_child(child)) {
+			render_nodes.push(to_jsx_child(child));
+		} else {
+			statements.push(child);
+			collect_statement_bindings(child, bindings);
+		}
+	}
+
+	const split_node = body_nodes[split_index];
+	const consequent_body =
+		split_node.consequent.type === 'BlockStatement'
+			? split_node.consequent.body
+			: [split_node.consequent];
+	const short_branch_body = consequent_body.filter(
+		(/** @type {any} */ child) => !is_bare_return_statement(child),
+	);
+	const continuation_body = body_nodes.slice(split_index + 1);
+	const short_branch = create_helper_component_expression(
+		short_branch_body,
+		helper_state,
+		bindings,
+		split_node.consequent,
+		'Exit',
+	);
+	const continuation = create_helper_component_expression(
+		continuation_body,
+		helper_state,
+		bindings,
+		split_node,
+		'Continue',
+	);
+
+	render_nodes.push(
+		to_jsx_expression_container(
+			set_loc(
+				/** @type {any} */ ({
+					type: 'ConditionalExpression',
+					test: split_node.test,
+					consequent: short_branch,
+					alternate: continuation,
+					metadata: { path: [] },
+				}),
+				split_node,
+			),
+			split_node,
+		),
+	);
+
+	statements.push(create_component_return_statement(render_nodes, split_node));
+	return statements;
 }
 
 /**
@@ -120,6 +213,16 @@ function build_render_statements(body_nodes, return_null_when_empty) {
 	const render_nodes = [];
 
 	for (const child of body_nodes) {
+		if (is_bare_return_statement(child)) {
+			statements.push(create_component_return_statement(render_nodes, child));
+			return statements;
+		}
+
+		if (is_lone_return_if_statement(child)) {
+			statements.push(create_component_lone_return_if_statement(child, render_nodes));
+			continue;
+		}
+
 		if (is_jsx_child(child)) {
 			render_nodes.push(to_jsx_child(child));
 		} else {
@@ -136,6 +239,486 @@ function build_render_statements(body_nodes, return_null_when_empty) {
 	}
 
 	return statements;
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @returns {number}
+ */
+function find_hook_safe_split_index(body_nodes) {
+	for (let i = 0; i < body_nodes.length; i += 1) {
+		if (!is_lone_return_if_statement(body_nodes[i])) {
+			continue;
+		}
+
+		if (body_contains_top_level_hook_call(body_nodes.slice(i + 1))) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @returns {boolean}
+ */
+function body_contains_top_level_hook_call(body_nodes) {
+	return body_nodes.some(statement_contains_top_level_hook_call);
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function statement_contains_top_level_hook_call(node) {
+	return node_contains_top_level_hook_call(node, false);
+}
+
+/**
+ * @param {any} node
+ * @param {boolean} inside_nested_function
+ * @returns {boolean}
+ */
+function node_contains_top_level_hook_call(node, inside_nested_function) {
+	if (!node || typeof node !== 'object') {
+		return false;
+	}
+
+	if (
+		inside_nested_function &&
+		(node.type === 'FunctionDeclaration' ||
+			node.type === 'FunctionExpression' ||
+			node.type === 'ArrowFunctionExpression')
+	) {
+		return false;
+	}
+
+	if (
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression'
+	) {
+		const next_inside_nested_function = true;
+		for (const key of Object.keys(node)) {
+			if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+				continue;
+			}
+			if (node_contains_top_level_hook_call(node[key], next_inside_nested_function)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	if (!inside_nested_function && node.type === 'CallExpression' && is_hook_callee(node.callee)) {
+		return true;
+	}
+
+	if (Array.isArray(node)) {
+		return node.some((child) => node_contains_top_level_hook_call(child, inside_nested_function));
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		if (node_contains_top_level_hook_call(node[key], inside_nested_function)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * @param {any} callee
+ * @returns {boolean}
+ */
+function is_hook_callee(callee) {
+	if (!callee) return false;
+
+	if (callee.type === 'Identifier') {
+		return /^use[A-Z0-9]/.test(callee.name);
+	}
+
+	if (
+		!callee.computed &&
+		callee.type === 'MemberExpression' &&
+		callee.property?.type === 'Identifier'
+	) {
+		return /^use[A-Z0-9]/.test(callee.property.name);
+	}
+
+	return false;
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] }} helper_state
+ * @param {Map<string, AST.Identifier>} available_bindings
+ * @param {any} source_node
+ * @param {string} suffix
+ * @returns {any}
+ */
+function create_helper_component_expression(
+	body_nodes,
+	helper_state,
+	available_bindings,
+	source_node,
+	suffix,
+) {
+	if (body_nodes.length === 0) {
+		return create_null_literal();
+	}
+
+	const helper_name = create_helper_name(helper_state, suffix);
+	const helper_id = set_loc(create_generated_identifier(helper_name), source_node);
+	const helper_bindings = Array.from(available_bindings.values());
+	const helper_fn = create_helper_function_declaration(
+		helper_id,
+		body_nodes,
+		helper_state,
+		available_bindings,
+		helper_bindings,
+		source_node,
+	);
+
+	helper_state.helpers.push(helper_fn);
+
+	return create_helper_component_element(helper_id, helper_bindings, source_node);
+}
+
+/**
+ * @param {AST.Identifier} helper_id
+ * @param {any[]} body_nodes
+ * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] }} helper_state
+ * @param {Map<string, AST.Identifier>} available_bindings
+ * @param {AST.Identifier[]} helper_bindings
+ * @param {any} source_node
+ * @returns {AST.FunctionDeclaration}
+ */
+function create_helper_function_declaration(
+	helper_id,
+	body_nodes,
+	helper_state,
+	available_bindings,
+	helper_bindings,
+	source_node,
+) {
+	const fn = /** @type {any} */ ({
+		type: 'FunctionDeclaration',
+		id: helper_id,
+		params: helper_bindings.length > 0 ? [create_helper_props_pattern(helper_bindings)] : [],
+		body: {
+			type: 'BlockStatement',
+			body: build_component_statements(body_nodes, helper_state, new Map(available_bindings)),
+			metadata: { path: [] },
+		},
+		async: false,
+		generator: false,
+		metadata: {
+			path: [],
+			is_component: true,
+			is_method: true,
+		},
+	});
+
+	return set_loc(fn, source_node);
+}
+
+/**
+ * @param {AST.Identifier[]} bindings
+ * @returns {AST.ObjectPattern}
+ */
+function create_helper_props_pattern(bindings) {
+	return /** @type {any} */ ({
+		type: 'ObjectPattern',
+		properties: bindings.map((binding) => create_helper_props_property(binding)),
+		metadata: { path: [] },
+	});
+}
+
+/**
+ * @param {AST.Identifier} binding
+ * @returns {AST.Property}
+ */
+function create_helper_props_property(binding) {
+	const key = clone_identifier(binding);
+	const value = clone_identifier(binding);
+
+	return /** @type {any} */ ({
+		type: 'Property',
+		key,
+		value,
+		kind: 'init',
+		method: false,
+		shorthand: true,
+		computed: false,
+		metadata: { path: [] },
+	});
+}
+
+/**
+ * @param {AST.Identifier} helper_id
+ * @param {AST.Identifier[]} bindings
+ * @param {any} source_node
+ * @returns {ESTreeJSX.JSXElement}
+ */
+function create_helper_component_element(helper_id, bindings, source_node) {
+	const attributes = bindings.map(
+		(binding) =>
+			/** @type {any} */ ({
+				type: 'JSXAttribute',
+				name: identifier_to_jsx_name(clone_identifier(binding)),
+				value: to_jsx_expression_container(clone_identifier(binding), binding),
+				metadata: { path: [] },
+			}),
+	);
+
+	return set_loc(
+		/** @type {any} */ ({
+			type: 'JSXElement',
+			openingElement: set_loc(
+				{
+					type: 'JSXOpeningElement',
+					name: identifier_to_jsx_name(clone_identifier(helper_id)),
+					attributes,
+					selfClosing: true,
+					metadata: { path: [] },
+				},
+				source_node,
+			),
+			closingElement: null,
+			children: [],
+			metadata: { path: [] },
+		}),
+		source_node,
+	);
+}
+
+/**
+ * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] }} helper_state
+ * @param {string} suffix
+ * @returns {string}
+ */
+function create_helper_name(helper_state, suffix) {
+	helper_state.next_id += 1;
+	return `${helper_state.base_name}__${suffix}${helper_state.next_id}`;
+}
+
+/**
+ * @param {string} base_name
+ * @returns {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] }}
+ */
+function create_helper_state(base_name) {
+	return {
+		base_name,
+		next_id: 0,
+		helpers: [],
+	};
+}
+
+/**
+ * @param {any[]} params
+ * @returns {Map<string, AST.Identifier>}
+ */
+function collect_param_bindings(params) {
+	const bindings = new Map();
+	for (const param of params) {
+		collect_pattern_bindings(param, bindings);
+	}
+	return bindings;
+}
+
+/**
+ * @param {any} statement
+ * @param {Map<string, AST.Identifier>} bindings
+ * @returns {void}
+ */
+function collect_statement_bindings(statement, bindings) {
+	if (!statement) return;
+
+	if (statement.type === 'VariableDeclaration') {
+		for (const declaration of statement.declarations || []) {
+			collect_pattern_bindings(declaration.id, bindings);
+		}
+		return;
+	}
+
+	if (
+		(statement.type === 'FunctionDeclaration' || statement.type === 'ClassDeclaration') &&
+		statement.id
+	) {
+		bindings.set(statement.id.name, statement.id);
+	}
+}
+
+/**
+ * @param {any} pattern
+ * @param {Map<string, AST.Identifier>} bindings
+ * @returns {void}
+ */
+function collect_pattern_bindings(pattern, bindings) {
+	if (!pattern || typeof pattern !== 'object') return;
+
+	if (pattern.type === 'Identifier') {
+		bindings.set(pattern.name, pattern);
+		return;
+	}
+
+	if (pattern.type === 'RestElement') {
+		collect_pattern_bindings(pattern.argument, bindings);
+		return;
+	}
+
+	if (pattern.type === 'AssignmentPattern') {
+		collect_pattern_bindings(pattern.left, bindings);
+		return;
+	}
+
+	if (pattern.type === 'ArrayPattern') {
+		for (const element of pattern.elements || []) {
+			collect_pattern_bindings(element, bindings);
+		}
+		return;
+	}
+
+	if (pattern.type === 'ObjectPattern') {
+		for (const property of pattern.properties || []) {
+			if (property.type === 'RestElement') {
+				collect_pattern_bindings(property.argument, bindings);
+			} else {
+				collect_pattern_bindings(property.value, bindings);
+			}
+		}
+	}
+}
+
+/**
+ * @param {AST.Identifier} identifier
+ * @returns {AST.Identifier}
+ */
+function clone_identifier(identifier) {
+	return set_loc(
+		/** @type {any} */ ({
+			type: 'Identifier',
+			name: identifier.name,
+			metadata: { path: [] },
+		}),
+		identifier,
+	);
+}
+
+/**
+ * @returns {AST.Literal}
+ */
+function create_null_literal() {
+	return /** @type {any} */ ({
+		type: 'Literal',
+		value: null,
+		raw: 'null',
+		metadata: { path: [] },
+	});
+}
+
+/**
+ * @param {AST.Program} program
+ * @returns {AST.Program}
+ */
+function expand_component_helpers(program) {
+	program.body = program.body.flatMap((statement) => {
+		if (statement.type === 'FunctionDeclaration') {
+			const helpers = /** @type {any} */ (statement.metadata)?.generated_helpers;
+			if (helpers?.length) {
+				return [...helpers, statement];
+			}
+		}
+
+		if (
+			(statement.type === 'ExportNamedDeclaration' ||
+				statement.type === 'ExportDefaultDeclaration') &&
+			statement.declaration?.type === 'FunctionDeclaration'
+		) {
+			const helpers = /** @type {any} */ (statement.declaration.metadata)?.generated_helpers;
+			if (helpers?.length) {
+				return [...helpers, statement];
+			}
+		}
+
+		return [statement];
+	});
+
+	return program;
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_bare_return_statement(node) {
+	return node?.type === 'ReturnStatement' && node.argument == null;
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_lone_return_if_statement(node) {
+	if (node?.type !== 'IfStatement' || node.alternate) {
+		return false;
+	}
+
+	const consequent_body =
+		node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+
+	return consequent_body.length === 1 && is_bare_return_statement(consequent_body[0]);
+}
+
+/**
+ * @param {any[]} render_nodes
+ * @param {any} source_node
+ * @returns {any}
+ */
+function create_component_return_statement(render_nodes, source_node) {
+	return /** @type {any} */ ({
+		type: 'ReturnStatement',
+		argument: build_return_expression(render_nodes.slice()) || {
+			type: 'Literal',
+			value: null,
+			raw: 'null',
+			metadata: { path: [] },
+		},
+		metadata: { path: [] },
+	});
+}
+
+/**
+ * @param {any} node
+ * @param {any[]} render_nodes
+ * @returns {any}
+ */
+function create_component_lone_return_if_statement(node, render_nodes) {
+	const consequent_body =
+		node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+
+	return set_loc(
+		/** @type {any} */ ({
+			type: 'IfStatement',
+			test: node.test,
+			consequent: set_loc(
+				/** @type {any} */ ({
+					type: 'BlockStatement',
+					body: [create_component_return_statement(render_nodes, consequent_body[0])],
+					metadata: { path: [] },
+				}),
+				node.consequent,
+			),
+			alternate: null,
+			metadata: { path: [] },
+		}),
+		node,
+	);
 }
 
 /**
@@ -267,7 +850,9 @@ function is_jsx_child(node) {
 		t === 'JSXFragment' ||
 		t === 'JSXExpressionContainer' ||
 		t === 'JSXText' ||
-		t === 'IfStatement'
+		t === 'IfStatement' ||
+		t === 'ForOfStatement' ||
+		t === 'SwitchStatement'
 	);
 }
 
@@ -281,7 +866,7 @@ function to_jsx_element(node) {
 	const name = identifier_to_jsx_name(node.id);
 	const attributes = (node.attributes || []).map(to_jsx_attribute);
 	const selfClosing = !!node.selfClosing;
-	const children = (node.children || []).map(to_jsx_child);
+	const children = create_element_children(node.children || []);
 
 	/** @type {ESTreeJSX.JSXOpeningElement} */
 	const openingElement = set_loc(
@@ -317,6 +902,210 @@ function to_jsx_element(node) {
 }
 
 /**
+ * @param {any[]} children
+ * @returns {any[]}
+ */
+
+function create_element_children(children) {
+	if (children.length === 0) {
+		return [];
+	}
+
+	if (children.every(is_inline_element_child) && !children_contain_return_semantics(children)) {
+		return children.map((/** @type {any} */ child) => to_jsx_child(child));
+	}
+
+	return [statement_body_to_jsx_child(children)];
+}
+
+/**
+ * @param {any[]} children
+ * @returns {boolean}
+ */
+function children_contain_return_semantics(children) {
+	return children.some(child_contains_return_semantics);
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function child_contains_return_semantics(node) {
+	if (!node || typeof node !== 'object') {
+		return false;
+	}
+
+	if (node.type === 'ReturnStatement' || is_lone_return_if_statement(node)) {
+		return true;
+	}
+
+	if (
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression' ||
+		node.type === 'Component'
+	) {
+		return false;
+	}
+
+	if (Array.isArray(node)) {
+		return node.some(child_contains_return_semantics);
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		if (child_contains_return_semantics(node[key])) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_inline_element_child(node) {
+	return (
+		node &&
+		(is_jsx_child(node) ||
+			node.type === 'Element' ||
+			node.type === 'Text' ||
+			node.type === 'TSRXExpression' ||
+			node.type === 'IfStatement' ||
+			node.type === 'ForOfStatement' ||
+			node.type === 'SwitchStatement')
+	);
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @returns {ESTreeJSX.JSXExpressionContainer}
+ */
+function statement_body_to_jsx_child(body_nodes) {
+	if (body_contains_top_level_hook_call(body_nodes)) {
+		return hook_safe_statement_body_to_jsx_child(body_nodes);
+	}
+
+	return to_jsx_expression_container(
+		/** @type {any} */ ({
+			type: 'CallExpression',
+			callee: {
+				type: 'ArrowFunctionExpression',
+				params: [],
+				body: /** @type {any} */ ({
+					type: 'BlockStatement',
+					body: build_render_statements(body_nodes, true),
+					metadata: { path: [] },
+				}),
+				async: false,
+				generator: false,
+				expression: false,
+				metadata: { path: [] },
+			},
+			arguments: [],
+			optional: false,
+			metadata: { path: [] },
+		}),
+	);
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @returns {ESTreeJSX.JSXExpressionContainer}
+ */
+function hook_safe_statement_body_to_jsx_child(body_nodes) {
+	const source_node = get_body_source_node(body_nodes);
+	const helper_id = set_loc(
+		create_generated_identifier(create_local_statement_component_name()),
+		source_node,
+	);
+	const helper_fn = set_loc(
+		/** @type {any} */ ({
+			type: 'FunctionDeclaration',
+			id: helper_id,
+			params: [],
+			body: {
+				type: 'BlockStatement',
+				body: build_render_statements(body_nodes, true),
+				metadata: { path: [] },
+			},
+			async: false,
+			generator: false,
+			metadata: {
+				path: [],
+				is_component: true,
+				is_method: false,
+			},
+		}),
+		source_node,
+	);
+
+	return to_jsx_expression_container(
+		/** @type {any} */ ({
+			type: 'CallExpression',
+			callee: {
+				type: 'ArrowFunctionExpression',
+				params: [],
+				body: /** @type {any} */ ({
+					type: 'BlockStatement',
+					body: [
+						helper_fn,
+						{
+							type: 'ReturnStatement',
+							argument: create_helper_component_element(helper_id, [], source_node),
+							metadata: { path: [] },
+						},
+					],
+					metadata: { path: [] },
+				}),
+				async: false,
+				generator: false,
+				expression: false,
+				metadata: { path: [] },
+			},
+			arguments: [],
+			optional: false,
+			metadata: { path: [] },
+		}),
+		source_node,
+	);
+}
+
+/**
+ * @returns {string}
+ */
+function create_local_statement_component_name() {
+	local_statement_component_index += 1;
+	return `StatementBodyHook${local_statement_component_index}`;
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @returns {any}
+ */
+function get_body_source_node(body_nodes) {
+	const first = body_nodes[0];
+	const last = body_nodes[body_nodes.length - 1];
+
+	if (first?.loc && last?.loc) {
+		return {
+			start: first.start,
+			end: last.end,
+			loc: {
+				start: first.loc.start,
+				end: last.loc.end,
+			},
+		};
+	}
+
+	return first;
+}
+
+/**
  * @param {any} node
  * @returns {any}
  */
@@ -330,6 +1119,10 @@ function to_jsx_child(node) {
 			return to_jsx_expression_container(node.expression, node);
 		case 'IfStatement':
 			return if_statement_to_jsx_child(node);
+		case 'ForOfStatement':
+			return for_of_statement_to_jsx_child(node);
+		case 'SwitchStatement':
+			return switch_statement_to_jsx_child(node);
 		default:
 			return node;
 	}
@@ -356,6 +1149,82 @@ function if_statement_to_jsx_child(node) {
 			},
 			arguments: [],
 			optional: false,
+		}),
+	);
+}
+
+/**
+ * @param {any} node
+ * @returns {ESTreeJSX.JSXExpressionContainer}
+ */
+function for_of_statement_to_jsx_child(node) {
+	if (node.key) {
+		throw create_compile_error(
+			node.key,
+			'React TSRX does not support `key` in `for` control flow. Put the key on the rendered element instead, for example `<div key={i}>...</div>`.',
+		);
+	}
+
+	const loop_params = get_for_of_iteration_params(node.left, node.index);
+	const loop_body = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
+
+	return to_jsx_expression_container(
+		/** @type {any} */ ({
+			type: 'CallExpression',
+			callee: {
+				type: 'MemberExpression',
+				object: node.right,
+				property: identifier_to_jsx_name(create_generated_identifier('map')),
+				computed: false,
+				optional: false,
+				metadata: { path: [] },
+			},
+			arguments: [
+				{
+					type: 'ArrowFunctionExpression',
+					params: loop_params,
+					body: /** @type {any} */ ({
+						type: 'BlockStatement',
+						body: build_render_statements(loop_body, true),
+						metadata: { path: [] },
+					}),
+					async: false,
+					generator: false,
+					expression: false,
+					metadata: { path: [] },
+				},
+			],
+			async: false,
+			optional: false,
+			metadata: { path: [] },
+		}),
+	);
+}
+
+/**
+ * @param {any} node
+ * @returns {ESTreeJSX.JSXExpressionContainer}
+ */
+function switch_statement_to_jsx_child(node) {
+	return to_jsx_expression_container(
+		/** @type {any} */ ({
+			type: 'CallExpression',
+			callee: {
+				type: 'ArrowFunctionExpression',
+				params: [],
+				body: /** @type {any} */ ({
+					type: 'BlockStatement',
+					body: [create_render_switch_statement(node), create_null_return_statement()],
+					metadata: { path: [] },
+				}),
+				async: false,
+				generator: false,
+				expression: false,
+				metadata: { path: [] },
+			},
+			arguments: [],
+			optional: false,
+			metadata: { path: [] },
 		}),
 	);
 }
@@ -399,6 +1268,65 @@ function create_render_if_statement(node) {
 		},
 		node,
 	);
+}
+
+/**
+ * @param {any} node
+ * @returns {any}
+ */
+function create_render_switch_statement(node) {
+	return /** @type {any} */ ({
+		type: 'SwitchStatement',
+		discriminant: node.discriminant,
+		cases: node.cases.map(create_render_switch_case),
+		metadata: { path: [] },
+	});
+}
+
+/**
+ * @param {any} switch_case
+ * @returns {any}
+ */
+function create_render_switch_case(switch_case) {
+	const consequent = flatten_switch_consequent(switch_case.consequent || []);
+	const case_body = [];
+	const render_nodes = [];
+	let has_terminal = false;
+
+	for (const child of consequent) {
+		if (child.type === 'BreakStatement') {
+			if (render_nodes.length > 0 && !has_terminal) {
+				case_body.push(create_component_return_statement(render_nodes, switch_case));
+			} else if (!has_terminal) {
+				case_body.push(child);
+			}
+			has_terminal = true;
+			break;
+		}
+
+		if (is_bare_return_statement(child)) {
+			case_body.push(create_component_return_statement(render_nodes, child));
+			has_terminal = true;
+			break;
+		}
+
+		if (is_jsx_child(child)) {
+			render_nodes.push(to_jsx_child(child));
+		} else {
+			case_body.push(child);
+		}
+	}
+
+	if (!has_terminal && render_nodes.length > 0) {
+		case_body.push(create_component_return_statement(render_nodes, switch_case));
+	}
+
+	return /** @type {any} */ ({
+		type: 'SwitchCase',
+		test: switch_case.test,
+		consequent: case_body,
+		metadata: { path: [] },
+	});
 }
 
 /**
@@ -590,4 +1518,62 @@ function set_loc(node, source_node) {
 		return /** @type {T} */ (setLocation(/** @type {any} */ (node), source_node, true));
 	}
 	return node;
+}
+
+/**
+ * @param {any} left
+ * @param {any} index
+ * @returns {AST.Pattern[]}
+ */
+function get_for_of_iteration_params(left, index) {
+	const params = [];
+	if (left?.type === 'VariableDeclaration') {
+		params.push(left.declarations[0]?.id);
+	} else {
+		params.push(left);
+	}
+	if (index) {
+		params.push(index);
+	}
+	return params;
+}
+
+/**
+ * @param {string} name
+ * @returns {AST.Identifier}
+ */
+function create_generated_identifier(name) {
+	return /** @type {any} */ ({
+		type: 'Identifier',
+		name,
+		metadata: { path: [] },
+	});
+}
+
+/**
+ * @param {any} node
+ * @param {string} message
+ * @returns {Error & { pos: number, end: number }}
+ */
+function create_compile_error(node, message) {
+	const error = /** @type {Error & { pos: number, end: number }} */ (new Error(message));
+	error.pos = node.start ?? 0;
+	error.end = node.end ?? error.pos + 1;
+	return error;
+}
+
+/**
+ * @param {any[]} consequent
+ * @returns {any[]}
+ */
+function flatten_switch_consequent(consequent) {
+	const result = [];
+	for (const node of consequent) {
+		if (node.type === 'BlockStatement') {
+			result.push(...node.body);
+		} else {
+			result.push(node);
+		}
+	}
+	return result;
 }

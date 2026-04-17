@@ -983,9 +983,11 @@ export function convert_source_map_to_mappings(
 					visit(node.body);
 				}
 
-				mappings.push(
-					get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
-				);
+				if (node.loc) {
+					mappings.push(
+						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
+					);
+				}
 
 				return;
 			} else if (node.type === 'WhileStatement' || node.type === 'DoWhileStatement') {
@@ -1322,9 +1324,11 @@ export function convert_source_map_to_mappings(
 					}
 				}
 
-				mappings.push(
-					get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
-				);
+				if (node.loc) {
+					mappings.push(
+						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
+					);
+				}
 
 				return;
 			} else if (node.type === 'SwitchCase') {
