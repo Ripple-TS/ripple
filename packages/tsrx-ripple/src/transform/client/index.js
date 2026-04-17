@@ -1688,6 +1688,7 @@ const visitors = {
 										b.block([b.return(b.call('_$_.normalize_children', property))]),
 									),
 								);
+								props.push(children_prop);
 								continue;
 							}
 
@@ -1705,6 +1706,7 @@ const visitors = {
 									b.id('children'),
 									b.call('_$_.normalize_children', property),
 								);
+								props.push(children_prop);
 								continue;
 							}
 
@@ -1795,32 +1797,12 @@ const visitors = {
 					),
 				);
 
+				// Template children take precedence over explicit children prop
 				if (children_prop) {
-					if (children_prop.kind === 'get') {
-						/** @type {AST.ReturnStatement} */ (
-							/** @type {AST.FunctionExpression} */ (children_prop.value).body.body[0]
-						).argument = b.logical(
-							'??',
-							/** @type {AST.Expression} */ (
-								/** @type {AST.ReturnStatement} */ (
-									/** @type {AST.FunctionExpression} */ (children_prop.value).body.body[0]
-								).argument
-							),
-							children,
-						);
-					} else {
-						children_prop.value = b.logical(
-							'??',
-							/** @type {AST.Expression} */ (children_prop.value),
-							children,
-						);
-					}
-				} else {
-					children_prop = b.prop('init', b.id('children'), children);
+					const idx = props.indexOf(children_prop);
+					if (idx !== -1) props.splice(idx, 1);
 				}
-			}
-
-			if (children_prop) {
+				children_prop = b.prop('init', b.id('children'), children);
 				props.push(children_prop);
 			}
 

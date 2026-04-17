@@ -112,8 +112,9 @@ export component App() {
 
 		const result = compile(source, 'test.ripple', { mode: 'server' }).js.code;
 
+		// Template children should take precedence - explicit children prop should be removed
 		expect((result.match(/children:/g) || []).length).toBe(1);
-		expect(result).toContain('children: _$_.normalize_children(fallback) ?? _$_.ripple_element(');
+		expect(result).toContain('children: _$_.ripple_element(');
 	});
 });
 
@@ -198,5 +199,41 @@ describe('compiler server block tests', () => {
 }`;
 
 		expect(() => compile(source, 'test.ripple', { mode: 'server' })).toThrowError();
+	});
+
+	it('wraps children in normalize_children for explicit children prop passed to component', () => {
+		const source = `
+component Card(props) {
+	<div>{props.children}</div>
+}
+
+export component App() {
+	const content = 'hello';
+
+	<Card children={content} />
+}
+`;
+
+		const result = compile(source, 'test.ripple', { mode: 'server' }).js.code;
+
+		expect(result).toContain('_$_.normalize_children(');
+	});
+
+	it('passes spread through to component when spread may contain children', () => {
+		const source = `
+component Card(props) {
+	<div>{props.children}</div>
+}
+
+export component App() {
+	const props = { children: 'hello' };
+
+	<Card {...props} />
+}
+`;
+
+		const result = compile(source, 'test.ripple', { mode: 'server' }).js.code;
+
+		expect(result).toContain('...props');
 	});
 });

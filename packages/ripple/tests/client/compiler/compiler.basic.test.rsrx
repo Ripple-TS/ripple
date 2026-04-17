@@ -535,8 +535,9 @@ export component App() {
 
 		const result = compile(source, 'test.ripple', { mode: 'client' }).js.code;
 
+		// Template children should take precedence - explicit children prop should be removed
 		expect((result.match(/children:/g) || []).length).toBe(1);
-		expect(result).toContain('children: _$_.normalize_children(fallback) ?? _$_.ripple_element(');
+		expect(result).toContain('children: _$_.ripple_element(');
 	});
 
 	it('should not error on `this` MemberExpression with a UpdateExpression', () => {
@@ -653,5 +654,41 @@ export component App() {}`;
 		const result = compile_to_volar_mappings(source, 'test.ripple', { loose: true }).code;
 
 		expect(result).toContain('class StringMap extends Map<string, string> {}');
+	});
+
+	it('wraps children in normalize_children for explicit children prop passed to component', () => {
+		const source = `
+component Card(props) {
+	<div>{props.children}</div>
+}
+
+export component App() {
+	const content = 'hello';
+
+	<Card children={content} />
+}
+`;
+
+		const result = compile(source, 'test.ripple', { mode: 'client' }).js.code;
+
+		expect(result).toContain('_$_.normalize_children(');
+	});
+
+	it('uses spread_props for spreads that may contain children', () => {
+		const source = `
+component Card(props) {
+	<div>{props.children}</div>
+}
+
+export component App() {
+	const props = { children: 'hello' };
+
+	<Card {...props} />
+}
+`;
+
+		const result = compile(source, 'test.ripple', { mode: 'client' }).js.code;
+
+		expect(result).toContain('_$_.spread_props(');
 	});
 });
