@@ -441,6 +441,9 @@ importers:
       '@ripple-ts/eslint-parser':
         specifier: workspace:*
         version: link:../eslint-parser
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
       '@types/eslint':
         specifier: catalog:default
         version: 9.6.1

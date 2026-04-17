@@ -1,6 +1,6 @@
 import type { Rule } from 'eslint';
-import type * as AST from 'ripple/types/estree';
-import type * as ESTreeJSX from 'ripple/types/estree-jsx';
+import type * as AST from '@tsrx/core/types/estree';
+import type * as ESTreeJSX from '@tsrx/core/types/estree-jsx';
 
 const rule: Rule.RuleModule = {
 	meta: {

@@ -45,6 +45,7 @@
   },
   "devDependencies": {
     "@ripple-ts/eslint-parser": "workspace:*",
+    "@tsrx/core": "workspace:*",
     "@types/eslint": "catalog:default",
     "@types/node": "catalog:default",
     "@typescript-eslint/parser": "catalog:default",
