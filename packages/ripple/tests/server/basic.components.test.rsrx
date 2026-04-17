@@ -242,7 +242,7 @@ describe('basic server > components & composition', () => {
 		}
 
 		component App() {
-			<Card children={'fallback text'} />
+			<Card children="fallback text" />
 		}
 
 		const { body } = await render(App);
@@ -257,7 +257,7 @@ describe('basic server > components & composition', () => {
 
 		component App() {
 			const extra = { id: '1' };
-			<Card children={'fallback text'} {...extra} />
+			<Card children="fallback text" {...extra} />
 		}
 
 		const { body } = await render(App);
@@ -272,7 +272,7 @@ describe('basic server > components & composition', () => {
 
 		component App() {
 			const extra = { id: '1' };
-			<Card {...extra} children={'fallback text'} />
+			<Card {...extra} children="fallback text" />
 		}
 
 		const { body } = await render(App);
@@ -287,7 +287,7 @@ describe('basic server > components & composition', () => {
 
 		component App() {
 			const extra = { id: '1' };
-			<Card children={'fallback text'} {...extra}>
+			<Card children="fallback text" {...extra}>
 				<span>{'template content'}</span>
 			</Card>
 		}
@@ -305,7 +305,7 @@ describe('basic server > components & composition', () => {
 
 		component App() {
 			const extra = { id: '1' };
-			<Card {...extra} children={'fallback text'}>
+			<Card {...extra} children="fallback text">
 				<span>{'template content'}</span>
 			</Card>
 		}
@@ -323,7 +323,11 @@ describe('basic server > components & composition', () => {
 
 		component App() {
 			const extra = { id: '1', children: 'from spread' };
-			<Card children={'explicit'} {...extra} />
+			<Card
+				// @ts-ignore
+				children="explicit"
+				{...extra}
+			/>
 		}
 
 		const { body } = await render(App);
@@ -338,7 +342,7 @@ describe('basic server > components & composition', () => {
 
 		component App() {
 			const extra = { id: '1', children: 'from spread' };
-			<Card {...extra} children={'explicit'} />
+			<Card {...extra} children="explicit" />
 		}
 
 		const { body } = await render(App);
