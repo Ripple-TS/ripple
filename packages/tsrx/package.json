@@ -1,6 +1,6 @@
 {
   "name": "@tsrx/core",
-  "description": "Core compiler infrastructure for tsrx-based frameworks",
+  "description": "Core compiler infrastructure for TSRX syntax",
   "license": "MIT",
   "author": "Dominic Gannaway",
   "version": "0.0.1",

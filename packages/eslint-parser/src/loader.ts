@@ -25,7 +25,7 @@ export async function initializeParser() {
 	} catch (error: any) {
 		throw new Error(
 			`Failed to load Ripple compiler: ${error.message}. ` +
-				'Make sure the "ripple" package is installed.',
+				'Make sure the "@tsrx/ripple" package is installed.',
 		);
 	}
 }

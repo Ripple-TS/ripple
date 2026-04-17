@@ -19,9 +19,8 @@ to [Inferno](https://github.com/infernojs/inferno),
 [Svelte 5](https://github.com/sveltejs/svelte).
 
 **Key Philosophy:** Ripple is TS-first with `.tsrx` as its default component file
-extension, while preserving `.ripple` compatibility during the transition. This
-allows seamless TypeScript integration and a unique syntax that enhances both
-human and LLM developer experience.
+extension. This allows seamless TypeScript integration and a unique syntax that
+enhances both human and LLM developer experience.
 
 📚 **[Full Documentation](https://www.ripplejs.com/docs)** | 🎮
 **[Interactive Playground](https://www.ripplejs.com/playground)**

@@ -1,5 +1,5 @@
 import type { Program } from 'estree';
-import type { AST, Linter } from 'eslint';
+import type { Linter } from 'eslint';
 import { createRequire } from 'module';
 
 interface ParseResult {
@@ -191,7 +191,7 @@ function requireRippleCompiler(): any {
 	} catch (error: any) {
 		throw new Error(
 			`Failed to load Ripple compiler: ${error.message}. ` +
-				'Make sure the "ripple" package is installed as a peer dependency.',
+				'Make sure the "@tsrx/ripple" package is installed as a peer dependency.',
 		);
 	}
 }
