@@ -2481,6 +2481,9 @@ const visitors = {
 		if (handler?.param) {
 			delete handler.param.typeAnnotation;
 		}
+		if (handler?.resetParam) {
+			delete handler.resetParam.typeAnnotation;
+		}
 
 		context.state.init?.push(
 			b.stmt(

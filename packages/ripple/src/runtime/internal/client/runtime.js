@@ -900,7 +900,7 @@ function flush_updates(root_block) {
 		var block = other_blocks[i];
 
 		try {
-			if (is_block_dirty(block)) {
+			if ((block.f & (PAUSED | DESTROYED)) === 0 && is_block_dirty(block)) {
 				run_block(block);
 			}
 		} catch (error) {
