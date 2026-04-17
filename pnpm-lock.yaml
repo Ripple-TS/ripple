@@ -704,6 +704,9 @@ importers:
 
   packages/typescript-plugin:
     dependencies:
+      '@tsrx/react':
+        specifier: workspace:*
+        version: link:../tsrx-react
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:../tsrx-ripple
@@ -767,6 +770,9 @@ importers:
       '@ripple-ts/typescript-plugin':
         specifier: workspace:*
         version: link:../typescript-plugin
+      '@tsrx/react':
+        specifier: workspace:*
+        version: link:../tsrx-react
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:../tsrx-ripple
