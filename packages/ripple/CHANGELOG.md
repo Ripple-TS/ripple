@@ -1,5 +1,19 @@
 # ripple
 
+## 0.3.15
+
+### Patch Changes
+
+- [`a14097a`](https://github.com/Ripple-TS/ripple/commit/a14097a688ad85c236a6619cef527c78787ab367)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix children prop precedence
+  when invoking components so that template children always win over an explicit
+  `children=` attribute, while still respecting JSX-like ordering between explicit
+  props and spreads when no template children are present.
+
+- Updated dependencies
+  [[`a14097a`](https://github.com/Ripple-TS/ripple/commit/a14097a688ad85c236a6619cef527c78787ab367)]:
+  - ripple@0.3.15
+
 ## 0.3.14
 
 ### Patch Changes
