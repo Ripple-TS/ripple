@@ -2,4 +2,4 @@
 'ripple': patch
 ---
 
-fix: children prop ordering when spreads follow explicit children
+fix: preserve children prop precedence after spreads
