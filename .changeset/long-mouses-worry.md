@@ -11,8 +11,10 @@ Add a release changeset for the async tracking work introduced in commit
 
 This ships async tracking as a first-class feature in Ripple:
 
+- remove and prohibit direct component-level `await`; async component flows now
+  require using `trackAsync()` (with `trackPending()` for pending state checks)
 - add `trackAsync()` and `trackPending()` support so async values can be read
-  through Ripple's reactive runtime without using direct component-level `await`
+  through Ripple's reactive runtime using tracked async values
 - update compiler/runtime behavior for `try`/`catch`/`pending` boundaries so
   async pending and error states can render and recover correctly in client and
   SSR paths
