@@ -2,7 +2,7 @@
 @import {
 	Binding,
 	ScopeInterface,
-	ScopeRoot as ScopeRootInterface,
+	ScopeRootInterface,
 	Context,
 	ScopeConstructorInterface,
 	ScopeConstructorParameters

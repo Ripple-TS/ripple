@@ -5,10 +5,7 @@
  */
 
 import * as acorn from 'acorn';
-import { walk } from 'zimmerframe';
-import {
-	parse_style,
-} from './parse/style.js';
+import { parse_style } from './parse/style.js';
 import {
 	convert_from_jsx,
 	skipWhitespace,

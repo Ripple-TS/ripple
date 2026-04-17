@@ -1224,7 +1224,7 @@ export interface Binding {
 /**
  * Root scope manager
  */
-export interface ScopeRoot {
+export interface ScopeRootInterface {
 	/** Set of conflicting/reserved names */
 	conflicts: Set<string>;
 	/** Generate unique identifier name */
@@ -1232,7 +1232,7 @@ export interface ScopeRoot {
 }
 
 export interface ScopeConstructorInterface {
-	root: ScopeRoot;
+	root: ScopeRootInterface;
 	parent: ScopeInterface | null;
 	porous: boolean;
 	error_options: {
@@ -1255,7 +1255,7 @@ export type ScopeConstructorParameters = [
  */
 export interface ScopeInterface {
 	/** Root scope manager */
-	root: ScopeRoot;
+	root: ScopeRootInterface;
 	/** Parent scope */
 	parent: ScopeInterface | null;
 	/** Map of declared bindings */

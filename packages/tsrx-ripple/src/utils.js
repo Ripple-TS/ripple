@@ -7,8 +7,11 @@ import {
 	buildAssignmentValue,
 	extractPaths,
 	builders,
+	isBooleanAttribute,
 	isCaptureEvent,
+	isDomProperty,
 	isNonDelegated,
+	isVoidElement,
 	normalizeEventName,
 	hash,
 } from '@tsrx/core';
@@ -16,37 +19,10 @@ const b = builders;
 
 export { hash };
 
-const VOID_ELEMENT_NAMES = [
-	'area',
-	'base',
-	'br',
-	'col',
-	'command',
-	'embed',
-	'hr',
-	'img',
-	'input',
-	'keygen',
-	'link',
-	'meta',
-	'param',
-	'source',
-	'track',
-	'wbr',
-];
-
-/**
- * Returns `true` if `name` is of a void element
- * @param {string} name
- */
-/**
- * Returns true if name is a void element
- * @param {string} name
- * @returns {boolean}
- */
-export function is_void_element(name) {
-	return VOID_ELEMENT_NAMES.includes(name) || name.toLowerCase() === '!doctype';
-}
+// Re-export under the framework's snake_case internal convention.
+export const is_void_element = isVoidElement;
+export const is_boolean_attribute = isBooleanAttribute;
+export const is_dom_property = isDomProperty;
 
 const RESERVED_WORDS = [
 	'arguments',
@@ -108,68 +84,6 @@ export function is_reserved(word) {
 	return RESERVED_WORDS.includes(word);
 }
 
-/**
- * Attributes that are boolean, i.e. they are present or not present.
- */
-const DOM_BOOLEAN_ATTRIBUTES = [
-	'allowfullscreen',
-	'async',
-	'autofocus',
-	'autoplay',
-	'checked',
-	'controls',
-	'default',
-	'disabled',
-	'formnovalidate',
-	'hidden',
-	'indeterminate',
-	'inert',
-	'ismap',
-	'loop',
-	'multiple',
-	'muted',
-	'nomodule',
-	'novalidate',
-	'open',
-	'playsinline',
-	'readonly',
-	'required',
-	'reversed',
-	'seamless',
-	'selected',
-	'webkitdirectory',
-	'defer',
-	'disablepictureinpicture',
-	'disableremoteplayback',
-];
-
-/**
- * Returns true if name is a boolean DOM attribute
- * @param {string} name
- * @returns {boolean}
- */
-export function is_boolean_attribute(name) {
-	return DOM_BOOLEAN_ATTRIBUTES.includes(name);
-}
-
-const DOM_PROPERTIES = [
-	...DOM_BOOLEAN_ATTRIBUTES,
-	'formNoValidate',
-	'isMap',
-	'noModule',
-	'playsInline',
-	'readOnly',
-	'value',
-	'volume',
-	'defaultValue',
-	'defaultChecked',
-	'srcObject',
-	'noValidate',
-	'allowFullscreen',
-	'disablePictureInPicture',
-	'disableRemotePlayback',
-];
-
 // Omits track, trackSplit and trackAsync are they're handled separately
 /** @type {Record<string, {name: string, requiresBlock?: boolean}>} */
 const RIPPLE_IMPORT_CALL_NAME = {
@@ -187,15 +101,6 @@ const RIPPLE_IMPORT_CALL_NAME = {
 	trackPending: { name: 'is_tracked_pending' },
 	peek: { name: 'peek_tracked' },
 };
-
-/**
- * Returns true if name is a DOM property
- * @param {string} name
- * @returns {boolean}
- */
-export function is_dom_property(name) {
-	return DOM_PROPERTIES.includes(name);
-}
 
 /**
  * Determines if an event handler can be delegated

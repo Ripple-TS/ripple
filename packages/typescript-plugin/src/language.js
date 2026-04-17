@@ -1,13 +1,13 @@
 /** @import { CodeMapping } from '@tsrx/ripple' */
 /** @import {TSRXCompileError, VolarMappingsResult} from '@tsrx/ripple' */
-/** @import * as RippleCompiler from '@tsrx/ripple' */
+
+/** @typedef {typeof import('@tsrx/ripple')} TSRXCompilerModule */
 
 /** @typedef {Map<string, CodeMapping>} CachedMappings */
 /** @typedef {import('typescript').CompilerOptions} CompilerOptions */
 /** @typedef {import('@volar/language-core').IScriptSnapshot} IScriptSnapshot */
 /** @typedef {import('@volar/language-core').VirtualCode} VirtualCode */
 /** @typedef {string | { fsPath: string }} ScriptId */
-/** @typedef {import('@volar/typescript')} */
 /** @typedef {import('@volar/language-core').LanguagePlugin<ScriptId, VirtualCode>} RippleLanguagePlugin */
 
 const ts = require('typescript');
@@ -54,7 +54,7 @@ function getRippleLanguagePlugin() {
 				}
 				log('Creating virtual code for:', file_name);
 				try {
-					return new RippleVirtualCode(file_name, snapshot, ripple);
+					return new TSRXVirtualCode(file_name, snapshot, ripple);
 				} catch (err) {
 					logError('Failed to create virtual code for:', file_name, ':', err);
 					throw err;
@@ -63,7 +63,7 @@ function getRippleLanguagePlugin() {
 			return undefined;
 		},
 		updateVirtualCode(fileNameOrUri, virtualCode, snapshot) {
-			if (virtualCode instanceof RippleVirtualCode) {
+			if (virtualCode instanceof TSRXVirtualCode) {
 				log('Updating existing virtual code for:', virtualCode.fileName);
 				virtualCode.update(snapshot);
 				return virtualCode;
@@ -99,14 +99,14 @@ function getRippleLanguagePlugin() {
 /**
  * @implements {VirtualCode}
  */
-class RippleVirtualCode {
+class TSRXVirtualCode {
 	/** @type {string} */
 	id = 'root';
 	/** @type {string} */
 	languageId = 'ripple';
 	/** @type {unknown[]} */
 	codegenStacks = [];
-	/** @type {RippleCompiler} */
+	/** @type {TSRXCompilerModule} */
 	ripple;
 	/** @type {string} */
 	generatedCode = '';
@@ -134,10 +134,10 @@ class RippleVirtualCode {
 	/**
 	 * @param {string} file_name
 	 * @param {IScriptSnapshot} snapshot
-	 * @param {RippleCompiler} ripple
+	 * @param {TSRXCompilerModule} ripple
 	 */
 	constructor(file_name, snapshot, ripple) {
-		log('Initializing RippleVirtualCode for:', file_name);
+		log('Initializing TSRXVirtualCode for:', file_name);
 
 		this.fileName = file_name;
 		this.ripple = ripple;
@@ -598,13 +598,13 @@ function normalizeFileNameOrUri(fileNameOrUri) {
 
 /**
  * @param {string} normalized_file_name
- * @returns {RippleCompiler | undefined}
+ * @returns {TSRXCompilerModule | undefined}
  */
 function getRippleCompiler(normalized_file_name) {
 	const dir = getRippleDirForFile(normalized_file_name);
 	const ripple_path = dir ? path.join(dir, 'src', 'index.js') : undefined;
 	if (ripple_path) {
-		return /** @type {RippleCompiler} */ (require(ripple_path));
+		return /** @type {TSRXCompilerModule} */ (require(ripple_path));
 	}
 }
 
@@ -730,6 +730,6 @@ module.exports = {
 	getRippleLanguagePlugin,
 	getCachedTypeDefinitionFile,
 	getCachedTypeMatches,
-	RippleVirtualCode,
+	TSRXVirtualCode,
 	resolveConfig,
 };
