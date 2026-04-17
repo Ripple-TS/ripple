@@ -1,5 +1,5 @@
-import { parse, compile, compile_to_volar_mappings } from 'ripple/compiler';
-import { obfuscate_identifier } from 'ripple/compiler/internal/identifier/utils';
+import { parse, compile, compile_to_volar_mappings } from '@tsrx/ripple';
+import { obfuscate_identifier } from '@tsrx/core';
 import type * as AST from 'estree';
 
 function count_occurrences(string: string, subString: string): number {

@@ -1,7 +1,7 @@
 /**
-@import * as acorn from 'ripple/types/acorn';
-@import * as AST from 'ripple/types/estree';
-@import * as ESTreeJSX from 'ripple/types/estree-jsx';
+@import * as acorn from '@tsrx/core/types/acorn';
+@import * as AST from '@tsrx/core/types/estree';
+@import * as ESTreeJSX from '@tsrx/core/types/estree-jsx';
 @import { Doc, AstPath, ParserOptions } from 'prettier';
  */
 
@@ -55,7 +55,7 @@
 }} PrintArgs
  */
 
-import { parse } from 'ripple/compiler';
+import { parse } from '@tsrx/ripple';
 import { doc } from 'prettier';
 
 const { builders, utils } = doc;

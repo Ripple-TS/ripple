@@ -1,7 +1,7 @@
 /**
 @import * as AST from 'estree';
 @import {AnalysisContext} from '#compiler';
-@import { RippleCompileError } from 'ripple/compiler';
+@import { RippleCompileError } from '#compiler';
  */
 
 import { error } from '../../errors.js';

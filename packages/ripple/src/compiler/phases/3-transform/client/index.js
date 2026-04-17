@@ -11,7 +11,7 @@
 	Visitors,
 	Binding,
 }	from '#compiler';
-@import { RippleCompileError } from 'ripple/compiler';
+@import { RippleCompileError } from '#compiler';
 @import { RequiredPresent } from '#helpers';
  */
 
@@ -3325,7 +3325,7 @@ function transform_template_element(node, state, visit, child_namespace, init, u
 
 		if (metadata.tracking) {
 			update.push({
-				operation: (key) =>
+				operation: (/** @type {AST.Expression | undefined} */ key) =>
 					b.stmt(
 						b.assignment(
 							'=',

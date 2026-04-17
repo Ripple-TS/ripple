@@ -4,7 +4,7 @@
  * Or used as vitest globalSetup
  */
 
-import { compile } from 'ripple/compiler';
+import { compile } from '@tsrx/ripple';
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'fs';
 import { join, basename } from 'path';
 import { fileURLToPath } from 'url';

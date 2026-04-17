@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { compile, compile_to_volar_mappings } from 'ripple/compiler';
+import { compile, compile_to_volar_mappings } from '@tsrx/ripple';
 
 const RIPPLE_EXTENSIONS = ['.ripple', '.tsrx'];
 

@@ -4,7 +4,7 @@
  * @import {RippleVirtualCode} from '@ripple-ts/typescript-plugin/src/language.js';
  */
 // @ts-expect-error: ESM type import is fine
-/** @import {RippleCompileError} from 'ripple/compiler'; */
+/** @import {RippleCompileError} from '@tsrx/ripple'; */
 
 const { getVirtualCode, createLogging } = require('./utils.js');
 

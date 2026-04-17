@@ -4,9 +4,25 @@ import type { TSESTree } from '@typescript-eslint/types';
 import type { NAMESPACE_URI } from '../../runtime/internal/client/constants.js';
 import type { Parse } from '#parser';
 import type * as ESRap from 'esrap';
-import type { RippleCompileError, CompileOptions } from 'ripple/compiler';
+import type { RippleCompileError, CompileOptions } from '../index';
 import type { Position } from 'acorn';
 import type { RequireAllOrNone } from '#helpers';
+
+// Re-export public API types so #compiler provides all compiler types
+export type {
+	RippleCompileError,
+	CompileOptions,
+	CompileResult,
+	ParseOptions,
+	AnalyzeOptions,
+	VolarCompileOptions,
+	VolarMappingsResult,
+	CodeMapping,
+	MappingData,
+	CustomMappingData,
+	PluginActionOverrides,
+	DefinitionLocation,
+} from '../index';
 
 export type NameSpace = keyof typeof NAMESPACE_URI;
 interface BaseNodeMetaData {
@@ -1315,7 +1331,7 @@ export interface TransformServerState extends BaseState {
 	in_regular_block?: boolean;
 }
 
-type UpdateList = Array<
+export type UpdateList = Array<
 	RequireAllOrNone<
 		{
 			identity?: AST.Identifier | AST.Expression;

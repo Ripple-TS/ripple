@@ -414,6 +414,9 @@ importers:
         specifier: catalog:peer
         version: 10.0.2(jiti@2.6.1)
     devDependencies:
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../tsrx-ripple
       '@types/eslint':
         specifier: catalog:default
         version: 9.6.1
@@ -489,6 +492,12 @@ importers:
         specifier: catalog:default
         version: 3.1.0
     devDependencies:
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../tsrx-ripple
       ripple:
         specifier: workspace:*
         version: link:../ripple
@@ -497,6 +506,12 @@ importers:
 
   packages/prettier-plugin:
     devDependencies:
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../tsrx-ripple
       '@types/node':
         specifier: catalog:default
         version: 24.11.0
@@ -552,6 +567,12 @@ importers:
         specifier: catalog:default
         version: 1.1.4
     devDependencies:
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../tsrx-ripple
       '@types/node':
         specifier: catalog:default
         version: 24.11.0
@@ -574,6 +595,9 @@ importers:
         specifier: catalog:default
         version: 5.3.0(rollup@4.59.0)
     devDependencies:
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../tsrx-ripple
       ripple:
         specifier: workspace:*
         version: link:../ripple
@@ -700,6 +724,9 @@ importers:
         specifier: catalog:peer
         version: 5.9.3
     devDependencies:
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../tsrx-ripple
       '@types/node':
         specifier: catalog:default
         version: 24.11.0
@@ -713,6 +740,9 @@ importers:
         specifier: workspace:*
         version: link:../adapter
     devDependencies:
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../tsrx-ripple
       '@types/node':
         specifier: catalog:default
         version: 24.11.0
@@ -795,6 +825,9 @@ importers:
       '@tailwindcss/vite':
         specifier: catalog:default
         version: 4.2.1(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../packages/tsrx-ripple
       '@typescript-eslint/parser':
         specifier: catalog:default
         version: 8.56.1(eslint@10.0.2(jiti@2.6.1))(typescript@5.9.3)

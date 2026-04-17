@@ -1,4 +1,4 @@
-import { compile } from 'ripple/compiler';
+import { compile } from '@tsrx/ripple';
 
 describe('CSS :global with classes and IDs', () => {
 	it('handles :global with single class', () => {

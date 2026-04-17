@@ -1,6 +1,6 @@
 /**
 @import * as AST from 'estree';
-@import { RippleCompileError } from 'ripple/compiler';
+@import { RippleCompileError } from '#compiler';
 */
 
 /**

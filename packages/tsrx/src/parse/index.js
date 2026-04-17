@@ -276,6 +276,7 @@ export function get_comment_handlers(source, comments, index = 0) {
 					function isCommentInsideUnvisitedAttribute(comment) {
 						for (let i = path.length - 1; i >= 0; i--) {
 							const ancestor = path[i];
+							// we would definitely reach the attribute first before getting to the element
 							if (ancestor.type === 'JSXAttribute' || ancestor.type === 'Attribute') {
 								return false;
 							}
@@ -305,111 +306,464 @@ export function get_comment_handlers(source, comments, index = 0) {
 						if (
 							!element ||
 							element.children.length > 0 ||
-							!element.openingElement?.end ||
-							!element.closingElement?.start ||
-							comment.start < element.openingElement.end ||
-							comment.end > element.closingElement.start
+							!element.closingElement ||
+							!(
+								comment.start >= /** @type {AST.NodeWithLocation} */ (element.openingElement).end &&
+								comment.end <= /** @type {AST.NodeWithLocation} */ (element).end
+							)
 						) {
 							return null;
 						}
+
 						return element;
 					}
 
-					if (node.start === undefined || node.end === undefined) {
-						next();
+					// Skip CSS nodes entirely - they use CSS-local positions (relative to
+					// the <style> tag content) which would incorrectly match against
+					// absolute source positions of JS/HTML comments. Also consume any
+					// CSS comments (which have absolute positions) that fall within the
+					// parent <style> element's content range so they don't leak to
+					// subsequent JS nodes.
+					if (node.type === 'StyleSheet') {
+						const styleElement = /** @type {AST.Element & AST.NodeWithLocation | undefined} */ (
+							path.findLast(
+								(ancestor) =>
+									ancestor &&
+									ancestor.type === 'Element' &&
+									ancestor.id &&
+									/** @type {AST.Identifier} */ (ancestor.id).name === 'style',
+							)
+						);
+						if (styleElement) {
+							const cssStart =
+								/** @type {AST.NodeWithLocation} */ (styleElement.openingElement)?.end ??
+								styleElement.start;
+							const cssEnd =
+								/** @type {AST.NodeWithLocation} */ (styleElement.closingElement)?.start ??
+								styleElement.end;
+							while (comments[0] && comments[0].start >= cssStart && comments[0].end <= cssEnd) {
+								comments.shift();
+							}
+						}
 						return;
 					}
 
-					while (comments.length > 0) {
-						const comment = comments[0];
-
-						if (comment.end <= node.start) {
-							// Comment is before this node
-							if (isCommentInsideUnvisitedAttribute(comment)) {
-								comments.shift();
-								continue;
-							}
-
-							const emptyElementTarget = getEmptyElementInnerCommentTarget(comment);
-							if (emptyElementTarget) {
-								if (!emptyElementTarget.innerComments) {
-									emptyElementTarget.innerComments = [];
-								}
-								emptyElementTarget.innerComments.push(comment);
-								comments.shift();
-								continue;
-							}
-
-							if (metadata && !isCommentInsideAttributeExpression()) {
-								const isElementChild = path.some(
-									(p) => p.type === 'Element' || p.type === 'Tsx' || p.type === 'TsxCompat',
+					if (metadata && metadata.commentContainerId !== undefined) {
+						// For empty template elements, keep comments as `innerComments`.
+						// The Prettier plugin uses `innerComments` to preserve them and
+						// to avoid collapsing the element into self-closing syntax.
+						const isEmptyElement =
+							node.type === 'Element' && (!node.children || node.children.length === 0);
+						if (!isEmptyElement) {
+							while (
+								comments[0] &&
+								comments[0].context &&
+								comments[0].context.containerId === metadata.commentContainerId &&
+								comments[0].context.beforeMeaningfulChild
+							) {
+								// Check that the comment is actually in this element's own content
+								// area, not positionally inside a child element. This handles the
+								// case where jsx_parseOpeningElementAt() triggers jsx_readToken()
+								// before the child element is pushed to the parser's #path, causing
+								// comments inside the child to get the parent's containerId.
+								const commentStart = comments[0].start;
+								const isInsideChildElement = /** @type {AST.NodeWithChildren} */ (
+									node
+								).children?.some(
+									(child) =>
+										child &&
+										child.start !== undefined &&
+										child.end !== undefined &&
+										commentStart >= child.start &&
+										commentStart < child.end,
 								);
-								if (isElementChild) {
-									if (!metadata.elementLeadingComments) {
-										metadata.elementLeadingComments = [];
-									}
-									metadata.elementLeadingComments.push(comment);
-								} else {
-									if (!node.leadingComments) {
-										node.leadingComments = [];
-									}
-									/** @type {AST.Comment[]} */ (node.leadingComments).push(comment);
-								}
-							} else {
-								if (!node.leadingComments) {
-									node.leadingComments = [];
-								}
-								/** @type {AST.Comment[]} */ (node.leadingComments).push(comment);
+								if (isInsideChildElement) break;
+
+								const elementComment = /** @type {AST.CommentWithLocation} */ (comments.shift());
+
+								(metadata.elementLeadingComments ||= []).push(elementComment);
 							}
-							comments.shift();
-						} else if (comment.start >= node.end) {
-							// Comment is after this node - stop
-							break;
-						} else {
-							// Comment is inside this node
+						}
+					}
+
+					while (
+						comments[0] &&
+						comments[0].start < /** @type {AST.NodeWithLocation} */ (node).start
+					) {
+						// Skip comments that are inside an attribute of an ancestor Element.
+						// Since zimmerframe visits children before attributes, we need to leave
+						// these comments for when the attribute nodes are visited.
+						if (
+							isCommentInsideUnvisitedAttribute(
+								/** @type {AST.CommentWithLocation} */ (comments[0]),
+							)
+						) {
 							break;
 						}
+
+						const maybeInner = getEmptyElementInnerCommentTarget(
+							/** @type {AST.CommentWithLocation} */ (comments[0]),
+						);
+						if (maybeInner) {
+							(maybeInner.innerComments ||= []).push(
+								/** @type {AST.CommentWithLocation} */ (comments.shift()),
+							);
+							continue;
+						}
+
+						const comment = /** @type {AST.CommentWithLocation} */ (comments.shift());
+
+						// Skip leading comments for BlockStatement that is a function body
+						// These comments should be dangling on the function instead
+						if (node.type === 'BlockStatement') {
+							const parent = path.at(-1);
+							if (
+								parent &&
+								(parent.type === 'FunctionDeclaration' ||
+									parent.type === 'FunctionExpression' ||
+									parent.type === 'ArrowFunctionExpression') &&
+								parent.body === node
+							) {
+								// This is a function body - don't attach comment, let it be handled by function
+								(parent.comments ||= []).push(comment);
+								continue;
+							}
+						}
+
+						if (isCommentInsideAttributeExpression()) {
+							(node.leadingComments ||= []).push(comment);
+							continue;
+						}
+
+						const ancestorElements = /** @type {(AST.Element & AST.NodeWithLocation)[]} */ (
+							path.filter((ancestor) => ancestor && ancestor.type === 'Element' && ancestor.loc)
+						).sort((a, b) => a.loc.start.line - b.loc.start.line);
+
+						const targetAncestor = ancestorElements.find(
+							(ancestor) => comment.loc.start.line < ancestor.loc.start.line,
+						);
+
+						if (targetAncestor) {
+							targetAncestor.metadata ??= { path: [] };
+							(targetAncestor.metadata.elementLeadingComments ||= []).push(comment);
+							continue;
+						}
+
+						(node.leadingComments ||= []).push(comment);
 					}
 
 					next();
 
-					// After visiting children, check for trailing comments
-					while (comments.length > 0) {
-						const comment = comments[0];
+					if (comments[0]) {
+						if (node.type === 'Program' && node.body.length === 0) {
+							// Collect all comments in an empty program (file with only comments)
+							while (comments.length) {
+								const comment = /** @type {AST.CommentWithLocation} */ (comments.shift());
+								(node.innerComments ||= []).push(comment);
+							}
+							if (node.innerComments && node.innerComments.length > 0) {
+								return;
+							}
+						}
+						if (node.type === 'BlockStatement' && node.body.length === 0) {
+							// Collect all comments that fall within this empty block
+							while (
+								comments[0] &&
+								comments[0].start < /** @type {AST.NodeWithLocation} */ (node).end &&
+								comments[0].end < /** @type {AST.NodeWithLocation} */ (node).end
+							) {
+								const comment = /** @type {AST.CommentWithLocation} */ (comments.shift());
+								(node.innerComments ||= []).push(comment);
+							}
+							if (node.innerComments && node.innerComments.length > 0) {
+								return;
+							}
+						}
+						// Handle JSXEmptyExpression - these represent {/* comment */} in JSX
+						if (node.type === 'JSXEmptyExpression') {
+							// Collect all comments that fall within this JSXEmptyExpression
+							while (
+								comments[0] &&
+								comments[0].start >= /** @type {AST.NodeWithLocation} */ (node).start &&
+								comments[0].end <= /** @type {AST.NodeWithLocation} */ (node).end
+							) {
+								const comment = /** @type {AST.CommentWithLocation} */ (comments.shift());
+								(node.innerComments ||= []).push(comment);
+							}
+							if (node.innerComments && node.innerComments.length > 0) {
+								return;
+							}
+						}
+						// Handle empty Element nodes the same way as empty BlockStatements
+						if (node.type === 'Element' && (!node.children || node.children.length === 0)) {
+							// Collect all comments that fall within this empty element
+							while (
+								comments[0] &&
+								comments[0].start < /** @type {AST.NodeWithLocation} */ (node).end &&
+								comments[0].end < /** @type {AST.NodeWithLocation} */ (node).end
+							) {
+								const comment = /** @type {AST.CommentWithLocation} */ (comments.shift());
+								(node.innerComments ||= []).push(comment);
+							}
+							if (node.innerComments && node.innerComments.length > 0) {
+								return;
+							}
+						}
 
-						if (comment.start >= node.start && comment.end <= node.end) {
-							// Comment is inside this node but after all children
-							const emptyElementTarget = getEmptyElementInnerCommentTarget(comment);
-							if (emptyElementTarget) {
-								if (!emptyElementTarget.innerComments) {
-									emptyElementTarget.innerComments = [];
+						const parent = /** @type {AST.Node & AST.NodeWithLocation} */ (path.at(-1));
+
+						if (parent === undefined || node.end !== parent.end) {
+							const slice = source.slice(node.end, comments[0].start);
+
+							// Check if this node is the last item in an array-like structure
+							let is_last_in_array = false;
+							/** @type {(AST.Node | null)[] | null} */
+							let node_array = null;
+							let isParam = false;
+							let isArgument = false;
+							let isSwitchCaseSibling = false;
+
+							if (parent) {
+								if (
+									parent.type === 'BlockStatement' ||
+									parent.type === 'Program' ||
+									parent.type === 'Component' ||
+									parent.type === 'ClassBody'
+								) {
+									node_array = parent.body;
+								} else if (parent.type === 'SwitchStatement') {
+									node_array = parent.cases;
+									isSwitchCaseSibling = true;
+								} else if (parent.type === 'SwitchCase') {
+									node_array = parent.consequent;
+								} else if (parent.type === 'ArrayExpression') {
+									node_array = parent.elements;
+								} else if (parent.type === 'ObjectExpression') {
+									node_array = parent.properties;
+								} else if (
+									parent.type === 'FunctionDeclaration' ||
+									parent.type === 'FunctionExpression' ||
+									parent.type === 'ArrowFunctionExpression'
+								) {
+									node_array = parent.params;
+									isParam = true;
+								} else if (parent.type === 'CallExpression' || parent.type === 'NewExpression') {
+									node_array = parent.arguments;
+									isArgument = true;
 								}
-								emptyElementTarget.innerComments.push(comment);
-								comments.shift();
-								continue;
 							}
 
-							if (!node.trailingComments) {
-								node.trailingComments = [];
+							if (node_array && Array.isArray(node_array)) {
+								is_last_in_array = node_array.indexOf(node) === node_array.length - 1;
 							}
-							/** @type {AST.Comment[]} */ (node.trailingComments).push(comment);
-							comments.shift();
-						} else {
-							break;
+
+							if (is_last_in_array) {
+								if (isParam || isArgument) {
+									while (comments.length) {
+										const potentialComment = comments[0];
+										if (parent && potentialComment.start >= parent.end) {
+											break;
+										}
+
+										const maybeInner = getEmptyElementInnerCommentTarget(potentialComment);
+										if (maybeInner) {
+											(maybeInner.innerComments ||= []).push(
+												/** @type {AST.CommentWithLocation} */ (comments.shift()),
+											);
+											continue;
+										}
+
+										const nextChar = getNextNonWhitespaceCharacter(source, potentialComment.end);
+										if (nextChar === ')') {
+											(node.trailingComments ||= []).push(
+												/** @type {AST.CommentWithLocation} */ (comments.shift()),
+											);
+											continue;
+										}
+
+										break;
+									}
+								} else {
+									// Special case: There can be multiple trailing comments after the last node in a block,
+									// and they can be separated by newlines
+									while (comments.length) {
+										const comment = comments[0];
+										if (parent && comment.start >= parent.end) break;
+
+										const maybeInner = getEmptyElementInnerCommentTarget(comment);
+										if (maybeInner) {
+											(maybeInner.innerComments ||= []).push(
+												/** @type {AST.CommentWithLocation} */ (comments.shift()),
+											);
+											continue;
+										}
+
+										(node.trailingComments ||= []).push(comment);
+										comments.shift();
+									}
+								}
+							} else if (/** @type {AST.NodeWithLocation} */ (node).end <= comments[0].start) {
+								const maybeInner = getEmptyElementInnerCommentTarget(
+									/** @type {AST.CommentWithLocation} */ (comments[0]),
+								);
+								if (maybeInner) {
+									(maybeInner.innerComments ||= []).push(
+										/** @type {AST.CommentWithLocation} */ (comments.shift()),
+									);
+									return;
+								}
+
+								const onlySimpleWhitespace = /^[,) \t]*$/.test(slice);
+								const onlyWhitespace = /^\s*$/.test(slice);
+								const hasBlankLine = /\n\s*\n/.test(slice);
+								const nodeEndLine = node.loc?.end?.line ?? null;
+								const commentStartLine = comments[0].loc?.start?.line ?? null;
+								const isImmediateNextLine =
+									nodeEndLine !== null &&
+									commentStartLine !== null &&
+									commentStartLine === nodeEndLine + 1;
+
+								if (isSwitchCaseSibling && !is_last_in_array) {
+									if (
+										nodeEndLine !== null &&
+										commentStartLine !== null &&
+										nodeEndLine === commentStartLine
+									) {
+										node.trailingComments = [
+											/** @type {AST.CommentWithLocation} */ (comments.shift()),
+										];
+									}
+									return;
+								}
+
+								if (
+									onlySimpleWhitespace ||
+									(onlyWhitespace && !hasBlankLine && isImmediateNextLine)
+								) {
+									// Check if this is a block comment that's inline with the next statement
+									// e.g., /** @type {SomeType} */ (a) = 5;
+									// These should be leading comments, not trailing
+									if (comments[0].type === 'Block' && !is_last_in_array && node_array) {
+										const currentIndex = node_array.indexOf(node);
+										const nextSibling = node_array[currentIndex + 1];
+
+										if (nextSibling && nextSibling.loc) {
+											const commentEndLine = comments[0].loc?.end?.line;
+											const nextSiblingStartLine = nextSibling.loc?.start?.line;
+
+											// If comment ends on same line as next sibling starts, it's inline with next
+											if (commentEndLine === nextSiblingStartLine) {
+												// Leave it for next sibling's leading comments
+												return;
+											}
+										}
+									}
+
+									// For function parameters, only attach as trailing comment if it's on the same line
+									// Comments on next line after comma should be leading comments of next parameter
+									if (isParam) {
+										// Check if comment is on same line as the node
+										const nodeEndLine = source.slice(0, node.end).split('\n').length;
+										const commentStartLine = source.slice(0, comments[0].start).split('\n').length;
+										if (nodeEndLine === commentStartLine) {
+											node.trailingComments = [
+												/** @type {AST.CommentWithLocation} */ (comments.shift()),
+											];
+										}
+										// Otherwise leave it for next parameter's leading comments
+									} else {
+										// Line comments on the next line should be leading comments
+										// for the next statement, not trailing comments for this one.
+										// Only attach as trailing if:
+										// 1. It's on the same line as this node, OR
+										// 2. This is the last item in the array (no next sibling to attach to)
+										const commentOnSameLine =
+											nodeEndLine !== null &&
+											commentStartLine !== null &&
+											nodeEndLine === commentStartLine;
+
+										if (commentOnSameLine || is_last_in_array) {
+											node.trailingComments = [
+												/** @type {AST.CommentWithLocation} */ (comments.shift()),
+											];
+										}
+										// Otherwise leave it for next sibling's leading comments
+									}
+								} else if (hasBlankLine && onlyWhitespace && node_array) {
+									// When there's a blank line between node and comment(s),
+									// check if there's also a blank line after the comment(s) before the next node
+									// If so, attach comments as trailing to preserve the grouping
+									// Only do this for statement-level contexts (BlockStatement, Program),
+									// not for Element children or other contexts
+									const isStatementContext =
+										parent.type === 'BlockStatement' || parent.type === 'Program';
+
+									// Don't apply for Component - let Prettier handle comment attachment there
+									// Component bodies have different comment handling via metadata.elementLeadingComments
+									if (!isStatementContext) {
+										return;
+									}
+
+									const currentIndex = node_array.indexOf(node);
+									const nextSibling = node_array[currentIndex + 1];
+
+									if (nextSibling && nextSibling.loc) {
+										// Find where the comment block ends
+										let lastCommentIndex = 0;
+										let lastCommentEnd = comments[0].end;
+
+										// Collect consecutive comments (without blank lines between them)
+										while (comments[lastCommentIndex + 1]) {
+											const currentComment = comments[lastCommentIndex];
+											const nextComment = comments[lastCommentIndex + 1];
+											const sliceBetween = source.slice(currentComment.end, nextComment.start);
+
+											// If there's a blank line, stop
+											if (/\n\s*\n/.test(sliceBetween)) {
+												break;
+											}
+
+											lastCommentIndex++;
+											lastCommentEnd = nextComment.end;
+										}
+
+										// Check if there's a blank line after the last comment and before next sibling
+										const sliceAfterComments = source.slice(lastCommentEnd, nextSibling.start);
+										const hasBlankLineAfter = /\n\s*\n/.test(sliceAfterComments);
+
+										if (hasBlankLineAfter) {
+											// Don't attach comments as trailing if next sibling is an Element
+											// and any comment falls within the Element's line range
+											// This means the comments are inside the Element (between opening and closing tags)
+											const nextIsElement = nextSibling.type === 'Element';
+											const commentsInsideElement =
+												nextIsElement &&
+												nextSibling.loc &&
+												comments.some((c) => {
+													if (!c.loc) return false;
+													// Check if comment is on a line between Element's start and end lines
+													return (
+														c.loc.start.line >= nextSibling.loc.start.line &&
+														c.loc.end.line <= nextSibling.loc.end.line
+													);
+												});
+
+											if (!commentsInsideElement) {
+												// Attach all the comments as trailing
+												for (let i = 0; i <= lastCommentIndex; i++) {
+													(node.trailingComments ||= []).push(
+														/** @type {AST.CommentWithLocation} */ (comments.shift()),
+													);
+												}
+											}
+										}
+									}
+								}
+							}
 						}
 					}
 				},
 			});
-
-			// Any remaining comments go on the root node
-			if (comments.length > 0) {
-				if (!ast.trailingComments) {
-					ast.trailingComments = [];
-				}
-				for (const comment of comments) {
-					/** @type {AST.Comment[]} */ (ast.trailingComments).push(comment);
-				}
-			}
 		},
 	};
 }

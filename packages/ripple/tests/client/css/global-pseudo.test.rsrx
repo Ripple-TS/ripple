@@ -1,4 +1,4 @@
-import { compile } from 'ripple/compiler';
+import { compile } from '@tsrx/ripple';
 
 describe('CSS :global with pseudo-classes', () => {
 	it('handles :global with :has()', () => {

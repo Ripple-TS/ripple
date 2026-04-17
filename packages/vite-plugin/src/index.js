@@ -4,7 +4,7 @@
 
 /// <reference types="ripple/compiler/internal/rpc" />
 
-import { compile } from 'ripple/compiler';
+import { compile } from '@tsrx/ripple';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';

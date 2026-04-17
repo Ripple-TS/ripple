@@ -1,5 +1,5 @@
 import { track } from 'ripple';
-import { compile } from 'ripple/compiler';
+import { compile } from '@tsrx/ripple';
 
 describe('#style identifier (server)', () => {
 	describe('basic usage with components', () => {

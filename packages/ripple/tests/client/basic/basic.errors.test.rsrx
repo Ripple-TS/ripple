@@ -1,5 +1,5 @@
 import { flushSync, track, untrack } from 'ripple';
-import { compile } from 'ripple/compiler';
+import { compile } from '@tsrx/ripple';
 
 describe('basic client > errors', () => {
 	it('renders with error handling simulation', () => {

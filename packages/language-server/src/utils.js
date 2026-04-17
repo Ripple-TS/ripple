@@ -2,7 +2,7 @@
 /** @import { LanguageServiceContext, Mapper, SourceScript } from '@volar/language-server' */
 /** @import {RippleVirtualCode} from '@ripple-ts/typescript-plugin/src/language.js' */
 // @ts-expect-error: ESM type import is fine
-/** @import {is_identifier_obfuscated, deobfuscate_identifier, IDENTIFIER_OBFUSCATION_PREFIX} from 'ripple/compiler/internal/identifier/utils' */
+/** @import {is_identifier_obfuscated, deobfuscate_identifier, IDENTIFIER_OBFUSCATION_PREFIX} from '@tsrx/core' */
 
 const { URI } = require('vscode-uri');
 const {
@@ -35,7 +35,7 @@ let IDENTIFIER_OBFUSCATION_PREFIX;
 /** @type {RegExp} */
 let obfuscated_identifier_regex;
 
-import('ripple/compiler/internal/identifier/utils').then((imports) => {
+import('@tsrx/core').then((imports) => {
 	is_identifier_obfuscated = imports.is_identifier_obfuscated;
 	deobfuscate_identifier = imports.deobfuscate_identifier;
 	IDENTIFIER_OBFUSCATION_PREFIX = imports.IDENTIFIER_OBFUSCATION_PREFIX;

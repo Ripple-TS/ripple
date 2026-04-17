@@ -22,6 +22,8 @@
     "vscode-uri": "catalog:default"
   },
   "devDependencies": {
+    "@tsrx/core": "workspace:*",
+    "@tsrx/ripple": "workspace:*",
     "ripple": "workspace:*"
   },
   "peerDependencies": {

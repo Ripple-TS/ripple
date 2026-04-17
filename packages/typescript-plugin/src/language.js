@@ -1,6 +1,6 @@
-/** @import { CodeMapping } from 'ripple/compiler' */
-/** @import {RippleCompileError, VolarMappingsResult} from 'ripple/compiler' */
-/** @import * as RippleCompiler from 'ripple/compiler' */
+/** @import { CodeMapping } from '@tsrx/ripple' */
+/** @import {RippleCompileError, VolarMappingsResult} from '@tsrx/ripple' */
+/** @import * as RippleCompiler from '@tsrx/ripple' */
 
 /** @typedef {Map<string, CodeMapping>} CachedMappings */
 /** @typedef {import('typescript').CompilerOptions} CompilerOptions */

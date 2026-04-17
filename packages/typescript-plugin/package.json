@@ -24,6 +24,7 @@
     "@volar/typescript": "catalog:default"
   },
   "devDependencies": {
+    "@tsrx/ripple": "workspace:*",
     "@types/node": "catalog:default",
     "tsdown": "catalog:default"
   },

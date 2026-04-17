@@ -16,7 +16,7 @@ import type * as ESTreeJSX from 'estree-jsx';
 import type * as ESRap from 'esrap';
 import type * as RippleCompiler from '#compiler';
 import type { RawSourceMap } from 'source-map';
-import type { RippleCompileError } from 'ripple/compiler';
+import type { RippleCompileError } from '../index';
 
 type ForInit = boolean | 'await';
 

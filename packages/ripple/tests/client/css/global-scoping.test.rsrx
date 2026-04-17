@@ -1,4 +1,4 @@
-import { compile } from 'ripple/compiler';
+import { compile } from '@tsrx/ripple';
 
 describe('CSS :global scoping verification', () => {
 	it('verifies scoped styles are isolated', () => {

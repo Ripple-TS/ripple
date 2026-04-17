@@ -1,4 +1,4 @@
-import { compile } from 'ripple/compiler';
+import { compile } from '@tsrx/ripple';
 
 describe('CSS :global with advanced selectors', () => {
 	it('handles :global with ::slotted()', () => {

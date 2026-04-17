@@ -1,6 +1,6 @@
 /** @import { LanguageServicePlugin, LocationLink } from '@volar/language-server'; */
 // @ts-expect-error type-only import from ESM module into CJS is fine
-/** @import { DefinitionLocation } from 'ripple/compiler'; */
+/** @import { DefinitionLocation } from '@tsrx/ripple'; */
 
 const { TextDocument } = require('vscode-languageserver-textdocument');
 const { getVirtualCode, createLogging, getWordFromPosition } = require('./utils.js');

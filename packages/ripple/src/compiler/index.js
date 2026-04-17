@@ -47,7 +47,7 @@ export function compile(source, filename, options = {}) {
 }
 
 /** @import { PostProcessingChanges, LineOffsets } from './phases/3-transform/client/index.js' */
-/** @import { VolarMappingsResult, VolarCompileOptions, CompileOptions, RippleCompileError } from 'ripple/compiler' */
+/** @import { VolarMappingsResult, VolarCompileOptions, CompileOptions, RippleCompileError } from '#compiler' */
 
 /**
  * Compile Ripple component to Volar virtual code with TypeScript mappings

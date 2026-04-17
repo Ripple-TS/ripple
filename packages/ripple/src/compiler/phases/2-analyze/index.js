@@ -1,4 +1,4 @@
-/** @import {AnalyzeOptions} from 'ripple/compiler'  */
+/** @import {AnalyzeOptions} from '#compiler'  */
 /**
 @import {
 	AnalysisResult,

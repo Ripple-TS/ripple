@@ -1,4 +1,4 @@
-import { compile } from 'ripple/compiler';
+import { compile } from '@tsrx/ripple';
 
 describe('Compiler: Tracked Object Direct Access Checks', () => {
 	it('should error on direct access to __v of a tracked object', () => {

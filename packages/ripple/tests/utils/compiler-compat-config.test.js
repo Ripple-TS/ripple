@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compile } from 'ripple/compiler';
+import { compile } from '@tsrx/ripple';
 
 const source = `
 component App() {

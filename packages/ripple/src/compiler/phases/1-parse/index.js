@@ -3,7 +3,7 @@
 @import * as ESTreeJSX from 'estree-jsx'
 @import { Parse } from '#parser'
 @import { RipplePluginConfig } from '#compiler';
-@import { ParseOptions, RippleCompileError } from 'ripple/compiler'
+@import { ParseOptions, RippleCompileError } from '#compiler'
  */
 
 import * as acorn from 'acorn';

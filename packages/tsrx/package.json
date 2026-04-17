@@ -16,6 +16,15 @@
     },
     "./types": {
       "types": "./types/index.d.ts"
+    },
+    "./types/estree": {
+      "types": "./types/estree.d.ts"
+    },
+    "./types/estree-jsx": {
+      "types": "./types/estree-jsx.d.ts"
+    },
+    "./types/acorn": {
+      "types": "./types/acorn.d.ts"
     }
   },
   "dependencies": {

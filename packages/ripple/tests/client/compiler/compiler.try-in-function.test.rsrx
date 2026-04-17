@@ -1,4 +1,4 @@
-import { compile_to_volar_mappings } from 'ripple/compiler';
+import { compile_to_volar_mappings } from '@tsrx/ripple';
 
 function count_occurrences(string: string, sub_string: string): number {
 	let count = 0;

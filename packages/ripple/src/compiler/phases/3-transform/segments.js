@@ -8,7 +8,7 @@
 	PluginActionOverrides,
 	CodeMapping,
 	VolarMappingsResult,
-} from 'ripple/compiler';
+} from '#compiler';
 @import { PostProcessingChanges } from './client/index.js';
 @import { CodeMapping as VolarCodeMapping } from '@volar/language-core';
  */

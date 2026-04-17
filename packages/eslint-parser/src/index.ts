@@ -179,7 +179,7 @@ function requireRippleCompiler(): any {
 		// Use createRequire to dynamically require the module
 		// This works in both ESM and CommonJS contexts
 		const require = createRequire(import.meta.url);
-		const ripple = require('ripple/compiler');
+		const ripple = require('@tsrx/ripple');
 
 		if (!ripple || !ripple.parse) {
 			throw new Error('Ripple compiler loaded but parse function not found.');

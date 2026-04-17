@@ -1454,8 +1454,15 @@ export type StyleClasses = Map<string, AST.MemberExpression['property']>;
 /**
  * Event handling types
  */
-export interface AddEventObject extends globalThis.AddEventListenerOptions, EventListenerObject {
+export interface AddEventObject {
 	customName?: string;
+	// from AddEventListenerOptions
+	once?: boolean;
+	passive?: boolean;
+	signal?: AbortSignal;
+	capture?: boolean;
+	// from EventListenerObject
+	handleEvent?(object: Event): void;
 }
 
 /**
@@ -1511,6 +1518,29 @@ export interface VolarMappingsResult {
 	mappings: CodeMapping[];
 	cssMappings: CodeMapping[];
 	errors: CompileError[];
+}
+
+/**
+ * Result of compilation operation
+ */
+export interface CompileResult {
+	/** The transformed AST */
+	ast: AST.Program;
+	/** The generated JavaScript code with source map */
+	js: {
+		code: string;
+		map: import('source-map').RawSourceMap;
+	};
+	/** The generated CSS */
+	css: string;
+}
+
+/**
+ * Volar-specific compile options
+ */
+export interface VolarCompileOptions extends Omit<ParseOptions, 'errors' | 'comments'> {
+	minify_css?: boolean;
+	dev?: boolean;
 }
 
 /**

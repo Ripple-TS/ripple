@@ -1,7 +1,7 @@
 /**
  @import { PostProcessingChanges, LineOffsets } from './phases/3-transform/client/index.js';
  @import * as AST from 'estree';
- @import { CodeMapping } from 'ripple/compiler';
+ @import { CodeMapping } from '#compiler';
  @import { CodeMapping as VolarCodeMapping } from '@volar/language-core';
  @import { RawSourceMap } from 'source-map';
  */

@@ -19,6 +19,7 @@
     "@rollup/pluginutils": "catalog:default"
   },
   "devDependencies": {
+    "@tsrx/ripple": "workspace:*",
     "ripple": "workspace:*",
     "rollup": "catalog:default",
     "source-map": "catalog:default",
