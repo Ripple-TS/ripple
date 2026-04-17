@@ -1,5 +1,41 @@
 # ripple
 
+## 0.3.13
+
+### Patch Changes
+
+- [#842](https://github.com/Ripple-TS/ripple/pull/842)
+  [`4eb4d68`](https://github.com/Ripple-TS/ripple/commit/4eb4d6851573d771d65f1e85b1b442ad3cdc53d2)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - fix(server): inject SSR web
+  stream sinks instead of creating node streams
+
+- [#862](https://github.com/Ripple-TS/ripple/pull/862)
+  [`48af856`](https://github.com/Ripple-TS/ripple/commit/48af85678d5e1b32bb1c5e3fbb2fb07498bc88a3)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add a release changeset for
+  the async tracking work introduced in commit
+  `4eb4d6851573d771d65f1e85b1b442ad3cdc53d2`.
+
+  This ships async tracking as a first-class feature in Ripple:
+  - remove and prohibit direct component-level `await`; async component flows now
+    require using `trackAsync()` (with `trackPending()` for pending state checks)
+  - add `trackAsync()` and `trackPending()` support so async values can be read
+    through Ripple's reactive runtime using tracked async values
+  - update compiler/runtime behavior for `try`/`catch`/`pending` boundaries so
+    async pending and error states can render and recover correctly in client and
+    SSR paths
+  - align `@ripple-ts/compat-react` async boundary behavior with the new Ripple
+    async tracking semantics
+  - update editor/tooling integration to match the new async syntax/runtime shape
+
+- [`6e11177`](https://github.com/Ripple-TS/ripple/commit/6e111778cae4e7d9876e51e293520f0859eb5890)
+  Thanks [@trueadm](https://github.com/trueadm)! - Add `.rsrx` support across
+  Ripple tooling and rename the repository's tracked `.ripple` modules to `.rsrx`.
+- Updated dependencies
+  [[`4eb4d68`](https://github.com/Ripple-TS/ripple/commit/4eb4d6851573d771d65f1e85b1b442ad3cdc53d2),
+  [`48af856`](https://github.com/Ripple-TS/ripple/commit/48af85678d5e1b32bb1c5e3fbb2fb07498bc88a3),
+  [`6e11177`](https://github.com/Ripple-TS/ripple/commit/6e111778cae4e7d9876e51e293520f0859eb5890)]:
+  - ripple@0.3.13
+
 ## 0.3.12
 
 ### Patch Changes
