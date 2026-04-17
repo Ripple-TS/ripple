@@ -564,8 +564,10 @@ block.c; // context
 - Core compiler infra (parser factory, scope, utilities): `packages/tsrx/src/`
 - Ripple-specific compiler: `packages/tsrx-ripple/src/`
 - Parser changes: modify `RipplePlugin` in `packages/tsrx-ripple/src/plugin.js`
-- Scope-related changes in `packages/tsrx/src/scope.js` - track bindings with appropriate `kind`
-- CSS changes: `analyze/css-analyze.js` for parsing, `analyze/prune.js` for dead code elimination
+- Scope-related changes in `packages/tsrx/src/scope.js` - track bindings with
+  appropriate `kind`
+- CSS changes: `analyze/css-analyze.js` for parsing, `analyze/prune.js` for dead
+  code elimination
 - Code generation: separate files for `transform/client/` and `transform/server/`
 
 ### Runtime work

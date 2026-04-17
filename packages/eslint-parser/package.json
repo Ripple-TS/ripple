@@ -37,8 +37,10 @@
     "eslint": "catalog:peer",
     "ripple": "catalog:peer"
   },
+  "dependencies": {
+    "@tsrx/ripple": "workspace:*"
+  },
   "devDependencies": {
-    "@tsrx/ripple": "workspace:*",
     "@types/eslint": "catalog:default",
     "@types/estree": "catalog:default",
     "@types/node": "catalog:default",

@@ -407,13 +407,13 @@ importers:
 
   packages/eslint-parser:
     dependencies:
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../tsrx-ripple
       eslint:
         specifier: catalog:peer
         version: 10.0.2(jiti@2.6.1)
     devDependencies:
-      '@tsrx/ripple':
-        specifier: workspace:*
-        version: link:../tsrx-ripple
       '@types/eslint':
         specifier: catalog:default
         version: 9.6.1
@@ -473,6 +473,12 @@ importers:
       '@ripple-ts/typescript-plugin':
         specifier: workspace:*
         version: link:../typescript-plugin
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../tsrx-ripple
       '@volar/language-server':
         specifier: catalog:default
         version: 2.4.28
@@ -492,12 +498,6 @@ importers:
         specifier: catalog:default
         version: 3.1.0
     devDependencies:
-      '@tsrx/core':
-        specifier: workspace:*
-        version: link:../tsrx
-      '@tsrx/ripple':
-        specifier: workspace:*
-        version: link:../tsrx-ripple
       ripple:
         specifier: workspace:*
         version: link:../ripple
@@ -505,13 +505,14 @@ importers:
   packages/nvim-plugin: {}
 
   packages/prettier-plugin:
-    devDependencies:
+    dependencies:
       '@tsrx/core':
         specifier: workspace:*
         version: link:../tsrx
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:../tsrx-ripple
+    devDependencies:
       '@types/node':
         specifier: catalog:default
         version: 24.11.0
@@ -570,10 +571,10 @@ importers:
       '@rollup/pluginutils':
         specifier: catalog:default
         version: 5.3.0(rollup@4.59.0)
-    devDependencies:
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:../tsrx-ripple
+    devDependencies:
       ripple:
         specifier: workspace:*
         version: link:../ripple
@@ -687,6 +688,9 @@ importers:
 
   packages/typescript-plugin:
     dependencies:
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../tsrx-ripple
       '@volar/language-core':
         specifier: catalog:default
         version: 2.4.28
@@ -700,9 +704,6 @@ importers:
         specifier: catalog:peer
         version: 5.9.3
     devDependencies:
-      '@tsrx/ripple':
-        specifier: workspace:*
-        version: link:../tsrx-ripple
       '@types/node':
         specifier: catalog:default
         version: 24.11.0
@@ -715,10 +716,10 @@ importers:
       '@ripple-ts/adapter':
         specifier: workspace:*
         version: link:../adapter
-    devDependencies:
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:../tsrx-ripple
+    devDependencies:
       '@types/node':
         specifier: catalog:default
         version: 24.11.0

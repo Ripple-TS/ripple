@@ -24,13 +24,14 @@
     "prettier": "catalog:peer"
   },
   "devDependencies": {
-    "@tsrx/core": "workspace:*",
-    "@tsrx/ripple": "workspace:*",
     "@types/node": "catalog:default",
     "ripple": "workspace:*",
     "prettier": "catalog:default"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@tsrx/core": "workspace:*",
+    "@tsrx/ripple": "workspace:*"
+  },
   "files": [
     "src/"
   ],

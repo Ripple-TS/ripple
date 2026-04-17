@@ -32,10 +32,10 @@
     "url": "https://github.com/Ripple-TS/ripple/issues"
   },
   "dependencies": {
-    "@ripple-ts/adapter": "workspace:*"
+    "@ripple-ts/adapter": "workspace:*",
+    "@tsrx/ripple": "workspace:*"
   },
   "devDependencies": {
-    "@tsrx/ripple": "workspace:*",
     "@types/node": "catalog:default",
     "ripple": "workspace:*",
     "type-fest": "catalog:default",

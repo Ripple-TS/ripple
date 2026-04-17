@@ -16,14 +16,14 @@
   "dependencies": {
     "@volar/language-server": "catalog:default",
     "@ripple-ts/typescript-plugin": "workspace:*",
+    "@tsrx/core": "workspace:*",
+    "@tsrx/ripple": "workspace:*",
     "volar-service-css": "catalog:default",
     "volar-service-typescript": "catalog:default",
     "vscode-languageserver-textdocument": "catalog:default",
     "vscode-uri": "catalog:default"
   },
   "devDependencies": {
-    "@tsrx/core": "workspace:*",
-    "@tsrx/ripple": "workspace:*",
     "ripple": "workspace:*"
   },
   "peerDependencies": {

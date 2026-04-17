@@ -16,10 +16,10 @@
     "url": "https://github.com/Ripple-TS/ripple/issues"
   },
   "dependencies": {
-    "@rollup/pluginutils": "catalog:default"
+    "@rollup/pluginutils": "catalog:default",
+    "@tsrx/ripple": "workspace:*"
   },
   "devDependencies": {
-    "@tsrx/ripple": "workspace:*",
     "ripple": "workspace:*",
     "rollup": "catalog:default",
     "source-map": "catalog:default",

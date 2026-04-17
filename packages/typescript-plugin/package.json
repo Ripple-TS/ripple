@@ -21,10 +21,10 @@
   },
   "dependencies": {
     "@volar/language-core": "catalog:default",
-    "@volar/typescript": "catalog:default"
+    "@volar/typescript": "catalog:default",
+    "@tsrx/ripple": "workspace:*"
   },
   "devDependencies": {
-    "@tsrx/ripple": "workspace:*",
     "@types/node": "catalog:default",
     "tsdown": "catalog:default"
   },
