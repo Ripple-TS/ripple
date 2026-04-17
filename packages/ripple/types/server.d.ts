@@ -58,7 +58,7 @@ export interface RenderOptions extends BaseRenderOptions {
 	stream?: undefined;
 }
 
-export declare function create__stream(): Stream;
+export declare function create_ssr_stream(): Stream;
 
 export declare function render(
 	component: Component,
