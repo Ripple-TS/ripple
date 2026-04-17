@@ -231,6 +231,24 @@ describe('basic client > components & composition', () => {
 		expect(container.querySelector('.text-prop')?.textContent).toBe('hello');
 	});
 
+	it('lets later spreads override explicit children props', () => {
+		component Card(props: PropsWithChildren<{}>) {
+			<div class="card">{props.children}</div>
+		}
+
+		component Basic() {
+			const props = { children: 'override' };
+
+			<Card children="fallback" {...props}>
+				<span>{'content'}</span>
+			</Card>
+		}
+
+		render(Basic);
+
+		expect(container.querySelector('.card')?.textContent).toBe('override');
+	});
+
 	it('it retains this context with bracketed prop functions and keeps original chaining', () => {
 		component App() {
 			const SYMBOL_PROP = Symbol();

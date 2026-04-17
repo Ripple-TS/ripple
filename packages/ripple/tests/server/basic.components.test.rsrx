@@ -199,6 +199,26 @@ describe('basic server > components & composition', () => {
 		expect(buttonSpan.textContent).toBe('Click me!');
 	});
 
+	it('lets later spreads override explicit children props', async () => {
+		component Card(props: PropsWithChildren<{}>) {
+			<div class="card">{props.children}</div>
+		}
+
+		component Basic() {
+			const props = { children: 'override' };
+
+			<Card children="fallback" {...props}>
+				<span>{'content'}</span>
+			</Card>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		expect(document.querySelector('.card')?.textContent).toBe('override');
+		expect(body).toBeHtml('<div class="card">override</div>');
+	});
+
 	it('handles empty string children', async () => {
 		component Button({ children }: PropsWithChildren<{}>) {
 			{children}

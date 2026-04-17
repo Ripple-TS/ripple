@@ -1060,6 +1060,7 @@ const visitors = {
 			const props = [];
 			/** @type {AST.Property | null} */
 			let children_prop = null;
+			let has_explicit_children_prop = false;
 
 			const apply_parent_css_scope = state.applyParentCssScope;
 
@@ -1083,6 +1084,8 @@ const visitors = {
 								b.id('children'),
 								b.call('_$_.normalize_children', property),
 							);
+							props.push(children_prop);
+							has_explicit_children_prop = true;
 							continue;
 						}
 
@@ -1135,7 +1138,7 @@ const visitors = {
 				}
 			}
 
-			if (children_prop) {
+			if (children_prop && !has_explicit_children_prop) {
 				props.push(children_prop);
 			}
 

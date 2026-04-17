@@ -1659,6 +1659,7 @@ const visitors = {
 			const props = [];
 			/** @type {AST.Property | null} */
 			let children_prop = null;
+			let has_explicit_children_prop = false;
 
 			for (const attr of node.attributes) {
 				if (attr.type === 'Attribute') {
@@ -1690,6 +1691,8 @@ const visitors = {
 										b.block([b.return(b.call('_$_.normalize_children', property))]),
 									),
 								);
+								props.push(children_prop);
+								has_explicit_children_prop = true;
 								continue;
 							}
 
@@ -1707,6 +1710,8 @@ const visitors = {
 									b.id('children'),
 									b.call('_$_.normalize_children', property),
 								);
+								props.push(children_prop);
+								has_explicit_children_prop = true;
 								continue;
 							}
 
@@ -1822,7 +1827,7 @@ const visitors = {
 				}
 			}
 
-			if (children_prop) {
+			if (children_prop && !has_explicit_children_prop) {
 				props.push(children_prop);
 			}
 
