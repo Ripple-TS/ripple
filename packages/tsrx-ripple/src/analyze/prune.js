@@ -522,9 +522,6 @@ function apply_combinator(relative_selector, rest_selectors, rule, node, directi
 								}
 							}
 						}
-					} else if (rest_selectors.length === 1 && rest_selectors[0].metadata.is_global) {
-						// Single global selector always matches
-						sibling_matched = true;
 					}
 					// Don't apply_selector for dynamic elements - they won't match regular element selectors
 				} else if (
