@@ -1,15 +1,13 @@
 /**
-@import { Block, TryBlock, TryBlockWithCatch } from '#server';
-@import { OutputInterface } from './index.js';
+ * @import { Block, TryBlock, TryBlockWithCatch } from '#server';
+ * @import { OutputInterface } from './index.js';
  */
 
-/**
-@typedef {Error} SSRError
-@typedef {(__output: OutputInterface) => void} BlockFunction
-@typedef {() => void} TryFunction
-@typedef {(error: SSRError) => void} CatchFunction
-@typedef {() => void} PendingFunction
- */
+/** @typedef {Error} SSRError */
+/** @typedef {(__output: OutputInterface) => void} BlockFunction */
+/** @typedef {() => void} TryFunction */
+/** @typedef {(error: SSRError) => void} CatchFunction */
+/** @typedef {() => void} PendingFunction */
 
 import { ASYNC_DERIVED_READ_THROWN } from '../client/constants.js';
 import {

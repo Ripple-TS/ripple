@@ -1,29 +1,17 @@
 /**
-@import { Component, Dependency, Derived, Tracked, Block, TryBlockWithCatch } from '#server';
-@import { NestedArray } from '#helpers';
-@import { Props } from '#public';
-@import { RenderResult, BaseRenderOptions, RenderStreamResult, Stream, StreamSink } from 'ripple/server';
-*/
-
-// Export-only Types
-/**
-@typedef {Output} OutputInterface;
+ * @import { Component, Dependency, Derived, Tracked, Block, TryBlockWithCatch } from '#server';
+ * @import { NestedArray } from '#helpers';
+ * @import { Props } from '#public';
+ * @import { RenderResult, BaseRenderOptions, RenderStreamResult, Stream, StreamSink } from 'ripple/server';
  */
 
+// Export-only Types
+/** @typedef {Output} OutputInterface */
+
 // Internal Types
-/**
-@typedef {(props?: Props) => void} RenderComponent
-@typedef {{
-	tag: string;
-	parent: undefined | ElementContext;
-	filename: undefined | string;
-	line: number;
-	column: number;
-}} ElementContext;
-@typedef {{
-	cancel: () => void,
-}} RegisteredAsyncOperation;
-*/
+/** @typedef {(props?: Props) => void} RenderComponent */
+/** @typedef {{ tag: string; parent: undefined | ElementContext; filename: undefined | string; line: number; column: number; }} ElementContext */
+/** @typedef {{ cancel: () => void }} RegisteredAsyncOperation */
 
 import {
 	DERIVED,
@@ -586,6 +574,7 @@ export async function render(component, passed_in_options = {}) {
 	var top_level_error = null;
 	var head = '';
 	var body = '';
+	/** @type {Set<string>} */
 	var css = new Set();
 	/** @type {Block | null} */
 	var root_block = null;
@@ -977,7 +966,9 @@ class TrackedValue {
 	 */
 	constructor(v, a) {
 		this.a = a;
+		/** @type {AbortController | null} */
 		this.aa = null;
+		/** @type {PromiseLike<any> | null} */
 		this.ap = null;
 		this.c = 0;
 		this.f = TRACKED;
@@ -1022,6 +1013,7 @@ class DerivedValue {
 		this.b = /** @type {Block} */ (active_block);
 		this.c = 0;
 		this.co = active_component;
+		/** @type {Dependency | null} */
 		this.d = null;
 		this.f = DERIVED;
 		this.fn = fn;

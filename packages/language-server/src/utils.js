@@ -1,6 +1,6 @@
 /** @import { TextDocument } from 'vscode-languageserver-textdocument' */
 /** @import { LanguageServiceContext, Mapper, SourceScript } from '@volar/language-server' */
-/** @import {TSRXVirtualCode} from '@ripple-ts/typescript-plugin/src/language.js' */
+/** @typedef {import('@ripple-ts/typescript-plugin/src/language.js').TSRXVirtualCode} TSRXVirtualCode */
 // @ts-expect-error: ESM type import is fine
 /** @import { isIdentifierObfuscated, deobfuscateIdentifier, IDENTIFIER_OBFUSCATION_PREFIX } from '@tsrx/core' */
 

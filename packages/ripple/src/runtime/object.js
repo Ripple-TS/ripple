@@ -1,4 +1,5 @@
 /** @import { Block } from '#client' */
+/** @import { RippleObject as RippleObjectT } from '#public' */
 import { safe_scope } from './internal/client/runtime.js';
 import { object_proxy } from './proxy.js';
 
@@ -6,7 +7,7 @@ import { object_proxy } from './proxy.js';
  * @template {object} T
  * @constructor
  * @param {T} obj
- * @returns {RippleObject<T>}
+ * @returns {RippleObjectT<T>}
  */
 export function RippleObject(obj) {
 	if (!new.target) {
@@ -22,7 +23,7 @@ export function RippleObject(obj) {
  * @template {object} T
  * @param {T} obj
  * @param {Block} block
- * @returns {RippleObject<T>}
+ * @returns {RippleObjectT<T>}
  */
 export function ripple_object(block, obj) {
 	return object_proxy(obj, block);

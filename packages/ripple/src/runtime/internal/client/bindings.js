@@ -1,11 +1,9 @@
 /** @import { Tracked } from '#client' */
 
-/**
-@typedef {(v: unknown) => void} SetFunction
-@typedef {() => any} BindGetter
-@typedef {(v: unknown) => void} BindSetter
-@typedef {{getter: BindGetter, setter: BindSetter}} BindGetSet
-*/
+/** @typedef {(v: unknown) => void} SetFunction */
+/** @typedef {() => any} BindGetter */
+/** @typedef {(v: unknown) => void} BindSetter */
+/** @typedef {{getter: BindGetter, setter: BindSetter}} BindGetSet */
 
 import { effect, render } from './blocks.js';
 import { on } from './events.js';

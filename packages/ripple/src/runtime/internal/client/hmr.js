@@ -6,21 +6,9 @@ import { hydrate_node, hydrating } from './hydration.js';
 import { branch, destroy_block, render } from './blocks.js';
 import { active_block, get, set, tracked } from './runtime.js';
 
-/**
-@typedef {
-	(anchor: Node, props: any, block: Block | null) => void
-} Component
+/** @typedef {(anchor: Node, props: any, block: Block | null) => void} Component */
 
-@typedef {
-	Component & {
-		[HMR]: {
-			fn: Component;
-			current: Tracked | undefined;
-			update: (incoming: ComponentWrapper) => void;
-		}
-	}
-} ComponentWrapper
- */
+/** @typedef {Component & { [HMR]: { fn: Component; current: Tracked | undefined; update: (incoming: ComponentWrapper) => void; } }} ComponentWrapper */
 
 /**
  * Wraps a component function for HMR (Hot Module Replacement).
@@ -35,10 +23,9 @@ export function hmr(fn) {
 	var current;
 
 	/**
-	 * @type {ComponentWrapper}
 	 * @param {Node} anchor
 	 * @param {any} props
-	 * @param {Block | null} block
+	 * @param {Block | null} [block]
 	 */
 	function wrapper(anchor, props, block = active_block) {
 		if (current === undefined) {
@@ -88,6 +75,7 @@ export function hmr(fn) {
 	wrapper[HMR] = {
 		fn,
 		current,
+		/** @param {ComponentWrapper} incoming */
 		update: (incoming) => {
 			fn = incoming[HMR].fn;
 			wrapper[HMR].fn = fn;

@@ -277,8 +277,9 @@ function create_event(event_name, dom, handler, options) {
 	}
 
 	/**
-	 * @type {EventListener}
 	 * @this {Element}
+	 * @param {Event} event
+	 * @returns {any}
 	 */
 	function target_handler(event) {
 		var previous_block = active_block;
@@ -295,7 +296,7 @@ function create_event(event_name, dom, handler, options) {
 				handle_event_propagation.call(dom, event);
 			}
 			if (!event.cancelBubble) {
-				return handler?.call(this, event);
+				return handler?.call(/** @type {Element} */ (this), event);
 			}
 		} finally {
 			set_active_block(previous_block);
@@ -380,6 +381,7 @@ export function delegate(events) {
 
 /** @param {Element} target */
 export function handle_root_events(target) {
+	/** @type {Set<string>} */
 	var registered_events = new Set();
 	root_target = target;
 
@@ -417,7 +419,10 @@ export function handle_root_events(target) {
 
 	return () => {
 		for (var event_name of registered_events) {
-			target.removeEventListener(event_name, handle_event_propagation);
+			target.removeEventListener(
+				event_name,
+				/** @type {EventListener} */ (handle_event_propagation),
+			);
 		}
 		root_event_handles.delete(event_handle);
 		root_target = null;

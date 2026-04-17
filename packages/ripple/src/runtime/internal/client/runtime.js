@@ -394,6 +394,7 @@ class TrackedValue {
 		this.a = a;
 		this.b = block;
 		this.c = 0;
+		/** @type {DeferredTrackedEntry[] | null} */
 		this.d = null;
 		this.f = TRACKED;
 		this.__v = v;

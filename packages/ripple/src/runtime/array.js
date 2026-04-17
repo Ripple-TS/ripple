@@ -1,4 +1,5 @@
 /** @import { Block } from '#client' */
+/** @import { RippleArray as RippleArrayT } from '#public' */
 import { safe_scope } from './internal/client/runtime.js';
 import { array_proxy } from './proxy.js';
 
@@ -6,7 +7,7 @@ import { array_proxy } from './proxy.js';
  * @template T
  * @constructor
  * @param {...T} elements
- * @returns {RippleArray<T>}
+ * @returns {RippleArrayT<T>}
  */
 export function RippleArray(...elements) {
 	if (!new.target) {
@@ -22,7 +23,7 @@ export function RippleArray(...elements) {
  * @param {ArrayLike<T> | Iterable<T>} arrayLike
  * @param {(v: T, k: number) => any | undefined} [mapFn]
  * @param {*} [thisArg]
- * @returns {RippleArray<T>}
+ * @returns {RippleArrayT<T>}
  */
 RippleArray.from = function (arrayLike, mapFn, thisArg) {
 	return ripple_array.from(safe_scope(), arrayLike, mapFn, thisArg);
@@ -31,7 +32,7 @@ RippleArray.from = function (arrayLike, mapFn, thisArg) {
 /**
  * @template T
  * @param {...T} items
- * @returns {RippleArray<T>}
+ * @returns {RippleArrayT<T>}
  */
 RippleArray.of = function (...items) {
 	return ripple_array.of(safe_scope(), ...items);
@@ -42,7 +43,7 @@ RippleArray.of = function (...items) {
  * @param {ArrayLike<T> | Iterable<T>} arrayLike
  * @param {(v: T, k: number) => any | undefined} [mapFn]
  * @param {any} [thisArg]
- * @returns {Promise<RippleArray<T>>}
+ * @returns {Promise<RippleArrayT<T>>}
  */
 RippleArray.fromAsync = async function (arrayLike, mapFn, thisArg) {
 	return ripple_array.fromAsync(safe_scope(), arrayLike, mapFn, thisArg);
@@ -52,7 +53,7 @@ RippleArray.fromAsync = async function (arrayLike, mapFn, thisArg) {
  * @template T
  * @param {Block} block
  * @param {...T} elements
- * @returns {RippleArray<T>}
+ * @returns {RippleArrayT<T>}
  */
 export function ripple_array(block, ...elements) {
 	return array_proxy({ elements, block });
@@ -64,7 +65,7 @@ export function ripple_array(block, ...elements) {
  * @param {ArrayLike<T> | Iterable<T>} arrayLike
  * @param {(v: T, k: number) => any | undefined} [mapFn]
  * @param {*} [thisArg]
- * @returns {RippleArray<T>}
+ * @returns {RippleArrayT<T>}
  */
 ripple_array.from = function (block, arrayLike, mapFn, thisArg) {
 	var elements = mapFn ? Array.from(arrayLike, mapFn, thisArg) : Array.from(arrayLike);
@@ -75,7 +76,7 @@ ripple_array.from = function (block, arrayLike, mapFn, thisArg) {
  * @template T
  * @param {Block} block
  * @param {...T} items
- * @returns {RippleArray<T>}
+ * @returns {RippleArrayT<T>}
  */
 ripple_array.of = function (block, ...items) {
 	var elements = Array.of(...items);
@@ -88,7 +89,7 @@ ripple_array.of = function (block, ...items) {
  * @param {ArrayLike<T> | Iterable<T>} arrayLike
  * @param {(v: T, k: number) => any | undefined} [mapFn]
  * @param {any} [thisArg]
- * @returns {Promise<RippleArray<T>>}
+ * @returns {Promise<RippleArrayT<T>>}
  */
 ripple_array.fromAsync = async function (block, arrayLike, mapFn, thisArg) {
 	var elements = mapFn

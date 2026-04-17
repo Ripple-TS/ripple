@@ -1,26 +1,26 @@
 /**
- @import { PostProcessingChanges, LineOffsets } from '../types/index';
- @import * as AST from 'estree';
- @import { CodeMapping } from '../types/index';
- @import { CodeMapping as VolarCodeMapping } from '@volar/language-core';
- @import { RawSourceMap } from 'source-map';
+ * @import { PostProcessingChanges, LineOffsets } from '../types/index.js';
+ * @import * as AST from 'estree';
+ * @import { CodeMapping } from '../types/index.js';
+ * @import { CodeMapping as VolarCodeMapping } from '@volar/language-core';
+ * @import { RawSourceMap } from 'source-map';
  */
 
 /**
- @typedef {{
-	 line: number,
-	column: number,
-	end_line: number,
-	end_column: number,
-	code: string,
-	metadata: {
-		css?: AST.Element['metadata']['css']
-	},
-}} CodePosition
+ * @typedef {{
+ *   line: number,
+ *   column: number,
+ *   end_line: number,
+ *   end_column: number,
+ *   code: string,
+ *   metadata: {
+ *     css?: AST.Element['metadata']['css']
+ *   },
+ * }} CodePosition
+ */
 
-@typedef {Map<string, CodePosition[]>} CodeToGeneratedMap
-@typedef {Map<string, {line: number, column: number}[]>} GeneratedToSourceMap
-*/
+/** @typedef {Map<string, CodePosition[]>} CodeToGeneratedMap */
+/** @typedef {Map<string, {line: number, column: number}[]>} GeneratedToSourceMap */
 
 import { decode } from '@jridgewell/sourcemap-codec';
 

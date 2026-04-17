@@ -1,8 +1,8 @@
 /**
-@import * as acorn from '@tsrx/core/types/acorn';
-@import * as AST from '@tsrx/core/types/estree';
-@import * as ESTreeJSX from '@tsrx/core/types/estree-jsx';
-@import { Doc, AstPath, ParserOptions } from 'prettier';
+ * @import * as acorn from '@tsrx/core/types/acorn';
+ * @import * as AST from '@tsrx/core/types/estree';
+ * @import * as ESTreeJSX from '@tsrx/core/types/estree-jsx';
+ * @import { Doc, AstPath, ParserOptions } from 'prettier';
  */
 
 /**
@@ -10,50 +10,13 @@
  * Uses an intersection of two signatures:
  * 1. (path) => Doc — compatible with CallCallback/MapCallback for path.call/path.map
  * 2. (path, args) => Doc — used when passing context args via lambdas
-@typedef {
-	((path: AstPath) => Doc) &
-	((path: AstPath, args: PrintArgs) => Doc)
-} PrintFn
-
-@typedef {
-	Partial<
-		Pick<ParserOptions,
-			| 'singleQuote'
-			| 'jsxSingleQuote'
-			| 'semi'
-			| 'trailingComma'
-			| 'useTabs'
-			| 'tabWidth'
-			| 'singleAttributePerLine'
-			| 'bracketSameLine'
-			| 'bracketSpacing'
-			| 'arrowParens'
-			| 'originalText'
-		>
-	> & {
-		locStart: (node: AST.NodeWithLocation) => number,
-		locEnd: (node: AST.NodeWithLocation) => number
-	}
-} RippleFormatOptions
-
-@typedef {{
-	isInAttribute?: boolean,
-	isInArray?: boolean,
-	allowInlineObject?: boolean,
-	isConditionalTest?: boolean,
-	isNestedConditional?: boolean,
-	suppressLeadingComments?: boolean,
-	suppressExpressionLeadingComments?: boolean,
-	isInlineContext?: boolean,
-	isStatement?: boolean,
-	isLogicalAndOr?: boolean,
-	allowShorthandProperty?: boolean,
-	isFirstChild?: boolean,
-	skipComponentLabel?: boolean,
-	noBreakInside?: boolean,
-	expandLastArg?: boolean,
-}} PrintArgs
+ *
+ * @typedef {((path: AstPath) => Doc) & ((path: AstPath, args: PrintArgs) => Doc)} PrintFn
  */
+
+/** @typedef {Partial<Pick<ParserOptions, 'singleQuote' | 'jsxSingleQuote' | 'semi' | 'trailingComma' | 'useTabs' | 'tabWidth' | 'singleAttributePerLine' | 'bracketSameLine' | 'bracketSpacing' | 'arrowParens' | 'originalText'>> & { locStart: (node: AST.NodeWithLocation) => number, locEnd: (node: AST.NodeWithLocation) => number }} RippleFormatOptions */
+
+/** @typedef {{ isInAttribute?: boolean, isInArray?: boolean, allowInlineObject?: boolean, isConditionalTest?: boolean, isNestedConditional?: boolean, suppressLeadingComments?: boolean, suppressExpressionLeadingComments?: boolean, isInlineContext?: boolean, isStatement?: boolean, isLogicalAndOr?: boolean, allowShorthandProperty?: boolean, isFirstChild?: boolean, skipComponentLabel?: boolean, noBreakInside?: boolean, expandLastArg?: boolean }} PrintArgs */
 
 import { parse } from '@tsrx/ripple';
 import { doc } from 'prettier';
@@ -820,8 +783,9 @@ function printRippleNode(node, path, options, print, args) {
 
 	// Handle inner comments (for nodes with no children to attach to)
 	const innerCommentParts = [];
-	if (/** @type {AST.NodeWithMaybeComments} */ (node).innerComments) {
-		for (const comment of /** @type {AST.NodeWithMaybeComments} */ (node).innerComments) {
+	const innerComments = /** @type {AST.NodeWithMaybeComments} */ (node).innerComments;
+	if (innerComments) {
+		for (const comment of innerComments) {
 			if (comment.type === 'Line') {
 				innerCommentParts.push('//' + comment.value);
 			} else if (comment.type === 'Block') {
@@ -4702,23 +4666,17 @@ function shouldAddBlankLine(currentNode, nextNode) {
 	// Determine the source node for whitespace checking
 	// If currentNode has trailing comments, use the last one
 	let sourceNode = currentNode;
-	if (
-		/** @type {AST.Node} */ (currentNode).trailingComments &&
-		/** @type {AST.Node} */ (currentNode).trailingComments.length > 0
-	) {
-		sourceNode = /** @type {AST.Node} */ (currentNode).trailingComments[
-			/** @type {AST.Node} */ (currentNode).trailingComments.length - 1
-		];
+	const currentTrailing = /** @type {AST.Node} */ (currentNode).trailingComments;
+	if (currentTrailing && currentTrailing.length > 0) {
+		sourceNode = currentTrailing[currentTrailing.length - 1];
 	}
 
 	// If nextNode has leading comments, check whitespace between source node and first comment
 	// Otherwise check whitespace between source node and next node
 	let targetNode = nextNode;
-	if (
-		/** @type {AST.Node} */ (nextNode).leadingComments &&
-		/** @type {AST.Node} */ (nextNode).leadingComments.length > 0
-	) {
-		targetNode = /** @type {AST.Node} */ (nextNode).leadingComments[0];
+	const nextLeading = /** @type {AST.Node} */ (nextNode).leadingComments;
+	if (nextLeading && nextLeading.length > 0) {
+		targetNode = nextLeading[0];
 	}
 
 	// Check if there was original whitespace between the nodes
@@ -5991,6 +5949,7 @@ function printElement(element, path, options, print) {
 	// Collect comments that the parser attached to children but actually belong inside
 	// the opening tag (positionally before openingElement.end). These should be printed
 	// as leading comments before the appropriate attribute, not lifted to element-level.
+	/** @type {Set<AST.Comment>} */
 	const openingTagCommentsSet = new Set();
 	if (hasChildren && node.openingElement) {
 		const openingEnd = /** @type {AST.NodeWithLocation} */ (node.openingElement).end;
