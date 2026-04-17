@@ -29,6 +29,7 @@
   },
   "peerDependencies": {
     "typescript": "catalog:peer",
+    "@tsrx/react": "workspace:*",
     "@tsrx/ripple": "workspace:*"
   },
   "publishConfig": {

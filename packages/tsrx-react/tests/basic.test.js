@@ -61,4 +61,44 @@ describe('@tsrx/react basic', () => {
 		expect(css.code).toContain(`.div.${css.hash}`);
 		expect(css.code).toContain('color: red;');
 	});
+
+	it('renders component-body if statements as React expressions', () => {
+		const { code } = compile(
+			`export component App() {
+				const count = 2;
+
+				if (count > 1) {
+					<div>{'Count is more than one'}</div>
+				}
+
+				<button>{count}</button>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('const count = 2;');
+		expect(code).toContain('if (count > 1) {');
+		expect(code).toContain("return <div>{'Count is more than one'}</div>;");
+		expect(code).toContain('return null;');
+		expect(code).toContain('<button>{count}</button>');
+	});
+
+	it('renders if-else statements as React expressions', () => {
+		const { code } = compile(
+			`export component App() {
+				const ready = false;
+
+				if (ready) {
+					<div>{'Ready'}</div>
+				} else {
+					<div>{'Loading'}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('if (ready) {');
+		expect(code).toContain("return <div>{'Ready'}</div>;");
+		expect(code).toContain("return <div>{'Loading'}</div>;");
+	});
 });

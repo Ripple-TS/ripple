@@ -1,7 +1,7 @@
 /** @import * as AST from 'estree' */
-/** @import { CompileOptions, CompileError, PostProcessingChanges, LineOffsets, ParseOptions } from '../types/index' */
+/** @import { CompileOptions, CompileError, ParseOptions } from '../types/index' */
 
-import { convertSourceMapToMappings, parseModule } from '@tsrx/core';
+import { createVolarMappingsResult, parseModule } from '@tsrx/core';
 import { analyze } from './analyze/index.js';
 import { transform_client } from './transform/client/index.js';
 import { transform_server } from './transform/server/index.js';
@@ -73,16 +73,14 @@ export function compile_to_volar_mappings(source, filename, options = {}) {
 		options?.minify_css ?? false,
 	);
 
-	return {
-		...convertSourceMapToMappings(
-			transformed.ast,
-			ast,
-			source,
-			transformed.js.code,
-			transformed.js.map,
-			/** @type {PostProcessingChanges} */ (transformed.js.post_processing_changes),
-			/** @type {LineOffsets} */ (transformed.js.line_offsets),
-		),
+	return createVolarMappingsResult({
+		ast: transformed.ast,
+		ast_from_source: ast,
+		source,
+		generated_code: transformed.js.code,
+		source_map: transformed.js.map,
+		post_processing_changes: transformed.js.post_processing_changes,
+		line_offsets: transformed.js.line_offsets,
 		errors: transformed.errors,
-	};
+	});
 }

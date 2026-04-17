@@ -816,6 +816,9 @@ importers:
         specifier: catalog:default
         version: 19.2.4(react@19.2.4)
     devDependencies:
+      '@ripple-ts/typescript-plugin':
+        specifier: workspace:*
+        version: link:../../packages/typescript-plugin
       '@tsrx/react':
         specifier: workspace:*
         version: link:../../packages/tsrx-react

@@ -9,6 +9,7 @@
 	CodeMapping,
 	VolarMappingsResult,
 	PostProcessingChanges,
+	LineOffsets,
 } from '../../types/index';
 @import { CodeMapping as VolarCodeMapping } from '@volar/language-core';
  */
@@ -2030,11 +2031,16 @@ export function convert_source_map_to_mappings(
 		);
 		const source_length = source_text.length;
 		const gen_length = gen_text.length;
-		const gen_line_col = get_generated_position(
-			token.loc.start.line,
-			token.loc.start.column,
-			src_to_gen_map,
-		);
+		let gen_line_col;
+		try {
+			gen_line_col = get_generated_position(
+				token.loc.start.line,
+				token.loc.start.column,
+				src_to_gen_map,
+			);
+		} catch {
+			continue;
+		}
 		const gen_start = loc_to_offset(gen_line_col.line, gen_line_col.column, gen_line_offsets);
 
 		/** @type {CustomMappingData} */
@@ -2136,5 +2142,85 @@ export function convert_source_map_to_mappings(
 		code: generated_code,
 		mappings,
 		cssMappings,
+	};
+}
+
+/**
+ * Build a `VolarMappingsResult` from generated code plus source-map metadata.
+ *
+ * Framework packages are responsible for producing the generated AST/code/map.
+ * Core owns the generic mapping conversion and result envelope so the editor
+ * integration is not coupled to any specific framework package.
+ *
+ * @param {{
+ * 	ast: AST.Program,
+ * 	ast_from_source: AST.Program,
+ * 	source: string,
+ * 	generated_code: string,
+ * 	source_map: RawSourceMap,
+ * 	errors?: import('../../types/index').CompileError[],
+ * 	post_processing_changes?: PostProcessingChanges,
+ * 	line_offsets?: LineOffsets,
+ * }} params
+ * @returns {VolarMappingsResult}
+ */
+export function create_volar_mappings_result({
+	ast,
+	ast_from_source,
+	source,
+	generated_code,
+	source_map,
+	errors = [],
+	post_processing_changes,
+	line_offsets,
+}) {
+	return {
+		...convert_source_map_to_mappings(
+			ast,
+			ast_from_source,
+			source,
+			generated_code,
+			source_map,
+			/** @type {PostProcessingChanges} */ (post_processing_changes),
+			line_offsets ?? build_line_offsets(generated_code),
+		),
+		errors,
+	};
+}
+
+/**
+ * Build a coarse `VolarMappingsResult` when a framework can emit valid TS/TSX
+ * for checking but does not yet produce a location-rich generated AST for the
+ * fine-grained source-map conversion path.
+ *
+ * @param {{
+ * 	source: string,
+ * 	generated_code: string,
+ * 	errors?: import('../../types/index').CompileError[],
+ * }} params
+ * @returns {VolarMappingsResult}
+ */
+export function create_basic_volar_mappings_result({ source, generated_code, errors = [] }) {
+	const shared_length = Math.min(source.length, generated_code.length);
+
+	return {
+		code: generated_code,
+		mappings:
+			shared_length > 0
+				? [
+						{
+							sourceOffsets: [0],
+							generatedOffsets: [0],
+							lengths: [shared_length],
+							generatedLengths: [shared_length],
+							data: {
+								...mapping_data,
+								customData: {},
+							},
+						},
+					]
+				: [],
+		cssMappings: [],
+		errors,
 	};
 }

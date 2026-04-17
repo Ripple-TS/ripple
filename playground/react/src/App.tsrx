@@ -10,7 +10,8 @@ export component App() {
 	<button onClick={() => setCount(count + 1)}>{count}</button>
 
 	<style>
-		.div {
+		button {
+			border: 0;
 			color: red;
 		}
 	</style>

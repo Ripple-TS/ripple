@@ -46,6 +46,7 @@
   },
   "peerDependencies": {
     "typescript": "catalog:vscode",
+    "@tsrx/react": "workspace:*",
     "@tsrx/ripple": "workspace:*"
   },
   "devDependencies": {
