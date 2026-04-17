@@ -1,0 +1,33 @@
+{
+  "name": "@tsrx/react",
+  "description": "React compiler built on @tsrx/core",
+  "license": "MIT",
+  "author": "Dominic Gannaway",
+  "version": "0.0.1",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ripple-TS/ripple.git",
+    "directory": "packages/tsrx-react"
+  },
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "dependencies": {
+    "@tsrx/core": "workspace:*",
+    "esrap": "catalog:default",
+    "zimmerframe": "catalog:default"
+  },
+  "devDependencies": {
+    "@types/estree": "catalog:default",
+    "@types/estree-jsx": "catalog:default",
+    "typescript": "catalog:default"
+  },
+  "files": [
+    "src",
+    "types"
+  ]
+}

@@ -646,6 +646,28 @@ importers:
         specifier: catalog:default
         version: 3.17.5
 
+  packages/tsrx-react:
+    dependencies:
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
+      esrap:
+        specifier: catalog:default
+        version: 2.2.3
+      zimmerframe:
+        specifier: catalog:default
+        version: 1.1.4
+    devDependencies:
+      '@types/estree':
+        specifier: catalog:default
+        version: 1.0.8
+      '@types/estree-jsx':
+        specifier: catalog:default
+        version: 1.0.5
+      typescript:
+        specifier: catalog:default
+        version: 5.9.3
+
   packages/tsrx-ripple:
     dependencies:
       '@tsrx/core':
@@ -724,6 +746,19 @@ importers:
         specifier: catalog:default
         version: 8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)
 
+  packages/vite-plugin-react:
+    dependencies:
+      '@tsrx/react':
+        specifier: workspace:*
+        version: link:../tsrx-react
+    devDependencies:
+      typescript:
+        specifier: catalog:default
+        version: 5.9.3
+      vite:
+        specifier: catalog:default
+        version: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+
   packages/vscode-plugin:
     dependencies:
       '@ripple-ts/language-server':
@@ -771,6 +806,34 @@ importers:
         version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260417.1)(typescript@5.9.3)
 
   packages/zed-plugin: {}
+
+  playground/react:
+    dependencies:
+      react:
+        specifier: catalog:default
+        version: 19.2.4
+      react-dom:
+        specifier: catalog:default
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tsrx/react':
+        specifier: workspace:*
+        version: link:../../packages/tsrx-react
+      '@tsrx/vite-plugin-react':
+        specifier: workspace:*
+        version: link:../../packages/vite-plugin-react
+      '@types/react':
+        specifier: catalog:default
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: catalog:default
+        version: 19.2.3(@types/react@19.2.14)
+      typescript:
+        specifier: catalog:default
+        version: 5.9.3
+      vite:
+        specifier: catalog:default
+        version: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
 
   playground/ripple:
     dependencies:
@@ -7009,14 +7072,6 @@ snapshots:
     optionalDependencies:
       vite: 7.3.1(@types/node@24.11.0)(jiti@2.6.1)(lightningcss@1.32.0)
 
-  '@vitest/mocker@4.0.18(vite@7.3.1(@types/node@25.3.3)(jiti@2.6.1)(lightningcss@1.32.0))':
-    dependencies:
-      '@vitest/spy': 4.0.18
-      estree-walker: 3.0.3
-      magic-string: 0.30.21
-    optionalDependencies:
-      vite: 7.3.1(@types/node@25.3.3)(jiti@2.6.1)(lightningcss@1.32.0)
-
   '@vitest/pretty-format@4.0.18':
     dependencies:
       tinyrainbow: 3.0.3
@@ -10188,7 +10243,7 @@ snapshots:
   vitest@4.0.18(@types/node@25.3.3)(jiti@2.6.1)(jsdom@28.1.0)(lightningcss@1.32.0):
     dependencies:
       '@vitest/expect': 4.0.18
-      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@25.3.3)(jiti@2.6.1)(lightningcss@1.32.0))
+      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@24.11.0)(jiti@2.6.1)(lightningcss@1.32.0))
       '@vitest/pretty-format': 4.0.18
       '@vitest/runner': 4.0.18
       '@vitest/snapshot': 4.0.18

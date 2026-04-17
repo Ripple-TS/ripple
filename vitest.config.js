@@ -38,6 +38,24 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'tsrx-react',
+					include: ['packages/tsrx-react/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
+					name: 'vite-plugin-react',
+					include: ['packages/vite-plugin-react/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'prettier-plugin',
 					include: ['packages/prettier-plugin/src/*.test.js'],
 					environment: 'jsdom',
