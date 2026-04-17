@@ -645,7 +645,11 @@ export function track_async(fn, b) {
 			return;
 		}
 
-		abort_controller = async_result.abort_controller;
+		// Capture per-invocation so async closures (rejection handler, teardown)
+		// have a stable reference. The shared abort_controller is only read
+		// synchronously at the top of the pre_effect to abort the previous request.
+		var current_abort_controller = async_result.abort_controller;
+		abort_controller = current_abort_controller;
 
 		async_result.promise.then(
 			(resolved) => {
@@ -665,7 +669,7 @@ export function track_async(fn, b) {
 				if (current_version !== version) return; // stale
 
 				var is_internal_abort =
-					error === DERIVED_UPDATED || abort_controller?.signal?.reason === DERIVED_UPDATED;
+					error === DERIVED_UPDATED || current_abort_controller?.signal?.reason === DERIVED_UPDATED;
 				if (is_internal_abort) {
 					// Internal abort (superseded by a new request) — don't set rejected
 					if (request_id > 0 && boundary !== null) {
@@ -697,8 +701,8 @@ export function track_async(fn, b) {
 
 		return () => {
 			// Teardown: abort in-flight request when block is destroyed
-			if (abort_controller !== null && abort_controller.signal.aborted === false) {
-				abort_controller.abort(DERIVED_UPDATED);
+			if (current_abort_controller !== null && current_abort_controller.signal.aborted === false) {
+				current_abort_controller.abort(DERIVED_UPDATED);
 			}
 		};
 	});
