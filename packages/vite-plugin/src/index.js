@@ -523,7 +523,7 @@ export function ripple(inlineOptions = {}) {
 				// Merge with existing exclude list
 				const ripple_package_list = /** @type {string[]} */ (Array.from(ripplePackages));
 				/** @type {string[]} */
-				const allExclude = [...new Set([...existingExclude, ...tsrx_package_list])];
+				const allExclude = [...new Set([...existingExclude, ...ripple_package_list])];
 
 				console.log(`[@ripple-ts/vite-plugin] Merged 'optimizeDeps.exclude':`, allExclude);
 				console.log(
