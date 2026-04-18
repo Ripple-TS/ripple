@@ -520,4 +520,50 @@ describe('basic client > components & composition', () => {
 		render(App);
 		expect(container.querySelector('.card').textContent).toBe('explicit');
 	});
+
+	it('renders components declared inside composite element children', () => {
+		component Wrapper(props: PropsWithChildren<{}>) {
+			<div class="wrapper">{props.children}</div>
+		}
+
+		component App() {
+			<Wrapper>
+				component Inner() {
+					<span class="inner">{'inner content'}</span>
+				}
+
+				<Inner />
+			</Wrapper>
+		}
+
+		render(App);
+		expect(container.querySelector('.wrapper .inner').textContent).toBe('inner content');
+	});
+
+	it('renders nested components declared inside composite children with prop passing', () => {
+		component Wrapper(props: PropsWithChildren<{}>) {
+			<div class="wrapper">{props.children}</div>
+		}
+
+		component App() {
+			<Wrapper>
+				component Z() {
+					<div class="z">{'I am Z'}</div>
+				}
+
+				component Child(&{ Z }: { Z: Component }) {
+					<div class="child">
+						{'Child Component: '}
+						<Z />
+					</div>
+				}
+
+				<Child {Z} />
+			</Wrapper>
+		}
+
+		render(App);
+		expect(container.querySelector('.wrapper .child').textContent).toBe('Child Component: I am Z');
+		expect(container.querySelector('.wrapper .z').textContent).toBe('I am Z');
+	});
 });

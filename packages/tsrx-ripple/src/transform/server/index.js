@@ -1102,6 +1102,12 @@ const visitors = {
 				}
 			}
 
+			for (const child of node.children) {
+				if (child.type === 'Component') {
+					state.init?.push(/** @type {AST.Statement} */ (visit(child, state)));
+				}
+			}
+
 			const children_filtered = node.children.filter(
 				(child) => child.type !== 'EmptyStatement' && child.type !== 'Component',
 			);
