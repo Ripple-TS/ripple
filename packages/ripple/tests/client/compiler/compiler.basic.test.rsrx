@@ -486,7 +486,7 @@ export component App() {
 		expect(() => compile(code, 'test.ripple')).not.toThrow();
 	});
 
-	it('rejects component declarations inside composite children', () => {
+	it('allows component declarations inside composite children', () => {
 		const source = `
 export component App() {
 	<ark.div class="host-class" data-value="42">
@@ -497,8 +497,22 @@ export component App() {
 }
 `;
 
-		expect(() => compile_to_volar_mappings(source, 'test.ripple')).toThrow(
-			/Component declarations cannot be used inside composite component children/,
+		expect(() => compile_to_volar_mappings(source, 'test.ripple')).not.toThrow();
+	});
+
+	it('rejects parent element attributes referencing child-declared components', () => {
+		const source = `
+export component App() {
+	<Test {Z}>
+		component Z() {
+			<div>{'hello'}</div>
+		}
+	</Test>
+}
+`;
+
+		expect(() => compile(source, 'test.ripple')).toThrow(
+			/Cannot use component 'Z' as a prop on its parent element/,
 		);
 	});
 
