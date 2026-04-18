@@ -1,8 +1,9 @@
 import { beforeEach, afterEach } from 'vitest';
 import { createRoot } from 'react-dom/client';
-import { act } from 'react';
+import { act, createElement } from 'react';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+globalThis.act = act;
 
 /** @type {HTMLDivElement} */
 let container;
@@ -15,11 +16,12 @@ let root;
  *
  * @param {import('react').ComponentType} Component
  * @param {Record<string, unknown>} [props]
+ * @returns {Promise<void>}
  */
-globalThis.render = function render(Component, props) {
+globalThis.render = async function render(Component, props) {
 	root = createRoot(container);
-	act(() => {
-		root.render(/** @type {any} */ (Component)(props ?? {}));
+	await act(async () => {
+		root.render(createElement(/** @type {any} */ (Component), props ?? {}));
 	});
 };
 

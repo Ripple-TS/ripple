@@ -1,4 +1,16 @@
 import { describe, it, expect } from 'vitest';
+import { useState, use } from 'react';
+
+// ── Helpers ──
+
+async function click(selector: string) {
+	const btn = container.querySelector(selector) as HTMLElement;
+	await act(async () => btn.click());
+}
+
+function text(selector: string): string | null {
+	return container.querySelector(selector)?.textContent ?? null;
+}
 
 // ── Basic rendering ──
 
@@ -14,6 +26,14 @@ component NestedApp() {
 	<div>
 		<Child text="nested" />
 	</div>
+}
+
+// ── Reactive counter ──
+
+component CounterApp() {
+	const [count, setCount] = useState(0);
+	<p class="count">{count}</p>
+	<button class="inc" onClick={() => setCount(count + 1)}>{'+'}</button>
 }
 
 // ── Refs on elements ──
@@ -35,12 +55,12 @@ component ElementRefApp() {
 
 let composite_ref_captured: HTMLInputElement | null = null;
 
-component Input(props: { type: string; ref?: (node: HTMLInputElement) => void }) {
+component InputComp(props: { type: string; ref?: (node: HTMLInputElement) => void }) {
 	<input type={props.type} ref={props.ref} />
 }
 
 component CompositeRefApp() {
-	<Input
+	<InputComp
 		type="text"
 		{ref (node: HTMLInputElement) => {
 			composite_ref_captured = node;
@@ -72,22 +92,52 @@ component MultiRefApp() {
 	</div>
 }
 
-// ── If-statement children ──
+// ── If-statement with reactivity ──
 
-component IfApp() {
-	const show = true;
+component IfReactiveApp() {
+	const [show, setShow] = useState(true);
+
 	if (show) {
 		<span class="visible">{'shown'}</span>
+	} else {
+		<span class="hidden">{'hidden'}</span>
 	}
+
+	<button class="toggle" onClick={() => setShow(!show)}>{'toggle'}</button>
 }
 
-// ── For-of loop ──
+// ── For-of loop with reactivity ──
 
-component ForApp() {
-	const items = ['a', 'b', 'c'];
+component ForReactiveApp() {
+	const [items, setItems] = useState(['a', 'b', 'c']);
+
 	for (const item of items) {
 		<li class="item" key={item}>{item}</li>
 	}
+
+	<button class="add" onClick={() => setItems([...items, 'd'])}>{'add'}</button>
+	<button class="remove" onClick={() => setItems(items.slice(1))}>{'remove'}</button>
+}
+
+// ── Switch with reactivity ──
+
+component SwitchReactiveApp() {
+	const [page, setPage] = useState('home');
+
+	switch (page) {
+		case 'home':
+			<div class="page">{'Home'}</div>
+			break;
+		case 'about':
+			<div class="page">{'About'}</div>
+			break;
+		default:
+			<div class="page">{'404'}</div>
+			break;
+	}
+
+	<button class="go-about" onClick={() => setPage('about')}>{'about'}</button>
+	<button class="go-unknown" onClick={() => setPage('other')}>{'other'}</button>
 }
 
 // ── Composite children ──
@@ -100,6 +150,20 @@ component ChildrenApp() {
 	<Wrapper>
 		<span>{'inside wrapper'}</span>
 	</Wrapper>
+}
+
+// ── If-statement children through composite ──
+
+component IfChildrenApp() {
+	const [show, setShow] = useState(false);
+
+	<Wrapper>
+		if (show) {
+			<span class="inner-visible">{'inner shown'}</span>
+		}
+	</Wrapper>
+
+	<button class="toggle" onClick={() => setShow(!show)}>{'toggle'}</button>
 }
 
 // ── Scoped CSS ──
@@ -133,100 +197,423 @@ component SpreadRefApp() {
 	/>
 }
 
+// ── Try/catch: synchronous error boundary ──
+
+component ThrowingChild() {
+	throw new Error('sync boom');
+	<p>{'unreachable'}</p>
+}
+
+component ErrorBoundaryApp() {
+	try {
+		<ThrowingChild />
+	} catch (err) {
+		<p class="caught">{(err as Error).message}</p>
+	}
+}
+
+// ── Try/catch with reactive toggle into/out of error ──
+
+component MaybeThrow(props: { shouldThrow: boolean }) {
+	if (props.shouldThrow) {
+		throw new Error('conditional boom');
+	}
+	<p class="ok">{'no error'}</p>
+}
+
+component ErrorToggleApp() {
+	const [fail, setFail] = useState(false);
+
+	try {
+		<MaybeThrow shouldThrow={fail} />
+	} catch (err, reset) {
+		<p class="caught">{(err as Error).message}</p>
+		<button
+			class="reset"
+			onClick={() => {
+				setFail(false);
+				reset();
+			}}
+		>
+			{'reset'}
+		</button>
+	}
+
+	<button class="trigger-error" onClick={() => setFail(true)}>{'break'}</button>
+}
+
+// ── Try/pending: Suspense with use() ──
+
+component AsyncChild(props: { promise: Promise<string> }) {
+	const data = use(props.promise);
+	<p class="resolved">{data}</p>
+}
+
+component SuspenseApp(props: { promise: Promise<string> }) {
+	try {
+		<AsyncChild promise={props.promise} />
+	} pending {
+		<p class="pending">{'loading...'}</p>
+	}
+}
+
+// ── Try/pending/catch: Suspense + ErrorBoundary ──
+
+component SuspenseErrorApp(props: { promise: Promise<string> }) {
+	try {
+		<AsyncChild promise={props.promise} />
+	} pending {
+		<p class="pending">{'loading...'}</p>
+	} catch (err) {
+		<p class="caught">{(err as Error).message}</p>
+	}
+}
+
+// ── Try/catch with reset: recover from error ──
+
+component ErrorResetApp(props: { promise: Promise<string> }) {
+	try {
+		<AsyncChild promise={props.promise} />
+	} pending {
+		<p class="pending">{'loading...'}</p>
+	} catch (err, reset) {
+		<p class="caught">{(err as Error).message}</p>
+		<button class="retry" onClick={() => reset()}>{'retry'}</button>
+	}
+}
+
+// ── Nested try: inner catch handles inner error ──
+
+component InnerThrow() {
+	throw new Error('inner error');
+	<p>{'unreachable'}</p>
+}
+
+component NestedTryApp() {
+	try {
+		<div class="outer">
+			try {
+				<InnerThrow />
+			} catch (err) {
+				<p class="inner-caught">{(err as Error).message}</p>
+			}
+		</div>
+	} catch (err) {
+		<p class="outer-caught">{(err as Error).message}</p>
+	}
+}
+
+// ── Try/pending with reactive promise swap ──
+
+component SwappableAsyncApp() {
+	const [promise, setPromise] = useState(() => Promise.resolve('first'));
+
+	try {
+		<AsyncChild {promise} />
+	} pending {
+		<p class="pending">{'loading...'}</p>
+	}
+
+	<button class="swap" onClick={() => setPromise(Promise.resolve('second'))}>{'swap'}</button>
+}
+
+// ── If inside try body ──
+
+component IfInsideTryApp() {
+	const [show, setShow] = useState(true);
+
+	try {
+		if (show) {
+			<p class="branch-a">{'visible'}</p>
+		} else {
+			<p class="branch-b">{'alternate'}</p>
+		}
+	} catch (err) {
+		<p class="caught">{'error'}</p>
+	}
+
+	<button class="toggle" onClick={() => setShow(!show)}>{'toggle'}</button>
+}
+
+// ── For-of inside try body ──
+
+component ForInsideTryApp() {
+	const [items, setItems] = useState(['x', 'y']);
+
+	try {
+		for (const item of items) {
+			<span class="try-item" key={item}>{item}</span>
+		}
+	} catch (err) {
+		<p class="caught">{'error'}</p>
+	}
+
+	<button class="add" onClick={() => setItems([...items, 'z'])}>{'add'}</button>
+}
+
 // ── Tests ──
 
 describe('tsrx-react runtime', () => {
-	it('renders a basic component into the DOM', () => {
-		render(BasicApp);
+	// ── Basic rendering ──
 
-		const div = container.querySelector('.greeting');
-		expect(div).not.toBeNull();
-		expect(div.textContent).toBe('Hello world');
+	it('renders a basic component into the DOM', async () => {
+		await render(BasicApp);
+		expect(text('.greeting')).toBe('Hello world');
 	});
 
-	it('renders nested components', () => {
-		render(NestedApp);
-
-		const span = container.querySelector('.child');
-		expect(span).not.toBeNull();
-		expect(span.textContent).toBe('nested');
+	it('renders nested components', async () => {
+		await render(NestedApp);
+		expect(text('.child')).toBe('nested');
 	});
 
-	it('supports ref callback on elements', () => {
+	// ── Reactivity with useState ──
+
+	it('increments a counter on click', async () => {
+		await render(CounterApp);
+		expect(text('.count')).toBe('0');
+		await click('.inc');
+		expect(text('.count')).toBe('1');
+		await click('.inc');
+		expect(text('.count')).toBe('2');
+	});
+
+	// ── Refs ──
+
+	it('supports ref callback on elements', async () => {
 		element_ref_captured = null;
-		render(ElementRefApp);
-
-		expect(element_ref_captured).not.toBeNull();
+		await render(ElementRefApp);
 		expect(element_ref_captured).toBeInstanceOf(HTMLDivElement);
 		expect(element_ref_captured!.textContent).toBe('ref test');
 		expect(element_ref_captured!.className).toBe('ref-target');
 	});
 
-	it('supports ref on composite components via prop forwarding', () => {
+	it('supports ref on composite components via prop forwarding', async () => {
 		composite_ref_captured = null;
-		render(CompositeRefApp);
-
-		expect(composite_ref_captured).not.toBeNull();
+		await render(CompositeRefApp);
 		expect(composite_ref_captured).toBeInstanceOf(HTMLInputElement);
 		expect(composite_ref_captured!.type).toBe('text');
 	});
 
-	it('supports multiple ref callbacks on the same element', () => {
+	it('supports multiple ref callbacks on the same element', async () => {
 		multi_ref1_node = null;
 		multi_ref2_node = null;
-		render(MultiRefApp);
-
-		expect(multi_ref1_node).not.toBeNull();
-		expect(multi_ref2_node).not.toBeNull();
+		await render(MultiRefApp);
 		expect(multi_ref1_node).toBe(multi_ref2_node);
 		expect(multi_ref1_node!.textContent).toBe('multi ref');
 	});
 
-	it('supports if-statement children', () => {
-		render(IfApp);
-
-		const span = container.querySelector('.visible');
-		expect(span).not.toBeNull();
-		expect(span.textContent).toBe('shown');
-	});
-
-	it('supports for-of loop rendering', () => {
-		render(ForApp);
-
-		const items = container.querySelectorAll('.item');
-		expect(items.length).toBe(3);
-		expect(items[0].textContent).toBe('a');
-		expect(items[1].textContent).toBe('b');
-		expect(items[2].textContent).toBe('c');
-	});
-
-	it('supports composite components with children passed through', () => {
-		render(ChildrenApp);
-
-		const wrapper = container.querySelector('.wrapper');
-		expect(wrapper).not.toBeNull();
-		const span = wrapper!.querySelector('span');
-		expect(span).not.toBeNull();
-		expect(span!.textContent).toBe('inside wrapper');
-	});
-
-	it('supports scoped CSS via style blocks', () => {
-		render(StyledApp);
-
-		const div = container.querySelector('div');
-		expect(div).not.toBeNull();
-		expect(div!.textContent).toBe('styled text');
-		// The div should have the scoped hash class applied
-		expect(div!.className).toContain('styled');
-	});
-
-	it('supports ref forwarding through spread props', () => {
+	it('supports ref forwarding through spread props', async () => {
 		spread_ref_captured = null;
-		render(SpreadRefApp);
-
-		expect(spread_ref_captured).not.toBeNull();
+		await render(SpreadRefApp);
 		expect(spread_ref_captured).toBeInstanceOf(HTMLInputElement);
 		expect(spread_ref_captured!.id).toBe('spread-input');
-		expect(spread_ref_captured!.type).toBe('text');
+	});
+
+	// ── Reactive control flow: if ──
+
+	it('toggles if-else branches on state change', async () => {
+		await render(IfReactiveApp);
+		expect(text('.visible')).toBe('shown');
+		expect(container.querySelector('.hidden')).toBeNull();
+
+		await click('.toggle');
+		expect(container.querySelector('.visible')).toBeNull();
+		expect(text('.hidden')).toBe('hidden');
+
+		await click('.toggle');
+		expect(text('.visible')).toBe('shown');
+	});
+
+	// ── Reactive control flow: for-of ──
+
+	it('adds and removes items in a for-of loop', async () => {
+		await render(ForReactiveApp);
+		expect(container.querySelectorAll('.item').length).toBe(3);
+
+		await click('.add');
+		const items = container.querySelectorAll('.item');
+		expect(items.length).toBe(4);
+		expect(items[3].textContent).toBe('d');
+
+		await click('.remove');
+		const after = container.querySelectorAll('.item');
+		expect(after.length).toBe(3);
+		expect(after[0].textContent).toBe('b');
+	});
+
+	// ── Reactive control flow: switch ──
+
+	it('switches rendered branch on state change', async () => {
+		await render(SwitchReactiveApp);
+		expect(text('.page')).toBe('Home');
+
+		await click('.go-about');
+		expect(text('.page')).toBe('About');
+
+		await click('.go-unknown');
+		expect(text('.page')).toBe('404');
+	});
+
+	// ── Composite children ──
+
+	it('passes children through composite components', async () => {
+		await render(ChildrenApp);
+		expect(container.querySelector('.wrapper span')!.textContent).toBe('inside wrapper');
+	});
+
+	it('toggles if-statement children inside composite components', async () => {
+		await render(IfChildrenApp);
+		expect(container.querySelector('.inner-visible')).toBeNull();
+
+		await click('.toggle');
+		expect(text('.inner-visible')).toBe('inner shown');
+
+		await click('.toggle');
+		expect(container.querySelector('.inner-visible')).toBeNull();
+	});
+
+	// ── Scoped CSS ──
+
+	it('applies scoped CSS class', async () => {
+		await render(StyledApp);
+		expect(container.querySelector('div')!.className).toContain('styled');
+	});
+
+	// ── Try/catch: error boundary ──
+
+	it('catches synchronous child errors', async () => {
+		await render(ErrorBoundaryApp);
+		expect(text('.caught')).toBe('sync boom');
+	});
+
+	it('recovers from error via reset and re-triggers on state change', async () => {
+		await render(ErrorToggleApp);
+		expect(text('.ok')).toBe('no error');
+
+		await click('.trigger-error');
+		expect(text('.caught')).toBe('conditional boom');
+		expect(container.querySelector('.ok')).toBeNull();
+
+		await click('.reset');
+		expect(text('.ok')).toBe('no error');
+		expect(container.querySelector('.caught')).toBeNull();
+	});
+
+	// ── Try/pending: Suspense with use() ──
+
+	it('shows pending fallback then resolves with use()', async () => {
+		let resolve_fn: (value: string) => void;
+		const promise = new Promise<string>((r) => {
+			resolve_fn = r;
+		});
+
+		await render(SuspenseApp, { promise });
+		expect(text('.pending')).toBe('loading...');
+		expect(container.querySelector('.resolved')).toBeNull();
+
+		await act(async () => {
+			resolve_fn('hello');
+		});
+		expect(text('.resolved')).toBe('hello');
+		expect(container.querySelector('.pending')).toBeNull();
+	});
+
+	// ── Try/pending/catch: Suspense + ErrorBoundary ──
+
+	it('shows pending then catches rejected promise', async () => {
+		let reject_fn: (error: Error) => void;
+		const promise = new Promise<string>((_, r) => {
+			reject_fn = r;
+		});
+
+		await render(SuspenseErrorApp, { promise });
+		expect(text('.pending')).toBe('loading...');
+
+		await act(async () => {
+			reject_fn(new Error('async fail'));
+		});
+		expect(text('.caught')).toBe('async fail');
+		expect(container.querySelector('.pending')).toBeNull();
+		expect(container.querySelector('.resolved')).toBeNull();
+	});
+
+	it('resolves successfully through Suspense + ErrorBoundary', async () => {
+		let resolve_fn: (value: string) => void;
+		const promise = new Promise<string>((r) => {
+			resolve_fn = r;
+		});
+
+		await render(SuspenseErrorApp, { promise });
+		expect(text('.pending')).toBe('loading...');
+
+		await act(async () => {
+			resolve_fn('success');
+		});
+		expect(text('.resolved')).toBe('success');
+		expect(container.querySelector('.pending')).toBeNull();
+		expect(container.querySelector('.caught')).toBeNull();
+	});
+
+	// ── Try/catch with reset ──
+
+	it('catches rejected promise and provides reset', async () => {
+		let reject_fn: (error: Error) => void;
+		const promise = new Promise<string>((_, r) => {
+			reject_fn = r;
+		});
+
+		await render(ErrorResetApp, { promise });
+		expect(text('.pending')).toBe('loading...');
+
+		await act(async () => {
+			reject_fn(new Error('rejected'));
+		});
+		expect(text('.caught')).toBe('rejected');
+		expect(container.querySelector('.retry')).not.toBeNull();
+	});
+
+	// ── Nested try blocks ──
+
+	it('inner try/catch handles errors without propagating to outer', async () => {
+		await render(NestedTryApp);
+		expect(text('.inner-caught')).toBe('inner error');
+		expect(container.querySelector('.outer-caught')).toBeNull();
+		expect(container.querySelector('.outer')).not.toBeNull();
+	});
+
+	// ── Reactive promise swap under Suspense ──
+
+	it('swaps resolved content when promise changes', async () => {
+		await render(SwappableAsyncApp);
+		// First promise resolves immediately
+		await act(async () => {});
+		expect(text('.resolved')).toBe('first');
+
+		await click('.swap');
+		await act(async () => {});
+		expect(text('.resolved')).toBe('second');
+	});
+
+	// ── Control flow inside try bodies ──
+
+	it('toggles if-else branches inside a try block', async () => {
+		await render(IfInsideTryApp);
+		expect(text('.branch-a')).toBe('visible');
+
+		await click('.toggle');
+		expect(text('.branch-b')).toBe('alternate');
+		expect(container.querySelector('.branch-a')).toBeNull();
+
+		await click('.toggle');
+		expect(text('.branch-a')).toBe('visible');
+	});
+
+	it('adds items in a for-of loop inside a try block', async () => {
+		await render(ForInsideTryApp);
+		expect(container.querySelectorAll('.try-item').length).toBe(2);
+
+		await click('.add');
+		expect(container.querySelectorAll('.try-item').length).toBe(3);
+		expect(container.querySelectorAll('.try-item')[2].textContent).toBe('z');
 	});
 });

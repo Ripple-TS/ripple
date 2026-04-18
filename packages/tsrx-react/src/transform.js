@@ -7,6 +7,8 @@ import tsx from 'esrap/languages/tsx';
 import { renderStylesheets, setLocation } from '@tsrx/core';
 
 let local_statement_component_index = 0;
+let needs_error_boundary = false;
+let needs_suspense = false;
 
 /**
  * Transform a parsed tsrx-react AST into a TSX/JSX module.
@@ -28,6 +30,8 @@ export function transform(ast, source, filename) {
 	/** @type {any[]} */
 	const stylesheets = [];
 	local_statement_component_index = 0;
+	needs_error_boundary = false;
+	needs_suspense = false;
 
 	walk(/** @type {any} */ (ast), null, {
 		Component(node, { next, state }) {
@@ -75,6 +79,7 @@ export function transform(ast, source, filename) {
 	});
 
 	const expanded = expand_component_helpers(/** @type {AST.Program} */ (transformed));
+	inject_try_imports(expanded);
 
 	const result = print(/** @type {any} */ (expanded), tsx(), {
 		sourceMapSource: filename,
@@ -897,7 +902,8 @@ function is_jsx_child(node) {
 		t === 'TsxCompat' ||
 		t === 'IfStatement' ||
 		t === 'ForOfStatement' ||
-		t === 'SwitchStatement'
+		t === 'SwitchStatement' ||
+		t === 'TryStatement'
 	);
 }
 
@@ -1179,6 +1185,8 @@ function to_jsx_child(node) {
 			return for_of_statement_to_jsx_child(node);
 		case 'SwitchStatement':
 			return switch_statement_to_jsx_child(node);
+		case 'TryStatement':
+			return try_statement_to_jsx_child(node);
 		default:
 			return node;
 	}
@@ -1283,6 +1291,227 @@ function switch_statement_to_jsx_child(node) {
 			metadata: { path: [] },
 		}),
 	);
+}
+
+/**
+ * Transform a `try { ... } pending { ... } catch (err, reset) { ... }` block
+ * into React `<TsrxErrorBoundary>` and/or `<Suspense>` JSX elements.
+ *
+ * - `pending` → `<Suspense fallback={...}>`
+ * - `catch` → `<TsrxErrorBoundary fallback={(err, reset) => ...}>`
+ * - both → ErrorBoundary wraps Suspense
+ * - `finally` blocks are not supported in component template context
+ *
+ * @param {any} node
+ * @returns {ESTreeJSX.JSXExpressionContainer}
+ */
+function try_statement_to_jsx_child(node) {
+	const pending = node.pending;
+	const handler = node.handler;
+	const finalizer = node.finalizer;
+
+	if (finalizer) {
+		throw create_compile_error(
+			finalizer,
+			'React TSRX does not support `finally` blocks in component templates. Move the try statement into a function if you need a finally block.',
+		);
+	}
+
+	if (!pending && !handler) {
+		throw create_compile_error(
+			node,
+			'Component try statements must have a `pending` or `catch` block.',
+		);
+	}
+
+	// Validate that try body contains JSX if pending block is present
+	if (pending) {
+		const try_body = node.block.body || [];
+		if (!try_body.some(is_jsx_child)) {
+			throw create_compile_error(
+				node.block,
+				'Component try statements must contain a template in their main body. Move the try statement into a function if it does not render anything.',
+			);
+		}
+		const pending_body = pending.body || [];
+		if (!pending_body.some(is_jsx_child)) {
+			throw create_compile_error(
+				pending,
+				'Component try statements must contain a template in their "pending" body. Rendering a pending fallback is required to have a template.',
+			);
+		}
+	}
+
+	// Build the try body content as JSX children
+	const try_body_nodes = node.block.body || [];
+	const try_content = statement_body_to_jsx_child(try_body_nodes);
+
+	/** @type {any} */
+	let result = try_content;
+
+	// Wrap in <Suspense> if pending block exists
+	if (pending) {
+		needs_suspense = true;
+		const pending_body_nodes = pending.body || [];
+		const fallback_content = statement_body_to_jsx_child(pending_body_nodes);
+
+		result = create_jsx_element(
+			'Suspense',
+			[
+				{
+					type: 'JSXAttribute',
+					name: { type: 'JSXIdentifier', name: 'fallback', metadata: { path: [] } },
+					value: fallback_content,
+					metadata: { path: [] },
+				},
+			],
+			[result],
+		);
+	}
+
+	// Wrap in <TsrxErrorBoundary> if catch block exists
+	if (handler) {
+		needs_error_boundary = true;
+
+		const catch_params = [];
+		if (handler.param) {
+			catch_params.push(handler.param);
+		} else {
+			catch_params.push(create_generated_identifier('_error'));
+		}
+		if (handler.resetParam) {
+			catch_params.push(handler.resetParam);
+		} else {
+			catch_params.push(create_generated_identifier('_reset'));
+		}
+
+		const catch_body_nodes = handler.body.body || [];
+		const fallback_fn = {
+			type: 'ArrowFunctionExpression',
+			params: catch_params,
+			body: /** @type {any} */ ({
+				type: 'BlockStatement',
+				body: build_render_statements(catch_body_nodes, true),
+				metadata: { path: [] },
+			}),
+			async: false,
+			generator: false,
+			expression: false,
+			metadata: { path: [] },
+		};
+
+		result = create_jsx_element(
+			'TsrxErrorBoundary',
+			[
+				{
+					type: 'JSXAttribute',
+					name: { type: 'JSXIdentifier', name: 'fallback', metadata: { path: [] } },
+					value: to_jsx_expression_container(/** @type {any} */ (fallback_fn)),
+					metadata: { path: [] },
+				},
+			],
+			[result],
+		);
+	}
+
+	// result is a JSXElement, but we need to return a JSXExpressionContainer
+	// for embedding in the parent component's render return
+	if (result.type === 'JSXElement') {
+		return to_jsx_expression_container(result);
+	}
+
+	return result;
+}
+
+/**
+ * Create a simple JSX element AST node.
+ *
+ * @param {string} tag_name
+ * @param {any[]} attributes
+ * @param {any[]} children
+ * @returns {any}
+ */
+function create_jsx_element(tag_name, attributes, children) {
+	const name = { type: 'JSXIdentifier', name: tag_name, metadata: { path: [] } };
+	return {
+		type: 'JSXElement',
+		openingElement: {
+			type: 'JSXOpeningElement',
+			name,
+			attributes,
+			selfClosing: children.length === 0,
+			metadata: { path: [] },
+		},
+		closingElement:
+			children.length > 0
+				? {
+						type: 'JSXClosingElement',
+						name: { type: 'JSXIdentifier', name: tag_name, metadata: { path: [] } },
+						metadata: { path: [] },
+					}
+				: null,
+		children,
+		metadata: { path: [] },
+	};
+}
+
+/**
+ * Inject import declarations for `Suspense` and `TsrxErrorBoundary` if the
+ * transform determined they are needed.
+ *
+ * @param {AST.Program} program
+ */
+function inject_try_imports(program) {
+	/** @type {any[]} */
+	const imports = [];
+
+	if (needs_suspense) {
+		imports.push({
+			type: 'ImportDeclaration',
+			specifiers: [
+				{
+					type: 'ImportSpecifier',
+					imported: { type: 'Identifier', name: 'Suspense', metadata: { path: [] } },
+					local: { type: 'Identifier', name: 'Suspense', metadata: { path: [] } },
+					metadata: { path: [] },
+				},
+			],
+			source: { type: 'Literal', value: 'react', raw: "'react'" },
+			metadata: { path: [] },
+		});
+	}
+
+	if (needs_error_boundary) {
+		imports.push({
+			type: 'ImportDeclaration',
+			specifiers: [
+				{
+					type: 'ImportSpecifier',
+					imported: {
+						type: 'Identifier',
+						name: 'TsrxErrorBoundary',
+						metadata: { path: [] },
+					},
+					local: {
+						type: 'Identifier',
+						name: 'TsrxErrorBoundary',
+						metadata: { path: [] },
+					},
+					metadata: { path: [] },
+				},
+			],
+			source: {
+				type: 'Literal',
+				value: '@tsrx/react/error-boundary',
+				raw: "'@tsrx/react/error-boundary'",
+			},
+			metadata: { path: [] },
+		});
+	}
+
+	if (imports.length > 0) {
+		program.body.unshift(...imports);
+	}
 }
 
 /**

@@ -14,12 +14,18 @@
     ".": {
       "types": "./types/index.d.ts",
       "default": "./src/index.js"
+    },
+    "./error-boundary": {
+      "default": "./src/error-boundary.js"
     }
   },
   "dependencies": {
     "@tsrx/core": "workspace:*",
     "esrap": "catalog:default",
     "zimmerframe": "catalog:default"
+  },
+  "peerDependencies": {
+    "react": ">=18"
   },
   "devDependencies": {
     "@types/estree": "catalog:default",

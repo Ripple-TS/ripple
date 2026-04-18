@@ -456,4 +456,177 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('className="field"');
 		expect(mappings.errors).toEqual([]);
 	});
+
+	it('transforms try/catch into ErrorBoundary wrapper', () => {
+		const { code } = compile(
+			`component ThrowingChild() {
+				<div>{'might throw'}</div>
+			}
+
+			export component App() {
+				try {
+					<ThrowingChild />
+				} catch (err) {
+					<p>{'caught error'}</p>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('TsrxErrorBoundary');
+		expect(code).toContain("from '@tsrx/react/error-boundary'");
+		expect(code).toContain('fallback=');
+		expect(code).toContain("{'caught error'}");
+		// Should not import Suspense when there's no pending block
+		expect(code).not.toContain('Suspense');
+	});
+
+	it('transforms try/pending into Suspense wrapper', () => {
+		const { code } = compile(
+			`export component App() {
+				try {
+					<div>{'async content'}</div>
+				} pending {
+					<p>{'loading...'}</p>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('Suspense');
+		expect(code).toContain("from 'react'");
+		expect(code).toContain('fallback=');
+		expect(code).toContain("{'loading...'}");
+		// Should not import ErrorBoundary when there's no catch block
+		expect(code).not.toContain('TsrxErrorBoundary');
+	});
+
+	it('transforms try/pending/catch into ErrorBoundary wrapping Suspense', () => {
+		const { code } = compile(
+			`export component App() {
+				try {
+					<div>{'async content'}</div>
+				} pending {
+					<p>{'loading...'}</p>
+				} catch (err) {
+					<p>{'caught error'}</p>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('TsrxErrorBoundary');
+		expect(code).toContain('Suspense');
+		// ErrorBoundary should wrap Suspense (outer first)
+		const errorBoundaryIndex = code.indexOf('<TsrxErrorBoundary');
+		const suspenseIndex = code.indexOf('<Suspense');
+		expect(errorBoundaryIndex).toBeLessThan(suspenseIndex);
+	});
+
+	it('transforms catch with reset parameter', () => {
+		const { code } = compile(
+			`export component App() {
+				try {
+					<div>{'content'}</div>
+				} catch (err, reset) {
+					<button onClick={reset}>{'retry'}</button>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('TsrxErrorBoundary');
+		expect(code).toContain('fallback=');
+		// The fallback should be a function that receives err and reset
+		expect(code).toContain('err');
+		expect(code).toContain('reset');
+	});
+
+	it('rejects finally blocks in component templates', () => {
+		expect(() =>
+			compile(
+				`export component App() {
+					try {
+						<div>{'content'}</div>
+					} catch (err) {
+						<p>{'error'}</p>
+					} finally {
+						console.log('done');
+					}
+				}`,
+				'App.tsrx',
+			),
+		).toThrow('does not support `finally` blocks');
+	});
+
+	it('rejects try/pending when try body has no JSX', () => {
+		expect(() =>
+			compile(
+				`export component App() {
+					try {
+						const x = 1;
+					} pending {
+						<p>{'loading'}</p>
+					}
+				}`,
+				'App.tsrx',
+			),
+		).toThrow('must contain a template in their main body');
+	});
+
+	it('rejects try/pending when pending body has no JSX', () => {
+		expect(() =>
+			compile(
+				`export component App() {
+					try {
+						<div>{'content'}</div>
+					} pending {
+						const x = 1;
+					}
+				}`,
+				'App.tsrx',
+			),
+		).toThrow('must contain a template in their "pending" body');
+	});
+
+	it('transforms try with use() inside for Suspense triggering', () => {
+		const { code } = compile(
+			`import { use } from 'react';
+
+			export component App() {
+				try {
+					const data = use(fetchData());
+					<div>{data}</div>
+				} pending {
+					<p>{'loading...'}</p>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('Suspense');
+		expect(code).toContain('use(fetchData())');
+	});
+
+	it('applies scoped CSS hashes inside try blocks', () => {
+		const { code, css } = compile(
+			`export component App() {
+				try {
+					<div class="content">{'hello'}</div>
+				} catch (err) {
+					<p class="error">{'error'}</p>
+				}
+
+				<style>
+					.content { color: blue; }
+					.error { color: red; }
+				</style>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(css).not.toBeNull();
+		expect(code).toContain(`className="content ${css.hash}"`);
+		expect(code).toContain(`className="error ${css.hash}"`);
+	});
 });
