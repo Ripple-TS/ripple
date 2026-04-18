@@ -135,7 +135,6 @@ export { render_stylesheets as renderStylesheets } from './transform/stylesheet.
 export {
 	convert_source_map_to_mappings as convertSourceMapToMappings,
 	create_volar_mappings_result as createVolarMappingsResult,
-	create_basic_volar_mappings_result as createBasicVolarMappingsResult,
 } from './transform/segments.js';
 
 // Analyze

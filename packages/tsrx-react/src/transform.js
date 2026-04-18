@@ -36,11 +36,7 @@ export function transform(ast, source, filename) {
 			if (css) {
 				stylesheets.push(css);
 				const hash = css.hash;
-				/** @type {any[]} */
-				const body = as_any.body;
-				as_any.body = body
-					.filter((/** @type {any} */ child) => !is_style_element(child))
-					.map((/** @type {any} */ child) => annotate_with_hash(child, hash));
+				annotate_component_with_hash(as_any, hash);
 			}
 			return next(state);
 		},
@@ -769,6 +765,15 @@ function is_style_element(node) {
  */
 function annotate_with_hash(node, hash) {
 	if (!node || typeof node !== 'object') return node;
+	if (
+		node.type === 'Component' ||
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression'
+	) {
+		return node;
+	}
+
 	if (node.type === 'Element') {
 		if (!is_style_element(node)) {
 			add_hash_class(node, hash);
@@ -778,8 +783,36 @@ function annotate_with_hash(node, hash) {
 				.filter((/** @type {any} */ child) => !is_style_element(child))
 				.map((/** @type {any} */ child) => annotate_with_hash(child, hash));
 		}
+		return node;
 	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata' || key === 'css') {
+			continue;
+		}
+
+		const value = node[key];
+		if (Array.isArray(value)) {
+			node[key] = value.map((/** @type {any} */ child) => annotate_with_hash(child, hash));
+		} else if (value && typeof value === 'object') {
+			node[key] = annotate_with_hash(value, hash);
+		}
+	}
+
 	return node;
+}
+
+/**
+ * @param {any} component
+ * @param {string} hash
+ * @returns {void}
+ */
+function annotate_component_with_hash(component, hash) {
+	/** @type {any[]} */
+	const body = component.body;
+	component.body = body
+		.filter((/** @type {any} */ child) => !is_style_element(child))
+		.map((/** @type {any} */ child) => annotate_with_hash(child, hash));
 }
 
 /**
@@ -969,16 +1002,7 @@ function child_contains_return_semantics(node) {
  * @returns {boolean}
  */
 function is_inline_element_child(node) {
-	return (
-		node &&
-		(is_jsx_child(node) ||
-			node.type === 'Element' ||
-			node.type === 'Text' ||
-			node.type === 'TSRXExpression' ||
-			node.type === 'IfStatement' ||
-			node.type === 'ForOfStatement' ||
-			node.type === 'SwitchStatement')
-	);
+	return node && is_jsx_child(node);
 }
 
 /**
@@ -1174,7 +1198,7 @@ function for_of_statement_to_jsx_child(node) {
 			callee: {
 				type: 'MemberExpression',
 				object: node.right,
-				property: identifier_to_jsx_name(create_generated_identifier('map')),
+				property: create_generated_identifier('map'),
 				computed: false,
 				optional: false,
 				metadata: { path: [] },

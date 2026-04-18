@@ -62,6 +62,28 @@ describe('@tsrx/react basic', () => {
 		expect(css.code).toContain('color: red;');
 	});
 
+	it('applies scoped css hashes to elements inside control flow', () => {
+		const { code, css } = compile(
+			`export component App() {
+				if (true) {
+					<div>{'inside'}</div>
+				}
+
+				<style>
+					.div {
+						color: red;
+					}
+				</style>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(css).not.toBeNull();
+		expect(code).toContain(`className="${css.hash}"`);
+		expect(code).toContain('return <div className=');
+		expect(css.code).toContain(`.div.${css.hash}`);
+	});
+
 	it('renders component-body if statements as React expressions', () => {
 		const { code } = compile(
 			`export component App() {
