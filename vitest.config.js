@@ -56,6 +56,16 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'tsrx-react-runtime',
+					include: ['packages/vite-plugin-react/tests/**/*.test.tsrx'],
+					environment: 'jsdom',
+					setupFiles: ['packages/vite-plugin-react/tests/setup.js'],
+					globals: true,
+				},
+				plugins: [(await import('./packages/vite-plugin-react/src/index.js')).tsrxReact()],
+			},
+			{
+				test: {
 					name: 'prettier-plugin',
 					include: ['packages/prettier-plugin/src/*.test.js'],
 					environment: 'jsdom',

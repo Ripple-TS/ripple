@@ -23,6 +23,10 @@
     "vite": "*"
   },
   "devDependencies": {
+    "@types/react": "catalog:default",
+    "@types/react-dom": "catalog:default",
+    "react": "catalog:default",
+    "react-dom": "catalog:default",
     "typescript": "catalog:default",
     "vite": "catalog:default"
   },
