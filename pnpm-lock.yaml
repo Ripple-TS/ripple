@@ -667,6 +667,9 @@ importers:
       '@types/estree-jsx':
         specifier: catalog:default
         version: 1.0.5
+      '@types/react':
+        specifier: catalog:default
+        version: 19.2.14
       typescript:
         specifier: catalog:default
         version: 5.9.3

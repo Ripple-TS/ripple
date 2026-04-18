@@ -30,6 +30,7 @@
   "devDependencies": {
     "@types/estree": "catalog:default",
     "@types/estree-jsx": "catalog:default",
+    "@types/react": "catalog:default",
     "typescript": "catalog:default"
   },
   "files": [
