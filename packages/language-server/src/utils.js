@@ -1,6 +1,7 @@
 /** @import { TextDocument } from 'vscode-languageserver-textdocument' */
 /** @import { LanguageServiceContext, Mapper, SourceScript } from '@volar/language-server' */
-/** @typedef {import('@ripple-ts/typescript-plugin/src/language.js').TSRXVirtualCode} TSRXVirtualCode */
+// @ts-expect-error: CJS module type import
+/** @typedef {import('@ripple-ts/typescript-plugin/src/language.js')["TSRXVirtualCode"]} TSRXVirtualCode */
 // @ts-expect-error: ESM type import is fine
 /** @import { isIdentifierObfuscated, deobfuscateIdentifier, IDENTIFIER_OBFUSCATION_PREFIX } from '@tsrx/core' */
 
@@ -35,6 +36,7 @@ let identifier_obfuscation_prefix;
 /** @type {RegExp} */
 let obfuscated_identifier_regex;
 
+// @ts-expect-error: @tsrx/core is resolved at runtime via the workspace
 import('@tsrx/core').then((imports) => {
 	is_identifier_obfuscated = imports.isIdentifierObfuscated;
 	deobfuscate_identifier = imports.deobfuscateIdentifier;

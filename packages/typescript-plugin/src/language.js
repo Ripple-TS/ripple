@@ -1,4 +1,6 @@
+// @ts-ignore: JSDoc @import is type-only, no runtime require() is generated
 /** @import { CodeMapping } from '@tsrx/ripple' */
+// @ts-ignore: JSDoc @import is type-only, no runtime require() is generated
 /** @import {TSRXCompileError, VolarMappingsResult} from '@tsrx/ripple' */
 
 /** @typedef {{ compile_to_volar_mappings(source: string, filename: string, options?: { loose?: boolean }): VolarMappingsResult }} TSRXCompilerModule */

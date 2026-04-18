@@ -63,7 +63,7 @@ function createCompileErrorDiagnosticPlugin() {
 
 /**
  * @param {TSRXCompileError} error
- * @param {TSRXVirtualCode} virtualCode
+ * @param {any} virtualCode
  * @param {Mapper | undefined} sourceMap
  * @param {TextDocument} document
  * @returns {Diagnostic}

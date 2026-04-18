@@ -140,7 +140,9 @@ function createDefinitionPlugin() {
 						const loc = /** @type {DefinitionLocation} */ (def.location);
 
 						const embeddedCode = loc.embeddedId
-							? virtualCode.embeddedCodes?.find(({ id }) => id === loc.embeddedId)
+							? virtualCode.embeddedCodes?.find(
+									(/** @type {{ id: string }} */ { id }) => id === loc.embeddedId,
+								)
 							: undefined;
 
 						if (embeddedCode) {
