@@ -40,9 +40,7 @@ function buildComponents() {
 	mkdirSync(serverOutDir, { recursive: true });
 
 	// Get all supported component files in components directory
-	const componentFiles = readdirSync(componentsDir).filter(
-		(f) => f.endsWith('.tsrx') || f.endsWith('.tsrx') || f.endsWith('.tsrx'),
-	);
+	const componentFiles = readdirSync(componentsDir).filter((f) => f.endsWith('.tsrx'));
 
 	for (const file of componentFiles) {
 		const filePath = join(componentsDir, file);
