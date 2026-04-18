@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.18
+
+### Patch Changes
+
+- [`8505b28`](https://github.com/Ripple-TS/ripple/commit/8505b28aec7859cde39c8200929627fac902f7f4)
+  Thanks [@trueadm](https://github.com/trueadm)! - Warn when TypeScript Native
+  Preview (TS Go) is enabled in local workspace settings for projects that contain
+  `.tsrx` modules.
+
+- Updated dependencies
+  [[`4cb69cc`](https://github.com/Ripple-TS/ripple/commit/4cb69cc780d48c26493e3144006caf4b11df8e1d)]:
+  - @tsrx/react@0.0.2
+  - @ripple-ts/typescript-plugin@0.3.18
+  - @ripple-ts/language-server@0.3.18
+
 ## 0.3.17
 
 ### Patch Changes
