@@ -1,5 +1,12 @@
 # @tsrx/core
 
+## 0.0.4
+
+### Patch Changes
+
+- [`7f98c10`](https://github.com/Ripple-TS/ripple/commit/7f98c1039f52a56135672b0f9b476af280c81f03)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Test CI release
+
 ## 0.0.3
 
 ### Patch Changes
