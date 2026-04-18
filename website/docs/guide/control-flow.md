@@ -7,8 +7,8 @@ title: Control flow in Ripple
 ## If statements
 
 If blocks work seamlessly with Ripple's templating language, you can put them
-inside the JSX-like statements, making control-flow far easier to read and
-reason with.
+inside the JSX-like statements, making control-flow far easier to read and reason
+with.
 
 <Code>
 
@@ -28,8 +28,8 @@ export component Truthy({ x }) {
 
 ## Early return (guard clauses)
 
-You can pair `if` blocks with `return;` to short-circuit the rest of the
-component body once a guard branch is hit.
+You can pair `if` blocks with `return;` to short-circuit the rest of the component
+body once a guard branch is hit.
 
 <Code>
 
@@ -56,7 +56,8 @@ templates) is invalid.
 
 ## Switch statements
 
-Switch statements let you conditionally render content based on a value. They work with both static and reactive values.
+Switch statements let you conditionally render content based on a value. They work
+with both static and reactive values.
 
 <Code>
 
@@ -94,14 +95,14 @@ import { track } from 'ripple';
 export component InteractiveStatus() {
   let &[status] = track('loading');
 
-  <button onClick={() => status = 'success'}>{'Success'}</button>
-  <button onClick={() => status = 'error'}>{'Error'}</button>
+  <button onClick={() => (status = 'success')}>{'Success'}</button>
+  <button onClick={() => (status = 'error')}>{'Error'}</button>
 
   <div>
     switch (status) {
       case 'init':
-         <p>{'Init'}</p>
-         // fall-through to the next
+        <p>{'Init'}</p>
+      // fall-through to the next
       case 'loading':
         <p>{'Loading...'}</p>
         break;
@@ -138,41 +139,52 @@ component ListView({ title, items }) {
 
 // usage
 export default component App() {
-	<ListView
-		title="My List"
-		items={[
-			{ text: "Item 1" },
-			{ text: "Item 2" },
-			{ text: "Item 3" },
-		]}
-	/>
+  <ListView
+    title="My List"
+    items={[
+      { text: 'Item 1' },
+      { text: 'Item 2' },
+      { text: 'Item 3' },
+    ]}
+  />
 }
 ```
 
 </Code>
 
-The `for...of` loop has also a built-in support for accessing the loops
-numerical index. The `label` index declares a variable that will used to assign
-the loop's index.
+The `for...of` loop has also a built-in support for accessing the loops numerical
+index. The `label` index declares a variable that will used to assign the loop's
+index.
 
 ```ripple
-  for (const item of items; index i) {
-    <div>{item.label}{' at index '}{i}</div>
-  }
+for (const item of items; index i) {
+  <div>
+    {item.label}
+    {' at index '}
+    {i}
+  </div>
+}
 ```
 
 You can also provide a `key` for efficient list updates and reconciliation:
 
 ```ripple
-  for (const item of items; index i; key item.id) {
-    <div>{item.label}{' at index '}{i}</div>
-  }
+for (const item of items; index i; key item.id) {
+  <div>
+    {item.label}
+    {' at index '}
+    {i}
+  </div>
+}
 ```
 
 **Key Usage Guidelines:**
 
-- **Arrays with `RippleObject` objects**: Keys are usually unnecessary - object identity and reactivity handle updates automatically. Identity-based loops are more efficient with less bookkeeping.
-- **Arrays with plain objects**: Keys are needed when object reference isn't sufficient for identification. Use stable identifiers: `key item.id`.
+- **Arrays with `RippleObject` objects**: Keys are usually unnecessary - object
+  identity and reactivity handle updates automatically. Identity-based loops are
+  more efficient with less bookkeeping.
+- **Arrays with plain objects**: Keys are needed when object reference isn't
+  sufficient for identification. Use stable identifiers: `key item.id`.
 
 You can use Ripple's reactive arrays to easily compose contents of an array.
 
@@ -185,10 +197,14 @@ export component Numbers() {
   const array = new RippleArray(1, 2, 3);
 
   for (const item of array; index i) {
-    <div>{item}{' at index '}{i}</div>
+    <div>
+      {item}
+      {' at index '}
+      {i}
+    </div>
   }
 
-  <button onClick={() => array.push(array.length + 1)}>{"Add Item"}</button>
+  <button onClick={() => array.push(array.length + 1)}>{'Add Item'}</button>
 }
 ```
 
@@ -196,16 +212,14 @@ export component Numbers() {
 
 Clicking the `<button>` will create a new item.
 
-::: info Note
-`for...of` loops inside components must contain either dom elements or
-components. Otherwise, the loop can be run inside an `effect` or function.
-:::
+::: info Note `for...of` loops inside components must contain either dom elements
+or components. Otherwise, the loop can be run inside an `effect` or function. :::
 
 ## Try statements
 
-Try blocks work to build the foundation for **error boundaries**, when the
-runtime encounters an error in the `try` block, you can easily render a fallback
-in the `catch` block.
+Try blocks work to build the foundation for **error boundaries**, when the runtime
+encounters an error in the `try` block, you can easily render a fallback in the
+`catch` block.
 
 ```ripple
 import { reportError } from 'some-library';
@@ -225,24 +239,27 @@ export component ErrorBoundary() {
 
 ## Dynamic Elements
 
-You can render dynamic HTML elements by storing the tag name in a tracked variable and using the `<@tagName>` syntax:
+You can render dynamic HTML elements by storing the tag name in a tracked variable
+and using the `<@tagName>` syntax:
 
 ```ripple
 import { track } from 'ripple';
 
 export component App() {
-	let &[tag] = track('div');
+  let &[tag] = track('div');
 
-	<@tag class="dynamic">{'Hello World'}</@tag>
-	<button onClick={() => tag = tag === 'div' ? 'span' : 'div'}>{'Toggle Element'}</button>
+  <@tag class="dynamic">{'Hello World'}</@tag>
+  <button onClick={() => (tag = tag === 'div' ? 'span' : 'div')}>
+    {'Toggle Element'}
+  </button>
 }
 ```
 
 ## Async (Suspense boundaries) <Badge type="warning" text="Experimental" />
 
 Components can use `await` directly in their body — no `async` keyword needed.
-Everything before the first `await` renders immediately; everything after
-suspends until the promise resolves.
+Everything before the first `await` renders immediately; everything after suspends
+until the promise resolves.
 
 ```ripple
 component UserProfile({ id }: { id: number }) {
@@ -267,7 +284,10 @@ export component App() {
   } pending {
     <p>{'Loading...'}</p>
   } catch (e) {
-    <p>{'Error: '}{e.message}</p>
+    <p>
+      {'Error: '}
+      {e.message}
+    </p>
   }
 }
 ```
@@ -279,9 +299,9 @@ and can be used independently.
 ### Reactive async with `await track(fn)`
 
 For async operations that should re-run when reactive dependencies change, use
-`await track(fn)`. Any tracked values read inside the function become
-dependencies — when they change the operation re-runs and the component
-re-suspends to the nearest `try/pending` boundary.
+`await track(fn)`. Any tracked values read inside the function become dependencies
+— when they change the operation re-runs and the component re-suspends to the
+nearest `try/pending` boundary.
 
 ```ripple
 import { track } from 'ripple';
@@ -290,19 +310,20 @@ export component CitySearch() {
   let &[query] = track('');
 
   // Renders immediately, never suspended
-  <input type="text" value={query} onInput={e => query = e.target.value} />
+  <input type="text" value={query} onInput={(e) => (query = e.target.value)} />
 
   // Re-runs and re-suspends whenever query changes
   const city = await track(() => fetchCity(query));
 
   // Only renders once city has resolved for the current query
-  <p>{'Showing: '}{query}</p>
-  <CityCard city={city} />
+  <p>
+    {'Showing: '}
+    {query}
+  </p>
+  <CityCard {city} />
 }
 ```
 
-::: info Note
-When `query` changes, everything above the `await track` line stays visible.
-Only the content below re-suspends and shows `{pending}` until the new fetch
-resolves.
-:::
+::: info Note When `query` changes, everything above the `await track` line stays
+visible. Only the content below re-suspends and shows `{pending}` until the new
+fetch resolves. :::

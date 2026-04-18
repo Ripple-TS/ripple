@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import LiveCodes from './LiveCodes.vue'
-import { PlaygroundProps } from './PlaygroundProps'
+import LiveCodes from './LiveCodes.vue';
+import { PlaygroundProps } from './PlaygroundProps';
 
-const props = defineProps<PlaygroundProps>()
+const props = defineProps<PlaygroundProps>();
 </script>
 
 <template>

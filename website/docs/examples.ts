@@ -776,4 +776,4 @@ component Child() {
 }
 `,
 	},
-]
+];
