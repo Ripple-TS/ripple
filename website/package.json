@@ -1,24 +1,24 @@
 {
-	"name": "ripple-website",
-	"version": "0.0.0",
-	"description": "",
-	"private": true,
-	"scripts": {
-		"dev": "vitepress dev",
-		"build": "vitepress build",
-		"preview": "vitepress preview"
-	},
-	"keywords": [],
-	"author": "",
-	"license": "MIT",
-	"packageManager": "pnpm@10.18.2",
-	"dependencies": {
-		"livecodes": "catalog:default",
-		"shiki": "catalog:default"
-	},
-	"devDependencies": {
-		"vitepress": "catalog:default",
-		"vitepress-plugin-npm-commands": "catalog:default",
-		"vitepress-plugin-tabs": "catalog:default"
-	}
+  "name": "ripple-website",
+  "version": "0.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.18.2",
+  "dependencies": {
+    "livecodes": "catalog:default",
+    "shiki": "catalog:default"
+  },
+  "devDependencies": {
+    "vitepress": "catalog:default",
+    "vitepress-plugin-npm-commands": "catalog:default",
+    "vitepress-plugin-tabs": "catalog:default"
+  }
 }

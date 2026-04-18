@@ -4,15 +4,12 @@ title: Bindings in Ripple
 
 # Bindings
 
-Bindings in Ripple provide a declarative way to synchronize DOM element
-properties with reactive state. Instead of manually handling events and updates,
-bindings create a two-way connection between your tracked variables and DOM
-elements.
+Bindings in Ripple provide a declarative way to synchronize DOM element properties
+with reactive state. Instead of manually handling events and updates, bindings
+create a two-way connection between your tracked variables and DOM elements.
 
-::: info
-All binding functions require a `Tracked` object as their argument. If you pass
-a non-tracked value, they will throw a `TypeError`.
-:::
+::: info All binding functions require a `Tracked` object as their argument. If
+you pass a non-tracked value, they will throw a `TypeError`. :::
 
 ## Form Bindings
 
@@ -32,9 +29,17 @@ export component App() {
   let &[name, nameTracked] = track('');
 
   <div>
-    <input type="text" {ref bindValue(nameTracked)} placeholder="Enter your name" />
-    <p>{'Hello, '}{name || 'stranger'}{'!'}</p>
-    <button onClick={() => name = ''}>{'Clear'}</button>
+    <input
+      type="text"
+      {ref bindValue(nameTracked)}
+      placeholder="Enter your name"
+    />
+    <p>
+      {'Hello, '}
+      {name || 'stranger'}
+      {'!'}
+    </p>
+    <button onClick={() => (name = '')}>{'Clear'}</button>
   </div>
 }
 ```
@@ -53,8 +58,12 @@ export component App() {
 
   <div>
     <input type="number" {ref bindValue(ageTracked)} min="0" max="120" />
-    <p>{'Age: '}{age}{' years old'}</p>
-    <button onClick={() => age = age + 1}>{'Increment'}</button>
+    <p>
+      {'Age: '}
+      {age}
+      {' years old'}
+    </p>
+    <button onClick={() => (age = age + 1)}>{'Increment'}</button>
   </div>
 }
 ```
@@ -78,7 +87,10 @@ export component App() {
       <option value="cherry">{'Cherry'}</option>
       <option value="durian">{'Durian'}</option>
     </select>
-    <p>{'You selected: '}{selectedFruit}</p>
+    <p>
+      {'You selected: '}
+      {selectedFruit}
+    </p>
   </div>
 }
 ```
@@ -102,7 +114,10 @@ export component App() {
       <option value="blue">{'Blue'}</option>
       <option value="yellow">{'Yellow'}</option>
     </select>
-    <p>{'Selected colors: '}{selectedColors.join(', ')}</p>
+    <p>
+      {'Selected colors: '}
+      {selectedColors.join(', ')}
+    </p>
   </div>
 }
 ```
@@ -111,8 +126,8 @@ export component App() {
 
 ### bindChecked
 
-The `bindChecked` binding synchronizes a checkbox's checked state with a
-tracked boolean value.
+The `bindChecked` binding synchronizes a checkbox's checked state with a tracked
+boolean value.
 
 <Code>
 
@@ -127,7 +142,10 @@ export component App() {
       <input type="checkbox" {ref bindChecked(agreedTracked)} />
       {' I agree to the terms and conditions'}
     </label>
-    <p>{'Status: '}{agreed ? 'Agreed' : 'Not agreed'}</p>
+    <p>
+      {'Status: '}
+      {agreed ? 'Agreed' : 'Not agreed'}
+    </p>
     <button disabled={!agreed}>{'Submit'}</button>
   </div>
 }
@@ -140,14 +158,13 @@ export component App() {
 - `bindChecked` only supports individual checkbox boolean binding. For checkbox
   groups or radio buttons, use `bindGroup` instead.
 
-- For `radio` inputs, use `bindGroup` instead of `bindChecked`.
-  :::
+- For `radio` inputs, use `bindGroup` instead of `bindChecked`. :::
 
 ### bindIndeterminate
 
-The `bindIndeterminate` binding synchronizes a checkbox's indeterminate state
-with a tracked boolean value. The indeterminate state is commonly used for
-"select all" checkboxes when only some (but not all) child items are selected.
+The `bindIndeterminate` binding synchronizes a checkbox's indeterminate state with
+a tracked boolean value. The indeterminate state is commonly used for "select all"
+checkboxes when only some (but not all) child items are selected.
 
 <Code>
 
@@ -167,14 +184,22 @@ export component App() {
       />
       {' Select All'}
     </label>
-    <p>{'Checked: '}{checked ? 'Yes' : 'No'}</p>
-    <p>{'Indeterminate: '}{indeterminate ? 'Yes' : 'No'}</p>
-    <button onClick={() => {
-      indeterminate = !indeterminate;
-      if (indeterminate) {
-        checked = false;
-      }
-    }}>
+    <p>
+      {'Checked: '}
+      {checked ? 'Yes' : 'No'}
+    </p>
+    <p>
+      {'Indeterminate: '}
+      {indeterminate ? 'Yes' : 'No'}
+    </p>
+    <button
+      onClick={() => {
+        indeterminate = !indeterminate;
+        if (indeterminate) {
+          checked = false;
+        }
+      }}
+    >
       {'Toggle Indeterminate'}
     </button>
   </div>
@@ -185,16 +210,17 @@ export component App() {
 
 ::: info Note
 
-- The indeterminate state is purely visual and doesn't affect the checkbox's checked value.
+- The indeterminate state is purely visual and doesn't affect the checkbox's
+  checked value.
 - You can combine `bindIndeterminate` with `bindChecked` on the same checkbox.
-- Common use case: "Select All" checkboxes when some (but not all) items are selected.
-  :::
+- Common use case: "Select All" checkboxes when some (but not all) items are
+  selected. :::
 
 ### bindGroup
 
-The `bindGroup` binding allows you to bind a group of checkboxes to an array
-or a group of radio buttons to a single value. This is essential for handling
-multiple selections or mutually exclusive choices.
+The `bindGroup` binding allows you to bind a group of checkboxes to an array or a
+group of radio buttons to a single value. This is essential for handling multiple
+selections or mutually exclusive choices.
 
 **For checkbox groups (array binding):**
 
@@ -223,10 +249,13 @@ export component App() {
       <input type="checkbox" value="cooking" {ref bindGroup(hobbiesTracked)} />
       {' Cooking'}
     </label>
-    <p>{'Selected: '}{hobbies.join(', ') || 'none'}</p>
+    <p>
+      {'Selected: '}
+      {hobbies.join(', ') || 'none'}
+    </p>
   </div>
 
-  <button onClick={() => hobbies = ['reading']}>{'Reset'}</button>
+  <button onClick={() => (hobbies = ['reading'])}>{'Reset'}</button>
 }
 ```
 
@@ -266,17 +295,16 @@ export component App() {
 
 ::: info Note
 
-- **Checkboxes**: The tracked value should be an array. Checked boxes add
-  their values to the array.
-- **Radio buttons**: The tracked value should be a single value matching one
-  of the radio button values.
+- **Checkboxes**: The tracked value should be an array. Checked boxes add their
+  values to the array.
+- **Radio buttons**: The tracked value should be a single value matching one of
+  the radio button values.
 - **Static values only**: The `value` attribute of inputs should be static.
-  Dynamic/reactive value attributes are not supported. If you need to change
-  input values dynamically, you must manually update both the tracked value
-  and the checkbox states.
-- **Per-binding instances**: Ripple's `bindGroup` doesn't require inputs to be in the
-  same component since it uses per-binding instance groups.
-  :::
+  Dynamic/reactive value attributes are not supported. If you need to change input
+  values dynamically, you must manually update both the tracked value and the
+  checkbox states.
+- **Per-binding instances**: Ripple's `bindGroup` doesn't require inputs to be in
+  the same component since it uses per-binding instance groups. :::
 
 ### bindFiles
 
@@ -290,52 +318,59 @@ programmatically update the file input.
 import { bindFiles, bindNode, track } from 'ripple';
 
 export component App() {
-	let &[files, filesTracked] = track();
-	let &[version] = track(0);
-	let &[input, inputTracked] = track();
+  let &[files, filesTracked] = track();
+  let &[version] = track(0);
+  let &[input, inputTracked] = track();
 
-	const clearFiles = () => {
-		files = new DataTransfer().files; // null or undefined does not work
-		input.value = null; // reset the input selected message
-	};
+  const clearFiles = () => {
+    files = new DataTransfer().files; // null or undefined does not work
+    input.value = null; // reset the input selected message
+  };
 
-	const createSampleFile = () => {
-		version++;
-		const dt = new DataTransfer();
-		const file = new File([`Hello, World version: ${version}!`], `sample_${version}.txt`, {
-			type: 'text/plain',
-		});
-		dt.items.add(file);
-		for (const file of files ?? []) {
-			dt.items.add(file);
-		}
-		files = dt.files;
-	};
+  const createSampleFile = () => {
+    version++;
+    const dt = new DataTransfer();
+    const file = new File([
+      `Hello, World version: ${version}!`,
+    ], `sample_${version}.txt`, {
+      type: 'text/plain',
+    });
+    dt.items.add(file);
+    for (const file of files ?? []) {
+      dt.items.add(file);
+    }
+    files = dt.files;
+  };
 
-	<div>
-		<input type="file" {ref bindFiles(filesTracked)} {ref bindNode(inputTracked)} multiple />
+  <div>
+    <input
+      type="file"
+      {ref bindFiles(filesTracked)}
+      {ref bindNode(inputTracked)}
+      multiple
+    />
 
-		<div>
-			if (files && files.length > 0) {
-				<p>{'Selected files:'}</p>
-				<ul>
-					for (const file of Array.from(files)) {
-						<li>
-							{file.name}
-							{' ('}
-							{file.size}
-							{' bytes)'}
-						</li>
-					}
-				</ul>
-			} else {
-				<p>{'No files selected'}</p>
-			}
-		</div>
+    <div>
+      if (files && files.length > 0) {
+        <p>{'Selected files:'}</p>
+        <ul>
+          for (const file of Array.from(files)) {
+            <li>
+              {file.name}
+              {' ('}
+              {file.size}
+              {' bytes)'}
+            </li>
+          }
+        </ul>
+      } else {
+        <p>{'No files selected'}</p>
+      }
+    </div>
 
-		<button onClick={clearFiles}>{'Clear files'}</button>
-		<button onClick={createSampleFile}>{'Add sample file'}</button>
-	</div>
+    <button onClick={clearFiles}>{'Clear files'}</button>
+    <button onClick={createSampleFile}>{'Add sample file'}</button>
+  </div>
 }
 ```
 
@@ -344,25 +379,24 @@ export component App() {
 ::: info Note
 
 - `FileList` objects are read-only and cannot be modified directly.
-- To programmatically set files, create a new `DataTransfer` object and use
-  its `files` property:
+- To programmatically set files, create a new `DataTransfer` object and use its
+  `files` property:
   ```js
-  const dt = new DataTransfer()
-  dt.items.add(new File(['content'], 'filename.txt'))
-  files = dt.files
+  const dt = new DataTransfer();
+  dt.items.add(new File(['content'], 'filename.txt'));
+  files = dt.files;
   ```
-- To clear files, set the value to `new DataTransfer().files` (setting to
-  `null` or `undefined` will not work for clearing).
+- To clear files, set the value to `new DataTransfer().files` (setting to `null`
+  or `undefined` will not work for clearing).
 - `DataTransfer` may not be available in server-side JS runtimes. Leave the
-  tracked value uninitialized to prevent errors during SSR.
-  :::
+  tracked value uninitialized to prevent errors during SSR. :::
 
 ## Dimension Bindings
 
 ### bindClientWidth / bindClientHeight
 
-These bindings track the inner dimensions of an element (excluding borders
-and scrollbars).
+These bindings track the inner dimensions of an element (excluding borders and
+scrollbars).
 
 <Code>
 
@@ -383,12 +417,20 @@ export component App() {
         border: '2px solid blue',
         padding: '20px',
         minWidth: '200px',
-        minHeight: '100px'
+        minHeight: '100px',
       }}
     >
       {'Resize me! (drag bottom-right corner)'}
-      <p>{'Client Width: '}{width}{'px'}</p>
-      <p>{'Client Height: '}{height}{'px'}</p>
+      <p>
+        {'Client Width: '}
+        {width}
+        {'px'}
+      </p>
+      <p>
+        {'Client Height: '}
+        {height}
+        {'px'}
+      </p>
     </div>
   </div>
 }
@@ -398,8 +440,7 @@ export component App() {
 
 ### bindOffsetWidth / bindOffsetHeight
 
-These bindings track the full outer dimensions of an element (including
-borders).
+These bindings track the full outer dimensions of an element (including borders).
 
 <Code>
 
@@ -418,13 +459,21 @@ export component App() {
         border: '10px solid green',
         padding: '20px',
         width: '300px',
-        height: '150px'
+        height: '150px',
       }}
     >
       {'Box with borders'}
     </div>
-    <p>{'Offset Width: '}{width}{'px (includes borders)'}</p>
-    <p>{'Offset Height: '}{height}{'px (includes borders)'}</p>
+    <p>
+      {'Offset Width: '}
+      {width}
+      {'px (includes borders)'}
+    </p>
+    <p>
+      {'Offset Height: '}
+      {height}
+      {'px (includes borders)'}
+    </p>
   </div>
 }
 ```
@@ -454,7 +503,7 @@ export component App() {
         border: '2px solid purple',
         padding: '20px',
         minWidth: '200px',
-        minHeight: '100px'
+        minHeight: '100px',
       }}
     >
       {'Resize me!'}
@@ -485,14 +534,18 @@ export component App() {
         border: '5px solid orange',
         padding: '15px',
         width: '250px',
-        height: '100px'
+        height: '100px',
       }}
     >
       {'Content box size'}
     </div>
     <pre>
-      {'Block size: '}{size[0]?.blockSize || 0}{'px\n'}
-      {'Inline size: '}{size[0]?.inlineSize || 0}{'px'}
+      {'Block size: '}
+      {size[0]?.blockSize || 0}
+      {'px\n'}
+      {'Inline size: '}
+      {size[0]?.inlineSize || 0}
+      {'px'}
     </pre>
   </div>
 }
@@ -519,14 +572,18 @@ export component App() {
         border: '5px solid teal',
         padding: '15px',
         width: '250px',
-        height: '100px'
+        height: '100px',
       }}
     >
       {'Border box size'}
     </div>
     <pre>
-      {'Block size: '}{size[0]?.blockSize || 0}{'px\n'}
-      {'Inline size: '}{size[0]?.inlineSize || 0}{'px'}
+      {'Block size: '}
+      {size[0]?.blockSize || 0}
+      {'px\n'}
+      {'Inline size: '}
+      {size[0]?.inlineSize || 0}
+      {'px'}
     </pre>
   </div>
 }
@@ -536,8 +593,7 @@ export component App() {
 
 ### bindDevicePixelContentBoxSize
 
-Tracks the content box size in device pixels (useful for high-DPI
-displays).
+Tracks the content box size in device pixels (useful for high-DPI displays).
 
 <Code>
 
@@ -554,14 +610,18 @@ export component App() {
         border: '3px solid crimson',
         padding: '10px',
         width: '200px',
-        height: '80px'
+        height: '80px',
       }}
     >
       {'Device pixel content box'}
     </div>
     <pre>
-      {'Block size: '}{size[0]?.blockSize || 0}{'px\n'}
-      {'Inline size: '}{size[0]?.inlineSize || 0}{'px'}
+      {'Block size: '}
+      {size[0]?.blockSize || 0}
+      {'px\n'}
+      {'Inline size: '}
+      {size[0]?.inlineSize || 0}
+      {'px'}
     </pre>
   </div>
 }
@@ -590,7 +650,7 @@ export component App() {
       style={{
         border: '1px solid gray',
         padding: '10px',
-        minHeight: '50px'
+        minHeight: '50px',
       }}
     />
     <p>{'Raw HTML:'}</p>
@@ -603,8 +663,7 @@ export component App() {
 
 ### bindInnerText
 
-Binds to an element's innerText property (text with line breaks, no
-HTML).
+Binds to an element's innerText property (text with line breaks, no HTML).
 
 <Code>
 
@@ -633,8 +692,7 @@ export component App() {
 
 ### bindTextContent
 
-Binds to an element's textContent property (raw text, no
-formatting).
+Binds to an element's textContent property (raw text, no formatting).
 
 <Code>
 
@@ -690,7 +748,7 @@ export component App() {
       style={{
         border: '2px solid navy',
         padding: '20px',
-        outline: 'none'
+        outline: 'none',
       }}
     >
       {'Click the button to focus this div'}
@@ -704,8 +762,8 @@ export component App() {
 
 ## Combining Multiple Bindings
 
-You can use multiple bindings on the same element by applying multiple
-`{ref}` attributes:
+You can use multiple bindings on the same element by applying multiple `{ref}`
+attributes:
 
 <Code>
 
@@ -746,14 +804,14 @@ export component App() {
 1. **Always use tracked variables**: All binding functions require `Tracked`
    objects created with `track()`.
 
-2. **Cleanup is automatic**: Bindings automatically handle cleanup when
-   elements are removed from the DOM.
+2. **Cleanup is automatic**: Bindings automatically handle cleanup when elements
+   are removed from the DOM.
 
 3. **Performance**: Bindings use efficient observers (ResizeObserver for
    dimensions) with singleton patterns to minimize overhead.
 
-4. **Type safety**: For number inputs, `bindValue` automatically converts
-   values to numbers.
+4. **Type safety**: For number inputs, `bindValue` automatically converts values
+   to numbers.
 
 5. **Multiple refs**: You can apply multiple `{ref}` attributes to the same
    element for different bindings.

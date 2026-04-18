@@ -1,29 +1,29 @@
 <script setup lang="ts">
-import { ref, watch, useTemplateRef } from 'vue'
-import { useData } from 'vitepress'
-import VPButton from 'vitepress/dist/client/theme-default/components/VPButton.vue'
-import VPFlyout from 'vitepress/dist/client/theme-default/components/VPFlyout.vue'
-import VPSwitch from 'vitepress/dist/client/theme-default/components/VPSwitch.vue'
-import LiveCodes from 'livecodes/vue'
-import type { Config, EmbedOptions, Playground } from 'livecodes'
-import { PlaygroundProps } from './PlaygroundProps'
-import { examples } from '../../docs/examples'
+import { ref, watch, useTemplateRef } from 'vue';
+import { useData } from 'vitepress';
+import VPButton from 'vitepress/dist/client/theme-default/components/VPButton.vue';
+import VPFlyout from 'vitepress/dist/client/theme-default/components/VPFlyout.vue';
+import VPSwitch from 'vitepress/dist/client/theme-default/components/VPSwitch.vue';
+import LiveCodes from 'livecodes/vue';
+import type { Config, EmbedOptions, Playground } from 'livecodes';
+import { PlaygroundProps } from './PlaygroundProps';
+import { examples } from '../../docs/examples';
 
-const playgroundUrl = 'https://ripple.livecodes.pages.dev'
-const apiUrl = 'https://data.jsdelivr.com/v1/packages/npm/ripple'
+const playgroundUrl = 'https://ripple.livecodes.pages.dev';
+const apiUrl = 'https://data.jsdelivr.com/v1/packages/npm/ripple';
 
-type UserSettings = { vim?: boolean; ai?: boolean; fontSize?: number }
+type UserSettings = { vim?: boolean; ai?: boolean; fontSize?: number };
 
-const localStorageKey = 'ripple-playground-settings'
+const localStorageKey = 'ripple-playground-settings';
 
 const getUserSettings = (): Partial<UserSettings> => {
-	const userSettings = window.localStorage.getItem(localStorageKey) || '{}'
+	const userSettings = window.localStorage.getItem(localStorageKey) || '{}';
 	try {
-		return JSON.parse(userSettings)
+		return JSON.parse(userSettings);
 	} catch (e) {
-		return {}
+		return {};
 	}
-}
+};
 const setUserSettings = (userSettings: UserSettings) => {
 	window.localStorage.setItem(
 		localStorageKey,
@@ -31,37 +31,35 @@ const setUserSettings = (userSettings: UserSettings) => {
 			...getUserSettings(),
 			...userSettings,
 		}),
-	)
-}
+	);
+};
 
-const props = defineProps<PlaygroundProps>()
-const { isDark } = useData()
+const props = defineProps<PlaygroundProps>();
+const { isDark } = useData();
 const themeColor =
-	window
-		.getComputedStyle(document.documentElement)
-		.getPropertyValue('--vp-c-brand-3') || '#2d6dbf'
-let playground: Playground | undefined
-const playgroundActions = useTemplateRef('playground-actions')
-const title = ref(props.code ? undefined : 'Counter')
-const tailwind = ref(false)
-const vim = ref(getUserSettings().vim ?? false)
-const ai = ref(getUserSettings().ai !== false)
-const fontSize = ref(getUserSettings().fontSize || 12)
-const hash = props.isMainPlayground ? window.location.hash : undefined
+	window.getComputedStyle(document.documentElement).getPropertyValue('--vp-c-brand-3') || '#2d6dbf';
+let playground: Playground | undefined;
+const playgroundActions = useTemplateRef('playground-actions');
+const title = ref(props.code ? undefined : 'Counter');
+const tailwind = ref(false);
+const vim = ref(getUserSettings().vim ?? false);
+const ai = ref(getUserSettings().ai !== false);
+const fontSize = ref(getUserSettings().fontSize || 12);
+const hash = props.isMainPlayground ? window.location.hash : undefined;
 
 const pkg = await fetch(apiUrl)
 	.then((res) => res.json())
-	.catch(() => ({}))
-const latest = pkg.tags?.latest || 'latest'
-const allVersions = pkg.versions.map((v: { version: string }) => v.version)
-const versions = allVersions.filter((_v: string, i: number) => i < 30)
-let versionParam = new URLSearchParams(window.location.search).get('v')
+	.catch(() => ({}));
+const latest = pkg.tags?.latest || 'latest';
+const allVersions = pkg.versions.map((v: { version: string }) => v.version);
+const versions = allVersions.filter((_v: string, i: number) => i < 30);
+let versionParam = new URLSearchParams(window.location.search).get('v');
 if (versionParam === 'latest') {
-	versionParam = latest
+	versionParam = latest;
 } else if (!allVersions.includes(versionParam)) {
-	versionParam = null
+	versionParam = null;
 }
-const version = ref(versionParam || latest)
+const version = ref(versionParam || latest);
 
 const defaultContent = `
 import { track } from 'ripple';
@@ -101,7 +99,7 @@ export default component Counter() {
     }
   </style>
 }
-`.trimStart()
+`.trimStart();
 
 const mountRoot =
 	'<scr' +
@@ -120,14 +118,14 @@ const mountRoot =
     target: document.body.appendChild(document.createElement('div')),
   });
 </scr` +
-	'ipt>'
+	'ipt>';
 
 const getStyle = () => ({
 	language: 'css' as const,
 	content: props.styles ?? '',
 	hiddenContent: `body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; ${isDark.value ? 'background: hsl(0, 0%, 18%); color: #fff' : ''} }`,
 	hideTitle: true,
-})
+});
 
 const config: Partial<Config> = {
 	title: title.value,
@@ -153,34 +151,34 @@ const config: Partial<Config> = {
 	processors: tailwind.value ? ['tailwindcss'] : [],
 	editorMode: vim.value ? 'vim' : undefined,
 	enableAI: ai.value,
-}
+};
 
 const options: EmbedOptions = {
 	appUrl: playgroundUrl + (hash || ''),
 	loading: 'eager',
 	config: hash ? undefined : config,
-}
+};
 
 const getShareUrl = async () => {
-	if (!playground) return
-	const shareUrl = new URL(await playground.getShareUrl())
-	const url = new URL(window.location.href)
-	url.hash = shareUrl.hash
-	url.searchParams.set('v', version.value)
+	if (!playground) return;
+	const shareUrl = new URL(await playground.getShareUrl());
+	const url = new URL(window.location.href);
+	url.hash = shareUrl.hash;
+	url.searchParams.set('v', version.value);
 	if (title.value) {
-		url.searchParams.set('title', title.value)
+		url.searchParams.set('title', title.value);
 	}
-	return url.href
-}
+	return url.href;
+};
 
 const updateUrl = async () => {
-	const url = await getShareUrl()
-	if (!url) return
-	history.replaceState(null, '', url)
-}
+	const url = await getShareUrl();
+	if (!url) return;
+	history.replaceState(null, '', url);
+};
 
 const onReady = (sdk: Playground) => {
-	playground = sdk
+	playground = sdk;
 
 	// sync the UI with config from  shared URL
 	playground.getConfig().then((config) => {
@@ -189,52 +187,44 @@ const onReady = (sdk: Playground) => {
 			config.title !== 'Untitled Project' &&
 			config.title !== title.value
 		) {
-			title.value = config.title
+			title.value = config.title;
 		}
 
 		if (config.processors.includes('tailwindcss')) {
-			tailwind.value = true
+			tailwind.value = true;
 		}
 
-		let newConfig: Partial<Config> = {}
-		if (
-			!config.markup.content ||
-			!config.markup.hideTitle ||
-			!config.style.hideTitle
-		) {
+		let newConfig: Partial<Config> = {};
+		if (!config.markup.content || !config.markup.hideTitle || !config.style.hideTitle) {
 			newConfig = {
 				markup: { ...config.markup, content: mountRoot, hideTitle: true },
 				style: { ...config.style, hideTitle: true },
-			}
+			};
 		}
 
-		if (
-			(isDark.value && config.theme !== 'dark') ||
-			(!isDark.value && config.theme !== 'light')
-		) {
+		if ((isDark.value && config.theme !== 'dark') || (!isDark.value && config.theme !== 'light')) {
 			newConfig = {
 				...newConfig,
 				theme: isDark.value ? 'dark' : 'light',
 				style: getStyle(),
-			}
+			};
 		}
 
 		if (config.themeColor !== themeColor) {
 			newConfig = {
 				...newConfig,
 				themeColor,
-			}
+			};
 		}
 
 		if (props.isMainPlayground && config.fontSize !== fontSize.value) {
 			newConfig = {
 				...newConfig,
 				fontSize: fontSize.value,
-			}
+			};
 		}
 
-		const selectedVersion =
-			versionParam || config.customSettings?.ripple?.version
+		const selectedVersion = versionParam || config.customSettings?.ripple?.version;
 		if (
 			selectedVersion &&
 			allVersions.includes(selectedVersion) &&
@@ -245,142 +235,138 @@ const onReady = (sdk: Playground) => {
 				customSettings: {
 					ripple: { version: selectedVersion },
 				},
-			}
-			version.value = selectedVersion
+			};
+			version.value = selectedVersion;
 		}
 
 		if (vim.value && config.editorMode !== 'vim') {
 			newConfig = {
 				...newConfig,
 				editorMode: 'vim',
-			}
+			};
 		}
 
 		if (ai.value && !config.enableAI) {
 			newConfig = {
 				...newConfig,
 				enableAI: true,
-			}
+			};
 		}
 
 		if (Object.keys(newConfig).length > 0) {
-			playground?.setConfig(newConfig)
+			playground?.setConfig(newConfig);
 		}
-	})
+	});
 
 	if (props.isMainPlayground) {
 		playground.watch('code', async () => {
-			if (!playground) return
-			await updateUrl()
-		})
+			if (!playground) return;
+			await updateUrl();
+		});
 
 		const readyWatcher = playground.watch('ready', async () => {
-			playgroundActions.value.style.visibility = 'visible'
-			readyWatcher.remove()
-		})
+			playgroundActions.value.style.visibility = 'visible';
+			readyWatcher.remove();
+		});
 	}
-}
+};
 
-const copyUrlText = ref('Copy URL')
+const copyUrlText = ref('Copy URL');
 const copyUrl = async () => {
 	if (playground) {
-		const url = await getShareUrl()
+		const url = await getShareUrl();
 		if (url) {
-			await navigator.clipboard.writeText(url)
-			copyUrlText.value = 'Copied!'
+			await navigator.clipboard.writeText(url);
+			copyUrlText.value = 'Copied!';
 		} else {
-			copyUrlText.value = 'Error!'
+			copyUrlText.value = 'Error!';
 		}
 		setTimeout(() => {
-			copyUrlText.value = 'Copy URL'
-		}, 1000)
+			copyUrlText.value = 'Copy URL';
+		}, 1000);
 	}
-}
+};
 
 const getPlaygroundStyle = () => ({
-	height:
-		props.height ??
-		(props.isMainPlayground ? 'calc(100dvh - 110px)' : undefined),
+	height: props.height ?? (props.isMainPlayground ? 'calc(100dvh - 110px)' : undefined),
 	minHeight: props.isMainPlayground ? '400px' : undefined,
 	marginTop: props.isMainPlayground ? '1.5rem' : undefined,
 	borderRadius: props.isMainPlayground ? undefined : '8px',
-	border: props.isMainPlayground
-		? undefined
-		: `1px solid ${isDark.value ? '#333' : '#ddd'}`,
-})
-const playgroundStyle = ref(getPlaygroundStyle())
+	border: props.isMainPlayground ? undefined : `1px solid ${isDark.value ? '#333' : '#ddd'}`,
+});
+const playgroundStyle = ref(getPlaygroundStyle());
 
 watch(isDark, () => {
 	if (playground) {
 		playground.setConfig({
 			theme: isDark.value ? 'dark' : 'light',
 			style: getStyle(),
-		})
+		});
 	}
-	playgroundStyle.value = getPlaygroundStyle()
-})
+	playgroundStyle.value = getPlaygroundStyle();
+});
 
 watch(tailwind, async () => {
-	if (!playground) return
+	if (!playground) return;
 	await playground.setConfig({
 		processors: tailwind.value ? ['tailwindcss'] : [],
-	})
-	await updateUrl()
-})
+	});
+	await updateUrl();
+});
 
 watch(vim, async () => {
-	if (!playground) return
+	if (!playground) return;
 	playground.setConfig({
 		editorMode: vim.value ? 'vim' : undefined,
-	})
-	setUserSettings({ vim: vim.value })
-})
+	});
+	setUserSettings({ vim: vim.value });
+});
 
 watch(ai, async () => {
-	if (!playground) return
+	if (!playground) return;
 	playground.setConfig({
 		enableAI: ai.value,
-	})
-	setUserSettings({ ai: ai.value })
-})
+	});
+	setUserSettings({ ai: ai.value });
+});
 
 watch(fontSize, async () => {
-	if (!playground) return
+	if (!playground) return;
 	playground.setConfig({
 		fontSize: fontSize.value,
-	})
-	setUserSettings({ fontSize: fontSize.value })
-})
+	});
+	setUserSettings({ fontSize: fontSize.value });
+});
 
 watch(title, async () => {
-	if (!playground) return
+	if (!playground) return;
 	playground.setConfig({
 		title: title.value,
-	})
-	await updateUrl()
-})
+	});
+	await updateUrl();
+});
 
 watch(version, async () => {
-	if (!playground) return
+	if (!playground) return;
 	playground.setConfig({
 		customSettings: { ripple: { version: version.value } },
-	})
-	await updateUrl()
-})
+	});
+	await updateUrl();
+});
 
 const changeVersion = async (input: HTMLInputElement | null) => {
-	if (!input) return
-	const v = input.value
+	if (!input) return;
+	const v = input.value;
 	if (allVersions.includes(v)) {
-		version.value = v
+		version.value = v;
 	}
 	if (v === 'latest' || v === '') {
-		version.value = latest
+		version.value = latest;
 	}
-}
+};
 
 const loadExample = async (example: { title: string; code: string }) => {
-	if (!playground) return
+	if (!playground) return;
 	await playground.setConfig({
 		title: example.title,
 		script: {
@@ -391,19 +377,19 @@ const loadExample = async (example: { title: string; code: string }) => {
 		...(example.code.includes('console.')
 			? { tools: { active: 'console', status: 'open' } }
 			: undefined),
-	})
-	title.value = example.title
-	await updateUrl()
-}
+	});
+	title.value = example.title;
+	await updateUrl();
+};
 
 window.addEventListener('resize', () => {
-	if (!window.location.href.includes('playground')) return
+	if (!window.location.href.includes('playground')) return;
 	// fixes the issue on mobile with landscape orientation, user scrolls down,
 	// then changes orientation to landscape and is not able to scroll back to top
-	window.scrollTo(0, 0)
-})
+	window.scrollTo(0, 0);
+});
 
-const settingsIcon = `<svg style="height: 18px; stroke: var(--vp-c-text-1);" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><title>ionicons-v5-i</title><line x1="368" y1="128" x2="448" y2="128" style="fill:none;;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="64" y1="128" x2="304" y2="128" style="fill:none;;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="368" y1="384" x2="448" y2="384" style="fill:none;;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="64" y1="384" x2="304" y2="384" style="fill:none;;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="208" y1="256" x2="448" y2="256" style="fill:none;;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="64" y1="256" x2="144" y2="256" style="fill:none;;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><circle cx="336" cy="128" r="32" style="fill:none;;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle><circle cx="176" cy="256" r="32" style="fill:none;;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle><circle cx="336" cy="384" r="32" style="fill:none;;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle></g></svg>`
+const settingsIcon = `<svg style="height: 18px; stroke: var(--vp-c-text-1);" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><title>ionicons-v5-i</title><line x1="368" y1="128" x2="448" y2="128" style="fill:none;;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="64" y1="128" x2="304" y2="128" style="fill:none;;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="368" y1="384" x2="448" y2="384" style="fill:none;;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="64" y1="384" x2="304" y2="384" style="fill:none;;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="208" y1="256" x2="448" y2="256" style="fill:none;;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="64" y1="256" x2="144" y2="256" style="fill:none;;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><circle cx="336" cy="128" r="32" style="fill:none;;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle><circle cx="176" cy="256" r="32" style="fill:none;;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle><circle cx="336" cy="384" r="32" style="fill:none;;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle></g></svg>`;
 </script>
 
 <template>

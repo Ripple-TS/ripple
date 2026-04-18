@@ -36,9 +36,9 @@ App (root component)
    └─ TodoStatistics
 ```
 
-In later sections of the guide, we will discuss how to define and compose
-multiple components together. Before that, we will focus on what happens inside
-a single component.
+In later sections of the guide, we will discuss how to define and compose multiple
+components together. Before that, we will focus on what happens inside a single
+component.
 
 ## Mounting the App
 
@@ -46,12 +46,14 @@ To bring the app to life, we'll use the `mount` function that we imported to
 attach the application to the DOM.
 
 `mount()` expects a component, and an options object. Inside the options object,
-we'll use `document.getElementById()` to acquire a reference to the DOM element
-we want the app to be attached to the `target` property.
+we'll use `document.getElementById()` to acquire a reference to the DOM element we
+want the app to be attached to the `target` property.
 
 ## Hydration
 
-When using server-side rendering (SSR), the server pre-renders your components to HTML. The client then needs to "hydrate" this HTML by attaching event listeners and making it interactive, without re-creating the DOM elements.
+When using server-side rendering (SSR), the server pre-renders your components to
+HTML. The client then needs to "hydrate" this HTML by attaching event listeners
+and making it interactive, without re-creating the DOM elements.
 
 Ripple provides the `hydrate()` function for this purpose:
 
@@ -77,12 +79,12 @@ On the server, use the `render()` function from `ripple/server` to generate HTML
 
 ```js
 // server.js
-import { render } from 'ripple/server'
-import { App } from './App.tsrx'
+import { render } from 'ripple/server';
+import { App } from './App.tsrx';
 
 const html = render(App, {
-	props: { title: 'Hello world!' },
-})
+  props: { title: 'Hello world!' },
+});
 
 // Send html to the client
 res.send(`
@@ -93,7 +95,7 @@ res.send(`
       <script type="module" src="/client.js"></script>
     </body>
   </html>
-`)
+`);
 ```
 
 Then on the client, hydrate the server-rendered HTML:
@@ -111,7 +113,8 @@ hydrate(App, {
 
 ### Cleanup
 
-Both `mount()` and `hydrate()` return a cleanup function that unmounts the component:
+Both `mount()` and `hydrate()` return a cleanup function that unmounts the
+component:
 
 ```js
 const cleanup = mount(App, { target: document.getElementById('app')! });
