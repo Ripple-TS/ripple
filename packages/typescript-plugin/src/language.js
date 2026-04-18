@@ -21,8 +21,8 @@ const { createLogging, DEBUG } = require('./utils.js');
 const { log, logWarning, logError } = createLogging('[Ripple Language]');
 const RIPPLE_EXTENSIONS = ['.ripple', '.rsrx', '.tsrx'];
 const COMPILER_CANDIDATES = [
-	['@tsrx/react', ['node_modules', '@tsrx', 'react']],
 	['@tsrx/ripple', ['node_modules', '@tsrx', 'ripple']],
+	['@tsrx/react', ['node_modules', '@tsrx', 'react']],
 ];
 
 /**
@@ -638,9 +638,6 @@ function get_compiler_entry_for_file(normalized_file_name) {
 				}
 			}
 			path2RipplePathMap.set(dir, found_path);
-			if (!found_path) {
-				path2RipplePathMap.set(dir, null);
-			}
 		}
 
 		const compiler_path = path2RipplePathMap.get(dir);
