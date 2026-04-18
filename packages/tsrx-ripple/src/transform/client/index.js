@@ -1179,12 +1179,20 @@ const visitors = {
 			return b.jsx_fragment(children);
 		}
 
-		const children_filtered = node.children
-			.map((child) => jsx_to_ripple_node(/** @type {AST.Node} */ (child)))
-			.flat()
-			.filter(
-				(child) => child != null && child.type !== 'EmptyStatement' && child.type !== 'Component',
-			);
+		/** @type {AST.Node[]} */
+		const children_filtered = [];
+		for (const raw_child of node.children) {
+			const result = jsx_to_ripple_node(/** @type {AST.Node} */ (raw_child));
+			const items = Array.isArray(result) ? result : [result];
+			for (const child of items) {
+				if (child == null || child.type === 'EmptyStatement') continue;
+				if (child.type === 'Component') {
+					state.init?.push(/** @type {AST.Statement} */ (visit(child, state)));
+				} else {
+					children_filtered.push(child);
+				}
+			}
+		}
 
 		const children_component = b.component(b.id('render_children'), [], children_filtered);
 
@@ -1766,6 +1774,12 @@ const visitors = {
 					const name = is_spreading ? '#class' : 'class';
 					const value = state.component.css.hash;
 					props.push(b.prop('init', b.key(name), b.literal(value)));
+				}
+			}
+
+			for (const child of node.children) {
+				if (child.type === 'Component') {
+					state.init?.push(/** @type {AST.Statement} */ (visit(child, state)));
 				}
 			}
 
@@ -2793,41 +2807,12 @@ function transform_ts_child(node, context) {
 		if (!node.selfClosing && !node.unclosed && !has_children_props && node.children.length > 0) {
 			const is_dom_element = is_element_dom_element(node);
 			const component_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node));
-			/** @type {AST.Node[]} */
-			const non_component_children = [];
-
-			for (let i = 0; i < node.children.length; i++) {
-				const child = node.children[i];
-				if (!is_dom_element && child.type === 'Component' && child.id) {
-					const transformed_component = /** @type {AST.FunctionDeclaration} */ (
-						visit(child, {
-							...state,
-							scope: component_scope,
-						})
-					);
-					const func = b.arrow(
-						transformed_component.params,
-						transformed_component.body,
-						transformed_component.async,
-					);
-					func.metadata = { ...func.metadata, is_component: true };
-					const id = b.jsx_id(
-						/** @type {AST.Identifier} */ (child.id).name,
-						/** @type {AST.NodeWithLocation} */ (child.id),
-					);
-					id.metadata = { ...id.metadata, is_component: true };
-					attributes.push(b.jsx_attribute(id, b.jsx_expression_container(func)));
-				} else {
-					non_component_children.push(child);
-				}
-			}
 			const thunk =
-				/** @type {AST.Identifier} */ (node.id).name === 'style' ||
-				non_component_children.length === 0
+				/** @type {AST.Identifier} */ (node.id).name === 'style'
 					? null
 					: b.thunk(
 							b.block(
-								transform_body(non_component_children, {
+								transform_body(node.children, {
 									...context,
 									state: {
 										...state,

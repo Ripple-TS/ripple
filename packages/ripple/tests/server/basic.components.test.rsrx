@@ -349,4 +349,52 @@ describe('basic server > components & composition', () => {
 		const { document } = parseHtml(body);
 		expect(document.querySelector('.card').textContent).toBe('explicit');
 	});
+
+	it('renders components declared inside composite element children', async () => {
+		component Wrapper(props: PropsWithChildren<{}>) {
+			<div class="wrapper">{props.children}</div>
+		}
+
+		component App() {
+			<Wrapper>
+				component Inner() {
+					<span class="inner">{'inner content'}</span>
+				}
+
+				<Inner />
+			</Wrapper>
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+		expect(document.querySelector('.wrapper .inner').textContent).toBe('inner content');
+	});
+
+	it('renders nested components declared inside composite children with prop passing', async () => {
+		component Wrapper(props: PropsWithChildren<{}>) {
+			<div class="wrapper">{props.children}</div>
+		}
+
+		component App() {
+			<Wrapper>
+				component Z() {
+					<div class="z">{'I am Z'}</div>
+				}
+
+				component Child(&{ Z }: { Z: Component }) {
+					<div class="child">
+						{'Child Component: '}
+						<Z />
+					</div>
+				}
+
+				<Child {Z} />
+			</Wrapper>
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+		expect(document.querySelector('.wrapper .child').textContent).toBe('Child Component: I am Z');
+		expect(document.querySelector('.wrapper .z').textContent).toBe('I am Z');
+	});
 });

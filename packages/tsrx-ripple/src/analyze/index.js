@@ -2066,15 +2066,49 @@ const visitors = {
 			/** @type {(AST.Node | AST.Expression)[]} */
 			let implicit_children = [];
 
+			// Collect names of components declared in children
+			/** @type {Set<string>} */
+			const child_component_names = new Set();
+			for (const child of node.children) {
+				if (child.type === 'Component' && child.id) {
+					child_component_names.add(child.id.name);
+				}
+			}
+
+			// Validate that parent element attributes don't reference child-declared components
+			if (child_component_names.size > 0) {
+				for (const attr of node.attributes) {
+					if (
+						attr.type === 'Attribute' &&
+						attr.value !== null &&
+						attr.value.type === 'Identifier'
+					) {
+						if (child_component_names.has(attr.value.name)) {
+							error(
+								`Cannot use component '${attr.value.name}' as a prop on its parent element. Component declarations inside children are not in scope for the parent element's attributes.`,
+								state.analysis.module.filename,
+								attr.value,
+								context.state.loose ? context.state.analysis.errors : undefined,
+								context.state.analysis.comments,
+							);
+						}
+					} else if (attr.type === 'SpreadAttribute' && attr.argument.type === 'Identifier') {
+						if (child_component_names.has(attr.argument.name)) {
+							error(
+								`Cannot use component '${attr.argument.name}' as a prop on its parent element. Component declarations inside children are not in scope for the parent element's attributes.`,
+								state.analysis.module.filename,
+								attr.argument,
+								context.state.loose ? context.state.analysis.errors : undefined,
+								context.state.analysis.comments,
+							);
+						}
+					}
+				}
+			}
+
 			for (const child of node.children) {
 				if (child.type === 'Component') {
-					error(
-						'Component declarations cannot be used inside composite component children. Pass them as explicit props on the template element instead.',
-						state.analysis.module.filename,
-						child.id || child,
-						context.state.loose ? context.state.analysis.errors : undefined,
-						context.state.analysis.comments,
-					);
+					visit(child, state);
 				} else if (child.type !== 'EmptyStatement') {
 					implicit_children.push(
 						child.type === 'TSRXExpression' || child.type === 'Text' || child.type === 'Html'
