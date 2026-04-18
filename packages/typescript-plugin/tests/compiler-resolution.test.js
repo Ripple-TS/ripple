@@ -1,5 +1,6 @@
 import path from 'path';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { cleanup_fixture_workspaces, create_fixture_workspace } from './workspace-fixtures.js';
 
 const fs = require('fs');
 const {
@@ -10,25 +11,13 @@ const {
 	_reset_for_test,
 } = require('../src/language.js');
 
-/**
- * @param {string} name
- * @returns {string}
- */
-function get_fixture_workspace(name) {
-	return path.join(
-		process.cwd(),
-		'packages',
-		'typescript-plugin',
-		'tests',
-		'fixtures',
-		'workspaces',
-		name,
-	);
-}
-
 describe('typescript-plugin compiler resolution', () => {
 	beforeEach(() => {
 		_reset_for_test();
+	});
+
+	afterEach(() => {
+		cleanup_fixture_workspaces();
 	});
 
 	describe('extension metadata', () => {
@@ -71,7 +60,7 @@ describe('typescript-plugin compiler resolution', () => {
 
 	describe('workspace resolution', () => {
 		it('selects the ripple compiler in a ripple-only project', () => {
-			const workspace = get_fixture_workspace('ripple-only');
+			const workspace = create_fixture_workspace('ripple-only');
 			const file_name = path.join(workspace, 'src', 'App.tsrx');
 			const expected = path.join(workspace, 'node_modules', '@tsrx', 'ripple', 'src', 'index.js');
 
@@ -81,7 +70,7 @@ describe('typescript-plugin compiler resolution', () => {
 		});
 
 		it('selects the react compiler in a react-only project', () => {
-			const workspace = get_fixture_workspace('react-only');
+			const workspace = create_fixture_workspace('react-only');
 			const file_name = path.join(workspace, 'src', 'App.tsrx');
 			const expected = path.join(workspace, 'node_modules', '@tsrx', 'react', 'src', 'index.js');
 
@@ -91,7 +80,7 @@ describe('typescript-plugin compiler resolution', () => {
 		});
 
 		it('prefers the ripple compiler when both compilers exist in a ripple project', () => {
-			const workspace = get_fixture_workspace('both');
+			const workspace = create_fixture_workspace('both');
 			const file_name = path.join(workspace, 'src', 'App.tsrx');
 			const expected = path.join(workspace, 'node_modules', '@tsrx', 'ripple', 'src', 'index.js');
 
@@ -101,7 +90,7 @@ describe('typescript-plugin compiler resolution', () => {
 		});
 
 		it('prefers the react compiler when both compilers exist in a react project', () => {
-			const workspace = get_fixture_workspace('both-react');
+			const workspace = create_fixture_workspace('both-react');
 			const file_name = path.join(workspace, 'src', 'App.tsrx');
 			const expected = path.join(workspace, 'node_modules', '@tsrx', 'react', 'src', 'index.js');
 
@@ -111,7 +100,7 @@ describe('typescript-plugin compiler resolution', () => {
 		});
 
 		it('walks up nested directories to find the nearest compiler', () => {
-			const workspace = get_fixture_workspace('ripple-only');
+			const workspace = create_fixture_workspace('ripple-only');
 			const file_name = path.join(workspace, 'src', 'nested', 'components', 'App.tsrx');
 			const expected = path.join(workspace, 'node_modules', '@tsrx', 'ripple', 'src', 'index.js');
 
@@ -129,7 +118,7 @@ describe('typescript-plugin compiler resolution', () => {
 
 	describe('cache behavior', () => {
 		it('reuses the cached result for repeated lookups in the same directory', () => {
-			const workspace = get_fixture_workspace('ripple-only');
+			const workspace = create_fixture_workspace('ripple-only');
 			const compiler_path_map = new Map();
 			const expected = path.join(workspace, 'node_modules', '@tsrx', 'ripple', 'src', 'index.js');
 			let exists_sync_calls = 0;
@@ -168,7 +157,7 @@ describe('typescript-plugin compiler resolution', () => {
 
 		for (const test_case of cases) {
 			it(`${test_case.name} resolves App.tsrx to the expected compiler`, () => {
-				const workspace = get_fixture_workspace(test_case.name);
+				const workspace = create_fixture_workspace(test_case.name);
 				const compiler_path = find_workspace_compiler_entry_for_file(
 					path.join(workspace, 'src', 'App.tsrx'),
 					fs.existsSync,

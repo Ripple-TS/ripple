@@ -1,24 +1,9 @@
 import path from 'path';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { cleanup_fixture_workspaces, create_fixture_workspace } from './workspace-fixtures.js';
 
 const ts = require('typescript');
 const { getRippleLanguagePlugin, TSRXVirtualCode, _reset_for_test } = require('../src/language.js');
-
-/**
- * @param {string} name
- * @returns {string}
- */
-function get_fixture_workspace(name) {
-	return path.join(
-		process.cwd(),
-		'packages',
-		'typescript-plugin',
-		'tests',
-		'fixtures',
-		'workspaces',
-		name,
-	);
-}
 
 /**
  * @param {string} source
@@ -55,6 +40,10 @@ describe('typescript-plugin language plugin integration', () => {
 		_reset_for_test();
 	});
 
+	afterEach(() => {
+		cleanup_fixture_workspaces();
+	});
+
 	it('recognizes only .tsrx through the language plugin', () => {
 		const plugin = create_plugin();
 
@@ -66,7 +55,7 @@ describe('typescript-plugin language plugin integration', () => {
 
 	it('creates virtual code with the ripple compiler in a ripple project', () => {
 		const plugin = create_plugin();
-		const workspace = get_fixture_workspace('both');
+		const workspace = create_fixture_workspace('both');
 		const file_name = path.join(workspace, 'src', 'App.tsrx');
 		const virtual_code = create_virtual_code(plugin, file_name, '<div>Hello Ripple</div>');
 
@@ -77,7 +66,7 @@ describe('typescript-plugin language plugin integration', () => {
 
 	it('creates virtual code with the react compiler in a react project when both compilers exist', () => {
 		const plugin = create_plugin();
-		const workspace = get_fixture_workspace('both-react');
+		const workspace = create_fixture_workspace('both-react');
 		const file_name = path.join(workspace, 'src', 'App.tsrx');
 		const virtual_code = create_virtual_code(
 			plugin,
@@ -91,7 +80,7 @@ describe('typescript-plugin language plugin integration', () => {
 
 	it('creates virtual code with the react compiler in a react-only project', () => {
 		const plugin = create_plugin();
-		const workspace = get_fixture_workspace('react-only');
+		const workspace = create_fixture_workspace('react-only');
 		const file_name = path.join(workspace, 'src', 'App.tsrx');
 		const virtual_code = create_virtual_code(plugin, file_name, 'export default <div>Hello</div>;');
 
@@ -101,7 +90,7 @@ describe('typescript-plugin language plugin integration', () => {
 
 	it('creates virtual code with the ripple compiler in a ripple-only project', () => {
 		const plugin = create_plugin();
-		const workspace = get_fixture_workspace('ripple-only');
+		const workspace = create_fixture_workspace('ripple-only');
 		const file_name = path.join(workspace, 'src', 'App.tsrx');
 		const virtual_code = create_virtual_code(plugin, file_name, '<div>Hello</div>');
 
@@ -118,7 +107,7 @@ describe('typescript-plugin language plugin integration', () => {
 
 		expect(
 			create_virtual_code_fn(
-				path.join(get_fixture_workspace('both'), 'src', 'App.ripple'),
+				path.join(create_fixture_workspace('both'), 'src', 'App.ripple'),
 				'ripple',
 				create_snapshot('<div>Hello</div>'),
 			),
