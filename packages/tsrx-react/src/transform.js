@@ -1142,6 +1142,67 @@ function create_local_statement_component_name() {
 }
 
 /**
+ * Wraps a list of body nodes into a locally-declared component and returns
+ * statements that declare the component then return `<ComponentName />`.
+ * Used when a control flow branch contains hook calls that must be moved
+ * into their own component boundary to satisfy the Rules of Hooks.
+ *
+ * @param {any[]} body_nodes
+ * @param {any} [key_expression] - Optional key expression to add to the component element (for for-of loops)
+ * @returns {any[]}
+ */
+function hook_safe_render_statements(body_nodes, key_expression) {
+	const source_node = get_body_source_node(body_nodes);
+	const helper_id = set_loc(
+		create_generated_identifier(create_local_statement_component_name()),
+		source_node,
+	);
+
+	const helper_fn = set_loc(
+		/** @type {any} */ ({
+			type: 'FunctionDeclaration',
+			id: helper_id,
+			params: [],
+			body: {
+				type: 'BlockStatement',
+				body: build_render_statements(body_nodes, true),
+				metadata: { path: [] },
+			},
+			async: false,
+			generator: false,
+			metadata: {
+				path: [],
+				is_component: true,
+				is_method: false,
+			},
+		}),
+		source_node,
+	);
+
+	const component_element = create_helper_component_element(helper_id, [], source_node);
+
+	if (key_expression) {
+		component_element.openingElement.attributes.push(
+			/** @type {any} */ ({
+				type: 'JSXAttribute',
+				name: { type: 'JSXIdentifier', name: 'key', metadata: { path: [] } },
+				value: to_jsx_expression_container(key_expression, key_expression),
+				metadata: { path: [] },
+			}),
+		);
+	}
+
+	return [
+		helper_fn,
+		{
+			type: 'ReturnStatement',
+			argument: component_element,
+			metadata: { path: [] },
+		},
+	];
+}
+
+/**
  * @param {any[]} body_nodes
  * @returns {any}
  */
@@ -1218,6 +1279,47 @@ function if_statement_to_jsx_child(node) {
 }
 
 /**
+ * Find the first `key` attribute expression in the top-level elements of a body.
+ * Used to propagate keys from loop body elements to wrapper components.
+ * Works on both pre-transform (Ripple Element) and post-transform (JSXElement) nodes.
+ *
+ * @param {any[]} body_nodes
+ * @returns {any | undefined}
+ */
+function find_key_expression_in_body(body_nodes) {
+	for (const node of body_nodes) {
+		// Pre-transform: Ripple Element node
+		if (node.type === 'Element') {
+			for (const attr of node.attributes || []) {
+				if (attr.type === 'Attribute') {
+					const attr_name = typeof attr.name === 'string' ? attr.name : attr.name?.name;
+					if (attr_name === 'key') {
+						return attr.value?.expression ?? attr.value;
+					}
+				}
+			}
+		}
+		// Post-transform: JSXElement node
+		if (node.type === 'JSXElement') {
+			for (const attr of node.openingElement?.attributes || []) {
+				if (
+					attr.type === 'JSXAttribute' &&
+					attr.name?.type === 'JSXIdentifier' &&
+					attr.name.name === 'key'
+				) {
+					// Value is a JSXExpressionContainer
+					if (attr.value?.type === 'JSXExpressionContainer') {
+						return attr.value.expression;
+					}
+					return attr.value;
+				}
+			}
+		}
+	}
+	return undefined;
+}
+
+/**
  * @param {any} node
  * @returns {ESTreeJSX.JSXExpressionContainer}
  */
@@ -1231,6 +1333,8 @@ function for_of_statement_to_jsx_child(node) {
 
 	const loop_params = get_for_of_iteration_params(node.left, node.index);
 	const loop_body = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
+	const has_hooks = body_contains_top_level_hook_call(loop_body);
+	const key_expression = has_hooks ? find_key_expression_in_body(loop_body) : undefined;
 
 	return to_jsx_expression_container(
 		/** @type {any} */ ({
@@ -1249,7 +1353,9 @@ function for_of_statement_to_jsx_child(node) {
 					params: loop_params,
 					body: /** @type {any} */ ({
 						type: 'BlockStatement',
-						body: build_render_statements(loop_body, true),
+						body: has_hooks
+							? hook_safe_render_statements(loop_body, key_expression)
+							: build_render_statements(loop_body, true),
 						metadata: { path: [] },
 					}),
 					async: false,
@@ -1521,20 +1627,26 @@ function inject_try_imports(program) {
 function create_render_if_statement(node) {
 	const consequent_body =
 		node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+	const consequent_has_hooks = body_contains_top_level_hook_call(consequent_body);
 
 	let alternate = null;
 	if (node.alternate) {
-		alternate =
-			node.alternate.type === 'IfStatement'
-				? create_render_if_statement(node.alternate)
-				: set_loc(
-						/** @type {any} */ ({
-							type: 'BlockStatement',
-							body: build_render_statements(node.alternate.body || [node.alternate], true),
-							metadata: { path: [] },
-						}),
-						node.alternate,
-					);
+		if (node.alternate.type === 'IfStatement') {
+			alternate = create_render_if_statement(node.alternate);
+		} else {
+			const alternate_body = node.alternate.body || [node.alternate];
+			const alternate_has_hooks = body_contains_top_level_hook_call(alternate_body);
+			alternate = set_loc(
+				/** @type {any} */ ({
+					type: 'BlockStatement',
+					body: alternate_has_hooks
+						? hook_safe_render_statements(alternate_body)
+						: build_render_statements(alternate_body, true),
+					metadata: { path: [] },
+				}),
+				node.alternate,
+			);
+		}
 	}
 
 	return set_loc(
@@ -1544,7 +1656,9 @@ function create_render_if_statement(node) {
 			consequent: set_loc(
 				/** @type {any} */ ({
 					type: 'BlockStatement',
-					body: build_render_statements(consequent_body, true),
+					body: consequent_has_hooks
+						? hook_safe_render_statements(consequent_body)
+						: build_render_statements(consequent_body, true),
 					metadata: { path: [] },
 				}),
 				node.consequent,
@@ -1574,6 +1688,23 @@ function create_render_switch_statement(node) {
  */
 function create_render_switch_case(switch_case) {
 	const consequent = flatten_switch_consequent(switch_case.consequent || []);
+
+	// Strip trailing break statements for hook analysis
+	const body_without_break = [];
+	for (const child of consequent) {
+		if (child.type === 'BreakStatement') break;
+		body_without_break.push(child);
+	}
+
+	if (body_contains_top_level_hook_call(body_without_break)) {
+		return /** @type {any} */ ({
+			type: 'SwitchCase',
+			test: switch_case.test,
+			consequent: hook_safe_render_statements(body_without_break),
+			metadata: { path: [] },
+		});
+	}
+
 	const case_body = [];
 	const render_nodes = [];
 	let has_terminal = false;

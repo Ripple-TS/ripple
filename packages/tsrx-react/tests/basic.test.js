@@ -629,4 +629,171 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain(`className="content ${css.hash}"`);
 		expect(code).toContain(`className="error ${css.hash}"`);
 	});
+
+	// ── Hook extraction from control flow ──
+
+	it('extracts hooks from if-branch into a local component', () => {
+		const { code } = compile(
+			`import { useState } from 'react';
+
+			export component App() {
+				const show = true;
+				if (show) {
+					const [count, setCount] = useState(0);
+					<div>{count}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function StatementBodyHook');
+		expect(code).toContain('useState(0)');
+		// The hook call should be inside the helper component, not the IIFE
+		const hook_pos = code.indexOf('useState(0)');
+		const helper_pos = code.indexOf('function StatementBodyHook');
+		expect(hook_pos).toBeGreaterThan(helper_pos);
+	});
+
+	it('extracts hooks from if-else branches into separate local components', () => {
+		const { code } = compile(
+			`import { useState } from 'react';
+
+			export component App() {
+				const show = true;
+				if (show) {
+					const [a] = useState(1);
+					<div>{a}</div>
+				} else {
+					const [b] = useState(2);
+					<span>{b}</span>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		// Both branches should get their own hook-safe components
+		const matches = code.match(/function StatementBodyHook\d+/g);
+		expect(matches).not.toBeNull();
+		expect(matches.length).toBeGreaterThanOrEqual(2);
+	});
+
+	it('extracts hooks from for-of loop body into a local component', () => {
+		const { code } = compile(
+			`import { useState } from 'react';
+
+			export component App() {
+				const items = [1, 2, 3];
+				for (const item of items) {
+					const [active, setActive] = useState(false);
+					<div key={item}>{active ? 'yes' : 'no'}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function StatementBodyHook');
+		expect(code).toContain('.map(');
+		// Hook should be inside the helper, not the map callback directly
+		const hook_pos = code.indexOf('useState(false)');
+		const helper_pos = code.indexOf('function StatementBodyHook');
+		expect(hook_pos).toBeGreaterThan(helper_pos);
+	});
+
+	it('extracts hooks from switch case into a local component', () => {
+		const { code } = compile(
+			`import { useState } from 'react';
+
+			export component App() {
+				const page = 'home';
+				switch (page) {
+					case 'home':
+						const [count] = useState(0);
+						<div>{count}</div>
+						break;
+					case 'about':
+						<span>{'about'}</span>
+						break;
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function StatementBodyHook');
+		expect(code).toContain('useState(0)');
+	});
+
+	it('does not extract when branches have no hooks', () => {
+		const { code } = compile(
+			`export component App() {
+				const show = true;
+				if (show) {
+					const x = 42;
+					<div>{x}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).not.toContain('StatementBodyHook');
+	});
+
+	it('extracts hooks from deeply nested if-else-if chains', () => {
+		const { code } = compile(
+			`import { useState } from 'react';
+
+			export component App() {
+				const mode = 'a';
+				if (mode === 'a') {
+					<div>{'a'}</div>
+				} else if (mode === 'b') {
+					const [x] = useState(0);
+					<div>{x}</div>
+				} else {
+					<div>{'c'}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		// Only the else-if branch with hooks should be extracted
+		const matches = code.match(/function StatementBodyHook\d+/g);
+		expect(matches).not.toBeNull();
+		expect(matches.length).toBe(1);
+	});
+
+	it('handles member-expression hooks like React.useState in control flow', () => {
+		const { code } = compile(
+			`import React from 'react';
+
+			export component App() {
+				const show = true;
+				if (show) {
+					const [val] = React.useState(0);
+					<div>{val}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function StatementBodyHook');
+	});
+
+	it('propagates key from loop body element to wrapper component', () => {
+		const { code } = compile(
+			`import { useState } from 'react';
+
+			export component App() {
+				const items = ['a', 'b'];
+				for (const item of items) {
+					const [active] = useState(false);
+					<div key={item}>{active ? 'yes' : 'no'}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function StatementBodyHook');
+		// Key should appear on both the inner element and wrapper component
+		expect(code).toContain('<StatementBodyHook1 key={item} />');
+	});
 });

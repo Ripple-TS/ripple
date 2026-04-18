@@ -351,6 +351,80 @@ component ForInsideTryApp() {
 	<button class="add" onClick={() => setItems([...items, 'z'])}>{'add'}</button>
 }
 
+// ── Hook inside if-branch ──
+
+component HookInIfApp() {
+	const [show, setShow] = useState(true);
+
+	if (show) {
+		const [count, setCount] = useState(0);
+		<p class="hook-if-count">{count}</p>
+		<button class="hook-if-inc" onClick={() => setCount(count + 1)}>{'inc'}</button>
+	} else {
+		<p class="hook-if-hidden">{'hidden'}</p>
+	}
+
+	<button class="hook-if-toggle" onClick={() => setShow(!show)}>{'toggle'}</button>
+}
+
+// ── Hook inside for-of loop ──
+
+component HookInForApp() {
+	const [items, setItems] = useState(['a', 'b']);
+
+	for (const item of items) {
+		const [clicked, setClicked] = useState(false);
+		<div class="hook-for-item" key={item}>
+			<span>
+				{item}
+				{clicked ? '!' : ''}
+			</span>
+			<button class={'hook-for-click-' + item} onClick={() => setClicked(true)}>{'click'}</button>
+		</div>
+	}
+
+	<button class="hook-for-add" onClick={() => setItems([...items, 'c'])}>{'add'}</button>
+}
+
+// ── Hook inside switch case ──
+
+component HookInSwitchApp() {
+	const [page, setPage] = useState('home');
+
+	switch (page) {
+		case 'home':
+			const [homeCount, setHomeCount] = useState(0);
+			<p class="hook-switch-val">{homeCount}</p>
+			<button class="hook-switch-inc" onClick={() => setHomeCount(homeCount + 1)}>{'inc'}</button>
+			break;
+		case 'about':
+			<p class="hook-switch-val">{'about page'}</p>
+			break;
+	}
+
+	<button class="hook-switch-go" onClick={() => setPage('about')}>{'about'}</button>
+}
+
+// ── Hook inside if-else both branches ──
+
+component HookInBothBranchesApp() {
+	const [mode, setMode] = useState('a');
+
+	if (mode === 'a') {
+		const [x, setX] = useState(10);
+		<p class="branch-val">{x}</p>
+		<button class="branch-inc" onClick={() => setX(x + 1)}>{'inc'}</button>
+	} else {
+		const [y, setY] = useState(20);
+		<p class="branch-val">{y}</p>
+		<button class="branch-inc" onClick={() => setY(y + 1)}>{'inc'}</button>
+	}
+
+	<button class="branch-toggle" onClick={() => setMode(mode === 'a' ? 'b' : 'a')}>
+		{'toggle'}
+	</button>
+}
+
 // ── Tests ──
 
 describe('tsrx-react runtime', () => {
@@ -615,5 +689,53 @@ describe('tsrx-react runtime', () => {
 		await click('.add');
 		expect(container.querySelectorAll('.try-item').length).toBe(3);
 		expect(container.querySelectorAll('.try-item')[2].textContent).toBe('z');
+	});
+
+	// ── Hooks inside control flow ──
+
+	it('supports useState inside an if-branch', async () => {
+		await render(HookInIfApp);
+		expect(text('.hook-if-count')).toBe('0');
+
+		await click('.hook-if-inc');
+		expect(text('.hook-if-count')).toBe('1');
+
+		await click('.hook-if-toggle');
+		expect(text('.hook-if-hidden')).toBe('hidden');
+		expect(container.querySelector('.hook-if-count')).toBeNull();
+	});
+
+	it('supports useState inside a for-of loop body', async () => {
+		await render(HookInForApp);
+		const items = container.querySelectorAll('.hook-for-item');
+		expect(items.length).toBe(2);
+
+		await click('.hook-for-click-a');
+		expect(container.querySelector('.hook-for-item span')!.textContent).toBe('a!');
+	});
+
+	it('supports useState inside a switch case', async () => {
+		await render(HookInSwitchApp);
+		expect(text('.hook-switch-val')).toBe('0');
+
+		await click('.hook-switch-inc');
+		expect(text('.hook-switch-val')).toBe('1');
+
+		await click('.hook-switch-go');
+		expect(text('.hook-switch-val')).toBe('about page');
+	});
+
+	it('supports hooks in both if-else branches independently', async () => {
+		await render(HookInBothBranchesApp);
+		expect(text('.branch-val')).toBe('10');
+
+		await click('.branch-inc');
+		expect(text('.branch-val')).toBe('11');
+
+		await click('.branch-toggle');
+		expect(text('.branch-val')).toBe('20');
+
+		await click('.branch-inc');
+		expect(text('.branch-val')).toBe('21');
 	});
 });
