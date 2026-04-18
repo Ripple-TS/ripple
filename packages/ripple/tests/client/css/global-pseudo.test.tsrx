@@ -46,7 +46,7 @@ export component Test() {
 
 		expect(css).toMatch(/div\.ripple-[a-z0-9]+ :is\(span, p:where\(\.ripple-[a-z0-9]+\)\) {/);
 		expect(css).not.toMatch(/span:where/);
-		expect(css).not.toMatch(/span\.tsrx/);
+		expect(css).not.toMatch(/span\.ripple/);
 		expect(css).toContain('div:is(.foo, .bar)');
 	});
 
@@ -72,7 +72,7 @@ export component Test() {
 
 		expect(css).toMatch(/div\.ripple-[a-z0-9]+ :where\(span, p:where\(\.ripple-[a-z0-9]+\)\) {/);
 		expect(css).not.toMatch(/span:where/);
-		expect(css).not.toMatch(/span\.tsrx/);
+		expect(css).not.toMatch(/span\.ripple/);
 		expect(css).toContain('div:where(.foo, .bar)');
 	});
 

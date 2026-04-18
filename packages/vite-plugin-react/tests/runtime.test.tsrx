@@ -1,5 +1,29 @@
-import { describe, it, expect } from 'vitest';
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { useState, use } from 'react';
+
+const EXPECTED_ERROR_LOG_SNIPPETS = [
+	'sync boom',
+	'conditional boom',
+	'async fail',
+	'rejected',
+	'inner error',
+	'The above error occurred in the <',
+	'React will try to recreate this component tree from scratch using the error boundary you provided',
+];
+
+/** @type {import('vitest').MockInstance | undefined} */
+let console_error_spy;
+
+function is_expected_error_log(args: unknown[]) {
+	const message = args.map((arg) => {
+		if (arg instanceof Error) {
+			return `${arg.name}: ${arg.message}`;
+		}
+		return String(arg);
+	}).join(' ');
+
+	return EXPECTED_ERROR_LOG_SNIPPETS.some((snippet) => message.includes(snippet));
+}
 
 // ── Helpers ──
 
@@ -428,6 +452,22 @@ component HookInBothBranchesApp() {
 // ── Tests ──
 
 describe('tsrx-react runtime', () => {
+	beforeEach(() => {
+		const original_console_error = console.error;
+		console_error_spy = vi.spyOn(console, 'error').mockImplementation((...args) => {
+			if (is_expected_error_log(args)) {
+				return;
+			}
+
+			original_console_error(...args);
+		});
+	});
+
+	afterEach(() => {
+		console_error_spy?.mockRestore();
+		console_error_spy = undefined;
+	});
+
 	// ── Basic rendering ──
 
 	it('renders a basic component into the DOM', async () => {
