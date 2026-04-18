@@ -2808,7 +2808,7 @@ function transform_ts_child(node, context) {
 			const is_dom_element = is_element_dom_element(node);
 			const component_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node));
 			const thunk =
-				/** @type {AST.Identifier} */ (node.id).name === 'style' || node.children.length === 0
+				/** @type {AST.Identifier} */ (node.id).name === 'style'
 					? null
 					: b.thunk(
 							b.block(
