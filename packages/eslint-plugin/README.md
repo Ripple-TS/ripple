@@ -27,7 +27,7 @@ pnpm add --save-dev '@ripple-ts/eslint-plugin'
 // eslint.config.js
 import ripple from '@ripple-ts/eslint-plugin';
 
-export default [...tsrx.configs.recommended];
+export default [...ripple.configs.recommended];
 ```
 
 The plugin automatically:
