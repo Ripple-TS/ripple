@@ -62,6 +62,28 @@ describe('@tsrx/react basic', () => {
 		expect(css.code).toContain('color: red;');
 	});
 
+	it('coerces explicit text interpolation to React text children', () => {
+		const { code } = compile(
+			`export component App() {
+				const markup = '<span>Not HTML</span>';
+				const hidden = false;
+				const empty = null;
+				const missing = undefined;
+
+				<div class="markup">{text markup}</div>
+				<div class="hidden">{text hidden}</div>
+				<div class="empty">{text empty}</div>
+				<div class="missing">{text missing}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain("markup == null ? '' : markup + ''");
+		expect(code).toContain("hidden == null ? '' : hidden + ''");
+		expect(code).toContain("empty == null ? '' : empty + ''");
+		expect(code).toContain("missing == null ? '' : missing + ''");
+	});
+
 	it('applies scoped css hashes to elements inside control flow', () => {
 		const { code, css } = compile(
 			`export component App() {

@@ -52,6 +52,18 @@ component NestedApp() {
 	</div>
 }
 
+component ExplicitTextApp() {
+	const markup = '<span>Not HTML</span>';
+	const hidden = false;
+	const empty = null;
+	const missing = undefined;
+
+	<div class="explicit-text-markup">{text markup}</div>
+	<div class="explicit-text-boolean">{text hidden}</div>
+	<div class="explicit-text-null">{text empty}</div>
+	<div class="explicit-text-undefined">{text missing}</div>
+}
+
 // ── Reactive counter ──
 
 component CounterApp() {
@@ -478,6 +490,15 @@ describe('tsrx-react runtime', () => {
 	it('renders nested components', async () => {
 		await render(NestedApp);
 		expect(text('.child')).toBe('nested');
+	});
+
+	it('renders explicit text interpolation as text', async () => {
+		await render(ExplicitTextApp);
+		expect(text('.explicit-text-markup')).toBe('<span>Not HTML</span>');
+		expect(container.querySelector('.explicit-text-markup span')).toBeNull();
+		expect(text('.explicit-text-boolean')).toBe('false');
+		expect(text('.explicit-text-null')).toBe('');
+		expect(text('.explicit-text-undefined')).toBe('');
 	});
 
 	// ── Reactivity with useState ──

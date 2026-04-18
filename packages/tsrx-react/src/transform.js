@@ -77,7 +77,9 @@ export function transform(ast, source, filename) {
 
 		Text(node, { next }) {
 			const inner = /** @type {any} */ (next() ?? node);
-			return /** @type {any} */ (to_jsx_expression_container(inner.expression, inner));
+			return /** @type {any} */ (
+				to_jsx_expression_container(to_text_expression(inner.expression, inner), inner)
+			);
 		},
 
 		TSRXExpression(node, { next }) {
@@ -1274,6 +1276,7 @@ function to_jsx_child(node, transform_context) {
 		case 'Element':
 			return to_jsx_element(node, transform_context);
 		case 'Text':
+			return to_jsx_expression_container(to_text_expression(node.expression, node), node);
 		case 'TSRXExpression':
 			return to_jsx_expression_container(node.expression, node);
 		case 'IfStatement':
@@ -1824,6 +1827,54 @@ function to_jsx_expression_container(expression, source_node = expression) {
 		expression: /** @type {any} */ (expression),
 		metadata: { path: [] },
 	});
+}
+
+/**
+ * Ripple's `{text expr}` always renders text, even for booleans and objects.
+ * React's normal `{expr}` child semantics would drop booleans and render
+ * elements as elements, so we coerce to a text value explicitly.
+ * @param {AST.Expression} expression
+ * @param {any} [source_node]
+ * @returns {AST.Expression}
+ */
+function to_text_expression(expression, source_node = expression) {
+	return set_loc(
+		/** @type {AST.Expression} */ ({
+			type: 'ConditionalExpression',
+			test: {
+				type: 'BinaryExpression',
+				operator: '==',
+				left: clone_expression_node(expression),
+				right: {
+					type: 'Literal',
+					value: null,
+					raw: 'null',
+					metadata: { path: [] },
+				},
+				metadata: { path: [] },
+			},
+			consequent: {
+				type: 'Literal',
+				value: '',
+				raw: "''",
+				metadata: { path: [] },
+			},
+			alternate: {
+				type: 'BinaryExpression',
+				operator: '+',
+				left: clone_expression_node(expression),
+				right: {
+					type: 'Literal',
+					value: '',
+					raw: "''",
+					metadata: { path: [] },
+				},
+				metadata: { path: [] },
+			},
+			metadata: { path: [] },
+		}),
+		source_node,
+	);
 }
 
 /**
