@@ -1,54 +1,54 @@
 import { RenderRoute, ServerRoute } from '@ripple-ts/vite-plugin';
 
 export const routes = [
-	new RenderRoute({ path: '/', entry: '/src/pages/index.rsrx' }),
+	new RenderRoute({ path: '/', entry: '/src/pages/index.tsrx' }),
 
 	// Getting Started
-	new RenderRoute({ path: '/docs/introduction', entry: '/src/pages/docs/introduction.rsrx' }),
-	new RenderRoute({ path: '/docs/quick-start', entry: '/src/pages/docs/quick-start.rsrx' }),
+	new RenderRoute({ path: '/docs/introduction', entry: '/src/pages/docs/introduction.tsrx' }),
+	new RenderRoute({ path: '/docs/quick-start', entry: '/src/pages/docs/quick-start.tsrx' }),
 
 	// Guide
 	new RenderRoute({
 		path: '/docs/guide/application',
-		entry: '/src/pages/docs/guide/application.rsrx',
+		entry: '/src/pages/docs/guide/application.tsrx',
 	}),
-	new RenderRoute({ path: '/docs/guide/syntax', entry: '/src/pages/docs/guide/syntax.rsrx' }),
+	new RenderRoute({ path: '/docs/guide/syntax', entry: '/src/pages/docs/guide/syntax.tsrx' }),
 	new RenderRoute({
 		path: '/docs/guide/components',
-		entry: '/src/pages/docs/guide/components.rsrx',
+		entry: '/src/pages/docs/guide/components.tsrx',
 	}),
 	new RenderRoute({
 		path: '/docs/guide/control-flow',
-		entry: '/src/pages/docs/guide/control-flow.rsrx',
+		entry: '/src/pages/docs/guide/control-flow.tsrx',
 	}),
 	new RenderRoute({
 		path: '/docs/guide/reactivity',
-		entry: '/src/pages/docs/guide/reactivity.rsrx',
+		entry: '/src/pages/docs/guide/reactivity.tsrx',
 	}),
-	new RenderRoute({ path: '/docs/guide/events', entry: '/src/pages/docs/guide/events.rsrx' }),
-	new RenderRoute({ path: '/docs/guide/dom-refs', entry: '/src/pages/docs/guide/dom-refs.rsrx' }),
+	new RenderRoute({ path: '/docs/guide/events', entry: '/src/pages/docs/guide/events.tsrx' }),
+	new RenderRoute({ path: '/docs/guide/dom-refs', entry: '/src/pages/docs/guide/dom-refs.tsrx' }),
 	new RenderRoute({
 		path: '/docs/guide/state-management',
-		entry: '/src/pages/docs/guide/state-management.rsrx',
+		entry: '/src/pages/docs/guide/state-management.tsrx',
 	}),
 	new RenderRoute({
 		path: '/docs/guide/head-management',
-		entry: '/src/pages/docs/guide/head-management.rsrx',
+		entry: '/src/pages/docs/guide/head-management.tsrx',
 	}),
-	new RenderRoute({ path: '/docs/guide/styling', entry: '/src/pages/docs/guide/styling.rsrx' }),
-	new RenderRoute({ path: '/docs/guide/bindings', entry: '/src/pages/docs/guide/bindings.rsrx' }),
+	new RenderRoute({ path: '/docs/guide/styling', entry: '/src/pages/docs/guide/styling.tsrx' }),
+	new RenderRoute({ path: '/docs/guide/bindings', entry: '/src/pages/docs/guide/bindings.tsrx' }),
 
 	// Further Reading
-	new RenderRoute({ path: '/docs/comparison', entry: '/src/pages/docs/comparison.rsrx' }),
-	new RenderRoute({ path: '/docs/best-practices', entry: '/src/pages/docs/best-practices.rsrx' }),
-	new RenderRoute({ path: '/docs/libraries', entry: '/src/pages/docs/libraries.rsrx' }),
+	new RenderRoute({ path: '/docs/comparison', entry: '/src/pages/docs/comparison.tsrx' }),
+	new RenderRoute({ path: '/docs/best-practices', entry: '/src/pages/docs/best-practices.tsrx' }),
+	new RenderRoute({ path: '/docs/libraries', entry: '/src/pages/docs/libraries.tsrx' }),
 	new RenderRoute({
 		path: '/docs/troubleshooting',
-		entry: '/src/pages/docs/troubleshooting.rsrx',
+		entry: '/src/pages/docs/troubleshooting.tsrx',
 	}),
 
 	// 404 catch-all (must be last render route)
-	new RenderRoute({ path: '/**', entry: '/src/pages/404.rsrx' }),
+	new RenderRoute({ path: '/**', entry: '/src/pages/404.tsrx' }),
 
 	// API routes
 	new ServerRoute({

@@ -30,7 +30,7 @@ for (const [file_path, content] of Object.entries(docs_files)) {
 	docs_map[slug] = /** @type {string} */ (content);
 }
 const modified_grammar = {
-	...ripple_grammar,
+	...tsrx_grammar,
 	embeddedLangs: ['jsx', 'tsx', 'css'],
 };
 

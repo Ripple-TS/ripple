@@ -32,7 +32,7 @@ describe('vite-plugin-ripple config resolution', () => {
 				routes: [
 					new RenderRoute({
 						path: '/',
-						entry: '/src/App.rsrx',
+						entry: '/src/App.tsrx',
 					}),
 				],
 			},

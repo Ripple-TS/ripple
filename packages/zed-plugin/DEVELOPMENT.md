@@ -22,7 +22,7 @@
 
 ## Testing
 
-1. Open a `.ripple` file in Zed
+1. Open a `.tsrx` file in Zed
 2. Verify:
    - Syntax highlighting works
    - Language server connects (check status bar)

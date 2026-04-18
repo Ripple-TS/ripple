@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { ripple } from '@ripple-ts/vite-plugin';
 
 describe('vite-plugin-ripple hotUpdate', () => {
-	it('invalidates SSR modules for non-self-accepting .ripple files', async () => {
+	it('invalidates SSR modules for non-self-accepting .tsrx files', async () => {
 		const [plugin] = ripple({ excludeRippleExternalModules: true });
 		await plugin.configResolved?.({ root: '/workspace', command: 'serve' });
 
@@ -28,7 +28,7 @@ describe('vite-plugin-ripple hotUpdate', () => {
 				},
 			},
 			{
-				file: '/workspace/src/non-component.rsrx',
+				file: '/workspace/src/non-component.tsrx',
 				modules: [{ id: 'client:non-component', isSelfAccepting: false }],
 				server: {
 					environments: {
@@ -43,14 +43,14 @@ describe('vite-plugin-ripple hotUpdate', () => {
 			},
 		);
 
-		expect(transform_request).toHaveBeenCalledWith('/src/non-component.rsrx');
-		expect(get_ssr_modules).toHaveBeenCalledWith('/workspace/src/non-component.rsrx');
+		expect(transform_request).toHaveBeenCalledWith('/src/non-component.tsrx');
+		expect(get_ssr_modules).toHaveBeenCalledWith('/workspace/src/non-component.tsrx');
 		expect(invalidate_ssr_module).toHaveBeenCalledTimes(2);
 		expect(send_hot_update).toHaveBeenCalledWith({ type: 'full-reload' });
 		expect(result).toEqual([]);
 	});
 
-	it('keeps self-accepting .ripple files on Vite HMR path', async () => {
+	it('keeps self-accepting .tsrx files on Vite HMR path', async () => {
 		const [plugin] = ripple({ excludeRippleExternalModules: true });
 		await plugin.configResolved?.({ root: '/workspace', command: 'serve' });
 
@@ -74,7 +74,7 @@ describe('vite-plugin-ripple hotUpdate', () => {
 				},
 			},
 			{
-				file: '/workspace/src/component.rsrx',
+				file: '/workspace/src/component.tsrx',
 				modules: [{ id: 'client:component', isSelfAccepting: true }],
 				server: {
 					environments: {
@@ -89,7 +89,7 @@ describe('vite-plugin-ripple hotUpdate', () => {
 			},
 		);
 
-		expect(transform_request).toHaveBeenCalledWith('/src/component.rsrx');
+		expect(transform_request).toHaveBeenCalledWith('/src/component.tsrx');
 		expect(get_ssr_modules).not.toHaveBeenCalled();
 		expect(invalidate_ssr_module).not.toHaveBeenCalled();
 		expect(send_hot_update).not.toHaveBeenCalled();

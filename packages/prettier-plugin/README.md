@@ -4,5 +4,5 @@
 [![npm downloads](https://img.shields.io/npm/dm/%40ripple-ts%2Fprettier-plugin?logo=npm&label=downloads)](https://www.npmjs.com/package/@ripple-ts/prettier-plugin)
 
 A Prettier plugin for formatting [Ripple](https://github.com/Ripple-TS/ripple)
-component files, with `.tsrx` as the default extension and continued `.ripple`
+component files, with `.tsrx` as the default extension and continued `.tsrx`
 support.

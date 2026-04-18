@@ -87,7 +87,7 @@ export function LayoutWithSingleChild(__anchor, _, __block) {
 	Layout(
 		node_1,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var fragment_3 = root_6();
 				var node_2 = _$_.first_child_frag(fragment_3);
 
@@ -111,7 +111,7 @@ export function LayoutWithMultipleChildren(__anchor, _, __block) {
 	Layout(
 		node_3,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var fragment_5 = root_8();
 				var node_4 = _$_.first_child_frag(fragment_5);
 
@@ -135,7 +135,7 @@ export function LayoutWithMultiRootChild(__anchor, _, __block) {
 	Layout(
 		node_5,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var fragment_7 = root_10();
 				var node_6 = _$_.first_child_frag(fragment_7);
 
@@ -159,7 +159,7 @@ export function LayoutWithTextAroundChildren(__anchor, _, __block) {
 	TextWrappedLayout(
 		node_7,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var fragment_9 = root_12();
 				var node_8 = _$_.first_child_frag(fragment_9);
 

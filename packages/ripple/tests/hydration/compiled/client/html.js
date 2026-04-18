@@ -245,7 +245,7 @@ export function HtmlInChildren(__anchor, _, __block) {
 	HtmlWrapper(
 		node_7,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var div_8 = root_8();
 
 				{
@@ -278,7 +278,7 @@ export function HtmlInChildrenWithSiblings(__anchor, _, __block) {
 	HtmlWrapper(
 		node_9,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var fragment_2 = root_10();
 				var h1_1 = _$_.first_child_frag(fragment_2);
 				var div_9 = _$_.sibling(h1_1);
@@ -316,7 +316,7 @@ export function MultipleHtmlInChildren(__anchor, _, __block) {
 	HtmlWrapper(
 		node_11,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var div_10 = root_12();
 
 				{
@@ -394,7 +394,7 @@ export function HtmlWithCommentsInChildren(__anchor, _, __block) {
 	HtmlWrapper(
 		node_16,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var div_13 = root_16();
 
 				{
@@ -585,7 +585,7 @@ export function HtmlWithServerData(__anchor, _, __block) {
 				{ href: '#features', text: 'Features' }
 			],
 
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var div_19 = root_24();
 
 				{
@@ -618,7 +618,7 @@ export function HtmlWithClientDefaults(__anchor, _, __block) {
 	DocLayout(
 		node_24,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var div_20 = root_26();
 
 				{
@@ -651,7 +651,7 @@ export function HtmlWithUndefinedContent(__anchor, _, __block) {
 	DocLayout(
 		node_26,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var div_21 = root_28();
 
 				{
@@ -782,7 +782,7 @@ export function HtmlAfterSwitchInChildren(__anchor, _, __block) {
 	ContentWrapper(
 		node_30,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var fragment_10 = root_35();
 				var node_31 = _$_.first_child_frag(fragment_10);
 
@@ -790,7 +790,7 @@ export function HtmlAfterSwitchInChildren(__anchor, _, __block) {
 					node_31,
 					{
 						level: 1,
-						children: _$_.ripple_element(function render_children(__anchor, __block) {
+						children: _$_.tsrx_element(function render_children(__anchor, __block) {
 							var expression_7 = _$_.text('Title');
 
 							_$_.append(__anchor, expression_7);
@@ -930,7 +930,7 @@ function SideNav(__anchor, { currentPath }, __block) {
 					node_35,
 					{
 						title: "Getting Started",
-						children: _$_.ripple_element(function render_children(__anchor, __block) {
+						children: _$_.tsrx_element(function render_children(__anchor, __block) {
 							var fragment_11 = root_41();
 							var node_36 = _$_.first_child_frag(fragment_11);
 
@@ -974,7 +974,7 @@ function SideNav(__anchor, { currentPath }, __block) {
 					node_38,
 					{
 						title: "Guide",
-						children: _$_.ripple_element(function render_children(__anchor, __block) {
+						children: _$_.tsrx_element(function render_children(__anchor, __block) {
 							var fragment_12 = root_42();
 							var node_39 = _$_.first_child_frag(fragment_12);
 
@@ -1118,7 +1118,7 @@ export function ArticleWithChildrenThenSibling(__anchor, _, __block) {
 		ArticleWrapper(
 			node_45,
 			{
-				children: _$_.ripple_element(function render_children(__anchor, __block) {
+				children: _$_.tsrx_element(function render_children(__anchor, __block) {
 					var fragment_13 = root_49();
 
 					_$_.append(__anchor, fragment_13);
@@ -1177,7 +1177,7 @@ export function ArticleWithHtmlChildThenSibling(__anchor, _, __block) {
 		ArticleWrapper(
 			node_49,
 			{
-				children: _$_.ripple_element(function render_children(__anchor, __block) {
+				children: _$_.tsrx_element(function render_children(__anchor, __block) {
 					var div_41 = root_53();
 
 					{
@@ -1275,7 +1275,7 @@ export function InlineArticleWithHtmlChild(__anchor, _, __block) {
 	InlineArticleLayout(
 		node_55,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var div_46 = root_58();
 
 				{
@@ -1447,7 +1447,7 @@ export function DocsLayoutWithData(__anchor, _, __block) {
 		{
 			editPath: "docs/styling.md",
 			nextLink: { href: '/next', text: 'Next' },
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var div_54 = root_66();
 
 				{
@@ -1480,7 +1480,7 @@ export function DocsLayoutWithoutData(__anchor, _, __block) {
 	DocsLayoutInner(
 		node_64,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var div_55 = root_68();
 
 				{
@@ -1748,7 +1748,7 @@ export function DocsLayoutExactWithData(__anchor, _, __block) {
 				{ href: '#usage', text: 'Usage' }
 			],
 
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var div_64 = root_78();
 
 				{
@@ -1789,7 +1789,7 @@ export function DocsLayoutExactWithoutData(__anchor, _, __block) {
 			prevLink,
 			nextLink,
 			toc,
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var div_65 = root_80();
 
 				{
@@ -1885,7 +1885,7 @@ export function NestedTemplateInLayout(__anchor, _, __block) {
 		node_78,
 		{
 			data: doc,
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var div_69 = root_85();
 
 				{

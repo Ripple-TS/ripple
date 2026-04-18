@@ -1197,7 +1197,7 @@ const visitors = {
 		const children_component = b.component(b.id('render_children'), [], children_filtered);
 
 		const element = b.call(
-			'_$_.ripple_element',
+			'_$_.tsrx_element',
 			/** @type {AST.Expression} */ (
 				visit(children_component, {
 					...state,
@@ -1792,7 +1792,7 @@ const visitors = {
 				const children_component = b.component(b.id('render_children'), [], children_filtered);
 
 				const children = b.call(
-					'_$_.ripple_element',
+					'_$_.tsrx_element',
 					/** @type {AST.Expression} */ (
 						visit(children_component, {
 							...state,

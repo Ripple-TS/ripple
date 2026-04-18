@@ -46,7 +46,7 @@ ruleTester.run('no-lazy-destructuring-in-modules', rule, {
 			`,
 			filename: 'counter.js',
 		},
-		// Valid: lazy destructuring in .ripple files should be allowed
+		// Valid: lazy destructuring in .tsrx files should be allowed
 		{
 			code: `
 				import { track, effect } from 'ripple';
@@ -58,7 +58,7 @@ ruleTester.run('no-lazy-destructuring-in-modules', rule, {
 					<div>{count}</div>
 				}
 			`,
-			filename: 'Counter.rsrx',
+			filename: 'Counter.tsrx',
 		},
 		// Valid: lazy destructuring in .tsrx files should be allowed
 		{
@@ -74,7 +74,7 @@ ruleTester.run('no-lazy-destructuring-in-modules', rule, {
 			`,
 			filename: 'Counter.tsrx',
 		},
-		// Valid: lazy object destructuring in .ripple files
+		// Valid: lazy object destructuring in .tsrx files
 		{
 			code: `
 				import { track } from 'ripple';
@@ -82,7 +82,7 @@ ruleTester.run('no-lazy-destructuring-in-modules', rule, {
 					<div>{count}{name}</div>
 				}
 			`,
-			filename: 'Child.rsrx',
+			filename: 'Child.tsrx',
 		},
 		// Valid: lazy object destructuring in .tsrx files
 		{

@@ -5,7 +5,7 @@ Ripple language support for IntelliJ Platform IDEs.
 ## Features
 
 - TextMate-based syntax highlighting for Ripple component files (`.tsrx` by
-  default, plus `.ripple`)
+  default, plus `.tsrx`)
 - LSP integration via `@ripple-ts/language-server`
 
 ## Requirements

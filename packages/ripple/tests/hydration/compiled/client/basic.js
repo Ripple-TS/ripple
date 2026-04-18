@@ -342,7 +342,7 @@ export function WebsiteIndex(__anchor, _, __block) {
 	Layout(
 		node_7,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var fragment_10 = root_22();
 				var node_8 = _$_.first_child_frag(fragment_10);
 

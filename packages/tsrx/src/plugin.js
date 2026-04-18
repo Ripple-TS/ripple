@@ -51,9 +51,9 @@ export function TSRXPlugin(config) {
 			 */
 			constructor(options, input) {
 				super(options, input);
-				this.#loose = options?.rippleOptions.loose === true;
-				this.#errors = options?.rippleOptions.errors;
-				this.#filename = options?.rippleOptions.filename || null;
+				this.#loose = options?.tsrxOptions.loose === true;
+				this.#errors = options?.tsrxOptions.errors;
+				this.#filename = options?.tsrxOptions.filename || null;
 			}
 
 			/**

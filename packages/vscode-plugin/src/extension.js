@@ -1,7 +1,7 @@
 /**
  * Ripple VSCode Extension
  *
- * This extension provides language support for Ripple files (.ripple/.rsrx) by:
+ * This extension provides language support for Ripple files (.tsrx) by:
  * 1. Starting a Volar-based language server (language-server) for Ripple syntax and semantics
  * 2. Patching the built-in TypeScript extension to recognize Ripple files
  * 3. Setting VSCode context variables to expose TypeScript commands for Ripple files
@@ -54,16 +54,14 @@ const protocol = require('@volar/language-server/protocol');
 /** @type {typeof import('vscode-languageclient/node')} */
 const lsp = require('vscode-languageclient/node');
 const { activateAutoInsertion, createLabsInfo } = require('@volar/vscode');
-const RIPPLE_FILE_SELECTORS = ['**/*.ripple', '**/*.rsrx', '**/*.tsrx'];
+const RIPPLE_FILE_SELECTORS = ['**/*.tsrx'];
 
 /**
  * @param {string} file_path
  * @returns {boolean}
  */
 function is_ripple_file_path(file_path) {
-	return (
-		file_path.endsWith('.ripple') || file_path.endsWith('.rsrx') || file_path.endsWith('.tsrx')
-	);
+	return file_path.endsWith('.tsrx');
 }
 
 /** @type {import('vscode-languageclient/node').LanguageClient | undefined} */
@@ -191,7 +189,7 @@ async function activate(context) {
 		context.subscriptions.push(activateAutoInsertion([{ language: 'ripple' }], client));
 		console.log('[Ripple] Auto-insertion activated');
 
-		// Configure Prettier to handle .ripple files
+		// Configure Prettier to handle .tsrx files
 		await configurePrettier();
 
 		// Register custom formatter
@@ -260,7 +258,7 @@ async function activate(context) {
  * - supportedCodeAction: Space-separated list of available code action kinds
  *
  * Why Dynamic?
- * These contexts must update as the user switches files. A context set for a .ripple file
+ * These contexts must update as the user switches files. A context set for a .tsrx file
  * should not persist when switching to a .txt file, otherwise TypeScript commands would
  * inappropriately appear for non-Ripple files.
  *
@@ -363,7 +361,7 @@ function addCustomCommands(context) {
 					return;
 				}
 
-				// Filter for .ripple files (prefer source over .d.ts)
+				// Filter for .tsrx files (prefer source over .d.ts)
 				// Definition objects can have either `uri` or `targetUri`
 				const rippleDefinition = definitions.find((d) => {
 					const uri = d?.uri || d?.targetUri;
@@ -384,11 +382,11 @@ function addCustomCommands(context) {
 						selection: range,
 					});
 				} else {
-					// If no .ripple file found, just go to the first definition (might be .d.ts)
+					// If no .tsrx file found, just go to the first definition (might be .d.ts)
 					const firstDef = definitions[0];
 					const uri = firstDef?.uri || firstDef?.targetUri;
 					const range = firstDef?.range || firstDef?.targetRange;
-					console.log('[Ripple] No .ripple definition, using first result:', uri?.path);
+					console.log('[Ripple] No .tsrx definition, using first result:', uri?.path);
 					if (uri) {
 						await vscode.window.showTextDocument(uri, {
 							selection: range,
@@ -415,7 +413,7 @@ async function configurePrettier() {
 			vscode.ConfigurationTarget.Global,
 		);
 
-		// Set Prettier as default formatter for .ripple files
+		// Set Prettier as default formatter for .tsrx files
 		await config.update(
 			'[ripple]',
 			{

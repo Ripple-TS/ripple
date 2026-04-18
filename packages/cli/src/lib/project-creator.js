@@ -236,7 +236,7 @@ export default defineConfig({
 `;
 		writeFileSync(join(projectPath, 'vite.config.js'), viteConfig);
 
-		// Add VS Code settings for Tailwind IntelliSense in .ripple files
+		// Add VS Code settings for Tailwind IntelliSense in .tsrx files
 		const vscodePath = join(projectPath, '.vscode');
 		mkdirSync(vscodePath, { recursive: true });
 		const vscodeSettings = JSON.stringify(
@@ -246,7 +246,7 @@ export default defineConfig({
 				},
 				'tailwindCSS.classAttributes': ['class', 'className'],
 				'files.associations': {
-					'*.ripple': 'ripple',
+					'*.tsrx': 'ripple',
 				},
 				'editor.quickSuggestions': {
 					strings: true,

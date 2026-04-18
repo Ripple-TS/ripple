@@ -96,7 +96,7 @@ npm install -g '@ripple-ts/language-server' // [!=npm auto]
     "Ripple": {
       "enabled": true,
       "command": ["'@ripple-ts/language-server'", "--stdio"],
-      "selector": "source.ripple"
+      "selector": "source.tsrx"
     }
   }
 }

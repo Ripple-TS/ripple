@@ -25,7 +25,7 @@ const IMPORT_EXPORT_REGEX = {
 	from: /from\s*['"][^'"]*['"]\s*;?/,
 };
 
-const RIPPLE_EXTENSIONS = ['.ripple', '.rsrx', '.tsrx'];
+const RIPPLE_EXTENSIONS = ['.tsrx'];
 
 /** @type {typeof isIdentifierObfuscated} */
 let is_identifier_obfuscated;

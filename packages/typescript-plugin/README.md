@@ -4,7 +4,7 @@
 [![npm downloads](https://img.shields.io/npm/dm/%40ripple-ts%2Ftypescript-plugin?logo=npm&label=downloads)](https://www.npmjs.com/package/@ripple-ts/typescript-plugin)
 
 TypeScript plugin for Ripple that provides language support for Ripple component
-files, with `.tsrx` as the default extension and continued `.ripple` support.
+files, with `.tsrx` as the default extension and continued `.tsrx` support.
 
 ## Usage
 
@@ -36,7 +36,7 @@ Text, or command-line `tsc`), add this plugin to your `tsconfig.json`:
 
 This plugin:
 
-- Registers `.tsrx` and `.ripple` files as recognized TypeScript languages
+- Registers `.tsrx` and `.tsrx` files as recognized TypeScript languages
 - Transforms Ripple syntax to TypeScript for type checking
 - Integrates with Volar for virtual code generation and source mapping
 

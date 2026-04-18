@@ -109,9 +109,9 @@ function ensureNodeProperties(node: any, code: string): void {
 }
 
 /**
- * ESLint parser for Ripple (.ripple) files
+ * ESLint parser for Ripple (.tsrx) files
  *
- * This parser uses Ripple's built-in compiler to parse .ripple files
+ * This parser uses Ripple's built-in compiler to parse .tsrx files
  * and returns an ESTree-compatible AST for ESLint to analyze.
  */
 export function parseForESLint(code: string, options?: Linter.ParserOptions): ParseResult {
