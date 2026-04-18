@@ -20,11 +20,5 @@
 		"vitepress": "catalog:default",
 		"vitepress-plugin-npm-commands": "catalog:default",
 		"vitepress-plugin-tabs": "catalog:default"
-	},
-	"prettier": {
-		"singleQuote": true,
-		"useTabs": true,
-		"tabWidth": 2,
-		"semi": false
 	}
 }
