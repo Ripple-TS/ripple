@@ -512,7 +512,7 @@ export component App() {
 `;
 
 		expect(() => compile(source, 'test.ripple')).toThrow(
-			/Cannot use component 'Z' as a prop on its parent element/
+			/Cannot use component 'Z' as a prop on its parent element/,
 		);
 	});
 

@@ -2078,7 +2078,11 @@ const visitors = {
 			// Validate that parent element attributes don't reference child-declared components
 			if (child_component_names.size > 0) {
 				for (const attr of node.attributes) {
-					if (attr.type === 'Attribute' && attr.value !== null && attr.value.type === 'Identifier') {
+					if (
+						attr.type === 'Attribute' &&
+						attr.value !== null &&
+						attr.value.type === 'Identifier'
+					) {
 						if (child_component_names.has(attr.value.name)) {
 							error(
 								`Cannot use component '${attr.value.name}' as a prop on its parent element. Component declarations inside children are not in scope for the parent element's attributes.`,
