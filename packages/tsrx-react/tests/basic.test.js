@@ -379,4 +379,81 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain("<span>{'hello'}</span>");
 		expect(mappings.errors).toEqual([]);
 	});
+
+	it('passes if-statement children through composite components via {children}', () => {
+		const source = `component Wrapper(children) {
+			<div>{children}</div>
+		}
+
+		export component App() {
+			<Wrapper>
+				if (true) {
+					<span>{'visible'}</span>
+				}
+			</Wrapper>
+		}`;
+
+		const { code } = compile(source, 'App.tsrx');
+		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
+
+		expect(code).toContain('function Wrapper(children)');
+		expect(code).toContain('{children}');
+		expect(code).toContain("{'visible'}");
+		expect(mappings.errors).toEqual([]);
+	});
+
+	it('transforms {ref fn} on elements to ref={fn}', () => {
+		const source = `export component App() {
+			function divRef(node) {
+				console.log(node);
+			}
+
+			<div {ref divRef}>{'Hello'}</div>
+		}`;
+
+		const { code } = compile(source, 'App.tsrx');
+		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
+
+		expect(code).toContain('ref={divRef}');
+		expect(code).not.toContain('{ref divRef}');
+		expect(mappings.errors).toEqual([]);
+	});
+
+	it('transforms {ref fn} on composite components to ref={fn}', () => {
+		const source = `component Child(props) {
+			const { ...rest } = props;
+			<input {...rest} />
+		}
+
+		export component App() {
+			function childRef(node) {
+				console.log(node);
+			}
+
+			<Child {ref childRef} />
+		}`;
+
+		const { code } = compile(source, 'App.tsrx');
+		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
+
+		expect(code).toContain('ref={childRef}');
+		expect(code).toContain('function Child(props)');
+		expect(mappings.errors).toEqual([]);
+	});
+
+	it('transforms {ref fn} alongside other attributes', () => {
+		const source = `export component App() {
+			function inputRef(node) {}
+
+			<input type="text" {ref inputRef} class="field" />
+		}`;
+
+		const { code } = compile(source, 'App.tsrx');
+		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
+
+		expect(code).toContain('ref={inputRef}');
+		expect(code).toContain('type="text"');
+		expect(code).toContain('className="field"');
+		expect(mappings.errors).toEqual([]);
+	});
 });

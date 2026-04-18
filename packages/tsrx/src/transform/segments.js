@@ -52,6 +52,7 @@ import {
 	mapping_data_verify_complete,
 	build_line_offsets,
 	get_mapping_from_node,
+	maybe_get_mapping_from_node,
 } from '../source-map-utils.js';
 
 const LABEL_TO_COMPONENT_REPLACE_REGEX = /(function|\((property|method)\))/;
@@ -728,23 +729,37 @@ export function convert_source_map_to_mappings(
 				}
 
 				if ((closing?.loc || opening.loc) && (closing || opening.selfClosing)) {
-					// Add the whole closing tag or the self-closing
-					const mapping = get_mapping_from_node(
-						closing ? closing : opening,
-						src_to_gen_map,
-						gen_line_offsets,
-						mapping_data_verify_only,
-					);
+					// Add the whole closing tag or the self-closing.
+					// For self-closing elements, use maybe_get_mapping_from_node because
+					// attribute transforms (e.g. class→className, {ref fn}→ref={fn}) can shift
+					// the position of `/>` in the generated output, making the source map
+					// entry for the opening element's end position unresolvable.
+					const target_node = closing ? closing : opening;
+					const mapping = closing
+						? get_mapping_from_node(
+								target_node,
+								src_to_gen_map,
+								gen_line_offsets,
+								mapping_data_verify_only,
+							)
+						: maybe_get_mapping_from_node(
+								target_node,
+								src_to_gen_map,
+								gen_line_offsets,
+								mapping_data_verify_only,
+							);
 
-					// The generated code includes a semicolon after the closing or self-closed tag
-					// We're extending the mapping to include the semicolon
-					// because the diagnostics errors can include the whole element
-					// and we need to account for the semicolon as it's a part of the diagnostic
-					// At the same time, we could've instead applied this logic to the whole `node` element
-					// but since we already map the opening - start, we just need the proper end
-					// and it was causing some issues with mappings
-					mapping.generatedLengths = [mapping.generatedLengths[0] + 1];
-					mappings.push(mapping);
+					if (!(mapping instanceof Error)) {
+						// The generated code includes a semicolon after the closing or self-closed tag
+						// We're extending the mapping to include the semicolon
+						// because the diagnostics errors can include the whole element
+						// and we need to account for the semicolon as it's a part of the diagnostic
+						// At the same time, we could've instead applied this logic to the whole `node` element
+						// but since we already map the opening - start, we just need the proper end
+						// and it was causing some issues with mappings
+						mapping.generatedLengths = [mapping.generatedLengths[0] + 1];
+						mappings.push(mapping);
+					}
 				}
 
 				if (closing) {

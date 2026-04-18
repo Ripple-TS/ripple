@@ -1429,6 +1429,17 @@ function to_jsx_attribute(attr) {
 			attr,
 		);
 	}
+	if (attr.type === 'RefAttribute') {
+		// RefAttribute uses `{ref expr}` syntax whose source positions don't map to the
+		// generated `ref={expr}` JSX attribute, so we intentionally omit loc.
+		return /** @type {any} */ ({
+			type: 'JSXAttribute',
+			name: { type: 'JSXIdentifier', name: 'ref', metadata: { path: [] } },
+			value: to_jsx_expression_container(attr.argument),
+			shorthand: false,
+			metadata: { path: [] },
+		});
+	}
 
 	// Rewrite Ripple-style `class` → React's `className`.
 	let attr_name = attr.name;
