@@ -459,9 +459,6 @@ importers:
       eslint:
         specifier: catalog:default
         version: 10.2.1(jiti@2.6.1)
-      ripple:
-        specifier: workspace:*
-        version: link:../ripple
       tsdown:
         specifier: catalog:default
         version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260417.1)(typescript@5.9.3)
