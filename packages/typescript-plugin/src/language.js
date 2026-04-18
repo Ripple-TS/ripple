@@ -21,8 +21,8 @@ const { createLogging, DEBUG } = require('./utils.js');
 const { log, logWarning, logError } = createLogging('[Ripple Language]');
 const RIPPLE_EXTENSIONS = ['.ripple', '.rsrx', '.tsrx'];
 const COMPILER_CANDIDATES = [
-	['@tsrx/ripple', ['node_modules', '@tsrx', 'ripple']],
-	['@tsrx/react', ['node_modules', '@tsrx', 'react']],
+	['@tsrx/ripple', ['node_modules', '@tsrx', 'ripple'], ['.ripple', '.rsrx']],
+	['@tsrx/react', ['node_modules', '@tsrx', 'react'], ['.tsrx']],
 ];
 
 /**
@@ -622,25 +622,30 @@ function get_tsrx_compiler(normalized_file_name) {
  */
 function get_compiler_entry_for_file(normalized_file_name) {
 	const parts = normalized_file_name.split('/');
+	const ext = path.extname(normalized_file_name);
 
 	// First, try to find the nearest supported tsrx compiler in the workspace.
 	for (let i = parts.length - 2; i >= 0; i--) {
 		const dir = parts.slice(0, i + 1).join('/');
+		const cache_key = dir + '\0' + ext;
 
-		if (!path2RipplePathMap.has(dir)) {
+		if (!path2RipplePathMap.has(cache_key)) {
 			let found_path = null;
-			for (const [, compiler_dir_parts] of COMPILER_CANDIDATES) {
+			for (const [, compiler_dir_parts, supported_extensions] of COMPILER_CANDIDATES) {
+				if (!supported_extensions.includes(ext)) {
+					continue;
+				}
 				const full_path = [dir, ...compiler_dir_parts, 'src', 'index.js'].join('/');
 				if (fs.existsSync(full_path)) {
 					found_path = full_path;
-					log('Found tsrx compiler at:', full_path);
+					log('Found tsrx compiler at:', full_path, 'for extension:', ext);
 					break;
 				}
 			}
-			path2RipplePathMap.set(dir, found_path);
+			path2RipplePathMap.set(cache_key, found_path);
 		}
 
-		const compiler_path = path2RipplePathMap.get(dir);
+		const compiler_path = path2RipplePathMap.get(cache_key);
 		if (compiler_path) {
 			return compiler_path;
 		}
@@ -657,7 +662,10 @@ function get_compiler_entry_for_file(normalized_file_name) {
 	let current_dir = __dirname;
 
 	while (current_dir) {
-		for (const [, compiler_dir_parts] of COMPILER_CANDIDATES) {
+		for (const [, compiler_dir_parts, supported_extensions] of COMPILER_CANDIDATES) {
+			if (!supported_extensions.includes(ext)) {
+				continue;
+			}
 			const full_path = path.join(current_dir, ...compiler_dir_parts);
 			const entry_path = path.join(full_path, 'src', 'index.js');
 			if (fs.existsSync(entry_path)) {
