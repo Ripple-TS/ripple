@@ -693,7 +693,10 @@ function package_manifest_matches_compiler(package_manifest, compiler_name, pack
 		return false;
 	}
 
-	if (package_manifest.name === compiler_name || package_hints.includes(package_manifest.name ?? '')) {
+	if (
+		package_manifest.name === compiler_name ||
+		package_hints.includes(package_manifest.name ?? '')
+	) {
 		return true;
 	}
 
@@ -742,7 +745,12 @@ function find_workspace_compiler_entry_for_file(
 		if (!compiler_path_map.has(cache_key)) {
 			/** @type {Array<[string, string, string[]]>} */
 			const available_candidates = [];
-			for (const [compiler_name, compiler_dir_parts, supported_extensions, package_hints] of COMPILER_CANDIDATES) {
+			for (const [
+				compiler_name,
+				compiler_dir_parts,
+				supported_extensions,
+				package_hints,
+			] of COMPILER_CANDIDATES) {
 				if (!supported_extensions.includes(ext)) {
 					continue;
 				}
@@ -755,9 +763,8 @@ function find_workspace_compiler_entry_for_file(
 			let found_path = null;
 			if (available_candidates.length > 0) {
 				const package_manifest = get_nearest_package_manifest(dir, exists_sync);
-				const preferred_candidate = available_candidates.find(
-					([compiler_name, , package_hints]) =>
-						package_manifest_matches_compiler(package_manifest, compiler_name, package_hints),
+				const preferred_candidate = available_candidates.find(([compiler_name, , package_hints]) =>
+					package_manifest_matches_compiler(package_manifest, compiler_name, package_hints),
 				);
 				found_path = preferred_candidate?.[1] ?? available_candidates[0][1];
 				log('Found tsrx compiler at:', found_path, 'for extension:', ext);
@@ -794,7 +801,12 @@ function get_compiler_entry_for_file(normalized_file_name) {
 	while (current_dir) {
 		/** @type {Array<[string, string, string[]]>} */
 		const available_candidates = [];
-		for (const [compiler_name, compiler_dir_parts, supported_extensions, package_hints] of COMPILER_CANDIDATES) {
+		for (const [
+			compiler_name,
+			compiler_dir_parts,
+			supported_extensions,
+			package_hints,
+		] of COMPILER_CANDIDATES) {
 			if (!supported_extensions.includes(ext)) {
 				continue;
 			}
@@ -806,9 +818,8 @@ function get_compiler_entry_for_file(normalized_file_name) {
 		}
 
 		if (available_candidates.length > 0) {
-			const preferred_candidate = available_candidates.find(
-				([compiler_name, , package_hints]) =>
-					package_manifest_matches_compiler(package_manifest, compiler_name, package_hints),
+			const preferred_candidate = available_candidates.find(([compiler_name, , package_hints]) =>
+				package_manifest_matches_compiler(package_manifest, compiler_name, package_hints),
 			);
 			const entry_path = preferred_candidate?.[1] ?? available_candidates[0][1];
 			logWarning(`${warn_message} Using packaged version at ${entry_path}`);

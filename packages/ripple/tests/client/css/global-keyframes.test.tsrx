@@ -72,8 +72,8 @@ export component Test() {
 		expect(css).toContain('@keyframes fadeIn');
 		expect(css).not.toContain('-global-fadeIn');
 		expect(css).toMatch(/@keyframes ripple-[a-z0-9]+-slideIn/);
-		expect(css).toMatch(/\.scoped-anim\.tsrx-[a-z0-9]+/);
-		expect(css).toMatch(/\.global-anim\.tsrx-[a-z0-9]+/);
+		expect(css).toMatch(/\.scoped-anim\.ripple-[a-z0-9]+/);
+		expect(css).toMatch(/\.global-anim\.ripple-[a-z0-9]+/);
 	});
 
 	it('handles multiple animations with global keyframes', () => {
@@ -143,14 +143,14 @@ component Child() {
 
 		// Parent .parent should reference scoped slideIn
 		expect(css).toMatch(
-			/\.parent\.tsrx-[a-z0-9]+\s*{[\s\S]*?animation:\s*ripple-[a-z0-9]+-slideIn 1s/,
+			/\.parent\.ripple-[a-z0-9]+\s*{[\s\S]*?animation:\s*ripple-[a-z0-9]+-slideIn 1s/,
 		);
 
 		// .parent should NOT be marked as unused
 		expect(css).not.toContain('(unused) .parent');
 
 		// Child .child should reference global fadeIn
-		expect(css).toMatch(/\.child\.tsrx-[a-z0-9]+\s*{[\s\S]*?animation:\s*fadeIn 3s/);
+		expect(css).toMatch(/\.child\.ripple-[a-z0-9]+\s*{[\s\S]*?animation:\s*fadeIn 3s/);
 
 		// .child should NOT be marked as unused
 		expect(css).not.toContain('(unused) .child');

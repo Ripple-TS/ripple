@@ -18,6 +18,8 @@ export function ripple_element(render) {
 	};
 }
 
+export const tsrx_element = ripple_element;
+
 /**
  * @param {any} value
  * @returns {value is RippleElement}

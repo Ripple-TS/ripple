@@ -28,7 +28,12 @@ import { is_boolean_attribute } from '../../../utils/attributes.js';
 import { clsx } from 'clsx';
 import { normalize_css_property_name } from '../../../utils/normalize_css_property_name.js';
 import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../constants.js';
-import { is_ripple_element, normalize_children, ripple_element } from '../../element.js';
+import {
+	is_ripple_element,
+	normalize_children,
+	ripple_element,
+	tsrx_element,
+} from '../../element.js';
 import {
 	is_tag_valid_with_parent,
 	is_tag_valid_with_ancestor,
@@ -48,7 +53,7 @@ export { hash } from '../../../utils/hashing.js';
 export { context } from './context.js';
 export { try_block, component_block, regular_block } from './blocks.js';
 export { array_slice };
-export { ripple_element, normalize_children };
+export { ripple_element, tsrx_element, normalize_children };
 
 export function noop() {}
 

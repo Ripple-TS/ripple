@@ -10,6 +10,8 @@ export type RippleElement = {
 /** Type for implicit children fragments rendered with `{children}`. */
 export type Children = RippleElement | Component | string | number | boolean | null | undefined;
 
+export function tsrx_element(render: Function): RippleElement;
+
 export function mount(
 	component: Component,
 	options: { target: HTMLElement; props?: Record<string, any> },

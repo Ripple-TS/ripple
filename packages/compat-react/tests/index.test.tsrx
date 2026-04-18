@@ -95,9 +95,9 @@ describe('compat-react', () => {
 				render(App);
 			});
 
-			const rippleDiv = container.querySelector('.tsrx');
+			const rippleDiv = container.querySelector('.ripple');
 			const reactDiv = container.querySelector('.react');
-			const rippleDiv2 = container.querySelector('.tsrx-2');
+			const rippleDiv2 = container.querySelector('.ripple-2');
 			expect(rippleDiv).toBeTruthy();
 			expect(rippleDiv.textContent).toBe('This is Ripple');
 			expect(reactDiv).toBeTruthy();
@@ -124,7 +124,7 @@ describe('compat-react', () => {
 			});
 
 			const react1 = container.querySelector('.react-1');
-			const middle = container.querySelector('.tsrx-middle');
+			const middle = container.querySelector('.ripple-middle');
 			const react2 = container.querySelector('.react-2');
 			expect(react1).toBeTruthy();
 			expect(react1.textContent).toBe('React Block 1');
@@ -246,7 +246,7 @@ describe('compat-react', () => {
 				render(App);
 			});
 
-			const rippleCount = container.querySelector('.tsrx-count');
+			const rippleCount = container.querySelector('.ripple-count');
 			const button = container.querySelector('button');
 			const reactMessage = container.querySelector('.react-message');
 			expect(rippleCount.textContent).toBe('0');

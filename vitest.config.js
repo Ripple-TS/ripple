@@ -138,9 +138,7 @@ export default defineConfig({
 			{
 				test: {
 					name: 'compat-react',
-					include: [
-						'packages/compat-react/tests/**/*.test.tsrx',
-					],
+					include: ['packages/compat-react/tests/**/*.test.tsrx'],
 					environment: 'jsdom',
 					setupFiles: ['packages/compat-react/tests/setup.js'],
 					globals: true,
