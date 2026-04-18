@@ -322,4 +322,61 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('return <StatementBodyHook1 />;');
 		expect(mappings.errors).toEqual([]);
 	});
+
+	it('supports tsx blocks passed as props', () => {
+		const source = `component Child(props) {
+			<div>{props.content}</div>
+		}
+
+			export component App() {
+				<Child content={<tsx><span>{'hello'}</span></tsx>} />
+			}`;
+
+		const { code } = compile(source, 'App.tsrx');
+		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
+
+		expect(code).toContain('function Child(props) {');
+		expect(code).toContain('<Child content={');
+		expect(code).toContain("<span>{'hello'}</span>");
+		expect(code).not.toContain('<tsx>');
+		expect(mappings.errors).toEqual([]);
+	});
+
+	it('supports dynamic elements', () => {
+		const source = `export component App() {
+			const dom = 'section';
+
+			<@dom class="box">
+				<span>{'hello'}</span>
+			</@dom>
+		}`;
+
+		const { code } = compile(source, 'App.tsrx');
+		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
+
+		expect(code).toContain("const dom = 'section';");
+		expect(code).toContain('const DynamicElement = dom;');
+		expect(code).toContain('<DynamicElement className="box">');
+		expect(code).toContain("<span>{'hello'}</span>");
+		expect(code).toContain('return DynamicElement');
+		expect(code).toContain('? <DynamicElement className="box">');
+		expect(mappings.errors).toEqual([]);
+	});
+
+	it('supports member-form dynamic elements', () => {
+		const source = `export component App(props) {
+			<@props.as class="box">
+				<span>{'hello'}</span>
+			</@props.as>
+		}`;
+
+		const { code } = compile(source, 'App.tsrx');
+		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
+
+		expect(code).toContain('function App(props) {');
+		expect(code).toContain('const DynamicElement = props.as;');
+		expect(code).toContain('<DynamicElement className="box">');
+		expect(code).toContain("<span>{'hello'}</span>");
+		expect(mappings.errors).toEqual([]);
+	});
 });

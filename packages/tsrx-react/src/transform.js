@@ -48,6 +48,16 @@ export function transform(ast, source, filename) {
 			return /** @type {any} */ (component_to_function_declaration(inner));
 		},
 
+		Tsx(node, { next }) {
+			const inner = /** @type {any} */ (next() ?? node);
+			return /** @type {any} */ (tsx_node_to_jsx_expression(inner));
+		},
+
+		TsxCompat(node, { next }) {
+			const inner = /** @type {any} */ (next() ?? node);
+			return /** @type {any} */ (tsx_compat_node_to_jsx_expression(inner));
+		},
+
 		Element(node, { next }) {
 			const inner = /** @type {any} */ (next() ?? node);
 			return /** @type {any} */ (to_jsx_element(inner));
@@ -883,6 +893,8 @@ function is_jsx_child(node) {
 		t === 'JSXFragment' ||
 		t === 'JSXExpressionContainer' ||
 		t === 'JSXText' ||
+		t === 'Tsx' ||
+		t === 'TsxCompat' ||
 		t === 'IfStatement' ||
 		t === 'ForOfStatement' ||
 		t === 'SwitchStatement'
@@ -891,25 +903,41 @@ function is_jsx_child(node) {
 
 /**
  * @param {any} node
- * @returns {ESTreeJSX.JSXElement}
+ * @returns {any}
  */
 function to_jsx_element(node) {
 	if (node.type === 'JSXElement') return node;
+	if (is_dynamic_element_id(node.id)) {
+		return dynamic_element_to_jsx_child(node);
+	}
 
 	const name = identifier_to_jsx_name(node.id);
 	const attributes = (node.attributes || []).map(to_jsx_attribute);
 	const selfClosing = !!node.selfClosing;
 	const children = create_element_children(node.children || []);
+	const has_unmappable_attribute = attributes.some(
+		(/** @type {any} */ attribute) => attribute?.metadata?.has_unmappable_value,
+	);
 
 	/** @type {ESTreeJSX.JSXOpeningElement} */
-	const openingElement = set_loc(
-		/** @type {any} */ ({
-			type: 'JSXOpeningElement',
-			name,
-			attributes,
-			selfClosing,
-		}),
-		node.openingElement || node,
+	const openingElement = /** @type {ESTreeJSX.JSXOpeningElement} */ (
+		has_unmappable_attribute
+			? {
+					type: 'JSXOpeningElement',
+					name,
+					attributes,
+					selfClosing,
+					metadata: { path: [] },
+				}
+			: set_loc(
+					/** @type {any} */ ({
+						type: 'JSXOpeningElement',
+						name,
+						attributes,
+						selfClosing,
+					}),
+					node.openingElement || node,
+				)
 	);
 
 	/** @type {ESTreeJSX.JSXClosingElement | null} */
@@ -1136,6 +1164,10 @@ function get_body_source_node(body_nodes) {
 function to_jsx_child(node) {
 	if (!node) return node;
 	switch (node.type) {
+		case 'Tsx':
+			return tsx_node_to_jsx_expression(node);
+		case 'TsxCompat':
+			return tsx_compat_node_to_jsx_expression(node);
 		case 'Element':
 			return to_jsx_element(node);
 		case 'Text':
@@ -1411,23 +1443,174 @@ function to_jsx_attribute(attr) {
 	if (value) {
 		if (value.type === 'Literal' && typeof value.value === 'string') {
 			// Keep string literal as attribute string.
-		} else if (
-			value.type !== 'JSXExpressionContainer' &&
-			value.type !== 'JSXElement' &&
-			value.type !== 'JSXFragment'
-		) {
+		} else if (value.type !== 'JSXExpressionContainer') {
 			value = to_jsx_expression_container(value);
 		}
 	}
 
-	return set_loc(
-		/** @type {ESTreeJSX.JSXAttribute} */ ({
-			type: 'JSXAttribute',
-			name,
-			value: value || null,
-		}),
-		attr,
+	const jsx_attribute = /** @type {any} */ ({
+		type: 'JSXAttribute',
+		name,
+		value: value || null,
+		shorthand: false,
+		metadata: { path: [] },
+	});
+
+	if (value_has_unmappable_jsx_loc(value)) {
+		/** @type {any} */ (jsx_attribute.metadata).has_unmappable_value = true;
+		return jsx_attribute;
+	}
+
+	return set_loc(jsx_attribute, attr);
+}
+
+/**
+ * @param {any} value
+ * @returns {boolean}
+ */
+function value_has_unmappable_jsx_loc(value) {
+	return !!(
+		value?.type === 'JSXExpressionContainer' &&
+		(value.expression?.type === 'JSXElement' || value.expression?.type === 'JSXFragment') &&
+		!value.expression.loc
 	);
+}
+
+/**
+ * @param {any} id
+ * @returns {boolean}
+ */
+function is_dynamic_element_id(id) {
+	if (!id || typeof id !== 'object') {
+		return false;
+	}
+
+	if (id.type === 'Identifier') {
+		return !!id.tracked;
+	}
+
+	if (id.type === 'MemberExpression') {
+		return is_dynamic_element_id(id.object);
+	}
+
+	return false;
+}
+
+/**
+ * @param {any} node
+ * @returns {ESTreeJSX.JSXExpressionContainer}
+ */
+function dynamic_element_to_jsx_child(node) {
+	const dynamic_id = set_loc(create_generated_identifier('DynamicElement'), node.id);
+	const alias_declaration = set_loc(
+		/** @type {any} */ ({
+			type: 'VariableDeclaration',
+			kind: 'const',
+			declarations: [
+				{
+					type: 'VariableDeclarator',
+					id: dynamic_id,
+					init: clone_expression_node(node.id),
+					metadata: { path: [] },
+				},
+			],
+			metadata: { path: [] },
+		}),
+		node,
+	);
+	const jsx_element = create_dynamic_jsx_element(dynamic_id, node);
+
+	return to_jsx_expression_container(
+		/** @type {any} */ ({
+			type: 'CallExpression',
+			callee: {
+				type: 'ArrowFunctionExpression',
+				params: [],
+				body: /** @type {any} */ ({
+					type: 'BlockStatement',
+					body: [
+						alias_declaration,
+						{
+							type: 'ReturnStatement',
+							argument: {
+								type: 'ConditionalExpression',
+								test: clone_identifier(dynamic_id),
+								consequent: jsx_element,
+								alternate: create_null_literal(),
+								metadata: { path: [] },
+							},
+							metadata: { path: [] },
+						},
+					],
+					metadata: { path: [] },
+				}),
+				async: false,
+				generator: false,
+				expression: false,
+				metadata: { path: [] },
+			},
+			arguments: [],
+			optional: false,
+			metadata: { path: [] },
+		}),
+		node,
+	);
+}
+
+/**
+ * @param {AST.Identifier} dynamic_id
+ * @param {any} node
+ * @returns {ESTreeJSX.JSXElement}
+ */
+function create_dynamic_jsx_element(dynamic_id, node) {
+	const attributes = (node.attributes || []).map(to_jsx_attribute);
+	const selfClosing = !!node.selfClosing;
+	const children = create_element_children(node.children || []);
+	const name = identifier_to_jsx_name(clone_identifier(dynamic_id));
+
+	return /** @type {any} */ ({
+		type: 'JSXElement',
+		openingElement: {
+			type: 'JSXOpeningElement',
+			name,
+			attributes,
+			selfClosing,
+			metadata: { path: [] },
+		},
+		closingElement: selfClosing
+			? null
+			: {
+					type: 'JSXClosingElement',
+					name: clone_jsx_name(name),
+					metadata: { path: [] },
+				},
+		children,
+		metadata: { path: [] },
+	});
+}
+
+/**
+ * @param {any} node
+ * @returns {any}
+ */
+function clone_expression_node(node) {
+	if (!node || typeof node !== 'object') {
+		return node;
+	}
+
+	if (Array.isArray(node)) {
+		return node.map(clone_expression_node);
+	}
+
+	const clone = { ...node };
+	for (const key of Object.keys(clone)) {
+		if (key === 'metadata') {
+			clone.metadata = clone.metadata ? { ...clone.metadata } : { path: [] };
+			continue;
+		}
+		clone[key] = clone_expression_node(clone[key]);
+	}
+	return clone;
 }
 
 /**
@@ -1584,6 +1767,72 @@ function create_compile_error(node, message) {
 	error.pos = node.start ?? 0;
 	error.end = node.end ?? error.pos + 1;
 	return error;
+}
+
+/**
+ * @param {any} node
+ * @returns {any}
+ */
+function tsx_compat_node_to_jsx_expression(node) {
+	if (node.kind !== 'react') {
+		throw create_compile_error(
+			node,
+			`React TSRX does not support <tsx:${node.kind}> blocks. Use <tsx> or <tsx:react>.`,
+		);
+	}
+
+	return tsx_node_to_jsx_expression(node);
+}
+
+/**
+ * @param {any} node
+ * @returns {any}
+ */
+function tsx_node_to_jsx_expression(node) {
+	const children = (node.children || []).filter(
+		(/** @type {any} */ child) => child.type !== 'JSXText' || child.value.trim() !== '',
+	);
+
+	if (children.length === 1 && children[0].type !== 'JSXText') {
+		return strip_locations(children[0]);
+	}
+
+	return strip_locations(
+		/** @type {any} */ ({
+			type: 'JSXFragment',
+			openingFragment: { type: 'JSXOpeningFragment', metadata: { path: [] } },
+			closingFragment: { type: 'JSXClosingFragment', metadata: { path: [] } },
+			children,
+			metadata: { path: [] },
+		}),
+	);
+}
+
+/**
+ * @param {any} node
+ * @returns {any}
+ */
+function strip_locations(node) {
+	if (!node || typeof node !== 'object') {
+		return node;
+	}
+
+	if (Array.isArray(node)) {
+		return node.map(strip_locations);
+	}
+
+	delete node.loc;
+	delete node.start;
+	delete node.end;
+
+	for (const key of Object.keys(node)) {
+		if (key === 'metadata') {
+			continue;
+		}
+		node[key] = strip_locations(node[key]);
+	}
+
+	return node;
 }
 
 /**

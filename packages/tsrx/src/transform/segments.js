@@ -727,7 +727,7 @@ export function convert_source_map_to_mappings(
 					}
 				}
 
-				if (closing || opening.selfClosing) {
+				if ((closing?.loc || opening.loc) && (closing || opening.selfClosing)) {
 					// Add the whole closing tag or the self-closing
 					const mapping = get_mapping_from_node(
 						closing ? closing : opening,
