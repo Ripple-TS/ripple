@@ -1179,18 +1179,20 @@ const visitors = {
 			return b.jsx_fragment(children);
 		}
 
-		const all_children = node.children
-			.map((child) => jsx_to_ripple_node(/** @type {AST.Node} */ (child)))
-			.flat()
-			.filter((child) => child != null && child.type !== 'EmptyStatement');
-
-		for (const child of all_children) {
-			if (child.type === 'Component') {
-				state.init?.push(/** @type {AST.Statement} */ (visit(child, state)));
+		/** @type {AST.Node[]} */
+		const children_filtered = [];
+		for (const raw_child of node.children) {
+			const result = jsx_to_ripple_node(/** @type {AST.Node} */ (raw_child));
+			const items = Array.isArray(result) ? result : [result];
+			for (const child of items) {
+				if (child == null || child.type === 'EmptyStatement') continue;
+				if (child.type === 'Component') {
+					state.init?.push(/** @type {AST.Statement} */ (visit(child, state)));
+				} else {
+					children_filtered.push(child);
+				}
 			}
 		}
-
-		const children_filtered = all_children.filter((child) => child.type !== 'Component');
 
 		const children_component = b.component(b.id('render_children'), [], children_filtered);
 
