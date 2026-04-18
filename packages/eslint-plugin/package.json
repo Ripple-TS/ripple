@@ -50,7 +50,6 @@
     "@types/node": "catalog:default",
     "@typescript-eslint/parser": "catalog:default",
     "eslint": "catalog:default",
-    "ripple": "workspace:*",
     "tsdown": "catalog:default",
     "typescript": "catalog:default",
     "vitest": "catalog:default"

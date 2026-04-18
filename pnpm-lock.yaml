@@ -205,6 +205,9 @@ catalogs:
     eslint:
       specifier: '>=9.0.0'
       version: 10.0.2
+    ripple:
+      specifier: '*'
+      version: 0.3.17
     tailwindcss:
       specifier: ^4.1.12
       version: 4.2.1
@@ -416,6 +419,9 @@ importers:
       eslint:
         specifier: catalog:peer
         version: 10.0.2(jiti@2.6.1)
+      ripple:
+        specifier: catalog:peer
+        version: 0.3.17
     devDependencies:
       '@types/eslint':
         specifier: catalog:default
@@ -426,9 +432,6 @@ importers:
       '@types/node':
         specifier: catalog:default
         version: 24.11.0
-      ripple:
-        specifier: workspace:*
-        version: link:../ripple
       tsdown:
         specifier: catalog:default
         version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260417.1)(typescript@5.9.3)
@@ -456,9 +459,6 @@ importers:
       eslint:
         specifier: catalog:default
         version: 10.0.2(jiti@2.6.1)
-      ripple:
-        specifier: workspace:*
-        version: link:../ripple
       tsdown:
         specifier: catalog:default
         version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260417.1)(typescript@5.9.3)
@@ -4582,6 +4582,9 @@ packages:
     resolution: {integrity: sha512-g6QUff04oZpHs0eG5p83rFLhHeV00ug/Yf9nZM6fLeUrPguBTkTQOdpAWWspMh55TZfVQDPaN3NQJfbVRAxdIw==}
     engines: {iojs: '>=1.0.0', node: '>=0.10.0'}
 
+  ripple@0.3.17:
+    resolution: {integrity: sha512-bZhfajvLpu0usaSK3d7FBU5fxFboLbHenw0Q19LPHfFnbsxf6WG7wOjgdpA6pYjSj2InhvsipVnbSncnGp5cgg==}
+
   rolldown-plugin-dts@0.22.3:
     resolution: {integrity: sha512-APIGZGChvLVu05f+7bMmgf+lpvhjIvELhkOsg7c/95IVdOgULVFOX9iciaHJLaBfZeTthIgp+gryGBjgyKNA1A==}
     engines: {node: '>=20.19.0'}
@@ -7009,14 +7012,6 @@ snapshots:
     optionalDependencies:
       vite: 7.3.1(@types/node@24.11.0)(jiti@2.6.1)(lightningcss@1.32.0)
 
-  '@vitest/mocker@4.0.18(vite@7.3.1(@types/node@25.3.3)(jiti@2.6.1)(lightningcss@1.32.0))':
-    dependencies:
-      '@vitest/spy': 4.0.18
-      estree-walker: 3.0.3
-      magic-string: 0.30.21
-    optionalDependencies:
-      vite: 7.3.1(@types/node@25.3.3)(jiti@2.6.1)(lightningcss@1.32.0)
-
   '@vitest/pretty-format@4.0.18':
     dependencies:
       tinyrainbow: 3.0.3
@@ -9320,6 +9315,14 @@ snapshots:
 
   reusify@1.1.0: {}
 
+  ripple@0.3.17:
+    dependencies:
+      '@types/estree': 1.0.8
+      '@types/estree-jsx': 1.0.5
+      clsx: 2.1.1
+      devalue: 5.6.3
+      esm-env: 1.2.2
+
   rolldown-plugin-dts@0.22.3(@typescript/native-preview@7.0.0-dev.20260417.1)(rolldown@1.0.0-rc.3)(typescript@5.9.3):
     dependencies:
       '@babel/generator': 8.0.0-rc.2
@@ -10188,7 +10191,7 @@ snapshots:
   vitest@4.0.18(@types/node@25.3.3)(jiti@2.6.1)(jsdom@28.1.0)(lightningcss@1.32.0):
     dependencies:
       '@vitest/expect': 4.0.18
-      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@25.3.3)(jiti@2.6.1)(lightningcss@1.32.0))
+      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@24.11.0)(jiti@2.6.1)(lightningcss@1.32.0))
       '@vitest/pretty-format': 4.0.18
       '@vitest/runner': 4.0.18
       '@vitest/snapshot': 4.0.18
