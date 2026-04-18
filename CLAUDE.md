@@ -43,16 +43,23 @@ This is a pnpm monorepo. Key packages are marked with `*`.
 
 ```
 packages/
-├── ripple/*                    # Core framework
+├── tsrx/*                      # Core compiler infrastructure (@tsrx/core)
 │   └── src/
-│       ├── compiler/           # Compilation pipeline (see Compiler Architecture)
-│       │   ├── phases/
-│       │   │   ├── 1-parse/    # Acorn-based parser with RipplePlugin
-│       │   │   ├── 2-analyze/  # Scope analysis, CSS pruning, validation
-│       │   │   └── 3-transform/# Client/server code generation
-│       │   ├── scope.js        # Scope and binding management
-│       │   ├── types/          # AST type definitions
-│       │   └── utils.js        # Compiler utilities
+│       ├── parse/              # Parser factory (createParser), comment handlers
+│       ├── plugin.js           # TSRXPlugin for Acorn parser
+│       ├── scope.js            # Scope and binding management
+│       ├── utils.js            # Compiler utilities, constants
+│       └── types/              # AST type definitions (estree augmentations)
+├── tsrx-ripple/*               # Ripple-specific compiler (@tsrx/ripple)
+│   └── src/
+│       ├── parse/              # Ripple parser (parse(), style parsing)
+│       ├── analyze/            # Scope analysis, CSS pruning, validation
+│       ├── transform/          # Client/server code generation
+│       │   ├── client/         # Runtime call generation
+│       │   └── server/         # SSR string generation
+│       └── utils.js            # Ripple-specific compiler utilities
+├── ripple/*                    # Core framework (runtime + types)
+│   └── src/
 │       ├── runtime/            # Runtime library (see Runtime Architecture)
 │       │   ├── internal/
 │       │   │   ├── client/     # DOM operations, reactivity, events
@@ -92,10 +99,10 @@ The compiler transforms `.ripple` files through three phases:
 Source Code (.ripple) → Parse → Analyze → Transform → Output (JS + CSS)
 ```
 
-### Phase 1: Parse (`packages/ripple/src/compiler/phases/1-parse/`)
+### Phase 1: Parse (`packages/tsrx-ripple/src/parse/`, `packages/tsrx/src/parse/`)
 
 **Parser:** Acorn extended with `@sveltejs/acorn-typescript` and custom
-`RipplePlugin`
+`TSRXPlugin`
 
 **Ripple-specific syntax handled:**
 
@@ -107,7 +114,7 @@ Source Code (.ripple) → Parse → Analyze → Transform → Output (JS + CSS)
 
 **Output:** ESTree-compatible AST with Ripple extensions
 
-### Phase 2: Analyze (`packages/ripple/src/compiler/phases/2-analyze/`)
+### Phase 2: Analyze (`packages/tsrx-ripple/src/analyze/`)
 
 | File             | Purpose                                         |
 | ---------------- | ----------------------------------------------- |
@@ -126,7 +133,7 @@ Source Code (.ripple) → Parse → Analyze → Transform → Output (JS + CSS)
   cross-checks against standalone CSS selectors
 - **Server block analysis:** Tracks exports from `#server` blocks
 
-### Phase 3: Transform (`packages/ripple/src/compiler/phases/3-transform/`)
+### Phase 3: Transform (`packages/tsrx-ripple/src/transform/`)
 
 **Client transform** (`client/index.js`):
 
@@ -149,7 +156,7 @@ The same `.ripple` module produces different output depending on the compilation
 mode, controlled by `options.mode` in the compiler:
 
 ```javascript
-// compiler/index.js
+// packages/tsrx-ripple/src/index.js
 const result =
   options.mode === 'server'
     ? transform_server(filename, source, analysis, options?.minify_css ?? false)
@@ -174,7 +181,7 @@ const result =
 **Vite plugin** compiles modules twice for SSR apps - once with `mode: 'client'`
 and once with `mode: 'server'`.
 
-### Key AST Node Types (`packages/ripple/src/compiler/types/`)
+### Key AST Node Types (`packages/tsrx/types/`, `packages/tsrx-ripple/types/`)
 
 | Node Type         | Description                                              |
 | ----------------- | -------------------------------------------------------- |
@@ -549,10 +556,14 @@ block.c; // context
 
 ### Compiler work
 
-- Parser changes go in `phases/1-parse/`, modify `RipplePlugin` for new syntax
-- Scope-related changes in `scope.js` - track bindings with appropriate `kind`
-- CSS changes: `css-analyze.js` for parsing, `prune.js` for dead code elimination
-- Code generation: separate files for `client/` and `server/` transforms
+- Core compiler infra (parser factory, scope, utilities): `packages/tsrx/src/`
+- Ripple-specific compiler: `packages/tsrx-ripple/src/`
+- Parser changes: modify `TSRXPlugin` in `packages/tsrx/src/plugin.js`
+- Scope-related changes in `packages/tsrx/src/scope.js` - track bindings with
+  appropriate `kind`
+- CSS changes: `analyze/css-analyze.js` for parsing, `analyze/prune.js` for dead
+  code elimination
+- Code generation: separate files for `transform/client/` and `transform/server/`
 
 ### Runtime work
 

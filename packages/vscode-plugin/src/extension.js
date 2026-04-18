@@ -1,7 +1,7 @@
 /**
  * Ripple VSCode Extension
  *
- * This extension provides language support for Ripple files (.ripple) by:
+ * This extension provides language support for Ripple files (.ripple/.rsrx) by:
  * 1. Starting a Volar-based language server (language-server) for Ripple syntax and semantics
  * 2. Patching the built-in TypeScript extension to recognize Ripple files
  * 3. Setting VSCode context variables to expose TypeScript commands for Ripple files
@@ -13,7 +13,7 @@
  * It uses typescript-plugin internally to transform Ripple syntax into TypeScript virtual
  * files for type checking and IntelliSense.
  *
- * typescript-plugin: A Volar-based TypeScript plugin that transforms .ripple files into
+ * typescript-plugin: A Volar-based TypeScript plugin that transforms Ripple component files into
  * TypeScript virtual code. This plugin enables TypeScript's language service to understand Ripple
  * syntax. It's already loaded and used by language-server, so we don't need to configure
  * it separately.
@@ -43,7 +43,7 @@
  *
  * Example flow:
  * - package.json declares: Show "typescript.goToSourceDefinition" when "resourceLangId == ripple"
- * - This code sets: resourceLangId = 'ripple' when editing a .ripple file
+ * - This code sets: resourceLangId = 'ripple' when editing a supported Ripple component file
  * - Result: The TypeScript command appears in the context menu for Ripple files
  */
 
@@ -54,6 +54,17 @@ const protocol = require('@volar/language-server/protocol');
 /** @type {typeof import('vscode-languageclient/node')} */
 const lsp = require('vscode-languageclient/node');
 const { activateAutoInsertion, createLabsInfo } = require('@volar/vscode');
+const RIPPLE_FILE_SELECTORS = ['**/*.ripple', '**/*.rsrx', '**/*.tsrx'];
+
+/**
+ * @param {string} file_path
+ * @returns {boolean}
+ */
+function is_ripple_file_path(file_path) {
+	return (
+		file_path.endsWith('.ripple') || file_path.endsWith('.rsrx') || file_path.endsWith('.tsrx')
+	);
+}
 
 /** @type {import('vscode-languageclient/node').LanguageClient | undefined} */
 let client;
@@ -360,7 +371,7 @@ function addCustomCommands(context) {
 						console.warn('[Ripple] Definition has no uri:', d);
 						return false;
 					}
-					const isRipple = uri.path.endsWith('.ripple');
+					const isRipple = is_ripple_file_path(uri.path);
 					console.log('[Ripple] Checking definition:', uri.path, 'isRipple:', isRipple);
 					return isRipple;
 				});
@@ -400,7 +411,7 @@ async function configurePrettier() {
 		// Tell Prettier extension to enable formatting for ripple language
 		await config.update(
 			'prettier.documentSelectors',
-			['**/*.ripple'],
+			RIPPLE_FILE_SELECTORS,
 			vscode.ConfigurationTarget.Global,
 		);
 

@@ -3,761 +3,1020 @@ import * as _$_ from 'ripple/internal/server';
 
 import { track } from 'ripple/server';
 
-export function StaticHtml(__output) {
+export function StaticHtml() {
 	_$_.push_component();
 
 	const html = '<p><strong>Bold</strong> text</p>';
 
-	__output.push('<div');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
-	{
-		const html_value = String(html ?? '');
+		{
+			const html_value = String(html ?? '');
 
-		__output.push('<!--' + _$_.hash(html_value) + '-->');
-		__output.push(html_value);
-		__output.push('<!---->');
-	}
+			_$_.output_push('<!--' + _$_.hash(html_value) + '-->');
+			_$_.output_push(html_value);
+			_$_.output_push('<!---->');
+		}
 
-	__output.push('</div>');
+		_$_.output_push('</div>');
+	});
+
 	_$_.pop_component();
 }
 
-export function DynamicHtml(__output) {
+export function DynamicHtml() {
 	_$_.push_component();
 
 	const content = '<p>Dynamic <span>HTML</span> content</p>';
 
-	__output.push('<div');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
-	{
-		const html_value_1 = String(content ?? '');
+		{
+			const html_value_1 = String(content ?? '');
 
-		__output.push('<!--' + _$_.hash(html_value_1) + '-->');
-		__output.push(html_value_1);
-		__output.push('<!---->');
-	}
+			_$_.output_push('<!--' + _$_.hash(html_value_1) + '-->');
+			_$_.output_push(html_value_1);
+			_$_.output_push('<!---->');
+		}
 
-	__output.push('</div>');
+		_$_.output_push('</div>');
+	});
+
 	_$_.pop_component();
 }
 
-export function EmptyHtml(__output) {
+export function EmptyHtml() {
 	_$_.push_component();
 
 	const html = '';
 
-	__output.push('<div');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
-	{
-		const html_value_2 = String(html ?? '');
+		{
+			const html_value_2 = String(html ?? '');
 
-		__output.push('<!--' + _$_.hash(html_value_2) + '-->');
-		__output.push(html_value_2);
-		__output.push('<!---->');
-	}
+			_$_.output_push('<!--' + _$_.hash(html_value_2) + '-->');
+			_$_.output_push(html_value_2);
+			_$_.output_push('<!---->');
+		}
 
-	__output.push('</div>');
+		_$_.output_push('</div>');
+	});
+
 	_$_.pop_component();
 }
 
-export function ComplexHtml(__output) {
+export function ComplexHtml() {
 	_$_.push_component();
 
 	const html = '<div class="nested"><span>Nested <em>content</em></span></div>';
 
-	__output.push('<section');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<section');
+		_$_.output_push('>');
 
-	{
-		const html_value_3 = String(html ?? '');
+		{
+			const html_value_3 = String(html ?? '');
 
-		__output.push('<!--' + _$_.hash(html_value_3) + '-->');
-		__output.push(html_value_3);
-		__output.push('<!---->');
-	}
+			_$_.output_push('<!--' + _$_.hash(html_value_3) + '-->');
+			_$_.output_push(html_value_3);
+			_$_.output_push('<!---->');
+		}
 
-	__output.push('</section>');
+		_$_.output_push('</section>');
+	});
+
 	_$_.pop_component();
 }
 
-export function MultipleHtml(__output) {
+export function MultipleHtml() {
 	_$_.push_component();
 
 	const html1 = '<p>First paragraph</p>';
 	const html2 = '<p>Second paragraph</p>';
 
-	__output.push('<div');
-	__output.push('>');
-
-	{
-		const html_value_4 = String(html1 ?? '');
-
-		__output.push('<!--' + _$_.hash(html_value_4) + '-->');
-		__output.push(html_value_4);
-		__output.push('<!---->');
-
-		const html_value_5 = String(html2 ?? '');
-
-		__output.push('<!--' + _$_.hash(html_value_5) + '-->');
-		__output.push(html_value_5);
-		__output.push('<!---->');
-	}
-
-	__output.push('</div>');
-	_$_.pop_component();
-}
-
-export function HtmlWithReactivity(__output) {
-	_$_.push_component();
-	__output.push('<div');
-	__output.push('>');
-
-	{
-		__output.push('<!--1tb17hh-->');
-		__output.push('<p>Count: 0</p>');
-		__output.push('<!---->');
-		__output.push('<button');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
 		{
-			__output.push('Increment');
+			const html_value_4 = String(html1 ?? '');
+
+			_$_.output_push('<!--' + _$_.hash(html_value_4) + '-->');
+			_$_.output_push(html_value_4);
+			_$_.output_push('<!---->');
+
+			const html_value_5 = String(html2 ?? '');
+
+			_$_.output_push('<!--' + _$_.hash(html_value_5) + '-->');
+			_$_.output_push(html_value_5);
+			_$_.output_push('<!---->');
 		}
 
-		__output.push('</button>');
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function HtmlWrapper(__output, { children }) {
+export function HtmlWithReactivity() {
 	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="wrapper"');
-	__output.push('>');
 
-	{
-		__output.push('<div');
-		__output.push(' class="inner"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
 		{
-			_$_.render_expression(__output, children);
+			_$_.output_push('<!--1tb17hh-->');
+			_$_.output_push('<p>Count: 0</p>');
+			_$_.output_push('<!---->');
+			_$_.output_push('<button');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Increment');
+			}
+
+			_$_.output_push('</button>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function HtmlInChildren(__output) {
+export function HtmlWrapper({ children }) {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="wrapper"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('<div');
+			_$_.output_push(' class="inner"');
+			_$_.output_push('>');
+
+			{
+				_$_.render_expression(children);
+			}
+
+			_$_.output_push('</div>');
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+export function HtmlInChildren() {
 	_$_.push_component();
 
 	const content = '<p><strong>Bold</strong> text</p>';
 
-	{
-		const comp = HtmlWrapper;
+	_$_.regular_block(() => {
+		{
+			const comp = HtmlWrapper;
 
-		const args = [
-			__output,
-			{
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
-					__output.push('<div');
-					__output.push(' class="vp-doc"');
-					__output.push('>');
+			const args = [
+				{
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
+						_$_.output_push('<div');
+						_$_.output_push(' class="vp-doc"');
+						_$_.output_push('>');
 
-					{
-						const html_value_6 = String(content ?? '');
+						{
+							const html_value_6 = String(content ?? '');
 
-						__output.push('<!--' + _$_.hash(html_value_6) + '-->');
-						__output.push(html_value_6);
-						__output.push('<!---->');
-					}
+							_$_.output_push('<!--' + _$_.hash(html_value_6) + '-->');
+							_$_.output_push(html_value_6);
+							_$_.output_push('<!---->');
+						}
 
-					__output.push('</div>');
-					_$_.pop_component();
-				})
-			}
-		];
+						_$_.output_push('</div>');
+						_$_.pop_component();
+					})
+				}
+			];
 
-		comp(...args);
-	}
+			comp(...args);
+		}
+	});
 
 	_$_.pop_component();
 }
 
-export function HtmlInChildrenWithSiblings(__output) {
+export function HtmlInChildrenWithSiblings() {
 	_$_.push_component();
 
 	const content = '<p>Dynamic content</p>';
 
-	{
-		const comp = HtmlWrapper;
+	_$_.regular_block(() => {
+		{
+			const comp = HtmlWrapper;
 
-		const args = [
-			__output,
-			{
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
-					__output.push('<h1');
-					__output.push('>');
+			const args = [
+				{
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
+						_$_.output_push('<h1');
+						_$_.output_push('>');
 
-					{
-						__output.push('Title');
-					}
+						{
+							_$_.output_push('Title');
+						}
 
-					__output.push('</h1>');
-					__output.push('<div');
-					__output.push(' class="content"');
-					__output.push('>');
+						_$_.output_push('</h1>');
+						_$_.output_push('<div');
+						_$_.output_push(' class="content"');
+						_$_.output_push('>');
 
-					{
-						const html_value_7 = String(content ?? '');
+						{
+							const html_value_7 = String(content ?? '');
 
-						__output.push('<!--' + _$_.hash(html_value_7) + '-->');
-						__output.push(html_value_7);
-						__output.push('<!---->');
-					}
+							_$_.output_push('<!--' + _$_.hash(html_value_7) + '-->');
+							_$_.output_push(html_value_7);
+							_$_.output_push('<!---->');
+						}
 
-					__output.push('</div>');
-					_$_.pop_component();
-				})
-			}
-		];
+						_$_.output_push('</div>');
+						_$_.pop_component();
+					})
+				}
+			];
 
-		comp(...args);
-	}
+			comp(...args);
+		}
+	});
 
 	_$_.pop_component();
 }
 
-export function MultipleHtmlInChildren(__output) {
+export function MultipleHtmlInChildren() {
 	_$_.push_component();
 
 	const html1 = '<p>First</p>';
 	const html2 = '<p>Second</p>';
 
-	{
-		const comp = HtmlWrapper;
+	_$_.regular_block(() => {
+		{
+			const comp = HtmlWrapper;
 
-		const args = [
-			__output,
-			{
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
-					__output.push('<div');
-					__output.push(' class="doc"');
-					__output.push('>');
+			const args = [
+				{
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
+						_$_.output_push('<div');
+						_$_.output_push(' class="doc"');
+						_$_.output_push('>');
 
-					{
-						const html_value_8 = String(html1 ?? '');
+						{
+							const html_value_8 = String(html1 ?? '');
 
-						__output.push('<!--' + _$_.hash(html_value_8) + '-->');
-						__output.push(html_value_8);
-						__output.push('<!---->');
+							_$_.output_push('<!--' + _$_.hash(html_value_8) + '-->');
+							_$_.output_push(html_value_8);
+							_$_.output_push('<!---->');
 
-						const html_value_9 = String(html2 ?? '');
+							const html_value_9 = String(html2 ?? '');
 
-						__output.push('<!--' + _$_.hash(html_value_9) + '-->');
-						__output.push(html_value_9);
-						__output.push('<!---->');
-					}
+							_$_.output_push('<!--' + _$_.hash(html_value_9) + '-->');
+							_$_.output_push(html_value_9);
+							_$_.output_push('<!---->');
+						}
 
-					__output.push('</div>');
-					_$_.pop_component();
-				})
-			}
-		];
+						_$_.output_push('</div>');
+						_$_.pop_component();
+					})
+				}
+			];
 
-		comp(...args);
-	}
+			comp(...args);
+		}
+	});
 
 	_$_.pop_component();
 }
 
-export function HtmlWithComments(__output) {
+export function HtmlWithComments() {
 	_$_.push_component();
 
 	const content = '<p>Before comment</p><!-- TODO: Elaborate --><p>After comment</p>';
 
-	__output.push('<div');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
-	{
-		const html_value_10 = String(content ?? '');
+		{
+			const html_value_10 = String(content ?? '');
 
-		__output.push('<!--' + _$_.hash(html_value_10) + '-->');
-		__output.push(html_value_10);
-		__output.push('<!---->');
-	}
+			_$_.output_push('<!--' + _$_.hash(html_value_10) + '-->');
+			_$_.output_push(html_value_10);
+			_$_.output_push('<!---->');
+		}
 
-	__output.push('</div>');
+		_$_.output_push('</div>');
+	});
+
 	_$_.pop_component();
 }
 
-export function HtmlWithEmptyComment(__output) {
+export function HtmlWithEmptyComment() {
 	_$_.push_component();
 
 	const content = '<p>Before</p><!----><p>After</p>';
 
-	__output.push('<div');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
-	{
-		const html_value_11 = String(content ?? '');
+		{
+			const html_value_11 = String(content ?? '');
 
-		__output.push('<!--' + _$_.hash(html_value_11) + '-->');
-		__output.push(html_value_11);
-		__output.push('<!---->');
-	}
+			_$_.output_push('<!--' + _$_.hash(html_value_11) + '-->');
+			_$_.output_push(html_value_11);
+			_$_.output_push('<!---->');
+		}
 
-	__output.push('</div>');
+		_$_.output_push('</div>');
+	});
+
 	_$_.pop_component();
 }
 
-export function HtmlWithCommentsInChildren(__output) {
+export function HtmlWithCommentsInChildren() {
 	_$_.push_component();
 
 	const content = '<h2 id="intro">Introduction</h2><p>Some text</p><!-- TODO --><p>More text</p>';
 
-	{
-		const comp = HtmlWrapper;
-
-		const args = [
-			__output,
-			{
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
-					__output.push('<div');
-					__output.push(' class="vp-doc"');
-					__output.push('>');
-
-					{
-						const html_value_12 = String(content ?? '');
-
-						__output.push('<!--' + _$_.hash(html_value_12) + '-->');
-						__output.push(html_value_12);
-						__output.push('<!---->');
-					}
-
-					__output.push('</div>');
-					_$_.pop_component();
-				})
-			}
-		];
-
-		comp(...args);
-	}
-
-	_$_.pop_component();
-}
-
-function DocFooter(__output) {
-	_$_.push_component();
-	__output.push('<footer');
-	__output.push(' class="doc-footer"');
-	__output.push('>');
-
-	{
-		__output.push('Footer content');
-	}
-
-	__output.push('</footer>');
-	_$_.pop_component();
-}
-
-export function DocLayout(
-	__output,
-	{ children, editPath = '', nextLink = null, toc = [] }
-) {
-	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="layout"');
-	__output.push('>');
-
-	{
-		__output.push('<div');
-		__output.push(' class="content-container"');
-		__output.push('>');
-
+	_$_.regular_block(() => {
 		{
-			__output.push('<article');
-			__output.push('>');
+			const comp = HtmlWrapper;
 
-			{
-				__output.push('<div');
-				__output.push('>');
-
+			const args = [
 				{
-					_$_.render_expression(__output, children);
-				}
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
+						_$_.output_push('<div');
+						_$_.output_push(' class="vp-doc"');
+						_$_.output_push('>');
 
-				__output.push('</div>');
-			}
+						{
+							const html_value_12 = String(content ?? '');
 
-			__output.push('</article>');
-			__output.push('<!--[-->');
-
-			if (editPath) {
-				__output.push('<div');
-				__output.push(' class="edit-link"');
-				__output.push('>');
-
-				{
-					__output.push('<a');
-					__output.push(_$_.attr('href', `https://github.com/edit/${editPath}`, false));
-					__output.push('>');
-
-					{
-						__output.push('Edit');
-					}
-
-					__output.push('</a>');
-				}
-
-				__output.push('</div>');
-			}
-
-			__output.push('<!--]-->');
-			__output.push('<!--[-->');
-
-			if (nextLink) {
-				__output.push('<nav');
-				__output.push(' class="prev-next"');
-				__output.push('>');
-
-				{
-					__output.push('<a');
-					__output.push(_$_.attr('href', nextLink.href, false));
-					__output.push('>');
-
-					{
-						__output.push(_$_.escape(nextLink.text));
-					}
-
-					__output.push('</a>');
-				}
-
-				__output.push('</nav>');
-			}
-
-			__output.push('<!--]-->');
-
-			{
-				const comp = DocFooter;
-				const args = [__output, {}];
-
-				comp(...args);
-			}
-		}
-
-		__output.push('</div>');
-		__output.push('<aside');
-		__output.push('>');
-
-		{
-			__output.push('<!--[-->');
-
-			if (toc.length > 0) {
-				__output.push('<div');
-				__output.push(' class="toc"');
-				__output.push('>');
-
-				{
-					__output.push('<ul');
-					__output.push('>');
-
-					{
-						__output.push('<!--[-->');
-
-						for (const item of toc) {
-							__output.push('<li');
-							__output.push('>');
-
-							{
-								__output.push('<a');
-								__output.push(_$_.attr('href', item.href, false));
-								__output.push('>');
-
-								{
-									__output.push(_$_.escape(item.text));
-								}
-
-								__output.push('</a>');
-							}
-
-							__output.push('</li>');
+							_$_.output_push('<!--' + _$_.hash(html_value_12) + '-->');
+							_$_.output_push(html_value_12);
+							_$_.output_push('<!---->');
 						}
 
-						__output.push('<!--]-->');
-					}
-
-					__output.push('</ul>');
+						_$_.output_push('</div>');
+						_$_.pop_component();
+					})
 				}
+			];
 
-				__output.push('</div>');
-			}
+			comp(...args);
+		}
+	});
 
-			__output.push('<!--]-->');
+	_$_.pop_component();
+}
+
+function DocFooter() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<footer');
+		_$_.output_push(' class="doc-footer"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Footer content');
 		}
 
-		__output.push('</aside>');
-	}
+		_$_.output_push('</footer>');
+	});
 
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function HtmlWithServerData(__output) {
+export function DocLayout({ children, editPath = '', nextLink = null, toc = [] }) {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="layout"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('<div');
+			_$_.output_push(' class="content-container"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<article');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<div');
+					_$_.output_push('>');
+
+					{
+						_$_.render_expression(children);
+					}
+
+					_$_.output_push('</div>');
+				}
+
+				_$_.output_push('</article>');
+				_$_.output_push('<!--[-->');
+
+				if (editPath) {
+					_$_.output_push('<div');
+					_$_.output_push(' class="edit-link"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('<a');
+						_$_.output_push(_$_.attr('href', `https://github.com/edit/${editPath}`, false));
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('Edit');
+						}
+
+						_$_.output_push('</a>');
+					}
+
+					_$_.output_push('</div>');
+				}
+
+				_$_.output_push('<!--]-->');
+				_$_.output_push('<!--[-->');
+
+				if (nextLink) {
+					_$_.output_push('<nav');
+					_$_.output_push(' class="prev-next"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('<a');
+						_$_.output_push(_$_.attr('href', nextLink.href, false));
+						_$_.output_push('>');
+
+						{
+							_$_.output_push(_$_.escape(nextLink.text));
+						}
+
+						_$_.output_push('</a>');
+					}
+
+					_$_.output_push('</nav>');
+				}
+
+				_$_.output_push('<!--]-->');
+
+				{
+					const comp = DocFooter;
+					const args = [{}];
+
+					comp(...args);
+				}
+			}
+
+			_$_.output_push('</div>');
+			_$_.output_push('<aside');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				if (toc.length > 0) {
+					_$_.output_push('<div');
+					_$_.output_push(' class="toc"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('<ul');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('<!--[-->');
+
+							for (const item of toc) {
+								_$_.output_push('<li');
+								_$_.output_push('>');
+
+								{
+									_$_.output_push('<a');
+									_$_.output_push(_$_.attr('href', item.href, false));
+									_$_.output_push('>');
+
+									{
+										_$_.output_push(_$_.escape(item.text));
+									}
+
+									_$_.output_push('</a>');
+								}
+
+								_$_.output_push('</li>');
+							}
+
+							_$_.output_push('<!--]-->');
+						}
+
+						_$_.output_push('</ul>');
+					}
+
+					_$_.output_push('</div>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</aside>');
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+export function HtmlWithServerData() {
 	_$_.push_component();
 
 	const content = '<h1 id="intro" class="doc-h1">Introduction</h1><p>Ripple is a framework.</p>';
 
-	{
-		const comp = DocLayout;
+	_$_.regular_block(() => {
+		{
+			const comp = DocLayout;
 
-		const args = [
-			__output,
-			{
-				editPath: "docs/introduction.md",
-				nextLink: { href: '/docs/quick-start', text: 'Quick Start' },
-				toc: [
-					{ href: '#intro', text: 'Introduction' },
-					{ href: '#features', text: 'Features' }
-				],
+			const args = [
+				{
+					editPath: "docs/introduction.md",
+					nextLink: { href: '/docs/quick-start', text: 'Quick Start' },
+					toc: [
+						{ href: '#intro', text: 'Introduction' },
+						{ href: '#features', text: 'Features' }
+					],
 
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
-					__output.push('<div');
-					__output.push(' class="vp-doc"');
-					__output.push('>');
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
+						_$_.output_push('<div');
+						_$_.output_push(' class="vp-doc"');
+						_$_.output_push('>');
 
-					{
-						const html_value_13 = String(content ?? '');
+						{
+							const html_value_13 = String(content ?? '');
 
-						__output.push('<!--' + _$_.hash(html_value_13) + '-->');
-						__output.push(html_value_13);
-						__output.push('<!---->');
-					}
+							_$_.output_push('<!--' + _$_.hash(html_value_13) + '-->');
+							_$_.output_push(html_value_13);
+							_$_.output_push('<!---->');
+						}
 
-					__output.push('</div>');
-					_$_.pop_component();
-				})
-			}
-		];
+						_$_.output_push('</div>');
+						_$_.pop_component();
+					})
+				}
+			];
 
-		comp(...args);
-	}
+			comp(...args);
+		}
+	});
 
 	_$_.pop_component();
 }
 
-export function HtmlWithClientDefaults(__output) {
+export function HtmlWithClientDefaults() {
 	_$_.push_component();
 
 	const content = '<h1 id="intro" class="doc-h1">Introduction</h1><p>Ripple is a framework.</p>';
 
-	{
-		const comp = DocLayout;
+	_$_.regular_block(() => {
+		{
+			const comp = DocLayout;
 
-		const args = [
-			__output,
-			{
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
-					__output.push('<div');
-					__output.push(' class="vp-doc"');
-					__output.push('>');
+			const args = [
+				{
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
+						_$_.output_push('<div');
+						_$_.output_push(' class="vp-doc"');
+						_$_.output_push('>');
 
-					{
-						const html_value_14 = String(content ?? '');
+						{
+							const html_value_14 = String(content ?? '');
 
-						__output.push('<!--' + _$_.hash(html_value_14) + '-->');
-						__output.push(html_value_14);
-						__output.push('<!---->');
-					}
+							_$_.output_push('<!--' + _$_.hash(html_value_14) + '-->');
+							_$_.output_push(html_value_14);
+							_$_.output_push('<!---->');
+						}
 
-					__output.push('</div>');
-					_$_.pop_component();
-				})
-			}
-		];
+						_$_.output_push('</div>');
+						_$_.pop_component();
+					})
+				}
+			];
 
-		comp(...args);
-	}
+			comp(...args);
+		}
+	});
 
 	_$_.pop_component();
 }
 
-export function HtmlWithUndefinedContent(__output) {
+export function HtmlWithUndefinedContent() {
 	_$_.push_component();
 
 	const content = undefined;
 
-	{
-		const comp = DocLayout;
+	_$_.regular_block(() => {
+		{
+			const comp = DocLayout;
 
-		const args = [
-			__output,
-			{
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
-					__output.push('<div');
-					__output.push(' class="vp-doc"');
-					__output.push('>');
+			const args = [
+				{
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
+						_$_.output_push('<div');
+						_$_.output_push(' class="vp-doc"');
+						_$_.output_push('>');
 
-					{
-						const html_value_15 = String(content ?? '');
+						{
+							const html_value_15 = String(content ?? '');
 
-						__output.push('<!--' + _$_.hash(html_value_15) + '-->');
-						__output.push(html_value_15);
-						__output.push('<!---->');
-					}
+							_$_.output_push('<!--' + _$_.hash(html_value_15) + '-->');
+							_$_.output_push(html_value_15);
+							_$_.output_push('<!---->');
+						}
 
-					__output.push('</div>');
-					_$_.pop_component();
-				})
-			}
-		];
+						_$_.output_push('</div>');
+						_$_.pop_component();
+					})
+				}
+			];
 
-		comp(...args);
-	}
+			comp(...args);
+		}
+	});
 
 	_$_.pop_component();
 }
 
-function DynamicHeading(__output, { level, children }) {
+function DynamicHeading({ level, children }) {
 	_$_.push_component();
-	__output.push('<!--[-->');
 
-	switch (level) {
-		case 1:
-			__output.push('<h1');
-			__output.push(' class="heading"');
-			__output.push('>');
-			{
-				_$_.render_expression(__output, children);
-			}
-			__output.push('</h1>');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-		case 2:
-			__output.push('<h2');
-			__output.push(' class="heading"');
-			__output.push('>');
-			{
-				_$_.render_expression(__output, children);
-			}
-			__output.push('</h2>');
-	}
+		switch (level) {
+			case 1:
+				_$_.output_push('<h1');
+				_$_.output_push(' class="heading"');
+				_$_.output_push('>');
+				{
+					_$_.render_expression(children);
+				}
+				_$_.output_push('</h1>');
 
-	__output.push('<!--]-->');
+			case 2:
+				_$_.output_push('<h2');
+				_$_.output_push(' class="heading"');
+				_$_.output_push('>');
+				{
+					_$_.render_expression(children);
+				}
+				_$_.output_push('</h2>');
+		}
+
+		_$_.output_push('<!--]-->');
+	});
+
 	_$_.pop_component();
 }
 
-function CodeBlock(__output, { code }) {
+function CodeBlock({ code }) {
 	_$_.push_component();
 
 	const highlighted = `<pre class="shiki"><code>${code}</code></pre>`;
 
-	__output.push('<div');
-	__output.push(' class="code-block"');
-	__output.push('>');
-
-	{
-		__output.push('<div');
-		__output.push(' class="header"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="code-block"');
+		_$_.output_push('>');
 
 		{
-			__output.push('<button');
-			__output.push('>');
+			_$_.output_push('<div');
+			_$_.output_push(' class="header"');
+			_$_.output_push('>');
 
 			{
-				__output.push('Copy');
+				_$_.output_push('<button');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('Copy');
+				}
+
+				_$_.output_push('</button>');
+				_$_.output_push('<span');
+				_$_.output_push(' class="lang"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('js');
+				}
+
+				_$_.output_push('</span>');
 			}
 
-			__output.push('</button>');
-			__output.push('<span');
-			__output.push(' class="lang"');
-			__output.push('>');
+			_$_.output_push('</div>');
+			_$_.output_push('<div');
+			_$_.output_push(' class="content"');
+			_$_.output_push('>');
 
 			{
-				__output.push('js');
+				const html_value_16 = String(highlighted ?? '');
+
+				_$_.output_push('<!--' + _$_.hash(html_value_16) + '-->');
+				_$_.output_push(html_value_16);
+				_$_.output_push('<!---->');
 			}
 
-			__output.push('</span>');
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-		__output.push('<div');
-		__output.push(' class="content"');
-		__output.push('>');
+		_$_.output_push('</div>');
+	});
 
-		{
-			const html_value_16 = String(highlighted ?? '');
-
-			__output.push('<!--' + _$_.hash(html_value_16) + '-->');
-			__output.push(html_value_16);
-			__output.push('<!---->');
-		}
-
-		__output.push('</div>');
-	}
-
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-function ContentWrapper(__output, { children }) {
+function ContentWrapper({ children }) {
 	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="wrapper"');
-	__output.push('>');
 
-	{
-		__output.push('<div');
-		__output.push(' class="inner"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="wrapper"');
+		_$_.output_push('>');
 
 		{
-			_$_.render_expression(__output, children);
+			_$_.output_push('<div');
+			_$_.output_push(' class="inner"');
+			_$_.output_push('>');
+
+			{
+				_$_.render_expression(children);
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function HtmlAfterSwitchInChildren(__output) {
+export function HtmlAfterSwitchInChildren() {
 	_$_.push_component();
 
-	{
-		const comp = ContentWrapper;
+	_$_.regular_block(() => {
+		{
+			const comp = ContentWrapper;
 
-		const args = [
-			__output,
+			const args = [
+				{
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
+
+						{
+							const comp = DynamicHeading;
+
+							const args = [
+								{
+									level: 1,
+									children: _$_.ripple_element(function render_children() {
+										_$_.push_component();
+										_$_.output_push('Title');
+										_$_.pop_component();
+									})
+								}
+							];
+
+							comp(...args);
+						}
+
+						_$_.output_push('<p');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('First paragraph');
+						}
+
+						_$_.output_push('</p>');
+						_$_.output_push('<p');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('Second paragraph');
+						}
+
+						_$_.output_push('</p>');
+
+						{
+							const comp = CodeBlock;
+							const args = [{ code: "const x = 1;" }];
+
+							comp(...args);
+						}
+
+						_$_.output_push('<p');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('After code');
+						}
+
+						_$_.output_push('</p>');
+						_$_.pop_component();
+					})
+				}
+			];
+
+			comp(...args);
+		}
+	});
+
+	_$_.pop_component();
+}
+
+function NavItem({ href, text: label, active = false }) {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(_$_.attr('class', `nav-item${active ? ' active' : ''}`));
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('<!--[-->');
+
+			if (active) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="indicator"');
+				_$_.output_push('>');
+				_$_.output_push('</div>');
+			}
+
+			_$_.output_push('<!--]-->');
+			_$_.output_push('<a');
+			_$_.output_push(_$_.attr('href', href, false));
+			_$_.output_push('>');
+
 			{
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
+				_$_.output_push('<span');
+				_$_.output_push('>');
 
+				{
+					_$_.output_push(_$_.escape(label));
+				}
+
+				_$_.output_push('</span>');
+			}
+
+			_$_.output_push('</a>');
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+function SidebarSection({ title, children }) {
+	_$_.push_component();
+
+	let lazy = _$_.track(true);
+
+	_$_.regular_block(() => {
+		_$_.output_push('<section');
+		_$_.output_push(' class="sidebar-section"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('<div');
+			_$_.output_push(' class="section-header"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<h2');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push(_$_.escape(title));
+				}
+
+				_$_.output_push('</h2>');
+				_$_.output_push('<button');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('Toggle');
+				}
+
+				_$_.output_push('</button>');
+			}
+
+			_$_.output_push('</div>');
+			_$_.output_push('<!--[-->');
+
+			if (_$_.get(lazy)) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="section-items"');
+				_$_.output_push('>');
+
+				{
+					_$_.render_expression(children);
+				}
+
+				_$_.output_push('</div>');
+			}
+
+			_$_.output_push('<!--]-->');
+		}
+
+		_$_.output_push('</section>');
+	});
+
+	_$_.pop_component();
+}
+
+function SideNav({ currentPath }) {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<aside');
+		_$_.output_push(' class="sidebar"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('<nav');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<div');
+				_$_.output_push(' class="group"');
+				_$_.output_push('>');
+
+				{
 					{
-						const comp = DynamicHeading;
+						const comp = SidebarSection;
 
 						const args = [
-							__output,
 							{
-								level: 1,
-								children: _$_.ripple_element(function render_children(__output) {
+								title: "Getting Started",
+								children: _$_.ripple_element(function render_children() {
 									_$_.push_component();
-									__output.push('Title');
+
+									{
+										const comp = NavItem;
+
+										const args = [
+											{
+												href: "/intro",
+												text: "Introduction",
+												active: currentPath === '/intro'
+											}
+										];
+
+										comp(...args);
+									}
+
+									{
+										const comp = NavItem;
+
+										const args = [
+											{
+												href: "/start",
+												text: "Quick Start",
+												active: currentPath === '/start'
+											}
+										];
+
+										comp(...args);
+									}
+
 									_$_.pop_component();
 								})
 							}
@@ -765,466 +1024,516 @@ export function HtmlAfterSwitchInChildren(__output) {
 
 						comp(...args);
 					}
+				}
 
-					__output.push('<p');
-					__output.push('>');
+				_$_.output_push('</div>');
+				_$_.output_push('<div');
+				_$_.output_push(' class="group"');
+				_$_.output_push('>');
 
+				{
 					{
-						__output.push('First paragraph');
-					}
+						const comp = SidebarSection;
 
-					__output.push('</p>');
-					__output.push('<p');
-					__output.push('>');
+						const args = [
+							{
+								title: "Guide",
+								children: _$_.ripple_element(function render_children() {
+									_$_.push_component();
 
-					{
-						__output.push('Second paragraph');
-					}
+									{
+										const comp = NavItem;
 
-					__output.push('</p>');
+										const args = [
+											{
+												href: "/guide/app",
+												text: "Application",
+												active: currentPath === '/guide/app'
+											}
+										];
 
-					{
-						const comp = CodeBlock;
-						const args = [__output, { code: "const x = 1;" }];
+										comp(...args);
+									}
+
+									{
+										const comp = NavItem;
+
+										const args = [
+											{
+												href: "/guide/syntax",
+												text: "Syntax",
+												active: currentPath === '/guide/syntax'
+											}
+										];
+
+										comp(...args);
+									}
+
+									_$_.pop_component();
+								})
+							}
+						];
 
 						comp(...args);
 					}
-
-					__output.push('<p');
-					__output.push('>');
-
-					{
-						__output.push('After code');
-					}
-
-					__output.push('</p>');
-					_$_.pop_component();
-				})
-			}
-		];
-
-		comp(...args);
-	}
-
-	_$_.pop_component();
-}
-
-function NavItem(__output, { href, text: label, active = false }) {
-	_$_.push_component();
-	__output.push('<div');
-	__output.push(_$_.attr('class', `nav-item${active ? ' active' : ''}`));
-	__output.push('>');
-
-	{
-		__output.push('<!--[-->');
-
-		if (active) {
-			__output.push('<div');
-			__output.push(' class="indicator"');
-			__output.push('>');
-			__output.push('</div>');
-		}
-
-		__output.push('<!--]-->');
-		__output.push('<a');
-		__output.push(_$_.attr('href', href, false));
-		__output.push('>');
-
-		{
-			__output.push('<span');
-			__output.push('>');
-
-			{
-				__output.push(_$_.escape(label));
-			}
-
-			__output.push('</span>');
-		}
-
-		__output.push('</a>');
-	}
-
-	__output.push('</div>');
-	_$_.pop_component();
-}
-
-function SidebarSection(__output, { title, children }) {
-	_$_.push_component();
-
-	let lazy = _$_.track(true);
-
-	__output.push('<section');
-	__output.push(' class="sidebar-section"');
-	__output.push('>');
-
-	{
-		__output.push('<div');
-		__output.push(' class="section-header"');
-		__output.push('>');
-
-		{
-			__output.push('<h2');
-			__output.push('>');
-
-			{
-				__output.push(_$_.escape(title));
-			}
-
-			__output.push('</h2>');
-			__output.push('<button');
-			__output.push('>');
-
-			{
-				__output.push('Toggle');
-			}
-
-			__output.push('</button>');
-		}
-
-		__output.push('</div>');
-		__output.push('<!--[-->');
-
-		if (_$_.get(lazy)) {
-			__output.push('<div');
-			__output.push(' class="section-items"');
-			__output.push('>');
-
-			{
-				_$_.render_expression(__output, children);
-			}
-
-			__output.push('</div>');
-		}
-
-		__output.push('<!--]-->');
-	}
-
-	__output.push('</section>');
-	_$_.pop_component();
-}
-
-function SideNav(__output, { currentPath }) {
-	_$_.push_component();
-	__output.push('<aside');
-	__output.push(' class="sidebar"');
-	__output.push('>');
-
-	{
-		__output.push('<nav');
-		__output.push('>');
-
-		{
-			__output.push('<div');
-			__output.push(' class="group"');
-			__output.push('>');
-
-			{
-				{
-					const comp = SidebarSection;
-
-					const args = [
-						__output,
-						{
-							title: "Getting Started",
-							children: _$_.ripple_element(function render_children(__output) {
-								_$_.push_component();
-
-								{
-									const comp = NavItem;
-
-									const args = [
-										__output,
-										{
-											href: "/intro",
-											text: "Introduction",
-											active: currentPath === '/intro'
-										}
-									];
-
-									comp(...args);
-								}
-
-								{
-									const comp = NavItem;
-
-									const args = [
-										__output,
-										{
-											href: "/start",
-											text: "Quick Start",
-											active: currentPath === '/start'
-										}
-									];
-
-									comp(...args);
-								}
-
-								_$_.pop_component();
-							})
-						}
-					];
-
-					comp(...args);
 				}
+
+				_$_.output_push('</div>');
 			}
 
-			__output.push('</div>');
-			__output.push('<div');
-			__output.push(' class="group"');
-			__output.push('>');
-
-			{
-				{
-					const comp = SidebarSection;
-
-					const args = [
-						__output,
-						{
-							title: "Guide",
-							children: _$_.ripple_element(function render_children(__output) {
-								_$_.push_component();
-
-								{
-									const comp = NavItem;
-
-									const args = [
-										__output,
-										{
-											href: "/guide/app",
-											text: "Application",
-											active: currentPath === '/guide/app'
-										}
-									];
-
-									comp(...args);
-								}
-
-								{
-									const comp = NavItem;
-
-									const args = [
-										__output,
-										{
-											href: "/guide/syntax",
-											text: "Syntax",
-											active: currentPath === '/guide/syntax'
-										}
-									];
-
-									comp(...args);
-								}
-
-								_$_.pop_component();
-							})
-						}
-					];
-
-					comp(...args);
-				}
-			}
-
-			__output.push('</div>');
+			_$_.output_push('</nav>');
 		}
 
-		__output.push('</nav>');
-	}
+		_$_.output_push('</aside>');
+	});
 
-	__output.push('</aside>');
 	_$_.pop_component();
 }
 
-function PageHeader(__output) {
+function PageHeader() {
 	_$_.push_component();
-	__output.push('<header');
-	__output.push(' class="page-header"');
-	__output.push('>');
 
-	{
-		__output.push('<div');
-		__output.push(' class="logo"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<header');
+		_$_.output_push(' class="page-header"');
+		_$_.output_push('>');
 
 		{
-			__output.push('MyApp');
+			_$_.output_push('<div');
+			_$_.output_push(' class="logo"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('MyApp');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('</header>');
+	});
 
-	__output.push('</header>');
 	_$_.pop_component();
 }
 
-export function LayoutWithSidebarAndMain(__output) {
+export function LayoutWithSidebarAndMain() {
 	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="layout"');
-	__output.push('>');
 
-	{
-		{
-			const comp = PageHeader;
-			const args = [__output, {}];
-
-			comp(...args);
-		}
-
-		__output.push('<div');
-		__output.push(' class="content-wrapper"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="layout"');
+		_$_.output_push('>');
 
 		{
 			{
-				const comp = SideNav;
-				const args = [__output, { currentPath: "/intro" }];
+				const comp = PageHeader;
+				const args = [{}];
 
 				comp(...args);
 			}
 
-			__output.push('<main');
-			__output.push(' class="main-content"');
-			__output.push('>');
+			_$_.output_push('<div');
+			_$_.output_push(' class="content-wrapper"');
+			_$_.output_push('>');
 
 			{
-				__output.push('<div');
-				__output.push(' class="article"');
-				__output.push('>');
-
 				{
-					__output.push('<div');
-					__output.push('>');
-
-					{
-						__output.push('<h1');
-						__output.push('>');
-
-						{
-							__output.push('Introduction');
-						}
-
-						__output.push('</h1>');
-						__output.push('<p');
-						__output.push('>');
-
-						{
-							__output.push('Welcome to the docs.');
-						}
-
-						__output.push('</p>');
-					}
-
-					__output.push('</div>');
-				}
-
-				__output.push('</div>');
-				__output.push('<!--[-->');
-
-				if (true) {
-					__output.push('<div');
-					__output.push(' class="edit-link"');
-					__output.push('>');
-
-					{
-						__output.push('<a');
-						__output.push(' href="/edit"');
-						__output.push('>');
-
-						{
-							__output.push('Edit');
-						}
-
-						__output.push('</a>');
-					}
-
-					__output.push('</div>');
-				}
-
-				__output.push('<!--]-->');
-
-				{
-					const comp = PageHeader;
-					const args = [__output, {}];
+					const comp = SideNav;
+					const args = [{ currentPath: "/intro" }];
 
 					comp(...args);
 				}
+
+				_$_.output_push('<main');
+				_$_.output_push(' class="main-content"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<div');
+					_$_.output_push(' class="article"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('<div');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('<h1');
+							_$_.output_push('>');
+
+							{
+								_$_.output_push('Introduction');
+							}
+
+							_$_.output_push('</h1>');
+							_$_.output_push('<p');
+							_$_.output_push('>');
+
+							{
+								_$_.output_push('Welcome to the docs.');
+							}
+
+							_$_.output_push('</p>');
+						}
+
+						_$_.output_push('</div>');
+					}
+
+					_$_.output_push('</div>');
+					_$_.output_push('<!--[-->');
+
+					if (true) {
+						_$_.output_push('<div');
+						_$_.output_push(' class="edit-link"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('<a');
+							_$_.output_push(' href="/edit"');
+							_$_.output_push('>');
+
+							{
+								_$_.output_push('Edit');
+							}
+
+							_$_.output_push('</a>');
+						}
+
+						_$_.output_push('</div>');
+					}
+
+					_$_.output_push('<!--]-->');
+
+					{
+						const comp = PageHeader;
+						const args = [{}];
+
+						comp(...args);
+					}
+				}
+
+				_$_.output_push('</main>');
 			}
 
-			__output.push('</main>');
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-function ArticleWrapper(__output, { children }) {
+function ArticleWrapper({ children }) {
 	_$_.push_component();
-	__output.push('<article');
-	__output.push(' class="doc-content"');
-	__output.push('>');
 
-	{
-		__output.push('<div');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<article');
+		_$_.output_push(' class="doc-content"');
+		_$_.output_push('>');
 
 		{
-			_$_.render_expression(__output, children);
+			_$_.output_push('<div');
+			_$_.output_push('>');
+
+			{
+				_$_.render_expression(children);
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('</article>');
+	});
 
-	__output.push('</article>');
 	_$_.pop_component();
 }
 
-function SimpleFooter(__output) {
+function SimpleFooter() {
 	_$_.push_component();
-	__output.push('<footer');
-	__output.push(' class="doc-footer"');
-	__output.push('>');
 
-	{
-		__output.push('Footer');
-	}
+	_$_.regular_block(() => {
+		_$_.output_push('<footer');
+		_$_.output_push(' class="doc-footer"');
+		_$_.output_push('>');
 
-	__output.push('</footer>');
-	_$_.pop_component();
-}
-
-export function ArticleWithChildrenThenSibling(__output) {
-	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="content-container"');
-	__output.push('>');
-
-	{
 		{
-			const comp = ArticleWrapper;
+			_$_.output_push('Footer');
+		}
+
+		_$_.output_push('</footer>');
+	});
+
+	_$_.pop_component();
+}
+
+export function ArticleWithChildrenThenSibling() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="content-container"');
+		_$_.output_push('>');
+
+		{
+			{
+				const comp = ArticleWrapper;
+
+				const args = [
+					{
+						children: _$_.ripple_element(function render_children() {
+							_$_.push_component();
+							_$_.output_push('<h1');
+							_$_.output_push('>');
+
+							{
+								_$_.output_push('Title');
+							}
+
+							_$_.output_push('</h1>');
+							_$_.output_push('<p');
+							_$_.output_push('>');
+
+							{
+								_$_.output_push('Content goes here.');
+							}
+
+							_$_.output_push('</p>');
+							_$_.pop_component();
+						})
+					}
+				];
+
+				comp(...args);
+			}
+
+			_$_.output_push('<!--[-->');
+
+			if (true) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="edit-link"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<a');
+					_$_.output_push(' href="/edit"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('Edit');
+					}
+
+					_$_.output_push('</a>');
+				}
+
+				_$_.output_push('</div>');
+			}
+
+			_$_.output_push('<!--]-->');
+			_$_.output_push('<!--[-->');
+
+			if (true) {
+				_$_.output_push('<nav');
+				_$_.output_push(' class="prev-next"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<a');
+					_$_.output_push(' href="/prev"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('Previous');
+					}
+
+					_$_.output_push('</a>');
+				}
+
+				_$_.output_push('</nav>');
+			}
+
+			_$_.output_push('<!--]-->');
+
+			{
+				const comp = SimpleFooter;
+				const args = [{}];
+
+				comp(...args);
+			}
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+export function ArticleWithHtmlChildThenSibling() {
+	_$_.push_component();
+
+	const htmlContent = '<pre><code>const x = 1;</code></pre>';
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="content-container"');
+		_$_.output_push('>');
+
+		{
+			{
+				const comp = ArticleWrapper;
+
+				const args = [
+					{
+						children: _$_.ripple_element(function render_children() {
+							_$_.push_component();
+							_$_.output_push('<div');
+							_$_.output_push(' class="doc-content"');
+							_$_.output_push('>');
+
+							{
+								const html_value_17 = String(htmlContent ?? '');
+
+								_$_.output_push('<!--' + _$_.hash(html_value_17) + '-->');
+								_$_.output_push(html_value_17);
+								_$_.output_push('<!---->');
+							}
+
+							_$_.output_push('</div>');
+							_$_.pop_component();
+						})
+					}
+				];
+
+				comp(...args);
+			}
+
+			_$_.output_push('<!--[-->');
+
+			if (true) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="edit-link"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<a');
+					_$_.output_push(' href="/edit"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('Edit');
+					}
+
+					_$_.output_push('</a>');
+				}
+
+				_$_.output_push('</div>');
+			}
+
+			_$_.output_push('<!--]-->');
+
+			{
+				const comp = SimpleFooter;
+				const args = [{}];
+
+				comp(...args);
+			}
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+function InlineArticleLayout({ children }) {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="content-container"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('<article');
+			_$_.output_push(' class="doc-content"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<div');
+				_$_.output_push('>');
+
+				{
+					_$_.render_expression(children);
+				}
+
+				_$_.output_push('</div>');
+			}
+
+			_$_.output_push('</article>');
+			_$_.output_push('<!--[-->');
+
+			if (true) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="edit-link"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<a');
+					_$_.output_push(' href="/edit"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('Edit');
+					}
+
+					_$_.output_push('</a>');
+				}
+
+				_$_.output_push('</div>');
+			}
+
+			_$_.output_push('<!--]-->');
+
+			{
+				const comp = SimpleFooter;
+				const args = [{}];
+
+				comp(...args);
+			}
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+export function InlineArticleWithHtmlChild() {
+	_$_.push_component();
+
+	const htmlContent = '<pre><code>const x = 1;</code></pre>';
+
+	_$_.regular_block(() => {
+		{
+			const comp = InlineArticleLayout;
 
 			const args = [
-				__output,
 				{
-					children: _$_.ripple_element(function render_children(__output) {
+					children: _$_.ripple_element(function render_children() {
 						_$_.push_component();
-						__output.push('<h1');
-						__output.push('>');
+						_$_.output_push('<div');
+						_$_.output_push(' class="doc-content"');
+						_$_.output_push('>');
 
 						{
-							__output.push('Title');
+							const html_value_18 = String(htmlContent ?? '');
+
+							_$_.output_push('<!--' + _$_.hash(html_value_18) + '-->');
+							_$_.output_push(html_value_18);
+							_$_.output_push('<!---->');
 						}
 
-						__output.push('</h1>');
-						__output.push('<p');
-						__output.push('>');
-
-						{
-							__output.push('Content goes here.');
-						}
-
-						__output.push('</p>');
+						_$_.output_push('</div>');
 						_$_.pop_component();
 					})
 				}
@@ -1232,493 +1541,284 @@ export function ArticleWithChildrenThenSibling(__output) {
 
 			comp(...args);
 		}
-
-		__output.push('<!--[-->');
-
-		if (true) {
-			__output.push('<div');
-			__output.push(' class="edit-link"');
-			__output.push('>');
-
-			{
-				__output.push('<a');
-				__output.push(' href="/edit"');
-				__output.push('>');
-
-				{
-					__output.push('Edit');
-				}
-
-				__output.push('</a>');
-			}
-
-			__output.push('</div>');
-		}
-
-		__output.push('<!--]-->');
-		__output.push('<!--[-->');
-
-		if (true) {
-			__output.push('<nav');
-			__output.push(' class="prev-next"');
-			__output.push('>');
-
-			{
-				__output.push('<a');
-				__output.push(' href="/prev"');
-				__output.push('>');
-
-				{
-					__output.push('Previous');
-				}
-
-				__output.push('</a>');
-			}
-
-			__output.push('</nav>');
-		}
-
-		__output.push('<!--]-->');
-
-		{
-			const comp = SimpleFooter;
-			const args = [__output, {}];
-
-			comp(...args);
-		}
-	}
-
-	__output.push('</div>');
-	_$_.pop_component();
-}
-
-export function ArticleWithHtmlChildThenSibling(__output) {
-	_$_.push_component();
-
-	const htmlContent = '<pre><code>const x = 1;</code></pre>';
-
-	__output.push('<div');
-	__output.push(' class="content-container"');
-	__output.push('>');
-
-	{
-		{
-			const comp = ArticleWrapper;
-
-			const args = [
-				__output,
-				{
-					children: _$_.ripple_element(function render_children(__output) {
-						_$_.push_component();
-						__output.push('<div');
-						__output.push(' class="doc-content"');
-						__output.push('>');
-
-						{
-							const html_value_17 = String(htmlContent ?? '');
-
-							__output.push('<!--' + _$_.hash(html_value_17) + '-->');
-							__output.push(html_value_17);
-							__output.push('<!---->');
-						}
-
-						__output.push('</div>');
-						_$_.pop_component();
-					})
-				}
-			];
-
-			comp(...args);
-		}
-
-		__output.push('<!--[-->');
-
-		if (true) {
-			__output.push('<div');
-			__output.push(' class="edit-link"');
-			__output.push('>');
-
-			{
-				__output.push('<a');
-				__output.push(' href="/edit"');
-				__output.push('>');
-
-				{
-					__output.push('Edit');
-				}
-
-				__output.push('</a>');
-			}
-
-			__output.push('</div>');
-		}
-
-		__output.push('<!--]-->');
-
-		{
-			const comp = SimpleFooter;
-			const args = [__output, {}];
-
-			comp(...args);
-		}
-	}
-
-	__output.push('</div>');
-	_$_.pop_component();
-}
-
-function InlineArticleLayout(__output, { children }) {
-	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="content-container"');
-	__output.push('>');
-
-	{
-		__output.push('<article');
-		__output.push(' class="doc-content"');
-		__output.push('>');
-
-		{
-			__output.push('<div');
-			__output.push('>');
-
-			{
-				_$_.render_expression(__output, children);
-			}
-
-			__output.push('</div>');
-		}
-
-		__output.push('</article>');
-		__output.push('<!--[-->');
-
-		if (true) {
-			__output.push('<div');
-			__output.push(' class="edit-link"');
-			__output.push('>');
-
-			{
-				__output.push('<a');
-				__output.push(' href="/edit"');
-				__output.push('>');
-
-				{
-					__output.push('Edit');
-				}
-
-				__output.push('</a>');
-			}
-
-			__output.push('</div>');
-		}
-
-		__output.push('<!--]-->');
-
-		{
-			const comp = SimpleFooter;
-			const args = [__output, {}];
-
-			comp(...args);
-		}
-	}
-
-	__output.push('</div>');
-	_$_.pop_component();
-}
-
-export function InlineArticleWithHtmlChild(__output) {
-	_$_.push_component();
-
-	const htmlContent = '<pre><code>const x = 1;</code></pre>';
-
-	{
-		const comp = InlineArticleLayout;
-
-		const args = [
-			__output,
-			{
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
-					__output.push('<div');
-					__output.push(' class="doc-content"');
-					__output.push('>');
-
-					{
-						const html_value_18 = String(htmlContent ?? '');
-
-						__output.push('<!--' + _$_.hash(html_value_18) + '-->');
-						__output.push(html_value_18);
-						__output.push('<!---->');
-					}
-
-					__output.push('</div>');
-					_$_.pop_component();
-				})
-			}
-		];
-
-		comp(...args);
-	}
+	});
 
 	_$_.pop_component();
 }
 
-function HeaderStub(__output) {
+function HeaderStub() {
 	_$_.push_component();
-	__output.push('<header');
-	__output.push(' class="header"');
-	__output.push('>');
 
-	{
-		__output.push('Header');
-	}
+	_$_.regular_block(() => {
+		_$_.output_push('<header');
+		_$_.output_push(' class="header"');
+		_$_.output_push('>');
 
-	__output.push('</header>');
-	_$_.pop_component();
-}
-
-function SidebarStub(__output) {
-	_$_.push_component();
-	__output.push('<aside');
-	__output.push(' class="sidebar"');
-	__output.push('>');
-
-	{
-		__output.push('Sidebar');
-	}
-
-	__output.push('</aside>');
-	_$_.pop_component();
-}
-
-function FooterStub(__output) {
-	_$_.push_component();
-	__output.push('<footer');
-	__output.push(' class="footer"');
-	__output.push('>');
-
-	{
-		__output.push('Footer');
-	}
-
-	__output.push('</footer>');
-	_$_.pop_component();
-}
-
-function DocsLayoutInner(__output, { children, editPath = '', nextLink = null }) {
-	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="layout"');
-	__output.push('>');
-
-	{
 		{
-			const comp = HeaderStub;
-			const args = [__output, {}];
-
-			comp(...args);
+			_$_.output_push('Header');
 		}
 
-		__output.push('<div');
-		__output.push(' class="docs-wrapper"');
-		__output.push('>');
+		_$_.output_push('</header>');
+	});
+
+	_$_.pop_component();
+}
+
+function SidebarStub() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<aside');
+		_$_.output_push(' class="sidebar"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Sidebar');
+		}
+
+		_$_.output_push('</aside>');
+	});
+
+	_$_.pop_component();
+}
+
+function FooterStub() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<footer');
+		_$_.output_push(' class="footer"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Footer');
+		}
+
+		_$_.output_push('</footer>');
+	});
+
+	_$_.pop_component();
+}
+
+function DocsLayoutInner({ children, editPath = '', nextLink = null }) {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="layout"');
+		_$_.output_push('>');
 
 		{
 			{
-				const comp = SidebarStub;
-				const args = [__output, {}];
+				const comp = HeaderStub;
+				const args = [{}];
 
 				comp(...args);
 			}
 
-			__output.push('<main');
-			__output.push(' class="docs-main"');
-			__output.push('>');
+			_$_.output_push('<div');
+			_$_.output_push(' class="docs-wrapper"');
+			_$_.output_push('>');
 
 			{
-				__output.push('<div');
-				__output.push(' class="docs-container"');
-				__output.push('>');
-
 				{
-					__output.push('<div');
-					__output.push(' class="content"');
-					__output.push('>');
+					const comp = SidebarStub;
+					const args = [{}];
 
-					{
-						__output.push('<div');
-						__output.push(' class="content-container"');
-						__output.push('>');
-
-						{
-							__output.push('<article');
-							__output.push(' class="doc-content"');
-							__output.push('>');
-
-							{
-								__output.push('<div');
-								__output.push('>');
-
-								{
-									_$_.render_expression(__output, children);
-								}
-
-								__output.push('</div>');
-							}
-
-							__output.push('</article>');
-							__output.push('<!--[-->');
-
-							if (editPath) {
-								__output.push('<div');
-								__output.push(' class="edit-link"');
-								__output.push('>');
-
-								{
-									__output.push('<a');
-									__output.push(' href="/edit"');
-									__output.push('>');
-
-									{
-										__output.push('Edit on GitHub');
-									}
-
-									__output.push('</a>');
-								}
-
-								__output.push('</div>');
-							}
-
-							__output.push('<!--]-->');
-							__output.push('<!--[-->');
-
-							if (nextLink) {
-								__output.push('<nav');
-								__output.push(' class="prev-next"');
-								__output.push('>');
-
-								{
-									__output.push('<a');
-									__output.push(_$_.attr('href', nextLink.href, false));
-									__output.push('>');
-
-									{
-										__output.push(_$_.escape(nextLink.text));
-									}
-
-									__output.push('</a>');
-								}
-
-								__output.push('</nav>');
-							}
-
-							__output.push('<!--]-->');
-
-							{
-								const comp = FooterStub;
-								const args = [__output, {}];
-
-								comp(...args);
-							}
-						}
-
-						__output.push('</div>');
-					}
-
-					__output.push('</div>');
+					comp(...args);
 				}
 
-				__output.push('</div>');
+				_$_.output_push('<main');
+				_$_.output_push(' class="docs-main"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<div');
+					_$_.output_push(' class="docs-container"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('<div');
+						_$_.output_push(' class="content"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('<div');
+							_$_.output_push(' class="content-container"');
+							_$_.output_push('>');
+
+							{
+								_$_.output_push('<article');
+								_$_.output_push(' class="doc-content"');
+								_$_.output_push('>');
+
+								{
+									_$_.output_push('<div');
+									_$_.output_push('>');
+
+									{
+										_$_.render_expression(children);
+									}
+
+									_$_.output_push('</div>');
+								}
+
+								_$_.output_push('</article>');
+								_$_.output_push('<!--[-->');
+
+								if (editPath) {
+									_$_.output_push('<div');
+									_$_.output_push(' class="edit-link"');
+									_$_.output_push('>');
+
+									{
+										_$_.output_push('<a');
+										_$_.output_push(' href="/edit"');
+										_$_.output_push('>');
+
+										{
+											_$_.output_push('Edit on GitHub');
+										}
+
+										_$_.output_push('</a>');
+									}
+
+									_$_.output_push('</div>');
+								}
+
+								_$_.output_push('<!--]-->');
+								_$_.output_push('<!--[-->');
+
+								if (nextLink) {
+									_$_.output_push('<nav');
+									_$_.output_push(' class="prev-next"');
+									_$_.output_push('>');
+
+									{
+										_$_.output_push('<a');
+										_$_.output_push(_$_.attr('href', nextLink.href, false));
+										_$_.output_push('>');
+
+										{
+											_$_.output_push(_$_.escape(nextLink.text));
+										}
+
+										_$_.output_push('</a>');
+									}
+
+									_$_.output_push('</nav>');
+								}
+
+								_$_.output_push('<!--]-->');
+
+								{
+									const comp = FooterStub;
+									const args = [{}];
+
+									comp(...args);
+								}
+							}
+
+							_$_.output_push('</div>');
+						}
+
+						_$_.output_push('</div>');
+					}
+
+					_$_.output_push('</div>');
+				}
+
+				_$_.output_push('</main>');
 			}
 
-			__output.push('</main>');
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function DocsLayoutWithData(__output) {
+export function DocsLayoutWithData() {
 	_$_.push_component();
 
 	const htmlContent = '<h1>Title</h1><p>Content</p>';
 
-	{
-		const comp = DocsLayoutInner;
+	_$_.regular_block(() => {
+		{
+			const comp = DocsLayoutInner;
 
-		const args = [
-			__output,
-			{
-				editPath: "docs/styling.md",
-				nextLink: { href: '/next', text: 'Next' },
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
-					__output.push('<div');
-					__output.push(' class="doc-content"');
-					__output.push('>');
+			const args = [
+				{
+					editPath: "docs/styling.md",
+					nextLink: { href: '/next', text: 'Next' },
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
+						_$_.output_push('<div');
+						_$_.output_push(' class="doc-content"');
+						_$_.output_push('>');
 
-					{
-						const html_value_19 = String(htmlContent ?? '');
+						{
+							const html_value_19 = String(htmlContent ?? '');
 
-						__output.push('<!--' + _$_.hash(html_value_19) + '-->');
-						__output.push(html_value_19);
-						__output.push('<!---->');
-					}
+							_$_.output_push('<!--' + _$_.hash(html_value_19) + '-->');
+							_$_.output_push(html_value_19);
+							_$_.output_push('<!---->');
+						}
 
-					__output.push('</div>');
-					_$_.pop_component();
-				})
-			}
-		];
+						_$_.output_push('</div>');
+						_$_.pop_component();
+					})
+				}
+			];
 
-		comp(...args);
-	}
+			comp(...args);
+		}
+	});
 
 	_$_.pop_component();
 }
 
-export function DocsLayoutWithoutData(__output) {
+export function DocsLayoutWithoutData() {
 	_$_.push_component();
 
 	const htmlContent = undefined;
 
-	{
-		const comp = DocsLayoutInner;
+	_$_.regular_block(() => {
+		{
+			const comp = DocsLayoutInner;
 
-		const args = [
-			__output,
-			{
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
-					__output.push('<div');
-					__output.push(' class="doc-content"');
-					__output.push('>');
+			const args = [
+				{
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
+						_$_.output_push('<div');
+						_$_.output_push(' class="doc-content"');
+						_$_.output_push('>');
 
-					{
-						const html_value_20 = String(htmlContent ?? '');
+						{
+							const html_value_20 = String(htmlContent ?? '');
 
-						__output.push('<!--' + _$_.hash(html_value_20) + '-->');
-						__output.push(html_value_20);
-						__output.push('<!---->');
-					}
+							_$_.output_push('<!--' + _$_.hash(html_value_20) + '-->');
+							_$_.output_push(html_value_20);
+							_$_.output_push('<!---->');
+						}
 
-					__output.push('</div>');
-					_$_.pop_component();
-				})
-			}
-		];
+						_$_.output_push('</div>');
+						_$_.pop_component();
+					})
+				}
+			];
 
-		comp(...args);
-	}
+			comp(...args);
+		}
+	});
 
 	_$_.pop_component();
 }
 
 function DocsLayoutExact(
-	__output,
 	{
 		children,
 		editPath = '',
@@ -1728,274 +1828,279 @@ function DocsLayoutExact(
 	}
 ) {
 	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="layout"');
-	__output.push('>');
 
-	{
-		{
-			const comp = HeaderStub;
-			const args = [__output, {}];
-
-			comp(...args);
-		}
-
-		__output.push('<div');
-		__output.push(' class="docs-wrapper"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="layout"');
+		_$_.output_push('>');
 
 		{
 			{
-				const comp = SidebarStub;
-				const args = [__output, {}];
+				const comp = HeaderStub;
+				const args = [{}];
 
 				comp(...args);
 			}
 
-			__output.push('<main');
-			__output.push(' class="docs-main"');
-			__output.push('>');
+			_$_.output_push('<div');
+			_$_.output_push(' class="docs-wrapper"');
+			_$_.output_push('>');
 
 			{
-				__output.push('<div');
-				__output.push(' class="docs-container"');
-				__output.push('>');
-
 				{
-					__output.push('<div');
-					__output.push(' class="content"');
-					__output.push('>');
+					const comp = SidebarStub;
+					const args = [{}];
 
-					{
-						__output.push('<div');
-						__output.push(' class="content-container"');
-						__output.push('>');
-
-						{
-							__output.push('<article');
-							__output.push(' class="doc-content"');
-							__output.push('>');
-
-							{
-								__output.push('<div');
-								__output.push('>');
-
-								{
-									_$_.render_expression(__output, children);
-								}
-
-								__output.push('</div>');
-							}
-
-							__output.push('</article>');
-							__output.push('<!--[-->');
-
-							if (editPath) {
-								__output.push('<div');
-								__output.push(' class="edit-link"');
-								__output.push('>');
-
-								{
-									__output.push('<a');
-									__output.push(_$_.attr('href', `/edit/${editPath}`, false));
-									__output.push('>');
-
-									{
-										__output.push('Edit on GitHub');
-									}
-
-									__output.push('</a>');
-								}
-
-								__output.push('</div>');
-							}
-
-							__output.push('<!--]-->');
-							__output.push('<!--[-->');
-
-							if (prevLink || nextLink) {
-								__output.push('<nav');
-								__output.push(' class="prev-next"');
-								__output.push('>');
-
-								{
-									__output.push('<!--[-->');
-
-									if (prevLink) {
-										__output.push('<a');
-										__output.push(_$_.attr('href', prevLink.href, false));
-										__output.push(' class="pager prev"');
-										__output.push('>');
-
-										{
-											__output.push('<span');
-											__output.push(' class="title"');
-											__output.push('>');
-
-											{
-												__output.push(_$_.escape(prevLink.text));
-											}
-
-											__output.push('</span>');
-										}
-
-										__output.push('</a>');
-									} else {
-										__output.push('<span');
-										__output.push('>');
-										__output.push('</span>');
-									}
-
-									__output.push('<!--]-->');
-									__output.push('<!--[-->');
-
-									if (nextLink) {
-										__output.push('<a');
-										__output.push(_$_.attr('href', nextLink.href, false));
-										__output.push(' class="pager next"');
-										__output.push('>');
-
-										{
-											__output.push('<span');
-											__output.push(' class="title"');
-											__output.push('>');
-
-											{
-												__output.push(_$_.escape(nextLink.text));
-											}
-
-											__output.push('</span>');
-										}
-
-										__output.push('</a>');
-									}
-
-									__output.push('<!--]-->');
-								}
-
-								__output.push('</nav>');
-							}
-
-							__output.push('<!--]-->');
-
-							{
-								const comp = FooterStub;
-								const args = [__output, {}];
-
-								comp(...args);
-							}
-						}
-
-						__output.push('</div>');
-					}
-
-					__output.push('</div>');
-					__output.push('<aside');
-					__output.push(' class="aside"');
-					__output.push('>');
-
-					{
-						__output.push('<!--[-->');
-
-						if (toc.length > 0) {
-							__output.push('<div');
-							__output.push(' class="aside-content"');
-							__output.push('>');
-
-							{
-								__output.push('<nav');
-								__output.push(' class="outline"');
-								__output.push('>');
-
-								{
-									__output.push('<!--[-->');
-
-									for (const item of toc) {
-										__output.push('<a');
-										__output.push(_$_.attr('href', item.href, false));
-										__output.push('>');
-
-										{
-											__output.push(_$_.escape(item.text));
-										}
-
-										__output.push('</a>');
-									}
-
-									__output.push('<!--]-->');
-								}
-
-								__output.push('</nav>');
-							}
-
-							__output.push('</div>');
-						}
-
-						__output.push('<!--]-->');
-					}
-
-					__output.push('</aside>');
+					comp(...args);
 				}
 
-				__output.push('</div>');
+				_$_.output_push('<main');
+				_$_.output_push(' class="docs-main"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<div');
+					_$_.output_push(' class="docs-container"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('<div');
+						_$_.output_push(' class="content"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('<div');
+							_$_.output_push(' class="content-container"');
+							_$_.output_push('>');
+
+							{
+								_$_.output_push('<article');
+								_$_.output_push(' class="doc-content"');
+								_$_.output_push('>');
+
+								{
+									_$_.output_push('<div');
+									_$_.output_push('>');
+
+									{
+										_$_.render_expression(children);
+									}
+
+									_$_.output_push('</div>');
+								}
+
+								_$_.output_push('</article>');
+								_$_.output_push('<!--[-->');
+
+								if (editPath) {
+									_$_.output_push('<div');
+									_$_.output_push(' class="edit-link"');
+									_$_.output_push('>');
+
+									{
+										_$_.output_push('<a');
+										_$_.output_push(_$_.attr('href', `/edit/${editPath}`, false));
+										_$_.output_push('>');
+
+										{
+											_$_.output_push('Edit on GitHub');
+										}
+
+										_$_.output_push('</a>');
+									}
+
+									_$_.output_push('</div>');
+								}
+
+								_$_.output_push('<!--]-->');
+								_$_.output_push('<!--[-->');
+
+								if (prevLink || nextLink) {
+									_$_.output_push('<nav');
+									_$_.output_push(' class="prev-next"');
+									_$_.output_push('>');
+
+									{
+										_$_.output_push('<!--[-->');
+
+										if (prevLink) {
+											_$_.output_push('<a');
+											_$_.output_push(_$_.attr('href', prevLink.href, false));
+											_$_.output_push(' class="pager prev"');
+											_$_.output_push('>');
+
+											{
+												_$_.output_push('<span');
+												_$_.output_push(' class="title"');
+												_$_.output_push('>');
+
+												{
+													_$_.output_push(_$_.escape(prevLink.text));
+												}
+
+												_$_.output_push('</span>');
+											}
+
+											_$_.output_push('</a>');
+										} else {
+											_$_.output_push('<span');
+											_$_.output_push('>');
+											_$_.output_push('</span>');
+										}
+
+										_$_.output_push('<!--]-->');
+										_$_.output_push('<!--[-->');
+
+										if (nextLink) {
+											_$_.output_push('<a');
+											_$_.output_push(_$_.attr('href', nextLink.href, false));
+											_$_.output_push(' class="pager next"');
+											_$_.output_push('>');
+
+											{
+												_$_.output_push('<span');
+												_$_.output_push(' class="title"');
+												_$_.output_push('>');
+
+												{
+													_$_.output_push(_$_.escape(nextLink.text));
+												}
+
+												_$_.output_push('</span>');
+											}
+
+											_$_.output_push('</a>');
+										}
+
+										_$_.output_push('<!--]-->');
+									}
+
+									_$_.output_push('</nav>');
+								}
+
+								_$_.output_push('<!--]-->');
+
+								{
+									const comp = FooterStub;
+									const args = [{}];
+
+									comp(...args);
+								}
+							}
+
+							_$_.output_push('</div>');
+						}
+
+						_$_.output_push('</div>');
+						_$_.output_push('<aside');
+						_$_.output_push(' class="aside"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('<!--[-->');
+
+							if (toc.length > 0) {
+								_$_.output_push('<div');
+								_$_.output_push(' class="aside-content"');
+								_$_.output_push('>');
+
+								{
+									_$_.output_push('<nav');
+									_$_.output_push(' class="outline"');
+									_$_.output_push('>');
+
+									{
+										_$_.output_push('<!--[-->');
+
+										for (const item of toc) {
+											_$_.output_push('<a');
+											_$_.output_push(_$_.attr('href', item.href, false));
+											_$_.output_push('>');
+
+											{
+												_$_.output_push(_$_.escape(item.text));
+											}
+
+											_$_.output_push('</a>');
+										}
+
+										_$_.output_push('<!--]-->');
+									}
+
+									_$_.output_push('</nav>');
+								}
+
+								_$_.output_push('</div>');
+							}
+
+							_$_.output_push('<!--]-->');
+						}
+
+						_$_.output_push('</aside>');
+					}
+
+					_$_.output_push('</div>');
+				}
+
+				_$_.output_push('</main>');
 			}
 
-			__output.push('</main>');
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function DocsLayoutExactWithData(__output) {
+export function DocsLayoutExactWithData() {
 	_$_.push_component();
 
 	const htmlContent = '<h1>Styling Guide</h1><p>Content</p>';
 
-	{
-		const comp = DocsLayoutExact;
+	_$_.regular_block(() => {
+		{
+			const comp = DocsLayoutExact;
 
-		const args = [
-			__output,
-			{
-				editPath: "docs/guide/styling.md",
-				prevLink: { href: '/prev', text: 'Previous' },
-				nextLink: { href: '/next', text: 'Next' },
-				toc: [
-					{ href: '#intro', text: 'Introduction' },
-					{ href: '#usage', text: 'Usage' }
-				],
+			const args = [
+				{
+					editPath: "docs/guide/styling.md",
+					prevLink: { href: '/prev', text: 'Previous' },
+					nextLink: { href: '/next', text: 'Next' },
+					toc: [
+						{ href: '#intro', text: 'Introduction' },
+						{ href: '#usage', text: 'Usage' }
+					],
 
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
-					__output.push('<div');
-					__output.push(' class="doc-content"');
-					__output.push('>');
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
+						_$_.output_push('<div');
+						_$_.output_push(' class="doc-content"');
+						_$_.output_push('>');
 
-					{
-						const html_value_21 = String(htmlContent ?? '');
+						{
+							const html_value_21 = String(htmlContent ?? '');
 
-						__output.push('<!--' + _$_.hash(html_value_21) + '-->');
-						__output.push(html_value_21);
-						__output.push('<!---->');
-					}
+							_$_.output_push('<!--' + _$_.hash(html_value_21) + '-->');
+							_$_.output_push(html_value_21);
+							_$_.output_push('<!---->');
+						}
 
-					__output.push('</div>');
-					_$_.pop_component();
-				})
-			}
-		];
+						_$_.output_push('</div>');
+						_$_.pop_component();
+					})
+				}
+			];
 
-		comp(...args);
-	}
+			comp(...args);
+		}
+	});
 
 	_$_.pop_component();
 }
 
-export function DocsLayoutExactWithoutData(__output) {
+export function DocsLayoutExactWithoutData() {
 	_$_.push_component();
 
 	const htmlContent = undefined;
@@ -2004,193 +2109,205 @@ export function DocsLayoutExactWithoutData(__output) {
 	const nextLink = undefined;
 	const toc = undefined;
 
-	{
-		const comp = DocsLayoutExact;
+	_$_.regular_block(() => {
+		{
+			const comp = DocsLayoutExact;
 
-		const args = [
-			__output,
-			{
-				editPath,
-				prevLink,
-				nextLink,
-				toc,
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
-					__output.push('<div');
-					__output.push(' class="doc-content"');
-					__output.push('>');
+			const args = [
+				{
+					editPath,
+					prevLink,
+					nextLink,
+					toc,
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
+						_$_.output_push('<div');
+						_$_.output_push(' class="doc-content"');
+						_$_.output_push('>');
 
-					{
-						const html_value_22 = String(htmlContent ?? '');
+						{
+							const html_value_22 = String(htmlContent ?? '');
 
-						__output.push('<!--' + _$_.hash(html_value_22) + '-->');
-						__output.push(html_value_22);
-						__output.push('<!---->');
-					}
+							_$_.output_push('<!--' + _$_.hash(html_value_22) + '-->');
+							_$_.output_push(html_value_22);
+							_$_.output_push('<!---->');
+						}
 
-					__output.push('</div>');
-					_$_.pop_component();
-				})
-			}
-		];
+						_$_.output_push('</div>');
+						_$_.pop_component();
+					})
+				}
+			];
 
-		comp(...args);
-	}
+			comp(...args);
+		}
+	});
 
 	_$_.pop_component();
 }
 
-export function TemplateWithHtmlContent(__output) {
+export function TemplateWithHtmlContent() {
 	_$_.push_component();
 
 	const data = { title: 'Test', value: 42 };
 
-	__output.push('<div');
-	__output.push('>');
-
-	{
-		__output.push('<template');
-		__output.push(' id="t1"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
 		{
-			const html_value_23 = String(JSON.stringify(data) ?? '');
+			_$_.output_push('<template');
+			_$_.output_push(' id="t1"');
+			_$_.output_push('>');
 
-			__output.push('<!--' + _$_.hash(html_value_23) + '-->');
-			__output.push(html_value_23);
-			__output.push('<!---->');
+			{
+				const html_value_23 = String(JSON.stringify(data) ?? '');
+
+				_$_.output_push('<!--' + _$_.hash(html_value_23) + '-->');
+				_$_.output_push(html_value_23);
+				_$_.output_push('<!---->');
+			}
+
+			_$_.output_push('</template>');
+			_$_.output_push('<p');
+			_$_.output_push(' class="content"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Main content');
+			}
+
+			_$_.output_push('</p>');
 		}
 
-		__output.push('</template>');
-		__output.push('<p');
-		__output.push(' class="content"');
-		__output.push('>');
+		_$_.output_push('</div>');
+	});
 
-		{
-			__output.push('Main content');
-		}
-
-		__output.push('</p>');
-	}
-
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function TemplateWithHtmlAndSiblings(__output) {
+export function TemplateWithHtmlAndSiblings() {
 	_$_.push_component();
 
 	const data = { name: 'Ripple', version: '1.0' };
 
-	__output.push('<div');
-	__output.push(' class="wrapper"');
-	__output.push('>');
-
-	{
-		__output.push('<h1');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="wrapper"');
+		_$_.output_push('>');
 
 		{
-			__output.push('Title');
+			_$_.output_push('<h1');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Title');
+			}
+
+			_$_.output_push('</h1>');
+			_$_.output_push('<template');
+			_$_.output_push(' id="data-template"');
+			_$_.output_push('>');
+
+			{
+				const html_value_24 = String(JSON.stringify(data) ?? '');
+
+				_$_.output_push('<!--' + _$_.hash(html_value_24) + '-->');
+				_$_.output_push(html_value_24);
+				_$_.output_push('<!---->');
+			}
+
+			_$_.output_push('</template>');
+			_$_.output_push('<p');
+			_$_.output_push(' class="after-template"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Content after template');
+			}
+
+			_$_.output_push('</p>');
 		}
 
-		__output.push('</h1>');
-		__output.push('<template');
-		__output.push(' id="data-template"');
-		__output.push('>');
+		_$_.output_push('</div>');
+	});
 
-		{
-			const html_value_24 = String(JSON.stringify(data) ?? '');
-
-			__output.push('<!--' + _$_.hash(html_value_24) + '-->');
-			__output.push(html_value_24);
-			__output.push('<!---->');
-		}
-
-		__output.push('</template>');
-		__output.push('<p');
-		__output.push(' class="after-template"');
-		__output.push('>');
-
-		{
-			__output.push('Content after template');
-		}
-
-		__output.push('</p>');
-	}
-
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-function LayoutWithTemplate(__output, { children, data }) {
+function LayoutWithTemplate({ children, data }) {
 	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="layout"');
-	__output.push('>');
 
-	{
-		__output.push('<template');
-		__output.push(' id="page-data"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="layout"');
+		_$_.output_push('>');
 
 		{
-			const html_value_25 = String(JSON.stringify(data) ?? '');
+			_$_.output_push('<template');
+			_$_.output_push(' id="page-data"');
+			_$_.output_push('>');
 
-			__output.push('<!--' + _$_.hash(html_value_25) + '-->');
-			__output.push(html_value_25);
-			__output.push('<!---->');
+			{
+				const html_value_25 = String(JSON.stringify(data) ?? '');
+
+				_$_.output_push('<!--' + _$_.hash(html_value_25) + '-->');
+				_$_.output_push(html_value_25);
+				_$_.output_push('<!---->');
+			}
+
+			_$_.output_push('</template>');
+			_$_.output_push('<main');
+			_$_.output_push('>');
+
+			{
+				_$_.render_expression(children);
+			}
+
+			_$_.output_push('</main>');
 		}
 
-		__output.push('</template>');
-		__output.push('<main');
-		__output.push('>');
+		_$_.output_push('</div>');
+	});
 
-		{
-			_$_.render_expression(__output, children);
-		}
-
-		__output.push('</main>');
-	}
-
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function NestedTemplateInLayout(__output) {
+export function NestedTemplateInLayout() {
 	_$_.push_component();
 
 	const doc = { title: 'Comparison', html: '<p>Content</p>' };
 
-	{
-		const comp = LayoutWithTemplate;
+	_$_.regular_block(() => {
+		{
+			const comp = LayoutWithTemplate;
 
-		const args = [
-			__output,
-			{
-				data: doc,
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
-					__output.push('<div');
-					__output.push(' class="doc-content"');
-					__output.push('>');
+			const args = [
+				{
+					data: doc,
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
+						_$_.output_push('<div');
+						_$_.output_push(' class="doc-content"');
+						_$_.output_push('>');
 
-					{
-						const html_value_26 = String(doc.html ?? '');
+						{
+							const html_value_26 = String(doc.html ?? '');
 
-						__output.push('<!--' + _$_.hash(html_value_26) + '-->');
-						__output.push(html_value_26);
-						__output.push('<!---->');
-					}
+							_$_.output_push('<!--' + _$_.hash(html_value_26) + '-->');
+							_$_.output_push(html_value_26);
+							_$_.output_push('<!---->');
+						}
 
-					__output.push('</div>');
-					_$_.pop_component();
-				})
-			}
-		];
+						_$_.output_push('</div>');
+						_$_.pop_component();
+					})
+				}
+			];
 
-		comp(...args);
-	}
+			comp(...args);
+		}
+	});
 
 	_$_.pop_component();
 }

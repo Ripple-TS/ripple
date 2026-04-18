@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import prettier from 'prettier';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { languages } from './index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -39,6 +40,16 @@ expect.extend({
 });
 
 describe('prettier-plugin', () => {
+	it('registers .tsrx as a supported file extension', () => {
+		const ripple_language = languages?.[0];
+
+		if (!ripple_language) {
+			throw new Error('Missing Ripple language metadata');
+		}
+
+		expect(ripple_language.extensions).toContain('.tsrx');
+	});
+
 	/**
 	 * @param {string} code
 	 * @param {import('prettier').Options} [options]
@@ -231,7 +242,7 @@ export default component Basic() {
       <p>{'This is a basic Ripple application template.'}</p>
       <p>
         {'Edit '}
-        <code>{'src/App.ripple'}</code>
+        <code>{'src/App.rsrx'}</code>
         {' to get started.'}
       </p>
     </div>
@@ -1352,7 +1363,7 @@ import { Portal as RipplePortal } from 'ripple';`;
 		});
 
 		it('should preserve blank lines between export statements and import statements or comments', async () => {
-			const expected = `export { handler } from './test.ripple';
+			const expected = `export { handler } from './test.rsrx';
 
 import { Portal as RipplePortal } from 'ripple';
 
@@ -1793,6 +1804,23 @@ files = [...(files ?? []), ...dt.files];`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should format catch block with reset param and type annotation', async () => {
+			const expected = `component Test() {
+  try {
+    const data = await fetchData();
+    <div>{data}</div>
+  } pending {
+    <div>{'Loading...'}</div>
+  } catch (error: Error, reset: () => void) {
+    <div>{error.message}</div>
+    <button onClick={reset}>{'Retry'}</button>
+  }
+}`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should preserve class component method', async () => {
 			const expected = `class TestClass {
   component something() {
@@ -1912,7 +1940,7 @@ files = [...(files ?? []), ...dt.files];`;
         // <div class="editor-dot yellow" />
         <div class="editor-dot green" />
       </div>
-      <div class="editor-tab">{'Examples.ripple'}</div>
+      <div class="editor-tab">{'Examples.rsrx'}</div>
     </div>
     <div class="editor-content">
       <pre class="editor-code">

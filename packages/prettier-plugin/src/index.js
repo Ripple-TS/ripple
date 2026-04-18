@@ -1,8 +1,8 @@
 /**
-@import * as acorn from 'ripple/types/acorn';
-@import * as AST from 'ripple/types/estree';
-@import * as ESTreeJSX from 'ripple/types/estree-jsx';
-@import { Doc, AstPath, ParserOptions } from 'prettier';
+ * @import * as acorn from '@tsrx/core/types/acorn';
+ * @import * as AST from '@tsrx/core/types/estree';
+ * @import * as ESTreeJSX from '@tsrx/core/types/estree-jsx';
+ * @import { Doc, AstPath, ParserOptions } from 'prettier';
  */
 
 /**
@@ -10,52 +10,15 @@
  * Uses an intersection of two signatures:
  * 1. (path) => Doc — compatible with CallCallback/MapCallback for path.call/path.map
  * 2. (path, args) => Doc — used when passing context args via lambdas
-@typedef {
-	((path: AstPath) => Doc) &
-	((path: AstPath, args: PrintArgs) => Doc)
-} PrintFn
-
-@typedef {
-	Partial<
-		Pick<ParserOptions,
-			| 'singleQuote'
-			| 'jsxSingleQuote'
-			| 'semi'
-			| 'trailingComma'
-			| 'useTabs'
-			| 'tabWidth'
-			| 'singleAttributePerLine'
-			| 'bracketSameLine'
-			| 'bracketSpacing'
-			| 'arrowParens'
-			| 'originalText'
-		>
-	> & {
-		locStart: (node: AST.NodeWithLocation) => number,
-		locEnd: (node: AST.NodeWithLocation) => number
-	}
-} RippleFormatOptions
-
-@typedef {{
-	isInAttribute?: boolean,
-	isInArray?: boolean,
-	allowInlineObject?: boolean,
-	isConditionalTest?: boolean,
-	isNestedConditional?: boolean,
-	suppressLeadingComments?: boolean,
-	suppressExpressionLeadingComments?: boolean,
-	isInlineContext?: boolean,
-	isStatement?: boolean,
-	isLogicalAndOr?: boolean,
-	allowShorthandProperty?: boolean,
-	isFirstChild?: boolean,
-	skipComponentLabel?: boolean,
-	noBreakInside?: boolean,
-	expandLastArg?: boolean,
-}} PrintArgs
+ *
+ * @typedef {((path: AstPath) => Doc) & ((path: AstPath, args: PrintArgs) => Doc)} PrintFn
  */
 
-import { parse } from 'ripple/compiler';
+/** @typedef {Partial<Pick<ParserOptions, 'singleQuote' | 'jsxSingleQuote' | 'semi' | 'trailingComma' | 'useTabs' | 'tabWidth' | 'singleAttributePerLine' | 'bracketSameLine' | 'bracketSpacing' | 'arrowParens' | 'originalText'>> & { locStart: (node: AST.NodeWithLocation) => number, locEnd: (node: AST.NodeWithLocation) => number }} RippleFormatOptions */
+
+/** @typedef {{ isInAttribute?: boolean, isInArray?: boolean, allowInlineObject?: boolean, isConditionalTest?: boolean, isNestedConditional?: boolean, suppressLeadingComments?: boolean, suppressExpressionLeadingComments?: boolean, isInlineContext?: boolean, isStatement?: boolean, isLogicalAndOr?: boolean, allowShorthandProperty?: boolean, isFirstChild?: boolean, skipComponentLabel?: boolean, noBreakInside?: boolean, expandLastArg?: boolean }} PrintArgs */
+
+import { parse } from '@tsrx/ripple';
 import { doc } from 'prettier';
 
 const { builders, utils } = doc;
@@ -80,7 +43,7 @@ export const languages = [
 	{
 		name: 'ripple',
 		parsers: ['ripple'],
-		extensions: ['.ripple'],
+		extensions: ['.ripple', '.rsrx', '.tsrx'],
 		vscodeLanguageIds: ['ripple'],
 	},
 ];
@@ -756,10 +719,10 @@ function printRippleNode(node, path, options, print, args) {
 	const suppressLeadingComments = args && args.suppressLeadingComments;
 	const suppressExpressionLeadingComments = args && args.suppressExpressionLeadingComments;
 
-	// For RippleExpression, Text, and Html nodes, don't add leading comments here - they should be handled
+	// For TSRXExpression, Text, and Html nodes, don't add leading comments here - they should be handled
 	// as separate children within the element, not as part of the expression
 	const shouldSkipLeadingComments =
-		node.type === 'RippleExpression' || node.type === 'Text' || node.type === 'Html';
+		node.type === 'TSRXExpression' || node.type === 'Text' || node.type === 'Html';
 
 	// Handle leading comments
 	if (node.leadingComments && !shouldSkipLeadingComments && !suppressLeadingComments) {
@@ -820,8 +783,9 @@ function printRippleNode(node, path, options, print, args) {
 
 	// Handle inner comments (for nodes with no children to attach to)
 	const innerCommentParts = [];
-	if (/** @type {AST.NodeWithMaybeComments} */ (node).innerComments) {
-		for (const comment of /** @type {AST.NodeWithMaybeComments} */ (node).innerComments) {
+	const innerComments = /** @type {AST.NodeWithMaybeComments} */ (node).innerComments;
+	if (innerComments) {
+		for (const comment of innerComments) {
 			if (comment.type === 'Line') {
 				innerCommentParts.push('//' + comment.value);
 			} else if (comment.type === 'Block') {
@@ -2224,7 +2188,7 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printAttribute(node, path, options, print);
 			break;
 
-		case 'RippleExpression': {
+		case 'TSRXExpression': {
 			const expressionDoc = suppressExpressionLeadingComments
 				? path.call((exprPath) => print(exprPath, { suppressLeadingComments: true }), 'expression')
 				: path.call(print, 'expression');
@@ -3774,6 +3738,10 @@ function printTryStatement(node, path, options, print) {
 		if (node.handler.param) {
 			parts.push(' (');
 			parts.push(path.call(print, 'handler', 'param'));
+			if (node.handler.resetParam) {
+				parts.push(', ');
+				parts.push(path.call(print, 'handler', 'resetParam'));
+			}
 			parts.push(')');
 		}
 		parts.push(' ');
@@ -3885,7 +3853,7 @@ function printPropertyDefinition(node, path, options, print) {
 function printMethodDefinition(node, path, options, print) {
 	/** @type {Doc[]} */
 	const parts = [];
-	const is_component = /** @type {AST.RippleMethodDefinition} */ (node).value?.type === 'Component';
+	const is_component = /** @type {AST.TSRXMethodDefinition} */ (node).value?.type === 'Component';
 
 	// Access modifiers (public, private, protected)
 	if (node.accessibility) {
@@ -4698,23 +4666,17 @@ function shouldAddBlankLine(currentNode, nextNode) {
 	// Determine the source node for whitespace checking
 	// If currentNode has trailing comments, use the last one
 	let sourceNode = currentNode;
-	if (
-		/** @type {AST.Node} */ (currentNode).trailingComments &&
-		/** @type {AST.Node} */ (currentNode).trailingComments.length > 0
-	) {
-		sourceNode = /** @type {AST.Node} */ (currentNode).trailingComments[
-			/** @type {AST.Node} */ (currentNode).trailingComments.length - 1
-		];
+	const currentTrailing = /** @type {AST.Node} */ (currentNode).trailingComments;
+	if (currentTrailing && currentTrailing.length > 0) {
+		sourceNode = currentTrailing[currentTrailing.length - 1];
 	}
 
 	// If nextNode has leading comments, check whitespace between source node and first comment
 	// Otherwise check whitespace between source node and next node
 	let targetNode = nextNode;
-	if (
-		/** @type {AST.Node} */ (nextNode).leadingComments &&
-		/** @type {AST.Node} */ (nextNode).leadingComments.length > 0
-	) {
-		targetNode = /** @type {AST.Node} */ (nextNode).leadingComments[0];
+	const nextLeading = /** @type {AST.Node} */ (nextNode).leadingComments;
+	if (nextLeading && nextLeading.length > 0) {
+		targetNode = nextLeading[0];
 	}
 
 	// Check if there was original whitespace between the nodes
@@ -4854,7 +4816,7 @@ function printProperty(node, path, options, print) {
 		return path.call(print, 'key');
 	}
 
-	const is_component = /** @type {AST.RippleProperty} */ (node).value?.type === 'Component';
+	const is_component = /** @type {AST.TSRXProperty} */ (node).value?.type === 'Component';
 
 	// Handle getter/setter methods
 	if (node.kind === 'get' || node.kind === 'set') {
@@ -5462,7 +5424,7 @@ function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
 
 	// Inline JSX expressions if they fit, but respect original multi-line formatting
 	// for non-literal expressions (e.g. {children} should stay multi-line if written that way)
-	if (firstChild.type === 'RippleExpression' || firstChild.type === 'JSXExpressionContainer') {
+	if (firstChild.type === 'TSRXExpression' || firstChild.type === 'JSXExpressionContainer') {
 		if (wasOriginallySingleLine(parentNode)) {
 			return true;
 		}
@@ -5987,12 +5949,13 @@ function printElement(element, path, options, print) {
 	// Collect comments that the parser attached to children but actually belong inside
 	// the opening tag (positionally before openingElement.end). These should be printed
 	// as leading comments before the appropriate attribute, not lifted to element-level.
+	/** @type {Set<AST.Comment>} */
 	const openingTagCommentsSet = new Set();
 	if (hasChildren && node.openingElement) {
 		const openingEnd = /** @type {AST.NodeWithLocation} */ (node.openingElement).end;
 		for (const child of node.children) {
 			if (
-				(child.type === 'RippleExpression' || child.type === 'Text' || child.type === 'Html') &&
+				(child.type === 'TSRXExpression' || child.type === 'Text' || child.type === 'Html') &&
 				Array.isArray(child.leadingComments)
 			) {
 				for (const comment of child.leadingComments) {
@@ -6162,7 +6125,7 @@ function printElement(element, path, options, print) {
 		}
 
 		const isTextLikeChild =
-			currentChild.type === 'RippleExpression' ||
+			currentChild.type === 'TSRXExpression' ||
 			currentChild.type === 'Text' ||
 			currentChild.type === 'Html';
 		const hasTextLeadingComments =
@@ -6262,10 +6225,10 @@ function printElement(element, path, options, print) {
 					: nextChild;
 			const whitespaceLinesCount = getBlankLinesBetweenNodes(currentChild, whitespaceTarget);
 			const isTextOrHtmlChild =
-				currentChild.type === 'RippleExpression' ||
+				currentChild.type === 'TSRXExpression' ||
 				currentChild.type === 'Text' ||
 				currentChild.type === 'Html' ||
-				nextChild.type === 'RippleExpression' ||
+				nextChild.type === 'TSRXExpression' ||
 				nextChild.type === 'Text' ||
 				nextChild.type === 'Html';
 

@@ -1,10 +1,21 @@
-import { get, set, untrack, track } from './internal/server/index.js';
+import { output_push, noop } from './internal/server/index.js';
 
 export { Context } from './internal/server/context.js';
-
-export { get, set, untrack, track };
-
-function noop() {}
+export {
+	get,
+	set,
+	untrack,
+	track,
+	track_async as trackAsync,
+	is_tracked_pending as trackPending,
+	peek_tracked as peek,
+} from './internal/server/index.js';
+export {
+	UNINITIALIZED,
+	DERIVED_UPDATED,
+	SUSPENSE_PENDING,
+	SUSPENSE_REJECTED,
+} from './internal/client/constants.js';
 
 export const effect = noop;
 export const createRefKey = noop;
@@ -61,13 +72,9 @@ export const bindOffsetHeight = noop;
  * Portal component noop for server-side rendering.
  * Portals are client-only and do not render on the server.
  * However, we need to output a marker comment so hydration can work correctly.
- * @param {any} output
- * @param {any} __
  */
-export function Portal(output, __) {
+export function Portal() {
 	// Portals are client-only, but we need to output a marker for hydration
 	// Output an empty HTML comment as a placeholder
-	if (output && typeof output.push === 'function') {
-		output.push('<!--portal-->');
-	}
+	output_push('<!--portal-->');
 }

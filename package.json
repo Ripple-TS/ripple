@@ -25,15 +25,16 @@
     "regenerate-textmate": "node scripts/regenerate-textmate.js",
     "copy-tree-sitter-queries": "node ./scripts/copy-tree-sitter-queries.js",
     "bench": "node benchmarks/tracked-values.js",
-    "typecheck": "tsc --noEmit -p packages/ripple/tsconfig.typecheck.json && tsc --noEmit -p packages/cli/tsconfig.json && tsc --noEmit -p packages/prettier-plugin/tsconfig.json"
+    "typecheck": "tsgo --noEmit -p packages/ripple/tsconfig.typecheck.json && tsgo --noEmit -p packages/tsrx/tsconfig.json && tsgo --noEmit -p packages/tsrx-ripple/tsconfig.json && tsgo --noEmit -p packages/cli/tsconfig.json && tsgo --noEmit -p packages/prettier-plugin/tsconfig.json"
   },
   "devDependencies": {
     "@changesets/changelog-github": "catalog:default",
     "@changesets/cli": "catalog:default",
-    "@types/node": "catalog:default",
     "@ripple-ts/eslint-plugin": "workspace:*",
     "@ripple-ts/prettier-plugin": "workspace:*",
     "@ripple-ts/vite-plugin": "workspace:*",
+    "@types/node": "catalog:default",
+    "@typescript/native-preview": "7.0.0-dev.20260417.1",
     "eslint": "catalog:default",
     "jsdom": "catalog:default",
     "linkedom": "catalog:default",
@@ -41,9 +42,9 @@
     "rulesync": "catalog:default",
     "source-map": "catalog:default",
     "type-fest": "catalog:default",
+    "typescript": "catalog:default",
     "vitest": "catalog:default",
-    "wait-on": "catalog:default",
-    "typescript": "catalog:default"
+    "wait-on": "catalog:default"
   },
   "dependencies": {
     "@types/eslint": "catalog:default"

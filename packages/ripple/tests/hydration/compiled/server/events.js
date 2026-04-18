@@ -3,125 +3,134 @@ import * as _$_ from 'ripple/internal/server';
 
 import { track } from 'ripple/server';
 
-export function ClickCounter(__output) {
+export function ClickCounter() {
 	_$_.push_component();
 
 	let lazy = _$_.track(0);
 
-	__output.push('<div');
-	__output.push('>');
-
-	{
-		__output.push('<button');
-		__output.push(' class="increment"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
 		{
-			__output.push('Increment');
+			_$_.output_push('<button');
+			_$_.output_push(' class="increment"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Increment');
+			}
+
+			_$_.output_push('</button>');
+			_$_.output_push('<span');
+			_$_.output_push(' class="count"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push(_$_.escape(_$_.get(lazy)));
+			}
+
+			_$_.output_push('</span>');
 		}
 
-		__output.push('</button>');
-		__output.push('<span');
-		__output.push(' class="count"');
-		__output.push('>');
+		_$_.output_push('</div>');
+	});
 
-		{
-			__output.push(_$_.escape(_$_.get(lazy)));
-		}
-
-		__output.push('</span>');
-	}
-
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function IncrementDecrement(__output) {
+export function IncrementDecrement() {
 	_$_.push_component();
 
 	let lazy_1 = _$_.track(0);
 
-	__output.push('<div');
-	__output.push('>');
-
-	{
-		__output.push('<button');
-		__output.push(' class="decrement"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
 		{
-			__output.push('-');
+			_$_.output_push('<button');
+			_$_.output_push(' class="decrement"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('-');
+			}
+
+			_$_.output_push('</button>');
+			_$_.output_push('<span');
+			_$_.output_push(' class="count"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push(_$_.escape(_$_.get(lazy_1)));
+			}
+
+			_$_.output_push('</span>');
+			_$_.output_push('<button');
+			_$_.output_push(' class="increment"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('+');
+			}
+
+			_$_.output_push('</button>');
 		}
 
-		__output.push('</button>');
-		__output.push('<span');
-		__output.push(' class="count"');
-		__output.push('>');
+		_$_.output_push('</div>');
+	});
 
-		{
-			__output.push(_$_.escape(_$_.get(lazy_1)));
-		}
-
-		__output.push('</span>');
-		__output.push('<button');
-		__output.push(' class="increment"');
-		__output.push('>');
-
-		{
-			__output.push('+');
-		}
-
-		__output.push('</button>');
-	}
-
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function MultipleEvents(__output) {
+export function MultipleEvents() {
 	_$_.push_component();
 
 	let lazy_2 = _$_.track(0);
 	let lazy_3 = _$_.track(0);
 
-	__output.push('<div');
-	__output.push('>');
-
-	{
-		__output.push('<button');
-		__output.push(' class="target"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
 		{
-			__output.push('Target');
+			_$_.output_push('<button');
+			_$_.output_push(' class="target"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Target');
+			}
+
+			_$_.output_push('</button>');
+			_$_.output_push('<span');
+			_$_.output_push(' class="clicks"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push(_$_.escape(_$_.get(lazy_2)));
+			}
+
+			_$_.output_push('</span>');
+			_$_.output_push('<span');
+			_$_.output_push(' class="hovers"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push(_$_.escape(_$_.get(lazy_3)));
+			}
+
+			_$_.output_push('</span>');
 		}
 
-		__output.push('</button>');
-		__output.push('<span');
-		__output.push(' class="clicks"');
-		__output.push('>');
+		_$_.output_push('</div>');
+	});
 
-		{
-			__output.push(_$_.escape(_$_.get(lazy_2)));
-		}
-
-		__output.push('</span>');
-		__output.push('<span');
-		__output.push(' class="hovers"');
-		__output.push('>');
-
-		{
-			__output.push(_$_.escape(_$_.get(lazy_3)));
-		}
-
-		__output.push('</span>');
-	}
-
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function MultiStateUpdate(__output) {
+export function MultiStateUpdate() {
 	_$_.push_component();
 
 	let lazy_4 = _$_.track(0);
@@ -132,117 +141,129 @@ export function MultiStateUpdate(__output) {
 		_$_.set(lazy_5, 'increment');
 	};
 
-	__output.push('<div');
-	__output.push('>');
-
-	{
-		__output.push('<button');
-		__output.push(' class="btn"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
 		{
-			__output.push('Click');
+			_$_.output_push('<button');
+			_$_.output_push(' class="btn"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Click');
+			}
+
+			_$_.output_push('</button>');
+			_$_.output_push('<span');
+			_$_.output_push(' class="count"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push(_$_.escape(_$_.get(lazy_4)));
+			}
+
+			_$_.output_push('</span>');
+			_$_.output_push('<span');
+			_$_.output_push(' class="action"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push(_$_.escape(_$_.get(lazy_5)));
+			}
+
+			_$_.output_push('</span>');
 		}
 
-		__output.push('</button>');
-		__output.push('<span');
-		__output.push(' class="count"');
-		__output.push('>');
+		_$_.output_push('</div>');
+	});
 
-		{
-			__output.push(_$_.escape(_$_.get(lazy_4)));
-		}
-
-		__output.push('</span>');
-		__output.push('<span');
-		__output.push(' class="action"');
-		__output.push('>');
-
-		{
-			__output.push(_$_.escape(_$_.get(lazy_5)));
-		}
-
-		__output.push('</span>');
-	}
-
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function ToggleButton(__output) {
+export function ToggleButton() {
 	_$_.push_component();
 
 	let lazy_6 = _$_.track(false);
 
-	__output.push('<div');
-	__output.push('>');
-
-	{
-		__output.push('<button');
-		__output.push(' class="toggle"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
 		{
-			__output.push(_$_.escape(_$_.get(lazy_6) ? 'ON' : 'OFF'));
+			_$_.output_push('<button');
+			_$_.output_push(' class="toggle"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push(_$_.escape(_$_.get(lazy_6) ? 'ON' : 'OFF'));
+			}
+
+			_$_.output_push('</button>');
 		}
 
-		__output.push('</button>');
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function ChildButton(__output, props) {
+export function ChildButton(props) {
 	_$_.push_component();
-	__output.push('<button');
-	__output.push(' class="child-btn"');
-	__output.push('>');
 
-	{
-		__output.push(_$_.escape(props.label));
-	}
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="child-btn"');
+		_$_.output_push('>');
 
-	__output.push('</button>');
+		{
+			_$_.output_push(_$_.escape(props.label));
+		}
+
+		_$_.output_push('</button>');
+	});
+
 	_$_.pop_component();
 }
 
-export function ParentWithChildButton(__output) {
+export function ParentWithChildButton() {
 	_$_.push_component();
 
 	let lazy_7 = _$_.track(0);
 
-	__output.push('<div');
-	__output.push('>');
-
-	{
-		{
-			const comp = ChildButton;
-
-			const args = [
-				__output,
-				{
-					onClick: () => {
-						_$_.update(lazy_7);
-					},
-					label: "Click me"
-				}
-			];
-
-			comp(...args);
-		}
-
-		__output.push('<span');
-		__output.push(' class="count"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
 		{
-			__output.push(_$_.escape(_$_.get(lazy_7)));
+			{
+				const comp = ChildButton;
+
+				const args = [
+					{
+						onClick: () => {
+							_$_.update(lazy_7);
+						},
+						label: "Click me"
+					}
+				];
+
+				comp(...args);
+			}
+
+			_$_.output_push('<span');
+			_$_.output_push(' class="count"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push(_$_.escape(_$_.get(lazy_7)));
+			}
+
+			_$_.output_push('</span>');
 		}
 
-		__output.push('</span>');
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('</div>');
 	_$_.pop_component();
 }

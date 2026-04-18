@@ -1,303 +1,345 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-import { track } from 'ripple/server';
+import { track, trackAsync } from 'ripple/server';
 
-export async function MixedControlFlowStatic(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
+export function MixedControlFlowStatic() {
+	_$_.push_component();
 
-		const rows = [
-			{ id: 1, kind: 'a', enabled: true },
-			{ id: 2, kind: 'b', enabled: true },
-			{ id: 3, kind: 'a', enabled: false }
-		];
+	const rows = [
+		{ id: 1, kind: 'a', enabled: true },
+		{ id: 2, kind: 'b', enabled: true },
+		{ id: 3, kind: 'a', enabled: false }
+	];
 
-		__output.push('<section');
-		__output.push(' class="mixed-static"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<section');
+		_$_.output_push(' class="mixed-static"');
+		_$_.output_push('>');
 
 		{
-			__output.push('<!--[-->');
+			_$_.output_push('<!--[-->');
 
 			for (const row of rows) {
-				__output.push('<!--[-->');
+				_$_.output_push('<!--[-->');
 
 				if (row.enabled) {
-					__output.push('<!--[-->');
+					_$_.output_push('<!--[-->');
 
 					switch (row.kind) {
 						case 'a':
-							__output.push('<!--[-->');
-							var __pending_pos = __output.body.length;
-							__output.push('<div');
-							__output.push(_$_.attr('class', `pending pending-${row.id}`));
-							__output.push('>');
-							{
-								__output.push('pending a');
-							}
-							__output.push('</div>');
-							await _$_.async(async () => {
-								__output.body = __output.body.slice(0, __pending_pos);
-								__output.push('<div');
-								__output.push(_$_.attr('class', `row row-${row.id} kind-a`));
-								__output.push('>');
+							_$_.try_block(
+								() => {
+									_$_.output_push('<!--[-->');
+									_$_.output_push('<div');
+									_$_.output_push(_$_.attr('class', `row row-${row.id} kind-a`));
+									_$_.output_push('>');
 
-								{
-									__output.push(_$_.escape(`A-${row.id}`));
+									{
+										_$_.output_push(_$_.escape(`A-${row.id}`));
+									}
+
+									_$_.output_push('</div>');
+									_$_.output_push('<!--]-->');
+								},
+								null,
+								() => {
+									_$_.output_push('<!--[-->');
+									_$_.output_push('<div');
+									_$_.output_push(_$_.attr('class', `pending pending-${row.id}`));
+									_$_.output_push('>');
+
+									{
+										_$_.output_push('pending a');
+									}
+
+									_$_.output_push('</div>');
+									_$_.output_push('<!--]-->');
 								}
-
-								__output.push('</div>');
-							});
-							__output.push('<!--]-->');
+							);
 							break;
 
 						default:
-							__output.push('<!--[-->');
-							var __pending_pos_1 = __output.body.length;
-							__output.push('<div');
-							__output.push(_$_.attr('class', `pending pending-${row.id}`));
-							__output.push('>');
-							{
-								__output.push('pending b');
-							}
-							__output.push('</div>');
-							await _$_.async(async () => {
-								__output.body = __output.body.slice(0, __pending_pos_1);
-								__output.push('<div');
-								__output.push(_$_.attr('class', `row row-${row.id} kind-b`));
-								__output.push('>');
+							_$_.try_block(
+								() => {
+									_$_.output_push('<!--[-->');
+									_$_.output_push('<div');
+									_$_.output_push(_$_.attr('class', `row row-${row.id} kind-b`));
+									_$_.output_push('>');
 
-								{
-									__output.push(_$_.escape(`B-${row.id}`));
+									{
+										_$_.output_push(_$_.escape(`B-${row.id}`));
+									}
+
+									_$_.output_push('</div>');
+									_$_.output_push('<!--]-->');
+								},
+								null,
+								() => {
+									_$_.output_push('<!--[-->');
+									_$_.output_push('<div');
+									_$_.output_push(_$_.attr('class', `pending pending-${row.id}`));
+									_$_.output_push('>');
+
+									{
+										_$_.output_push('pending b');
+									}
+
+									_$_.output_push('</div>');
+									_$_.output_push('<!--]-->');
 								}
-
-								__output.push('</div>');
-							});
-							__output.push('<!--]-->');
+							);
 					}
 
-					__output.push('<!--]-->');
+					_$_.output_push('<!--]-->');
 				}
 
-				__output.push('<!--]-->');
+				_$_.output_push('<!--]-->');
 			}
 
-			__output.push('<!--]-->');
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('</section>');
-		_$_.pop_component();
+		_$_.output_push('</section>');
 	});
+
+	_$_.pop_component();
 }
 
-MixedControlFlowStatic.async = true;
+export function MixedControlFlowReactive() {
+	_$_.push_component();
 
-export async function MixedControlFlowReactive(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
+	let lazy = _$_.track(true);
+	let lazy_1 = _$_.track('a');
+	let lazy_2 = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }]);
 
-		let lazy = _$_.track(true);
-		let lazy_1 = _$_.track('a');
-		let lazy_2 = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }]);
-
-		__output.push('<button');
-		__output.push(' class="toggle-show"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="toggle-show"');
+		_$_.output_push('>');
 
 		{
-			__output.push('Toggle Show');
+			_$_.output_push('Toggle Show');
 		}
 
-		__output.push('</button>');
-		__output.push('<button');
-		__output.push(' class="toggle-mode"');
-		__output.push('>');
+		_$_.output_push('</button>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="toggle-mode"');
+		_$_.output_push('>');
 
 		{
-			__output.push('Toggle Mode');
+			_$_.output_push('Toggle Mode');
 		}
 
-		__output.push('</button>');
-		__output.push('<button');
-		__output.push(' class="add-item"');
-		__output.push('>');
+		_$_.output_push('</button>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="add-item"');
+		_$_.output_push('>');
 
 		{
-			__output.push('Add Item');
+			_$_.output_push('Add Item');
 		}
 
-		__output.push('</button>');
-		__output.push('<!--[-->');
+		_$_.output_push('</button>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
 		if (_$_.get(lazy)) {
-			__output.push('<div');
-			__output.push(' class="mixed-reactive-list"');
-			__output.push('>');
+			_$_.output_push('<div');
+			_$_.output_push(' class="mixed-reactive-list"');
+			_$_.output_push('>');
 
 			{
-				__output.push('<!--[-->');
+				_$_.output_push('<!--[-->');
 
 				for (const item of _$_.get(lazy_2)) {
-					__output.push('<!--[-->');
+					_$_.output_push('<!--[-->');
 
 					switch (_$_.get(lazy_1)) {
 						case 'a':
-							__output.push('<!--[-->');
-							var __pending_pos_2 = __output.body.length;
-							__output.push('<p');
-							__output.push(' class="pending"');
-							__output.push('>');
-							{
-								__output.push('pending a');
-							}
-							__output.push('</p>');
-							await _$_.async(async () => {
-								__output.body = __output.body.slice(0, __pending_pos_2);
-								__output.push('<p');
-								__output.push(_$_.attr('class', `item item-${item.id}`));
-								__output.push('>');
+							_$_.try_block(
+								() => {
+									_$_.output_push('<!--[-->');
+									_$_.output_push('<p');
+									_$_.output_push(_$_.attr('class', `item item-${item.id}`));
+									_$_.output_push('>');
 
-								{
-									__output.push(_$_.escape(`A:${item.label}`));
+									{
+										_$_.output_push(_$_.escape(`A:${item.label}`));
+									}
+
+									_$_.output_push('</p>');
+									_$_.output_push('<!--]-->');
+								},
+								null,
+								() => {
+									_$_.output_push('<!--[-->');
+									_$_.output_push('<p');
+									_$_.output_push(' class="pending"');
+									_$_.output_push('>');
+
+									{
+										_$_.output_push('pending a');
+									}
+
+									_$_.output_push('</p>');
+									_$_.output_push('<!--]-->');
 								}
-
-								__output.push('</p>');
-							});
-							__output.push('<!--]-->');
+							);
 							break;
 
 						default:
-							__output.push('<!--[-->');
-							var __pending_pos_3 = __output.body.length;
-							__output.push('<p');
-							__output.push(' class="pending"');
-							__output.push('>');
-							{
-								__output.push('pending b');
-							}
-							__output.push('</p>');
-							await _$_.async(async () => {
-								__output.body = __output.body.slice(0, __pending_pos_3);
-								__output.push('<p');
-								__output.push(_$_.attr('class', `item item-${item.id}`));
-								__output.push('>');
+							_$_.try_block(
+								() => {
+									_$_.output_push('<!--[-->');
+									_$_.output_push('<p');
+									_$_.output_push(_$_.attr('class', `item item-${item.id}`));
+									_$_.output_push('>');
 
-								{
-									__output.push(_$_.escape(`B:${item.label}`));
+									{
+										_$_.output_push(_$_.escape(`B:${item.label}`));
+									}
+
+									_$_.output_push('</p>');
+									_$_.output_push('<!--]-->');
+								},
+								null,
+								() => {
+									_$_.output_push('<!--[-->');
+									_$_.output_push('<p');
+									_$_.output_push(' class="pending"');
+									_$_.output_push('>');
+
+									{
+										_$_.output_push('pending b');
+									}
+
+									_$_.output_push('</p>');
+									_$_.output_push('<!--]-->');
 								}
-
-								__output.push('</p>');
-							});
-							__output.push('<!--]-->');
+							);
 					}
 
-					__output.push('<!--]-->');
+					_$_.output_push('<!--]-->');
 				}
 
-				__output.push('<!--]-->');
+				_$_.output_push('<!--]-->');
 			}
 
-			__output.push('</div>');
+			_$_.output_push('</div>');
 		}
 
-		__output.push('<!--]-->');
-		_$_.pop_component();
+		_$_.output_push('<!--]-->');
 	});
+
+	_$_.pop_component();
 }
 
-MixedControlFlowReactive.async = true;
+export function MixedControlFlowAsyncPending() {
+	_$_.push_component();
 
-export async function MixedControlFlowAsyncPending(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
+	const rows = [1, 2];
+	const state = 'slow';
 
-		const rows = [1, 2];
-		const state = 'slow';
-
-		__output.push('<div');
-		__output.push(' class="before"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="before"');
+		_$_.output_push('>');
 
 		{
-			__output.push('before');
+			_$_.output_push('before');
 		}
 
-		__output.push('</div>');
-		__output.push('<!--[-->');
+		_$_.output_push('</div>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
 		for (const row of rows) {
-			__output.push('<!--[-->');
+			_$_.output_push('<!--[-->');
 
 			if (row === 1) {
-				__output.push('<!--[-->');
+				_$_.output_push('<!--[-->');
 
 				switch (state) {
 					case 'slow':
-						__output.push('<!--[-->');
-						var __pending_pos_4 = __output.body.length;
-						__output.push('<div');
-						__output.push(_$_.attr('class', `pending-row pending-row-${row}`));
-						__output.push('>');
-						{
-							__output.push(_$_.escape(`pending ${row}`));
-						}
-						__output.push('</div>');
-						await _$_.async(async () => {
-							__output.body = __output.body.slice(0, __pending_pos_4);
+						_$_.try_block(
+							() => {
+								_$_.output_push('<!--[-->');
 
-							{
-								const comp = AsyncRow;
-								const args = [__output, { label: `row-${row}` }];
+								{
+									const comp = AsyncRow;
+									const args = [{ label: `row-${row}` }];
 
-								await comp(...args);
+									comp(...args);
+								}
+
+								_$_.output_push('<!--]-->');
+							},
+							null,
+							() => {
+								_$_.output_push('<!--[-->');
+								_$_.output_push('<div');
+								_$_.output_push(_$_.attr('class', `pending-row pending-row-${row}`));
+								_$_.output_push('>');
+
+								{
+									_$_.output_push(_$_.escape(`pending ${row}`));
+								}
+
+								_$_.output_push('</div>');
+								_$_.output_push('<!--]-->');
 							}
-						});
-						__output.push('<!--]-->');
+						);
 						break;
 
 					default:
-						__output.push('<div');
-						__output.push(' class="unexpected"');
-						__output.push('>');
+						_$_.output_push('<div');
+						_$_.output_push(' class="unexpected"');
+						_$_.output_push('>');
 						{
-							__output.push('unexpected');
+							_$_.output_push('unexpected');
 						}
-						__output.push('</div>');
+						_$_.output_push('</div>');
 				}
 
-				__output.push('<!--]-->');
+				_$_.output_push('<!--]-->');
 			}
 
-			__output.push('<!--]-->');
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('<!--]-->');
-		_$_.pop_component();
+		_$_.output_push('<!--]-->');
 	});
+
+	_$_.pop_component();
 }
 
-MixedControlFlowAsyncPending.async = true;
+function AsyncRow({ label }) {
+	_$_.push_component();
 
-async function AsyncRow(__output, { label }) {
-	return _$_.async(async () => {
-		_$_.push_component();
+	let lazy_3 = _$_.track_async(() => Promise.resolve(label));
 
-		let value = await Promise.resolve(label);
-
-		if (_$_.aborted()) return;
-
-		__output.push('<div');
-		__output.push(' class="resolved-row"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="resolved-row"');
+		_$_.output_push('>');
 
 		{
-			__output.push(_$_.escape(value));
+			_$_.output_push(_$_.escape(_$_.get(lazy_3)));
 		}
 
-		__output.push('</div>');
-		_$_.pop_component();
+		_$_.output_push('</div>');
 	});
-}
 
-AsyncRow.async = true;
+	_$_.pop_component();
+}

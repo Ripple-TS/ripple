@@ -9,7 +9,7 @@ We'll start with this code snippet, and break it down step by step.
 ```js
 import { mount } from 'ripple';
 // @ts-expect-error: known issue, we're working on it
-import { App } from './App.ripple';
+import { App } from './App.tsrx';
 
 mount(App, {
 	target: document.getElementById('app')!,
@@ -57,7 +57,7 @@ Ripple provides the `hydrate()` function for this purpose:
 
 ```js
 import { hydrate } from 'ripple';
-import { App } from './App.ripple';
+import { App } from './App.tsrx';
 
 hydrate(App, {
   target: document.getElementById('app')!,
@@ -78,7 +78,7 @@ On the server, use the `render()` function from `ripple/server` to generate HTML
 ```js
 // server.js
 import { render } from 'ripple/server'
-import { App } from './App.ripple'
+import { App } from './App.tsrx'
 
 const html = render(App, {
 	props: { title: 'Hello world!' },
@@ -101,7 +101,7 @@ Then on the client, hydrate the server-rendered HTML:
 ```js
 // client.js
 import { hydrate } from 'ripple';
-import { App } from './App.ripple';
+import { App } from './App.tsrx';
 
 hydrate(App, {
   target: document.getElementById('app')!,

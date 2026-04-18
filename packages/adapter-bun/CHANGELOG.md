@@ -1,5 +1,54 @@
 # @ripple-ts/adapter-bun
 
+## 0.3.17
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.3.17
+
+## 0.3.16
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.3.16
+
+## 0.3.15
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.3.15
+
+## 0.3.14
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.3.14
+
+## 0.3.13
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.3.13
+
+## 0.3.12
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.3.12
+
+## 0.3.11
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.3.11
+
 ## 0.3.10
 
 ### Patch Changes

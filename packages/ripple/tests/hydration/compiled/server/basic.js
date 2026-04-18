@@ -3,610 +3,732 @@ import * as _$_ from 'ripple/internal/server';
 
 import { track } from 'ripple/server';
 
-export function StaticText(__output) {
+export function StaticText() {
 	_$_.push_component();
-	__output.push('<div');
-	__output.push('>');
 
-	{
-		__output.push('Hello World');
-	}
-
-	__output.push('</div>');
-	_$_.pop_component();
-}
-
-export function MultipleElements(__output) {
-	_$_.push_component();
-	__output.push('<h1');
-	__output.push('>');
-
-	{
-		__output.push('Title');
-	}
-
-	__output.push('</h1>');
-	__output.push('<p');
-	__output.push('>');
-
-	{
-		__output.push('Paragraph text');
-	}
-
-	__output.push('</p>');
-	__output.push('<span');
-	__output.push('>');
-
-	{
-		__output.push('Span text');
-	}
-
-	__output.push('</span>');
-	_$_.pop_component();
-}
-
-export function NestedElements(__output) {
-	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="outer"');
-	__output.push('>');
-
-	{
-		__output.push('<div');
-		__output.push(' class="inner"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
 		{
-			__output.push('<span');
-			__output.push('>');
-
-			{
-				__output.push('Nested content');
-			}
-
-			__output.push('</span>');
+			_$_.output_push('Hello World');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function WithAttributes(__output) {
+export function MultipleElements() {
 	_$_.push_component();
-	__output.push('<input');
-	__output.push(' type="text"');
-	__output.push(' placeholder="Enter text"');
-	__output.push(' disabled');
-	__output.push(' />');
-	__output.push('<a');
-	__output.push(' href="/link"');
-	__output.push(' target="_blank"');
-	__output.push('>');
 
-	{
-		__output.push('Link');
-	}
+	_$_.regular_block(() => {
+		_$_.output_push('<h1');
+		_$_.output_push('>');
 
-	__output.push('</a>');
-	_$_.pop_component();
-}
-
-export function ChildComponent(__output) {
-	_$_.push_component();
-	__output.push('<span');
-	__output.push(' class="child"');
-	__output.push('>');
-
-	{
-		__output.push('Child content');
-	}
-
-	__output.push('</span>');
-	_$_.pop_component();
-}
-
-export function ParentWithChild(__output) {
-	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="parent"');
-	__output.push('>');
-
-	{
 		{
-			const comp = ChildComponent;
-			const args = [__output, {}];
+			_$_.output_push('Title');
+		}
+
+		_$_.output_push('</h1>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<p');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Paragraph text');
+		}
+
+		_$_.output_push('</p>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<span');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Span text');
+		}
+
+		_$_.output_push('</span>');
+	});
+
+	_$_.pop_component();
+}
+
+export function NestedElements() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="outer"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('<div');
+			_$_.output_push(' class="inner"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<span');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('Nested content');
+				}
+
+				_$_.output_push('</span>');
+			}
+
+			_$_.output_push('</div>');
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+export function WithAttributes() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<input');
+		_$_.output_push(' type="text"');
+		_$_.output_push(' placeholder="Enter text"');
+		_$_.output_push(' disabled');
+		_$_.output_push(' />');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<a');
+		_$_.output_push(' href="/link"');
+		_$_.output_push(' target="_blank"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Link');
+		}
+
+		_$_.output_push('</a>');
+	});
+
+	_$_.pop_component();
+}
+
+export function ChildComponent() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<span');
+		_$_.output_push(' class="child"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Child content');
+		}
+
+		_$_.output_push('</span>');
+	});
+
+	_$_.pop_component();
+}
+
+export function ParentWithChild() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="parent"');
+		_$_.output_push('>');
+
+		{
+			{
+				const comp = ChildComponent;
+				const args = [{}];
+
+				comp(...args);
+			}
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+export function FirstSibling() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="first"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('First');
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+export function SecondSibling() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="second"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Second');
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+export function SiblingComponents() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		{
+			const comp = FirstSibling;
+			const args = [{}];
 
 			comp(...args);
 		}
-	}
+	});
 
-	__output.push('</div>');
+	_$_.regular_block(() => {
+		{
+			const comp = SecondSibling;
+			const args = [{}];
+
+			comp(...args);
+		}
+	});
+
 	_$_.pop_component();
 }
 
-export function FirstSibling(__output) {
-	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="first"');
-	__output.push('>');
-
-	{
-		__output.push('First');
-	}
-
-	__output.push('</div>');
-	_$_.pop_component();
-}
-
-export function SecondSibling(__output) {
-	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="second"');
-	__output.push('>');
-
-	{
-		__output.push('Second');
-	}
-
-	__output.push('</div>');
-	_$_.pop_component();
-}
-
-export function SiblingComponents(__output) {
+export function Greeting(props) {
 	_$_.push_component();
 
-	{
-		const comp = FirstSibling;
-		const args = [__output, {}];
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
-		comp(...args);
-	}
+		{
+			_$_.output_push(_$_.escape('Hello ' + String(props.name)));
+		}
 
-	{
-		const comp = SecondSibling;
-		const args = [__output, {}];
-
-		comp(...args);
-	}
+		_$_.output_push('</div>');
+	});
 
 	_$_.pop_component();
 }
 
-export function Greeting(__output, props) {
-	_$_.push_component();
-	__output.push('<div');
-	__output.push('>');
-
-	{
-		__output.push(_$_.escape('Hello ' + String(props.name)));
-	}
-
-	__output.push('</div>');
-	_$_.pop_component();
-}
-
-export function WithGreeting(__output) {
+export function WithGreeting() {
 	_$_.push_component();
 
-	{
-		const comp = Greeting;
-		const args = [__output, { name: "World" }];
+	_$_.regular_block(() => {
+		{
+			const comp = Greeting;
+			const args = [{ name: "World" }];
 
-		comp(...args);
-	}
+			comp(...args);
+		}
+	});
 
 	_$_.pop_component();
 }
 
-export function ExpressionContent(__output) {
+export function ExpressionContent() {
 	_$_.push_component();
 
 	const value = 42;
 	const label = 'computed';
 
-	__output.push('<div');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
-	{
-		__output.push(_$_.escape(value));
-	}
+		{
+			_$_.output_push(_$_.escape(value));
+		}
 
-	__output.push('</div>');
-	__output.push('<span');
-	__output.push('>');
+		_$_.output_push('</div>');
+	});
 
-	{
-		__output.push(_$_.escape(label.toUpperCase()));
-	}
+	_$_.regular_block(() => {
+		_$_.output_push('<span');
+		_$_.output_push('>');
 
-	__output.push('</span>');
+		{
+			_$_.output_push(_$_.escape(label.toUpperCase()));
+		}
+
+		_$_.output_push('</span>');
+	});
+
 	_$_.pop_component();
 }
 
-function TextProp(__output, __props) {
+function TextProp(__props) {
 	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="text-prop"');
-	__output.push('>');
 
-	{
-		_$_.render_expression(__output, __props.children);
-	}
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="text-prop"');
+		_$_.output_push('>');
 
-	__output.push('</div>');
+		{
+			_$_.render_expression(__props.children);
+		}
+
+		_$_.output_push('</div>');
+	});
+
 	_$_.pop_component();
 }
 
-export function TextPropWithToggle(__output) {
+export function TextPropWithToggle() {
 	_$_.push_component();
 
 	let lazy = _$_.track(false);
 
-	{
-		const comp = TextProp;
+	_$_.regular_block(() => {
+		{
+			const comp = TextProp;
 
-		const args = [
-			__output,
-			{
-				children: _$_.normalize_children(_$_.get(lazy) ? 'hello' : '')
-			}
-		];
+			const args = [
+				{
+					children: _$_.normalize_children(_$_.get(lazy) ? 'hello' : '')
+				}
+			];
 
-		comp(...args);
-	}
+			comp(...args);
+		}
+	});
 
-	__output.push('<button');
-	__output.push(' class="show-text"');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="show-text"');
+		_$_.output_push('>');
 
-	{
-		__output.push('Show');
-	}
+		{
+			_$_.output_push('Show');
+		}
 
-	__output.push('</button>');
+		_$_.output_push('</button>');
+	});
+
 	_$_.pop_component();
 }
 
-function StaticHeader(__output) {
+function StaticHeader() {
 	_$_.push_component();
-	__output.push('<h1');
-	__output.push(' class="sr-only"');
-	__output.push('>');
 
-	{
-		__output.push('heading');
-	}
+	_$_.regular_block(() => {
+		_$_.output_push('<h1');
+		_$_.output_push(' class="sr-only"');
+		_$_.output_push('>');
 
-	__output.push('</h1>');
-	__output.push('<p');
-	__output.push(' class="subtitle"');
-	__output.push('>');
+		{
+			_$_.output_push('heading');
+		}
 
-	{
-		__output.push('first paragraph');
-	}
+		_$_.output_push('</h1>');
+	});
 
-	__output.push('</p>');
-	__output.push('<p');
-	__output.push(' class="subtitle"');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<p');
+		_$_.output_push(' class="subtitle"');
+		_$_.output_push('>');
 
-	{
-		__output.push('second paragraph');
-	}
+		{
+			_$_.output_push('first paragraph');
+		}
 
-	__output.push('</p>');
+		_$_.output_push('</p>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<p');
+		_$_.output_push(' class="subtitle"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('second paragraph');
+		}
+
+		_$_.output_push('</p>');
+	});
+
 	_$_.pop_component();
 }
 
-export function StaticChildWithSiblings(__output) {
+export function StaticChildWithSiblings() {
 	_$_.push_component();
 
 	const foo = 'bar';
 
-	{
-		const comp = StaticHeader;
-		const args = [__output, {}];
+	_$_.regular_block(() => {
+		{
+			const comp = StaticHeader;
+			const args = [{}];
 
-		comp(...args);
-	}
+			comp(...args);
+		}
+	});
 
-	__output.push('<span');
-	__output.push(' class="sibling1"');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<span');
+		_$_.output_push(' class="sibling1"');
+		_$_.output_push('>');
 
-	{
-		__output.push(_$_.escape(foo));
-	}
+		{
+			_$_.output_push(_$_.escape(foo));
+		}
 
-	__output.push('</span>');
-	__output.push('<span');
-	__output.push(' class="sibling2"');
-	__output.push('>');
+		_$_.output_push('</span>');
+	});
 
-	{
-		__output.push(_$_.escape(foo));
-	}
+	_$_.regular_block(() => {
+		_$_.output_push('<span');
+		_$_.output_push(' class="sibling2"');
+		_$_.output_push('>');
 
-	__output.push('</span>');
+		{
+			_$_.output_push(_$_.escape(foo));
+		}
+
+		_$_.output_push('</span>');
+	});
+
 	_$_.pop_component();
 }
 
-function Header(__output) {
+function Header() {
 	_$_.push_component();
-	__output.push('<h1');
-	__output.push(' class="sr-only"');
-	__output.push('>');
 
-	{
-		__output.push('Ripple');
-	}
+	_$_.regular_block(() => {
+		_$_.output_push('<h1');
+		_$_.output_push(' class="sr-only"');
+		_$_.output_push('>');
 
-	__output.push('</h1>');
-	__output.push('<img');
-	__output.push(' src="/images/logo.png"');
-	__output.push(' alt="Logo"');
-	__output.push(' class="logo"');
-	__output.push(' />');
-	__output.push('<p');
-	__output.push(' class="subtitle"');
-	__output.push('>');
+		{
+			_$_.output_push('Ripple');
+		}
 
-	{
-		__output.push('the elegant TypeScript UI framework');
-	}
+		_$_.output_push('</h1>');
+	});
 
-	__output.push('</p>');
+	_$_.regular_block(() => {
+		_$_.output_push('<img');
+		_$_.output_push(' src="/images/logo.png"');
+		_$_.output_push(' alt="Logo"');
+		_$_.output_push(' class="logo"');
+		_$_.output_push(' />');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<p');
+		_$_.output_push(' class="subtitle"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('the elegant TypeScript UI framework');
+		}
+
+		_$_.output_push('</p>');
+	});
+
 	_$_.pop_component();
 }
 
-function Actions(__output, { playgroundVisible = false }) {
+function Actions({ playgroundVisible = false }) {
 	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="social-links"');
-	__output.push('>');
 
-	{
-		__output.push('<a');
-		__output.push(' href="https://github.com"');
-		__output.push(' class="github-link"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="social-links"');
+		_$_.output_push('>');
 
 		{
-			__output.push('GitHub');
-		}
-
-		__output.push('</a>');
-		__output.push('<a');
-		__output.push(' href="https://discord.com"');
-		__output.push(' class="discord-link"');
-		__output.push('>');
-
-		{
-			__output.push('Discord');
-		}
-
-		__output.push('</a>');
-		__output.push('<!--[-->');
-
-		if (playgroundVisible) {
-			__output.push('<a');
-			__output.push(' href="/playground"');
-			__output.push(' class="playground-link"');
-			__output.push('>');
+			_$_.output_push('<a');
+			_$_.output_push(' href="https://github.com"');
+			_$_.output_push(' class="github-link"');
+			_$_.output_push('>');
 
 			{
-				__output.push('Playground');
+				_$_.output_push('GitHub');
 			}
 
-			__output.push('</a>');
-		}
+			_$_.output_push('</a>');
+			_$_.output_push('<a');
+			_$_.output_push(' href="https://discord.com"');
+			_$_.output_push(' class="discord-link"');
+			_$_.output_push('>');
 
-		__output.push('<!--]-->');
-	}
-
-	__output.push('</div>');
-	_$_.pop_component();
-}
-
-function Layout(__output, { children }) {
-	_$_.push_component();
-	__output.push('<main');
-	__output.push('>');
-
-	{
-		__output.push('<div');
-		__output.push(' class="container"');
-		__output.push('>');
-
-		{
-			_$_.render_expression(__output, children);
-		}
-
-		__output.push('</div>');
-	}
-
-	__output.push('</main>');
-	_$_.pop_component();
-}
-
-function Content(__output) {
-	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="content"');
-	__output.push('>');
-
-	{
-		__output.push('<p');
-		__output.push('>');
-
-		{
-			__output.push('Some content here');
-		}
-
-		__output.push('</p>');
-	}
-
-	__output.push('</div>');
-	_$_.pop_component();
-}
-
-export function WebsiteIndex(__output) {
-	_$_.push_component();
-
-	{
-		const comp = Layout;
-
-		const args = [
-			__output,
 			{
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
-
-					{
-						const comp = Header;
-						const args = [__output, {}];
-
-						comp(...args);
-					}
-
-					{
-						const comp = Actions;
-						const args = [__output, { playgroundVisible: true }];
-
-						comp(...args);
-					}
-
-					{
-						const comp = Content;
-						const args = [__output, {}];
-
-						comp(...args);
-					}
-
-					{
-						const comp = Actions;
-						const args = [__output, { playgroundVisible: false }];
-
-						comp(...args);
-					}
-
-					_$_.pop_component();
-				})
+				_$_.output_push('Discord');
 			}
-		];
 
-		comp(...args);
-	}
+			_$_.output_push('</a>');
+			_$_.output_push('<!--[-->');
+
+			if (playgroundVisible) {
+				_$_.output_push('<a');
+				_$_.output_push(' href="/playground"');
+				_$_.output_push(' class="playground-link"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('Playground');
+				}
+
+				_$_.output_push('</a>');
+			}
+
+			_$_.output_push('<!--]-->');
+		}
+
+		_$_.output_push('</div>');
+	});
 
 	_$_.pop_component();
 }
 
-function LastChild(__output) {
+function Layout({ children }) {
 	_$_.push_component();
-	__output.push('<footer');
-	__output.push(' class="last-child"');
-	__output.push('>');
 
-	{
-		__output.push('I am the last child');
-	}
+	_$_.regular_block(() => {
+		_$_.output_push('<main');
+		_$_.output_push('>');
 
-	__output.push('</footer>');
+		{
+			_$_.output_push('<div');
+			_$_.output_push(' class="container"');
+			_$_.output_push('>');
+
+			{
+				_$_.render_expression(children);
+			}
+
+			_$_.output_push('</div>');
+		}
+
+		_$_.output_push('</main>');
+	});
+
 	_$_.pop_component();
 }
 
-export function ComponentAsLastSibling(__output) {
+function Content() {
 	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="wrapper"');
-	__output.push('>');
 
-	{
-		__output.push('<h1');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="content"');
+		_$_.output_push('>');
 
 		{
-			__output.push('Header');
+			_$_.output_push('<p');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Some content here');
+			}
+
+			_$_.output_push('</p>');
 		}
 
-		__output.push('</h1>');
-		__output.push('<p');
-		__output.push('>');
+		_$_.output_push('</div>');
+	});
 
+	_$_.pop_component();
+}
+
+export function WebsiteIndex() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
 		{
-			__output.push('Some content');
-		}
+			const comp = Layout;
 
-		__output.push('</p>');
+			const args = [
+				{
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
 
-		{
-			const comp = LastChild;
-			const args = [__output, {}];
+						{
+							const comp = Header;
+							const args = [{}];
+
+							comp(...args);
+						}
+
+						{
+							const comp = Actions;
+							const args = [{ playgroundVisible: true }];
+
+							comp(...args);
+						}
+
+						{
+							const comp = Content;
+							const args = [{}];
+
+							comp(...args);
+						}
+
+						{
+							const comp = Actions;
+							const args = [{ playgroundVisible: false }];
+
+							comp(...args);
+						}
+
+						_$_.pop_component();
+					})
+				}
+			];
 
 			comp(...args);
 		}
-	}
+	});
 
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-function InnerContent(__output) {
+function LastChild() {
 	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="inner"');
-	__output.push('>');
 
-	{
-		__output.push('<span');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<footer');
+		_$_.output_push(' class="last-child"');
+		_$_.output_push('>');
 
 		{
-			__output.push('Inner text');
+			_$_.output_push('I am the last child');
 		}
 
-		__output.push('</span>');
+		_$_.output_push('</footer>');
+	});
 
-		{
-			const comp = LastChild;
-			const args = [__output, {}];
-
-			comp(...args);
-		}
-	}
-
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function NestedComponentAsLastSibling(__output) {
+export function ComponentAsLastSibling() {
 	_$_.push_component();
-	__output.push('<section');
-	__output.push(' class="outer"');
-	__output.push('>');
 
-	{
-		__output.push('<h2');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="wrapper"');
+		_$_.output_push('>');
 
 		{
-			__output.push('Section title');
+			_$_.output_push('<h1');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Header');
+			}
+
+			_$_.output_push('</h1>');
+			_$_.output_push('<p');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Some content');
+			}
+
+			_$_.output_push('</p>');
+
+			{
+				const comp = LastChild;
+				const args = [{}];
+
+				comp(...args);
+			}
 		}
 
-		__output.push('</h2>');
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+function InnerContent() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="inner"');
+		_$_.output_push('>');
 
 		{
-			const comp = InnerContent;
-			const args = [__output, {}];
+			_$_.output_push('<span');
+			_$_.output_push('>');
 
-			comp(...args);
+			{
+				_$_.output_push('Inner text');
+			}
+
+			_$_.output_push('</span>');
+
+			{
+				const comp = LastChild;
+				const args = [{}];
+
+				comp(...args);
+			}
 		}
-	}
 
-	__output.push('</section>');
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+export function NestedComponentAsLastSibling() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<section');
+		_$_.output_push(' class="outer"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('<h2');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Section title');
+			}
+
+			_$_.output_push('</h2>');
+
+			{
+				const comp = InnerContent;
+				const args = [{}];
+
+				comp(...args);
+			}
+		}
+
+		_$_.output_push('</section>');
+	});
+
 	_$_.pop_component();
 }

@@ -4,7 +4,7 @@ ts_eslint_parser: &ts_eslint_parser ^8.56.1
 
 packages:
   - packages/*
-  - playground
+  - playground/*
   - website
   - grammars/tree-sitter
   - website-new

@@ -9,7 +9,11 @@ export default defineConfig({
 			{
 				test: {
 					name: 'ripple-client',
-					include: ['packages/ripple/tests/client/**/*.test.ripple'],
+					include: [
+						'packages/ripple/tests/client/**/*.test.ripple',
+						'packages/ripple/tests/client/**/*.test.rsrx',
+						'packages/ripple/tests/client/**/*.test.tsrx',
+					],
 					environment: 'jsdom',
 					setupFiles: ['packages/ripple/tests/setup-client.js'],
 					globals: true,
@@ -20,7 +24,11 @@ export default defineConfig({
 			{
 				test: {
 					name: 'ripple-server',
-					include: ['packages/ripple/tests/server/**/*.test.ripple'],
+					include: [
+						'packages/ripple/tests/server/**/*.test.ripple',
+						'packages/ripple/tests/server/**/*.test.rsrx',
+						'packages/ripple/tests/server/**/*.test.tsrx',
+					],
 					environment: 'node',
 					setupFiles: ['packages/ripple/tests/setup-server.js'],
 					globals: true,
@@ -110,7 +118,11 @@ export default defineConfig({
 			{
 				test: {
 					name: 'compat-react',
-					include: ['packages/compat-react/tests/**/*.test.ripple'],
+					include: [
+						'packages/compat-react/tests/**/*.test.ripple',
+						'packages/compat-react/tests/**/*.test.rsrx',
+						'packages/compat-react/tests/**/*.test.tsrx',
+					],
 					environment: 'jsdom',
 					setupFiles: ['packages/compat-react/tests/setup.js'],
 					globals: true,

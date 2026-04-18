@@ -138,6 +138,7 @@ const config: Partial<Config> = {
 	activeEditor: 'script',
 	script: {
 		language: 'ripple',
+		title: 'TSRX',
 		content: props.code ?? defaultContent,
 	},
 	markup: {
@@ -384,6 +385,7 @@ const loadExample = async (example: { title: string; code: string }) => {
 		title: example.title,
 		script: {
 			language: 'ripple',
+			title: 'TSRX',
 			content: example.code,
 		},
 		...(example.code.includes('console.')

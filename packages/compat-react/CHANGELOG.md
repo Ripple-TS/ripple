@@ -1,5 +1,91 @@
 # @ripple-ts/compat-react
 
+## 0.3.17
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.17
+
+## 0.3.16
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.16
+
+## 0.3.15
+
+### Patch Changes
+
+- Updated dependencies
+  [[`a14097a`](https://github.com/Ripple-TS/ripple/commit/a14097a688ad85c236a6619cef527c78787ab367)]:
+  - ripple@0.3.15
+
+## 0.3.14
+
+### Patch Changes
+
+- Updated dependencies
+  [[`228f1bb`](https://github.com/Ripple-TS/ripple/commit/228f1bb36cd3e8506c422ed0997164bf5a0b5fe2)]:
+  - ripple@0.3.14
+
+## 0.3.13
+
+### Patch Changes
+
+- [#862](https://github.com/Ripple-TS/ripple/pull/862)
+  [`48af856`](https://github.com/Ripple-TS/ripple/commit/48af85678d5e1b32bb1c5e3fbb2fb07498bc88a3)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add a release changeset for
+  the async tracking work introduced in commit
+  `4eb4d6851573d771d65f1e85b1b442ad3cdc53d2`.
+
+  This ships async tracking as a first-class feature in Ripple:
+  - remove and prohibit direct component-level `await`; async component flows now
+    require using `trackAsync()` (with `trackPending()` for pending state checks)
+  - add `trackAsync()` and `trackPending()` support so async values can be read
+    through Ripple's reactive runtime using tracked async values
+  - update compiler/runtime behavior for `try`/`catch`/`pending` boundaries so
+    async pending and error states can render and recover correctly in client and
+    SSR paths
+  - align `@ripple-ts/compat-react` async boundary behavior with the new Ripple
+    async tracking semantics
+  - update editor/tooling integration to match the new async syntax/runtime shape
+
+- Updated dependencies
+  [[`4eb4d68`](https://github.com/Ripple-TS/ripple/commit/4eb4d6851573d771d65f1e85b1b442ad3cdc53d2),
+  [`48af856`](https://github.com/Ripple-TS/ripple/commit/48af85678d5e1b32bb1c5e3fbb2fb07498bc88a3),
+  [`6e11177`](https://github.com/Ripple-TS/ripple/commit/6e111778cae4e7d9876e51e293520f0859eb5890)]:
+  - ripple@0.3.13
+
+## 0.3.12
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.12
+
+## 0.3.11
+
+### Patch Changes
+
+- [#840](https://github.com/Ripple-TS/ripple/pull/840)
+  [`13323dd`](https://github.com/Ripple-TS/ripple/commit/13323dddbcb68e1e8e373142884a7c54fbb76cd7)
+  Thanks [@trueadm](https://github.com/trueadm)! - Remove the `compat` option from
+  `mount()` and `hydrate()`, and stop exporting the old public compat types from
+  `ripple`. Compat integrations are now expected to be provided by the Vite plugin
+  via `ripple.config.ts`, while direct runtime tests can seed the generated global
+  compat registry.
+
+  Also add the `reactCompat()` config-facing helper from `@ripple-ts/compat-react`
+  for use in `ripple.config.ts`.
+
+- Updated dependencies
+  [[`6792c70`](https://github.com/Ripple-TS/ripple/commit/6792c700db30ec0c25077bf8892753f18eddc5cc),
+  [`f2624a6`](https://github.com/Ripple-TS/ripple/commit/f2624a6596479480c47317ea3030863214a6e2b3),
+  [`13323dd`](https://github.com/Ripple-TS/ripple/commit/13323dddbcb68e1e8e373142884a7c54fbb76cd7)]:
+  - ripple@0.3.11
+
 ## 0.3.10
 
 ### Patch Changes

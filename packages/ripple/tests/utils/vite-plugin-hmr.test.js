@@ -28,7 +28,7 @@ describe('vite-plugin-ripple hotUpdate', () => {
 				},
 			},
 			{
-				file: '/workspace/src/non-component.ripple',
+				file: '/workspace/src/non-component.rsrx',
 				modules: [{ id: 'client:non-component', isSelfAccepting: false }],
 				server: {
 					environments: {
@@ -43,8 +43,8 @@ describe('vite-plugin-ripple hotUpdate', () => {
 			},
 		);
 
-		expect(transform_request).toHaveBeenCalledWith('/src/non-component.ripple');
-		expect(get_ssr_modules).toHaveBeenCalledWith('/workspace/src/non-component.ripple');
+		expect(transform_request).toHaveBeenCalledWith('/src/non-component.rsrx');
+		expect(get_ssr_modules).toHaveBeenCalledWith('/workspace/src/non-component.rsrx');
 		expect(invalidate_ssr_module).toHaveBeenCalledTimes(2);
 		expect(send_hot_update).toHaveBeenCalledWith({ type: 'full-reload' });
 		expect(result).toEqual([]);
@@ -74,7 +74,7 @@ describe('vite-plugin-ripple hotUpdate', () => {
 				},
 			},
 			{
-				file: '/workspace/src/component.ripple',
+				file: '/workspace/src/component.rsrx',
 				modules: [{ id: 'client:component', isSelfAccepting: true }],
 				server: {
 					environments: {
@@ -89,7 +89,7 @@ describe('vite-plugin-ripple hotUpdate', () => {
 			},
 		);
 
-		expect(transform_request).toHaveBeenCalledWith('/src/component.ripple');
+		expect(transform_request).toHaveBeenCalledWith('/src/component.rsrx');
 		expect(get_ssr_modules).not.toHaveBeenCalled();
 		expect(invalidate_ssr_module).not.toHaveBeenCalled();
 		expect(send_hot_update).not.toHaveBeenCalled();

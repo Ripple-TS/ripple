@@ -1,209 +1,234 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-export function Layout(__output, __props) {
-	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="layout"');
-	__output.push('>');
-
-	{
-		_$_.render_expression(__output, __props.children);
-	}
-
-	__output.push('</div>');
-	_$_.pop_component();
-}
-
-export function TextWrappedLayout(__output, __props) {
-	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="layout"');
-	__output.push('>');
-
-	{
-		__output.push('before');
-		_$_.render_expression(__output, __props.children);
-		__output.push('after');
-	}
-
-	__output.push('</div>');
-	_$_.pop_component();
-}
-
-export function SingleChild(__output) {
-	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="single"');
-	__output.push('>');
-
-	{
-		__output.push('single');
-	}
-
-	__output.push('</div>');
-	_$_.pop_component();
-}
-
-export function MultiRootChild(__output) {
-	_$_.push_component();
-	__output.push('<h1');
-	__output.push('>');
-
-	{
-		__output.push('title');
-	}
-
-	__output.push('</h1>');
-	__output.push('<p');
-	__output.push('>');
-
-	{
-		__output.push('description');
-	}
-
-	__output.push('</p>');
-	_$_.pop_component();
-}
-
-export function EmptyLayout(__output) {
+export function Layout(__props) {
 	_$_.push_component();
 
-	{
-		const comp = Layout;
-		const args = [__output, {}];
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="layout"');
+		_$_.output_push('>');
 
-		comp(...args);
-	}
+		{
+			_$_.render_expression(__props.children);
+		}
+
+		_$_.output_push('</div>');
+	});
 
 	_$_.pop_component();
 }
 
-export function LayoutWithSingleChild(__output) {
+export function TextWrappedLayout(__props) {
 	_$_.push_component();
 
-	{
-		const comp = Layout;
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="layout"');
+		_$_.output_push('>');
 
-		const args = [
-			__output,
-			{
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
+		{
+			_$_.output_push('before');
+			_$_.render_expression(__props.children);
+			_$_.output_push('after');
+		}
 
-					{
-						const comp = SingleChild;
-						const args = [__output, {}];
-
-						comp(...args);
-					}
-
-					_$_.pop_component();
-				})
-			}
-		];
-
-		comp(...args);
-	}
+		_$_.output_push('</div>');
+	});
 
 	_$_.pop_component();
 }
 
-export function LayoutWithMultipleChildren(__output) {
+export function SingleChild() {
 	_$_.push_component();
 
-	{
-		const comp = Layout;
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="single"');
+		_$_.output_push('>');
 
-		const args = [
-			__output,
-			{
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
+		{
+			_$_.output_push('single');
+		}
 
-					{
-						const comp = SingleChild;
-						const args = [__output, {}];
-
-						comp(...args);
-					}
-
-					__output.push('<div');
-					__output.push(' class="extra"');
-					__output.push('>');
-
-					{
-						__output.push('extra');
-					}
-
-					__output.push('</div>');
-					_$_.pop_component();
-				})
-			}
-		];
-
-		comp(...args);
-	}
+		_$_.output_push('</div>');
+	});
 
 	_$_.pop_component();
 }
 
-export function LayoutWithMultiRootChild(__output) {
+export function MultiRootChild() {
 	_$_.push_component();
 
-	{
-		const comp = Layout;
+	_$_.regular_block(() => {
+		_$_.output_push('<h1');
+		_$_.output_push('>');
 
-		const args = [
-			__output,
-			{
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
+		{
+			_$_.output_push('title');
+		}
 
-					{
-						const comp = MultiRootChild;
-						const args = [__output, {}];
+		_$_.output_push('</h1>');
+	});
 
-						comp(...args);
-					}
+	_$_.regular_block(() => {
+		_$_.output_push('<p');
+		_$_.output_push('>');
 
-					_$_.pop_component();
-				})
-			}
-		];
+		{
+			_$_.output_push('description');
+		}
 
-		comp(...args);
-	}
+		_$_.output_push('</p>');
+	});
 
 	_$_.pop_component();
 }
 
-export function LayoutWithTextAroundChildren(__output) {
+export function EmptyLayout() {
 	_$_.push_component();
 
-	{
-		const comp = TextWrappedLayout;
+	_$_.regular_block(() => {
+		{
+			const comp = Layout;
+			const args = [{}];
 
-		const args = [
-			__output,
-			{
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
+			comp(...args);
+		}
+	});
 
-					{
-						const comp = SingleChild;
-						const args = [__output, {}];
+	_$_.pop_component();
+}
 
-						comp(...args);
-					}
+export function LayoutWithSingleChild() {
+	_$_.push_component();
 
-					_$_.pop_component();
-				})
-			}
-		];
+	_$_.regular_block(() => {
+		{
+			const comp = Layout;
 
-		comp(...args);
-	}
+			const args = [
+				{
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
+
+						{
+							const comp = SingleChild;
+							const args = [{}];
+
+							comp(...args);
+						}
+
+						_$_.pop_component();
+					})
+				}
+			];
+
+			comp(...args);
+		}
+	});
+
+	_$_.pop_component();
+}
+
+export function LayoutWithMultipleChildren() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		{
+			const comp = Layout;
+
+			const args = [
+				{
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
+
+						{
+							const comp = SingleChild;
+							const args = [{}];
+
+							comp(...args);
+						}
+
+						_$_.output_push('<div');
+						_$_.output_push(' class="extra"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('extra');
+						}
+
+						_$_.output_push('</div>');
+						_$_.pop_component();
+					})
+				}
+			];
+
+			comp(...args);
+		}
+	});
+
+	_$_.pop_component();
+}
+
+export function LayoutWithMultiRootChild() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		{
+			const comp = Layout;
+
+			const args = [
+				{
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
+
+						{
+							const comp = MultiRootChild;
+							const args = [{}];
+
+							comp(...args);
+						}
+
+						_$_.pop_component();
+					})
+				}
+			];
+
+			comp(...args);
+		}
+	});
+
+	_$_.pop_component();
+}
+
+export function LayoutWithTextAroundChildren() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		{
+			const comp = TextWrappedLayout;
+
+			const args = [
+				{
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
+
+						{
+							const comp = SingleChild;
+							const args = [{}];
+
+							comp(...args);
+						}
+
+						_$_.pop_component();
+					})
+				}
+			];
+
+			comp(...args);
+		}
+	});
 
 	_$_.pop_component();
 }

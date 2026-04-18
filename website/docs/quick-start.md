@@ -32,8 +32,9 @@ npm run dev // [!=npm auto]
 
 Ripple maintains a Volar-based [VSCode extension](https://marketplace.visualstudio.com/items?itemName=Ripple-TS.ripple-ts-vscode-plugin).
 
-It provides syntax highlighting for `.ripple` files, real-time diagnostics for
-compilation errors, typescript integration for type checking and autocompletion.
+It provides syntax highlighting for `.tsrx` files by default, real-time
+diagnostics for compilation errors, and typescript integration for type
+checking and autocompletion.
 
 If you're using a fork of VSCode, the extension is also available on [OpenVSX](https://open-vsx.org/extension/ripple-ts/vscode-plugin).
 
@@ -53,9 +54,9 @@ npm install -g '@ripple-ts/language-server' // [!=npm auto]
 4. Click `+` to add a new language server.
 5. Specify `Ripple` as the name and `'@ripple-ts/language-server' --stdio` as the command.
 6. In the `Mappings` > `File name patterns`, click `+` to add a new pattern.
-7. Specify `*.ripple` as the pattern and `ripple` as the language id.
+7. Specify `*.tsrx` as the pattern and `ripple` as the language id.
 
-You should see diagnostics and autocompletion in `.ripple` files now.
+You should see diagnostics and autocompletion in `.tsrx` files now.
 
 ### Sublime Text
 
@@ -91,7 +92,7 @@ npm install -g '@ripple-ts/language-server' // [!=npm auto]
 }
 ```
 
-You should see diagnostics and autocompletion in `.ripple` files now.
+You should see diagnostics and autocompletion in `.tsrx` files now.
 
 ### TextMate bundle
 
@@ -110,7 +111,7 @@ and Sublime Text.
         [`info.plist`](https://github.com/Ripple-TS/ripple/blob/main/assets/Ripple.tmbundle/info.plist)
         file into the `Ripple.tmbundle` directory.
      2. Go to `Settings` > `Editor` > `TextMate Bundles`, click the `+` icon, and select the `Ripple.tmbundle` directory.
-     3. All `.ripple` files should now have syntax highlighting.
+   3. All Ripple files should now have syntax highlighting.
    - **Sublime Text**:
      1. Go to `Preferences` > `Browse Packages`, and move the `Ripple.tmbundle` directory into the opened folder.
      2. You should now be able to select `Ripple` in `View` > `Syntax`.

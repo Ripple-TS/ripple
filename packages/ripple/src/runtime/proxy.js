@@ -1,6 +1,5 @@
 /** @import { Block, Tracked } from '#client' */
-/** @import { RippleArray } from './array.js' */
-/** @import { RippleObject } from './object.js' */
+/** @import { RippleArray, RippleObject } from '#public' */
 
 import { get, set, tracked } from './internal/client/runtime.js';
 import {
@@ -295,7 +294,7 @@ export function array_proxy({ elements, block, from_static = false, use_array = 
 		arr = new Array(...elements);
 	}
 
-	return proxy(arr, block);
+	return /** @type {RippleArray<T>} */ (proxy(arr, block));
 }
 
 /**

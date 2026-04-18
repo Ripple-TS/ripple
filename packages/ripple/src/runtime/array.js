@@ -4,49 +4,49 @@ import { array_proxy } from './proxy.js';
 
 /**
  * @template T
- * @constructor
- * @param {...T} elements
- * @returns {RippleArray<T>}
  */
-export function RippleArray(...elements) {
-	if (!new.target) {
-		throw new Error("RippleArray must be called with 'new'");
+export class RippleArray {
+	/**
+	 * @param {...T} elements
+	 */
+	constructor(...elements) {
+		var block = safe_scope();
+		return /** @type {RippleArray<any>} */ (
+			/** @type {unknown} */ (ripple_array(block, ...elements))
+		);
 	}
 
-	var block = safe_scope();
-	return ripple_array(block, ...elements);
+	/**
+	 * @template U
+	 * @param {ArrayLike<U> | Iterable<U>} arrayLike
+	 * @param {(v: U, k: number) => any | undefined} [mapFn]
+	 * @param {*} [thisArg]
+	 * @returns {RippleArray<U>}
+	 */
+	static from(arrayLike, mapFn, thisArg) {
+		return ripple_array.from(safe_scope(), arrayLike, mapFn, thisArg);
+	}
+
+	/**
+	 * @template U
+	 * @param {...U} items
+	 * @returns {RippleArray<U>}
+	 */
+	static of(...items) {
+		return ripple_array.of(safe_scope(), ...items);
+	}
+
+	/**
+	 * @template U
+	 * @param {ArrayLike<U> | Iterable<U>} arrayLike
+	 * @param {(v: U, k: number) => any | undefined} [mapFn]
+	 * @param {any} [thisArg]
+	 * @returns {Promise<RippleArray<U>>}
+	 */
+	static async fromAsync(arrayLike, mapFn, thisArg) {
+		return ripple_array.fromAsync(safe_scope(), arrayLike, mapFn, thisArg);
+	}
 }
-
-/**
- * @template T
- * @param {ArrayLike<T> | Iterable<T>} arrayLike
- * @param {(v: T, k: number) => any | undefined} [mapFn]
- * @param {*} [thisArg]
- * @returns {RippleArray<T>}
- */
-RippleArray.from = function (arrayLike, mapFn, thisArg) {
-	return ripple_array.from(safe_scope(), arrayLike, mapFn, thisArg);
-};
-
-/**
- * @template T
- * @param {...T} items
- * @returns {RippleArray<T>}
- */
-RippleArray.of = function (...items) {
-	return ripple_array.of(safe_scope(), ...items);
-};
-
-/**
- * @template T
- * @param {ArrayLike<T> | Iterable<T>} arrayLike
- * @param {(v: T, k: number) => any | undefined} [mapFn]
- * @param {any} [thisArg]
- * @returns {Promise<RippleArray<T>>}
- */
-RippleArray.fromAsync = async function (arrayLike, mapFn, thisArg) {
-	return ripple_array.fromAsync(safe_scope(), arrayLike, mapFn, thisArg);
-};
 
 /**
  * @template T

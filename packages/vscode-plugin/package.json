@@ -1,9 +1,9 @@
 {
   "name": "@ripple-ts/vscode-plugin",
-  "displayName": "Ripple TS for VS Code",
+  "displayName": "TSRX for VS Code",
   "publisher": "ripple-ts",
-  "description": "Ripple JavaScript/TypeScript language support",
-  "version": "0.3.10",
+  "description": "TSRX JavaScript/TypeScript language support",
+  "version": "0.3.17",
   "private": true,
   "author": "Dominic Gannaway",
   "license": "MIT",
@@ -46,7 +46,7 @@
   },
   "peerDependencies": {
     "typescript": "catalog:vscode",
-    "ripple": "workspace:*"
+    "@tsrx/ripple": "workspace:*"
   },
   "devDependencies": {
     "tsdown": "catalog:default",
@@ -62,7 +62,7 @@
     "configuration": {
       "title": "Ripple",
       "properties": {
-        "ripple.autoClosingTags": {
+        "ripple.autoClosingTags.enabled": {
           "type": "boolean",
           "default": true,
           "description": "Automatically insert closing tags when typing '>' after a tag name. Note: For Ripple files, you may also need to set 'javascript.autoClosingTags' and 'typescript.autoClosingTags' to false to fully disable this feature."
@@ -90,11 +90,15 @@
       {
         "id": "ripple",
         "aliases": [
+          "TSRX",
+          "tsrx",
           "Ripple",
           "ripple"
         ],
         "extensions": [
-          ".ripple"
+          ".ripple",
+          ".rsrx",
+          ".tsrx"
         ],
         "icon": {
           "light": "icons/logo.png",

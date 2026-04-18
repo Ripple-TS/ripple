@@ -9,7 +9,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Root packages to treat as external (their full dependency trees will be copied)
 const ROOT_EXTERNAL_PACKAGES = [
 	'typescript',
-	'ripple',
+	'@tsrx/ripple',
+	'@tsrx/core',
 	'volar-service-css',
 	'vscode-uri',
 	'@ripple-ts/typescript-plugin',

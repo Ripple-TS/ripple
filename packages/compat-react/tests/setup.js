@@ -15,14 +15,14 @@ vi.spyOn(console, 'warn').mockImplementation(() => {});
 globalThis.render = function render(component) {
 	mount(component, {
 		target: /** @type {HTMLDivElement} */ (globalThis.container),
-		compat: {
-			react: createReactCompat(),
-		},
 	});
 };
 
 beforeEach(() => {
 	globalThis.container = /** @type {HTMLDivElement} */ (document.createElement('div'));
+	globalThis.__RIPPLE_COMPAT__ = {
+		react: createReactCompat(),
+	};
 	document.body.appendChild(globalThis.container);
 
 	globalThis.error = undefined;
@@ -34,6 +34,7 @@ afterEach(() => {
 	// know it's guaranteed to exist in the next test again.
 	document.body.removeChild(/** @type {HTMLDivElement} */ (globalThis.container));
 	globalThis.container = /** @type {HTMLDivElement} */ (/** @type {unknown} */ (undefined));
+	globalThis.__RIPPLE_COMPAT__ = undefined;
 
 	globalThis.error = undefined;
 });

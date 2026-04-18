@@ -1,4 +1,4 @@
-/** @import { Block, Component, Dependency, Derived, Tracked } from '#client' */
+/** @import { Block, Component, Dependency, Derived, Tracked, BlockWithTryBoundaryAndCatch, DeferredTrackedEntry } from '#client' */
 /** @import { NAMESPACE_URI } from './constants.js' */
 
 import { DEV } from 'esm-env';
@@ -6,30 +6,42 @@ import {
 	destroy_block,
 	destroy_non_branch_children,
 	effect,
-	is_destroyed,
-	render,
+	pause_block,
+	pre_effect,
 } from './blocks.js';
 import {
-	ASYNC_BLOCK,
+	ASYNC_DERIVED_READ_THROWN,
 	BLOCK_HAS_RUN,
 	BRANCH_BLOCK,
 	DERIVED,
 	COMPUTED_PROPERTY,
 	CONTAINS_TEARDOWN,
 	CONTAINS_UPDATE,
-	DEFERRED,
 	DESTROYED,
 	EFFECT_BLOCK,
 	PAUSED,
+	PRE_EFFECT_BLOCK,
 	ROOT_BLOCK,
 	TRACKED,
-	TRY_BLOCK,
 	UNINITIALIZED,
 	REF_PROP,
 	TRACKED_OBJECT,
 	DEFAULT_NAMESPACE,
+	DERIVED_UPDATED,
+	SUSPENSE_PENDING,
+	SUSPENSE_REJECTED,
+	TRY_BLOCK,
+	DIRECT_CHILD_BLOCK,
 } from './constants.js';
-import { capture, suspend } from './try.js';
+import {
+	begin_boundary_request,
+	complete_boundary_request,
+	get_boundary_with_catch,
+	get_pending_boundary,
+	register_boundary_deferred,
+	register_boundary_paused_block,
+	replace_boundary_request,
+} from './try.js';
 import {
 	define_property,
 	get_descriptor,
@@ -38,6 +50,7 @@ import {
 	is_ripple_object,
 	object_keys,
 } from './utils.js';
+import { get_async_track_result } from '../../../utils/async.js';
 
 const FLUSH_MICROTASK = 0;
 const FLUSH_SYNC = 1;
@@ -55,7 +68,7 @@ export let active_namespace = DEFAULT_NAMESPACE;
 /** @type {boolean} */
 export let is_mutating_allowed = true;
 
-/** @type {Map<Tracked, any>} */
+/** @type {Map<Tracked | Derived, any>} */
 var old_values = new Map();
 
 // Used for controlling the flush of blocks
@@ -72,6 +85,8 @@ let queued_root_blocks = [];
 let queued_microtasks = [];
 /** @type {number} */
 let flush_count = 0;
+/** @type {(() => void)[]} */
+var queued_post_block_flush = [];
 /** @type {null | Dependency} */
 let active_dependency = null;
 
@@ -141,7 +156,7 @@ export function run_teardown(block) {
 
 /**
  * @param {Block} block
- * @param {() => void} fn
+ * @param {() => any} fn
  */
 export function with_block(block, fn) {
 	var prev_block = active_block;
@@ -170,6 +185,15 @@ function update_derived(computed) {
 			computed.c = increment_clock();
 		}
 	}
+}
+
+/**
+ * @param {Tracked} tracked
+ * @param {any} value
+ */
+function update_tracked_value_clock(tracked, value) {
+	tracked.__v = value;
+	tracked.c = increment_clock();
 }
 
 /**
@@ -212,6 +236,20 @@ function run_derived(computed) {
 		computed.d = active_dependency;
 
 		return value;
+	} catch (error) {
+		computed.d = active_dependency;
+		if (error === ASYNC_DERIVED_READ_THROWN) {
+			// Check if any dependency is rejected — if so, propagate rejection
+			var dep = active_dependency;
+			while (dep !== null) {
+				if (dep.t.__v === SUSPENSE_REJECTED) {
+					return SUSPENSE_REJECTED;
+				}
+				dep = dep.n;
+			}
+			return SUSPENSE_PENDING;
+		}
+		throw error;
 	} finally {
 		active_block = previous_block;
 		active_reaction = previous_reaction;
@@ -225,18 +263,13 @@ function run_derived(computed) {
 /**
  * @param {unknown} error
  * @param {Block} block
+ * @returns {BlockWithTryBoundaryAndCatch}
  */
 export function handle_error(error, block) {
-	/** @type {Block | null} */
-	var current = block;
-
-	while (current !== null) {
-		var state = current.s;
-		if ((current.f & TRY_BLOCK) !== 0 && state.c !== null) {
-			state.c(error);
-			return;
-		}
-		current = current.p;
+	var boundary_with_catch = get_boundary_with_catch(block);
+	if (boundary_with_catch !== null) {
+		boundary_with_catch.s.c(error);
+		return boundary_with_catch;
 	}
 
 	throw error;
@@ -277,7 +310,53 @@ export function run_block(block) {
 
 		block.d = active_dependency;
 	} catch (error) {
-		handle_error(error, block);
+		var is_component_direct = false;
+		var is_try_fn_block = false;
+		block.d = active_dependency;
+		// When a derived read throws ASYNC_DERIVED_READ_THROWN, it means the
+		// derived is still SUSPENSE_PENDING. The dependency was already registered,
+		// so we swallow the throw and let the parent continue processing. When
+		// the derived settles, the block will be dirty and rerun automatically.
+		if (error !== ASYNC_DERIVED_READ_THROWN) {
+			handle_error(error, block);
+		} else if (
+			// pending async tracked was read outside allowed blocks
+			(is_component_direct = active_component?.b === block) ||
+			(is_try_fn_block =
+				block.p !== null && (block.p.f & TRY_BLOCK) !== 0 && (block.f & DIRECT_CHILD_BLOCK) !== 0)
+		) {
+			throw new Error(
+				`Reads on pending tracked values directly inside ${is_component_direct ? 'component' : 'try/pending/catch'} body are prohibited. Use trackPending() test or peek() for safe access or create another derived instead.`,
+			);
+		} else {
+			// pending async tracked was read and threw ASYNC_DERIVED_READ_THROWN
+			var boundary = get_pending_boundary(block);
+			if (boundary !== null) {
+				pause_block(block);
+				register_boundary_paused_block(boundary, block);
+
+				// Register deferred boundary completions for async tracked deps.
+				// This handles the case where a child boundary reads a tracked value
+				// whose resolution is managed by a different (parent) boundary.
+				var dep = block.d;
+				while (dep !== null) {
+					var dep_tracked = /** @type {Tracked} */ (dep.t);
+					if (
+						(dep_tracked.__v === SUSPENSE_PENDING || dep_tracked.__v === SUSPENSE_REJECTED) &&
+						(dep_tracked.f & TRACKED) !== 0
+					) {
+						var deferred_req = begin_boundary_request(boundary);
+						var entry = /** @type {DeferredTrackedEntry} */ ({ b: boundary, r: deferred_req });
+						if (dep_tracked.d === null) {
+							dep_tracked.d = [entry];
+						} else {
+							dep_tracked.d.push(entry);
+						}
+					}
+					dep = dep.n;
+				}
+			}
+		}
 	} finally {
 		active_block = previous_block;
 		active_reaction = previous_reaction;
@@ -289,6 +368,22 @@ export function run_block(block) {
 
 var empty_get_set = { get: undefined, set: undefined };
 
+/**
+ * Complete all deferred boundary requests registered on a tracked value.
+ * @param {Tracked} t
+ * @param {boolean} [show_resolved=true]
+ */
+function complete_deferred_boundaries(t, show_resolved = true) {
+	if (t.d !== null) {
+		for (var i = 0; i < t.d.length; i++) {
+			var entry = t.d[i];
+			complete_boundary_request(entry.b, entry.r, show_resolved);
+		}
+		t.d = null;
+	}
+}
+
+/** @type {Tracked} */
 class TrackedValue {
 	/**
 	 * @param {any} v
@@ -299,35 +394,38 @@ class TrackedValue {
 		this.a = a;
 		this.b = block;
 		this.c = 0;
+		/** @type {DeferredTrackedEntry[] | null} */
+		this.d = null;
 		this.f = TRACKED;
 		this.__v = v;
 	}
 	get [0]() {
-		return get_tracked(/** @type {Tracked} */ (this));
+		return get_tracked(this);
 	}
 	set [0](v) {
-		set(/** @type {Tracked} */ (this), v);
+		set(this, v);
 	}
 	get [1]() {
 		return this;
 	}
 	get value() {
-		return get_tracked(/** @type {Tracked} */ (this));
+		return get_tracked(this);
 	}
 	/** @param {any} v */
 	set value(v) {
-		set(/** @type {Tracked} */ (this), v);
+		set(this, v);
 	}
 	/** @returns {2} */
 	get length() {
 		return 2;
 	}
 	*[Symbol.iterator]() {
-		yield get_tracked(/** @type {Tracked} */ (this));
+		yield get_tracked(this);
 		yield this;
 	}
 }
 
+/** @type {Derived} */
 class DerivedValue {
 	/**
 	 * @param {Function} fn
@@ -343,32 +441,32 @@ class DerivedValue {
 		this.co = active_component;
 		/** @type {null | Dependency} */
 		this.d = null;
-		this.f = TRACKED | DERIVED;
+		this.f = DERIVED;
 		this.fn = fn;
 		this.__v = UNINITIALIZED;
 	}
 	get [0]() {
-		return get_derived(/** @type {Derived} */ (this));
+		return get_derived(this);
 	}
 	set [0](v) {
-		set(/** @type {Derived} */ (this), v);
+		set(this, v);
 	}
 	get [1]() {
 		return this;
 	}
 	get value() {
-		return get_derived(/** @type {Derived} */ (this));
+		return get_derived(this);
 	}
 	/** @param {any} v */
 	set value(v) {
-		set(/** @type {Derived} */ (this), v);
+		set(this, v);
 	}
 	/** @returns {2} */
 	get length() {
 		return 2;
 	}
 	*[Symbol.iterator]() {
-		yield get_derived(/** @type {Derived} */ (this));
+		yield get_derived(this);
 		yield this;
 	}
 }
@@ -427,6 +525,225 @@ export function track(v, get, set, b) {
 }
 
 /**
+ * @param {any} fn
+ * @param {Block} b
+ * @returns {Tracked | void}
+ */
+export function track_async(fn, b) {
+	if (is_ripple_object(fn)) {
+		return fn;
+	}
+
+	var target_block = b || active_block;
+	if (target_block === null) {
+		throw new TypeError('trackAsync() requires a valid component context');
+	}
+
+	if (typeof fn !== 'function') {
+		throw new TypeError(
+			'trackAsync() only accepts function arguments that return a promise or an object with a promise property',
+		);
+	}
+
+	var t = tracked(SUSPENSE_PENDING, target_block);
+
+	// Capture the call-site block for boundary lookups. target_block is the
+	// component's block (passed by compiler), but the actual try/pending/catch
+	// boundary is an ancestor of active_block (the block executing trackAsync).
+	var call_site_block = /** @type {Block} */ (active_block);
+
+	var version = 0;
+	/** @type {AbortController | null} */
+	var abort_controller = null;
+	var request_id = 0;
+	/** @type {Block | null} */
+	var boundary = null;
+
+	// Find boundary from the call-site block.
+	boundary = get_pending_boundary(active_block);
+	if (boundary === null) {
+		throw new Error('Missing parent `try { ... } pending { ... }` statement');
+	}
+
+	request_id = begin_boundary_request(boundary);
+
+	pre_effect(() => {
+		var current_version = ++version;
+
+		// Abort previous in-flight request
+		if (abort_controller !== null && abort_controller.signal.aborted === false) {
+			abort_controller.abort(DERIVED_UPDATED);
+		}
+		abort_controller = null;
+
+		// Manage boundary request: replace if in-flight, or begin new if previous completed
+		if (request_id > 0 && boundary !== null) {
+			request_id = replace_boundary_request(boundary, request_id);
+		} else if (boundary !== null) {
+			request_id = begin_boundary_request(boundary);
+		}
+
+		// Set to pending before calling fn() in case it's sync
+		if (t.__v !== SUSPENSE_PENDING) {
+			update_tracked_value_clock(t, SUSPENSE_PENDING);
+			schedule_update(t.b);
+		}
+
+		// Temporarily allow mutations so set() doesn't throw inside the pre-effect
+		var previous_is_mutating_allowed = is_mutating_allowed;
+		is_mutating_allowed = true;
+
+		var result;
+		try {
+			result = fn();
+		} catch (e) {
+			is_mutating_allowed = previous_is_mutating_allowed;
+			if (e === ASYNC_DERIVED_READ_THROWN) {
+				// A dependency is still pending or rejected (e.g. chained trackAsync).
+				// Check if any dependency is rejected — if so, propagate rejection.
+				var dep = active_dependency;
+				while (dep !== null) {
+					if (dep.t.__v === SUSPENSE_REJECTED) {
+						update_tracked_value_clock(t, SUSPENSE_REJECTED);
+						schedule_update(t.b);
+						complete_deferred_boundaries(t, false);
+						if (request_id > 0 && boundary !== null) {
+							complete_boundary_request(boundary, request_id, false);
+							request_id = 0;
+						}
+						return;
+					}
+					dep = dep.n;
+				}
+				// Dependencies are pending, not rejected — register deferred
+				// rejection so that if the boundary goes to catch mode, this
+				// tracked value is also set to REJECTED.
+				if (request_id > 0 && boundary !== null) {
+					register_boundary_deferred(boundary, request_id, () => {
+						update_tracked_value_clock(t, SUSPENSE_REJECTED);
+					});
+				}
+				return;
+			}
+			throw e;
+		}
+		is_mutating_allowed = previous_is_mutating_allowed;
+
+		// Check if the result is async
+		var previous_tracking = tracking;
+		tracking = false;
+		var async_result = get_async_track_result(result);
+		tracking = previous_tracking;
+
+		if (async_result === null) {
+			// Sync result
+			update_tracked_value_clock(t, result);
+			schedule_update(t.b);
+			if (request_id > 0 && boundary !== null) {
+				complete_boundary_request(boundary, request_id);
+				request_id = 0;
+			}
+			return;
+		}
+
+		// Capture per-invocation so async closures (rejection handler, teardown)
+		// have a stable reference. The shared abort_controller is only read
+		// synchronously at the top of the pre_effect to abort the previous request.
+		var current_abort_controller = async_result.abort_controller;
+		abort_controller = current_abort_controller;
+
+		async_result.promise.then(
+			(resolved) => {
+				if (current_version !== version) {
+					// stale
+					return;
+				}
+				update_tracked_value_clock(t, resolved);
+				schedule_update(t.b);
+				complete_deferred_boundaries(t);
+				if (request_id > 0 && boundary !== null) {
+					complete_boundary_request(boundary, request_id);
+					request_id = 0;
+				}
+			},
+			(error) => {
+				if (current_version !== version) return; // stale
+
+				var is_internal_abort =
+					error === DERIVED_UPDATED || current_abort_controller?.signal?.reason === DERIVED_UPDATED;
+				if (is_internal_abort) {
+					// Internal abort (superseded by a new request) — don't set rejected
+					if (request_id > 0 && boundary !== null) {
+						complete_boundary_request(boundary, request_id, false);
+						request_id = 0;
+					}
+					complete_deferred_boundaries(t, false);
+					return;
+				}
+
+				update_tracked_value_clock(t, SUSPENSE_REJECTED);
+				schedule_update(t.b);
+				complete_deferred_boundaries(t, false);
+
+				// Route error to catch boundary
+				var boundary_with_catch = get_boundary_with_catch(call_site_block);
+				if (boundary_with_catch !== null) {
+					boundary_with_catch.s.c(error);
+				}
+
+				if (request_id > 0 && boundary !== null) {
+					var should_show_resolved =
+						boundary_with_catch === boundary || boundary === null ? false : true;
+					complete_boundary_request(boundary, request_id, should_show_resolved);
+					request_id = 0;
+				}
+			},
+		);
+
+		return () => {
+			// Teardown: abort in-flight request when block is destroyed
+			if (current_abort_controller !== null && current_abort_controller.signal.aborted === false) {
+				current_abort_controller.abort(DERIVED_UPDATED);
+			}
+		};
+	});
+
+	return t;
+}
+
+/**
+ * @param {(Derived | Tracked) | (() => any)} tracked
+ * @returns {boolean}
+ */
+export function is_tracked_pending(tracked) {
+	try {
+		if (typeof tracked === 'function') {
+			tracked();
+		} else {
+			get(tracked);
+		}
+		return false;
+	} catch (error) {
+		if (error === ASYNC_DERIVED_READ_THROWN) {
+			return true;
+		}
+		throw error;
+	}
+}
+
+/**
+ * @param {Tracked | Derived} tracked
+ * @return {any}
+ */
+export function peek_tracked(tracked) {
+	if (!is_ripple_object(tracked)) {
+		return tracked;
+	}
+
+	return tracked.__v;
+}
+
+/**
  * @param {Tracked | Derived} tracked
  * @returns {Dependency}
  */
@@ -461,7 +778,15 @@ function is_tracking_dirty(tracking) {
 		var tracked = tracking.t;
 
 		if ((tracked.f & DERIVED) !== 0) {
-			update_derived(/** @type {Derived} **/ (tracked));
+			try {
+				update_derived(/** @type {Derived} **/ (tracked));
+			} catch (e) {
+				if (e === ASYNC_DERIVED_READ_THROWN) {
+					// The derived depends on a pending async value — treat as dirty
+					return true;
+				}
+				throw e;
+			}
 		}
 
 		if (tracked.c > tracking.c) {
@@ -491,77 +816,6 @@ export function is_block_dirty(block) {
 }
 
 /**
- * @param {() => Promise<any>} fn
- * @param {Block} block
- * @returns {Promise<Tracked>}
- */
-export function async_computed(fn, block) {
-	/** @type {Block | Derived | null} */
-	let parent = active_reaction;
-	var t = tracked(UNINITIALIZED, block);
-	/** @type {Promise<any>} */
-	var promise;
-	/** @type {Map<Tracked, {v: any, c: number}>} */
-	var new_values = new Map();
-
-	render(
-		() => {
-			var [current, deferred] = capture_deferred(() => (promise = fn()));
-
-			var restore = capture();
-			/** @type {(() => void) | undefined} */
-			var unsuspend;
-
-			if (deferred === null) {
-				unsuspend = suspend();
-			} else {
-				for (var i = 0; i < deferred.length; i++) {
-					var tracked = deferred[i];
-					new_values.set(tracked, { v: tracked.__v, c: tracked.c });
-				}
-			}
-
-			promise.then((v) => {
-				if (parent && is_destroyed(/** @type {Block} */ (parent))) {
-					return;
-				}
-				if (promise === current && t.__v !== v) {
-					restore();
-
-					if (t.__v === UNINITIALIZED) {
-						t.__v = v;
-					} else {
-						set(t, v);
-					}
-				}
-
-				if (deferred === null) {
-					unsuspend?.();
-				} else if (promise === current) {
-					for (var i = 0; i < deferred.length; i++) {
-						var tracked = deferred[i];
-						var stored = /** @type {{ v: any, c: number }} */ (new_values.get(tracked));
-						var { v, c } = stored;
-						tracked.__v = v;
-						tracked.c = c;
-						schedule_update(tracked.b);
-					}
-					new_values.clear();
-				}
-			});
-		},
-		null,
-		ASYNC_BLOCK,
-	);
-
-	return new Promise(async (resolve) => {
-		var p;
-		while (p !== (p = promise)) await p;
-		return resolve(t);
-	});
-}
-
-/**
  * @template V
  * @param {Function} fn
  * @param {V} v
@@ -577,35 +831,14 @@ function trigger_track_get(fn, v) {
 }
 
 /**
- * @param {() => any} fn
- * @returns {[any, Tracked[] | null]}
- */
-function capture_deferred(fn) {
-	var value = fn();
-	/** @type {Tracked[] | null} */
-	var deferred = null;
-	var dependency = active_dependency;
-
-	while (dependency !== null) {
-		var tracked = dependency.t;
-		if ((tracked.f & DEFERRED) !== 0) {
-			deferred ??= [];
-			deferred.push(tracked);
-			break;
-		}
-		dependency = dependency.n;
-	}
-
-	return [value, deferred];
-}
-
-/**
  * @param {Block} root_block
  */
 function flush_updates(root_block) {
 	/** @type {Block | null} */
 	var current = root_block;
 	var containing_update = null;
+	var pre_effects = [];
+	var other_blocks = [];
 	var effects = [];
 	var containing_update_head = null;
 
@@ -619,16 +852,12 @@ function flush_updates(root_block) {
 		}
 
 		if ((flags & PAUSED) === 0 && containing_update !== null) {
-			if ((flags & EFFECT_BLOCK) !== 0) {
+			if ((flags & PRE_EFFECT_BLOCK) !== 0) {
+				pre_effects.push(current);
+			} else if ((flags & EFFECT_BLOCK) !== 0) {
 				effects.push(current);
 			} else {
-				try {
-					if (is_block_dirty(current)) {
-						run_block(current);
-					}
-				} catch (error) {
-					handle_error(error, current);
-				}
+				other_blocks.push(current);
 			}
 			/** @type {Block | null} */
 			var child = current.first;
@@ -654,18 +883,47 @@ function flush_updates(root_block) {
 		}
 	}
 
-	var length = effects.length;
+	var arr_length = 0;
 
-	for (var i = 0; i < length; i++) {
-		var effect = effects[i];
-		var flags = effect.f;
+	// Phase 1: pre-effects (e.g. update tracked values before render blocks read them)
+	arr_length = pre_effects.length;
+	for (var i = 0; i < arr_length; i++) {
+		var block = pre_effects[i];
 
 		try {
-			if ((flags & (PAUSED | DESTROYED)) === 0 && is_block_dirty(effect)) {
-				run_block(effect);
+			if ((block.f & (PAUSED | DESTROYED)) === 0 && is_block_dirty(block)) {
+				run_block(block);
 			}
 		} catch (error) {
-			handle_error(error, effect);
+			handle_error(error, block);
+		}
+	}
+
+	// Phase 2: all other blocks except effects
+	arr_length = other_blocks.length;
+	for (var i = 0; i < arr_length; i++) {
+		var block = other_blocks[i];
+
+		try {
+			if ((block.f & (PAUSED | DESTROYED)) === 0 && is_block_dirty(block)) {
+				run_block(block);
+			}
+		} catch (error) {
+			handle_error(error, block);
+		}
+	}
+
+	// Phase 3: effects
+	arr_length = effects.length;
+	for (var i = 0; i < arr_length; i++) {
+		var block = effects[i];
+
+		try {
+			if ((block.f & (PAUSED | DESTROYED)) === 0 && is_block_dirty(block)) {
+				run_block(block);
+			}
+		} catch (error) {
+			handle_error(error, block);
 		}
 	}
 }
@@ -676,6 +934,14 @@ function flush_updates(root_block) {
 function flush_queued_root_blocks(root_blocks) {
 	for (let i = 0; i < root_blocks.length; i++) {
 		flush_updates(root_blocks[i]);
+	}
+
+	if (queued_post_block_flush.length > 0) {
+		var callbacks = queued_post_block_flush;
+		queued_post_block_flush = [];
+		for (var j = 0; j < callbacks.length; j++) {
+			callbacks[j]();
+		}
 	}
 }
 
@@ -702,8 +968,9 @@ function flush_microtasks() {
 
 	flush_count++;
 	if (flush_count > 1001) {
-		flush_count = 0;
-		return;
+		throw new Error(
+			'Maximum update depth exceeded. This typically indicates that an effect reads and writes the same piece of state.',
+		);
 	}
 	var previous_queued_root_blocks = queued_root_blocks;
 	queued_root_blocks = [];
@@ -729,6 +996,16 @@ export function queue_microtask(fn) {
 }
 
 /**
+ * Queue a callback to run after all root blocks are flushed.
+ * Used to defer boundary completions so chained async deriveds evaluated during
+ * the flush can start new requests before the boundary transitions out of pending.
+ * @param {() => void} fn
+ */
+export function queue_post_block_flush_callback(fn) {
+	queued_post_block_flush.push(fn);
+}
+
+/**
  * @param {Block} block
  */
 export function schedule_update(block) {
@@ -751,7 +1028,7 @@ export function schedule_update(block) {
 }
 
 /**
- * @param {Tracked} tracked
+ * @param {Tracked | Derived} tracked
  */
 function register_dependency(tracked) {
 	var dependency = active_dependency;
@@ -787,12 +1064,18 @@ export function get_derived(computed) {
 	if (tracking) {
 		register_dependency(computed);
 	}
+	var value = computed.__v;
 	var get = computed.a.get;
 	if (get !== undefined) {
-		computed.__v = trigger_track_get(get, computed.__v);
+		value = trigger_track_get(get, value);
+		computed.__v = value;
 	}
 
-	return computed.__v;
+	if (value === SUSPENSE_PENDING || value === SUSPENSE_REJECTED) {
+		throw ASYNC_DERIVED_READ_THROWN;
+	}
+
+	return value;
 }
 
 /**
@@ -806,7 +1089,7 @@ export function get(tracked) {
 
 	return (tracked.f & DERIVED) !== 0
 		? get_derived(/** @type {Derived} */ (tracked))
-		: get_tracked(tracked);
+		: get_tracked(/** @type {Tracked} */ (tracked));
 }
 
 /**
@@ -817,6 +1100,11 @@ export function get_tracked(tracked) {
 	if (tracking) {
 		register_dependency(tracked);
 	}
+
+	if (value === SUSPENSE_PENDING || value === SUSPENSE_REJECTED) {
+		throw ASYNC_DERIVED_READ_THROWN;
+	}
+
 	if (teardown && old_values.has(tracked)) {
 		value = old_values.get(tracked);
 	}
@@ -1203,6 +1491,7 @@ export function safe_scope(err = 'Cannot access outside of a component context')
 
 export function create_component_ctx() {
 	return {
+		b: active_block,
 		c: null,
 		e: null,
 		m: false,
@@ -1303,30 +1592,4 @@ export function exclude_from_object(obj, exclude_keys) {
 	}
 
 	return new_obj;
-}
-
-/**
- * @param {any} v
- * @returns {Promise<() => any>}
- */
-export async function maybe_tracked(v) {
-	var restore = capture();
-	let value;
-
-	if (is_ripple_object(v)) {
-		if ((v.f & DERIVED) !== 0) {
-			value = await async_computed(v.fn, v.b);
-		} else {
-			value = await async_computed(async () => {
-				return await get_tracked(v);
-			}, /** @type {Block} */ (active_block));
-		}
-	} else {
-		value = await v;
-	}
-
-	return () => {
-		restore();
-		return value;
-	};
 }

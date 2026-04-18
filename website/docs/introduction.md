@@ -66,8 +66,8 @@ needed. Prior experience with other frameworks is helpful but not required.
 - **Performance**: Fine-grain rendering, with industry-leading performance, bundle-size and memory usage
 - **TypeScript Support**: Full TypeScript integration with type checking
 - **VSCode Integration**: Rich editor support with diagnostics, syntax highlighting, and IntelliSense
-- **Prettier Support**: Full Prettier formatting support for `.ripple` modules
-- **ESLint Support**: linting support for `.ripple` modules
+- **Prettier Support**: Full Prettier formatting support for `.tsrx` modules by default
+- **ESLint Support**: linting support for `.tsrx` modules by default
 
 ## Server-Side Rendering
 

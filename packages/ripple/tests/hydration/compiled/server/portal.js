@@ -3,249 +3,236 @@ import * as _$_ from 'ripple/internal/server';
 
 import { Portal, track } from 'ripple/server';
 
-export async function SimplePortal(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
-		__output.push('<div');
-		__output.push(' class="container"');
-		__output.push('>');
+export function SimplePortal() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="container"');
+		_$_.output_push('>');
 
 		{
-			__output.push('<h1');
-			__output.push('>');
+			_$_.output_push('<h1');
+			_$_.output_push('>');
 
 			{
-				__output.push('Main Content');
+				_$_.output_push('Main Content');
 			}
 
-			__output.push('</h1>');
+			_$_.output_push('</h1>');
 
 			{
 				const comp = Portal;
 
 				const args = [
-					__output,
 					{
 						target: typeof document !== 'undefined' ? document.body : null,
-						children: _$_.ripple_element(function render_children(__output) {
+						children: _$_.ripple_element(function render_children() {
 							_$_.push_component();
-							__output.push('<div');
-							__output.push(' class="portal-content"');
-							__output.push('>');
+							_$_.output_push('<div');
+							_$_.output_push(' class="portal-content"');
+							_$_.output_push('>');
 
 							{
-								__output.push('Portal content');
+								_$_.output_push('Portal content');
 							}
 
-							__output.push('</div>');
+							_$_.output_push('</div>');
 							_$_.pop_component();
 						})
 					}
 				];
 
-				if (comp?.async) {
-					await comp(...args);
-				} else if (comp) {
+				if (comp) {
 					comp(...args);
 				}
 			}
 		}
 
-		__output.push('</div>');
-		_$_.pop_component();
+		_$_.output_push('</div>');
 	});
+
+	_$_.pop_component();
 }
 
-SimplePortal.async = true;
+export function ConditionalPortal() {
+	_$_.push_component();
 
-export async function ConditionalPortal(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
+	let lazy = _$_.track(true);
 
-		let lazy = _$_.track(true);
-
-		__output.push('<div');
-		__output.push(' class="container"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="container"');
+		_$_.output_push('>');
 
 		{
-			__output.push('<button');
-			__output.push(' class="toggle"');
-			__output.push('>');
+			_$_.output_push('<button');
+			_$_.output_push(' class="toggle"');
+			_$_.output_push('>');
 
 			{
-				__output.push('Toggle');
+				_$_.output_push('Toggle');
 			}
 
-			__output.push('</button>');
-			__output.push('<!--[-->');
+			_$_.output_push('</button>');
+			_$_.output_push('<!--[-->');
 
 			if (_$_.get(lazy)) {
 				{
 					const comp = Portal;
 
 					const args = [
-						__output,
 						{
 							target: typeof document !== 'undefined' ? document.body : null,
-							children: _$_.ripple_element(function render_children(__output) {
+							children: _$_.ripple_element(function render_children() {
 								_$_.push_component();
-								__output.push('<div');
-								__output.push(' class="portal-content"');
-								__output.push('>');
+								_$_.output_push('<div');
+								_$_.output_push(' class="portal-content"');
+								_$_.output_push('>');
 
 								{
-									__output.push('Portal is visible');
+									_$_.output_push('Portal is visible');
 								}
 
-								__output.push('</div>');
+								_$_.output_push('</div>');
 								_$_.pop_component();
 							})
 						}
 					];
 
-					if (comp?.async) {
-						await comp(...args);
-					} else if (comp) {
+					if (comp) {
 						comp(...args);
 					}
 				}
 			}
 
-			__output.push('<!--]-->');
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('</div>');
-		_$_.pop_component();
+		_$_.output_push('</div>');
 	});
+
+	_$_.pop_component();
 }
 
-ConditionalPortal.async = true;
+export function PortalWithMainContent() {
+	_$_.push_component();
 
-export async function PortalWithMainContent(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
-		__output.push('<div');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
 		{
-			__output.push('<div');
-			__output.push(' class="main-content"');
-			__output.push('>');
+			_$_.output_push('<div');
+			_$_.output_push(' class="main-content"');
+			_$_.output_push('>');
 
 			{
-				__output.push('Main page content');
+				_$_.output_push('Main page content');
 			}
 
-			__output.push('</div>');
+			_$_.output_push('</div>');
 
 			{
 				const comp = Portal;
 
 				const args = [
-					__output,
 					{
 						target: typeof document !== 'undefined' ? document.body : null,
-						children: _$_.ripple_element(function render_children(__output) {
+						children: _$_.ripple_element(function render_children() {
 							_$_.push_component();
-							__output.push('<div');
-							__output.push(' class="portal-content"');
-							__output.push('>');
+							_$_.output_push('<div');
+							_$_.output_push(' class="portal-content"');
+							_$_.output_push('>');
 
 							{
-								__output.push('Modal content');
+								_$_.output_push('Modal content');
 							}
 
-							__output.push('</div>');
+							_$_.output_push('</div>');
 							_$_.pop_component();
 						})
 					}
 				];
 
-				if (comp?.async) {
-					await comp(...args);
-				} else if (comp) {
+				if (comp) {
 					comp(...args);
 				}
 			}
 
-			__output.push('<div');
-			__output.push(' class="footer"');
-			__output.push('>');
+			_$_.output_push('<div');
+			_$_.output_push(' class="footer"');
+			_$_.output_push('>');
 
 			{
-				__output.push('Footer');
+				_$_.output_push('Footer');
 			}
 
-			__output.push('</div>');
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-		_$_.pop_component();
+		_$_.output_push('</div>');
 	});
+
+	_$_.pop_component();
 }
 
-PortalWithMainContent.async = true;
+export function NestedContentWithPortal() {
+	_$_.push_component();
 
-export async function NestedContentWithPortal(__output) {
-	return _$_.async(async () => {
-		_$_.push_component();
-		__output.push('<div');
-		__output.push(' class="outer"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="outer"');
+		_$_.output_push('>');
 
 		{
-			__output.push('<div');
-			__output.push(' class="inner"');
-			__output.push('>');
+			_$_.output_push('<div');
+			_$_.output_push(' class="inner"');
+			_$_.output_push('>');
 
 			{
-				__output.push('<span');
-				__output.push('>');
+				_$_.output_push('<span');
+				_$_.output_push('>');
 
 				{
-					__output.push('Nested content');
+					_$_.output_push('Nested content');
 				}
 
-				__output.push('</span>');
+				_$_.output_push('</span>');
 			}
 
-			__output.push('</div>');
+			_$_.output_push('</div>');
 
 			{
 				const comp = Portal;
 
 				const args = [
-					__output,
 					{
 						target: typeof document !== 'undefined' ? document.body : null,
-						children: _$_.ripple_element(function render_children(__output) {
+						children: _$_.ripple_element(function render_children() {
 							_$_.push_component();
-							__output.push('<div');
-							__output.push(' class="portal-content"');
-							__output.push('>');
+							_$_.output_push('<div');
+							_$_.output_push(' class="portal-content"');
+							_$_.output_push('>');
 
 							{
-								__output.push('Portal content');
+								_$_.output_push('Portal content');
 							}
 
-							__output.push('</div>');
+							_$_.output_push('</div>');
 							_$_.pop_component();
 						})
 					}
 				];
 
-				if (comp?.async) {
-					await comp(...args);
-				} else if (comp) {
+				if (comp) {
 					comp(...args);
 				}
 			}
 		}
 
-		__output.push('</div>');
-		_$_.pop_component();
+		_$_.output_push('</div>');
 	});
-}
 
-NestedContentWithPortal.async = true;
+	_$_.pop_component();
+}

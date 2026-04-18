@@ -1,6 +1,6 @@
 {
   "name": "@ripple-ts/language-server",
-  "version": "0.3.10",
+  "version": "0.3.17",
   "description": "Language Server Protocol implementation for Ripple",
   "main": "index.js",
   "bin": {
@@ -22,7 +22,7 @@
     "vscode-uri": "catalog:default"
   },
   "devDependencies": {
-    "ripple": "workspace:*"
+    "@tsrx/ripple": "workspace:*"
   },
   "peerDependencies": {
     "typescript": "catalog:peer"

@@ -1,9 +1,9 @@
 {
   "name": "@ripple-ts/eslint-parser",
-  "version": "0.3.10",
+  "version": "0.3.17",
   "description": "ESLint parser for Ripple (.ripple files)",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "src/index.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Ripple-TS/ripple.git",
@@ -30,18 +30,22 @@
   "author": "Dominic Gannaway",
   "license": "MIT",
   "scripts": {
-    "build": "tsdown",
-    "prepack": "tsdown"
+    "dist": "perl -pi -e 's/\"main\": \"src\\/index.ts\"/\"main\": \"dist\\/index.js\"/' package.json",
+    "src": "perl -pi -e 's/\"main\": \"dist\\/index.js\"/\"main\": \"src\\/index.ts\"/' package.json",
+    "build": "pnpm dist && tsdown && pnpm src || pnpm src",
+    "prepack": "pnpm build"
   },
   "peerDependencies": {
     "eslint": "catalog:peer",
     "ripple": "catalog:peer"
   },
+  "dependencies": {
+    "@tsrx/ripple": "workspace:*"
+  },
   "devDependencies": {
     "@types/eslint": "catalog:default",
     "@types/estree": "catalog:default",
     "@types/node": "catalog:default",
-    "ripple": "workspace:*",
     "tsdown": "catalog:default",
     "typescript": "catalog:default"
   },

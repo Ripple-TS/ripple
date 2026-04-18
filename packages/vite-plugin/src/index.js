@@ -4,7 +4,7 @@
 
 /// <reference types="ripple/compiler/internal/rpc" />
 
-import { compile } from 'ripple/compiler';
+import { compile } from '@tsrx/ripple';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -27,9 +27,29 @@ import { patch_global_fetch, is_rpc_request, handle_rpc_request } from '@ripple-
 
 // Re-export route classes
 export { RenderRoute, ServerRoute } from './routes.js';
+export {
+	getRippleConfigPath,
+	loadRippleConfig,
+	resolveRippleConfig,
+	rippleConfigExists,
+} from './load-config.js';
 
 const VITE_FS_PREFIX = '/@fs/';
 const IS_WINDOWS = process.platform === 'win32';
+const VIRTUAL_HYDRATE_ID = 'virtual:ripple-hydrate';
+const RESOLVED_VIRTUAL_HYDRATE_ID = '\0virtual:ripple-hydrate';
+const VIRTUAL_COMPAT_ID = 'virtual:ripple-compat';
+const RESOLVED_VIRTUAL_COMPAT_ID = '\0virtual:ripple-compat';
+const RIPPLE_EXTENSIONS = ['.ripple', '.rsrx', '.tsrx'];
+const RIPPLE_EXTENSION_PATTERN = /\.(?:ripple|rsrx|tsrx)$/;
+
+/**
+ * @param {string} file_name
+ * @returns {boolean}
+ */
+function is_ripple_module_path(file_name) {
+	return RIPPLE_EXTENSIONS.some((extension) => file_name.endsWith(extension));
+}
 
 // Dev server always runs in Node — use node:async_hooks as default runtime
 // If the user provides adapter.runtime in their config, that will be used instead.
@@ -65,6 +85,60 @@ function getDevAsyncContext(config) {
 	patch_global_fetch(devAsyncContext);
 
 	return devAsyncContext;
+}
+
+/**
+ * @param {ResolvedRippleConfig | null} config
+ * @returns {string}
+ */
+function create_compat_virtual_module(config) {
+	const compat_entries = Object.entries(config?.compat ?? {});
+
+	if (compat_entries.length === 0) {
+		return `const compat = undefined;
+globalThis.__RIPPLE_COMPAT__ = compat;
+export { compat };
+export default compat;
+`;
+	}
+
+	const imports = [];
+	const properties = [];
+
+	for (let i = 0; i < compat_entries.length; i++) {
+		const [kind, entry] = compat_entries[i];
+		const local_name = `__ripple_compat_factory_${i}`;
+
+		if (entry.factory) {
+			imports.push(
+				`import { ${entry.factory} as ${local_name} } from ${JSON.stringify(entry.from)};`,
+			);
+		} else {
+			imports.push(`import ${local_name} from ${JSON.stringify(entry.from)};`);
+		}
+
+		properties.push(`  ${JSON.stringify(kind)}: ${local_name}(),`);
+	}
+
+	return `${imports.join('\n')}
+
+const compat = {
+${properties.join('\n')}
+};
+
+globalThis.__RIPPLE_COMPAT__ = compat;
+
+export { compat };
+export default compat;
+`;
+}
+
+/**
+ * @param {ResolvedRippleConfig | null} config
+ * @returns {boolean}
+ */
+function has_route_config(config) {
+	return (config?.router.routes.length ?? 0) > 0;
 }
 
 /**
@@ -112,9 +186,9 @@ function hasRippleSource(packageJsonPath, subpath = '.') {
 		/** @type {PackageJson} */
 		const pkgJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
-		// Check if main/module/exports point to .ripple files
+		// Check if main/module/exports point to Ripple source files
 		/** @param {string | undefined} p */
-		const checkPath = (p) => p && typeof p === 'string' && p.endsWith('.ripple');
+		const checkPath = (p) => p && typeof p === 'string' && is_ripple_module_path(p);
 
 		// Handle exports field (modern)
 		if (pkgJson.exports) {
@@ -168,7 +242,7 @@ function hasRippleSource(packageJsonPath, subpath = '.') {
 			}
 		}
 
-		// Last resort: scan the package directory for .ripple files
+		// Last resort: scan the package directory for Ripple source files
 		const packageDir = packageJsonPath.replace('/package.json', '');
 		return hasRippleFilesInDirectory(packageDir);
 	} catch (e) {
@@ -177,7 +251,7 @@ function hasRippleSource(packageJsonPath, subpath = '.') {
 }
 
 /**
- * Recursively check if a directory contains any .ripple files
+ * Recursively check if a directory contains any Ripple source files
  * @param {string} dir
  * @param {number} [maxDepth=3]
  * @returns {boolean}
@@ -194,7 +268,7 @@ function hasRippleFilesInDirectory(dir, maxDepth = 3) {
 				continue;
 			}
 
-			if (entry.isFile() && entry.name.endsWith('.ripple')) {
+			if (entry.isFile() && is_ripple_module_path(entry.name)) {
 				return true;
 			}
 
@@ -327,6 +401,18 @@ export function ripple(inlineOptions = {}) {
 	/** @type {Set<string>} File paths (relative to root) of .ripple modules with #server blocks */
 	const serverBlockModules = new Set();
 
+	/**
+	 * @returns {Promise<ResolvedRippleConfig | null>}
+	 */
+	async function get_current_ripple_config() {
+		if (loadedRippleConfig) return loadedRippleConfig;
+		if (rippleConfig) return rippleConfig;
+		if (!root || !rippleConfigExists(root)) return null;
+
+		loadedRippleConfig = await loadRippleConfig(root);
+		return loadedRippleConfig;
+	}
+
 	/** @type {Plugin[]} */
 	const plugins = [
 		{
@@ -344,6 +430,12 @@ export function ripple(inlineOptions = {}) {
 					const projectRoot = userConfig.root || process.cwd();
 
 					if (rippleConfigExists(projectRoot)) {
+						loadedRippleConfig = await loadRippleConfig(projectRoot);
+
+						if (!has_route_config(loadedRippleConfig)) {
+							return null;
+						}
+
 						const htmlInput = path.join(projectRoot, 'index.html');
 						if (!fs.existsSync(htmlInput)) {
 							throw new Error(
@@ -356,11 +448,9 @@ export function ripple(inlineOptions = {}) {
 							'[@ripple-ts/vite-plugin] Detected ripple.config.ts — configuring client build',
 						);
 
-						// Load ripple.config.ts early so build options (e.g. minify) can
+						// The config was loaded above so build options (e.g. minify) can
 						// influence the client build config returned from this hook.
-						// The loaded config is cached and reused by
-						// buildStart and closeBundle.
-						loadedRippleConfig = await loadRippleConfig(projectRoot);
+						// The loaded config is cached and reused by buildStart/closeBundle.
 
 						const outDir = loadedRippleConfig.build.outDir;
 
@@ -408,9 +498,11 @@ export function ripple(inlineOptions = {}) {
 				}
 
 				if (excludeRippleExternalModules) {
+					/** @type {string[]} */
+					const excluded = userConfig.optimizeDeps?.exclude || [];
 					return {
 						optimizeDeps: {
-							exclude: userConfig.optimizeDeps?.exclude || [],
+							exclude: excluded,
 						},
 					};
 				}
@@ -421,6 +513,7 @@ export function ripple(inlineOptions = {}) {
 				detectedPackages.forEach((pkg) => {
 					ripplePackages.add(pkg);
 				});
+				/** @type {string[]} */
 				const existingExclude = userConfig.optimizeDeps?.exclude || [];
 				console.log('[@ripple-ts/vite-plugin] Scan complete. Found:', detectedPackages);
 				console.log(
@@ -428,7 +521,9 @@ export function ripple(inlineOptions = {}) {
 					existingExclude,
 				);
 				// Merge with existing exclude list
-				const allExclude = [...new Set([...existingExclude, ...ripplePackages])];
+				const ripple_package_list = /** @type {string[]} */ (Array.from(ripplePackages));
+				/** @type {string[]} */
+				const allExclude = [...new Set([...existingExclude, ...ripple_package_list])];
 
 				console.log(`[@ripple-ts/vite-plugin] Merged 'optimizeDeps.exclude':`, allExclude);
 				console.log(
@@ -464,6 +559,8 @@ export function ripple(inlineOptions = {}) {
 					loadedRippleConfig = await loadRippleConfig(root);
 				}
 
+				if (!has_route_config(loadedRippleConfig)) return;
+
 				renderRouteEntries = loadedRippleConfig.router.routes
 					.filter((/** @type {Route} */ r) => r.type === 'render')
 					.map((/** @type {RenderRoute} */ r) => r.entry);
@@ -487,6 +584,10 @@ export function ripple(inlineOptions = {}) {
 
 					try {
 						rippleConfig = await loadRippleConfig(root, { vite });
+
+						if (!has_route_config(rippleConfig)) {
+							return;
+						}
 
 						// Create router from config
 						router = createRouter(rippleConfig.router.routes);
@@ -608,18 +709,18 @@ export function ripple(inlineOptions = {}) {
 			},
 
 			/**
-			 * Handle HMR for .ripple files.
+			 * Handle HMR for Ripple source files.
 			 *
 			 * Inspired by vite-plugin-svelte's approach: instead of manually
 			 * re-compiling in hotUpdate, we use `transformRequest` to run the
 			 * full Vite pipeline (load → transform). This updates cssCache
 			 * via the existing transform hook and avoids double-compilation.
 			 *
-			 * After the .ripple file is re-transformed, we invalidate and
+			 * After the source file is re-transformed, we invalidate and
 			 * include the virtual CSS module in the HMR update so the browser
 			 * receives fresh CSS in sync with the re-rendered component.
 			 *
-			 * For non-.ripple files that don't self-accept, we invalidate
+			 * For non-Ripple files that don't self-accept, we invalidate
 			 * SSR modules and trigger a full reload.
 			 */
 			hotUpdate: {
@@ -629,7 +730,7 @@ export function ripple(inlineOptions = {}) {
 
 					let updated_modules = modules;
 
-					if (file.endsWith('.ripple')) {
+					if (is_ripple_module_path(file)) {
 						const filename = file.replace(root, '');
 						const cssId = createVirtualImportId(filename, root, 'style');
 
@@ -638,7 +739,7 @@ export function ripple(inlineOptions = {}) {
 
 						// Use transformRequest to run the standard Vite pipeline.
 						// This triggers our transform hook which re-compiles the
-						// .ripple file and updates cssCache as a side-effect.
+						// source file and updates cssCache as a side-effect.
 						try {
 							await this.environment.transformRequest(filename);
 						} catch {
@@ -659,7 +760,7 @@ export function ripple(inlineOptions = {}) {
 						}
 					}
 
-					// Non-.ripple files: if all modules self-accept, let Vite
+					// Non-Ripple files: if all modules self-accept, let Vite
 					// handle. Otherwise invalidate SSR and full-reload.
 					if (modules.length > 0 && modules.every((m) => m.isSelfAccepting)) {
 						return updated_modules === modules ? undefined : updated_modules;
@@ -687,7 +788,7 @@ export function ripple(inlineOptions = {}) {
 			transformIndexHtml: {
 				order: 'pre',
 				handler(html) {
-					if (!isBuild || isSSRBuild) return html;
+					if (!isBuild || isSSRBuild || !has_route_config(loadedRippleConfig)) return html;
 
 					// Inject the hydration client entry script before </body>
 					const hydrationScript = `<script type="module" src="virtual:ripple-hydrate"></script>`;
@@ -707,6 +808,8 @@ export function ripple(inlineOptions = {}) {
 					if (!rippleConfigExists(root)) return;
 					loadedRippleConfig = await loadRippleConfig(root);
 				}
+
+				if (!has_route_config(loadedRippleConfig)) return;
 
 				console.log('[@ripple-ts/vite-plugin] Client build done. Starting server build...');
 
@@ -897,8 +1000,12 @@ export function ripple(inlineOptions = {}) {
 
 			async resolveId(id, importer, options) {
 				// Handle virtual hydrate module
-				if (id === 'virtual:ripple-hydrate') {
-					return '\0virtual:ripple-hydrate';
+				if (id === VIRTUAL_HYDRATE_ID) {
+					return RESOLVED_VIRTUAL_HYDRATE_ID;
+				}
+
+				if (id === VIRTUAL_COMPAT_ID) {
+					return RESOLVED_VIRTUAL_COMPAT_ID;
 				}
 
 				// Skip non-package imports (relative/absolute paths)
@@ -941,8 +1048,13 @@ export function ripple(inlineOptions = {}) {
 			},
 
 			async load(id, opts) {
+				if (id === RESOLVED_VIRTUAL_COMPAT_ID) {
+					const compat_config = await get_current_ripple_config();
+					return create_compat_virtual_module(compat_config);
+				}
+
 				// Handle virtual hydrate module
-				if (id === '\0virtual:ripple-hydrate') {
+				if (id === RESOLVED_VIRTUAL_HYDRATE_ID) {
 					if (isBuild && renderRouteEntries.length > 0) {
 						// Production: generate static import map so Vite bundles page components
 						const importMapLines = renderRouteEntries
@@ -955,6 +1067,7 @@ export function ripple(inlineOptions = {}) {
 						// main bundle awaits page module import → page module awaits main bundle's
 						// TLA to complete → circular wait.
 						return `
+import ${JSON.stringify(VIRTUAL_COMPAT_ID)};
 import { hydrate, mount } from 'ripple';
 
 const routeModules = {
@@ -1004,6 +1117,7 @@ ${importMapLines}
 					// Dev mode: use async IIFE to avoid top-level await deadlock
 					// (same reason as production — page modules import from the main bundle)
 					return `
+import ${JSON.stringify(VIRTUAL_COMPAT_ID)};
 import { hydrate, mount } from 'ripple';
 
 (async () => {
@@ -1045,18 +1159,23 @@ import { hydrate, mount } from 'ripple';
 			},
 
 			transform: {
-				filter: { id: /\.ripple$/ },
+				filter: { id: RIPPLE_EXTENSION_PATTERN },
 
 				async handler(code, id, opts) {
 					const filename = id.replace(root, '');
 					const ssr = opts?.ssr === true || this.environment.config.consumer === 'server';
 
 					const is_dev = config?.command === 'serve';
+					const current_ripple_config = await get_current_ripple_config();
 
 					const { js, css } = await compile(code, filename, {
 						mode: ssr ? 'server' : 'client',
 						dev: is_dev,
 						hmr: is_dev && !ssr,
+						compat_kinds:
+							current_ripple_config === null
+								? undefined
+								: Object.keys(current_ripple_config.compat),
 					});
 
 					// Track modules with #server blocks for RPC (client build only)

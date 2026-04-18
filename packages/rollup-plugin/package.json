@@ -3,7 +3,7 @@
   "description": "Rollup plugin for Ripple",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.3.10",
+  "version": "0.3.17",
   "type": "module",
   "main": "index.js",
   "homepage": "https://ripple-ts.com",
@@ -16,7 +16,8 @@
     "url": "https://github.com/Ripple-TS/ripple/issues"
   },
   "dependencies": {
-    "@rollup/pluginutils": "catalog:default"
+    "@rollup/pluginutils": "catalog:default",
+    "@tsrx/ripple": "workspace:*"
   },
   "devDependencies": {
     "ripple": "workspace:*",

@@ -7,7 +7,7 @@
 	"plugins": ["@ripple-ts/prettier-plugin"],
 	"overrides": [
 		{
-			"files": ["*.ripple"],
+			"files": ["*.ripple", "*.rsrx", "*.tsrx"],
 			"options": {
 				"bracketSameLine": false,
 				"parser": "ripple"

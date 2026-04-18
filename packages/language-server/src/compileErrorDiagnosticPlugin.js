@@ -1,10 +1,10 @@
 /**
  * @import {Diagnostic, Range, LanguageServicePlugin, LanguageServiceContext, Position, Mapper} from '@volar/language-server';
  * @import {TextDocument} from 'vscode-languageserver-textdocument';
- * @import {RippleVirtualCode} from '@ripple-ts/typescript-plugin/src/language.js';
+ * @import {TSRXVirtualCode} from '@ripple-ts/typescript-plugin/src/language.js';
  */
 // @ts-expect-error: ESM type import is fine
-/** @import {RippleCompileError} from 'ripple/compiler'; */
+/** @import {TSRXCompileError} from '@tsrx/ripple'; */
 
 const { getVirtualCode, createLogging } = require('./utils.js');
 
@@ -62,8 +62,8 @@ function createCompileErrorDiagnosticPlugin() {
 }
 
 /**
- * @param {RippleCompileError} error
- * @param {RippleVirtualCode} virtualCode
+ * @param {TSRXCompileError} error
+ * @param {TSRXVirtualCode} virtualCode
  * @param {Mapper | undefined} sourceMap
  * @param {TextDocument} document
  * @returns {Diagnostic}
@@ -121,7 +121,7 @@ function parseCompilationErrorWithDocument(error, virtualCode, sourceMap, docume
 }
 
 /**
- * @param {RippleCompileError} error
+ * @param {TSRXCompileError} error
  * @param {TextDocument} document
  * @returns {Range}
  */
@@ -134,7 +134,7 @@ function get_error_range_from_source(error, document) {
 }
 
 /**
- * @param {RippleCompileError} error
+ * @param {TSRXCompileError} error
  * @param {number} [start_offset]
  * @returns {number}
  */
@@ -148,7 +148,7 @@ function get_end_offset_from_error(error, start_offset) {
 }
 
 /**
- * @param {RippleCompileError} error
+ * @param {TSRXCompileError} error
  * @returns {number}
  */
 function get_start_offset_from_error(error) {

@@ -30,14 +30,14 @@ with that later! :::
 
 ## Caveat: Templates Must be within Components
 
-Unlike JSX, Ripple can only have templates within the body of a component. This
-means that helper functions should not (and cannot) return any templates, but
-rather just data. This design enforces clear separation between component
-templates and regular JavaScript logic, making code more predictable and easier to
-analyze.
+Unlike JSX, Ripple's regular templates are statement-based and can only appear
+within the body of a component. If you need JSX in expression position, use the
+`<tsx>...</tsx>` wrapper covered below. This design keeps normal component
+templates distinct from regular JavaScript logic while still providing an escape
+hatch when you need to store, return, or pass JSX as a value.
 
 ```ripple
-// ❌ Wrong - Templates outside the component
+// ❌ Wrong - Plain templates outside the component
 const element = <div>
   {'Hello'}
 </div>; // Compilation error
@@ -64,7 +64,7 @@ component MyComponent() {
   <p>{message}</p>
 }
 
-// ✅ Correct - Helper functions return data, not templates
+// ✅ Correct - Helper functions can return data
 function getMessage() {
   return 'Hello from function'; // Return data, not JSX
 }
@@ -73,6 +73,69 @@ component App() {
   <div>{getMessage()}</div> // Use function result in template
 }
 ```
+
+## Using `<tsx>` for JSX Expression Values
+
+Use `<tsx>...</tsx>` when JSX needs to exist in expression position rather than as
+a normal template statement. This is useful when you want to assign JSX to a
+variable, return it from a helper, or pass it directly as a prop or child.
+
+```ripple
+// ✅ Correct - Store JSX in a variable
+component App() {
+  const title = <tsx>
+    <span class="title">
+      {'Settings'}
+    </span>
+  </tsx>;
+
+  <header>{title}</header>
+}
+
+// ✅ Correct - Return JSX from a helper function
+function createBadge(label: string) {
+  return <tsx>
+    <span class="badge">
+      {label}
+    </span>
+  </tsx>;
+}
+
+component App() {
+  {createBadge('New')}
+}
+
+// ✅ Correct - Pass JSX directly as props
+component Card(props: { title: any; children: any }) {
+  <section>
+    <h2>{props.title}</h2>
+    <div>{props.children}</div>
+  </section>
+}
+
+component App() {
+  <Card
+    title={<tsx>
+      <span>
+        {'Settings'}
+      </span>
+    </tsx>}
+    children={<tsx>
+      <p>
+        {'Card body'}
+      </p>
+    </tsx>}
+  />
+}
+```
+
+### `<tsx>` vs `<tsx:react>`
+
+- `<tsx>` keeps Ripple syntax and Ripple rendering semantics.
+- `<tsx:react>` switches to React JSX semantics and requires compat setup.
+
+Use plain `<tsx>` when you want a Ripple renderable value. Use `<tsx:react>` only
+when you are intentionally embedding React.
 
 ## Early Returns in Components
 

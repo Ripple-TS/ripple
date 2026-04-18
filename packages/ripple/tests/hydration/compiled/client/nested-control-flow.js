@@ -621,11 +621,9 @@ export function SwitchTry(__anchor, _, __block) {
 				_$_.try(
 					node_13,
 					(__anchor) => {
-						_$_.async(async () => {
-							var p_3 = root_32();
+						var p_3 = root_32();
 
-							_$_.append(__anchor, p_3);
-						});
+						_$_.append(__anchor, p_3);
 					},
 					null,
 					(__anchor) => {
@@ -688,22 +686,20 @@ export function ForSwitchTry(__anchor, _, __block) {
 						_$_.try(
 							node_15,
 							(__anchor) => {
-								_$_.async(async () => {
-									var li_10 = root_38();
+								var li_10 = root_38();
 
-									{
-										var expression_9 = _$_.child(li_10, true);
+								{
+									var expression_9 = _$_.child(li_10, true);
 
-										_$_.expression(expression_9, () => `A-${_$_.get(pattern_5).id}`);
-										_$_.pop(li_10);
-									}
+									_$_.expression(expression_9, () => `A-${_$_.get(pattern_5).id}`);
+									_$_.pop(li_10);
+								}
 
-									_$_.render(() => {
-										_$_.set_class(li_10, `item item-${_$_.get(pattern_5).id} kind-a`, void 0, true);
-									});
-
-									_$_.append(__anchor, li_10);
+								_$_.render(() => {
+									_$_.set_class(li_10, `item item-${_$_.get(pattern_5).id} kind-a`, void 0, true);
 								});
+
+								_$_.append(__anchor, li_10);
 							},
 							null,
 							(__anchor) => {
@@ -734,22 +730,20 @@ export function ForSwitchTry(__anchor, _, __block) {
 						_$_.try(
 							node_16,
 							(__anchor) => {
-								_$_.async(async () => {
-									var li_12 = root_41();
+								var li_12 = root_41();
 
-									{
-										var expression_11 = _$_.child(li_12, true);
+								{
+									var expression_11 = _$_.child(li_12, true);
 
-										_$_.expression(expression_11, () => `B-${_$_.get(pattern_5).id}`);
-										_$_.pop(li_12);
-									}
+									_$_.expression(expression_11, () => `B-${_$_.get(pattern_5).id}`);
+									_$_.pop(li_12);
+								}
 
-									_$_.render(() => {
-										_$_.set_class(li_12, `item item-${_$_.get(pattern_5).id} kind-b`, void 0, true);
-									});
-
-									_$_.append(__anchor, li_12);
+								_$_.render(() => {
+									_$_.set_class(li_12, `item item-${_$_.get(pattern_5).id} kind-b`, void 0, true);
 								});
+
+								_$_.append(__anchor, li_12);
 							},
 							null,
 							(__anchor) => {
@@ -823,22 +817,20 @@ export function ForIfTry(__anchor, _, __block) {
 						_$_.try(
 							node_18,
 							(__anchor) => {
-								_$_.async(async () => {
-									var li_14 = root_46();
+								var li_14 = root_46();
 
-									{
-										var expression_13 = _$_.child(li_14, true);
+								{
+									var expression_13 = _$_.child(li_14, true);
 
-										_$_.expression(expression_13, () => `item-${_$_.get(pattern_6).id}`);
-										_$_.pop(li_14);
-									}
+									_$_.expression(expression_13, () => `item-${_$_.get(pattern_6).id}`);
+									_$_.pop(li_14);
+								}
 
-									_$_.render(() => {
-										_$_.set_class(li_14, `item item-${_$_.get(pattern_6).id}`, void 0, true);
-									});
-
-									_$_.append(__anchor, li_14);
+								_$_.render(() => {
+									_$_.set_class(li_14, `item item-${_$_.get(pattern_6).id}`, void 0, true);
 								});
+
+								_$_.append(__anchor, li_14);
 							},
 							null,
 							(__anchor) => {
@@ -907,22 +899,20 @@ export function ForIfSwitchTrySingle(__anchor, _, __block) {
 								_$_.try(
 									node_21,
 									(__anchor) => {
-										_$_.async(async () => {
-											var li_16 = root_52();
+										var li_16 = root_52();
 
-											{
-												var expression_15 = _$_.child(li_16, true);
+										{
+											var expression_15 = _$_.child(li_16, true);
 
-												_$_.expression(expression_15, () => `A-${_$_.get(pattern_7).id}`);
-												_$_.pop(li_16);
-											}
+											_$_.expression(expression_15, () => `A-${_$_.get(pattern_7).id}`);
+											_$_.pop(li_16);
+										}
 
-											_$_.render(() => {
-												_$_.set_class(li_16, `item item-${_$_.get(pattern_7).id} kind-a`, void 0, true);
-											});
-
-											_$_.append(__anchor, li_16);
+										_$_.render(() => {
+											_$_.set_class(li_16, `item item-${_$_.get(pattern_7).id} kind-a`, void 0, true);
 										});
+
+										_$_.append(__anchor, li_16);
 									},
 									null,
 									(__anchor) => {
@@ -953,22 +943,20 @@ export function ForIfSwitchTrySingle(__anchor, _, __block) {
 								_$_.try(
 									node_22,
 									(__anchor) => {
-										_$_.async(async () => {
-											var li_18 = root_55();
+										var li_18 = root_55();
 
-											{
-												var expression_17 = _$_.child(li_18, true);
+										{
+											var expression_17 = _$_.child(li_18, true);
 
-												_$_.expression(expression_17, () => `D-${_$_.get(pattern_7).id}`);
-												_$_.pop(li_18);
-											}
+											_$_.expression(expression_17, () => `D-${_$_.get(pattern_7).id}`);
+											_$_.pop(li_18);
+										}
 
-											_$_.render(() => {
-												_$_.set_class(li_18, `item item-${_$_.get(pattern_7).id} kind-default`, void 0, true);
-											});
-
-											_$_.append(__anchor, li_18);
+										_$_.render(() => {
+											_$_.set_class(li_18, `item item-${_$_.get(pattern_7).id} kind-default`, void 0, true);
 										});
+
+										_$_.append(__anchor, li_18);
 									},
 									null,
 									(__anchor) => {
@@ -1059,22 +1047,20 @@ export function ForIfSwitchTryMulti(__anchor, _, __block) {
 								_$_.try(
 									node_25,
 									(__anchor) => {
-										_$_.async(async () => {
-											var li_20 = root_61();
+										var li_20 = root_61();
 
-											{
-												var expression_19 = _$_.child(li_20, true);
+										{
+											var expression_19 = _$_.child(li_20, true);
 
-												_$_.expression(expression_19, () => `A-${_$_.get(pattern_8).id}`);
-												_$_.pop(li_20);
-											}
+											_$_.expression(expression_19, () => `A-${_$_.get(pattern_8).id}`);
+											_$_.pop(li_20);
+										}
 
-											_$_.render(() => {
-												_$_.set_class(li_20, `item item-${_$_.get(pattern_8).id} kind-a`, void 0, true);
-											});
-
-											_$_.append(__anchor, li_20);
+										_$_.render(() => {
+											_$_.set_class(li_20, `item item-${_$_.get(pattern_8).id} kind-a`, void 0, true);
 										});
+
+										_$_.append(__anchor, li_20);
 									},
 									null,
 									(__anchor) => {
@@ -1105,22 +1091,20 @@ export function ForIfSwitchTryMulti(__anchor, _, __block) {
 								_$_.try(
 									node_26,
 									(__anchor) => {
-										_$_.async(async () => {
-											var li_22 = root_64();
+										var li_22 = root_64();
 
-											{
-												var expression_21 = _$_.child(li_22, true);
+										{
+											var expression_21 = _$_.child(li_22, true);
 
-												_$_.expression(expression_21, () => `B-${_$_.get(pattern_8).id}`);
-												_$_.pop(li_22);
-											}
+											_$_.expression(expression_21, () => `B-${_$_.get(pattern_8).id}`);
+											_$_.pop(li_22);
+										}
 
-											_$_.render(() => {
-												_$_.set_class(li_22, `item item-${_$_.get(pattern_8).id} kind-b`, void 0, true);
-											});
-
-											_$_.append(__anchor, li_22);
+										_$_.render(() => {
+											_$_.set_class(li_22, `item item-${_$_.get(pattern_8).id} kind-b`, void 0, true);
 										});
+
+										_$_.append(__anchor, li_22);
 									},
 									null,
 									(__anchor) => {

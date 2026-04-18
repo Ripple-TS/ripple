@@ -3,94 +3,102 @@ import * as _$_ from 'ripple/internal/server';
 
 import { track } from 'ripple/server';
 
-export function Layout(__output, { children }) {
+export function Layout({ children }) {
 	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="layout"');
-	__output.push('>');
 
-	{
-		__output.push('<nav');
-		__output.push(' class="nav"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="layout"');
+		_$_.output_push('>');
 
 		{
-			__output.push('Navigation');
+			_$_.output_push('<nav');
+			_$_.output_push(' class="nav"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Navigation');
+			}
+
+			_$_.output_push('</nav>');
+			_$_.output_push('<main');
+			_$_.output_push(' class="main"');
+			_$_.output_push('>');
+
+			{
+				_$_.render_expression(children);
+			}
+
+			_$_.output_push('</main>');
 		}
 
-		__output.push('</nav>');
-		__output.push('<main');
-		__output.push(' class="main"');
-		__output.push('>');
+		_$_.output_push('</div>');
+	});
 
-		{
-			_$_.render_expression(__output, children);
-		}
-
-		__output.push('</main>');
-	}
-
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function Content(__output) {
+export function Content() {
 	_$_.push_component();
 
 	let lazy = _$_.track(true);
 
-	__output.push('<div');
-	__output.push(' class="content"');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="content"');
+		_$_.output_push('>');
 
-	{
-		__output.push('<!--[-->');
+		{
+			_$_.output_push('<!--[-->');
 
-		if (_$_.get(lazy)) {
-			__output.push('<p');
-			__output.push(' class="text"');
-			__output.push('>');
+			if (_$_.get(lazy)) {
+				_$_.output_push('<p');
+				_$_.output_push(' class="text"');
+				_$_.output_push('>');
 
-			{
-				__output.push('Hello world');
+				{
+					_$_.output_push('Hello world');
+				}
+
+				_$_.output_push('</p>');
 			}
 
-			__output.push('</p>');
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function LayoutWithContent(__output) {
+export function LayoutWithContent() {
 	_$_.push_component();
 
-	{
-		const comp = Layout;
+	_$_.regular_block(() => {
+		{
+			const comp = Layout;
 
-		const args = [
-			__output,
-			{
-				children: _$_.ripple_element(function render_children(__output) {
-					_$_.push_component();
+			const args = [
+				{
+					children: _$_.ripple_element(function render_children() {
+						_$_.push_component();
 
-					{
-						const comp = Content;
-						const args = [__output, {}];
+						{
+							const comp = Content;
+							const args = [{}];
 
-						comp(...args);
-					}
+							comp(...args);
+						}
 
-					_$_.pop_component();
-				})
-			}
-		];
+						_$_.pop_component();
+					})
+				}
+			];
 
-		comp(...args);
-	}
+			comp(...args);
+		}
+	});
 
 	_$_.pop_component();
 }

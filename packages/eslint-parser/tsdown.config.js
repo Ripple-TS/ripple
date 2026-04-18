@@ -7,7 +7,7 @@ export default defineConfig({
 	fixedExtension: false,
 	dts: true,
 	// Mark peer dependencies as external so they're not bundled
-	external: ['eslint', 'ripple'],
+	external: ['eslint', '@tsrx/ripple'],
 	outputOptions: {
 		legalComments: 'inline',
 	},

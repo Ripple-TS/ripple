@@ -1,96 +1,105 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-export function SimpleTemplateHtml(__output) {
+export function SimpleTemplateHtml() {
 	_$_.push_component();
 
 	const data = 'test data';
 
-	__output.push('<template');
-	__output.push(' id="data1"');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<template');
+		_$_.output_push(' id="data1"');
+		_$_.output_push('>');
 
-	{
-		const html_value = String(data ?? '');
+		{
+			const html_value = String(data ?? '');
 
-		__output.push('<!--' + _$_.hash(html_value) + '-->');
-		__output.push(html_value);
-		__output.push('<!---->');
-	}
+			_$_.output_push('<!--' + _$_.hash(html_value) + '-->');
+			_$_.output_push(html_value);
+			_$_.output_push('<!---->');
+		}
 
-	__output.push('</template>');
+		_$_.output_push('</template>');
+	});
+
 	_$_.pop_component();
 }
 
-export function TemplateWithJSON(__output) {
+export function TemplateWithJSON() {
 	_$_.push_component();
 
 	const jsonData = JSON.stringify({ message: 'hello', count: 42 });
 
-	__output.push('<template');
-	__output.push(' id="data2"');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<template');
+		_$_.output_push(' id="data2"');
+		_$_.output_push('>');
 
-	{
-		const html_value_1 = String(jsonData ?? '');
+		{
+			const html_value_1 = String(jsonData ?? '');
 
-		__output.push('<!--' + _$_.hash(html_value_1) + '-->');
-		__output.push(html_value_1);
-		__output.push('<!---->');
-	}
+			_$_.output_push('<!--' + _$_.hash(html_value_1) + '-->');
+			_$_.output_push(html_value_1);
+			_$_.output_push('<!---->');
+		}
 
-	__output.push('</template>');
+		_$_.output_push('</template>');
+	});
+
 	_$_.pop_component();
 }
 
-export function TemplateAroundIfBlock(__output) {
+export function TemplateAroundIfBlock() {
 	_$_.push_component();
 
 	const show = true;
 
-	__output.push('<div');
-	__output.push('>');
-
-	{
-		__output.push('<template');
-		__output.push(' id="before"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
 		{
-			__output.push('<!--14v3bl2-->');
-			__output.push('before');
-			__output.push('<!---->');
-		}
-
-		__output.push('</template>');
-		__output.push('<!--[-->');
-
-		if (show) {
-			__output.push('<span');
-			__output.push(' class="inside"');
-			__output.push('>');
+			_$_.output_push('<template');
+			_$_.output_push(' id="before"');
+			_$_.output_push('>');
 
 			{
-				__output.push('inside');
+				_$_.output_push('<!--14v3bl2-->');
+				_$_.output_push('before');
+				_$_.output_push('<!---->');
 			}
 
-			__output.push('</span>');
+			_$_.output_push('</template>');
+			_$_.output_push('<!--[-->');
+
+			if (show) {
+				_$_.output_push('<span');
+				_$_.output_push(' class="inside"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('inside');
+				}
+
+				_$_.output_push('</span>');
+			}
+
+			_$_.output_push('<!--]-->');
+			_$_.output_push('<template');
+			_$_.output_push(' id="after"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--1qvtvs1-->');
+				_$_.output_push('after');
+				_$_.output_push('<!---->');
+			}
+
+			_$_.output_push('</template>');
 		}
 
-		__output.push('<!--]-->');
-		__output.push('<template');
-		__output.push(' id="after"');
-		__output.push('>');
+		_$_.output_push('</div>');
+	});
 
-		{
-			__output.push('<!--1qvtvs1-->');
-			__output.push('after');
-			__output.push('<!---->');
-		}
-
-		__output.push('</template>');
-	}
-
-	__output.push('</div>');
 	_$_.pop_component();
 }

@@ -120,9 +120,6 @@ catalogs:
     marked:
       specifier: ^17.0.3
       version: 17.0.3
-    muggle-string:
-      specifier: ^0.4.1
-      version: 0.4.1
     ora:
       specifier: ^9.3.0
       version: 9.3.0
@@ -208,6 +205,9 @@ catalogs:
     eslint:
       specifier: '>=9.0.0'
       version: 10.0.2
+    ripple:
+      specifier: '*'
+      version: 0.3.17
     tailwindcss:
       specifier: ^4.1.12
       version: 4.2.1
@@ -245,6 +245,9 @@ importers:
       '@types/node':
         specifier: catalog:default
         version: 24.11.0
+      '@typescript/native-preview':
+        specifier: 7.0.0-dev.20260417.1
+        version: 7.0.0-dev.20260417.1
       eslint:
         specifier: catalog:default
         version: 10.2.1(jiti@2.6.1)
@@ -365,7 +368,7 @@ importers:
         version: 2.4.2
       tsdown:
         specifier: catalog:default
-        version: 0.20.3(typescript@5.9.3)
+        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260417.1)(typescript@5.9.3)
       type-fest:
         specifier: catalog:default
         version: 5.6.0
@@ -406,13 +409,19 @@ importers:
     devDependencies:
       tsdown:
         specifier: catalog:default
-        version: 0.20.3(typescript@5.9.3)
+        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260417.1)(typescript@5.9.3)
 
   packages/eslint-parser:
     dependencies:
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../tsrx-ripple
       eslint:
         specifier: catalog:peer
         version: 10.0.2(jiti@2.6.1)
+      ripple:
+        specifier: catalog:peer
+        version: 0.3.17
     devDependencies:
       '@types/eslint':
         specifier: catalog:default
@@ -423,12 +432,9 @@ importers:
       '@types/node':
         specifier: catalog:default
         version: 24.11.0
-      ripple:
-        specifier: workspace:*
-        version: link:../ripple
       tsdown:
         specifier: catalog:default
-        version: 0.20.3(typescript@5.9.3)
+        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260417.1)(typescript@5.9.3)
       typescript:
         specifier: catalog:default
         version: 5.9.3
@@ -438,6 +444,9 @@ importers:
       '@ripple-ts/eslint-parser':
         specifier: workspace:*
         version: link:../eslint-parser
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
       '@types/eslint':
         specifier: catalog:default
         version: 9.6.1
@@ -455,7 +464,7 @@ importers:
         version: link:../ripple
       tsdown:
         specifier: catalog:default
-        version: 0.20.3(typescript@5.9.3)
+        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260417.1)(typescript@5.9.3)
       typescript:
         specifier: catalog:default
         version: 5.9.3
@@ -489,13 +498,20 @@ importers:
         specifier: catalog:default
         version: 3.1.0
     devDependencies:
-      ripple:
+      '@tsrx/ripple':
         specifier: workspace:*
-        version: link:../ripple
+        version: link:../tsrx-ripple
 
   packages/nvim-plugin: {}
 
   packages/prettier-plugin:
+    dependencies:
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../tsrx-ripple
     devDependencies:
       '@types/node':
         specifier: catalog:default
@@ -509,21 +525,12 @@ importers:
 
   packages/ripple:
     dependencies:
-      '@jridgewell/sourcemap-codec':
-        specifier: catalog:default
-        version: 1.5.5
-      '@sveltejs/acorn-typescript':
-        specifier: catalog:default
-        version: 1.0.9(acorn@8.16.0)
       '@types/estree':
         specifier: catalog:default
         version: 1.0.8
       '@types/estree-jsx':
         specifier: catalog:default
         version: 1.0.5
-      acorn:
-        specifier: catalog:default
-        version: 8.16.0
       clsx:
         specifier: catalog:default
         version: 2.1.1
@@ -533,25 +540,16 @@ importers:
       esm-env:
         specifier: catalog:default
         version: 1.2.2
-      esrap:
-        specifier: catalog:default
-        version: 2.2.3
-      is-reference:
-        specifier: catalog:default
-        version: 3.0.3
-      magic-string:
-        specifier: catalog:default
-        version: 0.30.21
-      muggle-string:
-        specifier: catalog:default
-        version: 0.4.1
       ripple:
         specifier: workspace:*
         version: 'link:'
-      zimmerframe:
-        specifier: catalog:default
-        version: 1.1.4
     devDependencies:
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../tsrx-ripple
       '@types/node':
         specifier: catalog:default
         version: 24.11.0
@@ -573,6 +571,9 @@ importers:
       '@rollup/pluginutils':
         specifier: catalog:default
         version: 5.3.0(rollup@4.59.0)
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../tsrx-ripple
     devDependencies:
       ripple:
         specifier: workspace:*
@@ -602,17 +603,97 @@ importers:
         specifier: ^4.1.0
         version: 4.1.1
 
+  packages/tsrx:
+    dependencies:
+      '@jridgewell/sourcemap-codec':
+        specifier: catalog:default
+        version: 1.5.5
+      '@sveltejs/acorn-typescript':
+        specifier: catalog:default
+        version: 1.0.9(acorn@8.16.0)
+      '@types/estree':
+        specifier: catalog:default
+        version: 1.0.8
+      '@types/estree-jsx':
+        specifier: catalog:default
+        version: 1.0.5
+      acorn:
+        specifier: catalog:default
+        version: 8.16.0
+      esrap:
+        specifier: catalog:default
+        version: 2.2.3
+      is-reference:
+        specifier: catalog:default
+        version: 3.0.3
+      magic-string:
+        specifier: catalog:default
+        version: 0.30.21
+      zimmerframe:
+        specifier: catalog:default
+        version: 1.1.4
+    devDependencies:
+      '@types/node':
+        specifier: catalog:default
+        version: 24.11.0
+      '@typescript-eslint/types':
+        specifier: catalog:default
+        version: 8.56.1
+      '@volar/language-core':
+        specifier: catalog:default
+        version: 2.4.28
+      typescript:
+        specifier: catalog:default
+        version: 5.9.3
+      vscode-languageserver-types:
+        specifier: catalog:default
+        version: 3.17.5
+
+  packages/tsrx-ripple:
+    dependencies:
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
+      esrap:
+        specifier: catalog:default
+        version: 2.2.3
+      is-reference:
+        specifier: catalog:default
+        version: 3.0.3
+      zimmerframe:
+        specifier: catalog:default
+        version: 1.1.4
+    devDependencies:
+      '@types/estree':
+        specifier: catalog:default
+        version: 1.0.8
+      '@types/estree-jsx':
+        specifier: catalog:default
+        version: 1.0.5
+      '@typescript-eslint/types':
+        specifier: catalog:default
+        version: 8.56.1
+      '@volar/language-core':
+        specifier: catalog:default
+        version: 2.4.28
+      typescript:
+        specifier: catalog:default
+        version: 5.9.3
+      vscode-languageserver-types:
+        specifier: catalog:default
+        version: 3.17.5
+
   packages/typescript-plugin:
     dependencies:
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../tsrx-ripple
       '@volar/language-core':
         specifier: catalog:default
         version: 2.4.28
       '@volar/typescript':
         specifier: catalog:default
         version: 2.4.28
-      ripple:
-        specifier: workspace:*
-        version: link:../ripple
       typescript:
         specifier: catalog:peer
         version: 5.9.3
@@ -622,13 +703,16 @@ importers:
         version: 24.11.0
       tsdown:
         specifier: catalog:default
-        version: 0.20.3(typescript@5.9.3)
+        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260417.1)(typescript@5.9.3)
 
   packages/vite-plugin:
     dependencies:
       '@ripple-ts/adapter':
         specifier: workspace:*
         version: link:../adapter
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../tsrx-ripple
     devDependencies:
       '@types/node':
         specifier: catalog:default
@@ -651,6 +735,9 @@ importers:
       '@ripple-ts/typescript-plugin':
         specifier: workspace:*
         version: link:../typescript-plugin
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../tsrx-ripple
       '@volar/language-core':
         specifier: catalog:default
         version: 2.4.28
@@ -663,9 +750,6 @@ importers:
       '@volar/vscode':
         specifier: catalog:default
         version: 2.4.28
-      ripple:
-        specifier: workspace:*
-        version: link:../ripple
       typescript:
         specifier: catalog:vscode
         version: 5.9.3
@@ -687,31 +771,34 @@ importers:
         version: 0.5.16
       tsdown:
         specifier: catalog:default
-        version: 0.20.3(typescript@5.9.3)
+        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260417.1)(typescript@5.9.3)
 
   packages/zed-plugin: {}
 
-  playground:
+  playground/ripple:
     dependencies:
       '@ripple-ts/compat-react':
         specifier: workspace:*
-        version: link:../packages/compat-react
+        version: link:../../packages/compat-react
       tailwindcss:
         specifier: catalog:peer
         version: 4.2.1
     devDependencies:
       '@ripple-ts/eslint-plugin':
         specifier: workspace:*
-        version: link:../packages/eslint-plugin
+        version: link:../../packages/eslint-plugin
       '@ripple-ts/typescript-plugin':
         specifier: workspace:*
-        version: link:../packages/typescript-plugin
+        version: link:../../packages/typescript-plugin
       '@ripple-ts/vite-plugin':
         specifier: workspace:*
-        version: link:../packages/vite-plugin
+        version: link:../../packages/vite-plugin
       '@tailwindcss/vite':
         specifier: catalog:default
         version: 4.2.1(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../../packages/tsrx-ripple
       '@typescript-eslint/parser':
         specifier: catalog:default
         version: 8.56.1(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3)
@@ -723,7 +810,7 @@ importers:
         version: 1.0.0-next.28
       ripple:
         specifier: workspace:*
-        version: link:../packages/ripple
+        version: link:../../packages/ripple
       typescript:
         specifier: catalog:default
         version: 5.9.3
@@ -2230,6 +2317,45 @@ packages:
   '@typescript-eslint/visitor-keys@8.56.1':
     resolution: {integrity: sha512-KiROIzYdEV85YygXw6BI/Dx4fnBlFQu6Mq4QE4MOH9fFnhohw6wX/OAvDY2/C+ut0I3RSPKenvZJIVYqJNkhEw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@typescript/native-preview-darwin-arm64@7.0.0-dev.20260417.1':
+    resolution: {integrity: sha512-TSV/P3OlMs3iua4dus60uphUwuB0DXnx+1nNazpcAhrpi1oAP6SyKcpYR0D+pqa55i+BDUHVAqpj/AP6pWli8Q==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@typescript/native-preview-darwin-x64@7.0.0-dev.20260417.1':
+    resolution: {integrity: sha512-vwjFGTPRH15tiHTPjLpKc9YdCaJoySXsWuosopAeTdzghnM58YOXle8J2+y7Sui5N+5uKCCvu0Dug/thL/IpzA==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@typescript/native-preview-linux-arm64@7.0.0-dev.20260417.1':
+    resolution: {integrity: sha512-Xbx3FANuS28RpwkjmzwASXeUmPJw8g7E/IRATaWfY945nldwnL5W6MACIdUKKPyQJYm4FtgtntorxJrf2O8vYw==}
+    cpu: [arm64]
+    os: [linux]
+
+  '@typescript/native-preview-linux-arm@7.0.0-dev.20260417.1':
+    resolution: {integrity: sha512-/2MG/XnvJMlwfej06NFHZTIOTHuxYCjGRHd+yBclbn6fTUVr3YhlzOZkFj9i2ewir//orOaEVD5u1F4rth8mVg==}
+    cpu: [arm]
+    os: [linux]
+
+  '@typescript/native-preview-linux-x64@7.0.0-dev.20260417.1':
+    resolution: {integrity: sha512-kA6tz+vBtfXdCrdwfh36pDhzdoCdn42sEIHIr4HpLvkpAfcn/ruRHWPCvcaOVcKAZWwqgOhyE5ENN9uOSKBZPA==}
+    cpu: [x64]
+    os: [linux]
+
+  '@typescript/native-preview-win32-arm64@7.0.0-dev.20260417.1':
+    resolution: {integrity: sha512-BHWsdltUYVNu1lHJTim3FofIBQSjn/Jw4BbA0UEiRpOwFi4hXt4SnP4/7M1A2DMmkBAAv/ZVU8vi+uR44CHatg==}
+    cpu: [arm64]
+    os: [win32]
+
+  '@typescript/native-preview-win32-x64@7.0.0-dev.20260417.1':
+    resolution: {integrity: sha512-93bOoa7KDADhfC5vyhnCKPn2A5lhe2lPGMIC2yWfmueOX+R6DLkl2G8olqh+ocTFHCJRhBv8R/VM1j7FaAxG5A==}
+    cpu: [x64]
+    os: [win32]
+
+  '@typescript/native-preview@7.0.0-dev.20260417.1':
+    resolution: {integrity: sha512-uIsfMRxtjgMF83TbAcpvHe0rgWVhqDSwCU1EYQT17qQbnOR56NIULneywLjeGKFgOCpn3eszd01/EjzS0n/LkA==}
+    hasBin: true
 
   '@typespec/ts-http-runtime@0.3.3':
     resolution: {integrity: sha512-91fp6CAAJSRtH5ja95T1FHSKa8aPW9/Zw6cta81jlZTUw/+Vq8jM/AfF/14h2b71wwR84JUTW/3Y8QPhDAawFA==}
@@ -4091,9 +4217,6 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  muggle-string@0.4.1:
-    resolution: {integrity: sha512-VNTrAak/KhO2i8dqqnqnAHOa3cYBwXEZe9h+D5h/1ZqFSTEFHdM65lR7RoIqq3tBBYavsOXV84NoHXZ0AkPyqQ==}
-
   mute-stream@0.0.8:
     resolution: {integrity: sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==}
 
@@ -4519,6 +4642,9 @@ packages:
   reusify@1.1.0:
     resolution: {integrity: sha512-g6QUff04oZpHs0eG5p83rFLhHeV00ug/Yf9nZM6fLeUrPguBTkTQOdpAWWspMh55TZfVQDPaN3NQJfbVRAxdIw==}
     engines: {iojs: '>=1.0.0', node: '>=0.10.0'}
+
+  ripple@0.3.17:
+    resolution: {integrity: sha512-bZhfajvLpu0usaSK3d7FBU5fxFboLbHenw0Q19LPHfFnbsxf6WG7wOjgdpA6pYjSj2InhvsipVnbSncnGp5cgg==}
 
   rolldown-plugin-dts@0.22.3:
     resolution: {integrity: sha512-APIGZGChvLVu05f+7bMmgf+lpvhjIvELhkOsg7c/95IVdOgULVFOX9iciaHJLaBfZeTthIgp+gryGBjgyKNA1A==}
@@ -6901,6 +7027,37 @@ snapshots:
       '@typescript-eslint/types': 8.56.1
       eslint-visitor-keys: 5.0.1
 
+  '@typescript/native-preview-darwin-arm64@7.0.0-dev.20260417.1':
+    optional: true
+
+  '@typescript/native-preview-darwin-x64@7.0.0-dev.20260417.1':
+    optional: true
+
+  '@typescript/native-preview-linux-arm64@7.0.0-dev.20260417.1':
+    optional: true
+
+  '@typescript/native-preview-linux-arm@7.0.0-dev.20260417.1':
+    optional: true
+
+  '@typescript/native-preview-linux-x64@7.0.0-dev.20260417.1':
+    optional: true
+
+  '@typescript/native-preview-win32-arm64@7.0.0-dev.20260417.1':
+    optional: true
+
+  '@typescript/native-preview-win32-x64@7.0.0-dev.20260417.1':
+    optional: true
+
+  '@typescript/native-preview@7.0.0-dev.20260417.1':
+    optionalDependencies:
+      '@typescript/native-preview-darwin-arm64': 7.0.0-dev.20260417.1
+      '@typescript/native-preview-darwin-x64': 7.0.0-dev.20260417.1
+      '@typescript/native-preview-linux-arm': 7.0.0-dev.20260417.1
+      '@typescript/native-preview-linux-arm64': 7.0.0-dev.20260417.1
+      '@typescript/native-preview-linux-x64': 7.0.0-dev.20260417.1
+      '@typescript/native-preview-win32-arm64': 7.0.0-dev.20260417.1
+      '@typescript/native-preview-win32-x64': 7.0.0-dev.20260417.1
+
   '@typespec/ts-http-runtime@0.3.3':
     dependencies:
       http-proxy-agent: 7.0.2
@@ -8907,8 +9064,6 @@ snapshots:
 
   ms@2.1.3: {}
 
-  muggle-string@0.4.1: {}
-
   mute-stream@0.0.8: {}
 
   nanoid@3.3.11: {}
@@ -9330,7 +9485,15 @@ snapshots:
 
   reusify@1.1.0: {}
 
-  rolldown-plugin-dts@0.22.3(rolldown@1.0.0-rc.3)(typescript@5.9.3):
+  ripple@0.3.17:
+    dependencies:
+      '@types/estree': 1.0.8
+      '@types/estree-jsx': 1.0.5
+      clsx: 2.1.1
+      devalue: 5.6.3
+      esm-env: 1.2.2
+
+  rolldown-plugin-dts@0.22.3(@typescript/native-preview@7.0.0-dev.20260417.1)(rolldown@1.0.0-rc.3)(typescript@5.9.3):
     dependencies:
       '@babel/generator': 8.0.0-rc.2
       '@babel/helper-validator-identifier': 8.0.0-rc.2
@@ -9343,6 +9506,7 @@ snapshots:
       obug: 2.1.1
       rolldown: 1.0.0-rc.3
     optionalDependencies:
+      '@typescript/native-preview': 7.0.0-dev.20260417.1
       typescript: 5.9.3
     transitivePeerDependencies:
       - oxc-resolver
@@ -9865,7 +10029,7 @@ snapshots:
     dependencies:
       typescript: 5.9.3
 
-  tsdown@0.20.3(typescript@5.9.3):
+  tsdown@0.20.3(@typescript/native-preview@7.0.0-dev.20260417.1)(typescript@5.9.3):
     dependencies:
       ansis: 4.2.0
       cac: 6.7.14
@@ -9876,7 +10040,7 @@ snapshots:
       obug: 2.1.1
       picomatch: 4.0.3
       rolldown: 1.0.0-rc.3
-      rolldown-plugin-dts: 0.22.3(rolldown@1.0.0-rc.3)(typescript@5.9.3)
+      rolldown-plugin-dts: 0.22.3(@typescript/native-preview@7.0.0-dev.20260417.1)(rolldown@1.0.0-rc.3)(typescript@5.9.3)
       semver: 7.7.4
       tinyexec: 1.0.2
       tinyglobby: 0.2.15

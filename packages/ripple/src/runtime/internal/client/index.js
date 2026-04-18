@@ -20,15 +20,22 @@ export {
 export {
 	render,
 	render_spread,
-	async,
 	ref,
 	branch,
 	destroy_block,
 	move_block,
 	root,
 	user_effect as effect,
+	resume_block,
+	is_destroyed,
 } from './blocks.js';
 
+export {
+	UNINITIALIZED,
+	DERIVED_UPDATED,
+	SUSPENSE_PENDING,
+	SUSPENSE_REJECTED,
+} from './constants.js';
 export { event, render_event, delegate } from './events.js';
 
 export {
@@ -40,7 +47,6 @@ export {
 	get_tracked,
 	get_derived,
 	set,
-	async_computed,
 	tracked,
 	spread_props,
 	computed_property,
@@ -52,6 +58,9 @@ export {
 	update_property,
 	update_pre_property,
 	track,
+	track_async,
+	is_tracked_pending,
+	peek_tracked,
 	push_component,
 	pop_component,
 	untrack,
@@ -59,12 +68,13 @@ export {
 	fallback,
 	exclude_from_object,
 	derived,
-	maybe_tracked,
 	tick,
 	proxy_props,
 	with_block,
 	with_ns,
 	handle_error,
+	queue_post_block_flush_callback,
+	schedule_update,
 } from './runtime.js';
 
 export { composite } from './composite.js';
@@ -73,7 +83,7 @@ export { for_block as for, for_block_keyed as for_keyed } from './for.js';
 
 export { if_block as if } from './if.js';
 
-export { try_block as try, aborted, suspend } from './try.js';
+export { try_block as try, get_pending_boundary } from './try.js';
 
 export { switch_block as switch } from './switch.js';
 

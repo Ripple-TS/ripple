@@ -11,6 +11,8 @@ var root_7 = _$_.template(`<div class="loading">loading async content</div>`, 0)
 var root_5 = _$_.template(`<div class="before">before</div><!>`, 1, 2);
 var root_8 = _$_.template(`<div class="resolved"> </div>`, 0);
 
+import { trackAsync } from 'ripple';
+
 export function AsyncListInTryPending(__anchor, _, __block) {
 	_$_.push_component();
 
@@ -20,13 +22,11 @@ export function AsyncListInTryPending(__anchor, _, __block) {
 	_$_.try(
 		node,
 		(__anchor) => {
-			_$_.async(async () => {
-				var fragment_1 = root_1();
-				var node_1 = _$_.first_child_frag(fragment_1);
+			var fragment_1 = root_1();
+			var node_1 = _$_.first_child_frag(fragment_1);
 
-				AsyncList(node_1, {}, _$_.active_block);
-				_$_.append(__anchor, fragment_1);
-			});
+			AsyncList(node_1, {}, _$_.active_block);
+			_$_.append(__anchor, fragment_1);
 		},
 		null,
 		(__anchor) => {
@@ -41,40 +41,35 @@ export function AsyncListInTryPending(__anchor, _, __block) {
 }
 
 function AsyncList(__anchor, _, __block) {
-	_$_.async(async () => {
-		_$_.push_component();
+	_$_.push_component();
 
-		let items = (await _$_.maybe_tracked(_$_.with_scope(__block, async () => Promise.resolve(['alpha', 'beta', 'gamma']))))();
+	let lazy = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(['alpha', 'beta', 'gamma'])), __block);
+	var ul_1 = root_3();
 
-		if (_$_.aborted()) return;
+	{
+		_$_.for(
+			ul_1,
+			() => _$_.get(lazy),
+			(__anchor, item) => {
+				var li_1 = root_4();
 
-		var ul_1 = root_3();
+				{
+					var expression = _$_.child(li_1, true);
 
-		{
-			_$_.for(
-				ul_1,
-				() => items,
-				(__anchor, item) => {
-					var li_1 = root_4();
+					_$_.expression(expression, () => item);
+					_$_.pop(li_1);
+				}
 
-					{
-						var expression = _$_.child(li_1, true);
+				_$_.append(__anchor, li_1);
+			},
+			4
+		);
 
-						_$_.expression(expression, () => item);
-						_$_.pop(li_1);
-					}
+		_$_.pop(ul_1);
+	}
 
-					_$_.append(__anchor, li_1);
-				},
-				4
-			);
-
-			_$_.pop(ul_1);
-		}
-
-		_$_.append(__anchor, ul_1);
-		_$_.pop_component();
-	});
+	_$_.append(__anchor, ul_1);
+	_$_.pop_component();
 }
 
 export function AsyncTryWithLeadingSibling(__anchor, _, __block) {
@@ -87,13 +82,11 @@ export function AsyncTryWithLeadingSibling(__anchor, _, __block) {
 	_$_.try(
 		node_2,
 		(__anchor) => {
-			_$_.async(async () => {
-				var fragment_3 = root_6();
-				var node_3 = _$_.first_child_frag(fragment_3);
+			var fragment_3 = root_6();
+			var node_3 = _$_.first_child_frag(fragment_3);
 
-				AsyncContent(node_3, {}, _$_.active_block);
-				_$_.append(__anchor, fragment_3);
-			});
+			AsyncContent(node_3, {}, _$_.active_block);
+			_$_.append(__anchor, fragment_3);
 		},
 		null,
 		(__anchor) => {
@@ -108,23 +101,18 @@ export function AsyncTryWithLeadingSibling(__anchor, _, __block) {
 }
 
 function AsyncContent(__anchor, _, __block) {
-	_$_.async(async () => {
-		_$_.push_component();
+	_$_.push_component();
 
-		let value = (await _$_.maybe_tracked(_$_.with_scope(__block, async () => Promise.resolve('ready'))))();
+	let lazy_1 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('ready')), __block);
+	var div_3 = root_8();
 
-		if (_$_.aborted()) return;
+	{
+		var expression_1 = _$_.child(div_3, true);
 
-		var div_3 = root_8();
+		_$_.expression(expression_1, () => _$_.get(lazy_1));
+		_$_.pop(div_3);
+	}
 
-		{
-			var expression_1 = _$_.child(div_3, true);
-
-			_$_.expression(expression_1, () => value);
-			_$_.pop(div_3);
-		}
-
-		_$_.append(__anchor, div_3);
-		_$_.pop_component();
-	});
+	_$_.append(__anchor, div_3);
+	_$_.pop_component();
 }

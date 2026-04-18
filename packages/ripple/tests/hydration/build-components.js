@@ -4,7 +4,7 @@
  * Or used as vitest globalSetup
  */
 
-import { compile } from 'ripple/compiler';
+import { compile } from '@tsrx/ripple';
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'fs';
 import { join, basename } from 'path';
 import { fileURLToPath } from 'url';
@@ -39,13 +39,15 @@ function buildComponents() {
 	mkdirSync(clientOutDir, { recursive: true });
 	mkdirSync(serverOutDir, { recursive: true });
 
-	// Get all .ripple files in components directory
-	const componentFiles = readdirSync(componentsDir).filter((f) => f.endsWith('.ripple'));
+	// Get all supported component files in components directory
+	const componentFiles = readdirSync(componentsDir).filter(
+		(f) => f.endsWith('.ripple') || f.endsWith('.rsrx') || f.endsWith('.tsrx'),
+	);
 
 	for (const file of componentFiles) {
 		const filePath = join(componentsDir, file);
 		const source = readFileSync(filePath, 'utf-8');
-		const outputName = basename(file, '.ripple') + '.js';
+		const outputName = basename(basename(file, '.ripple'), '.rsrx').replace(/\.tsrx$/, '') + '.js';
 
 		// Compile for client
 		const clientResult = compile(source, file, {

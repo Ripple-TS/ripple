@@ -76,7 +76,7 @@ function createConfig(name: string, files: string[], parser: any) {
 
 // Recommended configuration (flat config format)
 plugin.configs.recommended = [
-	createConfig('ripple/recommended-ripple-files', ['**/*.ripple'], rippleParser),
+	createConfig('ripple/recommended-ripple-files', ['**/*.{ripple,tsrx}'], rippleParser),
 	createConfig('ripple/recommended-typescript-files', ['**/*.ts', '**/*.tsx'], tsParser),
 	{
 		name: 'ripple/ignores',
@@ -86,7 +86,7 @@ plugin.configs.recommended = [
 
 // Strict configuration (flat config format)
 plugin.configs.strict = [
-	createConfig('ripple/strict-ripple-files', ['**/*.ripple'], rippleParser),
+	createConfig('ripple/strict-ripple-files', ['**/*.{ripple,tsrx}'], rippleParser),
 	createConfig('ripple/strict-typescript-files', ['**/*.ts', '**/*.tsx'], tsParser),
 	{
 		name: 'ripple/ignores',

@@ -21,6 +21,7 @@
     "./*.js",
     "./src/",
     "./tests/**/*.test.ripple",
+    "./tests/**/*.test.rsrx",
     "./tests/**/*.d.ts",
     "./tests/**/*.js"
   ],

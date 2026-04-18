@@ -1,0 +1,53 @@
+{
+  "name": "@tsrx/core",
+  "description": "Core compiler infrastructure for TSRX syntax",
+  "license": "MIT",
+  "author": "Dominic Gannaway",
+  "version": "0.0.4",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ripple-TS/ripple.git",
+    "directory": "packages/tsrx"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.js",
+      "default": "./src/index.js"
+    },
+    "./types": {
+      "types": "./types/index.d.ts"
+    },
+    "./types/estree": {
+      "types": "./types/estree.d.ts"
+    },
+    "./types/estree-jsx": {
+      "types": "./types/estree-jsx.d.ts"
+    },
+    "./types/acorn": {
+      "types": "./types/acorn.d.ts"
+    }
+  },
+  "dependencies": {
+    "@jridgewell/sourcemap-codec": "catalog:default",
+    "@sveltejs/acorn-typescript": "catalog:default",
+    "acorn": "catalog:default",
+    "esrap": "catalog:default",
+    "is-reference": "catalog:default",
+    "magic-string": "catalog:default",
+    "zimmerframe": "catalog:default",
+    "@types/estree": "catalog:default",
+    "@types/estree-jsx": "catalog:default"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:default",
+    "@typescript-eslint/types": "catalog:default",
+    "typescript": "catalog:default",
+    "@volar/language-core": "catalog:default",
+    "vscode-languageserver-types": "catalog:default"
+  },
+  "files": [
+    "src",
+    "types"
+  ]
+}

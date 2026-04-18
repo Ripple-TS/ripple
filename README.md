@@ -18,9 +18,9 @@ to [Inferno](https://github.com/infernojs/inferno),
 [Lexical](https://github.com/facebook/lexical), and
 [Svelte 5](https://github.com/sveltejs/svelte).
 
-**Key Philosophy:** Ripple is TS-first with its own `.ripple` file extension,
-allowing seamless TypeScript integration and a unique syntax that enhances both
-human and LLM developer experience.
+**Key Philosophy:** Ripple is TS-first with `.tsrx` as its default component file
+extension. This allows seamless TypeScript integration and a unique syntax that
+enhances both human and LLM developer experience.
 
 📚 **[Full Documentation](https://www.ripplejs.com/docs)** | 🎮
 **[Interactive Playground](https://www.ripplejs.com/playground)**
@@ -33,11 +33,10 @@ human and LLM developer experience.
   usage
 - 📦 **Reactive Collections**: `RippleArray`, `RippleObject`, `RippleMap`,
   `RippleSet` imported from `'ripple'` with full reactivity
-- 🎯 **TypeScript First**: Complete type safety with `.ripple` file extension
+- 🎯 **TypeScript First**: Complete type safety with the default `.tsrx` component
+  extension
 - 🛠️ **Developer Tools**: VSCode extension, Prettier, and ESLint support
 - 🎨 **Scoped Styling**: Component-level CSS with automatic scoping
-
-> **Note:** SSR support is coming soon! Currently SPA-only.
 
 ## 🚀 Quick Start
 
@@ -72,7 +71,7 @@ npm install ripple @ripple-ts/vite-plugin
 ```ts
 // index.ts
 import { mount } from 'ripple';
-import { App } from './App.ripple';
+import { App } from './App.tsrx';
 
 mount(App, {
   props: { title: 'Hello world!' },

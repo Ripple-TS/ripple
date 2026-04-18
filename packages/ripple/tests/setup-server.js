@@ -1,6 +1,6 @@
 import { expect } from 'vitest';
 import { render } from 'ripple/server';
-import { compile } from 'ripple/compiler';
+import { compile } from '@tsrx/ripple';
 import { parseHTML } from 'linkedom';
 
 globalThis.render = render;

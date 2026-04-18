@@ -1,8 +1,8 @@
 /** @import { TextDocument } from 'vscode-languageserver-textdocument' */
 /** @import { LanguageServiceContext, Mapper, SourceScript } from '@volar/language-server' */
-/** @import {RippleVirtualCode} from '@ripple-ts/typescript-plugin/src/language.js' */
+/** @typedef {import('@ripple-ts/typescript-plugin/src/language.js').TSRXVirtualCode} TSRXVirtualCode */
 // @ts-expect-error: ESM type import is fine
-/** @import {is_identifier_obfuscated, deobfuscate_identifier, IDENTIFIER_OBFUSCATION_PREFIX} from 'ripple/compiler/internal/identifier/utils' */
+/** @import { isIdentifierObfuscated, deobfuscateIdentifier, IDENTIFIER_OBFUSCATION_PREFIX } from '@tsrx/core' */
 
 const { URI } = require('vscode-uri');
 const {
@@ -24,21 +24,23 @@ const IMPORT_EXPORT_REGEX = {
 	from: /from\s*['"][^'"]*['"]\s*;?/,
 };
 
-/** @type {is_identifier_obfuscated}  */
+const RIPPLE_EXTENSIONS = ['.ripple', '.rsrx', '.tsrx'];
+
+/** @type {typeof isIdentifierObfuscated} */
 let is_identifier_obfuscated;
-/** @type {deobfuscate_identifier} */
+/** @type {typeof deobfuscateIdentifier} */
 let deobfuscate_identifier;
-/** @type {IDENTIFIER_OBFUSCATION_PREFIX} */
-let IDENTIFIER_OBFUSCATION_PREFIX;
+/** @type {typeof IDENTIFIER_OBFUSCATION_PREFIX} */
+let identifier_obfuscation_prefix;
 /** @type {RegExp} */
 let obfuscated_identifier_regex;
 
-import('ripple/compiler/internal/identifier/utils').then((imports) => {
-	is_identifier_obfuscated = imports.is_identifier_obfuscated;
-	deobfuscate_identifier = imports.deobfuscate_identifier;
-	IDENTIFIER_OBFUSCATION_PREFIX = imports.IDENTIFIER_OBFUSCATION_PREFIX;
+import('@tsrx/core').then((imports) => {
+	is_identifier_obfuscated = imports.isIdentifierObfuscated;
+	deobfuscate_identifier = imports.deobfuscateIdentifier;
+	identifier_obfuscation_prefix = imports.IDENTIFIER_OBFUSCATION_PREFIX;
 	obfuscated_identifier_regex = new RegExp(
-		escapeRegExp(IDENTIFIER_OBFUSCATION_PREFIX) + charAllowedWordRegex.source + '+',
+		escapeRegExp(identifier_obfuscation_prefix) + charAllowedWordRegex.source + '+',
 		'gm',
 	);
 });
@@ -74,7 +76,7 @@ function concatMarkdownContents(...contents) {
  * @param {TextDocument} document
  * @returns
 	{{
- 		virtualCode: RippleVirtualCode;
+ 		virtualCode: TSRXVirtualCode;
 		sourceUri: URI;
 		sourceScript: SourceScript<URI> | undefined;
 		sourceMap: Mapper | undefined;
@@ -87,7 +89,7 @@ function getVirtualCode(document, context) {
 	);
 	const [sourceUri, virtualCodeId] = decoded;
 	const sourceScript = context.language.scripts.get(sourceUri);
-	const virtualCode = /** @type {RippleVirtualCode} */ (
+	const virtualCode = /** @type {TSRXVirtualCode} */ (
 		sourceScript?.generated?.embeddedCodes.get(virtualCodeId)
 	);
 
@@ -150,9 +152,19 @@ function isInsideExport(text, start) {
 	return isInsideImportOrExport('export', text, start);
 }
 
+/**
+ * @param {string} document_uri
+ * @returns {boolean}
+ */
+function is_ripple_document(document_uri) {
+	return RIPPLE_EXTENSIONS.some((extension) => document_uri.endsWith(extension));
+}
+
 module.exports = {
+	RIPPLE_EXTENSIONS,
 	getVirtualCode,
 	getWordFromPosition,
+	is_ripple_document,
 	isInsideImport,
 	isInsideExport,
 	createLogging,

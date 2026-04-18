@@ -2,12 +2,12 @@
 
 ## Overview
 
-Ripple is a TypeScript UI framework that combines the best parts of React, Solid, and Svelte into one elegant package. Created by Dominic Gannaway ([@trueadm](https://github.com/trueadm)), Ripple is designed to be JS/TS-first with its own `.ripple` file extension that fully supports TypeScript.
+Ripple is a TypeScript UI framework that combines the best parts of React, Solid, and Svelte into one elegant package. Created by Dominic Gannaway ([@trueadm](https://github.com/trueadm)), Ripple is designed to be JS/TS-first with `.tsrx` as its default component file extension while preserving `.ripple` compatibility.
 
 **Key Characteristics:**
 - **Performance**: Fine-grain rendering, with industry-leading performance, bundle-size and memory usage
 - **TypeScript-first**: Full TypeScript integration with type checking
-- **JSX-like syntax**: Familiar templating with Ripple-specific enhancements
+- **JSX-like syntax**: Familiar templating with TSRX-specific enhancements
 - **Reactive state**: Built-in reactivity with `track` and `&[]` lazy destructuring syntax
 - **Component-based**: Clean, reusable components with props and children
 
@@ -102,6 +102,65 @@ component App() {
 ```
 
 This design enforces clear separation between component templates and regular JavaScript logic, making code more predictable and easier to analyze.
+
+### Using `<tsx>` for JSX Expression Values
+
+**IMPORTANT**: Regular Ripple elements are statement-based and can only appear directly inside component bodies or nested template blocks. If you need to create JSX as a value in expression position, wrap it in `<tsx>...</tsx>`.
+
+Use `<tsx>` when you need to:
+- assign JSX to a variable
+- return JSX from a helper function
+- pass JSX directly as a prop or `children`
+- build reusable render factories
+
+```ripple
+// ✅ CORRECT - JSX used as an expression value via <tsx>
+component App() {
+  const title = <tsx><span class="title">Title</span></tsx>;
+
+  <div>{title}</div>
+}
+
+// ✅ CORRECT - returning JSX from a helper function
+function createBadge(label: string) {
+  return <tsx>
+    <span class="badge">{label}</span>
+  </tsx>;
+}
+
+component App() {
+  {createBadge('New')}
+}
+
+// ✅ CORRECT - passing JSX directly as props
+component Card(props: { title: any; children: any }) {
+  <section>
+    <h2>{props.title}</h2>
+    <div>{props.children}</div>
+  </section>
+}
+
+component App() {
+  <Card
+    title={<tsx><span>Settings</span></tsx>}
+    children={<tsx><p>Card body</p></tsx>}
+  />
+}
+```
+
+**LLM DO:**
+- Use plain `<tsx>` when JSX must exist in expression position.
+- Treat `<tsx>` output as a renderable value that can be stored, returned, and passed around.
+- Keep using normal Ripple syntax and semantics inside plain `<tsx>` blocks.
+
+**LLM DON'T:**
+- Do not write `const el = <div />;` directly in Ripple code.
+- Do not confuse plain `<tsx>` with `<tsx:react>`.
+- Do not require React compat for plain `<tsx>`.
+
+**Key distinction:**
+- `<tsx>`: expression-form Ripple JSX value
+- `<tsx:react>`: React compatibility block with React JSX semantics and compat setup
 
 ### ⚠️ Critical: Early Returns Are Guard Exits, Not JSX Returns
 
@@ -821,7 +880,7 @@ Use `mount()` to render a component to the DOM for client-side only applications
 
 ```typescript
 import { mount } from 'ripple';
-import { App } from './App.ripple';
+import { App } from './App.tsrx';
 
 const cleanup = mount(App, {
   target: document.getElementById('root')!,
@@ -838,7 +897,7 @@ Use `hydrate()` when your HTML was server-rendered and you need to make it inter
 
 ```typescript
 import { hydrate } from 'ripple';
-import { App } from './App.ripple';
+import { App } from './App.tsrx';
 
 const cleanup = hydrate(App, {
   target: document.getElementById('root')!,
@@ -856,21 +915,10 @@ On the server, use `render()` from `ripple/server`:
 
 ```typescript
 import { render } from 'ripple/server';
-import { App } from './App.ripple';
+import { App } from './App.tsrx';
 
 // Render to string
 const html = render(App, {
-  props: { title: 'Hello world!' }
-});
-```
-
-For streaming SSR:
-
-```typescript
-import { renderToStream } from 'ripple/server';
-import { App } from './App.ripple';
-
-const stream = renderToStream(App, {
   props: { title: 'Hello world!' }
 });
 ```
@@ -1190,21 +1238,29 @@ component App() {
 }
 ```
 
-#### Setting Up React Compat with mount()
+#### Setting Up React Compat with ripple.config.ts
 
-To use `<tsx:react>` blocks, you must configure the React compatibility layer when mounting your Ripple app:
+To use `<tsx:react>` blocks, configure the React compatibility layer in `ripple.config.ts`. The Vite plugin will pick that up automatically, and `mount()` / `hydrate()` will use it without passing compat options manually:
+
+```typescript
+// ripple.config.ts
+import { reactCompat } from '@ripple-ts/compat-react';
+import { defineConfig } from '@ripple-ts/vite-plugin';
+
+export default defineConfig({
+  compat: {
+    react: reactCompat(),
+  },
+});
+```
 
 ```typescript
 // main.ts
 import { mount } from 'ripple';
-import { createReactCompat } from '@ripple-ts/compat-react';
-import { App } from './App.ripple';
+import { App } from './App.tsrx';
 
 mount(App, {
   target: document.getElementById('app')!,
-  compat: {
-    react: createReactCompat(),
-  },
 });
 ```
 
@@ -1216,7 +1272,7 @@ To embed Ripple components inside a React application, wrap your React app with 
 // App.tsx - React application
 import { createRoot } from 'react-dom/client';
 import { RippleRoot, Ripple } from '@ripple-ts/compat-react';
-import { MyRippleComponent } from './MyComponent.ripple';
+import { MyRippleComponent } from './MyComponent.tsrx';
 
 function App() {
   return (
@@ -1305,9 +1361,9 @@ component App() {
 }
 ```
 
-**❌ WRONG: Defining React components with JSX inside .ripple files**
+**❌ WRONG: Defining React components with JSX inside .tsrx files**
 ```ripple
-// Wrong: JSX in a .ripple file is Ripple syntax, not React syntax
+// Wrong: JSX in a .tsrx file is Ripple syntax, not React syntax
 function ReactChild() {
   return <div>Child</div>;  // This is Ripple JSX, not React JSX!
 }
@@ -1328,7 +1384,7 @@ export function ReactChild() {
 ```
 
 ```ripple
-// App.ripple - Import and use the React component
+// App.tsrx - Import and use the React component
 import { ReactChild } from './ReactChild.tsx';
 
 component App() {
@@ -1338,7 +1394,7 @@ component App() {
 }
 ```
 
-**✅ CORRECT: Or use jsx/jsxs directly in .ripple files**
+**✅ CORRECT: Or use jsx/jsxs directly in .tsrx files**
 ```ripple
 import { jsx } from 'react/jsx-runtime';
 
@@ -1369,18 +1425,20 @@ root.render(
 );
 ```
 
-**❌ WRONG: Forgetting createReactCompat() when using tsx:react in Ripple**
+**❌ WRONG: Forgetting reactCompat() in ripple.config.ts when using tsx:react in Ripple**
 ```typescript
-// Wrong: tsx:react blocks won't render
-mount(App, { target: document.getElementById('app')! });
+// Wrong: tsx:react blocks won't render without compat config
+export default defineConfig({});
 ```
 
-**✅ CORRECT: Always configure compat when using tsx:react**
+**✅ CORRECT: Configure compat in ripple.config.ts when using tsx:react**
 ```typescript
-mount(App, {
-  target: document.getElementById('app')!,
+import { reactCompat } from '@ripple-ts/compat-react';
+import { defineConfig } from '@ripple-ts/vite-plugin';
+
+export default defineConfig({
   compat: {
-    react: createReactCompat(),
+    react: reactCompat(),
   },
 });
 ```
@@ -1514,10 +1572,10 @@ const ThemeContext = new Context<Theme>('light');
 
 ```
 src/
-  App.ripple          # Main app component
+  App.tsrx            # Main app component
   components/
-    Button.ripple     # Reusable components
-    Card.ripple
+    Button.tsrx       # Reusable components
+    Card.tsrx
   index.ts           # Entry point with mount()
 ```
 
@@ -1558,7 +1616,7 @@ export default defineConfig({
 ### vs Svelte
 - TypeScript-first approach
 - JSX-like syntax instead of HTML templates
-- `.ripple` extension instead of `.svelte`
+- Default `.tsrx` extension instead of `.svelte`
 - Similar reactivity concepts but different syntax
 
 ### vs Solid

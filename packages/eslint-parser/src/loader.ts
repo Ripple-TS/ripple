@@ -15,7 +15,7 @@ export async function initializeParser() {
 	}
 
 	try {
-		const ripple = await import('ripple/compiler');
+		const ripple = await import('@tsrx/ripple');
 		rippleCompiler = ripple;
 
 		// Set it globally so the parser can access it
@@ -25,7 +25,7 @@ export async function initializeParser() {
 	} catch (error: any) {
 		throw new Error(
 			`Failed to load Ripple compiler: ${error.message}. ` +
-				'Make sure the "ripple" package is installed.',
+				'Make sure the "@tsrx/ripple" package is installed.',
 		);
 	}
 }
@@ -36,14 +36,14 @@ export async function initializeParser() {
 export function getRippleCompiler() {
 	if (!rippleCompiler) {
 		try {
-			const ripple = require('ripple/compiler');
+			const ripple = require('@tsrx/ripple');
 			rippleCompiler = ripple;
 			(globalThis as any).__RIPPLE_COMPILER__ = ripple;
 			return ripple;
 		} catch {
 			throw new Error(
 				'Ripple compiler not initialized. Call initializeParser() first, ' +
-					'or make sure ripple/compiler is available.',
+					'or make sure @tsrx/ripple is available.',
 			);
 		}
 	}

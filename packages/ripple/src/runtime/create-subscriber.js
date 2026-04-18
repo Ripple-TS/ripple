@@ -1,8 +1,8 @@
-/** @import { createSubscriber } from '#public' */
+/** @import { createSubscriber as createSubscriberType } from '#public' */
 import { untrack, queue_microtask } from './internal/client/runtime.js';
 import { effect } from './internal/client/blocks.js';
 
-/** @type {createSubscriber} */
+/** @type {typeof createSubscriberType} */
 export function createSubscriber(start) {
 	let subscribers = 0;
 	/** @type {(() => void) | void} */
