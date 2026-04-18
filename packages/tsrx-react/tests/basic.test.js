@@ -62,6 +62,31 @@ describe('@tsrx/react basic', () => {
 		expect(css.code).toContain('color: red;');
 	});
 
+	it('does not apply scoped css hashes to composite components', () => {
+		const source = `component Child() {
+				<div>{'Hello world'}</div>
+			}
+
+			export component App() {
+				<Child />
+				<div>{'Styled content'}</div>
+
+				<style>
+					.div {
+						color: red;
+					}
+				</style>
+			}`;
+		const { code, css } = compile(source, 'App.tsrx');
+		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
+
+		expect(css).not.toBeNull();
+		expect(code).toContain(`<div className="${css.hash}">{'Styled content'}</div>`);
+		expect(code).not.toContain('<Child className=');
+		expect(mappings.code).not.toContain('<Child className=');
+		expect(mappings.errors).toEqual([]);
+	});
+
 	it('coerces explicit text interpolation to React text children', () => {
 		const { code } = compile(
 			`export component App() {
