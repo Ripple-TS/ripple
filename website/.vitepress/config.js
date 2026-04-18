@@ -1,13 +1,13 @@
-import { defineConfig } from 'vitepress'
-import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs'
-import { npmCommandsMarkdownPlugin } from 'vitepress-plugin-npm-commands'
+import { defineConfig } from 'vitepress';
+import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs';
+import { npmCommandsMarkdownPlugin } from 'vitepress-plugin-npm-commands';
 /** @import { DefaultTheme } from 'vitepress'; */
 
-import rippleGrammar from '../../grammars/textmate/ripple.tmLanguage.json'
+import rippleGrammar from '../../grammars/textmate/ripple.tmLanguage.json';
 const modifiedGrammar = {
 	...rippleGrammar,
 	embeddedLangs: ['jsx', 'tsx', 'css'],
-}
+};
 
 export default defineConfig({
 	title: 'Ripple',
@@ -15,12 +15,12 @@ export default defineConfig({
 
 	markdown: {
 		config(md) {
-			md.use(tabsMarkdownPlugin)
-			md.use(npmCommandsMarkdownPlugin)
+			md.use(tabsMarkdownPlugin);
+			md.use(npmCommandsMarkdownPlugin);
 		},
 		languages: ['jsx', 'js', 'tsx', 'ts', 'css', 'sh', 'bash'],
 		async shikiSetup(highlighter) {
-			await highlighter.loadLanguage(modifiedGrammar)
+			await highlighter.loadLanguage(modifiedGrammar);
 
 			/**
 			 * we have to duplicate the instance with a different name here,
@@ -34,7 +34,7 @@ export default defineConfig({
 			await highlighter.loadLanguage({
 				...modifiedGrammar,
 				name: 'ripple',
-			})
+			});
 		},
 	},
 
@@ -87,10 +87,7 @@ export default defineConfig({
 	head: [
 		['link', { rel: 'icon', href: '/favicon.ico' }],
 		['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
-		[
-			'link',
-			{ rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-		],
+		['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
 		[
 			'link',
 			{
@@ -101,7 +98,7 @@ export default defineConfig({
 	],
 
 	cleanUrls: true,
-})
+});
 
 /** @type {DefaultTheme.NavItem[]} */
 function nav() {
@@ -120,7 +117,7 @@ function nav() {
 			link: '/docs/introduction',
 			activeMatch: '/docs/*',
 		},
-	]
+	];
 }
 
 /** @type {DefaultTheme.SidebarItem[]} */
@@ -166,5 +163,5 @@ function docs_sidebar() {
 			collapsed: false,
 			items: [{ text: 'llms.txt', link: '../llms.txt', target: '_blank' }],
 		},
-	]
+	];
 }

@@ -802,6 +802,22 @@ function is_style_element(node) {
 }
 
 /**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_composite_element(node) {
+	if (!node || node.type !== 'Element' || !node.id) {
+		return false;
+	}
+
+	if (node.id.type === 'Identifier') {
+		return /^[A-Z]/.test(node.id.name);
+	}
+
+	return node.id.type === 'MemberExpression';
+}
+
+/**
  * Recursively walk Element nodes within a component body and add the hash
  * class name so scope-qualified selectors (e.g. `.foo.hash`) match.
  *
@@ -821,7 +837,7 @@ function annotate_with_hash(node, hash) {
 	}
 
 	if (node.type === 'Element') {
-		if (!is_style_element(node)) {
+		if (!is_style_element(node) && !is_composite_element(node)) {
 			add_hash_class(node, hash);
 		}
 		if (Array.isArray(node.children)) {

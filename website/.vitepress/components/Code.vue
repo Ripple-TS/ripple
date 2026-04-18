@@ -1,49 +1,43 @@
 <script setup lang="ts">
-import { useSlots, computed } from 'vue'
-import Playground from './Playground.vue'
+import { useSlots, computed } from 'vue';
+import Playground from './Playground.vue';
 
-const props = defineProps<{ console?: boolean }>()
-const slots = useSlots()
+const props = defineProps<{ console?: boolean }>();
+const slots = useSlots();
 const slotContentAsString = computed(() => {
 	if (!slots.default) {
-		return '' // No default slot content
+		return ''; // No default slot content
 	}
 
-	const nodes = slots.default() // Get VNodes of the default slot
-	let text = ''
+	const nodes = slots.default(); // Get VNodes of the default slot
+	let text = '';
 
 	function extractText(vnodes: any[]) {
 		vnodes.forEach((node) => {
 			if (typeof node.children === 'string') {
-				text += node.children
+				text += node.children;
 			} else if (Array.isArray(node.children)) {
-				extractText(node.children) // Recursively extract from child VNodes
+				extractText(node.children); // Recursively extract from child VNodes
 			}
-		})
+		});
 	}
 
-	extractText(nodes)
-	text = modifyContent(text)
-	return text
-})
+	extractText(nodes);
+	text = modifyContent(text);
+	return text;
+});
 
 const modifyContent = (content: string) => {
 	if (content.startsWith('ripple')) {
-		content = content.slice('ripple'.length)
+		content = content.slice('ripple'.length);
 	}
-	return content
-}
+	return content;
+};
 
-const tools = props.console ? { status: 'open' } : undefined
-const codeLines = slotContentAsString.value.split('\n').length
+const tools = props.console ? { status: 'open' } : undefined;
+const codeLines = slotContentAsString.value.split('\n').length;
 const height =
-	codeLines > 25
-		? '500px'
-		: codeLines > 20
-			? '450px'
-			: codeLines > 15
-				? '400px'
-				: undefined
+	codeLines > 25 ? '500px' : codeLines > 20 ? '450px' : codeLines > 15 ? '400px' : undefined;
 </script>
 
 <template>
