@@ -9,6 +9,7 @@
 	CodeMapping,
 	VolarMappingsResult,
 	PostProcessingChanges,
+	LineOffsets,
 } from '../../types/index';
 @import { CodeMapping as VolarCodeMapping } from '@volar/language-core';
  */
@@ -51,6 +52,7 @@ import {
 	mapping_data_verify_complete,
 	build_line_offsets,
 	get_mapping_from_node,
+	maybe_get_mapping_from_node,
 } from '../source-map-utils.js';
 
 const LABEL_TO_COMPONENT_REPLACE_REGEX = /(function|\((property|method)\))/;
@@ -726,24 +728,38 @@ export function convert_source_map_to_mappings(
 					}
 				}
 
-				if (closing || opening.selfClosing) {
-					// Add the whole closing tag or the self-closing
-					const mapping = get_mapping_from_node(
-						closing ? closing : opening,
-						src_to_gen_map,
-						gen_line_offsets,
-						mapping_data_verify_only,
-					);
+				if ((closing?.loc || opening.loc) && (closing || opening.selfClosing)) {
+					// Add the whole closing tag or the self-closing.
+					// For self-closing elements, use maybe_get_mapping_from_node because
+					// attribute transforms (e.g. class→className, {ref fn}→ref={fn}) can shift
+					// the position of `/>` in the generated output, making the source map
+					// entry for the opening element's end position unresolvable.
+					const target_node = closing ? closing : opening;
+					const mapping = closing
+						? get_mapping_from_node(
+								target_node,
+								src_to_gen_map,
+								gen_line_offsets,
+								mapping_data_verify_only,
+							)
+						: maybe_get_mapping_from_node(
+								target_node,
+								src_to_gen_map,
+								gen_line_offsets,
+								mapping_data_verify_only,
+							);
 
-					// The generated code includes a semicolon after the closing or self-closed tag
-					// We're extending the mapping to include the semicolon
-					// because the diagnostics errors can include the whole element
-					// and we need to account for the semicolon as it's a part of the diagnostic
-					// At the same time, we could've instead applied this logic to the whole `node` element
-					// but since we already map the opening - start, we just need the proper end
-					// and it was causing some issues with mappings
-					mapping.generatedLengths = [mapping.generatedLengths[0] + 1];
-					mappings.push(mapping);
+					if (!(mapping instanceof Error)) {
+						// The generated code includes a semicolon after the closing or self-closed tag
+						// We're extending the mapping to include the semicolon
+						// because the diagnostics errors can include the whole element
+						// and we need to account for the semicolon as it's a part of the diagnostic
+						// At the same time, we could've instead applied this logic to the whole `node` element
+						// but since we already map the opening - start, we just need the proper end
+						// and it was causing some issues with mappings
+						mapping.generatedLengths = [mapping.generatedLengths[0] + 1];
+						mappings.push(mapping);
+					}
 				}
 
 				if (closing) {
@@ -982,9 +998,11 @@ export function convert_source_map_to_mappings(
 					visit(node.body);
 				}
 
-				mappings.push(
-					get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
-				);
+				if (node.loc) {
+					mappings.push(
+						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
+					);
+				}
 
 				return;
 			} else if (node.type === 'WhileStatement' || node.type === 'DoWhileStatement') {
@@ -1321,9 +1339,11 @@ export function convert_source_map_to_mappings(
 					}
 				}
 
-				mappings.push(
-					get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
-				);
+				if (node.loc) {
+					mappings.push(
+						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
+					);
+				}
 
 				return;
 			} else if (node.type === 'SwitchCase') {
@@ -2030,11 +2050,16 @@ export function convert_source_map_to_mappings(
 		);
 		const source_length = source_text.length;
 		const gen_length = gen_text.length;
-		const gen_line_col = get_generated_position(
-			token.loc.start.line,
-			token.loc.start.column,
-			src_to_gen_map,
-		);
+		let gen_line_col;
+		try {
+			gen_line_col = get_generated_position(
+				token.loc.start.line,
+				token.loc.start.column,
+				src_to_gen_map,
+			);
+		} catch {
+			continue;
+		}
 		const gen_start = loc_to_offset(gen_line_col.line, gen_line_col.column, gen_line_offsets);
 
 		/** @type {CustomMappingData} */
@@ -2136,5 +2161,48 @@ export function convert_source_map_to_mappings(
 		code: generated_code,
 		mappings,
 		cssMappings,
+	};
+}
+
+/**
+ * Build a `VolarMappingsResult` from generated code plus source-map metadata.
+ *
+ * Framework packages are responsible for producing the generated AST/code/map.
+ * Core owns the generic mapping conversion and result envelope so the editor
+ * integration is not coupled to any specific framework package.
+ *
+ * @param {{
+ * 	ast: AST.Program,
+ * 	ast_from_source: AST.Program,
+ * 	source: string,
+ * 	generated_code: string,
+ * 	source_map: RawSourceMap,
+ * 	errors?: import('../../types/index').CompileError[],
+ * 	post_processing_changes?: PostProcessingChanges,
+ * 	line_offsets?: LineOffsets,
+ * }} params
+ * @returns {VolarMappingsResult}
+ */
+export function create_volar_mappings_result({
+	ast,
+	ast_from_source,
+	source,
+	generated_code,
+	source_map,
+	errors = [],
+	post_processing_changes,
+	line_offsets,
+}) {
+	return {
+		...convert_source_map_to_mappings(
+			ast,
+			ast_from_source,
+			source,
+			generated_code,
+			source_map,
+			/** @type {PostProcessingChanges} */ (post_processing_changes),
+			line_offsets ?? build_line_offsets(generated_code),
+		),
+		errors,
 	};
 }

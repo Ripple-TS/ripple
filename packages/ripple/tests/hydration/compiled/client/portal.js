@@ -29,7 +29,7 @@ export function SimplePortal(__anchor, _, __block) {
 					return typeof document !== 'undefined' ? document.body : null;
 				},
 
-				children: _$_.ripple_element(function render_children(__anchor, __block) {
+				children: _$_.tsrx_element(function render_children(__anchor, __block) {
 					var div_2 = root_1();
 
 					_$_.append(__anchor, div_2);
@@ -70,7 +70,7 @@ export function ConditionalPortal(__anchor, _, __block) {
 							return typeof document !== 'undefined' ? document.body : null;
 						},
 
-						children: _$_.ripple_element(function render_children(__anchor, __block) {
+						children: _$_.tsrx_element(function render_children(__anchor, __block) {
 							var div_4 = root_4();
 
 							_$_.append(__anchor, div_4);
@@ -110,7 +110,7 @@ export function PortalWithMainContent(__anchor, _, __block) {
 					return typeof document !== 'undefined' ? document.body : null;
 				},
 
-				children: _$_.ripple_element(function render_children(__anchor, __block) {
+				children: _$_.tsrx_element(function render_children(__anchor, __block) {
 					var div_7 = root_6();
 
 					_$_.append(__anchor, div_7);
@@ -145,7 +145,7 @@ export function NestedContentWithPortal(__anchor, _, __block) {
 					return typeof document !== 'undefined' ? document.body : null;
 				},
 
-				children: _$_.ripple_element(function render_children(__anchor, __block) {
+				children: _$_.tsrx_element(function render_children(__anchor, __block) {
 					var div_10 = root_8();
 
 					_$_.append(__anchor, div_10);

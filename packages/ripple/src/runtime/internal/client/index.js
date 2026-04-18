@@ -127,4 +127,4 @@ export { hmr } from './hmr.js';
 
 export { pop, next } from './hydration.js';
 
-export { ripple_element, normalize_children } from '../../element.js';
+export { tsrx_element, normalize_children } from '../../element.js';

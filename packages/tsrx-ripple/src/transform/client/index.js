@@ -1197,12 +1197,12 @@ const visitors = {
 		const children_component = b.component(b.id('render_children'), [], children_filtered);
 
 		const element = b.call(
-			'_$_.ripple_element',
+			'_$_.tsrx_element',
 			/** @type {AST.Expression} */ (
 				visit(children_component, {
 					...state,
 					namespace: state.namespace,
-					is_ripple_element: true,
+					is_tsrx_element: true,
 				})
 			),
 		);
@@ -1222,7 +1222,7 @@ const visitors = {
 			return;
 		}
 
-		// Expression context: return the ripple_element directly as an expression value
+		// Expression context: return the tsrx_element directly as an expression value
 		return element;
 	},
 
@@ -1792,7 +1792,7 @@ const visitors = {
 				const children_component = b.component(b.id('render_children'), [], children_filtered);
 
 				const children = b.call(
-					'_$_.ripple_element',
+					'_$_.tsrx_element',
 					/** @type {AST.Expression} */ (
 						visit(children_component, {
 							...state,
@@ -1806,7 +1806,7 @@ const visitors = {
 								: {}),
 							scope: /** @type {ScopeInterface} */ (component_scope),
 							namespace: child_namespace,
-							is_ripple_element: true,
+							is_tsrx_element: true,
 						})
 					),
 				);
@@ -1987,7 +1987,7 @@ const visitors = {
 		}
 
 		const component_scope = context.state.scopes.get(node) || context.state.scope;
-		const is_ripple_element = context.state.is_ripple_element;
+		const is_tsrx_element = context.state.is_tsrx_element;
 		const is_synthetic_children = node.id?.name === 'render_children';
 		const transformed_body = transform_body(node.body, {
 			...context,
@@ -1997,14 +1997,14 @@ const visitors = {
 				component: node,
 				metadata,
 				scope: component_scope,
-				is_ripple_element: false,
+				is_tsrx_element: false,
 				applyParentCssScope: is_synthetic_children ? context.state.applyParentCssScope : undefined,
 			},
 		});
 
-		// RippleElement render functions don't need push/pop component context
+		// TSRXElement render functions don't need push/pop component context
 		// since they inherit context from where they're used
-		const body_statements = is_ripple_element
+		const body_statements = is_tsrx_element
 			? transformed_body
 			: [
 					b.stmt(b.call('_$_.push_component')),
@@ -2016,9 +2016,9 @@ const visitors = {
 			context.state.stylesheets.push(node.css);
 		}
 
-		// RippleElement render functions use simpler params: [__anchor, __block]
+		// TSRXElement render functions use simpler params: [__anchor, __block]
 		// Regular components use: [__anchor, props, __block] or [__anchor, _, __block]
-		const params = is_ripple_element
+		const params = is_tsrx_element
 			? [b.id('__anchor'), b.id('__block')]
 			: node.params.length > 0
 				? [b.id('__anchor'), props, b.id('__block')]
@@ -3420,7 +3420,7 @@ function transform_children(children, context) {
 			)) ||
 		// At root level, non-literal expressions need a fragment template so the
 		// anchor has a parent node. Without a parent, expression()'s .before() call
-		// is a no-op when the value is a RippleElement.
+		// is a no-op when the value is a TSRXElement.
 		(root &&
 			normalized.some(
 				(node) =>

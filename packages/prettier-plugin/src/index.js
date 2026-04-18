@@ -43,7 +43,7 @@ export const languages = [
 	{
 		name: 'ripple',
 		parsers: ['ripple'],
-		extensions: ['.ripple', '.rsrx', '.tsrx'],
+		extensions: ['.tsrx'],
 		vscodeLanguageIds: ['ripple'],
 	},
 ];

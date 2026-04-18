@@ -151,7 +151,7 @@ export function createParser(...plugins) {
 				allowReturnOutsideFunction: true,
 				locations: true,
 				onComment,
-				rippleOptions: {
+				tsrxOptions: {
 					filename,
 					errors: options?.errors ?? [],
 					loose: options?.loose || false,

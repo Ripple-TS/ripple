@@ -1,0 +1,9 @@
+{
+  "name": "@ripple-ts/fixture-ripple-project",
+  "private": true,
+  "devDependencies": {
+    "@tsrx/ripple": "workspace:*",
+    "@ripple-ts/vite-plugin": "workspace:*",
+    "ripple": "workspace:*"
+  }
+}

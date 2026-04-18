@@ -124,7 +124,7 @@ function createRippleLanguageServer() {
 
 		// Register file watchers for TypeScript/JavaScript files so the language
 		// server is notified when they change on disk. Without this, changes to
-		// .ts files that are imported by .ripple files are not detected, causing
+		// .ts files that are imported by .tsrx files are not detected, causing
 		// stale diagnostics until the server is restarted.
 		try {
 			await server.fileWatcher.watchFiles([

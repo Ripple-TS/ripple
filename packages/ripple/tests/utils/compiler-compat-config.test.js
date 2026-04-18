@@ -12,7 +12,7 @@ component App() {
 describe('compiler tsx compat configuration', () => {
 	it('allows tsx compat when no compat config is provided', () => {
 		expect(() =>
-			compile(source, '/src/App.rsrx', {
+			compile(source, '/src/App.tsrx', {
 				mode: 'client',
 			}),
 		).not.toThrow();
@@ -20,7 +20,7 @@ describe('compiler tsx compat configuration', () => {
 
 	it('throws when tsx compat kind is not configured', () => {
 		expect(() =>
-			compile(source, '/src/App.rsrx', {
+			compile(source, '/src/App.tsrx', {
 				mode: 'client',
 				compat_kinds: [],
 			}),
@@ -29,7 +29,7 @@ describe('compiler tsx compat configuration', () => {
 
 	it('allows tsx compat kinds that are configured', () => {
 		expect(() =>
-			compile(source, '/src/App.rsrx', {
+			compile(source, '/src/App.tsrx', {
 				mode: 'client',
 				compat_kinds: ['react'],
 			}),

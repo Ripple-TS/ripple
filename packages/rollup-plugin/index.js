@@ -10,7 +10,7 @@ const PREFIX = '[@ripple-ts/rollup-plugin]';
  */
 export default function (options = {}) {
 	const { compilerOptions = {}, ...rest } = options;
-	const extensions = ['.ripple', '.rsrx', '.tsrx'];
+	const extensions = ['.tsrx'];
 	const filter = createFilter(rest.include, rest.exclude);
 
 	// [filename]:[chunk]

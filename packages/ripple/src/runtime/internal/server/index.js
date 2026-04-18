@@ -28,7 +28,7 @@ import { is_boolean_attribute } from '../../../utils/attributes.js';
 import { clsx } from 'clsx';
 import { normalize_css_property_name } from '../../../utils/normalize_css_property_name.js';
 import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../constants.js';
-import { is_ripple_element, normalize_children, ripple_element } from '../../element.js';
+import { is_tsrx_element, normalize_children, tsrx_element } from '../../element.js';
 import {
 	is_tag_valid_with_parent,
 	is_tag_valid_with_ancestor,
@@ -48,7 +48,7 @@ export { hash } from '../../../utils/hashing.js';
 export { context } from './context.js';
 export { try_block, component_block, regular_block } from './blocks.js';
 export { array_slice };
-export { ripple_element, normalize_children };
+export { tsrx_element, normalize_children };
 
 export function noop() {}
 
@@ -59,7 +59,7 @@ export function noop() {}
 export function render_expression(value) {
 	output_push(BLOCK_OPEN);
 
-	if (is_ripple_element(value)) {
+	if (is_tsrx_element(value)) {
 		value.render({});
 	} else {
 		output_push(escape(value ?? ''));
@@ -940,7 +940,7 @@ export function spread_attrs(attrs, css_hash) {
 	for (name in attrs) {
 		var value = attrs[name];
 
-		if (name === 'children' || typeof value === 'function' || is_ripple_element(value)) continue;
+		if (name === 'children' || typeof value === 'function' || is_tsrx_element(value)) continue;
 
 		if (is_ripple_object(value)) {
 			value = get(value);

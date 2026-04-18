@@ -12,11 +12,11 @@ import {
 	set_hydrating,
 	set_hydrate_node,
 } from './hydration.js';
-import { is_ripple_element } from '../../element.js';
+import { is_tsrx_element } from '../../element.js';
 
 /**
  * @param {any} _
- * @param {{ target: Element, children: import('../../element.js').RippleElement }} props
+ * @param {{ target: Element, children: import('../../element.js').TSRXElement }} props
  * @returns {void}
  */
 export function Portal(_, props) {
@@ -27,7 +27,7 @@ export function Portal(_, props) {
 
 	/** @type {Element | symbol} */
 	let target = UNINITIALIZED;
-	/** @type {import('../../element.js').RippleElement | symbol} */
+	/** @type {import('../../element.js').TSRXElement | symbol} */
 	let children = UNINITIALIZED;
 	/** @type {Block | null} */
 	var b = null;
@@ -71,7 +71,7 @@ export function Portal(_, props) {
 			var block = /** @type {Block} */ (active_block);
 
 			b = branch(() => {
-				if (is_ripple_element(children)) {
+				if (is_tsrx_element(children)) {
 					children.render(/** @type {Text} */ (anchor), block);
 				}
 			});

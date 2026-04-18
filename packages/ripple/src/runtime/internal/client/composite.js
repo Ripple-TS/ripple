@@ -5,7 +5,7 @@ import { COMPOSITE_BLOCK, DEFAULT_NAMESPACE, NAMESPACE_URI } from './constants.j
 import { hydrate_next, hydrating } from './hydration.js';
 import { active_block, active_namespace, get, with_ns } from './runtime.js';
 import { top_element_to_ns } from './utils.js';
-import { is_ripple_element } from '../../element.js';
+import { is_tsrx_element } from '../../element.js';
 
 /**
  * @typedef {((anchor: Node, props: Record<string, any>, block: Block | null) => void)} ComponentFunction
@@ -69,7 +69,7 @@ export function composite(get_component, node, props) {
 
 					render_spread(element, () => props || {});
 
-					if (is_ripple_element(props?.children)) {
+					if (is_tsrx_element(props?.children)) {
 						var child_anchor = document.createComment('');
 						element.appendChild(child_anchor);
 

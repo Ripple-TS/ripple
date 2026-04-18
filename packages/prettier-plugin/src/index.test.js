@@ -242,7 +242,7 @@ export default component Basic() {
       <p>{'This is a basic Ripple application template.'}</p>
       <p>
         {'Edit '}
-        <code>{'src/App.rsrx'}</code>
+        <code>{'src/App.tsrx'}</code>
         {' to get started.'}
       </p>
     </div>
@@ -1363,11 +1363,11 @@ import { Portal as RipplePortal } from 'ripple';`;
 		});
 
 		it('should preserve blank lines between export statements and import statements or comments', async () => {
-			const expected = `export { handler } from './test.rsrx';
+			const expected = `export { handler } from './test.tsrx';
 
 import { Portal as RipplePortal } from 'ripple';
 
-// export { something } from './test.ripple;
+// export { something } from './test.tsrx;
 
 import { GetRootNode } from './somewhere';`;
 
@@ -1940,7 +1940,7 @@ files = [...(files ?? []), ...dt.files];`;
         // <div class="editor-dot yellow" />
         <div class="editor-dot green" />
       </div>
-      <div class="editor-tab">{'Examples.rsrx'}</div>
+      <div class="editor-tab">{'Examples.tsrx'}</div>
     </div>
     <div class="editor-content">
       <pre class="editor-code">
@@ -2109,7 +2109,7 @@ files = [...(files ?? []), ...dt.files];`;
     :global(.template-brace) {
       color: #ffd700;
     }
-    :global(.ripple-syntax) {
+    :global(.tsrx-syntax) {
       color: #4fc1ff;
     }
     :global(.bracket) {

@@ -88,7 +88,7 @@ export function TestIfWithChildren(__anchor, _, __block) {
 	IfWithChildren(
 		node_1,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var fragment_1 = root_4();
 				var node_2 = _$_.first_child_frag(fragment_1);
 
@@ -188,7 +188,7 @@ export function TestIfWithSiblingsAndChildren(__anchor, _, __block) {
 	IfWithSiblingsAndChildren(
 		node_6,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var fragment_3 = root_10();
 				var node_7 = _$_.first_child_frag(fragment_3);
 

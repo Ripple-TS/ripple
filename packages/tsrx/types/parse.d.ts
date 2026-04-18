@@ -182,7 +182,12 @@ export namespace Parse {
 	}
 
 	export interface Options extends Omit<acorn.Options, 'onComment' | 'ecmaVersion'> {
-		rippleOptions: {
+		tsrxOptions?: {
+			loose: boolean;
+			errors: CoreCompiler.CompileError[];
+			filename: string | undefined;
+		};
+		rippleOptions?: {
 			loose: boolean;
 			errors: CoreCompiler.CompileError[];
 			filename: string | undefined;

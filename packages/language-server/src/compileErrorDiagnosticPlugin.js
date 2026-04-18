@@ -1,9 +1,9 @@
 /**
  * @import {Diagnostic, Range, LanguageServicePlugin, LanguageServiceContext, Position, Mapper} from '@volar/language-server';
  * @import {TextDocument} from 'vscode-languageserver-textdocument';
- * @import {TSRXVirtualCode} from '@ripple-ts/typescript-plugin/src/language.js';
+ * @import {TSRXVirtualCodeInstance} from '@ripple-ts/typescript-plugin/src/language.js';
  */
-// @ts-expect-error: ESM type import is fine
+// @ts-ignore: ESM type import is fine
 /** @import {TSRXCompileError} from '@tsrx/ripple'; */
 
 const { getVirtualCode, createLogging } = require('./utils.js');
@@ -63,7 +63,7 @@ function createCompileErrorDiagnosticPlugin() {
 
 /**
  * @param {TSRXCompileError} error
- * @param {TSRXVirtualCode} virtualCode
+ * @param {TSRXVirtualCodeInstance} virtualCode
  * @param {Mapper | undefined} sourceMap
  * @param {TextDocument} document
  * @returns {Diagnostic}

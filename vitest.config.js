@@ -9,11 +9,7 @@ export default defineConfig({
 			{
 				test: {
 					name: 'ripple-client',
-					include: [
-						'packages/ripple/tests/client/**/*.test.ripple',
-						'packages/ripple/tests/client/**/*.test.rsrx',
-						'packages/ripple/tests/client/**/*.test.tsrx',
-					],
+					include: ['packages/ripple/tests/client/**/*.test.tsrx'],
 					environment: 'jsdom',
 					setupFiles: ['packages/ripple/tests/setup-client.js'],
 					globals: true,
@@ -24,17 +20,41 @@ export default defineConfig({
 			{
 				test: {
 					name: 'ripple-server',
-					include: [
-						'packages/ripple/tests/server/**/*.test.ripple',
-						'packages/ripple/tests/server/**/*.test.rsrx',
-						'packages/ripple/tests/server/**/*.test.tsrx',
-					],
+					include: ['packages/ripple/tests/server/**/*.test.tsrx'],
 					environment: 'node',
 					setupFiles: ['packages/ripple/tests/setup-server.js'],
 					globals: true,
 				},
 				plugins: [ripple({ excludeRippleExternalModules: true })],
 				resolve: process.env.VITEST ? { conditions: ['default'] } : undefined,
+			},
+			{
+				test: {
+					name: 'tsrx-react',
+					include: ['packages/tsrx-react/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
+					name: 'vite-plugin-react',
+					include: ['packages/vite-plugin-react/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
+					name: 'tsrx-react-runtime',
+					include: ['packages/vite-plugin-react/tests/**/*.test.tsrx'],
+					environment: 'jsdom',
+					setupFiles: ['packages/vite-plugin-react/tests/setup.js'],
+					globals: true,
+				},
+				plugins: [(await import('./packages/vite-plugin-react/src/index.js')).tsrxReact()],
 			},
 			{
 				test: {
@@ -118,11 +138,7 @@ export default defineConfig({
 			{
 				test: {
 					name: 'compat-react',
-					include: [
-						'packages/compat-react/tests/**/*.test.ripple',
-						'packages/compat-react/tests/**/*.test.rsrx',
-						'packages/compat-react/tests/**/*.test.tsrx',
-					],
+					include: ['packages/compat-react/tests/**/*.test.tsrx'],
 					environment: 'jsdom',
 					setupFiles: ['packages/compat-react/tests/setup.js'],
 					globals: true,
@@ -144,6 +160,15 @@ export default defineConfig({
 				// components may import from 'ripple' which needs server runtime
 				// This is a limitation - reactive server components need different setup
 				resolve: process.env.VITEST ? { conditions: ['browser'] } : undefined,
+			},
+			{
+				test: {
+					name: 'typescript-plugin',
+					include: ['packages/typescript-plugin/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
 			},
 		],
 	},

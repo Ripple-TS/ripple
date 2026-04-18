@@ -1,0 +1,37 @@
+{
+  "name": "@tsrx/vite-plugin-react",
+  "description": "Vite plugin for @tsrx/react (.tsrx modules)",
+  "license": "MIT",
+  "author": "Dominic Gannaway",
+  "version": "0.0.1",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ripple-TS/ripple.git",
+    "directory": "packages/vite-plugin-react"
+  },
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "dependencies": {
+    "@tsrx/react": "workspace:*"
+  },
+  "peerDependencies": {
+    "vite": "*"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:default",
+    "@types/react-dom": "catalog:default",
+    "react": "catalog:default",
+    "react-dom": "catalog:default",
+    "typescript": "catalog:default",
+    "vite": "catalog:default"
+  },
+  "files": [
+    "src",
+    "types"
+  ]
+}

@@ -189,7 +189,7 @@ export function HtmlInChildren() {
 
 			const args = [
 				{
-					children: _$_.ripple_element(function render_children() {
+					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 						_$_.output_push('<div');
 						_$_.output_push(' class="vp-doc"');
@@ -227,7 +227,7 @@ export function HtmlInChildrenWithSiblings() {
 
 			const args = [
 				{
-					children: _$_.ripple_element(function render_children() {
+					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 						_$_.output_push('<h1');
 						_$_.output_push('>');
@@ -274,7 +274,7 @@ export function MultipleHtmlInChildren() {
 
 			const args = [
 				{
-					children: _$_.ripple_element(function render_children() {
+					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 						_$_.output_push('<div');
 						_$_.output_push(' class="doc"');
@@ -364,7 +364,7 @@ export function HtmlWithCommentsInChildren() {
 
 			const args = [
 				{
-					children: _$_.ripple_element(function render_children() {
+					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 						_$_.output_push('<div');
 						_$_.output_push(' class="vp-doc"');
@@ -570,7 +570,7 @@ export function HtmlWithServerData() {
 						{ href: '#features', text: 'Features' }
 					],
 
-					children: _$_.ripple_element(function render_children() {
+					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 						_$_.output_push('<div');
 						_$_.output_push(' class="vp-doc"');
@@ -608,7 +608,7 @@ export function HtmlWithClientDefaults() {
 
 			const args = [
 				{
-					children: _$_.ripple_element(function render_children() {
+					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 						_$_.output_push('<div');
 						_$_.output_push(' class="vp-doc"');
@@ -646,7 +646,7 @@ export function HtmlWithUndefinedContent() {
 
 			const args = [
 				{
-					children: _$_.ripple_element(function render_children() {
+					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 						_$_.output_push('<div');
 						_$_.output_push(' class="vp-doc"');
@@ -797,7 +797,7 @@ export function HtmlAfterSwitchInChildren() {
 
 			const args = [
 				{
-					children: _$_.ripple_element(function render_children() {
+					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 
 						{
@@ -806,7 +806,7 @@ export function HtmlAfterSwitchInChildren() {
 							const args = [
 								{
 									level: 1,
-									children: _$_.ripple_element(function render_children() {
+									children: _$_.tsrx_element(function render_children() {
 										_$_.push_component();
 										_$_.output_push('Title');
 										_$_.pop_component();
@@ -986,7 +986,7 @@ function SideNav({ currentPath }) {
 						const args = [
 							{
 								title: "Getting Started",
-								children: _$_.ripple_element(function render_children() {
+								children: _$_.tsrx_element(function render_children() {
 									_$_.push_component();
 
 									{
@@ -1038,7 +1038,7 @@ function SideNav({ currentPath }) {
 						const args = [
 							{
 								title: "Guide",
-								children: _$_.ripple_element(function render_children() {
+								children: _$_.tsrx_element(function render_children() {
 									_$_.push_component();
 
 									{
@@ -1281,7 +1281,7 @@ export function ArticleWithChildrenThenSibling() {
 
 				const args = [
 					{
-						children: _$_.ripple_element(function render_children() {
+						children: _$_.tsrx_element(function render_children() {
 							_$_.push_component();
 							_$_.output_push('<h1');
 							_$_.output_push('>');
@@ -1384,7 +1384,7 @@ export function ArticleWithHtmlChildThenSibling() {
 
 				const args = [
 					{
-						children: _$_.ripple_element(function render_children() {
+						children: _$_.tsrx_element(function render_children() {
 							_$_.push_component();
 							_$_.output_push('<div');
 							_$_.output_push(' class="doc-content"');
@@ -1519,7 +1519,7 @@ export function InlineArticleWithHtmlChild() {
 
 			const args = [
 				{
-					children: _$_.ripple_element(function render_children() {
+					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 						_$_.output_push('<div');
 						_$_.output_push(' class="doc-content"');
@@ -1753,7 +1753,7 @@ export function DocsLayoutWithData() {
 				{
 					editPath: "docs/styling.md",
 					nextLink: { href: '/next', text: 'Next' },
-					children: _$_.ripple_element(function render_children() {
+					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 						_$_.output_push('<div');
 						_$_.output_push(' class="doc-content"');
@@ -1791,7 +1791,7 @@ export function DocsLayoutWithoutData() {
 
 			const args = [
 				{
-					children: _$_.ripple_element(function render_children() {
+					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 						_$_.output_push('<div');
 						_$_.output_push(' class="doc-content"');
@@ -2073,7 +2073,7 @@ export function DocsLayoutExactWithData() {
 						{ href: '#usage', text: 'Usage' }
 					],
 
-					children: _$_.ripple_element(function render_children() {
+					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 						_$_.output_push('<div');
 						_$_.output_push(' class="doc-content"');
@@ -2119,7 +2119,7 @@ export function DocsLayoutExactWithoutData() {
 					prevLink,
 					nextLink,
 					toc,
-					children: _$_.ripple_element(function render_children() {
+					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 						_$_.output_push('<div');
 						_$_.output_push(' class="doc-content"');
@@ -2285,7 +2285,7 @@ export function NestedTemplateInLayout() {
 			const args = [
 				{
 					data: doc,
-					children: _$_.ripple_element(function render_children() {
+					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 						_$_.output_push('<div');
 						_$_.output_push(' class="doc-content"');

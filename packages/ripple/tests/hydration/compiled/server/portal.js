@@ -27,7 +27,7 @@ export function SimplePortal() {
 				const args = [
 					{
 						target: typeof document !== 'undefined' ? document.body : null,
-						children: _$_.ripple_element(function render_children() {
+						children: _$_.tsrx_element(function render_children() {
 							_$_.push_component();
 							_$_.output_push('<div');
 							_$_.output_push(' class="portal-content"');
@@ -84,7 +84,7 @@ export function ConditionalPortal() {
 					const args = [
 						{
 							target: typeof document !== 'undefined' ? document.body : null,
-							children: _$_.ripple_element(function render_children() {
+							children: _$_.tsrx_element(function render_children() {
 								_$_.push_component();
 								_$_.output_push('<div');
 								_$_.output_push(' class="portal-content"');
@@ -139,7 +139,7 @@ export function PortalWithMainContent() {
 				const args = [
 					{
 						target: typeof document !== 'undefined' ? document.body : null,
-						children: _$_.ripple_element(function render_children() {
+						children: _$_.tsrx_element(function render_children() {
 							_$_.push_component();
 							_$_.output_push('<div');
 							_$_.output_push(' class="portal-content"');
@@ -209,7 +209,7 @@ export function NestedContentWithPortal() {
 				const args = [
 					{
 						target: typeof document !== 'undefined' ? document.body : null,
-						children: _$_.ripple_element(function render_children() {
+						children: _$_.tsrx_element(function render_children() {
 							_$_.push_component();
 							_$_.output_push('<div');
 							_$_.output_push(' class="portal-content"');

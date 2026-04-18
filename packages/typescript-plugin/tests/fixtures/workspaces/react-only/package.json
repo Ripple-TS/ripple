@@ -1,0 +1,8 @@
+{
+  "name": "@tsrx/fixture-react-only-project",
+  "private": true,
+  "devDependencies": {
+    "@tsrx/react": "workspace:*",
+    "@tsrx/vite-plugin-react": "workspace:*"
+  }
+}

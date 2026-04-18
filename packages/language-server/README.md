@@ -29,8 +29,8 @@ are also specialized plugins for popular editors.
 
 #### VS Code
 
-Use the [official
-extension](https://marketplace.visualstudio.com/items?itemName=Ripple-TS.ripple-ts-vscode-plugin
+Use the
+[official extension](https://marketplace.visualstudio.com/items?itemName=Ripple-TS.ripple-ts-vscode-plugin)
 It uses this language server internally.
 
 #### WebStorm/IntelliJ

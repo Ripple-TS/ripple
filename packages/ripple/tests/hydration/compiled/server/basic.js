@@ -568,7 +568,7 @@ export function WebsiteIndex() {
 
 			const args = [
 				{
-					children: _$_.ripple_element(function render_children() {
+					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 
 						{

@@ -1,7 +1,7 @@
 /** @import { TextDocument } from 'vscode-languageserver-textdocument' */
 /** @import { LanguageServiceContext, Mapper, SourceScript } from '@volar/language-server' */
-/** @typedef {import('@ripple-ts/typescript-plugin/src/language.js').TSRXVirtualCode} TSRXVirtualCode */
-// @ts-expect-error: ESM type import is fine
+/** @import {TSRXVirtualCodeInstance} from '@ripple-ts/typescript-plugin/src/language.js'; */
+// @ts-ignore: ESM type import is fine
 /** @import { isIdentifierObfuscated, deobfuscateIdentifier, IDENTIFIER_OBFUSCATION_PREFIX } from '@tsrx/core' */
 
 const { URI } = require('vscode-uri');
@@ -24,7 +24,7 @@ const IMPORT_EXPORT_REGEX = {
 	from: /from\s*['"][^'"]*['"]\s*;?/,
 };
 
-const RIPPLE_EXTENSIONS = ['.ripple', '.rsrx', '.tsrx'];
+const RIPPLE_EXTENSIONS = ['.tsrx'];
 
 /** @type {typeof isIdentifierObfuscated} */
 let is_identifier_obfuscated;
@@ -76,7 +76,7 @@ function concatMarkdownContents(...contents) {
  * @param {TextDocument} document
  * @returns
 	{{
- 		virtualCode: TSRXVirtualCode;
+ 		virtualCode: TSRXVirtualCodeInstance;
 		sourceUri: URI;
 		sourceScript: SourceScript<URI> | undefined;
 		sourceMap: Mapper | undefined;
@@ -89,7 +89,7 @@ function getVirtualCode(document, context) {
 	);
 	const [sourceUri, virtualCodeId] = decoded;
 	const sourceScript = context.language.scripts.get(sourceUri);
-	const virtualCode = /** @type {TSRXVirtualCode} */ (
+	const virtualCode = /** @type {TSRXVirtualCodeInstance} */ (
 		sourceScript?.generated?.embeddedCodes.get(virtualCodeId)
 	);
 

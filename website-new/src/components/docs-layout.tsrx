@@ -1,0 +1,938 @@
+import { DocsHeader } from './docs-header.tsrx';
+import { Sidebar } from './sidebar.tsrx';
+import { DocsFooter } from './docs-footer.tsrx';
+
+export component DocsLayout({
+	children,
+	title = 'Docs',
+	editPath = '',
+	prevLink = null,
+	nextLink = null,
+	toc = [],
+	currentPath = '/docs/introduction',
+}: {
+	children: any;
+	title?: string;
+	editPath?: string;
+	prevLink?: { href: string; text: string } | null;
+	nextLink?: { href: string; text: string } | null;
+	toc?: { href: string; text: string }[];
+	currentPath?: string;
+}) {
+	<head>
+		<title>
+			{title}
+			{' | Ripple'}
+		</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Ubuntu+Sans:ital,wght@0,100..800;1,100..800&family=Fira+Code:wght@300..700&display=swap"
+			rel="stylesheet"
+		/>
+	</head>
+	<div class="layout">
+		<DocsHeader />
+		<div class="docs-wrapper">
+			<Sidebar {currentPath} />
+			<main class="docs-main">
+				<div class="docs-container">
+					<div class="content">
+						<div class="content-container">
+							<article class="doc-content">
+								<div>{children}</div>
+							</article>
+							if (editPath) {
+								<div class="edit-link">
+									<a
+										href={`https://github.com/Ripple-TS/ripple/edit/main/website/${editPath}`}
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											class="edit-icon"
+										>
+											<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+											<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+										</svg>
+										{'Edit this page on GitHub'}
+									</a>
+								</div>
+							}
+							if (prevLink || nextLink) {
+								<nav class="prev-next">
+									if (prevLink) {
+										<a href={prevLink.href} class="pager prev">
+											<span class="desc">{'Previous page'}</span>
+											<span class="title">{prevLink.text}</span>
+										</a>
+									} else {
+										<span />
+									}
+									if (nextLink) {
+										<a href={nextLink.href} class="pager next">
+											<span class="desc">{'Next page'}</span>
+											<span class="title">{nextLink.text}</span>
+										</a>
+									}
+								</nav>
+							}
+							<DocsFooter />
+						</div>
+					</div>
+					<aside class="aside">
+						if (toc.length > 0) {
+							<div class="aside-curtain" />
+							<div class="aside-container">
+								<div class="aside-content">
+									<div class="DocumentAside">
+										<nav
+											class="DocumentAsideOutline has-outline"
+											aria-labelledby="doc-outline-aria-label"
+										>
+											<div class="outline-content">
+												<div class="outline-marker" />
+												<div
+													class="outline-title"
+													id="doc-outline-aria-label"
+													role="heading"
+													aria-level="2"
+												>
+													{'On this page'}
+												</div>
+												<ul class="DocumentOutlineItem root">
+													for (const item of toc) {
+														<li>
+															<a class="outline-link" href={item.href} title={item.text}>
+																{item.text}
+															</a>
+														</li>
+													}
+												</ul>
+											</div>
+										</nav>
+										<div class="aside-spacer" />
+									</div>
+								</div>
+							</div>
+						}
+					</aside>
+				</div>
+			</main>
+		</div>
+	</div>
+
+	<style>
+		:global(*) {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+
+		:global(html) {
+			font-size: 16px;
+		}
+
+		:global(body) {
+			font-family:
+				'Ubuntu Sans',
+				-apple-system,
+				BlinkMacSystemFont,
+				'Segoe UI',
+				Roboto,
+				sans-serif;
+			background: #1b1b1f;
+			color: rgba(255, 255, 245, 0.86);
+			line-height: 1.7;
+			min-height: 100vh;
+			font-size: 16px;
+			font-optical-sizing: auto;
+			text-rendering: optimizeLegibility;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+		}
+
+		:global(code) {
+			font-family: 'Fira Code', monospace;
+		}
+
+		:global(a) {
+			color: #3e95ff;
+			text-decoration: none;
+		}
+
+		:global(a:hover) {
+			color: #5aa5ff;
+		}
+
+		/* Scrollbar styling */
+		:global(*) {
+			scrollbar-width: thin;
+			scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+		}
+
+		:global(*::-webkit-scrollbar) {
+			width: 8px;
+			height: 8px;
+		}
+
+		:global(*::-webkit-scrollbar-track) {
+			background: transparent;
+		}
+
+		:global(*::-webkit-scrollbar-thumb) {
+			background-color: rgba(255, 255, 255, 0.2);
+			border-radius: 4px;
+		}
+
+		:global(*::-webkit-scrollbar-thumb:hover) {
+			background-color: rgba(255, 255, 255, 0.3);
+		}
+
+		.layout {
+			min-height: 100vh;
+		}
+
+		.docs-wrapper {
+			display: flex;
+			padding-top: 64px;
+		}
+
+		.docs-main {
+			flex: 1;
+			min-width: 0;
+			padding-left: 272px;
+			width: 100%;
+		}
+
+		.docs-container {
+			display: flex;
+			justify-content: center;
+			max-width: 1104px;
+			margin: 0 auto;
+			width: 100%;
+		}
+
+		.content {
+			position: relative;
+			margin: 0 auto;
+			width: 100%;
+			padding: 48px 32px 128px;
+		}
+
+		.content-container {
+			margin: 0 auto;
+			max-width: 688px;
+		}
+
+		.doc-content {
+			position: relative;
+			width: 100%;
+		}
+
+		/* Markdown rendering styles */
+		.doc-content :global(h1),
+		.doc-content :global(h2),
+		.doc-content :global(h3),
+		.doc-content :global(h4),
+		.doc-content :global(h5),
+		.doc-content :global(h6) {
+			position: relative;
+			font-weight: 600;
+			outline: none;
+		}
+
+		.doc-content :global(h1),
+		.doc-content :global(.doc-h1) {
+			font-size: 32px;
+			line-height: 40px;
+			letter-spacing: -0.02em;
+			color: rgba(255, 255, 245, 0.86);
+		}
+
+		.doc-content :global(h2),
+		.doc-content :global(.doc-h2) {
+			margin: 48px 0 16px;
+			border-top: 1px solid rgba(84, 84, 84, 0.48);
+			padding-top: 24px;
+			font-size: 24px;
+			line-height: 32px;
+			letter-spacing: -0.02em;
+			color: rgba(255, 255, 245, 0.86);
+		}
+
+		.doc-content :global(.doc-h3) {
+			margin: 32px 0 0;
+			font-size: 20px;
+			line-height: 28px;
+			letter-spacing: -0.01em;
+			color: rgba(255, 255, 245, 0.86);
+		}
+
+		.doc-content :global(.doc-h4) {
+			margin: 24px 0 0;
+			font-size: 18px;
+			line-height: 24px;
+			letter-spacing: -0.01em;
+			color: rgba(255, 255, 245, 0.86);
+		}
+
+		.doc-content :global(.header-anchor) {
+			position: absolute;
+			top: 0;
+			left: 0;
+			margin-left: -0.87em;
+			font-weight: 500;
+			user-select: none;
+			color: #3e95ff;
+			opacity: 0;
+			transition:
+				color 0.25s,
+				opacity 0.25s;
+			text-decoration: none;
+		}
+
+		.doc-content :global(.header-anchor)::before {
+			content: '#';
+		}
+
+		.doc-content :global(h1:hover .header-anchor),
+		.doc-content :global(h2:hover .header-anchor),
+		.doc-content :global(.doc-h1:hover .header-anchor),
+		.doc-content :global(.doc-h2:hover .header-anchor),
+		.doc-content :global(.doc-h3:hover .header-anchor),
+		.doc-content :global(.doc-h4:hover .header-anchor) {
+			opacity: 1;
+		}
+
+		.doc-content :global(h2 .header-anchor),
+		.doc-content :global(.doc-h2 .header-anchor) {
+			top: 24px;
+		}
+
+		.doc-content :global(p) {
+			margin: 16px 0;
+			line-height: 28px;
+		}
+
+		.doc-content :global(.custom-block p) {
+			margin: 8px 0;
+			line-height: 24px;
+		}
+
+		.doc-content :global(.custom-block p:first-child) {
+			margin: 0;
+		}
+
+		.doc-content :global(ul),
+		.doc-content :global(ol) {
+			padding-left: 1.25rem;
+			margin: 16px 0;
+		}
+
+		.doc-content :global(ul) {
+			list-style: disc;
+		}
+
+		.doc-content :global(li) {
+			line-height: 28px;
+		}
+
+		.doc-content :global(li + li) {
+			margin-top: 8px;
+		}
+
+		.doc-content :global(:not(pre, h1, h2, h3, h4, h5, h6) > code) {
+			font-size: 0.9em;
+			color: #3e95ff;
+			background-color: rgba(101, 117, 133, 0.16);
+			border-radius: 4px;
+			padding: 3px 6px;
+			transition:
+				color 0.25s,
+				background-color 0.5s;
+		}
+
+		.doc-content :global(code) {
+			font-size: 14px;
+			color: rgba(235, 235, 245, 0.6);
+			background-color: rgba(101, 117, 133, 0.16);
+			border-radius: 4px;
+			padding: 3px 6px;
+		}
+
+		.doc-content :global(strong) {
+			font-weight: 600;
+		}
+
+		.doc-content :global(a) {
+			color: #3e95ff;
+			text-decoration: none;
+			transition: color 0.25s;
+		}
+
+		.doc-content :global(a:hover) {
+			color: #5aa5ff;
+		}
+
+		/* Custom blocks (info, tip, warning, danger) */
+		.doc-content :global(.custom-block) {
+			margin: 16px 0;
+			padding: 16px 16px 8px;
+			border-radius: 8px;
+			border: 1px solid transparent;
+			line-height: 24px;
+			font-size: 14px;
+			color: rgba(235, 235, 245, 0.6);
+		}
+
+		.doc-content :global(.custom-block-title) {
+			font-weight: 600;
+		}
+
+		.doc-content :global(.info),
+		.doc-content :global(.custom-block.info) {
+			background-color: rgba(101, 117, 133, 0.16);
+			color: rgba(255, 255, 245, 0.86);
+		}
+
+		.doc-content :global(.custom-block.info a),
+		.doc-content :global(.custom-block.info code) {
+			color: #3e95ff;
+		}
+
+		.doc-content :global(.custom-block.info a:hover),
+		.doc-content :global(.custom-block.info a:hover > code) {
+			color: #5aa5ff;
+		}
+
+		.doc-content :global(.tip) {
+			background-color: rgba(66, 184, 131, 0.16);
+			color: rgba(255, 255, 245, 0.86);
+		}
+
+		.doc-content :global(.warning) {
+			background-color: rgba(234, 179, 8, 0.16);
+			color: rgba(255, 255, 245, 0.86);
+		}
+
+		.doc-content :global(.danger) {
+			background-color: rgba(234, 57, 67, 0.16);
+			color: rgba(255, 255, 245, 0.86);
+		}
+
+		/* Code blocks */
+		.doc-content :global(.doc-code-group) {
+			margin: 16px 0;
+			border-radius: 8px;
+		}
+
+		.doc-content :global(.tabs) {
+			background: #161618;
+			border-radius: 8px 8px 0 0;
+			border-bottom: 1px solid rgba(84, 84, 84, 0.48);
+		}
+
+		.doc-content :global(.tab) {
+			padding: 0 12px;
+			height: 48px;
+			border: none;
+			background: none;
+			color: rgba(235, 235, 245, 0.6);
+			font-size: 14px;
+			font-weight: 500;
+			cursor: pointer;
+			position: relative;
+		}
+
+		.doc-content :global(.tab.active) {
+			color: rgba(255, 255, 245, 0.86);
+		}
+
+		.doc-content :global(.tab.active)::after {
+			content: '';
+			position: absolute;
+			bottom: -1px;
+			left: 8px;
+			right: 8px;
+			height: 2px;
+			background: #3e95ff;
+		}
+
+		.doc-content :global(.blocks) {
+			background: #161618;
+			border-radius: 0 0 8px 8px;
+		}
+
+		.doc-content :global([class*='language-']) {
+			position: relative;
+			margin: 16px 0;
+			background-color: #161618;
+			border-radius: 8px;
+			overflow-x: auto;
+		}
+
+		.doc-content :global(.doc-code-group [class*='language-']) {
+			margin: 0;
+			border-radius: 0 0 8px 8px;
+		}
+
+		.doc-content :global(.copy) {
+			position: absolute;
+			top: 12px;
+			right: 12px;
+			width: 40px;
+			height: 40px;
+			border-radius: 8px;
+			border: 1px solid rgba(84, 84, 84, 0.48);
+			background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' height='20' width='20' stroke='rgba(128,128,128,1)' stroke-width='2' viewBox='0 0 24 24'%3E%3Crect width='8' height='4' x='8' y='2' rx='1' ry='1'/%3E%3Cpath d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/%3E%3C/svg%3E")
+				no-repeat center;
+			cursor: pointer;
+			z-index: 3;
+			opacity: 0;
+			transition: opacity 0.25s;
+		}
+
+		.doc-content :global([class*='language-']:hover .copy) {
+			opacity: 1;
+		}
+
+		.doc-content :global(.lang) {
+			position: absolute;
+			top: 8px;
+			right: 12px;
+			z-index: 2;
+			font-size: 12px;
+			font-weight: 500;
+			color: rgba(235, 235, 245, 0.38);
+			transition: opacity 0.25s;
+		}
+
+		.doc-content :global([class*='language-']:hover .lang) {
+			opacity: 0;
+		}
+
+		.doc-content :global(pre) {
+			margin: 0;
+			padding: 20px 0;
+			overflow-x: auto;
+			background: transparent;
+		}
+
+		.doc-content :global(pre code) {
+			font-family: 'Fira Code', monospace;
+			font-size: 13px;
+			line-height: 1.7;
+			color: #e1e4e8;
+			background: transparent;
+			padding: 0 24px;
+			border-radius: 0;
+			white-space: pre;
+			display: block;
+			width: fit-content;
+			min-width: 100%;
+		}
+
+		.doc-content :global(pre),
+		.doc-content :global(pre code) {
+			-moz-tab-size: 4;
+			-o-tab-size: 4;
+			tab-size: 4;
+		}
+
+		/* Shiki generates spans with inline colors, but override the pre bg */
+		.doc-content :global(.shiki) {
+			background-color: transparent !important;
+		}
+
+		/* Badge */
+		.doc-content :global(.badge) {
+			display: inline-block;
+			font-size: 12px;
+			font-weight: 500;
+			padding: 2px 8px;
+			border-radius: 10px;
+			margin-left: 8px;
+			vertical-align: middle;
+		}
+
+		.doc-content :global(.badge.warning) {
+			background-color: rgba(234, 179, 8, 0.16);
+			color: #eab308;
+		}
+
+		.doc-content :global(.badge.info) {
+			background-color: rgba(101, 117, 133, 0.16);
+			color: rgba(235, 235, 245, 0.6);
+		}
+
+		/* Plugin tabs */
+		.doc-content :global(.plugin-tabs) {
+			margin: 16px 0;
+			background-color: #202127;
+			border-radius: 8px;
+		}
+
+		.doc-content :global(.plugin-tabs--tab-list) {
+			position: relative;
+			display: flex;
+			padding: 0 12px;
+			overflow-x: auto;
+			overflow-y: hidden;
+		}
+
+		.doc-content :global(.plugin-tabs--tab-list::after) {
+			content: '';
+			position: absolute;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			height: 2px;
+			background-color: #2e2e32;
+		}
+
+		.doc-content :global(.plugin-tabs--tab) {
+			position: relative;
+			display: inline-block;
+			padding: 0 12px;
+			line-height: 48px;
+			border: none;
+			border-bottom: 2px solid transparent;
+			background: none;
+			color: #98989f;
+			font-size: 14px;
+			font-weight: 500;
+			cursor: pointer;
+			white-space: nowrap;
+			transition: color 0.25s;
+		}
+
+		.doc-content :global(.plugin-tabs--tab:hover) {
+			color: rgba(255, 255, 245, 0.86);
+		}
+
+		.doc-content :global(.plugin-tabs--tab[aria-selected='true']) {
+			color: rgba(255, 255, 245, 0.86);
+		}
+
+		.doc-content :global(.plugin-tabs--tab[aria-selected='true']::after) {
+			content: '';
+			position: absolute;
+			right: 8px;
+			bottom: -2px;
+			left: 8px;
+			z-index: 1;
+			height: 2px;
+			border-radius: 2px;
+			background-color: #3e95ff;
+		}
+
+		.doc-content :global(.plugin-tabs--content) {
+			padding: 16px;
+		}
+
+		.doc-content :global(.plugin-tabs--content > :first-child) {
+			margin-top: 0;
+		}
+
+		.doc-content :global(.plugin-tabs--content > :last-child) {
+			margin-bottom: 0;
+		}
+
+		.doc-content :global(.plugin-tabs--content [class*='language-']) {
+			position: relative;
+			overflow-x: auto;
+			background-color: #1b1b1f;
+			border-radius: 8px;
+		}
+
+		.doc-content :global(.plugin-tabs--content [class*='language-'] .copy) {
+			position: absolute;
+			top: 12px;
+			right: 12px;
+			width: 40px;
+			height: 40px;
+			border-radius: 8px;
+			border: 1px solid #2e2e32;
+			background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' height='20' width='20' stroke='rgba(128,128,128,1)' stroke-width='2' viewBox='0 0 24 24'%3E%3Crect width='8' height='4' x='8' y='2' rx='1' ry='1'/%3E%3Cpath d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/%3E%3C/svg%3E")
+				no-repeat center;
+			cursor: pointer;
+			z-index: 3;
+			opacity: 0;
+			transition: opacity 0.25s;
+		}
+
+		.doc-content :global([class*='language-']:hover .copy) {
+			opacity: 1;
+		}
+
+		.doc-content :global([class*='language-'] .lang) {
+			position: absolute;
+			top: 8px;
+			right: 12px;
+			z-index: 2;
+			font-size: 12px;
+			font-weight: 500;
+			color: rgba(235, 235, 245, 0.38);
+			transition: opacity 0.25s;
+		}
+
+		.doc-content :global([class*='language-']:hover .lang) {
+			opacity: 0;
+		}
+
+		.doc-content :global([class*='language-'] pre) {
+			position: relative;
+			z-index: 1;
+			margin: 0;
+			padding: 20px 0;
+			overflow-x: auto;
+			background: transparent;
+			text-align: left;
+		}
+
+		.doc-content :global([class*='language-'] pre),
+		.doc-content :global([class*='language-'] code) {
+			-moz-tab-size: 4;
+			-o-tab-size: 4;
+			tab-size: 4;
+		}
+
+		.doc-content :global([class*='language-'] code) {
+			font-family: 'Fira Code', monospace;
+			display: block;
+			padding: 0 24px;
+			width: fit-content;
+			min-width: 100%;
+			line-height: 1.7;
+			font-size: 0.875em;
+			color: #98989f;
+			background: transparent;
+			white-space: pre;
+			font-weight: 400;
+		}
+
+		.edit-link {
+			padding: 32px 0;
+			border-top: 1px solid #2e2e32;
+			margin-top: 32px;
+		}
+
+		.edit-link a {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			font-size: 14px;
+			font-weight: 500;
+			color: #3e95ff;
+			transition: color 0.25s;
+		}
+
+		.edit-link a:hover {
+			color: #5aa5ff;
+		}
+
+		.edit-icon {
+			width: 18px;
+			height: 18px;
+		}
+
+		.prev-next {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 16px;
+			padding: 32px 0;
+			border-top: 1px solid #2e2e32;
+		}
+
+		.pager {
+			display: block;
+			padding: 11px 16px 13px;
+			border: 1px solid #2e2e32;
+			border-radius: 8px;
+			transition: border-color 0.25s;
+		}
+
+		.pager:hover {
+			border-color: #3e95ff;
+			text-decoration: none;
+		}
+
+		.pager.next {
+			text-align: right;
+		}
+
+		.pager .desc {
+			display: block;
+			font-size: 12px;
+			font-weight: 500;
+			color: rgba(235, 235, 245, 0.6);
+			line-height: 20px;
+		}
+
+		.pager .title {
+			display: block;
+			font-size: 14px;
+			font-weight: 500;
+			color: #3e95ff;
+			line-height: 20px;
+			transition: color 0.25s;
+		}
+
+		.aside {
+			display: none;
+			position: relative;
+			order: 2;
+			flex-grow: 1;
+			padding-left: 32px;
+			width: 100%;
+			max-width: 256px;
+		}
+
+		.aside-curtain {
+			position: fixed;
+			bottom: 0;
+			z-index: 10;
+			width: 224px;
+			height: 32px;
+			background: linear-gradient(transparent, #1b1b1f 70%);
+			pointer-events: none;
+		}
+
+		.aside-container {
+			position: fixed;
+			top: 0;
+			padding-top: calc(64px + 48px);
+			width: 224px;
+			height: 100vh;
+			overflow-x: hidden;
+			overflow-y: auto;
+			scrollbar-width: none;
+		}
+
+		.aside-container::-webkit-scrollbar {
+			display: none;
+		}
+
+		.aside-content {
+			display: flex;
+			flex-direction: column;
+			min-height: calc(100vh - (64px + 48px));
+			padding-bottom: 32px;
+		}
+
+		.DocumentAside {
+			display: flex;
+			flex-direction: column;
+			flex-grow: 1;
+		}
+
+		.DocumentAsideOutline {
+			display: none;
+		}
+
+		.DocumentAsideOutline.has-outline {
+			display: block;
+		}
+
+		.outline-content {
+			position: relative;
+			border-left: 1px solid #2e2e32;
+			padding-left: 16px;
+			font-size: 13px;
+			font-weight: 500;
+		}
+
+		.outline-marker {
+			position: absolute;
+			top: 32px;
+			left: -1px;
+			z-index: 0;
+			opacity: 0;
+			width: 2px;
+			border-radius: 2px;
+			height: 18px;
+			background-color: #3e95ff;
+			transition:
+				top 0.25s cubic-bezier(0, 1, 0.5, 1),
+				background-color 0.5s,
+				opacity 0.25s;
+		}
+
+		.outline-title {
+			line-height: 32px;
+			font-size: 14px;
+			font-weight: 600;
+			color: rgba(255, 255, 245, 0.86);
+		}
+
+		.DocumentOutlineItem {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+		}
+
+		.DocumentOutlineItem.root {
+			position: relative;
+			z-index: 1;
+		}
+
+		.outline-link {
+			display: block;
+			line-height: 32px;
+			font-size: 14px;
+			font-weight: 400;
+			color: #98989f;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			transition: color 0.5s;
+			text-decoration: none;
+		}
+
+		.outline-link:hover {
+			color: rgba(255, 255, 245, 0.86);
+			transition: color 0.25s;
+		}
+
+		.aside-spacer {
+			flex-grow: 1;
+		}
+
+		@media (min-width: 1280px) {
+			.aside {
+				display: block;
+			}
+		}
+
+		@media (max-width: 1280px) {
+			.docs-content-wrapper {
+				max-width: 784px;
+			}
+		}
+
+		@media (min-width: 1440px) {
+			.docs-main {
+				padding-left: calc((100vw - 1440px) / 2 + 272px);
+				padding-right: calc((100vw - 1440px) / 2);
+			}
+		}
+
+		@media (max-width: 960px) {
+			.docs-main {
+				padding-left: 0;
+			}
+
+			.docs-content-wrapper {
+				padding: 24px;
+			}
+		}
+	</style>
+}

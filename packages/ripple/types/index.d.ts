@@ -1,14 +1,16 @@
 export type Component<T = Record<string, any>> = (props: T) => void;
 
-declare const RIPPLE_ELEMENT: unique symbol;
+declare const TSRX_ELEMENT: unique symbol;
 
-export type RippleElement = {
+export type TSRXElement = {
 	readonly render: Function;
-	readonly [RIPPLE_ELEMENT]: true;
+	readonly [TSRX_ELEMENT]: true;
 };
 
 /** Type for implicit children fragments rendered with `{children}`. */
-export type Children = RippleElement | Component | string | number | boolean | null | undefined;
+export type Children = TSRXElement | Component | string | number | boolean | null | undefined;
+
+export function tsrx_element(render: Function): TSRXElement;
 
 export function mount(
 	component: Component,

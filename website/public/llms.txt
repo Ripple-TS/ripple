@@ -2,7 +2,7 @@
 
 ## Overview
 
-Ripple is a TypeScript UI framework that combines the best parts of React, Solid, and Svelte into one elegant package. Created by Dominic Gannaway ([@trueadm](https://github.com/trueadm)), Ripple is designed to be JS/TS-first with `.tsrx` as its default component file extension while preserving `.ripple` compatibility.
+Ripple is a TypeScript UI framework that combines the best parts of React, Solid, and Svelte into one elegant package. Created by Dominic Gannaway ([@trueadm](https://github.com/trueadm)), Ripple is designed to be JS/TS-first with `.tsrx` as its default component file extension while preserving `.tsrx` compatibility.
 
 **Key Characteristics:**
 - **Performance**: Fine-grain rendering, with industry-leading performance, bundle-size and memory usage

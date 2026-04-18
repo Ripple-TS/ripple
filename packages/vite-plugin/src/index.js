@@ -40,8 +40,8 @@ const VIRTUAL_HYDRATE_ID = 'virtual:ripple-hydrate';
 const RESOLVED_VIRTUAL_HYDRATE_ID = '\0virtual:ripple-hydrate';
 const VIRTUAL_COMPAT_ID = 'virtual:ripple-compat';
 const RESOLVED_VIRTUAL_COMPAT_ID = '\0virtual:ripple-compat';
-const RIPPLE_EXTENSIONS = ['.ripple', '.rsrx', '.tsrx'];
-const RIPPLE_EXTENSION_PATTERN = /\.(?:ripple|rsrx|tsrx)$/;
+const RIPPLE_EXTENSIONS = ['.tsrx'];
+const RIPPLE_EXTENSION_PATTERN = /\.tsrx$/;
 
 /**
  * @param {string} file_name
@@ -171,7 +171,7 @@ function createVirtualImportId(filename, root, type) {
 			? filename.slice(VITE_FS_PREFIX.length) // remove /@fs/ from /@fs/C:/...
 			: filename.slice(VITE_FS_PREFIX.length - 1); // remove /@fs from /@fs/home/user
 	}
-	// return same virtual id format as vite-plugin-vue eg ...App.ripple?ripple&type=style&lang.css
+	// return same virtual id format as vite-plugin-vue eg ...App.tsrx?ripple&type=style&lang.css
 	return `${filename}?${parts.join('&')}`;
 }
 
@@ -398,7 +398,7 @@ export function ripple(inlineOptions = {}) {
 	let renderRouteEntries = [];
 	/** @type {ResolvedRippleConfig | null} Cached config from buildStart (reused in closeBundle) */
 	let loadedRippleConfig = null;
-	/** @type {Set<string>} File paths (relative to root) of .ripple modules with #server blocks */
+	/** @type {Set<string>} File paths (relative to root) of .tsrx modules with #server blocks */
 	const serverBlockModules = new Set();
 
 	/**
@@ -941,7 +941,7 @@ export function ripple(inlineOptions = {}) {
 
 				// Do NOT add ripple() here — the user's vite.config.ts (loaded automatically
 				// from `root`) already includes it. Adding another instance causes double
-				// compilation of .ripple files.
+				// compilation of .tsrx files.
 				const { build: viteBuild } = await import('vite');
 				try {
 					await viteBuild({

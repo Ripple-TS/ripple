@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { compile, compile_to_volar_mappings } from '@tsrx/ripple';
 
-const RIPPLE_EXTENSIONS = ['.ripple', '.tsrx'];
+const RIPPLE_EXTENSIONS = ['.tsrx'];
 
 let mode_type = process.argv[2] || 'server';
 

@@ -74,7 +74,7 @@ export function TestIfWithChildren() {
 
 			const args = [
 				{
-					children: _$_.ripple_element(function render_children() {
+					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 
 						{
@@ -250,7 +250,7 @@ export function TestIfWithSiblingsAndChildren() {
 
 			const args = [
 				{
-					children: _$_.ripple_element(function render_children() {
+					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 
 						{

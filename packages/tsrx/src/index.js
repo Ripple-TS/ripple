@@ -132,7 +132,10 @@ export { escape } from './utils/escaping.js';
 
 // Transform
 export { render_stylesheets as renderStylesheets } from './transform/stylesheet.js';
-export { convert_source_map_to_mappings as convertSourceMapToMappings } from './transform/segments.js';
+export {
+	convert_source_map_to_mappings as convertSourceMapToMappings,
+	create_volar_mappings_result as createVolarMappingsResult,
+} from './transform/segments.js';
 
 // Analyze
 export { analyze_css as analyzeCss } from './analyze/css-analyze.js';

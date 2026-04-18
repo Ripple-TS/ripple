@@ -12,7 +12,7 @@ export default defineConfig({
 		legalComments: 'inline',
 		minify: true,
 	},
-	external: ['@tsrx/ripple', '@tsrx/core', 'typescript'],
+	external: ['@tsrx/react', '@tsrx/ripple', '@tsrx/core', 'typescript'],
 	clean: true,
 	noExternal: /.+/,
 });

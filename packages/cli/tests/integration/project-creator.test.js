@@ -91,7 +91,7 @@ describe('createProject integration tests', () => {
 		);
 
 		writeFileSync(join(templatePath, 'index.html'), '<!DOCTYPE html><html></html>');
-		writeFileSync(join(templatePath, 'src', 'App.ripple'), '<h1>Hello Ripple!</h1>');
+		writeFileSync(join(templatePath, 'src', 'App.tsrx'), '<h1>Hello Ripple!</h1>');
 		writeFileSync(join(templatePath, 'README.md'), '# Template Project');
 
 		// Set up mocks for each test
@@ -123,7 +123,7 @@ describe('createProject integration tests', () => {
 		// Verify files were copied
 		expect(existsSync(join(projectPath, 'package.json'))).toBe(true);
 		expect(existsSync(join(projectPath, 'index.html'))).toBe(true);
-		expect(existsSync(join(projectPath, 'src', 'App.ripple'))).toBe(true);
+		expect(existsSync(join(projectPath, 'src', 'App.tsrx'))).toBe(true);
 		expect(existsSync(join(projectPath, 'README.md'))).toBe(true);
 
 		// Verify package.json was updated
@@ -306,14 +306,14 @@ describe('createProject integration tests', () => {
 		// v4 should NOT use @config directive (crashes with .ts files)
 		expect(cssContent).not.toContain('@config');
 
-		// VS Code settings should be generated for .ripple IntelliSense
+		// VS Code settings should be generated for .tsrx IntelliSense
 		expect(existsSync(join(projectPath, '.vscode', 'settings.json'))).toBe(true);
 		const vscodeSettings = JSON.parse(
 			readFileSync(join(projectPath, '.vscode', 'settings.json'), 'utf-8'),
 		);
 		expect(vscodeSettings['tailwindCSS.includeLanguages']).toEqual({ ripple: 'html' });
 		expect(vscodeSettings['tailwindCSS.classAttributes']).toEqual(['class', 'className']);
-		expect(vscodeSettings['files.associations']).toEqual({ '*.ripple': 'ripple' });
+		expect(vscodeSettings['files.associations']).toEqual({ '*.tsrx': 'ripple' });
 		expect(vscodeSettings['editor.quickSuggestions']).toEqual({ strings: true });
 	});
 

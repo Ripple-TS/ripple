@@ -4,7 +4,7 @@
 [![npm downloads](https://img.shields.io/npm/dm/%40ripple-ts%2Feslint-parser?logo=npm&label=downloads)](https://www.npmjs.com/package/@ripple-ts/eslint-parser)
 
 ESLint parser for Ripple component files. This parser enables ESLint to understand
-and lint `.tsrx` files by default, while also supporting `.ripple` files through
+and lint `.tsrx` files by default, while also supporting `.tsrx` files through
 Ripple's built-in compiler.
 
 ## Installation
@@ -50,7 +50,7 @@ export default [
 {
   "overrides": [
     {
-      "files": ["*.tsrx", "*.ripple"],
+      "files": ["*.tsrx", "*.tsrx"],
       "parser": "@ripple-ts/eslint-parser",
       "plugins": ["ripple"],
       "extends": ["plugin:ripple/recommended"]
@@ -68,7 +68,7 @@ already outputs ESTree-compliant ASTs, making integration straightforward.
 The parser:
 
 1. Loads the Ripple compiler
-2. Parses the component source code (`.tsrx` or `.ripple`)
+2. Parses the component source code (`.tsrx` or `.tsrx`)
 3. Returns the ESTree AST to ESLint
 4. Allows ESLint rules to analyze Ripple-specific patterns
 

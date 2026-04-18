@@ -22,8 +22,8 @@ to [Inferno](https://github.com/infernojs/inferno),
 extension. This allows seamless TypeScript integration and a unique syntax that
 enhances both human and LLM developer experience.
 
-📚 **[Full Documentation](https://www.ripplejs.com/docs)** | 🎮
-**[Interactive Playground](https://www.ripplejs.com/playground)**
+📚 **[Full Documentation](https://www.ripple-ts.com/docs)** | 🎮
+**[Interactive Playground](https://www.ripple-ts.com/playground)**
 
 ## Features
 
@@ -64,7 +64,7 @@ npm install ripple @ripple-ts/vite-plugin
 
 > **Note:** You can use `npm`, `pnpm`, `yarn`, or `bun` package managers.
 
-**[→ Full Installation Guide](https://www.ripplejs.com/docs/quick-start)**
+**[→ Full Installation Guide](https://www.ripple-ts.com/docs/quick-start)**
 
 ### Mounting Your App
 
@@ -90,7 +90,7 @@ for:
 - Real-time diagnostics
 - IntelliSense autocomplete
 
-**[→ Editor Setup Guide](https://www.ripplejs.com/docs/quick-start#vs-code)**
+**[→ Editor Setup Guide](https://www.ripple-ts.com/docs/quick-start#vs-code)**
 
 ## Core Concepts
 
@@ -111,7 +111,7 @@ export component App() {
 }
 ```
 
-**[→ Component Guide](https://www.ripplejs.com/docs/guide/components)**
+**[→ Component Guide](https://www.ripple-ts.com/docs/guide/components)**
 
 ### Reactivity
 
@@ -201,7 +201,7 @@ export component App() {
 }
 ```
 
-**[→ Reactivity Guide](https://www.ripplejs.com/docs/guide/reactivity)**
+**[→ Reactivity Guide](https://www.ripple-ts.com/docs/guide/reactivity)**
 
 ### Transporting Reactivity
 
@@ -225,7 +225,7 @@ export component App() {
 }
 ```
 
-**[→ Transporting Reactivity Guide](https://www.ripplejs.com/docs/guide/reactivity#transporting-reactivity)**
+**[→ Transporting Reactivity Guide](https://www.ripple-ts.com/docs/guide/reactivity#transporting-reactivity)**
 
 ### Effects & Side Effects
 
@@ -243,7 +243,7 @@ export component App() {
 }
 ```
 
-**[→ Effects & Reactivity Guide](https://www.ripplejs.com/docs/guide/reactivity#effects)**
+**[→ Effects & Reactivity Guide](https://www.ripple-ts.com/docs/guide/reactivity#effects)**
 
 ### Control Flow
 
@@ -315,7 +315,7 @@ export component App() {
 }
 ```
 
-**[→ Control Flow Guide](https://www.ripplejs.com/docs/guide/control-flow)**
+**[→ Control Flow Guide](https://www.ripple-ts.com/docs/guide/control-flow)**
 
 ### DOM Refs
 
@@ -327,7 +327,7 @@ export component App() {
 }
 ```
 
-**[→ DOM Refs Guide](https://www.ripplejs.com/docs/guide/dom-refs)**
+**[→ DOM Refs Guide](https://www.ripple-ts.com/docs/guide/dom-refs)**
 
 ### Events
 
@@ -347,7 +347,7 @@ export component App() {
 }
 ```
 
-**[→ Events Guide](https://www.ripplejs.com/docs/guide/events)**
+**[→ Events Guide](https://www.ripple-ts.com/docs/guide/events)**
 
 ### Styling
 
@@ -382,7 +382,7 @@ export component App() {
 }
 ```
 
-**[→ Styling Guide](https://www.ripplejs.com/docs/guide/styling)**
+**[→ Styling Guide](https://www.ripple-ts.com/docs/guide/styling)**
 
 ## Advanced Features
 
@@ -412,7 +412,7 @@ export component App() {
 }
 ```
 
-**[→ State Management Guide](https://www.ripplejs.com/docs/guide/state-management#context)**
+**[→ State Management Guide](https://www.ripple-ts.com/docs/guide/state-management#context)**
 
 ### Portals
 
@@ -439,13 +439,13 @@ export component App() {
 }
 ```
 
-**[→ Portal & Component Guide](https://www.ripplejs.com/docs/guide/components#portal-component)**
+**[→ Portal & Component Guide](https://www.ripple-ts.com/docs/guide/components#portal-component)**
 
 ## Resources
 
-- 📚 **[Full Documentation](https://www.ripplejs.com/docs)** - Complete guide and
+- 📚 **[Full Documentation](https://www.ripple-ts.com/docs)** - Complete guide and
   API reference
-- 🎮 **[Interactive Playground](https://www.ripplejs.com/playground)** - Try
+- 🎮 **[Interactive Playground](https://www.ripple-ts.com/playground)** - Try
   Ripple in your browser
 - 🐛 **[GitHub Issues](https://github.com/Ripple-TS/ripple/issues)** - Report bugs
   or request features

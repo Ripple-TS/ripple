@@ -67,7 +67,7 @@ export function LayoutWithContent(__anchor, _, __block) {
 	Layout(
 		node_1,
 		{
-			children: _$_.ripple_element(function render_children(__anchor, __block) {
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var fragment_1 = root_4();
 				var node_2 = _$_.first_child_frag(fragment_1);
 

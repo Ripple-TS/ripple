@@ -40,14 +40,12 @@ function buildComponents() {
 	mkdirSync(serverOutDir, { recursive: true });
 
 	// Get all supported component files in components directory
-	const componentFiles = readdirSync(componentsDir).filter(
-		(f) => f.endsWith('.ripple') || f.endsWith('.rsrx') || f.endsWith('.tsrx'),
-	);
+	const componentFiles = readdirSync(componentsDir).filter((f) => f.endsWith('.tsrx'));
 
 	for (const file of componentFiles) {
 		const filePath = join(componentsDir, file);
 		const source = readFileSync(filePath, 'utf-8');
-		const outputName = basename(basename(file, '.ripple'), '.rsrx').replace(/\.tsrx$/, '') + '.js';
+		const outputName = basename(basename(file, '.tsrx'), '.tsrx').replace(/\.tsrx$/, '') + '.js';
 
 		// Compile for client
 		const clientResult = compile(source, file, {

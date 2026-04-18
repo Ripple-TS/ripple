@@ -1,5 +1,5 @@
 /** @import { LanguageServicePlugin, LocationLink } from '@volar/language-server'; */
-// @ts-expect-error type-only import from ESM module into CJS is fine
+// @ts-ignore type-only import from ESM module into CJS is fine
 /** @import { DefinitionLocation } from '@tsrx/ripple'; */
 
 const { TextDocument } = require('vscode-languageserver-textdocument');
@@ -140,7 +140,9 @@ function createDefinitionPlugin() {
 						const loc = /** @type {DefinitionLocation} */ (def.location);
 
 						const embeddedCode = loc.embeddedId
-							? virtualCode.embeddedCodes?.find(({ id }) => id === loc.embeddedId)
+							? virtualCode.embeddedCodes?.find(
+									(/** @type {{ id: string }} */ { id }) => id === loc.embeddedId,
+								)
 							: undefined;
 
 						if (embeddedCode) {

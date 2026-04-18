@@ -203,7 +203,7 @@ export async function loadRippleConfig(projectRoot, options = {}) {
 
 	// Otherwise spin up a temporary Vite server (build / preview).
 	// The temp server only transpiles ripple.config.ts (plain TypeScript) —
-	// no .ripple compilation plugin is needed.
+	// no .tsrx compilation plugin is needed.
 	const { createServer } = await import('vite');
 
 	const tempVite = await createServer({
@@ -213,7 +213,7 @@ export async function loadRippleConfig(projectRoot, options = {}) {
 		server: { middlewareMode: true },
 		// We don't need to load the ripple plugin for now
 		// but if we start using references to components in router.routes
-		// then we'll need to add the plugin here to handle the .ripple imports.
+		// then we'll need to add the plugin here to handle the .tsrx imports.
 		// But this will cause a circular references warning
 		// that we should resolve when we implement references to components.
 		// plugins: [ripple({ excludeRippleExternalModules: true })],

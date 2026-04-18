@@ -19,6 +19,6 @@ export default defineConfig({
 	},
 
 	test: {
-		include: ['**/*.{ripple,tsrx}'],
+		include: ['**/*.tsrx'],
 	},
 });

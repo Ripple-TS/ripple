@@ -1115,7 +1115,7 @@ const visitors = {
 			if (children_filtered.length > 0) {
 				const component_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node));
 				const children = b.call(
-					'_$_.ripple_element',
+					'_$_.tsrx_element',
 					/** @type {AST.Expression} */ (
 						visit(b.component(b.id('render_children'), [], children_filtered), {
 							...context.state,
@@ -1549,9 +1549,9 @@ const visitors = {
 				state.init?.push(b.block(init));
 			}
 		} else {
-			// Expression context: return ripple_element(render_fn)
+			// Expression context: return tsrx_element(render_fn)
 			const render_fn = b.function(b.id('render_children'), [], b.block(init));
-			return b.call('_$_.ripple_element', render_fn);
+			return b.call('_$_.tsrx_element', render_fn);
 		}
 	},
 
