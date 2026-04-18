@@ -1401,6 +1401,9 @@ function create_null_return_statement() {
  * @returns {ESTreeJSX.JSXExpressionContainer}
  */
 function to_jsx_expression_container(expression, source_node = expression) {
+	// NOTE: JSXExpressionContainer nodes are intentionally created without loc.
+	// They are synthetic wrappers whose source positions do not correspond to
+	// entries in the generated source map, so adding loc causes Volar mapping failures.
 	return /** @type {any} */ ({
 		type: 'JSXExpressionContainer',
 		expression: /** @type {any} */ (expression),

@@ -734,8 +734,20 @@ function getCachedTypeMatches(typeName, text) {
 	return;
 }
 
+/**
+ * @param {string} normalized_file_name
+ * @returns {string | undefined}
+ */
+function get_compiler_dir_for_file(normalized_file_name) {
+	const entry = get_compiler_entry_for_file(normalized_file_name);
+	if (entry) {
+		// Walk up from .../src/index.js to the package root
+		return path.dirname(path.dirname(entry));
+	}
+}
+
 module.exports = {
-	getRippleDirForFile: get_compiler_entry_for_file,
+	getRippleDirForFile: get_compiler_dir_for_file,
 	normalizeFileNameOrUri,
 	getRippleLanguagePlugin,
 	getCachedTypeDefinitionFile,

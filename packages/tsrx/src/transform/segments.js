@@ -2192,39 +2192,3 @@ export function create_volar_mappings_result({
 	};
 }
 
-/**
- * Build a coarse `VolarMappingsResult` when a framework can emit valid TS/TSX
- * for checking but does not yet produce a location-rich generated AST for the
- * fine-grained source-map conversion path.
- *
- * @param {{
- * 	source: string,
- * 	generated_code: string,
- * 	errors?: import('../../types/index').CompileError[],
- * }} params
- * @returns {VolarMappingsResult}
- */
-export function create_basic_volar_mappings_result({ source, generated_code, errors = [] }) {
-	const shared_length = Math.min(source.length, generated_code.length);
-
-	return {
-		code: generated_code,
-		mappings:
-			shared_length > 0
-				? [
-						{
-							sourceOffsets: [0],
-							generatedOffsets: [0],
-							lengths: [shared_length],
-							generatedLengths: [shared_length],
-							data: {
-								...mapping_data,
-								customData: {},
-							},
-						},
-					]
-				: [],
-		cssMappings: [],
-		errors,
-	};
-}
