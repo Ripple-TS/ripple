@@ -445,8 +445,8 @@ export component App() {
 
 - 📚 **[Full Documentation](https://www.tsrxjs.com/docs)** - Complete guide and
   API reference
-- 🎮 **[Interactive Playground](https://www.tsrxjs.com/playground)** - Try
-  Ripple in your browser
+- 🎮 **[Interactive Playground](https://www.tsrxjs.com/playground)** - Try Ripple
+  in your browser
 - 🐛 **[GitHub Issues](https://github.com/Ripple-TS/ripple/issues)** - Report bugs
   or request features
 - 💬 **[Discord Community](https://discord.gg/JBF2ySrh2W)** - Get help and discuss

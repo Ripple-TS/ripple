@@ -2008,16 +2008,14 @@ describe('early return in client components', () => {
 
 		it('throws error for return with undefined value', () => {
 			expect(() => {
-				compile(
-					`component App() {
+				compile(`component App() {
 						if (true) {
 							<div>{'test'}</div>
 							return undefined;
 						}
-					}`,
-					'test.tsrx',
-					{ mode: 'client' },
-				);
+					}`, 'test.tsrx', {
+					mode: 'client',
+				});
 			}).toThrow('Return statements inside components cannot have a return value.');
 		});
 

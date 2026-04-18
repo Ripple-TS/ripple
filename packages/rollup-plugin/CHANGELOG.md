@@ -46,8 +46,7 @@
   [`cdd31ba`](https://github.com/Ripple-TS/ripple/commit/cdd31ba4c07ce504b01d56533e19a6ba37879f5a)
   Thanks [@trueadm](https://github.com/trueadm)! - Add first-phase `.tsrx` support
   across the core Ripple tooling so Vite, Rollup, TypeScript, the language server,
-  Prettier, ESLint, and editor integrations accept both `.tsrx` and `.tsrx`
-  files.
+  Prettier, ESLint, and editor integrations accept both `.tsrx` and `.tsrx` files.
 
 ## 0.3.11
 

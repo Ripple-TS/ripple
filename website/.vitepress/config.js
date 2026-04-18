@@ -5,7 +5,7 @@ import { npmCommandsMarkdownPlugin } from 'vitepress-plugin-npm-commands'
 
 import rippleGrammar from '../../grammars/textmate/ripple.tmLanguage.json'
 const modifiedGrammar = {
-	...tsrxGrammar,
+	...rippleGrammar,
 	embeddedLangs: ['jsx', 'tsx', 'css'],
 }
 

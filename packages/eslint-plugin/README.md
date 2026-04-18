@@ -32,8 +32,8 @@ export default [...tsrx.configs.recommended];
 
 The plugin automatically:
 
-- Detects and uses `@ripple-ts/eslint-parser` if installed for `.tsrx` and
-  `.tsrx` files
+- Detects and uses `@ripple-ts/eslint-parser` if installed for `.tsrx` and `.tsrx`
+  files
 - Detects and uses `@typescript-eslint/parser` if installed for `.ts`/`.tsx` files
 - Excludes `.d.ts` files, `node_modules`, `dist`, and `build` directories from
   linting

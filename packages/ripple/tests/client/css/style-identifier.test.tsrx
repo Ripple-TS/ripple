@@ -163,9 +163,7 @@ component App() {
 		}
 	</style>
 }`;
-			expect(() => compile(source, 'test.tsrx')).toThrow(
-				/cannot be used directly on DOM elements/,
-			);
+			expect(() => compile(source, 'test.tsrx')).toThrow(/cannot be used directly on DOM elements/);
 		});
 
 		it('errors when #style bracket notation is used directly on a DOM element', () => {
@@ -179,9 +177,7 @@ component App() {
 		}
 	</style>
 }`;
-			expect(() => compile(source, 'test.tsrx')).toThrow(
-				/cannot be used directly on DOM elements/,
-			);
+			expect(() => compile(source, 'test.tsrx')).toThrow(/cannot be used directly on DOM elements/);
 		});
 
 		it('errors when #style references a class in a compound selector passed to component', () => {

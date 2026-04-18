@@ -144,9 +144,7 @@ function showNextSteps(projectPath, packageManager) {
 	console.log();
 	console.log(bold('Need help? Check out:'));
 	console.log(`  ${dim('•')} README.md in your project folder`);
-	console.log(
-		`  ${dim('•')} Documentation: ${cyan('https://www.tsrx-ts.com/docs/introduction')}`,
-	);
+	console.log(`  ${dim('•')} Documentation: ${cyan('https://www.tsrx-ts.com/docs/introduction')}`);
 	console.log();
 	console.log('Happy coding! 🌊');
 	console.log();
