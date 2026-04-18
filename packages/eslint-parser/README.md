@@ -38,7 +38,7 @@ export default [
       ripple: ripplePlugin,
     },
     rules: {
-      ...tsrxPlugin.configs.recommended.rules,
+      ...ripplePlugin.configs.recommended.rules,
     },
   },
 ];

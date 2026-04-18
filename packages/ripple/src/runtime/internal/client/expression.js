@@ -6,7 +6,7 @@ import { create_text, get_next_sibling } from './operations.js';
 import { active_block } from './runtime.js';
 import { hydrating, set_hydrate_node } from './hydration.js';
 import { COMMENT_NODE, HYDRATION_END, HYDRATION_START, TEXT_NODE } from '../../../constants.js';
-import { is_ripple_element } from '../../element.js';
+import { is_tsrx_element } from '../../element.js';
 
 /**
  * Finds the nearest enclosing BRANCH_BLOCK in the block hierarchy.
@@ -36,7 +36,7 @@ export function expression(node, get_value) {
 	var end = null;
 	/** @type {Text | null} */
 	var text = null;
-	/** @type {string | import('../../element.js').RippleElement | typeof UNINITIALIZED} */
+	/** @type {string | import('../../element.js').TSRXElement | typeof UNINITIALIZED} */
 	var value = UNINITIALIZED;
 	var is_element = false;
 	var initialized = false;
@@ -47,7 +47,7 @@ export function expression(node, get_value) {
 
 	render(() => {
 		var next_value = get_value();
-		var next_is_element = is_ripple_element(next_value);
+		var next_is_element = is_tsrx_element(next_value);
 		var is_hydration_marker = hydrating && anchor.nodeType === COMMENT_NODE;
 
 		if (is_hydration_marker) {
@@ -99,7 +99,7 @@ export function expression(node, get_value) {
 
 			// Update parent branch's s.start to include content inserted before anchor.
 			// This ensures that when the parent branch is destroyed, the full DOM range
-			// (including RippleElement content) is removed.
+			// (including TSRXElement content) is removed.
 			if (
 				parent_branch !== null &&
 				parent_branch.s !== null &&
@@ -114,7 +114,7 @@ export function expression(node, get_value) {
 				// If parent's start is the anchor (or comes after child's start),
 				// update it to include the child's content
 				if (parent_start === anchor || parent_start === end) {
-					// Save original so we can restore it when switching to non-RippleElement
+					// Save original so we can restore it when switching to non-TSRXElement
 					if (modified_parent_branch === null) {
 						modified_parent_branch = parent_branch;
 						original_parent_start = parent_start;

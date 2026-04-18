@@ -51,8 +51,8 @@
   - update editor/tooling integration to match the new async syntax/runtime shape
 
 - [`6e11177`](https://github.com/Ripple-TS/ripple/commit/6e111778cae4e7d9876e51e293520f0859eb5890)
-  Thanks [@trueadm](https://github.com/trueadm)! - Add `.tsrx` support across
-  Ripple tooling and rename the repository's tracked `.tsrx` modules to `.tsrx`.
+  Thanks [@trueadm](https://github.com/trueadm)! - Add `.rsrx` support across
+  Ripple tooling and rename the repository's tracked `.ripple` modules to `.rsrx`.
 - Updated dependencies
   [[`6e11177`](https://github.com/Ripple-TS/ripple/commit/6e111778cae4e7d9876e51e293520f0859eb5890)]:
   - @ripple-ts/typescript-plugin@0.3.13
@@ -65,7 +65,8 @@
   [`cdd31ba`](https://github.com/Ripple-TS/ripple/commit/cdd31ba4c07ce504b01d56533e19a6ba37879f5a)
   Thanks [@trueadm](https://github.com/trueadm)! - Add first-phase `.tsrx` support
   across the core Ripple tooling so Vite, Rollup, TypeScript, the language server,
-  Prettier, ESLint, and editor integrations accept both `.tsrx` and `.tsrx` files.
+  Prettier, ESLint, and editor integrations accept both `.ripple` and `.tsrx`
+  files.
 
 - Updated dependencies
   [[`cdd31ba`](https://github.com/Ripple-TS/ripple/commit/cdd31ba4c07ce504b01d56533e19a6ba37879f5a)]:
@@ -205,7 +206,7 @@
   language server not recognizing changes to `.ts` files
 
   The language server now watches TypeScript and JavaScript files for changes on
-  disk. Previously, modifications to `.ts` files imported by `.tsrx` files would
+  disk. Previously, modifications to `.ts` files imported by `.ripple` files would
   not be picked up by the language server until it was restarted, causing stale
   diagnostics. This was because the `workspace/didChangeWatchedFiles` connection
   handler was never registered (it requires calling

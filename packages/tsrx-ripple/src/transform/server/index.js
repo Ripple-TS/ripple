@@ -1549,7 +1549,7 @@ const visitors = {
 				state.init?.push(b.block(init));
 			}
 		} else {
-			// Expression context: return ripple_element(render_fn)
+			// Expression context: return tsrx_element(render_fn)
 			const render_fn = b.function(b.id('render_children'), [], b.block(init));
 			return b.call('_$_.tsrx_element', render_fn);
 		}

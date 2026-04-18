@@ -14,6 +14,8 @@
 /** @typedef {typeof import('@volar/typescript')} _VolarTypeScriptAugmentation */
 /** @typedef {import('@volar/language-core').LanguagePlugin<ScriptId, VirtualCode>} RippleLanguagePlugin */
 
+/** @typedef {InstanceType<typeof import('./language.js')["TSRXVirtualCode"]>} TSRXVirtualCodeInstance */
+
 const ts = require('typescript');
 const { forEachEmbeddedCode } = require('@volar/language-core');
 const fs = require('fs');

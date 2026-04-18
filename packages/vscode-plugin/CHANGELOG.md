@@ -61,8 +61,8 @@
   - update editor/tooling integration to match the new async syntax/runtime shape
 
 - [`6e11177`](https://github.com/Ripple-TS/ripple/commit/6e111778cae4e7d9876e51e293520f0859eb5890)
-  Thanks [@trueadm](https://github.com/trueadm)! - Add `.tsrx` support across
-  Ripple tooling and rename the repository's tracked `.tsrx` modules to `.tsrx`.
+  Thanks [@trueadm](https://github.com/trueadm)! - Add `.rsrx` support across
+  Ripple tooling and rename the repository's tracked `.ripple` modules to `.rsrx`.
 - Updated dependencies
   [[`4eb4d68`](https://github.com/Ripple-TS/ripple/commit/4eb4d6851573d771d65f1e85b1b442ad3cdc53d2),
   [`48af856`](https://github.com/Ripple-TS/ripple/commit/48af85678d5e1b32bb1c5e3fbb2fb07498bc88a3),
@@ -79,7 +79,7 @@
   [`cdd31ba`](https://github.com/Ripple-TS/ripple/commit/cdd31ba4c07ce504b01d56533e19a6ba37879f5a)
   Thanks [@trueadm](https://github.com/trueadm)! - Make the VS Code language label
   display as TSRX while preserving the existing `ripple` language id and both
-  `.tsrx` and `.tsrx` file associations.
+  `.ripple` and `.tsrx` file associations.
 
 - Updated dependencies
   [[`cdd31ba`](https://github.com/Ripple-TS/ripple/commit/cdd31ba4c07ce504b01d56533e19a6ba37879f5a)]:

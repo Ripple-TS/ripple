@@ -35,8 +35,8 @@
 ### Patch Changes
 
 - [`6e11177`](https://github.com/Ripple-TS/ripple/commit/6e111778cae4e7d9876e51e293520f0859eb5890)
-  Thanks [@trueadm](https://github.com/trueadm)! - Add `.tsrx` support across
-  Ripple tooling and rename the repository's tracked `.tsrx` modules to `.tsrx`.
+  Thanks [@trueadm](https://github.com/trueadm)! - Add `.rsrx` support across
+  Ripple tooling and rename the repository's tracked `.ripple` modules to `.rsrx`.
 
 ## 0.3.12
 
@@ -46,7 +46,8 @@
   [`cdd31ba`](https://github.com/Ripple-TS/ripple/commit/cdd31ba4c07ce504b01d56533e19a6ba37879f5a)
   Thanks [@trueadm](https://github.com/trueadm)! - Add first-phase `.tsrx` support
   across the core Ripple tooling so Vite, Rollup, TypeScript, the language server,
-  Prettier, ESLint, and editor integrations accept both `.tsrx` and `.tsrx` files.
+  Prettier, ESLint, and editor integrations accept both `.ripple` and `.tsrx`
+  files.
 
 ## 0.3.11
 
