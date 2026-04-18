@@ -235,4 +235,118 @@ describe('basic server > components & composition', () => {
 
 		expect(document.querySelector('div')).toBeNull();
 	});
+
+	it('renders explicit children prop without spread', async () => {
+		component Card(props: PropsWithChildren<{}>) {
+			<div class="card">{props.children}</div>
+		}
+
+		component App() {
+			<Card children="fallback text" />
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+		expect(document.querySelector('.card').textContent).toBe('fallback text');
+	});
+
+	it('renders explicit children before spread', async () => {
+		component Card(props: PropsWithChildren<{ id: string }>) {
+			<div class="card">{props.children}</div>
+		}
+
+		component App() {
+			const extra = { id: '1' };
+			<Card children="fallback text" {...extra} />
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+		expect(document.querySelector('.card').textContent).toBe('fallback text');
+	});
+
+	it('renders spread before explicit children', async () => {
+		component Card(props: PropsWithChildren<{ id: string }>) {
+			<div class="card">{props.children}</div>
+		}
+
+		component App() {
+			const extra = { id: '1' };
+			<Card {...extra} children="fallback text" />
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+		expect(document.querySelector('.card').textContent).toBe('fallback text');
+	});
+
+	it('template children override explicit children before spread', async () => {
+		component Card(props: PropsWithChildren<{ id: string }>) {
+			<div class="card">{props.children}</div>
+		}
+
+		component App() {
+			const extra = { id: '1' };
+			<Card children="fallback text" {...extra}>
+				<span>{'template content'}</span>
+			</Card>
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+		expect(document.querySelector('.card span').textContent).toBe('template content');
+		expect(document.querySelector('.card').textContent).toBe('template content');
+	});
+
+	it('template children override explicit children after spread', async () => {
+		component Card(props: PropsWithChildren<{ id: string }>) {
+			<div class="card">{props.children}</div>
+		}
+
+		component App() {
+			const extra = { id: '1' };
+			<Card {...extra} children="fallback text">
+				<span>{'template content'}</span>
+			</Card>
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+		expect(document.querySelector('.card span').textContent).toBe('template content');
+		expect(document.querySelector('.card').textContent).toBe('template content');
+	});
+
+	it('spread can override explicit children when no template children', async () => {
+		component Card(props: PropsWithChildren<{ id: string }>) {
+			<div class="card">{props.children}</div>
+		}
+
+		component App() {
+			const extra = { id: '1', children: 'from spread' };
+			<Card
+				// @ts-ignore
+				children="explicit"
+				{...extra}
+			/>
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+		expect(document.querySelector('.card').textContent).toBe('from spread');
+	});
+
+	it('explicit children overrides spread children when it comes after', async () => {
+		component Card(props: PropsWithChildren<{ id: string }>) {
+			<div class="card">{props.children}</div>
+		}
+
+		component App() {
+			const extra = { id: '1', children: 'from spread' };
+			<Card {...extra} children="explicit" />
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+		expect(document.querySelector('.card').textContent).toBe('explicit');
+	});
 });

@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.3.17
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/ripple@0.0.5
+  - @ripple-ts/language-server@0.3.17
+  - @ripple-ts/typescript-plugin@0.3.17
+
+## 0.3.16
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/ripple@0.0.4
+  - @ripple-ts/language-server@0.3.16
+  - @ripple-ts/typescript-plugin@0.3.16
+
+## 0.3.15
+
+### Patch Changes
+
+- Updated dependencies
+  [[`a14097a`](https://github.com/Ripple-TS/ripple/commit/a14097a688ad85c236a6619cef527c78787ab367)]:
+  - @tsrx/ripple@0.0.3
+  - @ripple-ts/language-server@0.3.15
+  - @ripple-ts/typescript-plugin@0.3.15
+
+## 0.3.14
+
+### Patch Changes
+
+- Updated dependencies
+  [[`228f1bb`](https://github.com/Ripple-TS/ripple/commit/228f1bb36cd3e8506c422ed0997164bf5a0b5fe2)]:
+  - @tsrx/ripple@0.0.2
+  - @ripple-ts/language-server@0.3.14
+  - @ripple-ts/typescript-plugin@0.3.14
+
 ## 0.3.13
 
 ### Patch Changes

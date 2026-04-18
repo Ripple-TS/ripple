@@ -1085,6 +1085,7 @@ const visitors = {
 								b.id('children'),
 								b.call('_$_.normalize_children', property),
 							);
+							props.push(children_prop);
 							continue;
 						}
 
@@ -1126,18 +1127,12 @@ const visitors = {
 					),
 				);
 
+				// Template children take precedence over explicit children prop
 				if (children_prop) {
-					children_prop.value = b.logical(
-						'??',
-						/** @type {AST.Expression} */ (children_prop.value),
-						children,
-					);
-				} else {
-					children_prop = b.prop('init', b.id('children'), children);
+					const idx = props.indexOf(children_prop);
+					if (idx !== -1) props.splice(idx, 1);
 				}
-			}
-
-			if (children_prop) {
+				children_prop = b.prop('init', b.id('children'), children);
 				props.push(children_prop);
 			}
 

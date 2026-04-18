@@ -1,5 +1,0 @@
-'use react';
-
-export component ReactComponent() {
-	<div>{'Hello world'}</div>
-}

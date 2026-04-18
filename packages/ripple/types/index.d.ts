@@ -8,7 +8,7 @@ export type RippleElement = {
 };
 
 /** Type for implicit children fragments rendered with `{children}`. */
-export type Children = RippleElement;
+export type Children = RippleElement | Component | string | number | boolean | null | undefined;
 
 export function mount(
 	component: Component,

@@ -1,5 +1,40 @@
 # @ripple-ts/prettier-plugin
 
+## 0.3.17
+
+### Patch Changes
+
+- Updated dependencies
+  [[`7f98c10`](https://github.com/Ripple-TS/ripple/commit/7f98c1039f52a56135672b0f9b476af280c81f03)]:
+  - @tsrx/core@0.0.4
+  - @tsrx/ripple@0.0.5
+
+## 0.3.16
+
+### Patch Changes
+
+- Updated dependencies
+  [[`030ff45`](https://github.com/Ripple-TS/ripple/commit/030ff45bc3020cd1b6e1a914fc58af7c8a0e5af1)]:
+  - @tsrx/core@0.0.3
+  - @tsrx/ripple@0.0.4
+
+## 0.3.15
+
+### Patch Changes
+
+- Updated dependencies
+  [[`a14097a`](https://github.com/Ripple-TS/ripple/commit/a14097a688ad85c236a6619cef527c78787ab367)]:
+  - @tsrx/ripple@0.0.3
+
+## 0.3.14
+
+### Patch Changes
+
+- Updated dependencies
+  [[`228f1bb`](https://github.com/Ripple-TS/ripple/commit/228f1bb36cd3e8506c422ed0997164bf5a0b5fe2)]:
+  - @tsrx/core@0.0.2
+  - @tsrx/ripple@0.0.2
+
 ## 0.3.13
 
 ### Patch Changes

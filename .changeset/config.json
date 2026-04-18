@@ -4,6 +4,12 @@
   "commit": false,
   "fixed": [
     [
+      "@tsrx/core"
+    ],
+    [
+      "@tsrx/ripple"
+    ],
+    [
       "ripple",
       "@ripple-ts/cli",
       "@ripple-ts/compat-react",
