@@ -1,7 +1,7 @@
 /** @import { TextDocument } from 'vscode-languageserver-textdocument' */
 /** @import { LanguageServiceContext, Mapper, SourceScript } from '@volar/language-server' */
 /** @import {TSRXVirtualCodeInstance} from '@ripple-ts/typescript-plugin/src/language.js'; */
-// @ts-expect-error: ESM type import is fine
+// @ts-ignore: ESM type import is fine
 /** @import { isIdentifierObfuscated, deobfuscateIdentifier, IDENTIFIER_OBFUSCATION_PREFIX } from '@tsrx/core' */
 
 const { URI } = require('vscode-uri');

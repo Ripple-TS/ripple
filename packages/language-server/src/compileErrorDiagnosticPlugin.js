@@ -3,7 +3,7 @@
  * @import {TextDocument} from 'vscode-languageserver-textdocument';
  * @import {TSRXVirtualCodeInstance} from '@ripple-ts/typescript-plugin/src/language.js';
  */
-// @ts-expect-error: ESM type import is fine
+// @ts-ignore: ESM type import is fine
 /** @import {TSRXCompileError} from '@tsrx/ripple'; */
 
 const { getVirtualCode, createLogging } = require('./utils.js');
