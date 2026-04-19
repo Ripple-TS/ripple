@@ -38,7 +38,7 @@ export default defineConfig({
 	format: ['cjs'],
 	fixedExtension: false,
 	platform: 'node',
-	target: 'node20',
+	target: 'node22',
 	external: allExternalPackages,
 	noExternal: /.+/,
 	hooks: {
