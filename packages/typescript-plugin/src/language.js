@@ -19,9 +19,11 @@ import { forEachEmbeddedCode } from '@volar/language-core';
 import fs from 'fs';
 import path from 'path';
 import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
 import { createLogging, DEBUG } from './utils.js';
 
 const require = createRequire(import.meta.url);
+const root_dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const { log, logWarning, logError } = createLogging('[Ripple Language]');
 export const RIPPLE_EXTENSIONS = ['.tsrx'];
@@ -799,7 +801,7 @@ export function get_compiler_entry_for_file(normalized_file_name) {
 	const warn_message = `No supported tsrx compiler found in workspace for ${normalized_file_name}.`;
 
 	// Fallback: look for a packaged compiler.
-	let current_dir = __dirname;
+	let current_dir = root_dirname;
 
 	while (current_dir) {
 		/** @type {Array<[string, string, string[]]>} */
