@@ -36,7 +36,6 @@
     "./compiler/internal/import": {
       "types": "./src/compiler/types/import.d.ts"
     },
-
     "./validator": {
       "types": "./types/index.d.ts",
       "require": "./validator/index.js",
