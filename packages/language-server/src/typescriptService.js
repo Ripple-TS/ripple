@@ -3,12 +3,15 @@
  * @import {TextDocument} from 'vscode-languageserver-textdocument'
  */
 
-// Monkey-patch getUserPreferences to inject Ripple-specific defaults.
-// volar-service-typescript accesses getUserPreferences through the module object
-// at call time (not at import time), so patching the property after import works.
-// We use default import (not `import *`) because the bundler treats namespace objects as frozen.
-import getUserPreferencesModule from 'volar-service-typescript/lib/configs/getUserPreferences';
-import { create } from 'volar-service-typescript';
+import { createRequire } from 'node:module';
+
+// Use createRequire to get a real require() that hits Node's module cache.
+// This guarantees the monkey-patch targets the same exports object that all
+// other consumers (semantic.js, codeAction.js, etc.) see via their require() calls,
+// regardless of how the bundler handles ESM imports.
+const require = createRequire(import.meta.url);
+const getUserPreferencesModule = require('volar-service-typescript/lib/configs/getUserPreferences');
+const { create } = require('volar-service-typescript');
 
 const originalGetUserPreferences = getUserPreferencesModule.getUserPreferences;
 
