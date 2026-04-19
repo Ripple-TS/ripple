@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "lib": ["es2022", "dom", "dom.iterable"]
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "skipLibCheck": true
   }
 }
