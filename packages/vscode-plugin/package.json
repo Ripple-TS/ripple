@@ -31,7 +31,7 @@
     "delete-unpacked": "node ../../scripts/remove.js packages/vscode-plugin/vscode-plugin",
     "pkg-name-release": "node ../../scripts/transform-package.js packages/vscode-plugin/package.json name ripple-ts-vscode-plugin",
     "pkg-name-back": "node ../../scripts/transform-package.js packages/vscode-plugin/package.json name @ripple-ts/vscode-plugin",
-    "package": "pnpm delete-unpacked && pnpm pkg-name-release && node ../../scripts/regenerate-textmate && NODE_ENV=production tsdown && vsce package --no-dependencies --out=vscode-plugin.vsix && pnpm pkg-name-back && pnpm repack-vsix || pnpm pkg-name-back",
+    "package": "pnpm delete-unpacked && pnpm pkg-name-release && node ../../scripts/regenerate-textmate && vsce package --no-dependencies --out=vscode-plugin.vsix && pnpm pkg-name-back && pnpm repack-vsix || pnpm pkg-name-back",
     "install-package": "code --install-extension vscode-plugin.vsix",
     "build-and-package": "pnpm build && pnpm package",
     "build-package-and-install": "pnpm build && pnpm package && pnpm install-package",

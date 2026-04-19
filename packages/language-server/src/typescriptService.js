@@ -5,10 +5,12 @@
 
 import { createRequire } from 'node:module';
 
-// Use createRequire to get a real require() that hits Node's module cache.
-// This guarantees the monkey-patch targets the same exports object that all
-// other consumers (semantic.js, codeAction.js, etc.) see via their require() calls,
-// regardless of how the bundler handles ESM imports.
+// Monkey-patch getUserPreferences to inject Ripple-specific defaults.
+// We use createRequire to get the raw CJS module.exports object, bypassing
+// the bundler's __toESM wrapper which interferes with property assignment.
+// volar-service-typescript is also externalized (via regex in tsdown config)
+// so that its internal consumers (semantic.js, codeAction.js, etc.) load
+// getUserPreferences from the same Node module cache entry we patch here.
 const require = createRequire(import.meta.url);
 const getUserPreferencesModule = require('volar-service-typescript/lib/configs/getUserPreferences');
 const { create } = require('volar-service-typescript');

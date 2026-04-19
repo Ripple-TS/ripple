@@ -16,6 +16,12 @@ const ROOT_EXTERNAL_PACKAGES = [
 	'volar-service-css',
 	'vscode-uri',
 	'@ripple-ts/typescript-plugin',
+	// this definitely has to be external as we monkey patch it at runtime
+	'volar-service-typescript',
+];
+const REGEX_EXTERNAL_PACKAGES = [
+	// also definitely need it for monkey patching
+	/^volar-service-typescript(?:\/.*)?$/,
 ];
 // Always external (bundled by VS Code or handled separately)
 const ALWAYS_EXTERNAL = ['vscode', '@ripple-ts/typescript-plugin'];
@@ -23,7 +29,7 @@ const OUT_DIR = 'dist';
 
 // Compute all external packages by collecting dependency trees
 const computed = getAllExternalPackages(ROOT_EXTERNAL_PACKAGES);
-const allExternalPackages = [...ALWAYS_EXTERNAL, ...computed];
+const allExternalPackages = [...ALWAYS_EXTERNAL, ...computed, ...REGEX_EXTERNAL_PACKAGES];
 
 console.log(`ℹ️  Found ${computed.length} packages to mark as external`);
 
@@ -43,7 +49,7 @@ export default defineConfig({
 	outExtensions: () => ({ js: '.js' }),
 	platform: 'node',
 	target: 'node20',
-	external: allExternalPackages,
+	external: [...allExternalPackages],
 	noExternal: /.+/,
 	hooks: {
 		'build:done': () => {
