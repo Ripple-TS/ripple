@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const dirname = path.dirname(fileURLToPath(import.meta.url));
 const isDev = process.env.NODE_ENV !== 'production';
 
 export default defineConfig({
@@ -24,7 +24,7 @@ export default defineConfig({
 	noExternal: /.+/,
 	hooks: {
 		'build:done': () => {
-			fs.writeFileSync(path.join(__dirname, 'dist', 'package.json'), '{"type":"commonjs"}\n');
+			fs.writeFileSync(path.join(dirname, 'dist', 'package.json'), '{"type":"commonjs"}\n');
 		},
 	},
 });

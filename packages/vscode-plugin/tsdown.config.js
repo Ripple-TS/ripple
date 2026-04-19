@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { getAllExternalPackages } from '../../scripts/collect-external-deps.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Root packages to treat as external (their full dependency trees will be copied)
 const ROOT_EXTERNAL_PACKAGES = [
@@ -48,10 +48,10 @@ export default defineConfig({
 	hooks: {
 		'build:done': () => {
 			// Write a CJS package.json so Node.js treats dist/*.js as CommonJS
-			fs.writeFileSync(path.join(__dirname, OUT_DIR, 'package.json'), '{"type":"commonjs"}\n');
+			fs.writeFileSync(path.join(dirname, OUT_DIR, 'package.json'), '{"type":"commonjs"}\n');
 
-			const scriptPath = path.join(__dirname, '../../scripts/copy-external-deps.js');
-			const distPath = path.join(__dirname, OUT_DIR);
+			const scriptPath = path.join(dirname, '../../scripts/copy-external-deps.js');
+			const distPath = path.join(dirname, OUT_DIR);
 
 			execSync(`node "${scriptPath}" "${distPath}" ${ROOT_EXTERNAL_PACKAGES.join(' ')}`, {
 				stdio: 'inherit',
@@ -59,7 +59,7 @@ export default defineConfig({
 
 			// Remove nested dist folder from typescript-plugin
 			const nestedDistPath = path.join(
-				__dirname,
+				dirname,
 				OUT_DIR,
 				'node_modules',
 				'@ripple-ts',
