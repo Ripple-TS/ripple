@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.3.19
+
+### Patch Changes
+
+- [#877](https://github.com/Ripple-TS/ripple/pull/877)
+  [`7610ef8`](https://github.com/Ripple-TS/ripple/commit/7610ef84847bb77cc83488a902ecb6f96594e113)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Convert the Ripple language
+  server, TypeScript plugin, and VS Code extension codebases from CommonJS source
+  files to ESM source files, while publishing built dist entrypoints instead of
+  source files.
+
+  This updates package metadata such as `type: module` and dist-based `main`
+  paths, replaces `require` and `module.exports` usage with `import` and `export`,
+  and adds tsdown bundling configs that emit CommonJS dist output plus a
+  dist/package.json that forces `type: commonjs`.
+
+  Development builds also include sourcemaps.
+
+- Updated dependencies
+  [[`7610ef8`](https://github.com/Ripple-TS/ripple/commit/7610ef84847bb77cc83488a902ecb6f96594e113)]:
+  - @ripple-ts/language-server@0.3.19
+  - @ripple-ts/typescript-plugin@0.3.19
+
 ## 0.3.18
 
 ### Patch Changes
