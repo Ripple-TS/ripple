@@ -47,13 +47,12 @@
  * - Result: The TypeScript command appears in the context menu for Ripple files
  */
 
-const vscode = require('vscode');
-const path = require('path');
-const fs = require('fs');
-const protocol = require('@volar/language-server/protocol');
-/** @type {typeof import('vscode-languageclient/node')} */
-const lsp = require('vscode-languageclient/node');
-const { activateAutoInsertion, createLabsInfo } = require('@volar/vscode');
+import vscode from 'vscode';
+import path from 'node:path';
+import fs from 'node:fs';
+import protocol from '@volar/language-server/protocol';
+import * as lsp from 'vscode-languageclient/node';
+import { activateAutoInsertion, createLabsInfo } from '@volar/vscode';
 const RIPPLE_FILE_SELECTORS = ['**/*.tsrx'];
 const RIPPLE_FILE_EXCLUDE_GLOB = '**/{node_modules,dist,build,.git}/**';
 const TSGO_CONFIGURATION_SECTIONS = ['js/ts', 'typescript'];
@@ -75,7 +74,7 @@ let client;
 /**
  * @param {import('vscode').ExtensionContext} context
  */
-async function activate(context) {
+export async function activate(context) {
 	console.log('Ripple extension starting...');
 
 	await warn_about_local_tsgo_usage(context);
@@ -546,7 +545,7 @@ function registerFormatter() {
 	);
 }
 
-async function deactivate() {
+export async function deactivate() {
 	console.log('Deactivating Ripple extension...');
 	if (client) {
 		try {
@@ -608,11 +607,8 @@ async function patchTypeScriptExtension() {
 		return { success: false, reason: 'alreadyActive' };
 	}
 
-	const fs = require('node:fs');
 	const originalReadFileSync = fs.readFileSync;
-	const extensionJsPath = require.resolve('./dist/extension.js', {
-		paths: [tsExtension.extensionPath],
-	});
+	const extensionJsPath = path.join(tsExtension.extensionPath, 'dist', 'extension.js');
 
 	/**
 	 * @param {import('node:fs').PathOrFileDescriptor} path
@@ -664,8 +660,3 @@ async function patchTypeScriptExtension() {
 
 	return { success: true, reason: 'patched' };
 }
-
-module.exports = {
-	activate,
-	deactivate,
-};

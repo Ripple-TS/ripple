@@ -8,7 +8,7 @@ const isDev = process.env.NODE_ENV !== 'production';
 
 export default defineConfig({
 	inlineOnly: false,
-	entry: ['src/index.js'],
+	entry: ['src/server.js', 'bin/language-server.js'],
 	format: ['cjs'],
 	outExtensions: () => ({ js: '.js' }),
 	platform: 'node',
@@ -17,9 +17,9 @@ export default defineConfig({
 	sourcemap: isDev,
 	outputOptions: {
 		legalComments: 'inline',
-		minify: true,
+		minify: false,
 	},
-	external: ['@tsrx/react', '@tsrx/ripple', '@tsrx/core', 'typescript'],
+	external: ['@tsrx/react', '@tsrx/ripple', '@tsrx/core', 'typescript', 'vscode-uri'],
 	clean: true,
 	noExternal: /.+/,
 	hooks: {

@@ -4,7 +4,8 @@
   "license": "MIT",
   "author": "Dominic Gannaway",
   "version": "0.3.18",
-  "main": "src/index.js",
+  "main": "dist/index.js",
+  "type": "module",
   "homepage": "https://ripple-ts.com",
   "repository": {
     "type": "git",
@@ -12,9 +13,7 @@
     "directory": "packages/typescript-plugin"
   },
   "scripts": {
-    "build": "tsdown",
-    "dist": "perl -pi -e 's/\"main\": \"src\\/index.js\"/\"main\": \"dist\\/index.js\"/' package.json",
-    "src": "perl -pi -e 's/\"main\": \"dist\\/index.js\"/\"main\": \"src\\/index.js\"/' package.json"
+    "build": "tsdown"
   },
   "bugs": {
     "url": "https://github.com/Ripple-TS/ripple/issues"

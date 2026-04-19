@@ -1,4 +1,4 @@
-const { createRippleLanguageServer } = require('@ripple-ts/language-server/src/server.js');
+import { createRippleLanguageServer } from '@ripple-ts/language-server/src/server.js';
 
 try {
 	createRippleLanguageServer();

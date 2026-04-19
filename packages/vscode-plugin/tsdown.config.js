@@ -1,5 +1,6 @@
 import { defineConfig } from 'tsdown';
 import { execSync } from 'child_process';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { getAllExternalPackages } from '../../scripts/collect-external-deps.js';
@@ -26,23 +27,29 @@ const allExternalPackages = [...ALWAYS_EXTERNAL, ...computed];
 
 console.log(`ℹ️  Found ${computed.length} packages to mark as external`);
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 export default defineConfig({
 	inlineOnly: false,
 	entry: ['src/extension.js', 'src/server.js'],
 	outDir: OUT_DIR,
+	sourcemap: isDev,
 	outputOptions: {
 		legalComments: 'inline',
 		minify: false,
 	},
 	clean: true,
 	format: ['cjs'],
-	fixedExtension: false,
+	outExtensions: () => ({ js: '.js' }),
 	platform: 'node',
 	target: 'node20',
 	external: allExternalPackages,
 	noExternal: /.+/,
 	hooks: {
 		'build:done': () => {
+			// Write a CJS package.json so Node.js treats dist/*.js as CommonJS
+			fs.writeFileSync(path.join(__dirname, OUT_DIR, 'package.json'), '{"type":"commonjs"}\n');
+
 			const scriptPath = path.join(__dirname, '../../scripts/copy-external-deps.js');
 			const distPath = path.join(__dirname, OUT_DIR);
 

@@ -1,13 +1,13 @@
 /** @import { LanguageServicePlugin, TextEdit, CompletionItem } from '@volar/language-server'; */
 
-const { CompletionItemKind, InsertTextFormat } = require('@volar/language-server');
-const {
+import { CompletionItemKind, InsertTextFormat } from '@volar/language-server';
+import {
 	getVirtualCode,
 	createLogging,
 	isInsideImport,
 	isInsideExport,
 	is_ripple_document,
-} = require('./utils.js');
+} from './utils.js';
 
 const { log } = createLogging('[Ripple Completion Plugin]');
 
@@ -361,7 +361,7 @@ const RIPPLE_IMPORTS = [
 /**
  * @returns {LanguageServicePlugin}
  */
-function createCompletionPlugin() {
+export function createCompletionPlugin() {
 	return {
 		name: 'ripple-completion-enhancer',
 		capabilities: {
@@ -506,7 +506,3 @@ function createCompletionPlugin() {
 		},
 	};
 }
-
-module.exports = {
-	createCompletionPlugin,
-};

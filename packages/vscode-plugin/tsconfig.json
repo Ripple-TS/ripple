@@ -1,7 +1,12 @@
 {
   "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2022",
     "allowJs": true,
-    "noEmit": true
+    "checkJs": true,
+    "noEmit": true,
+    "esModuleInterop": true
   },
   "include": ["./src/**/*", "./tests/**/*", "./scripts/**/*"],
   "exclude": ["dist", "node_modules"]

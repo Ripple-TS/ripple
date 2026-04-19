@@ -1,28 +1,28 @@
 ﻿/** @import {CompilerOptions} from 'typescript' */
 
-const { createLogging } = require('./utils.js');
-const {
+import { createLogging } from './utils.js';
+import {
 	createConnection,
 	createServer,
 	createTypeScriptProject,
-} = require('@volar/language-server/node');
-const { createCompileErrorDiagnosticPlugin } = require('./compileErrorDiagnosticPlugin.js');
-const { createDefinitionPlugin } = require('./definitionPlugin.js');
-const { createHoverPlugin } = require('./hoverPlugin.js');
-const { createCompletionPlugin } = require('./completionPlugin.js');
-const { createAutoInsertPlugin } = require('./autoInsertPlugin.js');
-const { createTypeScriptDiagnosticFilterPlugin } = require('./typescriptDiagnosticPlugin.js');
-const { createDocumentHighlightPlugin } = require('./documentHighlightPlugin.js');
-const {
+} from '@volar/language-server/node';
+import { createCompileErrorDiagnosticPlugin } from './compileErrorDiagnosticPlugin.js';
+import { createDefinitionPlugin } from './definitionPlugin.js';
+import { createHoverPlugin } from './hoverPlugin.js';
+import { createCompletionPlugin } from './completionPlugin.js';
+import { createAutoInsertPlugin } from './autoInsertPlugin.js';
+import { createTypeScriptDiagnosticFilterPlugin } from './typescriptDiagnosticPlugin.js';
+import { createDocumentHighlightPlugin } from './documentHighlightPlugin.js';
+import {
 	getRippleLanguagePlugin,
 	resolveConfig,
-} = require('@ripple-ts/typescript-plugin/src/language.js');
-const { createTypeScriptServices } = require('./typescriptService.js');
-const { create: createCssService } = require('volar-service-css');
+} from '@ripple-ts/typescript-plugin/src/language.js';
+import { createTypeScriptServices } from './typescriptService.js';
+import { create as createCssService } from 'volar-service-css';
 
 const { log, logError } = createLogging('[Ripple Language Server]');
 
-function createRippleLanguageServer() {
+export function createRippleLanguageServer() {
 	const connection = createConnection();
 	const server = createServer(connection);
 
@@ -156,7 +156,3 @@ function createRippleLanguageServer() {
 
 	return { connection, server };
 }
-
-module.exports = {
-	createRippleLanguageServer,
-};

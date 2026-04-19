@@ -3,8 +3,13 @@
  * @import {TextDocument} from 'vscode-languageserver-textdocument'
  */
 
-// Monkey-patch getUserPreferences before requiring the main module
-const getUserPreferencesModule = require('volar-service-typescript/lib/configs/getUserPreferences');
+// Monkey-patch getUserPreferences to inject Ripple-specific defaults.
+// volar-service-typescript accesses getUserPreferences through the module object
+// at call time (not at import time), so patching the property after import works.
+// We use default import (not `import *`) because the bundler treats namespace objects as frozen.
+import getUserPreferencesModule from 'volar-service-typescript/lib/configs/getUserPreferences';
+import { create } from 'volar-service-typescript';
+
 const originalGetUserPreferences = getUserPreferencesModule.getUserPreferences;
 
 /**
@@ -29,18 +34,11 @@ getUserPreferencesModule.getUserPreferences = async function (context, document)
 	};
 };
 
-// Now require the main module which will use our patched getUserPreferences
-const { create } = require('volar-service-typescript');
-
 /**
  * Create TypeScript services with Ripple-specific enhancements.
  * @param {typeof import('typescript')} ts
  * @returns {ReturnType<typeof create>}
  */
-function createTypeScriptServices(ts) {
+export function createTypeScriptServices(ts) {
 	return create(ts);
 }
-
-module.exports = {
-	createTypeScriptServices,
-};
