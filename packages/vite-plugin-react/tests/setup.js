@@ -21,7 +21,7 @@ let root;
 globalThis.render = async function render(Component, props) {
 	root = createRoot(container);
 	await act(async () => {
-		root.render(createElement(/** @type {any} */ (Component), props ?? {}));
+		root.render(createElement(Component, props ?? {}));
 	});
 };
 

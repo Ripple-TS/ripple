@@ -1072,8 +1072,8 @@ export function jsx_to_ripple_node(node) {
 			id = /** @type {AST.Identifier} */ ({
 				type: 'Identifier',
 				name: 'unknown',
-				start: /** @type {any} */ (name).start,
-				end: /** @type {any} */ (name).end,
+				start: /** @type {AST.Node} */ (name).start,
+				end: /** @type {AST.Node} */ (name).end,
 			});
 		}
 

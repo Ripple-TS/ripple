@@ -2,7 +2,7 @@
 /** @import {Plugin, ResolvedConfig, ViteDevServer} from 'vite' */
 /** @import {RipplePluginOptions, RippleConfigOptions, ResolvedRippleConfig, Route, RenderRoute} from '@ripple-ts/vite-plugin' */
 
-/// <reference types="ripple/compiler/internal/rpc" />
+/// <reference types="@tsrx/ripple/types/rpc" />
 
 import { compile } from '@tsrx/ripple';
 import fs from 'node:fs';
@@ -685,9 +685,9 @@ export function ripple(inlineOptions = {}) {
 
 								// Send response
 								await sendWebResponse(res, response);
-							} catch (/** @type {any} */ error) {
+							} catch (error) {
 								console.error('[@ripple-ts/vite-plugin] Request error:', error);
-								vite.ssrFixStacktrace(error);
+								vite.ssrFixStacktrace(/** @type {Error} */ (error));
 
 								res.statusCode = 500;
 								res.setHeader('Content-Type', 'text/html');
@@ -990,7 +990,7 @@ export function ripple(inlineOptions = {}) {
 					console.log(
 						`[@ripple-ts/vite-plugin] Start with: node ${outDir}/server/${ENTRY_FILENAME}`,
 					);
-				} catch (/** @type {any} */ error) {
+				} catch (error) {
 					console.error('[@ripple-ts/vite-plugin] Server build failed:', error);
 					throw new Error(
 						`Server build failed: ${error instanceof Error ? error.message : String(error)}`,
@@ -1233,7 +1233,7 @@ function nodeRequestToWebRequest(nodeRequest) {
 
 	// Add body for non-GET/HEAD requests
 	if (method !== 'GET' && method !== 'HEAD') {
-		init.body = /** @type {any} */ (Readable.toWeb(nodeRequest));
+		init.body = Readable.toWeb(nodeRequest);
 		init.duplex = 'half';
 	}
 
@@ -1294,9 +1294,7 @@ async function handleRpcRequest(req, res, vite, trustProxy, config) {
 
 		const response = await handle_rpc_request(webRequest, {
 			async resolveFunction(hash) {
-				const rpcModules = /** @type {Map<string, [string, string]>} */ (
-					/** @type {any} */ (globalThis).rpc_modules
-				);
+				const rpcModules = globalThis.rpc_modules;
 				if (!rpcModules) return null;
 
 				const moduleInfo = rpcModules.get(hash);

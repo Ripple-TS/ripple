@@ -284,29 +284,27 @@ export class TSRXVirtualCode {
 			if (cssMappings.length > 0) {
 				log('Creating', cssMappings.length, 'CSS embedded codes');
 
-				this.embeddedCodes = cssMappings.map(
-					(/** @type {any} */ mapping, /** @type {number} */ index) => {
-						const cssContent = /** @type {string} */ (mapping.data?.customData?.content);
-						log(
-							`CSS region ${index}: \
+				this.embeddedCodes = cssMappings.map((mapping, index) => {
+					const cssContent = /** @type {string} */ (mapping.data?.customData?.content);
+					log(
+						`CSS region ${index}: \
 						offset ${mapping.sourceOffsets[0]}-${mapping.sourceOffsets[0] + mapping.lengths[0]}, \
 						length ${mapping.lengths[0]}`,
-						);
+					);
 
-						return {
-							id: /** @type {string}  */ (mapping.data?.customData?.embeddedId),
-							languageId: 'css',
-							snapshot: {
-								getText: (/** @type {number} */ start, /** @type {number} */ end) =>
-									cssContent.substring(start, end),
-								getLength: () => mapping.lengths[0],
-								getChangeRange: () => undefined,
-							},
-							mappings: [mapping],
-							embeddedCodes: [],
-						};
-					},
-				);
+					return {
+						id: /** @type {string}  */ (mapping.data?.customData?.embeddedId),
+						languageId: 'css',
+						snapshot: {
+							getText: (/** @type {number} */ start, /** @type {number} */ end) =>
+								cssContent.substring(start, end),
+							getLength: () => mapping.lengths[0],
+							getChangeRange: () => undefined,
+						},
+						mappings: [mapping],
+						embeddedCodes: [],
+					};
+				});
 			} else {
 				this.embeddedCodes = [];
 			}

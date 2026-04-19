@@ -1,8 +1,10 @@
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { cleanup_fixture_workspaces, create_fixture_workspace } from './workspace-fixtures.js';
+import fs from 'fs';
 
-const fs = require('fs');
+/** @import { WORKSPACE_CONFIGS } from './workspace-fixtures.js'; */
+
 const {
 	is_ripple_file,
 	find_workspace_compiler_entry_for_file,
@@ -148,6 +150,7 @@ describe('typescript-plugin compiler resolution', () => {
 	});
 
 	describe('project permutation matrix', () => {
+		/** @type {{ name: keyof typeof WORKSPACE_CONFIGS, expected: string[] }[]} */
 		const cases = [
 			{ name: 'ripple-only', expected: ['@tsrx', 'ripple'] },
 			{ name: 'react-only', expected: ['@tsrx', 'react'] },

@@ -438,12 +438,10 @@ function addCustomCommands(context) {
 				console.log('[Ripple] Getting definitions at position:', position);
 
 				// Use VS Code's definition provider API
-				const definitions = /** @type {any} */ (
-					await vscode.commands.executeCommand(
-						'vscode.executeDefinitionProvider',
-						editor.document.uri,
-						position,
-					)
+				const definitions = await vscode.commands.executeCommand(
+					'vscode.executeDefinitionProvider',
+					editor.document.uri,
+					position,
 				);
 
 				console.log('[Ripple] Definitions result:', definitions);
@@ -613,6 +611,7 @@ async function patchTypeScriptExtension() {
 	/**
 	 * @param {import('node:fs').PathOrFileDescriptor} path
 	 * @param {(import('node:fs').ObjectEncodingOptions & { flag?: string }) | BufferEncoding | null} [options]
+	 * @returns {string | Buffer}
 	 */
 	function patchedReadFileSync(path, options) {
 		const hasOptions = typeof options !== 'undefined' && options !== null;
@@ -648,7 +647,7 @@ async function patchTypeScriptExtension() {
 
 	try {
 		console.log('[Ripple] Installing fs.readFileSync hook and activating TypeScript extension...');
-		fs.readFileSync = /** @type {any} */ (patchedReadFileSync);
+		fs.readFileSync = /** @type {typeof fs.readFileSync} */ (patchedReadFileSync);
 		await tsExtension.activate();
 		console.log('[Ripple] TypeScript extension activated');
 	} catch (error) {

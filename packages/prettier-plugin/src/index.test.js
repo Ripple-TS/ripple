@@ -2237,6 +2237,20 @@ component Child({ something }) {
 			const result = await format(expected);
 			expect(result).toBeWithNewline(expected);
 		});
+
+		it('keeps dynamic import TSImportType intact', async () => {
+			const expected = `let streamed_error: Error | null = null;
+const sink: import('ripple/server').SSRStreamSink = {
+  push(_chunk: string) {},
+  close() {},
+  error(reason: unknown) {
+    streamed_error = reason as Error;
+  },
+};`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
 	});
 
 	describe('edge cases', () => {
