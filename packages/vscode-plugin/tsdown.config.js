@@ -57,16 +57,19 @@ export default defineConfig({
 				stdio: 'inherit',
 			});
 
-			// Remove nested dist folder from typescript-plugin
-			const nestedDistPath = path.join(
+			// Remove unnecessary files from typescript-plugin (only dist/ and package.json needed)
+			const tsPluginPath = path.join(
 				dirname,
 				OUT_DIR,
 				'node_modules',
 				'@ripple-ts',
 				'typescript-plugin',
-				'dist',
 			);
-			execSync(`rm -rf "${nestedDistPath}"`, { stdio: 'inherit' });
+			for (const entry of fs.readdirSync(tsPluginPath)) {
+				if (entry !== 'dist' && entry !== 'package.json') {
+					execSync(`rm -rf "${path.join(tsPluginPath, entry)}"`, { stdio: 'inherit' });
+				}
+			}
 		},
 	},
 });
