@@ -14,6 +14,6 @@ export default defineConfig({
 	clean: true,
 	noExternal: /.+/,
 	platform: 'node',
-	target: 'node20',
+	target: 'node22',
 	outDir: 'dist',
 });

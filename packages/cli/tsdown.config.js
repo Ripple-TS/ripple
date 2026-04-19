@@ -11,7 +11,7 @@ export default defineConfig({
 	format: ['esm'],
 	fixedExtension: false,
 	platform: 'node',
-	target: 'node20',
+	target: 'node22',
 	outDir: 'dist',
 	noExternal: /.+/,
 });
