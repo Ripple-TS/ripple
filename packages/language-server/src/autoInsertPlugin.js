@@ -1,6 +1,6 @@
 /** @import { LanguageServicePlugin } from '@volar/language-server' */
 
-const { getVirtualCode, createLogging, is_ripple_document } = require('./utils.js');
+import { getVirtualCode, createLogging, is_ripple_document } from './utils.js';
 
 const { log } = createLogging('[Ripple Auto-Insert Plugin]');
 
@@ -32,7 +32,7 @@ const VOID_ELEMENTS = new Set([
  * Handles auto-closing tags when typing '>' after a tag name
  * @returns {LanguageServicePlugin}
  */
-function createAutoInsertPlugin() {
+export function createAutoInsertPlugin() {
 	return {
 		name: 'ripple-auto-insert',
 		capabilities: {
@@ -161,7 +161,3 @@ function createAutoInsertPlugin() {
 		},
 	};
 }
-
-module.exports = {
-	createAutoInsertPlugin,
-};

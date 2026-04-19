@@ -1,18 +1,15 @@
 /** @import { LanguageServicePlugin, LocationLink } from '@volar/language-server'; */
-// @ts-ignore type-only import from ESM module into CJS is fine
 /** @import { DefinitionLocation } from '@tsrx/ripple'; */
 
-const { TextDocument } = require('vscode-languageserver-textdocument');
-const { getVirtualCode, createLogging, getWordFromPosition } = require('./utils.js');
-const path = require('path');
-const fs = require('fs');
-
-const {
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { getVirtualCode, createLogging, getWordFromPosition } from './utils.js';
+import path from 'path';
+import {
 	normalizeFileNameOrUri,
 	getRippleDirForFile,
 	getCachedTypeDefinitionFile,
 	getCachedTypeMatches,
-} = require('@ripple-ts/typescript-plugin/src/language.js');
+} from '@ripple-ts/typescript-plugin/src/language.js';
 
 const { log } = createLogging('[Ripple Definition Plugin]');
 /** @type {string | undefined} */
@@ -21,7 +18,7 @@ let ripple_dir;
 /**
  * @returns {LanguageServicePlugin}
  */
-function createDefinitionPlugin() {
+export function createDefinitionPlugin() {
 	return {
 		name: 'ripple-definition',
 		capabilities: {
@@ -209,7 +206,3 @@ function createDefinitionPlugin() {
 		},
 	};
 }
-
-module.exports = {
-	createDefinitionPlugin,
-};

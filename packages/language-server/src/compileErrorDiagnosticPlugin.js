@@ -3,18 +3,17 @@
  * @import {TextDocument} from 'vscode-languageserver-textdocument';
  * @import {TSRXVirtualCodeInstance} from '@ripple-ts/typescript-plugin/src/language.js';
  */
-// @ts-ignore: ESM type import is fine
 /** @import {TSRXCompileError} from '@tsrx/ripple'; */
 
-const { getVirtualCode, createLogging } = require('./utils.js');
+import { getVirtualCode, createLogging } from './utils.js';
 
 const { log } = createLogging('[Ripple Compile Error Diagnostic Plugin]');
-const { DiagnosticSeverity } = require('@volar/language-server');
+import { DiagnosticSeverity } from '@volar/language-server';
 
 /**
  * @returns {LanguageServicePlugin}
  */
-function createCompileErrorDiagnosticPlugin() {
+export function createCompileErrorDiagnosticPlugin() {
 	log('Creating Ripple diagnostic plugin...');
 
 	return {
@@ -154,7 +153,3 @@ function get_end_offset_from_error(error, start_offset) {
 function get_start_offset_from_error(error) {
 	return error.pos ?? 0;
 }
-
-module.exports = {
-	createCompileErrorDiagnosticPlugin,
-};

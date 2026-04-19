@@ -24,6 +24,9 @@ catalogs:
     '@tailwindcss/vite':
       specifier: ^4.1.12
       version: 4.2.1
+    '@types/adm-zip':
+      specifier: ^0.5.8
+      version: 0.5.8
     '@types/bun':
       specifier: ^1.3.9
       version: 1.3.10
@@ -48,6 +51,9 @@ catalogs:
     '@types/react-dom':
       specifier: ^19.2.2
       version: 19.2.3
+    '@types/vscode':
+      specifier: ^1.116.0
+      version: 1.116.0
     '@typescript-eslint/parser':
       specifier: ^8.56.1
       version: 8.56.1
@@ -70,14 +76,14 @@ catalogs:
       specifier: ~2.4.28
       version: 2.4.28
     '@vscode/vsce':
-      specifier: ^3.6.2
-      version: 3.7.1
+      specifier: ^3.9.1
+      version: 3.9.1
     acorn:
       specifier: ^8.15.0
       version: 8.16.0
     adm-zip:
-      specifier: ^0.5.16
-      version: 0.5.16
+      specifier: ^0.5.17
+      version: 0.5.17
     clsx:
       specifier: ^2.1.1
       version: 2.1.1
@@ -501,6 +507,9 @@ importers:
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:../tsrx-ripple
+      tsdown:
+        specifier: catalog:default
+        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260418.1)(typescript@5.9.3)
 
   packages/nvim-plugin: {}
 
@@ -797,6 +806,9 @@ importers:
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:../tsrx-ripple
+      '@types/vscode':
+        specifier: catalog:default
+        version: 1.116.0
       '@volar/language-core':
         specifier: catalog:default
         version: 2.4.28
@@ -822,12 +834,15 @@ importers:
         specifier: catalog:default
         version: 3.1.0
     devDependencies:
+      '@types/adm-zip':
+        specifier: catalog:default
+        version: 0.5.8
       '@vscode/vsce':
         specifier: catalog:default
-        version: 3.7.1
+        version: 3.9.1
       adm-zip:
         specifier: catalog:default
-        version: 0.5.16
+        version: 0.5.17
       tsdown:
         specifier: catalog:default
         version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260418.1)(typescript@5.9.3)
@@ -2294,6 +2309,9 @@ packages:
   '@types/adm-zip@0.5.7':
     resolution: {integrity: sha512-DNEs/QvmyRLurdQPChqq0Md4zGvPwHerAJYWk9l2jCbD1VPpnzRJorOdiq4zsw09NFbYnhfsoEhWtxIzXpn2yw==}
 
+  '@types/adm-zip@0.5.8':
+    resolution: {integrity: sha512-RVVH7QvZYbN+ihqZ4kX/dMiowf6o+Jk1fNwiSdx0NahBJLU787zkULhGhJM8mf/obmLGmgdMM0bXsQTmyfbR7Q==}
+
   '@types/bun@1.3.10':
     resolution: {integrity: sha512-0+rlrUrOrTSskibryHbvQkDOWRJwJZqZlxrUs1u4oOoTln8+WIXBPmAuCF35SWB2z4Zl3E84Nl/D0P7803nigQ==}
 
@@ -2367,6 +2385,9 @@ packages:
 
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
+
+  '@types/vscode@1.116.0':
+    resolution: {integrity: sha512-sYHp4MO6BqJ2PD7Hjt0hlIS3tMaYsVPJrd0RUjDJ8HtOYnyJIEej0bLSccM8rE77WrC+Xox/kdBwEFDO8MsxNA==}
 
   '@types/web-bluetooth@0.0.21':
     resolution: {integrity: sha512-oIQLCGWtcFZy2JW77j9k8nHzAOpqMHLQejDA48XXMWH6tjCQHz5RCFz1bzsmROyL6PUm+LLnUiI4BCn221inxA==}
@@ -2569,8 +2590,8 @@ packages:
   '@vscode/vsce-sign@2.0.9':
     resolution: {integrity: sha512-8IvaRvtFyzUnGGl3f5+1Cnor3LqaUWvhaUjAYO8Y39OUYlOf3cRd+dowuQYLpZcP3uwSG+mURwjEBOSq4SOJ0g==}
 
-  '@vscode/vsce@3.7.1':
-    resolution: {integrity: sha512-OTm2XdMt2YkpSn2Nx7z2EJtSuhRHsTPYsSK59hr3v8jRArK+2UEoju4Jumn1CmpgoBLGI6ReHLJ/czYltNUW3g==}
+  '@vscode/vsce@3.9.1':
+    resolution: {integrity: sha512-MPn5p+DoudI+3GfJSpAZZraE1lgLv0LcwbH3+xy7RgEhty3UIkmUMUA+5jPTDaxXae00AnX5u77FxGM8FhfKKA==}
     engines: {node: '>= 20'}
     hasBin: true
 
@@ -2700,6 +2721,10 @@ packages:
 
   adm-zip@0.5.16:
     resolution: {integrity: sha512-TGw5yVi4saajsSEgz25grObGHEUaDrniwvA2qwSC060KfqGPdglhvPMA2lPIoxs3PQIItj2iag35fONcQqgUaQ==}
+    engines: {node: '>=12.0'}
+
+  adm-zip@0.5.17:
+    resolution: {integrity: sha512-+Ut8d9LLqwEvHHJl1+PIHqoyDxFgVN847JTVM3Izi3xHDWPE4UtzzXysMZQs64DMcrJfBeS/uoEP4AD3HQHnQQ==}
     engines: {node: '>=12.0'}
 
   agent-base@7.1.4:
@@ -3407,9 +3432,6 @@ packages:
 
   fastq@1.20.1:
     resolution: {integrity: sha512-GGToxJ/w1x32s/D2EKND7kTil4n8OVk/9mycTc4VDza13lOvpUZTGX3mFSCtV9ksdGBVzvsyAVLM6mHFThxXxw==}
-
-  fd-slicer@1.1.0:
-    resolution: {integrity: sha512-cE1qsB/VwyQozZ+q1dGxR8LBYNZeofhEdUNGSMbQD3Gw2lAzX9Zb3uIU6Ebc/Fmyjo9AWWfnn0AUCHqtevs/8g==}
 
   fdir@6.5.0:
     resolution: {integrity: sha512-tIbYtZbucOs0BRGqPJkshJUYdL+SDH7dVM8gjy+ERp3WAUjLEFJE+02kanyHtwjWOnwrKYBiwAmM0p4kLJAnXg==}
@@ -4126,9 +4148,6 @@ packages:
 
   lodash.truncate@4.4.2:
     resolution: {integrity: sha512-jttmRe7bRse52OsWIMDLaXxWqRAmtIUccAQ3garviCqJjafXOfNMO0yMfNpdD6zbGaTU0P5Nz7e7gAT6cKmJRw==}
-
-  lodash@4.17.23:
-    resolution: {integrity: sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w==}
 
   lodash@4.18.1:
     resolution: {integrity: sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==}
@@ -5248,10 +5267,6 @@ packages:
   undici-types@7.18.2:
     resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
 
-  undici@7.22.0:
-    resolution: {integrity: sha512-RqslV2Us5BrllB+JeiZnK4peryVTndy9Dnqq62S3yYRRTj0tFQCwEniUy2167skdGOy3vqRzEvl1Dm4sV2ReDg==}
-    engines: {node: '>=20.18.1'}
-
   undici@7.25.0:
     resolution: {integrity: sha512-xXnp4kTyor2Zq+J1FfPI6Eq3ew5h6Vl0F/8d9XU5zZQf1tX9s2Su1/3PiMmUANFULpmksxkClamIZcaUqryHsQ==}
     engines: {node: '>=20.18.1'}
@@ -5690,8 +5705,9 @@ packages:
     resolution: {integrity: sha512-4UEqdc2RYGHZc7Doyqkrqiln3p9X2DZVxaGbwhn2pi7MrRagKaOcIKe8L3OxYcbhXLgLFUS3zAYuQjKBQgmuNg==}
     engines: {node: ^20.19.0 || ^22.12.0 || >=23}
 
-  yauzl@2.10.0:
-    resolution: {integrity: sha512-p4a9I6X6nu6IhoGmBqAcbJy1mlC4j27vEPZX9F4L4/vZT3Lyq1VkFHw/V/PUcB9Buo+DG3iHkT0x3Qya58zc3g==}
+  yauzl@3.3.0:
+    resolution: {integrity: sha512-PtGEvEP30p7sbIBJKUBjUnqgTVOyMURc4dLo9iNyAJnNIEz9pm88cCXF21w94Kg3k6RXkeZh5DHOGS0qEONvNQ==}
+    engines: {node: '>=12'}
 
   yazl@2.5.1:
     resolution: {integrity: sha512-phENi2PLiHnHb6QBVot+dJnaAZ0xosj7p3fWl+znIjBDlnMI2PsZCJZ306BPTFOaHf5qdDEI8x5qFrSOBN5vrw==}
@@ -6366,7 +6382,7 @@ snapshots:
       agent-base: 7.1.4
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6
-      lru-cache: 11.2.6
+      lru-cache: 11.3.5
       socks-proxy-agent: 8.0.5
     transitivePeerDependencies:
       - supports-color
@@ -6950,7 +6966,7 @@ snapshots:
       chalk: 4.1.2
       debug: 4.4.3
       js-yaml: 4.1.1
-      lodash: 4.17.23
+      lodash: 4.18.1
       pluralize: 2.0.0
       string-width: 4.2.3
       strip-ansi: 6.0.1
@@ -6984,6 +7000,10 @@ snapshots:
     optional: true
 
   '@types/adm-zip@0.5.7':
+    dependencies:
+      '@types/node': 25.3.3
+
+  '@types/adm-zip@0.5.8':
     dependencies:
       '@types/node': 25.3.3
 
@@ -7062,6 +7082,8 @@ snapshots:
   '@types/sarif@2.1.7': {}
 
   '@types/unist@3.0.3': {}
+
+  '@types/vscode@1.116.0': {}
 
   '@types/web-bluetooth@0.0.21': {}
 
@@ -7314,7 +7336,7 @@ snapshots:
       '@vscode/vsce-sign-win32-arm64': 2.0.6
       '@vscode/vsce-sign-win32-x64': 2.0.6
 
-  '@vscode/vsce@3.7.1':
+  '@vscode/vsce@3.9.1':
     dependencies:
       '@azure/identity': 4.13.0
       '@secretlint/node': 10.2.2
@@ -7343,7 +7365,7 @@ snapshots:
       typed-rest-client: 1.8.11
       url-join: 4.0.1
       xml2js: 0.5.0
-      yauzl: 2.10.0
+      yauzl: 3.3.0
       yazl: 2.5.1
     optionalDependencies:
       keytar: 7.9.0
@@ -7465,6 +7487,8 @@ snapshots:
   acorn@8.16.0: {}
 
   adm-zip@0.5.16: {}
+
+  adm-zip@0.5.17: {}
 
   agent-base@7.1.4: {}
 
@@ -7657,7 +7681,7 @@ snapshots:
       '@npmcli/fs': 5.0.0
       fs-minipass: 3.0.3
       glob: 13.0.6
-      lru-cache: 11.2.6
+      lru-cache: 11.3.5
       minipass: 7.1.3
       minipass-collect: 2.0.1
       minipass-flush: 1.0.5
@@ -7713,7 +7737,7 @@ snapshots:
       parse5: 7.3.0
       parse5-htmlparser2-tree-adapter: 7.1.0
       parse5-parser-stream: 7.1.2
-      undici: 7.22.0
+      undici: 7.25.0
       whatwg-mimetype: 4.0.0
 
   chownr@1.1.4: {}
@@ -8244,7 +8268,7 @@ snapshots:
       hono: 4.12.4
       mcp-proxy: 6.4.0
       strict-event-emitter-types: 2.0.0
-      undici: 7.22.0
+      undici: 7.25.0
       uri-templates: 0.2.0
       xsschema: 0.4.0-beta.5(@valibot/to-json-schema@1.5.0(valibot@1.2.0(typescript@5.9.3)))(effect@3.19.19)(sury@10.0.4)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6)
       yargs: 18.0.0
@@ -8261,10 +8285,6 @@ snapshots:
   fastq@1.20.1:
     dependencies:
       reusify: 1.1.0
-
-  fd-slicer@1.1.0:
-    dependencies:
-      pend: 1.2.0
 
   fdir@6.5.0(picomatch@4.0.3):
     optionalDependencies:
@@ -8974,8 +8994,6 @@ snapshots:
   lodash.startcase@4.4.0: {}
 
   lodash.truncate@4.4.2: {}
-
-  lodash@4.17.23: {}
 
   lodash@4.18.1: {}
 
@@ -10202,8 +10220,6 @@ snapshots:
 
   undici-types@7.18.2: {}
 
-  undici@7.22.0: {}
-
   undici@7.25.0: {}
 
   unicorn-magic@0.1.0: {}
@@ -10617,10 +10633,10 @@ snapshots:
       y18n: 5.0.8
       yargs-parser: 22.0.0
 
-  yauzl@2.10.0:
+  yauzl@3.3.0:
     dependencies:
       buffer-crc32: 0.2.13
-      fd-slicer: 1.1.0
+      pend: 1.2.0
 
   yazl@2.5.1:
     dependencies:

@@ -1,16 +1,15 @@
 {
   "compilerOptions": {
-    "module": "node16",
-    "moduleResolution": "node16",
-    "target": "es2020",
-    "lib": ["es2020"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "esnext",
+    "lib": ["esnext"],
     "allowJs": true,
     "checkJs": true,
     "noEmit": true,
     "strict": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true,
     "types": []
   },
   "include": ["src/**/*.js", "index.js", "bin/**/*.js"],

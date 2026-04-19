@@ -1,13 +1,17 @@
 {
   "name": "@ripple-ts/language-server",
-  "version": "0.3.18",
+  "version": "0.3.19",
   "description": "Language Server Protocol implementation for Ripple",
-  "main": "index.js",
+  "main": "dist/server.js",
+  "type": "module",
   "bin": {
     "ripple-language-server": "bin/language-server.js"
   },
   "author": "Dominic Gannaway",
   "license": "MIT",
+  "scripts": {
+    "build": "tsdown"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Ripple-TS/ripple.git",
@@ -23,7 +27,8 @@
     "vscode-uri": "catalog:default"
   },
   "devDependencies": {
-    "@tsrx/ripple": "workspace:*"
+    "@tsrx/ripple": "workspace:*",
+    "tsdown": "catalog:default"
   },
   "peerDependencies": {
     "typescript": "catalog:peer"

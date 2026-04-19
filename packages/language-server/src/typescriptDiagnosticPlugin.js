@@ -8,7 +8,7 @@
 @import {TextDocument} from 'vscode-languageserver-textdocument';
  */
 
-const { getVirtualCode, createLogging, deobfuscateIdentifiers } = require('./utils.js');
+import { getVirtualCode, createLogging, deobfuscateIdentifiers } from './utils.js';
 
 const { log, logError } = createLogging('[Ripple TypeScript Diagnostic Plugin]');
 
@@ -93,7 +93,7 @@ function processDiagnostics(document, context, diagnostics) {
  * to work correctly, as volar matches diagnostics by pluginIndex.
  * @returns {LanguageServicePlugin}
  */
-function createTypeScriptDiagnosticFilterPlugin() {
+export function createTypeScriptDiagnosticFilterPlugin() {
 	log('Creating TypeScript diagnostic filter plugin...');
 
 	return {
@@ -137,7 +137,3 @@ function createTypeScriptDiagnosticFilterPlugin() {
 		},
 	};
 }
-
-module.exports = {
-	createTypeScriptDiagnosticFilterPlugin,
-};

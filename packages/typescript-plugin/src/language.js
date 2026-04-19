@@ -1,6 +1,4 @@
-// @ts-ignore: JSDoc @import is type-only, no runtime require() is generated
 /** @import { CodeMapping } from '@tsrx/ripple' */
-// @ts-ignore: JSDoc @import is type-only, no runtime require() is generated
 /** @import {TSRXCompileError, VolarMappingsResult} from '@tsrx/ripple' */
 
 /** @typedef {{ compile_to_volar_mappings(source: string, filename: string, options?: { loose?: boolean }): VolarMappingsResult }} TSRXCompilerModule */
@@ -16,17 +14,22 @@
 
 /** @typedef {InstanceType<typeof import('./language.js')["TSRXVirtualCode"]>} TSRXVirtualCodeInstance */
 
-const ts = require('typescript');
-const { forEachEmbeddedCode } = require('@volar/language-core');
-const fs = require('fs');
-const path = require('path');
-const { createLogging, DEBUG } = require('./utils.js');
+import ts from 'typescript';
+import { forEachEmbeddedCode } from '@volar/language-core';
+import fs from 'fs';
+import path from 'path';
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+import { createLogging, DEBUG } from './utils.js';
+
+const require = createRequire(import.meta.url);
+const root_dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const { log, logWarning, logError } = createLogging('[Ripple Language]');
-const RIPPLE_EXTENSIONS = ['.tsrx'];
+export const RIPPLE_EXTENSIONS = ['.tsrx'];
 /** @typedef {[string, string[], string[], string[]]} CompilerCandidate */
 /** @type {CompilerCandidate[]} */
-const COMPILER_CANDIDATES = [
+export const COMPILER_CANDIDATES = [
 	[
 		'@tsrx/ripple',
 		['node_modules', '@tsrx', 'ripple'],
@@ -45,14 +48,14 @@ const COMPILER_CANDIDATES = [
  * @param {string} file_name
  * @returns {boolean}
  */
-function is_ripple_file(file_name) {
+export function is_ripple_file(file_name) {
 	return RIPPLE_EXTENSIONS.some((extension) => file_name.endsWith(extension));
 }
 
 /**
  * @returns {RippleLanguagePlugin}
  */
-function getRippleLanguagePlugin() {
+export function getRippleLanguagePlugin() {
 	log('Creating Ripple language plugin...');
 
 	return {
@@ -121,7 +124,7 @@ function getRippleLanguagePlugin() {
 /**
  * @implements {VirtualCode}
  */
-class TSRXVirtualCode {
+export class TSRXVirtualCode {
 	/** @type {string} */
 	id = 'root';
 	/** @type {string} */
@@ -551,7 +554,7 @@ function restore_typed_dot_in_transpiled_code(transpiled, dotPosition) {
  * @param {{ options?: CompilerOptions } & T} config
  * @returns {{ options: CompilerOptions } & T}
  */
-const resolveConfig = (config) => {
+export const resolveConfig = (config) => {
 	const baseOptions = config.options ?? /** @type {CompilerOptions} */ ({});
 	/** @type {CompilerOptions} */
 	const options = { ...baseOptions };
@@ -603,7 +606,7 @@ const resolveConfig = (config) => {
 };
 
 /** @type {Map<string, string | null>} */
-const path2RipplePathMap = new Map();
+export const path2RipplePathMap = new Map();
 /** @type {Map<string, string>} */
 const pathToTypesCache = new Map();
 /** @type {Map<string, RegExpMatchArray>} */
@@ -615,7 +618,7 @@ const pathToPackageManifestCache = new Map();
  * @param {ScriptId} fileNameOrUri
  * @returns {string}
  */
-function normalizeFileNameOrUri(fileNameOrUri) {
+export function normalizeFileNameOrUri(fileNameOrUri) {
 	return typeof fileNameOrUri === 'string'
 		? fileNameOrUri
 		: fileNameOrUri.fsPath.replace(/\\/g, '/');
@@ -722,7 +725,7 @@ function package_manifest_matches_compiler(package_manifest, compiler_name, pack
 function get_tsrx_compiler(normalized_file_name) {
 	const compiler_path = get_compiler_entry_for_file(normalized_file_name);
 	if (compiler_path) {
-		return /** @type {TSRXCompilerModule} */ (require(compiler_path));
+		return require(compiler_path);
 	}
 }
 
@@ -732,7 +735,7 @@ function get_tsrx_compiler(normalized_file_name) {
  * @param {Map<string, string | null>} [compiler_path_map]
  * @returns {string | undefined}
  */
-function find_workspace_compiler_entry_for_file(
+export function find_workspace_compiler_entry_for_file(
 	normalized_file_name,
 	exists_sync = fs.existsSync,
 	compiler_path_map = path2RipplePathMap,
@@ -786,7 +789,7 @@ function find_workspace_compiler_entry_for_file(
  * @param {string} normalized_file_name
  * @returns {string | undefined}
  */
-function get_compiler_entry_for_file(normalized_file_name) {
+export function get_compiler_entry_for_file(normalized_file_name) {
 	const ext = path.extname(normalized_file_name);
 	const package_manifest = get_nearest_package_manifest(path.dirname(normalized_file_name));
 
@@ -798,7 +801,7 @@ function get_compiler_entry_for_file(normalized_file_name) {
 	const warn_message = `No supported tsrx compiler found in workspace for ${normalized_file_name}.`;
 
 	// Fallback: look for a packaged compiler.
-	let current_dir = __dirname;
+	let current_dir = root_dirname;
 
 	while (current_dir) {
 		/** @type {Array<[string, string, string[]]>} */
@@ -842,7 +845,7 @@ function get_compiler_entry_for_file(normalized_file_name) {
  * @param {string} typesFilePath
  * @returns {string | undefined}
  */
-function getCachedTypeDefinitionFile(typesFilePath) {
+export function getCachedTypeDefinitionFile(typesFilePath) {
 	const cached = pathToTypesCache.get(typesFilePath);
 	if (cached) {
 		return cached;
@@ -872,7 +875,7 @@ function getCachedTypeDefinitionFile(typesFilePath) {
  * @param {string} text
  * @returns {RegExpMatchArray | undefined}
  */
-function getCachedTypeMatches(typeName, text) {
+export function getCachedTypeMatches(typeName, text) {
 	const cached = typeNameMatchCache.get(typeName);
 	if (cached) {
 		return cached;
@@ -896,7 +899,7 @@ function getCachedTypeMatches(typeName, text) {
  * @param {string} normalized_file_name
  * @returns {string | undefined}
  */
-function get_compiler_dir_for_file(normalized_file_name) {
+export function get_compiler_dir_for_file(normalized_file_name) {
 	const entry = get_compiler_entry_for_file(normalized_file_name);
 	if (entry) {
 		// Walk up from .../src/index.js to the package root
@@ -904,24 +907,10 @@ function get_compiler_dir_for_file(normalized_file_name) {
 	}
 }
 
-module.exports = {
-	getRippleDirForFile: get_compiler_dir_for_file,
-	normalizeFileNameOrUri,
-	getRippleLanguagePlugin,
-	getCachedTypeDefinitionFile,
-	getCachedTypeMatches,
-	TSRXVirtualCode,
-	resolveConfig,
-	// Exported for testing
-	is_ripple_file,
-	find_workspace_compiler_entry_for_file,
-	get_compiler_entry_for_file,
-	COMPILER_CANDIDATES,
-	RIPPLE_EXTENSIONS,
-	path2RipplePathMap,
-	/** Reset module-level state used in tests. */
-	_reset_for_test() {
-		path2RipplePathMap.clear();
-		pathToPackageManifestCache.clear();
-	},
-};
+export { get_compiler_dir_for_file as getRippleDirForFile };
+
+/** Reset module-level state used in tests. */
+export function _reset_for_test() {
+	path2RipplePathMap.clear();
+	pathToPackageManifestCache.clear();
+}

@@ -5,20 +5,20 @@
 	MarkupContent,
 } from '@volar/language-server'; */
 
-const {
+import {
 	getVirtualCode,
 	createLogging,
 	getWordFromPosition,
 	concatMarkdownContents,
 	deobfuscateIdentifiers,
-} = require('./utils.js');
+} from './utils.js';
 
 const { log, logError } = createLogging('[Ripple Hover Plugin]');
 
 /**
  * @returns {LanguageServicePlugin}
  */
-function createHoverPlugin() {
+export function createHoverPlugin() {
 	return {
 		name: 'ripple-hover',
 		capabilities: {
@@ -144,7 +144,3 @@ function createHoverPlugin() {
 		},
 	};
 }
-
-module.exports = {
-	createHoverPlugin,
-};

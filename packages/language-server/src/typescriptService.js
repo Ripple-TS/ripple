@@ -3,8 +3,18 @@
  * @import {TextDocument} from 'vscode-languageserver-textdocument'
  */
 
-// Monkey-patch getUserPreferences before requiring the main module
+import { createRequire } from 'node:module';
+
+// Monkey-patch getUserPreferences to inject Ripple-specific defaults.
+// We use createRequire to get the raw CJS module.exports object, bypassing
+// the bundler's __toESM wrapper which interferes with property assignment.
+// volar-service-typescript is also externalized (via regex in tsdown config)
+// so that its internal consumers (semantic.js, codeAction.js, etc.) load
+// getUserPreferences from the same Node module cache entry we patch here.
+const require = createRequire(import.meta.url);
 const getUserPreferencesModule = require('volar-service-typescript/lib/configs/getUserPreferences');
+const { create } = require('volar-service-typescript');
+
 const originalGetUserPreferences = getUserPreferencesModule.getUserPreferences;
 
 /**
@@ -29,18 +39,11 @@ getUserPreferencesModule.getUserPreferences = async function (context, document)
 	};
 };
 
-// Now require the main module which will use our patched getUserPreferences
-const { create } = require('volar-service-typescript');
-
 /**
  * Create TypeScript services with Ripple-specific enhancements.
  * @param {typeof import('typescript')} ts
  * @returns {ReturnType<typeof create>}
  */
-function createTypeScriptServices(ts) {
+export function createTypeScriptServices(ts) {
 	return create(ts);
 }
-
-module.exports = {
-	createTypeScriptServices,
-};

@@ -1,8 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "lib": ["esnext", "dom", "dom.iterable"],
     "skipLibCheck": true
-  },
-  "include": ["./src/**/*", "./scripts/**/*"],
-  "exclude": ["dist", "node_modules"]
+  }
 }

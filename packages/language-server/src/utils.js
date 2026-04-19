@@ -1,16 +1,15 @@
 /** @import { TextDocument } from 'vscode-languageserver-textdocument' */
 /** @import { LanguageServiceContext, Mapper, SourceScript } from '@volar/language-server' */
 /** @import {TSRXVirtualCodeInstance} from '@ripple-ts/typescript-plugin/src/language.js'; */
-// @ts-ignore: ESM type import is fine
 /** @import { isIdentifierObfuscated, deobfuscateIdentifier, IDENTIFIER_OBFUSCATION_PREFIX } from '@tsrx/core' */
 
-const { URI } = require('vscode-uri');
-const {
+import { URI } from 'vscode-uri';
+import {
 	createLogging,
 	getWordFromPosition,
 	charAllowedWordRegex,
 	DEBUG,
-} = require('@ripple-ts/typescript-plugin/src/utils.js');
+} from '@ripple-ts/typescript-plugin/src/utils.js';
 
 const IMPORT_EXPORT_REGEX = {
 	import: {
@@ -24,7 +23,7 @@ const IMPORT_EXPORT_REGEX = {
 	from: /from\s*['"][^'"]*['"]\s*;?/,
 };
 
-const RIPPLE_EXTENSIONS = ['.tsrx'];
+export const RIPPLE_EXTENSIONS = ['.tsrx'];
 
 /** @type {typeof isIdentifierObfuscated} */
 let is_identifier_obfuscated;
@@ -58,7 +57,7 @@ function escapeRegExp(source) {
  * @param {string} text
  * @returns {string}
  */
-function deobfuscateIdentifiers(text) {
+export function deobfuscateIdentifiers(text) {
 	return text.replace(obfuscated_identifier_regex, (match) => deobfuscate_identifier(match));
 }
 
@@ -66,7 +65,7 @@ function deobfuscateIdentifiers(text) {
  * @param  {...string} contents
  * @returns string
  */
-function concatMarkdownContents(...contents) {
+export function concatMarkdownContents(...contents) {
 	return contents.join('\n\n<br>\n\n---\n\n<br><br>\n\n');
 }
 
@@ -82,7 +81,7 @@ function concatMarkdownContents(...contents) {
 		sourceMap: Mapper | undefined;
 	}}
  */
-function getVirtualCode(document, context) {
+export function getVirtualCode(document, context) {
 	const uri = URI.parse(document.uri);
 	const decoded = /** @type {[documentUri: URI, embeddedCodeId: string]} */ (
 		context.decodeEmbeddedDocumentUri(uri)
@@ -139,7 +138,7 @@ function isInsideImportOrExport(type, text, start) {
  * @param {number} start
  * @returns {boolean}
  */
-function isInsideImport(text, start) {
+export function isInsideImport(text, start) {
 	return isInsideImportOrExport('import', text, start);
 }
 
@@ -148,7 +147,7 @@ function isInsideImport(text, start) {
  * @param {number} start
  * @returns {boolean}
  */
-function isInsideExport(text, start) {
+export function isInsideExport(text, start) {
 	return isInsideImportOrExport('export', text, start);
 }
 
@@ -156,19 +155,8 @@ function isInsideExport(text, start) {
  * @param {string} document_uri
  * @returns {boolean}
  */
-function is_ripple_document(document_uri) {
+export function is_ripple_document(document_uri) {
 	return RIPPLE_EXTENSIONS.some((extension) => document_uri.endsWith(extension));
 }
 
-module.exports = {
-	RIPPLE_EXTENSIONS,
-	getVirtualCode,
-	getWordFromPosition,
-	is_ripple_document,
-	isInsideImport,
-	isInsideExport,
-	createLogging,
-	concatMarkdownContents,
-	deobfuscateIdentifiers,
-	DEBUG,
-};
+export { createLogging, getWordFromPosition, DEBUG };

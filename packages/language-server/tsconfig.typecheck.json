@@ -1,9 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "esnext",
-    "moduleResolution": "bundler",
     "lib": ["esnext", "dom", "dom.iterable"],
-    "target": "esnext"
+    "skipLibCheck": true
   }
 }

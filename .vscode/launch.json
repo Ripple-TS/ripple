@@ -6,13 +6,14 @@
       "type": "extensionHost",
       "request": "launch",
       "autoAttachChildProcesses": true,
+      "preLaunchTask": "build-vscode-plugin",
       "args": [
         "--disable-extension=ripple-ts.ripple-ts-vscode-plugin",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-plugin/",
         "${workspaceFolder}/playground"
       ],
-      "outFiles": ["${workspaceFolder}/packages/vscode-plugin/src/**/*.js"],
-      "sourceMaps": false,
+      "outFiles": ["${workspaceFolder}/packages/vscode-plugin/dist/**/*.js"],
+      "sourceMaps": true,
       "env": {
         "RIPPLE_DEBUG": "true"
       }

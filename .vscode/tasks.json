@@ -17,6 +17,18 @@
       "label": "client-runtime-prelaunch",
       "dependsOn": ["delete-client-chrome-debug-profile", "wait-for-vite"],
       "dependsOrder": "parallel"
+    },
+    {
+      "label": "build-vscode-plugin",
+      "type": "shell",
+      "command": "node scripts/build-if-changed.js packages/typescript-plugin packages/language-server packages/vscode-plugin",
+      "options": {
+        "shell": {
+          "args": ["-i", "-c"]
+        }
+      },
+      "group": "build",
+      "problemMatcher": []
     }
   ]
 }

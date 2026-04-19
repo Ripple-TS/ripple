@@ -1,6 +1,6 @@
-const DEBUG = process.env.RIPPLE_DEBUG === 'true';
+export const DEBUG = process.env.RIPPLE_DEBUG === 'true';
 // Matches valid JS/CSS identifier characters: word chars, dashes (CSS), $, and # (Ripple shorthands)
-const charAllowedWordRegex = /[\w\-$#]/;
+export const charAllowedWordRegex = /[\w\-$#]/;
 
 /**
  * Create a logging utility with a specific label
@@ -11,7 +11,7 @@ const charAllowedWordRegex = /[\w\-$#]/;
  * 	logWarning: (...args: unknown[]) => void,
  * }}
  */
-function createLogging(label) {
+export function createLogging(label) {
 	return {
 		log(...args) {
 			if (DEBUG) {
@@ -37,7 +37,7 @@ function createLogging(label) {
  * @param {number} start
  * @returns {{word: string, start: number, end: number}}
  */
-function getWordFromPosition(text, start) {
+export function getWordFromPosition(text, start) {
 	let wordStart = start;
 	let wordEnd = start;
 	while (wordStart > 0 && charAllowedWordRegex.test(text[wordStart - 1])) {
@@ -55,10 +55,3 @@ function getWordFromPosition(text, start) {
 		end: wordEnd,
 	};
 }
-
-module.exports = {
-	createLogging,
-	getWordFromPosition,
-	charAllowedWordRegex,
-	DEBUG,
-};
