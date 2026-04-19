@@ -13,6 +13,7 @@
   "js/ts.preferences.useAliasesForRenames": false,
   "js/ts.preferences.importModuleSpecifierEnding": "js",
   "js/ts.experimental.useTsgo": true,
+  "explorer.excludeGitIgnore": true,
 
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
