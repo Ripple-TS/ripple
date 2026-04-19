@@ -42,6 +42,7 @@ tmp
 dist
 debug
 .build-hash
+.build-hash-built
 **/*.d.tsrx.ts
 
 # Temporary folders
