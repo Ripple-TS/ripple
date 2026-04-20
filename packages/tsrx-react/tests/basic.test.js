@@ -1185,4 +1185,18 @@ describe('lazy destructuring', () => {
 		// The param name 'step' itself should NOT be rewritten
 		expect(code).toContain('step + 1');
 	});
+
+	it('hoists JSXMemberExpression elements when only the property matches a scope binding', () => {
+		const { code } = compile(
+			`import Icons from './Icons';
+			export component App({Button}: {Button: any}) {
+				<Icons.Button />
+			}`,
+			'App.tsrx',
+		);
+
+		// Icons.Button should be hoisted — Button is a property label, not a variable reference
+		// Only the object (Icons) matters, and it's a module-scope import
+		expect(code).toContain('App__static1');
+	});
 });

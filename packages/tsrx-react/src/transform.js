@@ -1224,6 +1224,9 @@ function references_scope_bindings(node, scope_bindings) {
 		// Skip non-computed member expression property access
 		if (key === 'property' && node.type === 'MemberExpression' && !node.computed) continue;
 
+		// Skip JSXMemberExpression property (e.g. Button in <Icons.Button /> is a label, not a reference)
+		if (key === 'property' && node.type === 'JSXMemberExpression') continue;
+
 		// Skip JSXAttribute names — they are attribute labels, not variable references
 		if (key === 'name' && node.type === 'JSXAttribute') continue;
 
