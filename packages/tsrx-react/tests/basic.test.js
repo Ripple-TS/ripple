@@ -1225,4 +1225,55 @@ describe('lazy destructuring', () => {
 		// it was declared inside the first if block, not in the component scope
 		expect(code).not.toContain('localVar={localVar}');
 	});
+
+	it('does not pass post-split bindings as helper component props', () => {
+		const { code } = compile(
+			`import { useState, useEffect } from 'react';
+
+			export component App() {
+				const [count, setCount] = useState(0);
+
+				if (count > 2) {
+					return;
+				}
+
+				const laterVar = 'after split';
+
+				useEffect(() => {
+					console.log(laterVar);
+				}, [laterVar]);
+
+				<div>{laterVar}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// The continuation helper should receive count/setCount from before the split
+		expect(code).toContain('App__Continue');
+		expect(code).toContain('count={count}');
+
+		// laterVar is declared AFTER the split — it must NOT appear as a prop
+		// on the helper element at the call site (it's not in scope there)
+		expect(code).not.toContain('laterVar={laterVar}');
+	});
+
+	it('does not rewrite switch-case variables that shadow lazy bindings', () => {
+		const { code } = compile(
+			`export component App(&{ name }: { name: string }) {
+				switch (name) {
+					case 'test': {
+						const name = 'local';
+						console.log(name);
+						break;
+					}
+				}
+				<div>{name}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// The 'name' inside the switch case should NOT be rewritten to a lazy accessor
+		expect(code).toContain("const name = 'local'");
+		expect(code).toContain('console.log(name)');
+	});
 });

@@ -76,13 +76,19 @@ export function transform(ast, source, filename) {
 			const saved_bindings = state.available_bindings;
 			state.helper_state = helper_state;
 
-			// Pre-collect ALL component body bindings (params + top-level statements)
+			// Pre-collect component body bindings (params + top-level statements)
 			// so that Element children processed during the bottom-up walk can see
 			// the full scope. Without this, hoisted helpers would miss body-level
 			// variables like `const [x] = useState(...)` and produce ReferenceErrors.
+			// Only collect up to the split point — bindings declared after a
+			// hook-safe split aren't in scope at the return statement and would
+			// cause ReferenceErrors if passed as helper props.
 			const body_bindings = collect_param_bindings(as_any.params || []);
-			for (const child of as_any.body || []) {
-				collect_statement_bindings(child, body_bindings);
+			const body = as_any.body || [];
+			const split_index = find_hook_safe_split_index(body);
+			const collect_end = split_index === -1 ? body.length : split_index;
+			for (let i = 0; i < collect_end; i += 1) {
+				collect_statement_bindings(body[i], body_bindings);
 			}
 			state.available_bindings = body_bindings;
 
@@ -382,6 +388,34 @@ function apply_lazy_transforms(node, lazy_bindings) {
 		const new_body = apply_lazy_transforms(node.body, effective_bindings);
 		if (new_body !== node.body) changed = true;
 		return changed ? { ...node, right: new_right, body: new_body } : node;
+	}
+
+	// Handle switch-case variable shadowing (const/let inside case consequent arrays)
+	if (node.type === 'SwitchStatement') {
+		let changed = false;
+		const new_discriminant = apply_lazy_transforms(node.discriminant, lazy_bindings);
+		if (new_discriminant !== node.discriminant) changed = true;
+		const new_cases = node.cases.map((/** @type {any} */ switch_case) => {
+			const case_bindings = collect_block_shadowed_names(switch_case.consequent, lazy_bindings);
+			const effective_bindings =
+				case_bindings.size > 0 ? remove_shadowed(lazy_bindings, case_bindings) : lazy_bindings;
+			let case_changed = false;
+			const new_test = switch_case.test
+				? apply_lazy_transforms(switch_case.test, lazy_bindings)
+				: null;
+			if (new_test !== switch_case.test) case_changed = true;
+			const new_consequent = switch_case.consequent.map((/** @type {any} */ stmt) => {
+				const transformed = apply_lazy_transforms(stmt, effective_bindings);
+				if (transformed !== stmt) case_changed = true;
+				return transformed;
+			});
+			if (case_changed) {
+				changed = true;
+				return { ...switch_case, test: new_test, consequent: new_consequent };
+			}
+			return switch_case;
+		});
+		return changed ? { ...node, discriminant: new_discriminant, cases: new_cases } : node;
 	}
 
 	// Handle assignment: `name = value` → `__lazy0.name = value`
