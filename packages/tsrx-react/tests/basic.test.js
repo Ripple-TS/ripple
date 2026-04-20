@@ -1199,4 +1199,30 @@ describe('lazy destructuring', () => {
 		// Only the object (Icons) matters, and it's a module-scope import
 		expect(code).toContain('App__static1');
 	});
+
+	it('does not leak inner-scope bindings into helper component props', () => {
+		const { code } = compile(
+			`import { useState } from 'react';
+
+			export component App() {
+				const show = true;
+				if (show) {
+					const localVar = 'hello';
+					<div>{localVar}</div>
+				}
+				if (show) {
+					const [val] = useState(0);
+					<span>{val}</span>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		// The hook-bearing branch gets a helper component
+		expect(code).toContain('function StatementBodyHook');
+
+		// The helper component should NOT receive 'localVar' as a prop —
+		// it was declared inside the first if block, not in the component scope
+		expect(code).not.toContain('localVar={localVar}');
+	});
 });

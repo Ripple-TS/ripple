@@ -407,6 +407,9 @@ function apply_lazy_transforms(node, lazy_bindings) {
 	// Replace lazy variable declaration patterns with generated identifiers
 	if (node.type === 'VariableDeclarator' && node.id?.metadata?.lazy_id) {
 		const lazy_id = create_generated_identifier(node.id.metadata.lazy_id);
+		if (node.id.typeAnnotation) {
+			lazy_id.typeAnnotation = node.id.typeAnnotation;
+		}
 		return {
 			...node,
 			id: lazy_id,
@@ -786,9 +789,15 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 	const statements = [];
 	const render_nodes = [];
 
+	// Create a new bindings map so inner-scope bindings from
+	// collect_statement_bindings don't leak to the caller's scope.
+	const saved_bindings = transform_context.available_bindings;
+	transform_context.available_bindings = new Map(saved_bindings);
+
 	for (const child of body_nodes) {
 		if (is_bare_return_statement(child)) {
 			statements.push(create_component_return_statement(render_nodes, child));
+			transform_context.available_bindings = saved_bindings;
 			return statements;
 		}
 
@@ -815,6 +824,7 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 		});
 	}
 
+	transform_context.available_bindings = saved_bindings;
 	return statements;
 }
 
