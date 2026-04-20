@@ -41,6 +41,7 @@ import {
 	is_inside_try_block,
 } from '../utils.js';
 import is_reference from 'is-reference';
+import { createHash } from 'node:crypto';
 import { prune_css } from './prune.js';
 
 const valid_in_head = new Set(['title', 'base', 'link', 'meta', 'style', 'script', 'noscript']);
@@ -1106,6 +1107,18 @@ const visitors = {
 				context.state.loose ? context.state.analysis.errors : undefined,
 				context.state.analysis.comments,
 			);
+		}
+
+		// Generate unique hash for trackAsync calls for SSR serialization/hydration
+		const track_call_name = is_ripple_track_call(callee, context);
+		if (track_call_name === 'trackAsync') {
+			const id = ++context.state.module_track_async_id;
+			const padded_id = String(id).padStart(6, '0');
+			const hash = createHash('sha256')
+				.update(context.state.analysis.module.filename + padded_id)
+				.digest('hex')
+				.slice(0, 8);
+			node.metadata = { ...node.metadata, hash };
 		}
 
 		if (!is_inside_component(context, true)) {
@@ -2238,6 +2251,7 @@ export function analyze(ast, filename, options = {}) {
 				options.compat_kinds === undefined ? undefined : new Set(options.compat_kinds),
 			metadata: {},
 			mode: options.mode,
+			module_track_async_id: 0,
 		},
 		visitors,
 	);

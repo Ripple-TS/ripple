@@ -36,6 +36,10 @@ export type Tracked = {
 	v: any;
 	aa: AbortController | null;
 	ap: PromiseLike<any> | null;
+	/** serialization hash */
+	th?: string;
+	/** output push function captured at call time */
+	tp?: (str: string) => void;
 	readonly [0]: any;
 	[1]: Tracked;
 	value: any;

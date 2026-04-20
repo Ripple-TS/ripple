@@ -51,6 +51,9 @@ import {
 	object_keys,
 } from './utils.js';
 import { get_async_track_result } from '../../../utils/async.js';
+import { get_track_async_script_id } from '../../../utils/track-async-serialization.js';
+import * as devalue from 'devalue';
+import { hydrating } from './hydration.js';
 
 const FLUSH_MICROTASK = 0;
 const FLUSH_SYNC = 1;
@@ -527,9 +530,10 @@ export function track(v, get, set, b) {
 /**
  * @param {any} fn
  * @param {Block} b
+ * @param {string} hash - Unique hash for SSR serialization/hydration
  * @returns {Tracked | void}
  */
-export function track_async(fn, b) {
+export function track_async(fn, b, hash) {
 	if (is_ripple_object(fn)) {
 		return fn;
 	}
@@ -543,6 +547,28 @@ export function track_async(fn, b) {
 		throw new TypeError(
 			'trackAsync() only accepts function arguments that return a promise or an object with a promise property',
 		);
+	}
+
+	// During hydration, attempt to read serialized data from SSR
+	if (hydrating) {
+		var script_id = get_track_async_script_id(hash);
+		var script_el = document.getElementById(script_id);
+		if (script_el) {
+			try {
+				var raw = JSON.parse(/** @type {string} */ (script_el.textContent));
+				var result = devalue.parse(raw.payload);
+				script_el.remove();
+
+				if (result.ok) {
+					var t_hydrated = tracked(result.value, target_block);
+					return t_hydrated;
+				}
+				// TODO: error payloads will be supported once streaming SSR is implemented
+			} catch (_e) {
+				// Hydration failed — fall through to normal trackAsync
+			}
+			script_el.remove();
+		}
 	}
 
 	var t = tracked(SUSPENSE_PENDING, target_block);

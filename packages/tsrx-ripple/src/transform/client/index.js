@@ -622,6 +622,7 @@ const visitors = {
 				call_args = [
 					/** @type {AST.Expression} */ (context.visit(node.arguments[0])),
 					b.id('__block'),
+					b.literal(node.metadata.hash),
 				];
 			} else {
 				call_args = /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([

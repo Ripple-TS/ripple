@@ -327,7 +327,7 @@ export function MixedControlFlowAsyncPending() {
 function AsyncRow({ label }) {
 	_$_.push_component();
 
-	let lazy_3 = _$_.track_async(() => Promise.resolve(label));
+	let lazy_3 = _$_.track_async(() => Promise.resolve(label), '7a63d7bc');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');

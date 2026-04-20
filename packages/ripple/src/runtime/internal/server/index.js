@@ -34,6 +34,8 @@ import {
 	is_tag_valid_with_ancestor,
 } from '../../../html-tree-validation.js';
 import { get_async_track_result } from '../../../utils/async.js';
+import { get_track_async_script_id } from '../../../utils/track-async-serialization.js';
+import * as devalue from 'devalue';
 import {
 	cancel_async_operations,
 	component_block,
@@ -674,6 +676,12 @@ export function output_push(str) {
 	/** @type {Block} */ (active_block).o.push(str);
 }
 
+/** @returns {(str: string) => void} */
+export function get_output_push() {
+	const block = /** @type {Block} */ (active_block);
+	return (str) => block.o.push(str);
+}
+
 /**
  * @param {Output['target']} target
  */
@@ -1104,6 +1112,24 @@ export function track(v, get, set) {
 }
 
 /**
+ * Serializes a resolved trackAsync result as a script tag for hydration.
+ * @param {(str: string) => void} push_fn - The output push function captured at call time
+ * @param {string} hash - The unique hash for this trackAsync call
+ * @param {any} value - The resolved value
+ */
+function serialize_track_async_result(push_fn, hash, value) {
+	var script_id = get_track_async_script_id(hash);
+	var payload = devalue.stringify({ ok: true, value: value });
+	push_fn(
+		'<script id="' +
+			script_id +
+			'" type="application/json">' +
+			JSON.stringify({ v: 1, encoding: 'devalue@5.7', payload: payload }) +
+			'</script>',
+	);
+}
+
+/**
  * Runs the async tracked function, handling sync results, async results,
  * and chained cases where fn() reads a pending dependency.
  * @param {Tracked} t
@@ -1191,6 +1217,9 @@ function run_track_async(t, fn, block, dr, dj) {
 	if (async_result === null) {
 		// Sync result
 		update_tracked_value_clock(t, result);
+		if (t.th && t.tp) {
+			serialize_track_async_result(t.tp, t.th, result);
+		}
 		if (dr) {
 			dr(result);
 		}
@@ -1207,6 +1236,9 @@ function run_track_async(t, fn, block, dr, dj) {
 	async_result.promise.then(
 		(resolved) => {
 			update_tracked_value_clock(t, resolved);
+			if (t.th && t.tp) {
+				serialize_track_async_result(t.tp, t.th, resolved);
+			}
 			if (dr) {
 				dr(resolved);
 			}
@@ -1223,9 +1255,10 @@ function run_track_async(t, fn, block, dr, dj) {
 
 /**
  * @param {any} v
+ * @param {string} hash - Unique hash for SSR serialization/hydration
  * @returns {Tracked | void}
  */
-export function track_async(v) {
+export function track_async(v, hash) {
 	if (is_ripple_object(v)) {
 		return v;
 	}
@@ -1237,6 +1270,10 @@ export function track_async(v) {
 	}
 
 	var t = tracked(SUSPENSE_PENDING);
+
+	// Store hash and output push function for serialization on resolve
+	t.th = hash;
+	t.tp = get_output_push();
 	var block = /** @type {Block} */ (active_block);
 	run_track_async(t, v, block, null, null);
 	return t;

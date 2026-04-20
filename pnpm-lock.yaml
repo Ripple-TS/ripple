@@ -94,8 +94,8 @@ catalogs:
       specifier: ^2.8.4
       version: 2.8.4
     devalue:
-      specifier: ^5.6.3
-      version: 5.6.3
+      specifier: ^5.7.1
+      version: 5.7.1
     eslint:
       specifier: ^10.2.1
       version: 10.2.1
@@ -545,7 +545,7 @@ importers:
         version: 2.1.1
       devalue:
         specifier: catalog:default
-        version: 5.6.3
+        version: 5.7.1
       esm-env:
         specifier: catalog:default
         version: 1.2.2
@@ -3133,6 +3133,9 @@ packages:
 
   devalue@5.6.3:
     resolution: {integrity: sha512-nc7XjUU/2Lb+SvEFVGcWLiKkzfw8+qHI7zn8WYXKkLMgfGSHbgCEaR6bJpev8Cm6Rmrb19Gfd/tZvGqx9is3wg==}
+
+  devalue@5.7.1:
+    resolution: {integrity: sha512-MUbZ586EgQqdRnC4yDrlod3BEdyvE4TapGYHMW2CiaW+KkkFmWEFqBUaLltEZCGi0iFXCEjRF0OjF0DV2QHjOA==}
 
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
@@ -7882,6 +7885,8 @@ snapshots:
   detect-libc@2.1.2: {}
 
   devalue@5.6.3: {}
+
+  devalue@5.7.1: {}
 
   devlop@1.1.0:
     dependencies:
