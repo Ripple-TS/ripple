@@ -113,6 +113,80 @@ component CompositeRefApp() {
 	/>
 }
 
+// ── {ref expr} on composite components forwards through `props.ref` ──
+// Solid's spread runtime applies `props.ref` automatically when the child
+// spreads `{...props}` onto a DOM element, so `{ref fn}` on a composite
+// travels down without any explicit plumbing in the child.
+
+let spread_ref_captured: HTMLInputElement | null = null;
+
+component SpreadRefChild(props: { type: string }) {
+	<input {...props} />
+}
+
+component SpreadRefApp() {
+	function onMount(node: HTMLInputElement) {
+		spread_ref_captured = node;
+	}
+	<SpreadRefChild type="text" {ref onMount} />
+}
+
+// ── Multiple {ref ...} on the same DOM element ──
+// The compiler collects them into `ref={[a, b]}`; Solid's applyRef
+// iterates array refs and invokes each with the element.
+
+let multi_dom_a: HTMLInputElement | null = null;
+let multi_dom_b: HTMLInputElement | null = null;
+
+component MultiDomRefApp() {
+	function refA(node: HTMLInputElement) {
+		multi_dom_a = node;
+	}
+	function refB(node: HTMLInputElement) {
+		multi_dom_b = node;
+	}
+	<input type="text" {ref refA} {ref refB} />
+}
+
+// ── Multiple {ref ...} on the same composite component ──
+// Each ref sees the same underlying DOM node once the child spreads props.
+
+let multi_comp_a: HTMLInputElement | null = null;
+let multi_comp_b: HTMLInputElement | null = null;
+let multi_comp_c: HTMLInputElement | null = null;
+
+component MultiCompRefApp() {
+	function refA(node: HTMLInputElement) {
+		multi_comp_a = node;
+	}
+	function refB(node: HTMLInputElement) {
+		multi_comp_b = node;
+	}
+	function refC(node: HTMLInputElement) {
+		multi_comp_c = node;
+	}
+	<SpreadRefChild type="text" {ref refA} {ref refB} {ref refC} />
+}
+
+// ── Deep ref propagation through nested composite components ──
+
+let deep_ref_captured: HTMLInputElement | null = null;
+
+component DeepInner(props: { type: string }) {
+	<input {...props} />
+}
+
+component DeepOuter(props: { type: string }) {
+	<DeepInner {...props} />
+}
+
+component DeepRefApp() {
+	function onMount(node: HTMLInputElement) {
+		deep_ref_captured = node;
+	}
+	<DeepOuter type="text" {ref onMount} />
+}
+
 // ── If-statement with reactivity ──
 
 component IfReactiveApp() {
@@ -605,6 +679,44 @@ describe('tsrx-solid runtime', () => {
 		await render(CompositeRefApp);
 		expect(composite_ref_captured).toBeInstanceOf(HTMLInputElement);
 		expect(composite_ref_captured!.type).toBe('text');
+	});
+
+	it(
+		'{ref expr} on a composite component forwards through {...props} to the DOM element',
+		async () => {
+			spread_ref_captured = null;
+			await render(SpreadRefApp);
+			expect(spread_ref_captured).toBeInstanceOf(HTMLInputElement);
+			expect(spread_ref_captured!.type).toBe('text');
+		},
+	);
+
+	it('supports multiple {ref ...} on the same DOM element', async () => {
+		multi_dom_a = null;
+		multi_dom_b = null;
+		await render(MultiDomRefApp);
+		expect(multi_dom_a).toBeInstanceOf(HTMLInputElement);
+		expect(multi_dom_b).toBeInstanceOf(HTMLInputElement);
+		expect(multi_dom_a).toBe(multi_dom_b);
+	});
+
+	it('supports multiple {ref ...} on the same composite component', async () => {
+		multi_comp_a = null;
+		multi_comp_b = null;
+		multi_comp_c = null;
+		await render(MultiCompRefApp);
+		expect(multi_comp_a).toBeInstanceOf(HTMLInputElement);
+		expect(multi_comp_b).toBeInstanceOf(HTMLInputElement);
+		expect(multi_comp_c).toBeInstanceOf(HTMLInputElement);
+		expect(multi_comp_a).toBe(multi_comp_b);
+		expect(multi_comp_b).toBe(multi_comp_c);
+	});
+
+	it('{ref expr} propagates through nested composite components', async () => {
+		deep_ref_captured = null;
+		await render(DeepRefApp);
+		expect(deep_ref_captured).toBeInstanceOf(HTMLInputElement);
+		expect(deep_ref_captured!.type).toBe('text');
 	});
 
 	// ── Reactive control flow: if ──

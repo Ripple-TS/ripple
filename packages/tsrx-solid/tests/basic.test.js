@@ -55,7 +55,7 @@ describe('@tsrx/solid basic', () => {
 			expect(code).not.toContain('className');
 		});
 
-		it('{ref expr} compiles to a ref callback', () => {
+		it('{ref expr} on a DOM element compiles to ref={expr}', () => {
 			const { code } = compile(
 				`component App() {
 					let el;
@@ -63,7 +63,66 @@ describe('@tsrx/solid basic', () => {
 				}`,
 				'App.tsrx',
 			);
-			expect(code).toMatch(/ref=\{\(__ref_el\) => el = __ref_el\}/);
+			// Pass the argument through unchanged; Solid's JSX transform assigns
+			// mutable-variable identifiers and invokes function values.
+			expect(code).toMatch(/ref=\{el\}/);
+			expect(code).not.toContain('__ref_el');
+		});
+
+		it('{ref fn} on a DOM element passes the function through', () => {
+			const { code } = compile(
+				`component App() {
+					function divRef(node: HTMLDivElement) {}
+					<div {ref divRef} />
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toMatch(/ref=\{divRef\}/);
+		});
+
+		it('{ref expr} on a composite component compiles to ref={expr}', () => {
+			const { code } = compile(
+				`component Child(props) {
+					<input {...props} />
+				}
+
+				component App() {
+					function childRef(node: HTMLInputElement) {}
+					<Child {ref childRef} />
+				}`,
+				'App.tsrx',
+			);
+			// Solid passes `ref` as a regular prop; when the child spreads
+			// `{...props}` onto a DOM element, Solid's spread runtime invokes
+			// `props.ref` with the node automatically.
+			expect(code).toMatch(/<Child ref=\{childRef\}/);
+		});
+
+		it('multiple {ref ...} on the same DOM element compile to a ref array', () => {
+			const { code } = compile(
+				`component App() {
+					function a(node: HTMLInputElement) {}
+					function b(node: HTMLInputElement) {}
+					<input {ref a} {ref b} />
+				}`,
+				'App.tsrx',
+			);
+			// Solid's ref runtime iterates array refs via applyRef, so every
+			// entry fires with the same element.
+			expect(code).toMatch(/ref=\{\[a,\s*b\]\}/);
+		});
+
+		it('multiple {ref ...} on a composite component compile to a ref array', () => {
+			const { code } = compile(
+				`component App() {
+					function a(node: HTMLInputElement) {}
+					function b(node: HTMLInputElement) {}
+					function c(node: HTMLInputElement) {}
+					<Child {ref a} {ref b} {ref c} />
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toMatch(/<Child ref=\{\[a,\s*b,\s*c\]\}/);
 		});
 
 		it('{text expr} coerces null/undefined to empty string', () => {

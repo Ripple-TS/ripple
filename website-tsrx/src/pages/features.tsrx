@@ -147,6 +147,35 @@ const SHORTHAND_HTML = [
 	'<span class="ln">5</span> <span class="tag">&lt;</span><span class="el">Input</span> <span class="tbr">{</span><span class="prop">value</span><span class="tbr">}</span> <span class="tbr">{</span><span class="prop">onChange</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
 ].join('\n');
 
+const REFS_HTML = [
+	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">AutoFocus</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 2</span>   <span class="kw">let</span> <span class="prop">input</span>: <span class="type">HTMLInputElement</span> | <span class="type">undefined</span>;',
+	'<span class="ln"> 3</span>',
+	'<span class="ln"> 4</span>   <span class="cmt">// {ref expr} — mutable variable assignment (Solid/Ripple/React)</span>',
+	'<span class="ln"> 5</span>   <span class="tag">&lt;</span><span class="el">input</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="prop">input</span><span class="tbr">}</span> <span class="attr">type</span>=<span class="str">"text"</span> <span class="tag">/&gt;</span>',
+	'<span class="ln"> 6</span>',
+	'<span class="ln"> 7</span>   <span class="cmt">// Or as a callback that receives the DOM node</span>',
+	'<span class="ln"> 8</span>   <span class="tag">&lt;</span><span class="el">input</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="br">(</span><span class="prop">node</span><span class="br">)</span> =&gt; <span class="prop">node</span>.<span class="fn">focus</span><span class="br">(</span><span class="br">)</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
+	'<span class="ln"> 9</span> <span class="br">}</span>',
+].join('\n');
+
+const REFS_COMPOSITE_HTML = [
+	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">TextField</span><span class="br">(</span><span class="prop">props</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 2</span>   <span class="cmt">// Spreading props forwards the ref onto the underlying DOM element.</span>',
+	'<span class="ln"> 3</span>   <span class="tag">&lt;</span><span class="el">input</span> <span class="tbr">{</span>...<span class="prop">props</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
+	'<span class="ln"> 4</span> <span class="br">}</span>',
+	'<span class="ln"> 5</span>',
+	'<span class="ln"> 6</span> <span class="kw">component</span> <span class="fn">Form</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 7</span>   <span class="kw">let</span> <span class="prop">field</span>: <span class="type">HTMLInputElement</span> | <span class="type">undefined</span>;',
+	'<span class="ln"> 8</span>   <span class="kw">function</span> <span class="fn">logNode</span><span class="br">(</span><span class="prop">node</span>: <span class="type">HTMLInputElement</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 9</span>     <span class="fn">console</span>.<span class="fn">log</span><span class="br">(</span><span class="prop">node</span><span class="br">)</span>;',
+	'<span class="ln">10</span>   <span class="br">}</span>',
+	'<span class="ln">11</span>',
+	'<span class="ln">12</span>   <span class="cmt">// Multiple {ref ...} on the same element all fire.</span>',
+	'<span class="ln">13</span>   <span class="tag">&lt;</span><span class="el">TextField</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="prop">field</span><span class="tbr">}</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="prop">logNode</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
+	'<span class="ln">14</span> <span class="br">}</span>',
+].join('\n');
+
 const SCOPING_HTML = [
 	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">App</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln"> 2</span>   <span class="kw">const</span> <span class="prop">name</span> = <span class="str">\'World\'</span>;',
@@ -271,6 +300,7 @@ const NAV_ITEMS = [
 	{ id: 'raw-html', label: 'Raw HTML' },
 	{ id: 'lazy-destructuring', label: 'Lazy destructuring' },
 	{ id: 'prop-shorthands', label: 'Prop shorthands' },
+	{ id: 'refs', label: 'DOM refs' },
 	{ id: 'scoping', label: 'Lexical scoping' },
 	{ id: 'children', label: 'Children' },
 	{ id: 'if', label: 'Conditional rendering' },
@@ -506,6 +536,43 @@ export component FeaturesPage() {
 						<pre class="code-block">
 							<code>{html SHORTHAND_HTML}</code>
 						</pre>
+					</section>
+
+					<section class="doc-section" id="refs">
+						<h2 class="section-heading">{'DOM refs'}</h2>
+						<p class="section-body">
+							{'Use the '}
+							<code class="inline-code">{'{ref expr}'}</code>
+							{' attribute to capture the underlying DOM element. '}
+							<code class="inline-code">{'expr'}</code>
+							{' can be a mutable '}
+							<code class="inline-code">{'let'}</code>
+							{' variable — the compiler targets assign the element to it — or a callback function, which is invoked with the element. Both forms work across the React, Solid, and Ripple targets.'}
+						</p>
+						<pre class="code-block">
+							<code>{html REFS_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'Refs also work on composite components. The child receives the ref as a regular prop and can apply it to any DOM element — typically by spreading '}
+							<code class="inline-code">{'{...props}'}</code>
+							{', which lets the target framework wire the ref through automatically. You can place '}
+							<code class="inline-code">{'{ref ...}'}</code>
+							{' multiple times on the same element or component; every callback fires with the same element once it mounts.'}
+						</p>
+						<pre class="code-block">
+							<code>{html REFS_COMPOSITE_HTML}</code>
+						</pre>
+						<p class="section-body muted">
+							{'Target details: React forwards refs directly via the '}
+							<code class="inline-code">{'ref'}</code>
+							{' prop. Solid uses its built-in ref prop on composites (and '}
+							<code class="inline-code">{'applyRef'}</code>
+							{' for array refs so multiple callbacks fire). Ripple uses a per-ref '}
+							<code class="inline-code">{'Symbol'}</code>
+							{' key so refs survive '}
+							<code class="inline-code">{'{...rest}'}</code>
+							{' spreading without colliding with user-named props.'}
+						</p>
 					</section>
 
 					<section class="doc-section" id="scoping">

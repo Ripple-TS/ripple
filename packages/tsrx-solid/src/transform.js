@@ -959,7 +959,12 @@ function to_jsx_element(node, transform_context) {
 	}
 
 	const name = identifier_to_jsx_name(node.id);
-	const attributes = (node.attributes || []).map(to_jsx_attribute);
+	const is_composite = is_composite_element(node);
+	const attributes = transform_element_attributes(
+		node.attributes || [],
+		is_composite,
+		transform_context,
+	);
 
 	// `{html expr}` children become a Solid `innerHTML={expr}` attribute on
 	// the parent element. Only one `{html ...}` may appear per element, and
@@ -1049,7 +1054,9 @@ function create_element_children(children, transform_context) {
 
 /**
  * Attribute transform. Unlike React, Solid uses the native `class` attribute
- * (not `className`). `{ref expr}` compiles to `ref={(el) => (expr = el)}`.
+ * (not `className`). `RefAttribute` and `SpreadAttribute` nodes are handled
+ * at the element level by {@link transform_element_attributes} so this
+ * function only sees plain attributes.
  *
  * @param {any} attr
  * @returns {any}
@@ -1057,43 +1064,6 @@ function create_element_children(children, transform_context) {
 function to_jsx_attribute(attr) {
 	if (!attr) return attr;
 	if (attr.type === 'JSXAttribute' || attr.type === 'JSXSpreadAttribute') return attr;
-	if (attr.type === 'SpreadAttribute') {
-		return set_loc(
-			/** @type {any} */ ({
-				type: 'JSXSpreadAttribute',
-				argument: attr.argument,
-			}),
-			attr,
-		);
-	}
-	if (attr.type === 'RefAttribute') {
-		// `{ref expr}` → `ref={(__ref_el) => (expr = __ref_el)}`.
-		// Use a mangled param name so it can't shadow a user binding named `el`.
-		const el_param = create_generated_identifier('__ref_el');
-		const assignment = /** @type {any} */ ({
-			type: 'AssignmentExpression',
-			operator: '=',
-			left: attr.argument,
-			right: clone_identifier(el_param),
-			metadata: { path: [] },
-		});
-		const arrow = /** @type {any} */ ({
-			type: 'ArrowFunctionExpression',
-			params: [el_param],
-			body: assignment,
-			async: false,
-			generator: false,
-			expression: true,
-			metadata: { path: [] },
-		});
-		return /** @type {any} */ ({
-			type: 'JSXAttribute',
-			name: { type: 'JSXIdentifier', name: 'ref', metadata: { path: [] } },
-			value: to_jsx_expression_container(arrow),
-			shorthand: false,
-			metadata: { path: [] },
-		});
-	}
 
 	const attr_name = attr.name;
 	const name =
@@ -1129,6 +1099,113 @@ function is_dynamic_element_id(id) {
 	if (id.type === 'Identifier') return !!id.tracked;
 	if (id.type === 'MemberExpression') return is_dynamic_element_id(id.object);
 	return false;
+}
+
+/**
+ * Detect whether an `Element` node represents a composite component (tag
+ * name starts with an uppercase letter, or is a member expression like
+ * `Namespace.Component`).
+ *
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_composite_element(node) {
+	const id = node?.id;
+	if (!id) return false;
+	if (id.type === 'Identifier') return /^[A-Z]/.test(id.name);
+	if (id.type === 'MemberExpression') return true;
+	return false;
+}
+
+/**
+ * Transform a list of raw attributes into JSX attributes, lifting
+ * `{ref expr}` handling to the element level.
+ *
+ * `{ref expr}` compiles to `ref={expr}` on both DOM elements and composite
+ * components. On DOM elements, Solid's JSX transform takes over: if `expr`
+ * is a mutable `let`-declared identifier it assigns the element to the
+ * variable; if `expr` is a function (or other callable) it invokes it
+ * with the element. On composite components, `ref` is passed through as a
+ * regular prop; the receiving child can consume it explicitly as
+ * `props.ref` or spread `{...props}` onto a DOM element, where Solid's
+ * spread runtime automatically applies the `ref` entry. Solid's merge
+ * proxies drop Symbol keys, so the Symbol-based forwarding used by
+ * Ripple doesn't port; the Solid target relies on its native `ref` prop
+ * support instead.
+ *
+ * Multiple `{ref ...}` attributes on the same element are collected into
+ * a single `ref={[a, b, ...]}` array so every callback fires. Solid's
+ * ref/spread runtime (`applyRef`) already iterates array refs, so this
+ * works on both DOM elements and composite components (when the child
+ * spreads `props` or forwards `props.ref`).
+ *
+ * @param {any[]} raw_attrs
+ * @param {boolean} is_composite
+ * @param {TransformContext} transform_context
+ * @returns {any[]}
+ */
+function transform_element_attributes(raw_attrs, is_composite, transform_context) {
+	void is_composite;
+	void transform_context;
+	/** @type {any[]} */
+	const result = [];
+	/** @type {any[]} */
+	const ref_attrs = [];
+
+	for (const attr of raw_attrs) {
+		if (!attr) continue;
+		if (attr.type === 'RefAttribute') {
+			ref_attrs.push(attr);
+			continue;
+		}
+		if (attr.type === 'SpreadAttribute') {
+			result.push(
+				set_loc(
+					/** @type {any} */ ({
+						type: 'JSXSpreadAttribute',
+						argument: attr.argument,
+					}),
+					attr,
+				),
+			);
+			continue;
+		}
+		result.push(to_jsx_attribute(attr));
+	}
+
+	if (ref_attrs.length === 1) {
+		result.push(build_ref_attribute(ref_attrs[0].argument, ref_attrs[0]));
+	} else if (ref_attrs.length > 1) {
+		const array_expr = /** @type {any} */ ({
+			type: 'ArrayExpression',
+			elements: ref_attrs.map((attr) => attr.argument),
+			metadata: { path: [] },
+		});
+		result.push(build_ref_attribute(array_expr, ref_attrs[0]));
+	}
+
+	return result;
+}
+
+/**
+ * Build a `ref={expr}` JSX attribute, passing the expression through
+ * unchanged so Solid's JSX transform can apply its normal ref semantics.
+ *
+ * @param {any} argument
+ * @param {any} source_node
+ * @returns {any}
+ */
+function build_ref_attribute(argument, source_node) {
+	return set_loc(
+		/** @type {any} */ ({
+			type: 'JSXAttribute',
+			name: { type: 'JSXIdentifier', name: 'ref', metadata: { path: [] } },
+			value: to_jsx_expression_container(argument),
+			shorthand: false,
+			metadata: { path: [] },
+		}),
+		source_node,
+	);
 }
 
 /**
@@ -1200,7 +1277,12 @@ function dynamic_element_to_jsx_child(node, transform_context) {
  * @returns {any}
  */
 function create_dynamic_jsx_element(dynamic_id, node, transform_context) {
-	const attributes = (node.attributes || []).map(to_jsx_attribute);
+	const is_composite = is_composite_element(node);
+	const attributes = transform_element_attributes(
+		node.attributes || [],
+		is_composite,
+		transform_context,
+	);
 	const selfClosing = !!node.selfClosing;
 	const children = create_element_children(node.children || [], transform_context);
 	const name = identifier_to_jsx_name(clone_identifier(dynamic_id));
