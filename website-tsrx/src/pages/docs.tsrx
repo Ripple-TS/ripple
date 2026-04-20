@@ -241,7 +241,7 @@ export component DocsPage() {
 		<div class="page-shell">
 			<header class="masthead">
 				<a class="brand-lockup" href="/" aria-label="TSRX home">
-					<img class="header-logo" src="/images/tsrx-mark.svg?v=3" alt="TSRX logo" />
+					<img class="header-logo" src="/images/tsrx-mark.svg?v=4" alt="TSRX logo" />
 				</a>
 				<nav class="masthead-nav">
 					<a href="/getting-started">{'Getting Started'}</a>

@@ -1,6 +1,6 @@
 export component BrandLogo() {
 	<div class="brand-logo">
-		<img class="logo-mark" src="/images/tsrx-mark.svg?v=3" alt="TSRX logo" aria-label="TSRX logo" />
+		<img class="logo-mark" src="/images/tsrx-mark.svg?v=4" alt="TSRX logo" aria-label="TSRX logo" />
 	</div>
 
 	<style>

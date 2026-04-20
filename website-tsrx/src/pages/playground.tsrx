@@ -12,7 +12,7 @@ export component PlaygroundPage() {
 	<div class="demo-page">
 		<header class="demo-nav">
 			<a class="brand-lockup" href="/" aria-label="TSRX home">
-				<img class="header-logo" src="/images/tsrx-mark.svg?v=3" alt="TSRX logo" />
+				<img class="header-logo" src="/images/tsrx-mark.svg?v=4" alt="TSRX logo" />
 			</a>
 			<nav class="nav-links">
 				<a href="/getting-started">{'Getting Started'}</a>
@@ -54,8 +54,8 @@ export component PlaygroundPage() {
 				sans-serif;
 			color: #1a1640;
 			background:
-				radial-gradient(circle at top, rgba(146, 92, 255, 0.14), transparent 15%),
-				radial-gradient(circle at 80% 10%, rgba(111, 0, 255, 0.1), transparent 15%),
+				radial-gradient(circle at top, rgba(146, 92, 255, 0.14), transparent 28%),
+				radial-gradient(circle at 80% 10%, rgba(111, 0, 255, 0.1), transparent 25%),
 				linear-gradient(180deg, #ffffff 0%, #f6f3ff 46%, #f2f4fb 100%);
 			min-height: 100vh;
 			overflow-x: hidden;
