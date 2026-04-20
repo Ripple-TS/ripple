@@ -158,6 +158,48 @@ describe('@tsrx/react basic', () => {
 		expect(css.code).toContain(`.div.${css.hash}`);
 	});
 
+	it('transforms #style member expressions into scoped class strings', () => {
+		const { code, css } = compile(
+			`component Badge({ className }: { className?: string }) {
+				<span class={['badge', className ?? '']}>{'New'}</span>
+
+				<style>
+					.badge { padding: 0.25rem 0.5rem; }
+				</style>
+			}
+
+			export component App() {
+				<Badge className={#style.highlight} />
+
+				<style>
+					.highlight { background: green; }
+				</style>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(css).not.toBeNull();
+		const app_hash = css.hash.split(' ').find((h) => code.includes(`"${h} highlight"`));
+		expect(app_hash).toBeTruthy();
+		expect(code).toContain(`className="${app_hash} highlight"`);
+	});
+
+	it('transforms #style bracket notation into scoped class strings', () => {
+		const { code, css } = compile(
+			`export component App() {
+				<Child cls={#style['accent']} />
+
+				<style>
+					.accent { color: red; }
+				</style>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(css).not.toBeNull();
+		expect(code).toContain('accent"');
+	});
+
 	it('renders component-body if statements as React expressions', () => {
 		const { code } = compile(
 			`export component App() {

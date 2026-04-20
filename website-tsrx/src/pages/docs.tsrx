@@ -165,7 +165,7 @@ const SCOPED_STYLES_HTML = [
 
 const STYLE_COMPOSITION_HTML = [
 	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">Badge</span><span class="br">(</span><span class="br">{</span> <span class="prop">className</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">className</span>?: <span class="type">string</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln"> 2</span>   <span class="tag">&lt;</span><span class="el">span</span> <span class="attr">class</span>=<span class="tbr">{</span><span class="br">[</span><span class="str">\'badge\'</span>, <span class="prop">className</span> ?? <span class="str">\'\' </span><span class="br">]</span><span class="tbr">}</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 2</span>   <span class="tag">&lt;</span><span class="el">span</span> <span class="attr">class</span>=<span class="tbr">{</span><span class="str">`badge ${</span><span class="prop">className</span> ?? <span class="str">\'\'</span><span class="str">}`</span><span class="tbr">}</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 3</span>     <span class="tbr">{</span><span class="str">\'New\'</span><span class="tbr">}</span>',
 	'<span class="ln"> 4</span>   <span class="tag">&lt;/</span><span class="el">span</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 5</span>',

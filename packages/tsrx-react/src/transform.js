@@ -14,6 +14,7 @@ import { renderStylesheets, setLocation } from '@tsrx/core';
  *   helper_state: { base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] } | null,
  *   available_bindings: Map<string, AST.Identifier>,
  *   lazy_next_id: number,
+ *   current_css_hash: string | null,
  * }} TransformContext
  */
 
@@ -49,6 +50,7 @@ export function transform(ast, source, filename) {
 		helper_state: null,
 		available_bindings: new Map(),
 		lazy_next_id: 0,
+		current_css_hash: null,
 	};
 
 	walk(/** @type {any} */ (ast), transform_context, {
@@ -74,7 +76,9 @@ export function transform(ast, source, filename) {
 			const helper_state = create_helper_state(as_any.id?.name || 'Component');
 			const saved_helper_state = state.helper_state;
 			const saved_bindings = state.available_bindings;
+			const saved_css_hash = state.current_css_hash;
 			state.helper_state = helper_state;
+			state.current_css_hash = as_any.css ? as_any.css.hash : null;
 
 			// Pre-collect component body bindings (params + top-level statements)
 			// so that Element children processed during the bottom-up walk can see
@@ -97,6 +101,7 @@ export function transform(ast, source, filename) {
 			// Restore context
 			state.helper_state = saved_helper_state;
 			state.available_bindings = saved_bindings;
+			state.current_css_hash = saved_css_hash;
 
 			return /** @type {any} */ (component_to_function_declaration(inner, state, helper_state));
 		},
@@ -126,6 +131,16 @@ export function transform(ast, source, filename) {
 		TSRXExpression(node, { next }) {
 			const inner = /** @type {any} */ (next() ?? node);
 			return /** @type {any} */ (to_jsx_expression_container(inner.expression, inner));
+		},
+
+		MemberExpression(node, { next, state }) {
+			const as_any = /** @type {any} */ (node);
+			if (as_any.object && as_any.object.type === 'StyleIdentifier' && state.current_css_hash) {
+				const class_name = as_any.computed ? as_any.property.value : as_any.property.name;
+				const value = `${state.current_css_hash} ${class_name}`;
+				return /** @type {any} */ ({ type: 'Literal', value, raw: JSON.stringify(value) });
+			}
+			return next();
 		},
 	});
 
