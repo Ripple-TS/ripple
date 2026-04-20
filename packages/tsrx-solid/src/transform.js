@@ -759,10 +759,41 @@ function component_to_function_declaration(component, transform_context) {
 
 	const lazy_bindings = collect_lazy_bindings_from_component(params, body, transform_context);
 
+	// Detect top-level early-return pattern: `if (cond) { return; }`.
+	// Solid components run their body once at setup, so an early `return` would
+	// make subsequent statements and JSX permanently inert. To preserve
+	// React-like "stop rendering the rest when cond becomes true" semantics,
+	// lift everything after the early `if` (plus any JSX that appears before
+	// it, since that too must disappear when cond flips) into a
+	// `<Show when={!cond}>` whose function-children re-runs when cond changes.
+	const early_idx = body.findIndex(is_early_return_if);
+	/** @type {any[]} */
+	let effective_body = body;
+	if (early_idx !== -1) {
+		const early_if = /** @type {any} */ (body[early_idx]);
+		const before = body.slice(0, early_idx);
+		const after = body.slice(early_idx + 1);
+		/** @type {any[]} */
+		const before_non_jsx = [];
+		/** @type {any[]} */
+		const before_jsx = [];
+		for (const child of before) {
+			if (is_jsx_child(child)) before_jsx.push(child);
+			else before_non_jsx.push(child);
+		}
+		const lifted = [...before_jsx, ...after];
+		if (lifted.length > 0) {
+			transform_context.needs_show = true;
+			const show_body = body_to_jsx_child(lifted, transform_context);
+			const show_element = build_show_element(negate_expression(early_if.test), show_body, null);
+			effective_body = [...before_non_jsx, show_element];
+		}
+	}
+
 	const statements = [];
 	const render_nodes = [];
 
-	for (const child of body) {
+	for (const child of effective_body) {
 		if (is_jsx_child(child)) {
 			render_nodes.push(to_jsx_child(child, transform_context));
 		} else {
@@ -880,31 +911,190 @@ function to_jsx_child(node, transform_context) {
 
 /**
  * Convert a list of body nodes to a Solid JSX child.
- * If there is exactly one renderable JSX child, return it directly.
- * Otherwise wrap in a fragment. Non-JSX statements inside a branch body
- * become part of an IIFE-style evaluation... but since Solid components
- * only run setup imperatively, non-JSX statements in a branch body
- * don't make sense — treat them as an error would be too strict for now,
- * so we skip non-JSX nodes silently and render only JSX.
+ *
+ * If the body is purely JSX, returns the JSX node (or fragment) directly.
+ *
+ * If the body contains non-JSX statements (declarations, throws, etc.), we
+ * must preserve them — they may declare signals, throw errors, or perform
+ * other branch-local setup that subsequent JSX depends on. We wrap them in
+ * an `ArrowFunctionExpression` whose block body is
+ *   `() => { ...statements; return <>...jsx</>; }`
+ * Callers are responsible for placing that arrow where Solid's runtime will
+ * actually call it:
+ *   - `<Show>` / `<Match>` children: invoked as function children via
+ *     {@link to_function_child} which ensures `length > 0` so Solid's
+ *     runtime calls them with a condition accessor.
+ *   - `<For>` / `<Errored fallback>`: the outer iteration/fallback arrow's
+ *     body is merged with the branch arrow's body via
+ *     {@link merge_branch_body_into_arrow}.
+ *   - Fallback props (`<Show fallback>`, `<Switch fallback>`,
+ *     `<Loading fallback>`): IIFE-wrapped via {@link iife_if_arrow}.
  *
  * @param {any[]} body_nodes
  * @param {TransformContext} transform_context
  * @returns {any}
  */
 function body_to_jsx_child(body_nodes, transform_context) {
+	/** @type {any[]} */
+	const statements = [];
+	/** @type {any[]} */
 	const children = [];
 	for (const child of body_nodes) {
 		if (is_jsx_child(child)) {
 			children.push(to_jsx_child(child, transform_context));
+		} else {
+			statements.push(child);
 		}
 	}
-	if (children.length === 0) return create_null_literal();
-	if (children.length === 1) {
-		const only = children[0];
-		if (only.type === 'JSXExpressionContainer') return only.expression;
-		return only;
+
+	if (statements.length === 0) {
+		if (children.length === 0) return create_null_literal();
+		if (children.length === 1) {
+			const only = children[0];
+			if (only.type === 'JSXExpressionContainer') return only.expression;
+			return only;
+		}
+		return build_return_expression(children);
 	}
-	return build_return_expression(children);
+
+	// Branch body has non-JSX statements: wrap everything in an arrow so the
+	// statements run when (and only when) the branch actually renders.
+	/** @type {any[]} */
+	const block_body = [...statements];
+	if (children.length > 0) {
+		block_body.push(
+			/** @type {any} */ ({
+				type: 'ReturnStatement',
+				argument: build_return_expression(children),
+				metadata: { path: [] },
+			}),
+		);
+	}
+
+	return /** @type {any} */ ({
+		type: 'ArrowFunctionExpression',
+		params: [],
+		body: {
+			type: 'BlockStatement',
+			body: block_body,
+			metadata: { path: [] },
+		},
+		async: false,
+		generator: false,
+		expression: false,
+		metadata: { path: [], is_branch_arrow: true },
+	});
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_branch_arrow(node) {
+	return (
+		node &&
+		node.type === 'ArrowFunctionExpression' &&
+		node.metadata &&
+		node.metadata.is_branch_arrow === true
+	);
+}
+
+/**
+ * Turn a branch arrow (`() => { ...; return jsx; }`) into a function child
+ * that Solid's `<Show>` / `<Match>` runtime will actually invoke. Those
+ * components only call `children` as a function when `children.length > 0`,
+ * so we give the arrow a single underscore-prefixed parameter that it
+ * ignores.
+ *
+ * If the input isn't a branch arrow, it's returned unchanged.
+ *
+ * @param {any} node
+ * @returns {any}
+ */
+function to_function_child(node) {
+	if (!is_branch_arrow(node)) return node;
+	return {
+		...node,
+		params: [create_generated_identifier('_')],
+	};
+}
+
+/**
+ * Inline a branch arrow's statements into an existing arrow (e.g. the
+ * `(item, i) => ...` passed to `<For>` or the `(err, reset) => ...` passed
+ * to `<Errored fallback>`). Returns the arrow with its body replaced by the
+ * merged block.
+ *
+ * @param {any} outer_arrow
+ * @param {any} branch_body
+ * @returns {any}
+ */
+function merge_branch_body_into_arrow(outer_arrow, branch_body) {
+	if (!is_branch_arrow(branch_body)) {
+		return { ...outer_arrow, body: branch_body, expression: true };
+	}
+	return {
+		...outer_arrow,
+		body: branch_body.body,
+		expression: false,
+	};
+}
+
+/**
+ * Detect the top-level early-return pattern `if (cond) { return; }` (or
+ * `if (cond) return;`) with no `else` branch.
+ *
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_early_return_if(node) {
+	if (!node || node.type !== 'IfStatement' || node.alternate) return false;
+	const consequent = node.consequent;
+	if (!consequent) return false;
+	if (consequent.type === 'ReturnStatement' && !consequent.argument) return true;
+	if (
+		consequent.type === 'BlockStatement' &&
+		consequent.body.length === 1 &&
+		consequent.body[0].type === 'ReturnStatement' &&
+		!consequent.body[0].argument
+	) {
+		return true;
+	}
+	return false;
+}
+
+/**
+ * Build a logical-negation (`!expr`) expression.
+ *
+ * @param {any} expr
+ * @returns {any}
+ */
+function negate_expression(expr) {
+	return {
+		type: 'UnaryExpression',
+		operator: '!',
+		prefix: true,
+		argument: expr,
+		metadata: { path: [] },
+	};
+}
+
+/**
+ * Wrap a branch arrow in an IIFE so it can be used as a prop value (e.g.
+ * `<Show fallback={...}>`). Returns non-arrow inputs unchanged.
+ *
+ * @param {any} node
+ * @returns {any}
+ */
+function iife_if_arrow(node) {
+	if (!is_branch_arrow(node)) return node;
+	return {
+		type: 'CallExpression',
+		callee: node,
+		arguments: [],
+		optional: false,
+		metadata: { path: [] },
+	};
 }
 
 /**
@@ -957,7 +1147,7 @@ function if_statement_to_jsx_child(node, transform_context) {
 					{
 						type: 'JSXAttribute',
 						name: { type: 'JSXIdentifier', name: 'fallback', metadata: { path: [] } },
-						value: to_jsx_expression_container(fallback),
+						value: to_jsx_expression_container(iife_if_arrow(fallback)),
 						metadata: { path: [] },
 					},
 				]
@@ -974,7 +1164,7 @@ function if_statement_to_jsx_child(node, transform_context) {
 					metadata: { path: [] },
 				},
 			],
-			[jsx_child_wrap(body_to_jsx_child(branch.body, transform_context))],
+			[jsx_child_wrap(to_function_child(body_to_jsx_child(branch.body, transform_context)))],
 		),
 	);
 
@@ -1029,11 +1219,11 @@ function build_show_element(test, children, fallback) {
 		attributes.push({
 			type: 'JSXAttribute',
 			name: { type: 'JSXIdentifier', name: 'fallback', metadata: { path: [] } },
-			value: to_jsx_expression_container(fallback),
+			value: to_jsx_expression_container(iife_if_arrow(fallback)),
 			metadata: { path: [] },
 		});
 	}
-	return create_jsx_element('Show', attributes, [jsx_child_wrap(children)]);
+	return create_jsx_element('Show', attributes, [jsx_child_wrap(to_function_child(children))]);
 }
 
 /**
@@ -1059,15 +1249,18 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 
 	const body_jsx = body_to_jsx_child(loop_body, transform_context);
 
-	const arrow = /** @type {any} */ ({
-		type: 'ArrowFunctionExpression',
-		params: loop_params,
-		body: body_jsx,
-		async: false,
-		generator: false,
-		expression: true,
-		metadata: { path: [] },
-	});
+	const arrow = merge_branch_body_into_arrow(
+		/** @type {any} */ ({
+			type: 'ArrowFunctionExpression',
+			params: loop_params,
+			body: null,
+			async: false,
+			generator: false,
+			expression: true,
+			metadata: { path: [] },
+		}),
+		body_jsx,
+	);
 
 	return create_jsx_element(
 		'For',
@@ -1134,7 +1327,7 @@ function switch_statement_to_jsx_child(node, transform_context) {
 						metadata: { path: [] },
 					},
 				],
-				[jsx_child_wrap(body_jsx)],
+				[jsx_child_wrap(to_function_child(body_jsx))],
 			),
 		);
 	}
@@ -1145,7 +1338,7 @@ function switch_statement_to_jsx_child(node, transform_context) {
 					{
 						type: 'JSXAttribute',
 						name: { type: 'JSXIdentifier', name: 'fallback', metadata: { path: [] } },
-						value: to_jsx_expression_container(fallback),
+						value: to_jsx_expression_container(iife_if_arrow(fallback)),
 						metadata: { path: [] },
 					},
 				]
@@ -1183,7 +1376,7 @@ function try_statement_to_jsx_child(node, transform_context) {
 
 	const try_body_nodes = node.block.body || [];
 	/** @type {any} */
-	let result = jsx_child_wrap(body_to_jsx_child(try_body_nodes, transform_context));
+	let result = jsx_child_wrap(iife_if_arrow(body_to_jsx_child(try_body_nodes, transform_context)));
 
 	if (pending) {
 		transform_context.needs_suspense = true;
@@ -1191,12 +1384,12 @@ function try_statement_to_jsx_child(node, transform_context) {
 		const fallback_content = body_to_jsx_child(pending_body_nodes, transform_context);
 
 		result = create_jsx_element(
-			'Suspense',
+			'Loading',
 			[
 				{
 					type: 'JSXAttribute',
 					name: { type: 'JSXIdentifier', name: 'fallback', metadata: { path: [] } },
-					value: to_jsx_expression_container(fallback_content),
+					value: to_jsx_expression_container(iife_if_arrow(fallback_content)),
 					metadata: { path: [] },
 				},
 			],
@@ -1216,18 +1409,21 @@ function try_statement_to_jsx_child(node, transform_context) {
 		const catch_body_nodes = handler.body.body || [];
 		const catch_jsx = body_to_jsx_child(catch_body_nodes, transform_context);
 
-		const fallback_fn = /** @type {any} */ ({
-			type: 'ArrowFunctionExpression',
-			params: catch_params,
-			body: catch_jsx,
-			async: false,
-			generator: false,
-			expression: true,
-			metadata: { path: [] },
-		});
+		const fallback_fn = merge_branch_body_into_arrow(
+			/** @type {any} */ ({
+				type: 'ArrowFunctionExpression',
+				params: catch_params,
+				body: null,
+				async: false,
+				generator: false,
+				expression: true,
+				metadata: { path: [] },
+			}),
+			catch_jsx,
+		);
 
 		result = create_jsx_element(
-			'ErrorBoundary',
+			'Errored',
 			[
 				{
 					type: 'JSXAttribute',
@@ -1300,8 +1496,8 @@ function inject_solid_imports(program, transform_context) {
 	if (transform_context.needs_for) needed.push('For');
 	if (transform_context.needs_switch) needed.push('Switch');
 	if (transform_context.needs_match) needed.push('Match');
-	if (transform_context.needs_error_boundary) needed.push('ErrorBoundary');
-	if (transform_context.needs_suspense) needed.push('Suspense');
+	if (transform_context.needs_error_boundary) needed.push('Errored');
+	if (transform_context.needs_suspense) needed.push('Loading');
 
 	if (needed.length === 0) return;
 

@@ -67,6 +67,19 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'tsrx-solid-runtime',
+					include: ['packages/vite-plugin-solid/tests/**/*.test.tsrx'],
+					environment: 'jsdom',
+					setupFiles: ['packages/vite-plugin-solid/tests/setup.js'],
+					globals: true,
+				},
+				plugins: [
+					(await import('./packages/vite-plugin-solid/src/index.js')).tsrxSolid(),
+					(await import('vite-plugin-solid')).default(),
+				],
+			},
+			{
+				test: {
 					name: 'prettier-plugin',
 					include: ['packages/prettier-plugin/src/*.test.js'],
 					environment: 'jsdom',

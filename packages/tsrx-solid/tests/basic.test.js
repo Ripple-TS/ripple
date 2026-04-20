@@ -151,7 +151,7 @@ describe('@tsrx/solid basic', () => {
 			).toThrow(/Solid TSRX does not support `key`/);
 		});
 
-		it('try/catch → <ErrorBoundary fallback={(err, reset) => ...}>', () => {
+		it('try/catch → <Errored fallback={(err, reset) => ...}>', () => {
 			const { code } = compile(
 				`component App() {
 					try {
@@ -162,11 +162,11 @@ describe('@tsrx/solid basic', () => {
 				}`,
 				'App.tsrx',
 			);
-			expect(code).toContain('<ErrorBoundary fallback={(err, reset) =>');
-			expect(code).toContain("import { ErrorBoundary } from 'solid-js'");
+			expect(code).toContain('<Errored fallback={(err, reset) =>');
+			expect(code).toContain("import { Errored } from 'solid-js'");
 		});
 
-		it('try/pending/catch → <ErrorBoundary><Suspense>...', () => {
+		it('try/pending/catch → <Errored><Loading>...', () => {
 			const { code } = compile(
 				`component App() {
 					try {
@@ -179,9 +179,9 @@ describe('@tsrx/solid basic', () => {
 				}`,
 				'App.tsrx',
 			);
-			expect(code).toContain('<ErrorBoundary');
-			expect(code).toContain('<Suspense fallback=');
-			expect(code).toMatch(/import \{[^}]*ErrorBoundary[^}]*Suspense[^}]*\} from 'solid-js'/);
+			expect(code).toContain('<Errored');
+			expect(code).toContain('<Loading fallback=');
+			expect(code).toMatch(/import \{[^}]*Errored[^}]*Loading[^}]*\} from 'solid-js'/);
 		});
 
 		it('switch statement → <Switch>/<Match> using ===', () => {

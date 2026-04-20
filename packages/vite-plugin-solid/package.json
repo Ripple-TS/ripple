@@ -26,8 +26,10 @@
     "vite": "*"
   },
   "devDependencies": {
+    "solid-js": "2.0.0-beta.7",
     "typescript": "catalog:default",
-    "vite": "catalog:default"
+    "vite": "catalog:default",
+    "vite-plugin-solid": "3.0.0-next.5"
   },
   "files": [
     "src",

@@ -1,6 +1,8 @@
 /** @import { Plugin } from 'vite' */
 
 import { readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { resolve as path_resolve, isAbsolute } from 'node:path';
 import { compile } from '@tsrx/solid';
 
 const TSRX_EXTENSION = '.tsrx';
@@ -26,6 +28,9 @@ export function tsrxSolid(_options = {}) {
 	/** @type {Map<string, string>} */
 	const css_cache = new Map();
 
+	/** @type {string} */
+	let root_dir = process.cwd();
+
 	/**
 	 * @param {string} id
 	 * @returns {boolean}
@@ -36,11 +41,22 @@ export function tsrxSolid(_options = {}) {
 	 * @param {string} id
 	 * @returns {string}
 	 */
-	const to_real_path = (id) => id.slice(0, -'.tsx'.length);
+	const to_real_path = (id) => {
+		const stripped = id.slice(0, -'.tsx'.length);
+		if (isAbsolute(stripped) && existsSync(stripped)) return stripped;
+		// Vitest sometimes strips the workspace root from ids; re-anchor them.
+		const re_anchored = path_resolve(root_dir, stripped.replace(/^\/+/, ''));
+		if (existsSync(re_anchored)) return re_anchored;
+		return stripped;
+	};
 
 	return {
 		name: '@tsrx/vite-plugin-solid',
 		enforce: 'pre',
+
+		configResolved(config) {
+			root_dir = config.root;
+		},
 
 		async resolveId(source, importer, options) {
 			// Intercept virtual CSS imports.
@@ -57,7 +73,12 @@ export function tsrxSolid(_options = {}) {
 				if (resolved && !is_virtual(resolved.id)) {
 					return { ...resolved, id: resolved.id + '.tsx' };
 				}
-				return resolved;
+				if (resolved) return resolved;
+				// Fallback: when `this.resolve` can't resolve (e.g. an absolute
+				// path coming in as a root entry such as a vitest test file),
+				// still rewrite to the virtual `.tsx` id directly so `load`
+				// can read the real file.
+				return source + '.tsx';
 			}
 			return null;
 		},
@@ -81,7 +102,7 @@ export function tsrxSolid(_options = {}) {
 				css_cache.delete(real_path);
 			}
 
-			return { code: final_code, map };
+			return { code: final_code, map: /** @type {any} */ (map) };
 		},
 
 		handleHotUpdate(ctx) {

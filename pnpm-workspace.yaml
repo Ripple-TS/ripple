@@ -11,6 +11,9 @@ packages:
   - website-tsrx
   - benchmarks
 
+overrides:
+  semver: ^7.7.4
+
 catalogs:
   default:
     '@changesets/changelog-github': ^0.6.0
