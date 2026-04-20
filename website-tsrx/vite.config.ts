@@ -27,6 +27,12 @@ async function loadPageModule() {
   if (path === '/playground') {
     return import('/src/pages/playground.tsrx');
   }
+  if (path === '/getting-started') {
+    return import('/src/pages/getting-started.tsrx');
+  }
+  if (path === '/docs') {
+    return import('/src/pages/docs.tsrx');
+  }
   return import('/src/pages/index.tsrx');
 }
 

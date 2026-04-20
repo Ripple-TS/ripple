@@ -15,7 +15,9 @@ export component PlaygroundPage() {
 				<img class="header-logo" src="/images/tsrx-mark.svg?v=3" alt="TSRX logo" />
 			</a>
 			<nav class="nav-links">
-				<a href="/">{'Home'}</a>
+				<a href="/getting-started">{'Getting Started'}</a>
+				<a href="/docs">{'Docs'}</a>
+				<a href="/playground" aria-current="page">{'Playground'}</a>
 				<a
 					href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
 					target="_blank"
@@ -51,7 +53,10 @@ export component PlaygroundPage() {
 				Roboto,
 				sans-serif;
 			color: #1a1640;
-			background: #f4f2fb;
+			background:
+				radial-gradient(circle at top, rgba(146, 92, 255, 0.14), transparent 28%),
+				radial-gradient(circle at 80% 10%, rgba(111, 0, 255, 0.1), transparent 25%),
+				linear-gradient(180deg, #ffffff 0%, #f6f3ff 46%, #f2f4fb 100%);
 			min-height: 100vh;
 			overflow-x: hidden;
 		}
@@ -86,7 +91,9 @@ export component PlaygroundPage() {
 			justify-content: space-between;
 			align-items: center;
 			gap: 1rem;
-			padding: 1rem 2rem;
+			width: min(1180px, calc(100vw - 2rem));
+			margin: 0 auto;
+			padding: 1rem 0 2rem;
 			flex-wrap: wrap;
 		}
 
@@ -110,6 +117,11 @@ export component PlaygroundPage() {
 
 		.nav-links a:hover {
 			color: #5e2cff;
+		}
+
+		.nav-links a[aria-current='page'] {
+			color: #5e2cff;
+			font-weight: 500;
 		}
 
 		.demo-main {

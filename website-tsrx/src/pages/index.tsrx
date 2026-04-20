@@ -30,7 +30,7 @@ const COLOCATION_HTML = [
 	'<span class="ln">13</span>         <span class="kw">const</span> <span class="fn">report</span> = <span class="br">(</span><span class="br">)</span> =&gt; <span class="fn">console</span>.<span class="fn">log</span><span class="br">(</span><span class="str">`viewed ${</span><span class="prop">user</span>.<span class="prop">name</span><span class="str">}`</span><span class="br">)</span>;',
 	'<span class="ln">14</span>',
 	'<span class="ln">15</span>         <span class="tag">&lt;</span><span class="el">p</span> <span class="attr">class</span>=<span class="str">"bio"</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">short_bio</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
-	'<span class="ln">16</span>         <span class="tag">&lt;</span><span class="el">button</span> <span class="attr">onclick</span>=<span class="tbr">{</span><span class="prop">report</span><span class="tbr">}</span><span class="tag">&gt;</span><span class="str">Viewed</span><span class="tag">&lt;/</span><span class="el">button</span><span class="tag">&gt;</span>',
+	'<span class="ln">16</span>         <span class="tag">&lt;</span><span class="el">button</span> <span class="attr">onClick</span>=<span class="tbr">{</span><span class="prop">report</span><span class="tbr">}</span><span class="tag">&gt;</span><span class="str">Viewed</span><span class="tag">&lt;/</span><span class="el">button</span><span class="tag">&gt;</span>',
 	'<span class="ln">17</span>       <span class="br">}</span>',
 	'<span class="ln">18</span>     <span class="tag">&lt;/</span><span class="el">div</span><span class="tag">&gt;</span>',
 	'<span class="ln">19</span>   <span class="br">}</span>',
@@ -53,6 +53,8 @@ export component IndexPage() {
 					<img class="header-logo" src="/images/tsrx-mark.svg?v=3" alt="TSRX logo" />
 				</a>
 				<nav class="masthead-nav">
+					<a href="/getting-started">{'Getting Started'}</a>
+					<a href="/docs">{'Docs'}</a>
 					<a href="/playground">{'Playground'}</a>
 					<a
 						href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
@@ -84,6 +86,7 @@ export component IndexPage() {
 					<code class="inline-code">{'.tsrx'}</code>
 					{' modules from JS, TS, and TSX files and it just works.'}
 				</p>
+				<a class="cta-link" href="/getting-started">{'Get started →'}</a>
 			</section>
 
 			<section class="readable-section section-shell">
@@ -436,6 +439,7 @@ export component IndexPage() {
 
 		.cta-link {
 			display: inline-block;
+			justify-self: start;
 			padding: 0.75rem 1.5rem;
 			background: linear-gradient(90deg, #5521dd 0%, #6f00ff 100%);
 			color: #fff;
