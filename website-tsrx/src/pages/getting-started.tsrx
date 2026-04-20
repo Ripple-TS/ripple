@@ -193,7 +193,7 @@ export component GettingStartedPage() {
 		.hero h1 {
 			margin: 0;
 			font-size: clamp(2rem, 5vw, 3.5rem);
-			line-height: 1.05;
+			line-height: 1.125;
 			letter-spacing: -0.04em;
 			background: linear-gradient(90deg, #5521dd 0%, #6f00ff 42%, #8741ff 100%);
 			-webkit-background-clip: text;
