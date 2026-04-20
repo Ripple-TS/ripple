@@ -136,6 +136,15 @@ export {
 	convert_source_map_to_mappings as convertSourceMapToMappings,
 	create_volar_mappings_result as createVolarMappingsResult,
 } from './transform/segments.js';
+export {
+	create_lazy_context as createLazyContext,
+	collect_lazy_bindings as collectLazyBindings,
+	collect_lazy_bindings_from_component as collectLazyBindingsFromComponent,
+	collect_lazy_bindings_from_statements as collectLazyBindingsFromStatements,
+	preallocate_lazy_ids as preallocateLazyIds,
+	apply_lazy_transforms as applyLazyTransforms,
+	replace_lazy_params as replaceLazyParams,
+} from './transform/lazy.js';
 
 // Analyze
 export { analyze_css as analyzeCss } from './analyze/css-analyze.js';
