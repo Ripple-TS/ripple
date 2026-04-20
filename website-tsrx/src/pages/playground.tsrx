@@ -76,8 +76,9 @@ export component PlaygroundPage() {
 		.demo-page {
 			display: grid;
 			grid-template-rows: auto 1fr;
-			min-height: 100vh;
+			height: 100vh;
 			width: 100%;
+			overflow: hidden;
 		}
 
 		.demo-nav {
@@ -112,9 +113,13 @@ export component PlaygroundPage() {
 		}
 
 		.demo-main {
-			padding: 0 2rem 3rem;
+			padding: 0;
 			width: 100%;
 			max-width: 100%;
+			display: flex;
+			flex-direction: column;
+			min-height: 0;
+			overflow: hidden;
 		}
 
 		@media (max-width: 720px) {
@@ -123,7 +128,7 @@ export component PlaygroundPage() {
 			}
 
 			.demo-main {
-				padding: 0 1rem 2rem;
+				padding: 0;
 			}
 		}
 	</style>

@@ -5,6 +5,7 @@ import { DEFAULT_DEMO_SOURCE } from '../lib/demo.ts';
 
 const MAX_SOURCE_LENGTH = 12000;
 const DEBOUNCE_MS = 280;
+const HASH_DEBOUNCE_MS = 400;
 const TARGET_OPTIONS = [
 	{ value: 'react', label: 'React' },
 	{ value: 'ripple', label: 'Ripple' },
@@ -13,6 +14,31 @@ const TARGET_LABELS: Record<string, string> = {
 	react: 'React output',
 	ripple: 'Ripple output',
 };
+
+const VALID_TARGETS = new Set(TARGET_OPTIONS.map((o) => o.value));
+
+function encode_hash(source: string, target: string): string {
+	const payload = JSON.stringify({ s: source, t: target });
+	if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
+		return btoa(String.fromCharCode(...new TextEncoder().encode(payload)));
+	}
+	return '';
+}
+
+function decode_hash(hash: string): { source: string; target: string } | null {
+	try {
+		const json = new TextDecoder().decode(Uint8Array.from(atob(hash), (c) => c.charCodeAt(0)));
+		const parsed = JSON.parse(json);
+		if (
+			typeof parsed?.s === 'string' && typeof parsed?.t === 'string' && VALID_TARGETS.has(parsed.t)
+		) {
+			return { source: parsed.s, target: parsed.t };
+		}
+	} catch {
+		// ignore malformed hashes
+	}
+	return null;
+}
 
 function join_compiled_output(code: string, css: string): string {
 	if (!css) {
@@ -25,13 +51,17 @@ function join_compiled_output(code: string, css: string): string {
 export component CompilerDemo() {
 	let source_ref: Tracked<HTMLElement> = track();
 	let output_ref: Tracked<HTMLElement> = track();
-	let selected_target: Tracked<string> = track('react');
+
+	const initial_hash =
+		typeof window !== 'undefined' ? decode_hash(window.location.hash.slice(1)) : null;
+
+	let selected_target: Tracked<string> = track(initial_hash?.target ?? 'react');
 
 	let &[status] = track('Hydrating compiler...');
 	let &[error_message] = track('');
 	let &[last_updated] = track('');
 	let &[editors_ready] = track(false);
-	let latest_source = DEFAULT_DEMO_SOURCE;
+	let latest_source = initial_hash?.source ?? DEFAULT_DEMO_SOURCE;
 	let request_compile = () => {};
 
 	effect(() => {
@@ -43,8 +73,19 @@ export component CompilerDemo() {
 		let source_view: any;
 		let output_view: any;
 		let debounce_id = 0;
+		let hash_debounce_id = 0;
 		let request_id = 0;
 		let active_controller: AbortController | null = null;
+
+		const update_hash = (source: string) => {
+			window.clearTimeout(hash_debounce_id);
+			hash_debounce_id = window.setTimeout(() => {
+				const encoded = encode_hash(source, selected_target.value);
+				if (encoded) {
+					history.replaceState(null, '', '#' + encoded);
+				}
+			}, HASH_DEBOUNCE_MS);
+		};
 
 		(async () => {
 			const [{ EditorState }, { oneDark }, {
@@ -52,12 +93,12 @@ export component CompilerDemo() {
 				defaultKeymap,
 				historyKeymap,
 				indentWithTab,
-			}, view_mod, lang_mod] = await Promise.all([
+			}, view_mod, shiki_mod] = await Promise.all([
 				import('@codemirror/state'),
 				import('@codemirror/theme-one-dark'),
 				import('@codemirror/commands'),
 				import('@codemirror/view'),
-				import('@codemirror/lang-javascript'),
+				import('../lib/shiki-codemirror.ts'),
 			]);
 
 			if (disposed || !source_ref.value || !output_ref.value) {
@@ -65,7 +106,7 @@ export component CompilerDemo() {
 			}
 
 			const { EditorView, keymap, lineNumbers, highlightActiveLine, drawSelection } = view_mod;
-			const { javascript } = lang_mod;
+			const { shiki_highlight } = shiki_mod;
 
 			const shared_theme = EditorView.theme(
 				{
@@ -107,8 +148,7 @@ export component CompilerDemo() {
 				highlightActiveLine(),
 				keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
 				EditorView.lineWrapping,
-				javascript({ typescript: true, jsx: true }),
-				oneDark,
+				shiki_highlight('ripple'),
 				shared_theme,
 			];
 
@@ -118,8 +158,7 @@ export component CompilerDemo() {
 				EditorView.editable.of(false),
 				EditorView.lineWrapping,
 				EditorState.tabSize.of(2),
-				javascript({ typescript: true, jsx: true }),
-				oneDark,
+				shiki_highlight('tsx'),
 				shared_theme,
 			];
 
@@ -198,7 +237,7 @@ export component CompilerDemo() {
 			source_view = new EditorView({
 				state: EditorState.create(
 					{
-						doc: DEFAULT_DEMO_SOURCE,
+						doc: latest_source,
 						extensions: [
 							...editable_extensions,
 							EditorView.updateListener.of((update: any) => {
@@ -211,6 +250,7 @@ export component CompilerDemo() {
 								debounce_id = window.setTimeout(() => {
 									void compile_source(next_source);
 								}, DEBOUNCE_MS);
+								update_hash(next_source);
 							}),
 						],
 					},
@@ -228,7 +268,7 @@ export component CompilerDemo() {
 				parent: output_ref.value,
 			});
 
-			await compile_source(DEFAULT_DEMO_SOURCE);
+			await compile_source(latest_source);
 			editors_ready = true;
 		})();
 
@@ -236,6 +276,7 @@ export component CompilerDemo() {
 			disposed = true;
 			request_compile = () => {};
 			window.clearTimeout(debounce_id);
+			window.clearTimeout(hash_debounce_id);
 			active_controller?.abort();
 			source_view?.destroy();
 			output_view?.destroy();
@@ -245,6 +286,10 @@ export component CompilerDemo() {
 	effect(() => {
 		selected_target.value;
 		request_compile();
+		const encoded = encode_hash(latest_source, selected_target.value);
+		if (encoded) {
+			history.replaceState(null, '', '#' + encoded);
+		}
 	});
 
 	<section class="demo-shell" id="demo">
@@ -289,6 +334,10 @@ export component CompilerDemo() {
 		.demo-shell {
 			background: transparent;
 			box-shadow: none;
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			min-height: 0;
 		}
 
 		.demo-header {
@@ -296,7 +345,8 @@ export component CompilerDemo() {
 			justify-content: space-between;
 			gap: 1.25rem;
 			align-items: end;
-			margin-bottom: 1rem;
+			margin: 0;
+			padding: 0 1rem 0.75rem;
 			flex-wrap: wrap;
 		}
 
@@ -371,14 +421,19 @@ export component CompilerDemo() {
 
 		.demo-grid {
 			display: grid;
-			grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-			gap: 1rem;
+			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+			gap: 0;
+			flex: 1;
+			min-height: 0;
 		}
 
 		.panel {
 			min-width: 0;
+			min-height: 0;
 			background: #040a18;
 			overflow: hidden;
+			display: flex;
+			flex-direction: column;
 		}
 
 		.panel-topline {
@@ -394,8 +449,8 @@ export component CompilerDemo() {
 		}
 
 		.panel-body {
-			height: 29rem;
-			min-height: 29rem;
+			flex: 1;
+			min-height: 0;
 		}
 
 		.editor-host {
@@ -447,7 +502,6 @@ export component CompilerDemo() {
 			}
 
 			.panel-body {
-				height: 20rem;
 				min-height: 20rem;
 			}
 		}

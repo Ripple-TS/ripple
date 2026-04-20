@@ -151,7 +151,7 @@ catalogs:
       specifier: ^7.12.2
       version: 7.12.2
     shiki:
-      specifier: ^4.0.1
+      specifier: 4.0.1
       version: 4.0.1
     source-map:
       specifier: ^0.7.6
@@ -984,6 +984,9 @@ importers:
       '@codemirror/lang-javascript':
         specifier: ^6.2.4
         version: 6.2.5
+      '@codemirror/language':
+        specifier: ^6.12.3
+        version: 6.12.3
       '@codemirror/state':
         specifier: ^6.5.2
         version: 6.6.0
@@ -1005,6 +1008,9 @@ importers:
       prettier:
         specifier: 'catalog:'
         version: 3.8.3
+      shiki:
+        specifier: 'catalog:'
+        version: 4.0.1
     devDependencies:
       '@ripple-ts/typescript-plugin':
         specifier: workspace:*
