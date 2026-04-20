@@ -1276,4 +1276,21 @@ describe('lazy destructuring', () => {
 		expect(code).toContain("const name = 'local'");
 		expect(code).toContain('console.log(name)');
 	});
+
+	it('does not rewrite body-level variables that shadow lazy bindings', () => {
+		const { code } = compile(
+			`export component App(&{ name }: { name: string }) {
+				const name = 'override';
+				<div>{name}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// The body-level 'name' shadows the lazy binding — references should
+		// use the local variable, not the lazy accessor
+		expect(code).toContain("const name = 'override'");
+		// The div should use plain 'name', not __lazy0.name
+		expect(code).toContain('{name}');
+		expect(code).not.toContain('__lazy0.name');
+	});
 });

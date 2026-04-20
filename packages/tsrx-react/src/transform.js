@@ -592,6 +592,9 @@ function collect_block_shadowed_names(statements, lazy_bindings) {
 	for (const stmt of statements) {
 		if (stmt.type === 'VariableDeclaration') {
 			for (const decl of stmt.declarations) {
+				// Skip lazy destructuring patterns — they ARE the lazy bindings,
+				// not local declarations that shadow them.
+				if (decl.id?.metadata?.lazy_id) continue;
 				if (decl.id) collect_shadowed_names(decl.id, lazy_bindings, shadowed);
 			}
 		} else if (stmt.type === 'FunctionDeclaration' && stmt.id) {
@@ -683,18 +686,22 @@ function component_to_function_declaration(component, transform_context, walk_he
 	// Replace lazy param patterns with generated identifiers
 	const final_params = lazy_bindings.size > 0 ? replace_lazy_params(params) : params;
 
+	// Wrap body_statements in a BlockStatement so that apply_lazy_transforms
+	// runs collect_block_shadowed_names and detects body-level declarations
+	// (e.g. `const name = ...`) that shadow lazy binding names.
+	const body_block = /** @type {any} */ ({
+		type: 'BlockStatement',
+		body: body_statements,
+		metadata: { path: [] },
+	});
+	const final_body =
+		lazy_bindings.size > 0 ? apply_lazy_transforms(body_block, lazy_bindings) : body_block;
+
 	const fn = /** @type {any} */ ({
 		type: 'FunctionDeclaration',
 		id: component.id,
 		params: final_params,
-		body: {
-			type: 'BlockStatement',
-			body:
-				lazy_bindings.size > 0
-					? apply_lazy_transforms(body_statements, lazy_bindings)
-					: body_statements,
-			metadata: { path: [] },
-		},
+		body: final_body,
 		async: false,
 		generator: false,
 		metadata: {
