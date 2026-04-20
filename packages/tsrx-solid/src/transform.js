@@ -21,8 +21,8 @@ import {
  *   needs_for: boolean,
  *   needs_switch: boolean,
  *   needs_match: boolean,
- *   needs_error_boundary: boolean,
- *   needs_suspense: boolean,
+ *   needs_errored: boolean,
+ *   needs_loading: boolean,
  *   lazy_next_id: number,
  *   current_css_hash: string | null,
  * }} TransformContext
@@ -37,8 +37,8 @@ import {
  *
  * Each `component` declaration becomes a plain `FunctionDeclaration` that
  * returns Solid JSX. Control flow statements are rewritten to Solid's
- * built-in components (`<Show>`, `<Switch>/<Match>`, `<For>`, `<ErrorBoundary>`,
- * `<Suspense>`) so they remain reactive. Per-component `<style>` blocks are
+ * built-in components (`<Show>`, `<Switch>/<Match>`, `<For>`, `<Errored>`,
+ * `<Loading>`) so they remain reactive. Per-component `<style>` blocks are
  * collected, rendered via `@tsrx/core`'s stylesheet renderer, and returned
  * alongside the JS output so a downstream plugin can inject them.
  *
@@ -57,8 +57,8 @@ export function transform(ast, source, filename) {
 		needs_for: false,
 		needs_switch: false,
 		needs_match: false,
-		needs_error_boundary: false,
-		needs_suspense: false,
+		needs_errored: false,
+		needs_loading: false,
 		lazy_next_id: 0,
 		current_css_hash: null,
 	};
@@ -774,7 +774,7 @@ function switch_statement_to_jsx_child(node, transform_context) {
 
 /**
  * Transform a `try { ... } pending { ... } catch (err, reset) { ... }` block
- * into Solid's `<ErrorBoundary>` and/or `<Suspense>` JSX elements.
+ * into Solid's `<Errored>` and/or `<Loading>` JSX elements.
  *
  * @param {any} node
  * @param {TransformContext} transform_context
@@ -804,7 +804,7 @@ function try_statement_to_jsx_child(node, transform_context) {
 	let result = jsx_child_wrap(iife_if_arrow(body_to_jsx_child(try_body_nodes, transform_context)));
 
 	if (pending) {
-		transform_context.needs_suspense = true;
+		transform_context.needs_loading = true;
 		const pending_body_nodes = pending.body || [];
 		const fallback_content = body_to_jsx_child(pending_body_nodes, transform_context);
 
@@ -823,7 +823,7 @@ function try_statement_to_jsx_child(node, transform_context) {
 	}
 
 	if (handler) {
-		transform_context.needs_error_boundary = true;
+		transform_context.needs_errored = true;
 
 		const catch_params = [];
 		if (handler.param) catch_params.push(handler.param);
@@ -909,7 +909,7 @@ function create_jsx_element(tag_name, attributes, children) {
 }
 
 /**
- * Inject `import { Show, For, Switch, Match, ErrorBoundary, Suspense } from 'solid-js'`
+ * Inject `import { Show, For, Switch, Match, Errored, Loading } from 'solid-js'`
  * specifiers for whichever control-flow primitives the transform emitted.
  *
  * @param {AST.Program} program
@@ -921,8 +921,8 @@ function inject_solid_imports(program, transform_context) {
 	if (transform_context.needs_for) needed.push('For');
 	if (transform_context.needs_switch) needed.push('Switch');
 	if (transform_context.needs_match) needed.push('Match');
-	if (transform_context.needs_error_boundary) needed.push('Errored');
-	if (transform_context.needs_suspense) needed.push('Loading');
+	if (transform_context.needs_errored) needed.push('Errored');
+	if (transform_context.needs_loading) needed.push('Loading');
 
 	if (needed.length === 0) return;
 
