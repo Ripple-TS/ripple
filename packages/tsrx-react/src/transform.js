@@ -11,7 +11,7 @@ import { renderStylesheets, setLocation } from '@tsrx/core';
  *   local_statement_component_index: number,
  *   needs_error_boundary: boolean,
  *   needs_suspense: boolean,
- *   helper_state: { base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] } | null,
+ *   helper_state: { base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] } | null,
  *   available_bindings: Map<string, AST.Identifier>,
  * }} TransformContext
  */
@@ -132,7 +132,7 @@ export function transform(ast, source, filename) {
 /**
  * @param {any} component
  * @param {TransformContext} transform_context
- * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] }} [walk_helper_state]
+ * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] }} [walk_helper_state]
  * @returns {AST.FunctionDeclaration}
  */
 function component_to_function_declaration(component, transform_context, walk_helper_state) {
@@ -172,6 +172,7 @@ function component_to_function_declaration(component, transform_context, walk_he
 	transform_context.available_bindings = saved_bindings;
 
 	fn.metadata.generated_helpers = helper_state.helpers;
+	fn.metadata.generated_statics = helper_state.statics;
 
 	if (fn.id) {
 		fn.id.metadata = /** @type {AST.Identifier['metadata']} */ ({
@@ -186,7 +187,7 @@ function component_to_function_declaration(component, transform_context, walk_he
 
 /**
  * @param {any[]} body_nodes
- * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] }} helper_state
+ * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] }} helper_state
  * @param {Map<string, AST.Identifier>} available_bindings
  * @param {TransformContext} transform_context
  * @returns {any[]}
@@ -227,6 +228,8 @@ function build_component_statements(
 			transform_context.available_bindings = bindings;
 		}
 	}
+
+	hoist_static_render_nodes(render_nodes, transform_context);
 
 	const split_node = body_nodes[split_index];
 	const consequent_body =
@@ -302,6 +305,8 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 			collect_statement_bindings(child, transform_context.available_bindings);
 		}
 	}
+
+	hoist_static_render_nodes(render_nodes, transform_context);
 
 	const return_arg = build_return_expression(render_nodes);
 	if (return_arg || return_null_when_empty) {
@@ -428,7 +433,7 @@ function is_hook_callee(callee) {
 
 /**
  * @param {any[]} body_nodes
- * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] }} helper_state
+ * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] }} helper_state
  * @param {Map<string, AST.Identifier>} available_bindings
  * @param {any} source_node
  * @param {string} suffix
@@ -468,7 +473,7 @@ function create_helper_component_expression(
 /**
  * @param {AST.Identifier} helper_id
  * @param {any[]} body_nodes
- * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] }} helper_state
+ * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] }} helper_state
  * @param {Map<string, AST.Identifier>} available_bindings
  * @param {AST.Identifier[]} helper_bindings
  * @param {any} source_node
@@ -587,7 +592,7 @@ function create_helper_component_element(helper_id, bindings, source_node) {
 }
 
 /**
- * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] }} helper_state
+ * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] }} helper_state
  * @param {string} suffix
  * @returns {string}
  */
@@ -598,13 +603,14 @@ function create_helper_name(helper_state, suffix) {
 
 /**
  * @param {string} base_name
- * @returns {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] }}
+ * @returns {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] }}
  */
 function create_helper_state(base_name) {
 	return {
 		base_name,
 		next_id: 0,
 		helpers: [],
+		statics: [],
 	};
 }
 
@@ -685,6 +691,84 @@ function collect_pattern_bindings(pattern, bindings) {
 }
 
 /**
+ * Check if a node references any of the given scope bindings.
+ * Used to determine if a JSX element is static and can be hoisted to module level.
+ *
+ * @param {any} node
+ * @param {Map<string, AST.Identifier>} scope_bindings
+ * @returns {boolean}
+ */
+function references_scope_bindings(node, scope_bindings) {
+	if (!node || typeof node !== 'object') return false;
+	if (scope_bindings.size === 0) return false;
+
+	if (node.type === 'Identifier') {
+		return scope_bindings.has(node.name);
+	}
+
+	// JSXIdentifier nodes are tag names or attribute names, not variable references
+	if (node.type === 'JSXIdentifier') return false;
+
+	if (Array.isArray(node)) {
+		return node.some((child) => references_scope_bindings(child, scope_bindings));
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
+
+		// Skip non-computed, non-shorthand property keys (they are labels, not references)
+		if (key === 'key' && node.type === 'Property' && !node.computed && !node.shorthand) continue;
+
+		// Skip non-computed member expression property access
+		if (key === 'property' && node.type === 'MemberExpression' && !node.computed) continue;
+
+		if (references_scope_bindings(node[key], scope_bindings)) return true;
+	}
+
+	return false;
+}
+
+/**
+ * Hoist static JSX elements from render_nodes to module level.
+ * A JSX element is static if it doesn't reference any component-scope bindings.
+ * Hoisting prevents React from recreating the element on every render, allowing
+ * the reconciler to skip diffing when it sees the same element identity.
+ *
+ * @param {any[]} render_nodes
+ * @param {TransformContext} transform_context
+ */
+function hoist_static_render_nodes(render_nodes, transform_context) {
+	if (!transform_context.helper_state) return;
+
+	for (let i = 0; i < render_nodes.length; i++) {
+		const node = render_nodes[i];
+		if (node.type !== 'JSXElement') continue;
+		if (references_scope_bindings(node, transform_context.available_bindings)) continue;
+
+		const name = create_helper_name(transform_context.helper_state, 'static');
+		const id = create_generated_identifier(name);
+
+		transform_context.helper_state.statics.push(
+			/** @type {any} */ ({
+				type: 'VariableDeclaration',
+				kind: 'const',
+				declarations: [
+					{
+						type: 'VariableDeclarator',
+						id,
+						init: node,
+						metadata: { path: [] },
+					},
+				],
+				metadata: { path: [] },
+			}),
+		);
+
+		render_nodes[i] = to_jsx_expression_container(clone_identifier(id), node);
+	}
+}
+
+/**
  * @param {AST.Identifier} identifier
  * @returns {AST.Identifier}
  */
@@ -718,9 +802,11 @@ function create_null_literal() {
 function expand_component_helpers(program) {
 	program.body = program.body.flatMap((statement) => {
 		if (statement.type === 'FunctionDeclaration') {
-			const helpers = /** @type {any} */ (statement.metadata)?.generated_helpers;
-			if (helpers?.length) {
-				return [...helpers, statement];
+			const meta = /** @type {any} */ (statement.metadata);
+			const statics = meta?.generated_statics || [];
+			const helpers = meta?.generated_helpers || [];
+			if (statics.length || helpers.length) {
+				return [...statics, ...helpers, statement];
 			}
 		}
 
@@ -729,9 +815,11 @@ function expand_component_helpers(program) {
 				statement.type === 'ExportDefaultDeclaration') &&
 			statement.declaration?.type === 'FunctionDeclaration'
 		) {
-			const helpers = /** @type {any} */ (statement.declaration.metadata)?.generated_helpers;
-			if (helpers?.length) {
-				return [...helpers, statement];
+			const meta = /** @type {any} */ (statement.declaration.metadata);
+			const statics = meta?.generated_statics || [];
+			const helpers = meta?.generated_helpers || [];
+			if (statics.length || helpers.length) {
+				return [...statics, ...helpers, statement];
 			}
 		}
 
@@ -1656,6 +1744,15 @@ function try_statement_to_jsx_child(node, transform_context) {
 		}
 
 		const catch_body_nodes = handler.body.body || [];
+
+		// Add catch params to available_bindings so static hoisting
+		// correctly identifies references to err/reset as non-static
+		const saved_catch_bindings = transform_context.available_bindings;
+		transform_context.available_bindings = new Map(saved_catch_bindings);
+		for (const param of catch_params) {
+			collect_pattern_bindings(param, transform_context.available_bindings);
+		}
+
 		const fallback_fn = {
 			type: 'ArrowFunctionExpression',
 			params: catch_params,
@@ -1669,6 +1766,8 @@ function try_statement_to_jsx_child(node, transform_context) {
 			expression: false,
 			metadata: { path: [] },
 		};
+
+		transform_context.available_bindings = saved_catch_bindings;
 
 		result = create_jsx_element(
 			'TsrxErrorBoundary',

@@ -154,7 +154,7 @@ describe('@tsrx/react basic', () => {
 
 		expect(css).not.toBeNull();
 		expect(code).toContain(`className="${css.hash}"`);
-		expect(code).toContain('return <div className=');
+		expect(code).toContain(`App__static1 = <div className="${css.hash}">`);
 		expect(css.code).toContain(`.div.${css.hash}`);
 	});
 
@@ -174,7 +174,7 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain('const count = 2;');
 		expect(code).toContain('if (count > 1) {');
-		expect(code).toContain("return <div>{'Count is more than one'}</div>;");
+		expect(code).toContain("App__static1 = <div>{'Count is more than one'}</div>");
 		expect(code).toContain('return null;');
 		expect(code).toContain('<button>{count}</button>');
 	});
@@ -194,8 +194,8 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('if (ready) {');
-		expect(code).toContain("return <div>{'Ready'}</div>;");
-		expect(code).toContain("return <div>{'Loading'}</div>;");
+		expect(code).toContain("App__static2 = <div>{'Ready'}</div>");
+		expect(code).toContain("App__static1 = <div>{'Loading'}</div>");
 	});
 
 	it('renders component-body for-of statements as React expressions', () => {
@@ -250,7 +250,7 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain('if (count > 2) {');
 		expect(code).toContain('return (() => {');
-		expect(code).toContain("return <div>{'Count is more than one'}</div>;");
+		expect(code).toContain("App__static1 = <div>{'Count is more than one'}</div>");
 		expect(code).toContain('return null;');
 		expect(code).toContain('<button>{count}</button>');
 	});
@@ -439,7 +439,7 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('function Child() {');
 		expect(code).toContain('const x = 1;');
 		expect(code).toContain('console.log(x);');
-		expect(code).toContain('return <div>{(() => {');
+		expect(code).toContain('Child__static1 = <div>{(() => {');
 		expect(code).toContain('return null;');
 	});
 

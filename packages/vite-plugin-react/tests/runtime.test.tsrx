@@ -569,6 +569,43 @@ component HookInSwitchWithScopeApp() {
 	</button>
 }
 
+// ── Static hoisting: mixed static and dynamic siblings ──
+
+component StaticHoistMixedApp() {
+	const [count, setCount] = useState(0);
+
+	<header class="static-header">
+		<h1>{'Static Title'}</h1>
+	</header>
+	<p class="dynamic-count">{count}</p>
+	<footer class="static-footer">{'Static Footer'}</footer>
+
+	<button class="hoist-inc" onClick={() => setCount(count + 1)}>{'inc'}</button>
+}
+
+// ── Static hoisting: static element inside control flow ──
+
+component StaticHoistInBranchApp() {
+	const [show, setShow] = useState(true);
+
+	if (show) {
+		<div class="branch-static">
+			<span>{'Always the same'}</span>
+		</div>
+	}
+
+	<button class="hoist-toggle" onClick={() => setShow(!show)}>{'toggle'}</button>
+}
+
+// ── Static hoisting: fully static component ──
+
+component FullyStaticApp() {
+	<div class="all-static">
+		<h2>{'Title'}</h2>
+		<p>{'Paragraph'}</p>
+	</div>
+}
+
 // ── Tests ──
 
 describe('tsrx-react runtime', () => {
@@ -981,5 +1018,37 @@ describe('tsrx-react runtime', () => {
 
 		await click('.switch-scope-tab');
 		expect(text('.switch-scope-val')).toBe('dark:info');
+	});
+
+	// ── Static hoisting ──
+
+	it('hoists static elements while keeping dynamic siblings interactive', async () => {
+		await render(StaticHoistMixedApp);
+		expect(text('.static-header h1')).toBe('Static Title');
+		expect(text('.dynamic-count')).toBe('0');
+		expect(text('.static-footer')).toBe('Static Footer');
+
+		await click('.hoist-inc');
+		expect(text('.dynamic-count')).toBe('1');
+		// Static elements remain unchanged
+		expect(text('.static-header h1')).toBe('Static Title');
+		expect(text('.static-footer')).toBe('Static Footer');
+	});
+
+	it('hoists static elements inside control flow branches', async () => {
+		await render(StaticHoistInBranchApp);
+		expect(text('.branch-static span')).toBe('Always the same');
+
+		await click('.hoist-toggle');
+		expect(container.querySelector('.branch-static')).toBeNull();
+
+		await click('.hoist-toggle');
+		expect(text('.branch-static span')).toBe('Always the same');
+	});
+
+	it('renders a fully static component correctly', async () => {
+		await render(FullyStaticApp);
+		expect(text('.all-static h2')).toBe('Title');
+		expect(text('.all-static p')).toBe('Paragraph');
 	});
 });
