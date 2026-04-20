@@ -20,7 +20,7 @@ function mount_after_ssr() {
 
 			return `
 import 'virtual:ripple-compat';
-import { mount } from 'ripple';
+import { hydrate } from 'ripple';
 
 async function loadPageModule() {
   const path = window.location.pathname;
@@ -45,7 +45,7 @@ async function loadPageModule() {
       return;
     }
 
-    mount(Component, {
+    hydrate(Component, {
       target,
       props: { params: routeData.params || {} }
     });
