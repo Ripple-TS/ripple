@@ -1,0 +1,583 @@
+const SNIPPET_HTML = [
+	'<span class="ln"> 1</span> <span class="kw-export">export</span> <span class="kw">component</span> <span class="fn">Greeting</span><span class="br">(</span><span class="br">{</span> <span class="prop">name</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">name</span>?: <span class="type">string</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 2</span>   <span class="tag">&lt;</span><span class="el">div</span> <span class="attr">class</span>=<span class="str">"card"</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 3</span>     <span class="kw">if</span> <span class="br">(</span><span class="prop">name</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 4</span>       <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">`Hello, ${</span><span class="prop">name</span><span class="str">}`</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 5</span>     <span class="br">}</span> <span class="kw">else</span> <span class="br">{</span>',
+	'<span class="ln"> 6</span>       <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Hello, stranger\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 7</span>     <span class="br">}</span>',
+	'<span class="ln"> 8</span>   <span class="tag">&lt;/</span><span class="el">div</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 9</span>',
+	'<span class="ln">10</span>   <span class="tag">&lt;</span><span class="el">style</span><span class="tag">&gt;</span>',
+	'<span class="ln">11</span>     <span class="css-sel">.card</span> <span class="css-br">{</span> <span class="attr">padding</span>: <span class="val">1rem</span>; <span class="css-br">}</span>',
+	'<span class="ln">12</span>   <span class="tag">&lt;/</span><span class="el">style</span><span class="tag">&gt;</span>',
+	'<span class="ln">13</span> <span class="br">}</span>',
+].join('\n');
+
+const COLOCATION_HTML = [
+	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">UserList</span><span class="br">(</span><span class="br">{</span> <span class="prop">users</span>, <span class="prop">showBio</span> <span class="br">}</span>: <span class="type">Props</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 2</span>   <span class="kw">for</span> <span class="br">(</span><span class="kw">const</span> <span class="prop">user</span> <span class="kw">of</span> <span class="prop">users</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 3</span>     <span class="kw">const</span> <span class="prop">initials</span> = <span class="prop">user</span>.<span class="prop">name</span>.<span class="fn">slice</span><span class="br">(</span><span class="val">0</span>, <span class="val">2</span><span class="br">)</span>.<span class="fn">toUpperCase</span><span class="br">(</span><span class="br">)</span>;',
+	'<span class="ln"> 4</span>     <span class="kw">const</span> <span class="prop">role</span> = <span class="prop">user</span>.<span class="prop">admin</span> ? <span class="str">\'Admin\'</span> : <span class="str">\'Member\'</span>;',
+	'<span class="ln"> 5</span>',
+	'<span class="ln"> 6</span>     <span class="tag">&lt;</span><span class="el">div</span> <span class="attr">class</span>=<span class="str">"user-row"</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 7</span>       <span class="tag">&lt;</span><span class="el">span</span> <span class="attr">class</span>=<span class="str">"avatar"</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">initials</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">span</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 8</span>       <span class="tag">&lt;</span><span class="el">strong</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">user</span>.<span class="prop">name</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">strong</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 9</span>       <span class="tag">&lt;</span><span class="el">span</span> <span class="attr">class</span>=<span class="str">"badge"</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">role</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">span</span><span class="tag">&gt;</span>',
+	'<span class="ln">10</span>',
+	'<span class="ln">11</span>       <span class="kw">if</span> <span class="br">(</span><span class="prop">showBio</span> &amp;&amp; <span class="prop">user</span>.<span class="prop">bio</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln">12</span>         <span class="kw">const</span> <span class="prop">short_bio</span> = <span class="prop">user</span>.<span class="prop">bio</span>.<span class="fn">slice</span><span class="br">(</span><span class="val">0</span>, <span class="val">140</span><span class="br">)</span>;',
+	'<span class="ln">13</span>         <span class="kw">const</span> <span class="fn">report</span> = <span class="br">(</span><span class="br">)</span> =&gt; <span class="fn">console</span>.<span class="fn">log</span><span class="br">(</span><span class="str">`viewed ${</span><span class="prop">user</span>.<span class="prop">name</span><span class="str">}`</span><span class="br">)</span>;',
+	'<span class="ln">14</span>',
+	'<span class="ln">15</span>         <span class="tag">&lt;</span><span class="el">p</span> <span class="attr">class</span>=<span class="str">"bio"</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">short_bio</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln">16</span>         <span class="tag">&lt;</span><span class="el">button</span> <span class="attr">onClick</span>=<span class="tbr">{</span><span class="prop">report</span><span class="tbr">}</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Viewed\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">button</span><span class="tag">&gt;</span>',
+	'<span class="ln">17</span>       <span class="br">}</span>',
+	'<span class="ln">18</span>     <span class="tag">&lt;/</span><span class="el">div</span><span class="tag">&gt;</span>',
+	'<span class="ln">19</span>   <span class="br">}</span>',
+	'<span class="ln">20</span> <span class="br">}</span>',
+].join('\n');
+
+export component IndexPage() {
+	<head>
+		<title>{'TSRX | TypeScript Language Extension for Declarative UI'}</title>
+		<meta
+			name="description"
+			content="TSRX is a TypeScript language extension for building declarative UIs with a more readable, co-located authoring model and framework-specific output targets."
+		/>
+	</head>
+
+	<div class="app-shell">
+		<div class="page-shell">
+			<header class="masthead">
+				<a class="brand-lockup" href="#top" aria-label="TSRX home">
+					<img class="header-logo" src="/images/tsrx-mark.svg?v=4" alt="TSRX logo" />
+				</a>
+				<nav class="masthead-nav">
+					<a href="/getting-started">{'Getting Started'}</a>
+					<a href="/docs">{'Docs'}</a>
+					<a href="/playground">{'Playground'}</a>
+					<a
+						href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						{'GitHub'}
+					</a>
+				</nav>
+			</header>
+
+			<section class="hero" id="top">
+				<div class="hero-copy">
+					<h1>
+						{'TSRX is a TypeScript language extension for building declarative UIs in an agentic era'}
+					</h1>
+				</div>
+			</section>
+
+			<section class="readable-section section-shell what-is-section" aria-label="What is TSRX">
+				<p class="section-body what-is-copy">
+					{'TSRX (TypeScript Ripple Extensions) is a way to write UI component code that stays readable and co-located. Structure, styling, and control flow live together, and the result stays fully backwards compatible with TypeScript.'}
+				</p>
+				<pre class="code-block">
+					<code>{html SNIPPET_HTML}</code>
+				</pre>
+				<p class="section-body what-is-copy">
+					{'TSRX is framework-agnostic and interoperable. Today it compiles to React and Ripple, with room for more targets over time. You can import '}
+					<code class="inline-code">{'.tsrx'}</code>
+					{' modules from JS, TS, and TSX files and it just works.'}
+				</p>
+				<a class="cta-link" href="/getting-started">{'Get started →'}</a>
+			</section>
+
+			<section class="readable-section section-shell">
+				<p class="eyebrow">{'Benefits of TSRX'}</p>
+				<h2 class="section-heading">{'Co-location helps engineers and AI systems alike.'}</h2>
+				<p class="section-body">
+					{'When structure, control flow, styling, and component shape live in the same file, the source reads closer to the interface it describes. That cuts down on ternaries, map chains, and render helpers. It also makes refactors and onboarding less brittle.'}
+				</p>
+				<pre class="code-block">
+					<code>{html COLOCATION_HTML}</code>
+				</pre>
+				<p class="section-body">
+					{'Code is increasingly written, reviewed, and transformed with machine assistance. When UI structure is more explicit, editors, compilers, and code generation tools have a better surface to work with without changing the framework semantics underneath.'}
+				</p>
+			</section>
+
+			<section class="readable-section section-shell" id="tooling">
+				<p class="eyebrow">{'Tooling and adoption'}</p>
+				<h2 class="section-heading">{'Rich integration with existing tooling.'}</h2>
+				<p class="section-body">
+					{'TSRX ships with a language server for editor diagnostics, navigation, and completion. Prettier and ESLint plugins keep formatting and linting consistent inside existing repositories, so the language can be adopted seriously instead of treated like a compiler experiment.'}
+				</p>
+				<p class="section-body">
+					{'It interoperates with existing TypeScript and TSX codebases rather than demanding a full rewrite. Teams can adopt it where ergonomics matter most while keeping the surrounding code familiar. '}
+					<code class="inline-code">{'@tsrx/react'}</code>
+					{' and '}
+					<code class="inline-code">{'@tsrx/ripple'}</code>
+					{' already demonstrate that one source language can serve different framework semantics.'}
+				</p>
+			</section>
+
+			<section class="readable-section section-shell">
+				<p class="eyebrow">{'Smart compilation'}</p>
+				<h2 class="section-heading">{'TSRX compiles to multiple framework runtime outputs.'}</h2>
+				<p class="section-body">
+					{'The TSRX compiler parses component source into an AST and hands it off to framework-specific plugins for code generation. Plugins such as '}
+					<code class="inline-code">{'@tsrx/react'}</code>
+					{' or '}
+					<code class="inline-code">{'@tsrx/ripple'}</code>
+					{' transform the same AST into idiomatic output for their target runtimes, including scoped CSS. New targets can be added as standalone compiler plugins without changing the language itself.'}
+				</p>
+				<p class="section-body">
+					<a class="cta-link" href="/playground">{'Try it in the playground →'}</a>
+				</p>
+			</section>
+
+			<footer class="site-footer">
+				<p>{'Released under the MIT License.'}</p>
+				<p>{'Copyright © 2025-present Dominic Gannaway'}</p>
+			</footer>
+		</div>
+	</div>
+
+	<style>
+		:global(*) {
+			box-sizing: border-box;
+		}
+
+		:global(html) {
+			scroll-behavior: smooth;
+			overflow-x: hidden;
+		}
+
+		:global(body) {
+			margin: 0;
+			font-family:
+				system-ui,
+				-apple-system,
+				BlinkMacSystemFont,
+				'Segoe UI',
+				Roboto,
+				sans-serif;
+			color: #1a1640;
+			background:
+				radial-gradient(circle at top, rgba(146, 92, 255, 0.14), transparent 15%),
+				radial-gradient(circle at 80% 10%, rgba(111, 0, 255, 0.1), transparent 15%),
+				linear-gradient(180deg, #ffffff 0%, #f6f3ff 46%, #f2f4fb 100%);
+			min-height: 100vh;
+			overflow-x: hidden;
+		}
+
+		:global(a) {
+			color: inherit;
+			text-decoration: none;
+		}
+
+		:global(button),
+		:global(input),
+		:global(textarea),
+		:global(select) {
+			font: inherit;
+		}
+
+		:global(code),
+		:global(pre) {
+			font-family: 'Spline Sans Mono', 'SFMono-Regular', monospace;
+		}
+
+		.app-shell {
+			position: relative;
+			z-index: 1;
+			width: 100%;
+		}
+
+		.page-shell {
+			width: min(1180px, calc(100vw - 2rem));
+			margin: 0 auto;
+			padding: 1rem 0 6rem;
+		}
+
+		.section-shell {
+			margin-top: 3.25rem;
+		}
+
+		.masthead {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 1rem;
+			padding: 1rem 0 2rem;
+			flex-wrap: wrap;
+		}
+
+		.brand-lockup {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.header-logo {
+			display: block;
+			width: 3.2rem;
+			height: 3.2rem;
+		}
+
+		.masthead-nav {
+			display: inline-flex;
+			gap: 1rem;
+			font-size: 0.95rem;
+			color: rgba(26, 22, 64, 0.7);
+		}
+
+		.masthead-nav a:hover,
+		.resource-list a:hover {
+			color: #5e2cff;
+		}
+
+		.hero {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr);
+			gap: 2rem;
+			align-items: center;
+			padding: 3.5rem 0 2.5rem;
+			min-height: auto;
+		}
+
+		.eyebrow,
+		.mini-label {
+			margin: 0 0 0.75rem;
+			font-size: 0.76rem;
+			letter-spacing: 0.18em;
+			text-transform: uppercase;
+			color: #6e44df;
+		}
+
+		.hero h1,
+		.section-copy h2,
+		.page-footer h2,
+		.content-card h2 {
+			margin: 0;
+			letter-spacing: -0.04em;
+		}
+
+		.hero h1 {
+			font-size: clamp(2.15rem, 5.5vw, 4.95rem);
+			line-height: 1.125;
+			background: linear-gradient(90deg, #5521dd 0%, #6f00ff 42%, #8741ff 100%);
+			-webkit-background-clip: text;
+			background-clip: text;
+			color: transparent;
+		}
+
+		.section-copy h2,
+		.page-footer h2 {
+			font-size: clamp(2rem, 3vw, 3.3rem);
+			line-height: 1.03;
+		}
+
+		.content-card h2 {
+			font-size: clamp(1.5rem, 2.3vw, 2.3rem);
+			line-height: 1.05;
+		}
+
+		.what-is-section {
+			gap: 1rem;
+		}
+
+		.what-is-copy {
+			max-width: 56rem;
+		}
+
+		.code-block {
+			margin: 0.5rem 0 0;
+			padding: 1.25rem 1.4rem;
+			overflow-x: auto;
+			background: #0e1528;
+			color: #e7ecff;
+			font-size: 0.88rem;
+			line-height: 1.65;
+			white-space: pre;
+			-webkit-font-smoothing: antialiased;
+		}
+
+		:global(.code-block .ln) {
+			color: rgba(255, 255, 255, 0.25);
+			display: inline-block;
+			width: 1.4rem;
+			text-align: right;
+			margin-right: 0.85rem;
+			user-select: none;
+		}
+
+		:global(.code-block .kw) {
+			color: #569cd6;
+		}
+		:global(.code-block .kw-export) {
+			color: #c586c0;
+		}
+		:global(.code-block .kw-ctrl) {
+			color: #c586c0;
+		}
+		:global(.code-block .kw-ctrl-br) {
+			color: #c586c0;
+		}
+		:global(.code-block .fn) {
+			color: #dcdcaa;
+		}
+		:global(.code-block .type) {
+			color: #4ec9b0;
+		}
+		:global(.code-block .prop) {
+			color: #9cdcfe;
+		}
+		:global(.code-block .str) {
+			color: #ce9178;
+		}
+		:global(.code-block .val) {
+			color: #b5cea8;
+		}
+		:global(.code-block .el) {
+			color: #569cd6;
+		}
+		:global(.code-block .tag) {
+			color: #808080;
+		}
+		:global(.code-block .attr) {
+			color: #92c5f8;
+		}
+		:global(.code-block .br) {
+			color: #ffd700;
+		}
+		:global(.code-block .tbr) {
+			color: #ffd700;
+		}
+		:global(.code-block .css-sel) {
+			color: #d7ba7d;
+		}
+		:global(.code-block .css-br) {
+			color: #d4d4d4;
+		}
+		:global(.code-block .reactive) {
+			color: #4fc1ff;
+		}
+
+		.what-is-list {
+			max-width: 62rem;
+		}
+
+		.lede,
+		.section-body,
+		.resource-list span {
+			margin: 0;
+			font-size: 1.05rem;
+			line-height: 1.7;
+			color: rgba(26, 22, 64, 0.76);
+		}
+
+		.hero-copy,
+		.section-copy,
+		.footer-copy,
+		.content-card {
+			display: grid;
+			gap: 1rem;
+		}
+
+		.inline-code {
+			background: rgba(94, 44, 255, 0.1);
+			color: #5e2cff;
+			padding: 0.12em 0.4em;
+			border-radius: 4px;
+			font-size: 0.92em;
+		}
+
+		.hero-list,
+		.editorial-list,
+		.detail-list,
+		.resource-list {
+			margin: 0;
+			padding-left: 1.2rem;
+			display: grid;
+			gap: 0.65rem;
+			color: rgba(26, 22, 64, 0.8);
+		}
+
+		.hero-list li,
+		.editorial-list li,
+		.detail-list li,
+		.resource-list li {
+			line-height: 1.6;
+		}
+
+		.hero-list {
+			max-width: none;
+		}
+
+		.comparison-grid,
+		.stacked-cards {
+			display: grid;
+			gap: 1.25rem;
+		}
+
+		.comparison-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		.content-card,
+		.page-footer {
+			position: relative;
+			padding: 1.7rem;
+			background: transparent;
+			box-shadow: none;
+			backdrop-filter: none;
+		}
+
+		.readable-section {
+			display: grid;
+			gap: 1rem;
+			max-width: 52rem;
+		}
+
+		.cta-link {
+			display: inline-block;
+			justify-self: start;
+			padding: 0.75rem 1.5rem;
+			background: linear-gradient(90deg, #5521dd 0%, #6f00ff 100%);
+			color: #fff;
+			font-weight: 500;
+			font-size: 1rem;
+			border-radius: 6px;
+			transition: opacity 0.15s;
+		}
+
+		.cta-link:hover {
+			opacity: 0.88;
+			color: #fff;
+		}
+
+		.section-heading {
+			margin: 0;
+			font-size: clamp(2rem, 3vw, 3.3rem);
+			line-height: 1.03;
+			letter-spacing: -0.04em;
+		}
+
+		.narrative-card,
+		.slim-card,
+		.stacked-cards {
+			align-content: start;
+		}
+
+		.page-footer {
+			display: grid;
+			grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+			gap: 1.5rem;
+		}
+
+		.resource-list {
+			list-style: disc;
+		}
+
+		.resource-list li {
+			display: grid;
+			gap: 0.2rem;
+		}
+
+		.site-footer {
+			margin-top: 4rem;
+			padding: 2rem 0;
+			border-top: 1px solid rgba(26, 22, 64, 0.1);
+			text-align: center;
+		}
+
+		.site-footer p {
+			margin: 0;
+			font-size: 0.88rem;
+			line-height: 1.6;
+			color: rgba(26, 22, 64, 0.5);
+		}
+
+		@media (max-width: 1100px) {
+			.hero,
+			.page-footer,
+			.comparison-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.hero {
+				padding-top: 2rem;
+				min-height: auto;
+			}
+		}
+
+		@media (max-width: 720px) {
+			.page-shell {
+				width: calc(100vw - 1.5rem);
+				padding: 0.5rem 0 2rem;
+			}
+
+			.masthead {
+				padding: 0.75rem 0 1rem;
+			}
+
+			.masthead-nav {
+				gap: 0.75rem;
+				font-size: 0.88rem;
+			}
+
+			.header-logo {
+				width: 2.4rem;
+				height: 2.4rem;
+			}
+
+			.hero {
+				padding: 1.5rem 0 1.5rem;
+			}
+
+			.hero h1 {
+				font-size: clamp(1.75rem, 8vw, 2.5rem);
+				line-height: 1.04;
+			}
+
+			.section-shell {
+				margin-top: 2rem;
+			}
+
+			.section-heading {
+				font-size: clamp(1.5rem, 6vw, 2rem);
+			}
+
+			.section-body,
+			.lede {
+				font-size: 0.95rem;
+			}
+
+			.code-block {
+				padding: 1rem 0.75rem;
+				font-size: 0.75rem;
+				line-height: 1.55;
+			}
+
+			.cta-link {
+				padding: 0.65rem 1.25rem;
+				font-size: 0.92rem;
+			}
+
+			.site-footer {
+				margin-top: 2rem;
+				padding: 1.5rem 0;
+			}
+
+			.hero h1,
+			.section-copy h2,
+			.page-footer h2,
+			.content-card h2 {
+				line-height: 1.04;
+			}
+
+			.masthead,
+			.masthead-nav {
+				align-items: stretch;
+			}
+		}
+	</style>
+}

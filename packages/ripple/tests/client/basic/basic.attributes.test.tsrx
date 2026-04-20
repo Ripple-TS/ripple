@@ -37,9 +37,7 @@ describe('basic client > attribute rendering', () => {
 		const button = container.querySelector('button');
 		const div = container.querySelector('div');
 
-		expect(Array.from(div.classList).some((className) => className.startsWith('ripple-'))).toBe(
-			true,
-		);
+		expect(Array.from(div.classList).some((className) => className.startsWith('tsrx-'))).toBe(true);
 		expect(div.classList.contains('inactive')).toBe(true);
 
 		button.click();
@@ -82,9 +80,7 @@ describe('basic client > attribute rendering', () => {
 
 		const div = container.querySelector('div');
 
-		expect(Array.from(div.classList).some((className) => className.startsWith('ripple-'))).toBe(
-			true,
-		);
+		expect(Array.from(div.classList).some((className) => className.startsWith('tsrx-'))).toBe(true);
 		expect(div.classList.contains('foo')).toBe(true);
 		expect(div.classList.contains('bar')).toBe(true);
 		expect(div.classList.contains('baz')).toBe(true);
@@ -121,9 +117,7 @@ describe('basic client > attribute rendering', () => {
 		const button = container.querySelector('button');
 		const div = container.querySelector('div');
 
-		expect(Array.from(div.classList).some((className) => className.startsWith('ripple-'))).toBe(
-			true,
-		);
+		expect(Array.from(div.classList).some((className) => className.startsWith('tsrx-'))).toBe(true);
 		expect(div.classList.contains('inactive')).toBe(true);
 		expect(div.classList.contains('active')).toBe(false);
 
@@ -162,7 +156,7 @@ describe('basic client > attribute rendering', () => {
 		const divs = container.querySelectorAll('div');
 
 		divs.forEach((div) => {
-			expect(Array.from(div.classList).some((className) => className.startsWith('ripple-'))).toBe(
+			expect(Array.from(div.classList).some((className) => className.startsWith('tsrx-'))).toBe(
 				true,
 			);
 		});

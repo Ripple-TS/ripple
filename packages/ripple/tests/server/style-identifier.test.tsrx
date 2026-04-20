@@ -25,7 +25,7 @@ describe('#style identifier (server)', () => {
 			expect(div).toBeTruthy();
 			expect(div.textContent).toBe('styled child');
 			const classes = Array.from(div.classList);
-			expect(classes.some((cls: string) => cls.startsWith('ripple-'))).toBe(true);
+			expect(classes.some((cls: string) => cls.startsWith('tsrx-'))).toBe(true);
 			expect(classes.some((cls: string) => cls === 'highlight')).toBe(true);
 		});
 
@@ -58,11 +58,11 @@ describe('#style identifier (server)', () => {
 			expect(span).toBeTruthy();
 
 			const divClasses = Array.from(div.classList);
-			expect(divClasses.some((cls: string) => cls.startsWith('ripple-'))).toBe(true);
+			expect(divClasses.some((cls: string) => cls.startsWith('tsrx-'))).toBe(true);
 			expect(divClasses.some((cls: string) => cls === 'primary')).toBe(true);
 
 			const spanClasses = Array.from(span.classList);
-			expect(spanClasses.some((cls: string) => cls.startsWith('ripple-'))).toBe(true);
+			expect(spanClasses.some((cls: string) => cls.startsWith('tsrx-'))).toBe(true);
 			expect(spanClasses.some((cls: string) => cls === 'secondary')).toBe(true);
 		});
 	});
@@ -89,7 +89,7 @@ describe('#style identifier (server)', () => {
 			const button = document.querySelector('button');
 			expect(button).toBeTruthy();
 			const classes = Array.from(button.classList);
-			expect(classes.some((cls: string) => cls.startsWith('ripple-'))).toBe(true);
+			expect(classes.some((cls: string) => cls.startsWith('tsrx-'))).toBe(true);
 			expect(classes.some((cls: string) => cls === 'fancy')).toBe(true);
 		});
 
@@ -152,7 +152,7 @@ describe('#style identifier (server)', () => {
 				const span = document.querySelector('span');
 				expect(span).toBeTruthy();
 				const classes = Array.from(span.classList);
-				expect(classes.some((cls: string) => cls.startsWith('ripple-'))).toBe(true);
+				expect(classes.some((cls: string) => cls.startsWith('tsrx-'))).toBe(true);
 				expect(classes.some((cls: string) => cls === 'dual')).toBe(true);
 			},
 		);
@@ -182,7 +182,7 @@ describe('#style identifier (server)', () => {
 		const span = document.querySelector('span');
 		expect(span).toBeTruthy();
 		const classes = Array.from(span.classList);
-		expect(classes.some((cls: string) => cls.startsWith('ripple-'))).toBe(true);
+		expect(classes.some((cls: string) => cls.startsWith('tsrx-'))).toBe(true);
 		expect(classes.some((cls: string) => cls === 'text')).toBe(true);
 	});
 
@@ -220,10 +220,8 @@ describe('#style identifier (server)', () => {
 		const { document } = parseHtml(body);
 		const wrapper = document.querySelector('.green');
 		const child = document.querySelector('.red');
-		const wrapper_scopes = Array.from(wrapper.classList).filter(
-			(name) => name.startsWith('ripple-'),
-		);
-		const child_scopes = Array.from(child.classList).filter((name) => name.startsWith('ripple-'));
+		const wrapper_scopes = Array.from(wrapper.classList).filter((name) => name.startsWith('tsrx-'));
+		const child_scopes = Array.from(child.classList).filter((name) => name.startsWith('tsrx-'));
 
 		expect(wrapper_scopes).toHaveLength(1);
 		expect(child_scopes).toHaveLength(1);
@@ -256,7 +254,7 @@ describe('#style identifier (server)', () => {
 		const { document } = parseHtml(body);
 		const slotted_child = document.querySelector('section > div.green');
 		const slotted_scopes = Array.from(slotted_child.classList).filter(
-			(name) => name.startsWith('ripple-'),
+			(name) => name.startsWith('tsrx-'),
 		);
 
 		expect(slotted_scopes).toHaveLength(1);
@@ -280,7 +278,7 @@ export component App() {
 			const { js } = compile(source, 'test.tsrx', { mode: 'server' });
 
 			expect(js.code).toContain('highlight');
-			expect(js.code).toMatch(/ripple-[a-z0-9]+/);
+			expect(js.code).toMatch(/tsrx-[a-z0-9]+/);
 			expect(js.code).toContain('register_css');
 		});
 
@@ -303,9 +301,9 @@ export component App() {
 
 			expect(css.size).toBeGreaterThan(0);
 			const hashes = Array.from(css);
-			expect(hashes.some((h: string) => h.startsWith('ripple-'))).toBe(true);
+			expect(hashes.some((h: string) => h.startsWith('tsrx-'))).toBe(true);
 
-			expect(body).toMatch(/ripple-[a-z0-9]+/);
+			expect(body).toMatch(/tsrx-[a-z0-9]+/);
 			expect(body).toContain('styled');
 		});
 	});

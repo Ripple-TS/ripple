@@ -15,7 +15,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+\.x {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+\.x {/);
 	});
 
 	it('handles :global modifier in nested syntax', () => {
@@ -67,7 +67,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+:is\(html\.dark-mode \*\) {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+:is\(html\.dark-mode \*\) {/);
 	});
 
 	it('handles :global with & inside :global block', () => {
@@ -85,7 +85,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
 		expect(css).toContain('&.class {');
 	});
 
@@ -105,7 +105,7 @@ export component Test() {
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('* {');
-		expect(css).toMatch(/&:hover \.class\.ripple-[a-z0-9]+ {/);
+		expect(css).toMatch(/&:hover \.class\.tsrx-[a-z0-9]+ {/);
 	});
 
 	it('handles multiple :global selectors in list', () => {
@@ -142,7 +142,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+/);
 		expect(css).toContain('z {');
 	});
 
@@ -180,8 +180,8 @@ export component Test() {
 		expect(css).toContain('@keyframes test-in {');
 		expect(css).toContain('.x {');
 		expect(css).toContain('.y {');
-		expect(css).toMatch(/@keyframes ripple-[a-z0-9]+-test/);
-		expect(css).not.toMatch(/\.x\.ripple-[a-z0-9]+/);
+		expect(css).toMatch(/@keyframes tsrx-[a-z0-9]+-test/);
+		expect(css).not.toMatch(/\.x\.tsrx-[a-z0-9]+/);
 	});
 
 	it('handles global keyframes with no component elements', () => {
@@ -222,9 +222,9 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+\.blue {/);
-		expect(css).toMatch(/span\.blue\.x\.ripple-[a-z0-9]+ {/);
-		expect(css).toMatch(/span\.x\.ripple-[a-z0-9]+\.bg {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+\.blue {/);
+		expect(css).toMatch(/span\.blue\.x\.tsrx-[a-z0-9]+ {/);
+		expect(css).toMatch(/span\.x\.tsrx-[a-z0-9]+\.bg {/);
 	});
 
 	it('handles multiple :global() in descendant sequence', () => {
@@ -241,7 +241,7 @@ export component Test() {
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('div > section > p');
-		expect(css).toMatch(/p\.ripple-[a-z0-9]+ {/);
+		expect(css).toMatch(/p\.tsrx-[a-z0-9]+ {/);
 	});
 
 	it('handles :is with :global and html context', () => {
@@ -261,7 +261,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/x\.ripple-[a-z0-9]+ :is\(html \*\) {/);
+		expect(css).toMatch(/x\.tsrx-[a-z0-9]+ :is\(html \*\) {/);
 	});
 
 	it('handles :global block with :has inside', () => {
@@ -289,9 +289,9 @@ export component Test() {
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('.foo {');
-		expect(css).toMatch(/\.ripple-[a-z0-9]+:has\(x:where\(\.ripple-[a-z0-9]+\)\) {/);
-		expect(css).toMatch(/&:has\(x\.ripple-[a-z0-9]+\) {/);
-		expect(css).toMatch(/.foo:has\(x\.ripple-[a-z0-9]+\) {/);
+		expect(css).toMatch(/\.tsrx-[a-z0-9]+:has\(x:where\(\.tsrx-[a-z0-9]+\)\) {/);
+		expect(css).toMatch(/&:has\(x\.tsrx-[a-z0-9]+\) {/);
+		expect(css).toMatch(/.foo:has\(x\.tsrx-[a-z0-9]+\) {/);
 	});
 
 	it('handles :not with :global in complex nesting', () => {
@@ -378,7 +378,7 @@ export component Test({ children }) {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/\.before\.ripple-[a-z0-9]+ \+ \.foo:where\(\.ripple-[a-z0-9]+\) {/);
+		expect(css).toMatch(/\.before\.tsrx-[a-z0-9]+ \+ \.foo:where\(\.tsrx-[a-z0-9]+\) {/);
 		expect((css.match(/\.x\ /g) || []).length).toBe(0);
 		expect((css.match(/\(unused\) :global\(\.x\) /g) || []).length).toBe(6);
 		expect(css).toContain('(unused) :global(.x) + .bar {');
@@ -419,7 +419,7 @@ component Child1() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/\.before\.ripple-[a-z0-9]+ \+ \.foo:where\(\.ripple-[a-z0-9]+\) {/);
+		expect(css).toMatch(/\.before\.tsrx-[a-z0-9]+ \+ \.foo:where\(\.tsrx-[a-z0-9]+\) {/);
 		expect((css.match(/\.x\ /g) || []).length).toBe(5);
 		expect((css.match(/\(unused\) :global\(\.x\) /g) || []).length).toBe(1);
 		expect(css).toContain('(unused) :global(.x) + .bar {');
@@ -465,7 +465,7 @@ component Child1() {
 }`;
 			const { css } = compile(source, 'test.tsrx');
 
-			expect(css).toMatch(/\.before\.ripple-[a-z0-9]+ \+ \.foo:where\(\.ripple-[a-z0-9]+\) {/);
+			expect(css).toMatch(/\.before\.tsrx-[a-z0-9]+ \+ \.foo:where\(\.tsrx-[a-z0-9]+\) {/);
 			expect((css.match(/\.x\ /g) || []).length).toBe(5);
 			expect((css.match(/\(unused\) :global\(\.x\) /g) || []).length).toBe(1);
 			expect(css).toContain('(unused) :global(.x) + .bar {');
@@ -509,7 +509,7 @@ export component Test({ children, classes }) {
 
 			const { css } = compile(source, 'test.tsrx');
 
-			expect(css).toMatch(/\.before\.ripple-[a-z0-9]+ \+ \.foo:where\(\.ripple-[a-z0-9]+\) {/);
+			expect(css).toMatch(/\.before\.tsrx-[a-z0-9]+ \+ \.foo:where\(\.tsrx-[a-z0-9]+\) {/);
 			expect((css.match(/\.x\ /g) || []).length).toBe(5);
 			expect((css.match(/\(unused\) :global\(\.x\) /g) || []).length).toBe(1);
 			expect(css).toContain('(unused) :global(.x) + .bar {');
@@ -533,7 +533,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/html body \.root\.ripple-[a-z0-9]+ p:where\(\.ripple-[a-z0-9]+\) {/);
+		expect(css).toMatch(/html body \.root\.tsrx-[a-z0-9]+ p:where\(\.tsrx-[a-z0-9]+\) {/);
 	});
 
 	it('handles nested @media with :global blocks', () => {
@@ -561,7 +561,7 @@ export component Test() {
 
 		expect(css).toContain('@media (min-width: 768px) {');
 		expect(css).toContain('.foo {');
-		expect(css).not.toMatch(/\.foo\.ripple-[a-z0-9]+/);
+		expect(css).not.toMatch(/\.foo\.tsrx-[a-z0-9]+/);
 	});
 
 	it('handles :has with complex combinators', () => {
@@ -591,7 +591,7 @@ export component Test() {
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(
-			/g\.ripple-[a-z0-9]+:has\(> h:where\(\.ripple-[a-z0-9]+\) > i:where\(\.ripple-[a-z0-9]+\)\)/,
+			/g\.tsrx-[a-z0-9]+:has\(> h:where\(\.tsrx-[a-z0-9]+\) > i:where\(\.tsrx-[a-z0-9]+\)\)/,
 		);
 		expect(css).toContain('(unused) h:has(> h > i)');
 	});
@@ -614,7 +614,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ h1\[data-title="Hello, world!"\]/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ h1\[data-title="Hello, world!"\]/);
 		expect(css).toContain('h1[attribute], video[autoplay]');
 	});
 
@@ -633,7 +633,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ \.h1\\,h2\\,h3 {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ \.h1\\,h2\\,h3 {/);
 	});
 
 	/**
@@ -658,8 +658,8 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ :is\(h1, h2\)/);
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ :where\(h1, h2\)/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ :is\(h1, h2\)/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ :where\(h1, h2\)/);
 	});
 
 	it('handles :global with :is containing compound selectors', () => {
@@ -679,7 +679,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ h1 ~ :is\(h2, h3\)/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ h1 ~ :is\(h2, h3\)/);
 	});
 
 	it('handles :global with pseudo-elements', () => {

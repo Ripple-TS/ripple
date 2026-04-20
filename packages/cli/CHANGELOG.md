@@ -1,5 +1,14 @@
 # @ripple-ts/cli
 
+## 0.3.20
+
+### Patch Changes
+
+- [#879](https://github.com/Ripple-TS/ripple/pull/879)
+  [`7ff7cfa`](https://github.com/Ripple-TS/ripple/commit/7ff7cfad33b2c31f742d410d7e2450066b735d92)
+  Thanks [@RazinShafayet2007](https://github.com/RazinShafayet2007)! - chore: drop
+  Node 20 support
+
 ## 0.3.19
 
 ## 0.3.18

@@ -38,7 +38,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/@keyframes ripple-[a-z0-9]+-foo/);
+		expect(css).toMatch(/@keyframes tsrx-[a-z0-9]+-foo/);
 	});
 
 	it('handles mix of global and scoped keyframes', () => {
@@ -71,9 +71,9 @@ export component Test() {
 
 		expect(css).toContain('@keyframes fadeIn');
 		expect(css).not.toContain('-global-fadeIn');
-		expect(css).toMatch(/@keyframes ripple-[a-z0-9]+-slideIn/);
-		expect(css).toMatch(/\.scoped-anim\.ripple-[a-z0-9]+/);
-		expect(css).toMatch(/\.global-anim\.ripple-[a-z0-9]+/);
+		expect(css).toMatch(/@keyframes tsrx-[a-z0-9]+-slideIn/);
+		expect(css).toMatch(/\.scoped-anim\.tsrx-[a-z0-9]+/);
+		expect(css).toMatch(/\.global-anim\.tsrx-[a-z0-9]+/);
 	});
 
 	it('handles multiple animations with global keyframes', () => {
@@ -137,20 +137,20 @@ component Child() {
 		const { css } = compile(source, 'test.tsrx');
 
 		// Parent should have scoped slideIn and global fadeIn
-		expect(css).toMatch(/@keyframes ripple-[a-z0-9]+-slideIn/);
+		expect(css).toMatch(/@keyframes tsrx-[a-z0-9]+-slideIn/);
 		expect(css).toContain('@keyframes fadeIn');
 		expect(css).not.toContain('-global-fadeIn');
 
 		// Parent .parent should reference scoped slideIn
 		expect(css).toMatch(
-			/\.parent\.ripple-[a-z0-9]+\s*{[\s\S]*?animation:\s*ripple-[a-z0-9]+-slideIn 1s/,
+			/\.parent\.tsrx-[a-z0-9]+\s*{[\s\S]*?animation:\s*tsrx-[a-z0-9]+-slideIn 1s/,
 		);
 
 		// .parent should NOT be marked as unused
 		expect(css).not.toContain('(unused) .parent');
 
 		// Child .child should reference global fadeIn
-		expect(css).toMatch(/\.child\.ripple-[a-z0-9]+\s*{[\s\S]*?animation:\s*fadeIn 3s/);
+		expect(css).toMatch(/\.child\.tsrx-[a-z0-9]+\s*{[\s\S]*?animation:\s*fadeIn 3s/);
 
 		// .child should NOT be marked as unused
 		expect(css).not.toContain('(unused) .child');

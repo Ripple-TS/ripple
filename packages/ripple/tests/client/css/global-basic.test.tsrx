@@ -16,7 +16,7 @@ export component Test() {
 
 		expect(css).toContain('div {');
 		expect(css).toContain('color: red;');
-		expect(css).not.toMatch(/div\.ripple-[a-z0-9]+/);
+		expect(css).not.toMatch(/div\.tsrx-[a-z0-9]+/);
 	});
 
 	it('applies global selector with class', () => {
@@ -38,7 +38,7 @@ export component Test() {
 
 		expect(css).toContain('div.foo {');
 		expect(css).toContain('.foo {');
-		expect(css).not.toMatch(/\.foo\.ripple-[a-z0-9]+/);
+		expect(css).not.toMatch(/\.foo\.tsrx-[a-z0-9]+/);
 	});
 
 	it('mixes global and local selectors', () => {
@@ -62,7 +62,7 @@ export component Test() {
 
 		expect(css).toContain('div .foo');
 		expect(css).toContain('div > .foo');
-		expect(css).toMatch(/\.foo\.ripple-[a-z0-9]+/);
+		expect(css).toMatch(/\.foo\.tsrx-[a-z0-9]+/);
 	});
 
 	it('handles global block syntax', () => {
@@ -86,7 +86,7 @@ export component Test() {
 
 		expect(css).toContain('.x {');
 		expect(css).toContain('.a, .selector, .list {');
-		expect(css).not.toMatch(/\.x\.ripple-[a-z0-9]+/);
+		expect(css).not.toMatch(/\.x\.tsrx-[a-z0-9]+/);
 	});
 
 	it('handles global with pseudo-classes', () => {
@@ -108,7 +108,7 @@ export component Test() {
 
 		expect(css).toContain('button:hover {');
 		expect(css).toContain('button:focus {');
-		expect(css).not.toMatch(/button\.ripple-[a-z0-9]+/);
+		expect(css).not.toMatch(/button\.tsrx-[a-z0-9]+/);
 	});
 
 	it('handles multiple global selectors in selector list', () => {
@@ -157,9 +157,9 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/\.styled-container\.ripple-[a-z0-9]+/);
-		expect(css).toMatch(/\.text\.ripple-[a-z0-9]+/);
+		expect(css).toMatch(/\.styled-container\.tsrx-[a-z0-9]+/);
+		expect(css).toMatch(/\.text\.tsrx-[a-z0-9]+/);
 		expect(css).toContain('h1 {');
-		expect(css).not.toMatch(/h1\.ripple-[a-z0-9]+/);
+		expect(css).not.toMatch(/h1\.tsrx-[a-z0-9]+/);
 	});
 });

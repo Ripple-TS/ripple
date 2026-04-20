@@ -461,6 +461,200 @@ component HookInBothBranchesApp() {
 	</button>
 }
 
+// ── Hook inside if-branch closing over parent scope ──
+
+component HookClosingOverScopeApp() {
+	const [multiplier, setMultiplier] = useState(2);
+
+	if (multiplier > 0) {
+		const [base, setBase] = useState(5);
+		<p class="scope-result">{base * multiplier}</p>
+		<button class="scope-inc-base" onClick={() => setBase(base + 1)}>{'inc base'}</button>
+	}
+
+	<button class="scope-inc-mult" onClick={() => setMultiplier(multiplier + 1)}>
+		{'inc multiplier'}
+	</button>
+}
+
+// ── Hook inside element children (hooks in nested <div> body) ──
+
+component HookInsideElementApp() {
+	const [label, setLabel] = useState('greeting');
+
+	<div class="outer">
+		<h2>{label}</h2>
+		if (label === 'greeting') {
+			const [msg, setMsg] = useState('Hello');
+			<p class="inner-msg">{msg}</p>
+			<button class="inner-update" onClick={() => setMsg('Hi there')}>{'update'}</button>
+		}
+	</div>
+
+	<button
+		class="outer-toggle"
+		onClick={() => setLabel(label === 'greeting' ? 'farewell' : 'greeting')}
+	>
+		{'toggle'}
+	</button>
+}
+
+// ── Hook inside for-of closing over parent scope ──
+
+component HookInForClosingScopeApp() {
+	const [prefix, setPrefix] = useState('item');
+	const [items, setItems] = useState(['a', 'b']);
+
+	for (const item of items) {
+		const [active, setActive] = useState(false);
+		<div class="for-scope-item" key={item}>
+			<span class="for-scope-label">{prefix + '-' + item + (active ? '!' : '')}</span>
+			<button class={'for-scope-toggle-' + item} onClick={() => setActive(!active)}>
+				{'toggle'}
+			</button>
+		</div>
+	}
+
+	<button class="for-scope-prefix" onClick={() => setPrefix('thing')}>{'change prefix'}</button>
+}
+
+// ── Early return before hooks with parent scope ──
+
+component EarlyReturnWithHooksApp() {
+	const [count, setCount] = useState(0);
+	const [skip, setSkip] = useState(false);
+
+	if (skip) {
+		return;
+	}
+
+	const [doubled, setDoubled] = useState(0);
+
+	<p class="early-count">{count}</p>
+	<p class="early-doubled">{doubled}</p>
+	<button
+		class="early-inc"
+		onClick={() => {
+			setCount(count + 1);
+			setDoubled((count + 1) * 2);
+		}}
+	>
+		{'inc'}
+	</button>
+	<button class="early-skip" onClick={() => setSkip(true)}>{'skip'}</button>
+}
+
+// ── Hook inside switch closing over parent scope ──
+
+component HookInSwitchWithScopeApp() {
+	const [tab, setTab] = useState('counter');
+	const [theme, setTheme] = useState('light');
+
+	switch (tab) {
+		case 'counter':
+			const [n, setN] = useState(0);
+			<p class="switch-scope-val">{theme + ':' + n}</p>
+			<button class="switch-scope-inc" onClick={() => setN(n + 1)}>{'inc'}</button>
+			break;
+		case 'info':
+			<p class="switch-scope-val">{theme + ':info'}</p>
+			break;
+	}
+
+	<button class="switch-scope-tab" onClick={() => setTab(tab === 'counter' ? 'info' : 'counter')}>
+		{'switch tab'}
+	</button>
+	<button class="switch-scope-theme" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+		{'switch theme'}
+	</button>
+}
+
+// ── Static hoisting: mixed static and dynamic siblings ──
+
+component StaticHoistMixedApp() {
+	const [count, setCount] = useState(0);
+
+	<header class="static-header">
+		<h1>{'Static Title'}</h1>
+	</header>
+	<p class="dynamic-count">{count}</p>
+	<footer class="static-footer">{'Static Footer'}</footer>
+
+	<button class="hoist-inc" onClick={() => setCount(count + 1)}>{'inc'}</button>
+}
+
+// ── Static hoisting: static element inside control flow ──
+
+component StaticHoistInBranchApp() {
+	const [show, setShow] = useState(true);
+
+	if (show) {
+		<div class="branch-static">
+			<span>{'Always the same'}</span>
+		</div>
+	}
+
+	<button class="hoist-toggle" onClick={() => setShow(!show)}>{'toggle'}</button>
+}
+
+// ── Static hoisting: fully static component ──
+
+component FullyStaticApp() {
+	<div class="all-static">
+		<h2>{'Title'}</h2>
+		<p>{'Paragraph'}</p>
+	</div>
+}
+
+// ── Lazy destructuring: object in props ──
+
+component LazyPropsChild(&{ name, age }: { name: string; age: number }) {
+	<div class="lazy-props">
+		{name}
+		{' is '}
+		{age}
+	</div>
+}
+
+component LazyPropsApp() {
+	<LazyPropsChild name="Alice" age={30} />
+}
+
+// ── Lazy destructuring: array in variable ──
+
+component LazyArrayApp() {
+	let &[count, setCount] = useState(0);
+	<p class="lazy-count">{count}</p>
+	<button class="lazy-inc" onClick={() => setCount(count + 1)}>{'+'}</button>
+}
+
+// ── Lazy destructuring: object in variable ──
+
+component LazyObjVarApp() {
+	const &{ x, y } = usePosition();
+	<p class="lazy-pos">
+		{x}
+		{','}
+		{y}
+	</p>
+}
+
+function usePosition() {
+	return { x: 10, y: 20 };
+}
+
+// ── Lazy destructuring: combined props + variable ──
+
+component LazyCombinedApp(&{ label }: { label: string }) {
+	const &[count, setCount] = useState(0);
+	<p class="lazy-combined">
+		{label}
+		{': '}
+		{count}
+	</p>
+	<button class="lazy-combined-inc" onClick={() => setCount(count + 1)}>{'+'}</button>
+}
+
 // ── Tests ──
 
 describe('tsrx-react runtime', () => {
@@ -798,5 +992,143 @@ describe('tsrx-react runtime', () => {
 
 		await click('.branch-inc');
 		expect(text('.branch-val')).toBe('21');
+	});
+
+	// ── Hoisted hooks closing over parent scope ──
+
+	it('hook in if-branch correctly closes over parent scope variables', async () => {
+		await render(HookClosingOverScopeApp);
+		// base=5, multiplier=2 → 10
+		expect(text('.scope-result')).toBe('10');
+
+		await click('.scope-inc-base');
+		// base=6, multiplier=2 → 12
+		expect(text('.scope-result')).toBe('12');
+
+		await click('.scope-inc-mult');
+		// base=6, multiplier=3 → 18
+		expect(text('.scope-result')).toBe('18');
+	});
+
+	it('hook inside element children works with parent scope', async () => {
+		await render(HookInsideElementApp);
+		expect(text('h2')).toBe('greeting');
+		expect(text('.inner-msg')).toBe('Hello');
+
+		await click('.inner-update');
+		expect(text('.inner-msg')).toBe('Hi there');
+
+		await click('.outer-toggle');
+		expect(text('h2')).toBe('farewell');
+		expect(container.querySelector('.inner-msg')).toBeNull();
+
+		await click('.outer-toggle');
+		expect(text('h2')).toBe('greeting');
+		// Hook state resets since the component remounts
+		expect(text('.inner-msg')).toBe('Hello');
+	});
+
+	it('hook in for-of loop correctly uses parent scope variables', async () => {
+		await render(HookInForClosingScopeApp);
+		const labels = container.querySelectorAll('.for-scope-label');
+		expect(labels[0].textContent).toBe('item-a');
+		expect(labels[1].textContent).toBe('item-b');
+
+		await click('.for-scope-toggle-a');
+		expect(container.querySelector('.for-scope-label')!.textContent).toBe('item-a!');
+
+		await click('.for-scope-prefix');
+		expect(container.querySelector('.for-scope-label')!.textContent).toBe('thing-a!');
+	});
+
+	it('early return before hooks passes scope correctly to continuation', async () => {
+		await render(EarlyReturnWithHooksApp);
+		expect(text('.early-count')).toBe('0');
+		expect(text('.early-doubled')).toBe('0');
+
+		await click('.early-inc');
+		expect(text('.early-count')).toBe('1');
+		expect(text('.early-doubled')).toBe('2');
+
+		await click('.early-skip');
+		expect(container.querySelector('.early-count')).toBeNull();
+		expect(container.querySelector('.early-doubled')).toBeNull();
+	});
+
+	it('hook in switch case correctly uses parent scope variables', async () => {
+		await render(HookInSwitchWithScopeApp);
+		expect(text('.switch-scope-val')).toBe('light:0');
+
+		await click('.switch-scope-inc');
+		expect(text('.switch-scope-val')).toBe('light:1');
+
+		await click('.switch-scope-theme');
+		expect(text('.switch-scope-val')).toBe('dark:1');
+
+		await click('.switch-scope-tab');
+		expect(text('.switch-scope-val')).toBe('dark:info');
+	});
+
+	// ── Static hoisting ──
+
+	it('hoists static elements while keeping dynamic siblings interactive', async () => {
+		await render(StaticHoistMixedApp);
+		expect(text('.static-header h1')).toBe('Static Title');
+		expect(text('.dynamic-count')).toBe('0');
+		expect(text('.static-footer')).toBe('Static Footer');
+
+		await click('.hoist-inc');
+		expect(text('.dynamic-count')).toBe('1');
+		// Static elements remain unchanged
+		expect(text('.static-header h1')).toBe('Static Title');
+		expect(text('.static-footer')).toBe('Static Footer');
+	});
+
+	it('hoists static elements inside control flow branches', async () => {
+		await render(StaticHoistInBranchApp);
+		expect(text('.branch-static span')).toBe('Always the same');
+
+		await click('.hoist-toggle');
+		expect(container.querySelector('.branch-static')).toBeNull();
+
+		await click('.hoist-toggle');
+		expect(text('.branch-static span')).toBe('Always the same');
+	});
+
+	it('renders a fully static component correctly', async () => {
+		await render(FullyStaticApp);
+		expect(text('.all-static h2')).toBe('Title');
+		expect(text('.all-static p')).toBe('Paragraph');
+	});
+
+	// ── Lazy destructuring ──
+
+	it('lazy object destructuring in props works at runtime', async () => {
+		await render(LazyPropsApp);
+		expect(text('.lazy-props')).toBe('Alice is 30');
+	});
+
+	it('lazy array destructuring in variables works at runtime', async () => {
+		await render(LazyArrayApp);
+		expect(text('.lazy-count')).toBe('0');
+
+		await click('.lazy-inc');
+		expect(text('.lazy-count')).toBe('1');
+
+		await click('.lazy-inc');
+		expect(text('.lazy-count')).toBe('2');
+	});
+
+	it('lazy object destructuring in variables works at runtime', async () => {
+		await render(LazyObjVarApp);
+		expect(text('.lazy-pos')).toBe('10,20');
+	});
+
+	it('combined lazy props and lazy variables work at runtime', async () => {
+		await render(LazyCombinedApp, { label: 'Count' });
+		expect(text('.lazy-combined')).toBe('Count: 0');
+
+		await click('.lazy-combined-inc');
+		expect(text('.lazy-combined')).toBe('Count: 1');
 	});
 });

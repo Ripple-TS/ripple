@@ -291,6 +291,22 @@ export default component App() {
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should format dynamic import() expressions correctly', async () => {
+			const input = `const mod = await import('@codemirror/state');`;
+			const expected = `const mod = await import("@codemirror/state");`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should format destructured dynamic import() in Promise.all', async () => {
+			const input = `const [{ EditorState }, { oneDark }] = await Promise.all([import('@codemirror/state'), import('@codemirror/theme-one-dark')]);`;
+			const expected = `const [{ EditorState }, { oneDark }] = await Promise.all([
+  import("@codemirror/state"), import("@codemirror/theme-one-dark"),
+]);`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should format a component with an object property notation component markup', async () => {
 			const expected = `component Card(props) {
   <div class="card">

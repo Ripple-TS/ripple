@@ -26,9 +26,9 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).not.toMatch(/div\.ripple-[a-z0-9]+ {/);
-		expect(css).not.toMatch(/span\.ripple-[a-z0-9]+ {/);
-		expect(css).not.toMatch(/button\.ripple-[a-z0-9]+ {/);
+		expect(css).not.toMatch(/div\.tsrx-[a-z0-9]+ {/);
+		expect(css).not.toMatch(/span\.tsrx-[a-z0-9]+ {/);
+		expect(css).not.toMatch(/button\.tsrx-[a-z0-9]+ {/);
 	});
 
 	it('handles local block with :global nested inside', () => {
@@ -54,8 +54,8 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ {/);
-		expect(css).not.toMatch(/span\.ripple-[a-z0-9]+ {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
+		expect(css).not.toMatch(/span\.tsrx-[a-z0-9]+ {/);
 		expect(css).toContain('(unused) p {');
 	});
 
@@ -82,8 +82,8 @@ export component Test() {
 
 		expect(css).toContain('div {');
 		expect(css).toContain('.local {');
-		expect(css).not.toMatch(/div\.ripple-[a-z0-9]+ {/);
-		expect(css).not.toMatch(/\.local\.ripple-[a-z0-9]+ {/);
+		expect(css).not.toMatch(/div\.tsrx-[a-z0-9]+ {/);
+		expect(css).not.toMatch(/\.local\.tsrx-[a-z0-9]+ {/);
 	});
 
 	it('handles alternating :global and local nesting', () => {
@@ -111,8 +111,8 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ {/);
-		expect(css).toMatch(/button\.ripple-[a-z0-9]+ {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
+		expect(css).toMatch(/button\.tsrx-[a-z0-9]+ {/);
 		expect(css).toContain('span {');
 		expect(css).toContain('em {');
 	});
@@ -142,11 +142,11 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
 		expect(css).toContain('span {');
 		expect(css).toContain('button {');
-		expect(css).not.toMatch(/span\.ripple-[a-z0-9]+/);
-		expect(css).not.toMatch(/button\.ripple-[a-z0-9]+/);
+		expect(css).not.toMatch(/span\.tsrx-[a-z0-9]+/);
+		expect(css).not.toMatch(/button\.tsrx-[a-z0-9]+/);
 	});
 
 	it('handles :global with nesting combinator &', () => {
@@ -174,8 +174,8 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/\.container\.ripple-[a-z0-9]+ {/);
-		expect(css).toMatch(/button\.ripple-[a-z0-9]+ {/);
+		expect(css).toMatch(/\.container\.tsrx-[a-z0-9]+ {/);
+		expect(css).toMatch(/button\.tsrx-[a-z0-9]+ {/);
 		expect(css).toContain('&.active {');
 		expect(css).toContain('&.pressed {');
 	});
@@ -209,13 +209,13 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ {/);
-		expect(css).toMatch(/ul\.ripple-[a-z0-9]+ {/);
-		expect(css).toMatch(/a\.ripple-[a-z0-9]+ {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
+		expect(css).toMatch(/ul\.tsrx-[a-z0-9]+ {/);
+		expect(css).toMatch(/a\.tsrx-[a-z0-9]+ {/);
 
 		expect(css).toContain('nav {');
 		expect(css).toContain('li {');
-		expect(css).not.toMatch(/nav\.ripple-[a-z0-9]+ {/);
-		expect(css).not.toMatch(/li\.ripple-[a-z0-9]+ {/);
+		expect(css).not.toMatch(/nav\.tsrx-[a-z0-9]+ {/);
+		expect(css).not.toMatch(/li\.tsrx-[a-z0-9]+ {/);
 	});
 });

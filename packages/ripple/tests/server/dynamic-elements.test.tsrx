@@ -253,7 +253,7 @@ describe('server dynamic DOM elements', () => {
 		expect(element.classList.contains('test-class')).toBe(true);
 
 		const classes = Array.from(element.classList);
-		const hasScopedClass = classes.some((cls) => cls.startsWith('ripple-'));
+		const hasScopedClass = classes.some((cls) => cls.startsWith('tsrx-'));
 		expect(hasScopedClass).toBe(true);
 	});
 
@@ -292,7 +292,7 @@ describe('server dynamic DOM elements', () => {
 
 		// Check if scoped CSS hash is applied (this is the critical test)
 		const classes = Array.from(button.classList);
-		const hasScopedClass = classes.some((cls) => cls.startsWith('ripple-'));
+		const hasScopedClass = classes.some((cls) => cls.startsWith('tsrx-'));
 		expect(hasScopedClass).toBe(true);
 	});
 
@@ -317,8 +317,8 @@ describe('server dynamic DOM elements', () => {
 		const div = document.querySelector('div');
 		const p = div.querySelector('p');
 
-		expect(Array.from(div.classList).some((c) => c.startsWith('ripple-'))).toBe(true);
-		expect(Array.from(p.classList).some((c) => c.startsWith('ripple-'))).toBe(true);
+		expect(Array.from(div.classList).some((c) => c.startsWith('tsrx-'))).toBe(true);
+		expect(Array.from(p.classList).some((c) => c.startsWith('tsrx-'))).toBe(true);
 	});
 
 	it(
@@ -346,8 +346,8 @@ describe('server dynamic DOM elements', () => {
 			const div = document.querySelector('div');
 			const p = div.querySelector('p');
 
-			expect(Array.from(div.classList).some((c) => c.startsWith('ripple-'))).toBe(true);
-			expect(Array.from(p.classList).some((c) => c.startsWith('ripple-'))).toBe(true);
+			expect(Array.from(div.classList).some((c) => c.startsWith('tsrx-'))).toBe(true);
+			expect(Array.from(p.classList).some((c) => c.startsWith('tsrx-'))).toBe(true);
 		},
 	);
 
@@ -386,9 +386,9 @@ describe('server dynamic DOM elements', () => {
 		const innerDiv = outerDiv.querySelector('.child');
 		const innerP = innerDiv.querySelector('p');
 
-		const outerScope = Array.from(outerDiv.classList).find((c) => c.startsWith('ripple-'));
-		const innerScopes = Array.from(innerDiv.classList).filter((c) => c.startsWith('ripple-'));
-		const innerInnerScopes = Array.from(innerP.classList).filter((c) => c.startsWith('ripple-'));
+		const outerScope = Array.from(outerDiv.classList).find((c) => c.startsWith('tsrx-'));
+		const innerScopes = Array.from(innerDiv.classList).filter((c) => c.startsWith('tsrx-'));
+		const innerInnerScopes = Array.from(innerP.classList).filter((c) => c.startsWith('tsrx-'));
 
 		expect(outerScope).toBeTruthy();
 
@@ -429,8 +429,8 @@ describe('server dynamic DOM elements', () => {
 		const div = document.querySelector('.child');
 		const p = div.querySelector('p');
 
-		const outerScopes = Array.from(div.classList).filter((c) => c.startsWith('ripple-'));
-		const innerScopes = Array.from(p.classList).filter((c) => c.startsWith('ripple-'));
+		const outerScopes = Array.from(div.classList).filter((c) => c.startsWith('tsrx-'));
+		const innerScopes = Array.from(p.classList).filter((c) => c.startsWith('tsrx-'));
 
 		expect(outerScopes).toHaveLength(1);
 		expect(innerScopes).toHaveLength(0);
