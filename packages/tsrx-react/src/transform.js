@@ -69,7 +69,16 @@ export function transform(ast, source, filename) {
 			const saved_helper_state = state.helper_state;
 			const saved_bindings = state.available_bindings;
 			state.helper_state = helper_state;
-			state.available_bindings = collect_param_bindings(as_any.params || []);
+
+			// Pre-collect ALL component body bindings (params + top-level statements)
+			// so that Element children processed during the bottom-up walk can see
+			// the full scope. Without this, hoisted helpers would miss body-level
+			// variables like `const [x] = useState(...)` and produce ReferenceErrors.
+			const body_bindings = collect_param_bindings(as_any.params || []);
+			for (const child of as_any.body || []) {
+				collect_statement_bindings(child, body_bindings);
+			}
+			state.available_bindings = body_bindings;
 
 			const inner = /** @type {any} */ (next() ?? node);
 
@@ -1416,6 +1425,19 @@ function hook_safe_render_statements(body_nodes, key_expression, transform_conte
 				metadata: { path: [] },
 			}),
 		);
+	}
+
+	// When helper_state is null (no enclosing component context), inline the
+	// helper via an IIFE so the function declaration isn't silently dropped.
+	if (!transform_context.helper_state) {
+		return [
+			helper_fn,
+			{
+				type: 'ReturnStatement',
+				argument: component_element,
+				metadata: { path: [] },
+			},
+		];
 	}
 
 	return [
