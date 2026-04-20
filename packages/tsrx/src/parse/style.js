@@ -119,7 +119,7 @@ export function parse_style(content, options) {
 
 	return {
 		source: content,
-		hash: `ripple-${hash(content)}`,
+		hash: `tsrx-${hash(content)}`,
 		type: 'StyleSheet',
 		children: read_body(parser),
 		start: 0,

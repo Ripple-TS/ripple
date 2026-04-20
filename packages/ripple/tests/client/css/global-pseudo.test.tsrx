@@ -20,7 +20,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+:has\(span\)/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+:has\(span\)/);
 		expect(css).toContain('div:has(span)');
 	});
 
@@ -44,7 +44,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ :is\(span, p:where\(\.ripple-[a-z0-9]+\)\) {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ :is\(span, p:where\(\.tsrx-[a-z0-9]+\)\) {/);
 		expect(css).not.toMatch(/span:where/);
 		expect(css).not.toMatch(/span\.ripple/);
 		expect(css).toContain('div:is(.foo, .bar)');
@@ -70,7 +70,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ :where\(span, p:where\(\.ripple-[a-z0-9]+\)\) {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ :where\(span, p:where\(\.tsrx-[a-z0-9]+\)\) {/);
 		expect(css).not.toMatch(/span:where/);
 		expect(css).not.toMatch(/span\.ripple/);
 		expect(css).toContain('div:where(.foo, .bar)');
@@ -95,7 +95,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+:not\(span\)/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+:not\(span\)/);
 		expect(css).toContain('div:not(.foo)');
 	});
 
@@ -118,7 +118,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+:is\(:where\(\.ripple-[a-z0-9]+\):has\(span\)\) {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+:is\(:where\(\.tsrx-[a-z0-9]+\):has\(span\)\) {/);
 		expect(css).toContain('div:where(:is(.foo))');
 	});
 
@@ -148,8 +148,8 @@ export component Test() {
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('span:nth-child(2) {');
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ > span:first-child {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ > span:first-child {/);
 		expect(css).toContain('div:last-child {');
-		expect(css).not.toMatch(/span\.ripple-[a-z0-9]+:nth-child/);
+		expect(css).not.toMatch(/span\.tsrx-[a-z0-9]+:nth-child/);
 	});
 });

@@ -16,8 +16,8 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ > span {/);
-		expect(css).not.toMatch(/span\.ripple-[a-z0-9]+/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ > span {/);
+		expect(css).not.toMatch(/span\.tsrx-[a-z0-9]+/);
 	});
 
 	it('handles :global with adjacent sibling combinator', () => {
@@ -40,7 +40,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/span\.ripple-[a-z0-9]+ \+ span {/);
+		expect(css).toMatch(/span\.tsrx-[a-z0-9]+ \+ span {/);
 		expect(css).toContain('(unused) :global(div) + span {');
 	});
 
@@ -66,7 +66,7 @@ export component Test() {
 
 		expect(css).toContain('~');
 
-		expect(css).toMatch(/span\.ripple-[a-z0-9]+ ~ span {/);
+		expect(css).toMatch(/span\.tsrx-[a-z0-9]+ ~ span {/);
 		expect(css).toMatch('(unused) :global(div) ~ span {');
 	});
 
@@ -92,8 +92,8 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ > span > button {/);
-		expect(css).toMatch(/div > span\.ripple-[a-z0-9]+ \+ button:where\(\.ripple-[a-z0-9]+\) {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ > span > button {/);
+		expect(css).toMatch(/div > span\.tsrx-[a-z0-9]+ \+ button:where\(\.tsrx-[a-z0-9]+\) {/);
 	});
 
 	it('handles :global with descendant combinator', () => {
@@ -118,7 +118,7 @@ export component Test() {
 
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ span button {/);
-		expect(css).toMatch(/div span\.ripple-[a-z0-9]+ button:where\(\.ripple-[a-z0-9]+\) {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ span button {/);
+		expect(css).toMatch(/div span\.tsrx-[a-z0-9]+ button:where\(\.tsrx-[a-z0-9]+\) {/);
 	});
 });

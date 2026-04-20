@@ -14,7 +14,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/\.scoped\.ripple-[a-z0-9]+/);
+		expect(css).toMatch(/\.scoped\.tsrx-[a-z0-9]+/);
 		expect(css).not.toContain('.scoped {');
 	});
 
@@ -32,7 +32,7 @@ export component Test() {
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('.global {');
-		expect(css).not.toMatch(/\.global\.ripple-[a-z0-9]+/);
+		expect(css).not.toMatch(/\.global\.tsrx-[a-z0-9]+/);
 	});
 
 	it('verifies mixed local and global maintain proper scoping', () => {
@@ -66,11 +66,11 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/\.outer\.ripple-[a-z0-9]+ {/);
+		expect(css).toMatch(/\.outer\.tsrx-[a-z0-9]+ {/);
 		expect(css).toMatch(/\.outer {/);
-		expect(css).toMatch(/\.outer\.ripple-[a-z0-9]+ \.inner:where\(\.ripple-[a-z0-9]+\) {/);
-		expect(css).toMatch(/\.outer \.inner\.ripple-[a-z0-9]+/);
-		expect(css).toMatch(/\.outer\.ripple-[a-z0-9]+ \.inner {/);
+		expect(css).toMatch(/\.outer\.tsrx-[a-z0-9]+ \.inner:where\(\.tsrx-[a-z0-9]+\) {/);
+		expect(css).toMatch(/\.outer \.inner\.tsrx-[a-z0-9]+/);
+		expect(css).toMatch(/\.outer\.tsrx-[a-z0-9]+ \.inner {/);
 	});
 
 	it('verifies :global blocks scope all nested selectors globally', () => {
@@ -103,9 +103,9 @@ export component Test() {
 		expect(css).toContain('div {');
 		expect(css).toContain('span {');
 		expect(css).toContain('button {');
-		expect(css).not.toMatch(/div\.ripple-[a-z0-9]+/);
-		expect(css).not.toMatch(/span\.ripple-[a-z0-9]+/);
-		expect(css).not.toMatch(/button\.ripple-[a-z0-9]+/);
+		expect(css).not.toMatch(/div\.tsrx-[a-z0-9]+/);
+		expect(css).not.toMatch(/span\.tsrx-[a-z0-9]+/);
+		expect(css).not.toMatch(/button\.tsrx-[a-z0-9]+/);
 	});
 
 	it('verifies element selectors are scoped by default', () => {
@@ -133,9 +133,9 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+/);
-		expect(css).toMatch(/span\.ripple-[a-z0-9]+/);
-		expect(css).toMatch(/button\.ripple-[a-z0-9]+/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+/);
+		expect(css).toMatch(/span\.tsrx-[a-z0-9]+/);
+		expect(css).toMatch(/button\.tsrx-[a-z0-9]+/);
 	});
 
 	it('verifies :global() escapes only the wrapped selector', () => {
@@ -155,8 +155,8 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/\.local\.ripple-[a-z0-9]+ \.global \.local {/);
-		expect(css).not.toMatch(/\.global\.ripple-[a-z0-9]+/);
+		expect(css).toMatch(/\.local\.tsrx-[a-z0-9]+ \.global \.local {/);
+		expect(css).not.toMatch(/\.global\.tsrx-[a-z0-9]+/);
 	});
 
 	it('verifies multiple components have different scope hashes', () => {
@@ -183,11 +183,11 @@ export component Test2() {
 		const { css: css1 } = compile(source1, 'test1.tsrx');
 		const { css: css2 } = compile(source2, 'test2.tsrx');
 
-		expect(css1).toMatch(/\.test\.ripple-[a-z0-9]+/);
-		expect(css2).toMatch(/\.test\.ripple-[a-z0-9]+/);
+		expect(css1).toMatch(/\.test\.tsrx-[a-z0-9]+/);
+		expect(css2).toMatch(/\.test\.tsrx-[a-z0-9]+/);
 
-		const hash1Match = css1.match(/\.test\.ripple-([a-z0-9]+)/);
-		const hash2Match = css2.match(/\.test\.ripple-([a-z0-9]+)/);
+		const hash1Match = css1.match(/\.test\.tsrx-([a-z0-9]+)/);
+		const hash2Match = css2.match(/\.test\.tsrx-([a-z0-9]+)/);
 
 		expect(hash1Match).toBeTruthy();
 		expect(hash2Match).toBeTruthy();
@@ -222,8 +222,8 @@ export component Test2() {
 		const { css: css2 } = compile(source2, 'test2.tsrx');
 
 		expect(css1).toContain('.global {');
-		expect(css1).not.toMatch(/\.global\.ripple-[a-z0-9]+/);
+		expect(css1).not.toMatch(/\.global\.tsrx-[a-z0-9]+/);
 		expect(css2).toContain('.global {');
-		expect(css2).not.toMatch(/\.global\.ripple-[a-z0-9]+/);
+		expect(css2).not.toMatch(/\.global\.tsrx-[a-z0-9]+/);
 	});
 });

@@ -20,7 +20,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ ::slotted\(span\) {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ ::slotted\(span\) {/);
 		expect(css).toContain('::slotted(*) {');
 	});
 
@@ -41,7 +41,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ ::part\(input\) {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ ::part\(input\) {/);
 		expect(css).toContain('::part(button) {');
 	});
 

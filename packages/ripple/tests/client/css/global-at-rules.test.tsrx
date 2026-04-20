@@ -22,7 +22,7 @@ export component Test() {
 
 		expect(css).toContain('@media (min-width: 768px) {');
 		expect(css).toContain('div {');
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ span {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ span {/);
 	});
 
 	it('handles :global inside @supports queries', () => {
@@ -46,7 +46,7 @@ export component Test() {
 
 		expect(css).toContain('@supports (display: grid) {');
 		expect(css).toContain('.container {');
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ \.item {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ \.item {/);
 	});
 
 	it('handles nested @media with :global', () => {
@@ -74,8 +74,8 @@ export component Test() {
 
 		expect(css).toContain('@media (min-width: 768px) {');
 		expect(css).toContain('.foo {');
-		expect(css).not.toMatch(/\.foo\.ripple-[a-z0-9]+/);
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ {/);
+		expect(css).not.toMatch(/\.foo\.tsrx-[a-z0-9]+/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
 	});
 
 	it('handles :global in @container queries', () => {
@@ -121,6 +121,6 @@ export component Test() {
 		expect(css).toContain('@media screen {');
 		expect(css).toContain('@supports (display: flex) {');
 		expect(css).toContain('.flex-container {');
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ \.flex-item {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ \.flex-item {/);
 	});
 });

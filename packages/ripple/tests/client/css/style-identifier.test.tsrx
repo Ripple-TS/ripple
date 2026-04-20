@@ -24,7 +24,7 @@ describe('#style identifier', () => {
 			expect(div).toBeTruthy();
 			expect(div.textContent).toBe('styled child');
 			const classes = Array.from(div.classList);
-			expect(classes.some((cls: string) => cls.startsWith('ripple-'))).toBe(true);
+			expect(classes.some((cls: string) => cls.startsWith('tsrx-'))).toBe(true);
 			expect(classes.some((cls: string) => cls === 'highlight')).toBe(true);
 		});
 
@@ -56,11 +56,11 @@ describe('#style identifier', () => {
 			expect(span).toBeTruthy();
 
 			const divClasses = Array.from(div.classList);
-			expect(divClasses.some((cls: string) => cls.startsWith('ripple-'))).toBe(true);
+			expect(divClasses.some((cls: string) => cls.startsWith('tsrx-'))).toBe(true);
 			expect(divClasses.some((cls: string) => cls === 'primary')).toBe(true);
 
 			const spanClasses = Array.from(span.classList);
-			expect(spanClasses.some((cls: string) => cls.startsWith('ripple-'))).toBe(true);
+			expect(spanClasses.some((cls: string) => cls.startsWith('tsrx-'))).toBe(true);
 			expect(spanClasses.some((cls: string) => cls === 'secondary')).toBe(true);
 		});
 
@@ -87,7 +87,7 @@ describe('#style identifier', () => {
 			const span = container.querySelector('span');
 			expect(span).toBeTruthy();
 			const classes = Array.from(span.classList);
-			expect(classes.some((cls: string) => cls.startsWith('ripple-'))).toBe(true);
+			expect(classes.some((cls: string) => cls.startsWith('tsrx-'))).toBe(true);
 			expect(classes.some((cls: string) => cls === 'text')).toBe(true);
 		});
 
@@ -146,7 +146,7 @@ describe('#style identifier', () => {
 			const span = container.querySelector('span');
 			expect(span).toBeTruthy();
 			const classes = Array.from(span.classList);
-			expect(classes.some((cls: string) => cls.startsWith('ripple-'))).toBe(true);
+			expect(classes.some((cls: string) => cls.startsWith('tsrx-'))).toBe(true);
 			expect(classes.some((cls: string) => cls === 'dual')).toBe(true);
 		});
 	});
@@ -365,7 +365,7 @@ export component App() {
 			const { js } = compile(source, 'test.tsrx');
 
 			expect(js.code).toContain('highlight');
-			expect(js.code).toMatch(/ripple-[a-z0-9]+/);
+			expect(js.code).toMatch(/tsrx-[a-z0-9]+/);
 		});
 
 		it('generates #style object with standalone classes for server mode', () => {
@@ -385,7 +385,7 @@ export component App() {
 			const { js } = compile(source, 'test.tsrx', { mode: 'server' });
 
 			expect(js.code).toContain('highlight');
-			expect(js.code).toMatch(/ripple-[a-z0-9]+/);
+			expect(js.code).toMatch(/tsrx-[a-z0-9]+/);
 		});
 	});
 });

@@ -34,12 +34,12 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
 		expect(css).toContain('.x {');
 		expect(css).toContain('.y {');
-		expect(css).not.toMatch(/\.x\.ripple-[a-z0-9]+/);
-		expect(css).not.toMatch(/\.y\.ripple-[a-z0-9]+/);
-		expect(css).toMatch(/p\.ripple-[a-z0-9]+ \.y {/);
+		expect(css).not.toMatch(/\.x\.tsrx-[a-z0-9]+/);
+		expect(css).not.toMatch(/\.y\.tsrx-[a-z0-9]+/);
+		expect(css).toMatch(/p\.tsrx-[a-z0-9]+ \.y {/);
 	});
 
 	it('handles :global with nesting selector', () => {
@@ -70,7 +70,7 @@ export component Test() {
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('&.x {');
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+\.x {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+\.x {/);
 	});
 
 	it('handles global block with de-nested syntax', () => {
@@ -96,7 +96,7 @@ export component Test() {
 
 		expect(css).toContain('div {');
 		expect(css).toContain('.y {');
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ p {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ p {/);
 	});
 
 	it('handles global local nested combinations', () => {
@@ -121,8 +121,8 @@ export component Test() {
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('.whatever {');
-		expect(css).not.toMatch(/\.whatever\.ripple-[a-z0-9]+ {/);
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ {/);
+		expect(css).not.toMatch(/\.whatever\.tsrx-[a-z0-9]+ {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
 	});
 
 	it('handles :global with :is and :where pseudoclasses', () => {
@@ -144,7 +144,7 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ :is\(span\) {/);
-		expect(css).toMatch(/\.foo :is\(div\.ripple-[a-z0-9]+\) {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ :is\(span\) {/);
+		expect(css).toMatch(/\.foo :is\(div\.tsrx-[a-z0-9]+\) {/);
 	});
 });

@@ -36,7 +36,7 @@ export component Test() {
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('[data-test] {');
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+\[data-foo="bar"\]/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+\[data-foo="bar"\]/);
 	});
 
 	it('handles :global with universal selector', () => {
@@ -57,7 +57,7 @@ export component Test() {
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('* {');
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ \* {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ \* {/);
 	});
 
 	it('handles :global with ID selectors', () => {
@@ -78,9 +78,9 @@ export component Test() {
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('#app {');
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ #test {/);
-		expect(css).not.toMatch(/#app\.ripple-[a-z0-9]+/);
-		expect(css).not.toMatch(/#test\.ripple-[a-z0-9]+/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ #test {/);
+		expect(css).not.toMatch(/#app\.tsrx-[a-z0-9]+/);
+		expect(css).not.toMatch(/#test\.tsrx-[a-z0-9]+/);
 	});
 
 	it('handles :global with pseudo-elements', () => {
@@ -102,7 +102,7 @@ export component Test() {
 
 		expect(css).toContain('div::before {');
 		``;
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ span::after {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ span::after {/);
 	});
 
 	it('handles empty :global blocks', () => {
@@ -121,7 +121,7 @@ export component Test() {
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('color: red');
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
 	});
 
 	it('handles :global with complex selector chains', () => {
@@ -145,8 +145,8 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/div\.container > span.wrapper\.ripple-[a-z0-9]+ \+ button\[disabled\] {/);
-		expect(css).toMatch(/\.foo > \.bar span\.ripple-[a-z0-9]+ {/);
+		expect(css).toMatch(/div\.container > span.wrapper\.tsrx-[a-z0-9]+ \+ button\[disabled\] {/);
+		expect(css).toMatch(/\.foo > \.bar span\.tsrx-[a-z0-9]+ {/);
 	});
 
 	it('rejects :global in the middle of a selector sequence', () => {
@@ -193,8 +193,8 @@ export component Test() {
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
-		expect(css).toMatch(/html div\.ripple-[a-z0-9]+ span:where\(\.ripple-[a-z0-9]+\) {/);
-		expect(css).toMatch(/div\.ripple-[a-z0-9]+ span:where\(\.ripple-[a-z0-9]+\) strong {/);
-		expect(css).toMatch(/body div\.ripple-[a-z0-9]+ em {/);
+		expect(css).toMatch(/html div\.tsrx-[a-z0-9]+ span:where\(\.tsrx-[a-z0-9]+\) {/);
+		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ span:where\(\.tsrx-[a-z0-9]+\) strong {/);
+		expect(css).toMatch(/body div\.tsrx-[a-z0-9]+ em {/);
 	});
 });
