@@ -1114,4 +1114,40 @@ describe('lazy destructuring', () => {
 		expect(code).not.toContain('App__static2');
 		expect(code).toContain('<Widget');
 	});
+
+	it('does not hoist elements using JSXMemberExpression with component-scope object', () => {
+		const { code } = compile(
+			`export component App({ui}: {ui: any}) {
+				<div>{"static"}</div>
+				<ui.Button />
+			}`,
+			'App.tsrx',
+		);
+
+		// Pure static element can still be hoisted
+		expect(code).toContain('App__static1');
+		// Element using a component-scope binding as JSXMemberExpression object must NOT be hoisted
+		expect(code).not.toContain('App__static2');
+		expect(code).toContain('<ui.Button');
+	});
+
+	it('does not rewrite locally shadowed names inside blocks', () => {
+		const { code } = compile(
+			`export component App(&{name}: Props) {
+				const handler = () => {
+					const name = 'local';
+					return name;
+				};
+				<div>{name}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// The prop reference should be rewritten
+		expect(code).toContain('__lazy0.name');
+		// The callback should use the local 'name', not the lazy accessor
+		expect(code).toContain("const name = 'local'");
+		expect(code).toContain('return name');
+		expect(code).not.toMatch(/return __lazy0\.name/);
+	});
 });

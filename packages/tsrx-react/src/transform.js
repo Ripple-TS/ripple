@@ -288,10 +288,7 @@ function apply_lazy_transforms(node, lazy_bindings) {
 		}
 
 		if (shadowed.size > 0) {
-			const inner_bindings = new Map(lazy_bindings);
-			for (const name of shadowed) {
-				inner_bindings.delete(name);
-			}
+			const inner_bindings = remove_shadowed(lazy_bindings, shadowed);
 			if (inner_bindings.size === 0) return node;
 
 			// Only transform the body, not the params
@@ -306,6 +303,34 @@ function apply_lazy_transforms(node, lazy_bindings) {
 		if (new_body !== node.body) {
 			return { ...node, body: new_body };
 		}
+		return node;
+	}
+
+	// Handle block-scoped variable shadowing (const/let/var that shadows a lazy name)
+	if (node.type === 'BlockStatement' || node.type === 'Program') {
+		const block_bindings = collect_block_shadowed_names(node.body, lazy_bindings);
+		const effective_bindings =
+			block_bindings.size > 0 ? remove_shadowed(lazy_bindings, block_bindings) : lazy_bindings;
+		if (effective_bindings.size === 0 && block_bindings.size > 0) return node;
+
+		let changed = false;
+		const new_body = node.body.map((/** @type {any} */ stmt) => {
+			const transformed = apply_lazy_transforms(stmt, effective_bindings);
+			if (transformed !== stmt) changed = true;
+			return transformed;
+		});
+		return changed ? { ...node, body: new_body } : node;
+	}
+
+	// Handle catch clause parameter shadowing
+	if (node.type === 'CatchClause') {
+		/** @type {Set<string>} */
+		const shadowed = new Set();
+		if (node.param) collect_shadowed_names(node.param, lazy_bindings, shadowed);
+		const effective_bindings =
+			shadowed.size > 0 ? remove_shadowed(lazy_bindings, shadowed) : lazy_bindings;
+		const new_body = apply_lazy_transforms(node.body, effective_bindings);
+		if (new_body !== node.body) return { ...node, body: new_body };
 		return node;
 	}
 
@@ -446,6 +471,46 @@ function collect_shadowed_names(pattern, lazy_bindings, shadowed) {
 			if (element) collect_shadowed_names(element, lazy_bindings, shadowed);
 		}
 	}
+}
+
+/**
+ * Collect variable names declared in block-level statements that shadow lazy bindings.
+ * Scans VariableDeclarations (const/let/var) and FunctionDeclarations at the top level of a block.
+ *
+ * @param {any[]} statements
+ * @param {Map<string, LazyBinding>} lazy_bindings
+ * @returns {Set<string>}
+ */
+function collect_block_shadowed_names(statements, lazy_bindings) {
+	/** @type {Set<string>} */
+	const shadowed = new Set();
+	for (const stmt of statements) {
+		if (stmt.type === 'VariableDeclaration') {
+			for (const decl of stmt.declarations) {
+				if (decl.id) collect_shadowed_names(decl.id, lazy_bindings, shadowed);
+			}
+		} else if (stmt.type === 'FunctionDeclaration' && stmt.id) {
+			if (lazy_bindings.has(stmt.id.name)) {
+				shadowed.add(stmt.id.name);
+			}
+		}
+	}
+	return shadowed;
+}
+
+/**
+ * Create a new lazy_bindings map with the shadowed names removed.
+ *
+ * @param {Map<string, LazyBinding>} lazy_bindings
+ * @param {Set<string>} shadowed
+ * @returns {Map<string, LazyBinding>}
+ */
+function remove_shadowed(lazy_bindings, shadowed) {
+	const result = new Map(lazy_bindings);
+	for (const name of shadowed) {
+		result.delete(name);
+	}
+	return result;
 }
 
 /**
@@ -1072,9 +1137,10 @@ function references_scope_bindings(node, scope_bindings) {
 		return scope_bindings.has(node.name);
 	}
 
-	// Capitalized JSXIdentifier tag names are component variable references (e.g. <MyComponent />)
+	// JSXIdentifier is a variable reference when capitalized (tag name like <MyComponent />)
+	// or when it's the object of a JSXMemberExpression (e.g. ui in <ui.Button />)
 	if (node.type === 'JSXIdentifier') {
-		return /^[A-Z]/.test(node.name) && scope_bindings.has(node.name);
+		return scope_bindings.has(node.name);
 	}
 
 	if (Array.isArray(node)) {
