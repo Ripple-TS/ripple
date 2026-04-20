@@ -334,6 +334,49 @@ function apply_lazy_transforms(node, lazy_bindings) {
 		return node;
 	}
 
+	// Handle for-loop variable shadowing
+	if (node.type === 'ForStatement') {
+		/** @type {Set<string>} */
+		const shadowed = new Set();
+		if (node.init?.type === 'VariableDeclaration') {
+			for (const decl of node.init.declarations) {
+				if (decl.id) collect_shadowed_names(decl.id, lazy_bindings, shadowed);
+			}
+		}
+		const effective_bindings =
+			shadowed.size > 0 ? remove_shadowed(lazy_bindings, shadowed) : lazy_bindings;
+		let changed = false;
+		const new_init = apply_lazy_transforms(node.init, effective_bindings);
+		if (new_init !== node.init) changed = true;
+		const new_test = apply_lazy_transforms(node.test, effective_bindings);
+		if (new_test !== node.test) changed = true;
+		const new_update = apply_lazy_transforms(node.update, effective_bindings);
+		if (new_update !== node.update) changed = true;
+		const new_body = apply_lazy_transforms(node.body, effective_bindings);
+		if (new_body !== node.body) changed = true;
+		return changed
+			? { ...node, init: new_init, test: new_test, update: new_update, body: new_body }
+			: node;
+	}
+
+	if (node.type === 'ForOfStatement' || node.type === 'ForInStatement') {
+		/** @type {Set<string>} */
+		const shadowed = new Set();
+		if (node.left?.type === 'VariableDeclaration') {
+			for (const decl of node.left.declarations) {
+				if (decl.id) collect_shadowed_names(decl.id, lazy_bindings, shadowed);
+			}
+		}
+		const effective_bindings =
+			shadowed.size > 0 ? remove_shadowed(lazy_bindings, shadowed) : lazy_bindings;
+		let changed = false;
+		const new_right = apply_lazy_transforms(node.right, lazy_bindings);
+		if (new_right !== node.right) changed = true;
+		const new_body = apply_lazy_transforms(node.body, effective_bindings);
+		if (new_body !== node.body) changed = true;
+		return changed ? { ...node, right: new_right, body: new_body } : node;
+	}
+
 	// Handle assignment: `name = value` → `__lazy0.name = value`
 	if (node.type === 'AssignmentExpression' && node.left.type === 'Identifier') {
 		const binding = lazy_bindings.get(node.left.name);

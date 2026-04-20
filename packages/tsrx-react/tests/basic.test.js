@@ -1150,4 +1150,23 @@ describe('lazy destructuring', () => {
 		expect(code).toContain('return name');
 		expect(code).not.toMatch(/return __lazy0\.name/);
 	});
+
+	it('does not rewrite loop variables that shadow lazy bindings', () => {
+		const { code } = compile(
+			`export component App(&{name}: Props) {
+				const items = ['a', 'b'];
+				for (const name of items) {
+					console.log(name);
+				}
+				<div>{name}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// The prop reference in JSX should be rewritten
+		expect(code).toContain('__lazy0.name');
+		// The for-of loop variable should NOT be rewritten
+		expect(code).toContain('console.log(name)');
+		expect(code).not.toMatch(/console\.log\(__lazy0\.name\)/);
+	});
 });
