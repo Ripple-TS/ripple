@@ -16,8 +16,6 @@ describe('trackAsync serialization (server)', () => {
 		// Should contain a serialization script tag
 		expect(body).toContain('__tsrx_ta_');
 		expect(body).toContain('type="application/json"');
-		expect(body).toContain('"v":1');
-		expect(body).toContain('"encoding":"devalue@5.7"');
 	});
 
 	it('serializes numeric trackAsync data correctly', async () => {

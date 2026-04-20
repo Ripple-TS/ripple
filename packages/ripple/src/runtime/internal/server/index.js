@@ -1124,7 +1124,7 @@ function serialize_track_async_result(push_fn, hash, value) {
 		'<script id="' +
 			script_id +
 			'" type="application/json">' +
-			JSON.stringify({ v: 1, encoding: 'devalue@5.7', payload: payload }) +
+			payload +
 			'</script>',
 	);
 }

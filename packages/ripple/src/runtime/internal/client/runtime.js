@@ -555,8 +555,7 @@ export function track_async(fn, b, hash) {
 		var script_el = document.getElementById(script_id);
 		if (script_el) {
 			try {
-				var raw = JSON.parse(/** @type {string} */ (script_el.textContent));
-				var result = devalue.parse(raw.payload);
+				var result = devalue.parse(/** @type {string} */ (script_el.textContent));
 				script_el.remove();
 
 				if (result.ok) {
