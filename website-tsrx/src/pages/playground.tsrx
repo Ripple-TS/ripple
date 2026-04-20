@@ -84,6 +84,7 @@ export component PlaygroundPage() {
 			height: 100vh;
 			width: 100%;
 			overflow: hidden;
+			padding-top: 1rem;
 		}
 
 		.demo-nav {
@@ -104,8 +105,8 @@ export component PlaygroundPage() {
 
 		.header-logo {
 			display: block;
-			width: 2.6rem;
-			height: 2.6rem;
+			width: 3.2rem;
+			height: 3.2rem;
 		}
 
 		.nav-links {

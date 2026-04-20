@@ -428,8 +428,8 @@ export component DocsPage() {
 
 		.header-logo {
 			display: block;
-			width: 2.6rem;
-			height: 2.6rem;
+			width: 3.2rem;
+			height: 3.2rem;
 		}
 
 		.masthead-nav {
