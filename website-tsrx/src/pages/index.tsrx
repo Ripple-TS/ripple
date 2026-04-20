@@ -69,7 +69,7 @@ export component IndexPage() {
 			<section class="hero" id="top">
 				<div class="hero-copy">
 					<h1>
-						{'TSRX is a TypeScript language extension for building declarative UIs in an agentic era'}
+						{'TSRX is a TypeScript language extension for building declarative UIs in an agentic era.'}
 					</h1>
 				</div>
 			</section>
@@ -100,6 +100,19 @@ export component IndexPage() {
 				</pre>
 				<p class="section-body">
 					{'Code is increasingly written, reviewed, and transformed with machine assistance. When UI structure is more explicit, editors, compilers, and code generation tools have a better surface to work with without changing the framework semantics underneath.'}
+				</p>
+				<p class="section-body">
+					{'This is consistent with findings that language models attend unevenly to long contexts, performing best when relevant information sits close together rather than scattered across a window.'}
+				</p>
+				<p class="section-body">
+					<a
+						class="cta-link"
+						href="https://arxiv.org/abs/2307.03172"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						{'Lost in the Middle (Liu et al., TACL 2024) →'}
+					</a>
 				</p>
 			</section>
 
@@ -152,6 +165,7 @@ export component IndexPage() {
 		:global(html) {
 			scroll-behavior: smooth;
 			overflow-x: hidden;
+			scrollbar-gutter: stable;
 		}
 
 		:global(body) {

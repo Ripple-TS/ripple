@@ -587,6 +587,7 @@ export component DocsPage() {
 		:global(html) {
 			scroll-behavior: smooth;
 			overflow-x: hidden;
+			scrollbar-gutter: stable;
 		}
 
 		:global(body) {

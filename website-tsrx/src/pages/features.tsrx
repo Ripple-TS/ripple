@@ -718,6 +718,7 @@ export component FeaturesPage() {
 		:global(html) {
 			scroll-behavior: smooth;
 			overflow-x: clip;
+			scrollbar-gutter: stable;
 		}
 
 		:global(body) {
