@@ -1,0 +1,294 @@
+import { describe, expect, it } from 'vitest';
+import { compile, compile_to_volar_mappings } from '../src/index.js';
+
+describe('@tsrx/solid basic', () => {
+	describe('component → function', () => {
+		it('emits a plain function when not exported', () => {
+			const { code } = compile(
+				`component App() {
+					<div>{'Hello'}</div>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('function App()');
+			expect(code).not.toContain('export function App');
+		});
+
+		it('preserves export keyword', () => {
+			const { code } = compile(
+				`export component App() {
+					<div>{'Hello'}</div>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('export function App()');
+			expect(code).not.toContain('export export');
+		});
+
+		it('preserves export default', () => {
+			const { code } = compile(
+				`export default component App() {
+					<div>{'Hello'}</div>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('export default function App()');
+		});
+
+		it('wraps multiple top-level JSX children in a fragment', () => {
+			const { code } = compile(
+				`component App() {
+					<h1>{'a'}</h1>
+					<h2>{'b'}</h2>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('return <><h1>');
+			expect(code).toContain('</h2></>;');
+		});
+	});
+
+	describe('attributes', () => {
+		it('keeps class attribute as class (not className)', () => {
+			const { code } = compile(`component App() { <div class="foo">{'x'}</div> }`, 'App.tsrx');
+			expect(code).toContain('class="foo"');
+			expect(code).not.toContain('className');
+		});
+
+		it('{ref expr} compiles to a ref callback', () => {
+			const { code } = compile(
+				`component App() {
+					let el;
+					<input {ref el} />
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toMatch(/ref=\{\(__ref_el\) => el = __ref_el\}/);
+		});
+
+		it('{text expr} coerces null/undefined to empty string', () => {
+			const { code } = compile(
+				`component App({ name }: { name: string | null }) {
+					<p>{text name}</p>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain("name == null ? '' : name + ''");
+		});
+	});
+
+	describe('control flow', () => {
+		it('simple if → <Show when>', () => {
+			const { code } = compile(
+				`component App({ n }: { n: number }) {
+					if (n > 0) {
+						<div>{'positive'}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('<Show when={n > 0}>');
+			expect(code).toContain("import { Show } from 'solid-js'");
+		});
+
+		it('if/else → <Show when fallback>', () => {
+			const { code } = compile(
+				`component App({ n }: { n: number }) {
+					if (n > 0) {
+						<div>{'pos'}</div>
+					} else {
+						<div>{'neg'}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('<Show when={n > 0} fallback=');
+		});
+
+		it('if/else-if/else → <Switch>/<Match>', () => {
+			const { code } = compile(
+				`component App({ n }: { n: number }) {
+					if (n > 10) {
+						<span>{'big'}</span>
+					} else if (n > 5) {
+						<span>{'mid'}</span>
+					} else {
+						<span>{'small'}</span>
+					}
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('<Switch fallback=');
+			expect(code).toContain('<Match when={n > 10}>');
+			expect(code).toContain('<Match when={n > 5}>');
+			expect(code).toContain("import { Switch, Match } from 'solid-js'");
+		});
+
+		it('for-of → <For each>{(item, i) => ...}', () => {
+			const { code } = compile(
+				`component App({ items }: { items: number[] }) {
+					for (const item of items; index i) {
+						<li>{item}</li>
+					}
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('<For each={items}>');
+			expect(code).toMatch(/\(item, i\) =>/);
+			expect(code).toContain("import { For } from 'solid-js'");
+		});
+
+		it('for-of with `key` clause throws a helpful error', () => {
+			expect(() =>
+				compile(
+					`component App({ items }: { items: number[] }) {
+						for (const item of items; index i; key i) {
+							<li>{item}</li>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/Solid TSRX does not support `key`/);
+		});
+
+		it('try/catch → <ErrorBoundary fallback={(err, reset) => ...}>', () => {
+			const { code } = compile(
+				`component App() {
+					try {
+						<div>{'content'}</div>
+					} catch (err, reset) {
+						<div>{'error'}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('<ErrorBoundary fallback={(err, reset) =>');
+			expect(code).toContain("import { ErrorBoundary } from 'solid-js'");
+		});
+
+		it('try/pending/catch → <ErrorBoundary><Suspense>...', () => {
+			const { code } = compile(
+				`component App() {
+					try {
+						<div>{'ready'}</div>
+					} pending {
+						<div>{'loading'}</div>
+					} catch (err) {
+						<div>{'error'}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('<ErrorBoundary');
+			expect(code).toContain('<Suspense fallback=');
+			expect(code).toMatch(/import \{[^}]*ErrorBoundary[^}]*Suspense[^}]*\} from 'solid-js'/);
+		});
+
+		it('switch statement → <Switch>/<Match> using ===', () => {
+			const { code } = compile(
+				`component App({ kind }: { kind: string }) {
+					switch (kind) {
+						case 'a': <span>{'A'}</span>; break;
+						case 'b': <span>{'B'}</span>; break;
+						default: <span>{'?'}</span>;
+					}
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('<Switch fallback=');
+			expect(code).toMatch(/<Match when=\{kind === 'a'\}>/);
+			expect(code).toMatch(/<Match when=\{kind === 'b'\}>/);
+		});
+	});
+
+	describe('<tsx> fragments', () => {
+		it('<tsx>...</tsx> with multiple children compiles to fragment', () => {
+			const { code } = compile(
+				`component App() {
+					<tsx>
+						<h1>{'a'}</h1>
+						<h2>{'b'}</h2>
+					</tsx>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('<><h1>');
+		});
+
+		it('rejects <tsx:react> compat block', () => {
+			expect(() =>
+				compile(
+					`component App() {
+						<tsx:react>
+							<h1>a</h1>
+						</tsx:react>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/<tsx:react>/);
+		});
+	});
+
+	describe('scoped CSS', () => {
+		it('emits css and annotates elements with the scope class', () => {
+			const { code, css } = compile(
+				`export component App() {
+					<div class="wrapper">{'hi'}</div>
+					<style>
+						.wrapper { color: red; }
+					</style>
+				}`,
+				'App.tsrx',
+			);
+			expect(css).not.toBeNull();
+			expect(css?.code).toContain('.wrapper.');
+			// hash is applied to element's class attribute
+			expect(code).toMatch(/class="wrapper tsrx-[a-z0-9]+"/);
+		});
+
+		it('#style.name compiles to a scoped class literal', () => {
+			const { code } = compile(
+				`export component App() {
+					<div class={#style.root}>{'hi'}</div>
+					<style>
+						.root { color: blue; }
+					</style>
+				}`,
+				'App.tsrx',
+			);
+			// `#style.root` macro expands to `"hash root"`; the per-element scope
+			// class is additionally templated in, mirroring @tsrx/react behavior.
+			expect(code).toMatch(/"tsrx-[a-z0-9]+ root"/);
+			expect(code).not.toContain('#style');
+		});
+	});
+
+	describe('lazy destructuring (variable form)', () => {
+		it('let &[a, b] = expr rewrites references', () => {
+			const { code } = compile(
+				`import { createSignal } from 'solid-js';
+				export component App() {
+					let &[count, setCount] = createSignal(0);
+					<button onClick={() => setCount(count + 1)}>{text count}</button>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('let __lazy0 = createSignal(0)');
+			expect(code).toContain('__lazy0[1](__lazy0[0] + 1)');
+		});
+	});
+
+	describe('Volar mappings', () => {
+		it('returns a mappings result with non-empty content', () => {
+			const result = compile_to_volar_mappings(
+				`export component App() {
+					<div>{'hello'}</div>
+				}`,
+				'App.tsrx',
+			);
+			expect(result).toBeDefined();
+			expect(result.code).toContain('function App');
+			expect(Array.isArray(result.mappings)).toBe(true);
+		});
+	});
+});

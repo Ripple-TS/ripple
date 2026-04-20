@@ -1,0 +1,36 @@
+{
+  "name": "@tsrx/vite-plugin-solid",
+  "description": "Vite plugin for @tsrx/solid (.tsrx modules) targeting Solid 2.0",
+  "license": "MIT",
+  "author": "Dominic Gannaway",
+  "version": "0.0.1",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ripple-TS/ripple.git",
+    "directory": "packages/vite-plugin-solid"
+  },
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "dependencies": {
+    "@tsrx/solid": "workspace:*"
+  },
+  "peerDependencies": {
+    "vite": "*"
+  },
+  "devDependencies": {
+    "typescript": "catalog:default",
+    "vite": "catalog:default"
+  },
+  "files": [
+    "src",
+    "types"
+  ]
+}
