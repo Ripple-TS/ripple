@@ -129,6 +129,11 @@ export component IndexPage() {
 					<a class="cta-link" href="/playground">{'Try it in the playground →'}</a>
 				</p>
 			</section>
+
+			<footer class="site-footer">
+				<p>{'Released under the MIT License.'}</p>
+				<p>{'Copyright © 2025-present Dominic Gannaway'}</p>
+			</footer>
 		</div>
 	</div>
 
@@ -471,6 +476,20 @@ export component IndexPage() {
 		.resource-list li {
 			display: grid;
 			gap: 0.2rem;
+		}
+
+		.site-footer {
+			margin-top: 4rem;
+			padding: 2rem 0;
+			border-top: 1px solid rgba(26, 22, 64, 0.1);
+			text-align: center;
+		}
+
+		.site-footer p {
+			margin: 0;
+			font-size: 0.88rem;
+			line-height: 1.6;
+			color: rgba(26, 22, 64, 0.5);
 		}
 
 		@media (max-width: 1100px) {
