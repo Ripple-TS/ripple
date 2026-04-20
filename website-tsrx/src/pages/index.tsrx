@@ -262,7 +262,7 @@ export component IndexPage() {
 
 		.hero h1 {
 			font-size: clamp(2.15rem, 5.5vw, 4.95rem);
-			line-height: 0.98;
+			line-height: 1.08;
 			background: linear-gradient(90deg, #5521dd 0%, #6f00ff 42%, #8741ff 100%);
 			-webkit-background-clip: text;
 			background-clip: text;
