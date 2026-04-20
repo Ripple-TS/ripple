@@ -280,6 +280,15 @@ function apply_lazy_transforms(node, lazy_bindings) {
 		node.type === 'FunctionExpression' ||
 		node.type === 'ArrowFunctionExpression'
 	) {
+		// Transform default parameter values (e.g. (step = count) => ...) with the
+		// outer lazy_bindings, since defaults are evaluated in the outer scope.
+		let params_changed = false;
+		const new_params = (node.params || []).map((/** @type {any} */ param) => {
+			const transformed = transform_param_defaults(param, lazy_bindings);
+			if (transformed !== param) params_changed = true;
+			return transformed;
+		});
+
 		// Check if any params shadow a lazy binding — if so, exclude those names
 		/** @type {Set<string>} */
 		const shadowed = new Set();
@@ -287,21 +296,19 @@ function apply_lazy_transforms(node, lazy_bindings) {
 			collect_shadowed_names(param, lazy_bindings, shadowed);
 		}
 
-		if (shadowed.size > 0) {
-			const inner_bindings = remove_shadowed(lazy_bindings, shadowed);
-			if (inner_bindings.size === 0) return node;
+		const inner_bindings =
+			shadowed.size > 0 ? remove_shadowed(lazy_bindings, shadowed) : lazy_bindings;
+		if (inner_bindings.size === 0 && !params_changed) return node;
 
-			// Only transform the body, not the params
-			const new_body = apply_lazy_transforms(node.body, inner_bindings);
-			if (new_body !== node.body) {
-				return { ...node, body: new_body };
-			}
-			return node;
-		}
+		const new_body =
+			inner_bindings.size > 0 ? apply_lazy_transforms(node.body, inner_bindings) : node.body;
 
-		const new_body = apply_lazy_transforms(node.body, lazy_bindings);
-		if (new_body !== node.body) {
-			return { ...node, body: new_body };
+		if (new_body !== node.body || params_changed) {
+			return {
+				...node,
+				params: params_changed ? new_params : node.params,
+				body: new_body,
+			};
 		}
 		return node;
 	}
@@ -472,6 +479,24 @@ function apply_lazy_transforms(node, lazy_bindings) {
 	}
 
 	return changed ? result : node;
+}
+
+/**
+ * Transform default values in function parameters without touching param names.
+ * E.g. `(step = count)` where `count` is a lazy binding → `(step = __lazy0[0])`.
+ *
+ * @param {any} param
+ * @param {Map<string, LazyBinding>} lazy_bindings
+ * @returns {any}
+ */
+function transform_param_defaults(param, lazy_bindings) {
+	if (param?.type === 'AssignmentPattern') {
+		const new_right = apply_lazy_transforms(param.right, lazy_bindings);
+		if (new_right !== param.right) {
+			return { ...param, right: new_right };
+		}
+	}
+	return param;
 }
 
 /**

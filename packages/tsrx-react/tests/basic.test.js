@@ -1169,4 +1169,20 @@ describe('lazy destructuring', () => {
 		expect(code).toContain('console.log(name)');
 		expect(code).not.toMatch(/console\.log\(__lazy0\.name\)/);
 	});
+
+	it('transforms default parameter values referencing lazy bindings', () => {
+		const { code } = compile(
+			`export component App() {
+				const &[count] = useState(0);
+				const handler = (step = count) => step + 1;
+				<div>{count}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// The default value should be rewritten to the lazy accessor
+		expect(code).toContain('step = __lazy0[0]');
+		// The param name 'step' itself should NOT be rewritten
+		expect(code).toContain('step + 1');
+	});
 });
