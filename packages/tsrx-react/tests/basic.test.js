@@ -961,3 +961,157 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('<StatementBodyHook1 items={items} item={item} key={item} />');
 	});
 });
+
+describe('lazy destructuring', () => {
+	it('transforms lazy object destructuring in component params', () => {
+		const { code } = compile(
+			`export component App(&{name, age}: Props) {
+				<div>{name}{age}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// Param should be replaced with generated identifier
+		expect(code).toContain('function App(__lazy0: Props)');
+		// References should be member expressions
+		expect(code).toContain('__lazy0.name');
+		expect(code).toContain('__lazy0.age');
+	});
+
+	it('transforms lazy array destructuring in variable declarations', () => {
+		const { code } = compile(
+			`export component App() {
+				let &[count, setCount] = useState(0);
+				<div>{count}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// Declaration should use generated identifier
+		expect(code).toContain('let __lazy0 = useState(0)');
+		// Reference should be array index access
+		expect(code).toContain('__lazy0[0]');
+	});
+
+	it('transforms lazy object destructuring in variable declarations', () => {
+		const { code } = compile(
+			`export component App() {
+				const &{data, error} = useSWR("/api");
+				<div>{data}{error}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('const __lazy0 = useSWR("/api")');
+		expect(code).toContain('__lazy0.data');
+		expect(code).toContain('__lazy0.error');
+	});
+
+	it('handles assignment to lazy array bindings', () => {
+		const { code } = compile(
+			`export component App() {
+				let &[val] = getState();
+				val = 10;
+				val++;
+				++val;
+				<div>{val}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('__lazy0[0] = 10');
+		expect(code).toContain('__lazy0[0]++');
+		expect(code).toContain('++__lazy0[0]');
+	});
+
+	it('handles shorthand object properties with lazy bindings', () => {
+		const { code } = compile(
+			`export component App(&{name}: Props) {
+				const obj = {name};
+				<div>{obj}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// Shorthand {name} should expand to {name: __lazy0.name}
+		expect(code).toContain('name: __lazy0.name');
+	});
+
+	it('handles shadowing in inner functions', () => {
+		const { code } = compile(
+			`export component App(&{name}: Props) {
+				const fn = (name: string) => name.toUpperCase();
+				<div>{fn(name)}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// Inner param shadows lazy binding - should stay as `name`
+		expect(code).toContain('(name: string) => name.toUpperCase()');
+		// Outer reference should use lazy accessor
+		expect(code).toContain('fn(__lazy0.name)');
+	});
+
+	it('does not hoist static elements that reference lazy bindings', () => {
+		const { code } = compile(
+			`export component App() {
+				const &[count] = useState(0);
+				<div>{"static"}</div>
+				<div>{count}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// The truly static element should be hoisted
+		expect(code).toContain('App__static1');
+		expect(code).toContain('App__static1 = <div>{"static"}</div>');
+		// The element referencing count should NOT be hoisted
+		expect(code).toContain('__lazy0[0]');
+		expect(code).not.toContain('App__static2');
+	});
+
+	it('combines lazy params and lazy variables', () => {
+		const { code } = compile(
+			`export component App(&{name}: Props) {
+				const &[count, setCount] = useState(0);
+				<div>{name}{count}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// Param uses __lazy0, variable uses __lazy1
+		expect(code).toContain('function App(__lazy0: Props)');
+		expect(code).toContain('const __lazy1 = useState(0)');
+		expect(code).toContain('__lazy0.name');
+		expect(code).toContain('__lazy1[0]');
+	});
+
+	it('transforms lazy bindings inside callbacks', () => {
+		const { code } = compile(
+			`export component App() {
+				let &[count, setCount] = useState(0);
+				const handler = () => setCount(count + 1);
+				<div>{count}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('() => __lazy0[1](__lazy0[0] + 1)');
+	});
+
+	it('does not hoist elements using component-scope bindings as tag names', () => {
+		const { code } = compile(
+			`export component App({Widget}: {Widget: any}) {
+				<div>{"static"}</div>
+				<Widget />
+			}`,
+			'App.tsrx',
+		);
+
+		// Pure static element can still be hoisted
+		expect(code).toContain('App__static1');
+		// Element using a component-scope binding (prop) as tag name must NOT be hoisted
+		expect(code).not.toContain('App__static2');
+		expect(code).toContain('<Widget');
+	});
+});

@@ -13,7 +13,12 @@ import { renderStylesheets, setLocation } from '@tsrx/core';
  *   needs_suspense: boolean,
  *   helper_state: { base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] } | null,
  *   available_bindings: Map<string, AST.Identifier>,
+ *   lazy_next_id: number,
  * }} TransformContext
+ */
+
+/**
+ * @typedef {{ source_name: string, read: () => any }} LazyBinding
  */
 
 /**
@@ -43,6 +48,7 @@ export function transform(ast, source, filename) {
 		needs_suspense: false,
 		helper_state: null,
 		available_bindings: new Map(),
+		lazy_next_id: 0,
 	};
 
 	walk(/** @type {any} */ (ast), transform_context, {
@@ -138,6 +144,339 @@ export function transform(ast, source, filename) {
 	return { ast: expanded, code: result.code, map: result.map, css };
 }
 
+// --- Lazy destructuring support ---
+
+/**
+ * Generate a unique lazy identifier name for a lazy destructuring pattern.
+ * @param {TransformContext} transform_context
+ * @returns {string}
+ */
+function generate_lazy_id(transform_context) {
+	return `__lazy${transform_context.lazy_next_id++}`;
+}
+
+/**
+ * Collect lazy bindings from a destructuring pattern.
+ * For `&{name, age}`, maps `name` → `source.name`, `age` → `source.age`.
+ * For `&[a, b]`, maps `a` → `source[0]`, `b` → `source[1]`.
+ * Handles nested AssignmentPattern (default values) and RestElement.
+ *
+ * @param {any} pattern - The ObjectPattern or ArrayPattern with lazy: true
+ * @param {string} source_name - The generated identifier name for the source
+ * @param {Map<string, LazyBinding>} lazy_bindings - Map to populate
+ */
+function collect_lazy_bindings(pattern, source_name, lazy_bindings) {
+	if (pattern.type === 'ObjectPattern') {
+		for (const prop of pattern.properties || []) {
+			if (prop.type === 'RestElement') {
+				// Rest element in object pattern — skip for now (complex to transform)
+				continue;
+			}
+			const value = prop.value;
+			const actual = value.type === 'AssignmentPattern' ? value.left : value;
+			if (actual.type === 'Identifier') {
+				const key = prop.key;
+				const computed = prop.computed || key.type !== 'Identifier';
+				lazy_bindings.set(actual.name, {
+					source_name,
+					read: () => ({
+						type: 'MemberExpression',
+						object: create_generated_identifier(source_name),
+						property: computed
+							? { ...key }
+							: { type: 'Identifier', name: key.name, metadata: { path: [] } },
+						computed,
+						optional: false,
+						metadata: { path: [] },
+					}),
+				});
+			}
+		}
+	} else if (pattern.type === 'ArrayPattern') {
+		for (let i = 0; i < (pattern.elements || []).length; i++) {
+			const element = pattern.elements[i];
+			if (!element) continue;
+			if (element.type === 'RestElement') {
+				// Rest element in array pattern — skip for now
+				continue;
+			}
+			const actual = element.type === 'AssignmentPattern' ? element.left : element;
+			if (actual.type === 'Identifier') {
+				const index = i;
+				lazy_bindings.set(actual.name, {
+					source_name,
+					read: () => ({
+						type: 'MemberExpression',
+						object: create_generated_identifier(source_name),
+						property: { type: 'Literal', value: index, raw: String(index), metadata: { path: [] } },
+						computed: true,
+						optional: false,
+						metadata: { path: [] },
+					}),
+				});
+			}
+		}
+	}
+}
+
+/**
+ * Collect lazy bindings from component params and body variable declarations
+ * WITHOUT modifying any AST nodes. Returns a map of binding name → accessor info.
+ * Stores the generated identifier name on the pattern's metadata for later replacement.
+ *
+ * @param {any[]} params - Component params (metadata annotated, not structurally mutated)
+ * @param {any[]} body - Component body (metadata annotated, not structurally mutated)
+ * @param {TransformContext} transform_context
+ * @returns {Map<string, LazyBinding>}
+ */
+function collect_lazy_bindings_from_component(params, body, transform_context) {
+	/** @type {Map<string, LazyBinding>} */
+	const lazy_bindings = new Map();
+
+	// Collect from lazy params
+	for (const param of params) {
+		const pattern = param.type === 'AssignmentPattern' ? param.left : param;
+
+		if ((pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') && pattern.lazy) {
+			const lazy_name = generate_lazy_id(transform_context);
+			collect_lazy_bindings(pattern, lazy_name, lazy_bindings);
+			pattern.metadata = { ...pattern.metadata, lazy_id: lazy_name };
+		}
+	}
+
+	// Collect from lazy variable declarations in body
+	for (const statement of body) {
+		if (statement.type !== 'VariableDeclaration') continue;
+
+		for (const declarator of statement.declarations || []) {
+			const pattern = declarator.id;
+			if ((pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') && pattern.lazy) {
+				const lazy_name = generate_lazy_id(transform_context);
+				collect_lazy_bindings(pattern, lazy_name, lazy_bindings);
+				pattern.metadata = { ...pattern.metadata, lazy_id: lazy_name };
+			}
+		}
+	}
+
+	return lazy_bindings;
+}
+
+/**
+ * Walk an AST node tree and replace identifier references that match lazy bindings
+ * with their corresponding member expressions (e.g., `name` → `__lazy0.name`).
+ * Also handles AssignmentExpression and UpdateExpression targets.
+ *
+ * @param {any} node - The AST node to walk
+ * @param {Map<string, LazyBinding>} lazy_bindings - Map of lazy binding names
+ * @returns {any}
+ */
+function apply_lazy_transforms(node, lazy_bindings) {
+	if (!node || typeof node !== 'object') return node;
+	if (Array.isArray(node)) return node.map((child) => apply_lazy_transforms(child, lazy_bindings));
+
+	// Don't recurse into nested function declarations (helper components have their own scope)
+	if (
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression'
+	) {
+		// Check if any params shadow a lazy binding — if so, exclude those names
+		const shadowed = new Set();
+		for (const param of node.params || []) {
+			collect_shadowed_names(param, lazy_bindings, shadowed);
+		}
+
+		if (shadowed.size > 0) {
+			const inner_bindings = new Map(lazy_bindings);
+			for (const name of shadowed) {
+				inner_bindings.delete(name);
+			}
+			if (inner_bindings.size === 0) return node;
+
+			// Only transform the body, not the params
+			const new_body = apply_lazy_transforms(node.body, inner_bindings);
+			if (new_body !== node.body) {
+				return { ...node, body: new_body };
+			}
+			return node;
+		}
+
+		const new_body = apply_lazy_transforms(node.body, lazy_bindings);
+		if (new_body !== node.body) {
+			return { ...node, body: new_body };
+		}
+		return node;
+	}
+
+	// Handle assignment: `name = value` → `__lazy0.name = value`
+	if (node.type === 'AssignmentExpression' && node.left.type === 'Identifier') {
+		const binding = lazy_bindings.get(node.left.name);
+		if (binding) {
+			return {
+				...node,
+				left: binding.read(),
+				right: apply_lazy_transforms(node.right, lazy_bindings),
+			};
+		}
+	}
+
+	// Handle update: `count++` → `__lazy0[0]++`
+	if (node.type === 'UpdateExpression' && node.argument.type === 'Identifier') {
+		const binding = lazy_bindings.get(node.argument.name);
+		if (binding) {
+			return { ...node, argument: binding.read() };
+		}
+	}
+
+	// Replace lazy variable declaration patterns with generated identifiers
+	if (node.type === 'VariableDeclarator' && node.id?.metadata?.lazy_id) {
+		const lazy_id = create_generated_identifier(node.id.metadata.lazy_id);
+		return {
+			...node,
+			id: lazy_id,
+			init: apply_lazy_transforms(node.init, lazy_bindings),
+		};
+	}
+
+	// Handle identifier references in expression position
+	if (node.type === 'Identifier') {
+		const binding = lazy_bindings.get(node.name);
+		if (binding) {
+			return binding.read();
+		}
+		return node;
+	}
+
+	// Skip JSXIdentifier (component/element names)
+	if (node.type === 'JSXIdentifier') return node;
+
+	// Handle shorthand properties: `{ name }` → `{ name: __lazy0.name }`
+	if (node.type === 'Property' && node.shorthand && node.value?.type === 'Identifier') {
+		const binding = lazy_bindings.get(node.value.name);
+		if (binding) {
+			return {
+				...node,
+				shorthand: false,
+				value: binding.read(),
+			};
+		}
+	}
+
+	// Recurse into child nodes
+	let changed = false;
+	const result = /** @type {any} */ ({});
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end') {
+			result[key] = node[key];
+			continue;
+		}
+
+		// Skip non-computed property keys (they're labels, not references)
+		if (key === 'key' && node.type === 'Property' && !node.computed && !node.shorthand) {
+			result[key] = node[key];
+			continue;
+		}
+
+		// Skip non-computed member expression property names
+		if (key === 'property' && node.type === 'MemberExpression' && !node.computed) {
+			result[key] = node[key];
+			continue;
+		}
+
+		// Skip JSXAttribute name
+		if (key === 'name' && node.type === 'JSXAttribute') {
+			result[key] = node[key];
+			continue;
+		}
+
+		// Skip variable declaration id (the lazy declaration itself was already replaced)
+		if (key === 'id' && node.type === 'VariableDeclarator') {
+			result[key] = node[key];
+			continue;
+		}
+
+		const child = node[key];
+		const transformed = apply_lazy_transforms(child, lazy_bindings);
+		result[key] = transformed;
+		if (transformed !== child) changed = true;
+	}
+
+	return changed ? result : node;
+}
+
+/**
+ * Collect names from a pattern that shadow lazy bindings.
+ * @param {any} pattern
+ * @param {Map<string, LazyBinding>} lazy_bindings
+ * @param {Set<string>} shadowed
+ */
+function collect_shadowed_names(pattern, lazy_bindings, shadowed) {
+	if (!pattern || typeof pattern !== 'object') return;
+
+	if (pattern.type === 'Identifier' && lazy_bindings.has(pattern.name)) {
+		shadowed.add(pattern.name);
+		return;
+	}
+
+	if (pattern.type === 'AssignmentPattern') {
+		collect_shadowed_names(pattern.left, lazy_bindings, shadowed);
+		return;
+	}
+
+	if (pattern.type === 'RestElement') {
+		collect_shadowed_names(pattern.argument, lazy_bindings, shadowed);
+		return;
+	}
+
+	if (pattern.type === 'ObjectPattern') {
+		for (const prop of pattern.properties || []) {
+			if (prop.type === 'RestElement') {
+				collect_shadowed_names(prop.argument, lazy_bindings, shadowed);
+			} else {
+				collect_shadowed_names(prop.value, lazy_bindings, shadowed);
+			}
+		}
+		return;
+	}
+
+	if (pattern.type === 'ArrayPattern') {
+		for (const element of pattern.elements || []) {
+			if (element) collect_shadowed_names(element, lazy_bindings, shadowed);
+		}
+	}
+}
+
+/**
+ * Replace lazy parameter patterns with their generated identifiers.
+ * A param `&{name, age}: Props` becomes `__lazy0: Props`.
+ *
+ * @param {any[]} params
+ * @returns {any[]}
+ */
+function replace_lazy_params(params) {
+	return params.map((param) => {
+		const pattern = param.type === 'AssignmentPattern' ? param.left : param;
+
+		if (
+			(pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') &&
+			pattern.lazy &&
+			pattern.metadata?.lazy_id
+		) {
+			const lazy_id = create_generated_identifier(pattern.metadata.lazy_id);
+			if (pattern.typeAnnotation) {
+				lazy_id.typeAnnotation = pattern.typeAnnotation;
+			}
+			if (param.type === 'AssignmentPattern') {
+				return { ...param, left: lazy_id };
+			}
+			return lazy_id;
+		}
+
+		return param;
+	});
+}
+
 /**
  * @param {any} component
  * @param {TransformContext} transform_context
@@ -146,7 +485,16 @@ export function transform(ast, source, filename) {
  */
 function component_to_function_declaration(component, transform_context, walk_helper_state) {
 	const helper_state = walk_helper_state || create_helper_state(component.id?.name || 'Component');
-	const param_bindings = collect_param_bindings(component.params || []);
+	const params = component.params || [];
+	const body = /** @type {any[]} */ (component.body || []);
+
+	// Collect param bindings from original patterns (lazy patterns still intact).
+	const param_bindings = collect_param_bindings(params);
+
+	// Collect lazy binding info WITHOUT mutating patterns. Stores lazy_id on metadata
+	// for later replacement. Body bindings (count, setCount, etc.) are still in the
+	// original patterns, so collect_statement_bindings during build will find them.
+	const lazy_bindings = collect_lazy_bindings_from_component(params, body, transform_context);
 
 	// Save and set context for this component scope
 	const saved_helper_state = transform_context.helper_state;
@@ -154,18 +502,26 @@ function component_to_function_declaration(component, transform_context, walk_he
 	transform_context.helper_state = helper_state;
 	transform_context.available_bindings = new Map(param_bindings);
 
+	const body_statements = build_component_statements(
+		body,
+		helper_state,
+		param_bindings,
+		transform_context,
+	);
+
+	// Replace lazy param patterns with generated identifiers
+	const final_params = lazy_bindings.size > 0 ? replace_lazy_params(params) : params;
+
 	const fn = /** @type {any} */ ({
 		type: 'FunctionDeclaration',
 		id: component.id,
-		params: component.params || [],
+		params: final_params,
 		body: {
 			type: 'BlockStatement',
-			body: build_component_statements(
-				/** @type {any[]} */ (component.body),
-				helper_state,
-				param_bindings,
-				transform_context,
-			),
+			body:
+				lazy_bindings.size > 0
+					? apply_lazy_transforms(body_statements, lazy_bindings)
+					: body_statements,
 			metadata: { path: [] },
 		},
 		async: false,
@@ -715,8 +1071,10 @@ function references_scope_bindings(node, scope_bindings) {
 		return scope_bindings.has(node.name);
 	}
 
-	// JSXIdentifier nodes are tag names or attribute names, not variable references
-	if (node.type === 'JSXIdentifier') return false;
+	// Capitalized JSXIdentifier tag names are component variable references (e.g. <MyComponent />)
+	if (node.type === 'JSXIdentifier') {
+		return /^[A-Z]/.test(node.name) && scope_bindings.has(node.name);
+	}
 
 	if (Array.isArray(node)) {
 		return node.some((child) => references_scope_bindings(child, scope_bindings));
@@ -730,6 +1088,9 @@ function references_scope_bindings(node, scope_bindings) {
 
 		// Skip non-computed member expression property access
 		if (key === 'property' && node.type === 'MemberExpression' && !node.computed) continue;
+
+		// Skip JSXAttribute names — they are attribute labels, not variable references
+		if (key === 'name' && node.type === 'JSXAttribute') continue;
 
 		if (references_scope_bindings(node[key], scope_bindings)) return true;
 	}

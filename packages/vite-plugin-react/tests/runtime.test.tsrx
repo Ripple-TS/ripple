@@ -606,6 +606,55 @@ component FullyStaticApp() {
 	</div>
 }
 
+// ── Lazy destructuring: object in props ──
+
+component LazyPropsChild(&{ name, age }: { name: string; age: number }) {
+	<div class="lazy-props">
+		{name}
+		{' is '}
+		{age}
+	</div>
+}
+
+component LazyPropsApp() {
+	<LazyPropsChild name="Alice" age={30} />
+}
+
+// ── Lazy destructuring: array in variable ──
+
+component LazyArrayApp() {
+	let &[count, setCount] = useState(0);
+	<p class="lazy-count">{count}</p>
+	<button class="lazy-inc" onClick={() => setCount(count + 1)}>{'+'}</button>
+}
+
+// ── Lazy destructuring: object in variable ──
+
+component LazyObjVarApp() {
+	const &{ x, y } = usePosition();
+	<p class="lazy-pos">
+		{x}
+		{','}
+		{y}
+	</p>
+}
+
+function usePosition() {
+	return { x: 10, y: 20 };
+}
+
+// ── Lazy destructuring: combined props + variable ──
+
+component LazyCombinedApp(&{ label }: { label: string }) {
+	const &[count, setCount] = useState(0);
+	<p class="lazy-combined">
+		{label}
+		{': '}
+		{count}
+	</p>
+	<button class="lazy-combined-inc" onClick={() => setCount(count + 1)}>{'+'}</button>
+}
+
 // ── Tests ──
 
 describe('tsrx-react runtime', () => {
@@ -1050,5 +1099,36 @@ describe('tsrx-react runtime', () => {
 		await render(FullyStaticApp);
 		expect(text('.all-static h2')).toBe('Title');
 		expect(text('.all-static p')).toBe('Paragraph');
+	});
+
+	// ── Lazy destructuring ──
+
+	it('lazy object destructuring in props works at runtime', async () => {
+		await render(LazyPropsApp);
+		expect(text('.lazy-props')).toBe('Alice is 30');
+	});
+
+	it('lazy array destructuring in variables works at runtime', async () => {
+		await render(LazyArrayApp);
+		expect(text('.lazy-count')).toBe('0');
+
+		await click('.lazy-inc');
+		expect(text('.lazy-count')).toBe('1');
+
+		await click('.lazy-inc');
+		expect(text('.lazy-count')).toBe('2');
+	});
+
+	it('lazy object destructuring in variables works at runtime', async () => {
+		await render(LazyObjVarApp);
+		expect(text('.lazy-pos')).toBe('10,20');
+	});
+
+	it('combined lazy props and lazy variables work at runtime', async () => {
+		await render(LazyCombinedApp, { label: 'Count' });
+		expect(text('.lazy-combined')).toBe('Count: 0');
+
+		await click('.lazy-combined-inc');
+		expect(text('.lazy-combined')).toBe('Count: 1');
 	});
 });
