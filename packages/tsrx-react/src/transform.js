@@ -281,6 +281,7 @@ function apply_lazy_transforms(node, lazy_bindings) {
 		node.type === 'ArrowFunctionExpression'
 	) {
 		// Check if any params shadow a lazy binding — if so, exclude those names
+		/** @type {Set<string>} */
 		const shadowed = new Set();
 		for (const param of node.params || []) {
 			collect_shadowed_names(param, lazy_bindings, shadowed);
