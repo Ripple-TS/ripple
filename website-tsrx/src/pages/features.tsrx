@@ -220,19 +220,6 @@ const LAZY_PROPS_HTML = [
 	'<span class="ln">6</span> <span class="br">}</span>',
 ].join('\n');
 
-const LAZY_OBJ_VAR_HTML = [
-	'<span class="ln">1</span> <span class="kw">component</span> <span class="fn">Dashboard</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln">2</span>   <span class="kw">const</span> &amp;<span class="br">{</span> <span class="prop">user</span>, <span class="prop">isLoading</span> <span class="br">}</span> = <span class="fn">useDashboardData</span><span class="br">(</span><span class="br">)</span>;',
-	'<span class="ln">3</span>',
-	'<span class="ln">4</span>   <span class="kw">if</span> <span class="br">(</span><span class="prop">isLoading</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln">5</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Loading…\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
-	'<span class="ln">6</span>     <span class="kw-ctrl">return</span>;',
-	'<span class="ln">7</span>   <span class="br">}</span>',
-	'<span class="ln">8</span>',
-	'<span class="ln">9</span>   <span class="tag">&lt;</span><span class="el">h1</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">user</span>.<span class="prop">name</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h1</span><span class="tag">&gt;</span>',
-	'<span class="ln">10</span> <span class="br">}</span>',
-].join('\n');
-
 const NAV_ITEMS = [
 	{ id: 'components', label: 'Components' },
 	{ id: 'jsx', label: 'Statement-based JSX' },
@@ -251,12 +238,12 @@ const NAV_ITEMS = [
 	{ id: 'react-hooks', label: 'React Hooks' },
 ];
 
-export component DocsPage() {
+export component FeaturesPage() {
 	<head>
-		<title>{'TSRX | Docs'}</title>
+		<title>{'TSRX | Features'}</title>
 		<meta
 			name="description"
-			content="TSRX language reference: components, statement-based JSX, control flow, error boundaries, and more."
+			content="TSRX language features: components, statement-based JSX, control flow, error boundaries, and more."
 		/>
 	</head>
 
@@ -268,7 +255,7 @@ export component DocsPage() {
 				</a>
 				<nav class="masthead-nav">
 					<a href="/getting-started">{'Getting Started'}</a>
-					<a href="/docs" aria-current="page">{'Docs'}</a>
+					<a href="/features" aria-current="page">{'Features'}</a>
 					<a href="/playground">{'Playground'}</a>
 					<a
 						href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
@@ -283,7 +270,7 @@ export component DocsPage() {
 			<div class="docs-layout">
 				<aside class="side-nav">
 					<nav>
-						<p class="side-nav-heading">{'On this page'}</p>
+						<p class="side-nav-heading">{'Features'}</p>
 						for (const item of NAV_ITEMS) {
 							<a class="side-nav-link" href={`#${item.id}`}>{item.label}</a>
 						}
@@ -545,14 +532,6 @@ export component DocsPage() {
 						</p>
 						<pre class="code-block">
 							<code>{html LAZY_PROPS_HTML}</code>
-						</pre>
-						<p class="section-body">
-							{'And '}
-							<code class="inline-code">{'&{ ... }'}</code>
-							{' works equally well on the return value of hooks, stores, or context objects — each binding resolves lazily at the point of use:'}
-						</p>
-						<pre class="code-block">
-							<code>{html LAZY_OBJ_VAR_HTML}</code>
 						</pre>
 						<p class="section-body muted">
 							{'Lazy destructuring is supported across every target. In React it compiles to direct property access on the source object, in Ripple and Solid it preserves tracked/signal reactivity without needing a wrapper call.'}

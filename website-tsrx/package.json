@@ -23,6 +23,7 @@
     "@ripple-ts/adapter-node": "workspace:*",
     "@tsrx/react": "workspace:*",
     "@tsrx/ripple": "workspace:*",
+    "@tsrx/solid": "workspace:*",
     "prettier": "catalog:",
     "shiki": "catalog:"
   },

@@ -12,10 +12,12 @@ const EMPTY_DEMO_SOURCE = '';
 const TARGET_OPTIONS = [
 	{ value: 'react', label: 'React' },
 	{ value: 'ripple', label: 'Ripple' },
+	{ value: 'solid', label: 'Solid' },
 ];
 const TARGET_LABELS: Record<string, string> = {
 	react: 'React output',
 	ripple: 'Ripple output',
+	solid: 'Solid output',
 };
 
 const VALID_TARGETS = new Set(TARGET_OPTIONS.map((o) => o.value));

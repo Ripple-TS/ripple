@@ -16,7 +16,7 @@ export component PlaygroundPage() {
 			</a>
 			<nav class="nav-links">
 				<a href="/getting-started">{'Getting Started'}</a>
-				<a href="/docs">{'Docs'}</a>
+				<a href="/features">{'Features'}</a>
 				<a href="/playground" aria-current="page">{'Playground'}</a>
 				<a
 					href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"

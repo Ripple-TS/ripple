@@ -54,7 +54,7 @@ export component IndexPage() {
 				</a>
 				<nav class="masthead-nav">
 					<a href="/getting-started">{'Getting Started'}</a>
-					<a href="/docs">{'Docs'}</a>
+					<a href="/features">{'Features'}</a>
 					<a href="/playground">{'Playground'}</a>
 					<a
 						href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
@@ -82,7 +82,7 @@ export component IndexPage() {
 					<code>{html SNIPPET_HTML}</code>
 				</pre>
 				<p class="section-body what-is-copy">
-					{'TSRX is framework-agnostic and interoperable. Today it compiles to React and Ripple, with room for more targets over time. You can import '}
+					{'TSRX is framework-agnostic and interoperable. Today it compiles to React, Ripple, and Solid, with room for more targets over time. You can import '}
 					<code class="inline-code">{'.tsrx'}</code>
 					{' modules from JS, TS, and TSX files and it just works.'}
 				</p>
@@ -112,8 +112,10 @@ export component IndexPage() {
 				<p class="section-body">
 					{'It interoperates with existing TypeScript and TSX codebases rather than demanding a full rewrite. Teams can adopt it where ergonomics matter most while keeping the surrounding code familiar. '}
 					<code class="inline-code">{'@tsrx/react'}</code>
-					{' and '}
+					{', '}
 					<code class="inline-code">{'@tsrx/ripple'}</code>
+					{', and '}
+					<code class="inline-code">{'@tsrx/solid'}</code>
 					{' already demonstrate that one source language can serve different framework semantics.'}
 				</p>
 			</section>
@@ -124,8 +126,10 @@ export component IndexPage() {
 				<p class="section-body">
 					{'The TSRX compiler parses component source into an AST and hands it off to framework-specific plugins for code generation. Plugins such as '}
 					<code class="inline-code">{'@tsrx/react'}</code>
-					{' or '}
+					{', '}
 					<code class="inline-code">{'@tsrx/ripple'}</code>
+					{', and '}
+					<code class="inline-code">{'@tsrx/solid'}</code>
 					{' transform the same AST into idiomatic output for their target runtimes, including scoped CSS. New targets can be added as standalone compiler plugins without changing the language itself.'}
 				</p>
 				<p class="section-body">

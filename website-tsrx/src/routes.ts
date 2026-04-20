@@ -1,10 +1,11 @@
 import { RenderRoute, ServerRoute } from '@ripple-ts/vite-plugin';
 import { compile as compile_react } from '@tsrx/react';
 import { compile as compile_ripple } from '@tsrx/ripple';
+import { compile as compile_solid } from '@tsrx/solid';
 import { format } from 'prettier';
 
 const MAX_SOURCE_LENGTH = 12000;
-const VALID_TARGETS = ['react', 'ripple'];
+const VALID_TARGETS = ['react', 'ripple', 'solid'];
 
 /**
  * @param {unknown} error
@@ -66,6 +67,18 @@ async function compile_target(target, source) {
 		};
 	}
 
+	if (target === 'solid') {
+		const solid_result = compile_solid(source, 'LiveDemo.tsrx');
+
+		return {
+			target,
+			output: {
+				code: await format_js(solid_result.code),
+				css: await format_css(solid_result.css?.code ?? ''),
+			},
+		};
+	}
+
 	const ripple_result = compile_ripple(source, 'LiveDemo.tsrx');
 
 	return {
@@ -80,7 +93,7 @@ async function compile_target(target, source) {
 export const routes = [
 	new RenderRoute({ path: '/', entry: '/src/pages/index.tsrx' }),
 	new RenderRoute({ path: '/getting-started', entry: '/src/pages/getting-started.tsrx' }),
-	new RenderRoute({ path: '/docs', entry: '/src/pages/docs.tsrx' }),
+	new RenderRoute({ path: '/features', entry: '/src/pages/features.tsrx' }),
 	new RenderRoute({ path: '/playground', entry: '/src/pages/playground.tsrx' }),
 	new ServerRoute({
 		path: '/api/compile',
@@ -101,7 +114,10 @@ export const routes = [
 			}
 
 			if (!VALID_TARGETS.includes(target)) {
-				return Response.json({ error: 'Target must be one of: react, ripple.' }, { status: 400 });
+				return Response.json(
+					{ error: 'Target must be one of: react, ripple, solid.' },
+					{ status: 400 },
+				);
 			}
 
 			if (source.length > MAX_SOURCE_LENGTH) {

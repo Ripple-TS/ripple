@@ -1086,6 +1086,9 @@ importers:
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:../packages/tsrx-ripple
+      '@tsrx/solid':
+        specifier: workspace:*
+        version: link:../packages/tsrx-solid
       prettier:
         specifier: 'catalog:'
         version: 3.8.3

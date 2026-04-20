@@ -30,8 +30,8 @@ async function loadPageModule() {
   if (path === '/getting-started') {
     return import('/src/pages/getting-started.tsrx');
   }
-  if (path === '/docs') {
-    return import('/src/pages/docs.tsrx');
+  if (path === '/features') {
+    return import('/src/pages/features.tsrx');
   }
   return import('/src/pages/index.tsrx');
 }
