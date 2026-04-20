@@ -11,6 +11,8 @@ import { renderStylesheets, setLocation } from '@tsrx/core';
  *   local_statement_component_index: number,
  *   needs_error_boundary: boolean,
  *   needs_suspense: boolean,
+ *   helper_state: { base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] } | null,
+ *   available_bindings: Map<string, AST.Identifier>,
  * }} TransformContext
  */
 
@@ -39,6 +41,8 @@ export function transform(ast, source, filename) {
 		local_statement_component_index: 0,
 		needs_error_boundary: false,
 		needs_suspense: false,
+		helper_state: null,
+		available_bindings: new Map(),
 	};
 
 	walk(/** @type {any} */ (ast), transform_context, {
@@ -56,8 +60,24 @@ export function transform(ast, source, filename) {
 
 	const transformed = walk(/** @type {any} */ (ast), transform_context, {
 		Component(node, { next, state }) {
+			const as_any = /** @type {any} */ (node);
+
+			// Set up helper_state and bindings BEFORE next() so that nested
+			// hook_safe_* calls (inside Element children) can register helpers
+			// and access available bindings during the bottom-up walk.
+			const helper_state = create_helper_state(as_any.id?.name || 'Component');
+			const saved_helper_state = state.helper_state;
+			const saved_bindings = state.available_bindings;
+			state.helper_state = helper_state;
+			state.available_bindings = collect_param_bindings(as_any.params || []);
+
 			const inner = /** @type {any} */ (next() ?? node);
-			return /** @type {any} */ (component_to_function_declaration(inner, state));
+
+			// Restore context
+			state.helper_state = saved_helper_state;
+			state.available_bindings = saved_bindings;
+
+			return /** @type {any} */ (component_to_function_declaration(inner, state, helper_state));
 		},
 
 		Tsx(node, { next }) {
@@ -112,10 +132,19 @@ export function transform(ast, source, filename) {
 /**
  * @param {any} component
  * @param {TransformContext} transform_context
+ * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] }} [walk_helper_state]
  * @returns {AST.FunctionDeclaration}
  */
-function component_to_function_declaration(component, transform_context) {
-	const helper_state = create_helper_state(component.id?.name || 'Component');
+function component_to_function_declaration(component, transform_context, walk_helper_state) {
+	const helper_state = walk_helper_state || create_helper_state(component.id?.name || 'Component');
+	const param_bindings = collect_param_bindings(component.params || []);
+
+	// Save and set context for this component scope
+	const saved_helper_state = transform_context.helper_state;
+	const saved_bindings = transform_context.available_bindings;
+	transform_context.helper_state = helper_state;
+	transform_context.available_bindings = new Map(param_bindings);
+
 	const fn = /** @type {any} */ ({
 		type: 'FunctionDeclaration',
 		id: component.id,
@@ -125,7 +154,7 @@ function component_to_function_declaration(component, transform_context) {
 			body: build_component_statements(
 				/** @type {any[]} */ (component.body),
 				helper_state,
-				collect_param_bindings(component.params || []),
+				param_bindings,
 				transform_context,
 			),
 			metadata: { path: [] },
@@ -137,6 +166,10 @@ function component_to_function_declaration(component, transform_context) {
 			is_component: true,
 		},
 	});
+
+	// Restore context
+	transform_context.helper_state = saved_helper_state;
+	transform_context.available_bindings = saved_bindings;
 
 	fn.metadata.generated_helpers = helper_state.helpers;
 
@@ -191,6 +224,7 @@ function build_component_statements(
 		} else {
 			statements.push(child);
 			collect_statement_bindings(child, bindings);
+			transform_context.available_bindings = bindings;
 		}
 	}
 
@@ -265,6 +299,7 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 			render_nodes.push(to_jsx_child(child, transform_context));
 		} else {
 			statements.push(child);
+			collect_statement_bindings(child, transform_context.available_bindings);
 		}
 	}
 
@@ -1144,11 +1179,17 @@ function hook_safe_statement_body_to_jsx_child(body_nodes, transform_context) {
 		create_generated_identifier(create_local_statement_component_name(transform_context)),
 		source_node,
 	);
+	const helper_bindings = Array.from(transform_context.available_bindings.values());
+
+	// Save and isolate bindings for the helper body
+	const saved_bindings = transform_context.available_bindings;
+	transform_context.available_bindings = new Map(saved_bindings);
+
 	const helper_fn = set_loc(
 		/** @type {any} */ ({
 			type: 'FunctionDeclaration',
 			id: helper_id,
-			params: [],
+			params: helper_bindings.length > 0 ? [create_helper_props_pattern(helper_bindings)] : [],
 			body: {
 				type: 'BlockStatement',
 				body: build_render_statements(body_nodes, true, transform_context),
@@ -1165,6 +1206,19 @@ function hook_safe_statement_body_to_jsx_child(body_nodes, transform_context) {
 		source_node,
 	);
 
+	// Restore bindings
+	transform_context.available_bindings = saved_bindings;
+
+	// Register helper for hoisting to module level
+	if (transform_context.helper_state) {
+		transform_context.helper_state.helpers.push(helper_fn);
+
+		return to_jsx_expression_container(
+			/** @type {any} */ (create_helper_component_element(helper_id, helper_bindings, source_node)),
+			source_node,
+		);
+	}
+
 	return to_jsx_expression_container(
 		/** @type {any} */ ({
 			type: 'CallExpression',
@@ -1177,7 +1231,7 @@ function hook_safe_statement_body_to_jsx_child(body_nodes, transform_context) {
 						helper_fn,
 						{
 							type: 'ReturnStatement',
-							argument: create_helper_component_element(helper_id, [], source_node),
+							argument: create_helper_component_element(helper_id, helper_bindings, source_node),
 							metadata: { path: [] },
 						},
 					],
@@ -1206,8 +1260,10 @@ function create_local_statement_component_name(transform_context) {
 }
 
 /**
- * Wraps a list of body nodes into a locally-declared component and returns
- * statements that declare the component then return `<ComponentName />`.
+ * Wraps a list of body nodes into a component and returns
+ * statements that return `<ComponentName prop1={prop1} ... />`.
+ * The component is hoisted to module level via helper_state to avoid
+ * recreating the component identity on every render.
  * Used when a control flow branch contains hook calls that must be moved
  * into their own component boundary to satisfy the Rules of Hooks.
  *
@@ -1222,12 +1278,17 @@ function hook_safe_render_statements(body_nodes, key_expression, transform_conte
 		create_generated_identifier(create_local_statement_component_name(transform_context)),
 		source_node,
 	);
+	const helper_bindings = Array.from(transform_context.available_bindings.values());
+
+	// Save and isolate bindings for the helper body
+	const saved_bindings = transform_context.available_bindings;
+	transform_context.available_bindings = new Map(saved_bindings);
 
 	const helper_fn = set_loc(
 		/** @type {any} */ ({
 			type: 'FunctionDeclaration',
 			id: helper_id,
-			params: [],
+			params: helper_bindings.length > 0 ? [create_helper_props_pattern(helper_bindings)] : [],
 			body: {
 				type: 'BlockStatement',
 				body: build_render_statements(body_nodes, true, transform_context),
@@ -1244,7 +1305,19 @@ function hook_safe_render_statements(body_nodes, key_expression, transform_conte
 		source_node,
 	);
 
-	const component_element = create_helper_component_element(helper_id, [], source_node);
+	// Restore bindings
+	transform_context.available_bindings = saved_bindings;
+
+	// Register helper for hoisting to module level
+	if (transform_context.helper_state) {
+		transform_context.helper_state.helpers.push(helper_fn);
+	}
+
+	const component_element = create_helper_component_element(
+		helper_id,
+		helper_bindings,
+		source_node,
+	);
 
 	if (key_expression) {
 		component_element.openingElement.attributes.push(
@@ -1258,7 +1331,6 @@ function hook_safe_render_statements(body_nodes, key_expression, transform_conte
 	}
 
 	return [
-		helper_fn,
 		{
 			type: 'ReturnStatement',
 			argument: component_element,
@@ -1411,6 +1483,20 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	const has_hooks = body_contains_top_level_hook_call(loop_body);
 	const key_expression = has_hooks ? find_key_expression_in_body(loop_body) : undefined;
 
+	// Add loop params to available bindings so hoisted helpers receive them as props
+	const saved_bindings = transform_context.available_bindings;
+	transform_context.available_bindings = new Map(saved_bindings);
+	for (const param of loop_params) {
+		collect_pattern_bindings(param, transform_context.available_bindings);
+	}
+
+	const body_statements = has_hooks
+		? hook_safe_render_statements(loop_body, key_expression, transform_context)
+		: build_render_statements(loop_body, true, transform_context);
+
+	// Restore bindings
+	transform_context.available_bindings = saved_bindings;
+
 	return to_jsx_expression_container(
 		/** @type {any} */ ({
 			type: 'CallExpression',
@@ -1428,9 +1514,7 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 					params: loop_params,
 					body: /** @type {any} */ ({
 						type: 'BlockStatement',
-						body: has_hooks
-							? hook_safe_render_statements(loop_body, key_expression, transform_context)
-							: build_render_statements(loop_body, true, transform_context),
+						body: body_statements,
 						metadata: { path: [] },
 					}),
 					async: false,

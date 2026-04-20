@@ -483,7 +483,7 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain('function StatementBodyHook1() {');
 		expect(code).toContain('const [x] = useState(1);');
-		expect(code).toContain('return <StatementBodyHook1 />;');
+		expect(code).toContain('<StatementBodyHook1 />');
 		expect(mappings.errors).toEqual([]);
 	});
 
@@ -958,6 +958,6 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain('function StatementBodyHook');
 		// Key should appear on both the inner element and wrapper component
-		expect(code).toContain('<StatementBodyHook1 key={item} />');
+		expect(code).toContain('<StatementBodyHook1 items={items} item={item} key={item} />');
 	});
 });
