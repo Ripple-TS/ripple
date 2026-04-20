@@ -95,14 +95,22 @@ export function tsrxSolid(_options = {}) {
 			const { code, css, map } = compile(source, real_path);
 
 			let final_code = code;
+			let final_map = /** @type {any} */ (map);
 			if (css) {
 				css_cache.set(real_path, css.code);
 				final_code = `import ${JSON.stringify(real_path + CSS_QUERY)};\n${code}`;
+				// The prepended import adds one line to the generated output;
+				// shift every mapping down by one line so source positions stay
+				// aligned. In VLQ source maps, each `;` separates generated
+				// lines, so prefixing one `;` offsets all mappings by one line.
+				if (final_map && typeof final_map.mappings === 'string') {
+					final_map = { ...final_map, mappings: ';' + final_map.mappings };
+				}
 			} else {
 				css_cache.delete(real_path);
 			}
 
-			return { code: final_code, map: /** @type {any} */ (map) };
+			return { code: final_code, map: final_map };
 		},
 
 		handleHotUpdate(ctx) {
