@@ -137,9 +137,7 @@ describe('composite > render', () => {
 
 		const wrapper = container.querySelector('.green');
 		const child = container.querySelector('.red');
-		const wrapper_scopes = Array.from(wrapper.classList).filter(
-			(name) => name.startsWith('tsrx-'),
-		);
+		const wrapper_scopes = Array.from(wrapper.classList).filter((name) => name.startsWith('tsrx-'));
 		const child_scopes = Array.from(child.classList).filter((name) => name.startsWith('tsrx-'));
 
 		expect(wrapper_scopes).toHaveLength(1);

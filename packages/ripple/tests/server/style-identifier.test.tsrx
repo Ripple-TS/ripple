@@ -220,9 +220,7 @@ describe('#style identifier (server)', () => {
 		const { document } = parseHtml(body);
 		const wrapper = document.querySelector('.green');
 		const child = document.querySelector('.red');
-		const wrapper_scopes = Array.from(wrapper.classList).filter(
-			(name) => name.startsWith('tsrx-'),
-		);
+		const wrapper_scopes = Array.from(wrapper.classList).filter((name) => name.startsWith('tsrx-'));
 		const child_scopes = Array.from(child.classList).filter((name) => name.startsWith('tsrx-'));
 
 		expect(wrapper_scopes).toHaveLength(1);
