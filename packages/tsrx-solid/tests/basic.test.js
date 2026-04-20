@@ -276,6 +276,57 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain('let __lazy0 = createSignal(0)');
 			expect(code).toContain('__lazy0[1](__lazy0[0] + 1)');
 		});
+
+		it('transforms lazy params on plain function declarations', () => {
+			const { code } = compile(
+				`export function greet(&{ name }: { name: string }) {
+					return 'hello ' + name;
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('function greet(__lazy0: { name: string })');
+			expect(code).toContain("'hello ' + __lazy0.name");
+		});
+
+		it('transforms lazy params on function expressions', () => {
+			const { code } = compile(
+				`const add = function (&{ a, b }: { a: number; b: number }) {
+					return a + b;
+				};`,
+				'App.tsrx',
+			);
+			expect(code).toContain('function (__lazy0: { a: number; b: number })');
+			expect(code).toContain('__lazy0.a + __lazy0.b');
+		});
+
+		it('transforms lazy params in nested functions inside components', () => {
+			const { code } = compile(
+				`export component App(&{ outer }: { outer: string }) {
+					function greet(&{ name }: { name: string }) {
+						return 'hi ' + name + ' from ' + outer;
+					}
+					<div>{greet}</div>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('function App(__lazy0: { outer: string })');
+			expect(code).toContain('function greet(__lazy1: { name: string })');
+			expect(code).toContain("'hi ' + __lazy1.name + ' from ' + __lazy0.outer");
+		});
+
+		it('rewrites statement-level lazy assignment as a const declaration', () => {
+			const { code } = compile(
+				`import { createSignal } from 'solid-js';
+				export component App() {
+					&[count, setCount] = createSignal(0);
+					<button onClick={() => setCount(count + 1)}>{count}</button>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('const __lazy0 = createSignal(0)');
+			expect(code).toContain('__lazy0[1](__lazy0[0] + 1)');
+			expect(code).toContain('{__lazy0[0]}');
+		});
 	});
 
 	describe('Volar mappings', () => {

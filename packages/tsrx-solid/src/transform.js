@@ -54,6 +54,8 @@ export function transform(ast, source, filename) {
 		current_css_hash: null,
 	};
 
+	preallocate_lazy_ids(/** @type {any} */ (ast), transform_context);
+
 	// First pass: collect stylesheets and annotate elements with the component hash.
 	walk(/** @type {any} */ (ast), transform_context, {
 		Component(node, { next, state }) {
@@ -122,7 +124,15 @@ export function transform(ast, source, filename) {
 
 	inject_solid_imports(/** @type {AST.Program} */ (transformed), transform_context);
 
-	const result = print(/** @type {any} */ (transformed), tsx(), {
+	// Apply lazy destructuring transforms to module-level code (top-level function
+	// declarations, arrow functions, etc.). Component bodies have already been
+	// transformed inside component_to_function_declaration; this catches plain
+	// functions outside components and any lazy patterns in module scope.
+	const final_program = /** @type {any} */ (
+		apply_lazy_transforms(/** @type {any} */ (transformed), new Map())
+	);
+
+	const result = print(/** @type {any} */ (final_program), tsx(), {
 		sourceMapSource: filename,
 		sourceMapContent: source,
 	});
@@ -138,7 +148,7 @@ export function transform(ast, source, filename) {
 			: null;
 
 	return {
-		ast: /** @type {AST.Program} */ (transformed),
+		ast: /** @type {AST.Program} */ (final_program),
 		code: result.code,
 		map: result.map,
 		css,
@@ -223,9 +233,11 @@ function collect_lazy_bindings_from_component(params, body, transform_context) {
 	for (const param of params) {
 		const pattern = param.type === 'AssignmentPattern' ? param.left : param;
 		if ((pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') && pattern.lazy) {
-			const lazy_name = generate_lazy_id(transform_context);
+			const lazy_name = pattern.metadata?.lazy_id || generate_lazy_id(transform_context);
+			if (!pattern.metadata?.lazy_id) {
+				pattern.metadata = { ...pattern.metadata, lazy_id: lazy_name };
+			}
 			collect_lazy_bindings(pattern, lazy_name, lazy_bindings);
-			pattern.metadata = { ...pattern.metadata, lazy_id: lazy_name };
 		}
 	}
 
@@ -234,14 +246,146 @@ function collect_lazy_bindings_from_component(params, body, transform_context) {
 		for (const declarator of statement.declarations || []) {
 			const pattern = declarator.id;
 			if ((pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') && pattern.lazy) {
-				const lazy_name = generate_lazy_id(transform_context);
+				const lazy_name = pattern.metadata?.lazy_id || generate_lazy_id(transform_context);
+				if (!pattern.metadata?.lazy_id) {
+					pattern.metadata = { ...pattern.metadata, lazy_id: lazy_name };
+				}
 				collect_lazy_bindings(pattern, lazy_name, lazy_bindings);
-				pattern.metadata = { ...pattern.metadata, lazy_id: lazy_name };
 			}
 		}
 	}
 
+	// Collect from standalone lazy assignment statements: `&[x] = expr;`
+	collect_lazy_bindings_from_statements(body, lazy_bindings);
+
 	return lazy_bindings;
+}
+
+/**
+ * Collect lazy bindings from statements at the top level of a block.
+ * Reads already-allocated `lazy_id` values stored on pattern metadata.
+ * Handles both `let &[x] = ...` VariableDeclarations and statement-level
+ * `&[x] = expr;` ExpressionStatement assignments.
+ *
+ * @param {any[]} statements
+ * @param {Map<string, LazyBinding>} lazy_bindings
+ */
+function collect_lazy_bindings_from_statements(statements, lazy_bindings) {
+	for (const stmt of statements || []) {
+		if (stmt.type === 'VariableDeclaration') {
+			for (const declarator of stmt.declarations || []) {
+				const pattern = declarator.id;
+				if (
+					(pattern?.type === 'ObjectPattern' || pattern?.type === 'ArrayPattern') &&
+					pattern.lazy &&
+					pattern.metadata?.lazy_id &&
+					!lazy_bindings_contains(lazy_bindings, pattern)
+				) {
+					collect_lazy_bindings(pattern, pattern.metadata.lazy_id, lazy_bindings);
+				}
+			}
+		} else if (
+			stmt.type === 'ExpressionStatement' &&
+			stmt.expression?.type === 'AssignmentExpression' &&
+			stmt.expression.operator === '=' &&
+			(stmt.expression.left?.type === 'ObjectPattern' ||
+				stmt.expression.left?.type === 'ArrayPattern') &&
+			stmt.expression.left.lazy &&
+			stmt.expression.left.metadata?.lazy_id
+		) {
+			collect_lazy_bindings(
+				stmt.expression.left,
+				stmt.expression.left.metadata.lazy_id,
+				lazy_bindings,
+			);
+		}
+	}
+}
+
+/**
+ * @param {Map<string, LazyBinding>} lazy_bindings
+ * @param {any} pattern
+ * @returns {boolean}
+ */
+function lazy_bindings_contains(lazy_bindings, pattern) {
+	if (pattern.type === 'ObjectPattern') {
+		for (const prop of pattern.properties || []) {
+			if (prop.type === 'RestElement') continue;
+			const value = prop.value;
+			const actual = value?.type === 'AssignmentPattern' ? value.left : value;
+			if (actual?.type === 'Identifier' && lazy_bindings.has(actual.name)) return true;
+		}
+	} else if (pattern.type === 'ArrayPattern') {
+		for (const element of pattern.elements || []) {
+			if (!element || element.type === 'RestElement') continue;
+			const actual = element.type === 'AssignmentPattern' ? element.left : element;
+			if (actual?.type === 'Identifier' && lazy_bindings.has(actual.name)) return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Walk the AST and pre-allocate `lazy_id` metadata on every lazy destructuring
+ * pattern: function/component params, variable declarator ids, and statement-level
+ * assignment LHS. Idempotent: skips patterns that already have a `lazy_id`.
+ *
+ * @param {any} root
+ * @param {TransformContext} transform_context
+ */
+function preallocate_lazy_ids(root, transform_context) {
+	/** @param {any} pattern */
+	const assign_id = (pattern) => {
+		if (
+			(pattern?.type === 'ObjectPattern' || pattern?.type === 'ArrayPattern') &&
+			pattern.lazy &&
+			!pattern.metadata?.lazy_id
+		) {
+			pattern.metadata = {
+				...pattern.metadata,
+				lazy_id: generate_lazy_id(transform_context),
+			};
+		}
+	};
+
+	/** @param {any} node */
+	const visit = (node) => {
+		if (!node || typeof node !== 'object') return;
+		if (Array.isArray(node)) {
+			for (const child of node) visit(child);
+			return;
+		}
+
+		if (
+			node.type === 'FunctionDeclaration' ||
+			node.type === 'FunctionExpression' ||
+			node.type === 'ArrowFunctionExpression' ||
+			node.type === 'Component'
+		) {
+			for (const param of node.params || []) {
+				assign_id(param?.type === 'AssignmentPattern' ? param.left : param);
+			}
+		}
+
+		if (node.type === 'VariableDeclarator') {
+			assign_id(node.id);
+		}
+
+		if (
+			node.type === 'ExpressionStatement' &&
+			node.expression?.type === 'AssignmentExpression' &&
+			node.expression.operator === '='
+		) {
+			assign_id(node.expression.left);
+		}
+
+		for (const key of Object.keys(node)) {
+			if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
+			visit(node[key]);
+		}
+	};
+
+	visit(root);
 }
 
 /**
@@ -271,17 +415,42 @@ function apply_lazy_transforms(node, lazy_bindings) {
 			collect_shadowed_names(param, lazy_bindings, shadowed);
 		}
 
-		const inner_bindings =
+		const outer_minus_shadow =
 			shadowed.size > 0 ? remove_shadowed(lazy_bindings, shadowed) : lazy_bindings;
-		if (inner_bindings.size === 0 && !params_changed) return node;
+
+		// Collect this function's own lazy param bindings (pre-allocated lazy_ids).
+		/** @type {Map<string, LazyBinding>} */
+		const own_bindings = new Map();
+		let had_lazy_param = false;
+		for (const param of node.params || []) {
+			const pattern = param?.type === 'AssignmentPattern' ? param.left : param;
+			if (
+				(pattern?.type === 'ObjectPattern' || pattern?.type === 'ArrayPattern') &&
+				pattern.lazy &&
+				pattern.metadata?.lazy_id
+			) {
+				had_lazy_param = true;
+				collect_lazy_bindings(pattern, pattern.metadata.lazy_id, own_bindings);
+			}
+		}
+
+		const inner_bindings =
+			own_bindings.size > 0
+				? new Map([...outer_minus_shadow, ...own_bindings])
+				: outer_minus_shadow;
+
+		if (inner_bindings.size === 0 && !params_changed && !had_lazy_param) return node;
 
 		const new_body =
 			inner_bindings.size > 0 ? apply_lazy_transforms(node.body, inner_bindings) : node.body;
 
-		if (new_body !== node.body || params_changed) {
+		const final_params_src = params_changed ? new_params : node.params;
+		const final_params = had_lazy_param ? replace_lazy_params(final_params_src) : final_params_src;
+
+		if (new_body !== node.body || final_params !== node.params) {
 			return {
 				...node,
-				params: params_changed ? new_params : node.params,
+				params: final_params,
 				body: new_body,
 			};
 		}
@@ -290,9 +459,15 @@ function apply_lazy_transforms(node, lazy_bindings) {
 
 	if (node.type === 'BlockStatement' || node.type === 'Program') {
 		const block_bindings = collect_block_shadowed_names(node.body, lazy_bindings);
-		const effective_bindings =
+		const after_shadow =
 			block_bindings.size > 0 ? remove_shadowed(lazy_bindings, block_bindings) : lazy_bindings;
-		if (effective_bindings.size === 0 && block_bindings.size > 0) return node;
+
+		/** @type {Map<string, LazyBinding>} */
+		const block_lazy = new Map();
+		collect_lazy_bindings_from_statements(node.body, block_lazy);
+
+		const effective_bindings =
+			block_lazy.size > 0 ? new Map([...after_shadow, ...block_lazy]) : after_shadow;
 
 		let changed = false;
 		const new_body = node.body.map((/** @type {any} */ stmt) => {
@@ -356,6 +531,39 @@ function apply_lazy_transforms(node, lazy_bindings) {
 		const new_body = apply_lazy_transforms(node.body, effective_bindings);
 		if (new_body !== node.body) changed = true;
 		return changed ? { ...node, left: new_left, right: new_right, body: new_body } : node;
+	}
+
+	// Handle standalone lazy destructuring assignment: `&[data] = track(0);`
+	// becomes `const __lazy0 = track(0);`. The individual name bindings are
+	// already in scope via the enclosing BlockStatement handler.
+	if (
+		node.type === 'ExpressionStatement' &&
+		node.expression?.type === 'AssignmentExpression' &&
+		node.expression.operator === '=' &&
+		(node.expression.left?.type === 'ObjectPattern' ||
+			node.expression.left?.type === 'ArrayPattern') &&
+		node.expression.left.lazy &&
+		node.expression.left.metadata?.lazy_id
+	) {
+		const pattern = node.expression.left;
+		const lazy_id = create_generated_identifier(pattern.metadata.lazy_id);
+		if (pattern.typeAnnotation) {
+			lazy_id.typeAnnotation = pattern.typeAnnotation;
+		}
+		const init = apply_lazy_transforms(node.expression.right, lazy_bindings);
+		return /** @type {any} */ ({
+			type: 'VariableDeclaration',
+			kind: 'const',
+			declarations: [
+				{
+					type: 'VariableDeclarator',
+					id: lazy_id,
+					init,
+					metadata: { path: [] },
+				},
+			],
+			metadata: { path: [] },
+		});
 	}
 
 	// Handle AssignmentExpression / UpdateExpression whose target is a lazy identifier.
