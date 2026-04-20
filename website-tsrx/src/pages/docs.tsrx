@@ -145,6 +145,44 @@ const ASYNC_BOUNDARY_HTML = [
 	'<span class="ln">16</span> <span class="br">}</span>',
 ].join('\n');
 
+const SCOPED_STYLES_HTML = [
+	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">Card</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 2</span>   <span class="tag">&lt;</span><span class="el">div</span> <span class="attr">class</span>=<span class="str">"card"</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 3</span>     <span class="tag">&lt;</span><span class="el">h2</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Scoped title\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h2</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 4</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Styles here won\\&#39;t leak out.\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 5</span>   <span class="tag">&lt;/</span><span class="el">div</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 6</span>',
+	'<span class="ln"> 7</span>   <span class="tag">&lt;</span><span class="el">style</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 8</span>     <span class="css-sel">.card</span> <span class="css-br">{</span>',
+	'<span class="ln"> 9</span>       <span class="attr">padding</span>: <span class="val">1.5rem</span>;',
+	'<span class="ln">10</span>       <span class="attr">border</span>: <span class="val">1px</span> <span class="val">solid</span> <span class="val">#ddd</span>;',
+	'<span class="ln">11</span>     <span class="css-br">}</span>',
+	'<span class="ln">12</span>',
+	'<span class="ln">13</span>     <span class="css-sel">h2</span> <span class="css-br">{</span> <span class="attr">color</span>: <span class="val">#333</span>; <span class="css-br">}</span>',
+	'<span class="ln">14</span>   <span class="tag">&lt;/</span><span class="el">style</span><span class="tag">&gt;</span>',
+	'<span class="ln">15</span> <span class="br">}</span>',
+].join('\n');
+
+const STYLE_COMPOSITION_HTML = [
+	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">Badge</span><span class="br">(</span><span class="br">{</span> <span class="prop">className</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">className</span>?: <span class="type">string</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 2</span>   <span class="tag">&lt;</span><span class="el">span</span> <span class="attr">class</span>=<span class="tbr">{</span><span class="br">[</span><span class="str">\'badge\'</span>, <span class="prop">className</span> ?? <span class="str">\'\' </span><span class="br">]</span><span class="tbr">}</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 3</span>     <span class="tbr">{</span><span class="str">\'New\'</span><span class="tbr">}</span>',
+	'<span class="ln"> 4</span>   <span class="tag">&lt;/</span><span class="el">span</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 5</span>',
+	'<span class="ln"> 6</span>   <span class="tag">&lt;</span><span class="el">style</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 7</span>     <span class="css-sel">.badge</span> <span class="css-br">{</span> <span class="attr">padding</span>: <span class="val">0.25rem 0.5rem</span>; <span class="css-br">}</span>',
+	'<span class="ln"> 8</span>   <span class="tag">&lt;/</span><span class="el">style</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 9</span> <span class="br">}</span>',
+	'<span class="ln">10</span>',
+	'<span class="ln">11</span> <span class="kw">component</span> <span class="fn">App</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln">12</span>   <span class="tag">&lt;</span><span class="el">Badge</span> <span class="attr">className</span>=<span class="tbr">{</span><span class="reactive">#style</span>.<span class="prop">highlight</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
+	'<span class="ln">13</span>',
+	'<span class="ln">14</span>   <span class="tag">&lt;</span><span class="el">style</span><span class="tag">&gt;</span>',
+	'<span class="ln">15</span>     <span class="css-sel">.highlight</span> <span class="css-br">{</span> <span class="attr">background</span>: <span class="val">#e8f5e9</span>; <span class="attr">color</span>: <span class="val">#2e7d32</span>; <span class="css-br">}</span>',
+	'<span class="ln">16</span>   <span class="tag">&lt;/</span><span class="el">style</span><span class="tag">&gt;</span>',
+	'<span class="ln">17</span> <span class="br">}</span>',
+].join('\n');
+
 const REACT_HOOKS_HTML = [
 	'<span class="ln"> 1</span> <span class="kw">import</span> <span class="br">{</span> <span class="prop">useState</span>, <span class="prop">useEffect</span> <span class="br">}</span> <span class="kw">from</span> <span class="str">\'react\'</span>;',
 	'<span class="ln"> 2</span>',
@@ -184,6 +222,8 @@ const NAV_ITEMS = [
 	{ id: 'switch', label: 'Switch statements' },
 	{ id: 'try', label: 'Error boundaries' },
 	{ id: 'async-boundaries', label: 'Async boundaries' },
+	{ id: 'scoped-styles', label: 'Scoped styles' },
+	{ id: 'style-composition', label: 'Style composition' },
 	{ id: 'early-return', label: 'Early returns' },
 	{ id: 'react-hooks', label: 'React Hooks' },
 ];
@@ -404,6 +444,46 @@ export component DocsPage() {
 						<pre class="code-block">
 							<code>{html ASYNC_BOUNDARY_HTML}</code>
 						</pre>
+					</section>
+
+					<section class="doc-section" id="scoped-styles">
+						<h2 class="section-heading">{'Scoped styles'}</h2>
+						<p class="section-body">
+							{'Each component can include a '}
+							<code class="inline-code">{'<style>'}</code>
+							{' block. Styles are automatically scoped — the compiler rewrites selectors with a unique hash so they only apply to elements inside the component that defines them. A parent\'s scoped styles will not leak into child components.'}
+						</p>
+						<pre class="code-block">
+							<code>{html SCOPED_STYLES_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'To escape scoping and apply styles globally, wrap a selector in '}
+							<code class="inline-code">{':global()'}</code>
+							{'. This lets you reach into child components or target elements outside the current scope.'}
+						</p>
+					</section>
+
+					<section class="doc-section" id="style-composition">
+						<h2 class="section-heading">{'Style composition'}</h2>
+						<p class="section-body">
+							{'Because scoped styles don\'t cross component boundaries, TSRX provides '}
+							<code class="inline-code">{'#style'}</code>
+							{' for passing scoped class names to child components as props. '}
+							<code class="inline-code">{'#style.className'}</code>
+							{' produces a string containing both the scope hash and the class name, which the child applies via its '}
+							<code class="inline-code">{'class'}</code>
+							{' attribute.'}
+						</p>
+						<pre class="code-block">
+							<code>{html STYLE_COMPOSITION_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'The class referenced via '}
+							<code class="inline-code">{'#style'}</code>
+							{' must exist as a standalone selector in the component\'s '}
+							<code class="inline-code">{'<style>'}</code>
+							{' block. Classes that only appear in compound or descendant selectors cannot be passed.'}
+						</p>
 					</section>
 
 					<section class="doc-section" id="early-return">
