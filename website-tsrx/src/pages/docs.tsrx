@@ -126,6 +126,53 @@ const CHILDREN_HTML = [
 	'<span class="ln"> 8</span> <span class="tag">&lt;</span><span class="el">List</span> <span class="attr">children</span>=<span class="tbr">{</span><span class="prop">items</span>.<span class="fn">map</span><span class="br">(</span><span class="prop">renderItem</span><span class="br">)</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
 ].join('\n');
 
+const ASYNC_BOUNDARY_HTML = [
+	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">UserProfile</span><span class="br">(</span><span class="br">{</span> <span class="prop">id</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">id</span>: <span class="type">number</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 2</span>   <span class="kw">const</span> <span class="prop">user</span> = <span class="kw">await</span> <span class="fn">fetchUser</span><span class="br">(</span><span class="prop">id</span><span class="br">)</span>;',
+	'<span class="ln"> 3</span>',
+	'<span class="ln"> 4</span>   <span class="tag">&lt;</span><span class="el">h1</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">user</span>.<span class="prop">name</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h1</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 5</span>   <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">user</span>.<span class="prop">email</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 6</span> <span class="br">}</span>',
+	'<span class="ln"> 7</span>',
+	'<span class="ln"> 8</span> <span class="kw-export">export</span> <span class="kw">component</span> <span class="fn">App</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 9</span>   <span class="kw">try</span> <span class="br">{</span>',
+	'<span class="ln">10</span>     <span class="tag">&lt;</span><span class="el">UserProfile</span> <span class="attr">id</span>=<span class="tbr">{</span><span class="val">1</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
+	'<span class="ln">11</span>   <span class="br">}</span> <span class="kw">pending</span> <span class="br">{</span>',
+	'<span class="ln">12</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Loading...\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln">13</span>   <span class="br">}</span> <span class="kw">catch</span> <span class="br">(</span><span class="prop">e</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln">14</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Something went wrong.\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln">15</span>   <span class="br">}</span>',
+	'<span class="ln">16</span> <span class="br">}</span>',
+].join('\n');
+
+const REACT_HOOKS_HTML = [
+	'<span class="ln"> 1</span> <span class="kw">import</span> <span class="br">{</span> <span class="prop">useState</span>, <span class="prop">useEffect</span> <span class="br">}</span> <span class="kw">from</span> <span class="str">\'react\'</span>;',
+	'<span class="ln"> 2</span>',
+	'<span class="ln"> 3</span> <span class="kw">component</span> <span class="fn">UserProfile</span><span class="br">(</span><span class="br">{</span> <span class="prop">user</span>, <span class="prop">posts</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">user</span>: <span class="type">User</span> | <span class="type">null</span>; <span class="prop">posts</span>: <span class="type">Post</span><span class="br">[</span><span class="br">]</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 4</span>   <span class="kw">if</span> <span class="br">(</span>!<span class="prop">user</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 5</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Please sign in.\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 6</span>     <span class="kw-ctrl">return</span>;',
+	'<span class="ln"> 7</span>   <span class="br">}</span>',
+	'<span class="ln"> 8</span>',
+	'<span class="ln"> 9</span>   <span class="cmt">// Hooks after a guard — this is fine in TSRX</span>',
+	'<span class="ln">10</span>   <span class="kw">const</span> <span class="br">[</span><span class="prop">tab</span>, <span class="prop">setTab</span><span class="br">]</span> = <span class="fn">useState</span><span class="br">(</span><span class="str">\'overview\'</span><span class="br">)</span>;',
+	'<span class="ln">11</span>',
+	'<span class="ln">12</span>   <span class="tag">&lt;</span><span class="el">h1</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">user</span>.<span class="prop">name</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h1</span><span class="tag">&gt;</span>',
+	'<span class="ln">13</span>   <span class="tag">&lt;</span><span class="el">TabBar</span> <span class="attr">value</span>=<span class="tbr">{</span><span class="prop">tab</span><span class="tbr">}</span> <span class="attr">onChange</span>=<span class="tbr">{</span><span class="prop">setTab</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
+	'<span class="ln">14</span>',
+	'<span class="ln">15</span>   <span class="cmt">// Hooks inside a loop — the compiler extracts them</span>',
+	'<span class="ln">16</span>   <span class="tag">&lt;</span><span class="el">ul</span><span class="tag">&gt;</span>',
+	'<span class="ln">17</span>     <span class="kw">for</span> <span class="br">(</span><span class="kw">const</span> <span class="prop">post</span> <span class="kw">of</span> <span class="prop">posts</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln">18</span>       <span class="fn">useEffect</span><span class="br">(</span><span class="br">(</span><span class="br">)</span> =&gt; <span class="br">{</span>',
+	'<span class="ln">19</span>         <span class="fn">console</span>.<span class="fn">log</span><span class="br">(</span><span class="str">`viewed ${</span><span class="prop">post</span>.<span class="prop">title</span><span class="str">}`</span><span class="br">)</span>;',
+	'<span class="ln">20</span>       <span class="br">}</span>, <span class="br">[</span><span class="prop">post</span>.<span class="prop">title</span><span class="br">]</span><span class="br">)</span>;',
+	'<span class="ln">21</span>',
+	'<span class="ln">22</span>       <span class="tag">&lt;</span><span class="el">li</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">post</span>.<span class="prop">title</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">li</span><span class="tag">&gt;</span>',
+	'<span class="ln">23</span>     <span class="br">}</span>',
+	'<span class="ln">24</span>   <span class="tag">&lt;/</span><span class="el">ul</span><span class="tag">&gt;</span>',
+	'<span class="ln">25</span> <span class="br">}</span>',
+].join('\n');
+
 const NAV_ITEMS = [
 	{ id: 'components', label: 'Components' },
 	{ id: 'jsx', label: 'Statement-based JSX' },
@@ -136,7 +183,9 @@ const NAV_ITEMS = [
 	{ id: 'for', label: 'List rendering' },
 	{ id: 'switch', label: 'Switch statements' },
 	{ id: 'try', label: 'Error boundaries' },
+	{ id: 'async-boundaries', label: 'Async boundaries' },
 	{ id: 'early-return', label: 'Early returns' },
+	{ id: 'react-hooks', label: 'React Hooks' },
 ];
 
 export component DocsPage() {
@@ -332,6 +381,31 @@ export component DocsPage() {
 						</pre>
 					</section>
 
+					<section class="doc-section" id="async-boundaries">
+						<h2 class="section-heading">{'Async boundaries'}</h2>
+						<p class="section-body">
+							{'Components can use '}
+							<code class="inline-code">{'await'}</code>
+							{' directly in their body — no '}
+							<code class="inline-code">{'async'}</code>
+							{' keyword needed. Everything before the first '}
+							<code class="inline-code">{'await'}</code>
+							{' renders immediately; everything after suspends until the promise resolves.'}
+						</p>
+						<p class="section-body">
+							{'Wrap the component in a '}
+							<code class="inline-code">{'try'}</code>
+							{' / '}
+							<code class="inline-code">{'pending'}</code>
+							{' block to show fallback UI while the async operation is in flight. Add a '}
+							<code class="inline-code">{'catch'}</code>
+							{' clause to handle both sync throws and async rejections. Both clauses are optional and can be used independently.'}
+						</p>
+						<pre class="code-block">
+							<code>{html ASYNC_BOUNDARY_HTML}</code>
+						</pre>
+					</section>
+
 					<section class="doc-section" id="early-return">
 						<h2 class="section-heading">{'Early returns'}</h2>
 						<p class="section-body">
@@ -351,6 +425,17 @@ export component DocsPage() {
 							<code class="inline-code">{'return value'}</code>
 							{' are not valid in component bodies.'}
 						</p>
+					</section>
+					<section class="doc-section" id="react-hooks">
+						<h2 class="section-heading">{'React Hooks'}</h2>
+						<p class="section-body">
+							{'When targeting React with '}
+							<code class="inline-code">{'@tsrx/react'}</code>
+							{', the compiler lifts all hook calls to the top of the generated function — regardless of where they appear in the TSRX source. That means hooks can appear after early returns, inside conditional blocks, or even inside loops, and the compiled output still satisfies the Rules of Hooks.'}
+						</p>
+						<pre class="code-block">
+							<code>{html REACT_HOOKS_HTML}</code>
+						</pre>
 					</section>
 				</main>
 			</div>
