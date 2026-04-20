@@ -154,7 +154,7 @@ describe('@tsrx/react basic', () => {
 
 		expect(css).not.toBeNull();
 		expect(code).toContain(`className="${css.hash}"`);
-		expect(code).toContain('return <div className=');
+		expect(code).toContain(`App__static1 = <div className="${css.hash}">`);
 		expect(css.code).toContain(`.div.${css.hash}`);
 	});
 
@@ -174,7 +174,7 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain('const count = 2;');
 		expect(code).toContain('if (count > 1) {');
-		expect(code).toContain("return <div>{'Count is more than one'}</div>;");
+		expect(code).toContain("App__static1 = <div>{'Count is more than one'}</div>");
 		expect(code).toContain('return null;');
 		expect(code).toContain('<button>{count}</button>');
 	});
@@ -194,8 +194,8 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('if (ready) {');
-		expect(code).toContain("return <div>{'Ready'}</div>;");
-		expect(code).toContain("return <div>{'Loading'}</div>;");
+		expect(code).toContain("App__static2 = <div>{'Ready'}</div>");
+		expect(code).toContain("App__static1 = <div>{'Loading'}</div>");
 	});
 
 	it('renders component-body for-of statements as React expressions', () => {
@@ -250,7 +250,7 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain('if (count > 2) {');
 		expect(code).toContain('return (() => {');
-		expect(code).toContain("return <div>{'Count is more than one'}</div>;");
+		expect(code).toContain("App__static1 = <div>{'Count is more than one'}</div>");
 		expect(code).toContain('return null;');
 		expect(code).toContain('<button>{count}</button>');
 	});
@@ -439,7 +439,7 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('function Child() {');
 		expect(code).toContain('const x = 1;');
 		expect(code).toContain('console.log(x);');
-		expect(code).toContain('return <div>{(() => {');
+		expect(code).toContain('Child__static1 = <div>{(() => {');
 		expect(code).toContain('return null;');
 	});
 
@@ -483,7 +483,7 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain('function StatementBodyHook1() {');
 		expect(code).toContain('const [x] = useState(1);');
-		expect(code).toContain('return <StatementBodyHook1 />;');
+		expect(code).toContain('<StatementBodyHook1 />');
 		expect(mappings.errors).toEqual([]);
 	});
 
@@ -958,6 +958,339 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain('function StatementBodyHook');
 		// Key should appear on both the inner element and wrapper component
-		expect(code).toContain('<StatementBodyHook1 key={item} />');
+		expect(code).toContain('<StatementBodyHook1 items={items} item={item} key={item} />');
+	});
+});
+
+describe('lazy destructuring', () => {
+	it('transforms lazy object destructuring in component params', () => {
+		const { code } = compile(
+			`export component App(&{name, age}: Props) {
+				<div>{name}{age}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// Param should be replaced with generated identifier
+		expect(code).toContain('function App(__lazy0: Props)');
+		// References should be member expressions
+		expect(code).toContain('__lazy0.name');
+		expect(code).toContain('__lazy0.age');
+	});
+
+	it('transforms lazy array destructuring in variable declarations', () => {
+		const { code } = compile(
+			`export component App() {
+				let &[count, setCount] = useState(0);
+				<div>{count}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// Declaration should use generated identifier
+		expect(code).toContain('let __lazy0 = useState(0)');
+		// Reference should be array index access
+		expect(code).toContain('__lazy0[0]');
+	});
+
+	it('transforms lazy object destructuring in variable declarations', () => {
+		const { code } = compile(
+			`export component App() {
+				const &{data, error} = useSWR("/api");
+				<div>{data}{error}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('const __lazy0 = useSWR("/api")');
+		expect(code).toContain('__lazy0.data');
+		expect(code).toContain('__lazy0.error');
+	});
+
+	it('handles assignment to lazy array bindings', () => {
+		const { code } = compile(
+			`export component App() {
+				let &[val] = getState();
+				val = 10;
+				val++;
+				++val;
+				<div>{val}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('__lazy0[0] = 10');
+		expect(code).toContain('__lazy0[0]++');
+		expect(code).toContain('++__lazy0[0]');
+	});
+
+	it('handles shorthand object properties with lazy bindings', () => {
+		const { code } = compile(
+			`export component App(&{name}: Props) {
+				const obj = {name};
+				<div>{obj}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// Shorthand {name} should expand to {name: __lazy0.name}
+		expect(code).toContain('name: __lazy0.name');
+	});
+
+	it('handles shadowing in inner functions', () => {
+		const { code } = compile(
+			`export component App(&{name}: Props) {
+				const fn = (name: string) => name.toUpperCase();
+				<div>{fn(name)}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// Inner param shadows lazy binding - should stay as `name`
+		expect(code).toContain('(name: string) => name.toUpperCase()');
+		// Outer reference should use lazy accessor
+		expect(code).toContain('fn(__lazy0.name)');
+	});
+
+	it('does not hoist static elements that reference lazy bindings', () => {
+		const { code } = compile(
+			`export component App() {
+				const &[count] = useState(0);
+				<div>{"static"}</div>
+				<div>{count}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// The truly static element should be hoisted
+		expect(code).toContain('App__static1');
+		expect(code).toContain('App__static1 = <div>{"static"}</div>');
+		// The element referencing count should NOT be hoisted
+		expect(code).toContain('__lazy0[0]');
+		expect(code).not.toContain('App__static2');
+	});
+
+	it('combines lazy params and lazy variables', () => {
+		const { code } = compile(
+			`export component App(&{name}: Props) {
+				const &[count, setCount] = useState(0);
+				<div>{name}{count}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// Param uses __lazy0, variable uses __lazy1
+		expect(code).toContain('function App(__lazy0: Props)');
+		expect(code).toContain('const __lazy1 = useState(0)');
+		expect(code).toContain('__lazy0.name');
+		expect(code).toContain('__lazy1[0]');
+	});
+
+	it('transforms lazy bindings inside callbacks', () => {
+		const { code } = compile(
+			`export component App() {
+				let &[count, setCount] = useState(0);
+				const handler = () => setCount(count + 1);
+				<div>{count}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('() => __lazy0[1](__lazy0[0] + 1)');
+	});
+
+	it('does not hoist elements using component-scope bindings as tag names', () => {
+		const { code } = compile(
+			`export component App({Widget}: {Widget: any}) {
+				<div>{"static"}</div>
+				<Widget />
+			}`,
+			'App.tsrx',
+		);
+
+		// Pure static element can still be hoisted
+		expect(code).toContain('App__static1');
+		// Element using a component-scope binding (prop) as tag name must NOT be hoisted
+		expect(code).not.toContain('App__static2');
+		expect(code).toContain('<Widget');
+	});
+
+	it('does not hoist elements using JSXMemberExpression with component-scope object', () => {
+		const { code } = compile(
+			`export component App({ui}: {ui: any}) {
+				<div>{"static"}</div>
+				<ui.Button />
+			}`,
+			'App.tsrx',
+		);
+
+		// Pure static element can still be hoisted
+		expect(code).toContain('App__static1');
+		// Element using a component-scope binding as JSXMemberExpression object must NOT be hoisted
+		expect(code).not.toContain('App__static2');
+		expect(code).toContain('<ui.Button');
+	});
+
+	it('does not rewrite locally shadowed names inside blocks', () => {
+		const { code } = compile(
+			`export component App(&{name}: Props) {
+				const handler = () => {
+					const name = 'local';
+					return name;
+				};
+				<div>{name}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// The prop reference should be rewritten
+		expect(code).toContain('__lazy0.name');
+		// The callback should use the local 'name', not the lazy accessor
+		expect(code).toContain("const name = 'local'");
+		expect(code).toContain('return name');
+		expect(code).not.toMatch(/return __lazy0\.name/);
+	});
+
+	it('does not rewrite loop variables that shadow lazy bindings', () => {
+		const { code } = compile(
+			`export component App(&{name}: Props) {
+				const items = ['a', 'b'];
+				for (const name of items) {
+					console.log(name);
+				}
+				<div>{name}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// The prop reference in JSX should be rewritten
+		expect(code).toContain('__lazy0.name');
+		// The for-of loop variable should NOT be rewritten
+		expect(code).toContain('console.log(name)');
+		expect(code).not.toMatch(/console\.log\(__lazy0\.name\)/);
+	});
+
+	it('transforms default parameter values referencing lazy bindings', () => {
+		const { code } = compile(
+			`export component App() {
+				const &[count] = useState(0);
+				const handler = (step = count) => step + 1;
+				<div>{count}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// The default value should be rewritten to the lazy accessor
+		expect(code).toContain('step = __lazy0[0]');
+		// The param name 'step' itself should NOT be rewritten
+		expect(code).toContain('step + 1');
+	});
+
+	it('hoists JSXMemberExpression elements when only the property matches a scope binding', () => {
+		const { code } = compile(
+			`import Icons from './Icons';
+			export component App({Button}: {Button: any}) {
+				<Icons.Button />
+			}`,
+			'App.tsrx',
+		);
+
+		// Icons.Button should be hoisted — Button is a property label, not a variable reference
+		// Only the object (Icons) matters, and it's a module-scope import
+		expect(code).toContain('App__static1');
+	});
+
+	it('does not leak inner-scope bindings into helper component props', () => {
+		const { code } = compile(
+			`import { useState } from 'react';
+
+			export component App() {
+				const show = true;
+				if (show) {
+					const localVar = 'hello';
+					<div>{localVar}</div>
+				}
+				if (show) {
+					const [val] = useState(0);
+					<span>{val}</span>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		// The hook-bearing branch gets a helper component
+		expect(code).toContain('function StatementBodyHook');
+
+		// The helper component should NOT receive 'localVar' as a prop —
+		// it was declared inside the first if block, not in the component scope
+		expect(code).not.toContain('localVar={localVar}');
+	});
+
+	it('does not pass post-split bindings as helper component props', () => {
+		const { code } = compile(
+			`import { useState, useEffect } from 'react';
+
+			export component App() {
+				const [count, setCount] = useState(0);
+
+				if (count > 2) {
+					return;
+				}
+
+				const laterVar = 'after split';
+
+				useEffect(() => {
+					console.log(laterVar);
+				}, [laterVar]);
+
+				<div>{laterVar}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// The continuation helper should receive count/setCount from before the split
+		expect(code).toContain('App__Continue');
+		expect(code).toContain('count={count}');
+
+		// laterVar is declared AFTER the split — it must NOT appear as a prop
+		// on the helper element at the call site (it's not in scope there)
+		expect(code).not.toContain('laterVar={laterVar}');
+	});
+
+	it('does not rewrite switch-case variables that shadow lazy bindings', () => {
+		const { code } = compile(
+			`export component App(&{ name }: { name: string }) {
+				switch (name) {
+					case 'test': {
+						const name = 'local';
+						console.log(name);
+						break;
+					}
+				}
+				<div>{name}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// The 'name' inside the switch case should NOT be rewritten to a lazy accessor
+		expect(code).toContain("const name = 'local'");
+		expect(code).toContain('console.log(name)');
+	});
+
+	it('does not rewrite body-level variables that shadow lazy bindings', () => {
+		const { code } = compile(
+			`export component App(&{ name }: { name: string }) {
+				const name = 'override';
+				<div>{name}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		// The body-level 'name' shadows the lazy binding — references should
+		// use the local variable, not the lazy accessor
+		expect(code).toContain("const name = 'override'");
+		// The div should use plain 'name', not __lazy0.name
+		expect(code).toContain('{name}');
+		expect(code).not.toContain('__lazy0.name');
 	});
 });

@@ -11,7 +11,14 @@ import { renderStylesheets, setLocation } from '@tsrx/core';
  *   local_statement_component_index: number,
  *   needs_error_boundary: boolean,
  *   needs_suspense: boolean,
+ *   helper_state: { base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] } | null,
+ *   available_bindings: Map<string, AST.Identifier>,
+ *   lazy_next_id: number,
  * }} TransformContext
+ */
+
+/**
+ * @typedef {{ source_name: string, read: () => any }} LazyBinding
  */
 
 /**
@@ -39,6 +46,9 @@ export function transform(ast, source, filename) {
 		local_statement_component_index: 0,
 		needs_error_boundary: false,
 		needs_suspense: false,
+		helper_state: null,
+		available_bindings: new Map(),
+		lazy_next_id: 0,
 	};
 
 	walk(/** @type {any} */ (ast), transform_context, {
@@ -56,8 +66,39 @@ export function transform(ast, source, filename) {
 
 	const transformed = walk(/** @type {any} */ (ast), transform_context, {
 		Component(node, { next, state }) {
+			const as_any = /** @type {any} */ (node);
+
+			// Set up helper_state and bindings BEFORE next() so that nested
+			// hook_safe_* calls (inside Element children) can register helpers
+			// and access available bindings during the bottom-up walk.
+			const helper_state = create_helper_state(as_any.id?.name || 'Component');
+			const saved_helper_state = state.helper_state;
+			const saved_bindings = state.available_bindings;
+			state.helper_state = helper_state;
+
+			// Pre-collect component body bindings (params + top-level statements)
+			// so that Element children processed during the bottom-up walk can see
+			// the full scope. Without this, hoisted helpers would miss body-level
+			// variables like `const [x] = useState(...)` and produce ReferenceErrors.
+			// Only collect up to the split point — bindings declared after a
+			// hook-safe split aren't in scope at the return statement and would
+			// cause ReferenceErrors if passed as helper props.
+			const body_bindings = collect_param_bindings(as_any.params || []);
+			const body = as_any.body || [];
+			const split_index = find_hook_safe_split_index(body);
+			const collect_end = split_index === -1 ? body.length : split_index;
+			for (let i = 0; i < collect_end; i += 1) {
+				collect_statement_bindings(body[i], body_bindings);
+			}
+			state.available_bindings = body_bindings;
+
 			const inner = /** @type {any} */ (next() ?? node);
-			return /** @type {any} */ (component_to_function_declaration(inner, state));
+
+			// Restore context
+			state.helper_state = saved_helper_state;
+			state.available_bindings = saved_bindings;
+
+			return /** @type {any} */ (component_to_function_declaration(inner, state, helper_state));
 		},
 
 		Tsx(node, { next }) {
@@ -109,27 +150,558 @@ export function transform(ast, source, filename) {
 	return { ast: expanded, code: result.code, map: result.map, css };
 }
 
+// --- Lazy destructuring support ---
+
+/**
+ * Generate a unique lazy identifier name for a lazy destructuring pattern.
+ * @param {TransformContext} transform_context
+ * @returns {string}
+ */
+function generate_lazy_id(transform_context) {
+	return `__lazy${transform_context.lazy_next_id++}`;
+}
+
+/**
+ * Collect lazy bindings from a destructuring pattern.
+ * For `&{name, age}`, maps `name` → `source.name`, `age` → `source.age`.
+ * For `&[a, b]`, maps `a` → `source[0]`, `b` → `source[1]`.
+ * Handles nested AssignmentPattern (default values) and RestElement.
+ *
+ * @param {any} pattern - The ObjectPattern or ArrayPattern with lazy: true
+ * @param {string} source_name - The generated identifier name for the source
+ * @param {Map<string, LazyBinding>} lazy_bindings - Map to populate
+ */
+function collect_lazy_bindings(pattern, source_name, lazy_bindings) {
+	if (pattern.type === 'ObjectPattern') {
+		for (const prop of pattern.properties || []) {
+			if (prop.type === 'RestElement') {
+				// Rest element in object pattern — skip for now (complex to transform)
+				continue;
+			}
+			const value = prop.value;
+			const actual = value.type === 'AssignmentPattern' ? value.left : value;
+			if (actual.type === 'Identifier') {
+				const key = prop.key;
+				const computed = prop.computed || key.type !== 'Identifier';
+				lazy_bindings.set(actual.name, {
+					source_name,
+					read: () => ({
+						type: 'MemberExpression',
+						object: create_generated_identifier(source_name),
+						property: computed
+							? { ...key }
+							: { type: 'Identifier', name: key.name, metadata: { path: [] } },
+						computed,
+						optional: false,
+						metadata: { path: [] },
+					}),
+				});
+			}
+		}
+	} else if (pattern.type === 'ArrayPattern') {
+		for (let i = 0; i < (pattern.elements || []).length; i++) {
+			const element = pattern.elements[i];
+			if (!element) continue;
+			if (element.type === 'RestElement') {
+				// Rest element in array pattern — skip for now
+				continue;
+			}
+			const actual = element.type === 'AssignmentPattern' ? element.left : element;
+			if (actual.type === 'Identifier') {
+				const index = i;
+				lazy_bindings.set(actual.name, {
+					source_name,
+					read: () => ({
+						type: 'MemberExpression',
+						object: create_generated_identifier(source_name),
+						property: { type: 'Literal', value: index, raw: String(index), metadata: { path: [] } },
+						computed: true,
+						optional: false,
+						metadata: { path: [] },
+					}),
+				});
+			}
+		}
+	}
+}
+
+/**
+ * Collect lazy bindings from component params and body variable declarations
+ * WITHOUT modifying any AST nodes. Returns a map of binding name → accessor info.
+ * Stores the generated identifier name on the pattern's metadata for later replacement.
+ *
+ * @param {any[]} params - Component params (metadata annotated, not structurally mutated)
+ * @param {any[]} body - Component body (metadata annotated, not structurally mutated)
+ * @param {TransformContext} transform_context
+ * @returns {Map<string, LazyBinding>}
+ */
+function collect_lazy_bindings_from_component(params, body, transform_context) {
+	/** @type {Map<string, LazyBinding>} */
+	const lazy_bindings = new Map();
+
+	// Collect from lazy params
+	for (const param of params) {
+		const pattern = param.type === 'AssignmentPattern' ? param.left : param;
+
+		if ((pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') && pattern.lazy) {
+			const lazy_name = generate_lazy_id(transform_context);
+			collect_lazy_bindings(pattern, lazy_name, lazy_bindings);
+			pattern.metadata = { ...pattern.metadata, lazy_id: lazy_name };
+		}
+	}
+
+	// Collect from lazy variable declarations in body
+	for (const statement of body) {
+		if (statement.type !== 'VariableDeclaration') continue;
+
+		for (const declarator of statement.declarations || []) {
+			const pattern = declarator.id;
+			if ((pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') && pattern.lazy) {
+				const lazy_name = generate_lazy_id(transform_context);
+				collect_lazy_bindings(pattern, lazy_name, lazy_bindings);
+				pattern.metadata = { ...pattern.metadata, lazy_id: lazy_name };
+			}
+		}
+	}
+
+	return lazy_bindings;
+}
+
+/**
+ * Walk an AST node tree and replace identifier references that match lazy bindings
+ * with their corresponding member expressions (e.g., `name` → `__lazy0.name`).
+ * Also handles AssignmentExpression and UpdateExpression targets.
+ *
+ * @param {any} node - The AST node to walk
+ * @param {Map<string, LazyBinding>} lazy_bindings - Map of lazy binding names
+ * @returns {any}
+ */
+function apply_lazy_transforms(node, lazy_bindings) {
+	if (!node || typeof node !== 'object') return node;
+	if (Array.isArray(node)) return node.map((child) => apply_lazy_transforms(child, lazy_bindings));
+
+	// Don't recurse into nested function declarations (helper components have their own scope)
+	if (
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression'
+	) {
+		// Transform default parameter values (e.g. (step = count) => ...) with the
+		// outer lazy_bindings, since defaults are evaluated in the outer scope.
+		let params_changed = false;
+		const new_params = (node.params || []).map((/** @type {any} */ param) => {
+			const transformed = transform_param_defaults(param, lazy_bindings);
+			if (transformed !== param) params_changed = true;
+			return transformed;
+		});
+
+		// Check if any params shadow a lazy binding — if so, exclude those names
+		/** @type {Set<string>} */
+		const shadowed = new Set();
+		for (const param of node.params || []) {
+			collect_shadowed_names(param, lazy_bindings, shadowed);
+		}
+
+		const inner_bindings =
+			shadowed.size > 0 ? remove_shadowed(lazy_bindings, shadowed) : lazy_bindings;
+		if (inner_bindings.size === 0 && !params_changed) return node;
+
+		const new_body =
+			inner_bindings.size > 0 ? apply_lazy_transforms(node.body, inner_bindings) : node.body;
+
+		if (new_body !== node.body || params_changed) {
+			return {
+				...node,
+				params: params_changed ? new_params : node.params,
+				body: new_body,
+			};
+		}
+		return node;
+	}
+
+	// Handle block-scoped variable shadowing (const/let/var that shadows a lazy name)
+	if (node.type === 'BlockStatement' || node.type === 'Program') {
+		const block_bindings = collect_block_shadowed_names(node.body, lazy_bindings);
+		const effective_bindings =
+			block_bindings.size > 0 ? remove_shadowed(lazy_bindings, block_bindings) : lazy_bindings;
+		if (effective_bindings.size === 0 && block_bindings.size > 0) return node;
+
+		let changed = false;
+		const new_body = node.body.map((/** @type {any} */ stmt) => {
+			const transformed = apply_lazy_transforms(stmt, effective_bindings);
+			if (transformed !== stmt) changed = true;
+			return transformed;
+		});
+		return changed ? { ...node, body: new_body } : node;
+	}
+
+	// Handle catch clause parameter shadowing
+	if (node.type === 'CatchClause') {
+		/** @type {Set<string>} */
+		const shadowed = new Set();
+		if (node.param) collect_shadowed_names(node.param, lazy_bindings, shadowed);
+		const effective_bindings =
+			shadowed.size > 0 ? remove_shadowed(lazy_bindings, shadowed) : lazy_bindings;
+		const new_body = apply_lazy_transforms(node.body, effective_bindings);
+		if (new_body !== node.body) return { ...node, body: new_body };
+		return node;
+	}
+
+	// Handle for-loop variable shadowing
+	if (node.type === 'ForStatement') {
+		/** @type {Set<string>} */
+		const shadowed = new Set();
+		if (node.init?.type === 'VariableDeclaration') {
+			for (const decl of node.init.declarations) {
+				if (decl.id) collect_shadowed_names(decl.id, lazy_bindings, shadowed);
+			}
+		}
+		const effective_bindings =
+			shadowed.size > 0 ? remove_shadowed(lazy_bindings, shadowed) : lazy_bindings;
+		let changed = false;
+		const new_init = apply_lazy_transforms(node.init, effective_bindings);
+		if (new_init !== node.init) changed = true;
+		const new_test = apply_lazy_transforms(node.test, effective_bindings);
+		if (new_test !== node.test) changed = true;
+		const new_update = apply_lazy_transforms(node.update, effective_bindings);
+		if (new_update !== node.update) changed = true;
+		const new_body = apply_lazy_transforms(node.body, effective_bindings);
+		if (new_body !== node.body) changed = true;
+		return changed
+			? { ...node, init: new_init, test: new_test, update: new_update, body: new_body }
+			: node;
+	}
+
+	if (node.type === 'ForOfStatement' || node.type === 'ForInStatement') {
+		/** @type {Set<string>} */
+		const shadowed = new Set();
+		if (node.left?.type === 'VariableDeclaration') {
+			for (const decl of node.left.declarations) {
+				if (decl.id) collect_shadowed_names(decl.id, lazy_bindings, shadowed);
+			}
+		}
+		const effective_bindings =
+			shadowed.size > 0 ? remove_shadowed(lazy_bindings, shadowed) : lazy_bindings;
+		let changed = false;
+		const new_right = apply_lazy_transforms(node.right, lazy_bindings);
+		if (new_right !== node.right) changed = true;
+		const new_body = apply_lazy_transforms(node.body, effective_bindings);
+		if (new_body !== node.body) changed = true;
+		return changed ? { ...node, right: new_right, body: new_body } : node;
+	}
+
+	// Handle switch-case variable shadowing (const/let inside case consequent arrays)
+	if (node.type === 'SwitchStatement') {
+		let changed = false;
+		const new_discriminant = apply_lazy_transforms(node.discriminant, lazy_bindings);
+		if (new_discriminant !== node.discriminant) changed = true;
+		const new_cases = node.cases.map((/** @type {any} */ switch_case) => {
+			const case_bindings = collect_block_shadowed_names(switch_case.consequent, lazy_bindings);
+			const effective_bindings =
+				case_bindings.size > 0 ? remove_shadowed(lazy_bindings, case_bindings) : lazy_bindings;
+			let case_changed = false;
+			const new_test = switch_case.test
+				? apply_lazy_transforms(switch_case.test, lazy_bindings)
+				: null;
+			if (new_test !== switch_case.test) case_changed = true;
+			const new_consequent = switch_case.consequent.map((/** @type {any} */ stmt) => {
+				const transformed = apply_lazy_transforms(stmt, effective_bindings);
+				if (transformed !== stmt) case_changed = true;
+				return transformed;
+			});
+			if (case_changed) {
+				changed = true;
+				return { ...switch_case, test: new_test, consequent: new_consequent };
+			}
+			return switch_case;
+		});
+		return changed ? { ...node, discriminant: new_discriminant, cases: new_cases } : node;
+	}
+
+	// Handle assignment: `name = value` → `__lazy0.name = value`
+	if (node.type === 'AssignmentExpression' && node.left.type === 'Identifier') {
+		const binding = lazy_bindings.get(node.left.name);
+		if (binding) {
+			return {
+				...node,
+				left: binding.read(),
+				right: apply_lazy_transforms(node.right, lazy_bindings),
+			};
+		}
+	}
+
+	// Handle update: `count++` → `__lazy0[0]++`
+	if (node.type === 'UpdateExpression' && node.argument.type === 'Identifier') {
+		const binding = lazy_bindings.get(node.argument.name);
+		if (binding) {
+			return { ...node, argument: binding.read() };
+		}
+	}
+
+	// Replace lazy variable declaration patterns with generated identifiers
+	if (node.type === 'VariableDeclarator' && node.id?.metadata?.lazy_id) {
+		const lazy_id = create_generated_identifier(node.id.metadata.lazy_id);
+		if (node.id.typeAnnotation) {
+			lazy_id.typeAnnotation = node.id.typeAnnotation;
+		}
+		return {
+			...node,
+			id: lazy_id,
+			init: apply_lazy_transforms(node.init, lazy_bindings),
+		};
+	}
+
+	// Handle identifier references in expression position
+	if (node.type === 'Identifier') {
+		const binding = lazy_bindings.get(node.name);
+		if (binding) {
+			return binding.read();
+		}
+		return node;
+	}
+
+	// Skip JSXIdentifier (component/element names)
+	if (node.type === 'JSXIdentifier') return node;
+
+	// Handle shorthand properties: `{ name }` → `{ name: __lazy0.name }`
+	if (node.type === 'Property' && node.shorthand && node.value?.type === 'Identifier') {
+		const binding = lazy_bindings.get(node.value.name);
+		if (binding) {
+			return {
+				...node,
+				shorthand: false,
+				value: binding.read(),
+			};
+		}
+	}
+
+	// Recurse into child nodes
+	let changed = false;
+	const result = /** @type {any} */ ({});
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end') {
+			result[key] = node[key];
+			continue;
+		}
+
+		// Skip non-computed property keys (they're labels, not references)
+		if (key === 'key' && node.type === 'Property' && !node.computed && !node.shorthand) {
+			result[key] = node[key];
+			continue;
+		}
+
+		// Skip non-computed member expression property names
+		if (key === 'property' && node.type === 'MemberExpression' && !node.computed) {
+			result[key] = node[key];
+			continue;
+		}
+
+		// Skip JSXAttribute name
+		if (key === 'name' && node.type === 'JSXAttribute') {
+			result[key] = node[key];
+			continue;
+		}
+
+		// Skip variable declaration id (the lazy declaration itself was already replaced)
+		if (key === 'id' && node.type === 'VariableDeclarator') {
+			result[key] = node[key];
+			continue;
+		}
+
+		const child = node[key];
+		const transformed = apply_lazy_transforms(child, lazy_bindings);
+		result[key] = transformed;
+		if (transformed !== child) changed = true;
+	}
+
+	return changed ? result : node;
+}
+
+/**
+ * Transform default values in function parameters without touching param names.
+ * E.g. `(step = count)` where `count` is a lazy binding → `(step = __lazy0[0])`.
+ *
+ * @param {any} param
+ * @param {Map<string, LazyBinding>} lazy_bindings
+ * @returns {any}
+ */
+function transform_param_defaults(param, lazy_bindings) {
+	if (param?.type === 'AssignmentPattern') {
+		const new_right = apply_lazy_transforms(param.right, lazy_bindings);
+		if (new_right !== param.right) {
+			return { ...param, right: new_right };
+		}
+	}
+	return param;
+}
+
+/**
+ * Collect names from a pattern that shadow lazy bindings.
+ * @param {any} pattern
+ * @param {Map<string, LazyBinding>} lazy_bindings
+ * @param {Set<string>} shadowed
+ */
+function collect_shadowed_names(pattern, lazy_bindings, shadowed) {
+	if (!pattern || typeof pattern !== 'object') return;
+
+	if (pattern.type === 'Identifier' && lazy_bindings.has(pattern.name)) {
+		shadowed.add(pattern.name);
+		return;
+	}
+
+	if (pattern.type === 'AssignmentPattern') {
+		collect_shadowed_names(pattern.left, lazy_bindings, shadowed);
+		return;
+	}
+
+	if (pattern.type === 'RestElement') {
+		collect_shadowed_names(pattern.argument, lazy_bindings, shadowed);
+		return;
+	}
+
+	if (pattern.type === 'ObjectPattern') {
+		for (const prop of pattern.properties || []) {
+			if (prop.type === 'RestElement') {
+				collect_shadowed_names(prop.argument, lazy_bindings, shadowed);
+			} else {
+				collect_shadowed_names(prop.value, lazy_bindings, shadowed);
+			}
+		}
+		return;
+	}
+
+	if (pattern.type === 'ArrayPattern') {
+		for (const element of pattern.elements || []) {
+			if (element) collect_shadowed_names(element, lazy_bindings, shadowed);
+		}
+	}
+}
+
+/**
+ * Collect variable names declared in block-level statements that shadow lazy bindings.
+ * Scans VariableDeclarations (const/let/var) and FunctionDeclarations at the top level of a block.
+ *
+ * @param {any[]} statements
+ * @param {Map<string, LazyBinding>} lazy_bindings
+ * @returns {Set<string>}
+ */
+function collect_block_shadowed_names(statements, lazy_bindings) {
+	/** @type {Set<string>} */
+	const shadowed = new Set();
+	for (const stmt of statements) {
+		if (stmt.type === 'VariableDeclaration') {
+			for (const decl of stmt.declarations) {
+				// Skip lazy destructuring patterns — they ARE the lazy bindings,
+				// not local declarations that shadow them.
+				if (decl.id?.metadata?.lazy_id) continue;
+				if (decl.id) collect_shadowed_names(decl.id, lazy_bindings, shadowed);
+			}
+		} else if (stmt.type === 'FunctionDeclaration' && stmt.id) {
+			if (lazy_bindings.has(stmt.id.name)) {
+				shadowed.add(stmt.id.name);
+			}
+		}
+	}
+	return shadowed;
+}
+
+/**
+ * Create a new lazy_bindings map with the shadowed names removed.
+ *
+ * @param {Map<string, LazyBinding>} lazy_bindings
+ * @param {Set<string>} shadowed
+ * @returns {Map<string, LazyBinding>}
+ */
+function remove_shadowed(lazy_bindings, shadowed) {
+	const result = new Map(lazy_bindings);
+	for (const name of shadowed) {
+		result.delete(name);
+	}
+	return result;
+}
+
+/**
+ * Replace lazy parameter patterns with their generated identifiers.
+ * A param `&{name, age}: Props` becomes `__lazy0: Props`.
+ *
+ * @param {any[]} params
+ * @returns {any[]}
+ */
+function replace_lazy_params(params) {
+	return params.map((param) => {
+		const pattern = param.type === 'AssignmentPattern' ? param.left : param;
+
+		if (
+			(pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') &&
+			pattern.lazy &&
+			pattern.metadata?.lazy_id
+		) {
+			const lazy_id = create_generated_identifier(pattern.metadata.lazy_id);
+			if (pattern.typeAnnotation) {
+				lazy_id.typeAnnotation = pattern.typeAnnotation;
+			}
+			if (param.type === 'AssignmentPattern') {
+				return { ...param, left: lazy_id };
+			}
+			return lazy_id;
+		}
+
+		return param;
+	});
+}
+
 /**
  * @param {any} component
  * @param {TransformContext} transform_context
+ * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] }} [walk_helper_state]
  * @returns {AST.FunctionDeclaration}
  */
-function component_to_function_declaration(component, transform_context) {
-	const helper_state = create_helper_state(component.id?.name || 'Component');
+function component_to_function_declaration(component, transform_context, walk_helper_state) {
+	const helper_state = walk_helper_state || create_helper_state(component.id?.name || 'Component');
+	const params = component.params || [];
+	const body = /** @type {any[]} */ (component.body || []);
+
+	// Collect param bindings from original patterns (lazy patterns still intact).
+	const param_bindings = collect_param_bindings(params);
+
+	// Collect lazy binding info WITHOUT mutating patterns. Stores lazy_id on metadata
+	// for later replacement. Body bindings (count, setCount, etc.) are still in the
+	// original patterns, so collect_statement_bindings during build will find them.
+	const lazy_bindings = collect_lazy_bindings_from_component(params, body, transform_context);
+
+	// Save and set context for this component scope
+	const saved_helper_state = transform_context.helper_state;
+	const saved_bindings = transform_context.available_bindings;
+	transform_context.helper_state = helper_state;
+	transform_context.available_bindings = new Map(param_bindings);
+
+	const body_statements = build_component_statements(
+		body,
+		helper_state,
+		param_bindings,
+		transform_context,
+	);
+
+	// Replace lazy param patterns with generated identifiers
+	const final_params = lazy_bindings.size > 0 ? replace_lazy_params(params) : params;
+
+	// Wrap body_statements in a BlockStatement so that apply_lazy_transforms
+	// runs collect_block_shadowed_names and detects body-level declarations
+	// (e.g. `const name = ...`) that shadow lazy binding names.
+	const body_block = /** @type {any} */ ({
+		type: 'BlockStatement',
+		body: body_statements,
+		metadata: { path: [] },
+	});
+	const final_body =
+		lazy_bindings.size > 0 ? apply_lazy_transforms(body_block, lazy_bindings) : body_block;
+
 	const fn = /** @type {any} */ ({
 		type: 'FunctionDeclaration',
 		id: component.id,
-		params: component.params || [],
-		body: {
-			type: 'BlockStatement',
-			body: build_component_statements(
-				/** @type {any[]} */ (component.body),
-				helper_state,
-				collect_param_bindings(component.params || []),
-				transform_context,
-			),
-			metadata: { path: [] },
-		},
+		params: final_params,
+		body: final_body,
 		async: false,
 		generator: false,
 		metadata: {
@@ -138,7 +710,12 @@ function component_to_function_declaration(component, transform_context) {
 		},
 	});
 
+	// Restore context
+	transform_context.helper_state = saved_helper_state;
+	transform_context.available_bindings = saved_bindings;
+
 	fn.metadata.generated_helpers = helper_state.helpers;
+	fn.metadata.generated_statics = helper_state.statics;
 
 	if (fn.id) {
 		fn.id.metadata = /** @type {AST.Identifier['metadata']} */ ({
@@ -153,7 +730,7 @@ function component_to_function_declaration(component, transform_context) {
 
 /**
  * @param {any[]} body_nodes
- * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] }} helper_state
+ * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] }} helper_state
  * @param {Map<string, AST.Identifier>} available_bindings
  * @param {TransformContext} transform_context
  * @returns {any[]}
@@ -191,8 +768,11 @@ function build_component_statements(
 		} else {
 			statements.push(child);
 			collect_statement_bindings(child, bindings);
+			transform_context.available_bindings = bindings;
 		}
 	}
+
+	hoist_static_render_nodes(render_nodes, transform_context);
 
 	const split_node = body_nodes[split_index];
 	const consequent_body =
@@ -250,9 +830,15 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 	const statements = [];
 	const render_nodes = [];
 
+	// Create a new bindings map so inner-scope bindings from
+	// collect_statement_bindings don't leak to the caller's scope.
+	const saved_bindings = transform_context.available_bindings;
+	transform_context.available_bindings = new Map(saved_bindings);
+
 	for (const child of body_nodes) {
 		if (is_bare_return_statement(child)) {
 			statements.push(create_component_return_statement(render_nodes, child));
+			transform_context.available_bindings = saved_bindings;
 			return statements;
 		}
 
@@ -265,8 +851,11 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 			render_nodes.push(to_jsx_child(child, transform_context));
 		} else {
 			statements.push(child);
+			collect_statement_bindings(child, transform_context.available_bindings);
 		}
 	}
+
+	hoist_static_render_nodes(render_nodes, transform_context);
 
 	const return_arg = build_return_expression(render_nodes);
 	if (return_arg || return_null_when_empty) {
@@ -276,6 +865,7 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 		});
 	}
 
+	transform_context.available_bindings = saved_bindings;
 	return statements;
 }
 
@@ -393,7 +983,7 @@ function is_hook_callee(callee) {
 
 /**
  * @param {any[]} body_nodes
- * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] }} helper_state
+ * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] }} helper_state
  * @param {Map<string, AST.Identifier>} available_bindings
  * @param {any} source_node
  * @param {string} suffix
@@ -433,7 +1023,7 @@ function create_helper_component_expression(
 /**
  * @param {AST.Identifier} helper_id
  * @param {any[]} body_nodes
- * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] }} helper_state
+ * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] }} helper_state
  * @param {Map<string, AST.Identifier>} available_bindings
  * @param {AST.Identifier[]} helper_bindings
  * @param {any} source_node
@@ -552,7 +1142,7 @@ function create_helper_component_element(helper_id, bindings, source_node) {
 }
 
 /**
- * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] }} helper_state
+ * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] }} helper_state
  * @param {string} suffix
  * @returns {string}
  */
@@ -563,13 +1153,14 @@ function create_helper_name(helper_state, suffix) {
 
 /**
  * @param {string} base_name
- * @returns {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[] }}
+ * @returns {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] }}
  */
 function create_helper_state(base_name) {
 	return {
 		base_name,
 		next_id: 0,
 		helpers: [],
+		statics: [],
 	};
 }
 
@@ -650,6 +1241,93 @@ function collect_pattern_bindings(pattern, bindings) {
 }
 
 /**
+ * Check if a node references any of the given scope bindings.
+ * Used to determine if a JSX element is static and can be hoisted to module level.
+ *
+ * @param {any} node
+ * @param {Map<string, AST.Identifier>} scope_bindings
+ * @returns {boolean}
+ */
+function references_scope_bindings(node, scope_bindings) {
+	if (!node || typeof node !== 'object') return false;
+	if (scope_bindings.size === 0) return false;
+
+	if (node.type === 'Identifier') {
+		return scope_bindings.has(node.name);
+	}
+
+	// JSXIdentifier is a variable reference when capitalized (tag name like <MyComponent />)
+	// or when it's the object of a JSXMemberExpression (e.g. ui in <ui.Button />)
+	if (node.type === 'JSXIdentifier') {
+		return scope_bindings.has(node.name);
+	}
+
+	if (Array.isArray(node)) {
+		return node.some((child) => references_scope_bindings(child, scope_bindings));
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
+
+		// Skip non-computed, non-shorthand property keys (they are labels, not references)
+		if (key === 'key' && node.type === 'Property' && !node.computed && !node.shorthand) continue;
+
+		// Skip non-computed member expression property access
+		if (key === 'property' && node.type === 'MemberExpression' && !node.computed) continue;
+
+		// Skip JSXMemberExpression property (e.g. Button in <Icons.Button /> is a label, not a reference)
+		if (key === 'property' && node.type === 'JSXMemberExpression') continue;
+
+		// Skip JSXAttribute names — they are attribute labels, not variable references
+		if (key === 'name' && node.type === 'JSXAttribute') continue;
+
+		if (references_scope_bindings(node[key], scope_bindings)) return true;
+	}
+
+	return false;
+}
+
+/**
+ * Hoist static JSX elements from render_nodes to module level.
+ * A JSX element is static if it doesn't reference any component-scope bindings.
+ * Hoisting prevents React from recreating the element on every render, allowing
+ * the reconciler to skip diffing when it sees the same element identity.
+ *
+ * @param {any[]} render_nodes
+ * @param {TransformContext} transform_context
+ */
+function hoist_static_render_nodes(render_nodes, transform_context) {
+	if (!transform_context.helper_state) return;
+
+	for (let i = 0; i < render_nodes.length; i++) {
+		const node = render_nodes[i];
+		if (node.type !== 'JSXElement') continue;
+		if (references_scope_bindings(node, transform_context.available_bindings)) continue;
+
+		const name = create_helper_name(transform_context.helper_state, 'static');
+		const id = create_generated_identifier(name);
+
+		transform_context.helper_state.statics.push(
+			/** @type {any} */ ({
+				type: 'VariableDeclaration',
+				kind: 'const',
+				declarations: [
+					{
+						type: 'VariableDeclarator',
+						id,
+						init: node,
+						metadata: { path: [] },
+					},
+				],
+				metadata: { path: [] },
+			}),
+		);
+
+		render_nodes[i] = to_jsx_expression_container(clone_identifier(id), node);
+	}
+}
+
+/**
  * @param {AST.Identifier} identifier
  * @returns {AST.Identifier}
  */
@@ -683,9 +1361,11 @@ function create_null_literal() {
 function expand_component_helpers(program) {
 	program.body = program.body.flatMap((statement) => {
 		if (statement.type === 'FunctionDeclaration') {
-			const helpers = /** @type {any} */ (statement.metadata)?.generated_helpers;
-			if (helpers?.length) {
-				return [...helpers, statement];
+			const meta = /** @type {any} */ (statement.metadata);
+			const statics = meta?.generated_statics || [];
+			const helpers = meta?.generated_helpers || [];
+			if (statics.length || helpers.length) {
+				return [...statics, ...helpers, statement];
 			}
 		}
 
@@ -694,9 +1374,11 @@ function expand_component_helpers(program) {
 				statement.type === 'ExportDefaultDeclaration') &&
 			statement.declaration?.type === 'FunctionDeclaration'
 		) {
-			const helpers = /** @type {any} */ (statement.declaration.metadata)?.generated_helpers;
-			if (helpers?.length) {
-				return [...helpers, statement];
+			const meta = /** @type {any} */ (statement.declaration.metadata);
+			const statics = meta?.generated_statics || [];
+			const helpers = meta?.generated_helpers || [];
+			if (statics.length || helpers.length) {
+				return [...statics, ...helpers, statement];
 			}
 		}
 
@@ -1144,11 +1826,17 @@ function hook_safe_statement_body_to_jsx_child(body_nodes, transform_context) {
 		create_generated_identifier(create_local_statement_component_name(transform_context)),
 		source_node,
 	);
+	const helper_bindings = Array.from(transform_context.available_bindings.values());
+
+	// Save and isolate bindings for the helper body
+	const saved_bindings = transform_context.available_bindings;
+	transform_context.available_bindings = new Map(saved_bindings);
+
 	const helper_fn = set_loc(
 		/** @type {any} */ ({
 			type: 'FunctionDeclaration',
 			id: helper_id,
-			params: [],
+			params: helper_bindings.length > 0 ? [create_helper_props_pattern(helper_bindings)] : [],
 			body: {
 				type: 'BlockStatement',
 				body: build_render_statements(body_nodes, true, transform_context),
@@ -1165,6 +1853,19 @@ function hook_safe_statement_body_to_jsx_child(body_nodes, transform_context) {
 		source_node,
 	);
 
+	// Restore bindings
+	transform_context.available_bindings = saved_bindings;
+
+	// Register helper for hoisting to module level
+	if (transform_context.helper_state) {
+		transform_context.helper_state.helpers.push(helper_fn);
+
+		return to_jsx_expression_container(
+			/** @type {any} */ (create_helper_component_element(helper_id, helper_bindings, source_node)),
+			source_node,
+		);
+	}
+
 	return to_jsx_expression_container(
 		/** @type {any} */ ({
 			type: 'CallExpression',
@@ -1177,7 +1878,7 @@ function hook_safe_statement_body_to_jsx_child(body_nodes, transform_context) {
 						helper_fn,
 						{
 							type: 'ReturnStatement',
-							argument: create_helper_component_element(helper_id, [], source_node),
+							argument: create_helper_component_element(helper_id, helper_bindings, source_node),
 							metadata: { path: [] },
 						},
 					],
@@ -1206,8 +1907,10 @@ function create_local_statement_component_name(transform_context) {
 }
 
 /**
- * Wraps a list of body nodes into a locally-declared component and returns
- * statements that declare the component then return `<ComponentName />`.
+ * Wraps a list of body nodes into a component and returns
+ * statements that return `<ComponentName prop1={prop1} ... />`.
+ * The component is hoisted to module level via helper_state to avoid
+ * recreating the component identity on every render.
  * Used when a control flow branch contains hook calls that must be moved
  * into their own component boundary to satisfy the Rules of Hooks.
  *
@@ -1222,12 +1925,17 @@ function hook_safe_render_statements(body_nodes, key_expression, transform_conte
 		create_generated_identifier(create_local_statement_component_name(transform_context)),
 		source_node,
 	);
+	const helper_bindings = Array.from(transform_context.available_bindings.values());
+
+	// Save and isolate bindings for the helper body
+	const saved_bindings = transform_context.available_bindings;
+	transform_context.available_bindings = new Map(saved_bindings);
 
 	const helper_fn = set_loc(
 		/** @type {any} */ ({
 			type: 'FunctionDeclaration',
 			id: helper_id,
-			params: [],
+			params: helper_bindings.length > 0 ? [create_helper_props_pattern(helper_bindings)] : [],
 			body: {
 				type: 'BlockStatement',
 				body: build_render_statements(body_nodes, true, transform_context),
@@ -1244,7 +1952,19 @@ function hook_safe_render_statements(body_nodes, key_expression, transform_conte
 		source_node,
 	);
 
-	const component_element = create_helper_component_element(helper_id, [], source_node);
+	// Restore bindings
+	transform_context.available_bindings = saved_bindings;
+
+	// Register helper for hoisting to module level
+	if (transform_context.helper_state) {
+		transform_context.helper_state.helpers.push(helper_fn);
+	}
+
+	const component_element = create_helper_component_element(
+		helper_id,
+		helper_bindings,
+		source_node,
+	);
 
 	if (key_expression) {
 		component_element.openingElement.attributes.push(
@@ -1257,8 +1977,20 @@ function hook_safe_render_statements(body_nodes, key_expression, transform_conte
 		);
 	}
 
+	// When helper_state is null (no enclosing component context), inline the
+	// helper via an IIFE so the function declaration isn't silently dropped.
+	if (!transform_context.helper_state) {
+		return [
+			helper_fn,
+			{
+				type: 'ReturnStatement',
+				argument: component_element,
+				metadata: { path: [] },
+			},
+		];
+	}
+
 	return [
-		helper_fn,
 		{
 			type: 'ReturnStatement',
 			argument: component_element,
@@ -1411,6 +2143,20 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	const has_hooks = body_contains_top_level_hook_call(loop_body);
 	const key_expression = has_hooks ? find_key_expression_in_body(loop_body) : undefined;
 
+	// Add loop params to available bindings so hoisted helpers receive them as props
+	const saved_bindings = transform_context.available_bindings;
+	transform_context.available_bindings = new Map(saved_bindings);
+	for (const param of loop_params) {
+		collect_pattern_bindings(param, transform_context.available_bindings);
+	}
+
+	const body_statements = has_hooks
+		? hook_safe_render_statements(loop_body, key_expression, transform_context)
+		: build_render_statements(loop_body, true, transform_context);
+
+	// Restore bindings
+	transform_context.available_bindings = saved_bindings;
+
 	return to_jsx_expression_container(
 		/** @type {any} */ ({
 			type: 'CallExpression',
@@ -1428,9 +2174,7 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 					params: loop_params,
 					body: /** @type {any} */ ({
 						type: 'BlockStatement',
-						body: has_hooks
-							? hook_safe_render_statements(loop_body, key_expression, transform_context)
-							: build_render_statements(loop_body, true, transform_context),
+						body: body_statements,
 						metadata: { path: [] },
 					}),
 					async: false,
@@ -1572,6 +2316,15 @@ function try_statement_to_jsx_child(node, transform_context) {
 		}
 
 		const catch_body_nodes = handler.body.body || [];
+
+		// Add catch params to available_bindings so static hoisting
+		// correctly identifies references to err/reset as non-static
+		const saved_catch_bindings = transform_context.available_bindings;
+		transform_context.available_bindings = new Map(saved_catch_bindings);
+		for (const param of catch_params) {
+			collect_pattern_bindings(param, transform_context.available_bindings);
+		}
+
 		const fallback_fn = {
 			type: 'ArrowFunctionExpression',
 			params: catch_params,
@@ -1585,6 +2338,8 @@ function try_statement_to_jsx_child(node, transform_context) {
 			expression: false,
 			metadata: { path: [] },
 		};
+
+		transform_context.available_bindings = saved_catch_bindings;
 
 		result = create_jsx_element(
 			'TsrxErrorBoundary',

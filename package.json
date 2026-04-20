@@ -7,7 +7,7 @@
   "license": "MIT",
   "packageManager": "pnpm@10.18.2",
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=22.0.0",
     "pnpm": ">=10.18.2",
     "npm": ">=11.6.2"
   },
