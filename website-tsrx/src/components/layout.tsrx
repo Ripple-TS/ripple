@@ -14,9 +14,11 @@ export component Layout({ children }: { children: any }) {
 		:global(body) {
 			margin: 0;
 			font-family:
-				'Space Grotesk',
+				system-ui,
 				-apple-system,
 				BlinkMacSystemFont,
+				'Segoe UI',
+				Roboto,
 				sans-serif;
 			color: #eef2ff;
 			background:

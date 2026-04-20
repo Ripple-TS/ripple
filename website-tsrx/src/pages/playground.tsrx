@@ -16,6 +16,13 @@ export component PlaygroundPage() {
 			</a>
 			<nav class="nav-links">
 				<a href="/">{'Home'}</a>
+				<a
+					href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					{'GitHub'}
+				</a>
 			</nav>
 		</header>
 
@@ -37,9 +44,11 @@ export component PlaygroundPage() {
 		:global(body) {
 			margin: 0;
 			font-family:
-				'Space Grotesk',
+				system-ui,
 				-apple-system,
 				BlinkMacSystemFont,
+				'Segoe UI',
+				Roboto,
 				sans-serif;
 			color: #1a1640;
 			background: #f4f2fb;

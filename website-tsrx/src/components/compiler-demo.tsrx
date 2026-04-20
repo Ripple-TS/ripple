@@ -30,6 +30,7 @@ export component CompilerDemo() {
 	let &[status] = track('Hydrating compiler...');
 	let &[error_message] = track('');
 	let &[last_updated] = track('');
+	let &[editors_ready] = track(false);
 	let latest_source = DEFAULT_DEMO_SOURCE;
 	let request_compile = () => {};
 
@@ -228,6 +229,7 @@ export component CompilerDemo() {
 			});
 
 			await compile_source(DEFAULT_DEMO_SOURCE);
+			editors_ready = true;
 		})();
 
 		return () => {
@@ -265,24 +267,20 @@ export component CompilerDemo() {
 			<div class="demo-error" role="alert">{error_message}</div>
 		}
 
-		<div class="demo-grid">
+		<div class={`demo-grid${editors_ready ? ' ready' : ''}`}>
 			<div class="panel panel-source">
 				<div class="panel-topline">
 					<span>{'TSRX input'}</span>
 					<span>{'.tsrx'}</span>
 				</div>
-				<div class="panel-body editor-host" {ref bindNode(source_ref)}>
-					<pre class="static-preview">{DEFAULT_DEMO_SOURCE}</pre>
-				</div>
+				<div class="panel-body editor-host" {ref bindNode(source_ref)} />
 			</div>
 
 			<div class="panel">
 				<div class="panel-topline">
 					<span>{TARGET_LABELS[selected_target.value]}</span>
 				</div>
-				<div class="panel-body editor-host" {ref bindNode(output_ref)}>
-					<pre class="static-preview">{'// Hydrating compiled output...'}</pre>
-				</div>
+				<div class="panel-body editor-host" {ref bindNode(output_ref)} />
 			</div>
 		</div>
 	</section>
@@ -431,12 +429,8 @@ export component CompilerDemo() {
 			background: transparent;
 		}
 
-		.static-preview {
-			margin: 0;
-			padding: 1rem;
-			white-space: pre-wrap;
-			color: #d9e2ff;
-			font-size: 0.9rem;
+		.demo-grid:not(.ready) :global(.cm-editor) {
+			opacity: 0;
 		}
 
 		@media (max-width: 980px) {

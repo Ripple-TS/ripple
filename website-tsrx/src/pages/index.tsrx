@@ -56,6 +56,13 @@ export component IndexPage() {
 				</a>
 				<nav class="masthead-nav">
 					<a href="/playground">{'Playground'}</a>
+					<a
+						href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						{'GitHub'}
+					</a>
 				</nav>
 			</header>
 
@@ -68,7 +75,6 @@ export component IndexPage() {
 			</section>
 
 			<section class="readable-section section-shell what-is-section" aria-label="What is TSRX">
-				<p class="eyebrow">{'What is TSRX'}</p>
 				<p class="section-body what-is-copy">
 					{'TSRX (TypeScript Ripple Extensions) provides a new approach to writing UI component code — resulting in code that is easier to read, easier to co-locate, and easier for LLMs to reason with. TSRX is fully backwards compatible with TypeScript.'}
 				</p>
@@ -141,9 +147,11 @@ export component IndexPage() {
 		:global(body) {
 			margin: 0;
 			font-family:
-				'Space Grotesk',
+				system-ui,
 				-apple-system,
 				BlinkMacSystemFont,
+				'Segoe UI',
+				Roboto,
 				sans-serif;
 			color: #1a1640;
 			background:
