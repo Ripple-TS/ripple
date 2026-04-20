@@ -507,7 +507,60 @@ export component IndexPage() {
 
 		@media (max-width: 720px) {
 			.page-shell {
-				width: min(1180px, calc(100vw - 1.2rem));
+				width: calc(100vw - 1.5rem);
+				padding: 0.5rem 0 2rem;
+			}
+
+			.masthead {
+				padding: 0.75rem 0 1rem;
+			}
+
+			.masthead-nav {
+				gap: 0.75rem;
+				font-size: 0.88rem;
+			}
+
+			.header-logo {
+				width: 2.4rem;
+				height: 2.4rem;
+			}
+
+			.hero {
+				padding: 1.5rem 0 1.5rem;
+			}
+
+			.hero h1 {
+				font-size: clamp(1.75rem, 8vw, 2.5rem);
+				line-height: 1.04;
+			}
+
+			.section-shell {
+				margin-top: 2rem;
+			}
+
+			.section-heading {
+				font-size: clamp(1.5rem, 6vw, 2rem);
+			}
+
+			.section-body,
+			.lede {
+				font-size: 0.95rem;
+			}
+
+			.code-block {
+				padding: 1rem 0.75rem;
+				font-size: 0.75rem;
+				line-height: 1.55;
+			}
+
+			.cta-link {
+				padding: 0.65rem 1.25rem;
+				font-size: 0.92rem;
+			}
+
+			.site-footer {
+				margin-top: 2rem;
+				padding: 1.5rem 0;
 			}
 
 			.hero h1,
