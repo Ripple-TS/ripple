@@ -1198,6 +1198,11 @@ function is_jsx_child(node) {
  */
 function to_jsx_element(node, transform_context) {
 	if (node.type === 'JSXElement') return node;
+	if ((node.children || []).some((/** @type {any} */ c) => c && c.type === 'Html')) {
+		throw new Error(
+			'`{html ...}` is not supported on the React target. Use `dangerouslySetInnerHTML={{ __html: ... }}` as an element attribute instead.',
+		);
+	}
 	if (is_dynamic_element_id(node.id)) {
 		return dynamic_element_to_jsx_child(node, transform_context);
 	}
@@ -1582,6 +1587,10 @@ function to_jsx_child(node, transform_context) {
 			return to_jsx_expression_container(to_text_expression(node.expression, node), node);
 		case 'TSRXExpression':
 			return to_jsx_expression_container(node.expression, node);
+		case 'Html':
+			throw new Error(
+				'`{html ...}` is not supported on the React target. Use `dangerouslySetInnerHTML={{ __html: ... }}` as an element attribute instead.',
+			);
 		case 'IfStatement':
 			return if_statement_to_jsx_child(node, transform_context);
 		case 'ForOfStatement':

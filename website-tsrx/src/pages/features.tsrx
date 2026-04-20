@@ -18,6 +18,26 @@ const COMPONENT_HTML = [
 	'<span class="ln">15</span> <span class="br">}</span>',
 ].join('\n');
 
+const BAILOUT_HTML = [
+	'<span class="ln"> 1</span> <span class="kw-export">export</span> <span class="kw">component</span> <span class="fn">Counter</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 2</span>   <span class="kw">let</span> <span class="prop">count</span> = <span class="val">0</span>;',
+	'<span class="ln"> 3</span>',
+	'<span class="ln"> 4</span>   <span class="cmt">// Bail out of template rules with an inline function —</span>',
+	'<span class="ln"> 5</span>   <span class="cmt">// plain JS/TS control flow, no JSX-statement restrictions.</span>',
+	'<span class="ln"> 6</span>   <span class="kw">const</span> <span class="prop">increment</span> = <span class="br">(</span><span class="br">)</span> =&gt; <span class="br">{</span>',
+	'<span class="ln"> 7</span>     <span class="kw">if</span> <span class="br">(</span><span class="prop">count</span> &gt;= <span class="val">10</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 8</span>       <span class="prop">count</span> = <span class="val">0</span>;',
+	'<span class="ln"> 9</span>     <span class="br">}</span> <span class="kw">else</span> <span class="br">{</span>',
+	'<span class="ln">10</span>       <span class="prop">count</span> += <span class="val">1</span>;',
+	'<span class="ln">11</span>     <span class="br">}</span>',
+	'<span class="ln">12</span>   <span class="br">}</span>;',
+	'<span class="ln">13</span>',
+	'<span class="ln">14</span>   <span class="tag">&lt;</span><span class="el">button</span> <span class="attr">onClick</span>=<span class="tbr">{</span><span class="prop">increment</span><span class="tbr">}</span><span class="tag">&gt;</span>',
+	'<span class="ln">15</span>     <span class="tbr">{</span><span class="str">`Count: ${</span><span class="prop">count</span><span class="str">}`</span><span class="tbr">}</span>',
+	'<span class="ln">16</span>   <span class="tag">&lt;/</span><span class="el">button</span><span class="tag">&gt;</span>',
+	'<span class="ln">17</span> <span class="br">}</span>',
+].join('\n');
+
 const STATEMENT_HTML = [
 	'<span class="ln">1</span> <span class="kw">component</span> <span class="fn">Greeting</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln">2</span>   <span class="tag">&lt;</span><span class="el">h1</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Hello World\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h1</span><span class="tag">&gt;</span>',
@@ -30,6 +50,30 @@ const TSX_EXPR_HTML = [
 	'<span class="ln">2</span>   <span class="kw">const</span> <span class="prop">title</span> = <span class="tag">&lt;</span><span class="el">tsx</span><span class="tag">&gt;</span><span class="tag">&lt;</span><span class="el">span</span> <span class="attr">class</span>=<span class="str">"title"</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Settings\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">span</span><span class="tag">&gt;</span><span class="tag">&lt;/</span><span class="el">tsx</span><span class="tag">&gt;</span>;',
 	'<span class="ln">3</span>   <span class="tag">&lt;</span><span class="el">Card</span> <span class="tbr">{</span><span class="prop">title</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
 	'<span class="ln">4</span> <span class="br">}</span>',
+].join('\n');
+
+const TEXT_EXPR_HTML = [
+	'<span class="ln">1</span> <span class="kw">component</span> <span class="fn">Inbox</span><span class="br">(</span><span class="br">{</span> <span class="prop">name</span>, <span class="prop">count</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">name</span>: <span class="type">string</span>; <span class="prop">count</span>: <span class="type">number</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln">2</span>   <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Hello, \'</span><span class="tbr">}</span><span class="tbr">{</span><span class="prop">name</span><span class="tbr">}</span><span class="tbr">{</span><span class="str">\'!\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln">3</span>   <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">`You have ${</span><span class="prop">count</span><span class="str">} unread messages`</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln">4</span>   <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">count</span> &gt; <span class="val">0</span> ? <span class="str">\'Check your inbox.\'</span> : <span class="str">\'All caught up.\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln">5</span> <span class="br">}</span>',
+].join('\n');
+
+const TEXT_KW_HTML = [
+	'<span class="ln">1</span> <span class="kw">component</span> <span class="fn">Price</span><span class="br">(</span><span class="br">{</span> <span class="prop">amount</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">amount</span>: <span class="type">number</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln">2</span>   <span class="cmt">// {text ...} forces text-node rendering — the value is stringified</span>',
+	'<span class="ln">3</span>   <span class="cmt">// and escaped, even if it happens to contain &lt; or &amp; characters.</span>',
+	'<span class="ln">4</span>   <span class="tag">&lt;</span><span class="el">span</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="kw">text</span> <span class="prop">amount</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">span</span><span class="tag">&gt;</span>',
+	'<span class="ln">5</span> <span class="br">}</span>',
+].join('\n');
+
+const HTML_KW_HTML = [
+	'<span class="ln">1</span> <span class="kw">component</span> <span class="fn">Article</span><span class="br">(</span><span class="br">{</span> <span class="prop">markup</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">markup</span>: <span class="type">string</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln">2</span>   <span class="cmt">// {html ...} inserts the value as raw HTML — no escaping.</span>',
+	'<span class="ln">3</span>   <span class="cmt">// Only use on trusted input; this is equivalent to innerHTML.</span>',
+	'<span class="ln">4</span>   <span class="tag">&lt;</span><span class="el">article</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="kw">html</span> <span class="prop">markup</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">article</span><span class="tag">&gt;</span>',
+	'<span class="ln">5</span> <span class="br">}</span>',
 ].join('\n');
 
 const IF_HTML = [
@@ -223,6 +267,9 @@ const LAZY_PROPS_HTML = [
 const NAV_ITEMS = [
 	{ id: 'components', label: 'Components' },
 	{ id: 'jsx', label: 'Statement-based JSX' },
+	{ id: 'text-expressions', label: 'Text expressions' },
+	{ id: 'raw-html', label: 'Raw HTML' },
+	{ id: 'lazy-destructuring', label: 'Lazy destructuring' },
 	{ id: 'prop-shorthands', label: 'Prop shorthands' },
 	{ id: 'scoping', label: 'Lexical scoping' },
 	{ id: 'children', label: 'Children' },
@@ -234,7 +281,6 @@ const NAV_ITEMS = [
 	{ id: 'scoped-styles', label: 'Scoped styles' },
 	{ id: 'style-composition', label: 'Style composition' },
 	{ id: 'early-return', label: 'Early returns' },
-	{ id: 'lazy-destructuring', label: 'Lazy destructuring' },
 	{ id: 'react-hooks', label: 'React Hooks' },
 ];
 
@@ -297,6 +343,16 @@ export component FeaturesPage() {
 							<code class="inline-code">{'export component'}</code>
 							{' the same way you\'d export a function. The compiler transforms them into standard framework components for whichever target you\'re using.'}
 						</p>
+						<p class="section-body">
+							{'Since JSX in TSRX is statement-based (see '}
+							<a href="#jsx">{'Statement-based JSX'}</a>
+							{'), anything that needs richer control flow or imperative logic can simply live in a plain inline function. Declare a '}
+							<code class="inline-code">{'const fn = () => { ... }'}</code>
+							{' next to your template, write whatever JS/TS you like inside it, and call it from an event handler or expression — it stays ordinary JavaScript, unaffected by the component body\'s template rules.'}
+						</p>
+						<pre class="code-block">
+							<code>{html BAILOUT_HTML}</code>
+						</pre>
 					</section>
 
 					<section class="doc-section" id="jsx">
@@ -317,6 +373,123 @@ export component FeaturesPage() {
 						<pre class="code-block">
 							<code>{html TSX_EXPR_HTML}</code>
 						</pre>
+					</section>
+
+					<section class="doc-section" id="text-expressions">
+						<h2 class="section-heading">{'Text expressions'}</h2>
+						<p class="section-body">
+							{'Because JSX is statement-based, bare text can\'t sit directly inside an element the way it does in React. Every piece of text content — even literal strings — lives inside an expression container '}
+							<code class="inline-code">{'{ ... }'}</code>
+							{'. Each container holds a single JS/TS expression: a string literal, a template literal, a variable, a function call, a ternary, anything that evaluates to a value.'}
+						</p>
+						<pre class="code-block">
+							<code>{html TEXT_EXPR_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'Adjacent '}
+							<code class="inline-code">{'{ ... }'}</code>
+							{' containers concatenate when rendered, so you can mix static strings with dynamic values without extra wrapping elements. Expressions are re-evaluated whenever their dependencies change, so dynamic text updates automatically on reactive targets like Ripple and Solid.'}
+						</p>
+						<p class="section-body">
+							{'A bare '}
+							<code class="inline-code">{'{ expr }'}</code>
+							{' is polymorphic — the compiler picks the right output based on where it sits and what the expression evaluates to. For the rare case where you need to force text handling, TSRX reserves a '}
+							<code class="inline-code">{'text'}</code>
+							{' keyword that can appear as the first token inside a container:'}
+						</p>
+						<p class="section-body">
+							<strong>{'{text expr}'}</strong>
+							{' — forces the value to render as an escaped text node. The expression is coerced to a string and any HTML-special characters ('}
+							<code class="inline-code">{'<'}</code>
+							{', '}
+							<code class="inline-code">{'>'}</code>
+							{', '}
+							<code class="inline-code">{'&'}</code>
+							{') are escaped. Use this when the surrounding context could otherwise be ambiguous — for example when the expression might resolve to a JSX fragment, or when you want to guarantee text handling for untrusted input.'}
+						</p>
+						<pre class="code-block">
+							<code>{html TEXT_KW_HTML}</code>
+						</pre>
+						<p class="section-body muted">
+							{'Omitting '}
+							<code class="inline-code">{'text'}</code>
+							{' is almost always what you want; reach for it only when you specifically need the escaping guarantee.'}
+						</p>
+					</section>
+
+					<section class="doc-section" id="raw-html">
+						<h2 class="section-heading">{'Raw HTML'}</h2>
+						<p class="section-body">
+							{'The '}
+							<code class="inline-code">{'{html expr}'}</code>
+							{' container is an escape hatch for inserting pre-rendered markup directly into the DOM — the equivalent of React\'s '}
+							<code class="inline-code">{'dangerouslySetInnerHTML'}</code>
+							{' or Svelte\'s '}
+							<code class="inline-code">{'{@html ...}'}</code>
+							{'. The expression must evaluate to a string, and it replaces the surrounding element\'s contents as parsed HTML rather than escaped text.'}
+						</p>
+						<pre class="code-block">
+							<code>{html HTML_KW_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'Only one '}
+							<code class="inline-code">{'{html ...}'}</code>
+							{' may sit inside an element, and it can\'t share the element with sibling children. Like '}
+							<code class="inline-code">{'text'}</code>
+							{', the '}
+							<code class="inline-code">{'html'}</code>
+							{' keyword is compile-time only and disappears after the transform — it lowers to the target runtime\'s raw-HTML primitive (in Solid, the parent element\'s '}
+							<code class="inline-code">{'innerHTML'}</code>
+							{' prop; in Ripple, an internal '}
+							<code class="inline-code">{'_$_.html'}</code>
+							{' binding).'}
+						</p>
+						<p class="section-body">
+							<strong>{'Not supported on the React target. '}</strong>
+							{'React\'s JSX rejects sibling children alongside '}
+							<code class="inline-code">{'dangerouslySetInnerHTML'}</code>
+							{' and the semantics don\'t map cleanly onto '}
+							<code class="inline-code">{'{html ...}'}</code>
+							{' as a child container, so compiling a '}
+							<code class="inline-code">{'{html ...}'}</code>
+							{' expression with '}
+							<code class="inline-code">{'@tsrx/react'}</code>
+							{' is a compile-time error. If you need raw HTML in a React target, use '}
+							<code class="inline-code">{'dangerouslySetInnerHTML'}</code>
+							{' directly as an element attribute.'}
+						</p>
+						<p class="section-body muted">
+							<strong>{'Security: '}</strong>
+							{'only use '}
+							<code class="inline-code">{'{html ...}'}</code>
+							{' with content you trust. Any string that originated from user input must be sanitised first — otherwise you\'re opening an XSS vector. If in doubt, stick with the default '}
+							<code class="inline-code">{'{ ... }'}</code>
+							{' container or '}
+							<code class="inline-code">{'{text ...}'}</code>
+							{'.'}
+						</p>
+					</section>
+
+					<section class="doc-section" id="lazy-destructuring">
+						<h2 class="section-heading">{'Lazy destructuring'}</h2>
+						<p class="section-body">
+							{'TSRX adds two sigils — '}
+							<code class="inline-code">{'&{ ... }'}</code>
+							{' for objects and '}
+							<code class="inline-code">{'&[ ... ]'}</code>
+							{' for arrays — that look like destructuring but defer the actual property access until each binding is read. Every reference to a lazy binding is compiled back to a property lookup on the source object, so downstream readers pick up the latest value without a manual getter.'}
+						</p>
+						<p class="section-body">
+							{'The most common use is in component parameters. Regular object destructuring would snapshot each prop at call time and break any target runtime that relies on per-access reactivity (Ripple, Solid). '}
+							<code class="inline-code">{'&{ ... }'}</code>
+							{' preserves that reactivity while keeping the ergonomic destructuring syntax:'}
+						</p>
+						<pre class="code-block">
+							<code>{html LAZY_PROPS_HTML}</code>
+						</pre>
+						<p class="section-body muted">
+							{'Lazy destructuring is supported across every target. In React it compiles to direct property access on the source object, in Ripple and Solid it preserves tracked/signal reactivity without needing a wrapper call.'}
+						</p>
 					</section>
 
 					<section class="doc-section" id="prop-shorthands">
@@ -516,27 +689,6 @@ export component FeaturesPage() {
 							{' are not valid in component bodies.'}
 						</p>
 					</section>
-					<section class="doc-section" id="lazy-destructuring">
-						<h2 class="section-heading">{'Lazy destructuring'}</h2>
-						<p class="section-body">
-							{'TSRX adds two sigils — '}
-							<code class="inline-code">{'&{ ... }'}</code>
-							{' for objects and '}
-							<code class="inline-code">{'&[ ... ]'}</code>
-							{' for arrays — that look like destructuring but defer the actual property access until each binding is read. Every reference to a lazy binding is compiled back to a property lookup on the source object, so downstream readers pick up the latest value without a manual getter.'}
-						</p>
-						<p class="section-body">
-							{'The most common use is in component parameters. Regular object destructuring would snapshot each prop at call time and break any target runtime that relies on per-access reactivity (Ripple, Solid). '}
-							<code class="inline-code">{'&{ ... }'}</code>
-							{' preserves that reactivity while keeping the ergonomic destructuring syntax:'}
-						</p>
-						<pre class="code-block">
-							<code>{html LAZY_PROPS_HTML}</code>
-						</pre>
-						<p class="section-body muted">
-							{'Lazy destructuring is supported across every target. In React it compiles to direct property access on the source object, in Ripple and Solid it preserves tracked/signal reactivity without needing a wrapper call.'}
-						</p>
-					</section>
 					<section class="doc-section" id="react-hooks">
 						<h2 class="section-heading">{'React Hooks'}</h2>
 						<p class="section-body">
@@ -565,7 +717,7 @@ export component FeaturesPage() {
 
 		:global(html) {
 			scroll-behavior: smooth;
-			overflow-x: hidden;
+			overflow-x: clip;
 		}
 
 		:global(body) {
@@ -583,7 +735,7 @@ export component FeaturesPage() {
 				radial-gradient(circle at 80% 10%, rgba(111, 0, 255, 0.1), transparent 15%),
 				linear-gradient(180deg, #ffffff 0%, #f6f3ff 46%, #f2f4fb 100%);
 			min-height: 100vh;
-			overflow-x: hidden;
+			overflow-x: clip;
 		}
 
 		:global(a) {
@@ -830,10 +982,27 @@ export component FeaturesPage() {
 			}
 
 			.side-nav {
-				position: static;
-				padding: 0 0 1.5rem;
+				position: sticky;
+				top: 0;
+				z-index: 5;
+				padding: 0.6rem 0;
 				border-bottom: 1px solid rgba(26, 22, 64, 0.1);
 				margin-bottom: 1rem;
+				background: rgba(247, 246, 255, 0.92);
+				backdrop-filter: blur(8px);
+				-webkit-backdrop-filter: blur(8px);
+			}
+
+			.side-nav nav {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.15rem 0.3rem;
+				overflow-x: auto;
+			}
+
+			.side-nav-heading {
+				width: 100%;
+				margin: 0 0 0.4rem;
 			}
 
 			.side-nav-link {

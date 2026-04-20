@@ -136,6 +136,17 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain("missing == null ? '' : missing + ''");
 	});
 
+	it('rejects `{html expr}` on the React target', () => {
+		expect(() =>
+			compile(
+				`export component App({ markup }: { markup: string }) {
+					<article>{html markup}</article>
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(/not supported on the React target/);
+	});
+
 	it('applies scoped css hashes to elements inside control flow', () => {
 		const { code, css } = compile(
 			`export component App() {

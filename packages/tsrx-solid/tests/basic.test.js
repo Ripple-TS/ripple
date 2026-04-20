@@ -75,6 +75,39 @@ describe('@tsrx/solid basic', () => {
 			);
 			expect(code).toContain("name == null ? '' : name + ''");
 		});
+
+		it('{html expr} compiles to innerHTML attribute', () => {
+			const { code } = compile(
+				`component App({ markup }: { markup: string }) {
+					<article>{html markup}</article>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toMatch(/<article\s+innerHTML=\{markup\}\s*\/>/);
+			expect(code).not.toContain('</article>');
+		});
+
+		it('{html expr} rejects sibling children', () => {
+			expect(() =>
+				compile(
+					`component App({ markup }: { markup: string }) {
+						<article>{html markup}{'oops'}</article>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/only child/);
+		});
+
+		it('{html expr} rejects multiple html children', () => {
+			expect(() =>
+				compile(
+					`component App({ a, b }: { a: string; b: string }) {
+						<article>{html a}{html b}</article>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/Only one/);
+		});
 	});
 
 	describe('control flow', () => {

@@ -289,6 +289,7 @@ function is_jsx_child(node) {
 		t === 'Element' ||
 		t === 'Text' ||
 		t === 'TSRXExpression' ||
+		t === 'Html' ||
 		t === 'IfStatement' ||
 		t === 'ForOfStatement' ||
 		t === 'SwitchStatement' ||
@@ -314,6 +315,10 @@ function to_jsx_child(node, transform_context) {
 			return to_jsx_expression_container(to_text_expression(node.expression, node), node);
 		case 'TSRXExpression':
 			return to_jsx_expression_container(node.expression, node);
+		case 'Html':
+			throw new Error(
+				'`{html ...}` must appear as the only child of a host element; it lowers to Solid `innerHTML`.',
+			);
 		case 'IfStatement':
 			return if_statement_to_jsx_child(node, transform_context);
 		case 'ForOfStatement':
@@ -953,8 +958,50 @@ function to_jsx_element(node, transform_context) {
 
 	const name = identifier_to_jsx_name(node.id);
 	const attributes = (node.attributes || []).map(to_jsx_attribute);
-	const selfClosing = !!node.selfClosing;
-	const children = create_element_children(node.children || [], transform_context);
+
+	// `{html expr}` children become a Solid `innerHTML={expr}` attribute on
+	// the parent element. Only one `{html ...}` may appear per element, and
+	// it can't share the element with sibling children (innerHTML replaces
+	// everything else).
+	const raw_children = node.children || [];
+	const html_children = raw_children.filter(
+		(/** @type {any} */ child) => child && child.type === 'Html',
+	);
+	let children;
+	let selfClosing = !!node.selfClosing;
+	if (html_children.length > 0) {
+		if (html_children.length > 1) {
+			throw new Error('Only one `{html ...}` expression is allowed inside an element.');
+		}
+		const other_children = raw_children.filter(
+			(/** @type {any} */ child) => !child || child.type !== 'Html',
+		);
+		if (other_children.length > 0) {
+			throw new Error(
+				'`{html ...}` must be the only child of its element; it replaces all other content.',
+			);
+		}
+		attributes.push(
+			set_loc(
+				/** @type {any} */ ({
+					type: 'JSXAttribute',
+					name: {
+						type: 'JSXIdentifier',
+						name: 'innerHTML',
+						metadata: { path: [] },
+					},
+					value: to_jsx_expression_container(html_children[0].expression, html_children[0]),
+					shorthand: false,
+					metadata: { path: [] },
+				}),
+				html_children[0],
+			),
+		);
+		children = [];
+		selfClosing = true;
+	} else {
+		children = create_element_children(raw_children, transform_context);
+	}
 
 	const openingElement = set_loc(
 		/** @type {any} */ ({
