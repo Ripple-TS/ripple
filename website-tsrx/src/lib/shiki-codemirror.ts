@@ -92,12 +92,11 @@ export function shiki_highlight(lang: string): Extension {
 
 	const plugin = ViewPlugin.define((view) => {
 		let disposed = false;
-		let pending_version = view.state.doc.length; // track doc identity
+		let pending_version = 0;
 
 		function highlight(v: EditorView) {
 			const doc = v.state.doc.toString();
-			const version = doc.length;
-			pending_version = version;
+			const version = ++pending_version;
 
 			get_highlighter().then((h) => {
 				if (disposed || pending_version !== version) return;

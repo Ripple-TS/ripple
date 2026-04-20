@@ -1,4 +1,3 @@
-import { RESOURCE_LINKS } from '../lib/demo.ts';
 
 const SNIPPET_HTML = [
 	'<span class="ln"> 1</span> <span class="kw-export">export</span> <span class="kw">component</span> <span class="fn">Greeting</span><span class="br">(</span><span class="br">{</span> <span class="prop">name</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">name</span>?: <span class="type">string</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
