@@ -977,11 +977,12 @@ function printRippleNode(node, path, options, print, args) {
 			const shouldUseTrailingComma = options.trailingComma !== 'none';
 			const elements = path.map(
 				/**
-				 * @param {any} elPath
+				 * @param {AstPath} elPath
 				 * @param {number} index
 				 */
 				(elPath, index) => {
 					const childNode = node.elements[index];
+					/** @type {PrintArgs} */
 					const childArgs = {};
 
 					if (suppressLeadingCommentIndices.has(index)) {
@@ -2126,6 +2127,10 @@ function printRippleNode(node, path, options, print, args) {
 
 		case 'TSQualifiedName':
 			nodeContent = printTSQualifiedName(node, path, options, print);
+			break;
+
+		case 'TSImportType':
+			nodeContent = printTSImportType(node, path, options, print);
 			break;
 
 		case 'TSIndexedAccessType':
@@ -5389,6 +5394,28 @@ function printTSMappedType(node, path, options, print) {
  */
 function printTSQualifiedName(node, path, options, print) {
 	return [path.call(print, 'left'), '.', path.call(print, 'right')];
+}
+
+/**
+ * @param {AST.TSImportType} node
+ * @param {AstPath<AST.TSImportType>} path
+ * @param {RippleFormatOptions} options
+ * @param {PrintFn} print
+ * @returns {Doc}
+ */
+function printTSImportType(node, path, options, print) {
+	/** @type {Doc[]} */
+	const parts = ['import(', path.call(print, 'argument'), ')'];
+
+	if (node.qualifier) {
+		parts.push('.', path.call(print, 'qualifier'));
+	}
+
+	if (node.typeParameters) {
+		parts.push(path.call(print, 'typeParameters'));
+	}
+
+	return parts;
 }
 
 /**

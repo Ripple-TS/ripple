@@ -61,7 +61,7 @@ const COMPILER_STUBS = {
 `,
 };
 
-const WORKSPACE_CONFIGS = {
+export const WORKSPACE_CONFIGS = {
 	'ripple-only': {
 		package_json: {
 			name: '@ripple-ts/fixture-ripple-only-project',
@@ -110,14 +110,22 @@ const WORKSPACE_CONFIGS = {
 	},
 };
 
+/** @type {string[]} */
 const created_workspaces = [];
 
+/**
+ * @param {string} workspace_dir
+ * @param {keyof typeof COMPILER_STUBS} compiler_name
+ */
 function write_compiler_stub(workspace_dir, compiler_name) {
 	const compiler_dir = path.join(workspace_dir, 'node_modules', '@tsrx', compiler_name, 'src');
 	fs.mkdirSync(compiler_dir, { recursive: true });
 	fs.writeFileSync(path.join(compiler_dir, 'index.js'), COMPILER_STUBS[compiler_name]);
 }
 
+/**
+ * @param {keyof typeof WORKSPACE_CONFIGS} name
+ */
 export function create_fixture_workspace(name) {
 	const config = WORKSPACE_CONFIGS[name];
 	if (!config) {
@@ -134,7 +142,7 @@ export function create_fixture_workspace(name) {
 	);
 
 	for (const compiler_name of config.compilers) {
-		write_compiler_stub(workspace_dir, compiler_name);
+		write_compiler_stub(workspace_dir, /** @type {keyof typeof COMPILER_STUBS} */ (compiler_name));
 	}
 
 	return workspace_dir;
@@ -142,6 +150,6 @@ export function create_fixture_workspace(name) {
 
 export function cleanup_fixture_workspaces() {
 	while (created_workspaces.length > 0) {
-		fs.rmSync(created_workspaces.pop(), { recursive: true, force: true });
+		fs.rmSync(/** @type {string} */ (created_workspaces.pop()), { recursive: true, force: true });
 	}
 }

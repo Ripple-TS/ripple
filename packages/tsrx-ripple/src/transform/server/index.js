@@ -1626,7 +1626,7 @@ const visitors = {
 		}
 
 		const file_path = context.state.filename;
-		const rpc_modules = /** @type {any} */ (globalThis).rpc_modules;
+		const rpc_modules = globalThis.rpc_modules;
 
 		if (rpc_modules) {
 			for (const name of exports) {

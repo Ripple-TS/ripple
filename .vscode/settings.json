@@ -7,13 +7,16 @@
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true,
+  "files.exclude": {
+    "**/.build-hash": true,
+    "**/.build-hash-built": true
+  },
   "prettier.requireConfig": true,
   "js/ts.implicitProjectConfig.checkJs": true,
   "js/ts.preferences.preferTypeOnlyAutoImports": true,
   "js/ts.preferences.useAliasesForRenames": false,
   "js/ts.preferences.importModuleSpecifierEnding": "js",
   "js/ts.experimental.useTsgo": true,
-  "explorer.excludeGitIgnore": true,
 
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",

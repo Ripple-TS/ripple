@@ -10,8 +10,8 @@ coverage
 
 packages/vscode-plugin/*.vsix
 playground/src
-# ignore any folders inside
-playground/ripple/*/
+playground/ripple/src
+playground/react/src
 
 website/.vitepress/dist/
 website/.vitepress/cache/

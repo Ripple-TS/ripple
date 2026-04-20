@@ -1,9 +1,8 @@
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { cleanup_fixture_workspaces, create_fixture_workspace } from './workspace-fixtures.js';
-
-const ts = require('typescript');
-const { getRippleLanguagePlugin, TSRXVirtualCode, _reset_for_test } = require('../src/language.js');
+import * as ts from 'typescript';
+import { getRippleLanguagePlugin, TSRXVirtualCode, _reset_for_test } from '../src/language.js';
 
 /**
  * @param {string} source
@@ -24,15 +23,20 @@ function create_plugin() {
  * @param {ReturnType<typeof getRippleLanguagePlugin>} plugin
  * @param {string} file_name
  * @param {string} source
- * @returns {any}
+ * @returns {TSRXVirtualCode}
  */
 function create_virtual_code(plugin, file_name, source) {
-	const create_virtual_code_fn = /** @type {any} */ (plugin.createVirtualCode);
+	const create_virtual_code_fn = plugin.createVirtualCode;
 	if (typeof create_virtual_code_fn !== 'function') {
 		throw new Error('Language plugin does not expose createVirtualCode');
 	}
 
-	return create_virtual_code_fn(file_name, 'ripple', create_snapshot(source));
+	/** @type {import('@volar/language-core').CodegenContext<string>} */
+	const ctx = { getAssociatedScript: () => undefined };
+
+	return /** @type {TSRXVirtualCode} */ (
+		create_virtual_code_fn(file_name, 'ripple', create_snapshot(source), ctx)
+	);
 }
 
 describe('typescript-plugin language plugin integration', () => {

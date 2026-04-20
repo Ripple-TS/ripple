@@ -2852,7 +2852,9 @@ function transform_ts_child(node, context) {
 			// the generated JSX uses <Tag> (uppercase) matching the capitalized variable declaration,
 			// preventing the TypeScript "declared but never read" false-negative (ts6133).
 			/** @type {AST.Identifier} */ (node.id).name = capitalized_name;
-			if (!node.id.metadata) node.id.metadata = /** @type {any} */ ({});
+			if (!node.id.metadata) {
+				node.id.metadata = { path: [] };
+			}
 			node.id.metadata.is_capitalized = true;
 			node.id.metadata.source_name = source_name;
 
