@@ -1464,15 +1464,13 @@ export function peek_tracked(tracked) {
  * pending async work, and invokes the catch handler if one exists.
  * @param {TryBlockWithCatch} catch_block
  * @param {any} error
- * @param {(() => void)} [fn_after_cancel]
  */
-function route_error_to_catch_block(catch_block, error, fn_after_cancel) {
+function route_error_to_catch_block(catch_block, error) {
 	// cancel async should also clear the output
 	// for this block and all its children
 	cancel_async_operations(catch_block);
 	reset_state();
 	set_active_block(catch_block);
-	fn_after_cancel?.();
 	catch_block.s.c(error);
 }
 
