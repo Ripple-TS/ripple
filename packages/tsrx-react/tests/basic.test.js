@@ -147,6 +147,20 @@ describe('@tsrx/react basic', () => {
 		).toThrow(/not supported on the React target/);
 	});
 
+	it('rejects `{html expr}` at the component body level', () => {
+		// Top-level `{html ...}` must hit the compile-time error rather than
+		// falling through `is_jsx_child` and silently landing in the function
+		// body as a raw Html AST node.
+		expect(() =>
+			compile(
+				`export component App({ markup }: { markup: string }) {
+					{html markup}
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(/not supported on the React target/);
+	});
+
 	it('applies scoped css hashes to elements inside control flow', () => {
 		const { code, css } = compile(
 			`export component App() {
