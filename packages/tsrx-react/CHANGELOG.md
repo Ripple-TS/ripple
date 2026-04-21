@@ -1,5 +1,19 @@
 # @tsrx/react
 
+## 0.0.6
+
+### Patch Changes
+
+- [#896](https://github.com/Ripple-TS/ripple/pull/896)
+  [`01b4ed6`](https://github.com/Ripple-TS/ripple/commit/01b4ed663f1deb9306ad401d02dbec0f5d27cdc5)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix React `for` loop key
+  generation in compiled output:
+  - Ensure hook-extracted loop wrapper components receive a `key` when using
+    `for (...; index index)` and no explicit key is provided.
+  - Ensure non-hook loop item elements also receive an implicit `key={index}`
+    fallback in the same indexed-loop scenario.
+  - Add regression tests covering both hook and non-hook conditional loop paths.
+
 ## 0.0.5
 
 ### Patch Changes

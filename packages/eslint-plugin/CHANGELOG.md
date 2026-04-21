@@ -1,5 +1,12 @@
 # @ripple-ts/eslint-plugin
 
+## 0.3.24
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/eslint-parser@0.3.24
+
 ## 0.3.23
 
 ### Patch Changes
