@@ -191,16 +191,10 @@ export component IndexPage() {
 				<p class="eyebrow">{'Tooling and adoption'}</p>
 				<h2 class="section-heading">{'Rich integration with existing tooling.'}</h2>
 				<p class="section-body">
-					{'TSRX ships with a language server for editor diagnostics, navigation, and completion. Prettier and ESLint plugins keep formatting and linting consistent inside existing repositories, so the language can be adopted seriously instead of treated like a compiler experiment.'}
+					{'TSRX ships with a language server for editor diagnostics, navigation, and completion. Prettier and ESLint plugins keep formatting and linting consistent inside existing repositories, so the language can be adopted seriously instead of treated like a compiler experiment. Plus support for many IDEs and editors including VS Code, Zed, Neovim, IntelliJ and Sublime.'}
 				</p>
 				<p class="section-body">
 					{'It interoperates with existing TypeScript and TSX codebases rather than demanding a full rewrite. Teams can adopt it where ergonomics matter most while keeping the surrounding code familiar. '}
-					<code class="inline-code">{'@tsrx/react'}</code>
-					{', '}
-					<code class="inline-code">{'@tsrx/ripple'}</code>
-					{', and '}
-					<code class="inline-code">{'@tsrx/solid'}</code>
-					{' already demonstrate that one source language can serve different framework semantics.'}
 				</p>
 			</section>
 
