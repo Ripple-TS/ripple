@@ -22,6 +22,7 @@ import {
 	ASYNC_DERIVED_READ_THROWN,
 	DERIVED_UPDATED,
 } from '../client/constants.js';
+import { DEV } from 'esm-env';
 import { is_ripple_object, array_slice } from '../client/utils.js';
 import { escape } from '../../../utils/escaping.js';
 import { is_boolean_attribute } from '../../../utils/attributes.js';
@@ -732,12 +733,6 @@ export function output_push(str) {
 	/** @type {Block} */ (active_block).o.push(str);
 }
 
-/** @returns {(str: string) => void} */
-export function get_output_push() {
-	const block = /** @type {Block} */ (active_block);
-	return (str) => block.o.push(str);
-}
-
 /**
  * @param {string} str
  * @returns {void}
@@ -1213,13 +1208,28 @@ function serialize_track_async_result(output, hash, value, deps) {
  * @returns {void}
  */
 export function serialize_track_async_error(hash, error) {
+	var error_message = get_public_track_async_error_message(error);
+
 	// we can just use the output_push_serialized directly so it's added to the root block
 	// if we here then the try's block failed to render and the output was cleared
 	// so we're writing to the root otherwise it will be cleared in the local output
 	push_script_for_hydration(output_push_serialized_error, hash, {
 		ok: false,
-		error: { message: error?.message ?? String(error) },
+		error: { message: error_message },
 	});
+}
+
+/**
+ * We avoid leaking arbitrary server errors in production while still keeping
+ * rich error messages in development and tests.
+ * @param {any} error
+ * @returns {string}
+ */
+function get_public_track_async_error_message(error) {
+	if (DEV) {
+		return error?.message ?? String(error);
+	}
+	return 'An error occurred during async rendering';
 }
 
 /**
@@ -1230,11 +1240,13 @@ export function serialize_track_async_error(hash, error) {
  * @returns {void}
  */
 function push_script_for_hydration(push_fn, hash, envelope) {
+	var serialized_envelope = JSON.stringify(envelope).replace(/</g, '\\u003C');
+
 	push_fn(
 		'<script id="' +
 			get_track_async_script_id(hash) +
 			'" type="application/json">' +
-			JSON.stringify(envelope) +
+			serialized_envelope +
 			'</script>',
 	);
 }
@@ -1510,12 +1522,8 @@ function register_block_rerun(block) {
 				route_error_to_catch_block(try_catch_block, error);
 				// has to run after routing as it set the active_block to the catch block
 				if (error instanceof TrackAsyncRunError) {
-					var {
-						cause,
-						message,
-						tracked: t,
-					} = /** @type {InstanceType<typeof TrackAsyncRunError>} */ (error);
-					serialize_track_async_error(t.h, new Error(message));
+					var { cause, tracked: t } = /** @type {InstanceType<typeof TrackAsyncRunError>} */ (error);
+					serialize_track_async_error(t.h, cause);
 					error = cause;
 				}
 			}
