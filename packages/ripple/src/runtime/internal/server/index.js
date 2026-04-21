@@ -1522,7 +1522,9 @@ function register_block_rerun(block) {
 				route_error_to_catch_block(try_catch_block, error);
 				// has to run after routing as it set the active_block to the catch block
 				if (error instanceof TrackAsyncRunError) {
-					var { cause, tracked: t } = /** @type {InstanceType<typeof TrackAsyncRunError>} */ (error);
+					var { cause, tracked: t } = /** @type {InstanceType<typeof TrackAsyncRunError>} */ (
+						error
+					);
 					serialize_track_async_error(t.h, cause);
 					error = cause;
 				}

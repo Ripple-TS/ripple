@@ -136,8 +136,8 @@ describe('trackAsync serialization (server)', () => {
 	it('escapes serialized error payload to keep script tag safe', async () => {
 		component App() {
 			try {
-				let &[data] = trackAsync(() =>
-					Promise.reject(new Error('</script><div data-injected="1">boom</div>')),
+				let &[data] = trackAsync(
+					() => Promise.reject(new Error('</script><div data-injected="1">boom</div>')),
 				);
 				<p class="result">{data}</p>
 			} pending {
@@ -150,9 +150,7 @@ describe('trackAsync serialization (server)', () => {
 		const { body } = await render(App);
 		expect(body).toContain('__tsrx_ta_');
 		expect(body).toContain('\\u003C/script>');
-		expect(body).not.toContain(
-			'type="application/json">{"ok":false,"error":{"message":"</script>',
-		);
+		expect(body).not.toContain('type="application/json">{"ok":false,"error":{"message":"</script>');
 	});
 
 	it('generates unique hashes for multiple trackAsync calls', async () => {
