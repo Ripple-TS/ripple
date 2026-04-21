@@ -43,7 +43,7 @@ export function AsyncListInTryPending(__anchor, _, __block) {
 function AsyncList(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(['alpha', 'beta', 'gamma'])), __block, 'b7207642');
+	let lazy = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(['alpha', 'beta', 'gamma'])), __block, 'd6bf9e33');
 	var ul_1 = root_3();
 
 	{
@@ -103,7 +103,7 @@ export function AsyncTryWithLeadingSibling(__anchor, _, __block) {
 function AsyncContent(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_1 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('ready')), __block, 'b7207642');
+	let lazy_1 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('ready')), __block, 'd2fe7b64');
 	var div_3 = root_8();
 
 	{

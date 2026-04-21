@@ -47,7 +47,7 @@ export function AsyncListInTryPending() {
 function AsyncList() {
 	_$_.push_component();
 
-	let lazy = _$_.track_async(() => Promise.resolve(['alpha', 'beta', 'gamma']), 'b7207642');
+	let lazy = _$_.track_async(() => Promise.resolve(['alpha', 'beta', 'gamma']), 'd6bf9e33');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<ul');
@@ -133,7 +133,7 @@ export function AsyncTryWithLeadingSibling() {
 function AsyncContent() {
 	_$_.push_component();
 
-	let lazy_1 = _$_.track_async(() => Promise.resolve('ready'), 'b7207642');
+	let lazy_1 = _$_.track_async(() => Promise.resolve('ready'), 'd2fe7b64');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');

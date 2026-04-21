@@ -1341,8 +1341,11 @@ export interface AnalysisState extends BaseState {
 		styleClasses?: StyleClasses;
 	};
 	mode: CompileOptions['mode'];
-	/** Incremented counter for generating unique trackAsync hashes */
-	module_track_async_id: number;
+	// keep this as an object as we destructure
+	module: {
+		// Incremented counter for generating unique trackAsync hashes
+		track_async_id: number;
+	};
 }
 
 export interface TransformServerState extends BaseState {

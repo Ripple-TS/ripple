@@ -554,19 +554,17 @@ export function track_async(fn, b, hash) {
 		var script_id = get_track_async_script_id(hash);
 		var script_el = document.getElementById(script_id);
 		if (script_el) {
-			try {
-				var result = devalue.parse(/** @type {string} */ (script_el.textContent));
-				script_el.remove();
-
-				if (result.ok) {
-					var t_hydrated = tracked(result.value, target_block);
-					return t_hydrated;
-				}
-				// TODO: error payloads will be supported once streaming SSR is implemented
-			} catch (_e) {
-				// Hydration failed — fall through to normal trackAsync
-			}
+			var envelope = JSON.parse(/** @type {string} */ (script_el.textContent));
 			script_el.remove();
+
+			if (envelope.ok) {
+				var result = devalue.parse(envelope.payload);
+				var t = tracked(result, target_block);
+				return t;
+			} else {
+				// trigger the catch block
+				throw new Error(envelope.error?.message ?? 'Unknown server error');
+			}
 		}
 	}
 

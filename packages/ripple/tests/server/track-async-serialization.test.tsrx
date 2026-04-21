@@ -67,6 +67,50 @@ describe('trackAsync serialization (server)', () => {
 		expect(body).toContain('__tsrx_ta_');
 	});
 
+	it('serializes rejected trackAsync as error envelope', async () => {
+		component App() {
+			try {
+				let &[data] = trackAsync(() => Promise.reject(new Error('fetch failed')));
+				<p class="result">{data}</p>
+			} pending {
+				<p class="loading">{'loading...'}</p>
+			} catch (e) {
+				<p class="error">{(e as Error).message}</p>
+			}
+		}
+
+		const { body } = await render(App);
+		expect(body).toContain('<p class="error">fetch failed</p>');
+		expect(body).toContain('__tsrx_ta_');
+		expect(body).toContain('"ok":false');
+		expect(body).toContain('"message":"fetch failed"');
+	});
+
+	it('serializes error when child component error bubbles to parent catch', async () => {
+		component Child() {
+			try {
+				let &[data] = trackAsync(() => Promise.reject(new Error('child error')));
+				<p class="result">{data}</p>
+			} pending {
+				<p class="pending">{'loading...'}</p>
+			}
+		}
+
+		component Parent() {
+			try {
+				<Child />
+			} catch (e) {
+				<p class="parent-error">{(e as Error).message}</p>
+			}
+		}
+
+		const { body } = await render(Parent);
+		expect(body).toContain('<p class="parent-error">child error</p>');
+		expect(body).toContain('__tsrx_ta_');
+		expect(body).toContain('"ok":false');
+		expect(body).toContain('"message":"child error"');
+	});
+
 	it('generates unique hashes for multiple trackAsync calls', async () => {
 		component App() {
 			try {

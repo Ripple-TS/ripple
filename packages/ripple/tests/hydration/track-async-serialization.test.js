@@ -31,6 +31,24 @@ describe('hydration > trackAsync serialization', () => {
 		expect(container.querySelector('.loading')).toBeNull();
 	});
 
+	it('hydrates rejected trackAsync and shows catch content', async () => {
+		await hydrateComponent(ServerComponents.AsyncWithCatch, ClientComponents.AsyncWithCatch);
+
+		expect(container.querySelector('.error')?.textContent).toBe('fetch failed');
+		expect(container.querySelector('.result')).toBeNull();
+		expect(container.querySelector('.loading')).toBeNull();
+		expect(container.querySelector('script[id^="__tsrx_ta_"]')).toBeNull();
+	});
+
+	it('hydrates child trackAsync error bubbled to parent catch', async () => {
+		await hydrateComponent(ServerComponents.ParentWithCatch, ClientComponents.ParentWithCatch);
+
+		expect(container.querySelector('.parent-error')?.textContent).toBe('child error');
+		expect(container.querySelector('.result')).toBeNull();
+		expect(container.querySelector('.pending')).toBeNull();
+		expect(container.querySelector('script[id^="__tsrx_ta_"]')).toBeNull();
+	});
+
 	it('hydrates multiple trackAsync values independently', async () => {
 		await hydrateComponent(
 			ServerComponents.AsyncMultipleValues,

@@ -1,5 +1,5 @@
 /**
- * @import { Component, Dependency, Derived, Tracked, Block, TryBlockWithCatch } from '#server';
+ * @import { Component, Dependency, Derived, Tracked, TrackedAsync, Block, TryBlockWithCatch } from '#server';
  * @import { NestedArray } from '#helpers';
  * @import { Props } from '#public';
  * @import { RenderResult, BaseRenderOptions, RenderStreamResult, Stream, StreamSink } from 'ripple/server';
@@ -51,6 +51,24 @@ export { context } from './context.js';
 export { try_block, component_block, regular_block } from './blocks.js';
 export { array_slice };
 export { tsrx_element, normalize_children };
+
+/** @extends Error */
+export class TrackAsyncRunError extends Error {
+	/** @type {TrackedAsync} */
+	tracked;
+	/** @type {Error} */
+	cause;
+	/**
+	 * @param {string} message
+	 * @param {{tracked: TrackedAsync, cause: Error}} options
+	 */
+	constructor(message, options) {
+		super(message);
+		this.name = 'TrackAsyncRunError';
+		this.tracked = options.tracked;
+		this.cause = options.cause;
+	}
+}
 
 export function noop() {}
 
@@ -402,9 +420,10 @@ export class Output {
 
 	/**
 	 * @param {string} str
+	 * @param {boolean} [is_root=false]
 	 * @returns {void}
 	 */
-	push(str) {
+	#push(str, is_root = false) {
 		if (this.isStreamMode() && !this.isSyncRun()) {
 			// TODO - we need to wrap the resulting block output into something that
 			// the client-side can understand and append them appropriately,
@@ -415,12 +434,30 @@ export class Output {
 			return;
 		}
 
+		var instance = is_root ? this.#root : this;
+
 		if (this.target === 'head') {
-			this.#head.push(str);
+			instance.#head.push(str);
 			return;
 		}
 
-		this.#body.push(str);
+		instance.#body.push(str);
+	}
+
+	/**
+	 * @param {string} str
+	 * @returns {void}
+	 */
+	push(str) {
+		this.#push(str);
+	}
+
+	/**
+	 * @param {string} str
+	 * @returns {void}
+	 */
+	push_serialized(str) {
+		this.#push(str, true);
 	}
 
 	clear() {
@@ -680,6 +717,14 @@ export function output_push(str) {
 export function get_output_push() {
 	const block = /** @type {Block} */ (active_block);
 	return (str) => block.o.push(str);
+}
+
+/**
+ * @param {string} str
+ * @returns {void}
+ */
+export function output_push_serialized(str) {
+	/** @type {Block} */ (active_block).o.push_serialized(str);
 }
 
 /**
@@ -1116,15 +1161,42 @@ export function track(v, get, set) {
  * @param {(str: string) => void} push_fn - The output push function captured at call time
  * @param {string} hash - The unique hash for this trackAsync call
  * @param {any} value - The resolved value
+ * @returns {void}
  */
 function serialize_track_async_result(push_fn, hash, value) {
-	var script_id = get_track_async_script_id(hash);
-	var payload = devalue.stringify({ ok: true, value: value });
+	push_script_for_hydration(push_fn, hash, { ok: true, payload: devalue.stringify(value) });
+}
+
+/**
+ * Serializes a rejected trackAsync error as a script tag for hydration.
+ * Must be called after route_error_to_catch_block so active_block is the catch block.
+ * @param {string} hash
+ * @param {any} error
+ * @returns {void}
+ */
+export function serialize_track_async_error(hash, error) {
+	// we can just use the output_push_serialized directly so it's added to the root block
+	// if we here then the try's block failed to render and the output was cleared
+	// so we're writing to the root otherwise it will be cleared in the local output
+	push_script_for_hydration(output_push_serialized, hash, {
+		ok: false,
+		error: { message: error?.message ?? String(error) },
+	});
+}
+
+/**
+ * @param {(str: string) => void} push_fn
+ * @param {string} hash
+ * @param {object} envelope - The envelope containing the serialized data
+ * @envelope {ok: boolean, payload?: any, error?: { message: string } }
+ * @returns {void}
+ */
+function push_script_for_hydration(push_fn, hash, envelope) {
 	push_fn(
 		'<script id="' +
-			script_id +
+			get_track_async_script_id(hash) +
 			'" type="application/json">' +
-			payload +
+			JSON.stringify(envelope) +
 			'</script>',
 	);
 }
@@ -1132,7 +1204,7 @@ function serialize_track_async_result(push_fn, hash, value) {
 /**
  * Runs the async tracked function, handling sync results, async results,
  * and chained cases where fn() reads a pending dependency.
- * @param {Tracked} t
+ * @param {TrackedAsync} t
  * @param {() => any} fn
  * @param {Block} block
  * @param {((value?: any) => void) | null} dr
@@ -1158,7 +1230,10 @@ function run_track_async(t, fn, block, dr, dj) {
 		caught = true;
 
 		if (error !== ASYNC_DERIVED_READ_THROWN) {
-			throw error;
+			throw new TrackAsyncRunError('Error thrown during trackAsync execution', {
+				cause: /** @type {Error} */ (error),
+				tracked: t,
+			});
 		}
 	} finally {
 		tracking = previous_tracking;
@@ -1192,7 +1267,7 @@ function run_track_async(t, fn, block, dr, dj) {
 		// Find the pending dependency with a promise and chain on it
 		dep = /** @type {Dependency | null} */ (caught_dep);
 		while (dep !== null) {
-			var dep_tracked = /** @type {Tracked} */ (dep.t);
+			var dep_tracked = /** @type {TrackedAsync} */ (dep.t);
 			if ((dep_tracked.f & TRACKED) !== 0 && dep_tracked.v === SUSPENSE_PENDING && dep_tracked.ap) {
 				/** @type {PromiseLike<any>} */ (dep_tracked.ap).then(
 					() => run_track_async(t, fn, block, dr, dj),
@@ -1202,6 +1277,8 @@ function run_track_async(t, fn, block, dr, dj) {
 							dj(error);
 						}
 						route_error_to_catch_block(get_closest_catch_block(block), error);
+						// has to run after routing as it set the active_block to the catch block
+						serialize_track_async_error(t.th, error);
 					},
 				);
 				return;
@@ -1217,9 +1294,7 @@ function run_track_async(t, fn, block, dr, dj) {
 	if (async_result === null) {
 		// Sync result
 		update_tracked_value_clock(t, result);
-		if (t.th && t.tp) {
-			serialize_track_async_result(t.tp, t.th, result);
-		}
+		serialize_track_async_result(t.tp, t.th, result);
 		if (dr) {
 			dr(result);
 		}
@@ -1236,9 +1311,7 @@ function run_track_async(t, fn, block, dr, dj) {
 	async_result.promise.then(
 		(resolved) => {
 			update_tracked_value_clock(t, resolved);
-			if (t.th && t.tp) {
-				serialize_track_async_result(t.tp, t.th, resolved);
-			}
+			serialize_track_async_result(t.tp, t.th, resolved);
 			if (dr) {
 				dr(resolved);
 			}
@@ -1249,6 +1322,8 @@ function run_track_async(t, fn, block, dr, dj) {
 				dj(error);
 			}
 			route_error_to_catch_block(get_closest_catch_block(block), error);
+			// has to run after routing as it set the active_block to the catch block
+			serialize_track_async_error(t.th, error);
 		},
 	);
 }
@@ -1269,8 +1344,7 @@ export function track_async(v, hash) {
 		);
 	}
 
-	var t = tracked(SUSPENSE_PENDING);
-
+	var t = /** @type {TrackedAsync} */ (tracked(SUSPENSE_PENDING));
 	// Store hash and output push function for serialization on resolve
 	t.th = hash;
 	t.tp = get_output_push();
@@ -1316,13 +1390,15 @@ export function peek_tracked(tracked) {
  * pending async work, and invokes the catch handler if one exists.
  * @param {TryBlockWithCatch} catch_block
  * @param {any} error
+ * @param {(() => void)} [fn_after_cancel]
  */
-function route_error_to_catch_block(catch_block, error) {
+function route_error_to_catch_block(catch_block, error, fn_after_cancel) {
 	// cancel async should also clear the output
 	// for this block and all its children
 	cancel_async_operations(catch_block);
 	reset_state();
 	set_active_block(catch_block);
+	fn_after_cancel?.();
 	catch_block.s.c(error);
 }
 
@@ -1359,7 +1435,7 @@ function register_block_rerun(block) {
 	};
 
 	try_catch_block.o.registerAsync(operation);
-	/** @type {PromiseLike<any>} */ (/** @type {Tracked} */ (t).ap).then(
+	/** @type {PromiseLike<any>} */ (/** @type {TrackedAsync} */ (t).ap).then(
 		() => {
 			if (cancelled) {
 				return;
@@ -1370,6 +1446,16 @@ function register_block_rerun(block) {
 				try_catch_block.o.resolveAsync(operation);
 			} catch (error) {
 				route_error_to_catch_block(try_catch_block, error);
+				// has to run after routing as it set the active_block to the catch block
+				if (error instanceof TrackAsyncRunError) {
+					var {
+						cause,
+						message,
+						tracked: t,
+					} = /** @type {InstanceType<typeof TrackAsyncRunError>} */ (error);
+					serialize_track_async_error(t.th, new Error(message));
+					error = cause;
+				}
 			}
 		},
 		(error) => {
@@ -1377,6 +1463,8 @@ function register_block_rerun(block) {
 				return;
 			}
 			route_error_to_catch_block(try_catch_block, error);
+			// has to run after routing as it set the active_block to the catch block
+			serialize_track_async_error(/** @type {TrackedAsync} */ (t).th, error);
 		},
 	);
 	// clear all output buffers as we'll rerun the block rendering

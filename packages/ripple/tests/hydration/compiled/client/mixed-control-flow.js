@@ -403,7 +403,7 @@ export function MixedControlFlowAsyncPending(__anchor, _, __block) {
 function AsyncRow(__anchor, { label }, __block) {
 	_$_.push_component();
 
-	let lazy_3 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(label)), __block, '7a63d7bc');
+	let lazy_3 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(label)), __block, '5ae53d26');
 	var div_9 = root_25();
 
 	{

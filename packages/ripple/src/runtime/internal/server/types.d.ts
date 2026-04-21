@@ -47,6 +47,11 @@ export type Tracked = {
 	[Symbol.iterator](): Iterator<any | Tracked>;
 };
 
+export type TrackedAsync = Tracked & {
+	th: NonNullable<Tracked['th']>;
+	tp: NonNullable<Tracked['tp']>;
+};
+
 export type Block = {
 	co: Component | null;
 	f: number;

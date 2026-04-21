@@ -42,3 +42,31 @@ export component AsyncMultipleValues() {
 		<div class="loading">{'loading...'}</div>
 	}
 }
+
+export component AsyncWithCatch() {
+	try {
+		let &[data] = trackAsync(() => Promise.reject(new Error('fetch failed')));
+		<p class="result">{data}</p>
+	} pending {
+		<p class="loading">{'loading...'}</p>
+	} catch (e) {
+		<p class="error">{(e as Error).message}</p>
+	}
+}
+
+export component ChildWithError() {
+	try {
+		let &[data] = trackAsync(() => Promise.reject(new Error('child error')));
+		<p class="result">{data}</p>
+	} pending {
+		<p class="pending">{'loading...'}</p>
+	}
+}
+
+export component ParentWithCatch() {
+	try {
+		<ChildWithError />
+	} catch (e) {
+		<p class="parent-error">{(e as Error).message}</p>
+	}
+}

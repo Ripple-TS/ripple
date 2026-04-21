@@ -18,7 +18,15 @@ import {
 	ROOT_BLOCK,
 	CAUGHT_ERROR,
 } from './constants.js';
-import { run_block, active_block, active_component, Output, set_active_block } from './index.js';
+import {
+	run_block,
+	active_block,
+	active_component,
+	Output,
+	set_active_block,
+	TrackAsyncRunError,
+	serialize_track_async_error,
+} from './index.js';
 
 /**
  * @param {number} flags
@@ -90,6 +98,15 @@ export function try_block(try_fn, catch_fn = null, pending_fn = null) {
 		if (created_block.f & TRY_CATCH_BLOCK) {
 			created_block.o.clear();
 			cancel_async_operations(created_block);
+
+			// make sure to serialize trackAsync error so the client can hydrate them properly
+			// needs to happen after clearing output
+			if (error instanceof TrackAsyncRunError) {
+				var { tracked: t, cause } = /** @type {InstanceType<typeof TrackAsyncRunError>} */ (error);
+				serialize_track_async_error(t.th, error);
+				error = cause;
+			}
+
 			// render the catch
 			catch_fn?.(/** @type {SSRError} */ (error));
 		} else {
