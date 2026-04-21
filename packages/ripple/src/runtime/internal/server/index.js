@@ -1330,7 +1330,7 @@ function run_track_async(t, fn, block, dr, dj) {
 							dj(error);
 						}
 						route_error_to_catch_block(get_closest_catch_block(block), error);
-						// has to run after routing as it set the active_block to the catch block
+						// has to run after routing as it sets the active_block to the catch block
 						serialize_track_async_error(t.h, error);
 					},
 				);
@@ -1377,7 +1377,7 @@ function run_track_async(t, fn, block, dr, dj) {
 				dj(error);
 			}
 			route_error_to_catch_block(get_closest_catch_block(block), error);
-			// has to run after routing as it set the active_block to the catch block
+			// has to run after routing as it sets the active_block to the catch block
 			serialize_track_async_error(t.h, error);
 		},
 	);
@@ -1523,7 +1523,7 @@ function register_block_rerun(block) {
 					);
 					error = cause;
 					route_error_to_catch_block(try_catch_block, error);
-					// has to run after routing as it set the active_block to the catch block
+					// has to run after routing as it sets the active_block to the catch block
 					serialize_track_async_error(t.h, error);
 				} else {
 					route_error_to_catch_block(try_catch_block, error);
@@ -1535,7 +1535,7 @@ function register_block_rerun(block) {
 				return;
 			}
 			route_error_to_catch_block(try_catch_block, error);
-			// has to run after routing as it set the active_block to the catch block
+			// has to run after routing as it sets the active_block to the catch block
 			serialize_track_async_error(/** @type {Tracked} */ (t).h, error);
 		},
 	);
