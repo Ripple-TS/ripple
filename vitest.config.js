@@ -39,6 +39,15 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'tsrx-solid',
+					include: ['packages/tsrx-solid/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'vite-plugin-react',
 					include: ['packages/vite-plugin-react/tests/**/*.test.js'],
 					environment: 'node',
@@ -55,6 +64,28 @@ export default defineConfig({
 					globals: true,
 				},
 				plugins: [(await import('./packages/vite-plugin-react/src/index.js')).tsrxReact()],
+			},
+			{
+				test: {
+					name: 'vite-plugin-solid',
+					include: ['packages/vite-plugin-solid/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
+					name: 'tsrx-solid-runtime',
+					include: ['packages/vite-plugin-solid/tests/**/*.test.tsrx'],
+					environment: 'jsdom',
+					setupFiles: ['packages/vite-plugin-solid/tests/setup.js'],
+					globals: true,
+				},
+				plugins: [
+					(await import('./packages/vite-plugin-solid/src/index.js')).tsrxSolid(),
+					(await import('vite-plugin-solid')).default(),
+				],
 			},
 			{
 				test: {

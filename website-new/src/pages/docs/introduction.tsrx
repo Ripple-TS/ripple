@@ -49,7 +49,7 @@ export component IntroductionPage() {
 		<DocHeading level={1} id="introduction">{'Introduction'}</DocHeading>
 
 		<p>
-			{'Ripple is an elegant, compiler-driven language and UI framework built on a superset of TypeScript.'}
+			{'Ripple is an elegant, compiler-driven language and UI framework built on TSRX (a superset of TypeScript).'}
 		</p>
 
 		<p>

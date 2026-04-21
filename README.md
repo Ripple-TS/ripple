@@ -22,8 +22,14 @@ to [Inferno](https://github.com/infernojs/inferno),
 extension. This allows seamless TypeScript integration and a unique syntax that
 enhances both human and LLM developer experience.
 
-📚 **[Full Documentation](https://www.ripple-ts.com/docs)** | 🎮
-**[Interactive Playground](https://www.ripple-ts.com/playground)**
+> **`.tsrx` is also a standalone language:** the same source can now compile to
+> React, Solid, or Ripple via [TSRX](https://tsrx.dev) — a TypeScript language
+> extension that treats Ripple as one of several target runtimes. If you want the
+> authoring ergonomics without committing to Ripple's runtime, start there.
+
+📚 **[Ripple Docs](https://www.ripple-ts.com/docs)** | 🎮
+**[Ripple Playground](https://www.ripple-ts.com/playground)** | 🧩
+**[TSRX Website](https://tsrx.dev)**
 
 ## Features
 
@@ -447,6 +453,8 @@ export component App() {
   API reference
 - 🎮 **[Interactive Playground](https://www.ripple-ts.com/playground)** - Try
   Ripple in your browser
+- 🧩 **[TSRX Website](https://tsrx.dev)** - Author `.tsrx` once, compile to React,
+  Solid, or Ripple
 - 🐛 **[GitHub Issues](https://github.com/Ripple-TS/ripple/issues)** - Report bugs
   or request features
 - 💬 **[Discord Community](https://discord.gg/JBF2ySrh2W)** - Get help and discuss

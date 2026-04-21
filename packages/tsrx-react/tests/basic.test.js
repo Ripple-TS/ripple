@@ -136,6 +136,31 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain("missing == null ? '' : missing + ''");
 	});
 
+	it('rejects `{html expr}` on the React target', () => {
+		expect(() =>
+			compile(
+				`export component App({ markup }: { markup: string }) {
+					<article>{html markup}</article>
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(/not supported on the React target/);
+	});
+
+	it('rejects `{html expr}` at the component body level', () => {
+		// Top-level `{html ...}` must hit the compile-time error rather than
+		// falling through `is_jsx_child` and silently landing in the function
+		// body as a raw Html AST node.
+		expect(() =>
+			compile(
+				`export component App({ markup }: { markup: string }) {
+					{html markup}
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(/not supported on the React target/);
+	});
+
 	it('applies scoped css hashes to elements inside control flow', () => {
 		const { code, css } = compile(
 			`export component App() {
@@ -1139,6 +1164,89 @@ describe('lazy destructuring', () => {
 		);
 
 		expect(code).toContain('() => __lazy0[1](__lazy0[0] + 1)');
+	});
+
+	it('transforms lazy params on plain function declarations', () => {
+		const { code } = compile(
+			`export function greet(&{ name }: { name: string }) {
+				return 'hello ' + name;
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function greet(__lazy0: { name: string })');
+		expect(code).toContain("'hello ' + __lazy0.name");
+		expect(code).not.toContain('{ name }');
+	});
+
+	it('transforms lazy params on function expressions', () => {
+		const { code } = compile(
+			`const add = function (&{ a, b }: { a: number; b: number }) {
+				return a + b;
+			};`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function (__lazy0: { a: number; b: number })');
+		expect(code).toContain('__lazy0.a + __lazy0.b');
+	});
+
+	it('transforms lazy params in nested functions inside components', () => {
+		const { code } = compile(
+			`export component App(&{ outer }: { outer: string }) {
+				function greet(&{ name }: { name: string }) {
+					return 'hi ' + name + ' from ' + outer;
+				}
+				<div>{greet}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function App(__lazy0: { outer: string })');
+		expect(code).toContain('function greet(__lazy1: { name: string })');
+		expect(code).toContain("'hi ' + __lazy1.name + ' from ' + __lazy0.outer");
+	});
+
+	it('rewrites statement-level lazy assignment as a const declaration', () => {
+		const { code } = compile(
+			`export component App() {
+				&[count] = useState(0);
+				<div>{count}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('const __lazy0 = useState(0)');
+		expect(code).toContain('__lazy0[0]');
+	});
+
+	it('handles statement-level lazy assignment with tracked references', () => {
+		const { code } = compile(
+			`export component App() {
+				&[count] = useState(0);
+				const inc = () => { count++; };
+				<button on_click={inc}>{count}</button>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('const __lazy0 = useState(0)');
+		expect(code).toContain('__lazy0[0]++');
+		expect(code).toContain('{__lazy0[0]}');
+	});
+
+	it('does not hoist elements referencing statement-level lazy bindings', () => {
+		const { code } = compile(
+			`export component App() {
+				&[count] = useState(0);
+				<p>{count}</p>
+			}`,
+			'App.tsrx',
+		);
+
+		// The JSX references `count` (via __lazy0[0]) and must not be hoisted.
+		expect(code).not.toContain('App__static');
+		expect(code).toContain('__lazy0[0]');
 	});
 
 	it('does not hoist elements using component-scope bindings as tag names', () => {

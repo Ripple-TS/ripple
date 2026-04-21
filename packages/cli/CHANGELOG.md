@@ -1,5 +1,9 @@
 # @ripple-ts/cli
 
+## 0.3.22
+
+## 0.3.21
+
 ## 0.3.20
 
 ### Patch Changes

@@ -42,6 +42,12 @@ export const COMPILER_CANDIDATES = [
 		['.tsrx'],
 		['@tsrx/react', '@tsrx/vite-plugin-react'],
 	],
+	[
+		'@tsrx/solid',
+		['node_modules', '@tsrx', 'solid'],
+		['.tsrx'],
+		['@tsrx/solid', '@tsrx/vite-plugin-solid'],
+	],
 ];
 
 /**

@@ -133,9 +133,28 @@ export { escape } from './utils/escaping.js';
 // Transform
 export { render_stylesheets as renderStylesheets } from './transform/stylesheet.js';
 export {
+	prepare_stylesheet_for_render as prepareStylesheetForRender,
+	is_style_element as isStyleElement,
+	is_composite_element as isCompositeElement,
+	annotate_with_hash as annotateWithHash,
+	annotate_component_with_hash as annotateComponentWithHash,
+	add_hash_class as addHashClass,
+} from './transform/scoping.js';
+export {
 	convert_source_map_to_mappings as convertSourceMapToMappings,
 	create_volar_mappings_result as createVolarMappingsResult,
+	dedupe_mappings as dedupeMappings,
+	serialize_mapping_value as serializeMappingValue,
 } from './transform/segments.js';
+export {
+	create_lazy_context as createLazyContext,
+	collect_lazy_bindings as collectLazyBindings,
+	collect_lazy_bindings_from_component as collectLazyBindingsFromComponent,
+	collect_lazy_bindings_from_statements as collectLazyBindingsFromStatements,
+	preallocate_lazy_ids as preallocateLazyIds,
+	apply_lazy_transforms as applyLazyTransforms,
+	replace_lazy_params as replaceLazyParams,
+} from './transform/lazy.js';
 
 // Analyze
 export { analyze_css as analyzeCss } from './analyze/css-analyze.js';

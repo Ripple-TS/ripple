@@ -1,0 +1,22 @@
+{
+  "name": "@tsrx/solid-playground",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host"
+  },
+  "dependencies": {
+    "solid-js": "2.0.0-beta.7"
+  },
+  "devDependencies": {
+    "@ripple-ts/typescript-plugin": "workspace:*",
+    "@tsrx/solid": "workspace:*",
+    "@tsrx/vite-plugin-solid": "workspace:*",
+    "typescript": "catalog:default",
+    "vite": "catalog:default",
+    "vite-plugin-solid": "3.0.0-next.5"
+  }
+}

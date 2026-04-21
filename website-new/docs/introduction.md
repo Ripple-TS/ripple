@@ -4,8 +4,8 @@ title: Introduction
 
 # Introduction
 
-Ripple is an elegant, compiler-driven language and UI framework built on a
-superset of TypeScript.
+Ripple is an elegant, compiler-driven language and UI framework built on TSRX (a
+superset of TypeScript).
 
 It features its own JSX-like templating language, allowing a declarative blend of
 structure and control flow. This makes applications easier for both humans and AI
@@ -14,6 +14,14 @@ in a better user experience.
 
 Ripple was created by Dominic Gannaway ([@trueadm](https://github.com/trueadm)),
 who has previously worked on React, Svelte, Lexical, and Inferno.
+
+::: info Ripple is one of several TSRX targets
+
+The `.tsrx` syntax you'll learn here is also the source language of
+[TSRX](https://tsrx.dev) — a TypeScript language extension that compiles the
+same component file to React, Solid, or Ripple.
+
+:::
 
 <Code>
 

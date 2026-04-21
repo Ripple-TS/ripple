@@ -13,6 +13,20 @@ const VITE_CONFIG_HTML = [
 	'<span class="ln">6</span> <span class="br">}</span><span class="br">)</span>;',
 ].join('\n');
 
+const SOLID_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">npm</span> <span class="prop">install</span> <span class="str">@tsrx/solid</span> <span class="str">@tsrx/vite-plugin-solid</span> <span class="str">vite-plugin-solid</span>',
+].join('\n');
+
+const SOLID_VITE_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">defineConfig</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'vite\'</span>;',
+	'<span class="ln">2</span> <span class="kw-export">import</span> <span class="prop">tsrxSolid</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/vite-plugin-solid\'</span>;',
+	'<span class="ln">3</span> <span class="kw-export">import</span> <span class="prop">solid</span> <span class="kw-export">from</span> <span class="str">\'vite-plugin-solid\'</span>;',
+	'<span class="ln">4</span>',
+	'<span class="ln">5</span> <span class="kw-export">export default</span> <span class="fn">defineConfig</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">6</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="fn">tsrxSolid</span><span class="br">(</span><span class="br">)</span>, <span class="fn">solid</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">7</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
 export component GettingStartedPage() {
 	<head>
 		<title>{'TSRX | Getting Started'}</title>
@@ -30,8 +44,9 @@ export component GettingStartedPage() {
 				</a>
 				<nav class="masthead-nav">
 					<a href="/getting-started" aria-current="page">{'Getting Started'}</a>
-					<a href="/docs">{'Docs'}</a>
+					<a href="/features">{'Features'}</a>
 					<a href="/playground">{'Playground'}</a>
+					<a href="/llms.txt" target="_blank" rel="noopener noreferrer">{'llms.txt'}</a>
 					<a
 						href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
 						target="_blank"
@@ -46,8 +61,8 @@ export component GettingStartedPage() {
 				<h1>{'Getting Started'}</h1>
 				<p class="lede">
 					{'Set up TSRX with React and Vite in minutes. Once installed, head over to the '}
-					<a class="inline-link" href="/docs">{'Docs'}</a>
-					{' for a full tour of the language.'}
+					<a class="inline-link" href="/features">{'Features'}</a>
+					{' page for a full tour of the language.'}
 				</p>
 			</section>
 
@@ -70,6 +85,22 @@ export component GettingStartedPage() {
 					{' modules into standard React components with scoped CSS.'}
 				</p>
 
+				<h3 class="subsection-heading">{'Solid + Vite'}</h3>
+				<p class="section-body">
+					{'Install the Solid compiler, its Vite plugin, and the upstream '}
+					<code class="inline-code">{'vite-plugin-solid'}</code>
+					{' which runs Solid\'s JSX transform on the emitted TSX:'}
+				</p>
+				<pre class="code-block">
+					<code>{html SOLID_INSTALL_HTML}</code>
+				</pre>
+				<p class="section-body">
+					{'Then wire both plugins into your Vite config (order matters — tsrxSolid first):'}
+				</p>
+				<pre class="code-block">
+					<code>{html SOLID_VITE_CONFIG_HTML}</code>
+				</pre>
+
 				<h3 class="subsection-heading">{'Rspack & Webpack'}</h3>
 				<p class="section-body muted">
 					{'Rspack and Webpack loader support is coming soon. For now, Vite is the recommended build tool.'}
@@ -90,7 +121,7 @@ export component GettingStartedPage() {
 				<p class="section-body">
 					{'Now that TSRX is set up, explore the language syntax — components, control flow, error boundaries, and more.'}
 				</p>
-				<a class="cta-link" href="/docs">{'Read the docs →'}</a>
+				<a class="cta-link" href="/features">{'Explore the features →'}</a>
 			</section>
 
 			<footer class="site-footer">
@@ -108,6 +139,7 @@ export component GettingStartedPage() {
 		:global(html) {
 			scroll-behavior: smooth;
 			overflow-x: hidden;
+			scrollbar-gutter: stable;
 		}
 
 		:global(body) {

@@ -14,6 +14,40 @@ const SNIPPET_HTML = [
 	'<span class="ln">13</span> <span class="br">}</span>',
 ].join('\n');
 
+const REACT_HOOKS_HTML = [
+	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">Profile</span><span class="br">(</span><span class="br">{</span> <span class="prop">userId</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">userId</span>: <span class="type">string</span> | <span class="type">null</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 2</span>   <span class="kw">if</span> <span class="br">(</span><span class="prop">userId</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 3</span>     <span class="kw">const</span> <span class="prop">user</span> = <span class="fn">useUser</span><span class="br">(</span><span class="prop">userId</span><span class="br">)</span>;',
+	'<span class="ln"> 4</span>     <span class="tag">&lt;</span><span class="el">h1</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">user</span>.<span class="prop">name</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h1</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 5</span>   <span class="br">}</span> <span class="kw">else</span> <span class="br">{</span>',
+	'<span class="ln"> 6</span>     <span class="tag">&lt;</span><span class="el">a</span> <span class="attr">href</span>=<span class="str">"/login"</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Sign in\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">a</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 7</span>   <span class="br">}</span>',
+	'<span class="ln"> 8</span> <span class="br">}</span>',
+].join('\n');
+
+const SOLID_LAZY_HTML = [
+	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">Counter</span><span class="br">(</span><span class="br">&amp;{</span> <span class="prop">count</span>, <span class="prop">label</span> <span class="br">}</span>: <span class="type">Props</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 2</span>   <span class="tag">&lt;</span><span class="el">section</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 3</span>     <span class="tag">&lt;</span><span class="el">h2</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">label</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h2</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 4</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">`Count: ${</span><span class="prop">count</span><span class="str">}`</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 5</span>   <span class="tag">&lt;/</span><span class="el">section</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 6</span> <span class="br">}</span>',
+].join('\n');
+
+const INLINE_LOCALS_HTML = [
+	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">Cart</span><span class="br">(</span><span class="br">{</span> <span class="prop">items</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">items</span>: <span class="type">Item</span><span class="br">[]</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 2</span>   <span class="tag">&lt;</span><span class="el">div</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 3</span>     <span class="tag">&lt;</span><span class="el">h2</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Your cart\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h2</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 4</span>',
+	'<span class="ln"> 5</span>     <span class="kw">const</span> <span class="prop">subtotal</span> = <span class="prop">items</span>.<span class="fn">reduce</span><span class="br">(</span><span class="br">(</span><span class="prop">sum</span>, <span class="prop">item</span><span class="br">)</span> =&gt; <span class="prop">sum</span> + <span class="prop">item</span>.<span class="prop">price</span>, <span class="val">0</span><span class="br">)</span>;',
+	'<span class="ln"> 6</span>     <span class="kw">const</span> <span class="prop">discount</span> = <span class="prop">subtotal</span> &gt; <span class="val">100</span> ? <span class="val">0.1</span> : <span class="val">0</span>;',
+	'<span class="ln"> 7</span>',
+	'<span class="ln"> 8</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">`Subtotal: $${</span><span class="prop">subtotal</span><span class="str">}`</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 9</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">`Save: $${</span><span class="br">(</span><span class="prop">subtotal</span> * <span class="prop">discount</span><span class="br">)</span>.<span class="fn">toFixed</span><span class="br">(</span><span class="val">2</span><span class="br">)</span><span class="str">}`</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln">10</span>   <span class="tag">&lt;/</span><span class="el">div</span><span class="tag">&gt;</span>',
+	'<span class="ln">11</span> <span class="br">}</span>',
+].join('\n');
+
 const COLOCATION_HTML = [
 	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">UserList</span><span class="br">(</span><span class="br">{</span> <span class="prop">users</span>, <span class="prop">showBio</span> <span class="br">}</span>: <span class="type">Props</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln"> 2</span>   <span class="kw">for</span> <span class="br">(</span><span class="kw">const</span> <span class="prop">user</span> <span class="kw">of</span> <span class="prop">users</span><span class="br">)</span> <span class="br">{</span>',
@@ -54,8 +88,9 @@ export component IndexPage() {
 				</a>
 				<nav class="masthead-nav">
 					<a href="/getting-started">{'Getting Started'}</a>
-					<a href="/docs">{'Docs'}</a>
+					<a href="/features">{'Features'}</a>
 					<a href="/playground">{'Playground'}</a>
+					<a href="/llms.txt" target="_blank" rel="noopener noreferrer">{'llms.txt'}</a>
 					<a
 						href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
 						target="_blank"
@@ -69,7 +104,7 @@ export component IndexPage() {
 			<section class="hero" id="top">
 				<div class="hero-copy">
 					<h1>
-						{'TSRX is a TypeScript language extension for building declarative UIs in an agentic era'}
+						{'TSRX is a TypeScript language extension for building declarative UIs in an agentic era.'}
 					</h1>
 				</div>
 			</section>
@@ -82,7 +117,10 @@ export component IndexPage() {
 					<code>{html SNIPPET_HTML}</code>
 				</pre>
 				<p class="section-body what-is-copy">
-					{'TSRX is framework-agnostic and interoperable. Today it compiles to React and Ripple, with room for more targets over time. You can import '}
+					{'You can think of TSRX as a spiritual successor to JSX — the same mental model of embedding UI directly inside TypeScript, but with its own flavor. Control flow, scoped styles, and locals sit in the template as first-class syntax instead of being squeezed through expression slots, and the language stays aware of them through to the compiled output.'}
+				</p>
+				<p class="section-body what-is-copy">
+					{'TSRX is framework-agnostic and interoperable. Today it compiles to React, Ripple, and Solid, with room for more targets over time. You can import '}
 					<code class="inline-code">{'.tsrx'}</code>
 					{' modules from JS, TS, and TSX files and it just works.'}
 				</p>
@@ -101,20 +139,66 @@ export component IndexPage() {
 				<p class="section-body">
 					{'Code is increasingly written, reviewed, and transformed with machine assistance. When UI structure is more explicit, editors, compilers, and code generation tools have a better surface to work with without changing the framework semantics underneath.'}
 				</p>
+				<p class="section-body">
+					{'This is consistent with findings that language models attend unevenly to long contexts, performing best when relevant information sits close together rather than scattered across a window.'}
+				</p>
+				<p class="section-body">
+					<a
+						class="cta-link"
+						href="https://arxiv.org/abs/2307.03172"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						{'Lost in the Middle (Liu et al., TACL 2024) →'}
+					</a>
+				</p>
+			</section>
+
+			<section class="readable-section section-shell">
+				<p class="eyebrow">{'Ergonomics'}</p>
+				<h2 class="section-heading">{'Better ergonomics for today\'s frameworks.'}</h2>
+				<p class="section-body">
+					{'TSRX takes care of the awkward parts each framework asks you to work around. Patterns that are natural to write — but fragile or illegal in the target runtime — get rewritten at compile time into the exact shape React, Solid, or Ripple expects. The source stays readable for humans and predictable for language models; the compiler handles the footguns.'}
+				</p>
+
+				<p class="section-body">
+					{'React hooks can be called conditionally. The compiler lifts the conditional branch into its own component so the rules of hooks are satisfied by construction — no more manually splitting components just to gate a '}
+					<code class="inline-code">{'useUser(...)'}</code>
+					{' call behind an '}
+					<code class="inline-code">{'if'}</code>
+					{'.'}
+				</p>
+				<pre class="code-block">
+					<code>{html REACT_HOOKS_HTML}</code>
+				</pre>
+
+				<p class="section-body">
+					{'Solid props can be destructured eagerly. The '}
+					<code class="inline-code">{'&{ ... }'}</code>
+					{' pattern compiles to lazy getters, so reads stay reactive without forcing '}
+					<code class="inline-code">{'props.count'}</code>
+					{' everywhere and without losing type inference on the destructured names.'}
+				</p>
+				<pre class="code-block">
+					<code>{html SOLID_LAZY_HTML}</code>
+				</pre>
+
+				<p class="section-body">
+					{'Locals can live next to the JSX that uses them. Variables declared mid-template stay scoped to their surrounding block, so derived values sit beside the markup they feed instead of piling up at the top of the component. Concerns stay together; readers (and LLMs) do less bookkeeping to follow the data flow.'}
+				</p>
+				<pre class="code-block">
+					<code>{html INLINE_LOCALS_HTML}</code>
+				</pre>
 			</section>
 
 			<section class="readable-section section-shell" id="tooling">
 				<p class="eyebrow">{'Tooling and adoption'}</p>
 				<h2 class="section-heading">{'Rich integration with existing tooling.'}</h2>
 				<p class="section-body">
-					{'TSRX ships with a language server for editor diagnostics, navigation, and completion. Prettier and ESLint plugins keep formatting and linting consistent inside existing repositories, so the language can be adopted seriously instead of treated like a compiler experiment.'}
+					{'TSRX ships with a language server for editor diagnostics, navigation, and completion. Prettier and ESLint plugins keep formatting and linting consistent inside existing repositories, so the language can be adopted seriously instead of treated like a compiler experiment. Plus support for many IDEs and editors including VS Code, Zed, Neovim, IntelliJ and Sublime.'}
 				</p>
 				<p class="section-body">
 					{'It interoperates with existing TypeScript and TSX codebases rather than demanding a full rewrite. Teams can adopt it where ergonomics matter most while keeping the surrounding code familiar. '}
-					<code class="inline-code">{'@tsrx/react'}</code>
-					{' and '}
-					<code class="inline-code">{'@tsrx/ripple'}</code>
-					{' already demonstrate that one source language can serve different framework semantics.'}
 				</p>
 			</section>
 
@@ -124,8 +208,10 @@ export component IndexPage() {
 				<p class="section-body">
 					{'The TSRX compiler parses component source into an AST and hands it off to framework-specific plugins for code generation. Plugins such as '}
 					<code class="inline-code">{'@tsrx/react'}</code>
-					{' or '}
+					{', '}
 					<code class="inline-code">{'@tsrx/ripple'}</code>
+					{', and '}
+					<code class="inline-code">{'@tsrx/solid'}</code>
 					{' transform the same AST into idiomatic output for their target runtimes, including scoped CSS. New targets can be added as standalone compiler plugins without changing the language itself.'}
 				</p>
 				<p class="section-body">
@@ -148,6 +234,7 @@ export component IndexPage() {
 		:global(html) {
 			scroll-behavior: smooth;
 			overflow-x: hidden;
+			scrollbar-gutter: stable;
 		}
 
 		:global(body) {

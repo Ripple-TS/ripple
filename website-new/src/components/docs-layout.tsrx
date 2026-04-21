@@ -105,7 +105,7 @@ export component DocsLayout({
 													role="heading"
 													aria-level="2"
 												>
-													{'On this page'}
+													{'Features'}
 												</div>
 												<ul class="DocumentOutlineItem root">
 													for (const item of toc) {

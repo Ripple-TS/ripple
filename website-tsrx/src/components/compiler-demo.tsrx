@@ -12,10 +12,12 @@ const EMPTY_DEMO_SOURCE = '';
 const TARGET_OPTIONS = [
 	{ value: 'react', label: 'React' },
 	{ value: 'ripple', label: 'Ripple' },
+	{ value: 'solid', label: 'Solid' },
 ];
 const TARGET_LABELS: Record<string, string> = {
 	react: 'React output',
 	ripple: 'Ripple output',
+	solid: 'Solid output',
 };
 
 const VALID_TARGETS = new Set(TARGET_OPTIONS.map((o) => o.value));
@@ -81,10 +83,12 @@ export component CompilerDemo() {
 	let &[error_message] = track('');
 	let &[last_updated] = track('');
 	let &[editors_ready] = track(false);
+	let &[formatting] = track(false);
 	let active_mobile_panel: Tracked<'input' | 'output'> = track('input');
 	let latest_source = initial_source;
 	let request_compile = () => {};
 	let load_source = (_next_source: string) => {};
+	let format_source = async () => {};
 
 	effect(() => {
 		if (!source_ref.value || !output_ref.value) {
@@ -273,6 +277,48 @@ export component CompilerDemo() {
 				replace_doc(source_view, next_source);
 			};
 
+			format_source = async () => {
+				if (!source_view || formatting) {
+					return;
+				}
+
+				const current = source_view.state.doc.toString();
+				if (!current.trim()) {
+					return;
+				}
+
+				formatting = true;
+				try {
+					const response = await fetch('/api/format', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ source: current }),
+					});
+
+					const payload = await response.json();
+
+					if (disposed) {
+						return;
+					}
+
+					if (!response.ok) {
+						error_message = payload.error || 'Formatting failed.';
+						return;
+					}
+
+					if (typeof payload.source === 'string' && payload.source !== current) {
+						replace_doc(source_view, payload.source);
+					}
+				} catch (error) {
+					if (disposed) {
+						return;
+					}
+					error_message = error instanceof Error ? error.message : 'Formatting failed.';
+				} finally {
+					formatting = false;
+				}
+			};
+
 			source_view = new EditorView({
 				state: EditorState.create(
 					{
@@ -316,6 +362,7 @@ export component CompilerDemo() {
 			disposed = true;
 			request_compile = () => {};
 			load_source = (_next_source: string) => {};
+			format_source = async () => {};
 			window.clearTimeout(debounce_id);
 			window.clearTimeout(hash_debounce_id);
 			active_controller?.abort();
@@ -391,7 +438,20 @@ export component CompilerDemo() {
 			<div class={`panel panel-source${active_mobile_panel.value === 'input' ? ' is-active' : ''}`}>
 				<div class="panel-topline">
 					<span>{'TSRX input'}</span>
-					<span>{'.tsrx'}</span>
+					<span class="panel-topline-actions">
+						<span>{'.tsrx'}</span>
+						<button
+							type="button"
+							class="format-button"
+							onClick={() => {
+								void format_source();
+							}}
+							disabled={formatting || !editors_ready}
+							title="Format with Prettier"
+						>
+							{formatting ? 'Formatting…' : 'Format'}
+						</button>
+					</span>
 				</div>
 				<div class="panel-body editor-host" {ref bindNode(source_ref)} />
 			</div>
@@ -549,13 +609,49 @@ export component CompilerDemo() {
 		.panel-topline {
 			display: flex;
 			justify-content: space-between;
+			align-items: center;
 			gap: 1rem;
-			padding: 0.8rem 1rem;
+			padding: 0.4rem 1rem;
+			min-height: 2.5rem;
 			background: rgba(255, 255, 255, 0.03);
 			font-size: 0.78rem;
 			letter-spacing: 0.06em;
 			text-transform: uppercase;
 			color: rgba(214, 224, 255, 0.78);
+		}
+
+		.panel-topline-actions {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.6rem;
+		}
+
+		.format-button {
+			font: inherit;
+			font-size: 0.72rem;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			padding: 0.3rem 0.7rem;
+			border-radius: 999px;
+			border: 1px solid rgba(138, 152, 255, 0.32);
+			background: rgba(138, 152, 255, 0.12);
+			color: rgba(226, 231, 255, 0.92);
+			cursor: pointer;
+			transition:
+				background 120ms ease,
+				border-color 120ms ease,
+				color 120ms ease;
+		}
+
+		.format-button:hover:not(:disabled) {
+			background: rgba(138, 152, 255, 0.22);
+			border-color: rgba(138, 152, 255, 0.55);
+			color: #fff;
+		}
+
+		.format-button:disabled {
+			opacity: 0.45;
+			cursor: not-allowed;
 		}
 
 		.panel-body {

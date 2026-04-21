@@ -211,6 +211,28 @@ const REACT_HOOKS_HTML = [
 	'<span class="ln">25</span> <span class="br">}</span>',
 ].join('\n');
 
+const LAZY_PROPS_HTML = [
+	'<span class="ln">1</span> <span class="kw">component</span> <span class="fn">UserCard</span><span class="br">(</span>&amp;<span class="br">{</span> <span class="prop">name</span>, <span class="prop">age</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">name</span>: <span class="type">string</span>; <span class="prop">age</span>: <span class="type">number</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln">2</span>   <span class="tag">&lt;</span><span class="el">div</span><span class="tag">&gt;</span>',
+	'<span class="ln">3</span>     <span class="tag">&lt;</span><span class="el">h2</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">name</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h2</span><span class="tag">&gt;</span>',
+	'<span class="ln">4</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">`Age: ${</span><span class="prop">age</span><span class="str">}`</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln">5</span>   <span class="tag">&lt;/</span><span class="el">div</span><span class="tag">&gt;</span>',
+	'<span class="ln">6</span> <span class="br">}</span>',
+].join('\n');
+
+const LAZY_OBJ_VAR_HTML = [
+	'<span class="ln">1</span> <span class="kw">component</span> <span class="fn">Dashboard</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln">2</span>   <span class="kw">const</span> &amp;<span class="br">{</span> <span class="prop">user</span>, <span class="prop">isLoading</span> <span class="br">}</span> = <span class="fn">useDashboardData</span><span class="br">(</span><span class="br">)</span>;',
+	'<span class="ln">3</span>',
+	'<span class="ln">4</span>   <span class="kw">if</span> <span class="br">(</span><span class="prop">isLoading</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln">5</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Loading…\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln">6</span>     <span class="kw-ctrl">return</span>;',
+	'<span class="ln">7</span>   <span class="br">}</span>',
+	'<span class="ln">8</span>',
+	'<span class="ln">9</span>   <span class="tag">&lt;</span><span class="el">h1</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">user</span>.<span class="prop">name</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h1</span><span class="tag">&gt;</span>',
+	'<span class="ln">10</span> <span class="br">}</span>',
+].join('\n');
+
 const NAV_ITEMS = [
 	{ id: 'components', label: 'Components' },
 	{ id: 'jsx', label: 'Statement-based JSX' },
@@ -225,6 +247,7 @@ const NAV_ITEMS = [
 	{ id: 'scoped-styles', label: 'Scoped styles' },
 	{ id: 'style-composition', label: 'Style composition' },
 	{ id: 'early-return', label: 'Early returns' },
+	{ id: 'lazy-destructuring', label: 'Lazy destructuring' },
 	{ id: 'react-hooks', label: 'React Hooks' },
 ];
 
@@ -247,6 +270,7 @@ export component DocsPage() {
 					<a href="/getting-started">{'Getting Started'}</a>
 					<a href="/docs" aria-current="page">{'Docs'}</a>
 					<a href="/playground">{'Playground'}</a>
+					<a href="/llms.txt" target="_blank" rel="noopener noreferrer">{'llms.txt'}</a>
 					<a
 						href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
 						target="_blank"
@@ -506,6 +530,35 @@ export component DocsPage() {
 							{' are not valid in component bodies.'}
 						</p>
 					</section>
+					<section class="doc-section" id="lazy-destructuring">
+						<h2 class="section-heading">{'Lazy destructuring'}</h2>
+						<p class="section-body">
+							{'TSRX adds two sigils — '}
+							<code class="inline-code">{'&{ ... }'}</code>
+							{' for objects and '}
+							<code class="inline-code">{'&[ ... ]'}</code>
+							{' for arrays — that look like destructuring but defer the actual property access until each binding is read. Every reference to a lazy binding is compiled back to a property lookup on the source object, so downstream readers pick up the latest value without a manual getter.'}
+						</p>
+						<p class="section-body">
+							{'The most common use is in component parameters. Regular object destructuring would snapshot each prop at call time and break any target runtime that relies on per-access reactivity (Ripple, Solid). '}
+							<code class="inline-code">{'&{ ... }'}</code>
+							{' preserves that reactivity while keeping the ergonomic destructuring syntax:'}
+						</p>
+						<pre class="code-block">
+							<code>{html LAZY_PROPS_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'And '}
+							<code class="inline-code">{'&{ ... }'}</code>
+							{' works equally well on the return value of hooks, stores, or context objects — each binding resolves lazily at the point of use:'}
+						</p>
+						<pre class="code-block">
+							<code>{html LAZY_OBJ_VAR_HTML}</code>
+						</pre>
+						<p class="section-body muted">
+							{'Lazy destructuring is supported across every target. In React it compiles to direct property access on the source object, in Ripple and Solid it preserves tracked/signal reactivity without needing a wrapper call.'}
+						</p>
+					</section>
 					<section class="doc-section" id="react-hooks">
 						<h2 class="section-heading">{'React Hooks'}</h2>
 						<p class="section-body">
@@ -535,6 +588,7 @@ export component DocsPage() {
 		:global(html) {
 			scroll-behavior: smooth;
 			overflow-x: hidden;
+			scrollbar-gutter: stable;
 		}
 
 		:global(body) {
