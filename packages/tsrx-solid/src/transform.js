@@ -187,6 +187,13 @@ function component_to_function_declaration(component, transform_context) {
 	// (signal creation, resource declarations, etc.) runs exactly once at
 	// component setup — putting them inside the `<Show>` arrow would re-run
 	// them on every toggle, creating fresh signals and losing state.
+	//
+	// The `if` node itself is elided: its `test` expression lives on in the
+	// `<Show when={!cond}>` attribute and is evaluated reactively by Solid's
+	// runtime, so any side effects or reactive reads in `cond` are preserved.
+	// Non-JSX statements after the guard run unconditionally rather than being
+	// gated by it; this is an intentional divergence from imperative `return`
+	// semantics required by the setup-once component model.
 	const early_idx = body.findIndex(is_early_return_if);
 	/** @type {any[]} */
 	let effective_body = body;
