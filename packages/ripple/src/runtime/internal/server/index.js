@@ -24,7 +24,7 @@ import {
 } from '../client/constants.js';
 import { DEV } from 'esm-env';
 import { is_ripple_object, array_slice } from '../client/utils.js';
-import { escape } from '../../../utils/escaping.js';
+import { escape, escape_script } from '../../../utils/escaping.js';
 import { is_boolean_attribute } from '../../../utils/attributes.js';
 import { clsx } from 'clsx';
 import { normalize_css_property_name } from '../../../utils/normalize_css_property_name.js';
@@ -1240,7 +1240,7 @@ function get_public_track_async_error_message(error) {
  * @returns {void}
  */
 function push_script_for_hydration(push_fn, hash, envelope) {
-	var serialized_envelope = JSON.stringify(envelope).replace(/</g, '\\u003C');
+	var serialized_envelope = escape_script(JSON.stringify(envelope));
 
 	push_fn(
 		'<script id="' +

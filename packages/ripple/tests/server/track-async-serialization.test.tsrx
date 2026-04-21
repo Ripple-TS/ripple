@@ -149,7 +149,7 @@ describe('trackAsync serialization (server)', () => {
 
 		const { body } = await render(App);
 		expect(body).toContain('__tsrx_ta_');
-		expect(body).toContain('\\u003C/script>');
+		expect(body).toContain('\\u003c/script\\u003e');
 		expect(body).not.toContain('type="application/json">{"ok":false,"error":{"message":"</script>');
 	});
 

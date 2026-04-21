@@ -24,3 +24,12 @@ export function escape(value, is_attr) {
 
 	return escaped + str.substring(last);
 }
+
+/**
+ * Escapes characters that can prematurely terminate inline script tags.
+ * @param {string} str
+ * @returns {string}
+ */
+export function escape_script(str) {
+	return str.replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
+}
