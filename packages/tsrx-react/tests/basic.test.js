@@ -1049,6 +1049,38 @@ describe('@tsrx/react basic', () => {
 			'<StatementBodyHook1 items={items} item={item} index={index} key={index} />',
 		);
 	});
+
+	it('adds index key to non-hook loop items in conditional branches', () => {
+		const { code } = compile(
+			`export component FeatureCard({
+				title,
+				items,
+				ready,
+			}: {
+				title: string;
+				items: string[];
+				ready: boolean;
+			}) {
+				<section class="feature-card">
+					<h2>{title}</h2>
+
+					if (ready) {
+						<ul>
+							for (const item of items; index index) {
+								<li>{item}</li>
+							}
+						</ul>
+					} else {
+						<p>{'Loading output...'}</p>
+					}
+				</section>
+			}`,
+			'FeatureCard.tsrx',
+		);
+
+		expect(code).toContain('items.map((item, index) =>');
+		expect(code).toContain('return <li key={index}>{item}</li>;');
+	});
 });
 
 describe('lazy destructuring', () => {
