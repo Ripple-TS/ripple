@@ -1555,11 +1555,7 @@ function register_block_rerun(block) {
 			if (cancelled) {
 				return;
 			}
-			route_track_async_error_to_catch_block(
-				try_catch_block,
-				/** @type {Tracked} */ (t).h,
-				error,
-			);
+			route_track_async_error_to_catch_block(try_catch_block, /** @type {Tracked} */ (t).h, error);
 		},
 	);
 	// clear all output buffers as we'll rerun the block rendering
