@@ -1027,6 +1027,28 @@ describe('@tsrx/react basic', () => {
 		// Key should appear on both the inner element and wrapper component
 		expect(code).toContain('<StatementBodyHook1 items={items} item={item} key={item} />');
 	});
+
+	it('adds index key to hook wrapper component when loop has index and no explicit key', () => {
+		const { code } = compile(
+			`import { useState } from 'react';
+
+			export component Component({ items }: { items: string[] }) {
+				<ul>
+					for (const item of items; index index) {
+						const state = useState(0);
+						<li>{item}</li>
+					}
+				</ul>
+			}`,
+			'Component.tsrx',
+		);
+
+		expect(code).toContain('function StatementBodyHook');
+		expect(code).toContain('items.map((item, index) =>');
+		expect(code).toContain(
+			'<StatementBodyHook1 items={items} item={item} index={index} key={index} />',
+		);
+	});
 });
 
 describe('lazy destructuring', () => {
