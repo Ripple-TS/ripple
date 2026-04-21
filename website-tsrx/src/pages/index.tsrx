@@ -152,7 +152,7 @@ export component IndexPage() {
 
 			<section class="readable-section section-shell">
 				<p class="eyebrow">{'Ergonomics'}</p>
-				<h2 class="section-heading">{"Better ergonomics for today's frameworks."}</h2>
+				<h2 class="section-heading">{'Better ergonomics for today\'s frameworks.'}</h2>
 				<p class="section-body">
 					{'TSRX takes care of the awkward parts each framework asks you to work around. Patterns that are natural to write — but fragile or illegal in the target runtime — get rewritten at compile time into the exact shape React, Solid, or Ripple expects. The source stays readable for humans and predictable for language models; the compiler handles the footguns.'}
 				</p>

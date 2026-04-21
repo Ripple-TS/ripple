@@ -1,4 +1,5 @@
 import { RenderRoute, ServerRoute } from '@ripple-ts/vite-plugin';
+import * as ripple_prettier_plugin from '@ripple-ts/prettier-plugin';
 import { compile as compile_react } from '@tsrx/react';
 import { compile as compile_ripple } from '@tsrx/ripple';
 import { compile as compile_solid } from '@tsrx/solid';
@@ -90,11 +91,57 @@ async function compile_target(target, source) {
 	};
 }
 
+/**
+ * @param {string} source
+ * @returns {Promise<string>}
+ */
+async function format_tsrx(source) {
+	return await format(source, {
+		parser: 'ripple',
+		plugins: [ripple_prettier_plugin as any],
+		useTabs: false,
+		tabWidth: 2,
+		singleQuote: true,
+		printWidth: 100,
+	});
+}
+
 export const routes = [
 	new RenderRoute({ path: '/', entry: '/src/pages/index.tsrx' }),
 	new RenderRoute({ path: '/getting-started', entry: '/src/pages/getting-started.tsrx' }),
 	new RenderRoute({ path: '/features', entry: '/src/pages/features.tsrx' }),
 	new RenderRoute({ path: '/playground', entry: '/src/pages/playground.tsrx' }),
+	new ServerRoute({
+		path: '/api/format',
+		methods: ['POST'],
+		handler: async (context) => {
+			let body;
+
+			try {
+				body = await context.request.json();
+			} catch {
+				return Response.json({ error: 'Request body must be valid JSON.' }, { status: 400 });
+			}
+
+			const source = typeof body?.source === 'string' ? body.source : '';
+			if (!source.trim()) {
+				return Response.json({ error: 'A non-empty source string is required.' }, { status: 400 });
+			}
+
+			if (source.length > MAX_SOURCE_LENGTH) {
+				return Response.json(
+					{ error: `Source exceeds the ${MAX_SOURCE_LENGTH} character demo limit.` },
+					{ status: 413 },
+				);
+			}
+
+			try {
+				return Response.json({ source: await format_tsrx(source) });
+			} catch (error) {
+				return Response.json({ error: get_error_message(error) }, { status: 422 });
+			}
+		},
+	}),
 	new ServerRoute({
 		path: '/api/compile',
 		methods: ['POST'],

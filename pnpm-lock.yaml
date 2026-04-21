@@ -1080,6 +1080,9 @@ importers:
       '@ripple-ts/adapter-node':
         specifier: workspace:*
         version: link:../packages/adapter-node
+      '@ripple-ts/prettier-plugin':
+        specifier: workspace:*
+        version: link:../packages/prettier-plugin
       '@tsrx/react':
         specifier: workspace:*
         version: link:../packages/tsrx-react
