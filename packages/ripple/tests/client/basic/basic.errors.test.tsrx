@@ -195,7 +195,7 @@ describe('basic client > errors', () => {
 		`;
 		expect(() => {
 			compile(code, 'test.tsrx', { mode: 'client' });
-		}).toThrow('`await` is not allowed inside client components');
+		}).toThrow(/`await` is not allowed inside components\./);
 	});
 
 	it('should throw error for while loop inside a component', () => {
