@@ -1,5 +1,7 @@
 # @ripple-ts/typescript-plugin
 
+## 0.3.22
+
 ## 0.3.21
 
 ### Patch Changes

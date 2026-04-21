@@ -1,5 +1,23 @@
 # ripple
 
+## 0.3.22
+
+### Patch Changes
+
+- [`bc8a6ed`](https://github.com/Ripple-TS/ripple/commit/bc8a6ed53d451da90cb6eb6ff9ec564f6f0cabe8)
+  Thanks [@trueadm](https://github.com/trueadm)! - Restore the `ripple/compiler`
+  subpath export. The compiler was moved into `@tsrx/ripple` during the
+  Ripple/TSRX split, which accidentally dropped `ripple/compiler` from the
+  published `exports` map — breaking downstream tooling that imports the compiler
+  by the public path, including `livecodes` and any playground served through
+  `esm.sh`. The path now re-exports the `@tsrx/ripple` API (`compile`, `parse`,
+  `compile_to_volar_mappings`, and the shared types), and `@tsrx/ripple` is
+  promoted to a runtime dependency so the re-export resolves for installed
+  consumers.
+- Updated dependencies
+  [[`bc8a6ed`](https://github.com/Ripple-TS/ripple/commit/bc8a6ed53d451da90cb6eb6ff9ec564f6f0cabe8)]:
+  - ripple@0.3.22
+
 ## 0.3.21
 
 ### Patch Changes
