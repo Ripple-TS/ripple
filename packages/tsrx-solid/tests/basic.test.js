@@ -135,6 +135,76 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain("name == null ? '' : name + ''");
 		});
 
+		it('{text expr} as the only child of a host element lowers to textContent', () => {
+			// Setting `textContent` as a DOM property is cheaper than Solid's
+			// default `insert()`-based text-node binding, so hoist the single
+			// `{text ...}` child up to an attribute on the parent element.
+			const { code } = compile(
+				`component App({ name }: { name: string | null }) {
+					<p>{text name}</p>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toMatch(/<p\s+textContent=\{name == null \? '' : name \+ ''\}\s*\/>/);
+			expect(code).not.toContain('</p>');
+		});
+
+		it('does not hoist {text expr} when there are sibling children', () => {
+			// With siblings, setting `textContent` would clobber them.
+			const { code } = compile(
+				`component App({ name }: { name: string | null }) {
+					<p>{text name}<span>{'!'}</span></p>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).not.toContain('textContent=');
+			expect(code).toContain('</p>');
+		});
+
+		it('does not hoist {text expr} on composite components', () => {
+			// `textContent` is a DOM primitive; on a composite component it
+			// would just be an opaque prop with no defined semantics.
+			const { code } = compile(
+				`component Label(props: { children?: any }) {
+					<span>{props.children}</span>
+				}
+
+				component App({ name }: { name: string | null }) {
+					<Label>{text name}</Label>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).not.toContain('textContent=');
+			expect(code).toContain('<Label>');
+			expect(code).toContain('</Label>');
+		});
+
+		it('does not hoist {text expr} when the user already set textContent', () => {
+			const { code } = compile(
+				`component App({ name, fallback }: { name: string | null; fallback: string }) {
+					<p textContent={fallback}>{text name}</p>
+				}`,
+				'App.tsrx',
+			);
+			// User-supplied `textContent` wins; the child is left as a regular
+			// text binding so no duplicate attribute is emitted.
+			expect(code).toContain('textContent={fallback}');
+			expect(code).not.toMatch(/textContent=\{name == null/);
+		});
+
+		it('still hoists {text expr} alongside other attributes', () => {
+			const { code } = compile(
+				`component App({ name, id }: { name: string | null; id: string }) {
+					<p class="greeting" id={id}>{text name}</p>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toMatch(/textContent=\{name == null \? '' : name \+ ''\}/);
+			expect(code).toContain('class="greeting"');
+			expect(code).toContain('id={id}');
+			expect(code).not.toContain('</p>');
+		});
+
 		it('rejects `{html expr}` as a child of a host element', () => {
 			// The `{html ...}` primitive is Ripple-only. On the Solid target
 			// users should spell it as `innerHTML={...}` on the element so

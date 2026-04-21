@@ -108,13 +108,10 @@ export function transform(ast, source, filename) {
 			return /** @type {any} */ (to_jsx_element(inner, state));
 		},
 
-		Text(node, { next }) {
-			const inner = /** @type {any} */ (next() ?? node);
-			return /** @type {any} */ (
-				to_jsx_expression_container(to_text_expression(inner.expression, inner), inner)
-			);
-		},
-
+		// `Text` nodes are lowered by `to_jsx_child` (and the `textContent`
+		// optimization in `to_jsx_element`) rather than the walker, so the
+		// parent element still sees a raw `Text` child when it runs and can
+		// decide whether to hoist it up to an attribute.
 		TSRXExpression(node, { next }) {
 			const inner = /** @type {any} */ (next() ?? node);
 			return /** @type {any} */ (to_jsx_expression_container(inner.expression, inner));
@@ -976,8 +973,49 @@ function to_jsx_element(node, transform_context) {
 			'`{html ...}` is not supported on the Solid target. Use `innerHTML={...}` as an element attribute instead.',
 		);
 	}
-	const selfClosing = !!node.selfClosing;
-	const children = create_element_children(raw_children, transform_context);
+
+	// Optimization: `<el>{text expr}</el>` with a single `{text ...}` child
+	// on a host (DOM) element lowers to `<el textContent={expr} />`. Solid
+	// writes `textContent` as a direct DOM property, which is cheaper than
+	// the `insert()`-based text node binding it would otherwise emit for
+	// child expressions. Only safe when `{text ...}` is the sole child and
+	// the parent is a host element (composite components receive
+	// `textContent` as an opaque prop with no DOM semantics), and when the
+	// user hasn't already set `textContent` themselves.
+	let selfClosing = !!node.selfClosing;
+	let children;
+	if (
+		!is_composite &&
+		raw_children.length === 1 &&
+		raw_children[0] &&
+		raw_children[0].type === 'Text' &&
+		!has_text_content_attribute(attributes)
+	) {
+		const text_child = raw_children[0];
+		attributes.push(
+			set_loc(
+				/** @type {any} */ ({
+					type: 'JSXAttribute',
+					name: {
+						type: 'JSXIdentifier',
+						name: 'textContent',
+						metadata: { path: [] },
+					},
+					value: to_jsx_expression_container(
+						to_text_expression(text_child.expression, text_child),
+						text_child,
+					),
+					shorthand: false,
+					metadata: { path: [] },
+				}),
+				text_child,
+			),
+		);
+		children = [];
+		selfClosing = true;
+	} else {
+		children = create_element_children(raw_children, transform_context);
+	}
 
 	const openingElement = set_loc(
 		/** @type {any} */ ({
@@ -1084,6 +1122,25 @@ function is_composite_element(node) {
 	if (id.type === 'Identifier') return /^[A-Z]/.test(id.name);
 	if (id.type === 'MemberExpression') return true;
 	return false;
+}
+
+/**
+ * Check if the user already supplied a `textContent` attribute on the
+ * element. If they did, the compiler mustn't emit another one — the
+ * `{text expr}` → `textContent={...}` optimization bails out.
+ *
+ * @param {any[]} attributes
+ * @returns {boolean}
+ */
+function has_text_content_attribute(attributes) {
+	return attributes.some(
+		(/** @type {any} */ attr) =>
+			attr &&
+			attr.type === 'JSXAttribute' &&
+			attr.name &&
+			attr.name.type === 'JSXIdentifier' &&
+			attr.name.name === 'textContent',
+	);
 }
 
 /**
