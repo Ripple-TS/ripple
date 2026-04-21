@@ -180,9 +180,13 @@ function component_to_function_declaration(component, transform_context) {
 	// Solid components run their body once at setup, so an early `return` would
 	// make subsequent statements and JSX permanently inert. To preserve
 	// React-like "stop rendering the rest when cond becomes true" semantics,
-	// lift everything after the early `if` (plus any JSX that appears before
+	// lift JSX from after the early `if` (plus any JSX that appears before
 	// it, since that too must disappear when cond flips) into a
 	// `<Show when={!cond}>` whose function-children re-runs when cond changes.
+	// Non-JSX statements on either side stay in the outer body so setup code
+	// (signal creation, resource declarations, etc.) runs exactly once at
+	// component setup — putting them inside the `<Show>` arrow would re-run
+	// them on every toggle, creating fresh signals and losing state.
 	const early_idx = body.findIndex(is_early_return_if);
 	/** @type {any[]} */
 	let effective_body = body;
@@ -198,12 +202,20 @@ function component_to_function_declaration(component, transform_context) {
 			if (is_jsx_child(child)) before_jsx.push(child);
 			else before_non_jsx.push(child);
 		}
-		const lifted = [...before_jsx, ...after];
+		/** @type {any[]} */
+		const after_non_jsx = [];
+		/** @type {any[]} */
+		const after_jsx = [];
+		for (const child of after) {
+			if (is_jsx_child(child)) after_jsx.push(child);
+			else after_non_jsx.push(child);
+		}
+		const lifted = [...before_jsx, ...after_jsx];
 		if (lifted.length > 0) {
 			transform_context.needs_show = true;
 			const show_body = body_to_jsx_child(lifted, transform_context);
 			const show_element = build_show_element(negate_expression(early_if.test), show_body, null);
-			effective_body = [...before_non_jsx, show_element];
+			effective_body = [...before_non_jsx, ...after_non_jsx, show_element];
 		}
 	}
 

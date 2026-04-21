@@ -356,6 +356,29 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toMatch(/<Match when=\{kind === 'a'\}>/);
 			expect(code).toMatch(/<Match when=\{kind === 'b'\}>/);
 		});
+
+		it('early-return keeps non-JSX after statements in outer body', () => {
+			// Regression: non-JSX statements declared after `if (cond) return;`
+			// (e.g. createSignal calls) must run once at setup rather than
+			// inside the generated <Show> callback, otherwise they re-execute
+			// on every reactive toggle and lose state.
+			const { code } = compile(
+				`import { createSignal } from 'solid-js';
+				component App({ cond }: { cond: boolean }) {
+					if (cond) return;
+					const [doubled, setDoubled] = createSignal(0);
+					<div>{doubled()}</div>
+				}`,
+				'App.tsrx',
+			);
+			// The signal declaration should precede the <Show> element in the
+			// outer function body, not live inside the Show's function child.
+			const signal_idx = code.indexOf('createSignal(0)');
+			const show_idx = code.indexOf('<Show when={!cond}');
+			expect(signal_idx).toBeGreaterThan(-1);
+			expect(show_idx).toBeGreaterThan(-1);
+			expect(signal_idx).toBeLessThan(show_idx);
+		});
 	});
 
 	describe('<tsx> fragments', () => {
