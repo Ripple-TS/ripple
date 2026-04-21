@@ -1418,7 +1418,11 @@ function run_track_async(t, fn, block, dr, dj) {
 			if (dj) {
 				dj(error);
 			}
-			route_track_async_error_to_catch_block_with_boundary(get_closest_catch_block(block), t.h, error);
+			route_track_async_error_to_catch_block_with_boundary(
+				get_closest_catch_block(block),
+				t.h,
+				error,
+			);
 		},
 	);
 }
