@@ -3,14 +3,38 @@ import * as _$_ from 'ripple/internal/server';
 
 import { track, trackAsync } from 'ripple/server';
 
-export function AsyncSimpleValue() {
+export const _$_server_$_ = (() => {
+	var _$_server_$_ = {};
+
+	_$_server_$_.formatValue = async function formatValue(n) {
+		return `server-${n}`;
+	};
+
+	return _$_server_$_;
+})();
+
+export function AsyncWithServerCall() {
 	_$_.push_component();
+
+	let lazy = _$_.track(0, void 0, void 0, '2e21cbe9');
+
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="increment"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('increment');
+		}
+
+		_$_.output_push('</button>');
+	});
 
 	_$_.try_block(
 		() => {
 			_$_.output_push('<!--[-->');
 
-			let lazy = _$_.track_async(() => Promise.resolve('hydrated value'), '2e21cbe9');
+			let lazy_1 = _$_.track_async(() => _$_server_$_.formatValue(_$_.get(lazy)), 'f0c2b41e');
 
 			_$_.regular_block(() => {
 				_$_.output_push('<p');
@@ -18,7 +42,53 @@ export function AsyncSimpleValue() {
 				_$_.output_push('>');
 
 				{
-					_$_.output_push(_$_.escape(_$_.get(lazy)));
+					_$_.output_push(_$_.escape(_$_.get(lazy_1)));
+				}
+
+				_$_.output_push('</p>');
+			});
+
+			_$_.output_push('<!--]-->');
+		},
+		null,
+		() => {
+			_$_.output_push('<!--[-->');
+
+			_$_.regular_block(() => {
+				_$_.output_push('<p');
+				_$_.output_push(' class="loading"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('loading...');
+				}
+
+				_$_.output_push('</p>');
+			});
+
+			_$_.output_push('<!--]-->');
+		}
+	);
+
+	_$_.pop_component();
+}
+
+export function AsyncSimpleValue() {
+	_$_.push_component();
+
+	_$_.try_block(
+		() => {
+			_$_.output_push('<!--[-->');
+
+			let lazy_2 = _$_.track_async(() => Promise.resolve('hydrated value'), '4e502c38');
+
+			_$_.regular_block(() => {
+				_$_.output_push('<p');
+				_$_.output_push(' class="result"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push(_$_.escape(_$_.get(lazy_2)));
 				}
 
 				_$_.output_push('</p>');
@@ -56,7 +126,7 @@ export function AsyncNumericValue() {
 		() => {
 			_$_.output_push('<!--[-->');
 
-			let lazy_1 = _$_.track_async(() => Promise.resolve(42), 'f0c2b41e');
+			let lazy_3 = _$_.track_async(() => Promise.resolve(42), '14891754');
 
 			_$_.regular_block(() => {
 				_$_.output_push('<span');
@@ -64,7 +134,7 @@ export function AsyncNumericValue() {
 				_$_.output_push('>');
 
 				{
-					_$_.output_push(_$_.escape(_$_.get(lazy_1)));
+					_$_.output_push(_$_.escape(_$_.get(lazy_3)));
 				}
 
 				_$_.output_push('</span>');
@@ -102,7 +172,7 @@ export function AsyncObjectValue() {
 		() => {
 			_$_.output_push('<!--[-->');
 
-			let lazy_2 = _$_.track_async(() => Promise.resolve({ name: 'Alice', age: 30 }), '4e502c38');
+			let lazy_4 = _$_.track_async(() => Promise.resolve({ name: 'Alice', age: 30 }), 'f325448a');
 
 			_$_.regular_block(() => {
 				_$_.output_push('<div');
@@ -115,7 +185,7 @@ export function AsyncObjectValue() {
 					_$_.output_push('>');
 
 					{
-						_$_.output_push(_$_.escape(_$_.get(lazy_2).name));
+						_$_.output_push(_$_.escape(_$_.get(lazy_4).name));
 					}
 
 					_$_.output_push('</span>');
@@ -124,7 +194,7 @@ export function AsyncObjectValue() {
 					_$_.output_push('>');
 
 					{
-						_$_.output_push(_$_.escape(_$_.get(lazy_2).age));
+						_$_.output_push(_$_.escape(_$_.get(lazy_4).age));
 					}
 
 					_$_.output_push('</span>');
@@ -165,8 +235,8 @@ export function AsyncMultipleValues() {
 		() => {
 			_$_.output_push('<!--[-->');
 
-			let lazy_3 = _$_.track_async(() => Promise.resolve('alpha'), '14891754');
-			let lazy_4 = _$_.track_async(() => Promise.resolve('beta'), 'f325448a');
+			let lazy_5 = _$_.track_async(() => Promise.resolve('alpha'), 'ab8199a0');
+			let lazy_6 = _$_.track_async(() => Promise.resolve('beta'), 'fb7ad40b');
 
 			_$_.regular_block(() => {
 				_$_.output_push('<div');
@@ -179,7 +249,7 @@ export function AsyncMultipleValues() {
 					_$_.output_push('>');
 
 					{
-						_$_.output_push(_$_.escape(_$_.get(lazy_3)));
+						_$_.output_push(_$_.escape(_$_.get(lazy_5)));
 					}
 
 					_$_.output_push('</span>');
@@ -188,7 +258,7 @@ export function AsyncMultipleValues() {
 					_$_.output_push('>');
 
 					{
-						_$_.output_push(_$_.escape(_$_.get(lazy_4)));
+						_$_.output_push(_$_.escape(_$_.get(lazy_6)));
 					}
 
 					_$_.output_push('</span>');
@@ -229,7 +299,7 @@ export function AsyncWithCatch() {
 		() => {
 			_$_.output_push('<!--[-->');
 
-			let lazy_5 = _$_.track_async(() => Promise.reject(new Error('fetch failed')), 'ab8199a0');
+			let lazy_7 = _$_.track_async(() => Promise.reject(new Error('fetch failed')), '99982de5');
 
 			_$_.regular_block(() => {
 				_$_.output_push('<p');
@@ -237,7 +307,7 @@ export function AsyncWithCatch() {
 				_$_.output_push('>');
 
 				{
-					_$_.output_push(_$_.escape(_$_.get(lazy_5)));
+					_$_.output_push(_$_.escape(_$_.get(lazy_7)));
 				}
 
 				_$_.output_push('</p>');
@@ -291,7 +361,7 @@ export function ChildWithError() {
 		() => {
 			_$_.output_push('<!--[-->');
 
-			let lazy_6 = _$_.track_async(() => Promise.reject(new Error('child error')), 'fb7ad40b');
+			let lazy_8 = _$_.track_async(() => Promise.reject(new Error('child error')), '1dea4c85');
 
 			_$_.regular_block(() => {
 				_$_.output_push('<p');
@@ -299,7 +369,7 @@ export function ChildWithError() {
 				_$_.output_push('>');
 
 				{
-					_$_.output_push(_$_.escape(_$_.get(lazy_6)));
+					_$_.output_push(_$_.escape(_$_.get(lazy_8)));
 				}
 
 				_$_.output_push('</p>');
@@ -374,7 +444,7 @@ export function ParentWithCatch() {
 export function AsyncWithReactiveDependency() {
 	_$_.push_component();
 
-	let lazy_7 = _$_.track(0, void 0, void 0, '99982de5');
+	let lazy_9 = _$_.track(0, void 0, void 0, 'c9d12acf');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -392,7 +462,7 @@ export function AsyncWithReactiveDependency() {
 		() => {
 			_$_.output_push('<!--[-->');
 
-			let lazy_8 = _$_.track_async(() => Promise.resolve(`count-${_$_.get(lazy_7)}`), '1dea4c85');
+			let lazy_10 = _$_.track_async(() => Promise.resolve(`count-${_$_.get(lazy_9)}`), 'cdd1adb8');
 
 			_$_.regular_block(() => {
 				_$_.output_push('<p');
@@ -400,7 +470,7 @@ export function AsyncWithReactiveDependency() {
 				_$_.output_push('>');
 
 				{
-					_$_.output_push(_$_.escape(_$_.get(lazy_8)));
+					_$_.output_push(_$_.escape(_$_.get(lazy_10)));
 				}
 
 				_$_.output_push('</p>');

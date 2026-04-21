@@ -1,7 +1,7 @@
 import { DEV } from 'esm-env';
-import { describe, it, expect } from 'vitest';
-import { DEV } from 'esm-env';
+import { describe, it, expect, vi } from 'vitest';
 import { flushSync } from 'ripple';
+import * as devalue from 'devalue';
 import { hydrateComponent, container } from '../setup-hydration.js';
 
 import * as ServerComponents from './compiled/server/track-async-serialization.js';
@@ -75,6 +75,43 @@ describe('hydration > trackAsync serialization', () => {
 		flushSync();
 
 		expect(container.querySelector('.result')?.textContent).toBe('count-1');
+	});
+
+	it('reruns trackAsync via #server RPC call when a dependency changes', async () => {
+		const originalFetch = globalThis.fetch;
+		const fetchMock = vi.fn(async (_url, init) => {
+			const args = devalue.parse(init.body);
+			const result = `server-${args[0]}`;
+			return new Response(devalue.stringify({ value: result }), {
+				status: 200,
+				headers: { 'Content-Type': 'text/plain' },
+			});
+		});
+		globalThis.fetch = /** @type {any} */ (fetchMock);
+
+		try {
+			await hydrateComponent(
+				ServerComponents.AsyncWithServerCall,
+				ClientComponents.AsyncWithServerCall,
+			);
+
+			// Hydrated value comes from the SSR-serialized trackAsync output
+			expect(container.querySelector('.result')?.textContent).toBe('server-0');
+			expect(container.querySelector('.loading')).toBeNull();
+			expect(fetchMock).not.toHaveBeenCalled();
+
+			/** @type {any} */ (container.querySelector('.increment'))?.click();
+			flushSync();
+			// Wait for the RPC fetch + devalue parse chain to resolve
+			await vi.waitFor(() => {
+				expect(container.querySelector('.result')?.textContent).toBe('server-1');
+			});
+
+			expect(fetchMock).toHaveBeenCalledTimes(1);
+			expect(fetchMock.mock.calls[0][0]).toMatch(/\/_\$_ripple_rpc_\$_\//);
+		} finally {
+			globalThis.fetch = originalFetch;
+		}
 	});
 
 	it('hydrates multiple trackAsync values independently', async () => {

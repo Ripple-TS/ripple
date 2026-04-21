@@ -1,6 +1,6 @@
 import { parse, compile, compile_to_volar_mappings } from '@tsrx/ripple';
-import { obfuscateIdentifier } from '@tsrx/core';
 import type * as AST from 'estree';
+import type * as ESTreeJSX from 'estree-jsx';
 
 function count_occurrences(string: string, subString: string): number {
 	let count = 0;
@@ -697,14 +697,14 @@ export component App() {
 			const ast = parse(source);
 			const comp = ast.body[0] as unknown as AST.Component;
 			const ul = comp.body.find((n) => n.type === 'Element') as AST.Element;
-			expect(ul.id.name).toBe('ul');
+			expect((ul.id as AST.Identifier).name).toBe('ul');
 			expect(ul.children).toHaveLength(1);
 			const decl = ul.children[0] as unknown as AST.VariableDeclaration;
 			expect(decl.type).toBe('VariableDeclaration');
 			expect(decl.kind).toBe('var');
 			expect((decl.declarations[0].id as AST.Identifier).name).toBe('a');
 			expect((decl.declarations[0].init as AST.Literal).value).toBe('123');
-			expect(ul.closingElement?.name?.name).toBe('ul');
+			expect((ul.closingElement?.name as ESTreeJSX.JSXIdentifier)?.name).toBe('ul');
 		},
 	);
 
