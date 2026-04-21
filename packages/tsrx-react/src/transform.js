@@ -1529,7 +1529,15 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	const loop_params = get_for_of_iteration_params(node.left, node.index);
 	const loop_body = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
 	const has_hooks = body_contains_top_level_hook_call(loop_body);
-	const key_expression = has_hooks ? find_key_expression_in_body(loop_body) : undefined;
+	const explicit_key_expression = has_hooks ? find_key_expression_in_body(loop_body) : undefined;
+	const key_expression =
+		has_hooks && explicit_key_expression == null && node.index
+			? clone_expression_node(node.index)
+			: explicit_key_expression;
+	const implicit_non_hook_key_expression =
+		!has_hooks && node.index && find_key_expression_in_body(loop_body) == null
+			? clone_expression_node(node.index)
+			: undefined;
 
 	// Add loop params to available bindings so hoisted helpers receive them as props
 	const saved_bindings = transform_context.available_bindings;
@@ -1541,6 +1549,10 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	const body_statements = has_hooks
 		? hook_safe_render_statements(loop_body, key_expression, transform_context)
 		: build_render_statements(loop_body, true, transform_context);
+
+	if (implicit_non_hook_key_expression) {
+		apply_key_to_render_statements(body_statements, implicit_non_hook_key_expression);
+	}
 
 	// Restore bindings
 	transform_context.available_bindings = saved_bindings;
@@ -1576,6 +1588,46 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 			metadata: { path: [] },
 		}),
 	);
+}
+
+/**
+ * @param {any[]} statements
+ * @param {any} key_expression
+ * @returns {void}
+ */
+function apply_key_to_render_statements(statements, key_expression) {
+	for (let i = statements.length - 1; i >= 0; i -= 1) {
+		const statement = statements[i];
+		if (statement?.type !== 'ReturnStatement' || !statement.argument) {
+			continue;
+		}
+
+		if (statement.argument.type === 'JSXElement') {
+			const attributes = statement.argument.openingElement?.attributes || [];
+			const has_key = attributes.some(
+				(/** @type {any} */ attr) =>
+					attr.type === 'JSXAttribute' &&
+					attr.name?.type === 'JSXIdentifier' &&
+					attr.name.name === 'key',
+			);
+
+			if (!has_key) {
+				attributes.push(
+					/** @type {any} */ ({
+						type: 'JSXAttribute',
+						name: { type: 'JSXIdentifier', name: 'key', metadata: { path: [] } },
+						value: to_jsx_expression_container(
+							clone_expression_node(key_expression),
+							key_expression,
+						),
+						metadata: { path: [] },
+					}),
+				);
+			}
+		}
+
+		return;
+	}
 }
 
 /**

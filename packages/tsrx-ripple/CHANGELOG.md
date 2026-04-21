@@ -1,5 +1,21 @@
 # @tsrx/ripple
 
+## 0.0.6
+
+### Patch Changes
+
+- [#894](https://github.com/Ripple-TS/ripple/pull/894)
+  [`73ceaac`](https://github.com/Ripple-TS/ripple/commit/73ceaacd029fb634a62252abdda59ab5f2bec15d)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix a hydration edge case where
+  sibling traversal after nested DOM children (such as <pre><code>{html
+  ...}</code></pre> chains) could leave the hydrate pointer on the wrong node and
+  throw a hydration error during client hydration. Added hydration regression
+  coverage for the website-like code-block sibling pattern.
+
+- Updated dependencies
+  [[`d027c6c`](https://github.com/Ripple-TS/ripple/commit/d027c6c84fd3ba7c577c52b9fdade77e7ff886e0)]:
+  - @tsrx/core@0.0.5
+
 ## 0.0.5
 
 ### Patch Changes

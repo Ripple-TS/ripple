@@ -1027,6 +1027,60 @@ describe('@tsrx/react basic', () => {
 		// Key should appear on both the inner element and wrapper component
 		expect(code).toContain('<StatementBodyHook1 items={items} item={item} key={item} />');
 	});
+
+	it('adds index key to hook wrapper component when loop has index and no explicit key', () => {
+		const { code } = compile(
+			`import { useState } from 'react';
+
+			export component Component({ items }: { items: string[] }) {
+				<ul>
+					for (const item of items; index index) {
+						const state = useState(0);
+						<li>{item}</li>
+					}
+				</ul>
+			}`,
+			'Component.tsrx',
+		);
+
+		expect(code).toContain('function StatementBodyHook');
+		expect(code).toContain('items.map((item, index) =>');
+		expect(code).toContain(
+			'<StatementBodyHook1 items={items} item={item} index={index} key={index} />',
+		);
+	});
+
+	it('adds index key to non-hook loop items in conditional branches', () => {
+		const { code } = compile(
+			`export component FeatureCard({
+				title,
+				items,
+				ready,
+			}: {
+				title: string;
+				items: string[];
+				ready: boolean;
+			}) {
+				<section class="feature-card">
+					<h2>{title}</h2>
+
+					if (ready) {
+						<ul>
+							for (const item of items; index index) {
+								<li>{item}</li>
+							}
+						</ul>
+					} else {
+						<p>{'Loading output...'}</p>
+					}
+				</section>
+			}`,
+			'FeatureCard.tsrx',
+		);
+
+		expect(code).toContain('items.map((item, index) =>');
+		expect(code).toContain('return <li key={index}>{item}</li>;');
+	});
 });
 
 describe('lazy destructuring', () => {

@@ -370,6 +370,8 @@ export function DomChildrenThenStaticSiblings(__anchor, _, __block) {
 				_$_.pop(li_1);
 			}
 		}
+
+		_$_.pop(ul_1);
 	}
 
 	_$_.pop(div_17);
@@ -386,6 +388,22 @@ export function StaticListThenStaticSiblings(__anchor, _, __block) {
 	_$_.push_component();
 
 	var div_18 = root_19();
+
+	{
+		var ul_2 = _$_.child(div_18);
+
+		{
+			var li_2 = _$_.child(ul_2);
+
+			_$_.pop(li_2);
+
+			var li_3 = _$_.sibling(li_2);
+
+			_$_.pop(li_3);
+		}
+
+		_$_.pop(ul_2);
+	}
 
 	_$_.append(__anchor, div_18);
 	_$_.pop_component();

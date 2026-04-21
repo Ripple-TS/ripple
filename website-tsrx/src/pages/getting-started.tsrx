@@ -1,7 +1,7 @@
 // --- Code snippets (hand-highlighted, matching homepage code-block style) ---
 
 const INSTALL_HTML = [
-	'<span class="ln">1</span> <span class="fn">npm</span> <span class="prop">install</span> <span class="str">@tsrx/react</span> <span class="str">@tsrx/vite-plugin-react</span>',
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/react</span> <span class="str">@tsrx/vite-plugin-react</span>',
 ].join('\n');
 
 const VITE_CONFIG_HTML = [
@@ -14,7 +14,7 @@ const VITE_CONFIG_HTML = [
 ].join('\n');
 
 const SOLID_INSTALL_HTML = [
-	'<span class="ln">1</span> <span class="fn">npm</span> <span class="prop">install</span> <span class="str">@tsrx/solid</span> <span class="str">@tsrx/vite-plugin-solid</span> <span class="str">vite-plugin-solid</span>',
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/solid</span> <span class="str">@tsrx/vite-plugin-solid</span> <span class="str">vite-plugin-solid</span>',
 ].join('\n');
 
 const SOLID_VITE_CONFIG_HTML = [

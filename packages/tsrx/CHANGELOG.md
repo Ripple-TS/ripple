@@ -1,5 +1,16 @@
 # @tsrx/core
 
+## 0.0.5
+
+### Patch Changes
+
+- [#893](https://github.com/Ripple-TS/ripple/pull/893)
+  [`d027c6c`](https://github.com/Ripple-TS/ripple/commit/d027c6c84fd3ba7c577c52b9fdade77e7ff886e0)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix parser crash when a JS
+  statement inside an element template body has no trailing whitespace before the
+  closing tag (e.g. `<ul>var a = "123"</ul>`). The tokenizer previously misread
+  `</` as a less-than operator followed by a regexp.
+
 ## 0.0.4
 
 ### Patch Changes
