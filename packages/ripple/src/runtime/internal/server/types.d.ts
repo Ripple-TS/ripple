@@ -31,6 +31,7 @@ export type Derived = {
 
 export type Tracked = {
 	a: { get?: Function; set?: Function };
+	b?: Block;
 	c: number;
 	f: number;
 	v: any;
@@ -38,8 +39,6 @@ export type Tracked = {
 	ap: PromiseLike<any> | null;
 	/** serialization hash */
 	th?: string;
-	/** output push function captured at call time */
-	tp?: (str: string) => void;
 	readonly [0]: any;
 	[1]: Tracked;
 	value: any;
@@ -49,7 +48,7 @@ export type Tracked = {
 
 export type TrackedAsync = Tracked & {
 	th: NonNullable<Tracked['th']>;
-	tp: NonNullable<Tracked['tp']>;
+	b: NonNullable<Tracked['b']>;
 };
 
 export type Block = {

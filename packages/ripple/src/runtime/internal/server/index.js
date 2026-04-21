@@ -421,9 +421,10 @@ export class Output {
 	/**
 	 * @param {string} str
 	 * @param {boolean} [is_root=false]
+	 * @param {boolean} [is_prepend=false]
 	 * @returns {void}
 	 */
-	#push(str, is_root = false) {
+	#push(str, is_root = false, is_prepend = false) {
 		if (this.isStreamMode() && !this.isSyncRun()) {
 			// TODO - we need to wrap the resulting block output into something that
 			// the client-side can understand and append them appropriately,
@@ -437,11 +438,19 @@ export class Output {
 		var instance = is_root ? this.#root : this;
 
 		if (this.target === 'head') {
-			instance.#head.push(str);
+			if (is_prepend) {
+				instance.#head.unshift(str);
+			} else {
+				instance.#head.push(str);
+			}
 			return;
 		}
 
-		instance.#body.push(str);
+		if (is_prepend) {
+			instance.#body.unshift(str);
+		} else {
+			instance.#body.push(str);
+		}
 	}
 
 	/**
@@ -456,8 +465,18 @@ export class Output {
 	 * @param {string} str
 	 * @returns {void}
 	 */
-	push_serialized(str) {
-		this.#push(str, true);
+	push_serialized_error(str) {
+		// prepend to the root block to avoid messing up the hydration markers
+		// writing to the root to avoid being cleared in the local instance when an error occurs
+		this.#push(str, true, true);
+	}
+
+	/**
+	 * @param {string} str
+	 * @returns {void}
+	 */
+	push_serialized_result(str) {
+		this.#push(str);
 	}
 
 	clear() {
@@ -723,8 +742,8 @@ export function get_output_push() {
  * @param {string} str
  * @returns {void}
  */
-export function output_push_serialized(str) {
-	/** @type {Block} */ (active_block).o.push_serialized(str);
+export function output_push_serialized_error(str) {
+	/** @type {Block} */ (active_block).o.push_serialized_error(str);
 }
 
 /**
@@ -1158,13 +1177,16 @@ export function track(v, get, set) {
 
 /**
  * Serializes a resolved trackAsync result as a script tag for hydration.
- * @param {(str: string) => void} push_fn - The output push function captured at call time
+ * @param {OutputInterface} output - The output push function captured at call time
  * @param {string} hash - The unique hash for this trackAsync call
  * @param {any} value - The resolved value
  * @returns {void}
  */
-function serialize_track_async_result(push_fn, hash, value) {
-	push_script_for_hydration(push_fn, hash, { ok: true, payload: devalue.stringify(value) });
+function serialize_track_async_result(output, hash, value) {
+	push_script_for_hydration((str) => output.push_serialized_result(str), hash, {
+		ok: true,
+		payload: devalue.stringify(value),
+	});
 }
 
 /**
@@ -1178,7 +1200,7 @@ export function serialize_track_async_error(hash, error) {
 	// we can just use the output_push_serialized directly so it's added to the root block
 	// if we here then the try's block failed to render and the output was cleared
 	// so we're writing to the root otherwise it will be cleared in the local output
-	push_script_for_hydration(output_push_serialized, hash, {
+	push_script_for_hydration(output_push_serialized_error, hash, {
 		ok: false,
 		error: { message: error?.message ?? String(error) },
 	});
@@ -1294,7 +1316,7 @@ function run_track_async(t, fn, block, dr, dj) {
 	if (async_result === null) {
 		// Sync result
 		update_tracked_value_clock(t, result);
-		serialize_track_async_result(t.tp, t.th, result);
+		serialize_track_async_result(t.b.o, t.th, result);
 		if (dr) {
 			dr(result);
 		}
@@ -1311,7 +1333,7 @@ function run_track_async(t, fn, block, dr, dj) {
 	async_result.promise.then(
 		(resolved) => {
 			update_tracked_value_clock(t, resolved);
-			serialize_track_async_result(t.tp, t.th, resolved);
+			serialize_track_async_result(t.b.o, t.th, resolved);
 			if (dr) {
 				dr(resolved);
 			}
@@ -1347,7 +1369,7 @@ export function track_async(v, hash) {
 	var t = /** @type {TrackedAsync} */ (tracked(SUSPENSE_PENDING));
 	// Store hash and output push function for serialization on resolve
 	t.th = hash;
-	t.tp = get_output_push();
+	t.b = /** @type {Block} */ (active_block);
 	var block = /** @type {Block} */ (active_block);
 	run_track_async(t, v, block, null, null);
 	return t;
