@@ -670,9 +670,21 @@ export function convert_source_map_to_mappings(
 				return;
 			} else if (node.type === 'JSXExpressionContainer') {
 				if (node.loc) {
-					mappings.push(
-						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
+					// Use maybe_get_mapping_from_node because a transform may set the
+					// container's loc to the source range of the original `{...}`
+					// construct (e.g. a Ripple TSRXExpression or Text node), while
+					// esrap only emits a segment for the inner expression. In that
+					// case the container's start/end won't resolve — skip rather
+					// than hard-failing, and rely on the inner expression's mapping.
+					const mapping = maybe_get_mapping_from_node(
+						node,
+						src_to_gen_map,
+						gen_line_offsets,
+						mapping_data_verify_only,
 					);
+					if (!(mapping instanceof Error)) {
+						mappings.push(mapping);
+					}
 				}
 				// Visit the expression inside {}
 				if (node.expression) {

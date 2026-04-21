@@ -1356,11 +1356,14 @@ function create_dynamic_jsx_element(dynamic_id, node, transform_context) {
  * @returns {any}
  */
 function to_jsx_expression_container(expression, source_node = expression) {
-	return /** @type {any} */ ({
-		type: 'JSXExpressionContainer',
-		expression: /** @type {any} */ (expression),
-		metadata: { path: [] },
-	});
+	return set_loc(
+		/** @type {any} */ ({
+			type: 'JSXExpressionContainer',
+			expression: /** @type {any} */ (expression),
+			metadata: { path: [] },
+		}),
+		source_node,
+	);
 }
 
 /**
