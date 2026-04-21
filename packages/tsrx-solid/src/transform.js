@@ -771,10 +771,14 @@ function switch_statement_to_jsx_child(node, transform_context) {
 			continue;
 		}
 
+		// Clone the discriminant per-case: every generated `<Match when={d === caseN}>`
+		// would otherwise share the same AST node reference, so a downstream pass
+		// (lazy transforms, printer metadata, source-map annotation) mutating it on
+		// one case would corrupt the others.
 		const test = /** @type {any} */ ({
 			type: 'BinaryExpression',
 			operator: '===',
-			left: node.discriminant,
+			left: clone_expression_node(node.discriminant),
 			right: switch_case.test,
 			metadata: { path: [] },
 		});

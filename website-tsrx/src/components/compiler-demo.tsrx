@@ -611,7 +611,8 @@ export component CompilerDemo() {
 			justify-content: space-between;
 			align-items: center;
 			gap: 1rem;
-			padding: 0.55rem 1rem;
+			padding: 0.4rem 1rem;
+			min-height: 2.5rem;
 			background: rgba(255, 255, 255, 0.03);
 			font-size: 0.78rem;
 			letter-spacing: 0.06em;
@@ -636,7 +637,10 @@ export component CompilerDemo() {
 			background: rgba(138, 152, 255, 0.12);
 			color: rgba(226, 231, 255, 0.92);
 			cursor: pointer;
-			transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+			transition:
+				background 120ms ease,
+				border-color 120ms ease,
+				color 120ms ease;
 		}
 
 		.format-button:hover:not(:disabled) {
