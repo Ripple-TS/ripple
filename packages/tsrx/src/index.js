@@ -143,6 +143,8 @@ export {
 export {
 	convert_source_map_to_mappings as convertSourceMapToMappings,
 	create_volar_mappings_result as createVolarMappingsResult,
+	dedupe_mappings as dedupeMappings,
+	serialize_mapping_value as serializeMappingValue,
 } from './transform/segments.js';
 export {
 	create_lazy_context as createLazyContext,

@@ -1,7 +1,7 @@
 /** @import * as AST from 'estree' */
-/** @import { CodeMapping, ParseOptions } from '@tsrx/core/types' */
+/** @import { ParseOptions } from '@tsrx/core/types' */
 
-import { createVolarMappingsResult, parseModule } from '@tsrx/core';
+import { createVolarMappingsResult, dedupeMappings, parseModule } from '@tsrx/core';
 import { transform } from './transform.js';
 
 /**
@@ -51,52 +51,6 @@ export function compile_to_volar_mappings(source, filename, options) {
 
 	return {
 		...result,
-		mappings: dedupe_mappings(result.mappings),
+		mappings: dedupeMappings(result.mappings),
 	};
-}
-
-/**
- * @param {CodeMapping[]} mappings
- * @returns {CodeMapping[]}
- */
-function dedupe_mappings(mappings) {
-	const deduped = [];
-	const seen = new Set();
-
-	for (const mapping of mappings) {
-		const key = JSON.stringify(serialize_mapping_value(mapping));
-
-		if (seen.has(key)) {
-			continue;
-		}
-
-		seen.add(key);
-		deduped.push(mapping);
-	}
-
-	return deduped;
-}
-
-/**
- * @param {unknown} value
- * @returns {unknown}
- */
-function serialize_mapping_value(value) {
-	if (typeof value === 'function') {
-		return value.toString();
-	}
-
-	if (Array.isArray(value)) {
-		return value.map(serialize_mapping_value);
-	}
-
-	if (value && typeof value === 'object') {
-		return Object.fromEntries(
-			Object.entries(value)
-				.sort(([left], [right]) => left.localeCompare(right))
-				.map(([key, nested_value]) => [key, serialize_mapping_value(nested_value)]),
-		);
-	}
-
-	return value;
 }

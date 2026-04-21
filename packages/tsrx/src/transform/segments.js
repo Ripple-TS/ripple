@@ -2236,3 +2236,59 @@ export function create_volar_mappings_result({
 		errors,
 	};
 }
+
+/**
+ * Remove byte-for-byte duplicate mappings. Framework compilers that extract
+ * shared helpers or replay JSX can emit identical mapping entries for the
+ * same source and generated span; Volar merges duplicates into a single
+ * hover/navigation result, so deduping upstream avoids a stutter.
+ *
+ * @param {CodeMapping[]} mappings
+ * @returns {CodeMapping[]}
+ */
+export function dedupe_mappings(mappings) {
+	const deduped = [];
+	const seen = new Set();
+
+	for (const mapping of mappings) {
+		const key = JSON.stringify(serialize_mapping_value(mapping));
+
+		if (seen.has(key)) {
+			continue;
+		}
+
+		seen.add(key);
+		deduped.push(mapping);
+	}
+
+	return deduped;
+}
+
+/**
+ * Serialize a mapping (or any nested value) into a stable JSON-friendly
+ * shape so {@link dedupe_mappings} can compare two entries by content.
+ * Object keys are sorted and functions are reduced to their source so
+ * structurally-identical entries produce the same string.
+ *
+ * @param {unknown} value
+ * @returns {unknown}
+ */
+export function serialize_mapping_value(value) {
+	if (typeof value === 'function') {
+		return value.toString();
+	}
+
+	if (Array.isArray(value)) {
+		return value.map(serialize_mapping_value);
+	}
+
+	if (value && typeof value === 'object') {
+		return Object.fromEntries(
+			Object.entries(value)
+				.sort(([left], [right]) => left.localeCompare(right))
+				.map(([key, nested_value]) => [key, serialize_mapping_value(nested_value)]),
+		);
+	}
+
+	return value;
+}
