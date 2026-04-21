@@ -111,6 +111,68 @@ export function isWhitespaceTextNode(node) {
 }
 
 /**
+ * @type {AcornPlugin}
+ */
+function elementTemplateClosingTagPlugin(Base) {
+	const jsxTagStart = /** @type {any} */ (Base).acornTypeScript?.tokTypes?.jsxTagStart;
+	if (!jsxTagStart) return Base;
+
+	/**
+	 * @param {any} parser
+	 */
+	function inElementTemplateBodyDirect(parser) {
+		const stack = parser.context;
+		const top = stack[stack.length - 1];
+		const below = stack[stack.length - 2];
+		return top && top.token === '{' && below && below.token === '<tag>...</tag>';
+	}
+
+	/**
+	 * @param {any} parser
+	 */
+	function inElementTemplateBodyAnywhere(parser) {
+		const stack = parser.context;
+		for (let i = 1; i < stack.length; i++) {
+			if (
+				stack[i] &&
+				stack[i].token === '{' &&
+				stack[i - 1] &&
+				stack[i - 1].token === '<tag>...</tag>'
+			) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	return class extends Base {
+		/** @param {number} code */
+		// @ts-ignore — extending acorn's Parser with internal hooks
+		getTokenFromCode(code) {
+			if (code === 60 /* '<' */ && !(/** @type {any} */ (this).inType)) {
+				const self = /** @type {any} */ (this);
+				const nextChar =
+					self.pos + 1 < self.input.length ? self.input.charCodeAt(self.pos + 1) : -1;
+				if (nextChar === 47 /* '/' */ && inElementTemplateBodyDirect(self)) {
+					++self.pos;
+					return self.finishToken(jsxTagStart);
+				}
+			}
+			// @ts-ignore — super dispatches to next layer in the plugin chain
+			return super.getTokenFromCode(code);
+		}
+
+		// @ts-ignore — extending acorn's Parser with internal hooks
+		canInsertSemicolon() {
+			const self = /** @type {any} */ (this);
+			if (self.type === jsxTagStart && inElementTemplateBodyAnywhere(self)) return true;
+			// @ts-ignore
+			return super.canInsertSemicolon();
+		}
+	};
+}
+
+/**
  * Create a parser by composing Acorn with TypeScript/JSX support and optional framework plugins.
  *
  * This is the core factory for building tsrx-based parsers. Framework plugins (like TSRXPlugin)
@@ -125,6 +187,7 @@ export function createParser(...plugins) {
 			acorn.Parser.extend(
 				tsPlugin({ jsx: true }),
 				...plugins.map((p) => /** @type {AcornPlugin} */ (/** @type {unknown} */ (p))),
+				elementTemplateClosingTagPlugin,
 			)
 		)
 	);
