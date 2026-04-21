@@ -67,6 +67,15 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'vite-plugin-solid',
+					include: ['packages/vite-plugin-solid/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'tsrx-solid-runtime',
 					include: ['packages/vite-plugin-solid/tests/**/*.test.tsrx'],
 					environment: 'jsdom',

@@ -5,13 +5,8 @@ import { existsSync } from 'node:fs';
 import { resolve as path_resolve, isAbsolute } from 'node:path';
 import { compile } from '@tsrx/solid';
 
-const TSRX_EXTENSION = '.tsrx';
-/**
- * Suffix appended to `.tsrx` module ids so downstream plugins (in particular
- * `vite-plugin-solid`) see a `.tsx` extension and pick up the module for
- * JSX-DOM-expressions transformation.
- */
-const VIRTUAL_SUFFIX = '.tsrx.tsx';
+const DEFAULT_TSRX_PATTERN = /\.tsrx$/;
+const VIRTUAL_TSX_SUFFIX = '.tsx';
 const CSS_QUERY = '?tsrx-solid-css&lang.css';
 
 /**
@@ -21,28 +16,48 @@ const CSS_QUERY = '?tsrx-solid-css&lang.css';
  * can handle that stage. Per-component `<style>` blocks become virtual CSS
  * modules that the compiled JS imports.
  *
- * @param {import('../types/index.js').TsrxSolidOptions} [_options]
+ * @param {import('../types/index.js').TsrxSolidOptions} [options]
  * @returns {Plugin}
  */
-export function tsrxSolid(_options = {}) {
+export function tsrxSolid(options = {}) {
 	/** @type {Map<string, string>} */
 	const css_cache = new Map();
 
 	/** @type {string} */
 	let root_dir = process.cwd();
 
+	const include_pattern = options.include ?? DEFAULT_TSRX_PATTERN;
+
 	/**
+	 * Decide whether a real (on-disk) path should be treated as a tsrx
+	 * source module. Falls back to matching `.tsrx` when no custom
+	 * `include` regex was supplied.
+	 *
+	 * @param {string} path
+	 * @returns {boolean}
+	 */
+	const is_tsrx_source = (path) => include_pattern.test(path);
+
+	/**
+	 * Detect the virtual id form produced by {@link resolveId} (real path
+	 * plus a `.tsx` suffix). A real path that matches `include_pattern`
+	 * becomes virtual once we append `.tsx`, so the check is: strip `.tsx`
+	 * and see if the remainder would have been accepted as a tsrx source.
+	 *
 	 * @param {string} id
 	 * @returns {boolean}
 	 */
-	const is_virtual = (id) => id.endsWith(VIRTUAL_SUFFIX);
+	const is_virtual = (id) => {
+		if (!id.endsWith(VIRTUAL_TSX_SUFFIX)) return false;
+		return is_tsrx_source(id.slice(0, -VIRTUAL_TSX_SUFFIX.length));
+	};
 
 	/**
 	 * @param {string} id
 	 * @returns {string}
 	 */
 	const to_real_path = (id) => {
-		const stripped = id.slice(0, -'.tsx'.length);
+		const stripped = id.slice(0, -VIRTUAL_TSX_SUFFIX.length);
 		if (isAbsolute(stripped) && existsSync(stripped)) return stripped;
 		// Vitest sometimes strips the workspace root from ids; re-anchor them.
 		const re_anchored = path_resolve(root_dir, stripped.replace(/^\/+/, ''));
@@ -66,19 +81,19 @@ export function tsrxSolid(_options = {}) {
 			}
 			if (is_virtual(source)) return source;
 
-			// Rewrite `.tsrx` imports to their `.tsrx.tsx` virtual form so
-			// downstream extension-based plugins pick the module up as TSX.
-			if (source.endsWith(TSRX_EXTENSION)) {
+			// Rewrite tsrx source imports to their virtual `<path>.tsx` form
+			// so downstream extension-based plugins pick the module up as TSX.
+			if (is_tsrx_source(source)) {
 				const resolved = await this.resolve(source, importer, { ...options, skipSelf: true });
 				if (resolved && !is_virtual(resolved.id)) {
-					return { ...resolved, id: resolved.id + '.tsx' };
+					return { ...resolved, id: resolved.id + VIRTUAL_TSX_SUFFIX };
 				}
 				if (resolved) return resolved;
 				// Fallback: when `this.resolve` can't resolve (e.g. an absolute
 				// path coming in as a root entry such as a vitest test file),
 				// still rewrite to the virtual `.tsx` id directly so `load`
 				// can read the real file.
-				return source + '.tsx';
+				return source + VIRTUAL_TSX_SUFFIX;
 			}
 			return null;
 		},
@@ -114,9 +129,9 @@ export function tsrxSolid(_options = {}) {
 		},
 
 		handleHotUpdate(ctx) {
-			if (!ctx.file.endsWith(TSRX_EXTENSION)) return;
-			// Invalidate the virtual `.tsrx.tsx` module so Vite re-runs `load`.
-			const virtual_id = ctx.file + '.tsx';
+			if (!is_tsrx_source(ctx.file)) return;
+			// Invalidate the virtual `<path>.tsx` module so Vite re-runs `load`.
+			const virtual_id = ctx.file + VIRTUAL_TSX_SUFFIX;
 			const mod = ctx.server.moduleGraph.getModuleById(virtual_id);
 			if (mod) return [mod, ...ctx.modules];
 			return ctx.modules;
