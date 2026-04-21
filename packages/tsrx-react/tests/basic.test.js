@@ -95,6 +95,34 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('const data = await fetchData()');
 	});
 
+	it('treats for await...of as top-level await and requires use server', () => {
+		expect(() =>
+			compile(
+				`export component App({ items }: { items: AsyncIterable<string> }) {
+					for await (const item of items) {
+						<div>{item}</div>
+					}
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(/use server/);
+	});
+
+	it('rejects for await...of in templates even when use server is present', () => {
+		expect(() =>
+			compile(
+				`'use server';
+
+				export component App({ items }: { items: AsyncIterable<string> }) {
+					for await (const item of items) {
+						<div>{item}</div>
+					}
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(/does not support `for await\.\.\.of`/);
+	});
+
 	it('does not require use server for await inside nested async functions', () => {
 		const { code } = compile(
 			`export component App() {

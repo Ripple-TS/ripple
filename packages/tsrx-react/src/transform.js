@@ -8,6 +8,7 @@ import {
 	renderStylesheets,
 	setLocation,
 	applyLazyTransforms as apply_lazy_transforms,
+	findFirstTopLevelAwaitInComponentBody as find_first_top_level_await_in_component_body,
 	collectLazyBindingsFromComponent as collect_lazy_bindings_from_component,
 	preallocateLazyIds as preallocate_lazy_ids,
 	replaceLazyParams as replace_lazy_params,
@@ -540,82 +541,26 @@ function is_hook_callee(callee) {
  */
 function has_use_server_directive(program) {
 	for (const statement of program.body || []) {
-		if (statement.type !== 'ExpressionStatement') {
-			break;
-		}
+		const directive = /** @type {any} */ (statement).directive;
 
-		if (statement.directive === 'use server') {
+		if (directive === 'use server') {
 			return true;
 		}
 
-		if (statement.directive == null) {
+		if (
+			statement.type === 'ExpressionStatement' &&
+			statement.expression?.type === 'Literal' &&
+			statement.expression.value === 'use server'
+		) {
+			return true;
+		}
+
+		if (directive == null) {
 			break;
 		}
 	}
 
 	return false;
-}
-
-/**
- * @param {any[]} body_nodes
- * @returns {any | null}
- */
-function find_first_top_level_await_in_component_body(body_nodes) {
-	for (const node of body_nodes) {
-		const found = find_first_top_level_await(node, false);
-		if (found) return found;
-	}
-	return null;
-}
-
-/**
- * @param {any} node
- * @param {boolean} inside_nested_function
- * @returns {any | null}
- */
-function find_first_top_level_await(node, inside_nested_function) {
-	if (!node || typeof node !== 'object') {
-		return null;
-	}
-
-	if (Array.isArray(node)) {
-		for (const child of node) {
-			const found = find_first_top_level_await(child, inside_nested_function);
-			if (found) return found;
-		}
-		return null;
-	}
-
-	if (
-		node.type === 'FunctionDeclaration' ||
-		node.type === 'FunctionExpression' ||
-		node.type === 'ArrowFunctionExpression'
-	) {
-		// Ignore nested function bodies - only direct component-level awaits require async component.
-		if (inside_nested_function) {
-			return null;
-		}
-		return find_first_top_level_await(node.body, true);
-	}
-
-	if (inside_nested_function) {
-		return null;
-	}
-
-	if (node.type === 'AwaitExpression') {
-		return node;
-	}
-
-	for (const key of Object.keys(node)) {
-		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
-			continue;
-		}
-
-		const found = find_first_top_level_await(node[key], false);
-		if (found) return found;
-	}
-
-	return null;
 }
 
 /**
@@ -1623,6 +1568,13 @@ function find_key_expression_in_body(body_nodes) {
  * @returns {ESTreeJSX.JSXExpressionContainer}
  */
 function for_of_statement_to_jsx_child(node, transform_context) {
+	if (node.await) {
+		throw create_compile_error(
+			node,
+			'React TSRX does not support `for await...of` in component templates.',
+		);
+	}
+
 	if (node.key) {
 		throw create_compile_error(
 			node.key,

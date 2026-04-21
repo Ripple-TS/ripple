@@ -59,6 +59,19 @@ describe('@tsrx/solid basic', () => {
 			).toThrow(/`await` is not allowed inside Solid components/);
 		});
 
+		it('rejects for await...of in component body', () => {
+			expect(() =>
+				compile(
+					`component App({ items }: { items: AsyncIterable<string> }) {
+						for await (const item of items) {
+							<div>{item}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/`await` is not allowed inside Solid components/);
+		});
+
 		it('allows await in nested async functions inside component body', () => {
 			expect(() =>
 				compile(
