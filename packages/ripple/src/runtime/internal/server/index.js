@@ -1,5 +1,5 @@
 /**
- * @import { Component, Dependency, Derived, Tracked, TrackedAsync, Block, TryBlockWithCatch } from '#server';
+ * @import { Component, Dependency, Derived, Tracked, Block, TryBlockWithCatch } from '#server';
  * @import { NestedArray } from '#helpers';
  * @import { Props } from '#public';
  * @import { RenderResult, BaseRenderOptions, RenderStreamResult, Stream, StreamSink } from 'ripple/server';
@@ -54,13 +54,13 @@ export { tsrx_element, normalize_children };
 
 /** @extends Error */
 export class TrackAsyncRunError extends Error {
-	/** @type {TrackedAsync} */
+	/** @type {Tracked} */
 	tracked;
 	/** @type {Error} */
 	cause;
 	/**
 	 * @param {string} message
-	 * @param {{tracked: TrackedAsync, cause: Error}} options
+	 * @param {{tracked: Tracked, cause: Error}} options
 	 */
 	constructor(message, options) {
 		super(message);
@@ -1035,15 +1035,19 @@ class TrackedValue {
 	/**
 	 * @param {any} v
 	 * @param {{ get?: Function; set?: Function }} a
+	 * @param {string} [hash]
 	 */
-	constructor(v, a) {
+	constructor(v, a, hash) {
 		this.a = a;
 		/** @type {AbortController | null} */
 		this.aa = null;
 		/** @type {PromiseLike<any> | null} */
 		this.ap = null;
+		this.b = /** @type {Block} */ (active_block);
 		this.c = 0;
 		this.f = TRACKED;
+		/** @type {string | undefined} */
+		this.h = hash;
 		this.v = v;
 	}
 	get [0]() {
@@ -1077,11 +1081,11 @@ class DerivedValue {
 	/**
 	 * @param {Function} fn
 	 * @param {{ get?: Function; set?: Function }} a
+	 * @param {string} [hash]
 	 */
-	constructor(fn, a) {
+	constructor(fn, a, hash) {
 		this.a = a;
 		// we always should have an active block
-		// even in async we rerun blocks so we can rely on this
 		this.b = /** @type {Block} */ (active_block);
 		this.c = 0;
 		this.co = active_component;
@@ -1089,6 +1093,8 @@ class DerivedValue {
 		this.d = null;
 		this.f = DERIVED;
 		this.fn = fn;
+		/** @type {string | undefined} */
+		this.h = hash;
 		this.v = UNINITIALIZED;
 	}
 	get [0]() {
@@ -1121,10 +1127,13 @@ class DerivedValue {
  * @param {any} v
  * @param {(value: any) => any} [get]
  * @param {(next: any, prev: any) => any} [set]
+ * @param {string} [hash]
  * @returns {Tracked}
  */
-function tracked(v, get, set) {
-	return /** @type {Tracked} */ (new TrackedValue(v, get || set ? { get, set } : empty_get_set));
+function tracked(v, get, set, hash) {
+	return /** @type {Tracked} */ (
+		new TrackedValue(v, get || set ? { get, set } : empty_get_set, hash)
+	);
 }
 
 /**
@@ -1149,19 +1158,23 @@ export function exclude_from_object(obj, exclude_keys) {
  * @param {any} v
  * @param {(value: any) => any} [get]
  * @param {(next: any, prev: any) => any} [set]
+ * @param {string} [hash]
  * @returns {Derived}
  */
-function derived(v, get, set) {
-	return /** @type {Derived} */ (new DerivedValue(v, get || set ? { get, set } : empty_get_set));
+function derived(v, get, set, hash) {
+	return /** @type {Derived} */ (
+		new DerivedValue(v, get || set ? { get, set } : empty_get_set, hash)
+	);
 }
 
 /**
  * @param {any} v
  * @param {(value: any) => any} [get]
  * @param {(next: any, prev: any) => any} [set]
+ * @param {string} [hash]
  * @returns {Tracked | Derived}
  */
-export function track(v, get, set) {
+export function track(v, get, set, hash) {
 	var is_tracked = is_ripple_object(v);
 
 	if (is_tracked) {
@@ -1169,10 +1182,10 @@ export function track(v, get, set) {
 	}
 
 	if (typeof v === 'function') {
-		return derived(v, get, set);
+		return derived(v, get, set, hash);
 	}
 
-	return tracked(v, get, set);
+	return tracked(v, get, set, hash);
 }
 
 /**
@@ -1180,13 +1193,16 @@ export function track(v, get, set) {
  * @param {OutputInterface} output - The output push function captured at call time
  * @param {string} hash - The unique hash for this trackAsync call
  * @param {any} value - The resolved value
+ * @param {string[] | null} [deps] - Hashes of direct reactive dependencies read by fn()
  * @returns {void}
  */
-function serialize_track_async_result(output, hash, value) {
-	push_script_for_hydration((str) => output.push_serialized_result(str), hash, {
-		ok: true,
-		payload: devalue.stringify(value),
-	});
+function serialize_track_async_result(output, hash, value, deps) {
+	/** @type {{ ok: true, payload: string, deps?: string[] }} */
+	var envelope = { ok: true, payload: devalue.stringify(value) };
+	if (deps && deps.length > 0) {
+		envelope.deps = deps;
+	}
+	push_script_for_hydration((str) => output.push_serialized_result(str), hash, envelope);
 }
 
 /**
@@ -1226,7 +1242,7 @@ function push_script_for_hydration(push_fn, hash, envelope) {
 /**
  * Runs the async tracked function, handling sync results, async results,
  * and chained cases where fn() reads a pending dependency.
- * @param {TrackedAsync} t
+ * @param {Tracked} t
  * @param {() => any} fn
  * @param {Block} block
  * @param {((value?: any) => void) | null} dr
@@ -1243,10 +1259,13 @@ function run_track_async(t, fn, block, dr, dj) {
 	var result;
 	/** @type {Dependency | null} */
 	var caught_dep = null;
+	/** @type {Dependency | null} */
+	var direct_deps = null;
 	var caught = false;
 
 	try {
 		result = fn();
+		direct_deps = active_dependency;
 	} catch (error) {
 		caught_dep = active_dependency;
 		caught = true;
@@ -1289,7 +1308,7 @@ function run_track_async(t, fn, block, dr, dj) {
 		// Find the pending dependency with a promise and chain on it
 		dep = /** @type {Dependency | null} */ (caught_dep);
 		while (dep !== null) {
-			var dep_tracked = /** @type {TrackedAsync} */ (dep.t);
+			var dep_tracked = /** @type {Tracked} */ (dep.t);
 			if ((dep_tracked.f & TRACKED) !== 0 && dep_tracked.v === SUSPENSE_PENDING && dep_tracked.ap) {
 				/** @type {PromiseLike<any>} */ (dep_tracked.ap).then(
 					() => run_track_async(t, fn, block, dr, dj),
@@ -1300,7 +1319,7 @@ function run_track_async(t, fn, block, dr, dj) {
 						}
 						route_error_to_catch_block(get_closest_catch_block(block), error);
 						// has to run after routing as it set the active_block to the catch block
-						serialize_track_async_error(t.th, error);
+						serialize_track_async_error(t.h, error);
 					},
 				);
 				return;
@@ -1310,13 +1329,15 @@ function run_track_async(t, fn, block, dr, dj) {
 		return;
 	}
 
+	var dep_hashes = collect_dep_hashes(direct_deps);
+
 	// Handle the result
 	var async_result = get_async_track_result(result);
 
 	if (async_result === null) {
 		// Sync result
 		update_tracked_value_clock(t, result);
-		serialize_track_async_result(t.b.o, t.th, result);
+		serialize_track_async_result(t.b.o, t.h, result, dep_hashes);
 		if (dr) {
 			dr(result);
 		}
@@ -1333,7 +1354,7 @@ function run_track_async(t, fn, block, dr, dj) {
 	async_result.promise.then(
 		(resolved) => {
 			update_tracked_value_clock(t, resolved);
-			serialize_track_async_result(t.b.o, t.th, resolved);
+			serialize_track_async_result(t.b.o, t.h, resolved, dep_hashes);
 			if (dr) {
 				dr(resolved);
 			}
@@ -1345,9 +1366,30 @@ function run_track_async(t, fn, block, dr, dj) {
 			}
 			route_error_to_catch_block(get_closest_catch_block(block), error);
 			// has to run after routing as it set the active_block to the catch block
-			serialize_track_async_error(t.th, error);
+			serialize_track_async_error(t.h, error);
 		},
 	);
+}
+
+/**
+ * Walks a dependency chain and collects the hashes of dependencies that have
+ * one (i.e. were created from a compile-time track/trackAsync call).
+ * @param {Dependency | null} head
+ * @returns {string[] | null}
+ */
+function collect_dep_hashes(head) {
+	/** @type {string[] | null} */
+	var hashes = null;
+	var dep = head;
+	while (dep !== null) {
+		var h = /** @type {{ h?: string }} */ (dep.t).h;
+		if (h !== undefined) {
+			if (hashes === null) hashes = [];
+			hashes.push(h);
+		}
+		dep = dep.n;
+	}
+	return hashes;
 }
 
 /**
@@ -1366,9 +1408,7 @@ export function track_async(v, hash) {
 		);
 	}
 
-	var t = /** @type {TrackedAsync} */ (tracked(SUSPENSE_PENDING));
-	// Store hash and output push function for serialization on resolve
-	t.th = hash;
+	var t = tracked(SUSPENSE_PENDING, undefined, undefined, hash);
 	t.b = /** @type {Block} */ (active_block);
 	var block = /** @type {Block} */ (active_block);
 	run_track_async(t, v, block, null, null);
@@ -1457,7 +1497,7 @@ function register_block_rerun(block) {
 	};
 
 	try_catch_block.o.registerAsync(operation);
-	/** @type {PromiseLike<any>} */ (/** @type {TrackedAsync} */ (t).ap).then(
+	/** @type {PromiseLike<any>} */ (/** @type {Tracked} */ (t).ap).then(
 		() => {
 			if (cancelled) {
 				return;
@@ -1475,7 +1515,7 @@ function register_block_rerun(block) {
 						message,
 						tracked: t,
 					} = /** @type {InstanceType<typeof TrackAsyncRunError>} */ (error);
-					serialize_track_async_error(t.th, new Error(message));
+					serialize_track_async_error(t.h, new Error(message));
 					error = cause;
 				}
 			}
@@ -1486,7 +1526,7 @@ function register_block_rerun(block) {
 			}
 			route_error_to_catch_block(try_catch_block, error);
 			// has to run after routing as it set the active_block to the catch block
-			serialize_track_async_error(/** @type {TrackedAsync} */ (t).th, error);
+			serialize_track_async_error(/** @type {Tracked} */ (t).h, error);
 		},
 	);
 	// clear all output buffers as we'll rerun the block rendering

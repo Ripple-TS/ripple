@@ -11,6 +11,7 @@ import { active_block } from './internal/client/runtime.js';
 import { create_anchor } from './internal/client/utils.js';
 import { remove_ssr_css } from './internal/client/css.js';
 import {
+	clear_track_hash_reference,
 	hydrate_next,
 	hydrate_node,
 	hydrating,
@@ -108,6 +109,9 @@ export function hydrate(component, options) {
 	} finally {
 		set_hydrating(was_hydrating);
 		set_hydrate_node(previous_hydrate_node, true);
+		if (!was_hydrating) {
+			clear_track_hash_reference();
+		}
 	}
 
 	return () => {

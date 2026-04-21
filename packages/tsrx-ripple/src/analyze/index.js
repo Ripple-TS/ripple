@@ -1109,10 +1109,12 @@ const visitors = {
 			);
 		}
 
-		// Generate unique hash for trackAsync calls for SSR serialization/hydration
+		// Generate unique hash for track/trackAsync calls. trackAsync uses the
+		// hash for SSR serialization/hydration; track uses it so trackAsync can
+		// look up its serialized dependencies during hydration.
 		const track_call_name = is_ripple_track_call(callee, context);
-		if (track_call_name === 'trackAsync') {
-			const id = ++context.state.module.track_async_id;
+		if (track_call_name !== null) {
+			const id = ++context.state.module.track_id;
 			const padded_id = String(id).padStart(6, '0');
 			const hash = createHash('sha256')
 				.update(context.state.analysis.module.filename + '__' + padded_id)
@@ -2252,7 +2254,7 @@ export function analyze(ast, filename, options = {}) {
 			metadata: {},
 			mode: options.mode,
 			module: {
-				track_async_id: 0,
+				track_id: 0,
 			},
 		},
 		visitors,

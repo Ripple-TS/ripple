@@ -51,7 +51,7 @@ export function SwitchStatic() {
 export function SwitchReactive() {
 	_$_.push_component();
 
-	let lazy = _$_.track('a');
+	let lazy = _$_.track('a', void 0, void 0, '9b34d955');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -145,7 +145,7 @@ export function SwitchFallthrough() {
 export function SwitchNumericLevels() {
 	_$_.push_component();
 
-	let lazy_1 = _$_.track(1);
+	let lazy_1 = _$_.track(1, void 0, void 0, '7581a7ab');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -203,7 +203,7 @@ export function SwitchNumericLevels() {
 export function SwitchBlockScoped() {
 	_$_.push_component();
 
-	let lazy_2 = _$_.track(1);
+	let lazy_2 = _$_.track(1, void 0, void 0, 'ca9f9852');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -261,7 +261,7 @@ export function SwitchBlockScoped() {
 export function SwitchNoBreak() {
 	_$_.push_component();
 
-	let lazy_3 = _$_.track(1);
+	let lazy_3 = _$_.track(1, void 0, void 0, '6b7cb0ea');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');

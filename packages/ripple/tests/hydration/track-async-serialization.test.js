@@ -49,6 +49,26 @@ describe('hydration > trackAsync serialization', () => {
 		expect(container.querySelector('script[id^="__tsrx_ta_"]')).toBeNull();
 	});
 
+	it('reruns trackAsync when a dependency changes after hydration', async () => {
+		await hydrateComponent(
+			ServerComponents.AsyncWithReactiveDependency,
+			ClientComponents.AsyncWithReactiveDependency,
+		);
+
+		// Hydrated value from SSR should match `count-0`
+		expect(container.querySelector('.result')?.textContent).toBe('count-0');
+		expect(container.querySelector('.loading')).toBeNull();
+
+		/** @type {any} */ (container.querySelector('.increment'))?.click();
+		flushSync();
+		// Wait for the trackAsync promise to resolve
+		await Promise.resolve();
+		await Promise.resolve();
+		flushSync();
+
+		expect(container.querySelector('.result')?.textContent).toBe('count-1');
+	});
+
 	it('hydrates multiple trackAsync values independently', async () => {
 		await hydrateComponent(
 			ServerComponents.AsyncMultipleValues,

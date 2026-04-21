@@ -41,7 +41,7 @@ export function Layout({ children }) {
 export function Content() {
 	_$_.push_component();
 
-	let lazy = _$_.track(true);
+	let lazy = _$_.track(true, void 0, void 0, '0bdb1500');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');

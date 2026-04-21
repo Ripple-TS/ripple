@@ -23,8 +23,11 @@ var root_16 = _$_.template(`<!>`, 1, 1);
 var root_20 = _$_.template(`<!>`, 1, 1);
 var root_21 = _$_.template(`<p class="parent-error"> </p>`, 0);
 var root_19 = _$_.template(`<!>`, 1, 1);
+var root_23 = _$_.template(`<p class="result"> </p>`, 0);
+var root_24 = _$_.template(`<p class="loading">loading...</p>`, 0);
+var root_22 = _$_.template(`<button class="increment">increment</button><!>`, 1, 2);
 
-import { trackAsync } from 'ripple';
+import { track, trackAsync } from 'ripple';
 
 export function AsyncSimpleValue(__anchor, _, __block) {
 	_$_.push_component();
@@ -294,3 +297,45 @@ export function ParentWithCatch(__anchor, _, __block) {
 	_$_.append(__anchor, fragment_6);
 	_$_.pop_component();
 }
+
+export function AsyncWithReactiveDependency(__anchor, _, __block) {
+	_$_.push_component();
+
+	let lazy_7 = _$_.track(0, void 0, void 0, __block, '99982de5');
+	var fragment_8 = root_22();
+	var button_1 = _$_.first_child_frag(fragment_8);
+
+	button_1.__click = () => {
+		_$_.update(lazy_7);
+	};
+
+	var node_8 = _$_.sibling(button_1);
+
+	_$_.try(
+		node_8,
+		(__anchor) => {
+			let lazy_8 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(`count-${_$_.get(lazy_7)}`)), __block, '1dea4c85');
+			var p_9 = root_23();
+
+			{
+				var expression_10 = _$_.child(p_9, true);
+
+				_$_.expression(expression_10, () => _$_.get(lazy_8));
+				_$_.pop(p_9);
+			}
+
+			_$_.append(__anchor, p_9);
+		},
+		null,
+		(__anchor) => {
+			var p_10 = root_24();
+
+			_$_.append(__anchor, p_10);
+		}
+	);
+
+	_$_.append(__anchor, fragment_8);
+	_$_.pop_component();
+}
+
+_$_.delegate(['click']);

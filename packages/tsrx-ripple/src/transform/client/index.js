@@ -628,6 +628,7 @@ const visitors = {
 				call_args = /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
 					...node.arguments.map((arg) => context.visit(arg)),
 					b.id('__block'),
+					b.literal(node.metadata.hash),
 				]);
 			}
 

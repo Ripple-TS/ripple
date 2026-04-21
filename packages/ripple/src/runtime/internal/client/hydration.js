@@ -1,3 +1,5 @@
+/** @import { Derived, Tracked } from '#client' */
+
 import {
 	COMMENT_NODE,
 	HYDRATION_END,
@@ -10,6 +12,18 @@ export let hydrating = false;
 
 /** @type {Node | null} */
 export let hydrate_node = null;
+
+/**
+ * Map of hash -> Tracked/Derived registered during hydration. Allows a
+ * hydrating trackAsync to look up its serialized dependencies by hash and
+ * wire up reactivity without re-running the user's async fn.
+ * @type {Map<string, Tracked | Derived>}
+ */
+export const track_hash_reference = new Map();
+
+export function clear_track_hash_reference() {
+	track_hash_reference.clear();
+}
 
 /**
  * @param {boolean} value

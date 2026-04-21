@@ -488,14 +488,24 @@ const visitors = {
 		if (track_call_name) {
 			const track_method_name = track_call_name === 'trackAsync' ? 'track_async' : 'track';
 
+			// Pad non-async track() args so hash lands in the last position
+			// matching the runtime signature `track(v, get, set, hash)`.
+			if (track_method_name === 'track') {
+				if (node.arguments.length === 0) {
+					node.arguments.push(b.void0, b.void0, b.void0);
+				} else if (node.arguments.length === 1) {
+					node.arguments.push(b.void0, b.void0);
+				} else if (node.arguments.length === 2) {
+					node.arguments.push(b.void0);
+				}
+			}
+
 			/** @type {(AST.Expression | AST.SpreadElement)[]} */
 			const call_args = /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
 				node.arguments.map((arg) => context.visit(arg))
 			);
 
-			if (track_method_name === 'track_async') {
-				call_args.push(b.literal(node.metadata.hash));
-			}
+			call_args.push(b.literal(node.metadata.hash));
 
 			return {
 				...node,

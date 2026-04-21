@@ -6,7 +6,7 @@ import { track } from 'ripple/server';
 export function IfWithChildren({ children }) {
 	_$_.push_component();
 
-	let lazy = _$_.track(true);
+	let lazy = _$_.track(true, void 0, void 0, 'c64714b1');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -106,7 +106,7 @@ export function TestIfWithChildren() {
 export function IfWithStaticChildren() {
 	_$_.push_component();
 
-	let lazy_1 = _$_.track(true);
+	let lazy_1 = _$_.track(true, void 0, void 0, '3bba8f77');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -165,7 +165,7 @@ export function IfWithStaticChildren() {
 export function IfWithSiblingsAndChildren({ children }) {
 	_$_.push_component();
 
-	let lazy_2 = _$_.track(true);
+	let lazy_2 = _$_.track(true, void 0, void 0, 'a1b8fb4c');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<section');
@@ -282,7 +282,7 @@ export function TestIfWithSiblingsAndChildren() {
 export function ElementWithChildrenThenIf() {
 	_$_.push_component();
 
-	let lazy_3 = _$_.track(true);
+	let lazy_3 = _$_.track(true, void 0, void 0, '7cd4817b');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -353,7 +353,7 @@ export function ElementWithChildrenThenIf() {
 export function DeepNestingThenIf() {
 	_$_.push_component();
 
-	let lazy_4 = _$_.track(true);
+	let lazy_4 = _$_.track(true, void 0, void 0, '923116be');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<section');
@@ -439,7 +439,7 @@ export function DeepNestingThenIf() {
 export function DomElementChildrenThenSibling() {
 	_$_.push_component();
 
-	let lazy_5 = _$_.track('code');
+	let lazy_5 = _$_.track('code', void 0, void 0, '33a1e97f');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -519,7 +519,7 @@ export function DomElementChildrenThenSibling() {
 export function DomChildrenThenStaticSiblings() {
 	_$_.push_component();
 
-	let lazy_6 = _$_.track(0);
+	let lazy_6 = _$_.track(0, void 0, void 0, '0ea64305');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');

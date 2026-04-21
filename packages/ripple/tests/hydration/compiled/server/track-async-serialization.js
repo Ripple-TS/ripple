@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-import { trackAsync } from 'ripple/server';
+import { track, trackAsync } from 'ripple/server';
 
 export function AsyncSimpleValue() {
 	_$_.push_component();
@@ -366,6 +366,66 @@ export function ParentWithCatch() {
 			_$_.output_push('<!--]-->');
 		},
 		null
+	);
+
+	_$_.pop_component();
+}
+
+export function AsyncWithReactiveDependency() {
+	_$_.push_component();
+
+	let lazy_7 = _$_.track(0, void 0, void 0, '99982de5');
+
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="increment"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('increment');
+		}
+
+		_$_.output_push('</button>');
+	});
+
+	_$_.try_block(
+		() => {
+			_$_.output_push('<!--[-->');
+
+			let lazy_8 = _$_.track_async(() => Promise.resolve(`count-${_$_.get(lazy_7)}`), '1dea4c85');
+
+			_$_.regular_block(() => {
+				_$_.output_push('<p');
+				_$_.output_push(' class="result"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push(_$_.escape(_$_.get(lazy_8)));
+				}
+
+				_$_.output_push('</p>');
+			});
+
+			_$_.output_push('<!--]-->');
+		},
+		null,
+		() => {
+			_$_.output_push('<!--[-->');
+
+			_$_.regular_block(() => {
+				_$_.output_push('<p');
+				_$_.output_push(' class="loading"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('loading...');
+				}
+
+				_$_.output_push('</p>');
+			});
+
+			_$_.output_push('<!--]-->');
+		}
 	);
 
 	_$_.pop_component();

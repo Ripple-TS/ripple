@@ -27,7 +27,7 @@ import { track } from 'ripple';
 export function IfWithChildren(__anchor, { children }, __block) {
 	_$_.push_component();
 
-	let lazy = _$_.track(true, void 0, void 0, __block);
+	let lazy = _$_.track(true, void 0, void 0, __block, 'c64714b1');
 	var div_1 = root();
 
 	{
@@ -110,7 +110,7 @@ export function TestIfWithChildren(__anchor, _, __block) {
 export function IfWithStaticChildren(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_1 = _$_.track(true, void 0, void 0, __block);
+	let lazy_1 = _$_.track(true, void 0, void 0, __block, '3bba8f77');
 	var div_5 = root_5();
 
 	{
@@ -142,7 +142,7 @@ export function IfWithStaticChildren(__anchor, _, __block) {
 export function IfWithSiblingsAndChildren(__anchor, { children }, __block) {
 	_$_.push_component();
 
-	let lazy_2 = _$_.track(true, void 0, void 0, __block);
+	let lazy_2 = _$_.track(true, void 0, void 0, __block, 'a1b8fb4c');
 	var section_1 = root_7();
 
 	{
@@ -210,7 +210,7 @@ export function TestIfWithSiblingsAndChildren(__anchor, _, __block) {
 export function ElementWithChildrenThenIf(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_3 = _$_.track(true, void 0, void 0, __block);
+	let lazy_3 = _$_.track(true, void 0, void 0, __block, '7cd4817b');
 	var fragment_4 = root_11();
 	var div_11 = _$_.first_child_frag(fragment_4);
 
@@ -247,7 +247,7 @@ export function ElementWithChildrenThenIf(__anchor, _, __block) {
 export function DeepNestingThenIf(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_4 = _$_.track(true, void 0, void 0, __block);
+	let lazy_4 = _$_.track(true, void 0, void 0, __block, '923116be');
 	var fragment_5 = root_13();
 	var section_2 = _$_.first_child_frag(fragment_5);
 
@@ -284,7 +284,7 @@ export function DeepNestingThenIf(__anchor, _, __block) {
 export function DomElementChildrenThenSibling(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_5 = _$_.track('code', void 0, void 0, __block);
+	let lazy_5 = _$_.track('code', void 0, void 0, __block, '33a1e97f');
 	var div_13 = root_15();
 
 	{
@@ -353,7 +353,7 @@ export function DomElementChildrenThenSibling(__anchor, _, __block) {
 export function DomChildrenThenStaticSiblings(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_6 = _$_.track(0, void 0, void 0, __block);
+	let lazy_6 = _$_.track(0, void 0, void 0, __block, '0ea64305');
 	var fragment_6 = root_18();
 	var div_17 = _$_.first_child_frag(fragment_6);
 

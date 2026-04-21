@@ -58,7 +58,7 @@ export function SimplePortal() {
 export function ConditionalPortal() {
 	_$_.push_component();
 
-	let lazy = _$_.track(true);
+	let lazy = _$_.track(true, void 0, void 0, '4f6df174');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');

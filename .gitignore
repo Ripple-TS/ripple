@@ -8,6 +8,9 @@ node_modules/
 coverage
 *.lcov
 
+# Local settings
+*.local.json
+
 packages/vscode-plugin/*.vsix
 playground/src
 playground/ripple/src

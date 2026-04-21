@@ -1155,7 +1155,7 @@ export function ReactiveReturnTrueToFalse() {
 	_$_.push_component();
 
 	var __r_28 = false;
-	let lazy = _$_.track(true);
+	let lazy = _$_.track(true, void 0, void 0, '58730cee');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -1213,7 +1213,7 @@ export function ReactiveReturnFalseToTrue() {
 	_$_.push_component();
 
 	var __r_29 = false;
-	let lazy_1 = _$_.track(false);
+	let lazy_1 = _$_.track(false, void 0, void 0, '7fc6e96b');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -1272,7 +1272,7 @@ export function ReactiveNestedReturn() {
 
 	var __r_30 = false;
 	let a = true;
-	let lazy_2 = _$_.track(true);
+	let lazy_2 = _$_.track(true, void 0, void 0, '385f771e');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -1700,7 +1700,7 @@ export function ReactiveSiblingReturns() {
 
 	var __r_38 = false;
 	var __r_39 = false;
-	let lazy_3 = _$_.track('first');
+	let lazy_3 = _$_.track('first', void 0, void 0, '5aea90b8');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -1783,8 +1783,8 @@ export function ReactiveOuterInnerReturns() {
 	_$_.push_component();
 
 	var __r_40 = false;
-	let lazy_4 = _$_.track(true);
-	let lazy_5 = _$_.track(true);
+	let lazy_4 = _$_.track(true, void 0, void 0, '60b3ed78');
+	let lazy_5 = _$_.track(true, void 0, void 0, '76f23362');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -1870,7 +1870,7 @@ export function ReactiveElseIfReturns() {
 
 	var __r_41 = false;
 	var __r_42 = false;
-	let lazy_6 = _$_.track(0);
+	let lazy_6 = _$_.track(0, void 0, void 0, '820ab671');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -1957,10 +1957,10 @@ export function ReactiveDeepNestedIndependentReturns() {
 	var __r_44 = false;
 	var __r_45 = false;
 	var __r_46 = false;
-	let lazy_7 = _$_.track(false);
-	let lazy_8 = _$_.track(false);
-	let lazy_9 = _$_.track(false);
-	let lazy_10 = _$_.track(false);
+	let lazy_7 = _$_.track(false, void 0, void 0, '0222c312');
+	let lazy_8 = _$_.track(false, void 0, void 0, '7b13a4fb');
+	let lazy_9 = _$_.track(false, void 0, void 0, '405b5bb5');
+	let lazy_10 = _$_.track(false, void 0, void 0, 'f8de97e9');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');

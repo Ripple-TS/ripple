@@ -102,7 +102,7 @@ export function IfElse(__anchor, _, __block) {
 export function ReactiveIf(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy = _$_.track(true, void 0, void 0, __block);
+	let lazy = _$_.track(true, void 0, void 0, __block, '19a16ff0');
 	var fragment_3 = root_7();
 	var button_1 = _$_.first_child_frag(fragment_3);
 
@@ -131,7 +131,7 @@ export function ReactiveIf(__anchor, _, __block) {
 export function ReactiveIfElse(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_1 = _$_.track(false, void 0, void 0, __block);
+	let lazy_1 = _$_.track(false, void 0, void 0, __block, '41177f39');
 	var fragment_4 = root_9();
 	var button_2 = _$_.first_child_frag(fragment_4);
 
@@ -166,8 +166,8 @@ export function ReactiveIfElse(__anchor, _, __block) {
 export function NestedIf(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_2 = _$_.track(true, void 0, void 0, __block);
-	let lazy_3 = _$_.track(true, void 0, void 0, __block);
+	let lazy_2 = _$_.track(true, void 0, void 0, __block, '7894e1df');
+	let lazy_3 = _$_.track(true, void 0, void 0, __block, 'f21b8c26');
 	var fragment_5 = root_12();
 	var button_3 = _$_.first_child_frag(fragment_5);
 
@@ -221,7 +221,7 @@ export function NestedIf(__anchor, _, __block) {
 export function IfElseIfChain(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_4 = _$_.track('loading', void 0, void 0, __block);
+	let lazy_4 = _$_.track('loading', void 0, void 0, __block, '4c69c94a');
 	var div_9 = root_15();
 
 	{

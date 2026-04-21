@@ -1,4 +1,4 @@
-import { trackAsync } from 'ripple';
+import { track, trackAsync } from 'ripple';
 
 export component AsyncSimpleValue() {
 	try {
@@ -68,5 +68,24 @@ export component ParentWithCatch() {
 		<ChildWithError />
 	} catch (e) {
 		<p class="parent-error">{(e as Error).message}</p>
+	}
+}
+
+export component AsyncWithReactiveDependency() {
+	let &[count] = track(0);
+
+	<button
+		class="increment"
+		onClick={() => {
+			count++;
+		}}
+	>
+		{'increment'}
+	</button>
+	try {
+		let &[data] = trackAsync(() => Promise.resolve(`count-${count}`));
+		<p class="result">{data}</p>
+	} pending {
+		<p class="loading">{'loading...'}</p>
 	}
 }

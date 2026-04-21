@@ -103,7 +103,7 @@ export function try_block(try_fn, catch_fn = null, pending_fn = null) {
 			// needs to happen after clearing output
 			if (error instanceof TrackAsyncRunError) {
 				var { tracked: t, cause } = /** @type {InstanceType<typeof TrackAsyncRunError>} */ (error);
-				serialize_track_async_error(t.th, error);
+				serialize_track_async_error(t.h, error);
 				error = cause;
 			}
 

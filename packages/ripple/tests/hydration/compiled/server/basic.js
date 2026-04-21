@@ -304,7 +304,7 @@ function TextProp(__props) {
 export function TextPropWithToggle() {
 	_$_.push_component();
 
-	let lazy = _$_.track(false);
+	let lazy = _$_.track(false, void 0, void 0, 'b5de6402');
 
 	_$_.regular_block(() => {
 		{

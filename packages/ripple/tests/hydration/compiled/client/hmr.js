@@ -33,7 +33,7 @@ export function Layout(__anchor, { children }, __block) {
 export function Content(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy = _$_.track(true, void 0, void 0, __block);
+	let lazy = _$_.track(true, void 0, void 0, __block, '0bdb1500');
 	var div_2 = root_1();
 
 	{

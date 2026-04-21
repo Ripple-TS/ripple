@@ -53,7 +53,7 @@ import {
 import { get_async_track_result } from '../../../utils/async.js';
 import { get_track_async_script_id } from '../../../utils/track-async-serialization.js';
 import * as devalue from 'devalue';
-import { hydrating } from './hydration.js';
+import { hydrating, track_hash_reference } from './hydration.js';
 
 const FLUSH_MICROTASK = 0;
 const FLUSH_SYNC = 1;
@@ -392,14 +392,17 @@ class TrackedValue {
 	 * @param {any} v
 	 * @param {Block} block
 	 * @param {{ get?: Function; set?: Function }} a
+	 * @param {string} [hash]
 	 */
-	constructor(v, block, a) {
+	constructor(v, block, a, hash) {
 		this.a = a;
 		this.b = block;
 		this.c = 0;
 		/** @type {DeferredTrackedEntry[] | null} */
 		this.d = null;
 		this.f = TRACKED;
+		/** @type {string | undefined} */
+		this.h = hash;
 		this.__v = v;
 	}
 	get [0]() {
@@ -434,8 +437,9 @@ class DerivedValue {
 	 * @param {Function} fn
 	 * @param {Block} block
 	 * @param {{ get?: Function; set?: Function }} a
+	 * @param {string} [hash]
 	 */
-	constructor(fn, block, a) {
+	constructor(fn, block, a, hash) {
 		this.a = a;
 		this.b = block;
 		/** @type {null | Block[]} */
@@ -446,6 +450,8 @@ class DerivedValue {
 		this.d = null;
 		this.f = DERIVED;
 		this.fn = fn;
+		/** @type {string | undefined} */
+		this.h = hash;
 		this.__v = UNINITIALIZED;
 	}
 	get [0]() {
@@ -485,12 +491,17 @@ if (DEV) {
  * @param {Block} block
  * @param {(value: any) => any} [get]
  * @param {(next: any, prev: any) => any} [set]
+ * @param {string} [hash]
  * @returns {Tracked}
  */
-export function tracked(v, block, get, set) {
-	return /** @type {Tracked} */ (
-		new TrackedValue(v, block || active_block, get || set ? { get, set } : empty_get_set)
+export function tracked(v, block, get, set, hash) {
+	var t = /** @type {Tracked} */ (
+		new TrackedValue(v, block || active_block, get || set ? { get, set } : empty_get_set, hash)
 	);
+	if (hydrating && hash !== undefined) {
+		track_hash_reference.set(hash, t);
+	}
+	return t;
 }
 
 /**
@@ -498,12 +509,17 @@ export function tracked(v, block, get, set) {
  * @param {any} block
  * @param {(value: any) => any} [get]
  * @param {(next: any, prev: any) => any} [set]
+ * @param {string} [hash]
  * @returns {Derived}
  */
-export function derived(fn, block, get, set) {
-	return /** @type {Derived} */ (
-		new DerivedValue(fn, block || active_block, get || set ? { get, set } : empty_get_set)
+export function derived(fn, block, get, set, hash) {
+	var d = /** @type {Derived} */ (
+		new DerivedValue(fn, block || active_block, get || set ? { get, set } : empty_get_set, hash)
 	);
+	if (hydrating && hash !== undefined) {
+		track_hash_reference.set(hash, d);
+	}
+	return d;
 }
 
 /**
@@ -511,9 +527,10 @@ export function derived(fn, block, get, set) {
  * @param {(value: any) => any | undefined} get
  * @param {(next: any, prev: any) => any | undefined} set
  * @param {Block} b
+ * @param {string} [hash]
  * @returns {Tracked | Derived}
  */
-export function track(v, get, set, b) {
+export function track(v, get, set, b, hash) {
 	if (is_ripple_object(v)) {
 		return v;
 	}
@@ -522,9 +539,9 @@ export function track(v, get, set, b) {
 	}
 
 	if (typeof v === 'function') {
-		return derived(v, b, get, set);
+		return derived(v, b, get, set, hash);
 	}
-	return tracked(v, b, get, set);
+	return tracked(v, b, get, set, hash);
 }
 
 /**
@@ -550,6 +567,11 @@ export function track_async(fn, b, hash) {
 	}
 
 	// During hydration, attempt to read serialized data from SSR
+	var had_hydration_data = false;
+	var hydration_value;
+	/** @type {string[] | undefined} */
+	var hydration_deps;
+
 	if (hydrating) {
 		var script_id = get_track_async_script_id(hash);
 		var script_el = document.getElementById(script_id);
@@ -558,9 +580,9 @@ export function track_async(fn, b, hash) {
 			script_el.remove();
 
 			if (envelope.ok) {
-				var result = devalue.parse(envelope.payload);
-				var t = tracked(result, target_block);
-				return t;
+				had_hydration_data = true;
+				hydration_value = devalue.parse(envelope.payload);
+				hydration_deps = envelope.deps;
 			} else {
 				// trigger the catch block
 				throw new Error(envelope.error?.message ?? 'Unknown server error');
@@ -568,7 +590,13 @@ export function track_async(fn, b, hash) {
 		}
 	}
 
-	var t = tracked(SUSPENSE_PENDING, target_block);
+	var t = tracked(
+		had_hydration_data ? hydration_value : SUSPENSE_PENDING,
+		target_block,
+		undefined,
+		undefined,
+		hash,
+	);
 
 	// Capture the call-site block for boundary lookups. target_block is the
 	// component's block (passed by compiler), but the actual try/pending/catch
@@ -582,15 +610,44 @@ export function track_async(fn, b, hash) {
 	/** @type {Block | null} */
 	var boundary = null;
 
+	// TODO: decide if instead of insisting on pending, we create our own boundary
+	// we currently require a pending block upstream but we could also
+	// create a try/pending/catch boundary at mount and hydration like
+	// we do on the server so that there is always a boundary present.
+	// It can handle global pending when none were provided.
+	// Not sure about the catch boundary because if none were provided,
+	// the whole app for any error will be unmounted with the catch block rendered
+
 	// Find boundary from the call-site block.
 	boundary = get_pending_boundary(active_block);
 	if (boundary === null) {
 		throw new Error('Missing parent `try { ... } pending { ... }` statement');
 	}
 
-	request_id = begin_boundary_request(boundary);
+	// If we hydrated with resolved data, the SSR already completed this request.
+	// Otherwise mark a pending request on the boundary for the client-side run.
+	if (!had_hydration_data) {
+		request_id = begin_boundary_request(boundary);
+	}
 
 	pre_effect(() => {
+		if (had_hydration_data) {
+			// First run after hydration: skip fn() entirely (the SSR already
+			// produced the resolved value) and instead register the direct
+			// dependencies from the serialized deps list so future dep changes
+			// trigger a re-run via the normal async path.
+			had_hydration_data = false;
+			if (hydration_deps !== undefined) {
+				for (var i = 0; i < hydration_deps.length; i++) {
+					var dep_ref = track_hash_reference.get(hydration_deps[i]);
+					if (dep_ref !== undefined) {
+						get(dep_ref);
+					}
+				}
+			}
+			return;
+		}
+
 		var current_version = ++version;
 
 		// Abort previous in-flight request
@@ -606,7 +663,7 @@ export function track_async(fn, b, hash) {
 			request_id = begin_boundary_request(boundary);
 		}
 
-		// Set to pending before calling fn() in case it's sync
+		// Set to pending before calling fn() in case it's sync.
 		if (t.__v !== SUSPENSE_PENDING) {
 			update_tracked_value_clock(t, SUSPENSE_PENDING);
 			schedule_update(t.b);

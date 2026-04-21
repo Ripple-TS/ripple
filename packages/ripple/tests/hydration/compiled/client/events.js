@@ -14,7 +14,7 @@ import { track } from 'ripple';
 export function ClickCounter(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy = _$_.track(0, void 0, void 0, __block);
+	let lazy = _$_.track(0, void 0, void 0, __block, 'a070e3a7');
 	var div_1 = root();
 
 	{
@@ -41,7 +41,7 @@ export function ClickCounter(__anchor, _, __block) {
 export function IncrementDecrement(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_1 = _$_.track(0, void 0, void 0, __block);
+	let lazy_1 = _$_.track(0, void 0, void 0, __block, '87fcabdd');
 	var div_2 = root_1();
 
 	{
@@ -74,8 +74,8 @@ export function IncrementDecrement(__anchor, _, __block) {
 export function MultipleEvents(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_2 = _$_.track(0, void 0, void 0, __block);
-	let lazy_3 = _$_.track(0, void 0, void 0, __block);
+	let lazy_2 = _$_.track(0, void 0, void 0, __block, '41b9f0b0');
+	let lazy_3 = _$_.track(0, void 0, void 0, __block, '72789f75');
 	var div_3 = root_2();
 
 	{
@@ -115,8 +115,8 @@ export function MultipleEvents(__anchor, _, __block) {
 export function MultiStateUpdate(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_4 = _$_.track(0, void 0, void 0, __block);
-	let lazy_5 = _$_.track('none', void 0, void 0, __block);
+	let lazy_4 = _$_.track(0, void 0, void 0, __block, '5a375160');
+	let lazy_5 = _$_.track('none', void 0, void 0, __block, '3ceeb88c');
 
 	const handleClick = () => {
 		_$_.update(lazy_4);
@@ -156,7 +156,7 @@ export function MultiStateUpdate(__anchor, _, __block) {
 export function ToggleButton(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_6 = _$_.track(false, void 0, void 0, __block);
+	let lazy_6 = _$_.track(false, void 0, void 0, __block, 'be823ec7');
 	var div_5 = root_4();
 
 	{
@@ -199,7 +199,7 @@ export function ChildButton(__anchor, props, __block) {
 export function ParentWithChildButton(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_7 = _$_.track(0, void 0, void 0, __block);
+	let lazy_7 = _$_.track(0, void 0, void 0, __block, 'dcc2e0f9');
 	var div_6 = root_6();
 
 	{

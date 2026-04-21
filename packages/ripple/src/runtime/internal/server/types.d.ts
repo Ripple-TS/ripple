@@ -21,6 +21,7 @@ export type Derived = {
 	d: null | Dependency;
 	f: number;
 	fn: Function;
+	h: string;
 	v: any;
 	readonly [0]: any;
 	[1]: Derived;
@@ -31,24 +32,18 @@ export type Derived = {
 
 export type Tracked = {
 	a: { get?: Function; set?: Function };
-	b?: Block;
+	b: Block;
 	c: number;
 	f: number;
 	v: any;
 	aa: AbortController | null;
 	ap: PromiseLike<any> | null;
-	/** serialization hash */
-	th?: string;
+	h: string;
 	readonly [0]: any;
 	[1]: Tracked;
 	value: any;
 	readonly length: 2;
 	[Symbol.iterator](): Iterator<any | Tracked>;
-};
-
-export type TrackedAsync = Tracked & {
-	th: NonNullable<Tracked['th']>;
-	b: NonNullable<Tracked['b']>;
 };
 
 export type Block = {
