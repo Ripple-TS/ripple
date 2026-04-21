@@ -137,20 +137,10 @@ export function collect_lazy_bindings_from_component(params, body, context) {
 		}
 	}
 
-	for (const statement of body) {
-		if (statement.type !== 'VariableDeclaration') continue;
-		for (const declarator of statement.declarations || []) {
-			const pattern = declarator.id;
-			if ((pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') && pattern.lazy) {
-				const lazy_name = pattern.metadata?.lazy_id || generate_lazy_id(context);
-				if (!pattern.metadata?.lazy_id) {
-					pattern.metadata = { ...pattern.metadata, lazy_id: lazy_name };
-				}
-				collect_lazy_bindings(pattern, lazy_name, lazy_bindings);
-			}
-		}
-	}
-
+	// VariableDeclaration lazy patterns already have their `lazy_id` assigned
+	// by `preallocate_lazy_ids` (run once over the whole program by the target
+	// transforms), so `collect_lazy_bindings_from_statements` handles them
+	// alongside the expression-statement assignment form.
 	collect_lazy_bindings_from_statements(body, lazy_bindings);
 
 	return lazy_bindings;
