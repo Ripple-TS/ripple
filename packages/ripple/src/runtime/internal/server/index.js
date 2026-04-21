@@ -1220,6 +1220,18 @@ export function serialize_track_async_error(hash, error) {
 }
 
 /**
+ * @param {any} error
+ * @returns {any}
+ */
+function create_public_track_async_error(error) {
+	if (DEV) {
+		return error;
+	}
+
+	return new Error(get_public_track_async_error_message(error));
+}
+
+/**
  * We avoid leaking arbitrary server errors in production while still keeping
  * rich error messages in development and tests.
  * @param {any} error
@@ -1230,6 +1242,21 @@ function get_public_track_async_error_message(error) {
 		return error?.message ?? String(error);
 	}
 	return 'An error occurred during async rendering';
+}
+
+/**
+ * Routes trackAsync errors to a catch boundary and serializes the same
+ * public error for hydration, preventing SSR/hydration message mismatches.
+ * @param {TryBlockWithCatch} catch_block
+ * @param {string} hash
+ * @param {any} error
+ * @returns {void}
+ */
+function route_track_async_error_to_catch_block(catch_block, hash, error) {
+	var public_error = create_public_track_async_error(error);
+	route_error_to_catch_block(catch_block, public_error);
+	// has to run after routing as it sets the active_block to the catch block
+	serialize_track_async_error(hash, public_error);
 }
 
 /**
@@ -1329,9 +1356,7 @@ function run_track_async(t, fn, block, dr, dj) {
 						if (dj) {
 							dj(error);
 						}
-						route_error_to_catch_block(get_closest_catch_block(block), error);
-						// has to run after routing as it sets the active_block to the catch block
-						serialize_track_async_error(t.h, error);
+						route_track_async_error_to_catch_block(get_closest_catch_block(block), t.h, error);
 					},
 				);
 				return;
@@ -1376,9 +1401,7 @@ function run_track_async(t, fn, block, dr, dj) {
 			if (dj) {
 				dj(error);
 			}
-			route_error_to_catch_block(get_closest_catch_block(block), error);
-			// has to run after routing as it sets the active_block to the catch block
-			serialize_track_async_error(t.h, error);
+			route_track_async_error_to_catch_block(get_closest_catch_block(block), t.h, error);
 		},
 	);
 }
@@ -1522,9 +1545,7 @@ function register_block_rerun(block) {
 						error
 					);
 					error = cause;
-					route_error_to_catch_block(try_catch_block, error);
-					// has to run after routing as it sets the active_block to the catch block
-					serialize_track_async_error(t.h, error);
+					route_track_async_error_to_catch_block(try_catch_block, t.h, error);
 				} else {
 					route_error_to_catch_block(try_catch_block, error);
 				}
@@ -1534,9 +1555,11 @@ function register_block_rerun(block) {
 			if (cancelled) {
 				return;
 			}
-			route_error_to_catch_block(try_catch_block, error);
-			// has to run after routing as it sets the active_block to the catch block
-			serialize_track_async_error(/** @type {Tracked} */ (t).h, error);
+			route_track_async_error_to_catch_block(
+				try_catch_block,
+				/** @type {Tracked} */ (t).h,
+				error,
+			);
 		},
 	);
 	// clear all output buffers as we'll rerun the block rendering

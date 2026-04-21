@@ -5,6 +5,8 @@ import { hydrateComponent, container } from '../setup-hydration.js';
 import * as ServerComponents from './compiled/server/track-async-serialization.js';
 import * as ClientComponents from './compiled/client/track-async-serialization.js';
 
+const TRACK_ASYNC_PUBLIC_ERROR_MESSAGE = 'An error occurred during async rendering';
+
 describe('hydration > trackAsync serialization', () => {
 	it('hydrates simple string value from serialized trackAsync', async () => {
 		await hydrateComponent(ServerComponents.AsyncSimpleValue, ClientComponents.AsyncSimpleValue);
@@ -34,7 +36,7 @@ describe('hydration > trackAsync serialization', () => {
 	it('hydrates rejected trackAsync and shows catch content', async () => {
 		await hydrateComponent(ServerComponents.AsyncWithCatch, ClientComponents.AsyncWithCatch);
 
-		expect(container.querySelector('.error')?.textContent).toBe('fetch failed');
+		expect(container.querySelector('.error')?.textContent).toBe(TRACK_ASYNC_PUBLIC_ERROR_MESSAGE);
 		expect(container.querySelector('.result')).toBeNull();
 		expect(container.querySelector('.loading')).toBeNull();
 		expect(container.querySelector('script[id^="__tsrx_ta_"]')).toBeNull();
@@ -43,7 +45,9 @@ describe('hydration > trackAsync serialization', () => {
 	it('hydrates child trackAsync error bubbled to parent catch', async () => {
 		await hydrateComponent(ServerComponents.ParentWithCatch, ClientComponents.ParentWithCatch);
 
-		expect(container.querySelector('.parent-error')?.textContent).toBe('child error');
+		expect(container.querySelector('.parent-error')?.textContent).toBe(
+			TRACK_ASYNC_PUBLIC_ERROR_MESSAGE,
+		);
 		expect(container.querySelector('.result')).toBeNull();
 		expect(container.querySelector('.pending')).toBeNull();
 		expect(container.querySelector('script[id^="__tsrx_ta_"]')).toBeNull();

@@ -1,4 +1,7 @@
+import { DEV } from 'esm-env';
 import { trackAsync } from 'ripple';
+
+const TRACK_ASYNC_PUBLIC_ERROR_MESSAGE = 'An error occurred during async rendering';
 
 describe('trackAsync serialization (server)', () => {
 	it('serializes resolved trackAsync data as a script tag in SSR output', async () => {
@@ -80,10 +83,11 @@ describe('trackAsync serialization (server)', () => {
 		}
 
 		const { body } = await render(App);
-		expect(body).toContain('<p class="error">fetch failed</p>');
+		const public_message = DEV ? 'fetch failed' : TRACK_ASYNC_PUBLIC_ERROR_MESSAGE;
+		expect(body).toContain(`<p class="error">${public_message}</p>`);
 		expect(body).toContain('__tsrx_ta_');
 		expect(body).toContain('"ok":false');
-		expect(body).toContain('"message":"fetch failed"');
+		expect(body).toContain(`"message":"${public_message}"`);
 	});
 
 	it('serializes error when child component error bubbles to parent catch', async () => {
@@ -105,10 +109,11 @@ describe('trackAsync serialization (server)', () => {
 		}
 
 		const { body } = await render(Parent);
-		expect(body).toContain('<p class="parent-error">child error</p>');
+		const public_message = DEV ? 'child error' : TRACK_ASYNC_PUBLIC_ERROR_MESSAGE;
+		expect(body).toContain(`<p class="parent-error">${public_message}</p>`);
 		expect(body).toContain('__tsrx_ta_');
 		expect(body).toContain('"ok":false');
-		expect(body).toContain('"message":"child error"');
+		expect(body).toContain(`"message":"${public_message}"`);
 	});
 
 	it('serializes sync trackAsync throw using original cause message', async () => {
