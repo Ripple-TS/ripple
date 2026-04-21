@@ -992,6 +992,20 @@ function inject_solid_imports(program, transform_context) {
  */
 function to_jsx_element(node, transform_context) {
 	if (node.type === 'JSXElement') return node;
+
+	// `{html expr}` isn't supported on the Solid target — users should reach
+	// for `innerHTML={...}` directly as an element attribute so the
+	// semantics (replaces all children; only valid on host elements) are
+	// explicit in their source. Only Ripple has a `{html ...}` primitive.
+	// The check runs before the dynamic-element branch so `<@Dyn>{html x}</@Dyn>`
+	// fails with the same diagnostic as the static-element case.
+	const raw_children = node.children || [];
+	if (raw_children.some((/** @type {any} */ c) => c && c.type === 'Html')) {
+		throw new Error(
+			'`{html ...}` is not supported on the Solid target. Use `innerHTML={...}` as an element attribute instead.',
+		);
+	}
+
 	if (is_dynamic_element_id(node.id)) {
 		return dynamic_element_to_jsx_child(node, transform_context);
 	}
@@ -1003,17 +1017,6 @@ function to_jsx_element(node, transform_context) {
 		is_composite,
 		transform_context,
 	);
-
-	// `{html expr}` isn't supported on the Solid target — users should reach
-	// for `innerHTML={...}` directly as an element attribute so the
-	// semantics (replaces all children; only valid on host elements) are
-	// explicit in their source. Only Ripple has a `{html ...}` primitive.
-	const raw_children = node.children || [];
-	if (raw_children.some((/** @type {any} */ c) => c && c.type === 'Html')) {
-		throw new Error(
-			'`{html ...}` is not supported on the Solid target. Use `innerHTML={...}` as an element attribute instead.',
-		);
-	}
 
 	// Optimization: `<el>{text expr}</el>` with a single `{text ...}` child
 	// on a host (DOM) element lowers to `<el textContent={expr} />`. Solid
