@@ -1,5 +1,21 @@
 # @tsrx/solid
 
+## 0.0.3
+
+### Patch Changes
+
+- [#888](https://github.com/Ripple-TS/ripple/pull/888)
+  [`ad99739`](https://github.com/Ripple-TS/ripple/commit/ad99739f65202850ff0013515121cfd3a1758b82)
+  Thanks [@trueadm](https://github.com/trueadm)! - Wrap element children that mix
+  JSX with plain statements (`VariableDeclaration`, `ExpressionStatement`,
+  `DebuggerStatement`, etc.) in an IIFE so the statements execute as JS during
+  render and keep their locals scoped to the enclosing element. Previously those
+  statements were emitted directly as JSX children, which made them render as
+  literal text rather than run — e.g. mid-template
+  `const [state, setState] = createSignal()` or `console.log(...)` between JSX
+  siblings printed their source instead of executing. Matches the React target's
+  existing behaviour.
+
 ## 0.0.2
 
 ### Patch Changes

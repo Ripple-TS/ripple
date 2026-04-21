@@ -1,5 +1,13 @@
 # tsrx-website
 
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies
+  [[`ad99739`](https://github.com/Ripple-TS/ripple/commit/ad99739f65202850ff0013515121cfd3a1758b82)]:
+  - @tsrx/solid@0.0.3
+
 ## 0.1.1
 
 ### Patch Changes
