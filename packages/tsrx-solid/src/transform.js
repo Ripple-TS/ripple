@@ -671,18 +671,21 @@ function build_show_element(test, children, fallback) {
  * `for (const item of items; index i) { ... }` →
  * `<For each={items}>{(item, i) => ...}</For>`
  *
+ * `for (const item of items; key item.id) { ... }` →
+ * `<For each={items} keyed={(item) => item.id}>{(item) => ...}</For>`
+ *
+ * Solid 2.0's `<For>` accepts a `keyed` prop (`boolean | (item) => any`) that
+ * switches reconciliation from reference identity to derived keys. The callback
+ * only receives the item — not the index — so a `key` expression that depends
+ * only on the index can't be translated cleanly and will surface as a
+ * scope error in the generated TSX. Item-based keys (the common case, e.g.
+ * `key item.id`) translate directly.
+ *
  * @param {any} node
  * @param {TransformContext} transform_context
  * @returns {any}
  */
 function for_of_statement_to_jsx_child(node, transform_context) {
-	if (node.key) {
-		throw create_compile_error(
-			node.key,
-			"Solid TSRX does not support `key` in `for` control flow. Solid's <For> uses reference identity; use <Index> or restructure your data if you need index-based keying.",
-		);
-	}
-
 	transform_context.needs_for = true;
 
 	const loop_params = get_for_of_iteration_params(node.left, node.index);
@@ -703,18 +706,37 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 		body_jsx,
 	);
 
-	return create_jsx_element(
-		'For',
-		[
-			{
+	const attributes = [
+		{
+			type: 'JSXAttribute',
+			name: { type: 'JSXIdentifier', name: 'each', metadata: { path: [] } },
+			value: to_jsx_expression_container(node.right),
+			metadata: { path: [] },
+		},
+	];
+
+	if (node.key) {
+		const item_param = clone_expression_node(loop_params[0]);
+		const keyed_arrow = /** @type {any} */ ({
+			type: 'ArrowFunctionExpression',
+			params: [item_param],
+			body: node.key,
+			async: false,
+			generator: false,
+			expression: true,
+			metadata: { path: [] },
+		});
+		attributes.push(
+			/** @type {any} */ ({
 				type: 'JSXAttribute',
-				name: { type: 'JSXIdentifier', name: 'each', metadata: { path: [] } },
-				value: to_jsx_expression_container(node.right),
+				name: { type: 'JSXIdentifier', name: 'keyed', metadata: { path: [] } },
+				value: to_jsx_expression_container(keyed_arrow, node.key),
 				metadata: { path: [] },
-			},
-		],
-		[to_jsx_expression_container(arrow)],
-	);
+			}),
+		);
+	}
+
+	return create_jsx_element('For', attributes, [to_jsx_expression_container(arrow)]);
 }
 
 /**

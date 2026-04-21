@@ -295,17 +295,20 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain("import { For } from 'solid-js'");
 		});
 
-		it('for-of with `key` clause throws a helpful error', () => {
-			expect(() =>
-				compile(
-					`component App({ items }: { items: number[] }) {
-						for (const item of items; index i; key i) {
-							<li>{item}</li>
-						}
-					}`,
-					'App.tsrx',
-				),
-			).toThrow(/Solid TSRX does not support `key`/);
+		it('for-of with `key` clause → <For keyed={...}>', () => {
+			const { code } = compile(
+				`component App({ items }: { items: { id: string; name: string }[] }) {
+					for (const item of items; key item.id) {
+						<li>{item.name}</li>
+					}
+				}`,
+				'App.tsrx',
+			);
+			// `key item.id` lifts to `keyed={(item) => item.id}` — Solid 2.0's
+			// <For keyed> switches reconciliation from reference identity to
+			// the derived key.
+			expect(code).toContain('<For each={items}');
+			expect(code).toMatch(/keyed=\{\(item\) =>\s*item\.id\}/);
 		});
 
 		it('try/catch → <Errored fallback={(err, reset) => ...}>', () => {
