@@ -1545,6 +1545,11 @@ function clone_expression_node(node) {
 	if (Array.isArray(node)) return node.map(clone_expression_node);
 	const clone = { ...node };
 	for (const key of Object.keys(clone)) {
+		// Positional keys are value-shared across nodes and — more importantly —
+		// `loc` objects often contain back-references to sub-objects that would
+		// blow the stack without a cycle guard. Every other AST traversal in
+		// this file skips these; keep them as shallow-copied references.
+		if (key === 'loc' || key === 'start' || key === 'end') continue;
 		if (key === 'metadata') {
 			clone.metadata = clone.metadata ? { ...clone.metadata } : { path: [] };
 			continue;
