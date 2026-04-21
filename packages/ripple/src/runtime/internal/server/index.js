@@ -1465,9 +1465,7 @@ export function track_async(v, hash) {
 	}
 
 	var t = tracked(SUSPENSE_PENDING, undefined, undefined, hash);
-	t.b = /** @type {Block} */ (active_block);
-	var block = /** @type {Block} */ (active_block);
-	run_track_async(t, v, block, null, null);
+	run_track_async(t, v, t.b, null, null);
 	return t;
 }
 

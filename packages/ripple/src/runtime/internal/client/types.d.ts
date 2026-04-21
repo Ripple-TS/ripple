@@ -25,6 +25,7 @@ export type Tracked<V = any> = {
 	c: number;
 	d: null | DeferredTrackedEntry[];
 	f: number;
+	h?: string;
 	__v: V;
 	readonly [0]: V;
 	[1]: Tracked<V>;
@@ -48,6 +49,7 @@ export type Derived = {
 	d: null | Dependency;
 	f: number;
 	fn: Function;
+	h?: string;
 	__v: any;
 	readonly [0]: any;
 	[1]: Derived;

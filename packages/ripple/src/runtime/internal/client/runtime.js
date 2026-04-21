@@ -401,7 +401,6 @@ class TrackedValue {
 		/** @type {DeferredTrackedEntry[] | null} */
 		this.d = null;
 		this.f = TRACKED;
-		/** @type {string | undefined} */
 		this.h = hash;
 		this.__v = v;
 	}
@@ -450,7 +449,6 @@ class DerivedValue {
 		this.d = null;
 		this.f = DERIVED;
 		this.fn = fn;
-		/** @type {string | undefined} */
 		this.h = hash;
 		this.__v = UNINITIALIZED;
 	}
