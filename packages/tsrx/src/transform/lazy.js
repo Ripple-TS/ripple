@@ -407,16 +407,21 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 		}
 		const effective_bindings =
 			shadowed.size > 0 ? remove_shadowed(lazy_bindings, shadowed) : lazy_bindings;
+		// `node.left` is a binding site, not an expression context: a declaration
+		// like `const x` or `const [a, b]` has no outer references to rewrite,
+		// and recursing here would hit the VariableDeclarator handler and
+		// rewrite a lazy declarator id that `preallocate_lazy_ids` already
+		// tagged — double-processing the loop variable. Leave `node.left`
+		// untouched; the body and right-hand side are the only scopes with
+		// live references.
 		let changed = false;
-		const new_left = apply_lazy_transforms(node.left, effective_bindings);
-		if (new_left !== node.left) changed = true;
 		// The right-hand side is evaluated in the outer scope (before the loop
 		// variable is bound), so use the unshadowed bindings there.
 		const new_right = apply_lazy_transforms(node.right, lazy_bindings);
 		if (new_right !== node.right) changed = true;
 		const new_body = apply_lazy_transforms(node.body, effective_bindings);
 		if (new_body !== node.body) changed = true;
-		return changed ? { ...node, left: new_left, right: new_right, body: new_body } : node;
+		return changed ? { ...node, right: new_right, body: new_body } : node;
 	}
 
 	if (node.type === 'SwitchStatement') {
