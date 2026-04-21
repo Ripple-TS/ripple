@@ -1174,8 +1174,12 @@ function is_composite_element(node) {
 
 /**
  * Check if the user already supplied a `textContent` attribute on the
- * element. If they did, the compiler mustn't emit another one — the
- * `{text expr}` → `textContent={...}` optimization bails out.
+ * element, or if a spread attribute could supply one. If either is true the
+ * compiler mustn't emit another `textContent` — the `{text expr}` →
+ * `textContent={...}` optimization bails out. Spreads are treated as
+ * potentially setting `textContent` because the spread's runtime shape
+ * isn't knowable at compile time; emitting a second `textContent` attribute
+ * would produce a duplicate-key conflict at runtime.
  *
  * @param {any[]} attributes
  * @returns {boolean}
@@ -1184,10 +1188,11 @@ function has_text_content_attribute(attributes) {
 	return attributes.some(
 		(/** @type {any} */ attr) =>
 			attr &&
-			attr.type === 'JSXAttribute' &&
-			attr.name &&
-			attr.name.type === 'JSXIdentifier' &&
-			attr.name.name === 'textContent',
+			((attr.type === 'JSXAttribute' &&
+				attr.name &&
+				attr.name.type === 'JSXIdentifier' &&
+				attr.name.name === 'textContent') ||
+				attr.type === 'JSXSpreadAttribute'),
 	);
 }
 

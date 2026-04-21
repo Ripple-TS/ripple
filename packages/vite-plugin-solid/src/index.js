@@ -31,12 +31,17 @@ export function tsrxSolid(options = {}) {
 	/**
 	 * Decide whether a real (on-disk) path should be treated as a tsrx
 	 * source module. Falls back to matching `.tsrx` when no custom
-	 * `include` regex was supplied.
+	 * `include` regex was supplied. Resets `lastIndex` before testing so
+	 * user-supplied regexes with the `g` or `y` flag don't produce
+	 * alternating true/false results across calls.
 	 *
 	 * @param {string} path
 	 * @returns {boolean}
 	 */
-	const is_tsrx_source = (path) => include_pattern.test(path);
+	const is_tsrx_source = (path) => {
+		include_pattern.lastIndex = 0;
+		return include_pattern.test(path);
+	};
 
 	/**
 	 * Detect the virtual id form produced by {@link resolveId} (real path
