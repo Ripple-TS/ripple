@@ -135,37 +135,32 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain("name == null ? '' : name + ''");
 		});
 
-		it('{html expr} compiles to innerHTML attribute', () => {
-			const { code } = compile(
-				`component App({ markup }: { markup: string }) {
-					<article>{html markup}</article>
-				}`,
-				'App.tsrx',
-			);
-			expect(code).toMatch(/<article\s+innerHTML=\{markup\}\s*\/>/);
-			expect(code).not.toContain('</article>');
-		});
-
-		it('{html expr} rejects sibling children', () => {
+		it('rejects `{html expr}` as a child of a host element', () => {
+			// The `{html ...}` primitive is Ripple-only. On the Solid target
+			// users should spell it as `innerHTML={...}` on the element so
+			// the DOM-specific semantics are explicit in the source.
 			expect(() =>
 				compile(
 					`component App({ markup }: { markup: string }) {
-						<article>{html markup}{'oops'}</article>
+						<article>{html markup}</article>
 					}`,
 					'App.tsrx',
 				),
-			).toThrow(/only child/);
+			).toThrow(/not supported on the Solid target/);
 		});
 
-		it('{html expr} rejects multiple html children', () => {
+		it('rejects `{html expr}` at the component body level', () => {
+			// Top-level `{html ...}` reaches `to_jsx_child` rather than the
+			// element lowering path; both surfaces should report the same
+			// error instead of silently producing garbage AST.
 			expect(() =>
 				compile(
-					`component App({ a, b }: { a: string; b: string }) {
-						<article>{html a}{html b}</article>
+					`component App({ markup }: { markup: string }) {
+						{html markup}
 					}`,
 					'App.tsrx',
 				),
-			).toThrow(/Only one/);
+			).toThrow(/not supported on the Solid target/);
 		});
 	});
 

@@ -450,11 +450,10 @@ export component FeaturesPage() {
 					<section class="doc-section" id="raw-html">
 						<h2 class="section-heading">{'Raw HTML'}</h2>
 						<p class="section-body">
+							<strong>{'Ripple only. '}</strong>
 							{'The '}
 							<code class="inline-code">{'{html expr}'}</code>
-							{' container is an escape hatch for inserting pre-rendered markup directly into the DOM — the equivalent of React\'s '}
-							<code class="inline-code">{'dangerouslySetInnerHTML'}</code>
-							{' or Svelte\'s '}
+							{' container is a Ripple-specific escape hatch for inserting pre-rendered markup directly into the DOM, similar in spirit to Svelte\'s '}
 							<code class="inline-code">{'{@html ...}'}</code>
 							{'. The expression must evaluate to a string, and it replaces the surrounding element\'s contents as parsed HTML rather than escaped text.'}
 						</p>
@@ -468,25 +467,22 @@ export component FeaturesPage() {
 							<code class="inline-code">{'text'}</code>
 							{', the '}
 							<code class="inline-code">{'html'}</code>
-							{' keyword is compile-time only and disappears after the transform — it lowers to the target runtime\'s raw-HTML primitive (in Solid, the parent element\'s '}
-							<code class="inline-code">{'innerHTML'}</code>
-							{' prop; in Ripple, an internal '}
+							{' keyword is compile-time only and disappears after the transform — in Ripple it lowers to an internal '}
 							<code class="inline-code">{'_$_.html'}</code>
-							{' binding).'}
+							{' binding.'}
 						</p>
 						<p class="section-body">
-							<strong>{'Not supported on the React target. '}</strong>
-							{'React\'s JSX rejects sibling children alongside '}
-							<code class="inline-code">{'dangerouslySetInnerHTML'}</code>
-							{' and the semantics don\'t map cleanly onto '}
+							{'Neither React nor Solid have a cleanly-matching child-level primitive, so compiling '}
 							<code class="inline-code">{'{html ...}'}</code>
-							{' as a child container, so compiling a '}
-							<code class="inline-code">{'{html ...}'}</code>
-							{' expression with '}
+							{' with '}
 							<code class="inline-code">{'@tsrx/react'}</code>
-							{' is a compile-time error. If you need raw HTML in a React target, use '}
-							<code class="inline-code">{'dangerouslySetInnerHTML'}</code>
-							{' directly as an element attribute.'}
+							{' or '}
+							<code class="inline-code">{'@tsrx/solid'}</code>
+							{' is a compile-time error. For those targets, reach for the attribute-level equivalent directly: '}
+							<code class="inline-code">{'dangerouslySetInnerHTML={{ __html: markup }}'}</code>
+							{' on React, or '}
+							<code class="inline-code">{'innerHTML={markup}'}</code>
+							{' on Solid.'}
 						</p>
 						<p class="section-body muted">
 							<strong>{'Security: '}</strong>
