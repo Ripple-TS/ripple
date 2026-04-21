@@ -50,6 +50,7 @@ import {
 export function transform(ast, source, filename) {
 	/** @type {any[]} */
 	const stylesheets = [];
+	const module_uses_server_directive = has_use_server_directive(ast);
 
 	/** @type {TransformContext} */
 	const transform_context = {
@@ -67,6 +68,22 @@ export function transform(ast, source, filename) {
 	walk(/** @type {any} */ (ast), transform_context, {
 		Component(node, { next, state }) {
 			const as_any = /** @type {any} */ (node);
+			const await_expression = find_first_top_level_await_in_component_body(as_any.body || []);
+
+			if (await_expression && !module_uses_server_directive) {
+				throw create_compile_error(
+					await_expression,
+					'React components can only use `await` when the module has a top-level "use server" directive.',
+				);
+			}
+
+			if (await_expression) {
+				as_any.metadata = /** @type {any} */ ({
+					...(as_any.metadata || {}),
+					contains_top_level_await: true,
+				});
+			}
+
 			const css = as_any.css;
 			if (css) {
 				stylesheets.push(css);
@@ -194,6 +211,9 @@ function component_to_function_declaration(component, transform_context, walk_he
 	const helper_state = walk_helper_state || create_helper_state(component.id?.name || 'Component');
 	const params = component.params || [];
 	const body = /** @type {any[]} */ (component.body || []);
+	const is_async_component =
+		!!component?.metadata?.contains_top_level_await ||
+		find_first_top_level_await_in_component_body(body) !== null;
 
 	// Collect param bindings from original patterns (lazy patterns still intact).
 	const param_bindings = collect_param_bindings(params);
@@ -235,7 +255,7 @@ function component_to_function_declaration(component, transform_context, walk_he
 		id: component.id,
 		params: final_params,
 		body: final_body,
-		async: false,
+		async: is_async_component,
 		generator: false,
 		metadata: {
 			path: [],
@@ -512,6 +532,90 @@ function is_hook_callee(callee) {
 	}
 
 	return false;
+}
+
+/**
+ * @param {AST.Program} program
+ * @returns {boolean}
+ */
+function has_use_server_directive(program) {
+	for (const statement of program.body || []) {
+		if (statement.type !== 'ExpressionStatement') {
+			break;
+		}
+
+		if (statement.directive === 'use server') {
+			return true;
+		}
+
+		if (statement.directive == null) {
+			break;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @returns {any | null}
+ */
+function find_first_top_level_await_in_component_body(body_nodes) {
+	for (const node of body_nodes) {
+		const found = find_first_top_level_await(node, false);
+		if (found) return found;
+	}
+	return null;
+}
+
+/**
+ * @param {any} node
+ * @param {boolean} inside_nested_function
+ * @returns {any | null}
+ */
+function find_first_top_level_await(node, inside_nested_function) {
+	if (!node || typeof node !== 'object') {
+		return null;
+	}
+
+	if (Array.isArray(node)) {
+		for (const child of node) {
+			const found = find_first_top_level_await(child, inside_nested_function);
+			if (found) return found;
+		}
+		return null;
+	}
+
+	if (
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression'
+	) {
+		// Ignore nested function bodies - only direct component-level awaits require async component.
+		if (inside_nested_function) {
+			return null;
+		}
+		return find_first_top_level_await(node.body, true);
+	}
+
+	if (inside_nested_function) {
+		return null;
+	}
+
+	if (node.type === 'AwaitExpression') {
+		return node;
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+
+		const found = find_first_top_level_await(node[key], false);
+		if (found) return found;
+	}
+
+	return null;
 }
 
 /**

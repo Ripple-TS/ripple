@@ -2172,7 +2172,7 @@ const visitors = {
 				end: /** @type {AST.NodeWithLocation} */ (node).start + 'await'.length,
 			};
 			error(
-				'`await` is not allowed inside client components. Use `trackAsync(() => ...)` with an upstream `try { ... } pending { ... }` boundary instead.',
+				'`await` is not allowed inside components. Use `trackAsync(() => ...)` with an upstream `try { ... } pending { ... }` boundary instead.',
 				context.state.analysis.module.filename,
 				adjusted_node,
 				context.state.loose ? context.state.analysis.errors : undefined,

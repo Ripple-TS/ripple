@@ -69,6 +69,20 @@ export function transform(ast, source, filename) {
 	walk(/** @type {any} */ (ast), transform_context, {
 		Component(node, { next, state }) {
 			const as_any = /** @type {any} */ (node);
+			const await_expression = find_first_top_level_await_in_component_body(as_any.body || []);
+
+			if (await_expression) {
+				const adjusted_node = /** @type {any} */ ({
+					...await_expression,
+					end: (await_expression.start ?? 0) + 'await'.length,
+				});
+
+				throw create_compile_error(
+					adjusted_node,
+					'`await` is not allowed inside Solid components.',
+				);
+			}
+
 			const css = as_any.css;
 			if (css) {
 				stylesheets.push(css);
@@ -159,6 +173,66 @@ export function transform(ast, source, filename) {
 		map: result.map,
 		css,
 	};
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @returns {any | null}
+ */
+function find_first_top_level_await_in_component_body(body_nodes) {
+	for (const node of body_nodes) {
+		const found = find_first_top_level_await(node, false);
+		if (found) return found;
+	}
+
+	return null;
+}
+
+/**
+ * @param {any} node
+ * @param {boolean} inside_nested_function
+ * @returns {any | null}
+ */
+function find_first_top_level_await(node, inside_nested_function) {
+	if (!node || typeof node !== 'object') {
+		return null;
+	}
+
+	if (Array.isArray(node)) {
+		for (const child of node) {
+			const found = find_first_top_level_await(child, inside_nested_function);
+			if (found) return found;
+		}
+
+		return null;
+	}
+
+	if (
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression'
+	) {
+		return inside_nested_function ? null : find_first_top_level_await(node.body, true);
+	}
+
+	if (inside_nested_function) {
+		return null;
+	}
+
+	if (node.type === 'AwaitExpression') {
+		return node;
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+
+		const found = find_first_top_level_await(node[key], false);
+		if (found) return found;
+	}
+
+	return null;
 }
 
 // =====================================================================

@@ -46,6 +46,30 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain('return <><h1>');
 			expect(code).toContain('</h2></>;');
 		});
+
+		it('rejects await in component body', () => {
+			expect(() =>
+				compile(
+					`component App() {
+						const data = await fetchData();
+						<div>{data}</div>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/`await` is not allowed inside Solid components/);
+		});
+
+		it('allows await in nested async functions inside component body', () => {
+			expect(() =>
+				compile(
+					`component App() {
+						const load = async () => await fetchData();
+						<button onClick={load}>{'Load'}</button>
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
 	});
 
 	describe('attributes', () => {
