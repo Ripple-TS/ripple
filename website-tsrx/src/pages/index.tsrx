@@ -116,6 +116,9 @@ export component IndexPage() {
 					<code>{html SNIPPET_HTML}</code>
 				</pre>
 				<p class="section-body what-is-copy">
+					{'You can think of TSRX as a spiritual successor to JSX — the same mental model of embedding UI directly inside TypeScript, but with its own flavor. Control flow, scoped styles, and locals sit in the template as first-class syntax instead of being squeezed through expression slots, and the language stays aware of them through to the compiled output.'}
+				</p>
+				<p class="section-body what-is-copy">
 					{'TSRX is framework-agnostic and interoperable. Today it compiles to React, Ripple, and Solid, with room for more targets over time. You can import '}
 					<code class="inline-code">{'.tsrx'}</code>
 					{' modules from JS, TS, and TSX files and it just works.'}

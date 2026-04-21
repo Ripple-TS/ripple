@@ -131,9 +131,18 @@ export function tsrxSolid(options = {}) {
 		handleHotUpdate(ctx) {
 			if (!is_tsrx_source(ctx.file)) return;
 			// Invalidate the virtual `<path>.tsx` module so Vite re-runs `load`.
+			// Also invalidate the virtual CSS module — Vite doesn't cascade
+			// invalidation from importer to importee, so without this the CSS
+			// module keeps serving the cached content and `<style>` edits in
+			// `.tsrx` files wouldn't hot-reload.
 			const virtual_id = ctx.file + VIRTUAL_TSX_SUFFIX;
+			const css_virtual_id = '\0' + ctx.file + CSS_QUERY;
+			const extra = [];
 			const mod = ctx.server.moduleGraph.getModuleById(virtual_id);
-			if (mod) return [mod, ...ctx.modules];
+			if (mod) extra.push(mod);
+			const css_mod = ctx.server.moduleGraph.getModuleById(css_virtual_id);
+			if (css_mod) extra.push(css_mod);
+			if (extra.length > 0) return [...extra, ...ctx.modules];
 			return ctx.modules;
 		},
 	};
