@@ -125,6 +125,22 @@ export component IndexPage() {
 					{' modules from JS, TS, and TSX files and it just works.'}
 				</p>
 				<a class="cta-link" href="/getting-started">{'Get started →'}</a>
+
+				<aside class="alpha-notice" role="note" aria-label="Alpha release notice">
+					<span class="alpha-badge">{'Alpha'}</span>
+					<p class="alpha-notice-body">
+						{'TSRX is in active alpha development. Feedback on the '}
+						<a
+							class="alpha-notice-link"
+							href="https://github.com/Ripple-TS/ripple/issues"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							{'issue tracker'}
+						</a>
+						{' is very welcome.'}
+					</p>
+				</aside>
 			</section>
 
 			<section class="readable-section section-shell">
@@ -319,6 +335,46 @@ export component IndexPage() {
 		.masthead-nav a:hover,
 		.resource-list a:hover {
 			color: #5e2cff;
+		}
+
+		.alpha-notice {
+			display: flex;
+			align-items: center;
+			gap: 0.9rem;
+			padding: 0.9rem 1.15rem;
+			margin: 1.75rem 0 0;
+			border-radius: 0.75rem;
+			background: linear-gradient(90deg, rgba(111, 0, 255, 0.08) 0%, rgba(146, 92, 255, 0.08) 100%);
+			border: 1px solid rgba(111, 0, 255, 0.22);
+			color: #2b1b6d;
+			font-size: 0.95rem;
+			line-height: 1.5;
+		}
+
+		.alpha-badge {
+			flex-shrink: 0;
+			padding: 0.18rem 0.6rem;
+			border-radius: 999px;
+			background: linear-gradient(90deg, #5521dd 0%, #8741ff 100%);
+			color: #fff;
+			font-size: 0.72rem;
+			font-weight: 600;
+			letter-spacing: 0.14em;
+			text-transform: uppercase;
+		}
+
+		.alpha-notice-body {
+			margin: 0;
+		}
+
+		.alpha-notice-link {
+			color: #5e2cff;
+			text-decoration: underline;
+			text-underline-offset: 2px;
+		}
+
+		.alpha-notice-link:hover {
+			color: #6f00ff;
 		}
 
 		.hero {
