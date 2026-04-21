@@ -1220,10 +1220,23 @@ export function serialize_track_async_error(hash, error) {
 }
 
 /**
+ * @param {string} hash
+ * @param {any} error
+ * @returns {void}
+ */
+export function route_track_async_error_to_catch_block(hash, error) {
+	route_track_async_error_to_catch_block_with_boundary(
+		get_closest_catch_block(/** @type {Block} */ (active_block)),
+		hash,
+		error,
+	);
+}
+
+/**
  * @param {any} error
  * @returns {any}
  */
-function create_public_track_async_error(error) {
+export function create_public_track_async_error(error) {
 	if (DEV) {
 		return error;
 	}
@@ -1252,7 +1265,7 @@ function get_public_track_async_error_message(error) {
  * @param {any} error
  * @returns {void}
  */
-function route_track_async_error_to_catch_block(catch_block, hash, error) {
+function route_track_async_error_to_catch_block_with_boundary(catch_block, hash, error) {
 	var public_error = create_public_track_async_error(error);
 	route_error_to_catch_block(catch_block, public_error);
 	// has to run after routing as it sets the active_block to the catch block
@@ -1356,7 +1369,11 @@ function run_track_async(t, fn, block, dr, dj) {
 						if (dj) {
 							dj(error);
 						}
-						route_track_async_error_to_catch_block(get_closest_catch_block(block), t.h, error);
+						route_track_async_error_to_catch_block_with_boundary(
+							get_closest_catch_block(block),
+							t.h,
+							error,
+						);
 					},
 				);
 				return;
@@ -1401,7 +1418,7 @@ function run_track_async(t, fn, block, dr, dj) {
 			if (dj) {
 				dj(error);
 			}
-			route_track_async_error_to_catch_block(get_closest_catch_block(block), t.h, error);
+			route_track_async_error_to_catch_block_with_boundary(get_closest_catch_block(block), t.h, error);
 		},
 	);
 }
@@ -1545,7 +1562,7 @@ function register_block_rerun(block) {
 						error
 					);
 					error = cause;
-					route_track_async_error_to_catch_block(try_catch_block, t.h, error);
+					route_track_async_error_to_catch_block_with_boundary(try_catch_block, t.h, error);
 				} else {
 					route_error_to_catch_block(try_catch_block, error);
 				}
@@ -1555,7 +1572,11 @@ function register_block_rerun(block) {
 			if (cancelled) {
 				return;
 			}
-			route_track_async_error_to_catch_block(try_catch_block, /** @type {Tracked} */ (t).h, error);
+			route_track_async_error_to_catch_block_with_boundary(
+				try_catch_block,
+				/** @type {Tracked} */ (t).h,
+				error,
+			);
 		},
 	);
 	// clear all output buffers as we'll rerun the block rendering

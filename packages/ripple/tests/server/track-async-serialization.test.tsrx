@@ -131,10 +131,11 @@ describe('trackAsync serialization (server)', () => {
 		}
 
 		const { body } = await render(App);
-		expect(body).toContain('<p class="error">sync failure</p>');
+		const public_message = DEV ? 'sync failure' : TRACK_ASYNC_PUBLIC_ERROR_MESSAGE;
+		expect(body).toContain(`<p class="error">${public_message}</p>`);
 		expect(body).toContain('__tsrx_ta_');
 		expect(body).toContain('"ok":false');
-		expect(body).toContain('"message":"sync failure"');
+		expect(body).toContain(`"message":"${public_message}"`);
 		expect(body).not.toContain('Error thrown during trackAsync execution');
 	});
 
@@ -154,8 +155,12 @@ describe('trackAsync serialization (server)', () => {
 
 		const { body } = await render(App);
 		expect(body).toContain('__tsrx_ta_');
-		expect(body).toContain('\\u003c/script\\u003e');
-		expect(body).not.toContain('type="application/json">{"ok":false,"error":{"message":"</script>');
+		if (DEV) {
+			expect(body).toContain('\\u003c/script\\u003e');
+			expect(body).not.toContain(
+				'type="application/json">{"ok":false,"error":{"message":"</script>',
+			);
+		}
 	});
 
 	it('generates unique hashes for multiple trackAsync calls', async () => {

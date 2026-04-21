@@ -1,3 +1,4 @@
+import { DEV } from 'esm-env';
 import { describe, it, expect } from 'vitest';
 import { DEV } from 'esm-env';
 import { flushSync } from 'ripple';

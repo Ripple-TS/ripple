@@ -25,6 +25,7 @@ import {
 	Output,
 	set_active_block,
 	TrackAsyncRunError,
+	create_public_track_async_error,
 	serialize_track_async_error,
 } from './index.js';
 
@@ -103,8 +104,10 @@ export function try_block(try_fn, catch_fn = null, pending_fn = null) {
 			// needs to happen after clearing output
 			if (error instanceof TrackAsyncRunError) {
 				var { tracked: t, cause } = /** @type {InstanceType<typeof TrackAsyncRunError>} */ (error);
-				serialize_track_async_error(t.h, cause);
-				error = cause;
+				var public_error = create_public_track_async_error(cause);
+				catch_fn?.(public_error);
+				serialize_track_async_error(t.h, public_error);
+				return created_block;
 			}
 
 			// render the catch
