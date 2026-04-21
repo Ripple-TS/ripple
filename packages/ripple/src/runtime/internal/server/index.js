@@ -1517,14 +1517,16 @@ function register_block_rerun(block) {
 				run_block(block);
 				try_catch_block.o.resolveAsync(operation);
 			} catch (error) {
-				route_error_to_catch_block(try_catch_block, error);
-				// has to run after routing as it set the active_block to the catch block
 				if (error instanceof TrackAsyncRunError) {
 					var { cause, tracked: t } = /** @type {InstanceType<typeof TrackAsyncRunError>} */ (
 						error
 					);
-					serialize_track_async_error(t.h, cause);
 					error = cause;
+					route_error_to_catch_block(try_catch_block, error);
+					// has to run after routing as it set the active_block to the catch block
+					serialize_track_async_error(t.h, error);
+				} else {
+					route_error_to_catch_block(try_catch_block, error);
 				}
 			}
 		},
