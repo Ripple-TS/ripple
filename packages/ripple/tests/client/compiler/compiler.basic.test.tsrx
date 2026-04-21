@@ -688,6 +688,26 @@ export component App() {
 		expect(result).toContain('_$_.normalize_children(');
 	});
 
+	it(
+		'parses a JS statement inside an element with no trailing whitespace before the closing tag',
+		() => {
+			const source = `component TodoList({ items }: { items: { text: string }[] }) {
+  <ul>var a = "123"</ul>
+}`;
+			const ast = parse(source);
+			const comp = ast.body[0] as unknown as AST.Component;
+			const ul = comp.body.find((n) => n.type === 'Element') as AST.Element;
+			expect(ul.id.name).toBe('ul');
+			expect(ul.children).toHaveLength(1);
+			const decl = ul.children[0] as unknown as AST.VariableDeclaration;
+			expect(decl.type).toBe('VariableDeclaration');
+			expect(decl.kind).toBe('var');
+			expect((decl.declarations[0].id as AST.Identifier).name).toBe('a');
+			expect((decl.declarations[0].init as AST.Literal).value).toBe('123');
+			expect(ul.closingElement?.name?.name).toBe('ul');
+		},
+	);
+
 	it('uses spread_props for spreads that may contain children', () => {
 		const source = `
 component Card(props) {
