@@ -562,7 +562,17 @@ describe('async suspense', () => {
 
 		render(App);
 
-		await new Promise((resolve) => setTimeout(resolve, 10));
+		for (let i = 0; i < 50; i++) {
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+			if (
+				!container.innerHTML.includes('Loading...') &&
+					container.querySelector('.double')?.textContent === '0' &&
+					container.querySelector('.quadruple')?.textContent === '0'
+			) {
+				break;
+			}
+		}
 
 		expect(container.innerHTML).not.toContain('Loading...');
 		expect(container.querySelector('.double')!.textContent).toBe('0');
