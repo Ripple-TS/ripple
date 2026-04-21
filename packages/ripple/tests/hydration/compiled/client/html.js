@@ -87,6 +87,7 @@ var root_82 = _$_.template(`<div class="wrapper"><h1>Title</h1><template id="dat
 var root_83 = _$_.template(`<div class="layout"><template id="page-data"></template><main><!></main></div>`, 0);
 var root_85 = _$_.template(`<div class="doc-content"><!></div>`, 0);
 var root_84 = _$_.template(`<!>`, 1, 1);
+var root_86 = _$_.template(`<section class="readable-section"><p>Ergonomics</p><h2>Sibling traversal pattern</h2><p>Before first block</p><p>Before second block</p><pre class="code-block"><code><!></code></pre><p>Between one and two</p><pre class="code-block"><code><!></code></pre><p>Between two and three</p><pre class="code-block"><code><!></code></pre></section>`, 0);
 
 import { track } from 'ripple';
 
@@ -1905,6 +1906,75 @@ export function NestedTemplateInLayout(__anchor, _, __block) {
 	);
 
 	_$_.append(__anchor, fragment_19);
+	_$_.pop_component();
+}
+
+export function HtmlCodeBlocksWithSiblingChain(__anchor, _, __block) {
+	_$_.push_component();
+
+	const html1 = '<span class="kw">const</span> <span class="id">a</span> = 1;';
+	const html2 = '<span class="kw">const</span> <span class="id">b</span> = 2;';
+	const html3 = '<span class="kw">const</span> <span class="id">c</span> = 3;';
+	var section_3 = root_86();
+
+	{
+		var p_5 = _$_.child(section_3);
+		var h2_3 = _$_.sibling(p_5);
+		var p_4 = _$_.sibling(h2_3);
+		var p_3 = _$_.sibling(p_4);
+		var pre_1 = _$_.sibling(p_3);
+
+		{
+			var code_1 = _$_.child(pre_1);
+
+			{
+				var node_80 = _$_.child(code_1);
+
+				_$_.pop(code_1);
+			}
+		}
+
+		_$_.pop(pre_1);
+
+		var p_6 = _$_.sibling(pre_1);
+		var pre_2 = _$_.sibling(p_6);
+
+		{
+			var code_2 = _$_.child(pre_2);
+
+			{
+				var node_81 = _$_.child(code_2);
+
+				_$_.pop(code_2);
+			}
+		}
+
+		_$_.pop(pre_2);
+
+		var p_7 = _$_.sibling(pre_2);
+		var pre_3 = _$_.sibling(p_7);
+
+		{
+			var code_3 = _$_.child(pre_3);
+
+			{
+				var node_82 = _$_.child(code_3);
+
+				_$_.pop(code_3);
+			}
+		}
+	}
+
+	_$_.render(
+		(__prev) => {
+			_$_.html(node_80, () => html1);
+			_$_.html(node_81, () => html2);
+			_$_.html(node_82, () => html3);
+		},
+		{}
+	);
+
+	_$_.append(__anchor, section_3);
 	_$_.pop_component();
 }
 

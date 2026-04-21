@@ -3607,7 +3607,7 @@ function transform_children(children, context) {
 
 			const current_prev = prev;
 			/** @type {AST.Identifier | null} */
-			let cached;
+			let cached = null;
 			/**
 			 * @param {boolean} [is_text]
 			 * @param {boolean} [is_controlled]
@@ -3699,38 +3699,23 @@ function transform_children(children, context) {
 								child.expression.type !== 'Literal'),
 					);
 
-					// Add pop() if we have DOM element children AND the Element visitor didn't already add pop()
-					if (has_dom_element_children && !element_visitor_adds_pop) {
-						// Only add pop() if next_node will actually generate a sibling() call.
-						// Static Text nodes (Literals) and static Elements don't call flush_node().
-						let needs_sibling_call = false;
-						if (next_node.type === 'Element') {
-							// Static DOM elements with no dynamic content don't generate sibling()
-							if (is_element_dom_element(next_node)) {
-								needs_sibling_call = element_has_dynamic_content(next_node);
-							} else {
-								// Components always generate sibling()
-								needs_sibling_call = true;
-							}
-						} else if (next_node.type === 'TSRXExpression' || next_node.type === 'Text') {
-							// Only dynamic text generates sibling()
-							needs_sibling_call = next_node.expression.type !== 'Literal';
-						} else if (
-							next_node.type === 'Html' ||
-							next_node.type === 'IfStatement' ||
-							next_node.type === 'TryStatement' ||
-							next_node.type === 'ForOfStatement' ||
-							next_node.type === 'SwitchStatement' ||
-							next_node.type === 'Tsx' ||
-							next_node.type === 'TsxCompat'
-						) {
-							needs_sibling_call = true;
-						}
+					const has_following_renderable_sibling = normalized
+						.slice(node_idx + 1)
+						.some(
+							(sibling) =>
+								sibling.type !== 'VariableDeclaration' && sibling.type !== 'EmptyStatement',
+						);
 
-						if (needs_sibling_call) {
-							const id = flush_node();
-							state.init?.push(b.stmt(b.call('_$_.pop', id)));
-						}
+					// Add pop() if we have DOM element children, the Element visitor didn't already
+					// add one, and there is another renderable sibling afterward. This keeps
+					// hydrate_node anchored at the current element before sibling() traversal.
+					if (
+						has_dom_element_children &&
+						!element_visitor_adds_pop &&
+						has_following_renderable_sibling
+					) {
+						const id = cached ?? flush_node();
+						state.init?.push(b.stmt(b.call('_$_.pop', id)));
 					}
 				}
 			} else if (node.type === 'TsxCompat' || node.type === 'Tsx') {

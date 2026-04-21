@@ -2311,3 +2311,132 @@ export function NestedTemplateInLayout() {
 
 	_$_.pop_component();
 }
+
+export function HtmlCodeBlocksWithSiblingChain() {
+	_$_.push_component();
+
+	const html1 = '<span class="kw">const</span> <span class="id">a</span> = 1;';
+	const html2 = '<span class="kw">const</span> <span class="id">b</span> = 2;';
+	const html3 = '<span class="kw">const</span> <span class="id">c</span> = 3;';
+
+	_$_.regular_block(() => {
+		_$_.output_push('<section');
+		_$_.output_push(' class="readable-section"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('<p');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Ergonomics');
+			}
+
+			_$_.output_push('</p>');
+			_$_.output_push('<h2');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Sibling traversal pattern');
+			}
+
+			_$_.output_push('</h2>');
+			_$_.output_push('<p');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Before first block');
+			}
+
+			_$_.output_push('</p>');
+			_$_.output_push('<p');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Before second block');
+			}
+
+			_$_.output_push('</p>');
+			_$_.output_push('<pre');
+			_$_.output_push(' class="code-block"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<code');
+				_$_.output_push('>');
+
+				{
+					const html_value_27 = String(html1 ?? '');
+
+					_$_.output_push('<!--' + _$_.hash(html_value_27) + '-->');
+					_$_.output_push(html_value_27);
+					_$_.output_push('<!---->');
+				}
+
+				_$_.output_push('</code>');
+			}
+
+			_$_.output_push('</pre>');
+			_$_.output_push('<p');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Between one and two');
+			}
+
+			_$_.output_push('</p>');
+			_$_.output_push('<pre');
+			_$_.output_push(' class="code-block"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<code');
+				_$_.output_push('>');
+
+				{
+					const html_value_28 = String(html2 ?? '');
+
+					_$_.output_push('<!--' + _$_.hash(html_value_28) + '-->');
+					_$_.output_push(html_value_28);
+					_$_.output_push('<!---->');
+				}
+
+				_$_.output_push('</code>');
+			}
+
+			_$_.output_push('</pre>');
+			_$_.output_push('<p');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Between two and three');
+			}
+
+			_$_.output_push('</p>');
+			_$_.output_push('<pre');
+			_$_.output_push(' class="code-block"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<code');
+				_$_.output_push('>');
+
+				{
+					const html_value_29 = String(html3 ?? '');
+
+					_$_.output_push('<!--' + _$_.hash(html_value_29) + '-->');
+					_$_.output_push(html_value_29);
+					_$_.output_push('<!---->');
+				}
+
+				_$_.output_push('</code>');
+			}
+
+			_$_.output_push('</pre>');
+		}
+
+		_$_.output_push('</section>');
+	});
+
+	_$_.pop_component();
+}

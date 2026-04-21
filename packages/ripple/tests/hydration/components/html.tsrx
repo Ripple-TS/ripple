@@ -532,3 +532,27 @@ export component NestedTemplateInLayout() {
 		<div class="doc-content">{html doc.html}</div>
 	</LayoutWithTemplate>
 }
+
+export component HtmlCodeBlocksWithSiblingChain() {
+	const html1 = '<span class="kw">const</span> <span class="id">a</span> = 1;';
+	const html2 = '<span class="kw">const</span> <span class="id">b</span> = 2;';
+	const html3 = '<span class="kw">const</span> <span class="id">c</span> = 3;';
+
+	<section class="readable-section">
+		<p>{'Ergonomics'}</p>
+		<h2>{'Sibling traversal pattern'}</h2>
+		<p>{'Before first block'}</p>
+		<p>{'Before second block'}</p>
+		<pre class="code-block">
+			<code>{html html1}</code>
+		</pre>
+		<p>{'Between one and two'}</p>
+		<pre class="code-block">
+			<code>{html html2}</code>
+		</pre>
+		<p>{'Between two and three'}</p>
+		<pre class="code-block">
+			<code>{html html3}</code>
+		</pre>
+	</section>
+}
