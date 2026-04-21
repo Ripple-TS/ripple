@@ -15,6 +15,16 @@ in a better user experience.
 Ripple was created by Dominic Gannaway ([@trueadm](https://github.com/trueadm)),
 who has previously worked on React, Svelte, Lexical, and Inferno.
 
+::: tip Ripple is one of several TSRX targets
+
+The `.tsrx` syntax you'll learn here is also the source language of
+[TSRX](https://tsrx.dev) — a TypeScript language extension that compiles the
+same component file to React, Solid, or Ripple. If you prefer to keep an
+existing React or Solid runtime while adopting the authoring ergonomics,
+start from the [TSRX website](https://tsrx.dev) instead.
+
+:::
+
 <Code>
 
 ```ripple

@@ -117,6 +117,12 @@ function nav() {
 			link: '/docs/introduction',
 			activeMatch: '/docs/*',
 		},
+		{
+			text: 'TSRX',
+			link: 'https://tsrx.dev',
+			target: '_blank',
+			rel: 'noopener noreferrer',
+		},
 	];
 }
 
