@@ -1016,6 +1016,9 @@ function is_jsx_child(node) {
 		t === 'JSXText' ||
 		t === 'Tsx' ||
 		t === 'TsxCompat' ||
+		t === 'Element' ||
+		t === 'Text' ||
+		t === 'TSRXExpression' ||
 		t === 'Html' ||
 		t === 'IfStatement' ||
 		t === 'ForOfStatement' ||
