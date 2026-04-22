@@ -298,7 +298,7 @@ describe('@tsrx/solid basic', () => {
 					'App.tsrx',
 				),
 			).toThrow(
-				'JSX fragment syntax is not needed in Ripple templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.',
+				'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.',
 			);
 		});
 
