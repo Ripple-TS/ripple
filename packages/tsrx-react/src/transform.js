@@ -1203,6 +1203,19 @@ function to_jsx_element(node, transform_context) {
 		return dynamic_element_to_jsx_child(node, transform_context);
 	}
 
+	if (!node.id) {
+		const children = create_element_children(node.children || [], transform_context);
+		return set_loc(
+			/** @type {any} */ ({
+				type: 'JSXFragment',
+				openingFragment: { type: 'JSXOpeningFragment' },
+				closingFragment: { type: 'JSXClosingFragment' },
+				children,
+			}),
+			node,
+		);
+	}
+
 	const name = identifier_to_jsx_name(node.id);
 	const attributes = (node.attributes || []).map(to_jsx_attribute);
 	const selfClosing = !!node.selfClosing;
