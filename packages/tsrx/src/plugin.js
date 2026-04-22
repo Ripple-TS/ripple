@@ -439,6 +439,9 @@ export function TSRXPlugin(config) {
 					const isTagLikeAfterLt =
 						!isWhitespaceAfterLt &&
 						(nextChar === 47 || // '/'
+							nextChar === 64 || // '@'
+							nextChar === 36 || // '$'
+							nextChar === 95 || // '_'
 							(nextChar >= 65 && nextChar <= 90) || // A-Z
 							(nextChar >= 97 && nextChar <= 122)); // a-z
 					const prevAllowsTagStart =
@@ -503,13 +506,11 @@ export function TSRXPlugin(config) {
 							}
 						}
 
-						// Check if the character after < is not whitespace
-						if (allWhitespace && this.pos + 1 < this.input.length) {
-							const nextChar = this.input.charCodeAt(this.pos + 1);
-							if (nextChar !== 32 && nextChar !== 9 && nextChar !== 10 && nextChar !== 13) {
-								++this.pos;
-								return this.finishToken(tstt.jsxTagStart);
-							}
+						// At the start of a line inside template bodies, only treat `<` as
+						// a tag start when the following character can actually begin a tag.
+						if (allWhitespace && isTagLikeAfterLt) {
+							++this.pos;
+							return this.finishToken(tstt.jsxTagStart);
 						}
 					}
 				}

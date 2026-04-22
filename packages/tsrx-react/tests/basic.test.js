@@ -578,6 +578,21 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('return null;');
 	});
 
+	it('supports less-than comparisons in statement-based element children', () => {
+		const { code } = compile(
+			`component TodoList({ items }: { items: { text: string }[] }) {
+				<ul>var a = 3
+				< 4;</ul>
+			}`,
+			'TodoList.tsrx',
+		);
+
+		expect(code).toContain('function TodoList');
+		expect(code).toContain('return <ul>{(() => {');
+		expect(code).toContain('var a = 3 < 4;');
+		expect(code).toContain('return null;');
+	});
+
 	it('supports early returns inside element child statement bodies', () => {
 		const { code } = compile(
 			`component App() {
