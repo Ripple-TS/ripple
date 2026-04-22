@@ -1,5 +1,13 @@
 # ripple
 
+## 1.0.0
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@1.0.0
+  - @tsrx/ripple@0.0.7
+
 ## 0.3.25
 
 ### Patch Changes
