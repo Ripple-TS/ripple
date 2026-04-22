@@ -134,17 +134,16 @@ describe('@tsrx/preact basic', () => {
 		).toThrow(/Preact target/);
 	});
 
-	it('rejects JSX fragments in templates outside tsx blocks', () => {
-		expect(() =>
-			compile(
-				`export component App() {
-					<b><>{111}</></b>
-				}`,
-				'App.tsrx',
-			),
-		).toThrow(
-			'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.',
+	it('allows JSX fragments in templates as tsx shorthand', () => {
+		const { code } = compile(
+			`export component App() {
+				<b><>{111}</></b>
+			}`,
+			'App.tsrx',
 		);
+
+		expect(code).toContain('<b>{111}</b>');
+		expect(code).not.toContain('<tsx>');
 	});
 
 	it('allows JSX fragments inside tsx blocks', () => {
@@ -156,6 +155,23 @@ describe('@tsrx/preact basic', () => {
 				'App.tsrx',
 			),
 		).not.toThrow();
+	});
+
+	it('supports fragment shorthand passed as props', () => {
+		const { code } = compile(
+			`component Child(props) {
+				<div>{props.content}</div>
+			}
+
+			export component App() {
+				<Child content={<><span>{'hello'}</span></>} />
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('<Child content={');
+		expect(code).toContain("<span>{'hello'}</span>");
+		expect(code).not.toContain('<tsx>');
 	});
 
 	describe('interleaved statements and JSX children', () => {

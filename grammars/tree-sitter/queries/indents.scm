@@ -12,6 +12,7 @@
   (formal_parameters)
   (parenthesized_expression)
   (jsx_element)
+  (jsx_fragment)
   (jsx_self_closing_element)
   (style_element)
   (server_block)
@@ -25,3 +26,4 @@
 ] @outdent
 
 (jsx_closing_element) @outdent
+(jsx_closing_fragment) @outdent

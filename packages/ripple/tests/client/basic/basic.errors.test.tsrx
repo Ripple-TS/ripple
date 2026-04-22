@@ -228,7 +228,7 @@ describe('basic client > errors', () => {
 		}).toThrow('Do...while loops are not supported in components.');
 	});
 
-	it('should throw error for JSX fragments in TSRX templates', () => {
+	it('should allow JSX fragments in TSRX templates as <tsx> shorthand', () => {
 		const code = `
 			export default component SafeProfile() {
 				<b><>{111}</></b>
@@ -237,9 +237,7 @@ describe('basic client > errors', () => {
 
 		expect(() => {
 			compile(code, 'test.tsrx');
-		}).toThrow(
-			'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.',
-		);
+		}).not.toThrow();
 	});
 
 	it('should allow JSX fragments inside tsx blocks', () => {

@@ -1,9 +1,9 @@
 import { flushSync, track } from 'ripple';
 
 describe('tsx expression', () => {
-	it('renders a basic tsx element', () => {
+	it('renders a basic fragment shorthand element', () => {
 		component App() {
-			const el = <tsx><div>hello world</div></tsx>;
+			const el = <><div>hello world</div></>;
 			{el}
 		}
 		render(App);
@@ -242,13 +242,13 @@ describe('tsx expression', () => {
 		expect(div.title).toBe('Item 1');
 	});
 
-	it('renders tsx passed directly as component prop', () => {
+	it('renders fragment shorthand passed directly as component prop', () => {
 		component Wrapper(&{ content }: { content: any }) {
 			<div class="wrapper">{content}</div>
 		}
 
 		component App() {
-			<Wrapper content={<tsx><span class="inner">direct prop</span></tsx>} />
+			<Wrapper content={<><span class="inner">direct prop</span></>} />
 		}
 		render(App);
 		const wrapper = container.querySelector('.wrapper');
@@ -257,7 +257,7 @@ describe('tsx expression', () => {
 		expect(wrapper.textContent).toBe('direct prop');
 	});
 
-	it('renders tsx passed directly as children prop', () => {
+	it('renders fragment shorthand passed directly as children prop', () => {
 		component Card(&{ title, children }: { title: any; children: any }) {
 			<div class="card">
 				<h2 class="card-title">{title}</h2>
@@ -267,8 +267,8 @@ describe('tsx expression', () => {
 
 		component App() {
 			<Card
-				title={<tsx><span class="bold">Title</span></tsx>}
-				children={<tsx><p>Card content here</p></tsx>}
+				title={<><span class="bold">Title</span></>}
+				children={<><p>Card content here</p></>}
 			/>
 		}
 		render(App);

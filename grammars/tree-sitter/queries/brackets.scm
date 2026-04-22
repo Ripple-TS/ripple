@@ -3,7 +3,15 @@
   "<" @open
   ">" @close)
 
+(jsx_opening_fragment
+  "<" @open
+  ">" @close)
+
 (jsx_closing_element
+  "</" @open
+  ">" @close)
+
+(jsx_closing_fragment
   "</" @open
   ">" @close)
 

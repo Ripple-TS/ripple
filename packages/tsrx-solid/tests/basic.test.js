@@ -289,17 +289,16 @@ describe('@tsrx/solid basic', () => {
 			).toThrow(/not supported on the Solid target/);
 		});
 
-		it('rejects JSX fragments in templates outside tsx blocks', () => {
-			expect(() =>
-				compile(
-					`component App() {
-						<b><>{111}</></b>
-					}`,
-					'App.tsrx',
-				),
-			).toThrow(
-				'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.',
+		it('allows JSX fragments in templates as tsx shorthand', () => {
+			const { code } = compile(
+				`component App() {
+					<b><>{111}</></b>
+				}`,
+				'App.tsrx',
 			);
+
+			expect(code).toContain('<b>{111}</b>');
+			expect(code).not.toContain('<tsx>');
 		});
 
 		it('allows JSX fragments inside tsx blocks', () => {
@@ -311,6 +310,23 @@ describe('@tsrx/solid basic', () => {
 					'App.tsrx',
 				),
 			).not.toThrow();
+		});
+
+		it('supports fragment shorthand passed as props', () => {
+			const { code } = compile(
+				`component Child(props) {
+					<div>{props.content}</div>
+				}
+
+				component App() {
+					<Child content={<><span>{'hello'}</span></>} />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<Child content={');
+			expect(code).toContain("<span>{'hello'}</span>");
+			expect(code).not.toContain('<tsx>');
 		});
 	});
 

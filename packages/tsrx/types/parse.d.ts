@@ -1652,7 +1652,6 @@ export namespace Parse {
 			startLoc?: AST.Position,
 		): ESTreeJSX.JSXOpeningElement;
 		// it could also be ESTreeJSX.JSXOpeningFragment
-		// but not in our case since we don't use fragments
 
 		/**
 		 * Parse JSX closing element at position

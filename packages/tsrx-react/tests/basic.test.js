@@ -246,17 +246,16 @@ describe('@tsrx/react basic', () => {
 		).toThrow(/not supported on the React target/);
 	});
 
-	it('rejects JSX fragments in templates outside tsx blocks', () => {
-		expect(() =>
-			compile(
-				`export component App() {
-					<b><>{111}</></b>
-				}`,
-				'App.tsrx',
-			),
-		).toThrow(
-			'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.',
+	it('allows JSX fragments in templates as tsx shorthand', () => {
+		const { code } = compile(
+			`export component App() {
+				<b><>{111}</></b>
+			}`,
+			'App.tsrx',
 		);
+
+		expect(code).toContain('<b>{111}</b>');
+		expect(code).not.toContain('<tsx>');
 	});
 
 	it('allows JSX fragments inside tsx blocks', () => {
@@ -652,52 +651,52 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('return null;');
 	});
 
-	it('rejects JSX fragments at line start in component bodies', () => {
-		expect(() =>
-			compile(
-				`export component App() {
-					<>
-						<div>{'hello'}</div>
-					</>
-				}`,
-				'App.tsrx',
-			),
-		).toThrow(
-			'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.',
+	it('allows JSX fragments at line start in component bodies', () => {
+		const { code } = compile(
+			`export component App() {
+				<>
+					<div>{'hello'}</div>
+				</>
+			}`,
+			'App.tsrx',
 		);
+
+		expect(code).toContain("<div>{'hello'}</div>");
+		expect(code).not.toContain('<tsx>');
 	});
 
-	it('rejects JSX fragments at line start inside element children', () => {
-		expect(() =>
-			compile(
-				`component App() {
-					<div>
-						<>
-							<span>{'inner'}</span>
-						</>
-					</div>
-				}`,
-				'App.tsrx',
-			),
-		).toThrow(
-			'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.',
+	it('allows JSX fragments at line start inside element children', () => {
+		const { code } = compile(
+			`component App() {
+				<div>
+					<>
+						<span>{'inner'}</span>
+					</>
+				</div>
+			}`,
+			'App.tsrx',
 		);
+
+		expect(code).toContain("<div><span>{'inner'}</span></div>");
+		expect(code).not.toContain('<tsx>');
 	});
 
-	it('rejects JSX fragments alongside other elements in component bodies', () => {
-		expect(() =>
-			compile(
-				`export component App() {
-					<h1>{'title'}</h1>
-					<>
-						<p>{'content'}</p>
-					</>
-				}`,
-				'App.tsrx',
-			),
-		).toThrow(
-			'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.',
+	it('allows JSX fragments alongside other elements in component bodies', () => {
+		const { code } = compile(
+			`export component App() {
+				<h1>{'title'}</h1>
+				<>
+					<p>{'content'}</p>
+				</>
+			}`,
+			'App.tsrx',
 		);
+
+		expect(code).toContain("<h1>{'title'}</h1>");
+		expect(code).toContain('return <>');
+		expect(code).toContain('App__static1');
+		expect(code).toContain('App__static2');
+		expect(code).not.toContain('<tsx>');
 	});
 
 	it('supports early returns inside element child statement bodies', () => {
@@ -744,13 +743,13 @@ describe('@tsrx/react basic', () => {
 		expect(mappings.errors).toEqual([]);
 	});
 
-	it('supports tsx blocks passed as props', () => {
+	it('supports fragment shorthand passed as props', () => {
 		const source = `component Child(props) {
 			<div>{props.content}</div>
 		}
 
 			export component App() {
-				<Child content={<tsx><span>{'hello'}</span></tsx>} />
+				<Child content={<><span>{'hello'}</span></>} />
 			}`;
 
 		const { code } = compile(source, 'App.tsrx');

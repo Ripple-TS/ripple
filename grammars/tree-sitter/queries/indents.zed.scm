@@ -22,7 +22,12 @@
 (_ "(" ")" @end) @indent
 
 (jsx_opening_element ">" @end) @indent
+(jsx_opening_fragment ">" @end) @indent
 
 (jsx_element
   (jsx_opening_element) @start
   (jsx_closing_element)? @end) @indent
+
+(jsx_fragment
+  (jsx_opening_fragment) @start
+  (jsx_closing_fragment)? @end) @indent

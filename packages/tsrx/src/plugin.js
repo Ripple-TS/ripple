@@ -1431,7 +1431,8 @@ export function TSRXPlugin(config) {
 			/**
 			 * Override jsx_parseElement to intercept expression-level JSX.
 			 * This is called by acorn-jsx's parseExprAtom when it encounters <
-			 * in expression position. Only <tsx> and <tsx:*> are allowed.
+			 * in expression position. Bare fragments are treated as shorthand
+			 * for <tsx>...</tsx>; other tags must still use <tsx> or <tsx:*>.
 			 * @type {Parse.Parser['jsx_parseElement']}
 			 */
 			jsx_parseElement() {
@@ -1444,6 +1445,7 @@ export function TSRXPlugin(config) {
 				// Check if the element being parsed IS a <tsx> or <tsx:*> tag
 				// Current token is jsxTagStart, this.end is position after '<'
 				const tag_name_start = this.end;
+				const is_fragment_tag = this.input.charCodeAt(tag_name_start) === 62;
 				const char_after_tsx = this.input.charCodeAt(tag_name_start + 3);
 				const is_tsx_tag =
 					this.input.startsWith('tsx', tag_name_start) &&
@@ -1456,8 +1458,9 @@ export function TSRXPlugin(config) {
 						char_after_tsx === 13 || // carriage return
 						char_after_tsx === 58); // : (tsx:react)
 
-				if (is_tsx_tag) {
-					// Use Ripple's parseElement to create a Tsx/TsxCompat node
+				if (is_fragment_tag || is_tsx_tag) {
+					// Use Ripple's parseElement to create a Tsx/TsxCompat node.
+					// Bare fragments (<></>) are shorthand for <tsx>...</tsx>.
 					this.next();
 					return /** @type {import('estree-jsx').JSXElement} */ (
 						/** @type {unknown} */ (this.parseElement())
@@ -1524,6 +1527,8 @@ export function TSRXPlugin(config) {
 							`TSX elements cannot be self-closing. '<tsx />' must have a closing tag '</tsx>'.`,
 						);
 					}
+				} else if (is_fragment) {
+					/** @type {AST.Tsx} */ (element).type = 'Tsx';
 				} else {
 					element.type = 'Element';
 				}
@@ -1575,6 +1580,26 @@ export function TSRXPlugin(config) {
 					this.enterScope(0);
 					this.parseTemplateBody(/** @type {AST.Element} */ (element).children);
 					this.exitScope();
+
+					if (element.type === 'Tsx') {
+						this.#path.pop();
+
+						if (!element.unclosed) {
+							const raise_error = () => {
+								this.raise(this.start, `Expected closing tag '</>'`);
+							};
+
+							this.next();
+							if (this.value !== '/') {
+								raise_error();
+							}
+							this.next();
+							if (this.type !== tstt.jsxTagEnd) {
+								raise_error();
+							}
+							this.next();
+						}
+					}
 				} else {
 					if (/** @type {ESTreeJSX.JSXIdentifier} */ (open.name).name === 'script') {
 						let content = '';
@@ -1875,7 +1900,11 @@ export function TSRXPlugin(config) {
 							return;
 						}
 
-						if (this.input.slice(this.pos, this.pos + 4) === '/tsx') {
+						if (!inside_tsx.openingElement.name) {
+							if (this.input.slice(this.pos, this.pos + 2) === '/>') {
+								return;
+							}
+						} else if (this.input.slice(this.pos, this.pos + 4) === '/tsx') {
 							const after = this.input.charCodeAt(this.pos + 4);
 							// Make sure it's </tsx> and not </tsx:...>
 							if (after === 62 /* > */) {
@@ -2046,7 +2075,7 @@ export function TSRXPlugin(config) {
 									? closingElement.name.namespace.name + ':' + closingElement.name.name.name
 									: this.getElementName(closingElement.name);
 						} else if (currentElement.type === 'Tsx') {
-							openingTagName = 'tsx';
+							openingTagName = currentElement.openingElement.name ? 'tsx' : null;
 							closingTagName =
 								closingElement.name?.type === 'JSXNamespacedName'
 									? closingElement.name.namespace.name + ':' + closingElement.name.name.name
@@ -2081,7 +2110,9 @@ export function TSRXPlugin(config) {
 										elem.type === 'TsxCompat'
 											? 'tsx:' + elem.kind
 											: elem.type === 'Tsx'
-												? 'tsx'
+												? elem.openingElement.name
+													? 'tsx'
+													: null
 												: elem.id
 													? this.getElementName(elem.id)
 													: null;

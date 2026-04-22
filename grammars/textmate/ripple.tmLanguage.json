@@ -6214,6 +6214,9 @@
           "include": "#jsx-tag-tsx-react"
         },
         {
+          "include": "#jsx-tsx-tag-fragment"
+        },
+        {
           "include": "#jsx-tag-without-attributes"
         },
         {
@@ -6432,6 +6435,9 @@
           "include": "#jsx-tag-tsx-react"
         },
         {
+          "include": "#jsx-tsx-tag-fragment"
+        },
+        {
           "include": "#jsx-children-statements"
         },
         {
@@ -6504,6 +6510,9 @@
         },
         {
           "include": "#jsx-tag-tsx-react"
+        },
+        {
+          "include": "#jsx-tsx-tag-fragment"
         },
         {
           "include": "#expressionWithoutIdentifiers"
