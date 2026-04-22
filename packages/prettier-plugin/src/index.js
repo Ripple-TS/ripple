@@ -36,7 +36,7 @@ const {
 	indentIfBreak,
 	lineSuffix,
 } = builders;
-const { willBreak } = utils;
+const { willBreak, canBreak } = utils;
 
 /** @type {import('prettier').Plugin['languages']} */
 export const languages = [
@@ -6070,7 +6070,7 @@ function printElement(element, path, options, print) {
 				parts.push(attrLineBreak);
 				const attrDoc = print(attrPath);
 				parts.push(attrDoc);
-				if (!hasBreakingAttribute && willBreak(attrDoc)) {
+				if (!hasBreakingAttribute && canBreak(attrDoc)) {
 					hasBreakingAttribute = true;
 				}
 				return parts;
