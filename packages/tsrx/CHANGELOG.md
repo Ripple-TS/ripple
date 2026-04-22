@@ -1,5 +1,18 @@
 # @tsrx/core
 
+## 0.0.7
+
+### Patch Changes
+
+- [#899](https://github.com/Ripple-TS/ripple/pull/899)
+  [`fab49f7`](https://github.com/Ripple-TS/ripple/commit/fab49f7da8ec13c981f1c7b3102703d0c349fc1e)
+  Thanks [@JoviDeCroock](https://github.com/JoviDeCroock)! - Lift the JSX
+  hoist-safety predicates (`isStaticLiteral`, `isHoistSafeExpression`,
+  `isHoistSafeJsxChild`, `isHoistSafeJsxAttribute`, `isHoistSafeJsxNode`) into
+  `@tsrx/core`. `@tsrx/react` and `@tsrx/preact` now share a single
+  implementation, so future targets (and bug fixes) no longer need to duplicate
+  the logic.
+
 ## 0.0.6
 
 ### Patch Changes

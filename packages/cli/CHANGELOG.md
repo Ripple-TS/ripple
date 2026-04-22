@@ -1,5 +1,18 @@
 # @ripple-ts/cli
 
+## 0.3.26
+
+### Patch Changes
+
+- [#916](https://github.com/Ripple-TS/ripple/pull/916)
+  [`5b01246`](https://github.com/Ripple-TS/ripple/commit/5b01246b8e1a3a3c7c9da294f3ebda8c73af3ee7)
+  Thanks [@trueadm](https://github.com/trueadm)! - Rename the TypeScript plugin
+  package to `@tsrx/typescript-plugin` and update local consumers, templates, and
+  playgrounds to use the new package name.
+
+- [`68d80f8`](https://github.com/Ripple-TS/ripple/commit/68d80f8c7a6398692e00497b90cb3d0ba981aea3)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Correct package versions.
+
 ## 1.0.1
 
 ## 1.0.0

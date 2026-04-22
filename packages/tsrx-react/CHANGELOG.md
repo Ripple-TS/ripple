@@ -1,5 +1,28 @@
 # @tsrx/react
 
+## 0.1.1
+
+### Patch Changes
+
+- [#916](https://github.com/Ripple-TS/ripple/pull/916)
+  [`5b01246`](https://github.com/Ripple-TS/ripple/commit/5b01246b8e1a3a3c7c9da294f3ebda8c73af3ee7)
+  Thanks [@trueadm](https://github.com/trueadm)! - Allow React TSRX `for...of`
+  control flow to use a `key` clause by applying the key to the emitted React loop
+  item, while still letting an inline JSX `key` take precedence.
+
+- [#899](https://github.com/Ripple-TS/ripple/pull/899)
+  [`fab49f7`](https://github.com/Ripple-TS/ripple/commit/fab49f7da8ec13c981f1c7b3102703d0c349fc1e)
+  Thanks [@JoviDeCroock](https://github.com/JoviDeCroock)! - Lift the JSX
+  hoist-safety predicates (`isStaticLiteral`, `isHoistSafeExpression`,
+  `isHoistSafeJsxChild`, `isHoistSafeJsxAttribute`, `isHoistSafeJsxNode`) into
+  `@tsrx/core`. `@tsrx/react` and `@tsrx/preact` now share a single
+  implementation, so future targets (and bug fixes) no longer need to duplicate
+  the logic.
+
+- Updated dependencies
+  [[`fab49f7`](https://github.com/Ripple-TS/ripple/commit/fab49f7da8ec13c981f1c7b3102703d0c349fc1e)]:
+  - @tsrx/core@0.0.7
+
 ## 0.1.0
 
 ### Minor Changes
