@@ -22,11 +22,6 @@ export class TsrxErrorBoundary extends Component {
 		return { error };
 	}
 
-	/** @param {Error} error */
-	componentDidCatch(error) {
-		this.setState({ error });
-	}
-
 	render() {
 		const { error } = /** @type {{ error: Error | null }} */ (this.state);
 		if (error !== null) {
