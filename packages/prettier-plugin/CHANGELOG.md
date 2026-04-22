@@ -1,5 +1,16 @@
 # @tsrx/prettier-plugin
 
+## 0.3.27
+
+### Patch Changes
+
+- [#922](https://github.com/Ripple-TS/ripple/pull/922)
+  [`0364a03`](https://github.com/Ripple-TS/ripple/commit/0364a03766ad6810d256c0be1f1c93bcbbab3c67)
+  Thanks [@trueadm](https://github.com/trueadm)! - Prefer breaking all JSX
+  attributes onto separate lines instead of breaking expression values inline when
+  an attribute value would cause a line break (e.g. multiline objects, ternaries).
+  This makes element hierarchy easier to identify at a glance.
+
 ## 0.3.26
 
 ### Patch Changes
