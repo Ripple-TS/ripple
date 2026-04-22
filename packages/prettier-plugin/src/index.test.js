@@ -935,18 +935,18 @@ export component Test({ a, b }: Props) {}`;
 			const expected = `component App() {
   <div
     class={styles.item}
-    data-active={state.active ? "true" : "false"}
+    data-active={state.active ? 'true' : 'false'}
     style={{
       gridTemplateColumns: Icon
-        ? "16px minmax(0, 1fr) auto"
-        : "minmax(0, 1fr) auto",
+        ? '16px minmax(0, 1fr) auto'
+        : 'minmax(0, 1fr) auto',
     }}
   >
-    {"content"}
+    {'content'}
   </div>
 }`;
 
-			const result = await format(input, { printWidth: 80 });
+			const result = await format(input, { singleQuote: true, printWidth: 80 });
 			expect(result).toBeWithNewline(expected);
 		});
 
@@ -959,17 +959,17 @@ export component Test({ a, b }: Props) {}`;
 			const expected = `component App() {
   <div
     class={styles.item}
-    data-active={state.active ? "true" : "false"}
+    data-active={state.active ? 'true' : 'false'}
     style={{
       gridTemplateColumns: Icon
-        ? "16px minmax(0, 1fr) auto"
-        : "minmax(0, 1fr) auto",
+        ? '16px minmax(0, 1fr) auto'
+        : 'minmax(0, 1fr) auto',
     }}>
-    {"content"}
+    {'content'}
   </div>
 }`;
 
-			const result = await format(input, { printWidth: 80, bracketSameLine: true });
+			const result = await format(input, { singleQuote: true, printWidth: 80, bracketSameLine: true });
 			expect(result).toBeWithNewline(expected);
 		});
 
@@ -980,10 +980,10 @@ export component Test({ a, b }: Props) {}`;
   </button>
 }`;
 			const expected = `component App() {
-  <button class="test another" onClick={handler}>{"Click Me"}</button>
+  <button class="test another" onClick={handler}>{'Click Me'}</button>
 }`;
 
-			const result = await format(input, { printWidth: 80 });
+			const result = await format(input, { singleQuote: true, printWidth: 80 });
 			expect(result).toBeWithNewline(expected);
 		});
 
