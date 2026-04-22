@@ -969,7 +969,11 @@ export component Test({ a, b }: Props) {}`;
   </div>
 }`;
 
-			const result = await format(input, { singleQuote: true, printWidth: 80, bracketSameLine: true });
+			const result = await format(input, {
+				singleQuote: true,
+				printWidth: 80,
+				bracketSameLine: true,
+			});
 			expect(result).toBeWithNewline(expected);
 		});
 
