@@ -36,7 +36,7 @@ const {
 	indentIfBreak,
 	lineSuffix,
 } = builders;
-const { willBreak, canBreak } = utils;
+const { willBreak } = utils;
 
 /** @type {import('prettier').Plugin['languages']} */
 export const languages = [
@@ -5948,6 +5948,30 @@ function printMemberExpressionSimple(node, options, computed = false) {
 }
 
 /**
+ * Check whether an attribute value can expand into multiline content.
+ * @param {AST.Node | null | undefined} value - The attribute value node
+ * @returns {boolean}
+ */
+function is_attribute_value_breakable(value) {
+	if (!value) return false;
+
+	switch (value.type) {
+		case 'ConditionalExpression':
+			return true;
+		case 'ObjectExpression':
+			return value.properties.some(
+				(property) =>
+					property.type === 'Property' &&
+					is_attribute_value_breakable(/** @type {AST.Expression} */ (property.value)),
+			);
+		case 'TSRXExpression':
+			return is_attribute_value_breakable(value.expression);
+		default:
+			return false;
+	}
+}
+
+/**
  * Print a Ripple Element node
  * @param {AST.Element} element - The element node
  * @param {AstPath<AST.Element>} path - The AST path
@@ -6070,7 +6094,12 @@ function printElement(element, path, options, print) {
 				parts.push(attrLineBreak);
 				const attrDoc = print(attrPath);
 				parts.push(attrDoc);
-				if (!hasBreakingAttribute && canBreak(attrDoc)) {
+				const attr_node = /** @type {AST.Attribute | AST.SpreadAttribute} */ (attrPath.node);
+				if (
+					!hasBreakingAttribute &&
+					(willBreak(attrDoc) ||
+						(attr_node.type === 'Attribute' && is_attribute_value_breakable(attr_node.value)))
+				) {
 					hasBreakingAttribute = true;
 				}
 				return parts;
