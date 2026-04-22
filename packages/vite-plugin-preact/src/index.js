@@ -12,11 +12,17 @@ const CSS_QUERY = '?tsrx-css&lang.css';
  * `jsx-runtime`. Per-component `<style>` blocks are emitted as virtual CSS
  * modules that are imported by the compiled JS output.
  *
- * @param {{ jsxImportSource?: string }} [options]
+ * @param {{
+ *   jsxImportSource?: string,
+ *   suspenseSource?: string,
+ * }} [options]
  * @returns {Plugin}
  */
 export function tsrxPreact(options = {}) {
 	const jsxImportSource = options.jsxImportSource ?? 'preact';
+	const compile_options = {
+		suspenseSource: options.suspenseSource,
+	};
 
 	/** @type {Map<string, string>} */
 	const css_cache = new Map();
@@ -41,7 +47,7 @@ export function tsrxPreact(options = {}) {
 		async transform(code, id) {
 			if (!TSRX_EXTENSION_PATTERN.test(id)) return null;
 
-			const { code: tsx_code, css } = compile(code, id);
+			const { code: tsx_code, css } = compile(code, id, compile_options);
 
 			let source = tsx_code;
 			if (css) {

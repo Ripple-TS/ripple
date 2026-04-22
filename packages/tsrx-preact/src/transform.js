@@ -1,6 +1,14 @@
 /** @import * as AST from 'estree' */
 /** @import * as ESTreeJSX from 'estree-jsx' */
 
+/**
+ * @typedef {{
+ *   suspenseSource?: string,
+ * }} CompileOptions
+ */
+
+export const DEFAULT_SUSPENSE_SOURCE = 'preact/compat';
+
 import { walk } from 'zimmerframe';
 import { print } from 'esrap';
 import tsx from 'esrap/languages/tsx';
@@ -46,9 +54,11 @@ import {
  * @param {AST.Program} ast
  * @param {string} source
  * @param {string} [filename]
+ * @param {CompileOptions} [compile_options]
  * @returns {{ ast: AST.Program, code: string, map: any, css: { code: string, hash: string } | null }}
  */
-export function transform(ast, source, filename) {
+export function transform(ast, source, filename, compile_options) {
+	const suspense_source = compile_options?.suspenseSource ?? DEFAULT_SUSPENSE_SOURCE;
 	/** @type {any[]} */
 	const stylesheets = [];
 	const module_uses_server_directive = has_use_server_directive(ast);
@@ -174,7 +184,7 @@ export function transform(ast, source, filename) {
 	});
 
 	const expanded = expand_component_helpers(/** @type {AST.Program} */ (transformed));
-	inject_try_imports(expanded, transform_context);
+	inject_try_imports(expanded, transform_context, suspense_source);
 
 	// Apply lazy destructuring transforms to module-level code (top-level function
 	// declarations, arrow functions, etc.). Component bodies have already been
@@ -1898,8 +1908,9 @@ function create_jsx_element(tag_name, attributes, children) {
  *
  * @param {AST.Program} program
  * @param {TransformContext} transform_context
+ * @param {string} suspense_source
  */
-function inject_try_imports(program, transform_context) {
+function inject_try_imports(program, transform_context, suspense_source) {
 	/** @type {any[]} */
 	const imports = [];
 
@@ -1914,7 +1925,11 @@ function inject_try_imports(program, transform_context) {
 					metadata: { path: [] },
 				},
 			],
-			source: { type: 'Literal', value: 'preact/compat', raw: "'preact/compat'" },
+			source: {
+				type: 'Literal',
+				value: suspense_source,
+				raw: `'${suspense_source}'`,
+			},
 			metadata: { path: [] },
 		});
 	}

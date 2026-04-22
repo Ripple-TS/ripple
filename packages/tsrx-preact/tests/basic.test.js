@@ -31,6 +31,24 @@ describe('@tsrx/preact basic', () => {
 		expect(code).not.toContain("from 'react'");
 	});
 
+	it('allows overriding the Suspense import source via compile options', () => {
+		const { code } = compile(
+			`export component App() {
+				try {
+					<div>{'async content'}</div>
+				} pending {
+					<p>{'loading...'}</p>
+				}
+			}`,
+			'App.tsrx',
+			{ suspenseSource: 'preact-suspense' },
+		);
+
+		expect(code).toContain('Suspense');
+		expect(code).toContain("from 'preact-suspense'");
+		expect(code).not.toContain("from 'preact/compat'");
+	});
+
 	it('imports TsrxErrorBoundary from @tsrx/preact/error-boundary when try/catch is used', () => {
 		const { code } = compile(
 			`component ThrowingChild() {
