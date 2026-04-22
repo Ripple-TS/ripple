@@ -22,6 +22,8 @@ function mount_after_ssr() {
 import 'virtual:ripple-compat';
 import { hydrate } from 'ripple';
 
+const route_modules = import.meta.glob('/src/pages/*.tsrx');
+
 (async () => {
   try {
     const target = document.getElementById('root');
@@ -33,7 +35,14 @@ import { hydrate } from 'ripple';
       return;
     }
 
-    const module = await import(/* @vite-ignore */ routeData.entry);
+		const load_module = route_modules[routeData.entry];
+
+		if (!load_module) {
+			console.error('[tsrx] Unable to mount route: unknown route entry.', routeData.entry);
+			return;
+		}
+
+		const module = await load_module();
     const Component =
       module.default ||
       Object.entries(module).find(([key, value]) => typeof value === 'function' && /^[A-Z]/.test(key))?.[1];

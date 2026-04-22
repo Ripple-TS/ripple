@@ -1159,6 +1159,9 @@ export component FeaturesPage() {
 				padding: 0.6rem 0;
 				border-bottom: 1px solid rgba(26, 22, 64, 0.1);
 				margin-bottom: 1rem;
+				background: rgba(247, 246, 255, 0.92);
+				backdrop-filter: blur(8px);
+				-webkit-backdrop-filter: blur(8px);
 			}
 
 			.side-nav-dropdown {
