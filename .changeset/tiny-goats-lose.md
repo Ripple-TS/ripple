@@ -1,4 +1,5 @@
 ---
+'@tsrx/preact': patch
 '@tsrx/react': patch
 '@tsrx/solid': patch
 ---
