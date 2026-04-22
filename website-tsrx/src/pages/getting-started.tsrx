@@ -51,6 +51,54 @@ const TURBOPACK_CONFIG_HTML = [
 	'<span class="ln">5</span> <span class="br">}</span><span class="br">)</span>;',
 ].join('\n');
 
+const PRETTIER_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">-D</span> <span class="str">prettier</span> <span class="str">@tsrx/prettier-plugin</span>',
+].join('\n');
+
+const ESLINT_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">-D</span> <span class="str">eslint</span> <span class="str">@tsrx/eslint-plugin</span>',
+].join('\n');
+
+const PRETTIER_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="br">{</span>',
+	'<span class="ln">2</span>   <span class="attr">"plugins"</span>: <span class="br">[</span><span class="str">"@tsrx/prettier-plugin"</span><span class="br">]</span>',
+	'<span class="ln">3</span> <span class="br">}</span>',
+].join('\n');
+
+const ESLINT_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="prop">tsrx</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/eslint-plugin\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">export default</span> <span class="br">[</span>...<span class="prop">tsrx</span>.<span class="prop">configs</span>.<span class="prop">recommended</span><span class="br">]</span>;',
+].join('\n');
+
+const NAV_GROUPS = [
+	{
+		heading: 'Frameworks',
+		items: [
+			{ id: 'react-vite', label: 'React + Vite' },
+			{ id: 'react-rspack', label: 'React + Rspack' },
+			{ id: 'react-turbopack', label: 'React + Turbopack' },
+			{ id: 'solid-vite', label: 'Solid + Vite' },
+			{ id: 'ripple', label: 'Ripple' },
+		],
+	},
+	{
+		heading: 'Tooling',
+		items: [
+			{ id: 'tooling-install', label: 'Tooling overview' },
+			{ id: 'prettier', label: 'Prettier' },
+			{ id: 'eslint', label: 'ESLint' },
+			{ id: 'vscode', label: 'VS Code' },
+		],
+	},
+	{
+		heading: 'Next',
+		items: [
+			{ id: 'next', label: 'What\'s next?' },
+		],
+	},
+];
+
 export component GettingStartedPage() {
 	<head>
 		<title>{'TSRX | Getting Started'}</title>
@@ -84,98 +132,187 @@ export component GettingStartedPage() {
 			<section class="hero">
 				<h1>{'Getting Started'}</h1>
 				<p class="lede">
-					{'Set up TSRX with React using Vite, Rspack, or Turbopack in minutes. Once installed, head over to the '}
-					<a class="inline-link" href="/features">{'Features'}</a>
-					{' page for a full tour of the language.'}
+					{'Set up TSRX with React, Solid, or Ripple and then wire in the editor tooling that makes '}
+					<code class="inline-code">{'.tsrx'}</code>
+					{' files feel native in the rest of your repo.'}
 				</p>
 			</section>
 
-			<section class="doc-section" id="install">
-				<h2 class="section-heading">{'Installation'}</h2>
-				<h3 class="subsection-heading">{'React + Vite'}</h3>
-				<p class="section-body">{'Install the compiler and Vite plugin:'}</p>
-				<pre class="code-block">
-					<code>{html INSTALL_HTML}</code>
-				</pre>
-				<p class="section-body">{'Then add the plugin to your Vite config:'}</p>
-				<pre class="code-block">
-					<code>{html VITE_CONFIG_HTML}</code>
-				</pre>
-				<p class="section-body">
-					{'That\'s it — create any '}
-					<code class="inline-code">{'.tsrx'}</code>
-					{' file and import it from your existing JS, TS, or TSX code. The plugin compiles '}
-					<code class="inline-code">{'.tsrx'}</code>
-					{' modules into standard React components with scoped CSS.'}
-				</p>
+			<div class="docs-layout">
+				<aside class="side-nav">
+					<nav>
+						for (const group of NAV_GROUPS) {
+							<p class="side-nav-heading">{group.heading}</p>
+							for (const item of group.items) {
+								<a class="side-nav-link" href={`#${item.id}`}>{item.label}</a>
+							}
+						}
+					</nav>
+				</aside>
 
-				<h3 class="subsection-heading">{'React + Rspack'}</h3>
-				<p class="section-body">{'Install the compiler and Rspack plugin:'}</p>
-				<pre class="code-block">
-					<code>{html RSPACK_INSTALL_HTML}</code>
-				</pre>
-				<p class="section-body">{'Then add the plugin to your Rspack config:'}</p>
-				<pre class="code-block">
-					<code>{html RSPACK_CONFIG_HTML}</code>
-				</pre>
-				<p class="section-body">
-					{'The plugin chains '}
-					<code class="inline-code">{'builtin:swc-loader'}</code>
-					{' for the final JSX transform and routes per-component '}
-					<code class="inline-code">{'<style>'}</code>
-					{' blocks through Rspack\'s built-in CSS module type, so no extra loaders are required.'}
-				</p>
+				<main class="docs-content">
+					<section class="doc-section" id="react-vite">
+						<p class="section-kicker">{'Framework setup'}</p>
+						<h2 class="section-heading">{'React + Vite'}</h2>
+						<p class="section-body">{'Install the compiler and Vite plugin:'}</p>
+						<pre class="code-block">
+							<code>{html INSTALL_HTML}</code>
+						</pre>
+						<p class="section-body">{'Then add the plugin to your Vite config:'}</p>
+						<pre class="code-block">
+							<code>{html VITE_CONFIG_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'That\'s it — create any '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' file and import it from your existing JS, TS, or TSX code. The plugin compiles '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' modules into standard React components with scoped CSS.'}
+						</p>
+					</section>
 
-				<h3 class="subsection-heading">{'React + Turbopack'}</h3>
-				<p class="section-body">{'Install the compiler and Turbopack helper:'}</p>
-				<pre class="code-block">
-					<code>{html TURBOPACK_INSTALL_HTML}</code>
-				</pre>
-				<p class="section-body">{'Then wrap your Next config with the helper:'}</p>
-				<pre class="code-block">
-					<code>{html TURBOPACK_CONFIG_HTML}</code>
-				</pre>
-				<p class="section-body">
-					{'The helper registers a Turbopack rule for '}
-					<code class="inline-code">{'.tsrx'}</code>
-					{' files, hands the compiled output back to Next as TSX, and routes component-local '}
-					<code class="inline-code">{'<style>'}</code>
-					{' blocks through a sibling virtual CSS import so Turbopack can process the scoped styles without extra loader setup.'}
-				</p>
+					<section class="doc-section" id="react-rspack">
+						<h2 class="section-heading">{'React + Rspack'}</h2>
+						<p class="section-body">{'Install the compiler and Rspack plugin:'}</p>
+						<pre class="code-block">
+							<code>{html RSPACK_INSTALL_HTML}</code>
+						</pre>
+						<p class="section-body">{'Then add the plugin to your Rspack config:'}</p>
+						<pre class="code-block">
+							<code>{html RSPACK_CONFIG_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'The plugin chains '}
+							<code class="inline-code">{'builtin:swc-loader'}</code>
+							{' for the final JSX transform and routes per-component '}
+							<code class="inline-code">{'<style>'}</code>
+							{' blocks through Rspack\'s built-in CSS module type, so no extra loaders are required.'}
+						</p>
+					</section>
 
-				<h3 class="subsection-heading">{'Solid + Vite'}</h3>
-				<p class="section-body">
-					{'Install the Solid compiler, its Vite plugin, and the upstream '}
-					<code class="inline-code">{'vite-plugin-solid'}</code>
-					{' which runs Solid\'s JSX transform on the emitted TSX:'}
-				</p>
-				<pre class="code-block">
-					<code>{html SOLID_INSTALL_HTML}</code>
-				</pre>
-				<p class="section-body">
-					{'Then wire both plugins into your Vite config (order matters — tsrxSolid first):'}
-				</p>
-				<pre class="code-block">
-					<code>{html SOLID_VITE_CONFIG_HTML}</code>
-				</pre>
+					<section class="doc-section" id="react-turbopack">
+						<h2 class="section-heading">{'React + Turbopack'}</h2>
+						<p class="section-body">{'Install the compiler and Turbopack helper:'}</p>
+						<pre class="code-block">
+							<code>{html TURBOPACK_INSTALL_HTML}</code>
+						</pre>
+						<p class="section-body">{'Then wrap your Next config with the helper:'}</p>
+						<pre class="code-block">
+							<code>{html TURBOPACK_CONFIG_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'The helper registers a Turbopack rule for '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' files, hands the compiled output back to Next as TSX, and routes component-local '}
+							<code class="inline-code">{'<style>'}</code>
+							{' blocks through a sibling virtual CSS import so Turbopack can process the scoped styles without extra loader setup.'}
+						</p>
+					</section>
 
-				<h3 class="subsection-heading">{'Ripple'}</h3>
-				<p class="section-body">
-					{'The Ripple framework ships with TSRX support as standard. If you\'re using Ripple with '}
-					<code class="inline-code">{'@ripple-ts/vite-plugin'}</code>
-					{', '}
-					<code class="inline-code">{'.tsrx'}</code>
-					{' files work out of the box — no additional packages needed.'}
-				</p>
-			</section>
+					<section class="doc-section" id="solid-vite">
+						<h2 class="section-heading">{'Solid + Vite'}</h2>
+						<p class="section-body">
+							{'Install the Solid compiler, its Vite plugin, and the upstream '}
+							<code class="inline-code">{'vite-plugin-solid'}</code>
+							{' which runs Solid\'s JSX transform on the emitted TSX:'}
+						</p>
+						<pre class="code-block">
+							<code>{html SOLID_INSTALL_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'Then wire both plugins into your Vite config (order matters — tsrxSolid first):'}
+						</p>
+						<pre class="code-block">
+							<code>{html SOLID_VITE_CONFIG_HTML}</code>
+						</pre>
+					</section>
 
-			<section class="doc-section" id="next">
-				<h2 class="section-heading">{'What\'s next?'}</h2>
-				<p class="section-body">
-					{'Now that TSRX is set up, explore the language syntax — components, control flow, error boundaries, and more.'}
-				</p>
-				<a class="cta-link" href="/features">{'Explore the features →'}</a>
-			</section>
+					<section class="doc-section" id="ripple">
+						<h2 class="section-heading">{'Ripple'}</h2>
+						<p class="section-body">
+							{'The Ripple framework ships with TSRX support as standard. If you\'re using Ripple with '}
+							<code class="inline-code">{'@ripple-ts/vite-plugin'}</code>
+							{', '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' files work out of the box — no additional packages needed.'}
+						</p>
+					</section>
+
+					<section class="doc-section" id="tooling-install">
+						<p class="section-kicker">{'Tooling setup'}</p>
+						<h2 class="section-heading">{'Choose the tooling you want'}</h2>
+						<p class="section-body">
+							{'Once your compiler target is installed, add the editor tooling you actually want so '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' files behave like first-class source files in the rest of your repo. Prettier and ESLint are separate paths here, so you can adopt one without committing to the other.'}
+						</p>
+					</section>
+
+					<section class="doc-section" id="prettier">
+						<h2 class="section-heading">{'Prettier'}</h2>
+						<p class="section-body">{'Install Prettier and the TSRX plugin:'}</p>
+						<pre class="code-block">
+							<code>{html PRETTIER_INSTALL_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'Add the TSRX Prettier plugin to your '}
+							<code class="inline-code">{'.prettierrc'}</code>
+							{' so Prettier can parse and format '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' modules:'}
+						</p>
+						<pre class="code-block">
+							<code>{html PRETTIER_CONFIG_HTML}</code>
+						</pre>
+					</section>
+
+					<section class="doc-section" id="eslint">
+						<h2 class="section-heading">{'ESLint'}</h2>
+						<p class="section-body">{'Install ESLint and the TSRX plugin:'}</p>
+						<pre class="code-block">
+							<code>{html ESLINT_INSTALL_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'The recommended flat config is the simplest starting point for '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' files:'}
+						</p>
+						<pre class="code-block">
+							<code>{html ESLINT_CONFIG_HTML}</code>
+						</pre>
+					</section>
+
+					<section class="doc-section" id="vscode">
+						<h2 class="section-heading">{'VS Code'}</h2>
+						<p class="section-body">
+							{'Install '}
+							<a
+								class="inline-link"
+								href="https://marketplace.visualstudio.com/items?itemName=Ripple-TS.ripple-ts-vscode-plugin"
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								{'TSRX for VS Code'}
+							</a>
+							{' from the Visual Studio Code Marketplace for diagnostics, navigation, completions, and TypeScript-aware editor support. Pair it with the official Prettier extension if you want format-on-save support inside the editor.'}
+						</p>
+						<p class="section-body">
+							{'After that, opening a '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' file should give you syntax highlighting, diagnostics, go-to-definition, formatting, and the rest of the normal editor loop without extra manual setup.'}
+						</p>
+					</section>
+
+					<section class="doc-section" id="next">
+						<p class="section-kicker">{'Next'}</p>
+						<h2 class="section-heading">{'What\'s next?'}</h2>
+						<p class="section-body">
+							{'Now that TSRX is set up, explore the language syntax — components, control flow, error boundaries, and more.'}
+						</p>
+						<a class="cta-link" href="/features">{'Explore the features →'}</a>
+					</section>
+				</main>
+			</div>
 
 			<footer class="site-footer">
 				<p>{'Released under the MIT License.'}</p>
@@ -233,6 +370,48 @@ export component GettingStartedPage() {
 			width: min(1180px, calc(100vw - 2rem));
 			margin: 0 auto;
 			padding: 1rem 0 4rem;
+		}
+
+		.docs-layout {
+			display: grid;
+			grid-template-columns: 200px 1fr;
+			gap: 3rem;
+			align-items: start;
+		}
+
+		.side-nav {
+			position: sticky;
+			top: 1.5rem;
+			padding-top: 0.5rem;
+		}
+
+		.side-nav-heading {
+			margin: 0 0 0.75rem;
+			font-size: 0.78rem;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: 0.06em;
+			color: rgba(26, 22, 64, 0.45);
+		}
+
+		.side-nav-heading:not(:first-child) {
+			margin-top: 1.1rem;
+		}
+
+		.side-nav-link {
+			display: block;
+			padding: 0.3rem 0;
+			font-size: 0.9rem;
+			color: rgba(26, 22, 64, 0.6);
+			transition: color 0.15s;
+		}
+
+		.side-nav-link:hover {
+			color: #5e2cff;
+		}
+
+		.docs-content {
+			min-width: 0;
 		}
 
 		.masthead {
@@ -297,6 +476,19 @@ export component GettingStartedPage() {
 		.doc-section {
 			margin-top: 3rem;
 			max-width: 52rem;
+		}
+
+		.doc-section:first-child {
+			margin-top: 0.5rem;
+		}
+
+		.section-kicker {
+			margin: 0 0 0.55rem;
+			font-size: 0.78rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+			color: rgba(94, 44, 255, 0.7);
 		}
 
 		.section-heading {
@@ -461,6 +653,44 @@ export component GettingStartedPage() {
 
 			.hero h1 {
 				font-size: clamp(1.65rem, 7vw, 2.2rem);
+			}
+
+			.docs-layout {
+				display: block;
+			}
+
+			.side-nav {
+				position: sticky;
+				top: 0;
+				z-index: 5;
+				padding: 0.6rem 0;
+				border-bottom: 1px solid rgba(26, 22, 64, 0.1);
+				margin-bottom: 1rem;
+				background: rgba(247, 246, 255, 0.92);
+				backdrop-filter: blur(8px);
+				-webkit-backdrop-filter: blur(8px);
+			}
+
+			.side-nav nav {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.15rem 0.3rem;
+				overflow-x: auto;
+			}
+
+			.side-nav-heading {
+				width: 100%;
+				margin: 0 0 0.4rem;
+			}
+
+			.side-nav-heading:not(:first-child) {
+				margin-top: 0.65rem;
+			}
+
+			.side-nav-link {
+				display: inline-block;
+				padding: 0.25rem 0.6rem;
+				font-size: 0.82rem;
 			}
 
 			.lede {
