@@ -1,6 +1,6 @@
 {
   "name": "@tsrx/rspack-plugin-react",
-  "description": "Rspack plugin for @tsrx/react (.tsrx modules)",
+  "description": "Rspack plugin for @tsrx/react",
   "license": "MIT",
   "author": "Dominic Gannaway",
   "version": "0.0.2",

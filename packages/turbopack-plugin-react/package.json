@@ -1,6 +1,6 @@
 {
   "name": "@tsrx/turbopack-plugin-react",
-  "description": "Turbopack integration for @tsrx/react (.tsrx modules)",
+  "description": "Turbopack integration for @tsrx/react",
   "license": "MIT",
   "author": "Dominic Gannaway",
   "version": "0.0.1",

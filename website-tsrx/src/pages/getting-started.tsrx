@@ -39,12 +39,24 @@ const RSPACK_CONFIG_HTML = [
 	'<span class="ln">5</span> <span class="br">}</span>;',
 ].join('\n');
 
+const TURBOPACK_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/react</span> <span class="str">@tsrx/turbopack-plugin-react</span> <span class="str">next</span> <span class="str">react</span> <span class="str">react-dom</span>',
+].join('\n');
+
+const TURBOPACK_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="prop">tsrxReactTurbopack</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/turbopack-plugin-react\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">export default</span> <span class="fn">tsrxReactTurbopack</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">4</span>   <span class="prop">reactStrictMode</span>: <span class="kw">true</span>,',
+	'<span class="ln">5</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
 export component GettingStartedPage() {
 	<head>
 		<title>{'TSRX | Getting Started'}</title>
 		<meta
 			name="description"
-			content="Get started with TSRX: install with React and Vite, learn the component syntax, and explore statement-based control flow."
+			content="Get started with TSRX: install with React for Vite, Rspack, or Turbopack, learn the component syntax, and explore statement-based control flow."
 		/>
 	</head>
 
@@ -72,7 +84,7 @@ export component GettingStartedPage() {
 			<section class="hero">
 				<h1>{'Getting Started'}</h1>
 				<p class="lede">
-					{'Set up TSRX with React and Vite in minutes. Once installed, head over to the '}
+					{'Set up TSRX with React using Vite, Rspack, or Turbopack in minutes. Once installed, head over to the '}
 					<a class="inline-link" href="/features">{'Features'}</a>
 					{' page for a full tour of the language.'}
 				</p>
@@ -97,22 +109,6 @@ export component GettingStartedPage() {
 					{' modules into standard React components with scoped CSS.'}
 				</p>
 
-				<h3 class="subsection-heading">{'Solid + Vite'}</h3>
-				<p class="section-body">
-					{'Install the Solid compiler, its Vite plugin, and the upstream '}
-					<code class="inline-code">{'vite-plugin-solid'}</code>
-					{' which runs Solid\'s JSX transform on the emitted TSX:'}
-				</p>
-				<pre class="code-block">
-					<code>{html SOLID_INSTALL_HTML}</code>
-				</pre>
-				<p class="section-body">
-					{'Then wire both plugins into your Vite config (order matters — tsrxSolid first):'}
-				</p>
-				<pre class="code-block">
-					<code>{html SOLID_VITE_CONFIG_HTML}</code>
-				</pre>
-
 				<h3 class="subsection-heading">{'React + Rspack'}</h3>
 				<p class="section-body">{'Install the compiler and Rspack plugin:'}</p>
 				<pre class="code-block">
@@ -130,10 +126,36 @@ export component GettingStartedPage() {
 					{' blocks through Rspack\'s built-in CSS module type, so no extra loaders are required.'}
 				</p>
 
-				<h3 class="subsection-heading">{'Webpack'}</h3>
-				<p class="section-body muted">
-					{'Webpack loader support is coming soon. For now, use Vite or Rspack.'}
+				<h3 class="subsection-heading">{'React + Turbopack'}</h3>
+				<p class="section-body">{'Install the compiler and Turbopack helper:'}</p>
+				<pre class="code-block">
+					<code>{html TURBOPACK_INSTALL_HTML}</code>
+				</pre>
+				<p class="section-body">{'Then wrap your Next config with the helper:'}</p>
+				<pre class="code-block">
+					<code>{html TURBOPACK_CONFIG_HTML}</code>
+				</pre>
+				<p class="section-body">
+					{'The helper registers a Turbopack rule for '}
+					<code class="inline-code">{'.tsrx'}</code>
+					{' files and hands the compiled output back to Next as TSX so the normal React pipeline can finish the transform.'}
 				</p>
+
+				<h3 class="subsection-heading">{'Solid + Vite'}</h3>
+				<p class="section-body">
+					{'Install the Solid compiler, its Vite plugin, and the upstream '}
+					<code class="inline-code">{'vite-plugin-solid'}</code>
+					{' which runs Solid\'s JSX transform on the emitted TSX:'}
+				</p>
+				<pre class="code-block">
+					<code>{html SOLID_INSTALL_HTML}</code>
+				</pre>
+				<p class="section-body">
+					{'Then wire both plugins into your Vite config (order matters — tsrxSolid first):'}
+				</p>
+				<pre class="code-block">
+					<code>{html SOLID_VITE_CONFIG_HTML}</code>
+				</pre>
 
 				<h3 class="subsection-heading">{'Ripple'}</h3>
 				<p class="section-body">
