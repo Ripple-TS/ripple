@@ -3,7 +3,7 @@ import { flushSync, track } from 'ripple';
 describe('tsx expression', () => {
 	it('renders a basic fragment shorthand element', () => {
 		component App() {
-			const el = <><div>hello world</div></>;
+			const el = <tsx><div>hello world</div></tsx>;
 			{el}
 		}
 		render(App);
@@ -248,7 +248,7 @@ describe('tsx expression', () => {
 		}
 
 		component App() {
-			<Wrapper content={<><span class="inner">direct prop</span></>} />
+			<Wrapper content={<tsx><span class="inner">direct prop</span></tsx>} />
 		}
 		render(App);
 		const wrapper = container.querySelector('.wrapper');
@@ -267,8 +267,8 @@ describe('tsx expression', () => {
 
 		component App() {
 			<Card
-				title={<><span class="bold">Title</span></>}
-				children={<><p>Card content here</p></>}
+				title={<tsx><span class="bold">Title</span></tsx>}
+				children={<tsx><p>Card content here</p></tsx>}
 			/>
 		}
 		render(App);
