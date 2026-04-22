@@ -57,6 +57,15 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'rspack-plugin-react',
+					include: ['packages/rspack-plugin-react/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'tsrx-react-runtime',
 					include: ['packages/vite-plugin-react/tests/**/*.test.tsrx'],
 					environment: 'jsdom',

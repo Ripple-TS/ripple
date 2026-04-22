@@ -68,19 +68,20 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain("{'Hello world'}");
 	});
 
-	it('rejects await in components without top-level use server directive', () => {
-		expect(() =>
-			compile(
-				`export component App() {
-					const data = await fetchData();
-					<div>{data}</div>
-				}`,
-				'App.tsrx',
-			),
-		).toThrow(/use server/);
+	it('emits async component functions for top-level await without requiring use server', () => {
+		const { code } = compile(
+			`export component App() {
+				const data = await fetchData();
+				<div>{data}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('export async function App()');
+		expect(code).toContain('const data = await fetchData()');
 	});
 
-	it('emits async component functions for await when use server directive is present', () => {
+	it('still emits async component functions for await when use server is present', () => {
 		const { code } = compile(
 			`'use server';
 
@@ -93,9 +94,10 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain('export async function App()');
 		expect(code).toContain('const data = await fetchData()');
+		expect(code).toContain("'use server';");
 	});
 
-	it('treats for await...of as top-level await and requires use server', () => {
+	it('rejects for await...of in templates without requiring use server', () => {
 		expect(() =>
 			compile(
 				`export component App({ items }: { items: AsyncIterable<string> }) {
@@ -105,7 +107,7 @@ describe('@tsrx/react basic', () => {
 				}`,
 				'App.tsrx',
 			),
-		).toThrow(/use server/);
+		).toThrow(/does not support `for await\.\.\.of`/);
 	});
 
 	it('rejects for await...of in templates even when use server is present', () => {
@@ -574,8 +576,73 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('function Child() {');
 		expect(code).toContain('const x = 1;');
 		expect(code).toContain('console.log(x);');
-		expect(code).toContain('Child__static1 = <div>{(() => {');
+		expect(code).toContain('return <div>{(() => {');
 		expect(code).toContain('return null;');
+	});
+
+	it('supports less-than comparisons in statement-based element children without whitespace', () => {
+		const { code } = compile(
+			`component TodoList({ items }: { items: { text: string }[] }) {
+				<ul>var a = 3
+				<4;</ul>
+			}`,
+			'TodoList.tsrx',
+		);
+
+		expect(code).toContain('function TodoList');
+		expect(code).toContain('return <ul>{(() => {');
+		expect(code).toContain('var a = 3 < 4;');
+		expect(code).toContain('return null;');
+	});
+
+	it('supports JSX fragments at line start in component bodies', () => {
+		const { code } = compile(
+			`export component App() {
+				<>
+					<div>{'hello'}</div>
+				</>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function App()');
+		expect(code).toContain('<>');
+		expect(code).toContain('</>');
+		expect(code).toContain("{'hello'}");
+	});
+
+	it('supports JSX fragments at line start inside element children', () => {
+		const { code } = compile(
+			`component App() {
+				<div>
+					<>
+						<span>{'inner'}</span>
+					</>
+				</div>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function App()');
+		expect(code).toContain('<>');
+		expect(code).toContain('</>');
+		expect(code).toContain("{'inner'}");
+	});
+
+	it('supports JSX fragments alongside other elements in component bodies', () => {
+		const { code } = compile(
+			`export component App() {
+				<h1>{'title'}</h1>
+				<>
+					<p>{'content'}</p>
+				</>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function App()');
+		expect(code).toContain("{'title'}");
+		expect(code).toContain("{'content'}");
 	});
 
 	it('supports early returns inside element child statement bodies', () => {
@@ -1257,6 +1324,24 @@ describe('lazy destructuring', () => {
 		// The element referencing count should NOT be hoisted
 		expect(code).toContain('__lazy0[0]');
 		expect(code).not.toContain('App__static2');
+	});
+
+	it('does not hoist render-time expressions across early returns', () => {
+		const { code } = compile(
+			`export component Test() {
+				<div>{Date.now()}</div>
+
+				if (Math.random() > 0.5) {
+					return;
+				}
+			}`,
+			'Test.tsrx',
+		);
+
+		expect(code).not.toContain('const Test__static1');
+		expect(code).toContain('if (Math.random() > 0.5) {');
+		expect(code.match(/return <div>\{Date\.now\(\)\}<\/div>;/g)).toHaveLength(2);
+		expect(code).not.toContain('return null;');
 	});
 
 	it('combines lazy params and lazy variables', () => {

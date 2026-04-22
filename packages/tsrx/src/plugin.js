@@ -439,6 +439,10 @@ export function TSRXPlugin(config) {
 					const isTagLikeAfterLt =
 						!isWhitespaceAfterLt &&
 						(nextChar === 47 || // '/'
+							nextChar === 62 || // '>' (fragments: <>)
+							nextChar === 64 || // '@'
+							nextChar === 36 || // '$'
+							nextChar === 95 || // '_'
 							(nextChar >= 65 && nextChar <= 90) || // A-Z
 							(nextChar >= 97 && nextChar <= 122)); // a-z
 					const prevAllowsTagStart =
@@ -503,13 +507,11 @@ export function TSRXPlugin(config) {
 							}
 						}
 
-						// Check if the character after < is not whitespace
-						if (allWhitespace && this.pos + 1 < this.input.length) {
-							const nextChar = this.input.charCodeAt(this.pos + 1);
-							if (nextChar !== 32 && nextChar !== 9 && nextChar !== 10 && nextChar !== 13) {
-								++this.pos;
-								return this.finishToken(tstt.jsxTagStart);
-							}
+						// At the start of a line inside template bodies, only treat `<` as
+						// a tag start when the following character can actually begin a tag.
+						if (allWhitespace && isTagLikeAfterLt) {
+							++this.pos;
+							return this.finishToken(tstt.jsxTagStart);
 						}
 					}
 				}
@@ -1473,7 +1475,7 @@ export function TSRXPlugin(config) {
 			 */
 			parseElement() {
 				const inside_head = this.#path.findLast(
-					(n) => n.type === 'Element' && n.id.type === 'Identifier' && n.id.name === 'head',
+					(n) => n.type === 'Element' && n.id && n.id.type === 'Identifier' && n.id.name === 'head',
 				);
 				// Adjust the start so we capture the `<` as part of the element
 				const start = this.start - 1;
@@ -1492,10 +1494,14 @@ export function TSRXPlugin(config) {
 				// Always attach the concrete opening element node for accurate source mapping
 				element.openingElement = open;
 
-				// Check if this is a namespaced element (tsx:react)
-				const is_tsx_compat = open.name.type === 'JSXNamespacedName';
+				// Fragments (<>) produce JSXOpeningFragment with no `name` property
+				const is_fragment = !open.name;
+				const is_tsx_compat = !is_fragment && open.name.type === 'JSXNamespacedName';
 				const is_tsx =
-					!is_tsx_compat && open.name.type === 'JSXIdentifier' && open.name.name === 'tsx';
+					!is_fragment &&
+					!is_tsx_compat &&
+					open.name.type === 'JSXIdentifier' &&
+					open.name.name === 'tsx';
 
 				if (is_tsx_compat) {
 					const namespace_node = /** @type {ESTreeJSX.JSXNamespacedName} */ (open.name);
@@ -1545,11 +1551,13 @@ export function TSRXPlugin(config) {
 					}
 				}
 
-				if (!is_tsx_compat && !is_tsx) {
+				if (!is_tsx_compat && !is_tsx && !is_fragment) {
 					/** @type {AST.Element} */ (element).id = /** @type {AST.Identifier} */ (
 						convert_from_jsx(/** @type {ESTreeJSX.JSXIdentifier} */ (open.name))
 					);
 					element.selfClosing = open.selfClosing;
+				} else if (is_fragment) {
+					element.selfClosing = false;
 				}
 
 				element.attributes = open.attributes;
@@ -1563,6 +1571,10 @@ export function TSRXPlugin(config) {
 						this.pos--;
 						this.next();
 					}
+				} else if (is_fragment) {
+					this.enterScope(0);
+					this.parseTemplateBody(/** @type {AST.Element} */ (element).children);
+					this.exitScope();
 				} else {
 					if (/** @type {ESTreeJSX.JSXIdentifier} */ (open.name).name === 'script') {
 						let content = '';
@@ -1815,7 +1827,7 @@ export function TSRXPlugin(config) {
 					}
 				}
 
-				if (element.closingElement && !is_tsx_compat && !is_tsx) {
+				if (element.closingElement && !is_tsx_compat && !is_tsx && element.closingElement.name) {
 					/** @type {unknown} */ (element.closingElement.name) = convert_from_jsx(
 						element.closingElement.name,
 					);
@@ -2040,12 +2052,13 @@ export function TSRXPlugin(config) {
 									? closingElement.name.namespace.name + ':' + closingElement.name.name.name
 									: this.getElementName(closingElement.name);
 						} else {
-							// Regular Element node
-							openingTagName = this.getElementName(currentElement.id);
-							closingTagName =
-								closingElement.name?.type === 'JSXNamespacedName'
+							// Regular Element node (or fragment)
+							openingTagName = currentElement.id ? this.getElementName(currentElement.id) : null;
+							closingTagName = closingElement.name
+								? closingElement.name?.type === 'JSXNamespacedName'
 									? closingElement.name.namespace.name + ':' + closingElement.name.name.name
-									: this.getElementName(closingElement.name);
+									: this.getElementName(closingElement.name)
+								: null;
 						}
 
 						if (openingTagName !== closingTagName) {
@@ -2069,7 +2082,9 @@ export function TSRXPlugin(config) {
 											? 'tsx:' + elem.kind
 											: elem.type === 'Tsx'
 												? 'tsx'
-												: this.getElementName(elem.id);
+												: elem.id
+													? this.getElementName(elem.id)
+													: null;
 
 									// Found matching opening tag
 									if (elemName === closingTagName) {
@@ -2090,9 +2105,9 @@ export function TSRXPlugin(config) {
 
 						const elementToClose = this.#path[this.#path.length - 1];
 						if (elementToClose && elementToClose.type === 'Element') {
-							const elementToCloseName = this.getElementName(
-								/** @type {AST.Element} */ (elementToClose).id,
-							);
+							const elementToCloseName = /** @type {AST.Element} */ (elementToClose).id
+								? this.getElementName(/** @type {AST.Element} */ (elementToClose).id)
+								: null;
 							if (elementToCloseName === closingTagName) {
 								/** @type {AST.Element} */ (elementToClose).closingElement = closingElement;
 							}

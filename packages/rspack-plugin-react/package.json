@@ -1,9 +1,9 @@
 {
-  "name": "@tsrx/react",
-  "description": "React compiler built on @tsrx/core",
+  "name": "@tsrx/rspack-plugin-react",
+  "description": "Rspack plugin for @tsrx/react (.tsrx modules)",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.7",
+  "version": "0.0.2",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -11,29 +11,26 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Ripple-TS/ripple.git",
-    "directory": "packages/tsrx-react"
+    "directory": "packages/rspack-plugin-react"
   },
   "exports": {
     ".": {
       "types": "./types/index.d.ts",
       "default": "./src/index.js"
-    },
-    "./error-boundary": {
-      "default": "./src/error-boundary.js"
     }
   },
   "dependencies": {
-    "@tsrx/core": "workspace:*",
-    "esrap": "catalog:default",
-    "zimmerframe": "catalog:default"
+    "@tsrx/react": "workspace:*"
   },
   "peerDependencies": {
-    "react": ">=18"
+    "@rspack/core": ">=1.0.0"
   },
   "devDependencies": {
-    "@types/estree": "catalog:default",
-    "@types/estree-jsx": "catalog:default",
+    "@rspack/core": "^1.6.0",
     "@types/react": "catalog:default",
+    "@types/react-dom": "catalog:default",
+    "react": "catalog:default",
+    "react-dom": "catalog:default",
     "typescript": "catalog:default"
   },
   "files": [

@@ -725,4 +725,19 @@ export component App() {
 
 		expect(result).toContain('_$_.spread_props(');
 	});
+
+	it('parses less-than comparisons at line start in element children without whitespace', () => {
+		const source = `component TodoList({ items }: { items: { text: string }[] }) {
+	<ul>var a = 3
+	<4;</ul>
+}`;
+
+		const ast = parse(source);
+		const comp = ast.body[0] as unknown as AST.Component;
+		const ul = comp.body.find((n) => n.type === 'Element') as AST.Element;
+		expect(ul.id.name).toBe('ul');
+		expect(ul.children.length).toBeGreaterThanOrEqual(1);
+		const decl = ul.children[0] as unknown as AST.VariableDeclaration;
+		expect(decl.type).toBe('VariableDeclaration');
+	});
 });

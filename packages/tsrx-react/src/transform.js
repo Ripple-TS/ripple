@@ -51,7 +51,6 @@ import {
 export function transform(ast, source, filename) {
 	/** @type {any[]} */
 	const stylesheets = [];
-	const module_uses_server_directive = has_use_server_directive(ast);
 
 	/** @type {TransformContext} */
 	const transform_context = {
@@ -70,13 +69,6 @@ export function transform(ast, source, filename) {
 		Component(node, { next, state }) {
 			const as_any = /** @type {any} */ (node);
 			const await_expression = find_first_top_level_await_in_component_body(as_any.body || []);
-
-			if (await_expression && !module_uses_server_directive) {
-				throw create_compile_error(
-					await_expression,
-					'React components can only use `await` when the module has a top-level "use server" directive.',
-				);
-			}
 
 			if (await_expression) {
 				as_any.metadata = /** @type {any} */ ({
@@ -536,34 +528,6 @@ function is_hook_callee(callee) {
 }
 
 /**
- * @param {AST.Program} program
- * @returns {boolean}
- */
-function has_use_server_directive(program) {
-	for (const statement of program.body || []) {
-		const directive = /** @type {any} */ (statement).directive;
-
-		if (directive === 'use server') {
-			return true;
-		}
-
-		if (
-			statement.type === 'ExpressionStatement' &&
-			statement.expression?.type === 'Literal' &&
-			statement.expression.value === 'use server'
-		) {
-			return true;
-		}
-
-		if (directive == null) {
-			break;
-		}
-	}
-
-	return false;
-}
-
-/**
  * @param {any[]} body_nodes
  * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] }} helper_state
  * @param {Map<string, AST.Identifier>} available_bindings
@@ -882,6 +846,116 @@ function references_scope_bindings(node, scope_bindings) {
 }
 
 /**
+ * @param {AST.Literal} node
+ * @returns {boolean}
+ */
+function is_static_literal(node) {
+	return (
+		node.value === null ||
+		typeof node.value === 'string' ||
+		typeof node.value === 'number' ||
+		typeof node.value === 'boolean' ||
+		typeof node.value === 'bigint'
+	);
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_hoist_safe_expression(node) {
+	if (!node || typeof node !== 'object') return false;
+
+	switch (node.type) {
+		case 'Literal':
+			return is_static_literal(node);
+		case 'TemplateLiteral':
+			return node.expressions.length === 0;
+		case 'UnaryExpression':
+			return node.operator !== 'delete' && is_hoist_safe_expression(node.argument);
+		case 'BinaryExpression':
+		case 'LogicalExpression':
+			return is_hoist_safe_expression(node.left) && is_hoist_safe_expression(node.right);
+		case 'ConditionalExpression':
+			return (
+				is_hoist_safe_expression(node.test) &&
+				is_hoist_safe_expression(node.consequent) &&
+				is_hoist_safe_expression(node.alternate)
+			);
+		case 'SequenceExpression':
+			return node.expressions.every(is_hoist_safe_expression);
+		case 'ParenthesizedExpression':
+			return is_hoist_safe_expression(node.expression);
+		case 'JSXElement':
+			return is_hoist_safe_jsx_node(node);
+		case 'JSXFragment':
+			return node.children.every(is_hoist_safe_jsx_child);
+		default:
+			return false;
+	}
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_hoist_safe_jsx_child(node) {
+	if (!node || typeof node !== 'object') return false;
+
+	switch (node.type) {
+		case 'JSXText':
+			return true;
+		case 'JSXElement':
+			return is_hoist_safe_jsx_node(node);
+		case 'JSXFragment':
+			return node.children.every(is_hoist_safe_jsx_child);
+		case 'JSXExpressionContainer':
+			return (
+				node.expression.type !== 'JSXEmptyExpression' && is_hoist_safe_expression(node.expression)
+			);
+		default:
+			return false;
+	}
+}
+
+/**
+ * @param {ESTreeJSX.JSXAttribute | ESTreeJSX.JSXSpreadAttribute} attribute
+ * @returns {boolean}
+ */
+function is_hoist_safe_jsx_attribute(attribute) {
+	if (attribute.type === 'JSXSpreadAttribute') return false;
+	if (attribute.value == null) return true;
+
+	if (attribute.value.type === 'Literal') {
+		return is_static_literal(attribute.value);
+	}
+
+	if (attribute.value.type === 'JSXExpressionContainer') {
+		return (
+			attribute.value.expression.type !== 'JSXEmptyExpression' &&
+			is_hoist_safe_expression(attribute.value.expression)
+		);
+	}
+
+	return false;
+}
+
+/**
+ * @param {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} node
+ * @returns {boolean}
+ */
+function is_hoist_safe_jsx_node(node) {
+	if (node.type === 'JSXFragment') {
+		return node.children.every(is_hoist_safe_jsx_child);
+	}
+
+	return (
+		node.openingElement.attributes.every(is_hoist_safe_jsx_attribute) &&
+		node.children.every(is_hoist_safe_jsx_child)
+	);
+}
+
+/**
  * Hoist static JSX elements from render_nodes to module level.
  * A JSX element is static if it doesn't reference any component-scope bindings.
  * Hoisting prevents React from recreating the element on every render, allowing
@@ -896,6 +970,7 @@ function hoist_static_render_nodes(render_nodes, transform_context) {
 	for (let i = 0; i < render_nodes.length; i++) {
 		const node = render_nodes[i];
 		if (node.type !== 'JSXElement') continue;
+		if (!is_hoist_safe_jsx_node(node)) continue;
 		if (references_scope_bindings(node, transform_context.available_bindings)) continue;
 
 		const name = create_helper_name(transform_context.helper_state, 'static');
@@ -1090,6 +1165,19 @@ function to_jsx_element(node, transform_context) {
 	}
 	if (is_dynamic_element_id(node.id)) {
 		return dynamic_element_to_jsx_child(node, transform_context);
+	}
+
+	if (!node.id) {
+		const children = create_element_children(node.children || [], transform_context);
+		return set_loc(
+			/** @type {any} */ ({
+				type: 'JSXFragment',
+				openingFragment: { type: 'JSXOpeningFragment' },
+				closingFragment: { type: 'JSXClosingFragment' },
+				children,
+			}),
+			node,
+		);
 	}
 
 	const name = identifier_to_jsx_name(node.id);

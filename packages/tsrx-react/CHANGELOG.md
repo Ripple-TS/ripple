@@ -1,5 +1,14 @@
 # @tsrx/react
 
+## 0.0.7
+
+### Patch Changes
+
+- [#903](https://github.com/Ripple-TS/ripple/pull/903)
+  [`0babf74`](https://github.com/Ripple-TS/ripple/commit/0babf745f0bdfe04a70d8f19730097007c4f1705)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix React JSX hoisting so
+  elements with render-time expressions are not lifted into shared statics.
+
 ## 0.0.6
 
 ### Patch Changes

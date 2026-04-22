@@ -314,17 +314,23 @@ export default component ErrorBoundary() {
 	},
 	{
 		title: 'Async',
-		code: `component AsyncComponent() {
-  const delay = new Promise(resolve => setTimeout(resolve, 2000));
-  await delay;
-  <p>{'Async content loaded!'}</p>
+		code: `import { trackAsync } from 'ripple';
+
+component AsyncComponent() {
+	let &[message] = trackAsync(() =>
+		new Promise((resolve) => {
+			setTimeout(() => resolve('Async content loaded!'), 2000);
+		}),
+	);
+
+	<p>{message}</p>
 }
 
 export default component SuspenseBoundary() {
 	try {
 		<AsyncComponent />
 	} pending {
-		<p>{'Loading...'}</p> // fallback
+		<p>{'Loading...'}</p>
 	}
 }
 `,
@@ -399,11 +405,17 @@ export default component App() {
 	let &[second, secondTracked] = track(2);
 	const arr = [firstTracked, secondTracked];
 
-	const &[total] = track(() => arr.reduce((a, &[b]) => a + b, 0));
+	const &[total] = track(() => arr.reduce((a, item) => a + item.value, 0));
 
 	effect(() => {
 		console.log(total);
-	})
+	});
+
+	<div>
+		<button onClick={() => first++}>{'First: '}{first}</button>
+		<button onClick={() => second++}>{'Second: '}{second}</button>
+		<p>{'Total: '}{total}</p>
+	</div>
 }
 `,
 	},
