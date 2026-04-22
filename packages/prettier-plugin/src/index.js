@@ -6047,35 +6047,47 @@ function printElement(element, path, options, print) {
 
 	const hasOpeningTagComments = openingTagCommentsSet.size > 0;
 	let attrIndex = 0;
+	let hasBreakingAttribute = false;
+	const attrDocs = hasAttributes
+		? path.map((attrPath) => {
+				const idx = attrIndex++;
+				const commentsForAttr = openingTagCommentsByAttrIndex.get(idx);
+				/** @type {Doc[]} */
+				const parts = [];
+				if (commentsForAttr) {
+					for (const comment of commentsForAttr) {
+						// Line comments (//) consume the rest of the line, so they must
+						// use hardline to force a break. Block comments can use normal breaks.
+						if (comment.type === 'Line') {
+							parts.push(hardline);
+							parts.push('//' + comment.value);
+						} else if (comment.type === 'Block') {
+							parts.push(attrLineBreak);
+							parts.push('/*' + comment.value + '*/');
+						}
+					}
+				}
+				parts.push(attrLineBreak);
+				const attrDoc = print(attrPath);
+				parts.push(attrDoc);
+				if (!hasBreakingAttribute && willBreak(attrDoc)) {
+					hasBreakingAttribute = true;
+				}
+				return parts;
+			}, 'attributes')
+		: [];
+	const shouldForceBreak = hasOpeningTagComments || hasBreakingAttribute;
 	const openingTag = group([
 		'<',
 		tagName,
 		hasAttributes
 			? indent([
-					...path.map((attrPath) => {
-						const idx = attrIndex++;
-						const commentsForAttr = openingTagCommentsByAttrIndex.get(idx);
-						/** @type {Doc[]} */
-						const parts = [];
-						if (commentsForAttr) {
-							for (const comment of commentsForAttr) {
-								// Line comments (//) consume the rest of the line, so they must
-								// use hardline to force a break. Block comments can use normal breaks.
-								if (comment.type === 'Line') {
-									parts.push(hardline);
-									parts.push('//' + comment.value);
-								} else if (comment.type === 'Block') {
-									parts.push(attrLineBreak);
-									parts.push('/*' + comment.value + '*/');
-								}
-							}
-						}
-						parts.push(attrLineBreak);
-						parts.push(print(attrPath));
-						return parts;
-					}, 'attributes'),
-					// Force the group to break when there are line comments in the opening tag
-					...(hasOpeningTagComments ? [breakParent] : []),
+					...attrDocs,
+					// Force the group to break when there are line comments in the opening tag,
+					// or when any attribute value would break (e.g. multiline objects, ternaries).
+					// This ensures attributes are broken onto separate lines rather than breaking
+					// expression values inline on the same line as the tag name.
+					...(shouldForceBreak ? [breakParent] : []),
 				])
 			: '',
 		// Add line break opportunity before > or />
