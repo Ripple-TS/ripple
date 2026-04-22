@@ -983,6 +983,18 @@ export component Test({ a, b }: Props) {}`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should keep short top-level ternary attributes inline when they fit', async () => {
+			const input = `component App() {
+  <div class={selected === 0 ? "selected" : ""}>{\`div 1\`}</div>
+}`;
+			const expected = `component App() {
+  <div class={selected === 0 ? 'selected' : ''}>{\`div 1\`}</div>
+}`;
+
+			const result = await format(input, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should not format function parameter spread', async () => {
 			const expected = `component Two({ arg1, ...rest }) {}`;
 

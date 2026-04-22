@@ -93,19 +93,8 @@ describe('composite > props', () => {
 
 		component Toggle(&{ pressed, ...rest }: { pressed: Tracked<boolean> }) {
 			const onClick = () => (pressed.value = !pressed.value);
-			<Button
-				{...rest}
-				class={pressed.value ? 'on' : 'off'}
-				{onClick}
-			>
-				{'button 1'}
-			</Button>
-			<Button
-				class={pressed.value ? 'on' : 'off'}
-				{onClick}
-			>
-				{'button 2'}
-			</Button>
+			<Button {...rest} class={pressed.value ? 'on' : 'off'} {onClick}>{'button 1'}</Button>
+			<Button class={pressed.value ? 'on' : 'off'} {onClick}>{'button 2'}</Button>
 		}
 
 		component App() {

@@ -413,9 +413,7 @@ component TodoItem(props: { id: number; text: string }) {
 				done = (e.target as HTMLInputElement).checked;
 			}}
 		/>
-		<span
-			class={done ? 'completed' : 'pending'}
-		>
+		<span class={done ? 'completed' : 'pending'}>
 			{props.text}
 		</span>
 	</div>

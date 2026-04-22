@@ -216,9 +216,7 @@ describe('basic client > components & composition', () => {
 		component Basic() {
 			let &[show] = track(false);
 
-			<TextProp
-				children={show ? 'hello' : ''}
-			/>
+			<TextProp children={show ? 'hello' : ''} />
 			<button class="show-text" onClick={() => (show = true)}>{'Show'}</button>
 		}
 

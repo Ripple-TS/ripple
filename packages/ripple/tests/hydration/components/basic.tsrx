@@ -73,9 +73,7 @@ component TextProp(&{ children }: { children: string }) {
 export component TextPropWithToggle() {
 	let &[show] = track(false);
 
-	<TextProp
-		children={show ? 'hello' : ''}
-	/>
+	<TextProp children={show ? 'hello' : ''} />
 	<button class="show-text" onClick={() => (show = true)}>{'Show'}</button>
 }
 
