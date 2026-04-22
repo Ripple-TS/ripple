@@ -16,7 +16,7 @@ export const _$_server_$_ = (() => {
 export function AsyncWithServerCall() {
 	_$_.push_component();
 
-	let lazy = _$_.track(0, void 0, void 0, '2e21cbe9');
+	let lazy = _$_.track(0, '2e21cbe9');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -444,7 +444,7 @@ export function ParentWithCatch() {
 export function AsyncWithReactiveDependency() {
 	_$_.push_component();
 
-	let lazy_9 = _$_.track(0, void 0, void 0, 'c9d12acf');
+	let lazy_9 = _$_.track(0, 'c9d12acf');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');

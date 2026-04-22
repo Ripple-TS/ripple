@@ -6,7 +6,7 @@ import { track } from 'ripple/server';
 export function ClickCounter() {
 	_$_.push_component();
 
-	let lazy = _$_.track(0, void 0, void 0, 'a070e3a7');
+	let lazy = _$_.track(0, 'a070e3a7');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -42,7 +42,7 @@ export function ClickCounter() {
 export function IncrementDecrement() {
 	_$_.push_component();
 
-	let lazy_1 = _$_.track(0, void 0, void 0, '87fcabdd');
+	let lazy_1 = _$_.track(0, '87fcabdd');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -87,8 +87,8 @@ export function IncrementDecrement() {
 export function MultipleEvents() {
 	_$_.push_component();
 
-	let lazy_2 = _$_.track(0, void 0, void 0, '41b9f0b0');
-	let lazy_3 = _$_.track(0, void 0, void 0, '72789f75');
+	let lazy_2 = _$_.track(0, '41b9f0b0');
+	let lazy_3 = _$_.track(0, '72789f75');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -133,8 +133,8 @@ export function MultipleEvents() {
 export function MultiStateUpdate() {
 	_$_.push_component();
 
-	let lazy_4 = _$_.track(0, void 0, void 0, '5a375160');
-	let lazy_5 = _$_.track('none', void 0, void 0, '3ceeb88c');
+	let lazy_4 = _$_.track(0, '5a375160');
+	let lazy_5 = _$_.track('none', '3ceeb88c');
 
 	const handleClick = () => {
 		_$_.update(lazy_4);
@@ -184,7 +184,7 @@ export function MultiStateUpdate() {
 export function ToggleButton() {
 	_$_.push_component();
 
-	let lazy_6 = _$_.track(false, void 0, void 0, 'be823ec7');
+	let lazy_6 = _$_.track(false, 'be823ec7');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -229,7 +229,7 @@ export function ChildButton(props) {
 export function ParentWithChildButton() {
 	_$_.push_component();
 
-	let lazy_7 = _$_.track(0, void 0, void 0, 'dcc2e0f9');
+	let lazy_7 = _$_.track(0, 'dcc2e0f9');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');

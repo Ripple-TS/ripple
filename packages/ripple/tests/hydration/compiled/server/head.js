@@ -34,7 +34,7 @@ export function StaticTitle() {
 export function ReactiveTitle() {
 	_$_.push_component();
 
-	let lazy = _$_.track('Initial Title', void 0, void 0, 'cbca63e3');
+	let lazy = _$_.track('Initial Title', 'cbca63e3');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -107,7 +107,7 @@ export function MultipleHeadElements() {
 export function ReactiveMetaTags() {
 	_$_.push_component();
 
-	let lazy_1 = _$_.track('Initial description', void 0, void 0, '38bfa3b2');
+	let lazy_1 = _$_.track('Initial description', '38bfa3b2');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -141,7 +141,7 @@ export function ReactiveMetaTags() {
 export function TitleWithTemplate() {
 	_$_.push_component();
 
-	let lazy_2 = _$_.track('World', void 0, void 0, 'f3925cd5');
+	let lazy_2 = _$_.track('World', 'f3925cd5');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -199,8 +199,8 @@ export function EmptyTitle() {
 export function ConditionalTitle() {
 	_$_.push_component();
 
-	let lazy_3 = _$_.track(true, void 0, void 0, 'ff71bf1f');
-	let lazy_4 = _$_.track('Main Page', void 0, void 0, '7cd7d671');
+	let lazy_3 = _$_.track(true, 'ff71bf1f');
+	let lazy_4 = _$_.track('Main Page', '7cd7d671');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -230,7 +230,7 @@ export function ConditionalTitle() {
 export function ComputedTitle() {
 	_$_.push_component();
 
-	let lazy_5 = _$_.track(0, void 0, void 0, 'b6a48610');
+	let lazy_5 = _$_.track(0, 'b6a48610');
 	let prefix = 'Count: ';
 
 	_$_.regular_block(() => {

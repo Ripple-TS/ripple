@@ -171,7 +171,7 @@ export function KeyedForLoop(__anchor, _, __block) {
 export function ReactiveForLoopAdd(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy = _$_.track(['A', 'B'], void 0, void 0, __block, 'e145678a');
+	let lazy = _$_.track(['A', 'B'], __block, 'e145678a');
 	var fragment = root_6();
 	var button_1 = _$_.first_child_frag(fragment);
 
@@ -211,7 +211,7 @@ export function ReactiveForLoopAdd(__anchor, _, __block) {
 export function ReactiveForLoopRemove(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_1 = _$_.track(['A', 'B', 'C'], void 0, void 0, __block, 'b4e9bd54');
+	let lazy_1 = _$_.track(['A', 'B', 'C'], __block, 'b4e9bd54');
 	var fragment_1 = root_8();
 	var button_2 = _$_.first_child_frag(fragment_1);
 
@@ -251,7 +251,7 @@ export function ReactiveForLoopRemove(__anchor, _, __block) {
 export function ForLoopInteractive(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_2 = _$_.track([0, 0, 0], void 0, void 0, __block, '36f563df');
+	let lazy_2 = _$_.track([0, 0, 0], __block, '36f563df');
 	var div_1 = root_10();
 
 	{
@@ -447,8 +447,6 @@ export function KeyedForLoopReorder(__anchor, _, __block) {
 			{ id: 2, name: 'Second' },
 			{ id: 3, name: 'Third' }
 		],
-		void 0,
-		void 0,
 		__block,
 		'e7abc6a3'
 	);
@@ -497,7 +495,7 @@ export function KeyedForLoopReorder(__anchor, _, __block) {
 export function KeyedForLoopUpdate(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_4 = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], void 0, void 0, __block, '7a2c2ada');
+	let lazy_4 = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], __block, '7a2c2ada');
 	var fragment_3 = root_21();
 	var button_5 = _$_.first_child_frag(fragment_3);
 
@@ -542,7 +540,7 @@ export function KeyedForLoopUpdate(__anchor, _, __block) {
 export function ForLoopMixedOperations(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_5 = _$_.track(['A', 'B', 'C', 'D'], void 0, void 0, __block, '3dd7c7b6');
+	let lazy_5 = _$_.track(['A', 'B', 'C', 'D'], __block, '3dd7c7b6');
 	var fragment_4 = root_23();
 	var button_6 = _$_.first_child_frag(fragment_4);
 
@@ -584,8 +582,8 @@ export function ForLoopMixedOperations(__anchor, _, __block) {
 export function ForLoopInsideIf(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_6 = _$_.track(true, void 0, void 0, __block, '0528df30');
-	let lazy_7 = _$_.track(['X', 'Y', 'Z'], void 0, void 0, __block, 'bf375103');
+	let lazy_6 = _$_.track(true, __block, '0528df30');
+	let lazy_7 = _$_.track(['X', 'Y', 'Z'], __block, 'bf375103');
 	var fragment_5 = root_25();
 	var button_7 = _$_.first_child_frag(fragment_5);
 
@@ -642,7 +640,7 @@ export function ForLoopInsideIf(__anchor, _, __block) {
 export function ForLoopEmptyToPopulated(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_8 = _$_.track([], void 0, void 0, __block, '525c5dbc');
+	let lazy_8 = _$_.track([], __block, '525c5dbc');
 	var fragment_6 = root_28();
 	var button_9 = _$_.first_child_frag(fragment_6);
 
@@ -682,7 +680,7 @@ export function ForLoopEmptyToPopulated(__anchor, _, __block) {
 export function ForLoopPopulatedToEmpty(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_9 = _$_.track(['One', 'Two', 'Three'], void 0, void 0, __block, 'ee47f078');
+	let lazy_9 = _$_.track(['One', 'Two', 'Three'], __block, 'ee47f078');
 	var fragment_7 = root_30();
 	var button_10 = _$_.first_child_frag(fragment_7);
 
@@ -722,7 +720,7 @@ export function ForLoopPopulatedToEmpty(__anchor, _, __block) {
 export function NestedForLoopReactive(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_10 = _$_.track([[1, 2], [3, 4]], void 0, void 0, __block, 'a2f41fb3');
+	let lazy_10 = _$_.track([[1, 2], [3, 4]], __block, 'a2f41fb3');
 	var fragment_8 = root_32();
 	var button_11 = _$_.first_child_frag(fragment_8);
 
@@ -906,7 +904,7 @@ export function ForLoopDeeplyNested(__anchor, _, __block) {
 export function ForLoopIndexUpdate(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_11 = _$_.track(['First', 'Second', 'Third'], void 0, void 0, __block, 'f61e31e6');
+	let lazy_11 = _$_.track(['First', 'Second', 'Third'], __block, 'f61e31e6');
 	var fragment_9 = root_39();
 	var button_13 = _$_.first_child_frag(fragment_9);
 
@@ -956,8 +954,6 @@ export function KeyedForLoopWithIndex(__anchor, _, __block) {
 			{ id: 'b', value: 'Beta' },
 			{ id: 'c', value: 'Gamma' }
 		],
-		void 0,
-		void 0,
 		__block,
 		'3467975a'
 	);
@@ -1023,7 +1019,7 @@ export function KeyedForLoopWithIndex(__anchor, _, __block) {
 export function ForLoopWithSiblings(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_13 = _$_.track(['A', 'B'], void 0, void 0, __block, '3c7e8152');
+	let lazy_13 = _$_.track(['A', 'B'], __block, '3c7e8152');
 	var fragment_11 = root_43();
 	var div_13 = _$_.first_child_frag(fragment_11);
 
@@ -1114,7 +1110,7 @@ export function ForLoopItemState(__anchor, _, __block) {
 function TodoItem(__anchor, props, __block) {
 	_$_.push_component();
 
-	let lazy_14 = _$_.track(false, void 0, void 0, __block, '4f2402a4');
+	let lazy_14 = _$_.track(false, __block, '4f2402a4');
 	var div_16 = root_47();
 
 	{
@@ -1196,7 +1192,7 @@ export function ForLoopSingleItem(__anchor, _, __block) {
 export function ForLoopAddAtBeginning(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_15 = _$_.track(['B', 'C'], void 0, void 0, __block, '1561403a');
+	let lazy_15 = _$_.track(['B', 'C'], __block, '1561403a');
 	var fragment_13 = root_50();
 	var button_16 = _$_.first_child_frag(fragment_13);
 
@@ -1238,7 +1234,7 @@ export function ForLoopAddAtBeginning(__anchor, _, __block) {
 export function ForLoopAddInMiddle(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_16 = _$_.track(['A', 'C'], void 0, void 0, __block, '1bc60b46');
+	let lazy_16 = _$_.track(['A', 'C'], __block, '1bc60b46');
 	var fragment_14 = root_52();
 	var button_17 = _$_.first_child_frag(fragment_14);
 
@@ -1283,7 +1279,7 @@ export function ForLoopAddInMiddle(__anchor, _, __block) {
 export function ForLoopRemoveFromMiddle(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_17 = _$_.track(['A', 'B', 'C'], void 0, void 0, __block, '1c87f95f');
+	let lazy_17 = _$_.track(['A', 'B', 'C'], __block, '1c87f95f');
 	var fragment_15 = root_54();
 	var button_18 = _$_.first_child_frag(fragment_15);
 
@@ -1361,7 +1357,7 @@ export function ForLoopLargeList(__anchor, _, __block) {
 export function ForLoopSwap(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_18 = _$_.track(['A', 'B', 'C', 'D'], void 0, void 0, __block, '5f8d152f');
+	let lazy_18 = _$_.track(['A', 'B', 'C', 'D'], __block, '5f8d152f');
 	var fragment_16 = root_58();
 	var button_19 = _$_.first_child_frag(fragment_16);
 
@@ -1406,7 +1402,7 @@ export function ForLoopSwap(__anchor, _, __block) {
 export function ForLoopReverse(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_19 = _$_.track(['A', 'B', 'C', 'D'], void 0, void 0, __block, '24602e64');
+	let lazy_19 = _$_.track(['A', 'B', 'C', 'D'], __block, '24602e64');
 	var fragment_17 = root_60();
 	var button_20 = _$_.first_child_frag(fragment_17);
 

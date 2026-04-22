@@ -202,7 +202,7 @@ function TextProp(__anchor, __props, __block) {
 export function TextPropWithToggle(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy = _$_.track(false, void 0, void 0, __block, 'b5de6402');
+	let lazy = _$_.track(false, __block, 'b5de6402');
 	var fragment_5 = root_13();
 	var node_4 = _$_.first_child_frag(fragment_5);
 

@@ -605,31 +605,19 @@ const visitors = {
 		const matched_track_call = !context.state.to_ts ? is_ripple_track_call(callee, context) : null;
 		if (matched_track_call) {
 			const track_method_name = matched_track_call === 'trackAsync' ? 'track_async' : 'track';
-
-			if (callee.type === 'Identifier' && callee.name === 'track') {
-				if (node.arguments.length === 0) {
-					node.arguments.push(b.void0, b.void0, b.void0);
-				} else if (node.arguments.length === 1) {
-					node.arguments.push(b.void0, b.void0);
-				} else if (node.arguments.length === 2) {
-					node.arguments.push(b.void0);
-				}
+			/** @type {(AST.Expression | AST.SpreadElement)[]} */
+			const call_args = [];
+			if (node.arguments.length === 0) {
+				node.arguments.push(b.void0);
 			}
 
-			/** @type {(AST.Expression | AST.SpreadElement)[]} */
-			let call_args;
-			if (track_method_name === 'track_async') {
-				call_args = [
-					/** @type {AST.Expression} */ (context.visit(node.arguments[0])),
-					b.id('__block'),
-					b.literal(node.metadata.hash),
-				];
-			} else {
-				call_args = /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
-					...node.arguments.map((arg) => context.visit(arg)),
-					b.id('__block'),
-					b.literal(node.metadata.hash),
-				]);
+			for (let i = 0; i < node.arguments.length; i++) {
+				const arg = node.arguments[i];
+				call_args.push(/** @type {(AST.Expression | AST.SpreadElement)} */ (context.visit(arg)));
+				if (i === 0) {
+					call_args.push(b.id('__block'));
+					call_args.push(b.literal(node.metadata.hash));
+				}
 			}
 
 			return /** @type {AST.CallExpression} */ ({
@@ -3390,7 +3378,7 @@ function transform_children(children, context) {
 		for (const ret of new_returns) {
 			const info = /** @type {{ name: string, tracked: boolean }} */ (return_flags.get(ret));
 			if (info.tracked) {
-				state.init?.unshift(b.var(b.id(info.name), b.call('_$_.tracked', b.false)));
+				state.init?.unshift(b.var(b.id(info.name), b.call('_$_.track', b.false, b.id('__block'))));
 			} else {
 				state.init?.unshift(b.var(b.id(info.name), b.false));
 			}

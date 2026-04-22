@@ -862,7 +862,7 @@ function NavItem(__anchor, { href, text: label, active = false }, __block) {
 function SidebarSection(__anchor, { title, children }, __block) {
 	_$_.push_component();
 
-	let lazy = _$_.track(true, void 0, void 0, __block, '6ac6906f');
+	let lazy = _$_.track(true, __block, '6ac6906f');
 	var section_2 = root_38();
 
 	{

@@ -907,7 +907,7 @@ function NavItem({ href, text: label, active = false }) {
 function SidebarSection({ title, children }) {
 	_$_.push_component();
 
-	let lazy = _$_.track(true, void 0, void 0, '6ac6906f');
+	let lazy = _$_.track(true, '6ac6906f');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<section');

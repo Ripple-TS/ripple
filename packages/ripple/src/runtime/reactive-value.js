@@ -21,6 +21,7 @@ export const ReactiveValue = /** @type {any} */ (
 		return derived(
 			fn,
 			block,
+			undefined,
 			() => {
 				s();
 				return fn();

@@ -94,7 +94,7 @@ export function IfElse() {
 export function ReactiveIf() {
 	_$_.push_component();
 
-	let lazy = _$_.track(true, void 0, void 0, '19a16ff0');
+	let lazy = _$_.track(true, '19a16ff0');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -132,7 +132,7 @@ export function ReactiveIf() {
 export function ReactiveIfElse() {
 	_$_.push_component();
 
-	let lazy_1 = _$_.track(false, void 0, void 0, '41177f39');
+	let lazy_1 = _$_.track(false, '41177f39');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -180,8 +180,8 @@ export function ReactiveIfElse() {
 export function NestedIf() {
 	_$_.push_component();
 
-	let lazy_2 = _$_.track(true, void 0, void 0, '7894e1df');
-	let lazy_3 = _$_.track(true, void 0, void 0, 'f21b8c26');
+	let lazy_2 = _$_.track(true, '7894e1df');
+	let lazy_3 = _$_.track(true, 'f21b8c26');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -246,7 +246,7 @@ export function NestedIf() {
 export function IfElseIfChain() {
 	_$_.push_component();
 
-	let lazy_4 = _$_.track('loading', void 0, void 0, '4c69c94a');
+	let lazy_4 = _$_.track('loading', '4c69c94a');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');

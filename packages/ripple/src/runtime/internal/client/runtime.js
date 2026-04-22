@@ -1,5 +1,7 @@
-/** @import { Block, Component, Dependency, Derived, Tracked, BlockWithTryBoundaryAndCatch, DeferredTrackedEntry } from '#client' */
+/** @import { Block, Component, Dependency, BlockWithTryBoundaryAndCatch, DeferredTrackedEntry } from '#client' */
 /** @import { NAMESPACE_URI } from './constants.js' */
+/** @typedef {TrackedValue} Tracked */
+/** @typedef {DerivedValue} Derived */
 
 import { DEV } from 'esm-env';
 import {
@@ -386,7 +388,6 @@ function complete_deferred_boundaries(t, show_resolved = true) {
 	}
 }
 
-/** @type {Tracked} */
 class TrackedValue {
 	/**
 	 * @param {any} v
@@ -395,24 +396,34 @@ class TrackedValue {
 	 * @param {string} [hash]
 	 */
 	constructor(v, block, a, hash) {
+		/** @type {{ get?: Function; set?: Function }} */
 		this.a = a;
+		/** @type {Block} */
 		this.b = block;
+		/** @type {number} */
 		this.c = 0;
 		/** @type {DeferredTrackedEntry[] | null} */
 		this.d = null;
+		/** @type {number} */
 		this.f = TRACKED;
+		/** @type {string | undefined} */
 		this.h = hash;
+		/** @type {any} */
 		this.__v = v;
 	}
+	/** @returns {any} */
 	get [0]() {
 		return get_tracked(this);
 	}
+	/** @param {any} v */
 	set [0](v) {
 		set(this, v);
 	}
+	/** @returns {Tracked} */
 	get [1]() {
-		return this;
+		return /** @type {Tracked} */ (this);
 	}
+	/** @returns {any} */
 	get value() {
 		return get_tracked(this);
 	}
@@ -424,13 +435,13 @@ class TrackedValue {
 	get length() {
 		return 2;
 	}
+	/** @returns {Iterator<any | Tracked>} */
 	*[Symbol.iterator]() {
 		yield get_tracked(this);
 		yield this;
 	}
 }
 
-/** @type {Derived} */
 class DerivedValue {
 	/**
 	 * @param {Function} fn
@@ -439,28 +450,40 @@ class DerivedValue {
 	 * @param {string} [hash]
 	 */
 	constructor(fn, block, a, hash) {
+		/** @type {{ get?: Function; set?: Function }} */
 		this.a = a;
+		/** @type {Block} */
 		this.b = block;
-		/** @type {null | Block[]} */
+		/** @type {Block[] | null} */
 		this.blocks = null;
+		/** @type {number} */
 		this.c = 0;
+		/** @type {Component | null} */
 		this.co = active_component;
-		/** @type {null | Dependency} */
+		/** @type {Dependency | null} */
 		this.d = null;
+		/** @type {number} */
 		this.f = DERIVED;
+		/** @type {Function} */
 		this.fn = fn;
+		/** @type {string | undefined} */
 		this.h = hash;
+		/** @type {any} */
 		this.__v = UNINITIALIZED;
 	}
+	/** @returns {any} */
 	get [0]() {
 		return get_derived(this);
 	}
+	/** @param {any} v */
 	set [0](v) {
 		set(this, v);
 	}
+	/** @returns {Derived} */
 	get [1]() {
-		return this;
+		return /** @type {Derived} */ (this);
 	}
+	/** @returns {any} */
 	get value() {
 		return get_derived(this);
 	}
@@ -472,6 +495,7 @@ class DerivedValue {
 	get length() {
 		return 2;
 	}
+	/** @returns {Iterator<any | Derived>} */
 	*[Symbol.iterator]() {
 		yield get_derived(this);
 		yield this;
@@ -487,12 +511,12 @@ if (DEV) {
  *
  * @param {any} v
  * @param {Block} block
+ * @param {string} [hash]
  * @param {(value: any) => any} [get]
  * @param {(next: any, prev: any) => any} [set]
- * @param {string} [hash]
  * @returns {Tracked}
  */
-export function tracked(v, block, get, set, hash) {
+export function tracked(v, block, hash, get, set) {
 	var t = /** @type {Tracked} */ (
 		new TrackedValue(v, block || active_block, get || set ? { get, set } : empty_get_set, hash)
 	);
@@ -504,13 +528,13 @@ export function tracked(v, block, get, set, hash) {
 
 /**
  * @param {any} fn
- * @param {any} block
+ * @param {Block} block
+ * @param {string} [hash]
  * @param {(value: any) => any} [get]
  * @param {(next: any, prev: any) => any} [set]
- * @param {string} [hash]
  * @returns {Derived}
  */
-export function derived(fn, block, get, set, hash) {
+export function derived(fn, block, hash, get, set) {
 	var d = /** @type {Derived} */ (
 		new DerivedValue(fn, block || active_block, get || set ? { get, set } : empty_get_set, hash)
 	);
@@ -522,13 +546,13 @@ export function derived(fn, block, get, set, hash) {
 
 /**
  * @param {any} v
- * @param {(value: any) => any | undefined} get
- * @param {(next: any, prev: any) => any | undefined} set
  * @param {Block} b
  * @param {string} [hash]
+ * @param {(value: any) => any} [get]
+ * @param {(next: any, prev: any) => any} [set]
  * @returns {Tracked | Derived}
  */
-export function track(v, get, set, b, hash) {
+export function track(v, b, hash, get, set) {
 	if (is_ripple_object(v)) {
 		return v;
 	}
@@ -537,9 +561,9 @@ export function track(v, get, set, b, hash) {
 	}
 
 	if (typeof v === 'function') {
-		return derived(v, b, get, set, hash);
+		return derived(v, b, hash, get, set);
 	}
-	return tracked(v, b, get, set, hash);
+	return tracked(v, b, hash, get, set);
 }
 
 /**
@@ -588,13 +612,7 @@ export function track_async(fn, b, hash) {
 		}
 	}
 
-	var t = tracked(
-		had_hydration_data ? hydration_value : SUSPENSE_PENDING,
-		target_block,
-		undefined,
-		undefined,
-		hash,
-	);
+	var t = tracked(had_hydration_data ? hydration_value : SUSPENSE_PENDING, target_block, hash);
 
 	// Capture the call-site block for boundary lookups. target_block is the
 	// component's block (passed by compiler), but the actual try/pending/catch
@@ -790,15 +808,15 @@ export function track_async(fn, b, hash) {
 }
 
 /**
- * @param {(Derived | Tracked) | (() => any)} tracked
+ * @param {(Derived | Tracked) | (() => any)} t
  * @returns {boolean}
  */
-export function is_tracked_pending(tracked) {
+export function is_tracked_pending(t) {
 	try {
-		if (typeof tracked === 'function') {
-			tracked();
+		if (typeof t === 'function') {
+			t();
 		} else {
-			get(tracked);
+			get(t);
 		}
 		return false;
 	} catch (error) {
@@ -1303,7 +1321,7 @@ export function spread_props(fn) {
  * @returns {Object}
  */
 export function proxy_props(fn) {
-	const memo = derived(fn, active_block);
+	const memo = derived(fn, /** @type {Block} */ (active_block));
 
 	return new Proxy(
 		{},

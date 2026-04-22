@@ -168,9 +168,9 @@ export function MixedControlFlowStatic(__anchor, _, __block) {
 export function MixedControlFlowReactive(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy = _$_.track(true, void 0, void 0, __block, '5ae53d26');
-	let lazy_1 = _$_.track('a', void 0, void 0, __block, '5b53eda2');
-	let lazy_2 = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }], void 0, void 0, __block, '7890dad6');
+	let lazy = _$_.track(true, __block, '5ae53d26');
+	let lazy_1 = _$_.track('a', __block, '5b53eda2');
+	let lazy_2 = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }], __block, '7890dad6');
 	var fragment_4 = root_9();
 	var button_1 = _$_.first_child_frag(fragment_4);
 

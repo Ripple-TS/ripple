@@ -41,7 +41,7 @@ var _$__u0023_server = {
 export function AsyncWithServerCall(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy = _$_.track(0, void 0, void 0, __block, '2e21cbe9');
+	let lazy = _$_.track(0, __block, '2e21cbe9');
 	var fragment = root();
 	var button_1 = _$_.first_child_frag(fragment);
 
@@ -350,7 +350,7 @@ export function ParentWithCatch(__anchor, _, __block) {
 export function AsyncWithReactiveDependency(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_9 = _$_.track(0, void 0, void 0, __block, 'c9d12acf');
+	let lazy_9 = _$_.track(0, __block, 'c9d12acf');
 	var fragment_9 = root_25();
 	var button_2 = _$_.first_child_frag(fragment_9);
 

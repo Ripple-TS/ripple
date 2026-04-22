@@ -1169,8 +1169,8 @@ export function ReturnWithElseBothReturn(__anchor, _, __block) {
 export function ReactiveReturnTrueToFalse(__anchor, _, __block) {
 	_$_.push_component();
 
-	var __r_28 = _$_.tracked(false);
-	let lazy = _$_.track(true, void 0, void 0, __block, '58730cee');
+	var __r_28 = _$_.track(false, __block);
+	let lazy = _$_.track(true, __block, '58730cee');
 	var fragment_59 = root_77();
 	var button_1 = _$_.first_child_frag(fragment_59);
 
@@ -1214,8 +1214,8 @@ export function ReactiveReturnTrueToFalse(__anchor, _, __block) {
 export function ReactiveReturnFalseToTrue(__anchor, _, __block) {
 	_$_.push_component();
 
-	var __r_29 = _$_.tracked(false);
-	let lazy_1 = _$_.track(false, void 0, void 0, __block, '7fc6e96b');
+	var __r_29 = _$_.track(false, __block);
+	let lazy_1 = _$_.track(false, __block, '7fc6e96b');
 	var fragment_61 = root_80();
 	var button_2 = _$_.first_child_frag(fragment_61);
 
@@ -1259,9 +1259,9 @@ export function ReactiveReturnFalseToTrue(__anchor, _, __block) {
 export function ReactiveNestedReturn(__anchor, _, __block) {
 	_$_.push_component();
 
-	var __r_30 = _$_.tracked(false);
+	var __r_30 = _$_.track(false, __block);
 	let a = true;
-	let lazy_2 = _$_.track(true, void 0, void 0, __block, '385f771e');
+	let lazy_2 = _$_.track(true, __block, '385f771e');
 	var fragment_63 = root_83();
 	var button_3 = _$_.first_child_frag(fragment_63);
 
@@ -1574,9 +1574,9 @@ export function MultipleSiblingReturns(__anchor, _, __block) {
 export function ReactiveSiblingReturns(__anchor, _, __block) {
 	_$_.push_component();
 
-	var __r_39 = _$_.tracked(false);
-	var __r_38 = _$_.tracked(false);
-	let lazy_3 = _$_.track('first', void 0, void 0, __block, '5aea90b8');
+	var __r_39 = _$_.track(false, __block);
+	var __r_38 = _$_.track(false, __block);
+	let lazy_3 = _$_.track('first', __block, '5aea90b8');
 	var fragment_82 = root_105();
 	var button_4 = _$_.first_child_frag(fragment_82);
 
@@ -1654,9 +1654,9 @@ export function ReactiveSiblingReturns(__anchor, _, __block) {
 export function ReactiveOuterInnerReturns(__anchor, _, __block) {
 	_$_.push_component();
 
-	var __r_40 = _$_.tracked(false);
-	let lazy_4 = _$_.track(true, void 0, void 0, __block, '60b3ed78');
-	let lazy_5 = _$_.track(true, void 0, void 0, __block, '76f23362');
+	var __r_40 = _$_.track(false, __block);
+	let lazy_4 = _$_.track(true, __block, '60b3ed78');
+	let lazy_5 = _$_.track(true, __block, '76f23362');
 	var fragment_86 = root_110();
 	var button_5 = _$_.first_child_frag(fragment_86);
 
@@ -1729,9 +1729,9 @@ export function ReactiveOuterInnerReturns(__anchor, _, __block) {
 export function ReactiveElseIfReturns(__anchor, _, __block) {
 	_$_.push_component();
 
-	var __r_42 = _$_.tracked(false);
-	var __r_41 = _$_.tracked(false);
-	let lazy_6 = _$_.track(0, void 0, void 0, __block, '820ab671');
+	var __r_42 = _$_.track(false, __block);
+	var __r_41 = _$_.track(false, __block);
+	let lazy_6 = _$_.track(0, __block, '820ab671');
 	var fragment_89 = root_114();
 	var button_7 = _$_.first_child_frag(fragment_89);
 
@@ -1801,14 +1801,14 @@ export function ReactiveElseIfReturns(__anchor, _, __block) {
 export function ReactiveDeepNestedIndependentReturns(__anchor, _, __block) {
 	_$_.push_component();
 
-	var __r_46 = _$_.tracked(false);
-	var __r_45 = _$_.tracked(false);
-	var __r_44 = _$_.tracked(false);
-	var __r_43 = _$_.tracked(false);
-	let lazy_7 = _$_.track(false, void 0, void 0, __block, '0222c312');
-	let lazy_8 = _$_.track(false, void 0, void 0, __block, '7b13a4fb');
-	let lazy_9 = _$_.track(false, void 0, void 0, __block, '405b5bb5');
-	let lazy_10 = _$_.track(false, void 0, void 0, __block, 'f8de97e9');
+	var __r_46 = _$_.track(false, __block);
+	var __r_45 = _$_.track(false, __block);
+	var __r_44 = _$_.track(false, __block);
+	var __r_43 = _$_.track(false, __block);
+	let lazy_7 = _$_.track(false, __block, '0222c312');
+	let lazy_8 = _$_.track(false, __block, '7b13a4fb');
+	let lazy_9 = _$_.track(false, __block, '405b5bb5');
+	let lazy_10 = _$_.track(false, __block, 'f8de97e9');
 	var fragment_94 = root_119();
 	var button_8 = _$_.first_child_frag(fragment_94);
 

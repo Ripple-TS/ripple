@@ -1,4 +1,7 @@
+import type { Tracked, Derived } from './runtime.js';
 import type { Context } from './context.js';
+
+export { Tracked, Derived };
 
 export type Component = {
 	b: null | Block;
@@ -18,44 +21,9 @@ export type Dependency = {
 	n: null | Dependency;
 };
 
-export type Tracked<V = any> = {
-	DO_NOT_ACCESS_THIS_OBJECT_DIRECTLY?: true;
-	a: { get?: Function; set?: Function };
-	b: Block;
-	c: number;
-	d: null | DeferredTrackedEntry[];
-	f: number;
-	h?: string;
-	__v: V;
-	readonly [0]: V;
-	[1]: Tracked<V>;
-	value: V;
-	readonly length: 2;
-	[Symbol.iterator](): Iterator<V | Tracked<V>>;
-};
-
 export type DeferredTrackedEntry = {
 	b: Block; // boundary block
 	r: number; // request version id
-};
-
-export type Derived = {
-	DO_NOT_ACCESS_THIS_OBJECT_DIRECTLY?: true;
-	a: { get?: Function; set?: Function };
-	b: Block;
-	blocks: null | Block[];
-	c: number;
-	co: null | Component;
-	d: null | Dependency;
-	f: number;
-	fn: Function;
-	h?: string;
-	__v: any;
-	readonly [0]: any;
-	[1]: Derived;
-	value: any;
-	readonly length: 2;
-	[Symbol.iterator](): Iterator<any | Derived>;
 };
 
 export type Block = {

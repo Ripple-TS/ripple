@@ -13,7 +13,7 @@ import { track } from 'ripple';
 export function TrackedState(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy = _$_.track(0, void 0, void 0, __block, 'c1818584');
+	let lazy = _$_.track(0, __block, 'c1818584');
 	var div_1 = root();
 
 	{
@@ -30,7 +30,7 @@ export function TrackedState(__anchor, _, __block) {
 export function CounterWithInitial(__anchor, props, __block) {
 	_$_.push_component();
 
-	let lazy_1 = _$_.track(props.initial, void 0, void 0, __block, '03ea4348');
+	let lazy_1 = _$_.track(props.initial, __block, '03ea4348');
 	var div_2 = root_1();
 
 	{
@@ -62,8 +62,8 @@ export function CounterWrapper(__anchor, _, __block) {
 export function ComputedValues(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_2 = _$_.track(2, void 0, void 0, __block, 'b78281db');
-	let lazy_3 = _$_.track(3, void 0, void 0, __block, 'a0cf6c6d');
+	let lazy_2 = _$_.track(2, __block, 'b78281db');
+	let lazy_3 = _$_.track(3, __block, 'a0cf6c6d');
 	const sum = () => _$_.get(lazy_2) + _$_.get(lazy_3);
 	var div_3 = root_3();
 
@@ -81,9 +81,9 @@ export function ComputedValues(__anchor, _, __block) {
 export function MultipleTracked(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_4 = _$_.track(10, void 0, void 0, __block, '843522de');
-	let lazy_5 = _$_.track(20, void 0, void 0, __block, '1308996d');
-	let lazy_6 = _$_.track(30, void 0, void 0, __block, '048c3fd0');
+	let lazy_4 = _$_.track(10, __block, '843522de');
+	let lazy_5 = _$_.track(20, __block, '1308996d');
+	let lazy_6 = _$_.track(30, __block, '048c3fd0');
 	var fragment_1 = root_4();
 	var div_4 = _$_.first_child_frag(fragment_1);
 
@@ -120,8 +120,8 @@ export function MultipleTracked(__anchor, _, __block) {
 export function DerivedState(__anchor, _, __block) {
 	_$_.push_component();
 
-	let lazy_7 = _$_.track('John', void 0, void 0, __block, '6015eeca');
-	let lazy_8 = _$_.track('Doe', void 0, void 0, __block, '4fa9a20e');
+	let lazy_7 = _$_.track('John', __block, '6015eeca');
+	let lazy_8 = _$_.track('Doe', __block, '4fa9a20e');
 	const fullName = () => `${_$_.get(lazy_7)} ${_$_.get(lazy_8)}`;
 	var div_7 = root_5();
 

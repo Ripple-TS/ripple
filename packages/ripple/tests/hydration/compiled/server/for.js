@@ -109,7 +109,7 @@ export function KeyedForLoop() {
 export function ReactiveForLoopAdd() {
 	_$_.push_component();
 
-	let lazy = _$_.track(['A', 'B'], void 0, void 0, 'e145678a');
+	let lazy = _$_.track(['A', 'B'], 'e145678a');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -153,7 +153,7 @@ export function ReactiveForLoopAdd() {
 export function ReactiveForLoopRemove() {
 	_$_.push_component();
 
-	let lazy_1 = _$_.track(['A', 'B', 'C'], void 0, void 0, 'b4e9bd54');
+	let lazy_1 = _$_.track(['A', 'B', 'C'], 'b4e9bd54');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -197,7 +197,7 @@ export function ReactiveForLoopRemove() {
 export function ForLoopInteractive() {
 	_$_.push_component();
 
-	let lazy_2 = _$_.track([0, 0, 0], void 0, void 0, '36f563df');
+	let lazy_2 = _$_.track([0, 0, 0], '36f563df');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -396,8 +396,6 @@ export function KeyedForLoopReorder() {
 			{ id: 2, name: 'Second' },
 			{ id: 3, name: 'Third' }
 		],
-		void 0,
-		void 0,
 		'e7abc6a3'
 	);
 
@@ -444,7 +442,7 @@ export function KeyedForLoopReorder() {
 export function KeyedForLoopUpdate() {
 	_$_.push_component();
 
-	let lazy_4 = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], void 0, void 0, '7a2c2ada');
+	let lazy_4 = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], '7a2c2ada');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -489,7 +487,7 @@ export function KeyedForLoopUpdate() {
 export function ForLoopMixedOperations() {
 	_$_.push_component();
 
-	let lazy_5 = _$_.track(['A', 'B', 'C', 'D'], void 0, void 0, '3dd7c7b6');
+	let lazy_5 = _$_.track(['A', 'B', 'C', 'D'], '3dd7c7b6');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -534,8 +532,8 @@ export function ForLoopMixedOperations() {
 export function ForLoopInsideIf() {
 	_$_.push_component();
 
-	let lazy_6 = _$_.track(true, void 0, void 0, '0528df30');
-	let lazy_7 = _$_.track(['X', 'Y', 'Z'], void 0, void 0, 'bf375103');
+	let lazy_6 = _$_.track(true, '0528df30');
+	let lazy_7 = _$_.track(['X', 'Y', 'Z'], 'bf375103');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -598,7 +596,7 @@ export function ForLoopInsideIf() {
 export function ForLoopEmptyToPopulated() {
 	_$_.push_component();
 
-	let lazy_8 = _$_.track([], void 0, void 0, '525c5dbc');
+	let lazy_8 = _$_.track([], '525c5dbc');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -643,7 +641,7 @@ export function ForLoopEmptyToPopulated() {
 export function ForLoopPopulatedToEmpty() {
 	_$_.push_component();
 
-	let lazy_9 = _$_.track(['One', 'Two', 'Three'], void 0, void 0, 'ee47f078');
+	let lazy_9 = _$_.track(['One', 'Two', 'Three'], 'ee47f078');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -688,7 +686,7 @@ export function ForLoopPopulatedToEmpty() {
 export function NestedForLoopReactive() {
 	_$_.push_component();
 
-	let lazy_10 = _$_.track([[1, 2], [3, 4]], void 0, void 0, 'a2f41fb3');
+	let lazy_10 = _$_.track([[1, 2], [3, 4]], 'a2f41fb3');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -868,7 +866,7 @@ export function ForLoopDeeplyNested() {
 export function ForLoopIndexUpdate() {
 	_$_.push_component();
 
-	let lazy_11 = _$_.track(['First', 'Second', 'Third'], void 0, void 0, 'f61e31e6');
+	let lazy_11 = _$_.track(['First', 'Second', 'Third'], 'f61e31e6');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -922,8 +920,6 @@ export function KeyedForLoopWithIndex() {
 			{ id: 'b', value: 'Beta' },
 			{ id: 'c', value: 'Gamma' }
 		],
-		void 0,
-		void 0,
 		'3467975a'
 	);
 
@@ -974,7 +970,7 @@ export function KeyedForLoopWithIndex() {
 export function ForLoopWithSiblings() {
 	_$_.push_component();
 
-	let lazy_13 = _$_.track(['A', 'B'], void 0, void 0, '3c7e8152');
+	let lazy_13 = _$_.track(['A', 'B'], '3c7e8152');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -1072,7 +1068,7 @@ export function ForLoopItemState() {
 function TodoItem(props) {
 	_$_.push_component();
 
-	let lazy_14 = _$_.track(false, void 0, void 0, '4f2402a4');
+	let lazy_14 = _$_.track(false, '4f2402a4');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -1138,7 +1134,7 @@ export function ForLoopSingleItem() {
 export function ForLoopAddAtBeginning() {
 	_$_.push_component();
 
-	let lazy_15 = _$_.track(['B', 'C'], void 0, void 0, '1561403a');
+	let lazy_15 = _$_.track(['B', 'C'], '1561403a');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -1183,7 +1179,7 @@ export function ForLoopAddAtBeginning() {
 export function ForLoopAddInMiddle() {
 	_$_.push_component();
 
-	let lazy_16 = _$_.track(['A', 'C'], void 0, void 0, '1bc60b46');
+	let lazy_16 = _$_.track(['A', 'C'], '1bc60b46');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -1228,7 +1224,7 @@ export function ForLoopAddInMiddle() {
 export function ForLoopRemoveFromMiddle() {
 	_$_.push_component();
 
-	let lazy_17 = _$_.track(['A', 'B', 'C'], void 0, void 0, '1c87f95f');
+	let lazy_17 = _$_.track(['A', 'B', 'C'], '1c87f95f');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -1310,7 +1306,7 @@ export function ForLoopLargeList() {
 export function ForLoopSwap() {
 	_$_.push_component();
 
-	let lazy_18 = _$_.track(['A', 'B', 'C', 'D'], void 0, void 0, '5f8d152f');
+	let lazy_18 = _$_.track(['A', 'B', 'C', 'D'], '5f8d152f');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -1355,7 +1351,7 @@ export function ForLoopSwap() {
 export function ForLoopReverse() {
 	_$_.push_component();
 
-	let lazy_19 = _$_.track(['A', 'B', 'C', 'D'], void 0, void 0, '24602e64');
+	let lazy_19 = _$_.track(['A', 'B', 'C', 'D'], '24602e64');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
