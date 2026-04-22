@@ -1053,8 +1053,10 @@ export component SpecificationPage() {
 			}
 
 			.side-nav {
-				position: static;
-				padding: 0 0 1.5rem;
+				position: sticky;
+				top: 0;
+				z-index: 5;
+				padding: 0.6rem 0;
 				border-bottom: 1px solid rgba(26, 22, 64, 0.1);
 				margin-bottom: 1rem;
 			}

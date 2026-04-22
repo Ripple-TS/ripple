@@ -556,9 +556,10 @@ export component CompilerDemo() {
 		.snippet-select,
 		.target-select {
 			min-width: 11rem;
-			padding: 0.7rem 2.15rem 0.7rem 0.85rem;
-			border: none;
-			background: rgba(255, 255, 255, 0.92);
+			padding: 0.75rem 3rem 0.75rem 1.2rem;
+			border: 1px solid rgba(94, 44, 255, 0.12);
+			border-radius: 0.9rem;
+			background-color: rgba(255, 255, 255, 0.92);
 			color: #1a1640;
 			appearance: none;
 			-webkit-appearance: none;
@@ -566,7 +567,7 @@ export component CompilerDemo() {
 			background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%231a1640' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 			background-repeat: no-repeat;
 			background-size: 0.95rem;
-			background-position: right 0.95rem center;
+			background-position: right 1.2rem center;
 		}
 
 		.demo-status-row {
