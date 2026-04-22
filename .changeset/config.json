@@ -23,7 +23,7 @@
       "@ripple-ts/adapter-bun",
       "@ripple-ts/adapter-vercel",
       "@ripple-ts/rollup-plugin",
-      "@ripple-ts/typescript-plugin",
+      "@tsrx/typescript-plugin",
       "@ripple-ts/vite-plugin"
     ]
   ],

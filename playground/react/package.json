@@ -15,7 +15,7 @@
   "devDependencies": {
     "@tsrx/react": "workspace:*",
     "@tsrx/vite-plugin-react": "workspace:*",
-    "@ripple-ts/typescript-plugin": "workspace:*",
+    "@tsrx/typescript-plugin": "workspace:*",
     "@types/react": "catalog:default",
     "@types/react-dom": "catalog:default",
     "typescript": "catalog:default",

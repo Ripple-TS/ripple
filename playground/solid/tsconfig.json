@@ -5,7 +5,7 @@
     "moduleResolution": "bundler",
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
-    "plugins": [{ "name": "@ripple-ts/typescript-plugin" }],
+    "plugins": [{ "name": "@tsrx/typescript-plugin" }],
     "strict": true,
     "allowImportingTsExtensions": true,
     "allowSyntheticDefaultImports": true,

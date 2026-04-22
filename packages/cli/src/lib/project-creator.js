@@ -275,7 +275,7 @@ function updateDependencyVersions(packageJson) {
 		'@tsrx/prettier-plugin': 'latest',
 		'@tsrx/eslint-plugin': 'latest',
 		'@tsrx/eslint-parser': 'latest',
-		'@ripple-ts/typescript-plugin': 'latest',
+		'@tsrx/typescript-plugin': 'latest',
 	};
 
 	// Update dependencies

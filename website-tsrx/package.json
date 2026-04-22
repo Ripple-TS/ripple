@@ -30,7 +30,7 @@
     "shiki": "catalog:"
   },
   "devDependencies": {
-    "@ripple-ts/typescript-plugin": "workspace:*",
+    "@tsrx/typescript-plugin": "workspace:*",
     "@ripple-ts/vite-plugin": "workspace:*",
     "ripple": "workspace:*",
     "typescript": "catalog:default",

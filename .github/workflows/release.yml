@@ -37,6 +37,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Disallow major bumps in changesets
+        run: |
+          matches=$(grep -lE "^['\"][^'\"]+['\"]: major$" .changeset/*.md 2>/dev/null || true)
+          if [ -n "$matches" ]; then
+            echo "::error::Major version bumps are not allowed. Offending changeset files:"
+            echo "$matches"
+            exit 1
+          fi
+
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@v1

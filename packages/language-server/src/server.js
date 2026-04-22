@@ -13,10 +13,7 @@ import { createCompletionPlugin } from './completionPlugin.js';
 import { createAutoInsertPlugin } from './autoInsertPlugin.js';
 import { createTypeScriptDiagnosticFilterPlugin } from './typescriptDiagnosticPlugin.js';
 import { createDocumentHighlightPlugin } from './documentHighlightPlugin.js';
-import {
-	getRippleLanguagePlugin,
-	resolveConfig,
-} from '@ripple-ts/typescript-plugin/src/language.js';
+import { getRippleLanguagePlugin, resolveConfig } from '@tsrx/typescript-plugin/src/language.js';
 import { createTypeScriptServices } from './typescriptService.js';
 import { create as createCssService } from 'volar-service-css';
 

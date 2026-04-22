@@ -10,6 +10,7 @@ on:
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - "vitest.config.js"
+      - ".changeset/**"
 
   pull_request:
     branches: [main, develop]
@@ -20,6 +21,7 @@ on:
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - "vitest.config.js"
+      - ".changeset/**"
 
 jobs:
   test:
@@ -87,6 +89,22 @@ jobs:
 
       - name: Check formatting
         run: pnpm format:check
+
+  changeset-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Disallow major bumps in changesets
+        run: |
+          matches=$(grep -lE "^['\"][^'\"]+['\"]: major$" .changeset/*.md 2>/dev/null || true)
+          if [ -n "$matches" ]; then
+            echo "::error::Major version bumps are not allowed. Offending changeset files:"
+            echo "$matches"
+            exit 1
+          fi
 
   typecheck:
     runs-on: ubuntu-latest

@@ -1,4 +1,4 @@
-# @ripple-ts/typescript-plugin
+# @tsrx/typescript-plugin
 
 ## 1.0.1
 
