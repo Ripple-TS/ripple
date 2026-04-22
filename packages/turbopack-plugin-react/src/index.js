@@ -4,8 +4,10 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const TURBOPACK_LOADER = path.join(__dirname, 'loader.js');
+const TURBOPACK_JS_LOADER = path.join(__dirname, 'loader.js');
+const TURBOPACK_CSS_LOADER = path.join(__dirname, 'css-loader.js');
 const DEFAULT_RESOLVE_EXTENSIONS = ['.tsrx', '.tsx', '.ts', '.jsx', '.js', '.mjs', '.json'];
+const CSS_QUERY = '?tsrx-css&lang.css';
 
 /**
  * @typedef {{
@@ -21,13 +23,28 @@ const DEFAULT_RESOLVE_EXTENSIONS = ['.tsrx', '.tsx', '.ts', '.jsx', '.js', '.mjs
  */
 
 /**
- * @returns {{ condition: { not: string }, loaders: string[], as: string }}
+ * @returns {{ condition: { all: any[] }, loaders: string[], as: string }}
  */
 export function create_tsrx_react_turbopack_rule() {
 	return {
-		condition: { not: 'foreign' },
-		loaders: [TURBOPACK_LOADER],
+		condition: {
+			all: [{ not: 'foreign' }, { not: { query: CSS_QUERY } }],
+		},
+		loaders: [TURBOPACK_JS_LOADER],
 		as: '*.tsx',
+	};
+}
+
+/**
+ * @returns {{ condition: { all: any[] }, loaders: string[], type: string }}
+ */
+export function create_tsrx_react_turbopack_css_rule() {
+	return {
+		condition: {
+			all: [{ not: 'foreign' }, { query: CSS_QUERY }],
+		},
+		loaders: [TURBOPACK_CSS_LOADER],
+		type: 'css',
 	};
 }
 
@@ -48,18 +65,19 @@ function merge_resolve_extensions(resolve_extensions) {
  * @returns {any}
  */
 function merge_tsrx_rule(existing_rule) {
-	const rule = create_tsrx_react_turbopack_rule();
-	if (!existing_rule) return rule;
-	return Array.isArray(existing_rule) ? [rule, ...existing_rule] : [rule, existing_rule];
+	const rules = [create_tsrx_react_turbopack_rule(), create_tsrx_react_turbopack_css_rule()];
+	if (!existing_rule) return rules;
+	return Array.isArray(existing_rule) ? [...rules, ...existing_rule] : [...rules, existing_rule];
 }
 
 /**
  * Merge the Turbopack settings needed for `.tsrx` React modules into a Next.js
  * config object.
  *
- * The helper installs a loader-backed `*.tsrx` rule that compiles TSRX to TSX,
- * then hands the output back to Turbopack as `*.tsx` so Next's React pipeline
- * can finish the JSX transform.
+ * The helper installs loader-backed `*.tsrx` rules that compile TSRX to TSX,
+ * route component-local `<style>` blocks through a sibling virtual CSS import,
+ * and then hand the TSX output back to Turbopack so Next's React pipeline can
+ * finish the JSX transform.
  *
  * @param {NextTurbopackConfig} [next_config]
  * @returns {NextTurbopackConfig}

@@ -138,7 +138,9 @@ export component GettingStartedPage() {
 				<p class="section-body">
 					{'The helper registers a Turbopack rule for '}
 					<code class="inline-code">{'.tsrx'}</code>
-					{' files and hands the compiled output back to Next as TSX so the normal React pipeline can finish the transform.'}
+					{' files, hands the compiled output back to Next as TSX, and routes component-local '}
+					<code class="inline-code">{'<style>'}</code>
+					{' blocks through a sibling virtual CSS import so Turbopack can process the scoped styles without extra loader setup.'}
 				</p>
 
 				<h3 class="subsection-heading">{'Solid + Vite'}</h3>

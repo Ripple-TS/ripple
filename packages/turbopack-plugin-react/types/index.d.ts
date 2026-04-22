@@ -9,11 +9,25 @@ export interface NextTurbopackConfig {
 	[key: string]: unknown;
 }
 
-export declare function create_tsrx_react_turbopack_rule(): {
-	condition: { not: 'foreign' };
+export interface TsrxReactTurbopackRule {
+	condition: {
+		all: Array<unknown>;
+	};
 	loaders: string[];
 	as: '*.tsx';
-};
+}
+
+export interface TsrxReactTurbopackCssRule {
+	condition: {
+		all: Array<unknown>;
+	};
+	loaders: string[];
+	type: 'css';
+}
+
+export declare function create_tsrx_react_turbopack_rule(): TsrxReactTurbopackRule;
+
+export declare function create_tsrx_react_turbopack_css_rule(): TsrxReactTurbopackCssRule;
 
 export declare function tsrxReactTurbopack(next_config?: NextTurbopackConfig): NextTurbopackConfig;
 
