@@ -51,7 +51,6 @@ import {
 export function transform(ast, source, filename) {
 	/** @type {any[]} */
 	const stylesheets = [];
-	const module_uses_server_directive = has_use_server_directive(ast);
 
 	/** @type {TransformContext} */
 	const transform_context = {
@@ -70,13 +69,6 @@ export function transform(ast, source, filename) {
 		Component(node, { next, state }) {
 			const as_any = /** @type {any} */ (node);
 			const await_expression = find_first_top_level_await_in_component_body(as_any.body || []);
-
-			if (await_expression && !module_uses_server_directive) {
-				throw create_compile_error(
-					await_expression,
-					'React components can only use `await` when the module has a top-level "use server" directive.',
-				);
-			}
 
 			if (await_expression) {
 				as_any.metadata = /** @type {any} */ ({
@@ -530,34 +522,6 @@ function is_hook_callee(callee) {
 		callee.property?.type === 'Identifier'
 	) {
 		return /^use[A-Z0-9]/.test(callee.property.name);
-	}
-
-	return false;
-}
-
-/**
- * @param {AST.Program} program
- * @returns {boolean}
- */
-function has_use_server_directive(program) {
-	for (const statement of program.body || []) {
-		const directive = /** @type {any} */ (statement).directive;
-
-		if (directive === 'use server') {
-			return true;
-		}
-
-		if (
-			statement.type === 'ExpressionStatement' &&
-			statement.expression?.type === 'Literal' &&
-			statement.expression.value === 'use server'
-		) {
-			return true;
-		}
-
-		if (directive == null) {
-			break;
-		}
 	}
 
 	return false;

@@ -409,8 +409,7 @@ target) and suspended via `try` / `pending` / `catch`.
 
 - **Solid + Ripple**: component bodies are synchronous; top-level
   component-body `await` is a compile-time error.
-- **React**: top-level component-body `await` is supported only when the
-  module has a top-level `'use server'` directive. In that mode TSRX emits
+- **React**: top-level component-body `await` is supported and TSRX emits
   an async component function.
 - **React**: `for await...of` is not supported inside component templates.
   Resolve async iterables in an upstream helper and render plain data in the
@@ -432,8 +431,6 @@ export component App() {
 
 **LLM DON'T:**
 - Do not write top-level component-body `await` in Solid or Ripple targets.
-- Do not use top-level component-body `await` in React modules without
-  `'use server'`.
 - Do not use `for await...of` inside React component templates.
 - Do not mark components `async`.
 
@@ -526,17 +523,15 @@ compound/descendant selectors cannot be passed.
 
 ## Target-specific behavior
 
-### React (`@tsrx/react`) — hooks + server await
+### React (`@tsrx/react`) — hooks + await
 
 The compiler **lifts all hook calls** to the top of the generated function
 regardless of where they appear in the TSRX source. That means hooks can
 sit after early returns, inside conditional branches, or inside loops, and
 the compiled output still satisfies the Rules of Hooks.
 
-React additionally supports top-level component-body `await` in server
-modules. Add a module-level `'use server'` directive and TSRX will emit an
-async component function. Without `'use server'`, top-level component-body
-`await` throws a compile error.
+React additionally supports top-level component-body `await` and TSRX emits
+an async component function when it appears in the component body.
 
 ```tsrx
 import { useState, useEffect } from 'react';

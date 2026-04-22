@@ -68,19 +68,20 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain("{'Hello world'}");
 	});
 
-	it('rejects await in components without top-level use server directive', () => {
-		expect(() =>
-			compile(
-				`export component App() {
-					const data = await fetchData();
-					<div>{data}</div>
-				}`,
-				'App.tsrx',
-			),
-		).toThrow(/use server/);
+	it('emits async component functions for top-level await without requiring use server', () => {
+		const { code } = compile(
+			`export component App() {
+				const data = await fetchData();
+				<div>{data}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('export async function App()');
+		expect(code).toContain('const data = await fetchData()');
 	});
 
-	it('emits async component functions for await when use server directive is present', () => {
+	it('still emits async component functions for await when use server is present', () => {
 		const { code } = compile(
 			`'use server';
 
@@ -93,9 +94,10 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain('export async function App()');
 		expect(code).toContain('const data = await fetchData()');
+		expect(code).toContain("'use server';");
 	});
 
-	it('treats for await...of as top-level await and requires use server', () => {
+	it('rejects for await...of in templates without requiring use server', () => {
 		expect(() =>
 			compile(
 				`export component App({ items }: { items: AsyncIterable<string> }) {
@@ -105,7 +107,7 @@ describe('@tsrx/react basic', () => {
 				}`,
 				'App.tsrx',
 			),
-		).toThrow(/use server/);
+		).toThrow(/does not support `for await\.\.\.of`/);
 	});
 
 	it('rejects for await...of in templates even when use server is present', () => {
