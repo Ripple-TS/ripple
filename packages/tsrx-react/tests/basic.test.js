@@ -574,7 +574,7 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('function Child() {');
 		expect(code).toContain('const x = 1;');
 		expect(code).toContain('console.log(x);');
-		expect(code).toContain('Child__static1 = <div>{(() => {');
+		expect(code).toContain('return <div>{(() => {');
 		expect(code).toContain('return null;');
 	});
 
@@ -1257,6 +1257,24 @@ describe('lazy destructuring', () => {
 		// The element referencing count should NOT be hoisted
 		expect(code).toContain('__lazy0[0]');
 		expect(code).not.toContain('App__static2');
+	});
+
+	it('does not hoist render-time expressions across early returns', () => {
+		const { code } = compile(
+			`export component Test() {
+				<div>{Date.now()}</div>
+
+				if (Math.random() > 0.5) {
+					return;
+				}
+			}`,
+			'Test.tsrx',
+		);
+
+		expect(code).not.toContain('const Test__static1');
+		expect(code).toContain('if (Math.random() > 0.5) {');
+		expect(code.match(/return <div>\{Date\.now\(\)\}<\/div>;/g)).toHaveLength(2);
+		expect(code).not.toContain('return null;');
 	});
 
 	it('combines lazy params and lazy variables', () => {
