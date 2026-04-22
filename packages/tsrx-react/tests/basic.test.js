@@ -138,6 +138,21 @@ describe('@tsrx/react basic', () => {
 		expect(code).not.toContain('export async function App()');
 	});
 
+	it('applies for-control-flow keys to rendered elements', () => {
+		const { code } = compile(
+			`export component App({ items }: { items: { id: string, text: string }[] }) {
+				for (const item of items; key item.id) {
+					<div>{item.text}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('.map(');
+		expect(code).toContain('key={item.id}');
+		expect(code).not.toContain('does not support `key` in `for` control flow');
+	});
+
 	it('emits the text content and scoped css for the basic styled example', () => {
 		const { code, css } = compile(
 			`export component App() {
@@ -229,6 +244,30 @@ describe('@tsrx/react basic', () => {
 				'App.tsrx',
 			),
 		).toThrow(/not supported on the React target/);
+	});
+
+	it('rejects JSX fragments in templates outside tsx blocks', () => {
+		expect(() =>
+			compile(
+				`export component App() {
+					<b><>{111}</></b>
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(
+			'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.',
+		);
+	});
+
+	it('allows JSX fragments inside tsx blocks', () => {
+		expect(() =>
+			compile(
+				`export component App() {
+					<tsx><>{111}</></tsx>
+				}`,
+				'App.tsrx',
+			),
+		).not.toThrow();
 	});
 
 	it('applies scoped css hashes to elements inside control flow', () => {
@@ -352,19 +391,20 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('return <div key={i}>{item}</div>;');
 	});
 
-	it('rejects Ripple for-of key clauses in React mode', () => {
-		expect(() =>
-			compile(
-				`export component App() {
-					const items = [1, 2, 3];
+	it('applies Ripple for-of key clauses in React mode', () => {
+		const { code } = compile(
+			`export component App() {
+				const items = [1, 2, 3];
 
-					for (const item of items; index i; key i) {
-						<div>{item}</div>
-					}
-				}`,
-				'App.tsrx',
-			),
-		).toThrow('Put the key on the rendered element instead');
+				for (const item of items; index i; key i) {
+					<div>{item}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('items.map((item, i) => {');
+		expect(code).toContain('return <div key={i}>{item}</div>;');
 	});
 
 	it('supports lone early returns in component-body if statements', () => {
@@ -595,54 +635,52 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('return null;');
 	});
 
-	it('supports JSX fragments at line start in component bodies', () => {
-		const { code } = compile(
-			`export component App() {
-				<>
-					<div>{'hello'}</div>
-				</>
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain('function App()');
-		expect(code).toContain('<>');
-		expect(code).toContain('</>');
-		expect(code).toContain("{'hello'}");
-	});
-
-	it('supports JSX fragments at line start inside element children', () => {
-		const { code } = compile(
-			`component App() {
-				<div>
+	it('rejects JSX fragments at line start in component bodies', () => {
+		expect(() =>
+			compile(
+				`export component App() {
 					<>
-						<span>{'inner'}</span>
+						<div>{'hello'}</div>
 					</>
-				</div>
-			}`,
-			'App.tsrx',
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(
+			'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.',
 		);
-
-		expect(code).toContain('function App()');
-		expect(code).toContain('<>');
-		expect(code).toContain('</>');
-		expect(code).toContain("{'inner'}");
 	});
 
-	it('supports JSX fragments alongside other elements in component bodies', () => {
-		const { code } = compile(
-			`export component App() {
-				<h1>{'title'}</h1>
-				<>
-					<p>{'content'}</p>
-				</>
-			}`,
-			'App.tsrx',
+	it('rejects JSX fragments at line start inside element children', () => {
+		expect(() =>
+			compile(
+				`component App() {
+					<div>
+						<>
+							<span>{'inner'}</span>
+						</>
+					</div>
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(
+			'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.',
 		);
+	});
 
-		expect(code).toContain('function App()');
-		expect(code).toContain("{'title'}");
-		expect(code).toContain("{'content'}");
+	it('rejects JSX fragments alongside other elements in component bodies', () => {
+		expect(() =>
+			compile(
+				`export component App() {
+					<h1>{'title'}</h1>
+					<>
+						<p>{'content'}</p>
+					</>
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(
+			'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.',
+		);
 	});
 
 	it('supports early returns inside element child statement bodies', () => {

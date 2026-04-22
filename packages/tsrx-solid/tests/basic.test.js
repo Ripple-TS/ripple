@@ -288,6 +288,30 @@ describe('@tsrx/solid basic', () => {
 				),
 			).toThrow(/not supported on the Solid target/);
 		});
+
+		it('rejects JSX fragments in templates outside tsx blocks', () => {
+			expect(() =>
+				compile(
+					`component App() {
+						<b><>{111}</></b>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(
+				'JSX fragment syntax is not needed in Ripple templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.',
+			);
+		});
+
+		it('allows JSX fragments inside tsx blocks', () => {
+			expect(() =>
+				compile(
+					`component App() {
+						<tsx><>{111}</></tsx>
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
 	});
 
 	describe('control flow', () => {
