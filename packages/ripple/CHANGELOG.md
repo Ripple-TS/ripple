@@ -1,5 +1,15 @@
 # ripple
 
+## 0.3.28
+
+### Patch Changes
+
+- Updated dependencies
+  [[`e4b5555`](https://github.com/Ripple-TS/ripple/commit/e4b5555fb5b1651a2bf1bf232565c7e0e40213b8),
+  [`e4b5555`](https://github.com/Ripple-TS/ripple/commit/e4b5555fb5b1651a2bf1bf232565c7e0e40213b8)]:
+  - @tsrx/ripple@0.0.10
+  - ripple@0.3.28
+
 ## 0.3.27
 
 ### Patch Changes

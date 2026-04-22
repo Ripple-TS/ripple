@@ -1,5 +1,33 @@
 # @tsrx/react
 
+## 0.1.2
+
+### Patch Changes
+
+- [#923](https://github.com/Ripple-TS/ripple/pull/923)
+  [`4292598`](https://github.com/Ripple-TS/ripple/commit/42925982e88f48f0af6cc74deeaa3c17bc6657cf)
+  Thanks [@RazinShafayet2007](https://github.com/RazinShafayet2007)! - fix:
+  preserve Volar mappings for explicit call type arguments
+
+- [#919](https://github.com/Ripple-TS/ripple/pull/919)
+  [`e4b5555`](https://github.com/Ripple-TS/ripple/commit/e4b5555fb5b1651a2bf1bf232565c7e0e40213b8)
+  Thanks [@trueadm](https://github.com/trueadm)! - Allow bare `<>...</>` fragments
+  everywhere TSRX accepts `<tsx>...</tsx>`, including template bodies and
+  expression position. The shorthand now compiles across Ripple, React, Preact,
+  and Solid targets, while the explicit `<tsx>...</tsx>` form remains supported.
+
+- [#919](https://github.com/Ripple-TS/ripple/pull/919)
+  [`e4b5555`](https://github.com/Ripple-TS/ripple/commit/e4b5555fb5b1651a2bf1bf232565c7e0e40213b8)
+  Thanks [@trueadm](https://github.com/trueadm)! - Disallow JSX fragment syntax in
+  template bodies unless it appears inside `<tsx>...</tsx>`. Ripple, Preact,
+  React, and Solid compilers now report a compile error instead of accepting or
+  crashing on `<>...</>` in regular templates.
+
+- Updated dependencies
+  [[`4292598`](https://github.com/Ripple-TS/ripple/commit/42925982e88f48f0af6cc74deeaa3c17bc6657cf),
+  [`e4b5555`](https://github.com/Ripple-TS/ripple/commit/e4b5555fb5b1651a2bf1bf232565c7e0e40213b8)]:
+  - @tsrx/core@0.0.8
+
 ## 0.1.1
 
 ### Patch Changes
