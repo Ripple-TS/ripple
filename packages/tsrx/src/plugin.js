@@ -436,15 +436,15 @@ export function TSRXPlugin(config) {
 						this.pos + 1 < this.input.length ? this.input.charCodeAt(this.pos + 1) : -1;
 					const isWhitespaceAfterLt =
 						nextChar === 32 || nextChar === 9 || nextChar === 10 || nextChar === 13;
-				const isTagLikeAfterLt =
-					!isWhitespaceAfterLt &&
-					(nextChar === 47 || // '/'
-						nextChar === 62 || // '>' (fragments: <>)
-						nextChar === 64 || // '@'
-						nextChar === 36 || // '$'
-						nextChar === 95 || // '_'
-						(nextChar >= 65 && nextChar <= 90) || // A-Z
-						(nextChar >= 97 && nextChar <= 122)); // a-z
+					const isTagLikeAfterLt =
+						!isWhitespaceAfterLt &&
+						(nextChar === 47 || // '/'
+							nextChar === 62 || // '>' (fragments: <>)
+							nextChar === 64 || // '@'
+							nextChar === 36 || // '$'
+							nextChar === 95 || // '_'
+							(nextChar >= 65 && nextChar <= 90) || // A-Z
+							(nextChar >= 97 && nextChar <= 122)); // a-z
 					const prevAllowsTagStart =
 						prevNonWhitespaceChar === null ||
 						prevNonWhitespaceChar === 10 || // '\n'
@@ -1475,11 +1475,7 @@ export function TSRXPlugin(config) {
 			 */
 			parseElement() {
 				const inside_head = this.#path.findLast(
-					(n) =>
-						n.type === 'Element' &&
-						n.id &&
-						n.id.type === 'Identifier' &&
-						n.id.name === 'head',
+					(n) => n.type === 'Element' && n.id && n.id.type === 'Identifier' && n.id.name === 'head',
 				);
 				// Adjust the start so we capture the `<` as part of the element
 				const start = this.start - 1;
@@ -2055,14 +2051,10 @@ export function TSRXPlugin(config) {
 									: this.getElementName(closingElement.name);
 						} else {
 							// Regular Element node (or fragment)
-							openingTagName = currentElement.id
-								? this.getElementName(currentElement.id)
-								: null;
+							openingTagName = currentElement.id ? this.getElementName(currentElement.id) : null;
 							closingTagName = closingElement.name
 								? closingElement.name?.type === 'JSXNamespacedName'
-									? closingElement.name.namespace.name +
-										':' +
-										closingElement.name.name.name
+									? closingElement.name.namespace.name + ':' + closingElement.name.name.name
 									: this.getElementName(closingElement.name)
 								: null;
 						}
