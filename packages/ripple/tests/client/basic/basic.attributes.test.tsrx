@@ -23,7 +23,11 @@ describe('basic client > attribute rendering', () => {
 			>
 				{'Toggle'}
 			</button>
-			<div class={active ? 'active' : 'inactive'}>{'Dynamic Class'}</div>
+			<div
+				class={active ? 'active' : 'inactive'}
+			>
+				{'Dynamic Class'}
+			</div>
 
 			<style>
 				.active {
@@ -137,8 +141,16 @@ describe('basic client > attribute rendering', () => {
 		component Basic() {
 			let &[selected] = track(1);
 
-			<div class={selected === 0 ? 'selected' : ''}>{`div 1`}</div>
-			<div class={selected === 0 ? 'selected' : ''}>{`div 2`}</div>
+			<div
+				class={selected === 0 ? 'selected' : ''}
+			>
+				{`div 1`}
+			</div>
+			<div
+				class={selected === 0 ? 'selected' : ''}
+			>
+				{`div 2`}
+			</div>
 
 			<style>
 				div {
@@ -569,7 +581,10 @@ describe('basic client > attribute rendering', () => {
 			>
 				{'Toggle Mode'}
 			</button>
-			<button onClick={mode === 'increment' ? incrementHandler : decrementHandler} class="action">
+			<button
+				onClick={mode === 'increment' ? incrementHandler : decrementHandler}
+				class="action"
+			>
 				{mode === 'increment' ? '+' : '-'}
 			</button>
 			<div class="count">{count}</div>

@@ -21,7 +21,11 @@ describe('basic server > attribute rendering', () => {
 		component Basic() {
 			let &[active] = track(false);
 
-			<div class={active ? 'active' : 'inactive'}>{'Dynamic Class'}</div>
+			<div
+				class={active ? 'active' : 'inactive'}
+			>
+				{'Dynamic Class'}
+			</div>
 
 			<style>
 				.active {
@@ -112,8 +116,16 @@ describe('basic server > attribute rendering', () => {
 			component Basic() {
 				let &[selected] = track(1);
 
-				<div class={selected === 0 ? 'selected' : ''}>{`div 1`}</div>
-				<div class={selected === 0 ? 'selected' : ''}>{`div 2`}</div>
+				<div
+					class={selected === 0 ? 'selected' : ''}
+				>
+					{`div 1`}
+				</div>
+				<div
+					class={selected === 0 ? 'selected' : ''}
+				>
+					{`div 2`}
+				</div>
 
 				<style>
 					div {

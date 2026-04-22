@@ -277,7 +277,10 @@ describe('server dynamic DOM elements', () => {
 
 		component App() {
 			let &[count] = track(0);
-			<DynamicButton class={count % 2 ? 'even' : 'odd'} id={count % 2 ? 'even' : 'odd'} />
+			<DynamicButton
+				class={count % 2 ? 'even' : 'odd'}
+				id={count % 2 ? 'even' : 'odd'}
+			/>
 		}
 
 		const { body } = await render(App);
