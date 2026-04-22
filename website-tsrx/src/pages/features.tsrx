@@ -695,9 +695,7 @@ export component FeaturesPage() {
 							<code class="inline-code">{'await'}</code>
 							{'. On React, top-level component-body '}
 							<code class="inline-code">{'await'}</code>
-							{' is supported only in modules with a top-level '}
-							<code class="inline-code">{'\'use server\''}</code>
-							{' directive.'}
+							{' is supported and TSRX emits an async component function.'}
 						</p>
 						<p class="section-body muted">
 							{'React note: '}
@@ -779,11 +777,7 @@ export component FeaturesPage() {
 						<p class="section-body">
 							{'React also supports top-level component-body '}
 							<code class="inline-code">{'await'}</code>
-							{' for server modules only. Add a module-level '}
-							<code class="inline-code">{'\'use server\''}</code>
-							{' directive and TSRX will emit an async component function. Without that directive, top-level '}
-							<code class="inline-code">{'await'}</code>
-							{' is a compile error.'}
+							{' and TSRX will emit an async component function when it appears in the component body.'}
 						</p>
 						<pre class="code-block">
 							<code>{html REACT_HOOKS_HTML}</code>
