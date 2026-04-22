@@ -926,6 +926,71 @@ export component Test({ a, b }: Props) {}`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should prefer breaking attributes over breaking expression values (multiline object)', async () => {
+			const input = `component App() {
+  <div class={styles.item} data-active={state.active ? "true" : "false"} style={{ gridTemplateColumns: Icon ? "16px minmax(0, 1fr) auto" : "minmax(0, 1fr) auto" }}>
+    {'content'}
+  </div>
+}`;
+			const expected = `component App() {
+  <div
+    class={styles.item}
+    data-active={state.active ? 'true' : 'false'}
+    style={{
+      gridTemplateColumns: Icon
+        ? '16px minmax(0, 1fr) auto'
+        : 'minmax(0, 1fr) auto',
+    }}
+  >
+    {'content'}
+  </div>
+}`;
+
+			const result = await format(input, { singleQuote: true, printWidth: 80 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should prefer breaking attributes over breaking expression values (multiline object, bracketSameLine)', async () => {
+			const input = `component App() {
+  <div class={styles.item} data-active={state.active ? "true" : "false"} style={{ gridTemplateColumns: Icon ? "16px minmax(0, 1fr) auto" : "minmax(0, 1fr) auto" }}>
+    {'content'}
+  </div>
+}`;
+			const expected = `component App() {
+  <div
+    class={styles.item}
+    data-active={state.active ? 'true' : 'false'}
+    style={{
+      gridTemplateColumns: Icon
+        ? '16px minmax(0, 1fr) auto'
+        : 'minmax(0, 1fr) auto',
+    }}>
+    {'content'}
+  </div>
+}`;
+
+			const result = await format(input, {
+				singleQuote: true,
+				printWidth: 80,
+				bracketSameLine: true,
+			});
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should keep attributes on same line when no attribute value breaks', async () => {
+			const input = `component App() {
+  <button class="test another" onClick={handler}>
+    {'Click Me'}
+  </button>
+}`;
+			const expected = `component App() {
+  <button class="test another" onClick={handler}>{'Click Me'}</button>
+}`;
+
+			const result = await format(input, { singleQuote: true, printWidth: 80 });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should not format function parameter spread', async () => {
 			const expected = `component Two({ arg1, ...rest }) {}`;
 
