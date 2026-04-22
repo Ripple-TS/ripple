@@ -15,7 +15,7 @@ const ROOT_EXTERNAL_PACKAGES = [
 	'@tsrx/core',
 	'volar-service-css',
 	'vscode-uri',
-	'@ripple-ts/typescript-plugin',
+	'@tsrx/typescript-plugin',
 	// this definitely has to be external as we monkey patch it at runtime
 	'volar-service-typescript',
 ];
@@ -24,7 +24,7 @@ const REGEX_EXTERNAL_PACKAGES = [
 	/^volar-service-typescript(?:\/.*)?$/,
 ];
 // Always external (bundled by VS Code or handled separately)
-const ALWAYS_EXTERNAL = ['vscode', '@ripple-ts/typescript-plugin'];
+const ALWAYS_EXTERNAL = ['vscode', '@tsrx/typescript-plugin'];
 const OUT_DIR = 'dist';
 
 // Compute all external packages by collecting dependency trees
@@ -68,7 +68,7 @@ export default defineConfig({
 				dirname,
 				OUT_DIR,
 				'node_modules',
-				'@ripple-ts',
+				'@tsrx',
 				'typescript-plugin',
 			);
 			for (const entry of fs.readdirSync(tsPluginPath)) {

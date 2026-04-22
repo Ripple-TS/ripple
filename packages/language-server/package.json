@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@volar/language-server": "catalog:default",
-    "@ripple-ts/typescript-plugin": "workspace:*",
+    "@tsrx/typescript-plugin": "workspace:*",
     "@tsrx/core": "workspace:*",
     "volar-service-css": "catalog:default",
     "volar-service-typescript": "catalog:default",

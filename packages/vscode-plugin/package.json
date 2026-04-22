@@ -43,7 +43,7 @@
     "@volar/typescript": "catalog:default",
     "@volar/vscode": "catalog:default",
     "@ripple-ts/language-server": "workspace:*",
-    "@ripple-ts/typescript-plugin": "workspace:*",
+    "@tsrx/typescript-plugin": "workspace:*",
     "volar-service-typescript": "catalog:default",
     "vscode-languageclient": "catalog:default",
     "vscode-uri": "catalog:default"
@@ -132,7 +132,7 @@
     ],
     "typescriptServerPlugins": [
       {
-        "name": "@ripple-ts/typescript-plugin",
+        "name": "@tsrx/typescript-plugin",
         "enableForWorkspaceTypeScriptVersions": true,
         "languages": []
       }

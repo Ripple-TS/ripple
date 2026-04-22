@@ -352,19 +352,37 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('return <div key={i}>{item}</div>;');
 	});
 
-	it('rejects Ripple for-of key clauses in React mode', () => {
-		expect(() =>
-			compile(
-				`export component App() {
-					const items = [1, 2, 3];
+	it('applies for-of key clauses to emitted React elements', () => {
+		const { code } = compile(
+			`export component App() {
+				const items = [1, 2, 3];
 
-					for (const item of items; index i; key i) {
-						<div>{item}</div>
-					}
-				}`,
-				'App.tsrx',
-			),
-		).toThrow('Put the key on the rendered element instead');
+				for (const item of items; index i; key item) {
+					<div>{item}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('items.map((item, i) => {');
+		expect(code).toContain('return <div key={item}>{item}</div>;');
+	});
+
+	it('prefers inline JSX keys over for-of key clauses for emitted React elements', () => {
+		const { code } = compile(
+			`export component App() {
+				const items = [{ id: 'a', inner: 'x' }];
+
+				for (const item of items; key item.id) {
+					<div key={item.inner}>{item.id}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('items.map((item) => {');
+		expect(code).toContain('return <div key={item.inner}>{item.id}</div>;');
+		expect(code).not.toContain('return <div key={item.id}>{item.id}</div>;');
 	});
 
 	it('supports lone early returns in component-body if statements', () => {
@@ -1183,6 +1201,41 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain(
 			'<StatementBodyHook1 items={items} item={item} index={index} key={index} />',
 		);
+	});
+
+	it('applies for-of key clauses to hook wrapper components', () => {
+		const { code } = compile(
+			`import { useState } from 'react';
+
+			export component App({ items }: { items: { id: string; label: string }[] }) {
+				for (const item of items; key item.id) {
+					const [active] = useState(false);
+					<div>{active ? item.label : item.id}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function StatementBodyHook');
+		expect(code).toContain('<StatementBodyHook1 items={items} item={item} key={item.id} />');
+	});
+
+	it('prefers inline JSX keys over for-of key clauses for hook wrapper components', () => {
+		const { code } = compile(
+			`import { useState } from 'react';
+
+			export component App({ items }: { items: { id: string; inner: string }[] }) {
+				for (const item of items; key item.id) {
+					const [active] = useState(false);
+					<div key={item.inner}>{active ? item.inner : item.id}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function StatementBodyHook');
+		expect(code).toContain('<StatementBodyHook1 items={items} item={item} key={item.inner} />');
+		expect(code).not.toContain('<StatementBodyHook1 items={items} item={item} key={item.id} />');
 	});
 
 	it('adds index key to non-hook loop items in conditional branches', () => {

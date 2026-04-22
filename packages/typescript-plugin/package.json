@@ -1,6 +1,6 @@
 {
-  "name": "@ripple-ts/typescript-plugin",
-  "description": "TypeScript plugin for Ripple",
+  "name": "@tsrx/typescript-plugin",
+  "description": "TypeScript plugin for TSRX",
   "license": "MIT",
   "author": "Dominic Gannaway",
   "version": "1.0.1",

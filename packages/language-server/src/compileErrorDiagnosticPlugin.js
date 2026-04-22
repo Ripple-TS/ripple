@@ -1,7 +1,7 @@
 /**
  * @import {Diagnostic, Range, LanguageServicePlugin, LanguageServiceContext, Position, Mapper} from '@volar/language-server';
  * @import {TextDocument} from 'vscode-languageserver-textdocument';
- * @import {TSRXVirtualCodeInstance} from '@ripple-ts/typescript-plugin/src/language.js';
+ * @import {TSRXVirtualCodeInstance} from '@tsrx/typescript-plugin/src/language.js';
  */
 /** @import {TSRXCompileError} from '@tsrx/ripple'; */
 
