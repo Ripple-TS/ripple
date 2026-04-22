@@ -5949,7 +5949,7 @@ function printMemberExpressionSimple(node, options, computed = false) {
 
 /**
  * Check whether an attribute value can expand into multiline content.
- * @param {AST.Node | null | undefined} value - The attribute value node
+ * @param {AST.Expression | null | undefined} value - The attribute value node
  * @param {boolean} [is_nested_in_object=false] - Whether this value is nested within an object literal
  * @returns {boolean}
  */
@@ -5967,8 +5967,6 @@ function is_attribute_value_breakable(value, is_nested_in_object = false) {
 					property.type === 'Property' &&
 					is_attribute_value_breakable(/** @type {AST.Expression} */ (property.value), true),
 			);
-		case 'TSRXExpression':
-			return is_attribute_value_breakable(value.expression, is_nested_in_object);
 		default:
 			return false;
 	}
