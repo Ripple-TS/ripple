@@ -1603,24 +1603,23 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 		);
 	}
 
-	if (node.key) {
-		throw create_compile_error(
-			node.key,
-			'React TSRX does not support `key` in `for` control flow. Put the key on the rendered element instead, for example `<div key={i}>...</div>`.',
-		);
-	}
-
 	const loop_params = get_for_of_iteration_params(node.left, node.index);
 	const loop_body = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
 	const has_hooks = body_contains_top_level_hook_call(loop_body);
-	const explicit_key_expression = has_hooks ? find_key_expression_in_body(loop_body) : undefined;
+	const body_key_expression = find_key_expression_in_body(loop_body);
+	const explicit_key_expression =
+		body_key_expression ?? (node.key ? clone_expression_node(node.key) : undefined);
 	const key_expression =
 		has_hooks && explicit_key_expression == null && node.index
 			? clone_expression_node(node.index)
 			: explicit_key_expression;
 	const implicit_non_hook_key_expression =
-		!has_hooks && node.index && find_key_expression_in_body(loop_body) == null
-			? clone_expression_node(node.index)
+		!has_hooks && body_key_expression == null
+			? node.key
+				? clone_expression_node(node.key)
+				: node.index
+					? clone_expression_node(node.index)
+					: undefined
 			: undefined;
 
 	// Add loop params to available bindings so hoisted helpers receive them as props

@@ -494,12 +494,12 @@ importers:
 
   packages/language-server:
     dependencies:
-      '@ripple-ts/typescript-plugin':
-        specifier: workspace:*
-        version: link:../typescript-plugin
       '@tsrx/core':
         specifier: workspace:*
         version: link:../tsrx
+      '@tsrx/typescript-plugin':
+        specifier: workspace:*
+        version: link:../typescript-plugin
       '@volar/language-server':
         specifier: catalog:default
         version: 2.4.28
@@ -935,15 +935,15 @@ importers:
       '@ripple-ts/language-server':
         specifier: workspace:*
         version: link:../language-server
-      '@ripple-ts/typescript-plugin':
-        specifier: workspace:*
-        version: link:../typescript-plugin
       '@tsrx/react':
         specifier: workspace:*
         version: link:../tsrx-react
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:../tsrx-ripple
+      '@tsrx/typescript-plugin':
+        specifier: workspace:*
+        version: link:../typescript-plugin
       '@types/vscode':
         specifier: catalog:default
         version: 1.116.0
@@ -996,12 +996,12 @@ importers:
         specifier: catalog:default
         version: 19.2.4(react@19.2.4)
     devDependencies:
-      '@ripple-ts/typescript-plugin':
-        specifier: workspace:*
-        version: link:../../packages/typescript-plugin
       '@tsrx/react':
         specifier: workspace:*
         version: link:../../packages/tsrx-react
+      '@tsrx/typescript-plugin':
+        specifier: workspace:*
+        version: link:../../packages/typescript-plugin
       '@tsrx/vite-plugin-react':
         specifier: workspace:*
         version: link:../../packages/vite-plugin-react
@@ -1027,9 +1027,6 @@ importers:
         specifier: catalog:peer
         version: 4.2.1
     devDependencies:
-      '@ripple-ts/typescript-plugin':
-        specifier: workspace:*
-        version: link:../../packages/typescript-plugin
       '@ripple-ts/vite-plugin':
         specifier: workspace:*
         version: link:../../packages/vite-plugin
@@ -1042,6 +1039,9 @@ importers:
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:../../packages/tsrx-ripple
+      '@tsrx/typescript-plugin':
+        specifier: workspace:*
+        version: link:../../packages/typescript-plugin
       '@typescript-eslint/parser':
         specifier: catalog:default
         version: 8.56.1(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3)
@@ -1070,12 +1070,12 @@ importers:
         specifier: 2.0.0-beta.7
         version: 2.0.0-beta.7
     devDependencies:
-      '@ripple-ts/typescript-plugin':
-        specifier: workspace:*
-        version: link:../../packages/typescript-plugin
       '@tsrx/solid':
         specifier: workspace:*
         version: link:../../packages/tsrx-solid
+      '@tsrx/typescript-plugin':
+        specifier: workspace:*
+        version: link:../../packages/typescript-plugin
       '@tsrx/vite-plugin-solid':
         specifier: workspace:*
         version: link:../../packages/vite-plugin-solid
@@ -1123,12 +1123,12 @@ importers:
         specifier: catalog:default
         version: 4.0.1
     devDependencies:
-      '@ripple-ts/typescript-plugin':
-        specifier: workspace:*
-        version: link:../packages/typescript-plugin
       '@ripple-ts/vite-plugin':
         specifier: workspace:*
         version: link:../packages/vite-plugin
+      '@tsrx/typescript-plugin':
+        specifier: workspace:*
+        version: link:../packages/typescript-plugin
       ripple:
         specifier: workspace:*
         version: link:../packages/ripple
@@ -1184,12 +1184,12 @@ importers:
         specifier: 'catalog:'
         version: 4.0.1
     devDependencies:
-      '@ripple-ts/typescript-plugin':
-        specifier: workspace:*
-        version: link:../packages/typescript-plugin
       '@ripple-ts/vite-plugin':
         specifier: workspace:*
         version: link:../packages/vite-plugin
+      '@tsrx/typescript-plugin':
+        specifier: workspace:*
+        version: link:../packages/typescript-plugin
       ripple:
         specifier: workspace:*
         version: link:../packages/ripple

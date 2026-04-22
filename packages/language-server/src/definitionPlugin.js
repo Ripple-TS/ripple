@@ -9,7 +9,7 @@ import {
 	getRippleDirForFile,
 	getCachedTypeDefinitionFile,
 	getCachedTypeMatches,
-} from '@ripple-ts/typescript-plugin/src/language.js';
+} from '@tsrx/typescript-plugin/src/language.js';
 
 const { log } = createLogging('[Ripple Definition Plugin]');
 /** @type {string | undefined} */
