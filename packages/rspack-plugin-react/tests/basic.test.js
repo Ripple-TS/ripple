@@ -43,10 +43,11 @@ describe('@tsrx/rspack-plugin-react js-loader', () => {
 
 		const { context, promise } = createLoaderContext(id);
 		jsLoader.call(context, source);
-		const { err, output } = await promise;
+		const { err, output, map } = await promise;
 
 		expect(err).toBeNull();
 		expect(output).toContain(`${id}?tsrx-css&lang.css`);
+		expect(map).toBeUndefined();
 	});
 
 	it('does not prepend a virtual css import when no style block exists', async () => {
@@ -57,10 +58,11 @@ describe('@tsrx/rspack-plugin-react js-loader', () => {
 
 		const { context, promise } = createLoaderContext(id);
 		jsLoader.call(context, source);
-		const { err, output } = await promise;
+		const { err, output, map } = await promise;
 
 		expect(err).toBeNull();
 		expect(output).not.toContain('tsrx-css');
+		expect(map).toBeTruthy();
 	});
 });
 

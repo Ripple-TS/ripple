@@ -19,12 +19,14 @@ export default function jsLoader(source) {
 		const { code, map, css } = compile(source, resourcePath);
 
 		let output = code;
+		let output_map = map;
 		if (css) {
 			const cssImport = `${resourcePath}?tsrx-css&lang.css`;
 			output = `import ${JSON.stringify(cssImport)};\n${code}`;
+			output_map = null;
 		}
 
-		callback(null, output, /** @type {any} */ (map ?? undefined));
+		callback(null, output, /** @type {any} */ (output_map ?? undefined));
 	} catch (/** @type {any} */ err) {
 		callback(err);
 	}
