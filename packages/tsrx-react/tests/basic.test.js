@@ -578,11 +578,11 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('return null;');
 	});
 
-	it('supports less-than comparisons in statement-based element children', () => {
+	it('supports less-than comparisons in statement-based element children without whitespace', () => {
 		const { code } = compile(
 			`component TodoList({ items }: { items: { text: string }[] }) {
 				<ul>var a = 3
-				< 4;</ul>
+				<4;</ul>
 			}`,
 			'TodoList.tsrx',
 		);

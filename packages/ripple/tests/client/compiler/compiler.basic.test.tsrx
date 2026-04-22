@@ -726,10 +726,10 @@ export component App() {
 		expect(result).toContain('_$_.spread_props(');
 	});
 
-	it('parses less-than comparisons at line start in element children', () => {
+	it('parses less-than comparisons at line start in element children without whitespace', () => {
 		const source = `component TodoList({ items }: { items: { text: string }[] }) {
 	<ul>var a = 3
-	< 4;</ul>
+	<4;</ul>
 }`;
 
 		const ast = parse(source);
