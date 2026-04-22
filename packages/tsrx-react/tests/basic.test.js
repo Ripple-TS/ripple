@@ -1767,4 +1767,15 @@ describe('lazy destructuring', () => {
 		// No interleaving, so no capture temporaries should be introduced.
 		expect(code).not.toContain('_tsrx_child_');
 	});
+
+	it('does not crash Volar mappings for calls with explicit type arguments', () => {
+		expect(() =>
+			compile_to_volar_mappings(
+				`component Test() {
+					const [foo, setFoo] = useState<string | null>(null)
+				}`,
+				'Test.tsrx',
+			),
+		).not.toThrow();
+	});
 });
