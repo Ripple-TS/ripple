@@ -1165,6 +1165,9 @@ importers:
       '@tsrx/prettier-plugin':
         specifier: workspace:*
         version: link:../packages/prettier-plugin
+      '@tsrx/preact':
+        specifier: workspace:*
+        version: link:../packages/tsrx-preact
       '@tsrx/react':
         specifier: workspace:*
         version: link:../packages/tsrx-react

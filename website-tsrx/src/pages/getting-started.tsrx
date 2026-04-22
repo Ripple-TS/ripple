@@ -13,6 +13,19 @@ const VITE_CONFIG_HTML = [
 	'<span class="ln">6</span> <span class="br">}</span><span class="br">)</span>;',
 ].join('\n');
 
+const PREACT_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/preact</span> <span class="str">@tsrx/vite-plugin-preact</span>',
+].join('\n');
+
+const PREACT_VITE_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">defineConfig</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'vite\'</span>;',
+	'<span class="ln">2</span> <span class="kw-export">import</span> <span class="prop">tsrxPreact</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/vite-plugin-preact\'</span>;',
+	'<span class="ln">3</span>',
+	'<span class="ln">4</span> <span class="kw-export">export default</span> <span class="fn">defineConfig</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">5</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="fn">tsrxPreact</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">6</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
 const SOLID_INSTALL_HTML = [
 	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/solid</span> <span class="str">@tsrx/vite-plugin-solid</span> <span class="str">vite-plugin-solid</span>',
 ].join('\n');
@@ -78,6 +91,7 @@ const NAV_GROUPS = [
 			{ id: 'react-vite', label: 'React + Vite' },
 			{ id: 'react-rspack', label: 'React + Rspack' },
 			{ id: 'react-turbopack', label: 'React + Turbopack' },
+			{ id: 'preact-vite', label: 'Preact + Vite' },
 			{ id: 'solid-vite', label: 'Solid + Vite' },
 			{ id: 'ripple', label: 'Ripple' },
 		],
@@ -104,7 +118,7 @@ export component GettingStartedPage() {
 		<title>{'TSRX | Getting Started'}</title>
 		<meta
 			name="description"
-			content="Get started with TSRX: install with React for Vite, Rspack, or Turbopack, learn the component syntax, and explore statement-based control flow."
+			content="Get started with TSRX: install with React, Preact, Solid, or Ripple for Vite, Rspack, or Turbopack, learn the component syntax, and explore statement-based control flow."
 		/>
 	</head>
 
@@ -168,6 +182,31 @@ export component GettingStartedPage() {
 							{' file and import it from your existing JS, TS, or TSX code. The plugin compiles '}
 							<code class="inline-code">{'.tsrx'}</code>
 							{' modules into standard React components with scoped CSS.'}
+						</p>
+					</section>
+
+					<section class="doc-section" id="preact-vite">
+						<h2 class="section-heading">{'Preact + Vite'}</h2>
+						<p class="section-body">{'Install the Preact compiler and Vite plugin:'}</p>
+						<pre class="code-block">
+							<code>{html PREACT_INSTALL_HTML}</code>
+						</pre>
+						<p class="section-body">{'Then add the plugin to your Vite config:'}</p>
+						<pre class="code-block">
+							<code>{html PREACT_VITE_CONFIG_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'The plugin compiles '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' modules into standard Preact components. '}
+							<code class="inline-code">{'Suspense'}</code>
+							{' is imported from '}
+							<code class="inline-code">{'preact/compat'}</code>
+							{' by default; pass '}
+							<code class="inline-code">{'{ suspenseSource: \'preact-suspense\' }'}</code>
+							{' to '}
+							<code class="inline-code">{'tsrxPreact()'}</code>
+							{' if you want to avoid pulling in the full compat layer.'}
 						</p>
 					</section>
 

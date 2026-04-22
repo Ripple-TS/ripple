@@ -21,6 +21,7 @@
     "@codemirror/theme-one-dark": "^6.1.3",
     "@codemirror/view": "^6.38.6",
     "@ripple-ts/adapter-node": "workspace:*",
+    "@tsrx/preact": "workspace:*",
     "@tsrx/prettier-plugin": "workspace:*",
     "@tsrx/react": "workspace:*",
     "@tsrx/ripple": "workspace:*",

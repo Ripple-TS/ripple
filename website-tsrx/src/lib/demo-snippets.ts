@@ -185,4 +185,34 @@ export component App() {
   </ul>
 }`,
 	},
+	{
+		value: 'nested-preact-hooks',
+		label: 'Nested Preact Hooks',
+		targets: ['preact'],
+		source: `import { useEffect, useState } from 'preact/hooks';
+
+export component App() {
+  const [tab, setTab] = useState('overview');
+  const posts = [
+    { title: 'Compiler update' },
+    { title: 'Runtime notes' },
+    { title: 'Hydration deep dive' },
+  ];
+
+  <h1>{'Nested Preact Hooks'}</h1>
+  <button onClick={() => setTab(tab === 'overview' ? 'recent' : 'overview')}>
+    {tab}
+  </button>
+
+  <ul>
+    for (const post of posts) {
+      useEffect(() => {
+        console.log('viewed ' + post.title);
+      }, [post.title]);
+
+      <li>{post.title}</li>
+    }
+  </ul>
+}`,
+	},
 ];

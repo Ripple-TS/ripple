@@ -11,11 +11,13 @@ const CUSTOM_SNIPPET_VALUE = '__custom';
 const EMPTY_DEMO_SOURCE = '';
 const TARGET_OPTIONS = [
 	{ value: 'react', label: 'React' },
+	{ value: 'preact', label: 'Preact' },
 	{ value: 'ripple', label: 'Ripple' },
 	{ value: 'solid', label: 'Solid' },
 ];
 const TARGET_LABELS: Record<string, string> = {
 	react: 'React output',
+	preact: 'Preact output',
 	ripple: 'Ripple output',
 	solid: 'Solid output',
 };

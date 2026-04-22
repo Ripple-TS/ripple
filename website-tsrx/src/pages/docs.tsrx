@@ -248,7 +248,7 @@ const NAV_ITEMS = [
 	{ id: 'style-composition', label: 'Style composition' },
 	{ id: 'early-return', label: 'Early returns' },
 	{ id: 'lazy-destructuring', label: 'Lazy destructuring' },
-	{ id: 'react-hooks', label: 'React Hooks' },
+	{ id: 'react-hooks', label: 'React & Preact Hooks' },
 ];
 
 export component DocsPage() {
@@ -556,14 +556,16 @@ export component DocsPage() {
 							<code>{html LAZY_OBJ_VAR_HTML}</code>
 						</pre>
 						<p class="section-body muted">
-							{'Lazy destructuring is supported across every target. In React it compiles to direct property access on the source object, in Ripple and Solid it preserves tracked/signal reactivity without needing a wrapper call.'}
+							{'Lazy destructuring is supported across every target. In React and Preact it compiles to direct property access on the source object, in Ripple and Solid it preserves tracked/signal reactivity without needing a wrapper call.'}
 						</p>
 					</section>
 					<section class="doc-section" id="react-hooks">
-						<h2 class="section-heading">{'React Hooks'}</h2>
+						<h2 class="section-heading">{'React & Preact Hooks'}</h2>
 						<p class="section-body">
 							{'When targeting React with '}
 							<code class="inline-code">{'@tsrx/react'}</code>
+							{' or Preact with '}
+							<code class="inline-code">{'@tsrx/preact'}</code>
 							{', the compiler lifts all hook calls to the top of the generated function — regardless of where they appear in the TSRX source. That means hooks can appear after early returns, inside conditional blocks, or even inside loops, and the compiled output still satisfies the Rules of Hooks.'}
 						</p>
 						<pre class="code-block">

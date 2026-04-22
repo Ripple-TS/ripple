@@ -306,7 +306,7 @@ const NAV_ITEMS = [
 	{ id: 'scoped-styles', label: 'Scoped styles' },
 	{ id: 'style-composition', label: 'Style composition' },
 	{ id: 'early-return', label: 'Early returns' },
-	{ id: 'react-hooks', label: 'React Hooks' },
+	{ id: 'react-hooks', label: 'React & Preact Hooks' },
 ];
 
 export component FeaturesPage() {
@@ -468,15 +468,17 @@ export component FeaturesPage() {
 							{' binding.'}
 						</p>
 						<p class="section-body">
-							{'Neither React nor Solid have a cleanly-matching child-level primitive, so compiling '}
+							{'Neither React, Preact, nor Solid have a cleanly-matching child-level primitive, so compiling '}
 							<code class="inline-code">{'{html ...}'}</code>
 							{' with '}
 							<code class="inline-code">{'@tsrx/react'}</code>
-							{' or '}
+							{', '}
+							<code class="inline-code">{'@tsrx/preact'}</code>
+							{', or '}
 							<code class="inline-code">{'@tsrx/solid'}</code>
 							{' is a compile-time error. For those targets, reach for the attribute-level equivalent directly: '}
 							<code class="inline-code">{'dangerouslySetInnerHTML={{ __html: markup }}'}</code>
-							{' on React, or '}
+							{' on React and Preact, or '}
 							<code class="inline-code">{'innerHTML={markup}'}</code>
 							{' on Solid.'}
 						</p>
@@ -539,7 +541,7 @@ export component FeaturesPage() {
 							<code class="inline-code">{'expr'}</code>
 							{' can be a mutable '}
 							<code class="inline-code">{'let'}</code>
-							{' variable — the compiler targets assign the element to it — or a callback function, which is invoked with the element. Both forms work across the React, Solid, and Ripple targets.'}
+							{' variable — the compiler targets assign the element to it — or a callback function, which is invoked with the element. Both forms work across the React, Preact, Solid, and Ripple targets.'}
 						</p>
 						<pre class="code-block">
 							<code>{html REFS_HTML}</code>
@@ -555,7 +557,7 @@ export component FeaturesPage() {
 							<code>{html REFS_COMPOSITE_HTML}</code>
 						</pre>
 						<p class="section-body muted">
-							{'Target details: React forwards refs directly via the '}
+							{'Target details: React and Preact forward refs directly via the '}
 							<code class="inline-code">{'ref'}</code>
 							{' prop. Solid uses its built-in ref prop on composites (and '}
 							<code class="inline-code">{'applyRef'}</code>
@@ -689,16 +691,18 @@ export component FeaturesPage() {
 							<code class="inline-code">{'lazy()'}</code>
 							{' from '}
 							<code class="inline-code">{'react'}</code>
-							{' or '}
+							{', '}
+							<code class="inline-code">{'preact/compat'}</code>
+							{', or '}
 							<code class="inline-code">{'solid-js'}</code>
-							{', the Ripple equivalent on the Ripple target. In Solid and Ripple targets, component bodies are synchronous and do not allow inline '}
+							{', and the Ripple equivalent on the Ripple target. In Solid and Ripple targets, component bodies are synchronous and do not allow inline '}
 							<code class="inline-code">{'await'}</code>
-							{'. On React, top-level component-body '}
+							{'. On React and Preact, top-level component-body '}
 							<code class="inline-code">{'await'}</code>
 							{' is supported and TSRX emits an async component function.'}
 						</p>
 						<p class="section-body muted">
-							{'React note: '}
+							{'React/Preact note: '}
 							<code class="inline-code">{'for await...of'}</code>
 							{' is not supported inside component templates. Use an upstream async helper and render the resolved data.'}
 						</p>
@@ -768,14 +772,16 @@ export component FeaturesPage() {
 						</p>
 					</section>
 					<section class="doc-section" id="react-hooks">
-						<h2 class="section-heading">{'React Hooks'}</h2>
+						<h2 class="section-heading">{'React & Preact Hooks'}</h2>
 						<p class="section-body">
 							{'When targeting React with '}
 							<code class="inline-code">{'@tsrx/react'}</code>
+							{' or Preact with '}
+							<code class="inline-code">{'@tsrx/preact'}</code>
 							{', the compiler lifts all hook calls to the top of the generated function — regardless of where they appear in the TSRX source. That means hooks can appear after early returns, inside conditional blocks, or even inside loops, and the compiled output still satisfies the Rules of Hooks.'}
 						</p>
 						<p class="section-body">
-							{'React also supports top-level component-body '}
+							{'Both targets also support top-level component-body '}
 							<code class="inline-code">{'await'}</code>
 							{' and TSRX will emit an async component function when it appears in the component body.'}
 						</p>
