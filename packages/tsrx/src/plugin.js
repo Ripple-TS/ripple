@@ -1006,7 +1006,7 @@ export function TSRXPlugin(config) {
 					if (this.type === tt.braceR) {
 						this.raise(
 							this.start,
-							'"html" is a Ripple keyword and must be used in the form {html some_content}',
+							'"html" is a TSRX keyword and must be used in the form {html some_content}',
 						);
 					}
 				} else if (this.type === tt.name && this.value === 'text') {
@@ -1015,7 +1015,7 @@ export function TSRXPlugin(config) {
 					if (this.type === tt.braceR) {
 						this.raise(
 							this.start,
-							'"text" is a Ripple keyword and must be used in the form {text some_value}',
+							'"text" is a TSRX keyword and must be used in the form {text some_value}',
 						);
 					}
 				}

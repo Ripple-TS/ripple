@@ -1,8 +1,8 @@
 /**
- * Type definitions for Ripple's extended Acorn parser
+ * Type definitions for TSRX's extended Acorn parser
  *
  * These types cover internal properties and static class members that aren't
- * included in Acorn's official type definitions but are used by Ripple's parser.
+ * included in Acorn's official type definitions but are used by the TSRX parser.
  *
  * Based on acorn source code: https://github.com/acornjs/acorn
  * and @sveltejs/acorn-typescript: https://github.com/sveltejs/acorn-typescript
@@ -433,7 +433,7 @@ export namespace Parse {
 	 * Extended Parser instance with internal properties
 	 *
 	 * These properties are used internally by Acorn but not exposed in official types.
-	 * They are accessed by Ripple's custom parser plugin for whitespace handling,
+	 * They are accessed by the TSRX parser plugin for whitespace handling,
 	 * JSX parsing, and other advanced features.
 	 */
 	export interface Parser {
@@ -1705,7 +1705,7 @@ export namespace Parse {
 	}
 
 	/**
-	 * The constructor/class type for the extended Ripple parser.
+	 * The constructor/class type for the extended TSRX parser.
 	 * This represents the static side of the parser class after extending with plugins.
 	 */
 	export interface ParserConstructor {
@@ -1716,7 +1716,7 @@ export namespace Parse {
 		tokContexts: TokContexts;
 		/** TypeScript extensions when using acorn-typescript */
 		acornTypeScript: AcornTypeScriptExtensions;
-		/** Static parse method that returns Ripple's extended Program type */
+		/** Static parse method that returns TSRX's extended Program type */
 		parse(input: string, options: Options): AST.Program;
 		/** Static parseExpressionAt method */
 		parseExpressionAt(input: string, pos: number, options: Options): AST.Expression;

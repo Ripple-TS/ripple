@@ -89,6 +89,7 @@ export component IndexPage() {
 				<nav class="masthead-nav">
 					<a href="/getting-started">{'Getting Started'}</a>
 					<a href="/features">{'Features'}</a>
+					<a href="/specification">{'Specification'}</a>
 					<a href="/playground">{'Playground'}</a>
 					<a href="/llms.txt" target="_blank" rel="noopener noreferrer">{'llms.txt'}</a>
 					<a
@@ -125,6 +126,10 @@ export component IndexPage() {
 					{' modules from JS, TS, and TSX files and it just works.'}
 				</p>
 				<a class="cta-link" href="/getting-started">{'Get started →'}</a>
+				<p class="section-body what-is-copy compact-link-copy">
+					{'Looking for the formal grammar and AST shape? Read the '}
+					<a class="supporting-link" href="/specification">{'specification →'}</a>
+				</p>
 
 				<aside class="alpha-notice" role="note" aria-label="Alpha release notice">
 					<span class="alpha-badge">{'Alpha'}</span>
@@ -334,6 +339,10 @@ export component IndexPage() {
 			color: rgba(26, 22, 64, 0.7);
 		}
 
+		.masthead-nav a {
+			white-space: nowrap;
+		}
+
 		.masthead-nav a:hover,
 		.resource-list a:hover {
 			color: #5e2cff;
@@ -376,6 +385,17 @@ export component IndexPage() {
 		}
 
 		.alpha-notice-link:hover {
+			color: #6f00ff;
+		}
+
+		.supporting-link {
+			color: #5e2cff;
+			font-weight: 500;
+			text-decoration: underline;
+			text-underline-offset: 2px;
+		}
+
+		.supporting-link:hover {
 			color: #6f00ff;
 		}
 
@@ -431,6 +451,12 @@ export component IndexPage() {
 
 		.what-is-copy {
 			max-width: 56rem;
+		}
+
+		.compact-link-copy {
+			margin-top: -0.15rem;
+			font-size: 0.98rem;
+			color: rgba(26, 22, 64, 0.68);
 		}
 
 		.code-block {
@@ -662,16 +688,43 @@ export component IndexPage() {
 
 			.masthead {
 				padding: 0.75rem 0 1rem;
+				align-items: flex-start;
+				gap: 0.85rem;
+			}
+
+			.brand-lockup {
+				width: 100%;
+				justify-content: center;
 			}
 
 			.masthead-nav {
-				gap: 0.75rem;
-				font-size: 0.88rem;
+				display: flex;
+				width: 100%;
+				flex-wrap: wrap;
+				justify-content: center;
+				gap: 0.5rem;
+				font-size: 0.82rem;
+			}
+
+			.masthead-nav a {
+				display: inline-flex;
+				align-items: center;
+				min-height: 2rem;
+				padding: 0.35rem 0.7rem;
+				border: 1px solid rgba(94, 44, 255, 0.1);
+				border-radius: 999px;
+				background: rgba(94, 44, 255, 0.06);
+				line-height: 1.1;
+			}
+
+			.masthead-nav a[aria-current='page'] {
+				background: rgba(94, 44, 255, 0.12);
+				border-color: rgba(94, 44, 255, 0.18);
 			}
 
 			.header-logo {
-				width: 2.4rem;
-				height: 2.4rem;
+				width: 3.6rem;
+				height: 3.6rem;
 			}
 
 			.hero {
@@ -717,11 +770,6 @@ export component IndexPage() {
 			.page-footer h2,
 			.content-card h2 {
 				line-height: 1.04;
-			}
-
-			.masthead,
-			.masthead-nav {
-				align-items: stretch;
 			}
 		}
 	</style>

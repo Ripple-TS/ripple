@@ -76,7 +76,7 @@ interface FunctionLikeTS {
 	typeAnnotation?: AST.TSTypeAnnotation;
 }
 
-// Ripple augmentation for ESTree function nodes
+// TSRX augmentation for ESTree function nodes
 declare module 'estree' {
 	interface Program {
 		innerComments?: Comment[] | undefined;
@@ -164,7 +164,7 @@ declare module 'estree' {
 		was_expression?: boolean;
 	}
 
-	// Include TypeScript node types and Ripple-specific nodes in NodeMap
+	// Include TypeScript node types and TSRX-specific nodes in NodeMap
 	interface NodeMap {
 		Component: Component;
 		Tsx: Tsx;
@@ -291,7 +291,7 @@ declare module 'estree' {
 	}
 
 	/**
-	 * Ripple custom interfaces and types section
+	 * TSRX custom interfaces and types section
 	 */
 	interface Component extends AST.BaseNode {
 		type: 'Component';
@@ -398,7 +398,7 @@ declare module 'estree' {
 	}
 
 	/**
-	 * Ripple attribute nodes
+	 * TSRX attribute nodes
 	 */
 	interface Attribute extends AST.BaseNode {
 		type: 'Attribute';
@@ -424,20 +424,20 @@ declare module 'estree' {
 	}
 
 	/**
-	 * Ripple's extended Declaration type that includes Component
+	 * TSRX's extended Declaration type that includes Component
 	 * Use this instead of Declaration when you need Component support
 	 */
 	export type TSRXDeclaration = AST.Declaration | Component | AST.TSDeclareFunction;
 
 	/**
-	 * Ripple's extended ExportNamedDeclaration with Component support
+	 * TSRX's extended ExportNamedDeclaration with Component support
 	 */
 	interface TSRXExportNamedDeclaration extends Omit<AST.ExportNamedDeclaration, 'declaration'> {
 		declaration?: TSRXDeclaration | null | undefined;
 	}
 
 	/**
-	 * Ripple's extended Program with Component support
+	 * TSRX's extended Program with Component support
 	 */
 	interface TSRXProgram extends Omit<Program, 'body'> {
 		body: (Program['body'][number] | Component | FunctionExpression)[];
@@ -1148,7 +1148,7 @@ export interface AnalysisResult {
 }
 
 /**
- * Configuration for Ripple parser plugin
+ * Configuration for the TSRX parser plugin
  */
 export interface TSRXPluginConfig {
 	allowSatisfies?: boolean;

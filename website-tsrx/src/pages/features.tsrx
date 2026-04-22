@@ -327,6 +327,7 @@ export component FeaturesPage() {
 				<nav class="masthead-nav">
 					<a href="/getting-started">{'Getting Started'}</a>
 					<a href="/features" aria-current="page">{'Features'}</a>
+					<a href="/specification">{'Specification'}</a>
 					<a href="/playground">{'Playground'}</a>
 					<a href="/llms.txt" target="_blank" rel="noopener noreferrer">{'llms.txt'}</a>
 					<a
@@ -341,6 +342,23 @@ export component FeaturesPage() {
 
 			<div class="docs-layout">
 				<aside class="side-nav">
+					<label class="side-nav-dropdown">
+						<span class="side-nav-dropdown-label">{'Jump to section'}</span>
+						<select
+							class="side-nav-select"
+							onChange={(event) => {
+								const select = event.currentTarget as HTMLSelectElement;
+								if (typeof window !== 'undefined' && select.value) {
+									window.location.hash = select.value;
+								}
+							}}
+						>
+							<option value="">{'Jump to section'}</option>
+							for (const item of NAV_ITEMS) {
+								<option value={item.id}>{item.label}</option>
+							}
+						</select>
+					</label>
 					<nav>
 						<p class="side-nav-heading">{'Features'}</p>
 						for (const item of NAV_ITEMS) {
@@ -879,6 +897,10 @@ export component FeaturesPage() {
 			color: rgba(26, 22, 64, 0.7);
 		}
 
+		.masthead-nav a {
+			white-space: nowrap;
+		}
+
 		.masthead-nav a:hover {
 			color: #5e2cff;
 		}
@@ -901,6 +923,36 @@ export component FeaturesPage() {
 			position: sticky;
 			top: 1.5rem;
 			padding-top: 0.5rem;
+		}
+
+		.side-nav-dropdown {
+			display: none;
+		}
+
+		.side-nav-dropdown-label {
+			display: block;
+			margin: 0 0 0.45rem;
+			font-size: 0.72rem;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: 0.06em;
+			color: rgba(26, 22, 64, 0.45);
+		}
+
+		.side-nav-select {
+			width: 100%;
+			padding: 0.75rem 3rem 0.75rem 1.2rem;
+			border: 1px solid rgba(94, 44, 255, 0.12);
+			border-radius: 0.9rem;
+			background-color: rgba(255, 255, 255, 0.92);
+			color: #1a1640;
+			appearance: none;
+			-webkit-appearance: none;
+			-moz-appearance: none;
+			background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%231a1640' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+			background-repeat: no-repeat;
+			background-size: 0.95rem;
+			background-position: right 1.2rem center;
 		}
 
 		.side-nav-heading {
@@ -1057,16 +1109,43 @@ export component FeaturesPage() {
 
 			.masthead {
 				padding: 0.75rem 0 1rem;
+				align-items: flex-start;
+				gap: 0.85rem;
+			}
+
+			.brand-lockup {
+				width: 100%;
+				justify-content: center;
 			}
 
 			.masthead-nav {
-				gap: 0.75rem;
-				font-size: 0.88rem;
+				display: flex;
+				width: 100%;
+				flex-wrap: wrap;
+				justify-content: center;
+				gap: 0.5rem;
+				font-size: 0.82rem;
+			}
+
+			.masthead-nav a {
+				display: inline-flex;
+				align-items: center;
+				min-height: 2rem;
+				padding: 0.35rem 0.7rem;
+				border: 1px solid rgba(94, 44, 255, 0.1);
+				border-radius: 999px;
+				background: rgba(94, 44, 255, 0.06);
+				line-height: 1.1;
+			}
+
+			.masthead-nav a[aria-current='page'] {
+				background: rgba(94, 44, 255, 0.12);
+				border-color: rgba(94, 44, 255, 0.18);
 			}
 
 			.header-logo {
-				width: 2.4rem;
-				height: 2.4rem;
+				width: 3.6rem;
+				height: 3.6rem;
 			}
 
 			.docs-layout {
@@ -1080,27 +1159,22 @@ export component FeaturesPage() {
 				padding: 0.6rem 0;
 				border-bottom: 1px solid rgba(26, 22, 64, 0.1);
 				margin-bottom: 1rem;
-				background: rgba(247, 246, 255, 0.92);
-				backdrop-filter: blur(8px);
-				-webkit-backdrop-filter: blur(8px);
+			}
+
+			.side-nav-dropdown {
+				display: block;
 			}
 
 			.side-nav nav {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 0.15rem 0.3rem;
-				overflow-x: auto;
+				display: none;
 			}
 
-			.side-nav-heading {
-				width: 100%;
-				margin: 0 0 0.4rem;
+			.side-nav-dropdown-label {
+				margin-bottom: 0.35rem;
 			}
 
-			.side-nav-link {
-				display: inline-block;
-				padding: 0.25rem 0.6rem;
-				font-size: 0.82rem;
+			.side-nav-select {
+				font-size: 0.95rem;
 			}
 
 			.doc-section {
