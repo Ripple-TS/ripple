@@ -164,6 +164,13 @@ export {
 	is_capturable_jsx_child as isCapturableJsxChild,
 	capture_jsx_child as captureJsxChild,
 } from './transform/jsx-interleave.js';
+export {
+	is_static_literal as isStaticLiteral,
+	is_hoist_safe_expression as isHoistSafeExpression,
+	is_hoist_safe_jsx_child as isHoistSafeJsxChild,
+	is_hoist_safe_jsx_attribute as isHoistSafeJsxAttribute,
+	is_hoist_safe_jsx_node as isHoistSafeJsxNode,
+} from './transform/jsx-hoist.js';
 
 // Analyze
 export { analyze_css as analyzeCss } from './analyze/css-analyze.js';
