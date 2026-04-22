@@ -1,5 +1,15 @@
 # @tsrx/core
 
+## 0.0.6
+
+### Patch Changes
+
+- [#906](https://github.com/Ripple-TS/ripple/pull/906)
+  [`e9da9cb`](https://github.com/Ripple-TS/ripple/commit/e9da9cbdd42c28f129ee643366c06f8779b8f931)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix parser handling of
+  line-start `<` comparisons inside statement-based element children so they are
+  not misparsed as JSX tags.
+
 ## 0.0.5
 
 ### Patch Changes

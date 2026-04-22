@@ -1,5 +1,21 @@
 # @tsrx/solid
 
+## 0.0.6
+
+### Patch Changes
+
+- [#901](https://github.com/Ripple-TS/ripple/pull/901)
+  [`1856b0f`](https://github.com/Ripple-TS/ripple/commit/1856b0f2df681b501253ebb8d8314b84fceb822b)
+  Thanks [@JoviDeCroock](https://github.com/JoviDeCroock)! - Preserve source order
+  when non-JSX statements are interleaved with JSX children. Previously all
+  statements ran before any JSX was constructed, so mutations between siblings
+  (e.g. `<b>{"hi" + a}</b>; a = "two"; <b>{"hi" + a}</b>`) were observed by every
+  sibling; each JSX child is now captured at its textual position.
+
+- Updated dependencies
+  [[`e9da9cb`](https://github.com/Ripple-TS/ripple/commit/e9da9cbdd42c28f129ee643366c06f8779b8f931)]:
+  - @tsrx/core@0.0.6
+
 ## 0.0.5
 
 ### Patch Changes
