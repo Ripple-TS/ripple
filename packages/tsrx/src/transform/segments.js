@@ -1144,22 +1144,18 @@ export function convert_source_map_to_mappings(
 					);
 				}
 
-				// Visit in source order: callee, type arguments, arguments.
-				// This is important for Volar/source-map correctness on calls like
-				// useState<string | null>(null), where the explicit type arguments
-				// sit between the callee and the argument list.
-				if (node.callee) {
-					visit(node.callee);
+				if (node.arguments) {
+					for (const arg of node.arguments) {
+						visit(arg);
+					}
 				}
 
 				if (node.typeArguments) {
 					visit(node.typeArguments);
 				}
 
-				if (node.arguments) {
-					for (const arg of node.arguments) {
-						visit(arg);
-					}
+				if (node.callee) {
+					visit(node.callee);
 				}
 				return;
 			} else if (node.type === 'LogicalExpression' || node.type === 'BinaryExpression') {
