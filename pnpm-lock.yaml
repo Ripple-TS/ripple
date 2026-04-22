@@ -242,9 +242,6 @@ importers:
       '@changesets/cli':
         specifier: catalog:default
         version: 2.31.0(@types/node@24.11.0)
-      '@ripple-ts/prettier-plugin':
-        specifier: workspace:*
-        version: link:packages/prettier-plugin
       '@ripple-ts/vite-plugin':
         specifier: workspace:*
         version: link:packages/vite-plugin
@@ -254,6 +251,9 @@ importers:
       '@tsrx/eslint-plugin':
         specifier: workspace:*
         version: link:packages/eslint-plugin
+      '@tsrx/prettier-plugin':
+        specifier: workspace:*
+        version: link:packages/prettier-plugin
       '@types/node':
         specifier: catalog:default
         version: 24.11.0
@@ -1118,7 +1118,7 @@ importers:
       '@ripple-ts/adapter-node':
         specifier: workspace:*
         version: link:../packages/adapter-node
-      '@ripple-ts/prettier-plugin':
+      '@tsrx/prettier-plugin':
         specifier: workspace:*
         version: link:../packages/prettier-plugin
       '@tsrx/react':

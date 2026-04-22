@@ -1,18 +1,24 @@
 import { RenderRoute, ServerRoute } from '@ripple-ts/vite-plugin';
-import * as ripple_prettier_plugin from '@ripple-ts/prettier-plugin';
+import * as ripple_prettier_plugin from '@tsrx/prettier-plugin';
 import { compile as compile_react } from '@tsrx/react';
 import { compile as compile_ripple } from '@tsrx/ripple';
 import { compile as compile_solid } from '@tsrx/solid';
 import { format } from 'prettier';
 
 const MAX_SOURCE_LENGTH = 12000;
-const VALID_TARGETS = ['react', 'ripple', 'solid'];
+const VALID_TARGETS = ['react', 'ripple', 'solid'] as const;
+
+type CompileTarget = (typeof VALID_TARGETS)[number];
+
+function is_valid_target(target: string): target is CompileTarget {
+	return VALID_TARGETS.includes(target as CompileTarget);
+}
 
 /**
  * @param {unknown} error
  * @returns {string}
  */
-function get_error_message(error) {
+function get_error_message(error: unknown) {
 	if (error instanceof Error) {
 		return error.message;
 	}
@@ -24,7 +30,7 @@ function get_error_message(error) {
  * @param {string} code
  * @returns {Promise<string>}
  */
-async function format_js(code) {
+async function format_js(code: string) {
 	try {
 		return await format(code, {
 			parser: 'babel-ts',
@@ -42,7 +48,7 @@ async function format_js(code) {
  * @param {string} css
  * @returns {Promise<string>}
  */
-async function format_css(css) {
+async function format_css(css: string) {
 	if (!css.trim()) return '';
 	try {
 		return await format(css, { parser: 'css', useTabs: false, tabWidth: 2, printWidth: 80 });
@@ -55,7 +61,7 @@ async function format_css(css) {
  * @param {string} target
  * @param {string} source
  */
-async function compile_target(target, source) {
+async function compile_target(target: CompileTarget, source: string) {
 	if (target === 'react') {
 		const react_result = compile_react(source, 'LiveDemo.tsrx');
 
@@ -95,7 +101,7 @@ async function compile_target(target, source) {
  * @param {string} source
  * @returns {Promise<string>}
  */
-async function format_tsrx(source) {
+async function format_tsrx(source: string) {
 	return await format(source, {
 		parser: 'ripple',
 		plugins: [ripple_prettier_plugin as any],
@@ -160,7 +166,7 @@ export const routes = [
 				return Response.json({ error: 'A non-empty source string is required.' }, { status: 400 });
 			}
 
-			if (!VALID_TARGETS.includes(target)) {
+			if (!is_valid_target(target)) {
 				return Response.json(
 					{ error: 'Target must be one of: react, ripple, solid.' },
 					{ status: 400 },

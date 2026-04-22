@@ -1,5 +1,5 @@
 {
-  "name": "@ripple-ts/prettier-plugin",
+  "name": "@tsrx/prettier-plugin",
   "version": "0.3.25",
   "description": "Ripple plugin for Prettier",
   "type": "module",

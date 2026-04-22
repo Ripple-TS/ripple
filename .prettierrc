@@ -4,7 +4,7 @@
 	"singleQuote": true,
 	"jsxSingleQuote": false,
 	"printWidth": 100,
-	"plugins": ["@ripple-ts/prettier-plugin"],
+	"plugins": ["@tsrx/prettier-plugin"],
 	"overrides": [
 		{
 			"files": ["*.tsrx"],

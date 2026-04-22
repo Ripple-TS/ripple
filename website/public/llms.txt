@@ -1601,7 +1601,7 @@ export default defineConfig({
 ```javascript
 // .prettierrc
 {
-  "plugins": ["@ripple-ts/prettier-plugin"]
+  "plugins": ["@tsrx/prettier-plugin"]
 }
 ```
 

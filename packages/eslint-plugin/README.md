@@ -256,5 +256,5 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [Ripple](https://ripplejs.com) - The Ripple framework
 - [@ripple-ts/vite-plugin](https://www.npmjs.com/package/@ripple-ts/vite-plugin) -
   Vite plugin for Ripple
-- [@ripple-ts/prettier-plugin](https://www.npmjs.com/package/@ripple-ts/prettier-plugin) -
+- [@tsrx/prettier-plugin](https://www.npmjs.com/package/@tsrx/prettier-plugin) -
   Prettier plugin for Ripple

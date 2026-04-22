@@ -30,8 +30,8 @@
   "devDependencies": {
     "@changesets/changelog-github": "catalog:default",
     "@changesets/cli": "catalog:default",
-     "@tsrx/eslint-plugin": "workspace:*",
-    "@ripple-ts/prettier-plugin": "workspace:*",
+    "@tsrx/eslint-plugin": "workspace:*",
+    "@tsrx/prettier-plugin": "workspace:*",
     "@ripple-ts/vite-plugin": "workspace:*",
     "@types/node": "catalog:default",
     "@typescript/native-preview": "7.0.0-dev.20260418.1",

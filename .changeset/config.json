@@ -17,7 +17,7 @@
       "@tsrx/eslint-parser",
       "@tsrx/eslint-plugin",
       "@ripple-ts/language-server",
-      "@ripple-ts/prettier-plugin",
+      "@tsrx/prettier-plugin",
       "@ripple-ts/adapter",
       "@ripple-ts/adapter-node",
       "@ripple-ts/adapter-bun",

@@ -1,4 +1,4 @@
-# @ripple-ts/prettier-plugin
+# @tsrx/prettier-plugin
 
 ## 0.3.25
 

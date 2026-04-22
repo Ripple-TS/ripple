@@ -20,7 +20,7 @@
 		"eslint": "^9.0.0",
 		"@tsrx/eslint-plugin": "latest",
 		"prettier": "^3.6.2",
-		"@ripple-ts/prettier-plugin": "latest",
+		"@tsrx/prettier-plugin": "latest",
 		"@tsrx/eslint-parser": "latest",
 		"typescript": "^5.9.3",
 		"@typescript-eslint/parser": "^8.20.0",
