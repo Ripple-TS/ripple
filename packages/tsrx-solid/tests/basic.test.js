@@ -46,6 +46,62 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain('return <><h1>');
 			expect(code).toContain('</h2></>;');
 		});
+
+		it('rejects await in component body', () => {
+			expect(() =>
+				compile(
+					`component App() {
+						const data = await fetchData();
+						<div>{data}</div>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/`await` is not allowed inside Solid components/);
+		});
+
+		it('rejects for await...of in component body', () => {
+			expect(() =>
+				compile(
+					`component App({ items }: { items: AsyncIterable<string> }) {
+						for await (const item of items) {
+							<div>{item}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/`await` is not allowed inside Solid components/);
+		});
+
+		it('reports for await...of errors at the await keyword', () => {
+			const source = `component App({ items }: { items: AsyncIterable<string> }) {
+				for await (const item of items) {
+					<div>{item}</div>
+				}
+			}`;
+
+			try {
+				compile(source, 'App.tsrx');
+				expect.unreachable('Expected compile() to throw for top-level for await...of');
+			} catch (error) {
+				const compile_error = /** @type {Error & { pos?: number, end?: number }} */ (error);
+				const await_start = source.indexOf('await');
+
+				expect(compile_error.pos).toBe(await_start);
+				expect(compile_error.end).toBe(await_start + 'await'.length);
+			}
+		});
+
+		it('allows await in nested async functions inside component body', () => {
+			expect(() =>
+				compile(
+					`component App() {
+						const load = async () => await fetchData();
+						<button onClick={load}>{'Load'}</button>
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
 	});
 
 	describe('attributes', () => {

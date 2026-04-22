@@ -8,6 +8,7 @@ import {
 	renderStylesheets,
 	setLocation,
 	applyLazyTransforms as apply_lazy_transforms,
+	findFirstTopLevelAwaitInComponentBody as find_first_top_level_await_in_component_body,
 	collectLazyBindingsFromComponent as collect_lazy_bindings_from_component,
 	preallocateLazyIds as preallocate_lazy_ids,
 	replaceLazyParams as replace_lazy_params,
@@ -50,6 +51,7 @@ import {
 export function transform(ast, source, filename) {
 	/** @type {any[]} */
 	const stylesheets = [];
+	const module_uses_server_directive = has_use_server_directive(ast);
 
 	/** @type {TransformContext} */
 	const transform_context = {
@@ -67,6 +69,22 @@ export function transform(ast, source, filename) {
 	walk(/** @type {any} */ (ast), transform_context, {
 		Component(node, { next, state }) {
 			const as_any = /** @type {any} */ (node);
+			const await_expression = find_first_top_level_await_in_component_body(as_any.body || []);
+
+			if (await_expression && !module_uses_server_directive) {
+				throw create_compile_error(
+					await_expression,
+					'React components can only use `await` when the module has a top-level "use server" directive.',
+				);
+			}
+
+			if (await_expression) {
+				as_any.metadata = /** @type {any} */ ({
+					...(as_any.metadata || {}),
+					contains_top_level_await: true,
+				});
+			}
+
 			const css = as_any.css;
 			if (css) {
 				stylesheets.push(css);
@@ -194,6 +212,9 @@ function component_to_function_declaration(component, transform_context, walk_he
 	const helper_state = walk_helper_state || create_helper_state(component.id?.name || 'Component');
 	const params = component.params || [];
 	const body = /** @type {any[]} */ (component.body || []);
+	const is_async_component =
+		!!component?.metadata?.contains_top_level_await ||
+		find_first_top_level_await_in_component_body(body) !== null;
 
 	// Collect param bindings from original patterns (lazy patterns still intact).
 	const param_bindings = collect_param_bindings(params);
@@ -235,7 +256,7 @@ function component_to_function_declaration(component, transform_context, walk_he
 		id: component.id,
 		params: final_params,
 		body: final_body,
-		async: false,
+		async: is_async_component,
 		generator: false,
 		metadata: {
 			path: [],
@@ -509,6 +530,34 @@ function is_hook_callee(callee) {
 		callee.property?.type === 'Identifier'
 	) {
 		return /^use[A-Z0-9]/.test(callee.property.name);
+	}
+
+	return false;
+}
+
+/**
+ * @param {AST.Program} program
+ * @returns {boolean}
+ */
+function has_use_server_directive(program) {
+	for (const statement of program.body || []) {
+		const directive = /** @type {any} */ (statement).directive;
+
+		if (directive === 'use server') {
+			return true;
+		}
+
+		if (
+			statement.type === 'ExpressionStatement' &&
+			statement.expression?.type === 'Literal' &&
+			statement.expression.value === 'use server'
+		) {
+			return true;
+		}
+
+		if (directive == null) {
+			break;
+		}
 	}
 
 	return false;
@@ -1519,6 +1568,13 @@ function find_key_expression_in_body(body_nodes) {
  * @returns {ESTreeJSX.JSXExpressionContainer}
  */
 function for_of_statement_to_jsx_child(node, transform_context) {
+	if (node.await) {
+		throw create_compile_error(
+			node,
+			'React TSRX does not support `for await...of` in component templates.',
+		);
+	}
+
 	if (node.key) {
 		throw create_compile_error(
 			node.key,

@@ -8,6 +8,7 @@ import {
 	renderStylesheets,
 	setLocation,
 	applyLazyTransforms as apply_lazy_transforms,
+	findFirstTopLevelAwaitInComponentBody as find_first_top_level_await_in_component_body,
 	collectLazyBindingsFromComponent as collect_lazy_bindings_from_component,
 	preallocateLazyIds as preallocate_lazy_ids,
 	replaceLazyParams as replace_lazy_params,
@@ -69,6 +70,22 @@ export function transform(ast, source, filename) {
 	walk(/** @type {any} */ (ast), transform_context, {
 		Component(node, { next, state }) {
 			const as_any = /** @type {any} */ (node);
+			const await_expression = find_first_top_level_await_in_component_body(as_any.body || []);
+
+			if (await_expression) {
+				const await_start = get_await_keyword_start(await_expression, source);
+				const adjusted_node = /** @type {any} */ ({
+					...await_expression,
+					start: await_start,
+					end: await_start + 'await'.length,
+				});
+
+				throw create_compile_error(
+					adjusted_node,
+					'`await` is not allowed inside Solid components.',
+				);
+			}
+
 			const css = as_any.css;
 			if (css) {
 				stylesheets.push(css);
@@ -161,6 +178,29 @@ export function transform(ast, source, filename) {
 	};
 }
 
+/**
+ * @param {any} await_node
+ * @param {string} source
+ * @returns {number}
+ */
+function get_await_keyword_start(await_node, source) {
+	if (await_node?.type === 'AwaitExpression') {
+		return await_node.start ?? 0;
+	}
+
+	if (await_node?.type === 'ForOfStatement' && await_node.await === true) {
+		const statement_start = await_node.start ?? 0;
+		const statement_end = await_node.end ?? statement_start;
+		const statement_source = source.slice(statement_start, statement_end);
+		const await_offset = statement_source.search(/\bawait\b/);
+
+		if (await_offset !== -1) {
+			return statement_start + await_offset;
+		}
+	}
+
+	return await_node?.start ?? 0;
+}
 // =====================================================================
 // Component → FunctionDeclaration
 // =====================================================================

@@ -691,9 +691,18 @@ export component FeaturesPage() {
 							<code class="inline-code">{'react'}</code>
 							{' or '}
 							<code class="inline-code">{'solid-js'}</code>
-							{', the Ripple equivalent on the Ripple target. TSRX deliberately doesn\'t introduce a component-body '}
+							{', the Ripple equivalent on the Ripple target. In Solid and Ripple targets, component bodies are synchronous and do not allow inline '}
 							<code class="inline-code">{'await'}</code>
-							{': component bodies are synchronous across every target, and suspension belongs at the boundary, not inline.'}
+							{'. On React, top-level component-body '}
+							<code class="inline-code">{'await'}</code>
+							{' is supported only in modules with a top-level '}
+							<code class="inline-code">{'\'use server\''}</code>
+							{' directive.'}
+						</p>
+						<p class="section-body muted">
+							{'React note: '}
+							<code class="inline-code">{'for await...of'}</code>
+							{' is not supported inside component templates. Use an upstream async helper and render the resolved data.'}
 						</p>
 						<pre class="code-block">
 							<code>{html ASYNC_BOUNDARY_HTML}</code>
@@ -766,6 +775,15 @@ export component FeaturesPage() {
 							{'When targeting React with '}
 							<code class="inline-code">{'@tsrx/react'}</code>
 							{', the compiler lifts all hook calls to the top of the generated function — regardless of where they appear in the TSRX source. That means hooks can appear after early returns, inside conditional blocks, or even inside loops, and the compiled output still satisfies the Rules of Hooks.'}
+						</p>
+						<p class="section-body">
+							{'React also supports top-level component-body '}
+							<code class="inline-code">{'await'}</code>
+							{' for server modules only. Add a module-level '}
+							<code class="inline-code">{'\'use server\''}</code>
+							{' directive and TSRX will emit an async component function. Without that directive, top-level '}
+							<code class="inline-code">{'await'}</code>
+							{' is a compile error.'}
 						</p>
 						<pre class="code-block">
 							<code>{html REACT_HOOKS_HTML}</code>

@@ -1,5 +1,12 @@
 # ripple
 
+## 0.3.24
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.24
+
 ## 0.3.23
 
 ### Patch Changes

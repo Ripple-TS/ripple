@@ -1,5 +1,7 @@
 # @ripple-ts/eslint-parser
 
+## 0.3.24
+
 ## 0.3.23
 
 ### Patch Changes
