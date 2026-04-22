@@ -14,6 +14,9 @@ import {
 	replaceLazyParams as replace_lazy_params,
 	prepareStylesheetForRender as prepare_stylesheet_for_render,
 	annotateComponentWithHash as annotate_component_with_hash,
+	isInterleavedBody as is_interleaved_body_core,
+	isCapturableJsxChild as is_capturable_jsx_child,
+	captureJsxChild,
 } from '@tsrx/core';
 
 /**
@@ -296,6 +299,10 @@ function build_component_statements(
 	const render_nodes = [];
 	const bindings = new Map(available_bindings);
 
+	const pre_split_body = body_nodes.slice(0, split_index);
+	const interleaved = is_interleaved_body(pre_split_body);
+	let capture_index = 0;
+
 	for (let i = 0; i < split_index; i += 1) {
 		const child = body_nodes[i];
 
@@ -310,7 +317,14 @@ function build_component_statements(
 		}
 
 		if (is_jsx_child(child)) {
-			render_nodes.push(to_jsx_child(child, transform_context));
+			const jsx = to_jsx_child(child, transform_context);
+			if (interleaved && is_capturable_jsx_child(jsx)) {
+				const { declaration, reference } = captureJsxChild(jsx, capture_index++);
+				statements.push(declaration);
+				render_nodes.push(reference);
+			} else {
+				render_nodes.push(jsx);
+			}
 		} else {
 			statements.push(child);
 			collect_statement_bindings(child, bindings);
@@ -318,7 +332,9 @@ function build_component_statements(
 		}
 	}
 
-	hoist_static_render_nodes(render_nodes, transform_context);
+	if (!interleaved) {
+		hoist_static_render_nodes(render_nodes, transform_context);
+	}
 
 	const split_node = body_nodes[split_index];
 	const consequent_body =
@@ -381,6 +397,14 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 	const saved_bindings = transform_context.available_bindings;
 	transform_context.available_bindings = new Map(saved_bindings);
 
+	// When non-JSX statements are interleaved with JSX children, we must
+	// preserve source order so each JSX expression sees the variable state
+	// at its textual position. Otherwise statements would all run before
+	// any JSX is constructed, and every JSX child would observe the final
+	// state of mutable variables.
+	const interleaved = is_interleaved_body(body_nodes);
+	let capture_index = 0;
+
 	for (const child of body_nodes) {
 		if (is_bare_return_statement(child)) {
 			statements.push(create_component_return_statement(render_nodes, child));
@@ -394,14 +418,23 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 		}
 
 		if (is_jsx_child(child)) {
-			render_nodes.push(to_jsx_child(child, transform_context));
+			const jsx = to_jsx_child(child, transform_context);
+			if (interleaved && is_capturable_jsx_child(jsx)) {
+				const { declaration, reference } = captureJsxChild(jsx, capture_index++);
+				statements.push(declaration);
+				render_nodes.push(reference);
+			} else {
+				render_nodes.push(jsx);
+			}
 		} else {
 			statements.push(child);
 			collect_statement_bindings(child, transform_context.available_bindings);
 		}
 	}
 
-	hoist_static_render_nodes(render_nodes, transform_context);
+	if (!interleaved) {
+		hoist_static_render_nodes(render_nodes, transform_context);
+	}
 
 	const return_arg = build_return_expression(render_nodes);
 	if (return_arg || return_null_when_empty) {
@@ -413,6 +446,22 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 
 	transform_context.available_bindings = saved_bindings;
 	return statements;
+}
+
+/**
+ * React-specific wrapper around the core `isInterleavedBody` helper that
+ * ignores bare `return` / lone return-if statements. Those are rewriting
+ * signals rather than user-visible side effects, so JSX children around
+ * them don't need capturing.
+ *
+ * @param {any[]} body_nodes
+ * @returns {boolean}
+ */
+function is_interleaved_body(body_nodes) {
+	const filtered = body_nodes.filter(
+		(child) => !is_bare_return_statement(child) && !is_lone_return_if_statement(child),
+	);
+	return is_interleaved_body_core(filtered, is_jsx_child);
 }
 
 /**

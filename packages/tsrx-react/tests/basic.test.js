@@ -1650,4 +1650,68 @@ describe('lazy destructuring', () => {
 		expect(code).toContain('{name}');
 		expect(code).not.toContain('__lazy0.name');
 	});
+
+	it('preserves source order when statements are interleaved with JSX children', () => {
+		const { code } = compile(
+			`component Card() {
+				<div class="card">
+					var a = "one"
+					<b>{"hello" + a}</b>
+					a = "two"
+					<b>{"hello" + a}</b>
+				</div>
+			}`,
+			'Card.tsrx',
+		);
+
+		// Each JSX child must be captured into a const at its source position
+		// so the first <b> sees a = "one" and the second sees a = "two".
+		const first_capture = code.indexOf('_tsrx_child_0');
+		const assign_two = code.indexOf('a = "two"');
+		const second_capture = code.indexOf('_tsrx_child_1');
+		expect(first_capture).toBeGreaterThan(-1);
+		expect(assign_two).toBeGreaterThan(first_capture);
+		expect(second_capture).toBeGreaterThan(assign_two);
+	});
+
+	it('preserves source order for interleaved JSX across a hook-safe split', () => {
+		const { code } = compile(
+			`component Card() {
+				var a = "one"
+				<b>{"hello" + a}</b>
+				a = "two"
+				<b>{"hello" + a}</b>
+				if (true) return
+				const x = useState(0)
+				<div>{x}</div>
+			}`,
+			'Card.tsrx',
+		);
+
+		// The pre-split portion must still capture JSX at source position so
+		// the first <b> observes a = "one" and the second observes a = "two".
+		const first_capture = code.indexOf('_tsrx_child_0');
+		const assign_two = code.indexOf('a = "two"');
+		const second_capture = code.indexOf('_tsrx_child_1');
+		expect(first_capture).toBeGreaterThan(-1);
+		expect(assign_two).toBeGreaterThan(first_capture);
+		expect(second_capture).toBeGreaterThan(assign_two);
+	});
+
+	it('does not capture JSX into temporaries when all statements precede JSX', () => {
+		const { code } = compile(
+			`component Card() {
+				<div>
+					const a = "one"
+					const b = "two"
+					<span>{a}</span>
+					<span>{b}</span>
+				</div>
+			}`,
+			'Card.tsrx',
+		);
+
+		// No interleaving, so no capture temporaries should be introduced.
+		expect(code).not.toContain('_tsrx_child_');
+	});
 });

@@ -14,6 +14,9 @@ import {
 	replaceLazyParams as replace_lazy_params,
 	prepareStylesheetForRender as prepare_stylesheet_for_render,
 	annotateComponentWithHash as annotate_component_with_hash,
+	isInterleavedBody as is_interleaved_body_core,
+	isCapturableJsxChild as is_capturable_jsx_child,
+	captureJsxChild,
 } from '@tsrx/core';
 
 /**
@@ -241,22 +244,53 @@ function component_to_function_declaration(component, transform_context) {
 		const early_if = /** @type {any} */ (body[early_idx]);
 		const before = body.slice(0, early_idx);
 		const after = body.slice(early_idx + 1);
+
+		// If mutations are interleaved with JSX children, the mutation and the
+		// JSX it affects can't both be hoisted out of order — that is the same
+		// bug `body_to_jsx_child` avoids. Capture each JSX child into a const
+		// at its source position so later mutations in the outer body don't
+		// retroactively change what earlier children rendered.
+		const early_interleaved = is_interleaved_body([...before, ...after]);
+
 		/** @type {any[]} */
 		const before_non_jsx = [];
 		/** @type {any[]} */
 		const before_jsx = [];
-		for (const child of before) {
-			if (is_jsx_child(child)) before_jsx.push(child);
-			else before_non_jsx.push(child);
-		}
 		/** @type {any[]} */
 		const after_non_jsx = [];
 		/** @type {any[]} */
 		const after_jsx = [];
-		for (const child of after) {
-			if (is_jsx_child(child)) after_jsx.push(child);
-			else after_non_jsx.push(child);
-		}
+		let early_capture_index = 0;
+
+		/**
+		 * @param {any[]} nodes
+		 * @param {any[]} outer
+		 * @param {any[]} jsx_bucket
+		 */
+		const collect = (nodes, outer, jsx_bucket) => {
+			for (const child of nodes) {
+				if (is_jsx_child(child)) {
+					if (early_interleaved) {
+						const jsx = to_jsx_child(child, transform_context);
+						if (is_capturable_jsx_child(jsx)) {
+							const { declaration, reference } = captureJsxChild(jsx, early_capture_index++);
+							outer.push(declaration);
+							jsx_bucket.push(reference);
+						} else {
+							jsx_bucket.push(jsx);
+						}
+					} else {
+						jsx_bucket.push(child);
+					}
+				} else {
+					outer.push(child);
+				}
+			}
+		};
+
+		collect(before, before_non_jsx, before_jsx);
+		collect(after, after_non_jsx, after_jsx);
+
 		const lifted = [...before_jsx, ...after_jsx];
 		if (lifted.length > 0) {
 			transform_context.needs_show = true;
@@ -268,10 +302,19 @@ function component_to_function_declaration(component, transform_context) {
 
 	const statements = [];
 	const render_nodes = [];
+	const interleaved = is_interleaved_body(effective_body);
+	let capture_index = 0;
 
 	for (const child of effective_body) {
 		if (is_jsx_child(child)) {
-			render_nodes.push(to_jsx_child(child, transform_context));
+			const jsx = to_jsx_child(child, transform_context);
+			if (interleaved && is_capturable_jsx_child(jsx)) {
+				const { declaration, reference } = captureJsxChild(jsx, capture_index++);
+				statements.push(declaration);
+				render_nodes.push(reference);
+			} else {
+				render_nodes.push(jsx);
+			}
 		} else {
 			statements.push(child);
 		}
@@ -416,13 +459,28 @@ function to_jsx_child(node, transform_context) {
  * @returns {any}
  */
 function body_to_jsx_child(body_nodes, transform_context) {
+	// When non-JSX statements are interleaved with JSX children, preserve
+	// source order by capturing each JSX child into a const at its textual
+	// position. Otherwise all statements would run before any JSX is
+	// constructed, so every JSX child would observe the final state of
+	// mutable variables instead of the value at its point in the source.
+	const interleaved = is_interleaved_body(body_nodes);
+
 	/** @type {any[]} */
 	const statements = [];
 	/** @type {any[]} */
 	const children = [];
+	let capture_index = 0;
 	for (const child of body_nodes) {
 		if (is_jsx_child(child)) {
-			children.push(to_jsx_child(child, transform_context));
+			const jsx = to_jsx_child(child, transform_context);
+			if (interleaved && is_capturable_jsx_child(jsx)) {
+				const { declaration, reference } = captureJsxChild(jsx, capture_index++);
+				statements.push(declaration);
+				children.push(reference);
+			} else {
+				children.push(jsx);
+			}
 		} else {
 			statements.push(child);
 		}
@@ -465,6 +523,17 @@ function body_to_jsx_child(body_nodes, transform_context) {
 		expression: false,
 		metadata: { path: [], is_branch_arrow: true },
 	});
+}
+
+/**
+ * Solid-specific binding of the core `isInterleavedBody` helper with this
+ * target's `is_jsx_child` predicate.
+ *
+ * @param {any[]} body_nodes
+ * @returns {boolean}
+ */
+function is_interleaved_body(body_nodes) {
+	return is_interleaved_body_core(body_nodes, is_jsx_child);
 }
 
 /**

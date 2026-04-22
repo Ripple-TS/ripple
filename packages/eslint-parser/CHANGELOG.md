@@ -1,4 +1,11 @@
-# @ripple-ts/eslint-parser
+# @tsrx/eslint-parser
+
+## 1.0.0
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/ripple@0.0.7
 
 ## 0.3.25
 

@@ -534,7 +534,7 @@ function registerFormatter() {
 				} catch (error) {
 					console.error('Ripple formatting error:', error);
 					vscode.window.showErrorMessage(
-						'Failed to format Ripple file. Ensure Prettier and @ripple-ts/prettier-plugin are installed.',
+						'Failed to format Ripple file. Ensure Prettier and @tsrx/prettier-plugin are installed.',
 					);
 					return [];
 				}

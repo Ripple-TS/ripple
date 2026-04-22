@@ -1,7 +1,7 @@
-# @ripple-ts/eslint-parser
+# @tsrx/eslint-parser
 
-[![npm version](https://img.shields.io/npm/v/%40ripple-ts%2Feslint-parser?logo=npm)](https://www.npmjs.com/package/@ripple-ts/eslint-parser)
-[![npm downloads](https://img.shields.io/npm/dm/%40ripple-ts%2Feslint-parser?logo=npm&label=downloads)](https://www.npmjs.com/package/@ripple-ts/eslint-parser)
+[![npm version](https://img.shields.io/npm/v/%40tsrx%2Feslint-parser?logo=npm)](https://www.npmjs.com/package/@tsrx/eslint-parser)
+[![npm downloads](https://img.shields.io/npm/dm/%40tsrx%2Feslint-parser?logo=npm&label=downloads)](https://www.npmjs.com/package/@tsrx/eslint-parser)
 
 ESLint parser for Ripple component files. This parser enables ESLint to understand
 and lint `.tsrx` files by default, while also supporting `.tsrx` files through
@@ -10,11 +10,11 @@ Ripple's built-in compiler.
 ## Installation
 
 ```bash
-pnpm add --save-dev '@ripple-ts/eslint-parser' ripple
+pnpm add --save-dev '@tsrx/eslint-parser' ripple
 # or
-npm install --save-dev '@ripple-ts/eslint-parser' ripple
+npm install --save-dev '@tsrx/eslint-parser' ripple
 # or
-yarn add --dev '@ripple-ts/eslint-parser' ripple
+yarn add --dev '@tsrx/eslint-parser' ripple
 ```
 
 **Note:** This parser requires `ripple` as a peer dependency.
@@ -25,8 +25,8 @@ yarn add --dev '@ripple-ts/eslint-parser' ripple
 
 ```js
 // eslint.config.js
-import rippleParser from '@ripple-ts/eslint-parser';
-import ripplePlugin from '@ripple-ts/eslint-plugin';
+import rippleParser from '@tsrx/eslint-parser';
+import ripplePlugin from '@tsrx/eslint-plugin';
 
 export default [
   {
@@ -51,7 +51,7 @@ export default [
   "overrides": [
     {
       "files": ["*.tsrx", "*.tsrx"],
-      "parser": "@ripple-ts/eslint-parser",
+      "parser": "@tsrx/eslint-parser",
       "plugins": ["ripple"],
       "extends": ["plugin:ripple/recommended"]
     }
@@ -101,7 +101,7 @@ export component Counter() {
 ```
 
 The parser will successfully parse this and allow ESLint rules (like those from
-`@ripple-ts/eslint-plugin`) to check for:
+`@tsrx/eslint-plugin`) to check for:
 
 - Track calls at module scope
 - Missing @ operators
@@ -116,12 +116,12 @@ The parser will successfully parse this and allow ESLint rules (like those from
 
 ## Related Packages
 
-- [@ripple-ts/eslint-plugin](https://www.npmjs.com/package/@ripple-ts/eslint-plugin) -
+- [@tsrx/eslint-plugin](https://www.npmjs.com/package/@tsrx/eslint-plugin) -
   ESLint rules for Ripple
 - [ripple](https://ripplejs.com) - The Ripple framework
 - [@ripple-ts/vite-plugin](https://www.npmjs.com/package/@ripple-ts/vite-plugin) -
   Vite plugin for Ripple
-- [@ripple-ts/prettier-plugin](https://www.npmjs.com/package/@ripple-ts/prettier-plugin) -
+- [@tsrx/prettier-plugin](https://www.npmjs.com/package/@tsrx/prettier-plugin) -
   Prettier plugin for Ripple
 
 ## License

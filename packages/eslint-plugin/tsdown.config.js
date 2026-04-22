@@ -7,7 +7,7 @@ export default defineConfig({
 	fixedExtension: false,
 	dts: true,
 	// Mark peer dependencies as external so they're not bundled
-	external: ['eslint', '@typescript-eslint/parser', '@ripple-ts/eslint-parser', '@tsrx/core'],
+	external: ['eslint', '@typescript-eslint/parser', '@tsrx/eslint-parser', '@tsrx/core'],
 	outputOptions: {
 		legalComments: 'inline',
 	},

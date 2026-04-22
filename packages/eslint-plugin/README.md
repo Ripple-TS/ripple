@@ -1,7 +1,7 @@
-# @ripple-ts/eslint-plugin
+# @tsrx/eslint-plugin
 
-[![npm version](https://img.shields.io/npm/v/%40ripple-ts%2Feslint-plugin?logo=npm)](https://www.npmjs.com/package/@ripple-ts/eslint-plugin)
-[![npm downloads](https://img.shields.io/npm/dm/%40ripple-ts%2Feslint-plugin?logo=npm&label=downloads)](https://www.npmjs.com/package/@ripple-ts/eslint-plugin)
+[![npm version](https://img.shields.io/npm/v/%40tsrx%2Feslint-plugin?logo=npm)](https://www.npmjs.com/package/@tsrx/eslint-plugin)
+[![npm downloads](https://img.shields.io/npm/dm/%40tsrx%2Feslint-plugin?logo=npm&label=downloads)](https://www.npmjs.com/package/@tsrx/eslint-plugin)
 
 ESLint plugin for [Ripple](https://ripplejs.com) - helps enforce best practices
 and catch common mistakes when writing Ripple applications.
@@ -12,11 +12,11 @@ config!
 ## Installation
 
 ```bash
-npm install --save-dev '@ripple-ts/eslint-plugin'
+npm install --save-dev '@tsrx/eslint-plugin'
 # or
-yarn add --dev '@ripple-ts/eslint-plugin'
+yarn add --dev '@tsrx/eslint-plugin'
 # or
-pnpm add --save-dev '@ripple-ts/eslint-plugin'
+pnpm add --save-dev '@tsrx/eslint-plugin'
 ```
 
 ## Usage
@@ -25,14 +25,14 @@ pnpm add --save-dev '@ripple-ts/eslint-plugin'
 
 ```js
 // eslint.config.js
-import ripple from '@ripple-ts/eslint-plugin';
+import ripple from '@tsrx/eslint-plugin';
 
 export default [...ripple.configs.recommended];
 ```
 
 The plugin automatically:
 
-- Detects and uses `@ripple-ts/eslint-parser` if installed for `.tsrx` files
+- Detects and uses `@tsrx/eslint-parser` if installed for `.tsrx` files
 - Detects and uses `@typescript-eslint/parser` if installed for `.ts`/`.tsx` files
 - Excludes `.d.ts` files, `node_modules`, `dist`, and `build` directories from
   linting
@@ -56,7 +56,7 @@ The recommended configuration enables all rules at their default severity levels
 (errors and warnings).
 
 ```js
-import ripple from '@ripple-ts/eslint-plugin';
+import ripple from '@tsrx/eslint-plugin';
 
 export default [
   {
@@ -71,7 +71,7 @@ export default [
 The strict configuration enables all rules as errors.
 
 ```js
-import ripple from '@ripple-ts/eslint-plugin';
+import ripple from '@tsrx/eslint-plugin';
 
 export default [
   {
@@ -256,5 +256,5 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [Ripple](https://ripplejs.com) - The Ripple framework
 - [@ripple-ts/vite-plugin](https://www.npmjs.com/package/@ripple-ts/vite-plugin) -
   Vite plugin for Ripple
-- [@ripple-ts/prettier-plugin](https://www.npmjs.com/package/@ripple-ts/prettier-plugin) -
+- [@tsrx/prettier-plugin](https://www.npmjs.com/package/@tsrx/prettier-plugin) -
   Prettier plugin for Ripple

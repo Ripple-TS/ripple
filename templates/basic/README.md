@@ -37,7 +37,7 @@ Prettier is configured in `.prettierrc` with the following settings:
 - Uses tabs for indentation
 - Single quotes for strings
 - 100 character line width
-- Includes the `@ripple-ts/prettier-plugin` for `.tsrx` file formatting
+- Includes the `@tsrx/prettier-plugin` for `.tsrx` file formatting
 
 ### VS Code Integration
 

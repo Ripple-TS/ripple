@@ -36,6 +36,7 @@ parser/analyzer), `@tsrx/react` (React codegen), `@tsrx/solid` (Solid codegen),
 npm install @tsrx/react
 npm install -D @tsrx/vite-plugin-react     # Vite
 npm install -D @tsrx/rspack-plugin-react   # Rspack
+npm install -D @tsrx/turbopack-plugin-react # Next.js / Turbopack
 
 # Solid target
 npm install @tsrx/solid
@@ -65,6 +66,25 @@ export default {
 Options: `{ jsxImportSource?: string }` — overrides the JSX import source
 (defaults to `'react'`). The plugin also pushes `.tsrx` into
 `resolve.extensions` and enables `experiments.css` when unset.
+
+### Turbopack setup (React target)
+
+`@tsrx/turbopack-plugin-react` exports a Next.js config helper that installs a
+pair of Turbopack rules for `.tsrx` files. The JS rule compiles `.tsrx` → TSX
+via `@tsrx/react` and returns the result to Turbopack as `*.tsx` so Next's
+React pipeline can handle the final JSX transform. When a component contains a
+local `<style>` block, the loader injects a sibling `?tsrx-css&lang.css`
+import, and the second Turbopack rule re-runs the compiler to extract the
+scoped CSS and hands it back to Turbopack as a CSS module type.
+
+```ts
+// next.config.ts
+import tsrxReactTurbopack from '@tsrx/turbopack-plugin-react';
+
+export default tsrxReactTurbopack({
+  reactStrictMode: true,
+});
+```
 
 Files use the `.tsrx` extension. The compiler transforms the same source
 differently per target — e.g. `if` lowers to `<Show>` on Solid, an IIFE +

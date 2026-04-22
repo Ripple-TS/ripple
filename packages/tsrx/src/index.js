@@ -159,6 +159,11 @@ export {
 	find_first_top_level_await as findFirstTopLevelAwait,
 	find_first_top_level_await_in_component_body as findFirstTopLevelAwaitInComponentBody,
 } from './transform/await.js';
+export {
+	is_interleaved_body as isInterleavedBody,
+	is_capturable_jsx_child as isCapturableJsxChild,
+	capture_jsx_child as captureJsxChild,
+} from './transform/jsx-interleave.js';
 
 // Analyze
 export { analyze_css as analyzeCss } from './analyze/css-analyze.js';

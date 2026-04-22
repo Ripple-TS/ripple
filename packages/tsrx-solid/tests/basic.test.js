@@ -615,4 +615,89 @@ describe('@tsrx/solid basic', () => {
 			expect(Array.isArray(result.mappings)).toBe(true);
 		});
 	});
+
+	describe('interleaved statements and JSX children', () => {
+		it('preserves source order when statements are interleaved with JSX children', () => {
+			const { code } = compile(
+				`component Card() {
+					<div class="card">
+						var a = "one"
+						<b>{"hello" + a}</b>
+						a = "two"
+						<b>{"hello" + a}</b>
+					</div>
+				}`,
+				'Card.tsrx',
+			);
+
+			// Each JSX child must be captured into a const at its source position
+			// so the first <b> sees a = "one" and the second sees a = "two".
+			const first_capture = code.indexOf('_tsrx_child_0');
+			const assign_two = code.indexOf('a = "two"');
+			const second_capture = code.indexOf('_tsrx_child_1');
+			expect(first_capture).toBeGreaterThan(-1);
+			expect(assign_two).toBeGreaterThan(first_capture);
+			expect(second_capture).toBeGreaterThan(assign_two);
+		});
+
+		it('does not capture JSX into temporaries when all statements precede JSX', () => {
+			const { code } = compile(
+				`component Card() {
+					<div>
+						const a = "one"
+						const b = "two"
+						<span>{a}</span>
+						<span>{b}</span>
+					</div>
+				}`,
+				'Card.tsrx',
+			);
+
+			expect(code).not.toContain('_tsrx_child_');
+		});
+
+		it('preserves source order for interleaved JSX across an early-return guard', () => {
+			const { code } = compile(
+				`component Card(&{ cond }: { cond: boolean }) {
+					var a = "one"
+					<b>{"hello" + a}</b>
+					a = "two"
+					<b>{"hello" + a}</b>
+					if (cond) return
+					<div>{"done"}</div>
+				}`,
+				'Card.tsrx',
+			);
+
+			// The early-return path lifts JSX into a <Show>, but mutations between
+			// JSX siblings must still be honored — each JSX child is captured at its
+			// source position in the outer body so the first <b> sees a = "one".
+			const first_capture = code.indexOf('_tsrx_child_0');
+			const assign_two = code.indexOf('a = "two"');
+			const second_capture = code.indexOf('_tsrx_child_1');
+			expect(first_capture).toBeGreaterThan(-1);
+			expect(assign_two).toBeGreaterThan(first_capture);
+			expect(second_capture).toBeGreaterThan(assign_two);
+			expect(code).toContain('<Show');
+		});
+
+		it('preserves source order for interleaved statements at the component top level', () => {
+			const { code } = compile(
+				`component Card() {
+					var a = "one"
+					<b>{"hello" + a}</b>
+					a = "two"
+					<b>{"hello" + a}</b>
+				}`,
+				'Card.tsrx',
+			);
+
+			const first_capture = code.indexOf('_tsrx_child_0');
+			const assign_two = code.indexOf('a = "two"');
+			const second_capture = code.indexOf('_tsrx_child_1');
+			expect(first_capture).toBeGreaterThan(-1);
+			expect(assign_two).toBeGreaterThan(first_capture);
+			expect(second_capture).toBeGreaterThan(assign_two);
+		});
+	});
 });

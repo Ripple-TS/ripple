@@ -1,3 +1,3 @@
-import ripple from '@ripple-ts/eslint-plugin';
+import ripple from '@tsrx/eslint-plugin';
 
 export default [...ripple.configs.recommended];
