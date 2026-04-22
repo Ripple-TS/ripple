@@ -39,6 +39,24 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'tsrx-preact',
+					include: ['packages/tsrx-preact/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
+					name: 'vite-plugin-preact',
+					include: ['packages/vite-plugin-preact/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'tsrx-solid',
 					include: ['packages/tsrx-solid/tests/**/*.test.js'],
 					environment: 'node',

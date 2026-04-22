@@ -1,0 +1,43 @@
+{
+  "name": "@tsrx/preact",
+  "description": "Preact compiler built on @tsrx/core",
+  "license": "MIT",
+  "author": "Dominic Gannaway",
+  "version": "0.0.1",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ripple-TS/ripple.git",
+    "directory": "packages/tsrx-preact"
+  },
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./error-boundary": {
+      "default": "./src/error-boundary.js"
+    }
+  },
+  "dependencies": {
+    "@tsrx/core": "workspace:*",
+    "esrap": "catalog:default",
+    "zimmerframe": "catalog:default"
+  },
+  "peerDependencies": {
+    "preact": ">=10"
+  },
+  "devDependencies": {
+    "@types/estree": "catalog:default",
+    "@types/estree-jsx": "catalog:default",
+    "preact": "catalog:default",
+    "typescript": "catalog:default"
+  },
+  "files": [
+    "src",
+    "types"
+  ]
+}

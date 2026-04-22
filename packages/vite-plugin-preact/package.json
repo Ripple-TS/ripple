@@ -1,0 +1,37 @@
+{
+  "name": "@tsrx/vite-plugin-preact",
+  "description": "Vite plugin for @tsrx/preact (.tsrx modules)",
+  "license": "MIT",
+  "author": "Dominic Gannaway",
+  "version": "0.0.1",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ripple-TS/ripple.git",
+    "directory": "packages/vite-plugin-preact"
+  },
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "dependencies": {
+    "@tsrx/preact": "workspace:*"
+  },
+  "peerDependencies": {
+    "vite": "*"
+  },
+  "devDependencies": {
+    "preact": "catalog:default",
+    "typescript": "catalog:default",
+    "vite": "catalog:default"
+  },
+  "files": [
+    "src",
+    "types"
+  ]
+}

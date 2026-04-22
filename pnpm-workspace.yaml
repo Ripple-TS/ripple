@@ -59,6 +59,7 @@ catalogs:
     muggle-string: ^0.4.1
     ora: ^9.3.0
     polka: ^1.0.0-next.25
+    preact: ^10.27.0
     prettier: *prettier_common
     prompts: ^2.4.2
     react: ^19.2.0
