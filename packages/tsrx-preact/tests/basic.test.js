@@ -183,4 +183,22 @@ describe('@tsrx/preact basic', () => {
 			expect(second_capture).toBeGreaterThan(assign_two);
 		});
 	});
+
+	it('does not hoist render-time expressions across early returns', () => {
+		const { code } = compile(
+			`export component Test() {
+				<div>{Date.now()}</div>
+
+				if (Math.random() > 0.5) {
+					return;
+				}
+			}`,
+			'Test.tsrx',
+		);
+
+		expect(code).not.toContain('const Test__static1');
+		expect(code).toContain('if (Math.random() > 0.5) {');
+		expect(code.match(/return <div>\{Date\.now\(\)\}<\/div>;/g)).toHaveLength(2);
+		expect(code).not.toContain('return null;');
+	});
 });
