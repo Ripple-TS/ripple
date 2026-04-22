@@ -19,7 +19,7 @@ import { active_block, get, set, tracked } from './runtime.js';
  * @returns {ComponentWrapper}
  */
 export function hmr(fn) {
-	/** @type {Tracked<Component> | undefined} */
+	/** @type {Tracked | undefined} */
 	var current;
 
 	/**
