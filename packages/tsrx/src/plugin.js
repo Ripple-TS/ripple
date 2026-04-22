@@ -1572,7 +1572,7 @@ export function TSRXPlugin(config) {
 						this.next();
 					}
 				} else if (is_fragment) {
-					this.parseTemplateBody(element.children);
+					this.parseTemplateBody(/** @type {AST.Element} */ (element).children);
 				} else {
 					if (/** @type {ESTreeJSX.JSXIdentifier} */ (open.name).name === 'script') {
 						let content = '';
