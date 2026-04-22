@@ -438,7 +438,8 @@ export class Output {
 
 		var instance = is_root ? this.#root : this;
 
-		if (this.target === 'head') {
+		// we never write to `head` in the root instance
+		if (instance !== this.#root && instance.target === 'head') {
 			if (is_prepend) {
 				instance.#head.unshift(str);
 			} else {
@@ -1560,11 +1561,12 @@ function register_block_rerun(block) {
 				try_catch_block.o.resolveAsync(operation);
 			} catch (error) {
 				if (error instanceof TrackAsyncRunError) {
-					var { cause, tracked: t } = /** @type {InstanceType<typeof TrackAsyncRunError>} */ (
-						error
-					);
+					var {
+						cause,
+						tracked: { h: hash },
+					} = /** @type {InstanceType<typeof TrackAsyncRunError>} */ (error);
 					error = cause;
-					route_track_async_error_to_catch_block_with_boundary(try_catch_block, t.h, error);
+					route_track_async_error_to_catch_block_with_boundary(try_catch_block, hash, error);
 				} else {
 					route_error_to_catch_block(try_catch_block, error);
 				}
