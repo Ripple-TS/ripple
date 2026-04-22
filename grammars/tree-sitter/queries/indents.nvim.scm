@@ -18,6 +18,7 @@
 
 [
   (jsx_element)
+  (jsx_fragment)
   (jsx_self_closing_element)
 ] @indent.begin
 
@@ -25,7 +26,12 @@
   (#set! indent.immediate)
   (#set! indent.start_at_same_line))
 
+((jsx_opening_fragment) @indent.begin
+  (#set! indent.immediate)
+  (#set! indent.start_at_same_line))
+
 (jsx_closing_element ">" @indent.end)
+(jsx_closing_fragment ">" @indent.end)
 (jsx_self_closing_element "/>" @indent.end)
 
 [
@@ -34,6 +40,7 @@
   ")"
   "</style>"
   (jsx_closing_element)
+  (jsx_closing_fragment)
 ] @indent.branch
 
 (jsx_self_closing_element "/>" @indent.branch)

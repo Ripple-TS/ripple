@@ -122,7 +122,7 @@ export component Button({ label, onClick }: {
 
 **LLM DON'T:**
 - Do not `return <JSX />` from a component body.
-- Do not assign `.tsrx` JSX to a variable outside a `<tsx>...</tsx>` wrapper.
+- Do not assign `.tsrx` JSX to a variable outside a `<>...</>` or `<tsx>...</tsx>` wrapper.
 - Do not mix `function Component()` and `component Component()` patterns.
 
 ### Statement-based JSX
@@ -150,38 +150,40 @@ component Greeting() {
 **Why:** the parser cannot tell whether `Hello` is a string literal or a JS
 identifier without explicit `{}`.
 
-### Using `<tsx>` for JSX values
+### Using `<>` or `<tsx>` for JSX values
 
 When you need JSX in **expression position** — assigning it to a variable,
-passing it as a prop, returning from a helper — wrap it in `<tsx>...</tsx>`.
+passing it as a prop, returning from a helper — wrap it in `<>...</>` or the
+equivalent `<tsx>...</tsx>` form.
 
 ```tsrx
 component App() {
-  const title = <tsx><span class="title">{'Settings'}</span></tsx>;
+  const title = <><span class="title">{'Settings'}</span></>;
   <Card {title} />
 }
 ```
 
 ```tsrx
-// ✅ CORRECT — return JSX from a helper via <tsx>
+// ✅ CORRECT — return JSX from a helper via fragment shorthand
 function badge(label: string) {
-  return <tsx><span class="badge">{label}</span></tsx>;
+  return <><span class="badge">{label}</span></>;
 }
 
-// ✅ CORRECT — pass JSX as a prop via <tsx>
+// ✅ CORRECT — pass JSX as a prop via fragment shorthand
 <Card
-  title={<tsx><span>{'Settings'}</span></tsx>}
-  children={<tsx><p>{'Body'}</p></tsx>}
+  title={<><span>{'Settings'}</span></>}
+  children={<><p>{'Body'}</p></>}
 />
 ```
 
 **LLM DO:**
-- Use plain `<tsx>` whenever JSX must live in expression position.
-- Keep normal TSRX syntax and semantics inside `<tsx>` blocks.
+- Use `<>...</>` as the default wrapper when JSX must live in expression position.
+- Use `<tsx>...</tsx>` when you want the explicit long form; it is equivalent.
+- Keep normal TSRX syntax and semantics inside either wrapper.
 
 **LLM DON'T:**
 - Do not write `const el = <div />;` at the top level of a component.
-- Do not return bare JSX from regular functions without `<tsx>`.
+- Do not return bare JSX from regular functions without `<>...</>` or `<tsx>...</tsx>`.
 
 ### Text expressions: `{ ... }`, `{text ...}`, `{html ...}`
 

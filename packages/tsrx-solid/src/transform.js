@@ -1059,6 +1059,9 @@ function create_jsx_element(tag_name, attributes, children) {
 	};
 }
 
+const TEMPLATE_FRAGMENT_ERROR =
+	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.';
+
 /**
  * Inject `import { Show, For, Switch, Match, Errored, Loading } from 'solid-js'`
  * specifiers for whichever control-flow primitives the transform emitted.
@@ -1117,6 +1120,10 @@ function to_jsx_element(node, transform_context) {
 		throw new Error(
 			'`{html ...}` is not supported on the Solid target. Use `innerHTML={...}` as an element attribute instead.',
 		);
+	}
+
+	if (!node.id) {
+		throw create_compile_error(node, TEMPLATE_FRAGMENT_ERROR);
 	}
 
 	if (is_dynamic_element_id(node.id)) {

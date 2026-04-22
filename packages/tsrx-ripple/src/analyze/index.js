@@ -63,6 +63,9 @@ const mutating_method_names = new Set([
 	'unshift',
 ]);
 
+const TEMPLATE_FRAGMENT_ERROR =
+	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.';
+
 /**
  * @param {AST.MemberExpression} node
  * @returns {string | null}
@@ -191,6 +194,14 @@ function mark_control_flow_has_template(path) {
 			node.metadata.has_template = true;
 		}
 	}
+}
+
+/**
+ * @param {AnalysisContext['path']} path
+ * @returns {boolean}
+ */
+function is_inside_tsx_context(path) {
+	return path.some((node) => node?.type === 'TsxCompat' || node?.type === 'Tsx');
 }
 
 /**
@@ -1815,7 +1826,7 @@ const visitors = {
 	},
 
 	JSXElement(node, context) {
-		const inside_tsx_compat = context.path.some((n) => n.type === 'TsxCompat' || n.type === 'Tsx');
+		const inside_tsx_compat = is_inside_tsx_context(context.path);
 
 		if (inside_tsx_compat) {
 			return context.next();
@@ -1826,6 +1837,16 @@ const visitors = {
 			context.state.analysis.module.filename,
 			node,
 		);
+	},
+
+	JSXFragment(node, context) {
+		const inside_tsx_compat = is_inside_tsx_context(context.path);
+
+		if (inside_tsx_compat) {
+			return context.next();
+		}
+
+		error(TEMPLATE_FRAGMENT_ERROR, context.state.analysis.module.filename, node);
 	},
 
 	Tsx(_, context) {
@@ -1851,6 +1872,10 @@ const visitors = {
 	},
 
 	Element(node, context) {
+		if (!node.id) {
+			error(TEMPLATE_FRAGMENT_ERROR, context.state.analysis.module.filename, node);
+		}
+
 		if (!is_inside_component(context)) {
 			error(
 				'Elements cannot be used outside of components',

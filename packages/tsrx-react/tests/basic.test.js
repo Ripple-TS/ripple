@@ -138,6 +138,21 @@ describe('@tsrx/react basic', () => {
 		expect(code).not.toContain('export async function App()');
 	});
 
+	it('applies for-control-flow keys to rendered elements', () => {
+		const { code } = compile(
+			`export component App({ items }: { items: { id: string, text: string }[] }) {
+				for (const item of items; key item.id) {
+					<div>{item.text}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('.map(');
+		expect(code).toContain('key={item.id}');
+		expect(code).not.toContain('does not support `key` in `for` control flow');
+	});
+
 	it('emits the text content and scoped css for the basic styled example', () => {
 		const { code, css } = compile(
 			`export component App() {
@@ -229,6 +244,29 @@ describe('@tsrx/react basic', () => {
 				'App.tsrx',
 			),
 		).toThrow(/not supported on the React target/);
+	});
+
+	it('allows JSX fragments in templates as tsx shorthand', () => {
+		const { code } = compile(
+			`export component App() {
+				<b><>{111}</></b>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('<b>{111}</b>');
+		expect(code).not.toContain('<tsx>');
+	});
+
+	it('allows JSX fragments inside tsx blocks', () => {
+		expect(() =>
+			compile(
+				`export component App() {
+					<tsx><>{111}</></tsx>
+				}`,
+				'App.tsrx',
+			),
+		).not.toThrow();
 	});
 
 	it('applies scoped css hashes to elements inside control flow', () => {
@@ -613,7 +651,7 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('return null;');
 	});
 
-	it('supports JSX fragments at line start in component bodies', () => {
+	it('allows JSX fragments at line start in component bodies', () => {
 		const { code } = compile(
 			`export component App() {
 				<>
@@ -623,13 +661,11 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('function App()');
-		expect(code).toContain('<>');
-		expect(code).toContain('</>');
-		expect(code).toContain("{'hello'}");
+		expect(code).toContain("<div>{'hello'}</div>");
+		expect(code).not.toContain('<tsx>');
 	});
 
-	it('supports JSX fragments at line start inside element children', () => {
+	it('allows JSX fragments at line start inside element children', () => {
 		const { code } = compile(
 			`component App() {
 				<div>
@@ -641,13 +677,11 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('function App()');
-		expect(code).toContain('<>');
-		expect(code).toContain('</>');
-		expect(code).toContain("{'inner'}");
+		expect(code).toContain("<div><span>{'inner'}</span></div>");
+		expect(code).not.toContain('<tsx>');
 	});
 
-	it('supports JSX fragments alongside other elements in component bodies', () => {
+	it('allows JSX fragments alongside other elements in component bodies', () => {
 		const { code } = compile(
 			`export component App() {
 				<h1>{'title'}</h1>
@@ -658,9 +692,11 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('function App()');
-		expect(code).toContain("{'title'}");
-		expect(code).toContain("{'content'}");
+		expect(code).toContain("<h1>{'title'}</h1>");
+		expect(code).toContain('return <>');
+		expect(code).toContain('App__static1');
+		expect(code).toContain('App__static2');
+		expect(code).not.toContain('<tsx>');
 	});
 
 	it('supports early returns inside element child statement bodies', () => {
@@ -707,13 +743,13 @@ describe('@tsrx/react basic', () => {
 		expect(mappings.errors).toEqual([]);
 	});
 
-	it('supports tsx blocks passed as props', () => {
+	it('supports fragment shorthand passed as props', () => {
 		const source = `component Child(props) {
 			<div>{props.content}</div>
 		}
 
 			export component App() {
-				<Child content={<tsx><span>{'hello'}</span></tsx>} />
+				<Child content={<><span>{'hello'}</span></>} />
 			}`;
 
 		const { code } = compile(source, 'App.tsrx');

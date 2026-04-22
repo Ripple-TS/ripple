@@ -27,7 +27,7 @@ const STATEMENT_HTML = [
 
 const TSX_EXPR_HTML = [
 	'<span class="ln">1</span> <span class="kw">component</span> <span class="fn">App</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln">2</span>   <span class="kw">const</span> <span class="prop">title</span> = <span class="tag">&lt;</span><span class="el">tsx</span><span class="tag">&gt;</span><span class="tag">&lt;</span><span class="el">span</span> <span class="attr">class</span>=<span class="str">"title"</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Settings\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">span</span><span class="tag">&gt;</span><span class="tag">&lt;/</span><span class="el">tsx</span><span class="tag">&gt;</span>;',
+	'<span class="ln">2</span>   <span class="kw">const</span> <span class="prop">title</span> = <span class="tag">&lt;</span><span class="tag">&gt;</span><span class="tag">&lt;</span><span class="el">span</span> <span class="attr">class</span>=<span class="str">"title"</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Settings\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">span</span><span class="tag">&gt;</span><span class="tag">&lt;/</span><span class="tag">&gt;</span>;',
 	'<span class="ln">3</span>   <span class="tag">&lt;</span><span class="el">Card</span> <span class="tbr">{</span><span class="prop">title</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
 	'<span class="ln">4</span> <span class="br">}</span>',
 ].join('\n');
@@ -325,6 +325,8 @@ export component DocsPage() {
 						</pre>
 						<p class="section-body">
 							{'This means you can\'t assign JSX to a variable or return it from a function by default. When you need JSX as a value — to assign it, pass it as a prop, or return it from a helper — wrap it in '}
+							<code class="inline-code">{'<>...</>'}</code>
+							{' or the explicit '}
 							<code class="inline-code">{'<tsx></tsx>'}</code>
 							{':'}
 						</p>

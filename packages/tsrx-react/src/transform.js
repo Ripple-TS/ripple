@@ -1091,6 +1091,9 @@ function is_jsx_child(node) {
 	);
 }
 
+const TEMPLATE_FRAGMENT_ERROR =
+	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.';
+
 /**
  * @param {any} node
  * @param {TransformContext} transform_context
@@ -1103,21 +1106,11 @@ function to_jsx_element(node, transform_context) {
 			'`{html ...}` is not supported on the React target. Use `dangerouslySetInnerHTML={{ __html: ... }}` as an element attribute instead.',
 		);
 	}
+	if (!node.id) {
+		throw create_compile_error(node, TEMPLATE_FRAGMENT_ERROR);
+	}
 	if (is_dynamic_element_id(node.id)) {
 		return dynamic_element_to_jsx_child(node, transform_context);
-	}
-
-	if (!node.id) {
-		const children = create_element_children(node.children || [], transform_context);
-		return set_loc(
-			/** @type {any} */ ({
-				type: 'JSXFragment',
-				openingFragment: { type: 'JSXOpeningFragment' },
-				closingFragment: { type: 'JSXClosingFragment' },
-				children,
-			}),
-			node,
-		);
 	}
 
 	const name = identifier_to_jsx_name(node.id);

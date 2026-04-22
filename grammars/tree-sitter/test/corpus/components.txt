@@ -149,9 +149,10 @@ component Card({ children }) {
                 name: (identifier)
                 value: (string)))
             children: (jsx_text)
-            children: (jsx_self_closing_element
-              name: (jsx_non_namespaced_element_name
-                (identifier)))
+            children: (jsx_expression
+              (component_statement
+                (expression_statement
+                  (identifier))))
             children: (jsx_text)
             close_tag: (jsx_closing_element
               name: (jsx_element_name

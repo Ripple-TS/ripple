@@ -1930,6 +1930,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "jsx_fragment"
+        },
+        {
+          "type": "SYMBOL",
           "name": "jsx_self_closing_element"
         },
         {
@@ -3203,6 +3207,10 @@
         {
           "type": "SYMBOL",
           "name": "jsx_element"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "jsx_fragment"
         },
         {
           "type": "SYMBOL",
@@ -5508,6 +5516,38 @@
         }
       ]
     },
+    "jsx_fragment": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "FIELD",
+          "name": "open_tag",
+          "content": {
+            "type": "SYMBOL",
+            "name": "jsx_opening_fragment"
+          }
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "FIELD",
+            "name": "children",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_jsx_child"
+            }
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "close_tag",
+          "content": {
+            "type": "SYMBOL",
+            "name": "jsx_closing_fragment"
+          }
+        }
+      ]
+    },
     "jsx_opening_element": {
       "type": "SEQ",
       "members": [
@@ -5552,6 +5592,19 @@
         }
       ]
     },
+    "jsx_opening_fragment": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "<"
+        },
+        {
+          "type": "STRING",
+          "value": ">"
+        }
+      ]
+    },
     "jsx_closing_element": {
       "type": "SEQ",
       "members": [
@@ -5578,6 +5631,19 @@
             "type": "SYMBOL",
             "name": "jsx_element_name"
           }
+        },
+        {
+          "type": "STRING",
+          "value": ">"
+        }
+      ]
+    },
+    "jsx_closing_fragment": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "</"
         },
         {
           "type": "STRING",
@@ -5892,6 +5958,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "jsx_fragment"
+        },
+        {
+          "type": "SYMBOL",
           "name": "jsx_self_closing_element"
         }
       ]
@@ -5906,6 +5976,10 @@
         {
           "type": "SYMBOL",
           "name": "jsx_element"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "jsx_fragment"
         },
         {
           "type": "SYMBOL",

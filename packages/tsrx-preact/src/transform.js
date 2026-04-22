@@ -1137,6 +1137,9 @@ function is_jsx_child(node) {
 	);
 }
 
+const TEMPLATE_FRAGMENT_ERROR =
+	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.';
+
 /**
  * @param {any} node
  * @param {TransformContext} transform_context
@@ -1148,6 +1151,9 @@ function to_jsx_element(node, transform_context) {
 		throw new Error(
 			'`{html ...}` is not supported on the Preact target. Use `dangerouslySetInnerHTML={{ __html: ... }}` as an element attribute instead.',
 		);
+	}
+	if (!node.id) {
+		throw create_compile_error(node, TEMPLATE_FRAGMENT_ERROR);
 	}
 	if (is_dynamic_element_id(node.id)) {
 		return dynamic_element_to_jsx_child(node, transform_context);
@@ -1636,24 +1642,23 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 		);
 	}
 
-	if (node.key) {
-		throw create_compile_error(
-			node.key,
-			'Preact TSRX does not support `key` in `for` control flow. Put the key on the rendered element instead, for example `<div key={i}>...</div>`.',
-		);
-	}
-
 	const loop_params = get_for_of_iteration_params(node.left, node.index);
 	const loop_body = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
 	const has_hooks = body_contains_top_level_hook_call(loop_body);
-	const explicit_key_expression = has_hooks ? find_key_expression_in_body(loop_body) : undefined;
+	const body_key_expression = find_key_expression_in_body(loop_body);
+	const explicit_key_expression =
+		body_key_expression ?? (node.key ? clone_expression_node(node.key) : undefined);
 	const key_expression =
 		has_hooks && explicit_key_expression == null && node.index
 			? clone_expression_node(node.index)
 			: explicit_key_expression;
 	const implicit_non_hook_key_expression =
-		!has_hooks && node.index && find_key_expression_in_body(loop_body) == null
-			? clone_expression_node(node.index)
+		!has_hooks && body_key_expression == null
+			? node.key
+				? clone_expression_node(node.key)
+				: node.index
+					? clone_expression_node(node.index)
+					: undefined
 			: undefined;
 
 	// Add loop params to available bindings so hoisted helpers receive them as props

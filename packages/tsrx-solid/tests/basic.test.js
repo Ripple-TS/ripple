@@ -288,6 +288,46 @@ describe('@tsrx/solid basic', () => {
 				),
 			).toThrow(/not supported on the Solid target/);
 		});
+
+		it('allows JSX fragments in templates as tsx shorthand', () => {
+			const { code } = compile(
+				`component App() {
+					<b><>{111}</></b>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<b>{111}</b>');
+			expect(code).not.toContain('<tsx>');
+		});
+
+		it('allows JSX fragments inside tsx blocks', () => {
+			expect(() =>
+				compile(
+					`component App() {
+						<tsx><>{111}</></tsx>
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
+
+		it('supports fragment shorthand passed as props', () => {
+			const { code } = compile(
+				`component Child(props) {
+					<div>{props.content}</div>
+				}
+
+				component App() {
+					<Child content={<><span>{'hello'}</span></>} />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<Child content={');
+			expect(code).toContain("<span>{'hello'}</span>");
+			expect(code).not.toContain('<tsx>');
+		});
 	});
 
 	describe('control flow', () => {

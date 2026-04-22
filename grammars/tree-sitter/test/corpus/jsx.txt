@@ -171,6 +171,69 @@ component App() {
                 (identifier)))))))))
 
 ==================
+JSX Fragment
+==================
+
+component App() {
+  <><span>{'one'}</span><span>{'two'}</span></>
+  const title = <><span>{'hello'}</span></>;
+}
+
+---
+
+(program
+  (component_declaration
+    name: (identifier)
+    parameters: (formal_parameters)
+    body: (component_body
+      (component_statement
+        (expression_statement
+          (jsx_fragment
+            open_tag: (jsx_opening_fragment)
+            children: (jsx_element
+              open_tag: (jsx_opening_element
+                name: (jsx_element_name
+                  (identifier)))
+              children: (jsx_expression
+                (component_statement
+                  (expression_statement
+                    (string))))
+              close_tag: (jsx_closing_element
+                name: (jsx_element_name
+                  (identifier))))
+            children: (jsx_element
+              open_tag: (jsx_opening_element
+                name: (jsx_element_name
+                  (identifier)))
+              children: (jsx_expression
+                (component_statement
+                  (expression_statement
+                    (string))))
+              close_tag: (jsx_closing_element
+                name: (jsx_element_name
+                  (identifier))))
+            close_tag: (jsx_closing_fragment))))
+      (component_statement
+        (variable_declaration
+          (variable_declarator
+            name: (identifier)
+            (initializer
+              (jsx_fragment
+                open_tag: (jsx_opening_fragment)
+                children: (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_expression
+                    (component_statement
+                      (expression_statement
+                        (string))))
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier))))
+                close_tag: (jsx_closing_fragment)))))))))
+
+==================
 Style Element
 ==================
 

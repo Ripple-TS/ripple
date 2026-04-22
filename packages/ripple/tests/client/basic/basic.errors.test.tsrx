@@ -228,6 +228,30 @@ describe('basic client > errors', () => {
 		}).toThrow('Do...while loops are not supported in components.');
 	});
 
+	it('should allow JSX fragments in TSRX templates as <tsx> shorthand', () => {
+		const code = `
+			export default component SafeProfile() {
+				<b><>{111}</></b>
+			}
+		`;
+
+		expect(() => {
+			compile(code, 'test.tsrx');
+		}).not.toThrow();
+	});
+
+	it('should allow JSX fragments inside tsx blocks', () => {
+		const code = `
+			export default component SafeProfile() {
+				<tsx><>{111}</></tsx>
+			}
+		`;
+
+		expect(() => {
+			compile(code, 'test.tsrx');
+		}).not.toThrow();
+	});
+
 	it('should not throw error for while loop inside a function within a component', () => {
 		const code = `
 			export default component App() {

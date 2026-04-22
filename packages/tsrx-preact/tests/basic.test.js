@@ -108,6 +108,21 @@ describe('@tsrx/preact basic', () => {
 		).toThrow(/Preact components/);
 	});
 
+	it('applies for-control-flow keys to rendered elements', () => {
+		const { code } = compile(
+			`export component App({ items }: { items: { id: string, text: string }[] }) {
+				for (const item of items; key item.id) {
+					<div>{item.text}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('.map(');
+		expect(code).toContain('key={item.id}');
+		expect(code).not.toContain('does not support `key` in `for` control flow');
+	});
+
 	it('rejects {html ...} with Preact-branded message', () => {
 		expect(() =>
 			compile(
@@ -117,6 +132,46 @@ describe('@tsrx/preact basic', () => {
 				'App.tsrx',
 			),
 		).toThrow(/Preact target/);
+	});
+
+	it('allows JSX fragments in templates as tsx shorthand', () => {
+		const { code } = compile(
+			`export component App() {
+				<b><>{111}</></b>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('<b>{111}</b>');
+		expect(code).not.toContain('<tsx>');
+	});
+
+	it('allows JSX fragments inside tsx blocks', () => {
+		expect(() =>
+			compile(
+				`export component App() {
+					<tsx><>{111}</></tsx>
+				}`,
+				'App.tsrx',
+			),
+		).not.toThrow();
+	});
+
+	it('supports fragment shorthand passed as props', () => {
+		const { code } = compile(
+			`component Child(props) {
+				<div>{props.content}</div>
+			}
+
+			export component App() {
+				<Child content={<><span>{'hello'}</span></>} />
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('<Child content={');
+		expect(code).toContain("<span>{'hello'}</span>");
+		expect(code).not.toContain('<tsx>');
 	});
 
 	describe('interleaved statements and JSX children', () => {
