@@ -1,5 +1,13 @@
 # @ripple-ts/compat-react
 
+## 1.0.1
+
+### Patch Changes
+
+- Updated dependencies
+  [[`316cba1`](https://github.com/Ripple-TS/ripple/commit/316cba18614e5ef59dce15e0de6e720eb922955f)]:
+  - ripple@1.0.1
+
 ## 1.0.0
 
 ### Patch Changes

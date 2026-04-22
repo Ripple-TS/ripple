@@ -1,5 +1,23 @@
 # ripple
 
+## 1.0.1
+
+### Patch Changes
+
+- [#886](https://github.com/Ripple-TS/ripple/pull/886)
+  [`316cba1`](https://github.com/Ripple-TS/ripple/commit/316cba18614e5ef59dce15e0de6e720eb922955f)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add SSR-to-client
+  serialization/hydration for trackAsync by emitting per-call JSON <script>
+  envelopes (resolved payload + direct dependency hashes, or sanitized error
+  message) and consuming/removing them during client hydration to avoid re-running
+  the user async function. Add proper error handling routing to catch blocks with
+  actual error messages in DEV and safe production error messages, all with
+  correct hydration support
+- Updated dependencies
+  [[`316cba1`](https://github.com/Ripple-TS/ripple/commit/316cba18614e5ef59dce15e0de6e720eb922955f)]:
+  - ripple@1.0.1
+  - @tsrx/ripple@0.0.8
+
 ## 1.0.0
 
 ### Patch Changes
