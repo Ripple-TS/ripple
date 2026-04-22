@@ -412,8 +412,8 @@ export default component App() {
 	});
 
 	<div>
-		<button onclick={() => first++}>{'First: '}{first}</button>
-		<button onclick={() => second++}>{'Second: '}{second}</button>
+		<button onClick={() => first++}>{'First: '}{first}</button>
+		<button onClick={() => second++}>{'Second: '}{second}</button>
 		<p>{'Total: '}{total}</p>
 	</div>
 }
