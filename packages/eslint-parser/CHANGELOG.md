@@ -1,4 +1,4 @@
-# @ripple-ts/eslint-parser
+# @tsrx/eslint-parser
 
 ## 0.3.25
 

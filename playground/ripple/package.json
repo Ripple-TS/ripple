@@ -17,7 +17,7 @@
     "lint": "eslint ."
   },
   "devDependencies": {
-    "@ripple-ts/eslint-plugin": "workspace:*",
+    "@tsrx/eslint-plugin": "workspace:*",
     "@ripple-ts/typescript-plugin": "workspace:*",
     "@ripple-ts/vite-plugin": "workspace:*",
     "@tsrx/ripple": "workspace:*",

@@ -273,8 +273,8 @@ function updateDependencyVersions(packageJson) {
 		ripple: 'latest',
 		'@ripple-ts/vite-plugin': 'latest',
 		'@ripple-ts/prettier-plugin': 'latest',
-		'@ripple-ts/eslint-plugin': 'latest',
-		'@ripple-ts/eslint-parser': 'latest',
+		'@tsrx/eslint-plugin': 'latest',
+		'@tsrx/eslint-parser': 'latest',
 		'@ripple-ts/typescript-plugin': 'latest',
 	};
 

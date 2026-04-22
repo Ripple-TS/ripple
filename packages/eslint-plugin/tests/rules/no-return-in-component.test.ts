@@ -1,6 +1,6 @@
 import { RuleTester } from 'eslint';
 import rule from '../../src/rules/no-return-in-component.js';
-import * as parser from '@ripple-ts/eslint-parser';
+import * as parser from '@tsrx/eslint-parser';
 
 const ruleTester = new RuleTester({
 	languageOptions: {

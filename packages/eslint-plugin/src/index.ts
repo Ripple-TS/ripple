@@ -8,7 +8,7 @@ import validForOfKey from './rules/valid-for-of-key.js';
 
 const plugin = {
 	meta: {
-		name: '@ripple-ts/eslint-plugin',
+		name: '@tsrx/eslint-plugin',
 		version: '0.1.3',
 	},
 	rules: {
@@ -29,9 +29,9 @@ let rippleParser: any;
 let tsParser: any;
 
 try {
-	rippleParser = require('@ripple-ts/eslint-parser');
+	rippleParser = require('@tsrx/eslint-parser');
 } catch {
-	// @ripple-ts/eslint-parser is optional
+	// @tsrx/eslint-parser is optional
 	rippleParser = null;
 }
 

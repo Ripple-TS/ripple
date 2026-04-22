@@ -242,9 +242,6 @@ importers:
       '@changesets/cli':
         specifier: catalog:default
         version: 2.31.0(@types/node@24.11.0)
-      '@ripple-ts/eslint-plugin':
-        specifier: workspace:*
-        version: link:packages/eslint-plugin
       '@ripple-ts/prettier-plugin':
         specifier: workspace:*
         version: link:packages/prettier-plugin
@@ -254,6 +251,9 @@ importers:
       '@solidjs/web':
         specifier: 2.0.0-beta.7
         version: 2.0.0-beta.7(@solidjs/signals@2.0.0-beta.7)(solid-js@2.0.0-beta.7)
+      '@tsrx/eslint-plugin':
+        specifier: workspace:*
+        version: link:packages/eslint-plugin
       '@types/node':
         specifier: catalog:default
         version: 24.11.0
@@ -459,12 +459,12 @@ importers:
 
   packages/eslint-plugin:
     devDependencies:
-      '@ripple-ts/eslint-parser':
-        specifier: workspace:*
-        version: link:../eslint-parser
       '@tsrx/core':
         specifier: workspace:*
         version: link:../tsrx
+      '@tsrx/eslint-parser':
+        specifier: workspace:*
+        version: link:../eslint-parser
       '@types/eslint':
         specifier: catalog:default
         version: 9.6.1
@@ -983,9 +983,6 @@ importers:
         specifier: catalog:peer
         version: 4.2.1
     devDependencies:
-      '@ripple-ts/eslint-plugin':
-        specifier: workspace:*
-        version: link:../../packages/eslint-plugin
       '@ripple-ts/typescript-plugin':
         specifier: workspace:*
         version: link:../../packages/typescript-plugin
@@ -995,6 +992,9 @@ importers:
       '@tailwindcss/vite':
         specifier: catalog:default
         version: 4.2.1(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+      '@tsrx/eslint-plugin':
+        specifier: workspace:*
+        version: link:../../packages/eslint-plugin
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:../../packages/tsrx-ripple

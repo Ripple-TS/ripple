@@ -1,4 +1,4 @@
-# @ripple-ts/eslint-plugin
+# @tsrx/eslint-plugin
 
 ## 0.3.25
 
