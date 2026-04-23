@@ -1,62 +1,52 @@
 import { useState, useEffect } from 'react';
 
-class Foo {
-	bar() {
-		return <tsx>{C}</tsx>;
-	}
+component Child() {
+	<div>
+		const x = 1;
+
+		console.log(x);
+	</div>
 }
 
-component C() {}
+export component App() {
+	const [count, setCount] = useState(0);
+	const items = [1, 2, 3];
 
-// function isF(x: any): x is string { return typeof x === 'string'; } component C() {}
+	<Child />
 
-// component Child() {
-// 	<div>
-// 		const x = 1;
+	<h1>
+		{'Hello World'}
+		if (count > 1) {
+			return;
+		}
+	</h1>
 
-// 		console.log(x);
-// 	</div>
-// }
+	if (count > 1) {
+		<div>
+			const [x] = useState(1);
 
-// export component App() {
-// 	const [count, setCount] = useState(0);
-// 	const items = [1, 2, 3];
+			{'Count is more than ' + x}
+		</div>
+	}
 
-// 	<Child />
+	useEffect(() => {
+		console.log(count);
+	}, [count]);
 
-// 	<h1>
-// 		{'Hello World'}
-// 		if (count > 1) {
-// 			return;
-// 		}
-// 	</h1>
+	<button onClick={() => setCount(count + 1)}>{count}</button>
 
-// 	if (count > 1) {
-// 		<div>
-// 			const [x] = useState(1);
+	if (count > 2) {
+		return;
+	}
 
-// 			{'Count is more than ' + x}
-// 		</div>
-// 	}
+	for (const item of items; index i) {
+		<div key={i}>{item}</div>
+	}
 
-// 	useEffect(() => {
-// 		console.log(count);
-// 	}, [count]);
-
-// 	<button onClick={() => setCount(count + 1)}>{count}</button>
-
-// 	if (count > 2) {
-// 		return;
-// 	}
-
-// 	for (const item of items; index i) {
-// 		<div key={i}>{item}</div>
-// 	}
-
-// 	<style>
-// 		button {
-// 			border: 0;
-// 			color: red;
-// 		}
-// 	</style>
-// }
+	<style>
+		button {
+			border: 0;
+			color: red;
+		}
+	</style>
+}
