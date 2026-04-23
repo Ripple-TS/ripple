@@ -131,6 +131,28 @@ export { sanitize_template_string as sanitizeTemplateString } from './utils/sani
 export { escape } from './utils/escaping.js';
 
 // Transform
+export { createJsxTransform } from './transform/jsx/index.js';
+export {
+	ensure_function_metadata as ensureFunctionMetadata,
+	in_jsx_child_context as inJsxChildContext,
+	tsx_node_to_jsx_expression as tsxNodeToJsxExpression,
+	tsx_with_ts_locations as tsxWithTsLocations,
+} from './transform/jsx/helpers.js';
+export {
+	clone_expression_node,
+	clone_identifier,
+	clone_jsx_name,
+	create_compile_error,
+	create_generated_identifier,
+	create_null_literal,
+	flatten_switch_consequent,
+	get_for_of_iteration_params,
+	identifier_to_jsx_name,
+	is_dynamic_element_id,
+	is_jsx_child,
+	set_loc,
+	to_text_expression,
+} from './transform/jsx/ast-builders.js';
 export { render_stylesheets as renderStylesheets } from './transform/stylesheet.js';
 export {
 	prepare_stylesheet_for_render as prepareStylesheetForRender,

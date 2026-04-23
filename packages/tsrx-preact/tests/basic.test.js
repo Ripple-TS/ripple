@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { compile } from '../src/index.js';
+import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
+import { compile, compile_to_volar_mappings } from '../src/index.js';
+
+runSharedSourceMappingTests({
+	compile_to_volar_mappings,
+	name: 'preact',
+	rejectsComponentAwait: true,
+});
 
 describe('@tsrx/preact basic', () => {
 	it('compiles a simple component', () => {

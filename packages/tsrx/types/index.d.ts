@@ -5,8 +5,16 @@ import type { Parse } from './parse.js';
 import type * as ESRap from 'esrap';
 import type { Position } from 'acorn';
 import type { RequireAllOrNone } from '../src/helpers.js';
+import type {
+	JsxPlatform,
+	JsxPlatformHooks,
+	JsxTransformOptions,
+	JsxTransformResult,
+	createJsxTransform,
+} from './jsx-platform';
 
-export type { Parse };
+export type { Parse, JsxPlatform, JsxPlatformHooks, JsxTransformOptions, JsxTransformResult };
+export { createJsxTransform };
 
 /**
  * Compile error interface

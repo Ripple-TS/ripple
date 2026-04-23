@@ -1,22 +1,30 @@
 /** @import * as AST from 'estree' */
 /** @import * as ESTreeJSX from 'estree-jsx' */
 
-import { walk } from 'zimmerframe';
-import { print } from 'esrap';
-import tsx from 'esrap/languages/tsx';
 import {
-	renderStylesheets,
+	createJsxTransform,
 	setLocation,
 	applyLazyTransforms as apply_lazy_transforms,
-	findFirstTopLevelAwaitInComponentBody as find_first_top_level_await_in_component_body,
 	collectLazyBindingsFromComponent as collect_lazy_bindings_from_component,
-	preallocateLazyIds as preallocate_lazy_ids,
 	replaceLazyParams as replace_lazy_params,
-	prepareStylesheetForRender as prepare_stylesheet_for_render,
-	annotateComponentWithHash as annotate_component_with_hash,
 	isInterleavedBody as is_interleaved_body_core,
 	isCapturableJsxChild as is_capturable_jsx_child,
 	captureJsxChild,
+	tsxNodeToJsxExpression as tsx_node_to_jsx_expression,
+	// Shared AST builders (truly platform-agnostic utilities).
+	clone_expression_node,
+	clone_identifier,
+	clone_jsx_name,
+	create_compile_error,
+	create_generated_identifier,
+	create_null_literal,
+	flatten_switch_consequent,
+	get_for_of_iteration_params,
+	identifier_to_jsx_name,
+	is_dynamic_element_id,
+	is_jsx_child,
+	set_loc,
+	to_text_expression,
 } from '@tsrx/core';
 
 /**
@@ -37,149 +45,74 @@ import {
  */
 
 /**
- * Transform a parsed tsrx-solid AST into a TSX module targeting Solid 2.0.
+ * Solid platform descriptor consumed by `createJsxTransform`. Everything
+ * that diverges from React/Preact is plugged in via `hooks`:
+ * - Component-level `await` is rejected outright (no `"use server"` escape).
+ * - Control-flow statements become Solid's `<Show>` / `<For>` /
+ *   `<Switch>/<Match>` / `<Errored>/<Loading>` instead of inline JSX.
+ * - `component` declarations run once at setup, with early-return JSX
+ *   hoisted into a reactive `<Show when={!cond}>`.
+ * - Element attributes support composite elements and lift a lone
+ *   `{text ...}` child into a `textContent` attribute.
+ * - `needs_show` / `needs_for` / etc. flags track which runtime
+ *   primitives must be imported, injected by `inject_solid_imports`.
  *
- * Each `component` declaration becomes a plain `FunctionDeclaration` that
- * returns Solid JSX. Control flow statements are rewritten to Solid's
- * built-in components (`<Show>`, `<Switch>/<Match>`, `<For>`, `<Errored>`,
- * `<Loading>`) so they remain reactive. Per-component `<style>` blocks are
- * collected, rendered via `@tsrx/core`'s stylesheet renderer, and returned
- * alongside the JS output so a downstream plugin can inject them.
- *
- * @param {AST.Program} ast
- * @param {string} source
- * @param {string} [filename]
- * @returns {{ ast: AST.Program, code: string, map: any, css: { code: string, hash: string } | null }}
+ * @type {import('@tsrx/core/types').JsxPlatform}
  */
-export function transform(ast, source, filename) {
-	/** @type {any[]} */
-	const stylesheets = [];
-
-	/** @type {TransformContext} */
-	const transform_context = {
-		needs_show: false,
-		needs_for: false,
-		needs_switch: false,
-		needs_match: false,
-		needs_errored: false,
-		needs_loading: false,
-		lazy_next_id: 0,
-		current_css_hash: null,
-	};
-
-	preallocate_lazy_ids(/** @type {any} */ (ast), transform_context);
-
-	// First pass: collect stylesheets and annotate elements with the component hash.
-	walk(/** @type {any} */ (ast), transform_context, {
-		Component(node, { next, state }) {
-			const as_any = /** @type {any} */ (node);
-			const await_expression = find_first_top_level_await_in_component_body(as_any.body || []);
-
-			if (await_expression) {
-				const await_start = get_await_keyword_start(await_expression, source);
-				const adjusted_node = /** @type {any} */ ({
-					...await_expression,
-					start: await_start,
-					end: await_start + 'await'.length,
-				});
-
-				throw create_compile_error(
-					adjusted_node,
-					'`await` is not allowed inside Solid components.',
-				);
-			}
-
-			const css = as_any.css;
-			if (css) {
-				stylesheets.push(css);
-				annotate_component_with_hash(as_any, css.hash);
-			}
-			return next(state);
+const solid_platform = {
+	name: 'Solid',
+	imports: {
+		// Solid doesn't use the React-style Suspense / ErrorBoundary pair.
+		// Both fields are here to satisfy the descriptor shape; actual
+		// import injection goes through `hooks.injectImports`.
+		suspense: 'solid-js',
+		errorBoundary: 'solid-js',
+	},
+	jsx: {
+		rewriteClassAttr: false,
+		acceptedTsxKinds: ['solid'],
+	},
+	validation: {
+		requireUseServerForAwait: false,
+	},
+	hooks: {
+		initialState: () => ({
+			needs_show: false,
+			needs_for: false,
+			needs_switch: false,
+			needs_match: false,
+			needs_errored: false,
+			needs_loading: false,
+		}),
+		validateComponentAwait: (await_expression, _component, _ctx, _requires, source) => {
+			const await_start = get_await_keyword_start(await_expression, source);
+			const adjusted_node = /** @type {any} */ ({
+				...await_expression,
+				start: await_start,
+				end: await_start + 'await'.length,
+			});
+			throw create_compile_error(adjusted_node, '`await` is not allowed inside Solid components.');
 		},
-	});
-
-	// Second pass: transform Components, Elements, Text nodes, Tsx blocks, etc.
-	const transformed = walk(/** @type {any} */ (ast), transform_context, {
-		Component(node, { next, state }) {
-			const as_any = /** @type {any} */ (node);
-
-			const saved_css_hash = state.current_css_hash;
-			state.current_css_hash = as_any.css ? as_any.css.hash : null;
-
-			const inner = /** @type {any} */ (next() ?? node);
-
-			state.current_css_hash = saved_css_hash;
-
-			return /** @type {any} */ (component_to_function_declaration(inner, state));
+		controlFlow: {
+			ifStatement: if_statement_to_jsx_child,
+			forOf: for_of_statement_to_jsx_child,
+			switchStatement: switch_statement_to_jsx_child,
+			tryStatement: try_statement_to_jsx_child,
 		},
+		componentToFunction: (component, ctx) =>
+			component_to_function_declaration(component, /** @type {any} */ (ctx)),
+		injectImports: (program, ctx) => inject_solid_imports(program, /** @type {any} */ (ctx)),
+		transformElementAttributes: (attrs, ctx, element) =>
+			transform_element_attributes(attrs, is_composite_element(element), /** @type {any} */ (ctx)),
+		transformElement: (inner, ctx, raw_children) =>
+			to_jsx_element(
+				/** @type {any} */ ({ ...inner, children: raw_children }),
+				/** @type {any} */ (ctx),
+			),
+	},
+};
 
-		Tsx(node, { next }) {
-			const inner = /** @type {any} */ (next() ?? node);
-			return /** @type {any} */ (tsx_node_to_jsx_expression(inner));
-		},
-
-		TsxCompat(node, { next }) {
-			const inner = /** @type {any} */ (next() ?? node);
-			return /** @type {any} */ (tsx_compat_node_to_jsx_expression(inner));
-		},
-
-		Element(node, { next, state }) {
-			const inner = /** @type {any} */ (next() ?? node);
-			return /** @type {any} */ (to_jsx_element(inner, state));
-		},
-
-		// `Text` nodes are lowered by `to_jsx_child` (and the `textContent`
-		// optimization in `to_jsx_element`) rather than the walker, so the
-		// parent element still sees a raw `Text` child when it runs and can
-		// decide whether to hoist it up to an attribute.
-		TSRXExpression(node, { next }) {
-			const inner = /** @type {any} */ (next() ?? node);
-			return /** @type {any} */ (to_jsx_expression_container(inner.expression, inner));
-		},
-
-		MemberExpression(node, { next, state }) {
-			const as_any = /** @type {any} */ (node);
-			if (as_any.object && as_any.object.type === 'StyleIdentifier' && state.current_css_hash) {
-				const class_name = as_any.computed ? as_any.property.value : as_any.property.name;
-				const value = `${state.current_css_hash} ${class_name}`;
-				return /** @type {any} */ ({ type: 'Literal', value, raw: JSON.stringify(value) });
-			}
-			return next();
-		},
-	});
-
-	inject_solid_imports(/** @type {AST.Program} */ (transformed), transform_context);
-
-	// Apply lazy destructuring transforms to module-level code (top-level function
-	// declarations, arrow functions, etc.). Component bodies have already been
-	// transformed inside component_to_function_declaration; this catches plain
-	// functions outside components and any lazy patterns in module scope.
-	const final_program = /** @type {any} */ (
-		apply_lazy_transforms(/** @type {any} */ (transformed), new Map())
-	);
-
-	const result = print(/** @type {any} */ (final_program), tsx(), {
-		sourceMapSource: filename,
-		sourceMapContent: source,
-	});
-
-	const css =
-		stylesheets.length > 0
-			? {
-					code: renderStylesheets(
-						/** @type {any} */ (stylesheets.map(prepare_stylesheet_for_render)),
-					),
-					hash: stylesheets.map((s) => s.hash).join(' '),
-				}
-			: null;
-
-	return {
-		ast: /** @type {AST.Program} */ (final_program),
-		code: result.code,
-		map: result.map,
-		css,
-	};
-}
+export const transform = createJsxTransform(solid_platform);
 
 /**
  * @param {any} await_node
@@ -375,31 +308,6 @@ function component_to_function_declaration(component, transform_context) {
 
 /**
  * @param {any} node
- * @returns {boolean}
- */
-function is_jsx_child(node) {
-	if (!node) return false;
-	const t = node.type;
-	return (
-		t === 'JSXElement' ||
-		t === 'JSXFragment' ||
-		t === 'JSXExpressionContainer' ||
-		t === 'JSXText' ||
-		t === 'Tsx' ||
-		t === 'TsxCompat' ||
-		t === 'Element' ||
-		t === 'Text' ||
-		t === 'TSRXExpression' ||
-		t === 'Html' ||
-		t === 'IfStatement' ||
-		t === 'ForOfStatement' ||
-		t === 'SwitchStatement' ||
-		t === 'TryStatement'
-	);
-}
-
-/**
- * @param {any} node
  * @param {TransformContext} transform_context
  * @returns {any}
  */
@@ -407,9 +315,11 @@ function to_jsx_child(node, transform_context) {
 	if (!node) return node;
 	switch (node.type) {
 		case 'Tsx':
-			return tsx_node_to_jsx_expression(node);
+			// We're inside a JSX child position by construction; keep `{expr}`
+			// containers wrapped. See helpers.js.
+			return tsx_node_to_jsx_expression(node, true);
 		case 'TsxCompat':
-			return tsx_compat_node_to_jsx_expression(node);
+			return tsx_compat_node_to_jsx_expression(node, true);
 		case 'Element':
 			return to_jsx_element(node, transform_context);
 		case 'Text':
@@ -1277,17 +1187,6 @@ function to_jsx_attribute(attr) {
 }
 
 /**
- * @param {any} id
- * @returns {boolean}
- */
-function is_dynamic_element_id(id) {
-	if (!id || typeof id !== 'object') return false;
-	if (id.type === 'Identifier') return !!id.tracked;
-	if (id.type === 'MemberExpression') return is_dynamic_element_id(id.object);
-	return false;
-}
-
-/**
  * Detect whether an `Element` node represents a composite component (tag
  * name starts with an uppercase letter, or is a member expression like
  * `Namespace.Component`).
@@ -1539,39 +1438,6 @@ function to_jsx_expression_container(expression, source_node = expression) {
 }
 
 /**
- * `{text expr}` → `expr == null ? '' : expr + ''` — coerce to string,
- * matching React's text semantics so booleans/objects render as text.
- *
- * @param {AST.Expression} expression
- * @param {any} [source_node]
- * @returns {AST.Expression}
- */
-function to_text_expression(expression, source_node = expression) {
-	return set_loc(
-		/** @type {AST.Expression} */ ({
-			type: 'ConditionalExpression',
-			test: {
-				type: 'BinaryExpression',
-				operator: '==',
-				left: clone_expression_node(expression),
-				right: { type: 'Literal', value: null, raw: 'null', metadata: { path: [] } },
-				metadata: { path: [] },
-			},
-			consequent: { type: 'Literal', value: '', raw: "''", metadata: { path: [] } },
-			alternate: {
-				type: 'BinaryExpression',
-				operator: '+',
-				left: clone_expression_node(expression),
-				right: { type: 'Literal', value: '', raw: "''", metadata: { path: [] } },
-				metadata: { path: [] },
-			},
-			metadata: { path: [] },
-		}),
-		source_node,
-	);
-}
-
-/**
  * @param {any[]} render_nodes
  * @returns {any}
  */
@@ -1599,220 +1465,16 @@ function build_return_expression(render_nodes) {
 }
 
 /**
- * @param {AST.Identifier | AST.MemberExpression | any} id
- * @returns {any}
- */
-function identifier_to_jsx_name(id) {
-	if (id.type === 'Identifier') {
-		return set_loc(
-			/** @type {any} */ ({
-				type: 'JSXIdentifier',
-				name: id.name,
-				metadata: { path: [], is_component: /^[A-Z]/.test(id.name) },
-			}),
-			id,
-		);
-	}
-	if (id.type === 'MemberExpression') {
-		return set_loc(
-			/** @type {any} */ ({
-				type: 'JSXMemberExpression',
-				object: /** @type {any} */ (identifier_to_jsx_name(id.object)),
-				property: /** @type {any} */ (identifier_to_jsx_name(id.property)),
-			}),
-			id,
-		);
-	}
-	return id;
-}
-
-/**
- * @param {any} name
- * @param {any} [source_node]
- * @returns {any}
- */
-function clone_jsx_name(name, source_node = name) {
-	if (name.type === 'JSXIdentifier') {
-		return set_loc(
-			{ type: 'JSXIdentifier', name: name.name, metadata: name.metadata || { path: [] } },
-			source_node,
-		);
-	}
-	if (name.type === 'JSXMemberExpression') {
-		return set_loc(
-			{
-				type: 'JSXMemberExpression',
-				object: clone_jsx_name(name.object, source_node.object || name.object),
-				property: clone_jsx_name(name.property, source_node.property || name.property),
-				metadata: name.metadata || { path: [] },
-			},
-			source_node,
-		);
-	}
-	return name;
-}
-
-/**
- * @param {AST.Identifier} identifier
- * @returns {any}
- */
-function clone_identifier(identifier) {
-	return set_loc(
-		/** @type {any} */ ({
-			type: 'Identifier',
-			name: identifier.name,
-			metadata: { path: [] },
-		}),
-		identifier,
-	);
-}
-
-/**
  * @param {any} node
+ * @param {boolean} [in_jsx_child]
  * @returns {any}
  */
-function clone_expression_node(node) {
-	if (!node || typeof node !== 'object') return node;
-	if (Array.isArray(node)) return node.map(clone_expression_node);
-	const clone = { ...node };
-	for (const key of Object.keys(clone)) {
-		// Positional keys are value-shared across nodes and — more importantly —
-		// `loc` objects often contain back-references to sub-objects that would
-		// blow the stack without a cycle guard. Every other AST traversal in
-		// this file skips these; keep them as shallow-copied references.
-		if (key === 'loc' || key === 'start' || key === 'end') continue;
-		if (key === 'metadata') {
-			clone.metadata = clone.metadata ? { ...clone.metadata } : { path: [] };
-			continue;
-		}
-		clone[key] = clone_expression_node(clone[key]);
-	}
-	return clone;
-}
-
-/**
- * @returns {AST.Literal}
- */
-function create_null_literal() {
-	return /** @type {any} */ ({ type: 'Literal', value: null, raw: 'null', metadata: { path: [] } });
-}
-
-/**
- * @template T
- * @param {T} node
- * @param {any} source_node
- * @returns {T}
- */
-function set_loc(node, source_node) {
-	/** @type {any} */ (node).metadata ??= { path: [] };
-	if (source_node?.loc) {
-		return /** @type {T} */ (setLocation(/** @type {any} */ (node), source_node, true));
-	}
-	return node;
-}
-
-/**
- * @param {any} left
- * @param {any} index
- * @returns {any[]}
- */
-function get_for_of_iteration_params(left, index) {
-	const params = [];
-	if (left?.type === 'VariableDeclaration') {
-		params.push(left.declarations[0]?.id);
-	} else {
-		params.push(left);
-	}
-	if (index) params.push(index);
-	return params;
-}
-
-/**
- * @param {string} name
- * @returns {any}
- */
-function create_generated_identifier(name) {
-	return /** @type {any} */ ({ type: 'Identifier', name, metadata: { path: [] } });
-}
-
-/**
- * @param {any} node
- * @param {string} message
- * @returns {Error & { pos: number, end: number }}
- */
-function create_compile_error(node, message) {
-	const error = /** @type {Error & { pos: number, end: number }} */ (new Error(message));
-	error.pos = node.start ?? 0;
-	error.end = node.end ?? error.pos + 1;
-	return error;
-}
-
-/**
- * @param {any[]} consequent
- * @returns {any[]}
- */
-function flatten_switch_consequent(consequent) {
-	const result = [];
-	for (const node of consequent) {
-		if (node.type === 'BlockStatement') result.push(...node.body);
-		else result.push(node);
-	}
-	return result;
-}
-
-/**
- * @param {any} node
- * @returns {any}
- */
-function tsx_compat_node_to_jsx_expression(node) {
+function tsx_compat_node_to_jsx_expression(node, in_jsx_child = false) {
 	if (node.kind !== 'solid') {
 		throw create_compile_error(
 			node,
 			`Solid TSRX does not support <tsx:${node.kind}> blocks. Use <tsx> or <tsx:solid>.`,
 		);
 	}
-	return tsx_node_to_jsx_expression(node);
-}
-
-/**
- * `<tsx>...</tsx>` → Solid JSX fragment (or single child if only one).
- *
- * @param {any} node
- * @returns {any}
- */
-function tsx_node_to_jsx_expression(node) {
-	const children = (node.children || []).filter(
-		(/** @type {any} */ child) => child.type !== 'JSXText' || child.value.trim() !== '',
-	);
-
-	if (children.length === 1 && children[0].type !== 'JSXText') {
-		return strip_locations(children[0]);
-	}
-
-	return strip_locations(
-		/** @type {any} */ ({
-			type: 'JSXFragment',
-			openingFragment: { type: 'JSXOpeningFragment', metadata: { path: [] } },
-			closingFragment: { type: 'JSXClosingFragment', metadata: { path: [] } },
-			children,
-			metadata: { path: [] },
-		}),
-	);
-}
-
-/**
- * @param {any} node
- * @returns {any}
- */
-function strip_locations(node) {
-	if (!node || typeof node !== 'object') return node;
-	if (Array.isArray(node)) return node.map(strip_locations);
-	delete node.loc;
-	delete node.start;
-	delete node.end;
-	for (const key of Object.keys(node)) {
-		if (key === 'metadata') continue;
-		node[key] = strip_locations(node[key]);
-	}
-	return node;
+	return tsx_node_to_jsx_expression(node, in_jsx_child);
 }
