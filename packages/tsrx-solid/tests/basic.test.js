@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { runSharedCompileTests } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
 
@@ -7,6 +8,8 @@ runSharedSourceMappingTests({
 	name: 'solid',
 	rejectsComponentAwait: true,
 });
+
+runSharedCompileTests({ compile, name: 'solid' });
 
 describe('@tsrx/solid basic', () => {
 	describe('component → function', () => {

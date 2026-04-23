@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { identifier_to_jsx_name } from '@tsrx/core';
 
 /**
  * @typedef {{
@@ -101,6 +102,52 @@ export function runSharedSourceMappingTests({
 		// whole line of investigation — kept as an end-to-end shape check.
 		it('calls with explicit type arguments', () =>
 			expect_maps(`component Test() { const [foo, setFoo] = useState<string | null>(null) }`));
+	});
+
+	describe(`[${name}] member-expression element names map each side independently`, () => {
+		it('gives <Icons.Button></Icons.Button> distinct opening and closing id mappings', () => {
+			const source = `component App() {
+	<Icons.Button>{'x'}</Icons.Button>
+}`;
+			const opening_icons = source.indexOf('Icons.Button');
+			const closing_icons = source.indexOf('Icons.Button', opening_icons + 1);
+			const opening_button = opening_icons + 'Icons.'.length;
+			const closing_button = closing_icons + 'Icons.'.length;
+
+			const result = compile_to_volar_mappings(source, 'App.tsrx');
+			const mapping_at = (offset, length) =>
+				result.mappings.find(
+					(/** @type {{ sourceOffsets: number[], lengths: number[] }} */ m) =>
+						m.sourceOffsets[0] === offset && m.lengths[0] === length,
+				);
+
+			expect(mapping_at(opening_icons, 'Icons'.length)).toBeDefined();
+			expect(mapping_at(closing_icons, 'Icons'.length)).toBeDefined();
+			expect(mapping_at(opening_button, 'Button'.length)).toBeDefined();
+			expect(mapping_at(closing_button, 'Button'.length)).toBeDefined();
+		});
+	});
+
+	describe(`[${name}] identifier_to_jsx_name preserves component metadata`, () => {
+		it('flags capitalized identifier names as components', () => {
+			const jsx = identifier_to_jsx_name({
+				type: 'Identifier',
+				name: 'MyComponent',
+				metadata: { path: [] },
+			});
+			expect(jsx.type).toBe('JSXIdentifier');
+			expect(jsx.metadata.is_component).toBe(true);
+		});
+
+		it('leaves lowercase identifiers unflagged', () => {
+			const jsx = identifier_to_jsx_name({
+				type: 'Identifier',
+				name: 'div',
+				metadata: { path: [] },
+			});
+			expect(jsx.type).toBe('JSXIdentifier');
+			expect(jsx.metadata.is_component).toBe(false);
+		});
 	});
 
 	describe(`[${name}] <tsx> blocks preserve source locations`, () => {

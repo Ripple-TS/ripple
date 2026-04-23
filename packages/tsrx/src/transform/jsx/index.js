@@ -1213,7 +1213,7 @@ function to_jsx_element(node, transform_context) {
 		: set_loc(
 				/** @type {any} */ ({
 					type: 'JSXClosingElement',
-					name: clone_jsx_name(name, node.closingElement || node),
+					name: clone_jsx_name(name, node.closingElement?.name || node.closingElement || node),
 				}),
 				node.closingElement || node,
 			);

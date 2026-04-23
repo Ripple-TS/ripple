@@ -69,8 +69,8 @@ export function clone_jsx_name(name, source_node = name) {
 		return set_loc(
 			/** @type {any} */ ({
 				type: 'JSXMemberExpression',
-				object: clone_jsx_name(name.object),
-				property: clone_jsx_name(name.property),
+				object: clone_jsx_name(name.object, source_node.object || name.object),
+				property: clone_jsx_name(name.property, source_node.property || name.property),
 				metadata: name.metadata || { path: [] },
 			}),
 			source_node,
@@ -126,8 +126,12 @@ export function create_compile_error(node, message) {
 }
 
 /**
- * Convert an Identifier / MemberExpression into a JSX element name, preserving
- * tracked-identifier metadata for dynamic elements.
+ * Convert an Identifier / MemberExpression into a JSX element name. The
+ * top-level `Identifier` → `JSXIdentifier` case flags capitalised names as
+ * `is_component` so `segments.js` can extend the JSX element name's source
+ * mapping backwards to cover the `component ` keyword and attach the
+ * component hover label — without that flag those source-map adjustments
+ * and editor hover features silently drop for any composite element.
  *
  * @param {any} id
  * @returns {any}
@@ -139,7 +143,7 @@ export function identifier_to_jsx_name(id) {
 			/** @type {any} */ ({
 				type: 'JSXIdentifier',
 				name: id.name,
-				metadata: id.metadata || { path: [] },
+				metadata: { path: [], is_component: /^[A-Z]/.test(id.name) },
 			}),
 			id,
 		);

@@ -27,7 +27,8 @@
     "./types/acorn": {
       "types": "./types/acorn.d.ts"
     },
-    "./test-harness/source-mappings": "./tests/shared/source-mappings.js"
+    "./test-harness/source-mappings": "./tests/shared/source-mappings.js",
+    "./test-harness/compile": "./tests/shared/compile.js"
   },
   "dependencies": {
     "@jridgewell/sourcemap-codec": "catalog:default",

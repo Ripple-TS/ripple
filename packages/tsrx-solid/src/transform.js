@@ -105,10 +105,7 @@ const solid_platform = {
 		transformElementAttributes: (attrs, ctx, element) =>
 			transform_element_attributes(attrs, is_composite_element(element), /** @type {any} */ (ctx)),
 		transformElement: (inner, ctx, raw_children) =>
-			to_jsx_element(
-				/** @type {any} */ ({ ...inner, children: raw_children }),
-				/** @type {any} */ (ctx),
-			),
+			to_jsx_element(/** @type {any} */ (inner), /** @type {any} */ (ctx), raw_children),
 	},
 };
 
@@ -1012,11 +1009,22 @@ function inject_solid_imports(program, transform_context) {
 // =====================================================================
 
 /**
- * @param {any} node
+ * @param {any} node - walker-transformed Element whose `children` have
+ *   already had `StyleIdentifier` / `TSRXExpression` / nested `Element`
+ *   walker rewrites applied.
  * @param {TransformContext} transform_context
+ * @param {any[]} [pre_walk_children] - optional pre-walk children list
+ *   from the `transformElement` hook. Only used to detect the
+ *   "single `Text` child" shape for the `textContent` optimization —
+ *   once detected we build the attribute from the original `Text.expression`.
+ *   The factory's `Text` walker lowers `Text` → `JSXExpressionContainer`, so
+ *   without these we'd miss the optimization. For rendering non-textContent
+ *   children we keep using `node.children` (walker-transformed), so
+ *   `MemberExpression` rewrites on `StyleIdentifier` refs inside children
+ *   are preserved.
  * @returns {any}
  */
-function to_jsx_element(node, transform_context) {
+function to_jsx_element(node, transform_context, pre_walk_children) {
 	if (node.type === 'JSXElement') return node;
 
 	// `{html expr}` isn't supported on the Solid target — users should reach
@@ -1025,8 +1033,9 @@ function to_jsx_element(node, transform_context) {
 	// explicit in their source. Only Ripple has a `{html ...}` primitive.
 	// The check runs before the dynamic-element branch so `<@Dyn>{html x}</@Dyn>`
 	// fails with the same diagnostic as the static-element case.
-	const raw_children = node.children || [];
-	if (raw_children.some((/** @type {any} */ c) => c && c.type === 'Html')) {
+	const walked_children = node.children || [];
+	const text_optimization_children = pre_walk_children ?? walked_children;
+	if (walked_children.some((/** @type {any} */ c) => c && c.type === 'Html')) {
 		throw new Error(
 			'`{html ...}` is not supported on the Solid target. Use `innerHTML={...}` as an element attribute instead.',
 		);
@@ -1056,16 +1065,20 @@ function to_jsx_element(node, transform_context) {
 	// the parent is a host element (composite components receive
 	// `textContent` as an opaque prop with no DOM semantics), and when the
 	// user hasn't already set `textContent` themselves.
+	//
+	// We check `text_optimization_children` (pre-walk) rather than
+	// `walked_children` because the factory's `Text` walker has already
+	// lowered `Text` → `JSXExpressionContainer`, which wouldn't match.
 	let selfClosing = !!node.selfClosing;
 	let children;
 	if (
 		!is_composite &&
-		raw_children.length === 1 &&
-		raw_children[0] &&
-		raw_children[0].type === 'Text' &&
+		text_optimization_children.length === 1 &&
+		text_optimization_children[0] &&
+		text_optimization_children[0].type === 'Text' &&
 		!has_text_content_attribute(attributes)
 	) {
-		const text_child = raw_children[0];
+		const text_child = text_optimization_children[0];
 		attributes.push(
 			set_loc(
 				/** @type {any} */ ({
@@ -1088,7 +1101,10 @@ function to_jsx_element(node, transform_context) {
 		children = [];
 		selfClosing = true;
 	} else {
-		children = create_element_children(raw_children, transform_context);
+		// Use walker-transformed children so `MemberExpression` /
+		// `StyleIdentifier` rewrites from the factory walker are preserved
+		// in the emitted JSX.
+		children = create_element_children(walked_children, transform_context);
 	}
 
 	const openingElement = set_loc(
@@ -1106,7 +1122,11 @@ function to_jsx_element(node, transform_context) {
 		: set_loc(
 				/** @type {any} */ ({
 					type: 'JSXClosingElement',
-					name: clone_jsx_name(name, node.closingElement || node),
+					// Forward the source *name* (not the JSXClosingElement wrapper)
+					// so `clone_jsx_name` can propagate member-expression sub-part
+					// locations from the closing tag. See the identical fix in
+					// packages/tsrx/src/transform/jsx/index.js.
+					name: clone_jsx_name(name, node.closingElement?.name || node.closingElement || node),
 				}),
 				node.closingElement || node,
 			);
