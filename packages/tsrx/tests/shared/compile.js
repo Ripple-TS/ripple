@@ -45,5 +45,20 @@ export function runSharedCompileTests({ compile, name }) {
 			expect(code).toMatch(/"tsrx-[a-z0-9]+ accent"/);
 			expect(code).not.toContain('#style');
 		});
+
+		it('rewrites #style inside a {text expr} sole child', () => {
+			const { code } = compile(
+				`export component App() {
+					<div>{text #style.root}</div>
+					<style>
+						.root { color: blue; }
+					</style>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toMatch(/"tsrx-[a-z0-9]+ root"/);
+			expect(code).not.toContain('#style');
+			expect(code).not.toContain('StyleIdentifier');
+		});
 	});
 }

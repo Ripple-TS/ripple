@@ -1088,10 +1088,14 @@ function to_jsx_element(node, transform_context, pre_walk_children) {
 						name: 'textContent',
 						metadata: { path: [] },
 					},
-					value: to_jsx_expression_container(
-						to_text_expression(text_child.expression, text_child),
-						text_child,
-					),
+					// preserves the walker's rewrites on the Text's inner expression
+					value:
+						walked_children[0] && walked_children[0].type === 'JSXExpressionContainer'
+							? walked_children[0]
+							: to_jsx_expression_container(
+									to_text_expression(text_child.expression, text_child),
+									text_child,
+								),
 					shorthand: false,
 					metadata: { path: [] },
 				}),
