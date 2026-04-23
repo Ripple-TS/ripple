@@ -1,5 +1,15 @@
 # @tsrx/core
 
+## 0.0.11
+
+### Patch Changes
+
+- [#938](https://github.com/Ripple-TS/ripple/pull/938)
+  [`7529e1f`](https://github.com/Ripple-TS/ripple/commit/7529e1fe3f0870319bd3399501fd2eb43c516065)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix source-map and Volar
+  mapping coverage for one-line early-return `if` statements in shared JSX
+  transforms, including plain functions and class-like method bodies.
+
 ## 0.0.10
 
 ### Patch Changes
