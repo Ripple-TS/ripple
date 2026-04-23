@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`@tsrx/vue basic > wraps default component exports in defineVaporComponent 1`] = `
-"import { defineVaporComponent } from 'vue';
+"import { defineVaporComponent } from 'vue-jsx-vapor';
 
 const App__static1 = <div>{'Hello'}</div>;
 
@@ -11,7 +11,7 @@ export default defineVaporComponent(function App() {
 `;
 
 exports[`@tsrx/vue basic > wraps named component exports in defineVaporComponent 1`] = `
-"import { defineVaporComponent } from 'vue';
+"import { defineVaporComponent } from 'vue-jsx-vapor';
 
 const App__static1 = <div>{'Hello'}</div>;
 

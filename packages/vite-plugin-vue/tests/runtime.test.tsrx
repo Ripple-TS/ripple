@@ -1,0 +1,394 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ref } from 'vue';
+
+const EXPECTED_ERROR_LOG_SNIPPETS = ['sync boom', 'conditional boom', 'inner error'];
+
+/** @type {import('vitest').MockInstance | undefined} */
+let console_error_spy;
+
+function is_expected_error_log(args: unknown[]) {
+	const message = args
+		.map((arg) => {
+			if (arg instanceof Error) {
+				return `${arg.name}: ${arg.message}`;
+			}
+			return String(arg);
+		})
+		.join(' ');
+
+	return EXPECTED_ERROR_LOG_SNIPPETS.some((snippet) => message.includes(snippet));
+}
+
+async function click(selector: string) {
+	const btn = container.querySelector(selector) as HTMLElement;
+	btn.click();
+	await flush();
+}
+
+function text(selector: string): string | null {
+	return container.querySelector(selector)?.textContent ?? null;
+}
+
+component BasicApp() {
+	<div class="greeting">{'Hello world'}</div>
+}
+
+component Child(props: { text: string }) {
+	<span class="child">{props.text}</span>
+}
+
+component NestedApp() {
+	<div>
+		<Child text="nested" />
+	</div>
+}
+
+component ExplicitTextApp() {
+	const markup = '<span>Not HTML</span>';
+	const hidden = false;
+	const empty = null;
+	const missing = undefined;
+
+	<div class="explicit-text-markup">{text markup}</div>
+	<div class="explicit-text-boolean">{text hidden}</div>
+	<div class="explicit-text-null">{text empty}</div>
+	<div class="explicit-text-undefined">{text missing}</div>
+}
+
+let element_ref_captured: HTMLDivElement | null = null;
+
+component ElementRefApp() {
+	<div
+		ref={(node: HTMLDivElement) => {
+			element_ref_captured = node;
+		}}
+		class="ref-target"
+	>
+		{'ref test'}
+	</div>
+}
+
+component CounterApp() {
+	const count = ref(0);
+	<p class="count">{count.value}</p>
+	<button class="inc" onClick={() => count.value++}>{'+'}</button>
+}
+
+component IfReactiveApp() {
+	const show = ref(true);
+
+	if (show.value) {
+		<span class="visible">{'shown'}</span>
+	} else {
+		<span class="hidden">{'hidden'}</span>
+	}
+
+	<button class="toggle" onClick={() => show.value = !show.value}>{'toggle'}</button>
+}
+
+component ForReactiveApp() {
+	const items = ref(['a', 'b', 'c']);
+
+	for (const item of items.value) {
+		<li class="item" key={item}>{item}</li>
+	}
+
+	<button class="add" onClick={() => items.value = [...items.value, 'd']}>{'add'}</button>
+	<button class="remove" onClick={() => items.value = items.value.slice(1)}>{'remove'}</button>
+}
+
+component SwitchReactiveApp() {
+	const page = ref('home');
+
+	switch (page.value) {
+		case 'home':
+			<div class="page">{'Home'}</div>
+			break;
+		case 'about':
+			<div class="page">{'About'}</div>
+			break;
+		default:
+			<div class="page">{'404'}</div>
+			break;
+	}
+
+	<button class="go-about" onClick={() => page.value = 'about'}>{'about'}</button>
+	<button class="go-unknown" onClick={() => page.value = 'other'}>{'other'}</button>
+}
+
+component StyledApp() {
+	<div class="styled">{'styled text'}</div>
+
+	<style>
+		.styled {
+			color: red;
+		}
+	</style>
+}
+
+component ThrowingChild() {
+	throw new Error('sync boom');
+	<p>{'unreachable'}</p>
+}
+
+component ErrorBoundaryApp() {
+	try {
+		<ThrowingChild />
+	} catch (err) {
+		<p class="caught">{(err as Error).message}</p>
+	}
+}
+
+component MaybeThrow(props: { shouldThrow: boolean }) {
+	if (props.shouldThrow) {
+		throw new Error('conditional boom');
+	}
+	<p class="ok">{'no error'}</p>
+}
+
+component ErrorToggleApp() {
+	const fail = ref(false);
+
+	try {
+		<MaybeThrow shouldThrow={fail.value} />
+	} catch (err, reset) {
+		<p class="caught">{(err as Error).message}</p>
+		<button
+			class="reset"
+			onClick={() => {
+				fail.value = false;
+				reset();
+			}}
+		>
+			{'reset'}
+		</button>
+	}
+
+	<button class="trigger-error" onClick={() => fail.value = true}>{'break'}</button>
+}
+
+component InnerThrow() {
+	throw new Error('inner error');
+	<p>{'unreachable'}</p>
+}
+
+component NestedTryApp() {
+	try {
+		<div class="outer">
+			try {
+				<InnerThrow />
+			} catch (err) {
+				<p class="inner-caught">{(err as Error).message}</p>
+			}
+		</div>
+	} catch (err) {
+		<p class="outer-caught">{(err as Error).message}</p>
+	}
+}
+
+component IfInsideTryApp() {
+	const show = ref(true);
+
+	try {
+		if (show.value) {
+			<p class="branch-a">{'visible'}</p>
+		} else {
+			<p class="branch-b">{'alternate'}</p>
+		}
+	} catch (err) {
+		<p class="caught">{'error'}</p>
+	}
+
+	<button class="toggle" onClick={() => show.value = !show.value}>{'toggle'}</button>
+}
+
+component ForInsideTryApp() {
+	const items = ref(['x', 'y']);
+
+	try {
+		for (const item of items.value) {
+			<span class="try-item" key={item}>{item}</span>
+		}
+	} catch (err) {
+		<p class="caught">{'error'}</p>
+	}
+
+	<button class="add" onClick={() => items.value = [...items.value, 'z']}>{'add'}</button>
+}
+
+component SwitchInsideTryApp() {
+	const page = ref('home');
+
+	try {
+		switch (page.value) {
+			case 'home':
+				<p class="try-page">{'Home'}</p>
+				break;
+			case 'about':
+				<p class="try-page">{'About'}</p>
+				break;
+			default:
+				<p class="try-page">{'404'}</p>
+				break;
+		}
+	} catch (err) {
+		<p class="caught">{'error'}</p>
+	}
+
+	<button class="go-about" onClick={() => page.value = 'about'}>{'about'}</button>
+	<button class="go-unknown" onClick={() => page.value = 'other'}>{'other'}</button>
+}
+
+describe('tsrx-vue runtime', () => {
+	beforeEach(() => {
+		const original_console_error = console.error;
+		console_error_spy = vi.spyOn(console, 'error').mockImplementation((...args) => {
+			if (is_expected_error_log(args)) {
+				return;
+			}
+
+			original_console_error(...args);
+		});
+	});
+
+	afterEach(() => {
+		console_error_spy?.mockRestore();
+		console_error_spy = undefined;
+	});
+
+	it('renders a basic component into the DOM', async () => {
+		await render(BasicApp);
+		expect(text('.greeting')).toBe('Hello world');
+	});
+
+	it('renders nested components', async () => {
+		await render(NestedApp);
+		expect(text('.child')).toBe('nested');
+	});
+
+	it('renders explicit text interpolation as text', async () => {
+		await render(ExplicitTextApp);
+		expect(text('.explicit-text-markup')).toBe('<span>Not HTML</span>');
+		expect(container.querySelector('.explicit-text-markup span')).toBeNull();
+		expect(text('.explicit-text-boolean')).toBe('false');
+		expect(text('.explicit-text-null')).toBe('');
+		expect(text('.explicit-text-undefined')).toBe('');
+	});
+
+	it('supports ref callback on elements', async () => {
+		element_ref_captured = null;
+		await render(ElementRefApp);
+		expect(element_ref_captured).toBeInstanceOf(HTMLDivElement);
+		expect(element_ref_captured!.textContent).toBe('ref test');
+		expect(element_ref_captured!.className).toContain('ref-target');
+	});
+
+	it('increments a counter on click', async () => {
+		await render(CounterApp);
+		expect(text('.count')).toBe('0');
+		await click('.inc');
+		expect(text('.count')).toBe('1');
+		await click('.inc');
+		expect(text('.count')).toBe('2');
+	});
+
+	it('toggles if-statement branches reactively', async () => {
+		await render(IfReactiveApp);
+		expect(text('.visible')).toBe('shown');
+
+		await click('.toggle');
+		expect(text('.hidden')).toBe('hidden');
+		expect(container.querySelector('.visible')).toBeNull();
+
+		await click('.toggle');
+		expect(text('.visible')).toBe('shown');
+	});
+
+	it('adds and removes items in a for-of loop reactively', async () => {
+		await render(ForReactiveApp);
+		expect(container.querySelectorAll('.item').length).toBe(3);
+
+		await click('.add');
+		const items = container.querySelectorAll('.item');
+		expect(items.length).toBe(4);
+		expect(items[3].textContent).toBe('d');
+
+		await click('.remove');
+		const after = container.querySelectorAll('.item');
+		expect(after.length).toBe(3);
+		expect(after[0].textContent).toBe('b');
+	});
+
+	it('switches rendered branches reactively', async () => {
+		await render(SwitchReactiveApp);
+		expect(text('.page')).toBe('Home');
+
+		await click('.go-about');
+		expect(text('.page')).toBe('About');
+
+		await click('.go-unknown');
+		expect(text('.page')).toBe('404');
+	});
+
+	it('applies scoped CSS classes', async () => {
+		await render(StyledApp);
+		expect(container.querySelector('div')!.className).toContain('styled');
+	});
+
+	it.skip('catches synchronous child errors', async () => {
+		await render(ErrorBoundaryApp);
+		expect(text('.caught')).toBe('sync boom');
+	});
+
+	it.skip('recovers from error via reset and re-triggers on state change', async () => {
+		await render(ErrorToggleApp);
+		expect(text('.ok')).toBe('no error');
+
+		await click('.trigger-error');
+		expect(text('.caught')).toBe('conditional boom');
+		expect(container.querySelector('.ok')).toBeNull();
+
+		await click('.reset');
+		expect(text('.ok')).toBe('no error');
+		expect(container.querySelector('.caught')).toBeNull();
+	});
+
+	it.skip('inner try/catch handles errors without propagating to outer', async () => {
+		await render(NestedTryApp);
+		expect(text('.inner-caught')).toBe('inner error');
+		expect(container.querySelector('.outer-caught')).toBeNull();
+		expect(container.querySelector('.outer')).not.toBeNull();
+	});
+
+	it.skip('toggles if-else branches inside a try block', async () => {
+		await render(IfInsideTryApp);
+		expect(text('.branch-a')).toBe('visible');
+
+		await click('.toggle');
+		expect(text('.branch-b')).toBe('alternate');
+		expect(container.querySelector('.branch-a')).toBeNull();
+
+		await click('.toggle');
+		expect(text('.branch-a')).toBe('visible');
+	});
+
+	it.skip('adds items in a for-of loop inside a try block', async () => {
+		await render(ForInsideTryApp);
+		expect(container.querySelectorAll('.try-item').length).toBe(2);
+
+		await click('.add');
+		expect(container.querySelectorAll('.try-item').length).toBe(3);
+		expect(container.querySelectorAll('.try-item')[2].textContent).toBe('z');
+	});
+
+	it.skip('switches branches inside a try block', async () => {
+		await render(SwitchInsideTryApp);
+		expect(text('.try-page')).toBe('Home');
+
+		await click('.go-about');
+		expect(text('.try-page')).toBe('About');
+
+		await click('.go-unknown');
+		expect(text('.try-page')).toBe('404');
+	});
+});

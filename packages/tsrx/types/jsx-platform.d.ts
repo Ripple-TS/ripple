@@ -91,6 +91,12 @@ export interface JsxPlatformHooks {
 	 */
 	transformElement?: (inner: any, ctx: any, rawChildren: any[]) => any;
 	/**
+	 * Decide whether a JSX subtree may be hoisted to module scope when it is
+	 * otherwise statically safe. Targets can use this to keep runtime-sensitive
+	 * JSX, such as component invocations, inside render/setup execution.
+	 */
+	canHoistStaticNode?: (node: any, ctx: any) => boolean;
+	/**
 	 * Custom validation for a component body that uses top-level `await`.
 	 * Default: enforce `validation.requireUseServerForAwait`. Solid rejects
 	 * component-level await outright with a keyword-precise location.

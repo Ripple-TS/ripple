@@ -43,7 +43,8 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain("import { ref, defineVaporComponent } from 'vue';");
+		expect(code).toContain("import { ref } from 'vue';");
+		expect(code).toContain("import { defineVaporComponent } from 'vue-jsx-vapor';");
 		expect(code.match(/defineVaporComponent/g)).toHaveLength(2);
 	});
 

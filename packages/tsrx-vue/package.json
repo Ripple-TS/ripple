@@ -28,7 +28,8 @@
     "zimmerframe": "catalog:default"
   },
   "peerDependencies": {
-    "vue": ">=3.5"
+    "vue": ">=3.5",
+    "vue-jsx-vapor": ">=3.2.10"
   },
   "devDependencies": {
     "@types/estree": "catalog:default",

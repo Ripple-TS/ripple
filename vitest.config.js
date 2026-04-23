@@ -1,5 +1,26 @@
 import { configDefaults, defineConfig } from 'vitest/config';
 import { ripple } from '@ripple-ts/vite-plugin';
+import { fileURLToPath } from 'node:url';
+
+const vue_runtime_path = fileURLToPath(
+	new URL('./playground/vue/node_modules/.vite/deps/vue.js', import.meta.url),
+);
+const vue_jsx_vapor_runtime_path = fileURLToPath(
+	new URL('./playground/vue/node_modules/.vite/deps/vue-jsx-vapor.js', import.meta.url),
+);
+const vue_error_boundary_path = fileURLToPath(
+	new URL('./packages/tsrx-vue/src/error-boundary.js', import.meta.url),
+);
+
+const vue_runtime_alias_plugin = {
+	name: 'tsrx-vue-runtime-aliases',
+	resolveId(source) {
+		if (source === 'vue') return vue_runtime_path;
+		if (source === 'vue-jsx-vapor') return vue_jsx_vapor_runtime_path;
+		if (source === '@tsrx/vue/error-boundary') return vue_error_boundary_path;
+		return null;
+	},
+};
 
 export default defineConfig({
 	plugins: [ripple({ excludeRippleExternalModules: true })],
@@ -72,6 +93,24 @@ export default defineConfig({
 					globals: true,
 				},
 				plugins: [],
+			},
+			{
+				test: {
+					name: 'tsrx-vue-runtime',
+					include: ['packages/vite-plugin-vue/tests/**/*.test.tsrx'],
+					environment: 'jsdom',
+					setupFiles: ['packages/vite-plugin-vue/tests/setup.js'],
+					globals: true,
+				},
+				plugins: [
+					vue_runtime_alias_plugin,
+					(await import('./packages/vite-plugin-vue/src/index.js')).tsrxVue(),
+					(await import('./packages/vite-plugin-vue/src/vapor.js')).tsrxVueVapor(),
+				],
+				resolve: process.env.VITEST ? { conditions: ['browser'] } : undefined,
+				ssr: {
+					noExternal: ['vue', 'vue-jsx-vapor', '@tsrx/vue'],
+				},
 			},
 			{
 				test: {

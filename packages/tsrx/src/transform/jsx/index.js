@@ -1038,6 +1038,12 @@ function hoist_static_render_nodes(render_nodes, transform_context) {
 		const node = render_nodes[i];
 		if (node.type !== 'JSXElement') continue;
 		if (!is_hoist_safe_jsx_node(node)) continue;
+		if (
+			transform_context.platform.hooks?.canHoistStaticNode &&
+			!transform_context.platform.hooks.canHoistStaticNode(node, transform_context)
+		) {
+			continue;
+		}
 		if (references_scope_bindings(node, transform_context.available_bindings)) continue;
 
 		const name = create_helper_name(transform_context.helper_state, 'static');

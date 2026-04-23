@@ -1,0 +1,38 @@
+{
+  "name": "@tsrx/vite-plugin-vue",
+  "description": "Vite plugin for @tsrx/vue (.tsrx modules)",
+  "license": "MIT",
+  "author": "Dominic Gannaway",
+  "version": "0.0.1",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ripple-TS/ripple.git",
+    "directory": "packages/vite-plugin-vue"
+  },
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "dependencies": {
+    "@tsrx/vue": "workspace:*"
+  },
+  "peerDependencies": {
+    "vite": "*"
+  },
+  "devDependencies": {
+    "typescript": "catalog:default",
+    "vite": "catalog:default",
+    "vue": "3.6.0-beta.8",
+    "vue-jsx-vapor": "^3.2.10"
+  },
+  "files": [
+    "src",
+    "types"
+  ]
+}

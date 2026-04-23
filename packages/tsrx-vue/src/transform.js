@@ -38,6 +38,9 @@ const vue_platform = {
 		initialState: () => ({
 			needs_define_vapor_component: false,
 		}),
+		canHoistStaticNode(node) {
+			return !contains_component_jsx(node);
+		},
 		validateComponentAwait(await_expression) {
 			throw create_compile_error(
 				await_expression,
@@ -137,13 +140,66 @@ function unsupported_vue_feature(node, feature) {
 }
 
 /**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function contains_component_jsx(node) {
+	if (!node || typeof node !== 'object') {
+		return false;
+	}
+
+	if (node.type === 'JSXElement') {
+		if (is_component_jsx_name(node.openingElement?.name)) {
+			return true;
+		}
+
+		return node.children.some(contains_component_jsx);
+	}
+
+	if (node.type === 'JSXFragment') {
+		return node.children.some(contains_component_jsx);
+	}
+
+	if (node.type === 'JSXExpressionContainer') {
+		return contains_component_jsx(node.expression);
+	}
+
+	if (Array.isArray(node)) {
+		return node.some(contains_component_jsx);
+	}
+
+	return false;
+}
+
+/**
+ * @param {any} name
+ * @returns {boolean}
+ */
+function is_component_jsx_name(name) {
+	if (!name || typeof name !== 'object') {
+		return false;
+	}
+
+	if (name.type === 'JSXIdentifier') {
+		const first = name.name?.[0];
+		return first != null && first >= 'A' && first <= 'Z';
+	}
+
+	if (name.type === 'JSXMemberExpression') {
+		return true;
+	}
+
+	return false;
+}
+
+/**
  * @param {import('estree').Program} program
  * @param {any} transform_context
  * @returns {void}
  */
 function inject_vue_imports(program, transform_context) {
 	if (transform_context.needs_define_vapor_component) {
-		ensure_named_import(program, 'vue', 'defineVaporComponent');
+		ensure_named_import(program, 'vue-jsx-vapor', 'defineVaporComponent');
 	}
 
 	if (transform_context.needs_suspense) {
