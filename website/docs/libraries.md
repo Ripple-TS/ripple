@@ -17,3 +17,7 @@ may have breaking changes at any moment.
 
 - https://github.com/anubra266/zag-ripple
 - https://github.com/anubra266/ark-ripple
+
+## State Management
+
+- https://github.com/wobsoriano/ripple-zustand
