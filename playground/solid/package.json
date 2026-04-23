@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
-    "preview": "vite preview --host"
+    "preview": "vite preview --host",
+    "debug-volar": "node ../../scripts/debug-mode.js tsx @tsrx/solid",
+    "debug-tsx": "node ../../scripts/debug-mode.js tsx @tsrx/solid"
   },
   "dependencies": {
     "solid-js": "2.0.0-beta.7"

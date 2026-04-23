@@ -1935,6 +1935,40 @@ files = [...(files ?? []), ...dt.files];`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should preserve fragment shorthand in class methods', async () => {
+			const input = `class Foo {
+	bar() {
+		return <>{"Hello"}</>;
+	}
+}`;
+
+			const expected = `class Foo {
+  bar() {
+    return <>{'Hello'}</>;
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve explicit tsx blocks in class methods', async () => {
+			const input = `class Foo {
+	bar() {
+		return <tsx>{"Hello"}</tsx>;
+	}
+}`;
+
+			const expected = `class Foo {
+  bar() {
+    return <tsx>{'Hello'}</tsx>;
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should format class with a literal component method', async () => {
 			const input = `class TestClass {
   component 'something'() {

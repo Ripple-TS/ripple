@@ -1046,7 +1046,13 @@ declare module 'estree' {
 	> {
 		params: TypeNode[];
 	}
-	interface TSTypePredicate extends AcornTSNode<TSESTree.TSTypePredicate> {}
+	interface TSTypePredicate extends Omit<
+		AcornTSNode<TSESTree.TSTypePredicate>,
+		'parameterName' | 'typeAnnotation'
+	> {
+		parameterName: AST.Identifier | AST.TSThisType;
+		typeAnnotation: AST.TSTypeAnnotation | null;
+	}
 	interface TSTypeQuery extends Omit<
 		AcornTSNode<TSESTree.TSTypeQuery>,
 		'exprName' | 'typeArguments'

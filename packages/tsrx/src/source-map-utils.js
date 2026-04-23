@@ -278,6 +278,8 @@ export function build_line_offsets(text) {
 }
 
 /**
+ * DO NOT EXPORT THIS FUNCTION!
+ * THE FIX NEEDS TO HAPPEN IN THE TRANSFORMER, SEGMENTS OR PARSER
  * @param {AST.Node | AST.NodeWithLocation} node
  * @param {CodeToGeneratedMap} src_to_gen_map
  * @param {number[]} gen_line_offsets
@@ -286,7 +288,7 @@ export function build_line_offsets(text) {
  * @param {number} [gen_max_len]
  * @returns {CodeMapping | Error}
  */
-export function maybe_get_mapping_from_node(
+function __maybe_get_mapping_from_node(
 	node,
 	src_to_gen_map,
 	gen_line_offsets,
@@ -341,7 +343,7 @@ export function get_mapping_from_node(
 	src_max_len,
 	gen_max_len,
 ) {
-	const mapping = maybe_get_mapping_from_node(
+	const mapping = __maybe_get_mapping_from_node(
 		node,
 		src_to_gen_map,
 		gen_line_offsets,

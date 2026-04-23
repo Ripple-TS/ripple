@@ -1814,4 +1814,214 @@ describe('lazy destructuring', () => {
 			),
 		).not.toThrow();
 	});
+
+	describe('Volar mappings do not crash for', () => {
+		/**
+		 * Wrap each case so any crash fails the test cleanly.
+		 * @param {string} source
+		 */
+		const expect_maps = (source) => {
+			expect(() => compile_to_volar_mappings(source, 'App.tsrx', { loose: true })).not.toThrow();
+		};
+
+		// JS nodes whose esrap printer emits leading/trailing literal tokens
+		// (like `new`, `return`, backticks, `[...]`) without location markers;
+		// segments.js calls get_mapping_from_node() on these directly.
+		it('NewExpression', () => expect_maps(`component C() { const x = new Map(); }`));
+		it('computed MemberExpression', () => expect_maps(`component C() { const x = foo[bar]; }`));
+		it('empty ObjectExpression', () => expect_maps(`component C() { const x = {}; }`));
+		it('non-empty ObjectExpression', () => expect_maps(`component C() { const x = { a: 1 }; }`));
+		it('ReturnStatement', () =>
+			expect_maps(`function f() { return 1; } component C() {}`));
+		it('ForStatement', () =>
+			expect_maps(`component C() { for (let i = 0; i < 10; i++) {} }`));
+		it('ForInStatement', () =>
+			expect_maps(`component C() { for (const x in obj) {} }`));
+		it('TemplateLiteral', () =>
+			expect_maps('component C() { const x = `hello ${y}`; }'));
+		it('TaggedTemplateExpression', () =>
+			expect_maps('component C() { tag`hi`; }'));
+		it('AwaitExpression', () =>
+			expect_maps(`component C() { await foo(); }`));
+
+		// Class methods: segments.js reads node.value.metadata.is_component,
+		// so every FunctionExpression needs metadata defaulted on it.
+		it('class method', () =>
+			expect_maps(`class Foo { bar() { return 1; } } component C() {}`));
+		it('class async method', () =>
+			expect_maps(`class Foo { async bar() { return 1; } } component C() {}`));
+		it('class getter/setter', () =>
+			expect_maps(`class Foo { get x() { return 1; } set x(v) {} } component C() {}`));
+		it('class static method', () =>
+			expect_maps(`class Foo { static bar() {} } component C() {}`));
+		it('object method shorthand', () =>
+			expect_maps(`component C() { const o = { foo() { return 1; } }; }`));
+
+		// TS wrapper nodes whose spans (e.g. angle-bracket delimiters around
+		// generics) are otherwise invisible to the source map.
+		it('generic call with type arguments', () =>
+			expect_maps(`component C() { useState<string>(''); }`));
+		it('component with type parameters', () =>
+			expect_maps(`component C<T extends string>() {}`));
+		it('as-expression', () =>
+			expect_maps(`component C() { const x = y as string; }`));
+		it('union type annotation', () =>
+			expect_maps(`component C(p: { x: string | null }) {}`));
+		it('array type annotation', () =>
+			expect_maps(`component C(p: { items: string[] }) {}`));
+		it('type predicate (x is T)', () =>
+			expect_maps(
+				`function isF(x: any): x is string { return typeof x === 'string'; } component C() {}`,
+			));
+		it('asserts type predicate', () =>
+			expect_maps(
+				`function assertF(x: any): asserts x is string { if (typeof x !== 'string') throw new Error(); } component C() {}`,
+			));
+		it('asserts without type', () =>
+			expect_maps(
+				`function assert(x: any): asserts x { if (!x) throw new Error(); } component C() {}`,
+			));
+
+		// JSX: esrap prints `<`, `>`, `</`, ` /` without location markers.
+		// Combined with hoisting to module-level statics, the opening
+		// element's start/end positions wouldn't otherwise resolve.
+		it('self-closing element', () => expect_maps(`component C() { <input /> }`));
+		it('self-closing with attribute', () =>
+			expect_maps(`component C() { <input class="foo" /> }`));
+		it('element with attribute spread', () =>
+			expect_maps(`component C() { const o = {}; <div {...o} /> }`));
+	});
+
+	describe('<tsx> blocks preserve source locations', () => {
+		it('keeps loc on the JSX inside single-child tsx blocks', () => {
+			// Regression: previously `strip_locations` recursively deleted loc on
+			// the entire tsx block subtree, destroying Volar mappings for the
+			// inner JSX. Mappings for the inner <div> should still resolve.
+			const source = `component C() { <tsx><div>hi</div></tsx> }`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			const div_offset = source.indexOf('<div>');
+			const has_div_mapping = result.mappings.some(
+				(m) => m.sourceOffsets[0] === div_offset + 1,
+			);
+			expect(has_div_mapping).toBe(true);
+		});
+
+		it('keeps loc inside multi-child tsx blocks (fragment wrapped)', () => {
+			const source = `component C() { <tsx><div>a</div><div>b</div></tsx> }`;
+			expect(() =>
+				compile_to_volar_mappings(source, 'App.tsrx', { loose: true }),
+			).not.toThrow();
+		});
+
+		it('handles a tsx block whose single child is a JSXExpressionContainer', () => {
+			// The parser emits JSXExpressionContainer (not TSRXExpression) when
+			// `{...}` appears inside a <tsx> block. Its `loc` points at `{...}`,
+			// but esrap prints `{` and `}` without location markers — so the
+			// JSXExpressionContainer visitor must add them.
+			const source = `class Foo {
+	bar() {
+		return <tsx>{'Hello'}</tsx>;
+	}
+}`;
+			expect(() =>
+				compile_to_volar_mappings(source, 'App.tsrx', { loose: true }),
+			).not.toThrow();
+		});
+	});
+
+	describe('<tsx> and fragment unwrapping', () => {
+		it('unwraps a tsx block with a single JSXElement child', () => {
+			const { code } = compile(
+				`class Foo { bar() { return <tsx><div>hi</div></tsx>; } }`,
+				'App.tsrx',
+			);
+			expect(code).toContain('return <div>hi</div>;');
+			expect(code).not.toContain('<tsx>');
+		});
+
+		it('unwraps a tsx block containing a single expression to the expression', () => {
+			// Regression: previously `<tsx>{'Hello'}</tsx>` was compiled to
+			// `return {'Hello'};`, which is a JS syntax error because `{` opens
+			// a block/object literal. Unwrap the JSXExpressionContainer.
+			const { code } = compile(
+				`class Foo { bar() { return <tsx>{'Hello'}</tsx>; } }`,
+				'App.tsrx',
+			);
+			expect(code).toContain("return 'Hello';");
+			expect(code).not.toContain("return {'Hello'}");
+		});
+
+		it('unwraps a tsx block containing a single identifier expression', () => {
+			const { code } = compile(
+				`class Foo { bar() { const x = 1; return <tsx>{x}</tsx>; } }`,
+				'App.tsrx',
+			);
+			expect(code).toContain('return x;');
+			expect(code).not.toContain('return {x}');
+		});
+
+		it('wraps tsx text-only content in a fragment so it remains valid JSX', () => {
+			const { code } = compile(
+				`class Foo { bar() { return <tsx>plain text</tsx>; } }`,
+				'App.tsrx',
+			);
+			expect(code).toContain('return <>plain text</>;');
+		});
+
+		it('wraps multiple tsx children in a fragment', () => {
+			const { code } = compile(
+				`class Foo { bar() { return <tsx><div>a</div><div>b</div></tsx>; } }`,
+				'App.tsrx',
+			);
+			expect(code).toContain('return <><div>a</div><div>b</div></>;');
+		});
+
+		it('preserves a tsx block whose single child is already a fragment', () => {
+			const { code } = compile(
+				`class Foo { bar() { return <tsx><>{'x'}</></tsx>; } }`,
+				'App.tsrx',
+			);
+			expect(code).toContain("return <>{'x'}</>;");
+		});
+
+		it('unwraps a top-level <> fragment with a single expression', () => {
+			// `<>` at the top level is parsed as a Tsx node and hits the same
+			// unwrapping path as `<tsx>`.
+			const { code } = compile(
+				`class Foo { bar() { return <>{'Hello'}</>; } }`,
+				'App.tsrx',
+			);
+			expect(code).toContain("return 'Hello';");
+		});
+
+		it('unwraps a top-level <> fragment with a single element', () => {
+			const { code } = compile(
+				`class Foo { bar() { return <><div>hi</div></>; } }`,
+				'App.tsrx',
+			);
+			expect(code).toContain('return <div>hi</div>;');
+		});
+
+		it('keeps a top-level <> fragment with multiple children', () => {
+			const { code } = compile(
+				`class Foo { bar() { return <><div>a</div><div>b</div></>; } }`,
+				'App.tsrx',
+			);
+			expect(code).toContain('return <><div>a</div><div>b</div></>;');
+		});
+
+		it('compiles tsx unwrap cases without producing mapping errors', () => {
+			const sources = [
+				`class Foo { bar() { return <tsx>{'Hello'}</tsx>; } }`,
+				`class Foo { bar() { return <>{'Hello'}</>; } }`,
+				`class Foo { bar() { const x = 1; return <tsx>{x}</tsx>; } }`,
+				`class Foo { bar() { return <tsx>plain</tsx>; } }`,
+			];
+			for (const source of sources) {
+				expect(() =>
+					compile_to_volar_mappings(source, 'App.tsrx', { loose: true }),
+				).not.toThrow();
+			}
+		});
+	});
 });

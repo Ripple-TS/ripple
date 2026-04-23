@@ -52,7 +52,6 @@ import {
 	mapping_data_verify_complete,
 	build_line_offsets,
 	get_mapping_from_node,
-	maybe_get_mapping_from_node,
 } from '../source-map-utils.js';
 
 const LABEL_TO_COMPONENT_REPLACE_REGEX = /(function|\((property|method)\))/;
@@ -670,21 +669,9 @@ export function convert_source_map_to_mappings(
 				return;
 			} else if (node.type === 'JSXExpressionContainer') {
 				if (node.loc) {
-					// Use maybe_get_mapping_from_node because a transform may set the
-					// container's loc to the source range of the original `{...}`
-					// construct (e.g. a Ripple TSRXExpression or Text node), while
-					// esrap only emits a segment for the inner expression. In that
-					// case the container's start/end won't resolve — skip rather
-					// than hard-failing, and rely on the inner expression's mapping.
-					const mapping = maybe_get_mapping_from_node(
-						node,
-						src_to_gen_map,
-						gen_line_offsets,
-						mapping_data_verify_only,
+					mappings.push(
+						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
 					);
-					if (!(mapping instanceof Error)) {
-						mappings.push(mapping);
-					}
 				}
 				// Visit the expression inside {}
 				if (node.expression) {
@@ -742,36 +729,22 @@ export function convert_source_map_to_mappings(
 
 				if ((closing?.loc || opening.loc) && (closing || opening.selfClosing)) {
 					// Add the whole closing tag or the self-closing.
-					// For self-closing elements, use maybe_get_mapping_from_node because
-					// attribute transforms (e.g. class→className, {ref fn}→ref={fn}) can shift
-					// the position of `/>` in the generated output, making the source map
-					// entry for the opening element's end position unresolvable.
 					const target_node = closing ? closing : opening;
-					const mapping = closing
-						? get_mapping_from_node(
-								target_node,
-								src_to_gen_map,
-								gen_line_offsets,
-								mapping_data_verify_only,
-							)
-						: maybe_get_mapping_from_node(
-								target_node,
-								src_to_gen_map,
-								gen_line_offsets,
-								mapping_data_verify_only,
-							);
-
-					if (!(mapping instanceof Error)) {
-						// The generated code includes a semicolon after the closing or self-closed tag
-						// We're extending the mapping to include the semicolon
-						// because the diagnostics errors can include the whole element
-						// and we need to account for the semicolon as it's a part of the diagnostic
-						// At the same time, we could've instead applied this logic to the whole `node` element
-						// but since we already map the opening - start, we just need the proper end
-						// and it was causing some issues with mappings
-						mapping.generatedLengths = [mapping.generatedLengths[0] + 1];
-						mappings.push(mapping);
-					}
+					const mapping = get_mapping_from_node(
+						target_node,
+						src_to_gen_map,
+						gen_line_offsets,
+						mapping_data_verify_only,
+					);
+					// The generated code includes a semicolon after the closing or self-closed tag
+					// We're extending the mapping to include the semicolon
+					// because the diagnostics errors can include the whole element
+					// and we need to account for the semicolon as it's a part of the diagnostic
+					// At the same time, we could've instead applied this logic to the whole `node` element
+					// but since we already map the opening - start, we just need the proper end
+					// and it was causing some issues with mappings
+					mapping.generatedLengths = [mapping.generatedLengths[0] + 1];
+					mappings.push(mapping);
 				}
 
 				if (closing) {
@@ -1621,7 +1594,7 @@ export function convert_source_map_to_mappings(
 					// Generic spans can be emitted by downstream transforms with sparse source-map
 					// coverage around the angle-bracket delimiters. Skip missing whole-node mappings
 					// instead of crashing Volar, and rely on child type-node mappings instead.
-					const mapping = maybe_get_mapping_from_node(
+					const mapping = get_mapping_from_node(
 						node,
 						src_to_gen_map,
 						gen_line_offsets,
@@ -2068,6 +2041,15 @@ export function convert_source_map_to_mappings(
 				}
 				if (node.typeArguments) {
 					visit(node.typeArguments);
+				}
+				return;
+			} else if (node.type === 'TSTypePredicate') {
+				// Type predicate: `x is T` / `asserts x is T` / `asserts x`
+				if (node.parameterName) {
+					visit(node.parameterName);
+				}
+				if (node.typeAnnotation) {
+					visit(node.typeAnnotation);
 				}
 				return;
 			}

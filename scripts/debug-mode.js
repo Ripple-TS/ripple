@@ -1,8 +1,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { compile, compile_to_volar_mappings } from '@tsrx/ripple';
+import { createRequire } from 'node:module';
 
-const RIPPLE_EXTENSIONS = ['.tsrx'];
+const require = createRequire(import.meta.url);
+const package_name = process.argv[3];
+const { compile, compile_to_volar_mappings } = require(package_name);
+const FILE_EXTENSIONS = ['.tsrx'];
 
 let mode_type = process.argv[2] || 'server';
 
@@ -19,7 +22,7 @@ console.log(`Compiling in ${mode_type} mode...`);
 
 const compile_modes = mode_type == 'all' ? ['client', 'server', 'tsx'] : [mode_type];
 const files = (await fs.readdir('./src/')).filter((file) =>
-	RIPPLE_EXTENSIONS.some((extension) => file.endsWith(extension)),
+	FILE_EXTENSIONS.some((extension) => file.endsWith(extension)),
 );
 
 for (const mode of compile_modes) {
@@ -30,7 +33,7 @@ for (const mode of compile_modes) {
 	await fs.mkdir(output_dir, { recursive: true });
 
 	for (const filename of files) {
-		if (RIPPLE_EXTENSIONS.some((extension) => filename.endsWith(extension))) {
+		if (FILE_EXTENSIONS.some((extension) => filename.endsWith(extension))) {
 			const source = await fs.readFile(path.join(dir, filename), 'utf-8');
 			const result =
 				mode !== 'tsx'
