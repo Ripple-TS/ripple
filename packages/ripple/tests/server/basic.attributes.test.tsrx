@@ -35,7 +35,9 @@ describe('basic server > attribute rendering', () => {
 
 		const div = document.querySelector('div');
 
-		expect(Array.from(div.classList).some((className) => className.startsWith('tsrx-'))).toBe(true);
+		expect(
+			Array.from(div.classList).filter((className) => className.startsWith('tsrx-')),
+		).toHaveLength(1);
 		expect(div.classList.contains('inactive')).toBe(true);
 	});
 
@@ -70,7 +72,9 @@ describe('basic server > attribute rendering', () => {
 
 		const div = document.querySelector('div');
 
-		expect(Array.from(div.classList).some((className) => className.startsWith('tsrx-'))).toBe(true);
+		expect(
+			Array.from(div.classList).filter((className) => className.startsWith('tsrx-')),
+		).toHaveLength(1);
 
 		expect(div.classList.contains('foo')).toBe(true);
 		expect(div.classList.contains('bar')).toBe(true);
@@ -122,15 +126,15 @@ describe('basic server > attribute rendering', () => {
 		expect(headings).toHaveLength(2);
 
 		cards.forEach((card) => {
-			expect(Array.from(card.classList).some((className) => className.startsWith('tsrx-'))).toBe(
-				true,
-			);
+			expect(
+				Array.from(card.classList).filter((className) => className.startsWith('tsrx-')),
+			).toHaveLength(1);
 		});
 
 		headings.forEach((heading) => {
-			expect(Array.from(heading.classList).some((className) => className.startsWith('tsrx-'))).toBe(
-				true,
-			);
+			expect(
+				Array.from(heading.classList).filter((className) => className.startsWith('tsrx-')),
+			).toHaveLength(1);
 		});
 	});
 
@@ -152,7 +156,9 @@ describe('basic server > attribute rendering', () => {
 
 		const div = document.querySelector('div');
 
-		expect(Array.from(div.classList).some((className) => className.startsWith('tsrx-'))).toBe(true);
+		expect(
+			Array.from(div.classList).filter((className) => className.startsWith('tsrx-')),
+		).toHaveLength(1);
 		expect(div.classList.contains('inactive')).toBe(true);
 		expect(div.classList.contains('active')).toBe(false);
 	});
@@ -183,9 +189,9 @@ describe('basic server > attribute rendering', () => {
 			const divs = document.querySelectorAll('div');
 
 			divs.forEach((div) => {
-				expect(Array.from(div.classList).some((className) => className.startsWith('tsrx-'))).toBe(
-					true,
-				);
+				expect(
+					Array.from(div.classList).filter((className) => className.startsWith('tsrx-')),
+				).toHaveLength(1);
 			});
 		},
 	);

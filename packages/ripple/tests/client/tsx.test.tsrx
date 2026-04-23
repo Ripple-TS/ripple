@@ -49,15 +49,15 @@ describe('tsx expression', () => {
 		expect(headings).toHaveLength(2);
 
 		cards.forEach((card) => {
-			expect(Array.from(card.classList).some((className) => className.startsWith('tsrx-'))).toBe(
-				true,
-			);
+			expect(
+				Array.from(card.classList).filter((className) => className.startsWith('tsrx-')),
+			).toHaveLength(1);
 		});
 
 		headings.forEach((heading) => {
-			expect(Array.from(heading.classList).some((className) => className.startsWith('tsrx-'))).toBe(
-				true,
-			);
+			expect(
+				Array.from(heading.classList).filter((className) => className.startsWith('tsrx-')),
+			).toHaveLength(1);
 		});
 	});
 
