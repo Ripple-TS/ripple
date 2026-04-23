@@ -29,7 +29,23 @@
   "peerDependencies": {
     "typescript": "catalog:peer",
     "@tsrx/react": "workspace:*",
-    "@tsrx/ripple": "workspace:*"
+    "@tsrx/ripple": "workspace:*",
+    "@tsrx/solid": "workspace:*",
+    "@tsrx/preact": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "@tsrx/react": {
+      "optional": true
+    },
+    "@tsrx/solid": {
+      "optional": true
+    },
+    "@tsrx/ripple": {
+      "optional": true
+    },
+    "@tsrx/preact": {
+      "optional": true
+    }
   },
   "publishConfig": {
     "access": "public"

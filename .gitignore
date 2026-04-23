@@ -11,6 +11,8 @@ coverage
 # Local settings
 *.local.json
 
+.claude/settings.json
+
 packages/vscode-plugin/*.vsix
 playground/src
 playground/ripple/src

@@ -59,6 +59,62 @@ const COMPILER_STUBS = {
 	},
 };
 `,
+	solid: `module.exports = {
+	compile_to_volar_mappings(source, filename) {
+		const code = \`/* compiler:solid */\\nexport const filename = \${JSON.stringify(filename)};\\nexport default \${JSON.stringify(source)};\`;
+		return {
+			code,
+			mappings: [
+				{
+					sourceOffsets: [0],
+					generatedOffsets: [0],
+					lengths: [source.length],
+					generatedLengths: [source.length],
+					data: {
+						verification: false,
+						completion: true,
+						semantic: true,
+						navigation: true,
+						structure: true,
+						format: true,
+						customData: {},
+					},
+				},
+			],
+			cssMappings: [],
+			errors: [],
+		};
+	},
+};
+`,
+	preact: `module.exports = {
+	compile_to_volar_mappings(source, filename) {
+		const code = \`/* compiler:preact */\\nexport const filename = \${JSON.stringify(filename)};\\nexport default \${JSON.stringify(source)};\`;
+		return {
+			code,
+			mappings: [
+				{
+					sourceOffsets: [0],
+					generatedOffsets: [0],
+					lengths: [source.length],
+					generatedLengths: [source.length],
+					data: {
+						verification: false,
+						completion: true,
+						semantic: true,
+						navigation: true,
+						structure: true,
+						format: true,
+						customData: {},
+					},
+				},
+			],
+			cssMappings: [],
+			errors: [],
+		};
+	},
+};
+`,
 };
 
 export const WORKSPACE_CONFIGS = {
@@ -85,6 +141,28 @@ export const WORKSPACE_CONFIGS = {
 		},
 		compilers: ['react'],
 	},
+	'solid-only': {
+		package_json: {
+			name: '@tsrx/fixture-solid-only-project',
+			private: true,
+			devDependencies: {
+				'@tsrx/solid': 'workspace:*',
+				'@tsrx/vite-plugin-solid': 'workspace:*',
+			},
+		},
+		compilers: ['solid'],
+	},
+	'preact-only': {
+		package_json: {
+			name: '@tsrx/fixture-preact-only-project',
+			private: true,
+			devDependencies: {
+				'@tsrx/preact': 'workspace:*',
+				'@tsrx/vite-plugin-preact': 'workspace:*',
+			},
+		},
+		compilers: ['preact'],
+	},
 	both: {
 		package_json: {
 			name: '@ripple-ts/fixture-ripple-project',
@@ -107,6 +185,17 @@ export const WORKSPACE_CONFIGS = {
 			},
 		},
 		compilers: ['ripple', 'react'],
+	},
+	'both-preact': {
+		package_json: {
+			name: '@tsrx/fixture-preact-project',
+			private: true,
+			devDependencies: {
+				'@tsrx/preact': 'workspace:*',
+				'@tsrx/vite-plugin-preact': 'workspace:*',
+			},
+		},
+		compilers: ['ripple', 'react', 'solid', 'preact'],
 	},
 };
 

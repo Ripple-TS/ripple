@@ -27,20 +27,28 @@ describe('typescript-plugin compiler resolution', () => {
 			expect(RIPPLE_EXTENSIONS).toEqual(['.tsrx']);
 		});
 
-		it('maps both compilers to .tsrx', () => {
+		it('maps all compiler candidates to .tsrx', () => {
 			const ripple_candidate = COMPILER_CANDIDATES.find(
 				([package_name]) => package_name === '@tsrx/ripple',
 			);
 			const react_candidate = COMPILER_CANDIDATES.find(
 				([package_name]) => package_name === '@tsrx/react',
 			);
+			const solid_candidate = COMPILER_CANDIDATES.find(
+				([package_name]) => package_name === '@tsrx/solid',
+			);
+			const preact_candidate = COMPILER_CANDIDATES.find(
+				([package_name]) => package_name === '@tsrx/preact',
+			);
 
-			if (!ripple_candidate || !react_candidate) {
+			if (!ripple_candidate || !react_candidate || !solid_candidate || !preact_candidate) {
 				throw new Error('Missing compiler candidates');
 			}
 
 			expect(ripple_candidate[2]).toEqual(['.tsrx']);
 			expect(react_candidate[2]).toEqual(['.tsrx']);
+			expect(solid_candidate[2]).toEqual(['.tsrx']);
+			expect(preact_candidate[2]).toEqual(['.tsrx']);
 		});
 	});
 
@@ -81,6 +89,16 @@ describe('typescript-plugin compiler resolution', () => {
 			);
 		});
 
+		it('selects the preact compiler in a preact-only project', () => {
+			const workspace = create_fixture_workspace('preact-only');
+			const file_name = path.join(workspace, 'src', 'App.tsrx');
+			const expected = path.join(workspace, 'node_modules', '@tsrx', 'preact', 'src', 'index.js');
+
+			expect(find_workspace_compiler_entry_for_file(file_name, fs.existsSync, new Map())).toBe(
+				expected,
+			);
+		});
+
 		it('prefers the ripple compiler when both compilers exist in a ripple project', () => {
 			const workspace = create_fixture_workspace('both');
 			const file_name = path.join(workspace, 'src', 'App.tsrx');
@@ -95,6 +113,16 @@ describe('typescript-plugin compiler resolution', () => {
 			const workspace = create_fixture_workspace('both-react');
 			const file_name = path.join(workspace, 'src', 'App.tsrx');
 			const expected = path.join(workspace, 'node_modules', '@tsrx', 'react', 'src', 'index.js');
+
+			expect(find_workspace_compiler_entry_for_file(file_name, fs.existsSync, new Map())).toBe(
+				expected,
+			);
+		});
+
+		it('prefers the preact compiler when multiple compilers exist in a preact project', () => {
+			const workspace = create_fixture_workspace('both-preact');
+			const file_name = path.join(workspace, 'src', 'App.tsrx');
+			const expected = path.join(workspace, 'node_modules', '@tsrx', 'preact', 'src', 'index.js');
 
 			expect(find_workspace_compiler_entry_for_file(file_name, fs.existsSync, new Map())).toBe(
 				expected,
@@ -154,8 +182,11 @@ describe('typescript-plugin compiler resolution', () => {
 		const cases = [
 			{ name: 'ripple-only', expected: ['@tsrx', 'ripple'] },
 			{ name: 'react-only', expected: ['@tsrx', 'react'] },
+			{ name: 'solid-only', expected: ['@tsrx', 'solid'] },
+			{ name: 'preact-only', expected: ['@tsrx', 'preact'] },
 			{ name: 'both', expected: ['@tsrx', 'ripple'] },
 			{ name: 'both-react', expected: ['@tsrx', 'react'] },
+			{ name: 'both-preact', expected: ['@tsrx', 'preact'] },
 		];
 
 		for (const test_case of cases) {
