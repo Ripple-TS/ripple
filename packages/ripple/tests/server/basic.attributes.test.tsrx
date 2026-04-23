@@ -83,6 +83,57 @@ describe('basic server > attribute rendering', () => {
 		expect(div.classList.contains('fff')).toBe(false);
 	});
 
+	it('applies scoped classes inside tsx blocks and fragment shorthand', async () => {
+		component App() {
+			<tsx>
+				<div class="card">
+					<h2>
+						{'tsx block'}
+					</h2>
+				</div>
+			</tsx>
+
+			<>
+				<div class="card">
+					<h2>
+						{'fragment shorthand'}
+					</h2>
+				</div>
+			</>
+
+			<style>
+				.card {
+					padding: 1rem;
+				}
+
+				h2 {
+					color: red;
+				}
+			</style>
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+
+		const cards = Array.from(document.querySelectorAll('.card'));
+		const headings = Array.from(document.querySelectorAll('h2'));
+
+		expect(cards).toHaveLength(2);
+		expect(headings).toHaveLength(2);
+
+		cards.forEach((card) => {
+			expect(Array.from(card.classList).some((className) => className.startsWith('tsrx-'))).toBe(
+				true,
+			);
+		});
+
+		headings.forEach((heading) => {
+			expect(Array.from(heading.classList).some((className) => className.startsWith('tsrx-'))).toBe(
+				true,
+			);
+		});
+	});
+
 	it('render dynamic class object', async () => {
 		component Basic() {
 			let &[active] = track(false);
@@ -204,7 +255,10 @@ describe('basic server > attribute rendering', () => {
 
 	it('render tracked object as style attribute', async () => {
 		component Basic() {
-			let style = new RippleObject({ color: 'red', fontWeight: 'bold' });
+			let style = new RippleObject({
+				color: 'red',
+				fontWeight: 'bold',
+			});
 
 			<div style={{ color: style.color, fontWeight: style.fontWeight }}>{'Dynamic Style'}</div>
 		}

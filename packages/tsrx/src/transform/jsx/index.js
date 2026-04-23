@@ -145,7 +145,11 @@ export function createJsxTransform(platform) {
 				if (css) {
 					stylesheets.push(css);
 					const hash = css.hash;
-					annotate_component_with_hash(as_any, hash);
+					annotate_component_with_hash(
+						as_any,
+						hash,
+						platform.jsx.rewriteClassAttr ? 'className' : 'class',
+					);
 				}
 				return next(state);
 			},

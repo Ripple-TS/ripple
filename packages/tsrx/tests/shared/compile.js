@@ -13,6 +13,15 @@ import { describe, expect, it } from 'vitest';
  */
 
 /**
+ * @param {string} haystack
+ * @param {string} needle
+ * @returns {number}
+ */
+function count_substring(haystack, needle) {
+	return haystack.split(needle).length - 1;
+}
+
+/**
  * Shared compile-output regressions. These assert observable properties of
  * the generated code (not source-map structure) that every JSX target should
  * satisfy — e.g. the factory walker's `MemberExpression` rewrite of
@@ -476,6 +485,72 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 			expect(code).toContain(`${classAttrName}="${css?.hash}"`);
 			expect(css?.code).toContain(`.div.${css?.hash}`);
 			expect(css?.code).toContain('color: red;');
+		});
+
+		it('applies the scope hash inside a <tsx> block', () => {
+			const { code, css } = compile(
+				`component Card() {
+					<tsx>
+						<div class="card">
+							<h2>{'Scoped title'}</h2>
+							<p>{'Styles here do not leak out.'}</p>
+						</div>
+					</tsx>
+
+					<div class="card">
+						<h2>{'Scoped title'}</h2>
+						<p>{'Styles here do not leak out.'}</p>
+					</div>
+
+					<style>
+						.card {
+							padding: 1.5rem;
+							border: 1px solid #ddd;
+						}
+
+						h2 {
+							color: #333;
+						}
+					</style>
+				}`,
+				'Card.tsrx',
+			);
+
+			expect(css).not.toBeNull();
+			expect(count_substring(code, `${classAttrName}="card ${css?.hash}"`)).toBe(2);
+		});
+
+		it('applies the scope hash inside fragment shorthand', () => {
+			const { code, css } = compile(
+				`component Card() {
+					<>
+						<div class="card">
+							<h2>{'Scoped title'}</h2>
+							<p>{'Styles here do not leak out.'}</p>
+						</div>
+					</>
+
+					<div class="card">
+						<h2>{'Scoped title'}</h2>
+						<p>{'Styles here do not leak out.'}</p>
+					</div>
+
+					<style>
+						.card {
+							padding: 1.5rem;
+							border: 1px solid #ddd;
+						}
+
+						h2 {
+							color: #333;
+						}
+					</style>
+				}`,
+				'Card.tsrx',
+			);
+
+			expect(css).not.toBeNull();
+			expect(count_substring(code, `${classAttrName}="card ${css?.hash}"`)).toBe(2);
 		});
 
 		it('does not apply scoped css hashes to composite components', () => {

@@ -285,7 +285,7 @@ export interface RippleObjectCallable {
 export interface RippleObjectConstructor {
 	new <T extends Object>(obj: T): RippleObject<T>;
 }
-export interface RippleObject<T> extends Object {}
+export type RippleObject<T> = { [K in keyof T]: T[K] };
 export const RippleObject: RippleObjectConstructor;
 
 export interface RippleDateCallable {

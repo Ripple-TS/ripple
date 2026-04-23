@@ -1,8 +1,8 @@
 /**
  * Framework-agnostic CSS scoping utilities shared between the `@tsrx/react`
  * and `@tsrx/solid` transforms. These walk the template AST and annotate
- * `Element` nodes with a hash class so scope-qualified selectors
- * (e.g. `.foo.hash`) match after rendering.
+ * template nodes with a hash class so scope-qualified selectors (e.g.
+ * `.foo.hash`) match after rendering.
  */
 
 import { walk } from 'zimmerframe';
@@ -62,14 +62,41 @@ export function is_composite_element(node) {
 }
 
 /**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_style_jsx_element(node) {
+	const name = node?.openingElement?.name;
+	return node?.type === 'JSXElement' && name?.type === 'JSXIdentifier' && name.name === 'style';
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_composite_jsx_element(node) {
+	const name = node?.openingElement?.name;
+	if (node?.type !== 'JSXElement' || !name) {
+		return false;
+	}
+
+	if (name.type === 'JSXIdentifier') {
+		return /^[A-Z]/.test(name.name);
+	}
+
+	return name.type === 'JSXMemberExpression';
+}
+
+/**
  * Recursively walk `Element` nodes within a component body and add the hash
  * class name so scope-qualified selectors (e.g. `.foo.hash`) match.
  *
  * @param {any} node
  * @param {string} hash
+ * @param {'class' | 'className'} [jsx_class_attr_name='class']
  * @returns {any}
  */
-export function annotate_with_hash(node, hash) {
+export function annotate_with_hash(node, hash, jsx_class_attr_name = 'class') {
 	if (!node || typeof node !== 'object') return node;
 	if (
 		node.type === 'Component' ||
@@ -87,7 +114,19 @@ export function annotate_with_hash(node, hash) {
 		if (Array.isArray(node.children)) {
 			node.children = node.children
 				.filter((/** @type {any} */ child) => !is_style_element(child))
-				.map((/** @type {any} */ child) => annotate_with_hash(child, hash));
+				.map((/** @type {any} */ child) => annotate_with_hash(child, hash, jsx_class_attr_name));
+		}
+		return node;
+	}
+
+	if (node.type === 'JSXElement') {
+		if (!is_style_jsx_element(node) && !is_composite_jsx_element(node)) {
+			add_hash_class_to_jsx_element(node, hash, jsx_class_attr_name);
+		}
+		if (Array.isArray(node.children)) {
+			node.children = node.children.map((/** @type {any} */ child) =>
+				annotate_with_hash(child, hash, jsx_class_attr_name),
+			);
 		}
 		return node;
 	}
@@ -99,9 +138,11 @@ export function annotate_with_hash(node, hash) {
 
 		const value = node[key];
 		if (Array.isArray(value)) {
-			node[key] = value.map((/** @type {any} */ child) => annotate_with_hash(child, hash));
+			node[key] = value.map((/** @type {any} */ child) =>
+				annotate_with_hash(child, hash, jsx_class_attr_name),
+			);
 		} else if (value && typeof value === 'object') {
-			node[key] = annotate_with_hash(value, hash);
+			node[key] = annotate_with_hash(value, hash, jsx_class_attr_name);
 		}
 	}
 
@@ -111,14 +152,15 @@ export function annotate_with_hash(node, hash) {
 /**
  * @param {any} component
  * @param {string} hash
+ * @param {'class' | 'className'} [jsx_class_attr_name='class']
  * @returns {void}
  */
-export function annotate_component_with_hash(component, hash) {
+export function annotate_component_with_hash(component, hash, jsx_class_attr_name = 'class') {
 	/** @type {any[]} */
 	const body = component.body;
 	component.body = body
 		.filter((/** @type {any} */ child) => !is_style_element(child))
-		.map((/** @type {any} */ child) => annotate_with_hash(child, hash));
+		.map((/** @type {any} */ child) => annotate_with_hash(child, hash, jsx_class_attr_name));
 }
 
 /**
@@ -176,5 +218,75 @@ export function add_hash_class(element, hash) {
 				tail: true,
 			},
 		],
+	};
+}
+
+/**
+ * @param {any} element
+ * @param {string} hash
+ * @param {'class' | 'className'} jsx_class_attr_name
+ * @returns {void}
+ */
+function add_hash_class_to_jsx_element(element, hash, jsx_class_attr_name) {
+	const attrs = element.openingElement?.attributes || (element.openingElement.attributes = []);
+	const existing = attrs.find(
+		(/** @type {any} */ attr) =>
+			attr?.type === 'JSXAttribute' &&
+			attr.name?.type === 'JSXIdentifier' &&
+			(attr.name.name === 'class' || attr.name.name === 'className'),
+	);
+
+	if (!existing) {
+		attrs.push({
+			type: 'JSXAttribute',
+			name: { type: 'JSXIdentifier', name: jsx_class_attr_name, metadata: { path: [] } },
+			value: { type: 'Literal', value: hash, raw: JSON.stringify(hash) },
+			shorthand: false,
+			metadata: { path: [] },
+		});
+		return;
+	}
+
+	if (existing.name.name !== jsx_class_attr_name) {
+		existing.name = {
+			type: 'JSXIdentifier',
+			name: jsx_class_attr_name,
+			metadata: existing.name.metadata || { path: [] },
+		};
+	}
+
+	const value = existing.value;
+	if (!value) {
+		existing.value = { type: 'Literal', value: hash, raw: JSON.stringify(hash) };
+		return;
+	}
+
+	if (value.type === 'Literal' && typeof value.value === 'string') {
+		const merged = `${value.value} ${hash}`;
+		existing.value = { type: 'Literal', value: merged, raw: JSON.stringify(merged) };
+		return;
+	}
+
+	const expression = value.type === 'JSXExpressionContainer' ? value.expression : value;
+	existing.value = {
+		type: 'JSXExpressionContainer',
+		expression: {
+			type: 'TemplateLiteral',
+			expressions: [expression],
+			quasis: [
+				{
+					type: 'TemplateElement',
+					value: { raw: '', cooked: '' },
+					tail: false,
+				},
+				{
+					type: 'TemplateElement',
+					value: { raw: ` ${hash}`, cooked: ` ${hash}` },
+					tail: true,
+				},
+			],
+			metadata: { path: [] },
+		},
+		metadata: { path: [] },
 	};
 }

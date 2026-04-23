@@ -76,8 +76,52 @@ import {
 	strip_class_typescript_syntax,
 	jsx_to_ripple_node,
 } from '../../utils.js';
+import { prune_css } from '../../analyze/prune.js';
 import is_reference from 'is-reference';
 import { createHash } from 'node:crypto';
+
+/**
+ * Re-run CSS pruning on JSX converted from a `<tsx>` block so it receives the
+ * same scoped metadata as normal Ripple template elements before codegen.
+ *
+ * @param {AST.Node[]} nodes
+ * @param {TransformClientState} state
+ * @returns {void}
+ */
+function apply_tsrx_css_scoping(nodes, state) {
+	const component = state.component;
+	if (!component?.css) {
+		return;
+	}
+	const css = /** @type {AST.CSS.StyleSheet} */ (component.css);
+
+	const style_classes = component.metadata.styleClasses ?? new Map();
+	const top_scoped_classes = component.metadata.topScopedClasses ?? new Map();
+
+	/**
+	 * @param {AST.Node} node
+	 * @returns {void}
+	 */
+	function visit_node(node) {
+		if (node.type === 'Element') {
+			prune_css(css, node, style_classes, top_scoped_classes);
+			for (const child of node.children) {
+				visit_node(child);
+			}
+			return;
+		}
+
+		if ('children' in node && Array.isArray(node.children)) {
+			for (const child of node.children) {
+				visit_node(/** @type {AST.Node} */ (child));
+			}
+		}
+	}
+
+	for (const node of nodes) {
+		visit_node(node);
+	}
+}
 
 /**
  *
@@ -1157,7 +1201,7 @@ const visitors = {
 	},
 
 	Tsx(node, context) {
-		const { state, visit } = context;
+		const { state, visit, path } = context;
 
 		// to_ts mode: produce a JSX fragment
 		if (state.to_ts) {
@@ -1172,7 +1216,7 @@ const visitors = {
 		/** @type {AST.Node[]} */
 		const children_filtered = [];
 		for (const raw_child of node.children) {
-			const result = jsx_to_ripple_node(/** @type {AST.Node} */ (raw_child));
+			const result = jsx_to_ripple_node(/** @type {AST.Node} */ (raw_child), path);
 			const items = Array.isArray(result) ? result : [result];
 			for (const child of items) {
 				if (child == null || child.type === 'EmptyStatement') continue;
@@ -1183,6 +1227,7 @@ const visitors = {
 				}
 			}
 		}
+		apply_tsrx_css_scoping(children_filtered, state);
 
 		const children_component = b.component(b.id('render_children'), [], children_filtered);
 
@@ -1984,7 +2029,7 @@ const visitors = {
 			state: {
 				...context.state,
 				flush_node: null,
-				component: node,
+				component: is_synthetic_children ? context.state.component : node,
 				metadata,
 				scope: component_scope,
 				is_tsrx_element: false,

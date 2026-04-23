@@ -11,6 +11,56 @@ describe('tsx expression', () => {
 		expect(container.querySelector('div')).toBeTruthy();
 	});
 
+	it('applies scoped classes inside tsx blocks and fragment shorthand', () => {
+		component App() {
+			<tsx>
+				<div class="card">
+					<h2>
+						{'tsx block'}
+					</h2>
+				</div>
+			</tsx>
+
+			<>
+				<div class="card">
+					<h2>
+						{'fragment shorthand'}
+					</h2>
+				</div>
+			</>
+
+			<style>
+				.card {
+					padding: 1rem;
+				}
+
+				h2 {
+					color: red;
+				}
+			</style>
+		}
+
+		render(App);
+
+		const cards = Array.from(container.querySelectorAll('.card'));
+		const headings = Array.from(container.querySelectorAll('h2'));
+
+		expect(cards).toHaveLength(2);
+		expect(headings).toHaveLength(2);
+
+		cards.forEach((card) => {
+			expect(Array.from(card.classList).some((className) => className.startsWith('tsrx-'))).toBe(
+				true,
+			);
+		});
+
+		headings.forEach((heading) => {
+			expect(Array.from(heading.classList).some((className) => className.startsWith('tsrx-'))).toBe(
+				true,
+			);
+		});
+	});
+
 	it('renders a tsx element assigned to a variable', () => {
 		component App() {
 			const el = <tsx><span class="test">content</span></tsx>;
