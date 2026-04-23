@@ -28,10 +28,10 @@
   },
   "peerDependencies": {
     "typescript": "catalog:peer",
-    "@tsrx/react": "latest",
-    "@tsrx/ripple": "latest",
-    "@tsrx/solid": "latest",
-    "@tsrx/preact": "latest"
+    "@tsrx/react": "workspace:*",
+    "@tsrx/ripple": "workspace:*",
+    "@tsrx/solid": "workspace:*",
+    "@tsrx/preact": "workspace:*"
   },
   "peerDependenciesMeta": {
     "@tsrx/react": {

@@ -843,12 +843,18 @@ importers:
 
   packages/typescript-plugin:
     dependencies:
+      '@tsrx/preact':
+        specifier: workspace:*
+        version: link:../tsrx-preact
       '@tsrx/react':
         specifier: workspace:*
         version: link:../tsrx-react
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:../tsrx-ripple
+      '@tsrx/solid':
+        specifier: workspace:*
+        version: link:../tsrx-solid
       '@volar/language-core':
         specifier: catalog:default
         version: 2.4.28
