@@ -73,7 +73,7 @@ const solid_platform = {
 		acceptedTsxKinds: ['solid'],
 	},
 	validation: {
-		requireUseServerForAwait: false,
+		requireUseServerForAwait: true,
 	},
 	hooks: {
 		initialState: () => ({
