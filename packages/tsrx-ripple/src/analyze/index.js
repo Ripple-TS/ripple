@@ -38,10 +38,9 @@ import {
 	is_children_template_expression as is_children_template_expression_in_scope,
 	normalize_children,
 	is_binding_function,
-	is_inside_try_block,
+	strong_hash,
 } from '../utils.js';
 import is_reference from 'is-reference';
-import { createHash } from 'node:crypto';
 import { prune_css } from './prune.js';
 
 const valid_in_head = new Set(['title', 'base', 'link', 'meta', 'style', 'script', 'noscript']);
@@ -1127,11 +1126,10 @@ const visitors = {
 		if (track_call_name !== null) {
 			const id = ++context.state.module.track_id;
 			const padded_id = String(id).padStart(6, '0');
-			const hash = createHash('sha256')
-				.update(context.state.analysis.module.filename + '__' + padded_id)
-				.digest('hex')
-				.slice(0, 8);
-			node.metadata = { ...node.metadata, hash };
+			node.metadata = {
+				...node.metadata,
+				hash: strong_hash(context.state.analysis.module.filename + '__' + padded_id),
+			};
 		}
 
 		if (!is_inside_component(context, true)) {

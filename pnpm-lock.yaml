@@ -15,6 +15,9 @@ catalogs:
     '@jridgewell/sourcemap-codec':
       specifier: ^1.5.5
       version: 1.5.5
+    '@noble/hashes':
+      specifier: ^2.2.0
+      version: 2.2.0
     '@rollup/pluginutils':
       specifier: ^5.3.0
       version: 5.3.0
@@ -273,14 +276,14 @@ importers:
         specifier: catalog:default
         version: 24.11.0
       '@typescript/native-preview':
-        specifier: 7.0.0-dev.20260422.1
-        version: 7.0.0-dev.20260422.1
+        specifier: 7.0.0-dev.20260423.1
+        version: 7.0.0-dev.20260423.1
       eslint:
         specifier: catalog:default
         version: 10.2.1(jiti@2.6.1)
       jsdom:
         specifier: catalog:default
-        version: 29.0.2
+        version: 29.0.2(@noble/hashes@2.2.0)
       linkedom:
         specifier: catalog:default
         version: 0.18.12
@@ -307,7 +310,7 @@ importers:
         version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.7(@solidjs/signals@2.0.0-beta.7)(solid-js@2.0.0-beta.7))(solid-js@2.0.0-beta.7)(vite@8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
       vitest:
         specifier: catalog:default
-        version: 4.1.4(@types/node@24.11.0)(jsdom@29.0.2)(vite@8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 4.1.4(@types/node@24.11.0)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
       wait-on:
         specifier: catalog:default
         version: 9.0.5
@@ -386,7 +389,7 @@ importers:
         version: 2.8.4
       jsdom:
         specifier: catalog:default
-        version: 29.0.2
+        version: 29.0.2(@noble/hashes@2.2.0)
       kleur:
         specifier: catalog:default
         version: 4.1.5
@@ -401,13 +404,13 @@ importers:
         version: 2.4.2
       tsdown:
         specifier: catalog:default
-        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260422.1)(typescript@5.9.3)
+        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260423.1)(typescript@5.9.3)
       type-fest:
         specifier: catalog:default
         version: 5.6.0
       vitest:
         specifier: catalog:default
-        version: 4.1.4(@types/node@25.3.3)(jsdom@29.0.2)(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 4.1.4(@types/node@25.3.3)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
 
   packages/compat-react:
     dependencies:
@@ -442,7 +445,7 @@ importers:
     devDependencies:
       tsdown:
         specifier: catalog:default
-        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260422.1)(typescript@5.9.3)
+        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260423.1)(typescript@5.9.3)
 
   packages/eslint-parser:
     dependencies:
@@ -467,7 +470,7 @@ importers:
         version: 24.11.0
       tsdown:
         specifier: catalog:default
-        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260422.1)(typescript@5.9.3)
+        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260423.1)(typescript@5.9.3)
       typescript:
         specifier: catalog:default
         version: 5.9.3
@@ -494,13 +497,13 @@ importers:
         version: 10.2.1(jiti@2.6.1)
       tsdown:
         specifier: catalog:default
-        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260422.1)(typescript@5.9.3)
+        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260423.1)(typescript@5.9.3)
       typescript:
         specifier: catalog:default
         version: 5.9.3
       vitest:
         specifier: catalog:default
-        version: 4.1.4(@types/node@24.11.0)(jsdom@29.0.2)(vite@8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 4.1.4(@types/node@24.11.0)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
 
   packages/intellij-plugin: {}
 
@@ -536,7 +539,7 @@ importers:
         version: link:../tsrx-ripple
       tsdown:
         specifier: catalog:default
-        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260422.1)(typescript@5.9.3)
+        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260423.1)(typescript@5.9.3)
 
   packages/nvim-plugin: {}
 
@@ -669,6 +672,9 @@ importers:
       '@jridgewell/sourcemap-codec':
         specifier: catalog:default
         version: 1.5.5
+      '@noble/hashes':
+        specifier: catalog:default
+        version: 2.2.0
       '@sveltejs/acorn-typescript':
         specifier: catalog:default
         version: 1.0.9(acorn@8.16.0)
@@ -858,7 +864,7 @@ importers:
         version: 24.11.0
       tsdown:
         specifier: catalog:default
-        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260422.1)(typescript@5.9.3)
+        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260423.1)(typescript@5.9.3)
 
   packages/vite-plugin:
     dependencies:
@@ -995,7 +1001,7 @@ importers:
         version: 0.5.17
       tsdown:
         specifier: catalog:default
-        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260422.1)(typescript@5.9.3)
+        version: 0.20.3(@typescript/native-preview@7.0.0-dev.20260423.1)(typescript@5.9.3)
 
   packages/zed-plugin: {}
 
@@ -1074,7 +1080,7 @@ importers:
         version: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
       vitest:
         specifier: catalog:default
-        version: 4.1.4(@types/node@25.3.3)(jsdom@29.0.2)(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 4.1.4(@types/node@25.3.3)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
 
   playground/solid:
     dependencies:
@@ -2076,6 +2082,10 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@noble/hashes@2.2.0':
+    resolution: {integrity: sha512-IYqDGiTXab6FniAgnSdZwgWbomxpy9FtYvLKs7wCUs2a8RkITG+DFGO1DM9cr+E3/RgADRpFjrKVaJ1z6sjtEg==}
+    engines: {node: '>= 20.19.0'}
+
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
     engines: {node: '>= 8'}
@@ -3061,43 +3071,51 @@ packages:
     resolution: {integrity: sha512-KiROIzYdEV85YygXw6BI/Dx4fnBlFQu6Mq4QE4MOH9fFnhohw6wX/OAvDY2/C+ut0I3RSPKenvZJIVYqJNkhEw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@typescript/native-preview-darwin-arm64@7.0.0-dev.20260422.1':
-    resolution: {integrity: sha512-W/lGgoEfbdI/QWYqcNP0fSa4DHQKKEMLzDPsE6fA64zmfCNsTO9M7ttK0acKiLsGB16pr0lubuMDRNN5kXyQ8w==}
+  '@typescript/native-preview-darwin-arm64@7.0.0-dev.20260423.1':
+    resolution: {integrity: sha512-wbLr6o5fROaCYt6cOpFhbe92FJAOdhAHwm/s8I/IyN5HbL1ULgel/wHaZiR+ws+27rgruNUiCENzTUg9vSz2bA==}
+    engines: {node: '>=16.20.0'}
     cpu: [arm64]
     os: [darwin]
 
-  '@typescript/native-preview-darwin-x64@7.0.0-dev.20260422.1':
-    resolution: {integrity: sha512-6tZ2yAcKLBIghwKyC74vDqb/7rB99fTpERv9f64iA1tMh6l+WHIuQb6z3mIFVOYBIl2pN9CYasURLroKYtUz1w==}
+  '@typescript/native-preview-darwin-x64@7.0.0-dev.20260423.1':
+    resolution: {integrity: sha512-13MpNT+4MgkgrfiW2u03rnER5aB3yz9fA0bWEYh6IH3rIqA2AR3Dntp3QXW4sQrZf0SriXqHe2R7X3HCT5xmqA==}
+    engines: {node: '>=16.20.0'}
     cpu: [x64]
     os: [darwin]
 
-  '@typescript/native-preview-linux-arm64@7.0.0-dev.20260422.1':
-    resolution: {integrity: sha512-7HL4E7kP0ociYB8R4+QuIbzfT3pjdesNY+ax/q6fP3IMd3/QNAL/qsm/NaokjXke+I7uYxKqQ8Qo/t5MSv/r+A==}
+  '@typescript/native-preview-linux-arm64@7.0.0-dev.20260423.1':
+    resolution: {integrity: sha512-ICIkJDTqmn0R4Vs811+Ht2RYTk1OCrAhHCu0JthmhR216T1Tqgi5DWRoCprp3RL1qU6fLnxxrIpEbNlNN7XFYA==}
+    engines: {node: '>=16.20.0'}
     cpu: [arm64]
     os: [linux]
 
-  '@typescript/native-preview-linux-arm@7.0.0-dev.20260422.1':
-    resolution: {integrity: sha512-EWP1Jq2I8MMSkoF9D6ztXgRmnUy2KcaZfL9FYcdm3Am6ZYuI6/SCR3HVIVYbaixAJXe/qUh5MN3LzJbl/4hefQ==}
+  '@typescript/native-preview-linux-arm@7.0.0-dev.20260423.1':
+    resolution: {integrity: sha512-CxUA15qbPQRvz2nanBpiv1h4tgXTCJJwqOtgKMSdIuPkow8dyYW3ba5oLoH/jZhS4792XislX659hlFrfiU6CQ==}
+    engines: {node: '>=16.20.0'}
     cpu: [arm]
     os: [linux]
 
-  '@typescript/native-preview-linux-x64@7.0.0-dev.20260422.1':
-    resolution: {integrity: sha512-fDqkLf2Hv7X1Cy1B5OMcljPt/+8GpnTxFM9rDCFrYAPgOolIQJ9qwkb+xGfvAtxkkE5sZIvGPcqjP9PWQHt2qw==}
+  '@typescript/native-preview-linux-x64@7.0.0-dev.20260423.1':
+    resolution: {integrity: sha512-cWLFS4R8dOU1YuUJ/2VLeGMVIjgI3GGb/f9rRY5MbWHq5l3NNZh8y1QwAOrTh3+g3q6+znArfxVnD2hZHUz8Mw==}
+    engines: {node: '>=16.20.0'}
     cpu: [x64]
     os: [linux]
 
-  '@typescript/native-preview-win32-arm64@7.0.0-dev.20260422.1':
-    resolution: {integrity: sha512-l1tDnyNQSqxFkKz683dD8EORQtcQqZyWkTDnRtHmaPg2mTRxhxSekL/HcsHx/1/DoGTfl310O+CmXzd2mTq3pQ==}
+  '@typescript/native-preview-win32-arm64@7.0.0-dev.20260423.1':
+    resolution: {integrity: sha512-OWaGUI4+dHqYZv+k6sITx9Y27FNy3XzNFk4OrOiYtBkIO/xrb9TPMP4A5XI4n5zwRLIv3xne9g039xgRbaeyoQ==}
+    engines: {node: '>=16.20.0'}
     cpu: [arm64]
     os: [win32]
 
-  '@typescript/native-preview-win32-x64@7.0.0-dev.20260422.1':
-    resolution: {integrity: sha512-VQbDQlp1bjV5nnHagQLXQAhid3S48l1OToIBjvqlw18s0V0YSgoyNL6E/rE7FBdkGrTLf/rtKjo42IZnt3tvqA==}
+  '@typescript/native-preview-win32-x64@7.0.0-dev.20260423.1':
+    resolution: {integrity: sha512-5MQjO/qdLwXpjW7Dy/1lNv7Vtpvo6bhCkbjan4PoRN5/eeyqEqDWxdf8AGE4btLmHqyIjEHRuYf7kp2tlAr6lQ==}
+    engines: {node: '>=16.20.0'}
     cpu: [x64]
     os: [win32]
 
-  '@typescript/native-preview@7.0.0-dev.20260422.1':
-    resolution: {integrity: sha512-8CR8zHFlLpSL5OXY4Wbz2DmiDOoat1JBMkydZUHwQIS4cpoTN7SHjk2BN8i51XHUy0jMF5airL0TlY3GOfZmKg==}
+  '@typescript/native-preview@7.0.0-dev.20260423.1':
+    resolution: {integrity: sha512-9WD7TJJlGvt9PQqJI/+44dVP4oqGQFIkYrpXt7nlQ0WgNIErN52x/XhxmJ4nWft06qejgPiUbPo4aYRNOmIHXg==}
+    engines: {node: '>=16.20.0'}
     hasBin: true
 
   '@typespec/ts-http-runtime@0.3.3':
@@ -7172,7 +7190,9 @@ snapshots:
       '@eslint/core': 1.2.1
       levn: 0.4.1
 
-  '@exodus/bytes@1.15.0': {}
+  '@exodus/bytes@1.15.0(@noble/hashes@2.2.0)':
+    optionalDependencies:
+      '@noble/hashes': 2.2.0
 
   '@gar/promise-retry@1.0.2':
     dependencies:
@@ -7477,6 +7497,8 @@ snapshots:
 
   '@next/swc-win32-x64-msvc@16.2.4':
     optional: true
+
+  '@noble/hashes@2.2.0': {}
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
@@ -8341,36 +8363,36 @@ snapshots:
       '@typescript-eslint/types': 8.56.1
       eslint-visitor-keys: 5.0.1
 
-  '@typescript/native-preview-darwin-arm64@7.0.0-dev.20260422.1':
+  '@typescript/native-preview-darwin-arm64@7.0.0-dev.20260423.1':
     optional: true
 
-  '@typescript/native-preview-darwin-x64@7.0.0-dev.20260422.1':
+  '@typescript/native-preview-darwin-x64@7.0.0-dev.20260423.1':
     optional: true
 
-  '@typescript/native-preview-linux-arm64@7.0.0-dev.20260422.1':
+  '@typescript/native-preview-linux-arm64@7.0.0-dev.20260423.1':
     optional: true
 
-  '@typescript/native-preview-linux-arm@7.0.0-dev.20260422.1':
+  '@typescript/native-preview-linux-arm@7.0.0-dev.20260423.1':
     optional: true
 
-  '@typescript/native-preview-linux-x64@7.0.0-dev.20260422.1':
+  '@typescript/native-preview-linux-x64@7.0.0-dev.20260423.1':
     optional: true
 
-  '@typescript/native-preview-win32-arm64@7.0.0-dev.20260422.1':
+  '@typescript/native-preview-win32-arm64@7.0.0-dev.20260423.1':
     optional: true
 
-  '@typescript/native-preview-win32-x64@7.0.0-dev.20260422.1':
+  '@typescript/native-preview-win32-x64@7.0.0-dev.20260423.1':
     optional: true
 
-  '@typescript/native-preview@7.0.0-dev.20260422.1':
+  '@typescript/native-preview@7.0.0-dev.20260423.1':
     optionalDependencies:
-      '@typescript/native-preview-darwin-arm64': 7.0.0-dev.20260422.1
-      '@typescript/native-preview-darwin-x64': 7.0.0-dev.20260422.1
-      '@typescript/native-preview-linux-arm': 7.0.0-dev.20260422.1
-      '@typescript/native-preview-linux-arm64': 7.0.0-dev.20260422.1
-      '@typescript/native-preview-linux-x64': 7.0.0-dev.20260422.1
-      '@typescript/native-preview-win32-arm64': 7.0.0-dev.20260422.1
-      '@typescript/native-preview-win32-x64': 7.0.0-dev.20260422.1
+      '@typescript/native-preview-darwin-arm64': 7.0.0-dev.20260423.1
+      '@typescript/native-preview-darwin-x64': 7.0.0-dev.20260423.1
+      '@typescript/native-preview-linux-arm': 7.0.0-dev.20260423.1
+      '@typescript/native-preview-linux-arm64': 7.0.0-dev.20260423.1
+      '@typescript/native-preview-linux-x64': 7.0.0-dev.20260423.1
+      '@typescript/native-preview-win32-arm64': 7.0.0-dev.20260423.1
+      '@typescript/native-preview-win32-x64': 7.0.0-dev.20260423.1
 
   '@typespec/ts-http-runtime@0.3.3':
     dependencies:
@@ -9060,10 +9082,10 @@ snapshots:
 
   csstype@3.2.3: {}
 
-  data-urls@7.0.0:
+  data-urls@7.0.0(@noble/hashes@2.2.0):
     dependencies:
       whatwg-mimetype: 5.0.0
-      whatwg-url: 16.0.1
+      whatwg-url: 16.0.1(@noble/hashes@2.2.0)
     transitivePeerDependencies:
       - '@noble/hashes'
 
@@ -9779,9 +9801,9 @@ snapshots:
     dependencies:
       lru-cache: 10.4.3
 
-  html-encoding-sniffer@6.0.0:
+  html-encoding-sniffer@6.0.0(@noble/hashes@2.2.0):
     dependencies:
-      '@exodus/bytes': 1.15.0
+      '@exodus/bytes': 1.15.0(@noble/hashes@2.2.0)
     transitivePeerDependencies:
       - '@noble/hashes'
 
@@ -9961,17 +9983,17 @@ snapshots:
     dependencies:
       argparse: 2.0.1
 
-  jsdom@29.0.2:
+  jsdom@29.0.2(@noble/hashes@2.2.0):
     dependencies:
       '@asamuzakjp/css-color': 5.1.11
       '@asamuzakjp/dom-selector': 7.0.10
       '@bramus/specificity': 2.4.2
       '@csstools/css-syntax-patches-for-csstree': 1.1.3(css-tree@3.2.1)
-      '@exodus/bytes': 1.15.0
+      '@exodus/bytes': 1.15.0(@noble/hashes@2.2.0)
       css-tree: 3.2.1
-      data-urls: 7.0.0
+      data-urls: 7.0.0(@noble/hashes@2.2.0)
       decimal.js: 10.6.0
-      html-encoding-sniffer: 6.0.0
+      html-encoding-sniffer: 6.0.0(@noble/hashes@2.2.0)
       is-potential-custom-element-name: 1.0.1
       lru-cache: 11.3.5
       parse5: 8.0.0
@@ -9982,7 +10004,7 @@ snapshots:
       w3c-xmlserializer: 5.0.0
       webidl-conversions: 8.0.1
       whatwg-mimetype: 5.0.0
-      whatwg-url: 16.0.1
+      whatwg-url: 16.0.1(@noble/hashes@2.2.0)
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - '@noble/hashes'
@@ -10888,7 +10910,7 @@ snapshots:
       devalue: 5.6.3
       esm-env: 1.2.2
 
-  rolldown-plugin-dts@0.22.3(@typescript/native-preview@7.0.0-dev.20260422.1)(rolldown@1.0.0-rc.3)(typescript@5.9.3):
+  rolldown-plugin-dts@0.22.3(@typescript/native-preview@7.0.0-dev.20260423.1)(rolldown@1.0.0-rc.3)(typescript@5.9.3):
     dependencies:
       '@babel/generator': 8.0.0-rc.2
       '@babel/helper-validator-identifier': 8.0.0-rc.2
@@ -10901,7 +10923,7 @@ snapshots:
       obug: 2.1.1
       rolldown: 1.0.0-rc.3
     optionalDependencies:
-      '@typescript/native-preview': 7.0.0-dev.20260422.1
+      '@typescript/native-preview': 7.0.0-dev.20260423.1
       typescript: 5.9.3
     transitivePeerDependencies:
       - oxc-resolver
@@ -11488,7 +11510,7 @@ snapshots:
     dependencies:
       typescript: 5.9.3
 
-  tsdown@0.20.3(@typescript/native-preview@7.0.0-dev.20260422.1)(typescript@5.9.3):
+  tsdown@0.20.3(@typescript/native-preview@7.0.0-dev.20260423.1)(typescript@5.9.3):
     dependencies:
       ansis: 4.2.0
       cac: 6.7.14
@@ -11499,7 +11521,7 @@ snapshots:
       obug: 2.1.1
       picomatch: 4.0.3
       rolldown: 1.0.0-rc.3
-      rolldown-plugin-dts: 0.22.3(@typescript/native-preview@7.0.0-dev.20260422.1)(rolldown@1.0.0-rc.3)(typescript@5.9.3)
+      rolldown-plugin-dts: 0.22.3(@typescript/native-preview@7.0.0-dev.20260423.1)(rolldown@1.0.0-rc.3)(typescript@5.9.3)
       semver: 7.7.4
       tinyexec: 1.0.2
       tinyglobby: 0.2.15
@@ -11809,7 +11831,7 @@ snapshots:
       - universal-cookie
       - yaml
 
-  vitest@4.1.4(@types/node@24.11.0)(jsdom@29.0.2)(vite@8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)):
+  vitest@4.1.4(@types/node@24.11.0)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)):
     dependencies:
       '@vitest/expect': 4.1.4
       '@vitest/mocker': 4.1.4(vite@8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
@@ -11833,11 +11855,11 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 24.11.0
-      jsdom: 29.0.2
+      jsdom: 29.0.2(@noble/hashes@2.2.0)
     transitivePeerDependencies:
       - msw
 
-  vitest@4.1.4(@types/node@25.3.3)(jsdom@29.0.2)(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)):
+  vitest@4.1.4(@types/node@25.3.3)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)):
     dependencies:
       '@vitest/expect': 4.1.4
       '@vitest/mocker': 4.1.4(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
@@ -11861,7 +11883,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 25.3.3
-      jsdom: 29.0.2
+      jsdom: 29.0.2(@noble/hashes@2.2.0)
     transitivePeerDependencies:
       - msw
 
@@ -11954,9 +11976,9 @@ snapshots:
 
   whatwg-mimetype@5.0.0: {}
 
-  whatwg-url@16.0.1:
+  whatwg-url@16.0.1(@noble/hashes@2.2.0):
     dependencies:
-      '@exodus/bytes': 1.15.0
+      '@exodus/bytes': 1.15.0(@noble/hashes@2.2.0)
       tr46: 6.0.0
       webidl-conversions: 8.0.1
     transitivePeerDependencies:

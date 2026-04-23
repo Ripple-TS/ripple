@@ -68,7 +68,8 @@ export {
 
 // Generic utils
 export {
-	hash,
+	simple_hash as simpleHash,
+	strong_hash as strongHash,
 	is_void_element as isVoidElement,
 	is_reserved as isReserved,
 	is_boolean_attribute as isBooleanAttribute,

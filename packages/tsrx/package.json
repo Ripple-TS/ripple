@@ -32,14 +32,15 @@
   },
   "dependencies": {
     "@jridgewell/sourcemap-codec": "catalog:default",
+    "@noble/hashes": "catalog:default",
     "@sveltejs/acorn-typescript": "catalog:default",
+    "@types/estree-jsx": "catalog:default",
+    "@types/estree": "catalog:default",
     "acorn": "catalog:default",
     "esrap": "catalog:default",
     "is-reference": "catalog:default",
     "magic-string": "catalog:default",
-    "zimmerframe": "catalog:default",
-    "@types/estree": "catalog:default",
-    "@types/estree-jsx": "catalog:default"
+    "zimmerframe": "catalog:default"
   },
   "devDependencies": {
     "@types/node": "catalog:default",

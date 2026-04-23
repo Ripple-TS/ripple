@@ -18,7 +18,7 @@ export function StaticTitle() {
 	});
 
 	_$_.set_output_target('head');
-	_$_.output_push('<!--o6otu9-->');
+	_$_.output_push('<!--c8908187-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 
@@ -55,7 +55,7 @@ export function ReactiveTitle() {
 	});
 
 	_$_.set_output_target('head');
-	_$_.output_push('<!--1kaaszj-->');
+	_$_.output_push('<!--8af28792-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 
@@ -83,7 +83,7 @@ export function MultipleHeadElements() {
 	});
 
 	_$_.set_output_target('head');
-	_$_.output_push('<!--9nqthf-->');
+	_$_.output_push('<!--3a79945b-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 
@@ -121,7 +121,7 @@ export function ReactiveMetaTags() {
 	});
 
 	_$_.set_output_target('head');
-	_$_.output_push('<!--1v7o69o-->');
+	_$_.output_push('<!--c9fd7b0f-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 
@@ -155,7 +155,7 @@ export function TitleWithTemplate() {
 	});
 
 	_$_.set_output_target('head');
-	_$_.output_push('<!--za44d-->');
+	_$_.output_push('<!--72f81455-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 
@@ -183,7 +183,7 @@ export function EmptyTitle() {
 	});
 
 	_$_.set_output_target('head');
-	_$_.output_push('<!--1st5x80-->');
+	_$_.output_push('<!--35a7fe4a-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 
@@ -214,7 +214,7 @@ export function ConditionalTitle() {
 	});
 
 	_$_.set_output_target('head');
-	_$_.output_push('<!--54ijvi-->');
+	_$_.output_push('<!--453e9ed4-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 
@@ -252,7 +252,7 @@ export function ComputedTitle() {
 	});
 
 	_$_.set_output_target('head');
-	_$_.output_push('<!--h5jm3a-->');
+	_$_.output_push('<!--63888c83-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 
@@ -280,7 +280,7 @@ export function MultipleHeadBlocks() {
 	});
 
 	_$_.set_output_target('head');
-	_$_.output_push('<!--133vcai-->');
+	_$_.output_push('<!--43cf39fd-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 
@@ -289,7 +289,7 @@ export function MultipleHeadBlocks() {
 	}
 
 	_$_.output_push('</title>');
-	_$_.output_push('<!--fju8tw-->');
+	_$_.output_push('<!--e9abd92f-->');
 	_$_.output_push('<meta');
 	_$_.output_push(' name="author"');
 	_$_.output_push(' content="Test Author"');
@@ -313,7 +313,7 @@ export function HeadWithStyle() {
 	});
 
 	_$_.set_output_target('head');
-	_$_.output_push('<!--1iodql4-->');
+	_$_.output_push('<!--d246667e-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 

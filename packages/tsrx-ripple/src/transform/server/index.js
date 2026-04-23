@@ -40,14 +40,14 @@ import {
 	is_ripple_track_call,
 	is_ripple_import,
 	replace_lazy_param_pattern,
-	hash,
+	simple_hash,
+	strong_hash,
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
 	strip_class_typescript_syntax,
 	jsx_to_ripple_node,
 } from '../../utils.js';
 import { prune_css } from '../../analyze/prune.js';
-import { createHash } from 'node:crypto';
 
 /**
  * Re-run CSS pruning on JSX converted from a `<tsx>` block so server output
@@ -356,7 +356,7 @@ function transform_children(children, context) {
 			// Generate a hash for this head element to match client-side hydration
 			// Use both filename and index to ensure uniqueness
 			const hash_source = `${context.state.filename}:head:${i}:${head_element.start ?? 0}`;
-			const hash_value = hash(hash_source);
+			const hash_value = strong_hash(hash_source);
 
 			// Emit hydration marker comment with hash
 			state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(`<!--${hash_value}-->`))));
@@ -1618,7 +1618,7 @@ const visitors = {
 		// For literal values, compute hash at build time
 		if (expression.type === 'Literal') {
 			const value = String(expression.value ?? '');
-			const hash_value = hash(value);
+			const hash_value = simple_hash(value);
 			// Push hash comment
 			state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(`<!--${hash_value}-->`))));
 			// Push the HTML content
@@ -1633,14 +1633,14 @@ const visitors = {
 				state.init?.push(
 					b.const(value_id, b.call(b.id('String'), b.logical('??', expression, b.literal('')))),
 				);
-				// Compute hash at runtime using _$_.hash and push as comment
+				// Compute hash at runtime using _$_.simple_hash and push as comment
 				state.init?.push(
 					b.stmt(
 						b.call(
 							b.id('_$_.output_push'),
 							b.binary(
 								'+',
-								b.binary('+', b.literal('<!--'), b.call('_$_.hash', b.id(value_id))),
+								b.binary('+', b.literal('<!--'), b.call('_$_.simple_hash', b.id(value_id))),
 								b.literal('-->'),
 							),
 						),
@@ -1689,8 +1689,8 @@ const visitors = {
 			for (const name of exports) {
 				const func_path = file_path + '#' + name;
 				// needs to be a sha256 hash of func_path, to avoid leaking file structure
-				const hash = createHash('sha256').update(func_path).digest('hex').slice(0, 8);
-				rpc_modules.set(hash, [file_path, name]);
+				const func_hash = strong_hash(func_path);
+				rpc_modules.set(func_hash, [file_path, name]);
 			}
 		}
 

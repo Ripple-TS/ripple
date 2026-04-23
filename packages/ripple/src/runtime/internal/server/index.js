@@ -51,7 +51,7 @@ import { COMPONENT_BLOCK, TRY_BLOCK } from './constants.js';
 
 export { escape };
 export { register_component_css as register_css } from './css-registry.js';
-export { hash } from '../../../utils/hashing.js';
+export { simpleHash as simple_hash, strongHash as strong_hash } from '@tsrx/core';
 export { context } from './context.js';
 export { try_block, component_block, regular_block } from './blocks.js';
 export { array_slice };

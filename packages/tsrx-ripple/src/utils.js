@@ -13,16 +13,17 @@ import {
 	isNonDelegated,
 	isVoidElement,
 	normalizeEventName,
-	hash,
+	simpleHash,
+	strongHash,
 } from '@tsrx/core';
 const b = builders;
-
-export { hash };
 
 // Re-export under the framework's snake_case internal convention.
 export const is_void_element = isVoidElement;
 export const is_boolean_attribute = isBooleanAttribute;
 export const is_dom_property = isDomProperty;
+export const simple_hash = simpleHash;
+export const strong_hash = strongHash;
 
 const RESERVED_WORDS = [
 	'arguments',

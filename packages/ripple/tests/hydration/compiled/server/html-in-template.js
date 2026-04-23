@@ -14,7 +14,7 @@ export function SimpleTemplateHtml() {
 		{
 			const html_value = String(data ?? '');
 
-			_$_.output_push('<!--' + _$_.hash(html_value) + '-->');
+			_$_.output_push('<!--' + _$_.simple_hash(html_value) + '-->');
 			_$_.output_push(html_value);
 			_$_.output_push('<!---->');
 		}
@@ -38,7 +38,7 @@ export function TemplateWithJSON() {
 		{
 			const html_value_1 = String(jsonData ?? '');
 
-			_$_.output_push('<!--' + _$_.hash(html_value_1) + '-->');
+			_$_.output_push('<!--' + _$_.simple_hash(html_value_1) + '-->');
 			_$_.output_push(html_value_1);
 			_$_.output_push('<!---->');
 		}

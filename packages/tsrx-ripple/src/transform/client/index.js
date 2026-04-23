@@ -67,7 +67,7 @@ import {
 	is_element_dynamic,
 	is_children_template_expression,
 	is_inside_left_side_assignment,
-	hash,
+	strong_hash,
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
 	is_ripple_import,
@@ -78,7 +78,6 @@ import {
 } from '../../utils.js';
 import { prune_css } from '../../analyze/prune.js';
 import is_reference from 'is-reference';
-import { createHash } from 'node:crypto';
 
 /**
  * Re-run CSS pruning on JSX converted from a `<tsx>` block so it receives the
@@ -219,7 +218,7 @@ function visit_head_element(node, index, context) {
 		// Generate a hash for this head element based on filename and index
 		// Use both filename and index to ensure uniqueness across multiple head blocks
 		const hash_source = `${state.filename}:head:${index}:${node.start ?? 0}`;
-		const hash_value = hash(hash_source);
+		const hash_value = strong_hash(hash_source);
 
 		context.state.init?.push(
 			b.stmt(
@@ -2652,7 +2651,7 @@ const visitors = {
 		for (const name of node.metadata.exports) {
 			const func_path = file_path + '#' + name;
 			// needs to be a sha256 hash of func_path, to avoid leaking file structure
-			const hash = createHash('sha256').update(func_path).digest('hex').slice(0, 8);
+			const func_hash = strong_hash(func_path);
 			props.push(
 				b.prop(
 					'init',
@@ -2660,7 +2659,7 @@ const visitors = {
 					b.function(
 						null,
 						[b.rest(b.id('args'))],
-						b.block([b.return(b.call('_$_.rpc', b.literal(hash), b.id('args')))]),
+						b.block([b.return(b.call('_$_.rpc', b.literal(func_hash), b.id('args')))]),
 					),
 				),
 			);

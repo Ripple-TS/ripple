@@ -1,6 +1,6 @@
 /** @import * as AST from 'estree' */
 
-import { hash } from '../utils/hashing.js';
+import { simple_hash } from '../utils/hashing.js';
 
 const REGEX_MATCHER = /^[~^$*|]?=/;
 const REGEX_ATTRIBUTE_FLAGS = /^[a-zA-Z]+/;
@@ -119,7 +119,7 @@ export function parse_style(content, options) {
 
 	return {
 		source: content,
-		hash: `tsrx-${hash(content)}`,
+		hash: `tsrx-${simple_hash(content)}`,
 		type: 'StyleSheet',
 		children: read_body(parser),
 		start: 0,

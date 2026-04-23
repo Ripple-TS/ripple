@@ -3,7 +3,7 @@
  * Framework-specific utilities should be in the framework package.
  */
 
-export { hash } from './utils/hashing.js';
+export { simple_hash, strong_hash } from './utils/hashing.js';
 
 const VOID_ELEMENT_NAMES = [
 	'area',

@@ -15,7 +15,7 @@ export function StaticHtml() {
 		{
 			const html_value = String(html ?? '');
 
-			_$_.output_push('<!--' + _$_.hash(html_value) + '-->');
+			_$_.output_push('<!--' + _$_.simple_hash(html_value) + '-->');
 			_$_.output_push(html_value);
 			_$_.output_push('<!---->');
 		}
@@ -38,7 +38,7 @@ export function DynamicHtml() {
 		{
 			const html_value_1 = String(content ?? '');
 
-			_$_.output_push('<!--' + _$_.hash(html_value_1) + '-->');
+			_$_.output_push('<!--' + _$_.simple_hash(html_value_1) + '-->');
 			_$_.output_push(html_value_1);
 			_$_.output_push('<!---->');
 		}
@@ -61,7 +61,7 @@ export function EmptyHtml() {
 		{
 			const html_value_2 = String(html ?? '');
 
-			_$_.output_push('<!--' + _$_.hash(html_value_2) + '-->');
+			_$_.output_push('<!--' + _$_.simple_hash(html_value_2) + '-->');
 			_$_.output_push(html_value_2);
 			_$_.output_push('<!---->');
 		}
@@ -84,7 +84,7 @@ export function ComplexHtml() {
 		{
 			const html_value_3 = String(html ?? '');
 
-			_$_.output_push('<!--' + _$_.hash(html_value_3) + '-->');
+			_$_.output_push('<!--' + _$_.simple_hash(html_value_3) + '-->');
 			_$_.output_push(html_value_3);
 			_$_.output_push('<!---->');
 		}
@@ -108,13 +108,13 @@ export function MultipleHtml() {
 		{
 			const html_value_4 = String(html1 ?? '');
 
-			_$_.output_push('<!--' + _$_.hash(html_value_4) + '-->');
+			_$_.output_push('<!--' + _$_.simple_hash(html_value_4) + '-->');
 			_$_.output_push(html_value_4);
 			_$_.output_push('<!---->');
 
 			const html_value_5 = String(html2 ?? '');
 
-			_$_.output_push('<!--' + _$_.hash(html_value_5) + '-->');
+			_$_.output_push('<!--' + _$_.simple_hash(html_value_5) + '-->');
 			_$_.output_push(html_value_5);
 			_$_.output_push('<!---->');
 		}
@@ -198,7 +198,7 @@ export function HtmlInChildren() {
 						{
 							const html_value_6 = String(content ?? '');
 
-							_$_.output_push('<!--' + _$_.hash(html_value_6) + '-->');
+							_$_.output_push('<!--' + _$_.simple_hash(html_value_6) + '-->');
 							_$_.output_push(html_value_6);
 							_$_.output_push('<!---->');
 						}
@@ -244,7 +244,7 @@ export function HtmlInChildrenWithSiblings() {
 						{
 							const html_value_7 = String(content ?? '');
 
-							_$_.output_push('<!--' + _$_.hash(html_value_7) + '-->');
+							_$_.output_push('<!--' + _$_.simple_hash(html_value_7) + '-->');
 							_$_.output_push(html_value_7);
 							_$_.output_push('<!---->');
 						}
@@ -283,13 +283,13 @@ export function MultipleHtmlInChildren() {
 						{
 							const html_value_8 = String(html1 ?? '');
 
-							_$_.output_push('<!--' + _$_.hash(html_value_8) + '-->');
+							_$_.output_push('<!--' + _$_.simple_hash(html_value_8) + '-->');
 							_$_.output_push(html_value_8);
 							_$_.output_push('<!---->');
 
 							const html_value_9 = String(html2 ?? '');
 
-							_$_.output_push('<!--' + _$_.hash(html_value_9) + '-->');
+							_$_.output_push('<!--' + _$_.simple_hash(html_value_9) + '-->');
 							_$_.output_push(html_value_9);
 							_$_.output_push('<!---->');
 						}
@@ -319,7 +319,7 @@ export function HtmlWithComments() {
 		{
 			const html_value_10 = String(content ?? '');
 
-			_$_.output_push('<!--' + _$_.hash(html_value_10) + '-->');
+			_$_.output_push('<!--' + _$_.simple_hash(html_value_10) + '-->');
 			_$_.output_push(html_value_10);
 			_$_.output_push('<!---->');
 		}
@@ -342,7 +342,7 @@ export function HtmlWithEmptyComment() {
 		{
 			const html_value_11 = String(content ?? '');
 
-			_$_.output_push('<!--' + _$_.hash(html_value_11) + '-->');
+			_$_.output_push('<!--' + _$_.simple_hash(html_value_11) + '-->');
 			_$_.output_push(html_value_11);
 			_$_.output_push('<!---->');
 		}
@@ -373,7 +373,7 @@ export function HtmlWithCommentsInChildren() {
 						{
 							const html_value_12 = String(content ?? '');
 
-							_$_.output_push('<!--' + _$_.hash(html_value_12) + '-->');
+							_$_.output_push('<!--' + _$_.simple_hash(html_value_12) + '-->');
 							_$_.output_push(html_value_12);
 							_$_.output_push('<!---->');
 						}
@@ -579,7 +579,7 @@ export function HtmlWithServerData() {
 						{
 							const html_value_13 = String(content ?? '');
 
-							_$_.output_push('<!--' + _$_.hash(html_value_13) + '-->');
+							_$_.output_push('<!--' + _$_.simple_hash(html_value_13) + '-->');
 							_$_.output_push(html_value_13);
 							_$_.output_push('<!---->');
 						}
@@ -617,7 +617,7 @@ export function HtmlWithClientDefaults() {
 						{
 							const html_value_14 = String(content ?? '');
 
-							_$_.output_push('<!--' + _$_.hash(html_value_14) + '-->');
+							_$_.output_push('<!--' + _$_.simple_hash(html_value_14) + '-->');
 							_$_.output_push(html_value_14);
 							_$_.output_push('<!---->');
 						}
@@ -655,7 +655,7 @@ export function HtmlWithUndefinedContent() {
 						{
 							const html_value_15 = String(content ?? '');
 
-							_$_.output_push('<!--' + _$_.hash(html_value_15) + '-->');
+							_$_.output_push('<!--' + _$_.simple_hash(html_value_15) + '-->');
 							_$_.output_push(html_value_15);
 							_$_.output_push('<!---->');
 						}
@@ -748,7 +748,7 @@ function CodeBlock({ code }) {
 			{
 				const html_value_16 = String(highlighted ?? '');
 
-				_$_.output_push('<!--' + _$_.hash(html_value_16) + '-->');
+				_$_.output_push('<!--' + _$_.simple_hash(html_value_16) + '-->');
 				_$_.output_push(html_value_16);
 				_$_.output_push('<!---->');
 			}
@@ -1393,7 +1393,7 @@ export function ArticleWithHtmlChildThenSibling() {
 							{
 								const html_value_17 = String(htmlContent ?? '');
 
-								_$_.output_push('<!--' + _$_.hash(html_value_17) + '-->');
+								_$_.output_push('<!--' + _$_.simple_hash(html_value_17) + '-->');
 								_$_.output_push(html_value_17);
 								_$_.output_push('<!---->');
 							}
@@ -1528,7 +1528,7 @@ export function InlineArticleWithHtmlChild() {
 						{
 							const html_value_18 = String(htmlContent ?? '');
 
-							_$_.output_push('<!--' + _$_.hash(html_value_18) + '-->');
+							_$_.output_push('<!--' + _$_.simple_hash(html_value_18) + '-->');
 							_$_.output_push(html_value_18);
 							_$_.output_push('<!---->');
 						}
@@ -1762,7 +1762,7 @@ export function DocsLayoutWithData() {
 						{
 							const html_value_19 = String(htmlContent ?? '');
 
-							_$_.output_push('<!--' + _$_.hash(html_value_19) + '-->');
+							_$_.output_push('<!--' + _$_.simple_hash(html_value_19) + '-->');
 							_$_.output_push(html_value_19);
 							_$_.output_push('<!---->');
 						}
@@ -1800,7 +1800,7 @@ export function DocsLayoutWithoutData() {
 						{
 							const html_value_20 = String(htmlContent ?? '');
 
-							_$_.output_push('<!--' + _$_.hash(html_value_20) + '-->');
+							_$_.output_push('<!--' + _$_.simple_hash(html_value_20) + '-->');
 							_$_.output_push(html_value_20);
 							_$_.output_push('<!---->');
 						}
@@ -2082,7 +2082,7 @@ export function DocsLayoutExactWithData() {
 						{
 							const html_value_21 = String(htmlContent ?? '');
 
-							_$_.output_push('<!--' + _$_.hash(html_value_21) + '-->');
+							_$_.output_push('<!--' + _$_.simple_hash(html_value_21) + '-->');
 							_$_.output_push(html_value_21);
 							_$_.output_push('<!---->');
 						}
@@ -2128,7 +2128,7 @@ export function DocsLayoutExactWithoutData() {
 						{
 							const html_value_22 = String(htmlContent ?? '');
 
-							_$_.output_push('<!--' + _$_.hash(html_value_22) + '-->');
+							_$_.output_push('<!--' + _$_.simple_hash(html_value_22) + '-->');
 							_$_.output_push(html_value_22);
 							_$_.output_push('<!---->');
 						}
@@ -2163,7 +2163,7 @@ export function TemplateWithHtmlContent() {
 			{
 				const html_value_23 = String(JSON.stringify(data) ?? '');
 
-				_$_.output_push('<!--' + _$_.hash(html_value_23) + '-->');
+				_$_.output_push('<!--' + _$_.simple_hash(html_value_23) + '-->');
 				_$_.output_push(html_value_23);
 				_$_.output_push('<!---->');
 			}
@@ -2212,7 +2212,7 @@ export function TemplateWithHtmlAndSiblings() {
 			{
 				const html_value_24 = String(JSON.stringify(data) ?? '');
 
-				_$_.output_push('<!--' + _$_.hash(html_value_24) + '-->');
+				_$_.output_push('<!--' + _$_.simple_hash(html_value_24) + '-->');
 				_$_.output_push(html_value_24);
 				_$_.output_push('<!---->');
 			}
@@ -2251,7 +2251,7 @@ function LayoutWithTemplate({ children, data }) {
 			{
 				const html_value_25 = String(JSON.stringify(data) ?? '');
 
-				_$_.output_push('<!--' + _$_.hash(html_value_25) + '-->');
+				_$_.output_push('<!--' + _$_.simple_hash(html_value_25) + '-->');
 				_$_.output_push(html_value_25);
 				_$_.output_push('<!---->');
 			}
@@ -2294,7 +2294,7 @@ export function NestedTemplateInLayout() {
 						{
 							const html_value_26 = String(doc.html ?? '');
 
-							_$_.output_push('<!--' + _$_.hash(html_value_26) + '-->');
+							_$_.output_push('<!--' + _$_.simple_hash(html_value_26) + '-->');
 							_$_.output_push(html_value_26);
 							_$_.output_push('<!---->');
 						}
@@ -2368,7 +2368,7 @@ export function HtmlCodeBlocksWithSiblingChain() {
 				{
 					const html_value_27 = String(html1 ?? '');
 
-					_$_.output_push('<!--' + _$_.hash(html_value_27) + '-->');
+					_$_.output_push('<!--' + _$_.simple_hash(html_value_27) + '-->');
 					_$_.output_push(html_value_27);
 					_$_.output_push('<!---->');
 				}
@@ -2396,7 +2396,7 @@ export function HtmlCodeBlocksWithSiblingChain() {
 				{
 					const html_value_28 = String(html2 ?? '');
 
-					_$_.output_push('<!--' + _$_.hash(html_value_28) + '-->');
+					_$_.output_push('<!--' + _$_.simple_hash(html_value_28) + '-->');
 					_$_.output_push(html_value_28);
 					_$_.output_push('<!---->');
 				}
@@ -2424,7 +2424,7 @@ export function HtmlCodeBlocksWithSiblingChain() {
 				{
 					const html_value_29 = String(html3 ?? '');
 
-					_$_.output_push('<!--' + _$_.hash(html_value_29) + '-->');
+					_$_.output_push('<!--' + _$_.simple_hash(html_value_29) + '-->');
 					_$_.output_push(html_value_29);
 					_$_.output_push('<!---->');
 				}
