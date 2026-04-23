@@ -68,6 +68,66 @@ describe('@tsrx/vue basic', () => {
 		expect(css?.code).toContain('color: red;');
 	});
 
+	it('{ref fn} on a DOM element compiles to ref={fn}', () => {
+		const { code } = compile(
+			`component App() {
+				function capture(node: HTMLDivElement) {}
+				<div {ref capture}>{'x'}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toMatch(/ref=\{capture\}/);
+	});
+
+	it('rejects {ref ...} on composite components', () => {
+		expect(() =>
+			compile(
+				`component Child(props) {
+					<input {...props} />
+				}
+
+				component App() {
+					function inputRef(node: HTMLInputElement | null) {}
+					<Child {ref inputRef} />
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(/only supported on host elements/);
+	});
+
+	it('multiple {ref ...} on the same DOM element compile to a combined ref callback', () => {
+		const { code } = compile(
+			`component App() {
+				function a(node: HTMLInputElement | null) {}
+				function b(node: HTMLInputElement | null) {}
+				<input {ref a} {ref b} />
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toMatch(/ref=\{\(node\) => \{/);
+		expect(code).toMatch(/a\(node\);/);
+		expect(code).toMatch(/b\(node\);/);
+	});
+
+	it('rejects multiple {ref ...} on the same composite component', () => {
+		expect(() =>
+			compile(
+				`component Child(props) {
+					<input {...props} />
+				}
+
+				component App() {
+					function a(node: HTMLInputElement | null) {}
+					function b(node: HTMLInputElement | null) {}
+					<Child {ref a} {ref b} />
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(/only supported on host elements/);
+	});
+
 	it('supports {text expr} host children via string coercion', () => {
 		const { code } = compile(
 			`component App() {

@@ -42,6 +42,9 @@ const vue_platform = {
 		canHoistStaticNode(node) {
 			return !contains_component_jsx(node);
 		},
+		preprocessElementAttributes(attrs, ctx, element) {
+			return preprocess_ref_attributes(attrs, element, ctx);
+		},
 		transformElementChildren(node, walked_children, raw_children, attributes) {
 			return rewrite_host_text_or_html_children(node, walked_children, raw_children, attributes);
 		},
@@ -141,6 +144,84 @@ function function_declaration_to_expression(fn) {
  */
 function unsupported_vue_feature(node, feature) {
 	return create_compile_error(node, `${feature} are not yet supported in Vue TSRX.`);
+}
+
+/**
+ * @param {any[]} attrs
+ * @param {any} element
+ * @param {any} transform_context
+ * @returns {any[]}
+ */
+function preprocess_ref_attributes(attrs, element, transform_context) {
+	/** @type {any[]} */
+	const result = [];
+	/** @type {any[]} */
+	const ref_attrs = [];
+
+	for (const attr of attrs) {
+		if (!attr) continue;
+		if (attr.type === 'RefAttribute') {
+			ref_attrs.push(attr);
+			continue;
+		}
+		result.push(attr);
+	}
+
+	if (ref_attrs.length > 0 && is_component_like_element(element)) {
+		throw create_compile_error(
+			ref_attrs[0],
+			'`{ref ...}` on the Vue target is only supported on host elements. Vue component refs resolve to component instances rather than the rendered DOM node, so Ripple-style component refs are not supported here.',
+		);
+	}
+
+	if (ref_attrs.length === 1) {
+		result.push(ref_attrs[0]);
+	} else if (ref_attrs.length > 1) {
+		result.push({
+			type: 'RefAttribute',
+			argument: create_combined_ref_callback(ref_attrs),
+			loc: ref_attrs[0].loc,
+			metadata: { path: [] },
+		});
+	}
+
+	return result;
+}
+
+/**
+ * @param {any[]} ref_attrs
+ * @returns {any}
+ */
+function create_combined_ref_callback(ref_attrs) {
+	const node_id = {
+		type: 'Identifier',
+		name: 'node',
+		metadata: { path: [] },
+	};
+
+	return {
+		type: 'ArrowFunctionExpression',
+		params: [node_id],
+		body: {
+			type: 'BlockStatement',
+			body: ref_attrs.map((attr) => ({
+				type: 'ExpressionStatement',
+				expression: {
+					type: 'CallExpression',
+					callee: attr.argument,
+					arguments: [clone_identifier(node_id)],
+					optional: false,
+					metadata: { path: [] },
+				},
+				metadata: { path: [] },
+			})),
+			metadata: { path: [] },
+		},
+		expression: false,
+		async: false,
+		generator: false,
+		metadata: { path: [] },
+	};
 }
 
 /**

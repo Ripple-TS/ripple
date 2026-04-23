@@ -7,14 +7,12 @@ const EXPECTED_ERROR_LOG_SNIPPETS = ['sync boom', 'conditional boom', 'inner err
 let console_error_spy;
 
 function is_expected_error_log(args: unknown[]) {
-	const message = args
-		.map((arg) => {
-			if (arg instanceof Error) {
-				return `${arg.name}: ${arg.message}`;
-			}
-			return String(arg);
-		})
-		.join(' ');
+	const message = args.map((arg) => {
+		if (arg instanceof Error) {
+			return `${arg.name}: ${arg.message}`;
+		}
+		return String(arg);
+	}).join(' ');
 
 	return EXPECTED_ERROR_LOG_SNIPPETS.some((snippet) => message.includes(snippet));
 }
@@ -71,6 +69,12 @@ component ExplicitHtmlApp() {
 
 let element_ref_captured: HTMLDivElement | null = null;
 
+let keyword_ref_callback_captured: HTMLDivElement | null = null;
+
+let multi_dom_ref_a: HTMLInputElement | null = null;
+
+let multi_dom_ref_b: HTMLInputElement | null = null;
+
 component ElementRefApp() {
 	<div
 		ref={(node: HTMLDivElement) => {
@@ -80,6 +84,26 @@ component ElementRefApp() {
 	>
 		{'ref test'}
 	</div>
+}
+
+component KeywordRefCallbackApp() {
+	function capture(node: HTMLDivElement | null) {
+		keyword_ref_callback_captured = node;
+	}
+
+	<div {ref capture} class="keyword-ref-target">{'keyword ref'}</div>
+}
+
+component MultiDomRefApp() {
+	function captureA(node: HTMLInputElement | null) {
+		multi_dom_ref_a = node;
+	}
+
+	function captureB(node: HTMLInputElement | null) {
+		multi_dom_ref_b = node;
+	}
+
+	<input {ref captureA} {ref captureB} class="multi-dom-ref" type="text" />
 }
 
 component CounterApp() {
@@ -97,7 +121,7 @@ component IfReactiveApp() {
 		<span class="hidden">{'hidden'}</span>
 	}
 
-	<button class="toggle" onClick={() => show.value = !show.value}>{'toggle'}</button>
+	<button class="toggle" onClick={() => (show.value = !show.value)}>{'toggle'}</button>
 }
 
 component ForReactiveApp() {
@@ -107,8 +131,8 @@ component ForReactiveApp() {
 		<li class="item" key={item}>{item}</li>
 	}
 
-	<button class="add" onClick={() => items.value = [...items.value, 'd']}>{'add'}</button>
-	<button class="remove" onClick={() => items.value = items.value.slice(1)}>{'remove'}</button>
+	<button class="add" onClick={() => (items.value = [...items.value, 'd'])}>{'add'}</button>
+	<button class="remove" onClick={() => (items.value = items.value.slice(1))}>{'remove'}</button>
 }
 
 component SwitchReactiveApp() {
@@ -126,8 +150,8 @@ component SwitchReactiveApp() {
 			break;
 	}
 
-	<button class="go-about" onClick={() => page.value = 'about'}>{'about'}</button>
-	<button class="go-unknown" onClick={() => page.value = 'other'}>{'other'}</button>
+	<button class="go-about" onClick={() => (page.value = 'about')}>{'about'}</button>
+	<button class="go-unknown" onClick={() => (page.value = 'other')}>{'other'}</button>
 }
 
 component StyledApp() {
@@ -178,7 +202,7 @@ component ErrorToggleApp() {
 		</button>
 	}
 
-	<button class="trigger-error" onClick={() => fail.value = true}>{'break'}</button>
+	<button class="trigger-error" onClick={() => (fail.value = true)}>{'break'}</button>
 }
 
 component InnerThrow() {
@@ -213,7 +237,7 @@ component IfInsideTryApp() {
 		<p class="caught">{'error'}</p>
 	}
 
-	<button class="toggle" onClick={() => show.value = !show.value}>{'toggle'}</button>
+	<button class="toggle" onClick={() => (show.value = !show.value)}>{'toggle'}</button>
 }
 
 component ForInsideTryApp() {
@@ -227,7 +251,7 @@ component ForInsideTryApp() {
 		<p class="caught">{'error'}</p>
 	}
 
-	<button class="add" onClick={() => items.value = [...items.value, 'z']}>{'add'}</button>
+	<button class="add" onClick={() => (items.value = [...items.value, 'z'])}>{'add'}</button>
 }
 
 component SwitchInsideTryApp() {
@@ -249,8 +273,8 @@ component SwitchInsideTryApp() {
 		<p class="caught">{'error'}</p>
 	}
 
-	<button class="go-about" onClick={() => page.value = 'about'}>{'about'}</button>
-	<button class="go-unknown" onClick={() => page.value = 'other'}>{'other'}</button>
+	<button class="go-about" onClick={() => (page.value = 'about')}>{'about'}</button>
+	<button class="go-unknown" onClick={() => (page.value = 'other')}>{'other'}</button>
 }
 
 describe('tsrx-vue runtime', () => {
@@ -305,6 +329,24 @@ describe('tsrx-vue runtime', () => {
 		expect(element_ref_captured).toBeInstanceOf(HTMLDivElement);
 		expect(element_ref_captured!.textContent).toBe('ref test');
 		expect(element_ref_captured!.className).toContain('ref-target');
+	});
+
+	it('supports TSRX {ref fn} callback refs on elements', async () => {
+		keyword_ref_callback_captured = null;
+		await render(KeywordRefCallbackApp);
+		expect(keyword_ref_callback_captured).toBeInstanceOf(HTMLDivElement);
+		expect(keyword_ref_callback_captured!.textContent).toBe('keyword ref');
+		expect(keyword_ref_callback_captured!.className).toContain('keyword-ref-target');
+	});
+
+	it('supports multiple TSRX ref callbacks on the same DOM element', async () => {
+		multi_dom_ref_a = null;
+		multi_dom_ref_b = null;
+		await render(MultiDomRefApp);
+		expect(multi_dom_ref_a).toBeInstanceOf(HTMLInputElement);
+		expect(multi_dom_ref_b).toBeInstanceOf(HTMLInputElement);
+		expect(multi_dom_ref_a).toBe(multi_dom_ref_b);
+		expect(multi_dom_ref_a?.className).toContain('multi-dom-ref');
 	});
 
 	it('increments a counter on click', async () => {

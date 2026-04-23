@@ -2284,6 +2284,10 @@ function to_jsx_expression_container(expression, source_node = expression) {
  * @returns {any[]}
  */
 function transform_element_attributes_dispatch(attrs, transform_context, element) {
+	const preprocess = transform_context.platform.hooks?.preprocessElementAttributes;
+	if (preprocess) {
+		attrs = preprocess(attrs, transform_context, element);
+	}
 	const hook = transform_context.platform.hooks?.transformElementAttributes;
 	if (hook) return hook(attrs, transform_context, element);
 	return attrs.map((/** @type {any} */ a) => to_jsx_attribute(a, transform_context));

@@ -82,6 +82,13 @@ export interface JsxPlatformHooks {
 	 */
 	transformElementAttributes?: (attrs: any[], ctx: any, element: any) => any[];
 	/**
+	 * Rewrite or normalize raw Ripple attributes before the shared
+	 * `to_jsx_attribute()` mapping runs. Targets can use this to merge multiple
+	 * keyword attributes, such as collapsing repeated `{ref ...}` entries into a
+	 * single `RefAttribute` backed by an array expression.
+	 */
+	preprocessElementAttributes?: (attrs: any[], ctx: any, element: any) => any[];
+	/**
 	 * Lower a Ripple `Element` node to a JSXElement. Default is the
 	 * factory's `to_jsx_element`. The hook receives the walker-transformed
 	 * node (`inner`, with children already lowered) plus the element's
