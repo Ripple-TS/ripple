@@ -148,9 +148,25 @@ export interface JsxPlatform {
 	validation: {
 		/**
 		 * Require a top-level `"use server"` directive before a component may
-		 * contain top-level `await`. Preact: true. React/Solid: false.
+		 * contain top-level `await`. Preact/Solid: true. React: false.
+		 *
+		 * Solid keeps this enabled as a fallback invariant (if its custom await
+		 * validator hook is removed, the default factory validation still rejects
+		 * component-level `await` without `"use server"`).
 		 */
 		requireUseServerForAwait: boolean;
+		/**
+		 * When `false`, skip scanning for a top-level `"use server"` directive
+		 * while a custom `validateComponentAwait` hook is present.
+		 *
+		 * This is useful for platforms whose custom validator never uses the
+		 * directive signal (for example Solid, which always rejects component-level
+		 * `await`), while still keeping `requireUseServerForAwait: true` as a
+		 * fallback if the custom validator is removed.
+		 *
+		 * Default: `true`.
+		 */
+		scanUseServerDirectiveForAwaitWithCustomValidator?: boolean;
 	};
 
 	/**

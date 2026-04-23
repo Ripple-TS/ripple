@@ -74,6 +74,10 @@ const solid_platform = {
 	},
 	validation: {
 		requireUseServerForAwait: true,
+		// Solid's custom validator always rejects component-level await,
+		// so directive scanning is redundant work. Keep the fallback flag
+		// above true as a safety net if the custom hook is removed.
+		scanUseServerDirectiveForAwaitWithCustomValidator: false,
 	},
 	hooks: {
 		initialState: () => ({

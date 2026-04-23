@@ -84,7 +84,11 @@ export function createJsxTransform(platform) {
 	 */
 	function transform(ast, source, filename, options) {
 		const suspense_source = options?.suspenseSource ?? platform.imports.suspense;
-		const module_uses_server_directive = platform.validation.requireUseServerForAwait
+		const should_scan_use_server_directive =
+			platform.validation.requireUseServerForAwait &&
+			(!platform.hooks?.validateComponentAwait ||
+				platform.validation.scanUseServerDirectiveForAwaitWithCustomValidator !== false);
+		const module_uses_server_directive = should_scan_use_server_directive
 			? has_use_server_directive(ast)
 			: true;
 		/** @type {any[]} */

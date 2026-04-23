@@ -69,6 +69,20 @@ describe('@tsrx/solid basic', () => {
 			).toThrow(/`await` is not allowed inside Solid components/);
 		});
 
+		it('still rejects await with a top-level use server directive', () => {
+			expect(() =>
+				compile(
+					`'use server';
+
+					component App() {
+						const data = await fetchData();
+						<div>{data}</div>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/`await` is not allowed inside Solid components/);
+		});
+
 		it('rejects for await...of in component body', () => {
 			expect(() =>
 				compile(
