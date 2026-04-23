@@ -242,7 +242,6 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain('id={id}');
 			expect(code).not.toContain('</p>');
 		});
-
 	});
 
 	describe('control flow', () => {

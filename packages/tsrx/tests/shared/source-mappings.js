@@ -181,9 +181,7 @@ export function runSharedSourceMappingTests({
 				`class Foo { bar() { return <tsx>plain</tsx>; } }`,
 			];
 			for (const source of sources) {
-				expect(() =>
-					compile_to_volar_mappings(source, 'App.tsrx', { loose: true }),
-				).not.toThrow();
+				expect(() => compile_to_volar_mappings(source, 'App.tsrx', { loose: true })).not.toThrow();
 			}
 		});
 

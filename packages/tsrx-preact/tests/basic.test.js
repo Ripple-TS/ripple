@@ -121,7 +121,6 @@ describe('@tsrx/preact basic', () => {
 		expect(code).not.toContain('does not support `key` in `for` control flow');
 	});
 
-
 	it('does not hoist render-time expressions across early returns', () => {
 		const { code } = compile(
 			`export component Test() {

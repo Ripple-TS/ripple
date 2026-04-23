@@ -138,10 +138,7 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 			// `return {'Hello'};`, which is a JS syntax error because `{`
 			// opens a block/object literal. The JSXExpressionContainer must
 			// be unwrapped to its inner expression in expression position.
-			const { code } = compile(
-				`class Foo { bar() { return <tsx>{'Hello'}</tsx>; } }`,
-				'App.tsrx',
-			);
+			const { code } = compile(`class Foo { bar() { return <tsx>{'Hello'}</tsx>; } }`, 'App.tsrx');
 			expect(code).toContain("return 'Hello';");
 			expect(code).not.toContain("return {'Hello'}");
 		});
@@ -156,10 +153,7 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 		});
 
 		it('wraps tsx text-only content in a fragment so it remains valid JSX', () => {
-			const { code } = compile(
-				`class Foo { bar() { return <tsx>plain text</tsx>; } }`,
-				'App.tsrx',
-			);
+			const { code } = compile(`class Foo { bar() { return <tsx>plain text</tsx>; } }`, 'App.tsrx');
 			expect(code).toContain('return <>plain text</>;');
 		});
 
@@ -172,28 +166,19 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 		});
 
 		it('preserves a tsx block whose single child is already a fragment', () => {
-			const { code } = compile(
-				`class Foo { bar() { return <tsx><>{'x'}</></tsx>; } }`,
-				'App.tsrx',
-			);
+			const { code } = compile(`class Foo { bar() { return <tsx><>{'x'}</></tsx>; } }`, 'App.tsrx');
 			expect(code).toContain("return <>{'x'}</>;");
 		});
 
 		it('unwraps a top-level <> fragment with a single expression', () => {
 			// `<>` at the top level is parsed as a Tsx node and hits the
 			// same unwrapping path as `<tsx>`.
-			const { code } = compile(
-				`class Foo { bar() { return <>{'Hello'}</>; } }`,
-				'App.tsrx',
-			);
+			const { code } = compile(`class Foo { bar() { return <>{'Hello'}</>; } }`, 'App.tsrx');
 			expect(code).toContain("return 'Hello';");
 		});
 
 		it('unwraps a top-level <> fragment with a single element', () => {
-			const { code } = compile(
-				`class Foo { bar() { return <><div>hi</div></>; } }`,
-				'App.tsrx',
-			);
+			const { code } = compile(`class Foo { bar() { return <><div>hi</div></>; } }`, 'App.tsrx');
 			expect(code).toContain('return <div>hi</div>;');
 		});
 
@@ -511,9 +496,7 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 			);
 
 			expect(css).not.toBeNull();
-			expect(code).toContain(
-				`<div ${classAttrName}="${css?.hash}">{'Styled content'}</div>`,
-			);
+			expect(code).toContain(`<div ${classAttrName}="${css?.hash}">{'Styled content'}</div>`);
 			expect(code).not.toMatch(/<Child\s+class(Name)?="/);
 		});
 
@@ -542,9 +525,7 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 			);
 
 			expect(css).not.toBeNull();
-			const app_hash = css?.hash
-				.split(' ')
-				.find((h) => code.includes(`"${h} highlight"`));
+			const app_hash = css?.hash.split(' ').find((h) => code.includes(`"${h} highlight"`));
 			expect(app_hash).toBeTruthy();
 			expect(code).toContain(`className="${app_hash} highlight"`);
 		});
