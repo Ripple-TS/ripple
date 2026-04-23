@@ -1,5 +1,5 @@
 ---
-'@tsrx/core': minor
+'@tsrx/core': patch
 '@tsrx/react': patch
 '@tsrx/preact': patch
 '@tsrx/solid': patch
