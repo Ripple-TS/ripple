@@ -6,6 +6,7 @@ import {
 	componentToFunctionDeclaration,
 	createJsxTransform,
 	create_compile_error,
+	identifier_to_jsx_name,
 	setLocation,
 } from '@tsrx/core';
 
@@ -40,6 +41,9 @@ const vue_platform = {
 		}),
 		canHoistStaticNode(node) {
 			return !contains_component_jsx(node);
+		},
+		transformElementChildren(node, walked_children, raw_children, attributes) {
+			return rewrite_host_text_or_html_children(node, walked_children, raw_children, attributes);
 		},
 		validateComponentAwait(await_expression) {
 			throw create_compile_error(
@@ -137,6 +141,111 @@ function function_declaration_to_expression(fn) {
  */
 function unsupported_vue_feature(node, feature) {
 	return create_compile_error(node, `${feature} are not yet supported in Vue TSRX.`);
+}
+
+/**
+ * @param {any} node
+ * @param {any[]} walked_children
+ * @param {any[]} raw_children
+ * @param {any[]} attributes
+ * @returns {{ children: any[]; selfClosing?: boolean } | null}
+ */
+function rewrite_host_text_or_html_children(node, walked_children, raw_children, attributes) {
+	const source_children = raw_children || walked_children;
+	const is_composite = is_component_like_element(node);
+	const html_children = source_children.filter((child) => child?.type === 'Html');
+
+	if (html_children.length > 0) {
+		if (
+			is_composite ||
+			source_children.length !== 1 ||
+			has_dom_content_attribute(attributes, 'innerHTML') ||
+			has_dom_content_attribute(attributes, 'textContent')
+		) {
+			throw create_compile_error(
+				html_children[0],
+				'`{html ...}` on the Vue target is only supported as the sole child of a host element. Use `innerHTML={...}` as an element attribute when you need the explicit prop form.',
+			);
+		}
+
+		const walked_html = walked_children[0] || html_children[0];
+		attributes.push(
+			create_jsx_attribute(
+				'innerHTML',
+				to_jsx_expression_container(walked_html.expression, html_children[0]),
+				html_children[0],
+			),
+		);
+
+		return { children: [], selfClosing: true };
+	}
+
+	if (!is_composite && source_children.length === 1 && source_children[0]?.type === 'Text') {
+		return null;
+	}
+
+	return null;
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_component_like_element(node) {
+	const id = node?.id;
+	if (!id) return false;
+	if (id.type === 'Identifier') return /^[A-Z]/.test(id.name);
+	if (id.type === 'MemberExpression') return true;
+	return false;
+}
+
+/**
+ * @param {any[]} attributes
+ * @param {string} name
+ * @returns {boolean}
+ */
+function has_dom_content_attribute(attributes, name) {
+	return attributes.some(
+		(/** @type {any} */ attribute) =>
+			attribute &&
+			(attribute.type === 'JSXSpreadAttribute' ||
+				(attribute.type === 'JSXAttribute' &&
+					attribute.name?.type === 'JSXIdentifier' &&
+					attribute.name.name === name)),
+	);
+}
+
+/**
+ * @param {string} name
+ * @param {any} value
+ * @param {any} source_node
+ * @returns {any}
+ */
+function create_jsx_attribute(name, value, source_node) {
+	return setLocation(
+		/** @type {any} */ ({
+			type: 'JSXAttribute',
+			name: identifier_to_jsx_name(builders.id(name)),
+			value,
+			shorthand: false,
+			metadata: { path: [] },
+		}),
+		source_node,
+	);
+}
+
+/**
+ * @param {any} expression
+ * @param {any} source_node
+ * @returns {any}
+ */
+function to_jsx_expression_container(expression, source_node = expression) {
+	void source_node;
+	return {
+		type: 'JSXExpressionContainer',
+		expression,
+		metadata: { path: [] },
+	};
 }
 
 /**

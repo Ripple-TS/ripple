@@ -68,6 +68,60 @@ describe('@tsrx/vue basic', () => {
 		expect(css?.code).toContain('color: red;');
 	});
 
+	it('supports {text expr} host children via string coercion', () => {
+		const { code } = compile(
+			`component App() {
+				const markup = '<span>Not HTML</span>';
+				<div>{text markup}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain("markup == null ? '' : markup + ''");
+		expect(code).toContain('<div>{');
+	});
+
+	it('lowers a sole {html expr} host child to innerHTML', () => {
+		const { code } = compile(
+			`component App() {
+				const markup = '<strong>safe enough</strong>';
+				<div class="target">{html markup}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('innerHTML={markup}');
+		expect(code).not.toContain('{html markup}');
+	});
+
+	it('rejects {html expr} on composite elements', () => {
+		expect(() =>
+			compile(
+				`component Child(props) {
+					<div {...props} />
+				}
+
+				component App() {
+					const markup = '<strong>safe enough</strong>';
+					<Child>{html markup}</Child>
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(/only supported as the sole child of a host element/);
+	});
+
+	it('rejects {html expr} when mixed with sibling children', () => {
+		expect(() =>
+			compile(
+				`component App() {
+					const markup = '<strong>safe enough</strong>';
+					<div>{html markup}<span>{'tail'}</span></div>
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(/only supported as the sole child of a host element/);
+	});
+
 	it('compiles a simple if block in component bodies', () => {
 		const { code } = compile(
 			`component App({ visible }) {
@@ -146,7 +200,7 @@ describe('@tsrx/vue basic', () => {
 						<div>{'Fallback'}</div>
 					}
 				}`,
-				'App.tsrx',
+			'App.tsrx',
 		);
 
 		expect(code).toContain('switch (value) {');
@@ -170,7 +224,7 @@ describe('@tsrx/vue basic', () => {
 						<div>{'Fallback'}</div>
 					}
 				}`,
-				'App.tsrx',
+			'App.tsrx',
 		);
 
 		expect(code).toContain('switch (value) {');

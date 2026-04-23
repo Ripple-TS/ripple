@@ -217,7 +217,7 @@ export function createJsxTransform(platform) {
 				const inner = /** @type {any} */ (next() ?? node);
 				const hook = platform.hooks?.transformElement;
 				if (hook) return /** @type {any} */ (hook(inner, state, raw_children));
-				return /** @type {any} */ (to_jsx_element(inner, state));
+				return /** @type {any} */ (to_jsx_element(inner, state, raw_children));
 			},
 
 			Text(node, { next }) {
@@ -1193,13 +1193,8 @@ const TEMPLATE_FRAGMENT_ERROR =
  * @param {TransformContext} transform_context
  * @returns {any}
  */
-function to_jsx_element(node, transform_context) {
+function to_jsx_element(node, transform_context, raw_children = node.children || []) {
 	if (node.type === 'JSXElement') return node;
-	if ((node.children || []).some((/** @type {any} */ c) => c && c.type === 'Html')) {
-		throw new Error(
-			`\`{html ...}\` is not supported on the ${transform_context.platform.name} target. Use \`dangerouslySetInnerHTML={{ __html: ... }}\` as an element attribute instead.`,
-		);
-	}
 	if (!node.id) {
 		throw create_compile_error(node, TEMPLATE_FRAGMENT_ERROR);
 	}
@@ -1213,8 +1208,30 @@ function to_jsx_element(node, transform_context) {
 		transform_context,
 		node,
 	);
-	const selfClosing = !!node.selfClosing;
-	const children = create_element_children(node.children || [], transform_context);
+	const walked_children = node.children || [];
+	let selfClosing = !!node.selfClosing;
+	let children;
+	const child_transform = transform_context.platform.hooks?.transformElementChildren?.(
+		node,
+		walked_children,
+		raw_children,
+		attributes,
+		transform_context,
+	);
+
+	if (child_transform) {
+		children = child_transform.children;
+		if (typeof child_transform.selfClosing === 'boolean') {
+			selfClosing = child_transform.selfClosing;
+		}
+	} else {
+		if (walked_children.some((/** @type {any} */ c) => c && c.type === 'Html')) {
+			throw new Error(
+				`\`{html ...}\` is not supported on the ${transform_context.platform.name} target. Use \`dangerouslySetInnerHTML={{ __html: ... }}\` as an element attribute instead.`,
+			);
+		}
+		children = create_element_children(walked_children, transform_context);
+	}
 	const has_unmappable_attribute = attributes.some(
 		(/** @type {any} */ attribute) => attribute?.metadata?.has_unmappable_value,
 	);

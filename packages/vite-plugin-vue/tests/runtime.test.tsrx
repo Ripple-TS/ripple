@@ -55,6 +55,20 @@ component ExplicitTextApp() {
 	<div class="explicit-text-undefined">{text missing}</div>
 }
 
+component ExplicitHtmlApp() {
+	const markup = ref('<span class="html-node">safe enough</span>');
+
+	<div class="explicit-html-target">{html markup.value}</div>
+	<button
+		class="explicit-html-update"
+		onClick={() => {
+			markup.value = '<strong class="html-node">updated</strong>';
+		}}
+	>
+		{'update'}
+	</button>
+}
+
 let element_ref_captured: HTMLDivElement | null = null;
 
 component ElementRefApp() {
@@ -273,6 +287,16 @@ describe('tsrx-vue runtime', () => {
 		expect(text('.explicit-text-boolean')).toBe('false');
 		expect(text('.explicit-text-null')).toBe('');
 		expect(text('.explicit-text-undefined')).toBe('');
+	});
+
+	it('renders explicit html interpolation as html', async () => {
+		await render(ExplicitHtmlApp);
+		expect(text('.explicit-html-target')).toBe('safe enough');
+		expect(container.querySelector('.explicit-html-target .html-node')?.tagName).toBe('SPAN');
+
+		await click('.explicit-html-update');
+		expect(text('.explicit-html-target')).toBe('updated');
+		expect(container.querySelector('.explicit-html-target .html-node')?.tagName).toBe('STRONG');
 	});
 
 	it('supports ref callback on elements', async () => {

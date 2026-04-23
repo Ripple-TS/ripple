@@ -91,6 +91,24 @@ export interface JsxPlatformHooks {
 	 */
 	transformElement?: (inner: any, ctx: any, rawChildren: any[]) => any;
 	/**
+	 * Optionally rewrite a host element's children into attributes or another
+	 * specialized child shape after generic attribute lowering but before the
+	 * default child-to-JSX conversion runs.
+	 *
+	 * This lets a target support target-native DOM content props such as
+	 * `textContent` / `innerHTML` without forking the whole element lowering.
+	 * The hook may mutate `attrs` directly and either return a replacement
+	 * `children` array (plus optional `selfClosing` override) or `null` to fall
+	 * back to the default child handling.
+	 */
+	transformElementChildren?: (
+		element: any,
+		walkedChildren: any[],
+		rawChildren: any[],
+		attrs: any[],
+		ctx: any,
+	) => { children: any[]; selfClosing?: boolean } | null;
+	/**
 	 * Decide whether a JSX subtree may be hoisted to module scope when it is
 	 * otherwise statically safe. Targets can use this to keep runtime-sensitive
 	 * JSX, such as component invocations, inside render/setup execution.
