@@ -16,7 +16,7 @@ export const TsrxErrorBoundary = defineComponent({
 		},
 	},
 	setup(props, { slots }) {
-		const error = shallowRef(null);
+		const error = shallowRef(/** @type {unknown} */ (null));
 
 		const reset = () => {
 			error.value = null;
