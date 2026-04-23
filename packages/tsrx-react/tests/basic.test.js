@@ -9,7 +9,7 @@ runSharedSourceMappingTests({
 	rejectsComponentAwait: false,
 });
 
-runSharedCompileTests({ compile, name: 'react' });
+runSharedCompileTests({ compile, name: 'react', classAttrName: 'className' });
 
 /**
  * @import { CodeMapping } from '@tsrx/core/types';
@@ -37,45 +37,6 @@ function get_duplicate_mapping_keys(mappings) {
 }
 
 describe('@tsrx/react basic', () => {
-	it('keeps plain components local unless explicitly exported', () => {
-		const { code } = compile(
-			`component App() {
-				<div>{'Hello world'}</div>
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain('function App() {');
-		expect(code).toContain("{'Hello world'}");
-		expect(code).not.toContain('export function App');
-		expect(code).not.toContain('export default function App');
-	});
-
-	it('preserves named component exports without double-exporting', () => {
-		const { code } = compile(
-			`export component App() {
-				<div>{'Hello world'}</div>
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain('export function App()');
-		expect(code).toContain("{'Hello world'}");
-		expect(code).not.toContain('export export function App()');
-	});
-
-	it('preserves default component exports', () => {
-		const { code } = compile(
-			`export default component App() {
-				<div>{'Hello world'}</div>
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain('export default function App()');
-		expect(code).toContain("{'Hello world'}");
-	});
-
 	it('emits async component functions for top-level await without requiring use server', () => {
 		const { code } = compile(
 			`export component App() {
@@ -161,28 +122,11 @@ describe('@tsrx/react basic', () => {
 		expect(code).not.toContain('does not support `key` in `for` control flow');
 	});
 
-	it('emits the text content and scoped css for the basic styled example', () => {
-		const { code, css } = compile(
-			`export component App() {
-				<div>{'Hello world'}</div>
-
-				<style>
-					.div {
-						color: red;
-					}
-				</style>
-			}`,
-			'App.tsrx',
-		);
-
-		expect(css).not.toBeNull();
-		expect(code).toContain("{'Hello world'}");
-		expect(code).toContain(`className="${css.hash}"`);
-		expect(css.code).toContain(`.div.${css.hash}`);
-		expect(css.code).toContain('color: red;');
-	});
-
-	it('does not apply scoped css hashes to composite components', () => {
+	// `does not apply scoped css hashes to composite components`
+	// additionally asserted the Volar mapping had no errors and its code
+	// omitted `<Child className=`. Keep the mapping-assertion piece here
+	// since the shared harness only runs `compile` for this class of test.
+	it('does not apply scoped css hashes to composite components (Volar mappings)', () => {
 		const source = `component Child() {
 				<div>{'Hello world'}</div>
 			}
@@ -197,84 +141,10 @@ describe('@tsrx/react basic', () => {
 					}
 				</style>
 			}`;
-		const { code, css } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
 
-		expect(css).not.toBeNull();
-		expect(code).toContain(`<div className="${css.hash}">{'Styled content'}</div>`);
-		expect(code).not.toContain('<Child className=');
 		expect(mappings.code).not.toContain('<Child className=');
 		expect(mappings.errors).toEqual([]);
-	});
-
-	it('coerces explicit text interpolation to React text children', () => {
-		const { code } = compile(
-			`export component App() {
-				const markup = '<span>Not HTML</span>';
-				const hidden = false;
-				const empty = null;
-				const missing = undefined;
-
-				<div class="markup">{text markup}</div>
-				<div class="hidden">{text hidden}</div>
-				<div class="empty">{text empty}</div>
-				<div class="missing">{text missing}</div>
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain("markup == null ? '' : markup + ''");
-		expect(code).toContain("hidden == null ? '' : hidden + ''");
-		expect(code).toContain("empty == null ? '' : empty + ''");
-		expect(code).toContain("missing == null ? '' : missing + ''");
-	});
-
-	it('rejects `{html expr}` on the React target', () => {
-		expect(() =>
-			compile(
-				`export component App({ markup }: { markup: string }) {
-					<article>{html markup}</article>
-				}`,
-				'App.tsrx',
-			),
-		).toThrow(/not supported on the React target/);
-	});
-
-	it('rejects `{html expr}` at the component body level', () => {
-		// Top-level `{html ...}` must hit the compile-time error rather than
-		// falling through `is_jsx_child` and silently landing in the function
-		// body as a raw Html AST node.
-		expect(() =>
-			compile(
-				`export component App({ markup }: { markup: string }) {
-					{html markup}
-				}`,
-				'App.tsrx',
-			),
-		).toThrow(/not supported on the React target/);
-	});
-
-	it('allows JSX fragments in templates as tsx shorthand', () => {
-		const { code } = compile(
-			`export component App() {
-				<b><>{111}</></b>
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain('<b>{111}</b>');
-		expect(code).not.toContain('<tsx>');
-	});
-
-	it('allows JSX fragments inside tsx blocks', () => {
-		expect(() =>
-			compile(
-				`export component App() {
-					<tsx><>{111}</></tsx>
-				}`,
-				'App.tsrx',
-			),
-		).not.toThrow();
 	});
 
 	it('applies scoped css hashes to elements inside control flow', () => {
@@ -297,48 +167,6 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain(`className="${css.hash}"`);
 		expect(code).toContain(`App__static1 = <div className="${css.hash}">`);
 		expect(css.code).toContain(`.div.${css.hash}`);
-	});
-
-	it('transforms #style member expressions into scoped class strings', () => {
-		const { code, css } = compile(
-			`component Badge({ className }: { className?: string }) {
-				<span class={['badge', className ?? '']}>{'New'}</span>
-
-				<style>
-					.badge { padding: 0.25rem 0.5rem; }
-				</style>
-			}
-
-			export component App() {
-				<Badge className={#style.highlight} />
-
-				<style>
-					.highlight { background: green; }
-				</style>
-			}`,
-			'App.tsrx',
-		);
-
-		expect(css).not.toBeNull();
-		const app_hash = css.hash.split(' ').find((h) => code.includes(`"${h} highlight"`));
-		expect(app_hash).toBeTruthy();
-		expect(code).toContain(`className="${app_hash} highlight"`);
-	});
-
-	it('transforms #style bracket notation into scoped class strings', () => {
-		const { code, css } = compile(
-			`export component App() {
-				<Child cls={#style['accent']} />
-
-				<style>
-					.accent { color: red; }
-				</style>
-			}`,
-			'App.tsrx',
-		);
-
-		expect(css).not.toBeNull();
-		expect(code).toContain('accent"');
 	});
 
 	it('renders component-body if statements as React expressions', () => {
@@ -1585,45 +1413,6 @@ describe('lazy destructuring', () => {
 		expect(code).toContain('<ui.Button');
 	});
 
-	it('does not rewrite locally shadowed names inside blocks', () => {
-		const { code } = compile(
-			`export component App(&{name}: Props) {
-				const handler = () => {
-					const name = 'local';
-					return name;
-				};
-				<div>{name}</div>
-			}`,
-			'App.tsrx',
-		);
-
-		// The prop reference should be rewritten
-		expect(code).toContain('__lazy0.name');
-		// The callback should use the local 'name', not the lazy accessor
-		expect(code).toContain("const name = 'local'");
-		expect(code).toContain('return name');
-		expect(code).not.toMatch(/return __lazy0\.name/);
-	});
-
-	it('does not rewrite loop variables that shadow lazy bindings', () => {
-		const { code } = compile(
-			`export component App(&{name}: Props) {
-				const items = ['a', 'b'];
-				for (const name of items) {
-					console.log(name);
-				}
-				<div>{name}</div>
-			}`,
-			'App.tsrx',
-		);
-
-		// The prop reference in JSX should be rewritten
-		expect(code).toContain('__lazy0.name');
-		// The for-of loop variable should NOT be rewritten
-		expect(code).toContain('console.log(name)');
-		expect(code).not.toMatch(/console\.log\(__lazy0\.name\)/);
-	});
-
 	it('transforms default parameter values referencing lazy bindings', () => {
 		const { code } = compile(
 			`export component App() {
@@ -1709,185 +1498,5 @@ describe('lazy destructuring', () => {
 		// laterVar is declared AFTER the split — it must NOT appear as a prop
 		// on the helper element at the call site (it's not in scope there)
 		expect(code).not.toContain('laterVar={laterVar}');
-	});
-
-	it('does not rewrite switch-case variables that shadow lazy bindings', () => {
-		const { code } = compile(
-			`export component App(&{ name }: { name: string }) {
-				switch (name) {
-					case 'test': {
-						const name = 'local';
-						console.log(name);
-						break;
-					}
-				}
-				<div>{name}</div>
-			}`,
-			'App.tsrx',
-		);
-
-		// The 'name' inside the switch case should NOT be rewritten to a lazy accessor
-		expect(code).toContain("const name = 'local'");
-		expect(code).toContain('console.log(name)');
-	});
-
-	it('does not rewrite body-level variables that shadow lazy bindings', () => {
-		const { code } = compile(
-			`export component App(&{ name }: { name: string }) {
-				const name = 'override';
-				<div>{name}</div>
-			}`,
-			'App.tsrx',
-		);
-
-		// The body-level 'name' shadows the lazy binding — references should
-		// use the local variable, not the lazy accessor
-		expect(code).toContain("const name = 'override'");
-		// The div should use plain 'name', not __lazy0.name
-		expect(code).toContain('{name}');
-		expect(code).not.toContain('__lazy0.name');
-	});
-
-	it('preserves source order when statements are interleaved with JSX children', () => {
-		const { code } = compile(
-			`component Card() {
-				<div class="card">
-					var a = "one"
-					<b>{"hello" + a}</b>
-					a = "two"
-					<b>{"hello" + a}</b>
-				</div>
-			}`,
-			'Card.tsrx',
-		);
-
-		// Each JSX child must be captured into a const at its source position
-		// so the first <b> sees a = "one" and the second sees a = "two".
-		const first_capture = code.indexOf('_tsrx_child_0');
-		const assign_two = code.indexOf('a = "two"');
-		const second_capture = code.indexOf('_tsrx_child_1');
-		expect(first_capture).toBeGreaterThan(-1);
-		expect(assign_two).toBeGreaterThan(first_capture);
-		expect(second_capture).toBeGreaterThan(assign_two);
-	});
-
-	it('preserves source order for interleaved JSX across a hook-safe split', () => {
-		const { code } = compile(
-			`component Card() {
-				var a = "one"
-				<b>{"hello" + a}</b>
-				a = "two"
-				<b>{"hello" + a}</b>
-				if (true) return
-				const x = useState(0)
-				<div>{x}</div>
-			}`,
-			'Card.tsrx',
-		);
-
-		// The pre-split portion must still capture JSX at source position so
-		// the first <b> observes a = "one" and the second observes a = "two".
-		const first_capture = code.indexOf('_tsrx_child_0');
-		const assign_two = code.indexOf('a = "two"');
-		const second_capture = code.indexOf('_tsrx_child_1');
-		expect(first_capture).toBeGreaterThan(-1);
-		expect(assign_two).toBeGreaterThan(first_capture);
-		expect(second_capture).toBeGreaterThan(assign_two);
-	});
-
-	it('does not capture JSX into temporaries when all statements precede JSX', () => {
-		const { code } = compile(
-			`component Card() {
-				<div>
-					const a = "one"
-					const b = "two"
-					<span>{a}</span>
-					<span>{b}</span>
-				</div>
-			}`,
-			'Card.tsrx',
-		);
-
-		// No interleaving, so no capture temporaries should be introduced.
-		expect(code).not.toContain('_tsrx_child_');
-	});
-
-	describe('<tsx> and fragment unwrapping', () => {
-		it('unwraps a tsx block with a single JSXElement child', () => {
-			const { code } = compile(
-				`class Foo { bar() { return <tsx><div>hi</div></tsx>; } }`,
-				'App.tsrx',
-			);
-			expect(code).toContain('return <div>hi</div>;');
-			expect(code).not.toContain('<tsx>');
-		});
-
-		it('unwraps a tsx block containing a single expression to the expression', () => {
-			// Regression: previously `<tsx>{'Hello'}</tsx>` was compiled to
-			// `return {'Hello'};`, which is a JS syntax error because `{` opens
-			// a block/object literal. Unwrap the JSXExpressionContainer.
-			const { code } = compile(`class Foo { bar() { return <tsx>{'Hello'}</tsx>; } }`, 'App.tsrx');
-			expect(code).toContain("return 'Hello';");
-			expect(code).not.toContain("return {'Hello'}");
-		});
-
-		it('unwraps a tsx block containing a single identifier expression', () => {
-			const { code } = compile(
-				`class Foo { bar() { const x = 1; return <tsx>{x}</tsx>; } }`,
-				'App.tsrx',
-			);
-			expect(code).toContain('return x;');
-			expect(code).not.toContain('return {x}');
-		});
-
-		it('wraps tsx text-only content in a fragment so it remains valid JSX', () => {
-			const { code } = compile(`class Foo { bar() { return <tsx>plain text</tsx>; } }`, 'App.tsrx');
-			expect(code).toContain('return <>plain text</>;');
-		});
-
-		it('wraps multiple tsx children in a fragment', () => {
-			const { code } = compile(
-				`class Foo { bar() { return <tsx><div>a</div><div>b</div></tsx>; } }`,
-				'App.tsrx',
-			);
-			expect(code).toContain('return <><div>a</div><div>b</div></>;');
-		});
-
-		it('preserves a tsx block whose single child is already a fragment', () => {
-			const { code } = compile(`class Foo { bar() { return <tsx><>{'x'}</></tsx>; } }`, 'App.tsrx');
-			expect(code).toContain("return <>{'x'}</>;");
-		});
-
-		it('unwraps a top-level <> fragment with a single expression', () => {
-			// `<>` at the top level is parsed as a Tsx node and hits the same
-			// unwrapping path as `<tsx>`.
-			const { code } = compile(`class Foo { bar() { return <>{'Hello'}</>; } }`, 'App.tsrx');
-			expect(code).toContain("return 'Hello';");
-		});
-
-		it('unwraps a top-level <> fragment with a single element', () => {
-			const { code } = compile(`class Foo { bar() { return <><div>hi</div></>; } }`, 'App.tsrx');
-			expect(code).toContain('return <div>hi</div>;');
-		});
-
-		it('keeps a top-level <> fragment with multiple children', () => {
-			const { code } = compile(
-				`class Foo { bar() { return <><div>a</div><div>b</div></>; } }`,
-				'App.tsrx',
-			);
-			expect(code).toContain('return <><div>a</div><div>b</div></>;');
-		});
-
-		it('compiles tsx unwrap cases without producing mapping errors', () => {
-			const sources = [
-				`class Foo { bar() { return <tsx>{'Hello'}</tsx>; } }`,
-				`class Foo { bar() { return <>{'Hello'}</>; } }`,
-				`class Foo { bar() { const x = 1; return <tsx>{x}</tsx>; } }`,
-				`class Foo { bar() { return <tsx>plain</tsx>; } }`,
-			];
-			for (const source of sources) {
-				expect(() => compile_to_volar_mappings(source, 'App.tsrx', { loose: true })).not.toThrow();
-			}
-		});
 	});
 });

@@ -9,42 +9,10 @@ runSharedSourceMappingTests({
 	rejectsComponentAwait: true,
 });
 
-runSharedCompileTests({ compile, name: 'solid' });
+runSharedCompileTests({ compile, name: 'solid', classAttrName: 'class' });
 
 describe('@tsrx/solid basic', () => {
 	describe('component → function', () => {
-		it('emits a plain function when not exported', () => {
-			const { code } = compile(
-				`component App() {
-					<div>{'Hello'}</div>
-				}`,
-				'App.tsrx',
-			);
-			expect(code).toContain('function App()');
-			expect(code).not.toContain('export function App');
-		});
-
-		it('preserves export keyword', () => {
-			const { code } = compile(
-				`export component App() {
-					<div>{'Hello'}</div>
-				}`,
-				'App.tsrx',
-			);
-			expect(code).toContain('export function App()');
-			expect(code).not.toContain('export export');
-		});
-
-		it('preserves export default', () => {
-			const { code } = compile(
-				`export default component App() {
-					<div>{'Hello'}</div>
-				}`,
-				'App.tsrx',
-			);
-			expect(code).toContain('export default function App()');
-		});
-
 		it('wraps multiple top-level JSX children in a fragment', () => {
 			const { code } = compile(
 				`component App() {
@@ -205,16 +173,6 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toMatch(/<Child ref=\{\[a,\s*b,\s*c\]\}/);
 		});
 
-		it('{text expr} coerces null/undefined to empty string', () => {
-			const { code } = compile(
-				`component App({ name }: { name: string | null }) {
-					<p>{text name}</p>
-				}`,
-				'App.tsrx',
-			);
-			expect(code).toContain("name == null ? '' : name + ''");
-		});
-
 		it('{text expr} as the only child of a host element lowers to textContent', () => {
 			// Setting `textContent` as a DOM property is cheaper than Solid's
 			// default `insert()`-based text-node binding, so hoist the single
@@ -285,73 +243,6 @@ describe('@tsrx/solid basic', () => {
 			expect(code).not.toContain('</p>');
 		});
 
-		it('rejects `{html expr}` as a child of a host element', () => {
-			// The `{html ...}` primitive is Ripple-only. On the Solid target
-			// users should spell it as `innerHTML={...}` on the element so
-			// the DOM-specific semantics are explicit in the source.
-			expect(() =>
-				compile(
-					`component App({ markup }: { markup: string }) {
-						<article>{html markup}</article>
-					}`,
-					'App.tsrx',
-				),
-			).toThrow(/not supported on the Solid target/);
-		});
-
-		it('rejects `{html expr}` at the component body level', () => {
-			// Top-level `{html ...}` reaches `to_jsx_child` rather than the
-			// element lowering path; both surfaces should report the same
-			// error instead of silently producing garbage AST.
-			expect(() =>
-				compile(
-					`component App({ markup }: { markup: string }) {
-						{html markup}
-					}`,
-					'App.tsrx',
-				),
-			).toThrow(/not supported on the Solid target/);
-		});
-
-		it('allows JSX fragments in templates as tsx shorthand', () => {
-			const { code } = compile(
-				`component App() {
-					<b><>{111}</></b>
-				}`,
-				'App.tsrx',
-			);
-
-			expect(code).toContain('<b>{111}</b>');
-			expect(code).not.toContain('<tsx>');
-		});
-
-		it('allows JSX fragments inside tsx blocks', () => {
-			expect(() =>
-				compile(
-					`component App() {
-						<tsx><>{111}</></tsx>
-					}`,
-					'App.tsrx',
-				),
-			).not.toThrow();
-		});
-
-		it('supports fragment shorthand passed as props', () => {
-			const { code } = compile(
-				`component Child(props) {
-					<div>{props.content}</div>
-				}
-
-				component App() {
-					<Child content={<><span>{'hello'}</span></>} />
-				}`,
-				'App.tsrx',
-			);
-
-			expect(code).toContain('<Child content={');
-			expect(code).toContain("<span>{'hello'}</span>");
-			expect(code).not.toContain('<tsx>');
-		});
 	});
 
 	describe('control flow', () => {
@@ -680,46 +571,11 @@ describe('@tsrx/solid basic', () => {
 		});
 	});
 
-	describe('interleaved statements and JSX children', () => {
-		it('preserves source order when statements are interleaved with JSX children', () => {
-			const { code } = compile(
-				`component Card() {
-					<div class="card">
-						var a = "one"
-						<b>{"hello" + a}</b>
-						a = "two"
-						<b>{"hello" + a}</b>
-					</div>
-				}`,
-				'Card.tsrx',
-			);
-
-			// Each JSX child must be captured into a const at its source position
-			// so the first <b> sees a = "one" and the second sees a = "two".
-			const first_capture = code.indexOf('_tsrx_child_0');
-			const assign_two = code.indexOf('a = "two"');
-			const second_capture = code.indexOf('_tsrx_child_1');
-			expect(first_capture).toBeGreaterThan(-1);
-			expect(assign_two).toBeGreaterThan(first_capture);
-			expect(second_capture).toBeGreaterThan(assign_two);
-		});
-
-		it('does not capture JSX into temporaries when all statements precede JSX', () => {
-			const { code } = compile(
-				`component Card() {
-					<div>
-						const a = "one"
-						const b = "two"
-						<span>{a}</span>
-						<span>{b}</span>
-					</div>
-				}`,
-				'Card.tsrx',
-			);
-
-			expect(code).not.toContain('_tsrx_child_');
-		});
-
+	// Solid-specific: the early-return path lifts JSX into a `<Show>`, which
+	// the generic shared tests don't assert on. The shared harness covers
+	// the same interleave-capture behavior for `<div>`-wrapped and top-level
+	// component bodies, so only the `<Show>` variant stays here.
+	describe('interleaved statements and JSX children (Solid-specific)', () => {
 		it('preserves source order for interleaved JSX across an early-return guard', () => {
 			const { code } = compile(
 				`component Card(&{ cond }: { cond: boolean }) {
@@ -743,25 +599,6 @@ describe('@tsrx/solid basic', () => {
 			expect(assign_two).toBeGreaterThan(first_capture);
 			expect(second_capture).toBeGreaterThan(assign_two);
 			expect(code).toContain('<Show');
-		});
-
-		it('preserves source order for interleaved statements at the component top level', () => {
-			const { code } = compile(
-				`component Card() {
-					var a = "one"
-					<b>{"hello" + a}</b>
-					a = "two"
-					<b>{"hello" + a}</b>
-				}`,
-				'Card.tsrx',
-			);
-
-			const first_capture = code.indexOf('_tsrx_child_0');
-			const assign_two = code.indexOf('a = "two"');
-			const second_capture = code.indexOf('_tsrx_child_1');
-			expect(first_capture).toBeGreaterThan(-1);
-			expect(assign_two).toBeGreaterThan(first_capture);
-			expect(second_capture).toBeGreaterThan(assign_two);
 		});
 	});
 });

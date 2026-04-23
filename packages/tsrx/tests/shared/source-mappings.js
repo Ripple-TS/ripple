@@ -169,6 +169,24 @@ export function runSharedSourceMappingTests({
 			expect(() => compile_to_volar_mappings(source, 'App.tsrx', { loose: true })).not.toThrow();
 		});
 
+		it('does not crash for the canonical <tsx> and <> unwrap cases', () => {
+			// Covers the same shapes asserted in the shared compile harness
+			// (`<tsx> and fragment unwrapping`), but as a source-map no-crash
+			// sanity sweep to catch regressions at the Volar-mapping layer
+			// rather than the compiled-output layer.
+			const sources = [
+				`class Foo { bar() { return <tsx>{'Hello'}</tsx>; } }`,
+				`class Foo { bar() { return <>{'Hello'}</>; } }`,
+				`class Foo { bar() { const x = 1; return <tsx>{x}</tsx>; } }`,
+				`class Foo { bar() { return <tsx>plain</tsx>; } }`,
+			];
+			for (const source of sources) {
+				expect(() =>
+					compile_to_volar_mappings(source, 'App.tsrx', { loose: true }),
+				).not.toThrow();
+			}
+		});
+
 		it('handles a tsx block whose single child is a JSXExpressionContainer', () => {
 			// The parser emits JSXExpressionContainer (not TSRXExpression) when
 			// `{...}` appears inside a <tsx> block. Its `loc` points at `{...}`,
