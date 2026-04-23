@@ -3,7 +3,7 @@
   "description": "TypeScript plugin for TSRX",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.3.28",
+  "version": "0.3.29",
   "main": "dist/index.js",
   "type": "module",
   "homepage": "https://ripple-ts.com",

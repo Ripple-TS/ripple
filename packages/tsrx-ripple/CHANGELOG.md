@@ -1,5 +1,20 @@
 # @tsrx/ripple
 
+## 0.0.11
+
+### Patch Changes
+
+- [#931](https://github.com/Ripple-TS/ripple/pull/931)
+  [`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix scoped CSS application
+  for elements rendered inside `<tsx>...</tsx>` and bare `<>...</>` fragment
+  shorthand so they receive the same hash-based classes as regular template
+  elements.
+- Updated dependencies
+  [[`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a),
+  [`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a)]:
+  - @tsrx/core@0.0.9
+
 ## 0.0.10
 
 ### Patch Changes

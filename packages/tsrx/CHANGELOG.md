@@ -1,5 +1,42 @@
 # @tsrx/core
 
+## 0.0.9
+
+### Patch Changes
+
+- [#931](https://github.com/Ripple-TS/ripple/pull/931)
+  [`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Extract JSX-emitting targets
+  into a shared `createJsxTransform` factory in `@tsrx/core`; React, Preact, and
+  Solid now plug in via a `JsxPlatform` descriptor so source-mapping fixes
+  propagate to all three targets.
+  - `@tsrx/core` adds the `createJsxTransform` factory, `JsxPlatform` /
+    `JsxPlatformHooks` / `JsxTransformResult` types, and a shared test harness at
+    `@tsrx/core/test-harness/source-mappings`. The source-map segments walker now
+    handles `TSTypePredicate` and uses strict mapping lookups throughout.
+  - `compile_to_volar_mappings` no longer crashes on common AST shapes across all
+    three targets: `NewExpression`, `ReturnStatement`, `ForStatement` /
+    `ForInStatement`, `TemplateLiteral`, `TaggedTemplateExpression`,
+    `AwaitExpression`, computed `MemberExpression`, empty / non-empty
+    `ObjectExpression`, class methods (including async, get / set, static) and
+    object method shorthand, TS generics, type predicates (`x is T` and
+    `asserts x is T`), as-expressions, union / array type annotations,
+    self-closing JSX, element attribute spread, and `JSXExpressionContainer`
+    inside `<tsx>` blocks.
+  - `<tsx>` / `<>` single-child unwrapping is now JSX-context-aware:
+    `return <tsx>{'x'}</tsx>` compiles to `return 'x';` rather than invalid
+    `return {'x'};`, while `<b><>{111}</></b>` still preserves the inner `{111}`
+    container.
+  - Class methods no longer crash source-map collection (every function-like node
+    gets `metadata` defaulted).
+
+- [#931](https://github.com/Ripple-TS/ripple/pull/931)
+  [`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix scoped CSS application
+  for elements rendered inside `<tsx>...</tsx>` and bare `<>...</>` fragment
+  shorthand so they receive the same hash-based classes as regular template
+  elements.
+
 ## 0.0.8
 
 ### Patch Changes

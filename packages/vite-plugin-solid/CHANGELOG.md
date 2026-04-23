@@ -1,5 +1,14 @@
 # @tsrx/vite-plugin-solid
 
+## 0.0.9
+
+### Patch Changes
+
+- Updated dependencies
+  [[`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a),
+  [`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a)]:
+  - @tsrx/solid@0.0.9
+
 ## 0.0.8
 
 ### Patch Changes

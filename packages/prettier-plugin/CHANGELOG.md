@@ -1,5 +1,21 @@
 # @tsrx/prettier-plugin
 
+## 0.3.29
+
+### Patch Changes
+
+- [#931](https://github.com/Ripple-TS/ripple/pull/931)
+  [`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve `<>...</>` fragment
+  shorthand when formatting TSX expressions instead of rewriting it to
+  `<tsx>...</tsx>`.
+
+- Updated dependencies
+  [[`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a),
+  [`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a)]:
+  - @tsrx/core@0.0.9
+  - @tsrx/ripple@0.0.11
+
 ## 0.3.28
 
 ### Patch Changes
