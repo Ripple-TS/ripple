@@ -3,7 +3,6 @@
 '@tsrx/react': patch
 '@tsrx/preact': patch
 '@tsrx/solid': patch
-'@tsrx/prettier-plugin': patch
 ---
 
 Extract JSX-emitting targets into a shared `createJsxTransform` factory in `@tsrx/core`; React, Preact, and Solid now plug in via a `JsxPlatform` descriptor so source-mapping fixes propagate to all three targets.
