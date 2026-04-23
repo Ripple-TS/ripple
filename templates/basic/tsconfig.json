@@ -6,10 +6,11 @@
 		"allowSyntheticDefaultImports": true,
 		"esModuleInterop": true,
 		"moduleResolution": "bundler",
+		"allowArbitraryExtensions": true,
 		"jsx": "preserve",
 		"jsxImportSource": "ripple",
 		"noEmit": true,
 		"isolatedModules": true,
-		"plugins": [{ "name": "@ripple-ts/typescript-plugin" }]
+		"plugins": [{ "name": "@tsrx/typescript-plugin" }]
 	}
 }

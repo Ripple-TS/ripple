@@ -1,54 +1,54 @@
 import { RenderRoute, ServerRoute } from '@ripple-ts/vite-plugin';
 
 export const routes = [
-	new RenderRoute({ path: '/', entry: '/src/pages/index.ripple' }),
+	new RenderRoute({ path: '/', entry: '/src/pages/index.tsrx' }),
 
 	// Getting Started
-	new RenderRoute({ path: '/docs/introduction', entry: '/src/pages/docs/introduction.ripple' }),
-	new RenderRoute({ path: '/docs/quick-start', entry: '/src/pages/docs/quick-start.ripple' }),
+	new RenderRoute({ path: '/docs/introduction', entry: '/src/pages/docs/introduction.tsrx' }),
+	new RenderRoute({ path: '/docs/quick-start', entry: '/src/pages/docs/quick-start.tsrx' }),
 
 	// Guide
 	new RenderRoute({
 		path: '/docs/guide/application',
-		entry: '/src/pages/docs/guide/application.ripple',
+		entry: '/src/pages/docs/guide/application.tsrx',
 	}),
-	new RenderRoute({ path: '/docs/guide/syntax', entry: '/src/pages/docs/guide/syntax.ripple' }),
+	new RenderRoute({ path: '/docs/guide/syntax', entry: '/src/pages/docs/guide/syntax.tsrx' }),
 	new RenderRoute({
 		path: '/docs/guide/components',
-		entry: '/src/pages/docs/guide/components.ripple',
+		entry: '/src/pages/docs/guide/components.tsrx',
 	}),
 	new RenderRoute({
 		path: '/docs/guide/control-flow',
-		entry: '/src/pages/docs/guide/control-flow.ripple',
+		entry: '/src/pages/docs/guide/control-flow.tsrx',
 	}),
 	new RenderRoute({
 		path: '/docs/guide/reactivity',
-		entry: '/src/pages/docs/guide/reactivity.ripple',
+		entry: '/src/pages/docs/guide/reactivity.tsrx',
 	}),
-	new RenderRoute({ path: '/docs/guide/events', entry: '/src/pages/docs/guide/events.ripple' }),
-	new RenderRoute({ path: '/docs/guide/dom-refs', entry: '/src/pages/docs/guide/dom-refs.ripple' }),
+	new RenderRoute({ path: '/docs/guide/events', entry: '/src/pages/docs/guide/events.tsrx' }),
+	new RenderRoute({ path: '/docs/guide/dom-refs', entry: '/src/pages/docs/guide/dom-refs.tsrx' }),
 	new RenderRoute({
 		path: '/docs/guide/state-management',
-		entry: '/src/pages/docs/guide/state-management.ripple',
+		entry: '/src/pages/docs/guide/state-management.tsrx',
 	}),
 	new RenderRoute({
 		path: '/docs/guide/head-management',
-		entry: '/src/pages/docs/guide/head-management.ripple',
+		entry: '/src/pages/docs/guide/head-management.tsrx',
 	}),
-	new RenderRoute({ path: '/docs/guide/styling', entry: '/src/pages/docs/guide/styling.ripple' }),
-	new RenderRoute({ path: '/docs/guide/bindings', entry: '/src/pages/docs/guide/bindings.ripple' }),
+	new RenderRoute({ path: '/docs/guide/styling', entry: '/src/pages/docs/guide/styling.tsrx' }),
+	new RenderRoute({ path: '/docs/guide/bindings', entry: '/src/pages/docs/guide/bindings.tsrx' }),
 
 	// Further Reading
-	new RenderRoute({ path: '/docs/comparison', entry: '/src/pages/docs/comparison.ripple' }),
-	new RenderRoute({ path: '/docs/best-practices', entry: '/src/pages/docs/best-practices.ripple' }),
-	new RenderRoute({ path: '/docs/libraries', entry: '/src/pages/docs/libraries.ripple' }),
+	new RenderRoute({ path: '/docs/comparison', entry: '/src/pages/docs/comparison.tsrx' }),
+	new RenderRoute({ path: '/docs/best-practices', entry: '/src/pages/docs/best-practices.tsrx' }),
+	new RenderRoute({ path: '/docs/libraries', entry: '/src/pages/docs/libraries.tsrx' }),
 	new RenderRoute({
 		path: '/docs/troubleshooting',
-		entry: '/src/pages/docs/troubleshooting.ripple',
+		entry: '/src/pages/docs/troubleshooting.tsrx',
 	}),
 
 	// 404 catch-all (must be last render route)
-	new RenderRoute({ path: '/**', entry: '/src/pages/404.ripple' }),
+	new RenderRoute({ path: '/**', entry: '/src/pages/404.tsrx' }),
 
 	// API routes
 	new ServerRoute({
@@ -68,7 +68,7 @@ export const routes = [
 		methods: ['GET'],
 		handler: async (_) => {
 			const codeContent =
-				btoa(`<span class="line-number"> 1</span> <span class="export-keyword">import</span> <span class="brace">{</span> <span class="property">Button</span> <span class="brace">}</span> <span class="export-keyword">from</span> <span class="string">'./Button.ripple'</span>;
+				btoa(`<span class="line-number"> 1</span> <span class="export-keyword">import</span> <span class="brace">{</span> <span class="property">Button</span> <span class="brace">}</span> <span class="export-keyword">from</span> <span class="string">'./Button.tsrx'</span>;
 <span class="line-number"> 2</span> <span class="export-keyword">import</span> <span class="brace">{</span> <span class="property">track</span> <span class="brace">}</span> <span class="export-keyword">from</span> <span class="string">'ripple'</span>;
 <span class="line-number"> 3</span>
 <span class="line-number"> 4</span> <span class="export-keyword">export</span> <span class="keyword">component</span> <span class="function">TodoList</span><span class="brace">(</span><span class="brace">{</span> <span class="property">todos</span>, <span class="property">addTodo</span> <span class="brace">}</span>: <span class="component">Props</span><span class="brace">)</span> <span class="brace">{</span>
@@ -96,16 +96,16 @@ export const routes = [
 <span class="line-number">26</span> <span class="brace">}</span>
 <span class="line-number">27</span>
 <span class="line-number">28</span> <span class="export-keyword">export</span> <span class="keyword">component</span> <span class="function">Counter</span><span class="brace">()</span> <span class="brace">{</span>
-<span class="line-number">29</span>   <span class="keyword">let</span> <span class="property">count</span> <span class="operator">=</span> <span class="function">track</span><span class="brace">(</span><span class="value">0</span><span class="brace">)</span>;
-<span class="line-number">30</span>   <span class="keyword">let</span> <span class="property">double</span> <span class="operator">=</span> <span class="function">track</span><span class="brace">(</span><span class="brace">()</span> <span class="operator">=&gt;</span> <span class="reactive-var">@count</span> <span class="operator">*</span> <span class="value">2</span><span class="brace">)</span>;
+<span class="line-number">29</span>   <span class="keyword">let</span> <span class="ripple-syntax">&amp;</span><span class="brace">[</span><span class="property">count</span><span class="brace">]</span> <span class="operator">=</span> <span class="function">track</span><span class="brace">(</span><span class="value">0</span><span class="brace">)</span>;
+<span class="line-number">30</span>   <span class="keyword">let</span> <span class="ripple-syntax">&amp;</span><span class="brace">[</span><span class="property">double</span><span class="brace">]</span> <span class="operator">=</span> <span class="function">track</span><span class="brace">(</span><span class="brace">()</span> <span class="operator">=&gt;</span> <span class="property">count</span> <span class="operator">*</span> <span class="value">2</span><span class="brace">)</span>;
 <span class="line-number">31</span>
 <span class="line-number">32</span>   <span class="bracket">&lt;</span><span class="tag">div</span> <span class="attribute">class</span>=<span class="string">"counter"</span><span class="bracket">&gt;</span>
 <span class="line-number">33</span>     <span class="bracket">&lt;</span><span class="tag">h2</span><span class="bracket">&gt;</span><span class="template-brace">{</span><span class="string">"Counter"</span><span class="template-brace">}</span><span class="bracket">&lt;/</span><span class="tag">h2</span><span class="bracket">&gt;</span>
-<span class="line-number">34</span>     <span class="bracket">&lt;</span><span class="tag">p</span><span class="bracket">&gt;</span><span class="template-brace">{</span><span class="string">"Count: "</span><span class="template-brace">}</span><span class="template-brace">{</span><span class="reactive-var">@count</span><span class="template-brace">}</span><span class="bracket">&lt;/</span><span class="tag">p</span><span class="bracket">&gt;</span>
-<span class="line-number">35</span>     <span class="bracket">&lt;</span><span class="tag">p</span><span class="bracket">&gt;</span><span class="template-brace">{</span><span class="string">"Double: "</span><span class="template-brace">}</span><span class="template-brace">{</span><span class="reactive-var">@double</span><span class="template-brace">}</span><span class="bracket">&lt;/</span><span class="tag">p</span><span class="bracket">&gt;</span>
+<span class="line-number">34</span>     <span class="bracket">&lt;</span><span class="tag">p</span><span class="bracket">&gt;</span><span class="template-brace">{</span><span class="string">"Count: "</span><span class="template-brace">}</span><span class="template-brace">{</span><span class="property">count</span><span class="template-brace">}</span><span class="bracket">&lt;/</span><span class="tag">p</span><span class="bracket">&gt;</span>
+<span class="line-number">35</span>     <span class="bracket">&lt;</span><span class="tag">p</span><span class="bracket">&gt;</span><span class="template-brace">{</span><span class="string">"Double: "</span><span class="template-brace">}</span><span class="template-brace">{</span><span class="property">double</span><span class="template-brace">}</span><span class="bracket">&lt;/</span><span class="tag">p</span><span class="bracket">&gt;</span>
 <span class="line-number">36</span>
-<span class="line-number">37</span>     <span class="bracket">&lt;</span><span class="component">Button</span> <span class="attribute">onClick</span>=<span class="template-brace">{</span><span class="brace">()</span> <span class="operator">=&gt;</span> <span class="reactive-var">@count</span><span class="operator">++</span><span class="template-brace">}</span> <span class="attribute">label</span>=<span class="template-brace">{</span><span class="string">"Increment"</span><span class="template-brace">}</span> <span class="bracket">/&gt;</span>
-<span class="line-number">38</span>     <span class="bracket">&lt;</span><span class="component">Button</span> <span class="attribute">onClick</span>=<span class="template-brace">{</span><span class="brace">()</span> <span class="operator">=&gt;</span> <span class="reactive-var">@count</span> <span class="operator">=</span> <span class="value">0</span><span class="template-brace">}</span> <span class="attribute">label</span>=<span class="template-brace">{</span><span class="string">"Reset"</span><span class="template-brace">}</span> <span class="bracket">/&gt;</span>
+<span class="line-number">37</span>     <span class="bracket">&lt;</span><span class="component">Button</span> <span class="attribute">onClick</span>=<span class="template-brace">{</span><span class="brace">()</span> <span class="operator">=&gt;</span> <span class="property">count</span><span class="operator">++</span><span class="template-brace">}</span> <span class="attribute">label</span>=<span class="template-brace">{</span><span class="string">"Increment"</span><span class="template-brace">}</span> <span class="bracket">/&gt;</span>
+<span class="line-number">38</span>     <span class="bracket">&lt;</span><span class="component">Button</span> <span class="attribute">onClick</span>=<span class="template-brace">{</span><span class="brace">()</span> <span class="operator">=&gt;</span> <span class="property">count</span> <span class="operator">=</span> <span class="value">0</span><span class="template-brace">}</span> <span class="attribute">label</span>=<span class="template-brace">{</span><span class="string">"Reset"</span><span class="template-brace">}</span> <span class="bracket">/&gt;</span>
 <span class="line-number">39</span>   <span class="bracket">&lt;/</span><span class="tag">div</span><span class="bracket">&gt;</span>
 <span class="line-number">40</span> <span class="brace">}</span>`);
 

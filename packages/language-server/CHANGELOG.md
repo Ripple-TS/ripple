@@ -1,5 +1,281 @@
 # @ripple-ts/language-server
 
+## 0.3.31
+
+### Patch Changes
+
+- Updated dependencies
+  [[`079617d`](https://github.com/Ripple-TS/ripple/commit/079617d639569e4cb2c79239011a6b892dbdbb45),
+  [`7529e1f`](https://github.com/Ripple-TS/ripple/commit/7529e1fe3f0870319bd3399501fd2eb43c516065)]:
+  - @tsrx/typescript-plugin@0.3.31
+  - @tsrx/core@0.0.11
+
+## 0.3.30
+
+### Patch Changes
+
+- Updated dependencies
+  [[`7f59ed8`](https://github.com/Ripple-TS/ripple/commit/7f59ed80d7b44c847fb9eb8bf00d4fe9835c3136)]:
+  - @tsrx/core@0.0.10
+  - @tsrx/typescript-plugin@0.3.30
+
+## 0.3.29
+
+### Patch Changes
+
+- Updated dependencies
+  [[`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a),
+  [`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a)]:
+  - @tsrx/core@0.0.9
+  - @tsrx/typescript-plugin@0.3.29
+
+## 0.3.28
+
+### Patch Changes
+
+- Updated dependencies
+  [[`4292598`](https://github.com/Ripple-TS/ripple/commit/42925982e88f48f0af6cc74deeaa3c17bc6657cf),
+  [`e4b5555`](https://github.com/Ripple-TS/ripple/commit/e4b5555fb5b1651a2bf1bf232565c7e0e40213b8)]:
+  - @tsrx/core@0.0.8
+  - @tsrx/typescript-plugin@0.3.28
+
+## 0.3.27
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/typescript-plugin@0.3.27
+
+## 0.3.26
+
+### Patch Changes
+
+- [#916](https://github.com/Ripple-TS/ripple/pull/916)
+  [`5b01246`](https://github.com/Ripple-TS/ripple/commit/5b01246b8e1a3a3c7c9da294f3ebda8c73af3ee7)
+  Thanks [@trueadm](https://github.com/trueadm)! - Rename the TypeScript plugin
+  package to `@tsrx/typescript-plugin` and update local consumers, templates, and
+  playgrounds to use the new package name.
+
+- [`68d80f8`](https://github.com/Ripple-TS/ripple/commit/68d80f8c7a6398692e00497b90cb3d0ba981aea3)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Correct package versions.
+
+- Updated dependencies
+  [[`5b01246`](https://github.com/Ripple-TS/ripple/commit/5b01246b8e1a3a3c7c9da294f3ebda8c73af3ee7),
+  [`68d80f8`](https://github.com/Ripple-TS/ripple/commit/68d80f8c7a6398692e00497b90cb3d0ba981aea3),
+  [`fab49f7`](https://github.com/Ripple-TS/ripple/commit/fab49f7da8ec13c981f1c7b3102703d0c349fc1e)]:
+  - @tsrx/typescript-plugin@0.3.26
+  - @tsrx/core@0.0.7
+
+## 1.0.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/typescript-plugin@1.0.1
+
+## 1.0.0
+
+### Patch Changes
+
+- Updated dependencies
+  [[`e9da9cb`](https://github.com/Ripple-TS/ripple/commit/e9da9cbdd42c28f129ee643366c06f8779b8f931)]:
+  - @tsrx/core@0.0.6
+  - @ripple-ts/typescript-plugin@1.0.0
+
+## 0.3.25
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/typescript-plugin@0.3.25
+
+## 0.3.24
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/typescript-plugin@0.3.24
+
+## 0.3.23
+
+### Patch Changes
+
+- Updated dependencies
+  [[`d027c6c`](https://github.com/Ripple-TS/ripple/commit/d027c6c84fd3ba7c577c52b9fdade77e7ff886e0)]:
+  - @tsrx/core@0.0.5
+  - @ripple-ts/typescript-plugin@0.3.23
+
+## 0.3.22
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/typescript-plugin@0.3.22
+
+## 0.3.21
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/typescript-plugin@0.3.21
+
+## 0.3.20
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/typescript-plugin@0.3.20
+
+## 0.3.19
+
+### Patch Changes
+
+- [#877](https://github.com/Ripple-TS/ripple/pull/877)
+  [`7610ef8`](https://github.com/Ripple-TS/ripple/commit/7610ef84847bb77cc83488a902ecb6f96594e113)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Convert the Ripple language
+  server, TypeScript plugin, and VS Code extension codebases from CommonJS source
+  files to ESM source files, while publishing built dist entrypoints instead of
+  source files.
+
+  This updates package metadata such as `type: module` and dist-based `main`
+  paths, replaces `require` and `module.exports` usage with `import` and `export`,
+  and adds tsdown bundling configs that emit CommonJS dist output plus a
+  dist/package.json that forces `type: commonjs`.
+
+  Development builds also include sourcemaps.
+
+- Updated dependencies
+  [[`7610ef8`](https://github.com/Ripple-TS/ripple/commit/7610ef84847bb77cc83488a902ecb6f96594e113)]:
+  - @ripple-ts/typescript-plugin@0.3.19
+
+## 0.3.18
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/typescript-plugin@0.3.18
+
+## 0.3.17
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/typescript-plugin@0.3.17
+
+## 0.3.16
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/typescript-plugin@0.3.16
+
+## 0.3.15
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/typescript-plugin@0.3.15
+
+## 0.3.14
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/typescript-plugin@0.3.14
+
+## 0.3.13
+
+### Patch Changes
+
+- [#862](https://github.com/Ripple-TS/ripple/pull/862)
+  [`48af856`](https://github.com/Ripple-TS/ripple/commit/48af85678d5e1b32bb1c5e3fbb2fb07498bc88a3)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add a release changeset for
+  the async tracking work introduced in commit
+  `4eb4d6851573d771d65f1e85b1b442ad3cdc53d2`.
+
+  This ships async tracking as a first-class feature in Ripple:
+  - remove and prohibit direct component-level `await`; async component flows now
+    require using `trackAsync()` (with `trackPending()` for pending state checks)
+  - add `trackAsync()` and `trackPending()` support so async values can be read
+    through Ripple's reactive runtime using tracked async values
+  - update compiler/runtime behavior for `try`/`catch`/`pending` boundaries so
+    async pending and error states can render and recover correctly in client and
+    SSR paths
+  - align `@ripple-ts/compat-react` async boundary behavior with the new Ripple
+    async tracking semantics
+  - update editor/tooling integration to match the new async syntax/runtime shape
+
+- [`6e11177`](https://github.com/Ripple-TS/ripple/commit/6e111778cae4e7d9876e51e293520f0859eb5890)
+  Thanks [@trueadm](https://github.com/trueadm)! - Add `.rsrx` support across
+  Ripple tooling and rename the repository's tracked `.ripple` modules to `.rsrx`.
+- Updated dependencies
+  [[`6e11177`](https://github.com/Ripple-TS/ripple/commit/6e111778cae4e7d9876e51e293520f0859eb5890)]:
+  - @ripple-ts/typescript-plugin@0.3.13
+
+## 0.3.12
+
+### Patch Changes
+
+- [#859](https://github.com/Ripple-TS/ripple/pull/859)
+  [`cdd31ba`](https://github.com/Ripple-TS/ripple/commit/cdd31ba4c07ce504b01d56533e19a6ba37879f5a)
+  Thanks [@trueadm](https://github.com/trueadm)! - Add first-phase `.tsrx` support
+  across the core Ripple tooling so Vite, Rollup, TypeScript, the language server,
+  Prettier, ESLint, and editor integrations accept both `.ripple` and `.tsrx`
+  files.
+
+- Updated dependencies
+  [[`cdd31ba`](https://github.com/Ripple-TS/ripple/commit/cdd31ba4c07ce504b01d56533e19a6ba37879f5a)]:
+  - @ripple-ts/typescript-plugin@0.3.12
+
+## 0.3.11
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/typescript-plugin@0.3.11
+
+## 0.3.10
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/typescript-plugin@0.3.10
+
+## 0.3.9
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/typescript-plugin@0.3.9
+
+## 0.3.8
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/typescript-plugin@0.3.8
+
+## 0.3.7
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/typescript-plugin@0.3.7
+
+## 0.3.6
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/typescript-plugin@0.3.6
+
+## 0.3.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/typescript-plugin@0.3.5
+
 ## 0.3.4
 
 ### Patch Changes

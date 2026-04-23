@@ -1,0 +1,335 @@
+import type { Props, Tracked } from 'ripple';
+import { RippleObject, effect, flushSync, track } from 'ripple';
+
+describe('composite > reactivity', () => {
+	it('renders composite components with object state', () => {
+		component Button({ obj }: { obj: { count: Tracked<number> } }) {
+			<button
+				class="count2"
+				onClick={() => {
+					obj.count.value++;
+				}}
+			>
+				{obj.count.value}
+			</button>
+		}
+
+		component App() {
+			<div>
+				let obj = {
+					count: track(0),
+				};
+
+				<span class="count">{obj.count.value}</span>
+				<Button {obj} />
+			</div>
+		}
+
+		render(App);
+
+		const button = container.querySelector('button');
+
+		button.click();
+		flushSync();
+
+		expect(container.querySelector('.count').textContent).toBe('1');
+		expect(container.querySelector('.count2').textContent).toBe('1');
+	});
+
+	it('renders composite components with object state wrapped in an if statement', () => {
+		component Button({ obj }: { obj: { count: Tracked<number> } }) {
+			<button
+				class="count2"
+				onClick={() => {
+					obj.count.value++;
+				}}
+			>
+				{obj.count.value}
+			</button>
+		}
+
+		component OtherComponent({ obj }: { obj: { count: Tracked<number> } }) {
+			<div class="count3">{obj.count.value}</div>
+		}
+
+		component App() {
+			<div>
+				let obj = {
+					count: track(0),
+				};
+
+				<span class="count">{obj.count.value}</span>
+				<span>{' '}</span>
+				if (obj) {
+					<Button {obj} />
+				}
+
+				if (obj) {
+					<OtherComponent {obj} />
+				}
+			</div>
+		}
+
+		render(App);
+
+		const button = container.querySelector('button');
+
+		button.click();
+		flushSync();
+
+		expect(container.querySelector('.count').textContent).toBe('1');
+		expect(container.querySelector('.count2').textContent).toBe('1');
+		expect(container.querySelector('.count3').textContent).toBe('1');
+	});
+
+	it('parents and children have isolated state', () => {
+		component Button(props: { count: number }) {
+			let &[count] = track(() => props.count);
+			<button
+				onClick={() => {
+					count++;
+				}}
+			>
+				{'child: ' + count}
+			</button>
+		}
+
+		component App() {
+			<div>
+				let &[count] = track(0);
+
+				<button
+					onClick={() => {
+						count++;
+					}}
+				>
+					{'parent: ' + count}
+				</button>
+				<Button {count} />
+			</div>
+		}
+
+		render(App);
+
+		const buttons = container.querySelectorAll('button');
+
+		expect(buttons[0].textContent).toBe('parent: 0');
+		expect(buttons[1].textContent).toBe('child: 0');
+
+		buttons[0].click();
+		flushSync();
+
+		expect(buttons[0].textContent).toBe('parent: 1');
+		expect(buttons[1].textContent).toBe('child: 1');
+
+		buttons[1].click();
+		flushSync();
+
+		expect(buttons[0].textContent).toBe('parent: 1');
+		expect(buttons[1].textContent).toBe('child: 2');
+	});
+
+	it('parents and children have isolated connected state (destructured props)', () => {
+		component Button(&{ count }: { count: number }) {
+			let &[local_count] = track(() => count);
+			<button
+				onClick={() => {
+					local_count++;
+				}}
+			>
+				{'child: ' + local_count}
+			</button>
+		}
+
+		component App() {
+			<div>
+				let &[count] = track(0);
+
+				<button
+					onClick={() => {
+						count++;
+					}}
+				>
+					{'parent: ' + count}
+				</button>
+				<Button {count} />
+			</div>
+		}
+
+		render(App);
+
+		const buttons = container.querySelectorAll('button');
+
+		expect(buttons[0].textContent).toBe('parent: 0');
+		expect(buttons[1].textContent).toBe('child: 0');
+
+		buttons[0].click();
+		flushSync();
+
+		expect(buttons[0].textContent).toBe('parent: 1');
+		expect(buttons[1].textContent).toBe('child: 1');
+
+		buttons[1].click();
+		flushSync();
+
+		expect(buttons[0].textContent).toBe('parent: 1');
+		expect(buttons[1].textContent).toBe('child: 2');
+	});
+
+	it('handles spreading of props', () => {
+		let logs: string[] = [];
+
+		component App() {
+			let &[a] = track(1);
+			let &[b] = track(2);
+			let &[c] = track(3);
+
+			let &[obj] = track(
+				() => ({
+					a,
+					b,
+					c,
+				}),
+			);
+
+			<Child {...obj} />
+
+			<button
+				onClick={() => {
+					a++;
+					b++;
+					c++;
+				}}
+			>
+				{'Increment all'}
+			</button>
+		}
+
+		component Child(&{ a, b, c }: { a: number; b: number; c: number }) {
+			effect(() => {
+				logs.push(`Child effect: ${a}, ${b}, ${c}`);
+			});
+
+			<div>{a + ' ' + b + ' ' + c}</div>
+		}
+
+		render(App);
+		flushSync();
+
+		expect(container.querySelector('div').textContent).toBe('1 2 3');
+		expect(logs).toEqual(['Child effect: 1, 2, 3']);
+
+		const button = container.querySelector('button');
+		button.click();
+		flushSync();
+
+		expect(container.querySelector('div').textContent).toBe('2 3 4');
+		expect(logs).toEqual(['Child effect: 1, 2, 3', 'Child effect: 2, 3, 4']);
+	});
+
+	it('keeps reactivity for spread props via intermediate components and lazy destructuring', () => {
+		component App() {
+			let &[count] = track(0);
+			<CounterWrapper {count} up={() => count++} down={() => count--} />
+		}
+
+		component CounterWrapper(props: Props) {
+			<div>
+				<Counter {...props} />
+			</div>
+		}
+
+		component Counter(&{ count, up, down, ...rest }: Props) {
+			<button onClick={() => up()}>{'UP'}</button>
+			<button onClick={() => down()}>{'DOWN'}</button>
+			<span {...rest}>{`Counter: ${count}`}</span>
+		}
+
+		render(App);
+
+		const buttonIncrement = container.querySelectorAll('button')[0];
+		const buttonDecrement = container.querySelectorAll('button')[1];
+		const span = container.querySelector('span');
+
+		expect(span.textContent).toBe('Counter: 0');
+
+		buttonIncrement.click();
+		flushSync();
+
+		expect(span.textContent).toBe('Counter: 1');
+
+		buttonDecrement.click();
+		flushSync();
+
+		expect(span.textContent).toBe('Counter: 0');
+	});
+
+	it('keeps reactivity on elements for element spreads and adds / removes dynamic props', () => {
+		component App() {
+			let &[count] = track(0);
+			<CounterWrapper {count} up={() => count++} />
+		}
+
+		component CounterWrapper(props: { count: number; up: () => void }) {
+			const more: { double: Tracked<number>; another?: number; extra: number } = new RippleObject({
+				double: track(() => props.count * 2),
+				another: 0,
+				extra: 100,
+			});
+
+			effect(() => {
+				props.count;
+				if (props.count === 1) {
+					delete more.another;
+				} else if (props.count === 2) {
+					more.another = 0;
+				}
+			});
+
+			<div>
+				<Counter {...props} double={more.double} another={more.another} extra={more.extra} />
+			</div>
+		}
+
+		component Counter(&{
+			count,
+			up,
+			...rest
+		}: {
+			count: number;
+			up: () => void;
+			double: Tracked<number>;
+			another?: number;
+			extra: number;
+		}) {
+			<div {...rest}>{`Counter: ${count} Double: ${rest.double.value}`}</div>
+			<button onClick={() => up()}>{'UP'}</button>
+		}
+
+		render(App);
+
+		const buttonIncrement = container.querySelectorAll('button')[0];
+		const div = container.querySelectorAll('div')[1];
+
+		expect(div.getAttribute('double')).toBe('0');
+		expect(div.getAttribute('another')).toBe('0');
+		expect(div.getAttribute('extra')).toBe('100');
+		expect(div.textContent).toBe('Counter: 0 Double: 0');
+
+		buttonIncrement.click();
+		flushSync();
+
+		expect(div.getAttribute('double')).toBe('2');
+		expect(div.hasAttribute('another')).toBe(false);
+		expect(div.getAttribute('extra')).toBe('100');
+		expect(div.textContent).toBe('Counter: 1 Double: 2');
+
+		buttonIncrement.click();
+		flushSync();
+
+		expect(div.getAttribute('double')).toBe('4');
+		expect(div.getAttribute('another')).toBe('0');
+		expect(div.getAttribute('extra')).toBe('100');
+		expect(div.textContent).toBe('Counter: 2 Double: 4');
+	});
+});

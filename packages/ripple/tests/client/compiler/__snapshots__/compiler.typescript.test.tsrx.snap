@@ -1,0 +1,46 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`compiler > typescript > compiles TSInstantiationExpression 1`] = `
+"import * as _$_ from 'ripple/internal/client';
+
+function makeBox(value) {
+	return { value };
+}
+
+const makeStringBox = (makeBox);
+const stringBox = makeStringBox('abc');
+const ErrorMap = (Map);
+const errorMap = new ErrorMap();"
+`;
+
+exports[`compiler > typescript > removes class TypeScript syntax from JS output 1`] = `
+"import * as _$_ from 'ripple/internal/client';
+
+class PrintEvent {
+	text;
+
+	constructor(text) {
+		this.text = text;
+	}
+}"
+`;
+
+exports[`compiler > typescript > removes class extends type arguments from JS output 1`] = `
+"import * as _$_ from 'ripple/internal/client';
+
+class StringMap extends Map {
+	constructor() {
+		var __block = _$_.scope();
+
+		super();
+	}
+}"
+`;
+
+exports[`compiler > typescript > removes type assertions from function parameters and leaves default values 1`] = `
+"import * as _$_ from 'ripple/internal/client';
+
+function getString(e = 'test') {
+	return e;
+}"
+`;

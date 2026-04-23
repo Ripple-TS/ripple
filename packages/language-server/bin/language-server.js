@@ -1,5 +1,5 @@
 #!/usr/bin/env node
 
-const { createRippleLanguageServer } = require('../src/server.js');
+import { createRippleLanguageServer } from '../src/server.js';
 
 createRippleLanguageServer();

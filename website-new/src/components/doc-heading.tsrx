@@ -1,0 +1,38 @@
+import type { Children } from 'ripple';
+
+export component DocHeading({
+	level,
+	id,
+	children,
+}: {
+	level: number;
+	id: string;
+	children: Children;
+}) {
+	switch (level) {
+		case 1: {
+			<h1 {id} class="doc-h1">
+				{children}
+				<a class="header-anchor" href={`#${id}`} aria-label={`Permalink`} />
+			</h1>
+		}
+		case 2: {
+			<h2 {id} class="doc-h2">
+				{children}
+				<a class="header-anchor" href={`#${id}`} aria-label={`Permalink`} />
+			</h2>
+		}
+		case 3: {
+			<h3 {id} class="doc-h3">
+				{children}
+				<a class="header-anchor" href={`#${id}`} aria-label={`Permalink`} />
+			</h3>
+		}
+		case 4: {
+			<h4 {id} class="doc-h4">
+				{children}
+				<a class="header-anchor" href={`#${id}`} aria-label={`Permalink`} />
+			</h4>
+		}
+	}
+}

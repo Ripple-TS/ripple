@@ -3,107 +3,102 @@ import * as _$_ from 'ripple/internal/server';
 
 import { track } from 'ripple/server';
 
-export async function Layout(__output, { children }) {
-	return _$_.async(async () => {
-		_$_.push_component();
-		__output.push('<div');
-		__output.push(' class="layout"');
-		__output.push('>');
-
-		{
-			__output.push('<nav');
-			__output.push(' class="nav"');
-			__output.push('>');
-
-			{
-				__output.push('Navigation');
-			}
-
-			__output.push('</nav>');
-			__output.push('<main');
-			__output.push(' class="main"');
-			__output.push('>');
-
-			{
-				{
-					const comp = children;
-					const args = [__output, {}];
-
-					if (comp?.async) {
-						await comp(...args);
-					} else if (comp) {
-						comp(...args);
-					}
-				}
-			}
-
-			__output.push('</main>');
-		}
-
-		__output.push('</div>');
-		_$_.pop_component();
-	});
-}
-
-Layout.async = true;
-
-export function Content(__output) {
+export function Layout({ children }) {
 	_$_.push_component();
 
-	let visible = _$_.track(true);
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="layout"');
+		_$_.output_push('>');
 
-	__output.push('<div');
-	__output.push(' class="content"');
-	__output.push('>');
-
-	{
-		__output.push('<!--[-->');
-
-		if (_$_.get(visible)) {
-			__output.push('<p');
-			__output.push(' class="text"');
-			__output.push('>');
+		{
+			_$_.output_push('<nav');
+			_$_.output_push(' class="nav"');
+			_$_.output_push('>');
 
 			{
-				__output.push('Hello world');
+				_$_.output_push('Navigation');
 			}
 
-			__output.push('</p>');
+			_$_.output_push('</nav>');
+			_$_.output_push('<main');
+			_$_.output_push(' class="main"');
+			_$_.output_push('>');
+
+			{
+				_$_.render_expression(children);
+			}
+
+			_$_.output_push('</main>');
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function LayoutWithContent(__output) {
+export function Content() {
 	_$_.push_component();
 
-	{
-		const comp = Layout;
+	let lazy = _$_.track(true, '0bdb1500');
 
-		const args = [
-			__output,
-			{
-				children: function children(__output) {
-					_$_.push_component();
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="content"');
+		_$_.output_push('>');
 
-					{
-						const comp = Content;
-						const args = [__output, {}];
+		{
+			_$_.output_push('<!--[-->');
 
-						comp(...args);
-					}
+			if (_$_.get(lazy)) {
+				_$_.output_push('<p');
+				_$_.output_push(' class="text"');
+				_$_.output_push('>');
 
-					_$_.pop_component();
+				{
+					_$_.output_push('Hello world');
 				}
-			}
-		];
 
-		comp(...args);
-	}
+				_$_.output_push('</p>');
+			}
+
+			_$_.output_push('<!--]-->');
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+export function LayoutWithContent() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		{
+			const comp = Layout;
+
+			const args = [
+				{
+					children: _$_.tsrx_element(function render_children() {
+						_$_.push_component();
+
+						{
+							const comp = Content;
+							const args = [{}];
+
+							comp(...args);
+						}
+
+						_$_.pop_component();
+					})
+				}
+			];
+
+			comp(...args);
+		}
+	});
 
 	_$_.pop_component();
 }

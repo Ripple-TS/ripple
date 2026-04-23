@@ -1,7 +1,13 @@
 /** @import { LanguageServicePlugin, TextEdit, CompletionItem } from '@volar/language-server'; */
 
-const { CompletionItemKind, InsertTextFormat } = require('@volar/language-server');
-const { getVirtualCode, createLogging, isInsideImport, isInsideExport } = require('./utils.js');
+import { CompletionItemKind, InsertTextFormat } from '@volar/language-server';
+import {
+	getVirtualCode,
+	createLogging,
+	isInsideImport,
+	isInsideExport,
+	is_ripple_document,
+} from './utils.js';
 
 const { log } = createLogging('[Ripple Completion Plugin]');
 
@@ -228,15 +234,6 @@ const RIPPLE_SNIPPETS = [
 		sortText: '0-track-getter-setter',
 	},
 	{
-		label: 'trackSplit',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Split props with trackSplit',
-		documentation: 'Destructure props while preserving reactivity',
-		insertText: "const [${1:children}, ${2:rest}] = trackSplit(props, [${3:'children'}]);",
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-trackSplit',
-	},
-	{
 		label: 'effect',
 		kind: CompletionItemKind.Snippet,
 		detail: 'Create an effect',
@@ -344,14 +341,6 @@ const RIPPLE_IMPORTS = [
 		sortText: '0-import-effect',
 	},
 	{
-		label: 'import trackSplit',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Import trackSplit from ripple',
-		insertText: "import { trackSplit } from 'ripple';",
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-import-trackSplit',
-	},
-	{
 		label: 'import untrack',
 		kind: CompletionItemKind.Snippet,
 		detail: 'Import untrack from ripple',
@@ -372,7 +361,7 @@ const RIPPLE_IMPORTS = [
 /**
  * @returns {LanguageServicePlugin}
  */
-function createCompletionPlugin() {
+export function createCompletionPlugin() {
 	return {
 		name: 'ripple-completion-enhancer',
 		capabilities: {
@@ -391,7 +380,7 @@ function createCompletionPlugin() {
 				// This ensures TypeScript/JavaScript completions are still shown alongside Ripple snippets
 				isAdditionalCompletion: true,
 				async provideCompletionItems(document, position, completionContext, _token) {
-					if (!document.uri.endsWith('.ripple')) {
+					if (!is_ripple_document(document.uri)) {
 						return { items: [], isIncomplete: false };
 					}
 
@@ -517,7 +506,3 @@ function createCompletionPlugin() {
 		},
 	};
 }
-
-module.exports = {
-	createCompletionPlugin,
-};

@@ -1,5 +1,385 @@
 # ripple
 
+## 0.3.31
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.31
+  - @tsrx/ripple@0.0.13
+
+## 0.3.30
+
+### Patch Changes
+
+- [`7f59ed8`](https://github.com/Ripple-TS/ripple/commit/7f59ed80d7b44c847fb9eb8bf00d4fe9835c3136)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Replace `node:crypto` usage
+  in the compiler with a pure-JS implementation so Ripple can be compiled inside
+  browser workers (e.g. the Monaco-based playground) where `crypto.createHash` is
+  not available.
+
+  The hashing utility is split into two functions:
+  - `simple_hash` — fast non-cryptographic djb2 (base36). Used for CSS class-name
+    prefixes and runtime `{html}` hydration markers where the input is user
+    content and the output multiplies across the shipped bundle.
+  - `strong_hash` — preimage-resistant SHA-256 prefix (pure-JS via
+    `@noble/hashes`). Used everywhere a hash is derived from a server-only
+    filesystem path (`#server` RPC ids, `track`/`trackAsync` ids, head-element
+    hydration markers) so the hash can't be inverted to reveal the original path.
+
+  The runtime `ripple` package no longer ships its own `hashing.js` — it
+  re-exports `simple_hash`/`strong_hash` from `@tsrx/core`, and the compiler emits
+  `_$_.simple_hash` (previously `_$_.hash`) for dynamic `{html}` hydration
+  markers.
+
+- Updated dependencies
+  [[`7f59ed8`](https://github.com/Ripple-TS/ripple/commit/7f59ed80d7b44c847fb9eb8bf00d4fe9835c3136)]:
+  - @tsrx/ripple@0.0.12
+  - ripple@0.3.30
+
+## 0.3.29
+
+### Patch Changes
+
+- Updated dependencies
+  [[`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a)]:
+  - @tsrx/ripple@0.0.11
+  - ripple@0.3.29
+
+## 0.3.28
+
+### Patch Changes
+
+- Updated dependencies
+  [[`e4b5555`](https://github.com/Ripple-TS/ripple/commit/e4b5555fb5b1651a2bf1bf232565c7e0e40213b8),
+  [`e4b5555`](https://github.com/Ripple-TS/ripple/commit/e4b5555fb5b1651a2bf1bf232565c7e0e40213b8)]:
+  - @tsrx/ripple@0.0.10
+  - ripple@0.3.28
+
+## 0.3.27
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.27
+
+## 0.3.26
+
+### Patch Changes
+
+- [`68d80f8`](https://github.com/Ripple-TS/ripple/commit/68d80f8c7a6398692e00497b90cb3d0ba981aea3)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Correct package versions.
+
+- Updated dependencies
+  [[`68d80f8`](https://github.com/Ripple-TS/ripple/commit/68d80f8c7a6398692e00497b90cb3d0ba981aea3)]:
+  - ripple@0.3.26
+  - @tsrx/ripple@0.0.9
+
+## 1.0.1
+
+### Patch Changes
+
+- [#886](https://github.com/Ripple-TS/ripple/pull/886)
+  [`316cba1`](https://github.com/Ripple-TS/ripple/commit/316cba18614e5ef59dce15e0de6e720eb922955f)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add SSR-to-client
+  serialization/hydration for trackAsync by emitting per-call JSON <script>
+  envelopes (resolved payload + direct dependency hashes, or sanitized error
+  message) and consuming/removing them during client hydration to avoid re-running
+  the user async function. Add proper error handling routing to catch blocks with
+  actual error messages in DEV and safe production error messages, all with
+  correct hydration support
+- Updated dependencies
+  [[`316cba1`](https://github.com/Ripple-TS/ripple/commit/316cba18614e5ef59dce15e0de6e720eb922955f)]:
+  - ripple@1.0.1
+  - @tsrx/ripple@0.0.8
+
+## 1.0.0
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@1.0.0
+  - @tsrx/ripple@0.0.7
+
+## 0.3.25
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.25
+
+## 0.3.24
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.24
+
+## 0.3.23
+
+### Patch Changes
+
+- Updated dependencies
+  [[`73ceaac`](https://github.com/Ripple-TS/ripple/commit/73ceaacd029fb634a62252abdda59ab5f2bec15d)]:
+  - @tsrx/ripple@0.0.6
+  - ripple@0.3.23
+
+## 0.3.22
+
+### Patch Changes
+
+- [`bc8a6ed`](https://github.com/Ripple-TS/ripple/commit/bc8a6ed53d451da90cb6eb6ff9ec564f6f0cabe8)
+  Thanks [@trueadm](https://github.com/trueadm)! - Restore the `ripple/compiler`
+  subpath export. The compiler was moved into `@tsrx/ripple` during the
+  Ripple/TSRX split, which accidentally dropped `ripple/compiler` from the
+  published `exports` map — breaking downstream tooling that imports the compiler
+  by the public path, including `livecodes` and any playground served through
+  `esm.sh`. The path now re-exports the `@tsrx/ripple` API (`compile`, `parse`,
+  `compile_to_volar_mappings`, and the shared types), and `@tsrx/ripple` is
+  promoted to a runtime dependency so the re-export resolves for installed
+  consumers.
+- Updated dependencies
+  [[`bc8a6ed`](https://github.com/Ripple-TS/ripple/commit/bc8a6ed53d451da90cb6eb6ff9ec564f6f0cabe8)]:
+  - ripple@0.3.22
+
+## 0.3.21
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.21
+
+## 0.3.20
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.20
+
+## 0.3.19
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.19
+
+## 0.3.18
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.18
+
+## 0.3.17
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.17
+
+## 0.3.16
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.16
+
+## 0.3.15
+
+### Patch Changes
+
+- [`a14097a`](https://github.com/Ripple-TS/ripple/commit/a14097a688ad85c236a6619cef527c78787ab367)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix children prop precedence
+  when invoking components so that template children always win over an explicit
+  `children=` attribute, while still respecting JSX-like ordering between explicit
+  props and spreads when no template children are present.
+
+- Updated dependencies
+  [[`a14097a`](https://github.com/Ripple-TS/ripple/commit/a14097a688ad85c236a6619cef527c78787ab367)]:
+  - ripple@0.3.15
+
+## 0.3.14
+
+### Patch Changes
+
+- [#866](https://github.com/Ripple-TS/ripple/pull/866)
+  [`228f1bb`](https://github.com/Ripple-TS/ripple/commit/228f1bb36cd3e8506c422ed0997164bf5a0b5fe2)
+  Thanks [@trueadm](https://github.com/trueadm)! - Extract compiler into
+  `@tsrx/core` and `@tsrx/ripple` packages
+  - `@tsrx/core`: Core compiler infrastructure — parser factory, scope management,
+    utilities, constants, and type definitions
+  - `@tsrx/ripple`: Ripple-specific compiler — RipplePlugin, analyze,
+    client/server transforms
+  - Remove compiler source code from `ripple` package (consumers should use
+    `@tsrx/ripple`)
+  - Migrate eslint-plugin type imports to `@tsrx/core/types/*`
+  - Remove unused compiler dependencies from `ripple` package
+
+- Updated dependencies
+  [[`228f1bb`](https://github.com/Ripple-TS/ripple/commit/228f1bb36cd3e8506c422ed0997164bf5a0b5fe2)]:
+  - ripple@0.3.14
+
+## 0.3.13
+
+### Patch Changes
+
+- [#842](https://github.com/Ripple-TS/ripple/pull/842)
+  [`4eb4d68`](https://github.com/Ripple-TS/ripple/commit/4eb4d6851573d771d65f1e85b1b442ad3cdc53d2)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - fix(server): inject SSR web
+  stream sinks instead of creating node streams
+
+- [#862](https://github.com/Ripple-TS/ripple/pull/862)
+  [`48af856`](https://github.com/Ripple-TS/ripple/commit/48af85678d5e1b32bb1c5e3fbb2fb07498bc88a3)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add a release changeset for
+  the async tracking work introduced in commit
+  `4eb4d6851573d771d65f1e85b1b442ad3cdc53d2`.
+
+  This ships async tracking as a first-class feature in Ripple:
+  - remove and prohibit direct component-level `await`; async component flows now
+    require using `trackAsync()` (with `trackPending()` for pending state checks)
+  - add `trackAsync()` and `trackPending()` support so async values can be read
+    through Ripple's reactive runtime using tracked async values
+  - update compiler/runtime behavior for `try`/`catch`/`pending` boundaries so
+    async pending and error states can render and recover correctly in client and
+    SSR paths
+  - align `@ripple-ts/compat-react` async boundary behavior with the new Ripple
+    async tracking semantics
+  - update editor/tooling integration to match the new async syntax/runtime shape
+
+- [`6e11177`](https://github.com/Ripple-TS/ripple/commit/6e111778cae4e7d9876e51e293520f0859eb5890)
+  Thanks [@trueadm](https://github.com/trueadm)! - Add `.rsrx` support across
+  Ripple tooling and rename the repository's tracked `.ripple` modules to `.rsrx`.
+- Updated dependencies
+  [[`4eb4d68`](https://github.com/Ripple-TS/ripple/commit/4eb4d6851573d771d65f1e85b1b442ad3cdc53d2),
+  [`48af856`](https://github.com/Ripple-TS/ripple/commit/48af85678d5e1b32bb1c5e3fbb2fb07498bc88a3),
+  [`6e11177`](https://github.com/Ripple-TS/ripple/commit/6e111778cae4e7d9876e51e293520f0859eb5890)]:
+  - ripple@0.3.13
+
+## 0.3.12
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.12
+
+## 0.3.11
+
+### Patch Changes
+
+- [#853](https://github.com/Ripple-TS/ripple/pull/853)
+  [`6792c70`](https://github.com/Ripple-TS/ripple/commit/6792c700db30ec0c25077bf8892753f18eddc5cc)
+  Thanks [@RazinShafayet2007](https://github.com/RazinShafayet2007)! -
+  fix(compiler): add `throw` statement support in `if` blocks
+
+- [#858](https://github.com/Ripple-TS/ripple/pull/858)
+  [`f2624a6`](https://github.com/Ripple-TS/ripple/commit/f2624a6596479480c47317ea3030863214a6e2b3)
+  Thanks [@RazinShafayet2007](https://github.com/RazinShafayet2007)! - fix: scoped
+  styles apply correctly when child content is rendered through a parent component
+
+- [#840](https://github.com/Ripple-TS/ripple/pull/840)
+  [`13323dd`](https://github.com/Ripple-TS/ripple/commit/13323dddbcb68e1e8e373142884a7c54fbb76cd7)
+  Thanks [@trueadm](https://github.com/trueadm)! - Remove the `compat` option from
+  `mount()` and `hydrate()`, and stop exporting the old public compat types from
+  `ripple`. Compat integrations are now expected to be provided by the Vite plugin
+  via `ripple.config.ts`, while direct runtime tests can seed the generated global
+  compat registry.
+
+  Also add the `reactCompat()` config-facing helper from `@ripple-ts/compat-react`
+  for use in `ripple.config.ts`.
+
+- Updated dependencies
+  [[`6792c70`](https://github.com/Ripple-TS/ripple/commit/6792c700db30ec0c25077bf8892753f18eddc5cc),
+  [`f2624a6`](https://github.com/Ripple-TS/ripple/commit/f2624a6596479480c47317ea3030863214a6e2b3),
+  [`13323dd`](https://github.com/Ripple-TS/ripple/commit/13323dddbcb68e1e8e373142884a7c54fbb76cd7)]:
+  - ripple@0.3.11
+
+## 0.3.10
+
+### Patch Changes
+
+- [`aef1253`](https://github.com/Ripple-TS/ripple/commit/aef1253dd79c067a8358172d502dc21d8a9a9085)
+  Thanks [@trueadm](https://github.com/trueadm)! - Replace `<children />` with
+  `{children}` expression syntax for rendering component children
+
+- Updated dependencies
+  [[`aef1253`](https://github.com/Ripple-TS/ripple/commit/aef1253dd79c067a8358172d502dc21d8a9a9085)]:
+  - ripple@0.3.10
+
+## 0.3.9
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.9
+
+## 0.3.8
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.8
+
+## 0.3.7
+
+### Patch Changes
+
+- [#832](https://github.com/Ripple-TS/ripple/pull/832)
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix lazy array rest
+  destructuring for tracked and array-like values by routing rest extraction
+  through a shared `array_slice` helper instead of calling `.slice()` directly on
+  the source.
+
+- [#832](https://github.com/Ripple-TS/ripple/pull/832)
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117)
+  Thanks [@trueadm](https://github.com/trueadm)! - Allow tracked tuple `.length`
+  member access in compiler analysis and simplify tracked direct-access validation
+  into a single combined condition.
+
+- [#832](https://github.com/Ripple-TS/ripple/pull/832)
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix `to_ts` output for lazy
+  array destructuring so it keeps direct destructuring syntax for `track()` and
+  `trackSplit()` instead of expanding through an intermediate `lazy` variable.
+
+- [#832](https://github.com/Ripple-TS/ripple/pull/832)
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117)
+  Thanks [@trueadm](https://github.com/trueadm)! - Replace tracked `get()`/`set()`
+  APIs with a `value` getter/setter across runtime, types, analyzer tracked-access
+  rules, and lazy destructuring tests.
+
+- Updated dependencies
+  [[`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117),
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117),
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117),
+  [`9ca9310`](https://github.com/Ripple-TS/ripple/commit/9ca9310550a800f4435821ed84b24bdd4f243117)]:
+  - ripple@0.3.7
+
+## 0.3.6
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.6
+
+## 0.3.5
+
+### Patch Changes
+
+- [#827](https://github.com/Ripple-TS/ripple/pull/827)
+  [`218a72c`](https://github.com/Ripple-TS/ripple/commit/218a72c3e663910636eec1d065c58afe30813c84)
+  Thanks [@trueadm](https://github.com/trueadm)! - fix(compiler): handle
+  UpdateExpression on lazy bindings with default values
+
+  Update expressions (`++`/`--`) on lazy destructured bindings with default values
+  now work correctly. For postfix operations (`count++`), an IIFE captures the
+  fallback value before incrementing. Also added `fallback` function to server
+  runtime.
+
+- Updated dependencies
+  [[`218a72c`](https://github.com/Ripple-TS/ripple/commit/218a72c3e663910636eec1d065c58afe30813c84)]:
+  - ripple@0.3.5
+
 ## 0.3.4
 
 ### Patch Changes

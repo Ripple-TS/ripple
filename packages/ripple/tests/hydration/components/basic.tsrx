@@ -1,0 +1,161 @@
+// Basic static components for hydration testing
+import { track } from 'ripple';
+import type { Children } from 'ripple';
+
+export component StaticText() {
+	<div>{'Hello World'}</div>
+}
+
+export component MultipleElements() {
+	<h1>{'Title'}</h1>
+	<p>{'Paragraph text'}</p>
+	<span>{'Span text'}</span>
+}
+
+export component NestedElements() {
+	<div class="outer">
+		<div class="inner">
+			<span>{'Nested content'}</span>
+		</div>
+	</div>
+}
+
+export component WithAttributes() {
+	<input type="text" placeholder="Enter text" disabled />
+	<a href="/link" target="_blank">{'Link'}</a>
+}
+
+export component ChildComponent() {
+	<span class="child">{'Child content'}</span>
+}
+
+export component ParentWithChild() {
+	<div class="parent">
+		<ChildComponent />
+	</div>
+}
+
+export component FirstSibling() {
+	<div class="first">{'First'}</div>
+}
+
+export component SecondSibling() {
+	<div class="second">{'Second'}</div>
+}
+
+export component SiblingComponents() {
+	<FirstSibling />
+	<SecondSibling />
+}
+
+export component Greeting(props: { name: string }) {
+	<div>
+		{'Hello '}
+		{props.name}
+	</div>
+}
+
+export component WithGreeting() {
+	<Greeting name="World" />
+}
+
+export component ExpressionContent() {
+	const value = 42;
+	const label = 'computed';
+	<div>{value}</div>
+	<span>{label.toUpperCase()}</span>
+}
+
+component TextProp(&{ children }: { children: string }) {
+	<div class="text-prop">{children}</div>
+}
+
+export component TextPropWithToggle() {
+	let &[show] = track(false);
+
+	<TextProp children={show ? 'hello' : ''} />
+	<button class="show-text" onClick={() => (show = true)}>{'Show'}</button>
+}
+
+// Test for static content in child component followed by sibling content
+component StaticHeader() {
+	<h1 class="sr-only">{'heading'}</h1>
+	<p class="subtitle">{'first paragraph'}</p>
+	<p class="subtitle">{'second paragraph'}</p>
+}
+
+export component StaticChildWithSiblings() {
+	const foo = 'bar';
+	<StaticHeader />
+	<span class="sibling1">{foo}</span>
+	<span class="sibling2">{foo}</span>
+}
+
+// Website-like components for testing complex hydration scenarios
+
+component Header() {
+	<h1 class="sr-only">{'Ripple'}</h1>
+	<img src="/images/logo.png" alt="Logo" class="logo" />
+	<p class="subtitle">{'the elegant TypeScript UI framework'}</p>
+}
+
+component Actions({ playgroundVisible = false }: { playgroundVisible: boolean }) {
+	<div class="social-links">
+		<a href="https://github.com" class="github-link">{'GitHub'}</a>
+		<a href="https://discord.com" class="discord-link">{'Discord'}</a>
+		if (playgroundVisible) {
+			<a href="/playground" class="playground-link">{'Playground'}</a>
+		}
+	</div>
+}
+
+component Layout({ children }: { children: Children }) {
+	<main>
+		<div class="container">{children}</div>
+	</main>
+}
+
+component Content() {
+	<div class="content">
+		<p>{'Some content here'}</p>
+	</div>
+}
+
+export component WebsiteIndex() {
+	<Layout>
+		<Header />
+		<Actions playgroundVisible={true} />
+		<Content />
+		<Actions playgroundVisible={false} />
+	</Layout>
+}
+
+// Test case for component as last element with no following siblings.
+// This exercises hydrate_advance() in append() - at the end of content,
+// there's no next sibling and that should be handled gracefully.
+component LastChild() {
+	<footer class="last-child">{'I am the last child'}</footer>
+}
+
+export component ComponentAsLastSibling() {
+	<div class="wrapper">
+		<h1>{'Header'}</h1>
+		<p>{'Some content'}</p>
+		<LastChild />
+	</div>
+}
+
+// Nested version - component is last child inside another component
+component InnerContent() {
+	<div class="inner">
+		<span>{'Inner text'}</span>
+		<LastChild />
+	</div>
+}
+
+export component NestedComponentAsLastSibling() {
+	<section class="outer">
+		<h2>{'Section title'}</h2>
+		<InnerContent />
+	</section>
+}

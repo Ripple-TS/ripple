@@ -18,26 +18,31 @@ to [Inferno](https://github.com/infernojs/inferno),
 [Lexical](https://github.com/facebook/lexical), and
 [Svelte 5](https://github.com/sveltejs/svelte).
 
-**Key Philosophy:** Ripple is TS-first with its own `.ripple` file extension,
-allowing seamless TypeScript integration and a unique syntax that enhances both
-human and LLM developer experience.
+**Key Philosophy:** Ripple is TS-first with `.tsrx` as its default component file
+extension. This allows seamless TypeScript integration and a unique syntax that
+enhances both human and LLM developer experience.
 
-📚 **[Full Documentation](https://www.ripplejs.com/docs)** | 🎮
-**[Interactive Playground](https://www.ripplejs.com/playground)**
+> **`.tsrx` is also a standalone language:** the same source can now compile to
+> React, Solid, or Ripple via [TSRX](https://tsrx.dev) — a TypeScript language
+> extension that treats Ripple as one of several target runtimes. If you want the
+> authoring ergonomics without committing to Ripple's runtime, start there.
+
+📚 **[Ripple Docs](https://www.ripple-ts.com/docs)** | 🎮
+**[Ripple Playground](https://www.ripple-ts.com/playground)** | 🧩
+**[TSRX Website](https://tsrx.dev)**
 
 ## Features
 
-- ⚡ **Fine-grained Reactivity**: `track` and `@` syntax with a unique reactivity
-  system
+- ⚡ **Fine-grained Reactivity**: `track` with lazy destructuring for a unique
+  reactivity system
 - 🔥 **Performance**: Industry-leading rendering speed, bundle size, and memory
   usage
 - 📦 **Reactive Collections**: `RippleArray`, `RippleObject`, `RippleMap`,
   `RippleSet` imported from `'ripple'` with full reactivity
-- 🎯 **TypeScript First**: Complete type safety with `.ripple` file extension
+- 🎯 **TypeScript First**: Complete type safety with the default `.tsrx` component
+  extension
 - 🛠️ **Developer Tools**: VSCode extension, Prettier, and ESLint support
 - 🎨 **Scoped Styling**: Component-level CSS with automatic scoping
-
-> **Note:** SSR support is coming soon! Currently SPA-only.
 
 ## 🚀 Quick Start
 
@@ -65,14 +70,14 @@ npm install ripple @ripple-ts/vite-plugin
 
 > **Note:** You can use `npm`, `pnpm`, `yarn`, or `bun` package managers.
 
-**[→ Full Installation Guide](https://www.ripplejs.com/docs/quick-start)**
+**[→ Full Installation Guide](https://www.ripple-ts.com/docs/quick-start)**
 
 ### Mounting Your App
 
 ```ts
 // index.ts
 import { mount } from 'ripple';
-import { App } from './App.ripple';
+import { App } from './App.tsrx';
 
 mount(App, {
   props: { title: 'Hello world!' },
@@ -91,7 +96,7 @@ for:
 - Real-time diagnostics
 - IntelliSense autocomplete
 
-**[→ Editor Setup Guide](https://www.ripplejs.com/docs/quick-start#vs-code)**
+**[→ Editor Setup Guide](https://www.ripple-ts.com/docs/quick-start#vs-code)**
 
 ## Core Concepts
 
@@ -112,24 +117,56 @@ export component App() {
 }
 ```
 
-**[→ Component Guide](https://www.ripplejs.com/docs/guide/components)**
+**[→ Component Guide](https://www.ripple-ts.com/docs/guide/components)**
 
 ### Reactivity
 
-Create reactive state with `track` and access it with the `@` operator:
+Create reactive state with `track` and use lazy destructuring (`&[]`) to access
+the value directly:
 
 ```jsx
 import { track } from 'ripple';
 
 export component App() {
-  let count = track(0);
+  let &[count] = track(0);
 
   <div>
-    <p>{"Count: "}{@count}</p>
-    <button onClick={() => @count++}>{"Increment"}</button>
+    <p>{"Count: "}{count}</p>
+    <button onClick={() => count++}>{"Increment"}</button>
   </div>
 }
 ```
+
+You can also pass around the tracked value object from the second argument:
+
+```jsx
+import { track } from 'ripple';
+
+export component App() {
+  let &[count, trackedCount] = track(0);
+
+  <div>{count}</div>
+  <IncrementButton {trackedCount} />
+}
+```
+
+Alternatively, you can read and write tracked values directly using the `.value`
+property on the `Tracked<V>` object:
+
+```jsx
+import { track } from 'ripple';
+
+export component App() {
+  const count = track(0);
+
+  <div>{count.value}</div>
+  <button onClick={() => count.value++}>{"Increment"}</button>
+}
+```
+
+Using `&[...]` is preferred in most cases for cleaner code, but `.value` is useful
+when you need to keep the `Tracked<V>` object around — for example, when storing
+tracked values in data structures or passing them as `Tracked<T>` props.
 
 **Derived values** automatically update:
 
@@ -137,15 +174,15 @@ export component App() {
 import { track } from 'ripple';
 
 export component App() {
-  let count = track(0);
-  let double = track(() => @count * 2);
-  let quadruple = track(() => @double * 2);
+  let &[count] = track(0);
+  let &[double] = track(() => count * 2);
+  let &[quadruple] = track(() => double * 2);
 
   <div>
-    <p>{"Count: "}{@count}</p>
-    <p>{"Double: "}{@double}</p>
-    <p>{"Quadruple: "}{@quadruple}</p>
-    <button onClick={() => @count++}>{"Increment"}</button>
+    <p>{"Count: "}{count}</p>
+    <p>{"Double: "}{double}</p>
+    <p>{"Quadruple: "}{quadruple}</p>
+    <button onClick={() => count++}>{"Increment"}</button>
   </div>
 }
 ```
@@ -170,31 +207,31 @@ export component App() {
 }
 ```
 
-**[→ Reactivity Guide](https://www.ripplejs.com/docs/guide/reactivity)**
+**[→ Reactivity Guide](https://www.ripple-ts.com/docs/guide/reactivity)**
 
 ### Transporting Reactivity
 
-Pass reactive state across function boundaries:
+Pass the tracked ref (second element) across function boundaries:
 
 ```jsx
 import { track } from 'ripple';
 
-function createDouble(count) {
-  return track(() => @count * 2);
+function createDouble(&[count]) {
+  return track(() => count * 2);
 }
 
 export component App() {
-  let count = track(0);
-  const double = createDouble(count);
+  let &[count, countTracked] = track(0);
+  const &[double] = createDouble(countTracked);
 
   <div>
-    <p>{"Double: "}{@double}</p>
-    <button onClick={() => @count++}>{"Increment"}</button>
+    <p>{"Double: "}{double}</p>
+    <button onClick={() => count++}>{"Increment"}</button>
   </div>
 }
 ```
 
-**[→ Transporting Reactivity Guide](https://www.ripplejs.com/docs/guide/reactivity#transporting-reactivity)**
+**[→ Transporting Reactivity Guide](https://www.ripple-ts.com/docs/guide/reactivity#transporting-reactivity)**
 
 ### Effects & Side Effects
 
@@ -202,17 +239,17 @@ export component App() {
 import { track, effect } from 'ripple';
 
 export component App() {
-  let count = track(0);
+  let &[count] = track(0);
 
   effect(() => {
-    console.log('Count changed:', @count);
+    console.log('Count changed:', count);
   });
 
-  <button onClick={() => @count++}>{'Increment'}</button>
+  <button onClick={() => count++}>{'Increment'}</button>
 }
 ```
 
-**[→ Effects & Reactivity Guide](https://www.ripplejs.com/docs/guide/reactivity#effects)**
+**[→ Effects & Reactivity Guide](https://www.ripple-ts.com/docs/guide/reactivity#effects)**
 
 ### Control Flow
 
@@ -222,15 +259,15 @@ export component App() {
 import { track } from 'ripple';
 
 export component App() {
-  let condition = track(true);
+  let &[condition] = track(true);
 
   <div>
-    if (@condition) {
+    if (condition) {
       <div>{'True'}</div>
     } else {
       <div>{'False'}</div>
     }
-    <button onClick={() => @condition = !@condition}>{"Toggle"}</button>
+    <button onClick={() => condition = !condition}>{"Toggle"}</button>
   </div>
 }
 ```
@@ -271,20 +308,20 @@ component ComponentThatMayFail(props: { shouldFail: boolean }) {
 import { track } from 'ripple';
 
 export component App() {
-  let shouldFail = track(false);
+  let &[shouldFail] = track(false);
 
   <div>
     try {
-      <ComponentThatMayFail shouldFail={@shouldFail} />
+      <ComponentThatMayFail {shouldFail} />
     } catch (e) {
       <div>{'Error: ' + e.message}</div>
     }
-    <button onClick={() => @shouldFail = !@shouldFail}>{"Toggle Error"}</button>
+    <button onClick={() => shouldFail = !shouldFail}>{"Toggle Error"}</button>
   </div>
 }
 ```
 
-**[→ Control Flow Guide](https://www.ripplejs.com/docs/guide/control-flow)**
+**[→ Control Flow Guide](https://www.ripple-ts.com/docs/guide/control-flow)**
 
 ### DOM Refs
 
@@ -296,7 +333,7 @@ export component App() {
 }
 ```
 
-**[→ DOM Refs Guide](https://www.ripplejs.com/docs/guide/dom-refs)**
+**[→ DOM Refs Guide](https://www.ripple-ts.com/docs/guide/dom-refs)**
 
 ### Events
 
@@ -306,17 +343,17 @@ Use React-style event handlers:
 import { track } from 'ripple';
 
 export component App() {
-  let value = track('');
+  let &[value] = track('');
 
   <div>
     <button onClick={() => console.log('Clicked')}>{'Click'}</button>
-    <input onInput={(e) => @value = e.target.value} />
-    <p>{"You typed: "}{@value}</p>
+    <input onInput={(e) => value = e.target.value} />
+    <p>{"You typed: "}{value}</p>
   </div>
 }
 ```
 
-**[→ Events Guide](https://www.ripplejs.com/docs/guide/events)**
+**[→ Events Guide](https://www.ripple-ts.com/docs/guide/events)**
 
 ### Styling
 
@@ -342,16 +379,16 @@ export component App() {
 import { track } from 'ripple';
 
 export component App() {
-  let color = track('red');
+  let &[color] = track('red');
 
   <div>
-    <div style={{ color: @color, fontWeight: 'bold' }}>{"Styled text"}</div>
-    <button onClick={() => @color = @color === 'red' ? 'blue' : 'red'}>{"Toggle Color"}</button>
+    <div style={{ color, fontWeight: 'bold' }}>{"Styled text"}</div>
+    <button onClick={() => color = color === 'red' ? 'blue' : 'red'}>{"Toggle Color"}</button>
   </div>
 }
 ```
 
-**[→ Styling Guide](https://www.ripplejs.com/docs/guide/styling)**
+**[→ Styling Guide](https://www.ripple-ts.com/docs/guide/styling)**
 
 ## Advanced Features
 
@@ -365,23 +402,23 @@ import { Context, track } from 'ripple';
 const ThemeContext = new Context();
 
 component Child() {
-  const theme = ThemeContext.get();
-  <div>{"Theme: " + @theme}</div>
+  const &[theme] = ThemeContext.get();
+  <div>{"Theme: " + theme}</div>
 }
 
 export component App() {
-  let theme = track('light');
+  let &[theme, themeTracked] = track('light');
 
-  ThemeContext.set(theme);
+  ThemeContext.set(themeTracked);
 
   <div>
     <Child />
-    <button onClick={() => @theme = @theme === 'light' ? 'dark' : 'light'}>{"Toggle Theme"}</button>
+    <button onClick={() => theme = theme === 'light' ? 'dark' : 'light'}>{"Toggle Theme"}</button>
   </div>
 }
 ```
 
-**[→ State Management Guide](https://www.ripplejs.com/docs/guide/state-management#context)**
+**[→ State Management Guide](https://www.ripple-ts.com/docs/guide/state-management#context)**
 
 ### Portals
 
@@ -391,16 +428,16 @@ Render content outside the component hierarchy:
 import { Portal, track } from 'ripple';
 
 export component App() {
-  let showModal = track(false);
+  let &[showModal] = track(false);
 
   <div>
-    <button onClick={() => @showModal = !@showModal}>{"Toggle Modal"}</button>
+    <button onClick={() => showModal = !showModal}>{"Toggle Modal"}</button>
 
-    if (@showModal) {
+    if (showModal) {
       <Portal target={document.body}>
         <div class="modal">
           <p>{'Modal content'}</p>
-          <button onClick={() => @showModal = false}>{"Close"}</button>
+          <button onClick={() => showModal = false}>{"Close"}</button>
         </div>
       </Portal>
     }
@@ -408,14 +445,16 @@ export component App() {
 }
 ```
 
-**[→ Portal & Component Guide](https://www.ripplejs.com/docs/guide/components#portal-component)**
+**[→ Portal & Component Guide](https://www.ripple-ts.com/docs/guide/components#portal-component)**
 
 ## Resources
 
-- 📚 **[Full Documentation](https://www.ripplejs.com/docs)** - Complete guide and
+- 📚 **[Full Documentation](https://www.ripple-ts.com/docs)** - Complete guide and
   API reference
-- 🎮 **[Interactive Playground](https://www.ripplejs.com/playground)** - Try
+- 🎮 **[Interactive Playground](https://www.ripple-ts.com/playground)** - Try
   Ripple in your browser
+- 🧩 **[TSRX Website](https://tsrx.dev)** - Author `.tsrx` once, compile to React,
+  Solid, or Ripple
 - 🐛 **[GitHub Issues](https://github.com/Ripple-TS/ripple/issues)** - Report bugs
   or request features
 - 💬 **[Discord Community](https://discord.gg/JBF2ySrh2W)** - Get help and discuss

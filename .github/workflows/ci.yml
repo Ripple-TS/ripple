@@ -10,6 +10,7 @@ on:
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - "vitest.config.js"
+      - ".changeset/**"
 
   pull_request:
     branches: [main, develop]
@@ -20,6 +21,7 @@ on:
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - "vitest.config.js"
+      - ".changeset/**"
 
 jobs:
   test:
@@ -27,7 +29,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20, 22, 24]
+        node-version: [22, 24]
 
     steps:
       - name: Checkout code
@@ -79,7 +81,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: "pnpm"
 
       - name: Install dependencies
@@ -87,3 +89,41 @@ jobs:
 
       - name: Check formatting
         run: pnpm format:check
+
+  changeset-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Disallow major bumps in changesets
+        run: |
+          matches=$(grep -lE "^['\"][^'\"]+['\"]: major$" .changeset/*.md 2>/dev/null || true)
+          if [ -n "$matches" ]; then
+            echo "::error::Major version bumps are not allowed. Offending changeset files:"
+            echo "$matches"
+            exit 1
+          fi
+
+  typecheck:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm typecheck

@@ -1,5 +1,5 @@
 import type { Program } from 'estree';
-import type { AST, Linter } from 'eslint';
+import type { Linter } from 'eslint';
 import { createRequire } from 'module';
 
 interface ParseResult {
@@ -109,9 +109,9 @@ function ensureNodeProperties(node: any, code: string): void {
 }
 
 /**
- * ESLint parser for Ripple (.ripple) files
+ * ESLint parser for Ripple (.tsrx) files
  *
- * This parser uses Ripple's built-in compiler to parse .ripple files
+ * This parser uses Ripple's built-in compiler to parse .tsrx files
  * and returns an ESTree-compatible AST for ESLint to analyze.
  */
 export function parseForESLint(code: string, options?: Linter.ParserOptions): ParseResult {
@@ -179,7 +179,7 @@ function requireRippleCompiler(): any {
 		// Use createRequire to dynamically require the module
 		// This works in both ESM and CommonJS contexts
 		const require = createRequire(import.meta.url);
-		const ripple = require('ripple/compiler');
+		const ripple = require('@tsrx/ripple');
 
 		if (!ripple || !ripple.parse) {
 			throw new Error('Ripple compiler loaded but parse function not found.');
@@ -191,7 +191,7 @@ function requireRippleCompiler(): any {
 	} catch (error: any) {
 		throw new Error(
 			`Failed to load Ripple compiler: ${error.message}. ` +
-				'Make sure the "ripple" package is installed as a peer dependency.',
+				'Make sure the "@tsrx/ripple" package is installed as a peer dependency.',
 		);
 	}
 }

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import prettier from 'prettier';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { languages } from './index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -39,6 +40,16 @@ expect.extend({
 });
 
 describe('prettier-plugin', () => {
+	it('registers .tsrx as a supported file extension', () => {
+		const ripple_language = languages?.[0];
+
+		if (!ripple_language) {
+			throw new Error('Missing Ripple language metadata');
+		}
+
+		expect(ripple_language.extensions).toContain('.tsrx');
+	});
+
 	/**
 	 * @param {string} code
 	 * @param {import('prettier').Options} [options]
@@ -231,7 +242,7 @@ export default component Basic() {
       <p>{'This is a basic Ripple application template.'}</p>
       <p>
         {'Edit '}
-        <code>{'src/App.ripple'}</code>
+        <code>{'src/App.tsrx'}</code>
         {' to get started.'}
       </p>
     </div>
@@ -280,6 +291,22 @@ export default component App() {
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should format dynamic import() expressions correctly', async () => {
+			const input = `const mod = await import('@codemirror/state');`;
+			const expected = `const mod = await import("@codemirror/state");`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should format destructured dynamic import() in Promise.all', async () => {
+			const input = `const [{ EditorState }, { oneDark }] = await Promise.all([import('@codemirror/state'), import('@codemirror/theme-one-dark')]);`;
+			const expected = `const [{ EditorState }, { oneDark }] = await Promise.all([
+  import("@codemirror/state"), import("@codemirror/theme-one-dark"),
+]);`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should format a component with an object property notation component markup', async () => {
 			const expected = `component Card(props) {
   <div class="card">
@@ -291,21 +318,10 @@ export default component App() {
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should format a component with an object reactive property notation props.@children', async () => {
+		it('should format a component with a dynamic component using props member access', async () => {
 			const expected = `component Card(props) {
   <div class="card">
-    <props.@children />
-  </div>
-}`;
-
-			const result = await format(expected, { singleQuote: true });
-			expect(result).toBeWithNewline(expected);
-		});
-
-		it('should format a component with an object reactive bracketed property notation props.@["children"]', async () => {
-			const expected = `component Card(props) {
-  <div class="card">
-    <props.@['children'] />
+    <@props.children />
   </div>
 }`;
 
@@ -652,26 +668,26 @@ import { Something, type Props, track } from 'ripple';`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should handle @ prefix', async () => {
+		it('should handle tracked variable with lazy destructuring', async () => {
 			const input = `export default component App() {
   <div>
-    let count = track(0);
-    @count = 2;
-    console.log(@count);
+    let &[count] = track(0);
+    count = 2;
     console.log(count);
-    if (@count > 1) {
-      <button onClick={() => @count++}>{@count}</button>
+    console.log(count);
+    if (count > 1) {
+      <button onClick={() => count++}>{count}</button>
     }
   </div>
 }`;
 			const expected = `export default component App() {
   <div>
-    let count = track(0);
-    @count = 2;
-    console.log(@count);
+    let &[count] = track(0);
+    count = 2;
     console.log(count);
-    if (@count > 1) {
-      <button onClick={() => @count++}>{@count}</button>
+    console.log(count);
+    if (count > 1) {
+      <button onClick={() => count++}>{count}</button>
     }
   </div>
 }`;
@@ -706,19 +722,19 @@ import { Something, type Props, track } from 'ripple';`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should preserve @ symbol in JSX attributes and shorthand syntax', async () => {
+		it('should format JSX attributes with tracked values', async () => {
 			const input = `component App() {
-	const count = track(0);
+	const &[count] = track(0);
 
-	<Counter count={@count} />
-	<Counter {@count} />
+	<Counter count={count} />
+	<Counter {count} />
 }`;
 
 			const expected = `component App() {
-  const count = track(0);
+  const &[count] = track(0);
 
-  <Counter {@count} />
-  <Counter {@count} />
+  <Counter {count} />
+  <Counter {count} />
 }`;
 
 			const result = await format(input, { singleQuote: true });
@@ -910,6 +926,75 @@ export component Test({ a, b }: Props) {}`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should prefer breaking attributes over inline breakable object values', async () => {
+			const input = `component App() {
+  <div class={styles.item} data-active={state.active ? "true" : "false"} style={{ gridTemplateColumns: Icon ? "16px minmax(0, 1fr) auto" : "minmax(0, 1fr) auto" }}>
+    {'content'}
+  </div>
+}`;
+			const expected = `component App() {
+  <div
+    class={styles.item}
+    data-active={state.active ? 'true' : 'false'}
+    style={{ gridTemplateColumns: Icon ? '16px minmax(0, 1fr) auto' : 'minmax(0, 1fr) auto' }}
+  >
+    {'content'}
+  </div>
+}`;
+
+			const result = await format(input, { singleQuote: true, printWidth: 200 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should prefer breaking attributes over inline breakable object values (bracketSameLine)', async () => {
+			const input = `component App() {
+  <div class={styles.item} data-active={state.active ? "true" : "false"} style={{ gridTemplateColumns: Icon ? "16px minmax(0, 1fr) auto" : "minmax(0, 1fr) auto" }}>
+    {'content'}
+  </div>
+}`;
+			const expected = `component App() {
+  <div
+    class={styles.item}
+    data-active={state.active ? 'true' : 'false'}
+    style={{ gridTemplateColumns: Icon ? '16px minmax(0, 1fr) auto' : 'minmax(0, 1fr) auto' }}>
+    {'content'}
+  </div>
+}`;
+
+			const result = await format(input, {
+				singleQuote: true,
+				printWidth: 200,
+				bracketSameLine: true,
+			});
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should keep attributes on same line when no attribute value breaks', async () => {
+			const input = `component App() {
+  <button class="test another" onClick={handler}>
+    {'Click Me'}
+  </button>
+}`;
+			const expected = `component App() {
+  <button class="test another" onClick={handler}>{'Click Me'}</button>
+}`;
+
+			const result = await format(input, { singleQuote: true, printWidth: 80 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should keep short top-level ternary attributes inline when they fit', async () => {
+			const input = `component App() {
+  <div class={selected === 0 ? "selected" : ""}>{\`div 1\`}</div>
+}`;
+			const expected = `component App() {
+  <div class={selected === 0 ? 'selected' : ''}>{\`div 1\`}</div>
+}`;
+
+			const result = await format(input, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should not format function parameter spread', async () => {
 			const expected = `component Two({ arg1, ...rest }) {}`;
 
@@ -963,36 +1048,7 @@ export component Test({ a, b }: Props) {}`;
 
 		it('should not strip @ from dynamic self-closing components', async () => {
 			const expected = `component App() {
-  <@ripple_object.@tracked_basic />
-}`;
-
-			const result = await format(expected, { singleQuote: true, printWidth: 100 });
-			expect(result).toBeWithNewline(expected);
-		});
-
-		it('should keep @ on dynamic object member array expressions', async () => {
-			const expected = `component App() {
-  const obj = {
-    [0]: track(0),
-  };
-
-  <div>{obj.@[0]}</div>
-
-  <button
-    onClick={() => {
-      obj.@[0]++;
-    }}
-  >
-    {'Increment'}
-  </button>
-
-  <button
-    onClick={() => {
-      obj.@[0] += 1;
-    }}
-  >
-    {'Increment'}
-  </button>
+  <@ripple_object.tracked_basic />
 }`;
 
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
@@ -1392,11 +1448,11 @@ import { Portal as RipplePortal } from 'ripple';`;
 		});
 
 		it('should preserve blank lines between export statements and import statements or comments', async () => {
-			const expected = `export { handler } from './test.ripple';
+			const expected = `export { handler } from './test.tsrx';
 
 import { Portal as RipplePortal } from 'ripple';
 
-// export { something } from './test.ripple;
+// export { something } from './test.tsrx;
 
 import { GetRootNode } from './somewhere';`;
 
@@ -1694,7 +1750,7 @@ const program =
     onemore: 100,
   };
 
-  // if (props.@count > 1) {
+  // if (props.count > 1) {
   // 	delete more.another;
   // }
 
@@ -1733,7 +1789,7 @@ const program =
 		});
 
 		it('should keep parents in math subtraction and multiplication', async () => {
-			const expected = `let offset = track(() => (@page - 1) * @limit);`;
+			const expected = `let offset = track(() => (page - 1) * limit);`;
 
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
@@ -1797,7 +1853,7 @@ files = [...(files ?? []), ...dt.files];`;
   },
   button: component({ children }) {
     <button>
-      <children />
+      {children}
     </button>
   },
 };`;
@@ -1826,6 +1882,23 @@ files = [...(files ?? []), ...dt.files];`;
     error = (e as Error).message;
   } finally {
     <div>{'finally block'}</div>
+  }
+}`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should format catch block with reset param and type annotation', async () => {
+			const expected = `component Test() {
+  try {
+    const data = await fetchData();
+    <div>{data}</div>
+  } pending {
+    <div>{'Loading...'}</div>
+  } catch (error: Error, reset: () => void) {
+    <div>{error.message}</div>
+    <button onClick={reset}>{'Retry'}</button>
   }
 }`;
 
@@ -1863,6 +1936,40 @@ files = [...(files ?? []), ...dt.files];`;
 }`;
 
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve fragment shorthand in class methods', async () => {
+			const input = `class Foo {
+	bar() {
+		return <>{"Hello"}</>;
+	}
+}`;
+
+			const expected = `class Foo {
+  bar() {
+    return <>{'Hello'}</>;
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve explicit tsx blocks in class methods', async () => {
+			const input = `class Foo {
+	bar() {
+		return <tsx>{"Hello"}</tsx>;
+	}
+}`;
+
+			const expected = `class Foo {
+  bar() {
+    return <tsx>{'Hello'}</tsx>;
+  }
+}`;
+
+			const result = await format(input, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
 		});
 
@@ -1952,7 +2059,7 @@ files = [...(files ?? []), ...dt.files];`;
         // <div class="editor-dot yellow" />
         <div class="editor-dot green" />
       </div>
-      <div class="editor-tab">{'Examples.ripple'}</div>
+      <div class="editor-tab">{'Examples.tsrx'}</div>
     </div>
     <div class="editor-content">
       <pre class="editor-code">
@@ -2121,7 +2228,7 @@ files = [...(files ?? []), ...dt.files];`;
     :global(.template-brace) {
       color: #ffd700;
     }
-    :global(.ripple-syntax) {
+    :global(.tsrx-syntax) {
       color: #4fc1ff;
     }
     :global(.bracket) {
@@ -2249,6 +2356,20 @@ component Child({ something }) {
 			const result = await format(expected);
 			expect(result).toBeWithNewline(expected);
 		});
+
+		it('keeps dynamic import TSImportType intact', async () => {
+			const expected = `let streamed_error: Error | null = null;
+const sink: import('ripple/server').SSRStreamSink = {
+  push(_chunk: string) {},
+  close() {},
+  error(reason: unknown) {
+    streamed_error = reason as Error;
+  },
+};`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
 	});
 
 	describe('edge cases', () => {
@@ -2292,18 +2413,18 @@ component Child({ something }) {
 
 		it('should correctly handle call expressions', async () => {
 			const input = `export component App() {
-	const context = track(globalContext.get().theme);
+	const &[context] = track(globalContext.get().theme);
 	<div>
 		<TypedComponent />
-		{@context}
+		{context}
 	</div>
 }`;
 
 			const expected = `export component App() {
-  const context = track(globalContext.get().theme);
+  const &[context] = track(globalContext.get().theme);
   <div>
     <TypedComponent />
-    {@context}
+    {context}
   </div>
 }`;
 
@@ -2403,7 +2524,7 @@ message.push(/* Some test comment */ greet(/* Some text */ \`Ripple\`));`;
 	it('should not move commented composite elements to the outside of parent element', async () => {
 		const expected = `component Child({ children, NonExistent, ...props }) {
   <div {...props}>
-    // <children />
+    // {children}
     // <NonExistent />
   </div>
 }`;
@@ -2725,13 +2846,13 @@ function test() {
 		const expected = `component App() {
   <button
     onClick={() => {
-      @hasError = false;
+      hasError = false;
       try {
-        @hasError = false;
+        hasError = false;
         // @ts-ignore
         obj['nonexistent']();
       } catch {
-        // @hasError = true;
+        // hasError = true;
       }
     }}
   >
@@ -2947,6 +3068,18 @@ const items = [] as unknown[];`;
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('should format expression and explicit text interpolation syntax correctly', async () => {
+		const input = `export component App(){<div>{message}</div><div>{text message}</div>}`;
+
+		const expected = `export component App() {
+  <div>{message}</div>
+  <div>{text message}</div>
+}`;
+
+		const result = await format(input, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
 	it('should not insert a new line between js and jsx if not provided', async () => {
 		const expected = `export component App() {
   let text = 'something';
@@ -3147,26 +3280,6 @@ const items = [] as unknown[];`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should format nested generics types', async () => {
-			const expected = `component Test() {
-  const [children, rest] = trackSplit<
-    PropsWithChildren<{
-      class: string;
-      id: string;
-      onClick: EventListener;
-    }>,
-    keyof PropsWithChildren<{
-      class: string;
-      id: string;
-      onClick: EventListener;
-    }>
-  >(props as Props, ['children']);
-}`;
-
-			const result = await format(expected, { singleQuote: true });
-			expect(result).toBeWithNewline(expected);
-		});
-
 		it('should format TypeScript tuple types (TSTupleType)', async () => {
 			const input = `type T = [string, number, boolean];`;
 			const expected = `type T = [string, number, boolean];`;
@@ -3251,6 +3364,14 @@ const items = [] as unknown[];`;
 			const input = `interface Collection{map<U>(fn:(item:T)=>U):U[];filter(predicate:(item:T)=>boolean):T[]}`;
 			const expected = `interface Collection {\n  map<U>(fn: (item: T) => U): U[];\n  filter(predicate: (item: T) => boolean): T[];\n}`;
 			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve TSCallSignatureDeclaration with conditional types', async () => {
+			const expected = `interface TrackedCallable<V> {
+  (props: V extends Component<infer P> ? P : never): V extends Component ? void : never;
+}`;
+			const result = await format(expected, { printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
 		});
 
@@ -4345,7 +4466,7 @@ export component App() {
     {test}
     <polygon points="0,0 30,0 15,10" />
   </svg>
-  // <div><children /></div>
+  // <div>{children}</div>
 }
 
 component Polygon() {
@@ -4369,7 +4490,7 @@ component Polygon() {
   // 	<div id="third-top-block">{"Top Scope - Show is true"}</div>
   // }
 
-  <button onClick={() => (@b = !@b)}>{"Toggle b"}</button>
+  <button onClick={() => (b = !b)}>{"Toggle b"}</button>
 }`;
 
 				const result = await format(expected, { printWidth: 100 });
@@ -4392,7 +4513,7 @@ component Polygon() {
   // 	<div>{"Top Scope - Show is true"}</div>
   // }
 
-  <button onClick={() => (@b = !@b)}>{"Toggle b"}</button>
+  <button onClick={() => (b = !b)}>{"Toggle b"}</button>
 }`;
 
 				const result = await format(expected, { printWidth: 100 });
@@ -4820,25 +4941,25 @@ component Polygon() {
 				expect(result).toBeWithNewline(expected);
 			});
 
-			it('should preserve @ symbol in JSX attributes inside <tsx:react>', async () => {
+			it('should format JSX attributes inside <tsx:react>', async () => {
 				const input = `component App() {
-	const count = track(0);
+	const &[count] = track(0);
 
 	<div>
 		<h1>{'Hello, from Ripple!'}</h1>
 		<tsx:react>
-			<Counter count={@count} />
+			<Counter count={count} />
 		</tsx:react>
 	</div>
 }`;
 
 				const expected = `component App() {
-  const count = track(0);
+  const &[count] = track(0);
 
   <div>
     <h1>{'Hello, from Ripple!'}</h1>
     <tsx:react>
-      <Counter count={@count} />
+      <Counter count={count} />
     </tsx:react>
   </div>
 }`;
@@ -4890,7 +5011,7 @@ component App() {
 	<tsx:react>
 		Hello world
 		<DemoContext.Provider value={"Hello from Context!"}>
-			<Child count={@count} />
+			<Child count={count} />
 		</DemoContext.Provider>
 	</tsx:react>
 }`;
@@ -4898,7 +5019,7 @@ component App() {
   <tsx:react>
     Hello world
     <DemoContext.Provider value={"Hello from Context!"}>
-      <Child count={@count} />
+      <Child count={count} />
     </DemoContext.Provider>
   </tsx:react>
 }`;
@@ -4955,7 +5076,7 @@ component App() {
 				const input = `component Test() {
   <button
     onClick={() => {
-if (@status === 'a') @status = 'b'; else if (@status === 'b') @status = 'c'; else @status =
+if (status === 'a') status = 'b'; else if (status === 'b') status = 'c'; else status =
   'a';
 }}
   >
@@ -4965,9 +5086,9 @@ if (@status === 'a') @status = 'b'; else if (@status === 'b') @status = 'c'; els
 				const expected = `component Test() {
   <button
     onClick={() => {
-      if (@status === 'a') @status = 'b';
-      else if (@status === 'b') @status = 'c';
-      else @status = 'a';
+      if (status === 'a') status = 'b';
+      else if (status === 'b') status = 'c';
+      else status = 'a';
     }}
   >
     {'Click'}

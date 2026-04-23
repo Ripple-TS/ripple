@@ -1,5 +1,7 @@
 const ATTR_REGEX = /[&"<]/g;
 const CONTENT_REGEX = /[&<]/g;
+const OPEN_TAG_REGEX = /</g;
+const CLOSE_TAG_REGEX = />/g;
 
 /**
  * @template V
@@ -23,4 +25,13 @@ export function escape(value, is_attr) {
 	}
 
 	return escaped + str.substring(last);
+}
+
+/**
+ * Escapes characters that can prematurely terminate inline script tags.
+ * @param {string} str
+ * @returns {string}
+ */
+export function escape_script(str) {
+	return str.replace(OPEN_TAG_REGEX, '\\u003c').replace(CLOSE_TAG_REGEX, '\\u003e');
 }

@@ -194,6 +194,21 @@ describe('hydration > html tags', () => {
 		expect(html).toContain('Footer');
 	});
 
+	it('hydrates html code blocks followed by static and dynamic sibling chains', async () => {
+		await hydrateComponent(
+			ServerComponents.HtmlCodeBlocksWithSiblingChain,
+			ClientComponents.HtmlCodeBlocksWithSiblingChain,
+		);
+		const html = container.innerHTML;
+		expect(html).toContain('Sibling traversal pattern');
+		expect(html).toContain('Between one and two');
+		expect(html).toContain('Between two and three');
+		expect(html).toContain('const');
+		expect(html).toContain('a');
+		expect(html).toContain('b');
+		expect(html).toContain('c');
+	});
+
 	it('hydrates full DocsLayout with data mismatch (StylingPage exact reproduction)', async () => {
 		await hydrateComponent(
 			ServerComponents.DocsLayoutWithData,

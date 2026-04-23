@@ -3,686 +3,700 @@ import * as _$_ from 'ripple/internal/server';
 
 import { track } from 'ripple/server';
 
-export async function IfWithChildren(__output, { children }) {
-	return _$_.async(async () => {
-		_$_.push_component();
+export function IfWithChildren({ children }) {
+	_$_.push_component();
 
-		let expanded = _$_.track(true);
+	let lazy = _$_.track(true, 'c64714b1');
 
-		__output.push('<div');
-		__output.push(' class="container"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="container"');
+		_$_.output_push('>');
 
 		{
-			__output.push('<div');
-			__output.push(' role="button"');
-			__output.push(' class="header"');
-			__output.push('>');
+			_$_.output_push('<div');
+			_$_.output_push(' role="button"');
+			_$_.output_push(' class="header"');
+			_$_.output_push('>');
 
 			{
-				__output.push('Toggle');
+				_$_.output_push('Toggle');
 			}
 
-			__output.push('</div>');
-			__output.push('<!--[-->');
+			_$_.output_push('</div>');
+			_$_.output_push('<!--[-->');
 
-			if (_$_.get(expanded)) {
-				__output.push('<div');
-				__output.push(' class="content"');
-				__output.push('>');
+			if (_$_.get(lazy)) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="content"');
+				_$_.output_push('>');
 
 				{
-					{
-						const comp = children;
-						const args = [__output, {}];
+					_$_.render_expression(children);
+				}
 
-						if (comp?.async) {
-							await comp(...args);
-						} else if (comp) {
+				_$_.output_push('</div>');
+			}
+
+			_$_.output_push('<!--]-->');
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+export function ChildItem({ text: label }) {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="item"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push(_$_.escape(label));
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+export function TestIfWithChildren() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		{
+			const comp = IfWithChildren;
+
+			const args = [
+				{
+					children: _$_.tsrx_element(function render_children() {
+						_$_.push_component();
+
+						{
+							const comp = ChildItem;
+							const args = [{ text: "Item 1" }];
+
 							comp(...args);
 						}
-					}
-				}
 
-				__output.push('</div>');
-			}
+						{
+							const comp = ChildItem;
+							const args = [{ text: "Item 2" }];
 
-			__output.push('<!--]-->');
-		}
-
-		__output.push('</div>');
-		_$_.pop_component();
-	});
-}
-
-IfWithChildren.async = true;
-
-export function ChildItem(__output, { text }) {
-	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="item"');
-	__output.push('>');
-
-	{
-		__output.push(_$_.escape(text));
-	}
-
-	__output.push('</div>');
-	_$_.pop_component();
-}
-
-export function TestIfWithChildren(__output) {
-	_$_.push_component();
-
-	{
-		const comp = IfWithChildren;
-
-		const args = [
-			__output,
-			{
-				children: function children(__output) {
-					_$_.push_component();
-
-					{
-						const comp = ChildItem;
-						const args = [__output, { text: "Item 1" }];
-
-						comp(...args);
-					}
-
-					{
-						const comp = ChildItem;
-						const args = [__output, { text: "Item 2" }];
-
-						comp(...args);
-					}
-
-					_$_.pop_component();
-				}
-			}
-		];
-
-		comp(...args);
-	}
-
-	_$_.pop_component();
-}
-
-export function IfWithStaticChildren(__output) {
-	_$_.push_component();
-
-	let expanded = _$_.track(true);
-
-	__output.push('<div');
-	__output.push(' class="container"');
-	__output.push('>');
-
-	{
-		__output.push('<div');
-		__output.push(' role="button"');
-		__output.push(' class="header"');
-		__output.push('>');
-
-		{
-			__output.push('Toggle');
-		}
-
-		__output.push('</div>');
-		__output.push('<!--[-->');
-
-		if (_$_.get(expanded)) {
-			__output.push('<div');
-			__output.push(' class="content"');
-			__output.push('>');
-
-			{
-				__output.push('<span');
-				__output.push('>');
-
-				{
-					__output.push('Static child 1');
-				}
-
-				__output.push('</span>');
-				__output.push('<span');
-				__output.push('>');
-
-				{
-					__output.push('Static child 2');
-				}
-
-				__output.push('</span>');
-			}
-
-			__output.push('</div>');
-		}
-
-		__output.push('<!--]-->');
-	}
-
-	__output.push('</div>');
-	_$_.pop_component();
-}
-
-export async function IfWithSiblingsAndChildren(__output, { children }) {
-	return _$_.async(async () => {
-		_$_.push_component();
-
-		let expanded = _$_.track(true);
-
-		__output.push('<section');
-		__output.push(' class="group"');
-		__output.push('>');
-
-		{
-			__output.push('<div');
-			__output.push(' role="button"');
-			__output.push(' class="item"');
-			__output.push('>');
-
-			{
-				__output.push('<div');
-				__output.push(' class="indicator"');
-				__output.push('>');
-				__output.push('</div>');
-				__output.push('<h2');
-				__output.push(' class="text"');
-				__output.push('>');
-
-				{
-					__output.push('Title');
-				}
-
-				__output.push('</h2>');
-				__output.push('<div');
-				__output.push(' class="caret"');
-				__output.push('>');
-
-				{
-					__output.push('<svg');
-					__output.push(' xmlns="http://www.w3.org/2000/svg"');
-					__output.push(' width="18"');
-					__output.push(' height="18"');
-					__output.push(' viewBox="0 0 24 24"');
-					__output.push('>');
-
-					{
-						__output.push('<path');
-						__output.push(' d="m9 18 6-6-6-6"');
-						__output.push('>');
-						__output.push('</path>');
-					}
-
-					__output.push('</svg>');
-				}
-
-				__output.push('</div>');
-			}
-
-			__output.push('</div>');
-			__output.push('<!--[-->');
-
-			if (_$_.get(expanded)) {
-				__output.push('<div');
-				__output.push(' class="items"');
-				__output.push('>');
-
-				{
-					{
-						const comp = children;
-						const args = [__output, {}];
-
-						if (comp?.async) {
-							await comp(...args);
-						} else if (comp) {
 							comp(...args);
 						}
-					}
+
+						_$_.pop_component();
+					})
 				}
+			];
 
-				__output.push('</div>');
-			}
-
-			__output.push('<!--]-->');
+			comp(...args);
 		}
-
-		__output.push('</section>');
-		_$_.pop_component();
 	});
+
+	_$_.pop_component();
 }
 
-IfWithSiblingsAndChildren.async = true;
-
-export function TestIfWithSiblingsAndChildren(__output) {
+export function IfWithStaticChildren() {
 	_$_.push_component();
 
-	{
-		const comp = IfWithSiblingsAndChildren;
+	let lazy_1 = _$_.track(true, '3bba8f77');
 
-		const args = [
-			__output,
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="container"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('<div');
+			_$_.output_push(' role="button"');
+			_$_.output_push(' class="header"');
+			_$_.output_push('>');
+
 			{
-				children: function children(__output) {
-					_$_.push_component();
+				_$_.output_push('Toggle');
+			}
+
+			_$_.output_push('</div>');
+			_$_.output_push('<!--[-->');
+
+			if (_$_.get(lazy_1)) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="content"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<span');
+					_$_.output_push('>');
 
 					{
-						const comp = ChildItem;
-						const args = [__output, { text: "Item A" }];
-
-						comp(...args);
+						_$_.output_push('Static child 1');
 					}
+
+					_$_.output_push('</span>');
+					_$_.output_push('<span');
+					_$_.output_push('>');
 
 					{
-						const comp = ChildItem;
-						const args = [__output, { text: "Item B" }];
-
-						comp(...args);
+						_$_.output_push('Static child 2');
 					}
 
-					_$_.pop_component();
+					_$_.output_push('</span>');
 				}
-			}
-		];
 
-		comp(...args);
-	}
+				_$_.output_push('</div>');
+			}
+
+			_$_.output_push('<!--]-->');
+		}
+
+		_$_.output_push('</div>');
+	});
 
 	_$_.pop_component();
 }
 
-export function ElementWithChildrenThenIf(__output) {
+export function IfWithSiblingsAndChildren({ children }) {
 	_$_.push_component();
 
-	let show = _$_.track(true);
+	let lazy_2 = _$_.track(true, 'a1b8fb4c');
 
-	__output.push('<div');
-	__output.push(' class="wrapper"');
-	__output.push('>');
-
-	{
-		__output.push('<div');
-		__output.push(' class="nested-parent"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<section');
+		_$_.output_push(' class="group"');
+		_$_.output_push('>');
 
 		{
-			__output.push('<div');
-			__output.push(' class="nested-child"');
-			__output.push('>');
+			_$_.output_push('<div');
+			_$_.output_push(' role="button"');
+			_$_.output_push(' class="item"');
+			_$_.output_push('>');
 
 			{
-				__output.push('<span');
-				__output.push(' class="deep"');
-				__output.push('>');
+				_$_.output_push('<div');
+				_$_.output_push(' class="indicator"');
+				_$_.output_push('>');
+				_$_.output_push('</div>');
+				_$_.output_push('<h2');
+				_$_.output_push(' class="text"');
+				_$_.output_push('>');
 
 				{
-					__output.push('Deep content');
+					_$_.output_push('Title');
 				}
 
-				__output.push('</span>');
-			}
-
-			__output.push('</div>');
-		}
-
-		__output.push('</div>');
-		__output.push('<!--[-->');
-
-		if (_$_.get(show)) {
-			__output.push('<div');
-			__output.push(' class="conditional"');
-			__output.push('>');
-
-			{
-				__output.push('Conditional content');
-			}
-
-			__output.push('</div>');
-		}
-
-		__output.push('<!--]-->');
-	}
-
-	__output.push('</div>');
-	__output.push('<button');
-	__output.push(' class="toggle"');
-	__output.push('>');
-
-	{
-		__output.push('Toggle');
-	}
-
-	__output.push('</button>');
-	_$_.pop_component();
-}
-
-export function DeepNestingThenIf(__output) {
-	_$_.push_component();
-
-	let visible = _$_.track(true);
-
-	__output.push('<section');
-	__output.push(' class="outer"');
-	__output.push('>');
-
-	{
-		__output.push('<article');
-		__output.push(' class="middle"');
-		__output.push('>');
-
-		{
-			__output.push('<div');
-			__output.push(' class="inner"');
-			__output.push('>');
-
-			{
-				__output.push('<p');
-				__output.push(' class="leaf"');
-				__output.push('>');
+				_$_.output_push('</h2>');
+				_$_.output_push('<div');
+				_$_.output_push(' class="caret"');
+				_$_.output_push('>');
 
 				{
-					__output.push('<strong');
-					__output.push('>');
+					_$_.output_push('<svg');
+					_$_.output_push(' xmlns="http://www.w3.org/2000/svg"');
+					_$_.output_push(' width="18"');
+					_$_.output_push(' height="18"');
+					_$_.output_push(' viewBox="0 0 24 24"');
+					_$_.output_push('>');
 
 					{
-						__output.push('Bold');
+						_$_.output_push('<path');
+						_$_.output_push(' d="m9 18 6-6-6-6"');
+						_$_.output_push('>');
+						_$_.output_push('</path>');
 					}
 
-					__output.push('</strong>');
-					__output.push('<em');
-					__output.push('>');
+					_$_.output_push('</svg>');
+				}
+
+				_$_.output_push('</div>');
+			}
+
+			_$_.output_push('</div>');
+			_$_.output_push('<!--[-->');
+
+			if (_$_.get(lazy_2)) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="items"');
+				_$_.output_push('>');
+
+				{
+					_$_.render_expression(children);
+				}
+
+				_$_.output_push('</div>');
+			}
+
+			_$_.output_push('<!--]-->');
+		}
+
+		_$_.output_push('</section>');
+	});
+
+	_$_.pop_component();
+}
+
+export function TestIfWithSiblingsAndChildren() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		{
+			const comp = IfWithSiblingsAndChildren;
+
+			const args = [
+				{
+					children: _$_.tsrx_element(function render_children() {
+						_$_.push_component();
+
+						{
+							const comp = ChildItem;
+							const args = [{ text: "Item A" }];
+
+							comp(...args);
+						}
+
+						{
+							const comp = ChildItem;
+							const args = [{ text: "Item B" }];
+
+							comp(...args);
+						}
+
+						_$_.pop_component();
+					})
+				}
+			];
+
+			comp(...args);
+		}
+	});
+
+	_$_.pop_component();
+}
+
+export function ElementWithChildrenThenIf() {
+	_$_.push_component();
+
+	let lazy_3 = _$_.track(true, '7cd4817b');
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="wrapper"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('<div');
+			_$_.output_push(' class="nested-parent"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<div');
+				_$_.output_push(' class="nested-child"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<span');
+					_$_.output_push(' class="deep"');
+					_$_.output_push('>');
 
 					{
-						__output.push('Italic');
+						_$_.output_push('Deep content');
 					}
 
-					__output.push('</em>');
+					_$_.output_push('</span>');
 				}
 
-				__output.push('</p>');
+				_$_.output_push('</div>');
 			}
 
-			__output.push('</div>');
-		}
+			_$_.output_push('</div>');
+			_$_.output_push('<!--[-->');
 
-		__output.push('</article>');
-		__output.push('<!--[-->');
+			if (_$_.get(lazy_3)) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="conditional"');
+				_$_.output_push('>');
 
-		if (_$_.get(visible)) {
-			__output.push('<footer');
-			__output.push(' class="footer"');
-			__output.push('>');
+				{
+					_$_.output_push('Conditional content');
+				}
 
-			{
-				__output.push('Footer');
+				_$_.output_push('</div>');
 			}
 
-			__output.push('</footer>');
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('</section>');
-	__output.push('<button');
-	__output.push(' class="btn"');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="toggle"');
+		_$_.output_push('>');
 
-	{
-		__output.push('Toggle');
-	}
+		{
+			_$_.output_push('Toggle');
+		}
 
-	__output.push('</button>');
+		_$_.output_push('</button>');
+	});
+
 	_$_.pop_component();
 }
 
-export function DomElementChildrenThenSibling(__output) {
+export function DeepNestingThenIf() {
 	_$_.push_component();
 
-	let activeTab = _$_.track('code');
+	let lazy_4 = _$_.track(true, '923116be');
 
-	__output.push('<div');
-	__output.push(' class="tabs"');
-	__output.push('>');
-
-	{
-		__output.push('<div');
-		__output.push(' class="tab-list"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<section');
+		_$_.output_push(' class="outer"');
+		_$_.output_push('>');
 
 		{
-			__output.push('<button');
-			__output.push(_$_.attr('aria-selected', _$_.get(activeTab) === 'code' ? 'true' : 'false', false));
-			__output.push(' class="tab"');
-			__output.push('>');
+			_$_.output_push('<article');
+			_$_.output_push(' class="middle"');
+			_$_.output_push('>');
 
 			{
-				__output.push('Code');
+				_$_.output_push('<div');
+				_$_.output_push(' class="inner"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<p');
+					_$_.output_push(' class="leaf"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('<strong');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('Bold');
+						}
+
+						_$_.output_push('</strong>');
+						_$_.output_push('<em');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('Italic');
+						}
+
+						_$_.output_push('</em>');
+					}
+
+					_$_.output_push('</p>');
+				}
+
+				_$_.output_push('</div>');
 			}
 
-			__output.push('</button>');
-			__output.push('<button');
-			__output.push(_$_.attr('aria-selected', _$_.get(activeTab) === 'preview' ? 'true' : 'false', false));
-			__output.push(' class="tab"');
-			__output.push('>');
+			_$_.output_push('</article>');
+			_$_.output_push('<!--[-->');
 
-			{
-				__output.push('Preview');
+			if (_$_.get(lazy_4)) {
+				_$_.output_push('<footer');
+				_$_.output_push(' class="footer"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('Footer');
+				}
+
+				_$_.output_push('</footer>');
 			}
 
-			__output.push('</button>');
+			_$_.output_push('<!--]-->');
 		}
 
-		__output.push('</div>');
-		__output.push('<div');
-		__output.push(' class="panel"');
-		__output.push('>');
+		_$_.output_push('</section>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="btn"');
+		_$_.output_push('>');
 
 		{
-			__output.push('<!--[-->');
-
-			if (_$_.get(activeTab) === 'code') {
-				__output.push('<pre');
-				__output.push(' class="code"');
-				__output.push('>');
-
-				{
-					__output.push('const x = 1;');
-				}
-
-				__output.push('</pre>');
-			} else {
-				__output.push('<div');
-				__output.push(' class="preview"');
-				__output.push('>');
-
-				{
-					__output.push('Preview content');
-				}
-
-				__output.push('</div>');
-			}
-
-			__output.push('<!--]-->');
+			_$_.output_push('Toggle');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('</button>');
+	});
 
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function DomChildrenThenStaticSiblings(__output) {
+export function DomElementChildrenThenSibling() {
 	_$_.push_component();
 
-	let count = _$_.track(0);
+	let lazy_5 = _$_.track('code', '33a1e97f');
 
-	__output.push('<div');
-	__output.push(' class="container"');
-	__output.push('>');
-
-	{
-		__output.push('<ul');
-		__output.push(' class="list"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="tabs"');
+		_$_.output_push('>');
 
 		{
-			__output.push('<li');
-			__output.push(' class="item"');
-			__output.push('>');
+			_$_.output_push('<div');
+			_$_.output_push(' class="tab-list"');
+			_$_.output_push('>');
 
 			{
-				__output.push(_$_.escape('Item count: ' + String(_$_.get(count))));
+				_$_.output_push('<button');
+				_$_.output_push(_$_.attr('aria-selected', _$_.get(lazy_5) === 'code' ? 'true' : 'false', false));
+				_$_.output_push(' class="tab"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('Code');
+				}
+
+				_$_.output_push('</button>');
+				_$_.output_push('<button');
+				_$_.output_push(_$_.attr('aria-selected', _$_.get(lazy_5) === 'preview' ? 'true' : 'false', false));
+				_$_.output_push(' class="tab"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('Preview');
+				}
+
+				_$_.output_push('</button>');
 			}
 
-			__output.push('</li>');
-			__output.push('<li');
-			__output.push(' class="item"');
-			__output.push('>');
+			_$_.output_push('</div>');
+			_$_.output_push('<div');
+			_$_.output_push(' class="panel"');
+			_$_.output_push('>');
 
 			{
-				__output.push('Another item');
+				_$_.output_push('<!--[-->');
+
+				if (_$_.get(lazy_5) === 'code') {
+					_$_.output_push('<pre');
+					_$_.output_push(' class="code"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('const x = 1;');
+					}
+
+					_$_.output_push('</pre>');
+				} else {
+					_$_.output_push('<div');
+					_$_.output_push(' class="preview"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('Preview content');
+					}
+
+					_$_.output_push('</div>');
+				}
+
+				_$_.output_push('<!--]-->');
 			}
 
-			__output.push('</li>');
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</ul>');
-		__output.push('<h2');
-		__output.push(' class="heading"');
-		__output.push('>');
+		_$_.output_push('</div>');
+	});
 
-		{
-			__output.push('Static Heading');
-		}
-
-		__output.push('</h2>');
-		__output.push('<p');
-		__output.push(' class="para"');
-		__output.push('>');
-
-		{
-			__output.push('Static paragraph');
-		}
-
-		__output.push('</p>');
-	}
-
-	__output.push('</div>');
-	__output.push('<button');
-	__output.push(' class="inc"');
-	__output.push('>');
-
-	{
-		__output.push('Increment');
-	}
-
-	__output.push('</button>');
 	_$_.pop_component();
 }
 
-export function StaticListThenStaticSiblings(__output) {
+export function DomChildrenThenStaticSiblings() {
 	_$_.push_component();
-	__output.push('<div');
-	__output.push(' class="wrapper"');
-	__output.push('>');
 
-	{
-		__output.push('<ul');
-		__output.push(' class="features"');
-		__output.push('>');
+	let lazy_6 = _$_.track(0, '0ea64305');
 
-		{
-			__output.push('<li');
-			__output.push('>');
-
-			{
-				__output.push('<strong');
-				__output.push('>');
-
-				{
-					__output.push('Feature One');
-				}
-
-				__output.push('</strong>');
-				__output.push(': Description of feature one with ');
-				__output.push('<code');
-				__output.push('>');
-
-				{
-					__output.push('code');
-				}
-
-				__output.push('</code>');
-				__output.push(' reference');
-			}
-
-			__output.push('</li>');
-			__output.push('<li');
-			__output.push('>');
-
-			{
-				__output.push('<strong');
-				__output.push('>');
-
-				{
-					__output.push('Feature Two');
-				}
-
-				__output.push('</strong>');
-				__output.push(': Another feature description');
-			}
-
-			__output.push('</li>');
-			__output.push('<li');
-			__output.push('>');
-
-			{
-				__output.push('<strong');
-				__output.push('>');
-
-				{
-					__output.push('Feature Three');
-				}
-
-				__output.push('</strong>');
-				__output.push(': Third feature');
-			}
-
-			__output.push('</li>');
-		}
-
-		__output.push('</ul>');
-		__output.push('<h2');
-		__output.push(' class="section-heading"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="container"');
+		_$_.output_push('>');
 
 		{
-			__output.push('Section Heading');
-		}
-
-		__output.push('</h2>');
-		__output.push('<p');
-		__output.push(' class="section-content"');
-		__output.push('>');
-
-		{
-			__output.push('Static paragraph with ');
-			__output.push('<a');
-			__output.push(' href="/link"');
-			__output.push('>');
+			_$_.output_push('<ul');
+			_$_.output_push(' class="list"');
+			_$_.output_push('>');
 
 			{
-				__output.push('a link');
+				_$_.output_push('<li');
+				_$_.output_push(' class="item"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push(_$_.escape('Item count: ' + String(_$_.get(lazy_6))));
+				}
+
+				_$_.output_push('</li>');
+				_$_.output_push('<li');
+				_$_.output_push(' class="item"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('Another item');
+				}
+
+				_$_.output_push('</li>');
 			}
 
-			__output.push('</a>');
-			__output.push(' and more text.');
+			_$_.output_push('</ul>');
+			_$_.output_push('<h2');
+			_$_.output_push(' class="heading"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Static Heading');
+			}
+
+			_$_.output_push('</h2>');
+			_$_.output_push('<p');
+			_$_.output_push(' class="para"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Static paragraph');
+			}
+
+			_$_.output_push('</p>');
 		}
 
-		__output.push('</p>');
-	}
+		_$_.output_push('</div>');
+	});
 
-	__output.push('</div>');
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="inc"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Increment');
+		}
+
+		_$_.output_push('</button>');
+	});
+
+	_$_.pop_component();
+}
+
+export function StaticListThenStaticSiblings() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="wrapper"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('<ul');
+			_$_.output_push(' class="features"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<li');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<strong');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('Feature One');
+					}
+
+					_$_.output_push('</strong>');
+					_$_.output_push(': Description of feature one with ');
+					_$_.output_push('<code');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('code');
+					}
+
+					_$_.output_push('</code>');
+					_$_.output_push(' reference');
+				}
+
+				_$_.output_push('</li>');
+				_$_.output_push('<li');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<strong');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('Feature Two');
+					}
+
+					_$_.output_push('</strong>');
+					_$_.output_push(': Another feature description');
+				}
+
+				_$_.output_push('</li>');
+				_$_.output_push('<li');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<strong');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('Feature Three');
+					}
+
+					_$_.output_push('</strong>');
+					_$_.output_push(': Third feature');
+				}
+
+				_$_.output_push('</li>');
+			}
+
+			_$_.output_push('</ul>');
+			_$_.output_push('<h2');
+			_$_.output_push(' class="section-heading"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Section Heading');
+			}
+
+			_$_.output_push('</h2>');
+			_$_.output_push('<p');
+			_$_.output_push(' class="section-content"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Static paragraph with ');
+				_$_.output_push('<a');
+				_$_.output_push(' href="/link"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('a link');
+				}
+
+				_$_.output_push('</a>');
+				_$_.output_push(' and more text.');
+			}
+
+			_$_.output_push('</p>');
+		}
+
+		_$_.output_push('</div>');
+	});
+
 	_$_.pop_component();
 }

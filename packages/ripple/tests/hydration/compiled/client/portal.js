@@ -29,14 +29,11 @@ export function SimplePortal(__anchor, _, __block) {
 					return typeof document !== 'undefined' ? document.body : null;
 				},
 
-				children(__anchor, _, __block) {
-					_$_.push_component();
-
+				children: _$_.tsrx_element(function render_children(__anchor, __block) {
 					var div_2 = root_1();
 
 					_$_.append(__anchor, div_2);
-					_$_.pop_component();
-				}
+				})
 			},
 			_$_.active_block
 		);
@@ -51,13 +48,13 @@ export function SimplePortal(__anchor, _, __block) {
 export function ConditionalPortal(__anchor, _, __block) {
 	_$_.push_component();
 
-	let show = _$_.track(true, void 0, void 0, __block);
+	let lazy = _$_.track(true, __block, '4f6df174');
 	var div_3 = root_2();
 
 	{
 		var button_1 = _$_.child(div_3);
 
-		button_1.__click = () => _$_.set(show, !_$_.get(show));
+		button_1.__click = () => _$_.set(lazy, !_$_.get(lazy));
 
 		var node_1 = _$_.sibling(button_1);
 
@@ -73,14 +70,11 @@ export function ConditionalPortal(__anchor, _, __block) {
 							return typeof document !== 'undefined' ? document.body : null;
 						},
 
-						children(__anchor, _, __block) {
-							_$_.push_component();
-
+						children: _$_.tsrx_element(function render_children(__anchor, __block) {
 							var div_4 = root_4();
 
 							_$_.append(__anchor, div_4);
-							_$_.pop_component();
-						}
+						})
 					},
 					_$_.active_block
 				);
@@ -89,7 +83,7 @@ export function ConditionalPortal(__anchor, _, __block) {
 			};
 
 			_$_.if(node_1, (__render) => {
-				if (_$_.get(show)) __render(consequent);
+				if (_$_.get(lazy)) __render(consequent);
 			});
 		}
 
@@ -116,14 +110,11 @@ export function PortalWithMainContent(__anchor, _, __block) {
 					return typeof document !== 'undefined' ? document.body : null;
 				},
 
-				children(__anchor, _, __block) {
-					_$_.push_component();
-
+				children: _$_.tsrx_element(function render_children(__anchor, __block) {
 					var div_7 = root_6();
 
 					_$_.append(__anchor, div_7);
-					_$_.pop_component();
-				}
+				})
 			},
 			_$_.active_block
 		);
@@ -154,14 +145,11 @@ export function NestedContentWithPortal(__anchor, _, __block) {
 					return typeof document !== 'undefined' ? document.body : null;
 				},
 
-				children(__anchor, _, __block) {
-					_$_.push_component();
-
+				children: _$_.tsrx_element(function render_children(__anchor, __block) {
 					var div_10 = root_8();
 
 					_$_.append(__anchor, div_10);
-					_$_.pop_component();
-				}
+				})
 			},
 			_$_.active_block
 		);

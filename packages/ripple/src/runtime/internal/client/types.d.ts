@@ -1,6 +1,10 @@
+import type { Tracked, Derived } from './runtime.js';
 import type { Context } from './context.js';
 
+export { Tracked, Derived };
+
 export type Component = {
+	b: null | Block;
 	c: null | Map<Context<any>, any>;
 	e: null | Array<{
 		b: Block;
@@ -17,26 +21,9 @@ export type Dependency = {
 	n: null | Dependency;
 };
 
-export type Tracked<V = any> = {
-	DO_NOT_ACCESS_THIS_OBJECT_DIRECTLY?: true;
-	a: { get?: Function; set?: Function };
-	b: Block;
-	c: number;
-	f: number;
-	__v: V;
-};
-
-export type Derived = {
-	DO_NOT_ACCESS_THIS_OBJECT_DIRECTLY?: true;
-	a: { get?: Function; set?: Function };
-	b: Block;
-	blocks: null | Block[];
-	c: number;
-	co: null | Component;
-	d: null | Dependency;
-	f: number;
-	fn: Function;
-	__v: any;
+export type DeferredTrackedEntry = {
+	b: Block; // boundary block
+	r: number; // request version id
 };
 
 export type Block = {
@@ -52,6 +39,24 @@ export type Block = {
 	s: any;
 	// teardown function
 	t: (() => {}) | null;
+};
+
+export type TryBoundaryState = {
+	p: boolean; // whether pending_fn exists
+	b: () => number; // begin request, returns request id
+	r: (request_id: number, show_resolved_branch?: boolean) => boolean; // complete request, returns whether the request was active
+	c: ((error: any) => void) | null; // catch function
+	rd: (request_id: number, reject_fn: (reason: any) => void) => void; // register deferred reject function
+	pb: (block: Block) => void; // register paused block
+	rp: (old_request_id: number) => number; // replace request, returns new request id
+};
+
+export type BlockWithTryBoundary = Omit<Block, 's'> & {
+	s: TryBoundaryState;
+};
+
+export type BlockWithTryBoundaryAndCatch = Omit<BlockWithTryBoundary, 's'> & {
+	s: TryBoundaryState & { c: NonNullable<TryBoundaryState['c']> };
 };
 
 export type CompatApi = {
@@ -71,6 +76,7 @@ declare global {
 			value?: string;
 		};
 		__click?: () => void;
+		__ripple_block?: Block;
 	}
 
 	interface Event {

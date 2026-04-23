@@ -1,0 +1,120 @@
+import { MediaQuery, flushSync, track } from 'ripple';
+
+type Callback = (event: MediaQueryListEvent) => void;
+
+function setupMatchMedia() {
+	let listeners = new Set<Callback>();
+
+	// A mock implementation of matchMedia
+	const mockMatchMedia = vi.fn().mockImplementation((query) => {
+		// Create a mock that extends MediaQueryList so instanceof works
+		const mock = Object.create(MediaQueryList.prototype);
+		Object.assign(mock, {
+			media: query,
+			matches: false, // default value
+			addEventListener: (type: string, cb: Callback) => {
+				if (type === 'change') listeners.add(cb);
+			},
+			removeEventListener: (type: string, cb: Callback) => {
+				if (type === 'change') listeners.delete(cb);
+			},
+
+			/** @param {function(MediaQueryListEvent): void} cb */
+			addListener: (cb: Callback) => listeners.add(cb),
+
+			/** @param {function(MediaQueryListEvent): void} cb */
+			removeListener: (cb: Callback) => listeners.delete(cb),
+			dispatch: (event: MediaQueryListEvent) => {
+				listeners.forEach((cb) => cb(event));
+			},
+			listenersCount: () => listeners.size,
+		});
+		return mock;
+	});
+
+	Object.defineProperty(window, 'matchMedia', {
+		writable: true,
+		value: mockMatchMedia,
+	});
+
+	return { mockMatchMedia, listeners };
+}
+
+describe('MediaQuery', () => {
+	let mm: ReturnType<typeof setupMatchMedia>;
+
+	beforeEach(() => {
+		mm = setupMatchMedia();
+	});
+
+	it('should be reactive if matchMedia changes', () => {
+		const media = '(min-width: 600px)';
+
+		component App() {
+			let &[medium] = MediaQuery(media);
+
+			<div>
+				<p>{medium}</p>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const event = new Event('change');
+		Object.assign(event, { matches: true, media: media });
+
+		const p = container.querySelector('p');
+		expect(p.textContent).toBe('false');
+
+		mm.mockMatchMedia.mock.results[0].value.matches = true;
+		mm.mockMatchMedia.mock.results[0].value.dispatch(event);
+		flushSync();
+
+		expect(p.textContent).toBe('true');
+
+		Object.assign(event, { matches: false, media: media });
+
+		mm.mockMatchMedia.mock.results[0].value.matches = false;
+		mm.mockMatchMedia.mock.results[0].value.dispatch(event);
+		flushSync();
+
+		expect(p.textContent).toBe('false');
+	});
+
+	it('should have cleared event listeners after unmount', async () => {
+		const media = '(min-width: 600px)';
+
+		component App() {
+			let &[show] = track(true);
+
+			if (show) {
+				<Child />
+			}
+
+			<button onClick={() => (show = !show)}>{'Toggle Child'}</button>
+		}
+
+		component Child() {
+			let &[medium] = MediaQuery(media);
+
+			<div>
+				<p>{medium}</p>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		expect(mm.mockMatchMedia.mock.results[0].value.listenersCount()).toBe(1);
+
+		const button = container.querySelector('button');
+		button.click();
+		flushSync();
+
+		// wait for microtask queue to flush
+		await new Promise((resolve) => setTimeout(resolve, 0));
+
+		expect(mm.mockMatchMedia.mock.results[0].value.listenersCount()).toBe(0);
+	});
+});

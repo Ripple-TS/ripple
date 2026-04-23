@@ -5,7 +5,7 @@
       "name": "ripple",
       "camelcase": "Ripple",
       "title": "Ripple",
-      "scope": "source.ripple",
+      "scope": "source.tsrx",
       "file-types": ["ripple"],
       "injection-regex": "^ripple$",
       "class-name": "TreeSitterRipple"

@@ -26,18 +26,19 @@ component Hello() {
 ::: info Notice Anything Missing? The lack of a return statement, unlike a
 (functional-style) JSX component isn't erroneous. As explained above, templates
 are statements rather than expressions, unlike JSX. We'll explore what you can do
-with that later! :::
+with that later!
+:::
 
 ## Caveat: Templates Must be within Components
 
-Unlike JSX, Ripple can only have templates within the body of a component. This
-means that helper functions should not (and cannot) return any templates, but
-rather just data. This design enforces clear separation between component
-templates and regular JavaScript logic, making code more predictable and easier to
-analyze.
+Unlike JSX, Ripple's regular templates are statement-based and can only appear
+within the body of a component. If you need JSX in expression position, use the
+`<tsx>...</tsx>` wrapper covered below. This design keeps normal component
+templates distinct from regular JavaScript logic while still providing an escape
+hatch when you need to store, return, or pass JSX as a value.
 
 ```ripple
-// ❌ Wrong - Templates outside the component
+// ❌ Wrong - Plain templates outside the component
 const element = <div>
   {'Hello'}
 </div>; // Compilation error
@@ -64,7 +65,7 @@ component MyComponent() {
   <p>{message}</p>
 }
 
-// ✅ Correct - Helper functions return data, not templates
+// ✅ Correct - Helper functions can return data
 function getMessage() {
   return 'Hello from function'; // Return data, not JSX
 }
@@ -73,6 +74,69 @@ component App() {
   <div>{getMessage()}</div> // Use function result in template
 }
 ```
+
+## Using `<tsx>` for JSX Expression Values
+
+Use `<tsx>...</tsx>` when JSX needs to exist in expression position rather than as
+a normal template statement. This is useful when you want to assign JSX to a
+variable, return it from a helper, or pass it directly as a prop or child.
+
+```ripple
+// ✅ Correct - Store JSX in a variable
+component App() {
+  const title = <tsx>
+    <span class="title">
+      {'Settings'}
+    </span>
+  </tsx>;
+
+  <header>{title}</header>
+}
+
+// ✅ Correct - Return JSX from a helper function
+function createBadge(label: string) {
+  return <tsx>
+    <span class="badge">
+      {label}
+    </span>
+  </tsx>;
+}
+
+component App() {
+  {createBadge('New')}
+}
+
+// ✅ Correct - Pass JSX directly as props
+component Card(props: { title: any; children: any }) {
+  <section>
+    <h2>{props.title}</h2>
+    <div>{props.children}</div>
+  </section>
+}
+
+component App() {
+  <Card
+    title={<tsx>
+      <span>
+        {'Settings'}
+      </span>
+    </tsx>}
+    children={<tsx>
+      <p>
+        {'Card body'}
+      </p>
+    </tsx>}
+  />
+}
+```
+
+### `<tsx>` vs `<tsx:react>`
+
+- `<tsx>` keeps Ripple syntax and Ripple rendering semantics.
+- `<tsx:react>` switches to React JSX semantics and requires compat setup.
+
+Use plain `<tsx>` when you want a Ripple renderable value. Use `<tsx:react>` only
+when you are intentionally embedding React.
 
 ## Early Returns in Components
 
@@ -150,8 +214,8 @@ similar to block statements in regular JavaScript.
 ```ripple
 component TemplateScope() {
   <div>
-    const // Variable declarations inside templates
-    message = 'Hello from template scope';
+    // Variable declarations inside templates
+    const message = 'Hello from template scope';
     let count = 42;
 
     // Function calls and expressions
@@ -247,3 +311,41 @@ malformed HTML.
 
 As raw HTML is not managed by Ripple, scoped styles do not apply to it. To style
 raw content, refer to [Styling](/docs/guide/styling#Global-Styles).
+
+## Explicit Text
+
+By default, a `{expression}` in a template can render either text or a fragment.
+If you know the expression will always be text, you can use the `{text}` directive
+to make that explicit:
+
+```ripple
+export component Frame({ children }) {
+  <div class="frame">
+    {text 'before'}
+    {children}
+    {text 'after'}
+  </div>
+}
+```
+
+The `{text}` directive guarantees the expression is treated as text content. Like
+regular expressions, the value is HTML-escaped to prevent script injections.
+Unlike `{html}`, the content is never parsed as HTML.
+
+This is particularly useful when you have text alongside `{children}`, since the
+compiler can optimize `{text}` expressions more efficiently than general
+expressions that might need to handle component rendering.
+
+```ripple
+export component App() {
+  const markup = '<span>Not HTML</span>';
+
+  // Renders the literal string "<span>Not HTML</span>" as text
+  <div>{text markup}</div>
+}
+```
+
+::: info `text` is a reserved keyword in Ripple expressions. You cannot use `text`
+as a variable name inside `{braces}`. If you need a variable called `text`, rename
+it or use a different name.
+:::

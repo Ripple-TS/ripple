@@ -1,0 +1,4088 @@
+import type { GetFunction, SetFunction } from 'ripple';
+import {
+	RippleArray,
+	RippleObject,
+	bindBorderBoxSize,
+	bindChecked,
+	bindClientHeight,
+	bindClientWidth,
+	bindContentBoxSize,
+	bindContentRect,
+	bindDevicePixelContentBoxSize,
+	bindFiles,
+	bindGroup,
+	bindIndeterminate,
+	bindInnerHTML,
+	bindInnerText,
+	bindNode,
+	bindOffsetHeight,
+	bindOffsetWidth,
+	bindTextContent,
+	bindValue,
+	effect,
+	flushSync,
+	track,
+	untrack,
+} from 'ripple';
+
+// Mock ResizeObserver for testing
+const resizeObserverCallbacks = new Map<any, ResizeObserverCallback>();
+const observedElements = new Map();
+
+function createMockResizeObserver(callback: ResizeObserverCallback) {
+	const instance = {
+		observe(element: Element, options?: ResizeObserverOptions) {
+			observedElements.set(element, options);
+		},
+		unobserve(element: Element) {
+			observedElements.delete(element);
+		},
+		disconnect() {
+			observedElements.clear();
+		},
+	};
+
+	resizeObserverCallbacks.set(instance, callback);
+	return instance;
+}
+
+function triggerResize(element: Element, entry: Partial<ResizeObserverEntry>) {
+	const defaultEntry: ResizeObserverEntry = {
+		target: element,
+		contentRect: entry.contentRect || new DOMRectReadOnly(0, 0, 100, 100),
+		borderBoxSize: entry.borderBoxSize || [],
+		contentBoxSize: entry.contentBoxSize || [],
+		devicePixelContentBoxSize: entry.devicePixelContentBoxSize || [],
+		...entry,
+	} as ResizeObserverEntry;
+
+	// Trigger all callbacks for this element
+	for (const [instance, callback] of resizeObserverCallbacks) {
+		callback([defaultEntry], instance as any);
+	}
+}
+
+// Mock DataTransfer for testing file inputs
+class MockDataTransfer {
+	items: MockDataTransferItemList;
+
+	files: FileList;
+
+	constructor() {
+		this.items = new MockDataTransferItemList();
+		this.files = this.items.files;
+	}
+}
+
+class MockDataTransferItemList {
+	_files: File[] = [];
+
+	get files(): FileList {
+		return this._files as any as FileList;
+	}
+
+	add(file: File): void {
+		this._files.push(file);
+	}
+
+	get length(): number {
+		return this._files.length;
+	}
+}
+
+// Setup ResizeObserver mock
+beforeAll(() => {
+	(global as any).ResizeObserver = createMockResizeObserver;
+	(global as any).DataTransfer = MockDataTransfer;
+});
+
+afterAll(() => {
+	resizeObserverCallbacks.clear();
+	observedElements.clear();
+});
+
+describe('use value()', () => {
+	it('should update value on input', () => {
+		const logs: string[] = [];
+
+		component App() {
+			const text = track('');
+
+			effect(() => {
+				logs.push('text changed', text.value);
+			});
+
+			<input type="text" {ref bindValue(text)} />
+		}
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		input.value = 'Hello';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+		expect(input.value).toBe('Hello');
+		expect(logs).toEqual(['text changed', '', 'text changed', 'Hello']);
+	});
+
+	it('should update value on input with getter and setter', () => {
+		const logs: string[] = [];
+
+		component App() {
+			const text = new RippleObject({ value: '' });
+
+			effect(() => {
+				logs.push('text changed', text.value);
+			});
+
+			<input type="text" {ref bindValue(() => text.value, (v) => (text.value = v))} />
+		}
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		input.value = 'Hello';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+		expect(input.value).toBe('Hello');
+		expect(logs).toEqual(['text changed', '', 'text changed', 'Hello']);
+	});
+
+	it('should update value on input with a predefined value', () => {
+		const logs: string[] = [];
+
+		component App() {
+			const text = track('foo');
+
+			effect(() => {
+				logs.push('text changed', text.value);
+			});
+
+			<input type="text" {ref bindValue(text)} />
+		}
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		expect(input.value).toBe('foo');
+		input.value = 'Hello';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+		expect(input.value).toBe('Hello');
+		expect(logs).toEqual(['text changed', 'foo', 'text changed', 'Hello']);
+	});
+
+	it('should update value on input with a predefined value and with a getter and setter', () => {
+		const logs: string[] = [];
+
+		component App() {
+			const text = new RippleObject({ value: 'foo' });
+			effect(() => {
+				logs.push('text changed', text.value);
+			});
+
+			<input type="text" {ref bindValue(() => text.value, (v) => (text.value = v))} />
+		}
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		expect(input.value).toBe('foo');
+		input.value = 'Hello';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+		expect(input.value).toBe('Hello');
+		expect(logs).toEqual(['text changed', 'foo', 'text changed', 'Hello']);
+	});
+
+	it('should update text input element when tracked value changes', () => {
+		component App() {
+			const text = track('initial');
+
+			<div>
+				<input type="text" {ref bindValue(text)} />
+				<button onClick={() => (text.value = 'updated')}>{'Update'}</button>
+			</div>
+		}
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(input.value).toBe('initial');
+
+		button.click();
+		flushSync();
+
+		expect(input.value).toBe('updated');
+	});
+
+	it('should update text input element when tracked value changes with a getter and setter', () => {
+		component App() {
+			const text = new RippleObject({ value: 'initial' });
+
+			<div>
+				<input type="text" {ref bindValue(() => text.value, (v) => (text.value = v))} />
+				<button onClick={() => (text.value = 'updated')}>{'Update'}</button>
+			</div>
+		}
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(input.value).toBe('initial');
+
+		button.click();
+		flushSync();
+
+		expect(input.value).toBe('updated');
+	});
+
+	it('should update checked on input', () => {
+		const logs: (string | boolean)[] = [];
+
+		component App() {
+			const value = track(false);
+
+			effect(() => {
+				logs.push('checked changed', value.value);
+			});
+
+			<input type="checkbox" {ref bindChecked(value)} />
+		}
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		input.checked = true;
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(input.checked).toBe(true);
+		expect(logs).toEqual(['checked changed', false, 'checked changed', true]);
+	});
+
+	it('should update checked on input with a getter and setter', () => {
+		const logs: (string | boolean)[] = [];
+
+		component App() {
+			const obj = new RippleObject({ value: false });
+			effect(() => {
+				logs.push('checked changed', obj.value);
+			});
+
+			<input type="checkbox" {ref bindChecked(() => obj.value, (v: boolean) => (obj.value = v))} />
+		}
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		input.checked = true;
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(input.checked).toBe(true);
+		expect(logs).toEqual(['checked changed', false, 'checked changed', true]);
+	});
+
+	it('should update checkbox element when tracked value changes', () => {
+		component App() {
+			const value = track(false);
+
+			<div>
+				<input type="checkbox" {ref bindChecked(value)} />
+				<button onClick={() => (value.value = true)}>{'Check'}</button>
+			</div>
+		}
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(input.checked).toBe(false);
+
+		button.click();
+		flushSync();
+
+		expect(input.checked).toBe(true);
+	});
+
+	it('should update checkbox element when tracked value changes with a getter and setter', () => {
+		component App() {
+			const obj = new RippleObject({ value: false });
+
+			<div>
+				<input
+					type="checkbox"
+					{ref bindChecked(() => obj.value, (v: boolean) => (obj.value = v))}
+				/>
+				<button onClick={() => (obj.value = true)}>{'Check'}</button>
+			</div>
+		}
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(input.checked).toBe(false);
+
+		button.click();
+		flushSync();
+
+		expect(input.checked).toBe(true);
+	});
+
+	it('should update indeterminate on input', () => {
+		const logs: (string | boolean)[] = [];
+
+		component App() {
+			const value = track(false);
+
+			effect(() => {
+				logs.push('indeterminate changed', value.value);
+			});
+
+			<input type="checkbox" {ref bindIndeterminate(value)} />
+		}
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		expect(input.indeterminate).toBe(false);
+
+		input.indeterminate = true;
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(input.indeterminate).toBe(true);
+		expect(logs).toEqual(['indeterminate changed', false, 'indeterminate changed', true]);
+	});
+
+	it('should update indeterminate on input with a getter and setter', () => {
+		const logs: (string | boolean)[] = [];
+
+		component App() {
+			const obj = new RippleObject({ value: false });
+
+			effect(() => {
+				logs.push('indeterminate changed', obj.value);
+			});
+
+			<input
+				type="checkbox"
+				{ref bindIndeterminate(() => obj.value, (v: boolean) => (obj.value = v))}
+			/>
+		}
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		expect(input.indeterminate).toBe(false);
+
+		input.indeterminate = true;
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(input.indeterminate).toBe(true);
+		expect(logs).toEqual(['indeterminate changed', false, 'indeterminate changed', true]);
+	});
+
+	it('should update checkbox indeterminate element when tracked value changes', () => {
+		component App() {
+			const value = track(false);
+
+			<div>
+				<input type="checkbox" {ref bindIndeterminate(value)} />
+				<button onClick={() => (value.value = true)}>{'Set Indeterminate'}</button>
+			</div>
+		}
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(input.indeterminate).toBe(false);
+
+		button.click();
+		flushSync();
+
+		expect(input.indeterminate).toBe(true);
+	});
+
+	it(
+		'should update checkbox indeterminate element when tracked value changes with a getter and setter',
+		() => {
+			component App() {
+				const obj = new RippleObject({ value: false });
+
+				<div>
+					<input
+						type="checkbox"
+						{ref bindIndeterminate(() => obj.value, (v: boolean) => (obj.value = v))}
+					/>
+					<button onClick={() => (obj.value = true)}>{'Set Indeterminate'}</button>
+				</div>
+			}
+			render(App);
+			flushSync();
+
+			const input = container.querySelector('input') as HTMLInputElement;
+			const button = container.querySelector('button') as HTMLButtonElement;
+
+			expect(input.indeterminate).toBe(false);
+
+			button.click();
+			flushSync();
+
+			expect(input.indeterminate).toBe(true);
+		},
+	);
+
+	it('should update select value on change', () => {
+		const logs: string[] = [];
+
+		component App() {
+			const select = track('2');
+
+			effect(() => {
+				logs.push('select changed', select.value);
+			});
+
+			<select {ref bindValue(select)}>
+				<option value="1">{'One'}</option>
+				<option value="2">{'Two'}</option>
+				<option value="3">{'Three'}</option>
+			</select>
+		}
+
+		render(App);
+		flushSync();
+
+		const select = container.querySelector('select') as HTMLSelectElement;
+		select.value = '3';
+		select.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(select.value).toBe('3');
+		expect(logs).toEqual(['select changed', '2', 'select changed', '3']);
+	});
+
+	it('should update select value on change with a getter and setter', () => {
+		const logs: string[] = [];
+
+		component App() {
+			const select = new RippleObject({ value: '2' });
+			effect(() => {
+				logs.push('select changed', select.value);
+			});
+
+			<select {ref bindValue(() => select.value, (v) => (select.value = v))}>
+				<option value="1">{'One'}</option>
+				<option value="2">{'Two'}</option>
+				<option value="3">{'Three'}</option>
+			</select>
+		}
+
+		render(App);
+		flushSync();
+
+		const select = container.querySelector('select') as HTMLSelectElement;
+		select.value = '3';
+		select.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(select.value).toBe('3');
+		expect(logs).toEqual(['select changed', '2', 'select changed', '3']);
+	});
+
+	it('should update select element when tracked value changes', () => {
+		component App() {
+			const select = track('1');
+
+			<div>
+				<select {ref bindValue(select)}>
+					<option value="1">{'One'}</option>
+					<option value="2">{'Two'}</option>
+					<option value="3">{'Three'}</option>
+				</select>
+				<button onClick={() => (select.value = '3')}>{'Update'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const selectEl = container.querySelector('select') as HTMLSelectElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(selectEl.value).toBe('1');
+
+		button.click();
+		flushSync();
+
+		expect(selectEl.value).toBe('3');
+	});
+
+	it('should update select element when tracked value changes with a getter and setter', () => {
+		component App() {
+			const select = new RippleObject({ value: '1' });
+
+			<div>
+				<select {ref bindValue(() => select.value, (v) => (select.value = v))}>
+					<option value="1">{'One'}</option>
+					<option value="2">{'Two'}</option>
+					<option value="3">{'Three'}</option>
+				</select>
+				<button onClick={() => (select.value = '3')}>{'Update'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const selectEl = container.querySelector('select') as HTMLSelectElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(selectEl.value).toBe('1');
+
+		button.click();
+		flushSync();
+
+		expect(selectEl.value).toBe('3');
+	});
+
+	it('should bind checkbox group', () => {
+		const logs: string[] = [];
+
+		component App() {
+			const selected = track(['b']);
+
+			effect(() => {
+				logs.push('selected changed', JSON.stringify(selected.value));
+			});
+
+			<div>
+				<input type="checkbox" value="a" {ref bindGroup(selected)} />
+				<input type="checkbox" value="b" {ref bindGroup(selected)} />
+				<input type="checkbox" value="c" {ref bindGroup(selected)} />
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const inputs = container.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
+		expect(inputs[0].checked).toBe(false);
+		expect(inputs[1].checked).toBe(true);
+		expect(inputs[2].checked).toBe(false);
+
+		// Check first checkbox
+		inputs[0].checked = true;
+		inputs[0].dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(logs).toContain('selected changed');
+		expect(logs[logs.length - 1]).toBe(JSON.stringify(['b', 'a']));
+
+		// Uncheck second checkbox
+		inputs[1].checked = false;
+		inputs[1].dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe(JSON.stringify(['a']));
+
+		// Check third checkbox
+		inputs[2].checked = true;
+		inputs[2].dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe(JSON.stringify(['a', 'c']));
+	});
+
+	it('should bind checkbox group with a getter and setter', () => {
+		const logs: string[] = [];
+
+		component App() {
+			const obj = new RippleObject({ selected: ['b'] });
+
+			effect(() => {
+				logs.push('selected changed', JSON.stringify(obj.selected));
+			});
+
+			<div>
+				<input
+					type="checkbox"
+					value="a"
+					{ref bindGroup(() => obj.selected, (v: string[]) => (obj.selected = v))}
+				/>
+				<input
+					type="checkbox"
+					value="b"
+					{ref bindGroup(() => obj.selected, (v: string[]) => (obj.selected = v))}
+				/>
+				<input
+					type="checkbox"
+					value="c"
+					{ref bindGroup(() => obj.selected, (v: string[]) => (obj.selected = v))}
+				/>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const inputs = container.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
+		expect(inputs[0].checked).toBe(false);
+		expect(inputs[1].checked).toBe(true);
+		expect(inputs[2].checked).toBe(false);
+
+		// Check first checkbox
+		inputs[0].checked = true;
+		inputs[0].dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(logs).toContain('selected changed');
+		expect(logs[logs.length - 1]).toBe(JSON.stringify(['b', 'a']));
+
+		// Uncheck second checkbox
+		inputs[1].checked = false;
+		inputs[1].dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe(JSON.stringify(['a']));
+
+		// Check third checkbox
+		inputs[2].checked = true;
+		inputs[2].dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe(JSON.stringify(['a', 'c']));
+	});
+
+	it('should bind radio group', () => {
+		const logs: string[] = [];
+
+		component App() {
+			const selected = track('b');
+
+			effect(() => {
+				logs.push('selected changed', selected.value);
+			});
+
+			<div>
+				<input type="radio" name="test" value="a" {ref bindGroup(selected)} />
+				<input type="radio" name="test" value="b" {ref bindGroup(selected)} />
+				<input type="radio" name="test" value="c" {ref bindGroup(selected)} />
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const inputs = container.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
+		expect(inputs[0].checked).toBe(false);
+		expect(inputs[1].checked).toBe(true);
+		expect(inputs[2].checked).toBe(false);
+
+		// Select first radio
+		inputs[0].checked = true;
+		inputs[0].dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(logs).toContain('selected changed');
+		expect(logs[logs.length - 1]).toBe('a');
+		expect(inputs[0].checked).toBe(true);
+		expect(inputs[1].checked).toBe(false);
+		expect(inputs[2].checked).toBe(false);
+
+		// Select third radio
+		inputs[2].checked = true;
+		inputs[2].dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe('c');
+		expect(inputs[0].checked).toBe(false);
+		expect(inputs[1].checked).toBe(false);
+		expect(inputs[2].checked).toBe(true);
+	});
+
+	it('should bind radio group with a getter and setter', () => {
+		const logs: string[] = [];
+
+		component App() {
+			const selected = new RippleObject({ value: 'b' });
+
+			effect(() => {
+				logs.push('selected changed', selected.value);
+			});
+
+			<div>
+				<input
+					type="radio"
+					name="test"
+					value="a"
+					{ref bindGroup(() => selected.value, (v: string) => (selected.value = v))}
+				/>
+				<input
+					type="radio"
+					name="test"
+					value="b"
+					{ref bindGroup(() => selected.value, (v: string) => (selected.value = v))}
+				/>
+				<input
+					type="radio"
+					name="test"
+					value="c"
+					{ref bindGroup(() => selected.value, (v: string) => (selected.value = v))}
+				/>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const inputs = container.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
+		expect(inputs[0].checked).toBe(false);
+		expect(inputs[1].checked).toBe(true);
+		expect(inputs[2].checked).toBe(false);
+
+		// Select first radio
+		inputs[0].checked = true;
+		inputs[0].dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(logs).toContain('selected changed');
+		expect(logs[logs.length - 1]).toBe('a');
+		expect(inputs[0].checked).toBe(true);
+		expect(inputs[1].checked).toBe(false);
+		expect(inputs[2].checked).toBe(false);
+
+		// Select third radio
+		inputs[2].checked = true;
+		inputs[2].dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe('c');
+		expect(inputs[0].checked).toBe(false);
+		expect(inputs[1].checked).toBe(false);
+		expect(inputs[2].checked).toBe(true);
+	});
+
+	it('should update checkbox group from tracked value change', () => {
+		component App() {
+			const selected = track(['a']);
+
+			<div>
+				<input type="checkbox" value="a" {ref bindGroup(selected)} />
+				<input type="checkbox" value="b" {ref bindGroup(selected)} />
+				<input type="checkbox" value="c" {ref bindGroup(selected)} />
+				<button onClick={() => (selected.value = ['b', 'c'])}>{'Update'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const inputs = container.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(inputs[0].checked).toBe(true);
+		expect(inputs[1].checked).toBe(false);
+		expect(inputs[2].checked).toBe(false);
+
+		button.click();
+		flushSync();
+
+		expect(inputs[0].checked).toBe(false);
+		expect(inputs[1].checked).toBe(true);
+		expect(inputs[2].checked).toBe(true);
+	});
+
+	it('should update checkbox group from tracked value change with a getter and setter', () => {
+		component App() {
+			const selected = new RippleObject({ value: ['a'] });
+
+			<div>
+				<input
+					type="checkbox"
+					value="a"
+					{ref bindGroup(() => selected.value, (v: string[]) => (selected.value = v))}
+				/>
+				<input
+					type="checkbox"
+					value="b"
+					{ref bindGroup(() => selected.value, (v: string[]) => (selected.value = v))}
+				/>
+				<input
+					type="checkbox"
+					value="c"
+					{ref bindGroup(() => selected.value, (v: string[]) => (selected.value = v))}
+				/>
+				<button onClick={() => (selected.value = ['b', 'c'])}>{'Update'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const inputs = container.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(inputs[0].checked).toBe(true);
+		expect(inputs[1].checked).toBe(false);
+		expect(inputs[2].checked).toBe(false);
+
+		button.click();
+		flushSync();
+
+		expect(inputs[0].checked).toBe(false);
+		expect(inputs[1].checked).toBe(true);
+		expect(inputs[2].checked).toBe(true);
+	});
+
+	it('should update radio group from tracked value change', () => {
+		component App() {
+			const selected = track('a');
+
+			<div>
+				<input type="radio" name="test" value="a" {ref bindGroup(selected)} />
+				<input type="radio" name="test" value="b" {ref bindGroup(selected)} />
+				<input type="radio" name="test" value="c" {ref bindGroup(selected)} />
+				<button onClick={() => (selected.value = 'c')}>{'Update'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const inputs = container.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(inputs[0].checked).toBe(true);
+		expect(inputs[1].checked).toBe(false);
+		expect(inputs[2].checked).toBe(false);
+
+		button.click();
+		flushSync();
+
+		expect(inputs[0].checked).toBe(false);
+		expect(inputs[1].checked).toBe(false);
+		expect(inputs[2].checked).toBe(true);
+	});
+
+	it('should update radio group from tracked value change with a getter and setter', () => {
+		component App() {
+			const selected = new RippleObject({ value: 'a' });
+
+			<div>
+				<input
+					type="radio"
+					name="test"
+					value="a"
+					{ref bindGroup(() => selected.value, (v: string) => (selected.value = v))}
+				/>
+				<input
+					type="radio"
+					name="test"
+					value="b"
+					{ref bindGroup(() => selected.value, (v: string) => (selected.value = v))}
+				/>
+				<input
+					type="radio"
+					name="test"
+					value="c"
+					{ref bindGroup(() => selected.value, (v: string) => (selected.value = v))}
+				/>
+				<button onClick={() => (selected.value = 'c')}>{'Update'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const inputs = container.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(inputs[0].checked).toBe(true);
+		expect(inputs[1].checked).toBe(false);
+		expect(inputs[2].checked).toBe(false);
+
+		button.click();
+		flushSync();
+
+		expect(inputs[0].checked).toBe(false);
+		expect(inputs[1].checked).toBe(false);
+		expect(inputs[2].checked).toBe(true);
+	});
+
+	it('should handle checkbox group with initial empty array', () => {
+		component App() {
+			const selected = track([]);
+
+			<div>
+				<input type="checkbox" value="a" {ref bindGroup(selected)} />
+				<input type="checkbox" value="b" {ref bindGroup(selected)} />
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const inputs = container.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
+
+		expect(inputs[0].checked).toBe(false);
+		expect(inputs[1].checked).toBe(false);
+
+		inputs[0].checked = true;
+		inputs[0].dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(inputs[0].checked).toBe(true);
+		expect(inputs[1].checked).toBe(false);
+	});
+
+	it('should handle checkbox group with initial empty array with a getter and setter', () => {
+		component App() {
+			const selected: RippleObject<{ value: string[] }> = new RippleObject({ value: [] });
+
+			<div>
+				<input
+					type="checkbox"
+					value="a"
+					{ref bindGroup(() => selected.value, (v: string[]) => (selected.value = v))}
+				/>
+				<input
+					type="checkbox"
+					value="b"
+					{ref bindGroup(() => selected.value, (v: string[]) => (selected.value = v))}
+				/>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const inputs = container.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
+
+		expect(inputs[0].checked).toBe(false);
+		expect(inputs[1].checked).toBe(false);
+
+		inputs[0].checked = true;
+		inputs[0].dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(inputs[0].checked).toBe(true);
+		expect(inputs[1].checked).toBe(false);
+	});
+
+	it('should handle number input type', () => {
+		component App() {
+			const value = track(42);
+
+			<input type="number" {ref bindValue(value)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		expect(input.value).toBe('42');
+
+		input.value = '100';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(input.value).toBe('100');
+	});
+
+	it('should handle number input type with a getter and setter', () => {
+		component App() {
+			const obj = new RippleObject({ value: 42 });
+
+			<input type="number" {ref bindValue(() => obj.value, (v) => (obj.value = v))} />
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		expect(input.value).toBe('42');
+
+		input.value = '100';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(input.value).toBe('100');
+	});
+
+	it('should update number input element when tracked value changes', () => {
+		component App() {
+			const value = track(10);
+
+			<div>
+				<input type="number" {ref bindValue(value)} />
+				<button onClick={() => (value.value = 99)}>{'Update'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(input.value).toBe('10');
+
+		button.click();
+		flushSync();
+
+		expect(input.value).toBe('99');
+	});
+
+	it(
+		'should update number input element when tracked value changes with a getter and setter',
+		() => {
+			component App() {
+				const obj = new RippleObject({ value: 10 });
+
+				<div>
+					<input type="number" {ref bindValue(() => obj.value, (v) => (obj.value = v))} />
+					<button onClick={() => (obj.value = 99)}>{'Update'}</button>
+				</div>
+			}
+
+			render(App);
+			flushSync();
+
+			const input = container.querySelector('input') as HTMLInputElement;
+			const button = container.querySelector('button') as HTMLButtonElement;
+
+			expect(input.value).toBe('10');
+
+			button.click();
+			flushSync();
+
+			expect(input.value).toBe('99');
+		},
+	);
+
+	it('should handle range input type', () => {
+		component App() {
+			const value = track(50);
+
+			<input type="range" min="0" max="100" {ref bindValue(value)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		expect(input.value).toBe('50');
+
+		input.value = '75';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(input.value).toBe('75');
+	});
+
+	it('should handle range input type with a getter and setter', () => {
+		component App() {
+			const obj = new RippleObject({ value: 50 });
+
+			<input
+				type="range"
+				min="0"
+				max="100"
+				{ref bindValue(() => obj.value, (v) => (obj.value = v))}
+			/>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		expect(input.value).toBe('50');
+
+		input.value = '75';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(input.value).toBe('75');
+	});
+
+	it('should update range input element when tracked value changes', () => {
+		component App() {
+			const value = track(25);
+
+			<div>
+				<input type="range" min="0" max="100" {ref bindValue(value)} />
+				<button onClick={() => (value.value = 80)}>{'Update'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(input.value).toBe('25');
+
+		button.click();
+		flushSync();
+
+		expect(input.value).toBe('80');
+	});
+
+	it(
+		'should update range input element when tracked value changes with a getter and setter',
+		() => {
+			component App() {
+				const obj = new RippleObject({ value: 25 });
+
+				<div>
+					<input
+						type="range"
+						min="0"
+						max="100"
+						{ref bindValue(() => obj.value, (v) => (obj.value = v))}
+					/>
+					<button onClick={() => (obj.value = 80)}>{'Update'}</button>
+				</div>
+			}
+
+			render(App);
+			flushSync();
+
+			const input = container.querySelector('input') as HTMLInputElement;
+			const button = container.querySelector('button') as HTMLButtonElement;
+
+			expect(input.value).toBe('25');
+
+			button.click();
+			flushSync();
+
+			expect(input.value).toBe('80');
+		},
+	);
+
+	it('should handle empty number input as null', () => {
+		component App() {
+			const value = track(null);
+
+			<input type="number" {ref bindValue(value)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		expect(input.value).toBe('');
+
+		input.value = '';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(input.value).toBe('');
+	});
+
+	it('should handle empty number input as null with a getter and setter', () => {
+		component App() {
+			const obj = new RippleObject({ value: null });
+
+			<input type="number" {ref bindValue(() => obj.value, (v) => (obj.value = v))} />
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		expect(input.value).toBe('');
+
+		input.value = '';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(input.value).toBe('');
+	});
+
+	it('should handle date input type', () => {
+		component App() {
+			const value = track('2025-11-14');
+
+			<input type="date" {ref bindValue(value)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		expect(input.value).toBe('2025-11-14');
+
+		input.value = '2025-12-25';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(input.value).toBe('2025-12-25');
+	});
+
+	it('should handle date input type with a getter and setter', () => {
+		component App() {
+			const obj = new RippleObject({ value: '2025-11-14' });
+
+			<input type="date" {ref bindValue(() => obj.value, (v) => (obj.value = v))} />
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		expect(input.value).toBe('2025-11-14');
+
+		input.value = '2025-12-25';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(input.value).toBe('2025-12-25');
+	});
+
+	it('should update date input element when tracked value changes', () => {
+		component App() {
+			const value = track('2025-01-01');
+
+			<div>
+				<input type="date" {ref bindValue(value)} />
+				<button onClick={() => (value.value = '2025-12-31')}>{'Update'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(input.value).toBe('2025-01-01');
+
+		button.click();
+		flushSync();
+
+		expect(input.value).toBe('2025-12-31');
+	});
+
+	it('should update date input element when tracked value changes with a getter and setter', () => {
+		component App() {
+			const obj = new RippleObject({ value: '2025-01-01' });
+
+			<div>
+				<input type="date" {ref bindValue(() => obj.value, (v) => (obj.value = v))} />
+				<button onClick={() => (obj.value = '2025-12-31')}>{'Update'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(input.value).toBe('2025-01-01');
+
+		button.click();
+		flushSync();
+
+		expect(input.value).toBe('2025-12-31');
+	});
+
+	it('should handle select with multiple attribute', () => {
+		component App() {
+			const selected = track(['2', '3']);
+
+			<select multiple {ref bindValue(selected)}>
+				<option value="1">{'One'}</option>
+				<option value="2">{'Two'}</option>
+				<option value="3">{'Three'}</option>
+				<option value="4">{'Four'}</option>
+			</select>
+		}
+
+		render(App);
+		flushSync();
+
+		const select = container.querySelector('select') as HTMLSelectElement;
+		const options = select.options;
+
+		expect(options[0].selected).toBe(false);
+		expect(options[1].selected).toBe(true);
+		expect(options[2].selected).toBe(true);
+		expect(options[3].selected).toBe(false);
+
+		// Change selection
+		options[0].selected = true;
+		options[1].selected = false;
+		select.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(options[0].selected).toBe(true);
+		expect(options[1].selected).toBe(false);
+		expect(options[2].selected).toBe(true);
+	});
+
+	it('should handle select with multiple attribute with a getter and setter', () => {
+		component App() {
+			const selected = track(['2', '3']);
+
+			<select multiple {ref bindValue(() => selected.value, (v) => (selected.value = v))}>
+				<option value="1">{'One'}</option>
+				<option value="2">{'Two'}</option>
+				<option value="3">{'Three'}</option>
+				<option value="4">{'Four'}</option>
+			</select>
+		}
+
+		render(App);
+		flushSync();
+
+		const select = container.querySelector('select') as HTMLSelectElement;
+		const options = select.options;
+
+		expect(options[0].selected).toBe(false);
+		expect(options[1].selected).toBe(true);
+		expect(options[2].selected).toBe(true);
+		expect(options[3].selected).toBe(false);
+
+		// Change selection
+		options[0].selected = true;
+		options[1].selected = false;
+		select.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(options[0].selected).toBe(true);
+		expect(options[1].selected).toBe(false);
+		expect(options[2].selected).toBe(true);
+	});
+
+	it('should update multiple select element when tracked value changes', () => {
+		component App() {
+			const selected = track(['1']);
+
+			<div>
+				<select multiple {ref bindValue(selected)}>
+					<option value="1">{'One'}</option>
+					<option value="2">{'Two'}</option>
+					<option value="3">{'Three'}</option>
+					<option value="4">{'Four'}</option>
+				</select>
+				<button onClick={() => (selected.value = ['2', '4'])}>{'Update'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const select = container.querySelector('select') as HTMLSelectElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+		const options = select.options;
+
+		expect(options[0].selected).toBe(true);
+		expect(options[1].selected).toBe(false);
+		expect(options[2].selected).toBe(false);
+		expect(options[3].selected).toBe(false);
+
+		button.click();
+		flushSync();
+
+		expect(options[0].selected).toBe(false);
+		expect(options[1].selected).toBe(true);
+		expect(options[2].selected).toBe(false);
+		expect(options[3].selected).toBe(true);
+	});
+
+	it(
+		'should update multiple select element when tracked value changes with a getter and setter',
+		() => {
+			component App() {
+				const selected = track(['1']);
+
+				<div>
+					<select multiple {ref bindValue(() => selected.value, (v) => (selected.value = v))}>
+						<option value="1">{'One'}</option>
+						<option value="2">{'Two'}</option>
+						<option value="3">{'Three'}</option>
+						<option value="4">{'Four'}</option>
+					</select>
+					<button onClick={() => (selected.value = ['2', '4'])}>{'Update'}</button>
+				</div>
+			}
+
+			render(App);
+			flushSync();
+
+			const select = container.querySelector('select') as HTMLSelectElement;
+			const button = container.querySelector('button') as HTMLButtonElement;
+			const options = select.options;
+
+			expect(options[0].selected).toBe(true);
+			expect(options[1].selected).toBe(false);
+			expect(options[2].selected).toBe(false);
+			expect(options[3].selected).toBe(false);
+
+			button.click();
+			flushSync();
+
+			expect(options[0].selected).toBe(false);
+			expect(options[1].selected).toBe(true);
+			expect(options[2].selected).toBe(false);
+			expect(options[3].selected).toBe(true);
+		},
+	);
+
+	it('should handle select without initial value and fall back to first option', () => {
+		component App() {
+			const selected = track();
+
+			<select {ref bindValue(selected)}>
+				<option value="1">{'One'}</option>
+				<option value="2">{'Two'}</option>
+			</select>
+		}
+
+		render(App);
+		flushSync();
+
+		const select = container.querySelector('select') as HTMLSelectElement;
+		// Should pick up first option when undefined
+		expect(select.selectedIndex).toBeGreaterThanOrEqual(0);
+	});
+
+	it(
+		'should handle select without initial value and fall back to first option with a getter and setter',
+		() => {
+			component App() {
+				const selected = track();
+
+				<select {ref bindValue(() => selected.value, (v) => (selected.value = v))}>
+					<option value="1">{'One'}</option>
+					<option value="2">{'Two'}</option>
+				</select>
+			}
+
+			render(App);
+			flushSync();
+
+			const select = container.querySelector('select') as HTMLSelectElement;
+			// Should pick up first option when undefined
+			expect(select.selectedIndex).toBeGreaterThanOrEqual(0);
+		},
+	);
+
+	it('should handle select with disabled options', () => {
+		component App() {
+			const selected = track();
+
+			<select {ref bindValue(selected)}>
+				<option value="1" disabled>{'One'}</option>
+				<option value="2">{'Two'}</option>
+			</select>
+		}
+
+		render(App);
+		flushSync();
+
+		const select = container.querySelector('select') as HTMLSelectElement;
+		// Should fall back to first non-disabled option
+		expect(select.options[1].selected).toBe(true);
+	});
+
+	it('should handle select with disabled options with a getter and setter', () => {
+		component App() {
+			const selected = track();
+
+			<select {ref bindValue(() => selected.value, (v) => (selected.value = v))}>
+				<option value="1" disabled>{'One'}</option>
+				<option value="2">{'Two'}</option>
+			</select>
+		}
+
+		render(App);
+		flushSync();
+
+		const select = container.querySelector('select') as HTMLSelectElement;
+		// Should fall back to first non-disabled option
+		expect(select.options[1].selected).toBe(true);
+	});
+
+	it('should preselect numeric option values in select bindValue', () => {
+		component App() {
+			const selected = track(2);
+
+			<select {ref bindValue(selected)}>
+				<option value={1}>{'One'}</option>
+				<option value={2}>{'Two'}</option>
+				<option value={3}>{'Three'}</option>
+			</select>
+		}
+
+		render(App);
+		flushSync();
+
+		const select = container.querySelector('select') as HTMLSelectElement;
+
+		expect(select.value).toBe('2');
+		expect(select.options[0].selected).toBe(false);
+		expect(select.options[1].selected).toBe(true);
+		expect(select.options[2].selected).toBe(false);
+	});
+
+	it('should preselect numeric option values in select bindValue with a getter and setter', () => {
+		component App() {
+			const selected = track(2);
+
+			<select {ref bindValue(() => selected.value, (v) => (selected.value = v))}>
+				<option value={1}>{'One'}</option>
+				<option value={2}>{'Two'}</option>
+				<option value={3}>{'Three'}</option>
+			</select>
+		}
+
+		render(App);
+		flushSync();
+
+		const select = container.querySelector('select') as HTMLSelectElement;
+
+		expect(select.value).toBe('2');
+		expect(select.options[0].selected).toBe(false);
+		expect(select.options[1].selected).toBe(true);
+		expect(select.options[2].selected).toBe(false);
+	});
+
+	it('should preserve numeric select values on change', () => {
+		const logs: number[] = [];
+
+		component App() {
+			const selected = track(2);
+
+			effect(() => {
+				logs.push(selected.value);
+			});
+
+			<select {ref bindValue(selected)}>
+				<option value={1}>{'One'}</option>
+				<option value={2}>{'Two'}</option>
+				<option value={3}>{'Three'}</option>
+			</select>
+		}
+
+		render(App);
+		flushSync();
+
+		const select = container.querySelector('select') as HTMLSelectElement;
+		select.options[2].selected = true;
+		select.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(select.value).toBe('3');
+		expect(logs).toEqual([2, 3]);
+	});
+
+	it('should reselect tracked value when matching option is added later', async () => {
+		component App() {
+			const selected = track(5);
+			const options = RippleArray([
+				{ id: 1, text: 'One' },
+				{ id: 2, text: 'Two' },
+			]);
+
+			<div>
+				<select {ref bindValue(selected)}>
+					for (const option of options) {
+						<option value={option.id}>{option.text}</option>
+					}
+				</select>
+				<button onClick={() => options.push({ id: 5, text: 'Five' })}>{'Add'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const select = container.querySelector('select') as HTMLSelectElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(select.value).toBe('');
+
+		button.click();
+		flushSync();
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(select.value).toBe('5');
+		expect(select.selectedOptions[0].value).toBe('5');
+	});
+
+	it('should reselect tracked value when option lists are replaced later', async () => {
+		component App() {
+			const selected = track(22);
+			const options = RippleArray([
+				{ id: 1, text: 'One' },
+			]);
+
+			effect(() => {
+				const timeout = setTimeout(() => {
+					options.splice(0, options.length, { id: 21, text: 'Tokyo' }, { id: 22, text: 'Osaka' });
+				}, 0);
+
+				return () => clearTimeout(timeout);
+			});
+
+			<select {ref bindValue(selected)}>
+				for (const option of options) {
+					<option value={option.id}>{option.text}</option>
+				}
+			</select>
+		}
+
+		render(App);
+		flushSync();
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		const select = container.querySelector('select') as HTMLSelectElement;
+
+		expect(select.value).toBe('22');
+		expect(select.options[1].selected).toBe(true);
+	});
+
+	it('should accurately reflect values mutated through a tracked setter', () => {
+		component App() {
+			let value = track(
+				'',
+				(val) => {
+					return val;
+				},
+				(next) => {
+					if (next.includes('c')) {
+						next = next.replace(/c/g, '');
+					}
+					return next;
+				},
+			);
+
+			<input type="text" {ref bindValue(value)} />
+			<div>{value.value}</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		expect(input.value).toBe('');
+		expect(div.textContent).toBe('');
+
+		input.value = 'abc';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(input.value).toBe('ab');
+		expect(div.textContent).toBe('ab');
+	});
+
+	it('should accurately reflect values when a getter modifies value', () => {
+		component App() {
+			let value = track(
+				'',
+				(val) => {
+					if (val.includes('c')) {
+						val = val.replace(/c/g, '');
+					}
+					return val;
+				},
+				(next) => {
+					return next;
+				},
+			);
+
+			<input type="text" {ref bindValue(value)} />
+			<div>{value.value}</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		expect(input.value).toBe('');
+		expect(div.textContent).toBe('');
+
+		input.value = 'abc';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(input.value).toBe('ab');
+		expect(div.textContent).toBe('ab');
+	});
+
+	it('should always prefer what getter returns even if setter mutates next', () => {
+		component App() {
+			let value = track(
+				'',
+				(val) => {
+					return val.replace(/[c,b]+/g, '');
+				},
+				(next) => {
+					if (next.includes('c')) {
+						next = next.replace(/c/g, '');
+					}
+					return next;
+				},
+			);
+
+			<input type="text" {ref bindValue(value)} />
+			<div>{value.value}</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		expect(input.value).toBe('');
+		expect(div.textContent).toBe('');
+
+		input.value = 'abc';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(input.value).toBe('a');
+		expect(div.textContent).toBe('a');
+	});
+
+	it(
+		'should accurately reflect values mutated through an effect even after a setter mutation',
+		() => {
+			component App() {
+				let value = track(
+					'',
+					(val) => {
+						return val;
+					},
+					(next) => {
+						if (next.includes('c')) {
+							next = next.replace(/c/g, '');
+						}
+						return next;
+					},
+				);
+
+				effect(() => {
+					value.value;
+
+					untrack(() => {
+						if (value.value.includes('a')) {
+							value.value = value.value.replace(/a/g, '');
+						}
+					});
+				});
+				<input type="text" {ref bindValue(value)} />
+				<div>{value.value}</div>
+			}
+
+			render(App);
+			flushSync();
+
+			const input = container.querySelector('input') as HTMLInputElement;
+			const div = container.querySelector('div') as HTMLDivElement;
+
+			expect(input.value).toBe('');
+			expect(div.textContent).toBe('');
+
+			input.value = 'abc';
+			input.dispatchEvent(new Event('input', { bubbles: true }));
+			flushSync();
+
+			expect(input.value).toBe('b');
+			expect(div.textContent).toBe('b');
+		},
+	);
+
+	it('should accurately reflect values mutated through a tracked setter via bind accessors', () => {
+		component App() {
+			let value = track('');
+			const value_accessors: [GetFunction<string>, SetFunction<string>] = [
+				() => {
+					return value.value;
+				},
+				(v: string) => {
+					if (v.includes('c')) {
+						v = v.replace(/c/g, '');
+					}
+					value.value = v;
+				},
+			];
+
+			<input type="text" {ref bindValue(...value_accessors)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+
+		expect(input.value).toBe('');
+
+		input.value = 'abc';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(input.value).toBe('ab');
+	});
+
+	it('should prefer what getter returns via bind accessors', () => {
+		component App() {
+			let value = track('');
+			const value_accessors: [GetFunction<string>, SetFunction<string>] = [
+				() => {
+					if (value.value.includes('c')) {
+						return value.value.replace(/c/g, '');
+					}
+					return value.value;
+				},
+				(v: string) => {
+					value.value = v;
+				},
+			];
+
+			<input type="text" {ref bindValue(...value_accessors)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+
+		expect(input.value).toBe('');
+
+		input.value = 'abc';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(input.value).toBe('ab');
+	});
+
+	it(
+		'should always prefer what getter returns even if setter mutates next via bind accessors',
+		() => {
+			component App() {
+				let value = track('');
+				const value_accessors: [GetFunction<string>, SetFunction<string>] = [
+					() => {
+						return value.value.replace(/[c,b]+/g, '');
+					},
+					(v: string) => {
+						if (v.includes('c')) {
+							v = v.replace(/c/g, '');
+						}
+						value.value = v;
+					},
+				];
+
+				<input type="text" {ref bindValue(...value_accessors)} />
+			}
+
+			render(App);
+			flushSync();
+
+			const input = container.querySelector('input') as HTMLInputElement;
+
+			expect(input.value).toBe('');
+
+			input.value = 'abc';
+			input.dispatchEvent(new Event('input', { bubbles: true }));
+			flushSync();
+
+			expect(input.value).toBe('a');
+		},
+	);
+
+	it(
+		'should accurately reflect values mutated through an effect even after a setter mutation via bind accessors',
+		() => {
+			component App() {
+				let value = track('');
+				const value_accessors: [GetFunction<string>, SetFunction<string>] = [
+					() => {
+						return value.value;
+					},
+					(v: string) => {
+						if (v.includes('c')) {
+							v = v.replace(/c/g, '');
+						}
+						value.value = v;
+					},
+				];
+
+				effect(() => {
+					value.value;
+
+					untrack(() => {
+						if (value.value.includes('a')) {
+							value.value = value.value.replace(/a/g, '');
+						}
+					});
+				});
+				<input type="text" {ref bindValue(...value_accessors)} />
+			}
+
+			render(App);
+			flushSync();
+
+			const input = container.querySelector('input') as HTMLInputElement;
+
+			expect(input.value).toBe('');
+
+			input.value = 'abc';
+			input.dispatchEvent(new Event('input', { bubbles: true }));
+			flushSync();
+
+			expect(input.value).toBe('b');
+		},
+	);
+
+	it(
+		'should keep the input.value unchanged and synced with the tracked when the setter blocks updates to the tracked via bind accessors',
+		() => {
+			component App() {
+				let value = track('');
+				const value_accessors: [GetFunction<string>, SetFunction<string>] = [
+					() => {
+						return value.value;
+					},
+					(v: string) => {
+						// no update
+					},
+				];
+
+				<input type="text" {ref bindValue(...value_accessors)} />
+				<div>{value.value}</div>
+			}
+
+			render(App);
+			flushSync();
+
+			const input = container.querySelector('input') as HTMLInputElement;
+			const div = container.querySelector('div') as HTMLDivElement;
+
+			expect(input.value).toBe('');
+
+			input.value = 'abc';
+			input.dispatchEvent(new Event('input', { bubbles: true }));
+			flushSync();
+
+			expect(input.value).toBe('');
+			expect(div.textContent).toBe('');
+		},
+	);
+
+	it(
+		'should keep the input.value unchanged and synced with the tracked when the setter blocks updates to the tracked via track get / set',
+		() => {
+			component App() {
+				let value = track(
+					'',
+					(v) => {
+						return v;
+					},
+					() => {
+						return '';
+					},
+				);
+
+				<input type="text" {ref bindValue(value)} />
+				<div>{value.value}</div>
+			}
+
+			render(App);
+			flushSync();
+
+			const input = container.querySelector('input') as HTMLInputElement;
+			const div = container.querySelector('div') as HTMLDivElement;
+
+			expect(input.value).toBe('');
+
+			input.value = 'abc';
+			input.dispatchEvent(new Event('input', { bubbles: true }));
+			flushSync();
+
+			expect(input.value).toBe('');
+			expect(div.textContent).toBe('');
+		},
+	);
+});
+
+describe('bindClientWidth and bindClientHeight', () => {
+	it('should bind element clientWidth', () => {
+		const logs: number[] = [];
+
+		component App() {
+			const width = track(0);
+
+			effect(() => {
+				logs.push(width.value);
+			});
+
+			<div {ref bindClientWidth(width)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		Object.defineProperty(div, 'clientWidth', {
+			configurable: true,
+			get: () => 200,
+		});
+
+		triggerResize(div, {
+			contentRect: new DOMRectReadOnly(0, 0, 200, 100),
+		});
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe(200);
+	});
+
+	it('should bind element clientWidth with a getter and setter', () => {
+		const logs: number[] = [];
+
+		component App() {
+			const width = new RippleObject({ value: 0 });
+
+			effect(() => {
+				logs.push(width.value);
+			});
+
+			<div {ref bindClientWidth(() => width.value, (v: number) => (width.value = v))} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		Object.defineProperty(div, 'clientWidth', {
+			configurable: true,
+			get: () => 200,
+		});
+
+		triggerResize(div, {
+			contentRect: new DOMRectReadOnly(0, 0, 200, 100),
+		});
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe(200);
+	});
+
+	it('should bind element clientHeight', () => {
+		const logs: number[] = [];
+
+		component App() {
+			const height = track(0);
+
+			effect(() => {
+				logs.push(height.value);
+			});
+
+			<div {ref bindClientHeight(height)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		Object.defineProperty(div, 'clientHeight', {
+			configurable: true,
+			get: () => 150,
+		});
+
+		triggerResize(div, {
+			contentRect: new DOMRectReadOnly(0, 0, 100, 150),
+		});
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe(150);
+	});
+
+	it('should bind element clientHeight with a getter and setter', () => {
+		const logs: number[] = [];
+
+		component App() {
+			const height = new RippleObject({ value: 0 });
+			effect(() => {
+				logs.push(height.value);
+			});
+
+			<div {ref bindClientHeight(() => height.value, (v: number) => (height.value = v))} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		Object.defineProperty(div, 'clientHeight', {
+			configurable: true,
+			get: () => 150,
+		});
+
+		triggerResize(div, {
+			contentRect: new DOMRectReadOnly(0, 0, 100, 150),
+		});
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe(150);
+	});
+});
+
+describe('bindOffsetWidth and bindOffsetHeight', () => {
+	it('should bind element offsetWidth', () => {
+		const logs: number[] = [];
+
+		component App() {
+			const width = track(0);
+
+			effect(() => {
+				logs.push(width.value);
+			});
+
+			<div {ref bindOffsetWidth(width)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		Object.defineProperty(div, 'offsetWidth', {
+			configurable: true,
+			get: () => 250,
+		});
+
+		triggerResize(div, {
+			contentRect: new DOMRectReadOnly(0, 0, 250, 100),
+		});
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe(250);
+	});
+
+	it('should bind element offsetWidth with a getter and setter', () => {
+		const logs: number[] = [];
+
+		component App() {
+			const width = new RippleObject({ value: 0 });
+
+			effect(() => {
+				logs.push(width.value);
+			});
+
+			<div {ref bindOffsetWidth(() => width.value, (v: number) => (width.value = v))} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		Object.defineProperty(div, 'offsetWidth', {
+			configurable: true,
+			get: () => 250,
+		});
+
+		triggerResize(div, {
+			contentRect: new DOMRectReadOnly(0, 0, 250, 100),
+		});
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe(250);
+	});
+
+	it('should bind element offsetHeight', () => {
+		const logs: number[] = [];
+
+		component App() {
+			const height = track(0);
+
+			effect(() => {
+				logs.push(height.value);
+			});
+
+			<div {ref bindOffsetHeight(height)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		Object.defineProperty(div, 'offsetHeight', {
+			configurable: true,
+			get: () => 175,
+		});
+
+		triggerResize(div, {
+			contentRect: new DOMRectReadOnly(0, 0, 100, 175),
+		});
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe(175);
+	});
+
+	it('should bind element offsetHeight with a getter and setter', () => {
+		const logs: number[] = [];
+
+		component App() {
+			const height = new RippleObject({ value: 0 });
+			effect(() => {
+				logs.push(height.value);
+			});
+
+			<div {ref bindOffsetHeight(() => height.value, (v: number) => (height.value = v))} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		Object.defineProperty(div, 'offsetHeight', {
+			configurable: true,
+			get: () => 175,
+		});
+
+		triggerResize(div, {
+			contentRect: new DOMRectReadOnly(0, 0, 100, 175),
+		});
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe(175);
+	});
+});
+
+describe('bindContentRect', () => {
+	it('should bind element contentRect', () => {
+		const logs: DOMRectReadOnly[] = [];
+
+		component App() {
+			const rect = track(null);
+
+			effect(() => {
+				if (rect.value) logs.push(rect.value);
+			});
+
+			<div {ref bindContentRect(rect)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		const mockRect = new DOMRectReadOnly(10, 20, 300, 200);
+		triggerResize(div, {
+			contentRect: mockRect,
+		});
+		flushSync();
+
+		expect(logs.length).toBeGreaterThan(0);
+		const lastRect = logs[logs.length - 1];
+		expect(lastRect.width).toBe(300);
+		expect(lastRect.height).toBe(200);
+	});
+
+	it('should bind element contentRect with a getter and setter', () => {
+		const logs: DOMRectReadOnly[] = [];
+
+		component App() {
+			const rect: RippleObject<{ value: DOMRectReadOnly | null }> = new RippleObject({
+				value: null,
+			});
+			effect(() => {
+				if (rect.value) logs.push(rect.value);
+			});
+
+			<div
+				{ref bindContentRect<null | DOMRectReadOnly>(
+					() => rect.value,
+					(v: DOMRectReadOnly) => (rect.value = v),
+				)}
+			/>
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		const mockRect = new DOMRectReadOnly(10, 20, 300, 200);
+		triggerResize(div, {
+			contentRect: mockRect,
+		});
+		flushSync();
+
+		expect(logs.length).toBeGreaterThan(0);
+		const lastRect = logs[logs.length - 1];
+		expect(lastRect.width).toBe(300);
+		expect(lastRect.height).toBe(200);
+	});
+});
+
+describe('bindContentBoxSize', () => {
+	it('should bind element contentBoxSize', () => {
+		const logs: any[] = [];
+
+		component App() {
+			const boxSize = track(null);
+
+			effect(() => {
+				if (boxSize.value) logs.push(boxSize.value);
+			});
+
+			<div {ref bindContentBoxSize(boxSize)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		const mockBoxSize = [
+			{ blockSize: 200, inlineSize: 300 },
+		];
+		triggerResize(div, {
+			contentBoxSize: mockBoxSize as any,
+		});
+		flushSync();
+
+		expect(logs.length).toBeGreaterThan(0);
+		expect(logs[logs.length - 1]).toBe(mockBoxSize);
+	});
+
+	it('should bind element contentBoxSize with a getter and setter', () => {
+		const logs: any[] = [];
+		const mockBoxSize = [
+			{ blockSize: 200, inlineSize: 300 },
+		];
+
+		component App() {
+			const boxSize: RippleObject<{ value: typeof mockBoxSize | null }> = new RippleObject({
+				value: null,
+			});
+
+			effect(() => {
+				if (boxSize.value) logs.push(boxSize.value);
+			});
+
+			<div
+				{ref bindContentBoxSize<null | typeof mockBoxSize>(
+					() => boxSize.value,
+					(v: typeof mockBoxSize) => (boxSize.value = v),
+				)}
+			/>
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		triggerResize(div, {
+			contentBoxSize: mockBoxSize as any,
+		});
+		flushSync();
+
+		expect(logs.length).toBeGreaterThan(0);
+		expect(logs[logs.length - 1]).toBe(mockBoxSize);
+	});
+});
+
+describe('bindBorderBoxSize', () => {
+	it('should bind element borderBoxSize', () => {
+		const logs: any[] = [];
+
+		component App() {
+			const boxSize = track(null);
+
+			effect(() => {
+				if (boxSize.value) logs.push(boxSize.value);
+			});
+
+			<div {ref bindBorderBoxSize(boxSize)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		const mockBoxSize = [
+			{ blockSize: 220, inlineSize: 320 },
+		];
+		triggerResize(div, {
+			borderBoxSize: mockBoxSize as any,
+		});
+		flushSync();
+
+		expect(logs.length).toBeGreaterThan(0);
+		expect(logs[logs.length - 1]).toBe(mockBoxSize);
+	});
+
+	it('should bind element borderBoxSize with a getter and setter', () => {
+		const logs: any[] = [];
+		const mockBoxSize = [
+			{ blockSize: 220, inlineSize: 320 },
+		];
+
+		component App() {
+			const boxSize: RippleObject<{ value: typeof mockBoxSize | null }> = new RippleObject({
+				value: null,
+			});
+
+			effect(() => {
+				if (boxSize.value) logs.push(boxSize.value);
+			});
+
+			<div
+				{ref bindBorderBoxSize<null | typeof mockBoxSize>(
+					() => boxSize.value,
+					(v: typeof mockBoxSize) => (boxSize.value = v),
+				)}
+			/>
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		triggerResize(div, {
+			borderBoxSize: mockBoxSize as any,
+		});
+		flushSync();
+
+		expect(logs.length).toBeGreaterThan(0);
+		expect(logs[logs.length - 1]).toBe(mockBoxSize);
+	});
+});
+
+describe('bindDevicePixelContentBoxSize', () => {
+	it('should bind element devicePixelContentBoxSize', () => {
+		const logs: any[] = [];
+
+		component App() {
+			const boxSize = track(null);
+
+			effect(() => {
+				if (boxSize.value) logs.push(boxSize.value);
+			});
+
+			<div {ref bindDevicePixelContentBoxSize(boxSize)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		const mockBoxSize = [
+			{ blockSize: 400, inlineSize: 600 },
+		];
+		triggerResize(div, {
+			devicePixelContentBoxSize: mockBoxSize as any,
+		});
+		flushSync();
+
+		expect(logs.length).toBeGreaterThan(0);
+		expect(logs[logs.length - 1]).toBe(mockBoxSize);
+	});
+
+	it('should bind element devicePixelContentBoxSize with a getter and setter', () => {
+		const logs: any[] = [];
+		const mockBoxSize = [
+			{ blockSize: 400, inlineSize: 600 },
+		];
+
+		component App() {
+			const boxSize: RippleObject<{ value: typeof mockBoxSize | null }> = new RippleObject({
+				value: null,
+			});
+
+			effect(() => {
+				if (boxSize.value) logs.push(boxSize.value);
+			});
+
+			<div
+				{ref bindDevicePixelContentBoxSize<null | typeof mockBoxSize>(
+					() => boxSize.value,
+					(v: typeof mockBoxSize) => (boxSize.value = v),
+				)}
+			/>
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+
+		triggerResize(div, {
+			devicePixelContentBoxSize: mockBoxSize as any,
+		});
+		flushSync();
+
+		expect(logs.length).toBeGreaterThan(0);
+		expect(logs[logs.length - 1]).toBe(mockBoxSize);
+	});
+});
+
+describe('bindInnerHTML', () => {
+	it('should bind element innerHTML', () => {
+		const logs: string[] = [];
+
+		component App() {
+			const html = track('<strong>Hello</strong>');
+
+			effect(() => {
+				logs.push(html.value);
+			});
+
+			<div contenteditable="true" {ref bindInnerHTML(html)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+		expect(div.innerHTML).toBe('<strong>Hello</strong>');
+
+		div.innerHTML = '<em>World</em>';
+		div.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe('<em>World</em>');
+	});
+
+	it('should bind element innerHTML', () => {
+		const logs: string[] = [];
+
+		component App() {
+			const html = new RippleObject({ value: '<strong>Hello</strong>' });
+
+			effect(() => {
+				logs.push(html.value);
+			});
+
+			<div
+				contenteditable="true"
+				{ref bindInnerHTML(() => html.value, (v: string) => (html.value = v))}
+			/>
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+		expect(div.innerHTML).toBe('<strong>Hello</strong>');
+
+		div.innerHTML = '<em>World</em>';
+		div.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe('<em>World</em>');
+	});
+
+	it('should update innerHTML when tracked value changes', () => {
+		component App() {
+			const html = track('<p>Initial</p>');
+
+			<div>
+				<div contenteditable="true" {ref bindInnerHTML(html)} />
+				<button onClick={() => (html.value = '<p>Updated</p>')}>{'Update'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div[contenteditable]') as HTMLDivElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(div.innerHTML).toBe('<p>Initial</p>');
+
+		button.click();
+		flushSync();
+
+		expect(div.innerHTML).toBe('<p>Updated</p>');
+	});
+
+	it('should update innerHTML when tracked value changes with a getter and setter', () => {
+		component App() {
+			const html = new RippleObject({ value: '<p>Initial</p>' });
+
+			<div>
+				<div
+					contenteditable="true"
+					{ref bindInnerHTML(() => html.value, (v: string) => (html.value = v))}
+				/>
+				<button onClick={() => (html.value = '<p>Updated</p>')}>{'Update'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div[contenteditable]') as HTMLDivElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(div.innerHTML).toBe('<p>Initial</p>');
+
+		button.click();
+		flushSync();
+
+		expect(div.innerHTML).toBe('<p>Updated</p>');
+	});
+
+	it('should handle null innerHTML value', () => {
+		component App() {
+			const html = track(null);
+
+			<div contenteditable="true" {ref bindInnerHTML(html)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+		// Should set to current innerHTML when null
+		expect(div.innerHTML).toBeDefined();
+	});
+
+	it('should handle null innerHTML value with a getter and setter', () => {
+		component App() {
+			const html: RippleObject<{ value: null | string }> = new RippleObject({ value: null });
+
+			<div
+				contenteditable="true"
+				{ref bindInnerHTML(() => html.value, (v: string | null) => (html.value = v))}
+			/>
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+		// Should set to current innerHTML when null
+		expect(div.innerHTML).toBeDefined();
+	});
+});
+
+describe('bindInnerText', () => {
+	it('should bind element innerText', () => {
+		const logs: string[] = [];
+
+		component App() {
+			const text = track('Hello World');
+
+			effect(() => {
+				logs.push(text.value);
+			});
+
+			<div contenteditable="true" {ref bindInnerText(text)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+		expect(div.innerText).toBe('Hello World');
+
+		div.innerText = 'Goodbye World';
+		div.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe('Goodbye World');
+	});
+
+	it('should bind element innerText with a getter and setter', () => {
+		const logs: string[] = [];
+
+		component App() {
+			const text = new RippleObject({ value: 'Hello World' });
+			effect(() => {
+				logs.push(text.value);
+			});
+
+			<div
+				contenteditable="true"
+				{ref bindInnerText(() => text.value, (v: string) => (text.value = v))}
+			/>
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+		expect(div.innerText).toBe('Hello World');
+
+		div.innerText = 'Goodbye World';
+		div.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe('Goodbye World');
+	});
+
+	it('should update innerText when tracked value changes', () => {
+		component App() {
+			const text = track('Before');
+
+			<div>
+				<div contenteditable="true" {ref bindInnerText(text)} />
+				<button onClick={() => (text.value = 'After')}>{'Update'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div[contenteditable]') as HTMLDivElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(div.innerText).toBe('Before');
+
+		button.click();
+		flushSync();
+
+		expect(div.innerText).toBe('After');
+	});
+
+	it('should update innerText when tracked value changes with a getter and setter', () => {
+		component App() {
+			const text = new RippleObject({ value: 'Before' });
+
+			<div>
+				<div
+					contenteditable="true"
+					{ref bindInnerText(() => text.value, (v: string) => (text.value = v))}
+				/>
+				<button onClick={() => (text.value = 'After')}>{'Update'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div[contenteditable]') as HTMLDivElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(div.innerText).toBe('Before');
+
+		button.click();
+		flushSync();
+
+		expect(div.innerText).toBe('After');
+	});
+});
+
+describe('bindTextContent', () => {
+	it('should bind element textContent', () => {
+		const logs: string[] = [];
+
+		component App() {
+			const text = track('Sample text');
+
+			effect(() => {
+				logs.push(text.value);
+			});
+
+			<div contenteditable="true" {ref bindTextContent(text)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+		expect(div.textContent).toBe('Sample text');
+
+		div.textContent = 'Modified text';
+		div.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe('Modified text');
+	});
+
+	it('should bind element textContent with a getter and setter', () => {
+		const logs: string[] = [];
+
+		component App() {
+			const text = new RippleObject({ value: 'Sample text' });
+
+			effect(() => {
+				logs.push(text.value);
+			});
+
+			<div
+				contenteditable="true"
+				{ref bindTextContent(() => text.value, (v: string) => (text.value = v))}
+			/>
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+		expect(div.textContent).toBe('Sample text');
+
+		div.textContent = 'Modified text';
+		div.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		expect(logs[logs.length - 1]).toBe('Modified text');
+	});
+
+	it('should update textContent when tracked value changes', () => {
+		component App() {
+			const text = track('Start');
+
+			<div>
+				<div contenteditable="true" {ref bindTextContent(text)} />
+				<button onClick={() => (text.value = 'End')}>{'Update'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div[contenteditable]') as HTMLDivElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(div.textContent).toBe('Start');
+
+		button.click();
+		flushSync();
+
+		expect(div.textContent).toBe('End');
+	});
+
+	it('should update textContent when tracked value changes with a getter and setter', () => {
+		component App() {
+			const text = new RippleObject({ value: 'Start' });
+
+			<div>
+				<div
+					contenteditable="true"
+					{ref bindTextContent(() => text.value, (v: string) => (text.value = v))}
+				/>
+				<button onClick={() => (text.value = 'End')}>{'Update'}</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div[contenteditable]') as HTMLDivElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(div.textContent).toBe('Start');
+
+		button.click();
+		flushSync();
+
+		expect(div.textContent).toBe('End');
+	});
+
+	it('should handle null textContent value', () => {
+		component App() {
+			const text = track(null);
+
+			<div contenteditable="true" {ref bindTextContent(text)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+		// Should set to current textContent when null
+		expect(div.textContent).toBeDefined();
+	});
+
+	it('should handle null textContent value with a getter and setter', () => {
+		component App() {
+			const text: RippleObject<{ value: string | null }> = new RippleObject({ value: null });
+
+			<div
+				contenteditable="true"
+				{ref bindTextContent<string | null>(
+					() => text.value,
+					(v: string | null) => (text.value = v),
+				)}
+			/>
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+		// Should set to current textContent when null
+		expect(div.textContent).toBeDefined();
+	});
+});
+
+describe('bindNode', () => {
+	it('should update tracked value with element reference', () => {
+		let capturedNode: HTMLElement | null = null;
+
+		component App() {
+			const nodeRef = track(null);
+
+			effect(() => {
+				capturedNode = nodeRef.value;
+			});
+
+			<div {ref bindNode(nodeRef)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+		expect(capturedNode).toBe(div);
+	});
+
+	it('should update tracked value with element reference and with a getter and setter', () => {
+		let capturedNode: HTMLElement | null = null;
+
+		component App() {
+			const nodeRef: RippleObject<{ value: HTMLElement | null }> = new RippleObject({
+				value: null,
+			});
+
+			effect(() => {
+				capturedNode = nodeRef.value;
+			});
+
+			<div {ref bindNode(() => nodeRef.value, (v: HTMLElement | null) => (nodeRef.value = v))} />
+		}
+
+		render(App);
+		flushSync();
+
+		const div = container.querySelector('div') as HTMLDivElement;
+		expect(capturedNode).toBe(div);
+	});
+
+	it('should allow access to bound element', () => {
+		component App() {
+			const inputRef = track<HTMLInputElement | null>(null);
+
+			<div>
+				<input type="text" {ref bindNode(inputRef)} />
+				<button
+					onClick={() => {
+						if (inputRef.value) {
+							inputRef.value.value = 'Set by ref';
+						}
+					}}
+				>
+					{'Set Value'}
+				</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(input.value).toBe('');
+
+		button.click();
+		flushSync();
+
+		expect(input.value).toBe('Set by ref');
+	});
+
+	it('should allow access to bound element with a getter and setter', () => {
+		component App() {
+			const inputRef: RippleObject<{ node: HTMLInputElement | null }> = new RippleObject({
+				node: null,
+			});
+
+			<div>
+				<input
+					type="text"
+					{ref bindNode(() => inputRef.node, (v: HTMLInputElement | null) => (inputRef.node = v))}
+				/>
+				<button
+					onClick={() => {
+						if (inputRef.node) {
+							inputRef.node.value = 'Set by ref';
+						}
+					}}
+				>
+					{'Set Value'}
+				</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		expect(input.value).toBe('');
+
+		button.click();
+		flushSync();
+
+		expect(input.value).toBe('Set by ref');
+	});
+});
+
+describe('bindFiles', () => {
+	it('should bind files from file input', () => {
+		const logs: FileList[] = [];
+
+		component App() {
+			const files = track(null);
+
+			effect(() => {
+				files.value;
+				if (files.value) logs.push(files.value);
+			});
+
+			<input type="file" multiple {ref bindFiles(files)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+
+		// Create mock FileList using DataTransfer
+		const dt = new DataTransfer();
+		const file1 = new File(['content1'], 'file1.txt', { type: 'text/plain' });
+		const file2 = new File(['content2'], 'file2.txt', { type: 'text/plain' });
+		dt.items.add(file1);
+		dt.items.add(file2);
+
+		// Simulate file selection
+		Object.defineProperty(input, 'files', {
+			value: dt.files,
+			writable: true,
+		});
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(logs.length).toBeGreaterThan(0);
+		const lastFiles = logs[logs.length - 1];
+		expect(lastFiles.length).toBe(2);
+		expect(lastFiles[0].name).toBe('file1.txt');
+		expect(lastFiles[1].name).toBe('file2.txt');
+	});
+
+	it('should bind files from file input with a getter and setter', () => {
+		const logs: FileList[] = [];
+
+		component App() {
+			const files: RippleObject<{ items: FileList | null }> = new RippleObject({ items: null });
+
+			effect(() => {
+				files.items;
+				if (files.items) logs.push(files.items);
+			});
+
+			<input
+				type="file"
+				multiple
+				{ref bindFiles(() => files.items, (v: FileList | null) => (files.items = v))}
+			/>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+
+		// Create mock FileList using DataTransfer
+		const dt = new DataTransfer();
+		const file1 = new File(['content1'], 'file1.txt', { type: 'text/plain' });
+		const file2 = new File(['content2'], 'file2.txt', { type: 'text/plain' });
+		dt.items.add(file1);
+		dt.items.add(file2);
+
+		// Simulate file selection
+		Object.defineProperty(input, 'files', {
+			value: dt.files,
+			writable: true,
+		});
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(logs.length).toBeGreaterThan(0);
+		const lastFiles = logs[logs.length - 1];
+		expect(lastFiles.length).toBe(2);
+		expect(lastFiles[0].name).toBe('file1.txt');
+		expect(lastFiles[1].name).toBe('file2.txt');
+	});
+
+	it('should update tracked value when files are selected', () => {
+		let capturedFiles: FileList | null = null;
+
+		component App() {
+			const files = track<FileList | null>(null);
+
+			effect(() => {
+				capturedFiles = files.value;
+			});
+
+			<input type="file" {ref bindFiles(files)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+
+		// Create mock file
+		const dt = new DataTransfer();
+		const file = new File(['test content'], 'test.txt', { type: 'text/plain' });
+		dt.items.add(file);
+
+		Object.defineProperty(input, 'files', {
+			value: dt.files,
+			writable: true,
+		});
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(capturedFiles).not.toBeNull();
+		expect(capturedFiles!.length).toBe(1);
+		expect(capturedFiles![0].name).toBe('test.txt');
+	});
+
+	it('should update tracked value when files are selected with a getter and setter', () => {
+		let capturedFiles: FileList | null = null;
+
+		component App() {
+			const files: RippleObject<{ items: FileList | null }> = new RippleObject({ items: null });
+
+			effect(() => {
+				capturedFiles = files.items;
+			});
+
+			<input
+				type="file"
+				{ref bindFiles(() => files.items, (v: FileList | null) => (files.items = v))}
+			/>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+
+		// Create mock file
+		const dt = new DataTransfer();
+		const file = new File(['test content'], 'test.txt', { type: 'text/plain' });
+		dt.items.add(file);
+
+		Object.defineProperty(input, 'files', {
+			value: dt.files,
+			writable: true,
+		});
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(capturedFiles).not.toBeNull();
+		expect(capturedFiles!.length).toBe(1);
+		expect(capturedFiles![0].name).toBe('test.txt');
+	});
+
+	it('should allow clearing files via input.files', () => {
+		let capturedFiles: FileList | null = null;
+
+		component App() {
+			const files = track<FileList | null>(null);
+			const input = track<HTMLInputElement | null>(null);
+
+			effect(() => {
+				capturedFiles = files.value;
+			});
+
+			<div>
+				<input type="file" {ref bindFiles<FileList>(files)} {ref bindNode(input)} />
+				<button
+					onClick={() => {
+						if (input.value) {
+							input.value.files = new DataTransfer().files;
+							input.value.dispatchEvent(new Event('change', { bubbles: true }));
+						}
+					}}
+				>
+					{'Clear'}
+				</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		// Add a file first
+		const dt = new DataTransfer();
+		const file = new File(['content'], 'file.txt', { type: 'text/plain' });
+		dt.items.add(file);
+
+		Object.defineProperty(input, 'files', {
+			value: dt.files,
+			writable: true,
+		});
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(capturedFiles!.length).toBe(1);
+
+		// Clear via button
+		button.click();
+		flushSync();
+
+		expect(capturedFiles!.length).toBe(0);
+	});
+
+	it('should allow clearing files via input.files with a getter and setter', () => {
+		let capturedFiles: FileList | null = null;
+
+		component App() {
+			const files: RippleObject<{ items: FileList | null }> = new RippleObject({ items: null });
+			const input = track<HTMLInputElement | null>(null);
+
+			effect(() => {
+				capturedFiles = files.items;
+			});
+
+			<div>
+				<input
+					type="file"
+					{ref bindFiles(() => files.items, (v: FileList | null) => (files.items = v))}
+					{ref bindNode(input)}
+				/>
+				<button
+					onClick={() => {
+						if (input.value) {
+							input.value.files = new DataTransfer().files;
+							input.value.dispatchEvent(new Event('change', { bubbles: true }));
+						}
+					}}
+				>
+					{'Clear'}
+				</button>
+			</div>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+		const button = container.querySelector('button') as HTMLButtonElement;
+
+		// Add a file first
+		const dt = new DataTransfer();
+		const file = new File(['content'], 'file.txt', { type: 'text/plain' });
+		dt.items.add(file);
+
+		Object.defineProperty(input, 'files', {
+			value: dt.files,
+			writable: true,
+		});
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(capturedFiles!.length).toBe(1);
+
+		// Clear via button
+		button.click();
+		flushSync();
+
+		expect(capturedFiles!.length).toBe(0);
+	});
+
+	it('should handle multiple file selections', () => {
+		const fileCounts: number[] = [];
+
+		component App() {
+			const files = track<FileList | null>(null);
+
+			effect(() => {
+				files.value;
+				if (files.value) {
+					fileCounts.push(files.value.length);
+				}
+			});
+
+			<input type="file" multiple {ref bindFiles(files)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+
+		// First selection: 2 files
+		const dt1 = new DataTransfer();
+		dt1.items.add(new File(['a'], 'a.txt'));
+		dt1.items.add(new File(['b'], 'b.txt'));
+
+		Object.defineProperty(input, 'files', {
+			value: dt1.files,
+			writable: true,
+		});
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		// Second selection: 3 files
+		const dt2 = new DataTransfer();
+		dt2.items.add(new File(['x'], 'x.txt'));
+		dt2.items.add(new File(['y'], 'y.txt'));
+		dt2.items.add(new File(['z'], 'z.txt'));
+
+		Object.defineProperty(input, 'files', {
+			value: dt2.files,
+			writable: true,
+		});
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(fileCounts).toEqual([2, 3]);
+	});
+
+	it('should handle multiple file selections with a getter and setter', () => {
+		const fileCounts: number[] = [];
+
+		component App() {
+			const files: RippleObject<{ items: FileList | null }> = new RippleObject({ items: null });
+			effect(() => {
+				files.items;
+				if (files.items) {
+					fileCounts.push(files.items.length);
+				}
+			});
+
+			<input
+				type="file"
+				multiple
+				{ref bindFiles(() => files.items, (v: FileList | null) => (files.items = v))}
+			/>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+
+		// First selection: 2 files
+		const dt1 = new DataTransfer();
+		dt1.items.add(new File(['a'], 'a.txt'));
+		dt1.items.add(new File(['b'], 'b.txt'));
+
+		Object.defineProperty(input, 'files', {
+			value: dt1.files,
+			writable: true,
+		});
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		// Second selection: 3 files
+		const dt2 = new DataTransfer();
+		dt2.items.add(new File(['x'], 'x.txt'));
+		dt2.items.add(new File(['y'], 'y.txt'));
+		dt2.items.add(new File(['z'], 'z.txt'));
+
+		Object.defineProperty(input, 'files', {
+			value: dt2.files,
+			writable: true,
+		});
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(fileCounts).toEqual([2, 3]);
+	});
+
+	it('should handle file input without multiple attribute', () => {
+		let capturedFile: File | null = null;
+
+		component App() {
+			const files = track<FileList | null>(null);
+
+			effect(() => {
+				files.value;
+				if (files.value && files.value.length > 0) {
+					capturedFile = files.value[0];
+				}
+			});
+
+			<input type="file" {ref bindFiles(files)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+
+		const dt = new DataTransfer();
+		const file = new File(['single file content'], 'single.pdf', { type: 'application/pdf' });
+		dt.items.add(file);
+
+		Object.defineProperty(input, 'files', {
+			value: dt.files,
+			writable: true,
+		});
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(capturedFile).not.toBeNull();
+		expect(capturedFile!.name).toBe('single.pdf');
+		expect(capturedFile!.type).toBe('application/pdf');
+	});
+
+	it('should handle file input without multiple attribute with a getter and setter', () => {
+		let capturedFile: File | null = null;
+
+		component App() {
+			const files: RippleObject<{ items: FileList | null }> = new RippleObject({ items: null });
+			effect(() => {
+				files.items;
+				if (files.items && files.items.length > 0) {
+					capturedFile = files.items[0];
+				}
+			});
+
+			<input
+				type="file"
+				{ref bindFiles(() => files.items, (v: FileList | null) => (files.items = v))}
+			/>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+
+		const dt = new DataTransfer();
+		const file = new File(['single file content'], 'single.pdf', { type: 'application/pdf' });
+		dt.items.add(file);
+
+		Object.defineProperty(input, 'files', {
+			value: dt.files,
+			writable: true,
+		});
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(capturedFile).not.toBeNull();
+		expect(capturedFile!.name).toBe('single.pdf');
+		expect(capturedFile!.type).toBe('application/pdf');
+	});
+
+	it('should handle empty file selection', () => {
+		const logs: (FileList | null)[] = [];
+
+		component App() {
+			const files = track(null);
+
+			effect(() => {
+				logs.push(files.value);
+			});
+
+			<input type="file" {ref bindFiles(files)} />
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+
+		// Select a file
+		const dt = new DataTransfer();
+		dt.items.add(new File(['test'], 'test.txt'));
+
+		Object.defineProperty(input, 'files', {
+			value: dt.files,
+			writable: true,
+		});
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		// Clear selection
+		Object.defineProperty(input, 'files', {
+			value: new DataTransfer().files,
+			writable: true,
+		});
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(logs.length).toBeGreaterThan(1);
+		const lastFiles = logs[logs.length - 1];
+		expect(lastFiles?.length).toBe(0);
+	});
+
+	it('should handle empty file selection with a getter and setter', () => {
+		const logs: (FileList | null)[] = [];
+
+		component App() {
+			const files: RippleObject<{ items: FileList | null }> = new RippleObject({ items: null });
+			effect(() => {
+				logs.push(files.items);
+			});
+
+			<input
+				type="file"
+				{ref bindFiles(() => files.items, (v: FileList | null) => (files.items = v))}
+			/>
+		}
+
+		render(App);
+		flushSync();
+
+		const input = container.querySelector('input') as HTMLInputElement;
+
+		// Select a file
+		const dt = new DataTransfer();
+		dt.items.add(new File(['test'], 'test.txt'));
+
+		Object.defineProperty(input, 'files', {
+			value: dt.files,
+			writable: true,
+		});
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		// Clear selection
+		Object.defineProperty(input, 'files', {
+			value: new DataTransfer().files,
+			writable: true,
+		});
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		flushSync();
+
+		expect(logs.length).toBeGreaterThan(1);
+		const lastFiles = logs[logs.length - 1];
+		expect(lastFiles?.length).toBe(0);
+	});
+});
+
+describe('error handling', () => {
+	it('should throw error when bindValue receives non-tracked object', () => {
+		expect(() => {
+			component App() {
+				// @ts-expect-error invalid argument
+				<input type="text" {ref bindValue({ value: 'not tracked' })} />
+			}
+			render(App);
+		}).toThrow('bindValue() argument is not a tracked object');
+	});
+
+	it('should throw error when bindChecked receives non-tracked object', () => {
+		expect(() => {
+			component App() {
+				// @ts-expect-error invalid argument
+				<input type="checkbox" {ref bindChecked({ value: false })} />
+			}
+			render(App);
+		}).toThrow('bindChecked() argument is not a tracked object');
+	});
+
+	it('should throw error when bindIndeterminate receives non-tracked object', () => {
+		expect(() => {
+			component App() {
+				// @ts-expect-error invalid argument
+				<input type="checkbox" {ref bindIndeterminate({ value: false })} />
+			}
+			render(App);
+		}).toThrow('bindIndeterminate() argument is not a tracked object');
+	});
+
+	it('should throw error when bindGroup receives non-tracked object', () => {
+		expect(() => {
+			component App() {
+				// @ts-expect-error invalid argument
+				<input type="checkbox" value="a" {ref bindGroup({ value: [] })} />
+			}
+			render(App);
+		}).toThrow('bindGroup() argument is not a tracked object');
+	});
+
+	it('should throw error when bindClientWidth receives non-tracked object', () => {
+		expect(() => {
+			component App() {
+				// @ts-expect-error invalid argument
+				<div {ref bindClientWidth({ value: 0 })} />
+			}
+			render(App);
+		}).toThrow('bindClientWidth() argument is not a tracked object');
+	});
+
+	it('should throw error when bindClientHeight receives non-tracked object', () => {
+		expect(() => {
+			component App() {
+				// @ts-expect-error invalid argument
+				<div {ref bindClientHeight({ value: 0 })} />
+			}
+			render(App);
+		}).toThrow('bindClientHeight() argument is not a tracked object');
+	});
+
+	it('should throw error when bindOffsetWidth receives non-tracked object', () => {
+		expect(() => {
+			component App() {
+				// @ts-expect-error invalid argument
+				<div {ref bindOffsetWidth({ value: 0 })} />
+			}
+			render(App);
+		}).toThrow('bindOffsetWidth() argument is not a tracked object');
+	});
+
+	it('should throw error when bindOffsetHeight receives non-tracked object', () => {
+		expect(() => {
+			component App() {
+				// @ts-expect-error invalid argument
+				<div {ref bindOffsetHeight({ value: 0 })} />
+			}
+			render(App);
+		}).toThrow('bindOffsetHeight() argument is not a tracked object');
+	});
+
+	it('should throw error when bindContentRect receives non-tracked object', () => {
+		expect(() => {
+			component App() {
+				// @ts-expect-error invalid argument
+				<div {ref bindContentRect({ value: null })} />
+			}
+			render(App);
+		}).toThrow('bindContentRect() argument is not a tracked object');
+	});
+
+	it('should throw error when bindContentBoxSize receives non-tracked object', () => {
+		expect(() => {
+			component App() {
+				// @ts-expect-error invalid argument
+				<div {ref bindContentBoxSize({ value: null })} />
+			}
+			render(App);
+		}).toThrow('bindContentBoxSize() argument is not a tracked object');
+	});
+
+	it('should throw error when bindBorderBoxSize receives non-tracked object', () => {
+		expect(() => {
+			component App() {
+				// @ts-expect-error invalid argument
+				<div {ref bindBorderBoxSize({ value: null })} />
+			}
+			render(App);
+		}).toThrow('bindBorderBoxSize() argument is not a tracked object');
+	});
+
+	it('should throw error when bindDevicePixelContentBoxSize receives non-tracked object', () => {
+		expect(() => {
+			component App() {
+				// @ts-expect-error invalid argument
+				<div {ref bindDevicePixelContentBoxSize({ value: null })} />
+			}
+			render(App);
+		}).toThrow('bindDevicePixelContentBoxSize() argument is not a tracked object');
+	});
+
+	it('should throw error when bindInnerHTML receives non-tracked object', () => {
+		expect(() => {
+			component App() {
+				// @ts-expect-error invalid argument
+				<div {ref bindInnerHTML({ value: '' })} />
+			}
+			render(App);
+		}).toThrow('bindInnerHTML() argument is not a tracked object');
+	});
+
+	it('should throw error when bindInnerText receives non-tracked object', () => {
+		expect(() => {
+			component App() {
+				// @ts-expect-error invalid argument
+				<div {ref bindInnerText({ value: '' })} />
+			}
+			render(App);
+		}).toThrow('bindInnerText() argument is not a tracked object');
+	});
+
+	it('should throw error when bindTextContent receives non-tracked object', () => {
+		expect(() => {
+			component App() {
+				// @ts-expect-error invalid argument
+				<div {ref bindTextContent({ value: '' })} />
+			}
+			render(App);
+		}).toThrow('bindTextContent() argument is not a tracked object');
+	});
+
+	it('should throw error when bindNode receives non-tracked object', () => {
+		expect(() => {
+			component App() {
+				// @ts-expect-error invalid argument
+				<div {ref bindNode({ value: null })} />
+			}
+			render(App);
+		}).toThrow('bindNode() argument is not a tracked object');
+	});
+
+	it('should throw error when bindFiles receives non-tracked object', () => {
+		expect(() => {
+			component App() {
+				// @ts-expect-error invalid argument
+				<input type="file" {ref bindFiles({ value: null })} />
+			}
+			render(App);
+		}).toThrow('bindFiles() argument is not a tracked object');
+	});
+
+	it('should throw error when bindValue receives a getter but not a setter', () => {
+		expect(() => {
+			component App() {
+				const value = track('');
+				<input type="text" {ref bindValue(() => value.value)} />
+			}
+			render(App);
+		}).toThrow(
+			'bindValue() second argument must be a set function when first argument is a get function',
+		);
+	});
+
+	it('should throw error when bindValue receives a getter and setter not a function', () => {
+		expect(() => {
+			component App() {
+				const value = track('');
+				// @ts-expect-error invalid argument
+				<input type="text" {ref bindValue(() => value.value, 5)} />
+			}
+			render(App);
+		}).toThrow(
+			'bindValue() second argument must be a set function when first argument is a get function',
+		);
+	});
+
+	it(
+		'should throw error when bindValue on select multiple receives a non-array tracked value',
+		() => {
+			expect(() => {
+				component App() {
+					const value = track('2');
+
+					<select multiple {ref bindValue(value)}>
+						<option value="1">{'One'}</option>
+						<option value="2">{'Two'}</option>
+					</select>
+				}
+
+				render(App);
+				flushSync();
+			}).toThrow(
+				'Reactive bound value of a `<select multiple>` element should be an array, but it received a non-array value.',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindValue on select multiple receives a non-array getter value',
+		() => {
+			expect(() => {
+				component App() {
+					const value = track('2');
+
+					<select multiple {ref bindValue(() => value.value, (v) => (value.value = v))}>
+						<option value="1">{'One'}</option>
+						<option value="2">{'Two'}</option>
+					</select>
+				}
+
+				render(App);
+				flushSync();
+			}).toThrow(
+				'Reactive bound value of a `<select multiple>` element should be an array, but it received a non-array value.',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindChecked receives non-tracked object with a getter but not a setter',
+		() => {
+			expect(() => {
+				component App() {
+					<input type="checkbox" {ref bindChecked(() => false)} />
+				}
+				render(App);
+			}).toThrow(
+				'bindChecked() second argument must be a set function when first argument is a get function',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindChecked receives non-tracked object with a getter and setter not a function',
+		() => {
+			expect(() => {
+				component App() {
+					// @ts-expect-error invalid argument
+					<input type="checkbox" {ref bindChecked(() => false, true)} />
+				}
+				render(App);
+			}).toThrow(
+				'bindChecked() second argument must be a set function when first argument is a get function',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindIndeterminate receives non-tracked object with a getter and setter not a function',
+		() => {
+			expect(() => {
+				component App() {
+					// @ts-expect-error invalid argument
+					<input type="checkbox" {ref bindIndeterminate(() => false, true)} />
+				}
+				render(App);
+			}).toThrow(
+				'bindIndeterminate() second argument must be a set function when first argument is a get function',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindGroup receives non-tracked object with a getter and setter not a function',
+		() => {
+			expect(() => {
+				component App() {
+					// @ts-expect-error invalid argument
+					<input type="checkbox" value="a" {ref bindGroup(() => [], true)} />
+				}
+				render(App);
+			}).toThrow(
+				'bindGroup() second argument must be a set function when first argument is a get function',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindClientWidth receives non-tracked object with a getter and setter not a function',
+		() => {
+			expect(() => {
+				component App() {
+					// @ts-expect-error invalid argument
+					<div {ref bindClientWidth(() => 0, true)} />
+				}
+				render(App);
+			}).toThrow(
+				'bindClientWidth() second argument must be a set function when first argument is a get function',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindClientHeight receives non-tracked object with a getter and setter not a function',
+		() => {
+			expect(() => {
+				component App() {
+					// @ts-expect-error invalid argument
+					<div {ref bindClientHeight(() => 0, true)} />
+				}
+				render(App);
+			}).toThrow(
+				'bindClientHeight() second argument must be a set function when first argument is a get function',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindOffsetWidth receives non-tracked object with a getter and setter not a function',
+		() => {
+			expect(() => {
+				component App() {
+					// @ts-expect-error invalid argument
+					<div {ref bindOffsetWidth(() => 0, true)} />
+				}
+				render(App);
+			}).toThrow(
+				'bindOffsetWidth() second argument must be a set function when first argument is a get function',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindOffsetHeight receives non-tracked object with a getter and setter not a function',
+		() => {
+			expect(() => {
+				component App() {
+					// @ts-expect-error invalid argument
+					<div {ref bindOffsetHeight(() => 0, true)} />
+				}
+				render(App);
+			}).toThrow(
+				'bindOffsetHeight() second argument must be a set function when first argument is a get function',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindContentRect receives non-tracked object with a getter and setter not a function',
+		() => {
+			expect(() => {
+				component App() {
+					// @ts-expect-error invalid argument
+					<div {ref bindContentRect(() => null, true)} />
+				}
+				render(App);
+			}).toThrow(
+				'bindContentRect() second argument must be a set function when first argument is a get function',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindContentBoxSize receives non-tracked object with a getter and setter not a function',
+		() => {
+			expect(() => {
+				component App() {
+					// @ts-expect-error invalid argument
+					<div {ref bindContentBoxSize(() => null, true)} />
+				}
+				render(App);
+			}).toThrow(
+				'bindContentBoxSize() second argument must be a set function when first argument is a get function',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindBorderBoxSize receives non-tracked object with a getter and setter not a function',
+		() => {
+			expect(() => {
+				component App() {
+					// @ts-expect-error invalid argument
+					<div {ref bindBorderBoxSize(() => null, true)} />
+				}
+				render(App);
+			}).toThrow(
+				'bindBorderBoxSize() second argument must be a set function when first argument is a get function',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindDevicePixelContentBoxSize receives non-tracked object with a getter and setter not a function',
+		() => {
+			expect(() => {
+				component App() {
+					// @ts-expect-error invalid argument
+					<div {ref bindDevicePixelContentBoxSize(() => null, true)} />
+				}
+				render(App);
+			}).toThrow(
+				'bindDevicePixelContentBoxSize() second argument must be a set function when first argument is a get function',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindInnerHTML receives non-tracked object with a getter and setter not a function',
+		() => {
+			expect(() => {
+				component App() {
+					// @ts-expect-error invalid argument
+					<div {ref bindInnerHTML(() => '', true)} />
+				}
+				render(App);
+			}).toThrow(
+				'bindInnerHTML() second argument must be a set function when first argument is a get function',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindInnerText receives non-tracked object with a getter and setter not a function',
+		() => {
+			expect(() => {
+				component App() {
+					// @ts-expect-error invalid argument
+					<div {ref bindInnerText(() => '', true)} />
+				}
+				render(App);
+			}).toThrow(
+				'bindInnerText() second argument must be a set function when first argument is a get function',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindTextContent receives non-tracked object with a getter and setter not a function',
+		() => {
+			expect(() => {
+				component App() {
+					// @ts-expect-error invalid argument
+					<div {ref bindTextContent(() => '', true)} />
+				}
+				render(App);
+			}).toThrow(
+				'bindTextContent() second argument must be a set function when first argument is a get function',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindNode receives non-tracked object with a getter and setter not a function',
+		() => {
+			expect(() => {
+				component App() {
+					// @ts-expect-error invalid argument
+					<div {ref bindNode(() => null, true)} />
+				}
+				render(App);
+			}).toThrow(
+				'bindNode() second argument must be a set function when first argument is a get function',
+			);
+		},
+	);
+
+	it(
+		'should throw error when bindFiles receives non-tracked object with a getter and setter not a function',
+		() => {
+			expect(() => {
+				component App() {
+					// @ts-expect-error invalid argument
+					<input type="file" {ref bindFiles(() => null, true)} />
+				}
+				render(App);
+			}).toThrow(
+				'bindFiles() second argument must be a set function when first argument is a get function',
+			);
+		},
+	);
+});

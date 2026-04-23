@@ -8,10 +8,12 @@ import {
 	DESTROYED,
 	EFFECT_BLOCK,
 	PAUSED,
+	PRE_EFFECT_BLOCK,
 	RENDER_BLOCK,
 	ROOT_BLOCK,
 	TRY_BLOCK,
 	HEAD_BLOCK,
+	DIRECT_CHILD_BLOCK,
 } from './constants.js';
 import { next_sibling } from './operations.js';
 import { apply_element_spread } from './render.js';
@@ -20,13 +22,11 @@ import {
 	active_component,
 	active_reaction,
 	create_component_ctx,
-	handle_error,
 	is_block_dirty,
 	run_block,
 	run_teardown,
 	schedule_update,
 } from './runtime.js';
-import { suspend } from './try.js';
 
 /**
  * @param {Function} fn
@@ -61,6 +61,14 @@ export function effect(fn) {
 }
 
 /**
+ * Creates a pre-effect block that runs eagerly before render blocks in the flush cycle.
+ * @param {Function} fn
+ */
+export function pre_effect(fn) {
+	return block(PRE_EFFECT_BLOCK, fn);
+}
+
+/**
  * @param {Function} fn
  * @param {any} [state]
  * @param {number} [flags]
@@ -85,27 +93,6 @@ export function render_spread(element, fn, flags = 0) {
  */
 export function branch(fn, flags = 0, state = null) {
 	return block(BRANCH_BLOCK | flags, fn, state);
-}
-
-/**
- * @param {() => any} fn
- */
-export function async(fn) {
-	return block(BRANCH_BLOCK, async () => {
-		var current_block = active_block;
-		const unsuspend = suspend();
-		try {
-			await fn();
-			// An extra microtask tick ensures `suspend()` → `pending` is visible for at
-			// least one full microtask cycle.  This matters during SSR hydration: the
-			// test (or any awaiter) gets to observe the pending state before `unsuspend`
-			// swaps back to the resolved content.
-			await Promise.resolve();
-			unsuspend();
-		} catch (error) {
-			handle_error(error, /** @type {Block} */ (current_block));
-		}
-	});
 }
 
 /**
@@ -174,6 +161,15 @@ export function root(fn, compat) {
  */
 export function create_try_block(fn, state) {
 	return block(TRY_BLOCK, fn, state);
+}
+
+/**
+ * @param {() => void} fn
+ * @param {number} [flags]
+ * @param {any} [state]
+ */
+export function boundary_fn_running_block(fn, flags = 0, state = null) {
+	return branch(fn, DIRECT_CHILD_BLOCK | flags, state);
 }
 
 /**

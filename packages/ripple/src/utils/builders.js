@@ -1,5 +1,5 @@
-/** @import * as AST from 'estree' */
-/** @import * as ESTreeJSX from 'estree-jsx' */
+/** @import * as AST from '@tsrx/core/types/estree' */
+/** @import * as ESTreeJSX from '@tsrx/core/types/estree-jsx' */
 
 import { regex_is_valid_identifier } from './patterns.js';
 import { sanitize_template_string } from './sanitize_template_string.js';
@@ -514,6 +514,36 @@ export function ts_intersection_type(types, loc_info) {
 }
 
 /**
+ * @param {'string' | 'number' | 'boolean' | 'any' | 'void' | 'null' | 'undefined' | 'never' | 'unknown' | 'bigint' | 'symbol' | 'object'} keyword
+ * @param {AST.NodeWithLocation} [loc_info]
+ * @returns {AST.TypeNode}
+ */
+export function ts_keyword_type(keyword, loc_info) {
+	/** @type {Record<string, string>} */
+	const keyword_to_type = {
+		string: 'TSStringKeyword',
+		number: 'TSNumberKeyword',
+		boolean: 'TSBooleanKeyword',
+		any: 'TSAnyKeyword',
+		void: 'TSVoidKeyword',
+		null: 'TSNullKeyword',
+		undefined: 'TSUndefinedKeyword',
+		never: 'TSNeverKeyword',
+		unknown: 'TSUnknownKeyword',
+		bigint: 'TSBigIntKeyword',
+		symbol: 'TSSymbolKeyword',
+		object: 'TSObjectKeyword',
+	};
+
+	const node = /** @type {AST.TypeNode} */ ({
+		type: keyword_to_type[keyword],
+		metadata: { path: [] },
+	});
+
+	return set_location(node, loc_info);
+}
+
+/**
  * @param {AST.Node} type_annotation
  * @param {AST.NodeWithLocation} [loc_info]
  * @returns {AST.TSTypeAnnotation}
@@ -1021,15 +1051,17 @@ export function try_builder(block, handler = null, finalizer = null, pending = n
 
 /**
  * @param {AST.Pattern | null} param
+ * @param {AST.Pattern | null} reset_param
  * @param {AST.BlockStatement} body
  * @param {AST.NodeWithLocation} [loc_info]
  * @return {AST.CatchClause}
  */
-export function catch_clause_builder(param, body, loc_info) {
+export function catch_clause_builder(param, reset_param, body, loc_info) {
 	/** @type {AST.CatchClause} */
 	const node = {
 		type: 'CatchClause',
 		param,
+		resetParam: reset_param,
 		body,
 		metadata: { path: [] },
 	};

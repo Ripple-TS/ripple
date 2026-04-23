@@ -1,0 +1,64 @@
+import { get, set, track } from 'ripple';
+
+describe('await in control flow', () => {
+	it('all tests are commented out for now as await in control flow is not yet supported', () => {
+		expect(true).toBe(true);
+	});
+
+	// it('should handle await inside if statement', async () => {
+	// 	component App() {
+	// 		let condition = true;
+	// 		let &[data] = track('loading');
+
+	// 		if (condition) {
+	// 			await new Promise((resolve) => setTimeout(() => {
+	// 				data = 'loaded';
+	// 				resolve();
+	// 			}, 10));
+	// 		}
+
+	// 		<div>{data}</div>
+	// 	}
+
+	// 	const { body } = await render(App);
+	// 	expect(body).toBe('<div>loaded</div>');
+	// });
+
+	// it('should handle await inside for...of loop', async () => {
+	// 	component App() {
+	// 		const items = [1, 2, 3];
+	// 		let result = '';
+
+	// 		for (const item of items) {
+	// 			await new Promise((resolve) => setTimeout(resolve, 5));
+	// 			result += item;
+	// 		}
+
+	// 		<div>{result}</div>
+	// 	}
+
+	// 	const { body } = await render(App);
+	// 	expect(body).toBe('<div>123</div>');
+	// });
+
+	// it('should handle await inside switch statement', async () => {
+	// 	component App() {
+	// 		let value = 'b';
+
+	// 		switch (value) {
+	// 			case 'a':
+	// 				<div>{'Case A'}</div>
+	// 				break;
+	// 			case 'b':
+	// 				await new Promise((resolve) => setTimeout(resolve, 10));
+	// 				<div>{'Case B'}</div>
+	// 				break;
+	// 			default:
+	// 				<div>{'Default Case'}</div>
+	// 		}
+	// 	}
+
+	// 	const { body } = await render(App);
+	// 	expect(body).toBe('<div>Case B</div>');
+	// });
+});

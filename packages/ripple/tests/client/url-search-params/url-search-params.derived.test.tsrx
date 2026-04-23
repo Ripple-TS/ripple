@@ -1,0 +1,88 @@
+import { RippleURL, RippleURLSearchParams, flushSync, track } from 'ripple';
+
+describe('RippleURLSearchParams > derived', () => {
+	it('handles reactive computed properties based on search params', () => {
+		component URLTest() {
+			const params = RippleURLSearchParams('page=1&limit=10');
+			let &[page] = track(() => parseInt(params.get('page') || '1', 10));
+			let &[limit] = track(() => parseInt(params.get('limit') || '10', 10));
+			let &[offset] = track(() => (page - 1) * limit);
+
+			<button onClick={() => params.set('page', '2')}>{'next page'}</button>
+			<button onClick={() => params.set('page', '1')}>{'first page'}</button>
+			<pre>{`Page: ${page}`}</pre>
+			<pre>{`Limit: ${limit}`}</pre>
+			<pre>{`Offset: ${offset}`}</pre>
+		}
+
+		render(URLTest);
+
+		const nextButton = container.querySelectorAll('button')[0];
+		const firstButton = container.querySelectorAll('button')[1];
+
+		// Initial state
+		expect(container.querySelectorAll('pre')[0].textContent).toBe('Page: 1');
+		expect(container.querySelectorAll('pre')[1].textContent).toBe('Limit: 10');
+		expect(container.querySelectorAll('pre')[2].textContent).toBe('Offset: 0');
+
+		// Test next page
+		nextButton.click();
+		flushSync();
+
+		expect(container.querySelectorAll('pre')[0].textContent).toBe('Page: 2');
+		expect(container.querySelectorAll('pre')[1].textContent).toBe('Limit: 10');
+		expect(container.querySelectorAll('pre')[2].textContent).toBe('Offset: 10');
+
+		// Test first page
+		firstButton.click();
+		flushSync();
+
+		expect(container.querySelectorAll('pre')[0].textContent).toBe('Page: 1');
+		expect(container.querySelectorAll('pre')[1].textContent).toBe('Limit: 10');
+		expect(container.querySelectorAll('pre')[2].textContent).toBe('Offset: 0');
+	});
+
+	it('maintains reactivity across multiple components', () => {
+		component ParentTest() {
+			const params = RippleURLSearchParams('count=0');
+
+			<ChildA {params} />
+			<ChildB {params} />
+		}
+
+		component ChildA({ params }: { params: RippleURLSearchParams }) {
+			<button
+				onClick={() => {
+					const current = parseInt(params.get('count') || '0', 10);
+					params.set('count', String(current + 1));
+				}}
+			>
+				{'increment'}
+			</button>
+		}
+
+		component ChildB({ params }: { params: RippleURLSearchParams }) {
+			let &[count] = track(() => params.get('count'));
+
+			<pre>{count}</pre>
+		}
+
+		render(ParentTest);
+
+		const button = container.querySelector('button');
+
+		// Initial state
+		expect(container.querySelector('pre').textContent).toBe('0');
+
+		// Test increment from child component
+		button.click();
+		flushSync();
+
+		expect(container.querySelector('pre').textContent).toBe('1');
+
+		button.click();
+		flushSync();
+
+		expect(container.querySelector('pre').textContent).toBe('2');
+	});
+});

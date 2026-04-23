@@ -4,10 +4,10 @@
 	"singleQuote": true,
 	"jsxSingleQuote": false,
 	"printWidth": 100,
-	"plugins": ["@ripple-ts/prettier-plugin"],
+	"plugins": ["@tsrx/prettier-plugin"],
 	"overrides": [
 		{
-			"files": ["*.ripple"],
+			"files": ["*.tsrx"],
 			"options": {
 				"bracketSameLine": false,
 				"parser": "ripple"
@@ -19,6 +19,13 @@
 				"useTabs": false,
 				"printWidth": 82,
 				"proseWrap": "always"
+			}
+		},
+		{
+			"files": ["website/docs/**/*.md", "website-new/docs/**/*.md"],
+			"options": {
+				"proseWrap": "preserve",
+				"embeddedLanguageFormatting": "off"
 			}
 		},
 		{

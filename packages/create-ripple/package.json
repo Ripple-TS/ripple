@@ -1,6 +1,6 @@
 {
   "name": "create-ripple",
-  "version": "0.3.4",
+  "version": "0.3.31",
   "type": "module",
   "license": "MIT",
   "author": "Ripple Team",
@@ -21,7 +21,7 @@
   },
   "homepage": "https://ripple-ts.com",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "scripts": {
     "build": "tsdown",

@@ -25,7 +25,7 @@ const sourceJson = path.join(rootDir, 'grammars/textmate/ripple.tmLanguage.json'
 const sourcePlist = path.join(rootDir, 'grammars/textmate/info.plist');
 
 const jsonTargetFiles = [
-	'packages/vscode-plugin/syntaxes/ripple.tmLanguage.json',
+	'packages/vscode-plugin/syntaxes/tsrx.tmLanguage.json',
 	'packages/intellij-plugin/src/main/resources/textmate/Syntaxes/ripple.tmLanguage.json',
 ];
 

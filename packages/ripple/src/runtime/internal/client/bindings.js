@@ -1,11 +1,9 @@
 /** @import { Tracked } from '#client' */
 
-/**
-@typedef {(v: unknown) => void} SetFunction
-@typedef {() => any} BindGetter
-@typedef {(v: unknown) => void} BindSetter
-@typedef {{getter: BindGetter, setter: BindSetter}} BindGetSet
-*/
+/** @typedef {(v: unknown) => void} SetFunction */
+/** @typedef {() => any} BindGetter */
+/** @typedef {(v: unknown) => void} BindSetter */
+/** @typedef {{getter: BindGetter, setter: BindSetter}} BindGetSet */
 
 import { effect, render } from './blocks.js';
 import { on } from './events.js';
@@ -186,7 +184,9 @@ function select_option(select, value, mounting = false) {
 
 		// Otherwise, update the selection
 		for (var option of select.options) {
-			option.selected = /** @type {string[]} */ (value).includes(get_option_value(option));
+			option.selected = /** @type {string[]} */ (value).includes(
+				/** @type {string} */ (get_option_value(option)),
+			);
 		}
 
 		return;

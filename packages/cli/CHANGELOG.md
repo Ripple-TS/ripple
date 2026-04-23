@@ -1,5 +1,88 @@
 # @ripple-ts/cli
 
+## 0.3.31
+
+## 0.3.30
+
+## 0.3.29
+
+## 0.3.28
+
+## 0.3.27
+
+## 0.3.26
+
+### Patch Changes
+
+- [#916](https://github.com/Ripple-TS/ripple/pull/916)
+  [`5b01246`](https://github.com/Ripple-TS/ripple/commit/5b01246b8e1a3a3c7c9da294f3ebda8c73af3ee7)
+  Thanks [@trueadm](https://github.com/trueadm)! - Rename the TypeScript plugin
+  package to `@tsrx/typescript-plugin` and update local consumers, templates, and
+  playgrounds to use the new package name.
+
+- [`68d80f8`](https://github.com/Ripple-TS/ripple/commit/68d80f8c7a6398692e00497b90cb3d0ba981aea3)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Correct package versions.
+
+## 1.0.1
+
+## 1.0.0
+
+## 0.3.25
+
+## 0.3.24
+
+## 0.3.23
+
+## 0.3.22
+
+## 0.3.21
+
+## 0.3.20
+
+### Patch Changes
+
+- [#879](https://github.com/Ripple-TS/ripple/pull/879)
+  [`7ff7cfa`](https://github.com/Ripple-TS/ripple/commit/7ff7cfad33b2c31f742d410d7e2450066b735d92)
+  Thanks [@RazinShafayet2007](https://github.com/RazinShafayet2007)! - chore: drop
+  Node 20 support
+
+## 0.3.19
+
+## 0.3.18
+
+## 0.3.17
+
+## 0.3.16
+
+## 0.3.15
+
+## 0.3.14
+
+## 0.3.13
+
+## 0.3.12
+
+## 0.3.11
+
+## 0.3.10
+
+## 0.3.9
+
+### Patch Changes
+
+- [#844](https://github.com/Ripple-TS/ripple/pull/844)
+  [`3c1263a`](https://github.com/Ripple-TS/ripple/commit/3c1263a0fc9c0cc4466ae4e1ea94b5a49b03728f)
+  Thanks [@RazinShafayet2007](https://github.com/RazinShafayet2007)! - fix(cli):
+  update Tailwind scaffolding to v4 CSS-first config
+
+## 0.3.8
+
+## 0.3.7
+
+## 0.3.6
+
+## 0.3.5
+
 ## 0.3.4
 
 ### Patch Changes

@@ -1,5 +1,5 @@
 import type { Rule } from 'eslint';
-import type * as AST from 'ripple/types/estree';
+import type * as AST from '@tsrx/core/types/estree';
 import type { Scope } from 'eslint';
 
 const rule: Rule.RuleModule = {

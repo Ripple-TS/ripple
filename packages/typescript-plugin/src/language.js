@@ -1,27 +1,73 @@
-/** @import { CodeMapping } from 'ripple/compiler' */
-/** @import {RippleCompileError, VolarMappingsResult} from 'ripple/compiler' */
-/** @import * as RippleCompiler from 'ripple/compiler' */
+/** @import { CodeMapping } from '@tsrx/ripple' */
+/** @import {TSRXCompileError, VolarMappingsResult} from '@tsrx/ripple' */
+
+/** @typedef {{ compile_to_volar_mappings(source: string, filename: string, options?: { loose?: boolean }): VolarMappingsResult }} TSRXCompilerModule */
 
 /** @typedef {Map<string, CodeMapping>} CachedMappings */
 /** @typedef {import('typescript').CompilerOptions} CompilerOptions */
 /** @typedef {import('@volar/language-core').IScriptSnapshot} IScriptSnapshot */
 /** @typedef {import('@volar/language-core').VirtualCode} VirtualCode */
 /** @typedef {string | { fsPath: string }} ScriptId */
-/** @typedef {import('@volar/typescript')} */
+// Side-effect import: augments @volar/language-core's LanguagePlugin with the `typescript` field.
+/** @typedef {typeof import('@volar/typescript')} _VolarTypeScriptAugmentation */
 /** @typedef {import('@volar/language-core').LanguagePlugin<ScriptId, VirtualCode>} RippleLanguagePlugin */
 
-const ts = require('typescript');
-const { forEachEmbeddedCode } = require('@volar/language-core');
-const fs = require('fs');
-const path = require('path');
-const { createLogging, DEBUG } = require('./utils.js');
+/** @typedef {InstanceType<typeof import('./language.js')["TSRXVirtualCode"]>} TSRXVirtualCodeInstance */
+
+import ts from 'typescript';
+import { forEachEmbeddedCode } from '@volar/language-core';
+import fs from 'fs';
+import path from 'path';
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+import { createLogging, DEBUG } from './utils.js';
+
+const require = createRequire(import.meta.url);
+const root_dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const { log, logWarning, logError } = createLogging('[Ripple Language]');
+export const RIPPLE_EXTENSIONS = ['.tsrx'];
+/** @typedef {[string, string[], string[], string[]]} CompilerCandidate */
+/** @type {CompilerCandidate[]} */
+export const COMPILER_CANDIDATES = [
+	[
+		'@tsrx/ripple',
+		['node_modules', '@tsrx', 'ripple'],
+		['.tsrx'],
+		['@tsrx/ripple', 'ripple', '@ripple-ts/vite-plugin', '@ripple-ts/compat-react'],
+	],
+	[
+		'@tsrx/react',
+		['node_modules', '@tsrx', 'react'],
+		['.tsrx'],
+		['@tsrx/react', '@tsrx/vite-plugin-react'],
+	],
+	[
+		'@tsrx/solid',
+		['node_modules', '@tsrx', 'solid'],
+		['.tsrx'],
+		['@tsrx/solid', '@tsrx/vite-plugin-solid'],
+	],
+	[
+		'@tsrx/preact',
+		['node_modules', '@tsrx', 'preact'],
+		['.tsrx'],
+		['@tsrx/preact', '@tsrx/vite-plugin-preact'],
+	],
+];
+
+/**
+ * @param {string} file_name
+ * @returns {boolean}
+ */
+export function is_ripple_file(file_name) {
+	return RIPPLE_EXTENSIONS.some((extension) => file_name.endsWith(extension));
+}
 
 /**
  * @returns {RippleLanguagePlugin}
  */
-function getRippleLanguagePlugin() {
+export function getRippleLanguagePlugin() {
 	log('Creating Ripple language plugin...');
 
 	return {
@@ -30,7 +76,7 @@ function getRippleLanguagePlugin() {
 				typeof fileNameOrUri === 'string'
 					? fileNameOrUri
 					: fileNameOrUri.fsPath.replace(/\\/g, '/');
-			if (file_name.endsWith('.ripple')) {
+			if (is_ripple_file(file_name)) {
 				log('Identified Ripple file:', file_name);
 				return 'ripple';
 			}
@@ -38,14 +84,14 @@ function getRippleLanguagePlugin() {
 		createVirtualCode(fileNameOrUri, languageId, snapshot) {
 			if (languageId === 'ripple') {
 				const file_name = normalizeFileNameOrUri(fileNameOrUri);
-				const ripple = getRippleCompiler(file_name);
+				const ripple = get_tsrx_compiler(file_name);
 				if (!ripple) {
 					logError(`Ripple compiler not found for file: ${file_name}`);
 					return undefined;
 				}
 				log('Creating virtual code for:', file_name);
 				try {
-					return new RippleVirtualCode(file_name, snapshot, ripple);
+					return new TSRXVirtualCode(file_name, snapshot, ripple);
 				} catch (err) {
 					logError('Failed to create virtual code for:', file_name, ':', err);
 					throw err;
@@ -54,7 +100,7 @@ function getRippleLanguagePlugin() {
 			return undefined;
 		},
 		updateVirtualCode(fileNameOrUri, virtualCode, snapshot) {
-			if (virtualCode instanceof RippleVirtualCode) {
+			if (virtualCode instanceof TSRXVirtualCode) {
 				log('Updating existing virtual code for:', virtualCode.fileName);
 				virtualCode.update(snapshot);
 				return virtualCode;
@@ -63,7 +109,11 @@ function getRippleLanguagePlugin() {
 		},
 
 		typescript: {
-			extraFileExtensions: [{ extension: 'ripple', isMixedContent: false, scriptKind: 7 }],
+			extraFileExtensions: RIPPLE_EXTENSIONS.map((extension) => ({
+				extension: extension.slice(1),
+				isMixedContent: false,
+				scriptKind: 7,
+			})),
 			/**
 			 * @param {VirtualCode} ripple_code
 			 */
@@ -86,24 +136,24 @@ function getRippleLanguagePlugin() {
 /**
  * @implements {VirtualCode}
  */
-class RippleVirtualCode {
+export class TSRXVirtualCode {
 	/** @type {string} */
 	id = 'root';
 	/** @type {string} */
 	languageId = 'ripple';
 	/** @type {unknown[]} */
 	codegenStacks = [];
-	/** @type {RippleCompiler} */
-	ripple;
+	/** @type {TSRXCompilerModule} */
+	tsrx;
 	/** @type {string} */
 	generatedCode = '';
 	/** @type {VirtualCode['embeddedCodes']} */
 	embeddedCodes = [];
 	/** @type {CodeMapping[]} */
 	mappings = [];
-	/** @type {RippleCompileError[]} */
+	/** @type {TSRXCompileError[]} */
 	fatalErrors = [];
-	/** @type {RippleCompileError[]} */
+	/** @type {TSRXCompileError[]} */
 	usageErrors = [];
 	/** @type {IScriptSnapshot} */
 	snapshot;
@@ -121,19 +171,19 @@ class RippleVirtualCode {
 	/**
 	 * @param {string} file_name
 	 * @param {IScriptSnapshot} snapshot
-	 * @param {RippleCompiler} ripple
+	 * @param {TSRXCompilerModule} tsrx
 	 */
-	constructor(file_name, snapshot, ripple) {
-		log('Initializing RippleVirtualCode for:', file_name);
+	constructor(file_name, snapshot, tsrx) {
+		log('Initializing TSRXVirtualCode for:', file_name);
 
 		this.fileName = file_name;
-		this.ripple = ripple;
+		this.tsrx = tsrx;
 		this.snapshot = snapshot;
 		this.sourceSnapshot = snapshot;
 		this.originalCode = snapshot.getText(0, snapshot.getLength());
 
 		// Validate ripple compiler
-		if (!ripple || typeof ripple.compile_to_volar_mappings !== 'function') {
+		if (!tsrx || typeof tsrx.compile_to_volar_mappings !== 'function') {
 			logError('Invalid ripple compiler - missing compile_to_volar_mappings method');
 			throw new Error('Invalid ripple compiler');
 		}
@@ -206,7 +256,7 @@ class RippleVirtualCode {
 					newCode.substring(0, dotPosition) + newCode.substring(dotPosition + 1);
 
 				log('Compiling without typed dot at position', dotPosition);
-				transpiled = this.ripple.compile_to_volar_mappings(codeWithoutDot, this.fileName, {
+				transpiled = this.tsrx.compile_to_volar_mappings(codeWithoutDot, this.fileName, {
 					loose: true,
 				});
 				log('Compilation without dot successful');
@@ -223,13 +273,13 @@ class RippleVirtualCode {
 			} else {
 				// Normal compilation
 				log('Compiling Ripple code...');
-				transpiled = this.ripple.compile_to_volar_mappings(newCode, this.fileName, {
+				transpiled = this.tsrx.compile_to_volar_mappings(newCode, this.fileName, {
 					loose: true,
 				});
 				log('Compilation successful, generated code length:', transpiled?.code?.length || 0);
 			}
 		} catch (e) {
-			const error = /** @type {RippleCompileError} */ (e);
+			const error = /** @type {TSRXCompileError} */ (e);
 			logError('Ripple compilation failed for', this.fileName, ':', error);
 			error.type = 'fatal';
 			this.fatalErrors.push(error);
@@ -258,7 +308,8 @@ class RippleVirtualCode {
 						id: /** @type {string}  */ (mapping.data?.customData?.embeddedId),
 						languageId: 'css',
 						snapshot: {
-							getText: (start, end) => cssContent.substring(start, end),
+							getText: (/** @type {number} */ start, /** @type {number} */ end) =>
+								cssContent.substring(start, end),
 							getLength: () => mapping.lengths[0],
 							getChangeRange: () => undefined,
 						},
@@ -271,7 +322,7 @@ class RippleVirtualCode {
 			}
 
 			if (DEBUG) {
-				log('CSS embedded codes:', this.embeddedCodes.length);
+				log('CSS embedded codes:', (this.embeddedCodes || []).length);
 				log('Using transpiled code, mapping count:', this.mappings.length);
 				log('Original code length:', newCode.length);
 				log('Generated code length:', this.generatedCode.length);
@@ -513,7 +564,7 @@ function restore_typed_dot_in_transpiled_code(transpiled, dotPosition) {
  * @param {{ options?: CompilerOptions } & T} config
  * @returns {{ options: CompilerOptions } & T}
  */
-const resolveConfig = (config) => {
+export const resolveConfig = (config) => {
 	const baseOptions = config.options ?? /** @type {CompilerOptions} */ ({});
 	/** @type {CompilerOptions} */
 	const options = { ...baseOptions };
@@ -565,33 +616,182 @@ const resolveConfig = (config) => {
 };
 
 /** @type {Map<string, string | null>} */
-const path2RipplePathMap = new Map();
-/** @type {string | null} */
-let packaged_dir = null;
+export const path2RipplePathMap = new Map();
 /** @type {Map<string, string>} */
 const pathToTypesCache = new Map();
 /** @type {Map<string, RegExpMatchArray>} */
 const typeNameMatchCache = new Map();
+/** @type {Map<string, { name: string | null, dependencies: Set<string> } | null>} */
+const pathToPackageManifestCache = new Map();
 
 /**
  * @param {ScriptId} fileNameOrUri
  * @returns {string}
  */
-function normalizeFileNameOrUri(fileNameOrUri) {
+export function normalizeFileNameOrUri(fileNameOrUri) {
 	return typeof fileNameOrUri === 'string'
 		? fileNameOrUri
 		: fileNameOrUri.fsPath.replace(/\\/g, '/');
 }
 
 /**
- * @param {string} normalized_file_name
- * @returns {RippleCompiler | undefined}
+ * @param {string} start_dir
+ * @param {(file_path: import('fs').PathLike) => boolean} [exists_sync]
+ * @returns {{ name: string | null, dependencies: Set<string> } | null}
  */
-function getRippleCompiler(normalized_file_name) {
-	const dir = getRippleDirForFile(normalized_file_name);
-	const ripple_path = dir ? path.join(dir, 'src', 'compiler', 'index.js') : undefined;
-	if (ripple_path) {
-		return /** @type {RippleCompiler} */ (require(ripple_path));
+function get_nearest_package_manifest(start_dir, exists_sync = fs.existsSync) {
+	let current_dir = start_dir;
+	/** @type {string[]} */
+	const visited_dirs = [];
+
+	while (current_dir) {
+		if (pathToPackageManifestCache.has(current_dir)) {
+			const cached_manifest = pathToPackageManifestCache.get(current_dir) ?? null;
+			for (const visited_dir of visited_dirs) {
+				pathToPackageManifestCache.set(visited_dir, cached_manifest);
+			}
+			return cached_manifest;
+		}
+
+		visited_dirs.push(current_dir);
+
+		const package_json_path = path.join(current_dir, 'package.json');
+		if (exists_sync(package_json_path)) {
+			try {
+				const package_json = JSON.parse(fs.readFileSync(package_json_path, 'utf8'));
+				const dependencies = new Set([
+					...Object.keys(package_json.dependencies ?? {}),
+					...Object.keys(package_json.devDependencies ?? {}),
+					...Object.keys(package_json.peerDependencies ?? {}),
+					...Object.keys(package_json.optionalDependencies ?? {}),
+				]);
+				const package_manifest = {
+					name: typeof package_json.name === 'string' ? package_json.name : null,
+					dependencies,
+				};
+
+				for (const visited_dir of visited_dirs) {
+					pathToPackageManifestCache.set(visited_dir, package_manifest);
+				}
+
+				return package_manifest;
+			} catch {
+				for (const visited_dir of visited_dirs) {
+					pathToPackageManifestCache.set(visited_dir, null);
+				}
+				return null;
+			}
+		}
+
+		const parent_dir = path.dirname(current_dir);
+		if (parent_dir === current_dir) {
+			break;
+		}
+		current_dir = parent_dir;
+	}
+
+	for (const visited_dir of visited_dirs) {
+		pathToPackageManifestCache.set(visited_dir, null);
+	}
+
+	return null;
+}
+
+/**
+ * @param {{ name: string | null, dependencies: Set<string> } | null} package_manifest
+ * @param {string} compiler_name
+ * @param {string[]} package_hints
+ * @returns {boolean}
+ */
+function package_manifest_matches_compiler(package_manifest, compiler_name, package_hints) {
+	if (!package_manifest) {
+		return false;
+	}
+
+	if (
+		package_manifest.name === compiler_name ||
+		package_hints.includes(package_manifest.name ?? '')
+	) {
+		return true;
+	}
+
+	if (package_manifest.dependencies.has(compiler_name)) {
+		return true;
+	}
+
+	for (const package_hint of package_hints) {
+		if (package_manifest.dependencies.has(package_hint)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * @param {string} normalized_file_name
+ * @returns {TSRXCompilerModule | undefined}
+ */
+function get_tsrx_compiler(normalized_file_name) {
+	const compiler_path = get_compiler_entry_for_file(normalized_file_name);
+	if (compiler_path) {
+		return require(compiler_path);
+	}
+}
+
+/**
+ * @param {string} normalized_file_name
+ * @param {(file_path: import('fs').PathLike) => boolean} [exists_sync]
+ * @param {Map<string, string | null>} [compiler_path_map]
+ * @returns {string | undefined}
+ */
+export function find_workspace_compiler_entry_for_file(
+	normalized_file_name,
+	exists_sync = fs.existsSync,
+	compiler_path_map = path2RipplePathMap,
+) {
+	const parts = normalized_file_name.split('/');
+	const ext = path.extname(normalized_file_name);
+
+	for (let i = parts.length - 2; i >= 0; i--) {
+		const dir = parts.slice(0, i + 1).join('/');
+		const cache_key = dir + '\0' + ext;
+
+		if (!compiler_path_map.has(cache_key)) {
+			/** @type {Array<[string, string, string[]]>} */
+			const available_candidates = [];
+			for (const [
+				compiler_name,
+				compiler_dir_parts,
+				supported_extensions,
+				package_hints,
+			] of COMPILER_CANDIDATES) {
+				if (!supported_extensions.includes(ext)) {
+					continue;
+				}
+				const full_path = [dir, ...compiler_dir_parts, 'src', 'index.js'].join('/');
+				if (exists_sync(full_path)) {
+					available_candidates.push([compiler_name, full_path, package_hints]);
+				}
+			}
+
+			let found_path = null;
+			if (available_candidates.length > 0) {
+				const package_manifest = get_nearest_package_manifest(dir, exists_sync);
+				const preferred_candidate = available_candidates.find(([compiler_name, , package_hints]) =>
+					package_manifest_matches_compiler(package_manifest, compiler_name, package_hints),
+				);
+				found_path = preferred_candidate?.[1] ?? available_candidates[0][1];
+				log('Found tsrx compiler at:', found_path, 'for extension:', ext);
+			}
+
+			compiler_path_map.set(cache_key, found_path);
+		}
+
+		const compiler_path = compiler_path_map.get(cache_key);
+		if (compiler_path) {
+			return compiler_path;
+		}
 	}
 }
 
@@ -599,55 +799,49 @@ function getRippleCompiler(normalized_file_name) {
  * @param {string} normalized_file_name
  * @returns {string | undefined}
  */
-function getRippleDirForFile(normalized_file_name) {
-	const ripple_src_dir = ['node_modules', 'ripple'];
+export function get_compiler_entry_for_file(normalized_file_name) {
+	const ext = path.extname(normalized_file_name);
+	const package_manifest = get_nearest_package_manifest(path.dirname(normalized_file_name));
 
-	const parts = normalized_file_name.split('/');
+	const workspace_compiler_path = find_workspace_compiler_entry_for_file(normalized_file_name);
+	if (workspace_compiler_path) {
+		return workspace_compiler_path;
+	}
 
-	// First, try to find ripple in the workspace (user's repo)
-	for (let i = parts.length - 2; i >= 0; i--) {
-		const dir = parts.slice(0, i + 1).join('/');
+	const warn_message = `No supported tsrx compiler found in workspace for ${normalized_file_name}.`;
 
-		if (!path2RipplePathMap.has(dir)) {
-			const full_path = [dir, ...ripple_src_dir].join('/');
-			if (fs.existsSync(full_path)) {
-				path2RipplePathMap.set(dir, full_path);
-				log('Found ripple src directory at:', full_path);
-			} else {
-				path2RipplePathMap.set(dir, null);
+	// Fallback: look for a packaged compiler.
+	let current_dir = root_dirname;
+
+	while (current_dir) {
+		/** @type {Array<[string, string, string[]]>} */
+		const available_candidates = [];
+		for (const [
+			compiler_name,
+			compiler_dir_parts,
+			supported_extensions,
+			package_hints,
+		] of COMPILER_CANDIDATES) {
+			if (!supported_extensions.includes(ext)) {
+				continue;
+			}
+			const full_path = path.join(current_dir, ...compiler_dir_parts);
+			const entry_path = path.join(full_path, 'src', 'index.js');
+			if (fs.existsSync(entry_path)) {
+				available_candidates.push([compiler_name, entry_path, package_hints]);
 			}
 		}
 
-		const src_dir = path2RipplePathMap.get(dir);
-		if (src_dir) {
-			return src_dir;
-		}
-	}
-
-	const warn_message = `Ripple src directory not found in workspace for ${normalized_file_name}. \
-		Using packaged version`;
-
-	if (packaged_dir) {
-		logWarning(`${warn_message} at ${packaged_dir}`);
-		return packaged_dir;
-	}
-
-	// Fallback: look for the packaged version
-	// Use node's module resolution just in case we move the package location
-	// Start from the plugin's directory and walk up
-	let current_dir = __dirname;
-
-	while (current_dir) {
-		const full_path = path.join(current_dir, ...ripple_src_dir);
-
-		if (fs.existsSync(full_path)) {
-			packaged_dir = full_path;
-			logWarning(`${warn_message} at ${packaged_dir}`);
-			return require(full_path);
+		if (available_candidates.length > 0) {
+			const preferred_candidate = available_candidates.find(([compiler_name, , package_hints]) =>
+				package_manifest_matches_compiler(package_manifest, compiler_name, package_hints),
+			);
+			const entry_path = preferred_candidate?.[1] ?? available_candidates[0][1];
+			logWarning(`${warn_message} Using packaged version at ${entry_path}`);
+			return entry_path;
 		}
 
 		const parent_dir = path.dirname(current_dir);
-		// Stop if we've reached the root
 		if (parent_dir === current_dir) {
 			break;
 		}
@@ -661,7 +855,7 @@ function getRippleDirForFile(normalized_file_name) {
  * @param {string} typesFilePath
  * @returns {string | undefined}
  */
-function getCachedTypeDefinitionFile(typesFilePath) {
+export function getCachedTypeDefinitionFile(typesFilePath) {
 	const cached = pathToTypesCache.get(typesFilePath);
 	if (cached) {
 		return cached;
@@ -691,7 +885,7 @@ function getCachedTypeDefinitionFile(typesFilePath) {
  * @param {string} text
  * @returns {RegExpMatchArray | undefined}
  */
-function getCachedTypeMatches(typeName, text) {
+export function getCachedTypeMatches(typeName, text) {
 	const cached = typeNameMatchCache.get(typeName);
 	if (cached) {
 		return cached;
@@ -711,12 +905,22 @@ function getCachedTypeMatches(typeName, text) {
 	return;
 }
 
-module.exports = {
-	getRippleDirForFile,
-	normalizeFileNameOrUri,
-	getRippleLanguagePlugin,
-	getCachedTypeDefinitionFile,
-	getCachedTypeMatches,
-	RippleVirtualCode,
-	resolveConfig,
-};
+/**
+ * @param {string} normalized_file_name
+ * @returns {string | undefined}
+ */
+export function get_compiler_dir_for_file(normalized_file_name) {
+	const entry = get_compiler_entry_for_file(normalized_file_name);
+	if (entry) {
+		// Walk up from .../src/index.js to the package root
+		return path.dirname(path.dirname(entry));
+	}
+}
+
+export { get_compiler_dir_for_file as getRippleDirForFile };
+
+/** Reset module-level state used in tests. */
+export function _reset_for_test() {
+	path2RipplePathMap.clear();
+	pathToPackageManifestCache.clear();
+}

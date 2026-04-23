@@ -19,9 +19,9 @@ export function Layout(__anchor, { children }, __block) {
 		var main_1 = _$_.sibling(nav_1);
 
 		{
-			var node = _$_.child(main_1);
+			var expression = _$_.child(main_1);
 
-			children(node, {}, _$_.active_block);
+			_$_.expression(expression, () => children);
 			_$_.pop(main_1);
 		}
 	}
@@ -33,11 +33,11 @@ export function Layout(__anchor, { children }, __block) {
 export function Content(__anchor, _, __block) {
 	_$_.push_component();
 
-	let visible = _$_.track(true, void 0, void 0, __block);
+	let lazy = _$_.track(true, __block, '0bdb1500');
 	var div_2 = root_1();
 
 	{
-		var node_1 = _$_.child(div_2);
+		var node = _$_.child(div_2);
 
 		{
 			var consequent = (__anchor) => {
@@ -46,8 +46,8 @@ export function Content(__anchor, _, __block) {
 				_$_.append(__anchor, p_1);
 			};
 
-			_$_.if(node_1, (__render) => {
-				if (_$_.get(visible)) __render(consequent);
+			_$_.if(node, (__render) => {
+				if (_$_.get(lazy)) __render(consequent);
 			});
 		}
 
@@ -62,21 +62,18 @@ export function LayoutWithContent(__anchor, _, __block) {
 	_$_.push_component();
 
 	var fragment = root_3();
-	var node_2 = _$_.first_child_frag(fragment);
+	var node_1 = _$_.first_child_frag(fragment);
 
 	Layout(
-		node_2,
+		node_1,
 		{
-			children(__anchor, _, __block) {
-				_$_.push_component();
-
+			children: _$_.tsrx_element(function render_children(__anchor, __block) {
 				var fragment_1 = root_4();
-				var node_3 = _$_.first_child_frag(fragment_1);
+				var node_2 = _$_.first_child_frag(fragment_1);
 
-				Content(node_3, {}, _$_.active_block);
+				Content(node_2, {}, _$_.active_block);
 				_$_.append(__anchor, fragment_1);
-				_$_.pop_component();
-			}
+			})
 		},
 		_$_.active_block
 	);

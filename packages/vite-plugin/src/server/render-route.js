@@ -1,4 +1,4 @@
-/// <reference types="ripple/compiler/internal/rpc" />
+/// <reference types="@tsrx/ripple/types/rpc" />
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 

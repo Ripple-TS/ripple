@@ -3,7 +3,7 @@
   "description": "Ripple is an elegant TypeScript UI framework",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.3.4",
+  "version": "0.3.31",
   "type": "module",
   "module": "src/runtime/index-client.js",
   "main": "src/runtime/index-client.js",
@@ -34,27 +34,11 @@
       "default": "./src/server/index.js"
     },
     "./compiler": {
-      "types": "./src/compiler/index.d.ts",
-      "require": "./src/compiler/index.js",
+      "types": "./types/compiler.d.ts",
       "default": "./src/compiler/index.js"
-    },
-    "./types/estree": {
-      "types": "./src/compiler/types/estree.d.ts"
-    },
-    "./types/estree-jsx": {
-      "types": "./src/compiler/types/estree-jsx.d.ts"
-    },
-    "./types/acorn": {
-      "types": "./src/compiler/types/acorn.d.ts"
     },
     "./compiler/internal/import": {
       "types": "./src/compiler/types/import.d.ts"
-    },
-    "./compiler/internal/rpc": {
-      "types": "./src/compiler/types/rpc.d.ts"
-    },
-    "./compiler/internal/identifier/utils": {
-      "default": "./src/compiler/identifier-utils.js"
     },
     "./validator": {
       "types": "./types/index.d.ts",
@@ -64,8 +48,14 @@
     "./internal/client": {
       "default": "./src/runtime/internal/client/index.js"
     },
+    "./internal/client-types": {
+      "types": "./src/runtime/internal/client/types.d.ts"
+    },
     "./internal/server": {
       "default": "./src/runtime/internal/server/index.js"
+    },
+    "./internal/server-types": {
+      "types": "./src/runtime/internal/server/types.d.ts"
     },
     "./jsx-runtime": {
       "types": "./src/jsx-runtime.d.ts",
@@ -77,27 +67,19 @@
     "#client": "./src/runtime/internal/client/types.d.ts",
     "#client/constants": "./src/internal/client/constants.js",
     "#server": "./src/runtime/internal/server/types.d.ts",
-    "#compiler": "./src/compiler/types/index.d.ts",
-    "#parser": "./src/compiler/types/parse.d.ts",
     "#public": "./types/index.d.ts",
     "#helpers": "./src/helpers.d.ts"
   },
   "dependencies": {
-    "@jridgewell/sourcemap-codec": "catalog:default",
-    "@sveltejs/acorn-typescript": "catalog:default",
-    "acorn": "catalog:default",
     "clsx": "catalog:default",
     "devalue": "catalog:default",
     "esm-env": "catalog:default",
-    "esrap": "catalog:default",
-    "is-reference": "catalog:default",
-    "magic-string": "catalog:default",
-    "muggle-string": "catalog:default",
-    "zimmerframe": "catalog:default",
+    "@tsrx/ripple": "workspace:*",
     "@types/estree": "catalog:default",
     "@types/estree-jsx": "catalog:default"
   },
   "devDependencies": {
+    "@tsrx/core": "workspace:*",
     "@types/node": "catalog:default",
     "@typescript-eslint/types": "catalog:default",
     "typescript": "catalog:default",

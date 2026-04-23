@@ -22,7 +22,7 @@ export function StaticTitle(__anchor, _, __block) {
 
 	var div_1 = root();
 
-	_$_.head('qwqurq', (__anchor) => {
+	_$_.head('c8908187', (__anchor) => {
 		_$_.document.title = 'Static Test Title';
 	});
 
@@ -33,27 +33,24 @@ export function StaticTitle(__anchor, _, __block) {
 export function ReactiveTitle(__anchor, _, __block) {
 	_$_.push_component();
 
-	let title = _$_.track('Initial Title', void 0, void 0, __block);
+	let lazy = _$_.track('Initial Title', __block, 'cbca63e3');
 	var div_2 = root_1();
 
 	{
 		var span_1 = _$_.child(div_2);
 
 		{
-			var text = _$_.child(span_1, true);
+			var expression = _$_.child(span_1, true);
 
+			_$_.expression(expression, () => _$_.get(lazy));
 			_$_.pop(span_1);
 		}
 	}
 
-	_$_.head('1h8nm28', (__anchor) => {
+	_$_.head('8af28792', (__anchor) => {
 		_$_.render(() => {
-			_$_.document.title = _$_.get(title);
+			_$_.document.title = _$_.get(lazy);
 		});
-	});
-
-	_$_.render(() => {
-		_$_.set_text(text, _$_.get(title));
 	});
 
 	_$_.append(__anchor, div_2);
@@ -65,7 +62,7 @@ export function MultipleHeadElements(__anchor, _, __block) {
 
 	var div_3 = root_2();
 
-	_$_.head('9v67ol', (__anchor) => {
+	_$_.head('3a79945b', (__anchor) => {
 		var fragment = root_3();
 
 		_$_.document.title = 'Page Title';
@@ -80,25 +77,22 @@ export function MultipleHeadElements(__anchor, _, __block) {
 export function ReactiveMetaTags(__anchor, _, __block) {
 	_$_.push_component();
 
-	let description = _$_.track('Initial description', void 0, void 0, __block);
+	let lazy_1 = _$_.track('Initial description', __block, '38bfa3b2');
 	var div_4 = root_4();
 
 	{
-		var text_1 = _$_.child(div_4, true);
+		var expression_1 = _$_.child(div_4, true);
 
+		_$_.expression(expression_1, () => _$_.get(lazy_1));
 		_$_.pop(div_4);
 	}
 
-	_$_.head('166unm', (__anchor) => {
+	_$_.head('c9fd7b0f', (__anchor) => {
 		var meta_1 = root_5();
 
 		_$_.document.title = 'My Page';
 		_$_.set_attribute(meta_1, 'content');
 		_$_.append(__anchor, meta_1);
-	});
-
-	_$_.render(() => {
-		_$_.set_text(text_1, _$_.get(description));
 	});
 
 	_$_.append(__anchor, div_4);
@@ -108,23 +102,20 @@ export function ReactiveMetaTags(__anchor, _, __block) {
 export function TitleWithTemplate(__anchor, _, __block) {
 	_$_.push_component();
 
-	let name = _$_.track('World', void 0, void 0, __block);
+	let lazy_2 = _$_.track('World', __block, 'f3925cd5');
 	var div_5 = root_6();
 
 	{
-		var text_2 = _$_.child(div_5, true);
+		var expression_2 = _$_.child(div_5, true);
 
+		_$_.expression(expression_2, () => _$_.get(lazy_2));
 		_$_.pop(div_5);
 	}
 
-	_$_.head('3o3mh2', (__anchor) => {
+	_$_.head('72f81455', (__anchor) => {
 		_$_.render(() => {
-			_$_.document.title = `Hello ${_$_.get(name)}!`;
+			_$_.document.title = `Hello ${_$_.get(lazy_2)}!`;
 		});
-	});
-
-	_$_.render(() => {
-		_$_.set_text(text_2, _$_.get(name));
 	});
 
 	_$_.append(__anchor, div_5);
@@ -136,7 +127,7 @@ export function EmptyTitle(__anchor, _, __block) {
 
 	var div_6 = root_7();
 
-	_$_.head('kwo3k6', (__anchor) => {
+	_$_.head('35a7fe4a', (__anchor) => {
 		_$_.document.title = '';
 	});
 
@@ -147,24 +138,21 @@ export function EmptyTitle(__anchor, _, __block) {
 export function ConditionalTitle(__anchor, _, __block) {
 	_$_.push_component();
 
-	let showPrefix = _$_.track(true, void 0, void 0, __block);
-	let title = _$_.track('Main Page', void 0, void 0, __block);
+	let lazy_3 = _$_.track(true, __block, 'ff71bf1f');
+	let lazy_4 = _$_.track('Main Page', __block, '7cd7d671');
 	var div_7 = root_8();
 
 	{
-		var text_3 = _$_.child(div_7, true);
+		var expression_3 = _$_.child(div_7, true);
 
+		_$_.expression(expression_3, () => _$_.get(lazy_4));
 		_$_.pop(div_7);
 	}
 
-	_$_.head('c2i5xr', (__anchor) => {
+	_$_.head('453e9ed4', (__anchor) => {
 		_$_.render(() => {
-			_$_.document.title = _$_.get(showPrefix) ? 'App - ' + _$_.get(title) : _$_.get(title);
+			_$_.document.title = _$_.get(lazy_3) ? 'App - ' + _$_.get(lazy_4) : _$_.get(lazy_4);
 		});
-	});
-
-	_$_.render(() => {
-		_$_.set_text(text_3, _$_.get(title));
 	});
 
 	_$_.append(__anchor, div_7);
@@ -174,7 +162,7 @@ export function ConditionalTitle(__anchor, _, __block) {
 export function ComputedTitle(__anchor, _, __block) {
 	_$_.push_component();
 
-	let count = _$_.track(0, void 0, void 0, __block);
+	let lazy_5 = _$_.track(0, __block, 'b6a48610');
 	let prefix = 'Count: ';
 	var div_8 = root_9();
 
@@ -182,20 +170,17 @@ export function ComputedTitle(__anchor, _, __block) {
 		var span_2 = _$_.child(div_8);
 
 		{
-			var text_4 = _$_.child(span_2, true);
+			var expression_4 = _$_.child(span_2, true);
 
+			_$_.expression(expression_4, () => _$_.get(lazy_5));
 			_$_.pop(span_2);
 		}
 	}
 
-	_$_.head('1h2z3z5', (__anchor) => {
+	_$_.head('63888c83', (__anchor) => {
 		_$_.render(() => {
-			_$_.document.title = prefix + _$_.get(count);
+			_$_.document.title = prefix + _$_.get(lazy_5);
 		});
-	});
-
-	_$_.render(() => {
-		_$_.set_text(text_4, _$_.get(count));
 	});
 
 	_$_.append(__anchor, div_8);
@@ -207,11 +192,11 @@ export function MultipleHeadBlocks(__anchor, _, __block) {
 
 	var div_9 = root_10();
 
-	_$_.head('14rv3le', (__anchor) => {
+	_$_.head('43cf39fd', (__anchor) => {
 		_$_.document.title = 'First Head';
 	});
 
-	_$_.head('1eh1mn5', (__anchor) => {
+	_$_.head('e9abd92f', (__anchor) => {
 		var meta_2 = root_11();
 
 		_$_.append(__anchor, meta_2);
@@ -226,7 +211,7 @@ export function HeadWithStyle(__anchor, _, __block) {
 
 	var div_10 = root_12();
 
-	_$_.head('1dxk6yg', (__anchor) => {
+	_$_.head('d246667e', (__anchor) => {
 		_$_.document.title = 'Styled Page';
 	});
 

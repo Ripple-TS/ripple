@@ -1,6 +1,6 @@
 /** @import { LanguageServicePlugin } from '@volar/language-server' */
 
-const { getVirtualCode, createLogging } = require('./utils.js');
+import { getVirtualCode, createLogging, is_ripple_document } from './utils.js';
 
 const { log } = createLogging('[Ripple Auto-Insert Plugin]');
 
@@ -32,13 +32,13 @@ const VOID_ELEMENTS = new Set([
  * Handles auto-closing tags when typing '>' after a tag name
  * @returns {LanguageServicePlugin}
  */
-function createAutoInsertPlugin() {
+export function createAutoInsertPlugin() {
 	return {
 		name: 'ripple-auto-insert',
 		capabilities: {
 			autoInsertionProvider: {
 				triggerCharacters: ['>'],
-				configurationSections: ['ripple.autoClosingTags'],
+				configurationSections: ['ripple.autoClosingTags.enabled'],
 			},
 			documentOnTypeFormattingProvider: {
 				triggerCharacters: ['>'],
@@ -55,7 +55,7 @@ function createAutoInsertPlugin() {
 				 * @returns {Promise<string | null>}
 				 */
 				async provideAutoInsertSnippet(document, position, lastChange, _token) {
-					if (!document.uri.endsWith('.ripple')) {
+					if (!is_ripple_document(document.uri)) {
 						return null;
 					}
 
@@ -161,7 +161,3 @@ function createAutoInsertPlugin() {
 		},
 	};
 }
-
-module.exports = {
-	createAutoInsertPlugin,
-};

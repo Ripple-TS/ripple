@@ -3,295 +3,328 @@ import * as _$_ from 'ripple/internal/server';
 
 import { track } from 'ripple/server';
 
-export function IfTruthy(__output) {
+export function IfTruthy() {
 	_$_.push_component();
 
 	const show = true;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (show) {
-		__output.push('<div');
-		__output.push(' class="shown"');
-		__output.push('>');
+		if (show) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="shown"');
+			_$_.output_push('>');
 
-		{
-			__output.push('Visible');
+			{
+				_$_.output_push('Visible');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function IfFalsy(__output) {
+export function IfFalsy() {
 	_$_.push_component();
 
 	const show = false;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (show) {
-		__output.push('<div');
-		__output.push(' class="shown"');
-		__output.push('>');
+		if (show) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="shown"');
+			_$_.output_push('>');
 
-		{
-			__output.push('Visible');
+			{
+				_$_.output_push('Visible');
+			}
+
+			_$_.output_push('</div>');
 		}
 
-		__output.push('</div>');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('<!--]-->');
 	_$_.pop_component();
 }
 
-export function IfElse(__output) {
+export function IfElse() {
 	_$_.push_component();
 
 	const isLoggedIn = true;
 
-	__output.push('<!--[-->');
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
 
-	if (isLoggedIn) {
-		__output.push('<div');
-		__output.push(' class="logged-in"');
-		__output.push('>');
-
-		{
-			__output.push('Welcome back!');
-		}
-
-		__output.push('</div>');
-	} else {
-		__output.push('<div');
-		__output.push(' class="logged-out"');
-		__output.push('>');
-
-		{
-			__output.push('Please log in');
-		}
-
-		__output.push('</div>');
-	}
-
-	__output.push('<!--]-->');
-	_$_.pop_component();
-}
-
-export function ReactiveIf(__output) {
-	_$_.push_component();
-
-	let show = _$_.track(true);
-
-	__output.push('<button');
-	__output.push(' class="toggle"');
-	__output.push('>');
-
-	{
-		__output.push('Toggle');
-	}
-
-	__output.push('</button>');
-	__output.push('<!--[-->');
-
-	if (_$_.get(show)) {
-		__output.push('<div');
-		__output.push(' class="content"');
-		__output.push('>');
-
-		{
-			__output.push('Content visible');
-		}
-
-		__output.push('</div>');
-	}
-
-	__output.push('<!--]-->');
-	_$_.pop_component();
-}
-
-export function ReactiveIfElse(__output) {
-	_$_.push_component();
-
-	let isOn = _$_.track(false);
-
-	__output.push('<button');
-	__output.push(' class="toggle"');
-	__output.push('>');
-
-	{
-		__output.push('Toggle');
-	}
-
-	__output.push('</button>');
-	__output.push('<!--[-->');
-
-	if (_$_.get(isOn)) {
-		__output.push('<div');
-		__output.push(' class="on"');
-		__output.push('>');
-
-		{
-			__output.push('ON');
-		}
-
-		__output.push('</div>');
-	} else {
-		__output.push('<div');
-		__output.push(' class="off"');
-		__output.push('>');
-
-		{
-			__output.push('OFF');
-		}
-
-		__output.push('</div>');
-	}
-
-	__output.push('<!--]-->');
-	_$_.pop_component();
-}
-
-export function NestedIf(__output) {
-	_$_.push_component();
-
-	let outer = _$_.track(true);
-	let inner = _$_.track(true);
-
-	__output.push('<button');
-	__output.push(' class="outer-toggle"');
-	__output.push('>');
-
-	{
-		__output.push('Outer');
-	}
-
-	__output.push('</button>');
-	__output.push('<button');
-	__output.push(' class="inner-toggle"');
-	__output.push('>');
-
-	{
-		__output.push('Inner');
-	}
-
-	__output.push('</button>');
-	__output.push('<!--[-->');
-
-	if (_$_.get(outer)) {
-		__output.push('<div');
-		__output.push(' class="outer-content"');
-		__output.push('>');
-
-		{
-			__output.push('Outer');
-			__output.push('<!--[-->');
-
-			if (_$_.get(inner)) {
-				__output.push('<span');
-				__output.push(' class="inner-content"');
-				__output.push('>');
-
-				{
-					__output.push('Inner');
-				}
-
-				__output.push('</span>');
-			}
-
-			__output.push('<!--]-->');
-		}
-
-		__output.push('</div>');
-	}
-
-	__output.push('<!--]-->');
-	_$_.pop_component();
-}
-
-export function IfElseIfChain(__output) {
-	_$_.push_component();
-
-	let status = _$_.track('loading');
-
-	__output.push('<div');
-	__output.push('>');
-
-	{
-		__output.push('<button');
-		__output.push(' class="success"');
-		__output.push('>');
-
-		{
-			__output.push('Success');
-		}
-
-		__output.push('</button>');
-		__output.push('<button');
-		__output.push(' class="error"');
-		__output.push('>');
-
-		{
-			__output.push('Error');
-		}
-
-		__output.push('</button>');
-		__output.push('<button');
-		__output.push(' class="loading"');
-		__output.push('>');
-
-		{
-			__output.push('Loading');
-		}
-
-		__output.push('</button>');
-		__output.push('<!--[-->');
-
-		if (_$_.get(status) === 'loading') {
-			__output.push('<div');
-			__output.push(' class="state"');
-			__output.push('>');
+		if (isLoggedIn) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="logged-in"');
+			_$_.output_push('>');
 
 			{
-				__output.push('Loading...');
+				_$_.output_push('Welcome back!');
 			}
 
-			__output.push('</div>');
+			_$_.output_push('</div>');
 		} else {
-			__output.push('<!--[-->');
+			_$_.output_push('<div');
+			_$_.output_push(' class="logged-out"');
+			_$_.output_push('>');
 
-			if (_$_.get(status) === 'success') {
-				__output.push('<div');
-				__output.push(' class="state"');
-				__output.push('>');
-
-				{
-					__output.push('Success!');
-				}
-
-				__output.push('</div>');
-			} else {
-				__output.push('<div');
-				__output.push(' class="state"');
-				__output.push('>');
-
-				{
-					__output.push('Error occurred');
-				}
-
-				__output.push('</div>');
+			{
+				_$_.output_push('Please log in');
 			}
 
-			__output.push('<!--]-->');
+			_$_.output_push('</div>');
 		}
 
-		__output.push('<!--]-->');
-	}
+		_$_.output_push('<!--]-->');
+	});
 
-	__output.push('</div>');
+	_$_.pop_component();
+}
+
+export function ReactiveIf() {
+	_$_.push_component();
+
+	let lazy = _$_.track(true, '19a16ff0');
+
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="toggle"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Toggle');
+		}
+
+		_$_.output_push('</button>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (_$_.get(lazy)) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="content"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Content visible');
+			}
+
+			_$_.output_push('</div>');
+		}
+
+		_$_.output_push('<!--]-->');
+	});
+
+	_$_.pop_component();
+}
+
+export function ReactiveIfElse() {
+	_$_.push_component();
+
+	let lazy_1 = _$_.track(false, '41177f39');
+
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="toggle"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Toggle');
+		}
+
+		_$_.output_push('</button>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (_$_.get(lazy_1)) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="on"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('ON');
+			}
+
+			_$_.output_push('</div>');
+		} else {
+			_$_.output_push('<div');
+			_$_.output_push(' class="off"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('OFF');
+			}
+
+			_$_.output_push('</div>');
+		}
+
+		_$_.output_push('<!--]-->');
+	});
+
+	_$_.pop_component();
+}
+
+export function NestedIf() {
+	_$_.push_component();
+
+	let lazy_2 = _$_.track(true, '7894e1df');
+	let lazy_3 = _$_.track(true, 'f21b8c26');
+
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="outer-toggle"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Outer');
+		}
+
+		_$_.output_push('</button>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<button');
+		_$_.output_push(' class="inner-toggle"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('Inner');
+		}
+
+		_$_.output_push('</button>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		if (_$_.get(lazy_2)) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="outer-content"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Outer');
+				_$_.output_push('<!--[-->');
+
+				if (_$_.get(lazy_3)) {
+					_$_.output_push('<span');
+					_$_.output_push(' class="inner-content"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('Inner');
+					}
+
+					_$_.output_push('</span>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</div>');
+		}
+
+		_$_.output_push('<!--]-->');
+	});
+
+	_$_.pop_component();
+}
+
+export function IfElseIfChain() {
+	_$_.push_component();
+
+	let lazy_4 = _$_.track('loading', '4c69c94a');
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('<button');
+			_$_.output_push(' class="success"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Success');
+			}
+
+			_$_.output_push('</button>');
+			_$_.output_push('<button');
+			_$_.output_push(' class="error"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Error');
+			}
+
+			_$_.output_push('</button>');
+			_$_.output_push('<button');
+			_$_.output_push(' class="loading"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Loading');
+			}
+
+			_$_.output_push('</button>');
+			_$_.output_push('<!--[-->');
+
+			if (_$_.get(lazy_4) === 'loading') {
+				_$_.output_push('<div');
+				_$_.output_push(' class="state"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('Loading...');
+				}
+
+				_$_.output_push('</div>');
+			} else {
+				_$_.output_push('<!--[-->');
+
+				if (_$_.get(lazy_4) === 'success') {
+					_$_.output_push('<div');
+					_$_.output_push(' class="state"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('Success!');
+					}
+
+					_$_.output_push('</div>');
+				} else {
+					_$_.output_push('<div');
+					_$_.output_push(' class="state"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('Error occurred');
+					}
+
+					_$_.output_push('</div>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('<!--]-->');
+		}
+
+		_$_.output_push('</div>');
+	});
+
 	_$_.pop_component();
 }

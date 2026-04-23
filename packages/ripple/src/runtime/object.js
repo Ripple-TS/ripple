@@ -4,18 +4,15 @@ import { object_proxy } from './proxy.js';
 
 /**
  * @template {object} T
- * @constructor
- * @param {T} obj
- * @returns {RippleObject<T>}
  */
-export function RippleObject(obj) {
-	if (!new.target) {
-		throw new Error("RippleObject must be called with 'new'");
+export class RippleObject {
+	/**
+	 * @param {T} obj
+	 */
+	constructor(obj) {
+		var block = safe_scope();
+		return /** @type {RippleObject<any>} */ (/** @type {unknown} */ (ripple_object(block, obj)));
 	}
-
-	var block = safe_scope();
-
-	return ripple_object(block, obj);
 }
 
 /**

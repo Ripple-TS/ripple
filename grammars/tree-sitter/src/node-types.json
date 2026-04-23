@@ -70,10 +70,6 @@
         "named": true
       },
       {
-        "type": "unbox_expression",
-        "named": true
-      },
-      {
         "type": "update_expression",
         "named": true
       },
@@ -109,6 +105,14 @@
       },
       {
         "type": "identifier",
+        "named": true
+      },
+      {
+        "type": "lazy_array_pattern",
+        "named": true
+      },
+      {
+        "type": "lazy_object_pattern",
         "named": true
       },
       {
@@ -178,6 +182,10 @@
         "named": true
       },
       {
+        "type": "jsx_fragment",
+        "named": true
+      },
+      {
         "type": "jsx_self_closing_element",
         "named": true
       },
@@ -198,19 +206,7 @@
         "named": true
       },
       {
-        "type": "reactive_array",
-        "named": true
-      },
-      {
-        "type": "reactive_object",
-        "named": true
-      },
-      {
         "type": "regex",
-        "named": true
-      },
-      {
-        "type": "ripple_namespace_identifier",
         "named": true
       },
       {
@@ -248,14 +244,6 @@
       {
         "type": "track",
         "named": false
-      },
-      {
-        "type": "ripple_map_expression",
-        "named": true
-      },
-      {
-        "type": "ripple_set_expression",
-        "named": true
       },
       {
         "type": "true",
@@ -504,6 +492,14 @@
             "named": true
           },
           {
+            "type": "lazy_array_pattern",
+            "named": true
+          },
+          {
+            "type": "lazy_object_pattern",
+            "named": true
+          },
+          {
             "type": "member_expression",
             "named": true
           },
@@ -513,10 +509,6 @@
           },
           {
             "type": "subscript_expression",
-            "named": true
-          },
-          {
-            "type": "unbox_expression",
             "named": true
           }
         ]
@@ -577,10 +569,6 @@
           },
           {
             "type": "subscript_expression",
-            "named": true
-          },
-          {
-            "type": "unbox_expression",
             "named": true
           }
         ]
@@ -886,6 +874,14 @@
             "named": true
           },
           {
+            "type": "lazy_array_pattern",
+            "named": true
+          },
+          {
+            "type": "lazy_object_pattern",
+            "named": true
+          },
+          {
             "type": "object_pattern",
             "named": true
           }
@@ -1174,6 +1170,10 @@
           "named": true
         },
         {
+          "type": "jsx_fragment",
+          "named": true
+        },
+        {
           "type": "jsx_self_closing_element",
           "named": true
         },
@@ -1453,6 +1453,14 @@
           "named": true
         },
         {
+          "type": "lazy_array_pattern",
+          "named": true
+        },
+        {
+          "type": "lazy_object_pattern",
+          "named": true
+        },
+        {
           "type": "object_pattern",
           "named": true
         }
@@ -1498,6 +1506,14 @@
         },
         {
           "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "lazy_array_pattern",
+          "named": true
+        },
+        {
+          "type": "lazy_object_pattern",
           "named": true
         },
         {
@@ -1995,6 +2011,10 @@
             "named": true
           },
           {
+            "type": "jsx_fragment",
+            "named": true
+          },
+          {
             "type": "jsx_self_closing_element",
             "named": true
           },
@@ -2023,6 +2043,11 @@
     }
   },
   {
+    "type": "jsx_closing_fragment",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "jsx_element",
     "named": true,
     "fields": {
@@ -2036,6 +2061,10 @@
           },
           {
             "type": "jsx_expression",
+            "named": true
+          },
+          {
+            "type": "jsx_fragment",
             "named": true
           },
           {
@@ -2093,10 +2122,6 @@
         {
           "type": "member_expression",
           "named": true
-        },
-        {
-          "type": "unbox_expression",
-          "named": true
         }
       ]
     }
@@ -2134,6 +2159,58 @@
           "named": true
         }
       ]
+    }
+  },
+  {
+    "type": "jsx_fragment",
+    "named": true,
+    "fields": {
+      "children": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "jsx_element",
+            "named": true
+          },
+          {
+            "type": "jsx_expression",
+            "named": true
+          },
+          {
+            "type": "jsx_fragment",
+            "named": true
+          },
+          {
+            "type": "jsx_self_closing_element",
+            "named": true
+          },
+          {
+            "type": "jsx_text",
+            "named": true
+          }
+        ]
+      },
+      "close_tag": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "jsx_closing_fragment",
+            "named": true
+          }
+        ]
+      },
+      "open_tag": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "jsx_opening_fragment",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -2185,10 +2262,6 @@
         {
           "type": "member_expression",
           "named": true
-        },
-        {
-          "type": "unbox_expression",
-          "named": true
         }
       ]
     }
@@ -2222,6 +2295,11 @@
         ]
       }
     }
+  },
+  {
+    "type": "jsx_opening_fragment",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "jsx_self_closing_element",
@@ -2277,6 +2355,36 @@
           }
         ]
       }
+    }
+  },
+  {
+    "type": "lazy_array_pattern",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "array_pattern",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "lazy_object_pattern",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "object_pattern",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -2809,52 +2917,6 @@
     }
   },
   {
-    "type": "reactive_array",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "expression",
-          "named": true
-        },
-        {
-          "type": "spread_element",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "reactive_object",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "method_definition",
-          "named": true
-        },
-        {
-          "type": "pair",
-          "named": true
-        },
-        {
-          "type": "shorthand_property_identifier",
-          "named": true
-        },
-        {
-          "type": "spread_element",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "regex",
     "named": true,
     "fields": {
@@ -2894,6 +2956,14 @@
           },
           {
             "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "lazy_array_pattern",
+            "named": true
+          },
+          {
+            "type": "lazy_object_pattern",
             "named": true
           },
           {
@@ -3322,44 +3392,6 @@
     }
   },
   {
-    "type": "ripple_map_expression",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "arguments",
-          "named": true
-        },
-        {
-          "type": "type_arguments",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "ripple_set_expression",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "arguments",
-          "named": true
-        },
-        {
-          "type": "type_arguments",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "try_statement",
     "named": true,
     "fields": {
@@ -3598,33 +3630,6 @@
     }
   },
   {
-    "type": "unbox_expression",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "identifier",
-          "named": true
-        },
-        {
-          "type": "member_expression",
-          "named": true
-        },
-        {
-          "type": "parenthesized_expression",
-          "named": true
-        },
-        {
-          "type": "subscript_expression",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "union_type",
     "named": true,
     "fields": {},
@@ -3698,6 +3703,14 @@
           },
           {
             "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "lazy_array_pattern",
+            "named": true
+          },
+          {
+            "type": "lazy_object_pattern",
             "named": true
           },
           {
@@ -3780,27 +3793,11 @@
     "named": false
   },
   {
-    "type": "#ripple.map",
+    "type": "#server",
     "named": false
   },
   {
-    "type": "#ripple.server",
-    "named": false
-  },
-  {
-    "type": "#ripple.set",
-    "named": false
-  },
-  {
-    "type": "#ripple.style",
-    "named": false
-  },
-  {
-    "type": "#ripple[",
-    "named": false
-  },
-  {
-    "type": "#ripple{",
+    "type": "#style",
     "named": false
   },
   {
@@ -4261,10 +4258,6 @@
     "named": false
   },
   {
-    "type": "ripple_namespace_identifier",
-    "named": true
-  },
-  {
     "type": "set",
     "named": false
   },
@@ -4286,6 +4279,10 @@
   },
   {
     "type": "symbol",
+    "named": false
+  },
+  {
+    "type": "text",
     "named": false
   },
   {

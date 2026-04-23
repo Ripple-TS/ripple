@@ -13,7 +13,7 @@
 	<!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
 			 Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-description -->
 	<description><![CDATA[
-        Ripple language support for IntelliJ-based IDEs. Provides TextMate-based syntax highlighting for .ripple
+	Ripple language support for IntelliJ-based IDEs. Provides TextMate-based syntax highlighting for .ripple and .tsrx
         files and integrates with the Ripple language server for diagnostics, completion, and navigation.
     ]]></description>
 
@@ -25,7 +25,7 @@
 			 Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
 	<extensions defaultExtensionNs="com.intellij">
 		<fileType name="Ripple" implementationClass="com.ripple_ts.intellij_plugin.RippleFileType" fieldName="INSTANCE"
-					 language="Ripple" extensions="ripple"/>
+					 language="Ripple" extensions="ripple;tsrx"/>
 		<lang.commenter language="Ripple" implementationClass="com.ripple_ts.intellij_plugin.RippleCommenter"/>
 		<lang.syntaxHighlighterFactory language="Ripple"
 									 implementationClass="org.jetbrains.plugins.textmate.language.syntax.highlighting.TextMateSyntaxHighlighterFactory"/>

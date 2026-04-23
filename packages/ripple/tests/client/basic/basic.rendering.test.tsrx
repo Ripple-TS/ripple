@@ -1,0 +1,294 @@
+import { describe, it, expect } from 'vitest';
+import { flushSync, track } from 'ripple';
+
+describe('basic client > rendering & text', () => {
+	it('renders static text', () => {
+		component Basic() {
+			<div>{'Hello World'}</div>
+		}
+
+		expect(container).toBeDefined();
+
+		render(Basic);
+		expect(container).toMatchSnapshot();
+	});
+
+	it('renders semi-dynamic text', () => {
+		component Basic() {
+			let message = 'Hello World';
+
+			<div>{message}</div>
+		}
+
+		render(Basic);
+
+		expect(container).toMatchSnapshot();
+	});
+
+	it('renders explicit text interpolation without creating HTML', () => {
+		component Basic() {
+			let markup = '<span>Not HTML</span>';
+
+			<div>{text markup}</div>
+		}
+
+		render(Basic);
+
+		const div = container.querySelector('div');
+
+		expect(div.textContent).toBe('<span>Not HTML</span>');
+		expect(div.querySelector('span')).toBeNull();
+	});
+
+	it('renders dynamic text', () => {
+		component Basic() {
+			let &[message] = track('Hello World');
+
+			<button
+				onClick={() => {
+					message = 'Hello Ripple';
+				}}
+			>
+				{'Change Text'}
+			</button>
+			<div>{message}</div>
+		}
+
+		render(Basic);
+
+		const button = container.querySelector('button');
+
+		button.click();
+		flushSync();
+
+		expect(container.querySelector('div').textContent).toEqual('Hello Ripple');
+	});
+
+	it('renders empty string literal', () => {
+		component Basic() {
+			<div>{''}</div>
+		}
+
+		render(Basic);
+		expect(container.querySelector('div').textContent).toEqual('');
+	});
+
+	it('renders empty template literal', () => {
+		component Basic() {
+			<div>{``}</div>
+		}
+
+		render(Basic);
+		expect(container.querySelector('div').textContent).toEqual('');
+	});
+
+	it('renders tick template literal for nested children', () => {
+		component Child({ level, children }: { level: number; children: any }) {
+			if (level == 1) {
+				<h1>{children}</h1>
+			}
+			if (level == 2) {
+				<h2>{children}</h2>
+			}
+			if (level == 3) {
+				<h3>{children}</h3>
+			}
+		}
+
+		component App() {
+			<Child level={1}>{`Heading 1`}</Child>
+		}
+
+		render(App);
+		expect(container.querySelector('h1').textContent).toEqual('Heading 1');
+	});
+
+	it('renders simple JS expression logic correctly', () => {
+		component Example() {
+			let test: Record<number, string> = {};
+			let counter = 0;
+			test[counter++] = 'Test';
+
+			<div>{JSON.stringify(test)}</div>
+			<div>{JSON.stringify(counter)}</div>
+		}
+		render(Example);
+
+		expect(container).toMatchSnapshot();
+	});
+
+	it('renders with mixed static and dynamic content', () => {
+		component Basic() {
+			let &[name] = track('World');
+			let &[count] = track(0);
+			const staticMessage = 'Welcome to Ripple!';
+
+			<div class="mixed-content">
+				<h1>{staticMessage}</h1>
+				<p class="greeting">{'Hello, ' + name + '!'}</p>
+				<p class="notifications">{'You have ' + count + ' notifications'}</p>
+				<button
+					onClick={() => {
+						count++;
+					}}
+				>
+					{'Add Notification'}
+				</button>
+				<button
+					onClick={() => {
+						name = name === 'World' ? 'User' : 'World';
+					}}
+				>
+					{'Toggle Name'}
+				</button>
+			</div>
+		}
+
+		render(Basic);
+
+		const heading = container.querySelector('h1');
+		const greetingP = container.querySelector('.greeting');
+		const notificationsP = container.querySelector('.notifications');
+		const buttons = container.querySelectorAll('button');
+
+		expect(heading.textContent).toBe('Welcome to Ripple!');
+		expect(greetingP.textContent).toBe('Hello, World!');
+		expect(notificationsP.textContent).toBe('You have 0 notifications');
+
+		buttons[0].click();
+		flushSync();
+		expect(notificationsP.textContent).toBe('You have 1 notifications');
+
+		buttons[1].click();
+		flushSync();
+		expect(greetingP.textContent).toBe('Hello, User!');
+	});
+
+	it('basic operations', () => {
+		component App() {
+			let &[count] = track(0);
+			const a = count++;
+			const b = ++count;
+			<div>{a}</div>
+			<div>{b}</div>
+			<div>{5}</div>
+			<div>{count}</div>
+		}
+
+		render(App);
+		expect(container).toMatchSnapshot();
+	});
+
+	it('renders with conditional rendering using if statements', () => {
+		component Basic() {
+			let &[showContent] = track(false);
+			let &[userRole] = track('guest');
+
+			<button
+				onClick={() => {
+					showContent = !showContent;
+				}}
+			>
+				{'Toggle Content'}
+			</button>
+			<button
+				onClick={() => {
+					userRole = userRole === 'guest' ? 'admin' : 'guest';
+				}}
+			>
+				{'Toggle Role'}
+			</button>
+
+			<div class="content">
+				if (showContent) {
+					if (userRole === 'admin') {
+						<div class="admin-content">{'Admin content'}</div>
+					} else {
+						<div class="user-content">{'User content'}</div>
+					}
+				} else {
+					<div class="no-content">{'No content'}</div>
+				}
+			</div>
+		}
+
+		render(Basic);
+
+		const buttons = container.querySelectorAll('button');
+		const contentDiv = container.querySelector('.content');
+
+		expect(contentDiv.querySelector('.no-content')).toBeTruthy();
+		expect(contentDiv.querySelector('.admin-content')).toBeFalsy();
+		expect(contentDiv.querySelector('.user-content')).toBeFalsy();
+
+		buttons[0].click();
+		flushSync();
+
+		expect(contentDiv.querySelector('.no-content')).toBeFalsy();
+		expect(contentDiv.querySelector('.user-content')).toBeTruthy();
+		expect(contentDiv.querySelector('.admin-content')).toBeFalsy();
+
+		buttons[1].click();
+		flushSync();
+
+		expect(contentDiv.querySelector('.no-content')).toBeFalsy();
+		expect(contentDiv.querySelector('.user-content')).toBeFalsy();
+		expect(contentDiv.querySelector('.admin-content')).toBeTruthy();
+	});
+
+	it('should handle lexical scopes correctly', () => {
+		component App() {
+			<section>
+				let sectionData = 'Nested scope variable';
+
+				{sectionData}
+			</section>
+		}
+
+		render(App);
+		expect(container).toMatchSnapshot();
+	});
+
+	it('should handle consecutive text nodes without duplication', () => {
+		component App() {
+			const Something = conditional('a');
+
+			<Something />
+
+			function conditional(item: 'a') {
+				let hello = 'Hello';
+				const obj = {
+					a: component() {
+						<div>
+							{'a'}
+							{' '}
+							{hello}
+						</div>
+					},
+				};
+
+				return obj[item];
+			}
+		}
+
+		render(App);
+		const div = container.querySelector('div');
+		expect(div.textContent).toEqual('a Hello');
+	});
+
+	it('should handle multiple consecutive text expressions', () => {
+		component App() {
+			let name = 'World';
+			<div>
+				{'Hello'}
+				{' '}
+				{name}
+				{'!'}
+			</div>
+		}
+
+		render(App);
+		const div = container.querySelector('div');
+		expect(div.textContent).toEqual('Hello World!');
+	});
+});

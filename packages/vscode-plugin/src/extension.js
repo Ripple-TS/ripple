@@ -1,7 +1,7 @@
 /**
  * Ripple VSCode Extension
  *
- * This extension provides language support for Ripple files (.ripple) by:
+ * This extension provides language support for Ripple files (.tsrx) by:
  * 1. Starting a Volar-based language server (language-server) for Ripple syntax and semantics
  * 2. Patching the built-in TypeScript extension to recognize Ripple files
  * 3. Setting VSCode context variables to expose TypeScript commands for Ripple files
@@ -13,7 +13,7 @@
  * It uses typescript-plugin internally to transform Ripple syntax into TypeScript virtual
  * files for type checking and IntelliSense.
  *
- * typescript-plugin: A Volar-based TypeScript plugin that transforms .ripple files into
+ * typescript-plugin: A Volar-based TypeScript plugin that transforms Ripple component files into
  * TypeScript virtual code. This plugin enables TypeScript's language service to understand Ripple
  * syntax. It's already loaded and used by language-server, so we don't need to configure
  * it separately.
@@ -43,17 +43,30 @@
  *
  * Example flow:
  * - package.json declares: Show "typescript.goToSourceDefinition" when "resourceLangId == ripple"
- * - This code sets: resourceLangId = 'ripple' when editing a .ripple file
+ * - This code sets: resourceLangId = 'ripple' when editing a supported Ripple component file
  * - Result: The TypeScript command appears in the context menu for Ripple files
  */
 
-const vscode = require('vscode');
-const path = require('path');
-const fs = require('fs');
-const protocol = require('@volar/language-server/protocol');
-/** @type {typeof import('vscode-languageclient/node')} */
-const lsp = require('vscode-languageclient/node');
-const { activateAutoInsertion, createLabsInfo } = require('@volar/vscode');
+import vscode from 'vscode';
+import path from 'node:path';
+import fs from 'node:fs';
+import protocol from '@volar/language-server/protocol';
+import * as lsp from 'vscode-languageclient/node';
+import { activateAutoInsertion, createLabsInfo } from '@volar/vscode';
+const RIPPLE_FILE_SELECTORS = ['**/*.tsrx'];
+const RIPPLE_FILE_EXCLUDE_GLOB = '**/{node_modules,dist,build,.git}/**';
+const TSGO_CONFIGURATION_SECTIONS = ['js/ts', 'typescript'];
+const TSGO_WARNING_STATE_KEY = 'ripple.hasWarnedLocalTsgoUnsupported';
+const TSGO_UNSUPPORTED_MESSAGE =
+	'TypeScript Native Preview (TS Go) is not supported for .tsrx modules. Disable it in local workspace settings to restore TSRX language features.';
+
+/**
+ * @param {string} file_path
+ * @returns {boolean}
+ */
+function is_ripple_file_path(file_path) {
+	return file_path.endsWith('.tsrx');
+}
 
 /** @type {import('vscode-languageclient/node').LanguageClient | undefined} */
 let client;
@@ -61,8 +74,19 @@ let client;
 /**
  * @param {import('vscode').ExtensionContext} context
  */
-async function activate(context) {
+export async function activate(context) {
 	console.log('Ripple extension starting...');
+
+	await warn_about_local_tsgo_usage(context);
+	context.subscriptions.push(
+		vscode.workspace.onDidChangeConfiguration(async (event) => {
+			if (!is_tsgo_configuration_change(event)) {
+				return;
+			}
+
+			await warn_about_local_tsgo_usage(context);
+		}),
+	);
 
 	const patchResult = await patchTypeScriptExtension();
 	if (!patchResult.success) {
@@ -180,7 +204,7 @@ async function activate(context) {
 		context.subscriptions.push(activateAutoInsertion([{ language: 'ripple' }], client));
 		console.log('[Ripple] Auto-insertion activated');
 
-		// Configure Prettier to handle .ripple files
+		// Configure Prettier to handle .tsrx files
 		await configurePrettier();
 
 		// Register custom formatter
@@ -226,6 +250,83 @@ async function activate(context) {
 }
 
 /**
+ * @param {import('vscode').ExtensionContext} context
+ * @returns {Promise<void>}
+ */
+async function warn_about_local_tsgo_usage(context) {
+	if (!(await workspace_has_ripple_files())) {
+		await context.workspaceState.update(TSGO_WARNING_STATE_KEY, false);
+		return;
+	}
+
+	const local_tsgo_sections = get_local_tsgo_sections();
+
+	if (local_tsgo_sections.length === 0) {
+		await context.workspaceState.update(TSGO_WARNING_STATE_KEY, false);
+		return;
+	}
+
+	if (context.workspaceState.get(TSGO_WARNING_STATE_KEY, false)) {
+		return;
+	}
+
+	await context.workspaceState.update(TSGO_WARNING_STATE_KEY, true);
+
+	const open_settings_action = 'Open Settings';
+	const dismiss_action = 'Dismiss';
+	const selection = await vscode.window.showWarningMessage(
+		TSGO_UNSUPPORTED_MESSAGE,
+		open_settings_action,
+		dismiss_action,
+	);
+
+	if (selection === open_settings_action) {
+		await vscode.commands.executeCommand(
+			'workbench.action.openSettings',
+			'@id:js/ts.experimental.useTsgo @id:typescript.experimental.useTsgo',
+		);
+	}
+	void local_tsgo_sections;
+}
+
+/**
+ * @returns {Promise<boolean>}
+ */
+async function workspace_has_ripple_files() {
+	if (!vscode.workspace.workspaceFolders?.length) {
+		return false;
+	}
+
+	const ripple_files = await vscode.workspace.findFiles(
+		RIPPLE_FILE_SELECTORS[0],
+		RIPPLE_FILE_EXCLUDE_GLOB,
+		1,
+	);
+
+	return ripple_files.length > 0;
+}
+
+/**
+ * @returns {string[]}
+ */
+function get_local_tsgo_sections() {
+	return TSGO_CONFIGURATION_SECTIONS.filter((section) => {
+		const inspected = vscode.workspace.getConfiguration(section).inspect('experimental.useTsgo');
+		return inspected?.workspaceValue === true || inspected?.workspaceFolderValue === true;
+	});
+}
+
+/**
+ * @param {import('vscode').ConfigurationChangeEvent} event
+ * @returns {boolean}
+ */
+function is_tsgo_configuration_change(event) {
+	return TSGO_CONFIGURATION_SECTIONS.some((section) =>
+		event.affectsConfiguration(`${section}.experimental.useTsgo`),
+	);
+}
+
+/**
  * Sets up dynamic context variables that control when TypeScript commands appear in menus.
  *
  * Context Variables vs Menu Contributions:
@@ -249,7 +350,7 @@ async function activate(context) {
  * - supportedCodeAction: Space-separated list of available code action kinds
  *
  * Why Dynamic?
- * These contexts must update as the user switches files. A context set for a .ripple file
+ * These contexts must update as the user switches files. A context set for a .tsrx file
  * should not persist when switching to a .txt file, otherwise TypeScript commands would
  * inappropriately appear for non-Ripple files.
  *
@@ -337,12 +438,10 @@ function addCustomCommands(context) {
 				console.log('[Ripple] Getting definitions at position:', position);
 
 				// Use VS Code's definition provider API
-				const definitions = /** @type {any} */ (
-					await vscode.commands.executeCommand(
-						'vscode.executeDefinitionProvider',
-						editor.document.uri,
-						position,
-					)
+				const definitions = await vscode.commands.executeCommand(
+					'vscode.executeDefinitionProvider',
+					editor.document.uri,
+					position,
 				);
 
 				console.log('[Ripple] Definitions result:', definitions);
@@ -352,7 +451,7 @@ function addCustomCommands(context) {
 					return;
 				}
 
-				// Filter for .ripple files (prefer source over .d.ts)
+				// Filter for .tsrx files (prefer source over .d.ts)
 				// Definition objects can have either `uri` or `targetUri`
 				const rippleDefinition = definitions.find((d) => {
 					const uri = d?.uri || d?.targetUri;
@@ -360,7 +459,7 @@ function addCustomCommands(context) {
 						console.warn('[Ripple] Definition has no uri:', d);
 						return false;
 					}
-					const isRipple = uri.path.endsWith('.ripple');
+					const isRipple = is_ripple_file_path(uri.path);
 					console.log('[Ripple] Checking definition:', uri.path, 'isRipple:', isRipple);
 					return isRipple;
 				});
@@ -373,11 +472,11 @@ function addCustomCommands(context) {
 						selection: range,
 					});
 				} else {
-					// If no .ripple file found, just go to the first definition (might be .d.ts)
+					// If no .tsrx file found, just go to the first definition (might be .d.ts)
 					const firstDef = definitions[0];
 					const uri = firstDef?.uri || firstDef?.targetUri;
 					const range = firstDef?.range || firstDef?.targetRange;
-					console.log('[Ripple] No .ripple definition, using first result:', uri?.path);
+					console.log('[Ripple] No .tsrx definition, using first result:', uri?.path);
 					if (uri) {
 						await vscode.window.showTextDocument(uri, {
 							selection: range,
@@ -400,11 +499,11 @@ async function configurePrettier() {
 		// Tell Prettier extension to enable formatting for ripple language
 		await config.update(
 			'prettier.documentSelectors',
-			['**/*.ripple'],
+			RIPPLE_FILE_SELECTORS,
 			vscode.ConfigurationTarget.Global,
 		);
 
-		// Set Prettier as default formatter for .ripple files
+		// Set Prettier as default formatter for .tsrx files
 		await config.update(
 			'[ripple]',
 			{
@@ -435,7 +534,7 @@ function registerFormatter() {
 				} catch (error) {
 					console.error('Ripple formatting error:', error);
 					vscode.window.showErrorMessage(
-						'Failed to format Ripple file. Ensure Prettier and @ripple-ts/prettier-plugin are installed.',
+						'Failed to format Ripple file. Ensure Prettier and @tsrx/prettier-plugin are installed.',
 					);
 					return [];
 				}
@@ -444,7 +543,7 @@ function registerFormatter() {
 	);
 }
 
-async function deactivate() {
+export async function deactivate() {
 	console.log('Deactivating Ripple extension...');
 	if (client) {
 		try {
@@ -506,15 +605,13 @@ async function patchTypeScriptExtension() {
 		return { success: false, reason: 'alreadyActive' };
 	}
 
-	const fs = require('node:fs');
 	const originalReadFileSync = fs.readFileSync;
-	const extensionJsPath = require.resolve('./dist/extension.js', {
-		paths: [tsExtension.extensionPath],
-	});
+	const extensionJsPath = path.join(tsExtension.extensionPath, 'dist', 'extension.js');
 
 	/**
 	 * @param {import('node:fs').PathOrFileDescriptor} path
 	 * @param {(import('node:fs').ObjectEncodingOptions & { flag?: string }) | BufferEncoding | null} [options]
+	 * @returns {string | Buffer}
 	 */
 	function patchedReadFileSync(path, options) {
 		const hasOptions = typeof options !== 'undefined' && options !== null;
@@ -550,7 +647,7 @@ async function patchTypeScriptExtension() {
 
 	try {
 		console.log('[Ripple] Installing fs.readFileSync hook and activating TypeScript extension...');
-		fs.readFileSync = /** @type {any} */ (patchedReadFileSync);
+		fs.readFileSync = /** @type {typeof fs.readFileSync} */ (patchedReadFileSync);
 		await tsExtension.activate();
 		console.log('[Ripple] TypeScript extension activated');
 	} catch (error) {
@@ -562,8 +659,3 @@ async function patchTypeScriptExtension() {
 
 	return { success: true, reason: 'patched' };
 }
-
-module.exports = {
-	activate,
-	deactivate,
-};

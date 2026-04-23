@@ -1,0 +1,109 @@
+import type { PropsWithExtras } from 'ripple';
+import { describe, it, expect } from 'vitest';
+import { RippleArray, createRefKey, flushSync, track } from 'ripple';
+
+describe('refs', () => {
+	it('capture a <div>', () => {
+		let div: HTMLDivElement | undefined;
+
+		component Component() {
+			<div
+				{ref (node: HTMLDivElement) => {
+					div = node;
+				}}
+			>
+				{'Hello World'}
+			</div>
+		}
+		render(Component);
+		flushSync();
+		expect(div?.textContent).toBe('Hello World');
+	});
+
+	it('works with spreading from composite component', () => {
+		type Child = typeof Child;
+		let _node: Child | undefined;
+
+		component Component() {
+			let items = RippleArray.from([1, 2, 3]);
+
+			function componentRef(node: Child) {
+				_node = node;
+			}
+
+			<Child {ref componentRef} {items} />
+		}
+
+		component Child(props: { items: RippleArray<number> }) {
+			const { items, ...rest } = props;
+			<pre {...rest}>{JSON.stringify(items)}</pre>
+			<pre>{items.length}</pre>
+		}
+
+		render(Component);
+		flushSync();
+
+		expect(_node).toBe(document.querySelector('pre'));
+	});
+
+	it('should handle spreading into composite refs', () => {
+		let logs: string[] = [];
+
+		component App() {
+			let &[value] = track('test');
+
+			function inputRef(node: HTMLInputElement) {
+				logs.push('ref called');
+			}
+
+			const props = {
+				id: 'example',
+				value,
+				[createRefKey()]: inputRef,
+			};
+
+			<input type="text" {...props} />
+
+			<Input {...props} />
+		}
+
+		component Input({ id, value, ...rest }: PropsWithExtras<{ id: string; value: string }>) {
+			<input type="text" {id} {value} {...rest} />
+		}
+
+		render(App);
+		flushSync();
+
+		expect(logs).toEqual(['ref called', 'ref called']);
+	});
+
+	it('should handle spreading props with a static ref', () => {
+		let logs: string[] = [];
+
+		component App() {
+			let &[value] = track('test');
+
+			function inputRef(node: HTMLInputElement) {
+				logs.push('ref called');
+			}
+
+			const props = {
+				id: 'example',
+				value,
+			};
+
+			<input type="text" {ref inputRef} {...props} />
+
+			<Input {ref inputRef} {...props} />
+		}
+
+		component Input({ id, value, ...rest }: PropsWithExtras<{ id: string; value: string }>) {
+			<input type="text" {id} {value} {...rest} />
+		}
+
+		render(App);
+		flushSync();
+
+		expect(logs).toEqual(['ref called', 'ref called']);
+	});
+});

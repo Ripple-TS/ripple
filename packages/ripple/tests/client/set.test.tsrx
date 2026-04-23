@@ -1,0 +1,161 @@
+import { RippleSet, flushSync, track } from 'ripple';
+
+describe('RippleSet', () => {
+	it('handles add and delete operations', () => {
+		component SetTest() {
+			let items = new RippleSet([1, 2, 3]);
+
+			<button onClick={() => items.add(4)}>{'add'}</button>
+			<button onClick={() => items.delete(2)}>{'delete'}</button>
+			<Child {items} />
+		}
+
+		component Child({ items }: { items: RippleSet<number> }) {
+			<pre>{JSON.stringify(items)}</pre>
+			<pre>{items.size}</pre>
+		}
+
+		render(SetTest);
+
+		const addButton = container.querySelectorAll('button')[0];
+		const deleteButton = container.querySelectorAll('button')[1];
+
+		addButton.click();
+		flushSync();
+
+		expect(container.querySelectorAll('pre')[0].textContent).toBe('[1,2,3,4]');
+		expect(container.querySelectorAll('pre')[1].textContent).toBe('4');
+
+		deleteButton.click();
+		flushSync();
+
+		expect(container.querySelectorAll('pre')[0].textContent).toBe('[1,3,4]');
+		expect(container.querySelectorAll('pre')[1].textContent).toBe('3');
+	});
+
+	it('handles clear operation', () => {
+		component SetTest() {
+			let items = new RippleSet([1, 2, 3]);
+
+			<button onClick={() => items.clear()}>{'clear'}</button>
+			<Child {items} />
+		}
+
+		component Child({ items }: { items: RippleSet<number> }) {
+			<pre>{JSON.stringify(items)}</pre>
+			<pre>{items.size}</pre>
+		}
+
+		render(SetTest);
+
+		const clearButton = container.querySelector('button');
+
+		clearButton.click();
+		flushSync();
+
+		expect(container.querySelectorAll('pre')[0].textContent).toBe('[]');
+		expect(container.querySelectorAll('pre')[1].textContent).toBe('0');
+	});
+
+	it('handles has operation', () => {
+		component SetTest() {
+			let items = new RippleSet([1, 2, 3]);
+			let &[hasValue] = track(() => items.has(2));
+
+			<button onClick={() => items.delete(2)}>{'delete'}</button>
+			<pre>{hasValue}</pre>
+		}
+
+		render(SetTest);
+
+		expect(container.querySelectorAll('pre')[0].textContent).toBe('true');
+
+		const deleteButton = container.querySelectorAll('button')[0];
+
+		deleteButton.click();
+		flushSync();
+
+		expect(container.querySelectorAll('pre')[0].textContent).toBe('false');
+	});
+
+	it('creates empty RippleSet using RippleSet() shorthand syntax', () => {
+		component SetTest() {
+			let items = RippleSet();
+
+			<button onClick={() => items.add(1)}>{'add'}</button>
+			<pre>{items.size}</pre>
+		}
+
+		render(SetTest);
+
+		expect(container.querySelector('pre').textContent).toBe('0');
+
+		const addButton = container.querySelector('button');
+		addButton.click();
+		flushSync();
+
+		expect(container.querySelector('pre').textContent).toBe('1');
+	});
+
+	it('creates RippleSet with initial values using RippleSet() shorthand syntax', () => {
+		component SetTest() {
+			let items = RippleSet([1, 2, 3, 4]);
+			let &[hasValue] = track(() => items.has(3));
+
+			<button onClick={() => items.delete(3)}>{'delete'}</button>
+			<pre>{items.size}</pre>
+			<pre>{hasValue}</pre>
+		}
+
+		render(SetTest);
+
+		expect(container.querySelectorAll('pre')[0].textContent).toBe('4');
+		expect(container.querySelectorAll('pre')[1].textContent).toBe('true');
+
+		const deleteButton = container.querySelector('button');
+		deleteButton.click();
+		flushSync();
+
+		expect(container.querySelectorAll('pre')[0].textContent).toBe('3');
+		expect(container.querySelectorAll('pre')[1].textContent).toBe('false');
+	});
+
+	it('handles all operations with RippleSet() shorthand syntax', () => {
+		component SetTest() {
+			let items = RippleSet([10, 20, 30]);
+			let &[values] = track(() => Array.from(items.values()));
+
+			<button onClick={() => items.add(40)}>{'add'}</button>
+			<button onClick={() => items.delete(20)}>{'delete'}</button>
+			<button onClick={() => items.clear()}>{'clear'}</button>
+
+			<pre>{JSON.stringify(values)}</pre>
+			<pre>{items.size}</pre>
+		}
+
+		render(SetTest);
+
+		const [addButton, deleteButton, clearButton] = container.querySelectorAll('button');
+
+		expect(container.querySelectorAll('pre')[0].textContent).toBe('[10,20,30]');
+		expect(container.querySelectorAll('pre')[1].textContent).toBe('3');
+
+		addButton.click();
+		flushSync();
+
+		expect(container.querySelectorAll('pre')[0].textContent).toBe('[10,20,30,40]');
+		expect(container.querySelectorAll('pre')[1].textContent).toBe('4');
+
+		deleteButton.click();
+		flushSync();
+
+		expect(container.querySelectorAll('pre')[0].textContent).toBe('[10,30,40]');
+		expect(container.querySelectorAll('pre')[1].textContent).toBe('3');
+
+		clearButton.click();
+		flushSync();
+
+		expect(container.querySelectorAll('pre')[0].textContent).toBe('[]');
+		expect(container.querySelectorAll('pre')[1].textContent).toBe('0');
+	});
+});

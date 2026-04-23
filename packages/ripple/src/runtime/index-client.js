@@ -11,6 +11,7 @@ import { active_block } from './internal/client/runtime.js';
 import { create_anchor } from './internal/client/utils.js';
 import { remove_ssr_css } from './internal/client/css.js';
 import {
+	clear_track_hash_reference,
 	hydrate_next,
 	hydrate_node,
 	hydrating,
@@ -21,16 +22,31 @@ import { COMMENT_NODE, HYDRATION_START } from '../constants.js';
 
 // Re-export JSX runtime functions for jsxImportSource: "ripple"
 export { jsx, jsxs, Fragment } from '../jsx-runtime.js';
+export {
+	UNINITIALIZED,
+	DERIVED_UPDATED,
+	SUSPENSE_PENDING,
+	SUSPENSE_REJECTED,
+} from './internal/client/constants.js';
+
+/**
+ * @returns {CompatOptions | undefined}
+ */
+function get_default_compat() {
+	return /** @type {typeof globalThis & { __RIPPLE_COMPAT__?: CompatOptions }} */ (globalThis)
+		.__RIPPLE_COMPAT__;
+}
 
 /**
  * @param {(anchor: Node, props: Record<string, any>, active_block: Block | null) => void} component
- * @param {{ props?: Record<string, any>, target: HTMLElement, compat?: CompatOptions }} options
+ * @param {{ props?: Record<string, any>, target: HTMLElement }} options
  * @returns {() => void}
  */
 export function mount(component, options) {
 	init_operations();
 	remove_ssr_css();
 
+	const compat = get_default_compat();
 	const props = options.props || {};
 	const target = options.target;
 	const anchor = create_anchor();
@@ -46,7 +62,7 @@ export function mount(component, options) {
 
 	const _root = root(() => {
 		component(anchor, props, active_block);
-	}, options.compat);
+	}, compat);
 
 	return () => {
 		cleanup_events();
@@ -56,13 +72,14 @@ export function mount(component, options) {
 
 /**
  * @param {(anchor: Node, props: Record<string, any>, active_block: Block | null) => void} component
- * @param {{ props?: Record<string, any>, target: HTMLElement, compat?: CompatOptions }} options
+ * @param {{ props?: Record<string, any>, target: HTMLElement }} options
  * @returns {() => void}
  */
 export function hydrate(component, options) {
 	init_operations();
 	remove_ssr_css();
 
+	const compat = get_default_compat();
 	const props = options.props || {};
 	const target = options.target;
 	const was_hydrating = hydrating;
@@ -86,12 +103,15 @@ export function hydrate(component, options) {
 
 		_root = root(() => {
 			component(/** @type {Comment} */ (anchor), props, active_block);
-		}, options.compat);
+		}, compat);
 	} catch (e) {
 		throw e;
 	} finally {
 		set_hydrating(was_hydrating);
 		set_hydrate_node(previous_hydrate_node, true);
+		if (!was_hydrating) {
+			clear_track_hash_reference();
+		}
 	}
 
 	return () => {
@@ -105,9 +125,11 @@ export { Context } from './internal/client/context.js';
 export {
 	flush_sync as flushSync,
 	track,
-	track_split as trackSplit,
+	track_async as trackAsync,
 	untrack,
 	tick,
+	is_tracked_pending as trackPending,
+	peek_tracked as peek,
 } from './internal/client/runtime.js';
 
 export { RippleArray } from './array.js';
@@ -155,20 +177,3 @@ export {
 	bindOffsetWidth,
 	bindOffsetHeight,
 } from './internal/client/bindings.js';
-
-import { RippleMap } from './map.js';
-import { RippleSet } from './set.js';
-import { RippleArray } from './array.js';
-import { RippleObject } from './object.js';
-import { Context } from './internal/client/context.js';
-import { RippleURL } from './url.js';
-import { RippleURLSearchParams } from './url-search-params.js';
-import { RippleDate } from './date.js';
-import { MediaQuery } from './media-query.js';
-import {
-	track,
-	track_split as trackSplit,
-	untrack,
-	ref_prop as createRefKey,
-} from './internal/client/runtime.js';
-import { user_effect as effect } from './internal/client/blocks.js';

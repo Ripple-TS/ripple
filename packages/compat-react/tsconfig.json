@@ -17,12 +17,6 @@
     "allowJs": true,
     "checkJs": true
   },
-  "include": [
-    "./*.js",
-    "./src/",
-    "./tests/**/*.test.ripple",
-    "./tests/**/*.d.ts",
-    "./tests/**/*.js"
-  ],
+  "include": ["./*.js", "./src/", "./tests/**/*.test.tsrx", "./tests/**/*.d.ts", "./tests/**/*.js"],
   "exclude": ["node_modules", "dist"]
 }

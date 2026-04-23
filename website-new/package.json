@@ -1,6 +1,6 @@
 {
   "name": "ripple-website",
-  "version": "0.1.4",
+  "version": "0.1.33",
   "description": "",
   "private": true,
   "type": "module",
@@ -20,7 +20,7 @@
     "shiki": "catalog:default"
   },
   "devDependencies": {
-    "@ripple-ts/typescript-plugin": "workspace:*",
+    "@tsrx/typescript-plugin": "workspace:*",
     "@ripple-ts/vite-plugin": "workspace:*",
     "ripple": "workspace:*",
     "typescript": "catalog:default",

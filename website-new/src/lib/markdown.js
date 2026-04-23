@@ -104,14 +104,15 @@ function parse_frontmatter(content) {
  * @returns {string}
  */
 function process_containers(content) {
-	// Match ::: type Title\n...\n:::
+	// Match ::: type Title\n...\n::: and tolerate inline closers left by generic markdown reflow.
 	return content.replace(
-		/^:::\s*(info|tip|warning|danger|details)\s*(.*?)\n([\s\S]*?)^:::/gm,
+		/^:::\s*(info|tip|warning|danger|details)\s*(.*?)\n([\s\S]*?)(?:\n:::[ \t]*(?=\n|$)|\s+:::[ \t]*(?=\n|$))/gm,
 		(_, type, title, body) => {
 			const raw_title = title.trim();
 			const escaped_title = escape_html(raw_title);
 			const title_html = escaped_title ? `<p class="custom-block-title">${escaped_title}</p>` : '';
-			return `<div class="${type} custom-block">${title_html}\n${body}</div>`;
+			const body_content = body.trimEnd();
+			return `<div class="${type} custom-block">${title_html}${body_content ? `\n${body_content}` : ''}</div>`;
 		},
 	);
 }

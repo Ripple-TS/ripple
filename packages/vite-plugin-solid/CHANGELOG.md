@@ -1,0 +1,102 @@
+# @tsrx/vite-plugin-solid
+
+## 0.0.11
+
+### Patch Changes
+
+- Updated dependencies
+  [[`7529e1f`](https://github.com/Ripple-TS/ripple/commit/7529e1fe3f0870319bd3399501fd2eb43c516065)]:
+  - @tsrx/solid@0.0.11
+
+## 0.0.10
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/solid@0.0.10
+
+## 0.0.9
+
+### Patch Changes
+
+- Updated dependencies
+  [[`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a),
+  [`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a)]:
+  - @tsrx/solid@0.0.9
+
+## 0.0.8
+
+### Patch Changes
+
+- Updated dependencies
+  [[`e4b5555`](https://github.com/Ripple-TS/ripple/commit/e4b5555fb5b1651a2bf1bf232565c7e0e40213b8),
+  [`e4b5555`](https://github.com/Ripple-TS/ripple/commit/e4b5555fb5b1651a2bf1bf232565c7e0e40213b8)]:
+  - @tsrx/solid@0.0.8
+
+## 0.0.7
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/solid@0.0.7
+
+## 0.0.6
+
+### Patch Changes
+
+- Updated dependencies
+  [[`1856b0f`](https://github.com/Ripple-TS/ripple/commit/1856b0f2df681b501253ebb8d8314b84fceb822b)]:
+  - @tsrx/solid@0.0.6
+
+## 0.0.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/solid@0.0.5
+
+## 0.0.4
+
+### Patch Changes
+
+- Updated dependencies
+  [[`bfe6fd3`](https://github.com/Ripple-TS/ripple/commit/bfe6fd30155ce2c308a624744ade8a87c15858d7)]:
+  - @tsrx/solid@0.0.4
+
+## 0.0.3
+
+### Patch Changes
+
+- Updated dependencies
+  [[`ad99739`](https://github.com/Ripple-TS/ripple/commit/ad99739f65202850ff0013515121cfd3a1758b82)]:
+  - @tsrx/solid@0.0.3
+
+## 0.0.2
+
+### Patch Changes
+
+- [#885](https://github.com/Ripple-TS/ripple/pull/885)
+  [`34d64e5`](https://github.com/Ripple-TS/ripple/commit/34d64e5028aee91a22a1cd1d8490c1c64105a7cd)
+  Thanks [@trueadm](https://github.com/trueadm)! - Target Solid 2.0 beta. The
+  Solid transform now emits `<Errored>` / `<Loading>` instead of `<ErrorBoundary>`
+  / `<Suspense>` (renamed in Solid 2.0 core). The Vite plugin re-anchors virtual
+  `.tsrx.tsx` ids when the host bundler strips the workspace root (e.g. Vitest
+  test entries). A new `tsrx-solid-runtime` Vitest project runs Solid components
+  end-to-end in jsdom, mirroring the existing React runtime test matrix.
+
+- [#885](https://github.com/Ripple-TS/ripple/pull/885)
+  [`34d64e5`](https://github.com/Ripple-TS/ripple/commit/34d64e5028aee91a22a1cd1d8490c1c64105a7cd)
+  Thanks [@trueadm](https://github.com/trueadm)! - Honor the `include` option on
+  the Vite plugin. Previously it was typed and documented on `TsrxSolidOptions`
+  but never read — the plugin always matched files via a hardcoded `.tsrx`
+  extension check, so passing `{ include: /pattern/ }` had no effect. `resolveId`,
+  the virtual-id detection and `handleHotUpdate` now all route through the
+  user-supplied regex (or `/\.tsrx$/` when none is provided), so extending or
+  narrowing the set of compiled sources works as advertised.
+- Updated dependencies
+  [[`34d64e5`](https://github.com/Ripple-TS/ripple/commit/34d64e5028aee91a22a1cd1d8490c1c64105a7cd),
+  [`34d64e5`](https://github.com/Ripple-TS/ripple/commit/34d64e5028aee91a22a1cd1d8490c1c64105a7cd),
+  [`34d64e5`](https://github.com/Ripple-TS/ripple/commit/34d64e5028aee91a22a1cd1d8490c1c64105a7cd),
+  [`34d64e5`](https://github.com/Ripple-TS/ripple/commit/34d64e5028aee91a22a1cd1d8490c1c64105a7cd),
+  [`34d64e5`](https://github.com/Ripple-TS/ripple/commit/34d64e5028aee91a22a1cd1d8490c1c64105a7cd)]:
+  - @tsrx/solid@0.0.2

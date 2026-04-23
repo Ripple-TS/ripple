@@ -1,16 +1,15 @@
 /** @import { TextDocument } from 'vscode-languageserver-textdocument' */
 /** @import { LanguageServiceContext, Mapper, SourceScript } from '@volar/language-server' */
-/** @import {RippleVirtualCode} from '@ripple-ts/typescript-plugin/src/language.js' */
-// @ts-expect-error: ESM type import is fine
-/** @import {is_identifier_obfuscated, deobfuscate_identifier, IDENTIFIER_OBFUSCATION_PREFIX} from 'ripple/compiler/internal/identifier/utils' */
+/** @import {TSRXVirtualCodeInstance} from '@tsrx/typescript-plugin/src/language.js'; */
+/** @import { isIdentifierObfuscated, deobfuscateIdentifier, IDENTIFIER_OBFUSCATION_PREFIX } from '@tsrx/core' */
 
-const { URI } = require('vscode-uri');
-const {
+import { URI } from 'vscode-uri';
+import {
 	createLogging,
 	getWordFromPosition,
 	charAllowedWordRegex,
 	DEBUG,
-} = require('@ripple-ts/typescript-plugin/src/utils.js');
+} from '@tsrx/typescript-plugin/src/utils.js';
 
 const IMPORT_EXPORT_REGEX = {
 	import: {
@@ -24,21 +23,23 @@ const IMPORT_EXPORT_REGEX = {
 	from: /from\s*['"][^'"]*['"]\s*;?/,
 };
 
-/** @type {is_identifier_obfuscated}  */
+export const RIPPLE_EXTENSIONS = ['.tsrx'];
+
+/** @type {typeof isIdentifierObfuscated} */
 let is_identifier_obfuscated;
-/** @type {deobfuscate_identifier} */
+/** @type {typeof deobfuscateIdentifier} */
 let deobfuscate_identifier;
-/** @type {IDENTIFIER_OBFUSCATION_PREFIX} */
-let IDENTIFIER_OBFUSCATION_PREFIX;
+/** @type {typeof IDENTIFIER_OBFUSCATION_PREFIX} */
+let identifier_obfuscation_prefix;
 /** @type {RegExp} */
 let obfuscated_identifier_regex;
 
-import('ripple/compiler/internal/identifier/utils').then((imports) => {
-	is_identifier_obfuscated = imports.is_identifier_obfuscated;
-	deobfuscate_identifier = imports.deobfuscate_identifier;
-	IDENTIFIER_OBFUSCATION_PREFIX = imports.IDENTIFIER_OBFUSCATION_PREFIX;
+import('@tsrx/core').then((imports) => {
+	is_identifier_obfuscated = imports.isIdentifierObfuscated;
+	deobfuscate_identifier = imports.deobfuscateIdentifier;
+	identifier_obfuscation_prefix = imports.IDENTIFIER_OBFUSCATION_PREFIX;
 	obfuscated_identifier_regex = new RegExp(
-		escapeRegExp(IDENTIFIER_OBFUSCATION_PREFIX) + charAllowedWordRegex.source + '+',
+		escapeRegExp(identifier_obfuscation_prefix) + charAllowedWordRegex.source + '+',
 		'gm',
 	);
 });
@@ -56,7 +57,7 @@ function escapeRegExp(source) {
  * @param {string} text
  * @returns {string}
  */
-function deobfuscateIdentifiers(text) {
+export function deobfuscateIdentifiers(text) {
 	return text.replace(obfuscated_identifier_regex, (match) => deobfuscate_identifier(match));
 }
 
@@ -64,7 +65,7 @@ function deobfuscateIdentifiers(text) {
  * @param  {...string} contents
  * @returns string
  */
-function concatMarkdownContents(...contents) {
+export function concatMarkdownContents(...contents) {
 	return contents.join('\n\n<br>\n\n---\n\n<br><br>\n\n');
 }
 
@@ -74,20 +75,20 @@ function concatMarkdownContents(...contents) {
  * @param {TextDocument} document
  * @returns
 	{{
- 		virtualCode: RippleVirtualCode;
+ 		virtualCode: TSRXVirtualCodeInstance;
 		sourceUri: URI;
 		sourceScript: SourceScript<URI> | undefined;
 		sourceMap: Mapper | undefined;
 	}}
  */
-function getVirtualCode(document, context) {
+export function getVirtualCode(document, context) {
 	const uri = URI.parse(document.uri);
 	const decoded = /** @type {[documentUri: URI, embeddedCodeId: string]} */ (
 		context.decodeEmbeddedDocumentUri(uri)
 	);
 	const [sourceUri, virtualCodeId] = decoded;
 	const sourceScript = context.language.scripts.get(sourceUri);
-	const virtualCode = /** @type {RippleVirtualCode} */ (
+	const virtualCode = /** @type {TSRXVirtualCodeInstance} */ (
 		sourceScript?.generated?.embeddedCodes.get(virtualCodeId)
 	);
 
@@ -137,7 +138,7 @@ function isInsideImportOrExport(type, text, start) {
  * @param {number} start
  * @returns {boolean}
  */
-function isInsideImport(text, start) {
+export function isInsideImport(text, start) {
 	return isInsideImportOrExport('import', text, start);
 }
 
@@ -146,17 +147,16 @@ function isInsideImport(text, start) {
  * @param {number} start
  * @returns {boolean}
  */
-function isInsideExport(text, start) {
+export function isInsideExport(text, start) {
 	return isInsideImportOrExport('export', text, start);
 }
 
-module.exports = {
-	getVirtualCode,
-	getWordFromPosition,
-	isInsideImport,
-	isInsideExport,
-	createLogging,
-	concatMarkdownContents,
-	deobfuscateIdentifiers,
-	DEBUG,
-};
+/**
+ * @param {string} document_uri
+ * @returns {boolean}
+ */
+export function is_ripple_document(document_uri) {
+	return RIPPLE_EXTENSIONS.some((extension) => document_uri.endsWith(extension));
+}
+
+export { createLogging, getWordFromPosition, DEBUG };

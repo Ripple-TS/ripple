@@ -12,6 +12,7 @@
 
 ; Fold multi-line JSX elements
 (jsx_element) @fold
+(jsx_fragment) @fold
 
 ; Fold style elements
 (style_element) @fold

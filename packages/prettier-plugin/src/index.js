@@ -1,8 +1,8 @@
 /**
-@import * as acorn from 'ripple/types/acorn';
-@import * as AST from 'ripple/types/estree';
-@import * as ESTreeJSX from 'ripple/types/estree-jsx';
-@import { Doc, AstPath, ParserOptions } from 'prettier';
+ * @import * as acorn from '@tsrx/core/types/acorn';
+ * @import * as AST from '@tsrx/core/types/estree';
+ * @import * as ESTreeJSX from '@tsrx/core/types/estree-jsx';
+ * @import { Doc, AstPath, ParserOptions } from 'prettier';
  */
 
 /**
@@ -10,52 +10,15 @@
  * Uses an intersection of two signatures:
  * 1. (path) => Doc — compatible with CallCallback/MapCallback for path.call/path.map
  * 2. (path, args) => Doc — used when passing context args via lambdas
-@typedef {
-	((path: AstPath) => Doc) &
-	((path: AstPath, args: PrintArgs) => Doc)
-} PrintFn
-
-@typedef {
-	Partial<
-		Pick<ParserOptions,
-			| 'singleQuote'
-			| 'jsxSingleQuote'
-			| 'semi'
-			| 'trailingComma'
-			| 'useTabs'
-			| 'tabWidth'
-			| 'singleAttributePerLine'
-			| 'bracketSameLine'
-			| 'bracketSpacing'
-			| 'arrowParens'
-			| 'originalText'
-		>
-	> & {
-		locStart: (node: AST.NodeWithLocation) => number,
-		locEnd: (node: AST.NodeWithLocation) => number
-	}
-} RippleFormatOptions
-
-@typedef {{
-	isInAttribute?: boolean,
-	isInArray?: boolean,
-	allowInlineObject?: boolean,
-	isConditionalTest?: boolean,
-	isNestedConditional?: boolean,
-	suppressLeadingComments?: boolean,
-	suppressExpressionLeadingComments?: boolean,
-	isInlineContext?: boolean,
-	isStatement?: boolean,
-	isLogicalAndOr?: boolean,
-	allowShorthandProperty?: boolean,
-	isFirstChild?: boolean,
-	skipComponentLabel?: boolean,
-	noBreakInside?: boolean,
-	expandLastArg?: boolean,
-}} PrintArgs
+ *
+ * @typedef {((path: AstPath) => Doc) & ((path: AstPath, args: PrintArgs) => Doc)} PrintFn
  */
 
-import { parse } from 'ripple/compiler';
+/** @typedef {Partial<Pick<ParserOptions, 'singleQuote' | 'jsxSingleQuote' | 'semi' | 'trailingComma' | 'useTabs' | 'tabWidth' | 'singleAttributePerLine' | 'bracketSameLine' | 'bracketSpacing' | 'arrowParens' | 'originalText'>> & { locStart: (node: AST.NodeWithLocation) => number, locEnd: (node: AST.NodeWithLocation) => number }} RippleFormatOptions */
+
+/** @typedef {{ isInAttribute?: boolean, isInArray?: boolean, allowInlineObject?: boolean, isConditionalTest?: boolean, isNestedConditional?: boolean, suppressLeadingComments?: boolean, suppressExpressionLeadingComments?: boolean, isInlineContext?: boolean, isStatement?: boolean, isLogicalAndOr?: boolean, allowShorthandProperty?: boolean, isFirstChild?: boolean, skipComponentLabel?: boolean, noBreakInside?: boolean, expandLastArg?: boolean }} PrintArgs */
+
+import { parse } from '@tsrx/ripple';
 import { doc } from 'prettier';
 
 const { builders, utils } = doc;
@@ -80,7 +43,7 @@ export const languages = [
 	{
 		name: 'ripple',
 		parsers: ['ripple'],
-		extensions: ['.ripple'],
+		extensions: ['.tsrx'],
 		vscodeLanguageIds: ['ripple'],
 	},
 ];
@@ -756,9 +719,10 @@ function printRippleNode(node, path, options, print, args) {
 	const suppressLeadingComments = args && args.suppressLeadingComments;
 	const suppressExpressionLeadingComments = args && args.suppressExpressionLeadingComments;
 
-	// For Text and Html nodes, don't add leading comments here - they should be handled
+	// For TSRXExpression, Text, and Html nodes, don't add leading comments here - they should be handled
 	// as separate children within the element, not as part of the expression
-	const shouldSkipLeadingComments = node.type === 'Text' || node.type === 'Html';
+	const shouldSkipLeadingComments =
+		node.type === 'TSRXExpression' || node.type === 'Text' || node.type === 'Html';
 
 	// Handle leading comments
 	if (node.leadingComments && !shouldSkipLeadingComments && !suppressLeadingComments) {
@@ -819,8 +783,9 @@ function printRippleNode(node, path, options, print, args) {
 
 	// Handle inner comments (for nodes with no children to attach to)
 	const innerCommentParts = [];
-	if (/** @type {AST.NodeWithMaybeComments} */ (node).innerComments) {
-		for (const comment of /** @type {AST.NodeWithMaybeComments} */ (node).innerComments) {
+	const innerComments = /** @type {AST.NodeWithMaybeComments} */ (node).innerComments;
+	if (innerComments) {
+		for (const comment of innerComments) {
 			if (comment.type === 'Line') {
 				innerCommentParts.push('//' + comment.value);
 			} else if (comment.type === 'Block') {
@@ -1012,11 +977,12 @@ function printRippleNode(node, path, options, print, args) {
 			const shouldUseTrailingComma = options.trailingComma !== 'none';
 			const elements = path.map(
 				/**
-				 * @param {any} elPath
+				 * @param {AstPath} elPath
 				 * @param {number} index
 				 */
 				(elPath, index) => {
 					const childNode = node.elements[index];
+					/** @type {PrintArgs} */
 					const childArgs = {};
 
 					if (suppressLeadingCommentIndices.has(index)) {
@@ -1393,6 +1359,17 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = path.call(print, 'expression');
 			break;
 
+		case 'ImportExpression': {
+			/** @type {Doc[]} */
+			const parts = ['import(', path.call(print, 'source')];
+			if (node.options) {
+				parts.push(', ', path.call(print, 'options'));
+			}
+			parts.push(')');
+			nodeContent = parts;
+			break;
+		}
+
 		case 'CallExpression': {
 			/** @type {Doc[]} */
 			const parts = [];
@@ -1446,13 +1423,6 @@ function printRippleNode(node, path, options, print, args) {
 		case 'AwaitExpression': {
 			/** @type {Doc[]} */
 			const parts = ['await ', path.call(print, 'argument')];
-			nodeContent = parts;
-			break;
-		}
-
-		case 'TrackedExpression': {
-			/** @type {Doc[]} */
-			const parts = ['@(', path.call(print, 'argument'), ')'];
 			nodeContent = parts;
 			break;
 		}
@@ -2076,6 +2046,10 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printTSMethodSignature(node, path, options, print);
 			break;
 
+		case 'TSCallSignatureDeclaration':
+			nodeContent = printTSCallSignatureDeclaration(node, path, options, print);
+			break;
+
 		case 'TSEnumMember':
 			nodeContent = printTSEnumMember(node, path, options, print);
 			break;
@@ -2154,6 +2128,9 @@ function printRippleNode(node, path, options, print, args) {
 		case 'TSConditionalType':
 			nodeContent = printTSConditionalType(node, path, options, print);
 			break;
+		case 'TSInferType':
+			nodeContent = ['infer ', path.call(print, 'typeParameter')];
+			break;
 
 		case 'TSMappedType':
 			nodeContent = printTSMappedType(node, path, options, print);
@@ -2161,6 +2138,10 @@ function printRippleNode(node, path, options, print, args) {
 
 		case 'TSQualifiedName':
 			nodeContent = printTSQualifiedName(node, path, options, print);
+			break;
+
+		case 'TSImportType':
+			nodeContent = printTSImportType(node, path, options, print);
 			break;
 
 		case 'TSIndexedAccessType':
@@ -2193,6 +2174,10 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printTsxCompat(node, path, options, print);
 			break;
 
+		case 'Tsx':
+			nodeContent = printTsx(node, path, options, print);
+			break;
+
 		case 'JSXElement':
 			nodeContent = printJSXElement(node, path, options, print);
 			break;
@@ -2219,11 +2204,19 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printAttribute(node, path, options, print);
 			break;
 
-		case 'Text': {
+		case 'TSRXExpression': {
 			const expressionDoc = suppressExpressionLeadingComments
 				? path.call((exprPath) => print(exprPath, { suppressLeadingComments: true }), 'expression')
 				: path.call(print, 'expression');
 			nodeContent = ['{', expressionDoc, '}'];
+			break;
+		}
+
+		case 'Text': {
+			const expressionDoc = suppressExpressionLeadingComments
+				? path.call((exprPath) => print(exprPath, { suppressLeadingComments: true }), 'expression')
+				: path.call(print, 'expression');
+			nodeContent = ['{text ', expressionDoc, '}'];
 			break;
 		}
 
@@ -3761,6 +3754,10 @@ function printTryStatement(node, path, options, print) {
 		if (node.handler.param) {
 			parts.push(' (');
 			parts.push(path.call(print, 'handler', 'param'));
+			if (node.handler.resetParam) {
+				parts.push(', ');
+				parts.push(path.call(print, 'handler', 'resetParam'));
+			}
 			parts.push(')');
 		}
 		parts.push(' ');
@@ -3872,7 +3869,7 @@ function printPropertyDefinition(node, path, options, print) {
 function printMethodDefinition(node, path, options, print) {
 	/** @type {Doc[]} */
 	const parts = [];
-	const is_component = /** @type {AST.RippleMethodDefinition} */ (node).value?.type === 'Component';
+	const is_component = /** @type {AST.TSRXMethodDefinition} */ (node).value?.type === 'Component';
 
 	// Access modifiers (public, private, protected)
 	if (node.accessibility) {
@@ -3981,12 +3978,7 @@ function printMemberExpression(node, path, options, print) {
 	let result;
 	if (node.computed) {
 		// Check if the MemberExpression itself is tracked to add @ symbol
-		const trackedPrefix = node.tracked ? '@' : '';
-		const openBracket = node.optional
-			? '?.' + trackedPrefix + '['
-			: trackedPrefix
-				? '.' + trackedPrefix + '['
-				: '[';
+		const openBracket = node.optional ? '?.[' : '[';
 		result = [objectPart, openBracket, propertyPart, ']'];
 	} else {
 		const separator = node.optional ? '?.' : '.';
@@ -4690,23 +4682,17 @@ function shouldAddBlankLine(currentNode, nextNode) {
 	// Determine the source node for whitespace checking
 	// If currentNode has trailing comments, use the last one
 	let sourceNode = currentNode;
-	if (
-		/** @type {AST.Node} */ (currentNode).trailingComments &&
-		/** @type {AST.Node} */ (currentNode).trailingComments.length > 0
-	) {
-		sourceNode = /** @type {AST.Node} */ (currentNode).trailingComments[
-			/** @type {AST.Node} */ (currentNode).trailingComments.length - 1
-		];
+	const currentTrailing = /** @type {AST.Node} */ (currentNode).trailingComments;
+	if (currentTrailing && currentTrailing.length > 0) {
+		sourceNode = currentTrailing[currentTrailing.length - 1];
 	}
 
 	// If nextNode has leading comments, check whitespace between source node and first comment
 	// Otherwise check whitespace between source node and next node
 	let targetNode = nextNode;
-	if (
-		/** @type {AST.Node} */ (nextNode).leadingComments &&
-		/** @type {AST.Node} */ (nextNode).leadingComments.length > 0
-	) {
-		targetNode = /** @type {AST.Node} */ (nextNode).leadingComments[0];
+	const nextLeading = /** @type {AST.Node} */ (nextNode).leadingComments;
+	if (nextLeading && nextLeading.length > 0) {
+		targetNode = nextLeading[0];
 	}
 
 	// Check if there was original whitespace between the nodes
@@ -4846,7 +4832,7 @@ function printProperty(node, path, options, print) {
 		return path.call(print, 'key');
 	}
 
-	const is_component = /** @type {AST.RippleProperty} */ (node).value?.type === 'Component';
+	const is_component = /** @type {AST.TSRXProperty} */ (node).value?.type === 'Component';
 
 	// Handle getter/setter methods
 	if (node.kind === 'get' || node.kind === 'set') {
@@ -5180,6 +5166,46 @@ function printTSMethodSignature(node, path, options, print) {
 }
 
 /**
+ * Print a TypeScript call signature in an interface
+ * @param {AST.TSCallSignatureDeclaration} node - The call signature node
+ * @param {AstPath<AST.TSCallSignatureDeclaration>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
+function printTSCallSignatureDeclaration(node, path, options, print) {
+	/** @type {Doc[]} */
+	const parts = [];
+
+	// Add TypeScript generics/type parameters if present
+	if (node.typeParameters) {
+		const type_params = path.call(print, 'typeParameters');
+		if (Array.isArray(type_params)) {
+			parts.push(...type_params);
+		} else {
+			parts.push(type_params);
+		}
+	}
+
+	parts.push('(');
+	if (node.parameters && node.parameters.length > 0) {
+		const params = path.map(print, 'parameters');
+		for (let i = 0; i < params.length; i++) {
+			if (i > 0) parts.push(', ');
+			parts.push(params[i]);
+		}
+	}
+	parts.push(')');
+
+	if (node.typeAnnotation) {
+		parts.push(': ');
+		parts.push(path.call(print, 'typeAnnotation'));
+	}
+
+	return parts;
+}
+
+/**
  * Print a TypeScript type reference (e.g., Array<string>)
  * @param {AST.TSTypeReference} node - The type reference node
  * @param {AstPath<AST.TSTypeReference>} path - The AST path
@@ -5382,6 +5408,28 @@ function printTSQualifiedName(node, path, options, print) {
 }
 
 /**
+ * @param {AST.TSImportType} node
+ * @param {AstPath<AST.TSImportType>} path
+ * @param {RippleFormatOptions} options
+ * @param {PrintFn} print
+ * @returns {Doc}
+ */
+function printTSImportType(node, path, options, print) {
+	/** @type {Doc[]} */
+	const parts = ['import(', path.call(print, 'argument'), ')'];
+
+	if (node.qualifier) {
+		parts.push('.', path.call(print, 'qualifier'));
+	}
+
+	if (node.typeParameters) {
+		parts.push(path.call(print, 'typeParameters'));
+	}
+
+	return parts;
+}
+
+/**
  * @param {AST.TSIndexedAccessType} node
  * @param {AstPath<AST.TSIndexedAccessType>} path
  * @param {RippleFormatOptions} options
@@ -5407,13 +5455,23 @@ function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
 		return childDoc.length <= 20 && !childDoc.includes('\n');
 	}
 
-	// Always inline simple text content and JSX expressions if they fit
-	if (
-		firstChild.type === 'Text' ||
-		firstChild.type === 'Html' ||
-		firstChild.type === 'JSXExpressionContainer'
-	) {
+	// Always inline Html and Text nodes — they are short prefixed expressions ({html ...}, {text ...})
+	if (firstChild.type === 'Text' || firstChild.type === 'Html') {
 		return true;
+	}
+
+	// Inline JSX expressions if they fit, but respect original multi-line formatting
+	// for non-literal expressions (e.g. {children} should stay multi-line if written that way)
+	if (firstChild.type === 'TSRXExpression' || firstChild.type === 'JSXExpressionContainer') {
+		if (wasOriginallySingleLine(parentNode)) {
+			return true;
+		}
+		// For multi-line parents, only inline if the expression is a simple literal
+		const expr = firstChild.expression;
+		if (expr && (expr.type === 'Literal' || expr.type === 'TemplateLiteral')) {
+			return true;
+		}
+		return false;
 	}
 
 	// Respect original formatting for elements: if parent was originally multi-line, keep it multi-line
@@ -5492,6 +5550,55 @@ function createElementLevelCommentPartsTrimmed(comments) {
 		parts.pop();
 	}
 	return parts;
+}
+
+/**
+ * Print a Tsx node - renders Ripple template children inside <tsx>...</tsx>
+ * or fragment shorthand <>...</> when the original source used a fragment.
+ * @param {AST.Tsx} node - The Tsx node
+ * @param {AstPath<AST.Tsx>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
+function printTsx(node, path, options, print) {
+	const is_fragment = !node.openingElement?.name;
+	const tagName = is_fragment ? '<>' : '<tsx>';
+	const closingTagName = is_fragment ? '</>' : '</tsx>';
+
+	const hasChildren = Array.isArray(node.children) && node.children.length > 0;
+
+	if (!hasChildren) {
+		return [tagName, closingTagName];
+	}
+
+	// Print children - these are Ripple template children (Element, Text, etc.)
+	const printedChildren = [];
+
+	for (let i = 0; i < node.children.length; i++) {
+		const child = node.children[i];
+
+		if (child.type === 'JSXText') {
+			const text = child.value.trim();
+			if (!text) continue;
+			printedChildren.push(text);
+		} else {
+			const printedChild = path.call(print, 'children', i);
+			printedChildren.push(printedChild);
+		}
+	}
+
+	if (printedChildren.length === 0) {
+		return [tagName, closingTagName];
+	}
+
+	// Use softline to allow single-line when content fits
+	return group([
+		tagName,
+		indent([softline, join(softline, printedChildren)]),
+		softline,
+		closingTagName,
+	]);
 }
 
 /**
@@ -5822,28 +5929,16 @@ function printJSXMemberExpression(node) {
  */
 function printMemberExpressionSimple(node, options, computed = false) {
 	if (node.type === 'Identifier') {
-		// When computed is true, it means we're inside brackets and tracked is already handled by .@[ or [
-		// So we should NOT add @ prefix in that case
 		return (computed ? '' : node.tracked ? '@' : '') + node.name;
 	}
 
 	if (node.type === 'MemberExpression') {
 		const obj = printMemberExpressionSimple(node.object, options);
-		// For properties, we add the .@ or . prefix, and then pass true to indicate
-		// that we're in a context where tracked has been handled
 		let prop;
 		if (node.computed) {
-			let prefix = '[';
-			if (/** @type {AST.TrackedNode} */ (node.property).tracked) {
-				prefix = '.@[';
-			}
-			prop = prefix + printMemberExpressionSimple(node.property, options, true) + ']';
+			prop = '[' + printMemberExpressionSimple(node.property, options, true) + ']';
 		} else {
-			let prefix = '.';
-			if (/** @type {AST.TrackedNode} */ (node.property).tracked) {
-				prefix = '.@';
-			}
-			prop = prefix + printMemberExpressionSimple(node.property, options, true);
+			prop = '.' + printMemberExpressionSimple(node.property, options, true);
 		}
 		return obj + prop;
 	}
@@ -5852,6 +5947,31 @@ function printMemberExpressionSimple(node, options, computed = false) {
 		return computed ? formatStringLiteral(node.value, options) : JSON.stringify(node.value);
 	}
 	return '';
+}
+
+/**
+ * Check whether an attribute value can expand into multiline content.
+ * @param {AST.Expression | null | undefined} value - The attribute value node
+ * @param {boolean} [is_nested_in_object=false] - Whether this value is nested within an object literal
+ * @returns {boolean}
+ */
+function is_attribute_value_breakable(value, is_nested_in_object = false) {
+	if (!value) return false;
+
+	switch (value.type) {
+		case 'ConditionalExpression':
+			// Keep simple top-level ternary attributes inline when they fit.
+			// We only force-break when a conditional is nested in an object literal value.
+			return is_nested_in_object;
+		case 'ObjectExpression':
+			return value.properties.some(
+				(property) =>
+					property.type === 'Property' &&
+					is_attribute_value_breakable(/** @type {AST.Expression} */ (property.value), true),
+			);
+		default:
+			return false;
+	}
 }
 
 /**
@@ -5894,12 +6014,13 @@ function printElement(element, path, options, print) {
 	// Collect comments that the parser attached to children but actually belong inside
 	// the opening tag (positionally before openingElement.end). These should be printed
 	// as leading comments before the appropriate attribute, not lifted to element-level.
+	/** @type {Set<AST.Comment>} */
 	const openingTagCommentsSet = new Set();
 	if (hasChildren && node.openingElement) {
 		const openingEnd = /** @type {AST.NodeWithLocation} */ (node.openingElement).end;
 		for (const child of node.children) {
 			if (
-				(child.type === 'Text' || child.type === 'Html') &&
+				(child.type === 'TSRXExpression' || child.type === 'Text' || child.type === 'Html') &&
 				Array.isArray(child.leadingComments)
 			) {
 				for (const comment of child.leadingComments) {
@@ -5953,35 +6074,52 @@ function printElement(element, path, options, print) {
 
 	const hasOpeningTagComments = openingTagCommentsSet.size > 0;
 	let attrIndex = 0;
+	let hasBreakingAttribute = false;
+	const attrDocs = hasAttributes
+		? path.map((attrPath) => {
+				const idx = attrIndex++;
+				const commentsForAttr = openingTagCommentsByAttrIndex.get(idx);
+				/** @type {Doc[]} */
+				const parts = [];
+				if (commentsForAttr) {
+					for (const comment of commentsForAttr) {
+						// Line comments (//) consume the rest of the line, so they must
+						// use hardline to force a break. Block comments can use normal breaks.
+						if (comment.type === 'Line') {
+							parts.push(hardline);
+							parts.push('//' + comment.value);
+						} else if (comment.type === 'Block') {
+							parts.push(attrLineBreak);
+							parts.push('/*' + comment.value + '*/');
+						}
+					}
+				}
+				parts.push(attrLineBreak);
+				const attrDoc = print(attrPath);
+				parts.push(attrDoc);
+				const attr_node = /** @type {AST.Attribute | AST.SpreadAttribute} */ (attrPath.node);
+				if (
+					!hasBreakingAttribute &&
+					(willBreak(attrDoc) ||
+						(attr_node.type === 'Attribute' && is_attribute_value_breakable(attr_node.value)))
+				) {
+					hasBreakingAttribute = true;
+				}
+				return parts;
+			}, 'attributes')
+		: [];
+	const shouldForceBreak = hasOpeningTagComments || hasBreakingAttribute;
 	const openingTag = group([
 		'<',
 		tagName,
 		hasAttributes
 			? indent([
-					...path.map((attrPath) => {
-						const idx = attrIndex++;
-						const commentsForAttr = openingTagCommentsByAttrIndex.get(idx);
-						/** @type {Doc[]} */
-						const parts = [];
-						if (commentsForAttr) {
-							for (const comment of commentsForAttr) {
-								// Line comments (//) consume the rest of the line, so they must
-								// use hardline to force a break. Block comments can use normal breaks.
-								if (comment.type === 'Line') {
-									parts.push(hardline);
-									parts.push('//' + comment.value);
-								} else if (comment.type === 'Block') {
-									parts.push(attrLineBreak);
-									parts.push('/*' + comment.value + '*/');
-								}
-							}
-						}
-						parts.push(attrLineBreak);
-						parts.push(print(attrPath));
-						return parts;
-					}, 'attributes'),
-					// Force the group to break when there are line comments in the opening tag
-					...(hasOpeningTagComments ? [breakParent] : []),
+					...attrDocs,
+					// Force the group to break when there are line comments in the opening tag,
+					// or when any attribute value would break (e.g. multiline objects, ternaries).
+					// This ensures attributes are broken onto separate lines rather than breaking
+					// expression values inline on the same line as the tag name.
+					...(shouldForceBreak ? [breakParent] : []),
 				])
 			: '',
 		// Add line break opportunity before > or />
@@ -6068,7 +6206,10 @@ function printElement(element, path, options, print) {
 			}
 		}
 
-		const isTextLikeChild = currentChild.type === 'Text' || currentChild.type === 'Html';
+		const isTextLikeChild =
+			currentChild.type === 'TSRXExpression' ||
+			currentChild.type === 'Text' ||
+			currentChild.type === 'Html';
 		const hasTextLeadingComments =
 			shouldLiftTextLevelComments &&
 			isTextLikeChild &&
@@ -6166,8 +6307,10 @@ function printElement(element, path, options, print) {
 					: nextChild;
 			const whitespaceLinesCount = getBlankLinesBetweenNodes(currentChild, whitespaceTarget);
 			const isTextOrHtmlChild =
+				currentChild.type === 'TSRXExpression' ||
 				currentChild.type === 'Text' ||
 				currentChild.type === 'Html' ||
+				nextChild.type === 'TSRXExpression' ||
 				nextChild.type === 'Text' ||
 				nextChild.type === 'Html';
 
@@ -6274,10 +6417,7 @@ function printAttribute(node, path, options, print) {
 
 	if (isShorthand) {
 		parts.push('{');
-		// Check if the value has tracked property for @count syntax
-		const trackedPrefix =
-			node.value && /** @type {AST.TrackedNode} */ (node.value).tracked ? '@' : '';
-		parts.push(trackedPrefix + node.name.name);
+		parts.push(node.name.name);
 		parts.push('}');
 		return parts;
 	}

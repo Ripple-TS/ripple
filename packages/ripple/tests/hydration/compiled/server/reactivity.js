@@ -3,131 +3,154 @@ import * as _$_ from 'ripple/internal/server';
 
 import { track } from 'ripple/server';
 
-export function TrackedState(__output) {
+export function TrackedState() {
 	_$_.push_component();
 
-	let count = _$_.track(0);
+	let lazy = _$_.track(0, 'c1818584');
 
-	__output.push('<div');
-	__output.push(' class="count"');
-	__output.push('>');
-
-	{
-		__output.push(_$_.escape(_$_.get(count)));
-	}
-
-	__output.push('</div>');
-	_$_.pop_component();
-}
-
-export function CounterWithInitial(__output, props) {
-	_$_.push_component();
-
-	let count = _$_.track(props.initial);
-
-	__output.push('<div');
-	__output.push('>');
-
-	{
-		__output.push('<span');
-		__output.push(' class="count"');
-		__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="count"');
+		_$_.output_push('>');
 
 		{
-			__output.push(_$_.escape(_$_.get(count)));
+			_$_.output_push(_$_.escape(_$_.get(lazy)));
 		}
 
-		__output.push('</span>');
-	}
-
-	__output.push('</div>');
-	_$_.pop_component();
-}
-
-export function CounterWrapper(__output) {
-	_$_.push_component();
-
-	{
-		const comp = CounterWithInitial;
-		const args = [__output, { initial: 5 }];
-
-		comp(...args);
-	}
+		_$_.output_push('</div>');
+	});
 
 	_$_.pop_component();
 }
 
-export function ComputedValues(__output) {
+export function CounterWithInitial(props) {
 	_$_.push_component();
 
-	let a = _$_.track(2);
-	let b = _$_.track(3);
-	const sum = () => _$_.get(a) + _$_.get(b);
+	let lazy_1 = _$_.track(props.initial, '03ea4348');
 
-	__output.push('<div');
-	__output.push(' class="sum"');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push('>');
 
-	{
-		__output.push(_$_.escape(sum()));
-	}
+		{
+			_$_.output_push('<span');
+			_$_.output_push(' class="count"');
+			_$_.output_push('>');
 
-	__output.push('</div>');
+			{
+				_$_.output_push(_$_.escape(_$_.get(lazy_1)));
+			}
+
+			_$_.output_push('</span>');
+		}
+
+		_$_.output_push('</div>');
+	});
+
 	_$_.pop_component();
 }
 
-export function MultipleTracked(__output) {
+export function CounterWrapper() {
 	_$_.push_component();
 
-	let x = _$_.track(10);
-	let y = _$_.track(20);
-	let z = _$_.track(30);
+	_$_.regular_block(() => {
+		{
+			const comp = CounterWithInitial;
+			const args = [{ initial: 5 }];
 
-	__output.push('<div');
-	__output.push(' class="x"');
-	__output.push('>');
+			comp(...args);
+		}
+	});
 
-	{
-		__output.push(_$_.escape(_$_.get(x)));
-	}
-
-	__output.push('</div>');
-	__output.push('<div');
-	__output.push(' class="y"');
-	__output.push('>');
-
-	{
-		__output.push(_$_.escape(_$_.get(y)));
-	}
-
-	__output.push('</div>');
-	__output.push('<div');
-	__output.push(' class="z"');
-	__output.push('>');
-
-	{
-		__output.push(_$_.escape(_$_.get(z)));
-	}
-
-	__output.push('</div>');
 	_$_.pop_component();
 }
 
-export function DerivedState(__output) {
+export function ComputedValues() {
 	_$_.push_component();
 
-	let firstName = _$_.track('John');
-	let lastName = _$_.track('Doe');
-	const fullName = () => `${_$_.get(firstName)} ${_$_.get(lastName)}`;
+	let lazy_2 = _$_.track(2, 'b78281db');
+	let lazy_3 = _$_.track(3, 'a0cf6c6d');
+	const sum = () => _$_.get(lazy_2) + _$_.get(lazy_3);
 
-	__output.push('<div');
-	__output.push(' class="name"');
-	__output.push('>');
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="sum"');
+		_$_.output_push('>');
 
-	{
-		__output.push(_$_.escape(fullName()));
-	}
+		{
+			_$_.output_push(_$_.escape(sum()));
+		}
 
-	__output.push('</div>');
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+export function MultipleTracked() {
+	_$_.push_component();
+
+	let lazy_4 = _$_.track(10, '843522de');
+	let lazy_5 = _$_.track(20, '1308996d');
+	let lazy_6 = _$_.track(30, '048c3fd0');
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="x"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push(_$_.escape(_$_.get(lazy_4)));
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="y"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push(_$_.escape(_$_.get(lazy_5)));
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="z"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push(_$_.escape(_$_.get(lazy_6)));
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+export function DerivedState() {
+	_$_.push_component();
+
+	let lazy_7 = _$_.track('John', '6015eeca');
+	let lazy_8 = _$_.track('Doe', '4fa9a20e');
+	const fullName = () => `${_$_.get(lazy_7)} ${_$_.get(lazy_8)}`;
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="name"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push(_$_.escape(fullName()));
+		}
+
+		_$_.output_push('</div>');
+	});
+
 	_$_.pop_component();
 }

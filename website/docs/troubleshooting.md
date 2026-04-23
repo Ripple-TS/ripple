@@ -11,11 +11,11 @@ time, it's caused by not putting your DOM text nodes within expression {braces}.
 
 ```ripple
 export component TextBrace() {
-	// ✔️ valid
-	<p>{'Hello world!'}</p>
+  // ✔️ valid
+  <p>{'Hello world!'}</p>
 
-	// ❌ invalid
-	// <p>Hello world!</p>
+  // ❌ invalid
+  // <p>Hello world!</p>
 }
 ```
 
@@ -29,17 +29,17 @@ self-closing syntax.
 
 ```ripple
 export component Bracey() {
-	// ✔️ valid
-	<input />
-	<img />
-	<hr />
-	<br />
+  // ✔️ valid
+  <input />
+  <img />
+  <hr />
+  <br />
 
-	// ❌ invalid
-	// <input>
-	// <img>
-	// <hr>
-	// <br>
+  // ❌ invalid
+  // <input>
+  // <img>
+  // <hr>
+  // <br>
 }
 ```
 

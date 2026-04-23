@@ -7,7 +7,7 @@
   "license": "MIT",
   "packageManager": "pnpm@10.18.2",
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=22.0.0",
     "pnpm": ">=10.18.2",
     "npm": ">=11.6.2"
   },
@@ -23,24 +23,35 @@
     "changeset:version": "changeset version",
     "changeset:publish": "changeset publish",
     "regenerate-textmate": "node scripts/regenerate-textmate.js",
-    "copy-tree-sitter-queries": "node ./scripts/copy-tree-sitter-queries.js"
+    "copy-tree-sitter-queries": "node ./scripts/copy-tree-sitter-queries.js",
+    "bench": "node benchmarks/tracked-values.js",
+    "typecheck": "tsgo --noEmit -p packages/ripple/tsconfig.typecheck.json && tsgo --noEmit -p packages/tsrx/tsconfig.json && tsgo --noEmit -p packages/tsrx-ripple/tsconfig.json && tsgo --noEmit -p packages/tsrx-react/tsconfig.json && tsgo --noEmit -p packages/tsrx-solid/tsconfig.json && tsgo --noEmit -p packages/vite-plugin-react/tsconfig.json && tsgo --noEmit -p packages/rspack-plugin-react/tsconfig.json && tsgo --noEmit -p packages/turbopack-plugin-react/tsconfig.json && tsgo --noEmit -p packages/vite-plugin-solid/tsconfig.json && tsgo --noEmit -p packages/cli/tsconfig.json && tsgo --noEmit -p packages/create-ripple/tsconfig.json && tsgo --noEmit -p packages/eslint-parser/tsconfig.json && tsgo --noEmit -p packages/eslint-plugin/tsconfig.json && tsgo --noEmit -p packages/language-server/tsconfig.typecheck.json && tsgo --noEmit -p packages/prettier-plugin/tsconfig.typecheck.json && tsgo --noEmit -p packages/adapter/tsconfig.typecheck.json && tsgo --noEmit -p packages/adapter-bun/tsconfig.typecheck.json && tsgo --noEmit -p packages/adapter-node/tsconfig.typecheck.json && tsgo --noEmit -p packages/adapter-vercel/tsconfig.typecheck.json && tsgo --noEmit -p packages/compat-react/tsconfig.typecheck.json && tsgo --noEmit -p packages/rollup-plugin/tsconfig.typecheck.json && tsgo --noEmit -p packages/typescript-plugin/tsconfig.typecheck.json && tsgo --noEmit -p packages/vite-plugin/tsconfig.typecheck.json && tsgo --noEmit -p packages/vscode-plugin/tsconfig.typecheck.json"
   },
   "devDependencies": {
     "@changesets/changelog-github": "catalog:default",
     "@changesets/cli": "catalog:default",
-    "@ripple-ts/eslint-plugin": "workspace:*",
-    "@ripple-ts/prettier-plugin": "workspace:*",
+    "@tsrx/eslint-plugin": "workspace:*",
+    "@tsrx/prettier-plugin": "workspace:*",
+    "@tsrx/preact": "workspace:*",
+    "@tsrx/ripple": "workspace:*",
+    "@tsrx/react": "workspace:*",
+    "@tsrx/solid": "workspace:*",
     "@ripple-ts/vite-plugin": "workspace:*",
+    "@types/node": "catalog:default",
+    "@typescript/native-preview": "7.0.0-dev.20260423.1",
     "eslint": "catalog:default",
     "jsdom": "catalog:default",
     "linkedom": "catalog:default",
     "prettier": "catalog:default",
     "rulesync": "catalog:default",
+    "solid-js": "2.0.0-beta.7",
+    "@solidjs/web": "2.0.0-beta.7",
     "source-map": "catalog:default",
     "type-fest": "catalog:default",
+    "typescript": "catalog:default",
+    "vite-plugin-solid": "3.0.0-next.5",
     "vitest": "catalog:default",
-    "wait-on": "catalog:default",
-    "typescript": "catalog:default"
+    "wait-on": "catalog:default"
   },
   "dependencies": {
     "@types/eslint": "catalog:default"

@@ -1,23 +1,25 @@
 export type Component<T = Record<string, any>> = (props: T) => void;
 
-export type CompatApi = {
-	createRoot: () => void;
-	createComponent: (node: any, children_fn: () => any) => void;
-	jsx: (type: any, props: any) => any;
+declare const TSRX_ELEMENT: unique symbol;
+
+export type TSRXElement = {
+	readonly render: Function;
+	readonly [TSRX_ELEMENT]: true;
 };
 
-export type CompatOptions = {
-	[key: string]: CompatApi;
-};
+/** Type for implicit children fragments rendered with `{children}`. */
+export type Children = TSRXElement | Component | string | number | boolean | null | undefined;
+
+export function tsrx_element(render: Function): TSRXElement;
 
 export function mount(
 	component: Component,
-	options: { target: HTMLElement; props?: Record<string, any>; compat?: CompatOptions },
+	options: { target: HTMLElement; props?: Record<string, any> },
 ): () => void;
 
 export function hydrate(
 	component: Component,
-	options: { target: HTMLElement; props?: Record<string, any>; compat?: CompatOptions },
+	options: { target: HTMLElement; props?: Record<string, any> },
 ): () => void;
 
 export function tick(): Promise<void>;
@@ -141,16 +143,24 @@ declare global {
 
 export function createRefKey(): symbol;
 
-// Base Tracked interface - all tracked values have a '#v' property containing the actual value
-export interface Tracked<V> {
-	'#v': V;
-}
+export const UNINITIALIZED: unique symbol;
+export const DERIVED_UPDATED: unique symbol;
+export const SUSPENSE_PENDING: unique symbol;
+export const SUSPENSE_REJECTED: unique symbol;
 
+// Base Tracked interface - all tracked values have a '#v' property containing the actual value
+interface TrackedBase<V> {
+	'#v': V;
+	value: V;
+}
 // Augment Tracked to be callable when V is a Component
 // This allows <@Something /> to work in JSX when Something is Tracked<Component>
-export interface Tracked<V> {
+interface TrackedCallable<V> {
 	(props: V extends Component<infer P> ? P : never): V extends Component ? void : never;
 }
+// Supports indexed access: track(0)[0] → value, track(0)[1] → Tracked<V>
+// And destructuring `const [one, two] = track(0);`
+export type Tracked<V> = [V, Tracked<V>] & TrackedBase<V> & TrackedCallable<V>;
 
 // Helper type to infer component type from a function that returns a component
 // If T is a function returning a Component, extract the Component type itself, not the return type (void)
@@ -159,27 +169,14 @@ export type InferComponent<T> = T extends () => infer R ? (R extends Component<a
 export type Props<K extends PropertyKey = any, V = unknown> = Record<K, V>;
 export type PropsWithExtras<T extends object> = Props & T & Record<string, unknown>;
 export type PropsWithChildren<T extends object = {}> = Expand<
-	Omit<T, 'children'> & { children: Component }
+	Omit<T, 'children'> & { children: Children }
 >;
 export type PropsWithChildrenOptional<T extends object = {}> = Expand<
-	Omit<T, 'children'> & { children?: Component }
+	Omit<T, 'children'> & { children?: Children }
 >;
 export type PropsNoChildren<T extends object = {}> = Expand<T>;
 
 type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
-
-type WrapTracked<V> = V extends Tracked<any> ? V : Tracked<V>;
-
-type PickKeys<T, K extends readonly (keyof T)[]> = {
-	[I in keyof K]: WrapTracked<T[K[I] & keyof T]>;
-};
-
-type RestKeys<T, K extends readonly (keyof T)[]> = Expand<Omit<T, K[number]>>;
-
-type SplitResult<T extends Props, K extends readonly (keyof T)[]> = [
-	...PickKeys<T, K>,
-	Tracked<RestKeys<T, K>>,
-];
 
 export function get<V>(tracked: Tracked<V>): V;
 
@@ -196,10 +193,13 @@ export function track<V>(
 // Overload for non-function values
 export function track<V>(value?: V, get?: (v: V) => V, set?: (next: V, prev: V) => V): Tracked<V>;
 
-export function trackSplit<V extends Props, const K extends readonly (keyof V)[]>(
-	value: V,
-	splitKeys: K,
-): SplitResult<V, K>;
+export function trackAsync<V>(
+	value: () => PromiseLike<V> | { promise: PromiseLike<V>; abortController: AbortController },
+): Tracked<V>;
+
+export function trackPending<V>(value: Tracked<V> | (() => any)): boolean;
+
+export function peek<V>(tracked: Tracked<V>): V;
 
 export interface AddEventOptions extends ExtendedEventOptions {
 	customName?: string;
@@ -285,7 +285,7 @@ export interface RippleObjectCallable {
 export interface RippleObjectConstructor {
 	new <T extends Object>(obj: T): RippleObject<T>;
 }
-export interface RippleObject<T> extends Object {}
+export type RippleObject<T> = { [K in keyof T]: T[K] };
 export const RippleObject: RippleObjectConstructor;
 
 export interface RippleDateCallable {
@@ -383,10 +383,10 @@ export const MediaQuery: MediaQueryConstructor;
 
 export function Portal<V = HTMLElement>({
 	target,
-	children: Component,
+	children,
 }: {
 	target: V;
-	children?: Component;
+	children?: Children;
 }): void;
 
 export type GetFunction<V> = () => V;
@@ -544,25 +544,3 @@ export function bindFiles<V extends FileList>(
 	tracked: Tracked<V | null | undefined> | GetFunction<V | null | undefined>,
 	setter?: SetFunction<V>,
 ): (node: HTMLInputElement) => void;
-
-type ServerBlock = {};
-
-export interface RippleNamespace {
-	array: RippleArrayCallable;
-	object: RippleObjectCallable;
-	context: ContextCallable;
-	date: RippleDateCallable;
-	effect: typeof effect;
-	map: RippleMapCallable;
-	mediaQuery: MediaQueryCallable;
-	set: RippleSetCallable;
-	url: RippleURLCallable;
-	urlSearchParams: RippleURLSearchParamsCallable;
-	untrack: typeof untrack;
-	track: typeof track;
-	trackSplit: typeof trackSplit;
-	style: Record<string, string>;
-	server: ServerBlock;
-}
-
-export declare const ripple_namespace: RippleNamespace;

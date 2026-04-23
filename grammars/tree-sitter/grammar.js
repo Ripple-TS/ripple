@@ -19,7 +19,6 @@ const PREC = {
 	CALL: 12,
 	NEW: 13,
 	MEMBER: 14,
-	UNBOX: 15,
 };
 
 module.exports = grammar({
@@ -366,6 +365,7 @@ module.exports = grammar({
 		component_statement: ($) =>
 			choice(
 				$.jsx_element,
+				$.jsx_fragment,
 				$.jsx_self_closing_element,
 				$.server_block,
 				$.variable_declaration,
@@ -537,7 +537,6 @@ module.exports = grammar({
 				$.new_expression,
 				$.yield_expression,
 				$.parenthesized_expression,
-				$.unbox_expression,
 			),
 
 		primary_expression: ($) =>
@@ -566,6 +565,7 @@ module.exports = grammar({
 				$.member_expression,
 				$.subscript_expression,
 				$.jsx_element,
+				$.jsx_fragment,
 				$.jsx_self_closing_element,
 			),
 
@@ -576,20 +576,6 @@ module.exports = grammar({
 		style_member_expression: ($) => seq('#style', '.', field('property', $.identifier)),
 
 		style_subscript_expression: ($) => seq('#style', '[', field('index', $.expression), ']'),
-
-		unbox_expression: ($) =>
-			prec.left(
-				PREC.UNBOX,
-				seq(
-					'@',
-					choice(
-						$.identifier,
-						$.member_expression,
-						$.subscript_expression,
-						$.parenthesized_expression,
-					),
-				),
-			),
 
 		yield_expression: ($) => prec.right(seq('yield', optional('*'), optional($.expression))),
 
@@ -608,7 +594,6 @@ module.exports = grammar({
 							$.member_expression,
 							$.subscript_expression,
 							$._destructuring_pattern,
-							$.unbox_expression,
 						),
 					),
 					'=',
@@ -620,10 +605,7 @@ module.exports = grammar({
 			prec.right(
 				PREC.ASSIGN,
 				seq(
-					field(
-						'left',
-						choice($.identifier, $.member_expression, $.subscript_expression, $.unbox_expression),
-					),
+					field('left', choice($.identifier, $.member_expression, $.subscript_expression)),
 					field(
 						'operator',
 						choice(
@@ -857,6 +839,13 @@ module.exports = grammar({
 				field('close_tag', $.jsx_closing_element),
 			),
 
+		jsx_fragment: ($) =>
+			seq(
+				field('open_tag', $.jsx_opening_fragment),
+				repeat(field('children', $._jsx_child)),
+				field('close_tag', $.jsx_closing_fragment),
+			),
+
 		jsx_opening_element: ($) =>
 			seq(
 				'<',
@@ -866,7 +855,11 @@ module.exports = grammar({
 				'>',
 			),
 
+		jsx_opening_fragment: () => seq('<', '>'),
+
 		jsx_closing_element: ($) => seq('</', optional('@'), field('name', $.jsx_element_name), '>'),
+
+		jsx_closing_fragment: () => seq('</', '>'),
 
 		// In Ripple, namespaced TSX-compat elements like <tsx:react> cannot be self-closing
 		// so we disallow jsx_namespace_name here by using a narrowed name rule.
@@ -880,26 +873,15 @@ module.exports = grammar({
 			),
 
 		jsx_element_name: ($) =>
-			choice(
-				$.identifier,
-				$.jsx_namespace_name,
-				$.jsx_member_name,
-				$.member_expression,
-				$.unbox_expression,
-			),
+			choice($.identifier, $.jsx_namespace_name, $.jsx_member_name, $.member_expression),
 
 		// Non-namespaced variant (used for self-closing elements)
 		jsx_non_namespaced_element_name: ($) =>
-			choice($.identifier, $.jsx_member_name, $.member_expression, $.unbox_expression),
+			choice($.identifier, $.jsx_member_name, $.member_expression),
 
-		// Support dotted names where segments may be prefixed with '@', e.g. obj.@tracked_basic
+		// Support dotted names in JSX element names (e.g. Namespace.Component)
 		// Implemented iteratively to avoid left recursion
-		jsx_member_name: ($) =>
-			seq(
-				// base identifier (no '@' here because an optional '@' may precede the tag itself)
-				$.identifier,
-				repeat1(seq('.', choice($.identifier, seq('@', $.identifier)))),
-			),
+		jsx_member_name: ($) => seq($.identifier, repeat1(seq('.', $.identifier))),
 
 		jsx_namespace_name: ($) => seq($.identifier, ':', $.identifier),
 
@@ -921,6 +903,7 @@ module.exports = grammar({
 						seq('...', $.expression),
 						seq('ref', choice($.identifier, $.arrow_function, $.function_expression)),
 						seq('html', $.expression),
+						seq('text', $.expression),
 						repeat1($.component_statement),
 					),
 				),
@@ -928,10 +911,16 @@ module.exports = grammar({
 			),
 
 		_jsx_attribute_value: ($) =>
-			choice($.string, $.jsx_expression, $.jsx_element, $.jsx_self_closing_element),
+			choice($.string, $.jsx_expression, $.jsx_element, $.jsx_fragment, $.jsx_self_closing_element),
 
 		_jsx_child: ($) =>
-			choice($.jsx_text, $.jsx_element, $.jsx_self_closing_element, $.jsx_expression),
+			choice(
+				$.jsx_text,
+				$.jsx_element,
+				$.jsx_fragment,
+				$.jsx_self_closing_element,
+				$.jsx_expression,
+			),
 
 		this: ($) => 'this',
 		super: ($) => 'super',

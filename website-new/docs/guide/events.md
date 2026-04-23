@@ -22,7 +22,8 @@ For `capture` phase events, just add `Capture` to the end of the prop name:
 - `onKeyDownCapture`
 
 ::: info Some events are automatically delegated by the compiler wherever
-possible, to improve runtime performance. :::
+possible, to improve runtime performance.
+:::
 
 <Code>
 
@@ -30,12 +31,12 @@ possible, to improve runtime performance. :::
 import { track } from 'ripple';
 
 export component EventExample() {
-  let message = track('');
+  let &[message] = track('');
 
   <div>
-    <button onClick={() => (@message = 'Clicked!')}>{'Click me'}</button>
-    <input onInput={(e) => (@message = e.target.value)} />
-    <p>{@message}</p>
+    <button onClick={() => (message = 'Clicked!')}>{'Click me'}</button>
+    <input onInput={(e) => (message = e.target.value)} />
+    <p>{message}</p>
   </div>
 }
 ```
@@ -107,17 +108,17 @@ is useful for one-time setup or cleanup operations.
 import { track } from 'ripple';
 
 export component EventExample() {
-  let count = track(0);
+  let &[count] = track(0);
 
   <button
     onClick={{
-      handleEvent: () => @count++,
+      handleEvent: () => count++,
       once: true,
     }}
   >
     {'Click me (only works once)'}
   </button>
-  <p>{`Clicks: ${@count}`}</p>
+  <p>{`Clicks: ${count}`}</p>
 }
 // Button only responds to the first click
 ```
@@ -148,7 +149,8 @@ default.
 ```
 
 ::: warning Attempting to call `preventDefault()` in a passive listener will have
-no effect and may trigger a console warning in some browsers. :::
+no effect and may trigger a console warning in some browsers.
+:::
 
 ### `signal`
 
@@ -198,17 +200,17 @@ inferred from the attribute.
 import { track } from 'ripple';
 
 export component EventExample() {
-  let count = track(0);
+  let &[count] = track(0);
 
   <div
     onMyCustomEvent={{
-      handleEvent: (e) => (@count += e.detail.value),
+      handleEvent: (e) => (count += e.detail.value),
       customName: 'MyCustomEvent',
     }}
   >
     {'Custom event target'}
   </div>
-  <p>{`Event count: ${@count}`}</p>
+  <p>{`Event count: ${count}`}</p>
 }
 // The element listens for 'MyCustomEvent' instead of 'mycustomevent'
 ```
@@ -227,7 +229,7 @@ ones that can be used for event attributes with the object syntax.
 <Code console>
 
 ```ripple
-import { effect, on } from 'ripple';
+import { on, effect } from 'ripple';
 
 export component App() {
   effect(() => {

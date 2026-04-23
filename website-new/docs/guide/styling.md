@@ -27,7 +27,8 @@ component MyComponent() {
 }
 ```
 
-::: info The `<style>` element must be top-level within a `component`. :::
+::: info The `<style>` element must be top-level within a `component`.
+:::
 
 ## Dynamic Classes
 
@@ -40,15 +41,15 @@ Examples:
 ```ripple
 import { track } from 'ripple';
 
-let includeBaz = track(true);
-<div class={{ foo: true, bar: false, baz: @includeBaz }} />
+let &[includeBaz] = track(true);
+<div class={{ foo: true, bar: false, baz: includeBaz }} />
 // becomes: class="foo baz"
 
 <div class={['foo', { baz: false }, 0 && 'bar', [true && 'bat']]} />
 // becomes: class="foo bat"
 
-let count = track(3);
-<div class={['foo', { bar: @count > 2 }, @count > 3 && 'bat']} />
+let &[count] = track(3);
+<div class={['foo', { bar: count > 2 }, count > 3 && 'bat']} />
 // becomes: class="foo bar"
 ```
 
@@ -60,13 +61,13 @@ the `style` attribute, passing either a string or an object to it:
 ```ripple
 import { track } from 'ripple';
 
-let color = track('red');
+let &[color] = track('red');
 
-<div style={`color: ${@color}; font-weight: bold; background-color: gray`} />
-<div style={{ color: @color, fontWeight: 'bold', 'background-color': 'gray' }} />
+<div style={`color: ${color}; font-weight: bold; background-color: gray`} />
+<div style={{ color: color, fontWeight: 'bold', 'background-color': 'gray' }} />
 
 const style = {
-  @color,
+  color,
   fontWeight: 'bold',
   'background-color': 'gray',
 };
@@ -82,7 +83,8 @@ Both examples above will render the same inline styles, however, it's recommende
 to use the object notation as it's typically more performance optimized.
 
 ::: info When passing an object to the `style` attribute, you can use either
-camelCase or kebab-case for CSS property names. :::
+camelCase or kebab-case for CSS property names.
+:::
 
 ## Global Styles
 
@@ -250,7 +252,7 @@ component Child({ cls }: { cls: string }) {
 }
 
 component Parent() {
-  let Dynamic = track(() => Child);
+  let &[Dynamic] = track(() => Child);
   <@Dynamic cls={#style.text} />
 
   <style>

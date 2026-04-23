@@ -135,11 +135,11 @@ component Card(props: { message: string, className?: string, onClick?: () => voi
 	},
 	{
 		title: 'Children',
-		code: `import type { Component } from 'ripple';
+		code: `import type { Children } from 'ripple';
 
-component Card(props: { children: Component }) {
+component Card(props: { children: Children }) {
   <div class="card">
-    <props.children />
+    {props.children}
   </div>
 }
 
@@ -163,11 +163,11 @@ component Separate() {
 }
 
 export default component App() {
-	<Composite PropComp={Separate}>
-		component InlineComp() {
-			<p>{\`I'm an inline component.\`}</p>
-		}
-	</Composite>
+	component InlineComp() {
+		<p>{\`I'm an inline component.\`}</p>
+	}
+
+	<Composite PropComp={Separate} {InlineComp} />
 }
 `,
 	},
@@ -177,7 +177,7 @@ export default component App() {
 	<fieldset>
 		<Header />
 		<hr />
-		<children />
+		{children}
 		<hr />
 		<Footer />
 	</fieldset>
@@ -188,11 +188,12 @@ component CustomHeader() {
 }
 
 export default component App() {
-	<Card Header={CustomHeader}> // <- Header passed in as a prop
+	component Footer() {
+		<p>{'Card footer'}</p>
+	}
+
+	<Card Header={CustomHeader} {Footer}> // <- Header and Footer passed in as props
 		<p>{'Card content here'}</p>
-		component Footer() {     // <- Footer passed in as a inline component
-			<p>{'Card footer'}</p>
-		}
 	</Card>
 }
 `,
@@ -305,17 +306,23 @@ export default component ErrorBoundary() {
 	},
 	{
 		title: 'Async',
-		code: `component AsyncComponent() {
-  const delay = new Promise(resolve => setTimeout(resolve, 2000));
-  await delay;
-  <p>{'Async content loaded!'}</p>
+		code: `import { trackAsync } from 'ripple';
+
+component AsyncComponent() {
+	let &[message] = trackAsync(() =>
+		new Promise((resolve) => {
+			setTimeout(() => resolve('Async content loaded!'), 2000);
+		}),
+	);
+
+	<p>{message}</p>
 }
 
 export default component SuspenseBoundary() {
 	try {
 		<AsyncComponent />
 	} pending {
-		<p>{'Loading...'}</p> // fallback
+		<p>{'Loading...'}</p>
 	}
 }
 `,
@@ -386,15 +393,21 @@ export default component App() {
 		code: `import { effect, track } from 'ripple';
 
 export default component App() {
-	let first = track(1);
-	let second = track(2);
-	const arr = [first, second];
+	let &[first, firstTracked] = track(1);
+	let &[second, secondTracked] = track(2);
+	const arr = [firstTracked, secondTracked];
 
-	const total = track(() => arr.reduce((a, b) => a + @b, 0));
+	const &[total] = track(() => arr.reduce((a, item) => a + item.value, 0));
 
 	effect(() => {
-		console.log(@total);
-	})
+		console.log(total);
+	});
+
+	<div>
+		<button onClick={() => first++}>{'First: '}{first}</button>
+		<button onClick={() => second++}>{'Second: '}{second}</button>
+		<p>{'Total: '}{total}</p>
+	</div>
 }
 `,
 	},
@@ -552,48 +565,6 @@ export default component App() {
 `,
 	},
 	{
-		title: 'trackSplit',
-		code: `import { track, trackSplit } from 'ripple';
-import type { PropsWithChildren, Tracked } from 'ripple';
-
-component Child(props: PropsWithChildren<{ count: Tracked<number> }>) {
-  const [children, count, className, rest] = trackSplit(props, ['children', 'count', 'class']);
-
-  <button class={@className} {...@rest}><@children /></button>
-  <pre>{\`Count is: \${@count}\`}</pre>
-  <button onClick={() => @count++}>{'Increment Count'}</button>
-}
-
-export default component App() {
-    let count = track(0,
-    (current) => {
-      console.log('getter', current);
-      return current;
-    },
-    (next) => {
-      console.log('setter', next);
-      return next;
-    }
-  );
-  let className = track('shadow');
-  let name = track('Click Me');
-
-  function buttonRef(el) {
-    console.log('ref called with', el);
-    return () => {
-      console.log('cleanup ref for', el);
-    };
-  }
-
-  <Child
-    class={@className}
-    onClick={() => { @name === 'Click Me' ? @name = 'Clicked' : @name = 'Click Me'; @className = ''}}
-    {count}
-    {ref buttonRef}
-  >{@name}</Child>;
-}`,
-	},
-	{
 		title: 'Transporting Reactivity',
 		code: `import { effect, track } from 'ripple';
 
@@ -672,16 +643,16 @@ export default component App() {
 }
 
 component Child({ Button, children }) {
-  <@Button><children /></@Button>
+  <@Button>{children}</@Button>
 }
 
 component AnotherChild(props) {
-  <props.@Button><props.children /></props.@Button>
+  <props.@Button>{props.children}</props.@Button>
 }
 
 component SomeButton({ children }) {
   <button onClick={() => alert('Clicked')}>
-		<children />
+		{children}
 	</button>
 }
 

@@ -4,6 +4,7 @@ function M.setup(plugin)
 	vim.filetype.add {
 		extension = {
 			ripple = "ripple",
+			tsrx = "ripple",
 		},
 	}
 

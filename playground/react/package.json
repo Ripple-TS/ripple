@@ -1,0 +1,26 @@
+{
+  "name": "@tsrx/react-playground",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "debug-volar": "node ../../scripts/debug-mode.js tsx @tsrx/react",
+    "debug-tsx": "node ../../scripts/debug-mode.js tsx @tsrx/react"
+  },
+  "dependencies": {
+    "react": "catalog:default",
+    "react-dom": "catalog:default"
+  },
+  "devDependencies": {
+    "@tsrx/react": "workspace:*",
+    "@tsrx/vite-plugin-react": "workspace:*",
+    "@tsrx/typescript-plugin": "workspace:*",
+    "@types/react": "catalog:default",
+    "@types/react-dom": "catalog:default",
+    "typescript": "catalog:default",
+    "vite": "catalog:default"
+  }
+}

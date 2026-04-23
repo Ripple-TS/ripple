@@ -1,0 +1,37 @@
+{
+  "name": "@ripple-ts/playground",
+  "private": true,
+  "version": "0.0.2",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "ssr": "node ./ssr-dev.js",
+    "build": "vite build --outDir dist/client",
+    "preview": "vite preview --host --outDir dist/client",
+    "test": "vitest run",
+    "debug-all": "node ../../scripts/debug-mode.js all @tsrx/ripple",
+    "debug-ssr": "node ../../scripts/debug-mode.js server @tsrx/ripple",
+    "debug-client": "node ../../scripts/debug-mode.js client @tsrx/ripple",
+    "debug-volar": "node ../../scripts/debug-mode.js tsx @tsrx/ripple",
+    "debug-tsx": "node ../../scripts/debug-mode.js tsx @tsrx/ripple",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@tsrx/eslint-plugin": "workspace:*",
+    "@tsrx/typescript-plugin": "workspace:*",
+    "@ripple-ts/vite-plugin": "workspace:*",
+    "@tsrx/ripple": "workspace:*",
+    "@typescript-eslint/parser": "catalog:default",
+    "@tailwindcss/vite": "catalog:default",
+    "eslint": "catalog:default",
+    "polka": "catalog:default",
+    "ripple": "workspace:*",
+    "typescript": "catalog:default",
+    "vite": "catalog:default",
+    "vitest": "catalog:default"
+  },
+  "dependencies": {
+    "@ripple-ts/compat-react": "workspace:*",
+    "tailwindcss": "catalog:peer"
+  }
+}

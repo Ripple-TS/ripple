@@ -1,6 +1,6 @@
 {
-  "name": "@ripple-ts/eslint-plugin",
-  "version": "0.3.4",
+  "name": "@tsrx/eslint-plugin",
+  "version": "0.3.31",
   "description": "ESLint plugin for Ripple",
   "type": "module",
   "main": "src/index.ts",
@@ -41,20 +41,20 @@
   "peerDependencies": {
     "eslint": "catalog:peer",
     "@typescript-eslint/parser": "catalog:peer",
-    "@ripple-ts/eslint-parser": "workspace:*"
+    "@tsrx/eslint-parser": "workspace:*"
   },
   "devDependencies": {
-    "@ripple-ts/eslint-parser": "workspace:*",
+    "@tsrx/eslint-parser": "workspace:*",
+    "@tsrx/core": "workspace:*",
     "@types/eslint": "catalog:default",
     "@types/node": "catalog:default",
     "@typescript-eslint/parser": "catalog:default",
     "eslint": "catalog:default",
-    "ripple": "workspace:*",
     "tsdown": "catalog:default",
     "typescript": "catalog:default",
     "vitest": "catalog:default"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   }
 }

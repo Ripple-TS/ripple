@@ -1,4 +1,3 @@
-/** @import { TemplateNode } from '#client' */
 import { render } from './blocks.js';
 import { HEAD_BLOCK } from './constants.js';
 import { COMMENT_NODE } from '../../../constants.js';
@@ -38,8 +37,8 @@ export function head(hash, render_fn) {
 		if (head_anchor === null) {
 			set_hydrating(false);
 		} else {
-			var start = /** @type {TemplateNode} */ (get_next_sibling(head_anchor));
-			head_anchor.remove(); // in case this component is repeated
+			var start = get_next_sibling(head_anchor);
+			/** @type {ChildNode} */ (head_anchor).remove(); // in case this component is repeated
 
 			set_hydrate_node(start);
 		}
@@ -54,7 +53,7 @@ export function head(hash, render_fn) {
 	} finally {
 		if (was_hydrating) {
 			set_hydrating(true);
-			set_hydrate_node(/** @type {TemplateNode} */ (previous_hydrate_node));
+			set_hydrate_node(previous_hydrate_node);
 		}
 	}
 }

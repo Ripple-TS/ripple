@@ -9,7 +9,9 @@ title: Components in Ripple
 ::: details Glossary
 
 - **Pure**: The idea that a function should produce no side-effects.
-- **Side-effect**: A permanent, externally observable state change. :::
+- **Side-effect**: A permanent, externally observable state change.
+
+:::
 
 Ripple's component lifecycle is akin to Vue/Svelte/Solid. The root scope of your
 component only runs once, akin to the "setup" scope in Vue/Svelte/Solid. However,
@@ -22,15 +24,15 @@ within `effect()` to ensure they only run when intended.
 
 To pass elements to be nested within a component, simply nest them as you would
 write HTML. By default, Ripple will make the content available as the `children`
-prop, which you can then render using `<props.children />` (or simply
-`<children />` if you destructured your props).
+prop, which you can then render using `{props.children}` (or simply `{children}`
+if you destructured your props).
 
 ```ripple
-import type { Component } from 'ripple';
+import type { Children } from 'ripple';
 
-component Card(props: { children: Component }) {
+component Card(props: { children: Children }) {
   <div class="card">
-    <props.children />
+    {props.children}
   </div>
 }
 
@@ -40,30 +42,38 @@ export component App() {
     <p>{'Card content here'}</p>
   </Card>
 
-  // or explicitly!
-  <Card>
-    component children() {
-      <p>{'Card content here'}</p>
-    }
-  </Card>
+  // or pass children explicitly as a prop.
+  component children() {
+    <p>{'Card content here'}</p>
+  }
+
+  <Card {children} />
 }
 ```
 
-### Named Children
+## Passing Components as Props
 
-If you need to pass more than one child to a component, you can either pass the
-child as a prop or define a component with the same name as the prop within the
-scope of the parent.
+Components can only be passed to other components as **explicit props**. You can
+declare a component at any lexical scope — including inside a composite component
+element — but you must pass it as a prop to the component that needs it.
 
-::: warning Note The child you pass in MUST be a component, not just templates!
+::: warning Scoping Rule Components follow normal lexical scoping. A parent
+component **cannot** see components declared inside a child's scope. Components
+declared inside a composite component element are only visible to the children of
+that element, not to the element's component itself.
 :::
+
+### Basic Example
+
+Define components in scope and pass them as explicit props:
 
 <Code>
 
 ```ripple
-component Composite({ PropComp, InlineComp }) {
+import type { Component } from 'ripple';
+
+component Composite({ PropComp }: { PropComp: Component }) {
   <PropComp />
-  <InlineComp />
 }
 
 component Separate() {
@@ -71,11 +81,7 @@ component Separate() {
 }
 
 export component App() {
-  <Composite PropComp={Separate}>
-    component InlineComp() {
-      <p>{`I'm an inline component.`}</p>
-    }
-  </Composite>
+  <Composite PropComp={Separate} />
 }
 ```
 
@@ -83,22 +89,33 @@ export component App() {
 
 ## Example: Card Component Using Child Composition
 
-Using what we've learnt, let's make a versatile card component that can display an
-optional header and footer.
-
 This pattern is commonly achieved with "slots" from Vue/Web Components, "render
 props" from React, and "snippets" from Svelte.
 
 <Code>
 
 ```ripple
-component Card({ children, Header, Footer }) {
+import type { Children, Component } from 'ripple';
+
+component Card({
+  children,
+  Header,
+  Footer,
+}: {
+  children: Children;
+  Header?: Component;
+  Footer?: Component;
+}) {
   <fieldset>
-    <Header />
-    <hr />
-    <children />
-    <hr />
-    <Footer />
+    if (Header) {
+      <Header />
+      <hr />
+    }
+    {children}
+    if (Footer) {
+      <hr />
+      <Footer />
+    }
   </fieldset>
 }
 
@@ -106,20 +123,94 @@ component CustomHeader() {
   <h1>{'Card Title'}</h1>
 }
 
+component CustomFooter() {
+  <button>{'Cancel'}</button>
+  <button>{'OK'}</button>
+}
+
 export component App() {
-  <Card Header={CustomHeader}>
-    // <- Header passed in as a prop
+  <Card Header={CustomHeader} Footer={CustomFooter}>
     <p>{'Card content here'}</p>
-    component Footer() {
-      // <- Footer passed in as a inline component
-      <button>{'Cancel'}</button>
-      <button>{'OK'}</button>
-    }
   </Card>
 }
 ```
 
 </Code>
+
+## Component Scoping and Nesting
+
+Components can be declared at any lexical scope, including inside composite
+component elements. However, they are only visible within that scope — a parent
+component cannot access components declared inside a child's scope.
+
+### ✅ Correct: Declaring Components Inside Composite Elements for Children
+
+Components declared inside a composite component element can be passed as props to
+**nested** component calls within that scope:
+
+<Code>
+
+```ripple
+import type { Component } from 'ripple';
+
+component Inner({ Greeting }: { Greeting: Component }) {
+  <div class="inner">
+    <Greeting />
+  </div>
+}
+
+component Outer({ children }: { children: Children }) {
+  <div class="outer">
+    {children}
+  </div>
+}
+
+export component App() {
+  <Outer>
+    component HelloGreeting() {
+      <p>{'Hello from inside!'}</p>
+    }
+
+    // It can be passed as a prop to <Inner>, which is also in this scope
+    <Inner Greeting={HelloGreeting} />
+  </Outer>
+}
+```
+
+</Code>
+
+### ❌ Wrong: Trying to Pass a Child-Scoped Component to a Parent
+
+A component declared inside a composite element's children is **not visible** to
+the parent component itself — it only exists in the child scope:
+
+```ripple
+import type { Component } from 'ripple';
+
+component Outer({ Footer }: { Footer: Component }) {
+  // Outer expects Footer as a prop
+  <div class="outer">
+    <Footer />
+  </div>
+}
+
+export component App() {
+  // ❌ WRONG — Footer is declared inside Outer's children,
+  // but Outer cannot see it. Footer is not in scope for the
+  // <Outer> component call.
+  <Outer {Footer}>
+    component Footer() {
+      <button>{'OK'}</button>
+    }
+  </Outer>
+
+  component Footer() {
+    <button>{'OK'}</button>
+  }
+
+  <Outer {Footer} />
+}
+```
 
 ## Reactive Props
 

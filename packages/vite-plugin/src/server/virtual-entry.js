@@ -21,7 +21,7 @@
  * @property {Route[]} routes - Route definitions from ripple.config.ts
  * @property {string} rippleConfigPath - Absolute path to ripple.config.ts (for importing middlewares/adapter)
  * @property {string} htmlTemplatePath - Path to the processed index.html template
- * @property {string[]} [rpcModulePaths] - Paths (relative to root) of .ripple modules with #server blocks
+ * @property {string[]} [rpcModulePaths] - Paths (relative to root) of .tsrx modules with #server blocks
  * @property {Record<string, ClientAssetEntry>} [clientAssetMap] - Map of route entry paths to built JS/CSS asset paths
  */
 

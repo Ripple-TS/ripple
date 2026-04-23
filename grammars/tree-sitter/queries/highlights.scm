@@ -70,9 +70,17 @@
   name: (jsx_element_name) @tag
   ">" @tag.delimiter)
 
+(jsx_opening_fragment
+  "<" @tag.delimiter
+  ">" @tag.delimiter)
+
 (jsx_closing_element
   "</" @tag.delimiter
   name: (jsx_element_name) @tag
+  ">" @tag.delimiter)
+
+(jsx_closing_fragment
+  "</" @tag.delimiter
   ">" @tag.delimiter)
 
 (jsx_self_closing_element
@@ -92,19 +100,6 @@
 
 (jsx_self_closing_element
   name: (jsx_non_namespaced_element_name (identifier) @tag))
-
-; Dynamic element names (unbox expressions)
-(jsx_opening_element
-  name: (jsx_element_name
-    (unbox_expression (identifier) @tag)))
-
-(jsx_closing_element
-  name: (jsx_element_name
-    (unbox_expression (identifier) @tag)))
-
-(jsx_self_closing_element
-  name: (jsx_non_namespaced_element_name
-    (unbox_expression (identifier) @tag)))
 
 (jsx_attribute
   name: [(identifier) (jsx_namespace_name)] @attribute)
@@ -241,9 +236,6 @@
 ["(" ")" "[" "]" "{" "}"] @punctuation.bracket
 ["." "," ";" ":" "..."] @punctuation.delimiter
 ; Note: < and > are handled separately in JSX contexts as @tag.delimiter
-
-; Reactive constructs (placed after generic punctuation so special tokens win)
-(unbox_expression "@" @operator.special)
 
 (template_substitution
   "${" @punctuation.special

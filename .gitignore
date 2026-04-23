@@ -8,8 +8,16 @@ node_modules/
 coverage
 *.lcov
 
+# Local settings
+*.local.json
+
+.claude/settings.json
+
 packages/vscode-plugin/*.vsix
 playground/src
+playground/ripple/src
+playground/react/src
+playground/solid/src
 
 website/.vitepress/dist/
 website/.vitepress/cache/
@@ -39,6 +47,9 @@ website/.vitepress/cache/
 tmp
 dist
 debug
+.build-hash
+.build-hash-built
+**/*.d.tsrx.ts
 
 # Temporary folders
 tmp/

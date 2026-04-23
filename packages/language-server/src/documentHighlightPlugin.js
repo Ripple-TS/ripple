@@ -1,7 +1,7 @@
 /** @import { LanguageServicePlugin } from '@volar/language-server' */
 /** @import { LanguageServicePluginInstance } from '@volar/language-server' */
 
-const { getVirtualCode, getWordFromPosition, createLogging } = require('./utils.js');
+import { getVirtualCode, getWordFromPosition, createLogging } from './utils.js';
 const { log } = createLogging('[Ripple Document Highlight Plugin]');
 
 /**
@@ -9,7 +9,7 @@ const { log } = createLogging('[Ripple Document Highlight Plugin]');
  * Provides word highlighting (grey background) for custom Ripple keywords like 'pending'
  * @returns {LanguageServicePlugin}
  */
-function createDocumentHighlightPlugin() {
+export function createDocumentHighlightPlugin() {
 	return {
 		name: 'ripple-document-highlight',
 		capabilities: {
@@ -116,7 +116,3 @@ function createDocumentHighlightPlugin() {
 		},
 	};
 }
-
-module.exports = {
-	createDocumentHighlightPlugin,
-};

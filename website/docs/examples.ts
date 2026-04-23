@@ -34,17 +34,17 @@ export default component App() {
 }
 
 component InlineStyles() {
-  let color = track('#3e95ff');
+  let &[color] = track('#3e95ff');
 
-  <p style={\`color: \${@color}; font-weight: bold; background-color: #eee\`}>
+  <p style={\`color: \${color}; font-weight: bold; background-color: #eee\`}>
     {'Hello Ripple!'}
   </p>
-  <p style={{ color: @color, fontWeight: 'bold', 'background-color': '#eee' }}>
+  <p style={{ color: color, fontWeight: 'bold', 'background-color': '#eee' }}>
     {'Hello Ripple!'}
   </p>
 
   const style = {
-    @color,
+    color,
     fontWeight: 'bold',
     'background-color': '#eee',
   };
@@ -57,8 +57,8 @@ component InlineStyles() {
 }
 
 component DynamicClasses() {
-  let includeBaz = track(true);
-  <p class={{ foo: true, bar: false, baz: @includeBaz }}> // becomes: class="foo baz"
+  let &[includeBaz] = track(true);
+  <p class={{ foo: true, bar: false, baz: includeBaz }}> // becomes: class="foo baz"
     {'Hello Ripple!'}
   </p>
 
@@ -66,8 +66,8 @@ component DynamicClasses() {
     {'Hello Ripple!'}
   </p>
 
-  let count = track(3);
-  <p class={['foo', {bar: @count > 2}, @count > 3 && 'bat']}> // becomes: class="foo bar"
+  let &[count] = track(3);
+  <p class={['foo', {bar: count > 2}, count > 3 && 'bat']}> // becomes: class="foo bar"
     {'Hello Ripple!'}
   </p>
 }
@@ -135,11 +135,11 @@ component Card(props: { message: string, className?: string, onClick?: () => voi
 	},
 	{
 		title: 'Children',
-		code: `import type { Component } from 'ripple';
+		code: `import type { Children } from 'ripple';
 
-component Card(props: { children: Component }) {
+component Card(props: { children: Children }) {
   <div class="card">
-    <props.children />
+    {props.children}
   </div>
 }
 
@@ -153,7 +153,9 @@ export default component App() {
 	},
 	{
 		title: 'Named Children',
-		code: `component Composite({ PropComp, InlineComp }) {
+		code: `import type { Component } from 'ripple';
+
+component Composite(&{ PropComp, InlineComp }) {
 	<PropComp />
 	<InlineComp />
 }
@@ -162,24 +164,30 @@ component Separate() {
 	<p>{\`I'm a separate component.\`}</p>
 }
 
+component InlineComp() {
+	<p>{\`I'm an inline component.\`}</p>
+}
+
 export default component App() {
-	<Composite PropComp={Separate}>
-		component InlineComp() {
-			<p>{\`I'm an inline component.\`}</p>
-		}
-	</Composite>
+	<Composite PropComp={Separate} InlineComp={InlineComp} />
 }
 `,
 	},
 	{
 		title: 'Child Composition',
-		code: `component Card({ children, Header, Footer }) {
+		code: `import type { Children, Component } from 'ripple';
+
+component Card(&{ children, Header, Footer }) {
 	<fieldset>
-		<Header />
+		if (Header) {
+			<Header />
+		}
 		<hr />
-		<children />
-		<hr />
-		<Footer />
+		{children}
+		if (Footer) {
+			<hr />
+			<Footer />
+		}
 	</fieldset>
 }
 
@@ -187,12 +195,13 @@ component CustomHeader() {
 	<h1>{'Card Title'}</h1>
 }
 
+component Footer() {
+	<p>{'Card footer'}</p>
+}
+
 export default component App() {
-	<Card Header={CustomHeader}> // <- Header passed in as a prop
+	<Card Header={CustomHeader} Footer={Footer}>
 		<p>{'Card content here'}</p>
-		component Footer() {     // <- Footer passed in as a inline component
-			<p>{'Card footer'}</p>
-		}
 	</Card>
 }
 `,
@@ -239,11 +248,11 @@ export default component App() {
 		code: `import { track } from 'ripple';
 
 export default component App() {
-	let count = track(1);
+	let &[count] = track(1);
 
-	<button onClick={() => @count++}>{'Increment'}</button>
+	<button onClick={() => count++}>{'Increment'}</button>
 
-	switch (@count) {
+	switch (count) {
 		case 1:
 			<div>{'Count is 1'}</div>
 			break;
@@ -305,17 +314,23 @@ export default component ErrorBoundary() {
 	},
 	{
 		title: 'Async',
-		code: `component AsyncComponent() {
-  const delay = new Promise(resolve => setTimeout(resolve, 2000));
-  await delay;
-  <p>{'Async content loaded!'}</p>
+		code: `import { trackAsync } from 'ripple';
+
+component AsyncComponent() {
+	let &[message] = trackAsync(() =>
+		new Promise((resolve) => {
+			setTimeout(() => resolve('Async content loaded!'), 2000);
+		}),
+	);
+
+	<p>{message}</p>
 }
 
 export default component SuspenseBoundary() {
 	try {
 		<AsyncComponent />
 	} pending {
-		<p>{'Loading...'}</p> // fallback
+		<p>{'Loading...'}</p>
 	}
 }
 `,
@@ -339,16 +354,16 @@ export default component SuspenseBoundary() {
 		code: `import { track } from 'ripple';
 
 export default component Counter() {
-	let count = track(0);  // Reactive variable
-	let double = track(() => @count * 2);  // Derived reactive value
-	let quadruple = track(() => @double * 2);
+	let &[count] = track(0);  // Reactive variable
+	let &[double] = track(() => count * 2);  // Derived reactive value
+	let &[quadruple] = track(() => double * 2);
 
 	<div class="container">
-		<p>{"Count: "}{@count}</p>
-		<p>{"Double: "}{@double}</p>
-		<p>{"Quadruple: "}{@quadruple}</p>
-		<button onClick={() => @count++}>{"Increment"}</button>
-		<button onClick={() => @count = 0}>{"Reset"}</button>
+		<p>{"Count: "}{count}</p>
+		<p>{"Double: "}{double}</p>
+		<p>{"Quadruple: "}{quadruple}</p>
+		<button onClick={() => count++}>{"Increment"}</button>
+		<button onClick={() => count = 0}>{"Reset"}</button>
 	</div>
 
 	<style>
@@ -368,16 +383,16 @@ export default component Counter() {
 import confetti from 'canvas-confetti';
 
 export default component App() {
-  let count = track(0);
+  let &[count] = track(0);
 
   effect(() => {
-    console.log(@count);
-    if (@count > 0) {
+    console.log(count);
+    if (count > 0) {
       confetti();
     }
   });
 
-  <button onClick={() => @count++}>{'Increment'}</button>
+  <button onClick={() => count++}>{'Increment'}</button>
 }
 `,
 	},
@@ -386,15 +401,21 @@ export default component App() {
 		code: `import { effect, track } from 'ripple';
 
 export default component App() {
-	let first = track(1);
-	let second = track(2);
-	const arr = [first, second];
+	let &[first, firstTracked] = track(1);
+	let &[second, secondTracked] = track(2);
+	const arr = [firstTracked, secondTracked];
 
-	const total = track(() => arr.reduce((a, b) => a + @b, 0));
+	const &[total] = track(() => arr.reduce((a, item) => a + item.value, 0));
 
 	effect(() => {
-		console.log(@total);
-	})
+		console.log(total);
+	});
+
+	<div>
+		<button onClick={() => first++}>{'First: '}{first}</button>
+		<button onClick={() => second++}>{'Second: '}{second}</button>
+		<p>{'Total: '}{total}</p>
+	</div>
 }
 `,
 	},
@@ -422,14 +443,14 @@ export default component App() {
   console.log(arr instanceof Array);
 
   // reactive assignment
-  let sum = track(() => arr.reduce((a, b) => a + b, 0));
-  <p>{"sum: "}{@sum}</p>
+  let &[sum] = track(() => arr.reduce((a, b) => a + b, 0));
+  <p>{"sum: "}{sum}</p>
 
-  let count = track(3);
-  const inc = () => @count++;
-  const dec = () => { if (@count > 0) @count-- };
+  let &[count] = track(3);
+  const inc = () => count++;
+  const dec = () => { if (count > 0) count-- };
   <button onClick={() => { dec(); arr.pop(); }}>{"pop"}</button>
-  <button onClick={() => { inc(); arr.push(@count); }}>{"push"}</button>
+  <button onClick={() => { inc(); arr.push(count); }}>{"push"}</button>
 
   <style>
     button {
@@ -465,8 +486,8 @@ export default component App() {
   <p>{"Direct usage: set contains 2: "}{set.has(2)}</p>
 
   // reactive assignment
-  let has = track(() => set.has(2));
-  <p>{"Assigned usage: set contains 2: "}{@has}</p>
+  let &[has] = track(() => set.has(2));
+  <p>{"Assigned usage: set contains 2: "}{has}</p>
 
   <button onClick={() => set.delete(2)}>{"Delete 2"}</button>
   <button onClick={() => set.add(2)}>{"Add 2"}</button>
@@ -484,8 +505,8 @@ export default component App() {
   <p>{"Direct usage: map has an item with key 2: "}{map.has(2)}</p>
 
   // reactive assignment
-  let has = track(() => map.has(2));
-  <p>{"Assigned usage: map has an item with key 2: "}{@has}</p>
+  let &[has] = track(() => map.has(2));
+  <p>{"Assigned usage: map has an item with key 2: "}{has}</p>
 
   <button onClick={() => map.delete(2)}>{"Delete item with key 2"}</button>
   <button onClick={() => map.set(2, 2)}>{"Add key 2 with value 2"}</button>
@@ -504,9 +525,9 @@ export default component App() {
   <p>{"ISO String: "}{date.toISOString()}</p>
 
   // reactive assignment
-  let year = track(() => date.getFullYear());
-  let month = track(() => date.getMonth());
-  <p>{"Assigned usage: Year "}{@year}{", Month "}{@month}</p>
+  let &[year] = track(() => date.getFullYear());
+  let &[month] = track(() => date.getMonth());
+  <p>{"Assigned usage: Year "}{year}{", Month "}{month}</p>
 
   <button onClick={() => date.setFullYear(2026)}>{"Change to 2026"}</button>
   <button onClick={() => date.setMonth(11)}>{"Change to December"}</button>
@@ -518,7 +539,7 @@ export default component App() {
 		code: `import { track } from 'ripple';
 
 export default component App() {
-  let count = track(0,
+  let &[count] = track(0,
     (current) => {
       console.log(current);
       return current;
@@ -534,9 +555,9 @@ export default component App() {
   );
 
   <div class="container">
-    <p>{@count}</p>
-    <button onClick={() => @count++}>{"Increment"}</button>
-    <button onClick={() => @count = 0}>{"Reset"}</button>
+    <p>{count}</p>
+    <button onClick={() => count++}>{"Increment"}</button>
+    <button onClick={() => count = 0}>{"Reset"}</button>
   </div>
 
 	<style>
@@ -552,77 +573,35 @@ export default component App() {
 `,
 	},
 	{
-		title: 'trackSplit',
-		code: `import { track, trackSplit } from 'ripple';
-import type { PropsWithChildren, Tracked } from 'ripple';
-
-component Child(props: PropsWithChildren<{ count: Tracked<number> }>) {
-  const [children, count, className, rest] = trackSplit(props, ['children', 'count', 'class']);
-
-  <button class={@className} {...@rest}><@children /></button>
-  <pre>{\`Count is: \${@count}\`}</pre>
-  <button onClick={() => @count++}>{'Increment Count'}</button>
-}
-
-export default component App() {
-    let count = track(0,
-    (current) => {
-      console.log('getter', current);
-      return current;
-    },
-    (next) => {
-      console.log('setter', next);
-      return next;
-    }
-  );
-  let className = track('shadow');
-  let name = track('Click Me');
-
-  function buttonRef(el) {
-    console.log('ref called with', el);
-    return () => {
-      console.log('cleanup ref for', el);
-    };
-  }
-
-  <Child
-    class={@className}
-    onClick={() => { @name === 'Click Me' ? @name = 'Clicked' : @name = 'Click Me'; @className = ''}}
-    {count}
-    {ref buttonRef}
-  >{@name}</Child>;
-}`,
-	},
-	{
 		title: 'Transporting Reactivity',
 		code: `import { effect, track } from 'ripple';
 
-function createDouble([ count ]) {
-  const double = track(() => @count * 2);
+function createDouble(&[ count ]) {
+  const &[double] = track(() => count * 2);
   effect(() => {
-    console.log('Count:', @count)
+    console.log('Count:', count)
   });
   return [ double ];
 }
 
-function createQuad({ count }) {
-  const quad = track(() => @count * 4);
+function createQuad(&{ count }) {
+  const &[quad] = track(() => count * 4);
   effect(() => {
-    console.log('Count:', @count)
+    console.log('Count:', count)
   });
   return { quad };
 }
 
 export default component App() {
-  let count = track(0);
+  let &[count] = track(0);
 
-  const [ double ] = createDouble([ count ]); // array
-  <p>{'Double: ' + @double}</p>
+  const &[ double ] = createDouble([ count ]); // array
+  <p>{'Double: ' + double}</p>
 
-  const { quad } = createQuad({ count }); // object
-  <p>{'Quadruple: ' + @quad}</p>
+  const &{ quad } = createQuad({ count }); // object
+  <p>{'Quadruple: ' + quad}</p>
 
-  <button onClick={() => { @count++; }}>{'Increment'}</button>
+  <button onClick={() => { count++; }}>{'Increment'}</button>
 }
 `,
 	},
@@ -631,11 +610,11 @@ export default component App() {
 		code: `import { track } from 'ripple';
 
 export default component App() {
-  let swapMe = track(() => Child1);
+  let &[swapMe, swapMeTracked] = track(() => Child1);
 
-  <Child {swapMe} />
+  <Child swapMe={swapMeTracked} />
 
-  <button onClick={() => @swapMe = @swapMe === Child1 ? Child2 : Child1}>
+  <button onClick={() => swapMe = swapMe === Child1 ? Child2 : Child1}>
 		{'Swap Component'}
 	</button>
 }
@@ -658,30 +637,30 @@ component Child2(props) {
 		code: `import { track } from 'ripple';
 
 export default component App() {
-  const tracked_basic = track(() => basic);
+  const &[tracked_basic] = track(() => basic);
   const obj = {
     tracked_basic,
   };
-  const ripple_object = track(obj);
-  const Button = track(() => SomeButton);
-  const AnotherButton = track(() => SomeButton);
+  const &[ripple_object] = track(obj);
+  const &[Button] = track(() => SomeButton);
+  const &[AnotherButton] = track(() => SomeButton);
 
-  <@ripple_object.@tracked_basic />
+  <@ripple_object.tracked_basic />
   <Child {Button}>{'Child Button'}</Child>
   <AnotherChild Button={AnotherButton}>{'Another Child Button'}</AnotherChild>
 }
 
 component Child({ Button, children }) {
-  <@Button><children /></@Button>
+  <@Button>{children}</@Button>
 }
 
-component AnotherChild(props) {
-  <props.@Button><props.children /></props.@Button>
+component AnotherChild(&{ Button, children }) {
+  <@Button>{children}</@Button>
 }
 
 component SomeButton({ children }) {
   <button onClick={() => alert('Clicked')}>
-		<children />
+		{children}
 	</button>
 }
 
@@ -695,13 +674,13 @@ component basic() {
 		code: `import { effect, track, untrack } from 'ripple';
 
 export default component App() {
-  let count = track(10);
-  let double = track(() => @count * 2);
-  let quadruple = track(() => @double * 2);
+  let &[count] = track(10);
+  let &[double] = track(() => count * 2);
+  let &[quadruple] = track(() => double * 2);
 
   effect(() => {
     // This effect will never fire again, as we've untracked the only dependency it has
-    console.log(untrack(() => @quadruple));
+    console.log(untrack(() => quadruple));
   })
 }
 `,
@@ -711,13 +690,13 @@ export default component App() {
 		code: `import { effect, on, track } from 'ripple';
 
 export default component App() {
-  let message = track('');
+  let &[message] = track('');
 
   <div>
 		<p>{'Try resizing the window!'}</p>
-    <button onClick={() => @message = 'Clicked!'}>{'Click me'}</button>
-    <input onInput={(e) => @message = e.target.value} />
-    <p>{@message}</p>
+    <button onClick={() => message = 'Clicked!'}>{'Click me'}</button>
+    <input onInput={(e) => message = e.target.value} />
+    <p>{message}</p>
   </div>
 
   effect(() => {
@@ -737,14 +716,14 @@ export default component App() {
 		code: `import { track } from 'ripple';
 
 export default component App() {
-  let div = track();
+  let &[div] = track();
 
   const divRef = (node) => {
-    @div = node;
+    div = node;
     console.log("mounted", node);
 
     return () => {
-      @div = undefined;
+      div = undefined;
       console.log("unmounted", node);
     };
   };
@@ -758,15 +737,15 @@ export default component App() {
 		code: `import { createRefKey, track } from 'ripple';
 
 export default component App() {
-  let value = track('');
+  let &[value] = track('');
 
   const props = {
     id: "example",
-    @value,
+    value,
     [createRefKey()]: (node) => {
       const removeListener = node.addEventListener('input', (e) => {
-        @value = e.target.value;
-        console.log(@value);
+        value = e.target.value;
+        console.log(value);
       });
 
       return () => {
@@ -776,7 +755,7 @@ export default component App() {
   };
 
   <input type="text" {...props} />
-  <div>{@value}</div>
+  <div>{value}</div>
 }
 `,
 	},
@@ -809,4 +788,4 @@ component Child() {
 }
 `,
 	},
-]
+];

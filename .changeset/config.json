@@ -4,20 +4,26 @@
   "commit": false,
   "fixed": [
     [
+      "@tsrx/core"
+    ],
+    [
+      "@tsrx/ripple"
+    ],
+    [
       "ripple",
       "@ripple-ts/cli",
       "@ripple-ts/compat-react",
       "create-ripple",
-      "@ripple-ts/eslint-parser",
-      "@ripple-ts/eslint-plugin",
+      "@tsrx/eslint-parser",
+      "@tsrx/eslint-plugin",
       "@ripple-ts/language-server",
-      "@ripple-ts/prettier-plugin",
+      "@tsrx/prettier-plugin",
       "@ripple-ts/adapter",
       "@ripple-ts/adapter-node",
       "@ripple-ts/adapter-bun",
       "@ripple-ts/adapter-vercel",
       "@ripple-ts/rollup-plugin",
-      "@ripple-ts/typescript-plugin",
+      "@tsrx/typescript-plugin",
       "@ripple-ts/vite-plugin"
     ]
   ],

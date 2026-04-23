@@ -6,9 +6,9 @@ title: Referencing DOM Elements in Ripple
 
 Ripple provides a consistent way to capture the underlying DOM element – refs.
 Specifically, using the syntax `{ref fn}` where `fn` is a function that captures
-the DOM element. If you're familiar with other frameworks, then this is
-identical to `{@attach fn}` in Svelte 5 and somewhat similar to `ref` in React.
-The hook function will receive the reference to the underlying DOM element.
+the DOM element. If you're familiar with other frameworks, then this is identical
+to `{@attach fn}` in Svelte 5 and somewhat similar to `ref` in React. The hook
+function will receive the reference to the underlying DOM element.
 
 <Code console>
 
@@ -16,19 +16,19 @@ The hook function will receive the reference to the underlying DOM element.
 import { track } from 'ripple';
 
 export default component App() {
-  let div = track();
+  let &[div] = track();
 
   const divRef = (node) => {
-    @div = node;
-    console.log("mounted", node);
+    div = node;
+    console.log('mounted', node);
 
     return () => {
-      @div = undefined;
-      console.log("unmounted", node);
+      div = undefined;
+      console.log('unmounted', node);
     };
   };
 
-  <div {ref divRef}>{"Hello world"}</div>
+  <div {ref divRef}>{'Hello world'}</div>
 }
 ```
 
@@ -42,27 +42,31 @@ You can also create `{ref}` functions inline.
 import { track } from 'ripple';
 
 export component App() {
-  let div = track();
+  let &[div] = track();
 
-  <div {ref (node) => {
-    @div = node;
-    console.log("mounted", node);
-    return () => @div = undefined;
-  }}>{"Hello world"}</div>
+  <div
+    {ref (node) => {
+      div = node;
+      console.log('mounted', node);
+      return () => (div = undefined);
+    }}
+  >
+    {'Hello world'}
+  </div>
 }
 ```
 
 </Code>
 
-You can also use function factories to define properties, these are functions
-that return functions that do the same thing. However, you can use this pattern
-to pass reactive properties.
+You can also use function factories to define properties, these are functions that
+return functions that do the same thing. However, you can use this pattern to pass
+reactive properties.
 
 ```ripple
 import { fadeIn } from 'some-library';
 
 export component App({ ms }) {
-  <div {ref fadeIn({ ms })}>{"Hello world"}</div>
+  <div {ref fadeIn({ ms })}>{'Hello world'}</div>
 }
 ```
 
@@ -73,9 +77,8 @@ Lastly, you can use refs on composite components.
 ```
 
 When passing refs to composite components (rather than HTML elements) as shown
-above, they will be passed a `Symbol` property, as they are not named. This
-still means that it can be spread to HTML template elements later on and still
-work.
+above, they will be passed a `Symbol` property, as they are not named. This still
+means that it can be spread to HTML template elements later on and still work.
 
 ## createRefKey
 
@@ -89,21 +92,21 @@ relying directly on the `{ref ...}` template syntax.
 import { track } from 'ripple';
 
 export component App() {
-  let value = track('');
+  let &[value] = track('');
 
   const props = {
-    id: "example",
-    @value,
+    id: 'example',
+    value,
     [createRefKey()]: (node) => {
       const removeListener = node.addEventListener('input', (e) => {
-        @value = e.target.value;
-        console.log(@value);
+        value = e.target.value;
+        console.log(value);
       });
 
       return () => {
         removeListener();
-      }
-    }
+      };
+    },
   };
 
   // applied to an element

@@ -1,6 +1,6 @@
 import { RuleTester } from 'eslint';
 import rule from '../../src/rules/control-flow-jsx.js';
-import * as parser from '@ripple-ts/eslint-parser';
+import * as parser from '@tsrx/eslint-parser';
 
 const ruleTester = new RuleTester({
 	languageOptions: {
@@ -63,12 +63,12 @@ ruleTester.run('control-flow-jsx', rule, {
 				import { RippleArray, track, effect, untrack } from 'ripple';
 				component App() {
 					const items = new RippleArray(1, 2, 3);
-					const sum = track(0);
+					const &[sum] = track(0);
 					effect(() => {
-						@sum = 0;
+						sum = 0;
 						for (const item of items) {
 							untrack(() => {
-								@sum += item;
+								sum += item;
 							});
 						}
 					});

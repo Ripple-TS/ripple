@@ -33,7 +33,7 @@ export { resolveRippleConfig } from '../load-config.js';
 	RenderResult,
 	HandlerOptions,
 	ClientAssetEntry,
-} from '@ripple-ts/vite-plugin/production';
+} from '../../types/production.d.ts';
  */
 
 /**

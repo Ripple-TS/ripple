@@ -39,4 +39,15 @@ describe('hydration > composite', () => {
 			'<div class=\"layout\"><h1>title</h1><p>description</p></div>',
 		);
 	});
+
+	it('hydrates explicit text around children', async () => {
+		await hydrateComponent(
+			ServerComponents.LayoutWithTextAroundChildren,
+			ClientComponents.LayoutWithTextAroundChildren,
+		);
+		expect(container.innerHTML).toBeHtml(
+			'<div class="layout">before<div class="single">single</div>after</div>',
+		);
+		expect(container.querySelector('.layout')?.textContent).toBe('beforesingleafter');
+	});
 });

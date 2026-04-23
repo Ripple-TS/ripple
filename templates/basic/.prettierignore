@@ -4,3 +4,4 @@ build/
 coverage/
 *.min.js
 *.min.css
+*.d.tsrx.ts
