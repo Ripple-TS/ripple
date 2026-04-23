@@ -103,29 +103,29 @@ component App() {
 
 This design enforces clear separation between component templates and regular JavaScript logic, making code more predictable and easier to analyze.
 
-### Using `<tsx>` for JSX Expression Values
+### Using `<>` or `<tsx>` for JSX Expression Values
 
-**IMPORTANT**: Regular Ripple elements are statement-based and can only appear directly inside component bodies or nested template blocks. If you need to create JSX as a value in expression position, wrap it in `<tsx>...</tsx>`.
+**IMPORTANT**: Regular Ripple elements are statement-based and can only appear directly inside component bodies or nested template blocks. If you need to create JSX as a value in expression position, wrap it in `<>...</>` or the equivalent `<tsx>...</tsx>` form.
 
-Use `<tsx>` when you need to:
+Use `<>...</>` or `<tsx>...</tsx>` when you need to:
 - assign JSX to a variable
 - return JSX from a helper function
 - pass JSX directly as a prop or `children`
 - build reusable render factories
 
 ```ripple
-// ✅ CORRECT - JSX used as an expression value via <tsx>
+// ✅ CORRECT - JSX used as an expression value via fragment shorthand
 component App() {
-  const title = <tsx><span class="title">Title</span></tsx>;
+  const title = <><span class="title">Title</span></>;
 
   <div>{title}</div>
 }
 
 // ✅ CORRECT - returning JSX from a helper function
 function createBadge(label: string) {
-  return <tsx>
+  return <>
     <span class="badge">{label}</span>
-  </tsx>;
+  </>;
 }
 
 component App() {
@@ -142,24 +142,26 @@ component Card(props: { title: any; children: any }) {
 
 component App() {
   <Card
-    title={<tsx><span>Settings</span></tsx>}
-    children={<tsx><p>Card body</p></tsx>}
+    title={<><span>Settings</span></>}
+    children={<><p>Card body</p></>}
   />
 }
 ```
 
 **LLM DO:**
-- Use plain `<tsx>` when JSX must exist in expression position.
-- Treat `<tsx>` output as a renderable value that can be stored, returned, and passed around.
-- Keep using normal Ripple syntax and semantics inside plain `<tsx>` blocks.
+- Use `<>...</>` as the default wrapper when JSX must exist in expression position.
+- Use `<tsx>...</tsx>` when you want the explicit long form; it is equivalent.
+- Treat either form as a renderable value that can be stored, returned, and passed around.
+- Keep using normal Ripple syntax and semantics inside either wrapper.
 
 **LLM DON'T:**
 - Do not write `const el = <div />;` directly in Ripple code.
+- Do not return bare JSX from helper functions without `<>...</>` or `<tsx>...</tsx>`.
 - Do not confuse plain `<tsx>` with `<tsx:react>`.
 - Do not require React compat for plain `<tsx>`.
 
 **Key distinction:**
-- `<tsx>`: expression-form Ripple JSX value
+- `<>...</>` / `<tsx>...</tsx>`: expression-form Ripple JSX value
 - `<tsx:react>`: React compatibility block with React JSX semantics and compat setup
 
 ### ⚠️ Critical: Early Returns Are Guard Exits, Not JSX Returns

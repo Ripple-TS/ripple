@@ -1,7 +1,7 @@
 import { flushSync, track } from 'ripple';
 
 describe('tsx expression', () => {
-	it('renders a basic tsx element', () => {
+	it('renders a basic fragment shorthand element', () => {
 		component App() {
 			const el = <tsx><div>hello world</div></tsx>;
 			{el}
@@ -9,6 +9,56 @@ describe('tsx expression', () => {
 		render(App);
 		expect(container.textContent).toBe('hello world');
 		expect(container.querySelector('div')).toBeTruthy();
+	});
+
+	it('applies scoped classes inside tsx blocks and fragment shorthand', () => {
+		component App() {
+			<tsx>
+				<div class="card">
+					<h2>
+						{'tsx block'}
+					</h2>
+				</div>
+			</tsx>
+
+			<>
+				<div class="card">
+					<h2>
+						{'fragment shorthand'}
+					</h2>
+				</div>
+			</>
+
+			<style>
+				.card {
+					padding: 1rem;
+				}
+
+				h2 {
+					color: red;
+				}
+			</style>
+		}
+
+		render(App);
+
+		const cards = Array.from(container.querySelectorAll('.card'));
+		const headings = Array.from(container.querySelectorAll('h2'));
+
+		expect(cards).toHaveLength(2);
+		expect(headings).toHaveLength(2);
+
+		cards.forEach((card) => {
+			expect(
+				Array.from(card.classList).filter((className) => className.startsWith('tsrx-')),
+			).toHaveLength(1);
+		});
+
+		headings.forEach((heading) => {
+			expect(
+				Array.from(heading.classList).filter((className) => className.startsWith('tsrx-')),
+			).toHaveLength(1);
+		});
 	});
 
 	it('renders a tsx element assigned to a variable', () => {
@@ -242,7 +292,7 @@ describe('tsx expression', () => {
 		expect(div.title).toBe('Item 1');
 	});
 
-	it('renders tsx passed directly as component prop', () => {
+	it('renders fragment shorthand passed directly as component prop', () => {
 		component Wrapper(&{ content }: { content: any }) {
 			<div class="wrapper">{content}</div>
 		}
@@ -257,7 +307,7 @@ describe('tsx expression', () => {
 		expect(wrapper.textContent).toBe('direct prop');
 	});
 
-	it('renders tsx passed directly as children prop', () => {
+	it('renders fragment shorthand passed directly as children prop', () => {
 		component Card(&{ title, children }: { title: any; children: any }) {
 			<div class="card">
 				<h2 class="card-title">{title}</h2>

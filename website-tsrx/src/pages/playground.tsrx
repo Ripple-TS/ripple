@@ -17,6 +17,7 @@ export component PlaygroundPage() {
 			<nav class="nav-links">
 				<a href="/getting-started">{'Getting Started'}</a>
 				<a href="/features">{'Features'}</a>
+				<a href="/specification">{'Specification'}</a>
 				<a href="/playground" aria-current="page">{'Playground'}</a>
 				<a href="/llms.txt" target="_blank" rel="noopener noreferrer">{'llms.txt'}</a>
 				<a
@@ -118,6 +119,10 @@ export component PlaygroundPage() {
 			color: rgba(26, 22, 64, 0.7);
 		}
 
+		.nav-links a {
+			white-space: nowrap;
+		}
+
 		.nav-links a:hover {
 			color: #5e2cff;
 		}
@@ -138,8 +143,50 @@ export component PlaygroundPage() {
 		}
 
 		@media (max-width: 720px) {
+			.demo-page {
+				padding-top: 0.5rem;
+			}
+
 			.demo-nav {
-				padding: 1rem;
+				padding: 0.75rem 0 1rem;
+				flex-direction: column;
+				justify-content: flex-start;
+				align-items: stretch;
+				gap: 0.85rem;
+			}
+
+			.brand-lockup {
+				width: 100%;
+				justify-content: center;
+			}
+
+			.nav-links {
+				width: 100%;
+				flex-wrap: wrap;
+				justify-content: center;
+				gap: 0.5rem;
+				font-size: 0.82rem;
+			}
+
+			.nav-links a {
+				display: inline-flex;
+				align-items: center;
+				min-height: 2rem;
+				padding: 0.35rem 0.7rem;
+				border: 1px solid rgba(94, 44, 255, 0.1);
+				border-radius: 999px;
+				background: rgba(94, 44, 255, 0.06);
+				line-height: 1.1;
+			}
+
+			.nav-links a[aria-current='page'] {
+				background: rgba(94, 44, 255, 0.12);
+				border-color: rgba(94, 44, 255, 0.18);
+			}
+
+			.header-logo {
+				width: 3.6rem;
+				height: 3.6rem;
 			}
 
 			.demo-main {

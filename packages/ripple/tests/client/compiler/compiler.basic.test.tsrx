@@ -74,7 +74,7 @@ describe('compiler > basics', () => {
 }`;
 
 		expect(() => parse(invalid_source)).toThrow(
-			'"text" is a Ripple keyword and must be used in the form {text some_value}',
+			'"text" is a TSRX keyword and must be used in the form {text some_value}',
 		);
 	});
 

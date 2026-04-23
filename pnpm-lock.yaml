@@ -254,9 +254,21 @@ importers:
       '@tsrx/eslint-plugin':
         specifier: workspace:*
         version: link:packages/eslint-plugin
+      '@tsrx/preact':
+        specifier: workspace:*
+        version: link:packages/tsrx-preact
       '@tsrx/prettier-plugin':
         specifier: workspace:*
         version: link:packages/prettier-plugin
+      '@tsrx/react':
+        specifier: workspace:*
+        version: link:packages/tsrx-react
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:packages/tsrx-ripple
+      '@tsrx/solid':
+        specifier: workspace:*
+        version: link:packages/tsrx-solid
       '@types/node':
         specifier: catalog:default
         version: 24.11.0
@@ -1162,12 +1174,12 @@ importers:
       '@ripple-ts/adapter-node':
         specifier: workspace:*
         version: link:../packages/adapter-node
-      '@tsrx/prettier-plugin':
-        specifier: workspace:*
-        version: link:../packages/prettier-plugin
       '@tsrx/preact':
         specifier: workspace:*
         version: link:../packages/tsrx-preact
+      '@tsrx/prettier-plugin':
+        specifier: workspace:*
+        version: link:../packages/prettier-plugin
       '@tsrx/react':
         specifier: workspace:*
         version: link:../packages/tsrx-react

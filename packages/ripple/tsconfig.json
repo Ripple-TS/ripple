@@ -22,13 +22,6 @@
       "rollup/*": ["./shims/rollup-estree-types.d.ts"]
     }
   },
-  "include": [
-    "./*.js",
-    "./src/",
-    "./tests/**/*.test.tsrx",
-    "./tests/**/*.tsrx",
-    "./tests/**/*.d.ts",
-    "./tests/**/*.js"
-  ],
+  "include": ["./*.js", "./src/"],
   "exclude": ["node_modules", "dist"]
 }

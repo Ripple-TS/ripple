@@ -70,9 +70,17 @@
   name: (jsx_element_name) @tag
   ">" @tag.delimiter)
 
+(jsx_opening_fragment
+  "<" @tag.delimiter
+  ">" @tag.delimiter)
+
 (jsx_closing_element
   "</" @tag.delimiter
   name: (jsx_element_name) @tag
+  ">" @tag.delimiter)
+
+(jsx_closing_fragment
+  "</" @tag.delimiter
   ">" @tag.delimiter)
 
 (jsx_self_closing_element

@@ -15,6 +15,7 @@ packages/vscode-plugin/*.vsix
 playground/src
 playground/ripple/src
 playground/react/src
+playground/solid/src
 
 website/.vitepress/dist/
 website/.vitepress/cache/

@@ -1,5 +1,43 @@
 # @tsrx/prettier-plugin
 
+## 0.3.29
+
+### Patch Changes
+
+- [#931](https://github.com/Ripple-TS/ripple/pull/931)
+  [`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve `<>...</>` fragment
+  shorthand when formatting TSX expressions instead of rewriting it to
+  `<tsx>...</tsx>`.
+
+- Updated dependencies
+  [[`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a),
+  [`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a)]:
+  - @tsrx/core@0.0.9
+  - @tsrx/ripple@0.0.11
+
+## 0.3.28
+
+### Patch Changes
+
+- Updated dependencies
+  [[`4292598`](https://github.com/Ripple-TS/ripple/commit/42925982e88f48f0af6cc74deeaa3c17bc6657cf),
+  [`e4b5555`](https://github.com/Ripple-TS/ripple/commit/e4b5555fb5b1651a2bf1bf232565c7e0e40213b8),
+  [`e4b5555`](https://github.com/Ripple-TS/ripple/commit/e4b5555fb5b1651a2bf1bf232565c7e0e40213b8)]:
+  - @tsrx/core@0.0.8
+  - @tsrx/ripple@0.0.10
+
+## 0.3.27
+
+### Patch Changes
+
+- [#922](https://github.com/Ripple-TS/ripple/pull/922)
+  [`0364a03`](https://github.com/Ripple-TS/ripple/commit/0364a03766ad6810d256c0be1f1c93bcbbab3c67)
+  Thanks [@trueadm](https://github.com/trueadm)! - Prefer breaking all JSX
+  attributes onto separate lines instead of breaking expression values inline when
+  an attribute value would cause a line break (e.g. multiline objects, ternaries).
+  This makes element hierarchy easier to identify at a glance.
+
 ## 0.3.26
 
 ### Patch Changes

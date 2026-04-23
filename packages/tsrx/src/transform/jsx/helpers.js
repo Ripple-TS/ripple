@@ -1,0 +1,131 @@
+/** @import * as AST from 'estree' */
+/** @import { Visitors } from 'zimmerframe' */
+
+import tsx from 'esrap/languages/tsx';
+
+/**
+ * Zimmerframe provides `path` as the ancestor chain (in original pre-transform
+ * types, since visitors run bottom-up). A Tsx node whose parent is a ripple
+ * `Element` will render as a JSX child of that element; anywhere else it
+ * renders as a standalone expression (e.g. a return value).
+ *
+ * @param {any[]} path
+ * @returns {boolean}
+ */
+export function in_jsx_child_context(path) {
+	const parent = path[path.length - 1];
+	return !!parent && parent.type === 'Element';
+}
+
+/**
+ * Flatten a `<tsx>` / fragment node's children into a single expression. In a
+ * JSX-child position, a JSXExpressionContainer `{expr}` is valid and must stay
+ * wrapped. In an expression position (e.g. `return ...`), `{expr}` parses as
+ * a block/object literal, so unwrap to `expr`.
+ *
+ * @param {any} node
+ * @param {boolean} [in_jsx_child]
+ * @returns {any}
+ */
+export function tsx_node_to_jsx_expression(node, in_jsx_child = false) {
+	const children = (node.children || []).filter(
+		(/** @type {any} */ child) => child.type !== 'JSXText' || child.value.trim() !== '',
+	);
+
+	if (children.length === 1 && children[0].type !== 'JSXText') {
+		const only = children[0];
+		if (only.type === 'JSXExpressionContainer' && !in_jsx_child) {
+			return only.expression;
+		}
+		return only;
+	}
+
+	return /** @type {any} */ ({
+		type: 'JSXFragment',
+		openingFragment: { type: 'JSXOpeningFragment', metadata: { path: [] } },
+		closingFragment: { type: 'JSXClosingFragment', metadata: { path: [] } },
+		children,
+		metadata: { path: [] },
+	});
+}
+
+/**
+ * Default `node.metadata` to `{ path: [] }` if missing, then continue the
+ * walk. Use as the `FunctionDeclaration` / `FunctionExpression` /
+ * `ArrowFunctionExpression` visitor in a zimmerframe walk so that downstream
+ * consumers (e.g. `segments.js` reading `node.value.metadata.is_component`
+ * on class methods) don't trip on an undefined metadata object.
+ *
+ * Ripple's analyze phase does this via `visit_function`; the tsrx-* targets
+ * have no analyze phase, so we default metadata during the main walk.
+ *
+ * @param {any} node
+ * @param {{ next: () => any }} ctx
+ */
+export function ensure_function_metadata(node, { next }) {
+	if (!node.metadata) {
+		node.metadata = { path: [] };
+	}
+	return next();
+}
+
+/**
+ * Wrap esrap's `tsx()` printer with location markers for nodes whose spans
+ * (e.g. the leading `new ` of a NewExpression or the angle-bracket delimiters
+ * around generic arguments) are otherwise invisible to the source map.
+ * Without these markers, Volar mapping collection in `segments.js` throws
+ * when looking up the node's start/end positions.
+ *
+ * Shared across all JSX-producing targets (React, Preact, Solid).
+ *
+ * @returns {any}
+ */
+export function tsx_with_ts_locations() {
+	const base = /** @type {any} */ (tsx());
+
+	/**
+	 * @param {any} node
+	 * @param {any} context
+	 * @param {any} visitor
+	 */
+	const wrap_with_locations = (node, context, visitor) => {
+		if (!node.loc) {
+			visitor(node, context);
+			return;
+		}
+		context.location(node.loc.start.line, node.loc.start.column);
+		visitor(node, context);
+		context.location(node.loc.end.line, node.loc.end.column);
+	};
+
+	/** @type {Record<string, (node: any, context: any) => void>} */
+	const wrappers = {};
+	for (const type of [
+		// JS nodes whose esrap printer emits no location marker, causing
+		// segments.js get_mapping_from_node() to throw when it asks for the
+		// generated position of the node's start (or end).
+		'NewExpression',
+		'MemberExpression',
+		'ObjectExpression',
+		'ReturnStatement',
+		'ForStatement',
+		'ForInStatement',
+		'TemplateLiteral',
+		'AwaitExpression',
+		'TaggedTemplateExpression',
+		// JSX wrapper nodes: esrap writes `<`, `>`, `</`, `{`, `}` without
+		// locations, so the opening/closing element's and expression
+		// container's start and end don't resolve.
+		'JSXOpeningElement',
+		'JSXClosingElement',
+		'JSXExpressionContainer',
+		// TS wrapper nodes with the same issue.
+		'TSTypeParameterInstantiation',
+		'TSTypeParameterDeclaration',
+		'TSTypeParameter',
+	]) {
+		wrappers[type] = (node, context) => wrap_with_locations(node, context, base[type]);
+	}
+
+	return { ...base, ...wrappers };
+}

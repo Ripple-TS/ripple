@@ -1038,9 +1038,10 @@ function jsx_member_expression_to_member_expression(jsx_member) {
  * Converts a JSX AST node (JSXElement, JSXText, etc.) to a Ripple AST node
  * (Element, Text, TSRXExpression) for processing inside `<tsx>` blocks.
  * @param {AST.Node} node
+ * @param {AST.Node[]} [inherited_path=[]]
  * @returns {AST.Node | AST.Node[] | null}
  */
-export function jsx_to_ripple_node(node) {
+export function jsx_to_ripple_node(node, inherited_path = []) {
 	if (node.type === 'JSXElement') {
 		const opening = node.openingElement;
 		const name = opening.name;
@@ -1114,22 +1115,27 @@ export function jsx_to_ripple_node(node) {
 			})
 			.filter(Boolean);
 
-		const children = /** @type {AST.Node[]} */ (
-			/** @type {AST.Node[]} */ (node.children).map(jsx_to_ripple_node).flat().filter(Boolean)
-		);
-
-		return /** @type {AST.Element} */ (
+		const element = /** @type {AST.Element} */ (
 			/** @type {unknown} */ ({
 				type: 'Element',
 				id,
 				attributes,
-				children,
+				children: [],
 				selfClosing: opening.selfClosing,
-				metadata: { scoped: false, path: /** @type {string[]} */ ([]) },
+				metadata: { scoped: false, path: inherited_path },
 				start: node.start,
 				end: node.end,
 			})
 		);
+
+		element.children = /** @type {AST.Node[]} */ (
+			/** @type {AST.Node[]} */ (node.children)
+				.map((child) => jsx_to_ripple_node(child, [...inherited_path, element]))
+				.flat()
+				.filter(Boolean)
+		);
+
+		return element;
 	}
 
 	if (node.type === 'JSXText') {
@@ -1162,7 +1168,10 @@ export function jsx_to_ripple_node(node) {
 
 	if (node.type === 'JSXFragment') {
 		return /** @type {AST.Node[]} */ (
-			/** @type {AST.Node[]} */ (node.children).map(jsx_to_ripple_node).flat().filter(Boolean)
+			/** @type {AST.Node[]} */ (node.children)
+				.map((child) => jsx_to_ripple_node(child, inherited_path))
+				.flat()
+				.filter(Boolean)
 		);
 	}
 

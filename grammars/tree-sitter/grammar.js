@@ -365,6 +365,7 @@ module.exports = grammar({
 		component_statement: ($) =>
 			choice(
 				$.jsx_element,
+				$.jsx_fragment,
 				$.jsx_self_closing_element,
 				$.server_block,
 				$.variable_declaration,
@@ -564,6 +565,7 @@ module.exports = grammar({
 				$.member_expression,
 				$.subscript_expression,
 				$.jsx_element,
+				$.jsx_fragment,
 				$.jsx_self_closing_element,
 			),
 
@@ -837,6 +839,13 @@ module.exports = grammar({
 				field('close_tag', $.jsx_closing_element),
 			),
 
+		jsx_fragment: ($) =>
+			seq(
+				field('open_tag', $.jsx_opening_fragment),
+				repeat(field('children', $._jsx_child)),
+				field('close_tag', $.jsx_closing_fragment),
+			),
+
 		jsx_opening_element: ($) =>
 			seq(
 				'<',
@@ -846,7 +855,11 @@ module.exports = grammar({
 				'>',
 			),
 
+		jsx_opening_fragment: () => seq('<', '>'),
+
 		jsx_closing_element: ($) => seq('</', optional('@'), field('name', $.jsx_element_name), '>'),
+
+		jsx_closing_fragment: () => seq('</', '>'),
 
 		// In Ripple, namespaced TSX-compat elements like <tsx:react> cannot be self-closing
 		// so we disallow jsx_namespace_name here by using a narrowed name rule.
@@ -898,10 +911,16 @@ module.exports = grammar({
 			),
 
 		_jsx_attribute_value: ($) =>
-			choice($.string, $.jsx_expression, $.jsx_element, $.jsx_self_closing_element),
+			choice($.string, $.jsx_expression, $.jsx_element, $.jsx_fragment, $.jsx_self_closing_element),
 
 		_jsx_child: ($) =>
-			choice($.jsx_text, $.jsx_element, $.jsx_self_closing_element, $.jsx_expression),
+			choice(
+				$.jsx_text,
+				$.jsx_element,
+				$.jsx_fragment,
+				$.jsx_self_closing_element,
+				$.jsx_expression,
+			),
 
 		this: ($) => 'this',
 		super: ($) => 'super',

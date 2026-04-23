@@ -1,5 +1,43 @@
 # @tsrx/ripple
 
+## 0.0.11
+
+### Patch Changes
+
+- [#931](https://github.com/Ripple-TS/ripple/pull/931)
+  [`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix scoped CSS application
+  for elements rendered inside `<tsx>...</tsx>` and bare `<>...</>` fragment
+  shorthand so they receive the same hash-based classes as regular template
+  elements.
+- Updated dependencies
+  [[`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a),
+  [`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a)]:
+  - @tsrx/core@0.0.9
+
+## 0.0.10
+
+### Patch Changes
+
+- [#919](https://github.com/Ripple-TS/ripple/pull/919)
+  [`e4b5555`](https://github.com/Ripple-TS/ripple/commit/e4b5555fb5b1651a2bf1bf232565c7e0e40213b8)
+  Thanks [@trueadm](https://github.com/trueadm)! - Allow bare `<>...</>` fragments
+  everywhere TSRX accepts `<tsx>...</tsx>`, including template bodies and
+  expression position. The shorthand now compiles across Ripple, React, Preact,
+  and Solid targets, while the explicit `<tsx>...</tsx>` form remains supported.
+
+- [#919](https://github.com/Ripple-TS/ripple/pull/919)
+  [`e4b5555`](https://github.com/Ripple-TS/ripple/commit/e4b5555fb5b1651a2bf1bf232565c7e0e40213b8)
+  Thanks [@trueadm](https://github.com/trueadm)! - Disallow JSX fragment syntax in
+  template bodies unless it appears inside `<tsx>...</tsx>`. Ripple, Preact,
+  React, and Solid compilers now report a compile error instead of accepting or
+  crashing on `<>...</>` in regular templates.
+
+- Updated dependencies
+  [[`4292598`](https://github.com/Ripple-TS/ripple/commit/42925982e88f48f0af6cc74deeaa3c17bc6657cf),
+  [`e4b5555`](https://github.com/Ripple-TS/ripple/commit/e4b5555fb5b1651a2bf1bf232565c7e0e40213b8)]:
+  - @tsrx/core@0.0.8
+
 ## 0.0.9
 
 ### Patch Changes

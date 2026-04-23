@@ -182,6 +182,10 @@
         "named": true
       },
       {
+        "type": "jsx_fragment",
+        "named": true
+      },
+      {
         "type": "jsx_self_closing_element",
         "named": true
       },
@@ -1166,6 +1170,10 @@
           "named": true
         },
         {
+          "type": "jsx_fragment",
+          "named": true
+        },
+        {
           "type": "jsx_self_closing_element",
           "named": true
         },
@@ -2003,6 +2011,10 @@
             "named": true
           },
           {
+            "type": "jsx_fragment",
+            "named": true
+          },
+          {
             "type": "jsx_self_closing_element",
             "named": true
           },
@@ -2031,6 +2043,11 @@
     }
   },
   {
+    "type": "jsx_closing_fragment",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "jsx_element",
     "named": true,
     "fields": {
@@ -2044,6 +2061,10 @@
           },
           {
             "type": "jsx_expression",
+            "named": true
+          },
+          {
+            "type": "jsx_fragment",
             "named": true
           },
           {
@@ -2141,6 +2162,58 @@
     }
   },
   {
+    "type": "jsx_fragment",
+    "named": true,
+    "fields": {
+      "children": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "jsx_element",
+            "named": true
+          },
+          {
+            "type": "jsx_expression",
+            "named": true
+          },
+          {
+            "type": "jsx_fragment",
+            "named": true
+          },
+          {
+            "type": "jsx_self_closing_element",
+            "named": true
+          },
+          {
+            "type": "jsx_text",
+            "named": true
+          }
+        ]
+      },
+      "close_tag": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "jsx_closing_fragment",
+            "named": true
+          }
+        ]
+      },
+      "open_tag": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "jsx_opening_fragment",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "jsx_member_name",
     "named": true,
     "fields": {},
@@ -2222,6 +2295,11 @@
         ]
       }
     }
+  },
+  {
+    "type": "jsx_opening_fragment",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "jsx_self_closing_element",

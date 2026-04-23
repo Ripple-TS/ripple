@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
-    "preview": "vite preview --host"
+    "preview": "vite preview --host",
+    "debug-volar": "node ../../scripts/debug-mode.js tsx @tsrx/react",
+    "debug-tsx": "node ../../scripts/debug-mode.js tsx @tsrx/react"
   },
   "dependencies": {
     "react": "catalog:default",

@@ -22,26 +22,27 @@ function mount_after_ssr() {
 import 'virtual:ripple-compat';
 import { hydrate } from 'ripple';
 
-async function loadPageModule() {
-  const path = window.location.pathname;
-  if (path === '/playground') {
-    return import('/src/pages/playground.tsrx');
-  }
-  if (path === '/getting-started') {
-    return import('/src/pages/getting-started.tsrx');
-  }
-  if (path === '/features') {
-    return import('/src/pages/features.tsrx');
-  }
-  return import('/src/pages/index.tsrx');
-}
+const route_modules = import.meta.glob('/src/pages/*.tsrx');
 
 (async () => {
   try {
     const target = document.getElementById('root');
     const routeDataNode = document.getElementById('__ripple_data');
     const routeData = routeDataNode ? JSON.parse(routeDataNode.textContent || '{}') : { params: {} };
-    const module = await loadPageModule();
+
+    if (!routeData.entry) {
+      console.error('[tsrx] Unable to mount route: missing route entry.');
+      return;
+    }
+
+		const load_module = route_modules[routeData.entry];
+
+		if (!load_module) {
+			console.error('[tsrx] Unable to mount route: unknown route entry.', routeData.entry);
+			return;
+		}
+
+		const module = await load_module();
     const Component =
       module.default ||
       Object.entries(module).find(([key, value]) => typeof value === 'function' && /^[A-Z]/.test(key))?.[1];

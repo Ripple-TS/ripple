@@ -1,5 +1,58 @@
 # @tsrx/core
 
+## 0.0.9
+
+### Patch Changes
+
+- [#931](https://github.com/Ripple-TS/ripple/pull/931)
+  [`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Extract JSX-emitting targets
+  into a shared `createJsxTransform` factory in `@tsrx/core`; React, Preact, and
+  Solid now plug in via a `JsxPlatform` descriptor so source-mapping fixes
+  propagate to all three targets.
+  - `@tsrx/core` adds the `createJsxTransform` factory, `JsxPlatform` /
+    `JsxPlatformHooks` / `JsxTransformResult` types, and a shared test harness at
+    `@tsrx/core/test-harness/source-mappings`. The source-map segments walker now
+    handles `TSTypePredicate` and uses strict mapping lookups throughout.
+  - `compile_to_volar_mappings` no longer crashes on common AST shapes across all
+    three targets: `NewExpression`, `ReturnStatement`, `ForStatement` /
+    `ForInStatement`, `TemplateLiteral`, `TaggedTemplateExpression`,
+    `AwaitExpression`, computed `MemberExpression`, empty / non-empty
+    `ObjectExpression`, class methods (including async, get / set, static) and
+    object method shorthand, TS generics, type predicates (`x is T` and
+    `asserts x is T`), as-expressions, union / array type annotations,
+    self-closing JSX, element attribute spread, and `JSXExpressionContainer`
+    inside `<tsx>` blocks.
+  - `<tsx>` / `<>` single-child unwrapping is now JSX-context-aware:
+    `return <tsx>{'x'}</tsx>` compiles to `return 'x';` rather than invalid
+    `return {'x'};`, while `<b><>{111}</></b>` still preserves the inner `{111}`
+    container.
+  - Class methods no longer crash source-map collection (every function-like node
+    gets `metadata` defaulted).
+
+- [#931](https://github.com/Ripple-TS/ripple/pull/931)
+  [`4543794`](https://github.com/Ripple-TS/ripple/commit/45437944a99decfb4bc56f7171772614a7f5691a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix scoped CSS application
+  for elements rendered inside `<tsx>...</tsx>` and bare `<>...</>` fragment
+  shorthand so they receive the same hash-based classes as regular template
+  elements.
+
+## 0.0.8
+
+### Patch Changes
+
+- [#923](https://github.com/Ripple-TS/ripple/pull/923)
+  [`4292598`](https://github.com/Ripple-TS/ripple/commit/42925982e88f48f0af6cc74deeaa3c17bc6657cf)
+  Thanks [@RazinShafayet2007](https://github.com/RazinShafayet2007)! - fix:
+  preserve Volar mappings for explicit call type arguments
+
+- [#919](https://github.com/Ripple-TS/ripple/pull/919)
+  [`e4b5555`](https://github.com/Ripple-TS/ripple/commit/e4b5555fb5b1651a2bf1bf232565c7e0e40213b8)
+  Thanks [@trueadm](https://github.com/trueadm)! - Allow bare `<>...</>` fragments
+  everywhere TSRX accepts `<tsx>...</tsx>`, including template bodies and
+  expression position. The shorthand now compiles across Ripple, React, Preact,
+  and Solid targets, while the explicit `<tsx>...</tsx>` form remains supported.
+
 ## 0.0.7
 
 ### Patch Changes

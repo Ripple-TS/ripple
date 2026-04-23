@@ -129,6 +129,7 @@ export const routes = [
 	new RenderRoute({ path: '/', entry: '/src/pages/index.tsrx' }),
 	new RenderRoute({ path: '/getting-started', entry: '/src/pages/getting-started.tsrx' }),
 	new RenderRoute({ path: '/features', entry: '/src/pages/features.tsrx' }),
+	new RenderRoute({ path: '/specification', entry: '/src/pages/specification.tsrx' }),
 	new RenderRoute({ path: '/playground', entry: '/src/pages/playground.tsrx' }),
 	new ServerRoute({
 		path: '/api/format',

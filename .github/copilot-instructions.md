@@ -360,8 +360,7 @@ Built on **Volar framework** with TypeScript integration.
 | Auto-insert    | `autoInsertPlugin.js`             | Auto-insert completions           |
 | Highlight      | `documentHighlightPlugin.js`      | Document highlights               |
 
-**Integration:** Uses `@tsrx/typescript-plugin` for TypeScript language
-service.
+**Integration:** Uses `@tsrx/typescript-plugin` for TypeScript language service.
 
 ## Editor Plugins
 

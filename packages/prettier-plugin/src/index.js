@@ -5554,6 +5554,7 @@ function createElementLevelCommentPartsTrimmed(comments) {
 
 /**
  * Print a Tsx node - renders Ripple template children inside <tsx>...</tsx>
+ * or fragment shorthand <>...</> when the original source used a fragment.
  * @param {AST.Tsx} node - The Tsx node
  * @param {AstPath<AST.Tsx>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
@@ -5561,8 +5562,9 @@ function createElementLevelCommentPartsTrimmed(comments) {
  * @returns {Doc}
  */
 function printTsx(node, path, options, print) {
-	const tagName = '<tsx>';
-	const closingTagName = '</tsx>';
+	const is_fragment = !node.openingElement?.name;
+	const tagName = is_fragment ? '<>' : '<tsx>';
+	const closingTagName = is_fragment ? '</>' : '</tsx>';
 
 	const hasChildren = Array.isArray(node.children) && node.children.length > 0;
 

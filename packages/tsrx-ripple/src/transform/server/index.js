@@ -46,7 +46,51 @@ import {
 	strip_class_typescript_syntax,
 	jsx_to_ripple_node,
 } from '../../utils.js';
+import { prune_css } from '../../analyze/prune.js';
 import { createHash } from 'node:crypto';
+
+/**
+ * Re-run CSS pruning on JSX converted from a `<tsx>` block so server output
+ * applies the same scoped metadata as regular Ripple template elements.
+ *
+ * @param {AST.Node[]} nodes
+ * @param {TransformServerState} state
+ * @returns {void}
+ */
+function apply_tsrx_css_scoping(nodes, state) {
+	const component = state.component;
+	if (!component?.css) {
+		return;
+	}
+	const css = /** @type {AST.CSS.StyleSheet} */ (component.css);
+
+	const style_classes = component.metadata.styleClasses ?? new Map();
+	const top_scoped_classes = component.metadata.topScopedClasses ?? new Map();
+
+	/**
+	 * @param {AST.Node} node
+	 * @returns {void}
+	 */
+	function visit_node(node) {
+		if (node.type === 'Element') {
+			prune_css(css, node, style_classes, top_scoped_classes);
+			for (const child of node.children) {
+				visit_node(child);
+			}
+			return;
+		}
+
+		if ('children' in node && Array.isArray(node.children)) {
+			for (const child of node.children) {
+				visit_node(/** @type {AST.Node} */ (child));
+			}
+		}
+	}
+
+	for (const node of nodes) {
+		visit_node(node);
+	}
+}
 
 /**
  * Checks if a node is template or control-flow content that should be wrapped when return flags are active
@@ -1536,11 +1580,12 @@ const visitors = {
 		}
 	},
 
-	Tsx(node, { visit, state }) {
+	Tsx(node, { visit, state, path }) {
 		const converted_children = node.children
-			.map((child) => jsx_to_ripple_node(/** @type {AST.Node} */ (child)))
+			.map((child) => jsx_to_ripple_node(/** @type {AST.Node} */ (child), path))
 			.flat()
 			.filter((child) => child != null);
+		apply_tsrx_css_scoping(converted_children, state);
 
 		/** @type {AST.Statement[]} */
 		const init = [];

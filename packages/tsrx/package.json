@@ -3,7 +3,7 @@
   "description": "Core compiler infrastructure for TSRX syntax",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.7",
+  "version": "0.0.9",
   "type": "module",
   "repository": {
     "type": "git",
@@ -26,7 +26,9 @@
     },
     "./types/acorn": {
       "types": "./types/acorn.d.ts"
-    }
+    },
+    "./test-harness/source-mappings": "./tests/shared/source-mappings.js",
+    "./test-harness/compile": "./tests/shared/compile.js"
   },
   "dependencies": {
     "@jridgewell/sourcemap-codec": "catalog:default",

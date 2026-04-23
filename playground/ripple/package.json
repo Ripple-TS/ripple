@@ -9,11 +9,11 @@
     "build": "vite build --outDir dist/client",
     "preview": "vite preview --host --outDir dist/client",
     "test": "vitest run",
-    "debug-all": "node debug-mode.js all",
-    "debug-ssr": "node debug-mode.js server",
-    "debug-client": "node debug-mode.js client",
-    "debug-volar": "node debug-mode.js tsx",
-    "debug-tsx": "node debug-mode.js tsx",
+    "debug-all": "node ../../scripts/debug-mode.js all @tsrx/ripple",
+    "debug-ssr": "node ../../scripts/debug-mode.js server @tsrx/ripple",
+    "debug-client": "node ../../scripts/debug-mode.js client @tsrx/ripple",
+    "debug-volar": "node ../../scripts/debug-mode.js tsx @tsrx/ripple",
+    "debug-tsx": "node ../../scripts/debug-mode.js tsx @tsrx/ripple",
     "lint": "eslint ."
   },
   "devDependencies": {
