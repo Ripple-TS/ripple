@@ -1,5 +1,21 @@
 # @tsrx/prettier-plugin
 
+## 0.3.30
+
+### Patch Changes
+
+- [#925](https://github.com/Ripple-TS/ripple/pull/925)
+  [`338008a`](https://github.com/Ripple-TS/ripple/commit/338008aff2e935850ca6fb7ebd8df0b8416a2a6c)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix attribute-breaking
+  detection so breakable inline docs (such as single-line source object literals
+  that may wrap) trigger opening-tag breaking even when they do not contain
+  hardline markers.
+
+- Updated dependencies
+  [[`7f59ed8`](https://github.com/Ripple-TS/ripple/commit/7f59ed80d7b44c847fb9eb8bf00d4fe9835c3136)]:
+  - @tsrx/core@0.0.10
+  - @tsrx/ripple@0.0.12
+
 ## 0.3.29
 
 ### Patch Changes

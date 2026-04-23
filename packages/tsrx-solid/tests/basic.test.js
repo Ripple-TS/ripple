@@ -4,6 +4,7 @@ import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mapp
 import { compile, compile_to_volar_mappings } from '../src/index.js';
 
 runSharedSourceMappingTests({
+	compile,
 	compile_to_volar_mappings,
 	name: 'solid',
 	rejectsComponentAwait: true,

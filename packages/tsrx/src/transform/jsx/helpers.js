@@ -104,6 +104,7 @@ export function tsx_with_ts_locations() {
 		// JS nodes whose esrap printer emits no location marker, causing
 		// segments.js get_mapping_from_node() to throw when it asks for the
 		// generated position of the node's start (or end).
+		'IfStatement',
 		'NewExpression',
 		'MemberExpression',
 		'ObjectExpression',

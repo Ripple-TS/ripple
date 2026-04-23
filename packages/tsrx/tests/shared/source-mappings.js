@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { identifier_to_jsx_name } from '@tsrx/core';
+import {
+	build_line_offsets,
+	build_src_to_gen_map,
+	get_generated_position,
+} from '../../src/source-map-utils.js';
 
 /**
  * @typedef {{
+ *   compile: (source: string, filename?: string) => { code: string, map: any },
  *   compile_to_volar_mappings: (source: string, filename?: string, options?: any) => any,
  *   name: string,
  *   rejectsComponentAwait: boolean,
@@ -20,6 +26,7 @@ import { identifier_to_jsx_name } from '@tsrx/core';
  * @param {SourceMappingHarness} harness
  */
 export function runSharedSourceMappingTests({
+	compile,
 	compile_to_volar_mappings,
 	name,
 	rejectsComponentAwait,
@@ -104,6 +111,121 @@ export function runSharedSourceMappingTests({
 			expect_maps(`component Test() { const [foo, setFoo] = useState<string | null>(null) }`));
 	});
 
+	describe(`[${name}] raw source maps cover one-line early-return if statements`, () => {
+		it('maps the if keyword in plain functions', () => {
+			const source = `function f(x) {
+	if (x) return true
+	return false
+}`;
+			const result = compile(source, 'App.tsrx');
+			const [src_to_gen_map] = build_src_to_gen_map(
+				result.map,
+				new Map(),
+				build_line_offsets(result.code),
+				result.code,
+			);
+
+			expect(() => get_generated_position(2, 1, src_to_gen_map)).not.toThrow();
+		});
+	});
+
+	describe(`[${name}] raw source maps cover class-like early-return if statements`, () => {
+		/**
+		 * @param {string} source
+		 * @param {number} line
+		 * @param {number} column
+		 */
+		const expect_if_mapping = (source, line, column) => {
+			const result = compile(source, 'App.tsrx');
+			const [src_to_gen_map] = build_src_to_gen_map(
+				result.map,
+				new Map(),
+				build_line_offsets(result.code),
+				result.code,
+			);
+
+			expect(() => get_generated_position(line, column, src_to_gen_map)).not.toThrow();
+		};
+
+		it('maps the if keyword in class methods', () => {
+			expect_if_mapping(
+				`class Foo {
+	bar(x) {
+		if (x) return true
+		return false
+	}
+}`,
+				3,
+				2,
+			);
+		});
+
+		it('maps the if keyword in async class methods', () => {
+			expect_if_mapping(
+				`class Foo {
+	async bar(x) {
+		if (x) return true
+		return false
+	}
+}`,
+				3,
+				2,
+			);
+		});
+
+		it('maps the if keyword in static class methods', () => {
+			expect_if_mapping(
+				`class Foo {
+	static bar(x) {
+		if (x) return true
+		return false
+	}
+}`,
+				3,
+				2,
+			);
+		});
+
+		it('maps the if keyword in class getters', () => {
+			expect_if_mapping(
+				`class Foo {
+	get bar() {
+		if (cond) return true
+		return false
+	}
+}`,
+				3,
+				2,
+			);
+		});
+
+		it('maps the if keyword in class field arrows', () => {
+			expect_if_mapping(
+				`class Foo {
+	bar = (x) => {
+		if (x) return true
+		return false
+	}
+}`,
+				3,
+				2,
+			);
+		});
+
+		it('maps the if keyword in object method shorthand', () => {
+			expect_if_mapping(
+				`const foo = {
+	bar(x) {
+		if (x) return true
+		return false
+	}
+}`,
+				3,
+				2,
+			);
+		});
+	});
+
 	describe(`[${name}] member-expression element names map each side independently`, () => {
 		it('gives <Icons.Button></Icons.Button> distinct opening and closing id mappings', () => {
 			const source = `component App() {
@@ -115,6 +237,10 @@ export function runSharedSourceMappingTests({
 			const closing_button = closing_icons + 'Icons.'.length;
 
 			const result = compile_to_volar_mappings(source, 'App.tsrx');
+			/**
+			 * @param {number} offset
+			 * @param {number} length
+			 */
 			const mapping_at = (offset, length) =>
 				result.mappings.find(
 					(/** @type {{ sourceOffsets: number[], lengths: number[] }} */ m) =>
