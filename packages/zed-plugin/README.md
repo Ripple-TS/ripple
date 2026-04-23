@@ -2,8 +2,7 @@
 
 This extension provides TSRX language support for the
 [Zed editor](https://zed.dev). TSRX is a TypeScript superset that compiles to
-Ripple, React, Solid, and Preact. Handles `.tsrx` files (and legacy `.ripple`
-files).
+Ripple, React, Solid, and Preact. Handles `.tsrx` files.
 
 ## Installation
 
