@@ -49,6 +49,8 @@ export function runSharedSourceMappingTests({
 		it('ReturnStatement', () => expect_maps(`function f() { return 1; } component C() {}`));
 		it('ForStatement', () => expect_maps(`component C() { for (let i = 0; i < 10; i++) {} }`));
 		it('ForInStatement', () => expect_maps(`component C() { for (const x in obj) {} }`));
+		it('ForOfStatement', () =>
+			expect_maps(`const test = () => { for (const x of Object.keys({})) {}}`));
 		it('TemplateLiteral', () => expect_maps('component C() { const x = `hello ${y}`; }'));
 		it('TaggedTemplateExpression', () => expect_maps('component C() { tag`hi`; }'));
 		// AwaitExpression inside a component body. React emits an async

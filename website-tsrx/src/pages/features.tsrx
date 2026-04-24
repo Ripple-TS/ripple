@@ -329,7 +329,9 @@ export component FeaturesPage() {
 					<a href="/features" aria-current="page">{'Features'}</a>
 					<a href="/specification">{'Specification'}</a>
 					<a href="/playground">{'Playground'}</a>
-					<a href="/llms.txt" target="_blank" rel="noopener noreferrer">{'llms.txt'}</a>
+					<a href="https://discord.gg/HCYpT5QHQR" target="_blank" rel="noopener noreferrer">
+						{'Discord'}
+					</a>
 					<a
 						href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
 						target="_blank"
@@ -337,6 +339,7 @@ export component FeaturesPage() {
 					>
 						{'GitHub'}
 					</a>
+					<a href="/llms.txt" target="_blank" rel="noopener noreferrer">{'llms.txt'}</a>
 				</nav>
 			</header>
 

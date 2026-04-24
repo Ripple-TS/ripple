@@ -48,6 +48,12 @@ export const COMPILER_CANDIDATES = [
 		['.tsrx'],
 		['@tsrx/solid', '@tsrx/vite-plugin-solid'],
 	],
+	[
+		'@tsrx/preact',
+		['node_modules', '@tsrx', 'preact'],
+		['.tsrx'],
+		['@tsrx/preact', '@tsrx/vite-plugin-preact'],
+	],
 ];
 
 /**

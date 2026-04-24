@@ -73,10 +73,12 @@ const COLOCATION_HTML = [
 
 export component IndexPage() {
 	<head>
-		<title>{'TSRX | TypeScript Language Extension for Declarative UI'}</title>
+		<title>
+			{'TSRX | A TypeScript language extension for building declarative UIs in an agentic era.'}
+		</title>
 		<meta
 			name="description"
-			content="TSRX is a TypeScript language extension for building declarative UIs with a more readable, co-located authoring model and framework-specific output targets."
+			content="TSRX is a TypeScript language extension for building declarative UIs in an agentic era."
 		/>
 	</head>
 
@@ -91,7 +93,9 @@ export component IndexPage() {
 					<a href="/features">{'Features'}</a>
 					<a href="/specification">{'Specification'}</a>
 					<a href="/playground">{'Playground'}</a>
-					<a href="/llms.txt" target="_blank" rel="noopener noreferrer">{'llms.txt'}</a>
+					<a href="https://discord.gg/HCYpT5QHQR" target="_blank" rel="noopener noreferrer">
+						{'Discord'}
+					</a>
 					<a
 						href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
 						target="_blank"
@@ -99,6 +103,7 @@ export component IndexPage() {
 					>
 						{'GitHub'}
 					</a>
+					<a href="/llms.txt" target="_blank" rel="noopener noreferrer">{'llms.txt'}</a>
 				</nav>
 			</header>
 
@@ -112,7 +117,7 @@ export component IndexPage() {
 
 			<section class="readable-section section-shell what-is-section" aria-label="What is TSRX">
 				<p class="section-body what-is-copy">
-					{'TSRX (TypeScript Ripple Extensions) is a way to write UI component code that stays readable and co-located. Structure, styling, and control flow live together, and the result stays fully backwards compatible with TypeScript.'}
+					{'TSRX (TypeScript Render Extensions) is a way to write UI component code that stays readable and co-located. Structure, styling, and control flow live together, and the result stays fully backwards compatible with TypeScript.'}
 				</p>
 				<pre class="code-block">
 					<code>{html SNIPPET_HTML}</code>
@@ -125,7 +130,17 @@ export component IndexPage() {
 					<code class="inline-code">{'.tsrx'}</code>
 					{' modules from JS, TS, and TSX files and it just works.'}
 				</p>
-				<a class="cta-link" href="/getting-started">{'Get started →'}</a>
+				<div class="hero-actions">
+					<a class="cta-link" href="/getting-started">{'Get started →'}</a>
+					<a
+						class="secondary-cta-link"
+						href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						{'View Source'}
+					</a>
+				</div>
 				<p class="section-body what-is-copy compact-link-copy">
 					{'Looking for the formal grammar and AST shape? Read the '}
 					<a class="supporting-link" href="/specification">{'specification →'}</a>
@@ -608,6 +623,13 @@ export component IndexPage() {
 			max-width: 52rem;
 		}
 
+		.hero-actions {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 0.85rem;
+		}
+
 		.cta-link {
 			display: inline-block;
 			justify-self: start;
@@ -623,6 +645,27 @@ export component IndexPage() {
 		.cta-link:hover {
 			opacity: 0.88;
 			color: #fff;
+		}
+
+		.secondary-cta-link {
+			display: inline-block;
+			padding: 0.75rem 1.5rem;
+			border: 1px solid rgba(94, 44, 255, 0.22);
+			border-radius: 6px;
+			background: rgba(94, 44, 255, 0.06);
+			color: #4e22c8;
+			font-weight: 500;
+			font-size: 1rem;
+			transition:
+				background 0.15s,
+				border-color 0.15s,
+				color 0.15s;
+		}
+
+		.secondary-cta-link:hover {
+			background: rgba(94, 44, 255, 0.12);
+			border-color: rgba(94, 44, 255, 0.28);
+			color: #3f19ad;
 		}
 
 		.section-heading {
@@ -756,6 +799,11 @@ export component IndexPage() {
 			}
 
 			.cta-link {
+				padding: 0.65rem 1.25rem;
+				font-size: 0.92rem;
+			}
+
+			.secondary-cta-link {
 				padding: 0.65rem 1.25rem;
 				font-size: 0.92rem;
 			}

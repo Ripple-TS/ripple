@@ -1,6 +1,6 @@
 [package]
-name = "ripple"
-version = "0.0.82"
+name = "tsrx"
+version = "0.0.83"
 edition = "2021"
 
 [lib]

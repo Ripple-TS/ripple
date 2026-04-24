@@ -1,11 +1,11 @@
 {
   "name": "@ripple-ts/zed-plugin",
-  "version": "0.0.82",
+  "version": "0.0.83",
   "description": "",
   "private": true,
   "main": "index.js",
   "scripts": {
-    "copy-scm": "cp ../../grammars/tree-sitter/queries/*.scm ./languages/ripple"
+    "copy-scm": "cp ../../grammars/tree-sitter/queries/*.scm ./languages/tsrx"
   },
   "keywords": [],
   "author": "",

@@ -1,16 +1,19 @@
-id = "ripple"
-name = "Ripple"
-description = "Ripple language support with LSP and Tree-sitter syntax highlighting"
-version = "0.0.82"
+id = "tsrx"
+name = "TSRX"
+description = "TSRX language support with LSP and Tree-sitter syntax highlighting. TSRX is a TypeScript superset that compiles to Ripple, React, Solid, and Preact."
+version = "0.0.83"
 schema_version = 1
 authors = ["Dominic Gannaway <trueadm@users.noreply.github.com>"]
-repository = "https://github.com/trueadm/ripple"
+repository = "https://github.com/Ripple-TS/ripple"
 
 [grammars.ripple]
 repository = "https://github.com/Ripple-TS/ripple"
-rev = "1b35809e5d18aab72f6c0aff82e228981662d315"
+rev = "e4b5555fb5b1651a2bf1bf232565c7e0e40213b8"
 path = "grammars/tree-sitter"
 
 [language_servers.ripple-language-server]
 name = "Ripple Language Server"
-languages = ["Ripple"]
+languages = ["TSRX"]
+
+[language_servers.ripple-language-server.language_ids]
+"TSRX" = "ripple"

@@ -1,6 +1,6 @@
 # @tsrx/core
 
-**TypeScript Ripple Extensions (TSRX)** — the shared parser and compiler
+**TypeScript Render Extensions (TSRX)** — the shared parser and compiler
 infrastructure that powers TypeScript UI frameworks.
 
 `@tsrx/core` is framework-agnostic. It provides the parser, AST definitions, scope

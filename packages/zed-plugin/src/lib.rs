@@ -4,14 +4,14 @@ use std::path::PathBuf;
 
 use zed_extension_api::{self as zed, serde_json::{self, Value}, LanguageServerId};
 
-struct RippleExtension {
+struct TsrxExtension {
     cached_binary_path: Option<PathBuf>,
     required_version: Option<String>,
 }
 
 const PACKAGE_NAME: &str = "@ripple-ts/language-server";
 
-impl RippleExtension {
+impl TsrxExtension {
     fn language_server_binary_path(
         &mut self,
         language_server_id: &LanguageServerId,
@@ -204,7 +204,7 @@ impl RippleExtension {
     }
 }
 
-impl zed::Extension for RippleExtension {
+impl zed::Extension for TsrxExtension {
     fn new() -> Self {
         Self {
             cached_binary_path: None,
@@ -227,4 +227,4 @@ impl zed::Extension for RippleExtension {
     }
 }
 
-zed::register_extension!(RippleExtension);
+zed::register_extension!(TsrxExtension);

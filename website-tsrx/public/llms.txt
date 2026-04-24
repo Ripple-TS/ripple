@@ -2,7 +2,7 @@
 
 ## Overview
 
-TSRX (TypeScript Ripple Extensions) is a **TypeScript language extension** for
+TSRX (TypeScript Render Extensions) is a **TypeScript language extension** for
 building declarative UIs. It compiles one `.tsrx` source file to **React**,
 **Solid**, or **Ripple**, with room for more runtime targets. TSRX is the
 source language; the target picks the runtime semantics.

@@ -270,7 +270,9 @@ export component DocsPage() {
 					<a href="/getting-started">{'Getting Started'}</a>
 					<a href="/docs" aria-current="page">{'Docs'}</a>
 					<a href="/playground">{'Playground'}</a>
-					<a href="/llms.txt" target="_blank" rel="noopener noreferrer">{'llms.txt'}</a>
+					<a href="https://discord.gg/HCYpT5QHQR" target="_blank" rel="noopener noreferrer">
+						{'Discord'}
+					</a>
 					<a
 						href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
 						target="_blank"
@@ -278,6 +280,7 @@ export component DocsPage() {
 					>
 						{'GitHub'}
 					</a>
+					<a href="/llms.txt" target="_blank" rel="noopener noreferrer">{'llms.txt'}</a>
 				</nav>
 			</header>
 

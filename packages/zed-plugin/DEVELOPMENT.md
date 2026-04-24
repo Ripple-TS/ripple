@@ -18,7 +18,7 @@
    - Open Zed
    - Press `Cmd/Ctrl + Shift + P`
    - Run "zed: install dev extension"
-   - Select this directory (`packages/zed-ripple`)
+   - Select this directory (`packages/zed-plugin`)
 
 ## Testing
 
@@ -32,13 +32,13 @@
 ## File Structure
 
 ```
-zed-ripple/
+zed-plugin/
 ├── extension.toml           # Extension metadata and configuration
 ├── Cargo.toml              # Rust dependencies
 ├── src/
 │   └── lib.rs              # Language server integration logic
 ├── languages/
-│   └── ripple/
+│   └── tsrx/
 │       ├── config.toml     # Language configuration
 │       ├── highlights.scm  # Syntax highlighting queries
 │       ├── brackets.scm    # Bracket matching
@@ -59,7 +59,7 @@ zed-ripple/
 
    ```bash
    cd /path/to/forked/extensions
-   git submodule add https://github.com/trueadm/ripple.git extensions/ripple
+   git submodule add https://github.com/Ripple-TS/ripple.git extensions/tsrx
    ```
 
    **Important**: Use HTTPS URL, not SSH
@@ -67,9 +67,10 @@ zed-ripple/
 3. **Update extensions.toml**:
 
    ```toml
-   [ripple]
-   submodule = "extensions/ripple"
-   version = "0.1.0"
+   [tsrx]
+   submodule = "extensions/tsrx"
+   path = "packages/zed-plugin"
+   version = "0.0.82"
    ```
 
 4. **Create Pull Request** to zed-industries/extensions
@@ -82,7 +83,7 @@ zed-ripple/
 
 If you update the tree-sitter grammar in `grammars/tree-sitter`:
 
-1. Update query files in `languages/ripple/` if needed
+1. Update query files in `languages/tsrx/` if needed
 2. Update the `rev` field in `extension.toml` to the new commit SHA
 3. Test locally
 4. Bump version in `extension.toml`
