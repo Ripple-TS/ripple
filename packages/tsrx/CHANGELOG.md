@@ -1,5 +1,14 @@
 # @tsrx/core
 
+## 0.0.12
+
+### Patch Changes
+
+- [#945](https://github.com/Ripple-TS/ripple/pull/945)
+  [`ea56fa0`](https://github.com/Ripple-TS/ripple/commit/ea56fa021798afe8621699d11b7e1d9e675cbfb4)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fixes ForOfStatement source
+  maps
+
 ## 0.0.11
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @tsrx/solid
 
+## 0.0.12
+
+### Patch Changes
+
+- Updated dependencies
+  [[`ea56fa0`](https://github.com/Ripple-TS/ripple/commit/ea56fa021798afe8621699d11b7e1d9e675cbfb4)]:
+  - @tsrx/core@0.0.12
+
 ## 0.0.11
 
 ### Patch Changes
