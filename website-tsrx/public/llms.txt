@@ -38,6 +38,11 @@ npm install -D @tsrx/vite-plugin-react     # Vite
 npm install -D @tsrx/rspack-plugin-react   # Rspack
 npm install -D @tsrx/turbopack-plugin-react # Next.js / Turbopack
 
+# Preact target
+npm install @tsrx/preact
+npm install -D @tsrx/vite-plugin-preact    # Vite
+npm install -D @tsrx/rspack-plugin-preact  # Rspack
+
 # Solid target
 npm install @tsrx/solid
 npm install -D @tsrx/vite-plugin-solid
@@ -66,6 +71,28 @@ export default {
 Options: `{ jsxImportSource?: string }` — overrides the JSX import source
 (defaults to `'react'`). The plugin also pushes `.tsrx` into
 `resolve.extensions` and enables `experiments.css` when unset.
+
+### Rspack setup (Preact target)
+
+`@tsrx/rspack-plugin-preact` is an Rspack plugin class that registers two
+module rules: one compiles `.tsrx` → TSX via `@tsrx/preact` and chains
+`builtin:swc-loader` for the final JSX transform, and one routes the sibling
+`?tsrx-css&lang.css` import emitted by the JS loader through Rspack's
+built-in CSS module type (`type: 'css/auto'`).
+
+```js
+// rspack.config.js
+import { TsrxPreactRspackPlugin } from '@tsrx/rspack-plugin-preact';
+
+export default {
+  plugins: [new TsrxPreactRspackPlugin()],
+};
+```
+
+Options: `{ jsxImportSource?: string, suspenseSource?: string }` — override the
+JSX import source (defaults to `'preact'`) and, if needed, the module used for
+`Suspense` (defaults to `'preact/compat'`). The plugin also pushes `.tsrx`
+into `resolve.extensions` and enables `experiments.css` when unset.
 
 ### Turbopack setup (React target)
 

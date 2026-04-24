@@ -1,0 +1,37 @@
+{
+  "name": "@tsrx/rspack-plugin-preact",
+  "description": "Rspack plugin for @tsrx/preact",
+  "license": "MIT",
+  "author": "Dominic Gannaway",
+  "version": "0.0.1",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ripple-TS/ripple.git",
+    "directory": "packages/rspack-plugin-preact"
+  },
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "dependencies": {
+    "@tsrx/preact": "workspace:*"
+  },
+  "peerDependencies": {
+    "@rspack/core": ">=1.0.0"
+  },
+  "devDependencies": {
+    "@rspack/core": "^1.6.0",
+    "preact": "catalog:default",
+    "typescript": "catalog:default"
+  },
+  "files": [
+    "src",
+    "types"
+  ]
+}
