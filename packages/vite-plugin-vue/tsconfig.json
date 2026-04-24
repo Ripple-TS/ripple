@@ -1,4 +1,9 @@
 {
   "extends": "../tsrx/tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "vue-jsx-vapor/vite": ["./types/vue-jsx-vapor-vite-shim.d.ts"]
+    }
+  },
   "include": ["src/**/*", "types/**/*"]
 }

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach } from 'vitest';
-import { createVaporApp, nextTick } from 'vue';
+import { createVaporApp, nextTick } from '../../../playground/vue/node_modules/.vite/deps/vue.js';
 
 /** @type {HTMLDivElement} */
 let container;

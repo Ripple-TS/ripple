@@ -594,6 +594,7 @@ function is_interleaved_body(body_nodes) {
 
 /**
  * @param {any[]} body_nodes
+ * @param {TransformContext} transform_context
  * @returns {number}
  */
 function find_hook_safe_split_index(body_nodes, transform_context) {
@@ -612,6 +613,8 @@ function find_hook_safe_split_index(body_nodes, transform_context) {
 
 /**
  * @param {any[]} body_nodes
+ * @param {TransformContext} transform_context
+ * @param {boolean} include_platform_setup
  * @returns {boolean}
  */
 function body_contains_top_level_hook_call(

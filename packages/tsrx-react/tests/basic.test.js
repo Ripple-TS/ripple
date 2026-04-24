@@ -185,10 +185,10 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('const count = 2;');
-		expect(code).toContain('if (count > 1) {');
-		expect(code).toContain("App__static1 = <div>{'Count is more than one'}</div>");
-		expect(code).toContain('return null;');
-		expect(code).toContain('<button>{count}</button>');
+		expect(code).toContain("const App__static1 = <div>{'Count is more than one'}</div>;");
+		expect(code).toContain(
+			'return <>{count > 1 ? App__static1 : null}<button>{count}</button></>;',
+		);
 	});
 
 	it('renders if-else statements as React expressions', () => {
@@ -205,9 +205,9 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('if (ready) {');
-		expect(code).toContain("App__static2 = <div>{'Ready'}</div>");
-		expect(code).toContain("App__static1 = <div>{'Loading'}</div>");
+		expect(code).toContain("const App__static2 = <div>{'Ready'}</div>;");
+		expect(code).toContain("const App__static1 = <div>{'Loading'}</div>;");
+		expect(code).toContain('return ready ? App__static2 : App__static1;');
 	});
 
 	it('renders component-body for-of statements as React expressions', () => {
@@ -279,10 +279,11 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('if (count > 2) {');
-		expect(code).toContain('return (() => {');
-		expect(code).toContain("App__static1 = <div>{'Count is more than one'}</div>");
-		expect(code).toContain('return null;');
-		expect(code).toContain('<button>{count}</button>');
+		expect(code).toContain("const App__static1 = <div>{'Count is more than one'}</div>;");
+		expect(code).toContain('return count > 1 ? App__static1 : null;');
+		expect(code).toContain(
+			'return <>{count > 1 ? App__static1 : null}<button>{count}</button></>;',
+		);
 	});
 
 	it('extracts hook-bearing continuations after lone early-return if statements', () => {

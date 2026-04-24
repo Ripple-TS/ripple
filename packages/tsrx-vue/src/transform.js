@@ -285,11 +285,7 @@ function preprocess_ref_attributes(attrs, element, transform_context) {
  * @returns {any}
  */
 function create_combined_ref_callback(ref_attrs) {
-	const node_id = {
-		type: 'Identifier',
-		name: 'node',
-		metadata: { path: [] },
-	};
+	const node_id = builders.id('node');
 
 	return {
 		type: 'ArrowFunctionExpression',

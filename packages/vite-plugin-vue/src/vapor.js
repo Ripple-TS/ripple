@@ -1,4 +1,4 @@
-import vueJsxVapor from '../../../playground/vue/node_modules/vue-jsx-vapor/dist/vite.js';
+import vueJsxVapor from 'vue-jsx-vapor/vite';
 
 export function tsrxVueVapor() {
 	return vueJsxVapor({
