@@ -1163,14 +1163,14 @@ describe('lazy destructuring', () => {
 	it('transforms lazy array destructuring in variable declarations', () => {
 		const { code } = compile(
 			`export component App() {
-				let &[count, setCount] = useState(0);
+				let &[count, setCount] = getState(0);
 				<div>{count}</div>
 			}`,
 			'App.tsrx',
 		);
 
 		// Declaration should use generated identifier
-		expect(code).toContain('let __lazy0 = useState(0)');
+		expect(code).toContain('let __lazy0 = getState(0)');
 		// Reference should be array index access
 		expect(code).toContain('__lazy0[0]');
 	});
@@ -1237,7 +1237,7 @@ describe('lazy destructuring', () => {
 	it('does not hoist static elements that reference lazy bindings', () => {
 		const { code } = compile(
 			`export component App() {
-				const &[count] = useState(0);
+				const &[count] = getState(0);
 				<div>{"static"}</div>
 				<div>{count}</div>
 			}`,
@@ -1273,7 +1273,7 @@ describe('lazy destructuring', () => {
 	it('combines lazy params and lazy variables', () => {
 		const { code } = compile(
 			`export component App(&{name}: Props) {
-				const &[count, setCount] = useState(0);
+				const &[count, setCount] = getState(0);
 				<div>{name}{count}</div>
 			}`,
 			'App.tsrx',
@@ -1281,7 +1281,7 @@ describe('lazy destructuring', () => {
 
 		// Param uses __lazy0, variable uses __lazy1
 		expect(code).toContain('function App(__lazy0: Props)');
-		expect(code).toContain('const __lazy1 = useState(0)');
+		expect(code).toContain('const __lazy1 = getState(0)');
 		expect(code).toContain('__lazy0.name');
 		expect(code).toContain('__lazy1[0]');
 	});
@@ -1289,7 +1289,7 @@ describe('lazy destructuring', () => {
 	it('transforms lazy bindings inside callbacks', () => {
 		const { code } = compile(
 			`export component App() {
-				let &[count, setCount] = useState(0);
+				let &[count, setCount] = getState(0);
 				const handler = () => setCount(count + 1);
 				<div>{count}</div>
 			}`,
@@ -1343,27 +1343,27 @@ describe('lazy destructuring', () => {
 	it('rewrites statement-level lazy assignment as a const declaration', () => {
 		const { code } = compile(
 			`export component App() {
-				&[count] = useState(0);
+				&[count] = getState(0);
 				<div>{count}</div>
 			}`,
 			'App.tsrx',
 		);
 
-		expect(code).toContain('const __lazy0 = useState(0)');
+		expect(code).toContain('const __lazy0 = getState(0)');
 		expect(code).toContain('__lazy0[0]');
 	});
 
 	it('handles statement-level lazy assignment with tracked references', () => {
 		const { code } = compile(
 			`export component App() {
-				&[count] = useState(0);
+				&[count] = getState(0);
 				const inc = () => { count++; };
 				<button on_click={inc}>{count}</button>
 			}`,
 			'App.tsrx',
 		);
 
-		expect(code).toContain('const __lazy0 = useState(0)');
+		expect(code).toContain('const __lazy0 = getState(0)');
 		expect(code).toContain('__lazy0[0]++');
 		expect(code).toContain('{__lazy0[0]}');
 	});
@@ -1371,7 +1371,7 @@ describe('lazy destructuring', () => {
 	it('does not hoist elements referencing statement-level lazy bindings', () => {
 		const { code } = compile(
 			`export component App() {
-				&[count] = useState(0);
+				&[count] = getState(0);
 				<p>{count}</p>
 			}`,
 			'App.tsrx',
@@ -1417,7 +1417,7 @@ describe('lazy destructuring', () => {
 	it('transforms default parameter values referencing lazy bindings', () => {
 		const { code } = compile(
 			`export component App() {
-				const &[count] = useState(0);
+				const &[count] = getState(0);
 				const handler = (step = count) => step + 1;
 				<div>{count}</div>
 			}`,

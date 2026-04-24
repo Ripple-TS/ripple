@@ -601,7 +601,7 @@ component LazyPropsApp() {
 // ── Lazy destructuring: array in variable (signals) ──
 
 component LazyArrayApp() {
-	let &[count, setCount] = createSignal(0);
+	const [count, setCount] = createSignal(0);
 	<p class="lazy-count">{count()}</p>
 	<button class="lazy-inc" onClick={() => setCount(count() + 1)}>{'+'}</button>
 }
@@ -624,7 +624,7 @@ function usePosition() {
 // ── Lazy destructuring: combined props + variable ──
 
 component LazyCombinedApp(&{ label }: { label: string }) {
-	const &[count, setCount] = createSignal(0);
+	const [count, setCount] = createSignal(0);
 	<p class="lazy-combined">
 		{label}
 		{': '}
