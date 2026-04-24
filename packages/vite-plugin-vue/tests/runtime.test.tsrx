@@ -112,6 +112,23 @@ component CounterApp() {
 	<button class="inc" onClick={() => count.value++}>{'+'}</button>
 }
 
+component EarlyReturnWithRefsApp() {
+	const count = ref(0);
+	const skip = ref(false);
+
+	<button class="early-skip" onClick={() => (skip.value = !skip.value)}>{'skip'}</button>
+
+	if (skip.value) {
+		return;
+	}
+
+	const doubled = ref(0);
+
+	<p class="early-count">{count.value}</p>
+	<p class="early-doubled">{doubled.value}</p>
+	<button class="early-inc" onClick={() => count.value++}>{'inc'}</button>
+	<button class="early-double" onClick={() => doubled.value++}>{'double'}</button>
+}
 component IfReactiveApp() {
 	const show = ref(true);
 
@@ -442,6 +459,25 @@ describe('tsrx-vue runtime', () => {
 
 		await click('.stateful-child-prop');
 		expect(text('.stateful-child-prop')).toBe('Child prop: 1');
+	});
+
+	it('early return before refs passes scope correctly to continuation', async () => {
+		await render(EarlyReturnWithRefsApp);
+		expect(text('.early-skip')).toBe('skip');
+		expect(text('.early-count')).toBe('0');
+		expect(text('.early-doubled')).toBe('0');
+
+		await click('.early-double');
+		expect(text('.early-doubled')).toBe('1');
+
+		await click('.early-inc');
+		expect(text('.early-count')).toBe('1');
+		expect(text('.early-doubled')).toBe('1');
+
+		await click('.early-skip');
+		expect(container.querySelector('.early-count')).toBeNull();
+		expect(container.querySelector('.early-doubled')).toBeNull();
+		expect(text('.early-skip')).toBe('skip');
 	});
 
 	it('adds and removes items in a for-of loop reactively', async () => {

@@ -307,10 +307,10 @@ importers:
         version: 5.9.3
       vite-plugin-solid:
         specifier: 3.0.0-next.5
-        version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.7(@solidjs/signals@2.0.0-beta.7)(solid-js@2.0.0-beta.7))(solid-js@2.0.0-beta.7)(vite@8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.7(@solidjs/signals@2.0.0-beta.7)(solid-js@2.0.0-beta.7))(solid-js@2.0.0-beta.7)(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
       vitest:
         specifier: catalog:default
-        version: 4.1.4(@types/node@24.11.0)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 4.1.4(@types/node@24.11.0)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
       wait-on:
         specifier: catalog:default
         version: 9.0.5
@@ -410,7 +410,7 @@ importers:
         version: 5.6.0
       vitest:
         specifier: catalog:default
-        version: 4.1.4(@types/node@25.3.3)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 4.1.4(@types/node@25.3.3)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
 
   packages/compat-react:
     dependencies:
@@ -503,7 +503,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: catalog:default
-        version: 4.1.4(@types/node@24.11.0)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 4.1.4(@types/node@24.11.0)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
 
   packages/intellij-plugin: {}
 
@@ -839,6 +839,9 @@ importers:
       vue:
         specifier: '>=3.5'
         version: 3.5.29(typescript@5.9.3)
+      vue-jsx-vapor:
+        specifier: '>=3.2.10'
+        version: 3.2.10(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(csstype@3.2.3)(esbuild@0.27.3)(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.5.29(typescript@5.9.3))
       zimmerframe:
         specifier: catalog:default
         version: 1.1.4
@@ -920,7 +923,7 @@ importers:
         version: 5.6.0
       vite:
         specifier: catalog:default
-        version: 8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)
+        version: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)
 
   packages/vite-plugin-preact:
     dependencies:
@@ -936,7 +939,7 @@ importers:
         version: 5.9.3
       vite:
         specifier: catalog:default
-        version: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+        version: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
 
   packages/vite-plugin-react:
     dependencies:
@@ -961,7 +964,7 @@ importers:
         version: 5.9.3
       vite:
         specifier: catalog:default
-        version: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+        version: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
 
   packages/vite-plugin-solid:
     dependencies:
@@ -977,10 +980,29 @@ importers:
         version: 5.9.3
       vite:
         specifier: catalog:default
-        version: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+        version: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
       vite-plugin-solid:
         specifier: 3.0.0-next.5
-        version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.7(@solidjs/signals@2.0.0-beta.7)(solid-js@2.0.0-beta.7))(solid-js@2.0.0-beta.7)(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.7(@solidjs/signals@2.0.0-beta.7)(solid-js@2.0.0-beta.7))(solid-js@2.0.0-beta.7)(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+
+  packages/vite-plugin-vue:
+    dependencies:
+      '@tsrx/vue':
+        specifier: workspace:*
+        version: link:../tsrx-vue
+    devDependencies:
+      typescript:
+        specifier: catalog:default
+        version: 5.9.3
+      vite:
+        specifier: catalog:default
+        version: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+      vue:
+        specifier: 3.6.0-beta.8
+        version: 3.6.0-beta.8(typescript@5.9.3)
+      vue-jsx-vapor:
+        specifier: ^3.2.10
+        version: 3.2.10(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(csstype@3.2.3)(esbuild@0.27.3)(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.6.0-beta.8(typescript@5.9.3))
 
   packages/vscode-plugin:
     dependencies:
@@ -1068,7 +1090,7 @@ importers:
         version: 5.9.3
       vite:
         specifier: catalog:default
-        version: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+        version: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
 
   playground/ripple:
     dependencies:
@@ -1084,7 +1106,7 @@ importers:
         version: link:../../packages/vite-plugin
       '@tailwindcss/vite':
         specifier: catalog:default
-        version: 4.2.1(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 4.2.1(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
       '@tsrx/eslint-plugin':
         specifier: workspace:*
         version: link:../../packages/eslint-plugin
@@ -1111,10 +1133,10 @@ importers:
         version: 5.9.3
       vite:
         specifier: catalog:default
-        version: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+        version: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
       vitest:
         specifier: catalog:default
-        version: 4.1.4(@types/node@25.3.3)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 4.1.4(@types/node@25.3.3)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
 
   playground/solid:
     dependencies:
@@ -1136,10 +1158,10 @@ importers:
         version: 5.9.3
       vite:
         specifier: catalog:default
-        version: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+        version: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
       vite-plugin-solid:
         specifier: 3.0.0-next.5
-        version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.7(@solidjs/signals@2.0.0-beta.7)(solid-js@2.0.0-beta.7))(solid-js@2.0.0-beta.7)(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.7(@solidjs/signals@2.0.0-beta.7)(solid-js@2.0.0-beta.7))(solid-js@2.0.0-beta.7)(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
 
   playground/vue:
     dependencies:
@@ -1158,10 +1180,10 @@ importers:
         version: 5.9.3
       vite:
         specifier: catalog:default
-        version: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+        version: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
       vue-jsx-vapor:
         specifier: ^3.2.10
-        version: 3.2.10(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(csstype@3.2.3)(esbuild@0.27.3)(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.6.0-beta.8(typescript@5.9.3))
+        version: 3.2.10(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(csstype@3.2.3)(esbuild@0.27.3)(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.6.0-beta.8(typescript@5.9.3))
 
   website:
     dependencies:
@@ -1211,7 +1233,7 @@ importers:
         version: 5.9.3
       vite:
         specifier: catalog:default
-        version: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+        version: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
 
   website-tsrx:
     dependencies:
@@ -1275,7 +1297,7 @@ importers:
         version: 5.9.3
       vite:
         specifier: catalog:default
-        version: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+        version: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
 
 packages:
 
@@ -8063,9 +8085,12 @@ snapshots:
       '@napi-rs/wasm-runtime': 1.1.1
     optional: true
 
-  '@rolldown/binding-wasm32-wasi@1.0.0-rc.9':
+  '@rolldown/binding-wasm32-wasi@1.0.0-rc.9(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)':
     dependencies:
-      '@napi-rs/wasm-runtime': 1.1.1
+      '@napi-rs/wasm-runtime': 1.1.4(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)
+    transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
     optional: true
 
   '@rolldown/binding-win32-arm64-msvc@1.0.0-rc.3':
@@ -8468,12 +8493,12 @@ snapshots:
       '@tailwindcss/oxide-win32-arm64-msvc': 4.2.1
       '@tailwindcss/oxide-win32-x64-msvc': 4.2.1
 
-  '@tailwindcss/vite@4.2.1(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))':
+  '@tailwindcss/vite@4.2.1(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))':
     dependencies:
       '@tailwindcss/node': 4.2.1
       '@tailwindcss/oxide': 4.2.1
       tailwindcss: 4.2.1
-      vite: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+      vite: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
 
   '@textlint/ast-node-types@15.5.2': {}
 
@@ -8760,21 +8785,21 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.0
 
-  '@vitest/mocker@4.1.4(vite@8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))':
+  '@vitest/mocker@4.1.4(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))':
     dependencies:
       '@vitest/spy': 4.1.4
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)
+      vite: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)
 
-  '@vitest/mocker@4.1.4(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))':
+  '@vitest/mocker@4.1.4(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))':
     dependencies:
       '@vitest/spy': 4.1.4
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+      vite: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
 
   '@vitest/pretty-format@4.1.4':
     dependencies:
@@ -8981,7 +9006,19 @@ snapshots:
       - '@emnapi/core'
       - '@emnapi/runtime'
 
-  '@vue-jsx-vapor/macros@3.2.10(esbuild@0.27.3)(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.6.0-beta.8(typescript@5.9.3))':
+  '@vue-jsx-vapor/macros@3.2.10(esbuild@0.27.3)(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.5.29(typescript@5.9.3))':
+    dependencies:
+      hash-sum: 2.0.0
+      magic-string: 0.30.21
+      ts-macro: 0.3.7
+      unplugin: 3.0.0
+      unplugin-utils: 0.3.1
+      vue: 3.5.29(typescript@5.9.3)
+    optionalDependencies:
+      esbuild: 0.27.3
+      vite: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+
+  '@vue-jsx-vapor/macros@3.2.10(esbuild@0.27.3)(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.6.0-beta.8(typescript@5.9.3))':
     dependencies:
       hash-sum: 2.0.0
       magic-string: 0.30.21
@@ -8991,7 +9028,12 @@ snapshots:
       vue: 3.6.0-beta.8(typescript@5.9.3)
     optionalDependencies:
       esbuild: 0.27.3
-      vite: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+      vite: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+
+  '@vue-jsx-vapor/runtime@3.2.10(csstype@3.2.3)(vue@3.5.29(typescript@5.9.3))':
+    dependencies:
+      csstype: 3.2.3
+      vue: 3.5.29(typescript@5.9.3)
 
   '@vue-jsx-vapor/runtime@3.2.10(csstype@3.2.3)(vue@3.6.0-beta.8(typescript@5.9.3))':
     dependencies:
@@ -11510,7 +11552,7 @@ snapshots:
       '@rolldown/binding-win32-arm64-msvc': 1.0.0-rc.5
       '@rolldown/binding-win32-x64-msvc': 1.0.0-rc.5
 
-  rolldown@1.0.0-rc.9:
+  rolldown@1.0.0-rc.9(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1):
     dependencies:
       '@oxc-project/types': 0.115.0
       '@rolldown/pluginutils': 1.0.0-rc.9
@@ -11527,9 +11569,12 @@ snapshots:
       '@rolldown/binding-linux-x64-gnu': 1.0.0-rc.9
       '@rolldown/binding-linux-x64-musl': 1.0.0-rc.9
       '@rolldown/binding-openharmony-arm64': 1.0.0-rc.9
-      '@rolldown/binding-wasm32-wasi': 1.0.0-rc.9
+      '@rolldown/binding-wasm32-wasi': 1.0.0-rc.9(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)
       '@rolldown/binding-win32-arm64-msvc': 1.0.0-rc.9
       '@rolldown/binding-win32-x64-msvc': 1.0.0-rc.9
+    transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
 
   rollup@4.59.0:
     dependencies:
@@ -12253,7 +12298,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite-plugin-solid@3.0.0-next.5(@solidjs/web@2.0.0-beta.7(@solidjs/signals@2.0.0-beta.7)(solid-js@2.0.0-beta.7))(solid-js@2.0.0-beta.7)(vite@8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)):
+  vite-plugin-solid@3.0.0-next.5(@solidjs/web@2.0.0-beta.7(@solidjs/signals@2.0.0-beta.7)(solid-js@2.0.0-beta.7))(solid-js@2.0.0-beta.7)(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)):
     dependencies:
       '@babel/core': 7.29.0
       '@solidjs/web': 2.0.0-beta.7(@solidjs/signals@2.0.0-beta.7)(solid-js@2.0.0-beta.7)
@@ -12262,12 +12307,12 @@ snapshots:
       merge-anything: 5.1.7
       solid-js: 2.0.0-beta.7
       solid-refresh: 0.8.0-next.7(solid-js@2.0.0-beta.7)
-      vite: 8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)
-      vitefu: 1.1.3(vite@8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
+      vite: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)
+      vitefu: 1.1.3(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
-  vite-plugin-solid@3.0.0-next.5(@solidjs/web@2.0.0-beta.7(@solidjs/signals@2.0.0-beta.7)(solid-js@2.0.0-beta.7))(solid-js@2.0.0-beta.7)(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)):
+  vite-plugin-solid@3.0.0-next.5(@solidjs/web@2.0.0-beta.7(@solidjs/signals@2.0.0-beta.7)(solid-js@2.0.0-beta.7))(solid-js@2.0.0-beta.7)(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)):
     dependencies:
       '@babel/core': 7.29.0
       '@solidjs/web': 2.0.0-beta.7(@solidjs/signals@2.0.0-beta.7)(solid-js@2.0.0-beta.7)
@@ -12276,8 +12321,8 @@ snapshots:
       merge-anything: 5.1.7
       solid-js: 2.0.0-beta.7
       solid-refresh: 0.8.0-next.7(solid-js@2.0.0-beta.7)
-      vite: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
-      vitefu: 1.1.3(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+      vite: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+      vitefu: 1.1.3(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -12295,41 +12340,47 @@ snapshots:
       jiti: 2.6.1
       lightningcss: 1.32.0
 
-  vite@8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1):
+  vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1):
     dependencies:
       '@oxc-project/runtime': 0.115.0
       lightningcss: 1.32.0
       picomatch: 4.0.3
       postcss: 8.5.8
-      rolldown: 1.0.0-rc.9
+      rolldown: 1.0.0-rc.9(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)
       tinyglobby: 0.2.15
     optionalDependencies:
       '@types/node': 24.11.0
       esbuild: 0.27.3
       fsevents: 2.3.3
       jiti: 2.6.1
+    transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
 
-  vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1):
+  vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1):
     dependencies:
       '@oxc-project/runtime': 0.115.0
       lightningcss: 1.32.0
       picomatch: 4.0.3
       postcss: 8.5.8
-      rolldown: 1.0.0-rc.9
+      rolldown: 1.0.0-rc.9(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)
       tinyglobby: 0.2.15
     optionalDependencies:
       '@types/node': 25.3.3
       esbuild: 0.27.3
       fsevents: 2.3.3
       jiti: 2.6.1
+    transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
 
-  vitefu@1.1.3(vite@8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)):
+  vitefu@1.1.3(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)):
     optionalDependencies:
-      vite: 8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)
+      vite: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)
 
-  vitefu@1.1.3(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)):
+  vitefu@1.1.3(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)):
     optionalDependencies:
-      vite: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+      vite: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
 
   vitepress-plugin-npm-commands@0.9.0(vitepress-plugin-tabs@0.8.0(vitepress@2.0.0-alpha.12(@types/node@25.3.3)(axios@1.15.0)(fuse.js@7.1.0)(jiti@2.6.1)(lightningcss@1.32.0)(postcss@8.5.8)(typescript@5.9.3))(vue@3.6.0-beta.10(typescript@5.9.3)))(vitepress@2.0.0-alpha.12(@types/node@25.3.3)(axios@1.15.0)(fuse.js@7.1.0)(jiti@2.6.1)(lightningcss@1.32.0)(postcss@8.5.8)(typescript@5.9.3)):
     dependencies:
@@ -12390,10 +12441,10 @@ snapshots:
       - universal-cookie
       - yaml
 
-  vitest@4.1.4(@types/node@24.11.0)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)):
+  vitest@4.1.4(@types/node@24.11.0)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)):
     dependencies:
       '@vitest/expect': 4.1.4
-      '@vitest/mocker': 4.1.4(vite@8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
+      '@vitest/mocker': 4.1.4(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
       '@vitest/pretty-format': 4.1.4
       '@vitest/runner': 4.1.4
       '@vitest/snapshot': 4.1.4
@@ -12410,7 +12461,7 @@ snapshots:
       tinyexec: 1.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.1.0
-      vite: 8.0.0(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)
+      vite: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 24.11.0
@@ -12418,10 +12469,10 @@ snapshots:
     transitivePeerDependencies:
       - msw
 
-  vitest@4.1.4(@types/node@25.3.3)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)):
+  vitest@4.1.4(@types/node@25.3.3)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)):
     dependencies:
       '@vitest/expect': 4.1.4
-      '@vitest/mocker': 4.1.4(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+      '@vitest/mocker': 4.1.4(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
       '@vitest/pretty-format': 4.1.4
       '@vitest/runner': 4.1.4
       '@vitest/snapshot': 4.1.4
@@ -12438,7 +12489,7 @@ snapshots:
       tinyexec: 1.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.1.0
-      vite: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+      vite: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 25.3.3
@@ -12497,10 +12548,29 @@ snapshots:
 
   vscode-uri@3.1.0: {}
 
-  vue-jsx-vapor@3.2.10(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(csstype@3.2.3)(esbuild@0.27.3)(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.6.0-beta.8(typescript@5.9.3)):
+  vue-jsx-vapor@3.2.10(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(csstype@3.2.3)(esbuild@0.27.3)(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.5.29(typescript@5.9.3)):
     dependencies:
       '@vue-jsx-vapor/compiler-rs': 3.2.10(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)
-      '@vue-jsx-vapor/macros': 3.2.10(esbuild@0.27.3)(vite@8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.6.0-beta.8(typescript@5.9.3))
+      '@vue-jsx-vapor/macros': 3.2.10(esbuild@0.27.3)(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.5.29(typescript@5.9.3))
+      '@vue-jsx-vapor/runtime': 3.2.10(csstype@3.2.3)(vue@3.5.29(typescript@5.9.3))
+      '@vue/shared': 3.6.0-beta.8
+      pathe: 2.0.3
+      ts-macro: 0.3.7
+      unplugin: 3.0.0
+      unplugin-utils: 0.3.1
+      vue: 3.5.29(typescript@5.9.3)
+    optionalDependencies:
+      esbuild: 0.27.3
+      vite: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+    transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
+      - csstype
+
+  vue-jsx-vapor@3.2.10(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(csstype@3.2.3)(esbuild@0.27.3)(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.6.0-beta.8(typescript@5.9.3)):
+    dependencies:
+      '@vue-jsx-vapor/compiler-rs': 3.2.10(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)
+      '@vue-jsx-vapor/macros': 3.2.10(esbuild@0.27.3)(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.6.0-beta.8(typescript@5.9.3))
       '@vue-jsx-vapor/runtime': 3.2.10(csstype@3.2.3)(vue@3.6.0-beta.8(typescript@5.9.3))
       '@vue/shared': 3.6.0-beta.8
       pathe: 2.0.3
@@ -12510,7 +12580,7 @@ snapshots:
       vue: 3.6.0-beta.8(typescript@5.9.3)
     optionalDependencies:
       esbuild: 0.27.3
-      vite: 8.0.0(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
+      vite: 8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
     transitivePeerDependencies:
       - '@emnapi/core'
       - '@emnapi/runtime'

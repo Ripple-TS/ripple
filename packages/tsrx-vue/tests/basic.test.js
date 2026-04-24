@@ -214,6 +214,62 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toMatch(/return visible \? App__static\d+ : App__static\d+;/);
 	});
 
+	it('supports lone early returns in component-body if statements', () => {
+		const { code } = compile(
+			`component App() {
+				const count = 0;
+
+				if (count > 1) {
+					<div>{'Count is more than one'}</div>
+				}
+
+				if (count > 2) {
+					return;
+				}
+
+				<button>{count}</button>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('if (count > 2) {');
+		expect(code).toContain("const App__static1 = <div>{'Count is more than one'}</div>;");
+		expect(code).toContain('return count > 1 ? App__static1 : null;');
+		expect(code).toContain(
+			'return <>{count > 1 ? App__static1 : null}<button>{count}</button></>;',
+		);
+	});
+
+	it('extracts ref-bearing continuations after lone early-return if statements', () => {
+		const { code } = compile(
+			`import { ref } from 'vue';
+
+			component App() {
+				const count = ref(0);
+				const skip = ref(false);
+
+				if (skip.value) {
+					return;
+				}
+
+				const doubled = ref(0);
+
+				<button onClick={() => {
+					count.value++;
+					doubled.value = count.value * 2;
+				}}>{count.value}</button>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain(
+			'const App__Continue1 = defineVaporComponent(function App__Continue1({ count, skip }) {',
+		);
+		expect(code).toContain('const doubled = ref(0);');
+		expect(code).toContain('skip.value');
+		expect(code).toContain('<App__Continue1 count={count} skip={skip} />');
+	});
+
 	it('compiles for...of statements in component bodies', () => {
 		const { code } = compile(
 			`component App({ items }) {

@@ -602,7 +602,7 @@ function find_hook_safe_split_index(body_nodes, transform_context) {
 			continue;
 		}
 
-		if (body_contains_top_level_hook_call(body_nodes.slice(i + 1), transform_context)) {
+		if (body_contains_top_level_hook_call(body_nodes.slice(i + 1), transform_context, true)) {
 			return i;
 		}
 	}
