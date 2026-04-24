@@ -1235,7 +1235,7 @@ describe('lazy destructuring', () => {
 	it('does not hoist static elements that reference lazy bindings', () => {
 		const { code } = compile(
 			`export component App() {
-				const &[count] = getState(0);
+				const &[count] = useState(0);
 				<div>{"static"}</div>
 				<div>{count}</div>
 			}`,
@@ -1245,7 +1245,7 @@ describe('lazy destructuring', () => {
 		// The truly static element should be hoisted
 		expect(code).toContain('App__static1');
 		expect(code).toContain('App__static1 = <div>{"static"}</div>');
-		// The element referencing count via lazy should NOT be hoisted
+		// The element referencing count should NOT be hoisted
 		expect(code).toContain('__lazy0[0]');
 		expect(code).not.toContain('App__static2');
 	});
