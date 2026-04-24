@@ -9,7 +9,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 	{
 		value: 'feature-card',
 		label: 'Feature card',
-    targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
+		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `export component FeatureCard({
   title,
   items,
@@ -83,7 +83,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 	{
 		value: 'conditional-rendering',
 		label: 'Conditional rendering',
-    targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
+		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `component StatusBadge({ status }: { status: 'active' | 'idle' | 'offline' }) {
   <div>
     if (status === 'active') {
@@ -99,7 +99,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 	{
 		value: 'list-rendering',
 		label: 'List rendering',
-    targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
+		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `component TodoList({ items }: { items: { text: string }[] }) {
   <ul>
     for (const item of items; index i) {
@@ -111,7 +111,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 	{
 		value: 'switch-statements',
 		label: 'Switch statements',
-    targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
+		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `component StatusMessage({ status }: { status: string }) {
   switch (status) {
     case 'loading':
@@ -128,7 +128,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 	{
 		value: 'error-boundary',
 		label: 'Try/catch boundary',
-    targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
+		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `component SafeProfile({ userId }: { userId: string }) {
   try {
     <UserProfile id={userId} />
@@ -161,10 +161,10 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 }`,
 	},
 	{
-    value: 'vue-starter',
-    label: 'Vue starter',
-    targets: ['vue'],
-    source: `import { ref } from 'vue';
+		value: 'vue-starter',
+		label: 'Vue starter',
+		targets: ['vue'],
+		source: `import { ref } from 'vue';
 
 export default component App() {
   const count = ref(0);
@@ -175,8 +175,8 @@ export default component App() {
     <button onClick={() => count.value++}>{'Count: '}{count.value}</button>
   </main>
 }`,
-  },
-  {
+	},
+	{
 		value: 'nested-react-hooks',
 		label: 'Nested React Hooks',
 		targets: ['react'],

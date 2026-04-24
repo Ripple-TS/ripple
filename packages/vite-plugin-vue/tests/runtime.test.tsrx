@@ -127,17 +127,26 @@ component IfReactiveApp() {
 component ConditionalLocalStateApp() {
 	const count = ref(3);
 
-	<button class="outer-inc" onClick={() => count.value++}>{'Outer: '}{count.value}</button>
+	<button class="outer-inc" onClick={() => count.value++}>
+		{'Outer: '}
+		{count.value}
+	</button>
 
 	if (count.value > 2) {
 		const newCount = ref(0);
-		<button class="inner-inc" onClick={() => newCount.value++}>{'Inner: '}{newCount.value}</button>
+		<button class="inner-inc" onClick={() => newCount.value++}>
+			{'Inner: '}
+			{newCount.value}
+		</button>
 	}
 }
 
 component StatefulChild() {
 	const inner = ref(0);
-	<button class="stateful-child" onClick={() => inner.value++}>{'Child: '}{inner.value}</button>
+	<button class="stateful-child" onClick={() => inner.value++}>
+		{'Child: '}
+		{inner.value}
+	</button>
 }
 
 component StatefulChildHostApp() {
@@ -146,15 +155,18 @@ component StatefulChildHostApp() {
 	</div>
 }
 
-component StatefulChildWithProp(props: { count: ReturnType<typeof ref<number>> }) {
+component StatefulChildWithProp(props: { count: ReturnType<typeof ref> }) {
 	const inner = ref(0);
-	<button class="stateful-child-prop" onClick={() => inner.value++}>{'Child prop: '}{inner.value}</button>
+	<button class="stateful-child-prop" onClick={() => inner.value++}>
+		{'Child prop: '}
+		{inner.value}
+	</button>
 }
 
 component StatefulChildWithPropHostApp() {
 	const count = ref(3);
 	<div>
-		<StatefulChildWithProp count={count} />
+		<StatefulChildWithProp {count} />
 	</div>
 }
 

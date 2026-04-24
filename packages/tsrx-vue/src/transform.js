@@ -42,10 +42,10 @@ const vue_platform = {
 		isTopLevelSetupCall(call_expression) {
 			return is_vue_setup_call(call_expression);
 		},
-			wrapHelperComponent(helper_fn, helper_id, ctx, source_node) {
-				ctx.needs_define_vapor_component = true;
-				return wrap_helper_component(helper_fn, helper_id, source_node);
-			},
+		wrapHelperComponent(helper_fn, helper_id, ctx, source_node) {
+			ctx.needs_define_vapor_component = true;
+			return wrap_helper_component(helper_fn, helper_id, source_node);
+		},
 		canHoistStaticNode(node) {
 			return !contains_component_jsx(node);
 		},

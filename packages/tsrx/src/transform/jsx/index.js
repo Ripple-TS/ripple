@@ -1734,10 +1734,7 @@ function if_statement_to_jsx_child(node, transform_context) {
 				params: [],
 				body: /** @type {any} */ ({
 					type: 'BlockStatement',
-					body: [
-						render_if_statement,
-						create_null_return_statement(),
-					],
+					body: [render_if_statement, create_null_return_statement()],
 					metadata: { path: [] },
 				}),
 				async: false,

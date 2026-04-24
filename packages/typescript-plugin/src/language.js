@@ -54,12 +54,7 @@ export const COMPILER_CANDIDATES = [
 		['.tsrx'],
 		['@tsrx/preact', '@tsrx/vite-plugin-preact'],
 	],
-	[
-		'@tsrx/vue',
-		['node_modules', '@tsrx', 'vue'],
-		['.tsrx'],
-		['@tsrx/vue', 'vue', 'vue-jsx-vapor'],
-	],
+	['@tsrx/vue', ['node_modules', '@tsrx', 'vue'], ['.tsrx'], ['@tsrx/vue', 'vue', 'vue-jsx-vapor']],
 ];
 
 /**

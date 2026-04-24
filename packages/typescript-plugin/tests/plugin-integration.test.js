@@ -96,7 +96,11 @@ describe('typescript-plugin language plugin integration', () => {
 		const plugin = create_plugin();
 		const workspace = create_fixture_workspace('vue-only');
 		const file_name = path.join(workspace, 'src', 'App.tsrx');
-		const virtual_code = create_virtual_code(plugin, file_name, 'component App() { <div>Hello</div> }');
+		const virtual_code = create_virtual_code(
+			plugin,
+			file_name,
+			'component App() { <div>Hello</div> }',
+		);
 
 		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
 		expect(virtual_code.generatedCode).toContain('compiler:vue');
@@ -106,7 +110,11 @@ describe('typescript-plugin language plugin integration', () => {
 		const plugin = create_plugin();
 		const workspace = create_fixture_workspace('both-vue');
 		const file_name = path.join(workspace, 'src', 'App.tsrx');
-		const virtual_code = create_virtual_code(plugin, file_name, 'component App() { <div>Hello Vue</div> }');
+		const virtual_code = create_virtual_code(
+			plugin,
+			file_name,
+			'component App() { <div>Hello Vue</div> }',
+		);
 
 		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
 		expect(virtual_code.generatedCode).toContain('compiler:vue');
