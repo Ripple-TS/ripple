@@ -111,6 +111,7 @@ export function tsx_with_ts_locations() {
 		'ReturnStatement',
 		'ForStatement',
 		'ForInStatement',
+		'ForOfStatement',
 		'TemplateLiteral',
 		'AwaitExpression',
 		'TaggedTemplateExpression',
