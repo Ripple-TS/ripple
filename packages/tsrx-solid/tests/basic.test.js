@@ -492,16 +492,16 @@ describe('@tsrx/solid basic', () => {
 	});
 
 	describe('lazy destructuring (variable form)', () => {
-		it('let &[a, b] = expr rewrites references', () => {
+		it('let [a, b] = createSignal uses regular destructuring', () => {
 			const { code } = compile(
-				`export component App() {
-					let &[count, setCount] = getState(0);
+				`import { createSignal } from 'solid-js';
+				export component App() {
+					let [count, setCount] = createSignal(0);
 					<button onClick={() => setCount(count + 1)}>{text count}</button>
 				}`,
 				'App.tsrx',
 			);
-			expect(code).toContain('let __lazy0 = getState(0)');
-			expect(code).toContain('__lazy0[1](__lazy0[0] + 1)');
+			expect(code).toContain('let [count, setCount] = createSignal(0)');
 		});
 
 		it('transforms lazy params on plain function declarations', () => {
@@ -541,17 +541,16 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain("'hi ' + __lazy1.name + ' from ' + __lazy0.outer");
 		});
 
-		it('rewrites statement-level lazy assignment as a const declaration', () => {
+		it('statement-level [a, b] = createSignal uses regular destructuring', () => {
 			const { code } = compile(
-				`export component App() {
-					&[count, setCount] = getState(0);
+				`import { createSignal } from 'solid-js';
+				export component App() {
+					const [count, setCount] = createSignal(0);
 					<button onClick={() => setCount(count + 1)}>{count}</button>
 				}`,
 				'App.tsrx',
 			);
-			expect(code).toContain('const __lazy0 = getState(0)');
-			expect(code).toContain('__lazy0[1](__lazy0[0] + 1)');
-			expect(code).toContain('{__lazy0[0]}');
+			expect(code).toContain('const [count, setCount] = createSignal(0)');
 		});
 	});
 
