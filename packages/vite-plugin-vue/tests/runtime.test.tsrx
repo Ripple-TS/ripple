@@ -124,6 +124,40 @@ component IfReactiveApp() {
 	<button class="toggle" onClick={() => (show.value = !show.value)}>{'toggle'}</button>
 }
 
+component ConditionalLocalStateApp() {
+	const count = ref(3);
+
+	<button class="outer-inc" onClick={() => count.value++}>{'Outer: '}{count.value}</button>
+
+	if (count.value > 2) {
+		const newCount = ref(0);
+		<button class="inner-inc" onClick={() => newCount.value++}>{'Inner: '}{newCount.value}</button>
+	}
+}
+
+component StatefulChild() {
+	const inner = ref(0);
+	<button class="stateful-child" onClick={() => inner.value++}>{'Child: '}{inner.value}</button>
+}
+
+component StatefulChildHostApp() {
+	<div>
+		<StatefulChild />
+	</div>
+}
+
+component StatefulChildWithProp(props: { count: ReturnType<typeof ref<number>> }) {
+	const inner = ref(0);
+	<button class="stateful-child-prop" onClick={() => inner.value++}>{'Child prop: '}{inner.value}</button>
+}
+
+component StatefulChildWithPropHostApp() {
+	const count = ref(3);
+	<div>
+		<StatefulChildWithProp count={count} />
+	</div>
+}
+
 component ForReactiveApp() {
 	const items = ref(['a', 'b', 'c']);
 
@@ -368,6 +402,34 @@ describe('tsrx-vue runtime', () => {
 
 		await click('.toggle');
 		expect(text('.visible')).toBe('shown');
+	});
+
+	it('preserves branch-local Vue refs across parent updates', async () => {
+		await render(ConditionalLocalStateApp);
+		expect(text('.inner-inc')).toBe('Inner: 0');
+
+		await click('.inner-inc');
+		expect(text('.inner-inc')).toBe('Inner: 1');
+
+		await click('.outer-inc');
+		expect(text('.outer-inc')).toBe('Outer: 4');
+		expect(text('.inner-inc')).toBe('Inner: 1');
+	});
+
+	it('supports local ref state in a normal nested Vue component', async () => {
+		await render(StatefulChildHostApp);
+		expect(text('.stateful-child')).toBe('Child: 0');
+
+		await click('.stateful-child');
+		expect(text('.stateful-child')).toBe('Child: 1');
+	});
+
+	it('supports local ref state in a nested Vue component that receives a ref prop', async () => {
+		await render(StatefulChildWithPropHostApp);
+		expect(text('.stateful-child-prop')).toBe('Child prop: 0');
+
+		await click('.stateful-child-prop');
+		expect(text('.stateful-child-prop')).toBe('Child prop: 1');
 	});
 
 	it('adds and removes items in a for-of loop reactively', async () => {

@@ -178,7 +178,7 @@ export function createJsxTransform(platform) {
 				// cause ReferenceErrors if passed as helper props.
 				const body_bindings = collect_param_bindings(as_any.params || []);
 				const body = as_any.body || [];
-				const split_index = find_hook_safe_split_index(body);
+				const split_index = find_hook_safe_split_index(body, state);
 				const collect_end = split_index === -1 ? body.length : split_index;
 				for (let i = 0; i < collect_end; i += 1) {
 					collect_statement_bindings(body[i], body_bindings);
@@ -418,7 +418,7 @@ function build_component_statements(
 	available_bindings,
 	transform_context,
 ) {
-	const split_index = find_hook_safe_split_index(body_nodes);
+	const split_index = find_hook_safe_split_index(body_nodes, transform_context);
 	if (split_index === -1) {
 		return build_render_statements(body_nodes, false, transform_context);
 	}
@@ -596,13 +596,13 @@ function is_interleaved_body(body_nodes) {
  * @param {any[]} body_nodes
  * @returns {number}
  */
-function find_hook_safe_split_index(body_nodes) {
+function find_hook_safe_split_index(body_nodes, transform_context) {
 	for (let i = 0; i < body_nodes.length; i += 1) {
 		if (!is_lone_return_if_statement(body_nodes[i])) {
 			continue;
 		}
 
-		if (body_contains_top_level_hook_call(body_nodes.slice(i + 1))) {
+		if (body_contains_top_level_hook_call(body_nodes.slice(i + 1), transform_context)) {
 			return i;
 		}
 	}
@@ -614,24 +614,39 @@ function find_hook_safe_split_index(body_nodes) {
  * @param {any[]} body_nodes
  * @returns {boolean}
  */
-function body_contains_top_level_hook_call(body_nodes) {
-	return body_nodes.some(statement_contains_top_level_hook_call);
+function body_contains_top_level_hook_call(
+	body_nodes,
+	transform_context,
+	include_platform_setup = false,
+) {
+	return body_nodes.some((node) =>
+		statement_contains_top_level_hook_call(node, transform_context, include_platform_setup),
+	);
 }
 
 /**
  * @param {any} node
+ * @param {TransformContext} transform_context
+ * @param {boolean} include_platform_setup
  * @returns {boolean}
  */
-function statement_contains_top_level_hook_call(node) {
-	return node_contains_top_level_hook_call(node, false);
+function statement_contains_top_level_hook_call(node, transform_context, include_platform_setup) {
+	return node_contains_top_level_hook_call(node, false, transform_context, include_platform_setup);
 }
 
 /**
  * @param {any} node
  * @param {boolean} inside_nested_function
+ * @param {TransformContext} transform_context
+ * @param {boolean} include_platform_setup
  * @returns {boolean}
  */
-function node_contains_top_level_hook_call(node, inside_nested_function) {
+function node_contains_top_level_hook_call(
+	node,
+	inside_nested_function,
+	transform_context,
+	include_platform_setup,
+) {
 	if (!node || typeof node !== 'object') {
 		return false;
 	}
@@ -655,26 +670,53 @@ function node_contains_top_level_hook_call(node, inside_nested_function) {
 			if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
 				continue;
 			}
-			if (node_contains_top_level_hook_call(node[key], next_inside_nested_function)) {
+			if (
+				node_contains_top_level_hook_call(
+					node[key],
+					next_inside_nested_function,
+					transform_context,
+					include_platform_setup,
+				)
+			) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	if (!inside_nested_function && node.type === 'CallExpression' && is_hook_callee(node.callee)) {
+	if (
+		!inside_nested_function &&
+		node.type === 'CallExpression' &&
+		(is_hook_callee(node.callee) ||
+			(include_platform_setup &&
+				transform_context.platform.hooks?.isTopLevelSetupCall?.(node, transform_context) === true))
+	) {
 		return true;
 	}
 
 	if (Array.isArray(node)) {
-		return node.some((child) => node_contains_top_level_hook_call(child, inside_nested_function));
+		return node.some((child) =>
+			node_contains_top_level_hook_call(
+				child,
+				inside_nested_function,
+				transform_context,
+				include_platform_setup,
+			),
+		);
 	}
 
 	for (const key of Object.keys(node)) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
 			continue;
 		}
-		if (node_contains_top_level_hook_call(node[key], inside_nested_function)) {
+		if (
+			node_contains_top_level_hook_call(
+				node[key],
+				inside_nested_function,
+				transform_context,
+				include_platform_setup,
+			)
+		) {
 			return true;
 		}
 	}
@@ -737,8 +779,14 @@ function create_helper_component_expression(
 		source_node,
 		transform_context,
 	);
+	const helper_declaration = finalize_helper_component_declaration(
+		helper_fn,
+		helper_id,
+		source_node,
+		transform_context,
+	);
 
-	helper_state.helpers.push(helper_fn);
+	helper_state.helpers.push(helper_declaration);
 
 	return create_helper_component_element(helper_id, helper_bindings, source_node);
 }
@@ -792,6 +840,24 @@ function create_helper_function_declaration(
 	}
 
 	return set_loc(fn, source_node);
+}
+
+/**
+ * @param {any} helper_fn
+ * @param {AST.Identifier} helper_id
+ * @param {any} source_node
+ * @param {TransformContext} transform_context
+ * @returns {any}
+ */
+function finalize_helper_component_declaration(
+	helper_fn,
+	helper_id,
+	source_node,
+	transform_context,
+) {
+	const hook = transform_context.platform.hooks?.wrapHelperComponent;
+	if (!hook) return helper_fn;
+	return hook(helper_fn, helper_id, transform_context, source_node);
 }
 
 /**
@@ -1357,7 +1423,7 @@ function is_inline_element_child(node) {
  * @returns {ESTreeJSX.JSXExpressionContainer}
  */
 function statement_body_to_jsx_child(body_nodes, transform_context) {
-	if (body_contains_top_level_hook_call(body_nodes)) {
+	if (body_contains_top_level_hook_call(body_nodes, transform_context)) {
 		return hook_safe_statement_body_to_jsx_child(body_nodes, transform_context);
 	}
 
@@ -1421,13 +1487,19 @@ function hook_safe_statement_body_to_jsx_child(body_nodes, transform_context) {
 		}),
 		source_node,
 	);
+	const helper_declaration = finalize_helper_component_declaration(
+		helper_fn,
+		helper_id,
+		source_node,
+		transform_context,
+	);
 
 	// Restore bindings
 	transform_context.available_bindings = saved_bindings;
 
 	// Register helper for hoisting to module level
 	if (transform_context.helper_state) {
-		transform_context.helper_state.helpers.push(helper_fn);
+		transform_context.helper_state.helpers.push(helper_declaration);
 
 		return to_jsx_expression_container(
 			/** @type {any} */ (create_helper_component_element(helper_id, helper_bindings, source_node)),
@@ -1444,7 +1516,7 @@ function hook_safe_statement_body_to_jsx_child(body_nodes, transform_context) {
 				body: /** @type {any} */ ({
 					type: 'BlockStatement',
 					body: [
-						helper_fn,
+						helper_declaration,
 						{
 							type: 'ReturnStatement',
 							argument: create_helper_component_element(helper_id, helper_bindings, source_node),
@@ -1520,13 +1592,19 @@ function hook_safe_render_statements(body_nodes, key_expression, transform_conte
 		}),
 		source_node,
 	);
+	const helper_declaration = finalize_helper_component_declaration(
+		helper_fn,
+		helper_id,
+		source_node,
+		transform_context,
+	);
 
 	// Restore bindings
 	transform_context.available_bindings = saved_bindings;
 
 	// Register helper for hoisting to module level
 	if (transform_context.helper_state) {
-		transform_context.helper_state.helpers.push(helper_fn);
+		transform_context.helper_state.helpers.push(helper_declaration);
 	}
 
 	const component_element = create_helper_component_element(
@@ -1642,6 +1720,12 @@ function to_jsx_child(node, transform_context) {
  * @returns {ESTreeJSX.JSXExpressionContainer}
  */
 function if_statement_to_jsx_child(node, transform_context) {
+	const render_if_statement = create_render_if_statement(node, transform_context);
+	const conditional_expression = render_if_statement_to_conditional_expression(render_if_statement);
+	if (conditional_expression) {
+		return to_jsx_expression_container(conditional_expression, node);
+	}
+
 	return to_jsx_expression_container(
 		/** @type {any} */ ({
 			type: 'CallExpression',
@@ -1651,7 +1735,7 @@ function if_statement_to_jsx_child(node, transform_context) {
 				body: /** @type {any} */ ({
 					type: 'BlockStatement',
 					body: [
-						create_render_if_statement(node, transform_context),
+						render_if_statement,
 						create_null_return_statement(),
 					],
 					metadata: { path: [] },
@@ -1666,6 +1750,56 @@ function if_statement_to_jsx_child(node, transform_context) {
 			metadata: { path: [] },
 		}),
 	);
+}
+
+/**
+ * @param {any} node
+ * @returns {any | null}
+ */
+function render_if_statement_to_conditional_expression(node) {
+	if (!node || node.type !== 'IfStatement') return null;
+
+	const consequent = block_statement_to_return_expression(node.consequent);
+	if (!consequent) return null;
+
+	let alternate = create_null_literal();
+	if (node.alternate) {
+		if (node.alternate.type === 'IfStatement') {
+			alternate = render_if_statement_to_conditional_expression(node.alternate);
+			if (!alternate) return null;
+		} else {
+			alternate = block_statement_to_return_expression(node.alternate);
+			if (!alternate) return null;
+		}
+	}
+
+	return set_loc(
+		/** @type {any} */ ({
+			type: 'ConditionalExpression',
+			test: node.test,
+			consequent,
+			alternate,
+			metadata: { path: [] },
+		}),
+		node,
+	);
+}
+
+/**
+ * @param {any} block
+ * @returns {any | null}
+ */
+function block_statement_to_return_expression(block) {
+	if (!block || block.type !== 'BlockStatement' || block.body.length !== 1) {
+		return null;
+	}
+
+	const statement = block.body[0];
+	if (!statement || statement.type !== 'ReturnStatement') {
+		return null;
+	}
+
+	return statement.argument || create_null_literal();
 }
 
 /**
@@ -1724,7 +1858,7 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 
 	const loop_params = get_for_of_iteration_params(node.left, node.index);
 	const loop_body = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
-	const has_hooks = body_contains_top_level_hook_call(loop_body);
+	const has_hooks = body_contains_top_level_hook_call(loop_body, transform_context, true);
 	const body_key_expression = find_key_expression_in_body(loop_body);
 	const explicit_key_expression =
 		body_key_expression ?? (node.key ? clone_expression_node(node.key) : undefined);
@@ -2123,7 +2257,11 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 function create_render_if_statement(node, transform_context) {
 	const consequent_body =
 		node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
-	const consequent_has_hooks = body_contains_top_level_hook_call(consequent_body);
+	const consequent_has_hooks = body_contains_top_level_hook_call(
+		consequent_body,
+		transform_context,
+		true,
+	);
 
 	let alternate = null;
 	if (node.alternate) {
@@ -2131,7 +2269,11 @@ function create_render_if_statement(node, transform_context) {
 			alternate = create_render_if_statement(node.alternate, transform_context);
 		} else {
 			const alternate_body = node.alternate.body || [node.alternate];
-			const alternate_has_hooks = body_contains_top_level_hook_call(alternate_body);
+			const alternate_has_hooks = body_contains_top_level_hook_call(
+				alternate_body,
+				transform_context,
+				true,
+			);
 			alternate = set_loc(
 				/** @type {any} */ ({
 					type: 'BlockStatement',
@@ -2196,7 +2338,7 @@ function create_render_switch_case(switch_case, transform_context) {
 		body_without_break.push(child);
 	}
 
-	if (body_contains_top_level_hook_call(body_without_break)) {
+	if (body_contains_top_level_hook_call(body_without_break, transform_context, true)) {
 		return /** @type {any} */ ({
 			type: 'SwitchCase',
 			test: switch_case.test,

@@ -12,7 +12,11 @@ export default component App() {
 		</button>
 		console.log('foo');
 		if (count.value > 2) {
-			<div>{'Bigger than two'}</div>
+			const new_count = ref(0);
+			<button onClick={() => new_count.value++}>
+				{'New Count: '}
+				{new_count.value}
+			</button>
 		}
 	</main>
 }

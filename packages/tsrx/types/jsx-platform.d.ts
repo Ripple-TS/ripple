@@ -56,6 +56,13 @@ export interface JsxPlatformHooks {
 		tryStatement?: (node: any, ctx: any) => any;
 	};
 	/**
+	 * Mark a top-level call expression inside a control-flow branch as requiring
+	 * helper-component isolation so setup/state is created once per mounted
+	 * branch instead of once per parent rerender. Vue uses this for branch-local
+	 * Composition API state like `ref()`.
+	 */
+	isTopLevelSetupCall?: (callExpression: any, ctx: any) => boolean;
+	/**
 	 * Lower a `component` declaration to the replacement node for its current
 	 * position. React / Preact use the default helper and return a
 	 * `FunctionDeclaration`. Other targets may return a variable declaration or
@@ -67,6 +74,13 @@ export interface JsxPlatformHooks {
 	 * handling.
 	 */
 	componentToFunction?: (component: any, ctx: any, helperState?: any) => any;
+	/**
+	 * Wrap a hoisted helper component declaration emitted by the shared control-
+	 * flow splitter. The default is the plain function declaration; Vue uses
+	 * this to wrap helpers in `defineVaporComponent(...)` so branch-local setup
+	 * state behaves like normal component state.
+	 */
+	wrapHelperComponent?: (helperFn: any, helperId: any, ctx: any, sourceNode: any) => any;
 	/**
 	 * Inject module-level imports after the main walk. Default: import
 	 * `Suspense` from `platform.imports.suspense` and `TsrxErrorBoundary`

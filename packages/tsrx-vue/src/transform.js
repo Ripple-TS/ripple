@@ -39,6 +39,13 @@ const vue_platform = {
 		initialState: () => ({
 			needs_define_vapor_component: false,
 		}),
+		isTopLevelSetupCall(call_expression) {
+			return is_vue_setup_call(call_expression);
+		},
+			wrapHelperComponent(helper_fn, helper_id, ctx, source_node) {
+				ctx.needs_define_vapor_component = true;
+				return wrap_helper_component(helper_fn, helper_id, source_node);
+			},
 		canHoistStaticNode(node) {
 			return !contains_component_jsx(node);
 		},
@@ -74,25 +81,12 @@ export const transform = createJsxTransform(vue_platform);
  */
 function component_to_vapor_component_declaration(component, transform_context, helper_state) {
 	const fn = componentToFunctionDeclaration(component, transform_context, helper_state);
-	const meta = fn.metadata || { path: [] };
 	const generated_helpers = helper_state?.helpers || [];
 	const generated_statics = helper_state?.statics || [];
-	const call = setLocation(
-		/** @type {any} */ ({
-			type: 'CallExpression',
-			callee: {
-				type: 'Identifier',
-				name: 'defineVaporComponent',
-				metadata: { path: [] },
-			},
-			arguments: [function_declaration_to_expression(fn)],
-			optional: false,
-			metadata: {
-				path: [],
-				generated_helpers,
-				generated_statics,
-			},
-		}),
+	const call = create_define_vapor_component_call(
+		function_declaration_to_expression(fn),
+		generated_helpers,
+		generated_statics,
 		component,
 	);
 
@@ -123,6 +117,69 @@ function component_to_vapor_component_declaration(component, transform_context, 
 }
 
 /**
+ * @param {any} helper_fn
+ * @param {any} helper_id
+ * @param {any} source_node
+ * @returns {any}
+ */
+function wrap_helper_component(helper_fn, helper_id, source_node) {
+	return setLocation(
+		/** @type {any} */ ({
+			type: 'VariableDeclaration',
+			kind: 'const',
+			declarations: [
+				{
+					type: 'VariableDeclarator',
+					id: clone_identifier(helper_id),
+					init: create_define_vapor_component_call(
+						function_declaration_to_expression(helper_fn),
+						[],
+						[],
+						source_node,
+					),
+					metadata: { path: [] },
+				},
+			],
+			metadata: { path: [] },
+		}),
+		source_node,
+	);
+}
+
+/**
+ * @param {any} fn_expression
+ * @param {any[]} generated_helpers
+ * @param {any[]} generated_statics
+ * @param {any} source_node
+ * @returns {any}
+ */
+function create_define_vapor_component_call(
+	fn_expression,
+	generated_helpers,
+	generated_statics,
+	source_node,
+) {
+	return setLocation(
+		/** @type {any} */ ({
+			type: 'CallExpression',
+			callee: {
+				type: 'Identifier',
+				name: 'defineVaporComponent',
+				metadata: { path: [] },
+			},
+			arguments: [fn_expression],
+			optional: false,
+			metadata: {
+				path: [],
+				generated_helpers,
+				generated_statics,
+			},
+		}),
+		source_node,
+	);
+}
+
+/**
  * @param {any} fn
  * @returns {any}
  */
@@ -144,6 +201,41 @@ function function_declaration_to_expression(fn) {
  */
 function unsupported_vue_feature(node, feature) {
 	return create_compile_error(node, `${feature} are not yet supported in Vue TSRX.`);
+}
+
+const VUE_SETUP_CALLS = new Set([
+	'ref',
+	'shallowRef',
+	'computed',
+	'reactive',
+	'shallowReactive',
+	'customRef',
+	'toRef',
+	'toRefs',
+	'useTemplateRef',
+]);
+
+/**
+ * @param {any} call_expression
+ * @returns {boolean}
+ */
+function is_vue_setup_call(call_expression) {
+	const callee = call_expression?.callee;
+	if (!callee) return false;
+
+	if (callee.type === 'Identifier') {
+		return VUE_SETUP_CALLS.has(callee.name);
+	}
+
+	if (
+		callee.type === 'MemberExpression' &&
+		callee.computed === false &&
+		callee.property?.type === 'Identifier'
+	) {
+		return VUE_SETUP_CALLS.has(callee.property.name);
+	}
+
+	return false;
 }
 
 /**

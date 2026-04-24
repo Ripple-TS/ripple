@@ -192,10 +192,8 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('if (visible) {');
 		expect(code).toContain("const App__static1 = <div>{'Visible'}</div>;");
-		expect(code).toContain('return App__static1;');
-		expect(code).toContain('return null;');
+		expect(code).toContain('return visible ? App__static1 : null;');
 		expect(code).not.toContain('not yet supported in Vue TSRX');
 	});
 
@@ -211,11 +209,9 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('if (visible) {');
 		expect(code).toContain("<div>{'Visible'}</div>");
-		expect(code).toContain('else {');
 		expect(code).toContain("<div>{'Hidden'}</div>");
-		expect(code).toMatch(/return App__static\d+;/);
+		expect(code).toMatch(/return visible \? App__static\d+ : App__static\d+;/);
 	});
 
 	it('compiles for...of statements in component bodies', () => {
