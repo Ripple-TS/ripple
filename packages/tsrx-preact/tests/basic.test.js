@@ -202,7 +202,7 @@ describe('@tsrx/preact basic', () => {
 			const { code } = compile(
 				`export component App(&{name}: Props) {
 					const obj = {name};
-					<div>{obj}</div>
+					<div>{obj.name}</div>
 				}`,
 				'App.tsrx',
 			);
