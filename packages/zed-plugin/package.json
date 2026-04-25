@@ -5,7 +5,6 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "copy-scm": "cp ../../grammars/tree-sitter/queries/*.scm ./languages/tsrx"
   },
   "keywords": [],
   "author": "",

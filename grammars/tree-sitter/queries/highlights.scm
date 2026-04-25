@@ -102,7 +102,7 @@
   name: (jsx_non_namespaced_element_name (identifier) @tag))
 
 (jsx_attribute
-  name: [(identifier) (jsx_namespace_name)] @attribute)
+  name: [(identifier) (jsx_namespace_name) (jsx_hyphenated_name)] @attribute)
 
 (jsx_expression
   "{" @punctuation.bracket

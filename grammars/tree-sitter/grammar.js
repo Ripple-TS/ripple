@@ -885,11 +885,13 @@ module.exports = grammar({
 
 		jsx_namespace_name: ($) => seq($.identifier, ':', $.identifier),
 
+		jsx_hyphenated_name: ($) => seq($.identifier, repeat1(seq('-', $.identifier))),
+
 		_jsx_attribute: ($) => choice($.jsx_attribute, $.jsx_expression),
 
 		jsx_attribute: ($) =>
 			seq(
-				field('name', choice($.identifier, $.jsx_namespace_name)),
+				field('name', choice($.identifier, $.jsx_namespace_name, $.jsx_hyphenated_name)),
 				optional(seq('=', field('value', $._jsx_attribute_value))),
 			),
 
