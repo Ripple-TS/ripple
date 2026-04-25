@@ -1,11 +1,10 @@
 {
   "name": "@ripple-ts/zed-plugin",
-  "version": "0.0.83",
+  "version": "0.0.84",
   "description": "",
   "private": true,
   "main": "index.js",
-  "scripts": {
-  },
+  "scripts": {},
   "keywords": [],
   "author": "",
   "license": "ISC",
