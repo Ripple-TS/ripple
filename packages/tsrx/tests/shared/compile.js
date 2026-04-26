@@ -164,6 +164,27 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('return visible;');
 			expect(code).not.toMatch(/\{\n\s+visible;\n\s+\}/);
 		});
+
+		it('keeps generic-looking arrow expressions parseable after inner blocks in functions', () => {
+			const { code } = compile(
+				`export component GenericAfterBlockCheck() {
+					const make = () => {
+						if (true) {
+							const local = 1;
+							console.log(local);
+						}
+
+						<T,>(value: T) => value;
+					};
+
+					<div>{make}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('(value: T) => value');
+			expect(code).toContain('{make}');
+		});
 	});
 
 	describe(`[${name}] walker transforms survive element lowering`, () => {

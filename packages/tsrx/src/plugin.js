@@ -383,6 +383,148 @@ export function TSRXPlugin(config) {
 				return null;
 			}
 
+			#isNestedFunctionContextForLessThan() {
+				const closing_function_body =
+					this.type === tt.braceR && this.#functionBlockDepth === this.#functionBodyDepth;
+				return this.#functionBodyDepth > 0 && !closing_function_body;
+			}
+
+			/**
+			 * @param {number} index
+			 */
+			#skipWhitespaceFrom(index) {
+				while (index < this.input.length) {
+					const ch = this.input.charCodeAt(index);
+					if (ch !== 32 && ch !== 9 && ch !== 10 && ch !== 13) break;
+					index++;
+				}
+				return index;
+			}
+
+			/**
+			 * @param {number} index
+			 * @param {number} quote
+			 */
+			#skipStringFrom(index, quote) {
+				index++;
+				while (index < this.input.length) {
+					const ch = this.input.charCodeAt(index);
+					index++;
+					if (ch === 92) {
+						index++;
+					} else if (ch === quote) {
+						return index;
+					}
+				}
+				return index;
+			}
+
+			/**
+			 * @param {number} index
+			 * @param {number} open
+			 * @param {number} close
+			 */
+			#scanBalancedFrom(index, open, close) {
+				let depth = 1;
+				index++;
+
+				while (index < this.input.length) {
+					const ch = this.input.charCodeAt(index);
+
+					if (ch === 34 || ch === 39 || ch === 96) {
+						index = this.#skipStringFrom(index, ch);
+						continue;
+					}
+
+					if (ch === open) {
+						depth++;
+					} else if (ch === close) {
+						depth--;
+						if (depth === 0) {
+							return index + 1;
+						}
+					}
+
+					index++;
+				}
+
+				return -1;
+			}
+
+			#isGenericArrowExpressionStart() {
+				if (this.input.charCodeAt(this.pos) !== 60) return false;
+
+				let angle_depth = 1;
+				let index = this.pos + 1;
+
+				while (index < this.input.length) {
+					const ch = this.input.charCodeAt(index);
+
+					if (ch === 34 || ch === 39 || ch === 96) {
+						index = this.#skipStringFrom(index, ch);
+						continue;
+					}
+
+					if (ch === 60) {
+						angle_depth++;
+					} else if (ch === 62) {
+						angle_depth--;
+						if (angle_depth === 0) {
+							break;
+						}
+					}
+
+					index++;
+				}
+
+				if (angle_depth !== 0) return false;
+
+				index = this.#skipWhitespaceFrom(index + 1);
+				if (this.input.charCodeAt(index) !== 40) return false;
+
+				index = this.#scanBalancedFrom(index, 40, 41);
+				if (index === -1) return false;
+
+				index = this.#skipWhitespaceFrom(index);
+				if (this.input.charCodeAt(index) === 58) {
+					index++;
+					while (index < this.input.length) {
+						const ch = this.input.charCodeAt(index);
+						if (ch === 34 || ch === 39 || ch === 96) {
+							index = this.#skipStringFrom(index, ch);
+							continue;
+						}
+						if (ch === 61 && this.input.charCodeAt(index + 1) === 62) {
+							return true;
+						}
+						if (ch === 59 || ch === 123 || ch === 125) {
+							return false;
+						}
+						index++;
+					}
+					return false;
+				}
+
+				return this.input.charCodeAt(index) === 61 && this.input.charCodeAt(index + 1) === 62;
+			}
+
+			/**
+			 * @type {Parse.Parser['readToken']}
+			 */
+			readToken(code) {
+				if (
+					code === 60 &&
+					this.#path.findLast((n) => n.type === 'Component') &&
+					this.#isNestedFunctionContextForLessThan() &&
+					this.#isGenericArrowExpressionStart()
+				) {
+					++this.pos;
+					return this.finishToken(tt.relational, '<');
+				}
+
+				return super.readToken(code);
+			}
+
 			/**
 			 * Get token from character code - handles Ripple-specific tokens
 			 * @type {Parse.Parser['getTokenFromCode']}
@@ -471,19 +613,10 @@ export function TSRXPlugin(config) {
 							}
 						}
 
-						// Check if we're inside a nested function (arrow function, function expression, etc.)
-						// We need to distinguish between being inside a function vs just being in nested scopes
-						// (like for loops, if blocks, JSX elements, etc.)
-						const nestedFunctionContext = this.#functionBlockDepth > 0 && this.type !== tt.braceR;
-
-						// Inside nested functions, treat < as relational/generic operator
-						// BUT: if the < is followed by /, it's a closing JSX tag, not a less-than operator
-						const nextChar =
-							this.pos + 1 < this.input.length ? this.input.charCodeAt(this.pos + 1) : -1;
-						const isClosingTag = nextChar === 47; // '/'
-
-						if (nestedFunctionContext && !isClosingTag) {
-							// Inside function - treat as TypeScript generic, not JSX
+						if (
+							this.#isNestedFunctionContextForLessThan() &&
+							this.#isGenericArrowExpressionStart()
+						) {
 							++this.pos;
 							return this.finishToken(tt.relational, '<');
 						}
@@ -2306,9 +2439,23 @@ export function TSRXPlugin(config) {
 
 				if (inside_func) {
 					this.#functionBlockDepth++;
+					/** @type {Parse.TokContext[]} */
+					const template_contexts = [];
+					while (this.curContext() === tstc.tc_expr) {
+						const context = this.context.pop();
+						if (context) {
+							template_contexts.push(context);
+						}
+					}
 					try {
 						return super.parseBlock(createNewLexicalScope, node, exitStrict);
 					} finally {
+						while (template_contexts.length > 0) {
+							const context = template_contexts.pop();
+							if (context) {
+								this.context.push(context);
+							}
+						}
 						this.#functionBlockDepth--;
 					}
 				}
