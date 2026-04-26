@@ -642,18 +642,18 @@ export function ripple(inlineOptions = {}) {
 						try {
 							await ensureConfigLoaded();
 						} catch (error) {
-							console.error('[@ripple-ts/vite-plugin] Failed to load ripple.config.ts:', error);
+							// Log but do NOT return a 500 — falling through to
+							// next() lets Vite continue serving its own internal
+							// requests (HMR, CSS, JS modules, etc.). A broken
+							// ripple.config.ts should not kill the entire dev
+							// server. The error is retried on the next request
+							// because ensureConfigLoaded clears initPromise.
+							console.error(
+								'[@ripple-ts/vite-plugin] Failed to load ripple.config.ts:',
+								error,
+							);
 							vite.ssrFixStacktrace(/** @type {Error} */ (error));
-
-							if (!res.headersSent) {
-								res.statusCode = 500;
-								res.setHeader('Content-Type', 'text/html');
-								res.end(
-									`<pre style="color: red; background: #1a1a1a; padding: 2rem; margin: 0;">${escapeHtml(
-										error instanceof Error ? error.stack || error.message : String(error),
-									)}</pre>`,
-								);
-							}
+							next();
 							return;
 						}
 
