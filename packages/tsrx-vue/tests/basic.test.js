@@ -310,9 +310,7 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('.map(');
-		expect(code).toContain('item) =>');
-		expect(code).toContain('return <div>{item}</div>;');
+		expect(code).toContain('<template v-for={item in items}><div>{item}</div></template>');
 		expect(code).not.toContain('not yet supported in Vue TSRX');
 	});
 
@@ -326,8 +324,23 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('.map(');
+		expect(code).toContain('<template v-for={item in items} key={item.id}>');
 		expect(code).toContain('key={item.id}');
+		expect(code).toContain('item.text');
+	});
+
+	it('compiles indexed keyed for...of statements in component bodies', () => {
+		const { code } = compile(
+			`component App({ items }: { items: { id: string, text: string }[] }) {
+				for (const item of items; index i; key item.id) {
+					<div>{i}{item.text}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('<template v-for={(item, i) in items} key={item.id}>');
+		expect(code).toContain('{i}');
 		expect(code).toContain('item.text');
 	});
 
