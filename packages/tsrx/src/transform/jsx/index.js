@@ -1532,7 +1532,10 @@ function create_hook_safe_helper(body_nodes, key_expression, source_node, transf
 
 	if (!transform_context.helper_state) {
 		return {
-			setup_statements: [create_helper_function_declaration_from_expression(helper_id, helper_fn)],
+			setup_statements: [
+				...aliases.map((alias) => alias.declaration),
+				create_helper_function_declaration_from_expression(helper_id, helper_fn),
+			],
 			component_element,
 		};
 	}

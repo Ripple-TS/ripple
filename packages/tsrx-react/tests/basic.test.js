@@ -381,6 +381,38 @@ describe('@tsrx/react basic', () => {
 		expect(if_foo_mapping?.data.completion).toBe(true);
 	});
 
+	it('declares helper prop type aliases before typed cached helpers', () => {
+		const { code } = compile(
+			`import { useEffect } from 'react';
+
+			declare function getFoo(): string | null;
+
+			export component App() {
+				const foo = getFoo();
+
+				if (!foo) {
+					<div>{'Foo not found'}</div>
+					return;
+				}
+
+				useEffect(() => {
+					console.log(foo);
+				}, [foo]);
+
+				<div>{foo.trim()}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		const alias_pos = code.indexOf('const _tsrx_StatementBodyHook2_foo = foo;');
+		const helper_pos = code.indexOf('const StatementBodyHook2 = App__StatementBodyHook2 ??');
+		const type_ref_pos = code.indexOf('foo: typeof _tsrx_StatementBodyHook2_foo');
+
+		expect(alias_pos).toBeGreaterThan(-1);
+		expect(helper_pos).toBeGreaterThan(alias_pos);
+		expect(type_ref_pos).toBeGreaterThan(helper_pos);
+	});
+
 	it('does not emit duplicate Volar mappings for helper-extracted React output', () => {
 		const source = `import { useState, useEffect } from 'react';
 
