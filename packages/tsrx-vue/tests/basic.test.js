@@ -292,12 +292,14 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain(
-			'const App__Continue1 = defineVaporComponent(function App__Continue1({ count, skip }) {',
-		);
+		expect(code).toContain('let App__StatementBodyHook1;');
+		expect(code).not.toContain('let App__StatementBodyHook2;');
+		expect(code).toContain('App__StatementBodyHook1 = defineVaporComponent(');
+		expect(code).toContain('function StatementBodyHook1({ count }');
 		expect(code).toContain('const doubled = ref(0);');
 		expect(code).toContain('skip.value');
-		expect(code).toContain('<App__Continue1 count={count} skip={skip} />');
+		expect(code).toContain('<StatementBodyHook1 count={count} />');
+		expect(code).not.toContain('App__Continue');
 	});
 
 	it('compiles for...of statements in component bodies', () => {
