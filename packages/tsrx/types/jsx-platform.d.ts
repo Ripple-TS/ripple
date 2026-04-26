@@ -103,6 +103,13 @@ export interface JsxPlatformHooks {
 	 */
 	preprocessElementAttributes?: (attrs: any[], ctx: any, element: any) => any[];
 	/**
+	 * Optionally replace the default React-style `.map(...)` lowering for a
+	 * `for...of` body after the shared transform has already produced its render
+	 * statements and applied any explicit or implicit keys. Vue uses this to hand
+	 * the loop to the downstream Vapor JSX compiler as a native `v-for` template.
+	 */
+	renderForOf?: (node: any, loopParams: any[], bodyStatements: any[], ctx: any) => any | null;
+	/**
 	 * Lower a Ripple `Element` node to a JSXElement. Default is the
 	 * factory's `to_jsx_element`. The hook receives the walker-transformed
 	 * node (`inner`, with children already lowered) plus the element's

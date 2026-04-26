@@ -1959,6 +1959,17 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 		apply_key_to_render_statements(body_statements, implicit_non_hook_key_expression);
 	}
 
+	const platform_for_of = transform_context.platform.hooks?.renderForOf?.(
+		node,
+		loop_params,
+		body_statements,
+		transform_context,
+	);
+	if (platform_for_of) {
+		transform_context.available_bindings = saved_bindings;
+		return platform_for_of;
+	}
+
 	// Restore bindings
 	transform_context.available_bindings = saved_bindings;
 

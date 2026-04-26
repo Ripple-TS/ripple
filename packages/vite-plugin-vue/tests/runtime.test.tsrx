@@ -219,6 +219,73 @@ component ForReactiveApp() {
 	<button class="remove" onClick={() => (items.value = items.value.slice(1))}>{'remove'}</button>
 }
 
+component ForIndexReactiveApp() {
+	const items = ref(['a', 'b', 'c']);
+
+	for (const item of items.value; index i) {
+		<li class="indexed-item">{`${i}:${item}`}</li>
+	}
+
+	<button class="prepend" onClick={() => (items.value = ['z', ...items.value])}>{'prepend'}</button>
+	<button
+		class="drop-middle"
+		onClick={() => (items.value = [items.value[0], ...items.value.slice(2)])}
+	>
+		{'drop middle'}
+	</button>
+	<button class="reverse" onClick={() => (items.value = [...items.value].reverse())}>
+		{'reverse'}
+	</button>
+}
+
+component KeyedRow(props: { item: { id: string; label: string } }) {
+	const count = ref(0);
+
+	<button class={`keyed-row row-${props.item.id}`} onClick={() => count.value++}>
+		{`${props.item.label}:${count.value}`}
+	</button>
+}
+
+component ForKeyedStateApp() {
+	const items = ref([
+		{ id: 'a', label: 'Alpha' },
+		{ id: 'b', label: 'Beta' },
+		{ id: 'c', label: 'Gamma' },
+	]);
+
+	for (const item of items.value; key item.id) {
+		<KeyedRow {item} />
+	}
+
+	<button class="reverse-keyed" onClick={() => (items.value = [...items.value].reverse())}>
+		{'reverse'}
+	</button>
+	<button
+		class="rename-beta"
+		onClick={() => (items.value = items.value.map(
+			(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
+		))}
+	>
+		{'rename'}
+	</button>
+}
+
+component ForIndexKeyedStateApp() {
+	const items = ref([
+		{ id: 'a', label: 'Alpha' },
+		{ id: 'b', label: 'Beta' },
+		{ id: 'c', label: 'Gamma' },
+	]);
+
+	for (const item of items.value; index i; key item.id) {
+		<p class={`indexed-keyed-row row-${item.id}`}>{`${i}:${item.label}`}</p>
+	}
+
+	<button class="reverse-index-keyed" onClick={() => (items.value = [...items.value].reverse())}>
+		{'reverse'}
+	</button>
+}
+
 component SwitchReactiveApp() {
 	const page = ref('home');
 
@@ -536,6 +603,91 @@ describe('tsrx-vue runtime', () => {
 		const after = container.querySelectorAll('.item');
 		expect(after.length).toBe(3);
 		expect(after[0].textContent).toBe('b');
+	});
+
+	it('updates for-of index bindings after insertions, removals, and reorders', async () => {
+		await render(ForIndexReactiveApp);
+		expect(
+			Array.from(container.querySelectorAll('.indexed-item')).map((node) => node.textContent),
+		).toEqual([
+			'0:a',
+			'1:b',
+			'2:c',
+		]);
+
+		await click('.prepend');
+		expect(
+			Array.from(container.querySelectorAll('.indexed-item')).map((node) => node.textContent),
+		).toEqual([
+			'0:z',
+			'1:a',
+			'2:b',
+			'3:c',
+		]);
+
+		await click('.drop-middle');
+		expect(
+			Array.from(container.querySelectorAll('.indexed-item')).map((node) => node.textContent),
+		).toEqual([
+			'0:z',
+			'1:b',
+			'2:c',
+		]);
+
+		await click('.reverse');
+		expect(
+			Array.from(container.querySelectorAll('.indexed-item')).map((node) => node.textContent),
+		).toEqual([
+			'0:c',
+			'1:b',
+			'2:z',
+		]);
+	});
+
+	it('preserves keyed loop component state across reorders and prop updates', async () => {
+		await render(ForKeyedStateApp);
+		expect(
+			Array.from(container.querySelectorAll('.keyed-row')).map((node) => node.textContent),
+		).toEqual([
+			'Alpha:0',
+			'Beta:0',
+			'Gamma:0',
+		]);
+
+		await click('.row-b');
+		expect(text('.row-b')).toBe('Beta:1');
+
+		await click('.reverse-keyed');
+		expect(
+			Array.from(container.querySelectorAll('.keyed-row')).map((node) => node.textContent),
+		).toEqual([
+			'Gamma:0',
+			'Beta:1',
+			'Alpha:0',
+		]);
+
+		await click('.rename-beta');
+		expect(text('.row-b')).toBe('Bravo:1');
+	});
+
+	it('updates index bindings in keyed for-of loops after reorders', async () => {
+		await render(ForIndexKeyedStateApp);
+		expect(
+			Array.from(container.querySelectorAll('.indexed-keyed-row')).map((node) => node.textContent),
+		).toEqual([
+			'0:Alpha',
+			'1:Beta',
+			'2:Gamma',
+		]);
+
+		await click('.reverse-index-keyed');
+		expect(
+			Array.from(container.querySelectorAll('.indexed-keyed-row')).map((node) => node.textContent),
+		).toEqual([
+			'0:Gamma',
+			'1:Beta',
+			'2:Alpha',
+		]);
 	});
 
 	it('switches rendered branches reactively', async () => {

@@ -2,6 +2,7 @@
 
 import {
 	builders,
+	clone_expression_node,
 	clone_identifier,
 	componentToFunctionDeclaration,
 	createJsxTransform,
@@ -52,6 +53,8 @@ const vue_platform = {
 		preprocessElementAttributes(attrs, ctx, element) {
 			return preprocess_ref_attributes(attrs, element, ctx);
 		},
+		renderForOf: (node, loop_params, body_statements) =>
+			render_for_of_as_vapor_template(node, loop_params, body_statements),
 		transformElementChildren(node, walked_children, raw_children, attributes) {
 			return rewrite_host_text_or_html_children(node, walked_children, raw_children, attributes);
 		},
@@ -177,6 +180,135 @@ function create_define_vapor_component_call(
 		}),
 		source_node,
 	);
+}
+
+/**
+ * @param {any} node
+ * @param {any[]} loop_params
+ * @param {any[]} body_statements
+ * @returns {any | null}
+ */
+function render_for_of_as_vapor_template(node, loop_params, body_statements) {
+	if (body_statements.length !== 1) {
+		return null;
+	}
+
+	const statement = body_statements[0];
+	if (statement?.type !== 'ReturnStatement' || !statement.argument) {
+		return null;
+	}
+
+	const rendered = statement.argument;
+	const key_expression = node.key
+		? clone_expression_node(node.key)
+		: find_jsx_key_expression(rendered);
+	strip_top_level_jsx_keys(rendered);
+	const children = rendered.type === 'JSXFragment' ? rendered.children : [rendered];
+	const attributes = [
+		{
+			type: 'JSXAttribute',
+			name: { type: 'JSXIdentifier', name: 'v-for', metadata: { path: [] } },
+			value: to_jsx_expression_container({
+				type: 'BinaryExpression',
+				operator: 'in',
+				left: create_v_for_left(loop_params),
+				right: clone_expression_node(node.right),
+				metadata: { path: [] },
+			}),
+			metadata: { path: [] },
+		},
+	];
+
+	if (key_expression) {
+		attributes.push({
+			type: 'JSXAttribute',
+			name: { type: 'JSXIdentifier', name: 'key', metadata: { path: [] } },
+			value: to_jsx_expression_container(key_expression),
+			metadata: { path: [] },
+		});
+	}
+
+	return to_jsx_expression_container({
+		type: 'JSXElement',
+		openingElement: {
+			type: 'JSXOpeningElement',
+			name: { type: 'JSXIdentifier', name: 'template', metadata: { path: [] } },
+			attributes,
+			selfClosing: false,
+			metadata: { path: [] },
+		},
+		closingElement: {
+			type: 'JSXClosingElement',
+			name: { type: 'JSXIdentifier', name: 'template', metadata: { path: [] } },
+			metadata: { path: [] },
+		},
+		children,
+		metadata: { path: [] },
+	});
+}
+
+/**
+ * @param {any[]} loop_params
+ * @returns {any}
+ */
+function create_v_for_left(loop_params) {
+	if (loop_params.length === 1) {
+		return clone_expression_node(loop_params[0]);
+	}
+
+	return {
+		type: 'SequenceExpression',
+		expressions: loop_params.map((param) => clone_expression_node(param)),
+		metadata: { path: [] },
+	};
+}
+
+/**
+ * @param {any} node
+ * @returns {any | null}
+ */
+function find_jsx_key_expression(node) {
+	if (node?.type !== 'JSXElement') {
+		return null;
+	}
+
+	for (const attr of node.openingElement?.attributes || []) {
+		if (
+			attr.type === 'JSXAttribute' &&
+			attr.name?.type === 'JSXIdentifier' &&
+			attr.name.name === 'key'
+		) {
+			return attr.value?.type === 'JSXExpressionContainer'
+				? clone_expression_node(attr.value.expression)
+				: clone_expression_node(attr.value);
+		}
+	}
+
+	return null;
+}
+
+/**
+ * @param {any} node
+ * @returns {void}
+ */
+function strip_top_level_jsx_keys(node) {
+	if (node?.type === 'JSXElement') {
+		node.openingElement.attributes = (node.openingElement.attributes || []).filter(
+			(/** @type {any} */ attr) =>
+				!(
+					attr.type === 'JSXAttribute' &&
+					attr.name?.type === 'JSXIdentifier' &&
+					attr.name.name === 'key'
+				),
+		);
+		return;
+	}
+
+	if (node?.type === 'JSXFragment') {
+		for (const child of node.children || []) {
+			strip_top_level_jsx_keys(child);
+		}
+	}
 }
 
 /**
