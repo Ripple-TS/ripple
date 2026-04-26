@@ -410,16 +410,14 @@ function body_to_jsx_child(body_nodes, transform_context) {
 	// Branch body has non-JSX statements: wrap everything in an arrow so the
 	// statements run when (and only when) the branch actually renders.
 	/** @type {any[]} */
-	const block_body = [...statements];
-	if (children.length > 0) {
-		block_body.push(
-			/** @type {any} */ ({
-				type: 'ReturnStatement',
-				argument: build_return_expression(children),
-				metadata: { path: [] },
-			}),
-		);
-	}
+	const block_body = [
+		...statements,
+		/** @type {any} */ ({
+			type: 'ReturnStatement',
+			argument: children.length > 0 ? build_return_expression(children) : create_null_literal(),
+			metadata: { path: [] },
+		}),
+	];
 
 	return /** @type {any} */ ({
 		type: 'ArrowFunctionExpression',

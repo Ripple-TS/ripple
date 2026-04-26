@@ -111,6 +111,10 @@ export function runSharedSourceMappingTests({
 		// whole line of investigation — kept as an end-to-end shape check.
 		it('calls with explicit type arguments', () =>
 			expect_maps(`component Test() { const [foo, setFoo] = useState<string | null>(null) }`));
+		it('type annotation on array destructuring pattern', () =>
+			expect_maps(
+				`component C() { const [s, setS]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = useState(true); }`,
+			));
 	});
 
 	describe(`[${name}] raw source maps cover one-line early-return if statements`, () => {
@@ -325,5 +329,161 @@ export function runSharedSourceMappingTests({
 }`;
 			expect(() => compile_to_volar_mappings(source, 'App.tsrx', { loose: true })).not.toThrow();
 		});
+	});
+
+	describe(`[${name}] shared tests conditionally run for specific frameworks`, () => {
+		it.runIf(['react', 'preact'].includes(name))(
+			`[${name}] maps source declarations to their own generated declarations when hook helpers are extracted`,
+			() => {
+				const source = `import { useState } from 'react';
+
+	component App() {
+		const [show, setShow] = useState(true);
+
+		if (show) {
+			const [count, setCount] = useState(0);
+			<p>{count}</p>
+			<button onClick={() => setCount(count + 1)}>{'inc'}</button>
+		}
+	}`;
+
+				const result = compile_to_volar_mappings(source, 'App.tsrx');
+				const generated_helper_declaration_name_offset = result.code.indexOf('StatementBodyHook1');
+				const generated_helper_call_name_offset = result.code.indexOf(
+					'StatementBodyHook1',
+					generated_helper_declaration_name_offset + 1,
+				);
+				const generated_helper_count_declaration_offset =
+					result.code.indexOf('const [count, setCount]');
+				const generated_declaration_offset = result.code.indexOf('const [show, setShow]');
+				const source_show_offset = source.indexOf('show, setShow');
+				const source_set_show_offset = source.indexOf('setShow');
+				const source_count_offset = source.indexOf('count, setCount');
+				const source_set_count_offset = source.indexOf('setCount');
+				const generated_show_offset = result.code.indexOf('show', generated_declaration_offset);
+				const generated_set_show_offset = result.code.indexOf(
+					'setShow',
+					generated_declaration_offset,
+				);
+				const generated_count_offset = result.code.indexOf(
+					'count',
+					generated_helper_count_declaration_offset,
+				);
+				const generated_set_count_offset = result.code.indexOf(
+					'setCount',
+					generated_helper_count_declaration_offset,
+				);
+
+				const show_mapping = result.mappings.find(
+					(mapping) =>
+						mapping.sourceOffsets[0] === source_show_offset && mapping.lengths[0] === 'show'.length,
+				);
+				const set_show_mapping = result.mappings.find(
+					(mapping) =>
+						mapping.sourceOffsets[0] === source_set_show_offset &&
+						mapping.lengths[0] === 'setShow'.length,
+				);
+				const count_mapping = result.mappings.find(
+					(mapping) =>
+						mapping.sourceOffsets[0] === source_count_offset &&
+						mapping.lengths[0] === 'count'.length,
+				);
+				const set_count_mapping = result.mappings.find(
+					(mapping) =>
+						mapping.sourceOffsets[0] === source_set_count_offset &&
+						mapping.lengths[0] === 'setCount'.length,
+				);
+				const helper_declaration_name_mapping = result.mappings.find(
+					(mapping) =>
+						mapping.generatedOffsets[0] <= generated_helper_declaration_name_offset &&
+						generated_helper_declaration_name_offset <
+							mapping.generatedOffsets[0] + mapping.generatedLengths[0],
+				);
+				const helper_call_name_mapping = result.mappings.find(
+					(mapping) =>
+						mapping.generatedOffsets[0] <= generated_helper_call_name_offset &&
+						generated_helper_call_name_offset <
+							mapping.generatedOffsets[0] + mapping.generatedLengths[0],
+				);
+				const invalid_mapping = result.mappings.find(
+					(mapping) =>
+						mapping.lengths[0] < 0 ||
+						mapping.generatedLengths[0] < 0 ||
+						mapping.sourceOffsets[0] < 0 ||
+						mapping.generatedOffsets[0] < 0,
+				);
+
+				expect(result.errors).toEqual([]);
+				expect(invalid_mapping).toBeUndefined();
+				expect(helper_declaration_name_mapping).toBeUndefined();
+				expect(helper_call_name_mapping).toBeUndefined();
+				expect(show_mapping?.generatedOffsets[0]).toBe(generated_show_offset);
+				expect(set_show_mapping?.generatedOffsets[0]).toBe(generated_set_show_offset);
+				expect(count_mapping?.generatedOffsets[0]).toBe(generated_count_offset);
+				expect(set_count_mapping?.generatedOffsets[0]).toBe(generated_set_count_offset);
+			},
+		);
+
+		it.runIf(['react', 'preact'].includes(name))(
+			'maps captured hook-helper bindings only once at their source declarations',
+			() => {
+				const source = `import { useState } from 'react';
+
+			component App() {
+				const [show, setShow] = useState(true);
+
+				if (show) {
+					const [count, setCount] = useState(0);
+					<p>{count}</p>
+					<button onClick={() => setCount(count + 1)}>{'inc'}</button>
+				}
+			}`;
+
+				const result = compile_to_volar_mappings(source, 'App.tsrx');
+				const generated_helper_count_declaration_offset =
+					result.code.indexOf('const [count, setCount]');
+				const generated_show_declaration_offset = result.code.indexOf('const [show, setShow]');
+				const source_show_offset = source.indexOf('show, setShow');
+				const source_set_show_offset = source.indexOf('setShow');
+				const source_count_offset = source.indexOf('count, setCount');
+				const source_set_count_offset = source.indexOf('setCount');
+				const generated_show_offset = result.code.indexOf(
+					'show',
+					generated_show_declaration_offset,
+				);
+				const generated_set_show_offset = result.code.indexOf(
+					'setShow',
+					generated_show_declaration_offset,
+				);
+				const generated_count_offset = result.code.indexOf(
+					'count',
+					generated_helper_count_declaration_offset,
+				);
+				const generated_set_count_offset = result.code.indexOf(
+					'setCount',
+					generated_helper_count_declaration_offset,
+				);
+
+				const find_mappings = (source_offset, length) =>
+					result.mappings.filter(
+						(mapping) =>
+							mapping.sourceOffsets[0] === source_offset && mapping.lengths[0] === length,
+					);
+				const show_mappings = find_mappings(source_show_offset, 'show'.length);
+				const set_show_mappings = find_mappings(source_set_show_offset, 'setShow'.length);
+				const count_mappings = find_mappings(source_count_offset, 'count'.length);
+				const set_count_mappings = find_mappings(source_set_count_offset, 'setCount'.length);
+
+				expect(result.errors).toEqual([]);
+				expect(show_mappings).toHaveLength(1);
+				expect(set_show_mappings).toHaveLength(1);
+				expect(count_mappings).toHaveLength(1);
+				expect(set_count_mappings).toHaveLength(1);
+				expect(show_mappings[0].generatedOffsets[0]).toBe(generated_show_offset);
+				expect(set_show_mappings[0].generatedOffsets[0]).toBe(generated_set_show_offset);
+				expect(count_mappings[0].generatedOffsets[0]).toBe(generated_count_offset);
+				expect(set_count_mappings[0].generatedOffsets[0]).toBe(generated_set_count_offset);
+			},
+		);
 	});
 }

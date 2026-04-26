@@ -1,4 +1,4 @@
-import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { useState, use } from 'react';
 
 const EXPECTED_ERROR_LOG_SNIPPETS = [
@@ -11,8 +11,7 @@ const EXPECTED_ERROR_LOG_SNIPPETS = [
 	'React will try to recreate this component tree from scratch using the error boundary you provided',
 ];
 
-/** @type {import('vitest').MockInstance | undefined} */
-let console_error_spy;
+let console_error_spy: MockInstance | undefined;
 
 function is_expected_error_log(args: unknown[]) {
 	const message = args.map((arg) => {
@@ -243,8 +242,8 @@ component ThrowingChild() {
 component ErrorBoundaryApp() {
 	try {
 		<ThrowingChild />
-	} catch (err) {
-		<p class="caught">{(err as Error).message}</p>
+	} catch (err: Error) {
+		<p class="caught">{err.message}</p>
 	}
 }
 
@@ -262,8 +261,8 @@ component ErrorToggleApp() {
 
 	try {
 		<MaybeThrow shouldThrow={fail} />
-	} catch (err, reset) {
-		<p class="caught">{(err as Error).message}</p>
+	} catch (err: Error, reset: () => void) {
+		<p class="caught">{err.message}</p>
 		<button
 			class="reset"
 			onClick={() => {
@@ -300,8 +299,8 @@ component SuspenseErrorApp(props: { promise: Promise<string> }) {
 		<AsyncChild promise={props.promise} />
 	} pending {
 		<p class="pending">{'loading...'}</p>
-	} catch (err) {
-		<p class="caught">{(err as Error).message}</p>
+	} catch (err: Error) {
+		<p class="caught">{err.message}</p>
 	}
 }
 
@@ -312,8 +311,8 @@ component ErrorResetApp(props: { promise: Promise<string> }) {
 		<AsyncChild promise={props.promise} />
 	} pending {
 		<p class="pending">{'loading...'}</p>
-	} catch (err, reset) {
-		<p class="caught">{(err as Error).message}</p>
+	} catch (err: Error, reset: () => void) {
+		<p class="caught">{err.message}</p>
 		<button class="retry" onClick={() => reset()}>{'retry'}</button>
 	}
 }
@@ -330,12 +329,12 @@ component NestedTryApp() {
 		<div class="outer">
 			try {
 				<InnerThrow />
-			} catch (err) {
-				<p class="inner-caught">{(err as Error).message}</p>
+			} catch (err: Error) {
+				<p class="inner-caught">{err.message}</p>
 			}
 		</div>
-	} catch (err) {
-		<p class="outer-caught">{(err as Error).message}</p>
+	} catch (err: Error) {
+		<p class="outer-caught">{err.message}</p>
 	}
 }
 
@@ -364,7 +363,7 @@ component IfInsideTryApp() {
 		} else {
 			<p class="branch-b">{'alternate'}</p>
 		}
-	} catch (err) {
+	} catch (err: Error) {
 		<p class="caught">{'error'}</p>
 	}
 
@@ -380,7 +379,7 @@ component ForInsideTryApp() {
 		for (const item of items) {
 			<span class="try-item" key={item}>{item}</span>
 		}
-	} catch (err) {
+	} catch (err: Error) {
 		<p class="caught">{'error'}</p>
 	}
 
@@ -390,7 +389,7 @@ component ForInsideTryApp() {
 // ── Hook inside if-branch ──
 
 component HookInIfApp() {
-	const [show, setShow] = useState(true);
+	const [show, setShow]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = useState(true);
 
 	if (show) {
 		const [count, setCount] = useState(0);

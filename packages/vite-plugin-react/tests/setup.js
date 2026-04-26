@@ -11,17 +11,10 @@ let container;
 /** @type {import('react-dom/client').Root | null} */
 let root;
 
-/**
- * Render a React component into the test container.
- *
- * @param {import('react').ComponentType} Component
- * @param {Record<string, unknown>} [props]
- * @returns {Promise<void>}
- */
 globalThis.render = async function render(Component, props) {
 	root = createRoot(container);
 	await act(async () => {
-		root.render(createElement(Component, props ?? {}));
+		/** @type {import('react-dom/client').Root} */ (root).render(createElement(Component, props));
 	});
 };
 
@@ -34,10 +27,12 @@ beforeEach(() => {
 afterEach(() => {
 	if (root) {
 		act(() => {
-			root.unmount();
+			/** @type {import('react-dom/client').Root} */ (root).unmount();
 		});
 		root = null;
 	}
+	// cleanup but these are guaranteed to be present during tests
+	// so tests can safely references container as a global
 	document.body.removeChild(container);
-	globalThis.container = undefined;
+	globalThis.container = /** @type {HTMLDivElement} */ (/** @type {unknown} */ (undefined));
 });

@@ -1059,9 +1059,23 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['jsx_parseAttribute']}
 			 */
 			jsx_parseAttribute() {
-				let node = /** @type {AST.TSRXAttribute | ESTreeJSX.JSXAttribute} */ (this.startNode());
+				let node =
+					/** @type {AST.TSRXAttribute | ESTreeJSX.JSXAttribute | ESTreeJSX.JSXSpreadAttribute} */ (
+						this.startNode()
+					);
 
 				if (this.eat(tt.braceL)) {
+					const inside_tsx = this.#path.findLast((n) => n.type === 'TsxCompat' || n.type === 'Tsx');
+					if (inside_tsx) {
+						if (this.type === tt.ellipsis) {
+							this.expect(tt.ellipsis);
+							/** @type {ESTreeJSX.JSXSpreadAttribute} */ (node).argument = this.parseMaybeAssign();
+							this.expect(tt.braceR);
+							return this.finishNode(node, 'JSXSpreadAttribute');
+						}
+						this.unexpected();
+					}
+
 					if (this.value === 'ref') {
 						this.next();
 						if (this.type === tt.braceR) {
