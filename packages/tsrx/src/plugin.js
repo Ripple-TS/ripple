@@ -747,7 +747,17 @@ export function TSRXPlugin(config) {
 				node.body = [];
 				this.#path.push(node);
 
-				this.parseTemplateBody(node.body);
+				const parent_function_body_depth = this.#functionBodyDepth;
+				const parent_function_block_depth = this.#functionBlockDepth;
+				this.#functionBodyDepth = 0;
+				this.#functionBlockDepth = 0;
+
+				try {
+					this.parseTemplateBody(node.body);
+				} finally {
+					this.#functionBodyDepth = parent_function_body_depth;
+					this.#functionBlockDepth = parent_function_block_depth;
+				}
 				this.#path.pop();
 				this.exitScope();
 
