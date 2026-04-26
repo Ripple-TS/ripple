@@ -100,23 +100,69 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('export function optionalFn(bar: string, baz?: string)');
 		});
 
-		it('parses nested statement blocks inside component-local functions', () => {
+		it('keeps JavaScript block scopes inside component-local callables', () => {
 			const { code } = compile(
-				`export component Counter() {
-					const foo = () => {
+				`export component BlockScopeCheck() {
+					function fromDeclaration() {
+						let result = 0;
 						{
-							let bar;
+							const result = 41;
+							return result + 1;
+						}
+					}
+
+					const fromArrow = () => {
+						{
+							const token = 'arrow-block';
+							return token.toUpperCase();
 						}
 					};
 
-					<button onClick={foo}>{"Click Me"}</button>
+					class Reader {
+						value() {
+							{
+								const amount = 7;
+								return amount * 6;
+							}
+						}
+					}
+
+					const reader = new Reader();
+
+					<output>{fromDeclaration()}{fromArrow()}{reader.value()}</output>
 				}`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain('const foo = () => {');
-			expect(code).toContain('let bar');
-			expect(code).toContain('onClick={foo}');
+			expect(code).toContain('function fromDeclaration()');
+			expect(code).toContain('const result = 41');
+			expect(code).toContain("const token = 'arrow-block'");
+			expect(code).toContain('class Reader');
+			expect(code).toContain('const amount = 7');
+			expect(code).toContain('{fromDeclaration()}');
+			expect(code).toContain('{fromArrow()}');
+			expect(code).toContain('{reader.value()}');
+		});
+
+		it('still treats component-level braces as template expressions', () => {
+			const { code } = compile(
+				`export component ExpressionContainerCheck() {
+					function ignore() {
+						{
+							const hidden = 'not rendered';
+							return hidden;
+						}
+					}
+
+					const visible = 'render me';
+					{visible}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain("const visible = 'render me'");
+			expect(code).toContain('return visible;');
+			expect(code).not.toMatch(/\{\n\s+visible;\n\s+\}/);
 		});
 	});
 

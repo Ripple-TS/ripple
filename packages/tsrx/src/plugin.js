@@ -2213,6 +2213,7 @@ export function TSRXPlugin(config) {
 				if (
 					context !== 'for' &&
 					context !== 'if' &&
+					this.#functionBlockDepth === 0 &&
 					this.context.at(-1) === b_stat &&
 					this.type === tt.braceL &&
 					this.context.some((c) => c === tstc.tc_expr)
