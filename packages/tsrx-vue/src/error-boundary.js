@@ -17,13 +17,36 @@ function create_fragment(nodes, anchor = document.createTextNode('')) {
 }
 
 /**
+ * @param {BoundaryValue} value
+ * @returns {void}
+ */
+function track_dynamic_values(value) {
+	if (!value || typeof value !== 'object') return;
+
+	for (const key of Object.keys(value)) {
+		const child = value[key];
+		if (key === 'content' || key === 'fallback' || key === 'children' || key === 'default')
+			continue;
+		if (key === '$' || key.startsWith('on')) continue;
+		if (typeof child === 'function') {
+			child();
+		}
+	}
+}
+
+/**
  * @param {BoundaryValue} node
  * @param {Node | undefined} anchor
  * @returns {BoundaryValue}
  */
 function normalize_block(node, anchor) {
 	if (node instanceof Node || /** @type {any} */ (Vue).isFragment(node)) return node;
-	if (/** @type {any} */ (Vue).isVaporComponent(node)) return create_fragment(node, anchor);
+	if (/** @type {any} */ (Vue).isVaporComponent(node)) {
+		if (!(node.rawProps && 'content' in node.rawProps && 'fallback' in node.rawProps)) {
+			track_dynamic_values(node.rawProps);
+		}
+		return create_fragment(node, anchor);
+	}
 	if (Array.isArray(node))
 		return create_fragment(
 			node.map((item) => normalize_block(item, undefined)),
@@ -53,7 +76,6 @@ function resolve_value(current, value, anchor) {
 			if (current.anchor && current.anchor.parentNode) {
 				/** @type {any} */ (Vue).remove(current.nodes, current.anchor.parentNode);
 				/** @type {any} */ (Vue).insert(node, current.anchor.parentNode, current.anchor);
-				if (!anchor) current.anchor.parentNode.removeChild(current.anchor);
 				if (current.scope) current.scope.stop();
 			}
 		} else if (current instanceof Node) {
@@ -62,7 +84,7 @@ function resolve_value(current, value, anchor) {
 			}
 			if (/** @type {any} */ (Vue).isFragment(node) && current.parentNode) {
 				/** @type {any} */ (Vue).insert(node, current.parentNode, current);
-				if (!anchor || current.nodeType !== 3) current.parentNode.removeChild(current);
+				if (current.nodeType !== 3) current.parentNode.removeChild(current);
 			} else if (node instanceof Node) {
 				if (current.nodeType === 3 && node.nodeType === 3) {
 					current.textContent = node.textContent;

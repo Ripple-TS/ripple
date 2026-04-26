@@ -52,6 +52,7 @@ import { is_hoist_safe_jsx_node } from '../jsx-hoist.js';
  *   available_bindings: Map<string, AST.Identifier>,
  *   lazy_next_id: number,
  *   current_css_hash: string | null,
+ *   inside_element_child?: boolean,
  * }} TransformContext
  */
 
@@ -1403,10 +1404,22 @@ function create_element_children(children, transform_context) {
 	}
 
 	if (children.every(is_inline_element_child) && !children_contain_return_semantics(children)) {
-		return children.map((/** @type {any} */ child) => to_jsx_child(child, transform_context));
+		const saved_inside_element_child = transform_context.inside_element_child;
+		transform_context.inside_element_child = true;
+		try {
+			return children.map((/** @type {any} */ child) => to_jsx_child(child, transform_context));
+		} finally {
+			transform_context.inside_element_child = saved_inside_element_child;
+		}
 	}
 
-	return [statement_body_to_jsx_child(children, transform_context)];
+	const saved_inside_element_child = transform_context.inside_element_child;
+	transform_context.inside_element_child = true;
+	try {
+		return [statement_body_to_jsx_child(children, transform_context)];
+	} finally {
+		transform_context.inside_element_child = saved_inside_element_child;
+	}
 }
 
 /**
@@ -2182,18 +2195,57 @@ function try_statement_to_jsx_child(node, transform_context) {
 
 		const boundary_content =
 			transform_context.platform.name === 'Vue'
-				? to_jsx_expression_container(
-						/** @type {any} */ ({
-							type: 'ArrowFunctionExpression',
-							params: [],
-							body: try_content.expression,
-							async: false,
-							generator: false,
-							expression: true,
-							metadata: { path: [] },
-						}),
-					)
+				? /** @type {any} */ ({
+						type: 'ArrowFunctionExpression',
+						params: [],
+						body: try_content.expression,
+						async: false,
+						generator: false,
+						expression: true,
+						metadata: { path: [] },
+					})
 				: null;
+
+		if (boundary_content && transform_context.inside_element_child) {
+			result = to_jsx_expression_container(
+				/** @type {any} */ ({
+					type: 'CallExpression',
+					callee: { type: 'Identifier', name: 'TsrxErrorBoundary', metadata: { path: [] } },
+					arguments: [
+						{
+							type: 'ObjectExpression',
+							properties: [
+								{
+									type: 'Property',
+									key: { type: 'Identifier', name: 'fallback', metadata: { path: [] } },
+									value: fallback_fn,
+									kind: 'init',
+									method: false,
+									shorthand: false,
+									computed: false,
+									metadata: { path: [] },
+								},
+								{
+									type: 'Property',
+									key: { type: 'Identifier', name: 'content', metadata: { path: [] } },
+									value: boundary_content,
+									kind: 'init',
+									method: false,
+									shorthand: false,
+									computed: false,
+									metadata: { path: [] },
+								},
+							],
+							metadata: { path: [] },
+						},
+					],
+					optional: false,
+					metadata: { path: [] },
+				}),
+			);
+
+			return result;
+		}
 
 		result = create_jsx_element(
 			'TsrxErrorBoundary',
@@ -2209,7 +2261,7 @@ function try_statement_to_jsx_child(node, transform_context) {
 							{
 								type: 'JSXAttribute',
 								name: { type: 'JSXIdentifier', name: 'content', metadata: { path: [] } },
-								value: boundary_content,
+								value: to_jsx_expression_container(boundary_content),
 								metadata: { path: [] },
 							},
 						]

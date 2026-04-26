@@ -560,7 +560,7 @@ describe('tsrx-vue runtime', () => {
 		expect(text('.caught')).toBe('sync boom');
 	});
 
-	it.skip('recovers from error via reset and re-triggers on state change', async () => {
+	it('recovers from error via reset and re-triggers on state change', async () => {
 		await render(ErrorToggleApp);
 		expect(text('.ok')).toBe('no error');
 
@@ -573,8 +573,9 @@ describe('tsrx-vue runtime', () => {
 		expect(container.querySelector('.caught')).toBeNull();
 	});
 
-	it.skip('inner try/catch handles errors without propagating to outer', async () => {
+	it('inner try/catch handles errors without propagating to outer', async () => {
 		await render(NestedTryApp);
+		await flush();
 		expect(text('.inner-caught')).toBe('inner error');
 		expect(container.querySelector('.outer-caught')).toBeNull();
 		expect(container.querySelector('.outer')).not.toBeNull();
