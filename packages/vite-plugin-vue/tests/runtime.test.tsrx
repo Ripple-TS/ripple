@@ -27,6 +27,10 @@ function text(selector: string): string | null {
 	return container.querySelector(selector)?.textContent ?? null;
 }
 
+function texts(selector: string): Array<string | null> {
+	return Array.from(container.querySelectorAll(selector), (node: Element) => node.textContent);
+}
+
 component BasicApp() {
 	<div class="greeting">{'Hello world'}</div>
 }
@@ -607,18 +611,14 @@ describe('tsrx-vue runtime', () => {
 
 	it('updates for-of index bindings after insertions, removals, and reorders', async () => {
 		await render(ForIndexReactiveApp);
-		expect(
-			Array.from(container.querySelectorAll('.indexed-item')).map((node) => node.textContent),
-		).toEqual([
+		expect(texts('.indexed-item')).toEqual([
 			'0:a',
 			'1:b',
 			'2:c',
 		]);
 
 		await click('.prepend');
-		expect(
-			Array.from(container.querySelectorAll('.indexed-item')).map((node) => node.textContent),
-		).toEqual([
+		expect(texts('.indexed-item')).toEqual([
 			'0:z',
 			'1:a',
 			'2:b',
@@ -626,18 +626,14 @@ describe('tsrx-vue runtime', () => {
 		]);
 
 		await click('.drop-middle');
-		expect(
-			Array.from(container.querySelectorAll('.indexed-item')).map((node) => node.textContent),
-		).toEqual([
+		expect(texts('.indexed-item')).toEqual([
 			'0:z',
 			'1:b',
 			'2:c',
 		]);
 
 		await click('.reverse');
-		expect(
-			Array.from(container.querySelectorAll('.indexed-item')).map((node) => node.textContent),
-		).toEqual([
+		expect(texts('.indexed-item')).toEqual([
 			'0:c',
 			'1:b',
 			'2:z',
@@ -646,9 +642,7 @@ describe('tsrx-vue runtime', () => {
 
 	it('preserves keyed loop component state across reorders and prop updates', async () => {
 		await render(ForKeyedStateApp);
-		expect(
-			Array.from(container.querySelectorAll('.keyed-row')).map((node) => node.textContent),
-		).toEqual([
+		expect(texts('.keyed-row')).toEqual([
 			'Alpha:0',
 			'Beta:0',
 			'Gamma:0',
@@ -658,9 +652,7 @@ describe('tsrx-vue runtime', () => {
 		expect(text('.row-b')).toBe('Beta:1');
 
 		await click('.reverse-keyed');
-		expect(
-			Array.from(container.querySelectorAll('.keyed-row')).map((node) => node.textContent),
-		).toEqual([
+		expect(texts('.keyed-row')).toEqual([
 			'Gamma:0',
 			'Beta:1',
 			'Alpha:0',
@@ -672,18 +664,14 @@ describe('tsrx-vue runtime', () => {
 
 	it('updates index bindings in keyed for-of loops after reorders', async () => {
 		await render(ForIndexKeyedStateApp);
-		expect(
-			Array.from(container.querySelectorAll('.indexed-keyed-row')).map((node) => node.textContent),
-		).toEqual([
+		expect(texts('.indexed-keyed-row')).toEqual([
 			'0:Alpha',
 			'1:Beta',
 			'2:Gamma',
 		]);
 
 		await click('.reverse-index-keyed');
-		expect(
-			Array.from(container.querySelectorAll('.indexed-keyed-row')).map((node) => node.textContent),
-		).toEqual([
+		expect(texts('.indexed-keyed-row')).toEqual([
 			'0:Gamma',
 			'1:Beta',
 			'2:Alpha',
