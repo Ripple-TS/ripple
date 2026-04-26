@@ -80,6 +80,27 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 		});
 	});
 
+	describe(`[${name}] TypeScript output`, () => {
+		it('preserves optional markers in tuple members and function parameters', () => {
+			const { code } = compile(
+				`export type OptionalTuple = [bar: string, baz?: string];
+export type OptionalFn = (bar: string, baz?: string) => void;
+export interface OptionalInterfaceFn {
+	(bar: string, baz?: string): void;
+}
+export function optionalFn(bar: string, baz?: string) {
+	todo(bar, baz);
+}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('export type OptionalTuple = [bar: string, baz?: string];');
+			expect(code).toContain('export type OptionalFn = (bar: string, baz?: string) => void;');
+			expect(code).toContain('(bar: string, baz?: string): void');
+			expect(code).toContain('export function optionalFn(bar: string, baz?: string)');
+		});
+	});
+
 	describe(`[${name}] walker transforms survive element lowering`, () => {
 		it('rewrites #style member expressions inside element child expressions', () => {
 			const { code } = compile(

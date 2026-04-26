@@ -391,6 +391,61 @@ component App() {
 		expect(track_result).not.toContain('lazy0');
 	});
 
+	it('preserves optional markers in to_ts TypeScript output', () => {
+		const source = `
+export type OptionalTuple = [bar: string, baz?: string];
+export type OptionalFn = (bar: string, baz?: string) => void;
+export interface OptionalInterfaceFn {
+	(bar: string, baz?: string): void;
+}
+export function optionalFn(bar: string, baz?: string) {
+	todo(bar, baz);
+}
+`;
+		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
+
+		expect(result).toContain('export type OptionalTuple = [bar: string, baz?: string];');
+		expect(result).toContain('export type OptionalFn = (bar: string, baz?: string) => void;');
+		expect(result).toContain('(bar: string, baz?: string): void');
+		expect(result).toContain('export function optionalFn(bar: string, baz?: string)');
+	});
+
+	it('maps optional TypeScript identifiers in to_ts output', () => {
+		const source = `
+export type OptionalTuple = [tupleRequired: string, tupleMaybe?: string];
+export type OptionalFn = (fnRequired: string, fnMaybe?: string) => void;
+export function optionalFn(declRequired: string, declMaybe?: string) {
+	todo(declRequired, declMaybe);
+}
+`;
+		const result = compile_to_volar_mappings(source, 'test.tsrx');
+
+		function expect_identifier_mapping(identifier: string, sourceNeedle: string) {
+			const source_offset = source.indexOf(sourceNeedle);
+			const generated_offset = result.code.indexOf(sourceNeedle);
+			const mapping = result.mappings.find(
+				(mapping: {
+					sourceOffsets: number[];
+					generatedOffsets: number[];
+					lengths: number[];
+					generatedLengths: number[];
+				}) => mapping.sourceOffsets[0] === source_offset &&
+					mapping.generatedOffsets[0] === generated_offset &&
+					mapping.lengths[0] === identifier.length &&
+					mapping.generatedLengths[0] === identifier.length,
+			);
+
+			expect(source_offset).toBeGreaterThan(-1);
+			expect(generated_offset).toBeGreaterThan(-1);
+			expect(mapping).toBeDefined();
+		}
+
+		expect(result.errors).toEqual([]);
+		expect_identifier_mapping('tupleMaybe', 'tupleMaybe?: string');
+		expect_identifier_mapping('fnMaybe', 'fnMaybe?: string');
+		expect_identifier_mapping('declMaybe', 'declMaybe?: string');
+	});
+
 	it('uses tracked fast path for nested lazy params typed as Tracked', () => {
 		const source = `
 import type { Tracked } from 'ripple';
