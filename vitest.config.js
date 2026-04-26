@@ -17,6 +17,7 @@ const vue_error_boundary_path = fileURLToPath(
 
 const vue_runtime_alias_plugin = {
 	name: 'tsrx-vue-runtime-aliases',
+	enforce: 'pre',
 	/** @param {string} source */
 	resolveId(source) {
 		if (source === 'vue') return vue_runtime_path;

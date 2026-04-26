@@ -2124,6 +2124,21 @@ function try_statement_to_jsx_child(node, transform_context) {
 
 		transform_context.available_bindings = saved_catch_bindings;
 
+		const boundary_content =
+			transform_context.platform.name === 'Vue'
+				? to_jsx_expression_container(
+						/** @type {any} */ ({
+							type: 'ArrowFunctionExpression',
+							params: [],
+							body: try_content.expression,
+							async: false,
+							generator: false,
+							expression: true,
+							metadata: { path: [] },
+						}),
+					)
+				: null;
+
 		result = create_jsx_element(
 			'TsrxErrorBoundary',
 			[
@@ -2133,8 +2148,18 @@ function try_statement_to_jsx_child(node, transform_context) {
 					value: to_jsx_expression_container(/** @type {any} */ (fallback_fn)),
 					metadata: { path: [] },
 				},
+				...(boundary_content
+					? [
+							{
+								type: 'JSXAttribute',
+								name: { type: 'JSXIdentifier', name: 'content', metadata: { path: [] } },
+								value: boundary_content,
+								metadata: { path: [] },
+							},
+						]
+					: []),
 			],
-			[result],
+			boundary_content ? [] : [result],
 		);
 	}
 

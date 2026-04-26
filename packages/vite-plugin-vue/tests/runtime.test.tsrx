@@ -554,8 +554,9 @@ describe('tsrx-vue runtime', () => {
 		expect(container.querySelector('div')!.className).toContain('styled');
 	});
 
-	it.skip('catches synchronous child errors', async () => {
+	it('catches synchronous child errors', async () => {
 		await render(ErrorBoundaryApp);
+		await flush();
 		expect(text('.caught')).toBe('sync boom');
 	});
 
@@ -579,7 +580,7 @@ describe('tsrx-vue runtime', () => {
 		expect(container.querySelector('.outer')).not.toBeNull();
 	});
 
-	it.skip('toggles if-else branches inside a try block', async () => {
+	it('toggles if-else branches inside a try block', async () => {
 		await render(IfInsideTryApp);
 		expect(text('.branch-a')).toBe('visible');
 
@@ -591,7 +592,7 @@ describe('tsrx-vue runtime', () => {
 		expect(text('.branch-a')).toBe('visible');
 	});
 
-	it.skip('adds items in a for-of loop inside a try block', async () => {
+	it('adds items in a for-of loop inside a try block', async () => {
 		await render(ForInsideTryApp);
 		expect(container.querySelectorAll('.try-item').length).toBe(2);
 
@@ -600,7 +601,7 @@ describe('tsrx-vue runtime', () => {
 		expect(container.querySelectorAll('.try-item')[2].textContent).toBe('z');
 	});
 
-	it.skip('switches branches inside a try block', async () => {
+	it('switches branches inside a try block', async () => {
 		await render(SwitchInsideTryApp);
 		expect(text('.try-page')).toBe('Home');
 
