@@ -1469,8 +1469,15 @@ function hook_safe_render_statements(body_nodes, key_expression, transform_conte
  */
 function get_referenced_helper_bindings(body_nodes, available_bindings) {
 	const helper_bindings = [];
+	const local_bindings = new Map();
+
+	for (const node of body_nodes) {
+		collect_statement_bindings(node, local_bindings);
+	}
 
 	for (const [name, binding] of available_bindings) {
+		if (local_bindings.has(name)) continue;
+
 		if (references_scope_bindings(body_nodes, new Map([[name, binding]]))) {
 			helper_bindings.push(binding);
 		}

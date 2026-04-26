@@ -1615,6 +1615,34 @@ describe('lazy destructuring', () => {
 		expect(code).not.toContain('later={later}');
 	});
 
+	it('does not pass helper-local declarations as hook-safe element helper props', () => {
+		const { code } = compile(
+			`import { useEffect } from 'react';
+
+			export component App() {
+				<div>
+					const later = 'inner';
+
+					useEffect(() => {
+						console.log(later);
+					}, [later]);
+
+					<span>{later}</span>
+				</div>
+
+				const later = 'outer';
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain("const later = 'inner';");
+		expect(code).toContain("const later = 'outer';");
+		expect(code).toContain('function StatementBodyHook1(');
+		expect(code).not.toContain('_tsrx_StatementBodyHook1_later');
+		expect(code).not.toContain('later: typeof _tsrx_StatementBodyHook1_later');
+		expect(code).not.toContain('later={later}');
+	});
+
 	it('keeps post-split bindings local inside typed cached continuation helpers', () => {
 		const { code } = compile(
 			`import { useState, useEffect } from 'react';
@@ -1642,6 +1670,9 @@ describe('lazy destructuring', () => {
 		expect(code).toContain('let App__StatementBodyHook1;');
 		expect(code).toContain('let App__StatementBodyHook2;');
 		expect(code).not.toContain('const _tsrx_StatementBodyHook2_count = count;');
+		expect(code).not.toContain('const _tsrx_StatementBodyHook2_laterVar = laterVar;');
+		expect(code).not.toContain('laterVar: typeof _tsrx_StatementBodyHook2_laterVar');
+		expect(code).not.toContain('<StatementBodyHook2 laterVar={laterVar} />');
 		expect(code).toContain('return <div>{laterVar}</div>;');
 		expect(code).not.toContain('App__Continue');
 	});
