@@ -5734,7 +5734,7 @@ function printJSXElement(node, path, options, print) {
 						'attributes',
 						i,
 					);
-				} else if (attr.type === 'JSXSpreadAttribute') {
+				} else if (attr.type === 'JSXSpreadAttribute' || attr.type === 'SpreadAttribute') {
 					return ['{...', path.call(print, 'openingElement', 'attributes', i, 'argument'), '}'];
 				}
 				return '';

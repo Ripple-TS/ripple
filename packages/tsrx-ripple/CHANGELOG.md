@@ -1,5 +1,31 @@
 # @tsrx/ripple
 
+## 0.0.15
+
+### Patch Changes
+
+- Updated dependencies
+  [[`a9f706d`](https://github.com/Ripple-TS/ripple/commit/a9f706d6626dc1a9e8505d9ea8f16989b2b024b3),
+  [`3e07109`](https://github.com/Ripple-TS/ripple/commit/3e071098508449158fa11f2ae48c912d4d673b68),
+  [`112cfd9`](https://github.com/Ripple-TS/ripple/commit/112cfd9fbfd4412efea543abc55deceb186cf351)]:
+  - @tsrx/core@0.0.13
+
+## 0.0.14
+
+### Patch Changes
+
+- Updated dependencies
+  [[`ea56fa0`](https://github.com/Ripple-TS/ripple/commit/ea56fa021798afe8621699d11b7e1d9e675cbfb4)]:
+  - @tsrx/core@0.0.12
+
+## 0.0.13
+
+### Patch Changes
+
+- Updated dependencies
+  [[`7529e1f`](https://github.com/Ripple-TS/ripple/commit/7529e1fe3f0870319bd3399501fd2eb43c516065)]:
+  - @tsrx/core@0.0.11
+
 ## 0.0.12
 
 ### Patch Changes

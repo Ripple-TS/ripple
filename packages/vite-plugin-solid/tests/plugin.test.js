@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { tsrxSolid } from '../src/index.js';
 
 /**
@@ -7,10 +6,10 @@ import { tsrxSolid } from '../src/index.js';
  * the "rewrite to virtual id" path.
  *
  * @param {string} source
- * @returns {Promise<{ id: string } | null>}
+ * @returns {Promise<{ id: string, external: false, moduleSideEffects: true, meta: {} }>}
  */
 async function fake_plugin_resolve(source) {
-	return { id: source };
+	return { id: source, external: false, moduleSideEffects: true, meta: {} };
 }
 
 /**
@@ -21,7 +20,18 @@ function call_resolve_id(plugin, source) {
 	const hook =
 		typeof plugin.resolveId === 'function' ? plugin.resolveId : plugin.resolveId?.handler;
 	if (!hook) throw new Error('plugin has no resolveId hook');
-	return hook.call({ resolve: fake_plugin_resolve }, source, undefined, {});
+	const context = /** @type {ThisParameterType<typeof hook>} */ ({ resolve: fake_plugin_resolve });
+	return hook.call(context, source, undefined, { isEntry: false });
+}
+
+/**
+ * @param {unknown} result
+ * @returns {string | undefined}
+ */
+function resolved_id(result) {
+	return typeof result === 'object' && result !== null && 'id' in result
+		? String(result.id)
+		: undefined;
 }
 
 describe('@tsrx/vite-plugin-solid routing', () => {
@@ -30,7 +40,7 @@ describe('@tsrx/vite-plugin-solid routing', () => {
 
 		it('rewrites `.tsrx` imports to a virtual `.tsx` id', async () => {
 			const result = await call_resolve_id(plugin, '/abs/path/App.tsrx');
-			expect(result).toEqual({ id: '/abs/path/App.tsrx.tsx' });
+			expect(resolved_id(result)).toBe('/abs/path/App.tsrx.tsx');
 		});
 
 		it('leaves unrelated extensions alone', async () => {
@@ -45,8 +55,8 @@ describe('@tsrx/vite-plugin-solid routing', () => {
 			const plugin = tsrxSolid({ include: /\.(tsrx|foo)$/ });
 			const tsrx = await call_resolve_id(plugin, '/abs/path/App.tsrx');
 			const foo = await call_resolve_id(plugin, '/abs/path/Other.foo');
-			expect(tsrx).toEqual({ id: '/abs/path/App.tsrx.tsx' });
-			expect(foo).toEqual({ id: '/abs/path/Other.foo.tsx' });
+			expect(resolved_id(tsrx)).toBe('/abs/path/App.tsrx.tsx');
+			expect(resolved_id(foo)).toBe('/abs/path/Other.foo.tsx');
 		});
 
 		it('narrows routing when the pattern is stricter than the default', async () => {
@@ -54,7 +64,7 @@ describe('@tsrx/vite-plugin-solid routing', () => {
 			const plugin = tsrxSolid({ include: /\/src\/.*\.tsrx$/ });
 			const matched = await call_resolve_id(plugin, '/proj/src/App.tsrx');
 			const skipped = await call_resolve_id(plugin, '/proj/tests/App.tsrx');
-			expect(matched).toEqual({ id: '/proj/src/App.tsrx.tsx' });
+			expect(resolved_id(matched)).toBe('/proj/src/App.tsrx.tsx');
 			expect(skipped).toBeNull();
 		});
 	});

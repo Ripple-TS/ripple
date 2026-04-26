@@ -1,5 +1,44 @@
 # @tsrx/core
 
+## 0.0.13
+
+### Patch Changes
+
+- [`a9f706d`](https://github.com/Ripple-TS/ripple/commit/a9f706d6626dc1a9e8505d9ea8f16989b2b024b3)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix Volar source mappings for
+  extracted JSX hook helpers so component-scope declarations keep their inferred
+  editor types.
+
+- [#961](https://github.com/Ripple-TS/ripple/pull/961)
+  [`3e07109`](https://github.com/Ripple-TS/ripple/commit/3e071098508449158fa11f2ae48c912d4d673b68)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix ArrayPattern source map
+  visitor, various type fixes for tests: ripple, vite-plugin-react,
+  vite-plugin-solid
+
+- [#963](https://github.com/Ripple-TS/ripple/pull/963)
+  [`112cfd9`](https://github.com/Ripple-TS/ripple/commit/112cfd9fbfd4412efea543abc55deceb186cf351)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve JSX spread
+  attributes inside explicit `<tsx>` blocks.
+
+## 0.0.12
+
+### Patch Changes
+
+- [#945](https://github.com/Ripple-TS/ripple/pull/945)
+  [`ea56fa0`](https://github.com/Ripple-TS/ripple/commit/ea56fa021798afe8621699d11b7e1d9e675cbfb4)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fixes ForOfStatement source
+  maps
+
+## 0.0.11
+
+### Patch Changes
+
+- [#938](https://github.com/Ripple-TS/ripple/pull/938)
+  [`7529e1f`](https://github.com/Ripple-TS/ripple/commit/7529e1fe3f0870319bd3399501fd2eb43c516065)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix source-map and Volar
+  mapping coverage for one-line early-return `if` statements in shared JSX
+  transforms, including plain functions and class-like method bodies.
+
 ## 0.0.10
 
 ### Patch Changes

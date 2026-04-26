@@ -1,5 +1,12 @@
 {
   "extends": "../../tsconfig.json",
   "include": ["../../src/**/*", "../**/*"],
-  "exclude": ["../server", "../setup-server.js", "../hydration", "../setup-hydration.js"]
+  "exclude": [
+    "../server",
+    "../hydration",
+    "../setup-server.js",
+    "../setup-hydration.js",
+    "../server.d.ts",
+    "../hydration.d.ts"
+  ]
 }

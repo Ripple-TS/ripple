@@ -17,6 +17,11 @@ may have breaking changes at any moment.
 
 - https://github.com/anubra266/zag-ripple
 - https://github.com/anubra266/ark-ripple
+- https://github.com/radeqq007/ripple-ui
+
+## Charts
+
+- https://github.com/wobsoriano/ripple-chartjs
 
 ## State Management
 

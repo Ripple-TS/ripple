@@ -1,5 +1,38 @@
 # Changelog
 
+## 1.0.9
+
+### Patch Changes
+
+- Updated dependencies
+  [[`a9f706d`](https://github.com/Ripple-TS/ripple/commit/a9f706d6626dc1a9e8505d9ea8f16989b2b024b3)]:
+  - @tsrx/react@0.1.7
+  - @ripple-ts/language-server@0.3.33
+  - @tsrx/ripple@0.0.15
+  - @tsrx/typescript-plugin@0.3.33
+
+## 1.0.8
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/language-server@0.3.32
+  - @tsrx/react@0.1.6
+  - @tsrx/ripple@0.0.14
+  - @tsrx/typescript-plugin@0.3.32
+
+## 1.0.7
+
+### Patch Changes
+
+- Updated dependencies
+  [[`079617d`](https://github.com/Ripple-TS/ripple/commit/079617d639569e4cb2c79239011a6b892dbdbb45),
+  [`7529e1f`](https://github.com/Ripple-TS/ripple/commit/7529e1fe3f0870319bd3399501fd2eb43c516065)]:
+  - @tsrx/typescript-plugin@0.3.31
+  - @tsrx/react@0.1.5
+  - @ripple-ts/language-server@0.3.31
+  - @tsrx/ripple@0.0.13
+
 ## 1.0.6
 
 ### Patch Changes
