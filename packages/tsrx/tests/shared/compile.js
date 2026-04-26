@@ -125,6 +125,88 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 		});
 	});
 
+	describe(`[${name}] nested JavaScript block statements`, () => {
+		it('preserves block statements inside functions declared in components', () => {
+			const { code } = compile(
+				`export component App() {
+					function readValue() {
+						{
+							const value = 1;
+							return value;
+						}
+					}
+
+					<div>{readValue()}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function readValue()');
+			expect(code).toMatch(/\{\n\s+const value = 1;/);
+			expect(code).toContain('return value;');
+			expect(code).toContain('{readValue()}');
+		});
+
+		it('preserves block statements inside arrow functions declared in components', () => {
+			const { code } = compile(
+				`export component App() {
+					const readValue = () => {
+						{
+							const value = 1;
+							return value;
+						}
+					};
+
+					<div>{readValue()}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('const readValue = () =>');
+			expect(code).toMatch(/\{\n\s+const value = 1;/);
+			expect(code).toContain('return value;');
+			expect(code).toContain('{readValue()}');
+		});
+
+		it('preserves block statements inside class methods declared in components', () => {
+			const { code } = compile(
+				`export component App() {
+					class Formatter {
+						format() {
+							{
+								const value = 'formatted';
+								return value;
+							}
+						}
+					}
+
+					const formatter = new Formatter();
+					<div>{formatter.format()}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('class Formatter');
+			expect(code).toContain('format()');
+			expect(code).toMatch(/\{\n\s+const value = 'formatted';/);
+			expect(code).toContain('return value;');
+			expect(code).toContain('{formatter.format()}');
+		});
+
+		it('keeps component-level braces as rendered expression containers', () => {
+			const { code } = compile(
+				`export component App() {
+					const value = 'top level expression';
+					{value}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('return value;');
+			expect(code).not.toMatch(/\{\n\s+value;\n\s+\}/);
+		});
+	});
+
 	describe(`[${name}] <tsx> and fragment unwrapping`, () => {
 		// All of these exercise the shared `tsx_node_to_jsx_expression`
 		// helper in @tsrx/core/transform/jsx/helpers.js — the unwrap / wrap

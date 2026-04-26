@@ -63,6 +63,54 @@ component ExplicitTextApp() {
 	<div class="explicit-text-undefined">{text missing}</div>
 }
 
+component NestedBlockScopeApp() {
+	function readFromFunction() {
+		const value = 'outer-function';
+		let result = 'missing';
+
+		{
+			const value = 'inner-function';
+			result = value;
+		}
+
+		return `${result}:${value}`;
+	}
+
+	const readFromArrow = () => {
+		const value = 'outer-arrow';
+		let result = 'missing';
+
+		{
+			const value = 'inner-arrow';
+			result = value;
+		}
+
+		return `${result}:${value}`;
+	};
+
+	class Formatter {
+		format() {
+			const value = 'outer-class';
+			let result = 'missing';
+
+			{
+				const value = 'inner-class';
+				result = value;
+			}
+
+			return `${result}:${value}`;
+		}
+	}
+
+	const formatter = new Formatter();
+
+	<div class="nested-block-scope">
+		<span class="function-scope">{readFromFunction()}</span>
+		<span class="arrow-scope">{readFromArrow()}</span>
+		<span class="class-scope">{formatter.format()}</span>
+	</div>
+}
+
 // ── Reactive counter ──
 
 component CounterApp() {
@@ -692,6 +740,13 @@ describe('tsrx-react runtime', () => {
 		expect(text('.explicit-text-boolean')).toBe('false');
 		expect(text('.explicit-text-null')).toBe('');
 		expect(text('.explicit-text-undefined')).toBe('');
+	});
+
+	it('preserves lexical scope for nested JavaScript block statements', async () => {
+		await render(NestedBlockScopeApp);
+		expect(text('.function-scope')).toBe('inner-function:outer-function');
+		expect(text('.arrow-scope')).toBe('inner-arrow:outer-arrow');
+		expect(text('.class-scope')).toBe('inner-class:outer-class');
 	});
 
 	// ── Reactivity with useState ──

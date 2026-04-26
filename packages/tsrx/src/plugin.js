@@ -2188,6 +2188,7 @@ export function TSRXPlugin(config) {
 				if (
 					context !== 'for' &&
 					context !== 'if' &&
+					!this.context.some((c) => c.token === 'function') &&
 					this.context.at(-1) === b_stat &&
 					this.type === tt.braceL &&
 					this.context.some((c) => c === tstc.tc_expr)
@@ -2276,8 +2277,11 @@ export function TSRXPlugin(config) {
 			 */
 			parseBlock(createNewLexicalScope, node, exitStrict) {
 				const parent = this.#path.at(-1);
+				const in_function_context = this.context.some((c) => c.token === 'function');
+				const is_nested_js_block =
+					createNewLexicalScope === false || (in_function_context && this.scopeStack.length > 2);
 
-				if (parent?.type === 'Component' || parent?.type === 'Element') {
+				if ((parent?.type === 'Component' || parent?.type === 'Element') && !is_nested_js_block) {
 					if (createNewLexicalScope === void 0) createNewLexicalScope = true;
 					if (node === void 0) node = /** @type {AST.BlockStatement} */ (this.startNode());
 
