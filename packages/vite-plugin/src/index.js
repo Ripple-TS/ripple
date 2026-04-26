@@ -574,121 +574,78 @@ export function ripple(inlineOptions = {}) {
 			},
 
 			/**
-			 * Configure the dev server with SSR middleware
+			 * Configure the dev server with SSR middleware.
+			 *
+			 * Uses a pre-hook (no return value) so that Ripple's SSR/API
+			 * middleware is registered BEFORE Vite's internal middlewares.
+			 * Route-owning middleware must run before Vite's HTML fallback
+			 * middleware, which otherwise intercepts non-file GET requests
+			 * and serves index.html.
+			 *
+			 * Config loading is deferred until the first incoming request so
+			 * that `vite.ssrLoadModule` is guaranteed to be fully initialised.
+			 *
 			 * @param {ViteDevServer} vite
 			 */
 			configureServer(vite) {
-				// Return a function to be called after Vite's internal middlewares
-				return async () => {
+				// Deferred config initialisation — resolved on first request
+				// that finds a ripple.config.ts. The promise is cleared after
+				// every attempt so that "config missing" is never cached
+				// permanently (the user may create the file while the dev
+				// server is running).
+				/** @type {Promise<void> | null} */
+				let initPromise = null;
+
+				/**
+				 * Ensure ripple.config.ts has been loaded and the router is
+				 * ready. Safe to call on every request — a successful load is
+				 * short-circuited, and a missing config file is retried on
+				 * the next request instead of being cached forever.
+				 */
+				async function ensureConfigLoaded() {
+					if (router && rippleConfig) return;
+
+					// Config file doesn't exist (yet). Don't cache this — the
+					// user may create it while the dev server is running.
 					if (!rippleConfigExists(root)) return;
 
-					try {
-						rippleConfig = await loadRippleConfig(root, { vite });
+					if (!initPromise) {
+						initPromise = (async () => {
+							rippleConfig = await loadRippleConfig(root, { vite });
 
-						if (!has_route_config(rippleConfig)) {
-							return;
-						}
+							if (!has_route_config(rippleConfig)) {
+								return;
+							}
 
-						// Create router from config
-						router = createRouter(rippleConfig.router.routes);
-						console.log(
-							`[@ripple-ts/vite-plugin] Loaded ${rippleConfig.router.routes.length} routes from ripple.config.ts`,
-						);
-					} catch (error) {
-						console.error('[@ripple-ts/vite-plugin] Failed to load ripple.config.ts:', error);
-						return;
+							// Create router from config
+							router = createRouter(rippleConfig.router.routes);
+							console.log(
+								`[@ripple-ts/vite-plugin] Loaded ${rippleConfig.router.routes.length} routes from ripple.config.ts`,
+							);
+						})().finally(() => {
+							// Clear so a failed or no-route load can be retried.
+							initPromise = null;
+						});
 					}
 
-					// Add SSR middleware
-					vite.middlewares.use((req, res, next) => {
-						// Handle async logic in an IIFE
-						(async () => {
-							// Skip if no router
-							if (!router || !rippleConfig) {
-								next();
-								return;
-							}
+					await initPromise;
+				}
 
-							const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
-							const method = req.method || 'GET';
+				// Pre-hook: register middleware directly without returning a
+				// function, so it is inserted BEFORE Vite's built-in stack.
+				vite.middlewares.use(function rippleDevMiddleware(req, res, next) {
+					// Handle async logic in an IIFE
+					(async () => {
+						// Lazy-load ripple.config.ts. This is deferred to the
+						// first request because vite.ssrLoadModule may not be
+						// fully initialised when configureServer runs.
+						try {
+							await ensureConfigLoaded();
+						} catch (error) {
+							console.error('[@ripple-ts/vite-plugin] Failed to load ripple.config.ts:', error);
+							vite.ssrFixStacktrace(/** @type {Error} */ (error));
 
-							// Handle RPC requests for #server blocks
-							if (is_rpc_request(url.pathname)) {
-								await handleRpcRequest(
-									req,
-									res,
-									vite,
-									rippleConfig.server.trustProxy,
-									rippleConfig,
-								);
-								return;
-							}
-
-							// Match route
-							const match = router.match(method, url.pathname);
-
-							if (!match) {
-								next();
-								return;
-							}
-
-							try {
-								// Reload config to get fresh routes (for HMR)
-								const previousRoutes = rippleConfig.router.routes;
-								const freshConfig = await loadRippleConfig(root, { vite });
-								if (freshConfig) {
-									rippleConfig = freshConfig;
-								}
-
-								// Check if routes have changed
-								if (JSON.stringify(previousRoutes) !== JSON.stringify(rippleConfig.router.routes)) {
-									console.log(
-										`[@ripple-ts/vite-plugin] Detected route changes. Re-loading ${rippleConfig.router.routes.length} routes from ripple.config.ts`,
-									);
-								}
-
-								router = createRouter(rippleConfig.router.routes);
-
-								// Re-match with fresh router
-								const freshMatch = router.match(method, url.pathname);
-								if (!freshMatch) {
-									next();
-									return;
-								}
-
-								// Create context
-								const request = nodeRequestToWebRequest(req);
-								const context = createContext(request, freshMatch.params);
-
-								const globalMiddlewares = rippleConfig.middlewares;
-
-								let response;
-
-								if (freshMatch.route.type === 'render') {
-									// Handle RenderRoute with global middlewares
-									response = await runMiddlewareChain(
-										context,
-										globalMiddlewares,
-										freshMatch.route.before || [],
-										async () =>
-											handleRenderRoute(
-												/** @type {RenderRoute} */ (freshMatch.route),
-												context,
-												vite,
-											),
-										[],
-									);
-								} else {
-									// Handle ServerRoute
-									response = await handleServerRoute(freshMatch.route, context, globalMiddlewares);
-								}
-
-								// Send response
-								await sendWebResponse(res, response);
-							} catch (error) {
-								console.error('[@ripple-ts/vite-plugin] Request error:', error);
-								vite.ssrFixStacktrace(/** @type {Error} */ (error));
-
+							if (!res.headersSent) {
 								res.statusCode = 500;
 								res.setHeader('Content-Type', 'text/html');
 								res.end(
@@ -697,15 +654,103 @@ export function ripple(inlineOptions = {}) {
 									)}</pre>`,
 								);
 							}
-						})().catch((err) => {
-							console.error('[@ripple-ts/vite-plugin] Unhandled middleware error:', err);
-							if (!res.headersSent) {
-								res.statusCode = 500;
-								res.end('Internal Server Error');
+							return;
+						}
+
+						// Skip if no router
+						if (!router || !rippleConfig) {
+							next();
+							return;
+						}
+
+						const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+						const method = req.method || 'GET';
+
+						// Handle RPC requests for #server blocks
+						if (is_rpc_request(url.pathname)) {
+							await handleRpcRequest(req, res, vite, rippleConfig.server.trustProxy, rippleConfig);
+							return;
+						}
+
+						// Match route
+						const match = router.match(method, url.pathname);
+
+						if (!match) {
+							next();
+							return;
+						}
+
+						try {
+							// Reload config to get fresh routes (for HMR)
+							const previousRoutes = rippleConfig.router.routes;
+							const freshConfig = await loadRippleConfig(root, { vite });
+							if (freshConfig) {
+								rippleConfig = freshConfig;
 							}
-						});
+
+							// Check if routes have changed
+							if (JSON.stringify(previousRoutes) !== JSON.stringify(rippleConfig.router.routes)) {
+								console.log(
+									`[@ripple-ts/vite-plugin] Detected route changes. Re-loading ${rippleConfig.router.routes.length} routes from ripple.config.ts`,
+								);
+							}
+
+							router = createRouter(rippleConfig.router.routes);
+
+							// Re-match with fresh router
+							const freshMatch = router.match(method, url.pathname);
+							if (!freshMatch) {
+								next();
+								return;
+							}
+
+							// Create context
+							const request = nodeRequestToWebRequest(req);
+							const context = createContext(request, freshMatch.params);
+
+							const globalMiddlewares = rippleConfig.middlewares;
+
+							let response;
+
+							if (freshMatch.route.type === 'render') {
+								// Handle RenderRoute with global middlewares
+								response = await runMiddlewareChain(
+									context,
+									globalMiddlewares,
+									freshMatch.route.before || [],
+									async () =>
+										handleRenderRoute(/** @type {RenderRoute} */ (freshMatch.route), context, vite),
+									[],
+								);
+							} else {
+								// Handle ServerRoute
+								response = await handleServerRoute(freshMatch.route, context, globalMiddlewares);
+							}
+
+							// Send response
+							await sendWebResponse(res, response);
+						} catch (error) {
+							console.error('[@ripple-ts/vite-plugin] Request error:', error);
+							vite.ssrFixStacktrace(/** @type {Error} */ (error));
+
+							res.statusCode = 500;
+							res.setHeader('Content-Type', 'text/html');
+							res.end(
+								`<pre style="color: red; background: #1a1a1a; padding: 2rem; margin: 0;">${escapeHtml(
+									error instanceof Error ? error.stack || error.message : String(error),
+								)}</pre>`,
+							);
+						}
+					})().catch((err) => {
+						console.error('[@ripple-ts/vite-plugin] Unhandled middleware error:', err);
+						if (!res.headersSent) {
+							res.statusCode = 500;
+							res.end('Internal Server Error');
+						}
 					});
-				};
+				});
+				// No return — pre-hook ensures middleware runs before
+				// viteHtmlFallbackMiddleware
 			},
 
 			/**
