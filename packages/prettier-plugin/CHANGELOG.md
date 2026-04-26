@@ -1,5 +1,21 @@
 # @tsrx/prettier-plugin
 
+## 0.3.33
+
+### Patch Changes
+
+- [#963](https://github.com/Ripple-TS/ripple/pull/963)
+  [`112cfd9`](https://github.com/Ripple-TS/ripple/commit/112cfd9fbfd4412efea543abc55deceb186cf351)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve JSX spread
+  attributes inside explicit `<tsx>` blocks.
+
+- Updated dependencies
+  [[`a9f706d`](https://github.com/Ripple-TS/ripple/commit/a9f706d6626dc1a9e8505d9ea8f16989b2b024b3),
+  [`3e07109`](https://github.com/Ripple-TS/ripple/commit/3e071098508449158fa11f2ae48c912d4d673b68),
+  [`112cfd9`](https://github.com/Ripple-TS/ripple/commit/112cfd9fbfd4412efea543abc55deceb186cf351)]:
+  - @tsrx/core@0.0.13
+  - @tsrx/ripple@0.0.15
+
 ## 0.3.32
 
 ### Patch Changes

@@ -1,5 +1,19 @@
 # ripple
 
+## 0.3.33
+
+### Patch Changes
+
+- [#961](https://github.com/Ripple-TS/ripple/pull/961)
+  [`3e07109`](https://github.com/Ripple-TS/ripple/commit/3e071098508449158fa11f2ae48c912d4d673b68)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix ArrayPattern source map
+  visitor, various type fixes for tests: ripple, vite-plugin-react,
+  vite-plugin-solid
+- Updated dependencies
+  [[`3e07109`](https://github.com/Ripple-TS/ripple/commit/3e071098508449158fa11f2ae48c912d4d673b68)]:
+  - ripple@0.3.33
+  - @tsrx/ripple@0.0.15
+
 ## 0.3.32
 
 ### Patch Changes
