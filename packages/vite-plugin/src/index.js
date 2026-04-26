@@ -648,10 +648,7 @@ export function ripple(inlineOptions = {}) {
 							// ripple.config.ts should not kill the entire dev
 							// server. The error is retried on the next request
 							// because ensureConfigLoaded clears initPromise.
-							console.error(
-								'[@ripple-ts/vite-plugin] Failed to load ripple.config.ts:',
-								error,
-							);
+							console.error('[@ripple-ts/vite-plugin] Failed to load ripple.config.ts:', error);
 							vite.ssrFixStacktrace(/** @type {Error} */ (error));
 							next();
 							return;
