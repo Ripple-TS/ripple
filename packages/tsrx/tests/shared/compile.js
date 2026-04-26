@@ -311,11 +311,10 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 			expect(second_capture).toBeGreaterThan(assign_two);
 		});
 
-		it('preserves source order for interleaved JSX across a hook-safe split', () => {
-			// React/Preact track a hook-safe split for top-level hook calls;
-			// Solid has no such concept but still goes through the same
-			// capture path for interleaved mutations, so the assertion holds
-			// cross-platform.
+		it('preserves source order for interleaved JSX across early-return splits', () => {
+			// React/Preact extract typed continuation helpers after early returns
+			// when top-level hooks follow; Solid has no hook-order rule but still
+			// goes through the same capture path for interleaved mutations.
 			const { code } = compile(
 				`component Card() {
 					var a = "one"

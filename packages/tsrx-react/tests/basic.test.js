@@ -285,7 +285,7 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('<button>{count}</button>');
 	});
 
-	it('extracts hook-bearing continuations after lone early-return if statements', () => {
+	it('extracts typed cached continuation helpers after early-return if statements', () => {
 		const source = `import { useState, useEffect } from 'react';
 
 			export component App() {
@@ -305,12 +305,58 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
 
-		expect(code).toContain('function App__Continue1({ count, setCount }) {');
 		expect(code).toContain('useEffect(');
 		expect(code).toContain('count > 2');
-		expect(code).toContain('<App__Continue1 count={count} setCount={setCount} />');
+		expect(code).toContain('let App__StatementBodyHook1;');
+		expect(code).toContain('let App__StatementBodyHook2;');
+		expect(code).toContain('const _tsrx_StatementBodyHook2_count = count;');
+		expect(code).toContain('const StatementBodyHook2 = App__StatementBodyHook2 ??');
+		expect(code).toContain('<button onClick={() => setCount(count + 1)}>{count}</button>');
+		expect(code).not.toContain('App__Continue');
 		expect(mappings.errors).toEqual([]);
 		expect(mappings.mappings.length).toBeGreaterThan(0);
+	});
+
+	it('extracts rendered early-return branches while preserving source local names', () => {
+		const source = `import { useEffect } from 'react';
+
+			declare function getFoo(): string | null;
+
+			export component App() {
+				const foo = getFoo();
+
+				if (!foo) {
+					<div>{'Foo not found'}</div>
+					return;
+				}
+
+				useEffect(() => {
+					console.log(foo);
+				}, [foo]);
+
+				<div>{foo.trim()}</div>
+			}`;
+
+		const { code } = compile(source, 'App.tsrx');
+		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
+		const source_if_foo = source.indexOf('foo', source.indexOf('if (!foo'));
+		const generated_if_foo = mappings.code.indexOf('foo', mappings.code.indexOf('if (!foo'));
+		const if_foo_mapping = mappings.mappings.find(
+			(mapping) =>
+				mapping.sourceOffsets[0] === source_if_foo &&
+				mapping.generatedOffsets[0] === generated_if_foo &&
+				mapping.lengths[0] === 'foo'.length,
+		);
+
+		expect(code).toContain('let App__StatementBodyHook1;');
+		expect(code).toContain('let App__StatementBodyHook2;');
+		expect(code).toContain('const _tsrx_StatementBodyHook1_foo = foo;');
+		expect(code).toContain('const _tsrx_StatementBodyHook2_foo = foo;');
+		expect(code).toContain('return App__static1;');
+		expect(code).toContain('useEffect(');
+		expect(code).toContain('return <div>{foo.trim()}</div>;');
+		expect(code).not.toContain('App__Continue');
+		expect(if_foo_mapping?.data.completion).toBe(true);
 	});
 
 	it('does not emit duplicate Volar mappings for helper-extracted React output', () => {
@@ -911,6 +957,31 @@ describe('@tsrx/react basic', () => {
 		expect(hook_pos).toBeGreaterThan(helper_pos);
 	});
 
+	it('types hook helper props from branch-local aliases', () => {
+		const { code } = compile(
+			`import { useState } from 'react';
+
+			declare function getFoo(): string | null;
+
+			export component App() {
+				const foo = getFoo();
+				if (foo) {
+					const [count] = useState(0);
+					<div>{foo.trim()}{count}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('let App__StatementBodyHook1;');
+		expect(code).toContain('const _tsrx_StatementBodyHook1_foo = foo;');
+		expect(code).toContain('const StatementBodyHook1 = App__StatementBodyHook1 ??');
+		expect(code).toContain(
+			'function StatementBodyHook1({ foo }: { foo: typeof _tsrx_StatementBodyHook1_foo })',
+		);
+		expect(code).toContain('<StatementBodyHook1 foo={foo} />');
+	});
+
 	it('extracts hooks from if-else branches into separate local components', () => {
 		const { code } = compile(
 			`import { useState } from 'react';
@@ -1466,7 +1537,7 @@ describe('lazy destructuring', () => {
 		expect(code).not.toContain('localVar={localVar}');
 	});
 
-	it('does not pass post-split bindings as helper component props', () => {
+	it('keeps post-split bindings local inside typed cached continuation helpers', () => {
 		const { code } = compile(
 			`import { useState, useEffect } from 'react';
 
@@ -1488,12 +1559,12 @@ describe('lazy destructuring', () => {
 			'App.tsrx',
 		);
 
-		// The continuation helper should receive count/setCount from before the split
-		expect(code).toContain('App__Continue');
-		expect(code).toContain('count={count}');
-
-		// laterVar is declared AFTER the split — it must NOT appear as a prop
-		// on the helper element at the call site (it's not in scope there)
-		expect(code).not.toContain('laterVar={laterVar}');
+		expect(code).toContain("const laterVar = 'after split';");
+		expect(code).toContain('useEffect(');
+		expect(code).toContain('let App__StatementBodyHook1;');
+		expect(code).toContain('let App__StatementBodyHook2;');
+		expect(code).toContain('const _tsrx_StatementBodyHook2_count = count;');
+		expect(code).toContain('return <div>{laterVar}</div>;');
+		expect(code).not.toContain('App__Continue');
 	});
 });
