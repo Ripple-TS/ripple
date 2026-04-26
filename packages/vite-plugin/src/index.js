@@ -595,19 +595,28 @@ export function ripple(inlineOptions = {}) {
 				// server is running).
 				/** @type {Promise<void> | null} */
 				let initPromise = null;
+				/** @type {number} */
+				let lastConfigErrorTime = 0;
+				const CONFIG_RETRY_MS = 5000;
 
 				/**
 				 * Ensure ripple.config.ts has been loaded and the router is
-				 * ready. Safe to call on every request — a successful load is
-				 * short-circuited, and a missing config file is retried on
-				 * the next request instead of being cached forever.
+				 * ready. Safe to call on every request — a successful load
+				 * (even with no routes) is short-circuited, a missing config
+				 * file is retried on the next request, and load errors are
+				 * throttled to avoid per-request log spam.
 				 */
 				async function ensureConfigLoaded() {
-					if (router && rippleConfig) return;
+					// Config was already loaded (with or without routes).
+					if (rippleConfig) return;
 
 					// Config file doesn't exist (yet). Don't cache this — the
 					// user may create it while the dev server is running.
 					if (!rippleConfigExists(root)) return;
+
+					// Throttle retries after a config load error to avoid
+					// spamming the console on every HMR/CSS/JS request.
+					if (lastConfigErrorTime && Date.now() - lastConfigErrorTime < CONFIG_RETRY_MS) return;
 
 					if (!initPromise) {
 						initPromise = (async () => {
@@ -622,10 +631,14 @@ export function ripple(inlineOptions = {}) {
 							console.log(
 								`[@ripple-ts/vite-plugin] Loaded ${rippleConfig.router.routes.length} routes from ripple.config.ts`,
 							);
-						})().finally(() => {
-							// Clear so a failed or no-route load can be retried.
-							initPromise = null;
-						});
+						})()
+							.catch((error) => {
+								lastConfigErrorTime = Date.now();
+								throw error;
+							})
+							.finally(() => {
+								initPromise = null;
+							});
 					}
 
 					await initPromise;
