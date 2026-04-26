@@ -41,6 +41,7 @@ import {
 	renderStylesheets,
 	getOriginalEventName,
 	isEventAttribute,
+	isInsideComponent as is_inside_component,
 	normalizeEventName,
 	shouldPreserveComment,
 	formatComment,
@@ -48,7 +49,6 @@ import {
 } from '@tsrx/core';
 const b = builders;
 import {
-	is_inside_component,
 	build_assignment,
 	visit_assignment_expression,
 	escape_html,
@@ -4510,6 +4510,15 @@ function create_tsx_with_typescript_support(comments) {
 			context.write(node.name);
 			context.location(loc.end.line, loc.end.column);
 		},
+		Identifier(node, context) {
+			context.write(node.name, node);
+			if (node.optional) {
+				context.write('?');
+			}
+			if (node.typeAnnotation) {
+				context.visit(node.typeAnnotation);
+			}
+		},
 		JSXExpressionContainer(node, context) {
 			const loc = /** @type {AST.SourceLocation} */ (node.loc);
 			if (!loc) {
@@ -4802,6 +4811,14 @@ function create_tsx_with_typescript_support(comments) {
 			context.write('(');
 			context.visit(/** @type {AST.TSTypeAnnotation} */ (node.typeAnnotation));
 			context.write(')');
+		},
+		TSNamedTupleMember(node, context) {
+			context.visit(node.label);
+			if (node.optional) {
+				context.write('?');
+			}
+			context.write(': ');
+			context.visit(node.elementType);
 		},
 		TSMappedType(node, context) {
 			context.write('{ ');

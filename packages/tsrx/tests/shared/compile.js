@@ -80,6 +80,84 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 		});
 	});
 
+	describe(`[${name}] TypeScript output`, () => {
+		it('preserves optional markers in tuple members and function parameters', () => {
+			const { code } = compile(
+				`export type OptionalTuple = [bar: string, baz?: string];
+export type OptionalFn = (bar: string, baz?: string) => void;
+export interface OptionalInterfaceFn {
+	(bar: string, baz?: string): void;
+}
+export function optionalFn(bar: string, baz?: string) {
+	todo(bar, baz);
+}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('export type OptionalTuple = [bar: string, baz?: string];');
+			expect(code).toContain('export type OptionalFn = (bar: string, baz?: string) => void;');
+			expect(code).toContain('(bar: string, baz?: string): void');
+			expect(code).toContain('export function optionalFn(bar: string, baz?: string)');
+		});
+	});
+
+	describe(`[${name}] component return validation`, () => {
+		it('rejects return statements with values in component scope', () => {
+			expect(() =>
+				compile(
+					`export component App() {
+						if (true) {
+							return 'hello';
+						}
+
+						<div>{'fallback'}</div>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow('Return statements inside components cannot have a return value.');
+		});
+
+		it('reports component return value errors at the return keyword', () => {
+			const source = `export component App() {
+				return value;
+			}`;
+			const return_start = source.indexOf('return');
+
+			expect(() => compile(source, 'App.tsrx')).toThrowError(
+				expect.objectContaining({
+					pos: return_start,
+					end: return_start + 'return'.length,
+				}),
+			);
+		});
+
+		it('allows return values inside functions and classes nested in components', () => {
+			expect(() =>
+				compile(
+					`export component App() {
+						function getLabel() {
+							return 'label';
+						}
+
+						const getCount = () => {
+							return 1;
+						};
+
+						class Model {
+							getValue() {
+								return getCount();
+							}
+						}
+
+						const model = new Model();
+						<div>{getLabel()}{model.getValue()}</div>
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
+	});
+
 	describe(`[${name}] walker transforms survive element lowering`, () => {
 		it('rewrites #style member expressions inside element child expressions', () => {
 			const { code } = compile(

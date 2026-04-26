@@ -139,4 +139,36 @@ describe('@tsrx/preact basic', () => {
 		expect(code.match(/return <div>\{Date\.now\(\)\}<\/div>;/g)).toHaveLength(2);
 		expect(code).not.toContain('return null;');
 	});
+
+	it('preserves parent prop types in hook-bearing composite children', () => {
+		const { code } = compile(
+			`import { useState } from 'preact/hooks';
+			import type { PropsWithChildren } from 'ripple';
+
+			component Wrapper(props: PropsWithChildren<{}>) {
+				<section>{props.children}</section>
+			}
+
+			component Parent(props: { title: string }) {
+				<Wrapper>
+					const [count] = useState(0);
+
+					<h1>{props.title}</h1>
+					<span>{count}</span>
+				</Wrapper>
+			}
+
+			component App() {
+				<Parent title="Hello from props" />
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('const _tsrx_StatementBodyHook1_props = props;');
+		expect(code).toContain(
+			'function StatementBodyHook1({ props }: { props: typeof _tsrx_StatementBodyHook1_props })',
+		);
+		expect(code).toContain('<h1>{props.title}</h1>');
+		expect(code).not.toContain('function StatementBodyHook1({ props })');
+	});
 });
