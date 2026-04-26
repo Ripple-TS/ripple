@@ -2304,7 +2304,37 @@ export function TSRXPlugin(config) {
 					return this.finishNode(node, 'BlockStatement');
 				}
 
-				return super.parseBlock(createNewLexicalScope, node, exitStrict);
+				const result = super.parseBlock(createNewLexicalScope, node, exitStrict);
+				if (
+					(parent?.type === 'Component' || parent?.type === 'Element') &&
+					createNewLexicalScope === false &&
+					this.context.at(-1)?.token === '{' &&
+					this.context.at(-2)?.token === 'function'
+				) {
+					this.context.pop();
+					this.context.pop();
+
+					const next_char =
+						this.start + 1 < this.input.length ? this.input.charCodeAt(this.start + 1) : -1;
+					const is_tag_like_after_lt =
+						next_char === 47 ||
+						next_char === 62 ||
+						next_char === 64 ||
+						next_char === 36 ||
+						next_char === 95 ||
+						(next_char >= 65 && next_char <= 90) ||
+						(next_char >= 97 && next_char <= 122);
+
+					if (
+						this.type === tt.relational &&
+						this.value === '<' &&
+						this.input.charCodeAt(this.start) === 60 &&
+						is_tag_like_after_lt
+					) {
+						this.finishToken(tstt.jsxTagStart);
+					}
+				}
+				return result;
 			}
 		}
 
