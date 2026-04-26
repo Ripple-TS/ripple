@@ -1418,40 +1418,8 @@ function hook_safe_statement_body_to_jsx_child(body_nodes, transform_context) {
 	const source_node = get_body_source_node(body_nodes);
 	const helper = create_hook_safe_helper(body_nodes, undefined, source_node, transform_context);
 
-	if (transform_context.helper_state) {
-		return to_jsx_expression_container(
-			create_hook_safe_helper_iife(helper.setup_statements, helper.component_element),
-			source_node,
-		);
-	}
-
 	return to_jsx_expression_container(
-		/** @type {any} */ ({
-			type: 'CallExpression',
-			callee: {
-				type: 'ArrowFunctionExpression',
-				params: [],
-				body: /** @type {any} */ ({
-					type: 'BlockStatement',
-					body: [
-						...helper.setup_statements,
-						{
-							type: 'ReturnStatement',
-							argument: helper.component_element,
-							metadata: { path: [] },
-						},
-					],
-					metadata: { path: [] },
-				}),
-				async: false,
-				generator: false,
-				expression: false,
-				metadata: { path: [] },
-			},
-			arguments: [],
-			optional: false,
-			metadata: { path: [] },
-		}),
+		create_hook_safe_helper_iife(helper.setup_statements, helper.component_element),
 		source_node,
 	);
 }
