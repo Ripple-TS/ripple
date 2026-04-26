@@ -1,5 +1,24 @@
 # @tsrx/solid
 
+## 0.0.13
+
+### Patch Changes
+
+- [`a9f706d`](https://github.com/Ripple-TS/ripple/commit/a9f706d6626dc1a9e8505d9ea8f16989b2b024b3)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix Volar source mappings for
+  extracted JSX hook helpers so component-scope declarations keep their inferred
+  editor types.
+
+- [`52ded23`](https://github.com/Ripple-TS/ripple/commit/52ded234b486acb3543b811be44864bd6596b4da)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Return `null` from
+  statement-only element child IIFEs so generated Solid TSX type-checks.
+
+- Updated dependencies
+  [[`a9f706d`](https://github.com/Ripple-TS/ripple/commit/a9f706d6626dc1a9e8505d9ea8f16989b2b024b3),
+  [`3e07109`](https://github.com/Ripple-TS/ripple/commit/3e071098508449158fa11f2ae48c912d4d673b68),
+  [`112cfd9`](https://github.com/Ripple-TS/ripple/commit/112cfd9fbfd4412efea543abc55deceb186cf351)]:
+  - @tsrx/core@0.0.13
+
 ## 0.0.12
 
 ### Patch Changes

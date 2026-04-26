@@ -142,6 +142,15 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 			expect(code).not.toContain('<tsx>');
 		});
 
+		it('preserves JSX spread attributes inside tsx blocks', () => {
+			const { code } = compile(
+				`class Foo { bar() { const props = {}; return <tsx><Bar {...props} /></tsx>; } }`,
+				'App.tsrx',
+			);
+			expect(code).toContain('return <Bar {...props} />;');
+			expect(code).not.toContain('<tsx>');
+		});
+
 		it('unwraps a tsx block containing a single expression to the expression', () => {
 			// Regression: previously `<tsx>{'Hello'}</tsx>` was compiled to
 			// `return {'Hello'};`, which is a JS syntax error because `{`

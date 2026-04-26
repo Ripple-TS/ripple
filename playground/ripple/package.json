@@ -20,7 +20,6 @@
     "@tsrx/eslint-plugin": "workspace:*",
     "@tsrx/typescript-plugin": "workspace:*",
     "@ripple-ts/vite-plugin": "workspace:*",
-    "@tsrx/ripple": "workspace:*",
     "@typescript-eslint/parser": "catalog:default",
     "@tailwindcss/vite": "catalog:default",
     "eslint": "catalog:default",

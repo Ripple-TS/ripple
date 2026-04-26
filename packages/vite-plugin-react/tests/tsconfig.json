@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["**/*.d.ts", "**/*.test.tsrx", "**/*.test.js", "setup.js"],
+  // override parent exclusion of this folder
+  "exclude": []
+}

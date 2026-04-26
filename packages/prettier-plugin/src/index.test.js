@@ -741,6 +741,17 @@ import { Something, type Props, track } from 'ripple';`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should preserve JSX spread attributes inside explicit tsx blocks', async () => {
+			const input = `const props = {};
+const foo = <tsx><Bar {...props} /></tsx>;`;
+
+			const expected = `const props = {};
+const foo = <tsx><Bar {...props} /></tsx>;`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should handle type annotations in object params', async () => {
 			const input = `interface Props {
   a: number;

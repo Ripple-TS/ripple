@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["**/*.d.ts", "**/*.test.tsrx", "**/*.test.js", "setup.js"],
+  // override parent exclusion of this folder
+  "exclude": []
+}

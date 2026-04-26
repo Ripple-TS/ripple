@@ -6,10 +6,10 @@ globs: **/*
 # Ripple Project Guide for AI Agents
 
 Ripple is a TypeScript-first UI framework and monorepo maintained by Dominic
-Gannaway. The current authoring format is centered on `.tsrx` files and the
-shared TSRX compiler stack. Older `.ripple`-specific docs and compiler details
-still exist in repo history and changelogs, but they are not the right default
-source of truth for current work.
+Gannaway. The current authoring format is centered on `.tsrx` files and the shared
+TSRX compiler stack. Older `.ripple`-specific docs and compiler details still
+exist in repo history and changelogs, but they are not the right default source of
+truth for current work.
 
 ## Start From Current Sources
 
@@ -61,9 +61,9 @@ This is a pnpm monorepo. The current high-level layout is:
 - `packages/adapter/`, `packages/adapter-node/`, `packages/adapter-bun/`,
   `packages/adapter-vercel/`: deployment and platform adapters
 - `packages/language-server/`, `packages/typescript-plugin/`,
-  `packages/vscode-plugin/`, `packages/intellij-plugin/`,
-  `packages/nvim-plugin/`, `packages/sublime-text-plugin/`,
-  `packages/zed-plugin/`: editor and language tooling
+  `packages/vscode-plugin/`, `packages/intellij-plugin/`, `packages/nvim-plugin/`,
+  `packages/sublime-text-plugin/`, `packages/zed-plugin/`: editor and language
+  tooling
 - `packages/eslint-parser/`, `packages/eslint-plugin/`,
   `packages/prettier-plugin/`, `packages/prettier-plugin-ripple/`: linting and
   formatting
@@ -78,8 +78,8 @@ than editing generated output, tests, or editor integrations first.
 
 - Default component files are `.tsrx`. Do not describe the project as primarily
   using `.ripple` files unless the local file you are editing actually does.
-- Some packages still preserve compatibility or historical references. Treat
-  them as compatibility context, not the default architecture description.
+- Some packages still preserve compatibility or historical references. Treat them
+  as compatibility context, not the default architecture description.
 - Use `pnpm` for all package management and workspace scripts.
 - Follow the conventions of the package you are changing. This repo mixes plain
   JavaScript, JSDoc-typed JavaScript, and TypeScript depending on package.
