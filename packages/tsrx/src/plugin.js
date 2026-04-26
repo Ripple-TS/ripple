@@ -44,6 +44,8 @@ export function TSRXPlugin(config) {
 			#errors = undefined;
 			/** @type {string | null} */
 			#filename = null;
+			#functionBodyDepth = 0;
+			#functionBlockDepth = 0;
 
 			/**
 			 * @param {Parse.Options} options
@@ -472,7 +474,7 @@ export function TSRXPlugin(config) {
 						// Check if we're inside a nested function (arrow function, function expression, etc.)
 						// We need to distinguish between being inside a function vs just being in nested scopes
 						// (like for loops, if blocks, JSX elements, etc.)
-						const nestedFunctionContext = this.context.some((ctx) => ctx.token === 'function');
+						const nestedFunctionContext = this.#functionBlockDepth > 0 && this.type !== tt.braceR;
 
 						// Inside nested functions, treat < as relational/generic operator
 						// BUT: if the < is followed by /, it's a closing JSX tag, not a less-than operator
@@ -960,6 +962,19 @@ export function TSRXPlugin(config) {
 				this.exitScope();
 				this.labels.pop();
 				return this.finishNode(node, isForIn ? 'ForInStatement' : 'ForOfStatement');
+			}
+
+			/**
+			 * @type {Parse.Parser['parseFunctionBody']}
+			 */
+			parseFunctionBody(node, isArrowFunction, isMethod, forInit, ...args) {
+				this.#functionBodyDepth++;
+
+				try {
+					return super.parseFunctionBody(node, isArrowFunction, isMethod, forInit, ...args);
+				} finally {
+					this.#functionBodyDepth--;
+				}
 			}
 
 			/**
@@ -2276,6 +2291,16 @@ export function TSRXPlugin(config) {
 			 */
 			parseBlock(createNewLexicalScope, node, exitStrict) {
 				const parent = this.#path.at(-1);
+				const inside_func = this.#functionBodyDepth > 0;
+
+				if (inside_func) {
+					this.#functionBlockDepth++;
+					try {
+						return super.parseBlock(createNewLexicalScope, node, exitStrict);
+					} finally {
+						this.#functionBlockDepth--;
+					}
+				}
 
 				if (parent?.type === 'Component' || parent?.type === 'Element') {
 					if (createNewLexicalScope === void 0) createNewLexicalScope = true;

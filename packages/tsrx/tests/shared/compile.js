@@ -99,6 +99,25 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('(bar: string, baz?: string): void');
 			expect(code).toContain('export function optionalFn(bar: string, baz?: string)');
 		});
+
+		it('parses nested statement blocks inside component-local functions', () => {
+			const { code } = compile(
+				`export component Counter() {
+					const foo = () => {
+						{
+							let bar;
+						}
+					};
+
+					<button onClick={foo}>{"Click Me"}</button>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('const foo = () => {');
+			expect(code).toContain('let bar');
+			expect(code).toContain('onClick={foo}');
+		});
 	});
 
 	describe(`[${name}] walker transforms survive element lowering`, () => {
