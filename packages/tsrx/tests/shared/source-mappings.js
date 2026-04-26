@@ -111,6 +111,10 @@ export function runSharedSourceMappingTests({
 		// whole line of investigation — kept as an end-to-end shape check.
 		it('calls with explicit type arguments', () =>
 			expect_maps(`component Test() { const [foo, setFoo] = useState<string | null>(null) }`));
+		it('type annotation on array destructuring pattern', () =>
+			expect_maps(
+				`component C() { const [s, setS]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = useState(true); }`,
+			));
 	});
 
 	describe(`[${name}] raw source maps cover one-line early-return if statements`, () => {

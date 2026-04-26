@@ -24,13 +24,6 @@ let container;
 /** @type {(() => void) | null} */
 let dispose = null;
 
-/**
- * Render a Solid component into the test container.
- *
- * @param {import('solid-js').Component<any>} Component
- * @param {Record<string, unknown>} [props]
- * @returns {Promise<void>}
- */
 globalThis.render = async function render(Component, props) {
 	dispose = solidRender(() => createComponent(Component, props ?? {}), container);
 	// Let Solid finish initial effects / microtasks.
@@ -41,8 +34,6 @@ globalThis.render = async function render(Component, props) {
 /**
  * Yield to Solid: flush pending microtasks so that signal updates and
  * promise-backed resources settle before assertions run.
- *
- * @returns {Promise<void>}
  */
 globalThis.flush = async function flush() {
 	for (let i = 0; i < 4; i++) {
@@ -62,5 +53,5 @@ afterEach(() => {
 		dispose = null;
 	}
 	document.body.removeChild(container);
-	globalThis.container = undefined;
+	globalThis.container = /** @type {HTMLDivElement} */ (/** @type {unknown} */ (undefined));
 });

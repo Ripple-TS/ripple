@@ -99,7 +99,14 @@ export function tsx_with_ts_locations() {
 	};
 
 	/** @type {Record<string, (node: any, context: any) => void>} */
-	const wrappers = {};
+	const wrappers = {
+		ArrayPattern: (node, context) => {
+			base.ArrayPattern(node, context);
+			if (node.typeAnnotation) {
+				context.visit(node.typeAnnotation);
+			}
+		},
+	};
 	for (const type of [
 		// JS nodes whose esrap printer emits no location marker, causing
 		// segments.js get_mapping_from_node() to throw when it asks for the

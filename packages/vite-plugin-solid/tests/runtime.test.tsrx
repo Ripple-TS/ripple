@@ -1,4 +1,4 @@
-import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { createSignal, lazy } from 'solid-js';
 
 const EXPECTED_ERROR_LOG_SNIPPETS = [
@@ -9,8 +9,7 @@ const EXPECTED_ERROR_LOG_SNIPPETS = [
 	'inner error',
 ];
 
-/** @type {import('vitest').MockInstance | undefined} */
-let console_error_spy;
+let console_error_spy: MockInstance | undefined;
 
 function is_expected_error_log(args: unknown[]) {
 	const message = args.map((arg) => {
@@ -207,7 +206,7 @@ component ForReactiveApp() {
 	const [items, setItems] = createSignal(['a', 'b', 'c']);
 
 	for (const item of items(); index i) {
-		<li class="item">{item}</li>
+		<li class="item">{item()}</li>
 	}
 
 	<button class="add" onClick={() => setItems([...items(), 'd'])}>{'add'}</button>
@@ -394,7 +393,7 @@ component ForInsideTryApp() {
 
 	try {
 		for (const item of items(); index i) {
-			<span class="try-item">{item}</span>
+			<span class="try-item">{item()}</span>
 		}
 	} catch (err) {
 		<p class="caught">{'error'}</p>
@@ -572,7 +571,7 @@ component MidTemplateLocalsApp() {
 		const [count, setCount] = createSignal(0);
 
 		for (const item of ['a', 'b']; index i) {
-			<span class="mid-template-item">{item}</span>
+			<span class="mid-template-item">{item()}</span>
 		}
 
 		<p class="mid-template-count">{count()}</p>
