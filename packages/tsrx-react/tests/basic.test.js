@@ -332,6 +332,7 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('let App__StatementBodyHook1;');
 		expect(code).toContain('let App__StatementBodyHook2;');
 		expect(code).toContain('const _tsrx_StatementBodyHook2_count = count;');
+		expect(code).toContain('const _tsrx_StatementBodyHook2_setCount = setCount;');
 		expect(code).toContain('const StatementBodyHook2 = App__StatementBodyHook2 ??');
 		expect(code).toContain('<button onClick={() => setCount(count + 1)}>{count}</button>');
 		expect(code).not.toContain('App__Continue');
@@ -372,7 +373,7 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain('let App__StatementBodyHook1;');
 		expect(code).toContain('let App__StatementBodyHook2;');
-		expect(code).toContain('const _tsrx_StatementBodyHook1_foo = foo;');
+		expect(code).not.toContain('const _tsrx_StatementBodyHook1_foo = foo;');
 		expect(code).toContain('const _tsrx_StatementBodyHook2_foo = foo;');
 		expect(code).toContain('return App__static1;');
 		expect(code).toContain('useEffect(');
@@ -1176,7 +1177,8 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain('function StatementBodyHook');
 		// Key should appear on both the inner element and wrapper component
-		expect(code).toContain('<StatementBodyHook1 items={items} item={item} key={item} />');
+		expect(code).toContain('<StatementBodyHook1 item={item} key={item} />');
+		expect(code).not.toContain('items={items}');
 	});
 
 	it('adds index key to hook wrapper component when loop has index and no explicit key', () => {
@@ -1196,9 +1198,8 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain('function StatementBodyHook');
 		expect(code).toContain('items.map((item, index) =>');
-		expect(code).toContain(
-			'<StatementBodyHook1 items={items} item={item} index={index} key={index} />',
-		);
+		expect(code).toContain('<StatementBodyHook1 item={item} key={index} />');
+		expect(code).not.toContain('index={index} />');
 	});
 
 	it('applies for-of key clauses to hook wrapper components', () => {
@@ -1215,7 +1216,8 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('function StatementBodyHook');
-		expect(code).toContain('<StatementBodyHook1 items={items} item={item} key={item.id} />');
+		expect(code).toContain('<StatementBodyHook1 item={item} key={item.id} />');
+		expect(code).not.toContain('items={items}');
 	});
 
 	it('prefers inline JSX keys over for-of key clauses for hook wrapper components', () => {
@@ -1232,8 +1234,9 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('function StatementBodyHook');
-		expect(code).toContain('<StatementBodyHook1 items={items} item={item} key={item.inner} />');
-		expect(code).not.toContain('<StatementBodyHook1 items={items} item={item} key={item.id} />');
+		expect(code).toContain('<StatementBodyHook1 item={item} key={item.inner} />');
+		expect(code).not.toContain('<StatementBodyHook1 item={item} key={item.id} />');
+		expect(code).not.toContain('items={items}');
 	});
 
 	it('adds index key to non-hook loop items in conditional branches', () => {
@@ -1591,6 +1594,27 @@ describe('lazy destructuring', () => {
 		expect(code).not.toContain('localVar={localVar}');
 	});
 
+	it('does not pass unrelated future bindings into hook-safe element helpers', () => {
+		const { code } = compile(
+			`import { useEffect } from 'react';
+
+			export component App() {
+				<div>
+					useEffect(() => {}, []);
+					<span>{'ok'}</span>
+				</div>
+
+				const later = 'later';
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain("const later = 'later';");
+		expect(code).toContain('function StatementBodyHook1(');
+		expect(code).not.toContain('_tsrx_StatementBodyHook1_later');
+		expect(code).not.toContain('later={later}');
+	});
+
 	it('keeps post-split bindings local inside typed cached continuation helpers', () => {
 		const { code } = compile(
 			`import { useState, useEffect } from 'react';
@@ -1617,7 +1641,7 @@ describe('lazy destructuring', () => {
 		expect(code).toContain('useEffect(');
 		expect(code).toContain('let App__StatementBodyHook1;');
 		expect(code).toContain('let App__StatementBodyHook2;');
-		expect(code).toContain('const _tsrx_StatementBodyHook2_count = count;');
+		expect(code).not.toContain('const _tsrx_StatementBodyHook2_count = count;');
 		expect(code).toContain('return <div>{laterVar}</div>;');
 		expect(code).not.toContain('App__Continue');
 	});

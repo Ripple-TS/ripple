@@ -170,12 +170,9 @@ export function createJsxTransform(platform) {
 				state.current_css_hash = as_any.css ? as_any.css.hash : null;
 
 				// Pre-collect component body bindings (params + top-level statements)
-				// so that Element children processed during the bottom-up walk can see
-				// the full scope. Without this, hoisted helpers would miss body-level
-				// variables like `const [x] = useState(...)` and produce ReferenceErrors.
-				// Collect the whole top-level component scope so bottom-up element
-				// children can see body-level declarations while building typed helper
-				// props.
+				// so Element children processed during the bottom-up walk can see
+				// component-scope names. Hook-safe helpers filter this set down to
+				// the names their body actually references before generating props.
 				const body_bindings = collect_param_bindings(as_any.params || []);
 				const body = as_any.body || [];
 				for (let i = 0; i < body.length; i += 1) {
@@ -1467,6 +1464,23 @@ function hook_safe_render_statements(body_nodes, key_expression, transform_conte
 
 /**
  * @param {any[]} body_nodes
+ * @param {Map<string, AST.Identifier>} available_bindings
+ * @returns {AST.Identifier[]}
+ */
+function get_referenced_helper_bindings(body_nodes, available_bindings) {
+	const helper_bindings = [];
+
+	for (const [name, binding] of available_bindings) {
+		if (references_scope_bindings(body_nodes, new Map([[name, binding]]))) {
+			helper_bindings.push(binding);
+		}
+	}
+
+	return helper_bindings;
+}
+
+/**
+ * @param {any[]} body_nodes
  * @param {any} key_expression
  * @param {any} source_node
  * @param {TransformContext} transform_context
@@ -1476,7 +1490,10 @@ function create_hook_safe_helper(body_nodes, key_expression, source_node, transf
 	const helper_id = create_generated_identifier(
 		create_local_statement_component_name(transform_context),
 	);
-	const helper_bindings = Array.from(transform_context.available_bindings.values());
+	const helper_bindings = get_referenced_helper_bindings(
+		body_nodes,
+		transform_context.available_bindings,
+	);
 	const aliases = helper_bindings.map((binding) =>
 		create_helper_type_alias_declaration(helper_id, binding),
 	);
