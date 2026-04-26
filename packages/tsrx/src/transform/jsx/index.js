@@ -461,11 +461,6 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 			continue;
 		}
 
-		if (is_lone_return_if_statement(child)) {
-			statements.push(create_component_lone_return_if_statement(child, render_nodes));
-			continue;
-		}
-
 		if (is_jsx_child(child)) {
 			const jsx = to_jsx_child(child, transform_context);
 			if (interleaved && is_capturable_jsx_child(jsx)) {
@@ -958,19 +953,6 @@ function is_returning_if_statement(node) {
  */
 function get_if_consequent_body(node) {
 	return node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function returning_if_statement_needs_child(node) {
-	const consequent_body = get_if_consequent_body(node);
-	const return_index = consequent_body.findIndex(is_bare_return_statement);
-	const rendered_body =
-		return_index === -1 ? consequent_body : consequent_body.slice(0, return_index);
-
-	return rendered_body.some(is_jsx_child) || body_contains_top_level_hook_call(rendered_body);
 }
 
 /**
@@ -1530,11 +1512,10 @@ function create_hook_safe_helper(body_nodes, key_expression, source_node, transf
 	const aliases = helper_bindings.map((binding) =>
 		create_helper_type_alias_declaration(helper_id, binding),
 	);
-	const props_type = () => create_helper_props_type_literal(helper_bindings, aliases);
+	const props_type =
+		helper_bindings.length > 0 ? create_helper_props_type_literal(helper_bindings, aliases) : null;
 	const params =
-		helper_bindings.length > 0
-			? [create_typed_helper_props_pattern(helper_bindings, props_type())]
-			: [];
+		props_type !== null ? [create_typed_helper_props_pattern(helper_bindings, props_type)] : [];
 
 	const saved_bindings = transform_context.available_bindings;
 	transform_context.available_bindings = new Map(saved_bindings);
@@ -1596,7 +1577,7 @@ function create_hook_safe_helper(body_nodes, key_expression, source_node, transf
 	return {
 		setup_statements: [
 			...aliases.map((alias) => alias.declaration),
-			create_cached_helper_declaration(helper_id, cache_id, helper_fn, props_type()),
+			create_cached_helper_declaration(helper_id, cache_id, helper_fn),
 		],
 		component_element,
 	};
@@ -1736,10 +1717,9 @@ function create_helper_cache_declaration(cache_id) {
  * @param {AST.Identifier} helper_id
  * @param {AST.Identifier} cache_id
  * @param {any} helper_fn
- * @param {any} props_type
  * @returns {any}
  */
-function create_cached_helper_declaration(helper_id, cache_id, helper_fn, props_type) {
+function create_cached_helper_declaration(helper_id, cache_id, helper_fn) {
 	return /** @type {any} */ ({
 		type: 'VariableDeclaration',
 		kind: 'const',
