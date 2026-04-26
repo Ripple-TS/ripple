@@ -429,8 +429,8 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 
 		if (is_bare_return_statement(child)) {
 			statements.push(create_component_return_statement(render_nodes, child));
-			transform_context.available_bindings = saved_bindings;
-			return statements;
+			render_nodes.length = 0;
+			continue;
 		}
 
 		if (is_returning_if_statement(child)) {
@@ -984,22 +984,25 @@ function create_component_return_statement(
 	source_node,
 	map_render_node_locations = true,
 ) {
-	return /** @type {any} */ ({
-		type: 'ReturnStatement',
-		argument: build_return_expression(
-			render_nodes.map((node) =>
-				map_render_node_locations
-					? clone_expression_node(node)
-					: clone_expression_node_without_locations(node),
-			),
-		) || {
-			type: 'Literal',
-			value: null,
-			raw: 'null',
+	return set_loc(
+		/** @type {any} */ ({
+			type: 'ReturnStatement',
+			argument: build_return_expression(
+				render_nodes.map((node) =>
+					map_render_node_locations
+						? clone_expression_node(node)
+						: clone_expression_node_without_locations(node),
+				),
+			) || {
+				type: 'Literal',
+				value: null,
+				raw: 'null',
+				metadata: { path: [] },
+			},
 			metadata: { path: [] },
-		},
-		metadata: { path: [] },
-	});
+		}),
+		source_node,
+	);
 }
 
 /**
@@ -1088,7 +1091,6 @@ function create_component_helper_split_returning_if_statements(
 		node,
 		transform_context,
 	);
-
 	return [
 		set_loc(
 			/** @type {any} */ ({

@@ -285,6 +285,28 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('<button>{count}</button>');
 	});
 
+	it('keeps transforming unreachable component body statements after bare returns', () => {
+		const { code } = compile(
+			`export component App() {
+				const foo = 'string';
+
+				return;
+
+				const bar = foo.trim();
+				<div>{bar}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		const return_pos = code.indexOf('return null;');
+		const bar_pos = code.indexOf('const bar = foo.trim();');
+		const tail_return_pos = code.indexOf('return <div>{bar}</div>;');
+
+		expect(return_pos).toBeGreaterThan(-1);
+		expect(bar_pos).toBeGreaterThan(return_pos);
+		expect(tail_return_pos).toBeGreaterThan(bar_pos);
+	});
+
 	it('extracts typed cached continuation helpers after early-return if statements', () => {
 		const source = `import { useState, useEffect } from 'react';
 

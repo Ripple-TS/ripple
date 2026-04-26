@@ -260,6 +260,31 @@ export function runSharedSourceMappingTests({
 		});
 	});
 
+	describe(`[${name}] component return mappings`, () => {
+		it('maps generated bare returns back to source returns', () => {
+			const source = `component App() {
+	return;
+	const value = 'after';
+	<div>{value}</div>
+}`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx');
+			const source_return_offset = source.indexOf('return');
+			const generated_return_offset = result.code.indexOf('return');
+			const return_mapping = result.mappings.find(
+				(
+					/** @type {{ sourceOffsets: number[], lengths: number[], generatedOffsets: number[], generatedLengths: number[] }} */ mapping,
+				) =>
+					mapping.sourceOffsets[0] === source_return_offset &&
+					mapping.lengths[0] === 'return'.length &&
+					mapping.generatedOffsets[0] === generated_return_offset &&
+					mapping.generatedLengths[0] === 'return'.length,
+			);
+
+			expect(generated_return_offset).toBeGreaterThan(-1);
+			expect(return_mapping).toBeDefined();
+		});
+	});
+
 	describe(`[${name}] identifier_to_jsx_name preserves component metadata`, () => {
 		it('flags capitalized identifier names as components', () => {
 			const jsx = identifier_to_jsx_name({
