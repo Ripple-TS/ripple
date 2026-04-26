@@ -41,6 +41,7 @@ import {
 	renderStylesheets,
 	getOriginalEventName,
 	isEventAttribute,
+	isInsideComponent as is_inside_component,
 	normalizeEventName,
 	shouldPreserveComment,
 	formatComment,
@@ -48,7 +49,6 @@ import {
 } from '@tsrx/core';
 const b = builders;
 import {
-	is_inside_component,
 	build_assignment,
 	visit_assignment_expression,
 	escape_html,

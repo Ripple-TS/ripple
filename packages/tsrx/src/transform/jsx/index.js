@@ -35,6 +35,8 @@ import {
 } from '../lazy.js';
 import { find_first_top_level_await_in_component_body } from '../await.js';
 import { prepare_stylesheet_for_render, annotate_component_with_hash } from '../scoping.js';
+import { validate_component_return_statement } from '../../analyze/validation.js';
+import { get_component_from_path } from '../../utils/ast.js';
 import {
 	is_interleaved_body as is_interleaved_body_core,
 	is_capturable_jsx_child,
@@ -112,8 +114,17 @@ export function createJsxTransform(platform) {
 		preallocate_lazy_ids(/** @type {any} */ (ast), transform_context);
 
 		walk(/** @type {any} */ (ast), transform_context, {
+			ReturnStatement(node, { next, path }) {
+				if (get_component_from_path(path)) {
+					validate_component_return_statement(node, filename);
+				}
+
+				return next();
+			},
+
 			Component(node, { next, state }) {
 				const as_any = /** @type {any} */ (node);
+
 				const await_expression = find_first_top_level_await_in_component_body(as_any.body || []);
 
 				if (await_expression) {
