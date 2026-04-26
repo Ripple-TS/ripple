@@ -260,6 +260,48 @@ export function runSharedSourceMappingTests({
 		});
 	});
 
+	describe(`[${name}] optional TypeScript identifiers keep mappings`, () => {
+		it('maps manually printed optional tuple labels and function parameters', () => {
+			const source = `export type OptionalTuple = [tupleRequired: string, tupleMaybe?: string];
+export type OptionalFn = (fnRequired: string, fnMaybe?: string) => void;
+export function optionalFn(declRequired: string, declMaybe?: string) {
+	todo(declRequired, declMaybe);
+}`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx');
+
+			/**
+			 * @param {string} identifier
+			 * @param {string} sourceNeedle
+			 */
+			const expect_identifier_mapping = (identifier, sourceNeedle) => {
+				const generated_needle = sourceNeedle;
+				const source_offset = source.indexOf(sourceNeedle);
+				const generated_offset = result.code.indexOf(generated_needle);
+				const mapping = result.mappings.find(
+					(
+						/** @type {{ sourceOffsets: number[], generatedOffsets: number[], lengths: number[], generatedLengths: number[] }} */ m,
+					) =>
+						m.sourceOffsets[0] === source_offset &&
+						m.generatedOffsets[0] === generated_offset &&
+						m.lengths[0] === identifier.length &&
+						m.generatedLengths[0] === identifier.length,
+				);
+
+				expect(source_offset).toBeGreaterThan(-1);
+				expect(generated_offset).toBeGreaterThan(-1);
+				expect(mapping).toBeDefined();
+			};
+
+			expect(result.errors).toEqual([]);
+			expect(result.code).toContain('tupleMaybe?: string');
+			expect(result.code).toContain('fnMaybe?: string');
+			expect(result.code).toContain('declMaybe?: string');
+			expect_identifier_mapping('tupleMaybe', 'tupleMaybe?: string');
+			expect_identifier_mapping('fnMaybe', 'fnMaybe?: string');
+			expect_identifier_mapping('declMaybe', 'declMaybe?: string');
+		});
+	});
+
 	describe(`[${name}] component return mappings`, () => {
 		it('maps generated bare returns back to source returns', () => {
 			const source = `component App() {
