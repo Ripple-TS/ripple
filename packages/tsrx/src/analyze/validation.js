@@ -5,6 +5,9 @@
 
 import { error } from '../errors.js';
 
+export const COMPONENT_RETURN_VALUE_ERROR =
+	'Return statements inside components cannot have a return value.';
+
 const invalid_nestings = {
 	// <p> cannot contain block-level elements
 	p: new Set([
@@ -123,6 +126,50 @@ const invalid_nestings = {
  */
 function get_element_tag(element) {
 	return element.id.type === 'Identifier' ? element.id.name : null;
+}
+
+/**
+ * @param {AST.ReturnStatement} node
+ * @returns {AST.ReturnStatement}
+ */
+export function get_return_keyword_node(node) {
+	const return_keyword_length = 'return'.length;
+	const start = /** @type {AST.NodeWithLocation} */ (node).start ?? 0;
+	const loc = /** @type {AST.NodeWithLocation} */ (node).loc;
+
+	return /** @type {AST.ReturnStatement} */ ({
+		...node,
+		end: start + return_keyword_length,
+		loc: loc
+			? {
+					start: loc.start,
+					end: {
+						line: loc.start.line,
+						column: loc.start.column + return_keyword_length,
+					},
+				}
+			: undefined,
+	});
+}
+
+/**
+ * @param {AST.ReturnStatement} node
+ * @param {string | null | undefined} filename
+ * @param {CompileError[]} [errors]
+ * @param {AST.CommentWithLocation[]} [comments]
+ */
+export function validate_component_return_statement(node, filename, errors, comments) {
+	if (node.argument === null) {
+		return;
+	}
+
+	error(
+		COMPONENT_RETURN_VALUE_ERROR,
+		filename ?? null,
+		get_return_keyword_node(node),
+		errors,
+		comments,
+	);
 }
 
 /**

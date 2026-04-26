@@ -24,8 +24,11 @@ import {
 	extractPaths,
 	analyzeCss,
 	error,
+	getReturnKeywordNode,
 	isEventAttribute,
+	isInsideComponent as is_inside_component,
 	validateNesting,
+	validateComponentReturnStatement,
 } from '@tsrx/core';
 const b = builders;
 import { walk } from 'zimmerframe';
@@ -33,7 +36,6 @@ import {
 	is_delegated_event,
 	get_parent_block_node,
 	is_element_dom_element,
-	is_inside_component,
 	is_ripple_track_call,
 	is_children_template_expression as is_children_template_expression_in_scope,
 	normalize_children,
@@ -821,30 +823,11 @@ function mark_as_tracked(path) {
 
 /**
  * @param {AST.ReturnStatement} node
- * @returns {AST.ReturnStatement}
- */
-function get_return_keyword_node(node) {
-	const return_keyword_length = 'return'.length;
-	return /** @type {AST.ReturnStatement} */ ({
-		...node,
-		end: /** @type {AST.NodeWithLocation} */ (node).start + return_keyword_length,
-		loc: {
-			start: /** @type {AST.NodeWithLocation} */ (node).loc.start,
-			end: {
-				line: /** @type {AST.NodeWithLocation} */ (node).loc.start.line,
-				column: /** @type {AST.NodeWithLocation} */ (node).loc.start.column + return_keyword_length,
-			},
-		},
-	});
-}
-
-/**
- * @param {AST.ReturnStatement} node
  * @param {AnalysisContext} context
  * @param {string} message
  */
 function error_return_keyword(node, context, message) {
-	const return_keyword_node = get_return_keyword_node(node);
+	const return_keyword_node = getReturnKeywordNode(node);
 
 	error(
 		message,
@@ -1670,13 +1653,12 @@ const visitors = {
 			return context.next();
 		}
 
-		if (node.argument !== null) {
-			error_return_keyword(
-				node,
-				context,
-				'Return statements inside components cannot have a return value.',
-			);
-		}
+		validateComponentReturnStatement(
+			node,
+			context.state.analysis.module.filename,
+			context.state.loose ? context.state.analysis.errors : undefined,
+			context.state.analysis.comments,
+		);
 
 		for (let i = context.path.length - 1; i >= 0; i--) {
 			const ancestor = context.path[i];

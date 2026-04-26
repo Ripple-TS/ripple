@@ -21,6 +21,67 @@
 import * as b from './builders.js';
 
 /**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+export function is_function_node(node) {
+	return (
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression' ||
+		node.type === 'FunctionDeclaration'
+	);
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+export function is_class_node(node) {
+	return node.type === 'ClassExpression' || node.type === 'ClassDeclaration';
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+export function is_component_node(node) {
+	return node.type === 'Component';
+}
+
+/**
+ * Returns the closest component in an ancestry path. By default, function and
+ * class boundaries stop the search so callers only match direct component
+ * body/control-flow nodes.
+ *
+ * @param {AST.Node[]} path
+ * @param {boolean} [includes_functions=false]
+ * @returns {AST.Component | undefined}
+ */
+export function get_component_from_path(path, includes_functions = false) {
+	for (let i = path.length - 1; i >= 0; i -= 1) {
+		const node = path[i];
+
+		if (!includes_functions && (is_function_node(node) || is_class_node(node))) {
+			return;
+		}
+
+		if (is_component_node(node)) {
+			return /** @type {AST.Component} */ (node);
+		}
+	}
+}
+
+/**
+ * @param {AST.Node[] | { path: AST.Node[] }} context_or_path
+ * @param {boolean} [includes_functions=false]
+ * @returns {AST.Component | undefined}
+ */
+export function is_inside_component(context_or_path, includes_functions = false) {
+	const path = Array.isArray(context_or_path) ? context_or_path : context_or_path.path;
+	return get_component_from_path(path, includes_functions);
+}
+
+/**
  * Gets the left-most identifier of a member expression or identifier.
  * @param {AST.MemberExpression | AST.Identifier} expression
  * @returns {AST.Identifier | null}
