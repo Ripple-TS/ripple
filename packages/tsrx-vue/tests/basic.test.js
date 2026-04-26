@@ -48,6 +48,36 @@ describe('@tsrx/vue basic', () => {
 		expect(code.match(/defineVaporComponent/g)).toHaveLength(2);
 	});
 
+	it('supports lazy destructuring in Vue component params', () => {
+		const { code } = compile(
+			`component Child(&{ count }: { count: number }) {
+				<pre>{count}</pre>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function Child(__lazy0: { count: number })');
+		expect(code).toContain('return <pre>{__lazy0.count}</pre>;');
+	});
+
+	it('supports lazy destructuring in Vue component bodies', () => {
+		const { code } = compile(
+			`import { reactive } from 'vue';
+
+			component App() {
+				const state = reactive({ count: 1 });
+				let &{ count } = state;
+				count++;
+				<pre>{count}</pre>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('let __lazy0 = state;');
+		expect(code).toContain('__lazy0.count++;');
+		expect(code).toContain('return <pre>{__lazy0.count}</pre>;');
+	});
+
 	it('emits scoped CSS and applies the scope hash to host elements', () => {
 		const { code, css } = compile(
 			`component App() {

@@ -3,10 +3,13 @@ import { ripple } from '@ripple-ts/vite-plugin';
 import { fileURLToPath } from 'node:url';
 
 const vue_runtime_path = fileURLToPath(
-	new URL('./playground/vue/node_modules/.vite/deps/vue.js', import.meta.url),
+	new URL('./packages/vite-plugin-vue/tests/vue-runtime-shim.js', import.meta.url),
 );
 const vue_jsx_vapor_runtime_path = fileURLToPath(
-	new URL('./playground/vue/node_modules/.vite/deps/vue-jsx-vapor.js', import.meta.url),
+	new URL('./packages/vite-plugin-vue/tests/vue-jsx-vapor-shim.js', import.meta.url),
+);
+const vue_jsx_vapor_jsx_runtime_path = fileURLToPath(
+	new URL('./packages/vite-plugin-vue/tests/vue-jsx-vapor-jsx-runtime-shim.js', import.meta.url),
 );
 const vue_error_boundary_path = fileURLToPath(
 	new URL('./packages/tsrx-vue/src/error-boundary.js', import.meta.url),
@@ -14,8 +17,10 @@ const vue_error_boundary_path = fileURLToPath(
 
 const vue_runtime_alias_plugin = {
 	name: 'tsrx-vue-runtime-aliases',
+	/** @param {string} source */
 	resolveId(source) {
 		if (source === 'vue') return vue_runtime_path;
+		if (source === 'vue-jsx-vapor/jsx-runtime') return vue_jsx_vapor_jsx_runtime_path;
 		if (source === 'vue-jsx-vapor') return vue_jsx_vapor_runtime_path;
 		if (source === '@tsrx/vue/error-boundary') return vue_error_boundary_path;
 		return null;

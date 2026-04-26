@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ref } from 'vue';
+import { reactive, ref } from 'vue';
 
 const EXPECTED_ERROR_LOG_SNIPPETS = ['sync boom', 'conditional boom', 'inner error'];
 
@@ -110,6 +110,27 @@ component CounterApp() {
 	const count = ref(0);
 	<p class="count">{count.value}</p>
 	<button class="inc" onClick={() => count.value++}>{'+'}</button>
+}
+
+component LazyParamChild(&{ count }: { count: number }) {
+	<p class="lazy-child-count">{count}</p>
+}
+
+component LazyObjectDestructuringApp() {
+	const state = reactive({ count: 0 });
+	let &{ count } = state;
+
+	<p class="lazy-local-count">{count}</p>
+	<LazyParamChild count={state.count} />
+	<button class="lazy-inc" onClick={() => count++}>{'+'}</button>
+}
+
+component LazyArrayDestructuringApp() {
+	const values = reactive([1, 2]);
+	let &[first, second] = values;
+
+	<p class="lazy-array-counts">{`${first}-${second}`}</p>
+	<button class="lazy-array-update" onClick={() => (first = second + 1)}>{'update'}</button>
 }
 
 component EarlyReturnWithRefsApp() {
@@ -419,6 +440,28 @@ describe('tsrx-vue runtime', () => {
 		expect(text('.count')).toBe('1');
 		await click('.inc');
 		expect(text('.count')).toBe('2');
+	});
+
+	it('supports lazy object destructuring for local state and child params', async () => {
+		await render(LazyObjectDestructuringApp);
+		expect(text('.lazy-local-count')).toBe('0');
+		expect(text('.lazy-child-count')).toBe('0');
+
+		await click('.lazy-inc');
+		expect(text('.lazy-local-count')).toBe('1');
+		expect(text('.lazy-child-count')).toBe('1');
+
+		await click('.lazy-inc');
+		expect(text('.lazy-local-count')).toBe('2');
+		expect(text('.lazy-child-count')).toBe('2');
+	});
+
+	it('supports lazy array destructuring with reactive arrays', async () => {
+		await render(LazyArrayDestructuringApp);
+		expect(text('.lazy-array-counts')).toBe('1-2');
+
+		await click('.lazy-array-update');
+		expect(text('.lazy-array-counts')).toBe('3-2');
 	});
 
 	it('toggles if-statement branches reactively', async () => {
