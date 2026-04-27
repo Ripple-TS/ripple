@@ -11,9 +11,6 @@ const vue_jsx_vapor_runtime_path = fileURLToPath(
 const vue_jsx_vapor_jsx_runtime_path = fileURLToPath(
 	new URL('./packages/vite-plugin-vue/tests/vue-jsx-vapor-jsx-runtime-shim.js', import.meta.url),
 );
-const vue_error_boundary_path = fileURLToPath(
-	new URL('./packages/tsrx-vue/src/error-boundary.js', import.meta.url),
-);
 
 const vue_runtime_alias_plugin = {
 	name: 'tsrx-vue-runtime-aliases',
@@ -23,7 +20,6 @@ const vue_runtime_alias_plugin = {
 		if (source === 'vue') return vue_runtime_path;
 		if (source === 'vue-jsx-vapor/jsx-runtime') return vue_jsx_vapor_jsx_runtime_path;
 		if (source === 'vue-jsx-vapor') return vue_jsx_vapor_runtime_path;
-		if (source === '@tsrx/vue/error-boundary') return vue_error_boundary_path;
 		return null;
 	},
 };

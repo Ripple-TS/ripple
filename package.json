@@ -36,6 +36,7 @@
     "@tsrx/ripple": "workspace:*",
     "@tsrx/react": "workspace:*",
     "@tsrx/solid": "workspace:*",
+    "@tsrx/vue": "workspace:*",
     "@ripple-ts/vite-plugin": "workspace:*",
     "@types/node": "catalog:default",
     "@typescript/native-preview": "7.0.0-dev.20260425.1",

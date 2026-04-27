@@ -272,6 +272,9 @@ importers:
       '@tsrx/solid':
         specifier: workspace:*
         version: link:packages/tsrx-solid
+      '@tsrx/vue':
+        specifier: workspace:*
+        version: link:packages/tsrx-vue
       '@types/node':
         specifier: catalog:default
         version: 24.11.0
