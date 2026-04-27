@@ -170,4 +170,58 @@ describe('basic client', () => {
 
 		expect(body).toBeHtml('<div>1</div><div>10</div><div>12<span>15</span></div>');
 	});
+
+	it('runs nested JavaScript blocks inside component-local callables', async () => {
+		component App() {
+			function readFunction() {
+				const label = 'function outer';
+				let result = '';
+
+				{
+					const label = 'function inner';
+					result = label;
+				}
+
+				return `${result} / ${label}`;
+			}
+
+			const readArrow = () => {
+				const offset = 5;
+				let value = offset;
+
+				{
+					const offset = 17;
+					value += offset;
+				}
+
+				return value;
+			};
+
+			class Reader {
+				read() {
+					const label = 'method outer';
+					let result = '';
+
+					{
+						const label = 'method inner';
+						result = label;
+					}
+
+					return `${result} / ${label}`;
+				}
+			}
+
+			const reader = new Reader();
+
+			<div class="block-function">{readFunction()}</div>
+			<div class="block-arrow">{readArrow()}</div>
+			<div class="block-method">{reader.read()}</div>
+		}
+
+		const { body } = await render(App);
+
+		expect(body).toBeHtml(
+			'<div class="block-function">function inner / function outer</div><div class="block-arrow">22</div><div class="block-method">method inner / method outer</div>',
+		);
+	});
 });

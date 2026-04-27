@@ -1,5 +1,5 @@
 import type { Program } from 'estree';
-import type { ParseOptions, VolarMappingsResult } from '@tsrx/core/types';
+import type { CompileError, ParseOptions, VolarMappingsResult } from '@tsrx/core/types';
 
 export interface CompileOptions {
 	suspenseSource?: string;
@@ -12,11 +12,12 @@ export function parse(source: string, filename?: string, options?: ParseOptions)
 export function compile(
 	source: string,
 	filename?: string,
-	compile_options?: CompileOptions,
+	compile_options?: CompileOptions & { loose?: boolean },
 ): {
 	code: string;
 	map: unknown;
 	css: { code: string; hash: string } | null;
+	errors: CompileError[];
 };
 
 export function compile_to_volar_mappings(

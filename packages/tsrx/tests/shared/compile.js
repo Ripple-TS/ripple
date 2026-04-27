@@ -78,6 +78,200 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 			expect(code).toContain('export default function App()');
 			expect(code).toContain("{'Hello world'}");
 		});
+
+		it('preserves component type parameters on the emitted function', () => {
+			const { code } = compile(
+				`type Props<Item> = {
+					items: readonly Item[];
+				}
+
+				export component MyComponent<Item>(props: Props<Item>) {
+					<div />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('export function MyComponent<Item>(props: Props<Item>)');
+		});
+	});
+
+	describe(`[${name}] TypeScript output`, () => {
+		it('preserves regular function type parameters', () => {
+			const { code } = compile(
+				`type Props<Item> = {
+					items: readonly Item[];
+				}
+
+				export function getItems<Item>(props: Props<Item>) {
+					return props.items;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('export function getItems<Item>(props: Props<Item>)');
+		});
+
+		it('preserves optional markers in tuple members and function parameters', () => {
+			const { code } = compile(
+				`export type OptionalTuple = [bar: string, baz?: string];
+export type OptionalFn = (bar: string, baz?: string) => void;
+export interface OptionalInterfaceFn {
+	(bar: string, baz?: string): void;
+}
+export function optionalFn(bar: string, baz?: string) {
+	todo(bar, baz);
+}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('export type OptionalTuple = [bar: string, baz?: string];');
+			expect(code).toContain('export type OptionalFn = (bar: string, baz?: string) => void;');
+			expect(code).toContain('(bar: string, baz?: string): void');
+			expect(code).toContain('export function optionalFn(bar: string, baz?: string)');
+		});
+
+		it('keeps JavaScript block scopes inside component-local callables', () => {
+			const { code } = compile(
+				`export component BlockScopeCheck() {
+					function fromDeclaration() {
+						let result = 0;
+						{
+							const result = 41;
+							return result + 1;
+						}
+					}
+
+					const fromArrow = () => {
+						{
+							const token = 'arrow-block';
+							return token.toUpperCase();
+						}
+					};
+
+					class Reader {
+						value() {
+							{
+								const amount = 7;
+								return amount * 6;
+							}
+						}
+					}
+
+					const reader = new Reader();
+
+					<output>{fromDeclaration()}{fromArrow()}{reader.value()}</output>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function fromDeclaration()');
+			expect(code).toContain('const result = 41');
+			expect(code).toContain("const token = 'arrow-block'");
+			expect(code).toContain('class Reader');
+			expect(code).toContain('const amount = 7');
+			expect(code).toContain('{fromDeclaration()}');
+			expect(code).toContain('{fromArrow()}');
+			expect(code).toContain('{reader.value()}');
+		});
+
+		it('still treats component-level braces as template expressions', () => {
+			const { code } = compile(
+				`export component ExpressionContainerCheck() {
+					function ignore() {
+						{
+							const hidden = 'not rendered';
+							return hidden;
+						}
+					}
+
+					const visible = 'render me';
+					{visible}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain("const visible = 'render me'");
+			expect(code).toContain('return visible;');
+			expect(code).not.toMatch(/\{\n\s+visible;\n\s+\}/);
+		});
+
+		it('keeps generic-looking arrow expressions parseable after inner blocks in functions', () => {
+			const { code } = compile(
+				`export component GenericAfterBlockCheck() {
+					const make = () => {
+						if (true) {
+							const local = 1;
+							console.log(local);
+						}
+
+						<T,>(value: T) => value;
+					};
+
+					<div>{make}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('(value: T) => value');
+			expect(code).toContain('{make}');
+		});
+	});
+
+	describe(`[${name}] component return validation`, () => {
+		it('rejects return statements with values in component scope', () => {
+			expect(() =>
+				compile(
+					`export component App() {
+						if (true) {
+							return 'hello';
+						}
+
+						<div>{'fallback'}</div>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow('Return statements inside components cannot have a return value.');
+		});
+
+		it('reports component return value errors at the return keyword', () => {
+			const source = `export component App() {
+				return value;
+			}`;
+			const return_start = source.indexOf('return');
+
+			expect(() => compile(source, 'App.tsrx')).toThrowError(
+				expect.objectContaining({
+					pos: return_start,
+					end: return_start + 'return'.length,
+				}),
+			);
+		});
+
+		it('allows return values inside functions and classes nested in components', () => {
+			expect(() =>
+				compile(
+					`export component App() {
+						function getLabel() {
+							return 'label';
+						}
+
+						const getCount = () => {
+							return 1;
+						};
+
+						class Model {
+							getValue() {
+								return getCount();
+							}
+						}
+
+						const model = new Model();
+						<div>{getLabel()}{model.getValue()}</div>
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
 	});
 
 	describe(`[${name}] walker transforms survive element lowering`, () => {
@@ -214,6 +408,79 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 		// component scope, but locals with the same name must shadow — the
 		// shared `applyLazyTransforms` helper in @tsrx/core handles this.
 
+		it('gives untyped lazy object params an object-shaped generated type', () => {
+			const { code } = compile(
+				`export component App(&{ name, age }) {
+					<div>{name}{age}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function App(__lazy0: { name: any; age: any })');
+			expect(code).toContain('__lazy0.name');
+			expect(code).toContain('__lazy0.age');
+		});
+
+		it('uses the source property name for aliased lazy object params', () => {
+			const { code } = compile(
+				`export component App(&{ name: displayName }) {
+					<div>{displayName}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function App(__lazy0: { name: any })');
+			expect(code).toContain('__lazy0.name');
+			expect(code).not.toContain('__lazy0.displayName');
+		});
+
+		it('preserves provided types for aliased lazy object params', () => {
+			const { code } = compile(
+				`export component App(&{ a: c, b }: { a: string, b: string }) {
+					<div>{c}{b}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function App(__lazy0: { a: string; b: string })');
+			expect(code).toContain('__lazy0.a');
+			expect(code).toContain('__lazy0.b');
+		});
+
+		it('rejects repeated local names inside lazy object params on plain functions', () => {
+			expect(() =>
+				compile(
+					`export function greet(&{ a: b, b }: { a: string, b: string }) {
+						return b;
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/Argument name clash/);
+		});
+
+		it('rejects repeated local names inside lazy object params on components', () => {
+			expect(() =>
+				compile(
+					`export component App(&{ a: b, b }: { a: string, b: string }) {
+						<div>{b}</div>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/Argument name clash/);
+		});
+
+		it('allows distinct local names inside lazy object params on plain functions', () => {
+			const { code } = compile(
+				`export function greet(&{ a: c, b }: { a: string, b: string }) {
+					return c + b;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function greet(__lazy0: { a: string; b: string })');
+			expect(code).toContain('return __lazy0.a + __lazy0.b');
+		});
+
 		it('does not rewrite switch-case variables that shadow lazy bindings', () => {
 			const { code } = compile(
 				`export component App(&{ name }: { name: string }) {
@@ -311,11 +578,10 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 			expect(second_capture).toBeGreaterThan(assign_two);
 		});
 
-		it('preserves source order for interleaved JSX across a hook-safe split', () => {
-			// React/Preact track a hook-safe split for top-level hook calls;
-			// Solid has no such concept but still goes through the same
-			// capture path for interleaved mutations, so the assertion holds
-			// cross-platform.
+		it('preserves source order for interleaved JSX across early-return splits', () => {
+			// React/Preact extract typed continuation helpers after early returns
+			// when top-level hooks follow; Solid has no hook-order rule but still
+			// goes through the same capture path for interleaved mutations.
 			const { code } = compile(
 				`component Card() {
 					var a = "one"

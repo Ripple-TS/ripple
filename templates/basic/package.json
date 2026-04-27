@@ -11,6 +11,7 @@
 		"dev": "vite",
 		"build": "vite build",
 		"lint": "eslint .",
+		"typecheck": "tsrx-tsc --noEmit",
 		"serve": "vite preview",
 		"format": "prettier --write .",
 		"format:check": "prettier --check ."

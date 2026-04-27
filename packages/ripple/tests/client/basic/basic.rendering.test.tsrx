@@ -249,6 +249,64 @@ describe('basic client > rendering & text', () => {
 		expect(container).toMatchSnapshot();
 	});
 
+	it('runs nested JavaScript blocks inside component-local callables', () => {
+		component App() {
+			function readFunction() {
+				const label = 'function outer';
+				let result = '';
+
+				{
+					const label = 'function inner';
+					result = label;
+				}
+
+				return `${result} / ${label}`;
+			}
+
+			const readArrow = () => {
+				const offset = 5;
+				let value = offset;
+
+				{
+					const offset = 17;
+					value += offset;
+				}
+
+				return value;
+			};
+
+			class Reader {
+				read() {
+					const label = 'method outer';
+					let result = '';
+
+					{
+						const label = 'method inner';
+						result = label;
+					}
+
+					return `${result} / ${label}`;
+				}
+			}
+
+			const reader = new Reader();
+
+			<div class="block-function">{readFunction()}</div>
+			<div class="block-arrow">{readArrow()}</div>
+			<div class="block-method">{reader.read()}</div>
+		}
+
+		render(App);
+
+		expect(container.querySelector('.block-function').textContent).toBe(
+			'function inner / function outer',
+		);
+		expect(container.querySelector('.block-arrow').textContent).toBe('22');
+		expect(container.querySelector('.block-method').textContent).toBe(
+			'method inner / method outer',
+		);
+	});
+
 	it('should handle consecutive text nodes without duplication', () => {
 		component App() {
 			const Something = conditional('a');

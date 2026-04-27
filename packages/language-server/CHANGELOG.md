@@ -1,5 +1,29 @@
 # @ripple-ts/language-server
 
+## 0.3.34
+
+### Patch Changes
+
+- [#986](https://github.com/Ripple-TS/ripple/pull/986)
+  [`b8cd7c4`](https://github.com/Ripple-TS/ripple/commit/b8cd7c4195505976995033a8e369502996f345ad)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Improve lazy destructuring
+  editor support for TSX targets, including typed virtual params, hover display
+  rewrites, and loose-mode diagnostics for duplicate lazy parameter names.
+
+- Updated dependencies
+  [[`383feed`](https://github.com/Ripple-TS/ripple/commit/383feed84b09541c0b58992c09816b5a15c2d2d8),
+  [`cf4f06e`](https://github.com/Ripple-TS/ripple/commit/cf4f06e8bcbb41f863d047dfaa6d9d17ed212163),
+  [`fcd25aa`](https://github.com/Ripple-TS/ripple/commit/fcd25aa549db0d56ccbd596b657b856a5061e20f),
+  [`30126c7`](https://github.com/Ripple-TS/ripple/commit/30126c753c3a08809bacd07c8cf2eca84e8f8cbb),
+  [`b8cd7c4`](https://github.com/Ripple-TS/ripple/commit/b8cd7c4195505976995033a8e369502996f345ad),
+  [`b8cd7c4`](https://github.com/Ripple-TS/ripple/commit/b8cd7c4195505976995033a8e369502996f345ad),
+  [`3ddb1a9`](https://github.com/Ripple-TS/ripple/commit/3ddb1a92ffeb48a7d47c445b929b982a2b96e123),
+  [`fee8620`](https://github.com/Ripple-TS/ripple/commit/fee8620fa4e82a7c7e4adb3e434e9db552a3e157),
+  [`2fcacb4`](https://github.com/Ripple-TS/ripple/commit/2fcacb471d7780074f92b20c9b394f7650a941bb),
+  [`8e2aa8e`](https://github.com/Ripple-TS/ripple/commit/8e2aa8e75678c9ebc9b72055f4da474c82a8e834)]:
+  - @tsrx/typescript-plugin@0.3.34
+  - @tsrx/core@0.0.14
+
 ## 0.3.33
 
 ### Patch Changes

@@ -14,7 +14,8 @@
     "debug-client": "node ../../scripts/debug-mode.js client @tsrx/ripple",
     "debug-volar": "node ../../scripts/debug-mode.js tsx @tsrx/ripple",
     "debug-tsx": "node ../../scripts/debug-mode.js tsx @tsrx/ripple",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsrx-tsc --noEmit"
   },
   "devDependencies": {
     "@tsrx/eslint-plugin": "workspace:*",

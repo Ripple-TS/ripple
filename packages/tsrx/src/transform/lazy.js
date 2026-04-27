@@ -26,7 +26,7 @@
  */
 
 /**
- * @typedef {{ source_name: string, read: () => any }} LazyBinding
+ * @typedef {{ source_name: string, read: (reference?: any) => any }} LazyBinding
  */
 
 /**
@@ -47,11 +47,168 @@ function generate_lazy_id(context) {
 }
 
 /**
- * @param {string} name
+ * @param {any} node
+ * @param {any} [loc_info]
  * @returns {any}
  */
-function create_generated_identifier(name) {
-	return /** @type {any} */ ({ type: 'Identifier', name, metadata: { path: [] } });
+function set_source_location(node, loc_info) {
+	if (loc_info?.loc) {
+		node.start = loc_info.start;
+		node.end = loc_info.end;
+		node.loc = loc_info.loc;
+	}
+	return node;
+}
+
+/**
+ * @param {string} name
+ * @param {any} [loc_info]
+ * @param {string} [source_name]
+ * @param {number} [source_length]
+ * @returns {any}
+ */
+function create_generated_identifier(name, loc_info, source_name, source_length) {
+	const id = /** @type {any} */ ({ type: 'Identifier', name, metadata: { path: [] } });
+	if (source_name && source_name !== name) id.metadata.source_name = source_name;
+	if (source_length != null) id.metadata.source_length = source_length;
+	return set_source_location(id, loc_info);
+}
+
+/**
+ * @param {any} pattern
+ * @returns {{ start: number, end: number, loc: any, source_length: number } | null}
+ */
+function get_lazy_pattern_mapping_range(pattern) {
+	if (!pattern.loc) return null;
+
+	const end = pattern.typeAnnotation?.start ?? pattern.end;
+	const end_loc = pattern.typeAnnotation?.loc?.start ?? pattern.loc.end;
+	return {
+		start: pattern.start,
+		end,
+		loc: {
+			start: pattern.loc.start,
+			end: end_loc,
+		},
+		source_length: end - pattern.start,
+	};
+}
+
+/**
+ * Synthesize an object-shaped annotation for untyped lazy object params so the
+ * virtual TSX can expose prop names to TypeScript completions.
+ *
+ * @param {any} pattern
+ * @returns {any | null}
+ */
+function create_lazy_object_type_annotation(pattern) {
+	if (pattern.type !== 'ObjectPattern') return null;
+
+	const members = [];
+	for (const prop of pattern.properties || []) {
+		if (prop.type === 'RestElement' || prop.computed) continue;
+
+		const key = prop.key;
+		if (key.type !== 'Identifier' && key.type !== 'Literal') continue;
+
+		members.push({
+			type: 'TSPropertySignature',
+			key:
+				key.type === 'Identifier'
+					? create_generated_identifier(key.name, key)
+					: set_source_location({ ...key, metadata: { path: [] } }, key),
+			computed: false,
+			optional: false,
+			readonly: false,
+			static: false,
+			kind: 'init',
+			typeAnnotation: {
+				type: 'TSTypeAnnotation',
+				typeAnnotation: {
+					type: 'TSAnyKeyword',
+					metadata: { path: [] },
+				},
+				metadata: { path: [] },
+			},
+			metadata: { path: [] },
+		});
+	}
+
+	if (members.length === 0) return null;
+
+	return {
+		type: 'TSTypeAnnotation',
+		typeAnnotation: {
+			type: 'TSTypeLiteral',
+			members,
+			metadata: { path: [] },
+		},
+		metadata: { path: [] },
+	};
+}
+
+/**
+ * @param {any} node
+ * @returns {string | null}
+ */
+function get_static_property_name(node) {
+	if (node.type === 'Identifier') return node.name;
+	if (node.type === 'Literal') return String(node.value);
+	return null;
+}
+
+/**
+ * @param {any} type_annotation
+ * @returns {Map<string, any>}
+ */
+function get_type_property_keys(type_annotation) {
+	const keys = new Map();
+	const members = type_annotation?.typeAnnotation?.members;
+	if (!Array.isArray(members)) return keys;
+
+	for (const member of members) {
+		if (member.type !== 'TSPropertySignature' || !member.key) continue;
+		const name = get_static_property_name(member.key);
+		if (name != null && !keys.has(name)) keys.set(name, member.key);
+	}
+
+	return keys;
+}
+
+/**
+ * Store extra mappings from lazy object binding identifiers to generated type
+ * property keys. Parser diagnostics for duplicate bindings point at the binding
+ * names (`&{ a: value, value }`), while the virtual param only exposes object
+ * properties (`__lazy0: { a: ...; value: ... }`).
+ *
+ * @param {any} lazy_id
+ * @param {any} pattern
+ */
+function set_lazy_param_binding_mappings(lazy_id, pattern) {
+	if (pattern.type !== 'ObjectPattern') return;
+
+	const type_keys = get_type_property_keys(lazy_id.typeAnnotation);
+	if (type_keys.size === 0) return;
+
+	const mappings = [];
+	for (const prop of pattern.properties || []) {
+		if (prop.type === 'RestElement' || prop.computed) continue;
+
+		const value = prop.value;
+		const actual = value.type === 'AssignmentPattern' ? value.left : value;
+		if (actual.type !== 'Identifier' || !actual.loc) continue;
+
+		const key_name = get_static_property_name(prop.key);
+		const generated = key_name == null ? null : type_keys.get(key_name);
+		if (generated?.loc) {
+			generated.metadata = { ...generated.metadata, disable_verification: true };
+			mappings.push({ source: actual, generated });
+		}
+	}
+
+	if (mappings.length > 0) {
+		lazy_id.metadata.lazy_param_binding_mappings = mappings;
+	}
 }
 
 /**
@@ -76,12 +233,13 @@ export function collect_lazy_bindings(pattern, source_name, lazy_bindings) {
 				const computed = prop.computed || key.type !== 'Identifier';
 				lazy_bindings.set(actual.name, {
 					source_name,
-					read: () => ({
+					read: (reference) => ({
 						type: 'MemberExpression',
 						object: create_generated_identifier(source_name),
-						property: computed
-							? { ...key }
-							: { type: 'Identifier', name: key.name, metadata: { path: [] } },
+						property:
+							computed || key.type !== 'Identifier'
+								? { ...key }
+								: create_generated_identifier(key.name, reference, reference?.name),
 						computed,
 						optional: false,
 						metadata: { path: [] },
@@ -491,7 +649,7 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 		const binding = /** @type {LazyBinding} */ (lazy_bindings.get(node.left.name));
 		return {
 			...node,
-			left: binding.read(),
+			left: binding.read(node.left),
 			right: apply_lazy_transforms(node.right, lazy_bindings),
 		};
 	}
@@ -502,7 +660,7 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 		lazy_bindings.has(node.argument.name)
 	) {
 		const binding = /** @type {LazyBinding} */ (lazy_bindings.get(node.argument.name));
-		return { ...node, argument: binding.read() };
+		return { ...node, argument: binding.read(node.argument) };
 	}
 
 	// Replace lazy variable declaration patterns with generated identifiers.
@@ -520,14 +678,14 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 	if (node.type === 'Property' && node.shorthand && node.value?.type === 'Identifier') {
 		const binding = lazy_bindings.get(node.value.name);
 		if (binding) {
-			return { ...node, shorthand: false, value: binding.read() };
+			return { ...node, shorthand: false, value: binding.read(node.value) };
 		}
 	}
 
 	// Bare identifier reference.
 	if (node.type === 'Identifier' && lazy_bindings.has(node.name)) {
 		const binding = /** @type {LazyBinding} */ (lazy_bindings.get(node.name));
-		return binding.read();
+		return binding.read(node);
 	}
 
 	// JSXIdentifier is a label (component/element name), never a reference.
@@ -654,8 +812,22 @@ export function replace_lazy_params(params) {
 			pattern.lazy &&
 			pattern.metadata?.lazy_id
 		) {
-			const lazy_id = create_generated_identifier(pattern.metadata.lazy_id);
-			if (pattern.typeAnnotation) lazy_id.typeAnnotation = pattern.typeAnnotation;
+			const pattern_range = get_lazy_pattern_mapping_range(pattern);
+			const lazy_id = pattern_range
+				? create_generated_identifier(
+						pattern.metadata.lazy_id,
+						pattern_range,
+						undefined,
+						pattern_range.source_length,
+					)
+				: create_generated_identifier(pattern.metadata.lazy_id);
+			if (pattern.typeAnnotation) {
+				lazy_id.typeAnnotation = pattern.typeAnnotation;
+			} else {
+				const type_annotation = create_lazy_object_type_annotation(pattern);
+				if (type_annotation) lazy_id.typeAnnotation = type_annotation;
+			}
+			set_lazy_param_binding_mappings(lazy_id, pattern);
 			if (param.type === 'AssignmentPattern') return { ...param, left: lazy_id };
 			return lazy_id;
 		}

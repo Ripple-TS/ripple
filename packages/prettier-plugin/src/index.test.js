@@ -3298,6 +3298,13 @@ const items = [] as unknown[];`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should preserve named optional TypeScript tuple members', async () => {
+			const input = `export type OptionalTuple = [bar: string, baz?: string];`;
+			const expected = `export type OptionalTuple = [bar: string, baz?: string];`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should format TypeScript index signatures (TSIndexSignature)', async () => {
 			const input = `interface Dict { [key: string]: number; readonly [id: number]: string }`;
 			const expected = `interface Dict {\n  [key: string]: number;\n  readonly [id: number]: string;\n}`;
