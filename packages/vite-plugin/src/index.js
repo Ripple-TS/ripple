@@ -596,15 +596,14 @@ export function ripple(inlineOptions = {}) {
 				/** @type {Promise<void> | null} */
 				let initPromise = null;
 				/** @type {number} */
-				let lastConfigErrorTime = 0;
-				const CONFIG_RETRY_MS = 5000;
+				let lastConfigErrorMtimeMs = 0;
 
 				/**
 				 * Ensure ripple.config.ts has been loaded and the router is
 				 * ready. Safe to call on every request — a successful load
 				 * (even with no routes) is short-circuited, a missing config
 				 * file is retried on the next request, and load errors are
-				 * throttled to avoid per-request log spam.
+				 * only retried when the file has been modified.
 				 */
 				async function ensureConfigLoaded() {
 					// Config was already loaded (with or without routes).
@@ -614,9 +613,18 @@ export function ripple(inlineOptions = {}) {
 					// user may create it while the dev server is running.
 					if (!rippleConfigExists(root)) return;
 
-					// Throttle retries after a config load error to avoid
-					// spamming the console on every HMR/CSS/JS request.
-					if (lastConfigErrorTime && Date.now() - lastConfigErrorTime < CONFIG_RETRY_MS) return;
+					// After a load error, only retry if the file has been
+					// modified since the last failure. This avoids per-request
+					// log spam while instantly picking up fixes.
+					if (lastConfigErrorMtimeMs) {
+						const configPath = root + '/ripple.config.ts';
+						try {
+							const stat = fs.statSync(configPath);
+							if (stat.mtimeMs <= lastConfigErrorMtimeMs) return;
+						} catch {
+							return;
+						}
+					}
 
 					if (!initPromise) {
 						initPromise = (async () => {
@@ -633,7 +641,11 @@ export function ripple(inlineOptions = {}) {
 							);
 						})()
 							.catch((error) => {
-								lastConfigErrorTime = Date.now();
+								try {
+									lastConfigErrorMtimeMs = fs.statSync(root + '/ripple.config.ts').mtimeMs;
+								} catch {
+									lastConfigErrorMtimeMs = Date.now();
+								}
 								throw error;
 							})
 							.finally(() => {
