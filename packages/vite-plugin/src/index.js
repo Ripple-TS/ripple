@@ -627,6 +627,13 @@ export function ripple(inlineOptions = {}) {
 					}
 
 					if (!initPromise) {
+						// Snapshot mtime before loading so a concurrent
+						// save is always detected as newer.
+						try {
+							lastConfigErrorMtimeMs = fs.statSync(root + '/ripple.config.ts').mtimeMs;
+						} catch {
+							lastConfigErrorMtimeMs = Date.now();
+						}
 						initPromise = (async () => {
 							rippleConfig = await loadRippleConfig(root, { vite });
 
@@ -640,14 +647,6 @@ export function ripple(inlineOptions = {}) {
 								`[@ripple-ts/vite-plugin] Loaded ${rippleConfig.router.routes.length} routes from ripple.config.ts`,
 							);
 						})()
-							.catch((error) => {
-								try {
-									lastConfigErrorMtimeMs = fs.statSync(root + '/ripple.config.ts').mtimeMs;
-								} catch {
-									lastConfigErrorMtimeMs = Date.now();
-								}
-								throw error;
-							})
 							.finally(() => {
 								initPromise = null;
 							});
