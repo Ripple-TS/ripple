@@ -609,6 +609,15 @@ export function ripple(inlineOptions = {}) {
 					// Config was already loaded (with or without routes).
 					if (rippleConfig) return;
 
+					// If a load is already in flight, always await it before
+					// consulting retry gates. Concurrent first requests should
+					// share the same initialization result instead of falling
+					// through while the first load is still pending.
+					if (initPromise) {
+						await initPromise;
+						return;
+					}
+
 					// Config file doesn't exist (yet). Don't cache this — the
 					// user may create it while the dev server is running.
 					if (!rippleConfigExists(root)) return;
@@ -627,13 +636,18 @@ export function ripple(inlineOptions = {}) {
 					}
 
 					if (!initPromise) {
-						// Snapshot mtime before loading so a concurrent
-						// save is always detected as newer.
+						// Snapshot mtime before loading into a local variable.
+						// Only promoted to lastConfigErrorMtimeMs if the load
+						// actually fails — this prevents concurrent requests
+						// during a normal first load from seeing a non-zero
+						// lastConfigErrorMtimeMs and short-circuiting above.
+						let preLoadMtimeMs;
 						try {
-							lastConfigErrorMtimeMs = fs.statSync(root + '/ripple.config.ts').mtimeMs;
+							preLoadMtimeMs = fs.statSync(root + '/ripple.config.ts').mtimeMs;
 						} catch {
-							lastConfigErrorMtimeMs = Date.now();
+							preLoadMtimeMs = Date.now();
 						}
+
 						initPromise = (async () => {
 							rippleConfig = await loadRippleConfig(root, { vite });
 
@@ -646,9 +660,16 @@ export function ripple(inlineOptions = {}) {
 							console.log(
 								`[@ripple-ts/vite-plugin] Loaded ${rippleConfig.router.routes.length} routes from ripple.config.ts`,
 							);
-						})().finally(() => {
-							initPromise = null;
-						});
+						})()
+							.catch((error) => {
+								// Record pre-load mtime so retries only happen
+								// when the file has been modified.
+								lastConfigErrorMtimeMs = preLoadMtimeMs;
+								throw error;
+							})
+							.finally(() => {
+								initPromise = null;
+							});
 					}
 
 					await initPromise;
