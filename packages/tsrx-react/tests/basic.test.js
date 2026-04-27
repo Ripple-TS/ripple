@@ -1676,4 +1676,51 @@ describe('lazy destructuring', () => {
 		expect(code).toContain('return <div>{laterVar}</div>;');
 		expect(code).not.toContain('App__Continue');
 	});
+
+	describe('multiple ref attributes', () => {
+		it('passes a single ref={expr} through unchanged with no helper import', () => {
+			const { code } = compile(
+				`export component App() {
+					function refA(_node) {}
+					<div ref={refA}>{'hi'}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('ref={refA}');
+			expect(code).not.toContain('__mergeRefs');
+			expect(code).not.toContain('@tsrx/react/merge-refs');
+		});
+
+		it('collapses multiple ref={expr} attributes into a __mergeRefs call and injects an import', () => {
+			const { code } = compile(
+				`export component App() {
+					function refA(_node) {}
+					function refB(_node) {}
+					<div ref={refA} ref={refB}>{'hi'}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('ref={__mergeRefs(refA, refB)}');
+			expect(code).toContain("import { mergeRefs as __mergeRefs } from '@tsrx/react/merge-refs'");
+			// the duplicate ref attributes are dropped
+			expect(code).not.toMatch(/ref=\{refA\}\s+ref=\{refB\}/);
+		});
+
+		it('also merges Ripple {ref expr} keyword refs with React-style ref={expr}', () => {
+			const { code } = compile(
+				`export component App() {
+					function refA(_node) {}
+					function refB(_node) {}
+					function refC(_node) {}
+					function refD(_node) {}
+					<div {ref refA} ref={refB} {ref refC} ref={refD} >{'hi'}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('ref={__mergeRefs(refA, refB, refC, refD)}');
+		});
+	});
 });

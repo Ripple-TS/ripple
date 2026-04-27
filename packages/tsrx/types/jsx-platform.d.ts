@@ -130,6 +130,13 @@ export interface JsxPlatform {
 		 * block appears. Usually `'@tsrx/<platform>/error-boundary'`.
 		 */
 		errorBoundary: string;
+		/**
+		 * Module to import `mergeRefs` from when an element has more than one
+		 * `ref` attribute and the platform uses the `'merge-refs'` strategy.
+		 * Required when `jsx.multiRefStrategy === 'merge-refs'`; ignored
+		 * otherwise. React: `'@tsrx/react/merge-refs'`. Preact: `'@tsrx/preact/merge-refs'`.
+		 */
+		mergeRefs?: string;
 	};
 
 	jsx: {
@@ -143,6 +150,20 @@ export interface JsxPlatform {
 		 * only `'react'`. Preact accepts both `'preact'` and `'react'`.
 		 */
 		acceptedTsxKinds: readonly string[];
+		/**
+		 * How to collapse multiple `ref` attributes on the same element into
+		 * one. React's and Preact's runtimes treat duplicate `ref` props as
+		 * a normal duplicate-prop collision (last wins), so they need a
+		 * compile-time merge. Solid's runtime accepts an array of refs
+		 * natively, so it can use the cheaper array form.
+		 *
+		 * - `'merge-refs'`: emit `ref={mergeRefs(a, b, ...)}` and inject an
+		 *   import from `imports.mergeRefs`.
+		 * - `'array'`: emit `ref={[a, b, ...]}`. No runtime helper needed.
+		 * - `undefined`: no merging — duplicate `ref` attributes pass through
+		 *   unchanged. The platform's runtime is responsible.
+		 */
+		multiRefStrategy?: 'merge-refs' | 'array';
 	};
 
 	validation: {

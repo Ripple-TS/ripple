@@ -195,6 +195,40 @@ component MultiDomRefApp() {
 	<input type="text" {ref refA} {ref refB} />
 }
 
+// ── Multiple TSX-style ref={fn} on the same DOM element ──
+// Regression: previously two `ref={...}` JSX attributes were emitted
+// as duplicate JSX `ref` props instead of folding into the array path.
+// The compiler now collapses them into `ref={[a, b]}`, matching the
+// Ripple `{ref ...}` form.
+
+let multi_jsx_dom_a: HTMLInputElement | null = null;
+let multi_jsx_dom_b: HTMLInputElement | null = null;
+
+component MultiJsxDomRefApp() {
+	function refA(node: HTMLInputElement) {
+		multi_jsx_dom_a = node;
+	}
+	function refB(node: HTMLInputElement) {
+		multi_jsx_dom_b = node;
+	}
+	<input type="text" ref={refA} ref={refB} />
+}
+
+// ── Mixing Ripple {ref expr} and TSX-style ref={expr} on the same element ──
+
+let mixed_keyword_node: HTMLInputElement | null = null;
+let mixed_jsx_node: HTMLInputElement | null = null;
+
+component MixedDomRefApp() {
+	function keywordRef(node: HTMLInputElement) {
+		mixed_keyword_node = node;
+	}
+	function jsxRef(node: HTMLInputElement) {
+		mixed_jsx_node = node;
+	}
+	<input type="text" {ref keywordRef} ref={jsxRef} />
+}
+
 // ── Multiple {ref ...} on the same composite component ──
 // Each ref sees the same underlying DOM node once the child spreads props.
 
@@ -777,6 +811,23 @@ describe('tsrx-solid runtime', () => {
 		expect(multi_dom_a).toBeInstanceOf(HTMLInputElement);
 		expect(multi_dom_b).toBeInstanceOf(HTMLInputElement);
 		expect(multi_dom_a).toBe(multi_dom_b);
+	});
+
+	it('supports multiple TSX-style ref={fn} on the same DOM element', async () => {
+		multi_jsx_dom_a = null;
+		multi_jsx_dom_b = null;
+		await render(MultiJsxDomRefApp);
+		expect(multi_jsx_dom_a).toBeInstanceOf(HTMLInputElement);
+		expect(multi_jsx_dom_b).toBeInstanceOf(HTMLInputElement);
+		expect(multi_jsx_dom_a).toBe(multi_jsx_dom_b);
+	});
+
+	it('mixes Ripple {ref expr} and TSX-style ref={expr} on the same DOM element', async () => {
+		mixed_keyword_node = null;
+		mixed_jsx_node = null;
+		await render(MixedDomRefApp);
+		expect(mixed_keyword_node).toBeInstanceOf(HTMLInputElement);
+		expect(mixed_keyword_node).toBe(mixed_jsx_node);
 	});
 
 	it('supports multiple {ref ...} on the same composite component', async () => {

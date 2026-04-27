@@ -20,6 +20,9 @@
     },
     "./error-boundary": {
       "default": "./src/error-boundary.js"
+    },
+    "./merge-refs": {
+      "default": "./src/merge-refs.js"
     }
   },
   "dependencies": {

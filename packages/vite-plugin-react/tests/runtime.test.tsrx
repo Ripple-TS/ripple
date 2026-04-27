@@ -175,6 +175,93 @@ component MultiRefApp() {
 	</div>
 }
 
+// ── Multiple `ref={fn}` attributes auto-merged by the compiler ──
+// React's runtime treats duplicate `ref` props as a normal prop collision,
+// so the tsrx-react compiler collapses them into a single `mergeRefs(...)`
+// call. Each callback should still see the same DOM node.
+
+let auto_merged_a: HTMLDivElement | null = null;
+let auto_merged_b: HTMLDivElement | null = null;
+let auto_merged_c: HTMLDivElement | null = null;
+
+component AutoMergedRefApp() {
+	function refA(node: HTMLDivElement) {
+		auto_merged_a = node;
+	}
+	function refB(node: HTMLDivElement) {
+		auto_merged_b = node;
+	}
+	function refC(node: HTMLDivElement) {
+		auto_merged_c = node;
+	}
+
+	<div ref={refA} ref={refB} ref={refC} class="auto-merged">{'auto merged'}</div>
+}
+
+// ── Mixing Ripple `{ref expr}` and TSX-style `ref={expr}` ──
+// Both syntaxes should be picked up by the merge pass and both refs
+// should fire with the same node.
+
+let mixed_keyword_node: HTMLDivElement | null = null;
+let mixed_jsx_node: HTMLDivElement | null = null;
+
+component AutoMergedMixedRefApp() {
+	function keywordRef(node: HTMLDivElement) {
+		mixed_keyword_node = node;
+	}
+	function jsxRef(node: HTMLDivElement) {
+		mixed_jsx_node = node;
+	}
+
+	<div {ref keywordRef} ref={jsxRef} class="auto-merged-mixed">{'mixed merged'}</div>
+}
+
+// ── Mix callback refs and ref objects under mergeRefs ──
+// `mergeRefs` accepts function refs and `{ current }` ref objects (e.g.
+// the result of `useRef`). Both should be populated.
+
+const ref_object: { current: HTMLDivElement | null } = { current: null };
+let auto_ref_obj_callback_node: HTMLDivElement | null = null;
+
+component AutoMergedRefObjectApp() {
+	function callbackRef(node: HTMLDivElement) {
+		auto_ref_obj_callback_node = node;
+	}
+
+	<div ref={ref_object} ref={callbackRef} class="auto-merged-objects">{'object merged'}</div>
+}
+
+// ── React 19 cleanup contract through mergeRefs ──
+// `mergeRefs` always returns a cleanup function. Under React 19 the
+// runtime calls the cleanup on unmount instead of re-invoking the merged
+// ref with null. Per-ref behavior:
+//   - a callback that returns a cleanup → its cleanup is invoked.
+//   - a callback that returns nothing   → it is invoked with null
+//     (legacy contract is preserved by mergeRefs).
+
+let cleanup_log: string[] = [];
+
+function legacyMountRef(node: HTMLDivElement | null) {
+	cleanup_log.push(node === null ? 'legacy:null' : 'legacy:mount');
+}
+
+function modernMountRef(_node: HTMLDivElement) {
+	cleanup_log.push('modern:mount');
+	return () => {
+		cleanup_log.push('modern:cleanup');
+	};
+}
+
+component CleanupRefApp() {
+	const [show, setShow] = useState(true);
+
+	if (show) {
+		<div ref={legacyMountRef} ref={modernMountRef} class="cleanup-target">{'x'}</div>
+	}
+
+	<button class="cleanup-hide" onClick={() => setShow(false)}>{'hide'}</button>
+}
+
 // ── If-statement with reactivity ──
 
 component IfReactiveApp() {
@@ -783,6 +870,47 @@ describe('tsrx-react runtime', () => {
 		await render(MultiRefApp);
 		expect(multi_ref1_node).toBe(multi_ref2_node);
 		expect(multi_ref1_node!.textContent).toBe('multi ref');
+	});
+
+	it('auto-merges multiple ref={fn} attributes via mergeRefs', async () => {
+		auto_merged_a = null;
+		auto_merged_b = null;
+		auto_merged_c = null;
+		await render(AutoMergedRefApp);
+		expect(auto_merged_a).toBeInstanceOf(HTMLDivElement);
+		expect(auto_merged_a).toBe(auto_merged_b);
+		expect(auto_merged_b).toBe(auto_merged_c);
+		expect(auto_merged_a!.textContent).toBe('auto merged');
+	});
+
+	it('auto-merges mixed Ripple {ref expr} and TSX-style ref={expr}', async () => {
+		mixed_keyword_node = null;
+		mixed_jsx_node = null;
+		await render(AutoMergedMixedRefApp);
+		expect(mixed_keyword_node).toBeInstanceOf(HTMLDivElement);
+		expect(mixed_keyword_node).toBe(mixed_jsx_node);
+	});
+
+	it('mergeRefs populates both ref objects and callback refs', async () => {
+		ref_object.current = null;
+		auto_ref_obj_callback_node = null;
+		await render(AutoMergedRefObjectApp);
+		expect(ref_object.current).toBeInstanceOf(HTMLDivElement);
+		expect(ref_object.current).toBe(auto_ref_obj_callback_node);
+	});
+
+	it('mergeRefs honors React 19 cleanup contract and legacy null callbacks', async () => {
+		cleanup_log = [];
+		await render(CleanupRefApp);
+		expect(cleanup_log).toContain('legacy:mount');
+		expect(cleanup_log).toContain('modern:mount');
+		expect(cleanup_log).not.toContain('legacy:null');
+		expect(cleanup_log).not.toContain('modern:cleanup');
+
+		await click('.cleanup-hide');
+		// Element unmounted: each ref must have observed teardown.
+		expect(cleanup_log).toContain('legacy:null');
+		expect(cleanup_log).toContain('modern:cleanup');
 	});
 
 	it('supports ref forwarding through spread props', async () => {

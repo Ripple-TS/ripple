@@ -50,6 +50,7 @@ import { is_hoist_safe_jsx_node } from '../jsx-hoist.js';
  *   local_statement_component_index: number,
  *   needs_error_boundary: boolean,
  *   needs_suspense: boolean,
+ *   needs_merge_refs: boolean,
  *   helper_state: { base_name: string, next_id: number, helpers: any[], statics: any[] } | null,
  *   available_bindings: Map<string, AST.Identifier>,
  *   lazy_next_id: number,
@@ -102,6 +103,7 @@ export function createJsxTransform(platform) {
 			local_statement_component_index: 0,
 			needs_error_boundary: false,
 			needs_suspense: false,
+			needs_merge_refs: false,
 			helper_state: null,
 			available_bindings: new Map(),
 			lazy_next_id: 0,
@@ -2238,10 +2240,11 @@ function create_jsx_element(tag_name, attributes, children) {
 }
 
 /**
- * Inject import declarations for `Suspense` and `TsrxErrorBoundary` if the
- * transform determined they are needed. The import sources are platform-
- * specific (e.g. `react` vs `preact/compat`, `@tsrx/react/error-boundary`
- * vs `@tsrx/preact/error-boundary`).
+ * Inject runtime-helper import declarations the transform decided it needed
+ * during the walk: `Suspense` for `try { ... } pending { ... }`,
+ * `TsrxErrorBoundary` for `try { ... } catch (...)`, and `mergeRefs` for
+ * elements with multiple `ref` attributes under the `'merge-refs'`
+ * strategy. Import sources are platform-specific.
  *
  * @param {AST.Program} program
  * @param {TransformContext} transform_context
@@ -2297,6 +2300,35 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 				type: 'Literal',
 				value: error_boundary_source,
 				raw: `'${error_boundary_source}'`,
+			},
+			metadata: { path: [] },
+		});
+	}
+
+	if (transform_context.needs_merge_refs && platform.imports.mergeRefs) {
+		const merge_refs_source = platform.imports.mergeRefs;
+		imports.push({
+			type: 'ImportDeclaration',
+			specifiers: [
+				{
+					type: 'ImportSpecifier',
+					imported: {
+						type: 'Identifier',
+						name: 'mergeRefs',
+						metadata: { path: [] },
+					},
+					local: {
+						type: 'Identifier',
+						name: MERGE_REFS_LOCAL_NAME,
+						metadata: { path: [] },
+					},
+					metadata: { path: [] },
+				},
+			],
+			source: {
+				type: 'Literal',
+				value: merge_refs_source,
+				raw: `'${merge_refs_source}'`,
 			},
 			metadata: { path: [] },
 		});
@@ -2466,9 +2498,9 @@ function to_jsx_expression_container(expression, source_node = expression) {
 /**
  * Dispatch point for element attribute transformation. Platforms can replace
  * the default "map over `to_jsx_attribute`" via
- * `hooks.transformElementAttributes` — Solid uses this to collapse
- * `<elem>{'text'}</elem>` into a `textContent` attribute and to route
- * attributes through its composite-element handling.
+ * `hooks.transformElementAttributes`. Whether or not the hook is used,
+ * the result is run through `merge_duplicate_refs` so platforms with a
+ * `multiRefStrategy` get duplicate-`ref` handling for free.
  *
  * @param {any[]} attrs
  * @param {TransformContext} transform_context
@@ -2477,9 +2509,125 @@ function to_jsx_expression_container(expression, source_node = expression) {
  */
 function transform_element_attributes_dispatch(attrs, transform_context, element) {
 	const hook = transform_context.platform.hooks?.transformElementAttributes;
-	if (hook) return hook(attrs, transform_context, element);
-	return attrs.map((/** @type {any} */ a) => to_jsx_attribute(a, transform_context));
+	const result = hook
+		? hook(attrs, transform_context, element)
+		: attrs.map((/** @type {any} */ a) => to_jsx_attribute(a, transform_context));
+	return merge_duplicate_refs(result, transform_context);
 }
+
+/**
+ * Collapse multiple `ref` JSXAttributes on a single element into one. Both
+ * Ripple's `{ref expr}` keyword form and TSX-style `ref={expr}` are handled
+ * because they have already been normalized to `JSXAttribute` named `ref`
+ * by `to_jsx_attribute` (Ripple) or the parser (TSX-style). The shape of
+ * the merged value depends on `platform.jsx.multiRefStrategy`:
+ *
+ * - `'merge-refs'` — emit `ref={__mergeRefs(a, b, ...)}` and flag
+ *   `needs_merge_refs` so an import is injected later. React and Preact
+ *   need this because their runtimes dedupe duplicate `ref` props.
+ * - `'array'` — emit `ref={[a, b, ...]}`. Solid's runtime iterates
+ *   array refs natively, so no helper is required.
+ * - `undefined` — return the list unchanged. The platform takes care
+ *   of duplicate refs at runtime (or doesn't support them).
+ *
+ * Single-ref elements are always left unchanged so trivial cases stay
+ * import-free and produce no helper call.
+ *
+ * @param {any[]} jsx_attrs
+ * @param {TransformContext} transform_context
+ * @returns {any[]}
+ */
+export function merge_duplicate_refs(jsx_attrs, transform_context) {
+	const strategy = transform_context.platform.jsx.multiRefStrategy;
+	if (!strategy) return jsx_attrs;
+
+	let count = 0;
+	for (const attr of jsx_attrs) {
+		if (is_jsx_ref_attribute(attr)) count += 1;
+	}
+	if (count <= 1) return jsx_attrs;
+
+	/** @type {any[]} */
+	const ref_exprs = [];
+	/** @type {any[]} */
+	const result = [];
+	let first_ref = null;
+	for (const attr of jsx_attrs) {
+		if (is_jsx_ref_attribute(attr)) {
+			if (first_ref === null) first_ref = attr;
+			ref_exprs.push(attr.value.expression);
+		} else {
+			result.push(attr);
+		}
+	}
+
+	const merged_value =
+		strategy === 'merge-refs'
+			? /** @type {any} */ ({
+					type: 'CallExpression',
+					callee: {
+						type: 'Identifier',
+						name: MERGE_REFS_LOCAL_NAME,
+						metadata: { path: [] },
+					},
+					arguments: ref_exprs,
+					optional: false,
+					metadata: { path: [] },
+				})
+			: /** @type {any} */ ({
+					type: 'ArrayExpression',
+					elements: ref_exprs,
+					metadata: { path: [] },
+				});
+
+	if (strategy === 'merge-refs') {
+		transform_context.needs_merge_refs = true;
+	}
+
+	result.push(
+		set_loc(
+			/** @type {any} */ ({
+				type: 'JSXAttribute',
+				name: { type: 'JSXIdentifier', name: 'ref', metadata: { path: [] } },
+				value: {
+					type: 'JSXExpressionContainer',
+					expression: merged_value,
+					metadata: { path: [] },
+				},
+				shorthand: false,
+				metadata: { path: [] },
+			}),
+			first_ref,
+		),
+	);
+
+	return result;
+}
+
+/**
+ * @param {any} attr
+ * @returns {boolean}
+ */
+function is_jsx_ref_attribute(attr) {
+	return (
+		!!attr &&
+		attr.type === 'JSXAttribute' &&
+		!!attr.name &&
+		attr.name.type === 'JSXIdentifier' &&
+		attr.name.name === 'ref' &&
+		!!attr.value &&
+		attr.value.type === 'JSXExpressionContainer' &&
+		!!attr.value.expression &&
+		attr.value.expression.type !== 'JSXEmptyExpression'
+	);
+}
+
+/**
+ * Local alias used for the injected `mergeRefs` import. The leading
+ * double-underscore matches the convention for compiler-generated
+ * identifiers and avoids shadowing user-declared `mergeRefs` symbols.
+ */
+const MERGE_REFS_LOCAL_NAME = '__mergeRefs';
 
 /**
  * @param {any} attr
