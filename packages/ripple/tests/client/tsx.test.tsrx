@@ -1,6 +1,40 @@
 import { flushSync, track } from 'ripple';
 
 describe('tsx expression', () => {
+	it('renders an empty <tsx></tsx> element', () => {
+		component App() {
+			<tsx></tsx>
+		}
+		render(App);
+		expect(container.textContent).toBe('');
+	});
+
+	it('renders an empty <></> fragment shorthand', () => {
+		component App() {
+			<></>
+		}
+		render(App);
+		expect(container.textContent).toBe('');
+	});
+
+	it('renders an empty <tsx></tsx> assigned to a variable', () => {
+		component App() {
+			const el = <tsx></tsx>;
+			{el}
+		}
+		render(App);
+		expect(container.textContent).toBe('');
+	});
+
+	it('renders an empty <></> fragment assigned to a variable', () => {
+		component App() {
+			const el = <></>;
+			{el}
+		}
+		render(App);
+		expect(container.textContent).toBe('');
+	});
+
 	it('renders a basic fragment shorthand element', () => {
 		component App() {
 			const el = <tsx><div>hello world</div></tsx>;

@@ -8,7 +8,7 @@ const isDev = process.env.NODE_ENV !== 'production';
 
 export default defineConfig({
 	inlineOnly: false,
-	entry: ['src/index.js'],
+	entry: ['src/index.js', 'src/tsc.js'],
 	format: ['cjs'],
 	outExtensions: () => ({ js: '.js' }),
 	platform: 'node',
