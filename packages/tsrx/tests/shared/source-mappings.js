@@ -369,6 +369,168 @@ export function optionalFn(declRequired: string, declMaybe?: string) {
 			expect(result.code).toContain('function Hello(__lazy0: { a: string; b: string })');
 			expect(pattern_mapping).toBeDefined();
 		});
+
+		it('rewrites lazy object params in hover text', () => {
+			const source = `component Hello(&{ a: c, b }: { a: string, b: string }) {
+	<>{c}{b}</>
+}`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx');
+			const source_pattern_offset = source.indexOf('{ a: c, b }');
+			const source_name_offset = source.indexOf('Hello');
+			const generated_lazy_offset = result.code.indexOf('__lazy0');
+			const generated_name_offset = result.code.indexOf('Hello');
+			const pattern_mapping = result.mappings.find(
+				(mapping) =>
+					mapping.sourceOffsets[0] === source_pattern_offset &&
+					mapping.generatedOffsets[0] === generated_lazy_offset,
+			);
+			const name_mapping = result.mappings.find(
+				(mapping) =>
+					mapping.sourceOffsets[0] === source_name_offset &&
+					mapping.generatedOffsets[0] === generated_name_offset,
+			);
+			const hover = pattern_mapping?.data.customData.hover;
+			const name_hover = name_mapping?.data.customData.hover;
+
+			expect(typeof hover).toBe('function');
+			if (typeof hover === 'function') {
+				expect(
+					hover(`function Hello(__lazy0: {
+    a: string;
+    b: string;
+}): void`),
+				).toBe(`component Hello(&{
+    a: string;
+    b: string;
+}): void`);
+
+				expect(
+					hover(`(parameter) __lazy0: {
+    a: string;
+    b: string;
+}`),
+				).toBe(`(parameter) &{
+    a: string;
+    b: string;
+}`);
+			}
+
+			expect(typeof name_hover).toBe('function');
+			if (typeof name_hover === 'function') {
+				expect(
+					name_hover(`function Hello(__lazy0: {
+    a: string;
+    b: string;
+}): void`),
+				).toBe(`component Hello(&{
+    a: string;
+    b: string;
+}): void`);
+			}
+		});
+
+		it('rewrites lazy object params in plain function hover text', () => {
+			const source = `function greet(&{ a: c, b }: { a: string, b: string }) {
+	return c + b;
+}`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx');
+			const source_name_offset = source.indexOf('greet');
+			const generated_name_offset = result.code.indexOf('greet');
+			const name_mapping = result.mappings.find(
+				(mapping) =>
+					mapping.sourceOffsets[0] === source_name_offset &&
+					mapping.generatedOffsets[0] === generated_name_offset,
+			);
+			const hover = name_mapping?.data.customData.hover;
+
+			expect(result.code).toContain('function greet(__lazy0: { a: string; b: string })');
+			expect(typeof hover).toBe('function');
+			if (typeof hover === 'function') {
+				expect(
+					hover(`function greet(__lazy0: {
+    a: string;
+    b: string;
+}): string`),
+				).toBe(`function greet(&{
+    a: string;
+    b: string;
+}): string`);
+			}
+		});
+
+		it('reports repeated lazy param bindings in loose mode without throwing', () => {
+			const source = `function greet(&{ a: b, b }: { a: string, b: string }) {
+	return b;
+}`;
+
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+
+			expect(result.errors).toHaveLength(2);
+			expect(result.errors[0].message).toBe('Argument name clash');
+			expect(result.errors[0].type).toBe('usage');
+			expect(source.slice(result.errors[0].pos, result.errors[0].end)).toBe('b');
+			expect(result.errors[1].message).toBe('Argument name clash');
+			expect(result.errors[1].type).toBe('usage');
+			expect(source.slice(result.errors[1].pos, result.errors[1].end)).toBe('b');
+			expect(result.code).toContain('function greet(__lazy0: { a: string; b: string })');
+		});
+
+		it('reports repeated lazy component param bindings in loose mode without throwing', () => {
+			const source = `component App(&{ a: b, b }: { a: string, b: string }) {
+	<>{b}</>
+}`;
+
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+
+			expect(result.errors).toHaveLength(2);
+			expect(result.errors[0].message).toBe('Argument name clash');
+			expect(result.errors[0].type).toBe('usage');
+			expect(source.slice(result.errors[0].pos, result.errors[0].end)).toBe('b');
+			expect(result.errors[1].message).toBe('Argument name clash');
+			expect(result.errors[1].type).toBe('usage');
+			expect(source.slice(result.errors[1].pos, result.errors[1].end)).toBe('b');
+			expect(
+				result.mappings.find(
+					(mapping) =>
+						mapping.sourceOffsets[0] === result.errors[0].pos &&
+						mapping.lengths[0] === result.errors[0].end - result.errors[0].pos,
+				),
+			).toBeDefined();
+			expect(
+				result.mappings.find(
+					(mapping) =>
+						mapping.sourceOffsets[0] === result.errors[1].pos &&
+						mapping.lengths[0] === result.errors[1].end - result.errors[1].pos,
+				),
+			).toBeDefined();
+			expect(result.code).toContain('function App(__lazy0: { a: string; b: string })');
+		});
+
+		it('reports repeated lazy param bindings with full identifier ranges', () => {
+			const source = `component App(&{ a: value, value }: { a: string, value: string }) {
+	<>{value}</>
+}`;
+
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+
+			expect(result.errors).toHaveLength(2);
+			expect(source.slice(result.errors[0].pos, result.errors[0].end)).toBe('value');
+			expect(source.slice(result.errors[1].pos, result.errors[1].end)).toBe('value');
+			expect(
+				result.mappings.find(
+					(mapping) =>
+						mapping.sourceOffsets[0] === result.errors[0].pos &&
+						mapping.lengths[0] === result.errors[0].end - result.errors[0].pos,
+				),
+			).toBeDefined();
+			expect(
+				result.mappings.find(
+					(mapping) =>
+						mapping.sourceOffsets[0] === result.errors[1].pos &&
+						mapping.lengths[0] === result.errors[1].end - result.errors[1].pos,
+				),
+			).toBeDefined();
+		});
 	});
 
 	describe(`[${name}] component return mappings`, () => {

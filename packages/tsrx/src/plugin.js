@@ -16,6 +16,37 @@ import {
 import { regex_newline_characters } from './utils/patterns.js';
 import { error } from './errors.js';
 
+/** @type {WeakMap<Record<string, boolean>, Map<string, number>>} */
+const argument_clash_first_positions = new WeakMap();
+/** @type {WeakMap<Record<string, boolean>, Set<string>>} */
+const argument_clash_reported_names = new WeakMap();
+
+/**
+ * @param {Record<string, boolean>} check_clashes
+ * @returns {Map<string, number>}
+ */
+function get_argument_clash_first_positions(check_clashes) {
+	let first_positions = argument_clash_first_positions.get(check_clashes);
+	if (!first_positions) {
+		first_positions = new Map();
+		argument_clash_first_positions.set(check_clashes, first_positions);
+	}
+	return first_positions;
+}
+
+/**
+ * @param {Record<string, boolean>} check_clashes
+ * @returns {Set<string>}
+ */
+function get_argument_clash_reported_names(check_clashes) {
+	let reported_names = argument_clash_reported_names.get(check_clashes);
+	if (!reported_names) {
+		reported_names = new Set();
+		argument_clash_reported_names.set(check_clashes, reported_names);
+	}
+	return reported_names;
+}
+
 /**
  * @param {string} input
  * @param {number} i
@@ -166,20 +197,21 @@ export function TSRXPlugin(config) {
 
 			/**
 			 * @param {number} position
+			 * @param {number} end
 			 * @param {string} message
 			 */
-			#report_recoverable_error(position, message) {
+			#report_recoverable_error_range(position, end, message) {
 				const start = Math.max(0, Math.min(position, this.input.length));
-				const end = Math.min(this.input.length, start + 1);
+				const range_end = Math.max(start, Math.min(end, this.input.length));
 				const start_loc = acorn.getLineInfo(this.input, start);
-				const end_loc = acorn.getLineInfo(this.input, end);
+				const end_loc = acorn.getLineInfo(this.input, range_end);
 
 				error(
 					message,
 					this.#filename,
 					/** @type {AST.NodeWithLocation} */ ({
 						start,
-						end,
+						end: range_end,
 						loc: {
 							start: start_loc,
 							end: end_loc,
@@ -187,6 +219,14 @@ export function TSRXPlugin(config) {
 					}),
 					this.#loose ? this.#errors : undefined,
 				);
+			}
+
+			/**
+			 * @param {number} position
+			 * @param {string} message
+			 */
+			#report_recoverable_error(position, message) {
+				this.#report_recoverable_error_range(position, position + 1, message);
 			}
 
 			/**
@@ -203,7 +243,10 @@ export function TSRXPlugin(config) {
 							? message.message
 							: String(message);
 
-				if (error_message.includes('has already been declared')) {
+				if (
+					error_message.includes('has already been declared') ||
+					error_message === 'Argument name clash'
+				) {
 					this.#report_recoverable_error(position, error_message);
 					return;
 				}
@@ -715,6 +758,67 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
+			 * Acorn reports only the second duplicate function parameter. In loose
+			 * mode, report the first one too so editor diagnostics can underline both
+			 * binding sites. Keep strict mode on Acorn's normal fatal path.
+			 *
+			 * @type {Parse.Parser['checkLValSimple']}
+			 */
+			checkLValSimple(expr, bindingType = BINDING_TYPES.BIND_NONE, checkClashes) {
+				if (
+					this.#loose &&
+					expr.type === 'Identifier' &&
+					bindingType !== BINDING_TYPES.BIND_NONE &&
+					checkClashes
+				) {
+					const first_positions = get_argument_clash_first_positions(checkClashes);
+					const reported_names = get_argument_clash_reported_names(checkClashes);
+					const first_position = first_positions.get(expr.name);
+
+					if (Object.prototype.hasOwnProperty.call(checkClashes, expr.name)) {
+						if (first_position != null && !reported_names.has(expr.name)) {
+							this.#report_recoverable_error_range(
+								first_position,
+								first_position + expr.name.length,
+								'Argument name clash',
+							);
+							reported_names.add(expr.name);
+						}
+						const start = /** @type {number} */ (expr.start);
+						this.#report_recoverable_error_range(
+							start,
+							/** @type {number} */ (expr.end ?? start + expr.name.length),
+							'Argument name clash',
+						);
+						return;
+					}
+
+					const result = super.checkLValSimple(expr, bindingType, checkClashes);
+					first_positions.set(expr.name, /** @type {number} */ (expr.start));
+					return result;
+				}
+
+				return super.checkLValSimple(expr, bindingType, checkClashes);
+			}
+
+			/**
+			 * Components do not use Acorn's normal function-body parser, but they
+			 * should still report duplicate parameter names like functions do. Keep
+			 * this validation on `BIND_OUTSIDE` so params are checked without being
+			 * declared in the component template scope, preserving existing shadowing
+			 * behavior.
+			 *
+			 * @param {AST.Pattern[]} params
+			 */
+			checkComponentParams(params) {
+				/** @type {Record<string, boolean>} */
+				const name_hash = Object.create(null);
+				for (const param of params || []) {
+					this.checkLValInnerPattern(param, BINDING_TYPES.BIND_OUTSIDE, name_hash);
+				}
+			}
+
+			/**
 			 * Parse expression atom - handles RippleArray and RippleObject literals
 			 * @type {Parse.Parser['parseExprAtom']}
 			 */
@@ -856,6 +960,7 @@ export function TSRXPlugin(config) {
 				}
 
 				this.parseFunctionParams(node);
+				this.checkComponentParams(node.params);
 
 				// Reset before `eat(braceL)` so the lookahead `next()` it triggers reads
 				// the component body's first token as if we'd entered fresh — no

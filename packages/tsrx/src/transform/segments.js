@@ -56,6 +56,15 @@ import {
 } from '../source-map-utils.js';
 
 const LABEL_TO_COMPONENT_REPLACE_REGEX = /(function|\((property|method)\))/;
+const LAZY_PARAM_IDENTIFIER_REGEX = /^__lazy\d+$/;
+
+/**
+ * @param {string} value
+ * @returns {string}
+ */
+function escape_regex(value) {
+	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 /**
  * @param {string} content
@@ -66,6 +75,47 @@ function replace_label_to_component(content) {
 		if (fn === 'function') return 'component';
 		return `(component ${kind})`;
 	});
+}
+
+/**
+ * @param {string} lazy_id
+ * @returns {(content: string) => string}
+ */
+function create_lazy_param_hover_replacement(lazy_id) {
+	const lazy_param_regex = new RegExp(`\\b${escape_regex(lazy_id)}\\s*:\\s*`, 'g');
+
+	return (content) => replace_label_to_component(content).replace(lazy_param_regex, '&');
+}
+
+/**
+ * @param {AST.Parameter[] | undefined} params
+ * @param {(content: string) => string} [base_hover]
+ * @returns {((content: string) => string) | undefined}
+ */
+function create_function_hover_replacement(params, base_hover) {
+	const lazy_ids =
+		params
+			?.filter(
+				(param) =>
+					param.type === 'Identifier' &&
+					param.metadata?.source_length != null &&
+					LAZY_PARAM_IDENTIFIER_REGEX.test(param.name),
+			)
+			.map((param) => /** @type {AST.Identifier} */ (param).name) ?? [];
+
+	if (lazy_ids.length === 0) return base_hover;
+
+	const lazy_param_regexes = lazy_ids.map(
+		(lazy_id) => new RegExp(`\\b${escape_regex(lazy_id)}\\s*:\\s*`, 'g'),
+	);
+
+	return (content) => {
+		let next = base_hover ? base_hover(content) : content;
+		for (const regex of lazy_param_regexes) {
+			next = next.replace(regex, '&');
+		}
+		return next;
+	};
 }
 
 /**
@@ -440,7 +490,33 @@ export function convert_source_map_to_mappings(
 						// only if the node has a component as the parent
 						token.metadata.hover = replace_label_to_component;
 					}
+					if (node.metadata?.source_length != null && LAZY_PARAM_IDENTIFIER_REGEX.test(node.name)) {
+						token.metadata.hover = create_lazy_param_hover_replacement(node.name);
+					}
+					if (node.metadata?.disable_verification) {
+						token.mappingData = { ...mapping_data, verification: false };
+					}
 					tokens.push(token);
+
+					if (Array.isArray(node.metadata?.lazy_param_binding_mappings)) {
+						for (const binding_mapping of node.metadata.lazy_param_binding_mappings) {
+							const source_node = binding_mapping.source;
+							const generated_node = binding_mapping.generated;
+							if (!source_node?.loc || !generated_node?.loc) continue;
+
+							const mapping = get_mapping_from_node(
+								generated_node,
+								src_to_gen_map,
+								gen_line_offsets,
+								mapping_data_verify_only,
+							);
+							const source_start = /** @type {number} */ (source_node.start);
+							const source_end = /** @type {number} */ (source_node.end);
+							mapping.sourceOffsets = [source_start];
+							mapping.lengths = [source_end - source_start];
+							mappings.push(mapping);
+						}
+					}
 				}
 				return; // Leaf node, don't traverse further
 			} else if (node.type === 'JSXIdentifier') {
@@ -770,6 +846,10 @@ export function convert_source_map_to_mappings(
 					const node_fn = /** @type (typeof node) & AST.NodeWithLocation */ (node);
 					const is_component = node_fn.metadata?.is_component;
 					const source_func_keyword = is_component ? 'component' : 'function';
+					const function_hover = create_function_hover_replacement(
+						/** @type {AST.Parameter[]} */ (node.params),
+						is_component ? replace_label_to_component : undefined,
+					);
 					let start_col = node_fn.loc.start.column;
 					let start = node_fn.start;
 					const async_keyword = 'async';
@@ -785,7 +865,7 @@ export function convert_source_map_to_mappings(
 						mapping.lengths = [source_func_keyword.length];
 						mapping.generatedOffsets = [generated_keyword_start];
 						mapping.generatedLengths = ['function'.length];
-						mapping.data.customData.hover = replace_label_to_component;
+						if (function_hover) mapping.data.customData.hover = function_hover;
 						mappings.push(mapping);
 					} else {
 						if (node_fn.async) {
@@ -817,7 +897,7 @@ export function convert_source_map_to_mappings(
 									column: start_col + source_func_keyword.length,
 								},
 							},
-							metadata: is_component ? { hover: replace_label_to_component } : {},
+							metadata: function_hover ? { hover: function_hover } : {},
 						});
 					}
 				}
@@ -829,11 +909,24 @@ export function convert_source_map_to_mappings(
 					/** @type {AST.FunctionDeclaration | AST.FunctionExpression} */ (node).id &&
 					!is_method
 				) {
-					visit(
-						/** @type {AST.Node} */ (
-							/** @type {AST.FunctionDeclaration | AST.FunctionExpression} */ (node).id
-						),
+					const id = /** @type {AST.Identifier} */ (
+						/** @type {AST.FunctionDeclaration | AST.FunctionExpression} */ (node).id
 					);
+					const function_hover = create_function_hover_replacement(
+						/** @type {AST.Parameter[]} */ (node.params),
+						node.metadata?.is_component ? replace_label_to_component : undefined,
+					);
+					if (function_hover && id.loc) {
+						tokens.push({
+							source: id.metadata?.source_name ?? id.name,
+							generated: id.name,
+							loc: id.loc,
+							metadata: { hover: function_hover },
+							sourceLength: id.metadata?.source_length,
+						});
+					} else {
+						visit(/** @type {AST.Node} */ (id));
+					}
 				}
 
 				if (node.typeParameters) {

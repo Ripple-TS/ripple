@@ -148,6 +148,70 @@ function create_lazy_object_type_annotation(pattern) {
 }
 
 /**
+ * @param {any} node
+ * @returns {string | null}
+ */
+function get_static_property_name(node) {
+	if (node.type === 'Identifier') return node.name;
+	if (node.type === 'Literal') return String(node.value);
+	return null;
+}
+
+/**
+ * @param {any} type_annotation
+ * @returns {Map<string, any>}
+ */
+function get_type_property_keys(type_annotation) {
+	const keys = new Map();
+	const members = type_annotation?.typeAnnotation?.members;
+	if (!Array.isArray(members)) return keys;
+
+	for (const member of members) {
+		if (member.type !== 'TSPropertySignature' || !member.key) continue;
+		const name = get_static_property_name(member.key);
+		if (name != null && !keys.has(name)) keys.set(name, member.key);
+	}
+
+	return keys;
+}
+
+/**
+ * Store extra mappings from lazy object binding identifiers to generated type
+ * property keys. Parser diagnostics for duplicate bindings point at the binding
+ * names (`&{ a: value, value }`), while the virtual param only exposes object
+ * properties (`__lazy0: { a: ...; value: ... }`).
+ *
+ * @param {any} lazy_id
+ * @param {any} pattern
+ */
+function set_lazy_param_binding_mappings(lazy_id, pattern) {
+	if (pattern.type !== 'ObjectPattern') return;
+
+	const type_keys = get_type_property_keys(lazy_id.typeAnnotation);
+	if (type_keys.size === 0) return;
+
+	const mappings = [];
+	for (const prop of pattern.properties || []) {
+		if (prop.type === 'RestElement' || prop.computed) continue;
+
+		const value = prop.value;
+		const actual = value.type === 'AssignmentPattern' ? value.left : value;
+		if (actual.type !== 'Identifier' || !actual.loc) continue;
+
+		const key_name = get_static_property_name(prop.key);
+		const generated = key_name == null ? null : type_keys.get(key_name);
+		if (generated?.loc) {
+			generated.metadata = { ...generated.metadata, disable_verification: true };
+			mappings.push({ source: actual, generated });
+		}
+	}
+
+	if (mappings.length > 0) {
+		lazy_id.metadata.lazy_param_binding_mappings = mappings;
+	}
+}
+
+/**
  * Collect lazy bindings from a destructuring pattern.
  *
  * For `&{ name, age }` on source `S`, maps `name` → `S.name`, `age` → `S.age`.
@@ -763,6 +827,7 @@ export function replace_lazy_params(params) {
 				const type_annotation = create_lazy_object_type_annotation(pattern);
 				if (type_annotation) lazy_id.typeAnnotation = type_annotation;
 			}
+			set_lazy_param_binding_mappings(lazy_id, pattern);
 			if (param.type === 'AssignmentPattern') return { ...param, left: lazy_id };
 			return lazy_id;
 		}

@@ -57,6 +57,11 @@ interface BaseNodeMetaData {
 	lone_return?: boolean;
 	forceMapping?: boolean;
 	lazy_id?: string;
+	disable_verification?: boolean;
+	lazy_param_binding_mappings?: Array<{
+		source: AST.Identifier;
+		generated: AST.Identifier | AST.Literal;
+	}>;
 }
 
 interface FunctionMetaData extends BaseNodeMetaData {

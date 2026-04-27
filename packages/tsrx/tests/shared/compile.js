@@ -436,14 +436,49 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('preserves provided types for aliased lazy object params', () => {
 			const { code } = compile(
-				`export component App(&{ a: b, b }: { a: string, b: string }) {
-					<div>{b}</div>
+				`export component App(&{ a: c, b }: { a: string, b: string }) {
+					<div>{c}{b}</div>
 				}`,
 				'App.tsrx',
 			);
 
 			expect(code).toContain('function App(__lazy0: { a: string; b: string })');
+			expect(code).toContain('__lazy0.a');
 			expect(code).toContain('__lazy0.b');
+		});
+
+		it('rejects repeated local names inside lazy object params on plain functions', () => {
+			expect(() =>
+				compile(
+					`export function greet(&{ a: b, b }: { a: string, b: string }) {
+						return b;
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/Argument name clash/);
+		});
+
+		it('rejects repeated local names inside lazy object params on components', () => {
+			expect(() =>
+				compile(
+					`export component App(&{ a: b, b }: { a: string, b: string }) {
+						<div>{b}</div>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/Argument name clash/);
+		});
+
+		it('allows distinct local names inside lazy object params on plain functions', () => {
+			const { code } = compile(
+				`export function greet(&{ a: c, b }: { a: string, b: string }) {
+					return c + b;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function greet(__lazy0: { a: string; b: string })');
+			expect(code).toContain('return __lazy0.a + __lazy0.b');
 		});
 
 		it('does not rewrite switch-case variables that shadow lazy bindings', () => {

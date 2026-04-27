@@ -38,7 +38,8 @@ export function compile(source, filename) {
  * @returns {import('@tsrx/core/types').VolarMappingsResult}
  */
 export function compile_to_volar_mappings(source, filename, options) {
-	const ast = parseModule(source, filename, options);
+	const errors = /** @type {import('@tsrx/core/types').CompileError[]} */ ([]);
+	const ast = parseModule(source, filename, { ...options, errors });
 	const transformed = transform(ast, source, filename);
 	const result = createVolarMappingsResult({
 		ast: transformed.ast,
@@ -46,7 +47,7 @@ export function compile_to_volar_mappings(source, filename, options) {
 		source,
 		generated_code: transformed.code,
 		source_map: transformed.map,
-		errors: [],
+		errors,
 	});
 
 	return {

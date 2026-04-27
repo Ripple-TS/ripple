@@ -45,7 +45,7 @@ function processDiagnostics(document, context, diagnostics) {
 	const result = [];
 
 	for (const diagnostic of diagnostics) {
-		if (virtualCode.fatalErrors.length > 0 && diagnostic.code !== 'ripple-compile-error') {
+		if (virtualCode.fatalErrors.length > 0 && diagnostic.code !== 'tsrx-compile-error') {
 			// skip all TS diagnostics since we're dealing directly with the source code
 			continue;
 		}
