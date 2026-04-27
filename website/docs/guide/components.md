@@ -39,12 +39,12 @@ component Card(props: { children: Children }) {
 export component App() {
   // Use implicitly...
   <Card>
-    <p>{'Card content here'}</p>
+    <p>"Card content here"</p>
   </Card>
 
   // or pass children explicitly as a prop.
   component children() {
-    <p>{'Card content here'}</p>
+    <p>"Card content here"</p>
   }
 
   <Card {children} />
@@ -120,17 +120,17 @@ component Card({
 }
 
 component CustomHeader() {
-  <h1>{'Card Title'}</h1>
+  <h1>"Card Title"</h1>
 }
 
 component CustomFooter() {
-  <button>{'Cancel'}</button>
-  <button>{'OK'}</button>
+  <button>"Cancel"</button>
+  <button>"OK"</button>
 }
 
 export component App() {
   <Card Header={CustomHeader} Footer={CustomFooter}>
-    <p>{'Card content here'}</p>
+    <p>"Card content here"</p>
   </Card>
 }
 ```
@@ -220,13 +220,13 @@ See [Reactivity](/docs/guide/reactivity#Props-and-Attributes).
 
 ```ripple
 // Object spread
-<div {...properties}>{'Content'}</div>
+<div {...properties}>"Content"</div>
 
 // Shorthand props (when variable name matches prop name)
-<div {onClick} {className}>{'Content'}</div>
+<div {onClick} {className}>"Content"</div>
 
 // Equivalent to:
-<div {onClick} {className}>{'Content'}</div>
+<div {onClick} {className}>"Content"</div>
 ```
 
 ## Portal Component
@@ -240,13 +240,13 @@ import { Portal } from 'ripple';
 
 export component App() {
   <div class="app">
-    <h1>{'My App'}</h1>
+    <h1>"My App"</h1>
 
     {/* This will render inside document.body, not inside the .app div */}
     <Portal target={document.body}>
       <div class="modal">
-        <h2>{'I am rendered in document.body!'}</h2>
-        <p>{'This content escapes the normal component tree.'}</p>
+        <h2>"I am rendered in document.body!"</h2>
+        <p>"This content escapes the normal component tree."</p>
       </div>
     </Portal>
   </div>

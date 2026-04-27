@@ -43,16 +43,23 @@ export component App() {
 }
 ```
 
-### ⚠️ Critical: Text Content Must Be in Expressions
+### ⚠️ Critical: Text Content Must Be Explicit
 
-**IMPORTANT**: Unlike HTML or JSX, Ripple elements cannot contain raw text content. All text must be wrapped in JavaScript expressions using curly braces `{}`.
+**IMPORTANT**: Unlike HTML or JSX, Ripple elements cannot contain raw unquoted
+text content. Static text may be written as a direct double-quoted text child.
+Variables, single-quoted strings, template literals, and other JavaScript
+expressions must be wrapped in curly braces `{}`.
 
 ```ripple
-// ❌ WRONG - Raw text not allowed
+// ❌ WRONG - Raw unquoted text not allowed
 <div>Hello World</div>
 <p>This will cause a compilation error</p>
 
-// ✅ CORRECT - Text in expressions
+// ✅ CORRECT - Static text as direct double-quoted children
+<div>"Hello World"</div>
+<p>"This works correctly"</p>
+
+// ✅ CORRECT - JavaScript strings in expressions
 <div>{"Hello World"}</div>
 <p>{"This works correctly"}</p>
 
@@ -61,7 +68,10 @@ export component App() {
 <p>{`Dynamic content: ${value}`}</p>
 ```
 
-This is because Ripple needs to distinguish between JavaScript code and literal strings within the template syntax. The parser cannot determine if `Hello` is meant to be a string literal or a JavaScript identifier without explicit expression syntax.
+This is because Ripple needs to distinguish between JavaScript code and literal
+strings within the template syntax. The parser cannot determine if `Hello` is
+meant to be a string literal or a JavaScript identifier unless static text is
+explicitly double-quoted or dynamic content is wrapped in `{}`.
 
 ### ⚠️ Critical: Templates Only Inside Component Bodies
 
@@ -82,7 +92,7 @@ const myTemplate = (
 // ✅ CORRECT - Templates only inside components
 component MyComponent() {
   // Template syntax is valid here
-  <div>{"Hello World"}</div>
+  <div>"Hello World"</div>
 
   // You can have JavaScript code mixed with templates
   const message = "Dynamic content";
@@ -266,9 +276,9 @@ export component Counter() {
   let &[double] = track(() => count * 2);  // Derived reactive value
 
   <div>
-    <p>{"Count: "}{count}</p>
-    <p>{"Double: "}{double}</p>
-    <button onClick={() => count++}>{"Increment"}</button>
+    <p>"Count: "{count}</p>
+    <p>"Double: "{double}</p>
+    <button onClick={() => count++}>"Increment"</button>
   </div>
 }
 ```
@@ -460,8 +470,8 @@ export component App() {
 
   const &[double] = createDouble(countTracked);
 
-  <div>{'Double: ' + double}</div>
-  <button onClick={() => { count++; }}>{'Increment'}</button>
+  <div>"Double: "{double}</div>
+  <button onClick={() => { count++; }}>"Increment"</button>
 }
 ```
 
@@ -533,10 +543,10 @@ component StatusIndicator({ status }) {
 		case: 'init':
 			// fall-through to the next
     case 'loading':
-      <p>{'Loading...'}</p>
+      <p>"Loading..."</p>
       break; // break is mandatory
     case 'success':
-      <p>{'Success!'}</p>
+      <p>"Success!"</p>
       break;
     case 'error':
       <p>{'Error!'}</p>
@@ -625,8 +635,8 @@ import { track } from 'ripple';
 export component App() {
   let &[tag] = track('div');
 
-  <@tag class="dynamic">{'Hello World'}</@tag>
-  <button onClick={() => tag = tag === 'div' ? 'span' : 'div'}>{'Toggle Element'}</button>
+  <@tag class="dynamic">"Hello World"</@tag>
+  <button onClick={() => tag = tag === 'div' ? 'span' : 'div'}>"Toggle Element"</button>
 }
 ```
 
@@ -660,12 +670,12 @@ component Card(props: { children: Children; Footer?: Component }) {
 }
 
 component Footer() {
-  <button>{'OK'}</button>
+  <button>"OK"</button>
 }
 
 // Usage
 <Card Footer={Footer}>
-  <p>{"Card content here"}</p>
+  <p>"Card content here"</p>
 </Card>
 ```
 
@@ -857,13 +867,13 @@ export component App() {
     };
   };
 
-  <div {ref divRef}>{"Hello world"}</div>
+  <div {ref divRef}>"Hello world"</div>
 }
 ```
 
 Inline refs:
 ```ripple
-<div {ref (node) => console.log(node)}>{"Content"}</div>
+<div {ref (node) => console.log(node)}>"Content"</div>
 ```
 
 ## Built-in APIs
@@ -936,7 +946,7 @@ export component App() {
     console.log("Count changed:", count);
   });
 
-  <button onClick={() => count++}>{"Increment"}</button>
+  <button onClick={() => count++}>"Increment"</button>
 }
 ```
 
@@ -963,7 +973,7 @@ export component App() {
     });
   });
 
-  <button onClick={() => count++}>{'Increment'}</button>
+  <button onClick={() => count++}>"Increment"</button>
 }
 ```
 
@@ -1118,9 +1128,9 @@ export component App() {
 
   obj.a = 0;
 
-  <pre>{'obj.a is: '}{obj.a}</pre>
-  <pre>{'obj.b is: '}{obj.b}</pre>
-  <button onClick={() => { obj.a++; obj.b = obj.b ?? 5; obj.b++; }}>{'Increment'}</button>
+  <pre>"obj.a is: "{obj.a}</pre>
+  <pre>"obj.b is: "{obj.b}</pre>
+  <button onClick={() => { obj.a++; obj.b = obj.b ?? 5; obj.b++; }}>"Increment"</button>
 }
 ```
 
@@ -1454,13 +1464,13 @@ import { Portal } from 'ripple';
 
 export component App() {
   <div class="app">
-    <h1>{'My App'}</h1>
+    <h1>"My App"</h1>
 
     {/* This will render inside document.body, not inside the .app div */}
     <Portal target={document.body}>
       <div class="modal">
-        <h2>{'I am rendered in document.body!'}</h2>
-        <p>{'This content escapes the normal component tree.'}</p>
+        <h2>"I am rendered in document.body!"</h2>
+        <p>"This content escapes the normal component tree."</p>
       </div>
     </Portal>
   </div>
@@ -1484,13 +1494,13 @@ effect(() => {
 ### Prop Shortcuts
 ```ripple
 // Object spread
-<div {...properties}>{"Content"}</div>
+<div {...properties}>"Content"</div>
 
 // Shorthand props (when variable name matches prop name)
-<div {onClick} {className}>{"Content"}</div>
+<div {onClick} {className}>"Content"</div>
 
 // Equivalent to:
-<div onClick={onClick} className={className}>{"Content"}</div>
+<div onClick={onClick} className={className}>"Content"</div>
 ```
 
 ### Raw HTML
@@ -1513,9 +1523,10 @@ export component App() {
 
 ### Explicit Text
 
-By default, a `{expression}` in a template can render either text or a
-fragment. If you know the expression will always be text, use the `{text}`
-directive to make that explicit:
+Direct double-quoted children are static escaped text. By default, a
+`{expression}` in a template can render either text or a fragment. If you know
+the expression will always be text, use the `{text}` directive to make that
+explicit:
 
 ```ripple
 export component Frame({ children }) {
@@ -1629,7 +1640,7 @@ export default defineConfig({
 ## Best Practices
 
 1. **Reactivity**: Use `track()` (imported from `'ripple'`) with `&[]` lazy destructuring to create reactive variables
-2. **Strings**: Wrap string literals in `{"string"}` within templates
+2. **Strings**: Use direct double-quoted children for static text, and `{}` for JavaScript expressions
 3. **Effects**: Use `effect()` (imported from `'ripple'`) for side effects, not direct reactive variable access
 4. **Components**: Keep components focused and use TypeScript interfaces for props
 5. **Styling**: Use scoped `<style>` elements for component-specific styles

@@ -68,16 +68,16 @@ export component StatusIndicator({ status }) {
       case: 'init':
         // fall-through to the next
       case 'loading':
-        <p>{'Loading...'}</p>
+        <p>"Loading..."</p>
         break;
       case 'success':
-        <p>{'Success!'}</p>
+        <p>"Success!"</p>
         break;
       case 'error':
-        <p>{'Error!'}</p>
+        <p>"Error!"</p>
         break;
       default:
-        <p>{'Unknown status'}</p>
+        <p>"Unknown status"</p>
     }
   </div>
 }
@@ -95,22 +95,22 @@ import { track } from 'ripple';
 export component InteractiveStatus() {
   let &[status] = track('loading');
 
-  <button onClick={() => (status = 'success')}>{'Success'}</button>
-  <button onClick={() => (status = 'error')}>{'Error'}</button>
+  <button onClick={() => (status = 'success')}>"Success"</button>
+  <button onClick={() => (status = 'error')}>"Error"</button>
 
   <div>
     switch (status) {
       case 'init':
-        <p>{'Init'}</p>
+        <p>"Init"</p>
       // fall-through to the next
       case 'loading':
-        <p>{'Loading...'}</p>
+        <p>"Loading..."</p>
         break;
       case 'success':
-        <p>{'Success!'}</p>
+        <p>"Success!"</p>
         break;
       case 'error':
-        <p>{'Error!'}</p>
+        <p>"Error!"</p>
         break;
       default:
         <p>{'Unknown status'}</p>
@@ -249,9 +249,9 @@ import { track } from 'ripple';
 export component App() {
   let &[tag] = track('div');
 
-  <@tag class="dynamic">{'Hello World'}</@tag>
+  <@tag class="dynamic">"Hello World"</@tag>
   <button onClick={() => (tag = tag === 'div' ? 'span' : 'div')}>
-    {'Toggle Element'}
+    "Toggle Element"
   </button>
 }
 ```
@@ -283,7 +283,7 @@ export component App() {
   try {
     <UserProfile id={1} />
   } pending {
-    <p>{'Loading...'}</p>
+    <p>"Loading..."</p>
   } catch (e) {
     <p>
       {'Error: '}

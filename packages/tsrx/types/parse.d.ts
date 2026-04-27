@@ -1174,6 +1174,8 @@ export namespace Parse {
 
 		parseElement(): AST.Element | AST.Tsx | AST.TsxCompat;
 
+		parseDoubleQuotedTextChild(): AST.TextNode;
+
 		parseTemplateBody(
 			body: (AST.Statement | AST.Node | ESTreeJSX.JSXText | ESTreeJSX.JSXElement['children'])[],
 		): void;

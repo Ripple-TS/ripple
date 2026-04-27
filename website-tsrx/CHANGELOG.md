@@ -1,5 +1,17 @@
 # tsrx-website
 
+## 0.1.18
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/prettier-plugin@0.3.35
+  - @tsrx/preact@0.0.10
+  - @tsrx/react@0.1.9
+  - @tsrx/ripple@0.0.17
+  - @tsrx/solid@0.0.15
+  - @ripple-ts/adapter-node@0.3.35
+
 ## 0.1.17
 
 ### Patch Changes

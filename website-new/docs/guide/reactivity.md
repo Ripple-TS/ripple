@@ -250,7 +250,7 @@ export component App() {
       count++;
     }}
   >
-    {'Increment'}
+    "Increment"
   </button>
 }
 ```
@@ -318,7 +318,7 @@ export component App() {
     console.log(count);
   });
 
-  <button onClick={() => count++}>{'Increment'}</button>
+  <button onClick={() => count++}>"Increment"</button>
 }
 ```
 
@@ -352,7 +352,7 @@ export component App() {
     });
   });
 
-  <button onClick={() => count++}>{'Increment'}</button>
+  <button onClick={() => count++}>"Increment"</button>
 }
 ```
 
@@ -500,7 +500,7 @@ export component App() {
       obj.b++;
     }}
   >
-    {'Increment'}
+    "Increment"
   </button>
 }
 ```

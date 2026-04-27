@@ -128,27 +128,33 @@ export component Button({ label, onClick }: {
 ### Statement-based JSX
 
 JSX elements are **statements**, not expressions — they appear directly in
-the component body. All text content lives in expression containers `{...}`.
+the component body. Static text can be written as direct double-quoted text
+children. Dynamic values and JavaScript string/template expressions still live
+in expression containers `{...}`.
 
 ```tsrx
 component Greeting() {
-  <h1>{'Hello World'}</h1>
-  <p>{'Welcome to TSRX.'}</p>
+  <h1>"Hello World"</h1>
+  <p>"Welcome to TSRX."</p>
 }
 ```
 
 ```tsrx
-// ❌ WRONG — bare text is not allowed
+// ❌ WRONG — bare unquoted text is not allowed
 <div>Hello World</div>
 
-// ✅ CORRECT — text must be in an expression container
+// ✅ CORRECT — static text may be a double-quoted child
+<div>"Hello World"</div>
+
+// ✅ CORRECT — JS expressions still use braces
 <div>{'Hello World'}</div>
 <div>{`Count: ${count}`}</div>
 <div>{user.name}</div>
 ```
 
-**Why:** the parser cannot tell whether `Hello` is a string literal or a JS
-identifier without explicit `{}`.
+**Why:** unquoted text is ambiguous with JavaScript identifiers. A direct text
+child must be a double-quoted static string; all other values stay explicit with
+`{}`.
 
 ### Using `<>` or `<tsx>` for JSX values
 
@@ -185,19 +191,22 @@ function badge(label: string) {
 - Do not write `const el = <div />;` at the top level of a component.
 - Do not return bare JSX from regular functions without `<>...</>` or `<tsx>...</tsx>`.
 
-### Text expressions: `{ ... }`, `{text ...}`, `{html ...}`
+### Text children and expressions: `"..."`, `{ ... }`, `{text ...}`, `{html ...}`
 
-Every expression container holds a single JS/TS expression — string, template
-literal, variable, ternary, function call. Adjacent `{...}` containers
-concatenate:
+Double-quoted static text may appear directly as a child. Every expression
+container holds a single JS/TS expression — string, template literal, variable,
+ternary, function call. Adjacent text and `{...}` containers concatenate:
 
 ```tsrx
 component Inbox({ name, count }: { name: string; count: number }) {
-  <p>{'Hello, '}{name}{'!'}</p>
+  <p>"Hello, "{name}"!"</p>
   <p>{`You have ${count} unread messages`}</p>
   <p>{count > 0 ? 'Check your inbox.' : 'All caught up.'}</p>
 }
 ```
+
+Only double quotes have this direct-child meaning. Single-quoted strings and
+template literals are JavaScript expressions and must stay inside `{}`.
 
 #### `{text expr}` — forced escaped text (all targets)
 
@@ -356,11 +365,11 @@ not helper components.
 component StatusBadge({ status }: { status: string }) {
   <div>
     if (status === 'active') {
-      <span class="badge active">{'Online'}</span>
+      <span class="badge active">"Online"</span>
     } else if (status === 'idle') {
-      <span class="badge idle">{'Away'}</span>
+      <span class="badge idle">"Away"</span>
     } else {
-      <span class="badge">{'Offline'}</span>
+      <span class="badge">"Offline"</span>
     }
   </div>
 }
@@ -394,13 +403,13 @@ fall-through works.
 component StatusMessage({ status }: { status: string }) {
   switch (status) {
     case 'loading':
-      <p>{'Loading...'}</p>
+      <p>"Loading..."</p>
       break;
     case 'success':
-      <p class="success">{'Done!'}</p>
+      <p class="success">"Done!"</p>
       break;
     default:
-      <p>{'Unknown status.'}</p>
+      <p>"Unknown status."</p>
   }
 }
 ```
@@ -417,7 +426,7 @@ component SafeProfile({ userId }: { userId: string }) {
     <UserProfile id={userId} />
   } catch (error) {
     <div class="error">
-      <p>{'Something went wrong.'}</p>
+      <p>"Something went wrong."</p>
     </div>
   }
 }
@@ -444,9 +453,9 @@ export component App() {
   try {
     <UserProfile id={1} />
   } pending {
-    <p>{'Loading...'}</p>
+    <p>"Loading..."</p>
   } catch (e) {
-    <p>{'Something went wrong.'}</p>
+    <p>"Something went wrong."</p>
   }
 }
 ```
@@ -690,7 +699,7 @@ component List<T>({ items, render }: Props<T>) {
 | Component declaration    | `component Name(props: T) { ... }`               |
 | Exported component       | `export component Name(...) { ... }`             |
 | JSX as value             | `const v = <tsx><span /></tsx>;`                 |
-| Text content             | `<p>{'literal'}</p>`, `<p>{expr}</p>`            |
+| Text content             | `<p>"literal"</p>`, `<p>{expr}</p>`             |
 | Forced escaped text      | `<span>{text expr}</span>`                       |
 | Raw HTML (Ripple only)   | `<article>{html markup}</article>`               |
 | Lazy prop destructure    | `component C(&{ x, y }: Props) { ... }`          |

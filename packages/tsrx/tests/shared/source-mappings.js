@@ -51,6 +51,17 @@ export function runSharedSourceMappingTests({
 		it('ForInStatement', () => expect_maps(`component C() { for (const x in obj) {} }`));
 		it('ForOfStatement', () =>
 			expect_maps(`const test = () => { for (const x of Object.keys({})) {}}`));
+		it('SwitchStatement', () =>
+			expect_maps(`function getStatus(status: 'active' | 'blocked') {
+  switch (status) {
+    case 'active':
+      return { label: 'Running' }
+    case 'blocked':
+      return { label: 'Blocked' }
+    default:
+      return { label: 'Idle' }
+  }
+}`));
 		it('TemplateLiteral', () => expect_maps('component C() { const x = `hello ${y}`; }'));
 		it('TaggedTemplateExpression', () => expect_maps('component C() { tag`hi`; }'));
 		// AwaitExpression inside a component body. React emits an async
@@ -82,6 +93,10 @@ export function runSharedSourceMappingTests({
 		// generics) are otherwise invisible to the source map.
 		it('generic call with type arguments', () =>
 			expect_maps(`component C() { useState<string>(''); }`));
+		it('call argument with arrow-function return type', () =>
+			expect_maps(
+				`component C() { const [itemElements] = useState((): Record<string, HTMLButtonElement | null> => ({})) }`,
+			));
 		it('component with type parameters', () => expect_maps(`component C<T extends string>() {}`));
 		it('as-expression', () => expect_maps(`component C() { const x = y as string; }`));
 		it('union type annotation', () => expect_maps(`component C(p: { x: string | null }) {}`));
