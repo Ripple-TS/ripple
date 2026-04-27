@@ -276,9 +276,9 @@ export component Counter() {
   let &[double] = track(() => count * 2);  // Derived reactive value
 
   <div>
-    <p>{"Count: "}{count}</p>
-    <p>{"Double: "}{double}</p>
-    <button onClick={() => count++}>{"Increment"}</button>
+    <p>"Count: "{count}</p>
+    <p>"Double: "{double}</p>
+    <button onClick={() => count++}>"Increment"</button>
   </div>
 }
 ```
@@ -470,8 +470,8 @@ export component App() {
 
   const &[double] = createDouble(countTracked);
 
-  <div>{'Double: ' + double}</div>
-  <button onClick={() => { count++; }}>{'Increment'}</button>
+  <div>"Double: "{double}</div>
+  <button onClick={() => { count++; }}>"Increment"</button>
 }
 ```
 
@@ -543,10 +543,10 @@ component StatusIndicator({ status }) {
 		case: 'init':
 			// fall-through to the next
     case 'loading':
-      <p>{'Loading...'}</p>
+      <p>"Loading..."</p>
       break; // break is mandatory
     case 'success':
-      <p>{'Success!'}</p>
+      <p>"Success!"</p>
       break;
     case 'error':
       <p>{'Error!'}</p>
@@ -670,12 +670,12 @@ component Card(props: { children: Children; Footer?: Component }) {
 }
 
 component Footer() {
-  <button>{'OK'}</button>
+  <button>"OK"</button>
 }
 
 // Usage
 <Card Footer={Footer}>
-  <p>{"Card content here"}</p>
+  <p>"Card content here"</p>
 </Card>
 ```
 
@@ -946,7 +946,7 @@ export component App() {
     console.log("Count changed:", count);
   });
 
-  <button onClick={() => count++}>{"Increment"}</button>
+  <button onClick={() => count++}>"Increment"</button>
 }
 ```
 
@@ -973,7 +973,7 @@ export component App() {
     });
   });
 
-  <button onClick={() => count++}>{'Increment'}</button>
+  <button onClick={() => count++}>"Increment"</button>
 }
 ```
 
@@ -1128,9 +1128,9 @@ export component App() {
 
   obj.a = 0;
 
-  <pre>{'obj.a is: '}{obj.a}</pre>
-  <pre>{'obj.b is: '}{obj.b}</pre>
-  <button onClick={() => { obj.a++; obj.b = obj.b ?? 5; obj.b++; }}>{'Increment'}</button>
+  <pre>"obj.a is: "{obj.a}</pre>
+  <pre>"obj.b is: "{obj.b}</pre>
+  <button onClick={() => { obj.a++; obj.b = obj.b ?? 5; obj.b++; }}>"Increment"</button>
 }
 ```
 
@@ -1464,13 +1464,13 @@ import { Portal } from 'ripple';
 
 export component App() {
   <div class="app">
-    <h1>{'My App'}</h1>
+    <h1>"My App"</h1>
 
     {/* This will render inside document.body, not inside the .app div */}
     <Portal target={document.body}>
       <div class="modal">
-        <h2>{'I am rendered in document.body!'}</h2>
-        <p>{'This content escapes the normal component tree.'}</p>
+        <h2>"I am rendered in document.body!"</h2>
+        <p>"This content escapes the normal component tree."</p>
       </div>
     </Portal>
   </div>
@@ -1640,7 +1640,7 @@ export default defineConfig({
 ## Best Practices
 
 1. **Reactivity**: Use `track()` (imported from `'ripple'`) with `&[]` lazy destructuring to create reactive variables
-2. **Strings**: Wrap string literals in `{"string"}` within templates
+2. **Strings**: Use direct double-quoted children for static text, and `{}` for JavaScript expressions
 3. **Effects**: Use `effect()` (imported from `'ripple'`) for side effects, not direct reactive variable access
 4. **Components**: Keep components focused and use TypeScript interfaces for props
 5. **Styling**: Use scoped `<style>` elements for component-specific styles

@@ -242,17 +242,17 @@ export default component App() {
 export default component App() {
 	let count = track(1);
 
-	<button onClick={() => @count++}>{'Increment'}</button>
+	<button onClick={() => @count++}>"Increment"</button>
 
 	switch (@count) {
 		case 1:
-			<div>{'Count is 1'}</div>
+			<div>"Count is 1"</div>
 			break;
 		case 2:
-			<div>{'Count is 2'}</div>
+			<div>"Count is 2"</div>
 			break;
 		default:
-			<div>{'Count is other'}</div>
+			<div>"Count is other"</div>
 	}
 }
 `,
@@ -322,7 +322,7 @@ export default component SuspenseBoundary() {
 	try {
 		<AsyncComponent />
 	} pending {
-		<p>{'Loading...'}</p>
+		<p>"Loading..."</p>
 	}
 }
 `,
@@ -384,7 +384,7 @@ export default component App() {
     }
   });
 
-  <button onClick={() => @count++}>{'Increment'}</button>
+	<button onClick={() => @count++}>"Increment"</button>
 }
 `,
 	},
@@ -461,9 +461,9 @@ export default component App() {
 
   obj.a = 0;
 
-  <pre>{'obj.a is: '}{obj.a}</pre>
-  <pre>{'obj.b is: '}{obj.b}</pre>
-  <button onClick={() => { obj.a++; obj.b = obj.b ?? 5; obj.b++; }}>{'Increment'}</button>
+	<pre>"obj.a is: "{obj.a}</pre>
+	<pre>"obj.b is: "{obj.b}</pre>
+	<button onClick={() => { obj.a++; obj.b = obj.b ?? 5; obj.b++; }}>"Increment"</button>
 }
 `,
 	},
@@ -548,8 +548,8 @@ export default component App() {
 
   <div class="container">
     <p>{@count}</p>
-    <button onClick={() => @count++}>{"Increment"}</button>
-    <button onClick={() => @count = 0}>{"Reset"}</button>
+	<button onClick={() => @count++}>"Increment"</button>
+	<button onClick={() => @count = 0}>"Reset"</button>
   </div>
 
 	<style>
@@ -593,7 +593,7 @@ export default component App() {
   const { quad } = createQuad({ count }); // object
   <p>{'Quadruple: ' + @quad}</p>
 
-  <button onClick={() => { @count++; }}>{'Increment'}</button>
+	<button onClick={() => { @count++; }}>"Increment"</button>
 }
 `,
 	},

@@ -10,7 +10,7 @@ component using the `<style>` element.
 ```ripple
 component MyComponent() {
   <div class="container">
-    <h1>{'Hello World'}</h1>
+    <h1>"Hello World"</h1>
   </div>
 
   <style>
