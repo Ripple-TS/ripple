@@ -99,7 +99,31 @@ export function tsx_with_ts_locations() {
 	};
 
 	/** @type {Record<string, (node: any, context: any) => void>} */
-	const wrappers = {};
+	const wrappers = {
+		ArrayPattern: (node, context) => {
+			base.ArrayPattern(node, context);
+			if (node.typeAnnotation) {
+				context.visit(node.typeAnnotation);
+			}
+		},
+		Identifier: (node, context) => {
+			context.write(node.name, node);
+			if (node.optional) {
+				context.write('?');
+			}
+			if (node.typeAnnotation) {
+				context.visit(node.typeAnnotation);
+			}
+		},
+		TSNamedTupleMember: (node, context) => {
+			context.visit(node.label);
+			if (node.optional) {
+				context.write('?');
+			}
+			context.write(': ');
+			context.visit(node.elementType);
+		},
+	};
 	for (const type of [
 		// JS nodes whose esrap printer emits no location marker, causing
 		// segments.js get_mapping_from_node() to throw when it asks for the

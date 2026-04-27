@@ -405,6 +405,24 @@ describe('@tsrx/solid basic', () => {
 			expect(code).not.toMatch(/<div>console\.log/);
 		});
 
+		it('statement-only element children return null from their IIFE', () => {
+			const { code } = compile(
+				`component Child() {
+					<div>
+						const x = 1;
+
+						console.log(x);
+					</div>
+				}`,
+				'Child.tsrx',
+			);
+
+			expect(code).toContain('return <div>{(() => {');
+			expect(code).toContain('const x = 1;');
+			expect(code).toContain('console.log(x);');
+			expect(code).toContain('return null;');
+		});
+
 		it('early-return keeps non-JSX after statements in outer body', () => {
 			// Regression: non-JSX statements declared after `if (cond) return;`
 			// (e.g. createSignal calls) must run once at setup rather than

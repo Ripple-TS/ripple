@@ -1,4 +1,4 @@
-import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { useState, use } from 'react';
 
 const EXPECTED_ERROR_LOG_SNIPPETS = [
@@ -11,8 +11,7 @@ const EXPECTED_ERROR_LOG_SNIPPETS = [
 	'React will try to recreate this component tree from scratch using the error boundary you provided',
 ];
 
-/** @type {import('vitest').MockInstance | undefined} */
-let console_error_spy;
+let console_error_spy: MockInstance | undefined;
 
 function is_expected_error_log(args: unknown[]) {
 	const message = args.map((arg) => {
@@ -62,6 +61,54 @@ component ExplicitTextApp() {
 	<div class="explicit-text-boolean">{text hidden}</div>
 	<div class="explicit-text-null">{text empty}</div>
 	<div class="explicit-text-undefined">{text missing}</div>
+}
+
+component CallableBlockRuntimeApp() {
+	function readDeclaration() {
+		const marker = 'decl-outer';
+		let selected = marker;
+
+		{
+			const marker = 'decl-inner';
+			selected = marker;
+		}
+
+		return `${selected}/${marker}`;
+	}
+
+	const readArrow = () => {
+		const base = 10;
+		let total = base;
+
+		{
+			const base = 32;
+			total += base;
+		}
+
+		return total;
+	};
+
+	class MethodReader {
+		read() {
+			const marker = 'method-outer';
+			let selected = marker;
+
+			{
+				const marker = 'method-inner';
+				selected = marker;
+			}
+
+			return `${selected}/${marker}`;
+		}
+	}
+
+	const reader = new MethodReader();
+
+	<section class="callable-block-runtime">
+		<p class="decl-block">{readDeclaration()}</p>
+		<p class="arrow-block">{readArrow()}</p>
+		<p class="method-block">{reader.read()}</p>
+	</section>
 }
 
 // ── Reactive counter ──
@@ -243,8 +290,8 @@ component ThrowingChild() {
 component ErrorBoundaryApp() {
 	try {
 		<ThrowingChild />
-	} catch (err) {
-		<p class="caught">{(err as Error).message}</p>
+	} catch (err: Error) {
+		<p class="caught">{err.message}</p>
 	}
 }
 
@@ -262,8 +309,8 @@ component ErrorToggleApp() {
 
 	try {
 		<MaybeThrow shouldThrow={fail} />
-	} catch (err, reset) {
-		<p class="caught">{(err as Error).message}</p>
+	} catch (err: Error, reset: () => void) {
+		<p class="caught">{err.message}</p>
 		<button
 			class="reset"
 			onClick={() => {
@@ -300,8 +347,8 @@ component SuspenseErrorApp(props: { promise: Promise<string> }) {
 		<AsyncChild promise={props.promise} />
 	} pending {
 		<p class="pending">{'loading...'}</p>
-	} catch (err) {
-		<p class="caught">{(err as Error).message}</p>
+	} catch (err: Error) {
+		<p class="caught">{err.message}</p>
 	}
 }
 
@@ -312,8 +359,8 @@ component ErrorResetApp(props: { promise: Promise<string> }) {
 		<AsyncChild promise={props.promise} />
 	} pending {
 		<p class="pending">{'loading...'}</p>
-	} catch (err, reset) {
-		<p class="caught">{(err as Error).message}</p>
+	} catch (err: Error, reset: () => void) {
+		<p class="caught">{err.message}</p>
 		<button class="retry" onClick={() => reset()}>{'retry'}</button>
 	}
 }
@@ -330,12 +377,12 @@ component NestedTryApp() {
 		<div class="outer">
 			try {
 				<InnerThrow />
-			} catch (err) {
-				<p class="inner-caught">{(err as Error).message}</p>
+			} catch (err: Error) {
+				<p class="inner-caught">{err.message}</p>
 			}
 		</div>
-	} catch (err) {
-		<p class="outer-caught">{(err as Error).message}</p>
+	} catch (err: Error) {
+		<p class="outer-caught">{err.message}</p>
 	}
 }
 
@@ -364,7 +411,7 @@ component IfInsideTryApp() {
 		} else {
 			<p class="branch-b">{'alternate'}</p>
 		}
-	} catch (err) {
+	} catch (err: Error) {
 		<p class="caught">{'error'}</p>
 	}
 
@@ -380,7 +427,7 @@ component ForInsideTryApp() {
 		for (const item of items) {
 			<span class="try-item" key={item}>{item}</span>
 		}
-	} catch (err) {
+	} catch (err: Error) {
 		<p class="caught">{'error'}</p>
 	}
 
@@ -390,7 +437,7 @@ component ForInsideTryApp() {
 // ── Hook inside if-branch ──
 
 component HookInIfApp() {
-	const [show, setShow] = useState(true);
+	const [show, setShow]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = useState(true);
 
 	if (show) {
 		const [count, setCount] = useState(0);
@@ -693,6 +740,13 @@ describe('tsrx-react runtime', () => {
 		expect(text('.explicit-text-boolean')).toBe('false');
 		expect(text('.explicit-text-null')).toBe('');
 		expect(text('.explicit-text-undefined')).toBe('');
+	});
+
+	it('runs nested JavaScript blocks inside component-local callables', async () => {
+		await render(CallableBlockRuntimeApp);
+		expect(text('.decl-block')).toBe('decl-inner/decl-outer');
+		expect(text('.arrow-block')).toBe('42');
+		expect(text('.method-block')).toBe('method-inner/method-outer');
 	});
 
 	// ── Reactivity with useState ──

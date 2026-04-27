@@ -1,5 +1,26 @@
 /** @import { Plugin } from 'vite' */
 
+/**
+ * @typedef {{ code: string, map: unknown }} TsrxReactTransformResult
+ * @typedef {{
+ *   (code: string, id: `${string}.tsrx`): Promise<TsrxReactTransformResult>,
+ *   (code: string, id: string): Promise<TsrxReactTransformResult | null>,
+ * }} TsrxReactTransform
+ * @typedef {{
+ *   (source: `${string}?tsrx-css&lang.css`): `\0${string}?tsrx-css&lang.css`,
+ *   (source: string): string | null,
+ * }} TsrxReactResolveId
+ * @typedef {{
+ *   (id: `\0${string}?tsrx-css&lang.css`): string,
+ *   (id: string): string | null,
+ * }} TsrxReactLoad
+ * @typedef {Omit<Plugin, 'transform' | 'resolveId' | 'load'> & {
+ *   transform: TsrxReactTransform,
+ *   resolveId: TsrxReactResolveId,
+ *   load: TsrxReactLoad,
+ * }} TsrxReactPlugin
+ */
+
 import { transformWithOxc } from 'vite';
 import { compile } from '@tsrx/react';
 
@@ -13,7 +34,7 @@ const CSS_QUERY = '?tsrx-css&lang.css';
  * modules that are imported by the compiled JS output.
  *
  * @param {{ jsxImportSource?: string }} [options]
- * @returns {Plugin}
+ * @returns {TsrxReactPlugin}
  */
 export function tsrxReact(options = {}) {
 	const jsxImportSource = options.jsxImportSource ?? 'react';
@@ -21,24 +42,24 @@ export function tsrxReact(options = {}) {
 	/** @type {Map<string, string>} */
 	const css_cache = new Map();
 
-	return {
+	return /** @type {TsrxReactPlugin} */ ({
 		name: '@tsrx/vite-plugin-react',
 		enforce: 'pre',
 
-		resolveId(source) {
+		resolveId(/** @type {string} */ source) {
 			if (!source.includes(CSS_QUERY)) return null;
 			if (source.startsWith('\0')) return source;
 			return '\0' + source;
 		},
 
-		load(id) {
+		load(/** @type {string} */ id) {
 			if (!id.startsWith('\0') || !id.includes(CSS_QUERY)) return null;
 			const key = id.slice(1).split('?')[0];
 			const css = css_cache.get(key);
 			return css ?? '';
 		},
 
-		async transform(code, id) {
+		async transform(/** @type {string} */ code, /** @type {string} */ id) {
 			if (!TSRX_EXTENSION_PATTERN.test(id)) return null;
 
 			const { code: tsx_code, css } = compile(code, id);
@@ -63,7 +84,7 @@ export function tsrxReact(options = {}) {
 
 			return { code: result.code, map: result.map };
 		},
-	};
+	});
 }
 
 export default tsrxReact;

@@ -2117,6 +2117,18 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printTSTupleType(node, path, options, print);
 			break;
 
+		case 'TSNamedTupleMember':
+			nodeContent = printTSNamedTupleMember(node, path, options, print);
+			break;
+
+		case 'TSRestType':
+			nodeContent = ['...', path.call(print, 'typeAnnotation')];
+			break;
+
+		case 'TSOptionalType':
+			nodeContent = [path.call(print, 'typeAnnotation'), '?'];
+			break;
+
 		case 'TSIndexSignature':
 			nodeContent = printTSIndexSignature(node, path, options, print);
 			break;
@@ -5263,6 +5275,23 @@ function printTSTupleType(node, path, options, print) {
 }
 
 /**
+ * Print a TypeScript named tuple member
+ * @param {AST.TSNamedTupleMember} node - The named tuple member node
+ * @param {AstPath<AST.TSNamedTupleMember>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
+function printTSNamedTupleMember(node, path, options, print) {
+	return [
+		path.call(print, 'label'),
+		node.optional ? '?' : '',
+		': ',
+		path.call(print, 'elementType'),
+	];
+}
+
+/**
  * Print a TypeScript index signature
  * @param {AST.TSIndexSignature} node - The index signature node
  * @param {AstPath<AST.TSIndexSignature>} path - The AST path
@@ -5734,7 +5763,7 @@ function printJSXElement(node, path, options, print) {
 						'attributes',
 						i,
 					);
-				} else if (attr.type === 'JSXSpreadAttribute') {
+				} else if (attr.type === 'JSXSpreadAttribute' || attr.type === 'SpreadAttribute') {
 					return ['{...', path.call(print, 'openingElement', 'attributes', i, 'argument'), '}'];
 				}
 				return '';

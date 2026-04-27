@@ -126,60 +126,6 @@ export function is_delegated_event(event_name, handler, context) {
 }
 
 /**
- * Returns true if context is inside a Component node
- * @param {CommonContext} context
- * @param {boolean} [includes_functions=false]
- * @returns {AST.Component | undefined}
- */
-export function is_inside_component(context, includes_functions = false) {
-	for (let i = context.path.length - 1; i >= 0; i -= 1) {
-		const context_node = context.path[i];
-		const type = context_node.type;
-
-		if (
-			!includes_functions &&
-			(type === 'FunctionExpression' ||
-				type === 'ArrowFunctionExpression' ||
-				type === 'FunctionDeclaration')
-		) {
-			return;
-		}
-		if (context_node.type === 'Component') {
-			return context_node;
-		}
-	}
-	return;
-}
-
-/**
- * Returns true if context is inside a component-level function
- * @param {CommonContext} context
- * @returns {boolean}
- */
-export function is_component_level_function(context) {
-	for (let i = context.path.length - 1; i >= 0; i -= 1) {
-		const context_node = context.path[i];
-		const type = context_node.type;
-
-		if (
-			type === 'BlockStatement' &&
-			context_node.body.find((n) => /** @type {AST.Node} */ (n).type === 'Component')
-		) {
-			return true;
-		}
-
-		if (
-			type === 'FunctionExpression' ||
-			type === 'ArrowFunctionExpression' ||
-			type === 'FunctionDeclaration'
-		) {
-			return false;
-		}
-	}
-	return true;
-}
-
-/**
  * Returns the matched Ripple tracking call name
  * @param {AST.Expression | AST.Super} callee
  * @param {CommonContext} context

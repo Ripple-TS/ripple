@@ -14,13 +14,13 @@
     "debug-client": "node ../../scripts/debug-mode.js client @tsrx/ripple",
     "debug-volar": "node ../../scripts/debug-mode.js tsx @tsrx/ripple",
     "debug-tsx": "node ../../scripts/debug-mode.js tsx @tsrx/ripple",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsrx-tsc --noEmit"
   },
   "devDependencies": {
     "@tsrx/eslint-plugin": "workspace:*",
     "@tsrx/typescript-plugin": "workspace:*",
     "@ripple-ts/vite-plugin": "workspace:*",
-    "@tsrx/ripple": "workspace:*",
     "@typescript-eslint/parser": "catalog:default",
     "@tailwindcss/vite": "catalog:default",
     "eslint": "catalog:default",

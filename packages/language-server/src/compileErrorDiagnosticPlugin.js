@@ -73,8 +73,8 @@ function parseCompilationErrorWithDocument(error, virtualCode, sourceMap, docume
 			severity: DiagnosticSeverity.Error,
 			range: get_error_range_from_source(error, document),
 			message: error.message,
-			source: 'Ripple',
-			code: 'ripple-compile-error',
+			source: 'TSRX',
+			code: 'tsrx-compile-error',
 		};
 	}
 
@@ -114,8 +114,8 @@ function parseCompilationErrorWithDocument(error, virtualCode, sourceMap, docume
 		severity: DiagnosticSeverity.Error,
 		range: { start, end },
 		message: error.message,
-		source: 'Ripple',
-		code: 'ripple-usage-error',
+		source: 'TSRX',
+		code: 'tsrx-usage-error',
 	};
 }
 

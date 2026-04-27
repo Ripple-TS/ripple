@@ -37,6 +37,11 @@ export interface CompileOptions {
 	dev?: boolean;
 	hmr?: boolean;
 	compat_kinds?: string[];
+	/**
+	 * When true, non-fatal errors are collected on the result's `errors`
+	 * array instead of being thrown. Defaults to false (strict mode: throws).
+	 */
+	loose?: boolean;
 }
 
 export type NameSpace = 'html' | 'svg' | 'mathml';
@@ -45,6 +50,7 @@ interface BaseNodeMetaData {
 	path: AST.Node[];
 	has_template?: boolean;
 	source_name?: string | '#server' | '#style';
+	source_length?: number;
 	is_capitalized?: boolean;
 	commentContainerId?: number;
 	parenthesized?: boolean;
@@ -56,6 +62,12 @@ interface BaseNodeMetaData {
 	lone_return?: boolean;
 	forceMapping?: boolean;
 	lazy_id?: string;
+	disable_verification?: boolean;
+	lazy_param_is_component?: boolean;
+	lazy_param_binding_mappings?: Array<{
+		source: AST.Identifier;
+		generated: AST.Identifier | AST.Literal;
+	}>;
 }
 
 interface FunctionMetaData extends BaseNodeMetaData {
@@ -1558,6 +1570,11 @@ export interface CompileResult {
 	};
 	/** The generated CSS */
 	css: string;
+	/**
+	 * Non-fatal errors collected during compilation. Populated only when the
+	 * caller passes `loose: true`; empty otherwise.
+	 */
+	errors: CompileError[];
 }
 
 /**

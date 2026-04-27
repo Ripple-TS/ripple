@@ -1,5 +1,42 @@
 # @tsrx/prettier-plugin
 
+## 0.3.34
+
+### Patch Changes
+
+- [#976](https://github.com/Ripple-TS/ripple/pull/976)
+  [`2fcacb4`](https://github.com/Ripple-TS/ripple/commit/2fcacb471d7780074f92b20c9b394f7650a941bb)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve named and optional
+  TypeScript tuple members when formatting.
+
+- Updated dependencies
+  [[`cf4f06e`](https://github.com/Ripple-TS/ripple/commit/cf4f06e8bcbb41f863d047dfaa6d9d17ed212163),
+  [`fcd25aa`](https://github.com/Ripple-TS/ripple/commit/fcd25aa549db0d56ccbd596b657b856a5061e20f),
+  [`30126c7`](https://github.com/Ripple-TS/ripple/commit/30126c753c3a08809bacd07c8cf2eca84e8f8cbb),
+  [`b8cd7c4`](https://github.com/Ripple-TS/ripple/commit/b8cd7c4195505976995033a8e369502996f345ad),
+  [`b8cd7c4`](https://github.com/Ripple-TS/ripple/commit/b8cd7c4195505976995033a8e369502996f345ad),
+  [`3ddb1a9`](https://github.com/Ripple-TS/ripple/commit/3ddb1a92ffeb48a7d47c445b929b982a2b96e123),
+  [`fee8620`](https://github.com/Ripple-TS/ripple/commit/fee8620fa4e82a7c7e4adb3e434e9db552a3e157),
+  [`2fcacb4`](https://github.com/Ripple-TS/ripple/commit/2fcacb471d7780074f92b20c9b394f7650a941bb)]:
+  - @tsrx/core@0.0.14
+  - @tsrx/ripple@0.0.16
+
+## 0.3.33
+
+### Patch Changes
+
+- [#963](https://github.com/Ripple-TS/ripple/pull/963)
+  [`112cfd9`](https://github.com/Ripple-TS/ripple/commit/112cfd9fbfd4412efea543abc55deceb186cf351)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve JSX spread
+  attributes inside explicit `<tsx>` blocks.
+
+- Updated dependencies
+  [[`a9f706d`](https://github.com/Ripple-TS/ripple/commit/a9f706d6626dc1a9e8505d9ea8f16989b2b024b3),
+  [`3e07109`](https://github.com/Ripple-TS/ripple/commit/3e071098508449158fa11f2ae48c912d4d673b68),
+  [`112cfd9`](https://github.com/Ripple-TS/ripple/commit/112cfd9fbfd4412efea543abc55deceb186cf351)]:
+  - @tsrx/core@0.0.13
+  - @tsrx/ripple@0.0.15
+
 ## 0.3.32
 
 ### Patch Changes

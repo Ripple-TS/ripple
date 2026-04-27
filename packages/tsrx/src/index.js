@@ -78,12 +78,17 @@ export {
 
 // AST utils
 export {
+	get_component_from_path as getComponentFromPath,
 	object,
 	unwrap_pattern as unwrapPattern,
 	extract_identifiers as extractIdentifiers,
 	extract_paths as extractPaths,
 	build_fallback as buildFallback,
 	build_assignment_value as buildAssignmentValue,
+	is_class_node as isClassNode,
+	is_component_node as isComponentNode,
+	is_function_node as isFunctionNode,
+	is_inside_component as isInsideComponent,
 } from './utils/ast.js';
 
 // Builders (namespace re-export — members mirror AST node kinds)
@@ -197,4 +202,9 @@ export {
 
 // Analyze
 export { analyze_css as analyzeCss } from './analyze/css-analyze.js';
-export { validate_nesting as validateNesting } from './analyze/validation.js';
+export {
+	COMPONENT_RETURN_VALUE_ERROR,
+	get_return_keyword_node as getReturnKeywordNode,
+	validate_component_return_statement as validateComponentReturnStatement,
+	validate_nesting as validateNesting,
+} from './analyze/validation.js';

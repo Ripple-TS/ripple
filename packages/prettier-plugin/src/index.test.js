@@ -741,6 +741,17 @@ import { Something, type Props, track } from 'ripple';`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should preserve JSX spread attributes inside explicit tsx blocks', async () => {
+			const input = `const props = {};
+const foo = <tsx><Bar {...props} /></tsx>;`;
+
+			const expected = `const props = {};
+const foo = <tsx><Bar {...props} /></tsx>;`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should handle type annotations in object params', async () => {
 			const input = `interface Props {
   a: number;
@@ -3283,6 +3294,13 @@ const items = [] as unknown[];`;
 		it('should format TypeScript tuple types (TSTupleType)', async () => {
 			const input = `type T = [string, number, boolean];`;
 			const expected = `type T = [string, number, boolean];`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve named optional TypeScript tuple members', async () => {
+			const input = `export type OptionalTuple = [bar: string, baz?: string];`;
+			const expected = `export type OptionalTuple = [bar: string, baz?: string];`;
 			const result = await format(input);
 			expect(result).toBeWithNewline(expected);
 		});

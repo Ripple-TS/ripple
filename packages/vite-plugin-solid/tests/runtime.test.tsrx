@@ -1,4 +1,4 @@
-import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { createSignal, lazy } from 'solid-js';
 
 const EXPECTED_ERROR_LOG_SNIPPETS = [
@@ -9,8 +9,7 @@ const EXPECTED_ERROR_LOG_SNIPPETS = [
 	'inner error',
 ];
 
-/** @type {import('vitest').MockInstance | undefined} */
-let console_error_spy;
+let console_error_spy: MockInstance | undefined;
 
 function is_expected_error_log(args: unknown[]) {
 	const message = args.map((arg) => {
@@ -58,6 +57,54 @@ component ExplicitTextApp() {
 	<div class="explicit-text-boolean">{text hidden}</div>
 	<div class="explicit-text-null">{text empty}</div>
 	<div class="explicit-text-undefined">{text missing}</div>
+}
+
+component CallableBlockRuntimeApp() {
+	function readDeclaration() {
+		const marker = 'decl-outer';
+		let selected = marker;
+
+		{
+			const marker = 'decl-inner';
+			selected = marker;
+		}
+
+		return `${selected}/${marker}`;
+	}
+
+	const readArrow = () => {
+		const base = 10;
+		let total = base;
+
+		{
+			const base = 32;
+			total += base;
+		}
+
+		return total;
+	};
+
+	class MethodReader {
+		read() {
+			const marker = 'method-outer';
+			let selected = marker;
+
+			{
+				const marker = 'method-inner';
+				selected = marker;
+			}
+
+			return `${selected}/${marker}`;
+		}
+	}
+
+	const reader = new MethodReader();
+
+	<section class="callable-block-runtime">
+		<p class="decl-block">{readDeclaration()}</p>
+		<p class="arrow-block">{readArrow()}</p>
+		<p class="method-block">{reader.read()}</p>
+	</section>
 }
 
 // ── Reactive counter (signals) ──
@@ -207,7 +254,7 @@ component ForReactiveApp() {
 	const [items, setItems] = createSignal(['a', 'b', 'c']);
 
 	for (const item of items(); index i) {
-		<li class="item">{item}</li>
+		<li class="item">{item()}</li>
 	}
 
 	<button class="add" onClick={() => setItems([...items(), 'd'])}>{'add'}</button>
@@ -394,7 +441,7 @@ component ForInsideTryApp() {
 
 	try {
 		for (const item of items(); index i) {
-			<span class="try-item">{item}</span>
+			<span class="try-item">{item()}</span>
 		}
 	} catch (err) {
 		<p class="caught">{'error'}</p>
@@ -572,7 +619,7 @@ component MidTemplateLocalsApp() {
 		const [count, setCount] = createSignal(0);
 
 		for (const item of ['a', 'b']; index i) {
-			<span class="mid-template-item">{item}</span>
+			<span class="mid-template-item">{item()}</span>
 		}
 
 		<p class="mid-template-count">{count()}</p>
@@ -668,6 +715,13 @@ describe('tsrx-solid runtime', () => {
 		expect(text('.explicit-text-boolean')).toBe('false');
 		expect(text('.explicit-text-null')).toBe('');
 		expect(text('.explicit-text-undefined')).toBe('');
+	});
+
+	it('runs nested JavaScript blocks inside component-local callables', async () => {
+		await render(CallableBlockRuntimeApp);
+		expect(text('.decl-block')).toBe('decl-inner/decl-outer');
+		expect(text('.arrow-block')).toBe('42');
+		expect(text('.method-block')).toBe('method-inner/method-outer');
 	});
 
 	// ── Reactivity ──

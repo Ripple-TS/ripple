@@ -1,5 +1,5 @@
 /** @import * as AST from 'estree' */
-/** @import { ParseOptions } from '@tsrx/core/types' */
+/** @import { CompileError, ParseOptions } from '@tsrx/core/types' */
 /** @import { CompileOptions } from './transform.js' */
 
 import { createVolarMappingsResult, dedupeMappings, parseModule } from '@tsrx/core';
@@ -24,13 +24,15 @@ export function parse(source, filename, options) {
  *
  * @param {string} source
  * @param {string} [filename]
- * @param {CompileOptions} [compile_options]
- * @returns {{ code: string, map: any, css: { code: string, hash: string } | null }}
+ * @param {CompileOptions & { loose?: boolean }} [compile_options]
+ * @returns {{ code: string, map: any, css: { code: string, hash: string } | null, errors: CompileError[] }}
  */
 export function compile(source, filename, compile_options) {
-	const ast = parseModule(source, filename);
+	const errors = /** @type {CompileError[]} */ ([]);
+	const collect = !!compile_options?.loose;
+	const ast = parseModule(source, filename, collect ? { loose: true, errors } : undefined);
 	const { ast: _ast, ...result } = transform(ast, source, filename, compile_options);
-	return result;
+	return { ...result, errors };
 }
 
 /**
@@ -42,7 +44,8 @@ export function compile(source, filename, compile_options) {
  * @returns {import('@tsrx/core/types').VolarMappingsResult}
  */
 export function compile_to_volar_mappings(source, filename, options) {
-	const ast = parseModule(source, filename, options);
+	const errors = /** @type {import('@tsrx/core/types').CompileError[]} */ ([]);
+	const ast = parseModule(source, filename, { ...options, errors });
 	const transformed = transform(ast, source, filename, options);
 	const result = createVolarMappingsResult({
 		ast: transformed.ast,
@@ -50,7 +53,7 @@ export function compile_to_volar_mappings(source, filename, options) {
 		source,
 		generated_code: transformed.code,
 		source_map: transformed.map,
-		errors: [],
+		errors,
 	});
 
 	return {

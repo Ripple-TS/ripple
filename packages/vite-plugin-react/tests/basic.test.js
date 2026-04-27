@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { tsrxReact } from '../src/index.js';
 
 describe('@tsrx/vite-plugin-react basic', () => {
