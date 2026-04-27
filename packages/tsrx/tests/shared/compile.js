@@ -78,9 +78,39 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 			expect(code).toContain('export default function App()');
 			expect(code).toContain("{'Hello world'}");
 		});
+
+		it('preserves component type parameters on the emitted function', () => {
+			const { code } = compile(
+				`type Props<Item> = {
+					items: readonly Item[];
+				}
+
+				export component MyComponent<Item>(props: Props<Item>) {
+					<div />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('export function MyComponent<Item>(props: Props<Item>)');
+		});
 	});
 
 	describe(`[${name}] TypeScript output`, () => {
+		it('preserves regular function type parameters', () => {
+			const { code } = compile(
+				`type Props<Item> = {
+					items: readonly Item[];
+				}
+
+				export function getItems<Item>(props: Props<Item>) {
+					return props.items;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('export function getItems<Item>(props: Props<Item>)');
+		});
+
 		it('preserves optional markers in tuple members and function parameters', () => {
 			const { code } = compile(
 				`export type OptionalTuple = [bar: string, baz?: string];

@@ -410,6 +410,36 @@ export function optionalFn(bar: string, baz?: string) {
 		expect(result).toContain('export function optionalFn(bar: string, baz?: string)');
 	});
 
+	it('preserves component type parameters in to_ts output', () => {
+		const source = `
+type Props<Item> = {
+	items: readonly Item[];
+}
+
+export component MyComponent<Item>(props: Props<Item>) {
+	<div />
+}
+`;
+		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
+
+		expect(result).toContain('export function MyComponent<Item>(props: Props<Item>)');
+	});
+
+	it('preserves regular function type parameters in to_ts output', () => {
+		const source = `
+type Props<Item> = {
+	items: readonly Item[];
+}
+
+export function getItems<Item>(props: Props<Item>) {
+	return props.items;
+}
+`;
+		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
+
+		expect(result).toContain('export function getItems<Item>(props: Props<Item>)');
+	});
+
 	it('maps optional TypeScript identifiers in to_ts output', () => {
 		const source = `
 export type OptionalTuple = [tupleRequired: string, tupleMaybe?: string];

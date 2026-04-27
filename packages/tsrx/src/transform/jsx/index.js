@@ -372,6 +372,7 @@ function component_to_function_declaration(component, transform_context, walk_he
 	const fn = /** @type {any} */ ({
 		type: 'FunctionDeclaration',
 		id: component.id,
+		typeParameters: component.typeParameters,
 		params: final_params,
 		body: final_body,
 		async: is_async_component,
