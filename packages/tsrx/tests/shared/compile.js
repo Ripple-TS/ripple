@@ -129,6 +129,92 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('(bar: string, baz?: string): void');
 			expect(code).toContain('export function optionalFn(bar: string, baz?: string)');
 		});
+
+		it('keeps JavaScript block scopes inside component-local callables', () => {
+			const { code } = compile(
+				`export component BlockScopeCheck() {
+					function fromDeclaration() {
+						let result = 0;
+						{
+							const result = 41;
+							return result + 1;
+						}
+					}
+
+					const fromArrow = () => {
+						{
+							const token = 'arrow-block';
+							return token.toUpperCase();
+						}
+					};
+
+					class Reader {
+						value() {
+							{
+								const amount = 7;
+								return amount * 6;
+							}
+						}
+					}
+
+					const reader = new Reader();
+
+					<output>{fromDeclaration()}{fromArrow()}{reader.value()}</output>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function fromDeclaration()');
+			expect(code).toContain('const result = 41');
+			expect(code).toContain("const token = 'arrow-block'");
+			expect(code).toContain('class Reader');
+			expect(code).toContain('const amount = 7');
+			expect(code).toContain('{fromDeclaration()}');
+			expect(code).toContain('{fromArrow()}');
+			expect(code).toContain('{reader.value()}');
+		});
+
+		it('still treats component-level braces as template expressions', () => {
+			const { code } = compile(
+				`export component ExpressionContainerCheck() {
+					function ignore() {
+						{
+							const hidden = 'not rendered';
+							return hidden;
+						}
+					}
+
+					const visible = 'render me';
+					{visible}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain("const visible = 'render me'");
+			expect(code).toContain('return visible;');
+			expect(code).not.toMatch(/\{\n\s+visible;\n\s+\}/);
+		});
+
+		it('keeps generic-looking arrow expressions parseable after inner blocks in functions', () => {
+			const { code } = compile(
+				`export component GenericAfterBlockCheck() {
+					const make = () => {
+						if (true) {
+							const local = 1;
+							console.log(local);
+						}
+
+						<T,>(value: T) => value;
+					};
+
+					<div>{make}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('(value: T) => value');
+			expect(code).toContain('{make}');
+		});
 	});
 
 	describe(`[${name}] component return validation`, () => {
