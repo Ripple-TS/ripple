@@ -408,6 +408,44 @@ export function optionalFn(bar: string, baz?: string) {
 		// component scope, but locals with the same name must shadow — the
 		// shared `applyLazyTransforms` helper in @tsrx/core handles this.
 
+		it('gives untyped lazy object params an object-shaped generated type', () => {
+			const { code } = compile(
+				`export component App(&{ name, age }) {
+					<div>{name}{age}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function App(__lazy0: { name: any; age: any })');
+			expect(code).toContain('__lazy0.name');
+			expect(code).toContain('__lazy0.age');
+		});
+
+		it('uses the source property name for aliased lazy object params', () => {
+			const { code } = compile(
+				`export component App(&{ name: displayName }) {
+					<div>{displayName}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function App(__lazy0: { name: any })');
+			expect(code).toContain('__lazy0.name');
+			expect(code).not.toContain('__lazy0.displayName');
+		});
+
+		it('preserves provided types for aliased lazy object params', () => {
+			const { code } = compile(
+				`export component App(&{ a: b, b }: { a: string, b: string }) {
+					<div>{b}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function App(__lazy0: { a: string; b: string })');
+			expect(code).toContain('__lazy0.b');
+		});
+
 		it('does not rewrite switch-case variables that shadow lazy bindings', () => {
 			const { code } = compile(
 				`export component App(&{ name }: { name: string }) {

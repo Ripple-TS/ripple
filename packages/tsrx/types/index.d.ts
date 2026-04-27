@@ -45,6 +45,7 @@ interface BaseNodeMetaData {
 	path: AST.Node[];
 	has_template?: boolean;
 	source_name?: string | '#server' | '#style';
+	source_length?: number;
 	is_capitalized?: boolean;
 	commentContainerId?: number;
 	parenthesized?: boolean;

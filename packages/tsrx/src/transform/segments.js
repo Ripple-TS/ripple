@@ -27,6 +27,7 @@
 	loc: AST.SourceLocation;
 	metadata: PluginActionOverrides;
 	end_loc?: AST.SourceLocation;
+	sourceLength?: number;
 	mappingData?: Partial<VolarCodeMapping['data']>;
 }} Token;
 @typedef {{
@@ -423,6 +424,7 @@ export function convert_source_map_to_mappings(
 							generated: node.name,
 							loc: node.loc,
 							metadata: {},
+							sourceLength: node.metadata.source_length,
 						};
 					} else {
 						token = {
@@ -430,6 +432,7 @@ export function convert_source_map_to_mappings(
 							generated: node.name,
 							loc: node.loc,
 							metadata: {},
+							sourceLength: node.metadata?.source_length,
 						};
 					}
 
@@ -2067,7 +2070,7 @@ export function convert_source_map_to_mappings(
 			token.loc.start.column,
 			src_line_offsets,
 		);
-		const source_length = source_text.length;
+		const source_length = token.sourceLength ?? source_text.length;
 		const gen_length = gen_text.length;
 		let gen_line_col;
 		try {

@@ -302,6 +302,75 @@ export function optionalFn(declRequired: string, declMaybe?: string) {
 		});
 	});
 
+	describe(`[${name}] lazy destructuring mappings`, () => {
+		it('maps untyped lazy object param keys and aliased reads into generated property names', () => {
+			const source = `component Hello(&{ a: value, b }) {
+	<>{value}{b}</>
+}`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx');
+
+			/**
+			 * @param {number} sourceOffset
+			 * @param {number} generatedOffset
+			 * @param {number} sourceLength
+			 * @param {number} [generatedLength]
+			 */
+			const mapping_at = (
+				sourceOffset,
+				generatedOffset,
+				sourceLength,
+				generatedLength = sourceLength,
+			) =>
+				result.mappings.find(
+					(
+						/** @type {{ sourceOffsets: number[], generatedOffsets: number[], lengths: number[], generatedLengths: number[] }} */ mapping,
+					) =>
+						mapping.sourceOffsets[0] === sourceOffset &&
+						mapping.generatedOffsets[0] === generatedOffset &&
+						mapping.lengths[0] === sourceLength &&
+						mapping.generatedLengths[0] === generatedLength,
+				);
+
+			const source_key_a_offset = source.indexOf('a: value');
+			const source_key_b_offset = source.indexOf('b })');
+			const source_body_value_offset = source.lastIndexOf('value');
+			const source_body_b_offset = source.lastIndexOf('b');
+			const generated_type_a_offset = result.code.indexOf('{ a: any') + 2;
+			const generated_type_b_offset = result.code.indexOf('b: any');
+			const generated_read_a_offset = result.code.indexOf('__lazy0.a') + '__lazy0.'.length;
+			const generated_read_b_offset = result.code.indexOf('__lazy0.b') + '__lazy0.'.length;
+
+			expect(result.code).toContain('function Hello(__lazy0: { a: any; b: any })');
+			expect(mapping_at(source_key_a_offset, generated_type_a_offset, 'a'.length)).toBeDefined();
+			expect(mapping_at(source_key_b_offset, generated_type_b_offset, 'b'.length)).toBeDefined();
+			expect(
+				mapping_at(source_body_value_offset, generated_read_a_offset, 'value'.length, 'a'.length),
+			).toBeDefined();
+			expect(mapping_at(source_body_b_offset, generated_read_b_offset, 'b'.length)).toBeDefined();
+		});
+
+		it('maps annotated lazy object params to the generated lazy parameter', () => {
+			const source = `component Hello(&{ a: value, b }: { a: string, b: string }) {
+	<>{value}{b}</>
+}`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx');
+			const source_pattern_offset = source.indexOf('{ a: value, b }');
+			const generated_lazy_offset = result.code.indexOf('__lazy0');
+			const pattern_mapping = result.mappings.find(
+				(
+					/** @type {{ sourceOffsets: number[], generatedOffsets: number[], lengths: number[], generatedLengths: number[] }} */ mapping,
+				) =>
+					mapping.sourceOffsets[0] === source_pattern_offset &&
+					mapping.generatedOffsets[0] === generated_lazy_offset &&
+					mapping.lengths[0] === '{ a: value, b }'.length &&
+					mapping.generatedLengths[0] === '__lazy0'.length,
+			);
+
+			expect(result.code).toContain('function Hello(__lazy0: { a: string; b: string })');
+			expect(pattern_mapping).toBeDefined();
+		});
+	});
+
 	describe(`[${name}] component return mappings`, () => {
 		it('maps generated bare returns back to source returns', () => {
 			const source = `component App() {
