@@ -220,13 +220,13 @@ See [Reactivity](/docs/guide/reactivity#Props-and-Attributes).
 
 ```ripple
 // Object spread
-<div {...properties}>{'Content'}</div>
+<div {...properties}>"Content"</div>
 
 // Shorthand props (when variable name matches prop name)
-<div {onClick} {className}>{'Content'}</div>
+<div {onClick} {className}>"Content"</div>
 
 // Equivalent to:
-<div {onClick} {className}>{'Content'}</div>
+<div {onClick} {className}>"Content"</div>
 ```
 
 ## Portal Component

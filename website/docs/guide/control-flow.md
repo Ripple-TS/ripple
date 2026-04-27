@@ -249,9 +249,9 @@ import { track } from 'ripple';
 export component App() {
   let &[tag] = track('div');
 
-  <@tag class="dynamic">{'Hello World'}</@tag>
+  <@tag class="dynamic">"Hello World"</@tag>
   <button onClick={() => (tag = tag === 'div' ? 'span' : 'div')}>
-    {'Toggle Element'}
+    "Toggle Element"
   </button>
 }
 ```

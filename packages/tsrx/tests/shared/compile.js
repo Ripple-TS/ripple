@@ -96,6 +96,30 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 	});
 
 	describe(`[${name}] TypeScript output`, () => {
+		it('accepts direct double-quoted text children', () => {
+			const { code } = compile(
+				`export component App({ count }: { count: number }) {
+					<p>"clicked " {count} " times"</p>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('"clicked "');
+			expect(code).toContain('{count}');
+			expect(code).toContain('" times"');
+		});
+
+		it('keeps compact string comparisons in expression containers parseable', () => {
+			const { code } = compile(
+				`export component App({ value }: { value: string }) {
+					<p>{"a"<value}</p>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('{"a" < value}');
+		});
+
 		it('preserves regular function type parameters', () => {
 			const { code } = compile(
 				`type Props<Item> = {

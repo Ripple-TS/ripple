@@ -75,8 +75,8 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		value: 'statement-jsx',
 		label: 'Statement-based JSX',
 		source: `component Greeting() {
-  <h1>{'Hello World'}</h1>
-  <p>{'Welcome to TSRX.'}</p>
+  <h1>"Hello World"</h1>
+  <p>"Welcome to TSRX."</p>
 }`,
 	},
 	{

@@ -2,7 +2,7 @@ export const examples: Array<{ title: string; code: string }> = [
 	{
 		title: 'Hello World',
 		code: `export default component App() {
-  <div>{"Hello World"}</div>
+  <div>"Hello World"</div>
 }`,
 	},
 	{
@@ -18,7 +18,7 @@ export const examples: Array<{ title: string; code: string }> = [
 		code: `import { track } from 'ripple';
 
 export default component App() {
-  <div class="message">{"Hello Ripple!"}</div>
+	<div class="message">"Hello Ripple!"</div>
 
   <InlineStyles />
 
@@ -37,10 +37,10 @@ component InlineStyles() {
   let color = track('#3e95ff');
 
   <p style={\`color: \${@color}; font-weight: bold; background-color: #eee\`}>
-    {'Hello Ripple!'}
+		"Hello Ripple!"
   </p>
   <p style={{ color: @color, fontWeight: 'bold', 'background-color': '#eee' }}>
-    {'Hello Ripple!'}
+		"Hello Ripple!"
   </p>
 
   const style = {
@@ -50,25 +50,25 @@ component InlineStyles() {
   };
 
   // using object spread
-  <p style={{...style}}>{'Hello Ripple!'}</p>
+	<p style={{...style}}>"Hello Ripple!"</p>
 
   // using object directly
-  <p style={style}>{'Hello Ripple!'}</p>
+	<p style={style}>"Hello Ripple!"</p>
 }
 
 component DynamicClasses() {
   let includeBaz = track(true);
   <p class={{ foo: true, bar: false, baz: @includeBaz }}> // becomes: class="foo baz"
-    {'Hello Ripple!'}
+		"Hello Ripple!"
   </p>
 
   <p class={['foo', {baz: false}, 0 && 'bar', [true && 'bat'] ]}> // becomes: class="foo bat"
-    {'Hello Ripple!'}
+		"Hello Ripple!"
   </p>
 
   let count = track(3);
   <p class={['foo', {bar: @count > 2}, @count > 3 && 'bat']}> // becomes: class="foo bar"
-    {'Hello Ripple!'}
+		"Hello Ripple!"
   </p>
 }
 `,
@@ -77,7 +77,7 @@ component DynamicClasses() {
 		title: 'Components',
 		code: `component Card() {
 	<div class="card">
-		<p>{"Card content here"}</p>
+		<p>"Card content here"</p>
 	</div>
 	<style>
 		.card {
@@ -146,7 +146,7 @@ component Card(props: { children: Children }) {
 // Usage
 export default component App() {
 	<Card>
-		<p>{"Card content here"}</p>
+		<p>"Card content here"</p>
 	</Card>
 }
 `,
@@ -184,16 +184,16 @@ export default component App() {
 }
 
 component CustomHeader() {
-	<h1>{'Card Title'}</h1>
+	<h1>"Card Title"</h1>
 }
 
 export default component App() {
 	component Footer() {
-		<p>{'Card footer'}</p>
+		<p>"Card footer"</p>
 	}
 
 	<Card Header={CustomHeader} {Footer}> // <- Header and Footer passed in as props
-		<p>{'Card content here'}</p>
+		<p>"Card content here"</p>
 	</Card>
 }
 `,
@@ -204,13 +204,13 @@ export default component App() {
 
 export default component App() {
 	<div class="app">
-		<h1>{'My App'}</h1>
+		<h1>"My App"</h1>
 
 		{/* This will render inside document.body, not inside the .app div */}
 		<Portal target={document.body}>
 			<div class="modal">
-				<h2>{'I am rendered in document.body!'}</h2>
-				<p>{'This content escapes the normal component tree.'}</p>
+				<h2>"I am rendered in document.body!"</h2>
+				<p>"This content escapes the normal component tree."</p>
 			</div>
 		</Portal>
 	</div>
@@ -351,11 +351,11 @@ export default component Counter() {
 	let quadruple = track(() => @double * 2);
 
 	<div class="container">
-		<p>{"Count: "}{@count}</p>
-		<p>{"Double: "}{@double}</p>
-		<p>{"Quadruple: "}{@quadruple}</p>
-		<button onClick={() => @count++}>{"Increment"}</button>
-		<button onClick={() => @count = 0}>{"Reset"}</button>
+		<p>"Count: "{@count}</p>
+		<p>"Double: "{@double}</p>
+		<p>"Quadruple: "{@quadruple}</p>
+		<button onClick={() => @count++}>"Increment"</button>
+		<button onClick={() => @count = 0}>"Reset"</button>
 	</div>
 
 	<style>
@@ -720,7 +720,7 @@ export default component App() {
     };
   };
 
-  <div {ref divRef}>{"Hello world"}</div>
+	<div {ref divRef}>"Hello world"</div>
 }
 `,
 	},

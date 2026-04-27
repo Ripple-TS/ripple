@@ -131,8 +131,8 @@ export component App() {
   let &[count] = track(0);
 
   <div>
-    <p>{"Count: "}{count}</p>
-    <button onClick={() => count++}>{"Increment"}</button>
+    <p>"Count: "{count}</p>
+    <button onClick={() => count++}>"Increment"</button>
   </div>
 }
 ```
@@ -160,7 +160,7 @@ export component App() {
   const count = track(0);
 
   <div>{count.value}</div>
-  <button onClick={() => count.value++}>{"Increment"}</button>
+  <button onClick={() => count.value++}>"Increment"</button>
 }
 ```
 
@@ -179,10 +179,10 @@ export component App() {
   let &[quadruple] = track(() => double * 2);
 
   <div>
-    <p>{"Count: "}{count}</p>
-    <p>{"Double: "}{double}</p>
-    <p>{"Quadruple: "}{quadruple}</p>
-    <button onClick={() => count++}>{"Increment"}</button>
+    <p>"Count: "{count}</p>
+    <p>"Double: "{double}</p>
+    <p>"Quadruple: "{quadruple}</p>
+    <button onClick={() => count++}>"Increment"</button>
   </div>
 }
 ```
@@ -199,10 +199,10 @@ export component App() {
   const set = new RippleSet([1, 2, 3]);             // RippleSet
 
   <div>
-    <p>{"Items: "}{items.join(', ')}</p>
-    <p>{"Object: a="}{obj.a}{", b="}{obj.b}{", c="}{obj.c}</p>
-    <button onClick={() => items.push(items.length + 1)}>{"Add Item"}</button>
-    <button onClick={() => obj.c = (obj.c ?? 0) + 1}>{"Increment c"}</button>
+    <p>"Items: "{items.join(', ')}</p>
+    <p>"Object: a="{obj.a}", b="{obj.b}", c="{obj.c}</p>
+    <button onClick={() => items.push(items.length + 1)}>"Add Item"</button>
+    <button onClick={() => obj.c = (obj.c ?? 0) + 1}>"Increment c"</button>
   </div>
 }
 ```
@@ -225,8 +225,8 @@ export component App() {
   const &[double] = createDouble(countTracked);
 
   <div>
-    <p>{"Double: "}{double}</p>
-    <button onClick={() => count++}>{"Increment"}</button>
+    <p>"Double: "{double}</p>
+    <button onClick={() => count++}>"Increment"</button>
   </div>
 }
 ```
@@ -245,7 +245,7 @@ export component App() {
     console.log('Count changed:', count);
   });
 
-  <button onClick={() => count++}>{'Increment'}</button>
+  <button onClick={() => count++}>"Increment"</button>
 }
 ```
 
@@ -263,11 +263,11 @@ export component App() {
 
   <div>
     if (condition) {
-      <div>{'True'}</div>
+      <div>"True"</div>
     } else {
-      <div>{'False'}</div>
+      <div>"False"</div>
     }
-    <button onClick={() => condition = !condition}>{"Toggle"}</button>
+    <button onClick={() => condition = !condition}>"Toggle"</button>
   </div>
 }
 ```
@@ -286,9 +286,9 @@ export component App() {
 
   <div>
     for (const item of items; index i; key item.id) {
-      <div>{item.name}{" (index: "}{i}{")"}</div>
+      <div>{item.name}" (index: "{i}")"</div>
     }
-    <button onClick={() => items.push({id: items.length + 1, name: `Item ${items.length + 1}`})}>{"Add Item"}</button>
+    <button onClick={() => items.push({id: items.length + 1, name: `Item ${items.length + 1}`})}>"Add Item"</button>
   </div>
 }
 ```
@@ -299,10 +299,10 @@ export component App() {
 component ComponentThatMayFail(props: { shouldFail: boolean }) {
   if (props.shouldFail) {
     throw new Error('Component failed!');
-    {'This will never render'}
+    "This will never render"
   }
 
-  <div>{"Component working fine"}</div>
+  <div>"Component working fine"</div>
 }
 
 import { track } from 'ripple';
@@ -316,7 +316,7 @@ export component App() {
     } catch (e) {
       <div>{'Error: ' + e.message}</div>
     }
-    <button onClick={() => shouldFail = !shouldFail}>{"Toggle Error"}</button>
+    <button onClick={() => shouldFail = !shouldFail}>"Toggle Error"</button>
   </div>
 }
 ```
@@ -329,7 +329,7 @@ Capture DOM elements with the `{ref fn}` syntax:
 
 ```jsx
 export component App() {
-  <div {ref (node) => console.log(node)}>{"Hello"}</div>
+  <div {ref (node) => console.log(node)}>"Hello"</div>
 }
 ```
 
@@ -346,9 +346,9 @@ export component App() {
   let &[value] = track('');
 
   <div>
-    <button onClick={() => console.log('Clicked')}>{'Click'}</button>
+    <button onClick={() => console.log('Clicked')}>"Click"</button>
     <input onInput={(e) => value = e.target.value} />
-    <p>{"You typed: "}{value}</p>
+    <p>"You typed: "{value}</p>
   </div>
 }
 ```
@@ -361,7 +361,7 @@ export component App() {
 
 ```jsx
 export component App() {
-  <div class="container">{"Content"}</div>
+  <div class="container">"Content"</div>
 
   <style>
     .container {
@@ -382,8 +382,8 @@ export component App() {
   let &[color] = track('red');
 
   <div>
-    <div style={{ color, fontWeight: 'bold' }}>{"Styled text"}</div>
-    <button onClick={() => color = color === 'red' ? 'blue' : 'red'}>{"Toggle Color"}</button>
+    <div style={{ color, fontWeight: 'bold' }}>"Styled text"</div>
+    <button onClick={() => color = color === 'red' ? 'blue' : 'red'}>"Toggle Color"</button>
   </div>
 }
 ```
@@ -413,7 +413,7 @@ export component App() {
 
   <div>
     <Child />
-    <button onClick={() => theme = theme === 'light' ? 'dark' : 'light'}>{"Toggle Theme"}</button>
+    <button onClick={() => theme = theme === 'light' ? 'dark' : 'light'}>"Toggle Theme"</button>
   </div>
 }
 ```
@@ -431,13 +431,13 @@ export component App() {
   let &[showModal] = track(false);
 
   <div>
-    <button onClick={() => showModal = !showModal}>{"Toggle Modal"}</button>
+    <button onClick={() => showModal = !showModal}>"Toggle Modal"</button>
 
     if (showModal) {
       <Portal target={document.body}>
         <div class="modal">
-          <p>{'Modal content'}</p>
-          <button onClick={() => showModal = false}>{"Close"}</button>
+          <p>"Modal content"</p>
+          <button onClick={() => showModal = false}>"Close"</button>
         </div>
       </Portal>
     }

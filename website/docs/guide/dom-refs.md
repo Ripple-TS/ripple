@@ -28,7 +28,7 @@ export default component App() {
     };
   };
 
-  <div {ref divRef}>{'Hello world'}</div>
+  <div {ref divRef}>"Hello world"</div>
 }
 ```
 
@@ -51,7 +51,7 @@ export component App() {
       return () => (div = undefined);
     }}
   >
-    {'Hello world'}
+    "Hello world"
   </div>
 }
 ```
@@ -66,7 +66,7 @@ reactive properties.
 import { fadeIn } from 'some-library';
 
 export component App({ ms }) {
-  <div {ref fadeIn({ ms })}>{'Hello world'}</div>
+  <div {ref fadeIn({ ms })}>"Hello world"</div>
 }
 ```
 
