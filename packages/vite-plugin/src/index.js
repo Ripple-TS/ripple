@@ -646,10 +646,9 @@ export function ripple(inlineOptions = {}) {
 							console.log(
 								`[@ripple-ts/vite-plugin] Loaded ${rippleConfig.router.routes.length} routes from ripple.config.ts`,
 							);
-						})()
-							.finally(() => {
-								initPromise = null;
-							});
+						})().finally(() => {
+							initPromise = null;
+						});
 					}
 
 					await initPromise;
