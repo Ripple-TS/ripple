@@ -99,6 +99,14 @@ const TYPESCRIPT_PLUGIN_CONFIG_HTML = [
 	'<span class="ln">8</span> <span class="br">}</span>',
 ].join('\n');
 
+const TYPECHECK_SCRIPT_HTML = [
+	'<span class="ln">1</span> <span class="br">{</span>',
+	'<span class="ln">2</span>   <span class="attr">"scripts"</span>: <span class="br">{</span>',
+	'<span class="ln">3</span>     <span class="attr">"typecheck"</span>: <span class="str">"tsrx-tsc --noEmit"</span>',
+	'<span class="ln">4</span>   <span class="br">}</span>',
+	'<span class="ln">5</span> <span class="br">}</span>',
+].join('\n');
+
 const NAV_GROUPS = [
 	{
 		heading: 'Frameworks',
@@ -392,6 +400,34 @@ export component GettingStartedPage() {
 						</pre>
 						<p class="section-body">
 							{'The plugin turns TSRX into virtual TypeScript for diagnostics, navigation, completions, and type checking. If you already use the TSRX VS Code extension, this manual setup is optional because the extension runs the language tooling for you.'}
+						</p>
+						<h3 class="subsection-heading">{'Command-line type checking'}</h3>
+						<p class="section-body">
+							{'The package also ships a '}
+							<code class="inline-code">{'tsrx-tsc'}</code>
+							{' binary — a drop-in '}
+							<code class="inline-code">{'tsc'}</code>
+							{' wrapper that understands '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' files. Use it for CI type checking and any '}
+							<code class="inline-code">{'tsc'}</code>
+							{' workflow that needs to see your TSRX modules. Add a '}
+							<code class="inline-code">{'typecheck'}</code>
+							{' script to your '}
+							<code class="inline-code">{'package.json'}</code>
+							{':'}
+						</p>
+						<pre class="code-block">
+							<code>{html TYPECHECK_SCRIPT_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'Then run '}
+							<code class="inline-code">{'pnpm typecheck'}</code>
+							{' to type check the whole project, including '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' files, without emitting any output. It accepts the same flags as '}
+							<code class="inline-code">{'tsc'}</code>
+							{'.'}
 						</p>
 					</section>
 
