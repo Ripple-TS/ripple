@@ -150,23 +150,18 @@ export function runSharedSourceMappingTests({
 
 		// Method shorthand and class methods with type parameters / return types.
 		it('class method with type parameters', () =>
-			expect_maps(
-				`class Foo { bar<T>(x: T): T { return x; } } component C() {}`,
-			));
+			expect_maps(`class Foo { bar<T>(x: T): T { return x; } } component C() {}`));
 		it('class method with return type', () =>
 			expect_maps(`class Foo { bar(x: number): string { return ''; } } component C() {}`));
 		it('object method shorthand with type parameters', () =>
 			expect_maps(`component C() { const o = { foo<T>(x: T): T { return x; } }; }`));
 
 		// TS type operators / mapped / parenthesized types.
-		it('keyof type operator', () =>
-			expect_maps(`type K<T> = keyof T; component C() {}`));
-		it('readonly type operator', () =>
-			expect_maps(`type R = readonly string[]; component C() {}`));
+		it('keyof type operator', () => expect_maps(`type K<T> = keyof T; component C() {}`));
+		it('readonly type operator', () => expect_maps(`type R = readonly string[]; component C() {}`));
 		it('parenthesized type annotation', () =>
 			expect_maps(`component C(p: { x: (string | number) }) {}`));
-		it('mapped type', () =>
-			expect_maps(`type M<T> = { [K in keyof T]: T[K] }; component C() {}`));
+		it('mapped type', () => expect_maps(`type M<T> = { [K in keyof T]: T[K] }; component C() {}`));
 		it('mapped type with as remapping', () =>
 			expect_maps(
 				`type M<T> = { [K in keyof T as \`__\${string & K}\`]: T[K] }; component C() {}`,
@@ -182,10 +177,8 @@ export function runSharedSourceMappingTests({
 
 		// JS expressions whose esrap printer emits no leading/trailing location
 		// marker, mirroring the existing IfStatement / NewExpression cases.
-		it('UpdateExpression postfix', () =>
-			expect_maps(`component C() { let x = 0; x++; }`));
-		it('UpdateExpression prefix', () =>
-			expect_maps(`component C() { let x = 0; ++x; }`));
+		it('UpdateExpression postfix', () => expect_maps(`component C() { let x = 0; x++; }`));
+		it('UpdateExpression prefix', () => expect_maps(`component C() { let x = 0; ++x; }`));
 		it('UnaryExpression', () =>
 			expect_maps(`component C() { const x = !true; const y = -1; const z = typeof x; }`));
 		it('YieldExpression', () =>
@@ -196,9 +189,7 @@ export function runSharedSourceMappingTests({
 		// Arrow with default parameter and return type — combines AssignmentPattern
 		// with the ArrowFunctionExpression returnType visitor.
 		it('arrow with default-typed parameter and return type', () =>
-			expect_maps(
-				`component C() { const f = (x: number = 1): number => x + 1; }`,
-			));
+			expect_maps(`component C() { const f = (x: number = 1): number => x + 1; }`));
 
 		// TSInstantiationExpression: `identity<string>` used as a value.
 		it('TSInstantiationExpression', () =>
