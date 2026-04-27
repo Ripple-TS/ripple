@@ -40,8 +40,8 @@ const BAILOUT_HTML = [
 
 const STATEMENT_HTML = [
 	'<span class="ln">1</span> <span class="kw">component</span> <span class="fn">Greeting</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln">2</span>   <span class="tag">&lt;</span><span class="el">h1</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Hello World\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h1</span><span class="tag">&gt;</span>',
-	'<span class="ln">3</span>   <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Welcome to TSRX.\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln">2</span>   <span class="tag">&lt;</span><span class="el">h1</span><span class="tag">&gt;</span><span class="str">"Hello World"</span><span class="tag">&lt;/</span><span class="el">h1</span><span class="tag">&gt;</span>',
+	'<span class="ln">3</span>   <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Welcome to TSRX."</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln">4</span> <span class="br">}</span>',
 ].join('\n');
 
@@ -54,7 +54,7 @@ const TSX_EXPR_HTML = [
 
 const TEXT_EXPR_HTML = [
 	'<span class="ln">1</span> <span class="kw">component</span> <span class="fn">Inbox</span><span class="br">(</span><span class="br">{</span> <span class="prop">name</span>, <span class="prop">count</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">name</span>: <span class="type">string</span>; <span class="prop">count</span>: <span class="type">number</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln">2</span>   <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Hello, \'</span><span class="tbr">}</span><span class="tbr">{</span><span class="prop">name</span><span class="tbr">}</span><span class="tbr">{</span><span class="str">\'!\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln">2</span>   <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Hello, "</span><span class="tbr">{</span><span class="prop">name</span><span class="tbr">}</span><span class="str">"!"</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln">3</span>   <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">`You have ${</span><span class="prop">count</span><span class="str">} unread messages`</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln">4</span>   <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">count</span> &gt; <span class="val">0</span> ? <span class="str">\'Check your inbox.\'</span> : <span class="str">\'All caught up.\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln">5</span> <span class="br">}</span>',
@@ -405,9 +405,9 @@ export component FeaturesPage() {
 					<section class="doc-section" id="jsx">
 						<h2 class="section-heading">{'Statement-based JSX'}</h2>
 						<p class="section-body">
-							{'In TSRX, JSX elements are statements — they appear directly in the component body rather than being expressions you assign or return. All text content must be wrapped in '}
+							{'In TSRX, JSX elements are statements — they appear directly in the component body rather than being expressions you assign or return. Static text can be written as direct double-quoted children, while dynamic values and JavaScript expressions still use '}
 							<code class="inline-code">{'{}'}</code>
-							{' expression braces.'}
+							{'.'}
 						</p>
 						<pre class="code-block">
 							<code>{html STATEMENT_HTML}</code>
@@ -427,9 +427,9 @@ export component FeaturesPage() {
 					<section class="doc-section" id="text-expressions">
 						<h2 class="section-heading">{'Text expressions'}</h2>
 						<p class="section-body">
-							{'Because JSX is statement-based, bare text can\'t sit directly inside an element the way it does in React. Every piece of text content — even literal strings — lives inside an expression container '}
+							{'Because JSX is statement-based, unquoted bare text can\'t sit directly inside an element the way it does in React. Static text may be written as a direct double-quoted child. JavaScript string literals, template literals, variables, function calls, ternaries, and other dynamic values live inside expression containers '}
 							<code class="inline-code">{'{ ... }'}</code>
-							{'. Each container holds a single JS/TS expression: a string literal, a template literal, a variable, a function call, a ternary, anything that evaluates to a value.'}
+							{'.'}
 						</p>
 						<pre class="code-block">
 							<code>{html TEXT_EXPR_HTML}</code>
@@ -437,7 +437,7 @@ export component FeaturesPage() {
 						<p class="section-body">
 							{'Adjacent '}
 							<code class="inline-code">{'{ ... }'}</code>
-							{' containers concatenate when rendered, so you can mix static strings with dynamic values without extra wrapping elements. Expressions are re-evaluated whenever their dependencies change, so dynamic text updates automatically on reactive targets like Ripple and Solid.'}
+							{' containers concatenate with adjacent double-quoted text when rendered, so you can mix static strings with dynamic values without extra wrapping elements. Expressions are re-evaluated whenever their dependencies change, so dynamic text updates automatically on reactive targets like Ripple and Solid.'}
 						</p>
 						<p class="section-body">
 							{'A bare '}

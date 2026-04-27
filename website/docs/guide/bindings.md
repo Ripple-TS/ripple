@@ -64,7 +64,7 @@ export component App() {
       {age}
       {' years old'}
     </p>
-    <button onClick={() => (age = age + 1)}>{'Increment'}</button>
+    <button onClick={() => (age = age + 1)}>"Increment"</button>
   </div>
 }
 ```
@@ -260,7 +260,7 @@ export component App() {
     </p>
   </div>
 
-  <button onClick={() => (hobbies = ['reading'])}>{'Reset'}</button>
+  <button onClick={() => (hobbies = ['reading'])}>"Reset"</button>
 }
 ```
 

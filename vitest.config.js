@@ -209,6 +209,15 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'vite-plugin',
+					include: ['packages/vite-plugin/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'adapter',
 					include: ['packages/adapter/tests/**/*.test.js'],
 					environment: 'node',

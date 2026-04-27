@@ -10,7 +10,8 @@ A summary:
 
 1. **Reactivity**: Use `track()` to create reactive variables and `@` to access
    them
-2. **Strings**: Wrap string literals in `{"string"}` within templates
+2. **Strings**: Use direct double-quoted text children for static text, and `{}`
+   for JavaScript expressions
 3. **Effects**: Use `effect()` for side effects, not direct reactive variable
    access
 4. **Components**: Keep components focused and use TypeScript interfaces for props

@@ -76,8 +76,8 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		value: 'statement-jsx',
 		label: 'Statement-based JSX',
 		source: `component Greeting() {
-  <h1>{'Hello World'}</h1>
-  <p>{'Welcome to TSRX.'}</p>
+  <h1>"Hello World"</h1>
+  <p>"Welcome to TSRX."</p>
 }`,
 	},
 	{
@@ -87,11 +87,11 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		source: `component StatusBadge({ status }: { status: 'active' | 'idle' | 'offline' }) {
   <div>
     if (status === 'active') {
-      <span class="badge active">{'Online'}</span>
+      <span class="badge active">"Online"</span>
     } else if (status === 'idle') {
-      <span class="badge idle">{'Away'}</span>
+      <span class="badge idle">"Away"</span>
     } else {
-      <span class="badge">{'Offline'}</span>
+      <span class="badge">"Offline"</span>
     }
   </div>
 }`,
@@ -115,13 +115,13 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		source: `component StatusMessage({ status }: { status: string }) {
   switch (status) {
     case 'loading':
-      <p>{'Loading...'}</p>
+      <p>"Loading..."</p>
       break;
     case 'success':
-      <p class="success">{'Done!'}</p>
+      <p class="success">"Done!"</p>
       break;
     default:
-      <p>{'Unknown status.'}</p>
+      <p>"Unknown status."</p>
   }
 }`,
 	},
@@ -134,7 +134,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
     <UserProfile id={userId} />
   } catch (error) {
     <div class="error">
-      <p>{'Something went wrong.'}</p>
+      <p>"Something went wrong."</p>
     </div>
   }
 }`,

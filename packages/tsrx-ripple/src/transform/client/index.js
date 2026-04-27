@@ -4877,6 +4877,10 @@ function create_tsx_with_typescript_support(comments) {
 				context.visit(node.typeArguments);
 			}
 		},
+		// esrap's ArrowFunctionExpression printer ignores `typeParameters` and
+		// `returnType`, so an annotated arrow like `(): Record<...> => ...`
+		// prints as `() => ...` and segments.js can't resolve the return-type
+		// nodes' positions in the generated output.
 		ArrowFunctionExpression(node, context) {
 			if (node.async) context.write('async ');
 

@@ -20,8 +20,8 @@ const COMPONENT_HTML = [
 
 const STATEMENT_HTML = [
 	'<span class="ln">1</span> <span class="kw">component</span> <span class="fn">Greeting</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln">2</span>   <span class="tag">&lt;</span><span class="el">h1</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Hello World\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h1</span><span class="tag">&gt;</span>',
-	'<span class="ln">3</span>   <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Welcome to TSRX.\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln">2</span>   <span class="tag">&lt;</span><span class="el">h1</span><span class="tag">&gt;</span><span class="str">"Hello World"</span><span class="tag">&lt;/</span><span class="el">h1</span><span class="tag">&gt;</span>',
+	'<span class="ln">3</span>   <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Welcome to TSRX."</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln">4</span> <span class="br">}</span>',
 ].join('\n');
 
@@ -319,9 +319,9 @@ export component DocsPage() {
 					<section class="doc-section" id="jsx">
 						<h2 class="section-heading">{'Statement-based JSX'}</h2>
 						<p class="section-body">
-							{'In TSRX, JSX elements are statements — they appear directly in the component body rather than being expressions you assign or return. All text content must be wrapped in '}
+							{'In TSRX, JSX elements are statements — they appear directly in the component body rather than being expressions you assign or return. Static text can be written as direct double-quoted children, while dynamic values and JavaScript expressions still use '}
 							<code class="inline-code">{'{}'}</code>
-							{' expression braces.'}
+							{'.'}
 						</p>
 						<pre class="code-block">
 							<code>{html STATEMENT_HTML}</code>

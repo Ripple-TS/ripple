@@ -19,7 +19,7 @@ transform that into a function that it can call.
 
 ```ripple
 component Hello() {
-  <span>{'Hello World!'}</span>
+  <span>"Hello World!"</span>
 }
 ```
 
@@ -52,7 +52,7 @@ const myTemplate = (
 // ✅ Correct - Templates only inside components
 component MyComponent() {
 	// Template syntax is valid here
-	<div>{"Hello World"}</div>
+  <div>"Hello World"</div>
 
 	// You can have JavaScript code mixed with templates
 	const message = "Dynamic content";
@@ -169,14 +169,19 @@ then be converted to a string (if it is not already) to be inserted into the DOM
 ## Example: Displaying Text
 
 This is the first place we can notice the difference between Ripple and JSX.
-You'll need to place your text inside {braces} to start an expression. Again, this
-is because Ripple templates are statements rather than expressions, so we cannot
-have text in the middle of the template, as it would be akin to writing text in
-the middle of your code.
+Static text can be written directly as a double-quoted child. Unquoted text is
+still invalid because Ripple templates are statements rather than expressions, so
+bare words in a template would be like writing text in the middle of your code.
+Variables, single-quoted strings, template literals, and other JavaScript
+expressions still use {braces}.
 
 ```ripple
-// ✅ Correct - Text is an expression
+// ✅ Correct - Static text is a direct double-quoted child
+<span>"Hello World!"</span>
+
+// ✅ Correct - JavaScript expressions use braces
 <span>{'Hello World!'}</span>
+<span>{message}</span>
 
 // ❌ Wrong - Compilation error
 <span>Hello World!</span>
@@ -192,11 +197,12 @@ let greet_text = Hello World!;
 ## Example: Text Interpolation
 
 The most basic form of data-binding is text interpolation. In the example below,
-we'll declare a `<span>` element as a statement, then use a pair of {braces} to
-declare an expression, inside which we put our string expression, like we would in
-plain JavaScript.
+we'll declare a `<span>` element as a statement. Direct double-quoted text can sit
+next to dynamic {braces}; JavaScript string and template expressions still go
+inside braces.
 
 ```ripple
+<span>"Message: "{msg}</span>
 <span>{`Message: ${msg}`}</span>
 <span>{'Message: ' + msg}</span>
 ```
@@ -222,12 +228,12 @@ component TemplateScope() {
 
     <h1>{message}</h1>
     <p>
-      {'Count is: '}
+      "Count is: "
       {count}
     </p>
 
     if (isEven) {
-      <span>{'Count is even'}</span>
+      <span>"Count is even"</span>
     }
 
     // Nested scopes work too
@@ -265,7 +271,7 @@ but instead of quotes, we use {braces}, within which, we can write a JS expressi
 that evaluates to our desired value.
 
 ```ripple
-<span data-my-attr={attr_val}>{'Hi there!'}</span>
+<span data-my-attr={attr_val}>"Hi there!"</span>
 ```
 
 ::: info Plain attributes can still be used.
@@ -310,9 +316,10 @@ raw content, refer to [Styling](/docs/guide/styling#Global-Styles).
 
 ## Explicit Text
 
-By default, a `{expression}` in a template can render either text or an fragment.
-If you know the expression will always be text, you can use the `{text}` directive
-to make that explicit:
+Direct double-quoted children are static escaped text. By default, a
+`{expression}` in a template can render either text or a fragment. If you know
+the expression will always be text, you can use the `{text}` directive to make
+that explicit:
 
 ```ripple
 export component Frame({ children }) {
