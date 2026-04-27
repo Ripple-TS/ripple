@@ -2056,12 +2056,16 @@ export function TSRXPlugin(config) {
 
 						if (!inside_tsx.openingElement.name) {
 							if (this.input.slice(this.pos, this.pos + 2) === '/>') {
+								// Reset exprAllowed so the trailing `/` of `</>` is tokenized
+								// as a slash rather than as the start of a regex literal.
+								this.exprAllowed = false;
 								return;
 							}
 						} else if (this.input.slice(this.pos, this.pos + 4) === '/tsx') {
 							const after = this.input.charCodeAt(this.pos + 4);
 							// Make sure it's </tsx> and not </tsx:...>
 							if (after === 62 /* > */) {
+								this.exprAllowed = false;
 								return;
 							}
 						}
@@ -2128,6 +2132,7 @@ export function TSRXPlugin(config) {
 						}
 
 						if (this.input.slice(this.pos, this.pos + 5) === '/tsx:') {
+							this.exprAllowed = false;
 							return;
 						}
 
