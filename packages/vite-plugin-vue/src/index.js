@@ -3,7 +3,7 @@
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { isAbsolute, resolve as pathResolve } from 'node:path';
-import { compile } from '../../tsrx-vue/src/index.js';
+import { compile } from '@tsrx/vue';
 
 const DEFAULT_TSRX_PATTERN = /\.tsrx$/;
 const VIRTUAL_TSX_SUFFIX = '.tsx';
@@ -99,7 +99,7 @@ export function tsrxVue(options = {}) {
 			const { code, css, map } = compile(source, realPath);
 
 			let finalCode = code;
-			let finalMap = map;
+			let finalMap = /** @type {any} */ (map);
 			if (css) {
 				cssCache.set(realPath, css.code);
 				finalCode = `import ${JSON.stringify(realPath + CSS_QUERY)};\n${code}`;
