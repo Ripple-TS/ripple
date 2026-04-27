@@ -123,6 +123,35 @@ export function tsx_with_ts_locations() {
 			context.write(': ');
 			context.visit(node.elementType);
 		},
+		// esrap's Property printer for method shorthand (`{ foo<T>() {} }`)
+		// does not visit `value.typeParameters`, so the `<T>` is dropped from
+		// the output and segments.js can't resolve the TSTypeParameterDeclaration's
+		// source position. Override only the method-shorthand branch.
+		Property: (node, context) => {
+			if (node.value.type !== 'FunctionExpression') {
+				base.Property(node, context);
+				return;
+			}
+			const value = node.value;
+			if (node.kind !== 'init') context.write(node.kind + ' ');
+			if (value.async) context.write('async ');
+			if (value.generator) context.write('*');
+			if (node.computed) context.write('[');
+			context.visit(node.key);
+			if (node.computed) context.write(']');
+			if (value.typeParameters) {
+				context.visit(value.typeParameters);
+			}
+			context.write('(');
+			for (let i = 0; i < value.params.length; i++) {
+				if (i > 0) context.write(', ');
+				context.visit(value.params[i]);
+			}
+			context.write(')');
+			if (value.returnType) context.visit(value.returnType);
+			context.write(' ');
+			context.visit(value.body);
+		},
 		// esrap's ArrowFunctionExpression printer ignores `typeParameters` and
 		// `returnType`, so an annotated arrow like `(): Record<...> => ...`
 		// prints as `() => ...` and segments.js can't resolve the return-type
