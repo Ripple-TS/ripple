@@ -58,6 +58,7 @@ interface BaseNodeMetaData {
 	forceMapping?: boolean;
 	lazy_id?: string;
 	disable_verification?: boolean;
+	lazy_param_is_component?: boolean;
 	lazy_param_binding_mappings?: Array<{
 		source: AST.Identifier;
 		generated: AST.Identifier | AST.Literal;

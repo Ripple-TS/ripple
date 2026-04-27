@@ -434,16 +434,37 @@ export function optionalFn(declRequired: string, declMaybe?: string) {
 	return c + b;
 }`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx');
+			const source_pattern_offset = source.indexOf('{ a: c, b }');
 			const source_name_offset = source.indexOf('greet');
+			const generated_lazy_offset = result.code.indexOf('__lazy0');
 			const generated_name_offset = result.code.indexOf('greet');
+			const pattern_mapping = result.mappings.find(
+				(mapping) =>
+					mapping.sourceOffsets[0] === source_pattern_offset &&
+					mapping.generatedOffsets[0] === generated_lazy_offset,
+			);
 			const name_mapping = result.mappings.find(
 				(mapping) =>
 					mapping.sourceOffsets[0] === source_name_offset &&
 					mapping.generatedOffsets[0] === generated_name_offset,
 			);
+			const param_hover = pattern_mapping?.data.customData.hover;
 			const hover = name_mapping?.data.customData.hover;
 
 			expect(result.code).toContain('function greet(__lazy0: { a: string; b: string })');
+			expect(typeof param_hover).toBe('function');
+			if (typeof param_hover === 'function') {
+				expect(
+					param_hover(`function greet(__lazy0: {
+    a: string;
+    b: string;
+}): string`),
+				).toBe(`function greet(&{
+    a: string;
+    b: string;
+}): string`);
+			}
+
 			expect(typeof hover).toBe('function');
 			if (typeof hover === 'function') {
 				expect(

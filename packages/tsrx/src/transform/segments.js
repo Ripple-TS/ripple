@@ -79,12 +79,16 @@ function replace_label_to_component(content) {
 
 /**
  * @param {string} lazy_id
+ * @param {(content: string) => string} [base_hover]
  * @returns {(content: string) => string}
  */
-function create_lazy_param_hover_replacement(lazy_id) {
+function create_lazy_param_hover_replacement(lazy_id, base_hover) {
 	const lazy_param_regex = new RegExp(`\\b${escape_regex(lazy_id)}\\s*:\\s*`, 'g');
 
-	return (content) => replace_label_to_component(content).replace(lazy_param_regex, '&');
+	return (content) => {
+		const next = base_hover ? base_hover(content) : content;
+		return next.replace(lazy_param_regex, '&');
+	};
 }
 
 /**
@@ -491,7 +495,10 @@ export function convert_source_map_to_mappings(
 						token.metadata.hover = replace_label_to_component;
 					}
 					if (node.metadata?.source_length != null && LAZY_PARAM_IDENTIFIER_REGEX.test(node.name)) {
-						token.metadata.hover = create_lazy_param_hover_replacement(node.name);
+						token.metadata.hover = create_lazy_param_hover_replacement(
+							node.name,
+							node.metadata?.lazy_param_is_component ? replace_label_to_component : undefined,
+						);
 					}
 					if (node.metadata?.disable_verification) {
 						token.mappingData = { ...mapping_data, verification: false };
@@ -935,6 +942,13 @@ export function convert_source_map_to_mappings(
 
 				if (node.params) {
 					for (const param of node.params) {
+						if (
+							param.type === 'Identifier' &&
+							param.metadata?.source_length != null &&
+							LAZY_PARAM_IDENTIFIER_REGEX.test(param.name)
+						) {
+							param.metadata.lazy_param_is_component = node.metadata?.is_component === true;
+						}
 						visit(param);
 						if (param.typeAnnotation) {
 							visit(param.typeAnnotation);
