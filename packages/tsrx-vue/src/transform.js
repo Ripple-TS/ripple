@@ -108,6 +108,14 @@ function component_to_vapor_component_declaration(component, transform_context, 
 		return call;
 	}
 
+	const component_id = clone_identifier(component.id);
+	component_id.metadata = {
+		...component_id.metadata,
+		...(fn.id?.metadata || {}),
+		path: component_id.metadata?.path || [],
+	};
+	/** @type {any} */ (component_id.metadata).hover = create_component_hover_replacement(fn.params);
+
 	return setLocation(
 		/** @type {any} */ ({
 			type: 'VariableDeclaration',
@@ -115,7 +123,7 @@ function component_to_vapor_component_declaration(component, transform_context, 
 			declarations: [
 				{
 					type: 'VariableDeclarator',
-					id: clone_identifier(component.id),
+					id: component_id,
 					init: call,
 					metadata: { path: [] },
 				},
@@ -337,13 +345,27 @@ function function_declaration_to_expression(fn) {
 	};
 }
 
+const VUE_COMPONENT_HOVER_LABEL_REGEX = /(function|\((property|method)\))/;
+
 /**
- * @param {any} node
- * @param {string} feature
- * @returns {Error}
+ * @param {any[]} [params]
+ * @returns {(content: string) => string}
  */
-function unsupported_vue_feature(node, feature) {
-	return create_compile_error(node, `${feature} are not yet supported in Vue TSRX.`);
+function create_component_hover_replacement(params) {
+	const lazy_param_regexes = (params || [])
+		.filter((param) => param.type === 'Identifier' && /^__lazy\d+$/.test(param.name))
+		.map((param) => new RegExp(`\\b${param.name}\\s*:\\s*`, 'g'));
+
+	return (content) => {
+		let next = content.replace(VUE_COMPONENT_HOVER_LABEL_REGEX, (_, fn, kind) => {
+			if (fn === 'function') return 'component';
+			return `(component ${kind})`;
+		});
+		for (const regex of lazy_param_regexes) {
+			next = next.replace(regex, '&');
+		}
+		return next;
+	};
 }
 
 const VUE_SETUP_CALLS = new Set([
