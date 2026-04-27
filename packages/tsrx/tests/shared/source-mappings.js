@@ -155,6 +155,21 @@ export function runSharedSourceMappingTests({
 			expect_maps(`class Foo { bar(x: number): string { return ''; } } component C() {}`));
 		it('object method shorthand with type parameters', () =>
 			expect_maps(`component C() { const o = { foo<T>(x: T): T { return x; } }; }`));
+		// Non-method properties whose value happens to be a FunctionExpression
+		// (`node.method === false`) must not be reprinted as method shorthand;
+		// the Property override gates on `node.method`.
+		it('property with function expression value', () =>
+			expect_maps(`component C() { const o = { foo: function() { return 1; } }; }`));
+		it('property with named function expression value', () =>
+			expect_maps(`component C() { const o = { foo: function bar() { return 1; } }; }`));
+		it('property with async function expression value', () =>
+			expect_maps(`component C() { const o = { foo: async function() { return 1; } }; }`));
+		it('object literal getter', () =>
+			expect_maps(`component C() { const o = { get x() { return 1; } }; }`));
+		it('object literal setter', () =>
+			expect_maps(`component C() { const o = { set x(v: number) {} }; }`));
+		it('object literal getter with return type', () =>
+			expect_maps(`component C() { const o = { get x(): number { return 1; } }; }`));
 
 		// TS type operators / mapped / parenthesized types.
 		it('keyof type operator', () => expect_maps(`type K<T> = keyof T; component C() {}`));

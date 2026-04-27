@@ -126,14 +126,15 @@ export function tsx_with_ts_locations() {
 		// esrap's Property printer for method shorthand (`{ foo<T>() {} }`)
 		// does not visit `value.typeParameters`, so the `<T>` is dropped from
 		// the output and segments.js can't resolve the TSTypeParameterDeclaration's
-		// source position. Override only the method-shorthand branch.
+		// source position. Override only the actual method-shorthand branch —
+		// `{ foo: function() {} }` (`node.method === false`) and getters/setters
+		// must fall through to base.Property to preserve their printed form.
 		Property: (node, context) => {
-			if (node.value.type !== 'FunctionExpression') {
+			if (!node.method || node.value.type !== 'FunctionExpression') {
 				base.Property(node, context);
 				return;
 			}
 			const value = node.value;
-			if (node.kind !== 'init') context.write(node.kind + ' ');
 			if (value.async) context.write('async ');
 			if (value.generator) context.write('*');
 			if (node.computed) context.write('[');
