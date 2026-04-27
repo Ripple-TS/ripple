@@ -20,7 +20,7 @@ import { error } from './errors.js';
  * @param {string} input
  * @param {number} i
  */
-function skipWhitespaceFrom(input, i) {
+function skip_whitespace_from(input, i) {
 	while (i < input.length) {
 		const ch = input.charCodeAt(i);
 		if (ch !== 32 && ch !== 9 && ch !== 10 && ch !== 13) break;
@@ -35,7 +35,7 @@ function skipWhitespaceFrom(input, i) {
  * @param {number} i
  * @param {number} quote
  */
-function skipStringFrom(input, i, quote) {
+function skip_string_from(input, i, quote) {
 	i++;
 	while (i < input.length) {
 		const ch = input.charCodeAt(i);
@@ -55,13 +55,13 @@ function skipStringFrom(input, i, quote) {
  * @param {number} open
  * @param {number} close
  */
-function scanBalancedFrom(input, i, open, close) {
+function scan_balanced_from(input, i, open, close) {
 	let depth = 1;
 	i++;
 	while (i < input.length) {
 		const ch = input.charCodeAt(i);
 		if (ch === 34 || ch === 39 || ch === 96) {
-			i = skipStringFrom(input, i, ch);
+			i = skip_string_from(input, i, ch);
 			continue;
 		}
 		if (ch === open) depth++;
@@ -78,7 +78,7 @@ function scanBalancedFrom(input, i, open, close) {
  * @param {string} input
  * @param {number} pos
  */
-function looksLikeGenericArrow(input, pos) {
+function looks_like_generic_arrow(input, pos) {
 	if (input.charCodeAt(pos) !== 60) return false;
 
 	// Match the angle brackets, skipping over string literals.
@@ -87,7 +87,7 @@ function looksLikeGenericArrow(input, pos) {
 	while (i < input.length) {
 		const ch = input.charCodeAt(i);
 		if (ch === 34 || ch === 39 || ch === 96) {
-			i = skipStringFrom(input, i, ch);
+			i = skip_string_from(input, i, ch);
 			continue;
 		}
 		if (ch === 60) depth++;
@@ -97,19 +97,19 @@ function looksLikeGenericArrow(input, pos) {
 	if (depth !== 0) return false;
 
 	// `>` must be followed by `(...)`.
-	i = skipWhitespaceFrom(input, i + 1);
+	i = skip_whitespace_from(input, i + 1);
 	if (input.charCodeAt(i) !== 40) return false;
-	i = scanBalancedFrom(input, i, 40, 41);
+	i = scan_balanced_from(input, i, 40, 41);
 	if (i === -1) return false;
 
 	// Optional `: ReturnType` before `=>`.
-	i = skipWhitespaceFrom(input, i);
+	i = skip_whitespace_from(input, i);
 	if (input.charCodeAt(i) === 58) {
 		i++;
 		while (i < input.length) {
 			const ch = input.charCodeAt(i);
 			if (ch === 34 || ch === 39 || ch === 96) {
-				i = skipStringFrom(input, i, ch);
+				i = skip_string_from(input, i, ch);
 				continue;
 			}
 			if (ch === 61 && input.charCodeAt(i + 1) === 62) return true;
@@ -502,7 +502,7 @@ export function TSRXPlugin(config) {
 				if (
 					code === 60 &&
 					this.#path.findLast((n) => n.type === 'Component') &&
-					looksLikeGenericArrow(this.input, this.pos)
+					looks_like_generic_arrow(this.input, this.pos)
 				) {
 					++this.pos;
 					return this.finishToken(tt.relational, '<');
