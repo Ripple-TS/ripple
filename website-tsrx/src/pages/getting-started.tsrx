@@ -72,6 +72,10 @@ const ESLINT_INSTALL_HTML = [
 	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">-D</span> <span class="str">eslint</span> <span class="str">@tsrx/eslint-plugin</span>',
 ].join('\n');
 
+const TYPESCRIPT_PLUGIN_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">-D</span> <span class="str">@tsrx/typescript-plugin</span>',
+].join('\n');
+
 const PRETTIER_CONFIG_HTML = [
 	'<span class="ln">1</span> <span class="br">{</span>',
 	'<span class="ln">2</span>   <span class="attr">"plugins"</span>: <span class="br">[</span><span class="str">"@tsrx/prettier-plugin"</span><span class="br">]</span>',
@@ -82,6 +86,25 @@ const ESLINT_CONFIG_HTML = [
 	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="prop">tsrx</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/eslint-plugin\'</span>;',
 	'<span class="ln">2</span>',
 	'<span class="ln">3</span> <span class="kw-export">export default</span> <span class="br">[</span>...<span class="prop">tsrx</span>.<span class="prop">configs</span>.<span class="prop">recommended</span><span class="br">]</span>;',
+].join('\n');
+
+const TYPESCRIPT_PLUGIN_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="br">{</span>',
+	'<span class="ln">2</span>   <span class="attr">"compilerOptions"</span>: <span class="br">{</span>',
+	'<span class="ln">3</span>     <span class="attr">"jsx"</span>: <span class="str">"preserve"</span>,',
+	'<span class="ln">4</span>     <span class="attr">"plugins"</span>: <span class="br">[</span>',
+	'<span class="ln">5</span>       <span class="br">{</span> <span class="attr">"name"</span>: <span class="str">"@tsrx/typescript-plugin"</span> <span class="br">}</span>',
+	'<span class="ln">6</span>     <span class="br">]</span>',
+	'<span class="ln">7</span>   <span class="br">}</span>',
+	'<span class="ln">8</span> <span class="br">}</span>',
+].join('\n');
+
+const TYPECHECK_SCRIPT_HTML = [
+	'<span class="ln">1</span> <span class="br">{</span>',
+	'<span class="ln">2</span>   <span class="attr">"scripts"</span>: <span class="br">{</span>',
+	'<span class="ln">3</span>     <span class="attr">"typecheck"</span>: <span class="str">"tsrx-tsc --noEmit"</span>',
+	'<span class="ln">4</span>   <span class="br">}</span>',
+	'<span class="ln">5</span> <span class="br">}</span>',
 ].join('\n');
 
 const NAV_GROUPS = [
@@ -102,6 +125,7 @@ const NAV_GROUPS = [
 			{ id: 'tooling-install', label: 'Tooling overview' },
 			{ id: 'prettier', label: 'Prettier' },
 			{ id: 'eslint', label: 'ESLint' },
+			{ id: 'typescript-plugin', label: 'TypeScript plugin' },
 			{ id: 'vscode', label: 'VS Code' },
 		],
 	},
@@ -344,6 +368,67 @@ export component GettingStartedPage() {
 						<pre class="code-block">
 							<code>{html ESLINT_CONFIG_HTML}</code>
 						</pre>
+					</section>
+
+					<section class="doc-section" id="typescript-plugin">
+						<h2 class="section-heading">{'TypeScript plugin'}</h2>
+						<p class="section-body">
+							{'Install '}
+							<code class="inline-code">{'@tsrx/typescript-plugin'}</code>
+							{' when you want TypeScript itself to understand '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' files, especially outside the TSRX VS Code extension: other editors, '}
+							<code class="inline-code">{'tsserver'}</code>
+							{', and command-line '}
+							<code class="inline-code">{'tsc'}</code>
+							{' workflows.'}
+						</p>
+						<pre class="code-block">
+							<code>{html TYPESCRIPT_PLUGIN_INSTALL_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'Then register it in your '}
+							<code class="inline-code">{'tsconfig.json'}</code>
+							{'. Keep your existing compiler options and add the '}
+							<code class="inline-code">{'plugins'}</code>
+							{' entry under '}
+							<code class="inline-code">{'compilerOptions'}</code>
+							{':'}
+						</p>
+						<pre class="code-block">
+							<code>{html TYPESCRIPT_PLUGIN_CONFIG_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'The plugin turns TSRX into virtual TypeScript for diagnostics, navigation, completions, and type checking. If you already use the TSRX VS Code extension, this manual setup is optional because the extension runs the language tooling for you.'}
+						</p>
+						<h3 class="subsection-heading">{'Command-line type checking'}</h3>
+						<p class="section-body">
+							{'The package also ships a '}
+							<code class="inline-code">{'tsrx-tsc'}</code>
+							{' binary — a drop-in '}
+							<code class="inline-code">{'tsc'}</code>
+							{' wrapper that understands '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' files. Use it for CI type checking and any '}
+							<code class="inline-code">{'tsc'}</code>
+							{' workflow that needs to see your TSRX modules. Add a '}
+							<code class="inline-code">{'typecheck'}</code>
+							{' script to your '}
+							<code class="inline-code">{'package.json'}</code>
+							{':'}
+						</p>
+						<pre class="code-block">
+							<code>{html TYPECHECK_SCRIPT_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'Then run '}
+							<code class="inline-code">{'pnpm typecheck'}</code>
+							{' to type check the whole project, including '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' files, without emitting any output. It accepts the same flags as '}
+							<code class="inline-code">{'tsc'}</code>
+							{'.'}
+						</p>
 					</section>
 
 					<section class="doc-section" id="vscode">
