@@ -1,5 +1,29 @@
 # @ripple-ts/vite-plugin
 
+## 0.3.35
+
+### Patch Changes
+
+- [#966](https://github.com/Ripple-TS/ripple/pull/966)
+  [`caf83e3`](https://github.com/Ripple-TS/ripple/commit/caf83e386faa9133df70460f266fc27ab323082b)
+  Thanks [@RazinShafayet2007](https://github.com/RazinShafayet2007)! - fix:
+  register SSR/API middleware as a pre-hook so it runs before Vite's HTML fallback
+  middleware
+
+  The dev server's `configureServer` hook previously returned a function
+  (post-hook), which registered SSR/API middleware after Vite's internal
+  middleware stack. Vite's HTML fallback middleware would intercept all non-file
+  GET requests first, preventing SSR rendering and API routes from ever executing.
+
+  Switched to a pre-hook (no return value) so middleware is registered before Vite
+  internals. Config loading is deferred to the first request via
+  `ensureConfigLoaded()`, which retries on missing config and surfaces load errors
+  as dev-server 500 pages instead of silently falling through.
+
+- Updated dependencies []:
+  - @tsrx/ripple@0.0.17
+  - @ripple-ts/adapter@0.3.35
+
 ## 0.3.34
 
 ### Patch Changes
