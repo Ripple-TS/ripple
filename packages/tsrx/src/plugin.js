@@ -17,6 +17,112 @@ import { regex_newline_characters } from './utils/patterns.js';
 import { error } from './errors.js';
 
 /**
+ * @param {string} input
+ * @param {number} i
+ */
+function skipWhitespaceFrom(input, i) {
+	while (i < input.length) {
+		const ch = input.charCodeAt(i);
+		if (ch !== 32 && ch !== 9 && ch !== 10 && ch !== 13) break;
+		i++;
+	}
+	return i;
+}
+
+/**
+ * Skip past a string literal opened at `i` with the given quote char code.
+ * @param {string} input
+ * @param {number} i
+ * @param {number} quote
+ */
+function skipStringFrom(input, i, quote) {
+	i++;
+	while (i < input.length) {
+		const ch = input.charCodeAt(i);
+		i++;
+		if (ch === 92)
+			i++; // backslash escape
+		else if (ch === quote) return i;
+	}
+	return i;
+}
+
+/**
+ * Scan past a balanced pair starting at `i` (which must point at `open`).
+ * Returns the position after the matching close, or -1 if unbalanced.
+ * @param {string} input
+ * @param {number} i
+ * @param {number} open
+ * @param {number} close
+ */
+function scanBalancedFrom(input, i, open, close) {
+	let depth = 1;
+	i++;
+	while (i < input.length) {
+		const ch = input.charCodeAt(i);
+		if (ch === 34 || ch === 39 || ch === 96) {
+			i = skipStringFrom(input, i, ch);
+			continue;
+		}
+		if (ch === open) depth++;
+		else if (ch === close && --depth === 0) return i + 1;
+		i++;
+	}
+	return -1;
+}
+
+/**
+ * Best-effort lookahead at a `<` to decide whether it starts a generic arrow
+ * expression — `<...>(...)[: T] => ...`. Conservative: returns false on any
+ * unexpected shape so JSX continues to parse as JSX.
+ * @param {string} input
+ * @param {number} pos
+ */
+function looksLikeGenericArrow(input, pos) {
+	if (input.charCodeAt(pos) !== 60) return false;
+
+	// Match the angle brackets, skipping over string literals.
+	let i = pos + 1;
+	let depth = 1;
+	while (i < input.length) {
+		const ch = input.charCodeAt(i);
+		if (ch === 34 || ch === 39 || ch === 96) {
+			i = skipStringFrom(input, i, ch);
+			continue;
+		}
+		if (ch === 60) depth++;
+		else if (ch === 62 && --depth === 0) break;
+		i++;
+	}
+	if (depth !== 0) return false;
+
+	// `>` must be followed by `(...)`.
+	i = skipWhitespaceFrom(input, i + 1);
+	if (input.charCodeAt(i) !== 40) return false;
+	i = scanBalancedFrom(input, i, 40, 41);
+	if (i === -1) return false;
+
+	// Optional `: ReturnType` before `=>`.
+	i = skipWhitespaceFrom(input, i);
+	if (input.charCodeAt(i) === 58) {
+		i++;
+		while (i < input.length) {
+			const ch = input.charCodeAt(i);
+			if (ch === 34 || ch === 39 || ch === 96) {
+				i = skipStringFrom(input, i, ch);
+				continue;
+			}
+			if (ch === 61 && input.charCodeAt(i + 1) === 62) return true;
+			if (ch === 59 || ch === 123 || ch === 125) return false;
+			i++;
+		}
+		return false;
+	}
+
+	return input.charCodeAt(i) === 61 && input.charCodeAt(i + 1) === 62;
+}
+
+/**
  * Acorn parser plugin for Ripple syntax extensions.
  * Adds support for: component declarations, &[]/&{} lazy destructuring,
  * #server blocks, #style identifiers, and enhanced JSX handling.
@@ -45,7 +151,6 @@ export function TSRXPlugin(config) {
 			/** @type {string | null} */
 			#filename = null;
 			#functionBodyDepth = 0;
-			#functionBlockDepth = 0;
 
 			/**
 			 * @param {Parse.Options} options
@@ -383,145 +488,25 @@ export function TSRXPlugin(config) {
 				return null;
 			}
 
-			#isNestedFunctionContextForLessThan() {
-				const closing_function_body =
-					this.type === tt.braceR && this.#functionBlockDepth === this.#functionBodyDepth;
-				return this.#functionBodyDepth > 0 && !closing_function_body;
-			}
-
 			/**
-			 * @param {number} index
-			 */
-			#skipWhitespaceFrom(index) {
-				while (index < this.input.length) {
-					const ch = this.input.charCodeAt(index);
-					if (ch !== 32 && ch !== 9 && ch !== 10 && ch !== 13) break;
-					index++;
-				}
-				return index;
-			}
-
-			/**
-			 * @param {number} index
-			 * @param {number} quote
-			 */
-			#skipStringFrom(index, quote) {
-				index++;
-				while (index < this.input.length) {
-					const ch = this.input.charCodeAt(index);
-					index++;
-					if (ch === 92) {
-						index++;
-					} else if (ch === quote) {
-						return index;
-					}
-				}
-				return index;
-			}
-
-			/**
-			 * @param {number} index
-			 * @param {number} open
-			 * @param {number} close
-			 */
-			#scanBalancedFrom(index, open, close) {
-				let depth = 1;
-				index++;
-
-				while (index < this.input.length) {
-					const ch = this.input.charCodeAt(index);
-
-					if (ch === 34 || ch === 39 || ch === 96) {
-						index = this.#skipStringFrom(index, ch);
-						continue;
-					}
-
-					if (ch === open) {
-						depth++;
-					} else if (ch === close) {
-						depth--;
-						if (depth === 0) {
-							return index + 1;
-						}
-					}
-
-					index++;
-				}
-
-				return -1;
-			}
-
-			#isGenericArrowExpressionStart() {
-				if (this.input.charCodeAt(this.pos) !== 60) return false;
-
-				let angle_depth = 1;
-				let index = this.pos + 1;
-
-				while (index < this.input.length) {
-					const ch = this.input.charCodeAt(index);
-
-					if (ch === 34 || ch === 39 || ch === 96) {
-						index = this.#skipStringFrom(index, ch);
-						continue;
-					}
-
-					if (ch === 60) {
-						angle_depth++;
-					} else if (ch === 62) {
-						angle_depth--;
-						if (angle_depth === 0) {
-							break;
-						}
-					}
-
-					index++;
-				}
-
-				if (angle_depth !== 0) return false;
-
-				index = this.#skipWhitespaceFrom(index + 1);
-				if (this.input.charCodeAt(index) !== 40) return false;
-
-				index = this.#scanBalancedFrom(index, 40, 41);
-				if (index === -1) return false;
-
-				index = this.#skipWhitespaceFrom(index);
-				if (this.input.charCodeAt(index) === 58) {
-					index++;
-					while (index < this.input.length) {
-						const ch = this.input.charCodeAt(index);
-						if (ch === 34 || ch === 39 || ch === 96) {
-							index = this.#skipStringFrom(index, ch);
-							continue;
-						}
-						if (ch === 61 && this.input.charCodeAt(index + 1) === 62) {
-							return true;
-						}
-						if (ch === 59 || ch === 123 || ch === 125) {
-							return false;
-						}
-						index++;
-					}
-					return false;
-				}
-
-				return this.input.charCodeAt(index) === 61 && this.input.charCodeAt(index + 1) === 62;
-			}
-
-			/**
+			 * Inside a component, `<T,>(x: T) => x` should parse as a generic arrow
+			 * function, not a JSX element. acorn-typescript's `readToken` would
+			 * otherwise tokenize `<` as `jsxTagStart` (when `exprAllowed` or the
+			 * context is `tc_expr`), bypassing our `getTokenFromCode` override. We
+			 * intercept here, but only when the source from `<` actually looks like
+			 * a generic arrow expression — so JSX like `<div>` keeps parsing normally.
+			 *
 			 * @type {Parse.Parser['readToken']}
 			 */
 			readToken(code) {
 				if (
 					code === 60 &&
 					this.#path.findLast((n) => n.type === 'Component') &&
-					this.#isNestedFunctionContextForLessThan() &&
-					this.#isGenericArrowExpressionStart()
+					looksLikeGenericArrow(this.input, this.pos)
 				) {
 					++this.pos;
 					return this.finishToken(tt.relational, '<');
 				}
-
 				return super.readToken(code);
 			}
 
@@ -613,13 +598,8 @@ export function TSRXPlugin(config) {
 							}
 						}
 
-						if (
-							this.#isNestedFunctionContextForLessThan() &&
-							this.#isGenericArrowExpressionStart()
-						) {
-							++this.pos;
-							return this.finishToken(tt.relational, '<');
-						}
+						// `<` inside a nested function body is intercepted earlier in
+						// `readToken` so it never reaches this path.
 
 						// Check if everything before this position on the current line is whitespace
 						let lineStart = this.pos - 1;
@@ -876,20 +856,22 @@ export function TSRXPlugin(config) {
 				}
 
 				this.parseFunctionParams(node);
+
+				// Reset before `eat(braceL)` so the lookahead `next()` it triggers reads
+				// the component body's first token as if we'd entered fresh — no
+				// surrounding function body should affect our parseStatement/parseBlock
+				// branching while inside the template.
+				const parent_function_body_depth = this.#functionBodyDepth;
+				this.#functionBodyDepth = 0;
+
 				this.eat(tt.braceL);
 				node.body = [];
 				this.#path.push(node);
-
-				const parent_function_body_depth = this.#functionBodyDepth;
-				const parent_function_block_depth = this.#functionBlockDepth;
-				this.#functionBodyDepth = 0;
-				this.#functionBlockDepth = 0;
 
 				try {
 					this.parseTemplateBody(node.body);
 				} finally {
 					this.#functionBodyDepth = parent_function_body_depth;
-					this.#functionBlockDepth = parent_function_block_depth;
 				}
 				this.#path.pop();
 				this.exitScope();
@@ -2346,7 +2328,7 @@ export function TSRXPlugin(config) {
 				if (
 					context !== 'for' &&
 					context !== 'if' &&
-					this.#functionBlockDepth === 0 &&
+					this.#functionBodyDepth === 0 &&
 					this.context.at(-1) === b_stat &&
 					this.type === tt.braceL &&
 					this.context.some((c) => c === tstc.tc_expr)
@@ -2435,32 +2417,14 @@ export function TSRXPlugin(config) {
 			 */
 			parseBlock(createNewLexicalScope, node, exitStrict) {
 				const parent = this.#path.at(-1);
-				const inside_func = this.#functionBodyDepth > 0;
 
-				if (inside_func) {
-					this.#functionBlockDepth++;
-					/** @type {Parse.TokContext[]} */
-					const template_contexts = [];
-					while (this.curContext() === tstc.tc_expr) {
-						const context = this.context.pop();
-						if (context) {
-							template_contexts.push(context);
-						}
-					}
-					try {
-						return super.parseBlock(createNewLexicalScope, node, exitStrict);
-					} finally {
-						while (template_contexts.length > 0) {
-							const context = template_contexts.pop();
-							if (context) {
-								this.context.push(context);
-							}
-						}
-						this.#functionBlockDepth--;
-					}
-				}
-
-				if (parent?.type === 'Component' || parent?.type === 'Element') {
+				// Inside a JS function body, parse `{...}` as a regular block statement,
+				// even if the nearest `#path` entry is a Component/Element — we're in a
+				// nested function callable, not in a template.
+				if (
+					this.#functionBodyDepth === 0 &&
+					(parent?.type === 'Component' || parent?.type === 'Element')
+				) {
 					if (createNewLexicalScope === void 0) createNewLexicalScope = true;
 					if (node === void 0) node = /** @type {AST.BlockStatement} */ (this.startNode());
 
