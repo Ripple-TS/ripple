@@ -3,8 +3,14 @@
   "description": "TypeScript plugin for TSRX",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.3.33",
+  "version": "0.3.34",
   "main": "dist/index.js",
+  "bin": {
+    "tsrx-tsc": "./dist/tsc.js"
+  },
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "homepage": "https://ripple-ts.com",
   "repository": {
@@ -13,7 +19,8 @@
     "directory": "packages/typescript-plugin"
   },
   "scripts": {
-    "build": "tsdown"
+    "build": "tsdown",
+    "prepare": "tsdown"
   },
   "bugs": {
     "url": "https://github.com/Ripple-TS/ripple/issues"

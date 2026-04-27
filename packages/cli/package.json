@@ -1,6 +1,6 @@
 {
   "name": "@ripple-ts/cli",
-  "version": "0.3.33",
+  "version": "0.3.34",
   "description": "Interactive CLI tool for creating Ripple applications",
   "type": "module",
   "license": "MIT",
@@ -36,7 +36,7 @@
   },
   "scripts": {
     "build": "tsdown",
-    "prepack": "tsdown",
+    "prepare": "tsdown",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

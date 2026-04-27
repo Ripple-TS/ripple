@@ -1,5 +1,31 @@
 # @tsrx/typescript-plugin
 
+## 0.3.34
+
+### Patch Changes
+
+- [#970](https://github.com/Ripple-TS/ripple/pull/970)
+  [`383feed`](https://github.com/Ripple-TS/ripple/commit/383feed84b09541c0b58992c09816b5a15c2d2d8)
+  Thanks [@aleclarson](https://github.com/aleclarson)! - Add a `tsrx-tsc` bin that
+  runs TypeScript with TSRX file support.
+
+- [`8e2aa8e`](https://github.com/Ripple-TS/ripple/commit/8e2aa8e75678c9ebc9b72055f4da474c82a8e834)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add prepare script to the
+  typescript-plugin to make sure dist is published and in general provided. Change
+  the ones that point their main to dist to prepare from prepack to cover more use
+  cases.
+- Updated dependencies
+  [[`fcd25aa`](https://github.com/Ripple-TS/ripple/commit/fcd25aa549db0d56ccbd596b657b856a5061e20f),
+  [`30126c7`](https://github.com/Ripple-TS/ripple/commit/30126c753c3a08809bacd07c8cf2eca84e8f8cbb),
+  [`b8cd7c4`](https://github.com/Ripple-TS/ripple/commit/b8cd7c4195505976995033a8e369502996f345ad),
+  [`b8cd7c4`](https://github.com/Ripple-TS/ripple/commit/b8cd7c4195505976995033a8e369502996f345ad),
+  [`fee8620`](https://github.com/Ripple-TS/ripple/commit/fee8620fa4e82a7c7e4adb3e434e9db552a3e157),
+  [`2fcacb4`](https://github.com/Ripple-TS/ripple/commit/2fcacb471d7780074f92b20c9b394f7650a941bb)]:
+  - @tsrx/react@0.1.8
+  - @tsrx/preact@0.0.9
+  - @tsrx/solid@0.0.14
+  - @tsrx/ripple@0.0.16
+
 ## 0.3.33
 
 ### Patch Changes

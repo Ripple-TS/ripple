@@ -25,8 +25,11 @@ export function parse(source, filename, options) {
  * @returns {object}
  */
 export function compile(source, filename, options = {}) {
-	const ast = parseModule(source, filename, undefined);
-	const analysis = analyze(ast, filename, options);
+	const errors = /** @type {CompileError[]} */ ([]);
+	const comments = /** @type {AST.CommentWithLocation[]} */ ([]);
+	const collect = !!options?.loose;
+	const ast = parseModule(source, filename, collect ? { ...options, errors, comments } : undefined);
+	const analysis = analyze(ast, filename, collect ? { ...options, errors, comments } : options);
 	const result =
 		options.mode === 'server'
 			? transform_server(
@@ -45,7 +48,7 @@ export function compile(source, filename, options = {}) {
 					options?.hmr ?? false,
 				);
 
-	return result;
+	return { ...result, errors };
 }
 
 /**

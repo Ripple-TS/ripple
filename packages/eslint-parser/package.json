@@ -1,6 +1,6 @@
 {
   "name": "@tsrx/eslint-parser",
-  "version": "0.3.33",
+  "version": "0.3.34",
   "description": "ESLint parser for Ripple (.tsrx files)",
   "type": "module",
   "main": "src/index.ts",

@@ -1982,6 +1982,7 @@ const visitors = {
 				false,
 				/** @type {AST.NodeWithLocation} */ (node),
 			);
+			func.typeParameters = node.typeParameters;
 			// Mark that this function was originally a component
 			func.metadata = /** @type {AST.FunctionExpression['metadata']} */ ({
 				...node.metadata,

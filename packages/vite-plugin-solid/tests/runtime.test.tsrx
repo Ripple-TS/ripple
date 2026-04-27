@@ -59,6 +59,54 @@ component ExplicitTextApp() {
 	<div class="explicit-text-undefined">{text missing}</div>
 }
 
+component CallableBlockRuntimeApp() {
+	function readDeclaration() {
+		const marker = 'decl-outer';
+		let selected = marker;
+
+		{
+			const marker = 'decl-inner';
+			selected = marker;
+		}
+
+		return `${selected}/${marker}`;
+	}
+
+	const readArrow = () => {
+		const base = 10;
+		let total = base;
+
+		{
+			const base = 32;
+			total += base;
+		}
+
+		return total;
+	};
+
+	class MethodReader {
+		read() {
+			const marker = 'method-outer';
+			let selected = marker;
+
+			{
+				const marker = 'method-inner';
+				selected = marker;
+			}
+
+			return `${selected}/${marker}`;
+		}
+	}
+
+	const reader = new MethodReader();
+
+	<section class="callable-block-runtime">
+		<p class="decl-block">{readDeclaration()}</p>
+		<p class="arrow-block">{readArrow()}</p>
+		<p class="method-block">{reader.read()}</p>
+	</section>
+}
+
 // ── Reactive counter (signals) ──
 
 component CounterApp() {
@@ -667,6 +715,13 @@ describe('tsrx-solid runtime', () => {
 		expect(text('.explicit-text-boolean')).toBe('false');
 		expect(text('.explicit-text-null')).toBe('');
 		expect(text('.explicit-text-undefined')).toBe('');
+	});
+
+	it('runs nested JavaScript blocks inside component-local callables', async () => {
+		await render(CallableBlockRuntimeApp);
+		expect(text('.decl-block')).toBe('decl-inner/decl-outer');
+		expect(text('.arrow-block')).toBe('42');
+		expect(text('.method-block')).toBe('method-inner/method-outer');
 	});
 
 	// ── Reactivity ──
