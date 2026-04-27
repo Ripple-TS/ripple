@@ -58,6 +58,17 @@ export function tsrxVue(options = {}) {
 		return stripped;
 	};
 
+	/**
+	 * @param {string} id
+	 * @returns {string}
+	 */
+	const toExistingSourcePath = (id) => {
+		if (isAbsolute(id) && existsSync(id)) return id;
+		const reAnchored = pathResolve(rootDir, id.replace(/^\/+/, ''));
+		if (existsSync(reAnchored)) return reAnchored;
+		return id;
+	};
+
 	return {
 		name: '@tsrx/vite-plugin-vue',
 		enforce: 'pre',
@@ -77,10 +88,10 @@ export function tsrxVue(options = {}) {
 			if (isTsrxSource(source)) {
 				const resolved = await this.resolve(source, importer, { ...options, skipSelf: true });
 				if (resolved && !isVirtual(resolved.id)) {
-					return { ...resolved, id: resolved.id + VIRTUAL_TSX_SUFFIX };
+					return { ...resolved, id: toExistingSourcePath(resolved.id) + VIRTUAL_TSX_SUFFIX };
 				}
 				if (resolved) return resolved;
-				return source + VIRTUAL_TSX_SUFFIX;
+				return toExistingSourcePath(source) + VIRTUAL_TSX_SUFFIX;
 			}
 
 			return null;
