@@ -606,17 +606,15 @@ export function ripple(inlineOptions = {}) {
 				 * only retried when the file has been modified.
 				 */
 				async function ensureConfigLoaded() {
-					// Config was already loaded (with or without routes).
-					if (rippleConfig) return;
+					// Config and router are already loaded.
+					if (rippleConfig && router) return;
 
-					// If a load is already in flight, always await it before
-					// consulting retry gates. Concurrent first requests should
-					// share the same initialization result instead of falling
-					// through while the first load is still pending.
 					if (initPromise) {
 						await initPromise;
 						return;
 					}
+
+					const configPath = getRippleConfigPath(root);
 
 					// Config file doesn't exist (yet). Don't cache this — the
 					// user may create it while the dev server is running.
@@ -626,7 +624,6 @@ export function ripple(inlineOptions = {}) {
 					// modified since the last failure. This avoids per-request
 					// log spam while instantly picking up fixes.
 					if (lastConfigErrorMtimeMs) {
-						const configPath = root + '/ripple.config.ts';
 						try {
 							const stat = fs.statSync(configPath);
 							if (stat.mtimeMs <= lastConfigErrorMtimeMs) return;
@@ -643,23 +640,27 @@ export function ripple(inlineOptions = {}) {
 						// lastConfigErrorMtimeMs and short-circuiting above.
 						let preLoadMtimeMs;
 						try {
-							preLoadMtimeMs = fs.statSync(root + '/ripple.config.ts').mtimeMs;
+							preLoadMtimeMs = fs.statSync(configPath).mtimeMs;
 						} catch {
 							preLoadMtimeMs = Date.now();
 						}
 
 						initPromise = (async () => {
-							rippleConfig = await loadRippleConfig(root, { vite });
+							const nextConfig = await loadRippleConfig(root, { vite });
 
-							if (!has_route_config(rippleConfig)) {
-								return;
+							let nextRouter = null;
+							if (has_route_config(nextConfig)) {
+								nextRouter = createRouter(nextConfig.router.routes);
 							}
 
-							// Create router from config
-							router = createRouter(rippleConfig.router.routes);
-							console.log(
-								`[@ripple-ts/vite-plugin] Loaded ${rippleConfig.router.routes.length} routes from ripple.config.ts`,
-							);
+							rippleConfig = nextConfig;
+							router = nextRouter;
+
+							if (nextRouter) {
+								console.log(
+									`[@ripple-ts/vite-plugin] Loaded ${nextConfig.router.routes.length} routes from ripple.config.ts`,
+								);
+							}
 						})()
 							.catch((error) => {
 								// Record pre-load mtime so retries only happen
