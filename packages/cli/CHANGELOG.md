@@ -1,5 +1,15 @@
 # @ripple-ts/cli
 
+## 0.3.34
+
+### Patch Changes
+
+- [`8e2aa8e`](https://github.com/Ripple-TS/ripple/commit/8e2aa8e75678c9ebc9b72055f4da474c82a8e834)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add prepare script to the
+  typescript-plugin to make sure dist is published and in general provided. Change
+  the ones that point their main to dist to prepare from prepack to cover more use
+  cases.
+
 ## 0.3.33
 
 ## 0.3.32
