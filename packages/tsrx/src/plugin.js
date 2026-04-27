@@ -1327,7 +1327,11 @@ export function TSRXPlugin(config) {
 				node.expression = this.finishNodeAt(expression, 'Literal', end, endLoc);
 
 				this.#allowTagStartAfterDoubleQuotedText = true;
-				this.next();
+				try {
+					this.next();
+				} finally {
+					this.#allowTagStartAfterDoubleQuotedText = false;
+				}
 
 				return this.finishNodeAt(node, 'Text', end, endLoc);
 			}
