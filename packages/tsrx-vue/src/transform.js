@@ -55,6 +55,17 @@ const vue_platform = {
 		},
 		renderForOf: (node, loop_params, body_statements) =>
 			render_for_of_as_vapor_template(node, loop_params, body_statements),
+		createErrorBoundaryContent(try_content) {
+			return {
+				type: 'ArrowFunctionExpression',
+				params: [],
+				body: try_content.expression,
+				async: false,
+				generator: false,
+				expression: true,
+				metadata: { path: [] },
+			};
+		},
 		transformElementChildren(node, walked_children, raw_children, attributes) {
 			return rewrite_host_text_or_html_children(node, walked_children, raw_children, attributes);
 		},

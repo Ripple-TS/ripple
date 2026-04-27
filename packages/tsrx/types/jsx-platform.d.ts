@@ -110,6 +110,13 @@ export interface JsxPlatformHooks {
 	 */
 	renderForOf?: (node: any, loopParams: any[], bodyStatements: any[], ctx: any) => any | null;
 	/**
+	 * Optionally move the primary `try { ... }` render content into an explicit
+	 * error-boundary prop instead of rendering it as the boundary's JSX children.
+	 * Vue Vapor uses this because boundary content must execute lazily from a
+	 * zero-argument function.
+	 */
+	createErrorBoundaryContent?: (tryContent: any, ctx: any, node: any) => any | null;
+	/**
 	 * Lower a Ripple `Element` node to a JSXElement. Default is the
 	 * factory's `to_jsx_element`. The hook receives the walker-transformed
 	 * node (`inner`, with children already lowered) plus the element's

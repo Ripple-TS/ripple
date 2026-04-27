@@ -2488,17 +2488,11 @@ function try_statement_to_jsx_child(node, transform_context) {
 		transform_context.available_bindings = saved_catch_bindings;
 
 		const boundary_content =
-			transform_context.platform.name === 'Vue'
-				? /** @type {any} */ ({
-						type: 'ArrowFunctionExpression',
-						params: [],
-						body: try_content.expression,
-						async: false,
-						generator: false,
-						expression: true,
-						metadata: { path: [] },
-					})
-				: null;
+			transform_context.platform.hooks?.createErrorBoundaryContent?.(
+				try_content,
+				transform_context,
+				node,
+			) ?? null;
 
 		if (boundary_content && transform_context.inside_element_child) {
 			result = to_jsx_expression_container(
