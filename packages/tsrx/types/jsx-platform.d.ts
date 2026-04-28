@@ -72,8 +72,10 @@ export interface JsxPlatformHooks {
 	injectImports?: (program: AST.Program, ctx: any, suspenseSource: string) => void;
 	/**
 	 * Transform a Ripple element's attributes to JSX attributes. Default
-	 * is "map over `to_jsx_attribute`". Solid replaces this to route
-	 * attributes through its composite-element handling.
+	 * is "map over `to_jsx_attribute`" plus the shared multi-`ref` merge
+	 * pass. Platforms that own a `transformElement` hook (e.g. Solid) bypass
+	 * this entirely — they never reach the dispatch path that would call
+	 * it — and run their own attribute pass inside their `transformElement`.
 	 */
 	transformElementAttributes?: (attrs: any[], ctx: any, element: any) => any[];
 	/**

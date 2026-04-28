@@ -111,8 +111,12 @@ const solid_platform = {
 		componentToFunction: (component, ctx) =>
 			component_to_function_declaration(component, /** @type {any} */ (ctx)),
 		injectImports: (program, ctx) => inject_solid_imports(program, /** @type {any} */ (ctx)),
-		transformElementAttributes: (attrs, ctx, element) =>
-			transform_element_attributes(attrs, is_composite_element(element), /** @type {any} */ (ctx)),
+		// `transformElementAttributes` is intentionally omitted: the
+		// `transformElement` hook below short-circuits core's element walker
+		// before `to_jsx_element` runs, so the dispatch path that would call
+		// `transformElementAttributes` is never reached for Solid. Attribute
+		// lowering happens in Solid's local `transform_element_attributes`,
+		// which `to_jsx_element` and `create_dynamic_jsx_element` call directly.
 		transformElement: (inner, ctx, raw_children) =>
 			to_jsx_element(/** @type {any} */ (inner), /** @type {any} */ (ctx), raw_children),
 	},
