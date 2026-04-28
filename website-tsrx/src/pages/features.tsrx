@@ -217,7 +217,7 @@ const SCOPED_STYLES_HTML = [
 	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">Card</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln"> 2</span>   <span class="tag">&lt;</span><span class="el">div</span> <span class="attr">class</span>=<span class="str">"card"</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 3</span>     <span class="tag">&lt;</span><span class="el">h2</span><span class="tag">&gt;</span><span class="str">"Scoped title"</span><span class="tag">&lt;/</span><span class="el">h2</span><span class="tag">&gt;</span>',
-	'<span class="ln"> 4</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Styles here won\\&#39;t leak out."</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 4</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Styles here won\'t leak out."</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 5</span>   <span class="tag">&lt;/</span><span class="el">div</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 6</span>',
 	'<span class="ln"> 7</span>   <span class="tag">&lt;</span><span class="el">style</span><span class="tag">&gt;</span>',
