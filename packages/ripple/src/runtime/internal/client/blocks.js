@@ -11,6 +11,7 @@ import {
 	PRE_EFFECT_BLOCK,
 	RENDER_BLOCK,
 	ROOT_BLOCK,
+	TRACKED,
 	TRY_BLOCK,
 	HEAD_BLOCK,
 	DIRECT_CHILD_BLOCK,
@@ -26,6 +27,7 @@ import {
 	run_block,
 	run_teardown,
 	schedule_update,
+	untrack,
 } from './runtime.js';
 
 /**
@@ -96,32 +98,68 @@ export function branch(fn, flags = 0, state = null) {
 }
 
 /**
+ * Wire up a `{ref expr}` attribute. `expr` may be:
+ *   - a callback function — invoked with the element on mount; if it returns
+ *     a function, that function runs as the cleanup on unmount.
+ *   - a `Tracked` (e.g. from `track()`) — `tracked.value` is set to the
+ *     element on mount and reset to `null` on unmount.
+ *
+ * `get_fn` is invoked through `untrack` so the surrounding render block
+ * doesn't subscribe to whatever the thunk happens to read. The supported
+ * shape is to pass the ref slot itself (`{ref tracker}`); a foot-gun like
+ * `{ref tracker.value}` would otherwise read the cell reactively and cause
+ * spurious re-runs.
+ *
  * @param {Element} element
- * @param {() => (element: Element) => (void | (() => void))} get_fn
+ * @param {() => any} get_fn
  * @returns {Block}
  */
 export function ref(element, get_fn) {
-	/** @type {(element: Element) => (void | (() => void) | undefined)} */
-	var ref_fn;
+	/** @type {any} */
+	var ref_value;
 	/** @type {Block | null} */
 	var e;
 
 	return block(RENDER_BLOCK, () => {
-		if (ref_fn !== (ref_fn = get_fn())) {
+		var next = untrack(get_fn);
+		if (ref_value !== (ref_value = next)) {
 			if (e) {
 				destroy_block(e);
 				e = null;
 			}
 
-			if (ref_fn) {
+			if (ref_value != null) {
 				e = branch(() => {
-					effect(() => {
-						return ref_fn(element);
-					});
+					effect(() => apply_ref_value(ref_value, element));
 				});
 			}
 		}
 	});
+}
+
+/**
+ * Per-shape dispatch for `{ref expr}` values. Returns a cleanup function
+ * (or `undefined`) that the surrounding `effect()` runs on teardown.
+ *
+ * @param {any} ref_value
+ * @param {Element} element
+ * @returns {void | (() => void)}
+ */
+function apply_ref_value(ref_value, element) {
+	if (typeof ref_value === 'function') {
+		return ref_value(element);
+	}
+
+	// `Tracked` — assign element to the reactive cell on mount, clear on
+	// unmount. The TRACKED flag is used (rather than `'value' in ref_value`)
+	// so we don't accidentally match arbitrary objects with a `.value`
+	// member, e.g. an `HTMLInputElement` passed by mistake.
+	if (typeof ref_value === 'object' && (ref_value.f & TRACKED) !== 0) {
+		ref_value.value = element;
+		return () => {
+			ref_value.value = null;
+		};
+	}
 }
 
 /**
