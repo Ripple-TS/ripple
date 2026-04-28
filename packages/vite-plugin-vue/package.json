@@ -3,7 +3,7 @@
   "description": "Vite plugin for @tsrx/vue (.tsrx modules)",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
   "publishConfig": {
     "access": "public"

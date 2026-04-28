@@ -1,5 +1,21 @@
 # ripple
 
+## 0.3.37
+
+### Patch Changes
+
+- [#1002](https://github.com/Ripple-TS/ripple/pull/1002)
+  [`c631ab0`](https://github.com/Ripple-TS/ripple/commit/c631ab0076b7e2cb30f4998101b54c3a86e78c61)
+  Thanks [@trueadm](https://github.com/trueadm)! - Align direct double-quoted TSRX
+  text children with quoted JSX attribute text by decoding character references
+  and treating backslashes as literal text. Preserve the direct quoted form in the
+  Prettier plugin and highlight it as JSX text in the TextMate grammar.
+
+- Updated dependencies
+  [[`c631ab0`](https://github.com/Ripple-TS/ripple/commit/c631ab0076b7e2cb30f4998101b54c3a86e78c61)]:
+  - @tsrx/ripple@0.0.19
+  - ripple@0.3.37
+
 ## 0.3.36
 
 ### Patch Changes

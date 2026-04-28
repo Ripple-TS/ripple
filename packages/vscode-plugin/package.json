@@ -3,7 +3,7 @@
   "displayName": "TSRX for VS Code",
   "publisher": "ripple-ts",
   "description": "TSRX JavaScript/TypeScript language support",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "private": true,
   "author": "Dominic Gannaway",
   "license": "MIT",
