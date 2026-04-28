@@ -1,5 +1,13 @@
 # @tsrx/vite-plugin-vue
 
+## 0.0.4
+
+### Patch Changes
+
+- Updated dependencies
+  [[`bce43be`](https://github.com/Ripple-TS/ripple/commit/bce43be304812ca04dd8d196e2439f28ea392237)]:
+  - @tsrx/vue@0.0.13
+
 ## 0.0.3
 
 ### Patch Changes

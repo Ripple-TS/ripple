@@ -3,7 +3,7 @@
   "description": "Ripple framework compiler built on @tsrx/core",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "type": "module",
   "repository": {
     "type": "git",

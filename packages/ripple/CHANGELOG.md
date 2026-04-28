@@ -1,5 +1,20 @@
 # ripple
 
+## 0.3.38
+
+### Patch Changes
+
+- [#1007](https://github.com/Ripple-TS/ripple/pull/1007)
+  [`088299c`](https://github.com/Ripple-TS/ripple/commit/088299ce94a6022c017ce2e56c7e1b59bd5973f7)
+  Thanks [@trueadm](https://github.com/trueadm)! - Keep double-quoted JavaScript
+  strings inside TSRX expression containers using normal JavaScript string
+  semantics while preserving direct double-quoted text child parsing.
+
+- Updated dependencies
+  [[`088299c`](https://github.com/Ripple-TS/ripple/commit/088299ce94a6022c017ce2e56c7e1b59bd5973f7)]:
+  - @tsrx/ripple@0.0.20
+  - ripple@0.3.38
+
 ## 0.3.37
 
 ### Patch Changes
