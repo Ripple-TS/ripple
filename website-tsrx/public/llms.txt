@@ -164,7 +164,7 @@ equivalent `<tsx>...</tsx>` form.
 
 ```tsrx
 component App() {
-  const title = <><span class="title">{'Settings'}</span></>;
+  const title = <><span class="title">"Settings"</span></>;
   <Card {title} />
 }
 ```
@@ -177,8 +177,8 @@ function badge(label: string) {
 
 // ✅ CORRECT — pass JSX as a prop via fragment shorthand
 <Card
-  title={<><span>{'Settings'}</span></>}
-  children={<><p>{'Body'}</p></>}
+  title={<><span>"Settings"</span></>}
+  children={<><p>"Body"</p></>}
 />
 ```
 
@@ -248,14 +248,14 @@ forcing `props.count` everywhere.
 component UserCard(&{ name, age }: { name: string; age: number }) {
   <div>
     <h2>{name}</h2>
-    <p>{`Age: ${age}`}</p>
+    <p>"Age: "{age}</p>
   </div>
 }
 
 // Lazy array destructuring — e.g. Solid's createSignal
 let &[count, setCount] = createSignal(0);
 <p>{count()}</p>
-<button onClick={() => setCount(count() + 1)}>{'+'}</button>
+<button onClick={() => setCount(count() + 1)}>"+"</button>
 ```
 
 - **React**: compiles to direct property access on the source object — no
@@ -346,8 +346,8 @@ computed value (array, function), use the `children` prop explicitly.
 ```tsrx
 // Nested children — works as JSX statements
 <Card>
-  <h2>{'Title'}</h2>
-  <p>{'Content goes here.'}</p>
+  <h2>"Title"</h2>
+  <p>"Content goes here."</p>
 </Card>
 
 // Passing a computed value — use the children prop
@@ -383,7 +383,7 @@ TSRX extends `for ... of` with optional `index i` and `key expr` clauses.
 component TodoList({ items }: { items: Todo[] }) {
   <ul>
     for (const item of items; index i; key item.id) {
-      <li>{`${i + 1}. ${item.text}`}</li>
+      <li>{i + 1}". "{item.text}</li>
     }
   </ul>
 }
@@ -474,12 +474,12 @@ return renders; everything after is skipped. This replaces the React-style
 ```tsrx
 component Dashboard({ user }: { user: User | null }) {
   if (!user) {
-    <p>{'Please sign in.'}</p>
+    <p>"Please sign in."</p>
     return;
   }
 
-  <h1>{`Welcome, ${user.name}`}</h1>
-  <p>{'Here is your dashboard.'}</p>
+  <h1>"Welcome, "{user.name}</h1>
+  <p>"Here is your dashboard."</p>
 }
 ```
 
@@ -500,8 +500,8 @@ component. Parent styles do not leak into child components.
 ```tsrx
 component Card() {
   <div class="card">
-    <h2>{'Scoped title'}</h2>
-    <p>{"Styles here won't leak out."}</p>
+    <h2>"Scoped title"</h2>
+    <p>"Styles here won't leak out."</p>
   </div>
 
   <style>
@@ -534,7 +534,7 @@ applies it via its regular `class` attribute.
 
 ```tsrx
 component Badge({ className }: { className?: string }) {
-  <span class={`badge ${className ?? ''}`}>{'New'}</span>
+  <span class={`badge ${className ?? ''}`}>"New"</span>
   <style>
     .badge { padding: 0.25rem 0.5rem; }
   </style>
@@ -569,7 +569,7 @@ import { useState, useEffect } from 'react';
 
 component UserProfile({ user, posts }: { user: User | null; posts: Post[] }) {
   if (!user) {
-    <p>{'Please sign in.'}</p>
+    <p>"Please sign in."</p>
     return;
   }
 
@@ -659,13 +659,13 @@ feeds. Each element body is its own scope, so locals don't leak.
 ```tsrx
 component Cart({ items }: { items: Item[] }) {
   <div>
-    <h2>{'Your cart'}</h2>
+    <h2>"Your cart"</h2>
 
     const subtotal = items.reduce((sum, item) => sum + item.price, 0);
     const discount = subtotal > 100 ? 0.1 : 0;
 
-    <p>{`Subtotal: $${subtotal}`}</p>
-    <p>{`Save: $${(subtotal * discount).toFixed(2)}`}</p>
+    <p>"Subtotal: $"{subtotal}</p>
+    <p>"Save: $"{(subtotal * discount).toFixed(2)}</p>
   </div>
 }
 ```
@@ -714,7 +714,7 @@ component List<T>({ items, render }: Props<T>) {
 | Error boundary           | `try { ... } catch (e) { ... }`                  |
 | Async boundary           | `try { ... } pending { ... }`                    |
 | Lazy child                | `const C = lazy(() => import('./C.tsrx'));`     |
-| Guard exit               | `if (!user) { <p>{'signin'}</p> return; }`       |
+| Guard exit               | `if (!user) { <p>"signin"</p> return; }`       |
 | Scoped style             | `<style> .x { ... } </style>`                    |
 | Escape scoping           | `:global(.class)`                                |
 | Cross-component class    | `<Child className={#style.foo} />`               |
