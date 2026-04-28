@@ -292,7 +292,7 @@ describe('@tsrx/vue basic', () => {
 		// The continuation is hoisted as a static and selected by a reactive
 		// ternary inside the returned fragment, so flipping `skip.value` after
 		// mount toggles the JSX. The setup-time `if` is gone.
-		expect(code).toContain("const App__static1 = <p class=\"continuation\">{'visible'}</p>;");
+		expect(code).toContain('const App__static1 = <p class="continuation">{\'visible\'}</p>;');
 		expect(code).not.toContain('if (skip.value) {');
 		expect(code).toContain('return skip.value ? null : App__static1;');
 	});
@@ -325,10 +325,7 @@ describe('@tsrx/vue basic', () => {
 		// into a `StatementBodyHook` helper whose setup runs only when the
 		// helper mounts. The same applies to `watch`, `watchEffect`,
 		// declarations, and any other non-render statement.
-		expect(code).not.toContain('if (skip.value) {');
-		expect(code).toContain('App__StatementBodyHook1');
-		expect(code).toContain("provide('theme', 'dark');");
-		expect(code).toContain('return skip.value ? null : <StatementBodyHook1 />;');
+		expect(code).toMatchSnapshot();
 	});
 
 	it('extracts ref-bearing continuations after lone early-return if statements', () => {
