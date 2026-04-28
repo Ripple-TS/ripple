@@ -60,7 +60,7 @@ expressions must be wrapped in curly braces `{}`.
 <p>"This works correctly"</p>
 
 // ✅ CORRECT - JavaScript strings in expressions
-<div>"Hello World"</div>
+<div>{'Hello World'}</div>
 <p>{`This works correctly`}</p>
 
 // ✅ CORRECT - Variables and expressions
