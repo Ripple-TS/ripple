@@ -5,9 +5,11 @@ import {
 	find_similar_documentation_sections,
 	list_documentation_sections,
 } from './docs.js';
+import { compile_tsrx } from './compile.js';
 import { detect_target } from './target.js';
 
 export { detect_target, TARGET_CANDIDATES } from './target.js';
+export { compile_tsrx } from './compile.js';
 export {
 	documentation_sections,
 	find_documentation_section,
@@ -86,6 +88,21 @@ export function get_documentation_handler(input) {
  */
 export function detect_target_handler(input = {}) {
 	return detect_target(input.cwd);
+}
+
+/**
+ * @param {{
+ *   code: string,
+ *   filename?: string,
+ *   target?: string,
+ *   cwd?: string,
+ *   loose?: boolean,
+ *   includeCode?: boolean,
+ *   mode?: 'client' | 'server'
+ * }} input
+ */
+export function compile_tsrx_handler(input) {
+	return compile_tsrx(input);
 }
 
 /**
@@ -211,6 +228,56 @@ export function createTSRXMcpServer() {
 		},
 		async ({ cwd }) => {
 			const output = detect_target_handler({ cwd });
+			return {
+				content: [{ type: 'text', text: json_text(output) }],
+				structuredContent: output,
+			};
+		},
+	);
+
+	server.registerTool(
+		'compile-tsrx',
+		{
+			title: 'Compile TSRX',
+			description:
+				'Compiles TSRX code with the inferred or explicit runtime target compiler. Use this to validate generated .tsrx code and collect compiler diagnostics.',
+			inputSchema: {
+				code: z.string(),
+				filename: z.string().optional(),
+				target: z.enum(['ripple', 'react', 'preact', 'solid', 'vue']).optional(),
+				cwd: z.string().optional(),
+				loose: z.boolean().optional(),
+				includeCode: z.boolean().optional(),
+				mode: z.enum(['client', 'server']).optional(),
+			},
+			outputSchema: {
+				ok: z.boolean(),
+				target: z.string().nullable(),
+				compilerPackage: z.string().nullable(),
+				filename: z.string(),
+				cwd: z.string(),
+				errors: z.array(
+					z.object({
+						message: z.string(),
+						type: z.string().nullable(),
+						fileName: z.string().nullable(),
+						pos: z.number().nullable(),
+						end: z.number().nullable(),
+						raisedAt: z.number().nullable(),
+						loc: z.unknown(),
+					}),
+				),
+				code: z.string().nullable(),
+				css: z.string().nullable(),
+			},
+			annotations: {
+				readOnlyHint: true,
+				destructiveHint: false,
+				openWorldHint: false,
+			},
+		},
+		async (input) => {
+			const output = await compile_tsrx_handler(input);
 			return {
 				content: [{ type: 'text', text: json_text(output) }],
 				structuredContent: output,

@@ -1,0 +1,223 @@
+import path from 'node:path';
+import { createRequire } from 'node:module';
+import { pathToFileURL } from 'node:url';
+import { detect_target, TARGET_CANDIDATES } from './target.js';
+
+const VALID_TARGETS = new Set(TARGET_CANDIDATES.map((candidate) => candidate.target));
+
+/**
+ * @typedef {{
+ *   message: string,
+ *   type: string | null,
+ *   fileName: string | null,
+ *   pos: number | null,
+ *   end: number | null,
+ *   raisedAt: number | null,
+ *   loc: unknown
+ * }} NormalizedCompileError
+ */
+
+/**
+ * @param {string | null | undefined} target
+ */
+function get_target_candidate(target) {
+	if (!target) return null;
+	return TARGET_CANDIDATES.find((candidate) => candidate.target === target) ?? null;
+}
+
+/**
+ * @param {unknown} error
+ * @param {string} filename
+ * @returns {NormalizedCompileError}
+ */
+function normalize_error(error, filename) {
+	if (error && typeof error === 'object') {
+		const candidate = /** @type {Record<string, unknown>} */ (error);
+		return {
+			message: candidate.message ? String(candidate.message) : String(error),
+			type: candidate.type ? String(candidate.type) : null,
+			fileName: candidate.fileName ? String(candidate.fileName) : filename,
+			pos: typeof candidate.pos === 'number' ? candidate.pos : null,
+			end: typeof candidate.end === 'number' ? candidate.end : null,
+			raisedAt: typeof candidate.raisedAt === 'number' ? candidate.raisedAt : null,
+			loc: candidate.loc ?? null,
+		};
+	}
+	return {
+		message: String(error),
+		type: null,
+		fileName: filename,
+		pos: null,
+		end: null,
+		raisedAt: null,
+		loc: null,
+	};
+}
+
+/**
+ * @param {unknown} errors
+ * @param {string} filename
+ */
+function normalize_errors(errors, filename) {
+	return Array.isArray(errors) ? errors.map((error) => normalize_error(error, filename)) : [];
+}
+
+/**
+ * @param {string} cwd
+ */
+function create_project_require(cwd) {
+	const detected = detect_target(cwd);
+	return createRequire(detected.packageJsonPath ?? path.join(path.resolve(cwd), 'package.json'));
+}
+
+/**
+ * @param {string} compiler_package
+ * @param {string} cwd
+ */
+async function import_compiler(compiler_package, cwd) {
+	const project_require = create_project_require(cwd);
+	const resolved = project_require.resolve(compiler_package);
+	return import(pathToFileURL(resolved).href);
+}
+
+/**
+ * @param {unknown} result
+ */
+function get_generated_code(result) {
+	if (!result || typeof result !== 'object') return null;
+	const output = /** @type {Record<string, unknown>} */ (result);
+	if (typeof output.code === 'string') return output.code;
+	if (
+		output.js &&
+		typeof output.js === 'object' &&
+		typeof (/** @type {Record<string, unknown>} */ (output.js).code) === 'string'
+	) {
+		return /** @type {string} */ (/** @type {Record<string, unknown>} */ (output.js).code);
+	}
+	return null;
+}
+
+/**
+ * @param {unknown} result
+ */
+function get_generated_css(result) {
+	if (!result || typeof result !== 'object') return null;
+	const output = /** @type {Record<string, unknown>} */ (result);
+	if (
+		output.css &&
+		typeof output.css === 'object' &&
+		typeof (/** @type {Record<string, unknown>} */ (output.css).code) === 'string'
+	) {
+		return /** @type {string} */ (/** @type {Record<string, unknown>} */ (output.css).code);
+	}
+	return null;
+}
+
+/**
+ * @param {{
+ *   code: string,
+ *   filename?: string,
+ *   target?: string,
+ *   cwd?: string,
+ *   loose?: boolean,
+ *   includeCode?: boolean,
+ *   mode?: 'client' | 'server'
+ * }} input
+ */
+export async function compile_tsrx(input) {
+	const cwd = path.resolve(input.cwd ?? process.cwd());
+	const filename = input.filename ?? 'Component.tsrx';
+	const detection = detect_target(cwd);
+	const target = input.target ?? detection.detectedTarget;
+
+	if (!target) {
+		return {
+			ok: false,
+			target: null,
+			compilerPackage: null,
+			filename,
+			cwd,
+			errors: [
+				{
+					message:
+						detection.confidence === 'ambiguous'
+							? detection.message
+							: 'Could not infer a TSRX target. Pass target explicitly.',
+					type: null,
+					fileName: filename,
+					pos: null,
+					end: null,
+					raisedAt: null,
+					loc: null,
+				},
+			],
+			code: null,
+			css: null,
+		};
+	}
+
+	if (!VALID_TARGETS.has(target)) {
+		return {
+			ok: false,
+			target,
+			compilerPackage: null,
+			filename,
+			cwd,
+			errors: [
+				{
+					message: `Unknown TSRX target "${target}".`,
+					type: null,
+					fileName: filename,
+					pos: null,
+					end: null,
+					raisedAt: null,
+					loc: null,
+				},
+			],
+			code: null,
+			css: null,
+		};
+	}
+
+	const candidate = get_target_candidate(target);
+	if (!candidate) {
+		throw new Error(`Missing compiler candidate for target "${target}".`);
+	}
+
+	try {
+		const compiler = await import_compiler(candidate.compilerPackage, cwd);
+		if (typeof compiler.compile !== 'function') {
+			throw new Error(`${candidate.compilerPackage} does not export a compile() function.`);
+		}
+
+		const result = compiler.compile(input.code, filename, {
+			loose: input.loose ?? true,
+			mode: input.mode,
+		});
+		const errors = normalize_errors(result?.errors, filename);
+		const code = get_generated_code(result);
+		const css = get_generated_css(result);
+
+		return {
+			ok: errors.length === 0,
+			target,
+			compilerPackage: candidate.compilerPackage,
+			filename,
+			cwd,
+			errors,
+			code: input.includeCode ? code : null,
+			css: input.includeCode ? css : null,
+		};
+	} catch (error) {
+		return {
+			ok: false,
+			target,
+			compilerPackage: candidate.compilerPackage,
+			filename,
+			cwd,
+			errors: [normalize_error(error, filename)],
+			code: null,
+			css: null,
+		};
+	}
+}

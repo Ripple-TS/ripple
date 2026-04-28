@@ -28,6 +28,8 @@ For local development in this monorepo:
 - `list-sections` - list target-neutral TSRX documentation sections.
 - `get-documentation` - fetch one or more TSRX documentation sections.
 - `detect-target` - infer the active TSRX runtime target from project files.
+- `compile-tsrx` - compile TSRX code with the inferred or explicit target compiler
+  and return diagnostics.
 
 The core server stays target-neutral. Runtime-specific imports, bundler setup, and
 framework semantics should live in target-specific skills, prompts, or resources
