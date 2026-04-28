@@ -100,7 +100,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		source: `component TodoList({ items }: { items: { text: string }[] }) {
   <ul>
     for (const item of items; index i) {
-      <li>{i + 1 + '. ' + item.text}</li>
+      <li>{i + 1}". "{item.text}</li>
     }
   </ul>
 }`,
@@ -199,7 +199,7 @@ export component App() {
     { title: 'Hydration deep dive' },
   ];
 
-  <h1>{'Nested Preact Hooks'}</h1>
+  <h1>"Nested Preact Hooks"</h1>
   <button onClick={() => setTab(tab === 'overview' ? 'recent' : 'overview')}>
     {tab}
   </button>
