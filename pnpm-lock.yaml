@@ -361,6 +361,25 @@ importers:
         specifier: catalog:default
         version: 1.3.10
 
+  packages/bun-plugin-preact:
+    dependencies:
+      '@tsrx/preact':
+        specifier: workspace:*
+        version: link:../tsrx-preact
+      bun:
+        specifier: ^1.0.0
+        version: 1.3.10
+    devDependencies:
+      '@types/bun':
+        specifier: catalog:default
+        version: 1.3.10
+      preact:
+        specifier: catalog:default
+        version: 10.29.1
+      typescript:
+        specifier: catalog:default
+        version: 5.9.3
+
   packages/adapter-node:
     dependencies:
       '@ripple-ts/adapter':

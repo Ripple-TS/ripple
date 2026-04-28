@@ -80,6 +80,15 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'bun-plugin-preact',
+					include: ['packages/bun-plugin-preact/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'tsrx-solid',
 					include: ['packages/tsrx-solid/tests/**/*.test.js'],
 					environment: 'node',
