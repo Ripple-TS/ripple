@@ -45,6 +45,9 @@ const TSX_GRAMMAR = [
 ].join('\n');
 
 const TEMPLATE_EXPRESSION_GRAMMAR = [
+	'DoubleQuotedTextChild :',
+	'  " StringCharactersopt "',
+	'',
 	'TemplateExpression :',
 	'  { AssignmentExpression }',
 	'  { text AssignmentExpression }',
@@ -383,7 +386,7 @@ export component SpecificationPage() {
 							{'Within a component body, element forms are admitted as template statements rather than as generic expressions. This statement-oriented model is normative. A tree that contributes directly to a component body is not interchangeable with an ordinary expression value.'}
 						</p>
 						<p class="section-body">
-							{'Template position also admits braced expression forms. The ordinary form '}
+							{'Template position also admits direct double-quoted static text children and braced expression forms. The ordinary form '}
 							<code class="inline-code">{'{ AssignmentExpression }'}</code>
 							{' contributes a generic template-expression node. The keyword-prefixed forms '}
 							<code class="inline-code">{'{text AssignmentExpression}'}</code>
@@ -395,6 +398,11 @@ export component SpecificationPage() {
 							<code>{TEMPLATE_EXPRESSION_GRAMMAR}</code>
 						</pre>
 						<ul class="spec-list">
+							<li>
+								{'A direct double-quoted text child is represented by '}
+								<code class="inline-code">{'Text'}</code>
+								{' with a string literal expression and contributes escaped static text.'}
+							</li>
 							<li>
 								<code class="inline-code">{'{ AssignmentExpression }'}</code>
 								{' is the generic template-expression form and is represented by '}
@@ -638,7 +646,7 @@ export component SpecificationPage() {
 								{'TSRXExpression wraps the embedded ECMAScript expression from the ordinary {expr} template form.'}
 							</li>
 							<li>
-								{'Text wraps the embedded ECMAScript expression from the explicit {text expr} form and marks it for escaped text handling.'}
+								{'Text wraps either a direct double-quoted static string literal child or the embedded ECMAScript expression from the explicit {text expr} form, and marks it for escaped text handling.'}
 							</li>
 							<li>
 								{'Html wraps the embedded ECMAScript expression from the explicit {html expr} form and marks it for host-defined raw-markup handling.'}

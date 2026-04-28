@@ -175,6 +175,7 @@ export function TSRXPlugin(config) {
 		class TSRXParser extends Parser {
 			/** @type {AST.Node[]} */
 			#path = [];
+			#allowTagStartAfterDoubleQuotedText = false;
 			#commentContextId = 0;
 			#loose = false;
 			/** @type {import('../types/index').CompileError[] | undefined} */
@@ -558,6 +559,10 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['getTokenFromCode']}
 			 */
 			getTokenFromCode(code) {
+				if (code !== 60) {
+					this.#allowTagStartAfterDoubleQuotedText = false;
+				}
+
 				if (code === 60) {
 					// < character
 					const inComponent = this.#path.findLast((n) => n.type === 'Component');
@@ -634,8 +639,14 @@ export function TSRXPlugin(config) {
 						// Inside component template bodies, allow adjacent tags without requiring
 						// a newline/indentation before the next '<'. This is important for inputs
 						// like `<div />` and `</div><style>...</style>` which Prettier formats.
-						if (prevNonWhitespaceChar === 123 /* '{' */ || prevNonWhitespaceChar === 62 /* '>' */) {
+						if (
+							(prevNonWhitespaceChar === 34 /* '"' */ &&
+								this.#allowTagStartAfterDoubleQuotedText) ||
+							prevNonWhitespaceChar === 123 /* '{' */ ||
+							prevNonWhitespaceChar === 62 /* '>' */
+						) {
 							if (!isWhitespaceAfterLt) {
+								this.#allowTagStartAfterDoubleQuotedText = false;
 								++this.pos;
 								return this.finishToken(tstt.jsxTagStart);
 							}
@@ -712,6 +723,7 @@ export function TSRXPlugin(config) {
 						}
 					}
 				}
+				this.#allowTagStartAfterDoubleQuotedText = false;
 				return super.getTokenFromCode(code);
 			}
 
@@ -1298,6 +1310,30 @@ export function TSRXPlugin(config) {
 					this.expect(tt.bracketR),
 					this.finishNode(t, 'JSXExpressionContainer')
 				);
+			}
+
+			/**
+			 * @returns {AST.TextNode}
+			 */
+			parseDoubleQuotedTextChild() {
+				const node = /** @type {AST.TextNode} */ (this.startNode());
+				const expression = /** @type {AST.Literal} */ (this.startNode());
+				const raw = this.input.slice(this.start, this.end);
+				const end = this.end;
+				const endLoc = this.endLoc;
+
+				expression.value = this.value;
+				expression.raw = raw;
+				node.expression = this.finishNodeAt(expression, 'Literal', end, endLoc);
+
+				this.#allowTagStartAfterDoubleQuotedText = true;
+				try {
+					this.next();
+				} finally {
+					this.#allowTagStartAfterDoubleQuotedText = false;
+				}
+
+				return this.finishNodeAt(node, 'Text', end, endLoc);
 			}
 
 			/**
@@ -2293,6 +2329,8 @@ export function TSRXPlugin(config) {
 						delete node.text;
 					}
 					body.push(node);
+				} else if (this.type === tt.string && this.input.charCodeAt(this.start) === 34) {
+					body.push(this.parseDoubleQuotedTextChild());
 				} else if (this.type === tt.braceR) {
 					// Leaving a component/template body. We may still be in TSX/JSX tokenization
 					// context (e.g. after parsing markup), but the closing `}` is a JS token.

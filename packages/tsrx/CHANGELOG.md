@@ -1,5 +1,18 @@
 # @tsrx/core
 
+## 0.0.15
+
+### Patch Changes
+
+- [#987](https://github.com/Ripple-TS/ripple/pull/987)
+  [`0ad85f1`](https://github.com/Ripple-TS/ripple/commit/0ad85f1107ce9bddb72cee44b908a34c5264c0b5)
+  Thanks [@trueadm](https://github.com/trueadm)! - Allow direct double-quoted
+  static text children in TSRX templates.
+
+- [`7684132`](https://github.com/Ripple-TS/ripple/commit/7684132ed71db6c550ecbe1c623975ddbed96be5)
+  Thanks [@aleclarson](https://github.com/aleclarson)! - Fix Volar source mappings
+  for switch statements and sparse generic spans.
+
 ## 0.0.14
 
 ### Patch Changes

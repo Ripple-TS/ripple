@@ -61,14 +61,19 @@ component Button(props: Props) {
 ### 2. JSX-as-statements
 
 Inside a `component` body, JSX elements are valid _statement_ forms. They describe
-rendered output and are not expressions — they have no value.
+rendered output and are not expressions — they have no value. Static text may be
+written as a direct double-quoted child; dynamic values and other JavaScript
+expressions stay inside `{}`.
 
 ```tsx
 component Greeting() {
-  <h1>{'Hello'}</h1>
-  <p>{'Welcome'}</p>
+  <h1>"Hello"</h1>
+  <p>"Welcome"</p>
 }
 ```
+
+Only double quotes have direct-child text meaning. Single-quoted strings and
+template literals remain JavaScript expressions and must be written inside `{}`.
 
 Elsewhere (outside a `component` body), JSX remains an expression, as in standard
 JSX.
@@ -84,9 +89,9 @@ introduced — but framework compilers treat them as _reactive_ boundaries.
 ```tsx
 component List(props: { items: Item[]; showHeader: boolean }) {
   if (props.showHeader) {
-    <h1>{'Items'}</h1>
+    <h1>"Items"</h1>
   } else {
-    <h2>{'(no header)'}</h2>
+    <h2>"(no header)"</h2>
   }
 
   for (const item of props.items) {
@@ -95,10 +100,10 @@ component List(props: { items: Item[]; showHeader: boolean }) {
 
   switch (props.items.length) {
     case 0:
-      <p>{'empty'}</p>
+      <p>"empty"</p>
       break;
     default:
-      <p>{'has items'}</p>
+      <p>"has items"</p>
   }
 
   try {
@@ -169,7 +174,7 @@ children).
 
 ```tsx
 component Page() {
-  const header = <tsx><h1>{'Hello'}</h1></tsx>;
+  const header = <tsx><h1>Hello</h1></tsx>;
   renderSomewhereElse(header);
 }
 ```

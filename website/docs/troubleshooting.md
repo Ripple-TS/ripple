@@ -7,12 +7,13 @@ title: Troubleshooting in Ripple
 ## Unterminated regular expression
 
 While this may be caused by an actual unterminated regular expression, most of the
-time, it's caused by not putting your DOM text nodes within expression {braces}.
+time, it's caused by unquoted text in a template. Static text should be written
+as a direct double-quoted child; JavaScript expressions should use {braces}.
 
 ```ripple
 export component TextBrace() {
   // ✔️ valid
-  <p>{'Hello world!'}</p>
+  <p>"Hello world!"</p>
 
   // ❌ invalid
   // <p>Hello world!</p>
