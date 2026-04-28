@@ -398,6 +398,7 @@ declare module 'estree' {
 	export interface TextNode extends AST.BaseExpression {
 		type: 'Text';
 		expression: AST.Expression;
+		raw?: string;
 		loc?: AST.SourceLocation;
 	}
 

@@ -1395,6 +1395,7 @@ export function TSRXPlugin(config) {
 			parseDoubleQuotedTextChild() {
 				const node = /** @type {AST.TextNode} */ (this.startNode());
 				const expression = /** @type {AST.Literal} */ (this.startNode());
+				node.raw = this.input.slice(this.start, this.end);
 				const end = this.end;
 				const endLoc = this.endLoc;
 
