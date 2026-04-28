@@ -1,9 +1,16 @@
 import type { MockInstance } from 'vitest';
 import { inject, provide, reactive, ref, watch, watchEffect } from 'vue';
 
-const EXPECTED_ERROR_LOG_SNIPPETS = ['sync boom', 'conditional boom', 'inner error'];
+const EXPECTED_ERROR_LOG_SNIPPETS = [
+	'sync boom',
+	'conditional boom',
+	'inner error',
+	'Unhandled error during execution of setup function',
+	'Active effect was not restored correctly',
+];
 
 let console_error_spy: MockInstance | undefined;
+let console_warn_spy: MockInstance | undefined;
 
 function is_expected_error_log(args: unknown[]) {
 	const message = args.map((arg) => {
@@ -513,11 +520,22 @@ describe('tsrx-vue runtime', () => {
 
 			original_console_error(...args);
 		});
+
+		const original_console_warn = console.warn;
+		console_warn_spy = vi.spyOn(console, 'warn').mockImplementation((...args) => {
+			if (is_expected_error_log(args)) {
+				return;
+			}
+
+			original_console_warn(...args);
+		});
 	});
 
 	afterEach(() => {
 		console_error_spy?.mockRestore();
 		console_error_spy = undefined;
+		console_warn_spy?.mockRestore();
+		console_warn_spy = undefined;
 	});
 
 	it('renders a basic component into the DOM', async () => {
