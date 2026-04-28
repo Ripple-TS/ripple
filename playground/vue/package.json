@@ -1,0 +1,23 @@
+{
+  "name": "@tsrx/vue-playground",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "debug-volar": "node ../../scripts/debug-mode.js tsx @tsrx/vue",
+    "debug-tsx": "node ../../scripts/debug-mode.js tsx @tsrx/vue"
+  },
+  "dependencies": {
+    "vue": "3.6.0-beta.8"
+  },
+  "devDependencies": {
+    "@tsrx/typescript-plugin": "workspace:*",
+    "@tsrx/vue": "workspace:*",
+    "typescript": "catalog:default",
+    "vite": "catalog:default",
+    "vue-jsx-vapor": "^3.2.10"
+  }
+}

@@ -33,7 +33,7 @@ const BAILOUT_HTML = [
 	'<span class="ln">12</span>   <span class="br">}</span>;',
 	'<span class="ln">13</span>',
 	'<span class="ln">14</span>   <span class="tag">&lt;</span><span class="el">button</span> <span class="attr">onClick</span>=<span class="tbr">{</span><span class="prop">increment</span><span class="tbr">}</span><span class="tag">&gt;</span>',
-	'<span class="ln">15</span>     <span class="tbr">{</span><span class="str">`Count: ${</span><span class="prop">count</span><span class="str">}`</span><span class="tbr">}</span>',
+	'<span class="ln">15</span>     <span class="str">"Count: "</span><span class="tbr">{</span><span class="prop">count</span><span class="tbr">}</span>',
 	'<span class="ln">16</span>   <span class="tag">&lt;/</span><span class="el">button</span><span class="tag">&gt;</span>',
 	'<span class="ln">17</span> <span class="br">}</span>',
 ].join('\n');
@@ -47,7 +47,7 @@ const STATEMENT_HTML = [
 
 const TSX_EXPR_HTML = [
 	'<span class="ln">1</span> <span class="kw">component</span> <span class="fn">App</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln">2</span>   <span class="kw">const</span> <span class="prop">title</span> = <span class="tag">&lt;</span><span class="tag">&gt;</span><span class="tag">&lt;</span><span class="el">span</span> <span class="attr">class</span>=<span class="str">"title"</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Settings\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">span</span><span class="tag">&gt;</span><span class="tag">&lt;/</span><span class="tag">&gt;</span>;',
+	'<span class="ln">2</span>   <span class="kw">const</span> <span class="prop">title</span> = <span class="tag">&lt;</span><span class="tag">&gt;</span><span class="tag">&lt;</span><span class="el">span</span> <span class="attr">class</span>=<span class="str">"title"</span><span class="tag">&gt;</span><span class="str">"Settings"</span><span class="tag">&lt;/</span><span class="el">span</span><span class="tag">&gt;</span><span class="tag">&lt;/</span><span class="tag">&gt;</span>;',
 	'<span class="ln">3</span>   <span class="tag">&lt;</span><span class="el">Card</span> <span class="tbr">{</span><span class="prop">title</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
 	'<span class="ln">4</span> <span class="br">}</span>',
 ].join('\n');
@@ -80,11 +80,11 @@ const IF_HTML = [
 	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">StatusBadge</span><span class="br">(</span><span class="br">{</span> <span class="prop">status</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">status</span>: <span class="type">string</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln"> 2</span>   <span class="tag">&lt;</span><span class="el">div</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 3</span>     <span class="kw">if</span> <span class="br">(</span><span class="prop">status</span> === <span class="str">\'active\'</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln"> 4</span>       <span class="tag">&lt;</span><span class="el">span</span> <span class="attr">class</span>=<span class="str">"badge active"</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Online\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">span</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 4</span>       <span class="tag">&lt;</span><span class="el">span</span> <span class="attr">class</span>=<span class="str">"badge active"</span><span class="tag">&gt;</span><span class="str">"Online"</span><span class="tag">&lt;/</span><span class="el">span</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 5</span>     <span class="br">}</span> <span class="kw">else if</span> <span class="br">(</span><span class="prop">status</span> === <span class="str">\'idle\'</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln"> 6</span>       <span class="tag">&lt;</span><span class="el">span</span> <span class="attr">class</span>=<span class="str">"badge idle"</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Away\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">span</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 6</span>       <span class="tag">&lt;</span><span class="el">span</span> <span class="attr">class</span>=<span class="str">"badge idle"</span><span class="tag">&gt;</span><span class="str">"Away"</span><span class="tag">&lt;/</span><span class="el">span</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 7</span>     <span class="br">}</span> <span class="kw">else</span> <span class="br">{</span>',
-	'<span class="ln"> 8</span>       <span class="tag">&lt;</span><span class="el">span</span> <span class="attr">class</span>=<span class="str">"badge"</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Offline\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">span</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 8</span>       <span class="tag">&lt;</span><span class="el">span</span> <span class="attr">class</span>=<span class="str">"badge"</span><span class="tag">&gt;</span><span class="str">"Offline"</span><span class="tag">&lt;/</span><span class="el">span</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 9</span>     <span class="br">}</span>',
 	'<span class="ln">10</span>   <span class="tag">&lt;/</span><span class="el">div</span><span class="tag">&gt;</span>',
 	'<span class="ln">11</span> <span class="br">}</span>',
@@ -94,7 +94,7 @@ const FOR_HTML = [
 	'<span class="ln">1</span> <span class="kw">component</span> <span class="fn">TodoList</span><span class="br">(</span><span class="br">{</span> <span class="prop">items</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">items</span>: <span class="type">Todo</span><span class="br">[</span><span class="br">]</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln">2</span>   <span class="tag">&lt;</span><span class="el">ul</span><span class="tag">&gt;</span>',
 	'<span class="ln">3</span>     <span class="kw">for</span> <span class="br">(</span><span class="kw">const</span> <span class="prop">item</span> <span class="kw">of</span> <span class="prop">items</span>; <span class="kw">index</span> <span class="prop">i</span>; <span class="kw">key</span> <span class="prop">item</span>.<span class="prop">id</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln">4</span>       <span class="tag">&lt;</span><span class="el">li</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">`${</span><span class="prop">i</span> + <span class="val">1</span><span class="str">}. ${</span><span class="prop">item</span>.<span class="prop">text</span><span class="str">}`</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">li</span><span class="tag">&gt;</span>',
+	'<span class="ln">4</span>       <span class="tag">&lt;</span><span class="el">li</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">i</span> + <span class="val">1</span><span class="tbr">}</span><span class="str">". "</span><span class="tbr">{</span><span class="prop">item</span>.<span class="prop">text</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">li</span><span class="tag">&gt;</span>',
 	'<span class="ln">5</span>     <span class="br">}</span>',
 	'<span class="ln">6</span>   <span class="tag">&lt;/</span><span class="el">ul</span><span class="tag">&gt;</span>',
 	'<span class="ln">7</span> <span class="br">}</span>',
@@ -106,7 +106,7 @@ const TRY_HTML = [
 	'<span class="ln">3</span>     <span class="tag">&lt;</span><span class="el">UserProfile</span> <span class="attr">id</span>=<span class="tbr">{</span><span class="prop">userId</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
 	'<span class="ln">4</span>   <span class="br">}</span> <span class="kw">catch</span> <span class="br">(</span><span class="prop">error</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln">5</span>     <span class="tag">&lt;</span><span class="el">div</span> <span class="attr">class</span>=<span class="str">"error"</span><span class="tag">&gt;</span>',
-	'<span class="ln">6</span>       <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Something went wrong.\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln">6</span>       <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Something went wrong."</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln">7</span>     <span class="tag">&lt;/</span><span class="el">div</span><span class="tag">&gt;</span>',
 	'<span class="ln">8</span>   <span class="br">}</span>',
 	'<span class="ln">9</span> <span class="br">}</span>',
@@ -115,12 +115,12 @@ const TRY_HTML = [
 const RETURN_HTML = [
 	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">Dashboard</span><span class="br">(</span><span class="br">{</span> <span class="prop">user</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">user</span>: <span class="type">User</span> | <span class="type">null</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln"> 2</span>   <span class="kw">if</span> <span class="br">(</span>!<span class="prop">user</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln"> 3</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Please sign in.\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 3</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Please sign in."</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 4</span>     <span class="kw-ctrl">return</span>;',
 	'<span class="ln"> 5</span>   <span class="br">}</span>',
 	'<span class="ln"> 6</span>',
-	'<span class="ln"> 7</span>   <span class="tag">&lt;</span><span class="el">h1</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">`Welcome, ${</span><span class="prop">user</span>.<span class="prop">name</span><span class="str">}`</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h1</span><span class="tag">&gt;</span>',
-	'<span class="ln"> 8</span>   <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Here is your dashboard.\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 7</span>   <span class="tag">&lt;</span><span class="el">h1</span><span class="tag">&gt;</span><span class="str">"Welcome, "</span><span class="tbr">{</span><span class="prop">user</span>.<span class="prop">name</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h1</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 8</span>   <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Here is your dashboard."</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 9</span> <span class="br">}</span>',
 ].join('\n');
 
@@ -128,13 +128,13 @@ const SWITCH_HTML = [
 	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">StatusMessage</span><span class="br">(</span><span class="br">{</span> <span class="prop">status</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">status</span>: <span class="type">string</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln"> 2</span>   <span class="kw">switch</span> <span class="br">(</span><span class="prop">status</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln"> 3</span>     <span class="kw">case</span> <span class="str">\'loading\'</span>:',
-	'<span class="ln"> 4</span>       <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Loading...\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 4</span>       <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Loading..."</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 5</span>       <span class="kw-ctrl">break</span>;',
 	'<span class="ln"> 6</span>     <span class="kw">case</span> <span class="str">\'success\'</span>:',
-	'<span class="ln"> 7</span>       <span class="tag">&lt;</span><span class="el">p</span> <span class="attr">class</span>=<span class="str">"success"</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Done!\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 7</span>       <span class="tag">&lt;</span><span class="el">p</span> <span class="attr">class</span>=<span class="str">"success"</span><span class="tag">&gt;</span><span class="str">"Done!"</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 8</span>       <span class="kw-ctrl">break</span>;',
 	'<span class="ln"> 9</span>     <span class="kw">default</span>:',
-	'<span class="ln">10</span>       <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Unknown status.\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln">10</span>       <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Unknown status."</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln">11</span>   <span class="br">}</span>',
 	'<span class="ln">12</span> <span class="br">}</span>',
 ].join('\n');
@@ -151,10 +151,10 @@ const REFS_HTML = [
 	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">AutoFocus</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln"> 2</span>   <span class="kw">let</span> <span class="prop">input</span>: <span class="type">HTMLInputElement</span> | <span class="type">undefined</span>;',
 	'<span class="ln"> 3</span>',
-	'<span class="ln"> 4</span>   <span class="cmt">// {ref expr} — mutable variable assignment (Solid/Ripple/React)</span>',
+	'<span class="ln"> 4</span>   <span class="cmt">// Mutable-variable ref assignment (React/Preact/Solid/Ripple)</span>',
 	'<span class="ln"> 5</span>   <span class="tag">&lt;</span><span class="el">input</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="prop">input</span><span class="tbr">}</span> <span class="attr">type</span>=<span class="str">"text"</span> <span class="tag">/&gt;</span>',
 	'<span class="ln"> 6</span>',
-	'<span class="ln"> 7</span>   <span class="cmt">// Or as a callback that receives the DOM node</span>',
+	'<span class="ln"> 7</span>   <span class="cmt">// Callback refs work across every target, including Vue</span>',
 	'<span class="ln"> 8</span>   <span class="tag">&lt;</span><span class="el">input</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="br">(</span><span class="prop">node</span><span class="br">)</span> =&gt; <span class="prop">node</span>.<span class="fn">focus</span><span class="br">(</span><span class="br">)</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
 	'<span class="ln"> 9</span> <span class="br">}</span>',
 ].join('\n');
@@ -171,7 +171,7 @@ const REFS_COMPOSITE_HTML = [
 	'<span class="ln"> 9</span>     <span class="fn">console</span>.<span class="fn">log</span><span class="br">(</span><span class="prop">node</span><span class="br">)</span>;',
 	'<span class="ln">10</span>   <span class="br">}</span>',
 	'<span class="ln">11</span>',
-	'<span class="ln">12</span>   <span class="cmt">// Multiple {ref ...} on the same element all fire.</span>',
+	'<span class="ln">12</span>   <span class="cmt">// Supported on React/Preact/Solid/Ripple composite refs.</span>',
 	'<span class="ln">13</span>   <span class="tag">&lt;</span><span class="el">TextField</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="prop">field</span><span class="tbr">}</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="prop">logNode</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
 	'<span class="ln">14</span> <span class="br">}</span>',
 ].join('\n');
@@ -191,12 +191,22 @@ const SCOPING_HTML = [
 const CHILDREN_HTML = [
 	'<span class="ln"> 1</span> <span class="cmt">// Children as nested JSX — this works:</span>',
 	'<span class="ln"> 2</span> <span class="tag">&lt;</span><span class="el">Card</span><span class="tag">&gt;</span>',
-	'<span class="ln"> 3</span>   <span class="tag">&lt;</span><span class="el">h2</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Title\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h2</span><span class="tag">&gt;</span>',
-	'<span class="ln"> 4</span>   <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Content goes here.\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 3</span>   <span class="tag">&lt;</span><span class="el">h2</span><span class="tag">&gt;</span><span class="str">"Title"</span><span class="tag">&lt;/</span><span class="el">h2</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 4</span>   <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Content goes here."</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 5</span> <span class="tag">&lt;/</span><span class="el">Card</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 6</span>',
 	'<span class="ln"> 7</span> <span class="cmt">// Passing a function or array? Use the children prop:</span>',
 	'<span class="ln"> 8</span> <span class="tag">&lt;</span><span class="el">List</span> <span class="attr">children</span>=<span class="tbr">{</span><span class="prop">items</span>.<span class="fn">map</span><span class="br">(</span><span class="prop">renderItem</span><span class="br">)</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
+].join('\n');
+
+const RENDER_PROPS_HTML = [
+	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">App</span><span class="br">(</span><span class="br">{</span> <span class="prop">items</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">items</span>: <span class="type">Item</span><span class="br">[</span><span class="br">]</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 2</span>   <span class="kw">const</span> <span class="prop">renderItem</span> = <span class="br">(</span><span class="prop">item</span>: <span class="type">Item</span><span class="br">)</span> =&gt; <span class="tag">&lt;</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 3</span>     <span class="tag">&lt;</span><span class="el">li</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">item</span>.<span class="prop">label</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">li</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 4</span>   <span class="tag">&lt;/</span><span class="tag">&gt;</span>;',
+	'<span class="ln"> 5</span>',
+	'<span class="ln"> 6</span>   <span class="tag">&lt;</span><span class="el">List</span> <span class="attr">items</span>=<span class="tbr">{</span><span class="prop">items</span><span class="tbr">}</span> <span class="attr">render</span>=<span class="tbr">{</span><span class="prop">renderItem</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
+	'<span class="ln"> 7</span> <span class="br">}</span>',
 ].join('\n');
 
 const ASYNC_BOUNDARY_HTML = [
@@ -206,9 +216,9 @@ const ASYNC_BOUNDARY_HTML = [
 	'<span class="ln"> 4</span>   <span class="kw">try</span> <span class="br">{</span>',
 	'<span class="ln"> 5</span>     <span class="tag">&lt;</span><span class="el">UserProfile</span> <span class="attr">id</span>=<span class="tbr">{</span><span class="val">1</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
 	'<span class="ln"> 6</span>   <span class="br">}</span> <span class="kw">pending</span> <span class="br">{</span>',
-	'<span class="ln"> 7</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Loading...\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 7</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Loading..."</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 8</span>   <span class="br">}</span> <span class="kw">catch</span> <span class="br">(</span><span class="prop">e</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln"> 9</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Something went wrong.\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 9</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Something went wrong."</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln">10</span>   <span class="br">}</span>',
 	'<span class="ln">11</span> <span class="br">}</span>',
 ].join('\n');
@@ -216,8 +226,8 @@ const ASYNC_BOUNDARY_HTML = [
 const SCOPED_STYLES_HTML = [
 	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">Card</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln"> 2</span>   <span class="tag">&lt;</span><span class="el">div</span> <span class="attr">class</span>=<span class="str">"card"</span><span class="tag">&gt;</span>',
-	'<span class="ln"> 3</span>     <span class="tag">&lt;</span><span class="el">h2</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Scoped title\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h2</span><span class="tag">&gt;</span>',
-	'<span class="ln"> 4</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Styles here won\\&#39;t leak out.\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 3</span>     <span class="tag">&lt;</span><span class="el">h2</span><span class="tag">&gt;</span><span class="str">"Scoped title"</span><span class="tag">&lt;/</span><span class="el">h2</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 4</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Styles here won\'t leak out."</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 5</span>   <span class="tag">&lt;/</span><span class="el">div</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 6</span>',
 	'<span class="ln"> 7</span>   <span class="tag">&lt;</span><span class="el">style</span><span class="tag">&gt;</span>',
@@ -234,7 +244,7 @@ const SCOPED_STYLES_HTML = [
 const STYLE_COMPOSITION_HTML = [
 	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">Badge</span><span class="br">(</span><span class="br">{</span> <span class="prop">className</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">className</span>?: <span class="type">string</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln"> 2</span>   <span class="tag">&lt;</span><span class="el">span</span> <span class="attr">class</span>=<span class="tbr">{</span><span class="str">`badge ${</span><span class="prop">className</span> ?? <span class="str">\'\'</span><span class="str">}`</span><span class="tbr">}</span><span class="tag">&gt;</span>',
-	'<span class="ln"> 3</span>     <span class="tbr">{</span><span class="str">\'New\'</span><span class="tbr">}</span>',
+	'<span class="ln"> 3</span>     <span class="str">"New"</span>',
 	'<span class="ln"> 4</span>   <span class="tag">&lt;/</span><span class="el">span</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 5</span>',
 	'<span class="ln"> 6</span>   <span class="tag">&lt;</span><span class="el">style</span><span class="tag">&gt;</span>',
@@ -256,7 +266,7 @@ const REACT_HOOKS_HTML = [
 	'<span class="ln"> 2</span>',
 	'<span class="ln"> 3</span> <span class="kw">component</span> <span class="fn">UserProfile</span><span class="br">(</span><span class="br">{</span> <span class="prop">user</span>, <span class="prop">posts</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">user</span>: <span class="type">User</span> | <span class="type">null</span>; <span class="prop">posts</span>: <span class="type">Post</span><span class="br">[</span><span class="br">]</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln"> 4</span>   <span class="kw">if</span> <span class="br">(</span>!<span class="prop">user</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln"> 5</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Please sign in.\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 5</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Please sign in."</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 6</span>     <span class="kw-ctrl">return</span>;',
 	'<span class="ln"> 7</span>   <span class="br">}</span>',
 	'<span class="ln"> 8</span>',
@@ -283,7 +293,7 @@ const LAZY_PROPS_HTML = [
 	'<span class="ln">1</span> <span class="kw">component</span> <span class="fn">UserCard</span><span class="br">(</span>&amp;<span class="br">{</span> <span class="prop">name</span>, <span class="prop">age</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">name</span>: <span class="type">string</span>; <span class="prop">age</span>: <span class="type">number</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln">2</span>   <span class="tag">&lt;</span><span class="el">div</span><span class="tag">&gt;</span>',
 	'<span class="ln">3</span>     <span class="tag">&lt;</span><span class="el">h2</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">name</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h2</span><span class="tag">&gt;</span>',
-	'<span class="ln">4</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">`Age: ${</span><span class="prop">age</span><span class="str">}`</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln">4</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Age: "</span><span class="tbr">{</span><span class="prop">age</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln">5</span>   <span class="tag">&lt;/</span><span class="el">div</span><span class="tag">&gt;</span>',
 	'<span class="ln">6</span> <span class="br">}</span>',
 ].join('\n');
@@ -297,7 +307,7 @@ const NAV_ITEMS = [
 	{ id: 'prop-shorthands', label: 'Prop shorthands' },
 	{ id: 'refs', label: 'DOM refs' },
 	{ id: 'scoping', label: 'Lexical scoping' },
-	{ id: 'children', label: 'Children' },
+	{ id: 'children', label: 'Children & render props' },
 	{ id: 'if', label: 'Conditional rendering' },
 	{ id: 'for', label: 'List rendering' },
 	{ id: 'switch', label: 'Switch statements' },
@@ -469,10 +479,10 @@ export component FeaturesPage() {
 					<section class="doc-section" id="raw-html">
 						<h2 class="section-heading">{'Raw HTML'}</h2>
 						<p class="section-body">
-							<strong>{'Ripple only. '}</strong>
+							<strong>{'Ripple fully supports this; Vue supports a narrower subset. '}</strong>
 							{'The '}
 							<code class="inline-code">{'{html expr}'}</code>
-							{' container is a Ripple-specific escape hatch for inserting pre-rendered markup directly into the DOM, similar in spirit to Svelte\'s '}
+							{' container is an escape hatch for inserting pre-rendered markup directly into the DOM, similar in spirit to Svelte\'s '}
 							<code class="inline-code">{'{@html ...}'}</code>
 							{'. The expression must evaluate to a string, and it replaces the surrounding element\'s contents as parsed HTML rather than escaped text.'}
 						</p>
@@ -491,7 +501,7 @@ export component FeaturesPage() {
 							{' binding.'}
 						</p>
 						<p class="section-body">
-							{'Neither React, Preact, nor Solid have a cleanly-matching child-level primitive, so compiling '}
+							{'React, Preact, and Solid do not have a cleanly-matching child-level primitive, so compiling '}
 							<code class="inline-code">{'{html ...}'}</code>
 							{' with '}
 							<code class="inline-code">{'@tsrx/react'}</code>
@@ -499,7 +509,9 @@ export component FeaturesPage() {
 							<code class="inline-code">{'@tsrx/preact'}</code>
 							{', or '}
 							<code class="inline-code">{'@tsrx/solid'}</code>
-							{' is a compile-time error. For those targets, reach for the attribute-level equivalent directly: '}
+							{' is a compile-time error. Vue accepts it only when it is the sole child of a host element, where it lowers to '}
+							<code class="inline-code">{'innerHTML={markup}'}</code>
+							{'; composite elements and sibling children are rejected. For the other non-Ripple targets, reach for the attribute-level equivalent directly: '}
 							<code class="inline-code">{'dangerouslySetInnerHTML={{ __html: markup }}'}</code>
 							{' on React and Preact, or '}
 							<code class="inline-code">{'innerHTML={markup}'}</code>
@@ -528,6 +540,7 @@ export component FeaturesPage() {
 						</p>
 						<p class="section-body">
 							{'The most common use is in component parameters. Regular object destructuring would snapshot each prop at call time and break any target runtime that relies on per-access reactivity (Ripple, Solid). '}
+							{'The most common use is in component parameters. Regular object destructuring would snapshot each prop at call time and break any target runtime that relies on per-access reactivity (Ripple, Solid, Vue). '}
 							<code class="inline-code">{'&{ ... }'}</code>
 							{' preserves that reactivity while keeping the ergonomic destructuring syntax:'}
 						</p>
@@ -535,7 +548,7 @@ export component FeaturesPage() {
 							<code>{html LAZY_PROPS_HTML}</code>
 						</pre>
 						<p class="section-body muted">
-							{'Lazy destructuring is supported across every target. In React it compiles to direct property access on the source object, in Ripple and Solid it preserves tracked/signal reactivity without needing a wrapper call.'}
+							{'Lazy destructuring is supported across every target. In React and Preact it compiles to direct property access on the source object; in Ripple, Solid, and Vue it preserves tracked, signal, or proxy-backed reactivity without needing a wrapper call.'}
 						</p>
 					</section>
 
@@ -562,19 +575,21 @@ export component FeaturesPage() {
 							<code class="inline-code">{'{ref expr}'}</code>
 							{' attribute to capture the underlying DOM element. '}
 							<code class="inline-code">{'expr'}</code>
-							{' can be a mutable '}
+							{' can always be a callback function, which is invoked with the element. On React, Preact, Solid, and Ripple, host elements also support a mutable '}
 							<code class="inline-code">{'let'}</code>
-							{' variable — the compiler targets assign the element to it — or a callback function, which is invoked with the element. Both forms work across the React, Preact, Solid, and Ripple targets.'}
+							{' variable as assignment sugar. Vue currently supports the callback form only.'}
 						</p>
 						<pre class="code-block">
 							<code>{html REFS_HTML}</code>
 						</pre>
 						<p class="section-body">
-							{'Refs also work on composite components. The child receives the ref as a regular prop and can apply it to any DOM element — typically by spreading '}
+							{'On React, Preact, Solid, and Ripple, refs also work on composite components. The child receives the ref as a regular prop and can apply it to any DOM element — typically by spreading '}
 							<code class="inline-code">{'{...props}'}</code>
-							{', which lets the target framework wire the ref through automatically. You can place '}
+							{', which lets the target framework wire the ref through automatically. Vue is different: component refs resolve to component instances rather than the rendered DOM node, so the Vue target currently supports '}
 							<code class="inline-code">{'{ref ...}'}</code>
-							{' multiple times on the same element or component; every callback fires with the same element once it mounts.'}
+							{' only on host elements. You can place '}
+							<code class="inline-code">{'{ref ...}'}</code>
+							{' multiple times on the same host element; every callback fires with the same element once it mounts.'}
 						</p>
 						<pre class="code-block">
 							<code>{html REFS_COMPOSITE_HTML}</code>
@@ -588,7 +603,9 @@ export component FeaturesPage() {
 							<code class="inline-code">{'Symbol'}</code>
 							{' key so refs survive '}
 							<code class="inline-code">{'{...rest}'}</code>
-							{' spreading without colliding with user-named props.'}
+							{' spreading without colliding with user-named props. Vue passes callback refs straight through as a normal '}
+							<code class="inline-code">{'ref={fn}'}</code>
+							{' prop on host elements and merges repeated refs into a single callback.'}
 						</p>
 					</section>
 
@@ -625,6 +642,21 @@ export component FeaturesPage() {
 						</p>
 						<pre class="code-block">
 							<code>{html CHILDREN_HTML}</code>
+						</pre>
+						<p class="section-body">
+							<strong>{'Render props: '}</strong>
+							{'Render props are just function-valued props in TSRX. Pass them explicitly as '}
+							<code class="inline-code">{'children={...}'}</code>
+							{' or a named prop like '}
+							<code class="inline-code">{'render={...}'}</code>
+							{'. If that function returns JSX, wrap the JSX in '}
+							<code class="inline-code">{'<>...</>'}</code>
+							{' or '}
+							<code class="inline-code">{'<tsx>...</tsx>'}</code>
+							{' because JSX is statement-based by default.'}
+						</p>
+						<pre class="code-block">
+							<code>{html RENDER_PROPS_HTML}</code>
 						</pre>
 					</section>
 
@@ -847,6 +879,11 @@ export component FeaturesPage() {
 				radial-gradient(circle at top, rgba(146, 92, 255, 0.14), transparent 15%),
 				radial-gradient(circle at 80% 10%, rgba(111, 0, 255, 0.1), transparent 15%),
 				linear-gradient(180deg, #ffffff 0%, #f6f3ff 46%, #f2f4fb 100%);
+			background-repeat: no-repeat;
+			background-size:
+				100% 100vh,
+				100% 100vh,
+				100% 100%;
 			min-height: 100vh;
 			overflow-x: clip;
 		}

@@ -314,7 +314,7 @@ export component App() {
     try {
       <ComponentThatMayFail {shouldFail} />
     } catch (e) {
-      <div>{'Error: ' + e.message}</div>
+      <div>"Error: "{e.message}</div>
     }
     <button onClick={() => shouldFail = !shouldFail}>"Toggle Error"</button>
   </div>
@@ -403,7 +403,7 @@ const ThemeContext = new Context();
 
 component Child() {
   const &[theme] = ThemeContext.get();
-  <div>{"Theme: " + theme}</div>
+  <div>"Theme: "{theme}</div>
 }
 
 export component App() {

@@ -50,16 +50,16 @@ export component App() {
       count2++;
     }}
   >
-    {'Click Me'}
+    "Click Me"
   </button>
 
   // context's reactive property count gets updated
   <pre>
-    {'Context: '}
+    "Context: "
     {count}
   </pre>
   <pre>
-    {'Context2: '}
+    "Context2: "
     {count2}
   </pre>
 }

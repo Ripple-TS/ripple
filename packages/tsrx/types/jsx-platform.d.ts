@@ -56,12 +56,31 @@ export interface JsxPlatformHooks {
 		tryStatement?: (node: any, ctx: any) => any;
 	};
 	/**
-	 * Lower a `component` declaration to a FunctionDeclaration. React / Preact
-	 * use a default that extracts hooks, hoists statics, and handles async
-	 * bodies. Solid replaces this with a setup-once implementation that
-	 * hoists post-early-return JSX into a reactive `<Show>`.
+	 * Mark a top-level call expression inside a control-flow branch as requiring
+	 * helper-component isolation so setup/state is created once per mounted
+	 * branch instead of once per parent rerender. Vue uses this for branch-local
+	 * Composition API state like `ref()`.
+	 */
+	isTopLevelSetupCall?: (callExpression: any, ctx: any) => boolean;
+	/**
+	 * Lower a `component` declaration to the replacement node for its current
+	 * position. React / Preact use the default helper and return a
+	 * `FunctionDeclaration`. Other targets may return a variable declaration or
+	 * an expression that wraps the shared lowered function body (for example,
+	 * `defineVaporComponent(...)`).
+	 *
+	 * The default lowering is exported as `componentToFunctionDeclaration()` so
+	 * platform hooks can build on it instead of reimplementing component body
+	 * handling.
 	 */
 	componentToFunction?: (component: any, ctx: any, helperState?: any) => any;
+	/**
+	 * Wrap a hoisted helper component declaration emitted by the shared control-
+	 * flow splitter. The default is the plain function declaration; Vue uses
+	 * this to wrap helpers in `defineVaporComponent(...)` so branch-local setup
+	 * state behaves like normal component state.
+	 */
+	wrapHelperComponent?: (helperFn: any, helperId: any, ctx: any, sourceNode: any) => any;
 	/**
 	 * Inject module-level imports after the main walk. Default: import
 	 * `Suspense` from `platform.imports.suspense` and `TsrxErrorBoundary`
@@ -77,6 +96,27 @@ export interface JsxPlatformHooks {
 	 */
 	transformElementAttributes?: (attrs: any[], ctx: any, element: any) => any[];
 	/**
+	 * Rewrite or normalize raw Ripple attributes before the shared
+	 * `to_jsx_attribute()` mapping runs. Targets can use this to merge multiple
+	 * keyword attributes, such as collapsing repeated `{ref ...}` entries into a
+	 * single `RefAttribute` backed by an array expression.
+	 */
+	preprocessElementAttributes?: (attrs: any[], ctx: any, element: any) => any[];
+	/**
+	 * Optionally replace the default React-style `.map(...)` lowering for a
+	 * `for...of` body after the shared transform has already produced its render
+	 * statements and applied any explicit or implicit keys. Vue uses this to hand
+	 * the loop to the downstream Vapor JSX compiler as a native `v-for` template.
+	 */
+	renderForOf?: (node: any, loopParams: any[], bodyStatements: any[], ctx: any) => any | null;
+	/**
+	 * Optionally move the primary `try { ... }` render content into an explicit
+	 * error-boundary prop instead of rendering it as the boundary's JSX children.
+	 * Vue Vapor uses this because boundary content must execute lazily from a
+	 * zero-argument function.
+	 */
+	createErrorBoundaryContent?: (tryContent: any, ctx: any, node: any) => any | null;
+	/**
 	 * Lower a Ripple `Element` node to a JSXElement. Default is the
 	 * factory's `to_jsx_element`. The hook receives the walker-transformed
 	 * node (`inner`, with children already lowered) plus the element's
@@ -85,6 +125,30 @@ export interface JsxPlatformHooks {
 	 * generic text→JSXExpressionContainer transform runs.
 	 */
 	transformElement?: (inner: any, ctx: any, rawChildren: any[]) => any;
+	/**
+	 * Optionally rewrite a host element's children into attributes or another
+	 * specialized child shape after generic attribute lowering but before the
+	 * default child-to-JSX conversion runs.
+	 *
+	 * This lets a target support target-native DOM content props such as
+	 * `textContent` / `innerHTML` without forking the whole element lowering.
+	 * The hook may mutate `attrs` directly and either return a replacement
+	 * `children` array (plus optional `selfClosing` override) or `null` to fall
+	 * back to the default child handling.
+	 */
+	transformElementChildren?: (
+		element: any,
+		walkedChildren: any[],
+		rawChildren: any[],
+		attrs: any[],
+		ctx: any,
+	) => { children: any[]; selfClosing?: boolean } | null;
+	/**
+	 * Decide whether a JSX subtree may be hoisted to module scope when it is
+	 * otherwise statically safe. Targets can use this to keep runtime-sensitive
+	 * JSX, such as component invocations, inside render/setup execution.
+	 */
+	canHoistStaticNode?: (node: any, ctx: any) => boolean;
 	/**
 	 * Custom validation for a component body that uses top-level `await`.
 	 * Default: enforce `validation.requireUseServerForAwait`. Solid rejects
@@ -167,6 +231,15 @@ export interface JsxPlatform {
 		 * Default: `true`.
 		 */
 		scanUseServerDirectiveForAwaitWithCustomValidator?: boolean;
+		/**
+		 * Optional branded compiler error for targets that cannot lower
+		 * `try { ... } pending { ... }` in component template context.
+		 *
+		 * When provided, the shared try-block lowering rejects any `pending`
+		 * block with this message instead of emitting a React-style
+		 * `<Suspense fallback={...}>` wrapper.
+		 */
+		unsupportedTryPendingMessage?: string;
 	};
 
 	/**
@@ -191,3 +264,9 @@ export function createJsxTransform(
 	filename?: string,
 	options?: JsxTransformOptions,
 ) => JsxTransformResult;
+
+export function componentToFunctionDeclaration(
+	component: any,
+	ctx: any,
+	helperState?: any,
+): AST.FunctionDeclaration;

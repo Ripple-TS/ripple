@@ -16,9 +16,9 @@ with.
 export component Truthy({ x }) {
   <div>
     if (x) {
-      <span>{'x is truthy'}</span>
+      <span>"x is truthy"</span>
     } else {
-      <span>{'x is falsy'}</span>
+      <span>"x is falsy"</span>
     }
   </div>
 }
@@ -40,12 +40,12 @@ export component AuthGate() {
   let &[is_logged_in] = track(false);
 
   if (!is_logged_in) {
-    <p>{'Please sign in.'}</p>
+    <p>"Please sign in."</p>
     return;
   }
 
-  <h1>{'Dashboard'}</h1>
-  <p>{'Private content'}</p>
+  <h1>"Dashboard"</h1>
+  <p>"Private content"</p>
 }
 ```
 
@@ -113,7 +113,7 @@ export component InteractiveStatus() {
         <p>"Error!"</p>
         break;
       default:
-        <p>{'Unknown status'}</p>
+        <p>"Unknown status"</p>
     }
   </div>
 }
@@ -160,7 +160,7 @@ index.
 for (const item of items; index i) {
   <div>
     {item.label}
-    {' at index '}
+    " at index "
     {i}
   </div>
 }
@@ -172,7 +172,7 @@ You can also provide a `key` for efficient list updates and reconciliation:
 for (const item of items; index i; key item.id) {
   <div>
     {item.label}
-    {' at index '}
+    " at index "
     {i}
   </div>
 }
@@ -199,12 +199,12 @@ export component Numbers() {
   for (const item of array; index i) {
     <div>
       {item}
-      {' at index '}
+      " at index "
       {i}
     </div>
   }
 
-  <button onClick={() => array.push(array.length + 1)}>{'Add Item'}</button>
+  <button onClick={() => array.push(array.length + 1)}>"Add Item"</button>
 }
 ```
 
@@ -232,7 +232,7 @@ export component ErrorBoundary() {
     } catch (e) {
       reportError(e);
 
-      <div>{'An error occurred! ' + e.message}</div>
+      <div>"An error occurred! "{e.message}</div>
     }
   </div>
 }
@@ -265,7 +265,7 @@ until the promise resolves.
 ```ripple
 component UserProfile({ id }: { id: number }) {
   // Renders immediately
-  <h1>{'Loading profile...'}</h1>
+  <h1>"Loading profile..."</h1>
 
   // Suspends here until resolved
   const user = await fetchUser(id);
@@ -286,7 +286,7 @@ export component App() {
     <p>"Loading..."</p>
   } catch (e) {
     <p>
-      {'Error: '}
+      "Error: "
       {e.message}
     </p>
   }
@@ -318,7 +318,7 @@ export component CitySearch() {
 
   // Only renders once city has resolved for the current query
   <p>
-    {'Showing: '}
+    "Showing: "
     {query}
   </p>
   <CityCard {city} />

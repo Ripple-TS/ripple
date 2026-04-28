@@ -681,14 +681,15 @@ export function prop(kind, key, value, computed = false, shorthand = false) {
  * @returns {AST.PropertyDefinition}
  */
 export function prop_def(key, value, computed = false, is_static = false) {
-	return {
+	return /** @type {AST.PropertyDefinition} */ ({
 		type: 'PropertyDefinition',
 		key,
 		value,
+		decorators: [],
 		computed,
 		static: is_static,
 		metadata: { path: [] },
-	};
+	});
 }
 
 /**
@@ -918,15 +919,16 @@ export function for_of(left, right, body, await_flag = false, loc_info) {
  * @returns {AST.MethodDefinition}
  */
 export function method(kind, key, params, body, computed = false, is_static = false) {
-	return {
+	return /** @type {AST.MethodDefinition} */ ({
 		type: 'MethodDefinition',
 		key,
 		kind,
 		value: function_builder(null, params, block(body)),
+		decorators: [],
 		computed,
 		static: is_static,
 		metadata: { path: [] },
-	};
+	});
 }
 
 /**

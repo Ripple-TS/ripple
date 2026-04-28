@@ -1,5 +1,20 @@
 # tsrx-website
 
+## 0.1.19
+
+### Patch Changes
+
+- Updated dependencies
+  [[`f660969`](https://github.com/Ripple-TS/ripple/commit/f66096972bc8d2f03061e6018d03e40207761aaa),
+  [`f660969`](https://github.com/Ripple-TS/ripple/commit/f66096972bc8d2f03061e6018d03e40207761aaa)]:
+  - @tsrx/vue@0.0.11
+  - @tsrx/prettier-plugin@0.3.36
+  - @tsrx/preact@0.0.11
+  - @tsrx/react@0.1.10
+  - @tsrx/ripple@0.0.18
+  - @tsrx/solid@0.0.16
+  - @ripple-ts/adapter-node@0.3.36
+
 ## 0.1.18
 
 ### Patch Changes

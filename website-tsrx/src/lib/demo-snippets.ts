@@ -9,6 +9,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 	{
 		value: 'feature-card',
 		label: 'Feature card',
+		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `export component FeatureCard({
   title,
   items,
@@ -28,7 +29,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
         }
       </ul>
     } else {
-      <p>{'Loading output...'}</p>
+      <p>"Loading output..."</p>
     }
   </section>
 
@@ -82,6 +83,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 	{
 		value: 'conditional-rendering',
 		label: 'Conditional rendering',
+		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `component StatusBadge({ status }: { status: 'active' | 'idle' | 'offline' }) {
   <div>
     if (status === 'active') {
@@ -97,10 +99,11 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 	{
 		value: 'list-rendering',
 		label: 'List rendering',
+		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `component TodoList({ items }: { items: { text: string }[] }) {
   <ul>
     for (const item of items; index i) {
-      <li>{i + 1 + '. ' + item.text}</li>
+      <li>{i + 1}". "{item.text}</li>
     }
   </ul>
 }`,
@@ -108,6 +111,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 	{
 		value: 'switch-statements',
 		label: 'Switch statements',
+		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `component StatusMessage({ status }: { status: string }) {
   switch (status) {
     case 'loading':
@@ -124,6 +128,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 	{
 		value: 'error-boundary',
 		label: 'Try/catch boundary',
+		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `component SafeProfile({ userId }: { userId: string }) {
   try {
     <UserProfile id={userId} />
@@ -139,8 +144,8 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		label: 'Scoped styles',
 		source: `component Card() {
   <div class="card">
-    <h2>{'Scoped title'}</h2>
-    <p>{'Styles here do not leak out.'}</p>
+    <h2>"Scoped title"</h2>
+    <p>"Styles here do not leak out."</p>
   </div>
 
   <style>
@@ -153,6 +158,22 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
       color: #333;
     }
   </style>
+}`,
+	},
+	{
+		value: 'vue-starter',
+		label: 'Vue starter',
+		targets: ['vue'],
+		source: `import { ref } from 'vue';
+
+export default component App() {
+  const count = ref(0);
+
+  <main>
+    <h1>{'Hello from TSRX Vue'}</h1>
+    <p>{'This is a minimal Vue-compatible TSRX snippet.'}</p>
+    <button onClick={() => count.value++}>{'Count: '}{count.value}</button>
+  </main>
 }`,
 	},
 	{
@@ -169,7 +190,7 @@ export component App() {
     { title: 'Hydration deep dive' },
   ];
 
-  <h1>{'Nested React Hooks'}</h1>
+  <h1>"Nested React Hooks"</h1>
   <button onClick={() => setTab(tab === 'overview' ? 'recent' : 'overview')}>
     {tab}
   </button>
@@ -199,7 +220,7 @@ export component App() {
     { title: 'Hydration deep dive' },
   ];
 
-  <h1>{'Nested Preact Hooks'}</h1>
+  <h1>"Nested Preact Hooks"</h1>
   <button onClick={() => setTab(tab === 'overview' ? 'recent' : 'overview')}>
     {tab}
   </button>
