@@ -681,7 +681,7 @@ export function prop(kind, key, value, computed = false, shorthand = false) {
  * @returns {AST.PropertyDefinition}
  */
 export function prop_def(key, value, computed = false, is_static = false) {
-	return /** @type {any} */ ({
+	return /** @type {AST.PropertyDefinition} */ ({
 		type: 'PropertyDefinition',
 		key,
 		value,
@@ -919,7 +919,7 @@ export function for_of(left, right, body, await_flag = false, loc_info) {
  * @returns {AST.MethodDefinition}
  */
 export function method(kind, key, params, body, computed = false, is_static = false) {
-	return /** @type {any} */ ({
+	return /** @type {AST.MethodDefinition} */ ({
 		type: 'MethodDefinition',
 		key,
 		kind,
