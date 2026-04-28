@@ -2551,10 +2551,8 @@ export function merge_duplicate_refs(jsx_attrs, transform_context) {
 	const ref_exprs = [];
 	/** @type {any[]} */
 	const result = [];
-	let first_ref = null;
 	for (const attr of jsx_attrs) {
 		if (is_jsx_ref_attribute(attr)) {
-			if (first_ref === null) first_ref = attr;
 			ref_exprs.push(attr.value.expression);
 		} else {
 			result.push(attr);
@@ -2584,21 +2582,22 @@ export function merge_duplicate_refs(jsx_attrs, transform_context) {
 		transform_context.needs_merge_refs = true;
 	}
 
+	// The merged ref attribute is a synthesis of multiple input refs and
+	// has no single source position to map back to, so we omit `loc` for
+	// the same reason `to_jsx_attribute` does for `RefAttribute`-derived
+	// JSX attributes.
 	result.push(
-		set_loc(
-			/** @type {any} */ ({
-				type: 'JSXAttribute',
-				name: { type: 'JSXIdentifier', name: 'ref', metadata: { path: [] } },
-				value: {
-					type: 'JSXExpressionContainer',
-					expression: merged_value,
-					metadata: { path: [] },
-				},
-				shorthand: false,
+		/** @type {any} */ ({
+			type: 'JSXAttribute',
+			name: { type: 'JSXIdentifier', name: 'ref', metadata: { path: [] } },
+			value: {
+				type: 'JSXExpressionContainer',
+				expression: merged_value,
 				metadata: { path: [] },
-			}),
-			first_ref,
-		),
+			},
+			shorthand: false,
+			metadata: { path: [] },
+		}),
 	);
 
 	return result;
@@ -2634,7 +2633,7 @@ const MERGE_REFS_LOCAL_NAME = '__mergeRefs';
  * @param {TransformContext} transform_context
  * @returns {ESTreeJSX.JSXAttribute | ESTreeJSX.JSXSpreadAttribute}
  */
-function to_jsx_attribute(attr, transform_context) {
+export function to_jsx_attribute(attr, transform_context) {
 	if (!attr) return attr;
 	if (attr.type === 'JSXAttribute' || attr.type === 'JSXSpreadAttribute') {
 		return attr;

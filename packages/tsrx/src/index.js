@@ -140,6 +140,7 @@ export { escape } from './utils/escaping.js';
 export {
 	createJsxTransform,
 	merge_duplicate_refs as mergeDuplicateRefs,
+	to_jsx_attribute as toJsxAttribute,
 } from './transform/jsx/index.js';
 export {
 	ensure_function_metadata as ensureFunctionMetadata,
