@@ -9,16 +9,14 @@ const repo_root = path.resolve(package_dir, '../..');
 const specification_path = path.join(repo_root, 'website-tsrx/src/pages/specification.tsrx');
 const features_path = path.join(repo_root, 'website-tsrx/src/pages/features.tsrx');
 const getting_started_path = path.join(repo_root, 'website-tsrx/src/pages/getting-started.tsrx');
-const output_path = path.join(package_dir, 'src/generated/docs.js');
 
-const specification_source = fs.readFileSync(specification_path, 'utf8');
-fs.readFileSync(features_path, 'utf8');
-fs.readFileSync(getting_started_path, 'utf8');
+export const generated_docs_path = path.join(package_dir, 'src/generated/docs.js');
 
 /**
  * @param {string} name
+ * @param {string} specification_source
  */
-function extract_string_array_constant(name) {
+function extract_string_array_constant(name, specification_source) {
 	const start_marker = `const ${name} = [`;
 	const start = specification_source.indexOf(start_marker);
 	if (start === -1) {
@@ -41,20 +39,34 @@ function extract_string_array_constant(name) {
 	return values.join('\n');
 }
 
-const component_grammar = extract_string_array_constant('COMPONENT_GRAMMAR');
-const tsx_grammar = extract_string_array_constant('TSX_GRAMMAR');
-const template_expression_grammar = extract_string_array_constant('TEMPLATE_EXPRESSION_GRAMMAR');
-const lazy_grammar = extract_string_array_constant('LAZY_GRAMMAR');
-const style_grammar = extract_string_array_constant('STYLE_GRAMMAR');
-const server_extension_grammar = extract_string_array_constant('SERVER_EXTENSION_GRAMMAR');
+export function generate_docs_index() {
+	const specification_source = fs.readFileSync(specification_path, 'utf8');
+	fs.readFileSync(features_path, 'utf8');
+	fs.readFileSync(getting_started_path, 'utf8');
 
-const docs = [
-	{
-		slug: 'overview',
-		title: 'TSRX Overview',
-		use_cases:
-			'always, introduction, explain tsrx, compare jsx, language model context, runtime targets',
-		content: `# TSRX Overview
+	const component_grammar = extract_string_array_constant(
+		'COMPONENT_GRAMMAR',
+		specification_source,
+	);
+	const tsx_grammar = extract_string_array_constant('TSX_GRAMMAR', specification_source);
+	const template_expression_grammar = extract_string_array_constant(
+		'TEMPLATE_EXPRESSION_GRAMMAR',
+		specification_source,
+	);
+	const lazy_grammar = extract_string_array_constant('LAZY_GRAMMAR', specification_source);
+	const style_grammar = extract_string_array_constant('STYLE_GRAMMAR', specification_source);
+	const server_extension_grammar = extract_string_array_constant(
+		'SERVER_EXTENSION_GRAMMAR',
+		specification_source,
+	);
+
+	const docs = [
+		{
+			slug: 'overview',
+			title: 'TSRX Overview',
+			use_cases:
+				'always, introduction, explain tsrx, compare jsx, language model context, runtime targets',
+			content: `# TSRX Overview
 
 TSRX is a TypeScript language extension for authoring declarative UI in .tsrx files. It adds a small set of syntax forms on top of TypeScript, while letting each target compiler define the runtime semantics.
 
@@ -68,12 +80,13 @@ Core ideas:
 The core language docs should stay target-neutral. After identifying the active runtime target, use target-specific docs, prompts, or skills for runtime imports, bundler setup, and semantics that are not defined by TSRX itself.
 
 Source: website-tsrx/src/pages/specification.tsrx`,
-	},
-	{
-		slug: 'components',
-		title: 'Component Declarations',
-		use_cases: 'components, component keyword, props, authoring .tsrx files, no jsx return syntax',
-		content: `# Component Declarations
+		},
+		{
+			slug: 'components',
+			title: 'Component Declarations',
+			use_cases:
+				'components, component keyword, props, authoring .tsrx files, no jsx return syntax',
+			content: `# Component Declarations
 
 Components are declared with the component keyword, not as functions returning JSX.
 
@@ -92,12 +105,13 @@ ${component_grammar}
 \`\`\`
 
 Source: website-tsrx/src/pages/specification.tsrx#components`,
-	},
-	{
-		slug: 'text-and-template-expressions',
-		title: 'Text and Template Expressions',
-		use_cases: 'text children, quoted text, raw text errors, html, text directive, string literals',
-		content: `# Text and Template Expressions
+		},
+		{
+			slug: 'text-and-template-expressions',
+			title: 'Text and Template Expressions',
+			use_cases:
+				'text children, quoted text, raw text errors, html, text directive, string literals',
+			content: `# Text and Template Expressions
 
 Raw unquoted text children are not valid TSRX. Static text should be written as a direct double-quoted child, and dynamic values should be wrapped in braces.
 
@@ -117,13 +131,13 @@ ${template_expression_grammar}
 \`\`\`
 
 Source: website-tsrx/src/pages/specification.tsrx#templates`,
-	},
-	{
-		slug: 'tsx-expression-values',
-		title: 'TSX Expression Values',
-		use_cases:
-			'fragments, tsx tag, pass jsx as prop, return jsx from helper, expression position jsx',
-		content: `# TSX Expression Values
+		},
+		{
+			slug: 'tsx-expression-values',
+			title: 'TSX Expression Values',
+			use_cases:
+				'fragments, tsx tag, pass jsx as prop, return jsx from helper, expression position jsx',
+			content: `# TSX Expression Values
 
 Regular template elements in component bodies are statements and have no value. When JSX must be used in expression position, wrap it in \`<>...</>\` or \`<tsx>...</tsx>\`.
 
@@ -144,12 +158,13 @@ ${tsx_grammar}
 \`\`\`
 
 Source: website-tsrx/src/pages/specification.tsrx#tsx-islands`,
-	},
-	{
-		slug: 'control-flow',
-		title: 'Control Flow',
-		use_cases: 'if else, for loops, switch, try catch, conditional rendering, lists, guard returns',
-		content: `# Control Flow
+		},
+		{
+			slug: 'control-flow',
+			title: 'Control Flow',
+			use_cases:
+				'if else, for loops, switch, try catch, conditional rendering, lists, guard returns',
+			content: `# Control Flow
 
 Standard JavaScript control flow can contain template statements inside component bodies and nested element children.
 
@@ -171,12 +186,12 @@ component List({ items }: { items: string[] }) {
 A bare \`return;\` exits the current render path. A return with a value is invalid inside a TSRX component body.
 
 Source: website-tsrx/src/pages/features.tsrx#if`,
-	},
-	{
-		slug: 'lazy-destructuring',
-		title: 'Lazy Destructuring',
-		use_cases: 'reactivity, lazy binding, ampersand destructuring, &[], &{}',
-		content: `# Lazy Destructuring
+		},
+		{
+			slug: 'lazy-destructuring',
+			title: 'Lazy Destructuring',
+			use_cases: 'reactivity, lazy binding, ampersand destructuring, &[], &{}',
+			content: `# Lazy Destructuring
 
 TSRX supports lazy binding patterns prefixed with \`&\`. They bind by reference rather than by value. The target compiler provides the runtime semantics.
 
@@ -194,12 +209,12 @@ ${lazy_grammar}
 \`\`\`
 
 Source: website-tsrx/src/pages/specification.tsrx#lazy`,
-	},
-	{
-		slug: 'style-and-server',
-		title: 'Style and Server Extensions',
-		use_cases: '#style, scoped css, #server, server blocks, compile-time identifiers',
-		content: `# Style and Server Extensions
+		},
+		{
+			slug: 'style-and-server',
+			title: 'Style and Server Extensions',
+			use_cases: '#style, scoped css, #server, server blocks, compile-time identifiers',
+			content: `# Style and Server Extensions
 
 \`#style\` is a compile-time identifier for scoped CSS class names declared in the current module.
 
@@ -218,12 +233,13 @@ ${server_extension_grammar}
 \`\`\`
 
 Source: website-tsrx/src/pages/specification.tsrx#style`,
-	},
-	{
-		slug: 'target-integration',
-		title: 'Target Integration',
-		use_cases: 'runtime target, compiler package, target-specific setup, skills, runtime semantics',
-		content: `# Target Integration
+		},
+		{
+			slug: 'target-integration',
+			title: 'Target Integration',
+			use_cases:
+				'runtime target, compiler package, target-specific setup, skills, runtime semantics',
+			content: `# Target Integration
 
 TSRX authoring syntax is shared, but output and runtime semantics are target-defined.
 
@@ -239,12 +255,13 @@ Target-specific layers should own:
 When helping in an existing project, detect the target before generating code. If no target-specific layer is available, stay within target-neutral TSRX syntax and ask for confirmation before assuming runtime APIs.
 
 Source: website-tsrx/src/pages/getting-started.tsrx`,
-	},
-	{
-		slug: 'tooling',
-		title: 'Tooling',
-		use_cases: 'typescript plugin, typecheck, prettier, eslint, vscode, editor setup, diagnostics',
-		content: `# Tooling
+		},
+		{
+			slug: 'tooling',
+			title: 'Tooling',
+			use_cases:
+				'typescript plugin, typecheck, prettier, eslint, vscode, editor setup, diagnostics',
+			content: `# Tooling
 
 Common TSRX tooling packages:
 
@@ -256,10 +273,10 @@ Common TSRX tooling packages:
 Use the project package manager and match the active target runtime's compiler and bundler integration.
 
 Source: website-tsrx/src/pages/getting-started.tsrx#tooling-install`,
-	},
-];
+		},
+	];
 
-const output = `// This file is generated by packages/tsrx-mcp/scripts/generate-docs-index.js.
+	return `// This file is generated by packages/tsrx-mcp/scripts/generate-docs-index.js.
 // Do not edit it directly.
 
 /** @typedef {{ slug: string, title: string, use_cases: string, content: string }} DocumentationSection */
@@ -267,5 +284,8 @@ const output = `// This file is generated by packages/tsrx-mcp/scripts/generate-
 /** @type {DocumentationSection[]} */
 export const documentation_sections = ${JSON.stringify(docs, null, '\t')};
 `;
+}
 
-fs.writeFileSync(output_path, `${output}\n`);
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+	fs.writeFileSync(generated_docs_path, `${generate_docs_index()}\n`);
+}
