@@ -1,0 +1,9 @@
+{
+  "name": "tsrx-mcp-react-fixture",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@tsrx/react": "workspace:*",
+    "@tsrx/vite-plugin-react": "workspace:*"
+  }
+}

@@ -39,6 +39,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:default",
-    "typescript": "catalog:default"
+    "typescript": "catalog:default",
+    "vitest": "catalog:default"
   }
 }
