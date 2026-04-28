@@ -40,17 +40,17 @@ hatch when you need to store, return, or pass JSX as a value.
 ```ripple
 // ❌ Wrong - Plain templates outside the component
 const element = <div>
-  {'Hello'}
+  "Hello"
 </div>; // Compilation error
 
 function regularFunction() {
   return <span>
-    {'Not allowed'}
+    "Not allowed"
   </span>; // Compilation error
 }
 
 const myTemplate = <div>
-  {'Cannot assign JSX'}
+  "Cannot assign JSX"
 </div>; // Compilation error
 
 // ✅ Correct - Templates only inside components
@@ -86,7 +86,7 @@ variable, return it from a helper, or pass it directly as a prop or child.
 component App() {
   const title = <tsx>
     <span class="title">
-      {'Settings'}
+      "Settings"
     </span>
   </tsx>;
 
@@ -118,12 +118,12 @@ component App() {
   <Card
     title={<tsx>
       <span>
-        {'Settings'}
+        "Settings"
       </span>
     </tsx>}
     children={<tsx>
       <p>
-        {'Card body'}
+        "Card body"
       </p>
     </tsx>}
   />
@@ -147,7 +147,7 @@ condition is met.
 ```ripple
 component Profile({ user }) {
   if (!user) {
-    <p>{'Please sign in to continue.'}</p>
+    <p>"Please sign in to continue."</p>
     return;
   }
 

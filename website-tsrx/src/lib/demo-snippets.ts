@@ -29,7 +29,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
         }
       </ul>
     } else {
-      <p>{'Loading output...'}</p>
+      <p>"Loading output..."</p>
     }
   </section>
 
@@ -103,7 +103,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		source: `component TodoList({ items }: { items: { text: string }[] }) {
   <ul>
     for (const item of items; index i) {
-      <li>{i + 1 + '. ' + item.text}</li>
+      <li>{i + 1}". "{item.text}</li>
     }
   </ul>
 }`,
@@ -144,8 +144,8 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		label: 'Scoped styles',
 		source: `component Card() {
   <div class="card">
-    <h2>{'Scoped title'}</h2>
-    <p>{'Styles here do not leak out.'}</p>
+    <h2>"Scoped title"</h2>
+    <p>"Styles here do not leak out."</p>
   </div>
 
   <style>
@@ -190,7 +190,7 @@ export component App() {
     { title: 'Hydration deep dive' },
   ];
 
-  <h1>{'Nested React Hooks'}</h1>
+  <h1>"Nested React Hooks"</h1>
   <button onClick={() => setTab(tab === 'overview' ? 'recent' : 'overview')}>
     {tab}
   </button>
@@ -220,7 +220,7 @@ export component App() {
     { title: 'Hydration deep dive' },
   ];
 
-  <h1>{'Nested Preact Hooks'}</h1>
+  <h1>"Nested Preact Hooks"</h1>
   <button onClick={() => setTab(tab === 'overview' ? 'recent' : 'overview')}>
     {tab}
   </button>
