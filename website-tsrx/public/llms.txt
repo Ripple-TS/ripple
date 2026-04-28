@@ -182,6 +182,7 @@ component Greeting() {
 
 // ✅ CORRECT — static text may be a double-quoted child
 <div>"Hello World"</div>
+<div>"Use &quot; for a quote and &amp; for an ampersand"</div>
 
 // ✅ CORRECT — JS expressions still use braces
 <div>{'Hello World'}</div>
@@ -192,6 +193,11 @@ component Greeting() {
 **Why:** unquoted text is ambiguous with JavaScript identifiers. A direct text
 child must be a double-quoted static string; all other values stay explicit with
 `{}`.
+
+Direct double-quoted text children use the same character-reference behavior as
+quoted JSX attribute values. Use entities such as `&quot;` and `&amp;` for literal
+characters that need escaping; backslashes are literal text and do not escape the
+closing quote.
 
 ### Using `<>` or `<tsx>` for JSX values
 
