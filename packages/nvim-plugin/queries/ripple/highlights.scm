@@ -3,6 +3,10 @@
 (fragment_declaration "fragment" @keyword)
 (server_block "#server" @keyword)
 
+; Lazy destructuring
+(lazy_object_pattern "&" @operator)
+(lazy_array_pattern "&" @operator)
+
 (server_member_expression
   "#server" @keyword
   "." @punctuation.delimiter
@@ -66,9 +70,17 @@
   name: (jsx_element_name) @tag
   ">" @tag.delimiter)
 
+(jsx_opening_fragment
+  "<" @tag.delimiter
+  ">" @tag.delimiter)
+
 (jsx_closing_element
   "</" @tag.delimiter
   name: (jsx_element_name) @tag
+  ">" @tag.delimiter)
+
+(jsx_closing_fragment
+  "</" @tag.delimiter
   ">" @tag.delimiter)
 
 (jsx_self_closing_element
@@ -90,7 +102,7 @@
   name: (jsx_non_namespaced_element_name (identifier) @tag))
 
 (jsx_attribute
-  name: [(identifier) (jsx_namespace_name)] @attribute)
+  name: [(identifier) (jsx_namespace_name) (jsx_hyphenated_name)] @attribute)
 
 (jsx_expression
   "{" @punctuation.bracket

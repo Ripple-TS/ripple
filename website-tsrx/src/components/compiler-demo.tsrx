@@ -14,10 +14,12 @@ const TARGET_OPTIONS = [
 	{ value: 'preact', label: 'Preact' },
 	{ value: 'ripple', label: 'Ripple' },
 	{ value: 'solid', label: 'Solid' },
+	{ value: 'vue', label: 'Vue' },
 ];
 const TARGET_LABELS: Record<string, string> = {
 	react: 'React output',
 	preact: 'Preact output',
+	vue: 'Vue output',
 	ripple: 'Ripple output',
 	solid: 'Solid output',
 };
@@ -27,6 +29,10 @@ const SNIPPET_BY_VALUE = new Map(DEMO_SNIPPETS.map((snippet) => [snippet.value, 
 
 function is_snippet_available_for_target(snippet: { targets?: string[] }, target: string): boolean {
 	return !snippet.targets || snippet.targets.includes(target);
+}
+
+function get_first_available_snippet(target: string) {
+	return DEMO_SNIPPETS.find((snippet) => is_snippet_available_for_target(snippet, target)) ?? null;
 }
 
 function get_snippet_value_for_source(source: string): string {
@@ -378,7 +384,15 @@ export component CompilerDemo() {
 
 		const snippet = SNIPPET_BY_VALUE.get(selected_snippet.value);
 		if (snippet && !is_snippet_available_for_target(snippet, selected_target.value)) {
-			selected_snippet.value = CUSTOM_SNIPPET_VALUE;
+			const fallback = get_first_available_snippet(selected_target.value);
+			if (fallback) {
+				selected_snippet.value = fallback.value;
+				if (fallback.source !== latest_source) {
+					load_source(fallback.source);
+				}
+			} else {
+				selected_snippet.value = CUSTOM_SNIPPET_VALUE;
+			}
 		}
 
 		request_compile();

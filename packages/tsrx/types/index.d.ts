@@ -10,11 +10,12 @@ import type {
 	JsxPlatformHooks,
 	JsxTransformOptions,
 	JsxTransformResult,
+	componentToFunctionDeclaration,
 	createJsxTransform,
 } from './jsx-platform';
 
 export type { Parse, JsxPlatform, JsxPlatformHooks, JsxTransformOptions, JsxTransformResult };
-export { createJsxTransform };
+export { createJsxTransform, componentToFunctionDeclaration };
 
 /**
  * Compile error interface

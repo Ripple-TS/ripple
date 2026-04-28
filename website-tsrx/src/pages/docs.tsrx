@@ -545,7 +545,7 @@ export component DocsPage() {
 							{' for arrays — that look like destructuring but defer the actual property access until each binding is read. Every reference to a lazy binding is compiled back to a property lookup on the source object, so downstream readers pick up the latest value without a manual getter.'}
 						</p>
 						<p class="section-body">
-							{'The most common use is in component parameters. Regular object destructuring would snapshot each prop at call time and break any target runtime that relies on per-access reactivity (Ripple, Solid). '}
+							{'The most common use is in component parameters. Regular object destructuring would snapshot each prop at call time and break any target runtime that relies on per-access reactivity (Ripple, Solid, Vue). '}
 							<code class="inline-code">{'&{ ... }'}</code>
 							{' preserves that reactivity while keeping the ergonomic destructuring syntax:'}
 						</p>
@@ -561,7 +561,7 @@ export component DocsPage() {
 							<code>{html LAZY_OBJ_VAR_HTML}</code>
 						</pre>
 						<p class="section-body muted">
-							{'Lazy destructuring is supported across every target. In React and Preact it compiles to direct property access on the source object, in Ripple and Solid it preserves tracked/signal reactivity without needing a wrapper call.'}
+							{'Lazy destructuring is supported across every target. In React and Preact it compiles to direct property access on the source object; in Ripple, Solid, and Vue it preserves tracked, signal, or proxy-backed reactivity without needing a wrapper call.'}
 						</p>
 					</section>
 					<section class="doc-section" id="react-hooks">
@@ -612,6 +612,11 @@ export component DocsPage() {
 				radial-gradient(circle at top, rgba(146, 92, 255, 0.14), transparent 15%),
 				radial-gradient(circle at 80% 10%, rgba(111, 0, 255, 0.1), transparent 15%),
 				linear-gradient(180deg, #ffffff 0%, #f6f3ff 46%, #f2f4fb 100%);
+			background-repeat: no-repeat;
+			background-size:
+				100% 100vh,
+				100% 100vh,
+				100% 100%;
 			min-height: 100vh;
 			overflow-x: hidden;
 		}

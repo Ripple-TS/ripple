@@ -34,6 +34,9 @@ describe('typescript-plugin compiler resolution', () => {
 			const react_candidate = COMPILER_CANDIDATES.find(
 				([package_name]) => package_name === '@tsrx/react',
 			);
+			const vue_candidate = COMPILER_CANDIDATES.find(
+				([package_name]) => package_name === '@tsrx/vue',
+			);
 			const solid_candidate = COMPILER_CANDIDATES.find(
 				([package_name]) => package_name === '@tsrx/solid',
 			);
@@ -41,12 +44,19 @@ describe('typescript-plugin compiler resolution', () => {
 				([package_name]) => package_name === '@tsrx/preact',
 			);
 
-			if (!ripple_candidate || !react_candidate || !solid_candidate || !preact_candidate) {
+			if (
+				!ripple_candidate ||
+				!react_candidate ||
+				!solid_candidate ||
+				!preact_candidate ||
+				!vue_candidate
+			) {
 				throw new Error('Missing compiler candidates');
 			}
 
 			expect(ripple_candidate[2]).toEqual(['.tsrx']);
 			expect(react_candidate[2]).toEqual(['.tsrx']);
+			expect(vue_candidate[2]).toEqual(['.tsrx']);
 			expect(solid_candidate[2]).toEqual(['.tsrx']);
 			expect(preact_candidate[2]).toEqual(['.tsrx']);
 		});
@@ -89,10 +99,30 @@ describe('typescript-plugin compiler resolution', () => {
 			);
 		});
 
+		it('selects the solid compiler in a solid-only project', () => {
+			const workspace = create_fixture_workspace('solid-only');
+			const file_name = path.join(workspace, 'src', 'App.tsrx');
+			const expected = path.join(workspace, 'node_modules', '@tsrx', 'solid', 'src', 'index.js');
+
+			expect(find_workspace_compiler_entry_for_file(file_name, fs.existsSync, new Map())).toBe(
+				expected,
+			);
+		});
+
 		it('selects the preact compiler in a preact-only project', () => {
 			const workspace = create_fixture_workspace('preact-only');
 			const file_name = path.join(workspace, 'src', 'App.tsrx');
 			const expected = path.join(workspace, 'node_modules', '@tsrx', 'preact', 'src', 'index.js');
+
+			expect(find_workspace_compiler_entry_for_file(file_name, fs.existsSync, new Map())).toBe(
+				expected,
+			);
+		});
+
+		it('selects the vue compiler in a vue-only project', () => {
+			const workspace = create_fixture_workspace('vue-only');
+			const file_name = path.join(workspace, 'src', 'App.tsrx');
+			const expected = path.join(workspace, 'node_modules', '@tsrx', 'vue', 'src', 'index.js');
 
 			expect(find_workspace_compiler_entry_for_file(file_name, fs.existsSync, new Map())).toBe(
 				expected,
@@ -123,6 +153,16 @@ describe('typescript-plugin compiler resolution', () => {
 			const workspace = create_fixture_workspace('both-preact');
 			const file_name = path.join(workspace, 'src', 'App.tsrx');
 			const expected = path.join(workspace, 'node_modules', '@tsrx', 'preact', 'src', 'index.js');
+
+			expect(find_workspace_compiler_entry_for_file(file_name, fs.existsSync, new Map())).toBe(
+				expected,
+			);
+		});
+
+		it('prefers the vue compiler when multiple compilers exist in a vue project', () => {
+			const workspace = create_fixture_workspace('both-vue');
+			const file_name = path.join(workspace, 'src', 'App.tsrx');
+			const expected = path.join(workspace, 'node_modules', '@tsrx', 'vue', 'src', 'index.js');
 
 			expect(find_workspace_compiler_entry_for_file(file_name, fs.existsSync, new Map())).toBe(
 				expected,
@@ -184,9 +224,11 @@ describe('typescript-plugin compiler resolution', () => {
 			{ name: 'react-only', expected: ['@tsrx', 'react'] },
 			{ name: 'solid-only', expected: ['@tsrx', 'solid'] },
 			{ name: 'preact-only', expected: ['@tsrx', 'preact'] },
+			{ name: 'vue-only', expected: ['@tsrx', 'vue'] },
 			{ name: 'both', expected: ['@tsrx', 'ripple'] },
 			{ name: 'both-react', expected: ['@tsrx', 'react'] },
 			{ name: 'both-preact', expected: ['@tsrx', 'preact'] },
+			{ name: 'both-vue', expected: ['@tsrx', 'vue'] },
 		];
 
 		for (const test_case of cases) {

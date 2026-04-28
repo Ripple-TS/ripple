@@ -151,10 +151,10 @@ const REFS_HTML = [
 	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">AutoFocus</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln"> 2</span>   <span class="kw">let</span> <span class="prop">input</span>: <span class="type">HTMLInputElement</span> | <span class="type">undefined</span>;',
 	'<span class="ln"> 3</span>',
-	'<span class="ln"> 4</span>   <span class="cmt">// {ref expr} — mutable variable assignment (Solid/Ripple/React)</span>',
+	'<span class="ln"> 4</span>   <span class="cmt">// Mutable-variable ref assignment (React/Preact/Solid/Ripple)</span>',
 	'<span class="ln"> 5</span>   <span class="tag">&lt;</span><span class="el">input</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="prop">input</span><span class="tbr">}</span> <span class="attr">type</span>=<span class="str">"text"</span> <span class="tag">/&gt;</span>',
 	'<span class="ln"> 6</span>',
-	'<span class="ln"> 7</span>   <span class="cmt">// Or as a callback that receives the DOM node</span>',
+	'<span class="ln"> 7</span>   <span class="cmt">// Callback refs work across every target, including Vue</span>',
 	'<span class="ln"> 8</span>   <span class="tag">&lt;</span><span class="el">input</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="br">(</span><span class="prop">node</span><span class="br">)</span> =&gt; <span class="prop">node</span>.<span class="fn">focus</span><span class="br">(</span><span class="br">)</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
 	'<span class="ln"> 9</span> <span class="br">}</span>',
 ].join('\n');
@@ -171,7 +171,7 @@ const REFS_COMPOSITE_HTML = [
 	'<span class="ln"> 9</span>     <span class="fn">console</span>.<span class="fn">log</span><span class="br">(</span><span class="prop">node</span><span class="br">)</span>;',
 	'<span class="ln">10</span>   <span class="br">}</span>',
 	'<span class="ln">11</span>',
-	'<span class="ln">12</span>   <span class="cmt">// Multiple {ref ...} on the same element all fire.</span>',
+	'<span class="ln">12</span>   <span class="cmt">// Supported on React/Preact/Solid/Ripple composite refs.</span>',
 	'<span class="ln">13</span>   <span class="tag">&lt;</span><span class="el">TextField</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="prop">field</span><span class="tbr">}</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="prop">logNode</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
 	'<span class="ln">14</span> <span class="br">}</span>',
 ].join('\n');
@@ -479,10 +479,10 @@ export component FeaturesPage() {
 					<section class="doc-section" id="raw-html">
 						<h2 class="section-heading">{'Raw HTML'}</h2>
 						<p class="section-body">
-							<strong>{'Ripple only. '}</strong>
+							<strong>{'Ripple fully supports this; Vue supports a narrower subset. '}</strong>
 							{'The '}
 							<code class="inline-code">{'{html expr}'}</code>
-							{' container is a Ripple-specific escape hatch for inserting pre-rendered markup directly into the DOM, similar in spirit to Svelte\'s '}
+							{' container is an escape hatch for inserting pre-rendered markup directly into the DOM, similar in spirit to Svelte\'s '}
 							<code class="inline-code">{'{@html ...}'}</code>
 							{'. The expression must evaluate to a string, and it replaces the surrounding element\'s contents as parsed HTML rather than escaped text.'}
 						</p>
@@ -501,7 +501,7 @@ export component FeaturesPage() {
 							{' binding.'}
 						</p>
 						<p class="section-body">
-							{'Neither React, Preact, nor Solid have a cleanly-matching child-level primitive, so compiling '}
+							{'React, Preact, and Solid do not have a cleanly-matching child-level primitive, so compiling '}
 							<code class="inline-code">{'{html ...}'}</code>
 							{' with '}
 							<code class="inline-code">{'@tsrx/react'}</code>
@@ -509,7 +509,9 @@ export component FeaturesPage() {
 							<code class="inline-code">{'@tsrx/preact'}</code>
 							{', or '}
 							<code class="inline-code">{'@tsrx/solid'}</code>
-							{' is a compile-time error. For those targets, reach for the attribute-level equivalent directly: '}
+							{' is a compile-time error. Vue accepts it only when it is the sole child of a host element, where it lowers to '}
+							<code class="inline-code">{'innerHTML={markup}'}</code>
+							{'; composite elements and sibling children are rejected. For the other non-Ripple targets, reach for the attribute-level equivalent directly: '}
 							<code class="inline-code">{'dangerouslySetInnerHTML={{ __html: markup }}'}</code>
 							{' on React and Preact, or '}
 							<code class="inline-code">{'innerHTML={markup}'}</code>
@@ -538,6 +540,7 @@ export component FeaturesPage() {
 						</p>
 						<p class="section-body">
 							{'The most common use is in component parameters. Regular object destructuring would snapshot each prop at call time and break any target runtime that relies on per-access reactivity (Ripple, Solid). '}
+							{'The most common use is in component parameters. Regular object destructuring would snapshot each prop at call time and break any target runtime that relies on per-access reactivity (Ripple, Solid, Vue). '}
 							<code class="inline-code">{'&{ ... }'}</code>
 							{' preserves that reactivity while keeping the ergonomic destructuring syntax:'}
 						</p>
@@ -545,7 +548,7 @@ export component FeaturesPage() {
 							<code>{html LAZY_PROPS_HTML}</code>
 						</pre>
 						<p class="section-body muted">
-							{'Lazy destructuring is supported across every target. In React it compiles to direct property access on the source object, in Ripple and Solid it preserves tracked/signal reactivity without needing a wrapper call.'}
+							{'Lazy destructuring is supported across every target. In React and Preact it compiles to direct property access on the source object; in Ripple, Solid, and Vue it preserves tracked, signal, or proxy-backed reactivity without needing a wrapper call.'}
 						</p>
 					</section>
 
@@ -572,19 +575,21 @@ export component FeaturesPage() {
 							<code class="inline-code">{'{ref expr}'}</code>
 							{' attribute to capture the underlying DOM element. '}
 							<code class="inline-code">{'expr'}</code>
-							{' can be a mutable '}
+							{' can always be a callback function, which is invoked with the element. On React, Preact, Solid, and Ripple, host elements also support a mutable '}
 							<code class="inline-code">{'let'}</code>
-							{' variable — the compiler targets assign the element to it — or a callback function, which is invoked with the element. Both forms work across the React, Preact, Solid, and Ripple targets.'}
+							{' variable as assignment sugar. Vue currently supports the callback form only.'}
 						</p>
 						<pre class="code-block">
 							<code>{html REFS_HTML}</code>
 						</pre>
 						<p class="section-body">
-							{'Refs also work on composite components. The child receives the ref as a regular prop and can apply it to any DOM element — typically by spreading '}
+							{'On React, Preact, Solid, and Ripple, refs also work on composite components. The child receives the ref as a regular prop and can apply it to any DOM element — typically by spreading '}
 							<code class="inline-code">{'{...props}'}</code>
-							{', which lets the target framework wire the ref through automatically. You can place '}
+							{', which lets the target framework wire the ref through automatically. Vue is different: component refs resolve to component instances rather than the rendered DOM node, so the Vue target currently supports '}
 							<code class="inline-code">{'{ref ...}'}</code>
-							{' multiple times on the same element or component; every callback fires with the same element once it mounts.'}
+							{' only on host elements. You can place '}
+							<code class="inline-code">{'{ref ...}'}</code>
+							{' multiple times on the same host element; every callback fires with the same element once it mounts.'}
 						</p>
 						<pre class="code-block">
 							<code>{html REFS_COMPOSITE_HTML}</code>
@@ -598,7 +603,9 @@ export component FeaturesPage() {
 							<code class="inline-code">{'Symbol'}</code>
 							{' key so refs survive '}
 							<code class="inline-code">{'{...rest}'}</code>
-							{' spreading without colliding with user-named props.'}
+							{' spreading without colliding with user-named props. Vue passes callback refs straight through as a normal '}
+							<code class="inline-code">{'ref={fn}'}</code>
+							{' prop on host elements and merges repeated refs into a single callback.'}
 						</p>
 					</section>
 
@@ -872,6 +879,11 @@ export component FeaturesPage() {
 				radial-gradient(circle at top, rgba(146, 92, 255, 0.14), transparent 15%),
 				radial-gradient(circle at 80% 10%, rgba(111, 0, 255, 0.1), transparent 15%),
 				linear-gradient(180deg, #ffffff 0%, #f6f3ff 46%, #f2f4fb 100%);
+			background-repeat: no-repeat;
+			background-size:
+				100% 100vh,
+				100% 100vh,
+				100% 100%;
 			min-height: 100vh;
 			overflow-x: clip;
 		}

@@ -20,11 +20,16 @@ export component Layout({ children }: { children: any }) {
 				'Segoe UI',
 				Roboto,
 				sans-serif;
-			color: #eef2ff;
+			color: #1a1640;
 			background:
-				radial-gradient(circle at top, rgba(119, 148, 255, 0.3), transparent 34%),
-				radial-gradient(circle at 80% 20%, rgba(135, 93, 246, 0.22), transparent 28%),
-				linear-gradient(180deg, #07111f 0%, #0b162d 45%, #0f1832 100%);
+				radial-gradient(circle at top, rgba(146, 92, 255, 0.14), transparent 15%),
+				radial-gradient(circle at 80% 10%, rgba(111, 0, 255, 0.1), transparent 15%),
+				linear-gradient(180deg, #ffffff 0%, #f6f3ff 46%, #f2f4fb 100%);
+			background-repeat: no-repeat;
+			background-size:
+				100% 100vh,
+				100% 100vh,
+				100% 100%;
 			min-height: 100vh;
 			overflow-x: hidden;
 		}

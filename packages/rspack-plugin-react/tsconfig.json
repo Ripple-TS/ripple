@@ -1,7 +1,9 @@
 {
   "extends": "../tsrx/tsconfig.json",
   "compilerOptions": {
-    "skipLibCheck": true
+    "paths": {
+      "@rspack/core": ["./types/rspack-core-shim.d.ts"]
+    }
   },
   "include": ["src/**/*", "types/**/*"]
 }

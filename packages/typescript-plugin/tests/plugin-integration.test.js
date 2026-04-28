@@ -92,6 +92,34 @@ describe('typescript-plugin language plugin integration', () => {
 		expect(virtual_code.generatedCode).toContain('compiler:react');
 	});
 
+	it('creates virtual code with the vue compiler in a vue-only project', () => {
+		const plugin = create_plugin();
+		const workspace = create_fixture_workspace('vue-only');
+		const file_name = path.join(workspace, 'src', 'App.tsrx');
+		const virtual_code = create_virtual_code(
+			plugin,
+			file_name,
+			'component App() { <div>Hello</div> }',
+		);
+
+		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
+		expect(virtual_code.generatedCode).toContain('compiler:vue');
+	});
+
+	it('creates virtual code with the vue compiler in a vue project when both compilers exist', () => {
+		const plugin = create_plugin();
+		const workspace = create_fixture_workspace('both-vue');
+		const file_name = path.join(workspace, 'src', 'App.tsrx');
+		const virtual_code = create_virtual_code(
+			plugin,
+			file_name,
+			'component App() { <div>Hello Vue</div> }',
+		);
+
+		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
+		expect(virtual_code.generatedCode).toContain('compiler:vue');
+	});
+
 	it('creates virtual code with the ripple compiler in a ripple-only project', () => {
 		const plugin = create_plugin();
 		const workspace = create_fixture_workspace('ripple-only');

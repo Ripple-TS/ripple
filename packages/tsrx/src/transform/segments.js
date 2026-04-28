@@ -500,6 +500,9 @@ export function convert_source_map_to_mappings(
 							node.metadata?.lazy_param_is_component ? replace_label_to_component : undefined,
 						);
 					}
+					if ('hover' in (node.metadata || {})) {
+						token.metadata.hover = /** @type {any} */ (node.metadata).hover;
+					}
 					if (node.metadata?.disable_verification) {
 						token.mappingData = { ...mapping_data, verification: false };
 					}

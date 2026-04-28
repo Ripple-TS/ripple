@@ -115,6 +115,34 @@ const COMPILER_STUBS = {
 	},
 };
 `,
+	vue: `module.exports = {
+	compile_to_volar_mappings(source, filename) {
+		const code = \`/* compiler:vue */\\nexport const filename = \${JSON.stringify(filename)};\\nexport default \${JSON.stringify(source)};\`;
+		return {
+			code,
+			mappings: [
+				{
+					sourceOffsets: [0],
+					generatedOffsets: [0],
+					lengths: [source.length],
+					generatedLengths: [source.length],
+					data: {
+						verification: false,
+						completion: true,
+						semantic: true,
+						navigation: true,
+						structure: true,
+						format: true,
+						customData: {},
+					},
+				},
+			],
+			cssMappings: [],
+			errors: [],
+		};
+	},
+};
+`,
 };
 
 export const WORKSPACE_CONFIGS = {
@@ -163,6 +191,18 @@ export const WORKSPACE_CONFIGS = {
 		},
 		compilers: ['preact'],
 	},
+	'vue-only': {
+		package_json: {
+			name: '@tsrx/fixture-vue-only-project',
+			private: true,
+			devDependencies: {
+				'@tsrx/vue': 'workspace:*',
+				vue: '^3.5.0',
+				'vue-jsx-vapor': '^3.2.10',
+			},
+		},
+		compilers: ['vue'],
+	},
 	both: {
 		package_json: {
 			name: '@ripple-ts/fixture-ripple-project',
@@ -174,6 +214,18 @@ export const WORKSPACE_CONFIGS = {
 			},
 		},
 		compilers: ['ripple', 'react'],
+	},
+	'both-vue': {
+		package_json: {
+			name: '@tsrx/fixture-vue-project',
+			private: true,
+			devDependencies: {
+				'@tsrx/vue': 'workspace:*',
+				vue: '^3.5.0',
+				'vue-jsx-vapor': '^3.2.10',
+			},
+		},
+		compilers: ['ripple', 'vue'],
 	},
 	'both-react': {
 		package_json: {

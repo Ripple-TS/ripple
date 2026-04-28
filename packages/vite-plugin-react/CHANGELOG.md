@@ -1,5 +1,12 @@
 # @tsrx/vite-plugin-react
 
+## 0.0.18
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/react@0.1.10
+
 ## 0.0.17
 
 ### Patch Changes

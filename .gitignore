@@ -18,6 +18,7 @@ playground/src
 playground/ripple/src
 playground/react/src
 playground/solid/src
+playground/vue/src
 
 website/.vitepress/dist/
 website/.vitepress/cache/
