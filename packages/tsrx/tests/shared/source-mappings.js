@@ -130,6 +130,90 @@ export function runSharedSourceMappingTests({
 			expect_maps(
 				`component C() { const [s, setS]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = useState(true); }`,
 			));
+
+		// Class TS shape: type parameters, generic super class, implements clause.
+		// esrap's ClassDeclaration printer omits typeParameters/superTypeArguments/
+		// implements; without a wrapper the type-position child nodes are dropped
+		// from the generated output and segments.js can't resolve their positions.
+		it('class with type parameters', () =>
+			expect_maps(`class Foo<T> { x: T | null = null; } component C() {}`));
+		it('class with generic extends', () =>
+			expect_maps(`class Foo extends Bar<string> {} component C() {}`));
+		it('class with implements clause', () =>
+			expect_maps(`interface I { x: number } class Foo implements I { x = 1 } component C() {}`));
+		it('class with generic implements', () =>
+			expect_maps(
+				`interface I<T> { x: T } class Foo implements I<string> { x = '' as string } component C() {}`,
+			));
+		it('class expression with type parameters', () =>
+			expect_maps(`component C() { const F = class<T> { x: T | null = null; }; }`));
+
+		// Method shorthand and class methods with type parameters / return types.
+		it('class method with type parameters', () =>
+			expect_maps(`class Foo { bar<T>(x: T): T { return x; } } component C() {}`));
+		it('class method with return type', () =>
+			expect_maps(`class Foo { bar(x: number): string { return ''; } } component C() {}`));
+		it('object method shorthand with type parameters', () =>
+			expect_maps(`component C() { const o = { foo<T>(x: T): T { return x; } }; }`));
+		// Non-method properties whose value happens to be a FunctionExpression
+		// (`node.method === false`) must not be reprinted as method shorthand;
+		// the Property override gates on `node.method`.
+		it('property with function expression value', () =>
+			expect_maps(`component C() { const o = { foo: function() { return 1; } }; }`));
+		it('property with named function expression value', () =>
+			expect_maps(`component C() { const o = { foo: function bar() { return 1; } }; }`));
+		it('property with async function expression value', () =>
+			expect_maps(`component C() { const o = { foo: async function() { return 1; } }; }`));
+		it('object literal getter', () =>
+			expect_maps(`component C() { const o = { get x() { return 1; } }; }`));
+		it('object literal setter', () =>
+			expect_maps(`component C() { const o = { set x(v: number) {} }; }`));
+		it('object literal getter with return type', () =>
+			expect_maps(`component C() { const o = { get x(): number { return 1; } }; }`));
+
+		// TS type operators / mapped / parenthesized types.
+		it('keyof type operator', () => expect_maps(`type K<T> = keyof T; component C() {}`));
+		it('readonly type operator', () => expect_maps(`type R = readonly string[]; component C() {}`));
+		it('parenthesized type annotation', () =>
+			expect_maps(`component C(p: { x: (string | number) }) {}`));
+		it('mapped type', () => expect_maps(`type M<T> = { [K in keyof T]: T[K] }; component C() {}`));
+		it('mapped type with as remapping', () =>
+			expect_maps(
+				`type M<T> = { [K in keyof T as \`__\${string & K}\`]: T[K] }; component C() {}`,
+			));
+		it('object type keyword', () =>
+			expect_maps(`function f(x: object): object { return x; } component C() {}`));
+
+		// import type / `{ type X }` imports.
+		it('import type declaration', () =>
+			expect_maps(`import type { ReactNode } from 'react'; component C() {}`));
+		it('inline type import specifier', () =>
+			expect_maps(`import { type ReactNode, useState } from 'react'; component C() {}`));
+
+		// JS expressions whose esrap printer emits no leading/trailing location
+		// marker, mirroring the existing IfStatement / NewExpression cases.
+		it('UpdateExpression postfix', () => expect_maps(`component C() { let x = 0; x++; }`));
+		it('UpdateExpression prefix', () => expect_maps(`component C() { let x = 0; ++x; }`));
+		it('UnaryExpression', () =>
+			expect_maps(`component C() { const x = !true; const y = -1; const z = typeof x; }`));
+		it('YieldExpression', () =>
+			expect_maps(`function* gen() { yield 1; yield* [2, 3]; } component C() {}`));
+		it('AssignmentPattern with type', () =>
+			expect_maps(`function f(x: number = 1): number { return x; } component C() {}`));
+
+		// Arrow with default parameter and return type — combines AssignmentPattern
+		// with the ArrowFunctionExpression returnType visitor.
+		it('arrow with default-typed parameter and return type', () =>
+			expect_maps(`component C() { const f = (x: number = 1): number => x + 1; }`));
+
+		// TSInstantiationExpression: `identity<string>` used as a value.
+		it('TSInstantiationExpression', () =>
+			expect_maps(
+				`function identity<T>(x: T): T { return x; } const f = identity<string>; component C() {}`,
+			));
+
+		// TSExpressionWithTypeArguments shows up in generic extends/implements.
+		// (Already covered by 'class with generic extends'/'class with generic implements'.)
 	});
 
 	describe(`[${name}] raw source maps cover one-line early-return if statements`, () => {
