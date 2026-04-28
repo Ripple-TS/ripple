@@ -25,10 +25,12 @@ const vue_platform = {
 	imports: {
 		suspense: 'vue',
 		errorBoundary: '@tsrx/vue/error-boundary',
+		mergeRefs: '@tsrx/vue/merge-refs',
 	},
 	jsx: {
 		rewriteClassAttr: false,
 		acceptedTsxKinds: ['vue'],
+		multiRefStrategy: 'merge-refs',
 	},
 	validation: {
 		requireUseServerForAwait: true,
@@ -404,77 +406,31 @@ function is_vue_setup_call(call_expression) {
 }
 
 /**
+ * Reject `{ref expr}` on composite (component-like) elements: Vue component
+ * refs resolve to the component instance, not the rendered DOM node, so
+ * Ripple-style component refs don't have a meaningful DOM target. Multi-ref
+ * merging itself is handled by the shared `merge_duplicate_refs` pass via
+ * the platform's `multiRefStrategy: 'merge-refs'` config.
+ *
  * @param {any[]} attrs
  * @param {any} element
  * @param {any} transform_context
  * @returns {any[]}
  */
 function preprocess_ref_attributes(attrs, element, transform_context) {
-	/** @type {any[]} */
-	const result = [];
-	/** @type {any[]} */
-	const ref_attrs = [];
-
+	void transform_context;
+	if (!is_component_like_element(element)) {
+		return attrs;
+	}
 	for (const attr of attrs) {
-		if (!attr) continue;
-		if (attr.type === 'RefAttribute') {
-			ref_attrs.push(attr);
-			continue;
+		if (attr?.type === 'RefAttribute') {
+			throw create_compile_error(
+				attr,
+				'`{ref ...}` on the Vue target is only supported on host elements. Vue component refs resolve to component instances rather than the rendered DOM node, so Ripple-style component refs are not supported here.',
+			);
 		}
-		result.push(attr);
 	}
-
-	if (ref_attrs.length > 0 && is_component_like_element(element)) {
-		throw create_compile_error(
-			ref_attrs[0],
-			'`{ref ...}` on the Vue target is only supported on host elements. Vue component refs resolve to component instances rather than the rendered DOM node, so Ripple-style component refs are not supported here.',
-		);
-	}
-
-	if (ref_attrs.length === 1) {
-		result.push(ref_attrs[0]);
-	} else if (ref_attrs.length > 1) {
-		result.push({
-			type: 'RefAttribute',
-			argument: create_combined_ref_callback(ref_attrs),
-			loc: ref_attrs[0].loc,
-			metadata: { path: [] },
-		});
-	}
-
-	return result;
-}
-
-/**
- * @param {any[]} ref_attrs
- * @returns {any}
- */
-function create_combined_ref_callback(ref_attrs) {
-	const node_id = builders.id('node');
-
-	return {
-		type: 'ArrowFunctionExpression',
-		params: [node_id],
-		body: {
-			type: 'BlockStatement',
-			body: ref_attrs.map((attr) => ({
-				type: 'ExpressionStatement',
-				expression: {
-					type: 'CallExpression',
-					callee: attr.argument,
-					arguments: [clone_identifier(node_id)],
-					optional: false,
-					metadata: { path: [] },
-				},
-				metadata: { path: [] },
-			})),
-			metadata: { path: [] },
-		},
-		expression: false,
-		async: false,
-		generator: false,
-		metadata: { path: [] },
-	};
+	return attrs;
 }
 
 /**
@@ -652,15 +608,20 @@ function inject_vue_imports(program, transform_context) {
 	if (transform_context.needs_error_boundary) {
 		ensure_named_import(program, '@tsrx/vue/error-boundary', 'TsrxErrorBoundary');
 	}
+
+	if (transform_context.needs_merge_refs) {
+		ensure_named_import(program, '@tsrx/vue/merge-refs', 'mergeRefs', '__mergeRefs');
+	}
 }
 
 /**
  * @param {import('estree').Program} program
  * @param {string} source
  * @param {string} name
+ * @param {string} [local]
  * @returns {void}
  */
-function ensure_named_import(program, source, name) {
+function ensure_named_import(program, source, name, local = name) {
 	for (const statement of program.body) {
 		if (statement.type !== 'ImportDeclaration' || statement.source?.value !== source) {
 			continue;
@@ -670,28 +631,30 @@ function ensure_named_import(program, source, name) {
 			(/** @type {any} */ specifier) =>
 				specifier.type === 'ImportSpecifier' &&
 				specifier.imported?.type === 'Identifier' &&
-				specifier.imported.name === name,
+				specifier.imported.name === name &&
+				specifier.local?.name === local,
 		);
 
 		if (!has_specifier) {
-			statement.specifiers.push(create_import_specifier(name));
+			statement.specifiers.push(create_import_specifier(name, local));
 		}
 
 		return;
 	}
 
-	program.body.unshift(create_import_declaration(source, [create_import_specifier(name)]));
+	program.body.unshift(create_import_declaration(source, [create_import_specifier(name, local)]));
 }
 
 /**
  * @param {string} name
+ * @param {string} [local]
  * @returns {any}
  */
-function create_import_specifier(name) {
+function create_import_specifier(name, local = name) {
 	return {
 		type: 'ImportSpecifier',
 		imported: builders.id(name),
-		local: builders.id(name),
+		local: builders.id(local),
 		importKind: 'value',
 		metadata: { path: [] },
 	};

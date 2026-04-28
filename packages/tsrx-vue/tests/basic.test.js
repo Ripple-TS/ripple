@@ -126,7 +126,7 @@ describe('@tsrx/vue basic', () => {
 		).toThrow(/only supported on host elements/);
 	});
 
-	it('multiple {ref ...} on the same DOM element compile to a combined ref callback', () => {
+	it('multiple {ref ...} on the same DOM element compile to mergeRefs(...)', () => {
 		const { code } = compile(
 			`component App() {
 				function a(node: HTMLInputElement | null) {}
@@ -136,9 +136,35 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toMatch(/ref=\{\(node\) => \{/);
-		expect(code).toMatch(/a\(node\);/);
-		expect(code).toMatch(/b\(node\);/);
+		expect(code).toContain('ref={__mergeRefs(a, b)}');
+		expect(code).toContain("import { mergeRefs as __mergeRefs } from '@tsrx/vue/merge-refs'");
+	});
+
+	it('combines a single ref={expr} with multiple {ref expr} keyword-form refs via mergeRefs', () => {
+		const { code } = compile(
+			`component App() {
+				function a(node: HTMLInputElement | null) {}
+				function b(node: HTMLInputElement | null) {}
+				function c(node: HTMLInputElement | null) {}
+				<input ref={a} {ref b} {ref c} />
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('ref={__mergeRefs(a, b, c)}');
+	});
+
+	it('rejects multiple ref={...} attributes on the same element', () => {
+		expect(() =>
+			compile(
+				`component App() {
+					function a(node: HTMLInputElement | null) {}
+					function b(node: HTMLInputElement | null) {}
+					<input ref={a} ref={b} />
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(/multiple `ref=\{\.\.\.\}` attributes/);
 	});
 
 	it('rejects multiple {ref ...} on the same composite component', () => {
