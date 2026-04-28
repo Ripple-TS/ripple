@@ -141,6 +141,7 @@ export {
 	createJsxTransform,
 	merge_duplicate_refs as mergeDuplicateRefs,
 	to_jsx_attribute as toJsxAttribute,
+	validate_at_most_one_ref_attribute as validateAtMostOneRefAttribute,
 } from './transform/jsx/index.js';
 export {
 	ensure_function_metadata as ensureFunctionMetadata,

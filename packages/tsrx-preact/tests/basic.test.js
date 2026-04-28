@@ -172,7 +172,7 @@ describe('@tsrx/preact basic', () => {
 		expect(code).not.toContain('function StatementBodyHook1({ props })');
 	});
 
-	describe('multiple ref attributes', () => {
+	describe('ref attributes', () => {
 		it('passes a single ref={expr} through unchanged with no helper import', () => {
 			const { code } = compile(
 				`export component App() {
@@ -187,34 +187,59 @@ describe('@tsrx/preact basic', () => {
 			expect(code).not.toContain('@tsrx/preact/merge-refs');
 		});
 
-		it('collapses multiple ref={expr} attributes into a __mergeRefs call and injects an import', () => {
+		it('passes a single Ripple {ref expr} through as ref={expr} with no helper import', () => {
 			const { code } = compile(
 				`export component App() {
 					function refA(_node) {}
-					function refB(_node) {}
-					<div ref={refA} ref={refB}>{'hi'}</div>
+					<div {ref refA}>{'hi'}</div>
 				}`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain('ref={__mergeRefs(refA, refB)}');
-			expect(code).toContain("import { mergeRefs as __mergeRefs } from '@tsrx/preact/merge-refs'");
-			expect(code).not.toMatch(/ref=\{refA\}\s+ref=\{refB\}/);
+			expect(code).toContain('ref={refA}');
+			expect(code).not.toContain('__mergeRefs');
 		});
 
-		it('also merges Ripple {ref expr} keyword refs with React-style ref={expr}', () => {
+		it('rejects multiple ref={expr} attributes on the same element', () => {
+			expect(() =>
+				compile(
+					`export component App() {
+						function refA(_node) {}
+						function refB(_node) {}
+						<div ref={refA} ref={refB}>{'hi'}</div>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/multiple `ref=\{\.\.\.\}` attributes/);
+		});
+
+		it('merges multiple {ref expr} keyword-form refs into a __mergeRefs call', () => {
 			const { code } = compile(
 				`export component App() {
 					function refA(_node) {}
 					function refB(_node) {}
 					function refC(_node) {}
-					function refD(_node) {}
-					<div {ref refA} ref={refB} {ref refC} ref={refD} >{'hi'}</div>
+					<div {ref refA} {ref refB} {ref refC}>{'hi'}</div>
 				}`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain('ref={__mergeRefs(refA, refB, refC, refD)}');
+			expect(code).toContain('ref={__mergeRefs(refA, refB, refC)}');
+			expect(code).toContain("import { mergeRefs as __mergeRefs } from '@tsrx/preact/merge-refs'");
+		});
+
+		it('merges a single ref={expr} with multiple {ref expr} keyword-form refs', () => {
+			const { code } = compile(
+				`export component App() {
+					function refA(_node) {}
+					function refB(_node) {}
+					function refC(_node) {}
+					<div ref={refA} {ref refB} {ref refC}>{'hi'}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('ref={__mergeRefs(refA, refB, refC)}');
 		});
 	});
 });

@@ -195,26 +195,10 @@ component MultiDomRefApp() {
 	<input type="text" {ref refA} {ref refB} />
 }
 
-// ── Multiple TSX-style ref={fn} on the same DOM element ──
-// Regression: previously two `ref={...}` JSX attributes were emitted
-// as duplicate JSX `ref` props instead of folding into the array path.
-// The compiler now collapses them into `ref={[a, b]}`, matching the
-// Ripple `{ref ...}` form.
-
-let multi_jsx_dom_a: HTMLInputElement | null = null;
-let multi_jsx_dom_b: HTMLInputElement | null = null;
-
-component MultiJsxDomRefApp() {
-	function refA(node: HTMLInputElement) {
-		multi_jsx_dom_a = node;
-	}
-	function refB(node: HTMLInputElement) {
-		multi_jsx_dom_b = node;
-	}
-	<input type="text" ref={refA} ref={refB} />
-}
-
 // ── Mixing Ripple {ref expr} and TSX-style ref={expr} on the same element ──
+// Multiple TSX-style `ref={...}` on one element is a compile error;
+// combining a single `ref={...}` with any number of `{ref expr}` is the
+// supported way to attach multiple refs.
 
 let mixed_keyword_node: HTMLInputElement | null = null;
 let mixed_jsx_node: HTMLInputElement | null = null;
@@ -811,15 +795,6 @@ describe('tsrx-solid runtime', () => {
 		expect(multi_dom_a).toBeInstanceOf(HTMLInputElement);
 		expect(multi_dom_b).toBeInstanceOf(HTMLInputElement);
 		expect(multi_dom_a).toBe(multi_dom_b);
-	});
-
-	it('supports multiple TSX-style ref={fn} on the same DOM element', async () => {
-		multi_jsx_dom_a = null;
-		multi_jsx_dom_b = null;
-		await render(MultiJsxDomRefApp);
-		expect(multi_jsx_dom_a).toBeInstanceOf(HTMLInputElement);
-		expect(multi_jsx_dom_b).toBeInstanceOf(HTMLInputElement);
-		expect(multi_jsx_dom_a).toBe(multi_jsx_dom_b);
 	});
 
 	it('mixes Ripple {ref expr} and TSX-style ref={expr} on the same DOM element', async () => {

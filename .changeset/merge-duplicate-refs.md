@@ -2,12 +2,16 @@
 '@tsrx/core': minor
 '@tsrx/react': minor
 '@tsrx/preact': minor
-'@tsrx/solid': patch
+'@tsrx/solid': minor
 ---
 
-Collapse multiple `ref` attributes on a single element at compile time.
+Compile-time merge for multiple ref expressions, plus a diagnostic for duplicate `ref={...}` attributes.
 
-Previously, two `ref={...}` attributes on the same element produced duplicate JSX `ref` props, which React and Preact dedupe (last wins) and Solid passed through untouched. The compilers now detect multiple ref attributes — across both Ripple's `{ref expr}` keyword form and TSX-style `ref={expr}` — and collapse them into a single attribute.
+**New rule**: an element may have at most one TSX-style `ref={...}` attribute. Multiple `ref={...}` on the same element is now a compile error — they would otherwise produce duplicate JSX props (last-wins at runtime, can't be typed cleanly). The error suggests the supported alternative.
 
-- `@tsrx/react` and `@tsrx/preact` emit `ref={mergeRefs(a, b, ...)}`, importing the shared `mergeRefs` helper from `@tsrx/react/merge-refs` and `@tsrx/preact/merge-refs` respectively. The helper supports both function refs and ref objects, and composes React 19 cleanup return values.
-- `@tsrx/solid` emits `ref={[a, b, ...]}`, which Solid's runtime iterates natively. This also fixes a bug where TSX-style `ref={expr}` attributes on a Solid element were not folded into the existing array-merge path.
+**Multiple `{ref expr}` keyword-form refs are still supported and merge into one ref**:
+
+- `@tsrx/react` and `@tsrx/preact` emit `ref={mergeRefs(a, b, ...)}`, importing the shared `mergeRefs` helper from `@tsrx/react/merge-refs` and `@tsrx/preact/merge-refs` respectively. The helper supports both function refs and `{ current }` ref objects, and composes React 19 cleanup return values.
+- `@tsrx/solid` emits `ref={[a, b, ...]}`, which Solid's runtime iterates natively.
+
+A single `ref={...}` may be combined with any number of `{ref expr}` on the same element — they all merge together. Single-ref elements (either syntax) emit unchanged with no helper import.

@@ -5,6 +5,7 @@ import {
 	createJsxTransform,
 	mergeDuplicateRefs,
 	toJsxAttribute,
+	validateAtMostOneRefAttribute,
 	setLocation,
 	applyLazyTransforms as apply_lazy_transforms,
 	collectLazyBindingsFromComponent as collect_lazy_bindings_from_component,
@@ -1245,6 +1246,7 @@ function has_text_content_attribute(attributes) {
  */
 function transform_element_attributes(raw_attrs, is_composite, transform_context) {
 	void is_composite;
+	validateAtMostOneRefAttribute(raw_attrs);
 	/** @type {any[]} */
 	const result = [];
 

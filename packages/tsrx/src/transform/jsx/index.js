@@ -2502,17 +2502,62 @@ function to_jsx_expression_container(expression, source_node = expression) {
  * the result is run through `merge_duplicate_refs` so platforms with a
  * `multiRefStrategy` get duplicate-`ref` handling for free.
  *
+ * Before lowering, the raw attribute list is validated to reject elements
+ * with more than one TSX-style `ref={...}` attribute — that shape produces
+ * duplicate JSX props which the JSX runtime collapses to last-wins (and
+ * which TypeScript can't type cleanly). Multiple Ripple `{ref expr}`
+ * keyword-form refs remain valid and merge into a single ref attribute.
+ *
  * @param {any[]} attrs
  * @param {TransformContext} transform_context
  * @param {any} element
  * @returns {any[]}
  */
 function transform_element_attributes_dispatch(attrs, transform_context, element) {
+	validate_at_most_one_ref_attribute(attrs);
 	const hook = transform_context.platform.hooks?.transformElementAttributes;
 	const result = hook
 		? hook(attrs, transform_context, element)
 		: attrs.map((/** @type {any} */ a) => to_jsx_attribute(a, transform_context));
 	return merge_duplicate_refs(result, transform_context);
+}
+
+/**
+ * Reject elements with more than one TSX-style `ref={...}` attribute.
+ * Ripple's `{ref expr}` keyword form is parsed as a `RefAttribute` node
+ * and is excluded from the count — multiple keyword-form refs are a Ripple
+ * feature that compose via the merge pass. This validator runs over the
+ * raw, pre-lowering attribute list so each shape is still distinguishable
+ * by `type`. Ripple `Element` attributes have type `Attribute` with an
+ * `Identifier` name (the parser normalizes `JSXAttribute`/`JSXIdentifier`
+ * for non-Tsx elements); inside `<tsx:react>` compat blocks they retain
+ * the original `JSXAttribute`/`JSXIdentifier` shape, so we accept both.
+ *
+ * @param {any[]} raw_attrs
+ */
+export function validate_at_most_one_ref_attribute(raw_attrs) {
+	let first = null;
+	for (const attr of raw_attrs) {
+		if (!attr) continue;
+		const is_ref_attr =
+			(attr.type === 'Attribute' &&
+				attr.name &&
+				attr.name.type === 'Identifier' &&
+				attr.name.name === 'ref') ||
+			(attr.type === 'JSXAttribute' &&
+				attr.name &&
+				attr.name.type === 'JSXIdentifier' &&
+				attr.name.name === 'ref');
+		if (!is_ref_attr) continue;
+		if (first) {
+			throw create_compile_error(
+				attr,
+				'Element has multiple `ref={...}` attributes; an element may have at most one. ' +
+					"Use Ripple's `{ref expr}` keyword form to combine multiple refs on one element.",
+			);
+		}
+		first = attr;
+	}
 }
 
 /**
@@ -2648,15 +2693,20 @@ export function to_jsx_attribute(attr, transform_context) {
 		);
 	}
 	if (attr.type === 'RefAttribute') {
-		// RefAttribute uses `{ref expr}` syntax whose source positions don't map to the
-		// generated `ref={expr}` JSX attribute, so we intentionally omit loc.
-		return /** @type {any} */ ({
-			type: 'JSXAttribute',
-			name: { type: 'JSXIdentifier', name: 'ref', metadata: { path: [] } },
-			value: to_jsx_expression_container(attr.argument),
-			shorthand: false,
-			metadata: { path: [] },
-		});
+		// `{ref expr}` and the generated `ref={expr}` have different shapes,
+		// so the source-to-generated mapping is imprecise — but pointing
+		// editors at the `{ref expr}` span is still useful for hover/jump,
+		// matching how shorthand `{name}` → `name={name}` carries loc.
+		return set_loc(
+			/** @type {any} */ ({
+				type: 'JSXAttribute',
+				name: { type: 'JSXIdentifier', name: 'ref', metadata: { path: [] } },
+				value: to_jsx_expression_container(attr.argument),
+				shorthand: false,
+				metadata: { path: [] },
+			}),
+			attr,
+		);
 	}
 
 	// Platforms that expect React-style DOM attrs (React) rewrite `class` to

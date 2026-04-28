@@ -617,8 +617,8 @@ describe('@tsrx/solid basic', () => {
 		});
 	});
 
-	describe('multiple ref attributes', () => {
-		it('passes a single {ref expr} through as ref={expr} with no helper import', () => {
+	describe('ref attributes', () => {
+		it('passes a single {ref expr} through as ref={expr} with no array wrapper', () => {
 			const { code } = compile(
 				`component App() {
 					function refA(_node) {}
@@ -628,53 +628,61 @@ describe('@tsrx/solid basic', () => {
 			);
 
 			expect(code).toContain('ref={refA}');
-			expect(code).not.toContain('mergeRefs');
 			expect(code).not.toContain('[refA');
 		});
 
-		it('collapses multiple {ref expr} attributes into a Solid-native array literal', () => {
+		it('passes a single TSX-style ref={expr} through as ref={expr} with no array wrapper', () => {
 			const { code } = compile(
 				`component App() {
 					function refA(_node) {}
-					function refB(_node) {}
-					<div {ref refA} {ref refB}>{'hi'}</div>
+					<div ref={refA}>{'hi'}</div>
 				}`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain('ref={[refA, refB]}');
-			expect(code).not.toContain('mergeRefs');
+			expect(code).toContain('ref={refA}');
+			expect(code).not.toContain('[refA');
 		});
 
-		it('collapses multiple React-style ref={expr} attributes into an array literal', () => {
-			// Regression: previously two TSX-style ref attributes were emitted as
-			// duplicate JSX `ref` props, colliding under Solid's runtime.
-			const { code } = compile(
-				`component App() {
-					function refA(_node) {}
-					function refB(_node) {}
-					<div ref={refA} ref={refB}>{'hi'}</div>
-				}`,
-				'App.tsrx',
-			);
-
-			expect(code).toContain('ref={[refA, refB]}');
-			expect(code).not.toMatch(/ref=\{refA\}\s+ref=\{refB\}/);
+		it('rejects multiple ref={expr} attributes on the same element', () => {
+			expect(() =>
+				compile(
+					`component App() {
+						function refA(_node) {}
+						function refB(_node) {}
+						<div ref={refA} ref={refB}>{'hi'}</div>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/multiple `ref=\{\.\.\.\}` attributes/);
 		});
 
-		it('mixes Ripple {ref ...} keyword refs with TSX-style ref={...} into one array', () => {
+		it('collapses multiple {ref expr} keyword-form refs into a Solid-native array literal', () => {
 			const { code } = compile(
 				`component App() {
 					function refA(_node) {}
 					function refB(_node) {}
 					function refC(_node) {}
-					function refD(_node) {}
-					<div {ref refA} ref={refB} {ref refC} ref={refD} >{'hi'}</div>
+					<div {ref refA} {ref refB} {ref refC}>{'hi'}</div>
 				}`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain('ref={[refA, refB, refC, refD]}');
+			expect(code).toContain('ref={[refA, refB, refC]}');
+		});
+
+		it('combines a single TSX-style ref={expr} with multiple {ref expr} keyword-form refs', () => {
+			const { code } = compile(
+				`component App() {
+					function refA(_node) {}
+					function refB(_node) {}
+					function refC(_node) {}
+					<div ref={refA} {ref refB} {ref refC}>{'hi'}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('ref={[refA, refB, refC]}');
 		});
 	});
 });

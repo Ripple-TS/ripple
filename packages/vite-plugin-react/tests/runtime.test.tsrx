@@ -175,10 +175,11 @@ component MultiRefApp() {
 	</div>
 }
 
-// ── Multiple `ref={fn}` attributes auto-merged by the compiler ──
+// ── Multiple `{ref expr}` keyword-form refs auto-merged by the compiler ──
 // React's runtime treats duplicate `ref` props as a normal prop collision,
-// so the tsrx-react compiler collapses them into a single `mergeRefs(...)`
-// call. Each callback should still see the same DOM node.
+// so multiple TSX-style `ref={...}` attributes are a compile error. The
+// Ripple `{ref expr}` keyword form is the supported way to combine refs;
+// the compiler folds them into a single `mergeRefs(...)` call.
 
 let auto_merged_a: HTMLDivElement | null = null;
 let auto_merged_b: HTMLDivElement | null = null;
@@ -195,12 +196,13 @@ component AutoMergedRefApp() {
 		auto_merged_c = node;
 	}
 
-	<div ref={refA} ref={refB} ref={refC} class="auto-merged">{'auto merged'}</div>
+	<div {ref refA} {ref refB} {ref refC} class="auto-merged">{'auto merged'}</div>
 }
 
 // ── Mixing Ripple `{ref expr}` and TSX-style `ref={expr}` ──
-// Both syntaxes should be picked up by the merge pass and both refs
-// should fire with the same node.
+// At most one TSX-style `ref={expr}` is allowed; any number of
+// `{ref expr}` keyword-form refs may sit alongside it. Both should fire
+// with the same node.
 
 let mixed_keyword_node: HTMLDivElement | null = null;
 let mixed_jsx_node: HTMLDivElement | null = null;
@@ -228,7 +230,7 @@ component AutoMergedRefObjectApp() {
 		auto_ref_obj_callback_node = node;
 	}
 
-	<div ref={ref_object} ref={callbackRef} class="auto-merged-objects">{'object merged'}</div>
+	<div ref={ref_object} {ref callbackRef} class="auto-merged-objects">{'object merged'}</div>
 }
 
 // ── React 19 cleanup contract through mergeRefs ──
@@ -256,7 +258,7 @@ component CleanupRefApp() {
 	const [show, setShow] = useState(true);
 
 	if (show) {
-		<div ref={legacyMountRef} ref={modernMountRef} class="cleanup-target">{'x'}</div>
+		<div ref={legacyMountRef} {ref modernMountRef} class="cleanup-target">{'x'}</div>
 	}
 
 	<button class="cleanup-hide" onClick={() => setShow(false)}>{'hide'}</button>
@@ -872,7 +874,7 @@ describe('tsrx-react runtime', () => {
 		expect(multi_ref1_node!.textContent).toBe('multi ref');
 	});
 
-	it('auto-merges multiple ref={fn} attributes via mergeRefs', async () => {
+	it('auto-merges multiple {ref expr} keyword-form refs via mergeRefs', async () => {
 		auto_merged_a = null;
 		auto_merged_b = null;
 		auto_merged_c = null;
