@@ -128,9 +128,9 @@ export component App() {
 component Child() {
   // The div should have its font-size at 2rem from parent
   <div>
-    <h2 class="header">{'This is a header with font-size 3rem'}</h2>
-    <span class="highlight">{'This will be red and bold'}</span>
-    <p class="nested">{'This will have left margin'}</p>
+    <h2 class="header">"This is a header with font-size 3rem"</h2>
+    <span class="highlight">"This will be red and bold"</span>
+    <p class="nested">"This will have left margin"</p>
   </div>
 }
 ```
@@ -178,7 +178,7 @@ export component App() {
 }
 
 component Child() {
-  <div class="child">{'Child content'}</div>
+  <div class="child">"Child content"</div>
 
   <style>
     .child {
@@ -204,7 +204,7 @@ elements via the `class` attribute.
 
 ```ripple
 component Child({ className }: { className: string }) {
-  <div class={className}>{'styled child'}</div>
+  <div class={className}>"styled child"</div>
 }
 
 component Parent() {
@@ -222,8 +222,8 @@ You can pass multiple classes:
 
 ```ripple
 component Child({ primary, secondary }: { primary: string; secondary: string }) {
-  <div class={primary}>{'primary'}</div>
-  <span class={secondary}>{'secondary'}</span>
+  <div class={primary}>"primary"</div>
+  <span class={secondary}>"secondary"</span>
 }
 
 component Parent() {
@@ -248,7 +248,7 @@ component Parent() {
 import { track } from 'ripple';
 
 component Child({ cls }: { cls: string }) {
-  <span class={cls}>{'text'}</span>
+  <span class={cls}>"text"</span>
 }
 
 component Parent() {
@@ -270,7 +270,7 @@ scoped classes:
 
 ```ripple
 component Card({ className }: { className?: string }) {
-  <div class={['card-base', className ?? '']}>{'card content'}</div>
+  <div class={['card-base', className ?? '']}>"card content"</div>
 
   <style>
     .card-base {
