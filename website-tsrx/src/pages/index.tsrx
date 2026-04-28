@@ -37,7 +37,7 @@ const SOLID_LAZY_HTML = [
 const INLINE_LOCALS_HTML = [
 	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">Cart</span><span class="br">(</span><span class="br">{</span> <span class="prop">items</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">items</span>: <span class="type">Item</span><span class="br">[]</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln"> 2</span>   <span class="tag">&lt;</span><span class="el">div</span><span class="tag">&gt;</span>',
-	'<span class="ln"> 3</span>     <span class="tag">&lt;</span><span class="el">h2</span><span class="tag">&gt;</span><span class="str">\"Your cart\"</span><span class="tag">&lt;/</span><span class="el">h2</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 3</span>     <span class="tag">&lt;</span><span class="el">h2</span><span class="tag">&gt;</span><span class="str">"Your cart"</span><span class="tag">&lt;/</span><span class="el">h2</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 4</span>',
 	'<span class="ln"> 5</span>     <span class="kw">const</span> <span class="prop">subtotal</span> = <span class="prop">items</span>.<span class="fn">reduce</span><span class="br">(</span><span class="br">(</span><span class="prop">sum</span>, <span class="prop">item</span><span class="br">)</span> =&gt; <span class="prop">sum</span> + <span class="prop">item</span>.<span class="prop">price</span>, <span class="val">0</span><span class="br">)</span>;',
 	'<span class="ln"> 6</span>     <span class="kw">const</span> <span class="prop">discount</span> = <span class="prop">subtotal</span> &gt; <span class="val">100</span> ? <span class="val">0.1</span> : <span class="val">0</span>;',
