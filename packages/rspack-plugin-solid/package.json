@@ -1,0 +1,42 @@
+{
+  "name": "@tsrx/rspack-plugin-solid",
+  "description": "Rspack plugin for @tsrx/solid",
+  "license": "MIT",
+  "author": "Dominic Gannaway",
+  "version": "0.0.1",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ripple-TS/ripple.git",
+    "directory": "packages/rspack-plugin-solid"
+  },
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "dependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-typescript": "^7.28.5",
+    "@tsrx/solid": "workspace:*",
+    "babel-loader": "^10.1.1",
+    "babel-preset-solid": "2.0.0-beta.7",
+    "solid-refresh": "0.8.0-next.7"
+  },
+  "peerDependencies": {
+    "@rspack/core": ">=1.0.0"
+  },
+  "devDependencies": {
+    "@rspack/core": "^1.6.0",
+    "solid-js": "2.0.0-beta.7",
+    "typescript": "catalog:default"
+  },
+  "files": [
+    "src",
+    "types"
+  ]
+}

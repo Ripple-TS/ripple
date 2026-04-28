@@ -93,6 +93,15 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'rspack-plugin-solid',
+					include: ['packages/rspack-plugin-solid/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'turbopack-plugin-react',
 					include: ['packages/turbopack-plugin-react/tests/**/*.test.js'],
 					environment: 'node',

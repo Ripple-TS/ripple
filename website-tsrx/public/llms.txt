@@ -46,6 +46,7 @@ npm install -D @tsrx/rspack-plugin-preact  # Rspack
 # Solid target
 npm install @tsrx/solid
 npm install -D @tsrx/vite-plugin-solid
+npm install -D @tsrx/rspack-plugin-solid
 
 # Ripple target
 npm install ripple @ripple-ts/vite-plugin
@@ -93,6 +94,29 @@ Options: `{ jsxImportSource?: string, suspenseSource?: string }` — override th
 JSX import source (defaults to `'preact'`) and, if needed, the module used for
 `Suspense` (defaults to `'preact/compat'`). The plugin also pushes `.tsrx`
 into `resolve.extensions` and enables `experiments.css` when unset.
+
+### Rspack setup (Solid target)
+
+`@tsrx/rspack-plugin-solid` is an Rspack plugin class that registers two
+module rules: one compiles `.tsrx` → TSX via `@tsrx/solid`, then runs the
+final TypeScript + Solid JSX transform through `babel-loader` with
+`@babel/preset-typescript` and `babel-preset-solid`; the other routes the
+sibling `?tsrx-css&lang.css` import emitted by the JS loader through Rspack's
+built-in CSS module type (`type: 'css/auto'`).
+
+```js
+// rspack.config.js
+import { TsrxSolidRspackPlugin } from '@tsrx/rspack-plugin-solid';
+
+export default {
+  plugins: [new TsrxSolidRspackPlugin()],
+};
+```
+
+Options: `{ hot?: boolean }` — controls whether the plugin adds
+`solid-refresh/babel` to the Babel pipeline. It defaults to `true` unless
+Rspack is running in production mode. The plugin also pushes `.tsrx` into
+`resolve.extensions` and enables `experiments.css` when unset.
 
 ### Turbopack setup (React target)
 
