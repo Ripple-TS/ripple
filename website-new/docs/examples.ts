@@ -159,7 +159,7 @@ export default component App() {
 }
 
 component Separate() {
-	<p>"I'm a separate component."}</p>
+	<p>"I'm a separate component."</p>
 }
 
 export default component App() {
@@ -299,7 +299,7 @@ export default component ErrorBoundary() {
     } catch (e) {
       reportError(e);
 
-      <div>"An error occurred! ' + e.message}</div>
+      <div>"An error occurred! "{e.message}</div>
     }
   </div>
 }`,
