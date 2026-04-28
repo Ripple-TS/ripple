@@ -627,6 +627,22 @@ importers:
         specifier: catalog:default
         version: 0.5.6
 
+  packages/rspack-plugin-preact:
+    dependencies:
+      '@tsrx/preact':
+        specifier: workspace:*
+        version: link:../tsrx-preact
+    devDependencies:
+      '@rspack/core':
+        specifier: ^1.6.0
+        version: 1.7.11(@swc/helpers@0.5.15)
+      preact:
+        specifier: catalog:default
+        version: 10.29.1
+      typescript:
+        specifier: catalog:default
+        version: 5.9.3
+
   packages/rspack-plugin-react:
     dependencies:
       '@tsrx/react':

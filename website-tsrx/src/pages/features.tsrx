@@ -199,6 +199,16 @@ const CHILDREN_HTML = [
 	'<span class="ln"> 8</span> <span class="tag">&lt;</span><span class="el">List</span> <span class="attr">children</span>=<span class="tbr">{</span><span class="prop">items</span>.<span class="fn">map</span><span class="br">(</span><span class="prop">renderItem</span><span class="br">)</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
 ].join('\n');
 
+const RENDER_PROPS_HTML = [
+	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">App</span><span class="br">(</span><span class="br">{</span> <span class="prop">items</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">items</span>: <span class="type">Item</span><span class="br">[</span><span class="br">]</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 2</span>   <span class="kw">const</span> <span class="prop">renderItem</span> = <span class="br">(</span><span class="prop">item</span>: <span class="type">Item</span><span class="br">)</span> =&gt; <span class="tag">&lt;</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 3</span>     <span class="tag">&lt;</span><span class="el">li</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">item</span>.<span class="prop">label</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">li</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 4</span>   <span class="tag">&lt;/</span><span class="tag">&gt;</span>;',
+	'<span class="ln"> 5</span>',
+	'<span class="ln"> 6</span>   <span class="tag">&lt;</span><span class="el">List</span> <span class="attr">items</span>=<span class="tbr">{</span><span class="prop">items</span><span class="tbr">}</span> <span class="attr">render</span>=<span class="tbr">{</span><span class="prop">renderItem</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
+	'<span class="ln"> 7</span> <span class="br">}</span>',
+].join('\n');
+
 const ASYNC_BOUNDARY_HTML = [
 	'<span class="ln"> 1</span> <span class="kw">const</span> <span class="fn">UserProfile</span> = <span class="fn">lazy</span><span class="br">(</span><span class="br">(</span><span class="br">)</span> =&gt; <span class="fn">import</span><span class="br">(</span><span class="str">\'./UserProfile.tsrx\'</span><span class="br">)</span><span class="br">)</span>;',
 	'<span class="ln"> 2</span>',
@@ -297,7 +307,7 @@ const NAV_ITEMS = [
 	{ id: 'prop-shorthands', label: 'Prop shorthands' },
 	{ id: 'refs', label: 'DOM refs' },
 	{ id: 'scoping', label: 'Lexical scoping' },
-	{ id: 'children', label: 'Children' },
+	{ id: 'children', label: 'Children & render props' },
 	{ id: 'if', label: 'Conditional rendering' },
 	{ id: 'for', label: 'List rendering' },
 	{ id: 'switch', label: 'Switch statements' },
@@ -625,6 +635,21 @@ export component FeaturesPage() {
 						</p>
 						<pre class="code-block">
 							<code>{html CHILDREN_HTML}</code>
+						</pre>
+						<p class="section-body">
+							<strong>{'Render props: '}</strong>
+							{'Render props are just function-valued props in TSRX. Pass them explicitly as '}
+							<code class="inline-code">{'children={...}'}</code>
+							{' or a named prop like '}
+							<code class="inline-code">{'render={...}'}</code>
+							{'. If that function returns JSX, wrap the JSX in '}
+							<code class="inline-code">{'<>...</>'}</code>
+							{' or '}
+							<code class="inline-code">{'<tsx>...</tsx>'}</code>
+							{' because JSX is statement-based by default.'}
+						</p>
+						<pre class="code-block">
+							<code>{html RENDER_PROPS_HTML}</code>
 						</pre>
 					</section>
 

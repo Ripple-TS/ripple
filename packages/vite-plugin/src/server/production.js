@@ -11,6 +11,7 @@
 
 import { createRouter } from './router.js';
 import { createContext, runMiddlewareChain } from './middleware.js';
+import { createLayoutWrapper, createPropsWrapper } from './component-wrappers.js';
 import {
 	patch_global_fetch,
 	build_rpc_lookup,
@@ -251,38 +252,6 @@ async function handleServerRoute(route, context, globalMiddlewares) {
 		handler,
 		route.after || [],
 	);
-}
-
-// ============================================================================
-// Component wrappers
-// ============================================================================
-
-/**
- * Create a wrapper component that injects props
- * @param {Function} Component
- * @param {Record<string, unknown>} props
- * @returns {Function}
- */
-function createPropsWrapper(Component, props) {
-	return function WrappedComponent(/** @type {unknown} */ output, additionalProps = {}) {
-		return Component(output, { ...additionalProps, ...props });
-	};
-}
-
-/**
- * Create a wrapper that composes a layout with a page component
- * @param {Function} Layout
- * @param {Function} Page
- * @param {Record<string, unknown>} pageProps
- * @returns {Function}
- */
-function createLayoutWrapper(Layout, Page, pageProps) {
-	return function LayoutWrapper(/** @type {unknown} */ output, additionalProps = {}) {
-		const children = (/** @type {unknown} */ childOutput) => {
-			return Page(childOutput, { ...additionalProps, ...pageProps });
-		};
-		return Layout(output, { ...additionalProps, children });
-	};
 }
 
 // ============================================================================

@@ -44,11 +44,23 @@ const RSPACK_INSTALL_HTML = [
 	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/react</span> <span class="str">@tsrx/rspack-plugin-react</span>',
 ].join('\n');
 
+const PREACT_RSPACK_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/preact</span> <span class="str">@tsrx/rspack-plugin-preact</span>',
+].join('\n');
+
 const RSPACK_CONFIG_HTML = [
 	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">TsrxReactRspackPlugin</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/rspack-plugin-react\'</span>;',
 	'<span class="ln">2</span>',
 	'<span class="ln">3</span> <span class="kw-export">export default</span> <span class="br">{</span>',
 	'<span class="ln">4</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="kw">new</span> <span class="fn">TsrxReactRspackPlugin</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">5</span> <span class="br">}</span>;',
+].join('\n');
+
+const PREACT_RSPACK_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">TsrxPreactRspackPlugin</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/rspack-plugin-preact\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">export default</span> <span class="br">{</span>',
+	'<span class="ln">4</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="kw">new</span> <span class="fn">TsrxPreactRspackPlugin</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
 	'<span class="ln">5</span> <span class="br">}</span>;',
 ].join('\n');
 
@@ -115,6 +127,7 @@ const NAV_GROUPS = [
 			{ id: 'react-rspack', label: 'React + Rspack' },
 			{ id: 'react-turbopack', label: 'React + Turbopack' },
 			{ id: 'preact-vite', label: 'Preact + Vite' },
+			{ id: 'preact-rspack', label: 'Preact + Rspack' },
 			{ id: 'solid-vite', label: 'Solid + Vite' },
 			{ id: 'ripple', label: 'Ripple' },
 		],
@@ -256,6 +269,29 @@ export component GettingStartedPage() {
 							{' to '}
 							<code class="inline-code">{'tsrxPreact()'}</code>
 							{' if you want to avoid pulling in the full compat layer.'}
+						</p>
+					</section>
+
+					<section class="doc-section" id="preact-rspack">
+						<h2 class="section-heading">{'Preact + Rspack'}</h2>
+						<p class="section-body">{'Install the compiler and Rspack plugin:'}</p>
+						<pre class="code-block">
+							<code>{html PREACT_RSPACK_INSTALL_HTML}</code>
+						</pre>
+						<p class="section-body">{'Then add the plugin to your Rspack config:'}</p>
+						<pre class="code-block">
+							<code>{html PREACT_RSPACK_CONFIG_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'Like the React Rspack plugin, it chains '}
+							<code class="inline-code">{'builtin:swc-loader'}</code>
+							{' for the final JSX transform and routes per-component '}
+							<code class="inline-code">{'<style>'}</code>
+							{' blocks through Rspack\'s built-in CSS module type. You can also pass '}
+							<code class="inline-code">{'{ suspenseSource: \'preact-suspense\' }'}</code>
+							{' if you want to avoid the default '}
+							<code class="inline-code">{'preact/compat'}</code>
+							{' Suspense import.'}
 						</p>
 					</section>
 
