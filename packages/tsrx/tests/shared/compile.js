@@ -109,6 +109,40 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 			expect(code).toContain('" times"');
 		});
 
+		it('decodes entities in direct double-quoted text children like JSX attributes', () => {
+			const { code } = compile(
+				`export component App() {
+					<p>"a&amp;b&quot;c"</p>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('"a&b\\"c"');
+			expect(code).not.toContain('&quot;');
+		});
+
+		it('treats backslashes in direct double-quoted text children as literal text', () => {
+			const { code } = compile(
+				`export component App() {
+					<p>"line\\nbreak"</p>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('"line\\\\nbreak"');
+		});
+
+		it('does not use JavaScript quote escapes in direct double-quoted text children', () => {
+			expect(() =>
+				compile(
+					`export component App() {
+						<p>"adsa\\""</p>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/Unterminated double-quoted text child/);
+		});
+
 		it('keeps compact string comparisons in expression containers parseable', () => {
 			const { code } = compile(
 				`export component App({ value }: { value: string }) {
