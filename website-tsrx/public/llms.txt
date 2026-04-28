@@ -4,7 +4,7 @@
 
 TSRX (TypeScript Render Extensions) is a **TypeScript language extension** for
 building declarative UIs. It compiles one `.tsrx` source file to **React**,
-**Solid**, or **Ripple**, with room for more runtime targets. TSRX is the
+**Preact**, **Solid**, **Vue**, or **Ripple**. TSRX is the
 source language; the target picks the runtime semantics.
 
 Think of TSRX as a spiritual successor to JSX: the same mental model of
@@ -15,7 +15,7 @@ them all the way through to the compiled output.
 
 **Key characteristics:**
 
-- **One source, many targets**: `@tsrx/react`, `@tsrx/solid`, `@tsrx/ripple`
+- **One source, many targets**: `@tsrx/react`, `@tsrx/preact`, `@tsrx/solid`, `@tsrx/vue`, `@tsrx/ripple`
 - **Statement-based JSX**: JSX elements are statements, not expressions
 - **Declarative control flow**: `if`, `for`, `switch`, `try` inside templates
 - **Lexical template scoping**: declare locals next to the JSX that uses them
@@ -24,8 +24,9 @@ them all the way through to the compiled output.
 - **TypeScript-first**: `.tsrx` is a superset of TypeScript; types flow through
 
 **Canonical compiler packages**: `@tsrx/core` (framework-agnostic
-parser/analyzer), `@tsrx/react` (React codegen), `@tsrx/solid` (Solid codegen),
-`@tsrx/ripple` (Ripple codegen).
+parser/analyzer), `@tsrx/react` (React codegen), `@tsrx/preact` (Preact codegen),
+`@tsrx/solid` (Solid codegen), `@tsrx/vue` (Vue/Vapor codegen), `@tsrx/ripple`
+(Ripple codegen).
 
 ## Installation & Targets
 
@@ -47,9 +48,17 @@ npm install -D @tsrx/rspack-plugin-preact  # Rspack
 npm install @tsrx/solid
 npm install -D @tsrx/vite-plugin-solid
 
+# Vue target
+npm install @tsrx/vue vue vue-jsx-vapor
+npm install -D @tsrx/vite-plugin-vue
+
 # Ripple target
 npm install ripple @ripple-ts/vite-plugin
 ```
+
+Vue's Vite setup also needs `vue-jsx-vapor/vite` in the plugin list after
+`@tsrx/vite-plugin-vue`, and editor/typecheck configs should set
+`jsxImportSource: 'vue-jsx-vapor'`.
 
 ### Rspack setup (React target)
 
@@ -115,7 +124,8 @@ export default tsrxReactTurbopack({
 
 Files use the `.tsrx` extension. The compiler transforms the same source
 differently per target — e.g. `if` lowers to `<Show>` on Solid, an IIFE +
-conditional return on React, and a reactive block on Ripple.
+conditional return on React/Preact, a `defineVaporComponent(...)` body on Vue,
+and a reactive block on Ripple.
 
 ## Core Syntax
 
@@ -247,15 +257,16 @@ component Price({ amount }: { amount: number }) {
 }
 ```
 
-#### `{html expr}` — raw HTML, **Ripple only**
+#### `{html expr}` — raw HTML, **Ripple plus limited Vue host support**
 
-Inserts the string as parsed HTML. Only valid on the Ripple target — compiling
-with `@tsrx/react` or `@tsrx/solid` is a compile-time error. Use the
-attribute-level equivalents instead: `dangerouslySetInnerHTML={{ __html: x }}`
-on React, `innerHTML={x}` on Solid.
+Inserts the string as parsed HTML. Ripple supports this directly. Vue supports
+it only when `{html expr}` is the **sole child of a host element**, where it
+lowers to `innerHTML={expr}`. React, Preact, and Solid reject the child-level
+form at compile time; use the attribute-level equivalents instead:
+`dangerouslySetInnerHTML={{ __html: x }}` on React/Preact, `innerHTML={x}` on
+Solid.
 
 ```tsrx
-// Ripple only
 component Article({ markup }: { markup: string }) {
   <article>{html markup}</article>
 }
@@ -288,6 +299,7 @@ let &[count, setCount] = createSignal(0);
 - **React**: compiles to direct property access on the source object — no
   re-renders on stale snapshots.
 - **Solid**: preserves per-access signal reactivity without a wrapper.
+- **Vue**: preserves per-access proxy reactivity on props and other reactive objects.
 - **Ripple**: preserves tracked reactivity; equivalent to `.value` reads
   under the hood.
 
@@ -308,25 +320,27 @@ When a prop name matches the variable, use the shorthand:
 
 ### DOM refs — `{ref expr}`
 
-Two shapes: a mutable `let` variable, or a callback. Both work across React,
-Solid, and Ripple.
+Callback refs work across every target. React, Preact, Solid, and Ripple also
+support a mutable `let` variable form on host elements; Vue currently supports
+the callback form only.
 
 ```tsrx
 component AutoFocus() {
   let input: HTMLInputElement | undefined;
 
-  // Mutable-variable ref — the target assigns the element to `input`
+  // Mutable-variable ref — supported on React/Preact/Solid/Ripple
   <input {ref input} type="text" />
 
-  // Callback ref — invoked with the mounted element
+  // Callback ref — invoked with the mounted element on every target
   <input {ref (node) => node.focus()} />
 }
 ```
 
-Refs also work on composite components. The child typically spreads
-`{...props}` onto a DOM element and the runtime wires the ref through.
-Multiple `{ref ...}` on the same element/component are allowed; every
-callback fires.
+Composite refs work on React, Preact, Solid, and Ripple. Vue component refs
+resolve to component instances rather than the rendered DOM node, so
+`@tsrx/vue` currently supports `{ref ...}` only on host elements. Multiple
+`{ref ...}` callbacks on the same host element are allowed; every callback
+fires.
 
 ```tsrx
 component TextField(props) {
@@ -629,6 +643,19 @@ component UserProfile({ user, posts }: { user: User | null; posts: Post[] }) {
 - `<@Dyn />` dynamic elements → runtime-dispatched element
 - `&{ ... }` lazy destructuring preserves Solid signal reactivity
 
+### Vue (`@tsrx/vue`)
+
+- Compiles components to `defineVaporComponent(...)` output for the
+  `vue-jsx-vapor` runtime
+- Supports `if`, `for`, `switch`, `try { } catch { }`, scoped styles, and
+  `{text ...}`
+- Supports `{html ...}` only as the sole child of a host element; lowers to
+  `innerHTML={...}`
+- Supports `{ref ...}` callback refs on host elements; repeated refs are
+  merged into one callback
+- Does not currently support composite refs, `pending` blocks, `finally`
+  blocks, or top-level component-body `await`
+
 Requires `solid-js@>=2.0.0-beta`. The `<Errored>` and `<Loading>` flow
 primitives are part of Solid 2.0's public API; older Solid (1.x) is not
 supported directly — use `ErrorBoundary` / `Suspense` manually if needed.
@@ -642,6 +669,7 @@ Ripple is both a compiler target and a runtime. See the Ripple llms.txt
 - `effect()`, `untrack()`, `mount()`, `hydrate()`
 - `RippleArray`, `RippleObject`, `RippleMap`, `RippleSet`, `RippleDate`
 - `{html ...}` raw-HTML child (Ripple only)
+- Vue host-element `{html ...}` lowering and callback refs
 - `Context` API, `Portal`, transporting reactivity across function boundaries
 
 ## Common patterns
@@ -728,13 +756,13 @@ component List<T>({ items, render }: Props<T>) {
 | JSX as value             | `const v = <tsx><span /></tsx>;`                 |
 | Text content             | `<p>"literal"</p>`, `<p>{expr}</p>`             |
 | Forced escaped text      | `<span>{text expr}</span>`                       |
-| Raw HTML (Ripple only)   | `<article>{html markup}</article>`               |
+| Raw HTML (Ripple, host-only Vue) | `<article>{html markup}</article>`        |
 | Lazy prop destructure    | `component C(&{ x, y }: Props) { ... }`          |
 | Lazy array destructure   | `let &[count, set] = createSignal(0);`           |
 | Prop shorthand           | `<Input {value} {onChange} />`                   |
-| Mutable-variable ref     | `<input {ref varName} />`                        |
+| Mutable-variable ref (except Vue) | `<input {ref varName} />`                 |
 | Callback ref             | `<input {ref (node) => ...} />`                  |
-| Multiple refs            | `<input {ref a} {ref b} />`                      |
+| Multiple host refs       | `<input {ref a} {ref b} />`                      |
 | Conditional rendering    | `if (cond) { ... } else { ... }`                 |
 | List rendering           | `for (const x of xs; index i; key x.id) { ... }` |
 | Multi-branch             | `switch (x) { case 'a': ... break; }`            |

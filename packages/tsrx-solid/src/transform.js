@@ -849,7 +849,7 @@ function try_statement_to_jsx_child(node, transform_context) {
 	if (finalizer) {
 		throw create_compile_error(
 			finalizer,
-			'Solid TSRX does not support `finally` blocks in component templates. Move the try statement into a function if you need a finally block.',
+			'Solid TSRX does not support JavaScript `try/finally` in component templates. `finally` is not part of TSRX control flow; move the try/finally into a function if you need cleanup logic.',
 		);
 	}
 

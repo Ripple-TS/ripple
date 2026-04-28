@@ -54,6 +54,7 @@ import { is_hoist_safe_jsx_node } from '../jsx-hoist.js';
  *   available_bindings: Map<string, AST.Identifier>,
  *   lazy_next_id: number,
  *   current_css_hash: string | null,
+ *   inside_element_child?: boolean,
  * }} TransformContext
  */
 
@@ -186,7 +187,9 @@ export function createJsxTransform(platform) {
 				// the names their body actually references before generating props.
 				const body_bindings = collect_param_bindings(as_any.params || []);
 				const body = as_any.body || [];
-				for (let i = 0; i < body.length; i += 1) {
+				const split_index = find_hook_safe_split_index(body, state);
+				const collect_end = split_index === -1 ? body.length : split_index;
+				for (let i = 0; i < collect_end; i += 1) {
 					collect_statement_bindings(body[i], body_bindings);
 				}
 				state.available_bindings = body_bindings;
@@ -223,7 +226,7 @@ export function createJsxTransform(platform) {
 				const inner = /** @type {any} */ (next() ?? node);
 				const hook = platform.hooks?.transformElement;
 				if (hook) return /** @type {any} */ (hook(inner, state, raw_children));
-				return /** @type {any} */ (to_jsx_element(inner, state));
+				return /** @type {any} */ (to_jsx_element(inner, state, raw_children));
 			},
 
 			Text(node, { next }) {
@@ -326,12 +329,18 @@ function has_use_server_directive(program) {
 }
 
 /**
+ * Lower a TSRX `Component` node into the shared function-declaration form used
+ * by the default JSX targets. Platform hooks can reuse this helper and wrap the
+ * resulting function in another declaration shape without reimplementing
+ * component body lowering, lazy destructuring, helper generation, or top-level
+ * await handling.
+ *
  * @param {any} component
  * @param {TransformContext} transform_context
  * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] }} [walk_helper_state]
  * @returns {AST.FunctionDeclaration}
  */
-function component_to_function_declaration(component, transform_context, walk_helper_state) {
+export function component_to_function_declaration(component, transform_context, walk_helper_state) {
 	const helper_state = walk_helper_state || create_helper_state(component.id?.name || 'Component');
 	const params = component.params || [];
 	const body = /** @type {any[]} */ (component.body || []);
@@ -443,10 +452,31 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 		}
 
 		if (is_returning_if_statement(child)) {
-			const branch_has_hooks = body_contains_top_level_hook_call(get_if_consequent_body(child));
-			const continuation_has_hooks = body_contains_top_level_hook_call(body_nodes.slice(i + 1));
+			const branch_has_hooks = body_contains_top_level_hook_call(
+				get_if_consequent_body(child),
+				transform_context,
+				true,
+			);
+			const continuation_has_hooks = body_contains_top_level_hook_call(
+				body_nodes.slice(i + 1),
+				transform_context,
+				true,
+			);
 
 			if (branch_has_hooks || continuation_has_hooks) {
+				if (transform_context.platform.hooks?.isTopLevelSetupCall) {
+					statements.push(
+						...create_setup_once_helper_split_returning_if_statements(
+							child,
+							body_nodes.slice(i + 1),
+							render_nodes,
+							transform_context,
+						),
+					);
+					transform_context.available_bindings = saved_bindings;
+					return statements;
+				}
+
 				statements.push(
 					...create_component_helper_split_returning_if_statements(
 						child,
@@ -460,6 +490,83 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 			}
 
 			if (is_lone_return_if_statement(child)) {
+				// On platforms where setup runs once (Vue Vapor), an early
+				// `if (cond) return;` placed at setup level is non-reactive:
+				// `cond` is evaluated only when setup runs and never again.
+				// Inline the rest of the body as a render-time ternary so the
+				// conditional re-evaluates when `cond` changes after mount.
+				// React/Preact/Solid re-run the component body on every render,
+				// so the old setup-time early return is already reactive there
+				// and we keep it to avoid gratuitous output changes.
+				if (transform_context.platform.hooks?.isTopLevelSetupCall) {
+					const continuation_body = body_nodes.slice(i + 1);
+
+					// Render-time inlining unconditionally lifts continuation
+					// statements (provide/watch/declarations/etc.) into the
+					// parent setup, which would run them regardless of the
+					// early-return condition — wrong when the user wrote them
+					// after `if (cond) return;`. Fall back to helper-split if
+					// the continuation has any non-render statements so they
+					// stay scoped to the helper's lifecycle.
+					const continuation_has_setup_statements = continuation_body.some(
+						(node) =>
+							!is_bare_return_statement(node) &&
+							!is_returning_if_statement(node) &&
+							!is_jsx_child(node),
+					);
+
+					if (continuation_has_setup_statements) {
+						statements.push(
+							...create_setup_once_helper_split_returning_if_statements(
+								child,
+								continuation_body,
+								render_nodes,
+								transform_context,
+							),
+						);
+						transform_context.available_bindings = saved_bindings;
+						return statements;
+					}
+
+					const continuation_statements = build_render_statements(
+						continuation_body,
+						false,
+						transform_context,
+					);
+
+					for (const stmt of continuation_statements) {
+						if (stmt.type === 'ReturnStatement') {
+							if (stmt.argument) {
+								render_nodes.push(
+									/** @type {any} */ ({
+										type: 'JSXExpressionContainer',
+										expression: set_loc(
+											/** @type {any} */ ({
+												type: 'ConditionalExpression',
+												test: clone_expression_node(child.test),
+												consequent: {
+													type: 'Literal',
+													value: null,
+													raw: 'null',
+													metadata: { path: [] },
+												},
+												alternate: stmt.argument,
+												metadata: { path: [] },
+											}),
+											child,
+										),
+										metadata: { path: [] },
+									}),
+								);
+							}
+						} else {
+							statements.push(stmt);
+						}
+					}
+
+					break;
+				}
+
 				statements.push(create_component_lone_return_if_statement(child, render_nodes));
 				continue;
 			}
@@ -519,26 +626,62 @@ function is_interleaved_body(body_nodes) {
 
 /**
  * @param {any[]} body_nodes
+ * @param {TransformContext} transform_context
+ * @returns {number}
+ */
+function find_hook_safe_split_index(body_nodes, transform_context) {
+	for (let i = 0; i < body_nodes.length; i += 1) {
+		if (!is_lone_return_if_statement(body_nodes[i])) {
+			continue;
+		}
+
+		if (body_contains_top_level_hook_call(body_nodes.slice(i + 1), transform_context, true)) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @param {TransformContext} transform_context
+ * @param {boolean} include_platform_setup
  * @returns {boolean}
  */
-function body_contains_top_level_hook_call(body_nodes) {
-	return body_nodes.some(statement_contains_top_level_hook_call);
+function body_contains_top_level_hook_call(
+	body_nodes,
+	transform_context,
+	include_platform_setup = false,
+) {
+	return body_nodes.some((node) =>
+		statement_contains_top_level_hook_call(node, transform_context, include_platform_setup),
+	);
 }
 
 /**
  * @param {any} node
+ * @param {TransformContext} transform_context
+ * @param {boolean} include_platform_setup
  * @returns {boolean}
  */
-function statement_contains_top_level_hook_call(node) {
-	return node_contains_top_level_hook_call(node, false);
+function statement_contains_top_level_hook_call(node, transform_context, include_platform_setup) {
+	return node_contains_top_level_hook_call(node, false, transform_context, include_platform_setup);
 }
 
 /**
  * @param {any} node
  * @param {boolean} inside_nested_function
+ * @param {TransformContext} transform_context
+ * @param {boolean} include_platform_setup
  * @returns {boolean}
  */
-function node_contains_top_level_hook_call(node, inside_nested_function) {
+function node_contains_top_level_hook_call(
+	node,
+	inside_nested_function,
+	transform_context,
+	include_platform_setup,
+) {
 	if (!node || typeof node !== 'object') {
 		return false;
 	}
@@ -562,26 +705,53 @@ function node_contains_top_level_hook_call(node, inside_nested_function) {
 			if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
 				continue;
 			}
-			if (node_contains_top_level_hook_call(node[key], next_inside_nested_function)) {
+			if (
+				node_contains_top_level_hook_call(
+					node[key],
+					next_inside_nested_function,
+					transform_context,
+					include_platform_setup,
+				)
+			) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	if (!inside_nested_function && node.type === 'CallExpression' && is_hook_callee(node.callee)) {
+	if (
+		!inside_nested_function &&
+		node.type === 'CallExpression' &&
+		(is_hook_callee(node.callee) ||
+			(include_platform_setup &&
+				transform_context.platform.hooks?.isTopLevelSetupCall?.(node, transform_context) === true))
+	) {
 		return true;
 	}
 
 	if (Array.isArray(node)) {
-		return node.some((child) => node_contains_top_level_hook_call(child, inside_nested_function));
+		return node.some((child) =>
+			node_contains_top_level_hook_call(
+				child,
+				inside_nested_function,
+				transform_context,
+				include_platform_setup,
+			),
+		);
 	}
 
 	for (const key of Object.keys(node)) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
 			continue;
 		}
-		if (node_contains_top_level_hook_call(node[key], inside_nested_function)) {
+		if (
+			node_contains_top_level_hook_call(
+				node[key],
+				inside_nested_function,
+				transform_context,
+				include_platform_setup,
+			)
+		) {
 			return true;
 		}
 	}
@@ -863,6 +1033,12 @@ function hoist_static_render_nodes(render_nodes, transform_context) {
 		const node = render_nodes[i];
 		if (node.type !== 'JSXElement') continue;
 		if (!is_hoist_safe_jsx_node(node)) continue;
+		if (
+			transform_context.platform.hooks?.canHoistStaticNode &&
+			!transform_context.platform.hooks.canHoistStaticNode(node, transform_context)
+		) {
+			continue;
+		}
 		if (references_scope_bindings(node, transform_context.available_bindings)) continue;
 
 		const name = create_helper_name(transform_context.helper_state, 'static');
@@ -894,32 +1070,45 @@ function hoist_static_render_nodes(render_nodes, transform_context) {
  */
 function expand_component_helpers(program) {
 	program.body = program.body.flatMap((statement) => {
-		if (statement.type === 'FunctionDeclaration') {
-			const meta = /** @type {any} */ (statement.metadata);
-			const statics = meta?.generated_statics || [];
-			const helpers = meta?.generated_helpers || [];
-			if (statics.length || helpers.length) {
-				return [...statics, ...helpers, statement];
-			}
-		}
-
-		if (
-			(statement.type === 'ExportNamedDeclaration' ||
-				statement.type === 'ExportDefaultDeclaration') &&
-			statement.declaration?.type === 'FunctionDeclaration'
-		) {
-			const meta = /** @type {any} */ (statement.declaration.metadata);
-			const statics = meta?.generated_statics || [];
-			const helpers = meta?.generated_helpers || [];
-			if (statics.length || helpers.length) {
-				return [...statics, ...helpers, statement];
-			}
+		const meta = get_generated_component_metadata(statement);
+		const statics = meta?.generated_statics || [];
+		const helpers = meta?.generated_helpers || [];
+		if (statics.length || helpers.length) {
+			return [...statics, ...helpers, statement];
 		}
 
 		return [statement];
 	});
 
 	return program;
+}
+
+/**
+ * Component hooks may replace a `Component` node with a function declaration,
+ * variable declaration, or export-safe expression. Generated helper/statics
+ * metadata is carried on whichever replacement node the hook returns, so
+ * helper expansion must read metadata from that broader set.
+ *
+ * @param {any} node
+ * @returns {{ generated_helpers?: any[], generated_statics?: any[] } | null}
+ */
+function get_generated_component_metadata(node) {
+	if (!node || typeof node !== 'object') {
+		return null;
+	}
+
+	if (node.metadata?.generated_helpers || node.metadata?.generated_statics) {
+		return node.metadata;
+	}
+
+	if (
+		(node.type === 'ExportNamedDeclaration' || node.type === 'ExportDefaultDeclaration') &&
+		node.declaration?.metadata
+	) {
+		return node.declaration.metadata;
+	}
+
+	return null;
 }
 
 /**
@@ -1120,6 +1309,53 @@ function create_component_helper_split_returning_if_statements(
 }
 
 /**
+ * @param {any} node
+ * @param {any[]} continuation_body
+ * @param {any[]} render_nodes
+ * @param {TransformContext} transform_context
+ * @returns {any[]}
+ */
+function create_setup_once_helper_split_returning_if_statements(
+	node,
+	continuation_body,
+	render_nodes,
+	transform_context,
+) {
+	const consequent_body = get_if_consequent_body(node);
+	const return_index = consequent_body.findIndex(is_bare_return_statement);
+	const branch_body =
+		return_index === -1 ? consequent_body : consequent_body.slice(0, return_index);
+	const branch_helper = branch_body.length
+		? create_hook_safe_helper(branch_body, undefined, node.consequent, transform_context)
+		: { setup_statements: [], component_element: create_null_literal() };
+	const continuation_helper = continuation_body.length
+		? create_hook_safe_helper(continuation_body, undefined, node, transform_context)
+		: { setup_statements: [], component_element: create_null_literal() };
+
+	return [
+		...branch_helper.setup_statements,
+		...continuation_helper.setup_statements,
+		{
+			type: 'ReturnStatement',
+			argument: combine_render_return_argument(
+				render_nodes,
+				set_loc(
+					/** @type {any} */ ({
+						type: 'ConditionalExpression',
+						test: node.test,
+						consequent: branch_helper.component_element,
+						alternate: continuation_helper.component_element,
+						metadata: { path: [] },
+					}),
+					node,
+				),
+			),
+			metadata: { path: [] },
+		},
+	];
+}
+
+/**
  * @param {any[]} statements
  * @param {any[]} render_nodes
  * @returns {void}
@@ -1244,13 +1480,8 @@ const TEMPLATE_FRAGMENT_ERROR =
  * @param {TransformContext} transform_context
  * @returns {any}
  */
-function to_jsx_element(node, transform_context) {
+function to_jsx_element(node, transform_context, raw_children = node.children || []) {
 	if (node.type === 'JSXElement') return node;
-	if ((node.children || []).some((/** @type {any} */ c) => c && c.type === 'Html')) {
-		throw new Error(
-			`\`{html ...}\` is not supported on the ${transform_context.platform.name} target. Use \`dangerouslySetInnerHTML={{ __html: ... }}\` as an element attribute instead.`,
-		);
-	}
 	if (!node.id) {
 		throw create_compile_error(node, TEMPLATE_FRAGMENT_ERROR);
 	}
@@ -1264,8 +1495,30 @@ function to_jsx_element(node, transform_context) {
 		transform_context,
 		node,
 	);
-	const selfClosing = !!node.selfClosing;
-	const children = create_element_children(node.children || [], transform_context);
+	const walked_children = node.children || [];
+	let selfClosing = !!node.selfClosing;
+	let children;
+	const child_transform = transform_context.platform.hooks?.transformElementChildren?.(
+		node,
+		walked_children,
+		raw_children,
+		attributes,
+		transform_context,
+	);
+
+	if (child_transform) {
+		children = child_transform.children;
+		if (typeof child_transform.selfClosing === 'boolean') {
+			selfClosing = child_transform.selfClosing;
+		}
+	} else {
+		if (walked_children.some((/** @type {any} */ c) => c && c.type === 'Html')) {
+			throw new Error(
+				`\`{html ...}\` is not supported on the ${transform_context.platform.name} target. Use \`dangerouslySetInnerHTML={{ __html: ... }}\` as an element attribute instead.`,
+			);
+		}
+		children = create_element_children(walked_children, transform_context);
+	}
 	const has_unmappable_attribute = attributes.some(
 		(/** @type {any} */ attribute) => attribute?.metadata?.has_unmappable_value,
 	);
@@ -1325,10 +1578,22 @@ function create_element_children(children, transform_context) {
 	}
 
 	if (children.every(is_inline_element_child) && !children_contain_return_semantics(children)) {
-		return children.map((/** @type {any} */ child) => to_jsx_child(child, transform_context));
+		const saved_inside_element_child = transform_context.inside_element_child;
+		transform_context.inside_element_child = true;
+		try {
+			return children.map((/** @type {any} */ child) => to_jsx_child(child, transform_context));
+		} finally {
+			transform_context.inside_element_child = saved_inside_element_child;
+		}
 	}
 
-	return [statement_body_to_jsx_child(children, transform_context)];
+	const saved_inside_element_child = transform_context.inside_element_child;
+	transform_context.inside_element_child = true;
+	try {
+		return [statement_body_to_jsx_child(children, transform_context)];
+	} finally {
+		transform_context.inside_element_child = saved_inside_element_child;
+	}
 }
 
 /**
@@ -1391,7 +1656,7 @@ function is_inline_element_child(node) {
  * @returns {ESTreeJSX.JSXExpressionContainer}
  */
 function statement_body_to_jsx_child(body_nodes, transform_context) {
-	if (body_contains_top_level_hook_call(body_nodes)) {
+	if (body_contains_top_level_hook_call(body_nodes, transform_context, true)) {
 		return hook_safe_statement_body_to_jsx_child(body_nodes, transform_context);
 	}
 
@@ -1570,7 +1835,7 @@ function create_hook_safe_helper(body_nodes, key_expression, source_node, transf
 		return {
 			setup_statements: [
 				...aliases.map((alias) => alias.declaration),
-				create_helper_function_declaration_from_expression(helper_id, helper_fn),
+				create_helper_declaration(helper_id, helper_fn, source_node, transform_context),
 			],
 			component_element,
 		};
@@ -1584,10 +1849,52 @@ function create_hook_safe_helper(body_nodes, key_expression, source_node, transf
 	return {
 		setup_statements: [
 			...aliases.map((alias) => alias.declaration),
-			create_cached_helper_declaration(helper_id, cache_id, helper_fn),
+			create_cached_helper_declaration(
+				helper_id,
+				cache_id,
+				create_helper_init_expression(helper_id, helper_fn, source_node, transform_context),
+			),
 		],
 		component_element,
 	};
+}
+
+/**
+ * @param {AST.Identifier} helper_id
+ * @param {any} helper_fn
+ * @param {any} source_node
+ * @param {TransformContext} transform_context
+ * @returns {any}
+ */
+function create_helper_declaration(helper_id, helper_fn, source_node, transform_context) {
+	const declaration = create_helper_function_declaration_from_expression(helper_id, helper_fn);
+	const hook = transform_context.platform.hooks?.wrapHelperComponent;
+	return hook ? hook(declaration, helper_id, transform_context, source_node) : declaration;
+}
+
+/**
+ * @param {AST.Identifier} helper_id
+ * @param {any} helper_fn
+ * @param {any} source_node
+ * @param {TransformContext} transform_context
+ * @returns {any}
+ */
+function create_helper_init_expression(helper_id, helper_fn, source_node, transform_context) {
+	const hook = transform_context.platform.hooks?.wrapHelperComponent;
+	if (!hook) return helper_fn;
+
+	const declaration = hook(
+		create_helper_function_declaration_from_expression(helper_id, helper_fn),
+		helper_id,
+		transform_context,
+		source_node,
+	);
+	if (declaration?.type === 'VariableDeclaration') {
+		const init = declaration.declarations?.[0]?.init;
+		if (init) return init;
+	}
+
+	return helper_fn;
 }
 
 /**
@@ -1723,10 +2030,10 @@ function create_helper_cache_declaration(cache_id) {
 /**
  * @param {AST.Identifier} helper_id
  * @param {AST.Identifier} cache_id
- * @param {any} helper_fn
+ * @param {any} helper_init
  * @returns {any}
  */
-function create_cached_helper_declaration(helper_id, cache_id, helper_fn) {
+function create_cached_helper_declaration(helper_id, cache_id, helper_init) {
 	return /** @type {any} */ ({
 		type: 'VariableDeclaration',
 		kind: 'const',
@@ -1742,7 +2049,7 @@ function create_cached_helper_declaration(helper_id, cache_id, helper_fn) {
 						type: 'AssignmentExpression',
 						operator: '=',
 						left: clone_identifier(cache_id),
-						right: helper_fn,
+						right: helper_init,
 						metadata: { path: [] },
 					},
 					metadata: { path: [] },
@@ -1841,6 +2148,12 @@ function to_jsx_child(node, transform_context) {
  * @returns {ESTreeJSX.JSXExpressionContainer}
  */
 function if_statement_to_jsx_child(node, transform_context) {
+	const render_if_statement = create_render_if_statement(node, transform_context);
+	const conditional_expression = render_if_statement_to_conditional_expression(render_if_statement);
+	if (conditional_expression) {
+		return to_jsx_expression_container(conditional_expression, node);
+	}
+
 	return to_jsx_expression_container(
 		/** @type {any} */ ({
 			type: 'CallExpression',
@@ -1849,10 +2162,7 @@ function if_statement_to_jsx_child(node, transform_context) {
 				params: [],
 				body: /** @type {any} */ ({
 					type: 'BlockStatement',
-					body: [
-						create_render_if_statement(node, transform_context),
-						create_null_return_statement(),
-					],
+					body: [render_if_statement, create_null_return_statement()],
 					metadata: { path: [] },
 				}),
 				async: false,
@@ -1865,6 +2175,61 @@ function if_statement_to_jsx_child(node, transform_context) {
 			metadata: { path: [] },
 		}),
 	);
+}
+
+/**
+ * @param {any} node
+ * @returns {any | null}
+ */
+function render_if_statement_to_conditional_expression(node) {
+	if (!node || node.type !== 'IfStatement') return null;
+
+	const consequent = block_statement_to_return_expression(node.consequent);
+	if (!consequent) return null;
+
+	let alternate = create_null_literal();
+	if (node.alternate) {
+		if (node.alternate.type === 'IfStatement') {
+			alternate = render_if_statement_to_conditional_expression(node.alternate);
+			if (!alternate) return null;
+		} else {
+			alternate = block_statement_to_return_expression(node.alternate);
+			if (!alternate) return null;
+		}
+	}
+
+	return set_loc(
+		/** @type {any} */ ({
+			type: 'ConditionalExpression',
+			test: node.test,
+			consequent,
+			alternate,
+			metadata: { path: [] },
+		}),
+		node,
+	);
+}
+
+/**
+ * @param {any} block
+ * @returns {any | null}
+ */
+function block_statement_to_return_expression(block) {
+	if (!block || block.type !== 'BlockStatement' || block.body.length === 0) {
+		return null;
+	}
+
+	const statement = block.body[block.body.length - 1];
+	if (!statement || statement.type !== 'ReturnStatement') {
+		return null;
+	}
+
+	const argument = statement.argument || create_null_literal();
+	if (block.body.length === 1) {
+		return argument;
+	}
+
+	return create_hook_safe_helper_iife(block.body.slice(0, -1), argument);
 }
 
 /**
@@ -1923,7 +2288,7 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 
 	const loop_params = get_for_of_iteration_params(node.left, node.index);
 	const loop_body = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
-	const has_hooks = body_contains_top_level_hook_call(loop_body);
+	const has_hooks = body_contains_top_level_hook_call(loop_body, transform_context, true);
 	const body_key_expression = find_key_expression_in_body(loop_body);
 	const explicit_key_expression =
 		body_key_expression ?? (node.key ? clone_expression_node(node.key) : undefined);
@@ -1953,6 +2318,17 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 
 	if (implicit_non_hook_key_expression) {
 		apply_key_to_render_statements(body_statements, implicit_non_hook_key_expression);
+	}
+
+	const platform_for_of = transform_context.platform.hooks?.renderForOf?.(
+		node,
+		loop_params,
+		body_statements,
+		transform_context,
+	);
+	if (platform_for_of) {
+		transform_context.available_bindings = saved_bindings;
+		return platform_for_of;
 	}
 
 	// Restore bindings
@@ -2070,7 +2446,7 @@ function switch_statement_to_jsx_child(node, transform_context) {
  * - `pending` → `<Suspense fallback={...}>`
  * - `catch` → `<TsrxErrorBoundary fallback={(err, reset) => ...}>`
  * - both → ErrorBoundary wraps Suspense
- * - `finally` blocks are not supported in component template context
+ * - JavaScript `try/finally` is not part of component template control flow
  *
  * @param {any} node
  * @param {TransformContext} transform_context
@@ -2084,7 +2460,7 @@ function try_statement_to_jsx_child(node, transform_context) {
 	if (finalizer) {
 		throw create_compile_error(
 			finalizer,
-			`${transform_context.platform.name} TSRX does not support \`finally\` blocks in component templates. Move the try statement into a function if you need a finally block.`,
+			`${transform_context.platform.name} TSRX does not support JavaScript \`try/finally\` in component templates. \`finally\` is not part of TSRX control flow; move the try/finally into a function if you need cleanup logic.`,
 		);
 	}
 
@@ -2092,6 +2468,13 @@ function try_statement_to_jsx_child(node, transform_context) {
 		throw create_compile_error(
 			node,
 			'Component try statements must have a `pending` or `catch` block.',
+		);
+	}
+
+	if (pending && transform_context.platform.validation.unsupportedTryPendingMessage) {
+		throw create_compile_error(
+			pending,
+			transform_context.platform.validation.unsupportedTryPendingMessage,
 		);
 	}
 
@@ -2182,6 +2565,54 @@ function try_statement_to_jsx_child(node, transform_context) {
 
 		transform_context.available_bindings = saved_catch_bindings;
 
+		const boundary_content =
+			transform_context.platform.hooks?.createErrorBoundaryContent?.(
+				try_content,
+				transform_context,
+				node,
+			) ?? null;
+
+		if (boundary_content && transform_context.inside_element_child) {
+			result = to_jsx_expression_container(
+				/** @type {any} */ ({
+					type: 'CallExpression',
+					callee: { type: 'Identifier', name: 'TsrxErrorBoundary', metadata: { path: [] } },
+					arguments: [
+						{
+							type: 'ObjectExpression',
+							properties: [
+								{
+									type: 'Property',
+									key: { type: 'Identifier', name: 'fallback', metadata: { path: [] } },
+									value: fallback_fn,
+									kind: 'init',
+									method: false,
+									shorthand: false,
+									computed: false,
+									metadata: { path: [] },
+								},
+								{
+									type: 'Property',
+									key: { type: 'Identifier', name: 'content', metadata: { path: [] } },
+									value: boundary_content,
+									kind: 'init',
+									method: false,
+									shorthand: false,
+									computed: false,
+									metadata: { path: [] },
+								},
+							],
+							metadata: { path: [] },
+						},
+					],
+					optional: false,
+					metadata: { path: [] },
+				}),
+			);
+
+			return result;
+		}
+
 		result = create_jsx_element(
 			'TsrxErrorBoundary',
 			[
@@ -2191,8 +2622,18 @@ function try_statement_to_jsx_child(node, transform_context) {
 					value: to_jsx_expression_container(/** @type {any} */ (fallback_fn)),
 					metadata: { path: [] },
 				},
+				...(boundary_content
+					? [
+							{
+								type: 'JSXAttribute',
+								name: { type: 'JSXIdentifier', name: 'content', metadata: { path: [] } },
+								value: to_jsx_expression_container(boundary_content),
+								metadata: { path: [] },
+							},
+						]
+					: []),
 			],
-			[result],
+			boundary_content ? [] : [result],
 		);
 	}
 
@@ -2315,7 +2756,11 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 function create_render_if_statement(node, transform_context) {
 	const consequent_body =
 		node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
-	const consequent_has_hooks = body_contains_top_level_hook_call(consequent_body);
+	const consequent_has_hooks = body_contains_top_level_hook_call(
+		consequent_body,
+		transform_context,
+		true,
+	);
 
 	let alternate = null;
 	if (node.alternate) {
@@ -2323,7 +2768,11 @@ function create_render_if_statement(node, transform_context) {
 			alternate = create_render_if_statement(node.alternate, transform_context);
 		} else {
 			const alternate_body = node.alternate.body || [node.alternate];
-			const alternate_has_hooks = body_contains_top_level_hook_call(alternate_body);
+			const alternate_has_hooks = body_contains_top_level_hook_call(
+				alternate_body,
+				transform_context,
+				true,
+			);
 			alternate = set_loc(
 				/** @type {any} */ ({
 					type: 'BlockStatement',
@@ -2388,7 +2837,7 @@ function create_render_switch_case(switch_case, transform_context) {
 		body_without_break.push(child);
 	}
 
-	if (body_contains_top_level_hook_call(body_without_break)) {
+	if (body_contains_top_level_hook_call(body_without_break, transform_context, true)) {
 		return /** @type {any} */ ({
 			type: 'SwitchCase',
 			test: switch_case.test,
@@ -2476,6 +2925,10 @@ function to_jsx_expression_container(expression, source_node = expression) {
  * @returns {any[]}
  */
 function transform_element_attributes_dispatch(attrs, transform_context, element) {
+	const preprocess = transform_context.platform.hooks?.preprocessElementAttributes;
+	if (preprocess) {
+		attrs = preprocess(attrs, transform_context, element);
+	}
 	const hook = transform_context.platform.hooks?.transformElementAttributes;
 	if (hook) return hook(attrs, transform_context, element);
 	return attrs.map((/** @type {any} */ a) => to_jsx_attribute(a, transform_context));

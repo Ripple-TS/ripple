@@ -40,6 +40,26 @@ const SOLID_VITE_CONFIG_HTML = [
 	'<span class="ln">7</span> <span class="br">}</span><span class="br">)</span>;',
 ].join('\n');
 
+const VUE_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/vue</span> <span class="str">@tsrx/vite-plugin-vue</span> <span class="str">vue</span> <span class="str">vue-jsx-vapor</span>',
+].join('\n');
+
+const VUE_VITE_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">defineConfig</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'vite\'</span>;',
+	'<span class="ln">2</span> <span class="kw-export">import</span> <span class="prop">tsrxVue</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/vite-plugin-vue\'</span>;',
+	'<span class="ln">3</span> <span class="kw-export">import</span> <span class="prop">vueJsxVapor</span> <span class="kw-export">from</span> <span class="str">\'vue-jsx-vapor/vite\'</span>;',
+	'<span class="ln">4</span>',
+	'<span class="ln">5</span> <span class="kw-export">export default</span> <span class="fn">defineConfig</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">6</span>   <span class="prop">plugins</span>: <span class="br">[</span>',
+	'<span class="ln">7</span>     <span class="fn">tsrxVue</span><span class="br">(</span><span class="br">)</span>,',
+	'<span class="ln">8</span>     <span class="fn">vueJsxVapor</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">9</span>       <span class="prop">macros</span>: <span class="kw">true</span>,',
+	'<span class="ln">10</span>       <span class="prop">compiler</span>: <span class="br">{</span> <span class="prop">runtimeModuleName</span>: <span class="str">\'vue-jsx-vapor\'</span> <span class="br">}</span>,',
+	'<span class="ln">11</span>     <span class="br">}</span><span class="br">)</span>,',
+	'<span class="ln">12</span>   <span class="br">]</span>,',
+	'<span class="ln">13</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
 const RSPACK_INSTALL_HTML = [
 	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/react</span> <span class="str">@tsrx/rspack-plugin-react</span>',
 ].join('\n');
@@ -129,6 +149,7 @@ const NAV_GROUPS = [
 			{ id: 'preact-vite', label: 'Preact + Vite' },
 			{ id: 'preact-rspack', label: 'Preact + Rspack' },
 			{ id: 'solid-vite', label: 'Solid + Vite' },
+			{ id: 'vue-vite', label: 'Vue + Vite' },
 			{ id: 'ripple', label: 'Ripple' },
 		],
 	},
@@ -155,7 +176,7 @@ export component GettingStartedPage() {
 		<title>{'TSRX | Getting Started'}</title>
 		<meta
 			name="description"
-			content="Get started with TSRX: install with React, Preact, Solid, or Ripple for Vite, Rspack, or Turbopack, learn the component syntax, and explore statement-based control flow."
+			content="Get started with TSRX: install with React, Preact, Solid, Vue, or Ripple for Vite, Rspack, or Turbopack, learn the component syntax, and explore statement-based control flow."
 		/>
 	</head>
 
@@ -187,7 +208,7 @@ export component GettingStartedPage() {
 			<section class="hero">
 				<h1>{'Getting Started'}</h1>
 				<p class="lede">
-					{'Set up TSRX with React, Solid, or Ripple and then wire in the editor tooling that makes '}
+					{'Set up TSRX with React, Preact, Solid, Vue, or Ripple and then wire in the editor tooling that makes '}
 					<code class="inline-code">{'.tsrx'}</code>
 					{' files feel native in the rest of your repo.'}
 				</p>
@@ -349,6 +370,34 @@ export component GettingStartedPage() {
 						<pre class="code-block">
 							<code>{html SOLID_VITE_CONFIG_HTML}</code>
 						</pre>
+					</section>
+
+					<section class="doc-section" id="vue-vite">
+						<h2 class="section-heading">{'Vue + Vite'}</h2>
+						<p class="section-body">
+							{'Install the Vue compiler, its Vite plugin, the Vue runtime, and the Vapor JSX plugin:'}
+						</p>
+						<pre class="code-block">
+							<code>{html VUE_INSTALL_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'Then wire both plugins into your Vite config (order matters — tsrxVue first):'}
+						</p>
+						<pre class="code-block">
+							<code>{html VUE_VITE_CONFIG_HTML}</code>
+						</pre>
+						<p class="section-body">
+							<code class="inline-code">{'@tsrx/vite-plugin-vue'}</code>
+							{' compiles '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' modules into Vue-flavoured TSX, and '}
+							<code class="inline-code">{'vue-jsx-vapor/vite'}</code>
+							{' performs the downstream Vapor JSX transform. For editor typechecking, set '}
+							<code class="inline-code">{'jsxImportSource: "vue-jsx-vapor"'}</code>
+							{' in your '}
+							<code class="inline-code">{'tsconfig.json'}</code>
+							{'.'}
+						</p>
 					</section>
 
 					<section class="doc-section" id="ripple">
@@ -531,6 +580,11 @@ export component GettingStartedPage() {
 				radial-gradient(circle at top, rgba(146, 92, 255, 0.14), transparent 15%),
 				radial-gradient(circle at 80% 10%, rgba(111, 0, 255, 0.1), transparent 15%),
 				linear-gradient(180deg, #ffffff 0%, #f6f3ff 46%, #f2f4fb 100%);
+			background-repeat: no-repeat;
+			background-size:
+				100% 100vh,
+				100% 100vh,
+				100% 100%;
 			min-height: 100vh;
 			overflow-x: hidden;
 		}

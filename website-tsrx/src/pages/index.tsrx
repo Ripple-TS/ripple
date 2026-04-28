@@ -126,7 +126,7 @@ export component IndexPage() {
 					{'You can think of TSRX as a spiritual successor to JSX — the same mental model of embedding UI directly inside TypeScript, but with its own flavor. Control flow, scoped styles, and locals sit in the template as first-class syntax instead of being squeezed through expression slots, and the language stays aware of them through to the compiled output.'}
 				</p>
 				<p class="section-body what-is-copy">
-					{'TSRX is framework-agnostic and interoperable. Today it compiles to React, Preact, Ripple, and Solid, with room for more targets over time. You can import '}
+					{'TSRX is framework-agnostic and interoperable. Today it compiles to React, Preact, Ripple, Solid, and Vue, with room for more targets over time. You can import '}
 					<code class="inline-code">{'.tsrx'}</code>
 					{' modules from JS, TS, and TSX files and it just works.'}
 				</p>
@@ -194,7 +194,7 @@ export component IndexPage() {
 				<p class="eyebrow">{'Ergonomics'}</p>
 				<h2 class="section-heading">{'Better ergonomics for today\'s frameworks.'}</h2>
 				<p class="section-body">
-					{'TSRX takes care of the awkward parts each framework asks you to work around. Patterns that are natural to write — but fragile or illegal in the target runtime — get rewritten at compile time into the exact shape React, Preact, Solid, or Ripple expects. The source stays readable for humans and predictable for language models; the compiler handles the footguns.'}
+					{'TSRX takes care of the awkward parts each framework asks you to work around. Patterns that are natural to write — but fragile or illegal in the target runtime — get rewritten at compile time into the exact shape React, Preact, Solid, Ripple, or Vue expects. The source stays readable for humans and predictable for language models; the compiler handles the footguns.'}
 				</p>
 
 				<p class="section-body">
@@ -248,8 +248,10 @@ export component IndexPage() {
 					<code class="inline-code">{'@tsrx/preact'}</code>
 					{', '}
 					<code class="inline-code">{'@tsrx/ripple'}</code>
-					{', and '}
+					{', '}
 					<code class="inline-code">{'@tsrx/solid'}</code>
+					{', and '}
+					<code class="inline-code">{'@tsrx/vue'}</code>
 					{' transform the same AST into idiomatic output for their target runtimes, including scoped CSS. New targets can be added as standalone compiler plugins without changing the language itself.'}
 				</p>
 				<p class="section-body">
@@ -289,6 +291,11 @@ export component IndexPage() {
 				radial-gradient(circle at top, rgba(146, 92, 255, 0.14), transparent 15%),
 				radial-gradient(circle at 80% 10%, rgba(111, 0, 255, 0.1), transparent 15%),
 				linear-gradient(180deg, #ffffff 0%, #f6f3ff 46%, #f2f4fb 100%);
+			background-repeat: no-repeat;
+			background-size:
+				100% 100vh,
+				100% 100vh,
+				100% 100%;
 			min-height: 100vh;
 			overflow-x: hidden;
 		}

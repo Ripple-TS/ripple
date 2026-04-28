@@ -137,7 +137,10 @@ export { sanitize_template_string as sanitizeTemplateString } from './utils/sani
 export { escape } from './utils/escaping.js';
 
 // Transform
-export { createJsxTransform } from './transform/jsx/index.js';
+export {
+	createJsxTransform,
+	component_to_function_declaration as componentToFunctionDeclaration,
+} from './transform/jsx/index.js';
 export {
 	ensure_function_metadata as ensureFunctionMetadata,
 	in_jsx_child_context as inJsxChildContext,

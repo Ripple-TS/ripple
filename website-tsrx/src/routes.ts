@@ -4,10 +4,11 @@ import * as ripple_prettier_plugin from '@tsrx/prettier-plugin';
 import { compile as compile_react } from '@tsrx/react';
 import { compile as compile_ripple } from '@tsrx/ripple';
 import { compile as compile_solid } from '@tsrx/solid';
+import { compile as compile_vue } from '@tsrx/vue';
 import { format } from 'prettier';
 
 const MAX_SOURCE_LENGTH = 12000;
-const VALID_TARGETS = ['react', 'preact', 'ripple', 'solid'] as const;
+const VALID_TARGETS = ['react', 'preact', 'ripple', 'solid', 'vue'] as const;
 
 type CompileTarget = (typeof VALID_TARGETS)[number];
 
@@ -99,6 +100,18 @@ async function compile_target(target: CompileTarget, source: string) {
 		};
 	}
 
+	if (target === 'vue') {
+		const vue_result = compile_vue(source, 'LiveDemo.tsrx');
+
+		return {
+			target,
+			output: {
+				code: await format_js(vue_result.code),
+				css: await format_css(vue_result.css?.code ?? ''),
+			},
+		};
+	}
+
 	const ripple_result = compile_ripple(source, 'LiveDemo.tsrx');
 
 	return {
@@ -182,7 +195,7 @@ export const routes = [
 
 			if (!is_valid_target(target)) {
 				return Response.json(
-					{ error: 'Target must be one of: react, preact, ripple, solid.' },
+					{ error: 'Target must be one of: react, preact, ripple, solid, vue.' },
 					{ status: 400 },
 				);
 			}
