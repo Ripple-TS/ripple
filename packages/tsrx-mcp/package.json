@@ -33,6 +33,9 @@
   "engines": {
     "node": ">=22.0.0"
   },
+  "scripts": {
+    "generate:docs": "node scripts/generate-docs-index.js"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "catalog:default",
     "zod": "catalog:default"
