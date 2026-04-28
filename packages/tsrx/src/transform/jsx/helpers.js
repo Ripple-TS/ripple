@@ -123,6 +123,69 @@ export function tsx_with_ts_locations() {
 			context.write(': ');
 			context.visit(node.elementType);
 		},
+		// esrap's Property printer for method shorthand (`{ foo<T>() {} }`)
+		// does not visit `value.typeParameters`, so the `<T>` is dropped from
+		// the output and segments.js can't resolve the TSTypeParameterDeclaration's
+		// source position. Override only the actual method-shorthand branch —
+		// `{ foo: function() {} }` (`node.method === false`) and getters/setters
+		// must fall through to base.Property to preserve their printed form.
+		Property: (node, context) => {
+			if (!node.method || node.value.type !== 'FunctionExpression') {
+				base.Property(node, context);
+				return;
+			}
+			const value = node.value;
+			if (value.async) context.write('async ');
+			if (value.generator) context.write('*');
+			if (node.computed) context.write('[');
+			context.visit(node.key);
+			if (node.computed) context.write(']');
+			if (value.typeParameters) {
+				context.visit(value.typeParameters);
+			}
+			context.write('(');
+			for (let i = 0; i < value.params.length; i++) {
+				if (i > 0) context.write(', ');
+				context.visit(value.params[i]);
+			}
+			context.write(')');
+			if (value.returnType) context.visit(value.returnType);
+			context.write(' ');
+			context.visit(value.body);
+		},
+		// esrap's ArrowFunctionExpression printer ignores `typeParameters` and
+		// `returnType`, so an annotated arrow like `(): Record<...> => ...`
+		// prints as `() => ...` and segments.js can't resolve the return-type
+		// nodes' positions in the generated output.
+		ArrowFunctionExpression: (node, context) => {
+			if (node.async) context.write('async ');
+			if (node.typeParameters) {
+				context.visit(node.typeParameters);
+			}
+			context.write('(');
+			for (let i = 0; i < node.params.length; i++) {
+				if (i > 0) context.write(', ');
+				context.visit(node.params[i]);
+			}
+			context.write(')');
+			if (node.returnType) {
+				context.visit(node.returnType);
+			}
+			context.write(' => ');
+			const body = node.body;
+			const wrap_body =
+				body.type === 'ObjectExpression' ||
+				(body.type === 'AssignmentExpression' && body.left.type === 'ObjectPattern') ||
+				(body.type === 'LogicalExpression' && body.left.type === 'ObjectExpression') ||
+				(body.type === 'ConditionalExpression' && body.test.type === 'ObjectExpression');
+			if (wrap_body) {
+				context.write('(');
+				context.visit(body);
+				context.write(')');
+			} else {
+				context.visit(body);
+			}
+		},
 	};
 	for (const type of [
 		// JS nodes whose esrap printer emits no location marker, causing
@@ -138,6 +201,7 @@ export function tsx_with_ts_locations() {
 		'ForOfStatement',
 		'TemplateLiteral',
 		'AwaitExpression',
+		'SwitchStatement',
 		'TaggedTemplateExpression',
 		// JSX wrapper nodes: esrap writes `<`, `>`, `</`, `{`, `}` without
 		// locations, so the opening/closing element's and expression

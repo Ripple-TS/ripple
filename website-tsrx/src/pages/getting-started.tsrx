@@ -44,11 +44,23 @@ const RSPACK_INSTALL_HTML = [
 	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/react</span> <span class="str">@tsrx/rspack-plugin-react</span>',
 ].join('\n');
 
+const PREACT_RSPACK_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/preact</span> <span class="str">@tsrx/rspack-plugin-preact</span>',
+].join('\n');
+
 const RSPACK_CONFIG_HTML = [
 	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">TsrxReactRspackPlugin</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/rspack-plugin-react\'</span>;',
 	'<span class="ln">2</span>',
 	'<span class="ln">3</span> <span class="kw-export">export default</span> <span class="br">{</span>',
 	'<span class="ln">4</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="kw">new</span> <span class="fn">TsrxReactRspackPlugin</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">5</span> <span class="br">}</span>;',
+].join('\n');
+
+const PREACT_RSPACK_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">TsrxPreactRspackPlugin</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/rspack-plugin-preact\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">export default</span> <span class="br">{</span>',
+	'<span class="ln">4</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="kw">new</span> <span class="fn">TsrxPreactRspackPlugin</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
 	'<span class="ln">5</span> <span class="br">}</span>;',
 ].join('\n');
 
@@ -72,6 +84,10 @@ const ESLINT_INSTALL_HTML = [
 	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">-D</span> <span class="str">eslint</span> <span class="str">@tsrx/eslint-plugin</span>',
 ].join('\n');
 
+const TYPESCRIPT_PLUGIN_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">-D</span> <span class="str">@tsrx/typescript-plugin</span>',
+].join('\n');
+
 const PRETTIER_CONFIG_HTML = [
 	'<span class="ln">1</span> <span class="br">{</span>',
 	'<span class="ln">2</span>   <span class="attr">"plugins"</span>: <span class="br">[</span><span class="str">"@tsrx/prettier-plugin"</span><span class="br">]</span>',
@@ -84,6 +100,25 @@ const ESLINT_CONFIG_HTML = [
 	'<span class="ln">3</span> <span class="kw-export">export default</span> <span class="br">[</span>...<span class="prop">tsrx</span>.<span class="prop">configs</span>.<span class="prop">recommended</span><span class="br">]</span>;',
 ].join('\n');
 
+const TYPESCRIPT_PLUGIN_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="br">{</span>',
+	'<span class="ln">2</span>   <span class="attr">"compilerOptions"</span>: <span class="br">{</span>',
+	'<span class="ln">3</span>     <span class="attr">"jsx"</span>: <span class="str">"preserve"</span>,',
+	'<span class="ln">4</span>     <span class="attr">"plugins"</span>: <span class="br">[</span>',
+	'<span class="ln">5</span>       <span class="br">{</span> <span class="attr">"name"</span>: <span class="str">"@tsrx/typescript-plugin"</span> <span class="br">}</span>',
+	'<span class="ln">6</span>     <span class="br">]</span>',
+	'<span class="ln">7</span>   <span class="br">}</span>',
+	'<span class="ln">8</span> <span class="br">}</span>',
+].join('\n');
+
+const TYPECHECK_SCRIPT_HTML = [
+	'<span class="ln">1</span> <span class="br">{</span>',
+	'<span class="ln">2</span>   <span class="attr">"scripts"</span>: <span class="br">{</span>',
+	'<span class="ln">3</span>     <span class="attr">"typecheck"</span>: <span class="str">"tsrx-tsc --noEmit"</span>',
+	'<span class="ln">4</span>   <span class="br">}</span>',
+	'<span class="ln">5</span> <span class="br">}</span>',
+].join('\n');
+
 const NAV_GROUPS = [
 	{
 		heading: 'Frameworks',
@@ -92,6 +127,7 @@ const NAV_GROUPS = [
 			{ id: 'react-rspack', label: 'React + Rspack' },
 			{ id: 'react-turbopack', label: 'React + Turbopack' },
 			{ id: 'preact-vite', label: 'Preact + Vite' },
+			{ id: 'preact-rspack', label: 'Preact + Rspack' },
 			{ id: 'solid-vite', label: 'Solid + Vite' },
 			{ id: 'ripple', label: 'Ripple' },
 		],
@@ -102,6 +138,7 @@ const NAV_GROUPS = [
 			{ id: 'tooling-install', label: 'Tooling overview' },
 			{ id: 'prettier', label: 'Prettier' },
 			{ id: 'eslint', label: 'ESLint' },
+			{ id: 'typescript-plugin', label: 'TypeScript plugin' },
 			{ id: 'vscode', label: 'VS Code' },
 		],
 	},
@@ -235,6 +272,29 @@ export component GettingStartedPage() {
 						</p>
 					</section>
 
+					<section class="doc-section" id="preact-rspack">
+						<h2 class="section-heading">{'Preact + Rspack'}</h2>
+						<p class="section-body">{'Install the compiler and Rspack plugin:'}</p>
+						<pre class="code-block">
+							<code>{html PREACT_RSPACK_INSTALL_HTML}</code>
+						</pre>
+						<p class="section-body">{'Then add the plugin to your Rspack config:'}</p>
+						<pre class="code-block">
+							<code>{html PREACT_RSPACK_CONFIG_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'Like the React Rspack plugin, it chains '}
+							<code class="inline-code">{'builtin:swc-loader'}</code>
+							{' for the final JSX transform and routes per-component '}
+							<code class="inline-code">{'<style>'}</code>
+							{' blocks through Rspack\'s built-in CSS module type. You can also pass '}
+							<code class="inline-code">{'{ suspenseSource: \'preact-suspense\' }'}</code>
+							{' if you want to avoid the default '}
+							<code class="inline-code">{'preact/compat'}</code>
+							{' Suspense import.'}
+						</p>
+					</section>
+
 					<section class="doc-section" id="react-rspack">
 						<h2 class="section-heading">{'React + Rspack'}</h2>
 						<p class="section-body">{'Install the compiler and Rspack plugin:'}</p>
@@ -344,6 +404,67 @@ export component GettingStartedPage() {
 						<pre class="code-block">
 							<code>{html ESLINT_CONFIG_HTML}</code>
 						</pre>
+					</section>
+
+					<section class="doc-section" id="typescript-plugin">
+						<h2 class="section-heading">{'TypeScript plugin'}</h2>
+						<p class="section-body">
+							{'Install '}
+							<code class="inline-code">{'@tsrx/typescript-plugin'}</code>
+							{' when you want TypeScript itself to understand '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' files, especially outside the TSRX VS Code extension: other editors, '}
+							<code class="inline-code">{'tsserver'}</code>
+							{', and command-line '}
+							<code class="inline-code">{'tsc'}</code>
+							{' workflows.'}
+						</p>
+						<pre class="code-block">
+							<code>{html TYPESCRIPT_PLUGIN_INSTALL_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'Then register it in your '}
+							<code class="inline-code">{'tsconfig.json'}</code>
+							{'. Keep your existing compiler options and add the '}
+							<code class="inline-code">{'plugins'}</code>
+							{' entry under '}
+							<code class="inline-code">{'compilerOptions'}</code>
+							{':'}
+						</p>
+						<pre class="code-block">
+							<code>{html TYPESCRIPT_PLUGIN_CONFIG_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'The plugin turns TSRX into virtual TypeScript for diagnostics, navigation, completions, and type checking. If you already use the TSRX VS Code extension, this manual setup is optional because the extension runs the language tooling for you.'}
+						</p>
+						<h3 class="subsection-heading">{'Command-line type checking'}</h3>
+						<p class="section-body">
+							{'The package also ships a '}
+							<code class="inline-code">{'tsrx-tsc'}</code>
+							{' binary — a drop-in '}
+							<code class="inline-code">{'tsc'}</code>
+							{' wrapper that understands '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' files. Use it for CI type checking and any '}
+							<code class="inline-code">{'tsc'}</code>
+							{' workflow that needs to see your TSRX modules. Add a '}
+							<code class="inline-code">{'typecheck'}</code>
+							{' script to your '}
+							<code class="inline-code">{'package.json'}</code>
+							{':'}
+						</p>
+						<pre class="code-block">
+							<code>{html TYPECHECK_SCRIPT_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'Then run '}
+							<code class="inline-code">{'pnpm typecheck'}</code>
+							{' to type check the whole project, including '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' files, without emitting any output. It accepts the same flags as '}
+							<code class="inline-code">{'tsc'}</code>
+							{'.'}
+						</p>
 					</section>
 
 					<section class="doc-section" id="vscode">

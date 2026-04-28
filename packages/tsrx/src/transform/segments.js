@@ -1450,6 +1450,12 @@ export function convert_source_map_to_mappings(
 					}
 				}
 
+				if (node.loc) {
+					mappings.push(
+						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
+					);
+				}
+
 				return;
 			} else if (node.type === 'SwitchCase') {
 				// Visit in source order: test, consequent
@@ -1696,25 +1702,13 @@ export function convert_source_map_to_mappings(
 				node.type === 'TSTypeParameterDeclaration'
 			) {
 				if (node.loc) {
-					// Generic spans can be emitted by downstream transforms with sparse source-map
-					// coverage around the angle-bracket delimiters. Skip missing whole-node mappings
-					// instead of crashing Volar, and rely on child type-node mappings instead.
-					try {
-						const mapping = get_mapping_from_node(
-							node,
-							src_to_gen_map,
-							gen_line_offsets,
-							mapping_data_verify_only,
-						);
-						mappings.push(mapping);
-					} catch (error) {
-						if (
-							!(error instanceof Error) ||
-							!error.message.startsWith('No source map entry for position')
-						) {
-							throw error;
-						}
-					}
+					const mapping = get_mapping_from_node(
+						node,
+						src_to_gen_map,
+						gen_line_offsets,
+						mapping_data_verify_only,
+					);
+					mappings.push(mapping);
 				}
 				// Generic type parameters - visit to collect type variable names
 				if (node.params) {
