@@ -588,10 +588,10 @@ export default component App() {
   let count = track(0);
 
   const [ double ] = createDouble([ count ]); // array
-  <p>"Double: ' + @double}</p>
+  <p>"Double: "{@double}</p>
 
   const { quad } = createQuad({ count }); // object
-  <p>"Quadruple: ' + @quad}</p>
+  <p>"Quadruple: "{@quad}</p>
 
 	<button onClick={() => { @count++; }}>"Increment"</button>
 }

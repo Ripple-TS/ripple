@@ -480,8 +480,8 @@ import { track } from 'ripple';
 component InteractiveStatus() {
   let &[status] = track('loading'); // Reactive state
 
-  <button onClick={() => status = 'success'>"Set to Success"</button>
-  <button onClick={() => status = 'error">"Set to Error"</button>
+  <button onClick={() => status = 'success'}>"Set to Success"</button>
+  <button onClick={() => status = 'error'}>"Set to Error"</button>
 
   // This switch block will update automatically when 'status' changes
   switch (status) {
@@ -550,7 +550,7 @@ export component App() {
   let &[tag] = track('div');
 
   <@tag class="dynamic">"Hello World"</@tag>
-  <button onClick={() => tag = tag === 'div' ? 'span' : 'div">"Toggle Element"</button>
+  <button onClick={() => tag = tag === 'div' ? 'span' : 'div'}>"Toggle Element"</button>
 }
 ```
 
@@ -599,7 +599,7 @@ component EventExample() {
   let &[message] = track("");
 
   <div>
-    <button onClick={() => message = "Clicked!">"Click me"</button>
+    <button onClick={() => message = "Clicked!"}>"Click me"</button>
     <input onInput={(e) => message = e.target.value} />
     <p>{message}</p>
   </div>
