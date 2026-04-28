@@ -627,7 +627,7 @@ export component App() {
     <pre>
       "Block size: "
       {size[0]?.blockSize || 0}
-      "px\n"
+      {'px\n'}
       "Inline size: "
       {size[0]?.inlineSize || 0}
       "px"
