@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "jsxImportSource": "vue-jsx-vapor",
+    "types": ["node", "vitest/globals"],
+    // Vue's package.json exposes `./dist/*` as a JS-only subpath (no `types`
+    // key), so importing the vapor runtime build directly trips ts(7016).
+    // Point TS at Vue's regular .d.mts — the vapor build is a runtime superset
+    // of `vue`, and shim consumers type its vapor-internal values as `any`.
+    "paths": {
+      "vue/dist/vue.runtime-with-vapor.esm-browser.js": ["../node_modules/vue/dist/vue.d.mts"]
+    }
+  },
+  "include": ["**/*.d.ts", "**/*.test.tsrx", "**/*.test.js", "setup.js"],
+  // override parent exclusion of this folder
+  "exclude": []
+}

@@ -3,7 +3,7 @@
   "description": "TypeScript plugin for TSRX",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.3.35",
+  "version": "0.3.37",
   "main": "dist/index.js",
   "bin": {
     "tsrx-tsc": "./dist/tsc.js"
@@ -38,7 +38,8 @@
     "@tsrx/react": "workspace:*",
     "@tsrx/ripple": "workspace:*",
     "@tsrx/solid": "workspace:*",
-    "@tsrx/preact": "workspace:*"
+    "@tsrx/preact": "workspace:*",
+    "@tsrx/vue": "workspace:*"
   },
   "peerDependenciesMeta": {
     "@tsrx/react": {
@@ -51,6 +52,9 @@
       "optional": true
     },
     "@tsrx/preact": {
+      "optional": true
+    },
+    "@tsrx/vue": {
       "optional": true
     }
   },

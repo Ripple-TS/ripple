@@ -1,5 +1,27 @@
 # @ripple-ts/vite-plugin
 
+## 0.3.37
+
+### Patch Changes
+
+- Updated dependencies
+  [[`c631ab0`](https://github.com/Ripple-TS/ripple/commit/c631ab0076b7e2cb30f4998101b54c3a86e78c61)]:
+  - @tsrx/ripple@0.0.19
+  - @ripple-ts/adapter@0.3.37
+
+## 0.3.36
+
+### Patch Changes
+
+- [#999](https://github.com/Ripple-TS/ripple/pull/999)
+  [`aa6628b`](https://github.com/Ripple-TS/ripple/commit/aa6628b3318f1bdad6a6e12286d3002f8d591e2e)
+  Thanks [@trueadm](https://github.com/trueadm)! - Pass RenderRoute params to
+  SSR-compiled page components.
+
+- Updated dependencies []:
+  - @tsrx/ripple@0.0.18
+  - @ripple-ts/adapter@0.3.36
+
 ## 0.3.35
 
 ### Patch Changes

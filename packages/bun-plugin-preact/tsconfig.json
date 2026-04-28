@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "esnext",
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "types": ["bun", "node", "vitest/globals"]
+  },
+  "include": ["./src/**/*", "./tests/**/*", "./types/**/*"],
+  "exclude": ["dist", "node_modules"]
+}

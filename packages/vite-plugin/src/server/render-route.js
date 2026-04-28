@@ -1,6 +1,7 @@
 /// <reference types="@tsrx/ripple/types/rpc" />
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { createLayoutWrapper, createPropsWrapper } from './component-wrappers.js';
 
 /**
  * @typedef {import('@ripple-ts/vite-plugin').Context} Context
@@ -140,47 +141,6 @@ function getDefaultExport(module) {
 		}
 	}
 	return null;
-}
-
-/**
- * Create a wrapper component that injects props
- *
- * @param {Function} Component
- * @param {Record<string, unknown>} props
- * @returns {Function}
- */
-function createPropsWrapper(Component, props) {
-	/**
-	 * @param {unknown} output
-	 * @param {Record<string, unknown>} additionalProps
-	 */
-	return function WrappedComponent(output, additionalProps = {}) {
-		return Component(output, { ...additionalProps, ...props });
-	};
-}
-
-/**
- * Create a wrapper that composes a layout with a page component
- * The layout receives the page as its children prop
- *
- * @param {Function} Layout
- * @param {Function} Page
- * @param {Record<string, unknown>} pageProps
- * @returns {Function}
- */
-function createLayoutWrapper(Layout, Page, pageProps) {
-	/**
-	 * @param {unknown} output
-	 * @param {Record<string, unknown>} additionalProps
-	 */
-	return function LayoutWrapper(output, additionalProps = {}) {
-		// Children is a component function that renders the page
-		const children = (/** @type {unknown} */ childOutput) => {
-			return Page(childOutput, { ...additionalProps, ...pageProps });
-		};
-
-		return Layout(output, { ...additionalProps, children });
-	};
 }
 
 /**

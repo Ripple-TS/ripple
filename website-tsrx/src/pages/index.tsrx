@@ -2,9 +2,9 @@ const SNIPPET_HTML = [
 	'<span class="ln"> 1</span> <span class="kw-export">export</span> <span class="kw">component</span> <span class="fn">Greeting</span><span class="br">(</span><span class="br">{</span> <span class="prop">name</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">name</span>?: <span class="type">string</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln"> 2</span>   <span class="tag">&lt;</span><span class="el">div</span> <span class="attr">class</span>=<span class="str">"card"</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 3</span>     <span class="kw">if</span> <span class="br">(</span><span class="prop">name</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln"> 4</span>       <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">`Hello, ${</span><span class="prop">name</span><span class="str">}`</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 4</span>       <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Hello, "</span><span class="tbr">{</span><span class="prop">name</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 5</span>     <span class="br">}</span> <span class="kw">else</span> <span class="br">{</span>',
-	'<span class="ln"> 6</span>       <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Hello, stranger\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 6</span>       <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Hello, stranger"</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 7</span>     <span class="br">}</span>',
 	'<span class="ln"> 8</span>   <span class="tag">&lt;/</span><span class="el">div</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 9</span>',
@@ -20,7 +20,7 @@ const REACT_HOOKS_HTML = [
 	'<span class="ln"> 3</span>     <span class="kw">const</span> <span class="prop">user</span> = <span class="fn">useUser</span><span class="br">(</span><span class="prop">userId</span><span class="br">)</span>;',
 	'<span class="ln"> 4</span>     <span class="tag">&lt;</span><span class="el">h1</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">user</span>.<span class="prop">name</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h1</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 5</span>   <span class="br">}</span> <span class="kw">else</span> <span class="br">{</span>',
-	'<span class="ln"> 6</span>     <span class="tag">&lt;</span><span class="el">a</span> <span class="attr">href</span>=<span class="str">"/login"</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Sign in\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">a</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 6</span>     <span class="tag">&lt;</span><span class="el">a</span> <span class="attr">href</span>=<span class="str">"/login"</span><span class="tag">&gt;</span><span class="str">"Sign in"</span><span class="tag">&lt;/</span><span class="el">a</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 7</span>   <span class="br">}</span>',
 	'<span class="ln"> 8</span> <span class="br">}</span>',
 ].join('\n');
@@ -29,7 +29,7 @@ const SOLID_LAZY_HTML = [
 	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">Counter</span><span class="br">(</span><span class="br">&amp;{</span> <span class="prop">count</span>, <span class="prop">label</span> <span class="br">}</span>: <span class="type">Props</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln"> 2</span>   <span class="tag">&lt;</span><span class="el">section</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 3</span>     <span class="tag">&lt;</span><span class="el">h2</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">label</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h2</span><span class="tag">&gt;</span>',
-	'<span class="ln"> 4</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">`Count: ${</span><span class="prop">count</span><span class="str">}`</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 4</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Count: "</span><span class="tbr">{</span><span class="prop">count</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 5</span>   <span class="tag">&lt;/</span><span class="el">section</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 6</span> <span class="br">}</span>',
 ].join('\n');
@@ -37,13 +37,13 @@ const SOLID_LAZY_HTML = [
 const INLINE_LOCALS_HTML = [
 	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">Cart</span><span class="br">(</span><span class="br">{</span> <span class="prop">items</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">items</span>: <span class="type">Item</span><span class="br">[]</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln"> 2</span>   <span class="tag">&lt;</span><span class="el">div</span><span class="tag">&gt;</span>',
-	'<span class="ln"> 3</span>     <span class="tag">&lt;</span><span class="el">h2</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Your cart\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h2</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 3</span>     <span class="tag">&lt;</span><span class="el">h2</span><span class="tag">&gt;</span><span class="str">"Your cart"</span><span class="tag">&lt;/</span><span class="el">h2</span><span class="tag">&gt;</span>',
 	'<span class="ln"> 4</span>',
 	'<span class="ln"> 5</span>     <span class="kw">const</span> <span class="prop">subtotal</span> = <span class="prop">items</span>.<span class="fn">reduce</span><span class="br">(</span><span class="br">(</span><span class="prop">sum</span>, <span class="prop">item</span><span class="br">)</span> =&gt; <span class="prop">sum</span> + <span class="prop">item</span>.<span class="prop">price</span>, <span class="val">0</span><span class="br">)</span>;',
 	'<span class="ln"> 6</span>     <span class="kw">const</span> <span class="prop">discount</span> = <span class="prop">subtotal</span> &gt; <span class="val">100</span> ? <span class="val">0.1</span> : <span class="val">0</span>;',
 	'<span class="ln"> 7</span>',
-	'<span class="ln"> 8</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">`Subtotal: $${</span><span class="prop">subtotal</span><span class="str">}`</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
-	'<span class="ln"> 9</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">`Save: $${</span><span class="br">(</span><span class="prop">subtotal</span> * <span class="prop">discount</span><span class="br">)</span>.<span class="fn">toFixed</span><span class="br">(</span><span class="val">2</span><span class="br">)</span><span class="str">}`</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 8</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Subtotal: $"</span><span class="tbr">{</span><span class="prop">subtotal</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 9</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="str">"Save: $"</span><span class="tbr">{</span><span class="br">(</span><span class="prop">subtotal</span> * <span class="prop">discount</span><span class="br">)</span>.<span class="fn">toFixed</span><span class="br">(</span><span class="val">2</span><span class="br">)</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
 	'<span class="ln">10</span>   <span class="tag">&lt;/</span><span class="el">div</span><span class="tag">&gt;</span>',
 	'<span class="ln">11</span> <span class="br">}</span>',
 ].join('\n');
@@ -64,7 +64,7 @@ const COLOCATION_HTML = [
 	'<span class="ln">13</span>         <span class="kw">const</span> <span class="fn">report</span> = <span class="br">(</span><span class="br">)</span> =&gt; <span class="fn">console</span>.<span class="fn">log</span><span class="br">(</span><span class="str">`viewed ${</span><span class="prop">user</span>.<span class="prop">name</span><span class="str">}`</span><span class="br">)</span>;',
 	'<span class="ln">14</span>',
 	'<span class="ln">15</span>         <span class="tag">&lt;</span><span class="el">p</span> <span class="attr">class</span>=<span class="str">"bio"</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">short_bio</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
-	'<span class="ln">16</span>         <span class="tag">&lt;</span><span class="el">button</span> <span class="attr">onClick</span>=<span class="tbr">{</span><span class="prop">report</span><span class="tbr">}</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Viewed\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">button</span><span class="tag">&gt;</span>',
+	'<span class="ln">16</span>         <span class="tag">&lt;</span><span class="el">button</span> <span class="attr">onClick</span>=<span class="tbr">{</span><span class="prop">report</span><span class="tbr">}</span><span class="tag">&gt;</span><span class="str">"Viewed"</span><span class="tag">&lt;/</span><span class="el">button</span><span class="tag">&gt;</span>',
 	'<span class="ln">17</span>       <span class="br">}</span>',
 	'<span class="ln">18</span>     <span class="tag">&lt;/</span><span class="el">div</span><span class="tag">&gt;</span>',
 	'<span class="ln">19</span>   <span class="br">}</span>',
@@ -126,7 +126,7 @@ export component IndexPage() {
 					{'You can think of TSRX as a spiritual successor to JSX — the same mental model of embedding UI directly inside TypeScript, but with its own flavor. Control flow, scoped styles, and locals sit in the template as first-class syntax instead of being squeezed through expression slots, and the language stays aware of them through to the compiled output.'}
 				</p>
 				<p class="section-body what-is-copy">
-					{'TSRX is framework-agnostic and interoperable. Today it compiles to React, Preact, Ripple, and Solid, with room for more targets over time. You can import '}
+					{'TSRX is framework-agnostic and interoperable. Today it compiles to React, Preact, Ripple, Solid, and Vue, with room for more targets over time. You can import '}
 					<code class="inline-code">{'.tsrx'}</code>
 					{' modules from JS, TS, and TSX files and it just works.'}
 				</p>
@@ -194,7 +194,7 @@ export component IndexPage() {
 				<p class="eyebrow">{'Ergonomics'}</p>
 				<h2 class="section-heading">{'Better ergonomics for today\'s frameworks.'}</h2>
 				<p class="section-body">
-					{'TSRX takes care of the awkward parts each framework asks you to work around. Patterns that are natural to write — but fragile or illegal in the target runtime — get rewritten at compile time into the exact shape React, Preact, Solid, or Ripple expects. The source stays readable for humans and predictable for language models; the compiler handles the footguns.'}
+					{'TSRX takes care of the awkward parts each framework asks you to work around. Patterns that are natural to write — but fragile or illegal in the target runtime — get rewritten at compile time into the exact shape React, Preact, Solid, Ripple, or Vue expects. The source stays readable for humans and predictable for language models; the compiler handles the footguns.'}
 				</p>
 
 				<p class="section-body">
@@ -248,8 +248,10 @@ export component IndexPage() {
 					<code class="inline-code">{'@tsrx/preact'}</code>
 					{', '}
 					<code class="inline-code">{'@tsrx/ripple'}</code>
-					{', and '}
+					{', '}
 					<code class="inline-code">{'@tsrx/solid'}</code>
+					{', and '}
+					<code class="inline-code">{'@tsrx/vue'}</code>
 					{' transform the same AST into idiomatic output for their target runtimes, including scoped CSS. New targets can be added as standalone compiler plugins without changing the language itself.'}
 				</p>
 				<p class="section-body">
@@ -289,6 +291,11 @@ export component IndexPage() {
 				radial-gradient(circle at top, rgba(146, 92, 255, 0.14), transparent 15%),
 				radial-gradient(circle at 80% 10%, rgba(111, 0, 255, 0.1), transparent 15%),
 				linear-gradient(180deg, #ffffff 0%, #f6f3ff 46%, #f2f4fb 100%);
+			background-repeat: no-repeat;
+			background-size:
+				100% 100vh,
+				100% 100vh,
+				100% 100%;
 			min-height: 100vh;
 			overflow-x: hidden;
 		}

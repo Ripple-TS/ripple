@@ -5775,6 +5775,31 @@
         }
       ]
     },
+    "jsx_hyphenated_name": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "identifier"
+        },
+        {
+          "type": "REPEAT1",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": "-"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "identifier"
+              }
+            ]
+          }
+        }
+      ]
+    },
     "_jsx_attribute": {
       "type": "CHOICE",
       "members": [
@@ -5804,6 +5829,10 @@
               {
                 "type": "SYMBOL",
                 "name": "jsx_namespace_name"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "jsx_hyphenated_name"
               }
             ]
           }

@@ -1,8 +1,5 @@
 # Rust/Cargo
 target/
 
-# Repo cloned by Zed
-grammars/ripple/
-
-# Zed extension build artifacts
-*.wasm
+# Zed build artifacts (grammar checkout + compiled wasm)
+grammars/

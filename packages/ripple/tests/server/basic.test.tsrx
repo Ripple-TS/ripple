@@ -25,6 +25,21 @@ describe('basic client', () => {
 		expect(body).toBeHtml('<div>&lt;span>Not HTML&lt;/span></div>');
 	});
 
+	it('renders direct double-quoted text children as text', async () => {
+		component Basic() {
+			<div>"Rock &amp; &quot;Roll&quot;"</div>
+			<div>"line\nbreak"</div>
+			<pre>"first
+second"</pre>
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toBeHtml(
+			'<div>Rock &amp; "Roll"</div><div>line\\nbreak</div><pre>first\nsecond</pre>',
+		);
+	});
+
 	it('renders tracked state updates', async () => {
 		component Counter() {
 			let &[count] = track(0);

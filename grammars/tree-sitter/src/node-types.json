@@ -1993,6 +1993,10 @@
             "named": true
           },
           {
+            "type": "jsx_hyphenated_name",
+            "named": true
+          },
+          {
             "type": "jsx_namespace_name",
             "named": true
           }
@@ -2211,6 +2215,21 @@
           }
         ]
       }
+    }
+  },
+  {
+    "type": "jsx_hyphenated_name",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
     }
   },
   {

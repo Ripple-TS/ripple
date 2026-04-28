@@ -109,6 +109,75 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 			expect(code).toContain('" times"');
 		});
 
+		it('accepts direct double-quoted text at the start of template bodies', () => {
+			const { code } = compile(
+				`export component App() {
+					"hello"
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('"hello"');
+		});
+
+		it('decodes entities in direct double-quoted text children like JSX attributes', () => {
+			const { code } = compile(
+				`export component App() {
+					<p>"a&amp;b&quot;c"</p>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('"a&b\\"c"');
+			expect(code).not.toContain('&quot;');
+		});
+
+		it('treats backslashes in direct double-quoted text children as literal text', () => {
+			const { code } = compile(
+				`export component App() {
+					<p>"line\\nbreak"</p>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('"line\\\\nbreak"');
+		});
+
+		it('keeps double-quoted strings inside expression containers as JavaScript strings', () => {
+			const { code } = compile(
+				`export component App() {
+					<p>{"line\\nbreak"} {"&amp;"}</p>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('"line\\nbreak"');
+			expect(code).toContain('"&amp;"');
+		});
+
+		it('rejects literal newlines in double-quoted strings inside expression containers', () => {
+			expect(() =>
+				compile(
+					`export component App() {
+						<p>{"line
+break"}</p>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/Unterminated string constant/);
+		});
+
+		it('does not use JavaScript quote escapes in direct double-quoted text children', () => {
+			expect(() =>
+				compile(
+					`export component App() {
+						<p>"adsa\\""</p>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/Unterminated double-quoted text child/);
+		});
+
 		it('keeps compact string comparisons in expression containers parseable', () => {
 			const { code } = compile(
 				`export component App({ value }: { value: string }) {
