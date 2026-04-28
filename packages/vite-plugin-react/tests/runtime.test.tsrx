@@ -41,6 +41,13 @@ component BasicApp() {
 	<div class="greeting">{'Hello world'}</div>
 }
 
+component DirectQuotedTextApp() {
+	<div class="direct-quoted-entities">"Rock &amp; &quot;Roll&quot;"</div>
+	<div class="direct-quoted-backslash">"line\nbreak"</div>
+	<pre class="direct-quoted-multiline">"first
+second"</pre>
+}
+
 component Child(props: { text: string }) {
 	<span class="child">{props.text}</span>
 }
@@ -726,6 +733,13 @@ describe('tsrx-react runtime', () => {
 	it('renders a basic component into the DOM', async () => {
 		await render(BasicApp);
 		expect(text('.greeting')).toBe('Hello world');
+	});
+
+	it('renders direct double-quoted text children as text', async () => {
+		await render(DirectQuotedTextApp);
+		expect(text('.direct-quoted-entities')).toBe('Rock & "Roll"');
+		expect(text('.direct-quoted-backslash')).toBe('line\\nbreak');
+		expect(text('.direct-quoted-multiline')).toBe('first\nsecond');
 	});
 
 	it('renders nested components', async () => {

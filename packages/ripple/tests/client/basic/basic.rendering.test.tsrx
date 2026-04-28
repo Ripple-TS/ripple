@@ -40,6 +40,21 @@ describe('basic client > rendering & text', () => {
 		expect(div.querySelector('span')).toBeNull();
 	});
 
+	it('renders direct double-quoted text children as text', () => {
+		component Basic() {
+			<div class="entities">"Rock &amp; &quot;Roll&quot;"</div>
+			<div class="backslash">"line\nbreak"</div>
+			<pre class="multiline">"first
+second"</pre>
+		}
+
+		render(Basic);
+
+		expect(container.querySelector('.entities').textContent).toBe('Rock & "Roll"');
+		expect(container.querySelector('.backslash').textContent).toBe('line\\nbreak');
+		expect(container.querySelector('.multiline').textContent).toBe('first\nsecond');
+	});
+
 	it('renders dynamic text', () => {
 		component Basic() {
 			let &[message] = track('Hello World');
