@@ -232,7 +232,7 @@ export component ErrorBoundary() {
     } catch (e) {
       reportError(e);
 
-      <div>"An error occurred! ' + e.message}</div>
+      <div>"An error occurred! "{e.message}</div>
     }
   </div>
 }

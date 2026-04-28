@@ -244,7 +244,7 @@ export component App() {
 
   const &[double] = createDouble(countTracked);
 
-  <div>"Double: ' + double}</div>
+  <div>"Double: "{double}</div>
   <button
     onClick={() => {
       count++;
