@@ -1,4 +1,3 @@
-import { afterEach, beforeEach } from 'vitest';
 import { createVaporApp, nextTick } from './vue-runtime-shim.js';
 
 /** @type {HTMLDivElement} */
@@ -7,13 +6,6 @@ let container;
 /** @type {import('vue').App | null} */
 let app = null;
 
-/**
- * Render a Vue Vapor component into the test container.
- *
- * @param {any} Component
- * @param {Record<string, unknown>} [props]
- * @returns {Promise<void>}
- */
 globalThis.render = async function render(Component, props) {
 	app = createVaporApp(Component, props ?? {});
 	app.mount(container);
@@ -44,5 +36,5 @@ afterEach(() => {
 		app = null;
 	}
 	document.body.removeChild(container);
-	globalThis.container = undefined;
+	globalThis.container = /** @type {HTMLDivElement} */ (/** @type {unknown} */ (undefined));
 });

@@ -28,8 +28,8 @@
   "devDependencies": {
     "typescript": "catalog:default",
     "vite": "catalog:default",
-    "vue": "3.6.0-beta.8",
-    "vue-jsx-vapor": "^3.2.10"
+    "vue": "3.6.0-beta.10",
+    "vue-jsx-vapor": "^3.2.11"
   },
   "files": [
     "src",
