@@ -20,12 +20,3 @@ export default component App() {
 		}
 	</main>
 }
-
-export component App(refs) {
-	let refObj = useRef(null);
-	function refA(_node) {}
-	function refB(_node) {}
-	function refC(_node) {}
-	function refD(_node) {}
-	<div {ref refA} {ref refA}>{'hi'}</div>
-}
