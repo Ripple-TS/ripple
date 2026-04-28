@@ -26,6 +26,7 @@
     "vite": "*"
   },
   "devDependencies": {
+    "@tanstack/react-query": "^5.100.6",
     "@types/react": "catalog:default",
     "@types/react-dom": "catalog:default",
     "react": "catalog:default",
