@@ -1,6 +1,6 @@
 {
-  "name": "@tsrx/mcp-server",
-  "description": "Shared MCP server implementation for TSRX documentation and project context",
+  "name": "@tsrx/mcp",
+  "description": "MCP server for TSRX documentation and project context",
   "license": "MIT",
   "author": "Dominic Gannaway",
   "version": "0.0.0",
@@ -8,7 +8,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Ripple-TS/ripple.git",
-    "directory": "packages/tsrx-mcp-server"
+    "directory": "packages/tsrx-mcp"
   },
   "bugs": {
     "url": "https://github.com/Ripple-TS/ripple/issues"
@@ -24,8 +24,15 @@
     }
   },
   "files": [
+    "README.md",
     "src"
   ],
+  "bin": {
+    "tsrx-mcp": "./src/stdio.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "catalog:default",
     "zod": "catalog:default"
