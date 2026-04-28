@@ -26,6 +26,7 @@ import { print } from 'esrap';
 import tsx from 'esrap/languages/tsx';
 import {
 	builders,
+	clone_expression_node,
 	IS_CONTROLLED,
 	IS_INDEXED,
 	TEMPLATE_FRAGMENT,
@@ -1521,17 +1522,40 @@ const visitors = {
 				} else if (attr.type === 'RefAttribute') {
 					const id = state.flush_node?.();
 					const metadata = { tracking: false };
-					state.init?.push(
-						b.stmt(
-							b.call(
-								'_$_.ref',
-								id,
-								b.thunk(
-									/** @type {AST.Expression} */ (visit(attr.argument, { ...state, metadata })),
+					const argument = /** @type {AST.Expression} */ (
+						visit(attr.argument, { ...state, metadata })
+					);
+
+					/** @type {AST.Expression[]} */
+					const ref_args = [/** @type {AST.Expression} */ (id), b.thunk(argument)];
+
+					// Emit a setter only when the argument is a syntactically
+					// valid assignment target — `Identifier` or
+					// `MemberExpression`. The runtime value of either shape
+					// can be a function, a Tracked, or a plain value; `ref()`
+					// decides at mount which path to take (function → call;
+					// Tracked → assign `.value`; plain → call setter). Other
+					// argument shapes (callbacks, call results,
+					// literals) can't be assignment targets — even though
+					// the setter would never be invoked at runtime for
+					// those (function/Tracked dispatch wins), strict module
+					// parsers like rolldown still reject `(v) => (foo() = v)`
+					// at parse time.
+					const arg_type = attr.argument.type;
+					if (arg_type === 'Identifier' || arg_type === 'MemberExpression') {
+						ref_args.push(
+							b.arrow(
+								[b.id('v')],
+								b.assignment(
+									'=',
+									/** @type {AST.Pattern} */ (clone_expression_node(argument)),
+									b.id('v'),
 								),
 							),
-						),
-					);
+						);
+					}
+
+					state.init?.push(b.stmt(b.call('_$_.ref', ...ref_args)));
 				}
 			}
 

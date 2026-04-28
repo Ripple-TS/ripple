@@ -11,10 +11,10 @@ import {
 	PRE_EFFECT_BLOCK,
 	RENDER_BLOCK,
 	ROOT_BLOCK,
-	TRACKED,
 	TRY_BLOCK,
 	HEAD_BLOCK,
 	DIRECT_CHILD_BLOCK,
+	UNINITIALIZED,
 } from './constants.js';
 import { next_sibling } from './operations.js';
 import { apply_element_spread } from './render.js';
@@ -29,6 +29,7 @@ import {
 	schedule_update,
 	untrack,
 } from './runtime.js';
+import { is_ripple_object } from './utils.js';
 
 /**
  * @param {Function} fn
@@ -103,6 +104,8 @@ export function branch(fn, flags = 0, state = null) {
  *     a function, that function runs as the cleanup on unmount.
  *   - a `Tracked` (e.g. from `track()`) — `tracked.value` is set to the
  *     element on mount and reset to `null` on unmount.
+ *   - a plain mutable var (`let foo;`) — the element is assigned to the
+ *     variable. No teardown is run, released with the component.
  *
  * `get_fn` is invoked through `untrack` so the surrounding render block
  * doesn't subscribe to whatever the thunk happens to read. The supported
@@ -112,15 +115,18 @@ export function branch(fn, flags = 0, state = null) {
  *
  * @param {Element} element
  * @param {() => any} get_fn
+ * @param {(value: any) => void} [set_fn]
  * @returns {Block}
  */
-export function ref(element, get_fn) {
+export function ref(element, get_fn, set_fn) {
+	// make sure the first run always enters the dispatch branch,
 	/** @type {any} */
-	var ref_value;
+	var ref_value = UNINITIALIZED;
 	/** @type {Block | null} */
 	var e;
 
 	return block(RENDER_BLOCK, () => {
+		// avoid any reactive reads
 		var next = untrack(get_fn);
 		if (ref_value !== (ref_value = next)) {
 			if (e) {
@@ -128,38 +134,24 @@ export function ref(element, get_fn) {
 				e = null;
 			}
 
-			if (ref_value != null) {
+			if (typeof ref_value === 'function') {
 				e = branch(() => {
-					effect(() => apply_ref_value(ref_value, element));
+					effect(() => ref_value(element));
 				});
+			} else if (is_ripple_object(ref_value)) {
+				e = branch(() => {
+					effect(() => {
+						ref_value.value = element;
+						return () => {
+							ref_value.value = null;
+						};
+					});
+				});
+			} else if (set_fn !== undefined) {
+				set_fn(element);
 			}
 		}
 	});
-}
-
-/**
- * Per-shape dispatch for `{ref expr}` values. Returns a cleanup function
- * (or `undefined`) that the surrounding `effect()` runs on teardown.
- *
- * @param {any} ref_value
- * @param {Element} element
- * @returns {void | (() => void)}
- */
-function apply_ref_value(ref_value, element) {
-	if (typeof ref_value === 'function') {
-		return ref_value(element);
-	}
-
-	// `Tracked` — assign element to the reactive cell on mount, clear on
-	// unmount. The TRACKED flag is used (rather than `'value' in ref_value`)
-	// so we don't accidentally match arbitrary objects with a `.value`
-	// member, e.g. an `HTMLInputElement` passed by mistake.
-	if (typeof ref_value === 'object' && (ref_value.f & TRACKED) !== 0) {
-		ref_value.value = element;
-		return () => {
-			ref_value.value = null;
-		};
-	}
 }
 
 /**
