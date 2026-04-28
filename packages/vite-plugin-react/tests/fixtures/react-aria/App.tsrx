@@ -21,7 +21,7 @@ export component ReactAriaFixture() {
 	function recordAction(id: ActionId, pointerType: ActionPointerType) {
 		const action =
 			id === saveAction.id ? saveAction : deleteAction;
-		setEntries([...entries, { id, label: action.label, pointerType }]);
+		setEntries((prev) => [...prev, { id, label: action.label, pointerType }]);
 	}
 
 	<section aria-label="React Aria TSRX fixture">
