@@ -176,6 +176,7 @@ export function TSRXPlugin(config) {
 			/** @type {AST.Node[]} */
 			#path = [];
 			#allowTagStartAfterDoubleQuotedText = false;
+			#allowDoubleQuotedTextChildAfterBrace = false;
 			#commentContextId = 0;
 			#loose = false;
 			/** @type {import('../types/index').CompileError[] | undefined} */
@@ -229,7 +230,7 @@ export function TSRXPlugin(config) {
 					prev === 34 || // "
 					prev === 59 || // ;
 					prev === 62 || // >
-					prev === 123 || // {
+					(prev === 123 && this.#allowDoubleQuotedTextChildAfterBrace) || // {
 					prev === 125 // }
 				);
 			}
@@ -632,8 +633,14 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['getTokenFromCode']}
 			 */
 			getTokenFromCode(code) {
-				if (code === 34 && this.#isDoubleQuotedTextChildStart()) {
-					return this.#readDoubleQuotedTextChildToken();
+				if (code === 34) {
+					const is_double_quoted_text_child = this.#isDoubleQuotedTextChildStart();
+					this.#allowDoubleQuotedTextChildAfterBrace = false;
+					if (is_double_quoted_text_child) {
+						return this.#readDoubleQuotedTextChildToken();
+					}
+				} else {
+					this.#allowDoubleQuotedTextChildAfterBrace = false;
 				}
 
 				if (code !== 60) {
@@ -1058,6 +1065,9 @@ export function TSRXPlugin(config) {
 				const parent_function_body_depth = this.#functionBodyDepth;
 				this.#functionBodyDepth = 0;
 
+				if (this.type === tt.braceL) {
+					this.#allowDoubleQuotedTextChildAfterBrace = true;
+				}
 				this.eat(tt.braceL);
 				node.body = [];
 				this.#path.push(node);
@@ -2654,6 +2664,7 @@ export function TSRXPlugin(config) {
 					if (node === void 0) node = /** @type {AST.BlockStatement} */ (this.startNode());
 
 					node.body = [];
+					this.#allowDoubleQuotedTextChildAfterBrace = true;
 					this.expect(tt.braceL);
 					if (createNewLexicalScope) {
 						this.enterScope(0);
