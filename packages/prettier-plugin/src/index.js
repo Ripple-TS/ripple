@@ -2225,6 +2225,11 @@ function printRippleNode(node, path, options, print, args) {
 		}
 
 		case 'Text': {
+			if (typeof node.raw === 'string') {
+				nodeContent = node.raw;
+				break;
+			}
+
 			const expressionDoc = suppressExpressionLeadingComments
 				? path.call((exprPath) => print(exprPath, { suppressLeadingComments: true }), 'expression')
 				: path.call(print, 'expression');
@@ -5480,13 +5485,13 @@ function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
 		return false;
 	}
 
-	if (typeof childDoc === 'string') {
-		return childDoc.length <= 20 && !childDoc.includes('\n');
-	}
-
-	// Always inline Html and Text nodes — they are short prefixed expressions ({html ...}, {text ...})
+	// Always inline Html and Text nodes — they are explicit text/raw-markup child forms.
 	if (firstChild.type === 'Text' || firstChild.type === 'Html') {
 		return true;
+	}
+
+	if (typeof childDoc === 'string') {
+		return childDoc.length <= 20 && !childDoc.includes('\n');
 	}
 
 	// Inline JSX expressions if they fit, but respect original multi-line formatting
@@ -6403,7 +6408,7 @@ function printElement(element, path, options, print) {
 			firstChild && firstChild.type === 'Element' && !firstChild.selfClosing;
 		const isElementChild = firstChild && firstChild.type === 'Element';
 
-		if (typeof child === 'string' && child.length < 20) {
+		if (typeof child === 'string' && shouldInlineSingleChild(node, firstChild, child)) {
 			elementOutput = group([openingTag, child, closingTag]);
 		} else if (
 			child &&

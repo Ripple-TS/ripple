@@ -196,6 +196,79 @@ export function TSRXPlugin(config) {
 				this.#filename = tsrx_options?.filename || null;
 			}
 
+			#previousNonWhitespaceChar() {
+				let index = this.pos - 1;
+				while (index >= 0) {
+					const ch = this.input.charCodeAt(index);
+					if (ch !== 32 && ch !== 9 && ch !== 10 && ch !== 13) {
+						return ch;
+					}
+					index--;
+				}
+				return null;
+			}
+
+			#isDoubleQuotedTextChildStart() {
+				if (this.#path.findLast((n) => n.type === 'TsxCompat' || n.type === 'Tsx')) {
+					return false;
+				}
+
+				const parent = this.#path.at(-1);
+				if (!parent || (parent.type !== 'Component' && parent.type !== 'Element')) {
+					return false;
+				}
+
+				const context = this.curContext();
+				if (context === tstc.tc_oTag || context === tstc.tc_cTag) {
+					return false;
+				}
+
+				const prev = this.#previousNonWhitespaceChar();
+				return (
+					prev === null ||
+					prev === 34 || // "
+					prev === 59 || // ;
+					prev === 62 || // >
+					prev === 123 || // {
+					prev === 125 // }
+				);
+			}
+
+			#readDoubleQuotedTextChildToken() {
+				const start = this.pos;
+				let out = '';
+				this.pos++;
+				let chunkStart = this.pos;
+
+				while (this.pos < this.input.length) {
+					const ch = this.input.charCodeAt(this.pos);
+
+					if (ch === 34 /* " */) {
+						out += this.input.slice(chunkStart, this.pos);
+						this.pos++;
+						return this.finishToken(tt.string, out);
+					}
+
+					if (ch === 38 /* & */) {
+						out += this.input.slice(chunkStart, this.pos);
+						out += this.jsx_readEntity();
+						chunkStart = this.pos;
+						continue;
+					}
+
+					if (acorn.isNewLine(ch)) {
+						out += this.input.slice(chunkStart, this.pos);
+						out += this.jsx_readNewLine(true);
+						chunkStart = this.pos;
+						continue;
+					}
+
+					this.pos++;
+				}
+
+				this.raise(start, 'Unterminated double-quoted text child');
+			}
+
 			/**
 			 * @param {number} position
 			 * @param {number} end
@@ -559,6 +632,10 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['getTokenFromCode']}
 			 */
 			getTokenFromCode(code) {
+				if (code === 34 && this.#isDoubleQuotedTextChildStart()) {
+					return this.#readDoubleQuotedTextChildToken();
+				}
+
 				if (code !== 60) {
 					this.#allowTagStartAfterDoubleQuotedText = false;
 				}
@@ -1318,12 +1395,12 @@ export function TSRXPlugin(config) {
 			parseDoubleQuotedTextChild() {
 				const node = /** @type {AST.TextNode} */ (this.startNode());
 				const expression = /** @type {AST.Literal} */ (this.startNode());
-				const raw = this.input.slice(this.start, this.end);
+				node.raw = this.input.slice(this.start, this.end);
 				const end = this.end;
 				const endLoc = this.endLoc;
 
 				expression.value = this.value;
-				expression.raw = raw;
+				expression.raw = JSON.stringify(this.value);
 				node.expression = this.finishNodeAt(expression, 'Literal', end, endLoc);
 
 				this.#allowTagStartAfterDoubleQuotedText = true;
