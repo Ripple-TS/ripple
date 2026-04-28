@@ -29,7 +29,9 @@
     "@types/react": "catalog:default",
     "@types/react-dom": "catalog:default",
     "react": "catalog:default",
+    "react-aria-components": "^1.17.0",
     "react-dom": "catalog:default",
+    "react-router": "^7.14.2",
     "typescript": "catalog:default",
     "vite": "catalog:default"
   },
