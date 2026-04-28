@@ -490,6 +490,83 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 			}
 
 			if (is_lone_return_if_statement(child)) {
+				// On platforms where setup runs once (Vue Vapor), an early
+				// `if (cond) return;` placed at setup level is non-reactive:
+				// `cond` is evaluated only when setup runs and never again.
+				// Inline the rest of the body as a render-time ternary so the
+				// conditional re-evaluates when `cond` changes after mount.
+				// React/Preact/Solid re-run the component body on every render,
+				// so the old setup-time early return is already reactive there
+				// and we keep it to avoid gratuitous output changes.
+				if (transform_context.platform.hooks?.isTopLevelSetupCall) {
+					const continuation_body = body_nodes.slice(i + 1);
+
+					// Render-time inlining unconditionally lifts continuation
+					// statements (provide/watch/declarations/etc.) into the
+					// parent setup, which would run them regardless of the
+					// early-return condition — wrong when the user wrote them
+					// after `if (cond) return;`. Fall back to helper-split if
+					// the continuation has any non-render statements so they
+					// stay scoped to the helper's lifecycle.
+					const continuation_has_setup_statements = continuation_body.some(
+						(node) =>
+							!is_bare_return_statement(node) &&
+							!is_returning_if_statement(node) &&
+							!is_jsx_child(node),
+					);
+
+					if (continuation_has_setup_statements) {
+						statements.push(
+							...create_setup_once_helper_split_returning_if_statements(
+								child,
+								continuation_body,
+								render_nodes,
+								transform_context,
+							),
+						);
+						transform_context.available_bindings = saved_bindings;
+						return statements;
+					}
+
+					const continuation_statements = build_render_statements(
+						continuation_body,
+						false,
+						transform_context,
+					);
+
+					for (const stmt of continuation_statements) {
+						if (stmt.type === 'ReturnStatement') {
+							if (stmt.argument) {
+								render_nodes.push(
+									/** @type {any} */ ({
+										type: 'JSXExpressionContainer',
+										expression: set_loc(
+											/** @type {any} */ ({
+												type: 'ConditionalExpression',
+												test: clone_expression_node(child.test),
+												consequent: {
+													type: 'Literal',
+													value: null,
+													raw: 'null',
+													metadata: { path: [] },
+												},
+												alternate: stmt.argument,
+												metadata: { path: [] },
+											}),
+											child,
+										),
+										metadata: { path: [] },
+									}),
+								);
+							}
+						} else {
+							statements.push(stmt);
+						}
+					}
+
+					break;
+				}
+
 				statements.push(create_component_lone_return_if_statement(child, render_nodes));
 				continue;
 			}

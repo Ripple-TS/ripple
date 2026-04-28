@@ -1,10 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { reactive, ref } from 'vue';
+import type { MockInstance } from 'vitest';
+import { inject, provide, reactive, ref, watch, watchEffect } from 'vue';
 
 const EXPECTED_ERROR_LOG_SNIPPETS = ['sync boom', 'conditional boom', 'inner error'];
 
-/** @type {import('vitest').MockInstance | undefined} */
-let console_error_spy;
+let console_error_spy: MockInstance | undefined;
 
 function is_expected_error_log(args: unknown[]) {
 	const message = args.map((arg) => {
@@ -154,6 +153,78 @@ component EarlyReturnWithRefsApp() {
 	<button class="early-inc" onClick={() => count.value++}>{'inc'}</button>
 	<button class="early-double" onClick={() => doubled.value++}>{'double'}</button>
 }
+let watch_fire_count = 0;
+let watch_effect_fire_count = 0;
+
+component ProvideChild() {
+	const value = inject('provide-test-key', 'default');
+	<span class="provide-child">{value}</span>
+}
+
+// All four fixtures below have continuations with NO state primitives, so the
+// existing helper-split does NOT trigger. They exercise the bare-JSX /
+// provide / watch / watchEffect cases that should be made reactive by the
+// render-time-inlining fix.
+component BareJsxEarlyReturnApp() {
+	const skip = ref(true);
+
+	<button class="bare-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
+
+	if (skip.value) {
+		return;
+	}
+
+	<p class="bare-continuation">{'visible'}</p>
+}
+
+component ProvideEarlyReturnApp() {
+	const skip = ref(true);
+
+	<button class="provide-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
+
+	if (skip.value) {
+		return;
+	}
+
+	provide('provide-test-key', 'dark');
+	<ProvideChild />
+}
+
+component WatchEarlyReturnApp() {
+	const skip = ref(true);
+	const value = ref(0);
+
+	<button class="watch-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
+	<button class="watch-inc" onClick={() => value.value++}>{'inc'}</button>
+
+	if (skip.value) {
+		return;
+	}
+
+	watch(value, () => {
+		watch_fire_count++;
+	});
+	<p class="watch-value">{value.value}</p>
+}
+
+component WatchEffectEarlyReturnApp() {
+	const skip = ref(true);
+	const value = ref(0);
+
+	<button class="watch-effect-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
+	<button class="watch-effect-inc" onClick={() => value.value++}>{'inc'}</button>
+
+	if (skip.value) {
+		return;
+	}
+
+	watchEffect(() => {
+		void value.value;
+		watch_effect_fire_count++;
+	});
+	<p class="watch-effect-value">{value.value}</p>
+}
+
 component IfReactiveApp() {
 	const show = ref(true);
 
@@ -593,6 +664,69 @@ describe('tsrx-vue runtime', () => {
 		expect(container.querySelector('.early-doubled')).toBeNull();
 		expect(text('.early-skip')).toBe('skip');
 	});
+
+	it('renders bare-JSX continuation reactively after early-return condition flips', async () => {
+		await render(BareJsxEarlyReturnApp);
+		expect(container.querySelector('.bare-continuation')).toBeNull();
+
+		await click('.bare-toggle');
+		await flush();
+
+		expect(text('.bare-continuation')).toBe('visible');
+	});
+
+	it(
+		'calls provide in the continuation after a reactive early-return condition flips',
+		async () => {
+			await render(ProvideEarlyReturnApp);
+			expect(container.querySelector('.provide-child')).toBeNull();
+
+			await click('.provide-toggle');
+			await flush();
+
+			expect(text('.provide-child')).toBe('dark');
+		},
+	);
+
+	it(
+		'registers watch in the continuation after a reactive early-return condition flips',
+		async () => {
+			watch_fire_count = 0;
+			await render(WatchEarlyReturnApp);
+			expect(container.querySelector('.watch-value')).toBeNull();
+
+			await click('.watch-toggle');
+			await flush();
+			expect(text('.watch-value')).toBe('0');
+
+			const baseline = watch_fire_count;
+			await click('.watch-inc');
+			await flush();
+			expect(text('.watch-value')).toBe('1');
+			expect(watch_fire_count).toBe(baseline + 1);
+		},
+	);
+
+	it(
+		'registers watchEffect in the continuation after a reactive early-return condition flips',
+		async () => {
+			watch_effect_fire_count = 0;
+			await render(WatchEffectEarlyReturnApp);
+			expect(container.querySelector('.watch-effect-value')).toBeNull();
+
+			await click('.watch-effect-toggle');
+			await flush();
+			expect(text('.watch-effect-value')).toBe('0');
+
+			const baseline = watch_effect_fire_count;
+			expect(baseline).toBeGreaterThan(0);
+
+			await click('.watch-effect-inc');
+			await flush();
+			expect(text('.watch-effect-value')).toBe('1');
+			expect(watch_effect_fire_count).toBeGreaterThan(baseline);
+		},
+	);
 
 	it('adds and removes items in a for-of loop reactively', async () => {
 		await render(ForReactiveApp);

@@ -262,12 +262,73 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('if (count > 2) {');
 		expect(code).toContain("const App__static1 = <div>{'Count is more than one'}</div>;");
-		expect(code).toContain('return count > 1 ? App__static1 : null;');
+		// Vue renders the early-return condition reactively as a ternary
+		// inside the returned JSX, rather than emitting a setup-time
+		// `if (count > 2) { return ... }` block (which would not re-evaluate
+		// when `count` changes, since vapor `setup()` runs once).
+		expect(code).not.toContain('if (count > 2) {');
 		expect(code).toContain(
-			'return <>{count > 1 ? App__static1 : null}<button>{count}</button></>;',
+			'return <>{count > 1 ? App__static1 : null}{count > 2 ? null : <button>{count}</button>}</>;',
 		);
+	});
+
+	it('inlines bare-JSX continuations after early-return as a render-time ternary', () => {
+		const { code } = compile(
+			`import { ref } from 'vue';
+
+			component App() {
+				const skip = ref(true);
+
+				if (skip.value) {
+					return;
+				}
+
+				<p class="continuation">{'visible'}</p>
+			}`,
+			'App.tsrx',
+		);
+
+		// The continuation is hoisted as a static and selected by a reactive
+		// ternary inside the returned fragment, so flipping `skip.value` after
+		// mount toggles the JSX. The setup-time `if` is gone.
+		expect(code).toContain("const App__static1 = <p class=\"continuation\">{'visible'}</p>;");
+		expect(code).not.toContain('if (skip.value) {');
+		expect(code).toContain('return skip.value ? null : App__static1;');
+	});
+
+	it('helper-splits when the continuation has setup statements like provide', () => {
+		const { code } = compile(
+			`import { provide, ref } from 'vue';
+
+			component Child() {
+				<span>{'x'}</span>
+			}
+
+			component App() {
+				const skip = ref(true);
+
+				if (skip.value) {
+					return;
+				}
+
+				provide('theme', 'dark');
+				<Child />
+			}`,
+			'App.tsrx',
+		);
+
+		// `provide` is a setup-time side effect that must be scoped to the
+		// continuation's lifecycle, not the parent's. Render-time inlining
+		// would lift it unconditionally (descendants would always see the
+		// provide regardless of `skip.value`), so the continuation is moved
+		// into a `StatementBodyHook` helper whose setup runs only when the
+		// helper mounts. The same applies to `watch`, `watchEffect`,
+		// declarations, and any other non-render statement.
+		expect(code).not.toContain('if (skip.value) {');
+		expect(code).toContain('App__StatementBodyHook1');
+		expect(code).toContain("provide('theme', 'dark');");
+		expect(code).toContain('return skip.value ? null : <StatementBodyHook1 />;');
 	});
 
 	it('extracts ref-bearing continuations after lone early-return if statements', () => {
