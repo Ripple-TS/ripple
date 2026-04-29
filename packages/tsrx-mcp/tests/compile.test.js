@@ -81,6 +81,108 @@ describe('@tsrx/mcp compile helpers', () => {
 		}
 	});
 
+	it.each([
+		{
+			target: 'solid',
+			compilerPackage: '@tsrx/solid',
+			pluginPackage: '@tsrx/rspack-plugin-solid',
+		},
+		{
+			target: 'vue',
+			compilerPackage: '@tsrx/vue',
+			pluginPackage: '@tsrx/rspack-plugin-vue',
+		},
+	])(
+		'detects $target from a Rspack plugin package.json signal',
+		async ({ target, compilerPackage, pluginPackage }) => {
+			const temp_dir = await mkdtemp(join(tmpdir(), `tsrx-mcp-rspack-package-${target}-`));
+
+			try {
+				await writeFile(
+					join(temp_dir, 'package.json'),
+					JSON.stringify(
+						{
+							name: `tsrx-mcp-rspack-package-${target}`,
+							private: true,
+							type: 'module',
+							devDependencies: {
+								[pluginPackage]: 'workspace:*',
+							},
+						},
+						null,
+						2,
+					),
+					'utf8',
+				);
+
+				const result = detect_target(temp_dir);
+
+				expect(result.detectedTarget).toBe(target);
+				expect(result.confidence).toBe('high');
+				expect(result.matches[0]).toMatchObject({
+					target,
+					compilerPackage,
+					signals: [pluginPackage],
+					score: 1,
+				});
+			} finally {
+				await rm(temp_dir, { recursive: true, force: true });
+			}
+		},
+	);
+
+	it.each([
+		{
+			target: 'solid',
+			compilerPackage: '@tsrx/solid',
+			pluginPackage: '@tsrx/rspack-plugin-solid',
+		},
+		{
+			target: 'vue',
+			compilerPackage: '@tsrx/vue',
+			pluginPackage: '@tsrx/rspack-plugin-vue',
+		},
+	])(
+		'detects $target from a Rspack plugin config signal',
+		async ({ target, compilerPackage, pluginPackage }) => {
+			const temp_dir = await mkdtemp(join(tmpdir(), `tsrx-mcp-rspack-config-${target}-`));
+
+			try {
+				await writeFile(
+					join(temp_dir, 'package.json'),
+					JSON.stringify(
+						{
+							name: `tsrx-mcp-rspack-config-${target}`,
+							private: true,
+							type: 'module',
+						},
+						null,
+						2,
+					),
+					'utf8',
+				);
+				await writeFile(
+					join(temp_dir, 'rspack.config.js'),
+					`import plugin from '${pluginPackage}';\nexport default { plugins: [plugin()] };\n`,
+					'utf8',
+				);
+
+				const result = detect_target(temp_dir);
+
+				expect(result.detectedTarget).toBe(target);
+				expect(result.confidence).toBe('high');
+				expect(result.matches[0]).toMatchObject({
+					target,
+					compilerPackage,
+					signals: [pluginPackage],
+					score: 1,
+				});
+			} finally {
+				await rm(temp_dir, { recursive: true, force: true });
+			}
+		},
+	);
+
 	it('appends a cwd hint to the detection message when cwd was not supplied', () => {
 		// The hint must fire on every detect call without an explicit cwd —
 		// including when the detection happens to succeed — because the most

@@ -25,12 +25,12 @@ export const TARGET_CANDIDATES = [
 	{
 		target: 'solid',
 		compilerPackage: '@tsrx/solid',
-		signals: ['@tsrx/solid', '@tsrx/vite-plugin-solid'],
+		signals: ['@tsrx/solid', '@tsrx/vite-plugin-solid', '@tsrx/rspack-plugin-solid'],
 	},
 	{
 		target: 'vue',
 		compilerPackage: '@tsrx/vue',
-		signals: ['@tsrx/vue', '@tsrx/vite-plugin-vue'],
+		signals: ['@tsrx/vue', '@tsrx/vite-plugin-vue', '@tsrx/rspack-plugin-vue'],
 	},
 ];
 
