@@ -39,6 +39,33 @@ const target_fixtures = [
 const react_fixture = target_fixtures[0].cwd;
 
 describe('@tsrx/mcp compile helpers', () => {
+	it.each([
+		{ target: 'react', dir: 'react' },
+		{ target: 'ripple', dir: 'ripple' },
+		{ target: 'solid', dir: 'solid' },
+		{ target: 'vue', dir: 'vue' },
+	])('detects $target from the real $dir playground project', ({ target, dir }) => {
+		const playground = resolve(__dirname, '../../../playground', dir);
+		const result = detect_target(playground);
+		expect(result.detectedTarget).toBe(target);
+		expect(result.confidence).toBe('high');
+	});
+
+	it('appends a cwd hint to the detection message when cwd was not supplied', () => {
+		// The hint must fire on every detect call without an explicit cwd —
+		// including when the detection happens to succeed — because the most
+		// dangerous case is a silent false-positive (e.g. monorepo root picks
+		// the first target with the most signals, but the agent is editing
+		// inside a different sub-project).
+		const result = detect_target(undefined);
+		expect(result.message).toMatch(/cwd was not supplied/);
+	});
+
+	it('does not append a cwd hint when cwd was supplied explicitly', () => {
+		const result = detect_target(react_fixture);
+		expect(result.message).not.toMatch(/cwd was not supplied/);
+	});
+
 	it('detects a React TSRX target from a project package.json', () => {
 		const result = detect_target(react_fixture);
 
@@ -312,9 +339,7 @@ describe('@tsrx/mcp compile helpers', () => {
 
 			expect(result.ok).toBe(true);
 			expect(result.configPath).toBe(join(temp_dir, '.prettierrc'));
-			expect(result.formatted).toBe(
-				`export component App() {\n\t<button>"Save"</button>\n}\n`,
-			);
+			expect(result.formatted).toBe(`export component App() {\n\t<button>"Save"</button>\n}\n`);
 		} finally {
 			await rm(temp_dir, { recursive: true, force: true });
 		}
@@ -333,9 +358,7 @@ describe('@tsrx/mcp compile helpers', () => {
 			expect(result.ok).toBe(true);
 			expect(result.configPath).toBe(null);
 			// Built-in defaults: tabs, single quotes, width 100.
-			expect(result.formatted).toBe(
-				`export component App() {\n\t<button>"Save"</button>\n}\n`,
-			);
+			expect(result.formatted).toBe(`export component App() {\n\t<button>"Save"</button>\n}\n`);
 		} finally {
 			await rm(temp_dir, { recursive: true, force: true });
 		}

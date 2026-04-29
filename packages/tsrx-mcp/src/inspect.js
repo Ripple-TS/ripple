@@ -176,8 +176,8 @@ function get_target_package_status(dependencies) {
  * @param {{ cwd?: string }} input
  */
 export function inspect_project(input = {}) {
-	const cwd = path.resolve(input.cwd ?? process.cwd());
-	const detection = detect_target(cwd);
+	const detection = detect_target(input.cwd);
+	const cwd = detection.cwd;
 	const package_json_path = find_package_json(cwd);
 
 	if (!package_json_path) {

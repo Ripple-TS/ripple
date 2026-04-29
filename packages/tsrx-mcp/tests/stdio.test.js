@@ -1,3 +1,6 @@
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
@@ -39,12 +42,13 @@ function expect_first_tool_content(result) {
 describe('@tsrx/mcp stdio server', () => {
 	/**
 	 * @param {(client: Client) => Promise<void>} run
+	 * @param {{ cwd?: string }} [options]
 	 */
-	async function with_client(run) {
+	async function with_client(run, options = {}) {
 		const transport = new StdioClientTransport({
 			command: 'node',
-			args: ['src/stdio.js'],
-			cwd: new URL('..', import.meta.url).pathname,
+			args: [new URL('../src/stdio.js', import.meta.url).pathname],
+			cwd: options.cwd ?? new URL('..', import.meta.url).pathname,
 		});
 		const client = new Client({ name: 'tsrx-mcp-test', version: '0.0.0' });
 
@@ -55,6 +59,57 @@ describe('@tsrx/mcp stdio server', () => {
 			await client.close();
 		}
 	}
+
+	it('hints to pass cwd when detection runs from outside a project', async () => {
+		// Spawn the server with cwd set to an empty temp dir to simulate the
+		// realistic scenario where an MCP client launches the server from the
+		// user's home or shell directory, not the project root.
+		const temp_dir = await mkdtemp(join(tmpdir(), 'tsrx-mcp-cwd-hint-'));
+
+		try {
+			await with_client(
+				async (client) => {
+					const result = await client.callTool({
+						name: 'detect-target',
+						arguments: {},
+					});
+					const text = /** @type {{ text: string }} */ (
+						/** @type {{ content: unknown[] }} */ (result).content[0]
+					).text;
+					const parsed = JSON.parse(text);
+					expect(parsed.detectedTarget).toBe(null);
+					expect(parsed.message).toMatch(/cwd was not supplied/);
+					expect(parsed.message).toMatch(/Pass cwd/);
+				},
+				{ cwd: temp_dir },
+			);
+		} finally {
+			await rm(temp_dir, { recursive: true, force: true });
+		}
+	});
+
+	it('does not hint about cwd when the caller supplied one', async () => {
+		const temp_dir = await mkdtemp(join(tmpdir(), 'tsrx-mcp-cwd-explicit-'));
+
+		try {
+			await with_client(
+				async (client) => {
+					const result = await client.callTool({
+						name: 'detect-target',
+						arguments: { cwd: temp_dir },
+					});
+					const text = /** @type {{ text: string }} */ (
+						/** @type {{ content: unknown[] }} */ (result).content[0]
+					).text;
+					const parsed = JSON.parse(text);
+					expect(parsed.message).not.toMatch(/cwd was not supplied/);
+				},
+				{ cwd: temp_dir },
+			);
+		} finally {
+			await rm(temp_dir, { recursive: true, force: true });
+		}
+	});
 
 	it('exposes the expected tools over stdio', async () => {
 		await with_client(async (client) => {

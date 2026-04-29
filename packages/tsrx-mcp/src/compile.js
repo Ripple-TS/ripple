@@ -125,9 +125,9 @@ function get_generated_css(result) {
  * }} input
  */
 export async function compile_tsrx(input) {
-	const cwd = path.resolve(input.cwd ?? process.cwd());
 	const filename = input.filename ?? 'Component.tsrx';
-	const detection = detect_target(cwd);
+	const detection = detect_target(input.cwd);
+	const cwd = detection.cwd;
 	const target = input.target ?? detection.detectedTarget;
 
 	if (!target) {
@@ -142,7 +142,7 @@ export async function compile_tsrx(input) {
 					message:
 						detection.confidence === 'ambiguous'
 							? detection.message
-							: 'Could not infer a TSRX target. Pass target explicitly.',
+							: `Could not infer a TSRX target. Pass target explicitly. ${detection.message}`,
 					type: null,
 					fileName: filename,
 					pos: null,

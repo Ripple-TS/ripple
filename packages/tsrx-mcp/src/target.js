@@ -98,18 +98,31 @@ function read_config_text(root) {
 }
 
 /**
- * @param {string} cwd
+ * @param {string} resolved_cwd
+ * @param {boolean} cwd_specified
  */
-export function detect_target(cwd = process.cwd()) {
-	const package_json_path = find_package_json(cwd);
+function cwd_hint(resolved_cwd, cwd_specified) {
+	if (cwd_specified) return '';
+	return ` Hint: cwd was not supplied, so this defaulted to ${resolved_cwd}. Pass cwd pointing at your project root for accurate target detection.`;
+}
+
+/**
+ * @param {string | undefined} [cwd]
+ */
+export function detect_target(cwd) {
+	const cwd_specified = cwd !== undefined;
+	const resolved_cwd = path.resolve(cwd ?? process.cwd());
+	const package_json_path = find_package_json(resolved_cwd);
 	if (!package_json_path) {
 		return {
-			cwd: path.resolve(cwd),
+			cwd: resolved_cwd,
 			packageJsonPath: null,
 			detectedTarget: null,
-			confidence: 'none',
+			confidence: /** @type {'none'} */ ('none'),
 			matches: [],
-			message: 'No package.json found from the supplied cwd or its ancestors.',
+			message:
+				'No package.json found from the supplied cwd or its ancestors.' +
+				cwd_hint(resolved_cwd, cwd_specified),
 		};
 	}
 
@@ -120,7 +133,7 @@ export function detect_target(cwd = process.cwd()) {
 		package_json = JSON.parse(fs.readFileSync(package_json_path, 'utf8'));
 	} catch (error) {
 		return {
-			cwd: path.resolve(cwd),
+			cwd: resolved_cwd,
 			packageJsonPath: package_json_path,
 			detectedTarget: null,
 			confidence: 'none',
@@ -150,18 +163,23 @@ export function detect_target(cwd = process.cwd()) {
 	matches.sort((a, b) => b.score - a.score || a.target.localeCompare(b.target));
 	const detected = matches[0] ?? null;
 	const tied = detected ? matches.filter((match) => match.score === detected.score) : [];
+	const detected_target = tied.length === 1 ? detected.target : null;
+
+	const base_message =
+		tied.length > 1
+			? `Multiple TSRX targets matched equally: ${tied.map((match) => match.target).join(', ')}.`
+			: detected
+				? `Detected TSRX target "${detected.target}" from ${detected.signals.join(', ')}.`
+				: 'No TSRX target packages were found in package.json or common bundler configs.';
 
 	return {
-		cwd: path.resolve(cwd),
+		cwd: resolved_cwd,
 		packageJsonPath: package_json_path,
-		detectedTarget: tied.length === 1 ? detected.target : null,
-		confidence: detected ? (tied.length === 1 ? 'high' : 'ambiguous') : 'none',
+		detectedTarget: detected_target,
+		confidence: /** @type {'high' | 'ambiguous' | 'none'} */ (
+			detected ? (tied.length === 1 ? 'high' : 'ambiguous') : 'none'
+		),
 		matches,
-		message:
-			tied.length > 1
-				? `Multiple TSRX targets matched equally: ${tied.map((match) => match.target).join(', ')}.`
-				: detected
-					? `Detected TSRX target "${detected.target}" from ${detected.signals.join(', ')}.`
-					: 'No TSRX target packages were found in package.json or common bundler configs.',
+		message: base_message + cwd_hint(resolved_cwd, cwd_specified),
 	};
 }
