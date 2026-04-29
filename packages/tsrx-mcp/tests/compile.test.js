@@ -83,6 +83,21 @@ describe('@tsrx/mcp compile helpers', () => {
 
 	it.each([
 		{
+			target: 'react',
+			compilerPackage: '@tsrx/react',
+			pluginPackage: '@tsrx/bun-plugin-react',
+		},
+		{
+			target: 'preact',
+			compilerPackage: '@tsrx/preact',
+			pluginPackage: '@tsrx/bun-plugin-preact',
+		},
+		{
+			target: 'ripple',
+			compilerPackage: '@tsrx/ripple',
+			pluginPackage: '@ripple-ts/vite-plugin',
+		},
+		{
 			target: 'solid',
 			compilerPackage: '@tsrx/solid',
 			pluginPackage: '@tsrx/rspack-plugin-solid',
@@ -93,16 +108,16 @@ describe('@tsrx/mcp compile helpers', () => {
 			pluginPackage: '@tsrx/rspack-plugin-vue',
 		},
 	])(
-		'detects $target from a Rspack plugin package.json signal',
+		'detects $target from a bundler plugin package.json signal',
 		async ({ target, compilerPackage, pluginPackage }) => {
-			const temp_dir = await mkdtemp(join(tmpdir(), `tsrx-mcp-rspack-package-${target}-`));
+			const temp_dir = await mkdtemp(join(tmpdir(), `tsrx-mcp-plugin-package-${target}-`));
 
 			try {
 				await writeFile(
 					join(temp_dir, 'package.json'),
 					JSON.stringify(
 						{
-							name: `tsrx-mcp-rspack-package-${target}`,
+							name: `tsrx-mcp-plugin-package-${target}`,
 							private: true,
 							type: 'module',
 							devDependencies: {

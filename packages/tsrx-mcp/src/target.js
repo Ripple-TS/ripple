@@ -15,12 +15,18 @@ export const TARGET_CANDIDATES = [
 			'@tsrx/vite-plugin-react',
 			'@tsrx/rspack-plugin-react',
 			'@tsrx/turbopack-plugin-react',
+			'@tsrx/bun-plugin-react',
 		],
 	},
 	{
 		target: 'preact',
 		compilerPackage: '@tsrx/preact',
-		signals: ['@tsrx/preact', '@tsrx/vite-plugin-preact', '@tsrx/rspack-plugin-preact'],
+		signals: [
+			'@tsrx/preact',
+			'@tsrx/vite-plugin-preact',
+			'@tsrx/rspack-plugin-preact',
+			'@tsrx/bun-plugin-preact',
+		],
 	},
 	{
 		target: 'solid',
