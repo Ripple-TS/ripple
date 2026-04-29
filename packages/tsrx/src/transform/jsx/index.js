@@ -26,7 +26,11 @@ import {
 	to_text_expression,
 } from './ast-builders.js';
 import { render_stylesheets as renderStylesheets } from '../stylesheet.js';
-import { set_location as setLocation } from '../../utils/builders.js';
+import {
+	set_location as setLocation,
+	jsx_attribute as build_jsx_attribute,
+	jsx_id as build_jsx_id,
+} from '../../utils/builders.js';
 import {
 	apply_lazy_transforms,
 	collect_lazy_bindings_from_component,
@@ -3024,7 +3028,8 @@ function transform_element_attributes_dispatch(attrs, transform_context, element
  * @param {TransformContext} [transform_context]
  */
 export function validate_at_most_one_ref_attribute(raw_attrs, transform_context) {
-	let first = null;
+	/** @type {any[]} */
+	const refs = [];
 	for (const attr of raw_attrs) {
 		if (!attr) continue;
 		const is_ref_attr =
@@ -3037,25 +3042,20 @@ export function validate_at_most_one_ref_attribute(raw_attrs, transform_context)
 				attr.name.type === 'JSXIdentifier' &&
 				attr.name.name === 'ref');
 		if (!is_ref_attr) continue;
-		if (first) {
-			// Point at the offending `ref` attribute name. The whole attribute
-			// span (`ref={refB}`) is elided from the generated TSX by the
-			// merge_duplicate_refs pass, so neither the attribute nor its name
-			// has an exact source-to-generated mapping; the diagnostic plugin
-			// is responsible for falling back to the nearest mapping on the
-			// same source line.
-			const node = attr.name ?? attr;
-			error(
-				'Element has multiple `ref={...}` attributes; an element may have at most one. ' +
-					"Use Ripple's `{ref expr}` keyword form to combine multiple refs on one element.",
-				transform_context?.filename ?? null,
-				node,
-				transform_context?.errors,
-				transform_context?.comments,
-			);
-			continue;
-		}
-		first = attr;
+		refs.push(attr.name);
+	}
+	if (refs.length < 2) {
+		return;
+	}
+	for (const node of refs) {
+		error(
+			'Element has multiple `ref={...}` attributes; an element may have at most one. ' +
+				"Use Ripple's `{ref expr}` keyword form to combine multiple refs on one element.",
+			transform_context?.filename ?? null,
+			node,
+			transform_context?.errors,
+			transform_context?.comments,
+		);
 	}
 }
 
@@ -3086,18 +3086,34 @@ export function merge_duplicate_refs(jsx_attrs, transform_context) {
 	if (!strategy) return jsx_attrs;
 
 	let count = 0;
+	let tsx_form_count = 0;
 	for (const attr of jsx_attrs) {
-		if (is_jsx_ref_attribute(attr)) count += 1;
+		if (!is_jsx_ref_attribute(attr)) continue;
+		count += 1;
+		if (!attr.metadata?.from_ref_keyword) tsx_form_count += 1;
 	}
 	if (count <= 1) return jsx_attrs;
+	// Two or more genuine `ref={...}` (TSX-form) attributes are already a
+	// validator-flagged compile error and TypeScript flags them as duplicate
+	// JSX props. Leave them in place so the user gets all three signals
+	// instead of silently composing them into `__mergeRefs(...)`.
+	if (tsx_form_count >= 2) return jsx_attrs;
 
 	/** @type {any[]} */
 	const ref_exprs = [];
 	/** @type {any[]} */
 	const result = [];
+	/** @type {any} */
+	let source_attr = null;
 	for (const attr of jsx_attrs) {
 		if (is_jsx_ref_attribute(attr)) {
 			ref_exprs.push(attr.value.expression);
+			// Inherit loc from the (at most one) `ref={expr}`-form attribute so
+			// the kept `ref` keyword in the generated `ref={__mergeRefs(...)}`
+			// retains a source mapping back to its original `ref=` keyword.
+			if (!source_attr && !attr.metadata?.from_ref_keyword) {
+				source_attr = attr;
+			}
 		} else {
 			result.push(attr);
 		}
@@ -3126,23 +3142,23 @@ export function merge_duplicate_refs(jsx_attrs, transform_context) {
 		transform_context.needs_merge_refs = true;
 	}
 
-	// The merged ref attribute is a synthesis of multiple input refs and
-	// has no single source position to map back to, so we omit `loc` for
-	// the same reason `to_jsx_attribute` does for `RefAttribute`-derived
-	// JSX attributes.
-	result.push(
+	// Inherit start/end/loc from the (at most one) `ref={expr}`-form attribute
+	// so segments.js emits a normal source-to-generated mapping for the
+	// merged attribute and its name. Without this the kept `ref` keyword in
+	// `ref={__mergeRefs(...)}` has no source mapping back to the user's `ref=`
+	// keyword.
+	const merged_name = build_jsx_id('ref', source_attr?.name);
+	const merged_attr = build_jsx_attribute(
+		merged_name,
 		/** @type {any} */ ({
-			type: 'JSXAttribute',
-			name: { type: 'JSXIdentifier', name: 'ref', metadata: { path: [] } },
-			value: {
-				type: 'JSXExpressionContainer',
-				expression: merged_value,
-				metadata: { path: [] },
-			},
-			shorthand: false,
+			type: 'JSXExpressionContainer',
+			expression: merged_value,
 			metadata: { path: [] },
 		}),
+		false,
+		source_attr,
 	);
+	result.push(merged_attr);
 
 	return result;
 }
@@ -3196,13 +3212,16 @@ export function to_jsx_attribute(attr, transform_context) {
 		// so the source-to-generated mapping is imprecise — but pointing
 		// editors at the `{ref expr}` span is still useful for hover/jump,
 		// matching how shorthand `{name}` → `name={name}` carries loc.
+		// `from_ref_keyword` lets `merge_duplicate_refs` tell this form apart
+		// from genuine `ref={...}` attributes without inferring it from
+		// whether `name.loc` happens to be present.
 		return set_loc(
 			/** @type {any} */ ({
 				type: 'JSXAttribute',
 				name: { type: 'JSXIdentifier', name: 'ref', metadata: { path: [] } },
 				value: to_jsx_expression_container(attr.argument),
 				shorthand: false,
-				metadata: { path: [] },
+				metadata: { path: [], from_ref_keyword: true },
 			}),
 			attr,
 		);
