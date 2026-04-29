@@ -70,6 +70,8 @@ Add the generic config above to your Codex MCP configuration.
 - `format-tsrx` - format TSRX code using the official Prettier plugin.
 - `analyze-tsrx` - compile TSRX code and convert common diagnostics into
   target-neutral authoring advice with linked docs resources.
+- `validate-tsrx-file` - read a `.tsrx` file and run formatting, compilation, and
+  diagnostic advice in one read-only pass.
 
 ## Resources
 

@@ -1,7 +1,15 @@
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { analyze_tsrx, compile_tsrx, detect_target, format_tsrx } from '../src/index.js';
+import {
+	analyze_tsrx,
+	compile_tsrx,
+	detect_target,
+	format_tsrx,
+	validate_tsrx_file,
+} from '../src/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const target_fixtures = [
@@ -162,5 +170,52 @@ describe('@tsrx/mcp compile helpers', () => {
 		expect(result.formatted).toBe(code);
 		expect(result.changed).toBe(false);
 		expect(result.check).toBe(true);
+	});
+
+	it('validates a TSRX file with formatting, compilation, and advice', async () => {
+		const result = await validate_tsrx_file({
+			filePath: 'src/Valid.tsrx',
+			cwd: react_fixture,
+		});
+
+		expect(result.ok).toBe(true);
+		expect(result.read.ok).toBe(true);
+		expect(result.format?.check).toBe(true);
+		expect(result.compile?.ok).toBe(true);
+		expect(result.compile?.target).toBe('react');
+		expect(result.analysis?.advice).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					kind: 'compile-clean',
+				}),
+			]),
+		);
+	});
+
+	it('reports formatting and compiler advice for an invalid TSRX file', async () => {
+		const temp_dir = await mkdtemp(join(tmpdir(), 'tsrx-mcp-'));
+		const filePath = join(temp_dir, 'Broken.tsrx');
+
+		try {
+			await writeFile(filePath, 'component Broken(){return <div />;}', 'utf8');
+			const result = await validate_tsrx_file({
+				filePath,
+				cwd: react_fixture,
+			});
+
+			expect(result.ok).toBe(false);
+			expect(result.read.ok).toBe(true);
+			expect(result.format?.check).toBe(false);
+			expect(result.compile?.ok).toBe(false);
+			expect(result.analysis?.advice).toEqual(
+				expect.arrayContaining([
+					expect.objectContaining({
+						kind: 'jsx-return-in-component',
+					}),
+				]),
+			);
+		} finally {
+			await rm(temp_dir, { recursive: true, force: true });
+		}
 	});
 });

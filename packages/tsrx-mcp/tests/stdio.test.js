@@ -67,6 +67,7 @@ describe('@tsrx/mcp stdio server', () => {
 				'format-tsrx',
 				'get-documentation',
 				'list-sections',
+				'validate-tsrx-file',
 			]);
 		});
 	});
@@ -205,6 +206,21 @@ describe('@tsrx/mcp stdio server', () => {
 			expect(formatted_output.formatted).toContain('export component Greeting');
 			expect(formatted_output.formatted).toContain('"Hello "');
 			expect(formatted_output.formatted).toContain('{name}');
+
+			const validated = await client.callTool({
+				name: 'validate-tsrx-file',
+				arguments: {
+					filePath: 'src/Valid.tsrx',
+					cwd: react_fixture,
+				},
+			});
+			const validated_output =
+				/** @type {{ ok?: unknown, format?: { check?: unknown }, compile?: { target?: unknown } }} */ (
+					parse_json_text_content(expect_first_tool_content(validated))
+				);
+			expect(validated_output.ok).toBe(true);
+			expect(validated_output.format?.check).toBe(true);
+			expect(validated_output.compile?.target).toBe('react');
 		});
 	});
 });
