@@ -41,4 +41,22 @@ describe('@tsrx/mcp package contract', () => {
 			await client.close();
 		}
 	});
+
+	it('reports the package.json version on the initialize handshake', async () => {
+		const transport = new StdioClientTransport({
+			command: 'node',
+			args: [package_json.bin['tsrx-mcp']],
+			cwd: package_dir,
+		});
+		const client = new Client({ name: 'tsrx-mcp-version-test', version: '0.0.0' });
+
+		await client.connect(transport);
+		try {
+			const info = client.getServerVersion();
+			expect(info?.version).toBe(package_json.version);
+			expect(info?.name).toBe('TSRX MCP Server');
+		} finally {
+			await client.close();
+		}
+	});
 });

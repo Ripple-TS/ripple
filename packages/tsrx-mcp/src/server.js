@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import {
@@ -21,9 +23,12 @@ import {
 	validate_file_result_schema,
 } from './schemas.js';
 
+const package_json_path = fileURLToPath(new URL('../package.json', import.meta.url));
+const package_json = JSON.parse(readFileSync(package_json_path, 'utf8'));
+
 const SERVER_INFO = {
 	name: 'TSRX MCP Server',
-	version: '0.0.0',
+	version: typeof package_json.version === 'string' ? package_json.version : '0.0.0',
 };
 
 const TARGET_RESOURCE_CONTENT = {
