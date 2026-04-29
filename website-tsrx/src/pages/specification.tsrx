@@ -46,7 +46,7 @@ const TSX_GRAMMAR = [
 
 const TEMPLATE_EXPRESSION_GRAMMAR = [
 	'DoubleQuotedTextChild :',
-	'  " StringCharactersopt "',
+	'  " JSXStringCharactersopt "',
 	'',
 	'TemplateExpression :',
 	'  { AssignmentExpression }',
@@ -401,7 +401,9 @@ export component SpecificationPage() {
 							<li>
 								{'A direct double-quoted text child is represented by '}
 								<code class="inline-code">{'Text'}</code>
-								{' with a string literal expression and contributes escaped static text.'}
+								{' with a string literal expression and contributes escaped static text. Its quoted contents use the same lexical rules as a quoted JSX attribute value: character references such as '}
+								<code class="inline-code">{'&quot;'}</code>
+								{' are decoded, and backslashes do not escape the closing quote.'}
 							</li>
 							<li>
 								<code class="inline-code">{'{ AssignmentExpression }'}</code>
@@ -646,7 +648,7 @@ export component SpecificationPage() {
 								{'TSRXExpression wraps the embedded ECMAScript expression from the ordinary {expr} template form.'}
 							</li>
 							<li>
-								{'Text wraps either a direct double-quoted static string literal child or the embedded ECMAScript expression from the explicit {text expr} form, and marks it for escaped text handling.'}
+								{'Text wraps either a direct double-quoted static text child or the embedded ECMAScript expression from the explicit {text expr} form, and marks it for escaped text handling. Static text children decode JSX character references before the literal expression is stored.'}
 							</li>
 							<li>
 								{'Html wraps the embedded ECMAScript expression from the explicit {html expr} form and marks it for host-defined raw-markup handling.'}

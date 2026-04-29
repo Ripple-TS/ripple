@@ -16,10 +16,12 @@ const react_platform = {
 	imports: {
 		suspense: 'react',
 		errorBoundary: '@tsrx/react/error-boundary',
+		mergeRefs: '@tsrx/react/merge-refs',
 	},
 	jsx: {
 		rewriteClassAttr: true,
 		acceptedTsxKinds: ['react'],
+		multiRefStrategy: 'merge-refs',
 	},
 	validation: {
 		requireUseServerForAwait: false,

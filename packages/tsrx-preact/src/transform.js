@@ -34,10 +34,12 @@ const preact_platform = {
 	imports: {
 		suspense: DEFAULT_SUSPENSE_SOURCE,
 		errorBoundary: '@tsrx/preact/error-boundary',
+		mergeRefs: '@tsrx/preact/merge-refs',
 	},
 	jsx: {
 		rewriteClassAttr: false,
 		acceptedTsxKinds: ['preact', 'react'],
+		multiRefStrategy: 'merge-refs',
 	},
 	validation: {
 		requireUseServerForAwait: true,

@@ -176,6 +176,7 @@ export function TSRXPlugin(config) {
 			/** @type {AST.Node[]} */
 			#path = [];
 			#allowTagStartAfterDoubleQuotedText = false;
+			#allowDoubleQuotedTextChildAfterBrace = false;
 			#commentContextId = 0;
 			#loose = false;
 			/** @type {import('../types/index').CompileError[] | undefined} */
@@ -194,6 +195,79 @@ export function TSRXPlugin(config) {
 				this.#loose = tsrx_options?.loose === true;
 				this.#errors = tsrx_options?.errors;
 				this.#filename = tsrx_options?.filename || null;
+			}
+
+			#previousNonWhitespaceChar() {
+				let index = this.pos - 1;
+				while (index >= 0) {
+					const ch = this.input.charCodeAt(index);
+					if (ch !== 32 && ch !== 9 && ch !== 10 && ch !== 13) {
+						return ch;
+					}
+					index--;
+				}
+				return null;
+			}
+
+			#isDoubleQuotedTextChildStart() {
+				if (this.#path.findLast((n) => n.type === 'TsxCompat' || n.type === 'Tsx')) {
+					return false;
+				}
+
+				const parent = this.#path.at(-1);
+				if (!parent || (parent.type !== 'Component' && parent.type !== 'Element')) {
+					return false;
+				}
+
+				const context = this.curContext();
+				if (context === tstc.tc_oTag || context === tstc.tc_cTag) {
+					return false;
+				}
+
+				const prev = this.#previousNonWhitespaceChar();
+				return (
+					prev === null ||
+					prev === 34 || // "
+					prev === 59 || // ;
+					prev === 62 || // >
+					(prev === 123 && this.#allowDoubleQuotedTextChildAfterBrace) || // {
+					prev === 125 // }
+				);
+			}
+
+			#readDoubleQuotedTextChildToken() {
+				const start = this.pos;
+				let out = '';
+				this.pos++;
+				let chunkStart = this.pos;
+
+				while (this.pos < this.input.length) {
+					const ch = this.input.charCodeAt(this.pos);
+
+					if (ch === 34 /* " */) {
+						out += this.input.slice(chunkStart, this.pos);
+						this.pos++;
+						return this.finishToken(tt.string, out);
+					}
+
+					if (ch === 38 /* & */) {
+						out += this.input.slice(chunkStart, this.pos);
+						out += this.jsx_readEntity();
+						chunkStart = this.pos;
+						continue;
+					}
+
+					if (acorn.isNewLine(ch)) {
+						out += this.input.slice(chunkStart, this.pos);
+						out += this.jsx_readNewLine(true);
+						chunkStart = this.pos;
+						continue;
+					}
+
+					this.pos++;
+				}
+
+				this.raise(start, 'Unterminated double-quoted text child');
 			}
 
 			/**
@@ -559,6 +633,16 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['getTokenFromCode']}
 			 */
 			getTokenFromCode(code) {
+				if (code === 34) {
+					const is_double_quoted_text_child = this.#isDoubleQuotedTextChildStart();
+					this.#allowDoubleQuotedTextChildAfterBrace = false;
+					if (is_double_quoted_text_child) {
+						return this.#readDoubleQuotedTextChildToken();
+					}
+				} else {
+					this.#allowDoubleQuotedTextChildAfterBrace = false;
+				}
+
 				if (code !== 60) {
 					this.#allowTagStartAfterDoubleQuotedText = false;
 				}
@@ -981,6 +1065,9 @@ export function TSRXPlugin(config) {
 				const parent_function_body_depth = this.#functionBodyDepth;
 				this.#functionBodyDepth = 0;
 
+				if (this.type === tt.braceL) {
+					this.#allowDoubleQuotedTextChildAfterBrace = true;
+				}
 				this.eat(tt.braceL);
 				node.body = [];
 				this.#path.push(node);
@@ -1318,12 +1405,12 @@ export function TSRXPlugin(config) {
 			parseDoubleQuotedTextChild() {
 				const node = /** @type {AST.TextNode} */ (this.startNode());
 				const expression = /** @type {AST.Literal} */ (this.startNode());
-				const raw = this.input.slice(this.start, this.end);
+				node.raw = this.input.slice(this.start, this.end);
 				const end = this.end;
 				const endLoc = this.endLoc;
 
 				expression.value = this.value;
-				expression.raw = raw;
+				expression.raw = JSON.stringify(this.value);
 				node.expression = this.finishNodeAt(expression, 'Literal', end, endLoc);
 
 				this.#allowTagStartAfterDoubleQuotedText = true;
@@ -2577,6 +2664,7 @@ export function TSRXPlugin(config) {
 					if (node === void 0) node = /** @type {AST.BlockStatement} */ (this.startNode());
 
 					node.body = [];
+					this.#allowDoubleQuotedTextChildAfterBrace = true;
 					this.expect(tt.braceL);
 					if (createNewLexicalScope) {
 						this.enterScope(0);

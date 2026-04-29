@@ -116,6 +116,32 @@ component MultiDomRefApp() {
 	<input {ref captureA} {ref captureB} class="multi-dom-ref" type="text" />
 }
 
+let combo_jsx_node: HTMLInputElement | null = null;
+let combo_keyword_node: HTMLInputElement | null = null;
+
+component ComboRefApp() {
+	function jsxRef(node: HTMLInputElement | null) {
+		combo_jsx_node = node;
+	}
+
+	function keywordRef(node: HTMLInputElement | null) {
+		combo_keyword_node = node;
+	}
+
+	<input ref={jsxRef} {ref keywordRef} class="combo-ref" type="text" />
+}
+
+const value_ref_object = ref<HTMLInputElement | null>(null);
+let value_ref_callback_node: HTMLInputElement | null = null;
+
+component ValueRefObjectApp() {
+	function callbackRef(node: HTMLInputElement | null) {
+		value_ref_callback_node = node;
+	}
+
+	<input {ref value_ref_object} {ref callbackRef} class="value-ref" type="text" />
+}
+
 component CounterApp() {
 	const count = ref(0);
 	<p class="count">{count.value}</p>
@@ -591,6 +617,22 @@ describe('tsrx-vue runtime', () => {
 		expect(multi_dom_ref_b).toBeInstanceOf(HTMLInputElement);
 		expect(multi_dom_ref_a).toBe(multi_dom_ref_b);
 		expect(multi_dom_ref_a?.className).toContain('multi-dom-ref');
+	});
+
+	it('combines a single ref={fn} with a {ref expr} keyword-form ref via mergeRefs', async () => {
+		combo_jsx_node = null;
+		combo_keyword_node = null;
+		await render(ComboRefApp);
+		expect(combo_jsx_node).toBeInstanceOf(HTMLInputElement);
+		expect(combo_jsx_node).toBe(combo_keyword_node);
+	});
+
+	it('mergeRefs assigns Vue ref() objects via .value alongside callback refs', async () => {
+		value_ref_object.value = null;
+		value_ref_callback_node = null;
+		await render(ValueRefObjectApp);
+		expect(value_ref_object.value).toBeInstanceOf(HTMLInputElement);
+		expect(value_ref_object.value).toBe(value_ref_callback_node);
 	});
 
 	it('increments a counter on click', async () => {

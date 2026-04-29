@@ -6438,6 +6438,9 @@
           "include": "#jsx-tsx-tag-fragment"
         },
         {
+          "include": "#jsx-double-quoted-text-child"
+        },
+        {
           "include": "#jsx-children-statements"
         },
         {
@@ -6446,6 +6449,27 @@
         {
           "include": "#jsx-tag"
         },
+        {
+          "include": "#jsx-entities"
+        }
+      ]
+    },
+    "jsx-double-quoted-text-child": {
+      "name": "meta.jsx.text.quoted.js",
+      "begin": "\"",
+      "end": "\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.jsx.text.begin.js"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.jsx.text.end.js"
+        }
+      },
+      "contentName": "string.unquoted.jsx.text.js",
+      "patterns": [
         {
           "include": "#jsx-entities"
         }

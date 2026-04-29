@@ -616,4 +616,73 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain('<Show');
 		});
 	});
+
+	describe('ref attributes', () => {
+		it('passes a single {ref expr} through as ref={expr} with no array wrapper', () => {
+			const { code } = compile(
+				`component App() {
+					function refA(_node) {}
+					<div {ref refA}>{'hi'}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('ref={refA}');
+			expect(code).not.toContain('[refA');
+		});
+
+		it('passes a single TSX-style ref={expr} through as ref={expr} with no array wrapper', () => {
+			const { code } = compile(
+				`component App() {
+					function refA(_node) {}
+					<div ref={refA}>{'hi'}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('ref={refA}');
+			expect(code).not.toContain('[refA');
+		});
+
+		it('rejects multiple ref={expr} attributes on the same element', () => {
+			expect(() =>
+				compile(
+					`component App() {
+						function refA(_node) {}
+						function refB(_node) {}
+						<div ref={refA} ref={refB}>{'hi'}</div>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/multiple `ref=\{\.\.\.\}` attributes/);
+		});
+
+		it('collapses multiple {ref expr} keyword-form refs into a Solid-native array literal', () => {
+			const { code } = compile(
+				`component App() {
+					function refA(_node) {}
+					function refB(_node) {}
+					function refC(_node) {}
+					<div {ref refA} {ref refB} {ref refC}>{'hi'}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('ref={[refA, refB, refC]}');
+		});
+
+		it('combines a single TSX-style ref={expr} with multiple {ref expr} keyword-form refs', () => {
+			const { code } = compile(
+				`component App() {
+					function refA(_node) {}
+					function refB(_node) {}
+					function refC(_node) {}
+					<div ref={refA} {ref refB} {ref refC}>{'hi'}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('ref={[refA, refB, refC]}');
+		});
+	});
 });

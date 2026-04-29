@@ -8,13 +8,21 @@ import type { RequireAllOrNone } from '../src/helpers.js';
 import type {
 	JsxPlatform,
 	JsxPlatformHooks,
+	JsxTransformContext,
 	JsxTransformOptions,
 	JsxTransformResult,
 	componentToFunctionDeclaration,
 	createJsxTransform,
 } from './jsx-platform';
 
-export type { Parse, JsxPlatform, JsxPlatformHooks, JsxTransformOptions, JsxTransformResult };
+export type {
+	Parse,
+	JsxPlatform,
+	JsxPlatformHooks,
+	JsxTransformContext,
+	JsxTransformOptions,
+	JsxTransformResult,
+};
 export { createJsxTransform, componentToFunctionDeclaration };
 
 /**
@@ -398,6 +406,7 @@ declare module 'estree' {
 	export interface TextNode extends AST.BaseExpression {
 		type: 'Text';
 		expression: AST.Expression;
+		raw?: string;
 		loc?: AST.SourceLocation;
 	}
 

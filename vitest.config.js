@@ -80,6 +80,15 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'bun-plugin-preact',
+					include: ['packages/bun-plugin-preact/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'tsrx-solid',
 					include: ['packages/tsrx-solid/tests/**/*.test.js'],
 					environment: 'node',
@@ -136,6 +145,24 @@ export default defineConfig({
 				test: {
 					name: 'rspack-plugin-preact',
 					include: ['packages/rspack-plugin-preact/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
+					name: 'rspack-plugin-solid',
+					include: ['packages/rspack-plugin-solid/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
+					name: 'rspack-plugin-vue',
+					include: ['packages/rspack-plugin-vue/tests/**/*.test.js'],
 					environment: 'node',
 					globals: true,
 				},

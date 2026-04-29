@@ -14,6 +14,7 @@ import {
 	TRY_BLOCK,
 	HEAD_BLOCK,
 	DIRECT_CHILD_BLOCK,
+	UNINITIALIZED,
 } from './constants.js';
 import { next_sibling } from './operations.js';
 import { apply_element_spread } from './render.js';
@@ -26,7 +27,9 @@ import {
 	run_block,
 	run_teardown,
 	schedule_update,
+	untrack,
 } from './runtime.js';
+import { is_ripple_object } from './utils.js';
 
 /**
  * @param {Function} fn
@@ -96,29 +99,56 @@ export function branch(fn, flags = 0, state = null) {
 }
 
 /**
+ * Wire up a `{ref expr}` attribute. `expr` may be:
+ *   - a callback function — invoked with the element on mount; if it returns
+ *     a function, that function runs as the cleanup on unmount.
+ *   - a `Tracked` (e.g. from `track()`) — `tracked.value` is set to the
+ *     element on mount and reset to `null` on unmount.
+ *   - a plain mutable var (`let foo;`) — the element is assigned to the
+ *     variable. No teardown is run, released with the component.
+ *
+ * `get_fn` is invoked through `untrack` so the surrounding render block
+ * doesn't subscribe to whatever the thunk happens to read. The supported
+ * shape is to pass the ref slot itself (`{ref tracker}`); a foot-gun like
+ * `{ref tracker.value}` would otherwise read the cell reactively and cause
+ * spurious re-runs.
+ *
  * @param {Element} element
- * @param {() => (element: Element) => (void | (() => void))} get_fn
+ * @param {() => any} get_fn
+ * @param {(value: any) => void} [set_fn]
  * @returns {Block}
  */
-export function ref(element, get_fn) {
-	/** @type {(element: Element) => (void | (() => void) | undefined)} */
-	var ref_fn;
+export function ref(element, get_fn, set_fn) {
+	// make sure the first run always enters the dispatch branch,
+	/** @type {any} */
+	var ref_value = UNINITIALIZED;
 	/** @type {Block | null} */
 	var e;
 
 	return block(RENDER_BLOCK, () => {
-		if (ref_fn !== (ref_fn = get_fn())) {
+		// avoid any reactive reads
+		var next = untrack(get_fn);
+		if (ref_value !== (ref_value = next)) {
 			if (e) {
 				destroy_block(e);
 				e = null;
 			}
 
-			if (ref_fn) {
+			if (typeof ref_value === 'function') {
+				e = branch(() => {
+					effect(() => ref_value(element));
+				});
+			} else if (is_ripple_object(ref_value)) {
 				e = branch(() => {
 					effect(() => {
-						return ref_fn(element);
+						ref_value.value = element;
+						return () => {
+							ref_value.value = null;
+						};
 					});
 				});
+			} else if (set_fn !== undefined) {
+				set_fn(element);
 			}
 		}
 	});

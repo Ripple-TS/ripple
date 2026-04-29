@@ -1,0 +1,41 @@
+{
+  "name": "@tsrx/rspack-plugin-vue",
+  "description": "Rspack plugin for @tsrx/vue",
+  "license": "MIT",
+  "author": "Dominic Gannaway",
+  "version": "0.0.1",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ripple-TS/ripple.git",
+    "directory": "packages/rspack-plugin-vue"
+  },
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "dependencies": {
+    "@tsrx/vue": "workspace:*",
+    "source-map": "catalog:default"
+  },
+  "peerDependencies": {
+    "@rspack/core": ">=1.0.0",
+    "vue": ">=3.5",
+    "vue-jsx-vapor": ">=3.2.10"
+  },
+  "devDependencies": {
+    "@rspack/core": "^1.6.0",
+    "typescript": "catalog:default",
+    "vue": "3.6.0-beta.10",
+    "vue-jsx-vapor": "^3.2.11"
+  },
+  "files": [
+    "src",
+    "types"
+  ]
+}

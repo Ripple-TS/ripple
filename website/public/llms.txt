@@ -58,6 +58,7 @@ expressions must be wrapped in curly braces `{}`.
 // ✅ CORRECT - Static text as direct double-quoted children
 <div>"Hello World"</div>
 <p>"This works correctly"</p>
+<p>"Use &quot; for a quote and &amp; for an ampersand"</p>
 
 // ✅ CORRECT - JavaScript strings in expressions
 <div>{"Hello World"}</div>
@@ -72,6 +73,11 @@ This is because Ripple needs to distinguish between JavaScript code and literal
 strings within the template syntax. The parser cannot determine if `Hello` is
 meant to be a string literal or a JavaScript identifier unless static text is
 explicitly double-quoted or dynamic content is wrapped in `{}`.
+
+Direct double-quoted text children use the same character-reference behavior as
+quoted JSX attribute values. Use entities such as `&quot;` and `&amp;` for literal
+characters that need escaping; backslashes are literal text and do not escape the
+closing quote.
 
 ### ⚠️ Critical: Templates Only Inside Component Bodies
 

@@ -1,8 +1,13 @@
 /** @import * as AST from 'estree' */
 /** @import * as ESTreeJSX from 'estree-jsx' */
+/** @import { JsxTransformContext } from '@tsrx/core/types' */
 
 import {
 	createJsxTransform,
+	error,
+	mergeDuplicateRefs,
+	toJsxAttribute,
+	validateAtMostOneRefAttribute,
 	setLocation,
 	applyLazyTransforms as apply_lazy_transforms,
 	collectLazyBindingsFromComponent as collect_lazy_bindings_from_component,
@@ -15,7 +20,6 @@ import {
 	clone_expression_node,
 	clone_identifier,
 	clone_jsx_name,
-	create_compile_error,
 	create_generated_identifier,
 	create_null_literal,
 	flatten_switch_consequent,
@@ -28,15 +32,19 @@ import {
 } from '@tsrx/core';
 
 /**
- * @typedef {{
+ * Solid extends the shared `JsxTransformContext` with `needs_*` flags that
+ * track which Solid runtime primitives (`Show`, `For`, `Switch`, `Match`,
+ * `Errored`, `Loading`) the lowered output requires. The factory seeds these
+ * via `hooks.initialState`; everything else (filename, loose, errors,
+ * helper_state, …) comes from the shared base.
+ *
+ * @typedef {JsxTransformContext & {
  *   needs_show: boolean,
  *   needs_for: boolean,
  *   needs_switch: boolean,
  *   needs_match: boolean,
  *   needs_errored: boolean,
  *   needs_loading: boolean,
- *   lazy_next_id: number,
- *   current_css_hash: string | null,
  * }} TransformContext
  */
 
@@ -71,6 +79,10 @@ const solid_platform = {
 	jsx: {
 		rewriteClassAttr: false,
 		acceptedTsxKinds: ['solid'],
+		// Solid's runtime accepts an array of refs natively, so multiple
+		// `ref` attributes collapse to `ref={[a, b, ...]}` rather than
+		// going through a `mergeRefs` helper.
+		multiRefStrategy: 'array',
 	},
 	validation: {
 		requireUseServerForAwait: true,
@@ -88,14 +100,20 @@ const solid_platform = {
 			needs_errored: false,
 			needs_loading: false,
 		}),
-		validateComponentAwait: (await_expression, _component, _ctx, _requires, source) => {
+		validateComponentAwait: (await_expression, _component, ctx, _requires, source) => {
 			const await_start = get_await_keyword_start(await_expression, source);
 			const adjusted_node = /** @type {any} */ ({
 				...await_expression,
 				start: await_start,
 				end: await_start + 'await'.length,
 			});
-			throw create_compile_error(adjusted_node, '`await` is not allowed inside Solid components.');
+			error(
+				'`await` is not allowed inside Solid components.',
+				ctx?.filename ?? null,
+				adjusted_node,
+				ctx?.errors,
+				ctx?.comments,
+			);
 		},
 		controlFlow: {
 			ifStatement: if_statement_to_jsx_child,
@@ -106,8 +124,12 @@ const solid_platform = {
 		componentToFunction: (component, ctx) =>
 			component_to_function_declaration(component, /** @type {any} */ (ctx)),
 		injectImports: (program, ctx) => inject_solid_imports(program, /** @type {any} */ (ctx)),
-		transformElementAttributes: (attrs, ctx, element) =>
-			transform_element_attributes(attrs, is_composite_element(element), /** @type {any} */ (ctx)),
+		// `transformElementAttributes` is intentionally omitted: the
+		// `transformElement` hook below short-circuits core's element walker
+		// before `to_jsx_element` runs, so the dispatch path that would call
+		// `transformElementAttributes` is never reached for Solid. Attribute
+		// lowering happens in Solid's local `transform_element_attributes`,
+		// which `to_jsx_element` and `create_dynamic_jsx_element` call directly.
 		transformElement: (inner, ctx, raw_children) =>
 			to_jsx_element(/** @type {any} */ (inner), /** @type {any} */ (ctx), raw_children),
 	},
@@ -321,7 +343,7 @@ function to_jsx_child(node, transform_context) {
 			// containers wrapped. See helpers.js.
 			return tsx_node_to_jsx_expression(node, true);
 		case 'TsxCompat':
-			return tsx_compat_node_to_jsx_expression(node, true);
+			return tsx_compat_node_to_jsx_expression(node, transform_context, true);
 		case 'Element':
 			return to_jsx_element(node, transform_context);
 		case 'Text':
@@ -847,17 +869,24 @@ function try_statement_to_jsx_child(node, transform_context) {
 	const finalizer = node.finalizer;
 
 	if (finalizer) {
-		throw create_compile_error(
-			finalizer,
+		error(
 			'Solid TSRX does not support JavaScript `try/finally` in component templates. `finally` is not part of TSRX control flow; move the try/finally into a function if you need cleanup logic.',
+			transform_context.filename,
+			finalizer,
+			transform_context.errors,
+			transform_context.comments,
 		);
 	}
 
 	if (!pending && !handler) {
-		throw create_compile_error(
-			node,
+		error(
 			'Component try statements must have a `pending` or `catch` block.',
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
 		);
+		return to_jsx_expression_container(create_null_literal());
 	}
 
 	const try_body_nodes = node.block.body || [];
@@ -1045,7 +1074,22 @@ function to_jsx_element(node, transform_context, pre_walk_children) {
 	}
 
 	if (!node.id) {
-		throw create_compile_error(node, TEMPLATE_FRAGMENT_ERROR);
+		error(
+			TEMPLATE_FRAGMENT_ERROR,
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
+		);
+		return set_loc(
+			/** @type {any} */ ({
+				type: 'JSXFragment',
+				openingFragment: { type: 'JSXOpeningFragment' },
+				closingFragment: { type: 'JSXClosingFragment' },
+				children: [],
+			}),
+			node,
+		);
 	}
 
 	if (is_dynamic_element_id(node.id)) {
@@ -1176,44 +1220,6 @@ function create_element_children(children, transform_context) {
 }
 
 /**
- * Attribute transform. Unlike React, Solid uses the native `class` attribute
- * (not `className`). `RefAttribute` and `SpreadAttribute` nodes are handled
- * at the element level by {@link transform_element_attributes} so this
- * function only sees plain attributes.
- *
- * @param {any} attr
- * @returns {any}
- */
-function to_jsx_attribute(attr) {
-	if (!attr) return attr;
-	if (attr.type === 'JSXAttribute' || attr.type === 'JSXSpreadAttribute') return attr;
-
-	const attr_name = attr.name;
-	const name =
-		attr_name && attr_name.type === 'Identifier' ? identifier_to_jsx_name(attr_name) : attr_name;
-
-	let value = attr.value;
-	if (value) {
-		if (value.type === 'Literal' && typeof value.value === 'string') {
-			// Keep string literal as attribute string.
-		} else if (value.type !== 'JSXExpressionContainer') {
-			value = to_jsx_expression_container(value);
-		}
-	}
-
-	return set_loc(
-		/** @type {any} */ ({
-			type: 'JSXAttribute',
-			name,
-			value: value || null,
-			shorthand: false,
-			metadata: { path: [] },
-		}),
-		attr,
-	);
-}
-
-/**
  * Detect whether an `Element` node represents a composite component (tag
  * name starts with an uppercase letter, or is a member expression like
  * `Namespace.Component`).
@@ -1254,26 +1260,17 @@ function has_text_content_attribute(attributes) {
 }
 
 /**
- * Transform a list of raw attributes into JSX attributes, lifting
- * `{ref expr}` handling to the element level.
+ * Transform a list of raw attributes into JSX attributes.
  *
- * `{ref expr}` compiles to `ref={expr}` on both DOM elements and composite
- * components. On DOM elements, Solid's JSX transform takes over: if `expr`
- * is a mutable `let`-declared identifier it assigns the element to the
- * variable; if `expr` is a function (or other callable) it invokes it
- * with the element. On composite components, `ref` is passed through as a
- * regular prop; the receiving child can consume it explicitly as
- * `props.ref` or spread `{...props}` onto a DOM element, where Solid's
- * spread runtime automatically applies the `ref` entry. Solid's merge
- * proxies drop Symbol keys, so the Symbol-based forwarding used by
- * Ripple doesn't port; the Solid target relies on its native `ref` prop
- * support instead.
- *
- * Multiple `{ref ...}` attributes on the same element are collected into
- * a single `ref={[a, b, ...]}` array so every callback fires. Solid's
- * ref/spread runtime (`applyRef`) already iterates array refs, so this
- * works on both DOM elements and composite components (when the child
- * spreads `props` or forwards `props.ref`).
+ * Per-attribute conversion (RefAttribute → `ref={expr}`, SpreadAttribute →
+ * `{...expr}`, plain Attribute → JSXAttribute, JSXAttribute pass-through)
+ * is delegated to `@tsrx/core`'s shared {@link toJsxAttribute}. The list
+ * is then run through {@link mergeDuplicateRefs} so multiple ref attributes
+ * on the same element — whether from `{ref expr}` or TSX-style `ref={expr}` —
+ * collapse to a single `ref={[a, b, ...]}` array (the strategy chosen by
+ * Solid's `multiRefStrategy: 'array'`). Solid's runtime iterates array refs
+ * natively, so this works on both DOM elements and composite components
+ * (when the child spreads `props` or forwards `props.ref`).
  *
  * @param {any[]} raw_attrs
  * @param {boolean} is_composite
@@ -1282,66 +1279,15 @@ function has_text_content_attribute(attributes) {
  */
 function transform_element_attributes(raw_attrs, is_composite, transform_context) {
 	void is_composite;
-	void transform_context;
+	validateAtMostOneRefAttribute(raw_attrs, /** @type {any} */ (transform_context));
 	/** @type {any[]} */
 	const result = [];
-	/** @type {any[]} */
-	const ref_attrs = [];
 
 	for (const attr of raw_attrs) {
 		if (!attr) continue;
-		if (attr.type === 'RefAttribute') {
-			ref_attrs.push(attr);
-			continue;
-		}
-		if (attr.type === 'SpreadAttribute') {
-			result.push(
-				set_loc(
-					/** @type {any} */ ({
-						type: 'JSXSpreadAttribute',
-						argument: attr.argument,
-					}),
-					attr,
-				),
-			);
-			continue;
-		}
-		result.push(to_jsx_attribute(attr));
+		result.push(toJsxAttribute(attr, /** @type {any} */ (transform_context)));
 	}
-
-	if (ref_attrs.length === 1) {
-		result.push(build_ref_attribute(ref_attrs[0].argument, ref_attrs[0]));
-	} else if (ref_attrs.length > 1) {
-		const array_expr = /** @type {any} */ ({
-			type: 'ArrayExpression',
-			elements: ref_attrs.map((attr) => attr.argument),
-			metadata: { path: [] },
-		});
-		result.push(build_ref_attribute(array_expr, ref_attrs[0]));
-	}
-
-	return result;
-}
-
-/**
- * Build a `ref={expr}` JSX attribute, passing the expression through
- * unchanged so Solid's JSX transform can apply its normal ref semantics.
- *
- * @param {any} argument
- * @param {any} source_node
- * @returns {any}
- */
-function build_ref_attribute(argument, source_node) {
-	return set_loc(
-		/** @type {any} */ ({
-			type: 'JSXAttribute',
-			name: { type: 'JSXIdentifier', name: 'ref', metadata: { path: [] } },
-			value: to_jsx_expression_container(argument),
-			shorthand: false,
-			metadata: { path: [] },
-		}),
-		source_node,
-	);
+	return mergeDuplicateRefs(result, /** @type {any} */ (transform_context));
 }
 
 /**
@@ -1493,14 +1439,18 @@ function build_return_expression(render_nodes) {
 
 /**
  * @param {any} node
+ * @param {TransformContext} transform_context
  * @param {boolean} [in_jsx_child]
  * @returns {any}
  */
-function tsx_compat_node_to_jsx_expression(node, in_jsx_child = false) {
+function tsx_compat_node_to_jsx_expression(node, transform_context, in_jsx_child = false) {
 	if (node.kind !== 'solid') {
-		throw create_compile_error(
-			node,
+		error(
 			`Solid TSRX does not support <tsx:${node.kind}> blocks. Use <tsx> or <tsx:solid>.`,
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
 		);
 	}
 	return tsx_node_to_jsx_expression(node, in_jsx_child);

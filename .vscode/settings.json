@@ -39,5 +39,5 @@
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "cSpell.words": ["tsrx", "tstc", "tstt"]
+  "cSpell.words": ["esrap", "tsrx", "tstc", "tstt", "zimmerframe"]
 }
