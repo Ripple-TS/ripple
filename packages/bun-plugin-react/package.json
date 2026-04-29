@@ -1,0 +1,41 @@
+{
+  "name": "@tsrx/bun-plugin-react",
+  "description": "Bun plugin for @tsrx/react (.tsrx modules)",
+  "license": "MIT",
+  "author": "Dominic Gannaway",
+  "version": "0.1.12",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ripple-TS/ripple.git",
+    "directory": "packages/bun-plugin-react"
+  },
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "scripts": {
+    "test": "pnpm -w test --project bun-plugin-react"
+  },
+  "dependencies": {
+    "@tsrx/react": "workspace:*"
+  },
+  "peerDependencies": {
+    "bun": "^1.0.0",
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:default",
+    "react": "catalog:default",
+    "typescript": "catalog:default"
+  },
+  "files": [
+    "src",
+    "types"
+  ]
+}
