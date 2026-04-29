@@ -193,6 +193,7 @@ export function analyze_tsrx_handler(input) {
  * @param {{
  *   code: string,
  *   filename?: string,
+ *   cwd?: string,
  *   printWidth?: number,
  *   tabWidth?: number,
  *   useTabs?: boolean,
@@ -476,6 +477,7 @@ export function createTSRXMcpServer() {
 			inputSchema: {
 				code: z.string(),
 				filename: z.string().optional(),
+				cwd: z.string().optional(),
 				printWidth: z.number().int().positive().optional(),
 				tabWidth: z.number().int().positive().optional(),
 				useTabs: z.boolean().optional(),

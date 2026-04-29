@@ -68,6 +68,7 @@ export async function validate_tsrx_file(input) {
 	const formatResult = await format_tsrx({
 		code,
 		filename,
+		cwd,
 		printWidth: input.printWidth,
 		tabWidth: input.tabWidth,
 		useTabs: input.useTabs,

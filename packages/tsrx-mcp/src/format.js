@@ -1,5 +1,7 @@
+import path from 'node:path';
 import { format, resolveConfig, resolveConfigFile } from 'prettier';
 import * as tsrx_prettier_plugin from '@tsrx/prettier-plugin';
+import { detect_target } from './target.js';
 
 const BUILTIN_DEFAULTS = {
 	printWidth: 100,
@@ -58,6 +60,7 @@ function pick_user_overrides(input) {
  * @param {{
  *   code: string,
  *   filename?: string,
+ *   cwd?: string,
  *   printWidth?: number,
  *   tabWidth?: number,
  *   useTabs?: boolean,
@@ -67,12 +70,17 @@ function pick_user_overrides(input) {
  */
 export async function format_tsrx(input) {
 	const filename = input.filename ?? 'Component.tsrx';
+	const detection = detect_target(input.cwd);
+	const cwd = detection.cwd;
+	const resolved_filename = path.isAbsolute(filename)
+		? path.resolve(filename)
+		: path.resolve(cwd, filename);
 
 	let project_config = /** @type {Record<string, unknown> | null} */ (null);
 	let config_path = /** @type {string | null} */ (null);
 	try {
-		project_config = await resolveConfig(filename, { editorconfig: true });
-		config_path = await resolveConfigFile(filename);
+		project_config = await resolveConfig(resolved_filename, { editorconfig: true });
+		config_path = await resolveConfigFile(resolved_filename);
 	} catch {
 		// Treat unreadable Prettier config as "no project config" rather than failing.
 	}
@@ -82,7 +90,7 @@ export async function format_tsrx(input) {
 		...BUILTIN_DEFAULTS,
 		...(project_config ?? {}),
 		...user_overrides,
-		filepath: filename,
+		filepath: resolved_filename,
 		parser: 'ripple',
 		plugins: [tsrx_prettier_plugin],
 	};
@@ -93,6 +101,7 @@ export async function format_tsrx(input) {
 		return {
 			ok: true,
 			filename,
+			cwd,
 			configPath: config_path,
 			formatted,
 			changed: formatted !== input.code,
@@ -103,6 +112,7 @@ export async function format_tsrx(input) {
 		return {
 			ok: false,
 			filename,
+			cwd,
 			configPath: config_path,
 			formatted: null,
 			changed: false,

@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
@@ -40,15 +40,45 @@ const react_fixture = target_fixtures[0].cwd;
 
 describe('@tsrx/mcp compile helpers', () => {
 	it.each([
-		{ target: 'react', dir: 'react' },
-		{ target: 'ripple', dir: 'ripple' },
-		{ target: 'solid', dir: 'solid' },
-		{ target: 'vue', dir: 'vue' },
-	])('detects $target from the real $dir playground project', ({ target, dir }) => {
-		const playground = resolve(__dirname, '../../../playground', dir);
-		const result = detect_target(playground);
-		expect(result.detectedTarget).toBe(target);
-		expect(result.confidence).toBe('high');
+		{ target: 'react', compilerPackage: '@tsrx/react' },
+		{ target: 'preact', compilerPackage: '@tsrx/preact' },
+		{ target: 'ripple', compilerPackage: '@tsrx/ripple' },
+		{ target: 'solid', compilerPackage: '@tsrx/solid' },
+		{ target: 'vue', compilerPackage: '@tsrx/vue' },
+	])('detects $target from a minimal package.json signal', async ({ target, compilerPackage }) => {
+		const temp_dir = await mkdtemp(join(tmpdir(), `tsrx-mcp-detect-${target}-`));
+
+		try {
+			await writeFile(
+				join(temp_dir, 'package.json'),
+				JSON.stringify(
+					{
+						name: `tsrx-mcp-detect-${target}`,
+						private: true,
+						type: 'module',
+						dependencies: {
+							[compilerPackage]: 'workspace:*',
+						},
+					},
+					null,
+					2,
+				),
+				'utf8',
+			);
+
+			const result = detect_target(temp_dir);
+
+			expect(result.detectedTarget).toBe(target);
+			expect(result.confidence).toBe('high');
+			expect(result.matches[0]).toMatchObject({
+				target,
+				compilerPackage,
+				signals: [compilerPackage],
+				score: 1,
+			});
+		} finally {
+			await rm(temp_dir, { recursive: true, force: true });
+		}
 	});
 
 	it('appends a cwd hint to the detection message when cwd was not supplied', () => {
@@ -311,6 +341,40 @@ describe('@tsrx/mcp compile helpers', () => {
 			expect(result.ok).toBe(true);
 			expect(result.configPath).toBe(join(temp_dir, '.prettierrc'));
 			// 4-space indent (no tabs), as configured.
+			expect(result.formatted).toBe(
+				`export component App() {\n    <button class="primary">"Save"</button>\n}\n`,
+			);
+		} finally {
+			await rm(temp_dir, { recursive: true, force: true });
+		}
+	});
+
+	it('resolves relative format filenames from the supplied cwd', async () => {
+		const temp_dir = await mkdtemp(join(tmpdir(), 'tsrx-mcp-prettierrc-cwd-'));
+
+		try {
+			await mkdir(join(temp_dir, 'src'));
+			await writeFile(
+				join(temp_dir, '.prettierrc'),
+				JSON.stringify({
+					useTabs: false,
+					tabWidth: 4,
+					singleQuote: false,
+					printWidth: 100,
+				}),
+				'utf8',
+			);
+
+			const result = await format_tsrx({
+				code: `export component App(){<button class="primary">"Save"</button>}`,
+				filename: 'src/App.tsrx',
+				cwd: temp_dir,
+			});
+
+			expect(result.ok).toBe(true);
+			expect(result.cwd).toBe(resolve(temp_dir));
+			expect(result.filename).toBe('src/App.tsrx');
+			expect(result.configPath).toBe(join(temp_dir, '.prettierrc'));
 			expect(result.formatted).toBe(
 				`export component App() {\n    <button class="primary">"Save"</button>\n}\n`,
 			);
