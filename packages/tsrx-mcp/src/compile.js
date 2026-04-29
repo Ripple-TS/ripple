@@ -64,18 +64,19 @@ function normalize_errors(errors, filename) {
 
 /**
  * @param {string} cwd
+ * @param {string | null} package_json_path
  */
-function create_project_require(cwd) {
-	const detected = detect_target(cwd);
-	return createRequire(detected.packageJsonPath ?? path.join(path.resolve(cwd), 'package.json'));
+function create_project_require(cwd, package_json_path) {
+	return createRequire(package_json_path ?? path.join(path.resolve(cwd), 'package.json'));
 }
 
 /**
  * @param {string} compiler_package
  * @param {string} cwd
+ * @param {string | null} package_json_path
  */
-async function import_compiler(compiler_package, cwd) {
-	const project_require = create_project_require(cwd);
+async function import_compiler(compiler_package, cwd, package_json_path) {
+	const project_require = create_project_require(cwd, package_json_path);
 	const resolved = project_require.resolve(compiler_package);
 	return import(pathToFileURL(resolved).href);
 }
@@ -185,7 +186,11 @@ export async function compile_tsrx(input) {
 	}
 
 	try {
-		const compiler = await import_compiler(candidate.compilerPackage, cwd);
+		const compiler = await import_compiler(
+			candidate.compilerPackage,
+			cwd,
+			detection.packageJsonPath,
+		);
 		if (typeof compiler.compile !== 'function') {
 			throw new Error(`${candidate.compilerPackage} does not export a compile() function.`);
 		}

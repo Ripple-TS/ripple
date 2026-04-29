@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { analyze_tsrx } from './analyze.js';
+import { analyze_tsrx_result } from './analyze.js';
 import { compile_tsrx } from './compile.js';
 import { format_tsrx } from './format.js';
 
@@ -84,13 +84,9 @@ export async function validate_tsrx_file(input) {
 		mode: input.mode,
 		includeCode: false,
 	});
-	const analysisResult = await analyze_tsrx({
+	const analysisResult = analyze_tsrx_result({
 		code,
-		filename,
-		cwd,
-		target: input.target,
-		loose: input.loose,
-		mode: input.mode,
+		compileResult,
 	});
 
 	return {

@@ -133,18 +133,26 @@ function create_advice(input) {
 /**
  * @param {{
  *   code: string,
- *   filename?: string,
- *   target?: string,
- *   cwd?: string,
- *   loose?: boolean,
- *   mode?: 'client' | 'server'
+ *   compileResult: {
+ *     ok: boolean,
+ *     target: string | null,
+ *     compilerPackage: string | null,
+ *     filename: string,
+ *     cwd: string,
+ *     errors: Array<{
+ *       message: string,
+ *       type: string | null,
+ *       fileName: string | null,
+ *       pos: number | null,
+ *       end: number | null,
+ *       raisedAt: number | null,
+ *       loc: unknown
+ *     }>
+ *   }
  * }} input
  */
-export async function analyze_tsrx(input) {
-	const compileResult = await compile_tsrx({
-		...input,
-		includeCode: false,
-	});
+export function analyze_tsrx_result(input) {
+	const { compileResult } = input;
 	const advice = create_advice({
 		code: input.code,
 		compileResult,
@@ -169,4 +177,25 @@ export async function analyze_tsrx(input) {
 					'Run compile-tsrx again after revising the source.',
 				],
 	};
+}
+
+/**
+ * @param {{
+ *   code: string,
+ *   filename?: string,
+ *   target?: string,
+ *   cwd?: string,
+ *   loose?: boolean,
+ *   mode?: 'client' | 'server'
+ * }} input
+ */
+export async function analyze_tsrx(input) {
+	const compileResult = await compile_tsrx({
+		...input,
+		includeCode: false,
+	});
+	return analyze_tsrx_result({
+		code: input.code,
+		compileResult,
+	});
 }

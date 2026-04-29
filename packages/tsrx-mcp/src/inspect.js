@@ -101,7 +101,10 @@ function detect_package_manager(root, package_json) {
  * @param {string | null} package_manager
  */
 function runner(package_manager) {
-	return package_manager === 'npm' ? 'npm run' : package_manager === 'yarn' ? 'yarn' : 'pnpm';
+	if (package_manager === 'npm') return 'npm run';
+	if (package_manager === 'yarn') return 'yarn';
+	if (package_manager === 'bun') return 'bun run';
+	return 'pnpm';
 }
 
 /**

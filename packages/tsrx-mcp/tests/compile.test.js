@@ -83,6 +83,43 @@ describe('@tsrx/mcp compile helpers', () => {
 		});
 	});
 
+	it('suggests bun run commands for bun projects', async () => {
+		const temp_dir = await mkdtemp(join(tmpdir(), 'tsrx-mcp-bun-'));
+
+		try {
+			await writeFile(
+				join(temp_dir, 'package.json'),
+				JSON.stringify(
+					{
+						name: 'bun-project',
+						packageManager: 'bun@1.2.0',
+						scripts: {
+							format: 'prettier --write .',
+							'format:check': 'prettier --check .',
+							test: 'vitest',
+							typecheck: 'tsc --noEmit',
+						},
+					},
+					null,
+					2,
+				),
+				'utf8',
+			);
+
+			const result = inspect_project({ cwd: temp_dir });
+
+			expect(result.packageManager).toBe('bun');
+			expect(result.commands).toMatchObject({
+				format: 'bun run format',
+				formatCheck: 'bun run format:check',
+				test: 'bun run test',
+				typecheck: 'bun run typecheck',
+			});
+		} finally {
+			await rm(temp_dir, { recursive: true, force: true });
+		}
+	});
+
 	it('compiles TSRX with an explicit target', async () => {
 		const result = await compile_tsrx({
 			code: `export component App() {
