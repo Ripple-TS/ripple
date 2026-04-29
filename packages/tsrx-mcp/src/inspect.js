@@ -1,32 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { detect_target, TARGET_CANDIDATES } from './target.js';
+import { CONFIG_FILES, detect_target, TARGET_CANDIDATES } from './target.js';
 
 const DEPENDENCY_FIELDS = [
 	'dependencies',
 	'devDependencies',
 	'peerDependencies',
 	'optionalDependencies',
-];
-
-const CONFIG_FILES = [
-	'vite.config.js',
-	'vite.config.ts',
-	'vite.config.mjs',
-	'vite.config.mts',
-	'rspack.config.js',
-	'rspack.config.ts',
-	'next.config.js',
-	'next.config.mjs',
-	'next.config.ts',
-	'tsconfig.json',
-	'prettier.config.js',
-	'prettier.config.mjs',
-	'prettier.config.cjs',
-	'.prettierrc',
-	'eslint.config.js',
-	'eslint.config.mjs',
-	'eslint.config.cjs',
 ];
 
 const TOOLING_PACKAGES = [

@@ -40,7 +40,7 @@ export const TARGET_CANDIDATES = [
 	},
 ];
 
-const CONFIG_FILES = [
+export const CONFIG_FILES = [
 	'vite.config.js',
 	'vite.config.ts',
 	'vite.config.mjs',
@@ -50,6 +50,14 @@ const CONFIG_FILES = [
 	'next.config.js',
 	'next.config.mjs',
 	'next.config.ts',
+	'tsconfig.json',
+	'prettier.config.js',
+	'prettier.config.mjs',
+	'prettier.config.cjs',
+	'.prettierrc',
+	'eslint.config.js',
+	'eslint.config.mjs',
+	'eslint.config.cjs',
 ];
 
 /**
