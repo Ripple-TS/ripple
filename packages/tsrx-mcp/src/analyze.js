@@ -121,9 +121,15 @@ function create_advice(input) {
 		});
 	}
 
+	// Negative lookahead skips `<tsx>` and `<tsx:Foo>` — those are the
+	// canonical TSRX expression-position wrappers, so flagging them as
+	// "needs wrapping" would tell the user to wrap what is already wrapped.
+	const unwrapped_jsx_open = /<(?!tsx(?:[:>\s/]|$))[A-Za-z]/;
 	if (
-		/\b(?:const|let|var)\s+[\w$]+\s*=\s*<[A-Za-z]/.test(code) ||
-		(!fired_jsx_return && /\breturn\s*<[A-Za-z]/.test(code))
+		new RegExp(`\\b(?:const|let|var)\\s+[\\w$]+\\s*=\\s*${unwrapped_jsx_open.source}`).test(
+			code,
+		) ||
+		(!fired_jsx_return && new RegExp(`\\breturn\\s*${unwrapped_jsx_open.source}`).test(code))
 	) {
 		advice.push({
 			kind: 'jsx-expression-value',
