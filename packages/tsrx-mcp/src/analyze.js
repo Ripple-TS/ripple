@@ -126,9 +126,7 @@ function create_advice(input) {
 	// "needs wrapping" would tell the user to wrap what is already wrapped.
 	const unwrapped_jsx_open = /<(?!tsx(?:[:>\s/]|$))[A-Za-z]/;
 	if (
-		new RegExp(`\\b(?:const|let|var)\\s+[\\w$]+\\s*=\\s*${unwrapped_jsx_open.source}`).test(
-			code,
-		) ||
+		new RegExp(`\\b(?:const|let|var)\\s+[\\w$]+\\s*=\\s*${unwrapped_jsx_open.source}`).test(code) ||
 		(!fired_jsx_return && new RegExp(`\\breturn\\s*${unwrapped_jsx_open.source}`).test(code))
 	) {
 		advice.push({
