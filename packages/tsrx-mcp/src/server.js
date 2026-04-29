@@ -22,6 +22,69 @@ const SERVER_INFO = {
 	version: '0.0.0',
 };
 
+const TARGET_RESOURCE_CONTENT = {
+	react: `# TSRX React Target
+
+The core TSRX MCP server owns target-neutral language syntax and compiler validation. React-specific guidance should live in a React target layer.
+
+The React target layer should own:
+- React package and bundler setup
+- React runtime imports and helper APIs
+- React JSX compatibility expectations
+- React-specific compiler diagnostics and examples
+- interop with React libraries and hooks
+
+Before giving React-specific advice, use \`detect-target\` or an explicit target signal and validate generated .tsrx code with \`compile-tsrx\`.`,
+	preact: `# TSRX Preact Target
+
+The core TSRX MCP server owns target-neutral language syntax and compiler validation. Preact-specific guidance should live in a Preact target layer.
+
+The Preact target layer should own:
+- Preact package and bundler setup
+- Preact runtime imports and helper APIs
+- Preact JSX compatibility expectations
+- Preact-specific compiler diagnostics and examples
+- interop with Preact libraries and hooks
+
+Before giving Preact-specific advice, use \`detect-target\` or an explicit target signal and validate generated .tsrx code with \`compile-tsrx\`.`,
+	solid: `# TSRX Solid Target
+
+The core TSRX MCP server owns target-neutral language syntax and compiler validation. Solid-specific guidance should live in a Solid target layer.
+
+The Solid target layer should own:
+- Solid package and bundler setup
+- Solid runtime imports and helper APIs
+- Solid JSX compatibility expectations
+- Solid-specific compiler diagnostics and examples
+- interop with Solid primitives and libraries
+
+Before giving Solid-specific advice, use \`detect-target\` or an explicit target signal and validate generated .tsrx code with \`compile-tsrx\`.`,
+	vue: `# TSRX Vue Target
+
+The core TSRX MCP server owns target-neutral language syntax and compiler validation. Vue-specific guidance should live in a Vue target layer.
+
+The Vue target layer should own:
+- Vue package and bundler setup
+- Vue runtime imports and helper APIs
+- Vue JSX/Vapor compatibility expectations
+- Vue-specific compiler diagnostics and examples
+- interop with Vue libraries and composition APIs
+
+Before giving Vue-specific advice, use \`detect-target\` or an explicit target signal and validate generated .tsrx code with \`compile-tsrx\`.`,
+	ripple: `# TSRX Ripple Target
+
+The core TSRX MCP server owns target-neutral language syntax and compiler validation. Ripple-specific guidance should live in a Ripple target layer.
+
+The Ripple target layer should own:
+- Ripple package and bundler setup
+- Ripple runtime imports and helper APIs
+- Ripple reactivity, server, and hydration semantics
+- Ripple-specific compiler diagnostics and examples
+- interop with Ripple runtime components and helpers
+
+Before giving Ripple-specific advice, use \`detect-target\` or an explicit target signal and validate generated .tsrx code with \`compile-tsrx\`.`,
+};
+
 /**
  * @param {unknown} value
  * @returns {string[]}
@@ -113,6 +176,35 @@ function json_text(value) {
 }
 
 /**
+ * @param {string} uri
+ * @param {string} text
+ */
+function text_resource(uri, text) {
+	return {
+		contents: [
+			{
+				uri,
+				mimeType: 'text/markdown',
+				text,
+			},
+		],
+	};
+}
+
+function create_tsrx_task_prompt() {
+	return `Use this workflow when helping with TSRX:
+
+1. Identify whether the task is about target-neutral TSRX syntax, target runtime behavior, or both.
+2. If project context exists, call \`detect-target\` before assuming React, Preact, Solid, Vue, or Ripple semantics.
+3. For syntax uncertainty, use \`list-sections\`, \`get-documentation\`, or read \`tsrx://docs/{slug}.md\`.
+4. Keep core TSRX advice target-neutral: component declarations, statement templates, control flow, TSX expression values, lazy destructuring, style identifiers, and server blocks.
+5. Use \`tsrx://targets/{target}.md\` as the handoff point for target-specific responsibilities.
+6. Before presenting generated .tsrx code as final, call \`compile-tsrx\` with the inferred or explicit target.
+7. If \`compile-tsrx\` returns diagnostics, fix the code and compile again.
+8. Do not invent runtime APIs, imports, or bundler configuration from target-neutral TSRX docs. Use target-specific docs, resources, or skills for those details.`;
+}
+
+/**
  * Create the shared TSRX MCP server. Transports are intentionally owned by wrapper
  * packages so this package can be reused by stdio and hosted HTTP entry points.
  */
@@ -192,6 +284,68 @@ export function createTSRXMcpServer() {
 			return {
 				content: [{ type: 'text', text: json_text(output) }],
 				structuredContent: output,
+			};
+		},
+	);
+
+	for (const section of list_documentation_sections()) {
+		const uri = `tsrx://docs/${section.slug}.md`;
+		server.registerResource(
+			`tsrx-docs-${section.slug}`,
+			uri,
+			{
+				title: section.title,
+				description: section.use_cases,
+				mimeType: 'text/markdown',
+			},
+			async () => text_resource(uri, section.content),
+		);
+	}
+
+	for (const [target, content] of Object.entries(TARGET_RESOURCE_CONTENT)) {
+		const uri = `tsrx://targets/${target}.md`;
+		server.registerResource(
+			`tsrx-target-${target}`,
+			uri,
+			{
+				title: `TSRX ${target[0].toUpperCase()}${target.slice(1)} Target`,
+				description: `${target} target handoff guidance for TSRX agents`,
+				mimeType: 'text/markdown',
+			},
+			async () => text_resource(uri, content),
+		);
+	}
+
+	server.registerPrompt(
+		'tsrx-task',
+		{
+			title: 'TSRX Task Workflow',
+			description:
+				'Guide an agent through target-aware TSRX work: detect target, fetch docs, compile, and defer runtime-specific details to target layers.',
+			argsSchema: {
+				task: z.string().optional(),
+				target: z.enum(['ripple', 'react', 'preact', 'solid', 'vue']).optional(),
+			},
+		},
+		async ({ task, target }) => {
+			const context = [task ? `Task: ${task}` : null, target ? `Known target: ${target}` : null]
+				.filter(Boolean)
+				.join('\n');
+			const text = context
+				? `${context}\n\n${create_tsrx_task_prompt()}`
+				: create_tsrx_task_prompt();
+
+			return {
+				description: 'Target-aware TSRX agent workflow',
+				messages: [
+					{
+						role: 'user',
+						content: {
+							type: 'text',
+							text,
+						},
+					},
+				],
 			};
 		},
 	);

@@ -22,7 +22,7 @@ describe('@tsrx/mcp documentation index', () => {
 		expect(find_documentation_section('tsx-expression-values')?.content).toContain('TsxElement');
 	});
 
-	it('keeps the checked-in generated docs fresh', () => {
-		expect(readFileSync(generated_docs_path, 'utf8')).toBe(`${generate_docs_index()}\n`);
+	it('keeps the checked-in generated docs fresh', async () => {
+		expect(readFileSync(generated_docs_path, 'utf8')).toBe(await generate_docs_index());
 	});
 });

@@ -42,6 +42,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:default",
+    "prettier": "catalog:default",
     "typescript": "catalog:default",
     "vitest": "catalog:default"
   }

@@ -825,6 +825,9 @@ importers:
       '@types/node':
         specifier: catalog:default
         version: 24.11.0
+      prettier:
+        specifier: catalog:default
+        version: 3.8.3
       typescript:
         specifier: catalog:default
         version: 5.9.3
