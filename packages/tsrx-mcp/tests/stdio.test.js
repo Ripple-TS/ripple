@@ -61,8 +61,10 @@ describe('@tsrx/mcp stdio server', () => {
 			const { tools } = await client.listTools();
 
 			expect(tools.map((tool) => tool.name).sort()).toEqual([
+				'analyze-tsrx',
 				'compile-tsrx',
 				'detect-target',
+				'format-tsrx',
 				'get-documentation',
 				'list-sections',
 			]);
@@ -128,11 +130,11 @@ describe('@tsrx/mcp stdio server', () => {
 				arguments: {
 					cwd: react_fixture,
 				},
-				});
-				const target_output = /** @type {{ detectedTarget?: unknown }} */ (
-					parse_json_text_content(expect_first_tool_content(target))
-				);
-				expect(target_output.detectedTarget).toBe('react');
+			});
+			const target_output = /** @type {{ detectedTarget?: unknown }} */ (
+				parse_json_text_content(expect_first_tool_content(target))
+			);
+			expect(target_output.detectedTarget).toBe('react');
 
 			const valid = await client.callTool({
 				name: 'compile-tsrx',
@@ -142,10 +144,10 @@ describe('@tsrx/mcp stdio server', () => {
 					}`,
 					filename: 'Greeting.tsrx',
 					cwd: react_fixture,
-					},
-				});
-				const valid_output = parse_json_text_content(expect_first_tool_content(valid));
-				expect(valid_output).toMatchObject({
+				},
+			});
+			const valid_output = parse_json_text_content(expect_first_tool_content(valid));
+			expect(valid_output).toMatchObject({
 				ok: true,
 				target: 'react',
 				compilerPackage: '@tsrx/react',
@@ -161,14 +163,48 @@ describe('@tsrx/mcp stdio server', () => {
 					cwd: react_fixture,
 				},
 			});
-				const invalid_output =
-					/** @type {{ ok?: unknown, errors?: Array<{ message?: unknown }> }} */ (
-						parse_json_text_content(expect_first_tool_content(invalid))
-					);
+			const invalid_output =
+				/** @type {{ ok?: unknown, errors?: Array<{ message?: unknown }> }} */ (
+					parse_json_text_content(expect_first_tool_content(invalid))
+				);
 			expect(invalid_output.ok).toBe(false);
 			expect(invalid_output.errors?.[0]?.message).toContain(
 				'JSX elements cannot be used as expressions',
 			);
+
+			const analyzed = await client.callTool({
+				name: 'analyze-tsrx',
+				arguments: {
+					code: `component Broken() {
+							return <div />;
+						}`,
+					filename: 'Broken.tsrx',
+					cwd: react_fixture,
+				},
+			});
+			const analyzed_output =
+				/** @type {{ advice?: Array<{ kind?: unknown, documentation?: unknown }> }} */ (
+					parse_json_text_content(expect_first_tool_content(analyzed))
+				);
+			expect(analyzed_output.advice?.[0]?.kind).toBe('jsx-return-in-component');
+			expect(analyzed_output.advice?.[0]?.documentation).toContain('tsrx://docs/components.md');
+
+			const formatted = await client.callTool({
+				name: 'format-tsrx',
+				arguments: {
+					code: `export component Greeting({ name }: { name: string }){<p>"Hello "{name}</p>}`,
+					filename: 'Greeting.tsrx',
+				},
+			});
+			const formatted_output =
+				/** @type {{ ok?: unknown, formatted?: unknown, changed?: unknown }} */ (
+					parse_json_text_content(expect_first_tool_content(formatted))
+				);
+			expect(formatted_output.ok).toBe(true);
+			expect(formatted_output.changed).toBe(true);
+			expect(formatted_output.formatted).toContain('export component Greeting');
+			expect(formatted_output.formatted).toContain('"Hello "');
+			expect(formatted_output.formatted).toContain('{name}');
 		});
 	});
 });

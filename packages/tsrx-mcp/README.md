@@ -67,6 +67,9 @@ Add the generic config above to your Codex MCP configuration.
 - `detect-target` - infer the active TSRX runtime target from project files.
 - `compile-tsrx` - compile TSRX code with the inferred or explicit target compiler
   and return diagnostics.
+- `format-tsrx` - format TSRX code using the official Prettier plugin.
+- `analyze-tsrx` - compile TSRX code and convert common diagnostics into
+  target-neutral authoring advice with linked docs resources.
 
 ## Resources
 

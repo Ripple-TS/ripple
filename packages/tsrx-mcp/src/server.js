@@ -5,11 +5,15 @@ import {
 	find_similar_documentation_sections,
 	list_documentation_sections,
 } from './docs.js';
+import { analyze_tsrx } from './analyze.js';
 import { compile_tsrx } from './compile.js';
+import { format_tsrx } from './format.js';
 import { detect_target } from './target.js';
 
 export { detect_target, TARGET_CANDIDATES } from './target.js';
+export { analyze_tsrx } from './analyze.js';
 export { compile_tsrx } from './compile.js';
+export { format_tsrx } from './format.js';
 export {
 	documentation_sections,
 	find_documentation_section,
@@ -169,6 +173,35 @@ export function compile_tsrx_handler(input) {
 }
 
 /**
+ * @param {{
+ *   code: string,
+ *   filename?: string,
+ *   target?: string,
+ *   cwd?: string,
+ *   loose?: boolean,
+ *   mode?: 'client' | 'server'
+ * }} input
+ */
+export function analyze_tsrx_handler(input) {
+	return analyze_tsrx(input);
+}
+
+/**
+ * @param {{
+ *   code: string,
+ *   filename?: string,
+ *   printWidth?: number,
+ *   tabWidth?: number,
+ *   useTabs?: boolean,
+ *   singleQuote?: boolean,
+ *   check?: boolean
+ * }} input
+ */
+export function format_tsrx_handler(input) {
+	return format_tsrx(input);
+}
+
+/**
  * @param {unknown} value
  */
 function json_text(value) {
@@ -199,8 +232,8 @@ function create_tsrx_task_prompt() {
 3. For syntax uncertainty, use \`list-sections\`, \`get-documentation\`, or read \`tsrx://docs/{slug}.md\`.
 4. Keep core TSRX advice target-neutral: component declarations, statement templates, control flow, TSX expression values, lazy destructuring, style identifiers, and server blocks.
 5. Use \`tsrx://targets/{target}.md\` as the handoff point for target-specific responsibilities.
-6. Before presenting generated .tsrx code as final, call \`compile-tsrx\` with the inferred or explicit target.
-7. If \`compile-tsrx\` returns diagnostics, fix the code and compile again.
+6. Before presenting generated .tsrx code as final, call \`format-tsrx\`, then \`compile-tsrx\` with the inferred or explicit target.
+7. If \`compile-tsrx\` returns diagnostics, call \`analyze-tsrx\` for targeted authoring advice, fix the code, format it, and compile again.
 8. Do not invent runtime APIs, imports, or bundler configuration from target-neutral TSRX docs. Use target-specific docs, resources, or skills for those details.`;
 }
 
@@ -432,6 +465,107 @@ export function createTSRXMcpServer() {
 		},
 		async (input) => {
 			const output = await compile_tsrx_handler(input);
+			return {
+				content: [{ type: 'text', text: json_text(output) }],
+				structuredContent: output,
+			};
+		},
+	);
+
+	server.registerTool(
+		'format-tsrx',
+		{
+			title: 'Format TSRX',
+			description:
+				'Formats TSRX code using the official @tsrx/prettier-plugin. Use this before returning generated .tsrx code or to check whether source is already formatted.',
+			inputSchema: {
+				code: z.string(),
+				filename: z.string().optional(),
+				printWidth: z.number().int().positive().optional(),
+				tabWidth: z.number().int().positive().optional(),
+				useTabs: z.boolean().optional(),
+				singleQuote: z.boolean().optional(),
+				check: z.boolean().optional(),
+			},
+			outputSchema: {
+				ok: z.boolean(),
+				filename: z.string(),
+				formatted: z.string().nullable(),
+				changed: z.boolean(),
+				errors: z.array(
+					z.object({
+						message: z.string(),
+						name: z.string().nullable(),
+						loc: z.unknown(),
+					}),
+				),
+				check: z.boolean().nullable(),
+			},
+			annotations: {
+				readOnlyHint: true,
+				destructiveHint: false,
+				openWorldHint: false,
+			},
+		},
+		async (input) => {
+			const output = await format_tsrx_handler(input);
+			return {
+				content: [{ type: 'text', text: json_text(output) }],
+				structuredContent: output,
+			};
+		},
+	);
+
+	server.registerTool(
+		'analyze-tsrx',
+		{
+			title: 'Analyze TSRX Diagnostics',
+			description:
+				'Compiles TSRX code and turns compiler diagnostics into target-neutral authoring advice with linked TSRX docs resources. Use this before manually guessing fixes.',
+			inputSchema: {
+				code: z.string(),
+				filename: z.string().optional(),
+				target: z.enum(['ripple', 'react', 'preact', 'solid', 'vue']).optional(),
+				cwd: z.string().optional(),
+				loose: z.boolean().optional(),
+				mode: z.enum(['client', 'server']).optional(),
+			},
+			outputSchema: {
+				ok: z.boolean(),
+				target: z.string().nullable(),
+				compilerPackage: z.string().nullable(),
+				filename: z.string(),
+				cwd: z.string(),
+				errors: z.array(
+					z.object({
+						message: z.string(),
+						type: z.string().nullable(),
+						fileName: z.string().nullable(),
+						pos: z.number().nullable(),
+						end: z.number().nullable(),
+						raisedAt: z.number().nullable(),
+						loc: z.unknown(),
+					}),
+				),
+				advice: z.array(
+					z.object({
+						kind: z.string(),
+						severity: z.enum(['error', 'warning', 'info']),
+						title: z.string(),
+						message: z.string(),
+						documentation: z.array(z.string()),
+					}),
+				),
+				nextSteps: z.array(z.string()),
+			},
+			annotations: {
+				readOnlyHint: true,
+				destructiveHint: false,
+				openWorldHint: false,
+			},
+		},
+		async (input) => {
+			const output = await analyze_tsrx_handler(input);
 			return {
 				content: [{ type: 'text', text: json_text(output) }],
 				structuredContent: output,

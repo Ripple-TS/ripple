@@ -37,12 +37,13 @@
     "generate:docs": "node scripts/generate-docs-index.js"
   },
   "dependencies": {
+    "@tsrx/prettier-plugin": "workspace:*",
     "@modelcontextprotocol/sdk": "catalog:default",
+    "prettier": "catalog:default",
     "zod": "catalog:default"
   },
   "devDependencies": {
     "@types/node": "catalog:default",
-    "prettier": "catalog:default",
     "typescript": "catalog:default",
     "vitest": "catalog:default"
   }
