@@ -174,6 +174,22 @@ describe('@tsrx/mcp compile helpers', () => {
 		},
 	);
 
+	it('reports unclosed tags as compile errors', async () => {
+		// Regression: this case must produce ok: false. Editor-style "loose"
+		// compilation can silently accept it, which is why this MCP only ever
+		// runs the compiler in strict mode.
+		const result = await compile_tsrx({
+			code: `component A() {\n\t<div>"hi"\n}`,
+			filename: 'Unclosed.tsrx',
+			target: 'react',
+			cwd: react_fixture,
+		});
+
+		expect(result.ok).toBe(false);
+		expect(result.errors.length).toBeGreaterThan(0);
+		expect(result.errors[0].message).toMatch(/Unclosed tag/);
+	});
+
 	it('normalizes compiler failures into structured diagnostics', async () => {
 		const result = await compile_tsrx({
 			code: `component App() {

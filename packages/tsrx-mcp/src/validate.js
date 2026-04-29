@@ -34,7 +34,6 @@ function resolve_file_path(filePath, cwd) {
  *   filePath: string,
  *   cwd?: string,
  *   target?: string,
- *   loose?: boolean,
  *   mode?: 'client' | 'server',
  *   printWidth?: number,
  *   tabWidth?: number,
@@ -80,7 +79,6 @@ export async function validate_tsrx_file(input) {
 		filename,
 		cwd,
 		target: input.target,
-		loose: input.loose,
 		mode: input.mode,
 		includeCode: false,
 	});

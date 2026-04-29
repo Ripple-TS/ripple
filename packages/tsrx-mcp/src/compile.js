@@ -120,7 +120,6 @@ function get_generated_css(result) {
  *   filename?: string,
  *   target?: string,
  *   cwd?: string,
- *   loose?: boolean,
  *   includeCode?: boolean,
  *   mode?: 'client' | 'server'
  * }} input
@@ -196,7 +195,6 @@ export async function compile_tsrx(input) {
 		}
 
 		const result = compiler.compile(input.code, filename, {
-			loose: input.loose ?? true,
 			mode: input.mode,
 		});
 		const errors = normalize_errors(result?.errors, filename);

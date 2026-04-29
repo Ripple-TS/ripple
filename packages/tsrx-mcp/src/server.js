@@ -163,7 +163,6 @@ export function detect_target_handler(input = {}) {
  *   filename?: string,
  *   target?: string,
  *   cwd?: string,
- *   loose?: boolean,
  *   includeCode?: boolean,
  *   mode?: 'client' | 'server'
  * }} input
@@ -178,7 +177,6 @@ export function compile_tsrx_handler(input) {
  *   filename?: string,
  *   target?: string,
  *   cwd?: string,
- *   loose?: boolean,
  *   mode?: 'client' | 'server'
  * }} input
  */
@@ -213,7 +211,6 @@ export function inspect_project_handler(input = {}) {
  *   filePath: string,
  *   cwd?: string,
  *   target?: string,
- *   loose?: boolean,
  *   mode?: 'client' | 'server',
  *   printWidth?: number,
  *   tabWidth?: number,
@@ -440,13 +437,12 @@ export function createTSRXMcpServer() {
 		{
 			title: 'Compile TSRX',
 			description:
-				'Compiles TSRX code with the inferred or explicit runtime target compiler. Use this to validate generated .tsrx code and collect compiler diagnostics.',
+				'Compiles TSRX code with the inferred or explicit runtime target compiler. Use this to validate generated .tsrx code and collect compiler diagnostics. A result of ok: true means the source compiles cleanly; ok: false populates errors with the first failure encountered.',
 			inputSchema: {
 				code: z.string(),
 				filename: z.string().optional(),
 				target: TARGET_SCHEMA.optional(),
 				cwd: z.string().optional(),
-				loose: z.boolean().optional(),
 				includeCode: z.boolean().optional(),
 				mode: z.enum(['client', 'server']).optional(),
 			},
@@ -508,7 +504,6 @@ export function createTSRXMcpServer() {
 				filename: z.string().optional(),
 				target: TARGET_SCHEMA.optional(),
 				cwd: z.string().optional(),
-				loose: z.boolean().optional(),
 				mode: z.enum(['client', 'server']).optional(),
 			},
 			outputSchema: analysis_result_schema,
@@ -562,7 +557,6 @@ export function createTSRXMcpServer() {
 				filePath: z.string(),
 				cwd: z.string().optional(),
 				target: TARGET_SCHEMA.optional(),
-				loose: z.boolean().optional(),
 				mode: z.enum(['client', 'server']).optional(),
 				printWidth: z.number().int().positive().optional(),
 				tabWidth: z.number().int().positive().optional(),
