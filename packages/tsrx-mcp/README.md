@@ -65,6 +65,8 @@ Add the generic config above to your Codex MCP configuration.
 - `list-sections` - list target-neutral TSRX documentation sections.
 - `get-documentation` - fetch one or more TSRX documentation sections.
 - `detect-target` - infer the active TSRX runtime target from project files.
+- `inspect-project` - inspect target signals, TSRX packages, tooling, scripts, and
+  likely project commands.
 - `compile-tsrx` - compile TSRX code with the inferred or explicit target compiler
   and return diagnostics.
 - `format-tsrx` - format TSRX code using the official Prettier plugin.
@@ -72,6 +74,19 @@ Add the generic config above to your Codex MCP configuration.
   target-neutral authoring advice with linked docs resources.
 - `validate-tsrx-file` - read a `.tsrx` file and run formatting, compilation, and
   diagnostic advice in one read-only pass.
+
+## Agent Workflows
+
+For an existing project, start with `inspect-project` to identify the TSRX target,
+installed tooling, and likely validation commands. Use `detect-target` when only
+the runtime target is needed.
+
+For generated code, run `format-tsrx` first, then `compile-tsrx` with the inferred
+or explicit target. If compilation fails, run `analyze-tsrx`, apply the advice,
+format again, and compile again.
+
+For an existing `.tsrx` file, prefer `validate-tsrx-file`. It reads the file and
+runs formatting, compilation, and diagnostic advice in one read-only pass.
 
 ## Resources
 

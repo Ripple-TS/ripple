@@ -5,6 +5,7 @@ export {
 	detect_target_handler,
 	format_tsrx_handler,
 	get_documentation_handler,
+	inspect_project_handler,
 	list_sections_handler,
 	validate_tsrx_file_handler,
 } from './server.js';
@@ -12,6 +13,7 @@ export {
 export { analyze_tsrx } from './analyze.js';
 export { compile_tsrx } from './compile.js';
 export { format_tsrx } from './format.js';
+export { inspect_project } from './inspect.js';
 export { validate_tsrx_file } from './validate.js';
 export { detect_target, TARGET_CANDIDATES } from './target.js';
 export {

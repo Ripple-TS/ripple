@@ -8,6 +8,7 @@ import {
 import { analyze_tsrx } from './analyze.js';
 import { compile_tsrx } from './compile.js';
 import { format_tsrx } from './format.js';
+import { inspect_project } from './inspect.js';
 import { validate_tsrx_file } from './validate.js';
 import { detect_target } from './target.js';
 
@@ -15,6 +16,7 @@ export { detect_target, TARGET_CANDIDATES } from './target.js';
 export { analyze_tsrx } from './analyze.js';
 export { compile_tsrx } from './compile.js';
 export { format_tsrx } from './format.js';
+export { inspect_project } from './inspect.js';
 export { validate_tsrx_file } from './validate.js';
 export {
 	documentation_sections,
@@ -26,6 +28,141 @@ export {
 const SERVER_INFO = {
 	name: 'TSRX MCP Server',
 	version: '0.0.0',
+};
+
+const TARGET_SCHEMA = z.enum(['ripple', 'react', 'preact', 'solid', 'vue']);
+
+const target_match_schema = z.object({
+	target: z.string(),
+	compilerPackage: z.string(),
+	signals: z.array(z.string()),
+	score: z.number(),
+});
+
+const target_detection_schema = {
+	cwd: z.string(),
+	packageJsonPath: z.string().nullable(),
+	detectedTarget: z.string().nullable(),
+	confidence: z.enum(['high', 'ambiguous', 'none']),
+	matches: z.array(target_match_schema),
+	message: z.string(),
+};
+
+const compile_error_schema = z.object({
+	message: z.string(),
+	type: z.string().nullable(),
+	fileName: z.string().nullable(),
+	pos: z.number().nullable(),
+	end: z.number().nullable(),
+	raisedAt: z.number().nullable(),
+	loc: z.unknown(),
+});
+
+const compile_result_schema = {
+	ok: z.boolean(),
+	target: z.string().nullable(),
+	compilerPackage: z.string().nullable(),
+	filename: z.string(),
+	cwd: z.string(),
+	errors: z.array(compile_error_schema),
+	code: z.string().nullable(),
+	css: z.string().nullable(),
+};
+
+const format_error_schema = z.object({
+	message: z.string(),
+	name: z.string().nullable(),
+	loc: z.unknown(),
+});
+
+const format_result_schema = {
+	ok: z.boolean(),
+	filename: z.string(),
+	formatted: z.string().nullable(),
+	changed: z.boolean(),
+	errors: z.array(format_error_schema),
+	check: z.boolean().nullable(),
+};
+
+const advice_schema = z.object({
+	kind: z.string(),
+	severity: z.enum(['error', 'warning', 'info']),
+	title: z.string(),
+	message: z.string(),
+	documentation: z.array(z.string()),
+});
+
+const analysis_result_schema = {
+	ok: z.boolean(),
+	target: z.string().nullable(),
+	compilerPackage: z.string().nullable(),
+	filename: z.string(),
+	cwd: z.string(),
+	errors: z.array(compile_error_schema),
+	advice: z.array(advice_schema),
+	nextSteps: z.array(z.string()),
+};
+
+const read_result_schema = z.object({
+	ok: z.boolean(),
+	error: z
+		.object({
+			message: z.string(),
+			code: z.string().nullable(),
+		})
+		.nullable(),
+});
+
+const validate_file_result_schema = {
+	ok: z.boolean(),
+	cwd: z.string(),
+	filePath: z.string(),
+	filename: z.string(),
+	read: read_result_schema,
+	format: z.object(format_result_schema).nullable(),
+	compile: z.object(compile_result_schema).nullable(),
+	analysis: z.object(analysis_result_schema).nullable(),
+};
+
+const package_signal_schema = z.object({
+	name: z.string(),
+	version: z.string(),
+	field: z.string(),
+});
+
+const inspect_project_result_schema = {
+	cwd: z.string(),
+	root: z.string().nullable(),
+	packageJsonPath: z.string().nullable(),
+	packageName: z.string().nullable(),
+	packageManager: z.string().nullable(),
+	target: z.object(target_detection_schema),
+	configFiles: z.array(z.string()),
+	tsrxPackages: z.array(package_signal_schema),
+	targetPackages: z.array(
+		z.object({
+			target: z.string(),
+			compilerPackage: z.string(),
+			present: z.boolean(),
+			packages: z.array(package_signal_schema),
+		}),
+	),
+	tooling: z.array(
+		z.object({
+			name: z.string(),
+			present: z.boolean(),
+			version: z.string().nullable(),
+			field: z.string().nullable(),
+		}),
+	),
+	scripts: z.record(z.string(), z.string()),
+	commands: z.object({
+		format: z.string().nullable(),
+		formatCheck: z.string().nullable(),
+		typecheck: z.string().nullable(),
+		test: z.string().nullable(),
+	}),
+	message: z.string(),
 };
 
 const TARGET_RESOURCE_CONTENT = {
@@ -204,6 +341,13 @@ export function format_tsrx_handler(input) {
 }
 
 /**
+ * @param {{ cwd?: string }} input
+ */
+export function inspect_project_handler(input = {}) {
+	return inspect_project(input);
+}
+
+/**
  * @param {{
  *   filePath: string,
  *   cwd?: string,
@@ -247,7 +391,7 @@ function create_tsrx_task_prompt() {
 	return `Use this workflow when helping with TSRX:
 
 1. Identify whether the task is about target-neutral TSRX syntax, target runtime behavior, or both.
-2. If project context exists, call \`detect-target\` before assuming React, Preact, Solid, Vue, or Ripple semantics.
+2. If project context exists, call \`inspect-project\` for package/tooling context or \`detect-target\` when only the runtime target is needed before assuming React, Preact, Solid, Vue, or Ripple semantics.
 3. For syntax uncertainty, use \`list-sections\`, \`get-documentation\`, or read \`tsrx://docs/{slug}.md\`.
 4. Keep core TSRX advice target-neutral: component declarations, statement templates, control flow, TSX expression values, lazy destructuring, style identifiers, and server blocks.
 5. Use \`tsrx://targets/{target}.md\` as the handoff point for target-specific responsibilities.
@@ -413,19 +557,7 @@ export function createTSRXMcpServer() {
 				cwd: z.string().optional(),
 			},
 			outputSchema: {
-				cwd: z.string(),
-				packageJsonPath: z.string().nullable(),
-				detectedTarget: z.string().nullable(),
-				confidence: z.enum(['high', 'ambiguous', 'none']),
-				matches: z.array(
-					z.object({
-						target: z.string(),
-						compilerPackage: z.string(),
-						signals: z.array(z.string()),
-						score: z.number(),
-					}),
-				),
-				message: z.string(),
+				...target_detection_schema,
 			},
 			annotations: {
 				readOnlyHint: true,
@@ -451,32 +583,13 @@ export function createTSRXMcpServer() {
 			inputSchema: {
 				code: z.string(),
 				filename: z.string().optional(),
-				target: z.enum(['ripple', 'react', 'preact', 'solid', 'vue']).optional(),
+				target: TARGET_SCHEMA.optional(),
 				cwd: z.string().optional(),
 				loose: z.boolean().optional(),
 				includeCode: z.boolean().optional(),
 				mode: z.enum(['client', 'server']).optional(),
 			},
-			outputSchema: {
-				ok: z.boolean(),
-				target: z.string().nullable(),
-				compilerPackage: z.string().nullable(),
-				filename: z.string(),
-				cwd: z.string(),
-				errors: z.array(
-					z.object({
-						message: z.string(),
-						type: z.string().nullable(),
-						fileName: z.string().nullable(),
-						pos: z.number().nullable(),
-						end: z.number().nullable(),
-						raisedAt: z.number().nullable(),
-						loc: z.unknown(),
-					}),
-				),
-				code: z.string().nullable(),
-				css: z.string().nullable(),
-			},
+			outputSchema: compile_result_schema,
 			annotations: {
 				readOnlyHint: true,
 				destructiveHint: false,
@@ -507,20 +620,7 @@ export function createTSRXMcpServer() {
 				singleQuote: z.boolean().optional(),
 				check: z.boolean().optional(),
 			},
-			outputSchema: {
-				ok: z.boolean(),
-				filename: z.string(),
-				formatted: z.string().nullable(),
-				changed: z.boolean(),
-				errors: z.array(
-					z.object({
-						message: z.string(),
-						name: z.string().nullable(),
-						loc: z.unknown(),
-					}),
-				),
-				check: z.boolean().nullable(),
-			},
+			outputSchema: format_result_schema,
 			annotations: {
 				readOnlyHint: true,
 				destructiveHint: false,
@@ -545,39 +645,12 @@ export function createTSRXMcpServer() {
 			inputSchema: {
 				code: z.string(),
 				filename: z.string().optional(),
-				target: z.enum(['ripple', 'react', 'preact', 'solid', 'vue']).optional(),
+				target: TARGET_SCHEMA.optional(),
 				cwd: z.string().optional(),
 				loose: z.boolean().optional(),
 				mode: z.enum(['client', 'server']).optional(),
 			},
-			outputSchema: {
-				ok: z.boolean(),
-				target: z.string().nullable(),
-				compilerPackage: z.string().nullable(),
-				filename: z.string(),
-				cwd: z.string(),
-				errors: z.array(
-					z.object({
-						message: z.string(),
-						type: z.string().nullable(),
-						fileName: z.string().nullable(),
-						pos: z.number().nullable(),
-						end: z.number().nullable(),
-						raisedAt: z.number().nullable(),
-						loc: z.unknown(),
-					}),
-				),
-				advice: z.array(
-					z.object({
-						kind: z.string(),
-						severity: z.enum(['error', 'warning', 'info']),
-						title: z.string(),
-						message: z.string(),
-						documentation: z.array(z.string()),
-					}),
-				),
-				nextSteps: z.array(z.string()),
-			},
+			outputSchema: analysis_result_schema,
 			annotations: {
 				readOnlyHint: true,
 				destructiveHint: false,
@@ -594,6 +667,31 @@ export function createTSRXMcpServer() {
 	);
 
 	server.registerTool(
+		'inspect-project',
+		{
+			title: 'Inspect TSRX Project',
+			description:
+				'Inspects package.json, target signals, TSRX packages, tooling packages, scripts, and common config files for a project. Use this before choosing target-specific advice or repo commands.',
+			inputSchema: {
+				cwd: z.string().optional(),
+			},
+			outputSchema: inspect_project_result_schema,
+			annotations: {
+				readOnlyHint: true,
+				destructiveHint: false,
+				openWorldHint: false,
+			},
+		},
+		async ({ cwd }) => {
+			const output = inspect_project_handler({ cwd });
+			return {
+				content: [{ type: 'text', text: json_text(output) }],
+				structuredContent: output,
+			};
+		},
+	);
+
+	server.registerTool(
 		'validate-tsrx-file',
 		{
 			title: 'Validate TSRX File',
@@ -602,7 +700,7 @@ export function createTSRXMcpServer() {
 			inputSchema: {
 				filePath: z.string(),
 				cwd: z.string().optional(),
-				target: z.enum(['ripple', 'react', 'preact', 'solid', 'vue']).optional(),
+				target: TARGET_SCHEMA.optional(),
 				loose: z.boolean().optional(),
 				mode: z.enum(['client', 'server']).optional(),
 				printWidth: z.number().int().positive().optional(),
@@ -610,89 +708,7 @@ export function createTSRXMcpServer() {
 				useTabs: z.boolean().optional(),
 				singleQuote: z.boolean().optional(),
 			},
-			outputSchema: {
-				ok: z.boolean(),
-				cwd: z.string(),
-				filePath: z.string(),
-				filename: z.string(),
-				read: z.object({
-					ok: z.boolean(),
-					error: z
-						.object({
-							message: z.string(),
-							code: z.string().nullable(),
-						})
-						.nullable(),
-				}),
-				format: z
-					.object({
-						ok: z.boolean(),
-						filename: z.string(),
-						formatted: z.string().nullable(),
-						changed: z.boolean(),
-						errors: z.array(
-							z.object({
-								message: z.string(),
-								name: z.string().nullable(),
-								loc: z.unknown(),
-							}),
-						),
-						check: z.boolean().nullable(),
-					})
-					.nullable(),
-				compile: z
-					.object({
-						ok: z.boolean(),
-						target: z.string().nullable(),
-						compilerPackage: z.string().nullable(),
-						filename: z.string(),
-						cwd: z.string(),
-						errors: z.array(
-							z.object({
-								message: z.string(),
-								type: z.string().nullable(),
-								fileName: z.string().nullable(),
-								pos: z.number().nullable(),
-								end: z.number().nullable(),
-								raisedAt: z.number().nullable(),
-								loc: z.unknown(),
-							}),
-						),
-						code: z.string().nullable(),
-						css: z.string().nullable(),
-					})
-					.nullable(),
-				analysis: z
-					.object({
-						ok: z.boolean(),
-						target: z.string().nullable(),
-						compilerPackage: z.string().nullable(),
-						filename: z.string(),
-						cwd: z.string(),
-						errors: z.array(
-							z.object({
-								message: z.string(),
-								type: z.string().nullable(),
-								fileName: z.string().nullable(),
-								pos: z.number().nullable(),
-								end: z.number().nullable(),
-								raisedAt: z.number().nullable(),
-								loc: z.unknown(),
-							}),
-						),
-						advice: z.array(
-							z.object({
-								kind: z.string(),
-								severity: z.enum(['error', 'warning', 'info']),
-								title: z.string(),
-								message: z.string(),
-								documentation: z.array(z.string()),
-							}),
-						),
-						nextSteps: z.array(z.string()),
-					})
-					.nullable(),
-			},
+			outputSchema: validate_file_result_schema,
 			annotations: {
 				readOnlyHint: true,
 				destructiveHint: false,

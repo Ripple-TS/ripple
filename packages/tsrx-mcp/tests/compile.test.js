@@ -8,6 +8,7 @@ import {
 	compile_tsrx,
 	detect_target,
 	format_tsrx,
+	inspect_project,
 	validate_tsrx_file,
 } from '../src/index.js';
 
@@ -46,6 +47,39 @@ describe('@tsrx/mcp compile helpers', () => {
 		expect(result.matches[0]).toMatchObject({
 			target: 'react',
 			compilerPackage: '@tsrx/react',
+		});
+	});
+
+	it('inspects project target, tooling, scripts, and likely commands', () => {
+		const result = inspect_project({ cwd: react_fixture });
+
+		expect(result.packageName).toBe('tsrx-mcp-react-fixture');
+		expect(result.target.detectedTarget).toBe('react');
+		expect(result.tsrxPackages.map((dependency) => dependency.name)).toEqual(
+			expect.arrayContaining([
+				'@tsrx/react',
+				'@tsrx/vite-plugin-react',
+				'@tsrx/prettier-plugin',
+				'@tsrx/typescript-plugin',
+			]),
+		);
+		expect(result.tooling).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					name: '@tsrx/prettier-plugin',
+					present: true,
+				}),
+				expect.objectContaining({
+					name: '@tsrx/typescript-plugin',
+					present: true,
+				}),
+			]),
+		);
+		expect(result.commands).toMatchObject({
+			format: 'pnpm format',
+			formatCheck: 'pnpm format:check',
+			test: 'pnpm test',
+			typecheck: 'pnpm typecheck',
 		});
 	});
 

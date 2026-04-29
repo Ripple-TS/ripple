@@ -66,6 +66,7 @@ describe('@tsrx/mcp stdio server', () => {
 				'detect-target',
 				'format-tsrx',
 				'get-documentation',
+				'inspect-project',
 				'list-sections',
 				'validate-tsrx-file',
 			]);
@@ -136,6 +137,27 @@ describe('@tsrx/mcp stdio server', () => {
 				parse_json_text_content(expect_first_tool_content(target))
 			);
 			expect(target_output.detectedTarget).toBe('react');
+
+			const inspected = await client.callTool({
+				name: 'inspect-project',
+				arguments: {
+					cwd: react_fixture,
+				},
+			});
+			const inspected_output =
+				/** @type {{ target?: { detectedTarget?: unknown }, commands?: { typecheck?: unknown }, tooling?: Array<{ name?: unknown, present?: unknown }> }} */ (
+					parse_json_text_content(expect_first_tool_content(inspected))
+				);
+			expect(inspected_output.target?.detectedTarget).toBe('react');
+			expect(inspected_output.commands?.typecheck).toBe('pnpm typecheck');
+			expect(inspected_output.tooling).toEqual(
+				expect.arrayContaining([
+					expect.objectContaining({
+						name: '@tsrx/prettier-plugin',
+						present: true,
+					}),
+				]),
+			);
 
 			const valid = await client.callTool({
 				name: 'compile-tsrx',
