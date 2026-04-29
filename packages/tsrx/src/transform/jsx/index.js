@@ -3047,7 +3047,12 @@ export function validate_at_most_one_ref_attribute(raw_attrs, transform_context)
 	if (refs.length < 2) {
 		return;
 	}
-	for (const node of refs) {
+	for (let i = 0; i < refs.length; i++) {
+		const node = refs[i];
+		if (!transform_context?.loose && i === 0) {
+			// in the non-loose mode, only throw on the second duplicate
+			continue;
+		}
 		error(
 			'Element has multiple `ref={...}` attributes; an element may have at most one. ' +
 				"Use Ripple's `{ref expr}` keyword form to combine multiple refs on one element.",
