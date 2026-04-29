@@ -20,13 +20,6 @@ import { compile_tsrx } from './compile.js';
 
 /**
  * @param {string} code
- */
-function has_component_declaration(code) {
-	return /\bcomponent\s+[A-Za-z_$][\w$]*\s*\(/.test(code);
-}
-
-/**
- * @param {string} code
  * @param {number} open_brace_index
  */
 function find_matching_brace(code, open_brace_index) {
@@ -44,26 +37,35 @@ function find_matching_brace(code, open_brace_index) {
 
 /**
  * @param {string} code
+ * @param {RegExp} header_re
  */
-function has_function_component_shape(code) {
-	const header_re =
-		/\b(?:export\s+default\s+)?(?:export\s+)?function\s+[A-Z][\w$]*\s*\([^)]*\)\s*\{/g;
+function find_block_bodies(code, header_re) {
+	const bodies = [];
 	let match;
 	while ((match = header_re.exec(code)) !== null) {
 		const open_brace_index = match.index + match[0].length - 1;
 		const close_brace_index = find_matching_brace(code, open_brace_index);
 		if (close_brace_index === -1) continue;
-		const body = code.slice(open_brace_index + 1, close_brace_index);
-		if (/<[A-Za-z]/.test(body)) return true;
+		bodies.push(code.slice(open_brace_index + 1, close_brace_index));
 	}
-	return false;
+	return bodies;
+}
+
+/**
+ * @param {string} code
+ */
+function has_function_component_shape(code) {
+	const header_re =
+		/\b(?:export\s+default\s+)?(?:export\s+)?function\s+[A-Z][\w$]*\s*\([^)]*\)\s*\{/g;
+	return find_block_bodies(code, header_re).some((body) => /<[A-Za-z]/.test(body));
 }
 
 /**
  * @param {string} code
  */
 function has_jsx_return_in_component(code) {
-	return has_component_declaration(code) && /\breturn\s*<[^>]+>/.test(code);
+	const header_re = /\bcomponent\s+[A-Za-z_$][\w$]*\s*\([^)]*\)\s*\{/g;
+	return find_block_bodies(code, header_re).some((body) => /\breturn\s*<[^>]+>/.test(body));
 }
 
 /**

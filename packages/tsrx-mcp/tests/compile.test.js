@@ -438,6 +438,25 @@ describe('@tsrx/mcp compile helpers', () => {
 		expect(result.advice.map((advice) => advice.kind)).not.toContain('function-component-syntax');
 	});
 
+	it('does not flag jsx-return-in-component for a return-JSX outside the component body', async () => {
+		// Regression: has_jsx_return_in_component looked for any `return <...>`
+		// anywhere in the source as long as a `component` declaration existed
+		// somewhere, instead of checking inside the component body. A comment
+		// avoids triggering the compiler's JSX-as-expression error so we test
+		// only the regex-based detection path.
+		const result = await analyze_tsrx({
+			code: `// example from docs: return <div />
+			export component App() {
+				<span>"Hello"</span>
+			}`,
+			filename: 'App.tsrx',
+			target: 'react',
+			cwd: react_fixture,
+		});
+
+		expect(result.advice.map((advice) => advice.kind)).not.toContain('jsx-return-in-component');
+	});
+
 	it('formats TSRX source with the official prettier plugin', async () => {
 		const result = await format_tsrx({
 			code: `export component App(){<button class="primary">"Save"</button>}`,
