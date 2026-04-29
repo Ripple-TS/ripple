@@ -67,12 +67,14 @@ export function runSharedSourceMappingTests({
 		// AwaitExpression inside a component body. React emits an async
 		// component and the source-map walk must handle the AwaitExpression
 		// node. Preact (without `"use server"`) and Solid reject this shape
-		// at compile time — for them the test asserts the compiler throws,
-		// which is the same observable guarantee at a different layer.
+		// at compile time — in loose mode they collect the rejection on
+		// `result.errors` instead of throwing, so the editor can still see
+		// virtual TSX while surfacing the diagnostic.
 		it('AwaitExpression in component body', () => {
 			const source = `component C() { await foo(); }`;
 			if (rejectsComponentAwait) {
-				expect(() => compile_to_volar_mappings(source, 'App.tsrx', { loose: true })).toThrow();
+				const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+				expect(result.errors.length).toBeGreaterThan(0);
 			} else {
 				expect_maps(source);
 			}
@@ -746,6 +748,32 @@ export function optionalFn(declRequired: string, declMaybe?: string) {
 	}
 }`;
 			expect(() => compile_to_volar_mappings(source, 'App.tsrx', { loose: true })).not.toThrow();
+		});
+	});
+
+	describe(`[${name}] shorthand attribute does not duplicate mapping on the generated name`, () => {
+		it('does not map the synthesized attribute name back to {count}', () => {
+			// `<X {count} />` expands to `<X count={count} />`. The generated
+			// attribute name `count=` does not exist in the source, so it must
+			// not carry a source mapping — otherwise the editor shows duplicate
+			// hover/intellisense (one for the name, one for the value) on the
+			// same `{count}` span.
+			const source = `component App() {
+	const count = 0;
+	const Inner = (p: { count: number }) => null;
+	<Inner {count} />
+}`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			expect(result.code).toContain('count={count}');
+
+			const source_count_offset = source.indexOf('{count}') + 1;
+			const matching = result.mappings.filter(
+				(/** @type {{ sourceOffsets: number[], lengths: number[] }} */ m) =>
+					m.sourceOffsets[0] === source_count_offset && m.lengths[0] === 'count'.length,
+			);
+			// Without the fix, there are two mappings — one for the generated
+			// attribute-name `count` and one for the value `count`.
+			expect(matching.length).toBe(1);
 		});
 	});
 

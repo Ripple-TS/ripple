@@ -1,5 +1,6 @@
 import type * as AST from 'estree';
 import type { RawSourceMap } from 'source-map';
+import type { CompileError } from './index';
 
 /**
  * Result returned by a JSX platform transform (React, Preact, Solid).
@@ -17,6 +18,38 @@ export interface JsxTransformResult {
 }
 
 /**
+ * Shared base for the per-call transform context that the JSX factory passes
+ * into every visitor and helper. Platform-specific transforms (e.g. Solid)
+ * extend this with their own `needs_*` flags via `hooks.initialState`; helpers
+ * defined in `@tsrx/core` only ever rely on these base fields.
+ */
+export interface JsxTransformContext {
+	platform: JsxPlatform;
+	local_statement_component_index: number;
+	needs_error_boundary: boolean;
+	needs_suspense: boolean;
+	needs_merge_refs: boolean;
+	helper_state: {
+		base_name: string;
+		next_id: number;
+		helpers: any[];
+		statics: any[];
+	} | null;
+	available_bindings: Map<string, AST.Identifier>;
+	lazy_next_id: number;
+	current_css_hash: string | null;
+	inside_element_child?: boolean;
+	/** Source filename for diagnostics; null when the caller did not supply one. */
+	filename: string | null;
+	/** True when recoverable errors should be collected onto `errors` instead of thrown. */
+	loose: boolean;
+	/** Collected non-fatal errors. Undefined when `loose` is false. */
+	errors: CompileError[] | undefined;
+	/** Module-level comments used to honor `@tsrx-ignore` / `@tsrx-expect-error`. */
+	comments: AST.CommentWithLocation[] | undefined;
+}
+
+/**
  * Optional per-call compile options passed to a created JSX transform.
  */
 export interface JsxTransformOptions {
@@ -26,6 +59,22 @@ export interface JsxTransformOptions {
 	 * host pick `preact/compat` vs. another compat entry point.
 	 */
 	suspenseSource?: string;
+	/**
+	 * When true, recoverable transform errors are pushed onto `errors` instead
+	 * of thrown so editor tooling can surface them as diagnostics. Errors that
+	 * leave the transform in an unrecoverable state are still thrown.
+	 */
+	loose?: boolean;
+	/**
+	 * Collected non-fatal errors. The transform appends to this array when
+	 * `loose` is true; callers read it after the transform returns.
+	 */
+	errors?: CompileError[];
+	/**
+	 * Module-level comments used to suppress diagnostics via `@tsrx-ignore` /
+	 * `@tsrx-expect-error` line comments.
+	 */
+	comments?: AST.CommentWithLocation[];
 }
 
 /**

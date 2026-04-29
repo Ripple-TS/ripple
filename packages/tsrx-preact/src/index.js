@@ -29,9 +29,19 @@ export function parse(source, filename, options) {
  */
 export function compile(source, filename, compile_options) {
 	const errors = /** @type {CompileError[]} */ ([]);
+	const comments = /** @type {AST.CommentWithLocation[]} */ ([]);
 	const collect = !!compile_options?.loose;
-	const ast = parseModule(source, filename, collect ? { loose: true, errors } : undefined);
-	const { ast: _ast, ...result } = transform(ast, source, filename, compile_options);
+	const ast = parseModule(
+		source,
+		filename,
+		collect ? { loose: true, errors, comments } : undefined,
+	);
+	const { ast: _ast, ...result } = transform(
+		ast,
+		source,
+		filename,
+		collect ? { ...compile_options, loose: true, errors, comments } : compile_options,
+	);
 	return { ...result, errors };
 }
 
@@ -45,8 +55,14 @@ export function compile(source, filename, compile_options) {
  */
 export function compile_to_volar_mappings(source, filename, options) {
 	const errors = /** @type {import('@tsrx/core/types').CompileError[]} */ ([]);
-	const ast = parseModule(source, filename, { ...options, errors });
-	const transformed = transform(ast, source, filename, options);
+	const comments = /** @type {AST.CommentWithLocation[]} */ ([]);
+	const ast = parseModule(source, filename, { ...options, errors, comments });
+	const transformed = transform(ast, source, filename, {
+		...options,
+		loose: true,
+		errors,
+		comments,
+	});
 	const result = createVolarMappingsResult({
 		ast: transformed.ast,
 		ast_from_source: ast,

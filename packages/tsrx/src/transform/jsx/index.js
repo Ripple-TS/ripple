@@ -1,9 +1,10 @@
 /** @import * as AST from 'estree' */
 /** @import * as ESTreeJSX from 'estree-jsx' */
-/** @import { JsxPlatform, JsxTransformOptions, JsxTransformResult } from '@tsrx/core/types' */
+/** @import { JsxPlatform, JsxTransformContext, JsxTransformOptions, JsxTransformResult } from '@tsrx/core/types' */
 
 import { walk } from 'zimmerframe';
 import { print } from 'esrap';
+import { error } from '../../errors.js';
 import {
 	ensure_function_metadata,
 	in_jsx_child_context,
@@ -14,7 +15,6 @@ import {
 	clone_expression_node,
 	clone_identifier,
 	clone_jsx_name,
-	create_compile_error,
 	create_generated_identifier,
 	create_null_literal,
 	flatten_switch_consequent,
@@ -26,7 +26,11 @@ import {
 	to_text_expression,
 } from './ast-builders.js';
 import { render_stylesheets as renderStylesheets } from '../stylesheet.js';
-import { set_location as setLocation } from '../../utils/builders.js';
+import {
+	set_location as setLocation,
+	jsx_attribute as build_jsx_attribute,
+	jsx_id as build_jsx_id,
+} from '../../utils/builders.js';
 import {
 	apply_lazy_transforms,
 	collect_lazy_bindings_from_component,
@@ -45,18 +49,11 @@ import {
 import { is_hoist_safe_jsx_node } from '../jsx-hoist.js';
 
 /**
- * @typedef {{
- *   platform: JsxPlatform,
- *   local_statement_component_index: number,
- *   needs_error_boundary: boolean,
- *   needs_suspense: boolean,
- *   needs_merge_refs: boolean,
- *   helper_state: { base_name: string, next_id: number, helpers: any[], statics: any[] } | null,
- *   available_bindings: Map<string, AST.Identifier>,
- *   lazy_next_id: number,
- *   current_css_hash: string | null,
- *   inside_element_child?: boolean,
- * }} TransformContext
+ * Local alias for the shared `JsxTransformContext`. Kept as a typedef so the
+ * rest of this file's `@param {TransformContext}` annotations don't all have
+ * to spell out the import.
+ *
+ * @typedef {JsxTransformContext} TransformContext
  */
 
 /**
@@ -99,7 +96,7 @@ export function createJsxTransform(platform) {
 		const stylesheets = [];
 
 		/** @type {TransformContext} */
-		const transform_context = /** @type {any} */ ({
+		const transform_context = {
 			platform,
 			local_statement_component_index: 0,
 			needs_error_boundary: false,
@@ -109,10 +106,14 @@ export function createJsxTransform(platform) {
 			available_bindings: new Map(),
 			lazy_next_id: 0,
 			current_css_hash: null,
+			filename: filename ?? null,
+			loose: !!options?.loose,
+			errors: options?.loose ? options?.errors : undefined,
+			comments: options?.comments,
 			// Platforms can seed their own tracking state (e.g. solid's
 			// needs_show / needs_for flags) via `hooks.initialState`.
 			...(platform.hooks?.initialState?.() ?? {}),
-		});
+		};
 
 		preallocate_lazy_ids(/** @type {any} */ (ast), transform_context);
 
@@ -143,9 +144,12 @@ export function createJsxTransform(platform) {
 							source,
 						);
 					} else if (!module_uses_server_directive) {
-						throw create_compile_error(
-							await_expression,
+						error(
 							`${platform.name} components can only use \`await\` when the module has a top-level "use server" directive.`,
+							state.filename,
+							await_expression,
+							state.errors,
+							state.comments,
 						);
 					}
 
@@ -212,10 +216,10 @@ export function createJsxTransform(platform) {
 				return /** @type {any} */ (tsx_node_to_jsx_expression(inner, in_jsx_child_context(path)));
 			},
 
-			TsxCompat(node, { next, path }) {
+			TsxCompat(node, { next, path, state }) {
 				const inner = /** @type {any} */ (next() ?? node);
 				return /** @type {any} */ (
-					tsx_compat_node_to_jsx_expression(inner, platform, in_jsx_child_context(path))
+					tsx_compat_node_to_jsx_expression(inner, state, in_jsx_child_context(path))
 				);
 			},
 
@@ -1485,7 +1489,22 @@ const TEMPLATE_FRAGMENT_ERROR =
 function to_jsx_element(node, transform_context, raw_children = node.children || []) {
 	if (node.type === 'JSXElement') return node;
 	if (!node.id) {
-		throw create_compile_error(node, TEMPLATE_FRAGMENT_ERROR);
+		error(
+			TEMPLATE_FRAGMENT_ERROR,
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
+		);
+		return set_loc(
+			/** @type {any} */ ({
+				type: 'JSXFragment',
+				openingFragment: { type: 'JSXOpeningFragment' },
+				closingFragment: { type: 'JSXClosingFragment' },
+				children: [],
+			}),
+			node,
+		);
 	}
 	if (is_dynamic_element_id(node.id)) {
 		return dynamic_element_to_jsx_child(node, transform_context);
@@ -2111,7 +2130,7 @@ function to_jsx_child(node, transform_context) {
 			// JSXExpressionContainer wrapper for bare `{expr}` children.
 			return tsx_node_to_jsx_expression(node, true);
 		case 'TsxCompat':
-			return tsx_compat_node_to_jsx_expression(node, transform_context.platform, true);
+			return tsx_compat_node_to_jsx_expression(node, transform_context, true);
 		case 'Element':
 			return to_jsx_element(node, transform_context);
 		case 'Text':
@@ -2282,9 +2301,12 @@ function find_key_expression_in_body(body_nodes) {
  */
 function for_of_statement_to_jsx_child(node, transform_context) {
 	if (node.await) {
-		throw create_compile_error(
-			node,
+		error(
 			`${transform_context.platform.name} TSRX does not support \`for await...of\` in component templates.`,
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
 		);
 	}
 
@@ -2460,23 +2482,33 @@ function try_statement_to_jsx_child(node, transform_context) {
 	const finalizer = node.finalizer;
 
 	if (finalizer) {
-		throw create_compile_error(
-			finalizer,
+		error(
 			`${transform_context.platform.name} TSRX does not support JavaScript \`try/finally\` in component templates. \`finally\` is not part of TSRX control flow; move the try/finally into a function if you need cleanup logic.`,
+			transform_context.filename,
+			finalizer,
+			transform_context.errors,
+			transform_context.comments,
 		);
 	}
 
 	if (!pending && !handler) {
-		throw create_compile_error(
-			node,
+		error(
 			'Component try statements must have a `pending` or `catch` block.',
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
 		);
+		return to_jsx_expression_container(create_null_literal());
 	}
 
 	if (pending && transform_context.platform.validation.unsupportedTryPendingMessage) {
-		throw create_compile_error(
-			pending,
+		error(
 			transform_context.platform.validation.unsupportedTryPendingMessage,
+			transform_context.filename,
+			pending,
+			transform_context.errors,
+			transform_context.comments,
 		);
 	}
 
@@ -2484,16 +2516,22 @@ function try_statement_to_jsx_child(node, transform_context) {
 	if (pending) {
 		const try_body = node.block.body || [];
 		if (!try_body.some(is_jsx_child)) {
-			throw create_compile_error(
-				node.block,
+			error(
 				'Component try statements must contain a template in their main body. Move the try statement into a function if it does not render anything.',
+				transform_context.filename,
+				node.block,
+				transform_context.errors,
+				transform_context.comments,
 			);
 		}
 		const pending_body = pending.body || [];
 		if (!pending_body.some(is_jsx_child)) {
-			throw create_compile_error(
-				pending,
+			error(
 				'Component try statements must contain a template in their "pending" body. Rendering a pending fallback is required to have a template.',
+				transform_context.filename,
+				pending,
+				transform_context.errors,
+				transform_context.comments,
 			);
 		}
 	}
@@ -2963,7 +3001,7 @@ function to_jsx_expression_container(expression, source_node = expression) {
  * @returns {any[]}
  */
 function transform_element_attributes_dispatch(attrs, transform_context, element) {
-	validate_at_most_one_ref_attribute(attrs);
+	validate_at_most_one_ref_attribute(attrs, transform_context);
 	const preprocess = transform_context.platform.hooks?.preprocessElementAttributes;
 	if (preprocess) {
 		attrs = preprocess(attrs, transform_context, element);
@@ -2987,9 +3025,11 @@ function transform_element_attributes_dispatch(attrs, transform_context, element
  * the original `JSXAttribute`/`JSXIdentifier` shape, so we accept both.
  *
  * @param {any[]} raw_attrs
+ * @param {TransformContext} [transform_context]
  */
-export function validate_at_most_one_ref_attribute(raw_attrs) {
-	let first = null;
+export function validate_at_most_one_ref_attribute(raw_attrs, transform_context) {
+	/** @type {any[]} */
+	const refs = [];
 	for (const attr of raw_attrs) {
 		if (!attr) continue;
 		const is_ref_attr =
@@ -3002,14 +3042,25 @@ export function validate_at_most_one_ref_attribute(raw_attrs) {
 				attr.name.type === 'JSXIdentifier' &&
 				attr.name.name === 'ref');
 		if (!is_ref_attr) continue;
-		if (first) {
-			throw create_compile_error(
-				attr,
-				'Element has multiple `ref={...}` attributes; an element may have at most one. ' +
-					"Use Ripple's `{ref expr}` keyword form to combine multiple refs on one element.",
-			);
+		refs.push(attr.name);
+	}
+	if (refs.length < 2) {
+		return;
+	}
+	for (let i = 0; i < refs.length; i++) {
+		const node = refs[i];
+		if (!transform_context?.loose && i === 0) {
+			// in the non-loose mode, only throw on the second duplicate
+			continue;
 		}
-		first = attr;
+		error(
+			'Element has multiple `ref={...}` attributes; an element may have at most one. ' +
+				"Use Ripple's `{ref expr}` keyword form to combine multiple refs on one element.",
+			transform_context?.filename ?? null,
+			node,
+			transform_context?.errors,
+			transform_context?.comments,
+		);
 	}
 }
 
@@ -3040,18 +3091,34 @@ export function merge_duplicate_refs(jsx_attrs, transform_context) {
 	if (!strategy) return jsx_attrs;
 
 	let count = 0;
+	let tsx_form_count = 0;
 	for (const attr of jsx_attrs) {
-		if (is_jsx_ref_attribute(attr)) count += 1;
+		if (!is_jsx_ref_attribute(attr)) continue;
+		count += 1;
+		if (!attr.metadata?.from_ref_keyword) tsx_form_count += 1;
 	}
 	if (count <= 1) return jsx_attrs;
+	// Two or more genuine `ref={...}` (TSX-form) attributes are already a
+	// validator-flagged compile error and TypeScript flags them as duplicate
+	// JSX props. Leave them in place so the user gets all three signals
+	// instead of silently composing them into `__mergeRefs(...)`.
+	if (tsx_form_count >= 2) return jsx_attrs;
 
 	/** @type {any[]} */
 	const ref_exprs = [];
 	/** @type {any[]} */
 	const result = [];
+	/** @type {any} */
+	let source_attr = null;
 	for (const attr of jsx_attrs) {
 		if (is_jsx_ref_attribute(attr)) {
 			ref_exprs.push(attr.value.expression);
+			// Inherit loc from the (at most one) `ref={expr}`-form attribute so
+			// the kept `ref` keyword in the generated `ref={__mergeRefs(...)}`
+			// retains a source mapping back to its original `ref=` keyword.
+			if (!source_attr && !attr.metadata?.from_ref_keyword) {
+				source_attr = attr;
+			}
 		} else {
 			result.push(attr);
 		}
@@ -3080,23 +3147,23 @@ export function merge_duplicate_refs(jsx_attrs, transform_context) {
 		transform_context.needs_merge_refs = true;
 	}
 
-	// The merged ref attribute is a synthesis of multiple input refs and
-	// has no single source position to map back to, so we omit `loc` for
-	// the same reason `to_jsx_attribute` does for `RefAttribute`-derived
-	// JSX attributes.
-	result.push(
+	// Inherit start/end/loc from the (at most one) `ref={expr}`-form attribute
+	// so segments.js emits a normal source-to-generated mapping for the
+	// merged attribute and its name. Without this the kept `ref` keyword in
+	// `ref={__mergeRefs(...)}` has no source mapping back to the user's `ref=`
+	// keyword.
+	const merged_name = build_jsx_id('ref', source_attr?.name);
+	const merged_attr = build_jsx_attribute(
+		merged_name,
 		/** @type {any} */ ({
-			type: 'JSXAttribute',
-			name: { type: 'JSXIdentifier', name: 'ref', metadata: { path: [] } },
-			value: {
-				type: 'JSXExpressionContainer',
-				expression: merged_value,
-				metadata: { path: [] },
-			},
-			shorthand: false,
+			type: 'JSXExpressionContainer',
+			expression: merged_value,
 			metadata: { path: [] },
 		}),
+		false,
+		source_attr,
 	);
+	result.push(merged_attr);
 
 	return result;
 }
@@ -3150,13 +3217,16 @@ export function to_jsx_attribute(attr, transform_context) {
 		// so the source-to-generated mapping is imprecise — but pointing
 		// editors at the `{ref expr}` span is still useful for hover/jump,
 		// matching how shorthand `{name}` → `name={name}` carries loc.
+		// `from_ref_keyword` lets `merge_duplicate_refs` tell this form apart
+		// from genuine `ref={...}` attributes without inferring it from
+		// whether `name.loc` happens to be present.
 		return set_loc(
 			/** @type {any} */ ({
 				type: 'JSXAttribute',
 				name: { type: 'JSXIdentifier', name: 'ref', metadata: { path: [] } },
 				value: to_jsx_expression_container(attr.argument),
 				shorthand: false,
-				metadata: { path: [] },
+				metadata: { path: [], from_ref_keyword: true },
 			}),
 			attr,
 		);
@@ -3189,13 +3259,7 @@ export function to_jsx_attribute(attr, transform_context) {
 		}
 	}
 
-	const jsx_attribute = /** @type {any} */ ({
-		type: 'JSXAttribute',
-		name,
-		value: value || null,
-		shorthand: false,
-		metadata: { path: [] },
-	});
+	const jsx_attribute = build_jsx_attribute(name, value || null, attr.shorthand === true);
 
 	if (value_has_unmappable_jsx_loc(value)) {
 		/** @type {any} */ (jsx_attribute.metadata).has_unmappable_value = true;
@@ -3360,16 +3424,20 @@ function build_return_expression(render_nodes) {
 
 /**
  * @param {any} node
- * @param {JsxPlatform} platform
+ * @param {TransformContext} transform_context
  * @param {boolean} [in_jsx_child]
  * @returns {any}
  */
-function tsx_compat_node_to_jsx_expression(node, platform, in_jsx_child = false) {
+function tsx_compat_node_to_jsx_expression(node, transform_context, in_jsx_child = false) {
+	const platform = transform_context.platform;
 	if (!platform.jsx.acceptedTsxKinds.includes(node.kind)) {
 		const accepted = platform.jsx.acceptedTsxKinds.map((k) => `<tsx:${k}>`).join(', ');
-		throw create_compile_error(
-			node,
+		error(
 			`${platform.name} TSRX does not support <tsx:${node.kind}> blocks. Use <tsx> or one of: ${accepted}.`,
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
 		);
 	}
 

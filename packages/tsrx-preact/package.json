@@ -19,9 +19,11 @@
       "default": "./src/index.js"
     },
     "./error-boundary": {
+      "types": "./types/error-boundary.d.ts",
       "default": "./src/error-boundary.js"
     },
     "./merge-refs": {
+      "types": "./types/merge-refs.d.ts",
       "default": "./src/merge-refs.js"
     }
   },
