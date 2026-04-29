@@ -2,6 +2,40 @@ import { describe, expect, it } from 'vitest';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
+const react_fixture = new URL('fixtures/react-project', import.meta.url).pathname;
+
+/**
+ * @param {unknown} content
+ * @returns {string}
+ */
+function expect_text_content(content) {
+	expect(content).toBeTruthy();
+	expect(content).toHaveProperty('text');
+	const text = /** @type {{ text: unknown }} */ (content).text;
+	expect(typeof text).toBe('string');
+	return /** @type {string} */ (text);
+}
+
+/**
+ * @param {unknown} content
+ * @returns {unknown}
+ */
+function parse_json_text_content(content) {
+	return JSON.parse(expect_text_content(content));
+}
+
+/**
+ * @param {unknown} result
+ * @returns {unknown}
+ */
+function expect_first_tool_content(result) {
+	expect(result).toBeTruthy();
+	expect(result).toHaveProperty('content');
+	const content = /** @type {{ content: unknown }} */ (result).content;
+	expect(Array.isArray(content)).toBe(true);
+	return /** @type {unknown[]} */ (content)[0];
+}
+
 describe('@tsrx/mcp stdio server', () => {
 	/**
 	 * @param {(client: Client) => Promise<void>} run
@@ -48,10 +82,10 @@ describe('@tsrx/mcp stdio server', () => {
 				uri: 'tsrx://docs/components.md',
 				mimeType: 'text/markdown',
 			});
-			expect(docs.contents[0].text).toContain('Component Declarations');
+			expect(expect_text_content(docs.contents[0])).toContain('Component Declarations');
 
 			const target = await client.readResource({ uri: 'tsrx://targets/react.md' });
-			expect(target.contents[0].text).toContain('React target layer');
+			expect(expect_text_content(target.contents[0])).toContain('React target layer');
 		});
 	});
 
@@ -72,7 +106,69 @@ describe('@tsrx/mcp stdio server', () => {
 				type: 'text',
 				text: expect.stringContaining('Build a counter component'),
 			});
-			expect(prompt.messages[0].content.text).toContain('compile-tsrx');
+			expect(expect_text_content(prompt.messages[0].content)).toContain('compile-tsrx');
+		});
+	});
+
+	it('supports the intended target-aware TSRX workflow over stdio', async () => {
+		await with_client(async (client) => {
+			const prompt = await client.getPrompt({
+				name: 'tsrx-task',
+				arguments: {
+					task: 'Create a greeting component',
+				},
+			});
+			expect(expect_text_content(prompt.messages[0].content)).toContain('detect-target');
+
+			const docs = await client.readResource({ uri: 'tsrx://docs/components.md' });
+			expect(expect_text_content(docs.contents[0])).toContain('component Button');
+
+			const target = await client.callTool({
+				name: 'detect-target',
+				arguments: {
+					cwd: react_fixture,
+				},
+				});
+				const target_output = /** @type {{ detectedTarget?: unknown }} */ (
+					parse_json_text_content(expect_first_tool_content(target))
+				);
+				expect(target_output.detectedTarget).toBe('react');
+
+			const valid = await client.callTool({
+				name: 'compile-tsrx',
+				arguments: {
+					code: `export component Greeting({ name }: { name: string }) {
+						<p>"Hello "{name}</p>
+					}`,
+					filename: 'Greeting.tsrx',
+					cwd: react_fixture,
+					},
+				});
+				const valid_output = parse_json_text_content(expect_first_tool_content(valid));
+				expect(valid_output).toMatchObject({
+				ok: true,
+				target: 'react',
+				compilerPackage: '@tsrx/react',
+			});
+
+			const invalid = await client.callTool({
+				name: 'compile-tsrx',
+				arguments: {
+					code: `component Broken() {
+						return <div />;
+					}`,
+					filename: 'Broken.tsrx',
+					cwd: react_fixture,
+				},
+			});
+				const invalid_output =
+					/** @type {{ ok?: unknown, errors?: Array<{ message?: unknown }> }} */ (
+						parse_json_text_content(expect_first_tool_content(invalid))
+					);
+			expect(invalid_output.ok).toBe(false);
+			expect(invalid_output.errors?.[0]?.message).toContain(
+				'JSX elements cannot be used as expressions',
+			);
 		});
 	});
 });

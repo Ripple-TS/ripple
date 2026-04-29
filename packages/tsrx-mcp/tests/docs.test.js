@@ -18,8 +18,12 @@ describe('@tsrx/mcp documentation index', () => {
 	});
 
 	it('includes generated specification grammar in language sections', () => {
-		expect(find_documentation_section('components')?.content).toContain('ComponentDeclaration');
-		expect(find_documentation_section('tsx-expression-values')?.content).toContain('TsxElement');
+		expect(find_documentation_section('components')?.content ?? '').toContain(
+			'ComponentDeclaration',
+		);
+		expect(find_documentation_section('tsx-expression-values')?.content ?? '').toContain(
+			'TsxElement',
+		);
 	});
 
 	it('keeps the checked-in generated docs fresh', async () => {

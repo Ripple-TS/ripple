@@ -33,7 +33,7 @@ describe('@tsrx/mcp compile helpers', () => {
 		expect(result.target).toBe('react');
 		expect(result.compilerPackage).toBe('@tsrx/react');
 		expect(result.errors).toEqual([]);
-		expect(result.code).toContain('function App()');
+		expect(result.code ?? '').toContain('function App()');
 	});
 
 	it('infers the target when compiling from a project cwd', async () => {
@@ -62,7 +62,7 @@ describe('@tsrx/mcp compile helpers', () => {
 
 		expect(result.ok).toBe(false);
 		expect(result.errors).toHaveLength(1);
-		expect(result.errors[0]).toMatchObject({
+		expect(result.errors[0] ?? null).toMatchObject({
 			fileName: 'App.tsrx',
 			message: expect.stringContaining('JSX elements cannot be used as expressions'),
 		});

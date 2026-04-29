@@ -10,7 +10,20 @@ Run the server over stdio:
 npx -y @tsrx/mcp
 ```
 
-For local development in this monorepo:
+Generic MCP client config:
+
+```json
+{
+  "mcpServers": {
+    "tsrx": {
+      "command": "npx",
+      "args": ["-y", "@tsrx/mcp"]
+    }
+  }
+}
+```
+
+For local development in this monorepo, point at the source entrypoint:
 
 ```json
 {
@@ -22,6 +35,30 @@ For local development in this monorepo:
   }
 }
 ```
+
+### Claude Desktop
+
+Add the generic config above to `claude_desktop_config.json`.
+
+### Claude Code
+
+```bash
+claude mcp add tsrx -- npx -y @tsrx/mcp
+```
+
+For local development:
+
+```bash
+claude mcp add tsrx-local -- node /absolute/path/to/ripple/packages/tsrx-mcp/src/stdio.js
+```
+
+### Cursor
+
+Add the generic config above to your Cursor MCP settings.
+
+### Codex
+
+Add the generic config above to your Codex MCP configuration.
 
 ## Tools
 
