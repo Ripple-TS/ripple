@@ -16,16 +16,14 @@ export const documentation_sections = [
 	{
 		slug: 'components',
 		title: 'Component Declarations',
-		use_cases:
-			'components, component keyword, props, authoring .tsrx files, no jsx return syntax',
+		use_cases: 'components, component keyword, props, authoring .tsrx files, no jsx return syntax',
 		content:
 			'# Component Declarations\n\nComponents are declared with the component keyword, not as functions returning JSX.\n\n```tsx\ncomponent Button(props: { label: string }) {\n  <button>{props.label}</button>\n}\n```\n\nInside a component body, template elements are statements. Do not generate `return <div />` from a component body. Use a bare `return;` only as a guard exit after emitting fallback template statements.\n\nSpecification grammar:\n\n```text\nComponentDeclaration :\n  component BindingIdentifier ( FormalParametersopt ) { ComponentBody }\n\nComponentExpression :\n  component BindingIdentifieropt ( FormalParametersopt ) { ComponentBody }\n```\n\nSource: website-tsrx/src/pages/specification.tsrx#components',
 	},
 	{
 		slug: 'text-and-template-expressions',
 		title: 'Text and Template Expressions',
-		use_cases:
-			'text children, quoted text, raw text errors, html, text directive, string literals',
+		use_cases: 'text children, quoted text, raw text errors, html, text directive, string literals',
 		content:
 			'# Text and Template Expressions\n\nRaw unquoted text children are not valid TSRX. Static text should be written as a direct double-quoted child, and dynamic values should be wrapped in braces.\n\n```tsx\ncomponent Greeting({ name }: { name: string }) {\n  <h1>"Hello"</h1>\n  <p>{name}</p>\n}\n```\n\nSingle-quoted strings and template literals remain JavaScript expressions, so they must be inside braces. Use `{text expression}` for explicit text and `{html expression}` only for trusted HTML.\n\nSpecification grammar:\n\n```text\nDoubleQuotedTextChild :\n  " JSXStringCharactersopt "\n\nTemplateExpression :\n  { AssignmentExpression }\n  { text AssignmentExpression }\n  { html AssignmentExpression }\n```\n\nSource: website-tsrx/src/pages/specification.tsrx#templates',
 	},
@@ -40,8 +38,7 @@ export const documentation_sections = [
 	{
 		slug: 'control-flow',
 		title: 'Control Flow',
-		use_cases:
-			'if else, for loops, switch, try catch, conditional rendering, lists, guard returns',
+		use_cases: 'if else, for loops, switch, try catch, conditional rendering, lists, guard returns',
 		content:
 			'# Control Flow\n\nStandard JavaScript control flow can contain template statements inside component bodies and nested element children.\n\n```tsx\ncomponent List({ items }: { items: string[] }) {\n  if (items.length === 0) {\n    <p>"No items"</p>\n    return;\n  }\n\n  <ul>\n    for (const item of items) {\n      <li>{item}</li>\n    }\n  </ul>\n}\n```\n\nA bare `return;` exits the current render path. A return with a value is invalid inside a TSRX component body.\n\nSource: website-tsrx/src/pages/features.tsrx#if',
 	},
@@ -55,24 +52,21 @@ export const documentation_sections = [
 	{
 		slug: 'style-and-server',
 		title: 'Style and Server Extensions',
-		use_cases:
-			'#style, scoped css, #server, server blocks, compile-time identifiers',
+		use_cases: '#style, scoped css, #server, server blocks, compile-time identifiers',
 		content:
 			'# Style and Server Extensions\n\n`#style` is a compile-time identifier for scoped CSS class names declared in the current module.\n\n```tsx\n<div class={#style.card} />\n```\n\n`#server { ... }` marks a lexical region intended for server compile targets. TSRX parses the block; target compilers decide how to emit or strip it.\n\nSpecification grammar:\n\n```text\nStyleIdentifier :\n  #style\n\nStyleAccess :\n  #style . IdentifierName\n  #style [ StringLiteral ]\n\nServerIdentifier :\n  #server\n\nServerBlock :\n  #server { StatementListopt }\n\nServerMemberAccess :\n  #server . IdentifierName\n```\n\nSource: website-tsrx/src/pages/specification.tsrx#style',
 	},
 	{
 		slug: 'target-integration',
 		title: 'Target Integration',
-		use_cases:
-			'runtime target, compiler package, target-specific setup, skills, runtime semantics',
+		use_cases: 'runtime target, compiler package, target-specific setup, skills, runtime semantics',
 		content:
 			'# Target Integration\n\nTSRX authoring syntax is shared, but output and runtime semantics are target-defined.\n\nThe core MCP server should detect the target, then hand off runtime-specific questions to a target-specific skill, prompt, resource set, or compiler-backed tool.\n\nTarget-specific layers should own:\n- package installation and bundler setup\n- runtime imports and helper APIs\n- compatibility blocks and escape hatches\n- compiler warnings and semantic restrictions\n- examples that depend on a specific rendering runtime\n\nWhen helping in an existing project, detect the target before generating code. If no target-specific layer is available, stay within target-neutral TSRX syntax and ask for confirmation before assuming runtime APIs.\n\nSource: website-tsrx/src/pages/getting-started.tsrx',
 	},
 	{
 		slug: 'tooling',
 		title: 'Tooling',
-		use_cases:
-			'typescript plugin, typecheck, prettier, eslint, vscode, editor setup, diagnostics',
+		use_cases: 'typescript plugin, typecheck, prettier, eslint, vscode, editor setup, diagnostics',
 		content:
 			"# Tooling\n\nCommon TSRX tooling packages:\n\n- `@tsrx/typescript-plugin` for TypeScript integration and `tsrx-tsc`.\n- `@tsrx/prettier-plugin` for formatting .tsrx files.\n- `@tsrx/eslint-plugin` for linting.\n- language server and editor integration packages for diagnostics, hover, completion, and definitions.\n\nUse the project package manager and match the active target runtime's compiler and bundler integration.\n\nSource: website-tsrx/src/pages/getting-started.tsrx#tooling-install",
 	},
