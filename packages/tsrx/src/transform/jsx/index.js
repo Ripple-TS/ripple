@@ -3254,13 +3254,7 @@ export function to_jsx_attribute(attr, transform_context) {
 		}
 	}
 
-	const jsx_attribute = /** @type {any} */ ({
-		type: 'JSXAttribute',
-		name,
-		value: value || null,
-		shorthand: false,
-		metadata: { path: [] },
-	});
+	const jsx_attribute = build_jsx_attribute(name, value || null, attr.shorthand === true);
 
 	if (value_has_unmappable_jsx_loc(value)) {
 		/** @type {any} */ (jsx_attribute.metadata).has_unmappable_value = true;

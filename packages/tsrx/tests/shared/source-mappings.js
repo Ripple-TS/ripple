@@ -751,6 +751,32 @@ export function optionalFn(declRequired: string, declMaybe?: string) {
 		});
 	});
 
+	describe(`[${name}] shorthand attribute does not duplicate mapping on the generated name`, () => {
+		it('does not map the synthesized attribute name back to {count}', () => {
+			// `<X {count} />` expands to `<X count={count} />`. The generated
+			// attribute name `count=` does not exist in the source, so it must
+			// not carry a source mapping — otherwise the editor shows duplicate
+			// hover/intellisense (one for the name, one for the value) on the
+			// same `{count}` span.
+			const source = `component App() {
+	const count = 0;
+	const Inner = (p: { count: number }) => null;
+	<Inner {count} />
+}`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			expect(result.code).toContain('count={count}');
+
+			const source_count_offset = source.indexOf('{count}') + 1;
+			const matching = result.mappings.filter(
+				(/** @type {{ sourceOffsets: number[], lengths: number[] }} */ m) =>
+					m.sourceOffsets[0] === source_count_offset && m.lengths[0] === 'count'.length,
+			);
+			// Without the fix, there are two mappings — one for the generated
+			// attribute-name `count` and one for the value `count`.
+			expect(matching.length).toBe(1);
+		});
+	});
+
 	describe(`[${name}] shared tests conditionally run for specific frameworks`, () => {
 		it.runIf(['react', 'preact'].includes(name))(
 			`[${name}] maps source declarations to their own generated declarations when hook helpers are extracted`,
