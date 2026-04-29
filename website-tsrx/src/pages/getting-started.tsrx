@@ -163,6 +163,28 @@ const TYPECHECK_SCRIPT_HTML = [
 	'<span class="ln">5</span> <span class="br">}</span>',
 ].join('\n');
 
+const MCP_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="br">{</span>',
+	'<span class="ln">2</span>   <span class="attr">"mcpServers"</span>: <span class="br">{</span>',
+	'<span class="ln">3</span>     <span class="attr">"tsrx"</span>: <span class="br">{</span>',
+	'<span class="ln">4</span>       <span class="attr">"command"</span>: <span class="str">"npx"</span>,',
+	'<span class="ln">5</span>       <span class="attr">"args"</span>: <span class="br">[</span><span class="str">"-y"</span>, <span class="str">"@tsrx/mcp"</span><span class="br">]</span>',
+	'<span class="ln">6</span>     <span class="br">}</span>',
+	'<span class="ln">7</span>   <span class="br">}</span>',
+	'<span class="ln">8</span> <span class="br">}</span>',
+].join('\n');
+
+const MCP_CODEX_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="comment"># ~/.codex/config.toml</span>',
+	'<span class="ln">2</span> <span class="br">[</span><span class="prop">mcp_servers.tsrx</span><span class="br">]</span>',
+	'<span class="ln">3</span> <span class="prop">command</span> = <span class="str">"npx"</span>',
+	'<span class="ln">4</span> <span class="prop">args</span> = <span class="br">[</span><span class="str">"-y"</span>, <span class="str">"@tsrx/mcp"</span><span class="br">]</span>',
+].join('\n');
+
+const MCP_CLAUDE_CODE_HTML = [
+	'<span class="ln">1</span> <span class="fn">claude</span> <span class="prop">mcp</span> <span class="prop">add</span> <span class="str">tsrx</span> <span class="prop">--</span> <span class="fn">npx</span> <span class="str">-y</span> <span class="str">@tsrx/mcp</span>',
+].join('\n');
+
 const NAV_GROUPS = [
 	{
 		heading: 'Frameworks',
@@ -187,6 +209,7 @@ const NAV_GROUPS = [
 			{ id: 'eslint', label: 'ESLint' },
 			{ id: 'typescript-plugin', label: 'TypeScript plugin' },
 			{ id: 'vscode', label: 'VS Code' },
+			{ id: 'mcp', label: 'MCP' },
 		],
 	},
 	{
@@ -614,6 +637,75 @@ export component GettingStartedPage() {
 						</p>
 					</section>
 
+					<section class="doc-section" id="mcp">
+						<h2 class="section-heading">{'MCP'}</h2>
+						<p class="section-body">
+							{'Install '}
+							<code class="inline-code">{'@tsrx/mcp'}</code>
+							{' in AI coding tools that support Model Context Protocol. It gives agents current TSRX docs, target detection, project inspection, formatting, compilation, diagnostic advice, and read-only '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' file validation.'}
+						</p>
+						<pre class="code-block">
+							<code>{html MCP_CONFIG_HTML}</code>
+						</pre>
+						<h3 class="subsection-heading">{'Codex'}</h3>
+						<p class="section-body">
+							{'For Codex, add the server to '}
+							<code class="inline-code">{'~/.codex/config.toml'}</code>
+							{':'}
+						</p>
+						<pre class="code-block">
+							<code>{html MCP_CODEX_CONFIG_HTML}</code>
+						</pre>
+						<h3 class="subsection-heading">{'ChatGPT'}</h3>
+						<p class="section-body">
+							{'ChatGPT web uses hosted MCP apps/connectors, not local stdio commands. To use TSRX MCP there, deploy a remote MCP endpoint for '}
+							<code class="inline-code">{'@tsrx/mcp'}</code>
+							{' first, then create a custom app or connector from ChatGPT developer mode and select it from the tools menu in a chat. If you only need local repository help, use Codex, Cursor, or Gemini CLI with the stdio config instead.'}
+						</p>
+						<h3 class="subsection-heading">{'Gemini CLI'}</h3>
+						<p class="section-body">
+							{'For Gemini CLI, put the same '}
+							<code class="inline-code">{'mcpServers'}</code>
+							{' JSON in '}
+							<code class="inline-code">{'.gemini/settings.json'}</code>
+							{' for a project, or '}
+							<code class="inline-code">{'~/.gemini/settings.json'}</code>
+							{' globally.'}
+						</p>
+						<h3 class="subsection-heading">{'Cursor'}</h3>
+						<p class="section-body">
+							{'For Cursor, put the same '}
+							<code class="inline-code">{'mcpServers'}</code>
+							{' JSON in '}
+							<code class="inline-code">{'.cursor/mcp.json'}</code>
+							{' for a project, or '}
+							<code class="inline-code">{'~/.cursor/mcp.json'}</code>
+							{' globally. Cursor Agent and '}
+							<code class="inline-code">{'cursor-agent'}</code>
+							{' discover the configured tools automatically.'}
+						</p>
+						<h3 class="subsection-heading">{'Claude Code'}</h3>
+						<p class="section-body">{'For Claude Code, add it directly from the command line:'}</p>
+						<pre class="code-block">
+							<code>{html MCP_CLAUDE_CODE_HTML}</code>
+						</pre>
+						<p class="section-body">
+							{'In an existing repo, start with '}
+							<code class="inline-code">{'inspect-project'}</code>
+							{' so the agent can detect the runtime target, installed TSRX packages, and likely project commands. For generated code, run '}
+							<code class="inline-code">{'format-tsrx'}</code>
+							{', '}
+							<code class="inline-code">{'compile-tsrx'}</code>
+							{', and then '}
+							<code class="inline-code">{'analyze-tsrx'}</code>
+							{' when diagnostics need syntax-aware advice. For existing files, use '}
+							<code class="inline-code">{'validate-tsrx-file'}</code>
+							{' for a read-only format, compile, and advice pass.'}
+						</p>
+					</section>
+
 					<section class="doc-section" id="next">
 						<p class="section-kicker">{'Next'}</p>
 						<h2 class="section-heading">{'What\'s next?'}</h2>
@@ -937,6 +1029,9 @@ export component GettingStartedPage() {
 		}
 		:global(.code-block .str) {
 			color: #ce9178;
+		}
+		:global(.code-block .comment) {
+			color: #6a9955;
 		}
 		:global(.code-block .val) {
 			color: #b5cea8;
