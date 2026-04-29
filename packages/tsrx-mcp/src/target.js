@@ -49,7 +49,7 @@ const CONFIG_FILES = [
 /**
  * @param {string} start
  */
-function find_package_json(start) {
+export function find_package_json(start) {
 	let current = path.resolve(start);
 	for (;;) {
 		const candidate = path.join(current, 'package.json');

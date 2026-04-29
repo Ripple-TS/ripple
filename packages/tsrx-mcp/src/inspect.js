@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { detect_target, TARGET_CANDIDATES } from './target.js';
+import { detect_target, find_package_json, TARGET_CANDIDATES } from './target.js';
 
 const DEPENDENCY_FIELDS = [
 	'dependencies',
@@ -44,20 +44,6 @@ const PACKAGE_MANAGER_LOCKFILES = [
 	{ file: 'bun.lock', packageManager: 'bun' },
 	{ file: 'bun.lockb', packageManager: 'bun' },
 ];
-
-/**
- * @param {string} start
- */
-function find_package_json(start) {
-	let current = path.resolve(start);
-	for (;;) {
-		const candidate = path.join(current, 'package.json');
-		if (fs.existsSync(candidate)) return candidate;
-		const parent = path.dirname(current);
-		if (parent === current) return null;
-		current = parent;
-	}
-}
 
 /**
  * @param {Record<string, unknown>} package_json

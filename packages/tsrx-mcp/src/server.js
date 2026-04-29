@@ -21,19 +21,6 @@ import {
 	validate_file_result_schema,
 } from './schemas.js';
 
-export { detect_target, TARGET_CANDIDATES } from './target.js';
-export { analyze_tsrx } from './analyze.js';
-export { compile_tsrx } from './compile.js';
-export { format_tsrx } from './format.js';
-export { inspect_project } from './inspect.js';
-export { validate_tsrx_file } from './validate.js';
-export {
-	documentation_sections,
-	find_documentation_section,
-	find_similar_documentation_sections,
-	list_documentation_sections,
-} from './docs.js';
-
 const SERVER_INFO = {
 	name: 'TSRX MCP Server',
 	version: '0.0.0',

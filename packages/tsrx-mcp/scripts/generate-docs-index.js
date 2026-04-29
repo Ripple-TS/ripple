@@ -42,8 +42,8 @@ function extract_string_array_constant(name, specification_source) {
 
 export async function generate_docs_index() {
 	const specification_source = fs.readFileSync(specification_path, 'utf8');
-	fs.readFileSync(features_path, 'utf8');
-	fs.readFileSync(getting_started_path, 'utf8');
+	fs.accessSync(features_path);
+	fs.accessSync(getting_started_path);
 
 	const component_grammar = extract_string_array_constant(
 		'COMPONENT_GRAMMAR',
