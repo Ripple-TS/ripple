@@ -1,9 +1,9 @@
 {
-  "name": "@tsrx/vite-plugin-solid",
-  "description": "Vite plugin for @tsrx/solid (.tsrx modules) targeting Solid 2.0",
+  "name": "@tsrx/bun-plugin-react",
+  "description": "Bun plugin for @tsrx/react (.tsrx modules)",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.19",
+  "version": "0.1.13",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -11,7 +11,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Ripple-TS/ripple.git",
-    "directory": "packages/vite-plugin-solid"
+    "directory": "packages/bun-plugin-react"
   },
   "exports": {
     ".": {
@@ -19,17 +19,20 @@
       "default": "./src/index.js"
     }
   },
+  "scripts": {
+    "test": "pnpm -w test --project bun-plugin-react"
+  },
   "dependencies": {
-    "@tsrx/solid": "workspace:*"
+    "@tsrx/react": "workspace:*"
   },
   "peerDependencies": {
-    "vite": "*"
+    "bun": "^1.0.0",
+    "react": ">=18"
   },
   "devDependencies": {
-    "solid-js": "2.0.0-beta.7",
-    "typescript": "catalog:default",
-    "vite": "catalog:default",
-    "vite-plugin-solid": "3.0.0-next.5"
+    "@types/bun": "catalog:default",
+    "react": "catalog:default",
+    "typescript": "catalog:default"
   },
   "files": [
     "src",

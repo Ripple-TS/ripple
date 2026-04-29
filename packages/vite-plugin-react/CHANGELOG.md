@@ -1,5 +1,15 @@
 # @tsrx/vite-plugin-react
 
+## 0.0.21
+
+### Patch Changes
+
+- Updated dependencies
+  [[`7832be8`](https://github.com/Ripple-TS/ripple/commit/7832be8d1d2937e7f1005ab79e964329d42e0108),
+  [`7832be8`](https://github.com/Ripple-TS/ripple/commit/7832be8d1d2937e7f1005ab79e964329d42e0108),
+  [`7832be8`](https://github.com/Ripple-TS/ripple/commit/7832be8d1d2937e7f1005ab79e964329d42e0108)]:
+  - @tsrx/react@0.1.13
+
 ## 0.0.20
 
 ### Patch Changes

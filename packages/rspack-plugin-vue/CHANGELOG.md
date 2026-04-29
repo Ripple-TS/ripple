@@ -1,0 +1,17 @@
+# @tsrx/rspack-plugin-vue
+
+## 0.0.2
+
+### Patch Changes
+
+- [#1010](https://github.com/Ripple-TS/ripple/pull/1010)
+  [`e2e0e72`](https://github.com/Ripple-TS/ripple/commit/e2e0e723d14e8ae7f1ac5d14597363666e749707)
+  Thanks [@RazinShafayet2007](https://github.com/RazinShafayet2007)! - Add a Vue
+  Rspack plugin that compiles `.tsrx` with `@tsrx/vue`, runs the result through
+  `vue-jsx-vapor`, and extracts component-local `<style>` blocks through Rspack's
+  CSS pipeline.
+- Updated dependencies
+  [[`7832be8`](https://github.com/Ripple-TS/ripple/commit/7832be8d1d2937e7f1005ab79e964329d42e0108),
+  [`7832be8`](https://github.com/Ripple-TS/ripple/commit/7832be8d1d2937e7f1005ab79e964329d42e0108),
+  [`7832be8`](https://github.com/Ripple-TS/ripple/commit/7832be8d1d2937e7f1005ab79e964329d42e0108)]:
+  - @tsrx/vue@0.0.14

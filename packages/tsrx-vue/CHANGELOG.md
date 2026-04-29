@@ -1,5 +1,44 @@
 # @tsrx/vue
 
+## 0.0.14
+
+### Patch Changes
+
+- [#1009](https://github.com/Ripple-TS/ripple/pull/1009)
+  [`7832be8`](https://github.com/Ripple-TS/ripple/commit/7832be8d1d2937e7f1005ab79e964329d42e0108)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Stop emitting a duplicate
+  source mapping for the synthesized attribute name when shorthand JSX attributes
+  (`<X {count} />`) are expanded to longhand (`<X count={count} />`). The
+  generated `count=` does not exist in the source, so it should not carry a source
+  mapping; previously editors showed duplicate hover/intellisense popups on the
+  same `{count}` span.
+
+- [#1009](https://github.com/Ripple-TS/ripple/pull/1009)
+  [`7832be8`](https://github.com/Ripple-TS/ripple/commit/7832be8d1d2937e7f1005ab79e964329d42e0108)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Collect transform-time errors
+  instead of throwing in loose mode for the JSX targets (React, Preact, Solid,
+  Vue). Recoverable validation failures (component `await` without `"use server"`,
+  `<tsx:kind>` mismatches, multiple `ref={...}` attributes, malformed `try`
+  blocks, fragment-as-element, `for await...of`) now push onto `result.errors` so
+  the typescript-plugin and other editor tooling can surface them as diagnostics
+  on top of a still-valid virtual TSX, mirroring how `@tsrx/ripple` already
+  behaves.
+
+- [#1009](https://github.com/Ripple-TS/ripple/pull/1009)
+  [`7832be8`](https://github.com/Ripple-TS/ripple/commit/7832be8d1d2937e7f1005ab79e964329d42e0108)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add type declarations for the
+  `./merge-refs` and `./error-boundary` subpath exports of `@tsrx/react`,
+  `@tsrx/preact`, and `@tsrx/vue`, and for `@tsrx/core/runtime/merge-refs`.
+  Previously these subpaths only declared a `default` export, so under
+  `node16`/`nodenext`/`bundler` resolution TypeScript could not pick up types for
+  `import { mergeRefs } from '@tsrx/react/merge-refs'` or the `TsrxErrorBoundary`
+  re-exports.
+- Updated dependencies
+  [[`7832be8`](https://github.com/Ripple-TS/ripple/commit/7832be8d1d2937e7f1005ab79e964329d42e0108),
+  [`7832be8`](https://github.com/Ripple-TS/ripple/commit/7832be8d1d2937e7f1005ab79e964329d42e0108),
+  [`7832be8`](https://github.com/Ripple-TS/ripple/commit/7832be8d1d2937e7f1005ab79e964329d42e0108)]:
+  - @tsrx/core@0.0.19
+
 ## 0.0.13
 
 ### Patch Changes
