@@ -67,12 +67,14 @@ export function runSharedSourceMappingTests({
 		// AwaitExpression inside a component body. React emits an async
 		// component and the source-map walk must handle the AwaitExpression
 		// node. Preact (without `"use server"`) and Solid reject this shape
-		// at compile time — for them the test asserts the compiler throws,
-		// which is the same observable guarantee at a different layer.
+		// at compile time — in loose mode they collect the rejection on
+		// `result.errors` instead of throwing, so the editor can still see
+		// virtual TSX while surfacing the diagnostic.
 		it('AwaitExpression in component body', () => {
 			const source = `component C() { await foo(); }`;
 			if (rejectsComponentAwait) {
-				expect(() => compile_to_volar_mappings(source, 'App.tsrx', { loose: true })).toThrow();
+				const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+				expect(result.errors.length).toBeGreaterThan(0);
 			} else {
 				expect_maps(source);
 			}

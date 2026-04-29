@@ -1,8 +1,10 @@
 /** @import * as AST from 'estree' */
 /** @import * as ESTreeJSX from 'estree-jsx' */
+/** @import { JsxTransformContext } from '@tsrx/core/types' */
 
 import {
 	createJsxTransform,
+	error,
 	mergeDuplicateRefs,
 	toJsxAttribute,
 	validateAtMostOneRefAttribute,
@@ -18,7 +20,6 @@ import {
 	clone_expression_node,
 	clone_identifier,
 	clone_jsx_name,
-	create_compile_error,
 	create_generated_identifier,
 	create_null_literal,
 	flatten_switch_consequent,
@@ -31,15 +32,19 @@ import {
 } from '@tsrx/core';
 
 /**
- * @typedef {{
+ * Solid extends the shared `JsxTransformContext` with `needs_*` flags that
+ * track which Solid runtime primitives (`Show`, `For`, `Switch`, `Match`,
+ * `Errored`, `Loading`) the lowered output requires. The factory seeds these
+ * via `hooks.initialState`; everything else (filename, loose, errors,
+ * helper_state, …) comes from the shared base.
+ *
+ * @typedef {JsxTransformContext & {
  *   needs_show: boolean,
  *   needs_for: boolean,
  *   needs_switch: boolean,
  *   needs_match: boolean,
  *   needs_errored: boolean,
  *   needs_loading: boolean,
- *   lazy_next_id: number,
- *   current_css_hash: string | null,
  * }} TransformContext
  */
 
@@ -95,14 +100,20 @@ const solid_platform = {
 			needs_errored: false,
 			needs_loading: false,
 		}),
-		validateComponentAwait: (await_expression, _component, _ctx, _requires, source) => {
+		validateComponentAwait: (await_expression, _component, ctx, _requires, source) => {
 			const await_start = get_await_keyword_start(await_expression, source);
 			const adjusted_node = /** @type {any} */ ({
 				...await_expression,
 				start: await_start,
 				end: await_start + 'await'.length,
 			});
-			throw create_compile_error(adjusted_node, '`await` is not allowed inside Solid components.');
+			error(
+				'`await` is not allowed inside Solid components.',
+				ctx?.filename ?? null,
+				adjusted_node,
+				ctx?.errors,
+				ctx?.comments,
+			);
 		},
 		controlFlow: {
 			ifStatement: if_statement_to_jsx_child,
@@ -332,7 +343,7 @@ function to_jsx_child(node, transform_context) {
 			// containers wrapped. See helpers.js.
 			return tsx_node_to_jsx_expression(node, true);
 		case 'TsxCompat':
-			return tsx_compat_node_to_jsx_expression(node, true);
+			return tsx_compat_node_to_jsx_expression(node, transform_context, true);
 		case 'Element':
 			return to_jsx_element(node, transform_context);
 		case 'Text':
@@ -858,17 +869,24 @@ function try_statement_to_jsx_child(node, transform_context) {
 	const finalizer = node.finalizer;
 
 	if (finalizer) {
-		throw create_compile_error(
-			finalizer,
+		error(
 			'Solid TSRX does not support JavaScript `try/finally` in component templates. `finally` is not part of TSRX control flow; move the try/finally into a function if you need cleanup logic.',
+			transform_context.filename,
+			finalizer,
+			transform_context.errors,
+			transform_context.comments,
 		);
 	}
 
 	if (!pending && !handler) {
-		throw create_compile_error(
-			node,
+		error(
 			'Component try statements must have a `pending` or `catch` block.',
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
 		);
+		return to_jsx_expression_container(create_null_literal());
 	}
 
 	const try_body_nodes = node.block.body || [];
@@ -1056,7 +1074,22 @@ function to_jsx_element(node, transform_context, pre_walk_children) {
 	}
 
 	if (!node.id) {
-		throw create_compile_error(node, TEMPLATE_FRAGMENT_ERROR);
+		error(
+			TEMPLATE_FRAGMENT_ERROR,
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
+		);
+		return set_loc(
+			/** @type {any} */ ({
+				type: 'JSXFragment',
+				openingFragment: { type: 'JSXOpeningFragment' },
+				closingFragment: { type: 'JSXClosingFragment' },
+				children: [],
+			}),
+			node,
+		);
 	}
 
 	if (is_dynamic_element_id(node.id)) {
@@ -1246,7 +1279,7 @@ function has_text_content_attribute(attributes) {
  */
 function transform_element_attributes(raw_attrs, is_composite, transform_context) {
 	void is_composite;
-	validateAtMostOneRefAttribute(raw_attrs);
+	validateAtMostOneRefAttribute(raw_attrs, /** @type {any} */ (transform_context));
 	/** @type {any[]} */
 	const result = [];
 
@@ -1406,14 +1439,18 @@ function build_return_expression(render_nodes) {
 
 /**
  * @param {any} node
+ * @param {TransformContext} transform_context
  * @param {boolean} [in_jsx_child]
  * @returns {any}
  */
-function tsx_compat_node_to_jsx_expression(node, in_jsx_child = false) {
+function tsx_compat_node_to_jsx_expression(node, transform_context, in_jsx_child = false) {
 	if (node.kind !== 'solid') {
-		throw create_compile_error(
-			node,
+		error(
 			`Solid TSRX does not support <tsx:${node.kind}> blocks. Use <tsx> or <tsx:solid>.`,
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
 		);
 	}
 	return tsx_node_to_jsx_expression(node, in_jsx_child);

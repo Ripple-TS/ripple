@@ -28,6 +28,7 @@
       "types": "./types/acorn.d.ts"
     },
     "./runtime/merge-refs": {
+      "types": "./types/runtime/merge-refs.d.ts",
       "default": "./src/runtime/merge-refs.js"
     },
     "./test-harness/source-mappings": "./tests/shared/source-mappings.js",

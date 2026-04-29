@@ -6,7 +6,7 @@ import {
 	clone_identifier,
 	componentToFunctionDeclaration,
 	createJsxTransform,
-	create_compile_error,
+	error,
 	identifier_to_jsx_name,
 	setLocation,
 } from '@tsrx/core';
@@ -68,13 +68,22 @@ const vue_platform = {
 				metadata: { path: [] },
 			};
 		},
-		transformElementChildren(node, walked_children, raw_children, attributes) {
-			return rewrite_host_text_or_html_children(node, walked_children, raw_children, attributes);
+		transformElementChildren(node, walked_children, raw_children, attributes, ctx) {
+			return rewrite_host_text_or_html_children(
+				node,
+				walked_children,
+				raw_children,
+				attributes,
+				ctx,
+			);
 		},
-		validateComponentAwait(await_expression) {
-			throw create_compile_error(
-				await_expression,
+		validateComponentAwait(await_expression, _component, ctx) {
+			error(
 				'`await` is not yet supported in Vue TSRX components.',
+				ctx?.filename ?? null,
+				await_expression,
+				ctx?.errors,
+				ctx?.comments,
 			);
 		},
 		componentToFunction(component, ctx, helper_state) {
@@ -418,15 +427,17 @@ function is_vue_setup_call(call_expression) {
  * @returns {any[]}
  */
 function preprocess_ref_attributes(attrs, element, transform_context) {
-	void transform_context;
 	if (!is_component_like_element(element)) {
 		return attrs;
 	}
 	for (const attr of attrs) {
 		if (attr?.type === 'RefAttribute') {
-			throw create_compile_error(
-				attr,
+			error(
 				'`{ref ...}` on the Vue target is only supported on host elements. Vue component refs resolve to component instances rather than the rendered DOM node, so Ripple-style component refs are not supported here.',
+				transform_context?.filename ?? null,
+				attr,
+				transform_context?.errors,
+				transform_context?.comments,
 			);
 		}
 	}
@@ -438,9 +449,16 @@ function preprocess_ref_attributes(attrs, element, transform_context) {
  * @param {any[]} walked_children
  * @param {any[]} raw_children
  * @param {any[]} attributes
+ * @param {any} [transform_context]
  * @returns {{ children: any[]; selfClosing?: boolean } | null}
  */
-function rewrite_host_text_or_html_children(node, walked_children, raw_children, attributes) {
+function rewrite_host_text_or_html_children(
+	node,
+	walked_children,
+	raw_children,
+	attributes,
+	transform_context,
+) {
 	const source_children = raw_children || walked_children;
 	const is_composite = is_component_like_element(node);
 	const html_children = source_children.filter((child) => child?.type === 'Html');
@@ -452,9 +470,12 @@ function rewrite_host_text_or_html_children(node, walked_children, raw_children,
 			has_dom_content_attribute(attributes, 'innerHTML') ||
 			has_dom_content_attribute(attributes, 'textContent')
 		) {
-			throw create_compile_error(
-				html_children[0],
+			error(
 				'`{html ...}` on the Vue target is only supported as the sole child of a host element. Use `innerHTML={...}` as an element attribute when you need the explicit prop form.',
+				transform_context?.filename ?? null,
+				html_children[0],
+				transform_context?.errors,
+				transform_context?.comments,
 			);
 		}
 
