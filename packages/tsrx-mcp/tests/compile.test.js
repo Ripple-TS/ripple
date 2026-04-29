@@ -212,6 +212,7 @@ describe('@tsrx/mcp compile helpers', () => {
 				}),
 			]),
 		);
+		expect(result.advice.map((advice) => advice.kind)).not.toContain('jsx-expression-value');
 		expect(result.nextSteps).toContain('Run compile-tsrx again after revising the source.');
 	});
 

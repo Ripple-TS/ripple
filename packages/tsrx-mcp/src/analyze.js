@@ -80,7 +80,10 @@ function create_advice(input) {
 		});
 	}
 
-	if (has_jsx_return_in_component(code) || is_jsx_expression_error(diagnostic_messages)) {
+	const fired_jsx_return =
+		has_jsx_return_in_component(code) || is_jsx_expression_error(diagnostic_messages);
+
+	if (fired_jsx_return) {
 		advice.push({
 			kind: 'jsx-return-in-component',
 			severity: 'error',
@@ -93,7 +96,7 @@ function create_advice(input) {
 
 	if (
 		/\b(?:const|let|var)\s+[\w$]+\s*=\s*<[A-Za-z]/.test(code) ||
-		/\breturn\s*<[A-Za-z]/.test(code)
+		(!fired_jsx_return && /\breturn\s*<[A-Za-z]/.test(code))
 	) {
 		advice.push({
 			kind: 'jsx-expression-value',
