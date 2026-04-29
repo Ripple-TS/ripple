@@ -244,6 +244,87 @@ describe('@tsrx/mcp compile helpers', () => {
 		expect(result.check).toBe(true);
 	});
 
+	it('respects a project .prettierrc when formatting', async () => {
+		const temp_dir = await mkdtemp(join(tmpdir(), 'tsrx-mcp-prettierrc-'));
+		const filePath = join(temp_dir, 'App.tsrx');
+
+		try {
+			await writeFile(
+				join(temp_dir, '.prettierrc'),
+				JSON.stringify({
+					useTabs: false,
+					tabWidth: 4,
+					singleQuote: false,
+					printWidth: 100,
+				}),
+				'utf8',
+			);
+
+			const result = await format_tsrx({
+				code: `export component App(){<button class="primary">"Save"</button>}`,
+				filename: filePath,
+			});
+
+			expect(result.ok).toBe(true);
+			expect(result.configPath).toBe(join(temp_dir, '.prettierrc'));
+			// 4-space indent (no tabs), as configured.
+			expect(result.formatted).toBe(
+				`export component App() {\n    <button class="primary">"Save"</button>\n}\n`,
+			);
+		} finally {
+			await rm(temp_dir, { recursive: true, force: true });
+		}
+	});
+
+	it('lets explicit input options override project .prettierrc', async () => {
+		const temp_dir = await mkdtemp(join(tmpdir(), 'tsrx-mcp-prettierrc-override-'));
+		const filePath = join(temp_dir, 'App.tsrx');
+
+		try {
+			await writeFile(
+				join(temp_dir, '.prettierrc'),
+				JSON.stringify({ useTabs: false, tabWidth: 4 }),
+				'utf8',
+			);
+
+			const result = await format_tsrx({
+				code: `export component App(){<button>"Save"</button>}`,
+				filename: filePath,
+				useTabs: true,
+				tabWidth: 2,
+			});
+
+			expect(result.ok).toBe(true);
+			expect(result.configPath).toBe(join(temp_dir, '.prettierrc'));
+			expect(result.formatted).toBe(
+				`export component App() {\n\t<button>"Save"</button>\n}\n`,
+			);
+		} finally {
+			await rm(temp_dir, { recursive: true, force: true });
+		}
+	});
+
+	it('falls back to built-in defaults when no project config is found', async () => {
+		const temp_dir = await mkdtemp(join(tmpdir(), 'tsrx-mcp-noconfig-'));
+		const filePath = join(temp_dir, 'App.tsrx');
+
+		try {
+			const result = await format_tsrx({
+				code: `export component App(){<button>"Save"</button>}`,
+				filename: filePath,
+			});
+
+			expect(result.ok).toBe(true);
+			expect(result.configPath).toBe(null);
+			// Built-in defaults: tabs, single quotes, width 100.
+			expect(result.formatted).toBe(
+				`export component App() {\n\t<button>"Save"</button>\n}\n`,
+			);
+		} finally {
+			await rm(temp_dir, { recursive: true, force: true });
+		}
+	});
+
 	it('validates a TSRX file with formatting, compilation, and advice', async () => {
 		const result = await validate_tsrx_file({
 			filePath: 'src/Valid.tsrx',

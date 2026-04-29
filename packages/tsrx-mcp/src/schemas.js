@@ -48,6 +48,7 @@ export const format_error_schema = z.object({
 export const format_result_schema = {
 	ok: z.boolean(),
 	filename: z.string(),
+	configPath: z.string().nullable(),
 	formatted: z.string().nullable(),
 	changed: z.boolean(),
 	errors: z.array(format_error_schema),

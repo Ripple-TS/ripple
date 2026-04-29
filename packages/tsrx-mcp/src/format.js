@@ -1,5 +1,12 @@
-import { format } from 'prettier';
+import { format, resolveConfig, resolveConfigFile } from 'prettier';
 import * as tsrx_prettier_plugin from '@tsrx/prettier-plugin';
+
+const BUILTIN_DEFAULTS = {
+	printWidth: 100,
+	tabWidth: 2,
+	useTabs: true,
+	singleQuote: true,
+};
 
 /**
  * @typedef {{
@@ -31,6 +38,24 @@ function normalize_error(error) {
 
 /**
  * @param {{
+ *   printWidth?: number,
+ *   tabWidth?: number,
+ *   useTabs?: boolean,
+ *   singleQuote?: boolean,
+ * }} input
+ */
+function pick_user_overrides(input) {
+	/** @type {Record<string, unknown>} */
+	const overrides = {};
+	if (input.printWidth !== undefined) overrides.printWidth = input.printWidth;
+	if (input.tabWidth !== undefined) overrides.tabWidth = input.tabWidth;
+	if (input.useTabs !== undefined) overrides.useTabs = input.useTabs;
+	if (input.singleQuote !== undefined) overrides.singleQuote = input.singleQuote;
+	return overrides;
+}
+
+/**
+ * @param {{
  *   code: string,
  *   filename?: string,
  *   printWidth?: number,
@@ -42,20 +67,33 @@ function normalize_error(error) {
  */
 export async function format_tsrx(input) {
 	const filename = input.filename ?? 'Component.tsrx';
+
+	let project_config = /** @type {Record<string, unknown> | null} */ (null);
+	let config_path = /** @type {string | null} */ (null);
 	try {
-		const formatted = await format(input.code, {
-			filepath: filename,
-			parser: 'ripple',
-			plugins: [tsrx_prettier_plugin],
-			printWidth: input.printWidth ?? 100,
-			tabWidth: input.tabWidth ?? 2,
-			useTabs: input.useTabs ?? true,
-			singleQuote: input.singleQuote ?? true,
-		});
+		project_config = await resolveConfig(filename, { editorconfig: true });
+		config_path = await resolveConfigFile(filename);
+	} catch {
+		// Treat unreadable Prettier config as "no project config" rather than failing.
+	}
+
+	const user_overrides = pick_user_overrides(input);
+	const options = {
+		...BUILTIN_DEFAULTS,
+		...(project_config ?? {}),
+		...user_overrides,
+		filepath: filename,
+		parser: 'ripple',
+		plugins: [tsrx_prettier_plugin],
+	};
+
+	try {
+		const formatted = await format(input.code, options);
 
 		return {
 			ok: true,
 			filename,
+			configPath: config_path,
 			formatted,
 			changed: formatted !== input.code,
 			errors: [],
@@ -65,6 +103,7 @@ export async function format_tsrx(input) {
 		return {
 			ok: false,
 			filename,
+			configPath: config_path,
 			formatted: null,
 			changed: false,
 			errors: [normalize_error(error)],
