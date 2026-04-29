@@ -27,11 +27,36 @@ function has_component_declaration(code) {
 
 /**
  * @param {string} code
+ * @param {number} open_brace_index
+ */
+function find_matching_brace(code, open_brace_index) {
+	let depth = 1;
+	for (let i = open_brace_index + 1; i < code.length; i++) {
+		const character = code[i];
+		if (character === '{') depth++;
+		else if (character === '}') {
+			depth--;
+			if (depth === 0) return i;
+		}
+	}
+	return -1;
+}
+
+/**
+ * @param {string} code
  */
 function has_function_component_shape(code) {
-	return /\b(?:export\s+default\s+)?(?:export\s+)?function\s+[A-Z][\w$]*\s*\([^)]*\)\s*\{[\s\S]*<[A-Za-z]/.test(
-		code,
-	);
+	const header_re =
+		/\b(?:export\s+default\s+)?(?:export\s+)?function\s+[A-Z][\w$]*\s*\([^)]*\)\s*\{/g;
+	let match;
+	while ((match = header_re.exec(code)) !== null) {
+		const open_brace_index = match.index + match[0].length - 1;
+		const close_brace_index = find_matching_brace(code, open_brace_index);
+		if (close_brace_index === -1) continue;
+		const body = code.slice(open_brace_index + 1, close_brace_index);
+		if (/<[A-Za-z]/.test(body)) return true;
+	}
+	return false;
 }
 
 /**

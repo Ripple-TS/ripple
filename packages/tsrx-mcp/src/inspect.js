@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { detect_target, find_package_json, TARGET_CANDIDATES } from './target.js';
+import { detect_target, TARGET_CANDIDATES } from './target.js';
 
 const DEPENDENCY_FIELDS = [
 	'dependencies',
@@ -178,7 +178,7 @@ function get_target_package_status(dependencies) {
 export function inspect_project(input = {}) {
 	const detection = detect_target(input.cwd);
 	const cwd = detection.cwd;
-	const package_json_path = find_package_json(cwd);
+	const package_json_path = detection.packageJsonPath;
 
 	if (!package_json_path) {
 		return {

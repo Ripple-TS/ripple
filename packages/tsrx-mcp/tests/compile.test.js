@@ -406,6 +406,38 @@ describe('@tsrx/mcp compile helpers', () => {
 		expect(result.nextSteps).toContain('Run compile-tsrx again after revising the source.');
 	});
 
+	it('flags React-style function components as function-component-syntax advice', async () => {
+		const result = await analyze_tsrx({
+			code: `function App() {
+				return <div />;
+			}`,
+			filename: 'App.tsrx',
+			target: 'react',
+			cwd: react_fixture,
+		});
+
+		expect(result.advice.map((advice) => advice.kind)).toContain('function-component-syntax');
+	});
+
+	it('does not flag a PascalCase utility function that returns no JSX', async () => {
+		// Regression: the function-component-shape check used to greedily match
+		// across function boundaries, so a PascalCase utility followed by any
+		// later JSX in the same file would falsely fire function-component-syntax.
+		const result = await analyze_tsrx({
+			code: `function FormatDate(value) {
+				return String(value);
+			}
+			export component App() {
+				<div>"Hello"</div>
+			}`,
+			filename: 'App.tsrx',
+			target: 'react',
+			cwd: react_fixture,
+		});
+
+		expect(result.advice.map((advice) => advice.kind)).not.toContain('function-component-syntax');
+	});
+
 	it('formats TSRX source with the official prettier plugin', async () => {
 		const result = await format_tsrx({
 			code: `export component App(){<button class="primary">"Save"</button>}`,
