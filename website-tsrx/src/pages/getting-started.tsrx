@@ -72,6 +72,10 @@ const SOLID_RSPACK_INSTALL_HTML = [
 	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/solid</span> <span class="str">@tsrx/rspack-plugin-solid</span>',
 ].join('\n');
 
+const VUE_RSPACK_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/vue</span> <span class="str">@tsrx/rspack-plugin-vue</span> <span class="str">vue</span> <span class="str">vue-jsx-vapor</span>',
+].join('\n');
+
 const REACT_RSPACK_CONFIG_HTML = [
 	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">TsrxReactRspackPlugin</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/rspack-plugin-react\'</span>;',
 	'<span class="ln">2</span>',
@@ -93,6 +97,14 @@ const SOLID_RSPACK_CONFIG_HTML = [
 	'<span class="ln">2</span>',
 	'<span class="ln">3</span> <span class="kw-export">export default</span> <span class="br">{</span>',
 	'<span class="ln">4</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="kw">new</span> <span class="fn">TsrxSolidRspackPlugin</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">5</span> <span class="br">}</span>;',
+].join('\n');
+
+const VUE_RSPACK_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">TsrxVueRspackPlugin</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/rspack-plugin-vue\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">export default</span> <span class="br">{</span>',
+	'<span class="ln">4</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="kw">new</span> <span class="fn">TsrxVueRspackPlugin</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
 	'<span class="ln">5</span> <span class="br">}</span>;',
 ].join('\n');
 
@@ -163,6 +175,7 @@ const NAV_GROUPS = [
 			{ id: 'solid-vite', label: 'Solid + Vite' },
 			{ id: 'solid-rspack', label: 'Solid + Rspack' },
 			{ id: 'vue-vite', label: 'Vue + Vite' },
+			{ id: 'vue-rspack', label: 'Vue + Rspack' },
 			{ id: 'ripple', label: 'Ripple' },
 		],
 	},
@@ -431,6 +444,32 @@ export component GettingStartedPage() {
 							{' modules into Vue-flavoured TSX, and '}
 							<code class="inline-code">{'vue-jsx-vapor/vite'}</code>
 							{' performs the downstream Vapor JSX transform. For editor typechecking, set '}
+							<code class="inline-code">{'jsxImportSource: "vue-jsx-vapor"'}</code>
+							{' in your '}
+							<code class="inline-code">{'tsconfig.json'}</code>
+							{'.'}
+						</p>
+					</section>
+
+					<section class="doc-section" id="vue-rspack">
+						<h2 class="section-heading">{'Vue + Rspack'}</h2>
+						<p class="section-body">
+							{'Install the Vue compiler, the Rspack plugin, the Vue runtime, and Vue Vapor JSX:'}
+						</p>
+						<pre class="code-block">
+							<code>{html VUE_RSPACK_INSTALL_HTML}</code>
+						</pre>
+						<p class="section-body">{'Then add the plugin to your Rspack config:'}</p>
+						<pre class="code-block">
+							<code>{html VUE_RSPACK_CONFIG_HTML}</code>
+						</pre>
+						<p class="section-body">
+							<code class="inline-code">{'@tsrx/rspack-plugin-vue'}</code>
+							{' compiles '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' modules into Vue-flavoured TSX, runs the result through '}
+							<code class="inline-code">{'vue-jsx-vapor'}</code>
+							{' and then strips the remaining TypeScript syntax with Rspack\'s built-in SWC loader. Like the Vite setup, editor typechecking should set '}
 							<code class="inline-code">{'jsxImportSource: "vue-jsx-vapor"'}</code>
 							{' in your '}
 							<code class="inline-code">{'tsconfig.json'}</code>

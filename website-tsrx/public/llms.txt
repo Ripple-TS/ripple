@@ -52,6 +52,7 @@ npm install -D @tsrx/rspack-plugin-solid
 # Vue target
 npm install @tsrx/vue vue vue-jsx-vapor
 npm install -D @tsrx/vite-plugin-vue
+npm install -D @tsrx/rspack-plugin-vue
 
 # Ripple target
 npm install ripple @ripple-ts/vite-plugin
@@ -126,6 +127,30 @@ Options: `{ hot?: boolean }` — controls whether the plugin adds
 `solid-refresh/babel` to the Babel pipeline. It defaults to `true` unless
 Rspack is running in production mode. The plugin also pushes `.tsrx` into
 `resolve.extensions` and enables `experiments.css` when unset.
+
+### Rspack setup (Vue target)
+
+`@tsrx/rspack-plugin-vue` is an Rspack plugin class that registers two module
+rules: one compiles `.tsrx` → TSX via `@tsrx/vue`, runs the result through
+`vue-jsx-vapor`, and strips the remaining TypeScript syntax with
+`builtin:swc-loader`; the other routes the sibling `?tsrx-css&lang.css`
+import emitted by the JS loader through Rspack's built-in CSS module type
+(`type: 'css/auto'`).
+
+```js
+// rspack.config.js
+import { TsrxVueRspackPlugin } from '@tsrx/rspack-plugin-vue';
+
+export default {
+  plugins: [new TsrxVueRspackPlugin()],
+};
+```
+
+Options: `{ vapor?: { macros?: boolean | object, interop?: boolean, compiler?: { runtimeModuleName?: string } } }`
+— forwards options to `vue-jsx-vapor`. By default the plugin enables macros
+and uses `runtimeModuleName: 'vue-jsx-vapor'`. Like the other Rspack plugins,
+it also pushes `.tsrx` into `resolve.extensions` and enables `experiments.css`
+when unset.
 
 ### Turbopack setup (React target)
 

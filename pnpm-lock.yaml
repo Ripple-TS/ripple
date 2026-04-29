@@ -721,6 +721,28 @@ importers:
         specifier: catalog:default
         version: 5.9.3
 
+  packages/rspack-plugin-vue:
+    dependencies:
+      '@tsrx/vue':
+        specifier: workspace:*
+        version: link:../tsrx-vue
+      source-map:
+        specifier: catalog:default
+        version: 0.7.6
+    devDependencies:
+      '@rspack/core':
+        specifier: ^1.6.0
+        version: 1.7.11(@swc/helpers@0.5.15)
+      typescript:
+        specifier: catalog:default
+        version: 5.9.3
+      vue:
+        specifier: 3.6.0-beta.10
+        version: 3.6.0-beta.10(typescript@5.9.3)
+      vue-jsx-vapor:
+        specifier: ^3.2.11
+        version: 3.2.11(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(csstype@3.2.3)(esbuild@0.27.3)(vite@8.0.0(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.6.0-beta.10(typescript@5.9.3))
+
   packages/sublime-text-plugin:
     devDependencies:
       '@types/adm-zip':

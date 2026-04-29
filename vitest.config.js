@@ -161,6 +161,15 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'rspack-plugin-vue',
+					include: ['packages/rspack-plugin-vue/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'turbopack-plugin-react',
 					include: ['packages/turbopack-plugin-react/tests/**/*.test.js'],
 					environment: 'node',
