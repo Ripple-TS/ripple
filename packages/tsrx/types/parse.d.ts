@@ -183,13 +183,15 @@ export namespace Parse {
 
 	export interface Options extends Omit<acorn.Options, 'onComment' | 'ecmaVersion'> {
 		tsrxOptions?: {
+			collect: boolean;
 			loose: boolean;
-			errors: CoreCompiler.CompileError[];
+			errors: CoreCompiler.CompileError[] | undefined;
 			filename: string | undefined;
 		};
 		rippleOptions?: {
+			collect: boolean;
 			loose: boolean;
-			errors: CoreCompiler.CompileError[];
+			errors: CoreCompiler.CompileError[] | undefined;
 			filename: string | undefined;
 		};
 		// The type has "latest" but it's converted to 1e8 at runtime

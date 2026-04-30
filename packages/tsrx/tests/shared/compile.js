@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 /**
  * @typedef {{
- *   compile: (source: string, filename?: string, options?: any) => { code: string, css: { code: string, hash: string } | null },
+ *   compile: (source: string, filename?: string, options?: any) => { code: string, css: { code: string, hash: string } | null, errors: Array<{ message: string }> },
  *   name: string,
  *   classAttrName: 'class' | 'className',
  * }} CompileHarness
@@ -96,6 +96,32 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 	});
 
 	describe(`[${name}] TypeScript output`, () => {
+		it('collects unclosed tag diagnostics without loose recovery silence', () => {
+			const result = compile(
+				`component App() {
+					<div>"hi"
+				}`,
+				'App.tsrx',
+				{ collect: true },
+			);
+
+			expect(result.errors.map((error) => error.message)).toContain(
+				"Unclosed tag '<div>'. Expected '</div>' before end of component.",
+			);
+		});
+
+		it('keeps loose unclosed tag recovery silent', () => {
+			const result = compile(
+				`component App() {
+					<div>"hi"
+				}`,
+				'App.tsrx',
+				{ loose: true },
+			);
+
+			expect(result.errors).toEqual([]);
+		});
+
 		it('accepts direct double-quoted text children', () => {
 			const { code } = compile(
 				`export component App({ count }: { count: number }) {

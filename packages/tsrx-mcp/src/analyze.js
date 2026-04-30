@@ -219,6 +219,8 @@ export function analyze_tsrx_result(input) {
  *   filename?: string,
  *   target?: string,
  *   cwd?: string,
+ *   collect?: boolean,
+ *   loose?: boolean,
  *   mode?: 'client' | 'server'
  * }} input
  */

@@ -335,7 +335,7 @@ export class Scope {
 				`Cannot declare a variable named "${node.name}" as identifiers starting with "${IDENTIFIER_OBFUSCATION_PREFIX}" are reserved`,
 				this.#error_options.filename,
 				node,
-				this.#error_options.loose ? this.#error_options.errors : undefined,
+				this.#error_options.collect ? this.#error_options.errors : undefined,
 				this.#error_options.comments,
 			);
 		}
@@ -345,7 +345,7 @@ export class Scope {
 				`'${node.name}' has already been declared in the current scope`,
 				this.#error_options.filename,
 				node,
-				this.#error_options.loose ? this.#error_options.errors : undefined,
+				this.#error_options.collect ? this.#error_options.errors : undefined,
 				this.#error_options.comments,
 			);
 		}

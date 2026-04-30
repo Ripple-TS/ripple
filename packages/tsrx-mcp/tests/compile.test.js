@@ -349,11 +349,13 @@ describe('@tsrx/mcp compile helpers', () => {
 	);
 
 	it('reports unclosed tags as compile errors', async () => {
-		// Regression: this case must produce ok: false. Editor-style "loose"
-		// compilation can silently accept it, which is why this MCP only ever
-		// runs the compiler in strict mode.
+		// Regression: this case must produce ok: false. Editor-style `loose`
+		// compilation can silently accept it, so the MCP defaults to `collect`
+		// without enabling loose markup recovery.
 		const result = await compile_tsrx({
-			code: `component A() {\n\t<div>"hi"\n}`,
+			code: `component A() {
+				<div>"hi"
+			}`,
 			filename: 'Unclosed.tsrx',
 			target: 'react',
 			cwd: react_fixture,

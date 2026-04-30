@@ -201,7 +201,8 @@ export function createParser(...plugins) {
 	return function parse(source, filename, options) {
 		/** @type {AST.CommentWithLocation[]} */
 		const comments = [];
-		const output_comments = options?.comments;
+		const collect = !!(options?.collect || options?.loose);
+		const output_comments = collect ? options?.comments : undefined;
 
 		const { onComment, add_comments } = get_comment_handlers(source, comments);
 		/** @type {AST.Program} */
@@ -216,7 +217,8 @@ export function createParser(...plugins) {
 				onComment,
 				tsrxOptions: {
 					filename,
-					errors: options?.errors ?? [],
+					collect,
+					errors: collect ? (options?.errors ?? []) : undefined,
 					loose: options?.loose || false,
 				},
 			});

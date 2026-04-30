@@ -833,7 +833,7 @@ function error_return_keyword(node, context, message) {
 		message,
 		context.state.analysis.module.filename,
 		return_keyword_node,
-		context.state.loose ? context.state.analysis.errors : undefined,
+		context.state.collect ? context.state.analysis.errors : undefined,
 		context.state.analysis.comments,
 	);
 }
@@ -913,7 +913,7 @@ const visitors = {
 					`Cannot reference client-side "${node.name}" from a server block. Server blocks can only access variables and imports declared inside them.`,
 					context.state.analysis.module.filename,
 					node,
-					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.collect ? context.state.analysis.errors : undefined,
 					context.state.analysis.comments,
 				);
 			}
@@ -967,7 +967,7 @@ const visitors = {
 					'`#style` can only be used within a component',
 					context.state.analysis.module.filename,
 					node,
-					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.collect ? context.state.analysis.errors : undefined,
 					context.state.analysis.comments,
 				);
 			} else {
@@ -993,7 +993,7 @@ const visitors = {
 					'`#style` property access must use a dot property or static string for css class name, not a dynamic expression',
 					context.state.analysis.module.filename,
 					node.property,
-					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.collect ? context.state.analysis.errors : undefined,
 					context.state.analysis.comments,
 				);
 			}
@@ -1025,7 +1025,7 @@ const visitors = {
 						`Directly accessing internal property "${propertyName}" of a tracked object is not allowed. Use \`${node.object.name}.value\` or \`&[]\` lazy destructuring instead.`,
 						context.state.analysis.module.filename,
 						node.property,
-						context.state.loose ? context.state.analysis.errors : undefined,
+						context.state.collect ? context.state.analysis.errors : undefined,
 						context.state.analysis.comments,
 					);
 				}
@@ -1055,7 +1055,7 @@ const visitors = {
 						`Accessing a tracked object directly is not allowed, use \`.value\` or \`&[]\` lazy destructuring to read the value inside a tracked object - for example \`${node.object.name}.value\``,
 						context.state.analysis.module.filename,
 						node.object,
-						context.state.loose ? context.state.analysis.errors : undefined,
+						context.state.collect ? context.state.analysis.errors : undefined,
 						context.state.analysis.comments,
 					);
 				}
@@ -1087,7 +1087,7 @@ const visitors = {
 				'`children` cannot be called like a regular function. Render it with `{children}` or `{props.children}` instead.',
 				context.state.analysis.module.filename,
 				callee,
-				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.collect ? context.state.analysis.errors : undefined,
 				context.state.analysis.comments,
 			);
 		}
@@ -1097,7 +1097,7 @@ const visitors = {
 				'`track` can only be used within a reactive context, such as a component, function or class that is used or created from a component',
 				context.state.analysis.module.filename,
 				node.callee,
-				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.collect ? context.state.analysis.errors : undefined,
 				context.state.analysis.comments,
 			);
 		}
@@ -1135,7 +1135,7 @@ const visitors = {
 					'`var` declarations are not allowed in components, use let or const instead',
 					state.analysis.module.filename,
 					declarator.id,
-					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.collect ? context.state.analysis.errors : undefined,
 					context.state.analysis.comments,
 				);
 			}
@@ -1223,7 +1223,7 @@ const visitors = {
 				'`#style` can only be used for property access, e.g., `#style.className`.',
 				context.state.analysis.module.filename,
 				node,
-				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.collect ? context.state.analysis.errors : undefined,
 				context.state.analysis.comments,
 			);
 		}
@@ -1239,7 +1239,7 @@ const visitors = {
 				'`#server` can only be used for member access, e.g., `#server.functionName(...)`.',
 				context.state.analysis.module.filename,
 				node,
-				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.collect ? context.state.analysis.errors : undefined,
 				context.state.analysis.comments,
 			);
 		}
@@ -1274,7 +1274,7 @@ const visitors = {
 					'Props are always an object, use destructured props with default values instead',
 					context.state.analysis.module.filename,
 					props,
-					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.collect ? context.state.analysis.errors : undefined,
 					context.state.analysis.comments,
 				);
 			}
@@ -1321,7 +1321,7 @@ const visitors = {
 						`CSS class ".${className}" does not exist as a stand-alone class in ${node.id?.name ? node.id.name : "this component's"} <style> block`,
 						context.state.analysis.module.filename,
 						property,
-						context.state.loose ? context.state.analysis.errors : undefined,
+						context.state.collect ? context.state.analysis.errors : undefined,
 						context.state.analysis.comments,
 					);
 				}
@@ -1376,7 +1376,7 @@ const visitors = {
 					'Component switch statements must contain a template in each of their cases. Move the switch statement into an effect if it does not render anything.',
 					context.state.analysis.module.filename,
 					switch_case,
-					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.collect ? context.state.analysis.errors : undefined,
 					context.state.analysis.comments,
 				);
 			}
@@ -1449,7 +1449,7 @@ const visitors = {
 				'Component for...of loops must contain a template in their body. Move the for loop into an effect if it does not render anything.',
 				context.state.analysis.module.filename,
 				node.body,
-				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.collect ? context.state.analysis.errors : undefined,
 				context.state.analysis.comments,
 			);
 		}
@@ -1472,7 +1472,7 @@ const visitors = {
 				'Not implemented: Exported component declaration not supported in server blocks.',
 				context.state.analysis.module.filename,
 				/** @type {AST.Identifier} */ (declaration.id),
-				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.collect ? context.state.analysis.errors : undefined,
 				context.state.analysis.comments,
 			);
 			// TODO: the client and server rendering doesn't currently support components
@@ -1501,7 +1501,7 @@ const visitors = {
 								'Not implemented: Exported member expressions are not supported in server blocks.',
 								context.state.analysis.module.filename,
 								decl.init,
-								context.state.loose ? context.state.analysis.errors : undefined,
+								context.state.collect ? context.state.analysis.errors : undefined,
 								context.state.analysis.comments,
 							);
 							continue;
@@ -1513,7 +1513,7 @@ const visitors = {
 								'Not implemented: Exported object or array patterns are not supported in server blocks.',
 								context.state.analysis.module.filename,
 								path.node,
-								context.state.loose ? context.state.analysis.errors : undefined,
+								context.state.collect ? context.state.analysis.errors : undefined,
 								context.state.analysis.comments,
 							);
 						}
@@ -1524,7 +1524,7 @@ const visitors = {
 					`Not implemented: Exported '${decl.id.type}' type is not supported in server blocks.`,
 					context.state.analysis.module.filename,
 					decl,
-					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.collect ? context.state.analysis.errors : undefined,
 					context.state.analysis.comments,
 				);
 			}
@@ -1543,7 +1543,7 @@ const visitors = {
 					`Not implemented: Exported specifier type not supported in server blocks.`,
 					context.state.analysis.module.filename,
 					specifier,
-					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.collect ? context.state.analysis.errors : undefined,
 					context.state.analysis.comments,
 				);
 			}
@@ -1552,7 +1552,7 @@ const visitors = {
 				'Not implemented: Exported declaration type not supported in server blocks.',
 				context.state.analysis.module.filename,
 				node,
-				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.collect ? context.state.analysis.errors : undefined,
 				context.state.analysis.comments,
 			);
 		}
@@ -1607,7 +1607,7 @@ const visitors = {
 				'Component if statements must contain a template in their "then" body. Move the if statement into an effect if it does not render anything.',
 				context.state.analysis.module.filename,
 				node.consequent,
-				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.collect ? context.state.analysis.errors : undefined,
 				context.state.analysis.comments,
 			);
 		}
@@ -1624,7 +1624,7 @@ const visitors = {
 					'Component if statements must contain a template in their "else" body. Move the if statement into an effect if it does not render anything.',
 					context.state.analysis.module.filename,
 					node.alternate,
-					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.collect ? context.state.analysis.errors : undefined,
 					context.state.analysis.comments,
 				);
 			}
@@ -1656,7 +1656,7 @@ const visitors = {
 		validateComponentReturnStatement(
 			node,
 			context.state.analysis.module.filename,
-			context.state.loose ? context.state.analysis.errors : undefined,
+			context.state.collect ? context.state.analysis.errors : undefined,
 			context.state.analysis.comments,
 		);
 
@@ -1733,7 +1733,7 @@ const visitors = {
 					'Component try statements must contain a template in their main body. Move the try statement into an effect if it does not render anything.',
 					state.analysis.module.filename,
 					node.block,
-					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.collect ? context.state.analysis.errors : undefined,
 					context.state.analysis.comments,
 				);
 			}
@@ -1750,7 +1750,7 @@ const visitors = {
 					'Component try statements must contain a template in their "pending" body. Rendering a pending fallback is required to have a template.',
 					state.analysis.module.filename,
 					node.pending,
-					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.collect ? context.state.analysis.errors : undefined,
 					context.state.analysis.comments,
 				);
 			}
@@ -1843,7 +1843,7 @@ const visitors = {
 				`<tsx:${node.kind}> requires "${node.kind}" compat to be configured in ripple.config.ts.`,
 				context.state.analysis.module.filename,
 				node,
-				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.collect ? context.state.analysis.errors : undefined,
 				context.state.analysis.comments,
 			);
 		}
@@ -1879,7 +1879,7 @@ const visitors = {
 				'`children` cannot be rendered as a component. Render it with `{children}` or `{props.children}` instead.',
 				state.analysis.module.filename,
 				node.id,
-				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.collect ? context.state.analysis.errors : undefined,
 				context.state.analysis.comments,
 			);
 		}
@@ -1966,7 +1966,7 @@ const visitors = {
 						err_msg,
 						state.analysis.module.filename,
 						node.openingElement,
-						state.loose ? state.analysis.errors : undefined,
+						state.collect ? state.analysis.errors : undefined,
 					);
 
 					if (node.closingElement) {
@@ -1974,7 +1974,7 @@ const visitors = {
 							err_msg,
 							state.analysis.module.filename,
 							node.closingElement,
-							state.loose ? state.analysis.errors : undefined,
+							state.collect ? state.analysis.errors : undefined,
 						);
 					}
 				}
@@ -2010,7 +2010,7 @@ const visitors = {
 									},
 								},
 							},
-							context.state.loose ? context.state.analysis.errors : undefined,
+							context.state.collect ? context.state.analysis.errors : undefined,
 							context.state.analysis.comments,
 						);
 					}
@@ -2022,7 +2022,7 @@ const visitors = {
 								'The `key` attribute is not a thing in Ripple, and cannot be used on DOM elements. If you are using a for loop, then use the `for (let item of items; key item.id)` syntax.',
 								state.analysis.module.filename,
 								attr,
-								context.state.loose ? context.state.analysis.errors : undefined,
+								context.state.collect ? context.state.analysis.errors : undefined,
 								context.state.analysis.comments,
 							);
 						}
@@ -2036,7 +2036,7 @@ const visitors = {
 								'`#style` cannot be used directly on DOM elements. Pass the class to a child component instead.',
 								state.analysis.module.filename,
 								attr.value.object,
-								context.state.loose ? context.state.analysis.errors : undefined,
+								context.state.collect ? context.state.analysis.errors : undefined,
 								context.state.analysis.comments,
 							);
 						}
@@ -2064,7 +2064,7 @@ const visitors = {
 					`The <${/** @type {AST.Identifier} */ (node.id).name}> element is a void element and cannot have children`,
 					state.analysis.module.filename,
 					node,
-					context.state.loose ? context.state.analysis.errors : undefined,
+					context.state.collect ? context.state.analysis.errors : undefined,
 					context.state.analysis.comments,
 				);
 			}
@@ -2108,7 +2108,7 @@ const visitors = {
 								`Cannot use component '${attr.value.name}' as a prop on its parent element. Component declarations inside children are not in scope for the parent element's attributes.`,
 								state.analysis.module.filename,
 								attr.value,
-								context.state.loose ? context.state.analysis.errors : undefined,
+								context.state.collect ? context.state.analysis.errors : undefined,
 								context.state.analysis.comments,
 							);
 						}
@@ -2118,7 +2118,7 @@ const visitors = {
 								`Cannot use component '${attr.argument.name}' as a prop on its parent element. Component declarations inside children are not in scope for the parent element's attributes.`,
 								state.analysis.module.filename,
 								attr.argument,
-								context.state.loose ? context.state.analysis.errors : undefined,
+								context.state.collect ? context.state.analysis.errors : undefined,
 								context.state.analysis.comments,
 							);
 						}
@@ -2148,7 +2148,7 @@ const visitors = {
 						'Cannot have a `children` prop on an element',
 						state.analysis.module.filename,
 						attribute,
-						context.state.loose ? context.state.analysis.errors : undefined,
+						context.state.collect ? context.state.analysis.errors : undefined,
 						context.state.analysis.comments,
 					);
 				}
@@ -2175,7 +2175,7 @@ const visitors = {
 				'`children` cannot be rendered using explicit text interpolation. Use `{children}` or `{props.children}` instead.',
 				context.state.analysis.module.filename,
 				node.expression,
-				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.collect ? context.state.analysis.errors : undefined,
 				context.state.analysis.comments,
 			);
 		}
@@ -2195,7 +2195,7 @@ const visitors = {
 				'`await` is not allowed inside components. Use `trackAsync(() => ...)` with an upstream `try { ... } pending { ... }` boundary instead.',
 				context.state.analysis.module.filename,
 				adjusted_node,
-				context.state.loose ? context.state.analysis.errors : undefined,
+				context.state.collect ? context.state.analysis.errors : undefined,
 				context.state.analysis.comments,
 			);
 		}
@@ -2221,10 +2221,10 @@ export function analyze(ast, filename, options = {}) {
 	const scope_root = new ScopeRoot();
 	const errors = options.errors ?? [];
 	const comments = options.comments ?? [];
-	const loose = options.loose ?? false;
+	const collect = !!(options.collect || options.loose);
 
 	const { scope, scopes } = createScopes(ast, scope_root, null, {
-		loose,
+		collect,
 		errors,
 		filename,
 		comments,
@@ -2253,7 +2253,7 @@ export function analyze(ast, filename, options = {}) {
 			inside_head: false,
 			ancestor_server_block: undefined,
 			to_ts: options.to_ts ?? false,
-			loose,
+			collect,
 			configured_compat_kinds:
 				options.compat_kinds === undefined ? undefined : new Set(options.compat_kinds),
 			metadata: {},
