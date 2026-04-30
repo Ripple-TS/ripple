@@ -258,7 +258,9 @@ export component CompilerDemo() {
 					}
 
 					const output_lang = TARGET_OUTPUT_LANG[selected_target.value] ?? 'tsx';
-					output_view.dispatch({ effects: output_lang_compartment.reconfigure(shiki_highlight(output_lang)) });
+					output_view.dispatch(
+						{ effects: output_lang_compartment.reconfigure(shiki_highlight(output_lang)) },
+					);
 					replace_doc(output_view, join_compiled_output(payload.output.code, payload.output.css));
 					status = `${TARGET_LABELS[payload.target] ?? 'Selected output'} ready`;
 					last_updated = new Date().toLocaleTimeString([], {

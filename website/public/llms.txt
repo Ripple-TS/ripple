@@ -1631,7 +1631,33 @@ needs target-aware TSRX help. The server exposes current TSRX documentation,
 target detection, project inspection, formatting, compilation, diagnostic
 analysis, and read-only file validation.
 
-Generic MCP client config:
+Hosted endpoint:
+
+For hosted MCP apps and connectors, use:
+
+```text
+https://mcp.tsrx.dev/mcp
+```
+
+This is the best starting point for ChatGPT web and other clients that connect to
+an HTTP MCP server instead of launching a local command.
+
+ChatGPT setup:
+
+Add `https://mcp.tsrx.dev/mcp` when creating a custom app or connector from
+ChatGPT developer mode, then select that app from the tools menu in a chat.
+
+Self-hosting:
+
+To self-host the endpoint, deploy the monorepo's `website-mcp` app anywhere that
+can run a Node HTTP server and connect remote MCP clients to its `/mcp` route.
+
+Local MCP server:
+
+For local repository work in Codex, Cursor, Gemini CLI, or Claude Code, install
+`@tsrx/mcp` as a stdio MCP server so the tool can inspect your project.
+
+Generic local MCP client config:
 
 ```json
 {
@@ -1652,15 +1678,6 @@ Codex setup:
 command = "npx"
 args = ["-y", "@tsrx/mcp"]
 ```
-
-ChatGPT setup:
-
-ChatGPT web uses hosted MCP apps/connectors, not local stdio commands. To use
-TSRX MCP there, host the monorepo's `mcp-endpoint-website` app anywhere that can
-run a Node HTTP server, then use its `/mcp` URL when creating a custom app or
-connector from ChatGPT developer mode. Select that app from the tools menu in a
-chat. For local repository work, prefer Codex, Cursor, or Gemini CLI with the
-stdio config above.
 
 Gemini CLI setup:
 

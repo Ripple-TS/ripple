@@ -352,27 +352,6 @@ importers:
         specifier: ^0.26.6
         version: 0.26.6
 
-  mcp-endpoint-website:
-    dependencies:
-      '@tsrx/mcp':
-        specifier: workspace:*
-        version: link:../packages/tsrx-mcp
-      '@tsrx/preact':
-        specifier: workspace:*
-        version: link:../packages/tsrx-preact
-      '@tsrx/react':
-        specifier: workspace:*
-        version: link:../packages/tsrx-react
-      '@tsrx/ripple':
-        specifier: workspace:*
-        version: link:../packages/tsrx-ripple
-      '@tsrx/solid':
-        specifier: workspace:*
-        version: link:../packages/tsrx-solid
-      '@tsrx/vue':
-        specifier: workspace:*
-        version: link:../packages/tsrx-vue
-
   packages/adapter: {}
 
   packages/adapter-bun:
@@ -1374,6 +1353,27 @@ importers:
       vitepress-plugin-tabs:
         specifier: catalog:default
         version: 0.8.0(vitepress@2.0.0-alpha.12(@types/node@25.3.3)(axios@1.15.0)(fuse.js@7.1.0)(jiti@2.6.1)(lightningcss@1.32.0)(postcss@8.5.8)(typescript@5.9.3))(vue@3.6.0-beta.10(typescript@5.9.3))
+
+  website-mcp:
+    dependencies:
+      '@tsrx/mcp':
+        specifier: workspace:*
+        version: link:../packages/tsrx-mcp
+      '@tsrx/preact':
+        specifier: workspace:*
+        version: link:../packages/tsrx-preact
+      '@tsrx/react':
+        specifier: workspace:*
+        version: link:../packages/tsrx-react
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../packages/tsrx-ripple
+      '@tsrx/solid':
+        specifier: workspace:*
+        version: link:../packages/tsrx-solid
+      '@tsrx/vue':
+        specifier: workspace:*
+        version: link:../packages/tsrx-vue
 
   website-new:
     dependencies:

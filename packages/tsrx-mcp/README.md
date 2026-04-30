@@ -27,7 +27,7 @@ Generic MCP client config:
 
 Remote MCP clients need a hosted Streamable HTTP endpoint rather than a local
 stdio command. This monorepo includes a deployment-neutral endpoint app in
-`mcp-endpoint-website` that serves the same MCP server at `/mcp`.
+`website-mcp` that serves the same MCP server at `/mcp`.
 
 The hosted endpoint runs in remote-safe mode. It exposes documentation, prompts,
 `format-tsrx`, `compile-tsrx`, and `analyze-tsrx`, but omits local filesystem

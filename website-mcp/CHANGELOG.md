@@ -1,4 +1,4 @@
-# mcp-endpoint-website
+# website-mcp
 
 ## 0.0.1
 

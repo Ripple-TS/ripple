@@ -16,9 +16,8 @@ adapt it to their own HTTP runtime.
 
 Optional environment variables:
 
-- `PORT` - port for `pnpm --dir mcp-endpoint-website start`; defaults to `3000`.
-- `HOST` - host for `pnpm --dir mcp-endpoint-website start`; defaults to
-  `0.0.0.0`.
+- `PORT` - port for `pnpm --dir website-mcp start`; defaults to `3000`.
+- `HOST` - host for `pnpm --dir website-mcp start`; defaults to `0.0.0.0`.
 - `TSRX_MCP_BEARER_TOKEN` - require `Authorization: Bearer <token>` for MCP
   requests.
 - `TSRX_MCP_CORS_ORIGIN` - override the default `Access-Control-Allow-Origin: *`
@@ -27,6 +26,6 @@ Optional environment variables:
 ## Local development
 
 ```bash
-pnpm --dir mcp-endpoint-website build
-pnpm --dir mcp-endpoint-website start
+pnpm --dir website-mcp build
+pnpm --dir website-mcp start
 ```

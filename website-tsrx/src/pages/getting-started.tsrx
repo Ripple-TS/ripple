@@ -716,11 +716,39 @@ export component GettingStartedPage() {
 					<section class="doc-section" id="mcp">
 						<h2 class="section-heading">{'MCP'}</h2>
 						<p class="section-body">
-							{'Install '}
-							<code class="inline-code">{'@tsrx/mcp'}</code>
-							{' in AI coding tools that support Model Context Protocol. It gives agents current TSRX docs, target detection, project inspection, formatting, compilation, diagnostic advice, and read-only '}
+							{'Use TSRX MCP when an AI coding tool supports Model Context Protocol. It gives agents current TSRX docs, target detection, project inspection, formatting, compilation, diagnostic advice, and read-only '}
 							<code class="inline-code">{'.tsrx'}</code>
 							{' file validation.'}
+						</p>
+						<h3 class="subsection-heading">{'Hosted Endpoint'}</h3>
+						<p class="section-body">
+							{'For hosted MCP apps and connectors, use the public TSRX endpoint:'}
+						</p>
+						<p class="section-body">
+							<code class="inline-code">{'https://mcp.tsrx.dev/mcp'}</code>
+						</p>
+						<p class="section-body">
+							{'This is the best starting point for ChatGPT web and other clients that connect to an HTTP MCP server instead of launching a local command.'}
+						</p>
+						<h3 class="subsection-heading">{'ChatGPT'}</h3>
+						<p class="section-body">
+							{'Add '}
+							<code class="inline-code">{'https://mcp.tsrx.dev/mcp'}</code>
+							{' when creating a custom app or connector from ChatGPT developer mode, then select that app from the tools menu in a chat.'}
+						</p>
+						<h3 class="subsection-heading">{'Self-hosting'}</h3>
+						<p class="section-body">
+							{'To self-host the endpoint, deploy the monorepo\'s '}
+							<code class="inline-code">{'website-mcp'}</code>
+							{' app anywhere that can run a Node HTTP server and connect remote MCP clients to its '}
+							<code class="inline-code">{'/mcp'}</code>
+							{' route.'}
+						</p>
+						<h3 class="subsection-heading">{'Local MCP Server'}</h3>
+						<p class="section-body">
+							{'For local repository work in Codex, Cursor, Gemini CLI, or Claude Code, install '}
+							<code class="inline-code">{'@tsrx/mcp'}</code>
+							{' as a stdio MCP server so the tool can inspect your project.'}
 						</p>
 						<pre class="code-block">
 							<code>{html MCP_CONFIG_HTML}</code>
@@ -734,14 +762,6 @@ export component GettingStartedPage() {
 						<pre class="code-block">
 							<code>{html MCP_CODEX_CONFIG_HTML}</code>
 						</pre>
-						<h3 class="subsection-heading">{'ChatGPT'}</h3>
-						<p class="section-body">
-							{'ChatGPT web uses hosted MCP apps/connectors, not local stdio commands. To use TSRX MCP there, host the monorepo\'s '}
-							<code class="inline-code">{'mcp-endpoint-website'}</code>
-							{' app anywhere that can run a Node HTTP server, then use its '}
-							<code class="inline-code">{'/mcp'}</code>
-							{' URL when creating a custom app or connector from ChatGPT developer mode. Select that app from the tools menu in a chat. If you only need local repository help, use Codex, Cursor, or Gemini CLI with the stdio config instead.'}
-						</p>
 						<h3 class="subsection-heading">{'Gemini CLI'}</h3>
 						<p class="section-body">
 							{'For Gemini CLI, put the same '}
