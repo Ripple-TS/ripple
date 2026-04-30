@@ -558,6 +558,7 @@ describe('@tsrx/mcp compile helpers', () => {
 			`export component App() {\n\t<button class=\"primary\">\"Save\"</button>\n}\n`,
 		);
 		expect(result.errors).toEqual([]);
+		expect(result.message).toMatch(/cwd was not supplied/);
 	});
 
 	it('can check whether TSRX source is already formatted', async () => {
@@ -631,6 +632,7 @@ describe('@tsrx/mcp compile helpers', () => {
 			expect(result.ok).toBe(true);
 			expect(result.cwd).toBe(resolve(temp_dir));
 			expect(result.filename).toBe('src/App.tsrx');
+			expect(result.message).toBe(null);
 			expect(result.configPath).toBe(join(temp_dir, '.prettierrc'));
 			expect(result.formatted).toBe(
 				`export component App() {\n    <button class="primary">"Save"</button>\n}\n`,
@@ -693,6 +695,7 @@ describe('@tsrx/mcp compile helpers', () => {
 
 		expect(result.ok).toBe(true);
 		expect(result.read.ok).toBe(true);
+		expect(result.message).toBe(null);
 		expect(result.format?.check).toBe(true);
 		expect(result.compile?.ok).toBe(true);
 		expect(result.compile?.target).toBe('react');
@@ -730,5 +733,15 @@ describe('@tsrx/mcp compile helpers', () => {
 		} finally {
 			await rm(temp_dir, { recursive: true, force: true });
 		}
+	});
+
+	it('warns when validating without an explicit cwd', async () => {
+		const result = await validate_tsrx_file({
+			filePath: 'missing-file.tsrx',
+		});
+
+		expect(result.ok).toBe(false);
+		expect(result.message).toMatch(/cwd was not supplied/);
+		expect(result.read.ok).toBe(false);
 	});
 });

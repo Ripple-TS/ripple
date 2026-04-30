@@ -3,6 +3,7 @@ import path from 'node:path';
 import { analyze_tsrx_result } from './analyze.js';
 import { compile_tsrx } from './compile.js';
 import { format_tsrx } from './format.js';
+import { resolve_cwd_context } from './target.js';
 
 /**
  * @param {unknown} error
@@ -44,7 +45,8 @@ function resolve_file_path(filePath, cwd) {
  * }} input
  */
 export async function validate_tsrx_file(input) {
-	const cwd = path.resolve(input.cwd ?? process.cwd());
+	const cwd_context = resolve_cwd_context(input.cwd);
+	const cwd = cwd_context.cwd;
 	const filePath = resolve_file_path(input.filePath, cwd);
 	const filename = filePath;
 
@@ -57,6 +59,7 @@ export async function validate_tsrx_file(input) {
 			cwd,
 			filePath,
 			filename,
+			message: cwd_context.hint,
 			read: {
 				ok: false,
 				error: normalize_read_error(error),
@@ -97,6 +100,7 @@ export async function validate_tsrx_file(input) {
 		cwd,
 		filePath,
 		filename,
+		message: cwd_context.hint,
 		read: {
 			ok: true,
 			error: null,

@@ -61,6 +61,25 @@ export const CONFIG_FILES = [
 ];
 
 /**
+ * @param {string | undefined} [cwd]
+ */
+export function resolve_cwd(cwd) {
+	return path.resolve(cwd ?? process.cwd());
+}
+
+/**
+ * @param {string | undefined} [cwd]
+ */
+export function resolve_cwd_context(cwd) {
+	const cwd_specified = cwd !== undefined;
+	const resolved_cwd = resolve_cwd(cwd);
+	return {
+		cwd: resolved_cwd,
+		hint: cwd_hint(resolved_cwd, cwd_specified) || null,
+	};
+}
+
+/**
  * @param {string} start
  */
 export function find_package_json(start) {
@@ -124,19 +143,17 @@ function cwd_hint(resolved_cwd, cwd_specified) {
  * @param {string | undefined} [cwd]
  */
 export function detect_target(cwd) {
-	const cwd_specified = cwd !== undefined;
-	const resolved_cwd = path.resolve(cwd ?? process.cwd());
-	const package_json_path = find_package_json(resolved_cwd);
+	const cwd_context = resolve_cwd_context(cwd);
+	const package_json_path = find_package_json(cwd_context.cwd);
 	if (!package_json_path) {
 		return {
-			cwd: resolved_cwd,
+			cwd: cwd_context.cwd,
 			packageJsonPath: null,
 			detectedTarget: null,
 			confidence: /** @type {'none'} */ ('none'),
 			matches: [],
 			message:
-				'No package.json found from the supplied cwd or its ancestors.' +
-				cwd_hint(resolved_cwd, cwd_specified),
+				'No package.json found from the supplied cwd or its ancestors.' + (cwd_context.hint ?? ''),
 		};
 	}
 
@@ -147,7 +164,7 @@ export function detect_target(cwd) {
 		package_json = JSON.parse(fs.readFileSync(package_json_path, 'utf8'));
 	} catch (error) {
 		return {
-			cwd: resolved_cwd,
+			cwd: cwd_context.cwd,
 			packageJsonPath: package_json_path,
 			detectedTarget: null,
 			confidence: 'none',
@@ -187,13 +204,13 @@ export function detect_target(cwd) {
 				: 'No TSRX target packages were found in package.json or common bundler configs.';
 
 	return {
-		cwd: resolved_cwd,
+		cwd: cwd_context.cwd,
 		packageJsonPath: package_json_path,
 		detectedTarget: detected_target,
 		confidence: /** @type {'high' | 'ambiguous' | 'none'} */ (
 			detected ? (tied.length === 1 ? 'high' : 'ambiguous') : 'none'
 		),
 		matches,
-		message: base_message + cwd_hint(resolved_cwd, cwd_specified),
+		message: base_message + (cwd_context.hint ?? ''),
 	};
 }

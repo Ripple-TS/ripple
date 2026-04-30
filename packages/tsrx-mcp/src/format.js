@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { format, resolveConfig, resolveConfigFile } from 'prettier';
 import * as tsrx_prettier_plugin from '@tsrx/prettier-plugin';
-import { detect_target } from './target.js';
+import { resolve_cwd_context } from './target.js';
 
 const BUILTIN_DEFAULTS = {
 	printWidth: 100,
@@ -16,6 +16,18 @@ const BUILTIN_DEFAULTS = {
  *   name: string | null,
  *   loc: unknown,
  * }} NormalizedFormatError
+ *
+ * @typedef {{
+ *   ok: boolean,
+ *   filename: string,
+ *   cwd: string,
+ *   message: string | null,
+ *   configPath: string | null,
+ *   formatted: string | null,
+ *   changed: boolean,
+ *   errors: NormalizedFormatError[],
+ *   check: boolean | null,
+ * }} FormatResult
  */
 
 /**
@@ -67,11 +79,12 @@ function pick_user_overrides(input) {
  *   singleQuote?: boolean,
  *   check?: boolean,
  * }} input
+ * @returns {Promise<FormatResult>}
  */
 export async function format_tsrx(input) {
 	const filename = input.filename ?? 'Component.tsrx';
-	const detection = detect_target(input.cwd);
-	const cwd = detection.cwd;
+	const cwd_context = resolve_cwd_context(input.cwd);
+	const cwd = cwd_context.cwd;
 	const resolved_filename = path.isAbsolute(filename)
 		? path.resolve(filename)
 		: path.resolve(cwd, filename);
@@ -102,6 +115,7 @@ export async function format_tsrx(input) {
 			ok: true,
 			filename,
 			cwd,
+			message: cwd_context.hint,
 			configPath: config_path,
 			formatted,
 			changed: formatted !== input.code,
@@ -113,6 +127,7 @@ export async function format_tsrx(input) {
 			ok: false,
 			filename,
 			cwd,
+			message: cwd_context.hint,
 			configPath: config_path,
 			formatted: null,
 			changed: false,
