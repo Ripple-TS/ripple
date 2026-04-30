@@ -6,6 +6,7 @@ packages:
   - packages/*
   - playground/*
   - website
+  - mcp-endpoint-website
   - grammars/tree-sitter
   - website-new
   - website-tsrx

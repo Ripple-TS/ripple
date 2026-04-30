@@ -10,6 +10,7 @@ export {
 	validate_tsrx_file_handler,
 } from './server.js';
 
+export { handleTSRXMcpNodeRequest } from './http.js';
 export { analyze_tsrx } from './analyze.js';
 export { compile_tsrx } from './compile.js';
 export { format_tsrx } from './format.js';

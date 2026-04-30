@@ -257,16 +257,29 @@ function text_resource(uri, text) {
 	};
 }
 
-function create_tsrx_task_prompt() {
+/**
+ * @param {{ remote: boolean }} options
+ */
+function create_tsrx_task_prompt(options) {
+	const project_context_step = options.remote
+		? '2. This hosted MCP endpoint cannot inspect a local project filesystem. Use an explicit `target` argument when compiling or analyzing code, or ask the user which target runtime they use.'
+		: '2. If project context exists, call `inspect-project` for package/tooling context or `detect-target` when only the runtime target is needed before assuming React, Preact, Solid, Vue, or Ripple semantics.';
+	const file_validation_step = options.remote
+		? '6. For existing files, ask the user to paste source or use a local stdio MCP client; hosted MCP cannot read local file paths.'
+		: '6. When working with an existing file, call `validate-tsrx-file` for one-shot format, compile, and advice feedback.';
+	const compile_step = options.remote
+		? '7. Before presenting generated .tsrx code as final, call `format-tsrx`, then `compile-tsrx` with an explicit target.'
+		: '7. Before presenting generated .tsrx code as final, call `format-tsrx`, then `compile-tsrx` with the inferred or explicit target.';
+
 	return `Use this workflow when helping with TSRX:
 
 1. Identify whether the task is about target-neutral TSRX syntax, target runtime behavior, or both.
-2. If project context exists, call \`inspect-project\` for package/tooling context or \`detect-target\` when only the runtime target is needed before assuming React, Preact, Solid, Vue, or Ripple semantics.
+${project_context_step}
 3. For syntax uncertainty, use \`list-sections\`, \`get-documentation\`, or read \`tsrx://docs/{slug}.md\`.
 4. Keep core TSRX advice target-neutral: component declarations, statement templates, control flow, TSX expression values, lazy destructuring, style identifiers, and server blocks.
 5. Use \`tsrx://targets/{target}.md\` as the handoff point for target-specific responsibilities.
-6. When working with an existing file, call \`validate-tsrx-file\` for one-shot format, compile, and advice feedback.
-7. Before presenting generated .tsrx code as final, call \`format-tsrx\`, then \`compile-tsrx\` with the inferred or explicit target.
+${file_validation_step}
+${compile_step}
 8. If \`compile-tsrx\` returns diagnostics, call \`analyze-tsrx\` for targeted authoring advice, fix the code, format it, and compile again.
 9. Do not invent runtime APIs, imports, or bundler configuration from target-neutral TSRX docs. Use target-specific docs, resources, or skills for those details.`;
 }
@@ -274,11 +287,15 @@ function create_tsrx_task_prompt() {
 /**
  * Create the shared TSRX MCP server. Transports are intentionally owned by wrapper
  * packages so this package can be reused by stdio and hosted HTTP entry points.
+ *
+ * @param {{ remote?: boolean }} [options]
  */
-export function createTSRXMcpServer() {
+export function createTSRXMcpServer(options = {}) {
+	const remote = options.remote === true;
 	const server = new McpServer(SERVER_INFO, {
-		instructions:
-			'Use this server for target-neutral TSRX language guidance. Detect the runtime target before generating .tsrx code, fetch relevant docs sections when syntax details are uncertain, and use target-specific skills or resources for runtime APIs, imports, bundler setup, and framework semantics.',
+		instructions: remote
+			? 'Use this hosted server for target-neutral TSRX language guidance. It cannot inspect local project files, so pass an explicit runtime target before compiling .tsrx code. Fetch relevant docs sections when syntax details are uncertain, and use target-specific docs or resources for runtime APIs, imports, bundler setup, and framework semantics.'
+			: 'Use this server for target-neutral TSRX language guidance. Detect the runtime target before generating .tsrx code, fetch relevant docs sections when syntax details are uncertain, and use target-specific skills or resources for runtime APIs, imports, bundler setup, and framework semantics.',
 	});
 
 	server.registerTool(
@@ -399,8 +416,8 @@ export function createTSRXMcpServer() {
 				.filter(Boolean)
 				.join('\n');
 			const text = context
-				? `${context}\n\n${create_tsrx_task_prompt()}`
-				: create_tsrx_task_prompt();
+				? `${context}\n\n${create_tsrx_task_prompt({ remote })}`
+				: create_tsrx_task_prompt({ remote });
 
 			return {
 				description: 'Target-aware TSRX agent workflow',
@@ -417,32 +434,34 @@ export function createTSRXMcpServer() {
 		},
 	);
 
-	server.registerTool(
-		'detect-target',
-		{
-			title: 'Detect TSRX Runtime Target',
-			description:
-				'Inspects package.json and common bundler config files to infer whether a project uses TSRX with Ripple, React, Preact, Solid, or Vue.',
-			inputSchema: {
-				cwd: z.string().optional(),
+	if (!remote) {
+		server.registerTool(
+			'detect-target',
+			{
+				title: 'Detect TSRX Runtime Target',
+				description:
+					'Inspects package.json and common bundler config files to infer whether a project uses TSRX with Ripple, React, Preact, Solid, or Vue.',
+				inputSchema: {
+					cwd: z.string().optional(),
+				},
+				outputSchema: {
+					...target_detection_schema,
+				},
+				annotations: {
+					readOnlyHint: true,
+					destructiveHint: false,
+					openWorldHint: false,
+				},
 			},
-			outputSchema: {
-				...target_detection_schema,
+			async ({ cwd }) => {
+				const output = detect_target_handler({ cwd });
+				return {
+					content: [{ type: 'text', text: json_text(output) }],
+					structuredContent: output,
+				};
 			},
-			annotations: {
-				readOnlyHint: true,
-				destructiveHint: false,
-				openWorldHint: false,
-			},
-		},
-		async ({ cwd }) => {
-			const output = detect_target_handler({ cwd });
-			return {
-				content: [{ type: 'text', text: json_text(output) }],
-				structuredContent: output,
-			};
-		},
-	);
+		);
+	}
 
 	server.registerTool(
 		'compile-tsrx',
@@ -468,7 +487,8 @@ export function createTSRXMcpServer() {
 			},
 		},
 		async (input) => {
-			const output = await compile_tsrx_handler(input);
+			const output = await compile_tsrx_handler(remote ? { ...input, cwd: undefined } : input);
+			if (remote) output.cwd = 'remote';
 			return {
 				content: [{ type: 'text', text: json_text(output) }],
 				structuredContent: output,
@@ -500,7 +520,11 @@ export function createTSRXMcpServer() {
 			},
 		},
 		async (input) => {
-			const output = await format_tsrx_handler(input);
+			const output = await format_tsrx_handler(remote ? { ...input, cwd: undefined } : input);
+			if (remote) {
+				output.cwd = 'remote';
+				output.configPath = null;
+			}
 			return {
 				content: [{ type: 'text', text: json_text(output) }],
 				structuredContent: output,
@@ -531,7 +555,8 @@ export function createTSRXMcpServer() {
 			},
 		},
 		async (input) => {
-			const output = await analyze_tsrx_handler(input);
+			const output = await analyze_tsrx_handler(remote ? { ...input, cwd: undefined } : input);
+			if (remote) output.cwd = 'remote';
 			return {
 				content: [{ type: 'text', text: json_text(output) }],
 				structuredContent: output,
@@ -539,64 +564,66 @@ export function createTSRXMcpServer() {
 		},
 	);
 
-	server.registerTool(
-		'inspect-project',
-		{
-			title: 'Inspect TSRX Project',
-			description:
-				'Inspects package.json, target signals, TSRX packages, tooling packages, scripts, and common config files for a project. Use this before choosing target-specific advice or repo commands.',
-			inputSchema: {
-				cwd: z.string().optional(),
+	if (!remote) {
+		server.registerTool(
+			'inspect-project',
+			{
+				title: 'Inspect TSRX Project',
+				description:
+					'Inspects package.json, target signals, TSRX packages, tooling packages, scripts, and common config files for a project. Use this before choosing target-specific advice or repo commands.',
+				inputSchema: {
+					cwd: z.string().optional(),
+				},
+				outputSchema: inspect_project_result_schema,
+				annotations: {
+					readOnlyHint: true,
+					destructiveHint: false,
+					openWorldHint: false,
+				},
 			},
-			outputSchema: inspect_project_result_schema,
-			annotations: {
-				readOnlyHint: true,
-				destructiveHint: false,
-				openWorldHint: false,
+			async ({ cwd }) => {
+				const output = inspect_project_handler({ cwd });
+				return {
+					content: [{ type: 'text', text: json_text(output) }],
+					structuredContent: output,
+				};
 			},
-		},
-		async ({ cwd }) => {
-			const output = inspect_project_handler({ cwd });
-			return {
-				content: [{ type: 'text', text: json_text(output) }],
-				structuredContent: output,
-			};
-		},
-	);
+		);
 
-	server.registerTool(
-		'validate-tsrx-file',
-		{
-			title: 'Validate TSRX File',
-			description:
-				'Reads a .tsrx file and runs the full MCP validation loop: formatting check, target-aware compilation, and diagnostic advice. This tool is read-only and does not rewrite files.',
-			inputSchema: {
-				filePath: z.string(),
-				cwd: z.string().optional(),
-				target: TARGET_SCHEMA.optional(),
-				collect: z.boolean().optional(),
-				loose: z.boolean().optional(),
-				mode: z.enum(['client', 'server']).optional(),
-				printWidth: z.number().int().positive().optional(),
-				tabWidth: z.number().int().positive().optional(),
-				useTabs: z.boolean().optional(),
-				singleQuote: z.boolean().optional(),
+		server.registerTool(
+			'validate-tsrx-file',
+			{
+				title: 'Validate TSRX File',
+				description:
+					'Reads a .tsrx file and runs the full MCP validation loop: formatting check, target-aware compilation, and diagnostic advice. This tool is read-only and does not rewrite files.',
+				inputSchema: {
+					filePath: z.string(),
+					cwd: z.string().optional(),
+					target: TARGET_SCHEMA.optional(),
+					collect: z.boolean().optional(),
+					loose: z.boolean().optional(),
+					mode: z.enum(['client', 'server']).optional(),
+					printWidth: z.number().int().positive().optional(),
+					tabWidth: z.number().int().positive().optional(),
+					useTabs: z.boolean().optional(),
+					singleQuote: z.boolean().optional(),
+				},
+				outputSchema: validate_file_result_schema,
+				annotations: {
+					readOnlyHint: true,
+					destructiveHint: false,
+					openWorldHint: false,
+				},
 			},
-			outputSchema: validate_file_result_schema,
-			annotations: {
-				readOnlyHint: true,
-				destructiveHint: false,
-				openWorldHint: false,
+			async (input) => {
+				const output = await validate_tsrx_file_handler(input);
+				return {
+					content: [{ type: 'text', text: json_text(output) }],
+					structuredContent: output,
+				};
 			},
-		},
-		async (input) => {
-			const output = await validate_tsrx_file_handler(input);
-			return {
-				content: [{ type: 'text', text: json_text(output) }],
-				structuredContent: output,
-			};
-		},
-	);
+		);
+	}
 
 	return server;
 }

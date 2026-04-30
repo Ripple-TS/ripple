@@ -660,9 +660,11 @@ export component GettingStartedPage() {
 						</pre>
 						<h3 class="subsection-heading">{'ChatGPT'}</h3>
 						<p class="section-body">
-							{'ChatGPT web uses hosted MCP apps/connectors, not local stdio commands. To use TSRX MCP there, deploy a remote MCP endpoint for '}
-							<code class="inline-code">{'@tsrx/mcp'}</code>
-							{' first, then create a custom app or connector from ChatGPT developer mode and select it from the tools menu in a chat. If you only need local repository help, use Codex, Cursor, or Gemini CLI with the stdio config instead.'}
+							{'ChatGPT web uses hosted MCP apps/connectors, not local stdio commands. To use TSRX MCP there, host the monorepo\'s '}
+							<code class="inline-code">{'mcp-endpoint-website'}</code>
+							{' app anywhere that can run a Node HTTP server, then use its '}
+							<code class="inline-code">{'/mcp'}</code>
+							{' URL when creating a custom app or connector from ChatGPT developer mode. Select that app from the tools menu in a chat. If you only need local repository help, use Codex, Cursor, or Gemini CLI with the stdio config instead.'}
 						</p>
 						<h3 class="subsection-heading">{'Gemini CLI'}</h3>
 						<p class="section-body">

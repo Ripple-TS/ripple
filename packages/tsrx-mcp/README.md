@@ -23,6 +23,19 @@ Generic MCP client config:
 }
 ```
 
+## Hosted HTTP
+
+Remote MCP clients need a hosted Streamable HTTP endpoint rather than a local
+stdio command. This monorepo includes a deployment-neutral endpoint app in
+`mcp-endpoint-website` that serves the same MCP server at `/mcp`.
+
+The hosted endpoint runs in remote-safe mode. It exposes documentation, prompts,
+`format-tsrx`, `compile-tsrx`, and `analyze-tsrx`, but omits local filesystem
+tools such as `inspect-project`, `detect-target`, and `validate-tsrx-file`.
+
+Set `TSRX_MCP_BEARER_TOKEN` in the endpoint environment to require bearer-token
+auth. Set `TSRX_MCP_CORS_ORIGIN` to restrict CORS for browser-based clients.
+
 For local development in this monorepo, point at the source entrypoint:
 
 ```json

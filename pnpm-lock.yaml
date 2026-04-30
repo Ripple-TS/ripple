@@ -352,6 +352,27 @@ importers:
         specifier: ^0.26.6
         version: 0.26.6
 
+  mcp-endpoint-website:
+    dependencies:
+      '@tsrx/mcp':
+        specifier: workspace:*
+        version: link:../packages/tsrx-mcp
+      '@tsrx/preact':
+        specifier: workspace:*
+        version: link:../packages/tsrx-preact
+      '@tsrx/react':
+        specifier: workspace:*
+        version: link:../packages/tsrx-react
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../packages/tsrx-ripple
+      '@tsrx/solid':
+        specifier: workspace:*
+        version: link:../packages/tsrx-solid
+      '@tsrx/vue':
+        specifier: workspace:*
+        version: link:../packages/tsrx-vue
+
   packages/adapter: {}
 
   packages/adapter-bun:
