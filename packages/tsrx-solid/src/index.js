@@ -53,7 +53,13 @@ export function compile(source, filename, options) {
 export function compile_to_volar_mappings(source, filename, options) {
 	const errors = /** @type {import('@tsrx/core/types').CompileError[]} */ ([]);
 	const comments = /** @type {AST.CommentWithLocation[]} */ ([]);
-	const ast = parseModule(source, filename, { ...options, errors, comments });
+	const ast = parseModule(source, filename, {
+		...options,
+		collect: true,
+		loose: !!options?.loose,
+		errors,
+		comments,
+	});
 	const transformed = transform(ast, source, filename, {
 		collect: true,
 		loose: !!options?.loose,

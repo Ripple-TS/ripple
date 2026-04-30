@@ -8,6 +8,11 @@ import { DIAGNOSTIC_CODES } from '../../src/diagnostics.js';
  *   classAttrName: 'class' | 'className',
  * }} CompileHarness
  *
+ * @typedef {{
+ *   compile_to_volar_mappings: (source: string, filename?: string, options?: any) => { errors: Array<{ code?: string }> },
+ *   name: string,
+ * }} CompileDiagnosticsHarness
+ *
  * `classAttrName`: the DOM-element class attribute shape the platform emits.
  * React rewrites `class` → `className`; Preact and Solid keep `class`. Shared
  * tests that assert on a scope-hash class string parameterize it via this.
@@ -27,6 +32,27 @@ function count_substring(haystack, needle) {
  */
 function diagnostic_codes(result) {
 	return result.errors.map((error) => error.code);
+}
+
+/**
+ * Shared compile/editor diagnostics. These do not assert source-map structure;
+ * they only verify that editor-facing compile entry points collect diagnostics.
+ *
+ * @param {CompileDiagnosticsHarness} harness
+ */
+export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name }) {
+	describe(`[${name}] compile diagnostics`, () => {
+		it('collects volar parser diagnostics without requiring loose mode', () => {
+			const result = compile_to_volar_mappings(
+				`component C() {
+					return <div />;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(diagnostic_codes(result)).toContain(DIAGNOSTIC_CODES.JSX_RETURN_IN_COMPONENT);
+		});
+	});
 }
 
 /**

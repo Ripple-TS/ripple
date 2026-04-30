@@ -1,4 +1,5 @@
 import { parse, compile, compile_to_volar_mappings } from '@tsrx/ripple';
+import { DIAGNOSTIC_CODES } from '@tsrx/core';
 import type * as AST from 'estree';
 import type * as ESTreeJSX from 'estree-jsx';
 
@@ -721,6 +722,16 @@ export component App() {
 				(item) => item.message.includes('Identifier \'test\' has already been declared'),
 			),
 		).toBe(true);
+	});
+
+	it('collects volar parser diagnostics outside loose mode', () => {
+		const result = compile_to_volar_mappings(`component App() {
+				return <div />;
+			}`, 'test.tsrx');
+
+		expect(result.errors.map((error) => error.code)).toContain(
+			DIAGNOSTIC_CODES.JSX_RETURN_IN_COMPONENT,
+		);
 	});
 
 	it('throws for unclosed tsx compat tags instead of hanging', () => {

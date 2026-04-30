@@ -69,10 +69,16 @@ export function compile(source, filename, options = {}) {
 export function compile_to_volar_mappings(source, filename, options = {}) {
 	const errors = /** @type {CompileError[]} */ ([]);
 	const comments = /** @type {AST.CommentWithLocation[]} */ ([]);
-	const ast = parseModule(source, filename, { ...options, errors, comments });
+	const ast = parseModule(source, filename, {
+		...options,
+		collect: true,
+		loose: !!options?.loose,
+		errors,
+		comments,
+	});
 	const analysis = analyze(ast, filename, {
 		to_ts: true,
-		collect: !!(options?.collect || options?.loose),
+		collect: true,
 		loose: !!options?.loose,
 		errors,
 		comments,
