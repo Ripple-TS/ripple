@@ -1,1 +1,2 @@
 grammars/tree-sitter/src/parser.c -linguist-detectable
+*.tsrx linguist-language=TSX

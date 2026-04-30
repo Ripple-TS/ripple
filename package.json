@@ -39,7 +39,7 @@
     "@tsrx/vue": "workspace:*",
     "@ripple-ts/vite-plugin": "workspace:*",
     "@types/node": "catalog:default",
-    "@typescript/native-preview": "7.0.0-dev.20260429.1",
+    "@typescript/native-preview": "7.0.0-dev.20260430.1",
     "eslint": "catalog:default",
     "jsdom": "catalog:default",
     "linkedom": "catalog:default",
