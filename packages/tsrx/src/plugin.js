@@ -15,6 +15,10 @@ import {
 } from './parse/index.js';
 import { regex_newline_characters } from './utils/patterns.js';
 import { error } from './errors.js';
+import { DIAGNOSTIC_CODES } from './diagnostics.js';
+
+const JSX_EXPRESSION_VALUE_ERROR =
+	'JSX elements cannot be used as expressions. Wrap with `<>...</>` or `<tsx>...</tsx>` or use elements as statements within a component.';
 
 /** @type {WeakMap<Record<string, boolean>, Map<string, number>>} */
 const argument_clash_first_positions = new WeakMap();
@@ -154,6 +158,35 @@ function looks_like_generic_arrow(input, pos) {
 }
 
 /**
+ * @param {AST.Node | null | undefined} node
+ * @returns {boolean}
+ */
+function is_pascal_case_function(node) {
+	if (node && 'id' in node && node.id && node.id.type === 'Identifier') {
+		return /^[A-Z]/.test(node.id.name);
+	}
+	return false;
+}
+
+/**
+ * @param {string} input
+ * @param {number} pos
+ */
+function previous_word_before(input, pos) {
+	let i = pos - 1;
+	while (i >= 0) {
+		const ch = input.charCodeAt(i);
+		if (ch !== 32 && ch !== 9 && ch !== 10 && ch !== 13) break;
+		i--;
+	}
+	const end = i + 1;
+	while (i >= 0 && /[$_\p{ID_Continue}]/u.test(input[i])) {
+		i--;
+	}
+	return input.slice(i + 1, end);
+}
+
+/**
  * Acorn parser plugin for Ripple syntax extensions.
  * Adds support for: component declarations, &[]/&{} lazy destructuring,
  * #server blocks, #style identifiers, and enhanced JSX handling.
@@ -178,7 +211,10 @@ export function TSRXPlugin(config) {
 			#allowTagStartAfterDoubleQuotedText = false;
 			#allowDoubleQuotedTextChildAfterBrace = false;
 			#commentContextId = 0;
+			#collect = false;
 			#loose = false;
+			/** @type {AST.Node[]} */
+			#functionStack = [];
 			/** @type {import('../types/index').CompileError[] | undefined} */
 			#errors = undefined;
 			/** @type {string | null} */
@@ -192,6 +228,7 @@ export function TSRXPlugin(config) {
 			constructor(options, input) {
 				super(options, input);
 				const tsrx_options = options?.tsrxOptions ?? options?.rippleOptions;
+				this.#collect = tsrx_options?.collect === true || tsrx_options?.loose === true;
 				this.#loose = tsrx_options?.loose === true;
 				this.#errors = tsrx_options?.errors;
 				this.#filename = tsrx_options?.filename || null;
@@ -274,8 +311,9 @@ export function TSRXPlugin(config) {
 			 * @param {number} position
 			 * @param {number} end
 			 * @param {string} message
+			 * @param {string} [code]
 			 */
-			#report_recoverable_error_range(position, end, message) {
+			#report_recoverable_error_range(position, end, message, code) {
 				const start = Math.max(0, Math.min(position, this.input.length));
 				const range_end = Math.max(start, Math.min(end, this.input.length));
 				const start_loc = acorn.getLineInfo(this.input, start);
@@ -292,20 +330,37 @@ export function TSRXPlugin(config) {
 							end: end_loc,
 						},
 					}),
-					this.#loose ? this.#errors : undefined,
+					this.#collect ? this.#errors : undefined,
+					undefined,
+					code,
 				);
 			}
 
 			/**
 			 * @param {number} position
 			 * @param {string} message
+			 * @param {string} [code]
 			 */
-			#report_recoverable_error(position, message) {
-				this.#report_recoverable_error_range(position, position + 1, message);
+			#report_recoverable_error(position, message, code) {
+				this.#report_recoverable_error_range(position, position + 1, message, code);
 			}
 
 			/**
-			 * In loose mode, keep parsing after duplicate declaration diagnostics so
+			 * @param {number} position
+			 * @param {string} message
+			 * @param {string} [code]
+			 */
+			#report_broken_markup_error(position, message, code = DIAGNOSTIC_CODES.UNCLOSED_TAG) {
+				if (this.#loose) return;
+				if (this.#collect) {
+					this.#report_recoverable_error(position, message, code);
+					return;
+				}
+				this.raise(position, message);
+			}
+
+			/**
+			 * When collecting, keep parsing after duplicate declaration diagnostics so
 			 * editor tooling can continue producing AST and mappings.
 			 * @param {number} position
 			 * @param {string | { message?: string }} message
@@ -339,7 +394,7 @@ export function TSRXPlugin(config) {
 			 */
 			reportReservedArrowTypeParam(node) {
 				// Allow <T>() => {} syntax without requiring trailing comma
-				if (this.#loose && node.params.length === 1 && node.extra?.trailingComma === undefined) {
+				if (this.#collect && node.params.length === 1 && node.extra?.trailingComma === undefined) {
 					error(
 						'This syntax is reserved in files with the .mts or .cts extension. Add a trailing comma, as in `<T,>() => ...`.',
 						this.#filename,
@@ -350,7 +405,7 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
-			 * Override to allow `readonly` type modifier on any type in loose mode.
+			 * Override to allow `readonly` type modifier on any type when collecting.
 			 * By default, @sveltejs/acorn-typescript throws an error for `readonly { ... }`
 			 * because TypeScript only permits `readonly` on array and tuple types.
 			 * Suppress the error in the strict mode as ts is compiled away.
@@ -363,7 +418,7 @@ export function TSRXPlugin(config) {
 					return;
 				}
 
-				if (this.#loose) {
+				if (this.#collect) {
 					error(
 						"'readonly' type modifier is only permitted on array and tuple literal types.",
 						this.#filename,
@@ -607,21 +662,17 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
-			 * Inside a component, `<T,>(x: T) => x` should parse as a generic arrow
-			 * function, not a JSX element. acorn-typescript's `readToken` would
-			 * otherwise tokenize `<` as `jsxTagStart` (when `exprAllowed` or the
-			 * context is `tc_expr`), bypassing our `getTokenFromCode` override. We
-			 * intercept here, but only when the source from `<` actually looks like
-			 * a generic arrow expression — so JSX like `<div>` keeps parsing normally.
+			 * `<T,>(x: T) => x` and `<T>(x: T): T => x` should parse as generic
+			 * arrow functions, not JSX elements. acorn-typescript's `readToken`
+			 * can otherwise tokenize `<` as `jsxTagStart` when expression parsing
+			 * allows JSX, bypassing our `getTokenFromCode` override. We intercept
+			 * only when the source from `<` actually looks like a generic arrow
+			 * expression, so JSX like `<div>` keeps parsing normally.
 			 *
 			 * @type {Parse.Parser['readToken']}
 			 */
 			readToken(code) {
-				if (
-					code === 60 &&
-					this.#path.findLast((n) => n.type === 'Component') &&
-					looks_like_generic_arrow(this.input, this.pos)
-				) {
+				if (code === 60 && looks_like_generic_arrow(this.input, this.pos)) {
 					++this.pos;
 					return this.finishToken(tt.relational, '<');
 				}
@@ -854,15 +905,15 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
-			 * Acorn reports only the second duplicate function parameter. In loose
-			 * mode, report the first one too so editor diagnostics can underline both
+			 * Acorn reports only the second duplicate function parameter. When collecting,
+			 * report the first one too so editor diagnostics can underline both
 			 * binding sites. Keep strict mode on Acorn's normal fatal path.
 			 *
 			 * @type {Parse.Parser['checkLValSimple']}
 			 */
 			checkLValSimple(expr, bindingType = BINDING_TYPES.BIND_NONE, checkClashes) {
 				if (
-					this.#loose &&
+					this.#collect &&
 					expr.type === 'Identifier' &&
 					bindingType !== BINDING_TYPES.BIND_NONE &&
 					checkClashes
@@ -1298,10 +1349,12 @@ export function TSRXPlugin(config) {
 			 */
 			parseFunctionBody(node, isArrowFunction, isMethod, forInit, ...args) {
 				this.#functionBodyDepth++;
+				this.#functionStack.push(node);
 
 				try {
 					return super.parseFunctionBody(node, isArrowFunction, isMethod, forInit, ...args);
 				} finally {
+					this.#functionStack.pop();
 					this.#functionBodyDepth--;
 				}
 			}
@@ -1849,10 +1902,16 @@ export function TSRXPlugin(config) {
 					);
 				}
 
-				this.raise(
-					this.start,
-					'JSX elements cannot be used as expressions. Wrap with `<tsx>...</tsx>` or use elements as statements within a component.',
-				);
+				const code = this.#functionStack.findLast(is_pascal_case_function)
+					? DIAGNOSTIC_CODES.FUNCTION_COMPONENT_SYNTAX
+					: this.#path.findLast((node) => node.type === 'Component') &&
+						  this.#functionStack.length === 0 &&
+						  previous_word_before(this.input, this.start) === 'return'
+						? DIAGNOSTIC_CODES.JSX_RETURN_IN_COMPONENT
+						: DIAGNOSTIC_CODES.JSX_EXPRESSION_VALUE;
+
+				this.#report_recoverable_error(this.start, JSX_EXPRESSION_VALUE_ERROR, code);
+				return super.jsx_parseElement();
 			}
 
 			/**
@@ -2051,12 +2110,10 @@ export function TSRXPlugin(config) {
 							this.#path.pop();
 						} else {
 							// No closing tag
-							if (!this.#loose) {
-								this.raise(
-									open.end,
-									"Unclosed tag '<script>'. Expected '</script>' before end of component.",
-								);
-							}
+							this.#report_broken_markup_error(
+								open.end,
+								"Unclosed tag '<script>'. Expected '</script>' before end of component.",
+							);
 							/** @type {AST.Element} */ (element).unclosed = true;
 							this.#path.pop();
 						}
@@ -2113,12 +2170,10 @@ export function TSRXPlugin(config) {
 							this.exprAllowed = false;
 							this.#path.pop();
 						} else {
-							if (!this.#loose) {
-								this.raise(
-									open.end,
-									"Unclosed tag '<style>'. Expected '</style>' before end of component.",
-								);
-							}
+							this.#report_broken_markup_error(
+								open.end,
+								"Unclosed tag '<style>'. Expected '</style>' before end of component.",
+							);
 							/** @type {AST.Element} */ (element).unclosed = true;
 							this.#path.pop();
 						}
@@ -2203,20 +2258,17 @@ export function TSRXPlugin(config) {
 							}
 						} else if (this.#path[this.#path.length - 1] === element) {
 							// Check if this element was properly closed
-							if (!this.#loose) {
-								const tagName = this.getElementName(element.id);
-								this.raise(
-									this.start,
-									`Unclosed tag '<${tagName}>'. Expected '</${tagName}>' before end of component.`,
-								);
-							} else {
-								element.unclosed = true;
-								element.loc.end = {
-									.../** @type {AST.SourceLocation} */ (element.openingElement.loc).end,
-								};
-								element.end = element.openingElement.end;
-								this.#path.pop();
-							}
+							const tagName = this.getElementName(element.id);
+							this.#report_broken_markup_error(
+								this.start,
+								`Unclosed tag '<${tagName}>'. Expected '</${tagName}>' before end of component.`,
+							);
+							element.unclosed = true;
+							element.loc.end = {
+								.../** @type {AST.SourceLocation} */ (element.openingElement.loc).end,
+							};
+							element.end = element.openingElement.end;
+							this.#path.pop();
 						}
 					}
 
@@ -2267,18 +2319,15 @@ export function TSRXPlugin(config) {
 
 					while (true) {
 						if (this.type === tt.eof || this.pos >= this.input.length || this.type === tt.braceR) {
-							if (!this.#loose) {
-								this.raise(
-									this.start,
-									`Unclosed tag '<tsx>'. Expected '</tsx>' before end of component.`,
-								);
-							} else {
-								inside_tsx.unclosed = true;
-								/** @type {AST.NodeWithLocation} */ (inside_tsx).loc.end = {
-									.../** @type {AST.SourceLocation} */ (inside_tsx.openingElement.loc).end,
-								};
-								inside_tsx.end = inside_tsx.openingElement.end;
-							}
+							this.#report_broken_markup_error(
+								this.start,
+								`Unclosed tag '<tsx>'. Expected '</tsx>' before end of component.`,
+							);
+							inside_tsx.unclosed = true;
+							/** @type {AST.NodeWithLocation} */ (inside_tsx).loc.end = {
+								.../** @type {AST.SourceLocation} */ (inside_tsx.openingElement.loc).end,
+							};
+							inside_tsx.end = inside_tsx.openingElement.end;
 							return;
 						}
 
@@ -2344,18 +2393,15 @@ export function TSRXPlugin(config) {
 
 					while (true) {
 						if (this.type === tt.eof || this.pos >= this.input.length || this.type === tt.braceR) {
-							if (!this.#loose) {
-								this.raise(
-									this.start,
-									`Unclosed tag '<tsx:${inside_tsx_compat.kind}>'. Expected '</tsx:${inside_tsx_compat.kind}>' before end of component.`,
-								);
-							} else {
-								inside_tsx_compat.unclosed = true;
-								/** @type {AST.NodeWithLocation} */ (inside_tsx_compat).loc.end = {
-									.../** @type {AST.SourceLocation} */ (inside_tsx_compat.openingElement.loc).end,
-								};
-								inside_tsx_compat.end = inside_tsx_compat.openingElement.end;
-							}
+							this.#report_broken_markup_error(
+								this.start,
+								`Unclosed tag '<tsx:${inside_tsx_compat.kind}>'. Expected '</tsx:${inside_tsx_compat.kind}>' before end of component.`,
+							);
+							inside_tsx_compat.unclosed = true;
+							/** @type {AST.NodeWithLocation} */ (inside_tsx_compat).loc.end = {
+								.../** @type {AST.SourceLocation} */ (inside_tsx_compat.openingElement.loc).end,
+							};
+							inside_tsx_compat.end = inside_tsx_compat.openingElement.end;
 							return;
 						}
 
@@ -2480,46 +2526,45 @@ export function TSRXPlugin(config) {
 						}
 
 						if (openingTagName !== closingTagName) {
-							if (!this.#loose) {
-								this.raise(
-									closingElement.start,
-									`Expected closing tag to match opening tag. Expected '</${openingTagName}>' but found '</${closingTagName}>'`,
-								);
-							} else {
-								// Loop through all unclosed elements on the stack
-								while (this.#path.length > 0) {
-									const elem = this.#path[this.#path.length - 1];
+							// this will throw if not collecting errors
+							this.#report_broken_markup_error(
+								closingElement.start,
+								`Expected closing tag to match opening tag. Expected '</${openingTagName}>' but found '</${closingTagName}>'`,
+								DIAGNOSTIC_CODES.MISMATCHED_CLOSING_TAG,
+							);
+							// Loop through all unclosed elements on the stack
+							while (this.#path.length > 0) {
+								const elem = this.#path[this.#path.length - 1];
 
-									// Stop at non-Element boundaries (Component, etc.)
-									if (elem.type !== 'Element' && elem.type !== 'Tsx' && elem.type !== 'TsxCompat') {
-										break;
-									}
-
-									const elemName =
-										elem.type === 'TsxCompat'
-											? 'tsx:' + elem.kind
-											: elem.type === 'Tsx'
-												? elem.openingElement.name
-													? 'tsx'
-													: null
-												: elem.id
-													? this.getElementName(elem.id)
-													: null;
-
-									// Found matching opening tag
-									if (elemName === closingTagName) {
-										break;
-									}
-
-									// Mark as unclosed and adjust location
-									elem.unclosed = true;
-									/** @type {AST.NodeWithLocation} */ (elem).loc.end = {
-										.../** @type {AST.SourceLocation} */ (elem.openingElement.loc).end,
-									};
-									elem.end = elem.openingElement.end;
-
-									this.#path.pop(); // Remove from stack
+								// Stop at non-Element boundaries (Component, etc.)
+								if (elem.type !== 'Element' && elem.type !== 'Tsx' && elem.type !== 'TsxCompat') {
+									break;
 								}
+
+								const elemName =
+									elem.type === 'TsxCompat'
+										? 'tsx:' + elem.kind
+										: elem.type === 'Tsx'
+											? elem.openingElement.name
+												? 'tsx'
+												: null
+											: elem.id
+												? this.getElementName(elem.id)
+												: null;
+
+								// Found matching opening tag
+								if (elemName === closingTagName) {
+									break;
+								}
+
+								// Mark as unclosed and adjust location
+								elem.unclosed = true;
+								/** @type {AST.NodeWithLocation} */ (elem).loc.end = {
+									.../** @type {AST.SourceLocation} */ (elem.openingElement.loc).end,
+								};
+								elem.end = elem.openingElement.end;
+
+								this.#path.pop(); // Remove from stack
 							}
 						}
 

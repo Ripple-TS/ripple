@@ -42,8 +42,8 @@ export interface JsxTransformContext {
 	/** Source filename for diagnostics; null when the caller did not supply one. */
 	filename: string | null;
 	/** True when recoverable errors should be collected onto `errors` instead of thrown. */
-	loose: boolean;
-	/** Collected non-fatal errors. Undefined when `loose` is false. */
+	collect: boolean;
+	/** Collected non-fatal errors. Undefined when `collect` is false. */
 	errors: CompileError[] | undefined;
 	/** Module-level comments used to honor `@tsrx-ignore` / `@tsrx-expect-error`. */
 	comments: AST.CommentWithLocation[] | undefined;
@@ -64,10 +64,14 @@ export interface JsxTransformOptions {
 	 * of thrown so editor tooling can surface them as diagnostics. Errors that
 	 * leave the transform in an unrecoverable state are still thrown.
 	 */
+	collect?: boolean;
+	/**
+	 * Don't collect allowable errors such as unclosed tags
+	 */
 	loose?: boolean;
 	/**
 	 * Collected non-fatal errors. The transform appends to this array when
-	 * `loose` is true; callers read it after the transform returns.
+	 * `collect` or `loose` is true; callers read it after the transform returns.
 	 */
 	errors?: CompileError[];
 	/**

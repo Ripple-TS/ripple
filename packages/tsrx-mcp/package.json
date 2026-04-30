@@ -1,0 +1,51 @@
+{
+  "name": "@tsrx/mcp",
+  "description": "MCP server for TSRX documentation and project context",
+  "license": "MIT",
+  "author": "Dominic Gannaway",
+  "version": "0.0.0",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ripple-TS/ripple.git",
+    "directory": "packages/tsrx-mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/Ripple-TS/ripple/issues"
+  },
+  "homepage": "https://tsrx.dev",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.js",
+      "default": "./src/index.js"
+    }
+  },
+  "files": [
+    "README.md",
+    "src"
+  ],
+  "bin": {
+    "tsrx-mcp": "./src/stdio.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "generate:docs": "node scripts/generate-docs-index.js"
+  },
+  "dependencies": {
+    "@tsrx/core": "workspace:*",
+    "@tsrx/prettier-plugin": "workspace:*",
+    "@modelcontextprotocol/sdk": "catalog:default",
+    "prettier": "catalog:default",
+    "zod": "catalog:default"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:default",
+    "typescript": "catalog:default",
+    "vitest": "catalog:default"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "tsrx-mcp-ripple-fixture",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@tsrx/ripple": "workspace:*",
+    "@ripple-ts/vite-plugin": "workspace:*"
+  }
+}

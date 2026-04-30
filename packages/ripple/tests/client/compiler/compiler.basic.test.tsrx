@@ -1,4 +1,5 @@
 import { parse, compile, compile_to_volar_mappings } from '@tsrx/ripple';
+import { DIAGNOSTIC_CODES } from '@tsrx/core';
 import type * as AST from 'estree';
 import type * as ESTreeJSX from 'estree-jsx';
 
@@ -723,6 +724,16 @@ export component App() {
 		).toBe(true);
 	});
 
+	it('collects volar parser diagnostics outside loose mode', () => {
+		const result = compile_to_volar_mappings(`component App() {
+				return <div />;
+			}`, 'test.tsrx');
+
+		expect(result.errors.map((error) => error.code)).toContain(
+			DIAGNOSTIC_CODES.JSX_RETURN_IN_COMPONENT,
+		);
+	});
+
 	it('throws for unclosed tsx compat tags instead of hanging', () => {
 		const source = `export component App() {
 	<tsx:react>1
@@ -742,6 +753,32 @@ export component App() {
 
 		const result = compile_to_volar_mappings(source, 'test.tsrx', { loose: true });
 		expect(result.errors).toEqual([]);
+	});
+
+	it('collects unclosed tsx compat tags outside loose mode', () => {
+		const source = `export component App() {
+	<tsx:react>1
+}`;
+
+		const result = compile(source, 'test.tsrx', { collect: true });
+		expect(result.errors.map((error) => error.message)).toContain(
+			'Unclosed tag \'<tsx:react>\'. Expected \'</tsx:react>\' before end of component.',
+		);
+	});
+
+	it('collects analyzer errors outside loose mode', () => {
+		const source = `
+import { track } from 'ripple';
+
+const outside = track(0);
+
+export component App() {}
+`;
+
+		const result = compile(source, 'test.tsrx', { collect: true });
+		expect(result.errors.map((error) => error.message)).toContain(
+			'`track` can only be used within a reactive context, such as a component, function or class that is used or created from a component',
+		);
 	});
 
 	it('preserves class extends generic type arguments in volar output', () => {
@@ -820,7 +857,7 @@ export component App() {
 		const ast = parse(source);
 		const comp = ast.body[0] as unknown as AST.Component;
 		const ul = comp.body.find((n) => n.type === 'Element') as AST.Element;
-		expect(ul.id.name).toBe('ul');
+		expect((ul.id as AST.Identifier).name).toBe('ul');
 		expect(ul.children.length).toBeGreaterThanOrEqual(1);
 		const decl = ul.children[0] as unknown as AST.VariableDeclaration;
 		expect(decl.type).toBe('VariableDeclaration');

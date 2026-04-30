@@ -12,7 +12,7 @@ export function parse(source: string, filename?: string, options?: ParseOptions)
 export function compile(
 	source: string,
 	filename?: string,
-	compile_options?: CompileOptions & { loose?: boolean },
+	compile_options?: CompileOptions & { collect?: boolean; loose?: boolean },
 ): {
 	code: string;
 	map: unknown;

@@ -1624,6 +1624,76 @@ export default defineConfig({
 }
 ```
 
+### TSRX MCP Server
+
+Use `@tsrx/mcp` when an AI coding tool supports Model Context Protocol (MCP) and
+needs target-aware TSRX help. The server exposes current TSRX documentation,
+target detection, project inspection, formatting, compilation, diagnostic
+analysis, and read-only file validation.
+
+Generic MCP client config:
+
+```json
+{
+  "mcpServers": {
+    "tsrx": {
+      "command": "npx",
+      "args": ["-y", "@tsrx/mcp"]
+    }
+  }
+}
+```
+
+Codex setup:
+
+```toml
+# ~/.codex/config.toml
+[mcp_servers.tsrx]
+command = "npx"
+args = ["-y", "@tsrx/mcp"]
+```
+
+ChatGPT setup:
+
+ChatGPT web uses hosted MCP apps/connectors, not local stdio commands. To use
+TSRX MCP there, host the monorepo's `mcp-endpoint-website` app anywhere that can
+run a Node HTTP server, then use its `/mcp` URL when creating a custom app or
+connector from ChatGPT developer mode. Select that app from the tools menu in a
+chat. For local repository work, prefer Codex, Cursor, or Gemini CLI with the
+stdio config above.
+
+Gemini CLI setup:
+
+Put the generic `mcpServers` JSON in `.gemini/settings.json` for a project, or
+`~/.gemini/settings.json` globally.
+
+Cursor setup:
+
+Put the generic `mcpServers` JSON in `.cursor/mcp.json` for a project, or
+`~/.cursor/mcp.json` globally. Cursor Agent and `cursor-agent` discover the
+configured tools automatically.
+
+Claude Code setup:
+
+```bash
+claude mcp add tsrx -- npx -y @tsrx/mcp
+```
+
+Recommended agent workflow:
+
+- Start with `inspect-project` to identify the active runtime target, installed
+  TSRX packages, formatting/typecheck scripts, and likely project commands.
+- Use `detect-target` when only the runtime target is needed.
+- For generated source, run `format-tsrx`, then `compile-tsrx`. If compilation
+  fails, run `analyze-tsrx`, apply the advice, format again, and compile again.
+- For existing `.tsrx` files, prefer `validate-tsrx-file`; it reads the file and
+  runs formatting, compilation, and diagnostic advice in one read-only pass.
+- Fetch `tsrx://docs/{slug}.md` resources for target-neutral syntax details and
+  `tsrx://targets/{target}.md` for runtime-specific handoff guidance.
+
+The MCP server is target-neutral. Runtime-specific imports, bundler setup, and
+framework semantics should come from the detected target package and its docs.
+
 ## Key Differences from Other Frameworks
 
 ### vs React

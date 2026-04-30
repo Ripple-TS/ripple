@@ -92,6 +92,7 @@ export function createJsxTransform(platform) {
 		const module_uses_server_directive = should_scan_use_server_directive
 			? has_use_server_directive(ast)
 			: true;
+		const collect = !!(options?.collect || options?.loose);
 		/** @type {any[]} */
 		const stylesheets = [];
 
@@ -107,8 +108,8 @@ export function createJsxTransform(platform) {
 			lazy_next_id: 0,
 			current_css_hash: null,
 			filename: filename ?? null,
-			loose: !!options?.loose,
-			errors: options?.loose ? options?.errors : undefined,
+			collect,
+			errors: collect ? options?.errors : undefined,
 			comments: options?.comments,
 			// Platforms can seed their own tracking state (e.g. solid's
 			// needs_show / needs_for flags) via `hooks.initialState`.
@@ -120,7 +121,12 @@ export function createJsxTransform(platform) {
 		walk(/** @type {any} */ (ast), transform_context, {
 			ReturnStatement(node, { next, path }) {
 				if (get_component_from_path(path)) {
-					validate_component_return_statement(node, filename);
+					validate_component_return_statement(
+						node,
+						filename,
+						transform_context.errors,
+						transform_context.comments,
+					);
 				}
 
 				return next();
@@ -3049,8 +3055,8 @@ export function validate_at_most_one_ref_attribute(raw_attrs, transform_context)
 	}
 	for (let i = 0; i < refs.length; i++) {
 		const node = refs[i];
-		if (!transform_context?.loose && i === 0) {
-			// in the non-loose mode, only throw on the second duplicate
+		if (!transform_context?.collect && i === 0) {
+			// when not collecting, only throw on the second duplicate
 			continue;
 		}
 		error(

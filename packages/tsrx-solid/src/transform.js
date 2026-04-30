@@ -35,7 +35,7 @@ import {
  * Solid extends the shared `JsxTransformContext` with `needs_*` flags that
  * track which Solid runtime primitives (`Show`, `For`, `Switch`, `Match`,
  * `Errored`, `Loading`) the lowered output requires. The factory seeds these
- * via `hooks.initialState`; everything else (filename, loose, errors,
+ * via `hooks.initialState`; everything else (filename, collect, errors,
  * helper_state, …) comes from the shared base.
  *
  * @typedef {JsxTransformContext & {

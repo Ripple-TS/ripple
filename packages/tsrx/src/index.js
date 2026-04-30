@@ -24,6 +24,7 @@ export { create_scopes as createScopes, ScopeRoot, Scope } from './scope.js';
 
 // Errors
 export { error } from './errors.js';
+export { DIAGNOSTIC_CODES } from './diagnostics.js';
 
 // Constants
 export {

@@ -24,23 +24,25 @@ export function parse(source, filename, options) {
  *
  * @param {string} source
  * @param {string} [filename]
- * @param {CompileOptions & { loose?: boolean }} [compile_options]
+ * @param {CompileOptions & { collect?: boolean, loose?: boolean }} [compile_options]
  * @returns {{ code: string, map: any, css: { code: string, hash: string } | null, errors: CompileError[] }}
  */
 export function compile(source, filename, compile_options) {
 	const errors = /** @type {CompileError[]} */ ([]);
 	const comments = /** @type {AST.CommentWithLocation[]} */ ([]);
-	const collect = !!compile_options?.loose;
+	const collect = !!(compile_options?.collect || compile_options?.loose);
 	const ast = parseModule(
 		source,
 		filename,
-		collect ? { loose: true, errors, comments } : undefined,
+		collect ? { collect: true, loose: !!compile_options?.loose, errors, comments } : undefined,
 	);
 	const { ast: _ast, ...result } = transform(
 		ast,
 		source,
 		filename,
-		collect ? { ...compile_options, loose: true, errors, comments } : compile_options,
+		collect
+			? { ...compile_options, collect: true, loose: !!compile_options?.loose, errors, comments }
+			: compile_options,
 	);
 	return { ...result, errors };
 }
@@ -56,10 +58,17 @@ export function compile(source, filename, compile_options) {
 export function compile_to_volar_mappings(source, filename, options) {
 	const errors = /** @type {import('@tsrx/core/types').CompileError[]} */ ([]);
 	const comments = /** @type {AST.CommentWithLocation[]} */ ([]);
-	const ast = parseModule(source, filename, { ...options, errors, comments });
+	const ast = parseModule(source, filename, {
+		...options,
+		collect: true,
+		loose: !!options?.loose,
+		errors,
+		comments,
+	});
 	const transformed = transform(ast, source, filename, {
 		...options,
-		loose: true,
+		collect: true,
+		loose: !!options?.loose,
 		errors,
 		comments,
 	});

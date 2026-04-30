@@ -1,0 +1,19 @@
+{
+  "name": "tsrx-mcp-react-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tsrx/react": "workspace:*",
+    "@tsrx/vite-plugin-react": "workspace:*"
+  },
+  "devDependencies": {
+    "@tsrx/prettier-plugin": "workspace:*",
+    "@tsrx/typescript-plugin": "workspace:*"
+  }
+}

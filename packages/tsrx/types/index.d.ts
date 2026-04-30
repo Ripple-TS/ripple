@@ -29,6 +29,7 @@ export { createJsxTransform, componentToFunctionDeclaration };
  * Compile error interface
  */
 export interface CompileError extends Error {
+	code: string | undefined;
 	pos: number | undefined;
 	raisedAt: number | undefined;
 	end: number | undefined;
@@ -49,6 +50,11 @@ export interface CompileOptions {
 	/**
 	 * When true, non-fatal errors are collected on the result's `errors`
 	 * array instead of being thrown. Defaults to false (strict mode: throws).
+	 */
+	collect?: boolean;
+	/**
+	 * Enables editor-oriented parser recovery such as incomplete markup.
+	 * Also collects non-fatal errors as `collect`.
 	 */
 	loose?: boolean;
 }
@@ -1149,6 +1155,7 @@ export interface ParseError {
  * Parse options
  */
 export interface ParseOptions {
+	collect?: boolean;
 	loose?: boolean;
 	errors?: CompileError[];
 	comments?: AST.CommentWithLocation[];
@@ -1278,7 +1285,7 @@ export interface ScopeConstructorInterface {
 	parent: ScopeInterface | null;
 	porous: boolean;
 	error_options: {
-		loose: boolean;
+		collect: boolean;
 		errors: CompileError[];
 		filename: string;
 		comments?: AST.CommentWithLocation[];
@@ -1371,7 +1378,7 @@ export interface AnalysisState extends BaseState {
 	};
 	elements?: AST.Element[];
 	function_depth?: number;
-	loose?: boolean;
+	collect?: boolean;
 	configured_compat_kinds?: Set<string>;
 	metadata: BaseStateMetaData & {
 		styleClasses?: StyleClasses;
@@ -1582,7 +1589,7 @@ export interface CompileResult {
 	css: string;
 	/**
 	 * Non-fatal errors collected during compilation. Populated only when the
-	 * caller passes `loose: true`; empty otherwise.
+	 * caller passes `collect: true` or `loose: true`; empty otherwise.
 	 */
 	errors: CompileError[];
 }

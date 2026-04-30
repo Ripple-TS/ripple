@@ -1,11 +1,17 @@
 import { describe, expect, it } from 'vitest';
+import { DIAGNOSTIC_CODES } from '../../src/diagnostics.js';
 
 /**
  * @typedef {{
- *   compile: (source: string, filename?: string, options?: any) => { code: string, css: { code: string, hash: string } | null },
+ *   compile: (source: string, filename?: string, options?: any) => { code: string, css: { code: string, hash: string } | null, errors: Array<{ message: string, code?: string }> },
  *   name: string,
  *   classAttrName: 'class' | 'className',
  * }} CompileHarness
+ *
+ * @typedef {{
+ *   compile_to_volar_mappings: (source: string, filename?: string, options?: any) => { errors: Array<{ code?: string }> },
+ *   name: string,
+ * }} CompileDiagnosticsHarness
  *
  * `classAttrName`: the DOM-element class attribute shape the platform emits.
  * React rewrites `class` → `className`; Preact and Solid keep `class`. Shared
@@ -19,6 +25,34 @@ import { describe, expect, it } from 'vitest';
  */
 function count_substring(haystack, needle) {
 	return haystack.split(needle).length - 1;
+}
+
+/**
+ * @param {{ errors: Array<{ code?: string }> }} result
+ */
+function diagnostic_codes(result) {
+	return result.errors.map((error) => error.code);
+}
+
+/**
+ * Shared compile/editor diagnostics. These do not assert source-map structure;
+ * they only verify that editor-facing compile entry points collect diagnostics.
+ *
+ * @param {CompileDiagnosticsHarness} harness
+ */
+export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name }) {
+	describe(`[${name}] compile diagnostics`, () => {
+		it('collects volar parser diagnostics without requiring loose mode', () => {
+			const result = compile_to_volar_mappings(
+				`component C() {
+					return <div />;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(diagnostic_codes(result)).toContain(DIAGNOSTIC_CODES.JSX_RETURN_IN_COMPONENT);
+		});
+	});
 }
 
 /**
@@ -96,6 +130,33 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 	});
 
 	describe(`[${name}] TypeScript output`, () => {
+		it('collects unclosed tag diagnostics without loose recovery silence', () => {
+			const result = compile(
+				`component App() {
+					<div>"hi"
+				}`,
+				'App.tsrx',
+				{ collect: true },
+			);
+
+			expect(result.errors.map((error) => error.message)).toContain(
+				"Unclosed tag '<div>'. Expected '</div>' before end of component.",
+			);
+			expect(diagnostic_codes(result)).toContain(DIAGNOSTIC_CODES.UNCLOSED_TAG);
+		});
+
+		it('keeps loose unclosed tag recovery silent', () => {
+			const result = compile(
+				`component App() {
+					<div>"hi"
+				}`,
+				'App.tsrx',
+				{ loose: true },
+			);
+
+			expect(result.errors).toEqual([]);
+		});
+
 		it('accepts direct double-quoted text children', () => {
 			const { code } = compile(
 				`export component App({ count }: { count: number }) {
@@ -307,6 +368,56 @@ export function optionalFn(bar: string, baz?: string) {
 
 			expect(code).toContain('(value: T) => value');
 			expect(code).toContain('{make}');
+		});
+	});
+
+	describe(`[${name}] diagnostic codes`, () => {
+		it('collects JSX expression value diagnostic codes', () => {
+			const result = compile(
+				`component App() {
+					const title = <div />;
+				}`,
+				'App.tsrx',
+				{ collect: true },
+			);
+
+			expect(diagnostic_codes(result)).toContain(DIAGNOSTIC_CODES.JSX_EXPRESSION_VALUE);
+		});
+
+		it('collects component JSX return diagnostic codes', () => {
+			const result = compile(
+				`component App() {
+					return <div />;
+				}`,
+				'App.tsrx',
+				{ collect: true },
+			);
+
+			expect(diagnostic_codes(result)).toContain(DIAGNOSTIC_CODES.JSX_RETURN_IN_COMPONENT);
+		});
+
+		it('collects function component syntax diagnostic codes', () => {
+			const result = compile(
+				`function App() {
+					return <div />;
+				}`,
+				'App.tsrx',
+				{ collect: true },
+			);
+
+			expect(diagnostic_codes(result)).toContain(DIAGNOSTIC_CODES.FUNCTION_COMPONENT_SYNTAX);
+		});
+
+		it('collects mismatched closing tag diagnostic codes', () => {
+			const result = compile(
+				`component App() {
+					<div></span>
+				}`,
+				'App.tsrx',
+				{ collect: true },
+			);
+
+			expect(diagnostic_codes(result)).toContain(DIAGNOSTIC_CODES.MISMATCHED_CLOSING_TAG);
 		});
 	});
 

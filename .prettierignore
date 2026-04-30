@@ -9,6 +9,9 @@ AGENTS.md
 .github/copilot-instructions.md
 .cursor/
 
+# MCP generated files
+packages/tsrx-mcp/src/generated/docs.js
+
 # Changesets
 .changeset/
 

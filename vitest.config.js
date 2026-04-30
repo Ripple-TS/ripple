@@ -341,6 +341,15 @@ export default defineConfig({
 				},
 				plugins: [],
 			},
+			{
+				test: {
+					name: 'tsrx-mcp',
+					include: ['packages/tsrx-mcp/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
 		],
 	},
 });

@@ -6,7 +6,7 @@ export function parse(source: string, filename?: string, options?: ParseOptions)
 export function compile(
 	source: string,
 	filename?: string,
-	options?: { loose?: boolean },
+	options?: { collect?: boolean; loose?: boolean },
 ): {
 	code: string;
 	map: unknown;

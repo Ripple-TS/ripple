@@ -27,9 +27,17 @@ export function parse(source, filename, options) {
 export function compile(source, filename, options = {}) {
 	const errors = /** @type {CompileError[]} */ ([]);
 	const comments = /** @type {AST.CommentWithLocation[]} */ ([]);
-	const collect = !!options?.loose;
-	const ast = parseModule(source, filename, collect ? { ...options, errors, comments } : undefined);
-	const analysis = analyze(ast, filename, collect ? { ...options, errors, comments } : options);
+	const collect = !!(options?.collect || options?.loose);
+	const ast = parseModule(
+		source,
+		filename,
+		collect ? { ...options, collect, errors, comments } : undefined,
+	);
+	const analysis = analyze(
+		ast,
+		filename,
+		collect ? { ...options, collect, errors, comments } : options,
+	);
 	const result =
 		options.mode === 'server'
 			? transform_server(
@@ -55,15 +63,22 @@ export function compile(source, filename, options = {}) {
  * Compile Ripple component to Volar virtual code with TypeScript mappings
  * @param {string} source
  * @param {string} filename
- * @param {{loose?: boolean, minify_css?: boolean}} [options]
+ * @param {{collect?: boolean, loose?: boolean, minify_css?: boolean}} [options]
  * @returns {object}
  */
 export function compile_to_volar_mappings(source, filename, options = {}) {
 	const errors = /** @type {CompileError[]} */ ([]);
 	const comments = /** @type {AST.CommentWithLocation[]} */ ([]);
-	const ast = parseModule(source, filename, { ...options, errors, comments });
+	const ast = parseModule(source, filename, {
+		...options,
+		collect: true,
+		loose: !!options?.loose,
+		errors,
+		comments,
+	});
 	const analysis = analyze(ast, filename, {
 		to_ts: true,
+		collect: true,
 		loose: !!options?.loose,
 		errors,
 		comments,
