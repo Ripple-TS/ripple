@@ -251,16 +251,45 @@ export function flatten_switch_consequent(consequent) {
 }
 
 /**
+ * @param {AST.Expression | null | undefined} expression
+ * @returns {boolean}
+ */
+function is_static_string_expression(expression) {
+	if (!expression) {
+		return false;
+	}
+	if (expression.type === 'Literal') {
+		return typeof expression.value === 'string';
+	}
+	if (expression.type === 'TemplateLiteral') {
+		return expression.expressions.length === 0;
+	}
+	return false;
+}
+
+/**
  * Build `expr == null ? '' : expr + ''` — the text-coerce form used when a
  * Ripple `{expr}` child must render as a string in JSX (React/Preact drop
  * booleans; Solid's default child semantics don't either). Solid uses this
  * via `to_jsx_child`; React/Preact wrap it in a JSXExpressionContainer.
+ *
+ * When the expression is statically a non-null string at the AST level —
+ * a string `Literal` (`"hello"`, `'hello'`) or a `TemplateLiteral` with no
+ * interpolations (`` `hello` ``) — the coercion is provably a no-op and
+ * the literal is emitted as-is. This covers both direct double-quoted
+ * children (`<b>"hello"</b>`) and inline literal arguments to the explicit
+ * `{text ...}` intrinsic (`<b>{text 'hello'}</b>`). Identifiers and any
+ * other expression type still get the ternary because the AST alone can't
+ * prove they're non-null strings.
  *
  * @param {AST.Expression} expression
  * @param {any} [source_node]
  * @returns {AST.Expression}
  */
 export function to_text_expression(expression, source_node = expression) {
+	if (is_static_string_expression(expression)) {
+		return set_loc(clone_expression_node(expression), source_node);
+	}
 	return set_loc(
 		/** @type {AST.Expression} */ ({
 			type: 'ConditionalExpression',

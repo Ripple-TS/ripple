@@ -864,6 +864,82 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain("empty == null ? '' : empty + ''");
 			expect(code).toContain("missing == null ? '' : missing + ''");
 		});
+
+		it('skips the null-coerce ternary for direct double-quoted text children', () => {
+			// `"hello"` is statically known to be a non-null string, so the
+			// `expr == null ? '' : expr + ''` wrapper is dead weight.
+			const { code } = compile(
+				`export component App() {
+					<b>"hello"</b>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).not.toContain('== null');
+			expect(code).not.toContain("+ ''");
+		});
+
+		it('skips the null-coerce ternary for {text expr} when expr is a static string', () => {
+			// String literals and zero-interpolation template literals are
+			// statically known to be non-null strings, so the runtime
+			// coercion in `{text ...}` is a provable no-op.
+			const { code } = compile(
+				`export component App() {
+					<b>{text 'hello'}</b>
+					<i>{text \`world\`}</i>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).not.toContain('== null');
+			expect(code).not.toContain("+ ''");
+		});
+
+		it('keeps the ternary for {text expr} when expr is an identifier', () => {
+			const { code } = compile(
+				`export component App({ name }: { name: string | null }) {
+					<b>{text name}</b>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain("name == null ? '' : name + ''");
+		});
+
+		it.runIf(name === 'solid')(
+			`[${name}] returns inline JSX for {'hello'} {text 'hello'} sibling combo`,
+			() => {
+				// Solid emits the JSX directly in `return` — no static
+				// hoisting like React/Preact — and both child forms collapse
+				// to the same `{'hello'}` after the static-string optimization.
+				const { code } = compile(
+					`export component App() {
+						<b>{'hello'} {text 'hello'}</b>
+					}`,
+					'App.tsrx',
+				);
+				expect(code).toContain("return <b>{'hello'}{'hello'}</b>");
+				expect(code).not.toContain('App__static');
+				expect(code).not.toContain('== null');
+			},
+		);
+
+		it.runIf(['react', 'preact'].includes(name))(
+			`[${name}] hoists {'hello'} {text 'hello'} sibling combo to a static`,
+			() => {
+				// React/Preact hoist child-free static JSX to a module-level
+				// constant so the element identity is stable across renders.
+				// Both child forms collapse to `{'hello'}` after the
+				// static-string optimization, leaving the element fully
+				// static and eligible for hoisting.
+				const { code } = compile(
+					`export component App() {
+						<b>{'hello'} {text 'hello'}</b>
+					}`,
+					'App.tsrx',
+				);
+				expect(code).toContain("const App__static1 = <b>{'hello'}{'hello'}</b>");
+				expect(code).toContain('return App__static1');
+				expect(code).not.toContain('== null');
+			},
+		);
 	});
 
 	describe(`[${name}] {html expr} primitive rejection`, () => {
