@@ -120,6 +120,36 @@ const TURBOPACK_CONFIG_HTML = [
 	'<span class="ln">5</span> <span class="br">}</span><span class="br">)</span>;',
 ].join('\n');
 
+const REACT_BUN_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/react</span> <span class="str">@tsrx/bun-plugin-react</span> <span class="str">react</span> <span class="str">react-dom</span>',
+].join('\n');
+
+const REACT_BUN_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="prop">tsrxReact</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/bun-plugin-react\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">await</span> <span class="prop">Bun</span>.<span class="fn">build</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">4</span>   <span class="prop">entrypoints</span>: <span class="br">[</span><span class="str">\'./src/App.tsrx\'</span><span class="br">]</span>,',
+	'<span class="ln">5</span>   <span class="prop">outdir</span>: <span class="str">\'./dist\'</span>,',
+	'<span class="ln">6</span>   <span class="prop">target</span>: <span class="str">\'browser\'</span>,',
+	'<span class="ln">7</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="fn">tsrxReact</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">8</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
+const PREACT_BUN_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/preact</span> <span class="str">@tsrx/bun-plugin-preact</span> <span class="str">preact</span>',
+].join('\n');
+
+const PREACT_BUN_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="prop">tsrxPreact</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/bun-plugin-preact\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">await</span> <span class="prop">Bun</span>.<span class="fn">build</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">4</span>   <span class="prop">entrypoints</span>: <span class="br">[</span><span class="str">\'./src/App.tsrx\'</span><span class="br">]</span>,',
+	'<span class="ln">5</span>   <span class="prop">outdir</span>: <span class="str">\'./dist\'</span>,',
+	'<span class="ln">6</span>   <span class="prop">target</span>: <span class="str">\'browser\'</span>,',
+	'<span class="ln">7</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="fn">tsrxPreact</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">8</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
 const PRETTIER_INSTALL_HTML = [
 	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">-D</span> <span class="str">prettier</span> <span class="str">@tsrx/prettier-plugin</span>',
 ].join('\n');
@@ -192,8 +222,10 @@ const NAV_GROUPS = [
 			{ id: 'react-vite', label: 'React + Vite' },
 			{ id: 'react-rspack', label: 'React + Rspack' },
 			{ id: 'react-turbopack', label: 'React + Turbopack' },
+			{ id: 'react-bun', label: 'React + Bun' },
 			{ id: 'preact-vite', label: 'Preact + Vite' },
 			{ id: 'preact-rspack', label: 'Preact + Rspack' },
+			{ id: 'preact-bun', label: 'Preact + Bun' },
 			{ id: 'solid-vite', label: 'Solid + Vite' },
 			{ id: 'solid-rspack', label: 'Solid + Rspack' },
 			{ id: 'vue-vite', label: 'Vue + Vite' },
@@ -225,7 +257,7 @@ export component GettingStartedPage() {
 		<title>{'TSRX | Getting Started'}</title>
 		<meta
 			name="description"
-			content="Get started with TSRX: install with React, Preact, Solid, Vue, or Ripple for Vite, Rspack, or Turbopack, learn the component syntax, and explore statement-based control flow."
+			content="Get started with TSRX: install with React, Preact, Solid, Vue, or Ripple for Vite, Rspack, Turbopack, or Bun, learn the component syntax, and explore statement-based control flow."
 		/>
 	</head>
 
@@ -400,6 +432,50 @@ export component GettingStartedPage() {
 							{' files, hands the compiled output back to Next as TSX, and routes component-local '}
 							<code class="inline-code">{'<style>'}</code>
 							{' blocks through a sibling virtual CSS import so Turbopack can process the scoped styles without extra loader setup.'}
+						</p>
+					</section>
+
+					<section class="doc-section" id="react-bun">
+						<h2 class="section-heading">{'React + Bun'}</h2>
+						<p class="section-body">
+							{'Install the compiler, the Bun plugin, and the React runtime:'}
+						</p>
+						<pre class="code-block">
+							<code>{html REACT_BUN_INSTALL_HTML}</code>
+						</pre>
+						<p class="section-body">{'Then use the plugin in your Bun build script:'}</p>
+						<pre class="code-block">
+							<code>{html REACT_BUN_CONFIG_HTML}</code>
+						</pre>
+						<p class="section-body">
+							<code class="inline-code">{'@tsrx/bun-plugin-react'}</code>
+							{' compiles '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' modules with '}
+							<code class="inline-code">{'@tsrx/react'}</code>
+							{' and then hands the generated TSX to Bun\'s automatic JSX pipeline. Component-local '}
+							<code class="inline-code">{'<style>'}</code>
+							{' blocks are emitted as sibling virtual CSS modules, so Bun can bundle them without extra loader setup.'}
+						</p>
+					</section>
+
+					<section class="doc-section" id="preact-bun">
+						<h2 class="section-heading">{'Preact + Bun'}</h2>
+						<p class="section-body">{'Install the compiler, the Bun plugin, and Preact:'}</p>
+						<pre class="code-block">
+							<code>{html PREACT_BUN_INSTALL_HTML}</code>
+						</pre>
+						<p class="section-body">{'Then use the plugin in your Bun build script:'}</p>
+						<pre class="code-block">
+							<code>{html PREACT_BUN_CONFIG_HTML}</code>
+						</pre>
+						<p class="section-body">
+							<code class="inline-code">{'@tsrx/bun-plugin-preact'}</code>
+							{' follows the same Bun integration shape as React, but targets Preact\'s automatic JSX runtime and supports overriding the default '}
+							<code class="inline-code">{'preact/compat'}</code>
+							{' Suspense import with '}
+							<code class="inline-code">{'{ suspenseSource: "preact-suspense" }'}</code>
+							{' when needed.'}
 						</p>
 					</section>
 

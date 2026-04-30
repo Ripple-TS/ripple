@@ -38,11 +38,13 @@ npm install @tsrx/react
 npm install -D @tsrx/vite-plugin-react     # Vite
 npm install -D @tsrx/rspack-plugin-react   # Rspack
 npm install -D @tsrx/turbopack-plugin-react # Next.js / Turbopack
+npm install -D @tsrx/bun-plugin-react      # Bun
 
 # Preact target
 npm install @tsrx/preact
 npm install -D @tsrx/vite-plugin-preact    # Vite
 npm install -D @tsrx/rspack-plugin-preact  # Rspack
+npm install -D @tsrx/bun-plugin-preact     # Bun
 
 # Solid target
 npm install @tsrx/solid
@@ -170,6 +172,55 @@ export default tsrxReactTurbopack({
   reactStrictMode: true,
 });
 ```
+
+### Bun setup (React target)
+
+`@tsrx/bun-plugin-react` exports a Bun plugin that compiles `.tsrx` → TSX via
+`@tsrx/react`, runs the final automatic JSX transform through Bun's TSX
+pipeline, and serves component-local `<style>` blocks as sibling virtual CSS
+modules.
+
+```ts
+// build.ts
+import tsrxReact from '@tsrx/bun-plugin-react';
+
+await Bun.build({
+  entrypoints: ['./src/App.tsrx'],
+  outdir: './dist',
+  target: 'browser',
+  plugins: [tsrxReact()],
+});
+```
+
+Options: `{ jsxImportSource?: string, emitCss?: boolean, include?: RegExp,
+exclude?: RegExp | RegExp[] }` — override the automatic JSX runtime import
+source (defaults to `'react'`), disable virtual CSS emission, or filter which
+files the plugin compiles.
+
+### Bun setup (Preact target)
+
+`@tsrx/bun-plugin-preact` follows the same Bun build/test integration shape:
+it compiles `.tsrx` → TSX via `@tsrx/preact`, runs Bun's TSX transform for
+Preact's automatic JSX runtime, and serves component-local `<style>` blocks as
+sibling virtual CSS modules.
+
+```ts
+// build.ts
+import tsrxPreact from '@tsrx/bun-plugin-preact';
+
+await Bun.build({
+  entrypoints: ['./src/App.tsrx'],
+  outdir: './dist',
+  target: 'browser',
+  plugins: [tsrxPreact()],
+});
+```
+
+Options: `{ jsxImportSource?: string, suspenseSource?: string, emitCss?: boolean,
+include?: RegExp, exclude?: RegExp | RegExp[] }` — override the automatic JSX
+runtime import source (defaults to `'preact'`), override the module used for
+`Suspense` (defaults to `'preact/compat'`), disable virtual CSS emission, or
+filter which files the plugin compiles.
 
 Files use the `.tsrx` extension. The compiler transforms the same source
 differently per target — e.g. `if` lowers to `<Show>` on Solid, an IIFE +
