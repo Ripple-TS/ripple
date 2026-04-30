@@ -20,6 +20,7 @@ export const target_detection_schema = {
 
 export const compile_error_schema = z.object({
 	message: z.string(),
+	code: z.string().nullable(),
 	type: z.string().nullable(),
 	fileName: z.string().nullable(),
 	pos: z.number().nullable(),

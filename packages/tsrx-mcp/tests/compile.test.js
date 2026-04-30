@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { DIAGNOSTIC_CODES } from '@tsrx/core';
 import {
 	analyze_tsrx,
 	compile_tsrx,
@@ -364,6 +365,7 @@ describe('@tsrx/mcp compile helpers', () => {
 		expect(result.ok).toBe(false);
 		expect(result.errors.length).toBeGreaterThan(0);
 		expect(result.errors[0].message).toMatch(/Unclosed tag/);
+		expect(result.errors[0].code).toBe(DIAGNOSTIC_CODES.UNCLOSED_TAG);
 	});
 
 	it('normalizes compiler failures into structured diagnostics', async () => {
@@ -377,11 +379,15 @@ describe('@tsrx/mcp compile helpers', () => {
 		});
 
 		expect(result.ok).toBe(false);
-		expect(result.errors).toHaveLength(1);
-		expect(result.errors[0] ?? null).toMatchObject({
-			fileName: 'App.tsrx',
-			message: expect.stringContaining('JSX elements cannot be used as expressions'),
-		});
+		expect(result.errors).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					code: DIAGNOSTIC_CODES.JSX_RETURN_IN_COMPONENT,
+					fileName: 'App.tsrx',
+					message: expect.stringContaining('JSX elements cannot be used as expressions'),
+				}),
+			]),
+		);
 	});
 
 	it('adds target-neutral advice for common TSRX authoring mistakes', async () => {
@@ -408,6 +414,42 @@ describe('@tsrx/mcp compile helpers', () => {
 		expect(result.nextSteps).toContain('Run compile-tsrx again after revising the source.');
 	});
 
+	it('uses compiler error codes for expression-position JSX advice', async () => {
+		const result = await analyze_tsrx({
+			code: `component App() {
+				const title = <div />;
+			}`,
+			filename: 'App.tsrx',
+			target: 'react',
+			cwd: react_fixture,
+		});
+
+		expect(result.errors[0]?.code).toBe(DIAGNOSTIC_CODES.JSX_EXPRESSION_VALUE);
+		expect(result.advice.map((advice) => advice.kind)).toContain('jsx-expression-value');
+		expect(result.advice.map((advice) => advice.kind)).not.toContain('jsx-return-in-component');
+	});
+
+	it('uses compiler error codes for tag advice', async () => {
+		const result = await analyze_tsrx({
+			code: `component A() {
+				<div>"hi"
+			}`,
+			filename: 'Unclosed.tsrx',
+			target: 'react',
+			cwd: react_fixture,
+		});
+
+		expect(result.errors[0]?.code).toBe(DIAGNOSTIC_CODES.UNCLOSED_TAG);
+		expect(result.advice).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					kind: 'unclosed-tag',
+					documentation: expect.arrayContaining(['tsrx://docs/components.md']),
+				}),
+			]),
+		);
+	});
+
 	it('flags React-style function components as function-component-syntax advice', async () => {
 		const result = await analyze_tsrx({
 			code: `function App() {
@@ -418,6 +460,7 @@ describe('@tsrx/mcp compile helpers', () => {
 			cwd: react_fixture,
 		});
 
+		expect(result.errors[0]?.code).toBe(DIAGNOSTIC_CODES.FUNCTION_COMPONENT_SYNTAX);
 		expect(result.advice.map((advice) => advice.kind)).toContain('function-component-syntax');
 	});
 
@@ -441,11 +484,7 @@ describe('@tsrx/mcp compile helpers', () => {
 	});
 
 	it('does not flag jsx-return-in-component for a return-JSX outside the component body', async () => {
-		// Regression: has_jsx_return_in_component looked for any `return <...>`
-		// anywhere in the source as long as a `component` declaration existed
-		// somewhere, instead of checking inside the component body. A comment
-		// avoids triggering the compiler's JSX-as-expression error so we test
-		// only the regex-based detection path.
+		// Comments that mention JSX returns should not trigger structured advice.
 		const result = await analyze_tsrx({
 			code: `// example from docs: return <div />
 			export component App() {

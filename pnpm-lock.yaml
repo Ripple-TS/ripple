@@ -837,6 +837,9 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: catalog:default
         version: 1.29.0(zod@4.3.6)
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
       '@tsrx/prettier-plugin':
         specifier: workspace:*
         version: link:../prettier-plugin

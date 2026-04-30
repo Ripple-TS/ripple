@@ -1,3 +1,4 @@
+import { DIAGNOSTIC_CODES } from '@tsrx/core';
 import { compile_tsrx } from './compile.js';
 
 /**
@@ -14,76 +15,19 @@ import { compile_tsrx } from './compile.js';
  * @typedef {{
  *   ok: boolean,
  *   target: string | null,
- *   errors: Array<{ message: string }>,
+ *   errors: Array<{ message: string, code?: string | null }>,
  * }} TSRXCompileSummary
  */
 
 /**
- * @param {string} code
- * @param {number} open_brace_index
- */
-function find_matching_brace(code, open_brace_index) {
-	let depth = 1;
-	for (let i = open_brace_index + 1; i < code.length; i++) {
-		const character = code[i];
-		if (character === '{') depth++;
-		else if (character === '}') {
-			depth--;
-			if (depth === 0) return i;
-		}
-	}
-	return -1;
-}
-
-/**
- * @param {string} code
- * @param {RegExp} header_re
- */
-function find_block_bodies(code, header_re) {
-	const bodies = [];
-	let match;
-	while ((match = header_re.exec(code)) !== null) {
-		const open_brace_index = match.index + match[0].length - 1;
-		const close_brace_index = find_matching_brace(code, open_brace_index);
-		if (close_brace_index === -1) continue;
-		bodies.push(code.slice(open_brace_index + 1, close_brace_index));
-	}
-	return bodies;
-}
-
-/**
- * @param {string} code
- */
-function has_function_component_shape(code) {
-	const header_re =
-		/\b(?:export\s+default\s+)?(?:export\s+)?function\s+[A-Z][\w$]*\s*\([^)]*\)\s*\{/g;
-	return find_block_bodies(code, header_re).some((body) => /<[A-Za-z]/.test(body));
-}
-
-/**
- * @param {string} code
- */
-function has_jsx_return_in_component(code) {
-	const header_re = /\bcomponent\s+[A-Za-z_$][\w$]*\s*\([^)]*\)\s*\{/g;
-	return find_block_bodies(code, header_re).some((body) => /\breturn\s*<[^>]+>/.test(body));
-}
-
-/**
- * @param {string} message
- */
-function is_jsx_expression_error(message) {
-	return message.includes('JSX elements cannot be used as expressions');
-}
-
-/**
- * @param {{ code: string, compileResult: TSRXCompileSummary }} input
+ * @param {{ compileResult: TSRXCompileSummary }} input
  * @returns {TSRXAdvice[]}
  */
 function create_advice(input) {
-	const { code, compileResult } = input;
+	const { compileResult } = input;
 	/** @type {TSRXAdvice[]} */
 	const advice = [];
-	const diagnostic_messages = compileResult.errors.map((error) => error.message).join('\n');
+	const error_codes = new Set(compileResult.errors.map((error) => error.code).filter(Boolean));
 
 	if (!compileResult.target) {
 		advice.push({
@@ -96,7 +40,8 @@ function create_advice(input) {
 		});
 	}
 
-	if (has_function_component_shape(code)) {
+	const has_function_component_syntax = error_codes.has(DIAGNOSTIC_CODES.FUNCTION_COMPONENT_SYNTAX);
+	if (has_function_component_syntax) {
 		advice.push({
 			kind: 'function-component-syntax',
 			severity: 'warning',
@@ -107,8 +52,7 @@ function create_advice(input) {
 		});
 	}
 
-	const fired_jsx_return =
-		has_jsx_return_in_component(code) || is_jsx_expression_error(diagnostic_messages);
+	const fired_jsx_return = error_codes.has(DIAGNOSTIC_CODES.JSX_RETURN_IN_COMPONENT);
 
 	if (fired_jsx_return) {
 		advice.push({
@@ -121,14 +65,29 @@ function create_advice(input) {
 		});
 	}
 
-	// Negative lookahead skips `<tsx>` and `<tsx:Foo>` — those are the
-	// canonical TSRX expression-position wrappers, so flagging them as
-	// "needs wrapping" would tell the user to wrap what is already wrapped.
-	const unwrapped_jsx_open = /<(?!tsx(?:[:>\s/]|$))[A-Za-z]/;
-	if (
-		new RegExp(`\\b(?:const|let|var)\\s+[\\w$]+\\s*=\\s*${unwrapped_jsx_open.source}`).test(code) ||
-		(!fired_jsx_return && new RegExp(`\\breturn\\s*${unwrapped_jsx_open.source}`).test(code))
-	) {
+	if (error_codes.has(DIAGNOSTIC_CODES.UNCLOSED_TAG)) {
+		advice.push({
+			kind: 'unclosed-tag',
+			severity: 'error',
+			title: 'Close template tags',
+			message:
+				'The compiler found a template tag without a matching closing tag. Add the missing closing tag before changing target-specific code.',
+			documentation: ['tsrx://docs/components.md'],
+		});
+	}
+
+	if (error_codes.has(DIAGNOSTIC_CODES.MISMATCHED_CLOSING_TAG)) {
+		advice.push({
+			kind: 'mismatched-closing-tag',
+			severity: 'error',
+			title: 'Match closing tags',
+			message:
+				'The compiler found a closing tag that does not match the current open template tag. Align the tag names or close the inner tag first.',
+			documentation: ['tsrx://docs/components.md'],
+		});
+	}
+
+	if (error_codes.has(DIAGNOSTIC_CODES.JSX_EXPRESSION_VALUE)) {
 		advice.push({
 			kind: 'jsx-expression-value',
 			severity: 'info',
@@ -175,6 +134,7 @@ function create_advice(input) {
  *     cwd: string,
  *     errors: Array<{
  *       message: string,
+ *       code: string | null,
  *       type: string | null,
  *       fileName: string | null,
  *       pos: number | null,
@@ -188,7 +148,6 @@ function create_advice(input) {
 export function analyze_tsrx_result(input) {
 	const { compileResult } = input;
 	const advice = create_advice({
-		code: input.code,
 		compileResult,
 	});
 

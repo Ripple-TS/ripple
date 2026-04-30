@@ -10,9 +10,10 @@
  * @param {AST.Node | AST.NodeWithLocation} node
  * @param {CompileError[]} [errors]
  * @param {AST.CommentWithLocation[]} [comments]
+ * @param {string} [code]
  * @returns {void}
  */
-export function error(message, filename, node, errors, comments) {
+export function error(message, filename, node, errors, comments, code) {
 	if (errors && comments && is_error_suppressed(node, comments)) {
 		return;
 	}
@@ -25,6 +26,7 @@ export function error(message, filename, node, errors, comments) {
 
 	// custom properties
 	error.fileName = filename;
+	error.code = code;
 	error.end = node.end ?? undefined;
 	error.loc = !node.loc
 		? undefined

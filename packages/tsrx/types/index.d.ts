@@ -29,6 +29,7 @@ export { createJsxTransform, componentToFunctionDeclaration };
  * Compile error interface
  */
 export interface CompileError extends Error {
+	code: string | undefined;
 	pos: number | undefined;
 	raisedAt: number | undefined;
 	end: number | undefined;

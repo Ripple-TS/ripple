@@ -121,7 +121,12 @@ export function createJsxTransform(platform) {
 		walk(/** @type {any} */ (ast), transform_context, {
 			ReturnStatement(node, { next, path }) {
 				if (get_component_from_path(path)) {
-					validate_component_return_statement(node, filename);
+					validate_component_return_statement(
+						node,
+						filename,
+						transform_context.errors,
+						transform_context.comments,
+					);
 				}
 
 				return next();

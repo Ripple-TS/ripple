@@ -8,6 +8,7 @@ const VALID_TARGETS = new Set(TARGET_CANDIDATES.map((candidate) => candidate.tar
 /**
  * @typedef {{
  *   message: string,
+ *   code: string | null,
  *   type: string | null,
  *   fileName: string | null,
  *   pos: number | null,
@@ -35,6 +36,7 @@ function normalize_error(error, filename) {
 		const candidate = /** @type {Record<string, unknown>} */ (error);
 		return {
 			message: candidate.message ? String(candidate.message) : String(error),
+			code: candidate.code ? String(candidate.code) : null,
 			type: candidate.type ? String(candidate.type) : null,
 			fileName: candidate.fileName ? String(candidate.fileName) : filename,
 			pos: typeof candidate.pos === 'number' ? candidate.pos : null,
@@ -45,6 +47,7 @@ function normalize_error(error, filename) {
 	}
 	return {
 		message: String(error),
+		code: null,
 		type: null,
 		fileName: filename,
 		pos: null,
@@ -145,6 +148,7 @@ export async function compile_tsrx(input) {
 						detection.confidence === 'ambiguous'
 							? detection.message
 							: `Could not infer a TSRX target. Pass target explicitly. ${detection.message}`,
+					code: null,
 					type: null,
 					fileName: filename,
 					pos: null,
@@ -168,6 +172,7 @@ export async function compile_tsrx(input) {
 			errors: [
 				{
 					message: `Unknown TSRX target "${target}".`,
+					code: null,
 					type: null,
 					fileName: filename,
 					pos: null,
