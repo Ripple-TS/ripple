@@ -1,5 +1,19 @@
 # @tsrx/solid
 
+## 0.0.20
+
+### Patch Changes
+
+- [#1014](https://github.com/Ripple-TS/ripple/pull/1014)
+  [`31193f2`](https://github.com/Ripple-TS/ripple/commit/31193f23aa6b6b5b79cd858f57e8aca69cd44b6d)
+  Thanks [@trueadm](https://github.com/trueadm)! - Add a `collect` compile option
+  for collecting diagnostics and comments without enabling loose markup recovery.
+
+- Updated dependencies
+  [[`31193f2`](https://github.com/Ripple-TS/ripple/commit/31193f23aa6b6b5b79cd858f57e8aca69cd44b6d),
+  [`31193f2`](https://github.com/Ripple-TS/ripple/commit/31193f23aa6b6b5b79cd858f57e8aca69cd44b6d)]:
+  - @tsrx/core@0.0.20
+
 ## 0.0.19
 
 ### Patch Changes

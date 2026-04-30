@@ -1,6 +1,6 @@
 {
   "name": "tsrx-website",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "description": "Marketing site for TSRX built with Ripple SSR",
   "private": true,
   "type": "module",
@@ -26,6 +26,8 @@
     "@tsrx/react": "workspace:*",
     "@tsrx/ripple": "workspace:*",
     "@tsrx/solid": "workspace:*",
+    "@marko/tsrx": "^0.0.2",
+    "prettier-plugin-marko": "^4.0.9",
     "@tsrx/vue": "workspace:*",
     "prettier": "catalog:",
     "shiki": "catalog:"

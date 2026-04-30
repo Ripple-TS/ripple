@@ -3,7 +3,7 @@
   "description": "Vue compiler built on @tsrx/core",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "type": "module",
   "publishConfig": {
     "access": "public"

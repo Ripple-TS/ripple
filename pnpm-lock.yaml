@@ -1426,6 +1426,9 @@ importers:
       '@codemirror/view':
         specifier: ^6.38.6
         version: 6.41.1
+      '@marko/tsrx':
+        specifier: ^0.0.2
+        version: 0.0.2
       '@ripple-ts/adapter-node':
         specifier: workspace:*
         version: link:../packages/adapter-node
@@ -1450,6 +1453,9 @@ importers:
       prettier:
         specifier: 'catalog:'
         version: 3.8.3
+      prettier-plugin-marko:
+        specifier: ^4.0.9
+        version: 4.0.9
       shiki:
         specifier: 'catalog:'
         version: 4.0.1
@@ -2294,6 +2300,10 @@ packages:
 
   '@marijn/find-cluster-break@1.0.2':
     resolution: {integrity: sha512-l0h88YhZFyKdXIFNfSWpyjStDjGHwZ/U7iobcK1cQQD8sejsONdQtTVU+1wVN1PBw40PiiHB1vA5S7VTfQiP9g==}
+
+  '@marko/tsrx@0.0.2':
+    resolution: {integrity: sha512-AicFpdN8G9OByQp3+hc9Lq9U6bYGvS3Ly6gk59nXCOzEsWftpsA8+cpFAepeIrzOkr+PwGNuc6hcBze5ZHM22Q==}
+    engines: {node: '>=18.0.0'}
 
   '@modelcontextprotocol/sdk@1.27.1':
     resolution: {integrity: sha512-sr6GbP+4edBwFndLbM60gf07z0FQ79gaExpnsjMGePXqFcSSb7t6iscpjk9DhFhwd+mTEQrzNafGP8/iGGFYaA==}
@@ -3256,6 +3266,9 @@ packages:
 
   '@toon-format/toon@2.1.0':
     resolution: {integrity: sha512-JwWptdF5eOA0HaQxbKAzkpQtR4wSWTEfDlEy/y3/4okmOAX1qwnpLZMmtEWr+ncAhTTY1raCKH0kteHhSXnQqg==}
+
+  '@tsrx/core@0.0.14':
+    resolution: {integrity: sha512-YCt0WqQ6VMUzED8DmqglFP/kkSZGiiNAxACmiKBtdobbWM76PDw6LS2QoKiSJHbE+20lgUM/MZJrEm5uDT3aDg==}
 
   '@tybys/wasm-util@0.10.1':
     resolution: {integrity: sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg==}
@@ -4960,6 +4973,9 @@ packages:
   html-void-elements@3.0.0:
     resolution: {integrity: sha512-bEqo66MRXsUGxWHV5IP0PUiAWwoEjba4VCzg0LjFJBpchPaTfyfCKTG6bc5F8ucKec3q5y6qOdGyYTSBEvhCrg==}
 
+  htmljs-parser@5.10.2:
+    resolution: {integrity: sha512-Db/pHZehPxGD8Cy0NvACoMfnVQqfgEiK7z+7cuEDOeJdnzuomyaw3I31A+1uoZmS6IjvTD5iuFA+XL2LE+SieA==}
+
   htmlparser2@10.1.0:
     resolution: {integrity: sha512-VTZkM9GWRAtEpveh7MSF6SjjrpNVNNVJfFup7xTY3UpFtm67foy9HDVXneLtFVt4pMz5kZtgNcvCniNFb1hlEQ==}
 
@@ -5950,6 +5966,9 @@ packages:
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
+
+  prettier-plugin-marko@4.0.9:
+    resolution: {integrity: sha512-njqNk0oF6jolUMXNUOSlvRe6Dd50DN4NvQk3EY/6hUrU4tJw/HSwvhDF1uTYVs5KjOY5lH+x5C13C1Av9jajWA==}
 
   prettier@2.8.8:
     resolution: {integrity: sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==}
@@ -8191,6 +8210,11 @@ snapshots:
 
   '@marijn/find-cluster-break@1.0.2': {}
 
+  '@marko/tsrx@0.0.2':
+    dependencies:
+      '@jridgewell/sourcemap-codec': 1.5.5
+      '@tsrx/core': 0.0.14
+
   '@modelcontextprotocol/sdk@1.27.1(zod@4.3.6)':
     dependencies:
       '@hono/node-server': 1.19.10(hono@4.12.4)
@@ -9018,6 +9042,19 @@ snapshots:
   '@tokenizer/token@0.3.0': {}
 
   '@toon-format/toon@2.1.0': {}
+
+  '@tsrx/core@0.0.14':
+    dependencies:
+      '@jridgewell/sourcemap-codec': 1.5.5
+      '@noble/hashes': 2.2.0
+      '@sveltejs/acorn-typescript': 1.0.9(acorn@8.16.0)
+      '@types/estree': 1.0.8
+      '@types/estree-jsx': 1.0.5
+      acorn: 8.16.0
+      esrap: 2.2.3
+      is-reference: 3.0.3
+      magic-string: 0.30.21
+      zimmerframe: 1.1.4
 
   '@tybys/wasm-util@0.10.1':
     dependencies:
@@ -10913,6 +10950,8 @@ snapshots:
 
   html-void-elements@3.0.0: {}
 
+  htmljs-parser@5.10.2: {}
+
   htmlparser2@10.1.0:
     dependencies:
       domelementtype: 2.3.0
@@ -11867,6 +11906,10 @@ snapshots:
       tar-fs: 2.1.4
 
   prelude-ls@1.2.1: {}
+
+  prettier-plugin-marko@4.0.9:
+    dependencies:
+      htmljs-parser: 5.10.2
 
   prettier@2.8.8: {}
 

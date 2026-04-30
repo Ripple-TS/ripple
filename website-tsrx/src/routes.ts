@@ -4,11 +4,13 @@ import * as ripple_prettier_plugin from '@tsrx/prettier-plugin';
 import { compile as compile_react } from '@tsrx/react';
 import { compile as compile_ripple } from '@tsrx/ripple';
 import { compile as compile_solid } from '@tsrx/solid';
+import { compile as compile_marko } from '@marko/tsrx';
+import * as marko_prettier_plugin from 'prettier-plugin-marko';
 import { compile as compile_vue } from '@tsrx/vue';
 import { format } from 'prettier';
 
 const MAX_SOURCE_LENGTH = 12000;
-const VALID_TARGETS = ['react', 'preact', 'ripple', 'solid', 'vue'] as const;
+const VALID_TARGETS = ['react', 'preact', 'ripple', 'solid', 'vue', 'marko'] as const;
 
 type CompileTarget = (typeof VALID_TARGETS)[number];
 
@@ -56,6 +58,20 @@ async function format_css(css: string) {
 		return await format(css, { parser: 'css', useTabs: false, tabWidth: 2, printWidth: 80 });
 	} catch {
 		return css;
+	}
+}
+
+async function format_marko(code: string) {
+	try {
+		return await format(code, {
+			parser: 'marko',
+			plugins: [marko_prettier_plugin as any],
+			useTabs: false,
+			tabWidth: 2,
+			printWidth: 80,
+		});
+	} catch {
+		return code;
 	}
 }
 
@@ -108,6 +124,17 @@ async function compile_target(target: CompileTarget, source: string) {
 			output: {
 				code: await format_js(vue_result.code),
 				css: await format_css(vue_result.css?.code ?? ''),
+			},
+		};
+	}
+
+	if (target === 'marko') {
+		const marko_result = compile_marko(source, 'LiveDemo.tsrx');
+
+		return {
+			target,
+			output: {
+				code: await format_marko(marko_result.code),
 			},
 		};
 	}
@@ -195,7 +222,7 @@ export const routes = [
 
 			if (!is_valid_target(target)) {
 				return Response.json(
-					{ error: 'Target must be one of: react, preact, ripple, solid, vue.' },
+					{ error: 'Target must be one of: react, preact, ripple, solid, vue, marko.' },
 					{ status: 400 },
 				);
 			}

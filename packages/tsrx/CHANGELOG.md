@@ -1,5 +1,20 @@
 # @tsrx/core
 
+## 0.0.20
+
+### Patch Changes
+
+- [#1014](https://github.com/Ripple-TS/ripple/pull/1014)
+  [`31193f2`](https://github.com/Ripple-TS/ripple/commit/31193f23aa6b6b5b79cd858f57e8aca69cd44b6d)
+  Thanks [@trueadm](https://github.com/trueadm)! - Add a `collect` compile option
+  for collecting diagnostics and comments without enabling loose markup recovery.
+
+- [#1014](https://github.com/Ripple-TS/ripple/pull/1014)
+  [`31193f2`](https://github.com/Ripple-TS/ripple/commit/31193f23aa6b6b5b79cd858f57e8aca69cd44b6d)
+  Thanks [@trueadm](https://github.com/trueadm)! - Add diagnostic codes to
+  selected compiler errors and expose them through MCP compile and analyze
+  results.
+
 ## 0.0.19
 
 ### Patch Changes

@@ -26,6 +26,7 @@ function get_highlighter(): Promise<Highlighter> {
 				'jsx',
 				'tsx',
 				'css',
+				'marko',
 				modified_grammar as any,
 				{ ...(modified_grammar as any), name: 'ripple' },
 			],
