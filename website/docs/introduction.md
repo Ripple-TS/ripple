@@ -30,7 +30,7 @@ import { track } from 'ripple';
 
 export component App() {
   <div class="container">
-   <h1>"Welcome to Ripple!"</h1>
+    <h1>"Welcome to Ripple!"</h1>
 
     <div>
       let &[count] = track(0);
