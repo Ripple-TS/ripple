@@ -210,6 +210,38 @@ export function App({ show }: { show: boolean }) {
 }"
 `;
 
+exports[`[react] continuation lift for switch-with-hook > break-only case does not silently fall through into another case 1`] = `
+"let App__StatementBodyHook1;
+let App__StatementBodyHook2;
+
+export function App({ kind }: { kind: 'a' | 'b' }) {
+	let x: number | undefined;
+	const _tsrx_StatementBodyHook1_x = x;
+
+	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ x }: { x: typeof _tsrx_StatementBodyHook1_x }) {
+		console.log(x);
+
+		return null;
+	});
+
+	switch (kind) {
+		case 'a':
+			return <StatementBodyHook1 x={x} />;
+
+		case 'b':
+			const _tsrx_StatementBodyHook2_x = x;
+			const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
+				[x] = useState(100);
+
+				return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
+			});
+			return <StatementBodyHook2 x={x} />;
+	}
+
+	return <StatementBodyHook1 x={x} />;
+}"
+`;
+
 exports[`[react] continuation lift for switch-with-hook > does not lift when the switch has no statements after it 1`] = `
 "let App__StatementBodyHook1;
 
@@ -351,6 +383,116 @@ export function App({ kind }: { kind: 'a' | 'b' | 'c' }) {
 				return <>{App__static2}<StatementBodyHook1 x={x} /></>;
 			});
 			return <StatementBodyHook4 x={x} />;
+	}
+
+	return <StatementBodyHook1 x={x} />;
+}"
+`;
+
+exports[`[react] continuation lift for switch-with-hook > non-empty fall-through (case with body but no terminator) bails out of the lift 1`] = `
+"let App__StatementBodyHook1;
+
+export function App({ kind }: { kind: 'a' | 'b' }) {
+	let x: number | undefined;
+
+	const _tsrx_child_0 = (() => {
+		switch (kind) {
+			case 'a':
+				x = 1;
+
+			case 'b':
+				const _tsrx_StatementBodyHook1_x = x;
+				const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ x }: { x: typeof _tsrx_StatementBodyHook1_x }) {
+					[x] = useState(100);
+
+					return <div>{x}</div>;
+				});
+				return <StatementBodyHook1 x={x} />;
+		}
+
+		return null;
+	})();
+
+	console.log(x);
+
+	return _tsrx_child_0;
+}"
+`;
+
+exports[`[react] continuation lift for switch-with-hook > non-empty fall-through merges the trailing case body into the falling case 1`] = `
+"let App__StatementBodyHook1;
+let App__StatementBodyHook2;
+let App__StatementBodyHook3;
+
+export function App({ kind }: { kind: 'a' | 'b' }) {
+	let x: number | undefined;
+	const _tsrx_StatementBodyHook1_x = x;
+
+	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ x }: { x: typeof _tsrx_StatementBodyHook1_x }) {
+		console.log(x);
+
+		return null;
+	});
+
+	switch (kind) {
+		case 'a':
+			const _tsrx_StatementBodyHook2_x = x;
+			const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
+				x = 1;
+				[x] = useState(100);
+
+				return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
+			});
+			return <StatementBodyHook2 x={x} />;
+
+		case 'b':
+			const _tsrx_StatementBodyHook3_x = x;
+			const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3({ x }: { x: typeof _tsrx_StatementBodyHook3_x }) {
+				[x] = useState(100);
+
+				return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
+			});
+			return <StatementBodyHook3 x={x} />;
+	}
+
+	return <StatementBodyHook1 x={x} />;
+}"
+`;
+
+exports[`[react] continuation lift for switch-with-hook > preserves empty fall-through cases that share a body with the next case 1`] = `
+"const App__static1 = <span>{'other'}</span>;
+let App__StatementBodyHook1;
+let App__StatementBodyHook2;
+let App__StatementBodyHook3;
+
+export function App({ kind }: { kind: 'a' | 'b' | 'c' }) {
+	let x: number | undefined;
+	const _tsrx_StatementBodyHook1_x = x;
+
+	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ x }: { x: typeof _tsrx_StatementBodyHook1_x }) {
+		console.log(x);
+
+		return null;
+	});
+
+	switch (kind) {
+		case 'a':
+
+		case 'b':
+			const _tsrx_StatementBodyHook2_x = x;
+			const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
+				[x] = useState(100);
+
+				return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
+			});
+			return <StatementBodyHook2 x={x} />;
+
+		default:
+			const _tsrx_StatementBodyHook3_x = x;
+			const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3({ x }: { x: typeof _tsrx_StatementBodyHook3_x }) {
+				return <>{App__static1}<StatementBodyHook1 x={x} /></>;
+			});
+			return <StatementBodyHook3 x={x} />;
 	}
 
 	return <StatementBodyHook1 x={x} />;

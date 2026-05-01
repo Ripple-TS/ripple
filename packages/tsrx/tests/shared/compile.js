@@ -1372,6 +1372,92 @@ export function optionalFn(bar: string, baz?: string) {
 
 				expect(code).toMatchSnapshot();
 			});
+
+			it('break-only case does not silently fall through into another case', () => {
+				// A `case 'a': break;` with no other body originally exits the
+				// switch and runs the tail. Naively producing an empty case in
+				// the lift would make 'a' fall through into the next case's
+				// helper (which here calls a hook), executing the wrong branch
+				// for the wrong input. The fixed shape returns the tail helper
+				// directly for break-only cases.
+				const { code } = compile(
+					`export component App({ kind }: { kind: 'a' | 'b' }) {
+						let x: number | undefined;
+						switch (kind) {
+							case 'a':
+								break;
+							case 'b':
+								[x] = useState(100);
+								<div>{x}</div>
+								break;
+						}
+						console.log(x);
+					}`,
+					'App.tsrx',
+				);
+
+				// Bug: break-only 'a' must NOT collapse to an empty case that
+				// then falls into 'b' and runs `useState(100)`.
+				expect(code).not.toMatch(/case 'a':\s*\n\s*case 'b':/);
+				expect(code).toMatchSnapshot();
+			});
+
+			it('preserves empty fall-through cases that share a body with the next case', () => {
+				// `case 'a': case 'b': hook + JSX; break;` is genuine
+				// empty-fall-through — 'a' has no body of its own and is meant
+				// to share 'b's body. The lift must keep 'a' as an empty case
+				// so the switch falls into 'b's body.
+				const { code } = compile(
+					`export component App({ kind }: { kind: 'a' | 'b' | 'c' }) {
+						let x: number | undefined;
+						switch (kind) {
+							case 'a':
+							case 'b':
+								[x] = useState(100);
+								<div>{x}</div>
+								break;
+							default:
+								<span>{'other'}</span>
+								break;
+						}
+						console.log(x);
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+
+			it('non-empty fall-through merges the trailing case body into the falling case', () => {
+				// `case 'a': x = 1; case 'b': [x] = useState(100); break;` —
+				// when 'a' matches it should run `x = 1` then fall through
+				// into 'b's hook + JSX. Naive lifting would either bail out
+				// (preserving the existing transform's bug) or convert 'a'
+				// into an early-return that skips 'b's body entirely.
+				// Instead we merge fall-through cases: 'a' gets its own helper
+				// whose body is `[x = 1, [x] = useState(100), <div>{x}</div>]`
+				// so the post-hook `x` correctly flows into the tail. Both
+				// 'a' and 'b' end up printing 100.
+				const { code } = compile(
+					`export component App({ kind }: { kind: 'a' | 'b' }) {
+						let x: number | undefined;
+						switch (kind) {
+							case 'a':
+								x = 1;
+							case 'b':
+								[x] = useState(100);
+								<div>{x}</div>
+								break;
+						}
+						console.log(x);
+					}`,
+					'App.tsrx',
+				);
+
+				// Lift applies: each case returns its own helper (no bail-out).
+				expect(code).not.toContain('(() =>');
+				expect(code).toMatchSnapshot();
+			});
 		},
 	);
 

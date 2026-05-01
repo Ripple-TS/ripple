@@ -675,8 +675,7 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 			child.type === 'SwitchStatement' &&
 			!transform_context.platform.hooks?.isTopLevelSetupCall &&
 			body_contains_top_level_hook_call([child], transform_context, true) &&
-			i + 1 < body_nodes.length &&
-			switch_supports_continuation_lift(child)
+			i + 1 < body_nodes.length
 		) {
 			statements.push(
 				...create_continuation_lift_switch_statement(
@@ -1571,30 +1570,72 @@ function create_continuation_lift_switch_statement(
 ) {
 	const tail_helper = build_tail_helper(continuation_body, switch_node, transform_context);
 
-	const new_cases = switch_node.cases.map((/** @type {any} */ original_case) => {
-		const consequent = flatten_switch_consequent(original_case.consequent || []);
-		const body_without_terminator = [];
-		for (const node of consequent) {
-			if (node.type === 'BreakStatement' || node.type === 'ReturnStatement') break;
-			body_without_terminator.push(node);
-		}
+	const new_cases = switch_node.cases.map(
+		(/** @type {any} */ original_case, /** @type {number} */ case_index) => {
+			const own_consequent = flatten_switch_consequent(original_case.consequent || []);
+			const own_body = [];
+			let own_has_terminator = false;
+			for (const node of own_consequent) {
+				if (node.type === 'BreakStatement' || node.type === 'ReturnStatement') {
+					own_has_terminator = true;
+					break;
+				}
+				own_body.push(node);
+			}
 
-		if (body_without_terminator.length === 0) {
-			return b.switch_case(original_case.test, []);
-		}
+			if (own_body.length === 0) {
+				// `case 'a': break;` (break-only / return-only) originally exited
+				// the switch and ran the tail. Emitting an empty case here would
+				// silently fall through to the next case's body — running its
+				// hook and rendering its content for the wrong input. Render the
+				// tail directly so we preserve the source's semantics.
+				if (own_has_terminator) {
+					return b.switch_case(original_case.test, [
+						combined_return_statement(render_nodes, tail_helper.component_element),
+					]);
+				}
+				// `case 'a': case 'b': ...` — genuine empty fall-through. The
+				// original source has no body for 'a' and means 'a' to share 'b's
+				// body. Preserve as an empty case so JS fall-through drops into
+				// the next case's helper (and the helper component identity is
+				// shared, preserving useState slots across kind toggles).
+				return b.switch_case(original_case.test, []);
+			}
 
-		const case_helper = create_hook_safe_helper(
-			append_tail_invocation(body_without_terminator, tail_helper),
-			undefined,
-			original_case,
-			transform_context,
-		);
+			// Non-empty case: compute the *effective* body by following
+			// fall-through into subsequent cases until we hit a terminator.
+			// `case 'a': x = 1; case 'b': useState(100); break;` — case 'a's
+			// effective body is `[x = 1, useState(100)]` so CaseHelperA runs the
+			// merged body and the post-hook value flows into the tail.
+			const effective_body = [...own_body];
+			if (!own_has_terminator) {
+				for (let j = case_index + 1; j < switch_node.cases.length; j++) {
+					const next_consequent = flatten_switch_consequent(switch_node.cases[j].consequent || []);
+					let next_has_terminator = false;
+					for (const node of next_consequent) {
+						if (node.type === 'BreakStatement' || node.type === 'ReturnStatement') {
+							next_has_terminator = true;
+							break;
+						}
+						effective_body.push(node);
+					}
+					if (next_has_terminator) break;
+				}
+			}
 
-		return b.switch_case(original_case.test, [
-			...case_helper.setup_statements,
-			combined_return_statement(render_nodes, case_helper.component_element),
-		]);
-	});
+			const case_helper = create_hook_safe_helper(
+				append_tail_invocation(effective_body, tail_helper),
+				undefined,
+				original_case,
+				transform_context,
+			);
+
+			return b.switch_case(original_case.test, [
+				...case_helper.setup_statements,
+				combined_return_statement(render_nodes, case_helper.component_element),
+			]);
+		},
+	);
 
 	return [
 		...tail_helper.setup_statements,
@@ -1913,33 +1954,6 @@ function create_helper_props_type_literal_with_typeof_flags(bindings, aliases, u
 			);
 		}),
 	);
-}
-
-/**
- * The lift converts each non-empty case into `... return <CaseHelper/>`.
- * That changes a case that runs statements but lacks a terminator (and so
- * falls through to the next case under JS semantics) into one that returns
- * early. Bail out of the lift in that scenario and let the existing
- * transform run, preserving the source's fall-through behavior.
- *
- * @param {any} switch_node
- * @returns {boolean}
- */
-function switch_supports_continuation_lift(switch_node) {
-	for (const switch_case of switch_node.cases) {
-		const consequent = flatten_switch_consequent(switch_case.consequent || []);
-		let has_body = false;
-		let has_terminator = false;
-		for (const node of consequent) {
-			if (node.type === 'BreakStatement' || node.type === 'ReturnStatement') {
-				has_terminator = true;
-				break;
-			}
-			has_body = true;
-		}
-		if (has_body && !has_terminator) return false;
-	}
-	return true;
 }
 
 /**
