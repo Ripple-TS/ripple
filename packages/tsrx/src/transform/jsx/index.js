@@ -1354,6 +1354,138 @@ function create_component_returning_if_statement(node, render_nodes, transform_c
 	);
 }
 
+/* ---------------------------------------------------------------------- *
+ * Continuation-lift primitives shared across if / switch / try / for-of  *
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Build the helper component that owns the post-control-flow continuation.
+ * Same shape as `create_hook_safe_helper`; named for intent at lift call sites.
+ *
+ * @param {any[]} continuation_body
+ * @param {any} source_node
+ * @param {TransformContext} transform_context
+ * @returns {{ setup_statements: any[], component_element: ESTreeJSX.JSXElement }}
+ */
+function build_tail_helper(continuation_body, source_node, transform_context) {
+	return create_hook_safe_helper(continuation_body, undefined, source_node, transform_context);
+}
+
+/**
+ * Clone the tail helper's component element for embedding inside another
+ * branch's body. Loses location info because the same element appears in
+ * multiple positions and downstream tooling treats AST nodes as identity-keyed.
+ *
+ * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
+ * @returns {any}
+ */
+function clone_tail_invocation(tail_helper) {
+	return clone_expression_node_without_locations(tail_helper.component_element);
+}
+
+/**
+ * Return `[...body, <TailHelper x={x} />]` so the branch's render output
+ * includes the tail invocation and the post-hook locals flow forward.
+ * Used by if / switch / try (unconditional append). For-of uses a different
+ * shape — gating on `_tsrx_isLast_<n>` — so it constructs its own.
+ *
+ * @param {any[]} body
+ * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
+ * @returns {any[]}
+ */
+function append_tail_invocation(body, tail_helper) {
+	return [...body, clone_tail_invocation(tail_helper)];
+}
+
+/**
+ * Build a `return <combined-render-fragment>;` statement, prepending any
+ * `render_nodes` collected before the control-flow construct so they don't
+ * get dropped on the lift path.
+ *
+ * @param {any[]} render_nodes
+ * @param {any} jsx_child
+ * @returns {any}
+ */
+function combined_return_statement(render_nodes, jsx_child) {
+	return /** @type {any} */ ({
+		type: 'ReturnStatement',
+		argument: combine_render_return_argument(render_nodes, jsx_child),
+		metadata: { path: [] },
+	});
+}
+
+/**
+ * Hoist a for-of iteration source into a generated `let` and add a
+ * normalization assignment via `Array.isArray(src) ? src : Array.from(src)`.
+ * Always emits both — even when the source is already a simple identifier —
+ * so the loop-scoped TS type aliases have a stable name to reference and the
+ * runtime check skips the copy when the value is already an array.
+ *
+ * @param {AST.Identifier} source_id
+ * @param {any} source_expr
+ * @returns {{ source_decl: any, source_normalize_decl: any }}
+ */
+function build_array_normalization_decls(source_id, source_expr) {
+	const source_decl = /** @type {any} */ ({
+		type: 'VariableDeclaration',
+		kind: 'let',
+		declarations: [
+			{
+				type: 'VariableDeclarator',
+				id: clone_identifier(source_id),
+				init: clone_expression_node(source_expr),
+				metadata: { path: [] },
+			},
+		],
+		metadata: { path: [] },
+	});
+	const source_normalize_decl = /** @type {any} */ ({
+		type: 'ExpressionStatement',
+		expression: {
+			type: 'AssignmentExpression',
+			operator: '=',
+			left: clone_identifier(source_id),
+			right: {
+				type: 'ConditionalExpression',
+				test: {
+					type: 'CallExpression',
+					callee: {
+						type: 'MemberExpression',
+						object: { type: 'Identifier', name: 'Array', metadata: { path: [] } },
+						property: { type: 'Identifier', name: 'isArray', metadata: { path: [] } },
+						computed: false,
+						optional: false,
+						metadata: { path: [] },
+					},
+					arguments: [clone_identifier(source_id)],
+					optional: false,
+					metadata: { path: [] },
+				},
+				consequent: clone_identifier(source_id),
+				alternate: {
+					type: 'CallExpression',
+					callee: {
+						type: 'MemberExpression',
+						object: { type: 'Identifier', name: 'Array', metadata: { path: [] } },
+						property: { type: 'Identifier', name: 'from', metadata: { path: [] } },
+						computed: false,
+						optional: false,
+						metadata: { path: [] },
+					},
+					arguments: [clone_identifier(source_id)],
+					optional: false,
+					metadata: { path: [] },
+				},
+				metadata: { path: [] },
+			},
+			metadata: { path: [] },
+		},
+		metadata: { path: [] },
+	});
+
+	return { source_decl, source_normalize_decl };
+}
+
 /**
  * @param {any} node
  * @param {any[]} continuation_body
@@ -1445,17 +1577,9 @@ function create_continuation_lift_if_statement(
 	transform_context,
 ) {
 	const consequent_body = get_if_consequent_body(if_node);
-	const tail_helper = create_hook_safe_helper(
-		continuation_body,
-		undefined,
-		if_node,
-		transform_context,
-	);
-	const tail_invocation_in_branch = clone_expression_node_without_locations(
-		tail_helper.component_element,
-	);
+	const tail_helper = build_tail_helper(continuation_body, if_node, transform_context);
 	const branch_helper = create_hook_safe_helper(
-		[...consequent_body, tail_invocation_in_branch],
+		append_tail_invocation(consequent_body, tail_helper),
 		undefined,
 		if_node.consequent,
 		transform_context,
@@ -1472,14 +1596,7 @@ function create_continuation_lift_if_statement(
 						type: 'BlockStatement',
 						body: [
 							...branch_helper.setup_statements,
-							{
-								type: 'ReturnStatement',
-								argument: combine_render_return_argument(
-									render_nodes,
-									branch_helper.component_element,
-								),
-								metadata: { path: [] },
-							},
+							combined_return_statement(render_nodes, branch_helper.component_element),
 						],
 						metadata: { path: [] },
 					}),
@@ -1490,11 +1607,7 @@ function create_continuation_lift_if_statement(
 			}),
 			if_node,
 		),
-		{
-			type: 'ReturnStatement',
-			argument: combine_render_return_argument(render_nodes, tail_helper.component_element),
-			metadata: { path: [] },
-		},
+		combined_return_statement(render_nodes, tail_helper.component_element),
 	];
 }
 
@@ -1520,28 +1633,21 @@ function create_continuation_lift_try_statement(
 	render_nodes,
 	transform_context,
 ) {
-	const tail_helper = create_hook_safe_helper(
-		continuation_body,
-		undefined,
-		node,
-		transform_context,
-	);
+	const tail_helper = build_tail_helper(continuation_body, node, transform_context);
 
-	const augmented_block_body = [
-		...(node.block.body || []),
-		clone_expression_node_without_locations(tail_helper.component_element),
-	];
-	const augmented_block = { ...node.block, body: augmented_block_body };
+	const augmented_block = {
+		...node.block,
+		body: append_tail_invocation(node.block.body || [], tail_helper),
+	};
 
 	let augmented_handler = node.handler;
 	if (node.handler) {
-		const augmented_catch_body = [
-			...(node.handler.body.body || []),
-			clone_expression_node_without_locations(tail_helper.component_element),
-		];
 		augmented_handler = {
 			...node.handler,
-			body: { ...node.handler.body, body: augmented_catch_body },
+			body: {
+				...node.handler.body,
+				body: append_tail_invocation(node.handler.body.body || [], tail_helper),
+			},
 		};
 	}
 
@@ -1555,14 +1661,7 @@ function create_continuation_lift_try_statement(
 		transform_context.platform.hooks?.controlFlow?.tryStatement ?? try_statement_to_jsx_child
 	)(augmented_try, transform_context);
 
-	return [
-		...tail_helper.setup_statements,
-		{
-			type: 'ReturnStatement',
-			argument: combine_render_return_argument(render_nodes, try_jsx_child),
-			metadata: { path: [] },
-		},
-	];
+	return [...tail_helper.setup_statements, combined_return_statement(render_nodes, try_jsx_child)];
 }
 
 /**
@@ -1613,12 +1712,7 @@ function create_continuation_lift_switch_statement(
 	render_nodes,
 	transform_context,
 ) {
-	const tail_helper = create_hook_safe_helper(
-		continuation_body,
-		undefined,
-		switch_node,
-		transform_context,
-	);
+	const tail_helper = build_tail_helper(continuation_body, switch_node, transform_context);
 
 	const new_cases = switch_node.cases.map((/** @type {any} */ switch_case) => {
 		const consequent = flatten_switch_consequent(switch_case.consequent || []);
@@ -1637,11 +1731,8 @@ function create_continuation_lift_switch_statement(
 			});
 		}
 
-		const tail_invocation_in_case = clone_expression_node_without_locations(
-			tail_helper.component_element,
-		);
 		const case_helper = create_hook_safe_helper(
-			[...body_without_terminator, tail_invocation_in_case],
+			append_tail_invocation(body_without_terminator, tail_helper),
 			undefined,
 			switch_case,
 			transform_context,
@@ -1652,11 +1743,7 @@ function create_continuation_lift_switch_statement(
 			test: switch_case.test,
 			consequent: [
 				...case_helper.setup_statements,
-				{
-					type: 'ReturnStatement',
-					argument: combine_render_return_argument(render_nodes, case_helper.component_element),
-					metadata: { path: [] },
-				},
+				combined_return_statement(render_nodes, case_helper.component_element),
 			],
 			metadata: { path: [] },
 		});
@@ -1673,11 +1760,7 @@ function create_continuation_lift_switch_statement(
 			}),
 			switch_node,
 		),
-		{
-			type: 'ReturnStatement',
-			argument: combine_render_return_argument(render_nodes, tail_helper.component_element),
-			metadata: { path: [] },
-		},
+		combined_return_statement(render_nodes, tail_helper.component_element),
 	];
 }
 
@@ -1726,7 +1809,7 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	let tail_helper = null;
 	/** @type {AST.Identifier} */ let tail_synthetic_id;
 	if (has_tail) {
-		tail_helper = create_hook_safe_helper(continuation_body, undefined, node, transform_context);
+		tail_helper = build_tail_helper(continuation_body, node, transform_context);
 		tail_synthetic_id = create_generated_identifier(
 			`_tsrx_isLast_${transform_context.local_statement_component_index + 1}`,
 		);
@@ -1742,9 +1825,7 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 						type: 'LogicalExpression',
 						operator: '&&',
 						left: clone_identifier(tail_synthetic_id),
-						right: clone_expression_node_without_locations(
-							/** @type {any} */ (tail_helper).component_element,
-						),
+						right: clone_tail_invocation(/** @type {any} */ (tail_helper)),
 						metadata: { path: [] },
 					},
 					metadata: { path: [] },
@@ -1752,70 +1833,13 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 			]
 		: original_loop_body;
 
-	// Always hoist the iteration source into a generated `let` so that
-	// (a) the type aliases below have a stable name to reference and
-	// (b) we can normalize it at runtime via
-	// `Array.isArray(src) ? src : Array.from(src)`, avoiding a copy when
-	// the source is already an array but still working for any iterable.
 	const source_id = create_generated_identifier(
 		`_tsrx_iteration_items_${transform_context.local_statement_component_index + 1}`,
 	);
-	const source_decl = /** @type {any} */ ({
-		type: 'VariableDeclaration',
-		kind: 'let',
-		declarations: [
-			{
-				type: 'VariableDeclarator',
-				id: clone_identifier(source_id),
-				init: clone_expression_node(node.right),
-				metadata: { path: [] },
-			},
-		],
-		metadata: { path: [] },
-	});
-	const source_normalize_decl = /** @type {any} */ ({
-		type: 'ExpressionStatement',
-		expression: {
-			type: 'AssignmentExpression',
-			operator: '=',
-			left: clone_identifier(source_id),
-			right: {
-				type: 'ConditionalExpression',
-				test: {
-					type: 'CallExpression',
-					callee: {
-						type: 'MemberExpression',
-						object: { type: 'Identifier', name: 'Array', metadata: { path: [] } },
-						property: { type: 'Identifier', name: 'isArray', metadata: { path: [] } },
-						computed: false,
-						optional: false,
-						metadata: { path: [] },
-					},
-					arguments: [clone_identifier(source_id)],
-					optional: false,
-					metadata: { path: [] },
-				},
-				consequent: clone_identifier(source_id),
-				alternate: {
-					type: 'CallExpression',
-					callee: {
-						type: 'MemberExpression',
-						object: { type: 'Identifier', name: 'Array', metadata: { path: [] } },
-						property: { type: 'Identifier', name: 'from', metadata: { path: [] } },
-						computed: false,
-						optional: false,
-						metadata: { path: [] },
-					},
-					arguments: [clone_identifier(source_id)],
-					optional: false,
-					metadata: { path: [] },
-				},
-				metadata: { path: [] },
-			},
-			metadata: { path: [] },
-		},
-		metadata: { path: [] },
-	});
+	const { source_decl, source_normalize_decl } = build_array_normalization_decls(
+		source_id,
+		node.right,
+	);
 
 	const saved_bindings = transform_context.available_bindings;
 	transform_context.available_bindings = new Map(saved_bindings);
@@ -2057,9 +2081,7 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 					right: { type: 'Literal', value: 0, raw: '0' },
 					metadata: { path: [] },
 				},
-				consequent: clone_expression_node_without_locations(
-					/** @type {any} */ (tail_helper).component_element,
-				),
+				consequent: clone_tail_invocation(/** @type {any} */ (tail_helper)),
 				alternate: map_call,
 				metadata: { path: [] },
 			}),
