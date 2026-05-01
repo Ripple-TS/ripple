@@ -405,36 +405,6 @@ export function App({ kind }: { kind: 'a' | 'b' | 'c' }) {
 }"
 `;
 
-exports[`[react] continuation lift for switch-with-hook > non-empty fall-through (case with body but no terminator) bails out of the lift 1`] = `
-"let App__StatementBodyHook1;
-
-export function App({ kind }: { kind: 'a' | 'b' }) {
-	let x: number | undefined;
-
-	const _tsrx_child_0 = (() => {
-		switch (kind) {
-			case 'a':
-				x = 1;
-
-			case 'b':
-				const _tsrx_StatementBodyHook1_x = x;
-				const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ x }: { x: typeof _tsrx_StatementBodyHook1_x }) {
-					[x] = useState(100);
-
-					return <div>{x}</div>;
-				});
-				return <StatementBodyHook1 x={x} />;
-		}
-
-		return null;
-	})();
-
-	console.log(x);
-
-	return _tsrx_child_0;
-}"
-`;
-
 exports[`[react] continuation lift for switch-with-hook > non-empty fall-through merges the trailing case body into the falling case 1`] = `
 "let App__StatementBodyHook1;
 let App__StatementBodyHook3;
