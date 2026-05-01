@@ -26,7 +26,7 @@
     "@tsrx/react": "workspace:*",
     "@tsrx/ripple": "workspace:*",
     "@tsrx/solid": "workspace:*",
-    "@marko/tsrx": "^0.0.2",
+    "@marko/tsrx": "^0.0.3",
     "prettier-plugin-marko": "^4.0.9",
     "@tsrx/vue": "workspace:*",
     "prettier": "catalog:",

@@ -1442,8 +1442,8 @@ importers:
         specifier: ^6.38.6
         version: 6.41.1
       '@marko/tsrx':
-        specifier: ^0.0.2
-        version: 0.0.2
+        specifier: ^0.0.3
+        version: 0.0.3
       '@ripple-ts/adapter-node':
         specifier: workspace:*
         version: link:../packages/adapter-node
@@ -2316,8 +2316,8 @@ packages:
   '@marijn/find-cluster-break@1.0.2':
     resolution: {integrity: sha512-l0h88YhZFyKdXIFNfSWpyjStDjGHwZ/U7iobcK1cQQD8sejsONdQtTVU+1wVN1PBw40PiiHB1vA5S7VTfQiP9g==}
 
-  '@marko/tsrx@0.0.2':
-    resolution: {integrity: sha512-AicFpdN8G9OByQp3+hc9Lq9U6bYGvS3Ly6gk59nXCOzEsWftpsA8+cpFAepeIrzOkr+PwGNuc6hcBze5ZHM22Q==}
+  '@marko/tsrx@0.0.3':
+    resolution: {integrity: sha512-LqQaNcwuVSTrp3pKxSBHOJV5DN/QymgzTZ+R81tbEHF8ckueiRinyYdF+L22boRGHr6VbE1Nv2CIUyALWhs/9Q==}
     engines: {node: '>=18.0.0'}
 
   '@modelcontextprotocol/sdk@1.27.1':
@@ -8225,7 +8225,7 @@ snapshots:
 
   '@marijn/find-cluster-break@1.0.2': {}
 
-  '@marko/tsrx@0.0.2':
+  '@marko/tsrx@0.0.3':
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
       '@tsrx/core': 0.0.14
