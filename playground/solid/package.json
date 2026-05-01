@@ -16,6 +16,7 @@
     "solid-js": "2.0.0-beta.7"
   },
   "devDependencies": {
+    "@ripple-ts/language-server": "workspace:*",
     "@tsrx/typescript-plugin": "workspace:*",
     "@tsrx/solid": "workspace:*",
     "@tsrx/vite-plugin-solid": "workspace:*",

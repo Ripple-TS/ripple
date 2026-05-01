@@ -20,7 +20,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "changeset": "changeset",
-    "changeset:version": "changeset version",
+    "changeset:version": "changeset version && node scripts/sync-zed-plugin-version.js",
     "changeset:publish": "changeset publish",
     "regenerate-textmate": "node scripts/regenerate-textmate.js",
     "copy-tree-sitter-queries": "node ./scripts/copy-tree-sitter-queries.js",

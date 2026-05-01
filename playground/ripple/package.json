@@ -20,6 +20,7 @@
   "devDependencies": {
     "@tsrx/eslint-plugin": "workspace:*",
     "@tsrx/typescript-plugin": "workspace:*",
+    "@ripple-ts/language-server": "workspace:*",
     "@ripple-ts/vite-plugin": "workspace:*",
     "@typescript-eslint/parser": "catalog:default",
     "@tailwindcss/vite": "catalog:default",

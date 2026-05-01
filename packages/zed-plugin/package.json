@@ -1,6 +1,6 @@
 {
   "name": "@ripple-ts/zed-plugin",
-  "version": "0.0.84",
+  "version": "0.0.85",
   "description": "",
   "private": true,
   "main": "index.js",
@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "config": {
-    "@ripple-ts/language-server": "0.2.208"
+    "@ripple-ts/language-server": "0.3.41"
   },
   "packageManager": "pnpm@10.18.2"
 }

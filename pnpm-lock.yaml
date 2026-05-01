@@ -1223,6 +1223,9 @@ importers:
         specifier: catalog:default
         version: 19.2.4(react@19.2.4)
     devDependencies:
+      '@ripple-ts/language-server':
+        specifier: workspace:*
+        version: link:../../packages/language-server
       '@tsrx/react':
         specifier: workspace:*
         version: link:../../packages/tsrx-react
@@ -1254,6 +1257,9 @@ importers:
         specifier: catalog:peer
         version: 4.2.1
     devDependencies:
+      '@ripple-ts/language-server':
+        specifier: workspace:*
+        version: link:../../packages/language-server
       '@ripple-ts/vite-plugin':
         specifier: workspace:*
         version: link:../../packages/vite-plugin
@@ -1297,6 +1303,9 @@ importers:
         specifier: 2.0.0-beta.7
         version: 2.0.0-beta.7
     devDependencies:
+      '@ripple-ts/language-server':
+        specifier: workspace:*
+        version: link:../../packages/language-server
       '@tsrx/solid':
         specifier: workspace:*
         version: link:../../packages/tsrx-solid
@@ -1322,6 +1331,9 @@ importers:
         specifier: 3.6.0-beta.8
         version: 3.6.0-beta.8(typescript@5.9.3)
     devDependencies:
+      '@ripple-ts/language-server':
+        specifier: workspace:*
+        version: link:../../packages/language-server
       '@tsrx/typescript-plugin':
         specifier: workspace:*
         version: link:../../packages/typescript-plugin

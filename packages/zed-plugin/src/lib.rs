@@ -34,29 +34,43 @@ impl TsrxExtension {
 
     fn system_binary_path(worktree: &zed::Worktree) -> Option<PathBuf> {
         let (os, _) = zed::current_platform();
-        let candidates: &[&str] = match os {
-            zed::Os::Windows => &[
-                "ripple-language-server.cmd",
-                "ripple-language-server",
-                "node_modules/.bin/ripple-language-server.cmd",
-                "node_modules/.bin/ripple-language-server",
-            ],
-            _ => &[
-                "ripple-language-server",
-                "node_modules/.bin/ripple-language-server",
-            ],
+        let bin_name = match os {
+            zed::Os::Windows => "ripple-language-server.cmd",
+            _ => "ripple-language-server",
         };
 
-        for candidate in candidates {
-            if let Some(path) = worktree.which(candidate) {
-                let path_buf = PathBuf::from(path);
-                if fs::metadata(&path_buf).map_or(false, |stat| stat.is_file()) {
-                    return Some(path_buf);
-                }
+        let root_str = worktree.root_path();
+        eprintln!("[ripple-ext] worktree root: {}", root_str);
+        let root = PathBuf::from(&root_str);
+
+        // 1. Project-local: if the project's package.json declares
+        //    PACKAGE_NAME as a dep, npm/pnpm will have placed a bin wrapper at
+        //    node_modules/.bin/<bin_name>. We can't probe inside node_modules
+        //    via worktree.read_text_file (Zed excludes it from the indexed
+        //    worktree), so we read package.json instead and infer.
+        let needle = format!("\"{}\"", PACKAGE_NAME);
+        if let Ok(pkg_json) = worktree.read_text_file("package.json") {
+            if pkg_json.contains(&needle) {
+                let abs = root.join("node_modules").join(".bin").join(bin_name);
+                eprintln!("[ripple-ext] using project-local bin: {}", abs.display());
+                return Some(abs);
             }
+            eprintln!("[ripple-ext] package.json does not declare {}", PACKAGE_NAME);
+        } else {
+            eprintln!("[ripple-ext] no package.json at worktree root");
         }
 
-        None
+        // 2. PATH lookup (for global installs).
+        match worktree.which(bin_name) {
+            Some(path) => {
+                eprintln!("[ripple-ext] which({}) -> {}", bin_name, path);
+                Some(PathBuf::from(path))
+            }
+            None => {
+                eprintln!("[ripple-ext] which({}) -> None; falling back to npm install", bin_name);
+                None
+            }
+        }
     }
 
     fn install_language_server(

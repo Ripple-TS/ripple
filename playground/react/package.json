@@ -16,6 +16,7 @@
     "react-dom": "catalog:default"
   },
   "devDependencies": {
+    "@ripple-ts/language-server": "workspace:*",
     "@tsrx/react": "workspace:*",
     "@tsrx/vite-plugin-react": "workspace:*",
     "@tsrx/typescript-plugin": "workspace:*",
