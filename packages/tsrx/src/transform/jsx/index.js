@@ -1531,28 +1531,17 @@ function create_continuation_lift_if_statement(
 		transform_context,
 	);
 
+	const branch_block = set_loc(
+		b.block([
+			...branch_helper.setup_statements,
+			combined_return_statement(render_nodes, branch_helper.component_element),
+		]),
+		if_node.consequent,
+	);
+
 	return [
 		...tail_helper.setup_statements,
-		set_loc(
-			/** @type {any} */ ({
-				type: 'IfStatement',
-				test: if_node.test,
-				consequent: set_loc(
-					/** @type {any} */ ({
-						type: 'BlockStatement',
-						body: [
-							...branch_helper.setup_statements,
-							combined_return_statement(render_nodes, branch_helper.component_element),
-						],
-						metadata: { path: [] },
-					}),
-					if_node.consequent,
-				),
-				alternate: null,
-				metadata: { path: [] },
-			}),
-			if_node,
-		),
+		set_loc(b.if(if_node.test, branch_block, null), if_node),
 		combined_return_statement(render_nodes, tail_helper.component_element),
 	];
 }
@@ -1660,8 +1649,8 @@ function create_continuation_lift_switch_statement(
 ) {
 	const tail_helper = build_tail_helper(continuation_body, switch_node, transform_context);
 
-	const new_cases = switch_node.cases.map((/** @type {any} */ switch_case) => {
-		const consequent = flatten_switch_consequent(switch_case.consequent || []);
+	const new_cases = switch_node.cases.map((/** @type {any} */ original_case) => {
+		const consequent = flatten_switch_consequent(original_case.consequent || []);
 		const body_without_terminator = [];
 		for (const node of consequent) {
 			if (node.type === 'BreakStatement' || node.type === 'ReturnStatement') break;
@@ -1669,43 +1658,25 @@ function create_continuation_lift_switch_statement(
 		}
 
 		if (body_without_terminator.length === 0) {
-			return /** @type {any} */ ({
-				type: 'SwitchCase',
-				test: switch_case.test,
-				consequent: [],
-				metadata: { path: [] },
-			});
+			return b.switch_case(original_case.test, []);
 		}
 
 		const case_helper = create_hook_safe_helper(
 			append_tail_invocation(body_without_terminator, tail_helper),
 			undefined,
-			switch_case,
+			original_case,
 			transform_context,
 		);
 
-		return /** @type {any} */ ({
-			type: 'SwitchCase',
-			test: switch_case.test,
-			consequent: [
-				...case_helper.setup_statements,
-				combined_return_statement(render_nodes, case_helper.component_element),
-			],
-			metadata: { path: [] },
-		});
+		return b.switch_case(original_case.test, [
+			...case_helper.setup_statements,
+			combined_return_statement(render_nodes, case_helper.component_element),
+		]);
 	});
 
 	return [
 		...tail_helper.setup_statements,
-		set_loc(
-			/** @type {any} */ ({
-				type: 'SwitchStatement',
-				discriminant: switch_node.discriminant,
-				cases: new_cases,
-				metadata: { path: [] },
-			}),
-			switch_node,
-		),
+		set_loc(b.switch(switch_node.discriminant, new_cases), switch_node),
 		combined_return_statement(render_nodes, tail_helper.component_element),
 	];
 }
@@ -1765,17 +1736,13 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	const loop_body = has_tail
 		? [
 				...original_loop_body,
-				/** @type {any} */ ({
-					type: 'JSXExpressionContainer',
-					expression: {
-						type: 'LogicalExpression',
-						operator: '&&',
-						left: clone_identifier(tail_synthetic_id),
-						right: clone_tail_invocation(/** @type {any} */ (tail_helper)),
-						metadata: { path: [] },
-					},
-					metadata: { path: [] },
-				}),
+				b.jsx_expression_container(
+					b.logical(
+						'&&',
+						clone_identifier(tail_synthetic_id),
+						clone_tail_invocation(/** @type {any} */ (tail_helper)),
+					),
+				),
 			]
 		: original_loop_body;
 
@@ -1822,13 +1789,10 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	const tail_isLast_alias = has_tail
 		? {
 				id: create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
-				declaration: /** @type {any} */ ({
-					type: 'TSTypeAliasDeclaration',
-					id: create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
-					typeAnnotation: { type: 'TSBooleanKeyword', metadata: { path: [] } },
-					typeParameters: null,
-					metadata: { path: [] },
-				}),
+				declaration: b.ts_type_alias(
+					create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
+					b.ts_keyword_type('boolean'),
+				),
 			}
 		: null;
 
@@ -1861,19 +1825,10 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	const fn_body_statements = build_render_statements(loop_body, true, transform_context);
 	transform_context.available_bindings = fn_saved_bindings;
 
-	const helper_fn = /** @type {any} */ ({
-		type: 'FunctionExpression',
-		id: clone_identifier(helper_id),
-		params,
-		body: {
-			type: 'BlockStatement',
-			body: fn_body_statements,
-			metadata: { path: [] },
-		},
-		async: false,
-		generator: false,
-		metadata: { path: [], is_component: true, is_method: false },
-	});
+	const helper_fn = /** @type {any} */ (
+		b.function(clone_identifier(helper_id), params, b.block(fn_body_statements))
+	);
+	helper_fn.metadata = { path: [], is_component: true, is_method: false };
 
 	let helper_decl;
 	if (transform_context.helper_state) {
@@ -1919,52 +1874,23 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 		(loop_params.length >= 2 ? clone_identifier(loop_params[1]) : undefined);
 	if (key_expression) {
 		callback_invocation_element.openingElement.attributes.push(
-			/** @type {any} */ ({
-				type: 'JSXAttribute',
-				name: { type: 'JSXIdentifier', name: 'key', metadata: { path: [] } },
-				value: to_jsx_expression_container(key_expression, key_expression),
-				metadata: { path: [] },
-			}),
+			b.jsx_attribute(b.jsx_id('key'), to_jsx_expression_container(key_expression, key_expression)),
 		);
 	}
 
 	if (has_tail && index_identifier) {
+		const length_minus_one = b.binary(
+			'-',
+			b.member(clone_identifier(source_id), 'length'),
+			b.literal(1),
+		);
 		callback_invocation_element.openingElement.attributes.push(
-			/** @type {any} */ ({
-				type: 'JSXAttribute',
-				name: {
-					type: 'JSXIdentifier',
-					name: tail_synthetic_id.name,
-					metadata: { path: [] },
-				},
-				value: to_jsx_expression_container(
-					/** @type {any} */ ({
-						type: 'BinaryExpression',
-						operator: '===',
-						left: clone_identifier(index_identifier),
-						right: {
-							type: 'BinaryExpression',
-							operator: '-',
-							left: {
-								type: 'MemberExpression',
-								object: clone_identifier(source_id),
-								property: {
-									type: 'Identifier',
-									name: 'length',
-									metadata: { path: [] },
-								},
-								computed: false,
-								optional: false,
-								metadata: { path: [] },
-							},
-							right: { type: 'Literal', value: 1, raw: '1' },
-							metadata: { path: [] },
-						},
-						metadata: { path: [] },
-					}),
+			b.jsx_attribute(
+				b.jsx_id(tail_synthetic_id.name),
+				to_jsx_expression_container(
+					b.binary('===', clone_identifier(index_identifier), length_minus_one),
 				),
-				metadata: { path: [] },
-			}),
+			),
 		);
 	}
 
@@ -1976,66 +1902,23 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 				]
 			: loop_params.map((/** @type {any} */ p) => clone_identifier(p));
 
-	const iter_callback = /** @type {any} */ ({
-		type: 'ArrowFunctionExpression',
-		params: callback_params,
-		body: callback_invocation_element,
-		async: false,
-		generator: false,
-		expression: true,
-		metadata: { path: [] },
-	});
+	const iter_callback = b.arrow(callback_params, callback_invocation_element);
 
-	const map_call = /** @type {any} */ ({
-		type: 'CallExpression',
-		callee: {
-			type: 'MemberExpression',
-			object: clone_identifier(source_id),
-			property: /** @type {any} */ ({
-				type: 'Identifier',
-				name: 'map',
-				metadata: { path: [] },
-			}),
-			computed: false,
-			optional: false,
-			metadata: { path: [] },
-		},
-		arguments: [iter_callback],
-		optional: false,
-		metadata: { path: [] },
-	});
+	const map_call = b.call(b.member(clone_identifier(source_id), 'map'), iter_callback);
 
 	// jsx_child for the iteration. When there's a tail, also render the tail
 	// helper directly when the source is empty (no iterations means the loop
 	// helper never fires, so the tail wouldn't run otherwise).
-	let jsx_child;
-	if (has_tail) {
-		jsx_child = to_jsx_expression_container(
-			/** @type {any} */ ({
-				type: 'ConditionalExpression',
-				test: {
-					type: 'BinaryExpression',
-					operator: '===',
-					left: {
-						type: 'MemberExpression',
-						object: clone_identifier(source_id),
-						property: { type: 'Identifier', name: 'length', metadata: { path: [] } },
-						computed: false,
-						optional: false,
-						metadata: { path: [] },
-					},
-					right: { type: 'Literal', value: 0, raw: '0' },
-					metadata: { path: [] },
-				},
-				consequent: clone_tail_invocation(/** @type {any} */ (tail_helper)),
-				alternate: map_call,
-				metadata: { path: [] },
-			}),
-			node,
-		);
-	} else {
-		jsx_child = to_jsx_expression_container(map_call, node);
-	}
+	const jsx_child = has_tail
+		? to_jsx_expression_container(
+				b.conditional(
+					b.binary('===', b.member(clone_identifier(source_id), 'length'), b.literal(0)),
+					clone_tail_invocation(/** @type {any} */ (tail_helper)),
+					map_call,
+				),
+				node,
+			)
+		: to_jsx_expression_container(map_call, node);
 
 	const hoist_statements = [source_decl, source_normalize_decl];
 	if (has_tail) {
@@ -2071,28 +1954,17 @@ function create_loop_scoped_type_alias_declaration(helper_id, binding, source_id
 	const alias_id = create_generated_identifier(`_tsrx_${helper_id.name}_${binding.name}`);
 	const is_index = loop_params.length > 1 && binding.name === loop_params[1].name;
 	const type_annotation = is_index
-		? /** @type {any} */ ({ type: 'TSNumberKeyword', metadata: { path: [] } })
+		? b.ts_keyword_type('number')
 		: /** @type {any} */ ({
 				type: 'TSIndexedAccessType',
-				objectType: {
-					type: 'TSTypeQuery',
-					exprName: clone_identifier(source_id),
-					typeArguments: null,
-					metadata: { path: [] },
-				},
-				indexType: { type: 'TSNumberKeyword', metadata: { path: [] } },
+				objectType: b.ts_type_query(clone_identifier(source_id)),
+				indexType: b.ts_keyword_type('number'),
 				metadata: { path: [] },
 			});
 
 	return {
 		id: alias_id,
-		declaration: /** @type {any} */ ({
-			type: 'TSTypeAliasDeclaration',
-			id: clone_identifier(alias_id),
-			typeAnnotation: type_annotation,
-			typeParameters: null,
-			metadata: { path: [] },
-		}),
+		declaration: b.ts_type_alias(clone_identifier(alias_id), type_annotation),
 	};
 }
 
@@ -2108,37 +1980,17 @@ function create_loop_scoped_type_alias_declaration(helper_id, binding, source_id
  * @returns {any}
  */
 function create_helper_props_type_literal_with_typeof_flags(bindings, aliases, use_typeof) {
-	return /** @type {any} */ ({
-		type: 'TSTypeLiteral',
-		members: bindings.map((binding, i) => ({
-			type: 'TSPropertySignature',
-			key: create_generated_identifier(binding.name),
-			computed: false,
-			optional: false,
-			readonly: false,
-			static: false,
-			kind: 'init',
-			typeAnnotation: {
-				type: 'TSTypeAnnotation',
-				typeAnnotation: use_typeof[i]
-					? {
-							type: 'TSTypeQuery',
-							exprName: clone_identifier(aliases[i].id),
-							typeArguments: null,
-							metadata: { path: [] },
-						}
-					: {
-							type: 'TSTypeReference',
-							typeName: clone_identifier(aliases[i].id),
-							typeArguments: null,
-							metadata: { path: [] },
-						},
-				metadata: { path: [] },
-			},
-			metadata: { path: [] },
-		})),
-		metadata: { path: [] },
-	});
+	return b.ts_type_literal(
+		bindings.map((binding, i) => {
+			const alias_ref = use_typeof[i]
+				? b.ts_type_query(clone_identifier(aliases[i].id))
+				: b.ts_type_reference(clone_identifier(aliases[i].id));
+			return b.ts_property_signature(
+				create_generated_identifier(binding.name),
+				b.ts_type_annotation(alias_ref),
+			);
+		}),
+	);
 }
 
 /**
