@@ -230,9 +230,9 @@ export default component App() {
 		code: `component Truthy({ x }) {
   <div>
     if (x) {
-      <span>{'x is truthy'}</span>
+      <span>"x is truthy"</span>
     } else {
-      <span>{'x is falsy'}</span>
+      <span>"x is falsy"</span>
     }
   </div>
 }
@@ -278,7 +278,7 @@ export default component App() {
 component ListWithIndex({ items }) {
   <ul>
     for (const item of items; index i) {
-      <li>{\`\${i}: \${item}\`}</li>
+      <li>{i}": "{item}</li>
     }
   </ul>
 }
@@ -307,7 +307,7 @@ export default component ErrorBoundary() {
     } catch (e) {
       reportError(e);
 
-      <div>{'An error occurred! ' + e.message}</div>
+      <div>"An error occurred! "{e.message}</div>
     }
   </div>
 }`,
@@ -412,9 +412,9 @@ export default component App() {
 	});
 
 	<div>
-		<button onClick={() => first++}>{'First: '}{first}</button>
-		<button onClick={() => second++}>{'Second: '}{second}</button>
-		<p>{'Total: '}{total}</p>
+		<button onClick={() => first++}>"First: "{first}</button>
+		<button onClick={() => second++}>"Second: "{second}</button>
+		<p>"Total: "{total}</p>
 	</div>
 }
 `,
@@ -596,10 +596,10 @@ export default component App() {
   let &[count] = track(0);
 
   const &[ double ] = createDouble([ count ]); // array
-  <p>{'Double: ' + double}</p>
+  <p>"Double: "{double}</p>
 
   const &{ quad } = createQuad({ count }); // object
-  <p>{'Quadruple: ' + quad}</p>
+  <p>"Quadruple: "{quad}</p>
 
 	<button onClick={() => { count++; }}>"Increment"</button>
 }
@@ -615,7 +615,7 @@ export default component App() {
   <Child swapMe={swapMeTracked} />
 
   <button onClick={() => swapMe = swapMe === Child1 ? Child2 : Child1}>
-		{'Swap Component'}
+		"Swap Component"
 	</button>
 }
 
@@ -624,11 +624,11 @@ component Child({ swapMe }: {swapMe: Tracked<Component>}) {
 }
 
 component Child1(props) {
-  <pre>{'I am child 1'}</pre>
+  <pre>"I am child 1"</pre>
 }
 
 component Child2(props) {
-  <pre>{'I am child 2'}</pre>
+  <pre>"I am child 2"</pre>
 }
 `,
 	},
@@ -646,8 +646,8 @@ export default component App() {
   const &[AnotherButton] = track(() => SomeButton);
 
   <@ripple_object.tracked_basic />
-  <Child {Button}>{'Child Button'}</Child>
-  <AnotherChild Button={AnotherButton}>{'Another Child Button'}</AnotherChild>
+  <Child {Button}>"Child Button"</Child>
+  <AnotherChild Button={AnotherButton}>"Another Child Button"</AnotherChild>
 }
 
 component Child({ Button, children }) {
@@ -665,7 +665,7 @@ component SomeButton({ children }) {
 }
 
 component basic() {
-  <div>{'Basic Component'}</div>
+  <div>"Basic Component"</div>
 }
 `,
 	},
@@ -693,8 +693,8 @@ export default component App() {
   let &[message] = track('');
 
   <div>
-		<p>{'Try resizing the window!'}</p>
-    <button onClick={() => message = 'Clicked!'}>{'Click me'}</button>
+		<p>"Try resizing the window!"</p>
+    <button onClick={() => message = 'Clicked!'}>"Click me"</button>
     <input onInput={(e) => message = e.target.value} />
     <p>{message}</p>
   </div>

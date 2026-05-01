@@ -61,7 +61,7 @@ expressions must be wrapped in curly braces `{}`.
 <p>"Use &quot; for a quote and &amp; for an ampersand"</p>
 
 // ✅ CORRECT - JavaScript strings in expressions
-<div>{"Hello World"}</div>
+<div>{'Hello World'}</div>
 <p>{"This works correctly"}</p>
 
 // ✅ CORRECT - Variables and expressions
@@ -85,14 +85,14 @@ closing quote.
 
 ```ripple
 // ❌ WRONG - Templates outside component
-const element = <div>{"Hello"}</div>;  // Compilation error
+const element = <div>"Hello"</div>;  // Compilation error
 
 function regularFunction() {
-  return <span>{"Not allowed"}</span>;  // Compilation error
+  return <span>"Not allowed"</span>;  // Compilation error
 }
 
 const myTemplate = (
-  <div>{"Cannot assign JSX"}</div>  // Compilation error
+  <div>"Cannot assign JSX"</div>  // Compilation error
 );
 
 // ✅ CORRECT - Templates only inside components
@@ -188,17 +188,17 @@ component App() {
 // ✅ CORRECT - Guard clause with early return
 component AuthGate({ is_logged_in }) {
   if (!is_logged_in) {
-    <p>{'Please sign in.'}</p>
+    <p>"Please sign in."</p>
     return;
   }
 
-  <h1>{'Dashboard'}</h1>
+  <h1>"Dashboard"</h1>
 }
 
 // ❌ WRONG - Returning templates from components
 component App() {
   if (loading) {
-    return <p>{'Loading...'}</p>;  // Compilation error
+    return <p>"Loading..."</p>;  // Compilation error
   }
 }
 
@@ -240,10 +240,10 @@ component TemplateScope() {
     const isEven = count % 2 === 0;
 
     <h1>{message}</h1>
-    <p>{"Count is: "}{count}</p>
+    <p>"Count is: "{count}</p>
 
     if (isEven) {
-      <span>{"Count is even"}</span>
+      <span>"Count is even"</span>
     }
 
     // Nested scopes work too
@@ -432,7 +432,7 @@ const &{ a, ...rest } = props;
 component Child(&{ count, className, children }: Props) {
   // count, className, children are lazily read from __props
   <button class={className}>{children}</button>
-  <pre>{`Count is: ${count}`}</pre>
+  <pre>"Count is: "{count}</pre>
 }
 ```
 
@@ -493,7 +493,7 @@ export component App() {
 
   <Child swapMe={swapMeTracked} />
 
-  <button onClick={() => swapMe = swapMe === Child1 ? Child2 : Child1}>{'Swap Component'}</button>
+  <button onClick={() => swapMe = swapMe === Child1 ? Child2 : Child1}>"Swap Component"</button>
 }
 
 component Child(&{ swapMe }: {swapMe: Tracked<Component>}) {
@@ -501,11 +501,11 @@ component Child(&{ swapMe }: {swapMe: Tracked<Component>}) {
 }
 
 component Child1(props) {
-  <pre>{'I am child 1'}</pre>
+  <pre>"I am child 1"</pre>
 }
 
 component Child2(props) {
-  <pre>{'I am child 2'}</pre>
+  <pre>"I am child 2"</pre>
 }
 ```
 
@@ -523,9 +523,9 @@ component Child2(props) {
 component Conditional({ isVisible }) {
   <div>
     if (isVisible) {
-      <span>{"Visible content"}</span>
+      <span>"Visible content"</span>
     } else {
-      <span>{"Hidden state"}</span>
+      <span>"Hidden state"</span>
     }
   </div>
 }
@@ -555,10 +555,10 @@ component StatusIndicator({ status }) {
       <p>"Success!"</p>
       break;
     case 'error':
-      <p>{'Error!'}</p>
+      <p>"Error!"</p>
       break;
     default:
-      <p>{'Unknown status'}</p>
+      <p>"Unknown status"</p>
       // No break needed for default
   }
 }
@@ -572,25 +572,25 @@ import { track } from 'ripple';
 component InteractiveStatus() {
   let &[status] = track('loading'); // Reactive state
 
-  <button onClick={() => status = 'success'>{'Set to Success'}</button>
-  <button onClick={() => status = 'error'}>{'Set to Error'}</button>
+  <button onClick={() => status = 'success'}>"Set to Success"</button>
+  <button onClick={() => status = 'error'}>"Set to Error"</button>
 
   // This switch block will update automatically when 'status' changes
   switch (status) {
 		case 'init':
-			<p>{'Status: Init'}</p>
+			<p>"Status: Init"</p>
 			// fall-through to the next
     case 'loading':
-      <p>{'Status: Loading...'}</p>
+      <p>"Status: Loading..."</p>
       break;
     case 'success':
-      <p>{'Status: Success!'}</p>
+      <p>"Status: Success!"</p>
       break;
     case 'error':
-      <p>{'Status: Error!'}</p>
+      <p>"Status: Error!"</p>
       break;
     default:
-      <p>{'Status: Unknown'}</p>
+      <p>"Status: Unknown"</p>
   }
 }
 ```
@@ -612,7 +612,7 @@ component ListView({ title, items }) {
   <h2>{title}</h2>
   <ul>
     for (const item of items; index i) {
-      <li>{item.text}{' at index '}{i}</li>
+      <li>{item.text}" at index "{i}</li>
     }
   </ul>
 }
@@ -624,7 +624,7 @@ component ListView({ title, items }) {
   <h2>{title}</h2>
   <ul>
     for (const item of items; index i; key item.id) {
-      <li>{item.text}{' at index '}{i}</li>
+      <li>{item.text}" at index "{i}</li>
     }
   </ul>
 }
@@ -653,7 +653,7 @@ component ErrorBoundary() {
     try {
       <ComponentThatMightFail />
     } catch (e) {
-      <div>{"Error: "}{e.message}</div>
+      <div>"Error: "{e.message}</div>
     }
   </div>
 }
@@ -698,7 +698,7 @@ component EventExample() {
   let &[message] = track("");
 
   <div>
-    <button onClick={() => message = "Clicked!"}>{"Click me"}</button>
+    <button onClick={() => message = "Clicked!"}>"Click me"</button>
     <input onInput={(e) => message = e.target.value} />
     <p>{message}</p>
   </div>
@@ -737,7 +737,7 @@ Components support scoped CSS with `<style>` elements:
 ```ripple
 component StyledComponent() {
   <div class="container">
-    <h1>{"Styled Content"}</h1>
+    <h1>"Styled Content"</h1>
   </div>
 
   <style>
@@ -772,7 +772,7 @@ component Parent() {
 }
 
 component Child() {
-  <div class="child-class">{"I won't be red"}</div>
+  <div class="child-class">"I won't be red"</div>
 }
 ```
 
@@ -1014,12 +1014,12 @@ export component App() {
   context2.set(count2Tracked);
 
   <button onClick={() => { objCount++; count2++ }}>
-    {'Click Me'}
+    "Click Me"
   </button>
 
   // context's reactive property count gets updated
-  <pre>{'Context: '}{objCount}</pre>
-  <pre>{'Context2: '}{count2}</pre>
+  <pre>"Context: "{objCount}</pre>
+  <pre>"Context2: "{count2}</pre>
 }
 ```
 
@@ -1104,11 +1104,11 @@ export component App() {
   const items = new RippleArray(1, 2, 3);
 
   <div>
-    <p>{"Length: "}{items.length}</p>  // Reactive length
+    <p>"Length: "{items.length}</p>  // Reactive length
     for (const item of items) {
       <div>{item}</div>
     }
-    <button onClick={() => items.push(items.length + 1)}>{"Add"}</button>
+    <button onClick={() => items.push(items.length + 1)}>"Add"</button>
   </div>
 }
 ```
@@ -1149,9 +1149,9 @@ component SetExample() {
   const mySet = new RippleSet([1, 2, 3]);
 
   <div>
-    <p>{"Size: "}{mySet.size}</p>  // Reactive size
-    <p>{"Has 2: "}{mySet.has(2)}</p>
-    <button onClick={() => mySet.add(4)}>{"Add 4"}</button>
+    <p>"Size: "{mySet.size}</p>  // Reactive size
+    <p>"Has 2: "{mySet.has(2)}</p>
+    <button onClick={() => mySet.add(4)}>"Add 4"</button>
   </div>
 }
 ```
@@ -1175,14 +1175,14 @@ export component App() {
   const map = new RippleMap([[1,1], [2,2], [3,3], [4,4]]);
 
   // direct usage
-  <p>{"Direct usage: map has an item with key 2: "}{map.has(2)}</p>
+  <p>"Direct usage: map has an item with key 2: "{map.has(2)}</p>
 
   // reactive assignment
   let &[has] = track(() => map.has(2));
-  <p>{"Assigned usage: map has an item with key 2: "}{has}</p>
+  <p>"Assigned usage: map has an item with key 2: "{has}</p>
 
-  <button onClick={() => map.delete(2)}>{"Delete item with key 2"}</button>
-  <button onClick={() => map.set(2, 2)}>{"Add key 2 with value 2"}</button>
+  <button onClick={() => map.delete(2)}>"Delete item with key 2"</button>
+  <button onClick={() => map.set(2, 2)}>"Add key 2 with value 2"</button>
 }
 ```
 
@@ -1205,16 +1205,16 @@ export component App() {
   const date = new RippleDate(2025, 0, 1, 12, 0, 0);
 
   // direct usage
-  <p>{"Direct usage: Current year is "}{date.getFullYear()}</p>
-  <p>{"ISO String: "}{date.toISOString()}</p>
+  <p>"Direct usage: Current year is "{date.getFullYear()}</p>
+  <p>"ISO String: "{date.toISOString()}</p>
 
   // reactive assignment
   let &[year] = track(() => date.getFullYear());
   let &[month] = track(() => date.getMonth());
-  <p>{"Assigned usage: Year "}{year}{", Month "}{month}</p>
+  <p>"Assigned usage: Year "{year}", Month "{month}</p>
 
-  <button onClick={() => date.setFullYear(2027)}>{"Change to 2026"}</button>
-  <button onClick={() => date.setMonth(11)}>{"Change to December"}</button>
+  <button onClick={() => date.setFullYear(2027)}>"Change to 2026"</button>
+  <button onClick={() => date.setMonth(11)}>"Change to December"</button>
 }
 ```
 
@@ -1244,7 +1244,7 @@ import { Suspense } from 'react';
 
 component App() {
   <div class="ripple-container">
-    <h1>{"Ripple App"}</h1>
+    <h1>"Ripple App"</h1>
 
     {/* Embed React components using tsx:react */}
     <tsx:react>
@@ -1354,7 +1354,7 @@ component App() {
       <BuggyReactComponent />
     </tsx:react>
   } catch (error) {
-    <div class="error">{"An error occurred in the React component"}</div>
+    <div class="error">"An error occurred in the React component"</div>
   }
 }
 ```
@@ -1365,14 +1365,14 @@ component App() {
 ```ripple
 component App() {
   // Wrong: className is React syntax, use class in Ripple
-  <div className="container">{"Hello"}</div>
+  <div className="container">"Hello"</div>
 }
 ```
 
 **✅ CORRECT: Use Ripple syntax outside tsx:react, React syntax inside**
 ```ripple
 component App() {
-  <div class="container">{"Hello"}</div>
+  <div class="container">"Hello"</div>
   <tsx:react>
     <div className="react-div">React content</div>
   </tsx:react>

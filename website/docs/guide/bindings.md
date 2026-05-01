@@ -36,11 +36,11 @@ export component App() {
       placeholder="Enter your name"
     />
     <p>
-      {'Hello, '}
+      "Hello, "
       {name || 'stranger'}
-      {'!'}
+      "!"
     </p>
-    <button onClick={() => (name = '')}>{'Clear'}</button>
+    <button onClick={() => (name = '')}>"Clear"</button>
   </div>
 }
 ```
@@ -60,9 +60,9 @@ export component App() {
   <div>
     <input type="number" {ref bindValue(ageTracked)} min="0" max="120" />
     <p>
-      {'Age: '}
+      "Age: "
       {age}
-      {' years old'}
+      " years old"
     </p>
     <button onClick={() => (age = age + 1)}>"Increment"</button>
   </div>
@@ -83,13 +83,13 @@ export component App() {
 
   <div>
     <select {ref bindValue(selectedFruitTracked)}>
-      <option value="apple">{'Apple'}</option>
-      <option value="banana">{'Banana'}</option>
-      <option value="cherry">{'Cherry'}</option>
-      <option value="durian">{'Durian'}</option>
+      <option value="apple">"Apple"</option>
+      <option value="banana">"Banana"</option>
+      <option value="cherry">"Cherry"</option>
+      <option value="durian">"Durian"</option>
     </select>
     <p>
-      {'You selected: '}
+      "You selected: "
       {selectedFruit}
     </p>
   </div>
@@ -110,13 +110,13 @@ export component App() {
 
   <div>
     <select multiple {ref bindValue(selectedColorsTracked)} style="height: 100px">
-      <option value="red">{'Red'}</option>
-      <option value="green">{'Green'}</option>
-      <option value="blue">{'Blue'}</option>
-      <option value="yellow">{'Yellow'}</option>
+      <option value="red">"Red"</option>
+      <option value="green">"Green"</option>
+      <option value="blue">"Blue"</option>
+      <option value="yellow">"Yellow"</option>
     </select>
     <p>
-      {'Selected colors: '}
+      "Selected colors: "
       {selectedColors.join(', ')}
     </p>
   </div>
@@ -141,13 +141,13 @@ export component App() {
   <div>
     <label>
       <input type="checkbox" {ref bindChecked(agreedTracked)} />
-      {' I agree to the terms and conditions'}
+      " I agree to the terms and conditions"
     </label>
     <p>
-      {'Status: '}
+      "Status: "
       {agreed ? 'Agreed' : 'Not agreed'}
     </p>
-    <button disabled={!agreed}>{'Submit'}</button>
+    <button disabled={!agreed}>"Submit"</button>
   </div>
 }
 ```
@@ -185,14 +185,14 @@ export component App() {
         {ref bindChecked(checkedTracked)}
         {ref bindIndeterminate(indeterminateTracked)}
       />
-      {' Select All'}
+      " Select All"
     </label>
     <p>
-      {'Checked: '}
+      "Checked: "
       {checked ? 'Yes' : 'No'}
     </p>
     <p>
-      {'Indeterminate: '}
+      "Indeterminate: "
       {indeterminate ? 'Yes' : 'No'}
     </p>
     <button
@@ -203,7 +203,7 @@ export component App() {
         }
       }}
     >
-      {'Toggle Indeterminate'}
+      "Toggle Indeterminate"
     </button>
   </div>
 }
@@ -240,22 +240,22 @@ export component App() {
   <div>
     <label>
       <input type="checkbox" value="reading" {ref bindGroup(hobbiesTracked)} />
-      {' Reading'}
+      " Reading"
     </label>
     <label>
       <input type="checkbox" value="gaming" {ref bindGroup(hobbiesTracked)} />
-      {' Gaming'}
+      " Gaming"
     </label>
     <label>
       <input type="checkbox" value="sports" {ref bindGroup(hobbiesTracked)} />
-      {' Sports'}
+      " Sports"
     </label>
     <label>
       <input type="checkbox" value="cooking" {ref bindGroup(hobbiesTracked)} />
-      {' Cooking'}
+      " Cooking"
     </label>
     <p>
-      {'Selected: '}
+      "Selected: "
       {hobbies.join(', ') || 'none'}
     </p>
   </div>
@@ -279,20 +279,20 @@ export component App() {
   <div>
     <label>
       <input type="radio" name="size" value="small" {ref bindGroup(sizeTracked)} />
-      {' Small'}
+      " Small"
     </label>
     <label>
       <input type="radio" name="size" value="medium" {ref bindGroup(sizeTracked)} />
-      {' Medium'}
+      " Medium"
     </label>
     <label>
       <input type="radio" name="size" value="large" {ref bindGroup(sizeTracked)} />
-      {' Large'}
+      " Large"
     </label>
-    <p>{'Selected size: '}{size}</p>
+    <p>"Selected size: "{size}</p>
   </div>
 
-  <button onClick={() => size = 'medium'>{'Reset to "medium"'}</button>
+  <button onClick={() => size = 'medium'}>"Reset to &quot;medium&quot;"</button>
 }
 ```
 
@@ -359,24 +359,24 @@ export component App() {
 
     <div>
       if (files && files.length > 0) {
-        <p>{'Selected files:'}</p>
+        <p>"Selected files:"</p>
         <ul>
           for (const file of Array.from(files)) {
             <li>
               {file.name}
-              {' ('}
+              " ("
               {file.size}
-              {' bytes)'}
+              " bytes)"
             </li>
           }
         </ul>
       } else {
-        <p>{'No files selected'}</p>
+        <p>"No files selected"</p>
       }
     </div>
 
-    <button onClick={clearFiles}>{'Clear files'}</button>
-    <button onClick={createSampleFile}>{'Add sample file'}</button>
+    <button onClick={clearFiles}>"Clear files"</button>
+    <button onClick={createSampleFile}>"Add sample file"</button>
   </div>
 }
 ```
@@ -429,16 +429,16 @@ export component App() {
         minHeight: '100px',
       }}
     >
-      {'Resize me! (drag bottom-right corner)'}
+      "Resize me! (drag bottom-right corner)"
       <p>
-        {'Client Width: '}
+        "Client Width: "
         {width}
-        {'px'}
+        "px"
       </p>
       <p>
-        {'Client Height: '}
+        "Client Height: "
         {height}
-        {'px'}
+        "px"
       </p>
     </div>
   </div>
@@ -471,17 +471,17 @@ export component App() {
         height: '150px',
       }}
     >
-      {'Box with borders'}
+      "Box with borders"
     </div>
     <p>
-      {'Offset Width: '}
+      "Offset Width: "
       {width}
-      {'px (includes borders)'}
+      "px (includes borders)"
     </p>
     <p>
-      {'Offset Height: '}
+      "Offset Height: "
       {height}
-      {'px (includes borders)'}
+      "px (includes borders)"
     </p>
   </div>
 }
@@ -515,7 +515,7 @@ export component App() {
         minHeight: '100px',
       }}
     >
-      {'Resize me!'}
+      "Resize me!"
     </div>
     <pre>{JSON.stringify(rect, null, 2)}</pre>
   </div>
@@ -546,15 +546,16 @@ export component App() {
         height: '100px',
       }}
     >
-      {'Content box size'}
+      "Content box size"
     </div>
     <pre>
-      {'Block size: '}
+      "Block size: "
       {size[0]?.blockSize || 0}
-      {'px\n'}
-      {'Inline size: '}
+      "px"
+      <br />
+      "Inline size: "
       {size[0]?.inlineSize || 0}
-      {'px'}
+      "px"
     </pre>
   </div>
 }
@@ -584,15 +585,15 @@ export component App() {
         height: '100px',
       }}
     >
-      {'Border box size'}
+      "Border box size"
     </div>
     <pre>
-      {'Block size: '}
+      "Block size: "
       {size[0]?.blockSize || 0}
-      {'px\n'}
-      {'Inline size: '}
+      "px
+      Inline size: "
       {size[0]?.inlineSize || 0}
-      {'px'}
+      "px"
     </pre>
   </div>
 }
@@ -622,15 +623,16 @@ export component App() {
         height: '80px',
       }}
     >
-      {'Device pixel content box'}
+      "Device pixel content box"
     </div>
     <pre>
-      {'Block size: '}
+      "Block size: "
       {size[0]?.blockSize || 0}
-      {'px\n'}
-      {'Inline size: '}
+      "px"
+      <br />
+      "Inline size: "
       {size[0]?.inlineSize || 0}
-      {'px'}
+      "px"
     </pre>
   </div>
 }
@@ -662,7 +664,7 @@ export component App() {
         minHeight: '50px',
       }}
     />
-    <p>{'Raw HTML:'}</p>
+    <p>"Raw HTML:"</p>
     <pre>{content}</pre>
   </div>
 }
@@ -692,7 +694,7 @@ export component App() {
         minHeight: '50px'
       }}
     />
-    <p>{'Text content: '}{text}</p>
+    <p>"Text content: "{text}</p>
   </div>
 }
 ```
@@ -722,7 +724,7 @@ export component App() {
         whiteSpace: 'pre-wrap'
       }}
     />
-    <p>{'Text content: '}{text}</p>
+    <p>"Text content: "{text}</p>
   </div>
 }
 ```
@@ -760,9 +762,9 @@ export component App() {
         outline: 'none',
       }}
     >
-      {'Click the button to focus this div'}
+      "Click the button to focus this div"
     </div>
-    <button onClick={handleFocus}>{'Focus Div'}</button>
+    <button onClick={handleFocus}>"Focus Div"</button>
   </div>
 }
 ```
@@ -799,9 +801,9 @@ export component App() {
       placeholder="Type something..."
       style="width: 300px"
     />
-    <p>{'Text: '}{text}</p>
-    <p>{'Width: '}{width}{'px'}</p></p>
-    <button onClick={logInfo}>{'Log Info'}</button>
+    <p>"Text: "{text}</p>
+    <p>"Width: "{width}"px"</p>
+    <button onClick={logInfo}>"Log Info"</button>
   </div>
 }
 ```

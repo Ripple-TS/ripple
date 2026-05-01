@@ -14,7 +14,7 @@ export component App() {
   let &[curr_step] = track(0);
 
   <head>
-    <title>{`Step ${curr_step}`}</title>
+    <title>"Step "{curr_step}</title>
   </head>
 
   <button
@@ -22,7 +22,7 @@ export component App() {
       curr_step++;
     }}
   >
-    {'Next Step'}
+    "Next Step"
   </button>
 }
 ```

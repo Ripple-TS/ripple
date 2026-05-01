@@ -77,7 +77,7 @@ component Composite({ PropComp }: { PropComp: Component }) {
 }
 
 component Separate() {
-  <p>{`I'm a separate component.`}</p>
+  <p>"I'm a separate component."</p>
 }
 
 export component App() {
@@ -168,7 +168,7 @@ component Outer({ children }: { children: Children }) {
 export component App() {
   <Outer>
     component HelloGreeting() {
-      <p>{'Hello from inside!'}</p>
+      <p>"Hello from inside!"</p>
     }
 
     // It can be passed as a prop to <Inner>, which is also in this scope
@@ -200,12 +200,12 @@ export component App() {
   // <Outer> component call.
   <Outer {Footer}>
     component Footer() {
-      <button>{'OK'}</button>
+      <button>"OK"</button>
     }
   </Outer>
 
   component Footer() {
-    <button>{'OK'}</button>
+    <button>"OK"</button>
   }
 
   <Outer {Footer} />
