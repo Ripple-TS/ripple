@@ -589,6 +589,106 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 			continue;
 		}
 
+		if (
+			child.type === 'IfStatement' &&
+			!child.alternate &&
+			!is_returning_if_statement(child) &&
+			!transform_context.platform.hooks?.isTopLevelSetupCall &&
+			body_contains_top_level_hook_call([child], transform_context, true) &&
+			i + 1 < body_nodes.length
+		) {
+			statements.push(
+				...create_continuation_lift_if_statement(
+					child,
+					body_nodes.slice(i + 1),
+					render_nodes,
+					transform_context,
+				),
+			);
+			transform_context.available_bindings = saved_bindings;
+			return statements;
+		}
+
+		if (
+			child.type === 'ForOfStatement' &&
+			!child.await &&
+			!transform_context.platform.hooks?.isTopLevelSetupCall &&
+			!transform_context.platform.hooks?.controlFlow?.forOf &&
+			body_contains_top_level_hook_call(
+				child.body.type === 'BlockStatement' ? child.body.body : [child.body],
+				transform_context,
+				true,
+			)
+		) {
+			const for_of_continuation = body_nodes.slice(i + 1);
+			const hoisted = build_hoisted_for_of_with_hooks(
+				child,
+				for_of_continuation,
+				transform_context,
+			);
+			if (hoisted) {
+				statements.push(...hoisted.hoist_statements);
+				if (for_of_continuation.length > 0) {
+					// Tail was lifted into the helper; everything after the for-of
+					// now lives there. Combine prior render_nodes with the iteration
+					// JSX and return.
+					statements.push({
+						type: 'ReturnStatement',
+						argument: combine_render_return_argument(render_nodes, hoisted.jsx_child),
+						metadata: { path: [] },
+					});
+					transform_context.available_bindings = saved_bindings;
+					return statements;
+				}
+				if (interleaved && is_capturable_jsx_child(hoisted.jsx_child)) {
+					const { declaration, reference } = captureJsxChild(hoisted.jsx_child, capture_index++);
+					statements.push(declaration);
+					render_nodes.push(reference);
+				} else {
+					render_nodes.push(hoisted.jsx_child);
+				}
+				continue;
+			}
+		}
+
+		if (
+			child.type === 'TryStatement' &&
+			!child.finalizer &&
+			!transform_context.platform.hooks?.isTopLevelSetupCall &&
+			try_statement_contains_hooks(child, transform_context) &&
+			i + 1 < body_nodes.length
+		) {
+			statements.push(
+				...create_continuation_lift_try_statement(
+					child,
+					body_nodes.slice(i + 1),
+					render_nodes,
+					transform_context,
+				),
+			);
+			transform_context.available_bindings = saved_bindings;
+			return statements;
+		}
+
+		if (
+			child.type === 'SwitchStatement' &&
+			!transform_context.platform.hooks?.isTopLevelSetupCall &&
+			body_contains_top_level_hook_call([child], transform_context, true) &&
+			i + 1 < body_nodes.length &&
+			switch_supports_continuation_lift(child)
+		) {
+			statements.push(
+				...create_continuation_lift_switch_statement(
+					child,
+					body_nodes.slice(i + 1),
+					render_nodes,
+					transform_context,
+				),
+			);
+			transform_context.available_bindings = saved_bindings;
+			return statements;
+		}
+
 		if (is_jsx_child(child)) {
 			const jsx = to_jsx_child(child, transform_context);
 			if (interleaved && is_capturable_jsx_child(jsx)) {
@@ -1318,6 +1418,786 @@ function create_component_helper_split_returning_if_statements(
 			metadata: { path: [] },
 		},
 	];
+}
+
+/**
+ * Lift a non-returning `if` whose consequent contains hook calls plus the
+ * statements that follow it into helper components.
+ *
+ * Without this, the consequent's hook would be wrapped into a child component
+ * (StatementBodyHook) but any code after the `if` that reads bindings the hook
+ * mutates would observe the pre-hook value, because React commits children
+ * after their parent has finished rendering. The fix mirrors the early-return
+ * splitter: emit a tail helper that owns the post-`if` statements, append a
+ * call to it inside the branch helper so the post-hook bindings flow forward,
+ * and render the tail helper directly when the `if` is false.
+ *
+ * @param {any} if_node
+ * @param {any[]} continuation_body
+ * @param {any[]} render_nodes
+ * @param {TransformContext} transform_context
+ * @returns {any[]}
+ */
+function create_continuation_lift_if_statement(
+	if_node,
+	continuation_body,
+	render_nodes,
+	transform_context,
+) {
+	const consequent_body = get_if_consequent_body(if_node);
+	const tail_helper = create_hook_safe_helper(
+		continuation_body,
+		undefined,
+		if_node,
+		transform_context,
+	);
+	const tail_invocation_in_branch = clone_expression_node_without_locations(
+		tail_helper.component_element,
+	);
+	const branch_helper = create_hook_safe_helper(
+		[...consequent_body, tail_invocation_in_branch],
+		undefined,
+		if_node.consequent,
+		transform_context,
+	);
+
+	return [
+		...tail_helper.setup_statements,
+		set_loc(
+			/** @type {any} */ ({
+				type: 'IfStatement',
+				test: if_node.test,
+				consequent: set_loc(
+					/** @type {any} */ ({
+						type: 'BlockStatement',
+						body: [
+							...branch_helper.setup_statements,
+							{
+								type: 'ReturnStatement',
+								argument: combine_render_return_argument(
+									render_nodes,
+									branch_helper.component_element,
+								),
+								metadata: { path: [] },
+							},
+						],
+						metadata: { path: [] },
+					}),
+					if_node.consequent,
+				),
+				alternate: null,
+				metadata: { path: [] },
+			}),
+			if_node,
+		),
+		{
+			type: 'ReturnStatement',
+			argument: combine_render_return_argument(render_nodes, tail_helper.component_element),
+			metadata: { path: [] },
+		},
+	];
+}
+
+/**
+ * Continuation lift for `try` / `try / pending / catch` statements. Same
+ * shape as if/switch: build a tail helper from the post-`try` statements, and
+ * append a clone of its invocation to the try body and the catch body so the
+ * post-hook locals inside each branch flow forward into the tail. The pending
+ * body is left untouched — when Suspense renders the pending fallback the
+ * parent's render is unwound, so the tail wouldn't run in source semantics
+ * either. Once augmented, the existing try transform builds the
+ * Suspense / TsrxErrorBoundary wrapper as usual.
+ *
+ * @param {any} node - TryStatement
+ * @param {any[]} continuation_body
+ * @param {any[]} render_nodes
+ * @param {TransformContext} transform_context
+ * @returns {any[]}
+ */
+function create_continuation_lift_try_statement(
+	node,
+	continuation_body,
+	render_nodes,
+	transform_context,
+) {
+	const tail_helper = create_hook_safe_helper(
+		continuation_body,
+		undefined,
+		node,
+		transform_context,
+	);
+
+	const augmented_block_body = [
+		...(node.block.body || []),
+		clone_expression_node_without_locations(tail_helper.component_element),
+	];
+	const augmented_block = { ...node.block, body: augmented_block_body };
+
+	let augmented_handler = node.handler;
+	if (node.handler) {
+		const augmented_catch_body = [
+			...(node.handler.body.body || []),
+			clone_expression_node_without_locations(tail_helper.component_element),
+		];
+		augmented_handler = {
+			...node.handler,
+			body: { ...node.handler.body, body: augmented_catch_body },
+		};
+	}
+
+	const augmented_try = {
+		...node,
+		block: augmented_block,
+		handler: augmented_handler,
+	};
+
+	const try_jsx_child = (
+		transform_context.platform.hooks?.controlFlow?.tryStatement ?? try_statement_to_jsx_child
+	)(augmented_try, transform_context);
+
+	return [
+		...tail_helper.setup_statements,
+		{
+			type: 'ReturnStatement',
+			argument: combine_render_return_argument(render_nodes, try_jsx_child),
+			metadata: { path: [] },
+		},
+	];
+}
+
+/**
+ * @param {any} node - TryStatement
+ * @param {TransformContext} transform_context
+ * @returns {boolean}
+ */
+function try_statement_contains_hooks(node, transform_context) {
+	if (body_contains_top_level_hook_call(node.block?.body || [], transform_context, true)) {
+		return true;
+	}
+	if (
+		node.handler &&
+		body_contains_top_level_hook_call(node.handler.body?.body || [], transform_context, true)
+	) {
+		return true;
+	}
+	if (
+		node.pending &&
+		body_contains_top_level_hook_call(node.pending.body || [], transform_context, true)
+	) {
+		return true;
+	}
+	return false;
+}
+
+/**
+ * Continuation lift for `switch` statements. Same shape as the if-version:
+ * each case body is wrapped in its own helper component that ends with a
+ * call to a shared tail helper, so post-hook bindings inside any case flow
+ * forward to the statements after the switch. The fall-through return at
+ * the end renders the tail helper directly, covering the case where no
+ * `case` (and no `default`) matched.
+ *
+ * Empty fall-through cases (`case 'a':` with no body, falling through to
+ * the next case) are preserved as-is — they must not get their own helper
+ * because that would convert fall-through into early-return.
+ *
+ * @param {any} switch_node
+ * @param {any[]} continuation_body
+ * @param {any[]} render_nodes
+ * @param {TransformContext} transform_context
+ * @returns {any[]}
+ */
+function create_continuation_lift_switch_statement(
+	switch_node,
+	continuation_body,
+	render_nodes,
+	transform_context,
+) {
+	const tail_helper = create_hook_safe_helper(
+		continuation_body,
+		undefined,
+		switch_node,
+		transform_context,
+	);
+
+	const new_cases = switch_node.cases.map((/** @type {any} */ switch_case) => {
+		const consequent = flatten_switch_consequent(switch_case.consequent || []);
+		const body_without_terminator = [];
+		for (const node of consequent) {
+			if (node.type === 'BreakStatement' || node.type === 'ReturnStatement') break;
+			body_without_terminator.push(node);
+		}
+
+		if (body_without_terminator.length === 0) {
+			return /** @type {any} */ ({
+				type: 'SwitchCase',
+				test: switch_case.test,
+				consequent: [],
+				metadata: { path: [] },
+			});
+		}
+
+		const tail_invocation_in_case = clone_expression_node_without_locations(
+			tail_helper.component_element,
+		);
+		const case_helper = create_hook_safe_helper(
+			[...body_without_terminator, tail_invocation_in_case],
+			undefined,
+			switch_case,
+			transform_context,
+		);
+
+		return /** @type {any} */ ({
+			type: 'SwitchCase',
+			test: switch_case.test,
+			consequent: [
+				...case_helper.setup_statements,
+				{
+					type: 'ReturnStatement',
+					argument: combine_render_return_argument(render_nodes, case_helper.component_element),
+					metadata: { path: [] },
+				},
+			],
+			metadata: { path: [] },
+		});
+	});
+
+	return [
+		...tail_helper.setup_statements,
+		set_loc(
+			/** @type {any} */ ({
+				type: 'SwitchStatement',
+				discriminant: switch_node.discriminant,
+				cases: new_cases,
+				metadata: { path: [] },
+			}),
+			switch_node,
+		),
+		{
+			type: 'ReturnStatement',
+			argument: combine_render_return_argument(render_nodes, tail_helper.component_element),
+			metadata: { path: [] },
+		},
+	];
+}
+
+/**
+ * Hoist the helper for a hook-bearing for-of body out of the iteration
+ * callback so the helper is declared once per render rather than re-bound on
+ * every iteration. Loop-scoped param types are derived from the iteration
+ * source via a TS `type` alias (rather than the const+typeof pattern used
+ * for outer bindings, which would require the loop var to be in scope).
+ *
+ * The iteration source is hoisted into a generated `let` and normalized via
+ * `Array.isArray(src) ? src : Array.from(src)` so any Iterable / ArrayLike
+ * works while skipping the copy when the source is already an array. The
+ * iteration itself is emitted as `source.map((item, i) => ...)`.
+ *
+ * If `continuation_body` is non-empty (the for-of has a tail) we also lift
+ * the tail into a TailHelper and call it conditionally on the last iteration
+ * via an `isLast={i === source.length - 1}` prop on the loop helper. The
+ * loop helper's mutated locals (post-`useState`) flow into the TailHelper as
+ * its props. When the source is empty, `.map` returns `[]` and the TailHelper
+ * never renders — we add a sibling fallback so the source's tail still runs
+ * with the original outer values in that case.
+ *
+ * Bails out (returns null) when the loop pattern is destructured — deriving
+ * element types from a tuple/object pattern is more involved and deferred.
+ *
+ * @param {any} node - ForOfStatement
+ * @param {any[]} continuation_body
+ * @param {TransformContext} transform_context
+ * @returns {{ hoist_statements: any[], jsx_child: any } | null}
+ */
+function build_hoisted_for_of_with_hooks(node, continuation_body, transform_context) {
+	const loop_params = get_for_of_iteration_params(node.left, node.index);
+	for (const param of loop_params) {
+		if (param.type !== 'Identifier') return null;
+	}
+
+	const has_tail = continuation_body.length > 0;
+	const original_loop_body = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
+
+	// When there's a tail, build TailHelper first so its component_element can
+	// be embedded inside the loop helper's body (gated on isLast). The
+	// synthetic isLast prop uses the loop helper's index (which will be the
+	// next one assigned, since `create_hook_safe_helper` for the tail just
+	// consumed one) so it lines up with `StatementBodyHook<N>` in the output.
+	let tail_helper = null;
+	/** @type {AST.Identifier} */ let tail_synthetic_id;
+	if (has_tail) {
+		tail_helper = create_hook_safe_helper(continuation_body, undefined, node, transform_context);
+		tail_synthetic_id = create_generated_identifier(
+			`_tsrx_isLast_${transform_context.local_statement_component_index + 1}`,
+		);
+	} else {
+		tail_synthetic_id = /** @type {any} */ (null);
+	}
+	const loop_body = has_tail
+		? [
+				...original_loop_body,
+				/** @type {any} */ ({
+					type: 'JSXExpressionContainer',
+					expression: {
+						type: 'LogicalExpression',
+						operator: '&&',
+						left: clone_identifier(tail_synthetic_id),
+						right: clone_expression_node_without_locations(
+							/** @type {any} */ (tail_helper).component_element,
+						),
+						metadata: { path: [] },
+					},
+					metadata: { path: [] },
+				}),
+			]
+		: original_loop_body;
+
+	// Always hoist the iteration source into a generated `let` so that
+	// (a) the type aliases below have a stable name to reference and
+	// (b) we can normalize it at runtime via
+	// `Array.isArray(src) ? src : Array.from(src)`, avoiding a copy when
+	// the source is already an array but still working for any iterable.
+	const source_id = create_generated_identifier(
+		`_tsrx_iteration_items_${transform_context.local_statement_component_index + 1}`,
+	);
+	const source_decl = /** @type {any} */ ({
+		type: 'VariableDeclaration',
+		kind: 'let',
+		declarations: [
+			{
+				type: 'VariableDeclarator',
+				id: clone_identifier(source_id),
+				init: clone_expression_node(node.right),
+				metadata: { path: [] },
+			},
+		],
+		metadata: { path: [] },
+	});
+	const source_normalize_decl = /** @type {any} */ ({
+		type: 'ExpressionStatement',
+		expression: {
+			type: 'AssignmentExpression',
+			operator: '=',
+			left: clone_identifier(source_id),
+			right: {
+				type: 'ConditionalExpression',
+				test: {
+					type: 'CallExpression',
+					callee: {
+						type: 'MemberExpression',
+						object: { type: 'Identifier', name: 'Array', metadata: { path: [] } },
+						property: { type: 'Identifier', name: 'isArray', metadata: { path: [] } },
+						computed: false,
+						optional: false,
+						metadata: { path: [] },
+					},
+					arguments: [clone_identifier(source_id)],
+					optional: false,
+					metadata: { path: [] },
+				},
+				consequent: clone_identifier(source_id),
+				alternate: {
+					type: 'CallExpression',
+					callee: {
+						type: 'MemberExpression',
+						object: { type: 'Identifier', name: 'Array', metadata: { path: [] } },
+						property: { type: 'Identifier', name: 'from', metadata: { path: [] } },
+						computed: false,
+						optional: false,
+						metadata: { path: [] },
+					},
+					arguments: [clone_identifier(source_id)],
+					optional: false,
+					metadata: { path: [] },
+				},
+				metadata: { path: [] },
+			},
+			metadata: { path: [] },
+		},
+		metadata: { path: [] },
+	});
+
+	const saved_bindings = transform_context.available_bindings;
+	transform_context.available_bindings = new Map(saved_bindings);
+	for (const param of loop_params) {
+		collect_pattern_bindings(param, transform_context.available_bindings);
+	}
+
+	const all_helper_bindings = get_referenced_helper_bindings(
+		loop_body,
+		transform_context.available_bindings,
+	);
+	const loop_scoped_names = new Set(loop_params.map((/** @type {any} */ p) => p.name));
+	const outer_bindings = all_helper_bindings.filter(
+		(b) => !loop_scoped_names.has(b.name) && b.name !== '_tsrx_isLast',
+	);
+	const loop_bindings = all_helper_bindings.filter((b) => loop_scoped_names.has(b.name));
+
+	const helper_id = create_generated_identifier(
+		create_local_statement_component_name(transform_context),
+	);
+
+	const outer_aliases = outer_bindings.map((binding) =>
+		create_helper_type_alias_declaration(helper_id, binding),
+	);
+	const loop_aliases = loop_bindings.map((binding) =>
+		create_loop_scoped_type_alias_declaration(helper_id, binding, source_id, loop_params),
+	);
+
+	// Synthetic `isLast` prop on the loop helper when there's a tail. It's
+	// passed from the .map callback as `i === source.length - 1` so the loop
+	// helper renders the tail helper only on the last iteration. We do not
+	// gate on this prop's value here — the JSXLogicalExpression appended to
+	// `loop_body` does the gating at render time.
+	const tail_isLast_alias = has_tail
+		? {
+				id: create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
+				declaration: /** @type {any} */ ({
+					type: 'TSTypeAliasDeclaration',
+					id: create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
+					typeAnnotation: { type: 'TSBooleanKeyword', metadata: { path: [] } },
+					typeParameters: null,
+					metadata: { path: [] },
+				}),
+			}
+		: null;
+
+	const ordered_bindings = [...outer_bindings, ...loop_bindings];
+	const ordered_aliases = [...outer_aliases, ...loop_aliases];
+	const ordered_use_typeof = [...outer_bindings.map(() => true), ...loop_bindings.map(() => false)];
+
+	const signature_bindings = has_tail ? [...ordered_bindings, tail_synthetic_id] : ordered_bindings;
+	const signature_aliases = has_tail
+		? [...ordered_aliases, /** @type {any} */ (tail_isLast_alias)]
+		: ordered_aliases;
+	const signature_use_typeof = has_tail ? [...ordered_use_typeof, false] : ordered_use_typeof;
+
+	const props_type =
+		signature_bindings.length > 0
+			? create_helper_props_type_literal_with_typeof_flags(
+					signature_bindings,
+					signature_aliases,
+					signature_use_typeof,
+				)
+			: null;
+	const params =
+		props_type !== null ? [create_typed_helper_props_pattern(signature_bindings, props_type)] : [];
+
+	const fn_saved_bindings = transform_context.available_bindings;
+	transform_context.available_bindings = new Map(fn_saved_bindings);
+	if (has_tail) {
+		transform_context.available_bindings.set(tail_synthetic_id.name, tail_synthetic_id);
+	}
+	const fn_body_statements = build_render_statements(loop_body, true, transform_context);
+	transform_context.available_bindings = fn_saved_bindings;
+
+	const helper_fn = /** @type {any} */ ({
+		type: 'FunctionExpression',
+		id: clone_identifier(helper_id),
+		params,
+		body: {
+			type: 'BlockStatement',
+			body: fn_body_statements,
+			metadata: { path: [] },
+		},
+		async: false,
+		generator: false,
+		metadata: { path: [], is_component: true, is_method: false },
+	});
+
+	let helper_decl;
+	if (transform_context.helper_state) {
+		const cache_id = create_generated_identifier(
+			`${transform_context.helper_state.base_name}__${helper_id.name}`,
+		);
+		transform_context.helper_state.helpers.push(create_helper_cache_declaration(cache_id));
+		helper_decl = create_cached_helper_declaration(
+			helper_id,
+			cache_id,
+			create_helper_init_expression(helper_id, helper_fn, node, transform_context),
+		);
+	} else {
+		helper_decl = create_helper_declaration(helper_id, helper_fn, node, transform_context);
+	}
+
+	transform_context.available_bindings = saved_bindings;
+
+	const callback_invocation_element = create_helper_component_element(
+		helper_id,
+		ordered_bindings,
+		node,
+		{ mapWrapper: false, mapBindingNames: false, mapBindingValues: false },
+	);
+
+	// When there's a tail, the .map callback always needs an index to compute
+	// `isLast`. If the user didn't write `index i`, synthesize one. The same
+	// identifier is also used as the implicit key fallback below.
+	let index_identifier;
+	if (loop_params.length >= 2) {
+		index_identifier = clone_identifier(loop_params[1]);
+	} else if (has_tail) {
+		index_identifier = create_generated_identifier('i');
+	} else {
+		index_identifier = null;
+	}
+
+	const body_key_expression = find_key_expression_in_body(loop_body);
+	const explicit_key_expression =
+		body_key_expression ?? (node.key ? clone_expression_node(node.key) : undefined);
+	const key_expression =
+		explicit_key_expression ??
+		(loop_params.length >= 2 ? clone_identifier(loop_params[1]) : undefined);
+	if (key_expression) {
+		callback_invocation_element.openingElement.attributes.push(
+			/** @type {any} */ ({
+				type: 'JSXAttribute',
+				name: { type: 'JSXIdentifier', name: 'key', metadata: { path: [] } },
+				value: to_jsx_expression_container(key_expression, key_expression),
+				metadata: { path: [] },
+			}),
+		);
+	}
+
+	if (has_tail && index_identifier) {
+		callback_invocation_element.openingElement.attributes.push(
+			/** @type {any} */ ({
+				type: 'JSXAttribute',
+				name: {
+					type: 'JSXIdentifier',
+					name: tail_synthetic_id.name,
+					metadata: { path: [] },
+				},
+				value: to_jsx_expression_container(
+					/** @type {any} */ ({
+						type: 'BinaryExpression',
+						operator: '===',
+						left: clone_identifier(index_identifier),
+						right: {
+							type: 'BinaryExpression',
+							operator: '-',
+							left: {
+								type: 'MemberExpression',
+								object: clone_identifier(source_id),
+								property: {
+									type: 'Identifier',
+									name: 'length',
+									metadata: { path: [] },
+								},
+								computed: false,
+								optional: false,
+								metadata: { path: [] },
+							},
+							right: { type: 'Literal', value: 1, raw: '1' },
+							metadata: { path: [] },
+						},
+						metadata: { path: [] },
+					}),
+				),
+				metadata: { path: [] },
+			}),
+		);
+	}
+
+	const callback_params =
+		has_tail && loop_params.length < 2 && index_identifier
+			? [
+					...loop_params.map((/** @type {any} */ p) => clone_identifier(p)),
+					clone_identifier(index_identifier),
+				]
+			: loop_params.map((/** @type {any} */ p) => clone_identifier(p));
+
+	const iter_callback = /** @type {any} */ ({
+		type: 'ArrowFunctionExpression',
+		params: callback_params,
+		body: callback_invocation_element,
+		async: false,
+		generator: false,
+		expression: true,
+		metadata: { path: [] },
+	});
+
+	const map_call = /** @type {any} */ ({
+		type: 'CallExpression',
+		callee: {
+			type: 'MemberExpression',
+			object: clone_identifier(source_id),
+			property: /** @type {any} */ ({
+				type: 'Identifier',
+				name: 'map',
+				metadata: { path: [] },
+			}),
+			computed: false,
+			optional: false,
+			metadata: { path: [] },
+		},
+		arguments: [iter_callback],
+		optional: false,
+		metadata: { path: [] },
+	});
+
+	// jsx_child for the iteration. When there's a tail, also render the tail
+	// helper directly when the source is empty (no iterations means the loop
+	// helper never fires, so the tail wouldn't run otherwise).
+	let jsx_child;
+	if (has_tail) {
+		jsx_child = to_jsx_expression_container(
+			/** @type {any} */ ({
+				type: 'ConditionalExpression',
+				test: {
+					type: 'BinaryExpression',
+					operator: '===',
+					left: {
+						type: 'MemberExpression',
+						object: clone_identifier(source_id),
+						property: { type: 'Identifier', name: 'length', metadata: { path: [] } },
+						computed: false,
+						optional: false,
+						metadata: { path: [] },
+					},
+					right: { type: 'Literal', value: 0, raw: '0' },
+					metadata: { path: [] },
+				},
+				consequent: clone_expression_node_without_locations(
+					/** @type {any} */ (tail_helper).component_element,
+				),
+				alternate: map_call,
+				metadata: { path: [] },
+			}),
+			node,
+		);
+	} else {
+		jsx_child = to_jsx_expression_container(map_call, node);
+	}
+
+	const hoist_statements = [source_decl, source_normalize_decl];
+	if (has_tail) {
+		// TailHelper's setup statements (its alias consts and cache decl).
+		hoist_statements.push(.../** @type {any} */ (tail_helper).setup_statements);
+	}
+	for (const alias of ordered_aliases) hoist_statements.push(alias.declaration);
+	if (has_tail && tail_isLast_alias) {
+		hoist_statements.push(tail_isLast_alias.declaration);
+	}
+	hoist_statements.push(helper_decl);
+
+	return {
+		hoist_statements,
+		jsx_child,
+	};
+}
+
+/**
+ * Build a TS `type` alias for a loop-scoped binding, deriving the type
+ * from the iteration source. For the value param we use
+ * `(typeof source)[number]`, which gives the right element type for arrays
+ * and tuples (the common case in JSX templates). For the index param,
+ * the type is always `number`.
+ *
+ * @param {AST.Identifier} helper_id
+ * @param {AST.Identifier} binding
+ * @param {AST.Identifier} source_id
+ * @param {any[]} loop_params
+ * @returns {{ id: AST.Identifier, declaration: any }}
+ */
+function create_loop_scoped_type_alias_declaration(helper_id, binding, source_id, loop_params) {
+	const alias_id = create_generated_identifier(`_tsrx_${helper_id.name}_${binding.name}`);
+	const is_index = loop_params.length > 1 && binding.name === loop_params[1].name;
+	const type_annotation = is_index
+		? /** @type {any} */ ({ type: 'TSNumberKeyword', metadata: { path: [] } })
+		: /** @type {any} */ ({
+				type: 'TSIndexedAccessType',
+				objectType: {
+					type: 'TSTypeQuery',
+					exprName: clone_identifier(source_id),
+					typeArguments: null,
+					metadata: { path: [] },
+				},
+				indexType: { type: 'TSNumberKeyword', metadata: { path: [] } },
+				metadata: { path: [] },
+			});
+
+	return {
+		id: alias_id,
+		declaration: /** @type {any} */ ({
+			type: 'TSTypeAliasDeclaration',
+			id: clone_identifier(alias_id),
+			typeAnnotation: type_annotation,
+			typeParameters: null,
+			metadata: { path: [] },
+		}),
+	};
+}
+
+/**
+ * Variant of {@link create_helper_props_type_literal} that lets each
+ * binding's type reference the alias either via `typeof <alias>` (for
+ * outer-scope const aliases) or directly as `<alias>` (for TS `type`
+ * aliases derived from a loop source).
+ *
+ * @param {AST.Identifier[]} bindings
+ * @param {{ id: AST.Identifier }[]} aliases
+ * @param {boolean[]} use_typeof
+ * @returns {any}
+ */
+function create_helper_props_type_literal_with_typeof_flags(bindings, aliases, use_typeof) {
+	return /** @type {any} */ ({
+		type: 'TSTypeLiteral',
+		members: bindings.map((binding, i) => ({
+			type: 'TSPropertySignature',
+			key: create_generated_identifier(binding.name),
+			computed: false,
+			optional: false,
+			readonly: false,
+			static: false,
+			kind: 'init',
+			typeAnnotation: {
+				type: 'TSTypeAnnotation',
+				typeAnnotation: use_typeof[i]
+					? {
+							type: 'TSTypeQuery',
+							exprName: clone_identifier(aliases[i].id),
+							typeArguments: null,
+							metadata: { path: [] },
+						}
+					: {
+							type: 'TSTypeReference',
+							typeName: clone_identifier(aliases[i].id),
+							typeArguments: null,
+							metadata: { path: [] },
+						},
+				metadata: { path: [] },
+			},
+			metadata: { path: [] },
+		})),
+		metadata: { path: [] },
+	});
+}
+
+/**
+ * The lift converts each non-empty case into `... return <CaseHelper/>`.
+ * That changes a case that runs statements but lacks a terminator (and so
+ * falls through to the next case under JS semantics) into one that returns
+ * early. Bail out of the lift in that scenario and let the existing
+ * transform run, preserving the source's fall-through behavior.
+ *
+ * @param {any} switch_node
+ * @returns {boolean}
+ */
+function switch_supports_continuation_lift(switch_node) {
+	for (const switch_case of switch_node.cases) {
+		const consequent = flatten_switch_consequent(switch_case.consequent || []);
+		let has_body = false;
+		let has_terminator = false;
+		for (const node of consequent) {
+			if (node.type === 'BreakStatement' || node.type === 'ReturnStatement') {
+				has_terminator = true;
+				break;
+			}
+			has_body = true;
+		}
+		if (has_body && !has_terminator) return false;
+	}
+	return true;
 }
 
 /**

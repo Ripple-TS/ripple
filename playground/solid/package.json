@@ -12,6 +12,7 @@
     "debug-tsx": "node ../../scripts/debug-mode.js tsx @tsrx/solid"
   },
   "dependencies": {
+    "@solidjs/web": "2.0.0-beta.7",
     "solid-js": "2.0.0-beta.7"
   },
   "devDependencies": {

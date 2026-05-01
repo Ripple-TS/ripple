@@ -1176,4 +1176,432 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('accent"');
 		});
 	});
+
+	// When a non-returning `if` whose branch contains a hook is followed by
+	// statements that read bindings the hook mutates, those reads happen in
+	// the parent's render frame, before the child component containing the
+	// hook has run. React/Preact apply a continuation lift to fix this; Solid
+	// uses a `<Show>` wrapper, and Vue's setup-once platform skips the lift.
+	// Snapshots are per-target to make the divergence explicit.
+	describe.runIf(['react', 'preact'].includes(name))(
+		`[${name}] continuation lift for if-with-hook`,
+		() => {
+			it('lifts the tail of a single non-returning if-with-hook into a helper', () => {
+				const { code } = compile(
+					`export component App({ show }: { show: boolean }) {
+					let x: number | undefined;
+					if (show) {
+						[x] = useState(100);
+						<div>{x}</div>
+					}
+					console.log(x);
+				}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+
+			it('chains tail helpers across sibling ifs that each contain hooks', () => {
+				const { code } = compile(
+					`export component App({ a, b }: { a: boolean, b: boolean }) {
+					let x: number | undefined;
+					let y: number | undefined;
+					if (a) {
+						[x] = useState(100);
+						<div>{x}</div>
+					}
+					if (b) {
+						[y] = useState(200);
+						<span>{y}</span>
+					}
+					console.log(x, y);
+				}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+
+			it('handles nested if-with-hook so the mid-tail observes the inner hook', () => {
+				const { code } = compile(
+					`export component App({ a, b }: { a: boolean, b: boolean }) {
+					let x: number | undefined;
+					if (a) {
+						if (b) {
+							[x] = useState(100);
+							<div>{x}</div>
+						}
+						console.log('mid', x);
+					}
+					console.log('end', x);
+				}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+
+			it('does not lift when the if has no statements after it', () => {
+				const { code } = compile(
+					`export component App({ show }: { show: boolean }) {
+					if (show) {
+						const [x] = useState(100);
+						<div>{x}</div>
+					}
+				}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+
+			it('does not lift when the if has an else branch', () => {
+				const { code } = compile(
+					`export component App({ show }: { show: boolean }) {
+					let x: number | undefined;
+					if (show) {
+						[x] = useState(100);
+						<div>{x}</div>
+					} else {
+						<div>{'no'}</div>
+					}
+					console.log(x);
+				}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+		},
+	);
+
+	// `switch` cases with hooks are wrapped in their own helper components for
+	// the same reason `if` branches are, and the same parent-reads-stale
+	// problem applies when statements after the switch read bindings the case
+	// bodies mutate. The lift extends to switches: each case body becomes its
+	// own helper that ends with a call to a shared tail helper, and the
+	// fall-through return renders the tail helper directly. Cases that fall
+	// through (have a non-empty body without a terminator) bail out of the
+	// lift to preserve their original semantics.
+	describe.runIf(['react', 'preact'].includes(name))(
+		`[${name}] continuation lift for switch-with-hook`,
+		() => {
+			it('lifts the tail of a switch whose cases contain hooks', () => {
+				const { code } = compile(
+					`export component App({ kind }: { kind: 'a' | 'b' }) {
+						let x: number | undefined;
+						switch (kind) {
+							case 'a':
+								[x] = useState(100);
+								<div>{x}</div>
+								break;
+							case 'b':
+								[x] = useState(200);
+								<span>{x}</span>
+								break;
+						}
+						console.log(x);
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+
+			it('lifts the tail when only some switch cases contain hooks', () => {
+				const { code } = compile(
+					`export component App({ kind }: { kind: 'a' | 'b' | 'c' }) {
+						let x: number | undefined;
+						switch (kind) {
+							case 'a':
+								[x] = useState(100);
+								<div>{x}</div>
+								break;
+							case 'b':
+								<span>{'static'}</span>
+								break;
+							default:
+								<p>{'fallback'}</p>
+								break;
+						}
+						console.log(x);
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+
+			it('lifts the tail when a switch has a default case with a hook', () => {
+				const { code } = compile(
+					`export component App({ kind }: { kind: string }) {
+						let x: number | undefined;
+						switch (kind) {
+							case 'a':
+								<div>{'a'}</div>
+								break;
+							default:
+								[x] = useState(100);
+								<div>{x}</div>
+								break;
+						}
+						console.log(x);
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+
+			it('does not lift when the switch has no statements after it', () => {
+				const { code } = compile(
+					`export component App({ kind }: { kind: 'a' | 'b' }) {
+						switch (kind) {
+							case 'a':
+								const [x] = useState(100);
+								<div>{x}</div>
+								break;
+							case 'b':
+								<span>{'b'}</span>
+								break;
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+		},
+	);
+
+	// `for-of` loops with hooks have a multi-iteration bug shape: each
+	// iteration becomes a sibling component, so post-loop reads of bindings
+	// the iteration body mutated would observe the parent's stale value.
+	// The lift wraps each iteration in a loop helper, threads an `isLast`
+	// prop computed from the index, and renders the tail helper inside the
+	// last iteration so it sees that iteration's post-`useState` locals.
+	// When the iteration source is empty, the tail helper is rendered
+	// directly so the source's tail still runs once.
+	//
+	// We also hoist the helper declaration above the loop (so it isn't
+	// re-bound on every iteration) and normalize the source via
+	// `Array.isArray(src) ? src : Array.from(src)` so any Iterable / ArrayLike
+	// works. Loop-scoped param types are derived from the iteration source
+	// via TS `type` aliases.
+	describe.runIf(['react', 'preact'].includes(name))(
+		`[${name}] hoisted helper and tail lift for for-of-with-hook`,
+		() => {
+			it('lifts the tail of a for-of with hooks (prop iteration source)', () => {
+				const { code } = compile(
+					`export component App({ items }: { items: number[] }) {
+						let last: number | undefined;
+						for (const item of items; index i) {
+							[last] = useState(item);
+							<div key={i}>{last}</div>
+						}
+						console.log(last);
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+
+			it('lifts the tail of a for-of with hooks (inline-literal iteration source)', () => {
+				const { code } = compile(
+					`export component App() {
+						let last: number | undefined;
+						for (const item of [1, 2, 3]; index i) {
+							[last] = useState(item);
+							<div key={i}>{last}</div>
+						}
+						console.log(last);
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+
+			it('lifts the tail across nested for-of-with-hooks', () => {
+				// Inner for-of's tail is `console.log('mid', last)` (lifted into
+				// its own helper called on the inner-last iteration). Outer
+				// for-of's tail is `console.log('end', last)` (lifted into a
+				// helper called on the outer-last iteration). The mid-tail flows
+				// the inner helper's local `last` forward; the end-tail flows
+				// the outer helper's local `last` forward.
+				const { code } = compile(
+					`export component App({ groups }: { groups: number[][] }) {
+						let last: number | undefined;
+						for (const group of groups) {
+							for (const item of group) {
+								[last] = useState(item);
+								<div key={item}>{last}</div>
+							}
+							console.log('mid', last);
+						}
+						console.log('end', last);
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+
+			it('lifts the tail across sibling for-of-with-hooks at the same level', () => {
+				// Both for-ofs have hooks, so each gets its own loop helper. The
+				// trigger fires on the first for-of, lifting `[second-for-of,
+				// console.log]` into a tail helper. That tail helper itself
+				// recursively triggers on the inner for-of, lifting
+				// `[console.log]` into a deeper tail helper.
+				const { code } = compile(
+					`export component App({ as, bs }: { as: number[], bs: number[] }) {
+						let lastA: number | undefined;
+						let lastB: number | undefined;
+						for (const a of as) {
+							[lastA] = useState(a);
+							<div key={a}>{lastA}</div>
+						}
+						for (const b of bs) {
+							[lastB] = useState(b);
+							<span key={b}>{lastB}</span>
+						}
+						console.log(lastA, lastB);
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+
+			it('hoists the helper without a tail lift when nothing follows the loop', () => {
+				// No tail means no synthesizing of `isLast` or empty fallback —
+				// just the hoist + Array.isArray-check + .map.
+				const { code } = compile(
+					`export component App({ items }: { items: string[] }) {
+						for (const name of items) {
+							const [val] = useState(name);
+							<div key={name}>{val}</div>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+
+			it('falls back to the existing transform for non-hook for-of loops', () => {
+				// Without hooks in the body, the lift trigger doesn't fire and
+				// the existing `items.map(...)` shape is preserved.
+				const { code } = compile(
+					`export component App({ items }: { items: number[] }) {
+						for (const item of items; index i) {
+							<div key={i}>{item}</div>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+		},
+	);
+
+	// Try statements with hooks in the try (or catch) body have the same
+	// parent-reads-stale problem as if/switch: the body is wrapped into a
+	// helper component, so post-try statements that read bindings the body
+	// mutated observe the parent's frozen value. These snapshots capture the
+	// current shape (potentially buggy) so we can see what needs fixing.
+	describe.runIf(['react', 'preact'].includes(name))(
+		`[${name}] continuation lift for try-with-hook`,
+		() => {
+			it('try/catch with a hook in the try body and a tail that reads the mutated outer', () => {
+				const { code } = compile(
+					`export component App({ load }: { load: () => number }) {
+						let data: number | undefined;
+						try {
+							[data] = useState(load());
+							<div>{data}</div>
+						} catch (err) {
+							<div>{'error'}</div>
+						}
+						console.log(data);
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+
+			it('try/pending/catch with a hook in the try body and a tail that reads the mutated outer', () => {
+				const { code } = compile(
+					`export component App({ load }: { load: () => number }) {
+						let data: number | undefined;
+						try {
+							[data] = useState(load());
+							<div>{data}</div>
+						} pending {
+							<p>{'loading'}</p>
+						} catch (err) {
+							<div>{'error'}</div>
+						}
+						console.log(data);
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+
+			it('try/catch with a hook in the catch body and a tail that reads the mutated outer', () => {
+				const { code } = compile(
+					`export component App({ load }: { load: () => number }) {
+						let attempt: number | undefined;
+						try {
+							<div>{load()}</div>
+						} catch (err) {
+							[attempt] = useState(0);
+							<div>{attempt}</div>
+						}
+						console.log(attempt);
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+
+			it('try with a hook but no statements after it (no tail to lift)', () => {
+				const { code } = compile(
+					`export component App({ load }: { load: () => number }) {
+						try {
+							const [data] = useState(load());
+							<div>{data}</div>
+						} catch (err) {
+							<div>{'error'}</div>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+
+			it('try without hooks falls back to the existing transform', () => {
+				const { code } = compile(
+					`export component App({ load }: { load: () => number }) {
+						try {
+							<div>{load()}</div>
+						} catch (err) {
+							<div>{'error'}</div>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toMatchSnapshot();
+			});
+		},
+	);
 }

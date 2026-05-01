@@ -1080,8 +1080,10 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('function StatementBodyHook');
-		expect(code).toContain('.map(');
-		// Hook should be inside the helper, not the map callback directly
+		// Hook-bearing for-of bodies emit `Array.from(source, callback)` so
+		// any Iterable works, with the helper hoisted above the iteration.
+		expect(code).toContain('Array.from(');
+		// Hook should be inside the helper, not the iteration callback directly
 		const hook_pos = code.indexOf('useState(false)');
 		const helper_pos = code.indexOf('function StatementBodyHook');
 		expect(hook_pos).toBeGreaterThan(helper_pos);
