@@ -795,8 +795,7 @@ export component App() {
 			expect(result.code).toContain('<RenderProp<User>');
 
 			const source_user_offset = source.indexOf('<User>') + 1;
-			const generated_user_offset =
-				result.code.indexOf('RenderProp<User>') + 'RenderProp<'.length;
+			const generated_user_offset = result.code.indexOf('RenderProp<User>') + 'RenderProp<'.length;
 
 			const user_mapping = result.mappings.find(
 				(/** @type {{ sourceOffsets: number[], lengths: number[] }} */ m) =>

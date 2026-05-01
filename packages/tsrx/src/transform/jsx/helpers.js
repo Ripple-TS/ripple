@@ -186,7 +186,31 @@ export function tsx_with_ts_locations() {
 				context.visit(body);
 			}
 		},
+
+		// esrap's JSXOpeningElement printer doesn't emit `typeArguments`, so generic
+		// component tags like `<RenderProp<User>>` lose the `<User>` in the output.
+		JSXOpeningElement: (node, context) => {
+			context.write('<');
+			context.visit(node.name);
+			if (node.typeArguments) {
+				context.visit(node.typeArguments);
+			}
+			for (const attribute of node.attributes) {
+				context.write(' ');
+				context.visit(attribute);
+			}
+			if (node.selfClosing) {
+				context.write(' /');
+			}
+			context.write('>');
+		},
 	};
+
+	// Be careful when duplicating visitors that are already defined
+	// above in the `wrappers`
+	// if there is already a visitor but you still need a mapping
+	// on the whole node, only then duplicate it here
+	// e.g. JSXOpeningElement is such a case
 	for (const type of [
 		// JS nodes whose esrap printer emits no location marker, causing
 		// segments.js get_mapping_from_node() to throw when it asks for the
@@ -214,28 +238,10 @@ export function tsx_with_ts_locations() {
 		'TSTypeParameterDeclaration',
 		'TSTypeParameter',
 	]) {
-		wrappers[type] = (node, context) => wrap_with_locations(node, context, base[type]);
-	}
+		const visitor = wrappers[type];
 
-	// esrap's JSXOpeningElement printer doesn't emit `typeArguments`, so generic
-	// component tags like `<RenderProp<User>>` lose the `<User>` in the output.
-	const print_jsx_opening_element = (/** @type {any} */ node, /** @type {any} */ context) => {
-		context.write('<');
-		context.visit(node.name);
-		if (node.typeArguments) {
-			context.visit(node.typeArguments);
-		}
-		for (const attribute of node.attributes) {
-			context.write(' ');
-			context.visit(attribute);
-		}
-		if (node.selfClosing) {
-			context.write(' /');
-		}
-		context.write('>');
-	};
-	wrappers.JSXOpeningElement = (node, context) =>
-		wrap_with_locations(node, context, print_jsx_opening_element);
+		wrappers[type] = (node, context) => wrap_with_locations(node, context, visitor ?? base[type]);
+	}
 
 	return { ...base, ...wrappers };
 }
