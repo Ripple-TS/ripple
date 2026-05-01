@@ -3,7 +3,7 @@
   "description": "Vite plugin for @tsrx/solid (.tsrx modules) targeting Solid 2.0",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "type": "module",
   "publishConfig": {
     "access": "public"

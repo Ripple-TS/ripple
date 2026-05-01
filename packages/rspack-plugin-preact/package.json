@@ -3,7 +3,7 @@
   "description": "Rspack plugin for @tsrx/preact",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "type": "module",
   "publishConfig": {
     "access": "public"
