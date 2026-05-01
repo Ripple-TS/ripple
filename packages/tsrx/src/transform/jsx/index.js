@@ -1570,75 +1570,100 @@ function create_continuation_lift_switch_statement(
 ) {
 	const tail_helper = build_tail_helper(continuation_body, switch_node, transform_context);
 
-	const new_cases = switch_node.cases.map(
-		(/** @type {any} */ original_case, /** @type {number} */ case_index) => {
-			const own_consequent = flatten_switch_consequent(original_case.consequent || []);
-			const own_body = [];
-			let own_has_terminator = false;
-			for (const node of own_consequent) {
-				if (node.type === 'BreakStatement' || node.type === 'ReturnStatement') {
-					own_has_terminator = true;
+	// Per-case info computed once: own body (statements before any
+	// terminator) and whether the case has a `break` / `return`.
+	const case_info = switch_node.cases.map((/** @type {any} */ c) => {
+		const consequent = flatten_switch_consequent(c.consequent || []);
+		const own_body = [];
+		let own_has_terminator = false;
+		for (const node of consequent) {
+			if (node.type === 'BreakStatement' || node.type === 'ReturnStatement') {
+				own_has_terminator = true;
+				break;
+			}
+			own_body.push(node);
+		}
+		return { own_body, own_has_terminator };
+	});
+
+	// Allocate helper ids in source order (forward pass) so the snapshot's
+	// `StatementBodyHook<N>` numbering reads top-to-bottom by case position.
+	/** @type {Array<AST.Identifier | null>} */
+	const helper_ids = case_info.map(
+		(/** @type {{ own_body: any[], own_has_terminator: boolean }} */ info) =>
+			info.own_body.length === 0
+				? null
+				: create_generated_identifier(create_local_statement_component_name(transform_context)),
+	);
+
+	// Build helpers in reverse order: each fall-through case's helper body
+	// invokes the *next* case's helper, so the chain forwards post-mutation
+	// locals through the switch. Reverse iteration ensures the next helper's
+	// component_element is already constructed when we need to embed it.
+	/** @type {Array<{ setup_statements: any[], component_element: any } | null>} */
+	const case_helper_by_index = new Array(switch_node.cases.length).fill(null);
+	for (let i = switch_node.cases.length - 1; i >= 0; i--) {
+		const { own_body, own_has_terminator } = case_info[i];
+		if (own_body.length === 0) continue;
+
+		// Determine the downstream helper this case invokes after its own body.
+		// - With a terminator: invoke the tail helper directly (case exits switch).
+		// - Otherwise (fall-through): invoke the next non-empty case's helper,
+		//   or the tail if nothing else follows.
+		let downstream;
+		if (own_has_terminator) {
+			downstream = tail_helper;
+		} else {
+			let next_helper = null;
+			for (let j = i + 1; j < switch_node.cases.length; j++) {
+				if (case_helper_by_index[j]) {
+					next_helper = case_helper_by_index[j];
 					break;
 				}
-				own_body.push(node);
+			}
+			downstream = next_helper ?? tail_helper;
+		}
+
+		case_helper_by_index[i] = create_hook_safe_helper(
+			append_tail_invocation(own_body, downstream),
+			undefined,
+			switch_node.cases[i],
+			transform_context,
+			/** @type {any} */ (helper_ids[i]),
+		);
+	}
+
+	const new_cases = switch_node.cases.map(
+		(/** @type {any} */ original_case, /** @type {number} */ i) => {
+			const helper = case_helper_by_index[i];
+			if (helper) {
+				return b.switch_case(original_case.test, [
+					combined_return_statement(render_nodes, helper.component_element),
+				]);
 			}
 
-			if (own_body.length === 0) {
-				// `case 'a': break;` (break-only / return-only) originally exited
-				// the switch and ran the tail. Emitting an empty case here would
-				// silently fall through to the next case's body — running its
-				// hook and rendering its content for the wrong input. Render the
-				// tail directly so we preserve the source's semantics.
-				if (own_has_terminator) {
-					return b.switch_case(original_case.test, [
-						combined_return_statement(render_nodes, tail_helper.component_element),
-					]);
-				}
-				// `case 'a': case 'b': ...` — genuine empty fall-through. The
-				// original source has no body for 'a' and means 'a' to share 'b's
-				// body. Preserve as an empty case so JS fall-through drops into
-				// the next case's helper (and the helper component identity is
-				// shared, preserving useState slots across kind toggles).
-				return b.switch_case(original_case.test, []);
+			const { own_body, own_has_terminator } = case_info[i];
+			if (own_body.length === 0 && own_has_terminator) {
+				// `case 'a': break;` — exits the switch, then runs the tail.
+				return b.switch_case(original_case.test, [
+					combined_return_statement(render_nodes, tail_helper.component_element),
+				]);
 			}
-
-			// Non-empty case: compute the *effective* body by following
-			// fall-through into subsequent cases until we hit a terminator.
-			// `case 'a': x = 1; case 'b': useState(100); break;` — case 'a's
-			// effective body is `[x = 1, useState(100)]` so CaseHelperA runs the
-			// merged body and the post-hook value flows into the tail.
-			const effective_body = [...own_body];
-			if (!own_has_terminator) {
-				for (let j = case_index + 1; j < switch_node.cases.length; j++) {
-					const next_consequent = flatten_switch_consequent(switch_node.cases[j].consequent || []);
-					let next_has_terminator = false;
-					for (const node of next_consequent) {
-						if (node.type === 'BreakStatement' || node.type === 'ReturnStatement') {
-							next_has_terminator = true;
-							break;
-						}
-						effective_body.push(node);
-					}
-					if (next_has_terminator) break;
-				}
-			}
-
-			const case_helper = create_hook_safe_helper(
-				append_tail_invocation(effective_body, tail_helper),
-				undefined,
-				original_case,
-				transform_context,
-			);
-
-			return b.switch_case(original_case.test, [
-				...case_helper.setup_statements,
-				combined_return_statement(render_nodes, case_helper.component_element),
-			]);
+			// Genuine empty fall-through (`case 'a': case 'b': ...`).
+			return b.switch_case(original_case.test, []);
 		},
 	);
 
+	// Hoist all case helpers' setup statements above the switch in source
+	// order so the switch body is purely a dispatcher.
+	const case_helper_setup_statements = [];
+	for (const helper of case_helper_by_index) {
+		if (helper) case_helper_setup_statements.push(...helper.setup_statements);
+	}
+
 	return [
 		...tail_helper.setup_statements,
+		...case_helper_setup_statements,
 		set_loc(b.switch(switch_node.discriminant, new_cases), switch_node),
 		combined_return_statement(render_nodes, tail_helper.component_element),
 	];
@@ -2405,12 +2430,22 @@ function get_referenced_helper_bindings(body_nodes, available_bindings) {
  * @param {any} key_expression
  * @param {any} source_node
  * @param {TransformContext} transform_context
+ * @param {AST.Identifier} [preallocated_helper_id] - Optional pre-allocated id.
+ *   Used by the switch lift's chained-call build, which allocates ids in
+ *   source order in a forward pass and then constructs helpers in reverse so
+ *   each fall-through case can reference the next case's component element.
  * @returns {{ setup_statements: any[], component_element: ESTreeJSX.JSXElement }}
  */
-function create_hook_safe_helper(body_nodes, key_expression, source_node, transform_context) {
-	const helper_id = create_generated_identifier(
-		create_local_statement_component_name(transform_context),
-	);
+function create_hook_safe_helper(
+	body_nodes,
+	key_expression,
+	source_node,
+	transform_context,
+	preallocated_helper_id,
+) {
+	const helper_id =
+		preallocated_helper_id ??
+		create_generated_identifier(create_local_statement_component_name(transform_context));
 	const helper_bindings = get_referenced_helper_bindings(
 		body_nodes,
 		transform_context.available_bindings,

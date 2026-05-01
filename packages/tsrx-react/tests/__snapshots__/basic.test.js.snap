@@ -224,17 +224,19 @@ export function App({ kind }: { kind: 'a' | 'b' }) {
 		return null;
 	});
 
+	const _tsrx_StatementBodyHook2_x = x;
+
+	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
+		[x] = useState(100);
+
+		return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
+	});
+
 	switch (kind) {
 		case 'a':
 			return <StatementBodyHook1 x={x} />;
 
 		case 'b':
-			const _tsrx_StatementBodyHook2_x = x;
-			const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
-				[x] = useState(100);
-
-				return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
-			});
 			return <StatementBodyHook2 x={x} />;
 	}
 
@@ -267,8 +269,8 @@ export function App({ kind }: { kind: 'a' | 'b' }) {
 
 exports[`[react] continuation lift for switch-with-hook > lifts the tail of a switch whose cases contain hooks 1`] = `
 "let App__StatementBodyHook1;
-let App__StatementBodyHook2;
 let App__StatementBodyHook3;
+let App__StatementBodyHook2;
 
 export function App({ kind }: { kind: 'a' | 'b' }) {
 	let x: number | undefined;
@@ -280,23 +282,27 @@ export function App({ kind }: { kind: 'a' | 'b' }) {
 		return null;
 	});
 
+	const _tsrx_StatementBodyHook2_x = x;
+
+	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
+		[x] = useState(100);
+
+		return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
+	});
+
+	const _tsrx_StatementBodyHook3_x = x;
+
+	const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3({ x }: { x: typeof _tsrx_StatementBodyHook3_x }) {
+		[x] = useState(200);
+
+		return <><span>{x}</span><StatementBodyHook1 x={x} /></>;
+	});
+
 	switch (kind) {
 		case 'a':
-			const _tsrx_StatementBodyHook2_x = x;
-			const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
-				[x] = useState(100);
-
-				return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
-			});
 			return <StatementBodyHook2 x={x} />;
 
 		case 'b':
-			const _tsrx_StatementBodyHook3_x = x;
-			const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3({ x }: { x: typeof _tsrx_StatementBodyHook3_x }) {
-				[x] = useState(200);
-
-				return <><span>{x}</span><StatementBodyHook1 x={x} /></>;
-			});
 			return <StatementBodyHook3 x={x} />;
 	}
 
@@ -307,8 +313,8 @@ export function App({ kind }: { kind: 'a' | 'b' }) {
 exports[`[react] continuation lift for switch-with-hook > lifts the tail when a switch has a default case with a hook 1`] = `
 "const App__static1 = <div>{'a'}</div>;
 let App__StatementBodyHook1;
-let App__StatementBodyHook2;
 let App__StatementBodyHook3;
+let App__StatementBodyHook2;
 
 export function App({ kind }: { kind: string }) {
 	let x: number | undefined;
@@ -320,21 +326,25 @@ export function App({ kind }: { kind: string }) {
 		return null;
 	});
 
+	const _tsrx_StatementBodyHook2_x = x;
+
+	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
+		return <>{App__static1}<StatementBodyHook1 x={x} /></>;
+	});
+
+	const _tsrx_StatementBodyHook3_x = x;
+
+	const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3({ x }: { x: typeof _tsrx_StatementBodyHook3_x }) {
+		[x] = useState(100);
+
+		return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
+	});
+
 	switch (kind) {
 		case 'a':
-			const _tsrx_StatementBodyHook2_x = x;
-			const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
-				return <>{App__static1}<StatementBodyHook1 x={x} /></>;
-			});
 			return <StatementBodyHook2 x={x} />;
 
 		default:
-			const _tsrx_StatementBodyHook3_x = x;
-			const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3({ x }: { x: typeof _tsrx_StatementBodyHook3_x }) {
-				[x] = useState(100);
-
-				return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
-			});
 			return <StatementBodyHook3 x={x} />;
 	}
 
@@ -343,12 +353,12 @@ export function App({ kind }: { kind: string }) {
 `;
 
 exports[`[react] continuation lift for switch-with-hook > lifts the tail when only some switch cases contain hooks 1`] = `
-"const App__static1 = <span>{'static'}</span>;
-const App__static2 = <p>{'fallback'}</p>;
+"const App__static1 = <p>{'fallback'}</p>;
+const App__static2 = <span>{'static'}</span>;
 let App__StatementBodyHook1;
-let App__StatementBodyHook2;
-let App__StatementBodyHook3;
 let App__StatementBodyHook4;
+let App__StatementBodyHook3;
+let App__StatementBodyHook2;
 
 export function App({ kind }: { kind: 'a' | 'b' | 'c' }) {
 	let x: number | undefined;
@@ -360,28 +370,34 @@ export function App({ kind }: { kind: 'a' | 'b' | 'c' }) {
 		return null;
 	});
 
+	const _tsrx_StatementBodyHook2_x = x;
+
+	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
+		[x] = useState(100);
+
+		return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
+	});
+
+	const _tsrx_StatementBodyHook3_x = x;
+
+	const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3({ x }: { x: typeof _tsrx_StatementBodyHook3_x }) {
+		return <>{App__static2}<StatementBodyHook1 x={x} /></>;
+	});
+
+	const _tsrx_StatementBodyHook4_x = x;
+
+	const StatementBodyHook4 = App__StatementBodyHook4 ?? (App__StatementBodyHook4 = function StatementBodyHook4({ x }: { x: typeof _tsrx_StatementBodyHook4_x }) {
+		return <>{App__static1}<StatementBodyHook1 x={x} /></>;
+	});
+
 	switch (kind) {
 		case 'a':
-			const _tsrx_StatementBodyHook2_x = x;
-			const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
-				[x] = useState(100);
-
-				return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
-			});
 			return <StatementBodyHook2 x={x} />;
 
 		case 'b':
-			const _tsrx_StatementBodyHook3_x = x;
-			const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3({ x }: { x: typeof _tsrx_StatementBodyHook3_x }) {
-				return <>{App__static1}<StatementBodyHook1 x={x} /></>;
-			});
 			return <StatementBodyHook3 x={x} />;
 
 		default:
-			const _tsrx_StatementBodyHook4_x = x;
-			const StatementBodyHook4 = App__StatementBodyHook4 ?? (App__StatementBodyHook4 = function StatementBodyHook4({ x }: { x: typeof _tsrx_StatementBodyHook4_x }) {
-				return <>{App__static2}<StatementBodyHook1 x={x} /></>;
-			});
 			return <StatementBodyHook4 x={x} />;
 	}
 
@@ -421,8 +437,8 @@ export function App({ kind }: { kind: 'a' | 'b' }) {
 
 exports[`[react] continuation lift for switch-with-hook > non-empty fall-through merges the trailing case body into the falling case 1`] = `
 "let App__StatementBodyHook1;
-let App__StatementBodyHook2;
 let App__StatementBodyHook3;
+let App__StatementBodyHook2;
 
 export function App({ kind }: { kind: 'a' | 'b' }) {
 	let x: number | undefined;
@@ -434,24 +450,27 @@ export function App({ kind }: { kind: 'a' | 'b' }) {
 		return null;
 	});
 
+	const _tsrx_StatementBodyHook2_x = x;
+
+	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
+		x = 1;
+
+		return <StatementBodyHook3 x={x} />;
+	});
+
+	const _tsrx_StatementBodyHook3_x = x;
+
+	const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3({ x }: { x: typeof _tsrx_StatementBodyHook3_x }) {
+		[x] = useState(100);
+
+		return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
+	});
+
 	switch (kind) {
 		case 'a':
-			const _tsrx_StatementBodyHook2_x = x;
-			const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
-				x = 1;
-				[x] = useState(100);
-
-				return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
-			});
 			return <StatementBodyHook2 x={x} />;
 
 		case 'b':
-			const _tsrx_StatementBodyHook3_x = x;
-			const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3({ x }: { x: typeof _tsrx_StatementBodyHook3_x }) {
-				[x] = useState(100);
-
-				return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
-			});
 			return <StatementBodyHook3 x={x} />;
 	}
 
@@ -462,8 +481,8 @@ export function App({ kind }: { kind: 'a' | 'b' }) {
 exports[`[react] continuation lift for switch-with-hook > preserves empty fall-through cases that share a body with the next case 1`] = `
 "const App__static1 = <span>{'other'}</span>;
 let App__StatementBodyHook1;
-let App__StatementBodyHook2;
 let App__StatementBodyHook3;
+let App__StatementBodyHook2;
 
 export function App({ kind }: { kind: 'a' | 'b' | 'c' }) {
 	let x: number | undefined;
@@ -475,23 +494,27 @@ export function App({ kind }: { kind: 'a' | 'b' | 'c' }) {
 		return null;
 	});
 
+	const _tsrx_StatementBodyHook2_x = x;
+
+	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
+		[x] = useState(100);
+
+		return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
+	});
+
+	const _tsrx_StatementBodyHook3_x = x;
+
+	const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3({ x }: { x: typeof _tsrx_StatementBodyHook3_x }) {
+		return <>{App__static1}<StatementBodyHook1 x={x} /></>;
+	});
+
 	switch (kind) {
 		case 'a':
 
 		case 'b':
-			const _tsrx_StatementBodyHook2_x = x;
-			const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
-				[x] = useState(100);
-
-				return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
-			});
 			return <StatementBodyHook2 x={x} />;
 
 		default:
-			const _tsrx_StatementBodyHook3_x = x;
-			const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3({ x }: { x: typeof _tsrx_StatementBodyHook3_x }) {
-				return <>{App__static1}<StatementBodyHook1 x={x} /></>;
-			});
 			return <StatementBodyHook3 x={x} />;
 	}
 
