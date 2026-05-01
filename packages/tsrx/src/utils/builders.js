@@ -1101,6 +1101,74 @@ export function jsx_attribute(name, value = null, shorthand = false, loc_info) {
 }
 
 /**
+ * Build a fresh `JSXOpeningElement`. For elements derived from an existing
+ * Element node, prefer `jsx_element` which spreads from the source.
+ *
+ * @param {ESTreeJSX.JSXOpeningElement['name']} name
+ * @param {ESTreeJSX.JSXOpeningElement['attributes']} [attributes]
+ * @param {boolean} [self_closing]
+ * @param {AST.NodeWithLocation} [loc_info]
+ * @returns {ESTreeJSX.JSXOpeningElement}
+ */
+export function jsx_opening_element(name, attributes = [], self_closing = false, loc_info) {
+	const node = /** @type {ESTreeJSX.JSXOpeningElement} */ ({
+		type: 'JSXOpeningElement',
+		name,
+		attributes,
+		selfClosing: self_closing,
+		metadata: { path: [] },
+	});
+
+	return set_location(node, loc_info);
+}
+
+/**
+ * Build a fresh `JSXClosingElement`.
+ *
+ * @param {ESTreeJSX.JSXClosingElement['name']} name
+ * @param {AST.NodeWithLocation} [loc_info]
+ * @returns {ESTreeJSX.JSXClosingElement}
+ */
+export function jsx_closing_element(name, loc_info) {
+	const node = /** @type {ESTreeJSX.JSXClosingElement} */ ({
+		type: 'JSXClosingElement',
+		name,
+		metadata: { path: [] },
+	});
+
+	return set_location(node, loc_info);
+}
+
+/**
+ * Build a fresh `JSXElement` from explicit opening / closing / children.
+ * Companion to `jsx_opening_element` / `jsx_closing_element`. For elements
+ * derived from an existing source node, use `jsx_element` (which spreads
+ * the source's name and metadata).
+ *
+ * @param {ESTreeJSX.JSXOpeningElement} opening_element
+ * @param {ESTreeJSX.JSXClosingElement | null} [closing_element]
+ * @param {ESTreeJSX.JSXElement['children']} [children]
+ * @param {AST.NodeWithLocation} [loc_info]
+ * @returns {ESTreeJSX.JSXElement}
+ */
+export function jsx_element_fresh(
+	opening_element,
+	closing_element = null,
+	children = [],
+	loc_info,
+) {
+	const node = /** @type {ESTreeJSX.JSXElement} */ ({
+		type: 'JSXElement',
+		openingElement: opening_element,
+		closingElement: closing_element,
+		children,
+		metadata: { path: [] },
+	});
+
+	return set_location(node, loc_info);
+}
+
+/**
  * @param {AST.Element} node
  * @param {ESTreeJSX.JSXOpeningElement['attributes']} attributes
  * @param {ESTreeJSX.JSXElement['children']} children

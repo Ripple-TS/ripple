@@ -939,35 +939,26 @@ function create_helper_props_property(binding) {
  */
 function create_helper_component_element(helper_id, bindings, source_node, mapping = {}) {
 	const { mapWrapper = true, mapBindingNames = true, mapBindingValues = true } = mapping;
-	const attributes = bindings.map(
-		(binding) =>
-			/** @type {any} */ ({
-				type: 'JSXAttribute',
-				name: identifier_to_jsx_name(
-					mapBindingNames ? clone_identifier(binding) : create_generated_identifier(binding.name),
-				),
-				value: to_jsx_expression_container(
-					mapBindingValues ? clone_identifier(binding) : create_generated_identifier(binding.name),
-					binding,
-				),
-				metadata: { path: [] },
-			}),
+	const attributes = bindings.map((binding) =>
+		b.jsx_attribute(
+			identifier_to_jsx_name(
+				mapBindingNames ? clone_identifier(binding) : create_generated_identifier(binding.name),
+			),
+			to_jsx_expression_container(
+				mapBindingValues ? clone_identifier(binding) : create_generated_identifier(binding.name),
+				binding,
+			),
+		),
 	);
 
-	const openingElement = {
-		type: 'JSXOpeningElement',
-		name: identifier_to_jsx_name(clone_identifier(helper_id)),
+	const opening_element = b.jsx_opening_element(
+		identifier_to_jsx_name(clone_identifier(helper_id)),
 		attributes,
-		selfClosing: true,
-		metadata: { path: [] },
-	};
-	const element = /** @type {any} */ ({
-		type: 'JSXElement',
-		openingElement: mapWrapper ? set_loc(openingElement, source_node) : openingElement,
-		closingElement: null,
-		children: [],
-		metadata: { path: [] },
-	});
+		true,
+	);
+	const element = b.jsx_element_fresh(
+		mapWrapper ? set_loc(opening_element, source_node) : opening_element,
+	);
 
 	return mapWrapper ? set_loc(element, source_node) : element;
 }
@@ -1157,21 +1148,7 @@ function hoist_static_render_nodes(render_nodes, transform_context) {
 		const name = create_helper_name(transform_context.helper_state, 'static');
 		const id = create_generated_identifier(name);
 
-		transform_context.helper_state.statics.push(
-			/** @type {any} */ ({
-				type: 'VariableDeclaration',
-				kind: 'const',
-				declarations: [
-					{
-						type: 'VariableDeclarator',
-						id,
-						init: node,
-						metadata: { path: [] },
-					},
-				],
-				metadata: { path: [] },
-			}),
-		);
+		transform_context.helper_state.statics.push(b.const(id, node));
 
 		render_nodes[i] = to_jsx_expression_container(clone_identifier(id), node);
 	}
@@ -1277,25 +1254,13 @@ function create_component_return_statement(
 	source_node,
 	map_render_node_locations = true,
 ) {
-	return set_loc(
-		/** @type {any} */ ({
-			type: 'ReturnStatement',
-			argument: build_return_expression(
-				render_nodes.map((node) =>
-					map_render_node_locations
-						? clone_expression_node(node)
-						: clone_expression_node_without_locations(node),
-				),
-			) || {
-				type: 'Literal',
-				value: null,
-				raw: 'null',
-				metadata: { path: [] },
-			},
-			metadata: { path: [] },
-		}),
-		source_node,
+	const cloned = render_nodes.map((node) =>
+		map_render_node_locations
+			? clone_expression_node(node)
+			: clone_expression_node_without_locations(node),
 	);
+
+	return set_loc(b.return(build_return_expression(cloned) || create_null_literal()), source_node);
 }
 
 /**
@@ -1307,20 +1272,14 @@ function create_component_lone_return_if_statement(node, render_nodes) {
 	const consequent_body = get_if_consequent_body(node);
 
 	return set_loc(
-		/** @type {any} */ ({
-			type: 'IfStatement',
-			test: node.test,
-			consequent: set_loc(
-				/** @type {any} */ ({
-					type: 'BlockStatement',
-					body: [create_component_return_statement(render_nodes, consequent_body[0], false)],
-					metadata: { path: [] },
-				}),
+		b.if(
+			node.test,
+			set_loc(
+				b.block([create_component_return_statement(render_nodes, consequent_body[0], false)]),
 				node.consequent,
 			),
-			alternate: null,
-			metadata: { path: [] },
-		}),
+			null,
+		),
 		node,
 	);
 }
@@ -1336,23 +1295,7 @@ function create_component_returning_if_statement(node, render_nodes, transform_c
 	const branch_statements = build_render_statements(consequent_body, true, transform_context);
 	prepend_render_nodes_to_return_statements(branch_statements, render_nodes);
 
-	return set_loc(
-		/** @type {any} */ ({
-			type: 'IfStatement',
-			test: node.test,
-			consequent: set_loc(
-				/** @type {any} */ ({
-					type: 'BlockStatement',
-					body: branch_statements,
-					metadata: { path: [] },
-				}),
-				node.consequent,
-			),
-			alternate: null,
-			metadata: { path: [] },
-		}),
-		node,
-	);
+	return set_loc(b.if(node.test, set_loc(b.block(branch_statements), node.consequent), null), node);
 }
 
 /* ---------------------------------------------------------------------- *
@@ -1461,40 +1404,19 @@ function create_component_helper_split_returning_if_statements(
 		node,
 		transform_context,
 	);
+
+	const branch_block = set_loc(
+		b.block([
+			...branch_helper.setup_statements,
+			combined_return_statement(render_nodes, branch_helper.component_element),
+		]),
+		node.consequent,
+	);
+
 	return [
-		set_loc(
-			/** @type {any} */ ({
-				type: 'IfStatement',
-				test: node.test,
-				consequent: set_loc(
-					/** @type {any} */ ({
-						type: 'BlockStatement',
-						body: [
-							...branch_helper.setup_statements,
-							{
-								type: 'ReturnStatement',
-								argument: combine_render_return_argument(
-									render_nodes,
-									branch_helper.component_element,
-								),
-								metadata: { path: [] },
-							},
-						],
-						metadata: { path: [] },
-					}),
-					node.consequent,
-				),
-				alternate: null,
-				metadata: { path: [] },
-			}),
-			node,
-		),
+		set_loc(b.if(node.test, branch_block, null), node),
 		...continuation_helper.setup_statements,
-		{
-			type: 'ReturnStatement',
-			argument: combine_render_return_argument(render_nodes, continuation_helper.component_element),
-			metadata: { path: [] },
-		},
+		combined_return_statement(render_nodes, continuation_helper.component_element),
 	];
 }
 
@@ -2250,47 +2172,21 @@ function to_jsx_element(node, transform_context, raw_children = node.children ||
 		(/** @type {any} */ attribute) => attribute?.metadata?.has_unmappable_value,
 	);
 
-	/** @type {ESTreeJSX.JSXOpeningElement} */
-	const openingElement = /** @type {ESTreeJSX.JSXOpeningElement} */ (
-		has_unmappable_attribute
-			? {
-					type: 'JSXOpeningElement',
-					name,
-					attributes,
-					selfClosing,
-					metadata: { path: [] },
-				}
-			: set_loc(
-					/** @type {any} */ ({
-						type: 'JSXOpeningElement',
-						name,
-						attributes,
-						selfClosing,
-					}),
-					node.openingElement || node,
-				)
-	);
+	const opening_element_node = b.jsx_opening_element(name, attributes, selfClosing);
+	const openingElement = has_unmappable_attribute
+		? opening_element_node
+		: set_loc(opening_element_node, node.openingElement || node);
 
-	/** @type {ESTreeJSX.JSXClosingElement | null} */
 	const closingElement = selfClosing
 		? null
 		: set_loc(
-				/** @type {any} */ ({
-					type: 'JSXClosingElement',
-					name: clone_jsx_name(name, node.closingElement?.name || node.closingElement || node),
-				}),
+				b.jsx_closing_element(
+					clone_jsx_name(name, node.closingElement?.name || node.closingElement || node),
+				),
 				node.closingElement || node,
 			);
 
-	return set_loc(
-		/** @type {any} */ ({
-			type: 'JSXElement',
-			openingElement,
-			closingElement,
-			children,
-		}),
-		node,
-	);
+	return set_loc(b.jsx_element_fresh(openingElement, closingElement, children), node);
 }
 
 /**
@@ -3401,27 +3297,10 @@ function try_statement_to_jsx_child(node, transform_context) {
  * @returns {any}
  */
 function create_jsx_element(tag_name, attributes, children) {
-	const name = { type: 'JSXIdentifier', name: tag_name, metadata: { path: [] } };
-	return {
-		type: 'JSXElement',
-		openingElement: {
-			type: 'JSXOpeningElement',
-			name,
-			attributes,
-			selfClosing: children.length === 0,
-			metadata: { path: [] },
-		},
-		closingElement:
-			children.length > 0
-				? {
-						type: 'JSXClosingElement',
-						name: { type: 'JSXIdentifier', name: tag_name, metadata: { path: [] } },
-						metadata: { path: [] },
-					}
-				: null,
-		children,
-		metadata: { path: [] },
-	};
+	const self_closing = children.length === 0;
+	const opening_element = b.jsx_opening_element(b.jsx_id(tag_name), attributes, self_closing);
+	const closing_element = self_closing ? null : b.jsx_closing_element(b.jsx_id(tag_name));
+	return b.jsx_element_fresh(opening_element, closing_element, children);
 }
 
 /**
@@ -4065,25 +3944,11 @@ function create_dynamic_jsx_element(dynamic_id, node, transform_context) {
 	const children = create_element_children(node.children || [], transform_context);
 	const name = identifier_to_jsx_name(clone_identifier(dynamic_id));
 
-	return /** @type {any} */ ({
-		type: 'JSXElement',
-		openingElement: {
-			type: 'JSXOpeningElement',
-			name,
-			attributes,
-			selfClosing,
-			metadata: { path: [] },
-		},
-		closingElement: selfClosing
-			? null
-			: {
-					type: 'JSXClosingElement',
-					name: clone_jsx_name(name),
-					metadata: { path: [] },
-				},
+	return b.jsx_element_fresh(
+		b.jsx_opening_element(name, attributes, selfClosing),
+		selfClosing ? null : b.jsx_closing_element(clone_jsx_name(name)),
 		children,
-		metadata: { path: [] },
-	});
+	);
 }
 
 /**
