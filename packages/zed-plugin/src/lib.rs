@@ -273,7 +273,7 @@ impl zed::Extension for TsrxExtension {
                        \"%RIPPLE_LSP_BIN%\" --stdio \
                      ) else ( \
                        echo [ripple-language-server] not found at \"%RIPPLE_LSP_BIN%\". \
-Run `pnpm install` (or `npm install`) in your project, \
+Run `pnpm install` ^(or `npm install`^) in your project, \
 or remove \"%RIPPLE_LSP_PKG%\" from your dependencies to use the auto-installed version. 1>&2 \
                        & exit /b 127 \
                      )".into(),
