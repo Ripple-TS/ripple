@@ -108,6 +108,7 @@ export function createJsxTransform(platform) {
 			available_bindings: new Map(),
 			lazy_next_id: 0,
 			current_css_hash: null,
+			function_scope_statements: null,
 			filename: filename ?? null,
 			collect,
 			errors: collect ? options?.errors : undefined,
@@ -191,8 +192,13 @@ export function createJsxTransform(platform) {
 				const saved_helper_state = state.helper_state;
 				const saved_bindings = state.available_bindings;
 				const saved_css_hash = state.current_css_hash;
+				const saved_function_scope_statements = state.function_scope_statements;
 				state.helper_state = helper_state;
 				state.current_css_hash = as_any.css ? as_any.css.hash : null;
+				// Side channel for hoists produced during the bottom-up walk
+				// (e.g. for-of inside a JSX element pulls its helper decl up to
+				// component scope). Drained inside component_to_function_declaration.
+				state.function_scope_statements = [];
 
 				// Pre-collect component body bindings (params + top-level statements)
 				// so Element children processed during the bottom-up walk can see
@@ -209,13 +215,17 @@ export function createJsxTransform(platform) {
 
 				const inner = /** @type {any} */ (next() ?? node);
 
-				// Restore context
+				// Restore context. `function_scope_statements` is restored AFTER
+				// `convert` runs so the function builder can drain whatever the
+				// walk produced for this component.
 				state.helper_state = saved_helper_state;
 				state.available_bindings = saved_bindings;
 				state.current_css_hash = saved_css_hash;
 
 				const convert = platform.hooks?.componentToFunction ?? component_to_function_declaration;
-				return /** @type {any} */ (convert(inner, state, helper_state));
+				const result = /** @type {any} */ (convert(inner, state, helper_state));
+				state.function_scope_statements = saved_function_scope_statements;
+				return result;
 			},
 
 			Tsx(node, { next, path }) {
@@ -376,6 +386,18 @@ export function component_to_function_declaration(component, transform_context, 
 	transform_context.available_bindings = new Map(param_bindings);
 
 	const body_statements = build_component_statements(body, transform_context);
+	// `function_scope_statements` is set up by the walker's `Component` visitor,
+	// populated during the bottom-up walk (e.g. by hook-bearing for-of in
+	// JSX-child position hoisting its helper decl), and drained here. The
+	// scoped statements are inserted just before the final `return` so any
+	// user declarations the hoist references (e.g. `const posts = [...]`)
+	// execute first and we don't trip TDZ. The visitor restores the previous
+	// value after this returns.
+	const scoped_statements = transform_context.function_scope_statements ?? [];
+	const merged_body =
+		scoped_statements.length === 0
+			? body_statements
+			: insert_function_scope_statements_before_return(body_statements, scoped_statements);
 
 	// Replace lazy param patterns with generated identifiers
 	const final_params = lazy_bindings.size > 0 ? replace_lazy_params(params) : params;
@@ -385,7 +407,7 @@ export function component_to_function_declaration(component, transform_context, 
 	// (e.g. `const name = ...`) that shadow lazy binding names.
 	const body_block = /** @type {any} */ ({
 		type: 'BlockStatement',
-		body: body_statements,
+		body: merged_body,
 		metadata: { path: [] },
 	});
 	const final_body =
@@ -421,6 +443,31 @@ export function component_to_function_declaration(component, transform_context, 
 
 	setLocation(fn, /** @type {any} */ (component), true);
 	return fn;
+}
+
+/**
+ * Insert hoisted setup statements just before a body's trailing `return`.
+ * The hoist may reference user bindings declared earlier in the body (e.g.
+ * `const posts = [...]` followed by `<ul>{for of posts ...}</ul>` whose
+ * helper hoist captures `posts`), so prepending to the top of the body
+ * would trip TDZ. Inserting just before the return preserves the order
+ * "user statements → hoisted setup → return".
+ *
+ * If the body doesn't end with a return, append the hoisted statements.
+ *
+ * @param {any[]} body_statements
+ * @param {any[]} scoped_statements
+ * @returns {any[]}
+ */
+function insert_function_scope_statements_before_return(body_statements, scoped_statements) {
+	if (body_statements.length === 0) return [...scoped_statements];
+
+	const last = body_statements[body_statements.length - 1];
+	if (last?.type === 'ReturnStatement') {
+		return [...body_statements.slice(0, -1), ...scoped_statements, last];
+	}
+
+	return [...body_statements, ...scoped_statements];
 }
 
 /**
@@ -2462,7 +2509,16 @@ function create_hook_safe_helper(
 		props_type !== null ? [create_typed_helper_props_pattern(helper_bindings, props_type)] : [];
 
 	const saved_bindings = transform_context.available_bindings;
+	const saved_function_scope_statements = transform_context.function_scope_statements;
 	transform_context.available_bindings = new Map(saved_bindings);
+	transform_context.function_scope_statements = [];
+
+	const fn_body_statements = build_render_statements(body_nodes, true, transform_context);
+	const scoped_statements = transform_context.function_scope_statements ?? [];
+	const merged_helper_body =
+		scoped_statements.length === 0
+			? fn_body_statements
+			: insert_function_scope_statements_before_return(fn_body_statements, scoped_statements);
 
 	const helper_fn = /** @type {any} */ ({
 		type: 'FunctionExpression',
@@ -2470,7 +2526,7 @@ function create_hook_safe_helper(
 		params,
 		body: {
 			type: 'BlockStatement',
-			body: build_render_statements(body_nodes, true, transform_context),
+			body: merged_helper_body,
 			metadata: { path: [] },
 		},
 		async: false,
@@ -2483,6 +2539,7 @@ function create_hook_safe_helper(
 	});
 
 	transform_context.available_bindings = saved_bindings;
+	transform_context.function_scope_statements = saved_function_scope_statements;
 
 	const component_element = create_helper_component_element(
 		helper_id,
@@ -2967,6 +3024,24 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	const loop_params = get_for_of_iteration_params(node.left, node.index);
 	const loop_body = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
 	const has_hooks = body_contains_top_level_hook_call(loop_body, transform_context, true);
+
+	// For hook-bearing for-of in JSX-child position (e.g. inside `<ul>{for ...}</ul>`),
+	// reuse the hoisted form so the helper component is declared once at
+	// function scope rather than re-bound on every iteration. Setup statements
+	// (helper decl + Array.isArray normalization) flow up via the pending
+	// side-channel that the enclosing function drains into its body.
+	if (
+		has_hooks &&
+		!transform_context.platform.hooks?.isTopLevelSetupCall &&
+		!transform_context.platform.hooks?.controlFlow?.forOf &&
+		transform_context.function_scope_statements
+	) {
+		const hoisted = build_hoisted_for_of_with_hooks(node, [], transform_context);
+		if (hoisted) {
+			transform_context.function_scope_statements.push(...hoisted.hoist_statements);
+			return hoisted.jsx_child;
+		}
+	}
 	const body_key_expression = find_key_expression_in_body(loop_body);
 	const explicit_key_expression =
 		body_key_expression ?? (node.key ? clone_expression_node(node.key) : undefined);
@@ -3012,12 +3087,38 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	// Restore bindings
 	transform_context.available_bindings = saved_bindings;
 
+	// Normalize the iteration source for the default `.map(...)` path so any
+	// `Iterable<T>` / `ArrayLike<T>` works, not just real arrays. The hoist
+	// uses the function-scope channel so the `let _tsrx_iteration_items_<n>`
+	// declaration lives at the enclosing function's top level (and after any
+	// user declarations the source references). We skip this when the
+	// platform overrides `renderForOf` (the default .map path isn't used) or
+	// when we don't have a function-scope channel set up.
+	let iteration_source = node.right;
+	if (
+		!transform_context.platform.hooks?.isTopLevelSetupCall &&
+		!transform_context.platform.hooks?.controlFlow?.forOf &&
+		!transform_context.platform.hooks?.renderForOf &&
+		transform_context.function_scope_statements
+	) {
+		transform_context.local_statement_component_index += 1;
+		const source_id = create_generated_identifier(
+			`_tsrx_iteration_items_${transform_context.local_statement_component_index}`,
+		);
+		const { source_decl, source_normalize_decl } = build_array_normalization_decls(
+			source_id,
+			node.right,
+		);
+		transform_context.function_scope_statements.push(source_decl, source_normalize_decl);
+		iteration_source = clone_identifier(source_id);
+	}
+
 	return to_jsx_expression_container(
 		/** @type {any} */ ({
 			type: 'CallExpression',
 			callee: {
 				type: 'MemberExpression',
-				object: node.right,
+				object: iteration_source,
 				property: create_generated_identifier('map'),
 				computed: false,
 				optional: false,

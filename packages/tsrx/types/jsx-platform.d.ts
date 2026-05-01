@@ -39,6 +39,20 @@ export interface JsxTransformContext {
 	lazy_next_id: number;
 	current_css_hash: string | null;
 	inside_element_child?: boolean;
+	/**
+	 * Function-scope side channel for setup statements that need to live at
+	 * the enclosing function's top level — e.g. helper-component declarations,
+	 * generated `let` / `const` bindings, and `Array.isArray` normalization
+	 * for hook-bearing for-of inside JSX-child position. Populated by helpers
+	 * that have no direct access to the enclosing function's statements list,
+	 * drained by the function-build sites (`component_to_function_declaration`,
+	 * `create_hook_safe_helper`) which insert pending entries before the
+	 * trailing `return` so user statements they depend on execute first.
+	 *
+	 * `null` when no enclosing function is being built (callers should treat
+	 * this as a signal to fall back to inline behavior).
+	 */
+	function_scope_statements: any[] | null;
 	/** Source filename for diagnostics; null when the caller did not supply one. */
 	filename: string | null;
 	/** True when recoverable errors should be collected onto `errors` instead of thrown. */

@@ -1609,9 +1609,12 @@ export function optionalFn(bar: string, baz?: string) {
 				expect(code).toMatchSnapshot();
 			});
 
-			it('falls back to the existing transform for non-hook for-of loops', () => {
-				// Without hooks in the body, the lift trigger doesn't fire and
-				// the existing `items.map(...)` shape is preserved.
+			it('normalizes the iteration source for non-hook for-of loops', () => {
+				// Even without hooks in the body we hoist the source through
+				// `Array.isArray(src) ? src : Array.from(src)` so any
+				// Iterable / ArrayLike works, not just real arrays. There's no
+				// helper component in this case — just the source hoist plus
+				// the inline `.map(...)` callback for the body.
 				const { code } = compile(
 					`export component App({ items }: { items: number[] }) {
 						for (const item of items; index i) {
@@ -1621,6 +1624,64 @@ export function optionalFn(bar: string, baz?: string) {
 					'App.tsrx',
 				);
 
+				expect(code).toMatchSnapshot();
+			});
+
+			it('hoists the helper for a hook-bearing for-of nested inside a JSX element', () => {
+				// `<ul>{for of posts}</ul>` runs `for_of_statement_to_jsx_child`
+				// during the bottom-up walk (not the body-level lift trigger),
+				// so the hoist flows up via `function_scope_statements` and the
+				// helper declaration ends up at component scope rather than
+				// re-bound on every iteration inside the .map callback.
+				const { code } = compile(
+					`export component App({ posts }: { posts: { title: string }[] }) {
+						<ul>
+							for (const post of posts) {
+								useEffect(() => { console.log(post.title); }, [post.title]);
+								<li>{post.title}</li>
+							}
+						</ul>
+					}`,
+					'App.tsrx',
+				);
+
+				// Helper decl + Array.isArray normalization live above the
+				// `<ul>` rendering, not inside the .map callback.
+				expect(code).toMatch(/let _tsrx_iteration_items_\d+ = posts;/);
+				expect(code).toContain('_tsrx_iteration_items_1 = Array.isArray(_tsrx_iteration_items_1)');
+				// .map callback is just `(post) => <Helper post={post}/>`,
+				// nothing else inside it.
+				expect(code).toMatch(
+					/_tsrx_iteration_items_\d+\.map\(\(post\) => <StatementBodyHook\d+ post=\{post\} \/>\)/,
+				);
+				expect(code).toMatchSnapshot();
+			});
+
+			it('preserves user-declaration order when the iteration source is declared in the component body', () => {
+				// `const posts = [...]` is declared in the component body and
+				// referenced by the for-of's hoisted iteration source. The
+				// hoist must come AFTER `const posts = [...]` to avoid TDZ —
+				// `insert_pending_before_return` slots pending statements just
+				// before the trailing return for exactly this reason.
+				const { code } = compile(
+					`export component App() {
+						const posts = [{ title: 'a' }, { title: 'b' }];
+						<ul>
+							for (const post of posts) {
+								useEffect(() => { console.log(post.title); }, [post.title]);
+								<li>{post.title}</li>
+							}
+						</ul>
+					}`,
+					'App.tsrx',
+				);
+
+				// `const posts = [...]` must come before the hoist so the
+				// `let _tsrx_iteration_items_X = posts;` reference is valid.
+				const posts_decl = code.indexOf('const posts =');
+				const hoist_decl = code.search(/let _tsrx_iteration_items_\d+ = posts;/);
+				expect(posts_decl).toBeGreaterThan(-1);
+				expect(hoist_decl).toBeGreaterThan(posts_decl);
 				expect(code).toMatchSnapshot();
 			});
 		},

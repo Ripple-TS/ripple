@@ -227,7 +227,9 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('const items = [1, 2, 3];');
-		expect(code).toContain('items.map((item, i) => {');
+		// for-of normalizes the source into `_tsrx_iteration_items_<n>` so any
+		// Iterable / ArrayLike works, then maps over it.
+		expect(code).toMatch(/_tsrx_iteration_items_\d+\.map\(\(item, i\) => \{/);
 		expect(code).toContain('return <div key={i}>{item}</div>;');
 	});
 
@@ -243,7 +245,7 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('items.map((item, i) => {');
+		expect(code).toMatch(/_tsrx_iteration_items_\d+\.map\(\(item, i\) => \{/);
 		expect(code).toContain('return <div key={item}>{item}</div>;');
 	});
 
@@ -259,7 +261,7 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('items.map((item) => {');
+		expect(code).toMatch(/_tsrx_iteration_items_\d+\.map\(\(item\) => \{/);
 		expect(code).toContain('return <div key={item.inner}>{item.id}</div>;');
 		expect(code).not.toContain('return <div key={item.id}>{item.id}</div>;');
 	});
@@ -1204,7 +1206,11 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('function StatementBodyHook');
-		expect(code).toContain('items.map((item, index) =>');
+		// Hook-bearing for-of in JSX-child position now hoists the helper above
+		// the iteration and normalizes the source via Array.isArray/Array.from,
+		// so the iteration variable is a generated `_tsrx_iteration_items_<n>`
+		// rather than the raw `items`.
+		expect(code).toMatch(/_tsrx_iteration_items_\d+\.map\(\(item, index\) =>/);
 		expect(code).toContain('<StatementBodyHook1 item={item} key={index} />');
 		expect(code).not.toContain('index={index} />');
 	});
@@ -1274,7 +1280,7 @@ describe('@tsrx/react basic', () => {
 			'FeatureCard.tsrx',
 		);
 
-		expect(code).toContain('items.map((item, index) =>');
+		expect(code).toMatch(/_tsrx_iteration_items_\d+\.map\(\(item, index\) =>/);
 		expect(code).toContain('return <li key={index}>{item}</li>;');
 	});
 });
