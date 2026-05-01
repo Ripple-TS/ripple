@@ -31,6 +31,7 @@ import {
 	jsx_attribute as build_jsx_attribute,
 	jsx_id as build_jsx_id,
 } from '../../utils/builders.js';
+import * as b from '../../utils/builders.js';
 import {
 	apply_lazy_transforms,
 	collect_lazy_bindings_from_component,
@@ -1407,11 +1408,7 @@ function append_tail_invocation(body, tail_helper) {
  * @returns {any}
  */
 function combined_return_statement(render_nodes, jsx_child) {
-	return /** @type {any} */ ({
-		type: 'ReturnStatement',
-		argument: combine_render_return_argument(render_nodes, jsx_child),
-		metadata: { path: [] },
-	});
+	return b.return(combine_render_return_argument(render_nodes, jsx_child));
 }
 
 /**
@@ -1426,62 +1423,11 @@ function combined_return_statement(render_nodes, jsx_child) {
  * @returns {{ source_decl: any, source_normalize_decl: any }}
  */
 function build_array_normalization_decls(source_id, source_expr) {
-	const source_decl = /** @type {any} */ ({
-		type: 'VariableDeclaration',
-		kind: 'let',
-		declarations: [
-			{
-				type: 'VariableDeclarator',
-				id: clone_identifier(source_id),
-				init: clone_expression_node(source_expr),
-				metadata: { path: [] },
-			},
-		],
-		metadata: { path: [] },
-	});
-	const source_normalize_decl = /** @type {any} */ ({
-		type: 'ExpressionStatement',
-		expression: {
-			type: 'AssignmentExpression',
-			operator: '=',
-			left: clone_identifier(source_id),
-			right: {
-				type: 'ConditionalExpression',
-				test: {
-					type: 'CallExpression',
-					callee: {
-						type: 'MemberExpression',
-						object: { type: 'Identifier', name: 'Array', metadata: { path: [] } },
-						property: { type: 'Identifier', name: 'isArray', metadata: { path: [] } },
-						computed: false,
-						optional: false,
-						metadata: { path: [] },
-					},
-					arguments: [clone_identifier(source_id)],
-					optional: false,
-					metadata: { path: [] },
-				},
-				consequent: clone_identifier(source_id),
-				alternate: {
-					type: 'CallExpression',
-					callee: {
-						type: 'MemberExpression',
-						object: { type: 'Identifier', name: 'Array', metadata: { path: [] } },
-						property: { type: 'Identifier', name: 'from', metadata: { path: [] } },
-						computed: false,
-						optional: false,
-						metadata: { path: [] },
-					},
-					arguments: [clone_identifier(source_id)],
-					optional: false,
-					metadata: { path: [] },
-				},
-				metadata: { path: [] },
-			},
-			metadata: { path: [] },
-		},
-		metadata: { path: [] },
-	});
+	const source_decl = b.let(clone_identifier(source_id), clone_expression_node(source_expr));
+	const is_array_call = b.call(b.member(b.id('Array'), 'isArray'), clone_identifier(source_id));
+	const from_call = b.call(b.member(b.id('Array'), 'from'), clone_identifier(source_id));
+	const normalized = b.conditional(is_array_call, clone_identifier(source_id), from_call);
+	const source_normalize_decl = b.stmt(b.assignment('=', clone_identifier(source_id), normalized));
 
 	return { source_decl, source_normalize_decl };
 }
