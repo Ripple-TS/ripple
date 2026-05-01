@@ -1,5 +1,13 @@
 # @tsrx/rspack-plugin-solid
 
+## 0.0.6
+
+### Patch Changes
+
+- Updated dependencies
+  [[`b4cc83f`](https://github.com/Ripple-TS/ripple/commit/b4cc83f07d8777d5882d1e853493941a3f6224ae)]:
+  - @tsrx/solid@0.0.22
+
 ## 0.0.5
 
 ### Patch Changes

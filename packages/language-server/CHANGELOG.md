@@ -1,5 +1,26 @@
 # @ripple-ts/language-server
 
+## 0.3.42
+
+### Patch Changes
+
+- [#1027](https://github.com/Ripple-TS/ripple/pull/1027)
+  [`4efd806`](https://github.com/Ripple-TS/ripple/commit/4efd8062b7494f88fd7d623403dc6c1b426a0495)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - We will no bump up the
+  language-server version in zed's package.json config field automatically to keep
+  things in sync
+
+  Fixed issue with Zed to look and find the project's language-server first -
+  useful for dev
+
+  language-server was pointing to dist but dist wasn't published, also issues with
+  bin, etc.
+
+- Updated dependencies
+  [[`b4cc83f`](https://github.com/Ripple-TS/ripple/commit/b4cc83f07d8777d5882d1e853493941a3f6224ae)]:
+  - @tsrx/core@0.0.22
+  - @tsrx/typescript-plugin@0.3.42
+
 ## 0.3.41
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # @tsrx/core
 
+## 0.0.22
+
+### Patch Changes
+
+- [#1031](https://github.com/Ripple-TS/ripple/pull/1031)
+  [`b4cc83f`](https://github.com/Ripple-TS/ripple/commit/b4cc83f07d8777d5882d1e853493941a3f6224ae)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve generic type
+  arguments on JSX component tags (e.g. `<RenderProp<User>>`). They were being
+  silently dropped during prettier formatting, during the tsrx → JSX compile
+  output for React/Preact/Solid/Vue, and in Ripple's `to_ts` virtual-code output
+  used by the language server for typechecking.
+
 ## 0.0.21
 
 ### Patch Changes

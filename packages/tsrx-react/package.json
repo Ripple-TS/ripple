@@ -3,7 +3,7 @@
   "description": "React compiler built on @tsrx/core",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "type": "module",
   "publishConfig": {
     "access": "public"

@@ -3,7 +3,7 @@
   "description": "MCP server for TSRX documentation and project context",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
   "repository": {
     "type": "git",

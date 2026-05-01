@@ -1,6 +1,6 @@
 {
   "name": "website-mcp",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": true,
   "type": "module",
   "description": "Deployment-neutral TSRX MCP HTTP endpoint for remote MCP clients",
