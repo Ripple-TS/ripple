@@ -292,7 +292,7 @@ export component App() {
     <p>"Selected size: "{size}</p>
   </div>
 
-  <button onClick={() => size = 'medium'}>"Reset to \"medium\""</button>
+  <button onClick={() => size = 'medium'}>"Reset to &quot;medium&quot;"</button>
 }
 ```
 
@@ -551,8 +551,9 @@ export component App() {
     <pre>
       "Block size: "
       {size[0]?.blockSize || 0}
-      "px
-      Inline size: "
+      "px"
+      <br />
+      "Inline size: "
       {size[0]?.inlineSize || 0}
       "px"
     </pre>
@@ -627,7 +628,8 @@ export component App() {
     <pre>
       "Block size: "
       {size[0]?.blockSize || 0}
-      "px\n"
+      "px"
+      <br />
       "Inline size: "
       {size[0]?.inlineSize || 0}
       "px"
