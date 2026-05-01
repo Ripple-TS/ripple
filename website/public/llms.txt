@@ -1537,9 +1537,9 @@ explicit:
 ```ripple
 export component Frame({ children }) {
 	<div class="frame">
-		{text 'before"
+		{text 'before'}
 		{children}
-		{text 'after"
+		{text 'after'}
 	</div>
 }
 ```
