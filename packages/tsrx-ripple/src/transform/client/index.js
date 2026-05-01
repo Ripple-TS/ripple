@@ -4499,6 +4499,10 @@ function create_tsx_with_typescript_support(comments) {
 
 			context.visit(node.name);
 
+			if (node.typeArguments) {
+				context.visit(node.typeArguments);
+			}
+
 			for (const attr of node.attributes || []) {
 				context.write(' ');
 				context.visit(attr);

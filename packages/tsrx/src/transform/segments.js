@@ -653,8 +653,11 @@ export function convert_source_map_to_mappings(
 				// Nothing to visit (just source string)
 				return;
 			} else if (node.type === 'JSXOpeningElement') {
-				// Visit name and attributes in source order
+				// Visit name, type arguments, and attributes in source order
 				visit(node.name);
+				if (node.typeArguments) {
+					visit(node.typeArguments);
+				}
 				for (const attr of node.attributes) {
 					visit(attr);
 				}

@@ -217,5 +217,25 @@ export function tsx_with_ts_locations() {
 		wrappers[type] = (node, context) => wrap_with_locations(node, context, base[type]);
 	}
 
+	// esrap's JSXOpeningElement printer doesn't emit `typeArguments`, so generic
+	// component tags like `<RenderProp<User>>` lose the `<User>` in the output.
+	const print_jsx_opening_element = (/** @type {any} */ node, /** @type {any} */ context) => {
+		context.write('<');
+		context.visit(node.name);
+		if (node.typeArguments) {
+			context.visit(node.typeArguments);
+		}
+		for (const attribute of node.attributes) {
+			context.write(' ');
+			context.visit(attribute);
+		}
+		if (node.selfClosing) {
+			context.write(' /');
+		}
+		context.write('>');
+	};
+	wrappers.JSXOpeningElement = (node, context) =>
+		wrap_with_locations(node, context, print_jsx_opening_element);
+
 	return { ...base, ...wrappers };
 }

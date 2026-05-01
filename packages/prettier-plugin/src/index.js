@@ -5748,6 +5748,12 @@ function printJSXElement(node, path, options, print) {
 	const hasAttributes = openingElement.attributes && openingElement.attributes.length > 0;
 	const hasChildren = node.children && node.children.length > 0;
 
+	/** @type {Doc} */
+	let typeArgsDoc = '';
+	if (openingElement.typeArguments) {
+		typeArgsDoc = path.call(print, 'openingElement', 'typeArguments');
+	}
+
 	// Format attributes
 	/** @type {Doc} */
 	let attributesDoc = '';
@@ -5778,11 +5784,11 @@ function printJSXElement(node, path, options, print) {
 	}
 
 	if (isSelfClosing) {
-		return ['<', tagName, attributesDoc, ' />'];
+		return ['<', tagName, typeArgsDoc, attributesDoc, ' />'];
 	}
 
 	if (!hasChildren) {
-		return ['<', tagName, attributesDoc, '></', tagName, '>'];
+		return ['<', tagName, typeArgsDoc, attributesDoc, '></', tagName, '>'];
 	}
 
 	// Format children - filter out empty text nodes and merge adjacent text nodes
@@ -5826,7 +5832,7 @@ function printJSXElement(node, path, options, print) {
 
 	// Check if content can be inlined (single text node or single expression)
 	if (childrenDocs.length === 1 && typeof childrenDocs[0] === 'string') {
-		return ['<', tagName, attributesDoc, '>', childrenDocs[0], '</', tagName, '>'];
+		return ['<', tagName, typeArgsDoc, attributesDoc, '>', childrenDocs[0], '</', tagName, '>'];
 	}
 
 	// Multiple children or complex children - format with line breaks
@@ -5842,6 +5848,7 @@ function printJSXElement(node, path, options, print) {
 	return group([
 		'<',
 		tagName,
+		typeArgsDoc,
 		attributesDoc,
 		'>',
 		indent([hardline, ...formattedChildren]),
@@ -6019,6 +6026,12 @@ function is_attribute_value_breakable(value, is_nested_in_object = false) {
 function printElement(element, path, options, print) {
 	const node = /** @type {AST.Element & AST.NodeWithLocation} */ (element);
 	const tagName = printMemberExpressionSimple(node.id, options);
+	const openingElement = /** @type {any} */ (node.openingElement);
+	/** @type {Doc} */
+	let typeArgsDoc = '';
+	if (openingElement?.typeArguments) {
+		typeArgsDoc = path.call(print, 'openingElement', 'typeArguments');
+	}
 	const elementLeadingComments = getElementLeadingComments(node);
 
 	// `metadata.elementLeadingComments` may include comments that actually appear *inside* the element
@@ -6095,7 +6108,7 @@ function printElement(element, path, options, print) {
 	}
 
 	if (isSelfClosing && !hasInnerComments && !hasAttributes) {
-		const elementDoc = group(['<', tagName, ' />']);
+		const elementDoc = group(['<', tagName, typeArgsDoc, ' />']);
 		return metadataCommentParts.length > 0 ? [...metadataCommentParts, elementDoc] : elementDoc;
 	}
 
@@ -6146,6 +6159,7 @@ function printElement(element, path, options, print) {
 	const openingTag = group([
 		'<',
 		tagName,
+		typeArgsDoc,
 		hasAttributes
 			? indent([
 					...attrDocs,

@@ -1107,15 +1107,23 @@ export function jsx_attribute(name, value = null, shorthand = false, loc_info) {
  * @param {ESTreeJSX.JSXOpeningElement['name']} name
  * @param {ESTreeJSX.JSXOpeningElement['attributes']} [attributes]
  * @param {boolean} [self_closing]
+ * @param {ESTreeJSX.JSXOpeningElement['typeArguments']} [type_arguments]
  * @param {AST.NodeWithLocation} [loc_info]
  * @returns {ESTreeJSX.JSXOpeningElement}
  */
-export function jsx_opening_element(name, attributes = [], self_closing = false, loc_info) {
+export function jsx_opening_element(
+	name,
+	attributes = [],
+	self_closing = false,
+	type_arguments = undefined,
+	loc_info,
+) {
 	const node = /** @type {ESTreeJSX.JSXOpeningElement} */ ({
 		type: 'JSXOpeningElement',
 		name,
 		attributes,
 		selfClosing: self_closing,
+		typeArguments: type_arguments,
 		metadata: { path: [] },
 	});
 

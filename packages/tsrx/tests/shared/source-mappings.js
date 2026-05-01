@@ -777,6 +777,36 @@ export function optionalFn(declRequired: string, declMaybe?: string) {
 		});
 	});
 
+	describe(`[${name}] generic type arguments on JSX component tags`, () => {
+		it('maps the type argument identifier back to source', () => {
+			const source = `type User = { name: string };
+
+component RenderProp<Item>(props: { children: (item: Item) => any }) {}
+
+export component App() {
+	<RenderProp<User>>
+		{(item) => item.name}
+	</RenderProp>
+}`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx');
+
+			// The generated TSX must contain `<RenderProp<User>` (no leading
+			// space) so the type argument round-trips through the printer.
+			expect(result.code).toContain('<RenderProp<User>');
+
+			const source_user_offset = source.indexOf('<User>') + 1;
+			const generated_user_offset =
+				result.code.indexOf('RenderProp<User>') + 'RenderProp<'.length;
+
+			const user_mapping = result.mappings.find(
+				(/** @type {{ sourceOffsets: number[], lengths: number[] }} */ m) =>
+					m.sourceOffsets[0] === source_user_offset && m.lengths[0] === 'User'.length,
+			);
+			expect(user_mapping).toBeDefined();
+			expect(user_mapping.generatedOffsets[0]).toBe(generated_user_offset);
+		});
+	});
+
 	describe(`[${name}] shared tests conditionally run for specific frameworks`, () => {
 		it.runIf(['react', 'preact'].includes(name))(
 			`[${name}] maps source declarations to their own generated declarations when hook helpers are extracted`,

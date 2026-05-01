@@ -3477,6 +3477,46 @@ declare function processData<T>(data: T): Promise<T>;`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should preserve generic type arguments on JSX component tags', async () => {
+			const input = `type User = { name: string };
+component RenderProp<Item>(props: { children: (item: Item) => any }) {}
+export component App() {
+	<RenderProp<User>>
+		{(item) => item.name}
+	</RenderProp>
+}`;
+
+			const expected = `type User = { name: string };
+component RenderProp<Item>(props: { children: (item: Item) => any }) {}
+export component App() {
+  <RenderProp<User>>
+    {(item) => item.name}
+  </RenderProp>
+}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve generic type arguments on self-closing JSX component tags', async () => {
+			const input = `component Box<T>({ value }: { value: T }) {
+	<div>{String(value)}</div>
+}
+export component App() {
+	<Box<string> value="hi" />
+}`;
+
+			const expected = `component Box<T>({ value }: { value: T }) {
+  <div>{String(value)}</div>
+}
+export component App() {
+  <Box<string> value="hi" />
+}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should preserve multiple generics on method shorthand', async () => {
 			const input = `const obj = {
   method<V, T, U>(): { build: () => V; data: T; key: U } {

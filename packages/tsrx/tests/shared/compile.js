@@ -127,6 +127,38 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 
 			expect(code).toContain('export function MyComponent<Item>(props: Props<Item>)');
 		});
+
+		it('preserves generic type arguments on JSX component tags', () => {
+			const { code } = compile(
+				`type User = { name: string };
+
+				component RenderProp<Item>(props: { children: (item: Item) => any }) {}
+
+				export component App() {
+					<RenderProp<User>>
+						{(item) => item.name}
+					</RenderProp>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<RenderProp<User>>');
+		});
+
+		it('preserves generic type arguments on self-closing JSX component tags', () => {
+			const { code } = compile(
+				`component Box<T>({ value }: { value: T }) {
+					<div>{String(value)}</div>
+				}
+
+				export component App() {
+					<Box<string> value="hi" />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<Box<string>');
+		});
 	});
 
 	describe(`[${name}] TypeScript output`, () => {

@@ -31,6 +31,8 @@ import {
 	to_text_expression,
 } from '@tsrx/core';
 
+import { builders as b } from '@tsrx/core';
+
 /**
  * Solid extends the shared `JsxTransformContext` with `needs_*` flags that
  * track which Solid runtime primitives (`Show`, `For`, `Switch`, `Match`,
@@ -1159,12 +1161,7 @@ function to_jsx_element(node, transform_context, pre_walk_children) {
 	}
 
 	const openingElement = set_loc(
-		/** @type {any} */ ({
-			type: 'JSXOpeningElement',
-			name,
-			attributes,
-			selfClosing,
-		}),
+		b.jsx_opening_element(name, attributes, selfClosing, node.openingElement?.typeArguments),
 		node.openingElement || node,
 	);
 

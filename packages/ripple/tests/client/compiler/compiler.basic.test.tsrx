@@ -426,6 +426,38 @@ export component MyComponent<Item>(props: Props<Item>) {
 		expect(result).toContain('export function MyComponent<Item>(props: Props<Item>)');
 	});
 
+	it('preserves generic type arguments on JSX component tags in to_ts output', () => {
+		const source = `
+type User = { name: string };
+
+component RenderProp<Item>(props: { children: (item: Item) => any }) {}
+
+export component App() {
+	<RenderProp<User>>
+		{(item) => item.name}
+	</RenderProp>
+}
+`;
+		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
+
+		expect(result).toContain('<RenderProp<User>');
+	});
+
+	it('preserves generic type arguments on self-closing JSX component tags in to_ts output', () => {
+		const source = `
+component Box<T>({ value }: { value: T }) {
+	<div>{String(value)}</div>
+}
+
+export component App() {
+	<Box<string> value="hi" />
+}
+`;
+		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
+
+		expect(result).toContain('<Box<string>');
+	});
+
 	it('preserves regular function type parameters in to_ts output', () => {
 		const source = `
 type Props<Item> = {

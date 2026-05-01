@@ -2210,6 +2210,9 @@ function to_jsx_element(node, transform_context, raw_children = node.children ||
 	);
 
 	const opening_element_node = b.jsx_opening_element(name, attributes, selfClosing);
+	if (node.openingElement?.typeArguments) {
+		/** @type {any} */ (opening_element_node).typeArguments = node.openingElement.typeArguments;
+	}
 	const openingElement = has_unmappable_attribute
 		? opening_element_node
 		: set_loc(opening_element_node, node.openingElement || node);
