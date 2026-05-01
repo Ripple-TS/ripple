@@ -278,7 +278,7 @@ export default component App() {
 component ListWithIndex({ items }) {
   <ul>
     for (const item of items; index i) {
-      <li>{\`\${i}: \${item}\`}</li>
+      <li>{i}": "{item}</li>
     }
   </ul>
 }

@@ -34,7 +34,7 @@ export component EventExample() {
   let &[message] = track('');
 
   <div>
-    <button onClick={() => (message = 'Clicked!')}>{'Click me'}</button>
+    <button onClick={() => (message = 'Clicked!')}>"Click me"</button>
     <input onInput={(e) => (message = e.target.value)} />
     <p>{message}</p>
   </div>
@@ -65,7 +65,7 @@ property when using an object as an event handler.
     handleEvent: (e) => console.log('clicked!'),
   }}
 >
-  {'Click me'}
+  "Click me"
 </button>
 ```
 
@@ -89,7 +89,7 @@ export component EventExample() {
       capture: true,
     }}
   >
-    <button onClick={() => order.push('inner-bubble')}>{'Click'}</button>
+    <button onClick={() => order.push('inner-bubble')}>"Click"</button>
     <p>{order.join(' → ')}</p>
   </div>
 }
@@ -116,9 +116,9 @@ export component EventExample() {
       once: true,
     }}
   >
-    {'Click me (only works once)'}
+    "Click me (only works once)"
   </button>
-  <p>{`Clicks: ${count}`}</p>
+  <p>"Clicks: "{count}</p>
 }
 // Button only responds to the first click
 ```
@@ -144,7 +144,7 @@ default.
     passive: true,
   }}
 >
-  {'Scroll over me'}
+  "Scroll over me"
 </div>
 ```
 
@@ -183,7 +183,7 @@ export component EventExample() {
       delegated: false, // Attach listener directly to this button
     }}
   >
-    {'Click me'}
+    "Click me"
   </button>
 }
 ```
@@ -208,9 +208,9 @@ export component EventExample() {
       customName: 'MyCustomEvent',
     }}
   >
-    {'Custom event target'}
+    "Custom event target"
   </div>
-  <p>{`Event count: ${count}`}</p>
+  <p>"Event count: "{count}</p>
 }
 // The element listens for 'MyCustomEvent' instead of 'mycustomevent'
 ```
