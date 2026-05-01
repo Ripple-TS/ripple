@@ -1753,9 +1753,7 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 		transform_context.available_bindings,
 	);
 	const loop_scoped_names = new Set(loop_params.map((/** @type {any} */ p) => p.name));
-	const outer_bindings = all_helper_bindings.filter(
-		(b) => !loop_scoped_names.has(b.name) && b.name !== '_tsrx_isLast',
-	);
+	const outer_bindings = all_helper_bindings.filter((b) => !loop_scoped_names.has(b.name));
 	const loop_bindings = all_helper_bindings.filter((b) => loop_scoped_names.has(b.name));
 
 	const helper_id = create_generated_identifier(
