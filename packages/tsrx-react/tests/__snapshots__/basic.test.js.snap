@@ -638,6 +638,51 @@ export function App({ load }: { load: () => number }) {
 }"
 `;
 
+exports[`[react] hoisted helper and tail lift for for-of-with-hook > drains nested for-of source normalization when the outer hook-bearing for-of has a destructured loop param 1`] = `
+"let App__StatementBodyHook2;
+
+export function App(
+	{ groups }: { groups: { id: string; posts: { tags: string[] }[] }[] }
+) {
+	let _tsrx_iteration_items_3 = groups;
+
+	_tsrx_iteration_items_3 = Array.isArray(_tsrx_iteration_items_3)
+		? _tsrx_iteration_items_3
+		: Array.from(_tsrx_iteration_items_3);
+
+	return <ul>{_tsrx_iteration_items_3.map(({ id, posts }) => {
+			const _tsrx_StatementBodyHook2_id = id;
+			const _tsrx_StatementBodyHook2_posts = posts;
+
+			const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
+				{ id, posts }: { 
+					id: typeof _tsrx_StatementBodyHook2_id;
+					posts: typeof _tsrx_StatementBodyHook2_posts
+				 }
+			) {
+				let _tsrx_iteration_items_1 = posts;
+
+				_tsrx_iteration_items_1 = Array.isArray(_tsrx_iteration_items_1)
+					? _tsrx_iteration_items_1
+					: Array.from(_tsrx_iteration_items_1);
+
+				useEffect(
+					() => {
+						console.log(id);
+					},
+					[id]
+				);
+
+				return <li>{_tsrx_iteration_items_1.map((post) => {
+						return <span>{post.tags.length}</span>;
+					})}</li>;
+			});
+
+			return <StatementBodyHook2 id={id} posts={posts} />;
+		})}</ul>;
+}"
+`;
+
 exports[`[react] hoisted helper and tail lift for for-of-with-hook > hoists nested for-of source normalization into the enclosing helper body 1`] = `
 "let App__StatementBodyHook2;
 

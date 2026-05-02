@@ -3107,21 +3107,32 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 		collect_pattern_bindings(param, transform_context.available_bindings);
 	}
 
+	// Drain any nested-for-of normalizations the walker stashed on this node
+	// into our own body so the decls land where this for-of's loop params are
+	// in scope. Two shapes:
+	// - Non-hook: `body_statements` becomes the .map callback body, so we
+	//   slot decls just before the return below.
+	// - Hook fallthrough (`build_hoisted_for_of_with_hooks` returned null,
+	//   e.g. destructured loop params): the body becomes a hook-safe helper
+	//   whose function body holds the references. Prepending the stashed
+	//   decls into `loop_body` before `hook_safe_render_statements` makes
+	//   their source identifiers (e.g. `posts`) get picked up as helper props
+	//   and the decls land inside the helper body where they're referenced.
+	// The hoisted-helper path returned earlier and does its own drain.
+	const stashed_body_scope = node.metadata?.for_of_body_scope_statements ?? [];
+	const effective_loop_body =
+		has_hooks && stashed_body_scope.length > 0
+			? [...stashed_body_scope, ...loop_body]
+			: loop_body;
+
 	let body_statements = has_hooks
-		? hook_safe_render_statements(loop_body, key_expression, transform_context)
-		: build_render_statements(loop_body, true, transform_context);
+		? hook_safe_render_statements(effective_loop_body, key_expression, transform_context)
+		: build_render_statements(effective_loop_body, true, transform_context);
 
 	if (implicit_non_hook_key_expression) {
 		apply_key_to_render_statements(body_statements, implicit_non_hook_key_expression);
 	}
 
-	// Drain any nested-for-of normalizations the walker stashed on this node
-	// into our own body so the decls land inside the .map callback (or hook
-	// helper body) where this for-of's loop params are in scope. The hook
-	// path has its own deeper drain inside `build_hoisted_for_of_with_hooks`
-	// which also handles its body frame; this drain only applies to the
-	// non-hook inline `.map(callback) { ... }` shape.
-	const stashed_body_scope = node.metadata?.for_of_body_scope_statements ?? [];
 	if (!has_hooks && stashed_body_scope.length > 0) {
 		body_statements = insert_function_scope_statements_before_return(
 			body_statements,

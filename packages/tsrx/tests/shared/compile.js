@@ -1694,6 +1694,44 @@ export function optionalFn(bar: string, baz?: string) {
 				expect(code).toMatchSnapshot();
 			});
 
+			it('drains nested for-of source normalization when the outer hook-bearing for-of has a destructured loop param', () => {
+				// `build_hoisted_for_of_with_hooks` bails out (returns null) when
+				// the outer loop's params aren't plain Identifiers, so we fall
+				// through to the `.map(callback)` + `hook_safe_render_statements`
+				// shape. The walker had already stashed the inner for-of's
+				// `let _tsrx_iteration_items_X = posts;` normalization on the
+				// outer for-of's `node.metadata.for_of_body_scope_statements`
+				// frame; that frame still needs to be drained so the inner for-of
+				// has its declarations available when it references them. The
+				// drain prepends the stashed scope into the loop body before
+				// `hook_safe_render_statements`, so the decls land inside the
+				// hook helper (where `posts` is in scope as a prop).
+				const { code } = compile(
+					`export component App({ groups }: { groups: { id: string, posts: { tags: string[] }[] }[] }) {
+						<ul>
+							for (const { id, posts } of groups) {
+								useEffect(() => { console.log(id); }, [id]);
+								<li>
+									for (const post of posts) {
+										<span>{post.tags.length}</span>
+									}
+								</li>
+							}
+						</ul>
+					}`,
+					'App.tsrx',
+				);
+
+				// The inner for-of's normalized iteration identifier must be
+				// declared somewhere in the output. Before the fix it was
+				// referenced inside the hook helper without ever being declared.
+				const ref_match = code.match(/(_tsrx_iteration_items_\d+)\.map\(\(post\)/);
+				expect(ref_match).not.toBeNull();
+				const ref_name = /** @type {RegExpMatchArray} */ (ref_match)[1];
+				expect(code).toMatch(new RegExp(`let ${ref_name} = posts;`));
+				expect(code).toMatchSnapshot();
+			});
+
 			it('preserves user-declaration order when the iteration source is declared in the component body', () => {
 				// `const posts = [...]` is declared in the component body and
 				// referenced by the for-of's hoisted iteration source. The
