@@ -594,9 +594,9 @@ export component GettingStartedPage() {
 
 					<section class="doc-section" id="vue-bun">
 						<h2 class="section-heading">"Vue + Bun"</h2>
-						<p class="section-body">
-							'Install the Vue compiler, the Bun plugin, the Vue runtime, and Vue Vapor JSX:';
-						</p>
+						<p
+							class="section-body"
+						>"Install the Vue compiler, the Bun plugin, the Vue runtime, and Vue Vapor JSX:"</p>
 						<pre class="code-block">
 							<code>{html VUE_BUN_INSTALL_HTML}</code>
 						</pre>
