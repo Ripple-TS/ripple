@@ -323,6 +323,9 @@
           "include": "#comment"
         },
         {
+          "include": "#component-expression"
+        },
+        {
           "include": "#function-expression"
         },
         {
@@ -1456,6 +1459,33 @@
       "patterns": [
         {
           "include": "#function-name"
+        },
+        {
+          "include": "#component-body"
+        }
+      ]
+    },
+    "component-expression": {
+      "name": "meta.function.expression.js",
+      "begin": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(component\\b)(?:\\s*(\\*))?(?:(?:\\s+|(?<=\\*))([_$[:alpha:]][_$[:alnum:]]*))?\\s*",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.type.function.js"
+        },
+        "2": {
+          "name": "keyword.generator.asterisk.js"
+        },
+        "3": {
+          "name": "meta.definition.function.js entity.name.function.js"
+        }
+      },
+      "end": "(?=;)|(?<=\\})",
+      "patterns": [
+        {
+          "include": "#function-name"
+        },
+        {
+          "include": "#single-line-comment-consuming-line-ending"
         },
         {
           "include": "#component-body"

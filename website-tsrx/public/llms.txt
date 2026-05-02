@@ -587,11 +587,13 @@ component StatusBadge({ status }: { status: string }) {
 ### `for ... of` with `index` and `key`
 
 TSRX extends `for ... of` with optional `index i` and `key expr` clauses.
+Use `continue` to skip an item before rendering it.
 
 ```tsrx
 component TodoList({ items }: { items: Todo[] }) {
   <ul>
     for (const item of items; index i; key item.id) {
+      if (item.hidden) continue;
       <li>{i + 1}". "{item.text}</li>
     }
   </ul>
@@ -602,6 +604,19 @@ component TodoList({ items }: { items: Todo[] }) {
 - `key expr` — stable identity for reconciliation. On Solid this lowers to
   `<For keyed={(item) => expr}>`. On React this becomes the `key` prop.
   On Ripple it drives the runtime's keyed for-block.
+- `continue` — skips the current rendered iteration. This is the only
+  supported top-level loop control-flow statement inside a component
+  `for...of` body.
+
+Top-level `return` and `break` are not allowed inside component `for...of`
+loops. Use `continue` for early item skips. Use a bare `return;` only for
+non-loop guard exits in the component body, and use `break` only for `switch`
+cases.
+
+Component rendering supports `for...of` for lists. Regular `for` loops,
+`for...in`, `while`, and `do...while` are not supported in component template
+scope. Move imperative loops into a nested function, event handler, effect, or
+helper, where normal JavaScript control flow rules apply.
 
 ### `switch`
 

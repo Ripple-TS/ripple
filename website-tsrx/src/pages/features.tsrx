@@ -94,10 +94,11 @@ const FOR_HTML = [
 	'<span class="ln">1</span> <span class="kw">component</span> <span class="fn">TodoList</span><span class="br">(</span><span class="br">{</span> <span class="prop">items</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">items</span>: <span class="type">Todo</span><span class="br">[</span><span class="br">]</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln">2</span>   <span class="tag">&lt;</span><span class="el">ul</span><span class="tag">&gt;</span>',
 	'<span class="ln">3</span>     <span class="kw">for</span> <span class="br">(</span><span class="kw">const</span> <span class="prop">item</span> <span class="kw">of</span> <span class="prop">items</span>; <span class="kw">index</span> <span class="prop">i</span>; <span class="kw">key</span> <span class="prop">item</span>.<span class="prop">id</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln">4</span>       <span class="tag">&lt;</span><span class="el">li</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">i</span> + <span class="val">1</span><span class="tbr">}</span><span class="str">". "</span><span class="tbr">{</span><span class="prop">item</span>.<span class="prop">text</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">li</span><span class="tag">&gt;</span>',
-	'<span class="ln">5</span>     <span class="br">}</span>',
-	'<span class="ln">6</span>   <span class="tag">&lt;/</span><span class="el">ul</span><span class="tag">&gt;</span>',
-	'<span class="ln">7</span> <span class="br">}</span>',
+	'<span class="ln">4</span>       <span class="kw">if</span> <span class="br">(</span><span class="prop">item</span>.<span class="prop">hidden</span><span class="br">)</span> <span class="kw-ctrl">continue</span>;',
+	'<span class="ln">5</span>       <span class="tag">&lt;</span><span class="el">li</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">i</span> + <span class="val">1</span><span class="tbr">}</span><span class="str">". "</span><span class="tbr">{</span><span class="prop">item</span>.<span class="prop">text</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">li</span><span class="tag">&gt;</span>',
+	'<span class="ln">6</span>     <span class="br">}</span>',
+	'<span class="ln">7</span>   <span class="tag">&lt;/</span><span class="el">ul</span><span class="tag">&gt;</span>',
+	'<span class="ln">8</span> <span class="br">}</span>',
 ].join('\n');
 
 const TRY_HTML = [
@@ -786,6 +787,30 @@ export component FeaturesPage() {
 							{' and '}
 							<code class="inline-code">{'key'}</code>
 							{' clauses so you don\'t need separate counters or key-extraction boilerplate.'}
+						</p>
+						<p class="section-body">
+							{'Use '}
+							<code class="inline-code">{'continue'}</code>
+							{' inside a component '}
+							<code class="inline-code">{'for...of'}</code>
+							{' body to skip the current item. Top-level '}
+							<code class="inline-code">{'return'}</code>
+							{' and '}
+							<code class="inline-code">{'break'}</code>
+							{' statements are not allowed there, because loop rendering lowers to target-specific callbacks or blocks. Nested functions inside the loop keep ordinary JavaScript control flow.'}
+						</p>
+						<p class="section-body">
+							{'Other JavaScript loops are not component rendering constructs: regular '}
+							<code class="inline-code">{'for'}</code>
+							{', '}
+							<code class="inline-code">{'for...in'}</code>
+							{', '}
+							<code class="inline-code">{'while'}</code>
+							{', and '}
+							<code class="inline-code">{'do...while'}</code>
+							{' are rejected in component template scope. Move imperative loops into a nested function or effect, or render collections with '}
+							<code class="inline-code">{'for...of'}</code>
+							{'.'}
 						</p>
 						<pre class="code-block">
 							<code>{html FOR_HTML}</code>

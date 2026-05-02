@@ -414,6 +414,53 @@ describe('@tsrx/mcp compile helpers', () => {
 		expect(result.nextSteps).toContain('Run compile-tsrx again after revising the source.');
 	});
 
+	it('adds control-flow advice for component loop diagnostics', async () => {
+		const loop_return = await analyze_tsrx({
+			code: `component App({ items }: { items: string[] }) {
+				for (const item of items) {
+					if (!item) return;
+					<div>{item}</div>
+				}
+			}`,
+			filename: 'App.tsrx',
+			target: 'react',
+			cwd: react_fixture,
+		});
+
+		expect(loop_return.advice).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					kind: 'component-loop-control-flow',
+					severity: 'error',
+					documentation: expect.arrayContaining(['tsrx://docs/control-flow.md']),
+				}),
+			]),
+		);
+
+		const while_loop = await analyze_tsrx({
+			code: `component App() {
+				let i = 0;
+				while (i < 3) {
+					i++;
+				}
+				<div>{i}</div>
+			}`,
+			filename: 'App.tsrx',
+			target: 'react',
+			cwd: react_fixture,
+		});
+
+		expect(while_loop.advice).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					kind: 'unsupported-component-loop',
+					severity: 'error',
+					documentation: expect.arrayContaining(['tsrx://docs/control-flow.md']),
+				}),
+			]),
+		);
+	});
+
 	it('uses compiler error codes for expression-position JSX advice', async () => {
 		const result = await analyze_tsrx({
 			code: `component App() {

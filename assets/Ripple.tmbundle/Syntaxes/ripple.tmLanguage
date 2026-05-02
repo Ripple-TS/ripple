@@ -1090,6 +1090,48 @@
 				</dict>
 			</array>
 		</dict>
+		<key>component-expression</key>
+		<dict>
+			<key>begin</key>
+			<string>(?&lt;![_$[:alnum:]])(?:(?&lt;=\.\.\.)|(?&lt;!\.))(component\b)(?:\s*(\*))?(?:(?:\s+|(?&lt;=\*))([_$[:alpha:]][_$[:alnum:]]*))?\s*</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>storage.type.function.js</string>
+				</dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>keyword.generator.asterisk.js</string>
+				</dict>
+				<key>3</key>
+				<dict>
+					<key>name</key>
+					<string>meta.definition.function.js entity.name.function.js</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>(?=;)|(?&lt;=\})</string>
+			<key>name</key>
+			<string>meta.function.expression.js</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#function-name</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#single-line-comment-consuming-line-ending</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#component-body</string>
+				</dict>
+			</array>
+		</dict>
 		<key>component-if-statement</key>
 		<dict>
 			<key>patterns</key>
@@ -3448,6 +3490,10 @@
 				<dict>
 					<key>include</key>
 					<string>#comment</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#component-expression</string>
 				</dict>
 				<dict>
 					<key>include</key>
