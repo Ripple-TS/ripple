@@ -84,6 +84,50 @@ function get_member_name(node) {
 }
 
 /**
+ * @param {AST.ImportDeclaration} node
+ * @returns {string | null}
+ */
+function get_submodule_import_source_name(node) {
+	const source = /** @type {AST.Literal | AST.Identifier} */ (node.source);
+	return source.type === 'Identifier' ? source.name : null;
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {string | null}
+ */
+function get_module_declaration_name(node) {
+	if (node.type !== 'TSModuleDeclaration') {
+		return null;
+	}
+	const id = /** @type {AST.TSModuleDeclaration} */ (node).id;
+	return id?.type === 'Identifier' ? id.name : null;
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_submodule_declaration(node) {
+	return node.type === 'TSModuleDeclaration' && node.metadata?.module_keyword === 'module';
+}
+
+/**
+ * @param {AST.ImportSpecifier} specifier
+ * @returns {string | null}
+ */
+function get_imported_name(specifier) {
+	const imported = specifier.imported;
+	if (imported.type === 'Identifier') {
+		return imported.name;
+	}
+	if (imported.type === 'Literal' && typeof imported.value === 'string') {
+		return imported.value;
+	}
+	return null;
+}
+
+/**
  * @param {AST.CallExpression} node
  * @returns {boolean}
  */
@@ -898,19 +942,49 @@ const visitors = {
 		return context.next({ ...context.state, function_depth: 0 });
 	},
 
-	ServerBlock(node, context) {
-		if (context.path.at(-1)?.type !== 'Program') {
+	TSModuleDeclaration(node, context) {
+		if (!is_submodule_declaration(node)) {
+			return context.next();
+		}
+
+		const name = get_module_declaration_name(node);
+		if (name === null) {
+			return context.next();
+		}
+
+		const parent = context.path.at(-1);
+		if (parent?.type !== 'Program') {
 			// fatal since we don't have a transformation defined for this case
 			error(
-				'`#server` block can only be declared at the module level.',
+				'`module server` can only be declared at the module level.',
 				context.state.analysis.module.filename,
 				node,
+			);
+		}
+		if (name !== 'server') {
+			error(
+				`Ripple only supports \`module server\` submodules, found \`module ${name}\`.`,
+				context.state.analysis.module.filename,
+				node.id,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+			return context.next();
+		}
+		if (context.state.analysis.metadata.serverModule) {
+			error(
+				'Only one `module server` declaration is allowed per file.',
+				context.state.analysis.module.filename,
+				node.id,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
 			);
 		}
 		node.metadata = {
 			...node.metadata,
 			exports: new Set(),
 		};
+		context.state.analysis.metadata.serverModule = node;
 		context.visit(node.body, {
 			...context.state,
 			ancestor_server_block: node,
@@ -920,6 +994,23 @@ const visitors = {
 	Identifier(node, context) {
 		const binding = context.state.scope.get(node.name);
 		const parent = context.path.at(-1);
+		const is_import_source =
+			parent?.type === 'ImportDeclaration' && /** @type {any} */ (parent).source === node;
+
+		if (
+			!is_import_source &&
+			is_reference(node, /** @type {AST.Node} */ (parent)) &&
+			binding?.declaration_kind === 'module' &&
+			binding.node !== node
+		) {
+			error(
+				'Import submodule exports before using them, e.g. `import { foo } from server; foo()`.',
+				context.state.analysis.module.filename,
+				node,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		}
 
 		if (
 			is_reference(node, /** @type {AST.Node} */ (parent)) &&
@@ -941,7 +1032,7 @@ const visitors = {
 
 			if (!found_server_block) {
 				error(
-					`Cannot reference client-side "${node.name}" from a server block. Server blocks can only access variables and imports declared inside them.`,
+					`Cannot reference client-side "${node.name}" from a server module. Server modules can only access variables and imports declared inside them.`,
 					context.state.analysis.module.filename,
 					node,
 					context.state.collect ? context.state.analysis.errors : undefined,
@@ -987,8 +1078,17 @@ const visitors = {
 	},
 
 	MemberExpression(node, context) {
-		if (node.object.type === 'ServerIdentifier') {
-			context.state.analysis.metadata.serverIdentifierPresent = true;
+		if (node.object.type === 'Identifier' && node.object.name === 'server') {
+			const binding = context.state.scope.get('server');
+			if (binding?.declaration_kind === 'module') {
+				error(
+					'Import server exports before using them, e.g. `import { foo } from server; foo()`.',
+					context.state.analysis.module.filename,
+					node,
+					context.state.collect ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
+				);
+			}
 		}
 
 		if (node.object.type === 'Identifier' && !node.object.tracked) {
@@ -1234,19 +1334,38 @@ const visitors = {
 		context.next();
 	},
 
-	ServerIdentifier(node, context) {
-		const parent = context.path.at(-1);
+	ImportDeclaration(node, context) {
+		const source_name = get_submodule_import_source_name(node);
+		if (source_name === null) {
+			return context.next();
+		}
 
-		// #server must only be used for member access (e.g., #server.functionName(...))
-		if (!parent || parent.type !== 'MemberExpression' || parent.object !== node) {
+		if (source_name !== 'server') {
 			error(
-				'`#server` can only be used for member access, e.g., `#server.functionName(...)`.',
+				`Ripple only supports imports from \`server\` submodules, found \`${source_name}\`.`,
 				context.state.analysis.module.filename,
-				node,
+				node.source,
 				context.state.collect ? context.state.analysis.errors : undefined,
 				context.state.analysis.comments,
 			);
+			return context.next();
 		}
+
+		context.state.analysis.metadata.serverImportsPresent = true;
+		context.state.analysis.metadata.serverImportDeclarations.push(node);
+
+		for (const specifier of node.specifiers) {
+			if (specifier.type !== 'ImportSpecifier') {
+				error(
+					'Only named imports are supported from `module server`.',
+					context.state.analysis.module.filename,
+					specifier,
+					context.state.collect ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
+				);
+			}
+		}
+
 		context.next();
 	},
 
@@ -1466,14 +1585,14 @@ const visitors = {
 			return context.next();
 		}
 
-		const exports = server_block.metadata.exports;
+		const exports = server_block.metadata.exports ?? (server_block.metadata.exports = new Set());
 		const declaration = /** @type {AST.TSRXExportNamedDeclaration} */ (node).declaration;
 
 		if (declaration && declaration.type === 'FunctionDeclaration') {
 			exports.add(declaration.id.name);
 		} else if (declaration && declaration.type === 'Component') {
 			error(
-				'Not implemented: Exported component declaration not supported in server blocks.',
+				'Not implemented: Exported component declaration not supported in server modules.',
 				context.state.analysis.module.filename,
 				/** @type {AST.Identifier} */ (declaration.id),
 				context.state.collect ? context.state.analysis.errors : undefined,
@@ -1502,7 +1621,7 @@ const visitors = {
 							}
 						} else if (decl.init.type === 'MemberExpression') {
 							error(
-								'Not implemented: Exported member expressions are not supported in server blocks.',
+								'Not implemented: Exported member expressions are not supported in server modules.',
 								context.state.analysis.module.filename,
 								decl.init,
 								context.state.collect ? context.state.analysis.errors : undefined,
@@ -1514,7 +1633,7 @@ const visitors = {
 						const paths = extractPaths(decl.id);
 						for (const path of paths) {
 							error(
-								'Not implemented: Exported object or array patterns are not supported in server blocks.',
+								'Not implemented: Exported object or array patterns are not supported in server modules.',
 								context.state.analysis.module.filename,
 								path.node,
 								context.state.collect ? context.state.analysis.errors : undefined,
@@ -1525,7 +1644,7 @@ const visitors = {
 				}
 				// TODO: allow exporting consts when hydration is supported
 				error(
-					`Not implemented: Exported '${decl.id.type}' type is not supported in server blocks.`,
+					`Not implemented: Exported '${decl.id.type}' type is not supported in server modules.`,
 					context.state.analysis.module.filename,
 					decl,
 					context.state.collect ? context.state.analysis.errors : undefined,
@@ -1544,7 +1663,7 @@ const visitors = {
 				}
 
 				error(
-					`Not implemented: Exported specifier type not supported in server blocks.`,
+					`Not implemented: Exported specifier type not supported in server modules.`,
 					context.state.analysis.module.filename,
 					specifier,
 					context.state.collect ? context.state.analysis.errors : undefined,
@@ -1553,7 +1672,7 @@ const visitors = {
 			}
 		} else {
 			error(
-				'Not implemented: Exported declaration type not supported in server blocks.',
+				'Not implemented: Exported declaration type not supported in server modules.',
 				context.state.analysis.module.filename,
 				node,
 				context.state.collect ? context.state.analysis.errors : undefined,
@@ -2201,6 +2320,45 @@ const visitors = {
 };
 
 /**
+ * @param {AnalysisResult} analysis
+ * @param {string} filename
+ * @param {boolean} collect
+ */
+function validate_server_module_imports(analysis, filename, collect) {
+	const server_module = analysis.metadata.serverModule;
+
+	for (const declaration of analysis.metadata.serverImportDeclarations) {
+		if (!server_module) {
+			error(
+				'Cannot import from `server` because this file has no `module server` declaration.',
+				filename,
+				declaration.source,
+				collect ? analysis.errors : undefined,
+				analysis.comments,
+			);
+			continue;
+		}
+
+		const exports = server_module.metadata?.exports;
+		for (const specifier of declaration.specifiers) {
+			if (specifier.type !== 'ImportSpecifier') {
+				continue;
+			}
+			const imported_name = get_imported_name(specifier);
+			if (imported_name !== null && !exports?.has(imported_name)) {
+				error(
+					`Module \`server\` does not export \`${imported_name}\`.`,
+					filename,
+					specifier.imported,
+					collect ? analysis.errors : undefined,
+					analysis.comments,
+				);
+			}
+		}
+	}
+}
+
+/**
  *
  * @param {AST.Program} ast
  * @param {string} filename
@@ -2227,7 +2385,9 @@ export function analyze(ast, filename, options = {}) {
 		scopes,
 		component_metadata: [],
 		metadata: {
-			serverIdentifierPresent: false,
+			serverImportsPresent: false,
+			serverImportDeclarations: [],
+			serverModule: null,
 		},
 		errors,
 		comments,
@@ -2254,6 +2414,8 @@ export function analyze(ast, filename, options = {}) {
 		},
 		visitors,
 	);
+
+	validate_server_module_imports(analysis, filename, collect);
 
 	return analysis;
 }

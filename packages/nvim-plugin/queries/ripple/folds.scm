@@ -17,8 +17,8 @@
 ; Fold style elements
 (style_element) @fold
 
-; Fold server blocks
-(server_block) @fold
+; Fold submodules
+(module_declaration) @fold
 
 ; Fold comments
 (comment) @fold

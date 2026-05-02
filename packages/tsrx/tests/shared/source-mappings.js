@@ -191,6 +191,18 @@ export function runSharedSourceMappingTests({
 			expect_maps(`import type { ReactNode } from 'react'; component C() {}`));
 		it('inline type import specifier', () =>
 			expect_maps(`import { type ReactNode, useState } from 'react'; component C() {}`));
+		it('submodule import declaration', () =>
+			expect_maps(`module server {
+	export function load() {
+		return 1;
+	}
+}
+
+import { load } from server;
+
+component C() {
+	load();
+}`));
 
 		// JS expressions whose esrap printer emits no leading/trailing location
 		// marker, mirroring the existing IfStatement / NewExpression cases.
@@ -400,6 +412,54 @@ export function optionalFn(declRequired: string, declMaybe?: string) {
 			expect_identifier_mapping('tupleMaybe', 'tupleMaybe?: string');
 			expect_identifier_mapping('fnMaybe', 'fnMaybe?: string');
 			expect_identifier_mapping('declMaybe', 'declMaybe?: string');
+		});
+	});
+
+	describe(`[${name}] submodule import mappings`, () => {
+		it('maps imported, local, and source identifiers in imports from submodules', () => {
+			const source = `module server {
+	export function load() {
+		return 1;
+	}
+}
+
+import { load as getLoad } from server;
+
+component C() {
+	getLoad();
+}`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx');
+
+			const source_load_offset = source.indexOf('load as');
+			const source_get_load_offset = source.indexOf('getLoad }');
+			const source_server_offset = source.indexOf('server;');
+			const generated_load_offset = result.code.indexOf('load as getLoad');
+			const generated_get_load_offset = result.code.indexOf('getLoad');
+			const generated_server_offset = result.code.indexOf('server;', generated_load_offset);
+
+			/**
+			 * @param {number} sourceOffset
+			 * @param {number} generatedOffset
+			 * @param {number} length
+			 */
+			const expect_mapping = (sourceOffset, generatedOffset, length) => {
+				const mapping = result.mappings.find(
+					(
+						/** @type {{ sourceOffsets: number[], generatedOffsets: number[], lengths: number[], generatedLengths: number[] }} */ m,
+					) =>
+						m.sourceOffsets[0] === sourceOffset &&
+						m.generatedOffsets[0] === generatedOffset &&
+						m.lengths[0] === length &&
+						m.generatedLengths[0] === length,
+				);
+				expect(mapping).toBeDefined();
+			};
+
+			expect(result.errors).toEqual([]);
+			expect(result.code).toContain('import { load as getLoad } from server;');
+			expect_mapping(source_load_offset, generated_load_offset, 'load'.length);
+			expect_mapping(source_get_load_offset, generated_get_load_offset, 'getLoad'.length);
+			expect_mapping(source_server_offset, generated_server_offset, 'server'.length);
 		});
 	});
 

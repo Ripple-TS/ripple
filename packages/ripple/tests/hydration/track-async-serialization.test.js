@@ -77,7 +77,7 @@ describe('hydration > trackAsync serialization', () => {
 		expect(container.querySelector('.result')?.textContent).toBe('count-1');
 	});
 
-	it('reruns trackAsync via #server RPC call when a dependency changes', async () => {
+	it('reruns trackAsync via module server RPC call when a dependency changes', async () => {
 		const originalFetch = globalThis.fetch;
 		const fetchMock = vi.fn(async (_url, init) => {
 			const args = devalue.parse(init.body);

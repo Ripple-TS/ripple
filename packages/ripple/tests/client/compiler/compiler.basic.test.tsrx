@@ -756,6 +756,75 @@ export component App() {
 		).toBe(true);
 	});
 
+	it('maps module server import identifiers in Volar output', () => {
+		const source = `module server {
+	export function loadUser() {
+		return { id: '1' };
+	}
+}
+
+import { loadUser as getUser } from server;
+import { loadUser } from server;
+
+component App() {
+	const user = getUser();
+	const user2 = loadUser();
+	<div>{user.id}{user2.id}</div>
+}`;
+		const result = compile_to_volar_mappings(source, 'test.tsrx', { loose: true });
+		const generated_member = '_$_server_$_.loadUser';
+		const generated_member_offset = result.code.indexOf(generated_member);
+		const generated_imported_offset = generated_member_offset + '_$_server_$_'.length + 1;
+		const generated_local_offset = result.code.indexOf('const getUser') + 'const '.length;
+		const generated_non_alias_member_offset =
+			result.code.indexOf(generated_member, generated_member_offset + 1) + '_$_server_$_'.length +
+			1;
+		const generated_non_alias_local_offset =
+			result.code.indexOf('const loadUser') + 'const '.length;
+		const source_imported_offset = source.indexOf('loadUser as');
+		const source_local_offset = source.indexOf('getUser }');
+		const source_non_alias_offset = source.indexOf('loadUser }');
+		const source_server_offset = source.indexOf('server;');
+
+		function find_mapping(
+			source_offset: number,
+			generated_offset: number,
+			length: number,
+			generated_length = length,
+		) {
+			return result.mappings.find(
+				(mapping) => mapping.sourceOffsets[0] === source_offset &&
+					mapping.generatedOffsets[0] === generated_offset &&
+					mapping.lengths[0] === length &&
+					mapping.generatedLengths[0] === generated_length,
+			);
+		}
+
+		expect(result.errors).toEqual([]);
+		expect(result.code).toContain('const getUser = _$_server_$_.loadUser;');
+		expect(result.code).toContain('const loadUser = _$_server_$_.loadUser;');
+		expect(
+			find_mapping(source_imported_offset, generated_imported_offset, 'loadUser'.length),
+		).toBeDefined();
+		expect(
+			find_mapping(source_local_offset, generated_local_offset, 'getUser'.length),
+		).toBeDefined();
+		expect(
+			find_mapping(source_non_alias_offset, generated_non_alias_local_offset, 'loadUser'.length),
+		).toBeDefined();
+		expect(
+			find_mapping(source_non_alias_offset, generated_non_alias_member_offset, 'loadUser'.length),
+		).toBeDefined();
+		expect(
+			find_mapping(
+				source_server_offset,
+				generated_member_offset,
+				'server'.length,
+				'_$_server_$_'.length,
+			),
+		).toBeDefined();
+	});
+
 	it('collects volar parser diagnostics outside loose mode', () => {
 		const result = compile_to_volar_mappings(`component App() {
 				return <div />;

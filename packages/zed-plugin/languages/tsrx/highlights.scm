@@ -1,16 +1,13 @@
 ; Keywords
 (component_declaration "component" @keyword)
 (fragment_declaration "fragment" @keyword)
-(server_block "#server" @keyword)
+(module_declaration
+  "module" @keyword
+  name: (identifier) @namespace)
 
 ; Lazy destructuring
 (lazy_object_pattern "&" @operator)
 (lazy_array_pattern "&" @operator)
-
-(server_member_expression
-  "#server" @keyword
-  "." @punctuation.delimiter
-  property: (identifier) @property)
 
 (style_directive
   "style" @keyword

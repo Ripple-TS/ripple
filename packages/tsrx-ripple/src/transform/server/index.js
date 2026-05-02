@@ -92,6 +92,108 @@ function apply_tsrx_css_scoping(nodes, state) {
 }
 
 /**
+ * @param {AST.ImportDeclaration} node
+ * @returns {string | null}
+ */
+function get_submodule_import_source_name(node) {
+	const source = /** @type {AST.Literal | AST.Identifier} */ (node.source);
+	return source.type === 'Identifier' ? source.name : null;
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_server_module_declaration(node) {
+	return (
+		node.type === 'TSModuleDeclaration' &&
+		/** @type {AST.TSModuleDeclaration} */ (node).metadata?.module_keyword === 'module' &&
+		/** @type {AST.TSModuleDeclaration} */ (node).id?.type === 'Identifier' &&
+		/** @type {AST.Identifier} */ (/** @type {AST.TSModuleDeclaration} */ (node).id).name ===
+			'server'
+	);
+}
+
+/**
+ * @param {AST.ImportSpecifier} specifier
+ * @returns {string | null}
+ */
+function get_imported_name(specifier) {
+	const imported = specifier.imported;
+	if (imported.type === 'Identifier') {
+		return imported.name;
+	}
+	if (imported.type === 'Literal' && typeof imported.value === 'string') {
+		return imported.value;
+	}
+	return null;
+}
+
+/**
+ * @param {AST.ImportDeclaration} node
+ * @returns {AST.Statement[]}
+ */
+function transform_server_module_import(node) {
+	/** @type {AST.Statement[]} */
+	const declarations = [];
+	const source_name = get_submodule_import_source_name(node);
+	for (const specifier of node.specifiers) {
+		if (specifier.type !== 'ImportSpecifier') {
+			continue;
+		}
+		const imported_name = get_imported_name(specifier);
+		if (imported_name === null) {
+			continue;
+		}
+		const local_name = specifier.local.name;
+		const server_identifier = b.id(
+			'_$_server_$_',
+			/** @type {AST.NodeWithLocation} */ (node.source),
+		);
+		if (source_name !== null) {
+			server_identifier.metadata.source_name = source_name;
+		}
+		const imported_identifier = b.id(
+			imported_name,
+			/** @type {AST.NodeWithLocation} */ (specifier.imported),
+		);
+		const local_identifier = b.id(
+			local_name,
+			/** @type {AST.NodeWithLocation} */ (specifier.local),
+		);
+		declarations.push(
+			b.const(
+				local_identifier,
+				b.function(
+					null,
+					[b.rest(b.id('args'))],
+					b.block([
+						b.return(
+							b.call(b.member(server_identifier, imported_identifier), b.spread(b.id('args'))),
+						),
+					]),
+				),
+			),
+		);
+	}
+	return declarations;
+}
+
+/**
+ * @param {AST.Statement | AST.Statement[] | AST.Directive | AST.ModuleDeclaration} statement
+ * @param {Array<AST.Statement | AST.Directive | AST.ModuleDeclaration>} statements
+ */
+function push_statement(statement, statements) {
+	if (Array.isArray(statement)) {
+		for (const item of statement) {
+			statements.push(item);
+		}
+	} else {
+		statements.push(statement);
+	}
+}
+
+/**
  * Checks if a node is template or control-flow content that should be wrapped when return flags are active
  * @param {AST.Node} node
  * @returns {boolean}
@@ -1400,10 +1502,6 @@ const visitors = {
 		}
 	},
 
-	ServerIdentifier(node, context) {
-		return b.id('_$_server_$_');
-	},
-
 	Style(node, context) {
 		const class_name = typeof node.value.value === 'string' ? node.value.value : '';
 		const hash = context.state.component?.css?.hash;
@@ -1413,6 +1511,10 @@ const visitors = {
 
 	ImportDeclaration(node, context) {
 		const { state } = context;
+
+		if (get_submodule_import_source_name(node) === 'server') {
+			return /** @type {any} */ (transform_server_module_import(node));
+		}
 
 		if (!state.to_ts && node.importKind === 'type') {
 			return b.empty;
@@ -1643,15 +1745,31 @@ const visitors = {
 		context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(node.content))));
 	},
 
-	ServerBlock(node, context) {
-		const exports = node.metadata.exports;
+	TSModuleBlock(node, context) {
+		/** @type {AST.Statement[]} */
+		const statements = [];
+		for (const statement of node.body) {
+			push_statement(
+				/** @type {AST.Statement | AST.Statement[]} */ (context.visit(statement)),
+				statements,
+			);
+		}
+		return { ...node, body: statements };
+	},
 
-		// Convert Imports inside ServerBlock to local variables
+	TSModuleDeclaration(node, context) {
+		if (!is_server_module_declaration(node)) {
+			return context.next();
+		}
+
+		const exports = node.metadata.exports ?? new Set();
+
+		// Convert imports inside `module server` to local variables.
 		// ImportDeclaration() visitor will add imports to the top of the module
 		/** @type {AST.VariableDeclaration[]} */
 		const server_block_locals = [];
 
-		const block = /** @type {AST.BlockStatement} */ (
+		const block = /** @type {AST.TSModuleBlock} */ (
 			context.visit(node.body, {
 				...context.state,
 				ancestor_server_block: node,
@@ -1704,10 +1822,11 @@ const visitors = {
 		const statements = [];
 
 		for (const statement of node.body) {
-			statements.push(
-				/** @type {AST.Statement | AST.Directive | AST.ModuleDeclaration} */ (
+			push_statement(
+				/** @type {AST.Statement | AST.Statement[] | AST.Directive | AST.ModuleDeclaration} */ (
 					context.visit(statement)
 				),
+				statements,
 			);
 		}
 
@@ -1733,7 +1852,6 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 		init: null,
 		scope: analysis.scope,
 		scopes: analysis.scopes,
-		serverIdentifierPresent: analysis.metadata.serverIdentifierPresent,
 		stylesheets: [],
 		component_metadata,
 		ancestor_server_block: undefined,

@@ -432,8 +432,17 @@
           "value": "from"
         },
         {
-          "type": "SYMBOL",
-          "name": "string"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "string"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "identifier"
+            }
+          ]
         }
       ]
     },
@@ -588,7 +597,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "server_block"
+          "name": "module_declaration"
         },
         {
           "type": "SYMBOL",
@@ -1938,10 +1947,6 @@
         },
         {
           "type": "SYMBOL",
-          "name": "server_block"
-        },
-        {
-          "type": "SYMBOL",
           "name": "variable_declaration"
         },
         {
@@ -3170,10 +3175,6 @@
         },
         {
           "type": "SYMBOL",
-          "name": "server_member_expression"
-        },
-        {
-          "type": "SYMBOL",
           "name": "function_expression"
         },
         {
@@ -3210,13 +3211,34 @@
         }
       ]
     },
-    "server_block": {
+    "module_declaration": {
       "type": "SEQ",
       "members": [
         {
           "type": "STRING",
-          "value": "#server"
+          "value": "module"
         },
+        {
+          "type": "FIELD",
+          "name": "name",
+          "content": {
+            "type": "SYMBOL",
+            "name": "identifier"
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "body",
+          "content": {
+            "type": "SYMBOL",
+            "name": "module_body"
+          }
+        }
+      ]
+    },
+    "module_body": {
+      "type": "SEQ",
+      "members": [
         {
           "type": "STRING",
           "value": "{"
@@ -3231,27 +3253,6 @@
         {
           "type": "STRING",
           "value": "}"
-        }
-      ]
-    },
-    "server_member_expression": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "STRING",
-          "value": "#server"
-        },
-        {
-          "type": "STRING",
-          "value": "."
-        },
-        {
-          "type": "FIELD",
-          "name": "property",
-          "content": {
-            "type": "SYMBOL",
-            "name": "identifier"
-          }
         }
       ]
     },

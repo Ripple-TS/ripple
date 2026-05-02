@@ -13,6 +13,10 @@ export const _$_server_$_ = (() => {
 	return _$_server_$_;
 })();
 
+const formatValue = function (...args) {
+	return _$_server_$_.formatValue(...args);
+};
+
 export function AsyncWithServerCall() {
 	_$_.push_component();
 
@@ -34,7 +38,7 @@ export function AsyncWithServerCall() {
 		() => {
 			_$_.output_push('<!--[-->');
 
-			let lazy_1 = _$_.track_async(() => _$_server_$_.formatValue(_$_.get(lazy)), 'f0c2b41e');
+			let lazy_1 = _$_.track_async(() => formatValue(_$_.get(lazy)), 'f0c2b41e');
 
 			_$_.regular_block(() => {
 				_$_.output_push('<p');

@@ -380,6 +380,37 @@ export function convert_source_map_to_mappings(
 		css_element_info,
 	});
 
+	/** @type {Map<string, number>} */
+	const generated_position_indexes = new Map();
+
+	/**
+	 * When a transform expands one source identifier into multiple generated
+	 * identifiers (e.g. `import { foo } from server` -> `const foo =
+	 * _$_server_$_.foo`), esrap records multiple generated positions for the
+	 * same source location. Keep token mappings in generated-order by consuming
+	 * the next matching generated token instead of always using the first one.
+	 * @param {Token} token
+	 * @returns {{ line: number; column: number }}
+	 */
+	function get_generated_position_for_token(token) {
+		const key = `${token.loc.start.line}:${token.loc.start.column}`;
+		const positions = src_to_gen_map.get(key);
+		if (!positions || positions.length === 0) {
+			throw new Error(`No source map entry for position "${key}"`);
+		}
+
+		const matching_positions = positions.filter((position) => {
+			const offset = loc_to_offset(position.line, position.column, gen_line_offsets);
+			return generated_code.startsWith(token.generated, offset);
+		});
+		const candidates = matching_positions.length > 0 ? matching_positions : positions;
+		const index_key = `${key}:${token.generated}`;
+		const index = generated_position_indexes.get(index_key) ?? 0;
+		generated_position_indexes.set(index_key, index + 1);
+
+		return candidates[Math.min(index, candidates.length - 1)];
+	}
+
 	/**
 	 * Needed for a mapping that includes the computed brackets for diagnostics
 	 * @param {AST.MethodDefinition | AST.Property} node
@@ -2182,11 +2213,7 @@ export function convert_source_map_to_mappings(
 		const gen_length = gen_text.length;
 		let gen_line_col;
 		try {
-			gen_line_col = get_generated_position(
-				token.loc.start.line,
-				token.loc.start.column,
-				src_to_gen_map,
-			);
+			gen_line_col = get_generated_position_for_token(token);
 		} catch {
 			continue;
 		}

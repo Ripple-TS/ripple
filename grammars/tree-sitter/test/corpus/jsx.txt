@@ -268,32 +268,34 @@ component App() {
           (raw_text))))))
 
 ==================
-Server Block
+Server Module
 ==================
 
+module server {
+  let data = fetchData();
+}
+
 component App() {
-  #server {
-    let data = fetchData();
-  }
   <div>{'content'}</div>
 }
 
 ---
 
 (program
+  (module_declaration
+    name: (identifier)
+    body: (module_body
+      (variable_declaration
+        (variable_declarator
+          name: (identifier)
+          (initializer
+            (call_expression
+              function: (identifier)
+              arguments: (arguments)))))))
   (component_declaration
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
-      (component_statement
-        (server_block
-          (variable_declaration
-            (variable_declarator
-              name: (identifier)
-              (initializer
-                (call_expression
-                  function: (identifier)
-                  arguments: (arguments)))))))
       (component_statement
         (expression_statement
           (jsx_element

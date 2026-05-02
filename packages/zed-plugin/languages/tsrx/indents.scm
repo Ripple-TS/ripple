@@ -13,7 +13,7 @@
   (parenthesized_expression ")" @end)
   (jsx_expression "}" @end)
   (style_element "</style>" @end)
-  (server_block "}" @end)
+  (module_body "}" @end)
   (jsx_self_closing_element "/>" @end)
 ] @indent
 

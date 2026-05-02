@@ -210,10 +210,6 @@
         "named": true
       },
       {
-        "type": "server_member_expression",
-        "named": true
-      },
-      {
         "type": "string",
         "named": true
       },
@@ -312,11 +308,11 @@
         "named": true
       },
       {
-        "type": "return_statement",
+        "type": "module_declaration",
         "named": true
       },
       {
-        "type": "server_block",
+        "type": "return_statement",
         "named": true
       },
       {
@@ -1178,10 +1174,6 @@
           "named": true
         },
         {
-          "type": "server_block",
-          "named": true
-        },
-        {
           "type": "style_element",
           "named": true
         },
@@ -1660,6 +1652,10 @@
       "multiple": false,
       "required": true,
       "types": [
+        {
+          "type": "identifier",
+          "named": true
+        },
         {
           "type": "string",
           "named": true
@@ -2535,6 +2531,47 @@
     }
   },
   {
+    "type": "module_body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "statement",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "module_declaration",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "module_body",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "named_imports",
     "named": true,
     "fields": {},
@@ -3050,37 +3087,6 @@
           "named": true
         }
       ]
-    }
-  },
-  {
-    "type": "server_block",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "statement",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "server_member_expression",
-    "named": true,
-    "fields": {
-      "property": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "identifier",
-            "named": true
-          }
-        ]
-      }
     }
   },
   {
@@ -3791,10 +3797,6 @@
     "named": false
   },
   {
-    "type": "#server",
-    "named": false
-  },
-  {
     "type": "${",
     "named": false
   },
@@ -4185,6 +4187,10 @@
   },
   {
     "type": "let",
+    "named": false
+  },
+  {
+    "type": "module",
     "named": false
   },
   {

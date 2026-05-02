@@ -1444,11 +1444,6 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 		}
 
-		case 'ServerIdentifier': {
-			nodeContent = '#server';
-			break;
-		}
-
 		case 'UnaryExpression':
 			nodeContent = printUnaryExpression(node, path, options, print);
 			break;
@@ -1695,15 +1690,17 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printFunctionExpression(node, path, options, print);
 			break;
 
+		case 'TSModuleBlock':
 		case 'BlockStatement': {
 			// Apply the same block formatting pattern as component bodies
 			if (!node.body || node.body.length === 0) {
 				// Handle innerComments for empty blocks
 				if (innerCommentParts.length > 0) {
+					const blockNode = /** @type {AST.BlockStatement} */ (node);
 					// Check if we need to preserve blank lines between comments
-					if (node.innerComments && node.innerComments.length > 0) {
+					if (blockNode.innerComments && blockNode.innerComments.length > 0) {
 						const commentDocs = [];
-						const comments = node.innerComments;
+						const comments = blockNode.innerComments;
 
 						for (let i = 0; i < comments.length; i++) {
 							const comment = comments[i];
@@ -1804,9 +1801,14 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 		}
 
-		case 'ServerBlock': {
-			const blockContent = path.call(print, 'body');
-			nodeContent = ['#server ', blockContent];
+		case 'TSModuleDeclaration': {
+			nodeContent = [
+				node.metadata?.module_keyword ?? 'module',
+				' ',
+				path.call(print, 'id'),
+				' ',
+				path.call(print, 'body'),
+			];
 			break;
 		}
 
@@ -2387,11 +2389,13 @@ function printImportDeclaration(node, path, options, _print) {
 		parts.push(' from');
 	}
 
-	parts.push(
-		' ',
-		formatStringLiteral(/** @type {string} */ (node.source.value), options),
-		semi(options),
-	);
+	const source = /** @type {AST.Literal | AST.Identifier} */ (/** @type {unknown} */ (node.source));
+	const sourceDoc =
+		source.type === 'Identifier'
+			? source.name
+			: formatStringLiteral(/** @type {string} */ (source.value), options);
+
+	parts.push(' ', sourceDoc, semi(options));
 
 	return parts;
 }
@@ -2430,8 +2434,15 @@ function printExportNamedDeclaration(node, path, options, print) {
 		parts.push(' }');
 
 		if (node.source) {
+			const source = /** @type {AST.Literal | AST.Identifier} */ (
+				/** @type {unknown} */ (node.source)
+			);
 			parts.push(' from ');
-			parts.push(formatStringLiteral(/** @type {string} */ (node.source.value), options));
+			parts.push(
+				source.type === 'Identifier'
+					? source.name
+					: formatStringLiteral(/** @type {string} */ (source.value), options),
+			);
 		}
 		parts.push(semi(options));
 
