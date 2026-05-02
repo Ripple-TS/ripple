@@ -64,7 +64,7 @@ interface BaseNodeMetaData {
 	scoped?: boolean;
 	path: AST.Node[];
 	has_template?: boolean;
-	source_name?: string | '#server' | '#style';
+	source_name?: string | '#server';
 	source_length?: number;
 	is_capitalized?: boolean;
 	commentContainerId?: number;
@@ -206,12 +206,12 @@ declare module 'estree' {
 		TsxCompat: TsxCompat;
 		TSRXExpression: TSRXExpression;
 		Html: Html;
+		Style: Style;
 		Element: Element;
 		Text: TextNode;
 		ServerBlock: ServerBlock;
 		ServerBlockStatement: ServerBlockStatement;
 		ServerIdentifier: ServerIdentifier;
-		StyleIdentifier: StyleIdentifier;
 		Attribute: Attribute;
 		RefAttribute: RefAttribute;
 		SpreadAttribute: SpreadAttribute;
@@ -220,7 +220,7 @@ declare module 'estree' {
 	}
 
 	interface ExpressionMap {
-		StyleIdentifier: StyleIdentifier;
+		Style: Style;
 		ServerIdentifier: ServerIdentifier;
 		Text: TextNode;
 		JSXEmptyExpression: ESTreeJSX.JSXEmptyExpression;
@@ -270,10 +270,6 @@ declare module 'estree' {
 
 	interface ServerIdentifier extends AST.BaseExpression {
 		type: 'ServerIdentifier';
-	}
-
-	interface StyleIdentifier extends AST.BaseExpression {
-		type: 'StyleIdentifier';
 	}
 
 	interface ImportDeclaration {
@@ -338,7 +334,6 @@ declare module 'estree' {
 		metadata: BaseNodeMetaData & {
 			topScopedClasses?: TopScopedClasses;
 			styleClasses?: StyleClasses;
-			styleIdentifierPresent?: boolean;
 		};
 		default: boolean;
 		typeParameters?: AST.TSTypeParameterDeclaration;
@@ -368,6 +363,12 @@ declare module 'estree' {
 	interface Html extends AST.BaseNode {
 		type: 'Html';
 		expression: AST.Expression;
+	}
+
+	interface Style extends AST.BaseExpression {
+		type: 'Style';
+		value: AST.Literal;
+		loc?: AST.SourceLocation;
 	}
 
 	export interface TSRXExpression extends AST.BaseExpression {
@@ -694,6 +695,7 @@ declare module 'estree-jsx' {
 	interface JSXExpressionContainer {
 		html?: boolean;
 		text?: boolean;
+		style?: boolean;
 	}
 
 	interface JSXMemberExpression {

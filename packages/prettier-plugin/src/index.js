@@ -1427,8 +1427,8 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 		}
 
-		case 'StyleIdentifier': {
-			nodeContent = '#style';
+		case 'Style': {
+			nodeContent = ['style ', path.call(print, 'value')];
 			break;
 		}
 

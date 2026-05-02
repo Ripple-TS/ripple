@@ -15,7 +15,6 @@ import {
 	isEventAttribute,
 	isInsideComponent as is_inside_component,
 	renderStylesheets,
-	STYLE_IDENTIFIER,
 	CSS_HASH_IDENTIFIER,
 	obfuscateIdentifier,
 	BLOCK_CLOSE,
@@ -455,23 +454,6 @@ const visitors = {
 
 			// Register CSS hash during rendering
 			body_statements.push(hash, b.stmt(b.call(b.id('_$_.output_register_css'), hash_id)));
-
-			if (node.metadata.styleIdentifierPresent) {
-				/** @type {AST.Property[]} */
-				const properties = [];
-				if (node.metadata.topScopedClasses && node.metadata.topScopedClasses.size > 0) {
-					for (const [className] of node.metadata.topScopedClasses) {
-						properties.push(
-							b.prop(
-								'init',
-								b.key(className),
-								b.template([b.quasi('', false), b.quasi(` ${className}`, true)], [hash_id]),
-							),
-						);
-					}
-				}
-				body_statements.push(b.var(b.id(STYLE_IDENTIFIER), b.object(properties)));
-			}
 		}
 
 		body_statements.push(
@@ -1422,8 +1404,11 @@ const visitors = {
 		return b.id('_$_server_$_');
 	},
 
-	StyleIdentifier(node, context) {
-		return b.id(STYLE_IDENTIFIER);
+	Style(node, context) {
+		const class_name = typeof node.value.value === 'string' ? node.value.value : '';
+		const hash = context.state.component?.css?.hash;
+		const value = hash ? `${hash} ${class_name}` : class_name;
+		return b.literal(value);
 	},
 
 	ImportDeclaration(node, context) {

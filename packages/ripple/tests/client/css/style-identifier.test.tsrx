@@ -1,15 +1,15 @@
 import { track } from 'ripple';
 import { compile } from '@tsrx/ripple';
 
-describe('#style identifier', () => {
+describe('{style} directive', () => {
 	describe('basic usage with components', () => {
-		it('passes scoped class to a child component via #style', () => {
+		it('passes scoped class to a child component via {style}', () => {
 			component Child({ className }: { className: string }) {
 				<div class={className}>{'styled child'}</div>
 			}
 
 			component Parent() {
-				<Child className={#style.highlight} />
+				<Child className={style 'highlight'} />
 
 				<style>
 					.highlight {
@@ -28,14 +28,14 @@ describe('#style identifier', () => {
 			expect(classes.some((cls: string) => cls === 'highlight')).toBe(true);
 		});
 
-		it('passes multiple #style classes to a child component', () => {
+		it('passes multiple {style} classes to a child component', () => {
 			component Child({ primary, secondary }: { primary: string; secondary: string }) {
 				<div class={primary}>{'primary'}</div>
 				<span class={secondary}>{'secondary'}</span>
 			}
 
 			component Parent() {
-				<Child primary={#style.primary} secondary={#style.secondary} />
+				<Child primary={style 'primary'} secondary={style 'secondary'} />
 
 				<style>
 					.primary {
@@ -64,7 +64,25 @@ describe('#style identifier', () => {
 			expect(spanClasses.some((cls: string) => cls === 'secondary')).toBe(true);
 		});
 
-		it('passes scoped class to a dynamic child component via #style', () => {
+		it('allows {style} props on child components with children', () => {
+			const source = `
+component Child({ className }) {
+	<div class={className}>"hello world"</div>
+}
+component App() {
+	<Child className={style 'container'}>"hello world"</Child>
+
+	<style>
+		.container {
+			color: red;
+		}
+	</style>
+}`;
+
+			expect(() => compile(source, 'test.tsrx')).not.toThrow();
+		});
+
+		it('passes scoped class to a dynamic child component via {style}', () => {
 			component Child({ cls }: { cls: string }) {
 				<span class={cls}>{'text'}</span>
 			}
@@ -72,7 +90,7 @@ describe('#style identifier', () => {
 			component Parent() {
 				let dynamic = track(() => Child);
 				<div class="wrapper">
-					<@dynamic cls={#style.text} />
+					<@dynamic cls={style 'text'} />
 				</div>
 
 				<style>
@@ -91,7 +109,7 @@ describe('#style identifier', () => {
 			expect(classes.some((cls: string) => cls === 'text')).toBe(true);
 		});
 
-		it('child can combine its own classes with parent #style class', () => {
+		it('child can combine its own classes with parent {style} class', () => {
 			component Card({ className }: { className?: string }) {
 				<div class={['card-base', className ?? '']}>{'card content'}</div>
 
@@ -103,7 +121,7 @@ describe('#style identifier', () => {
 			}
 
 			component App() {
-				<Card className={#style.themed} />
+				<Card className={style 'themed'} />
 
 				<style>
 					.themed {
@@ -128,7 +146,7 @@ describe('#style identifier', () => {
 
 			component App() {
 				<div class="parent">
-					<Child cls={#style.dual} />
+					<Child cls={style 'dual'} />
 				</div>
 
 				<style>
@@ -152,10 +170,10 @@ describe('#style identifier', () => {
 	});
 
 	describe('compile errors', () => {
-		it('errors when #style is used directly on a DOM element', () => {
+		it('errors when {style} is used directly on a DOM element', () => {
 			const source = `
 component App() {
-	<div class={#style.box}>{'content'}</div>
+	<div class={style 'box'}>{'content'}</div>
 
 	<style>
 		.box {
@@ -166,10 +184,10 @@ component App() {
 			expect(() => compile(source, 'test.tsrx')).toThrow(/cannot be used directly on DOM elements/);
 		});
 
-		it('errors when #style bracket notation is used directly on a DOM element', () => {
+		it('errors when {style} is used directly on a DOM element class', () => {
 			const source = `
 component App() {
-	<div class={#style['container']}>{'content'}</div>
+	<div class={style 'container'}>{'content'}</div>
 
 	<style>
 		.container {
@@ -180,13 +198,13 @@ component App() {
 			expect(() => compile(source, 'test.tsrx')).toThrow(/cannot be used directly on DOM elements/);
 		});
 
-		it('errors when #style references a class in a compound selector passed to component', () => {
+		it('errors when {style} references a class in a compound selector passed to component', () => {
 			const source = `
 component Child({ cls }) {
 	<span class={cls}>{'text'}</span>
 }
 component App() {
-	<Child cls={#style.special} />
+	<Child cls={style 'special'} />
 
 	<style>
 		span.special {
@@ -206,7 +224,7 @@ component App() {
 				component App() {
 					<div class="wrapper">
 						<Child
-							cls={#style.nested}
+							cls={style 'nested'}
 						/>
 					</div>
 
@@ -234,7 +252,7 @@ component App() {
 						<Child
 							// @ts-expect-error - cannot use child combinator class as standalone
 							// @ripple-expect-error - cannot use child combinator class as standalone
-							cls={#style.child}
+							cls={style 'child'}
 						/>
 					</div>
 
@@ -261,7 +279,7 @@ component App() {
 						<Child
 							// @ts-expect-error - cannot use compound class as standalone
 							// @ripple-expect-error - cannot use compound class as standalone
-							cls={#style.child}
+							cls={style 'child'}
 						/>
 					</div>
 
@@ -277,7 +295,7 @@ component App() {
 			expect(() => compile(source, 'test.tsrx')).toThrow(/does not exist as a stand-alone class/);
 		});
 
-		it('errors if descendant #style class is used on a dynamic component', () => {
+		it('errors if descendant {style} class is used on a dynamic component', () => {
 			const source = `
 
 				component Child({ cls }) {
@@ -287,7 +305,7 @@ component App() {
 				component App() {
 					let dynamic = track(() => Child);
 					<div class="wrapper">
-						<@dynamic cls={#style.nested} />
+						<@dynamic cls={style 'nested'} />
 					</div>
 
 					<style>
@@ -302,13 +320,13 @@ component App() {
 			expect(() => compile(source, 'test.tsrx')).toThrow(/does not exist as a stand-alone class/);
 		});
 
-		it('errors when #style references a class that does not exist in the style block', () => {
+		it('errors when {style} references a class that does not exist in the style block', () => {
 			const source = `
 component Child({ cls }) {
 	<div class={cls}>{'text'}</div>
 }
 component App() {
-	<Child cls={#style.missing} />
+	<Child cls={style 'missing'} />
 
 	<style>
 		.other {
@@ -319,14 +337,14 @@ component App() {
 			expect(() => compile(source, 'test.tsrx')).toThrow(/does not exist as a stand-alone class/);
 		});
 
-		it('errors when #style is used with a dynamic expression', () => {
+		it('errors when {style} is used with a dynamic expression', () => {
 			const source = `
 component Child({ cls }) {
 	<div class={cls}>{'text'}</div>
 }
-component App() {
-	const key = 'highlight';
-	<Child cls={#style[key]} />
+	component App() {
+		const key = 'highlight';
+		<Child cls={style 'highlight' + key} />
 
 	<style>
 		.highlight {
@@ -334,27 +352,32 @@ component App() {
 		}
 	</style>
 }`;
-			expect(() => compile(source, 'test.tsrx')).toThrow(
-				/must use a dot property or static string/,
-			);
+			expect(() => compile(source, 'test.tsrx')).toThrow(/must be used in the form/);
 		});
 
-		it('errors when #style is used outside of a component', () => {
-			const source = `function notAComponent() {
-	const cls = #style.foo;
+		it('errors when {style} is used as a child expression', () => {
+			const source = `component App() {
+	<div>{style 'foo'}</div>
+	<style>
+		.foo {
+			color: red;
+		}
+	</style>
 }`;
-			expect(() => compile(source, 'test.tsrx')).toThrow(/can only be used within a component/);
+			expect(() => compile(source, 'test.tsrx')).toThrow(
+				/can only be used as an element attribute value/,
+			);
 		});
 	});
 
 	describe('compiler output', () => {
-		it('generates #style object with standalone classes for client mode', () => {
+		it('inlines scoped class strings for client mode', () => {
 			const source = `
 component Child({ cls }) {
 	<div class={cls}>{'text'}</div>
 }
 export component App() {
-	<Child cls={#style.highlight} />
+	<Child cls={style 'highlight'} />
 
 	<style>
 		.highlight {
@@ -368,13 +391,13 @@ export component App() {
 			expect(js.code).toMatch(/tsrx-[a-z0-9]+/);
 		});
 
-		it('generates #style object with standalone classes for server mode', () => {
+		it('inlines scoped class strings for server mode', () => {
 			const source = `
 component Child({ cls }) {
 	<div class={cls}>{'text'}</div>
 }
 export component App() {
-	<Child cls={#style.highlight} />
+	<Child cls={style 'highlight'} />
 
 	<style>
 		.highlight {

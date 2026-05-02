@@ -496,20 +496,18 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toMatch(/class="wrapper tsrx-[a-z0-9]+"/);
 		});
 
-		it('#style.name compiles to a scoped class literal', () => {
-			const { code } = compile(
-				`export component App() {
-					<div class={#style.root}>{'hi'}</div>
-					<style>
-						.root { color: blue; }
-					</style>
-				}`,
-				'App.tsrx',
-			);
-			// `#style.root` macro expands to `"hash root"`; the per-element scope
-			// class is additionally templated in, mirroring @tsrx/react behavior.
-			expect(code).toMatch(/"tsrx-[a-z0-9]+ root"/);
-			expect(code).not.toContain('#style');
+		it('rejects {style} directly on DOM elements', () => {
+			expect(() =>
+				compile(
+					`export component App() {
+						<div class={style 'root'}>{'hi'}</div>
+						<style>
+							.root { color: blue; }
+						</style>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/cannot be used directly on DOM elements/);
 		});
 	});
 

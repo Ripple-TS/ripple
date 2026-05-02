@@ -34,8 +34,6 @@ import {
 	TEMPLATE_MATHML_NAMESPACE,
 	DEFAULT_NAMESPACE,
 	sanitizeTemplateString,
-	CSS_HASH_IDENTIFIER,
-	STYLE_IDENTIFIER,
 	SERVER_IDENTIFIER,
 	obfuscateIdentifier,
 	object,
@@ -568,10 +566,11 @@ const visitors = {
 		return id;
 	},
 
-	StyleIdentifier(node, context) {
-		const id = b.id(STYLE_IDENTIFIER);
-		id.metadata.source_name = '#style';
-		return { ...node, ...id };
+	Style(node, context) {
+		const class_name = typeof node.value.value === 'string' ? node.value.value : '';
+		const hash = context.state.component?.css?.hash;
+		const value = hash ? `${hash} ${class_name}` : class_name;
+		return b.literal(value);
 	},
 
 	ImportDeclaration(node, context) {
@@ -1952,42 +1951,6 @@ const visitors = {
 		let prop_statements;
 		const metadata = {};
 
-		/** @type {AST.Statement[]} */
-		const style_statements = [];
-
-		/** @type {'const' | 'var'} */
-		let var_method_type = 'var';
-		if (context.state.to_ts) {
-			var_method_type = 'const';
-		}
-
-		if (node.metadata.styleIdentifierPresent) {
-			/** @type {AST.Property[]} */
-			const properties = [];
-			if (
-				node.css !== null &&
-				node.metadata.topScopedClasses &&
-				node.metadata.topScopedClasses.size > 0
-			) {
-				const hash = b[var_method_type](b.id(CSS_HASH_IDENTIFIER), b.literal(node.css.hash));
-				style_statements.push(hash);
-				for (const [className] of node.metadata.topScopedClasses) {
-					properties.push(
-						b.prop(
-							'init',
-							b.key(className),
-							b.template(
-								[b.quasi('', false), b.quasi(` ${className}`, true)],
-								[b.id(CSS_HASH_IDENTIFIER)],
-							),
-						),
-					);
-				}
-			}
-
-			style_statements.push(b[var_method_type](b.id(STYLE_IDENTIFIER), b.object(properties)));
-		}
-
 		if (context.state.to_ts) {
 			const body_statements = [
 				...transform_body(node.body, {
@@ -2002,7 +1965,7 @@ const visitors = {
 					(param) =>
 						/** @type {AST.Pattern} */ (context.visit(param, { ...context.state, metadata })),
 				),
-				b.block([...style_statements, ...body_statements]),
+				b.block(body_statements),
 				false,
 				/** @type {AST.NodeWithLocation} */ (node),
 			);
@@ -2086,7 +2049,7 @@ const visitors = {
 		const func = b.function(
 			node.id,
 			params,
-			b.block([...style_statements, ...(prop_statements ?? []), ...body_statements]),
+			b.block([...(prop_statements ?? []), ...body_statements]),
 		);
 
 		func.metadata = {

@@ -930,7 +930,7 @@ export namespace Parse {
 			refDestructuringErrors?: DestructuringErrors,
 			forInit?: ForInit,
 			forNew?: boolean,
-		): AST.ServerIdentifier | AST.StyleIdentifier | AST.Component | AST.Identifier | AST.Literal;
+		): AST.ServerIdentifier | AST.Component | AST.Identifier | AST.Literal;
 
 		/** Default handler for parseExprAtom when no other case matches */
 		parseExprAtomDefault(): AST.Expression;

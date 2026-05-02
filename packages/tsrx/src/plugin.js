@@ -189,7 +189,7 @@ function previous_word_before(input, pos) {
 /**
  * Acorn parser plugin for Ripple syntax extensions.
  * Adds support for: component declarations, &[]/&{} lazy destructuring,
- * #server blocks, #style identifiers, and enhanced JSX handling.
+ * #server blocks, TSRX directives, and enhanced JSX handling.
  *
  * @param {import('../types/index').TSRXPluginConfig} [config] - Plugin configuration
  * @returns {(Parser: Parse.ParserConstructor) => Parse.ParserConstructor} Parser extension function
@@ -851,11 +851,6 @@ export function TSRXPlugin(config) {
 							this.pos += 7;
 							return this.finishToken(tt.name, '#server');
 						}
-
-						if (startsWith('#style') && is_ripple_delimiter(char_after(6))) {
-							this.pos += 6;
-							return this.finishToken(tt.name, '#style');
-						}
 					}
 				}
 				this.#allowTagStartAfterDoubleQuotedText = false;
@@ -978,12 +973,6 @@ export function TSRXPlugin(config) {
 					const node = this.startNode();
 					this.next();
 					return /** @type {AST.ServerIdentifier} */ (this.finishNode(node, 'ServerIdentifier'));
-				}
-
-				if (this.type === tt.name && this.value === '#style') {
-					const node = this.startNode();
-					this.next();
-					return /** @type {AST.StyleIdentifier} */ (this.finishNode(node, 'StyleIdentifier'));
 				}
 
 				// Check if this is a component expression (e.g., in object literal values)
@@ -1415,10 +1404,26 @@ export function TSRXPlugin(config) {
 							'"text" is a TSRX keyword and must be used in the form {text some_value}',
 						);
 					}
+				} else if (
+					this.type === tt.name &&
+					this.value === 'style' &&
+					this.lookahead().type === tt.string
+				) {
+					node.style = true;
+					this.next();
 				}
 
 				node.expression =
 					this.type === tt.braceR ? this.jsx_parseEmptyExpression() : this.parseExpression();
+				if (
+					node.style &&
+					(node.expression.type !== 'Literal' || typeof node.expression.value !== 'string')
+				) {
+					this.raise(
+						/** @type {number} */ (node.expression.start),
+						'"style" is a TSRX keyword and must be used in the form {style "class_name"}',
+					);
+				}
 				this.expect(tt.braceR);
 
 				return this.finishNode(node, 'JSXExpressionContainer');
@@ -1986,6 +1991,14 @@ export function TSRXPlugin(config) {
 						if (attr.value !== null) {
 							if (attr.value.type === 'JSXExpressionContainer') {
 								const expression = attr.value.expression;
+								if (attr.value.style) {
+									/** @type {AST.Style} */ (/** @type {unknown} */ (attr.value)).type = 'Style';
+									/** @type {AST.Style} */ (/** @type {unknown} */ (attr.value)).value =
+										/** @type {AST.Literal} */ (expression);
+									delete (/** @type {any} */ (attr.value).expression);
+									delete (/** @type {any} */ (attr.value).style);
+									continue;
+								}
 								if (expression.type === 'Literal') {
 									expression.was_expression = true;
 								}
@@ -2455,11 +2468,23 @@ export function TSRXPlugin(config) {
 					// Keep JSXEmptyExpression as-is (for prettier to handle comments)
 					// but convert other expressions to Html/TSRXExpression/Text nodes
 					if (node.expression.type !== 'JSXEmptyExpression') {
-						/** @type {AST.TSRXExpression | AST.Html | AST.TextNode} */ (
+						/** @type {AST.TSRXExpression | AST.Html | AST.TextNode | AST.Style} */ (
 							/** @type {unknown} */ (node)
-						).type = node.html ? 'Html' : node.text ? 'Text' : 'TSRXExpression';
+						).type = node.html
+							? 'Html'
+							: node.text
+								? 'Text'
+								: node.style
+									? 'Style'
+									: 'TSRXExpression';
+						if (node.style) {
+							/** @type {AST.Style} */ (/** @type {unknown} */ (node)).value =
+								/** @type {AST.Literal} */ (node.expression);
+							delete (/** @type {any} */ (node).expression);
+						}
 						delete node.html;
 						delete node.text;
+						delete node.style;
 					}
 					body.push(node);
 				} else if (this.type === tt.string && this.input.charCodeAt(this.start) === 34) {
@@ -2616,11 +2641,23 @@ export function TSRXPlugin(config) {
 					const node = this.jsx_parseExpressionContainer();
 					// Keep JSXEmptyExpression as-is (don't convert to TSRXExpression/Text/Html)
 					if (node.expression.type !== 'JSXEmptyExpression') {
-						/** @type {AST.TSRXExpression | AST.Html | AST.TextNode} */ (
+						/** @type {AST.TSRXExpression | AST.Html | AST.TextNode | AST.Style} */ (
 							/** @type {unknown} */ (node)
-						).type = node.html ? 'Html' : node.text ? 'Text' : 'TSRXExpression';
+						).type = node.html
+							? 'Html'
+							: node.text
+								? 'Text'
+								: node.style
+									? 'Style'
+									: 'TSRXExpression';
+						if (node.style) {
+							/** @type {AST.Style} */ (/** @type {unknown} */ (node)).value =
+								/** @type {AST.Literal} */ (node.expression);
+							delete (/** @type {any} */ (node).expression);
+						}
 						delete node.html;
 						delete node.text;
+						delete node.style;
 					}
 
 					return /** @type {ESTreeJSX.JSXEmptyExpression | AST.TSRXExpression | AST.Html | AST.TextNode | ESTreeJSX.JSXExpressionContainer} */ (

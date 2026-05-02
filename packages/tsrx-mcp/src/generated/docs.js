@@ -56,9 +56,9 @@ export const documentation_sections = [
 		slug: 'style-and-server',
 		title: 'Style and Server Extensions',
 		use_cases:
-			'#style, scoped css, #server, server blocks, compile-time identifiers',
+			'style directive, scoped css, #server, server blocks, compile-time identifiers',
 		content:
-			'# Style and Server Extensions\n\n`#style` is a compile-time identifier for scoped CSS class names declared in the current module.\n\n```tsx\n<div class={#style.card} />\n```\n\n`#server { ... }` marks a lexical region intended for server compile targets. TSRX parses the block; target compilers decide how to emit or strip it.\n\nSpecification grammar:\n\n```text\nStyleIdentifier :\n  #style\n\nStyleAccess :\n  #style . IdentifierName\n  #style [ StringLiteral ]\n\nServerIdentifier :\n  #server\n\nServerBlock :\n  #server { StatementListopt }\n\nServerMemberAccess :\n  #server . IdentifierName\n```\n\nSource: website-tsrx/src/pages/specification.tsrx#style',
+			'# Style and Server Extensions\n\n`{style "className"}` is an attribute-value directive for scoped CSS class names declared in the current module.\n\n```tsx\n<Child className={style "card"} />\n```\n\n`#server { ... }` marks a lexical region intended for server compile targets. TSRX parses the block; target compilers decide how to emit or strip it.\n\nSpecification grammar:\n\n```text\nStyleAttributeExpression :\n  { style StringLiteral }\n\nServerIdentifier :\n  #server\n\nServerBlock :\n  #server { StatementListopt }\n\nServerMemberAccess :\n  #server . IdentifierName\n```\n\nSource: website-tsrx/src/pages/specification.tsrx#style',
 	},
 	{
 		slug: 'target-integration',

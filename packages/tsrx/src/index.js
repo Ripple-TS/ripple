@@ -50,7 +50,6 @@ export {
 // Identifier utils
 export {
 	IDENTIFIER_OBFUSCATION_PREFIX,
-	STYLE_IDENTIFIER,
 	SERVER_IDENTIFIER,
 	CSS_HASH_IDENTIFIER,
 	obfuscate_identifier as obfuscateIdentifier,

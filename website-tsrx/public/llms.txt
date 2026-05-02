@@ -734,10 +734,10 @@ selectors, or parts of a chain:
 - `:global(.foo, .bar)`
 - `.scoped :global(.unscoped) .also-scoped`
 
-### Style composition via `#style`
+### Style composition via `{style}`
 
 Because scoped classes don't cross component boundaries, TSRX provides
-`#style.className` — a compile-time identifier that expands to a string
+`{style "className"}` — an attribute-value directive that expands to a string
 containing both the scope hash and the class name. Pass it to a child, which
 applies it via its regular `class` attribute.
 
@@ -750,14 +750,14 @@ component Badge({ className }: { className?: string }) {
 }
 
 component App() {
-  <Badge className={#style.highlight} />
+  <Badge className={style "highlight"} />
   <style>
     .highlight { background: #e8f5e9; color: #2e7d32; }
   </style>
 }
 ```
 
-The class referenced via `#style` must appear as a standalone selector in
+The class referenced via `{style}` must appear as a standalone selector in
 the surrounding component's `<style>`. Classes that only appear as part of
 compound/descendant selectors cannot be passed.
 
@@ -942,7 +942,7 @@ component List<T>({ items, render }: Props<T>) {
 | Guard exit               | `if (!user) { <p>"signin"</p> return; }`       |
 | Scoped style             | `<style> .x { ... } </style>`                    |
 | Escape scoping           | `:global(.class)`                                |
-| Cross-component class    | `<Child className={#style.foo} />`               |
+| Cross-component class    | `<Child className={style "foo"} />`              |
 | Dynamic element          | `<@tag />` with a `Tracked` / stateful `tag`     |
 
 ## Resources

@@ -175,7 +175,7 @@ const STYLE_COMPOSITION_HTML = [
 	'<span class="ln"> 9</span> <span class="br">}</span>',
 	'<span class="ln">10</span>',
 	'<span class="ln">11</span> <span class="kw">component</span> <span class="fn">App</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln">12</span>   <span class="tag">&lt;</span><span class="el">Badge</span> <span class="attr">className</span>=<span class="tbr">{</span><span class="reactive">#style</span>.<span class="prop">highlight</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
+	'<span class="ln">12</span>   <span class="tag">&lt;</span><span class="el">Badge</span> <span class="attr">className</span>=<span class="tbr">{</span><span class="kw">style</span> <span class="str">\'highlight\'</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
 	'<span class="ln">13</span>',
 	'<span class="ln">14</span>   <span class="tag">&lt;</span><span class="el">style</span><span class="tag">&gt;</span>',
 	'<span class="ln">15</span>     <span class="css-sel">.highlight</span> <span class="css-br">{</span> <span class="attr">background</span>: <span class="val">#e8f5e9</span>; <span class="attr">color</span>: <span class="val">#2e7d32</span>; <span class="css-br">}</span>',
@@ -496,9 +496,9 @@ export component DocsPage() {
 						<h2 class="section-heading">{'Style composition'}</h2>
 						<p class="section-body">
 							{'Because scoped styles don\'t cross component boundaries, TSRX provides '}
-							<code class="inline-code">{'#style'}</code>
+							<code class="inline-code">{'{style "className"}'}</code>
 							{' for passing scoped class names to child components as props. '}
-							<code class="inline-code">{'#style.className'}</code>
+							<code class="inline-code">{'{style "highlight"}'}</code>
 							{' produces a string containing both the scope hash and the class name, which the child applies via its '}
 							<code class="inline-code">{'class'}</code>
 							{' attribute.'}
@@ -508,7 +508,7 @@ export component DocsPage() {
 						</pre>
 						<p class="section-body">
 							{'The class referenced via '}
-							<code class="inline-code">{'#style'}</code>
+							<code class="inline-code">{'{style}'}</code>
 							{' must exist as a standalone selector in the component\'s '}
 							<code class="inline-code">{'<style>'}</code>
 							{' block. Classes that only appear in compound or descendant selectors cannot be passed.'}

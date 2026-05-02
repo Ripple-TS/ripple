@@ -6502,7 +6502,7 @@
     "jsx-attribute-expression": {
       "patterns": [
         {
-          "include": "#style-member-expression"
+          "include": "#jsx-style-directive"
         },
         {
           "include": "#jsx-ref-modifier"
@@ -6520,9 +6520,6 @@
     },
     "non-jsx-expression": {
       "patterns": [
-        {
-          "include": "#style-member-expression"
-        },
         {
           "include": "#jsx-html-modifier"
         },
@@ -6694,30 +6691,18 @@
         }
       ]
     },
-    "style-member-expression": {
+    "jsx-style-directive": {
+      "name": "meta.style-directive.js",
+      "begin": "\\b(style)(?=\\s+(?:'|\\\"))",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.ripple.js"
+        }
+      },
+      "end": "(?=\\s*\\})",
       "patterns": [
         {
-          "name": "meta.style-member-expression.computed.js",
-          "begin": "(#style)(\\[)",
-          "beginCaptures": {
-            "1": {
-              "name": "keyword.control.ripple.js"
-            },
-            "2": {
-              "name": "meta.brace.square.js"
-            }
-          },
-          "end": "\\]",
-          "endCaptures": {
-            "0": {
-              "name": "meta.brace.square.js"
-            }
-          },
-          "patterns": [
-            {
-              "include": "#string"
-            }
-          ]
+          "include": "#string"
         }
       ]
     },
@@ -7032,7 +7017,7 @@
     "jsx-tsx-attribute-expression": {
       "patterns": [
         {
-          "include": "#style-member-expression"
+          "include": "#jsx-style-directive"
         },
         {
           "include": "#jsx-ref-modifier"

@@ -58,9 +58,7 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 /**
  * Shared compile-output regressions. These assert observable properties of
  * the generated code (not source-map structure) that every JSX target should
- * satisfy — e.g. the factory walker's `MemberExpression` rewrite of
- * `StyleIdentifier` refs into class-name literals must survive whatever
- * `transformElement` hook the platform wires in.
+ * satisfy across whatever `transformElement` hook the platform wires in.
  *
  * @param {CompileHarness} harness
  */
@@ -510,48 +508,47 @@ export function optionalFn(bar: string, baz?: string) {
 		});
 	});
 
-	describe(`[${name}] walker transforms survive element lowering`, () => {
-		it('rewrites #style member expressions inside element child expressions', () => {
-			const { code } = compile(
-				`export component App() {
-					<div>{#style.root}</div>
-					<style>
-						.root { color: blue; }
-					</style>
-				}`,
-				'App.tsrx',
-			);
-			expect(code).toMatch(/"tsrx-[a-z0-9]+ root"/);
-			expect(code).not.toContain('#style');
+	describe(`[${name}] style directive restrictions`, () => {
+		it('rejects {style} inside element child expressions', () => {
+			expect(() =>
+				compile(
+					`export component App() {
+						<div>{style 'root'}</div>
+						<style>
+							.root { color: blue; }
+						</style>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/can only be used as an element attribute value/);
 		});
 
-		it('rewrites #style bracket notation inside element child expressions', () => {
-			const { code } = compile(
-				`export component App() {
-					<div>{#style['accent']}</div>
-					<style>
-						.accent { color: red; }
-					</style>
-				}`,
-				'App.tsrx',
-			);
-			expect(code).toMatch(/"tsrx-[a-z0-9]+ accent"/);
-			expect(code).not.toContain('#style');
+		it('rejects {style} directly on DOM elements', () => {
+			expect(() =>
+				compile(
+					`export component App() {
+						<div class={style 'root'}>{'hi'}</div>
+						<style>
+							.root { color: blue; }
+						</style>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/cannot be used directly on DOM elements/);
 		});
 
-		it('rewrites #style inside a {text expr} sole child', () => {
-			const { code } = compile(
-				`export component App() {
-					<div>{text #style.root}</div>
-					<style>
-						.root { color: blue; }
-					</style>
-				}`,
-				'App.tsrx',
-			);
-			expect(code).toMatch(/"tsrx-[a-z0-9]+ root"/);
-			expect(code).not.toContain('#style');
-			expect(code).not.toContain('StyleIdentifier');
+		it('does not parse the removed #style syntax', () => {
+			expect(() =>
+				compile(
+					`export component App() {
+						<Child cls={#style.root} />
+						<style>
+							.root { color: blue; }
+						</style>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow();
 		});
 	});
 
@@ -1162,7 +1159,7 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toMatch(/<Child\s+class(Name)?="/);
 		});
 
-		it('passes #style.name through a composite component prop', () => {
+		it('passes {style} through a composite component prop', () => {
 			// `className` here is a prop on a composite component, not a DOM
 			// attribute — every target passes prop names through unchanged,
 			// so the assertion is cross-platform regardless of the host-
@@ -1177,7 +1174,7 @@ export function optionalFn(bar: string, baz?: string) {
 				}
 
 				export component App() {
-					<Badge className={#style.highlight} />
+					<Badge className={style 'highlight'} />
 
 					<style>
 						.highlight { background: green; }
@@ -1187,25 +1184,47 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(css).not.toBeNull();
-			const app_hash = css?.hash.split(' ').find((h) => code.includes(`"${h} highlight"`));
+			const app_hash = css?.hash.split(' ').find((h) => code.includes(`${h} highlight`));
 			expect(app_hash).toBeTruthy();
-			expect(code).toContain(`className="${app_hash} highlight"`);
+			expect(code).toMatch(new RegExp(`className=["']${app_hash} highlight["']`));
 		});
 
-		it('passes #style bracket notation through a composite component prop', () => {
+		it('passes {style} through a composite component prop when the element has children', () => {
+			const { code, css } = compile(
+				`component Child({ className }: { className?: string }) {
+						<span class={className}>"hello world"</span>
+					}
+
+					export component App() {
+						<Child className={style 'container'}>"hello world"</Child>
+
+						<style>
+							.container { color: red; }
+						</style>
+					}`,
+				'App.tsrx',
+			);
+
+			expect(css).not.toBeNull();
+			const app_hash = css?.hash.split(' ').find((h) => code.includes(`${h} container`));
+			expect(app_hash).toBeTruthy();
+			expect(code).toMatch(new RegExp(`className=["']${app_hash} container["']`));
+		});
+
+		it('passes hyphenated {style} class names through a composite component prop', () => {
 			const { code, css } = compile(
 				`export component App() {
-					<Child cls={#style['accent']} />
+						<Child cls={style 'accent-tone'} />
 
 					<style>
-						.accent { color: red; }
+						.accent-tone { color: red; }
 					</style>
 				}`,
 				'App.tsrx',
 			);
 
 			expect(css).not.toBeNull();
-			expect(code).toContain('accent"');
+			expect(code).toContain('accent-tone');
 		});
 	});
 

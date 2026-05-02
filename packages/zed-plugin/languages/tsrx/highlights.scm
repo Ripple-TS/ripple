@@ -12,15 +12,9 @@
   "." @punctuation.delimiter
   property: (identifier) @property)
 
-(style_member_expression
-  "#style" @keyword
-  "." @punctuation.delimiter
-  property: (identifier) @property)
-
-(style_subscript_expression
-  "#style" @keyword
-  "[" @punctuation.bracket
-  "]" @punctuation.bracket)
+(style_directive
+  "style" @keyword
+  (string) @string)
 
 ; Reserved identifiers
 [

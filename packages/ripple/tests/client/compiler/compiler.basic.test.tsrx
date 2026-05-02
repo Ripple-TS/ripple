@@ -20,25 +20,25 @@ describe('compiler > basics', () => {
 		const source = `export component App() {
   <div id="myid" class="myclass">{"Hello World"}</div>
 
-  <style>#style</style>
+  <style>__STYLE__</style>
 }`;
 		const style1 = '.myid {color: green }';
 		const style2 = '#myid {color: green }';
 		const style3 = 'div {color: green }';
 
-		let input = source.replace('#style', style1);
+		let input = source.replace('__STYLE__', style1);
 		let ast = parse(input);
 		expect(
 			((ast.body[0] as AST.ExportNamedDeclaration).declaration as unknown as AST.Component)?.css.source,
 		).toEqual(style1);
 
-		input = source.replace('#style', style2);
+		input = source.replace('__STYLE__', style2);
 		ast = parse(input);
 		expect(
 			((ast.body[0] as AST.ExportNamedDeclaration).declaration as unknown as AST.Component)?.css.source,
 		).toEqual(style2);
 
-		input = source.replace('#style', style3);
+		input = source.replace('__STYLE__', style3);
 		ast = parse(input);
 		expect(
 			((ast.body[0] as AST.ExportNamedDeclaration).declaration as unknown as AST.Component)?.css.source,

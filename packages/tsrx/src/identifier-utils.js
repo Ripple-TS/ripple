@@ -1,5 +1,4 @@
 export const IDENTIFIER_OBFUSCATION_PREFIX = '_$_';
-export const STYLE_IDENTIFIER = IDENTIFIER_OBFUSCATION_PREFIX + encode_utf16_char('#') + 'style';
 export const SERVER_IDENTIFIER = IDENTIFIER_OBFUSCATION_PREFIX + encode_utf16_char('#') + 'server';
 export const CSS_HASH_IDENTIFIER = IDENTIFIER_OBFUSCATION_PREFIX + 'hash';
 

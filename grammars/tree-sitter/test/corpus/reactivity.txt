@@ -1,10 +1,9 @@
 ==================
-Ripple Server/Style Member Expressions
+Ripple Server Member And Style Directive
 ==================
 
 const serverData = #server.data;
-const styleClass = #style.button;
-const styleToken = #style['button'];
+const element = <Child className={style 'button'} />;
 
 ---
 
@@ -19,12 +18,11 @@ const styleToken = #style['button'];
     (variable_declarator
       name: (identifier)
       (initializer
-        (style_member_expression
-          property: (identifier)))))
-  (variable_declaration
-    (variable_declarator
-      name: (identifier)
-      (initializer
-        (style_subscript_expression
-          index: (string))))))
-
+        (jsx_self_closing_element
+          name: (jsx_non_namespaced_element_name
+            (identifier))
+          attribute: (jsx_attribute
+            name: (identifier)
+            value: (jsx_expression
+              (style_directive
+                (string)))))))))

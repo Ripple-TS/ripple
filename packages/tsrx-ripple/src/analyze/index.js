@@ -849,6 +849,37 @@ function is_children_template_expression(expression, context) {
 	return is_children_template_expression_in_scope(expression, context.state.scope, component_scope);
 }
 
+/**
+ * `Element` analysis visits attribute values manually, so zimmerframe's path
+ * can be `[... Element]` instead of `[... Element, Attribute]`.
+ *
+ * @param {AST.Node} node
+ * @param {AST.Node[]} path
+ * @returns {{ attribute: AST.Attribute | null, element: AST.Element | null }}
+ */
+function get_style_attribute_context(node, path) {
+	const parent = path.at(-1);
+	const attribute =
+		parent?.type === 'Attribute' && parent.value === node
+			? parent
+			: /** @type {AST.Element | undefined} */ (
+					path.findLast((ancestor) => ancestor.type === 'Element')
+				)?.attributes.find((attr) => attr.type === 'Attribute' && attr.value === node);
+
+	const element = /** @type {AST.Element | undefined} */ (
+		path.findLast(
+			(ancestor) =>
+				ancestor.type === 'Element' &&
+				(!attribute || ancestor.attributes.some((attr) => attr === attribute)),
+		)
+	);
+
+	return {
+		attribute: /** @type {AST.Attribute | null} */ (attribute ?? null),
+		element: /** @type {AST.Element | null} */ (element ?? null),
+	};
+}
+
 /** @type {Visitors<AST.Node, AnalysisState>} */
 const visitors = {
 	_(node, { state, next, path }) {
@@ -956,54 +987,7 @@ const visitors = {
 	},
 
 	MemberExpression(node, context) {
-		const parent = context.path.at(-1);
-
-		// Track #style.className or #style['className'] references
-		if (node.object.type === 'StyleIdentifier') {
-			const component = is_inside_component(context, true);
-
-			if (!component) {
-				error(
-					'`#style` can only be used within a component',
-					context.state.analysis.module.filename,
-					node,
-					context.state.collect ? context.state.analysis.errors : undefined,
-					context.state.analysis.comments,
-				);
-			} else {
-				component.metadata.styleIdentifierPresent = true;
-			}
-
-			/** @type {string | null} */
-			let className = null;
-
-			if (!node.computed && node.property.type === 'Identifier') {
-				// #style.test
-				className = node.property.name;
-			} else if (
-				node.computed &&
-				node.property.type === 'Literal' &&
-				typeof node.property.value === 'string'
-			) {
-				// #style['test']
-				className = node.property.value;
-			} else {
-				// #style[expression] - dynamic, not allowed
-				error(
-					'`#style` property access must use a dot property or static string for css class name, not a dynamic expression',
-					context.state.analysis.module.filename,
-					node.property,
-					context.state.collect ? context.state.analysis.errors : undefined,
-					context.state.analysis.comments,
-				);
-			}
-
-			if (className !== null) {
-				context.state.metadata.styleClasses?.set(className, node.property);
-			}
-
-			return context.next();
-		} else if (node.object.type === 'ServerIdentifier') {
+		if (node.object.type === 'ServerIdentifier') {
 			context.state.analysis.metadata.serverIdentifierPresent = true;
 		}
 
@@ -1209,24 +1193,44 @@ const visitors = {
 		context.next();
 	},
 
-	StyleIdentifier(node, context) {
+	Style(node, context) {
 		const component = is_inside_component(context, true);
-		const parent = context.path.at(-1);
+		const style_context = get_style_attribute_context(node, context.path);
 
-		if (component) {
-			component.metadata.styleIdentifierPresent = true;
-		}
-
-		// #style must only be used for property access (e.g., #style.className)
-		if (!parent || parent.type !== 'MemberExpression' || parent.object !== node) {
+		if (!component) {
 			error(
-				'`#style` can only be used for property access, e.g., `#style.className`.',
+				'`{style "class_name"}` can only be used within a component',
 				context.state.analysis.module.filename,
 				node,
 				context.state.collect ? context.state.analysis.errors : undefined,
 				context.state.analysis.comments,
 			);
 		}
+
+		if (!style_context.attribute) {
+			error(
+				'`{style "class_name"}` can only be used as an element attribute value.',
+				context.state.analysis.module.filename,
+				node,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		}
+
+		if (style_context.element && is_element_dom_element(style_context.element)) {
+			error(
+				'`{style "class_name"}` cannot be used directly on DOM elements. Pass the class to a child component instead.',
+				context.state.analysis.module.filename,
+				node,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		}
+
+		if (typeof node.value.value === 'string') {
+			context.state.metadata.styleClasses?.set(node.value.value, node.value);
+		}
+
 		context.next();
 	},
 
@@ -2022,20 +2026,6 @@ const visitors = {
 								'The `key` attribute is not a thing in Ripple, and cannot be used on DOM elements. If you are using a for loop, then use the `for (let item of items; key item.id)` syntax.',
 								state.analysis.module.filename,
 								attr,
-								context.state.collect ? context.state.analysis.errors : undefined,
-								context.state.analysis.comments,
-							);
-						}
-
-						if (
-							attr.value &&
-							attr.value.type === 'MemberExpression' &&
-							attr.value.object.type === 'StyleIdentifier'
-						) {
-							error(
-								'`#style` cannot be used directly on DOM elements. Pass the class to a child component instead.',
-								state.analysis.module.filename,
-								attr.value.object,
 								context.state.collect ? context.state.analysis.errors : undefined,
 								context.state.analysis.comments,
 							);
