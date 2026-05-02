@@ -638,11 +638,11 @@ export function App({ load }: { load: () => number }) {
 }"
 `;
 
-exports[`[preact] hoisted helper and tail lift for for-of-with-hook > drains nested for-of source normalization when the outer hook-bearing for-of has a destructured loop param 1`] = `
+exports[`[preact] hoisted helper and tail lift for for-of-with-hook > falls back to the prepend-stashed-scope path when a destructure pattern uses RestElement 1`] = `
 "let App__StatementBodyHook2;
 
 export function App(
-	{ groups }: { groups: { id: string; posts: { tags: string[] }[] }[] }
+	{ groups }: { groups: { id: string; rest: { tags: string[] }[] }[] }
 ) {
 	let _tsrx_iteration_items_3 = groups;
 
@@ -650,17 +650,17 @@ export function App(
 		? _tsrx_iteration_items_3
 		: Array.from(_tsrx_iteration_items_3);
 
-	return <ul>{_tsrx_iteration_items_3.map(({ id, posts }) => {
+	return <ul>{_tsrx_iteration_items_3.map(({ id, ...rest }) => {
 			const _tsrx_StatementBodyHook2_id = id;
-			const _tsrx_StatementBodyHook2_posts = posts;
+			const _tsrx_StatementBodyHook2_rest = rest;
 
 			const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
-				{ id, posts }: { 
+				{ id, rest }: { 
 					id: typeof _tsrx_StatementBodyHook2_id;
-					posts: typeof _tsrx_StatementBodyHook2_posts
+					rest: typeof _tsrx_StatementBodyHook2_rest
 				 }
 			) {
-				let _tsrx_iteration_items_1 = posts;
+				let _tsrx_iteration_items_1 = rest.rest;
 
 				_tsrx_iteration_items_1 = Array.isArray(_tsrx_iteration_items_1)
 					? _tsrx_iteration_items_1
@@ -678,8 +678,51 @@ export function App(
 					})}</li>;
 			});
 
-			return <StatementBodyHook2 id={id} posts={posts} />;
+			return <StatementBodyHook2 id={id} rest={rest} />;
 		})}</ul>;
+}"
+`;
+
+exports[`[preact] hoisted helper and tail lift for for-of-with-hook > hoists a destructured outer for-of and types each leaf via indexed-access on the source element 1`] = `
+"let App__StatementBodyHook2;
+
+export function App(
+	{ groups }: { groups: { id: string; posts: { tags: string[] }[] }[] }
+) {
+	let _tsrx_iteration_items_2 = groups;
+
+	_tsrx_iteration_items_2 = Array.isArray(_tsrx_iteration_items_2)
+		? _tsrx_iteration_items_2
+		: Array.from(_tsrx_iteration_items_2);
+
+	type _tsrx_StatementBodyHook2_id = typeof _tsrx_iteration_items_2[number]['id'];
+	type _tsrx_StatementBodyHook2_posts = typeof _tsrx_iteration_items_2[number]['posts'];
+
+	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
+		{ id, posts }: { 
+			id: _tsrx_StatementBodyHook2_id;
+			posts: _tsrx_StatementBodyHook2_posts
+		 }
+	) {
+		let _tsrx_iteration_items_1 = posts;
+
+		_tsrx_iteration_items_1 = Array.isArray(_tsrx_iteration_items_1)
+			? _tsrx_iteration_items_1
+			: Array.from(_tsrx_iteration_items_1);
+
+		useEffect(
+			() => {
+				console.log(id);
+			},
+			[id]
+		);
+
+		return <li>{_tsrx_iteration_items_1.map((post) => {
+				return <span>{post.tags.length}</span>;
+			})}</li>;
+	});
+
+	return <ul>{_tsrx_iteration_items_2.map(({ id, posts }) => <StatementBodyHook2 id={id} posts={posts} />)}</ul>;
 }"
 `;
 
@@ -696,18 +739,18 @@ export function App({ posts }: { posts: { title: string; tags: string[] }[] }) {
 	type _tsrx_StatementBodyHook2_post = typeof _tsrx_iteration_items_2[number];
 
 	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ post }: { post: _tsrx_StatementBodyHook2_post }) {
+		let _tsrx_iteration_items_1 = post.tags;
+
+		_tsrx_iteration_items_1 = Array.isArray(_tsrx_iteration_items_1)
+			? _tsrx_iteration_items_1
+			: Array.from(_tsrx_iteration_items_1);
+
 		useEffect(
 			() => {
 				console.log(post.title);
 			},
 			[post.title]
 		);
-
-		let _tsrx_iteration_items_1 = post.tags;
-
-		_tsrx_iteration_items_1 = Array.isArray(_tsrx_iteration_items_1)
-			? _tsrx_iteration_items_1
-			: Array.from(_tsrx_iteration_items_1);
 
 		return <li>{_tsrx_iteration_items_1.map((tag) => {
 				return <span>{tag}</span>;

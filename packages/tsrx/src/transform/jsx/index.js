@@ -1764,9 +1764,13 @@ function create_continuation_lift_switch_statement(
  */
 function build_hoisted_for_of_with_hooks(node, continuation_body, transform_context) {
 	const loop_params = get_for_of_iteration_params(node.left, node.index);
-	for (const param of loop_params) {
-		if (param.type !== 'Identifier') return null;
-	}
+	// Map each loop-scoped binding name to the type-path needed to derive its
+	// type from the iteration source element. For a plain `for (const x of xs)`
+	// this is `{ x: [] }`; for a destructure like `for (const { id } of xs)`
+	// it's `{ id: [{ kind: 'key', name: 'id' }] }`. Returns null for shapes we
+	// can't express via indexed access (RestElement, computed keys, holes) —
+	// callers fall through to the prepend-stash path which is also correct.
+	if (!is_supported_loop_value_param(loop_params[0])) return null;
 
 	const has_tail = continuation_body.length > 0;
 	const original_loop_body = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
@@ -1786,8 +1790,17 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	} else {
 		tail_synthetic_id = /** @type {any} */ (null);
 	}
+	// Pull the walker-stashed normalization decls (one per nested for-of in
+	// JSX-child position) up front so they're both scanned for free variables
+	// (e.g. `posts` in a destructured outer loop, or any loop param whose only
+	// reference was the inner for-of's already-rewritten iteration source) and
+	// rendered into the helper body in one pass. Without this prefix, those
+	// references live only in the stashed frame and the helper would either
+	// miss the prop binding or emit undeclared variable references.
+	const stashed_body_scope = node.metadata?.for_of_body_scope_statements ?? [];
 	const loop_body = has_tail
 		? [
+				...stashed_body_scope,
 				...original_loop_body,
 				b.jsx_expression_container(
 					b.logical(
@@ -1797,11 +1810,12 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 					),
 				),
 			]
-		: original_loop_body;
+		: [...stashed_body_scope, ...original_loop_body];
 
 	const source_id = create_generated_identifier(
 		`_tsrx_iteration_items_${transform_context.local_statement_component_index + 1}`,
 	);
+	const value_param_types = collect_loop_value_param_types(loop_params[0], source_id);
 	const { source_decl, source_normalize_decl } = build_array_normalization_decls(
 		source_id,
 		node.right,
@@ -1817,7 +1831,11 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 		loop_body,
 		transform_context.available_bindings,
 	);
-	const loop_scoped_names = new Set(loop_params.map((/** @type {any} */ p) => p.name));
+	const loop_scoped_bindings = new Map();
+	for (const param of loop_params) {
+		collect_pattern_bindings(param, loop_scoped_bindings);
+	}
+	const loop_scoped_names = new Set(loop_scoped_bindings.keys());
 	const outer_bindings = all_helper_bindings.filter((b) => !loop_scoped_names.has(b.name));
 	const loop_bindings = all_helper_bindings.filter((b) => loop_scoped_names.has(b.name));
 
@@ -1829,7 +1847,7 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 		create_helper_type_alias_declaration(helper_id, binding),
 	);
 	const loop_aliases = loop_bindings.map((binding) =>
-		create_loop_scoped_type_alias_declaration(helper_id, binding, source_id, loop_params),
+		create_loop_scoped_type_alias_declaration(helper_id, binding, loop_params, value_param_types),
 	);
 
 	// Synthetic `isLast` prop on the loop helper when there's a tail. It's
@@ -1878,24 +1896,19 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	const fn_body_statements = build_render_statements(loop_body, true, transform_context);
 	// Drain any nested-for-of source hoists into THIS helper's body so they
 	// reference the helper's local props (e.g. `post`) rather than the outer
-	// component scope. Two sources:
-	// 1. `function_scope_statements` accumulates body-level for-of hoists
-	//    encountered during this build_render_statements call (rare in
-	//    practice — nested for-ofs are usually JSX children, not body-level).
-	// 2. `node.metadata.for_of_body_scope_statements` is the frame the
-	//    walker stashed for this for-of's body; nested for-ofs in JSX-child
-	//    position pushed their normalizations there during the walker
-	//    descent.
+	// component scope. The walker-stashed
+	// `node.metadata.for_of_body_scope_statements` was already prepended to
+	// `loop_body` above so that scan + render handle it in one pass; this
+	// drain only covers the rare body-level case where a nested for-of pushed
+	// to `function_scope_statements` during this build_render_statements call.
 	const nested_from_render = transform_context.function_scope_statements ?? [];
-	const stashed_body_scope = node.metadata?.for_of_body_scope_statements ?? [];
-	const all_nested_scoped = [...stashed_body_scope, ...nested_from_render];
 	transform_context.available_bindings = fn_saved_bindings;
 	transform_context.function_scope_statements = fn_saved_function_scope_statements;
 
 	const merged_loop_helper_body =
-		all_nested_scoped.length === 0
+		nested_from_render.length === 0
 			? fn_body_statements
-			: insert_function_scope_statements_before_return(fn_body_statements, all_nested_scoped);
+			: insert_function_scope_statements_before_return(fn_body_statements, nested_from_render);
 
 	const helper_fn = /** @type {any} */ (
 		b.function(clone_identifier(helper_id), params, b.block(merged_loop_helper_body))
@@ -1966,13 +1979,17 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 		);
 	}
 
+	// Clone the value param as-is so destructure patterns reach the .map
+	// callback intact; the destructured leaf identifiers are then in scope to
+	// be passed to the helper invocation by name. Index params are always
+	// Identifiers.
+	const cloned_loop_params = loop_params.map((/** @type {any} */ p) =>
+		p.type === 'Identifier' ? clone_identifier(p) : clone_expression_node(p),
+	);
 	const callback_params =
 		has_tail && loop_params.length < 2 && index_identifier
-			? [
-					...loop_params.map((/** @type {any} */ p) => clone_identifier(p)),
-					clone_identifier(index_identifier),
-				]
-			: loop_params.map((/** @type {any} */ p) => clone_identifier(p));
+			? [...cloned_loop_params, clone_identifier(index_identifier)]
+			: cloned_loop_params;
 
 	const iter_callback = b.arrow(callback_params, callback_invocation_element);
 
@@ -2010,34 +2027,136 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 }
 
 /**
- * Build a TS `type` alias for a loop-scoped binding, deriving the type
- * from the iteration source. For the value param we use
- * `(typeof source)[number]`, which gives the right element type for arrays
- * and tuples (the common case in JSX templates). For the index param,
- * the type is always `number`.
+ * Build a TS `type` alias for a loop-scoped binding. The optional index
+ * param is always typed as `number`. Value-param leaf bindings get the
+ * indexed-access chain prebuilt by {@link collect_loop_value_param_types}.
  *
  * @param {AST.Identifier} helper_id
  * @param {AST.Identifier} binding
- * @param {AST.Identifier} source_id
  * @param {any[]} loop_params
+ * @param {Map<string, any>} value_param_types
  * @returns {{ id: AST.Identifier, declaration: any }}
  */
-function create_loop_scoped_type_alias_declaration(helper_id, binding, source_id, loop_params) {
+function create_loop_scoped_type_alias_declaration(
+	helper_id,
+	binding,
+	loop_params,
+	value_param_types,
+) {
 	const alias_id = create_generated_identifier(`_tsrx_${helper_id.name}_${binding.name}`);
 	const is_index = loop_params.length > 1 && binding.name === loop_params[1].name;
 	const type_annotation = is_index
 		? b.ts_keyword_type('number')
-		: /** @type {any} */ ({
-				type: 'TSIndexedAccessType',
-				objectType: b.ts_type_query(clone_identifier(source_id)),
-				indexType: b.ts_keyword_type('number'),
-				metadata: { path: [] },
-			});
+		: value_param_types.get(binding.name);
 
 	return {
 		id: alias_id,
 		declaration: b.ts_type_alias(clone_identifier(alias_id), type_annotation),
 	};
+}
+
+/**
+ * Cheap shape check: does this value-param pattern only contain shapes we
+ * can express as indexed-access types? Used to bail out of the hoist before
+ * any side-effecting work (helper allocation, counter bumps). The full
+ * type-building pass in {@link collect_loop_value_param_types} will assume
+ * this returned true.
+ *
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_supported_loop_value_param(node) {
+	if (!node) return false;
+	if (node.type === 'Identifier') return true;
+	if (node.type === 'AssignmentPattern') return is_supported_loop_value_param(node.left);
+	if (node.type === 'ObjectPattern') {
+		for (const property of node.properties || []) {
+			if (property.type === 'RestElement') return false;
+			if (property.computed) return false;
+			const key = property.key;
+			const key_ok =
+				key?.type === 'Identifier' || (key?.type === 'Literal' && typeof key.value === 'string');
+			if (!key_ok) return false;
+			if (!is_supported_loop_value_param(property.value)) return false;
+		}
+		return true;
+	}
+	if (node.type === 'ArrayPattern') {
+		for (const element of node.elements || []) {
+			if (!element || element.type === 'RestElement') return false;
+			if (!is_supported_loop_value_param(element)) return false;
+		}
+		return true;
+	}
+	return false;
+}
+
+/**
+ * Walk a for-of value param's pattern and emit, per leaf identifier, the
+ * indexed-access type chain that derives its type from the iteration source
+ * element (`(typeof source)[number][...]`). A plain Identifier param yields
+ * `(typeof source)[number]`. Assumes the pattern has already passed
+ * {@link is_supported_loop_value_param}.
+ *
+ * @param {any} pattern
+ * @param {AST.Identifier} source_id
+ * @returns {Map<string, any>}
+ */
+function collect_loop_value_param_types(pattern, source_id) {
+	/** @type {Map<string, any>} */
+	const types = new Map();
+	const element_type = /** @type {any} */ ({
+		type: 'TSIndexedAccessType',
+		objectType: b.ts_type_query(clone_identifier(source_id)),
+		indexType: b.ts_keyword_type('number'),
+		metadata: { path: [] },
+	});
+
+	/**
+	 * @param {any} node
+	 * @param {any} parent_type
+	 * @returns {void}
+	 */
+	function walk(node, parent_type) {
+		if (node.type === 'Identifier') {
+			types.set(node.name, parent_type);
+			return;
+		}
+		if (node.type === 'AssignmentPattern') {
+			walk(node.left, parent_type);
+			return;
+		}
+		if (node.type === 'ObjectPattern') {
+			for (const property of node.properties) {
+				const key = property.key;
+				const key_name = key.type === 'Identifier' ? key.name : key.value;
+				walk(property.value, indexed_access(parent_type, key_name));
+			}
+			return;
+		}
+		if (node.type === 'ArrayPattern') {
+			node.elements.forEach((/** @type {any} */ element, /** @type {number} */ i) =>
+				walk(element, indexed_access(parent_type, i)),
+			);
+		}
+	}
+
+	walk(pattern, element_type);
+	return types;
+}
+
+/**
+ * @param {any} object_type
+ * @param {string | number} index
+ * @returns {any}
+ */
+function indexed_access(object_type, index) {
+	return /** @type {any} */ ({
+		type: 'TSIndexedAccessType',
+		objectType: object_type,
+		indexType: b.ts_literal_type(b.literal(index)),
+		metadata: { path: [] },
+	});
 }
 
 /**
@@ -3121,9 +3240,7 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	// The hoisted-helper path returned earlier and does its own drain.
 	const stashed_body_scope = node.metadata?.for_of_body_scope_statements ?? [];
 	const effective_loop_body =
-		has_hooks && stashed_body_scope.length > 0
-			? [...stashed_body_scope, ...loop_body]
-			: loop_body;
+		has_hooks && stashed_body_scope.length > 0 ? [...stashed_body_scope, ...loop_body] : loop_body;
 
 	let body_statements = has_hooks
 		? hook_safe_render_statements(effective_loop_body, key_expression, transform_context)

@@ -1694,18 +1694,17 @@ export function optionalFn(bar: string, baz?: string) {
 				expect(code).toMatchSnapshot();
 			});
 
-			it('drains nested for-of source normalization when the outer hook-bearing for-of has a destructured loop param', () => {
-				// `build_hoisted_for_of_with_hooks` bails out (returns null) when
-				// the outer loop's params aren't plain Identifiers, so we fall
-				// through to the `.map(callback)` + `hook_safe_render_statements`
-				// shape. The walker had already stashed the inner for-of's
-				// `let _tsrx_iteration_items_X = posts;` normalization on the
-				// outer for-of's `node.metadata.for_of_body_scope_statements`
-				// frame; that frame still needs to be drained so the inner for-of
-				// has its declarations available when it references them. The
-				// drain prepends the stashed scope into the loop body before
-				// `hook_safe_render_statements`, so the decls land inside the
-				// hook helper (where `posts` is in scope as a prop).
+			it('hoists a destructured outer for-of and types each leaf via indexed-access on the source element', () => {
+				// `build_hoisted_for_of_with_hooks` walks the outer loop's
+				// destructure pattern and synthesizes a `type` alias per leaf
+				// binding (`(typeof source)[number]['<key>']`), then passes
+				// each leaf to the hoisted helper as a typed prop. The inner
+				// for-of's `let _tsrx_iteration_items_X = posts;` normalization
+				// is folded into the helper body via the same path that
+				// handles non-destructured nested for-ofs — the
+				// walker-stashed scope frame is prepended into `loop_body` so
+				// it's both scanned for free vars (so `posts` is picked up as
+				// a helper prop) and rendered into the helper body.
 				const { code } = compile(
 					`export component App({ groups }: { groups: { id: string, posts: { tags: string[] }[] }[] }) {
 						<ul>
@@ -1722,13 +1721,52 @@ export function optionalFn(bar: string, baz?: string) {
 					'App.tsrx',
 				);
 
-				// The inner for-of's normalized iteration identifier must be
-				// declared somewhere in the output. Before the fix it was
-				// referenced inside the hook helper without ever being declared.
+				// Helper is declared at component scope, not re-bound per .map iteration.
+				expect(code).toMatch(
+					/type _tsrx_StatementBodyHook\d+_id = typeof _tsrx_iteration_items_\d+\[number\]\['id'\];/,
+				);
+				expect(code).toMatch(
+					/type _tsrx_StatementBodyHook\d+_posts = typeof _tsrx_iteration_items_\d+\[number\]\['posts'\];/,
+				);
+				// Inner for-of's normalization references the destructured `posts`
+				// prop and is declared inside the helper body where it's used.
+				expect(code).toMatch(/let _tsrx_iteration_items_\d+ = posts;/);
+				// .map callback is `({ id, posts }) => <Helper id={id} posts={posts} />` —
+				// no per-iteration helper assignment.
+				expect(code).toMatch(
+					/_tsrx_iteration_items_\d+\.map\(\(\{ id, posts \}\) => <StatementBodyHook\d+ id=\{id\} posts=\{posts\} \/>\)/,
+				);
+				expect(code).toMatchSnapshot();
+			});
+
+			it('falls back to the prepend-stashed-scope path when a destructure pattern uses RestElement', () => {
+				// The hoist bails on `RestElement` because Omit<...> can't be
+				// expressed as an indexed-access chain. We fall through to the
+				// `.map(callback)` + `hook_safe_render_statements` shape, and
+				// `for_of_statement_to_jsx_child` prepends the stashed scope
+				// into the loop body so the inner for-of's normalization
+				// declarations land inside the hook helper (where `rest` is
+				// passed as a prop) rather than going undeclared.
+				const { code } = compile(
+					`export component App({ groups }: { groups: { id: string, rest: { tags: string[] }[] }[] }) {
+						<ul>
+							for (const { id, ...rest } of groups) {
+								useEffect(() => { console.log(id); }, [id]);
+								<li>
+									for (const post of rest.rest) {
+										<span>{post.tags.length}</span>
+									}
+								</li>
+							}
+						</ul>
+					}`,
+					'App.tsrx',
+				);
+
 				const ref_match = code.match(/(_tsrx_iteration_items_\d+)\.map\(\(post\)/);
 				expect(ref_match).not.toBeNull();
 				const ref_name = /** @type {RegExpMatchArray} */ (ref_match)[1];
-				expect(code).toMatch(new RegExp(`let ${ref_name} = posts;`));
+				expect(code).toMatch(new RegExp(`let ${ref_name} = rest\\.rest;`));
 				expect(code).toMatchSnapshot();
 			});
 
