@@ -80,6 +80,24 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 			expect(code).toContain('<div>{item}</div>');
 		});
 
+		it('keeps rendered content before continue branches', () => {
+			const { code } = compile(
+				`export component App({ items }: { items: string[] }) {
+					for (const item of items) {
+						<span>{item}</span>
+						if (!item) continue
+						<div>{item}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).not.toContain('continue;');
+			expect(code).not.toContain('{}');
+			expect(code).toContain('<span>{item}</span>');
+			expect(code).toContain('<div>{item}</div>');
+		});
+
 		it.runIf(['react', 'preact'].includes(name))(
 			'keeps explicit loop keys on otherwise static children',
 			() => {

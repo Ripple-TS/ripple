@@ -3589,21 +3589,13 @@ function apply_key_to_jsx_element(element, key_expression) {
 	);
 
 	if (!has_key) {
-		attributes.push(create_jsx_key_attribute(key_expression));
+		attributes.push(
+			b.jsx_attribute(
+				b.jsx_id('key'),
+				to_jsx_expression_container(clone_expression_node(key_expression), key_expression),
+			),
+		);
 	}
-}
-
-/**
- * @param {any} key_expression
- * @returns {any}
- */
-function create_jsx_key_attribute(key_expression) {
-	return /** @type {any} */ ({
-		type: 'JSXAttribute',
-		name: { type: 'JSXIdentifier', name: 'key', metadata: { path: [] } },
-		value: to_jsx_expression_container(clone_expression_node(key_expression), key_expression),
-		metadata: { path: [] },
-	});
 }
 
 /**
@@ -3612,24 +3604,17 @@ function create_jsx_key_attribute(key_expression) {
  * @returns {any}
  */
 function keyed_fragment_to_jsx_element(fragment, key_expression) {
-	const name = { type: 'JSXIdentifier', name: 'Fragment', metadata: { path: [] } };
-	return /** @type {any} */ ({
-		type: 'JSXElement',
-		openingElement: {
-			type: 'JSXOpeningElement',
-			name,
-			attributes: [create_jsx_key_attribute(key_expression)],
-			selfClosing: false,
-			metadata: { path: [] },
-		},
-		closingElement: {
-			type: 'JSXClosingElement',
-			name: clone_jsx_name(name),
-			metadata: { path: [] },
-		},
-		children: fragment.children,
-		metadata: { path: [] },
-	});
+	const name = b.jsx_id('Fragment');
+	const key_attribute = b.jsx_attribute(
+		b.jsx_id('key'),
+		to_jsx_expression_container(clone_expression_node(key_expression), key_expression),
+	);
+
+	return b.jsx_element_fresh(
+		b.jsx_opening_element(name, [key_attribute]),
+		b.jsx_closing_element(clone_jsx_name(name)),
+		fragment.children,
+	);
 }
 
 /**
