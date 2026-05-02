@@ -1751,6 +1751,30 @@ export function optionalFn(bar: string, baz?: string) {
 				);
 			});
 
+			it('renders the lifted tail when the last iteration continues before loop hooks', () => {
+				const { code } = compile(
+					`export component App() {
+						let last: number | undefined;
+						for (const item of [1, 2, 3]; index i) {
+							if (i === 2) continue
+							[last] = useState(item);
+							<div key={i}>{last}</div>
+						}
+						console.log(last);
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).not.toContain('continue;');
+				expect(code).toContain('console.log(last);');
+				expect(code).toMatch(
+					/if \(i === 2\) \{[\s\S]*return [\s\S]*_tsrx_isLast_\d+ && <StatementBodyHook\d+ last=\{last\} \/>/,
+				);
+				expect(code).toMatch(
+					/return <><div key=\{i\}>\{last\}<\/div>\{_tsrx_isLast_\d+ && <StatementBodyHook\d+ last=\{last\} \/>}<\/>;/,
+				);
+			});
+
 			it('lifts the tail of a for-of with hooks (inline-literal iteration source)', () => {
 				const { code } = compile(
 					`export component App() {
