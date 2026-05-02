@@ -14,8 +14,14 @@ import { inspect_project } from './inspect.js';
 import { validate_tsrx_file } from './validate.js';
 import { detect_target } from './target.js';
 import {
+	review_tsrx_accessibility,
+	review_tsrx_components,
+	review_tsrx_styles,
+} from './authoring.js';
+import {
 	TARGET_SCHEMA,
 	analysis_result_schema,
+	authoring_review_result_schema,
 	compile_result_schema,
 	format_result_schema,
 	inspect_project_result_schema,
@@ -194,6 +200,27 @@ export function analyze_tsrx_handler(input) {
 }
 
 /**
+ * @param {{ code: string, filename?: string, target?: string }} input
+ */
+export function review_tsrx_accessibility_handler(input) {
+	return review_tsrx_accessibility(input);
+}
+
+/**
+ * @param {{ code: string, filename?: string, target?: string }} input
+ */
+export function review_tsrx_styles_handler(input) {
+	return review_tsrx_styles(input);
+}
+
+/**
+ * @param {{ code: string, filename?: string, target?: string }} input
+ */
+export function review_tsrx_components_handler(input) {
+	return review_tsrx_components(input);
+}
+
+/**
  * @param {{
  *   code: string,
  *   filename?: string,
@@ -270,6 +297,8 @@ function create_tsrx_task_prompt(options) {
 	const compile_step = options.remote
 		? '7. Before presenting generated .tsrx code as final, call `format-tsrx`, then `compile-tsrx` with an explicit target.'
 		: '7. Before presenting generated .tsrx code as final, call `format-tsrx`, then `compile-tsrx` with the inferred or explicit target.';
+	const authoring_step =
+		'8. For user-facing UI, call `review-tsrx-accessibility`, `review-tsrx-styles`, and `review-tsrx-components` before finalizing. Fix error-severity accessibility/style issues and use component advice when control flow becomes dense.';
 
 	return `Use this workflow when helping with TSRX:
 
@@ -280,8 +309,9 @@ ${project_context_step}
 5. Use \`tsrx://targets/{target}.md\` as the handoff point for target-specific responsibilities.
 ${file_validation_step}
 ${compile_step}
-8. If \`compile-tsrx\` returns diagnostics, call \`analyze-tsrx\` for targeted authoring advice, fix the code, format it, and compile again.
-9. Do not invent runtime APIs, imports, or bundler configuration from target-neutral TSRX docs. Use target-specific docs, resources, or skills for those details.`;
+${authoring_step}
+9. If \`compile-tsrx\` returns diagnostics, call \`analyze-tsrx\` for targeted authoring advice, fix the code, format it, and compile again.
+10. Do not invent runtime APIs, imports, or bundler configuration from target-neutral TSRX docs. Use target-specific docs, resources, or skills for those details.`;
 }
 
 /**
@@ -557,6 +587,87 @@ export function createTSRXMcpServer(options = {}) {
 		async (input) => {
 			const output = await analyze_tsrx_handler(remote ? { ...input, cwd: undefined } : input);
 			if (remote) output.cwd = 'remote';
+			return {
+				content: [{ type: 'text', text: json_text(output) }],
+				structuredContent: output,
+			};
+		},
+	);
+
+	server.registerTool(
+		'review-tsrx-accessibility',
+		{
+			title: 'Review TSRX Accessibility',
+			description:
+				'Reviews TSRX source for common accessibility issues before browser-based Axe validation, including missing button names, unlabeled form controls, and direct quoted text that may not render as accessible text.',
+			inputSchema: {
+				code: z.string(),
+				filename: z.string().optional(),
+				target: TARGET_SCHEMA.optional(),
+			},
+			outputSchema: authoring_review_result_schema,
+			annotations: {
+				readOnlyHint: true,
+				destructiveHint: false,
+				openWorldHint: false,
+			},
+		},
+		async (input) => {
+			const output = review_tsrx_accessibility_handler(input);
+			return {
+				content: [{ type: 'text', text: json_text(output) }],
+				structuredContent: output,
+			};
+		},
+	);
+
+	server.registerTool(
+		'review-tsrx-styles',
+		{
+			title: 'Review TSRX Styles',
+			description:
+				'Reviews TSRX source for style-authoring issues, including malformed style blocks, broad selectors, root styling that should live on explicit classes, and contrast risks.',
+			inputSchema: {
+				code: z.string(),
+				filename: z.string().optional(),
+				target: TARGET_SCHEMA.optional(),
+			},
+			outputSchema: authoring_review_result_schema,
+			annotations: {
+				readOnlyHint: true,
+				destructiveHint: false,
+				openWorldHint: false,
+			},
+		},
+		async (input) => {
+			const output = review_tsrx_styles_handler(input);
+			return {
+				content: [{ type: 'text', text: json_text(output) }],
+				structuredContent: output,
+			};
+		},
+	);
+
+	server.registerTool(
+		'review-tsrx-components',
+		{
+			title: 'Review TSRX Component Structure',
+			description:
+				'Reviews TSRX source for component decomposition opportunities when control flow, repeated item templates, or style blocks become large enough to hurt generated-code reliability.',
+			inputSchema: {
+				code: z.string(),
+				filename: z.string().optional(),
+				target: TARGET_SCHEMA.optional(),
+			},
+			outputSchema: authoring_review_result_schema,
+			annotations: {
+				readOnlyHint: true,
+				destructiveHint: false,
+				openWorldHint: false,
+			},
+		},
+		async (input) => {
+			const output = review_tsrx_components_handler(input);
 			return {
 				content: [{ type: 'text', text: json_text(output) }],
 				structuredContent: output,

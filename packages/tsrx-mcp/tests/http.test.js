@@ -105,6 +105,9 @@ describe('@tsrx/mcp HTTP server', () => {
 				'format-tsrx',
 				'get-documentation',
 				'list-sections',
+				'review-tsrx-accessibility',
+				'review-tsrx-components',
+				'review-tsrx-styles',
 			]);
 		});
 	});

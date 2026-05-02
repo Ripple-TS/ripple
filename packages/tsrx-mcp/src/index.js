@@ -7,11 +7,19 @@ export {
 	get_documentation_handler,
 	inspect_project_handler,
 	list_sections_handler,
+	review_tsrx_accessibility_handler,
+	review_tsrx_components_handler,
+	review_tsrx_styles_handler,
 	validate_tsrx_file_handler,
 } from './server.js';
 
 export { handleTSRXMcpNodeRequest } from './http.js';
 export { analyze_tsrx } from './analyze.js';
+export {
+	review_tsrx_accessibility,
+	review_tsrx_components,
+	review_tsrx_styles,
+} from './authoring.js';
 export { compile_tsrx } from './compile.js';
 export { format_tsrx } from './format.js';
 export { inspect_project } from './inspect.js';

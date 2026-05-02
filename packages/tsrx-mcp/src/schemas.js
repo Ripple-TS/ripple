@@ -66,6 +66,25 @@ export const advice_schema = z.object({
 	documentation: z.array(z.string()),
 });
 
+export const authoring_issue_schema = z.object({
+	kind: z.string(),
+	severity: z.enum(['error', 'warning', 'info']),
+	title: z.string(),
+	message: z.string(),
+	snippet: z.string().nullable(),
+	recommendation: z.string(),
+	documentation: z.array(z.string()),
+});
+
+export const authoring_review_result_schema = {
+	ok: z.boolean(),
+	filename: z.string(),
+	target: z.string().nullable(),
+	summary: z.string(),
+	issues: z.array(authoring_issue_schema),
+	nextSteps: z.array(z.string()),
+};
+
 export const analysis_result_schema = {
 	ok: z.boolean(),
 	target: z.string().nullable(),

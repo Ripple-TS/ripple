@@ -30,8 +30,9 @@ stdio command. This monorepo includes a deployment-neutral endpoint app in
 `website-mcp` that serves the same MCP server at `/mcp`.
 
 The hosted endpoint runs in remote-safe mode. It exposes documentation, prompts,
-`format-tsrx`, `compile-tsrx`, and `analyze-tsrx`, but omits local filesystem
-tools such as `inspect-project`, `detect-target`, and `validate-tsrx-file`.
+`format-tsrx`, `compile-tsrx`, `analyze-tsrx`, and source-level authoring review
+tools, but omits local filesystem tools such as `inspect-project`,
+`detect-target`, and `validate-tsrx-file`.
 
 Set `TSRX_MCP_BEARER_TOKEN` in the endpoint environment to require bearer-token
 auth. Set `TSRX_MCP_CORS_ORIGIN` to restrict CORS for browser-based clients.
@@ -85,6 +86,13 @@ Add the generic config above to your Codex MCP configuration.
 - `format-tsrx` - format TSRX code using the official Prettier plugin.
 - `analyze-tsrx` - compile TSRX code and convert common diagnostics into
   target-neutral authoring advice with linked docs resources.
+- `review-tsrx-accessibility` - review TSRX source for common accessibility
+  issues before browser-based Axe validation, including missing button names,
+  unlabeled form controls, and visible text written in a non-rendering shape.
+- `review-tsrx-styles` - review component-scoped style usage for malformed style
+  blocks, broad selectors, root styling, and contrast risks.
+- `review-tsrx-components` - review component structure and suggest extraction
+  points when control flow, repeated templates, or styles become dense.
 - `validate-tsrx-file` - read a `.tsrx` file and run formatting, compilation, and
   diagnostic advice in one read-only pass.
 
@@ -97,6 +105,11 @@ the runtime target is needed.
 For generated code, run `format-tsrx` first, then `compile-tsrx` with the inferred
 or explicit target. If compilation fails, run `analyze-tsrx`, apply the advice,
 format again, and compile again.
+
+For user-facing generated UI, run `review-tsrx-accessibility`,
+`review-tsrx-styles`, and `review-tsrx-components` before finalizing. These tools
+do not replace browser validation, but they catch common source-level mistakes
+before the more expensive build, serve, Axe, and visual review loop.
 
 For an existing `.tsrx` file, prefer `validate-tsrx-file`. It reads the file and
 runs formatting, compilation, and diagnostic advice in one read-only pass.
