@@ -1657,6 +1657,43 @@ export function optionalFn(bar: string, baz?: string) {
 				expect(code).toMatchSnapshot();
 			});
 
+			it('hoists nested for-of source normalization into the enclosing helper body', () => {
+				// `<ul>{for (post of posts) { for (tag of post.tags) { <span>{tag}</span> } }}</ul>`
+				// — the inner `for (tag of post.tags)` source references the
+				// outer loop's `post` param. The walker's `ForOfStatement`
+				// visitor scopes a fresh `function_scope_statements` frame to
+				// each for-of's body and stashes it on the node, so the
+				// inner's `let _tsrx_iteration_items_X = post.tags;` lands
+				// inside the OUTER helper's body — where `post` is the
+				// destructured prop. Both for-ofs get the
+				// Array.isArray/Array.from normalization.
+				const { code } = compile(
+					`export component App({ posts }: { posts: { title: string, tags: string[] }[] }) {
+						<ul>
+							for (const post of posts) {
+								useEffect(() => { console.log(post.title); }, [post.title]);
+								<li>
+									for (const tag of post.tags) {
+										<span>{tag}</span>
+									}
+								</li>
+							}
+						</ul>
+					}`,
+					'App.tsrx',
+				);
+
+				// Outer source normalizes through the component's function scope.
+				expect(code).toMatch(/let _tsrx_iteration_items_\d+ = posts;/);
+				// Inner source normalizes inside the outer helper's body —
+				// the assignment must NOT appear at the component's top level
+				// (where `post` doesn't exist).
+				expect(code).toMatch(/_tsrx_iteration_items_\d+ = post\.tags;/);
+				// Inner uses the normalized identifier, not the raw source.
+				expect(code).toMatch(/_tsrx_iteration_items_\d+\.map\(\(tag\)/);
+				expect(code).toMatchSnapshot();
+			});
+
 			it('preserves user-declaration order when the iteration source is declared in the component body', () => {
 				// `const posts = [...]` is declared in the component body and
 				// referenced by the for-of's hoisted iteration source. The

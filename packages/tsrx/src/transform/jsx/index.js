@@ -240,6 +240,24 @@ export function createJsxTransform(platform) {
 				);
 			},
 
+			ForOfStatement(node, { next, state }) {
+				// Each for-of body gets its own `function_scope_statements`
+				// frame so nested for-of normalizations push into a scope
+				// that this for-of's transform can later drain into its own
+				// helper / callback body — where the for-of's loop params
+				// (e.g. `post`) are in scope. Without this they'd leak up
+				// to the enclosing component's top level and TDZ-fail.
+				const saved_function_scope_statements = state.function_scope_statements;
+				/** @type {any[]} */
+				const body_frame = [];
+				state.function_scope_statements = body_frame;
+				const inner = /** @type {any} */ (next() ?? node);
+				inner.metadata = inner.metadata ?? { path: [] };
+				inner.metadata.for_of_body_scope_statements = body_frame;
+				state.function_scope_statements = saved_function_scope_statements;
+				return inner;
+			},
+
 			Element(node, { next, state }) {
 				// Capture raw children BEFORE the walker transforms them so a
 				// platform hook (e.g. Solid's textContent optimization) can
@@ -1851,15 +1869,36 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 		props_type !== null ? [create_typed_helper_props_pattern(signature_bindings, props_type)] : [];
 
 	const fn_saved_bindings = transform_context.available_bindings;
+	const fn_saved_function_scope_statements = transform_context.function_scope_statements;
 	transform_context.available_bindings = new Map(fn_saved_bindings);
+	transform_context.function_scope_statements = [];
 	if (has_tail) {
 		transform_context.available_bindings.set(tail_synthetic_id.name, tail_synthetic_id);
 	}
 	const fn_body_statements = build_render_statements(loop_body, true, transform_context);
+	// Drain any nested-for-of source hoists into THIS helper's body so they
+	// reference the helper's local props (e.g. `post`) rather than the outer
+	// component scope. Two sources:
+	// 1. `function_scope_statements` accumulates body-level for-of hoists
+	//    encountered during this build_render_statements call (rare in
+	//    practice — nested for-ofs are usually JSX children, not body-level).
+	// 2. `node.metadata.for_of_body_scope_statements` is the frame the
+	//    walker stashed for this for-of's body; nested for-ofs in JSX-child
+	//    position pushed their normalizations there during the walker
+	//    descent.
+	const nested_from_render = transform_context.function_scope_statements ?? [];
+	const stashed_body_scope = node.metadata?.for_of_body_scope_statements ?? [];
+	const all_nested_scoped = [...stashed_body_scope, ...nested_from_render];
 	transform_context.available_bindings = fn_saved_bindings;
+	transform_context.function_scope_statements = fn_saved_function_scope_statements;
+
+	const merged_loop_helper_body =
+		all_nested_scoped.length === 0
+			? fn_body_statements
+			: insert_function_scope_statements_before_return(fn_body_statements, all_nested_scoped);
 
 	const helper_fn = /** @type {any} */ (
-		b.function(clone_identifier(helper_id), params, b.block(fn_body_statements))
+		b.function(clone_identifier(helper_id), params, b.block(merged_loop_helper_body))
 	);
 	helper_fn.metadata = { path: [], is_component: true, is_method: false };
 
@@ -3028,8 +3067,11 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	// For hook-bearing for-of in JSX-child position (e.g. inside `<ul>{for ...}</ul>`),
 	// reuse the hoisted form so the helper component is declared once at
 	// function scope rather than re-bound on every iteration. Setup statements
-	// (helper decl + Array.isArray normalization) flow up via the pending
-	// side-channel that the enclosing function drains into its body.
+	// (helper decl + Array.isArray normalization) flow up via the
+	// `function_scope_statements` channel — for nested for-ofs the walker
+	// has switched that to a frame stashed on the enclosing for-of's node,
+	// so they end up in the right helper's body once the enclosing for-of
+	// drains its frame.
 	if (
 		has_hooks &&
 		!transform_context.platform.hooks?.isTopLevelSetupCall &&
@@ -3065,12 +3107,26 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 		collect_pattern_bindings(param, transform_context.available_bindings);
 	}
 
-	const body_statements = has_hooks
+	let body_statements = has_hooks
 		? hook_safe_render_statements(loop_body, key_expression, transform_context)
 		: build_render_statements(loop_body, true, transform_context);
 
 	if (implicit_non_hook_key_expression) {
 		apply_key_to_render_statements(body_statements, implicit_non_hook_key_expression);
+	}
+
+	// Drain any nested-for-of normalizations the walker stashed on this node
+	// into our own body so the decls land inside the .map callback (or hook
+	// helper body) where this for-of's loop params are in scope. The hook
+	// path has its own deeper drain inside `build_hoisted_for_of_with_hooks`
+	// which also handles its body frame; this drain only applies to the
+	// non-hook inline `.map(callback) { ... }` shape.
+	const stashed_body_scope = node.metadata?.for_of_body_scope_statements ?? [];
+	if (!has_hooks && stashed_body_scope.length > 0) {
+		body_statements = insert_function_scope_statements_before_return(
+			body_statements,
+			stashed_body_scope,
+		);
 	}
 
 	const platform_for_of = transform_context.platform.hooks?.renderForOf?.(
@@ -3090,10 +3146,12 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	// Normalize the iteration source for the default `.map(...)` path so any
 	// `Iterable<T>` / `ArrayLike<T>` works, not just real arrays. The hoist
 	// uses the function-scope channel so the `let _tsrx_iteration_items_<n>`
-	// declaration lives at the enclosing function's top level (and after any
-	// user declarations the source references). We skip this when the
-	// platform overrides `renderForOf` (the default .map path isn't used) or
-	// when we don't have a function-scope channel set up.
+	// declaration lives at the enclosing function's top level. For nested
+	// for-ofs the walker has set the channel to the enclosing for-of's body
+	// frame, so the decl ends up inside that for-of's helper / callback
+	// (where its loop params are in scope). Skip when the platform
+	// overrides `renderForOf` (the default .map path isn't used) or when no
+	// channel is set up.
 	let iteration_source = node.right;
 	if (
 		!transform_context.platform.hooks?.isTopLevelSetupCall &&
