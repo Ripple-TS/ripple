@@ -506,25 +506,12 @@ function get_if_consequent_body(node) {
 }
 
 /**
- * @param {any} node
- * @returns {boolean}
- */
-function is_lone_return_if_statement(node) {
-	return (
-		node?.type === 'IfStatement' &&
-		!node.alternate &&
-		get_if_consequent_body(node).length === 1 &&
-		is_bare_return_statement(get_if_consequent_body(node)[0])
-	);
-}
-
-/**
  * @param {any[]} body_nodes
  * @returns {boolean}
  */
 function body_has_loop_skip(body_nodes) {
 	return body_nodes.some(
-		(node) => is_bare_return_statement(node) || is_lone_return_if_statement(node),
+		(node) => is_bare_return_statement(node) || get_returning_if_info(node) !== null,
 	);
 }
 
@@ -539,11 +526,13 @@ function loop_body_to_callback_statements(body_nodes, transform_context) {
 	/** @type {any[]} */
 	const children = [];
 
-	/** @param {any} source_node */
-	const flush_children_to_return = (source_node) => {
-		const argument =
-			children.length > 0 ? build_return_expression(children) : create_null_literal();
-		children.length = 0;
+	/**
+	 * @param {any} source_node
+	 * @param {any[]} render_nodes
+	 */
+	const create_return_statement = (source_node, render_nodes) => {
+		const cloned = render_nodes.map((node) => clone_expression_node(node));
+		const argument = cloned.length > 0 ? build_return_expression(cloned) : create_null_literal();
 		return {
 			type: 'ReturnStatement',
 			argument,
@@ -554,19 +543,35 @@ function loop_body_to_callback_statements(body_nodes, transform_context) {
 		};
 	};
 
+	/** @param {any} source_node */
+	const flush_children_to_return = (source_node) => {
+		const statement = create_return_statement(source_node, children);
+		children.length = 0;
+		return statement;
+	};
+
+	let has_terminal_return = false;
+
 	for (const child of body_nodes) {
 		if (is_bare_return_statement(child)) {
 			statements.push(flush_children_to_return(child));
-			continue;
+			has_terminal_return = true;
+			break;
 		}
 
-		if (is_lone_return_if_statement(child)) {
+		const returning_if_info = get_returning_if_info(child);
+		if (returning_if_info !== null) {
+			const branch_statements = loop_body_to_callback_statements(
+				returning_if_info.consequent_body,
+				transform_context,
+			);
+			prepend_render_nodes_to_return_statements(branch_statements, children);
 			statements.push({
 				type: 'IfStatement',
 				test: child.test,
 				consequent: {
 					type: 'BlockStatement',
-					body: [flush_children_to_return(child.consequent)],
+					body: branch_statements,
 					metadata: { path: [] },
 				},
 				alternate: null,
@@ -585,8 +590,103 @@ function loop_body_to_callback_statements(body_nodes, transform_context) {
 		}
 	}
 
-	statements.push(flush_children_to_return(body_nodes.at(-1)));
+	if (!has_terminal_return) {
+		statements.push(flush_children_to_return(body_nodes.at(-1)));
+	}
 	return statements;
+}
+
+/**
+ * @param {any[]} statements
+ * @param {any[]} render_nodes
+ * @returns {void}
+ */
+function prepend_render_nodes_to_return_statements(statements, render_nodes) {
+	if (render_nodes.length === 0) {
+		return;
+	}
+
+	for (const statement of statements) {
+		prepend_render_nodes_to_return_statement(statement, render_nodes, false);
+	}
+}
+
+/**
+ * @param {any} node
+ * @param {any[]} render_nodes
+ * @param {boolean} inside_nested_function
+ * @returns {void}
+ */
+function prepend_render_nodes_to_return_statement(node, render_nodes, inside_nested_function) {
+	if (!node || typeof node !== 'object') {
+		return;
+	}
+
+	if (
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression'
+	) {
+		inside_nested_function = true;
+	}
+
+	if (!inside_nested_function && node.type === 'ReturnStatement') {
+		node.argument = combine_render_return_argument(render_nodes, node.argument);
+		return;
+	}
+
+	if (Array.isArray(node)) {
+		for (const child of node) {
+			prepend_render_nodes_to_return_statement(child, render_nodes, inside_nested_function);
+		}
+		return;
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		prepend_render_nodes_to_return_statement(node[key], render_nodes, inside_nested_function);
+	}
+}
+
+/**
+ * @param {any[]} render_nodes
+ * @param {any} return_argument
+ * @returns {any}
+ */
+function combine_render_return_argument(render_nodes, return_argument) {
+	const combined = render_nodes.map((node) => clone_expression_node(node));
+
+	if (return_argument != null && !is_null_literal(return_argument)) {
+		combined.push(return_argument_to_render_node(return_argument));
+	}
+
+	return build_return_expression(combined) || create_null_literal();
+}
+
+/**
+ * @param {any} argument
+ * @returns {any}
+ */
+function return_argument_to_render_node(argument) {
+	if (
+		argument?.type === 'JSXElement' ||
+		argument?.type === 'JSXFragment' ||
+		argument?.type === 'JSXExpressionContainer'
+	) {
+		return argument;
+	}
+
+	return to_jsx_expression_container(argument);
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_null_literal(node) {
+	return node?.type === 'Literal' && node.value == null;
 }
 
 /**

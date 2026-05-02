@@ -1,4 +1,5 @@
 import { RippleArray, flushSync, track } from 'ripple';
+import { compile } from '@tsrx/ripple';
 
 describe('for statements', () => {
 	it('renders a simple static array', () => {
@@ -31,6 +32,53 @@ describe('for statements', () => {
 			'Item 1',
 			'Item 3',
 		]);
+	});
+
+	it('allows continue after setup statements to skip an iteration', () => {
+		const skipped = [];
+
+		component App() {
+			const items = ['Item 1', '', 'Item 3'];
+
+			for (const item of items) {
+				if (!item) {
+					skipped.push('skip');
+					continue;
+				}
+				<div class="item">{item}</div>
+			}
+		}
+
+		render(App);
+
+		expect(skipped).toEqual(['skip']);
+		expect(Array.from(container.querySelectorAll('.item')).map((el) => el.textContent)).toEqual([
+			'Item 1',
+			'Item 3',
+		]);
+	});
+
+	it('does not emit JavaScript continue in for...of skip callbacks', () => {
+		const { js } = compile(
+			`component App() {
+				const items = ['Item 1', '', 'Item 3'];
+				const skipped = [];
+
+				for (const item of items) {
+					if (!item) {
+						skipped.push('skip');
+						continue;
+					}
+					<div class="item">{item}</div>
+				}
+			}`,
+			'App.tsrx',
+			{ mode: 'client' },
+		);
+
+		expect(js.code).toContain('skipped.push(\'skip\')');
+		expect(js.code).not.toContain('continue;');
+		expect(js.code).not.toMatch(/continue;\s*return/);
 	});
 
 	it('renders a simple dynamic array', () => {

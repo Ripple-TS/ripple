@@ -289,6 +289,17 @@ component ForContinueApp() {
 	}
 }
 
+component ForContinueAfterPriorJsxApp() {
+	const items = ['a', '', 'c'];
+
+	for (const item of items) {
+		const item_value = (item as unknown as () => string)();
+		<span class="continue-before">{`before-${item_value || 'empty'}`}</span>
+		if (!item_value) continue;
+		<span class="continue-after">{`after-${item_value}`}</span>
+	}
+}
+
 // ── Switch with reactivity ──
 
 component SwitchReactiveApp() {
@@ -886,6 +897,23 @@ describe('tsrx-solid runtime', () => {
 		).toEqual([
 			'a',
 			'c',
+		]);
+	});
+
+	it('keeps prior JSX children when continue skips a for-of continuation', async () => {
+		await render(ForContinueAfterPriorJsxApp);
+		expect(
+			Array.from(container.querySelectorAll('.continue-before'), (item) => item.textContent),
+		).toEqual([
+			'before-a',
+			'before-empty',
+			'before-c',
+		]);
+		expect(
+			Array.from(container.querySelectorAll('.continue-after'), (item) => item.textContent),
+		).toEqual([
+			'after-a',
+			'after-c',
 		]);
 	});
 

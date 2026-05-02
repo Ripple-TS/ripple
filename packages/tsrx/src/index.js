@@ -216,6 +216,7 @@ export {
 	COMPONENT_LOOP_BREAK_ERROR,
 	COMPONENT_LOOP_RETURN_ERROR,
 	COMPONENT_RETURN_VALUE_ERROR,
+	COMPONENT_WHILE_STATEMENT_ERROR,
 	get_return_keyword_node as getReturnKeywordNode,
 	get_statement_keyword_node as getStatementKeywordNode,
 	validate_component_loop_break_statement as validateComponentLoopBreakStatement,

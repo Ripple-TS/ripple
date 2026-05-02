@@ -2260,13 +2260,13 @@ const visitors = {
 
 			const consequent_body =
 				child.consequent.type === 'BlockStatement' ? child.consequent.body : [child.consequent];
-			if (consequent_body.length !== 1 || consequent_body[0].type !== 'ContinueStatement') {
+			if (find_top_level_continue_index(consequent_body) === -1) {
 				break;
 			}
 
 			const consequent_scope =
 				/** @type {ScopeInterface} */ (context.state.scopes.get(child.consequent)) || body_scope;
-			const skip_statements = transform_body(consequent_body, {
+			const skip_statements = transform_continue_consequent_body(consequent_body, {
 				...context,
 				state: {
 					...context.state,
@@ -2284,7 +2284,7 @@ const visitors = {
 							metadata: { ...context.state.metadata },
 						})
 					),
-					b.block([...skip_statements, b.return(null)]),
+					b.block(skip_statements),
 				),
 			);
 			body_start++;
@@ -2418,14 +2418,18 @@ const visitors = {
 				context.state.scope;
 			const consequent_body =
 				node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
-			const consequent_statements = transform_body(consequent_body, {
-				...context,
-				state: { ...context.state, flush_node: null, scope: consequent_scope },
-			});
-			const consequent =
-				consequent_body.length === 1 && consequent_body[0].type === 'ContinueStatement'
-					? b.block([...consequent_statements, b.return(null)])
-					: b.block(consequent_statements);
+			const continue_index = find_top_level_continue_index(consequent_body);
+			const consequent_statements =
+				continue_index === -1
+					? transform_body(consequent_body, {
+							...context,
+							state: { ...context.state, flush_node: null, scope: consequent_scope },
+						})
+					: transform_continue_consequent_body(consequent_body, {
+							...context,
+							state: { ...context.state, flush_node: null, scope: consequent_scope },
+						});
+			const consequent = b.block(consequent_statements);
 
 			context.state.init?.push(
 				b.if(
@@ -4175,6 +4179,59 @@ function consequent_has_break(consequent) {
 		}
 	}
 	return false;
+}
+
+/**
+ * @param {AST.Node[]} body
+ * @returns {number}
+ */
+function find_top_level_continue_index(body) {
+	return body.findIndex((node) => node.type === 'ContinueStatement');
+}
+
+/**
+ * Emit the DOM placeholder used for a skipped for-of iteration. This is kept
+ * separate from generic `transform_body` so a component-loop `continue`
+ * never lowers to a JavaScript `continue` inside the for runtime callback.
+ *
+ * @param {TransformClientState} state
+ * @param {AST.Node} source_node
+ * @returns {AST.Statement[]}
+ */
+function create_continue_skip_statements(state, source_node) {
+	const template_id = state.scope.generate('root');
+	const node_id = b.id(
+		state.scope.generate('node'),
+		/** @type {AST.NodeWithLocation} */ (source_node),
+	);
+
+	state.hoisted.push(
+		b.var(template_id, b.call('_$_.template', join_template(['<!>']), b.literal(0))),
+	);
+
+	return [
+		b.var(node_id, b.call(template_id)),
+		b.stmt(b.call('_$_.append', b.id('__anchor'), node_id)),
+	];
+}
+
+/**
+ * @param {AST.Node[]} consequent_body
+ * @param {TransformClientContext} context
+ * @returns {AST.Statement[]}
+ */
+function transform_continue_consequent_body(consequent_body, context) {
+	const continue_index = find_top_level_continue_index(consequent_body);
+	if (continue_index === -1) {
+		return transform_body(consequent_body, context);
+	}
+
+	const continue_node = consequent_body[continue_index];
+	return [
+		...transform_body(consequent_body.slice(0, continue_index), context),
+		...create_continue_skip_statements(context.state, continue_node),
+		b.return(null),
+	];
 }
 
 /**

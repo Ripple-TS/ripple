@@ -260,6 +260,20 @@ function is_function_or_class_boundary(node) {
 }
 
 /**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_loop_statement(node) {
+	return (
+		node.type === 'ForOfStatement' ||
+		node.type === 'ForStatement' ||
+		node.type === 'ForInStatement' ||
+		node.type === 'WhileStatement' ||
+		node.type === 'DoWhileStatement'
+	);
+}
+
+/**
  * @param {AnalysisContext['path']} path
  * @returns {boolean}
  */
@@ -289,13 +303,7 @@ function break_targets_component_loop(path) {
 		if (node.type === 'SwitchStatement') {
 			return false;
 		}
-		if (
-			node.type === 'ForOfStatement' ||
-			node.type === 'ForStatement' ||
-			node.type === 'ForInStatement' ||
-			node.type === 'WhileStatement' ||
-			node.type === 'DoWhileStatement'
-		) {
+		if (is_loop_statement(node)) {
 			return true;
 		}
 	}
@@ -309,6 +317,9 @@ function mark_control_flow_has_continue(path) {
 	for (let i = path.length - 1; i >= 0; i -= 1) {
 		const node = path[i];
 		if (is_function_or_class_boundary(node)) {
+			break;
+		}
+		if (is_loop_statement(node)) {
 			break;
 		}
 		if (node.type === 'IfStatement' || node.type === 'SwitchStatement') {
