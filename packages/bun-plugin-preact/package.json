@@ -3,7 +3,7 @@
   "description": "Bun plugin for @tsrx/preact (.tsrx modules)",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "type": "module",
   "publishConfig": {
     "access": "public"

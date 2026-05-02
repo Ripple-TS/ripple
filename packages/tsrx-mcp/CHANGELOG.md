@@ -1,5 +1,20 @@
 # @tsrx/mcp
 
+## 0.0.5
+
+### Patch Changes
+
+- [#1042](https://github.com/Ripple-TS/ripple/pull/1042)
+  [`f5a3c1b`](https://github.com/Ripple-TS/ripple/commit/f5a3c1b9e915c250c8cd1a7dcf4e80c44abe720f)
+  Thanks [@trueadm](https://github.com/trueadm)! - Add MCP documentation and
+  diagnostic advice for component loop control-flow rules.
+
+- Updated dependencies
+  [[`f5a3c1b`](https://github.com/Ripple-TS/ripple/commit/f5a3c1b9e915c250c8cd1a7dcf4e80c44abe720f),
+  [`f5a3c1b`](https://github.com/Ripple-TS/ripple/commit/f5a3c1b9e915c250c8cd1a7dcf4e80c44abe720f)]:
+  - @tsrx/core@0.0.24
+  - @tsrx/prettier-plugin@0.3.44
+
 ## 0.0.4
 
 ### Patch Changes
