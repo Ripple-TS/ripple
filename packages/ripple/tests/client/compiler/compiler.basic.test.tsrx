@@ -882,6 +882,22 @@ export component App() {}
 		);
 	});
 
+	it('does not let nested for...of continues satisfy an outer if body', () => {
+		const source = `
+export component App({ items }: { items: string[] }) {
+	if (items.length) {
+		for (const item of items) {
+			if (!item) continue
+		}
+	}
+}`;
+
+		const result = compile(source, 'test.tsrx', { collect: true });
+		expect(result.errors.map((error) => error.message)).toContain(
+			'Component if statements must contain a template in their "then" body. Move the if statement into an effect if it does not render anything.',
+		);
+	});
+
 	it('preserves class extends generic type arguments in volar output', () => {
 		const source = `class StringMap extends Map<string, string> {}
 export component App() {}`;

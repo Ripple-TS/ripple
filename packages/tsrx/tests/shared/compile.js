@@ -56,6 +56,156 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 }
 
 /**
+ * Shared component-loop regressions. Vue does not share the full JSX output
+ * suite because its component export shape differs, but it should still share
+ * these component-body validation rules.
+ *
+ * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
+ */
+export function runSharedComponentLoopControlFlowTests({ compile, name }) {
+	describe(`[${name}] component loop control flow`, () => {
+		it('uses continue to skip a for...of iteration', () => {
+			const { code } = compile(
+				`export component App({ items }: { items: string[] }) {
+					for (const item of items) {
+						if (!item) continue
+						<div>{item}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).not.toContain('continue;');
+			expect(code).toMatch(/return null;|\? (?:null|\[\]) :/);
+			expect(code).toContain('<div>{item}</div>');
+		});
+
+		it('keeps rendered content before continue branches', () => {
+			const { code } = compile(
+				`export component App({ items }: { items: string[] }) {
+					for (const item of items) {
+						<span>{item}</span>
+						if (!item) continue
+						<div>{item}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).not.toContain('continue;');
+			expect(code).not.toContain('{}');
+			expect(code).toContain('<span>{item}</span>');
+			expect(code).toContain('<div>{item}</div>');
+		});
+
+		it.runIf(['react', 'preact'].includes(name))(
+			'keeps explicit loop keys on otherwise static children',
+			() => {
+				const { code } = compile(
+					`export component App() {
+						for (const item of items; index i; key i) {
+							<div>{'test'}</div>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain("return <div key={i}>{'test'}</div>;");
+				expect(code).not.toContain('__static');
+			},
+		);
+
+		it.runIf(['react', 'preact'].includes(name))(
+			'keeps implicit loop keys on multi-child static loop bodies',
+			() => {
+				const { code } = compile(
+					`export component App() {
+						for (const item of items; index i) {
+							<div>{'one'}</div>
+							<div>{'two'}</div>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				const fragment_source = name === 'react' ? 'react' : 'preact';
+				expect(code).toContain(`import { Fragment } from '${fragment_source}';`);
+				expect(code).toContain('<Fragment key={i}>');
+				expect(code).toContain('</Fragment>');
+			},
+		);
+
+		it('allows ordinary function control flow inside for...of loops', () => {
+			const { code } = compile(
+				`export component App({ items }: { items: string[] }) {
+					for (const item of items) {
+						function label(value: string) {
+							for (let i = 0; i < 1; i++) {
+								while (i < 0) {
+									break
+								}
+								if (!value) return 'missing'
+							}
+							return value
+						}
+
+						<div>{label(item)}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function label');
+			expect(code).toContain('label(item)');
+		});
+
+		it('rejects return statements inside for...of loops', () => {
+			expect(() =>
+				compile(
+					`export component App({ items }: { items: string[] }) {
+						for (const item of items) {
+							if (!item) return
+							<div>{item}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow('Return statements are not allowed inside component for...of loops');
+		});
+
+		it('rejects break statements targeting for...of loops', () => {
+			expect(() =>
+				compile(
+					`export component App({ items }: { items: string[] }) {
+						for (const item of items) {
+							if (!item) break
+							<div>{item}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow('Break statements are not allowed inside component for...of loops');
+		});
+
+		it.each([
+			['for', `for (let i = 0; i < items.length; i++) { <div>{items[i]}</div> }`],
+			['for...in', `for (const key in items) { <div>{items[key]}</div> }`],
+			['while', `while (items.length) { <div>{items[0]}</div> }`],
+			['do...while', `do { <div>{items[0]}</div> } while (items.length)`],
+		])('rejects %s loops in component templates', (_label, loop) => {
+			expect(() =>
+				compile(
+					`export component App({ items }: { items: string[] }) {
+						${loop}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/loops are not supported in components/);
+		});
+	});
+}
+
+/**
  * Shared compile-output regressions. These assert observable properties of
  * the generated code (not source-map structure) that every JSX target should
  * satisfy across whatever `transformElement` hook the platform wires in.
@@ -63,6 +213,8 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
  * @param {CompileHarness} harness
  */
 export function runSharedCompileTests({ compile, name, classAttrName }) {
+	runSharedComponentLoopControlFlowTests({ compile, name });
+
 	describe(`[${name}] component export shapes`, () => {
 		// `component X()` maps to `function X()` identically on every target
 		// (react / preact / solid) — the keyword rewrite is done at the
@@ -521,6 +673,25 @@ export function optionalFn(bar: string, baz?: string) {
 				),
 			).not.toThrow();
 		});
+
+		it('returns accumulated branch templates without an extra empty return', () => {
+			const { code } = compile(
+				`export component App() {
+					if (x) {
+						<div>{"hello world"}</div>
+						return
+					}
+
+					<div>{"hello world 2"}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('hello world');
+			expect(code).toContain('hello world 2');
+			expect(code).not.toMatch(/return\s*;\s*return/);
+			expect(code).not.toMatch(/return <div>\{"hello world"\}<\/div>;\s*return null;/);
+		});
 	});
 
 	describe(`[${name}] style directive restrictions`, () => {
@@ -615,6 +786,20 @@ export function optionalFn(bar: string, baz?: string) {
 		it('wraps tsx text-only content in a fragment so it remains valid JSX', () => {
 			const { code } = compile(`class Foo { bar() { return <tsx>plain text</tsx>; } }`, 'App.tsrx');
 			expect(code).toContain('return <>plain text</>;');
+		});
+
+		it('parses text-only fragment initializers before template expression children', () => {
+			const { code } = compile(
+				`export component Button() {
+					const x = <>Hello world</>
+
+					{x}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('const x = <>Hello world</>;');
+			expect(code).toContain('return x;');
 		});
 
 		it('wraps multiple tsx children in a fragment', () => {
@@ -1558,6 +1743,54 @@ export function optionalFn(bar: string, baz?: string) {
 				);
 
 				expect(code).toMatchSnapshot();
+			});
+
+			it('renders the lifted tail when the last hook iteration continues', () => {
+				const { code } = compile(
+					`export component App({ items }: { items: number[] }) {
+						let last: number | undefined;
+						for (const item of items; index i) {
+							[last] = useState(item);
+							if (item === 0) continue
+							<div key={i}>{last}</div>
+						}
+						<span>{last}</span>
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).not.toContain('continue;');
+				expect(code).toContain('return <span>{last}</span>;');
+				expect(code).toMatch(
+					/if \(item === 0\) \{\s+return _tsrx_isLast_\d+ \? <StatementBodyHook\d+ last=\{last\} \/> : null;\s+\}/,
+				);
+				expect(code).toMatch(
+					/return <><div key=\{i\}>\{last\}<\/div>\{_tsrx_isLast_\d+ && <StatementBodyHook\d+ last=\{last\} \/>}<\/>;/,
+				);
+			});
+
+			it('renders the lifted tail when the last iteration continues before loop hooks', () => {
+				const { code } = compile(
+					`export component App() {
+						let last: number | undefined;
+						for (const item of [1, 2, 3]; index i) {
+							if (i === 2) continue
+							[last] = useState(item);
+							<div key={i}>{last}</div>
+						}
+						console.log(last);
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).not.toContain('continue;');
+				expect(code).toContain('console.log(last);');
+				expect(code).toMatch(
+					/if \(i === 2\) \{[\s\S]*return [\s\S]*_tsrx_isLast_\d+ && <StatementBodyHook\d+ last=\{last\} \/>/,
+				);
+				expect(code).toMatch(
+					/return <><div key=\{i\}>\{last\}<\/div>\{_tsrx_isLast_\d+ && <StatementBodyHook\d+ last=\{last\} \/>}<\/>;/,
+				);
 			});
 
 			it('lifts the tail of a for-of with hooks (inline-literal iteration source)', () => {

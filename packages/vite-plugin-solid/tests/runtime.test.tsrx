@@ -279,6 +279,27 @@ component ForReactiveApp() {
 	<button class="remove" onClick={() => setItems(items().slice(1))}>{'remove'}</button>
 }
 
+component ForContinueApp() {
+	const items = ['a', '', 'c'];
+
+	for (const item of items) {
+		const item_value = (item as unknown as () => string)();
+		if (!item_value) continue;
+		<li class="continue-item">{item_value}</li>
+	}
+}
+
+component ForContinueAfterPriorJsxApp() {
+	const items = ['a', '', 'c'];
+
+	for (const item of items) {
+		const item_value = (item as unknown as () => string)();
+		<span class="continue-before">{`before-${item_value || 'empty'}`}</span>
+		if (!item_value) continue;
+		<span class="continue-after">{`after-${item_value}`}</span>
+	}
+}
+
 // ── Switch with reactivity ──
 
 component SwitchReactiveApp() {
@@ -587,6 +608,19 @@ component EarlyReturnWithSignalsApp() {
 	<button class="early-skip" onClick={() => setSkip(true)}>{'skip'}</button>
 }
 
+component TemplateBeforeEarlyReturnApp() {
+	const [guard, setGuard] = createSignal(false);
+
+	<button class="template-return-toggle" onClick={() => setGuard(!guard())}>{'toggle'}</button>
+
+	if (guard()) {
+		<p class="template-return-guard">{'guard'}</p>
+		return;
+	}
+
+	<p class="template-return-rest">{'rest'}</p>
+}
+
 // ── Static structure inside control flow ──
 
 component StaticInBranchApp() {
@@ -856,6 +890,33 @@ describe('tsrx-solid runtime', () => {
 		expect(after[0].textContent).toBe('b');
 	});
 
+	it('skips for-of iterations with continue', async () => {
+		await render(ForContinueApp);
+		expect(
+			Array.from(container.querySelectorAll('.continue-item'), (item) => item.textContent),
+		).toEqual([
+			'a',
+			'c',
+		]);
+	});
+
+	it('keeps prior JSX children when continue skips a for-of continuation', async () => {
+		await render(ForContinueAfterPriorJsxApp);
+		expect(
+			Array.from(container.querySelectorAll('.continue-before'), (item) => item.textContent),
+		).toEqual([
+			'before-a',
+			'before-empty',
+			'before-c',
+		]);
+		expect(
+			Array.from(container.querySelectorAll('.continue-after'), (item) => item.textContent),
+		).toEqual([
+			'after-a',
+			'after-c',
+		]);
+	});
+
 	// ── Reactive control flow: switch ──
 
 	it('switches rendered branch on signal change (<Switch>/<Match>)', async () => {
@@ -1083,6 +1144,18 @@ describe('tsrx-solid runtime', () => {
 		await click('.early-skip');
 		expect(container.querySelector('.early-count')).toBeNull();
 		expect(container.querySelector('.early-doubled')).toBeNull();
+	});
+
+	it('early return after rendering a branch template skips the continuation', async () => {
+		await render(TemplateBeforeEarlyReturnApp);
+		expect(text('.template-return-toggle')).toBe('toggle');
+		expect(text('.template-return-rest')).toBe('rest');
+		expect(container.querySelector('.template-return-guard')).toBeNull();
+
+		await click('.template-return-toggle');
+		expect(text('.template-return-toggle')).toBe('toggle');
+		expect(text('.template-return-guard')).toBe('guard');
+		expect(container.querySelector('.template-return-rest')).toBeNull();
 	});
 
 	// ── Static structure ──

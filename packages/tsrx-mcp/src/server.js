@@ -307,6 +307,7 @@ ${project_context_step}
 3. For syntax uncertainty, use \`list-sections\`, \`get-documentation\`, or read \`tsrx://docs/{slug}.md\`.
 4. Keep core TSRX advice target-neutral: component declarations, statement templates, control flow, TSX expression values, lazy destructuring, style identifiers, and submodule declarations.
 5. Use \`tsrx://targets/{target}.md\` as the handoff point for target-specific responsibilities.
+5a. In component template scope, render lists with \`for...of\`; use \`continue\` to skip an item; do not use top-level \`return\` or \`break\` inside the loop, and do not use regular \`for\`, \`for...in\`, \`while\`, or \`do...while\` loops there.
 ${file_validation_step}
 ${compile_step}
 ${authoring_step}

@@ -333,6 +333,10 @@ function transform_children(children, context) {
 			state.init?.push(b.break);
 			return;
 		}
+		if (node.type === 'ContinueStatement') {
+			state.init?.push(b.continue);
+			return;
+		}
 		if (
 			node.type === 'VariableDeclaration' ||
 			node.type === 'ExpressionStatement' ||
@@ -1417,15 +1421,29 @@ const visitors = {
 
 		const consequent_body =
 			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+		const consequent_scope = context.state.scopes.get(node.consequent) || context.state.scope;
+
+		if (node.metadata?.has_continue && !node.metadata?.has_template && !node.alternate) {
+			context.state.init?.push(
+				b.if(
+					/** @type {AST.Expression} */ (context.visit(node.test)),
+					b.block(
+						transform_body(consequent_body, {
+							...context,
+							state: { ...context.state, scope: consequent_scope },
+						}),
+					),
+				),
+			);
+			return;
+		}
 
 		const consequent = b.block(
 			transform_body(consequent_body, {
 				...context,
 				state: {
 					...context.state,
-					scope: /** @type {ScopeInterface} */ (
-						context.state.scopes.get(node.consequent) || context.state.scope
-					),
+					scope: /** @type {ScopeInterface} */ (consequent_scope),
 				},
 			}),
 		);

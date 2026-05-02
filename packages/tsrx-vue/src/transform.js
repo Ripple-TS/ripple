@@ -229,9 +229,14 @@ function render_for_of_as_vapor_template(node, loop_params, body_statements) {
 	}
 
 	const rendered = statement.argument;
+	if (expression_can_skip_rendering(rendered)) {
+		return render_for_of_as_flat_map(node, loop_params, rendered);
+	}
+
 	const key_expression = node.key
 		? clone_expression_node(node.key)
-		: find_jsx_key_expression(rendered);
+		: (find_jsx_key_expression(rendered) ??
+			(node.index ? clone_expression_node(node.index) : null));
 	strip_top_level_jsx_keys(rendered);
 	const children = rendered.type === 'JSXFragment' ? rendered.children : [rendered];
 	const attributes = [
@@ -275,6 +280,109 @@ function render_for_of_as_vapor_template(node, loop_params, body_statements) {
 		children,
 		metadata: { path: [] },
 	});
+}
+
+/**
+ * @param {any} node
+ * @param {any[]} loop_params
+ * @param {any} rendered
+ * @returns {any}
+ */
+function render_for_of_as_flat_map(node, loop_params, rendered) {
+	return to_jsx_expression_container({
+		type: 'CallExpression',
+		callee: {
+			type: 'MemberExpression',
+			object: clone_expression_node(node.right),
+			property: { type: 'Identifier', name: 'flatMap', metadata: { path: [] } },
+			computed: false,
+			optional: false,
+			metadata: { path: [] },
+		},
+		arguments: [
+			{
+				type: 'ArrowFunctionExpression',
+				params: loop_params,
+				body: {
+					type: 'BlockStatement',
+					body: [
+						{
+							type: 'ReturnStatement',
+							argument: to_array_render_expression(rendered),
+							metadata: { path: [] },
+						},
+					],
+					metadata: { path: [] },
+				},
+				async: false,
+				generator: false,
+				expression: false,
+				metadata: { path: [] },
+			},
+		],
+		async: false,
+		optional: false,
+		metadata: { path: [] },
+	});
+}
+
+/**
+ * `<template v-for>` preserves one rendered slot per source item in the current
+ * Vue runtime path. Loop bodies that can return `null` need the shared callback
+ * lowering so `continue` truly skips the iteration.
+ *
+ * @param {any} node
+ * @returns {boolean}
+ */
+function expression_can_skip_rendering(node) {
+	if (!node || typeof node !== 'object') {
+		return false;
+	}
+
+	if (node.type === 'Literal' && node.value === null) {
+		return true;
+	}
+
+	if (node.type === 'ConditionalExpression') {
+		return (
+			expression_can_skip_rendering(node.consequent) ||
+			expression_can_skip_rendering(node.alternate)
+		);
+	}
+
+	if (node.type === 'LogicalExpression' && node.operator === '&&') {
+		return true;
+	}
+
+	return false;
+}
+
+/**
+ * @param {any} node
+ * @returns {any}
+ */
+function to_array_render_expression(node) {
+	if (node?.type === 'Literal' && node.value === null) {
+		return builders.array([]);
+	}
+
+	if (node?.type === 'ConditionalExpression') {
+		return builders.conditional(
+			node.test,
+			to_array_render_expression(node.consequent),
+			to_array_render_expression(node.alternate),
+		);
+	}
+
+	if (node?.type === 'LogicalExpression' && node.operator === '&&') {
+		return builders.conditional(
+			node.left,
+			to_array_render_expression(node.right),
+			builders.array([]),
+		);
+	}
+
+	return builders.array([node]);
 }
 
 /**

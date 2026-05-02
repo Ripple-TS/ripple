@@ -140,6 +140,7 @@ export { escape } from './utils/escaping.js';
 export {
 	createJsxTransform,
 	merge_duplicate_refs as mergeDuplicateRefs,
+	rewrite_loop_continues_to_bare_returns as rewriteLoopContinuesToBareReturns,
 	to_jsx_attribute as toJsxAttribute,
 	validate_at_most_one_ref_attribute as validateAtMostOneRefAttribute,
 	component_to_function_declaration as componentToFunctionDeclaration,
@@ -209,8 +210,18 @@ export {
 // Analyze
 export { analyze_css as analyzeCss } from './analyze/css-analyze.js';
 export {
+	COMPONENT_DO_WHILE_STATEMENT_ERROR,
+	COMPONENT_FOR_IN_STATEMENT_ERROR,
+	COMPONENT_FOR_STATEMENT_ERROR,
+	COMPONENT_LOOP_BREAK_ERROR,
+	COMPONENT_LOOP_RETURN_ERROR,
 	COMPONENT_RETURN_VALUE_ERROR,
+	COMPONENT_WHILE_STATEMENT_ERROR,
 	get_return_keyword_node as getReturnKeywordNode,
+	get_statement_keyword_node as getStatementKeywordNode,
+	validate_component_loop_break_statement as validateComponentLoopBreakStatement,
+	validate_component_loop_return_statement as validateComponentLoopReturnStatement,
 	validate_component_return_statement as validateComponentReturnStatement,
+	validate_component_unsupported_loop_statement as validateComponentUnsupportedLoopStatement,
 	validate_nesting as validateNesting,
 } from './analyze/validation.js';

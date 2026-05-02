@@ -26,6 +26,14 @@ describe('@tsrx/mcp documentation index', () => {
 		);
 	});
 
+	it('documents component loop control-flow rules', () => {
+		const content = find_documentation_section('control-flow')?.content ?? '';
+
+		expect(content).toContain('continue');
+		expect(content).toContain('Top-level `return` and `break` are invalid');
+		expect(content).toContain('Regular `for`, `for...in`, `while`, and `do...while`');
+	});
+
 	it('keeps the checked-in generated docs fresh', async () => {
 		expect(readFileSync(generated_docs_path, 'utf8')).toBe(await generate_docs_index());
 	});

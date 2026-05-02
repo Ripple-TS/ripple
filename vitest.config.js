@@ -80,6 +80,16 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'tsrx-preact-runtime',
+					include: ['packages/vite-plugin-preact/tests/**/*.test.tsrx'],
+					environment: 'jsdom',
+					setupFiles: ['packages/vite-plugin-preact/tests/setup.js'],
+					globals: true,
+				},
+				plugins: [(await import('./packages/vite-plugin-preact/src/index.js')).tsrxPreact()],
+			},
+			{
+				test: {
 					name: 'bun-plugin-preact',
 					include: ['packages/bun-plugin-preact/tests/**/*.test.js'],
 					environment: 'node',

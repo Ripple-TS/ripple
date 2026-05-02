@@ -2242,6 +2242,65 @@ const visitors = {
 		const id = context.state.flush_node?.(false, is_controlled);
 		const pattern = /** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id;
 		const body_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.body));
+		const body_nodes = /** @type {AST.BlockStatement} */ (node.body).body;
+		/** @type {AST.Statement[]} */
+		const body = [];
+		let body_start = 0;
+
+		while (body_start < body_nodes.length) {
+			const child = body_nodes[body_start];
+			if (
+				child.type !== 'IfStatement' ||
+				!child.metadata?.has_continue ||
+				child.metadata?.has_template ||
+				child.alternate
+			) {
+				break;
+			}
+
+			const consequent_body =
+				child.consequent.type === 'BlockStatement' ? child.consequent.body : [child.consequent];
+			if (find_top_level_continue_index(consequent_body) === -1) {
+				break;
+			}
+
+			const consequent_scope =
+				/** @type {ScopeInterface} */ (context.state.scopes.get(child.consequent)) || body_scope;
+			const skip_statements = transform_continue_consequent_body(consequent_body, {
+				...context,
+				state: {
+					...context.state,
+					scope: consequent_scope,
+					namespace: context.state.namespace,
+					flush_node: null,
+				},
+			});
+
+			body.push(
+				b.if(
+					/** @type {AST.Expression} */ (
+						context.visit(child.test, {
+							...context.state,
+							metadata: { ...context.state.metadata },
+						})
+					),
+					b.block(skip_statements),
+				),
+			);
+			body_start++;
+		}
+
+		body.push(
+			...transform_body(body_nodes.slice(body_start), {
+				...context,
+				state: {
+					...context.state,
+					scope: body_scope,
+					namespace: context.state.namespace,
+					flush_node: null,
+				},
+			}),
+		);
 
 		context.state.init?.push(
 			b.stmt(
@@ -2251,17 +2310,7 @@ const visitors = {
 					b.thunk(/** @type {AST.Expression} */ (context.visit(node.right))),
 					b.arrow(
 						index ? [b.id('__anchor'), pattern, index] : [b.id('__anchor'), pattern],
-						b.block(
-							transform_body(/** @type {AST.BlockStatement} */ (node.body).body, {
-								...context,
-								state: {
-									...context.state,
-									scope: body_scope,
-									namespace: context.state.namespace,
-									flush_node: null,
-								},
-							}),
-						),
+						b.block(body),
 					),
 					b.literal(flags),
 					key != null
@@ -2283,6 +2332,7 @@ const visitors = {
 
 			return context.next();
 		}
+
 		context.state.template?.push('<!>');
 
 		const id = context.state.flush_node?.();
@@ -2361,6 +2411,40 @@ const visitors = {
 
 			return context.next();
 		}
+
+		if (node.metadata?.has_continue && !node.metadata?.has_template && !node.alternate) {
+			const consequent_scope =
+				/** @type {ScopeInterface} */ (context.state.scopes.get(node.consequent)) ||
+				context.state.scope;
+			const consequent_body =
+				node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+			const continue_index = find_top_level_continue_index(consequent_body);
+			const consequent_statements =
+				continue_index === -1
+					? transform_body(consequent_body, {
+							...context,
+							state: { ...context.state, flush_node: null, scope: consequent_scope },
+						})
+					: transform_continue_consequent_body(consequent_body, {
+							...context,
+							state: { ...context.state, flush_node: null, scope: consequent_scope },
+						});
+			const consequent = b.block(consequent_statements);
+
+			context.state.init?.push(
+				b.if(
+					/** @type {AST.Expression} */ (
+						context.visit(node.test, {
+							...context.state,
+							metadata: { ...context.state.metadata },
+						})
+					),
+					consequent,
+				),
+			);
+			return;
+		}
+
 		context.state.template?.push('<!>');
 
 		const id = context.state.flush_node?.();
@@ -3196,6 +3280,13 @@ function transform_ts_child(node, context) {
 			return result;
 		}
 		state.init.push(/** @type {AST.Statement} */ (result));
+	} else if (node.type === 'ContinueStatement') {
+		const result = b.continue;
+
+		if (!state.init) {
+			return result;
+		}
+		state.init.push(/** @type {AST.Statement} */ (result));
 	} else if (node.type === 'TsxCompat') {
 		const children = /** @type {AST.TsxCompat['children']} */ (
 			node.children
@@ -3998,6 +4089,8 @@ function transform_children(children, context) {
 				});
 			} else if (node.type === 'BreakStatement') {
 				// do nothing
+			} else if (node.type === 'ContinueStatement') {
+				state.template?.push('<!>');
 			} else {
 				debugger;
 			}
@@ -4086,6 +4179,59 @@ function consequent_has_break(consequent) {
 		}
 	}
 	return false;
+}
+
+/**
+ * @param {AST.Node[]} body
+ * @returns {number}
+ */
+function find_top_level_continue_index(body) {
+	return body.findIndex((node) => node.type === 'ContinueStatement');
+}
+
+/**
+ * Emit the DOM placeholder used for a skipped for-of iteration. This is kept
+ * separate from generic `transform_body` so a component-loop `continue`
+ * never lowers to a JavaScript `continue` inside the for runtime callback.
+ *
+ * @param {TransformClientState} state
+ * @param {AST.Node} source_node
+ * @returns {AST.Statement[]}
+ */
+function create_continue_skip_statements(state, source_node) {
+	const template_id = state.scope.generate('root');
+	const node_id = b.id(
+		state.scope.generate('node'),
+		/** @type {AST.NodeWithLocation} */ (source_node),
+	);
+
+	state.hoisted.push(
+		b.var(template_id, b.call('_$_.template', join_template(['<!>']), b.literal(0))),
+	);
+
+	return [
+		b.var(node_id, b.call(template_id)),
+		b.stmt(b.call('_$_.append', b.id('__anchor'), node_id)),
+	];
+}
+
+/**
+ * @param {AST.Node[]} consequent_body
+ * @param {TransformClientContext} context
+ * @returns {AST.Statement[]}
+ */
+function transform_continue_consequent_body(consequent_body, context) {
+	const continue_index = find_top_level_continue_index(consequent_body);
+	if (continue_index === -1) {
+		return transform_body(consequent_body, context);
+	}
+
+	const continue_node = consequent_body[continue_index];
+	return [
+		...transform_body(consequent_body.slice(0, continue_index), context),
+		...create_continue_skip_statements(context.state, continue_node),
+		b.return(null),
+	];
 }
 
 /**

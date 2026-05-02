@@ -417,6 +417,30 @@ export component DocsPage() {
 							<code class="inline-code">{'key'}</code>
 							{' clauses so you don\'t need separate counters or key-extraction boilerplate.'}
 						</p>
+						<p class="section-body">
+							{'Use '}
+							<code class="inline-code">{'continue'}</code>
+							{' inside a component '}
+							<code class="inline-code">{'for...of'}</code>
+							{' body to skip the current item. Top-level '}
+							<code class="inline-code">{'return'}</code>
+							{' and '}
+							<code class="inline-code">{'break'}</code>
+							{' statements are not allowed there, because loop rendering lowers to target-specific callbacks or blocks. Nested functions inside the loop keep ordinary JavaScript control flow.'}
+						</p>
+						<p class="section-body">
+							{'Other JavaScript loops are not component rendering constructs: regular '}
+							<code class="inline-code">{'for'}</code>
+							{', '}
+							<code class="inline-code">{'for...in'}</code>
+							{', '}
+							<code class="inline-code">{'while'}</code>
+							{', and '}
+							<code class="inline-code">{'do...while'}</code>
+							{' are rejected in component template scope. Move imperative loops into a nested function or effect, or render collections with '}
+							<code class="inline-code">{'for...of'}</code>
+							{'.'}
+						</p>
 						<pre class="code-block">
 							<code>{html FOR_HTML}</code>
 						</pre>

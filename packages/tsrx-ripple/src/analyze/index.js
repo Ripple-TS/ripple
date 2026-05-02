@@ -28,7 +28,10 @@ import {
 	isEventAttribute,
 	isInsideComponent as is_inside_component,
 	validateNesting,
+	validateComponentLoopBreakStatement,
+	validateComponentLoopReturnStatement,
 	validateComponentReturnStatement,
+	validateComponentUnsupportedLoopStatement,
 } from '@tsrx/core';
 const b = builders;
 import { walk } from 'zimmerframe';
@@ -237,6 +240,90 @@ function mark_control_flow_has_template(path) {
 			node.type === 'TsxCompat'
 		) {
 			node.metadata.has_template = true;
+		}
+	}
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_function_or_class_boundary(node) {
+	return (
+		node.type === 'Component' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression' ||
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'ClassExpression' ||
+		node.type === 'ClassDeclaration'
+	);
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_loop_statement(node) {
+	return (
+		node.type === 'ForOfStatement' ||
+		node.type === 'ForStatement' ||
+		node.type === 'ForInStatement' ||
+		node.type === 'WhileStatement' ||
+		node.type === 'DoWhileStatement'
+	);
+}
+
+/**
+ * @param {AnalysisContext['path']} path
+ * @returns {boolean}
+ */
+function is_inside_component_for_of(path) {
+	for (let i = path.length - 1; i >= 0; i -= 1) {
+		const node = path[i];
+		if (is_function_or_class_boundary(node)) {
+			return false;
+		}
+		if (node.type === 'ForOfStatement') {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * @param {AnalysisContext['path']} path
+ * @returns {boolean}
+ */
+function break_targets_component_loop(path) {
+	for (let i = path.length - 1; i >= 0; i -= 1) {
+		const node = path[i];
+		if (is_function_or_class_boundary(node)) {
+			return false;
+		}
+		if (node.type === 'SwitchStatement') {
+			return false;
+		}
+		if (is_loop_statement(node)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * @param {AnalysisContext['path']} path
+ */
+function mark_control_flow_has_continue(path) {
+	for (let i = path.length - 1; i >= 0; i -= 1) {
+		const node = path[i];
+		if (is_function_or_class_boundary(node)) {
+			break;
+		}
+		if (is_loop_statement(node)) {
+			break;
+		}
+		if (node.type === 'IfStatement' || node.type === 'SwitchStatement') {
+			node.metadata.has_continue = true;
 		}
 	}
 }
@@ -1462,12 +1549,11 @@ const visitors = {
 
 	ForStatement(node, context) {
 		if (is_inside_component(context)) {
-			// TODO: it's a fatal error for now but
-			// we could implement the for loop for the ts mode only
-			error(
-				'For loops are not supported in components. Use for...of instead.',
-				context.state.analysis.module.filename,
+			validateComponentUnsupportedLoopStatement(
 				node,
+				context.state.analysis.module.filename,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
 			);
 		}
 
@@ -1704,6 +1790,7 @@ const visitors = {
 			...node.metadata,
 			has_template: false,
 			has_throw: false,
+			has_continue: false,
 		};
 
 		const test_metadata = { tracking: false };
@@ -1725,7 +1812,12 @@ const visitors = {
 			node.metadata.lone_return = true;
 		}
 
-		if (!node.metadata.has_template && !node.metadata.has_return && !node.metadata.has_throw) {
+		if (
+			!node.metadata.has_template &&
+			!node.metadata.has_return &&
+			!node.metadata.has_throw &&
+			!node.metadata.has_continue
+		) {
 			error(
 				'Component if statements must contain a template in their "then" body. Move the if statement into an effect if it does not render anything.',
 				context.state.analysis.module.filename,
@@ -1738,11 +1830,18 @@ const visitors = {
 		if (node.alternate) {
 			const saved_has_return = node.metadata.has_return;
 			const saved_returns = node.metadata.returns;
+			const saved_has_continue = node.metadata.has_continue;
 			node.metadata.has_template = false;
 			node.metadata.has_throw = false;
+			node.metadata.has_continue = false;
 			context.visit(node.alternate, context.state);
 
-			if (!node.metadata.has_template && !node.metadata.has_return && !node.metadata.has_throw) {
+			if (
+				!node.metadata.has_template &&
+				!node.metadata.has_return &&
+				!node.metadata.has_throw &&
+				!node.metadata.has_continue
+			) {
 				error(
 					'Component if statements must contain a template in their "else" body. Move the if statement into an effect if it does not render anything.',
 					context.state.analysis.module.filename,
@@ -1757,6 +1856,9 @@ const visitors = {
 				if (saved_returns) {
 					node.metadata.returns = [...saved_returns, ...(node.metadata.returns || [])];
 				}
+			}
+			if (saved_has_continue) {
+				node.metadata.has_continue = true;
 			}
 		}
 	},
@@ -1774,6 +1876,16 @@ const visitors = {
 			}
 
 			return context.next();
+		}
+
+		if (is_inside_component_for_of(context.path)) {
+			validateComponentLoopReturnStatement(
+				node,
+				context.state.analysis.module.filename,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+			return;
 		}
 
 		validateComponentReturnStatement(
@@ -1808,6 +1920,27 @@ const visitors = {
 			ancestor.metadata.returns.push(node);
 			ancestor.metadata.has_return = true;
 		}
+	},
+
+	BreakStatement(node, context) {
+		if (is_inside_component(context) && break_targets_component_loop(context.path)) {
+			validateComponentLoopBreakStatement(
+				node,
+				context.state.analysis.module.filename,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		}
+
+		context.next();
+	},
+
+	ContinueStatement(node, context) {
+		if (is_inside_component(context) && is_inside_component_for_of(context.path)) {
+			mark_control_flow_has_continue(context.path);
+		}
+
+		context.next();
 	},
 
 	ThrowStatement(node, context) {
@@ -1892,12 +2025,11 @@ const visitors = {
 
 	ForInStatement(node, context) {
 		if (is_inside_component(context)) {
-			// TODO: it's a fatal error for now but
-			// we could implement the for in loop for the ts mode only to make it a usage error
-			error(
-				'For...in loops are not supported in components. Use for...of instead.',
-				context.state.analysis.module.filename,
+			validateComponentUnsupportedLoopStatement(
 				node,
+				context.state.analysis.module.filename,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
 			);
 		}
 
@@ -1906,10 +2038,11 @@ const visitors = {
 
 	WhileStatement(node, context) {
 		if (is_inside_component(context)) {
-			error(
-				'While loops are not supported in components. Move the while loop into a function.',
-				context.state.analysis.module.filename,
+			validateComponentUnsupportedLoopStatement(
 				node,
+				context.state.analysis.module.filename,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
 			);
 		}
 
@@ -1918,10 +2051,11 @@ const visitors = {
 
 	DoWhileStatement(node, context) {
 		if (is_inside_component(context)) {
-			error(
-				'Do...while loops are not supported in components. Move the do...while loop into a function.',
-				context.state.analysis.module.filename,
+			validateComponentUnsupportedLoopStatement(
 				node,
+				context.state.analysis.module.filename,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
 			);
 		}
 

@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { runSharedCompileDiagnosticsTests } from '@tsrx/core/test-harness/compile';
+import {
+	runSharedCompileDiagnosticsTests,
+	runSharedComponentLoopControlFlowTests,
+} from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
 
@@ -9,6 +12,7 @@ runSharedSourceMappingTests({
 	name: 'vue',
 	rejectsComponentAwait: true,
 });
+runSharedComponentLoopControlFlowTests({ compile, name: 'vue' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'vue' });
 
 describe('@tsrx/vue basic', () => {
@@ -430,6 +434,39 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toContain('<template v-for={(item, i) in items} key={item.id}>');
 		expect(code).toContain('{i}');
 		expect(code).toContain('item.text');
+	});
+
+	it('keeps explicit loop keys on single static for...of templates', () => {
+		const { code } = compile(
+			`component App({ items }: { items: string[] }) {
+				for (const item of items; index i; key i) {
+					<div>{'test'}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('<template v-for={(item, i) in items} key={i}>');
+		expect(code).toContain("<div>{'test'}</div>");
+		expect(code).not.toContain('<div key={i}>');
+		expect(code).not.toContain('<Fragment');
+	});
+
+	it('keeps implicit index keys on multi-child for...of templates', () => {
+		const { code } = compile(
+			`component App({ items }: { items: string[] }) {
+				for (const item of items; index i) {
+					<div>{'one'}</div>
+					<div>{'two'}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('<template v-for={(item, i) in items} key={i}>');
+		expect(code).toContain('App__static1');
+		expect(code).toContain('App__static2');
+		expect(code).not.toContain('<Fragment');
 	});
 
 	it('compiles switch statements in component bodies', () => {

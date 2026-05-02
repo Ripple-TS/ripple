@@ -1343,6 +1343,15 @@ export const break_statement = {
 	metadata: { path: [] },
 };
 
+/**
+ * @type {AST.ContinueStatement}
+ */
+export const continue_statement = {
+	type: 'ContinueStatement',
+	label: null,
+	metadata: { path: [] },
+};
+
 export {
 	await_builder as await,
 	let_builder as let,
@@ -1352,6 +1361,7 @@ export {
 	true_instance as true,
 	false_instance as false,
 	break_statement as break,
+	continue_statement as continue,
 	for_builder as for,
 	switch_builder as switch,
 	function_builder as function,
