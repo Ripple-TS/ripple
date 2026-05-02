@@ -76,7 +76,7 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 			);
 
 			expect(code).not.toContain('continue;');
-			expect(code).toMatch(/return null;|\? null :/);
+			expect(code).toMatch(/return null;|\? (?:null|\[\]) :/);
 			expect(code).toContain('<div>{item}</div>');
 		});
 

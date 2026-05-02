@@ -279,6 +279,16 @@ component ForReactiveApp() {
 	<button class="remove" onClick={() => setItems(items().slice(1))}>{'remove'}</button>
 }
 
+component ForContinueApp() {
+	const items = ['a', '', 'c'];
+
+	for (const item of items) {
+		const item_value = (item as unknown as () => string)();
+		if (!item_value) continue;
+		<li class="continue-item">{item_value}</li>
+	}
+}
+
 // ── Switch with reactivity ──
 
 component SwitchReactiveApp() {
@@ -854,6 +864,16 @@ describe('tsrx-solid runtime', () => {
 		const after = container.querySelectorAll('.item');
 		expect(after.length).toBe(3);
 		expect(after[0].textContent).toBe('b');
+	});
+
+	it('skips for-of iterations with continue', async () => {
+		await render(ForContinueApp);
+		expect(
+			Array.from(container.querySelectorAll('.continue-item'), (item) => item.textContent),
+		).toEqual([
+			'a',
+			'c',
+		]);
 	});
 
 	// ── Reactive control flow: switch ──

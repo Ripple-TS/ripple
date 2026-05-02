@@ -327,6 +327,15 @@ component ForReactiveApp() {
 	<button class="remove" onClick={() => (items.value = items.value.slice(1))}>{'remove'}</button>
 }
 
+component ForContinueApp() {
+	const items = ref(['a', '', 'c']);
+
+	for (const item of items.value) {
+		if (!item) continue;
+		<li class="continue-item" key={item}>{item}</li>
+	}
+}
+
 component ForIndexReactiveApp() {
 	const items = ref(['a', 'b', 'c']);
 
@@ -801,6 +810,11 @@ describe('tsrx-vue runtime', () => {
 		const after = container.querySelectorAll('.item');
 		expect(after.length).toBe(3);
 		expect(after[0].textContent).toBe('b');
+	});
+
+	it('skips for-of iterations with continue', async () => {
+		await render(ForContinueApp);
+		expect(texts('.continue-item')).toEqual(['a', 'c']);
 	});
 
 	it('updates for-of index bindings after insertions, removals, and reorders', async () => {
