@@ -2350,7 +2350,7 @@ function prepend_render_nodes_to_return_statement(node, render_nodes, inside_nes
 function combine_render_return_argument(render_nodes, return_argument) {
 	const combined = render_nodes.map((node) => clone_expression_node_without_locations(node));
 
-	if (!is_null_literal(return_argument)) {
+	if (return_argument != null && !is_null_literal(return_argument)) {
 		combined.push(return_argument_to_render_node(return_argument));
 	}
 
