@@ -14,7 +14,7 @@ export function App({ a, b }: { a: boolean; b: boolean }) {
 	const _tsrx_StatementBodyHook1_y = y;
 
 	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1(
-		{ b, x, y }: {
+		{ b, x, y }: { 
 			b: typeof _tsrx_StatementBodyHook1_b;
 			x: typeof _tsrx_StatementBodyHook1_x;
 			y: typeof _tsrx_StatementBodyHook1_y
@@ -24,7 +24,7 @@ export function App({ a, b }: { a: boolean; b: boolean }) {
 		const _tsrx_StatementBodyHook2_y = y;
 
 		const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
-			{ x, y }: {
+			{ x, y }: { 
 				x: typeof _tsrx_StatementBodyHook2_x;
 				y: typeof _tsrx_StatementBodyHook2_y
 			 }
@@ -39,7 +39,7 @@ export function App({ a, b }: { a: boolean; b: boolean }) {
 			const _tsrx_StatementBodyHook3_y = y;
 
 			const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3(
-				{ x, y }: {
+				{ x, y }: { 
 					x: typeof _tsrx_StatementBodyHook3_x;
 					y: typeof _tsrx_StatementBodyHook3_y
 				 }
@@ -61,7 +61,7 @@ export function App({ a, b }: { a: boolean; b: boolean }) {
 		const _tsrx_StatementBodyHook4_y = y;
 
 		const StatementBodyHook4 = App__StatementBodyHook4 ?? (App__StatementBodyHook4 = function StatementBodyHook4(
-			{ b, x, y }: {
+			{ b, x, y }: { 
 				b: typeof _tsrx_StatementBodyHook4_b;
 				x: typeof _tsrx_StatementBodyHook4_x;
 				y: typeof _tsrx_StatementBodyHook4_y
@@ -145,7 +145,7 @@ export function App({ a, b }: { a: boolean; b: boolean }) {
 		const _tsrx_StatementBodyHook2_x = x;
 
 		const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
-			{ b, x }: {
+			{ b, x }: { 
 				b: typeof _tsrx_StatementBodyHook2_b;
 				x: typeof _tsrx_StatementBodyHook2_x
 			 }
@@ -580,7 +580,7 @@ export function App({ load }: { load: () => number }) {
 			const _tsrx_StatementBodyHook2_data = data;
 
 			const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
-				{ load, data }: {
+				{ load, data }: { 
 					load: typeof _tsrx_StatementBodyHook2_load;
 					data: typeof _tsrx_StatementBodyHook2_data
 				 }
@@ -623,7 +623,7 @@ export function App({ load }: { load: () => number }) {
 				const _tsrx_StatementBodyHook2_data = data;
 
 				const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
-					{ load, data }: {
+					{ load, data }: { 
 						load: typeof _tsrx_StatementBodyHook2_load;
 						data: typeof _tsrx_StatementBodyHook2_data
 					 }
@@ -635,43 +635,6 @@ export function App({ load }: { load: () => number }) {
 
 				return <StatementBodyHook2 load={load} data={data} />;
 			})()}</Suspense></TsrxErrorBoundary>;
-}"
-`;
-
-exports[`[react] hoisted helper and tail lift for for-of-with-hook > does not leak nested for-of source normalization to the outer function scope 1`] = `
-"let App__StatementBodyHook1;
-
-export function App({ posts }: { posts: { title: string; tags: string[] }[] }) {
-	let _tsrx_iteration_items_1 = posts;
-
-	_tsrx_iteration_items_1 = Array.isArray(_tsrx_iteration_items_1)
-		? _tsrx_iteration_items_1
-		: Array.from(_tsrx_iteration_items_1);
-
-	type _tsrx_StatementBodyHook1_post = typeof _tsrx_iteration_items_1[number];
-
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ post }: { post: _tsrx_StatementBodyHook1_post }) {
-		useEffect(
-			() => {
-				console.log(post.title);
-			},
-			[post.title]
-		);
-
-		return <li>{post.tags.map((tag) => {
-				return <span>{tag}</span>;
-			})}</li>;
-	});
-
-	return <ul>{_tsrx_iteration_items_1.map((post) => <StatementBodyHook1 post={post} />)}</ul>;
-}"
-`;
-
-exports[`[react] hoisted helper and tail lift for for-of-with-hook > falls back to the existing transform for non-hook for-of loops 1`] = `
-"export function App({ items }: { items: number[] }) {
-	return items.map((item, i) => {
-		return <div key={i}>{item}</div>;
-	});
 }"
 `;
 
@@ -787,7 +750,7 @@ export function App({ groups }: { groups: number[][] }) {
 	type _tsrx_StatementBodyHook2_isLast = boolean;
 
 	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
-		{ last, group, _tsrx_isLast_2 }: {
+		{ last, group, _tsrx_isLast_2 }: { 
 			last: typeof _tsrx_StatementBodyHook2_last;
 			group: _tsrx_StatementBodyHook2_group;
 			_tsrx_isLast_2: _tsrx_StatementBodyHook2_isLast
@@ -803,7 +766,7 @@ export function App({ groups }: { groups: number[][] }) {
 		const _tsrx_StatementBodyHook3__tsrx_isLast_2 = _tsrx_isLast_2;
 
 		const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3(
-			{ last, _tsrx_isLast_2 }: {
+			{ last, _tsrx_isLast_2 }: { 
 				last: typeof _tsrx_StatementBodyHook3_last;
 				_tsrx_isLast_2: typeof _tsrx_StatementBodyHook3__tsrx_isLast_2
 			 }
@@ -820,7 +783,7 @@ export function App({ groups }: { groups: number[][] }) {
 		type _tsrx_StatementBodyHook4_isLast = boolean;
 
 		const StatementBodyHook4 = App__StatementBodyHook4 ?? (App__StatementBodyHook4 = function StatementBodyHook4(
-			{ last, _tsrx_isLast_2, item, _tsrx_isLast_4 }: {
+			{ last, _tsrx_isLast_2, item, _tsrx_isLast_4 }: { 
 				last: typeof _tsrx_StatementBodyHook4_last;
 				_tsrx_isLast_2: typeof _tsrx_StatementBodyHook4__tsrx_isLast_2;
 				item: _tsrx_StatementBodyHook4_item;
@@ -863,7 +826,7 @@ export function App({ as, bs }: { as: number[]; bs: number[] }) {
 	const _tsrx_StatementBodyHook1_lastB = lastB;
 
 	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1(
-		{ bs, lastA, lastB }: {
+		{ bs, lastA, lastB }: { 
 			bs: typeof _tsrx_StatementBodyHook1_bs;
 			lastA: typeof _tsrx_StatementBodyHook1_lastA;
 			lastB: typeof _tsrx_StatementBodyHook1_lastB
@@ -879,7 +842,7 @@ export function App({ as, bs }: { as: number[]; bs: number[] }) {
 		const _tsrx_StatementBodyHook2_lastB = lastB;
 
 		const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
-			{ lastA, lastB }: {
+			{ lastA, lastB }: { 
 				lastA: typeof _tsrx_StatementBodyHook2_lastA;
 				lastB: typeof _tsrx_StatementBodyHook2_lastB
 			 }
@@ -896,7 +859,7 @@ export function App({ as, bs }: { as: number[]; bs: number[] }) {
 		type _tsrx_StatementBodyHook3_isLast = boolean;
 
 		const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3(
-			{ lastA, lastB, b, _tsrx_isLast_3 }: {
+			{ lastA, lastB, b, _tsrx_isLast_3 }: { 
 				lastA: typeof _tsrx_StatementBodyHook3_lastA;
 				lastB: typeof _tsrx_StatementBodyHook3_lastB;
 				b: _tsrx_StatementBodyHook3_b;
@@ -921,7 +884,7 @@ export function App({ as, bs }: { as: number[]; bs: number[] }) {
 	type _tsrx_StatementBodyHook4_isLast = boolean;
 
 	const StatementBodyHook4 = App__StatementBodyHook4 ?? (App__StatementBodyHook4 = function StatementBodyHook4(
-		{ bs, lastA, lastB, a, _tsrx_isLast_4 }: {
+		{ bs, lastA, lastB, a, _tsrx_isLast_4 }: { 
 			bs: typeof _tsrx_StatementBodyHook4_bs;
 			lastA: typeof _tsrx_StatementBodyHook4_lastA;
 			lastB: typeof _tsrx_StatementBodyHook4_lastB;
@@ -967,7 +930,7 @@ export function App() {
 	type _tsrx_StatementBodyHook2_isLast = boolean;
 
 	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
-		{ last, item, i, _tsrx_isLast_2 }: {
+		{ last, item, i, _tsrx_isLast_2 }: { 
 			last: typeof _tsrx_StatementBodyHook2_last;
 			item: _tsrx_StatementBodyHook2_item;
 			i: _tsrx_StatementBodyHook2_i;
@@ -1012,7 +975,7 @@ export function App({ items }: { items: number[] }) {
 	type _tsrx_StatementBodyHook2_isLast = boolean;
 
 	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
-		{ last, item, i, _tsrx_isLast_2 }: {
+		{ last, item, i, _tsrx_isLast_2 }: { 
 			last: typeof _tsrx_StatementBodyHook2_last;
 			item: _tsrx_StatementBodyHook2_item;
 			i: _tsrx_StatementBodyHook2_i;
