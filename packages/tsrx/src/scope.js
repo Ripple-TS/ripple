@@ -127,10 +127,18 @@ export function create_scopes(ast, root, parent, error_options) {
 			next({ scope });
 		},
 
-		ServerBlock(node, { state, next }) {
+		TSModuleDeclaration(node, { state, next }) {
+			const is_submodule = node.metadata?.module_keyword === 'module';
+			if (is_submodule && node.id?.type === 'Identifier') {
+				state.scope.declare(node.id, 'normal', 'module', node);
+			}
+
 			const scope = state.scope.child();
-			scope.server_block = true;
+			scope.server_block = is_submodule;
 			scopes.set(node, scope);
+			if (node.body) {
+				scopes.set(node.body, scope);
+			}
 
 			next({ scope });
 		},
@@ -296,7 +304,7 @@ export class Scope {
 	tracing = null;
 
 	/**
-	 * Is this scope a top-level server block scope
+	 * Is this scope a submodule scope
 	 * @type {ScopeInterface['server_block']}
 	 */
 	server_block = false;
@@ -325,7 +333,7 @@ export class Scope {
 				return this.parent.declare(node, kind, declaration_kind);
 			}
 
-			if (declaration_kind === 'import' && !this.parent.server_block) {
+			if (declaration_kind === 'import' && !this.server_block && !this.parent.server_block) {
 				return this.parent.declare(node, kind, declaration_kind, initial);
 			}
 		}

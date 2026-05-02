@@ -111,7 +111,7 @@ describe('hydration > html tags', () => {
 		expect(html).toContain('toc');
 	});
 
-	it('reproduces hydration mismatch when client has default props (DocsPage #server pattern)', async () => {
+	it('reproduces hydration mismatch when client has default props (DocsPage module server pattern)', async () => {
 		await hydrateComponent(
 			ServerComponents.HtmlWithServerData,
 			ClientComponents.HtmlWithClientDefaults,

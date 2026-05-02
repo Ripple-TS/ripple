@@ -1,6 +1,6 @@
 import { DocsLayout } from '../../../components/docs-layout.tsrx';
 
-#server {
+module server {
 	import { get_doc } from '../../../lib/markdown.js';
 
 	export function load_doc() {
@@ -8,8 +8,10 @@ import { DocsLayout } from '../../../components/docs-layout.tsrx';
 	}
 }
 
+import { load_doc } from server;
+
 export component HeadManagementPage() {
-	const doc = #server.load_doc();
+	const doc = load_doc();
 
 	<DocsLayout
 		title={doc.title}

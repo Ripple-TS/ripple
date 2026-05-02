@@ -930,7 +930,7 @@ export namespace Parse {
 			refDestructuringErrors?: DestructuringErrors,
 			forInit?: ForInit,
 			forNew?: boolean,
-		): AST.ServerIdentifier | AST.Component | AST.Identifier | AST.Literal;
+		): AST.Component | AST.Identifier | AST.Literal;
 
 		/** Default handler for parseExprAtom when no other case matches */
 		parseExprAtomDefault(): AST.Expression;
@@ -1172,8 +1172,6 @@ export namespace Parse {
 		 */
 		parseTopLevel(node: AST.Program): AST.Program;
 
-		parseServerBlock(): AST.ServerBlock;
-
 		parseElement(): AST.Element | AST.Tsx | AST.TsxCompat;
 
 		parseDoubleQuotedTextChild(): AST.TextNode;
@@ -1210,7 +1208,6 @@ export namespace Parse {
 			| AST.TextNode
 			| ESTreeJSX.JSXEmptyExpression
 			| ESTreeJSX.JSXExpressionContainer
-			| AST.ServerBlock
 			| AST.Component
 			| AST.ExpressionStatement
 			| ReturnType<Parser['parseElement']>
@@ -1543,7 +1540,7 @@ export namespace Parse {
 		/**
 		 * Check if a local export refers to a defined variable.
 		 * Acorn's default implementation only checks the top-level module scope,
-		 * but Ripple overrides this to check all scopes (for server blocks).
+		 * but Ripple overrides this to check all scopes (for submodules).
 		 * @param id The identifier being exported
 		 */
 		checkLocalExport(id: AST.Identifier): void;

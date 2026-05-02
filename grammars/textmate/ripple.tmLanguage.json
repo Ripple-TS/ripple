@@ -99,7 +99,7 @@
           "include": "#var-expr"
         },
         {
-          "include": "#server-block"
+          "include": "#module-declaration"
         },
         {
           "include": "#component-declaration"
@@ -6668,14 +6668,17 @@
         }
       ]
     },
-    "server-block": {
-      "name": "meta.server-block.js",
-      "begin": "(#server)\\s*(\\{)",
+    "module-declaration": {
+      "name": "meta.module-declaration.js",
+      "begin": "\\b(module)\\s+([A-Za-z_$][\\w$]*)\\s*(\\{)",
       "beginCaptures": {
         "1": {
-          "name": "keyword.control.ripple.js"
+          "name": "keyword.control.module.js"
         },
         "2": {
+          "name": "entity.name.namespace.module.js"
+        },
+        "3": {
           "name": "punctuation.definition.block.js"
         }
       },

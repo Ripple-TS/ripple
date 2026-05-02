@@ -27,7 +27,7 @@ import { createLayoutWrapper, createPropsWrapper } from './component-wrappers.js
 export async function handleRenderRoute(route, context, vite) {
 	try {
 		// Initialize so the server can register
-		// RPC functions from #server blocks during SSR module loading
+		// RPC functions from `module server` declarations during SSR module loading
 		if (!globalThis.rpc_modules) {
 			globalThis.rpc_modules = new Map();
 		}

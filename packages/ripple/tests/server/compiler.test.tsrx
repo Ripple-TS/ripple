@@ -118,10 +118,10 @@ export component App() {
 	});
 });
 
-describe('compiler server block tests', () => {
-	it('compiles server block with with only supported types', () => {
+describe('compiler server module tests', () => {
+	it('compiles module server with only supported types', () => {
 		const source = `
-#server {
+module server {
 	function something() {
 		return 'unexported function';
 	}
@@ -157,9 +157,43 @@ describe('compiler server block tests', () => {
 		expect(result.js.code).toMatchSnapshot();
 	});
 
-	it('throws error for unsupported exported object pattern in server block', () => {
+	it('compiles imports from module server as server-call wrappers', () => {
 		const source = `
-#server {
+module server {
+	export async function loadUser(id) {
+		return { id };
+	}
+}
+
+import { loadUser as getUser } from server;
+
+export component App() {
+	const user = getUser('1');
+	<div>{user.id}</div>
+}`;
+
+		const result = compile(source, 'test.tsrx', { mode: 'server' });
+		expect(result.js.code).toContain('const getUser = function (...args)');
+		expect(result.js.code).toContain('return _$_server_$_.loadUser(...args)');
+		expect(result.js.code).toContain('export const _$_server_$_');
+	});
+
+	it('throws when server exports are used through direct member access', () => {
+		const source = `
+module server {
+	export async function loadUser() {}
+}
+
+server.loadUser();`;
+
+		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrowError(
+			/Import server exports/,
+		);
+	});
+
+	it('throws error for unsupported exported object pattern in server module', () => {
+		const source = `
+module server {
 		const obj = { fn1: () => {}, fn2: () => {} };
 
 		export const { fn1, fn2 } = obj;
@@ -168,9 +202,9 @@ describe('compiler server block tests', () => {
 		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrowError();
 	});
 
-	it('throws error for unsupported exported array pattern in server block', () => {
+	it('throws error for unsupported exported array pattern in server module', () => {
 		const source = `
-#server {
+module server {
 		const arr = [() => {}, () => {}];
 
 		export const [fnarr1, fnarr2] = arr;
@@ -179,9 +213,9 @@ describe('compiler server block tests', () => {
 		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrowError();
 	});
 
-	it('throws error for unsupported exported member expression via object in server block', () => {
+	it('throws error for unsupported exported member expression via object in server module', () => {
 		const source = `
-#server {
+module server {
 		const obj = { fn1: () => {}, fn2: () => {} };
 
 		export const objProp = obj.fn1;
@@ -190,9 +224,9 @@ describe('compiler server block tests', () => {
 		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrowError();
 	});
 
-	it('throws error for unsupported exported member expression via array in server block', () => {
+	it('throws error for unsupported exported member expression via array in server module', () => {
 		const source = `
-#server {
+module server {
 		const arr = [() => {}, () => {}];
 
 		export const arrIndex0 = arr[0];

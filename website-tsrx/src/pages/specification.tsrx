@@ -65,14 +65,12 @@ const STYLE_GRAMMAR = [
 ].join('\n');
 
 const SERVER_EXTENSION_GRAMMAR = [
-	'ServerIdentifier :',
-	'  #server',
+	'SubmoduleDeclaration :',
+	'  module Identifier { ModuleItemListopt }',
 	'',
-	'ServerBlock :',
-	'  #server { StatementListopt }',
+	'SubmoduleImportDeclaration :',
+	'  import ImportClause from Identifier ;',
 	'',
-	'ServerMemberAccess :',
-	'  #server . IdentifierName',
 ].join('\n');
 
 const AST_NODE_MAPPING = [
@@ -90,8 +88,8 @@ const AST_NODE_MAPPING = [
 	'<> TsxChildrenopt </> -> Tsx',
 	'<tsx: IdentifierName> TsxChildrenopt </tsx: IdentifierName> -> TsxCompat',
 	'{ style StringLiteral } in attribute position -> Style',
-	'#server -> ServerIdentifier',
-	'#server { StatementListopt } -> ServerBlock',
+	'module Identifier { ModuleItemListopt } -> TSModuleDeclaration',
+	'import ImportClause from Identifier -> ImportDeclaration with Identifier source',
 ].join('\n');
 
 const COMPONENT_AST_SHAPE = [
@@ -180,15 +178,15 @@ const SPECIAL_AST_SHAPE = [
 	'  value: Literal;',
 	'}',
 	'',
-	'interface ServerIdentifier {',
-	'  type: \'ServerIdentifier\';',
+	'interface TSModuleDeclaration {',
+	'  type: \'TSModuleDeclaration\';',
+	'  id: Identifier;',
+	'  body: TSModuleBlock;',
 	'}',
 	'',
-	'interface ServerBlock {',
-	'  type: \'ServerBlock\';',
-	'  body: BlockStatement & {',
-	'    body: Array<Statement | ExportNamedDeclaration>;',
-	'  };',
+	'interface TSModuleBlock {',
+	'  type: \'TSModuleBlock\';',
+	'  body: Array<Statement | ImportDeclaration | ExportNamedDeclaration>;',
 	'}',
 	'',
 	'interface CSSStyleSheet {',
@@ -289,7 +287,7 @@ export component SpecificationPage() {
 						<div class="status-panel">
 							<p class="status-chip">{'First-edition scope'}</p>
 							<p class="section-body compact">
-								{'The current draft fixes the syntax and early-error surface for component declarations, statement-oriented template elements, TSX expression islands, lazy destructuring, raw style elements, and {style} attribute values. It documents #server as a host-defined extension surface rather than as part of universal TSRX.'}
+								{'The current draft fixes the syntax and early-error surface for component declarations, statement-oriented template elements, TSX expression islands, lazy destructuring, raw style elements, {style} attribute values, and proposal-aligned submodule declarations.'}
 							</p>
 						</div>
 					</section>
@@ -346,7 +344,7 @@ export component SpecificationPage() {
 					<section class="doc-section" id="lexical">
 						<h2 class="section-heading">{'3 Modified Lexical Conventions'}</h2>
 						<p class="section-body">
-							{'TSRX introduces a context-sensitive component keyword, the {style} attribute directive, and the whitespace-sensitive lazy-pattern introducers &{ and &[. Host profiles may recognize additional distinguished forms, including #server when a host chooses to enable server-oriented extensions.'}
+							{'TSRX introduces a context-sensitive component keyword, the {style} attribute directive, the whitespace-sensitive lazy-pattern introducers &{ and &[, and module declarations that can be imported by identifier source.'}
 						</p>
 						<p class="section-body">
 							{'The ampersand introducer is part of the syntax of the lazy pattern itself. Implementations must not treat & { or & [ as lazy pattern forms.'}
@@ -518,7 +516,7 @@ export component SpecificationPage() {
 					<section class="doc-section" id="server-profile">
 						<h2 class="section-heading">{'4.7 Host-defined Server Extensions'}</h2>
 						<p class="section-body">
-							{'The #server forms are documented in the first edition as host-defined extensions recognized by the current reference parser. They are not part of the core TSRX conformance surface. A conforming core TSRX implementation may omit #server entirely unless it also defines a host profile that enables server-oriented extensions.'}
+							{'Submodule declarations are documented in the first edition as a generic extension surface aligned with the TC39 module declarations proposal. Ripple currently defines one host profile for this surface: module server declarations and imports from server.'}
 						</p>
 						<pre class="code-block plain">
 							<code>{SERVER_EXTENSION_GRAMMAR}</code>
@@ -554,10 +552,10 @@ export component SpecificationPage() {
 								{'{style StringLiteral} must only be used as a whole element attribute value.'}
 							</li>
 							<li>
-								{'In hosts that enable #server, the bare #server identifier must only be used as the object of a member access expression except where it introduces a server block.'}
+								{'In hosts that enable server-oriented submodules, server exports must be imported before use, for example import { load } from server.'}
 							</li>
 							<li>
-								{'In hosts that enable #server, server blocks may be restricted to module level and may be subject to additional host-defined restrictions on referenced bindings.'}
+								{'Host profiles may restrict which submodule names are supported and may impose additional restrictions on referenced bindings.'}
 							</li>
 							<li>{'Element statements must not appear outside a component body.'}</li>
 						</ul>
@@ -578,7 +576,7 @@ export component SpecificationPage() {
 								{' forms.'}
 							</li>
 							<li>
-								{'How #server blocks and server member access are compiled or executed by a host profile that enables them.'}
+								{'How submodule declarations and imports from identifier sources are compiled or executed by a host profile that enables them.'}
 							</li>
 						</ul>
 					</section>
@@ -586,7 +584,7 @@ export component SpecificationPage() {
 					<section class="doc-section" id="appendices">
 						<h2 class="section-heading">{'Appendices'}</h2>
 						<p class="section-body">
-							{'The current reference implementation exposes ESTree-compatible nodes such as Component, Tsx, TsxCompat, Element, TSRXExpression, Text, Html, Style, ServerBlock, ServerIdentifier, Attribute, RefAttribute, and SpreadAttribute. The grammar in sections 4.1 through 4.7 is normative; the node shapes in this appendix are informative and describe the parser contract currently exposed to tooling.'}
+							{'The current reference implementation exposes ESTree-compatible nodes such as Component, Tsx, TsxCompat, Element, TSRXExpression, Text, Html, Style, TSModuleDeclaration, TSModuleBlock, Attribute, RefAttribute, and SpreadAttribute. The grammar in sections 4.1 through 4.7 is normative; the node shapes in this appendix are informative and describe the parser contract currently exposed to tooling.'}
 						</p>
 						<h3 class="appendix-heading">{'A.1 Grammar-to-node correspondence'}</h3>
 						<p class="section-body">
@@ -682,24 +680,22 @@ export component SpecificationPage() {
 							</li>
 						</ul>
 						<h3 class="appendix-heading">
-							{'A.5 Special identifiers, server blocks, and stylesheets'}
+							{'A.5 Submodules, special identifiers, and stylesheets'}
 						</h3>
 						<p class="section-body">
-							{'TSRX also introduces small dedicated node kinds for distinguished identifiers and for the profile-defined server block form. These nodes are intentionally narrow: most of their semantics come from surrounding grammar or from host-defined analysis, not from a wide intrinsic property surface.'}
+							{'TSRX reuses TypeScript-compatible module declaration node shapes for submodules and extends ImportDeclaration sources so a source may be an Identifier. These nodes are intentionally narrow: most of their semantics come from surrounding grammar or from host-defined analysis, not from a wide intrinsic property surface.'}
 						</p>
 						<pre class="code-block plain">
 							<code>{SPECIAL_AST_SHAPE}</code>
 						</pre>
 						<ul class="spec-list">
 							<li>{'Style corresponds to the {style StringLiteral} attribute directive.'}</li>
+							<li>{'TSModuleDeclaration represents module Identifier { ... } submodules.'}</li>
 							<li>
-								{'ServerIdentifier corresponds exactly to #server and is subject to the same member-access restriction except when it introduces a ServerBlock.'}
+								{'ImportDeclaration.source may be an Identifier for imports from a declared submodule.'}
 							</li>
 							<li>
-								{'ServerBlock.body permits ordinary statements together with named export declarations, matching the current reference parser surface.'}
-							</li>
-							<li>
-								{'Implementation metadata on ServerBlock records the set of exported names observed within the block for downstream analysis.'}
+								{'Ripple records exported names from module server declarations for downstream RPC analysis.'}
 							</li>
 							<li>
 								{'CSSStyleSheet is attached through Component.css and stores both the original stylesheet source text and the stable hash used by current host implementations for scoping.'}

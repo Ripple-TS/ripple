@@ -204,6 +204,12 @@ export function tsx_with_ts_locations() {
 			}
 			context.write('>');
 		},
+		TSModuleDeclaration: (node, context) => {
+			context.write(node.metadata?.module_keyword ?? 'module');
+			context.write(' ');
+			context.visit(node.id);
+			context.visit(node.body);
+		},
 	};
 
 	// Be careful when duplicating visitors that are already defined

@@ -56,9 +56,9 @@ export const documentation_sections = [
 		slug: 'style-and-server',
 		title: 'Style and Server Extensions',
 		use_cases:
-			'style directive, scoped css, #server, server blocks, compile-time identifiers',
+			'style directive, scoped css, module server, submodule imports, compile-time identifiers',
 		content:
-			'# Style and Server Extensions\n\n`{style "className"}` is an attribute-value directive for scoped CSS class names declared in the current module.\n\n```tsx\n<Child className={style "card"} />\n```\n\n`#server { ... }` marks a lexical region intended for server compile targets. TSRX parses the block; target compilers decide how to emit or strip it.\n\nSpecification grammar:\n\n```text\nStyleAttributeExpression :\n  { style StringLiteral }\n\nServerIdentifier :\n  #server\n\nServerBlock :\n  #server { StatementListopt }\n\nServerMemberAccess :\n  #server . IdentifierName\n```\n\nSource: website-tsrx/src/pages/specification.tsrx#style',
+			'# Style and Server Extensions\n\n`{style "className"}` is an attribute-value directive for scoped CSS class names declared in the current module.\n\n```tsx\n<Child className={style "card"} />\n```\n\n`module server { ... }` declares a server-oriented submodule in the Ripple host profile. Import exported functions with `import { load } from server` before use.\n\nSpecification grammar:\n\n```text\nStyleAttributeExpression :\n  { style StringLiteral }\n\nSubmoduleDeclaration :\n  module Identifier { ModuleItemListopt }\n\nSubmoduleImportDeclaration :\n  import ImportClause from Identifier ;\n\n```\n\nSource: website-tsrx/src/pages/specification.tsrx#style',
 	},
 	{
 		slug: 'target-integration',
