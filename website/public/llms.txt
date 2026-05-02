@@ -776,6 +776,33 @@ component Child() {
 }
 ```
 
+#### Style Composition via `{style}`
+
+Because scoped classes don't cross component boundaries, TSRX provides
+`{style "className"}` — an attribute-value directive that expands to a string
+containing both the scope hash and the class name. Pass it to a child, which
+applies it via its regular `class` attribute.
+
+```ripple
+component Badge({ className }: { className?: string }) {
+  <span class={`badge ${className ?? ''}`}>"New"</span>
+  <style>
+    .badge { padding: 0.25rem 0.5rem; }
+  </style>
+}
+
+component App() {
+  <Badge className={style "highlight"} />
+  <style>
+    .highlight { background: #e8f5e9; color: #2e7d32; }
+  </style>
+}
+```
+
+The class referenced via `{style}` must appear as a standalone selector in
+the surrounding component's `<style>`. Classes that only appear as part of
+compound/descendant selectors cannot be passed.
+
 #### Global Styles with `:global()`
 
 To escape scoping and apply styles globally (or to reach into child components), use the `:global()` modifier:
