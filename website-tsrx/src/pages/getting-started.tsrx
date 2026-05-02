@@ -593,30 +593,30 @@ export component GettingStartedPage() {
 					</section>
 
 					<section class="doc-section" id="vue-bun">
-						<h2 class="section-heading">{'Vue + Bun'}</h2>
+						<h2 class="section-heading">"Vue + Bun"</h2>
 						<p class="section-body">
-							{'Install the Vue compiler, the Bun plugin, the Vue runtime, and Vue Vapor JSX:'}
+							'Install the Vue compiler, the Bun plugin, the Vue runtime, and Vue Vapor JSX:';
 						</p>
 						<pre class="code-block">
 							<code>{html VUE_BUN_INSTALL_HTML}</code>
 						</pre>
-						<p class="section-body">{'Then use the plugin in your Bun build script:'}</p>
+						<p class="section-body">"Then use the plugin in your Bun build script:"</p>
 						<pre class="code-block">
 							<code>{html VUE_BUN_CONFIG_HTML}</code>
 						</pre>
 						<p class="section-body">
 							<code class="inline-code">{'@tsrx/bun-plugin-vue'}</code>
-							{' compiles '}
+							" compiles "
 							<code class="inline-code">{'.tsrx'}</code>
-							{' modules with '}
+							" modules with "
 							<code class="inline-code">{'@tsrx/vue'}</code>
-							{' and performs the downstream '}
+							" and performs the downstream "
 							<code class="inline-code">{'vue-jsx-vapor'}</code>
-							{' transform inside the Bun plugin itself, so no extra Bun plugin setup is required. Like the Vite and Rspack Vue setups, editor typechecking should set '}
+							" transform inside the Bun plugin itself, so no extra Bun plugin setup is required. Like the Vite and Rspack Vue setups, editor typechecking should set "
 							<code class="inline-code">{'jsxImportSource: "vue-jsx-vapor"'}</code>
-							{' in your '}
+							" in your "
 							<code class="inline-code">{'tsconfig.json'}</code>
-							{'.'}
+							"."
 						</p>
 					</section>
 
