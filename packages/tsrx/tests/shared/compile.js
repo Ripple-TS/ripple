@@ -617,6 +617,20 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('return <>plain text</>;');
 		});
 
+		it('parses text-only fragment initializers before template expression children', () => {
+			const { code } = compile(
+				`export component Button() {
+					const x = <>Hello world</>
+
+					{x}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('const x = <>Hello world</>;');
+			expect(code).toContain('return x;');
+		});
+
 		it('wraps multiple tsx children in a fragment', () => {
 			const { code } = compile(
 				`class Foo { bar() { return <tsx><div>a</div><div>b</div></tsx>; } }`,

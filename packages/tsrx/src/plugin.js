@@ -269,6 +269,50 @@ export function TSRXPlugin(config) {
 				return null;
 			}
 
+			#popTsxTokenContextBeforeTemplateExpressionChild() {
+				let index = this.pos;
+				let has_newline = false;
+
+				// Text-only Tsx nodes can leave the tokenizer in JSX text mode.
+				// Only unwind it for ASI before a following TSRX `{expr}` child;
+				// fragment props like `content={<></>}` still need the JSX context.
+				while (index < this.input.length) {
+					const ch = this.input.charCodeAt(index);
+					if (ch === 32 || ch === 9) {
+						index++;
+					} else if (ch === 10 || ch === 13) {
+						has_newline = true;
+						index++;
+					} else if (ch === 47 && this.input.charCodeAt(index + 1) === 42) {
+						const end = this.input.indexOf('*/', index + 2);
+						const comment_end = end === -1 ? this.input.length : end + 2;
+						if (this.input.slice(index, comment_end).match(regex_newline_characters)) {
+							has_newline = true;
+						}
+						index = comment_end;
+					} else if (ch === 47 && this.input.charCodeAt(index + 1) === 47) {
+						has_newline = true;
+						index += 2;
+						while (index < this.input.length) {
+							const comment_ch = this.input.charCodeAt(index);
+							if (comment_ch === 10 || comment_ch === 13) break;
+							index++;
+						}
+					} else {
+						break;
+					}
+				}
+
+				if (!has_newline || this.input.charCodeAt(index) !== 123) {
+					return;
+				}
+
+				const context_index = this.context.lastIndexOf(tstc.tc_expr);
+				if (context_index !== -1) {
+					this.context.length = context_index;
+				}
+			}
+
 			#isDoubleQuotedTextChildStart() {
 				if (this.#path.findLast((n) => n.type === 'TsxCompat' || n.type === 'Tsx')) {
 					return false;
@@ -2009,6 +2053,7 @@ export function TSRXPlugin(config) {
 							if (this.type !== tstt.jsxTagEnd) {
 								raise_error();
 							}
+							this.#popTsxTokenContextBeforeTemplateExpressionChild();
 							this.next();
 						}
 					}
@@ -2194,6 +2239,7 @@ export function TSRXPlugin(config) {
 								if (this.type !== tstt.jsxTagEnd) {
 									raise_error();
 								}
+								this.#popTsxTokenContextBeforeTemplateExpressionChild();
 								this.next();
 							}
 						} else if (element.type === 'TsxCompat') {
@@ -2225,6 +2271,7 @@ export function TSRXPlugin(config) {
 								if (this.type !== tstt.jsxTagEnd) {
 									raise_error();
 								}
+								this.#popTsxTokenContextBeforeTemplateExpressionChild();
 								this.next();
 							}
 						} else if (this.#path[this.#path.length - 1] === element) {
