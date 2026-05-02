@@ -29,6 +29,7 @@ export interface JsxTransformContext {
 	needs_error_boundary: boolean;
 	needs_suspense: boolean;
 	needs_merge_refs: boolean;
+	needs_fragment: boolean;
 	helper_state: {
 		base_name: string;
 		next_id: number;
@@ -239,6 +240,11 @@ export interface JsxPlatform {
 	name: string;
 
 	imports: {
+		/**
+		 * Module to import `Fragment` from when a keyed fragment is required
+		 * for a multi-child loop body. React: `'react'`. Preact: `'preact'`.
+		 */
+		fragment?: string;
 		/**
 		 * Module to import `Suspense` from when a `try { ... } pending { ... }`
 		 * block appears. React: `'react'`. Preact: `'preact/compat'`.

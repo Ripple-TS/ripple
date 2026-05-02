@@ -80,6 +80,43 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 			expect(code).toContain('<div>{item}</div>');
 		});
 
+		it.runIf(['react', 'preact'].includes(name))(
+			'keeps explicit loop keys on otherwise static children',
+			() => {
+				const { code } = compile(
+					`export component App() {
+						for (const item of items; index i; key i) {
+							<div>{'test'}</div>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain("return <div key={i}>{'test'}</div>;");
+				expect(code).not.toContain('__static');
+			},
+		);
+
+		it.runIf(['react', 'preact'].includes(name))(
+			'keeps implicit loop keys on multi-child static loop bodies',
+			() => {
+				const { code } = compile(
+					`export component App() {
+						for (const item of items; index i) {
+							<div>{'one'}</div>
+							<div>{'two'}</div>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				const fragment_source = name === 'react' ? 'react' : 'preact';
+				expect(code).toContain(`import { Fragment } from '${fragment_source}';`);
+				expect(code).toContain('<Fragment key={i}>');
+				expect(code).toContain('</Fragment>');
+			},
+		);
+
 		it('allows ordinary function control flow inside for...of loops', () => {
 			const { code } = compile(
 				`export component App({ items }: { items: string[] }) {

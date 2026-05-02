@@ -166,6 +166,7 @@ export function createJsxTransform(platform) {
 			needs_error_boundary: false,
 			needs_suspense: false,
 			needs_merge_refs: false,
+			needs_fragment: false,
 			helper_state: null,
 			available_bindings: new Map(),
 			lazy_next_id: 0,
@@ -3422,13 +3423,13 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 		collect_pattern_bindings(param, transform_context.available_bindings);
 	}
 
+	if (implicit_non_hook_key_expression && should_apply_key_to_loop_body(loop_body)) {
+		apply_key_to_loop_body(loop_body, implicit_non_hook_key_expression);
+	}
+
 	const body_statements = has_hooks
 		? hook_safe_render_statements(loop_body, key_expression, transform_context)
 		: build_render_statements(loop_body, true, transform_context);
-
-	if (implicit_non_hook_key_expression) {
-		apply_key_to_render_statements(body_statements, implicit_non_hook_key_expression);
-	}
 
 	const platform_for_of = transform_context.platform.hooks?.renderForOf?.(
 		node,
@@ -3439,6 +3440,11 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	if (platform_for_of) {
 		transform_context.available_bindings = saved_bindings;
 		return platform_for_of;
+	}
+
+	const non_hook_key_expression = key_expression ?? implicit_non_hook_key_expression;
+	if (!has_hooks && non_hook_key_expression) {
+		apply_key_to_render_statements(body_statements, non_hook_key_expression, transform_context);
 	}
 
 	// Restore bindings
@@ -3478,19 +3484,33 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 }
 
 /**
- * @param {any[]} statements
+ * @param {any[]} body_nodes
  * @param {any} key_expression
  * @returns {void}
  */
-function apply_key_to_render_statements(statements, key_expression) {
-	for (let i = statements.length - 1; i >= 0; i -= 1) {
-		const statement = statements[i];
-		if (statement?.type !== 'ReturnStatement' || !statement.argument) {
-			continue;
+function apply_key_to_loop_body(body_nodes, key_expression) {
+	for (const node of body_nodes) {
+		if (node.type === 'Element') {
+			const attributes = node.attributes || (node.attributes = []);
+			const has_key = attributes.some((/** @type {any} */ attr) => {
+				const attr_name = typeof attr.name === 'string' ? attr.name : attr.name?.name;
+				return attr_name === 'key';
+			});
+
+			if (!has_key) {
+				attributes.push({
+					type: 'Attribute',
+					name: { type: 'Identifier', name: 'key', metadata: { path: [] } },
+					value: clone_expression_node(key_expression),
+					shorthand: false,
+					metadata: { path: [] },
+				});
+			}
+			return;
 		}
 
-		if (statement.argument.type === 'JSXElement') {
-			const attributes = statement.argument.openingElement?.attributes || [];
+		if (node.type === 'JSXElement') {
+			const attributes = node.openingElement?.attributes || [];
 			const has_key = attributes.some(
 				(/** @type {any} */ attr) =>
 					attr.type === 'JSXAttribute' &&
@@ -3511,10 +3531,105 @@ function apply_key_to_render_statements(statements, key_expression) {
 					}),
 				);
 			}
+			return;
+		}
+	}
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @returns {boolean}
+ */
+function should_apply_key_to_loop_body(body_nodes) {
+	let keyable_children = 0;
+	for (const node of body_nodes) {
+		if (node.type === 'Element' || node.type === 'JSXElement') {
+			keyable_children += 1;
+		}
+	}
+	return keyable_children === 1;
+}
+
+/**
+ * @param {any[]} statements
+ * @param {any} key_expression
+ * @param {TransformContext} transform_context
+ * @returns {void}
+ */
+function apply_key_to_render_statements(statements, key_expression, transform_context) {
+	for (let i = statements.length - 1; i >= 0; i -= 1) {
+		const statement = statements[i];
+		if (statement?.type !== 'ReturnStatement' || !statement.argument) {
+			continue;
+		}
+
+		if (statement.argument.type === 'JSXElement') {
+			apply_key_to_jsx_element(statement.argument, key_expression);
+		} else if (statement.argument.type === 'JSXFragment') {
+			transform_context.needs_fragment = true;
+			statement.argument = keyed_fragment_to_jsx_element(statement.argument, key_expression);
 		}
 
 		return;
 	}
+}
+
+/**
+ * @param {any} element
+ * @param {any} key_expression
+ * @returns {void}
+ */
+function apply_key_to_jsx_element(element, key_expression) {
+	const attributes = element.openingElement?.attributes || [];
+	const has_key = attributes.some(
+		(/** @type {any} */ attr) =>
+			attr.type === 'JSXAttribute' &&
+			attr.name?.type === 'JSXIdentifier' &&
+			attr.name.name === 'key',
+	);
+
+	if (!has_key) {
+		attributes.push(create_jsx_key_attribute(key_expression));
+	}
+}
+
+/**
+ * @param {any} key_expression
+ * @returns {any}
+ */
+function create_jsx_key_attribute(key_expression) {
+	return /** @type {any} */ ({
+		type: 'JSXAttribute',
+		name: { type: 'JSXIdentifier', name: 'key', metadata: { path: [] } },
+		value: to_jsx_expression_container(clone_expression_node(key_expression), key_expression),
+		metadata: { path: [] },
+	});
+}
+
+/**
+ * @param {any} fragment
+ * @param {any} key_expression
+ * @returns {any}
+ */
+function keyed_fragment_to_jsx_element(fragment, key_expression) {
+	const name = { type: 'JSXIdentifier', name: 'Fragment', metadata: { path: [] } };
+	return /** @type {any} */ ({
+		type: 'JSXElement',
+		openingElement: {
+			type: 'JSXOpeningElement',
+			name,
+			attributes: [create_jsx_key_attribute(key_expression)],
+			selfClosing: false,
+			metadata: { path: [] },
+		},
+		closingElement: {
+			type: 'JSXClosingElement',
+			name: clone_jsx_name(name),
+			metadata: { path: [] },
+		},
+		children: fragment.children,
+		metadata: { path: [] },
+	});
 }
 
 /**
@@ -3803,6 +3918,27 @@ function create_jsx_element(tag_name, attributes, children) {
 function inject_try_imports(program, transform_context, platform, suspense_source) {
 	/** @type {any[]} */
 	const imports = [];
+
+	if (transform_context.needs_fragment && platform.imports.fragment) {
+		const fragment_source = platform.imports.fragment;
+		imports.push({
+			type: 'ImportDeclaration',
+			specifiers: [
+				{
+					type: 'ImportSpecifier',
+					imported: { type: 'Identifier', name: 'Fragment', metadata: { path: [] } },
+					local: { type: 'Identifier', name: 'Fragment', metadata: { path: [] } },
+					metadata: { path: [] },
+				},
+			],
+			source: {
+				type: 'Literal',
+				value: fragment_source,
+				raw: `'${fragment_source}'`,
+			},
+			metadata: { path: [] },
+		});
+	}
 
 	if (transform_context.needs_suspense) {
 		imports.push({

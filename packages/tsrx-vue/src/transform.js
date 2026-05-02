@@ -235,7 +235,8 @@ function render_for_of_as_vapor_template(node, loop_params, body_statements) {
 
 	const key_expression = node.key
 		? clone_expression_node(node.key)
-		: find_jsx_key_expression(rendered);
+		: (find_jsx_key_expression(rendered) ??
+			(node.index ? clone_expression_node(node.index) : null));
 	strip_top_level_jsx_keys(rendered);
 	const children = rendered.type === 'JSXFragment' ? rendered.children : [rendered];
 	const attributes = [
