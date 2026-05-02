@@ -73,6 +73,20 @@ export component Layout(props) {
 		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).not.toThrow();
 	});
 
+	it('compiles indented direct double-quoted text children in SSR mode', () => {
+		const source = `
+export default component A() {
+	<div>
+		"Hello"
+	</div>
+}`;
+
+		const result = compile(source, 'test.tsrx', { mode: 'server' }).js.code;
+
+		expect(result).toContain(`_$_.output_push('Hello')`);
+		expect(result).not.toContain(`"Hello";`);
+	});
+
 	it('throws error for calling children as a function in SSR mode', () => {
 		const source = `
 export component Layout({ children }) {

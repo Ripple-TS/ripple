@@ -190,8 +190,8 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 		it('accepts direct double-quoted text children', () => {
 			const { code } = compile(
 				`export component App({ count }: { count: number }) {
-					<p>"clicked " {count} " times"</p>
-				}`,
+						<p>"clicked " {count} " times"</p>
+					}`,
 				'App.tsrx',
 			);
 
@@ -200,11 +200,26 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 			expect(code).toContain('" times"');
 		});
 
+		it('accepts indented direct double-quoted text children', () => {
+			const { code } = compile(
+				`export default component App() {
+						<div>
+							"Hello"
+						</div>
+					}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('"Hello"');
+			expect(code).not.toContain('"Hello";');
+			expect(code).not.toContain('return null;');
+		});
+
 		it('accepts direct double-quoted text at the start of template bodies', () => {
 			const { code } = compile(
 				`export component App() {
-					"hello"
-				}`,
+						"hello"
+					}`,
 				'App.tsrx',
 			);
 
