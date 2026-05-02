@@ -181,6 +181,7 @@ function create_server_rpc_stub(filename, imported_name) {
 function transform_server_module_import(node, state) {
 	/** @type {AST.Statement[]} */
 	const declarations = [];
+	const source_name = get_submodule_import_source_name(node);
 	for (const specifier of node.specifiers) {
 		if (specifier.type !== 'ImportSpecifier') {
 			continue;
@@ -190,10 +191,25 @@ function transform_server_module_import(node, state) {
 			continue;
 		}
 		const local_name = specifier.local.name;
+		const server_identifier = b.id(
+			SERVER_IDENTIFIER,
+			/** @type {AST.NodeWithLocation} */ (node.source),
+		);
+		if (source_name !== null) {
+			server_identifier.metadata.source_name = source_name;
+		}
+		const imported_identifier = b.id(
+			imported_name,
+			/** @type {AST.NodeWithLocation} */ (specifier.imported),
+		);
+		const local_identifier = b.id(
+			local_name,
+			/** @type {AST.NodeWithLocation} */ (specifier.local),
+		);
 		const init = state.to_ts
-			? b.member(b.id(SERVER_IDENTIFIER), b.id(imported_name))
+			? b.member(server_identifier, imported_identifier)
 			: create_server_rpc_stub(state.filename, imported_name);
-		declarations.push(b.const(local_name, init));
+		declarations.push(b.const(local_identifier, init));
 	}
 	return declarations;
 }

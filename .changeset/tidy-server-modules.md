@@ -7,3 +7,4 @@
 ---
 
 Replace Ripple `#server` blocks with proposal-aligned `module server` declarations and imports from `server`.
+Preserve Volar mappings for submodule import identifiers after Ripple lowers server imports.

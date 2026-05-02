@@ -136,6 +136,7 @@ function get_imported_name(specifier) {
 function transform_server_module_import(node) {
 	/** @type {AST.Statement[]} */
 	const declarations = [];
+	const source_name = get_submodule_import_source_name(node);
 	for (const specifier of node.specifiers) {
 		if (specifier.type !== 'ImportSpecifier') {
 			continue;
@@ -145,15 +146,30 @@ function transform_server_module_import(node) {
 			continue;
 		}
 		const local_name = specifier.local.name;
+		const server_identifier = b.id(
+			'_$_server_$_',
+			/** @type {AST.NodeWithLocation} */ (node.source),
+		);
+		if (source_name !== null) {
+			server_identifier.metadata.source_name = source_name;
+		}
+		const imported_identifier = b.id(
+			imported_name,
+			/** @type {AST.NodeWithLocation} */ (specifier.imported),
+		);
+		const local_identifier = b.id(
+			local_name,
+			/** @type {AST.NodeWithLocation} */ (specifier.local),
+		);
 		declarations.push(
 			b.const(
-				local_name,
+				local_identifier,
 				b.function(
 					null,
 					[b.rest(b.id('args'))],
 					b.block([
 						b.return(
-							b.call(b.member(b.id('_$_server_$_'), b.id(imported_name)), b.spread(b.id('args'))),
+							b.call(b.member(server_identifier, imported_identifier), b.spread(b.id('args'))),
 						),
 					]),
 				),
