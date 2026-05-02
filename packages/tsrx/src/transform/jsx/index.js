@@ -1478,6 +1478,126 @@ function append_tail_invocation(body, tail_helper) {
 }
 
 /**
+ * @param {AST.Identifier} tail_synthetic_id
+ * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
+ * @returns {any}
+ */
+function create_loop_tail_expression(tail_synthetic_id, tail_helper) {
+	return b.logical('&&', clone_identifier(tail_synthetic_id), clone_tail_invocation(tail_helper));
+}
+
+/**
+ * @param {AST.Identifier} tail_synthetic_id
+ * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
+ * @returns {any}
+ */
+function create_loop_tail_conditional(tail_synthetic_id, tail_helper) {
+	return b.conditional(
+		clone_identifier(tail_synthetic_id),
+		clone_tail_invocation(tail_helper),
+		create_null_literal(),
+	);
+}
+
+/**
+ * @param {any[]} statements
+ * @param {AST.Identifier} tail_synthetic_id
+ * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
+ * @returns {void}
+ */
+function append_loop_tail_to_return_statements(statements, tail_synthetic_id, tail_helper) {
+	for (const statement of statements) {
+		append_loop_tail_to_return_statement(statement, tail_synthetic_id, tail_helper, false);
+	}
+}
+
+/**
+ * @param {any} node
+ * @param {AST.Identifier} tail_synthetic_id
+ * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
+ * @param {boolean} inside_nested_function
+ * @returns {void}
+ */
+function append_loop_tail_to_return_statement(
+	node,
+	tail_synthetic_id,
+	tail_helper,
+	inside_nested_function,
+) {
+	if (!node || typeof node !== 'object') {
+		return;
+	}
+
+	if (
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression'
+	) {
+		inside_nested_function = true;
+	}
+
+	if (!inside_nested_function && node.type === 'ReturnStatement') {
+		if (
+			references_scope_bindings(
+				node.argument,
+				new Map([[tail_synthetic_id.name, tail_synthetic_id]]),
+			)
+		) {
+			return;
+		}
+		node.argument = append_loop_tail_to_return_argument(
+			node.argument,
+			tail_synthetic_id,
+			tail_helper,
+		);
+		return;
+	}
+
+	if (Array.isArray(node)) {
+		for (const child of node) {
+			append_loop_tail_to_return_statement(
+				child,
+				tail_synthetic_id,
+				tail_helper,
+				inside_nested_function,
+			);
+		}
+		return;
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		append_loop_tail_to_return_statement(
+			node[key],
+			tail_synthetic_id,
+			tail_helper,
+			inside_nested_function,
+		);
+	}
+}
+
+/**
+ * @param {any} return_argument
+ * @param {AST.Identifier} tail_synthetic_id
+ * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
+ * @returns {any}
+ */
+function append_loop_tail_to_return_argument(return_argument, tail_synthetic_id, tail_helper) {
+	if (return_argument == null || is_null_literal(return_argument)) {
+		return create_loop_tail_conditional(tail_synthetic_id, tail_helper);
+	}
+
+	return (
+		build_return_expression([
+			return_argument_to_render_node(return_argument),
+			to_jsx_expression_container(create_loop_tail_expression(tail_synthetic_id, tail_helper)),
+		]) || create_null_literal()
+	);
+}
+
+/**
  * Build a `return <combined-render-fragment>;` statement, prepending any
  * `render_nodes` collected before the control-flow construct so they don't
  * get dropped on the lift path.
@@ -1862,18 +1982,13 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	} else {
 		tail_synthetic_id = /** @type {any} */ (null);
 	}
-	const loop_body = has_tail
-		? [
-				...original_loop_body,
-				b.jsx_expression_container(
-					b.logical(
-						'&&',
-						clone_identifier(tail_synthetic_id),
-						clone_tail_invocation(/** @type {any} */ (tail_helper)),
-					),
-				),
-			]
-		: original_loop_body;
+	const loop_tail_expression = has_tail
+		? create_loop_tail_expression(tail_synthetic_id, /** @type {any} */ (tail_helper))
+		: null;
+	const loop_body =
+		has_tail && loop_tail_expression
+			? [...original_loop_body, b.jsx_expression_container(loop_tail_expression)]
+			: original_loop_body;
 
 	const source_id = create_generated_identifier(
 		`_tsrx_iteration_items_${transform_context.local_statement_component_index + 1}`,
@@ -1909,10 +2024,8 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	);
 
 	// Synthetic `isLast` prop on the loop helper when there's a tail. It's
-	// passed from the .map callback as `i === source.length - 1` so the loop
-	// helper renders the tail helper only on the last iteration. We do not
-	// gate on this prop's value here — the JSXLogicalExpression appended to
-	// `loop_body` does the gating at render time.
+	// passed from the .map callback as `i === source.length - 1` so every
+	// loop-helper return can append the tail helper on the last iteration.
 	const tail_isLast_alias = has_tail
 		? {
 				id: create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
@@ -1950,6 +2063,13 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 		transform_context.available_bindings.set(tail_synthetic_id.name, tail_synthetic_id);
 	}
 	const fn_body_statements = build_render_statements(loop_body, true, transform_context);
+	if (has_tail) {
+		append_loop_tail_to_return_statements(
+			fn_body_statements,
+			tail_synthetic_id,
+			/** @type {any} */ (tail_helper),
+		);
+	}
 	transform_context.available_bindings = fn_saved_bindings;
 
 	const helper_fn = /** @type {any} */ (
@@ -1993,7 +2113,7 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 		index_identifier = null;
 	}
 
-	const body_key_expression = find_key_expression_in_body(loop_body);
+	const body_key_expression = find_key_expression_in_body(original_loop_body);
 	const explicit_key_expression =
 		body_key_expression ?? (node.key ? clone_expression_node(node.key) : undefined);
 	const key_expression =

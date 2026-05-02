@@ -1690,6 +1690,30 @@ export function optionalFn(bar: string, baz?: string) {
 				expect(code).toMatchSnapshot();
 			});
 
+			it('renders the lifted tail when the last hook iteration continues', () => {
+				const { code } = compile(
+					`export component App({ items }: { items: number[] }) {
+						let last: number | undefined;
+						for (const item of items; index i) {
+							[last] = useState(item);
+							if (item === 0) continue
+							<div key={i}>{last}</div>
+						}
+						<span>{last}</span>
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).not.toContain('continue;');
+				expect(code).toContain('return <span>{last}</span>;');
+				expect(code).toMatch(
+					/if \(item === 0\) \{\s+return _tsrx_isLast_\d+ \? <StatementBodyHook\d+ last=\{last\} \/> : null;\s+\}/,
+				);
+				expect(code).toMatch(
+					/return <><div key=\{i\}>\{last\}<\/div>\{_tsrx_isLast_\d+ && <StatementBodyHook\d+ last=\{last\} \/>}<\/>;/,
+				);
+			});
+
 			it('lifts the tail of a for-of with hooks (inline-literal iteration source)', () => {
 				const { code } = compile(
 					`export component App() {
