@@ -55,6 +55,7 @@ npm install -D @tsrx/rspack-plugin-solid
 npm install @tsrx/vue vue vue-jsx-vapor
 npm install -D @tsrx/vite-plugin-vue
 npm install -D @tsrx/rspack-plugin-vue
+npm install -D @tsrx/bun-plugin-vue        # Bun
 
 # Ripple target
 npm install ripple @ripple-ts/vite-plugin
@@ -221,6 +222,31 @@ include?: RegExp, exclude?: RegExp | RegExp[] }` — override the automatic JSX
 runtime import source (defaults to `'preact'`), override the module used for
 `Suspense` (defaults to `'preact/compat'`), disable virtual CSS emission, or
 filter which files the plugin compiles.
+
+### Bun setup (Vue target)
+
+`@tsrx/bun-plugin-vue` compiles `.tsrx` → TSX via `@tsrx/vue`, runs the
+downstream `vue-jsx-vapor` transform, strips the remaining TypeScript syntax
+with Bun, and serves component-local `<style>` blocks as sibling virtual CSS
+modules.
+
+```ts
+// build.ts
+import tsrxVue from '@tsrx/bun-plugin-vue';
+
+await Bun.build({
+  entrypoints: ['./src/App.tsrx'],
+  outdir: './dist',
+  target: 'browser',
+  plugins: [tsrxVue()],
+});
+```
+
+Options: `{ vapor?: { macros?: boolean | object, interop?: boolean, compiler?: { runtimeModuleName?: string } }, emitCss?: boolean, include?: RegExp, exclude?: RegExp | RegExp[] }`
+— forwards options to `vue-jsx-vapor`, disables virtual CSS emission when
+requested, or filters which files the plugin compiles. Like the Vite and
+Rspack Vue integrations, editor typechecking should set
+`jsxImportSource: 'vue-jsx-vapor'`.
 
 Files use the `.tsrx` extension. The compiler transforms the same source
 differently per target — e.g. `if` lowers to `<Show>` on Solid, an IIFE +

@@ -150,6 +150,21 @@ const PREACT_BUN_CONFIG_HTML = [
 	'<span class="ln">8</span> <span class="br">}</span><span class="br">)</span>;',
 ].join('\n');
 
+const VUE_BUN_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/vue</span> <span class="str">@tsrx/bun-plugin-vue</span> <span class="str">vue</span> <span class="str">vue-jsx-vapor</span>',
+].join('\n');
+
+const VUE_BUN_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="prop">tsrxVue</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/bun-plugin-vue\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">await</span> <span class="prop">Bun</span>.<span class="fn">build</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">4</span>   <span class="prop">entrypoints</span>: <span class="br">[</span><span class="str">\'./src/App.tsrx\'</span><span class="br">]</span>,',
+	'<span class="ln">5</span>   <span class="prop">outdir</span>: <span class="str">\'./dist\'</span>,',
+	'<span class="ln">6</span>   <span class="prop">target</span>: <span class="str">\'browser\'</span>,',
+	'<span class="ln">7</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="fn">tsrxVue</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">8</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
 const PRETTIER_INSTALL_HTML = [
 	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">-D</span> <span class="str">prettier</span> <span class="str">@tsrx/prettier-plugin</span>',
 ].join('\n');
@@ -230,6 +245,7 @@ const NAV_GROUPS = [
 			{ id: 'solid-rspack', label: 'Solid + Rspack' },
 			{ id: 'vue-vite', label: 'Vue + Vite' },
 			{ id: 'vue-rspack', label: 'Vue + Rspack' },
+			{ id: 'vue-bun', label: 'Vue + Bun' },
 			{ id: 'ripple', label: 'Ripple' },
 		],
 	},
@@ -569,6 +585,34 @@ export component GettingStartedPage() {
 							{' modules into Vue-flavoured TSX, runs the result through '}
 							<code class="inline-code">{'vue-jsx-vapor'}</code>
 							{' and then strips the remaining TypeScript syntax with Rspack\'s built-in SWC loader. Like the Vite setup, editor typechecking should set '}
+							<code class="inline-code">{'jsxImportSource: "vue-jsx-vapor"'}</code>
+							{' in your '}
+							<code class="inline-code">{'tsconfig.json'}</code>
+							{'.'}
+						</p>
+					</section>
+
+					<section class="doc-section" id="vue-bun">
+						<h2 class="section-heading">{'Vue + Bun'}</h2>
+						<p class="section-body">
+							{'Install the Vue compiler, the Bun plugin, the Vue runtime, and Vue Vapor JSX:'}
+						</p>
+						<pre class="code-block">
+							<code>{html VUE_BUN_INSTALL_HTML}</code>
+						</pre>
+						<p class="section-body">{'Then use the plugin in your Bun build script:'}</p>
+						<pre class="code-block">
+							<code>{html VUE_BUN_CONFIG_HTML}</code>
+						</pre>
+						<p class="section-body">
+							<code class="inline-code">{'@tsrx/bun-plugin-vue'}</code>
+							{' compiles '}
+							<code class="inline-code">{'.tsrx'}</code>
+							{' modules with '}
+							<code class="inline-code">{'@tsrx/vue'}</code>
+							{' and performs the downstream '}
+							<code class="inline-code">{'vue-jsx-vapor'}</code>
+							{' transform inside the Bun plugin itself, so no extra Bun plugin setup is required. Like the Vite and Rspack Vue setups, editor typechecking should set '}
 							<code class="inline-code">{'jsxImportSource: "vue-jsx-vapor"'}</code>
 							{' in your '}
 							<code class="inline-code">{'tsconfig.json'}</code>
