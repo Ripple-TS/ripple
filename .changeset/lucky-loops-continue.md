@@ -1,6 +1,7 @@
 ---
 '@tsrx/core': patch
 '@tsrx/ripple': patch
+'@tsrx/solid': patch
 '@tsrx/vue': patch
 ---
 

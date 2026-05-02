@@ -576,6 +576,7 @@ function build_component_statements(body_nodes, transform_context) {
 function build_render_statements(body_nodes, return_null_when_empty, transform_context) {
 	const statements = [];
 	const render_nodes = [];
+	let has_bare_return = false;
 
 	// Create a new bindings map so inner-scope bindings from
 	// collect_statement_bindings don't leak to the caller's scope.
@@ -596,6 +597,7 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 		if (is_bare_return_statement(child)) {
 			statements.push(create_component_return_statement(render_nodes, child));
 			render_nodes.length = 0;
+			has_bare_return = true;
 			continue;
 		}
 
@@ -844,7 +846,7 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 	}
 
 	const return_arg = build_return_expression(render_nodes);
-	if (return_arg || return_null_when_empty) {
+	if (return_arg || (return_null_when_empty && !has_bare_return)) {
 		statements.push({
 			type: 'ReturnStatement',
 			argument: return_arg || { type: 'Literal', value: null, raw: 'null' },

@@ -618,6 +618,25 @@ export function optionalFn(bar: string, baz?: string) {
 				),
 			).not.toThrow();
 		});
+
+		it('returns accumulated branch templates without an extra empty return', () => {
+			const { code } = compile(
+				`export component App() {
+					if (x) {
+						<div>{"hello world"}</div>
+						return
+					}
+
+					<div>{"hello world 2"}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('hello world');
+			expect(code).toContain('hello world 2');
+			expect(code).not.toMatch(/return\s*;\s*return/);
+			expect(code).not.toMatch(/return <div>\{"hello world"\}<\/div>;\s*return null;/);
+		});
 	});
 
 	describe(`[${name}] style directive restrictions`, () => {

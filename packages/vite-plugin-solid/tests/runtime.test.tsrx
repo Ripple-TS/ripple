@@ -597,6 +597,19 @@ component EarlyReturnWithSignalsApp() {
 	<button class="early-skip" onClick={() => setSkip(true)}>{'skip'}</button>
 }
 
+component TemplateBeforeEarlyReturnApp() {
+	const [guard, setGuard] = createSignal(false);
+
+	<button class="template-return-toggle" onClick={() => setGuard(!guard())}>{'toggle'}</button>
+
+	if (guard()) {
+		<p class="template-return-guard">{'guard'}</p>
+		return;
+	}
+
+	<p class="template-return-rest">{'rest'}</p>
+}
+
 // ── Static structure inside control flow ──
 
 component StaticInBranchApp() {
@@ -1103,6 +1116,18 @@ describe('tsrx-solid runtime', () => {
 		await click('.early-skip');
 		expect(container.querySelector('.early-count')).toBeNull();
 		expect(container.querySelector('.early-doubled')).toBeNull();
+	});
+
+	it('early return after rendering a branch template skips the continuation', async () => {
+		await render(TemplateBeforeEarlyReturnApp);
+		expect(text('.template-return-toggle')).toBe('toggle');
+		expect(text('.template-return-rest')).toBe('rest');
+		expect(container.querySelector('.template-return-guard')).toBeNull();
+
+		await click('.template-return-toggle');
+		expect(text('.template-return-toggle')).toBe('toggle');
+		expect(text('.template-return-guard')).toBe('guard');
+		expect(container.querySelector('.template-return-rest')).toBeNull();
 	});
 
 	// ── Static structure ──

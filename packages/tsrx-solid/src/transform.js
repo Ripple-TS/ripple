@@ -178,31 +178,35 @@ function component_to_function_declaration(component, transform_context) {
 
 	const lazy_bindings = collect_lazy_bindings_from_component(params, body, transform_context);
 
-	// Detect top-level early-return pattern: `if (cond) { return; }`.
+	// Detect top-level early-return patterns such as `if (cond) { return; }`
+	// and `if (cond) { <p />; return; }`.
 	// Solid components run their body once at setup, so an early `return` would
 	// make subsequent statements and JSX permanently inert. To preserve
 	// React-like "stop rendering the rest when cond becomes true" semantics,
-	// lift JSX from after the early `if` (plus any JSX that appears before
-	// it, since that too must disappear when cond flips) into a
-	// `<Show when={!cond}>` whose function-children re-runs when cond changes.
+	// keep JSX before the guard outside and lift the guarded/continuation JSX
+	// into `<Show>` branches whose function-children re-run when `cond` changes.
 	// Non-JSX statements on either side stay in the outer body so setup code
 	// (signal creation, resource declarations, etc.) runs exactly once at
 	// component setup — putting them inside the `<Show>` arrow would re-run
 	// them on every toggle, creating fresh signals and losing state.
 	//
 	// The `if` node itself is elided: its `test` expression lives on in the
-	// `<Show when={!cond}>` attribute and is evaluated reactively by Solid's
-	// runtime, so any side effects or reactive reads in `cond` are preserved.
+	// `<Show>` attribute and is evaluated reactively by Solid's runtime, so
+	// any side effects or reactive reads in `cond` are preserved.
 	// Non-JSX statements after the guard run unconditionally rather than being
 	// gated by it; this is an intentional divergence from imperative `return`
 	// semantics required by the setup-once component model.
-	const early_idx = body.findIndex(is_early_return_if);
+	const early_idx = body.findIndex((node) => get_returning_if_info(node) !== null);
 	/** @type {any[]} */
 	let effective_body = body;
 	if (early_idx !== -1) {
 		const early_if = /** @type {any} */ (body[early_idx]);
+		const early_info = /** @type {{ consequent_body: any[], return_index: number }} */ (
+			get_returning_if_info(early_if)
+		);
 		const before = body.slice(0, early_idx);
 		const after = body.slice(early_idx + 1);
+		const branch_has_content_before_return = early_info.return_index > 0;
 
 		// If mutations are interleaved with JSX children, the mutation and the
 		// JSX it affects can't both be hoisted out of order — that is the same
@@ -250,13 +254,21 @@ function component_to_function_declaration(component, transform_context) {
 		collect(before, before_non_jsx, before_jsx);
 		collect(after, after_non_jsx, after_jsx);
 
-		const lifted = [...before_jsx, ...after_jsx];
-		if (lifted.length > 0) {
+		const next_body = [...before_non_jsx, ...before_jsx, ...after_non_jsx];
+
+		if (branch_has_content_before_return) {
 			transform_context.needs_show = true;
-			const show_body = body_to_jsx_child(lifted, transform_context);
-			const show_element = build_show_element(negate_expression(early_if.test), show_body, null);
-			effective_body = [...before_non_jsx, ...after_non_jsx, show_element];
+			const branch_body = body_to_jsx_child(early_info.consequent_body, transform_context);
+			const fallback_body =
+				after_jsx.length > 0 ? body_to_jsx_child(after_jsx, transform_context) : null;
+			next_body.push(build_show_element(early_if.test, branch_body, fallback_body));
+		} else if (after_jsx.length > 0) {
+			transform_context.needs_show = true;
+			const show_body = body_to_jsx_child(after_jsx, transform_context);
+			next_body.push(build_show_element(negate_expression(early_if.test), show_body, null));
 		}
+
+		effective_body = next_body;
 	}
 
 	const statements = [];
@@ -407,8 +419,23 @@ function body_to_jsx_child(body_nodes, transform_context) {
 	const statements = [];
 	/** @type {any[]} */
 	const children = [];
+	let has_bare_return = false;
 	let capture_index = 0;
 	for (const child of body_nodes) {
+		if (is_bare_return_statement(child)) {
+			statements.push({
+				type: 'ReturnStatement',
+				argument: children.length > 0 ? build_return_expression(children) : create_null_literal(),
+				metadata: { path: [] },
+				start: child.start,
+				end: child.end,
+				loc: child.loc,
+			});
+			children.length = 0;
+			has_bare_return = true;
+			continue;
+		}
+
 		if (is_jsx_child(child)) {
 			const jsx = to_jsx_child(child, transform_context);
 			if (interleaved && is_capturable_jsx_child(jsx)) {
@@ -436,14 +463,16 @@ function body_to_jsx_child(body_nodes, transform_context) {
 	// Branch body has non-JSX statements: wrap everything in an arrow so the
 	// statements run when (and only when) the branch actually renders.
 	/** @type {any[]} */
-	const block_body = [
-		...statements,
-		/** @type {any} */ ({
-			type: 'ReturnStatement',
-			argument: children.length > 0 ? build_return_expression(children) : create_null_literal(),
-			metadata: { path: [] },
-		}),
-	];
+	const block_body = [...statements];
+	if (children.length > 0 || !has_bare_return) {
+		block_body.push(
+			/** @type {any} */ ({
+				type: 'ReturnStatement',
+				argument: children.length > 0 ? build_return_expression(children) : create_null_literal(),
+				metadata: { path: [] },
+			}),
+		);
+	}
 
 	return /** @type {any} */ ({
 		type: 'ArrowFunctionExpression',
@@ -626,26 +655,34 @@ function merge_branch_body_into_arrow(outer_arrow, branch_body) {
 }
 
 /**
- * Detect the top-level early-return pattern `if (cond) { return; }` (or
- * `if (cond) return;`) with no `else` branch.
+ * Detect a top-level `if` branch with a bare `return` and no `else` branch.
  *
  * @param {any} node
- * @returns {boolean}
+ * @returns {{ consequent_body: any[], return_index: number } | null}
  */
-function is_early_return_if(node) {
-	if (!node || node.type !== 'IfStatement' || node.alternate) return false;
+function get_returning_if_info(node) {
+	if (!node || node.type !== 'IfStatement' || node.alternate) return null;
 	const consequent = node.consequent;
-	if (!consequent) return false;
-	if (consequent.type === 'ReturnStatement' && !consequent.argument) return true;
-	if (
-		consequent.type === 'BlockStatement' &&
-		consequent.body.length === 1 &&
-		consequent.body[0].type === 'ReturnStatement' &&
-		!consequent.body[0].argument
-	) {
-		return true;
+	if (!consequent) return null;
+
+	if (is_bare_return_statement(consequent)) {
+		return {
+			consequent_body: [consequent],
+			return_index: 0,
+		};
 	}
-	return false;
+
+	if (consequent.type === 'BlockStatement') {
+		const return_index = consequent.body.findIndex(is_bare_return_statement);
+		if (return_index !== -1) {
+			return {
+				consequent_body: consequent.body,
+				return_index,
+			};
+		}
+	}
+
+	return null;
 }
 
 /**
