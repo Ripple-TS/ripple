@@ -254,14 +254,13 @@ export function createJsxTransform(platform) {
 				return /** @type {any} */ (to_jsx_expression_container(inner.expression, inner));
 			},
 
-			MemberExpression(node, { next, state }) {
-				const as_any = /** @type {any} */ (node);
-				if (as_any.object && as_any.object.type === 'StyleIdentifier' && state.current_css_hash) {
-					const class_name = as_any.computed ? as_any.property.value : as_any.property.name;
-					const value = `${state.current_css_hash} ${class_name}`;
-					return /** @type {any} */ ({ type: 'Literal', value, raw: JSON.stringify(value) });
-				}
-				return next();
+			Style(node, { state, path }) {
+				validate_style_directive(node, state, path);
+				const class_name = typeof node.value.value === 'string' ? node.value.value : '';
+				const value = state.current_css_hash
+					? `${state.current_css_hash} ${class_name}`
+					: class_name;
+				return /** @type {any} */ (b.literal(value, node));
 			},
 
 			// Default .metadata on every function-like node so downstream consumers
@@ -2769,6 +2768,108 @@ function get_body_source_node(body_nodes) {
 	}
 
 	return first;
+}
+
+/**
+ * @param {any} node
+ * @param {TransformContext} transform_context
+ * @param {any[]} path
+ */
+function validate_style_directive(node, transform_context, path) {
+	const { attribute, element } = get_style_attribute_context(node, path);
+
+	if (!attribute) {
+		error(
+			'`{style "class_name"}` can only be used as an element attribute value.',
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
+		);
+	}
+
+	if (element && is_dom_style_target(element)) {
+		error(
+			'`{style "class_name"}` cannot be used directly on DOM elements. Pass the class to a child component instead.',
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
+		);
+	}
+
+	if (!transform_context.current_css_hash) {
+		error(
+			'`{style "class_name"}` requires a <style> block in the current component.',
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
+		);
+	}
+}
+
+/**
+ * @param {any} node
+ * @param {any[]} path
+ * @returns {{ attribute: any, element: any }}
+ */
+function get_style_attribute_context(node, path) {
+	const parent = path.at(-1);
+	const attribute =
+		parent?.type === 'Attribute' && parent.value === node
+			? parent
+			: path
+					.findLast((ancestor) => ancestor?.type === 'Element')
+					?.attributes?.find(
+						(/** @type {any} */ attr) =>
+							attr?.type === 'Attribute' &&
+							(attr.value === node || node_contains(attr.value, node)),
+					);
+	const element = path.findLast(
+		(ancestor) =>
+			ancestor?.type === 'Element' &&
+			(!attribute || ancestor.attributes?.some((/** @type {any} */ attr) => attr === attribute)),
+	);
+
+	return { attribute: attribute ?? null, element: element ?? null };
+}
+
+/**
+ * @param {any} root
+ * @param {any} target
+ * @returns {boolean}
+ */
+function node_contains(root, target) {
+	if (!root || typeof root !== 'object') {
+		return false;
+	}
+	if (root === target) {
+		return true;
+	}
+	if (Array.isArray(root)) {
+		return root.some((child) => node_contains(child, target));
+	}
+	for (const key of Object.keys(root)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		if (node_contains(root[key], target)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * @param {any} element
+ * @returns {boolean}
+ */
+function is_dom_style_target(element) {
+	if (!element?.id || is_dynamic_element_id(element.id)) {
+		return false;
+	}
+	return element.id.type === 'Identifier' && /^[a-z]/.test(element.id.name);
 }
 
 /**

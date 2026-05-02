@@ -21,7 +21,7 @@
  * @property {Route[]} routes - Route definitions from ripple.config.ts
  * @property {string} rippleConfigPath - Absolute path to ripple.config.ts (for importing middlewares/adapter)
  * @property {string} htmlTemplatePath - Path to the processed index.html template
- * @property {string[]} [rpcModulePaths] - Paths (relative to root) of .tsrx modules with #server blocks
+ * @property {string[]} [rpcModulePaths] - Paths (relative to root) of .tsrx modules with `module server` declarations
  * @property {Record<string, ClientAssetEntry>} [clientAssetMap] - Map of route entry paths to built JS/CSS asset paths
  */
 
@@ -72,7 +72,7 @@ export function generateServerEntry(options) {
 		}
 	}
 
-	// Collect RPC modules (sub-components with #server blocks, not already in page entries)
+	// Collect RPC modules (sub-components with `module server` declarations, not already in page entries)
 	for (const rpcPath of rpcModulePaths) {
 		if (!component_imports.has(rpcPath) && !rpc_imports.has(rpcPath)) {
 			rpc_imports.set(rpcPath, `_rpc_${rpc_index++}`);
@@ -103,8 +103,8 @@ export function generateServerEntry(options) {
 		.map(([layout, varName]) => `  ${JSON.stringify(layout)}: getDefaultExport(${varName}),`)
 		.join('\n');
 
-	// Only check _$_server_$_ on modules known to have #server blocks.
-	// Checking modules without #server blocks causes rollup warnings since
+	// Only check _$_server_$_ on modules known to have `module server` declarations.
+	// Checking modules without `module server` declarations causes rollup warnings since
 	// they don't export _$_server_$_.
 	const rpcPathSet = new Set(rpcModulePaths);
 	const rpc_entries = [];

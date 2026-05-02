@@ -34,8 +34,6 @@ import {
 	TEMPLATE_MATHML_NAMESPACE,
 	DEFAULT_NAMESPACE,
 	sanitizeTemplateString,
-	CSS_HASH_IDENTIFIER,
-	STYLE_IDENTIFIER,
 	SERVER_IDENTIFIER,
 	obfuscateIdentifier,
 	object,
@@ -120,6 +118,113 @@ function apply_tsrx_css_scoping(nodes, state) {
 
 	for (const node of nodes) {
 		visit_node(node);
+	}
+}
+
+/**
+ * @param {AST.ImportDeclaration} node
+ * @returns {string | null}
+ */
+function get_submodule_import_source_name(node) {
+	const source = /** @type {AST.Literal | AST.Identifier} */ (node.source);
+	return source.type === 'Identifier' ? source.name : null;
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_server_module_declaration(node) {
+	return (
+		node.type === 'TSModuleDeclaration' &&
+		/** @type {AST.TSModuleDeclaration} */ (node).metadata?.module_keyword === 'module' &&
+		/** @type {AST.TSModuleDeclaration} */ (node).id?.type === 'Identifier' &&
+		/** @type {AST.Identifier} */ (/** @type {AST.TSModuleDeclaration} */ (node).id).name ===
+			'server'
+	);
+}
+
+/**
+ * @param {AST.ImportSpecifier} specifier
+ * @returns {string | null}
+ */
+function get_imported_name(specifier) {
+	const imported = specifier.imported;
+	if (imported.type === 'Identifier') {
+		return imported.name;
+	}
+	if (imported.type === 'Literal' && typeof imported.value === 'string') {
+		return imported.value;
+	}
+	return null;
+}
+
+/**
+ * @param {string} filename
+ * @param {string} imported_name
+ * @returns {AST.FunctionExpression}
+ */
+function create_server_rpc_stub(filename, imported_name) {
+	const func_hash = strong_hash(filename + '#' + imported_name);
+	return b.function(
+		null,
+		[b.rest(b.id('args'))],
+		b.block([b.return(b.call('_$_.rpc', b.literal(func_hash), b.id('args')))]),
+	);
+}
+
+/**
+ * @param {AST.ImportDeclaration} node
+ * @param {TransformClientState} state
+ * @returns {AST.Statement[]}
+ */
+function transform_server_module_import(node, state) {
+	/** @type {AST.Statement[]} */
+	const declarations = [];
+	const source_name = get_submodule_import_source_name(node);
+	for (const specifier of node.specifiers) {
+		if (specifier.type !== 'ImportSpecifier') {
+			continue;
+		}
+		const imported_name = get_imported_name(specifier);
+		if (imported_name === null) {
+			continue;
+		}
+		const local_name = specifier.local.name;
+		const server_identifier = b.id(
+			SERVER_IDENTIFIER,
+			/** @type {AST.NodeWithLocation} */ (node.source),
+		);
+		if (source_name !== null) {
+			server_identifier.metadata.source_name = source_name;
+		}
+		const imported_identifier = b.id(
+			imported_name,
+			/** @type {AST.NodeWithLocation} */ (specifier.imported),
+		);
+		const local_identifier = b.id(
+			local_name,
+			/** @type {AST.NodeWithLocation} */ (specifier.local),
+		);
+		const init = state.to_ts
+			? b.member(server_identifier, imported_identifier)
+			: create_server_rpc_stub(state.filename, imported_name);
+		declarations.push(b.const(local_identifier, init));
+	}
+	return declarations;
+}
+
+/**
+ * @param {AST.Statement | AST.Statement[] | AST.Directive | AST.ModuleDeclaration} statement
+ * @param {Array<AST.Statement | AST.Directive | AST.ModuleDeclaration>} statements
+ */
+function push_statement(statement, statements) {
+	if (Array.isArray(statement)) {
+		for (const item of statement) {
+			statements.push(item);
+		}
+	} else {
+		statements.push(statement);
 	}
 }
 
@@ -562,20 +667,19 @@ const visitors = {
 		}
 	},
 
-	ServerIdentifier(node, context) {
-		const id = b.id(SERVER_IDENTIFIER, /** @type {AST.NodeWithLocation} */ (node));
-		id.metadata.source_name = '#server';
-		return id;
-	},
-
-	StyleIdentifier(node, context) {
-		const id = b.id(STYLE_IDENTIFIER);
-		id.metadata.source_name = '#style';
-		return { ...node, ...id };
+	Style(node, context) {
+		const class_name = typeof node.value.value === 'string' ? node.value.value : '';
+		const hash = context.state.component?.css?.hash;
+		const value = hash ? `${hash} ${class_name}` : class_name;
+		return b.literal(value);
 	},
 
 	ImportDeclaration(node, context) {
 		const { state } = context;
+
+		if (get_submodule_import_source_name(node) === 'server') {
+			return /** @type {any} */ (transform_server_module_import(node, state));
+		}
 
 		if (!state.to_ts && node.importKind === 'type') {
 			return b.empty;
@@ -1952,42 +2056,6 @@ const visitors = {
 		let prop_statements;
 		const metadata = {};
 
-		/** @type {AST.Statement[]} */
-		const style_statements = [];
-
-		/** @type {'const' | 'var'} */
-		let var_method_type = 'var';
-		if (context.state.to_ts) {
-			var_method_type = 'const';
-		}
-
-		if (node.metadata.styleIdentifierPresent) {
-			/** @type {AST.Property[]} */
-			const properties = [];
-			if (
-				node.css !== null &&
-				node.metadata.topScopedClasses &&
-				node.metadata.topScopedClasses.size > 0
-			) {
-				const hash = b[var_method_type](b.id(CSS_HASH_IDENTIFIER), b.literal(node.css.hash));
-				style_statements.push(hash);
-				for (const [className] of node.metadata.topScopedClasses) {
-					properties.push(
-						b.prop(
-							'init',
-							b.key(className),
-							b.template(
-								[b.quasi('', false), b.quasi(` ${className}`, true)],
-								[b.id(CSS_HASH_IDENTIFIER)],
-							),
-						),
-					);
-				}
-			}
-
-			style_statements.push(b[var_method_type](b.id(STYLE_IDENTIFIER), b.object(properties)));
-		}
-
 		if (context.state.to_ts) {
 			const body_statements = [
 				...transform_body(node.body, {
@@ -2002,7 +2070,7 @@ const visitors = {
 					(param) =>
 						/** @type {AST.Pattern} */ (context.visit(param, { ...context.state, metadata })),
 				),
-				b.block([...style_statements, ...body_statements]),
+				b.block(body_statements),
 				false,
 				/** @type {AST.NodeWithLocation} */ (node),
 			);
@@ -2086,7 +2154,7 @@ const visitors = {
 		const func = b.function(
 			node.id,
 			params,
-			b.block([...style_statements, ...(prop_statements ?? []), ...body_statements]),
+			b.block([...(prop_statements ?? []), ...body_statements]),
 		);
 
 		func.metadata = {
@@ -2625,14 +2693,30 @@ const visitors = {
 		return b.block(statements);
 	},
 
-	ServerBlock(node, context) {
+	TSModuleBlock(node, context) {
+		/** @type {AST.Statement[]} */
+		const statements = [];
+		for (const statement of node.body) {
+			push_statement(
+				/** @type {AST.Statement | AST.Statement[]} */ (context.visit(statement)),
+				statements,
+			);
+		}
+		return { ...node, body: statements };
+	},
+
+	TSModuleDeclaration(node, context) {
+		if (!is_server_module_declaration(node)) {
+			return context.next();
+		}
+
 		if (context.state.to_ts) {
-			// Convert Imports inside ServerBlock to local variables
+			// Convert imports inside `module server` to local variables.
 			// ImportDeclaration() visitor will add imports to the top of the module
 			/** @type {AST.VariableDeclaration[]} */
 			const server_block_locals = [];
 
-			const block = /** @type {AST.BlockStatement} */ (
+			const block = /** @type {AST.TSModuleBlock} */ (
 				context.visit(node.body, {
 					...context.state,
 					ancestor_server_block: node,
@@ -2642,7 +2726,7 @@ const visitors = {
 
 			/** @type {AST.Property[]} */
 			const properties = [];
-			for (const name of node.metadata.exports) {
+			for (const name of node.metadata.exports ?? []) {
 				const id = b.id(name);
 				properties.push(b.prop('init', id, id, false, true));
 			}
@@ -2654,10 +2738,9 @@ const visitors = {
 
 			const server_identifier = b.id(
 				SERVER_IDENTIFIER,
-				slice_loc_info(/** @type {AST.NodeWithLocation} */ (node), 0, '#server'.length),
+				/** @type {AST.NodeWithLocation} */ (node.id),
 			);
-			// Add source_name to properly map longer generated back to '#server'
-			server_identifier.metadata.source_name = '#server';
+			server_identifier.metadata.source_name = 'server';
 
 			const server_const = b.const(server_identifier, value);
 			server_const.loc = node.loc;
@@ -2665,31 +2748,7 @@ const visitors = {
 			return server_const;
 		}
 
-		if (!context.state.serverIdentifierPresent) {
-			// no point printing the client-side block if #server.func is not used
-			return b.empty;
-		}
-
-		const file_path = context.state.filename;
-		/** @type {AST.Property[]} */
-		const props = [];
-		for (const name of node.metadata.exports) {
-			const func_path = file_path + '#' + name;
-			// needs to be a sha256 hash of func_path, to avoid leaking file structure
-			const func_hash = strong_hash(func_path);
-			props.push(
-				b.prop(
-					'init',
-					b.id(name),
-					b.function(
-						null,
-						[b.rest(b.id('args'))],
-						b.block([b.return(b.call('_$_.rpc', b.literal(func_hash), b.id('args')))]),
-					),
-				),
-			);
-		}
-		return b.var(SERVER_IDENTIFIER, b.object(props));
+		return b.empty;
 	},
 
 	ScriptContent(node, context) {
@@ -2701,10 +2760,11 @@ const visitors = {
 		const statements = [];
 
 		for (const statement of node.body) {
-			statements.push(
-				/** @type {AST.Statement | AST.Directive | AST.ModuleDeclaration} */ (
+			push_statement(
+				/** @type {AST.Statement | AST.Statement[] | AST.Directive | AST.ModuleDeclaration} */ (
 					context.visit(statement)
 				),
+				statements,
 			);
 		}
 
@@ -5077,7 +5137,6 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 		scope: analysis.scope,
 		scopes: analysis.scopes,
 		ancestor_server_block: undefined,
-		serverIdentifierPresent: analysis.metadata.serverIdentifierPresent,
 		server_block_locals: [],
 		stylesheets: [],
 		to_ts,

@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`compiler server block tests > compiles server block with with only supported types 1`] = `
+exports[`compiler server module tests > compiles module server with only supported types 1`] = `
 "import * as _$_ from 'ripple/internal/server';
 
 export const _$_server_$_ = (() => {

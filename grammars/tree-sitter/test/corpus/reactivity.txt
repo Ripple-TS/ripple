@@ -1,30 +1,44 @@
 ==================
-Ripple Server/Style Member Expressions
+Ripple Server Module Import And Style Directive
 ==================
 
-const serverData = #server.data;
-const styleClass = #style.button;
-const styleToken = #style['button'];
+module server {
+  export const data = () => null;
+}
+import { data as serverData } from server;
+const element = <Child className={style 'button'} />;
 
 ---
 
 (program
+  (module_declaration
+    name: (identifier)
+    body: (module_body
+      (export_statement
+        (variable_declaration
+          (variable_declarator
+            name: (identifier)
+            (initializer
+              (arrow_function
+                parameters: (formal_parameters)
+                body: (null))))))))
+  (import_statement
+    (import_clause
+      (named_imports
+        (import_specifier
+          name: (identifier)
+          alias: (identifier))))
+    (from_clause
+      (identifier)))
   (variable_declaration
     (variable_declarator
       name: (identifier)
       (initializer
-        (server_member_expression
-          property: (identifier)))))
-  (variable_declaration
-    (variable_declarator
-      name: (identifier)
-      (initializer
-        (style_member_expression
-          property: (identifier)))))
-  (variable_declaration
-    (variable_declarator
-      name: (identifier)
-      (initializer
-        (style_subscript_expression
-          index: (string))))))
-
+        (jsx_self_closing_element
+          name: (jsx_non_namespaced_element_name
+            (identifier))
+          attribute: (jsx_attribute
+            name: (identifier)
+            value: (jsx_expression
+              (style_directive
+                (string)))))))))

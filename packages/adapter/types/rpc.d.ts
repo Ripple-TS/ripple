@@ -19,7 +19,7 @@ export type RuntimePrimitives = {
 	/**
 	 * Hash a string for RPC function identification.
 	 *
-	 * Must produce the same output as the compiler's ServerBlock transform:
+	 * Must produce the same output as the compiler's module server transform:
 	 * SHA-256 hex digest truncated to 8 characters.
 	 *
 	 * @param str - The string to hash (typically "filePath#funcName")

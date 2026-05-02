@@ -398,8 +398,8 @@ export function ripple(inlineOptions = {}) {
 	let renderRouteEntries = [];
 	/** @type {ResolvedRippleConfig | null} Cached config from buildStart (reused in closeBundle) */
 	let loadedRippleConfig = null;
-	/** @type {Set<string>} File paths (relative to root) of .tsrx modules with #server blocks */
-	const serverBlockModules = new Set();
+	/** @type {Set<string>} File paths (relative to root) of .tsrx modules with `module server` declarations */
+	const serverModuleModules = new Set();
 
 	/**
 	 * @returns {Promise<ResolvedRippleConfig | null>}
@@ -708,7 +708,7 @@ export function ripple(inlineOptions = {}) {
 						const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
 						const method = req.method || 'GET';
 
-						// Handle RPC requests for #server blocks
+						// Handle RPC requests for `module server` declarations
 						if (is_rpc_request(url.pathname)) {
 							await handleRpcRequest(req, res, vite, rippleConfig.server.trustProxy, rippleConfig);
 							return;
@@ -1006,7 +1006,7 @@ export function ripple(inlineOptions = {}) {
 					routes: loadedRippleConfig.router.routes,
 					rippleConfigPath: getRippleConfigPath(root),
 					htmlTemplatePath: './index.html',
-					rpcModulePaths: [...serverBlockModules],
+					rpcModulePaths: [...serverModuleModules],
 					clientAssetMap,
 				});
 
@@ -1265,9 +1265,9 @@ import { hydrate, mount } from 'ripple';
 								: Object.keys(current_ripple_config.compat),
 					});
 
-					// Track modules with #server blocks for RPC (client build only)
+					// Track modules with `module server` declarations for RPC (client build only)
 					if (isBuild && !ssr && js.code.includes('_$_.rpc(')) {
-						serverBlockModules.add(filename);
+						serverModuleModules.add(filename);
 					}
 
 					if (css !== '') {
@@ -1361,7 +1361,7 @@ async function sendWebResponse(nodeResponse, webResponse) {
 }
 
 /**
- * Handle RPC requests for #server blocks in dev mode.
+ * Handle RPC requests for `module server` declarations in dev mode.
  *
  * Delegates to the shared `handle_rpc_request` from `@ripple-ts/adapter/rpc`,
  * providing a dev-specific `resolveFunction` that uses Vite's `ssrLoadModule`

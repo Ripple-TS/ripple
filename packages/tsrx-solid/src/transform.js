@@ -1044,7 +1044,7 @@ function inject_solid_imports(program, transform_context) {
 
 /**
  * @param {any} node - walker-transformed Element whose `children` have
- *   already had `StyleIdentifier` / `TSRXExpression` / nested `Element`
+ *   already had `Style` / `TSRXExpression` / nested `Element`
  *   walker rewrites applied.
  * @param {TransformContext} transform_context
  * @param {any[]} [pre_walk_children] - optional pre-walk children list
@@ -1053,9 +1053,7 @@ function inject_solid_imports(program, transform_context) {
  *   once detected we build the attribute from the original `Text.expression`.
  *   The factory's `Text` walker lowers `Text` → `JSXExpressionContainer`, so
  *   without these we'd miss the optimization. For rendering non-textContent
- *   children we keep using `node.children` (walker-transformed), so
- *   `MemberExpression` rewrites on `StyleIdentifier` refs inside children
- *   are preserved.
+ *   children we keep using `node.children` (walker-transformed).
  * @returns {any}
  */
 function to_jsx_element(node, transform_context, pre_walk_children) {
@@ -1154,9 +1152,7 @@ function to_jsx_element(node, transform_context, pre_walk_children) {
 		children = [];
 		selfClosing = true;
 	} else {
-		// Use walker-transformed children so `MemberExpression` /
-		// `StyleIdentifier` rewrites from the factory walker are preserved
-		// in the emitted JSX.
+		// Use walker-transformed children in the emitted JSX.
 		children = create_element_children(walked_children, transform_context);
 	}
 

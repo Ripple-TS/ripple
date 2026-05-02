@@ -1,5 +1,26 @@
 # @tsrx/core
 
+## 0.0.23
+
+### Patch Changes
+
+- [#1040](https://github.com/Ripple-TS/ripple/pull/1040)
+  [`3b2eae2`](https://github.com/Ripple-TS/ripple/commit/3b2eae24dc955325a0379c4773631796865e0f38)
+  Thanks [@trueadm](https://github.com/trueadm)! - Parse indented direct
+  double-quoted TSRX text children as text nodes.
+
+- [#1035](https://github.com/Ripple-TS/ripple/pull/1035)
+  [`5c6ee71`](https://github.com/Ripple-TS/ripple/commit/5c6ee71bfd4f5dc443c43eb34e631bb032606faf)
+  Thanks [@trueadm](https://github.com/trueadm)! - Replace the removed
+  `#style.class` syntax with the `{style "class"}` attribute value directive.
+
+- [#1036](https://github.com/Ripple-TS/ripple/pull/1036)
+  [`83b19fd`](https://github.com/Ripple-TS/ripple/commit/83b19fd67aa27eb10e93205dd88c61b13ffbc523)
+  Thanks [@trueadm](https://github.com/trueadm)! - Replace Ripple `#server` blocks
+  with proposal-aligned `module server` declarations and imports from `server`.
+  Preserve Volar mappings for submodule import identifiers after Ripple lowers
+  server imports.
+
 ## 0.0.22
 
 ### Patch Changes

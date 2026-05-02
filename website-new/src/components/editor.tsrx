@@ -1,13 +1,15 @@
 import type { Tracked } from 'ripple';
 import { bindNode, track, effect } from 'ripple';
 
-#server {
+module server {
 	export async function fetchMessage(): Promise<string> {
 		const response = await fetch('/api/message');
 		const data = await response.json();
 		return atob(data.message);
 	}
 }
+
+import { fetchMessage } from server;
 
 const STEP = 40;
 const INTERVAL = STEP / 2;
@@ -20,7 +22,7 @@ export component Editor() {
 
 	effect(() => {
 		if (nodeRef.value) {
-			#server.fetchMessage().then((message: string) => {
+			fetchMessage().then((message: string) => {
 				content = message;
 
 				loading = false;

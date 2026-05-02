@@ -64,8 +64,9 @@ interface BaseNodeMetaData {
 	scoped?: boolean;
 	path: AST.Node[];
 	has_template?: boolean;
-	source_name?: string | '#server' | '#style';
+	source_name?: string;
 	source_length?: number;
+	module_keyword?: 'module' | 'namespace';
 	is_capitalized?: boolean;
 	commentContainerId?: number;
 	parenthesized?: boolean;
@@ -206,12 +207,9 @@ declare module 'estree' {
 		TsxCompat: TsxCompat;
 		TSRXExpression: TSRXExpression;
 		Html: Html;
+		Style: Style;
 		Element: Element;
 		Text: TextNode;
-		ServerBlock: ServerBlock;
-		ServerBlockStatement: ServerBlockStatement;
-		ServerIdentifier: ServerIdentifier;
-		StyleIdentifier: StyleIdentifier;
 		Attribute: Attribute;
 		RefAttribute: RefAttribute;
 		SpreadAttribute: SpreadAttribute;
@@ -220,8 +218,7 @@ declare module 'estree' {
 	}
 
 	interface ExpressionMap {
-		StyleIdentifier: StyleIdentifier;
-		ServerIdentifier: ServerIdentifier;
+		Style: Style;
 		Text: TextNode;
 		JSXEmptyExpression: ESTreeJSX.JSXEmptyExpression;
 		ParenthesizedExpression: ParenthesizedExpression;
@@ -266,14 +263,6 @@ declare module 'estree' {
 	interface ForOfStatement {
 		index?: AST.Identifier | null;
 		key?: AST.Expression | null;
-	}
-
-	interface ServerIdentifier extends AST.BaseExpression {
-		type: 'ServerIdentifier';
-	}
-
-	interface StyleIdentifier extends AST.BaseExpression {
-		type: 'StyleIdentifier';
 	}
 
 	interface ImportDeclaration {
@@ -338,7 +327,6 @@ declare module 'estree' {
 		metadata: BaseNodeMetaData & {
 			topScopedClasses?: TopScopedClasses;
 			styleClasses?: StyleClasses;
-			styleIdentifierPresent?: boolean;
 		};
 		default: boolean;
 		typeParameters?: AST.TSTypeParameterDeclaration;
@@ -368,6 +356,12 @@ declare module 'estree' {
 	interface Html extends AST.BaseNode {
 		type: 'Html';
 		expression: AST.Expression;
+	}
+
+	interface Style extends AST.BaseExpression {
+		type: 'Style';
+		value: AST.Literal;
+		loc?: AST.SourceLocation;
 	}
 
 	export interface TSRXExpression extends AST.BaseExpression {
@@ -414,18 +408,6 @@ declare module 'estree' {
 		expression: AST.Expression;
 		raw?: string;
 		loc?: AST.SourceLocation;
-	}
-
-	interface ServerBlockStatement extends Omit<BlockStatement, 'body'> {
-		body: (AST.Statement | AST.ExportNamedDeclaration)[];
-	}
-
-	interface ServerBlock extends AST.BaseNode {
-		type: 'ServerBlock';
-		body: ServerBlockStatement;
-		metadata: BaseNodeMetaData & {
-			exports: Set<string>;
-		};
 	}
 
 	interface ScriptContent extends Omit<AST.Element, 'type'> {
@@ -694,6 +676,7 @@ declare module 'estree-jsx' {
 	interface JSXExpressionContainer {
 		html?: boolean;
 		text?: boolean;
+		style?: boolean;
 	}
 
 	interface JSXMemberExpression {
@@ -977,6 +960,9 @@ declare module 'estree' {
 	> {
 		body: TSModuleBlock;
 		id: AST.Identifier;
+		metadata: BaseNodeMetaData & {
+			exports?: Set<string>;
+		};
 	}
 	interface TSNamedTupleMember extends Omit<
 		AcornTSNode<TSESTree.TSNamedTupleMember>,
@@ -1184,7 +1170,9 @@ export interface AnalysisResult {
 	scope: ScopeInterface;
 	component_metadata: Array<{ id: string }>;
 	metadata: {
-		serverIdentifierPresent: boolean;
+		serverImportsPresent: boolean;
+		serverImportDeclarations: AST.ImportDeclaration[];
+		serverModule: AST.TSModuleDeclaration | null;
 	};
 	errors: CompileError[];
 	comments: AST.CommentWithLocation[];
@@ -1209,6 +1197,7 @@ export type DeclarationKind =
 	| 'rest_param'
 	| 'component'
 	| 'import'
+	| 'module'
 	| 'using'
 	| 'await using';
 
@@ -1239,7 +1228,8 @@ export interface Binding {
 		| AST.Expression
 		| AST.FunctionDeclaration
 		| AST.ClassDeclaration
-		| AST.ImportDeclaration;
+		| AST.ImportDeclaration
+		| AST.TSModuleDeclaration;
 	/** Whether this binding has been reassigned */
 	reassigned: boolean;
 	/** Whether this binding has been mutated (property access) */
@@ -1331,7 +1321,8 @@ export interface ScopeInterface {
 			| AST.Expression
 			| AST.FunctionDeclaration
 			| AST.ClassDeclaration
-			| AST.ImportDeclaration,
+			| AST.ImportDeclaration
+			| AST.TSModuleDeclaration,
 	): Binding;
 	/** Get binding by name */
 	get(name: string): Binding | null;
@@ -1357,8 +1348,7 @@ export interface BaseState {
 	/** For utils */
 	scope: ScopeInterface;
 	scopes: Map<AST.Node | AST.Node[], ScopeInterface>;
-	serverIdentifierPresent: boolean;
-	ancestor_server_block: AST.ServerBlock | undefined;
+	ancestor_server_block: AST.TSModuleDeclaration | undefined;
 	inside_head?: boolean;
 	keep_component_style?: boolean;
 

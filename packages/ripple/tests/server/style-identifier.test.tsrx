@@ -1,15 +1,15 @@
 import { track } from 'ripple';
 import { compile } from '@tsrx/ripple';
 
-describe('#style identifier (server)', () => {
+describe('{style} directive (server)', () => {
 	describe('basic usage with components', () => {
-		it('passes scoped class to a child component via #style', async () => {
+		it('passes scoped class to a child component via {style}', async () => {
 			component Child({ className }: { className: string }) {
 				<div class={className}>{'styled child'}</div>
 			}
 
 			component Parent() {
-				<Child className={#style.highlight} />
+				<Child className={style 'highlight'} />
 
 				<style>
 					.highlight {
@@ -29,14 +29,14 @@ describe('#style identifier (server)', () => {
 			expect(classes.some((cls: string) => cls === 'highlight')).toBe(true);
 		});
 
-		it('passes multiple #style classes to a child component', async () => {
+		it('passes multiple {style} classes to a child component', async () => {
 			component Child({ primary, secondary }: { primary: string; secondary: string }) {
 				<div class={primary}>{'primary'}</div>
 				<span class={secondary}>{'secondary'}</span>
 			}
 
 			component Parent() {
-				<Child primary={#style.primary} secondary={#style.secondary} />
+				<Child primary={style 'primary'} secondary={style 'secondary'} />
 
 				<style>
 					.primary {
@@ -68,13 +68,13 @@ describe('#style identifier (server)', () => {
 	});
 
 	describe('parent styling applied to child', () => {
-		it('allows parent to style child elements via #style prop', async () => {
+		it('allows parent to style child elements via {style} prop', async () => {
 			component Button({ extraClass }: { extraClass?: string }) {
 				<button class={extraClass ?? ''}>{'Click me'}</button>
 			}
 
 			component App() {
-				<Button extraClass={#style.fancy} />
+				<Button extraClass={style 'fancy'} />
 
 				<style>
 					.fancy {
@@ -93,7 +93,7 @@ describe('#style identifier (server)', () => {
 			expect(classes.some((cls: string) => cls === 'fancy')).toBe(true);
 		});
 
-		it('child can combine its own classes with parent #style class', async () => {
+		it('child can combine its own classes with parent {style} class', async () => {
 			component Card({ className }: { className?: string }) {
 				<div class={['card-base', className ?? '']}>{'card content'}</div>
 
@@ -105,7 +105,7 @@ describe('#style identifier (server)', () => {
 			}
 
 			component App() {
-				<Card className={#style.themed} />
+				<Card className={style 'themed'} />
 
 				<style>
 					.themed {
@@ -133,7 +133,7 @@ describe('#style identifier (server)', () => {
 
 				component App() {
 					<div class="parent">
-						<Child cls={#style.dual} />
+						<Child cls={style 'dual'} />
 					</div>
 
 					<style>
@@ -158,7 +158,7 @@ describe('#style identifier (server)', () => {
 		);
 	});
 
-	it('passes scoped class to a dynamic child component via #style', async () => {
+	it('passes scoped class to a dynamic child component via {style}', async () => {
 		component Child({ cls }: { cls: string }) {
 			<span class={cls}>{'text'}</span>
 		}
@@ -166,7 +166,7 @@ describe('#style identifier (server)', () => {
 		component Parent() {
 			let dynamic = track(() => Child);
 			<div class="wrapper">
-				<@dynamic cls={#style.text} />
+				<@dynamic cls={style 'text'} />
 			</div>
 
 			<style>
@@ -261,13 +261,13 @@ describe('#style identifier (server)', () => {
 	});
 
 	describe('server compiler output', () => {
-		it('generates #style object with standalone classes', () => {
+		it('inlines scoped class strings', () => {
 			const source = `
 component Child({ cls }: { cls: string }) {
 	<div class={cls}>{'text'}</div>
 }
 export component App() {
-	<Child cls={#style.highlight} />
+	<Child cls={style 'highlight'} />
 
 	<style>
 		.highlight {
@@ -288,7 +288,7 @@ export component App() {
 			}
 
 			component App() {
-				<Child cls={#style.styled} />
+				<Child cls={style 'styled'} />
 
 				<style>
 					.styled {

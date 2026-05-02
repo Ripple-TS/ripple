@@ -189,7 +189,7 @@ function previous_word_before(input, pos) {
 /**
  * Acorn parser plugin for Ripple syntax extensions.
  * Adds support for: component declarations, &[]/&{} lazy destructuring,
- * #server blocks, #style identifiers, and enhanced JSX handling.
+ * submodule imports, TSRX directives, and enhanced JSX handling.
  *
  * @param {import('../types/index').TSRXPluginConfig} [config] - Plugin configuration
  * @returns {(Parser: Parse.ParserConstructor) => Parse.ParserConstructor} Parser extension function
@@ -222,6 +222,22 @@ export function TSRXPlugin(config) {
 			#functionBodyDepth = 0;
 
 			/**
+			 * @type {Parse.Parser['finishNode']}
+			 */
+			finishNode(node, type) {
+				const finished = super.finishNode(node, type);
+				if (type === 'TSModuleDeclaration') {
+					const start = /** @type {number} */ (finished.start);
+					const source = this.input.slice(start, start + 'namespace'.length);
+					finished.metadata ??= { path: [] };
+					finished.metadata.module_keyword = source.startsWith('namespace')
+						? 'namespace'
+						: 'module';
+				}
+				return finished;
+			}
+
+			/**
 			 * @param {Parse.Options} options
 			 * @param {string} input
 			 */
@@ -232,6 +248,13 @@ export function TSRXPlugin(config) {
 				this.#loose = tsrx_options?.loose === true;
 				this.#errors = tsrx_options?.errors;
 				this.#filename = tsrx_options?.filename || null;
+			}
+
+			#resetTokenStartToCurrentPosition() {
+				if (this.start !== this.pos) {
+					this.start = this.pos;
+					this.startLoc = this.curPosition();
+				}
 			}
 
 			#previousNonWhitespaceChar() {
@@ -820,44 +843,6 @@ export function TSRXPlugin(config) {
 					}
 				}
 
-				if (code === 35) {
-					// # character
-					if (this.pos + 1 < this.input.length) {
-						/** @param {string} value */
-						const startsWith = (value) =>
-							this.input.slice(this.pos, this.pos + value.length) === value;
-						/** @param {number} length */
-						const char_after = (length) =>
-							this.pos + length < this.input.length ? this.input.charCodeAt(this.pos + length) : -1;
-						/** @param {number} ch */
-						const is_ripple_delimiter = (ch) =>
-							ch === 40 || // (
-							ch === 41 || // )
-							ch === 60 || // <
-							ch === 46 || // .
-							ch === 44 || // ,
-							ch === 59 || // ;
-							ch === 91 || // [
-							ch === 93 || // ]
-							ch === 123 || // {
-							ch === 125 || // }
-							ch === 32 || // space
-							ch === 9 || // tab
-							ch === 10 || // newline
-							ch === 13 || // carriage return
-							ch === -1; // EOF
-
-						if (startsWith('#server') && is_ripple_delimiter(char_after(7))) {
-							this.pos += 7;
-							return this.finishToken(tt.name, '#server');
-						}
-
-						if (startsWith('#style') && is_ripple_delimiter(char_after(6))) {
-							this.pos += 6;
-							return this.finishToken(tt.name, '#style');
-						}
-					}
-				}
 				this.#allowTagStartAfterDoubleQuotedText = false;
 				return super.getTokenFromCode(code);
 			}
@@ -970,22 +955,6 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['parseExprAtom']}
 			 */
 			parseExprAtom(refDestructuringErrors, forNew, forInit) {
-				const lookahead_type = this.lookahead().type;
-				const is_next_call_token = lookahead_type === tt.parenL || lookahead_type === tt.relational;
-
-				// Check if this is #server identifier for server function calls
-				if (this.type === tt.name && this.value === '#server') {
-					const node = this.startNode();
-					this.next();
-					return /** @type {AST.ServerIdentifier} */ (this.finishNode(node, 'ServerIdentifier'));
-				}
-
-				if (this.type === tt.name && this.value === '#style') {
-					const node = this.startNode();
-					this.next();
-					return /** @type {AST.StyleIdentifier} */ (this.finishNode(node, 'StyleIdentifier'));
-				}
-
 				// Check if this is a component expression (e.g., in object literal values)
 				if (this.type === tt.name && this.value === 'component') {
 					return this.parseComponent();
@@ -1015,9 +984,9 @@ export function TSRXPlugin(config) {
 
 			/**
 			 * Override checkLocalExport to check all scopes in the scope stack.
-			 * This is needed because server blocks create nested scopes, but exports
-			 * from within server blocks should still be valid if the identifier is
-			 * declared in the server block's scope (not just the top-level module scope).
+			 * This is needed because submodules create nested scopes, but exports
+			 * from within submodules should still be valid if the identifier is
+			 * declared in the submodule scope (not just the top-level module scope).
 			 * @type {Parse.Parser['checkLocalExport']}
 			 */
 			checkLocalExport(id) {
@@ -1034,31 +1003,6 @@ export function TSRXPlugin(config) {
 				}
 				// Not found in any scope, add to undefinedExports for later error
 				this.undefinedExports[name] = id;
-			}
-
-			/**
-			 * @type {Parse.Parser['parseServerBlock']}
-			 */
-			parseServerBlock() {
-				const node = /** @type {AST.ServerBlock} */ (this.startNode());
-				this.next();
-
-				const body = /** @type {AST.ServerBlockStatement} */ (this.startNode());
-				node.body = body;
-				body.body = [];
-
-				this.expect(tt.braceL);
-				this.enterScope(0);
-				while (this.type !== tt.braceR) {
-					const stmt = /** @type {AST.Statement} */ (this.parseStatement(null, true));
-					body.body.push(stmt);
-				}
-				this.next();
-				this.exitScope();
-				this.finishNode(body, 'BlockStatement');
-
-				this.awaitPos = 0;
-				return this.finishNode(node, 'ServerBlock');
 			}
 
 			/**
@@ -1415,10 +1359,26 @@ export function TSRXPlugin(config) {
 							'"text" is a TSRX keyword and must be used in the form {text some_value}',
 						);
 					}
+				} else if (
+					this.type === tt.name &&
+					this.value === 'style' &&
+					this.lookahead().type === tt.string
+				) {
+					node.style = true;
+					this.next();
 				}
 
 				node.expression =
 					this.type === tt.braceR ? this.jsx_parseEmptyExpression() : this.parseExpression();
+				if (
+					node.style &&
+					(node.expression.type !== 'Literal' || typeof node.expression.value !== 'string')
+				) {
+					this.raise(
+						/** @type {number} */ (node.expression.start),
+						'"style" is a TSRX keyword and must be used in the form {style "class_name"}',
+					);
+				}
 				this.expect(tt.braceR);
 
 				return this.finishNode(node, 'JSXExpressionContainer');
@@ -1812,6 +1772,7 @@ export function TSRXPlugin(config) {
 								break;
 							}
 							// If not a comment, fall through to default case
+							this.#resetTokenStartToCurrentPosition();
 							this.context.push(b_stat);
 							this.exprAllowed = true;
 							return original.readToken.call(this, ch);
@@ -1831,6 +1792,7 @@ export function TSRXPlugin(config) {
 									this.#path.at(-1)?.type === 'Component' ||
 									this.#path.at(-1)?.type === 'Element')
 							) {
+								this.#resetTokenStartToCurrentPosition();
 								return original.readToken.call(this, ch);
 							}
 							this.raise(
@@ -1855,6 +1817,7 @@ export function TSRXPlugin(config) {
 							} else if (ch === 32 || ch === 9) {
 								++this.pos;
 							} else {
+								this.#resetTokenStartToCurrentPosition();
 								this.context.push(b_stat);
 								this.exprAllowed = true;
 								return original.readToken.call(this, ch);
@@ -1986,6 +1949,14 @@ export function TSRXPlugin(config) {
 						if (attr.value !== null) {
 							if (attr.value.type === 'JSXExpressionContainer') {
 								const expression = attr.value.expression;
+								if (attr.value.style) {
+									/** @type {AST.Style} */ (/** @type {unknown} */ (attr.value)).type = 'Style';
+									/** @type {AST.Style} */ (/** @type {unknown} */ (attr.value)).value =
+										/** @type {AST.Literal} */ (expression);
+									delete (/** @type {any} */ (attr.value).expression);
+									delete (/** @type {any} */ (attr.value).style);
+									continue;
+								}
 								if (expression.type === 'Literal') {
 									expression.was_expression = true;
 								}
@@ -2455,11 +2426,23 @@ export function TSRXPlugin(config) {
 					// Keep JSXEmptyExpression as-is (for prettier to handle comments)
 					// but convert other expressions to Html/TSRXExpression/Text nodes
 					if (node.expression.type !== 'JSXEmptyExpression') {
-						/** @type {AST.TSRXExpression | AST.Html | AST.TextNode} */ (
+						/** @type {AST.TSRXExpression | AST.Html | AST.TextNode | AST.Style} */ (
 							/** @type {unknown} */ (node)
-						).type = node.html ? 'Html' : node.text ? 'Text' : 'TSRXExpression';
+						).type = node.html
+							? 'Html'
+							: node.text
+								? 'Text'
+								: node.style
+									? 'Style'
+									: 'TSRXExpression';
+						if (node.style) {
+							/** @type {AST.Style} */ (/** @type {unknown} */ (node)).value =
+								/** @type {AST.Literal} */ (node.expression);
+							delete (/** @type {any} */ (node).expression);
+						}
 						delete node.html;
 						delete node.text;
+						delete node.style;
 					}
 					body.push(node);
 				} else if (this.type === tt.string && this.input.charCodeAt(this.start) === 34) {
@@ -2602,6 +2585,66 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
+			 * Parse proposal-style imports from an inline module declaration:
+			 * `import { foo } from server;`
+			 *
+			 * Acorn's import parser currently requires a string literal source. TSRX
+			 * extends only the source position; all specifier parsing stays delegated
+			 * to Acorn/@sveltejs/acorn-typescript.
+			 * @type {Parse.Parser['parseImport']}
+			 */
+			parseImport(node) {
+				const tokenIsIdentifier = /** @type {any} */ (Parser.acornTypeScript).tokenIsIdentifier;
+				const parser = /** @type {any} */ (this);
+				const import_node = /** @type {any} */ (node);
+				let enterHead = parser.lookahead();
+				import_node.importKind = 'value';
+				parser.importOrExportOuterKind = 'value';
+				if (tokenIsIdentifier(enterHead.type) || this.match(tt.star) || this.match(tt.braceL)) {
+					let ahead = parser.lookahead(2);
+					if (
+						ahead.type !== tt.comma &&
+						!parser.isContextualWithState('from', ahead) &&
+						ahead.type !== tt.eq &&
+						parser.ts_eatContextualWithState('type', 1, enterHead)
+					) {
+						parser.importOrExportOuterKind = 'type';
+						import_node.importKind = 'type';
+						enterHead = parser.lookahead();
+						ahead = parser.lookahead(2);
+					}
+					if (tokenIsIdentifier(enterHead.type) && ahead.type === tt.eq) {
+						this.next();
+						const importNode = parser.tsParseImportEqualsDeclaration(node);
+						parser.importOrExportOuterKind = 'value';
+						return importNode;
+					}
+				}
+				this.next();
+				if (this.type === tt.string) {
+					import_node.specifiers = [];
+					import_node.source = this.parseExprAtom();
+				} else {
+					import_node.specifiers = this.parseImportSpecifiers();
+					this.expectContextual('from');
+					if (this.type === tt.string) {
+						import_node.source = this.parseExprAtom();
+					} else if (tokenIsIdentifier(this.type)) {
+						const source = this.parseIdent(false);
+						source.metadata ??= { path: [] };
+						import_node.source = source;
+					} else {
+						this.unexpected();
+					}
+				}
+				parser.parseMaybeImportAttributes(node);
+				this.semicolon();
+				this.finishNode(node, 'ImportDeclaration');
+				parser.importOrExportOuterKind = 'value';
+				return import_node;
+			}
+
+			/**
 			 * @type {Parse.Parser['parseStatement']}
 			 */
 			parseStatement(context, topLevel, exports) {
@@ -2616,28 +2659,28 @@ export function TSRXPlugin(config) {
 					const node = this.jsx_parseExpressionContainer();
 					// Keep JSXEmptyExpression as-is (don't convert to TSRXExpression/Text/Html)
 					if (node.expression.type !== 'JSXEmptyExpression') {
-						/** @type {AST.TSRXExpression | AST.Html | AST.TextNode} */ (
+						/** @type {AST.TSRXExpression | AST.Html | AST.TextNode | AST.Style} */ (
 							/** @type {unknown} */ (node)
-						).type = node.html ? 'Html' : node.text ? 'Text' : 'TSRXExpression';
+						).type = node.html
+							? 'Html'
+							: node.text
+								? 'Text'
+								: node.style
+									? 'Style'
+									: 'TSRXExpression';
+						if (node.style) {
+							/** @type {AST.Style} */ (/** @type {unknown} */ (node)).value =
+								/** @type {AST.Literal} */ (node.expression);
+							delete (/** @type {any} */ (node).expression);
+						}
 						delete node.html;
 						delete node.text;
+						delete node.style;
 					}
 
 					return /** @type {ESTreeJSX.JSXEmptyExpression | AST.TSRXExpression | AST.Html | AST.TextNode | ESTreeJSX.JSXExpressionContainer} */ (
 						/** @type {unknown} */ (node)
 					);
-				}
-
-				if (this.value === '#server') {
-					// Peek ahead to see if this is a server block (#server { ... }) vs
-					// a server identifier expression (#server.fn(), #server.fn().then())
-					let peek_pos = this.end;
-					while (peek_pos < this.input.length && /\s/.test(this.input[peek_pos])) peek_pos++;
-					if (peek_pos < this.input.length && this.input.charCodeAt(peek_pos) === 123) {
-						// Next non-whitespace character is '{' — parse as server block
-						return this.parseServerBlock();
-					}
-					// Otherwise fall through to parse as expression statement (e.g., #server.fn().then(...))
 				}
 
 				if (this.value === 'component') {

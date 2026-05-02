@@ -1,10 +1,12 @@
 import { track, trackAsync } from 'ripple';
 
-#server {
+module server {
 	export async function formatValue(n: number): Promise<string> {
 		return `server-${n}`;
 	}
 }
+
+import { formatValue } from server;
 
 export component AsyncWithServerCall() {
 	let &[count] = track(0);
@@ -18,7 +20,7 @@ export component AsyncWithServerCall() {
 		{'increment'}
 	</button>
 	try {
-		let &[data] = trackAsync(() => #server.formatValue(count));
+		let &[data] = trackAsync(() => formatValue(count));
 		<p class="result">{data}</p>
 	} pending {
 		<p class="loading">{'loading...'}</p>

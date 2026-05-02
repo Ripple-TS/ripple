@@ -123,6 +123,9 @@ describe('@tsrx/mcp stdio server', () => {
 				'get-documentation',
 				'inspect-project',
 				'list-sections',
+				'review-tsrx-accessibility',
+				'review-tsrx-components',
+				'review-tsrx-styles',
 				'validate-tsrx-file',
 			]);
 		});

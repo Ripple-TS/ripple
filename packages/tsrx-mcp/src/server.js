@@ -305,7 +305,7 @@ function create_tsrx_task_prompt(options) {
 1. Identify whether the task is about target-neutral TSRX syntax, target runtime behavior, or both.
 ${project_context_step}
 3. For syntax uncertainty, use \`list-sections\`, \`get-documentation\`, or read \`tsrx://docs/{slug}.md\`.
-4. Keep core TSRX advice target-neutral: component declarations, statement templates, control flow, TSX expression values, lazy destructuring, style identifiers, and server blocks.
+4. Keep core TSRX advice target-neutral: component declarations, statement templates, control flow, TSX expression values, lazy destructuring, style identifiers, and submodule declarations.
 5. Use \`tsrx://targets/{target}.md\` as the handoff point for target-specific responsibilities.
 ${file_validation_step}
 ${compile_step}

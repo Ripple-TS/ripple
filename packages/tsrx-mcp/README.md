@@ -86,9 +86,9 @@ Add the generic config above to your Codex MCP configuration.
 - `format-tsrx` - format TSRX code using the official Prettier plugin.
 - `analyze-tsrx` - compile TSRX code and convert common diagnostics into
   target-neutral authoring advice with linked docs resources.
-- `review-tsrx-accessibility` - review TSRX source for common accessibility
-  issues before browser-based Axe validation, including missing button names,
-  unlabeled form controls, and visible text written in a non-rendering shape.
+- `review-tsrx-accessibility` - review TSRX source for common accessibility issues
+  before browser-based Axe validation, including missing button names, unlabeled
+  form controls, and visible text written in a non-rendering shape.
 - `review-tsrx-styles` - review component-scoped style usage for malformed style
   blocks, broad selectors, root styling, and contrast risks.
 - `review-tsrx-components` - review component structure and suggest extraction

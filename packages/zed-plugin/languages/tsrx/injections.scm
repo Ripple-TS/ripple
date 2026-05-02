@@ -4,7 +4,7 @@
   (#set! injection.combined)
   (#set! injection.language "css"))
 
-; Inject JavaScript/TypeScript into server blocks
+; Inject JavaScript/TypeScript into submodules
 ; Note: statement is inlined, so we need to match specific statement types
 ; Commenting out for now as it requires matching all concrete statement types
 

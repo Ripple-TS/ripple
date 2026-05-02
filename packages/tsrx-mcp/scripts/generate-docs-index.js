@@ -214,16 +214,17 @@ Source: website-tsrx/src/pages/specification.tsrx#lazy`,
 		{
 			slug: 'style-and-server',
 			title: 'Style and Server Extensions',
-			use_cases: '#style, scoped css, #server, server blocks, compile-time identifiers',
+			use_cases:
+				'style directive, scoped css, module server, submodule imports, compile-time identifiers',
 			content: `# Style and Server Extensions
 
-\`#style\` is a compile-time identifier for scoped CSS class names declared in the current module.
+\`{style "className"}\` is an attribute-value directive for scoped CSS class names declared in the current module.
 
 \`\`\`tsx
-<div class={#style.card} />
+<Child className={style "card"} />
 \`\`\`
 
-\`#server { ... }\` marks a lexical region intended for server compile targets. TSRX parses the block; target compilers decide how to emit or strip it.
+\`module server { ... }\` declares a server-oriented submodule in the Ripple host profile. Import exported functions with \`import { load } from server\` before use.
 
 Specification grammar:
 
