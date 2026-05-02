@@ -7,6 +7,18 @@ import { error } from '../errors.js';
 
 export const COMPONENT_RETURN_VALUE_ERROR =
 	'Return statements inside components cannot have a return value.';
+export const COMPONENT_LOOP_RETURN_ERROR =
+	'Return statements are not allowed inside component for...of loops. Use continue instead.';
+export const COMPONENT_LOOP_BREAK_ERROR =
+	'Break statements are not allowed inside component for...of loops.';
+export const COMPONENT_FOR_STATEMENT_ERROR =
+	'For loops are not supported in components. Use for...of instead.';
+export const COMPONENT_FOR_IN_STATEMENT_ERROR =
+	'For...in loops are not supported in components. Use for...of instead.';
+export const COMPONENT_WHILE_STATEMENT_ERROR =
+	'While loops are not supported in components. Move the while loop into a function.';
+export const COMPONENT_DO_WHILE_STATEMENT_ERROR =
+	'Do...while loops are not supported in components. Move the do...while loop into a function.';
 
 const invalid_nestings = {
 	// <p> cannot contain block-level elements
@@ -133,19 +145,29 @@ function get_element_tag(element) {
  * @returns {AST.ReturnStatement}
  */
 export function get_return_keyword_node(node) {
-	const return_keyword_length = 'return'.length;
+	return get_statement_keyword_node(node, 'return');
+}
+
+/**
+ * @template {AST.Node} T
+ * @param {T} node
+ * @param {string} keyword
+ * @returns {T}
+ */
+export function get_statement_keyword_node(node, keyword) {
+	const keyword_length = keyword.length;
 	const start = /** @type {AST.NodeWithLocation} */ (node).start ?? 0;
 	const loc = /** @type {AST.NodeWithLocation} */ (node).loc;
 
-	return /** @type {AST.ReturnStatement} */ ({
+	return /** @type {T} */ ({
 		...node,
-		end: start + return_keyword_length,
+		end: start + keyword_length,
 		loc: loc
 			? {
 					start: loc.start,
 					end: {
 						line: loc.start.line,
-						column: loc.start.column + return_keyword_length,
+						column: loc.start.column + keyword_length,
 					},
 				}
 			: undefined,
@@ -170,6 +192,59 @@ export function validate_component_return_statement(node, filename, errors, comm
 		errors,
 		comments,
 	);
+}
+
+/**
+ * @param {AST.ReturnStatement} node
+ * @param {string | null | undefined} filename
+ * @param {CompileError[]} [errors]
+ * @param {AST.CommentWithLocation[]} [comments]
+ */
+export function validate_component_loop_return_statement(node, filename, errors, comments) {
+	error(
+		COMPONENT_LOOP_RETURN_ERROR,
+		filename ?? null,
+		get_return_keyword_node(node),
+		errors,
+		comments,
+	);
+}
+
+/**
+ * @param {AST.BreakStatement} node
+ * @param {string | null | undefined} filename
+ * @param {CompileError[]} [errors]
+ * @param {AST.CommentWithLocation[]} [comments]
+ */
+export function validate_component_loop_break_statement(node, filename, errors, comments) {
+	error(
+		COMPONENT_LOOP_BREAK_ERROR,
+		filename ?? null,
+		get_statement_keyword_node(node, 'break'),
+		errors,
+		comments,
+	);
+}
+
+/**
+ * @param {AST.ForStatement | AST.ForInStatement | AST.WhileStatement | AST.DoWhileStatement} node
+ * @param {string | null | undefined} filename
+ * @param {CompileError[]} [errors]
+ * @param {AST.CommentWithLocation[]} [comments]
+ */
+export function validate_component_unsupported_loop_statement(node, filename, errors, comments) {
+	let message;
+	if (node.type === 'ForStatement') {
+		message = COMPONENT_FOR_STATEMENT_ERROR;
+	} else if (node.type === 'ForInStatement') {
+		message = COMPONENT_FOR_IN_STATEMENT_ERROR;
+	} else if (node.type === 'WhileStatement') {
+		message = COMPONENT_WHILE_STATEMENT_ERROR;
+	} else {
+		message = COMPONENT_DO_WHILE_STATEMENT_ERROR;
+	}
+
+	error(message, filename ?? null, node, errors, comments);
 }
 
 /**

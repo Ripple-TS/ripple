@@ -40,7 +40,12 @@ import {
 } from '../lazy.js';
 import { find_first_top_level_await_in_component_body } from '../await.js';
 import { prepare_stylesheet_for_render, annotate_component_with_hash } from '../scoping.js';
-import { validate_component_return_statement } from '../../analyze/validation.js';
+import {
+	validate_component_loop_break_statement,
+	validate_component_loop_return_statement,
+	validate_component_return_statement,
+	validate_component_unsupported_loop_statement,
+} from '../../analyze/validation.js';
 import { get_component_from_path } from '../../utils/ast.js';
 import {
 	is_interleaved_body as is_interleaved_body_core,
@@ -60,6 +65,63 @@ import { is_hoist_safe_jsx_node } from '../jsx-hoist.js';
 /**
  * @typedef {{ source_name: string, read: () => any }} LazyBinding
  */
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_function_or_class_boundary(node) {
+	return (
+		node?.type === 'FunctionDeclaration' ||
+		node?.type === 'FunctionExpression' ||
+		node?.type === 'ArrowFunctionExpression' ||
+		node?.type === 'ClassDeclaration' ||
+		node?.type === 'ClassExpression'
+	);
+}
+
+/**
+ * @param {any[]} path
+ * @returns {boolean}
+ */
+function is_inside_component_for_of(path) {
+	for (let i = path.length - 1; i >= 0; i -= 1) {
+		const node = path[i];
+		if (is_function_or_class_boundary(node) || node?.type === 'Component') {
+			return false;
+		}
+		if (node?.type === 'ForOfStatement') {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * @param {any[]} path
+ * @returns {boolean}
+ */
+function break_targets_component_loop(path) {
+	for (let i = path.length - 1; i >= 0; i -= 1) {
+		const node = path[i];
+		if (is_function_or_class_boundary(node) || node?.type === 'Component') {
+			return false;
+		}
+		if (node?.type === 'SwitchStatement') {
+			return false;
+		}
+		if (
+			node?.type === 'ForOfStatement' ||
+			node?.type === 'ForStatement' ||
+			node?.type === 'ForInStatement' ||
+			node?.type === 'WhileStatement' ||
+			node?.type === 'DoWhileStatement'
+		) {
+			return true;
+		}
+	}
+	return false;
+}
 
 /**
  * Build a `transform()` function for a specific JSX platform (React, Preact,
@@ -122,7 +184,81 @@ export function createJsxTransform(platform) {
 		walk(/** @type {any} */ (ast), transform_context, {
 			ReturnStatement(node, { next, path }) {
 				if (get_component_from_path(path)) {
-					validate_component_return_statement(
+					if (is_inside_component_for_of(path)) {
+						validate_component_loop_return_statement(
+							node,
+							filename,
+							transform_context.errors,
+							transform_context.comments,
+						);
+					} else {
+						validate_component_return_statement(
+							node,
+							filename,
+							transform_context.errors,
+							transform_context.comments,
+						);
+					}
+				}
+
+				return next();
+			},
+
+			BreakStatement(node, { next, path }) {
+				if (get_component_from_path(path) && break_targets_component_loop(path)) {
+					validate_component_loop_break_statement(
+						node,
+						filename,
+						transform_context.errors,
+						transform_context.comments,
+					);
+				}
+
+				return next();
+			},
+
+			ForStatement(node, { next, path }) {
+				if (get_component_from_path(path)) {
+					validate_component_unsupported_loop_statement(
+						node,
+						filename,
+						transform_context.errors,
+						transform_context.comments,
+					);
+				}
+
+				return next();
+			},
+
+			ForInStatement(node, { next, path }) {
+				if (get_component_from_path(path)) {
+					validate_component_unsupported_loop_statement(
+						node,
+						filename,
+						transform_context.errors,
+						transform_context.comments,
+					);
+				}
+
+				return next();
+			},
+
+			WhileStatement(node, { next, path }) {
+				if (get_component_from_path(path)) {
+					validate_component_unsupported_loop_statement(
+						node,
+						filename,
+						transform_context.errors,
+						transform_context.comments,
+					);
+				}
+
+				return next();
+			},
+
+			DoWhileStatement(node, { next, path }) {
+				if (get_component_from_path(path)) {
+					validate_component_unsupported_loop_statement(
 						node,
 						filename,
 						transform_context.errors,
@@ -1703,7 +1839,11 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	}
 
 	const has_tail = continuation_body.length > 0;
-	const original_loop_body = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
+	const original_loop_body = /** @type {any[]} */ (
+		rewrite_loop_continues_to_bare_returns(
+			node.body.type === 'BlockStatement' ? node.body.body : [node.body],
+		)
+	);
 
 	// When there's a tail, build TailHelper first so its component_element can
 	// be embedded inside the loop helper's body (gated on isLast). The
@@ -3050,6 +3190,71 @@ function find_key_expression_in_body(body_nodes) {
 }
 
 /**
+ * @param {any} source_node
+ * @returns {any}
+ */
+function continue_to_bare_return(source_node) {
+	return set_loc(
+		/** @type {any} */ ({
+			type: 'ReturnStatement',
+			argument: null,
+			metadata: { path: [] },
+		}),
+		source_node,
+	);
+}
+
+/**
+ * `continue` in a component `for...of` body means "skip this item". JSX targets
+ * lower `for...of` to callbacks, so a raw ContinueStatement would be invalid JS;
+ * a bare `return` from the callback preserves the item-skip behavior.
+ *
+ * @param {any[] | any} node
+ * @param {boolean} [is_root]
+ * @returns {any[] | any}
+ */
+export function rewrite_loop_continues_to_bare_returns(node, is_root = true) {
+	if (Array.isArray(node)) {
+		return node.map((child) => rewrite_loop_continues_to_bare_returns(child, false));
+	}
+
+	if (!node || typeof node !== 'object') {
+		return node;
+	}
+
+	if (node.type === 'ContinueStatement') {
+		return continue_to_bare_return(node);
+	}
+
+	if (is_function_or_class_boundary(node) || (!is_root && is_loop_statement(node))) {
+		return node;
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		node[key] = rewrite_loop_continues_to_bare_returns(node[key], false);
+	}
+
+	return node;
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_loop_statement(node) {
+	return (
+		node?.type === 'ForOfStatement' ||
+		node?.type === 'ForStatement' ||
+		node?.type === 'ForInStatement' ||
+		node?.type === 'WhileStatement' ||
+		node?.type === 'DoWhileStatement'
+	);
+}
+
+/**
  * @param {any} node
  * @param {TransformContext} transform_context
  * @returns {ESTreeJSX.JSXExpressionContainer}
@@ -3066,7 +3271,11 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	}
 
 	const loop_params = get_for_of_iteration_params(node.left, node.index);
-	const loop_body = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
+	const loop_body = /** @type {any[]} */ (
+		rewrite_loop_continues_to_bare_returns(
+			node.body.type === 'BlockStatement' ? node.body.body : [node.body],
+		)
+	);
 	const has_hooks = body_contains_top_level_hook_call(loop_body, transform_context, true);
 	const body_key_expression = find_key_expression_in_body(loop_body);
 	const explicit_key_expression =

@@ -15,6 +15,24 @@ describe('for statements', () => {
 		expect(container).toMatchSnapshot();
 	});
 
+	it('allows continue to skip an iteration', () => {
+		component App() {
+			const items = ['Item 1', '', 'Item 3'];
+
+			for (const item of items) {
+				if (!item) continue;
+				<div class="item">{item}</div>
+			}
+		}
+
+		render(App);
+
+		expect(Array.from(container.querySelectorAll('.item')).map((el) => el.textContent)).toEqual([
+			'Item 1',
+			'Item 3',
+		]);
+	});
+
 	it('renders a simple dynamic array', () => {
 		component App() {
 			const items = new RippleArray('Item 1', 'Item 2', 'Item 3');

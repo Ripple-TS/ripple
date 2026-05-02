@@ -56,6 +56,101 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 }
 
 /**
+ * Shared component-loop regressions. Vue does not share the full JSX output
+ * suite because its component export shape differs, but it should still share
+ * these component-body validation rules.
+ *
+ * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
+ */
+export function runSharedComponentLoopControlFlowTests({ compile, name }) {
+	describe(`[${name}] component loop control flow`, () => {
+		it('uses continue to skip a for...of iteration', () => {
+			const { code } = compile(
+				`export component App({ items }: { items: string[] }) {
+					for (const item of items) {
+						if (!item) continue
+						<div>{item}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).not.toContain('continue;');
+			expect(code).toMatch(/return null;|\? null :/);
+			expect(code).toContain('<div>{item}</div>');
+		});
+
+		it('allows ordinary function control flow inside for...of loops', () => {
+			const { code } = compile(
+				`export component App({ items }: { items: string[] }) {
+					for (const item of items) {
+						function label(value: string) {
+							for (let i = 0; i < 1; i++) {
+								while (i < 0) {
+									break
+								}
+								if (!value) return 'missing'
+							}
+							return value
+						}
+
+						<div>{label(item)}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function label');
+			expect(code).toContain('label(item)');
+		});
+
+		it('rejects return statements inside for...of loops', () => {
+			expect(() =>
+				compile(
+					`export component App({ items }: { items: string[] }) {
+						for (const item of items) {
+							if (!item) return
+							<div>{item}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow('Return statements are not allowed inside component for...of loops');
+		});
+
+		it('rejects break statements targeting for...of loops', () => {
+			expect(() =>
+				compile(
+					`export component App({ items }: { items: string[] }) {
+						for (const item of items) {
+							if (!item) break
+							<div>{item}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow('Break statements are not allowed inside component for...of loops');
+		});
+
+		it.each([
+			['for', `for (let i = 0; i < items.length; i++) { <div>{items[i]}</div> }`],
+			['for...in', `for (const key in items) { <div>{items[key]}</div> }`],
+			['while', `while (items.length) { <div>{items[0]}</div> }`],
+			['do...while', `do { <div>{items[0]}</div> } while (items.length)`],
+		])('rejects %s loops in component templates', (_label, loop) => {
+			expect(() =>
+				compile(
+					`export component App({ items }: { items: string[] }) {
+						${loop}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/loops are not supported in components/);
+		});
+	});
+}
+
+/**
  * Shared compile-output regressions. These assert observable properties of
  * the generated code (not source-map structure) that every JSX target should
  * satisfy across whatever `transformElement` hook the platform wires in.
@@ -63,6 +158,8 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
  * @param {CompileHarness} harness
  */
 export function runSharedCompileTests({ compile, name, classAttrName }) {
+	runSharedComponentLoopControlFlowTests({ compile, name });
+
 	describe(`[${name}] component export shapes`, () => {
 		// `component X()` maps to `function X()` identically on every target
 		// (react / preact / solid) — the keyword rewrite is done at the

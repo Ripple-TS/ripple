@@ -2242,6 +2242,65 @@ const visitors = {
 		const id = context.state.flush_node?.(false, is_controlled);
 		const pattern = /** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id;
 		const body_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.body));
+		const body_nodes = /** @type {AST.BlockStatement} */ (node.body).body;
+		/** @type {AST.Statement[]} */
+		const body = [];
+		let body_start = 0;
+
+		while (body_start < body_nodes.length) {
+			const child = body_nodes[body_start];
+			if (
+				child.type !== 'IfStatement' ||
+				!child.metadata?.has_continue ||
+				child.metadata?.has_template ||
+				child.alternate
+			) {
+				break;
+			}
+
+			const consequent_body =
+				child.consequent.type === 'BlockStatement' ? child.consequent.body : [child.consequent];
+			if (consequent_body.length !== 1 || consequent_body[0].type !== 'ContinueStatement') {
+				break;
+			}
+
+			const consequent_scope =
+				/** @type {ScopeInterface} */ (context.state.scopes.get(child.consequent)) || body_scope;
+			const skip_statements = transform_body(consequent_body, {
+				...context,
+				state: {
+					...context.state,
+					scope: consequent_scope,
+					namespace: context.state.namespace,
+					flush_node: null,
+				},
+			});
+
+			body.push(
+				b.if(
+					/** @type {AST.Expression} */ (
+						context.visit(child.test, {
+							...context.state,
+							metadata: { ...context.state.metadata },
+						})
+					),
+					b.block([...skip_statements, b.return(null)]),
+				),
+			);
+			body_start++;
+		}
+
+		body.push(
+			...transform_body(body_nodes.slice(body_start), {
+				...context,
+				state: {
+					...context.state,
+					scope: body_scope,
+					namespace: context.state.namespace,
+					flush_node: null,
+				},
+			}),
+		);
 
 		context.state.init?.push(
 			b.stmt(
@@ -2251,17 +2310,7 @@ const visitors = {
 					b.thunk(/** @type {AST.Expression} */ (context.visit(node.right))),
 					b.arrow(
 						index ? [b.id('__anchor'), pattern, index] : [b.id('__anchor'), pattern],
-						b.block(
-							transform_body(/** @type {AST.BlockStatement} */ (node.body).body, {
-								...context,
-								state: {
-									...context.state,
-									scope: body_scope,
-									namespace: context.state.namespace,
-									flush_node: null,
-								},
-							}),
-						),
+						b.block(body),
 					),
 					b.literal(flags),
 					key != null
@@ -2283,6 +2332,7 @@ const visitors = {
 
 			return context.next();
 		}
+
 		context.state.template?.push('<!>');
 
 		const id = context.state.flush_node?.();
@@ -2361,6 +2411,36 @@ const visitors = {
 
 			return context.next();
 		}
+
+		if (node.metadata?.has_continue && !node.metadata?.has_template && !node.alternate) {
+			const consequent_scope =
+				/** @type {ScopeInterface} */ (context.state.scopes.get(node.consequent)) ||
+				context.state.scope;
+			const consequent_body =
+				node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+			const consequent_statements = transform_body(consequent_body, {
+				...context,
+				state: { ...context.state, flush_node: null, scope: consequent_scope },
+			});
+			const consequent =
+				consequent_body.length === 1 && consequent_body[0].type === 'ContinueStatement'
+					? b.block([...consequent_statements, b.return(null)])
+					: b.block(consequent_statements);
+
+			context.state.init?.push(
+				b.if(
+					/** @type {AST.Expression} */ (
+						context.visit(node.test, {
+							...context.state,
+							metadata: { ...context.state.metadata },
+						})
+					),
+					consequent,
+				),
+			);
+			return;
+		}
+
 		context.state.template?.push('<!>');
 
 		const id = context.state.flush_node?.();
@@ -3196,6 +3276,13 @@ function transform_ts_child(node, context) {
 			return result;
 		}
 		state.init.push(/** @type {AST.Statement} */ (result));
+	} else if (node.type === 'ContinueStatement') {
+		const result = b.continue;
+
+		if (!state.init) {
+			return result;
+		}
+		state.init.push(/** @type {AST.Statement} */ (result));
 	} else if (node.type === 'TsxCompat') {
 		const children = /** @type {AST.TsxCompat['children']} */ (
 			node.children
@@ -3998,6 +4085,8 @@ function transform_children(children, context) {
 				});
 			} else if (node.type === 'BreakStatement') {
 				// do nothing
+			} else if (node.type === 'ContinueStatement') {
+				state.template?.push('<!>');
 			} else {
 				debugger;
 			}

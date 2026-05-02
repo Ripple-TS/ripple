@@ -12,6 +12,7 @@ import {
 	applyLazyTransforms as apply_lazy_transforms,
 	collectLazyBindingsFromComponent as collect_lazy_bindings_from_component,
 	replaceLazyParams as replace_lazy_params,
+	rewriteLoopContinuesToBareReturns as rewrite_loop_continues_to_bare_returns,
 	isInterleavedBody as is_interleaved_body_core,
 	isCapturableJsxChild as is_capturable_jsx_child,
 	captureJsxChild,
@@ -460,6 +461,106 @@ function body_to_jsx_child(body_nodes, transform_context) {
 }
 
 /**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_bare_return_statement(node) {
+	return node?.type === 'ReturnStatement' && node.argument == null;
+}
+
+/**
+ * @param {any} node
+ * @returns {any[]}
+ */
+function get_if_consequent_body(node) {
+	return node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_lone_return_if_statement(node) {
+	return (
+		node?.type === 'IfStatement' &&
+		!node.alternate &&
+		get_if_consequent_body(node).length === 1 &&
+		is_bare_return_statement(get_if_consequent_body(node)[0])
+	);
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @returns {boolean}
+ */
+function body_has_loop_skip(body_nodes) {
+	return body_nodes.some(
+		(node) => is_bare_return_statement(node) || is_lone_return_if_statement(node),
+	);
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @param {TransformContext} transform_context
+ * @returns {any[]}
+ */
+function loop_body_to_callback_statements(body_nodes, transform_context) {
+	/** @type {any[]} */
+	const statements = [];
+	/** @type {any[]} */
+	const children = [];
+
+	/** @param {any} source_node */
+	const flush_children_to_return = (source_node) => {
+		const argument =
+			children.length > 0 ? build_return_expression(children) : create_null_literal();
+		children.length = 0;
+		return {
+			type: 'ReturnStatement',
+			argument,
+			metadata: { path: [] },
+			start: source_node?.start,
+			end: source_node?.end,
+			loc: source_node?.loc,
+		};
+	};
+
+	for (const child of body_nodes) {
+		if (is_bare_return_statement(child)) {
+			statements.push(flush_children_to_return(child));
+			continue;
+		}
+
+		if (is_lone_return_if_statement(child)) {
+			statements.push({
+				type: 'IfStatement',
+				test: child.test,
+				consequent: {
+					type: 'BlockStatement',
+					body: [flush_children_to_return(child.consequent)],
+					metadata: { path: [] },
+				},
+				alternate: null,
+				metadata: { path: [] },
+				start: child.start,
+				end: child.end,
+				loc: child.loc,
+			});
+			continue;
+		}
+
+		if (is_jsx_child(child)) {
+			children.push(to_jsx_child(child, transform_context));
+		} else {
+			statements.push(child);
+		}
+	}
+
+	statements.push(flush_children_to_return(body_nodes.at(-1)));
+	return statements;
+}
+
+/**
  * Solid-specific binding of the core `isInterleavedBody` helper with this
  * target's `is_jsx_child` predicate.
  *
@@ -732,22 +833,32 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	transform_context.needs_for = true;
 
 	const loop_params = get_for_of_iteration_params(node.left, node.index);
-	const loop_body = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
-
-	const body_jsx = body_to_jsx_child(loop_body, transform_context);
-
-	const arrow = merge_branch_body_into_arrow(
-		/** @type {any} */ ({
-			type: 'ArrowFunctionExpression',
-			params: loop_params,
-			body: null,
-			async: false,
-			generator: false,
-			expression: true,
-			metadata: { path: [] },
-		}),
-		body_jsx,
+	const loop_body = /** @type {any[]} */ (
+		rewrite_loop_continues_to_bare_returns(
+			node.body.type === 'BlockStatement' ? node.body.body : [node.body],
+		)
 	);
+
+	let arrow = /** @type {any} */ ({
+		type: 'ArrowFunctionExpression',
+		params: loop_params,
+		body: null,
+		async: false,
+		generator: false,
+		expression: true,
+		metadata: { path: [] },
+	});
+
+	if (body_has_loop_skip(loop_body)) {
+		arrow.body = {
+			type: 'BlockStatement',
+			body: loop_body_to_callback_statements(loop_body, transform_context),
+			metadata: { path: [] },
+		};
+		arrow.expression = false;
+	} else {
+		arrow = merge_branch_body_into_arrow(arrow, body_to_jsx_child(loop_body, transform_context));
+	}
 
 	const attributes = [
 		{
