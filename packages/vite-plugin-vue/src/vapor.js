@@ -9,8 +9,13 @@ import vueJsxVaporModule from 'vue-jsx-vapor/vite';
  * }) => Plugin[]} VueJsxVaporPlugin
  */
 
+const vueJsxVaporModuleInterop = /** @type {VueJsxVaporPlugin | { default: VueJsxVaporPlugin }} */ (
+	/** @type {unknown} */ (vueJsxVaporModule)
+);
 const vueJsxVapor =
-	typeof vueJsxVaporModule === 'function' ? vueJsxVaporModule : vueJsxVaporModule.default;
+	typeof vueJsxVaporModuleInterop === 'function'
+		? vueJsxVaporModuleInterop
+		: vueJsxVaporModuleInterop.default;
 
 export function tsrxVueVapor() {
 	return vueJsxVapor({

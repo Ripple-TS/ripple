@@ -10,7 +10,6 @@ import {
 	componentToFunctionDeclaration,
 	createJsxTransform,
 	error,
-	identifier_to_jsx_name,
 	setLocation,
 } from '@tsrx/core';
 
@@ -62,15 +61,7 @@ const vue_platform = {
 		renderForOf: (node, loop_params, body_statements, ctx) =>
 			render_for_of_as_vapor_for(node, loop_params, body_statements, ctx),
 		createErrorBoundaryContent(try_content) {
-			return {
-				type: 'ArrowFunctionExpression',
-				params: [],
-				body: try_content.expression,
-				async: false,
-				generator: false,
-				expression: true,
-				metadata: { path: [] },
-			};
+			return builders.arrow([], try_content.expression);
 		},
 		transformElementChildren(node, walked_children, raw_children, attributes, ctx) {
 			return rewrite_host_text_or_html_children(
@@ -132,26 +123,12 @@ function component_to_vapor_component_declaration(component, transform_context, 
 	};
 	/** @type {any} */ (component_id.metadata).hover = create_component_hover_replacement(fn.params);
 
-	return setLocation(
-		/** @type {any} */ ({
-			type: 'VariableDeclaration',
-			kind: 'const',
-			declarations: [
-				{
-					type: 'VariableDeclarator',
-					id: component_id,
-					init: call,
-					metadata: { path: [] },
-				},
-			],
-			metadata: {
-				path: [],
-				generated_helpers,
-				generated_statics,
-			},
-		}),
-		component,
-	);
+	const declaration = builders.declaration('const', [builders.declarator(component_id, call)]);
+	Object.assign(/** @type {any} */ (declaration.metadata), {
+		generated_helpers,
+		generated_statics,
+	});
+	return setLocation(/** @type {any} */ (declaration), component);
 }
 
 /**
@@ -162,24 +139,17 @@ function component_to_vapor_component_declaration(component, transform_context, 
  */
 function wrap_helper_component(helper_fn, helper_id, source_node) {
 	return setLocation(
-		/** @type {any} */ ({
-			type: 'VariableDeclaration',
-			kind: 'const',
-			declarations: [
-				{
-					type: 'VariableDeclarator',
-					id: clone_identifier(helper_id),
-					init: create_define_vapor_component_call(
-						function_declaration_to_expression(helper_fn),
-						[],
-						[],
-						source_node,
-					),
-					metadata: { path: [] },
-				},
-			],
-			metadata: { path: [] },
-		}),
+		builders.declaration('const', [
+			builders.declarator(
+				clone_identifier(helper_id),
+				create_define_vapor_component_call(
+					function_declaration_to_expression(helper_fn),
+					[],
+					[],
+					source_node,
+				),
+			),
+		]),
 		source_node,
 	);
 }
@@ -197,24 +167,12 @@ function create_define_vapor_component_call(
 	generated_statics,
 	source_node,
 ) {
-	return setLocation(
-		/** @type {any} */ ({
-			type: 'CallExpression',
-			callee: {
-				type: 'Identifier',
-				name: 'defineVaporComponent',
-				metadata: { path: [] },
-			},
-			arguments: [fn_expression],
-			optional: false,
-			metadata: {
-				path: [],
-				generated_helpers,
-				generated_statics,
-			},
-		}),
-		source_node,
-	);
+	const call = builders.call('defineVaporComponent', fn_expression);
+	Object.assign(/** @type {any} */ (call.metadata), {
+		generated_helpers,
+		generated_statics,
+	});
+	return setLocation(call, source_node);
 }
 
 /**
@@ -256,42 +214,28 @@ function render_for_of_as_vapor_for(node, loop_params, body_statements, transfor
 		return null;
 	}
 	const attributes = [
-		{
-			type: 'JSXAttribute',
-			name: { type: 'JSXIdentifier', name: 'in', metadata: { path: [] } },
-			value: to_jsx_expression_container(clone_expression_node(node.right)),
-			metadata: { path: [] },
-		},
+		builders.jsx_attribute(
+			builders.jsx_id('in'),
+			to_jsx_expression_container(clone_expression_node(node.right)),
+		),
 	];
 
 	if (key_expression) {
-		attributes.push({
-			type: 'JSXAttribute',
-			name: { type: 'JSXIdentifier', name: 'getKey', metadata: { path: [] } },
-			value: to_jsx_expression_container(
-				create_loop_callback(loop_params, key_expression, true),
+		attributes.push(
+			builders.jsx_attribute(
+				builders.jsx_id('getKey'),
+				to_jsx_expression_container(create_loop_callback(loop_params, key_expression, true)),
 			),
-			metadata: { path: [] },
-		});
+		);
 	}
 
-	return to_jsx_expression_container({
-		type: 'JSXElement',
-		openingElement: {
-			type: 'JSXOpeningElement',
-			name: { type: 'JSXIdentifier', name: 'VaporFor', metadata: { path: [] } },
-			attributes,
-			selfClosing: false,
-			metadata: { path: [] },
-		},
-		closingElement: {
-			type: 'JSXClosingElement',
-			name: { type: 'JSXIdentifier', name: 'VaporFor', metadata: { path: [] } },
-			metadata: { path: [] },
-		},
-		children: [to_jsx_expression_container(create_loop_callback(slot.params, slot.body, slot.expression))],
-		metadata: { path: [] },
-	});
+	return to_jsx_expression_container(
+		builders.jsx_element_fresh(
+			builders.jsx_opening_element(builders.jsx_id('VaporFor'), attributes),
+			builders.jsx_closing_element(builders.jsx_id('VaporFor')),
+			[to_jsx_expression_container(create_loop_callback(slot.params, slot.body, slot.expression))],
+		),
+	);
 }
 
 /**
@@ -301,41 +245,15 @@ function render_for_of_as_vapor_for(node, loop_params, body_statements, transfor
  * @returns {any}
  */
 function render_for_of_as_flat_map(node, loop_params, rendered) {
-	return to_jsx_expression_container({
-		type: 'CallExpression',
-		callee: {
-			type: 'MemberExpression',
-			object: clone_expression_node(node.right),
-			property: { type: 'Identifier', name: 'flatMap', metadata: { path: [] } },
-			computed: false,
-			optional: false,
-			metadata: { path: [] },
-		},
-		arguments: [
-			{
-				type: 'ArrowFunctionExpression',
-				params: loop_params,
-				body: {
-					type: 'BlockStatement',
-					body: [
-						{
-							type: 'ReturnStatement',
-							argument: to_array_render_expression(rendered),
-							metadata: { path: [] },
-						},
-					],
-					metadata: { path: [] },
-				},
-				async: false,
-				generator: false,
-				expression: false,
-				metadata: { path: [] },
-			},
-		],
-		async: false,
-		optional: false,
-		metadata: { path: [] },
-	});
+	return to_jsx_expression_container(
+		builders.call(
+			builders.member(clone_expression_node(node.right), 'flatMap'),
+			builders.arrow(
+				loop_params,
+				builders.block([builders.return(to_array_render_expression(rendered))]),
+			),
+		),
+	);
 }
 
 /**
@@ -451,15 +369,12 @@ function strip_top_level_jsx_keys(node) {
  * @returns {any}
  */
 function create_loop_callback(loop_params, body, expression) {
-	return {
-		type: 'ArrowFunctionExpression',
-		params: loop_params.map((param) => clone_expression_node(param)),
+	const callback = builders.arrow(
+		loop_params.map((param) => clone_expression_node(param)),
 		body,
-		async: false,
-		generator: false,
-		expression,
-		metadata: { path: [] },
-	};
+	);
+	callback.expression = expression;
+	return callback;
 }
 
 /**
@@ -517,28 +432,32 @@ function rewrite_vapor_for_keyed_slot_refs(node, loop_params, replacements = new
 		return node;
 	}
 
-	return walk(node, { loop_param_names, shadowed_names: new Set() }, {
-		Identifier(identifier, { path, state, next }) {
-			const parent = path.at(-1);
-			if (
-				(state.loop_param_names.has(identifier.name) || replacements.has(identifier.name)) &&
-				!state.shadowed_names.has(identifier.name) &&
-				parent &&
-				is_runtime_reference(identifier, parent)
-			) {
-				const replacement = replacements.get(identifier.name);
-				if (replacement) {
-					return clone_expression_node(replacement);
+	return walk(
+		node,
+		{ loop_param_names, shadowed_names: new Set() },
+		{
+			Identifier(identifier, { path, state, next }) {
+				const parent = path.at(-1);
+				if (
+					(state.loop_param_names.has(identifier.name) || replacements.has(identifier.name)) &&
+					!state.shadowed_names.has(identifier.name) &&
+					parent &&
+					is_runtime_reference(identifier, parent)
+				) {
+					const replacement = replacements.get(identifier.name);
+					if (replacement) {
+						return clone_expression_node(replacement);
+					}
+					return create_value_member_expression(identifier);
 				}
-				return create_value_member_expression(identifier);
-			}
 
-			return next();
+				return next();
+			},
+			FunctionDeclaration: rewrite_function_shadowed_refs,
+			FunctionExpression: rewrite_function_shadowed_refs,
+			ArrowFunctionExpression: rewrite_function_shadowed_refs,
 		},
-		FunctionDeclaration: rewrite_function_shadowed_refs,
-		FunctionExpression: rewrite_function_shadowed_refs,
-		ArrowFunctionExpression: rewrite_function_shadowed_refs,
-	});
+	);
 }
 
 /**
@@ -708,12 +627,7 @@ function create_index_member_expression(object, index) {
  * @returns {any}
  */
 function create_value_member_expression(identifier) {
-	return create_member_expression(
-		clone_identifier(identifier),
-		{ type: 'Identifier', name: 'value', metadata: { path: [] } },
-		false,
-		identifier,
-	);
+	return create_member_expression(clone_identifier(identifier), 'value', false, identifier);
 }
 
 /**
@@ -724,17 +638,7 @@ function create_value_member_expression(identifier) {
  * @returns {any}
  */
 function create_member_expression(object, property, computed, source_node) {
-	return setLocation(
-		{
-			type: 'MemberExpression',
-			object,
-			property,
-			computed,
-			optional: false,
-			metadata: { path: [] },
-		},
-		source_node,
-	);
+	return builders.member(object, property, computed, false, source_node);
 }
 
 /**
@@ -939,16 +843,7 @@ function has_dom_content_attribute(attributes, name) {
  * @returns {any}
  */
 function create_jsx_attribute(name, value, source_node) {
-	return setLocation(
-		/** @type {any} */ ({
-			type: 'JSXAttribute',
-			name: identifier_to_jsx_name(builders.id(name)),
-			value,
-			shorthand: false,
-			metadata: { path: [] },
-		}),
-		source_node,
-	);
+	return builders.jsx_attribute(builders.jsx_id(name), value, false, source_node);
 }
 
 /**
@@ -957,12 +852,7 @@ function create_jsx_attribute(name, value, source_node) {
  * @returns {any}
  */
 function to_jsx_expression_container(expression, source_node = expression) {
-	void source_node;
-	return {
-		type: 'JSXExpressionContainer',
-		expression,
-		metadata: { path: [] },
-	};
+	return builders.jsx_expression_container(expression, source_node);
 }
 
 /**
@@ -1073,7 +963,7 @@ function ensure_named_import(program, source, name, local = name) {
 		return;
 	}
 
-	program.body.unshift(create_import_declaration(source, [create_import_specifier(name, local)]));
+	program.body.unshift(builders.imports([[name, local, 'value']], source));
 }
 
 /**
@@ -1087,22 +977,6 @@ function create_import_specifier(name, local = name) {
 		imported: builders.id(name),
 		local: builders.id(local),
 		importKind: 'value',
-		metadata: { path: [] },
-	};
-}
-
-/**
- * @param {string} source
- * @param {any[]} specifiers
- * @returns {any}
- */
-function create_import_declaration(source, specifiers) {
-	return {
-		type: 'ImportDeclaration',
-		attributes: [],
-		specifiers,
-		importKind: 'value',
-		source: builders.literal(source),
 		metadata: { path: [] },
 	};
 }
