@@ -292,6 +292,68 @@ describe('@tsrx/react basic', () => {
 		);
 	});
 
+	it('captures static JSX reused by multiple early returns', () => {
+		const { code } = compile(
+			`export default component A() {
+				let early = true
+				<>"Hello"</>
+				if (early) {
+					return
+				}
+
+				<>"World"</>
+				if (!early) {
+					return
+				}
+
+				<>"done"</>
+				if (3) {
+					return
+				}
+
+				<>"bye"</>
+			}`,
+			'A.tsrx',
+		);
+
+		expect(code).toContain('const _tsrx_child_0 = <>"Hello"</>;');
+		expect(code).toContain('const _tsrx_child_1 = <>"World"</>;');
+		expect(code).toContain('const _tsrx_child_2 = <>"done"</>;');
+		expect(code).toContain('return _tsrx_child_0;');
+		expect(code).toContain('return <>{_tsrx_child_0}{_tsrx_child_1}</>;');
+		expect(code).toContain('return <>{_tsrx_child_0}{_tsrx_child_1}{_tsrx_child_2}</>;');
+		expect(code.match(/<>"Hello"<\/>/g)).toHaveLength(1);
+		expect(code.match(/<>"World"<\/>/g)).toHaveLength(1);
+		expect(code.match(/<>"done"<\/>/g)).toHaveLength(1);
+	});
+
+	it('captures static JSX before mixed early-return branch shapes', () => {
+		const { code } = compile(
+			`export component App() {
+				let first = false;
+				let second = true;
+				<div>{"start"}</div>
+				if (first) {
+					<strong>{"branch"}</strong>
+					return
+				}
+				<span>{"after"}</span>
+				if (second) {
+					return
+				}
+				<p>{"done"}</p>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('const _tsrx_child_0 = <div>{"start"}</div>;');
+		expect(code).toContain('return <>{_tsrx_child_0}<strong>{"branch"}</strong></>;');
+		expect(code).toContain('const _tsrx_child_1 = <span>{"after"}</span>;');
+		expect(code).toContain('return <>{_tsrx_child_0}{_tsrx_child_1}</>;');
+		expect(code.match(/<div>\{"start"\}<\/div>/g)).toHaveLength(1);
+		expect(code.match(/<span>\{"after"\}<\/span>/g)).toHaveLength(1);
+	});
+
 	it('keeps transforming unreachable component body statements after bare returns', () => {
 		const { code } = compile(
 			`export component App() {
@@ -664,6 +726,91 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('if (count > 1) {');
 		expect(code).toContain("return 'Hello World';");
 		expect(code).toContain("<span>{'After'}</span>");
+	});
+
+	it('captures static JSX reused by early returns inside element children', () => {
+		const { code } = compile(
+			`component App() {
+				let first = false;
+				let second = true;
+				<section>
+					<div>{"first"}</div>
+					if (first) {
+						return
+					}
+					<span>{"second"}</span>
+					if (second) {
+						return
+					}
+					<p>{"third"}</p>
+				</section>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('<section>{(() => {');
+		expect(code).toContain('const _tsrx_child_0 = <div>{"first"}</div>;');
+		expect(code).toContain('const _tsrx_child_1 = <span>{"second"}</span>;');
+		expect(code).toContain('return _tsrx_child_0;');
+		expect(code).toContain('return <>{_tsrx_child_0}{_tsrx_child_1}</>;');
+		expect(code.match(/<div>\{"first"\}<\/div>/g)).toHaveLength(1);
+		expect(code.match(/<span>\{"second"\}<\/span>/g)).toHaveLength(1);
+	});
+
+	it('captures static JSX reused by deeply nested element early returns', () => {
+		const { code } = compile(
+			`component App() {
+				let first = false;
+				let second = true;
+				<main>
+					<section>
+						<article>
+							<div>{"first"}</div>
+							if (first) {
+								return
+							}
+							<span>{"second"}</span>
+							if (second) {
+								return
+							}
+							<p>{"third"}</p>
+						</article>
+					</section>
+				</main>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('<main><section><article>{(() => {');
+		expect(code).toContain('const _tsrx_child_0 = <div>{"first"}</div>;');
+		expect(code).toContain('const _tsrx_child_1 = <span>{"second"}</span>;');
+		expect(code).toContain('return <>{_tsrx_child_0}{_tsrx_child_1}</>;');
+		expect(code.match(/<div>\{"first"\}<\/div>/g)).toHaveLength(1);
+		expect(code.match(/<span>\{"second"\}<\/span>/g)).toHaveLength(1);
+	});
+
+	it('does not capture nested dynamic render expressions across early returns', () => {
+		const { code } = compile(
+			`component App() {
+				let first = false;
+				let second = true;
+				<section>
+					<div>{Date.now()}</div>
+					if (first) {
+						return
+					}
+					<span>{Date.now()}</span>
+					if (second) {
+						return
+					}
+					<p>{Date.now()}</p>
+				</section>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).not.toContain('_tsrx_child_');
+		expect(code.match(/Date\.now\(\)/g)).toHaveLength(6);
 	});
 
 	it('extracts hook-bearing element child statement bodies into local components', () => {
@@ -1403,6 +1550,28 @@ describe('lazy destructuring', () => {
 		expect(code).toContain('if (Math.random() > 0.5) {');
 		expect(code.match(/return <div>\{Date\.now\(\)\}<\/div>;/g)).toHaveLength(2);
 		expect(code).not.toContain('return null;');
+	});
+
+	it('does not capture dynamic render expressions across multiple early returns', () => {
+		const { code } = compile(
+			`export component Test() {
+				let first = false;
+				let second = true;
+				<div>{Date.now()}</div>
+				if (first) {
+					return
+				}
+				<span>{Date.now()}</span>
+				if (second) {
+					return
+				}
+				<p>{Date.now()}</p>
+			}`,
+			'Test.tsrx',
+		);
+
+		expect(code).not.toContain('_tsrx_child_');
+		expect(code.match(/Date\.now\(\)/g)).toHaveLength(6);
 	});
 
 	it('combines lazy params and regular destructuring', () => {
