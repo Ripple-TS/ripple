@@ -202,17 +202,19 @@ function render_for_of_as_vapor_for(node, loop_params, body_statements, transfor
 		: (find_jsx_key_expression(rendered) ??
 			(node.index ? clone_expression_node(node.index) : null));
 
-	transform_context.needs_vapor_for = true;
-
-	if (key_expression) {
-		strip_top_level_jsx_keys(rendered);
-	}
 	const slot = key_expression
 		? create_keyed_vapor_for_slot(loop_params, rendered)
 		: { params: loop_params, body: rendered, expression: true };
 	if (!slot) {
 		return null;
 	}
+
+	transform_context.needs_vapor_for = true;
+
+	if (key_expression) {
+		strip_top_level_jsx_keys(slot.body);
+	}
+
 	const attributes = [
 		builders.jsx_attribute(
 			builders.jsx_id('in'),

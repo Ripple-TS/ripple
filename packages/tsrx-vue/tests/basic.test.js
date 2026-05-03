@@ -476,6 +476,21 @@ describe('@tsrx/vue basic', () => {
 		expect(code).not.toContain('<Fragment');
 	});
 
+	it('falls back without injecting VaporFor for keyed destructuring patterns it cannot rewrite', () => {
+		const { code } = compile(
+			`component App({ items, keyName }: { items: Array<Record<string, string>>, keyName: string }) {
+				for (const { [keyName]: label } of items) {
+					<div key={label}>{label}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('.map(({ [keyName]: label }) => {');
+		expect(code).toContain('<div key={label}>{label}</div>');
+		expect(code).not.toContain('VaporFor');
+	});
+
 	it('compiles switch statements in component bodies', () => {
 		const { code } = compile(
 			`component App({ value }) {
