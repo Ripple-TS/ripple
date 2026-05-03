@@ -56,7 +56,7 @@ describe('basic client > styling', () => {
 			</style>
 		}`;
 
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 		const name = css.match(/@keyframes\s+([a-zA-Z0-9_-]+)\s*\{/)[1];
 		expect(css.match(new RegExp(name, 'g'))?.length).toEqual(3);
 	});

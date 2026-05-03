@@ -14,7 +14,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ > span {/);
 		expect(css).not.toMatch(/span\.tsrx-[a-z0-9]+/);
@@ -38,7 +38,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/span\.tsrx-[a-z0-9]+ \+ span {/);
 		expect(css).toContain('(unused) :global(div) + span {');
@@ -62,7 +62,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('~');
 
@@ -90,7 +90,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ > span > button {/);
 		expect(css).toMatch(/div > span\.tsrx-[a-z0-9]+ \+ button:where\(\.tsrx-[a-z0-9]+\) {/);
@@ -116,7 +116,7 @@ export component Test() {
 	</style>
 }`;
 
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ span button {/);
 		expect(css).toMatch(/div span\.tsrx-[a-z0-9]+ button:where\(\.tsrx-[a-z0-9]+\) {/);

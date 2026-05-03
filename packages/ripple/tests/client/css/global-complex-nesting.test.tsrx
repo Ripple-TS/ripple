@@ -24,7 +24,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).not.toMatch(/div\.tsrx-[a-z0-9]+ {/);
 		expect(css).not.toMatch(/span\.tsrx-[a-z0-9]+ {/);
@@ -52,7 +52,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
 		expect(css).not.toMatch(/span\.tsrx-[a-z0-9]+ {/);
@@ -78,7 +78,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('div {');
 		expect(css).toContain('.local {');
@@ -109,7 +109,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
 		expect(css).toMatch(/button\.tsrx-[a-z0-9]+ {/);
@@ -140,7 +140,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
 		expect(css).toContain('span {');
@@ -172,7 +172,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/\.container\.tsrx-[a-z0-9]+ {/);
 		expect(css).toMatch(/button\.tsrx-[a-z0-9]+ {/);
@@ -207,7 +207,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
 		expect(css).toMatch(/ul\.tsrx-[a-z0-9]+ {/);

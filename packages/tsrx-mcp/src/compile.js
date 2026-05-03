@@ -85,20 +85,11 @@ async function import_compiler(compiler_package, cwd, package_json_path) {
 }
 
 /**
- * @param {unknown} result
+ * @param {{ code: string }} result
  */
 function get_generated_code(result) {
 	if (!result || typeof result !== 'object') return null;
-	const output = /** @type {Record<string, unknown>} */ (result);
-	if (typeof output.code === 'string') return output.code;
-	if (
-		output.js &&
-		typeof output.js === 'object' &&
-		typeof (/** @type {Record<string, unknown>} */ (output.js).code) === 'string'
-	) {
-		return /** @type {string} */ (/** @type {Record<string, unknown>} */ (output.js).code);
-	}
-	return null;
+	return result.code || null;
 }
 
 /**

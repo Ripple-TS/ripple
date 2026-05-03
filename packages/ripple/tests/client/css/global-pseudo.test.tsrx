@@ -18,7 +18,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+:has\(span\)/);
 		expect(css).toContain('div:has(span)');
@@ -42,7 +42,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ :is\(span, p:where\(\.tsrx-[a-z0-9]+\)\) {/);
 		expect(css).not.toMatch(/span:where/);
@@ -68,7 +68,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ :where\(span, p:where\(\.tsrx-[a-z0-9]+\)\) {/);
 		expect(css).not.toMatch(/span:where/);
@@ -93,7 +93,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+:not\(span\)/);
 		expect(css).toContain('div:not(.foo)');
@@ -116,7 +116,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+:is\(:where\(\.tsrx-[a-z0-9]+\):has\(span\)\) {/);
 		expect(css).toContain('div:where(:is(.foo))');
@@ -145,7 +145,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('span:nth-child(2) {');
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ > span:first-child {/);

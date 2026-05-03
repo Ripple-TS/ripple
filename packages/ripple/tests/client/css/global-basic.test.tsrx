@@ -12,7 +12,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('div {');
 		expect(css).toContain('color: red;');
@@ -34,7 +34,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('div.foo {');
 		expect(css).toContain('.foo {');
@@ -58,7 +58,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('div .foo');
 		expect(css).toContain('div > .foo');
@@ -82,7 +82,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('.x {');
 		expect(css).toContain('.a, .selector, .list {');
@@ -104,7 +104,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('button:hover {');
 		expect(css).toContain('button:focus {');
@@ -124,7 +124,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('html,');
 		expect(css).toContain('body {');
@@ -155,7 +155,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const css = compile(source, 'test.tsrx').css;
+		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/\.styled-container\.tsrx-[a-z0-9]+/);
 		expect(css).toMatch(/\.text\.tsrx-[a-z0-9]+/);
