@@ -289,6 +289,118 @@ export function runSharedAnonymousComponentTests({ compile, name }) {
 }
 
 /**
+ * Shared validation that components declared inside a class must use an arrow
+ * function class property (regular or static). The method-style form
+ * (`component foo() {}` inside a class body) is rejected at parse time. The
+ * non-arrow property form (`Foo = component() {}`) is rejected by the analyze
+ * stage. Runs against both `compile` (which throws) and
+ * `compile_to_volar_mappings` (which collects errors) so the rule is enforced
+ * in production and editor tooling alike.
+ *
+ * @param {Pick<CompileHarness, 'compile' | 'name'> & Pick<CompileDiagnosticsHarness, 'compile_to_volar_mappings'>} harness
+ */
+export function runSharedClassComponentDeclarationTests({
+	compile,
+	compile_to_volar_mappings,
+	name,
+}) {
+	describe(`[${name}] class component declarations`, () => {
+		it('allows an arrow component as a class property', () => {
+			expect(() =>
+				compile(
+					`export class App {
+						Inline = component() => {
+							<div>{'hi'}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
+
+		it('allows an arrow component as a static class property', () => {
+			expect(() =>
+				compile(
+					`export class App {
+						static Inline = component() => {
+							<div>{'hi'}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
+
+		it('rejects a component declared as a class method at parse time', () => {
+			expect(() =>
+				compile(
+					`export class App {
+						component Inline() {
+							<div>{'hi'}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/Unexpected token/);
+		});
+
+		it('rejects a non-arrow component as a class property value', () => {
+			expect(() =>
+				compile(
+					`export class App {
+						Inline = component() {
+							<div>{'hi'}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/Non-arrow component property values are not allowed/);
+		});
+
+		it('surfaces non-arrow property class component errors via Volar mappings', () => {
+			const result = compile_to_volar_mappings(
+				`export class App {
+					Inline = component() {
+						<div>{'hi'}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(
+				result.errors.some((error) =>
+					/** @type {{ message?: string }} */ (error).message?.includes(
+						'Non-arrow component property values are not allowed',
+					),
+				),
+			).toBe(true);
+		});
+
+		it('does not flag arrow component class properties via Volar mappings', () => {
+			const result = compile_to_volar_mappings(
+				`export class App {
+					Inline = component() => {
+						<div>{'hi'}</div>
+					}
+					static Other = component() => {
+						<span>{'hello'}</span>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(
+				result.errors.some((error) =>
+					/** @type {{ message?: string }} */ (error).message?.includes(
+						'arrow function class property',
+					),
+				),
+			).toBe(false);
+		});
+	});
+}
+
+/**
  * Shared compile-output regressions. These assert observable properties of
  * the generated code (not source-map structure) that every JSX target should
  * satisfy across whatever `transformElement` hook the platform wires in.

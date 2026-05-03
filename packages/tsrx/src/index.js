@@ -213,6 +213,7 @@ export {
 // Analyze
 export { analyze_css as analyzeCss } from './analyze/css-analyze.js';
 export {
+	CLASS_COMPONENT_AS_NON_ARROW_PROPERTY_ERROR,
 	COMPONENT_DO_WHILE_STATEMENT_ERROR,
 	COMPONENT_FOR_IN_STATEMENT_ERROR,
 	COMPONENT_FOR_STATEMENT_ERROR,
@@ -222,6 +223,7 @@ export {
 	COMPONENT_WHILE_STATEMENT_ERROR,
 	get_return_keyword_node as getReturnKeywordNode,
 	get_statement_keyword_node as getStatementKeywordNode,
+	validate_class_component_declarations as validateClassComponentDeclarations,
 	validate_component_loop_break_statement as validateComponentLoopBreakStatement,
 	validate_component_loop_return_statement as validateComponentLoopReturnStatement,
 	validate_component_return_statement as validateComponentReturnStatement,

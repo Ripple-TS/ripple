@@ -439,7 +439,6 @@ export function convert_source_map_to_mappings(
 	}
 
 	/**
-	 * @typedef {AST.MethodDefinition & {value: {metadata: {is_component: true}}}} MethodIsComponent
 	 * @typedef {AST.Property & {value: AST.FunctionExpression, method: true} & {value: {metadata: {is_component: true}}}} PropertyIsComponent
 	 */
 
@@ -447,7 +446,7 @@ export function convert_source_map_to_mappings(
 	 * Maps `component` to the identifier's location
 	 * e.g. const obj = { component something() { } }
 	 * since there is no function keyword in source maps
-	 * @param {MethodIsComponent | PropertyIsComponent} node
+	 * @param {PropertyIsComponent} node
 	 * @returns {void}
 	 */
 	function set_component_mapping_to_name(node) {
@@ -1530,15 +1529,8 @@ export function convert_source_map_to_mappings(
 					set_bracket_computed_mapping(node, mappings);
 				}
 
-				if (node.value.metadata.is_component) {
-					set_component_mapping_to_name(/** @type {MethodIsComponent} */ (node));
-				}
-
 				if (node.key.type === 'Literal') {
-					handle_literal(
-						node.key,
-						/** @type {AST.FunctionExpression} */ (node.value).metadata.is_component,
-					);
+					handle_literal(node.key);
 				} else {
 					visit(node.key);
 				}

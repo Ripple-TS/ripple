@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	runSharedAnonymousComponentTests,
+	runSharedClassComponentDeclarationTests,
 	runSharedCompileDiagnosticsTests,
 	runSharedCompileTests,
 } from '@tsrx/core/test-harness/compile';
@@ -17,6 +18,7 @@ runSharedSourceMappingTests({
 runSharedAnonymousComponentTests({ compile, name: 'solid' });
 runSharedCompileTests({ compile, name: 'solid', classAttrName: 'class' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'solid' });
+runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'solid' });
 
 describe('@tsrx/solid basic', () => {
 	describe('component → function', () => {
@@ -473,6 +475,36 @@ describe('@tsrx/solid basic', () => {
 			expect(world_idx).toBeGreaterThan(show_idx);
 			expect(hello_idx).toBeLessThan(show_idx);
 			expect(code).not.toContain('return <Show when={!early}');
+		});
+
+		it('nests sequential early-return continuations', () => {
+			const { code } = compile(
+				`export default component A() {
+					let early = true
+					<>"Hello"</>
+					if (early) {
+						return
+					}
+					<>"World"</>
+					if (!early) {
+						return
+					}
+					<>"done"</>
+				}`,
+				'A.tsrx',
+			);
+
+			const hello_idx = code.indexOf('<>"Hello"</>');
+			const outer_show_idx = code.indexOf('<Show when={!early}');
+			const world_idx = code.indexOf('<>"World"</>');
+			const inner_show_idx = code.indexOf('<Show when={early}');
+			const done_idx = code.indexOf('<>"done"</>');
+			expect(hello_idx).toBeGreaterThan(-1);
+			expect(outer_show_idx).toBeGreaterThan(hello_idx);
+			expect(world_idx).toBeGreaterThan(outer_show_idx);
+			expect(inner_show_idx).toBeGreaterThan(world_idx);
+			expect(done_idx).toBeGreaterThan(inner_show_idx);
+			expect(code).not.toContain('<Show when={!early}>{(_) =>');
 		});
 	});
 

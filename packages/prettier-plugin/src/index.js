@@ -3903,7 +3903,6 @@ function printPropertyDefinition(node, path, options, print) {
 function printMethodDefinition(node, path, options, print) {
 	/** @type {Doc[]} */
 	const parts = [];
-	const is_component = /** @type {AST.TSRXMethodDefinition} */ (node).value?.type === 'Component';
 
 	// Access modifiers (public, private, protected)
 	if (node.accessibility) {
@@ -3934,16 +3933,6 @@ function printMethodDefinition(node, path, options, print) {
 		parts.push('*');
 	}
 
-	if (is_component) {
-		if (node.value.id) {
-			// takes care of component methods
-			parts.push(path.call(print, 'value'));
-			return parts;
-		}
-
-		parts.push('component ');
-	}
-
 	// the key is 'constructor' and we already handled that above
 	parts.push(...printKey(node, path, options, print));
 
@@ -3955,15 +3944,6 @@ function printMethodDefinition(node, path, options, print) {
 		} else {
 			parts.push(typeParams);
 		}
-	}
-
-	if (is_component) {
-		const componentDoc = path.call(
-			(childPath) => print(childPath, { skipComponentLabel: true }),
-			'value',
-		);
-		parts.push(componentDoc);
-		return parts;
 	}
 
 	// Parameters - use proper path.map for TypeScript support

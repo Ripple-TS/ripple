@@ -560,65 +560,6 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
-			 * Override parseClassElement to support component methods in classes.
-			 * Handles syntax like `class Foo { component something() { <div /> } }`
-			 * Also supports computed names: `class Foo { component ['something']() { <div /> } }`
-			 * @type {Parse.Parser['parseClassElement']}
-			 */
-			parseClassElement(constructorAllowsSuper) {
-				// Check if this is a component method: component name( ... ) { ... }
-				if (this.type === tt.name && this.value === 'component') {
-					// Look ahead to see if this is "component identifier(",
-					// "component identifier<", "component [", or "component 'string'"
-					const lookahead = this.input.slice(this.pos).match(/^\s*(?:(\w+)\s*[(<]|\[|['"])/);
-					if (lookahead) {
-						// This is a component method definition
-						const node = /** @type {AST.MethodDefinition} */ (this.startNode());
-						const isComputed = lookahead[0].trim().startsWith('[');
-						const isStringLiteral = /^['"]/.test(lookahead[0].trim());
-
-						if (isComputed) {
-							// For computed names, consume 'component'
-							// parse the key, then parse component without name
-							this.next(); // consume 'component'
-							this.next(); // consume '['
-							node.key = this.parseExpression();
-							this.expect(tt.bracketR);
-							node.computed = true;
-
-							// Parse component without name (skipName: true)
-							const component_node = this.parseComponent({ skipName: true });
-							/** @type {AST.TSRXMethodDefinition} */ (node).value = component_node;
-						} else if (isStringLiteral) {
-							// For string literal names, consume 'component'
-							// parse the string key, then parse component without name
-							this.next(); // consume 'component'
-							node.key = /** @type {AST.Literal} */ (this.parseExprAtom());
-							node.computed = false;
-
-							// Parse component without name (skipName: true)
-							const component_node = this.parseComponent({ skipName: true });
-							/** @type {AST.TSRXMethodDefinition} */ (node).value = component_node;
-						} else {
-							// Use parseComponent which handles consuming 'component', parsing name, params, and body
-							const component_node = this.parseComponent({ requireName: true });
-
-							node.key = /** @type {AST.Identifier} */ (component_node.id);
-							/** @type {AST.TSRXMethodDefinition} */ (node).value = component_node;
-							node.computed = false;
-						}
-
-						node.static = false;
-						node.kind = 'method';
-
-						return this.finishNode(node, 'MethodDefinition');
-					}
-				}
-
-				return super.parseClassElement(constructorAllowsSuper);
-			}
-
-			/**
 			 * Override parsePropertyValue to support TypeScript generic methods in object literals.
 			 * By default, acorn-typescript doesn't handle `{ method<T>() {} }` syntax.
 			 * This override checks for type parameters before parsing the method.
@@ -1371,8 +1312,8 @@ export function TSRXPlugin(config) {
 			 */
 			checkUnreserved(ref) {
 				if (ref.name === 'component') {
-					// Allow 'component' when it's followed by an identifier and '(' or '<' (component method in object literal or class)
-					// e.g., { component something() { ... } } or class Foo { component something<T>() { ... } }
+					// Allow 'component' when it's followed by an identifier and '(' or '<' (component method in object literal)
+					// e.g., { component something() { ... } }
 					// Also allow computed names: { component ['name']() { ... } }
 					// Also allow string literal names: { component 'name'() { ... } }
 					const nextChars = this.input.slice(this.pos).match(/^\s*(?:(\w+)\s*[(<]|\[|['"])/);

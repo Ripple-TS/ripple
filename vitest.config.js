@@ -53,6 +53,15 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'tsrx-ripple',
+					include: ['packages/tsrx-ripple/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'tsrx-react',
 					include: ['packages/tsrx-react/tests/**/*.test.js'],
 					environment: 'node',

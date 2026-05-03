@@ -1920,32 +1920,10 @@ files = [...(files ?? []), ...dt.files];`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should preserve class component method', async () => {
-			const expected = `class TestClass {
-  component something() {
-    <div>{'Nested component'}</div>
-  }
-}`;
-
-			const result = await format(expected, { singleQuote: true, printWidth: 100 });
-			expect(result).toBeWithNewline(expected);
-		});
-
 		it('should preserve class computed method', async () => {
 			const expected = `class TestClass {
   ['something']() {
     const i = 10;
-  }
-}`;
-
-			const result = await format(expected, { singleQuote: true, printWidth: 100 });
-			expect(result).toBeWithNewline(expected);
-		});
-
-		it('should preserve class computed component method', async () => {
-			const expected = `class TestClass {
-  component ['something']() {
-    <div>{'Nested component'}</div>
   }
 }`;
 
@@ -1980,23 +1958,6 @@ files = [...(files ?? []), ...dt.files];`;
 			const expected = `class Foo {
   bar() {
     return <tsx>{'Hello'}</tsx>;
-  }
-}`;
-
-			const result = await format(input, { singleQuote: true, printWidth: 100 });
-			expect(result).toBeWithNewline(expected);
-		});
-
-		it('should format class with a literal component method', async () => {
-			const input = `class TestClass {
-  component 'something'() {
-    <div>{'Nested component'}</div>
-  }
-}`;
-
-			const expected = `class TestClass {
-  component something() {
-    <div>{'Nested component'}</div>
   }
 }`;
 

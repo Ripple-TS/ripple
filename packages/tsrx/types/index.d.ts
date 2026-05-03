@@ -463,10 +463,6 @@ declare module 'estree' {
 		body: (Program['body'][number] | Component | FunctionExpression)[];
 	}
 
-	interface TSRXMethodDefinition extends Omit<AST.MethodDefinition, 'value'> {
-		value: AST.MethodDefinition['value'] | Component;
-	}
-
 	interface TSRXProperty extends Omit<AST.Property, 'value'> {
 		value: AST.Property['value'] | Component;
 	}

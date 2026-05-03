@@ -28,6 +28,7 @@ import {
 	isEventAttribute,
 	isInsideComponent as is_inside_component,
 	validateNesting,
+	validateClassComponentDeclarations,
 	validateComponentLoopBreakStatement,
 	validateComponentLoopReturnStatement,
 	validateComponentReturnStatement,
@@ -1464,6 +1465,16 @@ const visitors = {
 	},
 	FunctionDeclaration(node, context) {
 		visit_function(node, context);
+	},
+
+	ClassBody(node, context) {
+		validateClassComponentDeclarations(
+			node,
+			context.state.analysis.module.filename,
+			context.state.collect ? context.state.analysis.errors : undefined,
+			context.state.analysis.comments,
+		);
+		context.next();
 	},
 
 	Component(node, context) {

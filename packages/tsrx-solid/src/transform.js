@@ -233,6 +233,10 @@ function component_to_function_declaration(component, transform_context) {
 		const collect = (nodes, outer, jsx_bucket) => {
 			for (const child of nodes) {
 				if (is_jsx_child(child)) {
+					if (get_returning_if_info(child) !== null) {
+						jsx_bucket.push(child);
+						continue;
+					}
 					if (early_interleaved) {
 						const jsx = to_jsx_child(child, transform_context);
 						if (is_capturable_jsx_child(jsx)) {
@@ -260,11 +264,11 @@ function component_to_function_declaration(component, transform_context) {
 			transform_context.needs_show = true;
 			const branch_body = body_to_jsx_child(early_info.consequent_body, transform_context);
 			const fallback_body =
-				after_jsx.length > 0 ? body_to_jsx_child(after_jsx, transform_context) : null;
+				after_jsx.length > 0 ? body_to_early_return_jsx_child(after_jsx, transform_context) : null;
 			next_body.push(build_show_element(early_if.test, branch_body, fallback_body));
 		} else if (after_jsx.length > 0) {
 			transform_context.needs_show = true;
-			const show_body = body_to_jsx_child(after_jsx, transform_context);
+			const show_body = body_to_early_return_jsx_child(after_jsx, transform_context);
 			next_body.push(build_show_element(negate_expression(early_if.test), show_body, null));
 		}
 
@@ -520,6 +524,45 @@ function body_to_jsx_child(body_nodes, transform_context) {
 		expression: false,
 		metadata: { path: [], is_branch_arrow: true },
 	});
+}
+
+/**
+ * Lower render-continuation bodies that may contain additional early-return
+ * guards. Sequential guards need to nest the remaining continuation instead
+ * of rendering later children beside a `<Show>` for the guard itself.
+ *
+ * @param {any[]} body_nodes
+ * @param {TransformContext} transform_context
+ * @returns {any}
+ */
+function body_to_early_return_jsx_child(body_nodes, transform_context) {
+	const early_idx = body_nodes.findIndex((node) => get_returning_if_info(node) !== null);
+	if (early_idx === -1) {
+		return body_to_jsx_child(body_nodes, transform_context);
+	}
+
+	const early_if = /** @type {any} */ (body_nodes[early_idx]);
+	const early_info = /** @type {{ consequent_body: any[], return_index: number }} */ (
+		get_returning_if_info(early_if)
+	);
+	const before = body_nodes.slice(0, early_idx);
+	const after = body_nodes.slice(early_idx + 1);
+	const branch_has_content_before_return = early_info.return_index > 0;
+	const children = [...before];
+
+	if (branch_has_content_before_return) {
+		transform_context.needs_show = true;
+		const branch_body = body_to_jsx_child(early_info.consequent_body, transform_context);
+		const fallback_body =
+			after.length > 0 ? body_to_early_return_jsx_child(after, transform_context) : null;
+		children.push(build_show_element(early_if.test, branch_body, fallback_body));
+	} else if (after.length > 0) {
+		transform_context.needs_show = true;
+		const show_body = body_to_early_return_jsx_child(after, transform_context);
+		children.push(build_show_element(negate_expression(early_if.test), show_body, null));
+	}
+
+	return body_to_jsx_child(children, transform_context);
 }
 
 /**
@@ -825,11 +868,15 @@ function get_returning_if_info(node) {
  * @returns {any}
  */
 function negate_expression(expr) {
+	if (expr?.type === 'UnaryExpression' && expr.operator === '!') {
+		return clone_expression_node(expr.argument);
+	}
+
 	return {
 		type: 'UnaryExpression',
 		operator: '!',
 		prefix: true,
-		argument: expr,
+		argument: clone_expression_node(expr),
 		metadata: { path: [] },
 	};
 }
