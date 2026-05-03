@@ -2775,6 +2775,8 @@ export function TSRXPlugin(config) {
 					this.input.charCodeAt(this.start) === 34 &&
 					(this.#path.at(-1)?.type === 'Component' || this.#path.at(-1)?.type === 'Element')
 				) {
+					this.pos = this.start;
+					this.#readDoubleQuotedTextChildToken();
 					const node = this.parseDoubleQuotedTextChild();
 					this.semicolon();
 					return node;
