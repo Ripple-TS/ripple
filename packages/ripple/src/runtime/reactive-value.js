@@ -7,10 +7,13 @@ import { safe_scope, derived } from './internal/client/runtime.js';
  * @type {new <V>(fn: () => V, start: () => void | (() => void)) => ReactiveValueT<V>}
  */
 export const ReactiveValue = /** @type {any} */ (
-	function ReactiveValue(
-		/** @type {() => any} */ fn,
-		/** @type {() => void | (() => void)} */ start,
-	) {
+	/**
+	 * @template V
+	 * @param {() => V} fn
+	 * @param {() => void | (() => void)} start
+	 * @returns {Derived}
+	 */
+	function ReactiveValue(fn, start) {
 		if (!new.target) {
 			throw new TypeError('`ReactiveValue` must be called with new');
 		}
@@ -26,7 +29,7 @@ export const ReactiveValue = /** @type {any} */ (
 				s();
 				return fn();
 			},
-			(/** @type {any} */ _, /** @type {any} */ prev) => prev,
+			(_, prev) => prev,
 		);
 	}
 );

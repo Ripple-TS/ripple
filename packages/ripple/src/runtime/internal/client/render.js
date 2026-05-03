@@ -9,10 +9,13 @@ import {
 	is_ripple_object,
 } from './utils.js';
 import { event } from './events.js';
-import { get_attribute_event_name, is_event_attribute } from '../../../utils/events.js';
+import {
+	getAttributeEventName as get_attribute_event_name,
+	isEventAttribute as is_event_attribute,
+} from '@tsrx/core';
 import { get } from './runtime.js';
 import { clsx } from 'clsx';
-import { normalize_css_property_name } from '../../../utils/normalize_css_property_name.js';
+import { normalizeCssPropertyName as normalize_css_property_name } from '@tsrx/core';
 
 /**
  * @param {Text} text

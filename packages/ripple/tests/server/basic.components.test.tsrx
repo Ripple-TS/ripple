@@ -172,6 +172,9 @@ describe('basic server > components & composition', () => {
 			button: component({ children }: PropsWithChildren<{}>) {
 				<button>{children}</button>
 			},
+			arrowButton: component({ children }: PropsWithChildren<{}>) => {
+				<button class="arrow-button">{children}</button>
+			},
 		};
 
 		component App() {
@@ -183,6 +186,7 @@ describe('basic server > components & composition', () => {
 				<h1>{'Component as Property Test'}</h1>
 				<UI.span />
 				<UI.button {children} />
+				<UI.arrowButton {children} />
 			</div>
 		}
 
@@ -193,10 +197,13 @@ describe('basic server > components & composition', () => {
 		const span = document.querySelector('span');
 		const button = document.querySelector('button');
 		const buttonSpan = button.querySelector('span');
+		const arrowButton = document.querySelector('.arrow-button');
+		const arrowButtonSpan = arrowButton.querySelector('span');
 
 		expect(heading.textContent).toBe('Component as Property Test');
 		expect(span.textContent).toBe('Hello from Span');
 		expect(buttonSpan.textContent).toBe('Click me!');
+		expect(arrowButtonSpan.textContent).toBe('Click me!');
 	});
 
 	it('handles empty string children', async () => {

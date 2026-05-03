@@ -164,13 +164,13 @@ function get_await_keyword_start(await_node, source) {
 	return await_node?.start ?? 0;
 }
 // =====================================================================
-// Component → FunctionDeclaration
+// Component → FunctionDeclaration / FunctionExpression / ArrowFunctionExpression
 // =====================================================================
 
 /**
  * @param {any} component
  * @param {TransformContext} transform_context
- * @returns {AST.FunctionDeclaration}
+ * @returns {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression}
  */
 function component_to_function_declaration(component, transform_context) {
 	const params = component.params || [];
@@ -316,21 +316,54 @@ function component_to_function_declaration(component, transform_context) {
 	const final_body =
 		lazy_bindings.size > 0 ? apply_lazy_transforms(body_block, lazy_bindings) : body_block;
 
-	const fn = /** @type {any} */ ({
-		type: 'FunctionDeclaration',
-		id: component.id,
-		typeParameters: component.typeParameters,
-		params: final_params,
-		body: final_body,
-		async: false,
-		generator: false,
-		metadata: {
-			path: [],
-			is_component: true,
-		},
-	});
+	/** @type {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression} */
+	let fn;
 
-	if (fn.id) {
+	if (component.id) {
+		fn = /** @type {any} */ ({
+			type: 'FunctionDeclaration',
+			id: component.id,
+			typeParameters: component.typeParameters,
+			params: final_params,
+			body: final_body,
+			async: false,
+			generator: false,
+			metadata: {
+				path: [],
+				is_component: true,
+			},
+		});
+	} else if (component.metadata?.arrow) {
+		fn = /** @type {any} */ ({
+			type: 'ArrowFunctionExpression',
+			typeParameters: component.typeParameters,
+			params: final_params,
+			body: final_body,
+			async: false,
+			generator: false,
+			expression: false,
+			metadata: {
+				path: [],
+				is_component: true,
+			},
+		});
+	} else {
+		fn = /** @type {any} */ ({
+			type: 'FunctionExpression',
+			id: null,
+			typeParameters: component.typeParameters,
+			params: final_params,
+			body: final_body,
+			async: false,
+			generator: false,
+			metadata: {
+				path: [],
+				is_component: true,
+			},
+		});
+	}
+
+	if (fn.type === 'FunctionDeclaration' && fn.id) {
 		fn.id.metadata = /** @type {AST.Identifier['metadata']} */ ({
 			...fn.id.metadata,
 			is_component: true,

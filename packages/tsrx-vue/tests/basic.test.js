@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+	runSharedAnonymousComponentTests,
 	runSharedCompileDiagnosticsTests,
 	runSharedComponentLoopControlFlowTests,
 } from '@tsrx/core/test-harness/compile';
@@ -12,6 +13,7 @@ runSharedSourceMappingTests({
 	name: 'vue',
 	rejectsComponentAwait: true,
 });
+runSharedAnonymousComponentTests({ compile, name: 'vue' });
 runSharedComponentLoopControlFlowTests({ compile, name: 'vue' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'vue' });
 

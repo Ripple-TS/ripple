@@ -3,11 +3,11 @@
  * @typedef {EventTarget & Record<string, any>} DelegatedEventTarget
  */
 import {
-	event_name_from_capture,
-	is_capture_event,
-	is_non_delegated,
-	is_passive_event,
-} from '../../../utils/events.js';
+	eventNameFromCapture as event_name_from_capture,
+	isCaptureEvent as is_capture_event,
+	isNonDelegated as is_non_delegated,
+	isPassiveEvent as is_passive_event,
+} from '@tsrx/core';
 import {
 	active_block,
 	active_reaction,

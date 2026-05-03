@@ -351,4 +351,4 @@ export function componentToFunctionDeclaration(
 	component: any,
 	ctx: any,
 	helperState?: any,
-): AST.FunctionDeclaration;
+): AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression;

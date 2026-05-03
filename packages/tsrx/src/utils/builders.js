@@ -57,18 +57,21 @@ export function assignment_pattern(left, right) {
 /**
  * @param {Array<AST.Pattern>} params
  * @param {AST.BlockStatement | AST.Expression} body
+ * @param {AST.NodeWithLocation} [loc_info]
  * @returns {AST.ArrowFunctionExpression}
  */
-export function arrow(params, body, async = false) {
-	return {
+export function arrow(params, body, async = false, loc_info) {
+	const node = /** @type {AST.ArrowFunctionExpression} */ ({
 		type: 'ArrowFunctionExpression',
 		params,
 		body,
 		expression: body.type !== 'BlockStatement',
 		generator: false,
 		async,
-		metadata: /** @type {any} */ (null), // should not be used by codegen
-	};
+		metadata: { path: [] },
+	});
+
+	return set_location(node, loc_info);
 }
 
 /**

@@ -318,6 +318,15 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'tsrx-utils',
+					include: ['packages/tsrx/tests/utils/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'compat-react',
 					include: ['packages/compat-react/tests/**/*.test.tsrx'],
 					environment: 'jsdom',

@@ -120,9 +120,10 @@ function component_to_vapor_component_declaration(component, transform_context, 
 	}
 
 	const component_id = clone_identifier(component.id);
+	const fn_id = fn.type === 'FunctionDeclaration' ? fn.id : null;
 	component_id.metadata = {
 		...component_id.metadata,
-		...(fn.id?.metadata || {}),
+		...(fn_id?.metadata || {}),
 		path: component_id.metadata?.path || [],
 	};
 	/** @type {any} */ (component_id.metadata).hover = create_component_hover_replacement(fn.params);
@@ -454,6 +455,16 @@ function strip_top_level_jsx_keys(node) {
  * @returns {any}
  */
 function function_declaration_to_expression(fn) {
+	if (fn.type === 'ArrowFunctionExpression') {
+		return {
+			...fn,
+			metadata: {
+				...(fn.metadata || {}),
+				path: fn.metadata?.path || [],
+			},
+		};
+	}
+
 	return {
 		...fn,
 		type: 'FunctionExpression',

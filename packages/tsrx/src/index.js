@@ -133,8 +133,11 @@ export {
 // Sanitize
 export { sanitize_template_string as sanitizeTemplateString } from './utils/sanitize_template_string.js';
 
+// CSS Property Name
+export { normalize_css_property_name as normalizeCssPropertyName } from './utils/normalize_css_property_name.js';
+
 // Escaping
-export { escape } from './utils/escaping.js';
+export { escape, escape_script as escapeScript } from './utils/escaping.js';
 
 // Transform
 export {

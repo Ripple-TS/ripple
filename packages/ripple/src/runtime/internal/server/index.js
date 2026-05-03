@@ -28,10 +28,10 @@ import {
 } from '../client/constants.js';
 import { DEV } from 'esm-env';
 import { is_ripple_object, array_slice } from '../client/utils.js';
-import { escape, escape_script } from '../../../utils/escaping.js';
-import { is_boolean_attribute } from '../../../utils/attributes.js';
+import { escape, escapeScript as escape_script } from '@tsrx/core';
+import { isBooleanAttribute as is_boolean_attribute } from '@tsrx/core';
 import { clsx } from 'clsx';
-import { normalize_css_property_name } from '../../../utils/normalize_css_property_name.js';
+import { normalizeCssPropertyName as normalize_css_property_name } from '@tsrx/core';
 import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../constants.js';
 import { is_tsrx_element, normalize_children, tsrx_element } from '../../element.js';
 import {

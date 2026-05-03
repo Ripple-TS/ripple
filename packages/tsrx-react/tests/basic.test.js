@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+	runSharedAnonymousComponentTests,
 	runSharedCompileDiagnosticsTests,
 	runSharedCompileTests,
 } from '@tsrx/core/test-harness/compile';
@@ -13,6 +14,7 @@ runSharedSourceMappingTests({
 	rejectsComponentAwait: false,
 });
 
+runSharedAnonymousComponentTests({ compile, name: 'react' });
 runSharedCompileTests({ compile, name: 'react', classAttrName: 'className' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'react' });
 
