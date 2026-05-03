@@ -1,5 +1,18 @@
 # @tsrx/solid
 
+## 0.0.26
+
+### Patch Changes
+
+- [#1055](https://github.com/Ripple-TS/ripple/pull/1055)
+  [`8125c73`](https://github.com/Ripple-TS/ripple/commit/8125c73b37e7b201dbb0a078e3583c022ceb7687)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix sequential early-return
+  guards so later JSX is nested under each remaining Solid continuation.
+
+- Updated dependencies
+  [[`8125c73`](https://github.com/Ripple-TS/ripple/commit/8125c73b37e7b201dbb0a078e3583c022ceb7687)]:
+  - @tsrx/core@0.0.26
+
 ## 0.0.25
 
 ### Patch Changes

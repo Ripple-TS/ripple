@@ -1,5 +1,14 @@
 # @tsrx/core
 
+## 0.0.26
+
+### Patch Changes
+
+- [#1055](https://github.com/Ripple-TS/ripple/pull/1055)
+  [`8125c73`](https://github.com/Ripple-TS/ripple/commit/8125c73b37e7b201dbb0a078e3583c022ceb7687)
+  Thanks [@trueadm](https://github.com/trueadm)! - Capture repeated static JSX
+  before multiple React and Preact early-return guards to avoid duplicated output.
+
 ## 0.0.25
 
 ### Patch Changes

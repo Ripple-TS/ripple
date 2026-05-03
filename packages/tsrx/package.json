@@ -3,7 +3,7 @@
   "description": "Core compiler infrastructure for TSRX syntax",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "type": "module",
   "repository": {
     "type": "git",
