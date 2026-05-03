@@ -20,6 +20,7 @@ import {
 	flatten_switch_consequent,
 	get_for_of_iteration_params,
 	identifier_to_jsx_name,
+	is_bare_render_expression,
 	is_dynamic_element_id,
 	is_jsx_child,
 	set_loc,
@@ -890,6 +891,8 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 			} else {
 				render_nodes.push(jsx);
 			}
+		} else if (is_bare_render_expression(child)) {
+			render_nodes.push(to_jsx_expression_container(child, child));
 		} else {
 			statements.push(child);
 			collect_statement_bindings(child, transform_context.available_bindings);
@@ -4331,6 +4334,8 @@ function create_render_switch_case(switch_case, transform_context) {
 
 		if (is_jsx_child(child)) {
 			render_nodes.push(to_jsx_child(child, transform_context));
+		} else if (is_bare_render_expression(child)) {
+			render_nodes.push(to_jsx_expression_container(child, child));
 		} else {
 			case_body.push(child);
 		}

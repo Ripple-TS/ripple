@@ -26,6 +26,7 @@ import {
 	flatten_switch_consequent,
 	get_for_of_iteration_params,
 	identifier_to_jsx_name,
+	is_bare_render_expression,
 	is_dynamic_element_id,
 	is_jsx_child,
 	set_loc,
@@ -290,6 +291,8 @@ function component_to_function_declaration(component, transform_context) {
 			} else {
 				render_nodes.push(jsx);
 			}
+		} else if (is_bare_render_expression(child)) {
+			render_nodes.push(to_jsx_expression_container(child, child));
 		} else {
 			statements.push(child);
 		}
@@ -482,6 +485,8 @@ function body_to_jsx_child(body_nodes, transform_context) {
 			} else {
 				children.push(jsx);
 			}
+		} else if (is_bare_render_expression(child)) {
+			children.push(to_jsx_expression_container(child, child));
 		} else {
 			statements.push(child);
 		}
@@ -661,6 +666,8 @@ function loop_body_to_callback_statements(body_nodes, transform_context) {
 
 		if (is_jsx_child(child)) {
 			children.push(to_jsx_child(child, transform_context));
+		} else if (is_bare_render_expression(child)) {
+			children.push(to_jsx_expression_container(child, child));
 		} else {
 			statements.push(child);
 		}
