@@ -1,19 +1,19 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`[react] continuation lift for if-with-hook > chains tail helpers across sibling ifs that each contain hooks 1`] = `
-"function App__StatementBodyHook2({ x, y }: { x: any; y: any }) {
+"function App__StatementBodyHook2({ x, y }) {
 	console.log(x, y);
 
 	return null;
 }
 
-function App__StatementBodyHook3({ x, y }: { x: any; y: any }) {
+function App__StatementBodyHook3({ x, y }) {
 	[y] = useState(200);
 
 	return <><span>{y}</span><App__StatementBodyHook2 x={x} y={y} /></>;
 }
 
-function App__StatementBodyHook1({ b, x, y }: { b: any; x: any; y: any }) {
+function App__StatementBodyHook1({ b, x, y }) {
 	if (b) {
 		return <App__StatementBodyHook3 x={x} y={y} />;
 	}
@@ -21,7 +21,7 @@ function App__StatementBodyHook1({ b, x, y }: { b: any; x: any; y: any }) {
 	return <App__StatementBodyHook2 x={x} y={y} />;
 }
 
-function App__StatementBodyHook4({ b, x, y }: { b: any; x: any; y: any }) {
+function App__StatementBodyHook4({ b, x, y }) {
 	[x] = useState(100);
 
 	return <><div>{x}</div><App__StatementBodyHook1 b={b} x={x} y={y} /></>;
@@ -42,7 +42,7 @@ export function App({ a, b }: { a: boolean; b: boolean }) {
 exports[`[react] continuation lift for if-with-hook > does not lift when the if has an else branch 1`] = `
 "const App__static1 = <div>{'no'}</div>;
 
-function App__StatementBodyHook1({ x }: { x: any }) {
+function App__StatementBodyHook1({ x }) {
 	[x] = useState(100);
 
 	return <div>{x}</div>;
@@ -71,25 +71,25 @@ export function App({ show }: { show: boolean }) {
 `;
 
 exports[`[react] continuation lift for if-with-hook > handles nested if-with-hook so the mid-tail observes the inner hook 1`] = `
-"function App__StatementBodyHook1({ x }: { x: any }) {
+"function App__StatementBodyHook1({ x }) {
 	console.log('end', x);
 
 	return null;
 }
 
-function App__StatementBodyHook3({ x }: { x: any }) {
+function App__StatementBodyHook3({ x }) {
 	console.log('mid', x);
 
 	return <App__StatementBodyHook1 x={x} />;
 }
 
-function App__StatementBodyHook4({ x }: { x: any }) {
+function App__StatementBodyHook4({ x }) {
 	[x] = useState(100);
 
 	return <><div>{x}</div><App__StatementBodyHook3 x={x} /></>;
 }
 
-function App__StatementBodyHook2({ b, x }: { b: any; x: any }) {
+function App__StatementBodyHook2({ b, x }) {
 	if (b) {
 		return <App__StatementBodyHook4 x={x} />;
 	}
@@ -109,13 +109,13 @@ export function App({ a, b }: { a: boolean; b: boolean }) {
 `;
 
 exports[`[react] continuation lift for if-with-hook > lifts the tail of a single non-returning if-with-hook into a helper 1`] = `
-"function App__StatementBodyHook1({ x }: { x: any }) {
+"function App__StatementBodyHook1({ x }) {
 	console.log(x);
 
 	return null;
 }
 
-function App__StatementBodyHook2({ x }: { x: any }) {
+function App__StatementBodyHook2({ x }) {
 	[x] = useState(100);
 
 	return <><div>{x}</div><App__StatementBodyHook1 x={x} /></>;
@@ -133,13 +133,13 @@ export function App({ show }: { show: boolean }) {
 `;
 
 exports[`[react] continuation lift for switch-with-hook > break-only case does not silently fall through into another case 1`] = `
-"function App__StatementBodyHook1({ x }: { x: any }) {
+"function App__StatementBodyHook1({ x }) {
 	console.log(x);
 
 	return null;
 }
 
-function App__StatementBodyHook2({ x }: { x: any }) {
+function App__StatementBodyHook2({ x }) {
 	[x] = useState(100);
 
 	return <><div>{x}</div><App__StatementBodyHook1 x={x} /></>;
@@ -183,19 +183,19 @@ export function App({ kind }: { kind: 'a' | 'b' }) {
 `;
 
 exports[`[react] continuation lift for switch-with-hook > lifts the tail of a switch whose cases contain hooks 1`] = `
-"function App__StatementBodyHook1({ x }: { x: any }) {
+"function App__StatementBodyHook1({ x }) {
 	console.log(x);
 
 	return null;
 }
 
-function App__StatementBodyHook3({ x }: { x: any }) {
+function App__StatementBodyHook3({ x }) {
 	[x] = useState(200);
 
 	return <><span>{x}</span><App__StatementBodyHook1 x={x} /></>;
 }
 
-function App__StatementBodyHook2({ x }: { x: any }) {
+function App__StatementBodyHook2({ x }) {
 	[x] = useState(100);
 
 	return <><div>{x}</div><App__StatementBodyHook1 x={x} /></>;
@@ -219,19 +219,19 @@ export function App({ kind }: { kind: 'a' | 'b' }) {
 exports[`[react] continuation lift for switch-with-hook > lifts the tail when a switch has a default case with a hook 1`] = `
 "const App__static1 = <div>{'a'}</div>;
 
-function App__StatementBodyHook1({ x }: { x: any }) {
+function App__StatementBodyHook1({ x }) {
 	console.log(x);
 
 	return null;
 }
 
-function App__StatementBodyHook3({ x }: { x: any }) {
+function App__StatementBodyHook3({ x }) {
 	[x] = useState(100);
 
 	return <><div>{x}</div><App__StatementBodyHook1 x={x} /></>;
 }
 
-function App__StatementBodyHook2({ x }: { x: any }) {
+function App__StatementBodyHook2({ x }) {
 	return <>{App__static1}<App__StatementBodyHook1 x={x} /></>;
 }
 
@@ -254,21 +254,21 @@ exports[`[react] continuation lift for switch-with-hook > lifts the tail when on
 "const App__static1 = <p>{'fallback'}</p>;
 const App__static2 = <span>{'static'}</span>;
 
-function App__StatementBodyHook1({ x }: { x: any }) {
+function App__StatementBodyHook1({ x }) {
 	console.log(x);
 
 	return null;
 }
 
-function App__StatementBodyHook4({ x }: { x: any }) {
+function App__StatementBodyHook4({ x }) {
 	return <>{App__static1}<App__StatementBodyHook1 x={x} /></>;
 }
 
-function App__StatementBodyHook3({ x }: { x: any }) {
+function App__StatementBodyHook3({ x }) {
 	return <>{App__static2}<App__StatementBodyHook1 x={x} /></>;
 }
 
-function App__StatementBodyHook2({ x }: { x: any }) {
+function App__StatementBodyHook2({ x }) {
 	[x] = useState(100);
 
 	return <><div>{x}</div><App__StatementBodyHook1 x={x} /></>;
@@ -293,19 +293,19 @@ export function App({ kind }: { kind: 'a' | 'b' | 'c' }) {
 `;
 
 exports[`[react] continuation lift for switch-with-hook > non-empty fall-through merges the trailing case body into the falling case 1`] = `
-"function App__StatementBodyHook1({ x }: { x: any }) {
+"function App__StatementBodyHook1({ x }) {
 	console.log(x);
 
 	return null;
 }
 
-function App__StatementBodyHook3({ x }: { x: any }) {
+function App__StatementBodyHook3({ x }) {
 	[x] = useState(100);
 
 	return <><div>{x}</div><App__StatementBodyHook1 x={x} /></>;
 }
 
-function App__StatementBodyHook2({ x }: { x: any }) {
+function App__StatementBodyHook2({ x }) {
 	x = 1;
 
 	return <App__StatementBodyHook3 x={x} />;
@@ -329,17 +329,17 @@ export function App({ kind }: { kind: 'a' | 'b' }) {
 exports[`[react] continuation lift for switch-with-hook > preserves empty fall-through cases that share a body with the next case 1`] = `
 "const App__static1 = <span>{'other'}</span>;
 
-function App__StatementBodyHook1({ x }: { x: any }) {
+function App__StatementBodyHook1({ x }) {
 	console.log(x);
 
 	return null;
 }
 
-function App__StatementBodyHook3({ x }: { x: any }) {
+function App__StatementBodyHook3({ x }) {
 	return <>{App__static1}<App__StatementBodyHook1 x={x} /></>;
 }
 
-function App__StatementBodyHook2({ x }: { x: any }) {
+function App__StatementBodyHook2({ x }) {
 	[x] = useState(100);
 
 	return <><div>{x}</div><App__StatementBodyHook1 x={x} /></>;
@@ -367,7 +367,7 @@ exports[`[react] continuation lift for try-with-hook > try with a hook but no st
 
 const App__static1 = <div>{'error'}</div>;
 
-function App__StatementBodyHook1({ load }: { load: any }) {
+function App__StatementBodyHook1({ load }) {
 	const [data] = useState(load());
 
 	return <div>{data}</div>;
@@ -399,7 +399,7 @@ export function App({ load }: { load: () => number }) {
 exports[`[react] continuation lift for try-with-hook > try/catch with a hook in the catch body and a tail that reads the mutated outer 1`] = `
 "import { TsrxErrorBoundary } from '@tsrx/react/error-boundary';
 
-function App__StatementBodyHook1({ attempt }: { attempt: any }) {
+function App__StatementBodyHook1({ attempt }) {
 	console.log(attempt);
 
 	return null;
@@ -423,13 +423,13 @@ exports[`[react] continuation lift for try-with-hook > try/catch with a hook in 
 
 const App__static1 = <div>{'error'}</div>;
 
-function App__StatementBodyHook1({ data }: { data: any }) {
+function App__StatementBodyHook1({ data }) {
 	console.log(data);
 
 	return null;
 }
 
-function App__StatementBodyHook2({ load, data }: { load: any; data: any }) {
+function App__StatementBodyHook2({ load, data }) {
 	[data] = useState(load());
 
 	return <><div>{data}</div><App__StatementBodyHook1 data={data} /></>;
@@ -453,13 +453,13 @@ import { TsrxErrorBoundary } from '@tsrx/react/error-boundary';
 const App__static1 = <p>{'loading'}</p>;
 const App__static2 = <div>{'error'}</div>;
 
-function App__StatementBodyHook1({ data }: { data: any }) {
+function App__StatementBodyHook1({ data }) {
 	console.log(data);
 
 	return null;
 }
 
-function App__StatementBodyHook2({ load, data }: { load: any; data: any }) {
+function App__StatementBodyHook2({ load, data }) {
 	[data] = useState(load());
 
 	return <><div>{data}</div><App__StatementBodyHook1 data={data} /></>;
@@ -487,7 +487,7 @@ exports[`[react] hoisted helper and tail lift for for-of-with-hook > falls back 
 `;
 
 exports[`[react] hoisted helper and tail lift for for-of-with-hook > hoists the helper without a tail lift when nothing follows the loop 1`] = `
-"function App__StatementBodyHook1({ name }: { name: any }) {
+"function App__StatementBodyHook1({ name }) {
 	const [val] = useState(name);
 
 	return <div key={name}>{val}</div>;
@@ -505,34 +505,25 @@ export function App({ items }: { items: string[] }) {
 `;
 
 exports[`[react] hoisted helper and tail lift for for-of-with-hook > lifts the tail across nested for-of-with-hooks 1`] = `
-"function App__StatementBodyHook1({ last }: { last: any }) {
+"function App__StatementBodyHook1({ last }) {
 	console.log('end', last);
 
 	return null;
 }
 
-function App__StatementBodyHook3({ last, _tsrx_isLast_2 }: { last: any; _tsrx_isLast_2: any }) {
+function App__StatementBodyHook3({ last, _tsrx_isLast_2 }) {
 	console.log('mid', last);
 
 	return _tsrx_isLast_2 && <App__StatementBodyHook1 last={last} />;
 }
 
-function App__StatementBodyHook4(
-	{ last, _tsrx_isLast_2, item, _tsrx_isLast_4 }: { 
-		last: any;
-		_tsrx_isLast_2: any;
-		item: any;
-		_tsrx_isLast_4: any
-	 }
-) {
+function App__StatementBodyHook4({ last, _tsrx_isLast_2, item, _tsrx_isLast_4 }) {
 	[last] = useState(item);
 
 	return <><div key={item}>{last}</div>{_tsrx_isLast_4 && <App__StatementBodyHook3 last={last} _tsrx_isLast_2={_tsrx_isLast_2} />}</>;
 }
 
-function App__StatementBodyHook2(
-	{ last, group, _tsrx_isLast_2 }: { last: any; group: any; _tsrx_isLast_2: any }
-) {
+function App__StatementBodyHook2({ last, group, _tsrx_isLast_2 }) {
 	let _tsrx_iteration_items_4 = group;
 
 	_tsrx_iteration_items_4 = Array.isArray(_tsrx_iteration_items_4)
@@ -559,21 +550,19 @@ export function App({ groups }: { groups: number[][] }) {
 `;
 
 exports[`[react] hoisted helper and tail lift for for-of-with-hook > lifts the tail across sibling for-of-with-hooks at the same level 1`] = `
-"function App__StatementBodyHook2({ lastA, lastB }: { lastA: any; lastB: any }) {
+"function App__StatementBodyHook2({ lastA, lastB }) {
 	console.log(lastA, lastB);
 
 	return null;
 }
 
-function App__StatementBodyHook3(
-	{ lastA, lastB, b, _tsrx_isLast_3 }: { lastA: any; lastB: any; b: any; _tsrx_isLast_3: any }
-) {
+function App__StatementBodyHook3({ lastA, lastB, b, _tsrx_isLast_3 }) {
 	[lastB] = useState(b);
 
 	return <><span key={b}>{lastB}</span>{_tsrx_isLast_3 && <App__StatementBodyHook2 lastA={lastA} lastB={lastB} />}</>;
 }
 
-function App__StatementBodyHook1({ bs, lastA, lastB }: { bs: any; lastA: any; lastB: any }) {
+function App__StatementBodyHook1({ bs, lastA, lastB }) {
 	let _tsrx_iteration_items_3 = bs;
 
 	_tsrx_iteration_items_3 = Array.isArray(_tsrx_iteration_items_3)
@@ -585,9 +574,7 @@ function App__StatementBodyHook1({ bs, lastA, lastB }: { bs: any; lastA: any; la
 		: _tsrx_iteration_items_3.map((b, i) => <App__StatementBodyHook3 lastA={lastA} lastB={lastB} b={b} key={b} _tsrx_isLast_3={i === _tsrx_iteration_items_3.length - 1} />);
 }
 
-function App__StatementBodyHook4(
-	{ bs, lastA, lastB, a, _tsrx_isLast_4 }: { bs: any; lastA: any; lastB: any; a: any; _tsrx_isLast_4: any }
-) {
+function App__StatementBodyHook4({ bs, lastA, lastB, a, _tsrx_isLast_4 }) {
 	[lastA] = useState(a);
 
 	return <><div key={a}>{lastA}</div>{_tsrx_isLast_4 && <App__StatementBodyHook1 bs={bs} lastA={lastA} lastB={lastB} />}</>;
@@ -609,15 +596,13 @@ export function App({ as, bs }: { as: number[]; bs: number[] }) {
 `;
 
 exports[`[react] hoisted helper and tail lift for for-of-with-hook > lifts the tail of a for-of with hooks (inline-literal iteration source) 1`] = `
-"function App__StatementBodyHook1({ last }: { last: any }) {
+"function App__StatementBodyHook1({ last }) {
 	console.log(last);
 
 	return null;
 }
 
-function App__StatementBodyHook2(
-	{ last, item, i, _tsrx_isLast_2 }: { last: any; item: any; i: any; _tsrx_isLast_2: any }
-) {
+function App__StatementBodyHook2({ last, item, i, _tsrx_isLast_2 }) {
 	[last] = useState(item);
 
 	return <><div key={i}>{last}</div>{_tsrx_isLast_2 && <App__StatementBodyHook1 last={last} />}</>;
@@ -638,15 +623,13 @@ export function App() {
 `;
 
 exports[`[react] hoisted helper and tail lift for for-of-with-hook > lifts the tail of a for-of with hooks (prop iteration source) 1`] = `
-"function App__StatementBodyHook1({ last }: { last: any }) {
+"function App__StatementBodyHook1({ last }) {
 	console.log(last);
 
 	return null;
 }
 
-function App__StatementBodyHook2(
-	{ last, item, i, _tsrx_isLast_2 }: { last: any; item: any; i: any; _tsrx_isLast_2: any }
-) {
+function App__StatementBodyHook2({ last, item, i, _tsrx_isLast_2 }) {
 	[last] = useState(item);
 
 	return <><div key={i}>{last}</div>{_tsrx_isLast_2 && <App__StatementBodyHook1 last={last} />}</>;

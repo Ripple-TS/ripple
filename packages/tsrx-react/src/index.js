@@ -63,6 +63,7 @@ export function compile_to_volar_mappings(source, filename, options) {
 	const transformed = transform(ast, source, filename, {
 		collect: true,
 		loose: !!options?.loose,
+		moduleScopedHookComponents: false,
 		errors,
 		comments,
 	});

@@ -30,6 +30,7 @@ export interface JsxTransformContext {
 	needs_suspense: boolean;
 	needs_merge_refs: boolean;
 	needs_fragment: boolean;
+	module_scoped_hook_components: boolean;
 	helper_state: {
 		base_name: string;
 		next_id: number;
@@ -80,6 +81,12 @@ export interface JsxTransformOptions {
 	 * `@tsrx-expect-error` line comments.
 	 */
 	comments?: AST.CommentWithLocation[];
+	/**
+	 * Override whether hook-isolation helper components are emitted directly at
+	 * module scope. React runtime compilation enables this, while editor tooling
+	 * can disable it to preserve lexical `typeof` helper prop types.
+	 */
+	moduleScopedHookComponents?: boolean;
 }
 
 /**

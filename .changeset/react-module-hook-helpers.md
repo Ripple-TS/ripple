@@ -3,4 +3,4 @@
 '@tsrx/react': patch
 ---
 
-Emit React hook-isolation branch helpers as module-scope components so generated output is compatible with the React Compiler's Rules of Hooks checks.
+Emit React hook-isolation branch helpers as module-scope components without synthetic `any` prop annotations, while preserving lexical helper prop types for editor tooling.

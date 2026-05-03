@@ -167,6 +167,8 @@ export function createJsxTransform(platform) {
 			needs_suspense: false,
 			needs_merge_refs: false,
 			needs_fragment: false,
+			module_scoped_hook_components:
+				options?.moduleScopedHookComponents ?? !!platform.hooks?.moduleScopedHookComponents,
 			helper_state: null,
 			available_bindings: new Map(),
 			lazy_next_id: 0,
@@ -1162,9 +1164,7 @@ function create_helper_state(base_name) {
  * @returns {boolean}
  */
 function should_use_module_scoped_hook_components(transform_context) {
-	return !!(
-		transform_context.helper_state && transform_context.platform.hooks?.moduleScopedHookComponents
-	);
+	return !!(transform_context.helper_state && transform_context.module_scoped_hook_components);
 }
 
 /**
@@ -2144,17 +2144,21 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	const signature_use_typeof = has_tail ? [...ordered_use_typeof, false] : ordered_use_typeof;
 
 	const props_type =
-		signature_bindings.length > 0
-			? use_module_scoped_component
-				? create_any_helper_props_type_literal(signature_bindings)
-				: create_helper_props_type_literal_with_typeof_flags(
-						signature_bindings,
-						signature_aliases,
-						signature_use_typeof,
-					)
+		signature_bindings.length > 0 && !use_module_scoped_component
+			? create_helper_props_type_literal_with_typeof_flags(
+					signature_bindings,
+					signature_aliases,
+					signature_use_typeof,
+				)
 			: null;
 	const params =
-		props_type !== null ? [create_typed_helper_props_pattern(signature_bindings, props_type)] : [];
+		signature_bindings.length > 0
+			? [
+					props_type !== null
+						? create_typed_helper_props_pattern(signature_bindings, props_type)
+						: create_helper_props_pattern(signature_bindings),
+				]
+			: [];
 
 	const fn_saved_bindings = transform_context.available_bindings;
 	transform_context.available_bindings = new Map(fn_saved_bindings);
@@ -2343,21 +2347,6 @@ function create_helper_props_type_literal_with_typeof_flags(bindings, aliases, u
 				b.ts_type_annotation(alias_ref),
 			);
 		}),
-	);
-}
-
-/**
- * @param {AST.Identifier[]} bindings
- * @returns {any}
- */
-function create_any_helper_props_type_literal(bindings) {
-	return b.ts_type_literal(
-		bindings.map((binding) =>
-			b.ts_property_signature(
-				create_generated_identifier(binding.name),
-				b.ts_type_annotation(b.ts_keyword_type('any')),
-			),
-		),
 	);
 }
 
@@ -2843,13 +2832,17 @@ function create_hook_safe_helper(
 		? []
 		: helper_bindings.map((binding) => create_helper_type_alias_declaration(helper_id, binding));
 	const props_type =
-		helper_bindings.length > 0
-			? use_module_scoped_component
-				? create_any_helper_props_type_literal(helper_bindings)
-				: create_helper_props_type_literal(helper_bindings, aliases)
+		helper_bindings.length > 0 && !use_module_scoped_component
+			? create_helper_props_type_literal(helper_bindings, aliases)
 			: null;
 	const params =
-		props_type !== null ? [create_typed_helper_props_pattern(helper_bindings, props_type)] : [];
+		helper_bindings.length > 0
+			? [
+					props_type !== null
+						? create_typed_helper_props_pattern(helper_bindings, props_type)
+						: create_helper_props_pattern(helper_bindings),
+				]
+			: [];
 
 	const saved_bindings = transform_context.available_bindings;
 	transform_context.available_bindings = new Map(saved_bindings);

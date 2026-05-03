@@ -337,13 +337,20 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('useEffect(');
 		expect(code).toContain('count > 2');
 		expect(code).toContain('function App__StatementBodyHook1()');
-		expect(code).toContain(
-			'function App__StatementBodyHook2({ count, setCount }: { count: any; setCount: any })',
-		);
+		expect(code).toContain('function App__StatementBodyHook2({ count, setCount })');
 		expect(code).not.toContain('let App__StatementBodyHook');
+		expect(code).not.toContain(': any');
 		expect(code).not.toContain('const StatementBodyHook2 = App__StatementBodyHook2 ??');
 		expect(code).toContain('<button onClick={() => setCount(count + 1)}>{count}</button>');
 		expect(code).not.toContain('App__Continue');
+		expect(mappings.code).toContain('let App__StatementBodyHook1;');
+		expect(mappings.code).toContain('let App__StatementBodyHook2;');
+		expect(mappings.code).toContain('const _tsrx_StatementBodyHook2_count = count;');
+		expect(mappings.code).toContain('const _tsrx_StatementBodyHook2_setCount = setCount;');
+		expect(mappings.code).toContain('const StatementBodyHook2 = App__StatementBodyHook2 ??');
+		expect(mappings.code).toContain('count: typeof _tsrx_StatementBodyHook2_count');
+		expect(mappings.code).toContain('setCount: typeof _tsrx_StatementBodyHook2_setCount');
+		expect(mappings.code).not.toContain('count: any');
 		expect(mappings.errors).toEqual([]);
 		expect(mappings.mappings.length).toBeGreaterThan(0);
 	});
@@ -380,9 +387,16 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('function App__StatementBodyHook1()');
-		expect(code).toContain('function App__StatementBodyHook2({ foo }: { foo: any })');
+		expect(code).toContain('function App__StatementBodyHook2({ foo })');
+		expect(code).not.toContain(': any');
 		expect(code).not.toContain('const _tsrx_StatementBodyHook1_foo = foo;');
 		expect(code).not.toContain('const _tsrx_StatementBodyHook2_foo = foo;');
+		expect(mappings.code).toContain('let App__StatementBodyHook1;');
+		expect(mappings.code).toContain('let App__StatementBodyHook2;');
+		expect(mappings.code).not.toContain('const _tsrx_StatementBodyHook1_foo = foo;');
+		expect(mappings.code).toContain('const _tsrx_StatementBodyHook2_foo = foo;');
+		expect(mappings.code).toContain('foo: typeof _tsrx_StatementBodyHook2_foo');
+		expect(mappings.code).not.toContain('foo: any');
 		expect(code).toContain('return App__static1;');
 		expect(code).toContain('useEffect(');
 		expect(code).toContain('return <div>{foo.trim()}</div>;');
@@ -413,13 +427,48 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		const helper_pos = code.indexOf('function App__StatementBodyHook2({ foo }: { foo: any })');
+		const helper_pos = code.indexOf('function App__StatementBodyHook2({ foo })');
 		const app_pos = code.indexOf('export function App()');
 
 		expect(helper_pos).toBeGreaterThan(-1);
 		expect(app_pos).toBeGreaterThan(helper_pos);
+		expect(code).not.toContain(': any');
 		expect(code).not.toContain('const _tsrx_StatementBodyHook2_foo = foo;');
 		expect(code).not.toContain('const StatementBodyHook2 = App__StatementBodyHook2 ??');
+	});
+
+	it('declares helper prop type aliases before typed cached helpers', () => {
+		const { code } = compile_to_volar_mappings(
+			`import { useEffect } from 'react';
+
+			declare function getFoo(): string | null;
+
+			export component App() {
+				const foo = getFoo();
+
+				if (!foo) {
+					<div>{'Foo not found'}</div>
+					return;
+				}
+
+				useEffect(() => {
+					console.log(foo);
+				}, [foo]);
+
+				<div>{foo.trim()}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		const alias_pos = code.indexOf('const _tsrx_StatementBodyHook2_foo = foo;');
+		const helper_pos = code.indexOf('const StatementBodyHook2 = App__StatementBodyHook2 ??');
+		const type_ref_pos = code.indexOf('foo: typeof _tsrx_StatementBodyHook2_foo');
+
+		expect(alias_pos).toBeGreaterThan(-1);
+		expect(helper_pos).toBeGreaterThan(-1);
+		expect(type_ref_pos).toBeGreaterThan(helper_pos);
+		expect(helper_pos).toBeGreaterThan(alias_pos);
+		expect(code).not.toContain('foo: any');
 	});
 
 	it('does not emit duplicate Volar mappings for helper-extracted React output', () => {
@@ -686,6 +735,9 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('function App__StatementBodyHook1() {');
 		expect(code).toContain('const [x] = useState(1);');
 		expect(code).toContain('<App__StatementBodyHook1 />');
+		expect(code).not.toContain(': any');
+		expect(mappings.code).toContain('function StatementBodyHook1() {');
+		expect(mappings.code).toContain('<StatementBodyHook1 />');
 		expect(mappings.errors).toEqual([]);
 	});
 
@@ -1014,15 +1066,15 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain('function App__StatementBodyHook1()');
 		expect(code).toContain('useState(0)');
+		expect(code).not.toContain(': any');
 		// The hook call should be inside the helper component, not the IIFE
 		const hook_pos = code.indexOf('useState(0)');
 		const helper_pos = code.indexOf('function App__StatementBodyHook1');
 		expect(hook_pos).toBeGreaterThan(helper_pos);
 	});
 
-	it('passes branch locals into module-scoped hook helpers', () => {
-		const { code } = compile(
-			`import { useState } from 'react';
+	it('passes branch locals into module-scoped hook helpers while preserving Volar types', () => {
+		const source = `import { useState } from 'react';
 
 			declare function getFoo(): string | null;
 
@@ -1032,15 +1084,24 @@ describe('@tsrx/react basic', () => {
 					const [count] = useState(0);
 					<div>{foo.trim()}{count}</div>
 				}
-			}`,
-			'App.tsrx',
-		);
+			}`;
+		const { code } = compile(source, 'App.tsrx');
+		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
 
-		expect(code).toContain('function App__StatementBodyHook1({ foo }: { foo: any })');
+		expect(code).toContain('function App__StatementBodyHook1({ foo })');
+		expect(code).toContain('<App__StatementBodyHook1 foo={foo} />');
+		expect(code).not.toContain(': any');
 		expect(code).not.toContain('let App__StatementBodyHook1;');
 		expect(code).not.toContain('const _tsrx_StatementBodyHook1_foo = foo;');
 		expect(code).not.toContain('const StatementBodyHook1 = App__StatementBodyHook1 ??');
-		expect(code).toContain('<App__StatementBodyHook1 foo={foo} />');
+		expect(mappings.code).toContain('let App__StatementBodyHook1;');
+		expect(mappings.code).toContain('const _tsrx_StatementBodyHook1_foo = foo;');
+		expect(mappings.code).toContain('const StatementBodyHook1 = App__StatementBodyHook1 ??');
+		expect(mappings.code).toContain(
+			'function StatementBodyHook1({ foo }: { foo: typeof _tsrx_StatementBodyHook1_foo })',
+		);
+		expect(mappings.code).toContain('<StatementBodyHook1 foo={foo} />');
+		expect(mappings.code).not.toContain('foo: any');
 	});
 
 	it('extracts hooks from if-else branches into separate local components', () => {
