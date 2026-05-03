@@ -4276,6 +4276,8 @@ function create_render_switch_case(switch_case, transform_context) {
 
 		if (is_jsx_child(child)) {
 			render_nodes.push(to_jsx_child(child, transform_context));
+		} else if (is_bare_render_expression(child)) {
+			render_nodes.push(to_jsx_expression_container(child, child));
 		} else {
 			case_body.push(child);
 		}

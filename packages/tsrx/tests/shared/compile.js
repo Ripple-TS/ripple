@@ -98,6 +98,26 @@ export function runSharedFragmentExpressionRenderTests({ compile, name }) {
 			expect(code).toContain('value');
 			expect(code).not.toMatch(/^[\t ]*value;?\n\s*return null;/m);
 		});
+
+		it('renders lone expression fragment shorthand inside switch case bodies', () => {
+			const { code } = compile(
+				`export component A() {
+					switch (state) {
+						case "ready":
+							<>{"Ready"}</>
+							break
+						default:
+							<>{"Waiting"}</>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('"Ready"');
+			expect(code).toContain('"Waiting"');
+			expect(code).not.toMatch(/^[\t ]*"Ready";?\n\s*break;/m);
+			expect(code).not.toMatch(/^[\t ]*"Waiting";?\n\s*return null;/m);
+		});
 	});
 }
 
