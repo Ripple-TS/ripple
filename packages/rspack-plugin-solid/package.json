@@ -3,7 +3,7 @@
   "description": "Rspack plugin for @tsrx/solid",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "type": "module",
   "publishConfig": {
     "access": "public"
