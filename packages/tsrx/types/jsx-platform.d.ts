@@ -136,6 +136,13 @@ export interface JsxPlatformHooks {
 	 */
 	wrapHelperComponent?: (helperFn: any, helperId: any, ctx: any, sourceNode: any) => any;
 	/**
+	 * Emit hook-isolation helper components as unique module-scope declarations
+	 * instead of lazily creating and caching them from the parent component body.
+	 * React enables this so generated branches stay compatible with the React
+	 * Compiler's Rules of Hooks validation.
+	 */
+	moduleScopedHookComponents?: boolean;
+	/**
 	 * Inject module-level imports after the main walk. Default: import
 	 * `Suspense` from `platform.imports.suspense` and `TsrxErrorBoundary`
 	 * from `platform.imports.errorBoundary` if the walk flagged them.

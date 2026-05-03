@@ -1889,10 +1889,10 @@ export function optionalFn(bar: string, baz?: string) {
 				expect(code).not.toContain('continue;');
 				expect(code).toContain('return <span>{last}</span>;');
 				expect(code).toMatch(
-					/if \(item === 0\) \{\s+return _tsrx_isLast_\d+ \? <StatementBodyHook\d+ last=\{last\} \/> : null;\s+\}/,
+					/if \(item === 0\) \{\s+return _tsrx_isLast_\d+ \? <(?:\w+__)?StatementBodyHook\d+ last=\{last\} \/> : null;\s+\}/,
 				);
 				expect(code).toMatch(
-					/return <><div key=\{i\}>\{last\}<\/div>\{_tsrx_isLast_\d+ && <StatementBodyHook\d+ last=\{last\} \/>}<\/>;/,
+					/return <><div key=\{i\}>\{last\}<\/div>\{_tsrx_isLast_\d+ && <(?:\w+__)?StatementBodyHook\d+ last=\{last\} \/>}<\/>;/,
 				);
 			});
 
@@ -1913,10 +1913,10 @@ export function optionalFn(bar: string, baz?: string) {
 				expect(code).not.toContain('continue;');
 				expect(code).toContain('console.log(last);');
 				expect(code).toMatch(
-					/if \(i === 2\) \{[\s\S]*return [\s\S]*_tsrx_isLast_\d+ && <StatementBodyHook\d+ last=\{last\} \/>/,
+					/if \(i === 2\) \{[\s\S]*return [\s\S]*_tsrx_isLast_\d+ && <(?:\w+__)?StatementBodyHook\d+ last=\{last\} \/>/,
 				);
 				expect(code).toMatch(
-					/return <><div key=\{i\}>\{last\}<\/div>\{_tsrx_isLast_\d+ && <StatementBodyHook\d+ last=\{last\} \/>}<\/>;/,
+					/return <><div key=\{i\}>\{last\}<\/div>\{_tsrx_isLast_\d+ && <(?:\w+__)?StatementBodyHook\d+ last=\{last\} \/>}<\/>;/,
 				);
 			});
 
