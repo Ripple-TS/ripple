@@ -48,6 +48,27 @@ component DirectQuotedTextApp() {
 second"</pre>
 }
 
+component DirectQuotedTextIfElseTrueApp() {
+	if (true) {
+		"Hello Ripple"
+	} else "Hello React"
+}
+
+component DirectQuotedTextIfElseFalseApp() {
+	if (false) {
+		"Hello Ripple"
+	} else "Hello React"
+}
+
+component DirectQuotedTextIfElseApp() {
+	<div class="direct-quoted-if-then">
+		<DirectQuotedTextIfElseTrueApp />
+	</div>
+	<div class="direct-quoted-if-else">
+		<DirectQuotedTextIfElseFalseApp />
+	</div>
+}
+
 component Child(props: { text: string }) {
 	<span class="child">{props.text}</span>
 }
@@ -838,6 +859,12 @@ describe('tsrx-react runtime', () => {
 		expect(text('.direct-quoted-entities')).toBe('Rock & "Roll"');
 		expect(text('.direct-quoted-backslash')).toBe('line\\nbreak');
 		expect(text('.direct-quoted-multiline')).toBe('first\nsecond');
+	});
+
+	it('renders bare direct double-quoted text in if-else branches', async () => {
+		await render(DirectQuotedTextIfElseApp);
+		expect(text('.direct-quoted-if-then')).toBe('Hello Ripple');
+		expect(text('.direct-quoted-if-else')).toBe('Hello React');
 	});
 
 	it('renders nested components', async () => {

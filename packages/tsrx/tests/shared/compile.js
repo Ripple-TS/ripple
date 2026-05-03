@@ -461,6 +461,21 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 			expect(code).toContain('"hello"');
 		});
 
+		it('accepts direct double-quoted text in if-else branches', () => {
+			const { code } = compile(
+				`export component App() {
+					if (false) {
+						"Hello Ripple"
+					} else "Hello React";
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('"Hello Ripple"');
+			expect(code).toContain('"Hello React"');
+			expect(code).not.toContain('return null;');
+		});
+
 		it('decodes entities in direct double-quoted text children like JSX attributes', () => {
 			const { code } = compile(
 				`export component App() {
@@ -883,6 +898,35 @@ export function optionalFn(bar: string, baz?: string) {
 
 			expect(code).toContain('const x = <>Hello world</>;');
 			expect(code).toContain('return x;');
+		});
+
+		it('parses backtick text inside fragments as JSX text', () => {
+			const { code } = compile(
+				`let a = component () {
+					<>
+						\`333\`
+					</>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('`333`');
+		});
+
+		it('parses backtick text around JSX elements inside fragments', () => {
+			const { code } = compile(
+				`let a = component () {
+					<>
+						\`
+						<b></b>
+						\`
+					</>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('`');
+			expect(code).toContain('<b></b>');
 		});
 
 		it('wraps multiple tsx children in a fragment', () => {
