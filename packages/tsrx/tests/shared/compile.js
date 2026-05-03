@@ -357,6 +357,122 @@ export function runSharedAnonymousComponentTests({ compile, name }) {
 }
 
 /**
+ * Shared validation that components only accept a single (props) parameter.
+ * Without this rule, JSX targets pass extra params straight through into the
+ * generated function, and ripple silently drops them. The rule is enforced
+ * across every component declaration shape — named declaration, anonymous
+ * expression (legacy and arrow), and arrow class property (regular and
+ * static). Runs against both `compile` (which throws) and
+ * `compile_to_volar_mappings` (which collects errors) so the same rule fires
+ * for production builds and editor tooling.
+ *
+ * @param {Pick<CompileHarness, 'compile' | 'name'> & Pick<CompileDiagnosticsHarness, 'compile_to_volar_mappings'>} harness
+ */
+export function runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name }) {
+	const expected_message =
+		'Components accept a single props parameter. Move additional inputs into the props object instead.';
+
+	/**
+	 * @param {string} source
+	 * @param {string} label
+	 */
+	function expect_compile_throws(source, label) {
+		it(`rejects ${label} via compile`, () => {
+			expect(() => compile(source, 'App.tsrx')).toThrow(/single props parameter/);
+		});
+	}
+
+	/**
+	 * @param {string} source
+	 * @param {string} label
+	 */
+	function expect_volar_collects(source, label) {
+		it(`surfaces ${label} via Volar mappings`, () => {
+			const result = compile_to_volar_mappings(source, 'App.tsrx');
+
+			expect(
+				result.errors.some((error) =>
+					/** @type {{ message?: string }} */ (error).message?.includes(expected_message),
+				),
+			).toBe(true);
+		});
+	}
+
+	const cases = /** @type {const} */ ([
+		[
+			'a named component declaration with multiple parameters',
+			`export component App(a, b) {
+				<div>{a}</div>
+			}`,
+		],
+		[
+			'an anonymous component expression with multiple parameters',
+			`const Inline = component(a, b) {
+				<div>{a}</div>
+			}`,
+		],
+		[
+			'an anonymous arrow component expression with multiple parameters',
+			`const Inline = component(a, b) => {
+				<div>{a}</div>
+			}`,
+		],
+		[
+			'an arrow component class property with multiple parameters',
+			`export class App {
+				Inline = component(a, b) => {
+					<div>{a}</div>
+				}
+			}`,
+		],
+		[
+			'a static arrow component class property with multiple parameters',
+			`export class App {
+				static Inline = component(a, b) => {
+					<div>{a}</div>
+				}
+			}`,
+		],
+	]);
+
+	describe(`[${name}] component params`, () => {
+		it('accepts a single props parameter', () => {
+			expect(() =>
+				compile(
+					`export component App(props) {
+						<div>{props.value}</div>
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
+
+		for (const [label, source] of cases) {
+			expect_compile_throws(source, label);
+			expect_volar_collects(source, label);
+		}
+
+		it('reports one Volar diagnostic per extra parameter, each at the param position', () => {
+			const result = compile_to_volar_mappings(
+				`export component App(a, b, c) {
+					<div>{a}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			const offending = result.errors.filter((error) =>
+				/** @type {{ message?: string }} */ (error).message?.includes(expected_message),
+			);
+
+			expect(offending).toHaveLength(2);
+
+			const positions = offending.map((error) => /** @type {{ pos?: number }} */ (error).pos);
+			expect(new Set(positions).size).toBe(2);
+		});
+	});
+}
+
+/**
  * Shared validation that components declared inside a class must use an arrow
  * function class property (regular or static). The method-style form
  * (`component foo() {}` inside a class body) is rejected at parse time. The

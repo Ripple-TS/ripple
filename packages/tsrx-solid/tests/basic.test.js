@@ -4,6 +4,7 @@ import {
 	runSharedClassComponentDeclarationTests,
 	runSharedCompileDiagnosticsTests,
 	runSharedCompileTests,
+	runSharedComponentParamsTests,
 } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
@@ -19,6 +20,7 @@ runSharedAnonymousComponentTests({ compile, name: 'solid' });
 runSharedCompileTests({ compile, name: 'solid', classAttrName: 'class' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'solid' });
 runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'solid' });
+runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name: 'solid' });
 
 describe('@tsrx/solid basic', () => {
 	describe('component → function', () => {
