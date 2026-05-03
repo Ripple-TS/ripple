@@ -29,7 +29,7 @@
     "typescript": "catalog:default",
     "vite": "catalog:default",
     "vue": "3.6.0-beta.10",
-    "vue-jsx-vapor": "^3.2.11"
+    "vue-jsx-vapor": "^3.2.12"
   },
   "files": [
     "src",

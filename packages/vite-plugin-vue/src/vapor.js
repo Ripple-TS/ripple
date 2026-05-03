@@ -1,9 +1,6 @@
 /** @import { Plugin } from 'vite' */
 
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
-const vueJsxVaporViteEntry = 'vue-jsx-vapor/vite';
+import vueJsxVaporModule from 'vue-jsx-vapor/vite';
 
 /**
  * @typedef {(options: {
@@ -12,9 +9,6 @@ const vueJsxVaporViteEntry = 'vue-jsx-vapor/vite';
  * }) => Plugin[]} VueJsxVaporPlugin
  */
 
-const vueJsxVaporModule = /** @type {{ default: VueJsxVaporPlugin } | VueJsxVaporPlugin} */ (
-	require(vueJsxVaporViteEntry)
-);
 const vueJsxVapor =
 	typeof vueJsxVaporModule === 'function' ? vueJsxVaporModule : vueJsxVaporModule.default;
 

@@ -1,9 +1,12 @@
 /** @import { JsxPlatform } from '@tsrx/core/types' */
 
+import { walk } from 'zimmerframe';
+import is_reference from 'is-reference';
 import {
 	builders,
 	clone_expression_node,
 	clone_identifier,
+	create_generated_identifier,
 	componentToFunctionDeclaration,
 	createJsxTransform,
 	error,
@@ -41,6 +44,7 @@ const vue_platform = {
 	hooks: {
 		initialState: () => ({
 			needs_define_vapor_component: false,
+			needs_vapor_for: false,
 		}),
 		isTopLevelSetupCall(call_expression) {
 			return is_vue_setup_call(call_expression);
@@ -55,8 +59,8 @@ const vue_platform = {
 		preprocessElementAttributes(attrs, ctx, element) {
 			return preprocess_ref_attributes(attrs, element, ctx);
 		},
-		renderForOf: (node, loop_params, body_statements) =>
-			render_for_of_as_vapor_template(node, loop_params, body_statements),
+		renderForOf: (node, loop_params, body_statements, ctx) =>
+			render_for_of_as_vapor_for(node, loop_params, body_statements, ctx),
 		createErrorBoundaryContent(try_content) {
 			return {
 				type: 'ArrowFunctionExpression',
@@ -217,9 +221,10 @@ function create_define_vapor_component_call(
  * @param {any} node
  * @param {any[]} loop_params
  * @param {any[]} body_statements
+ * @param {any} transform_context
  * @returns {any | null}
  */
-function render_for_of_as_vapor_template(node, loop_params, body_statements) {
+function render_for_of_as_vapor_for(node, loop_params, body_statements, transform_context) {
 	if (body_statements.length !== 1) {
 		return null;
 	}
@@ -238,19 +243,23 @@ function render_for_of_as_vapor_template(node, loop_params, body_statements) {
 		? clone_expression_node(node.key)
 		: (find_jsx_key_expression(rendered) ??
 			(node.index ? clone_expression_node(node.index) : null));
-	strip_top_level_jsx_keys(rendered);
-	const children = rendered.type === 'JSXFragment' ? rendered.children : [rendered];
+
+	transform_context.needs_vapor_for = true;
+
+	if (key_expression) {
+		strip_top_level_jsx_keys(rendered);
+	}
+	const slot = key_expression
+		? create_keyed_vapor_for_slot(loop_params, rendered)
+		: { params: loop_params, body: rendered, expression: true };
+	if (!slot) {
+		return null;
+	}
 	const attributes = [
 		{
 			type: 'JSXAttribute',
-			name: { type: 'JSXIdentifier', name: 'v-for', metadata: { path: [] } },
-			value: to_jsx_expression_container({
-				type: 'BinaryExpression',
-				operator: 'in',
-				left: create_v_for_left(loop_params),
-				right: clone_expression_node(node.right),
-				metadata: { path: [] },
-			}),
+			name: { type: 'JSXIdentifier', name: 'in', metadata: { path: [] } },
+			value: to_jsx_expression_container(clone_expression_node(node.right)),
 			metadata: { path: [] },
 		},
 	];
@@ -258,8 +267,10 @@ function render_for_of_as_vapor_template(node, loop_params, body_statements) {
 	if (key_expression) {
 		attributes.push({
 			type: 'JSXAttribute',
-			name: { type: 'JSXIdentifier', name: 'key', metadata: { path: [] } },
-			value: to_jsx_expression_container(key_expression),
+			name: { type: 'JSXIdentifier', name: 'getKey', metadata: { path: [] } },
+			value: to_jsx_expression_container(
+				create_loop_callback(loop_params, key_expression, true),
+			),
 			metadata: { path: [] },
 		});
 	}
@@ -268,17 +279,17 @@ function render_for_of_as_vapor_template(node, loop_params, body_statements) {
 		type: 'JSXElement',
 		openingElement: {
 			type: 'JSXOpeningElement',
-			name: { type: 'JSXIdentifier', name: 'template', metadata: { path: [] } },
+			name: { type: 'JSXIdentifier', name: 'VaporFor', metadata: { path: [] } },
 			attributes,
 			selfClosing: false,
 			metadata: { path: [] },
 		},
 		closingElement: {
 			type: 'JSXClosingElement',
-			name: { type: 'JSXIdentifier', name: 'template', metadata: { path: [] } },
+			name: { type: 'JSXIdentifier', name: 'VaporFor', metadata: { path: [] } },
 			metadata: { path: [] },
 		},
-		children,
+		children: [to_jsx_expression_container(create_loop_callback(slot.params, slot.body, slot.expression))],
 		metadata: { path: [] },
 	});
 }
@@ -328,9 +339,8 @@ function render_for_of_as_flat_map(node, loop_params, rendered) {
 }
 
 /**
- * `<template v-for>` preserves one rendered slot per source item in the current
- * Vue runtime path. Loop bodies that can return `null` need the shared callback
- * lowering so `continue` truly skips the iteration.
+ * Loop bodies that can return `null` need the shared callback lowering so
+ * `continue` truly skips the iteration.
  *
  * @param {any} node
  * @returns {boolean}
@@ -387,22 +397,6 @@ function to_array_render_expression(node) {
 }
 
 /**
- * @param {any[]} loop_params
- * @returns {any}
- */
-function create_v_for_left(loop_params) {
-	if (loop_params.length === 1) {
-		return clone_expression_node(loop_params[0]);
-	}
-
-	return {
-		type: 'SequenceExpression',
-		expressions: loop_params.map((param) => clone_expression_node(param)),
-		metadata: { path: [] },
-	};
-}
-
-/**
  * @param {any} node
  * @returns {any | null}
  */
@@ -448,6 +442,299 @@ function strip_top_level_jsx_keys(node) {
 			strip_top_level_jsx_keys(child);
 		}
 	}
+}
+
+/**
+ * @param {any[]} loop_params
+ * @param {any} body
+ * @param {boolean} expression
+ * @returns {any}
+ */
+function create_loop_callback(loop_params, body, expression) {
+	return {
+		type: 'ArrowFunctionExpression',
+		params: loop_params.map((param) => clone_expression_node(param)),
+		body,
+		async: false,
+		generator: false,
+		expression,
+		metadata: { path: [] },
+	};
+}
+
+/**
+ * @param {any[]} loop_params
+ * @param {any} rendered
+ * @returns {{ params: any[], body: any, expression: boolean } | null}
+ */
+function create_keyed_vapor_for_slot(loop_params, rendered) {
+	if (loop_params[0]?.type === 'Identifier') {
+		return {
+			params: loop_params,
+			body: rewrite_vapor_for_keyed_slot_refs(rendered, loop_params),
+			expression: true,
+		};
+	}
+
+	const item_ref = create_generated_identifier('__vapor_item');
+	const item_ref_value = create_value_member_expression(item_ref);
+	const replacements = create_pattern_replacements(loop_params[0], item_ref_value);
+	if (!replacements) {
+		return null;
+	}
+
+	const params = [item_ref, ...loop_params.slice(1)];
+	const rewritten_rendered = rewrite_vapor_for_keyed_slot_refs(
+		rendered,
+		loop_params.slice(1),
+		replacements,
+	);
+
+	return {
+		params,
+		body: rewritten_rendered,
+		expression: true,
+	};
+}
+
+/**
+ * Vue's `VaporFor` passes plain item values to unkeyed slots, but keyed slots
+ * receive shallow refs so row instances can update in place. Match that runtime
+ * shape by reading loop params through `.value` inside the slot body.
+ *
+ * @param {any} node
+ * @param {any[]} loop_params
+ * @param {Map<string, any>} [replacements]
+ * @returns {any}
+ */
+function rewrite_vapor_for_keyed_slot_refs(node, loop_params, replacements = new Map()) {
+	const loop_param_names = new Set();
+	for (const param of loop_params) {
+		collect_pattern_names(param, loop_param_names);
+	}
+
+	if (loop_param_names.size === 0 && replacements.size === 0) {
+		return node;
+	}
+
+	return walk(node, { loop_param_names, shadowed_names: new Set() }, {
+		Identifier(identifier, { path, state, next }) {
+			const parent = path.at(-1);
+			if (
+				(state.loop_param_names.has(identifier.name) || replacements.has(identifier.name)) &&
+				!state.shadowed_names.has(identifier.name) &&
+				parent &&
+				is_runtime_reference(identifier, parent)
+			) {
+				const replacement = replacements.get(identifier.name);
+				if (replacement) {
+					return clone_expression_node(replacement);
+				}
+				return create_value_member_expression(identifier);
+			}
+
+			return next();
+		},
+		FunctionDeclaration: rewrite_function_shadowed_refs,
+		FunctionExpression: rewrite_function_shadowed_refs,
+		ArrowFunctionExpression: rewrite_function_shadowed_refs,
+	});
+}
+
+/**
+ * @param {any} identifier
+ * @param {any} parent
+ * @returns {boolean}
+ */
+function is_runtime_reference(identifier, parent) {
+	if (parent.type === 'JSXExpressionContainer') {
+		return parent.expression === identifier;
+	}
+	if (parent.type === 'JSXAttribute') {
+		return parent.value === identifier || parent.value?.expression === identifier;
+	}
+	return is_reference(identifier, parent);
+}
+
+/**
+ * @param {any} pattern
+ * @param {any} source
+ * @returns {Map<string, any> | null}
+ */
+function create_pattern_replacements(pattern, source) {
+	const replacements = new Map();
+	return collect_pattern_replacements(pattern, source, replacements) ? replacements : null;
+}
+
+/**
+ * @param {any} pattern
+ * @param {any} source
+ * @param {Map<string, any>} replacements
+ * @returns {boolean}
+ */
+function collect_pattern_replacements(pattern, source, replacements) {
+	if (!pattern) return true;
+
+	switch (pattern.type) {
+		case 'Identifier':
+			replacements.set(pattern.name, source);
+			return true;
+		case 'ObjectPattern':
+			for (const property of pattern.properties || []) {
+				if (property.type === 'RestElement' || property.computed) {
+					return false;
+				}
+				if (
+					property.type !== 'Property' ||
+					!collect_pattern_replacements(
+						property.value,
+						create_property_member_expression(source, property.key),
+						replacements,
+					)
+				) {
+					return false;
+				}
+			}
+			return true;
+		case 'ArrayPattern':
+			for (let index = 0; index < (pattern.elements || []).length; index++) {
+				const element = pattern.elements[index];
+				if (
+					element &&
+					!collect_pattern_replacements(
+						element,
+						create_index_member_expression(source, index),
+						replacements,
+					)
+				) {
+					return false;
+				}
+			}
+			return true;
+		default:
+			return false;
+	}
+}
+
+/**
+ * @param {any} node
+ * @param {{ state: { loop_param_names: Set<string>, shadowed_names: Set<string> }, next: (state?: any) => any }} context
+ * @returns {any}
+ */
+function rewrite_function_shadowed_refs(node, { state, next }) {
+	const shadowed_names = new Set(state.shadowed_names);
+	if (node.id) {
+		collect_pattern_names(node.id, shadowed_names);
+	}
+	for (const param of node.params || []) {
+		collect_pattern_names(param, shadowed_names);
+	}
+	return next({ ...state, shadowed_names });
+}
+
+/**
+ * @param {any} node
+ * @param {Set<string>} names
+ * @returns {void}
+ */
+function collect_pattern_names(node, names) {
+	if (!node) return;
+
+	switch (node.type) {
+		case 'Identifier':
+			names.add(node.name);
+			break;
+		case 'RestElement':
+			collect_pattern_names(node.argument, names);
+			break;
+		case 'AssignmentPattern':
+			collect_pattern_names(node.left, names);
+			break;
+		case 'ArrayPattern':
+			for (const element of node.elements || []) {
+				collect_pattern_names(element, names);
+			}
+			break;
+		case 'ObjectPattern':
+			for (const property of node.properties || []) {
+				collect_pattern_names(property, names);
+			}
+			break;
+		case 'Property':
+			collect_pattern_names(node.value, names);
+			break;
+	}
+}
+
+/**
+ * @param {any} object
+ * @param {any} key
+ * @returns {any}
+ */
+function create_property_member_expression(object, key) {
+	if (key?.type === 'Identifier') {
+		return create_member_expression(
+			clone_expression_node(object),
+			clone_identifier(key),
+			false,
+			key,
+		);
+	}
+
+	return create_member_expression(
+		clone_expression_node(object),
+		clone_expression_node(key),
+		true,
+		key,
+	);
+}
+
+/**
+ * @param {any} object
+ * @param {number} index
+ * @returns {any}
+ */
+function create_index_member_expression(object, index) {
+	return create_member_expression(
+		clone_expression_node(object),
+		builders.literal(index),
+		true,
+		object,
+	);
+}
+
+/**
+ * @param {any} identifier
+ * @returns {any}
+ */
+function create_value_member_expression(identifier) {
+	return create_member_expression(
+		clone_identifier(identifier),
+		{ type: 'Identifier', name: 'value', metadata: { path: [] } },
+		false,
+		identifier,
+	);
+}
+
+/**
+ * @param {any} object
+ * @param {any} property
+ * @param {boolean} computed
+ * @param {any} source_node
+ * @returns {any}
+ */
+function create_member_expression(object, property, computed, source_node) {
+	return setLocation(
+		{
+			type: 'MemberExpression',
+			object,
+			property,
+			computed,
+			optional: false,
+			metadata: { path: [] },
+		},
+		source_node,
+	);
 }
 
 /**
@@ -739,6 +1026,10 @@ function is_component_jsx_name(name) {
 function inject_vue_imports(program, transform_context) {
 	if (transform_context.needs_define_vapor_component) {
 		ensure_named_import(program, 'vue-jsx-vapor', 'defineVaporComponent');
+	}
+
+	if (transform_context.needs_vapor_for) {
+		ensure_named_import(program, 'vue-jsx-vapor', 'VaporFor');
 	}
 
 	if (transform_context.needs_suspense) {

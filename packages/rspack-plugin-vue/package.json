@@ -26,13 +26,13 @@
   "peerDependencies": {
     "@rspack/core": ">=1.0.0",
     "vue": ">=3.5",
-    "vue-jsx-vapor": ">=3.2.10"
+    "vue-jsx-vapor": ">=3.2.12"
   },
   "devDependencies": {
     "@rspack/core": "^1.6.0",
     "typescript": "catalog:default",
     "vue": "3.6.0-beta.10",
-    "vue-jsx-vapor": "^3.2.11"
+    "vue-jsx-vapor": "^3.2.12"
   },
   "files": [
     "src",

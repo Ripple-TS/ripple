@@ -406,7 +406,8 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('<template v-for={item in items}><div>{item}</div></template>');
+		expect(code).toContain('<VaporFor in={items}>{(item) => <div>{item}</div>}</VaporFor>');
+		expect(code).toContain("import { defineVaporComponent, VaporFor } from 'vue-jsx-vapor';");
 		expect(code).not.toContain('not yet supported in Vue TSRX');
 	});
 
@@ -420,9 +421,8 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('<template v-for={item in items} key={item.id}>');
-		expect(code).toContain('key={item.id}');
-		expect(code).toContain('item.text');
+		expect(code).toContain('<VaporFor in={items} getKey={(item) => item.id}>');
+		expect(code).toContain('item.value.text');
 	});
 
 	it('compiles indexed keyed for...of statements in component bodies', () => {
@@ -435,9 +435,10 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('<template v-for={(item, i) in items} key={item.id}>');
-		expect(code).toContain('{i}');
-		expect(code).toContain('item.text');
+		expect(code).toContain('<VaporFor in={items} getKey={(item, i) => item.id}>');
+		expect(code).toContain('{(item, i) => <div>');
+		expect(code).toContain('{i.value}');
+		expect(code).toContain('item.value.text');
 	});
 
 	it('keeps explicit loop keys on single static for...of templates', () => {
@@ -450,7 +451,8 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('<template v-for={(item, i) in items} key={i}>');
+		expect(code).toContain('<VaporFor in={items} getKey={(item, i) => i}>');
+		expect(code).toContain('{(item, i) => <div>');
 		expect(code).toContain("<div>{'test'}</div>");
 		expect(code).not.toContain('<div key={i}>');
 		expect(code).not.toContain('<Fragment');
@@ -467,7 +469,8 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('<template v-for={(item, i) in items} key={i}>');
+		expect(code).toContain('<VaporFor in={items} getKey={(item, i) => i}>');
+		expect(code).toContain('{(item, i) => <>');
 		expect(code).toContain('App__static1');
 		expect(code).toContain('App__static2');
 		expect(code).not.toContain('<Fragment');
