@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	runSharedAnonymousComponentTests,
+	runSharedClassComponentDeclarationTests,
 	runSharedCompileDiagnosticsTests,
 	runSharedCompileTests,
 } from '@tsrx/core/test-harness/compile';
@@ -17,6 +18,7 @@ runSharedSourceMappingTests({
 runSharedAnonymousComponentTests({ compile, name: 'solid' });
 runSharedCompileTests({ compile, name: 'solid', classAttrName: 'class' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'solid' });
+runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'solid' });
 
 describe('@tsrx/solid basic', () => {
 	describe('component → function', () => {

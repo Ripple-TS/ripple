@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	runSharedAnonymousComponentTests,
+	runSharedClassComponentDeclarationTests,
 	runSharedCompileDiagnosticsTests,
 	runSharedComponentLoopControlFlowTests,
 } from '@tsrx/core/test-harness/compile';
@@ -16,6 +17,7 @@ runSharedSourceMappingTests({
 runSharedAnonymousComponentTests({ compile, name: 'vue' });
 runSharedComponentLoopControlFlowTests({ compile, name: 'vue' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'vue' });
+runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'vue' });
 
 describe('@tsrx/vue basic', () => {
 	it('wraps named component exports in defineVaporComponent', () => {

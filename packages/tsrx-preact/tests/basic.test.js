@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	runSharedAnonymousComponentTests,
+	runSharedClassComponentDeclarationTests,
 	runSharedCompileDiagnosticsTests,
 	runSharedCompileTests,
 } from '@tsrx/core/test-harness/compile';
@@ -17,6 +18,7 @@ runSharedSourceMappingTests({
 runSharedAnonymousComponentTests({ compile, name: 'preact' });
 runSharedCompileTests({ compile, name: 'preact', classAttrName: 'class' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'preact' });
+runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'preact' });
 
 describe('@tsrx/preact basic', () => {
 	it('imports Suspense from preact/compat when try/pending is used', () => {

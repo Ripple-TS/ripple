@@ -19,6 +19,10 @@ export const COMPONENT_WHILE_STATEMENT_ERROR =
 	'While loops are not supported in components. Move the while loop into a function.';
 export const COMPONENT_DO_WHILE_STATEMENT_ERROR =
 	'Do...while loops are not supported in components. Move the do...while loop into a function.';
+export const CLASS_COMPONENT_AS_METHOD_ERROR =
+	'Components declared inside a class must be defined as an arrow function class property (e.g. `Foo = component() => { ... }`). Method-style component declarations are not allowed.';
+export const CLASS_COMPONENT_AS_NON_ARROW_PROPERTY_ERROR =
+	'Components declared inside a class must be defined as an arrow function class property (e.g. `Foo = component() => { ... }`). Non-arrow component property values are not allowed.';
 
 const invalid_nestings = {
 	// <p> cannot contain block-level elements
@@ -245,6 +249,46 @@ export function validate_component_unsupported_loop_statement(node, filename, er
 	}
 
 	error(message, filename ?? null, node, errors, comments);
+}
+
+/**
+ * Validates that components declared at the top level of a class body use the
+ * only allowed form: an arrow function class property (regular or static).
+ * Reports an error for component declarations that appear as methods or as
+ * non-arrow property values.
+ *
+ * The `value` of a class member is a `Component` AST node when the source uses
+ * the `component` keyword (e.g. `component foo() {}` or `Foo = component() => {}`).
+ * Arrow component expressions are flagged via `metadata.arrow === true`.
+ *
+ * @param {AST.ClassBody} class_body
+ * @param {string | null | undefined} filename
+ * @param {CompileError[]} [errors]
+ * @param {AST.CommentWithLocation[]} [comments]
+ */
+export function validate_class_component_declarations(class_body, filename, errors, comments) {
+	for (const member of class_body.body) {
+		if (member.type === 'MethodDefinition') {
+			const value = /** @type {any} */ (member).value;
+			if (value && value.type === 'Component') {
+				error(CLASS_COMPONENT_AS_METHOD_ERROR, filename ?? null, member, errors, comments);
+			}
+			continue;
+		}
+
+		if (member.type === 'PropertyDefinition') {
+			const value = /** @type {any} */ (member).value;
+			if (value && value.type === 'Component' && !value.metadata?.arrow) {
+				error(
+					CLASS_COMPONENT_AS_NON_ARROW_PROPERTY_ERROR,
+					filename ?? null,
+					member,
+					errors,
+					comments,
+				);
+			}
+		}
+	}
 }
 
 /**

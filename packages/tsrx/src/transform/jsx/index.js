@@ -41,6 +41,7 @@ import {
 import { find_first_top_level_await_in_component_body } from '../await.js';
 import { prepare_stylesheet_for_render, annotate_component_with_hash } from '../scoping.js';
 import {
+	validate_class_component_declarations,
 	validate_component_loop_break_statement,
 	validate_component_loop_return_statement,
 	validate_component_return_statement,
@@ -267,6 +268,16 @@ export function createJsxTransform(platform) {
 					);
 				}
 
+				return next();
+			},
+
+			ClassBody(node, { next }) {
+				validate_class_component_declarations(
+					/** @type {any} */ (node),
+					filename,
+					transform_context.errors,
+					transform_context.comments,
+				);
 				return next();
 			},
 
