@@ -213,7 +213,6 @@ export {
 // Analyze
 export { analyze_css as analyzeCss } from './analyze/css-analyze.js';
 export {
-	CLASS_COMPONENT_AS_METHOD_ERROR,
 	CLASS_COMPONENT_AS_NON_ARROW_PROPERTY_ERROR,
 	COMPONENT_DO_WHILE_STATEMENT_ERROR,
 	COMPONENT_FOR_IN_STATEMENT_ERROR,

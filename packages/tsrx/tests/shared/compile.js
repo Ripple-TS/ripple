@@ -290,11 +290,12 @@ export function runSharedAnonymousComponentTests({ compile, name }) {
 
 /**
  * Shared validation that components declared inside a class must use an arrow
- * function class property (regular or static). Method-style declarations
- * (`component foo() {}`) and non-arrow component property values are rejected.
- * Runs against both `compile` (which throws) and `compile_to_volar_mappings`
- * (which collects errors) so the rule is enforced in production and editor
- * tooling alike.
+ * function class property (regular or static). The method-style form
+ * (`component foo() {}` inside a class body) is rejected at parse time. The
+ * non-arrow property form (`Foo = component() {}`) is rejected by the analyze
+ * stage. Runs against both `compile` (which throws) and
+ * `compile_to_volar_mappings` (which collects errors) so the rule is enforced
+ * in production and editor tooling alike.
  *
  * @param {Pick<CompileHarness, 'compile' | 'name'> & Pick<CompileDiagnosticsHarness, 'compile_to_volar_mappings'>} harness
  */
@@ -330,7 +331,7 @@ export function runSharedClassComponentDeclarationTests({
 			).not.toThrow();
 		});
 
-		it('rejects a component declared as a class method', () => {
+		it('rejects a component declared as a class method at parse time', () => {
 			expect(() =>
 				compile(
 					`export class App {
@@ -340,7 +341,7 @@ export function runSharedClassComponentDeclarationTests({
 					}`,
 					'App.tsrx',
 				),
-			).toThrow(/Method-style component declarations are not allowed/);
+			).toThrow(/Unexpected token/);
 		});
 
 		it('rejects a non-arrow component as a class property value', () => {
@@ -356,56 +357,24 @@ export function runSharedClassComponentDeclarationTests({
 			).toThrow(/Non-arrow component property values are not allowed/);
 		});
 
-		// Vue's transform pre-existingly fails downstream of validation when a
-		// `component foo() {}` survives in a class body (it lowers to a
-		// `defineVaporComponent(...)` call that esrap can't print as a method
-		// value), so it's exempt from the Volar-mapping assertions for the
-		// rejection cases. The throwing-`compile` cases above still cover it.
-		it.runIf(name !== 'vue')(
-			'surfaces method-style class component errors via Volar mappings',
-			() => {
-				const result = compile_to_volar_mappings(
-					`export class App {
-						component Inline() {
-							<div>{'hi'}</div>
-						}
-					}`,
-					'App.tsrx',
-				);
+		it('surfaces non-arrow property class component errors via Volar mappings', () => {
+			const result = compile_to_volar_mappings(
+				`export class App {
+					Inline = component() {
+						<div>{'hi'}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
 
-				expect(
-					result.errors.some(
-						(error) =>
-							/** @type {{ message?: string }} */ (error).message?.includes(
-								'Method-style component declarations are not allowed',
-							),
+			expect(
+				result.errors.some((error) =>
+					/** @type {{ message?: string }} */ (error).message?.includes(
+						'Non-arrow component property values are not allowed',
 					),
-				).toBe(true);
-			},
-		);
-
-		it.runIf(name !== 'vue')(
-			'surfaces non-arrow property class component errors via Volar mappings',
-			() => {
-				const result = compile_to_volar_mappings(
-					`export class App {
-						Inline = component() {
-							<div>{'hi'}</div>
-						}
-					}`,
-					'App.tsrx',
-				);
-
-				expect(
-					result.errors.some(
-						(error) =>
-							/** @type {{ message?: string }} */ (error).message?.includes(
-								'Non-arrow component property values are not allowed',
-							),
-					),
-				).toBe(true);
-			},
-		);
+				),
+			).toBe(true);
+		});
 
 		it('does not flag arrow component class properties via Volar mappings', () => {
 			const result = compile_to_volar_mappings(
@@ -421,11 +390,10 @@ export function runSharedClassComponentDeclarationTests({
 			);
 
 			expect(
-				result.errors.some(
-					(error) =>
-						/** @type {{ message?: string }} */ (error).message?.includes(
-							'arrow function class property',
-						),
+				result.errors.some((error) =>
+					/** @type {{ message?: string }} */ (error).message?.includes(
+						'arrow function class property',
+					),
 				),
 			).toBe(false);
 		});
