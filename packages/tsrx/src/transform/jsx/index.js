@@ -169,6 +169,8 @@ export function createJsxTransform(platform) {
 			needs_suspense: false,
 			needs_merge_refs: false,
 			needs_fragment: false,
+			module_scoped_hook_components:
+				options?.moduleScopedHookComponents ?? !!platform.hooks?.moduleScopedHookComponents,
 			helper_state: null,
 			available_bindings: new Map(),
 			lazy_next_id: 0,
@@ -1185,6 +1187,25 @@ function create_helper_state(base_name) {
 }
 
 /**
+ * @param {TransformContext} transform_context
+ * @returns {boolean}
+ */
+function should_use_module_scoped_hook_components(transform_context) {
+	return !!(transform_context.helper_state && transform_context.module_scoped_hook_components);
+}
+
+/**
+ * @param {AST.Identifier} helper_id
+ * @param {TransformContext} transform_context
+ * @returns {AST.Identifier}
+ */
+function create_module_scoped_hook_component_id(helper_id, transform_context) {
+	return create_generated_identifier(
+		`${transform_context.helper_state?.base_name || 'Component'}__${helper_id.name}`,
+	);
+}
+
+/**
  * @param {any[]} params
  * @returns {Map<string, AST.Identifier>}
  */
@@ -2163,25 +2184,33 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	const helper_id = create_generated_identifier(
 		create_local_statement_component_name(transform_context),
 	);
+	const use_module_scoped_component = should_use_module_scoped_hook_components(transform_context);
+	const component_id = use_module_scoped_component
+		? create_module_scoped_hook_component_id(helper_id, transform_context)
+		: helper_id;
 
-	const outer_aliases = outer_bindings.map((binding) =>
-		create_helper_type_alias_declaration(helper_id, binding),
-	);
-	const loop_aliases = loop_bindings.map((binding) =>
-		create_loop_scoped_type_alias_declaration(helper_id, binding, source_id, loop_params),
-	);
+	const outer_aliases = use_module_scoped_component
+		? []
+		: outer_bindings.map((binding) => create_helper_type_alias_declaration(helper_id, binding));
+	const loop_aliases = use_module_scoped_component
+		? []
+		: loop_bindings.map((binding) =>
+				create_loop_scoped_type_alias_declaration(helper_id, binding, source_id, loop_params),
+			);
 
 	// Synthetic `isLast` prop on the loop helper when there's a tail. It's
 	// passed from the .map callback as `i === source.length - 1` so every
 	// loop-helper return can append the tail helper on the last iteration.
 	const tail_isLast_alias = has_tail
-		? {
-				id: create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
-				declaration: b.ts_type_alias(
-					create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
-					b.ts_keyword_type('boolean'),
-				),
-			}
+		? use_module_scoped_component
+			? null
+			: {
+					id: create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
+					declaration: b.ts_type_alias(
+						create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
+						b.ts_keyword_type('boolean'),
+					),
+				}
 		: null;
 
 	const ordered_bindings = [...outer_bindings, ...loop_bindings];
@@ -2195,7 +2224,7 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	const signature_use_typeof = has_tail ? [...ordered_use_typeof, false] : ordered_use_typeof;
 
 	const props_type =
-		signature_bindings.length > 0
+		signature_bindings.length > 0 && !use_module_scoped_component
 			? create_helper_props_type_literal_with_typeof_flags(
 					signature_bindings,
 					signature_aliases,
@@ -2203,7 +2232,13 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 				)
 			: null;
 	const params =
-		props_type !== null ? [create_typed_helper_props_pattern(signature_bindings, props_type)] : [];
+		signature_bindings.length > 0
+			? [
+					props_type !== null
+						? create_typed_helper_props_pattern(signature_bindings, props_type)
+						: create_helper_props_pattern(signature_bindings),
+				]
+			: [];
 
 	const fn_saved_bindings = transform_context.available_bindings;
 	transform_context.available_bindings = new Map(fn_saved_bindings);
@@ -2221,12 +2256,17 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	transform_context.available_bindings = fn_saved_bindings;
 
 	const helper_fn = /** @type {any} */ (
-		b.function(clone_identifier(helper_id), params, b.block(fn_body_statements))
+		b.function(clone_identifier(component_id), params, b.block(fn_body_statements))
 	);
 	helper_fn.metadata = { path: [], is_component: true, is_method: false };
 
 	let helper_decl;
-	if (transform_context.helper_state) {
+	if (transform_context.helper_state && use_module_scoped_component) {
+		transform_context.helper_state.helpers.push(
+			create_helper_declaration(component_id, helper_fn, node, transform_context),
+		);
+		helper_decl = null;
+	} else if (transform_context.helper_state) {
 		const cache_id = create_generated_identifier(
 			`${transform_context.helper_state.base_name}__${helper_id.name}`,
 		);
@@ -2243,7 +2283,7 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	transform_context.available_bindings = saved_bindings;
 
 	const callback_invocation_element = create_helper_component_element(
-		helper_id,
+		component_id,
 		ordered_bindings,
 		node,
 		{ mapWrapper: false, mapBindingNames: false, mapBindingValues: false },
@@ -2324,7 +2364,9 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	if (has_tail && tail_isLast_alias) {
 		hoist_statements.push(tail_isLast_alias.declaration);
 	}
-	hoist_statements.push(helper_decl);
+	if (helper_decl) {
+		hoist_statements.push(helper_decl);
+	}
 
 	return {
 		hoist_statements,
@@ -2784,8 +2826,8 @@ function create_local_statement_component_name(transform_context) {
 /**
  * Wraps a list of body nodes into a component and returns
  * statements that return `<ComponentName prop1={prop1} ... />`.
- * The component is hoisted to module level via helper_state to avoid
- * recreating the component identity on every render.
+ * Targets can either emit the helper component at module scope or cache the
+ * component identity in module state while initializing it from the parent.
  * Used when a control flow branch contains hook calls that must be moved
  * into their own component boundary to satisfy the Rules of Hooks.
  *
@@ -2858,24 +2900,36 @@ function create_hook_safe_helper(
 	const helper_id =
 		preallocated_helper_id ??
 		create_generated_identifier(create_local_statement_component_name(transform_context));
+	const use_module_scoped_component = should_use_module_scoped_hook_components(transform_context);
+	const component_id = use_module_scoped_component
+		? create_module_scoped_hook_component_id(helper_id, transform_context)
+		: helper_id;
 	const helper_bindings = get_referenced_helper_bindings(
 		body_nodes,
 		transform_context.available_bindings,
 	);
-	const aliases = helper_bindings.map((binding) =>
-		create_helper_type_alias_declaration(helper_id, binding),
-	);
+	const aliases = use_module_scoped_component
+		? []
+		: helper_bindings.map((binding) => create_helper_type_alias_declaration(helper_id, binding));
 	const props_type =
-		helper_bindings.length > 0 ? create_helper_props_type_literal(helper_bindings, aliases) : null;
+		helper_bindings.length > 0 && !use_module_scoped_component
+			? create_helper_props_type_literal(helper_bindings, aliases)
+			: null;
 	const params =
-		props_type !== null ? [create_typed_helper_props_pattern(helper_bindings, props_type)] : [];
+		helper_bindings.length > 0
+			? [
+					props_type !== null
+						? create_typed_helper_props_pattern(helper_bindings, props_type)
+						: create_helper_props_pattern(helper_bindings),
+				]
+			: [];
 
 	const saved_bindings = transform_context.available_bindings;
 	transform_context.available_bindings = new Map(saved_bindings);
 
 	const helper_fn = /** @type {any} */ ({
 		type: 'FunctionExpression',
-		id: clone_identifier(helper_id),
+		id: clone_identifier(component_id),
 		params,
 		body: {
 			type: 'BlockStatement',
@@ -2894,7 +2948,7 @@ function create_hook_safe_helper(
 	transform_context.available_bindings = saved_bindings;
 
 	const component_element = create_helper_component_element(
-		helper_id,
+		component_id,
 		helper_bindings,
 		source_node,
 		{
@@ -2921,6 +2975,16 @@ function create_hook_safe_helper(
 				...aliases.map((alias) => alias.declaration),
 				create_helper_declaration(helper_id, helper_fn, source_node, transform_context),
 			],
+			component_element,
+		};
+	}
+
+	if (use_module_scoped_component) {
+		transform_context.helper_state.helpers.push(
+			create_helper_declaration(component_id, helper_fn, source_node, transform_context),
+		);
+		return {
+			setup_statements: [],
 			component_element,
 		};
 	}

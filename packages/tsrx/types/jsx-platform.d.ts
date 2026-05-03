@@ -30,6 +30,7 @@ export interface JsxTransformContext {
 	needs_suspense: boolean;
 	needs_merge_refs: boolean;
 	needs_fragment: boolean;
+	module_scoped_hook_components: boolean;
 	helper_state: {
 		base_name: string;
 		next_id: number;
@@ -80,6 +81,12 @@ export interface JsxTransformOptions {
 	 * `@tsrx-expect-error` line comments.
 	 */
 	comments?: AST.CommentWithLocation[];
+	/**
+	 * Override whether hook-isolation helper components are emitted directly at
+	 * module scope. React runtime compilation enables this, while editor tooling
+	 * can disable it to preserve lexical `typeof` helper prop types.
+	 */
+	moduleScopedHookComponents?: boolean;
 }
 
 /**
@@ -135,6 +142,13 @@ export interface JsxPlatformHooks {
 	 * state behaves like normal component state.
 	 */
 	wrapHelperComponent?: (helperFn: any, helperId: any, ctx: any, sourceNode: any) => any;
+	/**
+	 * Emit hook-isolation helper components as unique module-scope declarations
+	 * instead of lazily creating and caching them from the parent component body.
+	 * React enables this so generated branches stay compatible with the React
+	 * Compiler's Rules of Hooks validation.
+	 */
+	moduleScopedHookComponents?: boolean;
 	/**
 	 * Inject module-level imports after the main walk. Default: import
 	 * `Suspense` from `platform.imports.suspense` and `TsrxErrorBoundary`
