@@ -87,6 +87,44 @@ export default component A() {
 		expect(result).not.toContain(`"Hello";`);
 	});
 
+	it('decodes JSX-style entities before server text escaping', () => {
+		const result = compile(
+			`component App() {
+				<div>"Rock &amp; &quot;Roll&quot;"</div>
+			}`,
+			'/src/App.tsrx',
+			{ mode: 'server' },
+		);
+
+		expect(result.js.code).toContain(`_$_.output_push('Rock &amp; "Roll"')`);
+	});
+
+	it('emits anonymous component expressions as arrows in SSR output', () => {
+		const source = `
+const Inline = component(props) => {
+	<div>{props.x}</div>
+}
+`;
+		const result = compile(source, 'anonymous-component.tsrx', { mode: 'server' }).js.code;
+
+		expect(result).toContain('const Inline = (props) => {');
+		expect(result).not.toContain('function Inline');
+		expect(result).not.toContain('function (props');
+	});
+
+	it('emits legacy anonymous component expressions as functions in SSR output', () => {
+		const source = `
+const Inline = component(props) {
+	<div>{props.x}</div>
+}
+`;
+		const result = compile(source, 'anonymous-component.tsrx', { mode: 'server' }).js.code;
+
+		expect(result).toContain('const Inline = function (props) {');
+		expect(result).not.toContain('function Inline');
+		expect(result).not.toContain('const Inline = (props) => {');
+	});
+
 	it('throws error for calling children as a function in SSR mode', () => {
 		const source = `
 export component Layout({ children }) {

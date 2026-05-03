@@ -1,4 +1,4 @@
-/** @import { AddEventObject } from '../../types/index'*/
+/** @import { AddEventObject } from '../../types/index' */
 
 const NON_DELEGATED_EVENTS = new Set([
 	'abort',

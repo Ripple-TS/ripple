@@ -1097,6 +1097,19 @@ export function TSRXPlugin(config) {
 				this.parseFunctionParams(node);
 				this.checkComponentParams(node.params);
 
+				const is_arrow_component = this.type === tt.arrow;
+				if (is_arrow_component) {
+					if (node.id || requireName || skipName) {
+						this.raise(
+							this.start,
+							'Arrow component syntax is only supported for anonymous component expressions.',
+						);
+					}
+					node.metadata ??= { path: [] };
+					node.metadata.arrow = true;
+					this.next();
+				}
+
 				// Reset before `eat(braceL)` so the lookahead `next()` it triggers reads
 				// the component body's first token as if we'd entered fresh — no
 				// surrounding function body should affect our parseStatement/parseBlock

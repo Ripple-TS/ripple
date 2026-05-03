@@ -1,3 +1,6 @@
+import type { ExtendedEventOptions } from '@tsrx/core/types';
+export type { AddEventOptions, AddEventObject, ExtendedEventOptions } from '@tsrx/core/types';
+
 export type Component<T = Record<string, any>> = (props: T) => void;
 
 declare const TSRX_ELEMENT: unique symbol;
@@ -201,16 +204,6 @@ export function trackPending<V>(value: Tracked<V> | (() => any)): boolean;
 
 export function peek<V>(tracked: Tracked<V>): V;
 
-export interface AddEventOptions extends ExtendedEventOptions {
-	customName?: string;
-}
-
-export interface AddEventObject extends AddEventOptions, EventListenerObject {}
-
-export interface ExtendedEventOptions extends AddEventListenerOptions, EventListenerOptions {
-	delegated?: boolean;
-}
-
 export type OnEventListenerRemover = () => void;
 
 export function on<Type extends keyof WindowEventMap>(
@@ -364,7 +357,7 @@ export const RippleURL: RippleURLConstructor;
 export function createSubscriber(start: () => void | (() => void)): () => void;
 
 declare const REACTIVE_VALUE_BRAND: unique symbol;
-interface ReactiveValue<V> extends Tracked<V> {
+export interface ReactiveValue<V> extends Tracked<V> {
 	new (fn: () => Tracked<V>, start: () => void | (() => void)): Tracked<V>;
 	[REACTIVE_VALUE_BRAND]: void;
 }

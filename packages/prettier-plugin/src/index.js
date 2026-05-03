@@ -2519,9 +2519,11 @@ function printComponent(
 		contentParts.push(statements);
 	}
 
+	const isArrowComponent = node.metadata?.arrow === true && !node.id && !args.skipComponentLabel;
+
 	// Use Prettier's standard block statement pattern
 	/** @type {Doc[]} */
-	const parts = [signatureParts, ' {'];
+	const parts = [signatureParts, isArrowComponent ? ' => {' : ' {'];
 
 	if (statements.length > 0) {
 		// Build content manually with proper spacing
@@ -2605,10 +2607,14 @@ function printComponent(
 				contentParts.push(doc);
 			}
 
-			return [signatureParts, ' ', group(['{', indent([hardline, contentParts]), hardline, '}'])];
+			return [
+				signatureParts,
+				isArrowComponent ? ' => ' : ' ',
+				group(['{', indent([hardline, contentParts]), hardline, '}']),
+			];
 		}
 
-		parts[1] = ' {}';
+		parts[1] = isArrowComponent ? ' => {}' : ' {}';
 	}
 	return parts;
 }

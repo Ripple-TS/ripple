@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.0.20
+
+### Patch Changes
+
+- [#1042](https://github.com/Ripple-TS/ripple/pull/1042)
+  [`f5a3c1b`](https://github.com/Ripple-TS/ripple/commit/f5a3c1b9e915c250c8cd1a7dcf4e80c44abe720f)
+  Thanks [@trueadm](https://github.com/trueadm)! - Highlight TSRX template syntax
+  inside anonymous component expression blocks.
+
+- Updated dependencies
+  [[`f5a3c1b`](https://github.com/Ripple-TS/ripple/commit/f5a3c1b9e915c250c8cd1a7dcf4e80c44abe720f)]:
+  - @tsrx/ripple@0.0.26
+  - @ripple-ts/language-server@0.3.44
+  - @tsrx/react@0.1.18
+  - @tsrx/typescript-plugin@0.3.44
+
 ## 1.0.19
 
 ### Patch Changes

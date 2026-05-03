@@ -1857,7 +1857,7 @@ files = [...(files ?? []), ...dt.files];`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should preserve component as a named or an anonymous property', async () => {
+		it('should preserve component properties in named, legacy anonymous, and arrow forms', async () => {
 			const expected = `const UI = {
   span: component Span() {
     <span>{'Hello from Span'}</span>
@@ -1866,6 +1866,9 @@ files = [...(files ?? []), ...dt.files];`;
     <button>
       {children}
     </button>
+  },
+  arrowButton: component({ children }) => {
+    <button>{children}</button>
   },
 };`;
 

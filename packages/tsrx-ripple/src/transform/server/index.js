@@ -576,21 +576,17 @@ const visitors = {
 			b.stmt(b.call('_$_.pop_component')),
 		);
 
-		let component_fn = b.function(
-			node.id,
-			props_param_output ? [props_param_output] : [],
-			b.block(body_statements),
-		);
+		const component_params = props_param_output ? [props_param_output] : [];
+		const component_body = b.block(body_statements);
 
-		// Anonymous components return a FunctionExpression
 		if (!node.id) {
-			return component_fn;
+			return node.metadata?.arrow
+				? b.arrow(component_params, component_body)
+				: b.function(null, component_params, component_body);
 		}
 
 		// Named components return a FunctionDeclaration
-		const declaration = b.function_declaration(node.id, component_fn.params, component_fn.body);
-
-		return declaration;
+		return b.function_declaration(node.id, component_params, component_body);
 	},
 
 	CallExpression(node, context) {

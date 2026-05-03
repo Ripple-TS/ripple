@@ -206,6 +206,89 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 }
 
 /**
+ * Shared anonymous component expression regressions. These cover parser support
+ * for arrow-shaped anonymous components and the cross-target lowering contract:
+ * arrow-authored anonymous components become arrow functions, legacy anonymous
+ * components stay function expressions, and named components continue to use
+ * declarations in the broader shared suite.
+ *
+ * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
+ */
+export function runSharedAnonymousComponentTests({ compile, name }) {
+	describe(`[${name}] anonymous component expressions`, () => {
+		const jsx_targets = ['react', 'preact', 'solid'];
+
+		it.runIf(jsx_targets.includes(name))(
+			'parses anonymous component arrow expressions as plain arrow functions',
+			() => {
+				const { code } = compile(
+					`const Inline = component(props: { x: string }) => {
+						<div>{props.x}</div>
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('const Inline = (props: { x: string }) => {');
+				expect(code).toContain('<div>{props.x}</div>');
+				expect(code).not.toContain('function Inline');
+				expect(code).not.toContain('function (props');
+			},
+		);
+
+		it.runIf(name === 'vue')(
+			'parses anonymous component arrow expressions as defineVaporComponent arrows',
+			() => {
+				const { code } = compile(
+					`const Inline = component(props: { x: string }) => {
+						<div>{props.x}</div>
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('const Inline = defineVaporComponent((props: { x: string }) => {');
+				expect(code).toContain('<div>{props.x}</div>');
+				expect(code).not.toContain('function Inline');
+				expect(code).not.toContain('function (props');
+			},
+		);
+
+		it.runIf(jsx_targets.includes(name))(
+			'lowers legacy anonymous component expressions to plain function expressions',
+			() => {
+				const { code } = compile(
+					`const Inline = component() {
+						<div>{'inline'}</div>
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('const Inline = function () {');
+				expect(code).toContain("<div>{'inline'}</div>");
+				expect(code).not.toContain('function Inline');
+				expect(code).not.toContain('const Inline = () => {');
+			},
+		);
+
+		it.runIf(name === 'vue')(
+			'lowers legacy anonymous component expressions to defineVaporComponent functions',
+			() => {
+				const { code } = compile(
+					`const Inline = component() {
+						<div>{'inline'}</div>
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('const Inline = defineVaporComponent(function () {');
+				expect(code).toContain("<div>{'inline'}</div>");
+				expect(code).not.toContain('function Inline');
+				expect(code).not.toContain('const Inline = defineVaporComponent(() => {');
+			},
+		);
+	});
+}
+
+/**
  * Shared compile-output regressions. These assert observable properties of
  * the generated code (not source-map structure) that every JSX target should
  * satisfy across whatever `transformElement` hook the platform wires in.

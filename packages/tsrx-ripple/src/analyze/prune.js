@@ -551,7 +551,7 @@ function apply_combinator(relative_selector, rest_selectors, rule, node, directi
  */
 function get_element_parent(node) {
 	// Check if metadata and path exist
-	if (!node.metadata || !node.metadata.path) {
+	if (!node.metadata || !node.metadata.path || !node.metadata.path.length) {
 		return null;
 	}
 

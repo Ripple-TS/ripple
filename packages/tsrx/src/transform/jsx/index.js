@@ -487,7 +487,7 @@ function has_use_server_directive(program) {
  * @param {any} component
  * @param {TransformContext} transform_context
  * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] }} [walk_helper_state]
- * @returns {AST.FunctionDeclaration}
+ * @returns {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression}
  */
 export function component_to_function_declaration(component, transform_context, walk_helper_state) {
 	const helper_state = walk_helper_state || create_helper_state(component.id?.name || 'Component');
@@ -527,28 +527,62 @@ export function component_to_function_declaration(component, transform_context, 
 	const final_body =
 		lazy_bindings.size > 0 ? apply_lazy_transforms(body_block, lazy_bindings) : body_block;
 
-	const fn = /** @type {any} */ ({
-		type: 'FunctionDeclaration',
-		id: component.id,
-		typeParameters: component.typeParameters,
-		params: final_params,
-		body: final_body,
-		async: is_async_component,
-		generator: false,
-		metadata: {
-			path: [],
-			is_component: true,
-		},
-	});
+	/** @type {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression} */
+	let fn;
+
+	if (component.id) {
+		fn = /** @type {any} */ ({
+			type: 'FunctionDeclaration',
+			id: component.id,
+			typeParameters: component.typeParameters,
+			params: final_params,
+			body: final_body,
+			async: is_async_component,
+			generator: false,
+			metadata: {
+				path: [],
+				is_component: true,
+			},
+		});
+	} else if (component.metadata?.arrow) {
+		fn = /** @type {any} */ ({
+			type: 'ArrowFunctionExpression',
+			typeParameters: component.typeParameters,
+			params: final_params,
+			body: final_body,
+			async: is_async_component,
+			generator: false,
+			expression: false,
+			metadata: {
+				path: [],
+				is_component: true,
+			},
+		});
+	} else {
+		fn = /** @type {any} */ ({
+			type: 'FunctionExpression',
+			id: null,
+			typeParameters: component.typeParameters,
+			params: final_params,
+			body: final_body,
+			async: is_async_component,
+			generator: false,
+			metadata: {
+				path: [],
+				is_component: true,
+			},
+		});
+	}
 
 	// Restore context
 	transform_context.helper_state = saved_helper_state;
 	transform_context.available_bindings = saved_bindings;
 
-	fn.metadata.generated_helpers = helper_state.helpers;
-	fn.metadata.generated_statics = helper_state.statics;
+	const fn_metadata = /** @type {any} */ (fn.metadata);
+	fn_metadata.generated_helpers = helper_state.helpers;
+	fn_metadata.generated_statics = helper_state.statics;
 
-	if (fn.id) {
+	if (fn.type === 'FunctionDeclaration' && fn.id) {
 		fn.id.metadata = /** @type {AST.Identifier['metadata']} */ ({
 			...fn.id.metadata,
 			is_component: true,
@@ -1297,9 +1331,9 @@ function hoist_static_render_nodes(render_nodes, transform_context) {
  */
 function expand_component_helpers(program) {
 	program.body = program.body.flatMap((statement) => {
-		const meta = get_generated_component_metadata(statement);
-		const statics = meta?.generated_statics || [];
-		const helpers = meta?.generated_helpers || [];
+		const metas = get_generated_component_metadata_list(statement);
+		const statics = metas.flatMap((meta) => meta.generated_statics || []);
+		const helpers = metas.flatMap((meta) => meta.generated_helpers || []);
 		if (statics.length || helpers.length) {
 			return [...statics, ...helpers, statement];
 		}
@@ -1312,30 +1346,63 @@ function expand_component_helpers(program) {
 
 /**
  * Component hooks may replace a `Component` node with a function declaration,
- * variable declaration, or export-safe expression. Generated helper/statics
- * metadata is carried on whichever replacement node the hook returns, so
- * helper expansion must read metadata from that broader set.
+ * variable declaration, object literal member, or export-safe expression.
+ * Generated helper/statics metadata is carried on whichever replacement node
+ * the hook returns, so helper expansion must read metadata from that broader
+ * set.
  *
  * @param {any} node
- * @returns {{ generated_helpers?: any[], generated_statics?: any[] } | null}
+ * @returns {{ generated_helpers?: any[], generated_statics?: any[] }[]}
  */
-function get_generated_component_metadata(node) {
-	if (!node || typeof node !== 'object') {
-		return null;
-	}
+function get_generated_component_metadata_list(node) {
+	/** @type {{ generated_helpers?: any[], generated_statics?: any[] }[]} */
+	const metas = [];
+	const seen_nodes = new Set();
+	const seen_metas = new Set();
 
-	if (node.metadata?.generated_helpers || node.metadata?.generated_statics) {
-		return node.metadata;
-	}
+	/** @param {any} current */
+	const visit = (current) => {
+		if (!current || typeof current !== 'object' || seen_nodes.has(current)) {
+			return;
+		}
 
-	if (
-		(node.type === 'ExportNamedDeclaration' || node.type === 'ExportDefaultDeclaration') &&
-		node.declaration?.metadata
-	) {
-		return node.declaration.metadata;
-	}
+		seen_nodes.add(current);
 
-	return null;
+		if (current.metadata?.generated_helpers || current.metadata?.generated_statics) {
+			if (!seen_metas.has(current.metadata)) {
+				seen_metas.add(current.metadata);
+				metas.push(current.metadata);
+			}
+			return;
+		}
+
+		if (
+			current.type === 'FunctionDeclaration' ||
+			current.type === 'FunctionExpression' ||
+			current.type === 'ArrowFunctionExpression'
+		) {
+			return;
+		}
+
+		for (const key of Object.keys(current)) {
+			if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+				continue;
+			}
+
+			const value = current[key];
+			if (Array.isArray(value)) {
+				for (const child of value) {
+					visit(child);
+				}
+			} else {
+				visit(value);
+			}
+		}
+	};
+
+	visit(node);
+
+	return metas;
 }
 
 /**

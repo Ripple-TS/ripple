@@ -1,5 +1,20 @@
 # @tsrx/ripple
 
+## 0.0.26
+
+### Patch Changes
+
+- [#1042](https://github.com/Ripple-TS/ripple/pull/1042)
+  [`f5a3c1b`](https://github.com/Ripple-TS/ripple/commit/f5a3c1b9e915c250c8cd1a7dcf4e80c44abe720f)
+  Thanks [@trueadm](https://github.com/trueadm)! - Align component loop
+  control-flow validation across TSRX targets and allow `continue` to skip
+  `for...of` iterations.
+
+- Updated dependencies
+  [[`f5a3c1b`](https://github.com/Ripple-TS/ripple/commit/f5a3c1b9e915c250c8cd1a7dcf4e80c44abe720f),
+  [`f5a3c1b`](https://github.com/Ripple-TS/ripple/commit/f5a3c1b9e915c250c8cd1a7dcf4e80c44abe720f)]:
+  - @tsrx/core@0.0.24
+
 ## 0.0.25
 
 ### Patch Changes

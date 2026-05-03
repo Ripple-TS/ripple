@@ -320,12 +320,13 @@ declare module 'estree' {
 	 */
 	interface Component extends AST.BaseNode {
 		type: 'Component';
-		// null is for anonymous components {component: () => {}}
+		// null is for anonymous components, e.g. `component(props) => {}`
 		id: AST.Identifier | null;
 		params: AST.Pattern[];
 		body: AST.Node[];
 		css: CSS.StyleSheet | null;
 		metadata: BaseNodeMetaData & {
+			arrow?: boolean;
 			topScopedClasses?: TopScopedClasses;
 			styleClasses?: StyleClasses;
 		};
@@ -1499,15 +1500,20 @@ export type StyleClasses = Map<string, AST.MemberExpression['property']>;
 /**
  * Event handling types
  */
-export interface AddEventObject {
+export interface AddEventOptions extends ExtendedEventOptions {
 	customName?: string;
-	// from AddEventListenerOptions
+}
+
+export interface AddEventObject extends AddEventOptions {
+	handleEvent(object: Event): void;
+}
+
+export interface ExtendedEventOptions {
+	capture?: boolean;
 	once?: boolean;
 	passive?: boolean;
 	signal?: AbortSignal;
-	capture?: boolean;
-	// from EventListenerObject
-	handleEvent?(object: Event): void;
+	delegated?: boolean;
 }
 
 /**

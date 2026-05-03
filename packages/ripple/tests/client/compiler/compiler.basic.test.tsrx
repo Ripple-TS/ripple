@@ -282,6 +282,32 @@ describe('compiler > basics', () => {
 		expect(js.code).not.toMatch(/_\$_\.template\(`<!><!>`,\s*1,\s*3\)/);
 	});
 
+	it('emits anonymous component expressions as arrows in client output', () => {
+		const source = `
+const Inline = component(props) => {
+	<div>{props.x}</div>
+}
+`;
+		const result = compile(source, 'anonymous-component.tsrx', { mode: 'client' }).js.code;
+
+		expect(result).toContain('const Inline = (__anchor, props, __block) => {');
+		expect(result).not.toContain('function Inline');
+		expect(result).not.toContain('function (__anchor');
+	});
+
+	it('emits legacy anonymous component expressions as functions in client output', () => {
+		const source = `
+const Inline = component(props) {
+	<div>{props.x}</div>
+}
+`;
+		const result = compile(source, 'anonymous-component.tsrx', { mode: 'client' }).js.code;
+
+		expect(result).toContain('const Inline = function (__anchor, props, __block) {');
+		expect(result).not.toContain('function Inline');
+		expect(result).not.toContain('const Inline = (__anchor, props, __block) => {');
+	});
+
 	// 	it(
 	// 		'imports and uses only obfuscated Tracked imports when encountering only shorthand syntax',
 	// 		() => {
@@ -424,6 +450,32 @@ export component MyComponent<Item>(props: Props<Item>) {
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
 
 		expect(result).toContain('export function MyComponent<Item>(props: Props<Item>)');
+	});
+
+	it('emits anonymous component expressions as arrows in to_ts output', () => {
+		const source = `
+const Inline = component(props: { x: string }) => {
+	<div>{props.x}</div>
+}
+`;
+		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
+
+		expect(result).toContain('const Inline = (props: { x: string }) => {');
+		expect(result).not.toContain('function Inline');
+		expect(result).not.toContain('function (props');
+	});
+
+	it('emits legacy anonymous component expressions as functions in to_ts output', () => {
+		const source = `
+const Inline = component(props: { x: string }) {
+	<div>{props.x}</div>
+}
+`;
+		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
+
+		expect(result).toContain('const Inline = function(props: { x: string }) {');
+		expect(result).not.toContain('function Inline');
+		expect(result).not.toContain('const Inline = (props: { x: string }) => {');
 	});
 
 	it('preserves generic type arguments on JSX component tags in to_ts output', () => {

@@ -2064,16 +2064,28 @@ const visitors = {
 				}),
 			];
 
-			const func = b.function(
-				node.id,
-				node.params.map(
-					(param) =>
-						/** @type {AST.Pattern} */ (context.visit(param, { ...context.state, metadata })),
-				),
-				b.block(body_statements),
-				false,
-				/** @type {AST.NodeWithLocation} */ (node),
+			const params = node.params.map(
+				(param) =>
+					/** @type {AST.Pattern} */ (context.visit(param, { ...context.state, metadata })),
 			);
+			const component_body = b.block(body_statements);
+			const func = node.id
+				? b.function(
+						node.id,
+						params,
+						component_body,
+						false,
+						/** @type {AST.NodeWithLocation} */ (node),
+					)
+				: node.metadata?.arrow
+					? b.arrow(params, component_body, false, /** @type {AST.NodeWithLocation} */ (node))
+					: b.function(
+							null,
+							params,
+							component_body,
+							false,
+							/** @type {AST.NodeWithLocation} */ (node),
+						);
 			func.typeParameters = node.typeParameters;
 			// Mark that this function was originally a component
 			func.metadata = /** @type {AST.FunctionExpression['metadata']} */ ({
@@ -2081,7 +2093,7 @@ const visitors = {
 				is_component: true,
 			});
 
-			if (func.id) {
+			if (func.type === 'FunctionExpression' && func.id) {
 				// metadata should be there as func.id === node.id
 				func.id.metadata = /** @type {AST.Identifier['metadata']} */ ({
 					...func.id.metadata,
@@ -2151,16 +2163,14 @@ const visitors = {
 				? [b.id('__anchor'), props, b.id('__block')]
 				: [b.id('__anchor'), b.id('_'), b.id('__block')];
 
-		const func = b.function(
-			node.id,
-			params,
-			b.block([...(prop_statements ?? []), ...body_statements]),
-		);
+		const component_body = b.block([...(prop_statements ?? []), ...body_statements]);
+		const func = node.id
+			? b.function(node.id, params, component_body)
+			: node.metadata?.arrow
+				? b.arrow(params, component_body)
+				: b.function(null, params, component_body);
 
-		func.metadata = {
-			...func.metadata,
-			is_component: true,
-		};
+		func.metadata.is_component = true;
 
 		return func;
 	},
