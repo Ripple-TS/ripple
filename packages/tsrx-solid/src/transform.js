@@ -290,6 +290,8 @@ function component_to_function_declaration(component, transform_context) {
 			} else {
 				render_nodes.push(jsx);
 			}
+		} else if (is_bare_render_expression(child)) {
+			render_nodes.push(to_jsx_expression_container(child, child));
 		} else {
 			statements.push(child);
 		}
@@ -482,6 +484,8 @@ function body_to_jsx_child(body_nodes, transform_context) {
 			} else {
 				children.push(jsx);
 			}
+		} else if (is_bare_render_expression(child)) {
+			children.push(to_jsx_expression_container(child, child));
 		} else {
 			statements.push(child);
 		}
@@ -661,6 +665,8 @@ function loop_body_to_callback_statements(body_nodes, transform_context) {
 
 		if (is_jsx_child(child)) {
 			children.push(to_jsx_child(child, transform_context));
+		} else if (is_bare_render_expression(child)) {
+			children.push(to_jsx_expression_container(child, child));
 		} else {
 			statements.push(child);
 		}
@@ -763,6 +769,53 @@ function return_argument_to_render_node(argument) {
  */
 function is_null_literal(node) {
 	return node?.type === 'Literal' && node.value == null;
+}
+
+/**
+ * See the shared JSX transform's helper of the same name.
+ *
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_bare_render_expression(node) {
+	if (!node || typeof node !== 'object') {
+		return false;
+	}
+
+	switch (node.type) {
+		case 'ArrayExpression':
+		case 'ArrowFunctionExpression':
+		case 'AssignmentExpression':
+		case 'AwaitExpression':
+		case 'BinaryExpression':
+		case 'CallExpression':
+		case 'ChainExpression':
+		case 'ClassExpression':
+		case 'ConditionalExpression':
+		case 'FunctionExpression':
+		case 'Identifier':
+		case 'ImportExpression':
+		case 'Literal':
+		case 'LogicalExpression':
+		case 'MemberExpression':
+		case 'MetaProperty':
+		case 'NewExpression':
+		case 'ObjectExpression':
+		case 'ParenthesizedExpression':
+		case 'SequenceExpression':
+		case 'TaggedTemplateExpression':
+		case 'TemplateLiteral':
+		case 'ThisExpression':
+		case 'TSAsExpression':
+		case 'TSSatisfiesExpression':
+		case 'TSNonNullExpression':
+		case 'UnaryExpression':
+		case 'UpdateExpression':
+		case 'YieldExpression':
+			return true;
+		default:
+			return false;
+	}
 }
 
 /**

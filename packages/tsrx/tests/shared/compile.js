@@ -56,6 +56,52 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 }
 
 /**
+ * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
+ */
+export function runSharedFragmentExpressionRenderTests({ compile, name }) {
+	describe(`[${name}] fragment expression render bodies`, () => {
+		it('renders a component-body fragment shorthand with a lone expression child', () => {
+			const { code } = compile(
+				`export default component A() {
+					<>{"Hello"}</>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('return "Hello";');
+		});
+
+		it('renders lone expression fragment shorthand inside conditional render bodies', () => {
+			const { code } = compile(
+				`export component A() {
+					if (show) {
+						<>{"Hello"}</>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('"Hello"');
+			expect(code).not.toMatch(/^[\t ]*"Hello";?\n\s*return null;/m);
+		});
+
+		it('renders lone expression fragment shorthand inside loop render bodies', () => {
+			const { code } = compile(
+				`export component A() {
+					for (const value of values) {
+						<>{value}</>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('value');
+			expect(code).not.toMatch(/^[\t ]*value;?\n\s*return null;/m);
+		});
+	});
+}
+
+/**
  * Shared component-loop regressions. Vue does not share the full JSX output
  * suite because its component export shape differs, but it should still share
  * these component-body validation rules.
@@ -63,6 +109,8 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
  * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
  */
 export function runSharedComponentLoopControlFlowTests({ compile, name }) {
+	runSharedFragmentExpressionRenderTests({ compile, name });
+
 	describe(`[${name}] component loop control flow`, () => {
 		it('uses continue to skip a for...of iteration', () => {
 			const { code } = compile(
