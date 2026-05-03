@@ -1571,15 +1571,17 @@ export interface VolarMappingsResult {
  * Result of compilation operation
  */
 export interface CompileResult {
-	/** The transformed AST */
-	ast: AST.Program;
-	/** The generated JavaScript code with source map */
-	js: {
-		code: string;
-		map: import('source-map').RawSourceMap;
-	};
-	/** The generated CSS */
+	/** The generated JavaScript code */
+	code: string;
+	/** Source map for the generated code */
+	map: import('source-map').RawSourceMap;
+	/** Rendered CSS for the module, or `''` when the module emits no styles. */
 	css: string;
+	/**
+	 * Space-separated scope hashes for the rendered CSS, or `null` when the
+	 * module emits no styles.
+	 */
+	cssHash: string | null;
 	/**
 	 * Non-fatal errors collected during compilation. Populated only when the
 	 * caller passes `collect: true` or `loose: true`; empty otherwise.
@@ -1594,6 +1596,46 @@ export interface VolarCompileOptions extends Omit<ParseOptions, 'errors' | 'comm
 	minify_css?: boolean;
 	dev?: boolean;
 }
+
+/**
+ * Common base options accepted by every TSRX target's `compile` entry point.
+ * Targets that need extra knobs (e.g. ripple's `mode`/`dev`/`hmr`, preact's
+ * `suspenseSource`) intersect their own option type with this base when
+ * declaring their `compile` export.
+ */
+export interface BaseCompileOptions {
+	collect?: boolean;
+	loose?: boolean;
+}
+
+/**
+ * Shared `compile` signature for every TSRX target package. Per-target
+ * `compile` declarations should be `CompileFn<TOptions, TResult>` so any
+ * drift in the shared contract becomes a typecheck error in every package.
+ *
+ * @template TOptions Per-target options accepted as the third argument.
+ *   Defaults to {@link BaseCompileOptions}.
+ * @template TResult Per-target result type. Must extend {@link CompileResult};
+ *   targets may add fields (e.g. ripple's deprecated `js` back-compat field)
+ *   via intersection.
+ */
+export type CompileFn<
+	TOptions = BaseCompileOptions,
+	TResult extends CompileResult = CompileResult,
+> = (source: string, filename?: string, options?: TOptions) => TResult;
+
+/**
+ * Shared `compile_to_volar_mappings` signature for every TSRX target package.
+ *
+ * @template TOptions Per-target options accepted as the third argument.
+ *   Defaults to {@link ParseOptions}; targets may intersect their own option
+ *   type to add e.g. `suspenseSource`.
+ */
+export type VolarCompileFn<TOptions = ParseOptions> = (
+	source: string,
+	filename?: string,
+	options?: TOptions,
+) => VolarMappingsResult;
 
 /**
  * Source map transformation types

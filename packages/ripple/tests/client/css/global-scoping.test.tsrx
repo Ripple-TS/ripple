@@ -12,7 +12,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/\.scoped\.tsrx-[a-z0-9]+/);
 		expect(css).not.toContain('.scoped {');
@@ -29,7 +29,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('.global {');
 		expect(css).not.toMatch(/\.global\.tsrx-[a-z0-9]+/);
@@ -64,7 +64,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/\.outer\.tsrx-[a-z0-9]+ {/);
 		expect(css).toMatch(/\.outer {/);
@@ -98,7 +98,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('div {');
 		expect(css).toContain('span {');
@@ -131,7 +131,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+/);
 		expect(css).toMatch(/span\.tsrx-[a-z0-9]+/);
@@ -153,7 +153,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/\.local\.tsrx-[a-z0-9]+ \.global \.local {/);
 		expect(css).not.toMatch(/\.global\.tsrx-[a-z0-9]+/);
@@ -180,8 +180,8 @@ export component Test2() {
 		}
 	</style>
 }`;
-		const { css: css1 } = compile(source1, 'test1.tsrx');
-		const { css: css2 } = compile(source2, 'test2.tsrx');
+		const css1 = compile(source1, 'test1.tsrx').css;
+		const css2 = compile(source2, 'test2.tsrx').css;
 
 		expect(css1).toMatch(/\.test\.tsrx-[a-z0-9]+/);
 		expect(css2).toMatch(/\.test\.tsrx-[a-z0-9]+/);
@@ -218,8 +218,8 @@ export component Test2() {
 		}
 	</style>
 }`;
-		const { css: css1 } = compile(source1, 'test1.tsrx');
-		const { css: css2 } = compile(source2, 'test2.tsrx');
+		const css1 = compile(source1, 'test1.tsrx').css;
+		const css2 = compile(source2, 'test2.tsrx').css;
 
 		expect(css1).toContain('.global {');
 		expect(css1).not.toMatch(/\.global\.tsrx-[a-z0-9]+/);

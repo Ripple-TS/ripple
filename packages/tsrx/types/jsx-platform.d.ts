@@ -14,7 +14,14 @@ export interface JsxTransformResult {
 	 * downstream Vite / Rollup plugins to chain source maps.
 	 */
 	map: RawSourceMap;
-	css: { code: string; hash: string } | null;
+	/** Rendered CSS for the module, or `''` when the module emits no styles. */
+	css: string;
+	/**
+	 * Space-separated scope hashes for the rendered CSS, or `null` when the
+	 * module emits no styles. When multiple `<style>` blocks contribute, the
+	 * hashes appear in source order.
+	 */
+	cssHash: string | null;
 }
 
 /**

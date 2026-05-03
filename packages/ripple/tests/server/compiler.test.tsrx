@@ -10,7 +10,7 @@ const errorMap = new ErrorMap();`;
 
 		const result = compile(source, 'test.tsrx', { mode: 'server' });
 
-		expect(result.js.code).toMatchSnapshot();
+		expect(result.code).toMatchSnapshot();
 	});
 
 	it('removes type assertions from function parameters and leaves default values', () => {
@@ -21,7 +21,7 @@ function getString(e: string = 'test') {
 
 		const result = compile(source, 'test.tsrx', { mode: 'server' });
 
-		expect(result.js.code).toMatchSnapshot();
+		expect(result.code).toMatchSnapshot();
 	});
 
 	it('removes class TypeScript syntax from JS output', () => {
@@ -37,8 +37,8 @@ class PrintEvent implements BaseEvent {
 
 		const result = compile(source, 'test.tsrx', { mode: 'server' });
 
-		expect(result.js.code).not.toContain('implements');
-		expect(result.js.code).toMatchSnapshot();
+		expect(result.code).not.toContain('implements');
+		expect(result.code).toMatchSnapshot();
 	});
 
 	it('removes class extends type arguments from JS output', () => {
@@ -50,9 +50,9 @@ class PrintEvent implements BaseEvent {
 
 		const result = compile(source, 'test.tsrx', { mode: 'server' });
 
-		expect(result.js.code).not.toContain('Map<string, string>');
-		expect(result.js.code).toContain('class StringMap extends Map');
-		expect(result.js.code).toMatchSnapshot();
+		expect(result.code).not.toContain('Map<string, string>');
+		expect(result.code).toContain('class StringMap extends Map');
+		expect(result.code).toMatchSnapshot();
 	});
 
 	it('throws error for interpolating children as text in SSR mode', () => {
@@ -81,7 +81,7 @@ export default component A() {
 	</div>
 }`;
 
-		const result = compile(source, 'test.tsrx', { mode: 'server' }).js.code;
+		const result = compile(source, 'test.tsrx', { mode: 'server' }).code;
 
 		expect(result).toContain(`_$_.output_push('Hello')`);
 		expect(result).not.toContain(`"Hello";`);
@@ -96,7 +96,7 @@ export default component A() {
 			{ mode: 'server' },
 		);
 
-		expect(result.js.code).toContain(`_$_.output_push('Rock &amp; "Roll"')`);
+		expect(result.code).toContain(`_$_.output_push('Rock &amp; "Roll"')`);
 	});
 
 	it('emits anonymous component expressions as arrows in SSR output', () => {
@@ -105,7 +105,7 @@ const Inline = component(props) => {
 	<div>{props.x}</div>
 }
 `;
-		const result = compile(source, 'anonymous-component.tsrx', { mode: 'server' }).js.code;
+		const result = compile(source, 'anonymous-component.tsrx', { mode: 'server' }).code;
 
 		expect(result).toContain('const Inline = (props) => {');
 		expect(result).not.toContain('function Inline');
@@ -118,7 +118,7 @@ const Inline = component(props) {
 	<div>{props.x}</div>
 }
 `;
-		const result = compile(source, 'anonymous-component.tsrx', { mode: 'server' }).js.code;
+		const result = compile(source, 'anonymous-component.tsrx', { mode: 'server' }).code;
 
 		expect(result).toContain('const Inline = function (props) {');
 		expect(result).not.toContain('function Inline');
@@ -162,7 +162,7 @@ export component App() {
 }
 `;
 
-		const result = compile(source, 'test.tsrx', { mode: 'server' }).js.code;
+		const result = compile(source, 'test.tsrx', { mode: 'server' }).code;
 
 		// Template children should take precedence - explicit children prop should be removed
 		expect((result.match(/children:/g) || []).length).toBe(1);
@@ -206,7 +206,7 @@ module server {
 }`;
 
 		const result = compile(source, 'test.tsrx', { mode: 'server' });
-		expect(result.js.code).toMatchSnapshot();
+		expect(result.code).toMatchSnapshot();
 	});
 
 	it('compiles imports from module server as server-call wrappers', () => {
@@ -225,9 +225,9 @@ export component App() {
 }`;
 
 		const result = compile(source, 'test.tsrx', { mode: 'server' });
-		expect(result.js.code).toContain('const getUser = function (...args)');
-		expect(result.js.code).toContain('return _$_server_$_.loadUser(...args)');
-		expect(result.js.code).toContain('export const _$_server_$_');
+		expect(result.code).toContain('const getUser = function (...args)');
+		expect(result.code).toContain('return _$_server_$_.loadUser(...args)');
+		expect(result.code).toContain('export const _$_server_$_');
 	});
 
 	it('throws when server exports are used through direct member access', () => {
@@ -300,7 +300,7 @@ export component App() {
 }
 `;
 
-		const result = compile(source, 'test.tsrx', { mode: 'server' }).js.code;
+		const result = compile(source, 'test.tsrx', { mode: 'server' }).code;
 
 		expect(result).toContain('_$_.normalize_children(');
 	});
@@ -318,7 +318,7 @@ export component App() {
 }
 `;
 
-		const result = compile(source, 'test.tsrx', { mode: 'server' }).js.code;
+		const result = compile(source, 'test.tsrx', { mode: 'server' }).code;
 
 		expect(result).toContain('...props');
 	});

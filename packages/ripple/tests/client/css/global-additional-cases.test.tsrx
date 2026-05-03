@@ -13,7 +13,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+\.x {/);
 	});
@@ -31,7 +31,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('&.x {');
 	});
@@ -49,7 +49,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('&.x {');
 	});
@@ -65,7 +65,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+:is\(html\.dark-mode \*\) {/);
 	});
@@ -83,7 +83,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
 		expect(css).toContain('&.class {');
@@ -102,7 +102,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('* {');
 		expect(css).toMatch(/&:hover \.class\.tsrx-[a-z0-9]+ {/);
@@ -120,7 +120,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain(' x,  y {');
 	});
@@ -140,7 +140,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+/);
 		expect(css).toContain('z {');
@@ -175,7 +175,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('@keyframes test-in {');
 		expect(css).toContain('.x {');
@@ -196,7 +196,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('@keyframes orphan');
 		expect(css).not.toContain('-global-orphan');
@@ -220,7 +220,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+\.blue {/);
 		expect(css).toMatch(/span\.blue\.x\.tsrx-[a-z0-9]+ {/);
@@ -238,7 +238,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('div > section > p');
 		expect(css).toMatch(/p\.tsrx-[a-z0-9]+ {/);
@@ -259,7 +259,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/x\.tsrx-[a-z0-9]+ :is\(html \*\) {/);
 	});
@@ -286,7 +286,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('.foo {');
 		expect(css).toMatch(/\.tsrx-[a-z0-9]+:has\(x:where\(\.tsrx-[a-z0-9]+\)\) {/);
@@ -341,7 +341,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain(':not(.foo)');
 		expect(css).toContain('span');
@@ -376,7 +376,7 @@ export component Test({ children }) {
 		:global(.x) + .bar { color: green; }
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/\.before\.tsrx-[a-z0-9]+ \+ \.foo:where\(\.tsrx-[a-z0-9]+\) {/);
 		expect((css.match(/\.x\ /g) || []).length).toBe(0);
@@ -417,7 +417,7 @@ export component Test({ children }) {
 component Child1() {
 	<div>{'child1'}</div>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/\.before\.tsrx-[a-z0-9]+ \+ \.foo:where\(\.tsrx-[a-z0-9]+\) {/);
 		expect((css.match(/\.x\ /g) || []).length).toBe(5);
@@ -463,7 +463,7 @@ export component Test({ children }) {
 component Child1() {
 	<div>{'child1'}</div>
 }`;
-			const { css } = compile(source, 'test.tsrx');
+			const css = compile(source, 'test.tsrx').css;
 
 			expect(css).toMatch(/\.before\.tsrx-[a-z0-9]+ \+ \.foo:where\(\.tsrx-[a-z0-9]+\) {/);
 			expect((css.match(/\.x\ /g) || []).length).toBe(5);
@@ -507,7 +507,7 @@ export component Test({ children, classes }) {
 	</style>
 }`;
 
-			const { css } = compile(source, 'test.tsrx');
+			const css = compile(source, 'test.tsrx').css;
 
 			expect(css).toMatch(/\.before\.tsrx-[a-z0-9]+ \+ \.foo:where\(\.tsrx-[a-z0-9]+\) {/);
 			expect((css.match(/\.x\ /g) || []).length).toBe(5);
@@ -531,7 +531,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/html body \.root\.tsrx-[a-z0-9]+ p:where\(\.tsrx-[a-z0-9]+\) {/);
 	});
@@ -557,7 +557,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('@media (min-width: 768px) {');
 		expect(css).toContain('.foo {');
@@ -588,7 +588,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(
 			/g\.tsrx-[a-z0-9]+:has\(> h:where\(\.tsrx-[a-z0-9]+\) > i:where\(\.tsrx-[a-z0-9]+\)\)/,
@@ -612,7 +612,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ h1\[data-title="Hello, world!"\]/);
 		expect(css).toContain('h1[attribute], video[autoplay]');
@@ -631,7 +631,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ \.h1\\,h2\\,h3 {/);
 	});
@@ -656,7 +656,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ :is\(h1, h2\)/);
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ :where\(h1, h2\)/);
@@ -677,7 +677,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ h1 ~ :is\(h2, h3\)/);
 	});

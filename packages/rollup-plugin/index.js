@@ -53,14 +53,14 @@ export default function (options = {}) {
 
 			const filename = path.relative(process.cwd(), id);
 
-			const { js, css } = await compile(code, filename, id);
+			const result = await compile(code, filename, id);
 
-			if (emitCss && css && css.code) {
+			if (emitCss && result.css) {
 				const fname = id.replace(new RegExp(`\\${extension}$`), '.css');
-				js.code += `\nimport ${JSON.stringify(fname)};\n`;
-				cache_emit.set(fname, css);
+				result.code += `\nimport ${JSON.stringify(fname)};\n`;
+				cache_emit.set(fname, result.css);
 			}
-			return js;
+			return { code: result.code, map: result.map };
 		},
 	};
 }

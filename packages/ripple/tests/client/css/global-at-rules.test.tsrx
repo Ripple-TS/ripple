@@ -18,7 +18,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('@media (min-width: 768px) {');
 		expect(css).toContain('div {');
@@ -42,7 +42,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('@supports (display: grid) {');
 		expect(css).toContain('.container {');
@@ -70,7 +70,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('@media (min-width: 768px) {');
 		expect(css).toContain('.foo {');
@@ -91,7 +91,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('@container (min-width: 400px) {');
 		expect(css).toContain('div {');
@@ -116,7 +116,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('@media screen {');
 		expect(css).toContain('@supports (display: flex) {');

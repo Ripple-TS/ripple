@@ -18,7 +18,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ ::slotted\(span\) {/);
 		expect(css).toContain('::slotted(*) {');
@@ -39,7 +39,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ ::part\(input\) {/);
 		expect(css).toContain('::part(button) {');
@@ -64,7 +64,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain(':host {');
 		expect(css).toContain(':host(.active) {');
@@ -94,7 +94,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('span:nth-child(odd) {');
 		expect(css).toContain('span:nth-last-child(2) {');
@@ -120,7 +120,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain(':lang(en) {');
 		expect(css).toContain(':dir(rtl) {');
@@ -144,7 +144,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('div:focus-within {');
 		expect(css).toContain('input:focus-visible {');
@@ -171,7 +171,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain(':any-link {');
 		expect(css).toContain(':target {');
@@ -216,7 +216,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('input:required {');
 		expect(css).toContain('input:optional {');

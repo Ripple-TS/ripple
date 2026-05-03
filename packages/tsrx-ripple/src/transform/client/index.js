@@ -37,7 +37,7 @@ import {
 	SERVER_IDENTIFIER,
 	obfuscateIdentifier,
 	object,
-	renderStylesheets,
+	renderCssResult,
 	getOriginalEventName,
 	isEventAttribute,
 	isInsideComponent as is_inside_component,
@@ -5276,7 +5276,7 @@ function create_tsx_with_typescript_support(comments) {
  * @param {boolean} to_ts - Whether to generate TypeScript output
  * @param {boolean} minify_css - Whether to minify CSS output
  * @param {boolean} hmr - Whether to emit HMR wrapper code
- * @returns {{ ast: AST.Program, js: { code: string, map: RawSourceMap, post_processing_changes?: PostProcessingChanges, line_offsets?: LineOffsets }, css: string, errors:  CompileError[]}}
+ * @returns {{ ast: AST.Program, code: string, map: RawSourceMap, post_processing_changes?: PostProcessingChanges, line_offsets?: LineOffsets, css: string, cssHash: string | null, errors: CompileError[] }}
  */
 export function transform_client(filename, source, analysis, to_ts, minify_css, hmr = false) {
 	/** @type {TransformClientState} */
@@ -5425,13 +5425,12 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 		? create_tsx_with_typescript_support(analysis.comments)
 		: /** @type {Visitors<AST.Node, TransformClientState>} */ (tsx());
 
-	const js =
-		/** @type {ReturnType<typeof print> & { post_processing_changes?: PostProcessingChanges, line_offsets?: number[] }} */ (
-			print(program, language_handler, {
-				sourceMapContent: source,
-				sourceMapSource: path.basename(filename),
-			})
-		);
+	const printed = print(program, language_handler, {
+		sourceMapContent: source,
+		sourceMapSource: path.basename(filename),
+	});
+	let { code } = printed;
+	const { map } = printed;
 
 	// Post-process TypeScript output to remove 'declare' from function overload signatures
 	// Function overload signatures in regular .ts files should not have 'declare' keyword
@@ -5444,8 +5443,8 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 	if (to_ts) {
 		// Build line offset map for converting byte offset to line:column
 		line_offsets = [0];
-		for (let i = 0; i < js.code.length; i++) {
-			if (js.code[i] === '\n') {
+		for (let i = 0; i < code.length; i++) {
+			if (code[i] === '\n') {
 				line_offsets.push(i + 1);
 			}
 		}
@@ -5473,7 +5472,7 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 		// Remove 'export declare function' -> 'export function' (for overloads only, not implementations)
 		// Match: export declare function name(...): type;
 		// Don't match: export declare function name(...): type { (has body)
-		js.code = js.code.replace(
+		code = code.replace(
 			/^(export\s+)declare\s+(function\s+\w+[^{\n]*;)$/gm,
 			(match, p1, p2, offset) => {
 				const replacement = p1 + p2;
@@ -5496,20 +5495,25 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 		post_processing_changes = line_deltas;
 	}
 
+	const { css, cssHash } = renderCssResult(state.stylesheets, minify_css);
+
+	/** @type {ReturnType<typeof transform_client>} */
+	const result = {
+		ast: program,
+		code,
+		map,
+		css,
+		cssHash,
+		errors: state.errors,
+	};
+
 	if (post_processing_changes) {
-		js.post_processing_changes = post_processing_changes;
+		result.post_processing_changes = post_processing_changes;
 	}
 
 	if (line_offsets.length > 0) {
-		js.line_offsets = line_offsets;
+		result.line_offsets = line_offsets;
 	}
 
-	const css = renderStylesheets(state.stylesheets, minify_css);
-
-	return {
-		ast: program,
-		js,
-		css,
-		errors: state.errors,
-	};
+	return result;
 }

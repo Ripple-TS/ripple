@@ -32,7 +32,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
 		expect(css).toContain('.x {');
@@ -67,7 +67,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('&.x {');
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+\.x {/);
@@ -92,7 +92,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('div {');
 		expect(css).toContain('.y {');
@@ -118,7 +118,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('.whatever {');
 		expect(css).not.toMatch(/\.whatever\.tsrx-[a-z0-9]+ {/);
@@ -142,7 +142,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ :is\(span\) {/);
 		expect(css).toMatch(/\.foo :is\(div\.tsrx-[a-z0-9]+\) {/);

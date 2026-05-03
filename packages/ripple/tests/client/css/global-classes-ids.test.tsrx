@@ -12,7 +12,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('.foo {');
 		expect(css).not.toMatch(/\.foo\.tsrx-[a-z0-9]+/);
@@ -37,7 +37,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('.foo.bar {');
 		expect(css).toMatch(/\.foo\.bar\.tsrx-[a-z0-9]+ {/);
@@ -61,7 +61,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/\.outer \.inner\.tsrx-[a-z0-9]+ {/);
 		expect(css).toMatch(/\(unused\) :global\(div\) \.foo {/);
@@ -88,7 +88,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('#app {');
 		expect(css).not.toContain('#app #content {');
@@ -115,7 +115,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('#app.container {');
 		expect(css).toMatch(/\.container#app\.tsrx-[a-z0-9]+ {/);
@@ -141,7 +141,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect((css.match(/\.a\.b\.c\.tsrx-[a-z0-9]+ {/g) || []).length).toBe(2);
 		expect(css).toMatch(/\.a\.b\.tsrx-[a-z0-9]+\.c {/);
@@ -170,7 +170,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/\.outer \.middle\.tsrx-[a-z0-9]+ \.inner:where\(\.tsrx-[a-z0-9]+\)/);
 		expect(css).toMatch(/\.outer\.tsrx-[a-z0-9]+ \.middle \.inner {/);

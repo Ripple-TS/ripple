@@ -14,9 +14,9 @@ describe('compiler > attributes', () => {
 		const result = compile(source, 'test.tsrx', { mode: 'client' });
 
 		// Should contain properly quoted hyphenated properties and unquoted valid identifiers
-		expect(result.js.code).toMatch(/'data-scope': "test"/);
-		expect(result.js.code).toMatch(/'aria-label': "accessible"/);
-		expect(result.js.code).toMatch(/class: "valid"/);
+		expect(result.code).toMatch(/'data-scope': "test"/);
+		expect(result.code).toMatch(/'aria-label': "accessible"/);
+		expect(result.code).toMatch(/class: "valid"/);
 	});
 
 	it('generates valid JavaScript for all types of hyphenated attributes', () => {
@@ -33,7 +33,7 @@ describe('compiler > attributes', () => {
 				export default component App() { <Child ${attr} /> }`;
 
 			const result = compile(source, 'test.tsrx', { mode: 'client' });
-			expect(result.js.code).toMatch(expected);
+			expect(result.code).toMatch(expected);
 		});
 	});
 
@@ -57,14 +57,14 @@ describe('compiler > attributes', () => {
 		const result = compile(source, 'test.tsrx', { mode: 'client' });
 
 		// Valid identifiers should not be quoted
-		expect(result.js.code).toMatch(/validProp: "valid"/);
-		expect(result.js.code).toMatch(/class: "valid"/);
-		expect(result.js.code).toMatch(/id: "valid"/);
+		expect(result.code).toMatch(/validProp: "valid"/);
+		expect(result.code).toMatch(/class: "valid"/);
+		expect(result.code).toMatch(/id: "valid"/);
 
 		// Invalid identifiers (with hyphens) should be quoted
-		expect(result.js.code).toMatch(/'data-invalid': "invalid"/);
-		expect(result.js.code).toMatch(/'aria-invalid': "invalid"/);
-		expect(result.js.code).toMatch(/'custom-prop': "invalid"/);
+		expect(result.code).toMatch(/'data-invalid': "invalid"/);
+		expect(result.code).toMatch(/'aria-invalid': "invalid"/);
+		expect(result.code).toMatch(/'custom-prop': "invalid"/);
 	});
 
 	it('ensures generated code is syntactically valid JavaScript', () => {
@@ -80,7 +80,7 @@ describe('compiler > attributes', () => {
 		const result = compile(source, 'test.tsrx', { mode: 'client' });
 
 		// Extract the props object from the generated code and test it's valid JavaScript
-		const match = result.js.code.match(/Child\([^,]+,\s*(\{[^}]+\})/);
+		const match = result.code.match(/Child\([^,]+,\s*(\{[^}]+\})/);
 		expect(match).toBeTruthy();
 
 		const propsObject = match?.[1];

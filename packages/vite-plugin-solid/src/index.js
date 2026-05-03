@@ -117,7 +117,7 @@ export function tsrxSolid(options = {}) {
 			let final_code = code;
 			let final_map = /** @type {any} */ (map);
 			if (css) {
-				css_cache.set(real_path, css.code);
+				css_cache.set(real_path, css);
 				final_code = `import ${JSON.stringify(real_path + CSS_QUERY)};\n${code}`;
 				// The prepended import adds one line to the generated output;
 				// shift every mapping down by one line so source positions stay

@@ -65,8 +65,8 @@ describe('compiler > basics', () => {
 		expect(explicit_text.type).toBe('Text');
 		expect((explicit_text.expression as AST.Identifier).name).toBe('markup');
 
-		const { js } = compile(source, 'text-directive.tsrx', { mode: 'client' });
-		expect(js.code).not.toContain('_$_.html');
+		const { code } = compile(source, 'text-directive.tsrx', { mode: 'client' });
+		expect(code).not.toContain('_$_.html');
 
 		const invalid_source = `export component App() {
 	const text = 'plain';
@@ -318,10 +318,10 @@ describe('compiler > basics', () => {
 	<div class="b">{'b'}</div>
 }`;
 
-		const { js } = compile(source, 'grouped-count.tsrx', { mode: 'client' });
+		const { code } = compile(source, 'grouped-count.tsrx', { mode: 'client' });
 
-		expect(js.code).toMatch(/_\$_\.template\(`<!><!>`,\s*1,\s*2\)/);
-		expect(js.code).not.toMatch(/_\$_\.template\(`<!><!>`,\s*1,\s*3\)/);
+		expect(code).toMatch(/_\$_\.template\(`<!><!>`,\s*1,\s*2\)/);
+		expect(code).not.toMatch(/_\$_\.template\(`<!><!>`,\s*1,\s*3\)/);
 	});
 
 	it('emits anonymous component expressions as arrows in client output', () => {
@@ -330,7 +330,7 @@ const Inline = component(props) => {
 	<div>{props.x}</div>
 }
 `;
-		const result = compile(source, 'anonymous-component.tsrx', { mode: 'client' }).js.code;
+		const result = compile(source, 'anonymous-component.tsrx', { mode: 'client' }).code;
 
 		expect(result).toContain('const Inline = (__anchor, props, __block) => {');
 		expect(result).not.toContain('function Inline');
@@ -343,7 +343,7 @@ const Inline = component(props) {
 	<div>{props.x}</div>
 }
 `;
-		const result = compile(source, 'anonymous-component.tsrx', { mode: 'client' }).js.code;
+		const result = compile(source, 'anonymous-component.tsrx', { mode: 'client' }).code;
 
 		expect(result).toContain('const Inline = function (__anchor, props, __block) {');
 		expect(result).not.toContain('function Inline');
@@ -611,12 +611,12 @@ function use_nested({ value: &[count, tracked] }: { value: Tracked<number> }) {
 	return tracked;
 }
 `;
-		const { js } = compile(source, 'tracked-nested-lazy.tsrx', { mode: 'client' });
+		const { code } = compile(source, 'tracked-nested-lazy.tsrx', { mode: 'client' });
 
 		// Nested lazy array should still use tracked tuple fast path from outer annotation.
-		expect(js.code).toContain('_$_.update(');
-		expect(js.code).not.toContain('[0]');
-		expect(js.code).not.toContain('[1]');
+		expect(code).toContain('_$_.update(');
+		expect(code).not.toContain('[0]');
+		expect(code).not.toContain('[1]');
 	});
 
 	it('uses tracked fast path for nested lazy params at tuple rest positions', () => {
@@ -627,11 +627,11 @@ function use_tuple_rest({ value: [head, &[count, tracked]] }: { value: [number, 
 	return tracked;
 }
 `;
-		const { js } = compile(source, 'tracked-nested-lazy-tuple-rest.tsrx', { mode: 'client' });
+		const { code } = compile(source, 'tracked-nested-lazy-tuple-rest.tsrx', { mode: 'client' });
 
 		// Tuple rest element access should resolve to Tracked<number>, not Tracked<number>[].
-		expect(js.code).toContain('_$_.update(');
-		expect(js.code).not.toContain('[1]');
+		expect(code).toContain('_$_.update(');
+		expect(code).not.toContain('[1]');
 	});
 
 	it('preserves generic type args in interface extends for Volar mappings', () => {
@@ -759,7 +759,7 @@ export component App() {
 }
 `;
 
-		const result = compile(source, 'test.tsrx', { mode: 'client' }).js.code;
+		const result = compile(source, 'test.tsrx', { mode: 'client' }).code;
 
 		// Template children should take precedence - explicit children prop should be removed
 		expect((result.match(/children:/g) || []).length).toBe(1);
@@ -800,7 +800,7 @@ export component App() {
 }
 `;
 		const result = compile(source, 'test.tsrx', { mode: 'client' });
-		const code = result.js.code;
+		const code = result.code;
 
 		// The constructor's compiled output should contain __block = _$_.scope()
 		expect(code).toContain('__block');
@@ -1016,7 +1016,7 @@ export component App() {
 }
 `;
 
-		const result = compile(source, 'test.tsrx', { mode: 'client' }).js.code;
+		const result = compile(source, 'test.tsrx', { mode: 'client' }).code;
 
 		expect(result).toContain('_$_.normalize_children(');
 	});
@@ -1054,7 +1054,7 @@ export component App() {
 }
 `;
 
-		const result = compile(source, 'test.tsrx', { mode: 'client' }).js.code;
+		const result = compile(source, 'test.tsrx', { mode: 'client' }).code;
 
 		expect(result).toContain('_$_.spread_props(');
 	});

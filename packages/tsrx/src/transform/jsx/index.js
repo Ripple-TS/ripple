@@ -25,7 +25,7 @@ import {
 	set_loc,
 	to_text_expression,
 } from './ast-builders.js';
-import { render_stylesheets as renderStylesheets } from '../stylesheet.js';
+import { render_css_result } from '../stylesheet.js';
 import {
 	set_location as setLocation,
 	jsx_attribute as build_jsx_attribute,
@@ -442,17 +442,11 @@ export function createJsxTransform(platform) {
 			sourceMapContent: source,
 		});
 
-		const css =
-			stylesheets.length > 0
-				? {
-						code: renderStylesheets(
-							/** @type {any} */ (stylesheets.map(prepare_stylesheet_for_render)),
-						),
-						hash: stylesheets.map((s) => s.hash).join(' '),
-					}
-				: null;
+		const { css, cssHash } = render_css_result(
+			/** @type {any} */ (stylesheets.map(prepare_stylesheet_for_render)),
+		);
 
-		return { ast: final_program, code: result.code, map: result.map, css };
+		return { ast: final_program, code: result.code, map: result.map, css, cssHash };
 	}
 
 	return transform;

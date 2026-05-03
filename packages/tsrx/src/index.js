@@ -169,7 +169,10 @@ export {
 	set_loc,
 	to_text_expression,
 } from './transform/jsx/ast-builders.js';
-export { render_stylesheets as renderStylesheets } from './transform/stylesheet.js';
+export {
+	render_stylesheets as renderStylesheets,
+	render_css_result as renderCssResult,
+} from './transform/stylesheet.js';
 export {
 	prepare_stylesheet_for_render as prepareStylesheetForRender,
 	is_style_element as isStyleElement,

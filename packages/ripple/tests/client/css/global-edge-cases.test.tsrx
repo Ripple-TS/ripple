@@ -12,7 +12,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('div, span ');
 		expect(css).toContain('(unused) p');
@@ -33,7 +33,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('[data-test] {');
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+\[data-foo="bar"\]/);
@@ -54,7 +54,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('* {');
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ \* {/);
@@ -75,7 +75,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('#app {');
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ #test {/);
@@ -98,7 +98,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('div::before {');
 		``;
@@ -118,7 +118,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('color: red');
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
@@ -143,7 +143,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/div\.container > span.wrapper\.tsrx-[a-z0-9]+ \+ button\[disabled\] {/);
 		expect(css).toMatch(/\.foo > \.bar span\.tsrx-[a-z0-9]+ {/);
@@ -191,7 +191,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/html div\.tsrx-[a-z0-9]+ span:where\(\.tsrx-[a-z0-9]+\) {/);
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ span:where\(\.tsrx-[a-z0-9]+\) strong {/);

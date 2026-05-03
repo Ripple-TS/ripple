@@ -21,7 +21,7 @@ export default function tsrx_react_turbopack_css_loader(source) {
 
 	try {
 		const { css } = compile(source, this.resourcePath);
-		callback(null, css?.code ?? '');
+		callback(null, css);
 	} catch (/** @type {any} */ err) {
 		callback(err);
 	}

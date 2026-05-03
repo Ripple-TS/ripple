@@ -17,7 +17,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('@keyframes foo');
 		expect(css).not.toContain('-global-foo');
@@ -36,7 +36,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toMatch(/@keyframes tsrx-[a-z0-9]+-foo/);
 	});
@@ -67,7 +67,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('@keyframes fadeIn');
 		expect(css).not.toContain('-global-fadeIn');
@@ -93,7 +93,7 @@ export component Test() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		expect(css).toContain('@keyframes foo');
 		expect(css).toContain('@keyframes bar');
@@ -134,7 +134,7 @@ component Child() {
 		}
 	</style>
 }`;
-		const { css } = compile(source, 'test.tsrx');
+		const css = compile(source, 'test.tsrx').css;
 
 		// Parent should have scoped slideIn and global fadeIn
 		expect(css).toMatch(/@keyframes tsrx-[a-z0-9]+-slideIn/);

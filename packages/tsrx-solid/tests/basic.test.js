@@ -538,7 +538,7 @@ describe('@tsrx/solid basic', () => {
 
 	describe('scoped CSS', () => {
 		it('emits css and annotates elements with the scope class', () => {
-			const { code, css } = compile(
+			const { code, css, cssHash } = compile(
 				`export component App() {
 					<div class="wrapper">{'hi'}</div>
 					<style>
@@ -547,8 +547,8 @@ describe('@tsrx/solid basic', () => {
 				}`,
 				'App.tsrx',
 			);
-			expect(css).not.toBeNull();
-			expect(css?.code).toContain('.wrapper.');
+			expect(css).not.toBe('');
+			expect(css).toContain('.wrapper.');
 			// hash is applied to element's class attribute
 			expect(code).toMatch(/class="wrapper tsrx-[a-z0-9]+"/);
 		});

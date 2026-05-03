@@ -189,8 +189,8 @@ describe('HTML nesting validation', () => {
 
 			const result = compile(source, 'test.tsrx', { mode: 'server', dev: true });
 
-			expect(result.js.code).toContain('_$_.push_element');
-			expect(result.js.code).toContain('_$_.pop_element');
+			expect(result.code).toContain('_$_.push_element');
+			expect(result.code).toContain('_$_.pop_element');
 		});
 
 		it('does not emit push_element or pop_element in non-dev mode', () => {
@@ -204,8 +204,8 @@ describe('HTML nesting validation', () => {
 
 			const result = compile(source, 'test.tsrx', { mode: 'server', dev: false });
 
-			expect(result.js.code).not.toContain('push_element');
-			expect(result.js.code).not.toContain('pop_element');
+			expect(result.code).not.toContain('push_element');
+			expect(result.code).not.toContain('pop_element');
 		});
 
 		it('emits push_element with correct tag name', () => {
@@ -217,7 +217,7 @@ describe('HTML nesting validation', () => {
 
 			const result = compile(source, 'test.tsrx', { mode: 'server', dev: true });
 
-			expect(result.js.code).toContain('_$_.push_element(\'button\'');
+			expect(result.code).toContain('_$_.push_element(\'button\'');
 		});
 
 		it('does not emit push_element for client mode', () => {
@@ -229,7 +229,7 @@ describe('HTML nesting validation', () => {
 
 			const result = compile(source, 'test.tsrx', { mode: 'client', dev: true });
 
-			expect(result.js.code).not.toContain('push_element');
+			expect(result.code).not.toContain('push_element');
 		});
 	});
 });
