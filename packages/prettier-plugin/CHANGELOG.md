@@ -1,5 +1,22 @@
 # @tsrx/prettier-plugin
 
+## 0.3.45
+
+### Patch Changes
+
+- [#1047](https://github.com/Ripple-TS/ripple/pull/1047)
+  [`d1acf12`](https://github.com/Ripple-TS/ripple/commit/d1acf129cdd0bf2ee596dbab26ec4df829a33880)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Support arrow syntax for
+  anonymous component expressions and preserve anonymous component
+  function-vs-arrow source form across TSRX and Ripple targets.
+
+- Updated dependencies
+  [[`d1acf12`](https://github.com/Ripple-TS/ripple/commit/d1acf129cdd0bf2ee596dbab26ec4df829a33880),
+  [`d1acf12`](https://github.com/Ripple-TS/ripple/commit/d1acf129cdd0bf2ee596dbab26ec4df829a33880),
+  [`3928ac8`](https://github.com/Ripple-TS/ripple/commit/3928ac8816399f9eccfd40081d480042a9d74030)]:
+  - @tsrx/core@0.0.25
+  - @tsrx/ripple@0.0.27
+
 ## 0.3.44
 
 ### Patch Changes

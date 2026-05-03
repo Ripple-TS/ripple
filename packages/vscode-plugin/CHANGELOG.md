@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.21
+
+### Patch Changes
+
+- Updated dependencies
+  [[`d1acf12`](https://github.com/Ripple-TS/ripple/commit/d1acf129cdd0bf2ee596dbab26ec4df829a33880),
+  [`3928ac8`](https://github.com/Ripple-TS/ripple/commit/3928ac8816399f9eccfd40081d480042a9d74030)]:
+  - @tsrx/ripple@0.0.27
+  - @tsrx/react@0.1.19
+  - @ripple-ts/language-server@0.3.45
+  - @tsrx/typescript-plugin@0.3.45
+
 ## 1.0.20
 
 ### Patch Changes
