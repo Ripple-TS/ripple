@@ -55,6 +55,20 @@ second"</pre>
 		expect(container.querySelector('.multiline').textContent).toBe('first\nsecond');
 	});
 
+	it('renders bare double-quoted text in if-else branches', () => {
+		component App() {
+			let condition = false;
+
+			if (condition) {
+				"Hello Ripple"
+			} else "Hello React"
+		}
+
+		render(App);
+
+		expect(container.textContent).toBe('Hello React');
+	});
+
 	it('renders dynamic text', () => {
 		component Basic() {
 			let &[message] = track('Hello World');

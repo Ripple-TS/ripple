@@ -451,6 +451,29 @@ describe('@tsrx/solid basic', () => {
 			expect(show_idx).toBeGreaterThan(-1);
 			expect(signal_idx).toBeLessThan(show_idx);
 		});
+
+		it('early-return keeps preceding JSX outside the guarded continuation', () => {
+			const { code } = compile(
+				`export default component A() {
+					let early = true;
+					<>"Hello"</>
+					if (early) {
+						return
+					}
+					<>"World"</>
+				}`,
+				'A.tsrx',
+			);
+
+			const hello_idx = code.indexOf('<>"Hello"</>');
+			const show_idx = code.indexOf('<Show when={!early}');
+			const world_idx = code.indexOf('<>"World"</>');
+			expect(hello_idx).toBeGreaterThan(-1);
+			expect(show_idx).toBeGreaterThan(-1);
+			expect(world_idx).toBeGreaterThan(show_idx);
+			expect(hello_idx).toBeLessThan(show_idx);
+			expect(code).not.toContain('return <Show when={!early}');
+		});
 	});
 
 	describe('<tsx> fragments', () => {

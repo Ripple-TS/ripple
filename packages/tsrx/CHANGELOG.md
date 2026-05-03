@@ -1,5 +1,28 @@
 # @tsrx/core
 
+## 0.0.25
+
+### Patch Changes
+
+- [#1047](https://github.com/Ripple-TS/ripple/pull/1047)
+  [`d1acf12`](https://github.com/Ripple-TS/ripple/commit/d1acf129cdd0bf2ee596dbab26ec4df829a33880)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Support arrow syntax for
+  anonymous component expressions and preserve anonymous component
+  function-vs-arrow source form across TSRX and Ripple targets.
+
+- [#1047](https://github.com/Ripple-TS/ripple/pull/1047)
+  [`d1acf12`](https://github.com/Ripple-TS/ripple/commit/d1acf129cdd0bf2ee596dbab26ec4df829a33880)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Removes duplicate utils,
+  moves most utils to @tsrx/core, include their tests.
+
+  Fixes some types
+
+- [#1050](https://github.com/Ripple-TS/ripple/pull/1050)
+  [`3928ac8`](https://github.com/Ripple-TS/ripple/commit/3928ac8816399f9eccfd40081d480042a9d74030)
+  Thanks [@trueadm](https://github.com/trueadm)! - Parse direct double-quoted text
+  in bare if/else branches and backtick-delimited fragment text as renderable
+  template text.
+
 ## 0.0.24
 
 ### Patch Changes

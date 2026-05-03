@@ -79,6 +79,48 @@ describe('compiler > basics', () => {
 		);
 	});
 
+	it('parses backtick text inside fragments as JSX text', () => {
+		const source = `let a = component () {
+			<>
+				\`333\`
+			</>
+		}`;
+
+		const ast = parse(source);
+		const declaration = (ast.body[0] as AST.VariableDeclaration).declarations[0];
+		const component_node = declaration.init as unknown as AST.Component;
+		const fragment = component_node.body[0] as any;
+
+		expect(fragment.type).toBe('Tsx');
+		expect(fragment.children[0].type).toBe('JSXText');
+		expect(fragment.children[0].value).toContain('`333`');
+	});
+
+	it('parses backtick text around JSX elements inside fragments', () => {
+		const source = `let a = component () {
+			<>
+				\`
+				<b></b>
+				\`
+			</>
+		}`;
+
+		const ast = parse(source);
+		const declaration = (ast.body[0] as AST.VariableDeclaration).declarations[0];
+		const component_node = declaration.init as unknown as AST.Component;
+		const fragment = component_node.body[0] as any;
+
+		expect(fragment.type).toBe('Tsx');
+		expect(fragment.children.map((child: any) => child.type)).toEqual([
+			'JSXText',
+			'JSXElement',
+			'JSXText',
+		]);
+		expect(fragment.children[0].value).toContain('`');
+		expect(fragment.children[1].openingElement.name.name).toBe('b');
+		expect(fragment.children[2].value).toContain('`');
+	});
+
 	it('renders without crashing', () => {
 		component App() {
 			let foo: Record<string, number>;

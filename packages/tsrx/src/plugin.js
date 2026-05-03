@@ -313,6 +313,12 @@ export function TSRXPlugin(config) {
 				}
 			}
 
+			#popTemplateLiteralTokenContext() {
+				while (this.curContext()?.token === '`') {
+					this.context.pop();
+				}
+			}
+
 			#isDoubleQuotedTextChildStart() {
 				if (this.#path.findLast((n) => n.type === 'TsxCompat' || n.type === 'Tsx')) {
 					return false;
@@ -2383,7 +2389,7 @@ export function TSRXPlugin(config) {
 							body.push(node);
 						} else if (this.type === tstt.jsxTagStart) {
 							// Parse JSX element
-							const node = super.parseExpression();
+							const node = super.jsx_parseElement();
 							body.push(node);
 						} else {
 							const start = this.start;
@@ -2414,6 +2420,7 @@ export function TSRXPlugin(config) {
 								body.push(node);
 							}
 
+							this.#popTemplateLiteralTokenContext();
 							// Always call next() to ensure parser makes progress
 							this.next();
 						}
@@ -2446,7 +2453,7 @@ export function TSRXPlugin(config) {
 							body.push(node);
 						} else if (this.type === tstt.jsxTagStart) {
 							// Parse JSX element
-							const node = super.parseExpression();
+							const node = super.jsx_parseElement();
 							body.push(node);
 						} else {
 							const start = this.start;
@@ -2477,6 +2484,7 @@ export function TSRXPlugin(config) {
 								body.push(node);
 							}
 
+							this.#popTemplateLiteralTokenContext();
 							this.next();
 						}
 					}
@@ -2758,6 +2766,19 @@ export function TSRXPlugin(config) {
 					if (!node) {
 						this.unexpected();
 					}
+					return node;
+				}
+
+				if (
+					this.#functionBodyDepth === 0 &&
+					this.type === tt.string &&
+					this.input.charCodeAt(this.start) === 34 &&
+					(this.#path.at(-1)?.type === 'Component' || this.#path.at(-1)?.type === 'Element')
+				) {
+					this.pos = this.start;
+					this.#readDoubleQuotedTextChildToken();
+					const node = this.parseDoubleQuotedTextChild();
+					this.semicolon();
 					return node;
 				}
 

@@ -1453,7 +1453,9 @@ const visitors = {
 			const alternate_body_nodes =
 				node.alternate.type === 'IfStatement'
 					? [node.alternate]
-					: /** @type {AST.BlockStatement} */ (node.alternate).body;
+					: node.alternate.type === 'BlockStatement'
+						? node.alternate.body
+						: [node.alternate];
 
 			alternate = b.block(
 				transform_body(alternate_body_nodes, {
