@@ -26,6 +26,7 @@ import {
 	flatten_switch_consequent,
 	get_for_of_iteration_params,
 	identifier_to_jsx_name,
+	is_bare_render_expression,
 	is_dynamic_element_id,
 	is_jsx_child,
 	set_loc,
@@ -769,53 +770,6 @@ function return_argument_to_render_node(argument) {
  */
 function is_null_literal(node) {
 	return node?.type === 'Literal' && node.value == null;
-}
-
-/**
- * See the shared JSX transform's helper of the same name.
- *
- * @param {any} node
- * @returns {boolean}
- */
-function is_bare_render_expression(node) {
-	if (!node || typeof node !== 'object') {
-		return false;
-	}
-
-	switch (node.type) {
-		case 'ArrayExpression':
-		case 'ArrowFunctionExpression':
-		case 'AssignmentExpression':
-		case 'AwaitExpression':
-		case 'BinaryExpression':
-		case 'CallExpression':
-		case 'ChainExpression':
-		case 'ClassExpression':
-		case 'ConditionalExpression':
-		case 'FunctionExpression':
-		case 'Identifier':
-		case 'ImportExpression':
-		case 'Literal':
-		case 'LogicalExpression':
-		case 'MemberExpression':
-		case 'MetaProperty':
-		case 'NewExpression':
-		case 'ObjectExpression':
-		case 'ParenthesizedExpression':
-		case 'SequenceExpression':
-		case 'TaggedTemplateExpression':
-		case 'TemplateLiteral':
-		case 'ThisExpression':
-		case 'TSAsExpression':
-		case 'TSSatisfiesExpression':
-		case 'TSNonNullExpression':
-		case 'UnaryExpression':
-		case 'UpdateExpression':
-		case 'YieldExpression':
-			return true;
-		default:
-			return false;
-	}
 }
 
 /**

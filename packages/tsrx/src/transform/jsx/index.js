@@ -20,6 +20,7 @@ import {
 	flatten_switch_consequent,
 	get_for_of_iteration_params,
 	identifier_to_jsx_name,
+	is_bare_render_expression,
 	is_dynamic_element_id,
 	is_jsx_child,
 	set_loc,
@@ -1402,57 +1403,6 @@ function is_static_early_return_capture_node(node, transform_context) {
 		return false;
 	}
 	return !references_scope_bindings(node, transform_context.available_bindings);
-}
-
-/**
- * The parser represents `<>{expr}</>` / `<tsx>{expr}</tsx>` as a Tsx node,
- * and expression-position lowering unwraps that to the inner expression.
- * When such a node appears directly in a component or statement render body,
- * the unwrapped expression is still render output rather than an executable
- * statement.
- *
- * @param {any} node
- * @returns {boolean}
- */
-function is_bare_render_expression(node) {
-	if (!node || typeof node !== 'object') {
-		return false;
-	}
-
-	switch (node.type) {
-		case 'ArrayExpression':
-		case 'ArrowFunctionExpression':
-		case 'AssignmentExpression':
-		case 'AwaitExpression':
-		case 'BinaryExpression':
-		case 'CallExpression':
-		case 'ChainExpression':
-		case 'ClassExpression':
-		case 'ConditionalExpression':
-		case 'FunctionExpression':
-		case 'Identifier':
-		case 'ImportExpression':
-		case 'Literal':
-		case 'LogicalExpression':
-		case 'MemberExpression':
-		case 'MetaProperty':
-		case 'NewExpression':
-		case 'ObjectExpression':
-		case 'ParenthesizedExpression':
-		case 'SequenceExpression':
-		case 'TaggedTemplateExpression':
-		case 'TemplateLiteral':
-		case 'ThisExpression':
-		case 'TSAsExpression':
-		case 'TSSatisfiesExpression':
-		case 'TSNonNullExpression':
-		case 'UnaryExpression':
-		case 'UpdateExpression':
-		case 'YieldExpression':
-			return true;
-		default:
-			return false;
-	}
 }
 
 /**

@@ -188,6 +188,57 @@ export function is_jsx_child(node) {
 }
 
 /**
+ * The parser represents `<>{expr}</>` / `<tsx>{expr}</tsx>` as a Tsx node,
+ * and expression-position lowering unwraps that to the inner expression.
+ * When such a node appears directly in a component or statement render body,
+ * the unwrapped expression is still render output rather than an executable
+ * statement.
+ *
+ * @param {any} node
+ * @returns {boolean}
+ */
+export function is_bare_render_expression(node) {
+	if (!node || typeof node !== 'object') {
+		return false;
+	}
+
+	switch (node.type) {
+		case 'ArrayExpression':
+		case 'ArrowFunctionExpression':
+		case 'AssignmentExpression':
+		case 'AwaitExpression':
+		case 'BinaryExpression':
+		case 'CallExpression':
+		case 'ChainExpression':
+		case 'ClassExpression':
+		case 'ConditionalExpression':
+		case 'FunctionExpression':
+		case 'Identifier':
+		case 'ImportExpression':
+		case 'Literal':
+		case 'LogicalExpression':
+		case 'MemberExpression':
+		case 'MetaProperty':
+		case 'NewExpression':
+		case 'ObjectExpression':
+		case 'ParenthesizedExpression':
+		case 'SequenceExpression':
+		case 'TaggedTemplateExpression':
+		case 'TemplateLiteral':
+		case 'ThisExpression':
+		case 'TSAsExpression':
+		case 'TSSatisfiesExpression':
+		case 'TSNonNullExpression':
+		case 'UnaryExpression':
+		case 'UpdateExpression':
+		case 'YieldExpression':
+			return true;
+		default:
+			return false;
+	}
+}
+
+/**
  * A dynamic element id is one whose identifier is `tracked` — i.e. it was
  * introduced by reactive destructuring so its value can change at runtime.
  *
