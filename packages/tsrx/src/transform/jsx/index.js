@@ -624,6 +624,10 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 	// any JSX is constructed, and every JSX child would observe the final
 	// state of mutable variables.
 	const interleaved = is_interleaved_body(body_nodes);
+	const capture_static_early_return_nodes =
+		!interleaved &&
+		!transform_context.platform.hooks?.isTopLevelSetupCall &&
+		body_nodes.filter(is_returning_if_statement).length > 1;
 	let capture_index = 0;
 
 	for (let i = 0; i < body_nodes.length; i += 1) {
@@ -647,6 +651,15 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 				transform_context,
 				true,
 			);
+
+			if (capture_static_early_return_nodes) {
+				capture_index = capture_static_early_return_render_nodes(
+					render_nodes,
+					statements,
+					capture_index,
+					transform_context,
+				);
+			}
 
 			if (branch_has_hooks || continuation_has_hooks) {
 				if (transform_context.platform.hooks?.isTopLevelSetupCall) {
@@ -1323,6 +1336,59 @@ function hoist_static_render_nodes(render_nodes, transform_context) {
 
 		render_nodes[i] = to_jsx_expression_container(clone_identifier(id), node);
 	}
+}
+
+/**
+ * Static JSX that appears before multiple early-return guards is otherwise
+ * cloned into every generated return. Capture it once at its source position
+ * and reuse the reference, matching the interleaved-statement capture path
+ * without moving dynamic render-time expressions across guards.
+ *
+ * @param {any[]} render_nodes
+ * @param {any[]} statements
+ * @param {number} capture_index
+ * @param {TransformContext} transform_context
+ * @returns {number}
+ */
+function capture_static_early_return_render_nodes(
+	render_nodes,
+	statements,
+	capture_index,
+	transform_context,
+) {
+	for (let i = 0; i < render_nodes.length; i += 1) {
+		const node = render_nodes[i];
+		if (!is_static_early_return_capture_node(node, transform_context)) {
+			continue;
+		}
+
+		const { declaration, reference } = captureJsxChild(node, capture_index++);
+		statements.push(declaration);
+		render_nodes[i] = reference;
+	}
+
+	return capture_index;
+}
+
+/**
+ * @param {any} node
+ * @param {TransformContext} transform_context
+ * @returns {boolean}
+ */
+function is_static_early_return_capture_node(node, transform_context) {
+	if (node?.type !== 'JSXElement' && node?.type !== 'JSXFragment') {
+		return false;
+	}
+	if (!is_hoist_safe_jsx_node(node)) {
+		return false;
+	}
+	if (
+		transform_context.platform.hooks?.canHoistStaticNode &&
+		!transform_context.platform.hooks.canHoistStaticNode(node, transform_context)
+	) {
+		return false;
+	}
+	return !references_scope_bindings(node, transform_context.available_bindings);
 }
 
 /**
