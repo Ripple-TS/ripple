@@ -17,7 +17,7 @@ export default function cssLoader(source) {
 
 	try {
 		const { css } = compile(source, resourcePath, this.getOptions?.());
-		callback(null, css?.code ?? '');
+		callback(null, css);
 	} catch (/** @type {any} */ err) {
 		callback(err);
 	}

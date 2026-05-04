@@ -19,6 +19,7 @@ export default function jsLoader(source) {
 		const { code, map, css } = compile(source, resourcePath);
 
 		let output = code;
+		/** @type {typeof map | null} */
 		let output_map = map;
 		if (css) {
 			const cssImport = `${resourcePath}?tsrx-css&lang.css`;

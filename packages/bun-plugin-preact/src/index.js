@@ -127,7 +127,7 @@ export function tsrxPreact(options = {}) {
 
 					let output = code;
 					if (emit_css && css) {
-						css_cache.set(css_id, css.code);
+						css_cache.set(css_id, css);
 						output = `import ${JSON.stringify(css_id)};\n${code}`;
 					} else {
 						css_cache.delete(css_id);

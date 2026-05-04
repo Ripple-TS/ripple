@@ -1,5 +1,30 @@
 # tsrx-website
 
+## 0.1.30
+
+### Patch Changes
+
+- [#1063](https://github.com/Ripple-TS/ripple/pull/1063)
+  [`a960343`](https://github.com/Ripple-TS/ripple/commit/a960343169aee906162211c502b6cc6b74e2a124)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Standardizes compile api
+  across all packages, including forcing types to adhere to the standard. Adds
+  more debug compile options to the playgrounds.
+- Updated dependencies
+  [[`eae7b40`](https://github.com/Ripple-TS/ripple/commit/eae7b4047f4d8cc7a0278fb48ffe630d73a592c6),
+  [`29ac6d7`](https://github.com/Ripple-TS/ripple/commit/29ac6d757b376e4102c4c8c8d3d47f7ae3afdd00),
+  [`b34b95a`](https://github.com/Ripple-TS/ripple/commit/b34b95a808ec801109d1818f4d24ae0bbc00f66b),
+  [`cf60dba`](https://github.com/Ripple-TS/ripple/commit/cf60dbaf9c6be84d6e95f9c5d66b64d8927494c9),
+  [`4cd0986`](https://github.com/Ripple-TS/ripple/commit/4cd0986201e960cd8544d0f789d17a217e93f954),
+  [`a960343`](https://github.com/Ripple-TS/ripple/commit/a960343169aee906162211c502b6cc6b74e2a124),
+  [`1d51061`](https://github.com/Ripple-TS/ripple/commit/1d51061890bc6dfc5f8e177455b91ab93977db1d)]:
+  - @tsrx/react@0.1.21
+  - @tsrx/preact@0.0.22
+  - @tsrx/solid@0.0.27
+  - @tsrx/vue@0.0.22
+  - @tsrx/ripple@0.0.29
+  - @tsrx/prettier-plugin@0.3.47
+  - @ripple-ts/adapter-node@0.3.47
+
 ## 0.1.29
 
 ### Patch Changes

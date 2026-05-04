@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
 	runSharedAnonymousComponentTests,
+	runSharedClassComponentDeclarationTests,
 	runSharedCompileDiagnosticsTests,
 	runSharedCompileTests,
+	runSharedComponentParamsTests,
 } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
@@ -17,6 +19,8 @@ runSharedSourceMappingTests({
 runSharedAnonymousComponentTests({ compile, name: 'react' });
 runSharedCompileTests({ compile, name: 'react', classAttrName: 'className' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'react' });
+runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'react' });
+runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name: 'react' });
 
 /**
  * @import { CodeMapping } from '@tsrx/core/types';
@@ -155,7 +159,7 @@ describe('@tsrx/react basic', () => {
 	});
 
 	it('applies scoped css hashes to elements inside control flow', () => {
-		const { code, css } = compile(
+		const { code, css, cssHash } = compile(
 			`export component App() {
 				if (true) {
 					<div>{'inside'}</div>
@@ -170,10 +174,10 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(css).not.toBeNull();
-		expect(code).toContain(`className="${css.hash}"`);
-		expect(code).toContain(`App__static1 = <div className="${css.hash}">`);
-		expect(css.code).toContain(`.div.${css.hash}`);
+		expect(css).not.toBe('');
+		expect(code).toContain(`className="${cssHash}"`);
+		expect(code).toContain(`App__static1 = <div className="${cssHash}">`);
+		expect(css).toContain(`.div.${cssHash}`);
 	});
 
 	it('renders component-body if statements as React expressions', () => {
@@ -376,7 +380,7 @@ describe('@tsrx/react basic', () => {
 		expect(tail_return_pos).toBeGreaterThan(bar_pos);
 	});
 
-	it('extracts typed cached continuation helpers after early-return if statements', () => {
+	it('extracts module-scoped continuation helpers after early-return if statements', () => {
 		const source = `import { useState, useEffect } from 'react';
 
 			export component App() {
@@ -398,13 +402,21 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain('useEffect(');
 		expect(code).toContain('count > 2');
-		expect(code).toContain('let App__StatementBodyHook1;');
-		expect(code).toContain('let App__StatementBodyHook2;');
-		expect(code).toContain('const _tsrx_StatementBodyHook2_count = count;');
-		expect(code).toContain('const _tsrx_StatementBodyHook2_setCount = setCount;');
-		expect(code).toContain('const StatementBodyHook2 = App__StatementBodyHook2 ??');
+		expect(code).toContain('function App__StatementBodyHook1()');
+		expect(code).toContain('function App__StatementBodyHook2({ count, setCount })');
+		expect(code).not.toContain('let App__StatementBodyHook');
+		expect(code).not.toContain(': any');
+		expect(code).not.toContain('const StatementBodyHook2 = App__StatementBodyHook2 ??');
 		expect(code).toContain('<button onClick={() => setCount(count + 1)}>{count}</button>');
 		expect(code).not.toContain('App__Continue');
+		expect(mappings.code).toContain('let App__StatementBodyHook1;');
+		expect(mappings.code).toContain('let App__StatementBodyHook2;');
+		expect(mappings.code).toContain('const _tsrx_StatementBodyHook2_count = count;');
+		expect(mappings.code).toContain('const _tsrx_StatementBodyHook2_setCount = setCount;');
+		expect(mappings.code).toContain('const StatementBodyHook2 = App__StatementBodyHook2 ??');
+		expect(mappings.code).toContain('count: typeof _tsrx_StatementBodyHook2_count');
+		expect(mappings.code).toContain('setCount: typeof _tsrx_StatementBodyHook2_setCount');
+		expect(mappings.code).not.toContain('count: any');
 		expect(mappings.errors).toEqual([]);
 		expect(mappings.mappings.length).toBeGreaterThan(0);
 	});
@@ -440,10 +452,17 @@ describe('@tsrx/react basic', () => {
 				mapping.lengths[0] === 'foo'.length,
 		);
 
-		expect(code).toContain('let App__StatementBodyHook1;');
-		expect(code).toContain('let App__StatementBodyHook2;');
+		expect(code).toContain('function App__StatementBodyHook1()');
+		expect(code).toContain('function App__StatementBodyHook2({ foo })');
+		expect(code).not.toContain(': any');
 		expect(code).not.toContain('const _tsrx_StatementBodyHook1_foo = foo;');
-		expect(code).toContain('const _tsrx_StatementBodyHook2_foo = foo;');
+		expect(code).not.toContain('const _tsrx_StatementBodyHook2_foo = foo;');
+		expect(mappings.code).toContain('let App__StatementBodyHook1;');
+		expect(mappings.code).toContain('let App__StatementBodyHook2;');
+		expect(mappings.code).not.toContain('const _tsrx_StatementBodyHook1_foo = foo;');
+		expect(mappings.code).toContain('const _tsrx_StatementBodyHook2_foo = foo;');
+		expect(mappings.code).toContain('foo: typeof _tsrx_StatementBodyHook2_foo');
+		expect(mappings.code).not.toContain('foo: any');
 		expect(code).toContain('return App__static1;');
 		expect(code).toContain('useEffect(');
 		expect(code).toContain('return <div>{foo.trim()}</div>;');
@@ -451,8 +470,41 @@ describe('@tsrx/react basic', () => {
 		expect(if_foo_mapping?.data.completion).toBe(true);
 	});
 
-	it('declares helper prop type aliases before typed cached helpers', () => {
+	it('declares React hook helpers at module scope before parent components', () => {
 		const { code } = compile(
+			`import { useEffect } from 'react';
+
+			declare function getFoo(): string | null;
+
+			export component App() {
+				const foo = getFoo();
+
+				if (!foo) {
+					<div>{'Foo not found'}</div>
+					return;
+				}
+
+				useEffect(() => {
+					console.log(foo);
+				}, [foo]);
+
+				<div>{foo.trim()}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		const helper_pos = code.indexOf('function App__StatementBodyHook2({ foo })');
+		const app_pos = code.indexOf('export function App()');
+
+		expect(helper_pos).toBeGreaterThan(-1);
+		expect(app_pos).toBeGreaterThan(helper_pos);
+		expect(code).not.toContain(': any');
+		expect(code).not.toContain('const _tsrx_StatementBodyHook2_foo = foo;');
+		expect(code).not.toContain('const StatementBodyHook2 = App__StatementBodyHook2 ??');
+	});
+
+	it('declares helper prop type aliases before typed cached helpers', () => {
+		const { code } = compile_to_volar_mappings(
 			`import { useEffect } from 'react';
 
 			declare function getFoo(): string | null;
@@ -479,8 +531,10 @@ describe('@tsrx/react basic', () => {
 		const type_ref_pos = code.indexOf('foo: typeof _tsrx_StatementBodyHook2_foo');
 
 		expect(alias_pos).toBeGreaterThan(-1);
-		expect(helper_pos).toBeGreaterThan(alias_pos);
+		expect(helper_pos).toBeGreaterThan(-1);
 		expect(type_ref_pos).toBeGreaterThan(helper_pos);
+		expect(helper_pos).toBeGreaterThan(alias_pos);
+		expect(code).not.toContain('foo: any');
 	});
 
 	it('does not emit duplicate Volar mappings for helper-extracted React output', () => {
@@ -813,7 +867,7 @@ describe('@tsrx/react basic', () => {
 		expect(code.match(/Date\.now\(\)/g)).toHaveLength(6);
 	});
 
-	it('extracts hook-bearing element child statement bodies into local components', () => {
+	it('extracts hook-bearing element child statement bodies into module components', () => {
 		const source = `import { useState } from 'react';
 
 			component App() {
@@ -829,9 +883,12 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
 
-		expect(code).toContain('function StatementBodyHook1() {');
+		expect(code).toContain('function App__StatementBodyHook1() {');
 		expect(code).toContain('const [x] = useState(1);');
-		expect(code).toContain('<StatementBodyHook1 />');
+		expect(code).toContain('<App__StatementBodyHook1 />');
+		expect(code).not.toContain(': any');
+		expect(mappings.code).toContain('function StatementBodyHook1() {');
+		expect(mappings.code).toContain('<StatementBodyHook1 />');
 		expect(mappings.errors).toEqual([]);
 	});
 
@@ -1121,7 +1178,7 @@ describe('@tsrx/react basic', () => {
 	});
 
 	it('applies scoped CSS hashes inside try blocks', () => {
-		const { code, css } = compile(
+		const { code, css, cssHash } = compile(
 			`export component App() {
 				try {
 					<div class="content">{'hello'}</div>
@@ -1137,14 +1194,14 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(css).not.toBeNull();
-		expect(code).toContain(`className="content ${css.hash}"`);
-		expect(code).toContain(`className="error ${css.hash}"`);
+		expect(css).not.toBe('');
+		expect(code).toContain(`className="content ${cssHash}"`);
+		expect(code).toContain(`className="error ${cssHash}"`);
 	});
 
 	// ── Hook extraction from control flow ──
 
-	it('extracts hooks from if-branch into a local component', () => {
+	it('extracts hooks from if-branch into a module component', () => {
 		const { code } = compile(
 			`import { useState } from 'react';
 
@@ -1158,17 +1215,17 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('function StatementBodyHook');
+		expect(code).toContain('function App__StatementBodyHook1()');
 		expect(code).toContain('useState(0)');
+		expect(code).not.toContain(': any');
 		// The hook call should be inside the helper component, not the IIFE
 		const hook_pos = code.indexOf('useState(0)');
-		const helper_pos = code.indexOf('function StatementBodyHook');
+		const helper_pos = code.indexOf('function App__StatementBodyHook1');
 		expect(hook_pos).toBeGreaterThan(helper_pos);
 	});
 
-	it('types hook helper props from branch-local aliases', () => {
-		const { code } = compile(
-			`import { useState } from 'react';
+	it('passes branch locals into module-scoped hook helpers while preserving Volar types', () => {
+		const source = `import { useState } from 'react';
 
 			declare function getFoo(): string | null;
 
@@ -1178,17 +1235,24 @@ describe('@tsrx/react basic', () => {
 					const [count] = useState(0);
 					<div>{foo.trim()}{count}</div>
 				}
-			}`,
-			'App.tsrx',
-		);
+			}`;
+		const { code } = compile(source, 'App.tsrx');
+		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
 
-		expect(code).toContain('let App__StatementBodyHook1;');
-		expect(code).toContain('const _tsrx_StatementBodyHook1_foo = foo;');
-		expect(code).toContain('const StatementBodyHook1 = App__StatementBodyHook1 ??');
-		expect(code).toContain(
+		expect(code).toContain('function App__StatementBodyHook1({ foo })');
+		expect(code).toContain('<App__StatementBodyHook1 foo={foo} />');
+		expect(code).not.toContain(': any');
+		expect(code).not.toContain('let App__StatementBodyHook1;');
+		expect(code).not.toContain('const _tsrx_StatementBodyHook1_foo = foo;');
+		expect(code).not.toContain('const StatementBodyHook1 = App__StatementBodyHook1 ??');
+		expect(mappings.code).toContain('let App__StatementBodyHook1;');
+		expect(mappings.code).toContain('const _tsrx_StatementBodyHook1_foo = foo;');
+		expect(mappings.code).toContain('const StatementBodyHook1 = App__StatementBodyHook1 ??');
+		expect(mappings.code).toContain(
 			'function StatementBodyHook1({ foo }: { foo: typeof _tsrx_StatementBodyHook1_foo })',
 		);
-		expect(code).toContain('<StatementBodyHook1 foo={foo} />');
+		expect(mappings.code).toContain('<StatementBodyHook1 foo={foo} />');
+		expect(mappings.code).not.toContain('foo: any');
 	});
 
 	it('extracts hooks from if-else branches into separate local components', () => {
@@ -1209,12 +1273,12 @@ describe('@tsrx/react basic', () => {
 		);
 
 		// Both branches should get their own hook-safe components
-		const matches = code.match(/function StatementBodyHook\d+/g);
+		const matches = code.match(/function App__StatementBodyHook\d+/g);
 		expect(matches).not.toBeNull();
 		expect(matches.length).toBeGreaterThanOrEqual(2);
 	});
 
-	it('extracts hooks from for-of loop body into a local component', () => {
+	it('extracts hooks from for-of loop body into a module component', () => {
 		const { code } = compile(
 			`import { useState } from 'react';
 
@@ -1228,17 +1292,17 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('function StatementBodyHook');
+		expect(code).toContain('function App__StatementBodyHook1');
 		// Hook-bearing for-of bodies emit `Array.from(source, callback)` so
 		// any Iterable works, with the helper hoisted above the iteration.
 		expect(code).toContain('Array.from(');
 		// Hook should be inside the helper, not the iteration callback directly
 		const hook_pos = code.indexOf('useState(false)');
-		const helper_pos = code.indexOf('function StatementBodyHook');
+		const helper_pos = code.indexOf('function App__StatementBodyHook1');
 		expect(hook_pos).toBeGreaterThan(helper_pos);
 	});
 
-	it('extracts hooks from switch case into a local component', () => {
+	it('extracts hooks from switch case into a module component', () => {
 		const { code } = compile(
 			`import { useState } from 'react';
 
@@ -1257,7 +1321,7 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('function StatementBodyHook');
+		expect(code).toContain('function App__StatementBodyHook1');
 		expect(code).toContain('useState(0)');
 	});
 
@@ -1295,7 +1359,7 @@ describe('@tsrx/react basic', () => {
 		);
 
 		// Only the else-if branch with hooks should be extracted
-		const matches = code.match(/function StatementBodyHook\d+/g);
+		const matches = code.match(/function App__StatementBodyHook\d+/g);
 		expect(matches).not.toBeNull();
 		expect(matches.length).toBe(1);
 	});
@@ -1314,7 +1378,7 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('function StatementBodyHook');
+		expect(code).toContain('function App__StatementBodyHook1');
 	});
 
 	it('propagates key from loop body element to wrapper component', () => {
@@ -1331,9 +1395,9 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('function StatementBodyHook');
+		expect(code).toContain('function App__StatementBodyHook1');
 		// Key should appear on both the inner element and wrapper component
-		expect(code).toContain('<StatementBodyHook1 item={item} key={item} />');
+		expect(code).toContain('<App__StatementBodyHook1 item={item} key={item} />');
 		expect(code).not.toContain('items={items}');
 	});
 
@@ -1352,9 +1416,9 @@ describe('@tsrx/react basic', () => {
 			'Component.tsrx',
 		);
 
-		expect(code).toContain('function StatementBodyHook');
+		expect(code).toContain('function Component__StatementBodyHook1');
 		expect(code).toContain('items.map((item, index) =>');
-		expect(code).toContain('<StatementBodyHook1 item={item} key={index} />');
+		expect(code).toContain('<Component__StatementBodyHook1 item={item} key={index} />');
 		expect(code).not.toContain('index={index} />');
 	});
 
@@ -1371,8 +1435,8 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('function StatementBodyHook');
-		expect(code).toContain('<StatementBodyHook1 item={item} key={item.id} />');
+		expect(code).toContain('function App__StatementBodyHook1');
+		expect(code).toContain('<App__StatementBodyHook1 item={item} key={item.id} />');
 		expect(code).not.toContain('items={items}');
 	});
 
@@ -1389,9 +1453,9 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('function StatementBodyHook');
-		expect(code).toContain('<StatementBodyHook1 item={item} key={item.inner} />');
-		expect(code).not.toContain('<StatementBodyHook1 item={item} key={item.id} />');
+		expect(code).toContain('function App__StatementBodyHook1');
+		expect(code).toContain('<App__StatementBodyHook1 item={item} key={item.inner} />');
+		expect(code).not.toContain('<App__StatementBodyHook1 item={item} key={item.id} />');
 		expect(code).not.toContain('items={items}');
 	});
 
@@ -1765,7 +1829,7 @@ describe('lazy destructuring', () => {
 		);
 
 		// The hook-bearing branch gets a helper component
-		expect(code).toContain('function StatementBodyHook');
+		expect(code).toContain('function App__StatementBodyHook1');
 
 		// The helper component should NOT receive 'localVar' as a prop —
 		// it was declared inside the first if block, not in the component scope
@@ -1788,7 +1852,7 @@ describe('lazy destructuring', () => {
 		);
 
 		expect(code).toContain("const later = 'later';");
-		expect(code).toContain('function StatementBodyHook1(');
+		expect(code).toContain('function App__StatementBodyHook1(');
 		expect(code).not.toContain('_tsrx_StatementBodyHook1_later');
 		expect(code).not.toContain('later={later}');
 	});
@@ -1815,13 +1879,13 @@ describe('lazy destructuring', () => {
 
 		expect(code).toContain("const later = 'inner';");
 		expect(code).toContain("const later = 'outer';");
-		expect(code).toContain('function StatementBodyHook1(');
+		expect(code).toContain('function App__StatementBodyHook1(');
 		expect(code).not.toContain('_tsrx_StatementBodyHook1_later');
 		expect(code).not.toContain('later: typeof _tsrx_StatementBodyHook1_later');
 		expect(code).not.toContain('later={later}');
 	});
 
-	it('keeps post-split bindings local inside typed cached continuation helpers', () => {
+	it('keeps post-split bindings local inside module-scoped continuation helpers', () => {
 		const { code } = compile(
 			`import { useState, useEffect } from 'react';
 
@@ -1845,12 +1909,13 @@ describe('lazy destructuring', () => {
 
 		expect(code).toContain("const laterVar = 'after split';");
 		expect(code).toContain('useEffect(');
-		expect(code).toContain('let App__StatementBodyHook1;');
-		expect(code).toContain('let App__StatementBodyHook2;');
+		expect(code).toContain('function App__StatementBodyHook1()');
+		expect(code).toContain('function App__StatementBodyHook2()');
+		expect(code).not.toContain('let App__StatementBodyHook');
 		expect(code).not.toContain('const _tsrx_StatementBodyHook2_count = count;');
 		expect(code).not.toContain('const _tsrx_StatementBodyHook2_laterVar = laterVar;');
 		expect(code).not.toContain('laterVar: typeof _tsrx_StatementBodyHook2_laterVar');
-		expect(code).not.toContain('<StatementBodyHook2 laterVar={laterVar} />');
+		expect(code).not.toContain('<App__StatementBodyHook2 laterVar={laterVar} />');
 		expect(code).toContain('return <div>{laterVar}</div>;');
 		expect(code).not.toContain('App__Continue');
 	});

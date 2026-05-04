@@ -1,5 +1,15 @@
 # @tsrx/solid-playground
 
+## 0.0.4
+
+### Patch Changes
+
+- [#1063](https://github.com/Ripple-TS/ripple/pull/1063)
+  [`a960343`](https://github.com/Ripple-TS/ripple/commit/a960343169aee906162211c502b6cc6b74e2a124)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Standardizes compile api
+  across all packages, including forcing types to adhere to the standard. Adds
+  more debug compile options to the playgrounds.
+
 ## 0.0.3
 
 ### Patch Changes

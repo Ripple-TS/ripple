@@ -1,104 +1,56 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`[react] continuation lift for if-with-hook > chains tail helpers across sibling ifs that each contain hooks 1`] = `
-"let App__StatementBodyHook2;
-let App__StatementBodyHook3;
-let App__StatementBodyHook1;
-let App__StatementBodyHook4;
+"function App__StatementBodyHook2({ x, y }) {
+	console.log(x, y);
+
+	return null;
+}
+
+function App__StatementBodyHook3({ x, y }) {
+	[y] = useState(200);
+
+	return <><span>{y}</span><App__StatementBodyHook2 x={x} y={y} /></>;
+}
+
+function App__StatementBodyHook1({ b, x, y }) {
+	if (b) {
+		return <App__StatementBodyHook3 x={x} y={y} />;
+	}
+
+	return <App__StatementBodyHook2 x={x} y={y} />;
+}
+
+function App__StatementBodyHook4({ b, x, y }) {
+	[x] = useState(100);
+
+	return <><div>{x}</div><App__StatementBodyHook1 b={b} x={x} y={y} /></>;
+}
 
 export function App({ a, b }: { a: boolean; b: boolean }) {
 	let x: number | undefined;
 	let y: number | undefined;
-	const _tsrx_StatementBodyHook1_b = b;
-	const _tsrx_StatementBodyHook1_x = x;
-	const _tsrx_StatementBodyHook1_y = y;
-
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1(
-		{ b, x, y }: { 
-			b: typeof _tsrx_StatementBodyHook1_b;
-			x: typeof _tsrx_StatementBodyHook1_x;
-			y: typeof _tsrx_StatementBodyHook1_y
-		 }
-	) {
-		const _tsrx_StatementBodyHook2_x = x;
-		const _tsrx_StatementBodyHook2_y = y;
-
-		const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
-			{ x, y }: { 
-				x: typeof _tsrx_StatementBodyHook2_x;
-				y: typeof _tsrx_StatementBodyHook2_y
-			 }
-		) {
-			console.log(x, y);
-
-			return null;
-		});
-
-		if (b) {
-			const _tsrx_StatementBodyHook3_x = x;
-			const _tsrx_StatementBodyHook3_y = y;
-
-			const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3(
-				{ x, y }: { 
-					x: typeof _tsrx_StatementBodyHook3_x;
-					y: typeof _tsrx_StatementBodyHook3_y
-				 }
-			) {
-				[y] = useState(200);
-
-				return <><span>{y}</span><StatementBodyHook2 x={x} y={y} /></>;
-			});
-
-			return <StatementBodyHook3 x={x} y={y} />;
-		}
-
-		return <StatementBodyHook2 x={x} y={y} />;
-	});
 
 	if (a) {
-		const _tsrx_StatementBodyHook4_b = b;
-		const _tsrx_StatementBodyHook4_x = x;
-		const _tsrx_StatementBodyHook4_y = y;
-
-		const StatementBodyHook4 = App__StatementBodyHook4 ?? (App__StatementBodyHook4 = function StatementBodyHook4(
-			{ b, x, y }: { 
-				b: typeof _tsrx_StatementBodyHook4_b;
-				x: typeof _tsrx_StatementBodyHook4_x;
-				y: typeof _tsrx_StatementBodyHook4_y
-			 }
-		) {
-			[x] = useState(100);
-
-			return <><div>{x}</div><StatementBodyHook1 b={b} x={x} y={y} /></>;
-		});
-
-		return <StatementBodyHook4 b={b} x={x} y={y} />;
+		return <App__StatementBodyHook4 b={b} x={x} y={y} />;
 	}
 
-	return <StatementBodyHook1 b={b} x={x} y={y} />;
+	return <App__StatementBodyHook1 b={b} x={x} y={y} />;
 }"
 `;
 
 exports[`[react] continuation lift for if-with-hook > does not lift when the if has an else branch 1`] = `
 "const App__static1 = <div>{'no'}</div>;
-let App__StatementBodyHook1;
+
+function App__StatementBodyHook1({ x }) {
+	[x] = useState(100);
+
+	return <div>{x}</div>;
+}
 
 export function App({ show }: { show: boolean }) {
 	let x: number | undefined;
-
-	const _tsrx_child_0 = show
-		? (() => {
-			const _tsrx_StatementBodyHook1_x = x;
-
-			const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ x }: { x: typeof _tsrx_StatementBodyHook1_x }) {
-				[x] = useState(100);
-
-				return <div>{x}</div>;
-			});
-
-			return <StatementBodyHook1 x={x} />;
-		})()
-		: App__static1;
+	const _tsrx_child_0 = show ? <App__StatementBodyHook1 x={x} /> : App__static1;
 
 	console.log(x);
 
@@ -107,156 +59,119 @@ export function App({ show }: { show: boolean }) {
 `;
 
 exports[`[react] continuation lift for if-with-hook > does not lift when the if has no statements after it 1`] = `
-"let App__StatementBodyHook1;
+"function App__StatementBodyHook1() {
+	const [x] = useState(100);
+
+	return <div>{x}</div>;
+}
 
 export function App({ show }: { show: boolean }) {
-	return show
-		? (() => {
-			const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1() {
-				const [x] = useState(100);
-
-				return <div>{x}</div>;
-			});
-
-			return <StatementBodyHook1 />;
-		})()
-		: null;
+	return show ? <App__StatementBodyHook1 /> : null;
 }"
 `;
 
 exports[`[react] continuation lift for if-with-hook > handles nested if-with-hook so the mid-tail observes the inner hook 1`] = `
-"let App__StatementBodyHook1;
-let App__StatementBodyHook3;
-let App__StatementBodyHook4;
-let App__StatementBodyHook2;
+"function App__StatementBodyHook1({ x }) {
+	console.log('end', x);
+
+	return null;
+}
+
+function App__StatementBodyHook3({ x }) {
+	console.log('mid', x);
+
+	return <App__StatementBodyHook1 x={x} />;
+}
+
+function App__StatementBodyHook4({ x }) {
+	[x] = useState(100);
+
+	return <><div>{x}</div><App__StatementBodyHook3 x={x} /></>;
+}
+
+function App__StatementBodyHook2({ b, x }) {
+	if (b) {
+		return <App__StatementBodyHook4 x={x} />;
+	}
+
+	return <App__StatementBodyHook3 x={x} />;
+}
 
 export function App({ a, b }: { a: boolean; b: boolean }) {
 	let x: number | undefined;
-	const _tsrx_StatementBodyHook1_x = x;
-
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ x }: { x: typeof _tsrx_StatementBodyHook1_x }) {
-		console.log('end', x);
-
-		return null;
-	});
 
 	if (a) {
-		const _tsrx_StatementBodyHook2_b = b;
-		const _tsrx_StatementBodyHook2_x = x;
-
-		const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
-			{ b, x }: { 
-				b: typeof _tsrx_StatementBodyHook2_b;
-				x: typeof _tsrx_StatementBodyHook2_x
-			 }
-		) {
-			const _tsrx_StatementBodyHook3_x = x;
-
-			const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3({ x }: { x: typeof _tsrx_StatementBodyHook3_x }) {
-				console.log('mid', x);
-
-				return <StatementBodyHook1 x={x} />;
-			});
-
-			if (b) {
-				const _tsrx_StatementBodyHook4_x = x;
-
-				const StatementBodyHook4 = App__StatementBodyHook4 ?? (App__StatementBodyHook4 = function StatementBodyHook4({ x }: { x: typeof _tsrx_StatementBodyHook4_x }) {
-					[x] = useState(100);
-
-					return <><div>{x}</div><StatementBodyHook3 x={x} /></>;
-				});
-
-				return <StatementBodyHook4 x={x} />;
-			}
-
-			return <StatementBodyHook3 x={x} />;
-		});
-
-		return <StatementBodyHook2 b={b} x={x} />;
+		return <App__StatementBodyHook2 b={b} x={x} />;
 	}
 
-	return <StatementBodyHook1 x={x} />;
+	return <App__StatementBodyHook1 x={x} />;
 }"
 `;
 
 exports[`[react] continuation lift for if-with-hook > lifts the tail of a single non-returning if-with-hook into a helper 1`] = `
-"let App__StatementBodyHook1;
-let App__StatementBodyHook2;
+"function App__StatementBodyHook1({ x }) {
+	console.log(x);
+
+	return null;
+}
+
+function App__StatementBodyHook2({ x }) {
+	[x] = useState(100);
+
+	return <><div>{x}</div><App__StatementBodyHook1 x={x} /></>;
+}
 
 export function App({ show }: { show: boolean }) {
 	let x: number | undefined;
-	const _tsrx_StatementBodyHook1_x = x;
-
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ x }: { x: typeof _tsrx_StatementBodyHook1_x }) {
-		console.log(x);
-
-		return null;
-	});
 
 	if (show) {
-		const _tsrx_StatementBodyHook2_x = x;
-
-		const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
-			[x] = useState(100);
-
-			return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
-		});
-
-		return <StatementBodyHook2 x={x} />;
+		return <App__StatementBodyHook2 x={x} />;
 	}
 
-	return <StatementBodyHook1 x={x} />;
+	return <App__StatementBodyHook1 x={x} />;
 }"
 `;
 
 exports[`[react] continuation lift for switch-with-hook > break-only case does not silently fall through into another case 1`] = `
-"let App__StatementBodyHook1;
-let App__StatementBodyHook2;
+"function App__StatementBodyHook1({ x }) {
+	console.log(x);
+
+	return null;
+}
+
+function App__StatementBodyHook2({ x }) {
+	[x] = useState(100);
+
+	return <><div>{x}</div><App__StatementBodyHook1 x={x} /></>;
+}
 
 export function App({ kind }: { kind: 'a' | 'b' }) {
 	let x: number | undefined;
-	const _tsrx_StatementBodyHook1_x = x;
-
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ x }: { x: typeof _tsrx_StatementBodyHook1_x }) {
-		console.log(x);
-
-		return null;
-	});
-
-	const _tsrx_StatementBodyHook2_x = x;
-
-	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
-		[x] = useState(100);
-
-		return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
-	});
 
 	switch (kind) {
 		case 'a':
-			return <StatementBodyHook1 x={x} />;
+			return <App__StatementBodyHook1 x={x} />;
 
 		case 'b':
-			return <StatementBodyHook2 x={x} />;
+			return <App__StatementBodyHook2 x={x} />;
 	}
 
-	return <StatementBodyHook1 x={x} />;
+	return <App__StatementBodyHook1 x={x} />;
 }"
 `;
 
 exports[`[react] continuation lift for switch-with-hook > does not lift when the switch has no statements after it 1`] = `
-"let App__StatementBodyHook1;
+"function App__StatementBodyHook1() {
+	const [x] = useState(100);
+
+	return <div>{x}</div>;
+}
 
 export function App({ kind }: { kind: 'a' | 'b' }) {
 	return (() => {
 		switch (kind) {
 			case 'a':
-				const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1() {
-					const [x] = useState(100);
-
-					return <div>{x}</div>;
-				});
-				return <StatementBodyHook1 />;
+				return <App__StatementBodyHook1 />;
 
 			case 'b':
 				return <span>{'b'}</span>;
@@ -268,227 +183,182 @@ export function App({ kind }: { kind: 'a' | 'b' }) {
 `;
 
 exports[`[react] continuation lift for switch-with-hook > lifts the tail of a switch whose cases contain hooks 1`] = `
-"let App__StatementBodyHook1;
-let App__StatementBodyHook3;
-let App__StatementBodyHook2;
+"function App__StatementBodyHook1({ x }) {
+	console.log(x);
+
+	return null;
+}
+
+function App__StatementBodyHook3({ x }) {
+	[x] = useState(200);
+
+	return <><span>{x}</span><App__StatementBodyHook1 x={x} /></>;
+}
+
+function App__StatementBodyHook2({ x }) {
+	[x] = useState(100);
+
+	return <><div>{x}</div><App__StatementBodyHook1 x={x} /></>;
+}
 
 export function App({ kind }: { kind: 'a' | 'b' }) {
 	let x: number | undefined;
-	const _tsrx_StatementBodyHook1_x = x;
-
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ x }: { x: typeof _tsrx_StatementBodyHook1_x }) {
-		console.log(x);
-
-		return null;
-	});
-
-	const _tsrx_StatementBodyHook2_x = x;
-
-	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
-		[x] = useState(100);
-
-		return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
-	});
-
-	const _tsrx_StatementBodyHook3_x = x;
-
-	const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3({ x }: { x: typeof _tsrx_StatementBodyHook3_x }) {
-		[x] = useState(200);
-
-		return <><span>{x}</span><StatementBodyHook1 x={x} /></>;
-	});
 
 	switch (kind) {
 		case 'a':
-			return <StatementBodyHook2 x={x} />;
+			return <App__StatementBodyHook2 x={x} />;
 
 		case 'b':
-			return <StatementBodyHook3 x={x} />;
+			return <App__StatementBodyHook3 x={x} />;
 	}
 
-	return <StatementBodyHook1 x={x} />;
+	return <App__StatementBodyHook1 x={x} />;
 }"
 `;
 
 exports[`[react] continuation lift for switch-with-hook > lifts the tail when a switch has a default case with a hook 1`] = `
 "const App__static1 = <div>{'a'}</div>;
-let App__StatementBodyHook1;
-let App__StatementBodyHook3;
-let App__StatementBodyHook2;
+
+function App__StatementBodyHook1({ x }) {
+	console.log(x);
+
+	return null;
+}
+
+function App__StatementBodyHook3({ x }) {
+	[x] = useState(100);
+
+	return <><div>{x}</div><App__StatementBodyHook1 x={x} /></>;
+}
+
+function App__StatementBodyHook2({ x }) {
+	return <>{App__static1}<App__StatementBodyHook1 x={x} /></>;
+}
 
 export function App({ kind }: { kind: string }) {
 	let x: number | undefined;
-	const _tsrx_StatementBodyHook1_x = x;
-
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ x }: { x: typeof _tsrx_StatementBodyHook1_x }) {
-		console.log(x);
-
-		return null;
-	});
-
-	const _tsrx_StatementBodyHook2_x = x;
-
-	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
-		return <>{App__static1}<StatementBodyHook1 x={x} /></>;
-	});
-
-	const _tsrx_StatementBodyHook3_x = x;
-
-	const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3({ x }: { x: typeof _tsrx_StatementBodyHook3_x }) {
-		[x] = useState(100);
-
-		return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
-	});
 
 	switch (kind) {
 		case 'a':
-			return <StatementBodyHook2 x={x} />;
+			return <App__StatementBodyHook2 x={x} />;
 
 		default:
-			return <StatementBodyHook3 x={x} />;
+			return <App__StatementBodyHook3 x={x} />;
 	}
 
-	return <StatementBodyHook1 x={x} />;
+	return <App__StatementBodyHook1 x={x} />;
 }"
 `;
 
 exports[`[react] continuation lift for switch-with-hook > lifts the tail when only some switch cases contain hooks 1`] = `
 "const App__static1 = <p>{'fallback'}</p>;
 const App__static2 = <span>{'static'}</span>;
-let App__StatementBodyHook1;
-let App__StatementBodyHook4;
-let App__StatementBodyHook3;
-let App__StatementBodyHook2;
+
+function App__StatementBodyHook1({ x }) {
+	console.log(x);
+
+	return null;
+}
+
+function App__StatementBodyHook4({ x }) {
+	return <>{App__static1}<App__StatementBodyHook1 x={x} /></>;
+}
+
+function App__StatementBodyHook3({ x }) {
+	return <>{App__static2}<App__StatementBodyHook1 x={x} /></>;
+}
+
+function App__StatementBodyHook2({ x }) {
+	[x] = useState(100);
+
+	return <><div>{x}</div><App__StatementBodyHook1 x={x} /></>;
+}
 
 export function App({ kind }: { kind: 'a' | 'b' | 'c' }) {
 	let x: number | undefined;
-	const _tsrx_StatementBodyHook1_x = x;
-
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ x }: { x: typeof _tsrx_StatementBodyHook1_x }) {
-		console.log(x);
-
-		return null;
-	});
-
-	const _tsrx_StatementBodyHook2_x = x;
-
-	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
-		[x] = useState(100);
-
-		return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
-	});
-
-	const _tsrx_StatementBodyHook3_x = x;
-
-	const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3({ x }: { x: typeof _tsrx_StatementBodyHook3_x }) {
-		return <>{App__static2}<StatementBodyHook1 x={x} /></>;
-	});
-
-	const _tsrx_StatementBodyHook4_x = x;
-
-	const StatementBodyHook4 = App__StatementBodyHook4 ?? (App__StatementBodyHook4 = function StatementBodyHook4({ x }: { x: typeof _tsrx_StatementBodyHook4_x }) {
-		return <>{App__static1}<StatementBodyHook1 x={x} /></>;
-	});
 
 	switch (kind) {
 		case 'a':
-			return <StatementBodyHook2 x={x} />;
+			return <App__StatementBodyHook2 x={x} />;
 
 		case 'b':
-			return <StatementBodyHook3 x={x} />;
+			return <App__StatementBodyHook3 x={x} />;
 
 		default:
-			return <StatementBodyHook4 x={x} />;
+			return <App__StatementBodyHook4 x={x} />;
 	}
 
-	return <StatementBodyHook1 x={x} />;
+	return <App__StatementBodyHook1 x={x} />;
 }"
 `;
 
 exports[`[react] continuation lift for switch-with-hook > non-empty fall-through merges the trailing case body into the falling case 1`] = `
-"let App__StatementBodyHook1;
-let App__StatementBodyHook3;
-let App__StatementBodyHook2;
+"function App__StatementBodyHook1({ x }) {
+	console.log(x);
+
+	return null;
+}
+
+function App__StatementBodyHook3({ x }) {
+	[x] = useState(100);
+
+	return <><div>{x}</div><App__StatementBodyHook1 x={x} /></>;
+}
+
+function App__StatementBodyHook2({ x }) {
+	x = 1;
+
+	return <App__StatementBodyHook3 x={x} />;
+}
 
 export function App({ kind }: { kind: 'a' | 'b' }) {
 	let x: number | undefined;
-	const _tsrx_StatementBodyHook1_x = x;
-
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ x }: { x: typeof _tsrx_StatementBodyHook1_x }) {
-		console.log(x);
-
-		return null;
-	});
-
-	const _tsrx_StatementBodyHook2_x = x;
-
-	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
-		x = 1;
-
-		return <StatementBodyHook3 x={x} />;
-	});
-
-	const _tsrx_StatementBodyHook3_x = x;
-
-	const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3({ x }: { x: typeof _tsrx_StatementBodyHook3_x }) {
-		[x] = useState(100);
-
-		return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
-	});
 
 	switch (kind) {
 		case 'a':
-			return <StatementBodyHook2 x={x} />;
+			return <App__StatementBodyHook2 x={x} />;
 
 		case 'b':
-			return <StatementBodyHook3 x={x} />;
+			return <App__StatementBodyHook3 x={x} />;
 	}
 
-	return <StatementBodyHook1 x={x} />;
+	return <App__StatementBodyHook1 x={x} />;
 }"
 `;
 
 exports[`[react] continuation lift for switch-with-hook > preserves empty fall-through cases that share a body with the next case 1`] = `
 "const App__static1 = <span>{'other'}</span>;
-let App__StatementBodyHook1;
-let App__StatementBodyHook3;
-let App__StatementBodyHook2;
+
+function App__StatementBodyHook1({ x }) {
+	console.log(x);
+
+	return null;
+}
+
+function App__StatementBodyHook3({ x }) {
+	return <>{App__static1}<App__StatementBodyHook1 x={x} /></>;
+}
+
+function App__StatementBodyHook2({ x }) {
+	[x] = useState(100);
+
+	return <><div>{x}</div><App__StatementBodyHook1 x={x} /></>;
+}
 
 export function App({ kind }: { kind: 'a' | 'b' | 'c' }) {
 	let x: number | undefined;
-	const _tsrx_StatementBodyHook1_x = x;
-
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ x }: { x: typeof _tsrx_StatementBodyHook1_x }) {
-		console.log(x);
-
-		return null;
-	});
-
-	const _tsrx_StatementBodyHook2_x = x;
-
-	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2({ x }: { x: typeof _tsrx_StatementBodyHook2_x }) {
-		[x] = useState(100);
-
-		return <><div>{x}</div><StatementBodyHook1 x={x} /></>;
-	});
-
-	const _tsrx_StatementBodyHook3_x = x;
-
-	const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3({ x }: { x: typeof _tsrx_StatementBodyHook3_x }) {
-		return <>{App__static1}<StatementBodyHook1 x={x} /></>;
-	});
 
 	switch (kind) {
 		case 'a':
 
 		case 'b':
-			return <StatementBodyHook2 x={x} />;
+			return <App__StatementBodyHook2 x={x} />;
 
 		default:
-			return <StatementBodyHook3 x={x} />;
+			return <App__StatementBodyHook3 x={x} />;
 	}
 
-	return <StatementBodyHook1 x={x} />;
+	return <App__StatementBodyHook1 x={x} />;
 }"
 `;
 
@@ -496,21 +366,18 @@ exports[`[react] continuation lift for try-with-hook > try with a hook but no st
 "import { TsrxErrorBoundary } from '@tsrx/react/error-boundary';
 
 const App__static1 = <div>{'error'}</div>;
-let App__StatementBodyHook1;
+
+function App__StatementBodyHook1({ load }) {
+	const [data] = useState(load());
+
+	return <div>{data}</div>;
+}
 
 export function App({ load }: { load: () => number }) {
 	return <TsrxErrorBoundary fallback={(err, _reset) => {
 		return App__static1;
 	}}>{(() => {
-			const _tsrx_StatementBodyHook1_load = load;
-
-			const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ load }: { load: typeof _tsrx_StatementBodyHook1_load }) {
-				const [data] = useState(load());
-
-				return <div>{data}</div>;
-			});
-
-			return <StatementBodyHook1 load={load} />;
+			return <App__StatementBodyHook1 load={load} />;
 		})()}</TsrxErrorBoundary>;
 }"
 `;
@@ -532,26 +399,21 @@ export function App({ load }: { load: () => number }) {
 exports[`[react] continuation lift for try-with-hook > try/catch with a hook in the catch body and a tail that reads the mutated outer 1`] = `
 "import { TsrxErrorBoundary } from '@tsrx/react/error-boundary';
 
-let App__StatementBodyHook1;
+function App__StatementBodyHook1({ attempt }) {
+	console.log(attempt);
+
+	return null;
+}
 
 export function App({ load }: { load: () => number }) {
 	let attempt: number | undefined;
-	const _tsrx_StatementBodyHook1_attempt = attempt;
-
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1(
-		{ attempt }: { attempt: typeof _tsrx_StatementBodyHook1_attempt }
-	) {
-		console.log(attempt);
-
-		return null;
-	});
 
 	return <TsrxErrorBoundary fallback={(err, _reset) => {
 		[attempt] = useState(0);
 
-		return <><div>{attempt}</div><StatementBodyHook1 attempt={attempt} /></>;
+		return <><div>{attempt}</div><App__StatementBodyHook1 attempt={attempt} /></>;
 	}}>{(() => {
-			return <><div>{load()}</div><StatementBodyHook1 attempt={attempt} /></>;
+			return <><div>{load()}</div><App__StatementBodyHook1 attempt={attempt} /></>;
 		})()}</TsrxErrorBoundary>;
 }"
 `;
@@ -560,37 +422,26 @@ exports[`[react] continuation lift for try-with-hook > try/catch with a hook in 
 "import { TsrxErrorBoundary } from '@tsrx/react/error-boundary';
 
 const App__static1 = <div>{'error'}</div>;
-let App__StatementBodyHook1;
-let App__StatementBodyHook2;
+
+function App__StatementBodyHook1({ data }) {
+	console.log(data);
+
+	return null;
+}
+
+function App__StatementBodyHook2({ load, data }) {
+	[data] = useState(load());
+
+	return <><div>{data}</div><App__StatementBodyHook1 data={data} /></>;
+}
 
 export function App({ load }: { load: () => number }) {
 	let data: number | undefined;
-	const _tsrx_StatementBodyHook1_data = data;
-
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ data }: { data: typeof _tsrx_StatementBodyHook1_data }) {
-		console.log(data);
-
-		return null;
-	});
 
 	return <TsrxErrorBoundary fallback={(err, _reset) => {
-		return <>{App__static1}<StatementBodyHook1 data={data} /></>;
+		return <>{App__static1}<App__StatementBodyHook1 data={data} /></>;
 	}}>{(() => {
-			const _tsrx_StatementBodyHook2_load = load;
-			const _tsrx_StatementBodyHook2_data = data;
-
-			const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
-				{ load, data }: { 
-					load: typeof _tsrx_StatementBodyHook2_load;
-					data: typeof _tsrx_StatementBodyHook2_data
-				 }
-			) {
-				[data] = useState(load());
-
-				return <><div>{data}</div><StatementBodyHook1 data={data} /></>;
-			});
-
-			return <StatementBodyHook2 load={load} data={data} />;
+			return <App__StatementBodyHook2 load={load} data={data} />;
 		})()}</TsrxErrorBoundary>;
 }"
 `;
@@ -601,39 +452,28 @@ import { TsrxErrorBoundary } from '@tsrx/react/error-boundary';
 
 const App__static1 = <p>{'loading'}</p>;
 const App__static2 = <div>{'error'}</div>;
-let App__StatementBodyHook1;
-let App__StatementBodyHook2;
+
+function App__StatementBodyHook1({ data }) {
+	console.log(data);
+
+	return null;
+}
+
+function App__StatementBodyHook2({ load, data }) {
+	[data] = useState(load());
+
+	return <><div>{data}</div><App__StatementBodyHook1 data={data} /></>;
+}
 
 export function App({ load }: { load: () => number }) {
 	let data: number | undefined;
-	const _tsrx_StatementBodyHook1_data = data;
-
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ data }: { data: typeof _tsrx_StatementBodyHook1_data }) {
-		console.log(data);
-
-		return null;
-	});
 
 	return <TsrxErrorBoundary fallback={(err, _reset) => {
-		return <>{App__static2}<StatementBodyHook1 data={data} /></>;
+		return <>{App__static2}<App__StatementBodyHook1 data={data} /></>;
 	}}><Suspense fallback={(() => {
 			return App__static1;
 		})()}>{(() => {
-				const _tsrx_StatementBodyHook2_load = load;
-				const _tsrx_StatementBodyHook2_data = data;
-
-				const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
-					{ load, data }: { 
-						load: typeof _tsrx_StatementBodyHook2_load;
-						data: typeof _tsrx_StatementBodyHook2_data
-					 }
-				) {
-					[data] = useState(load());
-
-					return <><div>{data}</div><StatementBodyHook1 data={data} /></>;
-				});
-
-				return <StatementBodyHook2 load={load} data={data} />;
+				return <App__StatementBodyHook2 load={load} data={data} />;
 			})()}</Suspense></TsrxErrorBoundary>;
 }"
 `;
@@ -647,7 +487,11 @@ exports[`[react] hoisted helper and tail lift for for-of-with-hook > falls back 
 `;
 
 exports[`[react] hoisted helper and tail lift for for-of-with-hook > hoists the helper without a tail lift when nothing follows the loop 1`] = `
-"let App__StatementBodyHook1;
+"function App__StatementBodyHook1({ name }) {
+	const [val] = useState(name);
+
+	return <div key={name}>{val}</div>;
+}
 
 export function App({ items }: { items: string[] }) {
 	let _tsrx_iteration_items_1 = items;
@@ -656,23 +500,40 @@ export function App({ items }: { items: string[] }) {
 		? _tsrx_iteration_items_1
 		: Array.from(_tsrx_iteration_items_1);
 
-	type _tsrx_StatementBodyHook1_name = typeof _tsrx_iteration_items_1[number];
-
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ name }: { name: _tsrx_StatementBodyHook1_name }) {
-		const [val] = useState(name);
-
-		return <div key={name}>{val}</div>;
-	});
-
-	return _tsrx_iteration_items_1.map((name) => <StatementBodyHook1 name={name} key={name} />);
+	return _tsrx_iteration_items_1.map((name) => <App__StatementBodyHook1 name={name} key={name} />);
 }"
 `;
 
 exports[`[react] hoisted helper and tail lift for for-of-with-hook > lifts the tail across nested for-of-with-hooks 1`] = `
-"let App__StatementBodyHook1;
-let App__StatementBodyHook3;
-let App__StatementBodyHook4;
-let App__StatementBodyHook2;
+"function App__StatementBodyHook1({ last }) {
+	console.log('end', last);
+
+	return null;
+}
+
+function App__StatementBodyHook3({ last, _tsrx_isLast_2 }) {
+	console.log('mid', last);
+
+	return _tsrx_isLast_2 && <App__StatementBodyHook1 last={last} />;
+}
+
+function App__StatementBodyHook4({ last, _tsrx_isLast_2, item, _tsrx_isLast_4 }) {
+	[last] = useState(item);
+
+	return <><div key={item}>{last}</div>{_tsrx_isLast_4 && <App__StatementBodyHook3 last={last} _tsrx_isLast_2={_tsrx_isLast_2} />}</>;
+}
+
+function App__StatementBodyHook2({ last, group, _tsrx_isLast_2 }) {
+	let _tsrx_iteration_items_4 = group;
+
+	_tsrx_iteration_items_4 = Array.isArray(_tsrx_iteration_items_4)
+		? _tsrx_iteration_items_4
+		: Array.from(_tsrx_iteration_items_4);
+
+	return _tsrx_iteration_items_4.length === 0
+		? <App__StatementBodyHook3 last={last} _tsrx_isLast_2={_tsrx_isLast_2} />
+		: _tsrx_iteration_items_4.map((item, i) => <App__StatementBodyHook4 last={last} _tsrx_isLast_2={_tsrx_isLast_2} item={item} key={item} _tsrx_isLast_4={i === _tsrx_iteration_items_4.length - 1} />);
+}
 
 export function App({ groups }: { groups: number[][] }) {
 	let last: number | undefined;
@@ -682,81 +543,42 @@ export function App({ groups }: { groups: number[][] }) {
 		? _tsrx_iteration_items_2
 		: Array.from(_tsrx_iteration_items_2);
 
-	const _tsrx_StatementBodyHook1_last = last;
-
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ last }: { last: typeof _tsrx_StatementBodyHook1_last }) {
-		console.log('end', last);
-
-		return null;
-	});
-
-	const _tsrx_StatementBodyHook2_last = last;
-
-	type _tsrx_StatementBodyHook2_group = typeof _tsrx_iteration_items_2[number];
-	type _tsrx_StatementBodyHook2_isLast = boolean;
-
-	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
-		{ last, group, _tsrx_isLast_2 }: { 
-			last: typeof _tsrx_StatementBodyHook2_last;
-			group: _tsrx_StatementBodyHook2_group;
-			_tsrx_isLast_2: _tsrx_StatementBodyHook2_isLast
-		 }
-	) {
-		let _tsrx_iteration_items_4 = group;
-
-		_tsrx_iteration_items_4 = Array.isArray(_tsrx_iteration_items_4)
-			? _tsrx_iteration_items_4
-			: Array.from(_tsrx_iteration_items_4);
-
-		const _tsrx_StatementBodyHook3_last = last;
-		const _tsrx_StatementBodyHook3__tsrx_isLast_2 = _tsrx_isLast_2;
-
-		const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3(
-			{ last, _tsrx_isLast_2 }: { 
-				last: typeof _tsrx_StatementBodyHook3_last;
-				_tsrx_isLast_2: typeof _tsrx_StatementBodyHook3__tsrx_isLast_2
-			 }
-		) {
-			console.log('mid', last);
-
-			return _tsrx_isLast_2 && <StatementBodyHook1 last={last} />;
-		});
-
-		const _tsrx_StatementBodyHook4_last = last;
-		const _tsrx_StatementBodyHook4__tsrx_isLast_2 = _tsrx_isLast_2;
-
-		type _tsrx_StatementBodyHook4_item = typeof _tsrx_iteration_items_4[number];
-		type _tsrx_StatementBodyHook4_isLast = boolean;
-
-		const StatementBodyHook4 = App__StatementBodyHook4 ?? (App__StatementBodyHook4 = function StatementBodyHook4(
-			{ last, _tsrx_isLast_2, item, _tsrx_isLast_4 }: { 
-				last: typeof _tsrx_StatementBodyHook4_last;
-				_tsrx_isLast_2: typeof _tsrx_StatementBodyHook4__tsrx_isLast_2;
-				item: _tsrx_StatementBodyHook4_item;
-				_tsrx_isLast_4: _tsrx_StatementBodyHook4_isLast
-			 }
-		) {
-			[last] = useState(item);
-
-			return <><div key={item}>{last}</div>{_tsrx_isLast_4 && <StatementBodyHook3 last={last} _tsrx_isLast_2={_tsrx_isLast_2} />}</>;
-		});
-
-		return _tsrx_iteration_items_4.length === 0
-			? <StatementBodyHook3 last={last} _tsrx_isLast_2={_tsrx_isLast_2} />
-			: _tsrx_iteration_items_4.map((item, i) => <StatementBodyHook4 last={last} _tsrx_isLast_2={_tsrx_isLast_2} item={item} key={item} _tsrx_isLast_4={i === _tsrx_iteration_items_4.length - 1} />);
-	});
-
 	return _tsrx_iteration_items_2.length === 0
-		? <StatementBodyHook1 last={last} />
-		: _tsrx_iteration_items_2.map((group, i) => <StatementBodyHook2 last={last} group={group} _tsrx_isLast_2={i === _tsrx_iteration_items_2.length - 1} />);
+		? <App__StatementBodyHook1 last={last} />
+		: _tsrx_iteration_items_2.map((group, i) => <App__StatementBodyHook2 last={last} group={group} _tsrx_isLast_2={i === _tsrx_iteration_items_2.length - 1} />);
 }"
 `;
 
 exports[`[react] hoisted helper and tail lift for for-of-with-hook > lifts the tail across sibling for-of-with-hooks at the same level 1`] = `
-"let App__StatementBodyHook2;
-let App__StatementBodyHook3;
-let App__StatementBodyHook1;
-let App__StatementBodyHook4;
+"function App__StatementBodyHook2({ lastA, lastB }) {
+	console.log(lastA, lastB);
+
+	return null;
+}
+
+function App__StatementBodyHook3({ lastA, lastB, b, _tsrx_isLast_3 }) {
+	[lastB] = useState(b);
+
+	return <><span key={b}>{lastB}</span>{_tsrx_isLast_3 && <App__StatementBodyHook2 lastA={lastA} lastB={lastB} />}</>;
+}
+
+function App__StatementBodyHook1({ bs, lastA, lastB }) {
+	let _tsrx_iteration_items_3 = bs;
+
+	_tsrx_iteration_items_3 = Array.isArray(_tsrx_iteration_items_3)
+		? _tsrx_iteration_items_3
+		: Array.from(_tsrx_iteration_items_3);
+
+	return _tsrx_iteration_items_3.length === 0
+		? <App__StatementBodyHook2 lastA={lastA} lastB={lastB} />
+		: _tsrx_iteration_items_3.map((b, i) => <App__StatementBodyHook3 lastA={lastA} lastB={lastB} b={b} key={b} _tsrx_isLast_3={i === _tsrx_iteration_items_3.length - 1} />);
+}
+
+function App__StatementBodyHook4({ bs, lastA, lastB, a, _tsrx_isLast_4 }) {
+	[lastA] = useState(a);
+
+	return <><div key={a}>{lastA}</div>{_tsrx_isLast_4 && <App__StatementBodyHook1 bs={bs} lastA={lastA} lastB={lastB} />}</>;
+}
 
 export function App({ as, bs }: { as: number[]; bs: number[] }) {
 	let lastA: number | undefined;
@@ -767,91 +589,24 @@ export function App({ as, bs }: { as: number[]; bs: number[] }) {
 		? _tsrx_iteration_items_4
 		: Array.from(_tsrx_iteration_items_4);
 
-	const _tsrx_StatementBodyHook1_bs = bs;
-	const _tsrx_StatementBodyHook1_lastA = lastA;
-	const _tsrx_StatementBodyHook1_lastB = lastB;
-
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1(
-		{ bs, lastA, lastB }: { 
-			bs: typeof _tsrx_StatementBodyHook1_bs;
-			lastA: typeof _tsrx_StatementBodyHook1_lastA;
-			lastB: typeof _tsrx_StatementBodyHook1_lastB
-		 }
-	) {
-		let _tsrx_iteration_items_3 = bs;
-
-		_tsrx_iteration_items_3 = Array.isArray(_tsrx_iteration_items_3)
-			? _tsrx_iteration_items_3
-			: Array.from(_tsrx_iteration_items_3);
-
-		const _tsrx_StatementBodyHook2_lastA = lastA;
-		const _tsrx_StatementBodyHook2_lastB = lastB;
-
-		const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
-			{ lastA, lastB }: { 
-				lastA: typeof _tsrx_StatementBodyHook2_lastA;
-				lastB: typeof _tsrx_StatementBodyHook2_lastB
-			 }
-		) {
-			console.log(lastA, lastB);
-
-			return null;
-		});
-
-		const _tsrx_StatementBodyHook3_lastA = lastA;
-		const _tsrx_StatementBodyHook3_lastB = lastB;
-
-		type _tsrx_StatementBodyHook3_b = typeof _tsrx_iteration_items_3[number];
-		type _tsrx_StatementBodyHook3_isLast = boolean;
-
-		const StatementBodyHook3 = App__StatementBodyHook3 ?? (App__StatementBodyHook3 = function StatementBodyHook3(
-			{ lastA, lastB, b, _tsrx_isLast_3 }: { 
-				lastA: typeof _tsrx_StatementBodyHook3_lastA;
-				lastB: typeof _tsrx_StatementBodyHook3_lastB;
-				b: _tsrx_StatementBodyHook3_b;
-				_tsrx_isLast_3: _tsrx_StatementBodyHook3_isLast
-			 }
-		) {
-			[lastB] = useState(b);
-
-			return <><span key={b}>{lastB}</span>{_tsrx_isLast_3 && <StatementBodyHook2 lastA={lastA} lastB={lastB} />}</>;
-		});
-
-		return _tsrx_iteration_items_3.length === 0
-			? <StatementBodyHook2 lastA={lastA} lastB={lastB} />
-			: _tsrx_iteration_items_3.map((b, i) => <StatementBodyHook3 lastA={lastA} lastB={lastB} b={b} key={b} _tsrx_isLast_3={i === _tsrx_iteration_items_3.length - 1} />);
-	});
-
-	const _tsrx_StatementBodyHook4_bs = bs;
-	const _tsrx_StatementBodyHook4_lastA = lastA;
-	const _tsrx_StatementBodyHook4_lastB = lastB;
-
-	type _tsrx_StatementBodyHook4_a = typeof _tsrx_iteration_items_4[number];
-	type _tsrx_StatementBodyHook4_isLast = boolean;
-
-	const StatementBodyHook4 = App__StatementBodyHook4 ?? (App__StatementBodyHook4 = function StatementBodyHook4(
-		{ bs, lastA, lastB, a, _tsrx_isLast_4 }: { 
-			bs: typeof _tsrx_StatementBodyHook4_bs;
-			lastA: typeof _tsrx_StatementBodyHook4_lastA;
-			lastB: typeof _tsrx_StatementBodyHook4_lastB;
-			a: _tsrx_StatementBodyHook4_a;
-			_tsrx_isLast_4: _tsrx_StatementBodyHook4_isLast
-		 }
-	) {
-		[lastA] = useState(a);
-
-		return <><div key={a}>{lastA}</div>{_tsrx_isLast_4 && <StatementBodyHook1 bs={bs} lastA={lastA} lastB={lastB} />}</>;
-	});
-
 	return _tsrx_iteration_items_4.length === 0
-		? <StatementBodyHook1 bs={bs} lastA={lastA} lastB={lastB} />
-		: _tsrx_iteration_items_4.map((a, i) => <StatementBodyHook4 bs={bs} lastA={lastA} lastB={lastB} a={a} key={a} _tsrx_isLast_4={i === _tsrx_iteration_items_4.length - 1} />);
+		? <App__StatementBodyHook1 bs={bs} lastA={lastA} lastB={lastB} />
+		: _tsrx_iteration_items_4.map((a, i) => <App__StatementBodyHook4 bs={bs} lastA={lastA} lastB={lastB} a={a} key={a} _tsrx_isLast_4={i === _tsrx_iteration_items_4.length - 1} />);
 }"
 `;
 
 exports[`[react] hoisted helper and tail lift for for-of-with-hook > lifts the tail of a for-of with hooks (inline-literal iteration source) 1`] = `
-"let App__StatementBodyHook1;
-let App__StatementBodyHook2;
+"function App__StatementBodyHook1({ last }) {
+	console.log(last);
+
+	return null;
+}
+
+function App__StatementBodyHook2({ last, item, i, _tsrx_isLast_2 }) {
+	[last] = useState(item);
+
+	return <><div key={i}>{last}</div>{_tsrx_isLast_2 && <App__StatementBodyHook1 last={last} />}</>;
+}
 
 export function App() {
 	let last: number | undefined;
@@ -861,42 +616,24 @@ export function App() {
 		? _tsrx_iteration_items_2
 		: Array.from(_tsrx_iteration_items_2);
 
-	const _tsrx_StatementBodyHook1_last = last;
-
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ last }: { last: typeof _tsrx_StatementBodyHook1_last }) {
-		console.log(last);
-
-		return null;
-	});
-
-	const _tsrx_StatementBodyHook2_last = last;
-
-	type _tsrx_StatementBodyHook2_item = typeof _tsrx_iteration_items_2[number];
-	type _tsrx_StatementBodyHook2_i = number;
-	type _tsrx_StatementBodyHook2_isLast = boolean;
-
-	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
-		{ last, item, i, _tsrx_isLast_2 }: { 
-			last: typeof _tsrx_StatementBodyHook2_last;
-			item: _tsrx_StatementBodyHook2_item;
-			i: _tsrx_StatementBodyHook2_i;
-			_tsrx_isLast_2: _tsrx_StatementBodyHook2_isLast
-		 }
-	) {
-		[last] = useState(item);
-
-		return <><div key={i}>{last}</div>{_tsrx_isLast_2 && <StatementBodyHook1 last={last} />}</>;
-	});
-
 	return _tsrx_iteration_items_2.length === 0
-		? <StatementBodyHook1 last={last} />
-		: _tsrx_iteration_items_2.map((item, i) => <StatementBodyHook2 last={last} item={item} i={i} key={i} _tsrx_isLast_2={i === _tsrx_iteration_items_2.length - 1} />);
+		? <App__StatementBodyHook1 last={last} />
+		: _tsrx_iteration_items_2.map((item, i) => <App__StatementBodyHook2 last={last} item={item} i={i} key={i} _tsrx_isLast_2={i === _tsrx_iteration_items_2.length - 1} />);
 }"
 `;
 
 exports[`[react] hoisted helper and tail lift for for-of-with-hook > lifts the tail of a for-of with hooks (prop iteration source) 1`] = `
-"let App__StatementBodyHook1;
-let App__StatementBodyHook2;
+"function App__StatementBodyHook1({ last }) {
+	console.log(last);
+
+	return null;
+}
+
+function App__StatementBodyHook2({ last, item, i, _tsrx_isLast_2 }) {
+	[last] = useState(item);
+
+	return <><div key={i}>{last}</div>{_tsrx_isLast_2 && <App__StatementBodyHook1 last={last} />}</>;
+}
 
 export function App({ items }: { items: number[] }) {
 	let last: number | undefined;
@@ -906,35 +643,8 @@ export function App({ items }: { items: number[] }) {
 		? _tsrx_iteration_items_2
 		: Array.from(_tsrx_iteration_items_2);
 
-	const _tsrx_StatementBodyHook1_last = last;
-
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = function StatementBodyHook1({ last }: { last: typeof _tsrx_StatementBodyHook1_last }) {
-		console.log(last);
-
-		return null;
-	});
-
-	const _tsrx_StatementBodyHook2_last = last;
-
-	type _tsrx_StatementBodyHook2_item = typeof _tsrx_iteration_items_2[number];
-	type _tsrx_StatementBodyHook2_i = number;
-	type _tsrx_StatementBodyHook2_isLast = boolean;
-
-	const StatementBodyHook2 = App__StatementBodyHook2 ?? (App__StatementBodyHook2 = function StatementBodyHook2(
-		{ last, item, i, _tsrx_isLast_2 }: { 
-			last: typeof _tsrx_StatementBodyHook2_last;
-			item: _tsrx_StatementBodyHook2_item;
-			i: _tsrx_StatementBodyHook2_i;
-			_tsrx_isLast_2: _tsrx_StatementBodyHook2_isLast
-		 }
-	) {
-		[last] = useState(item);
-
-		return <><div key={i}>{last}</div>{_tsrx_isLast_2 && <StatementBodyHook1 last={last} />}</>;
-	});
-
 	return _tsrx_iteration_items_2.length === 0
-		? <StatementBodyHook1 last={last} />
-		: _tsrx_iteration_items_2.map((item, i) => <StatementBodyHook2 last={last} item={item} i={i} key={i} _tsrx_isLast_2={i === _tsrx_iteration_items_2.length - 1} />);
+		? <App__StatementBodyHook1 last={last} />
+		: _tsrx_iteration_items_2.map((item, i) => <App__StatementBodyHook2 last={last} item={item} i={i} key={i} _tsrx_isLast_2={i === _tsrx_iteration_items_2.length - 1} />);
 }"
 `;

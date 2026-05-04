@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
 	runSharedAnonymousComponentTests,
+	runSharedClassComponentDeclarationTests,
 	runSharedCompileDiagnosticsTests,
 	runSharedComponentLoopControlFlowTests,
+	runSharedComponentParamsTests,
 } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
@@ -16,6 +18,8 @@ runSharedSourceMappingTests({
 runSharedAnonymousComponentTests({ compile, name: 'vue' });
 runSharedComponentLoopControlFlowTests({ compile, name: 'vue' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'vue' });
+runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'vue' });
+runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name: 'vue' });
 
 describe('@tsrx/vue basic', () => {
 	it('wraps named component exports in defineVaporComponent', () => {
@@ -87,7 +91,7 @@ describe('@tsrx/vue basic', () => {
 	});
 
 	it('emits scoped CSS and applies the scope hash to host elements', () => {
-		const { code, css } = compile(
+		const { code, css, cssHash } = compile(
 			`component App() {
 				<div class="card">{'Hi'}</div>
 
@@ -100,10 +104,10 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(css).not.toBeNull();
-		expect(code).toContain(`class="card ${css?.hash}"`);
-		expect(css?.code).toContain(`.card.${css?.hash}`);
-		expect(css?.code).toContain('color: red;');
+		expect(css).not.toBe('');
+		expect(code).toContain(`class="card ${cssHash}"`);
+		expect(css).toContain(`.card.${cssHash}`);
+		expect(css).toContain('color: red;');
 	});
 
 	it('{ref fn} on a DOM element compiles to ref={fn}', () => {
@@ -404,7 +408,8 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('<template v-for={item in items}><div>{item}</div></template>');
+		expect(code).toContain('<VaporFor in={items}>{(item) => <div>{item}</div>}</VaporFor>');
+		expect(code).toContain("import { defineVaporComponent, VaporFor } from 'vue-jsx-vapor';");
 		expect(code).not.toContain('not yet supported in Vue TSRX');
 	});
 
@@ -418,9 +423,27 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('<template v-for={item in items} key={item.id}>');
-		expect(code).toContain('key={item.id}');
-		expect(code).toContain('item.text');
+		expect(code).toContain('<VaporFor in={items} getKey={(item) => item.id}>');
+		expect(code).toContain('item.value.text');
+	});
+
+	it('does not rewrite shadowed loop params inside nested keyed slot functions', () => {
+		const { code } = compile(
+			`component App({ items, getNew, use }: { items: { id: string, text: string }[], getNew: () => unknown, use: (item: unknown) => void }) {
+				for (const item of items; key item.id) {
+					<button onClick={() => {
+						const item = getNew();
+						use(item);
+					}}>{item.text}</button>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('const item = getNew();');
+		expect(code).toContain('use(item);');
+		expect(code).toContain('item.value.text');
+		expect(code).not.toContain('use(item.value)');
 	});
 
 	it('compiles indexed keyed for...of statements in component bodies', () => {
@@ -433,9 +456,10 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('<template v-for={(item, i) in items} key={item.id}>');
-		expect(code).toContain('{i}');
-		expect(code).toContain('item.text');
+		expect(code).toContain('<VaporFor in={items} getKey={(item, i) => item.id}>');
+		expect(code).toContain('{(item, i) => <div>');
+		expect(code).toContain('{i.value}');
+		expect(code).toContain('item.value.text');
 	});
 
 	it('keeps explicit loop keys on single static for...of templates', () => {
@@ -448,7 +472,8 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('<template v-for={(item, i) in items} key={i}>');
+		expect(code).toContain('<VaporFor in={items} getKey={(item, i) => i}>');
+		expect(code).toContain('{(item, i) => <div>');
 		expect(code).toContain("<div>{'test'}</div>");
 		expect(code).not.toContain('<div key={i}>');
 		expect(code).not.toContain('<Fragment');
@@ -465,10 +490,26 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('<template v-for={(item, i) in items} key={i}>');
+		expect(code).toContain('<VaporFor in={items} getKey={(item, i) => i}>');
+		expect(code).toContain('{(item, i) => <>');
 		expect(code).toContain('App__static1');
 		expect(code).toContain('App__static2');
 		expect(code).not.toContain('<Fragment');
+	});
+
+	it('falls back without injecting VaporFor for keyed destructuring patterns it cannot rewrite', () => {
+		const { code } = compile(
+			`component App({ items, keyName }: { items: Array<Record<string, string>>, keyName: string }) {
+				for (const { [keyName]: label } of items) {
+					<div key={label}>{label}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('.map(({ [keyName]: label }) => {');
+		expect(code).toContain('<div key={label}>{label}</div>');
+		expect(code).not.toContain('VaporFor');
 	});
 
 	it('compiles switch statements in component bodies', () => {

@@ -464,7 +464,7 @@ component C() {
 	});
 
 	describe(`[${name}] lazy destructuring mappings`, () => {
-		it('maps untyped lazy object param keys and aliased reads into generated property names', () => {
+		it('preserves untyped lazy object patterns so source identifiers map identity-style', () => {
 			const source = `component Hello(&{ a: value, b }) {
 	<>{value}{b}</>
 }`;
@@ -474,14 +474,8 @@ component C() {
 			 * @param {number} sourceOffset
 			 * @param {number} generatedOffset
 			 * @param {number} sourceLength
-			 * @param {number} [generatedLength]
 			 */
-			const mapping_at = (
-				sourceOffset,
-				generatedOffset,
-				sourceLength,
-				generatedLength = sourceLength,
-			) =>
+			const identity_mapping = (sourceOffset, generatedOffset, sourceLength) =>
 				result.mappings.find(
 					(
 						/** @type {{ sourceOffsets: number[], generatedOffsets: number[], lengths: number[], generatedLengths: number[] }} */ mapping,
@@ -489,155 +483,45 @@ component C() {
 						mapping.sourceOffsets[0] === sourceOffset &&
 						mapping.generatedOffsets[0] === generatedOffset &&
 						mapping.lengths[0] === sourceLength &&
-						mapping.generatedLengths[0] === generatedLength,
+						mapping.generatedLengths[0] === sourceLength,
 				);
 
-			const source_key_a_offset = source.indexOf('a: value');
-			const source_key_b_offset = source.indexOf('b })');
-			const source_body_value_offset = source.lastIndexOf('value');
-			const source_body_b_offset = source.lastIndexOf('b');
-			const generated_type_a_offset = result.code.indexOf('{ a: any') + 2;
-			const generated_type_b_offset = result.code.indexOf('b: any');
-			const generated_read_a_offset = result.code.indexOf('__lazy0.a') + '__lazy0.'.length;
-			const generated_read_b_offset = result.code.indexOf('__lazy0.b') + '__lazy0.'.length;
+			expect(result.code).toContain('function Hello({ a: value, b })');
+			// Pattern keys / aliases / shorthand bindings preserved as-is.
+			const src_key_a = source.indexOf('a: value');
+			const src_alias_value = source.indexOf('value, b');
+			const src_param_b = source.indexOf('b })');
+			const src_body_value = source.lastIndexOf('value');
+			const src_body_b = source.lastIndexOf('b');
+			const gen_key_a = result.code.indexOf('a: value');
+			const gen_alias_value = result.code.indexOf('value, b');
+			const gen_param_b = result.code.indexOf('b })');
+			const gen_body_value = result.code.lastIndexOf('value');
+			const gen_body_b = result.code.lastIndexOf('b');
 
-			expect(result.code).toContain('function Hello(__lazy0: { a: any; b: any })');
-			expect(mapping_at(source_key_a_offset, generated_type_a_offset, 'a'.length)).toBeDefined();
-			expect(mapping_at(source_key_b_offset, generated_type_b_offset, 'b'.length)).toBeDefined();
-			expect(
-				mapping_at(source_body_value_offset, generated_read_a_offset, 'value'.length, 'a'.length),
-			).toBeDefined();
-			expect(mapping_at(source_body_b_offset, generated_read_b_offset, 'b'.length)).toBeDefined();
+			expect(identity_mapping(src_key_a, gen_key_a, 'a'.length)).toBeDefined();
+			expect(identity_mapping(src_alias_value, gen_alias_value, 'value'.length)).toBeDefined();
+			expect(identity_mapping(src_param_b, gen_param_b, 'b'.length)).toBeDefined();
+			expect(identity_mapping(src_body_value, gen_body_value, 'value'.length)).toBeDefined();
+			expect(identity_mapping(src_body_b, gen_body_b, 'b'.length)).toBeDefined();
 		});
 
-		it('maps annotated lazy object params to the generated lazy parameter', () => {
+		it('preserves annotated lazy object params with their type annotation intact', () => {
 			const source = `component Hello(&{ a: value, b }: { a: string, b: string }) {
 	<>{value}{b}</>
 }`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx');
-			const source_pattern_offset = source.indexOf('{ a: value, b }');
-			const generated_lazy_offset = result.code.indexOf('__lazy0');
-			const pattern_mapping = result.mappings.find(
-				(
-					/** @type {{ sourceOffsets: number[], generatedOffsets: number[], lengths: number[], generatedLengths: number[] }} */ mapping,
-				) =>
-					mapping.sourceOffsets[0] === source_pattern_offset &&
-					mapping.generatedOffsets[0] === generated_lazy_offset &&
-					mapping.lengths[0] === '{ a: value, b }'.length &&
-					mapping.generatedLengths[0] === '__lazy0'.length,
-			);
 
-			expect(result.code).toContain('function Hello(__lazy0: { a: string; b: string })');
-			expect(pattern_mapping).toBeDefined();
+			expect(result.code).toContain('function Hello({ a: value, b }: { a: string; b: string })');
 		});
 
-		it('rewrites lazy object params in hover text', () => {
-			const source = `component Hello(&{ a: c, b }: { a: string, b: string }) {
-	<>{c}{b}</>
-}`;
-			const result = compile_to_volar_mappings(source, 'App.tsrx');
-			const source_pattern_offset = source.indexOf('{ a: c, b }');
-			const source_name_offset = source.indexOf('Hello');
-			const generated_lazy_offset = result.code.indexOf('__lazy0');
-			const generated_name_offset = result.code.indexOf('Hello');
-			const pattern_mapping = result.mappings.find(
-				(mapping) =>
-					mapping.sourceOffsets[0] === source_pattern_offset &&
-					mapping.generatedOffsets[0] === generated_lazy_offset,
-			);
-			const name_mapping = result.mappings.find(
-				(mapping) =>
-					mapping.sourceOffsets[0] === source_name_offset &&
-					mapping.generatedOffsets[0] === generated_name_offset,
-			);
-			const hover = pattern_mapping?.data.customData.hover;
-			const name_hover = name_mapping?.data.customData.hover;
-
-			expect(typeof hover).toBe('function');
-			if (typeof hover === 'function') {
-				expect(
-					hover(`function Hello(__lazy0: {
-    a: string;
-    b: string;
-}): void`),
-				).toBe(`component Hello(&{
-    a: string;
-    b: string;
-}): void`);
-
-				expect(
-					hover(`(parameter) __lazy0: {
-    a: string;
-    b: string;
-}`),
-				).toBe(`(parameter) &{
-    a: string;
-    b: string;
-}`);
-			}
-
-			expect(typeof name_hover).toBe('function');
-			if (typeof name_hover === 'function') {
-				expect(
-					name_hover(`function Hello(__lazy0: {
-    a: string;
-    b: string;
-}): void`),
-				).toBe(`component Hello(&{
-    a: string;
-    b: string;
-}): void`);
-			}
-		});
-
-		it('rewrites lazy object params in plain function hover text', () => {
+		it('preserves annotated lazy params on plain functions', () => {
 			const source = `function greet(&{ a: c, b }: { a: string, b: string }) {
 	return c + b;
 }`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx');
-			const source_pattern_offset = source.indexOf('{ a: c, b }');
-			const source_name_offset = source.indexOf('greet');
-			const generated_lazy_offset = result.code.indexOf('__lazy0');
-			const generated_name_offset = result.code.indexOf('greet');
-			const pattern_mapping = result.mappings.find(
-				(mapping) =>
-					mapping.sourceOffsets[0] === source_pattern_offset &&
-					mapping.generatedOffsets[0] === generated_lazy_offset,
-			);
-			const name_mapping = result.mappings.find(
-				(mapping) =>
-					mapping.sourceOffsets[0] === source_name_offset &&
-					mapping.generatedOffsets[0] === generated_name_offset,
-			);
-			const param_hover = pattern_mapping?.data.customData.hover;
-			const hover = name_mapping?.data.customData.hover;
 
-			expect(result.code).toContain('function greet(__lazy0: { a: string; b: string })');
-			expect(typeof param_hover).toBe('function');
-			if (typeof param_hover === 'function') {
-				expect(
-					param_hover(`function greet(__lazy0: {
-    a: string;
-    b: string;
-}): string`),
-				).toBe(`function greet(&{
-    a: string;
-    b: string;
-}): string`);
-			}
-
-			expect(typeof hover).toBe('function');
-			if (typeof hover === 'function') {
-				expect(
-					hover(`function greet(__lazy0: {
-    a: string;
-    b: string;
-}): string`),
-				).toBe(`function greet(&{
-    a: string;
-    b: string;
-}): string`);
-			}
+			expect(result.code).toContain('function greet({ a: c, b }: { a: string; b: string })');
 		});
 
 		it('reports repeated lazy param bindings in loose mode without throwing', () => {
@@ -654,7 +538,7 @@ component C() {
 			expect(result.errors[1].message).toBe('Argument name clash');
 			expect(result.errors[1].type).toBe('usage');
 			expect(source.slice(result.errors[1].pos, result.errors[1].end)).toBe('b');
-			expect(result.code).toContain('function greet(__lazy0: { a: string; b: string })');
+			expect(result.code).toContain('function greet({ a: b, b }: { a: string; b: string })');
 		});
 
 		it('reports repeated lazy component param bindings in loose mode without throwing', () => {
@@ -685,7 +569,7 @@ component C() {
 						mapping.lengths[0] === result.errors[1].end - result.errors[1].pos,
 				),
 			).toBeDefined();
-			expect(result.code).toContain('function App(__lazy0: { a: string; b: string })');
+			expect(result.code).toContain('function App({ a: b, b }: { a: string; b: string })');
 		});
 
 		it('reports repeated lazy param bindings with full identifier ranges', () => {

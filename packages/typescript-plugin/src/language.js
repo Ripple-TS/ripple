@@ -1,7 +1,7 @@
 /** @import { CodeMapping } from '@tsrx/ripple' */
 /** @import {TSRXCompileError, VolarMappingsResult} from '@tsrx/ripple' */
 
-/** @typedef {{ code?: string, js?: { code?: string }, errors?: TSRXCompileError[] }} TSRXCompileResult */
+/** @typedef {{ code?: string, errors?: TSRXCompileError[] }} TSRXCompileResult */
 /** @typedef {{ compile?: (source: string, filename: string, options?: { loose?: boolean }) => TSRXCompileResult, compile_to_volar_mappings(source: string, filename: string, options?: { loose?: boolean }): VolarMappingsResult }} TSRXCompilerModule */
 
 /** @typedef {Map<string, CodeMapping>} CachedMappings */
@@ -513,14 +513,8 @@ function getFallbackGeneratedCode(tsrx, source, file_name) {
 	}
 	try {
 		const result = tsrx.compile(source, file_name, { loose: true });
-		const code =
-			typeof result?.code === 'string'
-				? result.code
-				: typeof result?.js?.code === 'string'
-					? result.js.code
-					: undefined;
-		if (code !== undefined) {
-			return { code, errors: result?.errors ?? [] };
+		if (typeof result?.code === 'string') {
+			return { code: result.code, errors: result?.errors ?? [] };
 		}
 	} catch (error) {
 		logError('Fallback compilation failed for', file_name, ':', error);

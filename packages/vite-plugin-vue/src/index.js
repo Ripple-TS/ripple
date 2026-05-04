@@ -101,7 +101,7 @@ export function tsrxVue(options = {}) {
 			let finalCode = code;
 			let finalMap = /** @type {any} */ (map);
 			if (css) {
-				cssCache.set(realPath, css.code);
+				cssCache.set(realPath, css);
 				finalCode = `import ${JSON.stringify(realPath + CSS_QUERY)};\n${code}`;
 				if (finalMap && typeof finalMap.mappings === 'string') {
 					finalMap = { ...finalMap, mappings: ';' + finalMap.mappings };

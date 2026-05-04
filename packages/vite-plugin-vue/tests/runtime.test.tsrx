@@ -387,6 +387,30 @@ component ForKeyedStateApp() {
 	</button>
 }
 
+component ForJsxKeyedStateApp() {
+	const items = ref([
+		{ id: 'a', label: 'Alpha' },
+		{ id: 'b', label: 'Beta' },
+		{ id: 'c', label: 'Gamma' },
+	]);
+
+	for (const item of items.value) {
+		<KeyedRow key={item.id} {item} />
+	}
+
+	<button class="reverse-jsx-keyed" onClick={() => (items.value = [...items.value].reverse())}>
+		{'reverse'}
+	</button>
+	<button
+		class="rename-jsx-keyed-beta"
+		onClick={() => (items.value = items.value.map(
+			(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
+		))}
+	>
+		{'rename'}
+	</button>
+}
+
 component ForIndexKeyedStateApp() {
 	const items = ref([
 		{ id: 'a', label: 'Alpha' },
@@ -400,6 +424,104 @@ component ForIndexKeyedStateApp() {
 
 	<button class="reverse-index-keyed" onClick={() => (items.value = [...items.value].reverse())}>
 		{'reverse'}
+	</button>
+}
+
+component ForJsxIndexKeyedApp() {
+	const items = ref([
+		{ id: 'a', label: 'Alpha' },
+		{ id: 'b', label: 'Beta' },
+		{ id: 'c', label: 'Gamma' },
+	]);
+
+	for (const item of items.value; index i) {
+		<p key={item.id} class={`jsx-index-keyed-row row-${item.id}`}>{`${i}:${item.label}`}</p>
+	}
+
+	<button
+		class="reverse-jsx-index-keyed"
+		onClick={() => (items.value = [...items.value].reverse())}
+	>
+		{'reverse'}
+	</button>
+}
+
+component ForNestedIndexKeyedApp() {
+	const items = ref([
+		{ id: 'a', label: 'Alpha' },
+		{ id: 'b', label: 'Beta' },
+		{ id: 'c', label: 'Gamma' },
+	]);
+
+	for (const item of items.value; index i; key item.id) {
+		<section class={`nested-index-keyed-row row-${item.id}`}>
+			<div>
+				<span>{`${i}:${item.label}`}</span>
+			</div>
+		</section>
+	}
+
+	<button
+		class="reverse-nested-index-keyed"
+		onClick={() => (items.value = [...items.value].reverse())}
+	>
+		{'reverse'}
+	</button>
+	<button
+		class="rename-nested-index-keyed-beta"
+		onClick={() => (items.value = items.value.map(
+			(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
+		))}
+	>
+		{'rename'}
+	</button>
+}
+
+component ForImplicitIndexKeyFragmentApp() {
+	const items = ref(['a', 'b', 'c']);
+
+	for (const item of items.value; index i) {
+		<span class="fragment-index-item">{`${i}:${item}`}</span>
+		<span class="fragment-value-item">{item}</span>
+	}
+
+	<button class="reverse-fragment-index" onClick={() => (items.value = [...items.value].reverse())}>
+		{'reverse'}
+	</button>
+}
+
+component DestructuredKeyedRow(props: { id: string; label: string }) {
+	const count = ref(0);
+
+	<button class={`destructured-keyed-row row-${props.id}`} onClick={() => count.value++}>
+		{`${props.label}:${count.value}`}
+	</button>
+}
+
+component ForDestructuredKeyedStateApp() {
+	const items = ref([
+		{ id: 'a', label: 'Alpha' },
+		{ id: 'b', label: 'Beta' },
+		{ id: 'c', label: 'Gamma' },
+	]);
+
+	for (const { id, label } of items.value; key id) {
+		<DestructuredKeyedRow {id} {label} />
+	}
+
+	<button
+		class="reverse-destructured-keyed"
+		onClick={() => (items.value = [...items.value].reverse())}
+	>
+		{'reverse'}
+	</button>
+	<button
+		class="rename-destructured-keyed-beta"
+		onClick={() => (items.value = items.value.map(
+			(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
+		))}
+	>
+		{'rename'}
 	</button>
 }
 
@@ -870,6 +992,28 @@ describe('tsrx-vue runtime', () => {
 		expect(text('.row-b')).toBe('Bravo:1');
 	});
 
+	it('preserves component state when keys come from JSX key attributes', async () => {
+		await render(ForJsxKeyedStateApp);
+		expect(texts('.keyed-row')).toEqual([
+			'Alpha:0',
+			'Beta:0',
+			'Gamma:0',
+		]);
+
+		await click('.row-b');
+		expect(text('.row-b')).toBe('Beta:1');
+
+		await click('.reverse-jsx-keyed');
+		expect(texts('.keyed-row')).toEqual([
+			'Gamma:0',
+			'Beta:1',
+			'Alpha:0',
+		]);
+
+		await click('.rename-jsx-keyed-beta');
+		expect(text('.row-b')).toBe('Bravo:1');
+	});
+
 	it('updates index bindings in keyed for-of loops after reorders', async () => {
 		await render(ForIndexKeyedStateApp);
 		expect(texts('.indexed-keyed-row')).toEqual([
@@ -884,6 +1028,81 @@ describe('tsrx-vue runtime', () => {
 			'1:Beta',
 			'2:Alpha',
 		]);
+	});
+
+	it('updates index bindings when JSX key attributes drive keyed for-of loops', async () => {
+		await render(ForJsxIndexKeyedApp);
+		expect(texts('.jsx-index-keyed-row')).toEqual([
+			'0:Alpha',
+			'1:Beta',
+			'2:Gamma',
+		]);
+
+		await click('.reverse-jsx-index-keyed');
+		expect(texts('.jsx-index-keyed-row')).toEqual([
+			'0:Gamma',
+			'1:Beta',
+			'2:Alpha',
+		]);
+	});
+
+	it('updates keyed item and index reads inside nested loop output', async () => {
+		await render(ForNestedIndexKeyedApp);
+		expect(texts('.nested-index-keyed-row')).toEqual([
+			'0:Alpha',
+			'1:Beta',
+			'2:Gamma',
+		]);
+
+		await click('.reverse-nested-index-keyed');
+		expect(texts('.nested-index-keyed-row')).toEqual([
+			'0:Gamma',
+			'1:Beta',
+			'2:Alpha',
+		]);
+
+		await click('.rename-nested-index-keyed-beta');
+		expect(text('.row-b')).toBe('1:Bravo');
+	});
+
+	it('updates implicit index-keyed fragments after reorders', async () => {
+		await render(ForImplicitIndexKeyFragmentApp);
+		expect(texts('.fragment-index-item')).toEqual([
+			'0:a',
+			'1:b',
+			'2:c',
+		]);
+		expect(texts('.fragment-value-item')).toEqual(['a', 'b', 'c']);
+
+		await click('.reverse-fragment-index');
+		expect(texts('.fragment-index-item')).toEqual([
+			'0:c',
+			'1:b',
+			'2:a',
+		]);
+		expect(texts('.fragment-value-item')).toEqual(['c', 'b', 'a']);
+	});
+
+	it('preserves keyed component state for destructured for-of loop params', async () => {
+		await render(ForDestructuredKeyedStateApp);
+		expect(texts('.destructured-keyed-row')).toEqual([
+			'Alpha:0',
+			'Beta:0',
+			'Gamma:0',
+		]);
+
+		await click('.row-b');
+		expect(text('.row-b')).toBe('Beta:1');
+
+		await click('.reverse-destructured-keyed');
+		expect(texts('.destructured-keyed-row')).toEqual([
+			'Gamma:0',
+			'Beta:1',
+			'Alpha:0',
+		]);
+
+		await click('.rename-destructured-keyed-beta');
+		expect(text('.row-b')).toBe('Bravo:1');
 	});
 
 	it('switches rendered branches reactively', async () => {

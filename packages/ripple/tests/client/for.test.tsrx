@@ -59,7 +59,7 @@ describe('for statements', () => {
 	});
 
 	it('does not emit JavaScript continue in for...of skip callbacks', () => {
-		const { js } = compile(
+		const { code } = compile(
 			`component App() {
 				const items = ['Item 1', '', 'Item 3'];
 				const skipped = [];
@@ -76,9 +76,9 @@ describe('for statements', () => {
 			{ mode: 'client' },
 		);
 
-		expect(js.code).toContain('skipped.push(\'skip\')');
-		expect(js.code).not.toContain('continue;');
-		expect(js.code).not.toMatch(/continue;\s*return/);
+		expect(code).toContain('skipped.push(\'skip\')');
+		expect(code).not.toContain('continue;');
+		expect(code).not.toMatch(/continue;\s*return/);
 	});
 
 	it('renders a simple dynamic array', () => {

@@ -1,5 +1,54 @@
 # @tsrx/preact
 
+## 0.0.22
+
+### Patch Changes
+
+- [#1064](https://github.com/Ripple-TS/ripple/pull/1064)
+  [`eae7b40`](https://github.com/Ripple-TS/ripple/commit/eae7b4047f4d8cc7a0278fb48ffe630d73a592c6)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Reject component declarations
+  with more than one parameter. Previously, JSX targets passed extra parameters
+  straight through into the generated function and ripple silently dropped them.
+  Multi-parameter components now error in regular compile and are surfaced as
+  collected diagnostics in the Volar editor pipeline.
+
+- [#1061](https://github.com/Ripple-TS/ripple/pull/1061)
+  [`29ac6d7`](https://github.com/Ripple-TS/ripple/commit/29ac6d757b376e4102c4c8c8d3d47f7ae3afdd00)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix lone expression children
+  inside fragment shorthand so they render from component, branch, and loop
+  bodies.
+
+- [#1057](https://github.com/Ripple-TS/ripple/pull/1057)
+  [`b34b95a`](https://github.com/Ripple-TS/ripple/commit/b34b95a808ec801109d1818f4d24ae0bbc00f66b)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Enforces a stricter rule for
+  components declared inside classes: they must be arrow-function class properties
+  (including static), and class component foo() {} method-style declarations are
+  no longer supported.
+
+  Removes component method declarations support in favor of using as properties.
+
+- [#1066](https://github.com/Ripple-TS/ripple/pull/1066)
+  [`4cd0986`](https://github.com/Ripple-TS/ripple/commit/4cd0986201e960cd8544d0f789d17a217e93f954)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Introduces a typeOnly flag to
+  transformers to compile for either production or editor support.
+
+  Lazy transformations for typeOnly are not skipped, only the & is removed to make
+  it look like a regular destructure.
+
+- [#1063](https://github.com/Ripple-TS/ripple/pull/1063)
+  [`a960343`](https://github.com/Ripple-TS/ripple/commit/a960343169aee906162211c502b6cc6b74e2a124)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Standardizes compile api
+  across all packages, including forcing types to adhere to the standard. Adds
+  more debug compile options to the playgrounds.
+- Updated dependencies
+  [[`eae7b40`](https://github.com/Ripple-TS/ripple/commit/eae7b4047f4d8cc7a0278fb48ffe630d73a592c6),
+  [`29ac6d7`](https://github.com/Ripple-TS/ripple/commit/29ac6d757b376e4102c4c8c8d3d47f7ae3afdd00),
+  [`b34b95a`](https://github.com/Ripple-TS/ripple/commit/b34b95a808ec801109d1818f4d24ae0bbc00f66b),
+  [`cf60dba`](https://github.com/Ripple-TS/ripple/commit/cf60dbaf9c6be84d6e95f9c5d66b64d8927494c9),
+  [`4cd0986`](https://github.com/Ripple-TS/ripple/commit/4cd0986201e960cd8544d0f789d17a217e93f954),
+  [`a960343`](https://github.com/Ripple-TS/ripple/commit/a960343169aee906162211c502b6cc6b74e2a124)]:
+  - @tsrx/core@0.0.27
+
 ## 0.0.21
 
 ### Patch Changes

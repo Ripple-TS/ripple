@@ -20,12 +20,13 @@ import {
 	flatten_switch_consequent,
 	get_for_of_iteration_params,
 	identifier_to_jsx_name,
+	is_bare_render_expression,
 	is_dynamic_element_id,
 	is_jsx_child,
 	set_loc,
 	to_text_expression,
 } from './ast-builders.js';
-import { render_stylesheets as renderStylesheets } from '../stylesheet.js';
+import { render_css_result } from '../stylesheet.js';
 import {
 	set_location as setLocation,
 	jsx_attribute as build_jsx_attribute,
@@ -41,8 +42,10 @@ import {
 import { find_first_top_level_await_in_component_body } from '../await.js';
 import { prepare_stylesheet_for_render, annotate_component_with_hash } from '../scoping.js';
 import {
+	validate_class_component_declarations,
 	validate_component_loop_break_statement,
 	validate_component_loop_return_statement,
+	validate_component_params,
 	validate_component_return_statement,
 	validate_component_unsupported_loop_statement,
 } from '../../analyze/validation.js';
@@ -167,6 +170,8 @@ export function createJsxTransform(platform) {
 			needs_suspense: false,
 			needs_merge_refs: false,
 			needs_fragment: false,
+			module_scoped_hook_components:
+				options?.moduleScopedHookComponents ?? !!platform.hooks?.moduleScopedHookComponents,
 			helper_state: null,
 			available_bindings: new Map(),
 			lazy_next_id: 0,
@@ -175,12 +180,15 @@ export function createJsxTransform(platform) {
 			collect,
 			errors: collect ? options?.errors : undefined,
 			comments: options?.comments,
+			typeOnly: !!options?.typeOnly,
 			// Platforms can seed their own tracking state (e.g. solid's
 			// needs_show / needs_for flags) via `hooks.initialState`.
 			...(platform.hooks?.initialState?.() ?? {}),
 		};
 
-		preallocate_lazy_ids(/** @type {any} */ (ast), transform_context);
+		if (!transform_context.typeOnly) {
+			preallocate_lazy_ids(/** @type {any} */ (ast), transform_context);
+		}
 
 		walk(/** @type {any} */ (ast), transform_context, {
 			ReturnStatement(node, { next, path }) {
@@ -270,8 +278,25 @@ export function createJsxTransform(platform) {
 				return next();
 			},
 
+			ClassBody(node, { next }) {
+				validate_class_component_declarations(
+					/** @type {any} */ (node),
+					filename,
+					transform_context.errors,
+					transform_context.comments,
+				);
+				return next();
+			},
+
 			Component(node, { next, state }) {
 				const as_any = /** @type {any} */ (node);
+
+				validate_component_params(
+					as_any,
+					filename,
+					transform_context.errors,
+					transform_context.comments,
+				);
 
 				const await_expression = find_first_top_level_await_in_component_body(as_any.body || []);
 
@@ -420,8 +445,15 @@ export function createJsxTransform(platform) {
 		// declarations, arrow functions, etc.). Component bodies have already been
 		// transformed inside component_to_function_declaration; this catches plain
 		// functions outside components and any lazy patterns in module scope.
+		// In type-only mode, the lazy patterns survive untouched: esrap ignores the
+		// non-standard `lazy` flag, so `&{ a, b }` prints as `{ a, b }`, `let &[a]
+		// = expr` prints as `let [a] = expr`, and the bare statement-level form
+		// `&[x] = expr;` (used when `x` is already declared) prints as `[x] =
+		// expr;` — a valid destructuring assignment to the existing binding.
 		const final_program = /** @type {any} */ (
-			apply_lazy_transforms(/** @type {any} */ (expanded), new Map())
+			transform_context.typeOnly
+				? expanded
+				: apply_lazy_transforms(/** @type {any} */ (expanded), new Map())
 		);
 
 		const result = print(/** @type {any} */ (final_program), tsx_with_ts_locations(), {
@@ -429,17 +461,11 @@ export function createJsxTransform(platform) {
 			sourceMapContent: source,
 		});
 
-		const css =
-			stylesheets.length > 0
-				? {
-						code: renderStylesheets(
-							/** @type {any} */ (stylesheets.map(prepare_stylesheet_for_render)),
-						),
-						hash: stylesheets.map((s) => s.hash).join(' '),
-					}
-				: null;
+		const { css, cssHash } = render_css_result(
+			/** @type {any} */ (stylesheets.map(prepare_stylesheet_for_render)),
+		);
 
-		return { ast: final_program, code: result.code, map: result.map, css };
+		return { ast: final_program, code: result.code, map: result.map, css, cssHash };
 	}
 
 	return transform;
@@ -503,7 +529,11 @@ export function component_to_function_declaration(component, transform_context, 
 	// Collect lazy binding info WITHOUT mutating patterns. Stores lazy_id on metadata
 	// for later replacement. Body bindings (count, setCount, etc.) are still in the
 	// original patterns, so collect_statement_bindings during build will find them.
-	const lazy_bindings = collect_lazy_bindings_from_component(params, body, transform_context);
+	// In type-only mode the lazy rewrite is skipped entirely so destructuring
+	// patterns survive into the virtual TSX and TypeScript can flow real types.
+	const lazy_bindings = transform_context.typeOnly
+		? new Map()
+		: collect_lazy_bindings_from_component(params, body, transform_context);
 
 	// Save and set context for this component scope
 	const saved_helper_state = transform_context.helper_state;
@@ -883,6 +913,8 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 			} else {
 				render_nodes.push(jsx);
 			}
+		} else if (is_bare_render_expression(child)) {
+			render_nodes.push(to_jsx_expression_container(child, child));
 		} else {
 			statements.push(child);
 			collect_statement_bindings(child, transform_context.available_bindings);
@@ -1168,6 +1200,25 @@ function create_helper_state(base_name) {
 		helpers: [],
 		statics: [],
 	};
+}
+
+/**
+ * @param {TransformContext} transform_context
+ * @returns {boolean}
+ */
+function should_use_module_scoped_hook_components(transform_context) {
+	return !!(transform_context.helper_state && transform_context.module_scoped_hook_components);
+}
+
+/**
+ * @param {AST.Identifier} helper_id
+ * @param {TransformContext} transform_context
+ * @returns {AST.Identifier}
+ */
+function create_module_scoped_hook_component_id(helper_id, transform_context) {
+	return create_generated_identifier(
+		`${transform_context.helper_state?.base_name || 'Component'}__${helper_id.name}`,
+	);
 }
 
 /**
@@ -2149,25 +2200,33 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	const helper_id = create_generated_identifier(
 		create_local_statement_component_name(transform_context),
 	);
+	const use_module_scoped_component = should_use_module_scoped_hook_components(transform_context);
+	const component_id = use_module_scoped_component
+		? create_module_scoped_hook_component_id(helper_id, transform_context)
+		: helper_id;
 
-	const outer_aliases = outer_bindings.map((binding) =>
-		create_helper_type_alias_declaration(helper_id, binding),
-	);
-	const loop_aliases = loop_bindings.map((binding) =>
-		create_loop_scoped_type_alias_declaration(helper_id, binding, source_id, loop_params),
-	);
+	const outer_aliases = use_module_scoped_component
+		? []
+		: outer_bindings.map((binding) => create_helper_type_alias_declaration(helper_id, binding));
+	const loop_aliases = use_module_scoped_component
+		? []
+		: loop_bindings.map((binding) =>
+				create_loop_scoped_type_alias_declaration(helper_id, binding, source_id, loop_params),
+			);
 
 	// Synthetic `isLast` prop on the loop helper when there's a tail. It's
 	// passed from the .map callback as `i === source.length - 1` so every
 	// loop-helper return can append the tail helper on the last iteration.
 	const tail_isLast_alias = has_tail
-		? {
-				id: create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
-				declaration: b.ts_type_alias(
-					create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
-					b.ts_keyword_type('boolean'),
-				),
-			}
+		? use_module_scoped_component
+			? null
+			: {
+					id: create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
+					declaration: b.ts_type_alias(
+						create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
+						b.ts_keyword_type('boolean'),
+					),
+				}
 		: null;
 
 	const ordered_bindings = [...outer_bindings, ...loop_bindings];
@@ -2181,7 +2240,7 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	const signature_use_typeof = has_tail ? [...ordered_use_typeof, false] : ordered_use_typeof;
 
 	const props_type =
-		signature_bindings.length > 0
+		signature_bindings.length > 0 && !use_module_scoped_component
 			? create_helper_props_type_literal_with_typeof_flags(
 					signature_bindings,
 					signature_aliases,
@@ -2189,7 +2248,13 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 				)
 			: null;
 	const params =
-		props_type !== null ? [create_typed_helper_props_pattern(signature_bindings, props_type)] : [];
+		signature_bindings.length > 0
+			? [
+					props_type !== null
+						? create_typed_helper_props_pattern(signature_bindings, props_type)
+						: create_helper_props_pattern(signature_bindings),
+				]
+			: [];
 
 	const fn_saved_bindings = transform_context.available_bindings;
 	transform_context.available_bindings = new Map(fn_saved_bindings);
@@ -2207,12 +2272,17 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	transform_context.available_bindings = fn_saved_bindings;
 
 	const helper_fn = /** @type {any} */ (
-		b.function(clone_identifier(helper_id), params, b.block(fn_body_statements))
+		b.function(clone_identifier(component_id), params, b.block(fn_body_statements))
 	);
 	helper_fn.metadata = { path: [], is_component: true, is_method: false };
 
 	let helper_decl;
-	if (transform_context.helper_state) {
+	if (transform_context.helper_state && use_module_scoped_component) {
+		transform_context.helper_state.helpers.push(
+			create_helper_declaration(component_id, helper_fn, node, transform_context),
+		);
+		helper_decl = null;
+	} else if (transform_context.helper_state) {
 		const cache_id = create_generated_identifier(
 			`${transform_context.helper_state.base_name}__${helper_id.name}`,
 		);
@@ -2229,7 +2299,7 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	transform_context.available_bindings = saved_bindings;
 
 	const callback_invocation_element = create_helper_component_element(
-		helper_id,
+		component_id,
 		ordered_bindings,
 		node,
 		{ mapWrapper: false, mapBindingNames: false, mapBindingValues: false },
@@ -2310,7 +2380,9 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	if (has_tail && tail_isLast_alias) {
 		hoist_statements.push(tail_isLast_alias.declaration);
 	}
-	hoist_statements.push(helper_decl);
+	if (helper_decl) {
+		hoist_statements.push(helper_decl);
+	}
 
 	return {
 		hoist_statements,
@@ -2770,8 +2842,8 @@ function create_local_statement_component_name(transform_context) {
 /**
  * Wraps a list of body nodes into a component and returns
  * statements that return `<ComponentName prop1={prop1} ... />`.
- * The component is hoisted to module level via helper_state to avoid
- * recreating the component identity on every render.
+ * Targets can either emit the helper component at module scope or cache the
+ * component identity in module state while initializing it from the parent.
  * Used when a control flow branch contains hook calls that must be moved
  * into their own component boundary to satisfy the Rules of Hooks.
  *
@@ -2844,24 +2916,36 @@ function create_hook_safe_helper(
 	const helper_id =
 		preallocated_helper_id ??
 		create_generated_identifier(create_local_statement_component_name(transform_context));
+	const use_module_scoped_component = should_use_module_scoped_hook_components(transform_context);
+	const component_id = use_module_scoped_component
+		? create_module_scoped_hook_component_id(helper_id, transform_context)
+		: helper_id;
 	const helper_bindings = get_referenced_helper_bindings(
 		body_nodes,
 		transform_context.available_bindings,
 	);
-	const aliases = helper_bindings.map((binding) =>
-		create_helper_type_alias_declaration(helper_id, binding),
-	);
+	const aliases = use_module_scoped_component
+		? []
+		: helper_bindings.map((binding) => create_helper_type_alias_declaration(helper_id, binding));
 	const props_type =
-		helper_bindings.length > 0 ? create_helper_props_type_literal(helper_bindings, aliases) : null;
+		helper_bindings.length > 0 && !use_module_scoped_component
+			? create_helper_props_type_literal(helper_bindings, aliases)
+			: null;
 	const params =
-		props_type !== null ? [create_typed_helper_props_pattern(helper_bindings, props_type)] : [];
+		helper_bindings.length > 0
+			? [
+					props_type !== null
+						? create_typed_helper_props_pattern(helper_bindings, props_type)
+						: create_helper_props_pattern(helper_bindings),
+				]
+			: [];
 
 	const saved_bindings = transform_context.available_bindings;
 	transform_context.available_bindings = new Map(saved_bindings);
 
 	const helper_fn = /** @type {any} */ ({
 		type: 'FunctionExpression',
-		id: clone_identifier(helper_id),
+		id: clone_identifier(component_id),
 		params,
 		body: {
 			type: 'BlockStatement',
@@ -2880,7 +2964,7 @@ function create_hook_safe_helper(
 	transform_context.available_bindings = saved_bindings;
 
 	const component_element = create_helper_component_element(
-		helper_id,
+		component_id,
 		helper_bindings,
 		source_node,
 		{
@@ -2907,6 +2991,16 @@ function create_hook_safe_helper(
 				...aliases.map((alias) => alias.declaration),
 				create_helper_declaration(helper_id, helper_fn, source_node, transform_context),
 			],
+			component_element,
+		};
+	}
+
+	if (use_module_scoped_component) {
+		transform_context.helper_state.helpers.push(
+			create_helper_declaration(component_id, helper_fn, source_node, transform_context),
+		);
+		return {
+			setup_statements: [],
 			component_element,
 		};
 	}
@@ -4262,6 +4356,8 @@ function create_render_switch_case(switch_case, transform_context) {
 
 		if (is_jsx_child(child)) {
 			render_nodes.push(to_jsx_child(child, transform_context));
+		} else if (is_bare_render_expression(child)) {
+			render_nodes.push(to_jsx_expression_container(child, child));
 		} else {
 			case_body.push(child);
 		}

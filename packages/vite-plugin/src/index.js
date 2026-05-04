@@ -1255,7 +1255,7 @@ import { hydrate, mount } from 'ripple';
 					const is_dev = config?.command === 'serve';
 					const current_ripple_config = await get_current_ripple_config();
 
-					const { js, css } = await compile(code, filename, {
+					const result = await compile(code, filename, {
 						mode: ssr ? 'server' : 'client',
 						dev: is_dev,
 						hmr: is_dev && !ssr,
@@ -1266,17 +1266,17 @@ import { hydrate, mount } from 'ripple';
 					});
 
 					// Track modules with `module server` declarations for RPC (client build only)
-					if (isBuild && !ssr && js.code.includes('_$_.rpc(')) {
+					if (isBuild && !ssr && result.code.includes('_$_.rpc(')) {
 						serverModuleModules.add(filename);
 					}
 
-					if (css !== '') {
+					if (result.css) {
 						const cssId = createVirtualImportId(filename, root, 'style');
-						cssCache.set(cssId, css);
-						js.code += `\nimport ${JSON.stringify(cssId)};\n`;
+						cssCache.set(cssId, result.css);
+						result.code += `\nimport ${JSON.stringify(cssId)};\n`;
 					}
 
-					return js;
+					return { code: result.code, map: result.map };
 				},
 			},
 		},

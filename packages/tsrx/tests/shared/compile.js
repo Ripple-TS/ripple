@@ -3,7 +3,7 @@ import { DIAGNOSTIC_CODES } from '../../src/diagnostics.js';
 
 /**
  * @typedef {{
- *   compile: (source: string, filename?: string, options?: any) => { code: string, css: { code: string, hash: string } | null, errors: Array<{ message: string, code?: string }> },
+ *   compile: (source: string, filename?: string, options?: any) => { code: string, css: string, cssHash: string | null, errors: Array<{ message: string, code?: string }> },
  *   name: string,
  *   classAttrName: 'class' | 'className',
  * }} CompileHarness
@@ -56,6 +56,72 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 }
 
 /**
+ * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
+ */
+export function runSharedFragmentExpressionRenderTests({ compile, name }) {
+	describe(`[${name}] fragment expression render bodies`, () => {
+		it('renders a component-body fragment shorthand with a lone expression child', () => {
+			const { code } = compile(
+				`export default component A() {
+					<>{"Hello"}</>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('return "Hello";');
+		});
+
+		it('renders lone expression fragment shorthand inside conditional render bodies', () => {
+			const { code } = compile(
+				`export component A() {
+					if (show) {
+						<>{"Hello"}</>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('"Hello"');
+			expect(code).not.toMatch(/^[\t ]*"Hello";?\n\s*return null;/m);
+		});
+
+		it('renders lone expression fragment shorthand inside loop render bodies', () => {
+			const { code } = compile(
+				`export component A() {
+					for (const value of values) {
+						<>{value}</>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('value');
+			expect(code).not.toMatch(/^[\t ]*value;?\n\s*return null;/m);
+		});
+
+		it('renders lone expression fragment shorthand inside switch case bodies', () => {
+			const { code } = compile(
+				`export component A() {
+					switch (state) {
+						case "ready":
+							<>{"Ready"}</>
+							break
+						default:
+							<>{"Waiting"}</>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('"Ready"');
+			expect(code).toContain('"Waiting"');
+			expect(code).not.toMatch(/^[\t ]*"Ready";?\n\s*break;/m);
+			expect(code).not.toMatch(/^[\t ]*"Waiting";?\n\s*return null;/m);
+		});
+	});
+}
+
+/**
  * Shared component-loop regressions. Vue does not share the full JSX output
  * suite because its component export shape differs, but it should still share
  * these component-body validation rules.
@@ -63,6 +129,8 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
  * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
  */
 export function runSharedComponentLoopControlFlowTests({ compile, name }) {
+	runSharedFragmentExpressionRenderTests({ compile, name });
+
 	describe(`[${name}] component loop control flow`, () => {
 		it('uses continue to skip a for...of iteration', () => {
 			const { code } = compile(
@@ -285,6 +353,234 @@ export function runSharedAnonymousComponentTests({ compile, name }) {
 				expect(code).not.toContain('const Inline = defineVaporComponent(() => {');
 			},
 		);
+	});
+}
+
+/**
+ * Shared validation that components only accept a single (props) parameter.
+ * Without this rule, JSX targets pass extra params straight through into the
+ * generated function, and ripple silently drops them. The rule is enforced
+ * across every component declaration shape — named declaration, anonymous
+ * expression (legacy and arrow), and arrow class property (regular and
+ * static). Runs against both `compile` (which throws) and
+ * `compile_to_volar_mappings` (which collects errors) so the same rule fires
+ * for production builds and editor tooling.
+ *
+ * @param {Pick<CompileHarness, 'compile' | 'name'> & Pick<CompileDiagnosticsHarness, 'compile_to_volar_mappings'>} harness
+ */
+export function runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name }) {
+	const expected_message =
+		'Components accept a single props parameter. Move additional inputs into the props object instead.';
+
+	/**
+	 * @param {string} source
+	 * @param {string} label
+	 */
+	function expect_compile_throws(source, label) {
+		it(`rejects ${label} via compile`, () => {
+			expect(() => compile(source, 'App.tsrx')).toThrow(/single props parameter/);
+		});
+	}
+
+	/**
+	 * @param {string} source
+	 * @param {string} label
+	 */
+	function expect_volar_collects(source, label) {
+		it(`surfaces ${label} via Volar mappings`, () => {
+			const result = compile_to_volar_mappings(source, 'App.tsrx');
+
+			expect(
+				result.errors.some((error) =>
+					/** @type {{ message?: string }} */ (error).message?.includes(expected_message),
+				),
+			).toBe(true);
+		});
+	}
+
+	const cases = /** @type {const} */ ([
+		[
+			'a named component declaration with multiple parameters',
+			`export component App(a, b) {
+				<div>{a}</div>
+			}`,
+		],
+		[
+			'an anonymous component expression with multiple parameters',
+			`const Inline = component(a, b) {
+				<div>{a}</div>
+			}`,
+		],
+		[
+			'an anonymous arrow component expression with multiple parameters',
+			`const Inline = component(a, b) => {
+				<div>{a}</div>
+			}`,
+		],
+		[
+			'an arrow component class property with multiple parameters',
+			`export class App {
+				Inline = component(a, b) => {
+					<div>{a}</div>
+				}
+			}`,
+		],
+		[
+			'a static arrow component class property with multiple parameters',
+			`export class App {
+				static Inline = component(a, b) => {
+					<div>{a}</div>
+				}
+			}`,
+		],
+	]);
+
+	describe(`[${name}] component params`, () => {
+		it('accepts a single props parameter', () => {
+			expect(() =>
+				compile(
+					`export component App(props) {
+						<div>{props.value}</div>
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
+
+		for (const [label, source] of cases) {
+			expect_compile_throws(source, label);
+			expect_volar_collects(source, label);
+		}
+
+		it('reports one Volar diagnostic per extra parameter, each at the param position', () => {
+			const result = compile_to_volar_mappings(
+				`export component App(a, b, c) {
+					<div>{a}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			const offending = result.errors.filter((error) =>
+				/** @type {{ message?: string }} */ (error).message?.includes(expected_message),
+			);
+
+			expect(offending).toHaveLength(2);
+
+			const positions = offending.map((error) => /** @type {{ pos?: number }} */ (error).pos);
+			expect(new Set(positions).size).toBe(2);
+		});
+	});
+}
+
+/**
+ * Shared validation that components declared inside a class must use an arrow
+ * function class property (regular or static). The method-style form
+ * (`component foo() {}` inside a class body) is rejected at parse time. The
+ * non-arrow property form (`Foo = component() {}`) is rejected by the analyze
+ * stage. Runs against both `compile` (which throws) and
+ * `compile_to_volar_mappings` (which collects errors) so the rule is enforced
+ * in production and editor tooling alike.
+ *
+ * @param {Pick<CompileHarness, 'compile' | 'name'> & Pick<CompileDiagnosticsHarness, 'compile_to_volar_mappings'>} harness
+ */
+export function runSharedClassComponentDeclarationTests({
+	compile,
+	compile_to_volar_mappings,
+	name,
+}) {
+	describe(`[${name}] class component declarations`, () => {
+		it('allows an arrow component as a class property', () => {
+			expect(() =>
+				compile(
+					`export class App {
+						Inline = component() => {
+							<div>{'hi'}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
+
+		it('allows an arrow component as a static class property', () => {
+			expect(() =>
+				compile(
+					`export class App {
+						static Inline = component() => {
+							<div>{'hi'}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
+
+		it('rejects a component declared as a class method at parse time', () => {
+			expect(() =>
+				compile(
+					`export class App {
+						component Inline() {
+							<div>{'hi'}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/Unexpected token/);
+		});
+
+		it('rejects a non-arrow component as a class property value', () => {
+			expect(() =>
+				compile(
+					`export class App {
+						Inline = component() {
+							<div>{'hi'}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/Non-arrow component property values are not allowed/);
+		});
+
+		it('surfaces non-arrow property class component errors via Volar mappings', () => {
+			const result = compile_to_volar_mappings(
+				`export class App {
+					Inline = component() {
+						<div>{'hi'}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(
+				result.errors.some((error) =>
+					/** @type {{ message?: string }} */ (error).message?.includes(
+						'Non-arrow component property values are not allowed',
+					),
+				),
+			).toBe(true);
+		});
+
+		it('does not flag arrow component class properties via Volar mappings', () => {
+			const result = compile_to_volar_mappings(
+				`export class App {
+					Inline = component() => {
+						<div>{'hi'}</div>
+					}
+					static Other = component() => {
+						<span>{'hello'}</span>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(
+				result.errors.some((error) =>
+					/** @type {{ message?: string }} */ (error).message?.includes(
+						'arrow function class property',
+					),
+				),
+			).toBe(false);
+		});
 	});
 }
 
@@ -1380,7 +1676,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 	describe(`[${name}] scoped CSS`, () => {
 		it('applies the scope hash to host elements and emits the hashed stylesheet', () => {
-			const { code, css } = compile(
+			const { code, css, cssHash } = compile(
 				`export component App() {
 					<div>{'Hello world'}</div>
 
@@ -1391,15 +1687,15 @@ export function optionalFn(bar: string, baz?: string) {
 				'App.tsrx',
 			);
 
-			expect(css).not.toBeNull();
+			expect(css).not.toBe('');
 			expect(code).toContain("{'Hello world'}");
-			expect(code).toContain(`${classAttrName}="${css?.hash}"`);
-			expect(css?.code).toContain(`.div.${css?.hash}`);
-			expect(css?.code).toContain('color: red;');
+			expect(code).toContain(`${classAttrName}="${cssHash}"`);
+			expect(css).toContain(`.div.${cssHash}`);
+			expect(css).toContain('color: red;');
 		});
 
 		it('applies the scope hash inside a <tsx> block', () => {
-			const { code, css } = compile(
+			const { code, css, cssHash } = compile(
 				`component Card() {
 					<tsx>
 						<div class="card">
@@ -1427,12 +1723,12 @@ export function optionalFn(bar: string, baz?: string) {
 				'Card.tsrx',
 			);
 
-			expect(css).not.toBeNull();
-			expect(count_substring(code, `${classAttrName}="card ${css?.hash}"`)).toBe(2);
+			expect(css).not.toBe('');
+			expect(count_substring(code, `${classAttrName}="card ${cssHash}"`)).toBe(2);
 		});
 
 		it('applies the scope hash inside fragment shorthand', () => {
-			const { code, css } = compile(
+			const { code, css, cssHash } = compile(
 				`component Card() {
 					<>
 						<div class="card">
@@ -1460,12 +1756,12 @@ export function optionalFn(bar: string, baz?: string) {
 				'Card.tsrx',
 			);
 
-			expect(css).not.toBeNull();
-			expect(count_substring(code, `${classAttrName}="card ${css?.hash}"`)).toBe(2);
+			expect(css).not.toBe('');
+			expect(count_substring(code, `${classAttrName}="card ${cssHash}"`)).toBe(2);
 		});
 
 		it('does not apply scoped css hashes to composite components', () => {
-			const { code, css } = compile(
+			const { code, css, cssHash } = compile(
 				`component Child() {
 					<div>{'Hello world'}</div>
 				}
@@ -1481,8 +1777,8 @@ export function optionalFn(bar: string, baz?: string) {
 				'App.tsrx',
 			);
 
-			expect(css).not.toBeNull();
-			expect(code).toContain(`<div ${classAttrName}="${css?.hash}">{'Styled content'}</div>`);
+			expect(css).not.toBe('');
+			expect(code).toContain(`<div ${classAttrName}="${cssHash}">{'Styled content'}</div>`);
 			expect(code).not.toMatch(/<Child\s+class(Name)?="/);
 		});
 
@@ -1491,7 +1787,7 @@ export function optionalFn(bar: string, baz?: string) {
 			// attribute — every target passes prop names through unchanged,
 			// so the assertion is cross-platform regardless of the host-
 			// element class attribute shape.
-			const { code, css } = compile(
+			const { code, css, cssHash } = compile(
 				`component Badge({ className }: { className?: string }) {
 					<span class={['badge', className ?? '']}>{'New'}</span>
 
@@ -1510,14 +1806,14 @@ export function optionalFn(bar: string, baz?: string) {
 				'App.tsrx',
 			);
 
-			expect(css).not.toBeNull();
-			const app_hash = css?.hash.split(' ').find((h) => code.includes(`${h} highlight`));
+			expect(css).not.toBe('');
+			const app_hash = cssHash.split(' ').find((h) => code.includes(`${h} highlight`));
 			expect(app_hash).toBeTruthy();
 			expect(code).toMatch(new RegExp(`className=["']${app_hash} highlight["']`));
 		});
 
 		it('passes {style} through a composite component prop when the element has children', () => {
-			const { code, css } = compile(
+			const { code, css, cssHash } = compile(
 				`component Child({ className }: { className?: string }) {
 						<span class={className}>"hello world"</span>
 					}
@@ -1532,14 +1828,14 @@ export function optionalFn(bar: string, baz?: string) {
 				'App.tsrx',
 			);
 
-			expect(css).not.toBeNull();
-			const app_hash = css?.hash.split(' ').find((h) => code.includes(`${h} container`));
+			expect(css).not.toBe('');
+			const app_hash = cssHash.split(' ').find((h) => code.includes(`${h} container`));
 			expect(app_hash).toBeTruthy();
 			expect(code).toMatch(new RegExp(`className=["']${app_hash} container["']`));
 		});
 
 		it('passes hyphenated {style} class names through a composite component prop', () => {
-			const { code, css } = compile(
+			const { code, css, cssHash } = compile(
 				`export component App() {
 						<Child cls={style 'accent-tone'} />
 
@@ -1550,7 +1846,7 @@ export function optionalFn(bar: string, baz?: string) {
 				'App.tsrx',
 			);
 
-			expect(css).not.toBeNull();
+			expect(css).not.toBe('');
 			expect(code).toContain('accent-tone');
 		});
 	});
@@ -1889,10 +2185,10 @@ export function optionalFn(bar: string, baz?: string) {
 				expect(code).not.toContain('continue;');
 				expect(code).toContain('return <span>{last}</span>;');
 				expect(code).toMatch(
-					/if \(item === 0\) \{\s+return _tsrx_isLast_\d+ \? <StatementBodyHook\d+ last=\{last\} \/> : null;\s+\}/,
+					/if \(item === 0\) \{\s+return _tsrx_isLast_\d+ \? <(?:\w+__)?StatementBodyHook\d+ last=\{last\} \/> : null;\s+\}/,
 				);
 				expect(code).toMatch(
-					/return <><div key=\{i\}>\{last\}<\/div>\{_tsrx_isLast_\d+ && <StatementBodyHook\d+ last=\{last\} \/>}<\/>;/,
+					/return <><div key=\{i\}>\{last\}<\/div>\{_tsrx_isLast_\d+ && <(?:\w+__)?StatementBodyHook\d+ last=\{last\} \/>}<\/>;/,
 				);
 			});
 
@@ -1913,10 +2209,10 @@ export function optionalFn(bar: string, baz?: string) {
 				expect(code).not.toContain('continue;');
 				expect(code).toContain('console.log(last);');
 				expect(code).toMatch(
-					/if \(i === 2\) \{[\s\S]*return [\s\S]*_tsrx_isLast_\d+ && <StatementBodyHook\d+ last=\{last\} \/>/,
+					/if \(i === 2\) \{[\s\S]*return [\s\S]*_tsrx_isLast_\d+ && <(?:\w+__)?StatementBodyHook\d+ last=\{last\} \/>/,
 				);
 				expect(code).toMatch(
-					/return <><div key=\{i\}>\{last\}<\/div>\{_tsrx_isLast_\d+ && <StatementBodyHook\d+ last=\{last\} \/>}<\/>;/,
+					/return <><div key=\{i\}>\{last\}<\/div>\{_tsrx_isLast_\d+ && <(?:\w+__)?StatementBodyHook\d+ last=\{last\} \/>}<\/>;/,
 				);
 			});
 

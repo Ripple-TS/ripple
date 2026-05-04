@@ -543,3 +543,22 @@ export function render_stylesheets(stylesheets, minify = false) {
 
 	return css;
 }
+
+/**
+ * Render the `{ css, cssHash }` slice of a `CompileResult` from a list of
+ * stylesheets. Returns `{ css: '', cssHash: null }` when the list is empty
+ * so consumers can pass the result straight into a flat compile result.
+ *
+ * @param {AST.CSS.StyleSheet[]} stylesheets
+ * @param {boolean} [minify]
+ * @returns {{ css: string, cssHash: string | null }}
+ */
+export function render_css_result(stylesheets, minify = false) {
+	if (stylesheets.length === 0) {
+		return { css: '', cssHash: null };
+	}
+	return {
+		css: render_stylesheets(stylesheets, minify),
+		cssHash: stylesheets.map((s) => s.hash).join(' '),
+	};
+}

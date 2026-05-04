@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -116,6 +116,9 @@ describe('CLI Integration Tests', () => {
 
 		expect(existsSync(join(testDir, projectName))).toBe(true);
 		expect(existsSync(join(testDir, projectName, 'package.json'))).toBe(true);
+
+		const tsconfig = JSON.parse(readFileSync(join(testDir, projectName, 'tsconfig.json'), 'utf-8'));
+		expect(tsconfig.compilerOptions.strict).toBe(true);
 	});
 
 	it('should create project with relative path to target directory', async () => {

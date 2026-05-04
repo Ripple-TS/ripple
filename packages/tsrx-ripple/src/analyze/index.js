@@ -28,8 +28,10 @@ import {
 	isEventAttribute,
 	isInsideComponent as is_inside_component,
 	validateNesting,
+	validateClassComponentDeclarations,
 	validateComponentLoopBreakStatement,
 	validateComponentLoopReturnStatement,
+	validateComponentParams,
 	validateComponentReturnStatement,
 	validateComponentUnsupportedLoopStatement,
 } from '@tsrx/core';
@@ -1466,8 +1468,25 @@ const visitors = {
 		visit_function(node, context);
 	},
 
+	ClassBody(node, context) {
+		validateClassComponentDeclarations(
+			node,
+			context.state.analysis.module.filename,
+			context.state.collect ? context.state.analysis.errors : undefined,
+			context.state.analysis.comments,
+		);
+		context.next();
+	},
+
 	Component(node, context) {
 		context.state.component = node;
+
+		validateComponentParams(
+			node,
+			context.state.analysis.module.filename,
+			context.state.collect ? context.state.analysis.errors : undefined,
+			context.state.analysis.comments,
+		);
 
 		if (node.params.length > 0) {
 			const props = node.params[0];
