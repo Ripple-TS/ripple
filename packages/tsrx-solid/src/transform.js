@@ -177,7 +177,11 @@ function component_to_function_declaration(component, transform_context) {
 	const params = component.params || [];
 	const body = /** @type {any[]} */ (component.body || []);
 
-	const lazy_bindings = collect_lazy_bindings_from_component(params, body, transform_context);
+	// In type-only mode the lazy rewrite is skipped so destructuring patterns
+	// survive into the virtual TSX and TypeScript can flow real types.
+	const lazy_bindings = transform_context.typeOnly
+		? new Map()
+		: collect_lazy_bindings_from_component(params, body, transform_context);
 
 	// Detect top-level early-return patterns such as `if (cond) { return; }`
 	// and `if (cond) { <p />; return; }`.

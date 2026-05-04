@@ -180,12 +180,15 @@ export function createJsxTransform(platform) {
 			collect,
 			errors: collect ? options?.errors : undefined,
 			comments: options?.comments,
+			typeOnly: !!options?.typeOnly,
 			// Platforms can seed their own tracking state (e.g. solid's
 			// needs_show / needs_for flags) via `hooks.initialState`.
 			...(platform.hooks?.initialState?.() ?? {}),
 		};
 
-		preallocate_lazy_ids(/** @type {any} */ (ast), transform_context);
+		if (!transform_context.typeOnly) {
+			preallocate_lazy_ids(/** @type {any} */ (ast), transform_context);
+		}
 
 		walk(/** @type {any} */ (ast), transform_context, {
 			ReturnStatement(node, { next, path }) {
@@ -442,8 +445,15 @@ export function createJsxTransform(platform) {
 		// declarations, arrow functions, etc.). Component bodies have already been
 		// transformed inside component_to_function_declaration; this catches plain
 		// functions outside components and any lazy patterns in module scope.
+		// In type-only mode, the lazy patterns survive untouched: esrap ignores the
+		// non-standard `lazy` flag, so `&{ a, b }` prints as `{ a, b }`, `let &[a]
+		// = expr` prints as `let [a] = expr`, and the bare statement-level form
+		// `&[x] = expr;` (used when `x` is already declared) prints as `[x] =
+		// expr;` — a valid destructuring assignment to the existing binding.
 		const final_program = /** @type {any} */ (
-			apply_lazy_transforms(/** @type {any} */ (expanded), new Map())
+			transform_context.typeOnly
+				? expanded
+				: apply_lazy_transforms(/** @type {any} */ (expanded), new Map())
 		);
 
 		const result = print(/** @type {any} */ (final_program), tsx_with_ts_locations(), {
@@ -519,7 +529,11 @@ export function component_to_function_declaration(component, transform_context, 
 	// Collect lazy binding info WITHOUT mutating patterns. Stores lazy_id on metadata
 	// for later replacement. Body bindings (count, setCount, etc.) are still in the
 	// original patterns, so collect_statement_bindings during build will find them.
-	const lazy_bindings = collect_lazy_bindings_from_component(params, body, transform_context);
+	// In type-only mode the lazy rewrite is skipped entirely so destructuring
+	// patterns survive into the virtual TSX and TypeScript can flow real types.
+	const lazy_bindings = transform_context.typeOnly
+		? new Map()
+		: collect_lazy_bindings_from_component(params, body, transform_context);
 
 	// Save and set context for this component scope
 	const saved_helper_state = transform_context.helper_state;

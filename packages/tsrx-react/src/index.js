@@ -64,6 +64,7 @@ export function compile_to_volar_mappings(source, filename, options) {
 		collect: true,
 		loose: !!options?.loose,
 		moduleScopedHookComponents: false,
+		typeOnly: true,
 		errors,
 		comments,
 	});

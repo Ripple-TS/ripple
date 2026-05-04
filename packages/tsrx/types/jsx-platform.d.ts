@@ -56,6 +56,8 @@ export interface JsxTransformContext {
 	errors: CompileError[] | undefined;
 	/** Module-level comments used to honor `@tsrx-ignore` / `@tsrx-expect-error`. */
 	comments: AST.CommentWithLocation[] | undefined;
+	/** True when emitting a type-only virtual TSX module; preserves lazy destructuring patterns. */
+	typeOnly: boolean;
 }
 
 /**
@@ -94,6 +96,14 @@ export interface JsxTransformOptions {
 	 * can disable it to preserve lexical `typeof` helper prop types.
 	 */
 	moduleScopedHookComponents?: boolean;
+	/**
+	 * Emit a type-only virtual TSX module — output is fed to TypeScript for
+	 * editor diagnostics / completions and never executed. Skips the lazy
+	 * destructuring rewrite (`&{ a, b }` → `__lazy0: { a: any; b: any }`) so
+	 * destructuring patterns survive and TypeScript can flow real types to the
+	 * bindings.
+	 */
+	typeOnly?: boolean;
 }
 
 /**
