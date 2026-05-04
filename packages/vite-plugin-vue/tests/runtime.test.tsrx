@@ -435,12 +435,13 @@ component ForJsxIndexKeyedApp() {
 	]);
 
 	for (const item of items.value; index i) {
-		<p key={item.id} class={`jsx-index-keyed-row row-${item.id}`}>
-			{`${i}:${item.label}`}
-		</p>
+		<p key={item.id} class={`jsx-index-keyed-row row-${item.id}`}>{`${i}:${item.label}`}</p>
 	}
 
-	<button class="reverse-jsx-index-keyed" onClick={() => (items.value = [...items.value].reverse())}>
+	<button
+		class="reverse-jsx-index-keyed"
+		onClick={() => (items.value = [...items.value].reverse())}
+	>
 		{'reverse'}
 	</button>
 }
@@ -460,7 +461,10 @@ component ForNestedIndexKeyedApp() {
 		</section>
 	}
 
-	<button class="reverse-nested-index-keyed" onClick={() => (items.value = [...items.value].reverse())}>
+	<button
+		class="reverse-nested-index-keyed"
+		onClick={() => (items.value = [...items.value].reverse())}
+	>
 		{'reverse'}
 	</button>
 	<button
@@ -502,10 +506,13 @@ component ForDestructuredKeyedStateApp() {
 	]);
 
 	for (const { id, label } of items.value; key id) {
-		<DestructuredKeyedRow id={id} label={label} />
+		<DestructuredKeyedRow {id} {label} />
 	}
 
-	<button class="reverse-destructured-keyed" onClick={() => (items.value = [...items.value].reverse())}>
+	<button
+		class="reverse-destructured-keyed"
+		onClick={() => (items.value = [...items.value].reverse())}
+	>
 		{'reverse'}
 	</button>
 	<button

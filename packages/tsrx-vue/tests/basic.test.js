@@ -425,6 +425,25 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toContain('item.value.text');
 	});
 
+	it('does not rewrite shadowed loop params inside nested keyed slot functions', () => {
+		const { code } = compile(
+			`component App({ items, getNew, use }: { items: { id: string, text: string }[], getNew: () => unknown, use: (item: unknown) => void }) {
+				for (const item of items; key item.id) {
+					<button onClick={() => {
+						const item = getNew();
+						use(item);
+					}}>{item.text}</button>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('const item = getNew();');
+		expect(code).toContain('use(item);');
+		expect(code).toContain('item.value.text');
+		expect(code).not.toContain('use(item.value)');
+	});
+
 	it('compiles indexed keyed for...of statements in component bodies', () => {
 		const { code } = compile(
 			`component App({ items }: { items: { id: string, text: string }[] }) {

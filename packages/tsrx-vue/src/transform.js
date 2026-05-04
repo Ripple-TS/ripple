@@ -458,6 +458,7 @@ function rewrite_vapor_for_keyed_slot_refs(node, loop_params, replacements = new
 			FunctionDeclaration: rewrite_function_shadowed_refs,
 			FunctionExpression: rewrite_function_shadowed_refs,
 			ArrowFunctionExpression: rewrite_function_shadowed_refs,
+			BlockStatement: rewrite_block_shadowed_refs,
 		},
 	);
 }
@@ -550,7 +551,81 @@ function rewrite_function_shadowed_refs(node, { state, next }) {
 	for (const param of node.params || []) {
 		collect_pattern_names(param, shadowed_names);
 	}
+	collect_function_var_names(node.body, shadowed_names);
 	return next({ ...state, shadowed_names });
+}
+
+/**
+ * @param {any} node
+ * @param {{ state: { loop_param_names: Set<string>, shadowed_names: Set<string> }, next: (state?: any) => any }} context
+ * @returns {any}
+ */
+function rewrite_block_shadowed_refs(node, { state, next }) {
+	const shadowed_names = new Set(state.shadowed_names);
+	collect_block_lexical_names(node.body, shadowed_names);
+	return next({ ...state, shadowed_names });
+}
+
+/**
+ * @param {any[]} statements
+ * @param {Set<string>} names
+ * @returns {void}
+ */
+function collect_block_lexical_names(statements, names) {
+	for (const statement of statements || []) {
+		if (statement.type === 'VariableDeclaration' && statement.kind !== 'var') {
+			for (const declaration of statement.declarations || []) {
+				collect_pattern_names(declaration.id, names);
+			}
+			continue;
+		}
+
+		if (
+			(statement.type === 'FunctionDeclaration' || statement.type === 'ClassDeclaration') &&
+			statement.id
+		) {
+			collect_pattern_names(statement.id, names);
+		}
+	}
+}
+
+/**
+ * @param {any} node
+ * @param {Set<string>} names
+ * @returns {void}
+ */
+function collect_function_var_names(node, names) {
+	if (!node || typeof node !== 'object') return;
+
+	if (Array.isArray(node)) {
+		for (const child of node) {
+			collect_function_var_names(child, names);
+		}
+		return;
+	}
+
+	if (
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression' ||
+		node.type === 'ClassDeclaration' ||
+		node.type === 'ClassExpression'
+	) {
+		return;
+	}
+
+	if (node.type === 'VariableDeclaration' && node.kind === 'var') {
+		for (const declaration of node.declarations || []) {
+			collect_pattern_names(declaration.id, names);
+		}
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		collect_function_var_names(node[key], names);
+	}
 }
 
 /**
