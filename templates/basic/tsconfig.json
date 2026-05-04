@@ -9,6 +9,7 @@
 		"allowArbitraryExtensions": true,
 		"jsx": "preserve",
 		"jsxImportSource": "ripple",
+		"strictNullChecks": true,
 		"noEmit": true,
 		"isolatedModules": true,
 		"plugins": [{ "name": "@tsrx/typescript-plugin" }]
