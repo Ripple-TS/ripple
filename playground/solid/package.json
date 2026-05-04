@@ -8,6 +8,8 @@
     "build": "vite build",
     "preview": "vite preview --host",
     "typecheck": "tsrx-tsc --noEmit",
+    "debug-all": "node ../../scripts/debug-mode.js all @tsrx/solid",
+    "debug-client": "node ../../scripts/debug-mode.js client @tsrx/solid",
     "debug-volar": "node ../../scripts/debug-mode.js tsx @tsrx/solid",
     "debug-tsx": "node ../../scripts/debug-mode.js tsx @tsrx/solid"
   },

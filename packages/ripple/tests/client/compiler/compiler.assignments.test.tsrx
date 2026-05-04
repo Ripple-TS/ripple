@@ -117,7 +117,7 @@ component App() {
 	});
 }`;
 		const result = compile(source, 'test.tsrx');
-		const effect_match = result.js.code.match(EFFECT_BODY_REGEX);
+		const effect_match = result.code.match(EFFECT_BODY_REGEX);
 		expect(effect_match?.[1].trim()).toMatchSnapshot();
 	});
 
@@ -136,7 +136,7 @@ component App() {
 	});
 }`;
 		const result = compile(source, 'test.tsrx');
-		const effect_match = result.js.code.match(EFFECT_BODY_REGEX);
+		const effect_match = result.code.match(EFFECT_BODY_REGEX);
 		expect(effect_match?.[1].trim()).toMatchSnapshot();
 	});
 });

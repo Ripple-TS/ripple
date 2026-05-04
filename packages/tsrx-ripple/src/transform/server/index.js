@@ -14,6 +14,7 @@ import {
 	escape,
 	isEventAttribute,
 	isInsideComponent as is_inside_component,
+	renderCssResult,
 	renderStylesheets,
 	CSS_HASH_IDENTIFIER,
 	obfuscateIdentifier,
@@ -1856,7 +1857,7 @@ const visitors = {
  * @param {AnalysisResult} analysis
  * @param {boolean} minify_css
  * @param {boolean} [dev]
- * @returns {{ ast: AST.Program; js: { code: string; map: RawSourceMap | null }; css: string; }}
+ * @returns {{ ast: AST.Program; code: string; map: RawSourceMap | null; css: string; cssHash: string | null; }}
  */
 export function transform_server(filename, source, analysis, minify_css, dev = false) {
 	// Use component metadata collected during the analyze phase
@@ -1885,11 +1886,10 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 
 	const program = /** @type {AST.Program} */ (walk(analysis.ast, { ...state }, visitors));
 
-	const css = renderStylesheets(state.stylesheets, minify_css);
+	const { css, cssHash } = renderCssResult(state.stylesheets, minify_css);
 
-	// Add CSS registration if there are stylesheets
-	if (state.stylesheets.length > 0 && css) {
-		// Register each stylesheet's CSS
+	// Register each stylesheet's CSS so the runtime can serialize it
+	if (css) {
 		for (const stylesheet of state.stylesheets) {
 			const css_for_component = renderStylesheets([stylesheet]);
 			/** @type {AST.Program} */ (program).body.push(
@@ -1915,14 +1915,20 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 
 	program.body = body;
 
-	const js = print(program, /** @type {Visitors<AST.Node, TransformServerState>} */ (ts()), {
-		sourceMapContent: source,
-		sourceMapSource: path.basename(filename),
-	});
+	const { code, map } = print(
+		program,
+		/** @type {Visitors<AST.Node, TransformServerState>} */ (ts()),
+		{
+			sourceMapContent: source,
+			sourceMapSource: path.basename(filename),
+		},
+	);
 
 	return {
 		ast: /** @type {AST.Program} */ (program),
-		js,
+		code,
+		map,
 		css,
+		cssHash,
 	};
 }

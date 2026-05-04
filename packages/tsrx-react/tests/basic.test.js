@@ -4,6 +4,7 @@ import {
 	runSharedClassComponentDeclarationTests,
 	runSharedCompileDiagnosticsTests,
 	runSharedCompileTests,
+	runSharedComponentParamsTests,
 } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
@@ -19,6 +20,7 @@ runSharedAnonymousComponentTests({ compile, name: 'react' });
 runSharedCompileTests({ compile, name: 'react', classAttrName: 'className' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'react' });
 runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'react' });
+runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name: 'react' });
 
 /**
  * @import { CodeMapping } from '@tsrx/core/types';
@@ -157,7 +159,7 @@ describe('@tsrx/react basic', () => {
 	});
 
 	it('applies scoped css hashes to elements inside control flow', () => {
-		const { code, css } = compile(
+		const { code, css, cssHash } = compile(
 			`export component App() {
 				if (true) {
 					<div>{'inside'}</div>
@@ -172,10 +174,10 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(css).not.toBeNull();
-		expect(code).toContain(`className="${css.hash}"`);
-		expect(code).toContain(`App__static1 = <div className="${css.hash}">`);
-		expect(css.code).toContain(`.div.${css.hash}`);
+		expect(css).not.toBe('');
+		expect(code).toContain(`className="${cssHash}"`);
+		expect(code).toContain(`App__static1 = <div className="${cssHash}">`);
+		expect(css).toContain(`.div.${cssHash}`);
 	});
 
 	it('renders component-body if statements as React expressions', () => {
@@ -1176,7 +1178,7 @@ describe('@tsrx/react basic', () => {
 	});
 
 	it('applies scoped CSS hashes inside try blocks', () => {
-		const { code, css } = compile(
+		const { code, css, cssHash } = compile(
 			`export component App() {
 				try {
 					<div class="content">{'hello'}</div>
@@ -1192,9 +1194,9 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(css).not.toBeNull();
-		expect(code).toContain(`className="content ${css.hash}"`);
-		expect(code).toContain(`className="error ${css.hash}"`);
+		expect(css).not.toBe('');
+		expect(code).toContain(`className="content ${cssHash}"`);
+		expect(code).toContain(`className="error ${cssHash}"`);
 	});
 
 	// ── Hook extraction from control flow ──

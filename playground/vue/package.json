@@ -7,6 +7,8 @@
     "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview --host",
+    "debug-all": "node ../../scripts/debug-mode.js all @tsrx/vue",
+    "debug-client": "node ../../scripts/debug-mode.js client @tsrx/vue",
     "debug-volar": "node ../../scripts/debug-mode.js tsx @tsrx/vue",
     "debug-tsx": "node ../../scripts/debug-mode.js tsx @tsrx/vue"
   },

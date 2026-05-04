@@ -170,7 +170,10 @@ export {
 	set_loc,
 	to_text_expression,
 } from './transform/jsx/ast-builders.js';
-export { render_stylesheets as renderStylesheets } from './transform/stylesheet.js';
+export {
+	render_stylesheets as renderStylesheets,
+	render_css_result as renderCssResult,
+} from './transform/stylesheet.js';
 export {
 	prepare_stylesheet_for_render as prepareStylesheetForRender,
 	is_style_element as isStyleElement,
@@ -220,6 +223,7 @@ export {
 	COMPONENT_FOR_STATEMENT_ERROR,
 	COMPONENT_LOOP_BREAK_ERROR,
 	COMPONENT_LOOP_RETURN_ERROR,
+	COMPONENT_MULTIPLE_PARAMS_ERROR,
 	COMPONENT_RETURN_VALUE_ERROR,
 	COMPONENT_WHILE_STATEMENT_ERROR,
 	get_return_keyword_node as getReturnKeywordNode,
@@ -227,6 +231,7 @@ export {
 	validate_class_component_declarations as validateClassComponentDeclarations,
 	validate_component_loop_break_statement as validateComponentLoopBreakStatement,
 	validate_component_loop_return_statement as validateComponentLoopReturnStatement,
+	validate_component_params as validateComponentParams,
 	validate_component_return_statement as validateComponentReturnStatement,
 	validate_component_unsupported_loop_statement as validateComponentUnsupportedLoopStatement,
 	validate_nesting as validateNesting,

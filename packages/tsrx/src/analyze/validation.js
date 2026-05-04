@@ -21,6 +21,8 @@ export const COMPONENT_DO_WHILE_STATEMENT_ERROR =
 	'Do...while loops are not supported in components. Move the do...while loop into a function.';
 export const CLASS_COMPONENT_AS_NON_ARROW_PROPERTY_ERROR =
 	'Components declared inside a class must be defined as an arrow function class property (e.g. `Foo = component() => { ... }`). Non-arrow component property values are not allowed.';
+export const COMPONENT_MULTIPLE_PARAMS_ERROR =
+	'Components accept a single props parameter. Move additional inputs into the props object instead.';
 
 const invalid_nestings = {
 	// <p> cannot contain block-level elements
@@ -247,6 +249,30 @@ export function validate_component_unsupported_loop_statement(node, filename, er
 	}
 
 	error(message, filename ?? null, node, errors, comments);
+}
+
+/**
+ * Validates that a component declares at most a single (props) parameter.
+ * Components have one slot for props; additional positional parameters are
+ * silently dropped or naively passed through depending on the target, so
+ * reject them at analysis time. Reports one error per extra parameter so
+ * every offending input gets its own TS diagnostic squiggle. In throwing
+ * mode the first call raises and aborts before the loop continues.
+ *
+ * @param {AST.Component} component
+ * @param {string | null | undefined} filename
+ * @param {CompileError[]} [errors]
+ * @param {AST.CommentWithLocation[]} [comments]
+ */
+export function validate_component_params(component, filename, errors, comments) {
+	const params = /** @type {AST.Pattern[] | undefined} */ (component.params);
+	if (!params || params.length <= 1) {
+		return;
+	}
+
+	for (let i = 1; i < params.length; i++) {
+		error(COMPONENT_MULTIPLE_PARAMS_ERROR, filename ?? null, params[i], errors, comments);
+	}
 }
 
 /**

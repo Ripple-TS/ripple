@@ -385,10 +385,10 @@ export component App() {
 		}
 	</style>
 }`;
-			const { js } = compile(source, 'test.tsrx');
+			const { code } = compile(source, 'test.tsrx');
 
-			expect(js.code).toContain('highlight');
-			expect(js.code).toMatch(/tsrx-[a-z0-9]+/);
+			expect(code).toContain('highlight');
+			expect(code).toMatch(/tsrx-[a-z0-9]+/);
 		});
 
 		it('inlines scoped class strings for server mode', () => {
@@ -405,10 +405,10 @@ export component App() {
 		}
 	</style>
 }`;
-			const { js } = compile(source, 'test.tsrx', { mode: 'server' });
+			const { code } = compile(source, 'test.tsrx', { mode: 'server' });
 
-			expect(js.code).toContain('highlight');
-			expect(js.code).toMatch(/tsrx-[a-z0-9]+/);
+			expect(code).toContain('highlight');
+			expect(code).toMatch(/tsrx-[a-z0-9]+/);
 		});
 	});
 });

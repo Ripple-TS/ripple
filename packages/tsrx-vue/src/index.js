@@ -22,7 +22,7 @@ export function parse(source, filename, options) {
  * @param {string} source
  * @param {string} [filename]
  * @param {{ collect?: boolean, loose?: boolean }} [options]
- * @returns {{ code: string, map: any, css: { code: string, hash: string } | null, errors: CompileError[] }}
+ * @returns {{ code: string, map: any, css: string, cssHash: string | null, errors: CompileError[] }}
  */
 export function compile(source, filename, options) {
 	const errors = /** @type {CompileError[]} */ ([]);

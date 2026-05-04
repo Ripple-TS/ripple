@@ -26,7 +26,7 @@ import {
 	set_loc,
 	to_text_expression,
 } from './ast-builders.js';
-import { render_stylesheets as renderStylesheets } from '../stylesheet.js';
+import { render_css_result } from '../stylesheet.js';
 import {
 	set_location as setLocation,
 	jsx_attribute as build_jsx_attribute,
@@ -45,6 +45,7 @@ import {
 	validate_class_component_declarations,
 	validate_component_loop_break_statement,
 	validate_component_loop_return_statement,
+	validate_component_params,
 	validate_component_return_statement,
 	validate_component_unsupported_loop_statement,
 } from '../../analyze/validation.js';
@@ -287,6 +288,13 @@ export function createJsxTransform(platform) {
 			Component(node, { next, state }) {
 				const as_any = /** @type {any} */ (node);
 
+				validate_component_params(
+					as_any,
+					filename,
+					transform_context.errors,
+					transform_context.comments,
+				);
+
 				const await_expression = find_first_top_level_await_in_component_body(as_any.body || []);
 
 				if (await_expression) {
@@ -443,17 +451,11 @@ export function createJsxTransform(platform) {
 			sourceMapContent: source,
 		});
 
-		const css =
-			stylesheets.length > 0
-				? {
-						code: renderStylesheets(
-							/** @type {any} */ (stylesheets.map(prepare_stylesheet_for_render)),
-						),
-						hash: stylesheets.map((s) => s.hash).join(' '),
-					}
-				: null;
+		const { css, cssHash } = render_css_result(
+			/** @type {any} */ (stylesheets.map(prepare_stylesheet_for_render)),
+		);
 
-		return { ast: final_program, code: result.code, map: result.map, css };
+		return { ast: final_program, code: result.code, map: result.map, css, cssHash };
 	}
 
 	return transform;

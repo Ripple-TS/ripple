@@ -66,7 +66,7 @@ export function tsrxReact(options = {}) {
 
 			let source = tsx_code;
 			if (css) {
-				css_cache.set(id, css.code);
+				css_cache.set(id, css);
 				source = `import ${JSON.stringify(id + CSS_QUERY)};\n${tsx_code}`;
 			} else {
 				css_cache.delete(id);

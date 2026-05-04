@@ -4,6 +4,7 @@ import {
 	runSharedClassComponentDeclarationTests,
 	runSharedCompileDiagnosticsTests,
 	runSharedComponentLoopControlFlowTests,
+	runSharedComponentParamsTests,
 } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
@@ -18,6 +19,7 @@ runSharedAnonymousComponentTests({ compile, name: 'vue' });
 runSharedComponentLoopControlFlowTests({ compile, name: 'vue' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'vue' });
 runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'vue' });
+runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name: 'vue' });
 
 describe('@tsrx/vue basic', () => {
 	it('wraps named component exports in defineVaporComponent', () => {
@@ -89,7 +91,7 @@ describe('@tsrx/vue basic', () => {
 	});
 
 	it('emits scoped CSS and applies the scope hash to host elements', () => {
-		const { code, css } = compile(
+		const { code, css, cssHash } = compile(
 			`component App() {
 				<div class="card">{'Hi'}</div>
 
@@ -102,10 +104,10 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(css).not.toBeNull();
-		expect(code).toContain(`class="card ${css?.hash}"`);
-		expect(css?.code).toContain(`.card.${css?.hash}`);
-		expect(css?.code).toContain('color: red;');
+		expect(css).not.toBe('');
+		expect(code).toContain(`class="card ${cssHash}"`);
+		expect(css).toContain(`.card.${cssHash}`);
+		expect(css).toContain('color: red;');
 	});
 
 	it('{ref fn} on a DOM element compiles to ref={fn}', () => {
