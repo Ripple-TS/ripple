@@ -60,21 +60,36 @@ function install_transpiler_stub() {
 
 /**
  * @param {import('../types/index.js').TsrxPreactBunPluginOptions} [options]
- * @param {{ target?: string, root?: string }} [config]
+ * @param {{ target?: import('bun').Target, root?: string }} [config]
  */
 function setup_plugin(options, config = {}) {
 	/** @type {Hooks} */
 	const hooks = { onResolve: [], onLoad: [] };
 	const plugin = tsrxPreact(options);
-	plugin.setup({
-		config,
+	const build = {
+		config: {
+			entrypoints: [],
+			plugins: [],
+			...config,
+		},
+		/**
+		 * @param {{ filter: RegExp, namespace?: string }} hook_options
+		 * @param {Function} callback
+		 */
 		onResolve(hook_options, callback) {
 			hooks.onResolve.push({ options: hook_options, callback });
+			return build;
 		},
+		/**
+		 * @param {{ filter: RegExp, namespace?: string }} hook_options
+		 * @param {Function} callback
+		 */
 		onLoad(hook_options, callback) {
 			hooks.onLoad.push({ options: hook_options, callback });
+			return build;
 		},
-	});
+	};
+	plugin.setup(/** @type {import('bun').PluginBuilder} */ (/** @type {unknown} */ (build)));
 	return hooks;
 }
 
