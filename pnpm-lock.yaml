@@ -442,7 +442,7 @@ importers:
         specifier: 3.6.0-beta.10
         version: 3.6.0-beta.10(typescript@5.9.3)
       vue-jsx-vapor:
-        specifier: ^3.2.11
+        specifier: ^3.2.12
         version: 3.2.12(csstype@3.2.3)(esbuild@0.27.3)(vite@8.0.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.6.0-beta.10(typescript@5.9.3))
 
   packages/cli:
