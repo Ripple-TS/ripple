@@ -3,7 +3,7 @@
   "description": "Rollup plugin for Ripple",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.3.47",
+  "version": "0.3.48",
   "type": "module",
   "main": "index.js",
   "homepage": "https://ripple-ts.com",

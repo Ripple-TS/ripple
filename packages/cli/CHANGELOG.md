@@ -1,5 +1,14 @@
 # @ripple-ts/cli
 
+## 0.3.48
+
+### Patch Changes
+
+- [#1068](https://github.com/Ripple-TS/ripple/pull/1068)
+  [`9d437ee`](https://github.com/Ripple-TS/ripple/commit/9d437ee5f3fe108deb5b1334f935990290296246)
+  Thanks [@trueadm](https://github.com/trueadm)! - Enable strict checking in new
+  Ripple app templates so tracked values preserve nullish types in editor hovers.
+
 ## 0.3.47
 
 ## 0.3.46

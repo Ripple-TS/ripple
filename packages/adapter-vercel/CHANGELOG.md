@@ -1,5 +1,13 @@
 # @ripple-ts/adapter-vercel
 
+## 0.3.48
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.3.48
+  - @ripple-ts/adapter-node@0.3.48
+
 ## 0.3.47
 
 ### Patch Changes
