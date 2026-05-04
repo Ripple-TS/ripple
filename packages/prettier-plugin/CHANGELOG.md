@@ -1,5 +1,28 @@
 # @tsrx/prettier-plugin
 
+## 0.3.47
+
+### Patch Changes
+
+- [#1057](https://github.com/Ripple-TS/ripple/pull/1057)
+  [`b34b95a`](https://github.com/Ripple-TS/ripple/commit/b34b95a808ec801109d1818f4d24ae0bbc00f66b)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Enforces a stricter rule for
+  components declared inside classes: they must be arrow-function class properties
+  (including static), and class component foo() {} method-style declarations are
+  no longer supported.
+
+  Removes component method declarations support in favor of using as properties.
+
+- Updated dependencies
+  [[`eae7b40`](https://github.com/Ripple-TS/ripple/commit/eae7b4047f4d8cc7a0278fb48ffe630d73a592c6),
+  [`29ac6d7`](https://github.com/Ripple-TS/ripple/commit/29ac6d757b376e4102c4c8c8d3d47f7ae3afdd00),
+  [`b34b95a`](https://github.com/Ripple-TS/ripple/commit/b34b95a808ec801109d1818f4d24ae0bbc00f66b),
+  [`cf60dba`](https://github.com/Ripple-TS/ripple/commit/cf60dbaf9c6be84d6e95f9c5d66b64d8927494c9),
+  [`4cd0986`](https://github.com/Ripple-TS/ripple/commit/4cd0986201e960cd8544d0f789d17a217e93f954),
+  [`a960343`](https://github.com/Ripple-TS/ripple/commit/a960343169aee906162211c502b6cc6b74e2a124)]:
+  - @tsrx/core@0.0.27
+  - @tsrx/ripple@0.0.29
+
 ## 0.3.46
 
 ### Patch Changes
