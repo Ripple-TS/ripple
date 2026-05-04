@@ -118,7 +118,7 @@ describe('CLI Integration Tests', () => {
 		expect(existsSync(join(testDir, projectName, 'package.json'))).toBe(true);
 
 		const tsconfig = JSON.parse(readFileSync(join(testDir, projectName, 'tsconfig.json'), 'utf-8'));
-		expect(tsconfig.compilerOptions.strictNullChecks).toBe(true);
+		expect(tsconfig.compilerOptions.strict).toBe(true);
 	});
 
 	it('should create project with relative path to target directory', async () => {
