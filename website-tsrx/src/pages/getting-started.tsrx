@@ -270,7 +270,7 @@ const NAV_GROUPS = [
 
 export component GettingStartedPage() {
 	<head>
-		<title>{'TSRX | Getting Started'}</title>
+		<title>"TSRX | Getting Started"</title>
 		<meta
 			name="description"
 			content="Get started with TSRX: install with React, Preact, Solid, Vue, or Ripple for Vite, Rspack, Turbopack, or Bun, learn the component syntax, and explore statement-based control flow."
@@ -284,37 +284,37 @@ export component GettingStartedPage() {
 					<img class="header-logo" src="/images/tsrx-mark.svg?v=4" alt="TSRX logo" />
 				</a>
 				<nav class="masthead-nav">
-					<a href="/getting-started" aria-current="page">{'Getting Started'}</a>
-					<a href="/features">{'Features'}</a>
-					<a href="/specification">{'Specification'}</a>
-					<a href="/playground">{'Playground'}</a>
-					<a href="https://discord.gg/HCYpT5QHQR" target="_blank" rel="noopener noreferrer">
-						{'Discord'}
-					</a>
+					<a href="/getting-started" aria-current="page">"Getting Started"</a>
+					<a href="/features">"Features"</a>
+					<a href="/specification">"Specification"</a>
+					<a href="/playground">"Playground"</a>
+					<a
+						href="https://discord.gg/HCYpT5QHQR"
+						target="_blank"
+						rel="noopener noreferrer"
+					>"Discord"</a>
 					<a
 						href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
 						target="_blank"
 						rel="noopener noreferrer"
-					>
-						{'GitHub'}
-					</a>
-					<a href="/llms.txt" target="_blank" rel="noopener noreferrer">{'llms.txt'}</a>
+					>"GitHub"</a>
+					<a href="/llms.txt" target="_blank" rel="noopener noreferrer">"llms.txt"</a>
 				</nav>
 			</header>
 
 			<section class="hero">
-				<h1>{'Getting Started'}</h1>
+				<h1>"Getting Started"</h1>
 				<p class="lede">
-					{'Set up TSRX with React, Preact, Solid, Vue, or Ripple and then wire in the editor tooling that makes '}
-					<code class="inline-code">{'.tsrx'}</code>
-					{' files feel native in the rest of your repo.'}
+					"Set up TSRX with React, Preact, Solid, Vue, or Ripple and then wire in the editor tooling that makes "
+					<code class="inline-code">".tsrx"</code>
+					" files feel native in the rest of your repo."
 				</p>
 			</section>
 
 			<div class="docs-layout">
 				<aside class="side-nav">
 					<label class="side-nav-dropdown">
-						<span class="side-nav-dropdown-label">{'Jump to section'}</span>
+						<span class="side-nav-dropdown-label">"Jump to section"</span>
 						<select
 							class="side-nav-select"
 							onChange={(event) => {
@@ -324,7 +324,7 @@ export component GettingStartedPage() {
 								}
 							}}
 						>
-							<option value="">{'Jump to section'}</option>
+							<option value="">"Jump to section"</option>
 							for (const group of NAV_GROUPS) {
 								<optgroup label={group.heading}>
 									for (const item of group.items) {
@@ -346,249 +346,249 @@ export component GettingStartedPage() {
 
 				<main class="docs-content">
 					<section class="doc-section" id="react-vite">
-						<p class="section-kicker">{'Framework setup'}</p>
-						<h2 class="section-heading">{'React + Vite'}</h2>
-						<p class="section-body">{'Install the compiler and Vite plugin:'}</p>
+						<p class="section-kicker">"Framework setup"</p>
+						<h2 class="section-heading">"React + Vite"</h2>
+						<p class="section-body">"Install the compiler and Vite plugin:"</p>
 						<pre class="code-block">
 							<code>{html INSTALL_HTML}</code>
 						</pre>
-						<p class="section-body">{'Then add the plugin to your Vite config:'}</p>
+						<p class="section-body">"Then add the plugin to your Vite config:"</p>
 						<pre class="code-block">
 							<code>{html VITE_CONFIG_HTML}</code>
 						</pre>
 						<p class="section-body">
-							{'That\'s it — create any '}
-							<code class="inline-code">{'.tsrx'}</code>
-							{' file and import it from your existing JS, TS, or TSX code. The plugin compiles '}
-							<code class="inline-code">{'.tsrx'}</code>
-							{' modules into standard React components with scoped CSS.'}
+							"That's it — create any "
+							<code class="inline-code">".tsrx"</code>
+							" file and import it from your existing JS, TS, or TSX code. The plugin compiles "
+							<code class="inline-code">".tsrx"</code>
+							" modules into standard React components with scoped CSS."
 						</p>
 					</section>
 
 					<section class="doc-section" id="preact-vite">
-						<h2 class="section-heading">{'Preact + Vite'}</h2>
-						<p class="section-body">{'Install the Preact compiler and Vite plugin:'}</p>
+						<h2 class="section-heading">"Preact + Vite"</h2>
+						<p class="section-body">"Install the Preact compiler and Vite plugin:"</p>
 						<pre class="code-block">
 							<code>{html PREACT_INSTALL_HTML}</code>
 						</pre>
-						<p class="section-body">{'Then add the plugin to your Vite config:'}</p>
+						<p class="section-body">"Then add the plugin to your Vite config:"</p>
 						<pre class="code-block">
 							<code>{html PREACT_VITE_CONFIG_HTML}</code>
 						</pre>
 						<p class="section-body">
-							{'The plugin compiles '}
-							<code class="inline-code">{'.tsrx'}</code>
-							{' modules into standard Preact components. '}
-							<code class="inline-code">{'Suspense'}</code>
-							{' is imported from '}
-							<code class="inline-code">{'preact/compat'}</code>
-							{' by default; pass '}
+							"The plugin compiles "
+							<code class="inline-code">".tsrx"</code>
+							" modules into standard Preact components. "
+							<code class="inline-code">"Suspense"</code>
+							" is imported from "
+							<code class="inline-code">"preact/compat"</code>
+							" by default; pass "
 							<code class="inline-code">{'{ suspenseSource: \'preact-suspense\' }'}</code>
-							{' to '}
-							<code class="inline-code">{'tsrxPreact()'}</code>
-							{' if you want to avoid pulling in the full compat layer.'}
+							" to "
+							<code class="inline-code">"tsrxPreact()"</code>
+							" if you want to avoid pulling in the full compat layer."
 						</p>
 					</section>
 
 					<section class="doc-section" id="preact-rspack">
-						<h2 class="section-heading">{'Preact + Rspack'}</h2>
-						<p class="section-body">{'Install the compiler and Rspack plugin:'}</p>
+						<h2 class="section-heading">"Preact + Rspack"</h2>
+						<p class="section-body">"Install the compiler and Rspack plugin:"</p>
 						<pre class="code-block">
 							<code>{html PREACT_RSPACK_INSTALL_HTML}</code>
 						</pre>
-						<p class="section-body">{'Then add the plugin to your Rspack config:'}</p>
+						<p class="section-body">"Then add the plugin to your Rspack config:"</p>
 						<pre class="code-block">
 							<code>{html PREACT_RSPACK_CONFIG_HTML}</code>
 						</pre>
 						<p class="section-body">
-							{'Like the React Rspack plugin, it chains '}
-							<code class="inline-code">{'builtin:swc-loader'}</code>
-							{' for the final JSX transform and routes per-component '}
-							<code class="inline-code">{'<style>'}</code>
-							{' blocks through Rspack\'s built-in CSS module type. You can also pass '}
+							"Like the React Rspack plugin, it chains "
+							<code class="inline-code">"builtin:swc-loader"</code>
+							" for the final JSX transform and routes per-component "
+							<code class="inline-code">"<style>"</code>
+							" blocks through Rspack's built-in CSS module type. You can also pass "
 							<code class="inline-code">{'{ suspenseSource: \'preact-suspense\' }'}</code>
-							{' if you want to avoid the default '}
-							<code class="inline-code">{'preact/compat'}</code>
-							{' Suspense import.'}
+							" if you want to avoid the default "
+							<code class="inline-code">"preact/compat"</code>
+							" Suspense import."
 						</p>
 					</section>
 
 					<section class="doc-section" id="react-rspack">
-						<h2 class="section-heading">{'React + Rspack'}</h2>
-						<p class="section-body">{'Install the compiler and Rspack plugin:'}</p>
+						<h2 class="section-heading">"React + Rspack"</h2>
+						<p class="section-body">"Install the compiler and Rspack plugin:"</p>
 						<pre class="code-block">
 							<code>{html REACT_RSPACK_INSTALL_HTML}</code>
 						</pre>
-						<p class="section-body">{'Then add the plugin to your Rspack config:'}</p>
+						<p class="section-body">"Then add the plugin to your Rspack config:"</p>
 						<pre class="code-block">
 							<code>{html REACT_RSPACK_CONFIG_HTML}</code>
 						</pre>
 						<p class="section-body">
-							{'The plugin chains '}
-							<code class="inline-code">{'builtin:swc-loader'}</code>
-							{' for the final JSX transform and routes per-component '}
-							<code class="inline-code">{'<style>'}</code>
-							{' blocks through Rspack\'s built-in CSS module type, so no extra loaders are required.'}
+							"The plugin chains "
+							<code class="inline-code">"builtin:swc-loader"</code>
+							" for the final JSX transform and routes per-component "
+							<code class="inline-code">"<style>"</code>
+							" blocks through Rspack's built-in CSS module type, so no extra loaders are required."
 						</p>
 					</section>
 
 					<section class="doc-section" id="react-turbopack">
-						<h2 class="section-heading">{'React + Turbopack'}</h2>
-						<p class="section-body">{'Install the compiler and Turbopack helper:'}</p>
+						<h2 class="section-heading">"React + Turbopack"</h2>
+						<p class="section-body">"Install the compiler and Turbopack helper:"</p>
 						<pre class="code-block">
 							<code>{html TURBOPACK_INSTALL_HTML}</code>
 						</pre>
-						<p class="section-body">{'Then wrap your Next config with the helper:'}</p>
+						<p class="section-body">"Then wrap your Next config with the helper:"</p>
 						<pre class="code-block">
 							<code>{html TURBOPACK_CONFIG_HTML}</code>
 						</pre>
 						<p class="section-body">
-							{'The helper registers a Turbopack rule for '}
-							<code class="inline-code">{'.tsrx'}</code>
-							{' files, hands the compiled output back to Next as TSX, and routes component-local '}
-							<code class="inline-code">{'<style>'}</code>
-							{' blocks through a sibling virtual CSS import so Turbopack can process the scoped styles without extra loader setup.'}
+							"The helper registers a Turbopack rule for "
+							<code class="inline-code">".tsrx"</code>
+							" files, hands the compiled output back to Next as TSX, and routes component-local "
+							<code class="inline-code">"<style>"</code>
+							" blocks through a sibling virtual CSS import so Turbopack can process the scoped styles without extra loader setup."
 						</p>
 					</section>
 
 					<section class="doc-section" id="react-bun">
-						<h2 class="section-heading">{'React + Bun'}</h2>
-						<p class="section-body">
-							{'Install the compiler, the Bun plugin, and the React runtime:'}
-						</p>
+						<h2 class="section-heading">"React + Bun"</h2>
+						<p
+							class="section-body"
+						>"Install the compiler, the Bun plugin, and the React runtime:"</p>
 						<pre class="code-block">
 							<code>{html REACT_BUN_INSTALL_HTML}</code>
 						</pre>
-						<p class="section-body">{'Then use the plugin in your Bun build script:'}</p>
+						<p class="section-body">"Then use the plugin in your Bun build script:"</p>
 						<pre class="code-block">
 							<code>{html REACT_BUN_CONFIG_HTML}</code>
 						</pre>
 						<p class="section-body">
-							<code class="inline-code">{'@tsrx/bun-plugin-react'}</code>
-							{' compiles '}
-							<code class="inline-code">{'.tsrx'}</code>
-							{' modules with '}
-							<code class="inline-code">{'@tsrx/react'}</code>
-							{' and then hands the generated TSX to Bun\'s automatic JSX pipeline. Component-local '}
-							<code class="inline-code">{'<style>'}</code>
-							{' blocks are emitted as sibling virtual CSS modules, so Bun can bundle them without extra loader setup.'}
+							<code class="inline-code">"@tsrx/bun-plugin-react"</code>
+							" compiles "
+							<code class="inline-code">".tsrx"</code>
+							" modules with "
+							<code class="inline-code">"@tsrx/react"</code>
+							" and then hands the generated TSX to Bun's automatic JSX pipeline. Component-local "
+							<code class="inline-code">"<style>"</code>
+							" blocks are emitted as sibling virtual CSS modules, so Bun can bundle them without extra loader setup."
 						</p>
 					</section>
 
 					<section class="doc-section" id="preact-bun">
-						<h2 class="section-heading">{'Preact + Bun'}</h2>
-						<p class="section-body">{'Install the compiler, the Bun plugin, and Preact:'}</p>
+						<h2 class="section-heading">"Preact + Bun"</h2>
+						<p class="section-body">"Install the compiler, the Bun plugin, and Preact:"</p>
 						<pre class="code-block">
 							<code>{html PREACT_BUN_INSTALL_HTML}</code>
 						</pre>
-						<p class="section-body">{'Then use the plugin in your Bun build script:'}</p>
+						<p class="section-body">"Then use the plugin in your Bun build script:"</p>
 						<pre class="code-block">
 							<code>{html PREACT_BUN_CONFIG_HTML}</code>
 						</pre>
 						<p class="section-body">
-							<code class="inline-code">{'@tsrx/bun-plugin-preact'}</code>
-							{' follows the same Bun integration shape as React, but targets Preact\'s automatic JSX runtime and supports overriding the default '}
-							<code class="inline-code">{'preact/compat'}</code>
-							{' Suspense import with '}
+							<code class="inline-code">"@tsrx/bun-plugin-preact"</code>
+							" follows the same Bun integration shape as React, but targets Preact's automatic JSX runtime and supports overriding the default "
+							<code class="inline-code">"preact/compat"</code>
+							" Suspense import with "
 							<code class="inline-code">{'{ suspenseSource: "preact-suspense" }'}</code>
-							{' when needed.'}
+							" when needed."
 						</p>
 					</section>
 
 					<section class="doc-section" id="solid-vite">
-						<h2 class="section-heading">{'Solid + Vite'}</h2>
+						<h2 class="section-heading">"Solid + Vite"</h2>
 						<p class="section-body">
-							{'Install the Solid compiler, its Vite plugin, and the upstream '}
-							<code class="inline-code">{'vite-plugin-solid'}</code>
-							{' which runs Solid\'s JSX transform on the emitted TSX:'}
+							"Install the Solid compiler, its Vite plugin, and the upstream "
+							<code class="inline-code">"vite-plugin-solid"</code>
+							" which runs Solid's JSX transform on the emitted TSX:"
 						</p>
 						<pre class="code-block">
 							<code>{html SOLID_INSTALL_HTML}</code>
 						</pre>
-						<p class="section-body">
-							{'Then wire both plugins into your Vite config (order matters — tsrxSolid first):'}
-						</p>
+						<p
+							class="section-body"
+						>"Then wire both plugins into your Vite config (order matters — tsrxSolid first):"</p>
 						<pre class="code-block">
 							<code>{html SOLID_VITE_CONFIG_HTML}</code>
 						</pre>
 					</section>
 
 					<section class="doc-section" id="solid-rspack">
-						<h2 class="section-heading">{'Solid + Rspack'}</h2>
-						<p class="section-body">{'Install the Solid compiler and Rspack plugin:'}</p>
+						<h2 class="section-heading">"Solid + Rspack"</h2>
+						<p class="section-body">"Install the Solid compiler and Rspack plugin:"</p>
 						<pre class="code-block">
 							<code>{html SOLID_RSPACK_INSTALL_HTML}</code>
 						</pre>
-						<p class="section-body">{'Then add the plugin to your Rspack config:'}</p>
+						<p class="section-body">"Then add the plugin to your Rspack config:"</p>
 						<pre class="code-block">
 							<code>{html SOLID_RSPACK_CONFIG_HTML}</code>
 						</pre>
 						<p class="section-body">
-							{'The plugin compiles '}
-							<code class="inline-code">{'.tsrx'}</code>
-							{' files with '}
-							<code class="inline-code">{'@tsrx/solid'}</code>
-							{' and then chains '}
-							<code class="inline-code">{'babel-loader'}</code>
-							{' with Solid\'s Babel preset for the final JSX transform. In development mode it also enables '}
-							<code class="inline-code">{'solid-refresh/babel'}</code>
-							{' automatically, while per-component '}
-							<code class="inline-code">{'<style>'}</code>
-							{' blocks still flow through Rspack\'s built-in CSS module type.'}
+							"The plugin compiles "
+							<code class="inline-code">".tsrx"</code>
+							" files with "
+							<code class="inline-code">"@tsrx/solid"</code>
+							" and then chains "
+							<code class="inline-code">"babel-loader"</code>
+							" with Solid's Babel preset for the final JSX transform. In development mode it also enables "
+							<code class="inline-code">"solid-refresh/babel"</code>
+							" automatically, while per-component "
+							<code class="inline-code">"<style>"</code>
+							" blocks still flow through Rspack's built-in CSS module type."
 						</p>
 					</section>
 
 					<section class="doc-section" id="vue-vite">
-						<h2 class="section-heading">{'Vue + Vite'}</h2>
-						<p class="section-body">
-							{'Install the Vue compiler, its Vite plugin, the Vue runtime, and the Vapor JSX plugin:'}
-						</p>
+						<h2 class="section-heading">"Vue + Vite"</h2>
+						<p
+							class="section-body"
+						>"Install the Vue compiler, its Vite plugin, the Vue runtime, and the Vapor JSX plugin:"</p>
 						<pre class="code-block">
 							<code>{html VUE_INSTALL_HTML}</code>
 						</pre>
-						<p class="section-body">
-							{'Then wire both plugins into your Vite config (order matters — tsrxVue first):'}
-						</p>
+						<p
+							class="section-body"
+						>"Then wire both plugins into your Vite config (order matters — tsrxVue first):"</p>
 						<pre class="code-block">
 							<code>{html VUE_VITE_CONFIG_HTML}</code>
 						</pre>
 						<p class="section-body">
-							<code class="inline-code">{'@tsrx/vite-plugin-vue'}</code>
-							{' compiles '}
-							<code class="inline-code">{'.tsrx'}</code>
-							{' modules into Vue-flavoured TSX, and '}
-							<code class="inline-code">{'vue-jsx-vapor/vite'}</code>
-							{' performs the downstream Vapor JSX transform. For editor typechecking, set '}
+							<code class="inline-code">"@tsrx/vite-plugin-vue"</code>
+							" compiles "
+							<code class="inline-code">".tsrx"</code>
+							" modules into Vue-flavoured TSX, and "
+							<code class="inline-code">"vue-jsx-vapor/vite"</code>
+							" performs the downstream Vapor JSX transform. For editor typechecking, set "
 							<code class="inline-code">{'jsxImportSource: "vue-jsx-vapor"'}</code>
-							{' in your '}
-							<code class="inline-code">{'tsconfig.json'}</code>
-							{'.'}
+							" in your "
+							<code class="inline-code">"tsconfig.json"</code>
+							"."
 						</p>
 					</section>
 
 					<section class="doc-section" id="vue-rspack">
-						<h2 class="section-heading">{'Vue + Rspack'}</h2>
-						<p class="section-body">
-							{'Install the Vue compiler, the Rspack plugin, the Vue runtime, and Vue Vapor JSX:'}
-						</p>
+						<h2 class="section-heading">"Vue + Rspack"</h2>
+						<p
+							class="section-body"
+						>"Install the Vue compiler, the Rspack plugin, the Vue runtime, and Vue Vapor JSX:"</p>
 						<pre class="code-block">
 							<code>{html VUE_RSPACK_INSTALL_HTML}</code>
 						</pre>
-						<p class="section-body">{'Then add the plugin to your Rspack config:'}</p>
+						<p class="section-body">"Then add the plugin to your Rspack config:"</p>
 						<pre class="code-block">
 							<code>{html VUE_RSPACK_CONFIG_HTML}</code>
 						</pre>
 						<p class="section-body">
-							<code class="inline-code">{'@tsrx/rspack-plugin-vue'}</code>
-							{' compiles '}
-							<code class="inline-code">{'.tsrx'}</code>
-							{' modules into Vue-flavoured TSX, runs the result through '}
-							<code class="inline-code">{'vue-jsx-vapor'}</code>
-							{' and then strips the remaining TypeScript syntax with Rspack\'s built-in SWC loader. Like the Vite setup, editor typechecking should set '}
+							<code class="inline-code">"@tsrx/rspack-plugin-vue"</code>
+							" compiles "
+							<code class="inline-code">".tsrx"</code>
+							" modules into Vue-flavoured TSX, runs the result through "
+							<code class="inline-code">"vue-jsx-vapor"</code>
+							" and then strips the remaining TypeScript syntax with Rspack's built-in SWC loader. Like the Vite setup, editor typechecking should set "
 							<code class="inline-code">{'jsxImportSource: "vue-jsx-vapor"'}</code>
-							{' in your '}
-							<code class="inline-code">{'tsconfig.json'}</code>
-							{'.'}
+							" in your "
+							<code class="inline-code">"tsconfig.json"</code>
+							"."
 						</p>
 					</section>
 
@@ -605,54 +605,54 @@ export component GettingStartedPage() {
 							<code>{html VUE_BUN_CONFIG_HTML}</code>
 						</pre>
 						<p class="section-body">
-							<code class="inline-code">{'@tsrx/bun-plugin-vue'}</code>
+							<code class="inline-code">"@tsrx/bun-plugin-vue"</code>
 							" compiles "
-							<code class="inline-code">{'.tsrx'}</code>
+							<code class="inline-code">".tsrx"</code>
 							" modules with "
-							<code class="inline-code">{'@tsrx/vue'}</code>
+							<code class="inline-code">"@tsrx/vue"</code>
 							" and performs the downstream "
-							<code class="inline-code">{'vue-jsx-vapor'}</code>
+							<code class="inline-code">"vue-jsx-vapor"</code>
 							" transform inside the Bun plugin itself, so no extra Bun plugin setup is required. Like the Vite and Rspack Vue setups, editor typechecking should set "
 							<code class="inline-code">{'jsxImportSource: "vue-jsx-vapor"'}</code>
 							" in your "
-							<code class="inline-code">{'tsconfig.json'}</code>
+							<code class="inline-code">"tsconfig.json"</code>
 							"."
 						</p>
 					</section>
 
 					<section class="doc-section" id="ripple">
-						<h2 class="section-heading">{'Ripple'}</h2>
+						<h2 class="section-heading">"Ripple"</h2>
 						<p class="section-body">
-							{'The Ripple framework ships with TSRX support as standard. If you\'re using Ripple with '}
-							<code class="inline-code">{'@ripple-ts/vite-plugin'}</code>
-							{', '}
-							<code class="inline-code">{'.tsrx'}</code>
-							{' files work out of the box — no additional packages needed.'}
+							"The Ripple framework ships with TSRX support as standard. If you're using Ripple with "
+							<code class="inline-code">"@ripple-ts/vite-plugin"</code>
+							", "
+							<code class="inline-code">".tsrx"</code>
+							" files work out of the box — no additional packages needed."
 						</p>
 					</section>
 
 					<section class="doc-section" id="tooling-install">
-						<p class="section-kicker">{'Tooling setup'}</p>
-						<h2 class="section-heading">{'Choose the tooling you want'}</h2>
+						<p class="section-kicker">"Tooling setup"</p>
+						<h2 class="section-heading">"Choose the tooling you want"</h2>
 						<p class="section-body">
-							{'Once your compiler target is installed, add the editor tooling you actually want so '}
-							<code class="inline-code">{'.tsrx'}</code>
-							{' files behave like first-class source files in the rest of your repo. Prettier and ESLint are separate paths here, so you can adopt one without committing to the other.'}
+							"Once your compiler target is installed, add the editor tooling you actually want so "
+							<code class="inline-code">".tsrx"</code>
+							" files behave like first-class source files in the rest of your repo. Prettier and ESLint are separate paths here, so you can adopt one without committing to the other."
 						</p>
 					</section>
 
 					<section class="doc-section" id="prettier">
-						<h2 class="section-heading">{'Prettier'}</h2>
-						<p class="section-body">{'Install Prettier and the TSRX plugin:'}</p>
+						<h2 class="section-heading">"Prettier"</h2>
+						<p class="section-body">"Install Prettier and the TSRX plugin:"</p>
 						<pre class="code-block">
 							<code>{html PRETTIER_INSTALL_HTML}</code>
 						</pre>
 						<p class="section-body">
-							{'Add the TSRX Prettier plugin to your '}
-							<code class="inline-code">{'.prettierrc'}</code>
-							{' so Prettier can parse and format '}
-							<code class="inline-code">{'.tsrx'}</code>
-							{' modules:'}
+							"Add the TSRX Prettier plugin to your "
+							<code class="inline-code">".prettierrc"</code>
+							" so Prettier can parse and format "
+							<code class="inline-code">".tsrx"</code>
+							" modules:"
 						</p>
 						<pre class="code-block">
 							<code>{html PRETTIER_CONFIG_HTML}</code>
@@ -660,15 +660,15 @@ export component GettingStartedPage() {
 					</section>
 
 					<section class="doc-section" id="eslint">
-						<h2 class="section-heading">{'ESLint'}</h2>
-						<p class="section-body">{'Install ESLint and the TSRX plugin:'}</p>
+						<h2 class="section-heading">"ESLint"</h2>
+						<p class="section-body">"Install ESLint and the TSRX plugin:"</p>
 						<pre class="code-block">
 							<code>{html ESLINT_INSTALL_HTML}</code>
 						</pre>
 						<p class="section-body">
-							{'The recommended flat config is the simplest starting point for '}
-							<code class="inline-code">{'.tsrx'}</code>
-							{' files:'}
+							"The recommended flat config is the simplest starting point for "
+							<code class="inline-code">".tsrx"</code>
+							" files:"
 						</p>
 						<pre class="code-block">
 							<code>{html ESLINT_CONFIG_HTML}</code>
@@ -676,192 +676,190 @@ export component GettingStartedPage() {
 					</section>
 
 					<section class="doc-section" id="typescript-plugin">
-						<h2 class="section-heading">{'TypeScript plugin'}</h2>
+						<h2 class="section-heading">"TypeScript plugin"</h2>
 						<p class="section-body">
-							{'Install '}
-							<code class="inline-code">{'@tsrx/typescript-plugin'}</code>
-							{' when you want TypeScript itself to understand '}
-							<code class="inline-code">{'.tsrx'}</code>
-							{' files, especially outside the TSRX VS Code extension: other editors, '}
-							<code class="inline-code">{'tsserver'}</code>
-							{', and command-line '}
-							<code class="inline-code">{'tsc'}</code>
-							{' workflows.'}
+							"Install "
+							<code class="inline-code">"@tsrx/typescript-plugin"</code>
+							" when you want TypeScript itself to understand "
+							<code class="inline-code">".tsrx"</code>
+							" files, especially outside the TSRX VS Code extension: other editors, "
+							<code class="inline-code">"tsserver"</code>
+							", and command-line "
+							<code class="inline-code">"tsc"</code>
+							" workflows."
 						</p>
 						<pre class="code-block">
 							<code>{html TYPESCRIPT_PLUGIN_INSTALL_HTML}</code>
 						</pre>
 						<p class="section-body">
-							{'Then register it in your '}
-							<code class="inline-code">{'tsconfig.json'}</code>
-							{'. Keep your existing compiler options and add the '}
-							<code class="inline-code">{'plugins'}</code>
-							{' entry under '}
-							<code class="inline-code">{'compilerOptions'}</code>
-							{':'}
+							"Then register it in your "
+							<code class="inline-code">"tsconfig.json"</code>
+							". Keep your existing compiler options and add the "
+							<code class="inline-code">"plugins"</code>
+							" entry under "
+							<code class="inline-code">"compilerOptions"</code>
+							":"
 						</p>
 						<pre class="code-block">
 							<code>{html TYPESCRIPT_PLUGIN_CONFIG_HTML}</code>
 						</pre>
+						<p
+							class="section-body"
+						>"The plugin turns TSRX into virtual TypeScript for diagnostics, navigation, completions, and type checking. If you already use the TSRX VS Code extension, this manual setup is optional because the extension runs the language tooling for you."</p>
+						<h3 class="subsection-heading">"Command-line type checking"</h3>
 						<p class="section-body">
-							{'The plugin turns TSRX into virtual TypeScript for diagnostics, navigation, completions, and type checking. If you already use the TSRX VS Code extension, this manual setup is optional because the extension runs the language tooling for you.'}
-						</p>
-						<h3 class="subsection-heading">{'Command-line type checking'}</h3>
-						<p class="section-body">
-							{'The package also ships a '}
-							<code class="inline-code">{'tsrx-tsc'}</code>
-							{' binary — a drop-in '}
-							<code class="inline-code">{'tsc'}</code>
-							{' wrapper that understands '}
-							<code class="inline-code">{'.tsrx'}</code>
-							{' files. Use it for CI type checking and any '}
-							<code class="inline-code">{'tsc'}</code>
-							{' workflow that needs to see your TSRX modules. Add a '}
-							<code class="inline-code">{'typecheck'}</code>
-							{' script to your '}
-							<code class="inline-code">{'package.json'}</code>
-							{':'}
+							"The package also ships a "
+							<code class="inline-code">"tsrx-tsc"</code>
+							" binary — a drop-in "
+							<code class="inline-code">"tsc"</code>
+							" wrapper that understands "
+							<code class="inline-code">".tsrx"</code>
+							" files. Use it for CI type checking and any "
+							<code class="inline-code">"tsc"</code>
+							" workflow that needs to see your TSRX modules. Add a "
+							<code class="inline-code">"typecheck"</code>
+							" script to your "
+							<code class="inline-code">"package.json"</code>
+							":"
 						</p>
 						<pre class="code-block">
 							<code>{html TYPECHECK_SCRIPT_HTML}</code>
 						</pre>
 						<p class="section-body">
-							{'Then run '}
-							<code class="inline-code">{'pnpm typecheck'}</code>
-							{' to type check the whole project, including '}
-							<code class="inline-code">{'.tsrx'}</code>
-							{' files, without emitting any output. It accepts the same flags as '}
-							<code class="inline-code">{'tsc'}</code>
-							{'.'}
+							"Then run "
+							<code class="inline-code">"pnpm typecheck"</code>
+							" to type check the whole project, including "
+							<code class="inline-code">".tsrx"</code>
+							" files, without emitting any output. It accepts the same flags as "
+							<code class="inline-code">"tsc"</code>
+							"."
 						</p>
 					</section>
 
 					<section class="doc-section" id="vscode">
-						<h2 class="section-heading">{'VS Code'}</h2>
+						<h2 class="section-heading">"VS Code"</h2>
 						<p class="section-body">
-							{'Install '}
+							"Install "
 							<a
 								class="inline-link"
 								href="https://marketplace.visualstudio.com/items?itemName=Ripple-TS.ripple-ts-vscode-plugin"
 								target="_blank"
 								rel="noopener noreferrer"
-							>
-								{'TSRX for VS Code'}
-							</a>
-							{' from the Visual Studio Code Marketplace for diagnostics, navigation, completions, and TypeScript-aware editor support. Pair it with the official Prettier extension if you want format-on-save support inside the editor.'}
+							>"TSRX for VS Code"</a>
+							" from the Visual Studio Code Marketplace for diagnostics, navigation, completions, and TypeScript-aware editor support. Pair it with the official Prettier extension if you want format-on-save support inside the editor."
 						</p>
 						<p class="section-body">
-							{'After that, opening a '}
-							<code class="inline-code">{'.tsrx'}</code>
-							{' file should give you syntax highlighting, diagnostics, go-to-definition, formatting, and the rest of the normal editor loop without extra manual setup.'}
+							"After that, opening a "
+							<code class="inline-code">".tsrx"</code>
+							" file should give you syntax highlighting, diagnostics, go-to-definition, formatting, and the rest of the normal editor loop without extra manual setup."
 						</p>
 					</section>
 
 					<section class="doc-section" id="mcp">
-						<h2 class="section-heading">{'MCP'}</h2>
+						<h2 class="section-heading">"MCP"</h2>
 						<p class="section-body">
-							{'Use TSRX MCP when an AI coding tool supports Model Context Protocol. It gives agents current TSRX docs, target detection, project inspection, formatting, compilation, diagnostic advice, and read-only '}
-							<code class="inline-code">{'.tsrx'}</code>
-							{' file validation.'}
+							"Use TSRX MCP when an AI coding tool supports Model Context Protocol. It gives agents current TSRX docs, target detection, project inspection, formatting, compilation, diagnostic advice, and read-only "
+							<code class="inline-code">".tsrx"</code>
+							" file validation."
 						</p>
-						<h3 class="subsection-heading">{'Hosted Endpoint'}</h3>
+						<h3 class="subsection-heading">"Hosted Endpoint"</h3>
+						<p
+							class="section-body"
+						>"For hosted MCP apps and connectors, use the public TSRX endpoint:"</p>
 						<p class="section-body">
-							{'For hosted MCP apps and connectors, use the public TSRX endpoint:'}
+							<code class="inline-code">"https://mcp.tsrx.dev/mcp"</code>
 						</p>
+						<p
+							class="section-body"
+						>"This is the best starting point for ChatGPT web and other clients that connect to an HTTP MCP server instead of launching a local command."</p>
+						<h3 class="subsection-heading">"ChatGPT"</h3>
 						<p class="section-body">
-							<code class="inline-code">{'https://mcp.tsrx.dev/mcp'}</code>
+							"Add "
+							<code class="inline-code">"https://mcp.tsrx.dev/mcp"</code>
+							" when creating a custom app or connector from ChatGPT developer mode, then select that app from the tools menu in a chat."
 						</p>
+						<h3 class="subsection-heading">"Self-hosting"</h3>
 						<p class="section-body">
-							{'This is the best starting point for ChatGPT web and other clients that connect to an HTTP MCP server instead of launching a local command.'}
+							"To self-host the endpoint, deploy the monorepo's "
+							<code class="inline-code">"website-mcp"</code>
+							" app anywhere that can run a Node HTTP server and connect remote MCP clients to its "
+							<code class="inline-code">"/mcp"</code>
+							" route."
 						</p>
-						<h3 class="subsection-heading">{'ChatGPT'}</h3>
+						<h3 class="subsection-heading">"Local MCP Server"</h3>
 						<p class="section-body">
-							{'Add '}
-							<code class="inline-code">{'https://mcp.tsrx.dev/mcp'}</code>
-							{' when creating a custom app or connector from ChatGPT developer mode, then select that app from the tools menu in a chat.'}
-						</p>
-						<h3 class="subsection-heading">{'Self-hosting'}</h3>
-						<p class="section-body">
-							{'To self-host the endpoint, deploy the monorepo\'s '}
-							<code class="inline-code">{'website-mcp'}</code>
-							{' app anywhere that can run a Node HTTP server and connect remote MCP clients to its '}
-							<code class="inline-code">{'/mcp'}</code>
-							{' route.'}
-						</p>
-						<h3 class="subsection-heading">{'Local MCP Server'}</h3>
-						<p class="section-body">
-							{'For local repository work in Codex, Cursor, Gemini CLI, or Claude Code, install '}
-							<code class="inline-code">{'@tsrx/mcp'}</code>
-							{' as a stdio MCP server so the tool can inspect your project.'}
+							"For local repository work in Codex, Cursor, Gemini CLI, or Claude Code, install "
+							<code class="inline-code">"@tsrx/mcp"</code>
+							" as a stdio MCP server so the tool can inspect your project."
 						</p>
 						<pre class="code-block">
 							<code>{html MCP_CONFIG_HTML}</code>
 						</pre>
-						<h3 class="subsection-heading">{'Codex'}</h3>
+						<h3 class="subsection-heading">"Codex"</h3>
 						<p class="section-body">
-							{'For Codex, add the server to '}
-							<code class="inline-code">{'~/.codex/config.toml'}</code>
-							{':'}
+							"For Codex, add the server to "
+							<code class="inline-code">"~/.codex/config.toml"</code>
+							":"
 						</p>
 						<pre class="code-block">
 							<code>{html MCP_CODEX_CONFIG_HTML}</code>
 						</pre>
-						<h3 class="subsection-heading">{'Gemini CLI'}</h3>
+						<h3 class="subsection-heading">"Gemini CLI"</h3>
 						<p class="section-body">
-							{'For Gemini CLI, put the same '}
-							<code class="inline-code">{'mcpServers'}</code>
-							{' JSON in '}
-							<code class="inline-code">{'.gemini/settings.json'}</code>
-							{' for a project, or '}
-							<code class="inline-code">{'~/.gemini/settings.json'}</code>
-							{' globally.'}
+							"For Gemini CLI, put the same "
+							<code class="inline-code">"mcpServers"</code>
+							" JSON in "
+							<code class="inline-code">".gemini/settings.json"</code>
+							" for a project, or "
+							<code class="inline-code">"~/.gemini/settings.json"</code>
+							" globally."
 						</p>
-						<h3 class="subsection-heading">{'Cursor'}</h3>
+						<h3 class="subsection-heading">"Cursor"</h3>
 						<p class="section-body">
-							{'For Cursor, put the same '}
-							<code class="inline-code">{'mcpServers'}</code>
-							{' JSON in '}
-							<code class="inline-code">{'.cursor/mcp.json'}</code>
-							{' for a project, or '}
-							<code class="inline-code">{'~/.cursor/mcp.json'}</code>
-							{' globally. Cursor Agent and '}
-							<code class="inline-code">{'cursor-agent'}</code>
-							{' discover the configured tools automatically.'}
+							"For Cursor, put the same "
+							<code class="inline-code">"mcpServers"</code>
+							" JSON in "
+							<code class="inline-code">".cursor/mcp.json"</code>
+							" for a project, or "
+							<code class="inline-code">"~/.cursor/mcp.json"</code>
+							" globally. Cursor Agent and "
+							<code class="inline-code">"cursor-agent"</code>
+							" discover the configured tools automatically."
 						</p>
-						<h3 class="subsection-heading">{'Claude Code'}</h3>
-						<p class="section-body">{'For Claude Code, add it directly from the command line:'}</p>
+						<h3 class="subsection-heading">"Claude Code"</h3>
+						<p class="section-body">"For Claude Code, add it directly from the command line:"</p>
 						<pre class="code-block">
 							<code>{html MCP_CLAUDE_CODE_HTML}</code>
 						</pre>
 						<p class="section-body">
-							{'In an existing repo, start with '}
-							<code class="inline-code">{'inspect-project'}</code>
-							{' so the agent can detect the runtime target, installed TSRX packages, and likely project commands. For generated code, run '}
-							<code class="inline-code">{'format-tsrx'}</code>
-							{', '}
-							<code class="inline-code">{'compile-tsrx'}</code>
-							{', and then '}
-							<code class="inline-code">{'analyze-tsrx'}</code>
-							{' when diagnostics need syntax-aware advice. For existing files, use '}
-							<code class="inline-code">{'validate-tsrx-file'}</code>
-							{' for a read-only format, compile, and advice pass.'}
+							"In an existing repo, start with "
+							<code class="inline-code">"inspect-project"</code>
+							" so the agent can detect the runtime target, installed TSRX packages, and likely project commands. For generated code, run "
+							<code class="inline-code">"format-tsrx"</code>
+							", "
+							<code class="inline-code">"compile-tsrx"</code>
+							", and then "
+							<code class="inline-code">"analyze-tsrx"</code>
+							" when diagnostics need syntax-aware advice. For existing files, use "
+							<code class="inline-code">"validate-tsrx-file"</code>
+							" for a read-only format, compile, and advice pass."
 						</p>
 					</section>
 
 					<section class="doc-section" id="next">
-						<p class="section-kicker">{'Next'}</p>
-						<h2 class="section-heading">{'What\'s next?'}</h2>
-						<p class="section-body">
-							{'Now that TSRX is set up, explore the language syntax — components, control flow, error boundaries, and more.'}
-						</p>
-						<a class="cta-link" href="/features">{'Explore the features →'}</a>
+						<p class="section-kicker">"Next"</p>
+						<h2 class="section-heading">"What's next?"</h2>
+						<p
+							class="section-body"
+						>"Now that TSRX is set up, explore the language syntax — components, control flow, error boundaries, and more."</p>
+						<a class="cta-link" href="/features">"Explore the features →"</a>
 					</section>
 				</main>
 			</div>
 
 			<footer class="site-footer">
-				<p>{'Released under the MIT License.'}</p>
-				<p>{'Copyright © 2025-present Dominic Gannaway'}</p>
+				<p>"Released under the MIT License."</p>
+				<p>"Copyright © 2025-present Dominic Gannaway"</p>
 			</footer>
 		</div>
 	</div>
