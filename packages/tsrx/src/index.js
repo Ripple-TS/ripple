@@ -143,6 +143,7 @@ export { escape, escape_script as escapeScript } from './utils/escaping.js';
 export {
 	createJsxTransform,
 	CREATE_REF_PROP_INTERNAL_NAME,
+	is_ref_prop_expression as isRefPropExpression,
 	MERGE_REFS_INTERNAL_NAME,
 	merge_duplicate_refs as mergeDuplicateRefs,
 	NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,

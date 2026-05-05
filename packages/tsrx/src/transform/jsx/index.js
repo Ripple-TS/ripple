@@ -4227,68 +4227,65 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 	const ref_prop_source =
 		transform_context.needs_ref_prop && platform.imports.refProp ? platform.imports.refProp : null;
 
-	if (merge_refs_source !== null || ref_prop_source !== null) {
-		const ref_source = ref_prop_source ?? merge_refs_source;
-		/** @type {any[]} */
-		const ref_specifiers = [];
+	/** @type {Map<string, any[]>} */
+	const ref_imports = new Map();
 
-		if (merge_refs_source !== null) {
-			ref_specifiers.push({
-				type: 'ImportSpecifier',
-				imported: {
-					type: 'Identifier',
-					name: 'mergeRefs',
-					metadata: { path: [] },
-				},
-				local: {
-					type: 'Identifier',
-					name: MERGE_REFS_INTERNAL_NAME,
-					metadata: { path: [] },
-				},
+	if (merge_refs_source !== null) {
+		add_ref_import_specifier(ref_imports, merge_refs_source, {
+			type: 'ImportSpecifier',
+			imported: {
+				type: 'Identifier',
+				name: 'mergeRefs',
 				metadata: { path: [] },
-			});
-		}
+			},
+			local: {
+				type: 'Identifier',
+				name: MERGE_REFS_INTERNAL_NAME,
+				metadata: { path: [] },
+			},
+			metadata: { path: [] },
+		});
+	}
 
-		if (ref_prop_source !== null) {
-			ref_specifiers.push(
-				{
-					type: 'ImportSpecifier',
-					imported: {
-						type: 'Identifier',
-						name: 'create_ref_prop',
-						metadata: { path: [] },
-					},
-					local: {
-						type: 'Identifier',
-						name: CREATE_REF_PROP_INTERNAL_NAME,
-						metadata: { path: [] },
-					},
-					metadata: { path: [] },
-				},
-				{
-					type: 'ImportSpecifier',
-					imported: {
-						type: 'Identifier',
-						name: 'normalize_spread_props',
-						metadata: { path: [] },
-					},
-					local: {
-						type: 'Identifier',
-						name: NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
-						metadata: { path: [] },
-					},
-					metadata: { path: [] },
-				},
-			);
-		}
+	if (ref_prop_source !== null) {
+		add_ref_import_specifier(ref_imports, ref_prop_source, {
+			type: 'ImportSpecifier',
+			imported: {
+				type: 'Identifier',
+				name: 'create_ref_prop',
+				metadata: { path: [] },
+			},
+			local: {
+				type: 'Identifier',
+				name: CREATE_REF_PROP_INTERNAL_NAME,
+				metadata: { path: [] },
+			},
+			metadata: { path: [] },
+		});
+		add_ref_import_specifier(ref_imports, ref_prop_source, {
+			type: 'ImportSpecifier',
+			imported: {
+				type: 'Identifier',
+				name: 'normalize_spread_props',
+				metadata: { path: [] },
+			},
+			local: {
+				type: 'Identifier',
+				name: NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
+				metadata: { path: [] },
+			},
+			metadata: { path: [] },
+		});
+	}
 
+	for (const [source, ref_specifiers] of ref_imports) {
 		imports.push({
 			type: 'ImportDeclaration',
 			specifiers: ref_specifiers,
 			source: {
 				type: 'Literal',
-				value: ref_source,
-				raw: `'${ref_source}'`,
+				value: source,
+				raw: `'${source}'`,
 			},
 			metadata: { path: [] },
 		});
@@ -4296,6 +4293,20 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 
 	if (imports.length > 0) {
 		program.body.unshift(...imports);
+	}
+}
+
+/**
+ * @param {Map<string, any[]>} imports
+ * @param {string} source
+ * @param {any} specifier
+ */
+function add_ref_import_specifier(imports, source, specifier) {
+	const specifiers = imports.get(source);
+	if (specifiers) {
+		specifiers.push(specifier);
+	} else {
+		imports.set(source, [specifier]);
 	}
 }
 
@@ -4676,7 +4687,7 @@ function is_named_ref_attribute(attr) {
  * @param {any} expression
  * @returns {boolean}
  */
-function is_ref_prop_expression(expression) {
+export function is_ref_prop_expression(expression) {
 	return (
 		expression?.type === 'RefExpression' ||
 		(expression?.type === 'CallExpression' &&

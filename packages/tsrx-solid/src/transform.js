@@ -13,6 +13,7 @@ import {
 	collectLazyBindingsFromComponent as collect_lazy_bindings_from_component,
 	replaceLazyParams as replace_lazy_params,
 	rewriteLoopContinuesToBareReturns as rewrite_loop_continues_to_bare_returns,
+	isRefPropExpression as is_ref_prop_expression,
 	isInterleavedBody as is_interleaved_body_core,
 	isCapturableJsxChild as is_capturable_jsx_child,
 	captureJsxChild,
@@ -1683,9 +1684,9 @@ function normalize_solid_named_ref_attributes(attrs, is_host) {
 			attr.name.name === 'ref' ||
 			!(
 				attr.value?.type === 'RefExpression' ||
-				is_solid_ref_prop_expression(attr.value) ||
+				is_ref_prop_expression(attr.value) ||
 				(attr.value?.type === 'JSXExpressionContainer' &&
-					is_solid_ref_prop_expression(attr.value.expression))
+					is_ref_prop_expression(attr.value.expression))
 			)
 		) {
 			return attr;
@@ -1696,19 +1697,6 @@ function normalize_solid_named_ref_attributes(attrs, is_host) {
 			name: { ...attr.name, name: 'ref' },
 		};
 	});
-}
-
-/**
- * @param {any} expression
- * @returns {boolean}
- */
-function is_solid_ref_prop_expression(expression) {
-	return (
-		expression?.type === 'RefExpression' ||
-		(expression?.type === 'CallExpression' &&
-			expression.callee?.type === 'Identifier' &&
-			expression.callee.name === CREATE_REF_PROP_INTERNAL_NAME)
-	);
 }
 
 /**
