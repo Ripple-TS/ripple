@@ -653,6 +653,15 @@ export component FeaturesPage() {
 							<code class="inline-code">{'{...props}'}</code>
 							{', and mutable variables can be used as ref values.'}
 						</p>
+						<p class="section-body">
+							{'Vue keeps '}
+							<code class="inline-code">{'ref={...}'}</code>
+							{' on components as Vue\'s native component ref; it is not forwarded to a DOM element inside the component. Use a named '}
+							<code class="inline-code">{'inputRef={ref input}'}</code>
+							{' or anonymous '}
+							<code class="inline-code">{'{ref input}'}</code>
+							{' when a Vue component should expose an inner DOM ref.'}
+						</p>
 						<pre class="code-block">
 							<code>{html REFS_NAMED_HTML}</code>
 						</pre>
