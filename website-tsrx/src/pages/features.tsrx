@@ -643,7 +643,9 @@ export component FeaturesPage() {
 							<code class="inline-code">{'ref={...}'}</code>
 							{' with any number of anonymous or named '}
 							<code class="inline-code">{'{ref ...}'}</code>
-							{' expressions on one host element; TSRX merges them.'}
+							{' expressions on one host element; TSRX merges them. Solid also accepts an array in '}
+							<code class="inline-code">{'ref={...}'}</code>
+							{'.'}
 						</p>
 						<pre class="code-block">
 							<code>{html REFS_OBJECT_HTML}</code>
