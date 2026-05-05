@@ -24,6 +24,24 @@ describe('ref runtime helpers', () => {
 		expect(input_like.value).toBe('keep');
 	});
 
+	it('returns cleanup for mutable ref props', () => {
+		const node = {};
+		let slot = undefined;
+		const ref = create_ref_prop(
+			() => slot,
+			(value) => {
+				slot = value;
+			},
+		);
+
+		const cleanup = ref(node);
+		expect(slot).toBe(node);
+		expect(typeof cleanup).toBe('function');
+
+		cleanup();
+		expect(slot).toBeNull();
+	});
+
 	it('still assigns real current and value ref objects by own property', () => {
 		const node = {};
 		const current_ref = { current: null };

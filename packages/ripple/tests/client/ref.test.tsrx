@@ -218,6 +218,28 @@ describe('refs', () => {
 		expect(captured!.textContent).toBe('Hello ref attr');
 	});
 
+	it('clears a plain let variable via ref={var} when the host element unmounts', () => {
+		let div: HTMLDivElement | null | undefined;
+
+		component App() {
+			let &[show] = track(true);
+
+			if (show) {
+				<div ref={div}>{'Hello cleanup'}</div>
+			}
+
+			<button class="toggle" onClick={() => (show = false)}>{'hide'}</button>
+		}
+
+		render(App);
+		flushSync();
+		expect(div).toBeInstanceOf(HTMLDivElement);
+
+		(container.querySelector('.toggle') as HTMLButtonElement).click();
+		flushSync();
+		expect(div).toBeNull();
+	});
+
 	it('assigns a host element to a member expression via ref={state.var}', () => {
 		let captured: HTMLInputElement | null = null;
 
@@ -234,6 +256,36 @@ describe('refs', () => {
 		render(App);
 		flushSync();
 		expect(captured).toBeInstanceOf(HTMLInputElement);
+	});
+
+	it('clears a plain let variable via component ref={var} when the host element unmounts', () => {
+		let input: HTMLInputElement | null | undefined;
+		let previous: HTMLInputElement | undefined;
+
+		component Child(props: PropsWithExtras<{}>) {
+			<input type="text" value="keep" {...props} />
+		}
+
+		component App() {
+			let &[show] = track(true);
+
+			if (show) {
+				<Child ref={input} />
+			}
+
+			<button class="toggle" onClick={() => (show = false)}>{'hide'}</button>
+		}
+
+		render(App);
+		flushSync();
+		expect(input).toBeInstanceOf(HTMLInputElement);
+		previous = input!;
+		expect(previous.value).toBe('keep');
+
+		(container.querySelector('.toggle') as HTMLButtonElement).click();
+		flushSync();
+		expect(input).toBeNull();
+		expect(previous.value).toBe('keep');
 	});
 
 	it(
@@ -297,6 +349,39 @@ describe('refs', () => {
 		expect(captured).toBeInstanceOf(HTMLInputElement);
 		expect(captured!.id).toBe('example');
 	});
+
+	it(
+		'clears a plain let variable forwarded through a named ref prop when the host element unmounts',
+		() => {
+			let input: HTMLInputElement | null | undefined;
+			let previous: HTMLInputElement | undefined;
+
+			component Child(props: PropsWithExtras<{}>) {
+				<input type="text" value="keep" {...props} />
+			}
+
+			component App() {
+				let &[show] = track(true);
+
+				if (show) {
+					<Child input_ref={ref input} />
+				}
+
+				<button class="toggle" onClick={() => (show = false)}>{'hide'}</button>
+			}
+
+			render(App);
+			flushSync();
+			expect(input).toBeInstanceOf(HTMLInputElement);
+			previous = input!;
+			expect(previous.value).toBe('keep');
+
+			(container.querySelector('.toggle') as HTMLButtonElement).click();
+			flushSync();
+			expect(input).toBeNull();
+			expect(previous.value).toBe('keep');
+		},
+	);
 
 	it('clears the Tracked when the host element unmounts', () => {
 		let captured: Tracked<HTMLDivElement | null> | undefined;

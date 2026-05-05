@@ -101,7 +101,14 @@ export function create_ref_prop(get_ref_value, set_ref_value) {
 	 * @returns {void | (() => void)}
 	 */
 	function ref_prop_callback(node) {
-		return apply_ref_value(get_ref_value(), node, set_ref_value);
+		const ref_value = get_ref_value();
+		const cleanup = apply_ref_value(ref_value, node, set_ref_value);
+		if (typeof cleanup === 'function' || node === null) {
+			return cleanup;
+		}
+		return () => {
+			apply_ref_value(ref_value, null, set_ref_value);
+		};
 	}
 
 	Object.defineProperty(ref_prop_callback, REF_VALUE, {
