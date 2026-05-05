@@ -149,7 +149,7 @@ describe('@tsrx/vue basic', () => {
 		);
 
 		expect(code).toContain('ref={__mergeRefs(a, b)}');
-		expect(code).toContain("import { mergeRefs as __mergeRefs } from '@tsrx/vue/merge-refs'");
+		expect(code).toContain("import { mergeRefs as __mergeRefs } from '@tsrx/vue/ref'");
 	});
 
 	it('combines a single ref={expr} with multiple {ref expr} keyword-form refs via mergeRefs', () => {
@@ -164,6 +164,25 @@ describe('@tsrx/vue basic', () => {
 		);
 
 		expect(code).toContain('ref={__mergeRefs(a, b, c)}');
+	});
+
+	it('allows named ref props through components and normalizes host spreads', () => {
+		const { code } = compile(
+			`component Child(props) {
+				<input {...props} />
+			}
+
+			component App() {
+				let input;
+				<Child input_ref={ref input} />
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain("from '@tsrx/vue/ref'");
+		expect(code).toContain('{...{ input_ref: __create_ref_prop(() => input, (v) => input = v) }}');
+		expect(code).toContain('{...__normalize_spread_props(props)}');
+		expect(code).toContain('ref={__normalize_spread_props(props).ref}');
 	});
 
 	it('rejects multiple ref={...} attributes on the same element', () => {

@@ -146,8 +146,10 @@ declare global {
 
 export function createRefKey(): symbol;
 
+export function isRefProp(value: unknown): boolean;
+
 export const UNINITIALIZED: unique symbol;
-export const DERIVED_UPDATED: unique symbol;
+export const TRACKED_UPDATED: unique symbol;
 export const SUSPENSE_PENDING: unique symbol;
 export const SUSPENSE_REJECTED: unique symbol;
 

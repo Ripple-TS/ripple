@@ -1,5 +1,5 @@
 import type { Tracked } from 'ripple';
-import { DERIVED_UPDATED, effect, flushSync, track, trackAsync } from 'ripple';
+import { TRACKED_UPDATED, effect, flushSync, track, trackAsync } from 'ripple';
 
 describe('async suspense', () => {
 	it('hides child content during re-suspension when tracked dependency changes', async () => {
@@ -115,7 +115,7 @@ describe('async suspense', () => {
 		expect(container.innerHTML).not.toContain('late value');
 	});
 
-	it('aborts superseded requests with DERIVED_UPDATED without rendering catch', async () => {
+	it('aborts superseded requests with TRACKED_UPDATED without rendering catch', async () => {
 		const requests = new Map<
 			string,
 			{ resolve: (value: string) => void; abortController: AbortController }
@@ -181,7 +181,7 @@ describe('async suspense', () => {
 
 		expect(
 			(requests.get('b') as { abortController: AbortController }).abortController.signal.reason,
-		).toBe(DERIVED_UPDATED);
+		).toBe(TRACKED_UPDATED);
 		expect(container.innerHTML).not.toContain('class="error"');
 		expect(container.innerHTML).toContain('value-a');
 

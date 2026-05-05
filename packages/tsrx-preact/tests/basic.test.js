@@ -194,7 +194,7 @@ describe('@tsrx/preact basic', () => {
 
 			expect(code).toContain('ref={refA}');
 			expect(code).not.toContain('__mergeRefs');
-			expect(code).not.toContain('@tsrx/preact/merge-refs');
+			expect(code).not.toContain('@tsrx/preact/ref');
 		});
 
 		it('passes a single Ripple {ref expr} through as ref={expr} with no helper import', () => {
@@ -208,6 +208,24 @@ describe('@tsrx/preact basic', () => {
 
 			expect(code).toContain('ref={refA}');
 			expect(code).not.toContain('__mergeRefs');
+		});
+
+		it('wraps named ref props and normalizes host spreads', () => {
+			const { code } = compile(
+				`export component Child(props) {
+					<input {...props} />
+				}
+
+				export component App() {
+					let input;
+					<Child input_ref={ref input} />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain("from '@tsrx/preact/ref'");
+			expect(code).toContain('input_ref={__create_ref_prop(() => input, (v) => input = v)}');
+			expect(code).toContain('{...__normalize_spread_props(props)}');
 		});
 
 		it('rejects multiple ref={expr} attributes on the same element', () => {
@@ -235,7 +253,7 @@ describe('@tsrx/preact basic', () => {
 			);
 
 			expect(code).toContain('ref={__mergeRefs(refA, refB, refC)}');
-			expect(code).toContain("import { mergeRefs as __mergeRefs } from '@tsrx/preact/merge-refs'");
+			expect(code).toContain("import { mergeRefs as __mergeRefs } from '@tsrx/preact/ref'");
 		});
 
 		it('merges a single ref={expr} with multiple {ref expr} keyword-form refs', () => {

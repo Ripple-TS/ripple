@@ -4,6 +4,8 @@
 import { createVolarMappingsResult, dedupeMappings, parseModule } from '@tsrx/core';
 import { transform } from './transform.js';
 
+export { isRefProp } from './ref.js';
+
 /**
  * Parse tsrx-react source code to an ESTree AST.
  * @param {string} source

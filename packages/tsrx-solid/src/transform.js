@@ -16,6 +16,8 @@ import {
 	isInterleavedBody as is_interleaved_body_core,
 	isCapturableJsxChild as is_capturable_jsx_child,
 	captureJsxChild,
+	CREATE_REF_PROP_INTERNAL_NAME,
+	NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
 	tsxNodeToJsxExpression as tsx_node_to_jsx_expression,
 	// Shared AST builders (truly platform-agnostic utilities).
 	clone_expression_node,
@@ -79,6 +81,7 @@ const solid_platform = {
 		// import injection goes through `hooks.injectImports`.
 		suspense: 'solid-js',
 		errorBoundary: 'solid-js',
+		refProp: '@tsrx/solid/ref',
 	},
 	jsx: {
 		rewriteClassAttr: false,
@@ -1350,6 +1353,46 @@ const TEMPLATE_FRAGMENT_ERROR =
  * @param {TransformContext} transform_context
  */
 function inject_solid_imports(program, transform_context) {
+	if (transform_context.needs_ref_prop) {
+		program.body.unshift(
+			/** @type {any} */ ({
+				type: 'ImportDeclaration',
+				specifiers: [
+					{
+						type: 'ImportSpecifier',
+						imported: { type: 'Identifier', name: 'create_ref_prop', metadata: { path: [] } },
+						local: {
+							type: 'Identifier',
+							name: CREATE_REF_PROP_INTERNAL_NAME,
+							metadata: { path: [] },
+						},
+						metadata: { path: [] },
+					},
+					{
+						type: 'ImportSpecifier',
+						imported: {
+							type: 'Identifier',
+							name: 'normalize_spread_props',
+							metadata: { path: [] },
+						},
+						local: {
+							type: 'Identifier',
+							name: NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
+							metadata: { path: [] },
+						},
+						metadata: { path: [] },
+					},
+				],
+				source: {
+					type: 'Literal',
+					value: '@tsrx/solid/ref',
+					raw: "'@tsrx/solid/ref'",
+				},
+				metadata: { path: [] },
+			}),
+		);
+	}
+
 	const needed = [];
 	if (transform_context.needs_show) needed.push('Show');
 	if (transform_context.needs_for) needed.push('For');
@@ -1610,16 +1653,112 @@ function has_text_content_attribute(attributes) {
  * @returns {any[]}
  */
 function transform_element_attributes(raw_attrs, is_composite, transform_context) {
-	void is_composite;
 	validateAtMostOneRefAttribute(raw_attrs, /** @type {any} */ (transform_context));
 	/** @type {any[]} */
 	const result = [];
 
-	for (const attr of raw_attrs) {
+	for (const attr of normalize_solid_named_ref_attributes(raw_attrs, !is_composite)) {
 		if (!attr) continue;
 		result.push(toJsxAttribute(attr, /** @type {any} */ (transform_context)));
 	}
-	return mergeDuplicateRefs(result, /** @type {any} */ (transform_context));
+	return mergeDuplicateRefs(
+		normalize_solid_host_ref_spreads(result, !is_composite, transform_context),
+		/** @type {any} */ (transform_context),
+	);
+}
+
+/**
+ * @param {any[]} attrs
+ * @param {boolean} is_host
+ * @returns {any[]}
+ */
+function normalize_solid_named_ref_attributes(attrs, is_host) {
+	if (!is_host) return attrs;
+
+	return attrs.map((attr) => {
+		if (
+			!attr ||
+			attr.type !== 'Attribute' ||
+			attr.name?.type !== 'Identifier' ||
+			attr.name.name === 'ref' ||
+			!(
+				attr.value?.type === 'RefExpression' ||
+				is_solid_ref_prop_expression(attr.value) ||
+				(attr.value?.type === 'JSXExpressionContainer' &&
+					is_solid_ref_prop_expression(attr.value.expression))
+			)
+		) {
+			return attr;
+		}
+
+		return {
+			...attr,
+			name: { ...attr.name, name: 'ref' },
+		};
+	});
+}
+
+/**
+ * @param {any} expression
+ * @returns {boolean}
+ */
+function is_solid_ref_prop_expression(expression) {
+	return (
+		expression?.type === 'RefExpression' ||
+		(expression?.type === 'CallExpression' &&
+			expression.callee?.type === 'Identifier' &&
+			expression.callee.name === CREATE_REF_PROP_INTERNAL_NAME)
+	);
+}
+
+/**
+ * @param {any[]} attrs
+ * @param {boolean} is_host
+ * @param {TransformContext} transform_context
+ * @returns {any[]}
+ */
+function normalize_solid_host_ref_spreads(attrs, is_host, transform_context) {
+	if (!is_host) return attrs;
+
+	const has_spread = attrs.some((attr) => attr?.type === 'JSXSpreadAttribute');
+	const ref_exprs = attrs
+		.filter((attr) => is_solid_jsx_ref_attribute(attr))
+		.map((attr) => attr.value.expression);
+
+	return attrs.flatMap((attr) => {
+		if (has_spread && ref_exprs.length > 0 && is_solid_jsx_ref_attribute(attr)) {
+			return [];
+		}
+
+		if (!attr || attr.type !== 'JSXSpreadAttribute') {
+			return [attr];
+		}
+
+		transform_context.needs_ref_prop = true;
+
+		return [
+			{
+				...attr,
+				argument: b.call(NORMALIZE_SPREAD_PROPS_INTERNAL_NAME, attr.argument, ...ref_exprs),
+			},
+		];
+	});
+}
+
+/**
+ * @param {any} attr
+ * @returns {boolean}
+ */
+function is_solid_jsx_ref_attribute(attr) {
+	return !!(
+		attr &&
+		attr.type === 'JSXAttribute' &&
+		attr.name?.type === 'JSXIdentifier' &&
+		attr.name.name === 'ref' &&
+		attr.value?.type === 'JSXExpressionContainer' &&
+		attr.value.expression &&
+		attr.value.expression.type !== 'JSXEmptyExpression'
+	);
 }
 
 /**

@@ -705,6 +705,24 @@ describe('@tsrx/solid basic', () => {
 			expect(code).not.toContain('[refA');
 		});
 
+		it('wraps named ref props and normalizes host spreads', () => {
+			const { code } = compile(
+				`component Child(props) {
+					<input {...props} />
+				}
+
+				component App() {
+					let input;
+					<Child input_ref={ref input} />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain("from '@tsrx/solid/ref'");
+			expect(code).toContain('input_ref={__create_ref_prop(() => input, (v) => input = v)}');
+			expect(code).toContain('{...__normalize_spread_props(props)}');
+		});
+
 		it('rejects multiple ref={expr} attributes on the same element', () => {
 			expect(() =>
 				compile(

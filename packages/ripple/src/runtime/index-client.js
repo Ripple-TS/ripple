@@ -24,7 +24,7 @@ import { COMMENT_NODE, HYDRATION_START } from '../constants.js';
 export { jsx, jsxs, Fragment } from '../jsx-runtime.js';
 export {
 	UNINITIALIZED,
-	DERIVED_UPDATED,
+	TRACKED_UPDATED,
 	SUSPENSE_PENDING,
 	SUSPENSE_REJECTED,
 } from './internal/client/constants.js';
@@ -155,6 +155,8 @@ export { user_effect as effect } from './internal/client/blocks.js';
 export { Portal } from './internal/client/portal.js';
 
 export { ref_prop as createRefKey, get, public_set as set } from './internal/client/runtime.js';
+
+export { isRefProp } from '@tsrx/core/runtime/ref';
 
 export { on } from './internal/client/events.js';
 

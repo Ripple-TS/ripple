@@ -2,6 +2,7 @@
 
 import { destroy_block, ref } from './blocks.js';
 import { DESTROYED, REF_PROP } from './constants.js';
+import { isRefProp as is_ref_prop } from '@tsrx/core/runtime/ref';
 import {
 	get_descriptors,
 	get_own_property_symbols,
@@ -254,21 +255,23 @@ export function set_selected(element, selected) {
 export function apply_element_spread(element, fn) {
 	/** @type {Record<string | symbol, any>} */
 	var prev = {};
-	/** @type {Record<symbol, Block | undefined>} */
+	/** @type {Record<string | symbol, Block | undefined>} */
 	var effects = {};
 	/** @type {Record<string | symbol, (() => void) | undefined>} */
 	var remove_listeners = {};
 
 	/** @type {Record<symbol, any>} */
 	var prev_symbols = {};
+	/** @type {Record<string, any>} */
+	var prev_ref_props = {};
 
 	return () => {
 		var next = fn();
 
-		for (const symbol of get_own_property_symbols(effects)) {
-			if (!next[symbol] && effects[symbol]) {
-				destroy_block(effects[symbol]);
-				effects[symbol] = undefined;
+		for (const key of Reflect.ownKeys(effects)) {
+			if (!next[key] && effects[key]) {
+				destroy_block(/** @type {Block} */ (effects[key]));
+				effects[key] = undefined;
 			}
 		}
 
@@ -294,6 +297,31 @@ export function apply_element_spread(element, fn) {
 
 		prev_symbols = current_symbols;
 
+		/** @type {Record<string, any>} */
+		var current_ref_props = {};
+
+		for (const key in next) {
+			var ref_fn = next[key];
+			if (!is_ref_prop(ref_fn)) {
+				continue;
+			}
+
+			current_ref_props[key] = ref_fn;
+
+			if (
+				!(key in prev_ref_props) ||
+				ref_fn !== prev_ref_props[key] ||
+				(effects[key] && (effects[key].f & DESTROYED) !== 0)
+			) {
+				if (effects[key] && (effects[key].f & DESTROYED) === 0) {
+					destroy_block(effects[key]);
+				}
+				effects[key] = ref(element, () => ref_fn);
+			}
+		}
+
+		prev_ref_props = current_ref_props;
+
 		for (let key in remove_listeners) {
 			// Remove event listeners that are no longer present
 			if (!(key in next) && remove_listeners[key]) {
@@ -317,6 +345,9 @@ export function apply_element_spread(element, fn) {
 			if (key === 'children') continue;
 
 			let value = next[key];
+			if (is_ref_prop(value)) {
+				continue;
+			}
 			if (is_ripple_object(value)) {
 				value = get(value);
 			}

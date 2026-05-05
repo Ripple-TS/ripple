@@ -169,6 +169,7 @@ export function createJsxTransform(platform) {
 			needs_error_boundary: false,
 			needs_suspense: false,
 			needs_merge_refs: false,
+			needs_ref_prop: false,
 			needs_fragment: false,
 			module_scoped_hook_components:
 				options?.moduleScopedHookComponents ?? !!platform.hooks?.moduleScopedHookComponents,
@@ -432,6 +433,23 @@ export function createJsxTransform(platform) {
 			FunctionDeclaration: ensure_function_metadata,
 			FunctionExpression: ensure_function_metadata,
 			ArrowFunctionExpression: ensure_function_metadata,
+
+			RefExpression(node) {
+				return create_ref_prop_call(node, transform_context);
+			},
+
+			JSXOpeningElement(node, { next }) {
+				const visited = next() || node;
+				const is_component = is_component_like_jsx_name(visited.name);
+				const attrs = normalize_named_ref_attributes(visited.attributes || [], !is_component);
+				return {
+					...visited,
+					attributes: merge_duplicate_refs(
+						normalize_host_ref_spreads(attrs, !is_component, transform_context),
+						transform_context,
+					),
+				};
+			},
 		});
 
 		const expanded = expand_component_helpers(/** @type {AST.Program} */ (transformed));
@@ -4201,30 +4219,75 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 		});
 	}
 
-	if (transform_context.needs_merge_refs && platform.imports.mergeRefs) {
-		const merge_refs_source = platform.imports.mergeRefs;
-		imports.push({
-			type: 'ImportDeclaration',
-			specifiers: [
+	const merge_refs_source =
+		transform_context.needs_merge_refs && platform.imports.mergeRefs
+			? platform.imports.mergeRefs
+			: null;
+	const ref_prop_source =
+		transform_context.needs_ref_prop && platform.imports.refProp ? platform.imports.refProp : null;
+
+	if (merge_refs_source !== null || ref_prop_source !== null) {
+		const ref_source = ref_prop_source ?? merge_refs_source;
+		/** @type {any[]} */
+		const ref_specifiers = [];
+
+		if (merge_refs_source !== null) {
+			ref_specifiers.push({
+				type: 'ImportSpecifier',
+				imported: {
+					type: 'Identifier',
+					name: 'mergeRefs',
+					metadata: { path: [] },
+				},
+				local: {
+					type: 'Identifier',
+					name: MERGE_REFS_INTERNAL_NAME,
+					metadata: { path: [] },
+				},
+				metadata: { path: [] },
+			});
+		}
+
+		if (ref_prop_source !== null) {
+			ref_specifiers.push(
 				{
 					type: 'ImportSpecifier',
 					imported: {
 						type: 'Identifier',
-						name: 'mergeRefs',
+						name: 'create_ref_prop',
 						metadata: { path: [] },
 					},
 					local: {
 						type: 'Identifier',
-						name: MERGE_REFS_LOCAL_NAME,
+						name: CREATE_REF_PROP_INTERNAL_NAME,
 						metadata: { path: [] },
 					},
 					metadata: { path: [] },
 				},
-			],
+				{
+					type: 'ImportSpecifier',
+					imported: {
+						type: 'Identifier',
+						name: 'normalize_spread_props',
+						metadata: { path: [] },
+					},
+					local: {
+						type: 'Identifier',
+						name: NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
+						metadata: { path: [] },
+					},
+					metadata: { path: [] },
+				},
+			);
+		}
+
+		imports.push({
+			type: 'ImportDeclaration',
+			specifiers: ref_specifiers,
 			source: {
 				type: 'Literal',
-				value: merge_refs_source,
-				raw: `'${merge_refs_source}'`,
+				value: ref_source,
+				raw: `'${ref_source}'`,
 			},
 			metadata: { path: [] },
 		});
@@ -4421,6 +4484,8 @@ function to_jsx_expression_container(expression, source_node = expression) {
  */
 function transform_element_attributes_dispatch(attrs, transform_context, element) {
 	validate_at_most_one_ref_attribute(attrs, transform_context);
+	const is_component = is_component_like_element(element);
+	attrs = normalize_named_ref_attributes(attrs, !is_component);
 	const preprocess = transform_context.platform.hooks?.preprocessElementAttributes;
 	if (preprocess) {
 		attrs = preprocess(attrs, transform_context, element);
@@ -4429,7 +4494,142 @@ function transform_element_attributes_dispatch(attrs, transform_context, element
 	const result = hook
 		? hook(attrs, transform_context, element)
 		: attrs.map((/** @type {any} */ a) => to_jsx_attribute(a, transform_context));
-	return merge_duplicate_refs(result, transform_context);
+	return merge_duplicate_refs(
+		normalize_host_ref_spreads(result, !is_component, transform_context),
+		transform_context,
+	);
+}
+
+/**
+ * @param {any} element
+ * @returns {boolean}
+ */
+function is_component_like_element(element) {
+	const id = element?.id;
+	if (!id) return false;
+	if (id.type === 'Identifier') return /^[A-Z]/.test(id.name);
+	if (id.type === 'JSXIdentifier') return /^[A-Z]/.test(id.name);
+	if (id.type === 'MemberExpression') return true;
+	if (id.type === 'JSXMemberExpression') return true;
+	return false;
+}
+
+/**
+ * @param {any} name
+ * @returns {boolean}
+ */
+function is_component_like_jsx_name(name) {
+	if (!name) return false;
+	if (name.type === 'JSXIdentifier') return /^[A-Z]/.test(name.name);
+	if (name.type === 'JSXMemberExpression') return true;
+	return false;
+}
+
+/**
+ * @param {any[]} attrs
+ * @param {boolean} is_host
+ * @returns {any[]}
+ */
+function normalize_named_ref_attributes(attrs, is_host) {
+	if (!is_host) return attrs;
+
+	return attrs.map((attr) => {
+		if (!is_named_ref_attribute(attr)) {
+			return attr;
+		}
+
+		return {
+			...attr,
+			metadata: { ...(attr.metadata || {}), from_ref_keyword: true },
+			name:
+				attr.name?.type === 'JSXIdentifier'
+					? { ...attr.name, name: 'ref' }
+					: { type: 'Identifier', name: 'ref', metadata: { path: [] } },
+		};
+	});
+}
+
+/**
+ * @param {any[]} attrs
+ * @param {boolean} is_host
+ * @param {TransformContext} transform_context
+ * @returns {any[]}
+ */
+function normalize_host_ref_spreads(attrs, is_host, transform_context) {
+	if (!is_host) return attrs;
+
+	const has_spread = attrs.some((attr) => attr?.type === 'JSXSpreadAttribute');
+	const needs_explicit_spread_ref =
+		transform_context.platform.jsx?.hostSpreadRefStrategy === 'explicit-ref-attr';
+	const ref_exprs = attrs
+		.filter((attr) => is_jsx_ref_attribute(attr))
+		.map((attr) => attr.value.expression);
+
+	return attrs.flatMap((attr) => {
+		if (has_spread && ref_exprs.length > 0 && is_jsx_ref_attribute(attr)) {
+			return [];
+		}
+
+		if (!attr || attr.type !== 'JSXSpreadAttribute') {
+			return [attr];
+		}
+
+		transform_context.needs_ref_prop = true;
+		const normalized = b.call(NORMALIZE_SPREAD_PROPS_INTERNAL_NAME, attr.argument, ...ref_exprs);
+		const spread = {
+			...attr,
+			argument: normalized,
+		};
+
+		if (needs_explicit_spread_ref) {
+			return [
+				spread,
+				b.jsx_attribute(
+					b.jsx_id('ref'),
+					to_jsx_expression_container(b.member(clone_expression_node(normalized), 'ref'), attr),
+					false,
+					attr,
+				),
+			];
+		}
+
+		return [
+			{
+				...spread,
+			},
+		];
+	});
+}
+
+/**
+ * @param {any} attr
+ * @returns {boolean}
+ */
+function is_named_ref_attribute(attr) {
+	return !!(
+		attr &&
+		(attr.type === 'Attribute' || attr.type === 'JSXAttribute') &&
+		attr.name &&
+		((attr.name.type === 'Identifier' && attr.name.name !== 'ref') ||
+			(attr.name.type === 'JSXIdentifier' && attr.name.name !== 'ref')) &&
+		(attr.value?.type === 'RefExpression' ||
+			is_ref_prop_expression(attr.value) ||
+			(attr.value?.type === 'JSXExpressionContainer' &&
+				is_ref_prop_expression(attr.value.expression)))
+	);
+}
+
+/**
+ * @param {any} expression
+ * @returns {boolean}
+ */
+function is_ref_prop_expression(expression) {
+	return (
+		expression?.type === 'RefExpression' ||
+		(expression?.type === 'CallExpression' &&
+			expression.callee?.type === 'Identifier' &&
+			expression.callee.name === CREATE_REF_PROP_INTERNAL_NAME)
+	);
 }
 
 /**
@@ -4549,7 +4749,7 @@ export function merge_duplicate_refs(jsx_attrs, transform_context) {
 					type: 'CallExpression',
 					callee: {
 						type: 'Identifier',
-						name: MERGE_REFS_LOCAL_NAME,
+						name: MERGE_REFS_INTERNAL_NAME,
 						metadata: { path: [] },
 					},
 					arguments: ref_exprs,
@@ -4610,7 +4810,9 @@ function is_jsx_ref_attribute(attr) {
  * double-underscore matches the convention for compiler-generated
  * identifiers and avoids shadowing user-declared `mergeRefs` symbols.
  */
-const MERGE_REFS_LOCAL_NAME = '__mergeRefs';
+export const MERGE_REFS_INTERNAL_NAME = '__mergeRefs';
+export const CREATE_REF_PROP_INTERNAL_NAME = '__create_ref_prop';
+export const NORMALIZE_SPREAD_PROPS_INTERNAL_NAME = '__normalize_spread_props';
 
 /**
  * @param {any} attr
@@ -4619,7 +4821,32 @@ const MERGE_REFS_LOCAL_NAME = '__mergeRefs';
  */
 export function to_jsx_attribute(attr, transform_context) {
 	if (!attr) return attr;
-	if (attr.type === 'JSXAttribute' || attr.type === 'JSXSpreadAttribute') {
+	if (attr.type === 'JSXAttribute') {
+		if (
+			attr.value?.type === 'JSXExpressionContainer' &&
+			attr.value.expression?.type === 'RefExpression'
+		) {
+			return {
+				...attr,
+				value: {
+					...attr.value,
+					expression: create_ref_prop_call(attr.value.expression, transform_context),
+				},
+				metadata: { ...(attr.metadata || {}), from_ref_keyword: true },
+			};
+		}
+		if (
+			attr.value?.type === 'JSXExpressionContainer' &&
+			is_ref_prop_expression(attr.value.expression)
+		) {
+			return {
+				...attr,
+				metadata: { ...(attr.metadata || {}), from_ref_keyword: true },
+			};
+		}
+		return attr;
+	}
+	if (attr.type === 'JSXSpreadAttribute') {
 		return attr;
 	}
 	if (attr.type === 'SpreadAttribute') {
@@ -4670,15 +4897,29 @@ export function to_jsx_attribute(attr, transform_context) {
 		attr_name && attr_name.type === 'Identifier' ? identifier_to_jsx_name(attr_name) : attr_name;
 
 	let value = attr.value;
+	const is_ref_expression_value =
+		value?.type === 'RefExpression' ||
+		is_ref_prop_expression(value) ||
+		(value?.type === 'JSXExpressionContainer' && is_ref_prop_expression(value.expression));
 	if (value) {
 		if (value.type === 'Literal' && typeof value.value === 'string') {
 			// Keep string literal as attribute string.
+		} else if (value.type === 'RefExpression') {
+			value = to_jsx_expression_container(create_ref_prop_call(value, transform_context));
 		} else if (value.type !== 'JSXExpressionContainer') {
 			value = to_jsx_expression_container(value);
+		} else if (value.expression?.type === 'RefExpression') {
+			value = {
+				...value,
+				expression: create_ref_prop_call(value.expression, transform_context),
+			};
 		}
 	}
 
 	const jsx_attribute = build_jsx_attribute(name, value || null, attr.shorthand === true);
+	if (is_ref_expression_value) {
+		/** @type {any} */ (jsx_attribute.metadata).from_ref_keyword = true;
+	}
 
 	if (value_has_unmappable_jsx_loc(value)) {
 		/** @type {any} */ (jsx_attribute.metadata).has_unmappable_value = true;
@@ -4698,6 +4939,35 @@ function value_has_unmappable_jsx_loc(value) {
 		(value.expression?.type === 'JSXElement' || value.expression?.type === 'JSXFragment') &&
 		!value.expression.loc
 	);
+}
+
+/**
+ * @param {any} node
+ * @param {TransformContext} transform_context
+ * @returns {any}
+ */
+function create_ref_prop_call(node, transform_context) {
+	transform_context.needs_ref_prop = true;
+
+	const argument = node.argument;
+	const args = [b.thunk(argument)];
+
+	if (argument.type === 'Identifier' || argument.type === 'MemberExpression') {
+		args.push(
+			b.arrow(
+				[b.id('v')],
+				/** @type {any} */ ({
+					type: 'AssignmentExpression',
+					operator: '=',
+					left: clone_expression_node(argument),
+					right: b.id('v'),
+					metadata: { path: [] },
+				}),
+			),
+		);
+	}
+
+	return b.call(CREATE_REF_PROP_INTERNAL_NAME, ...args);
 }
 
 /**

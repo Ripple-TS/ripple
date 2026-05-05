@@ -17,6 +17,10 @@
     ".": {
       "types": "./types/index.d.ts",
       "default": "./src/index.js"
+    },
+    "./ref": {
+      "types": "./types/ref.d.ts",
+      "default": "./src/ref.js"
     }
   },
   "dependencies": {

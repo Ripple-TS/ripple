@@ -32,7 +32,7 @@ export {
 
 export {
 	UNINITIALIZED,
-	DERIVED_UPDATED,
+	TRACKED_UPDATED,
 	SUSPENSE_PENDING,
 	SUSPENSE_REJECTED,
 } from './constants.js';
@@ -65,6 +65,7 @@ export {
 	pop_component,
 	untrack,
 	ref_prop,
+	create_ref_prop,
 	fallback,
 	exclude_from_object,
 	derived,
