@@ -493,6 +493,22 @@ component NamedRefObjectApp() {
 	<NamedForwardInput type="text" input_ref={ref named_ref_object} />
 }
 
+let named_mutable_unmount_slot: HTMLInputElement | null | undefined;
+
+component NamedMutableUnmountApp() {
+	const [show, setShow] = useState(true);
+
+	if (show) {
+		<input
+			type="text"
+			class="named-mutable-unmount"
+			defaultValue="keep"
+			input_ref={ref named_mutable_unmount_slot}
+		/>
+	}
+	<button class="named-mutable-unmount-hide" onClick={() => setShow(false)}>{'hide'}</button>
+}
+
 // ── Try/catch: synchronous error boundary ──
 
 component ThrowingChild() {
@@ -1098,6 +1114,19 @@ describe('tsrx-react runtime', () => {
 		await render(NamedRefObjectApp);
 		expect(named_ref_object.current).toBeInstanceOf(HTMLInputElement);
 		expect(named_ref_object.current!.className).toBe('named-forward-ref');
+	});
+
+	it('clears named mutable ref props on unmount without mutating input.value', async () => {
+		named_mutable_unmount_slot = undefined;
+		await render(NamedMutableUnmountApp);
+		expect(named_mutable_unmount_slot).toBeInstanceOf(HTMLInputElement);
+		const previous_input = named_mutable_unmount_slot!;
+		expect(previous_input.value).toBe('keep');
+
+		await click('.named-mutable-unmount-hide');
+
+		expect(named_mutable_unmount_slot).toBeNull();
+		expect(previous_input.value).toBe('keep');
 	});
 
 	// ── Reactive control flow: if ──

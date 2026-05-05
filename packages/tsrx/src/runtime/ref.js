@@ -22,15 +22,15 @@ export function mergeRefs(...refs) {
 				} else {
 					cleanups.push(() => ref(null));
 				}
-			} else if ('current' in ref) {
-				ref.current = node;
+			} else if (is_ref_object(ref, 'current')) {
+				/** @type {{ current: any }} */ (ref).current = node;
 				cleanups.push(() => {
-					ref.current = null;
+					/** @type {{ current: any }} */ (ref).current = null;
 				});
-			} else if ('value' in ref) {
-				ref.value = node;
+			} else if (is_ref_object(ref, 'value')) {
+				/** @type {{ value: any }} */ (ref).value = node;
 				cleanups.push(() => {
-					ref.value = null;
+					/** @type {{ value: any }} */ (ref).value = null;
 				});
 			}
 		}
@@ -64,14 +64,14 @@ export function apply_ref_value(ref_value, node, set_ref_value) {
 	}
 
 	if (ref_value && typeof ref_value === 'object') {
-		if ('current' in ref_value) {
+		if (is_ref_object(ref_value, 'current')) {
 			ref_value.current = node;
 			return () => {
 				ref_value.current = null;
 			};
 		}
 
-		if ('value' in ref_value) {
+		if (is_ref_object(ref_value, 'value')) {
 			ref_value.value = node;
 			return () => {
 				ref_value.value = null;
@@ -79,7 +79,7 @@ export function apply_ref_value(ref_value, node, set_ref_value) {
 		}
 	}
 
-	if (node !== null && set_ref_value !== undefined) {
+	if (set_ref_value !== undefined) {
 		set_ref_value(node);
 	}
 }
@@ -202,4 +202,61 @@ export function normalize_spread_props(props, ...outer_refs) {
 	}
 
 	return next;
+}
+
+/**
+ * @param {object} value
+ * @param {PropertyKey} key
+ * @returns {boolean}
+ */
+function has_own_property(value, key) {
+	return Object.prototype.hasOwnProperty.call(value, key);
+}
+
+/**
+ * @param {object} value
+ * @param {'current' | 'value'} key
+ * @returns {boolean}
+ */
+function is_ref_object(value, key) {
+	if (is_dom_node(value)) {
+		return false;
+	}
+	if (key === 'value' && '__v_isRef' in value) {
+		return true;
+	}
+	if (has_own_property(value, key)) {
+		return true;
+	}
+	return key === 'value' && has_value_accessor(value);
+}
+
+/**
+ * @param {object} value
+ * @returns {boolean}
+ */
+function is_dom_node(value) {
+	return (
+		(typeof Node !== 'undefined' && value instanceof Node) ||
+		('nodeType' in value &&
+			typeof (/** @type {{ nodeType?: unknown }} */ (value).nodeType) === 'number' &&
+			'nodeName' in value &&
+			typeof (/** @type {{ nodeName?: unknown }} */ (value).nodeName) === 'string')
+	);
+}
+
+/**
+ * @param {object} value
+ * @returns {boolean}
+ */
+function has_value_accessor(value) {
+	var proto = Object.getPrototypeOf(value);
+	while (proto != null) {
+		var descriptor = Object.getOwnPropertyDescriptor(proto, 'value');
+		if (descriptor !== undefined) {
+			return typeof descriptor.get === 'function' || typeof descriptor.set === 'function';
+		}
+		proto = Object.getPrototypeOf(proto);
+	}
+	return false;
 }
