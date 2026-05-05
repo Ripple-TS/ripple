@@ -573,7 +573,11 @@ function add_ref_setter_arg(args, source_argument, argument) {
 		args.push(
 			b.arrow(
 				[b.id('v')],
-				b.assignment('=', /** @type {AST.Pattern} */ (clone_expression_node(argument)), b.id('v')),
+				b.assignment(
+					'=',
+					/** @type {AST.Pattern} */ (clone_expression_node(argument, false)),
+					b.id('v'),
+				),
 			),
 		);
 	}
@@ -1188,6 +1192,13 @@ const visitors = {
 
 	JSXExpressionContainer(node, context) {
 		if (context.state.to_ts) {
+			if (node.expression?.type === 'RefExpression') {
+				return /** @type {any} */ ({
+					type: 'JSXExpressionContainer',
+					expression: create_ref_prop_call(node.expression, context),
+					metadata: { path: [] },
+				});
+			}
 			return context.next();
 		}
 		return context.visit(node.expression);
@@ -3038,6 +3049,7 @@ function transform_ts_child(node, context) {
 					has_children_props = true;
 				}
 
+				const is_ref_expression_value = attr_value?.type === 'RefExpression';
 				const jsx_attr = b.jsx_attribute(
 					jsx_name,
 					// match the source code usage of expressions for literals
@@ -3046,7 +3058,9 @@ function transform_ts_child(node, context) {
 						? /** @type {AST.Literal} */ (value)
 						: b.jsx_expression_container(
 								/** @type {AST.Expression} */ (value),
-								attr_value === null
+								is_ref_expression_value
+									? undefined
+									: attr_value === null
 									? /** @type {AST.NodeWithLocation} */ (value)
 									: // account location for opening and closing braces around the expression
 										/** @type {AST.NodeWithLocation} */ ({

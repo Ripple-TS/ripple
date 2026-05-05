@@ -562,16 +562,17 @@ export function convert_source_map_to_mappings(
 			} else if (node.type === 'JSXIdentifier') {
 				// JSXIdentifiers can also be capitalized (for dynamic components)
 				if (node.loc && node.name) {
-					if (node.metadata?.is_capitalized) {
-						tokens.push({
-							source: node.metadata.source_name,
-							generated: node.name,
-							loc: node.loc,
-							metadata: {},
-						});
-					} else {
-						tokens.push({ source: node.name, generated: node.name, loc: node.loc, metadata: {} });
+					/** @type {Token} */
+					const token = {
+						source: node.metadata?.is_capitalized ? node.metadata.source_name : node.name,
+						generated: node.name,
+						loc: node.loc,
+						metadata: {},
+					};
+					if (node.metadata?.disable_verification) {
+						token.mappingData = { ...mapping_data, verification: false };
 					}
+					tokens.push(token);
 				}
 				return; // Leaf node, don't traverse further
 			} else if (node.type === 'Literal') {
@@ -866,6 +867,15 @@ export function convert_source_map_to_mappings(
 					// but since we already map the opening - start, we just need the proper end
 					// and it was causing some issues with mappings
 					mapping.generatedLengths = [mapping.generatedLengths[0] + 1];
+					if (!closing && opening.selfClosing) {
+						const generated_close_length = '/>;'.length;
+						mapping.sourceOffsets = [/** @type {AST.NodeWithLocation} */ (opening).end - 2];
+						mapping.lengths = ['/>'.length];
+						mapping.generatedOffsets = [
+							mapping.generatedOffsets[0] + mapping.generatedLengths[0] - generated_close_length,
+						];
+						mapping.generatedLengths = [generated_close_length];
+					}
 					mappings.push(mapping);
 				}
 

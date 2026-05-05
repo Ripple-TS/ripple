@@ -1658,7 +1658,7 @@ function transform_element_attributes(raw_attrs, is_composite, transform_context
 	/** @type {any[]} */
 	const result = [];
 
-	for (const attr of normalize_solid_named_ref_attributes(raw_attrs, !is_composite)) {
+	for (const attr of normalize_solid_named_ref_attributes(raw_attrs, !is_composite, transform_context)) {
 		if (!attr) continue;
 		result.push(toJsxAttribute(attr, /** @type {any} */ (transform_context)));
 	}
@@ -1671,9 +1671,10 @@ function transform_element_attributes(raw_attrs, is_composite, transform_context
 /**
  * @param {any[]} attrs
  * @param {boolean} is_host
+ * @param {TransformContext} transform_context
  * @returns {any[]}
  */
-function normalize_solid_named_ref_attributes(attrs, is_host) {
+function normalize_solid_named_ref_attributes(attrs, is_host, transform_context) {
 	if (!is_host) return attrs;
 
 	return attrs.map((attr) => {
@@ -1690,6 +1691,16 @@ function normalize_solid_named_ref_attributes(attrs, is_host) {
 			)
 		) {
 			return attr;
+		}
+
+		if (transform_context.typeOnly) {
+			return {
+				...attr,
+				name: {
+					...attr.name,
+					metadata: { ...(attr.name.metadata || {}), disable_verification: true },
+				},
+			};
 		}
 
 		return {

@@ -441,7 +441,11 @@ export function createJsxTransform(platform) {
 			JSXOpeningElement(node, { next }) {
 				const visited = next() || node;
 				const is_component = is_component_like_jsx_name(visited.name);
-				const attrs = normalize_named_ref_attributes(visited.attributes || [], !is_component);
+				const attrs = normalize_named_ref_attributes(
+					visited.attributes || [],
+					!is_component,
+					transform_context,
+				);
 				return {
 					...visited,
 					attributes: merge_duplicate_refs(
@@ -1597,7 +1601,7 @@ function create_component_return_statement(
 	const cloned = render_nodes.map((node) =>
 		map_render_node_locations
 			? clone_expression_node(node)
-			: clone_expression_node_without_locations(node),
+			: clone_expression_node(node, false),
 	);
 
 	return set_loc(b.return(build_return_expression(cloned) || create_null_literal()), source_node);
@@ -1664,7 +1668,7 @@ function build_tail_helper(continuation_body, source_node, transform_context) {
  * @returns {any}
  */
 function clone_tail_invocation(tail_helper) {
-	return clone_expression_node_without_locations(tail_helper.component_element);
+	return clone_expression_node(tail_helper.component_element, false);
 }
 
 /**
@@ -2572,7 +2576,7 @@ function prepend_render_nodes_to_return_statement(node, render_nodes, inside_nes
  * @returns {any}
  */
 function combine_render_return_argument(render_nodes, return_argument) {
-	const combined = render_nodes.map((node) => clone_expression_node_without_locations(node));
+	const combined = render_nodes.map((node) => clone_expression_node(node, false));
 
 	if (return_argument != null && !is_null_literal(return_argument)) {
 		combined.push(return_argument_to_render_node(return_argument));
@@ -2603,30 +2607,6 @@ function return_argument_to_render_node(argument) {
  */
 function is_null_literal(node) {
 	return node?.type === 'Literal' && node.value == null;
-}
-
-/**
- * @param {any} node
- * @returns {any}
- */
-function clone_expression_node_without_locations(node) {
-	if (!node || typeof node !== 'object') return node;
-	if (Array.isArray(node)) return node.map(clone_expression_node_without_locations);
-
-	const clone = { ...node };
-	delete clone.loc;
-	delete clone.start;
-	delete clone.end;
-
-	for (const key of Object.keys(clone)) {
-		if (key === 'metadata') {
-			clone.metadata = clone.metadata ? { ...clone.metadata } : { path: [] };
-			continue;
-		}
-		clone[key] = clone_expression_node_without_locations(clone[key]);
-	}
-
-	return clone;
 }
 
 const TEMPLATE_FRAGMENT_ERROR =
@@ -4497,7 +4477,7 @@ function to_jsx_expression_container(expression, source_node = expression) {
 function transform_element_attributes_dispatch(attrs, transform_context, element) {
 	validate_at_most_one_ref_attribute(attrs, transform_context);
 	const is_component = is_component_like_element(element);
-	attrs = normalize_named_ref_attributes(attrs, !is_component);
+	attrs = normalize_named_ref_attributes(attrs, !is_component, transform_context);
 	const preprocess = transform_context.platform.hooks?.preprocessElementAttributes;
 	if (preprocess) {
 		attrs = preprocess(attrs, transform_context, element);
@@ -4540,14 +4520,19 @@ function is_component_like_jsx_name(name) {
 /**
  * @param {any[]} attrs
  * @param {boolean} is_host
+ * @param {TransformContext} transform_context
  * @returns {any[]}
  */
-function normalize_named_ref_attributes(attrs, is_host) {
+function normalize_named_ref_attributes(attrs, is_host, transform_context) {
 	if (!is_host) return attrs;
 
 	return attrs.map((attr) => {
 		if (!is_named_ref_attribute(attr)) {
 			return attr;
+		}
+
+		if (transform_context.typeOnly) {
+			return mark_type_only_named_ref_attribute(attr);
 		}
 
 		return {
@@ -4559,6 +4544,22 @@ function normalize_named_ref_attributes(attrs, is_host) {
 					: { type: 'Identifier', name: 'ref', metadata: { path: [] } },
 		};
 	});
+}
+
+/**
+ * @param {any} attr
+ * @returns {any}
+ */
+function mark_type_only_named_ref_attribute(attr) {
+	return {
+		...attr,
+		name: attr.name
+			? {
+					...attr.name,
+					metadata: { ...(attr.name.metadata || {}), disable_verification: true },
+				}
+			: attr.name,
+	};
 }
 
 /**
@@ -4892,10 +4893,9 @@ export function to_jsx_attribute(attr, transform_context) {
 		) {
 			return {
 				...attr,
-				value: {
-					...attr.value,
-					expression: create_ref_prop_call(attr.value.expression, transform_context),
-				},
+				value: to_jsx_expression_container(
+					create_ref_prop_call(attr.value.expression, transform_context),
+				),
 				metadata: { ...(attr.metadata || {}), from_ref_keyword: true },
 			};
 		}
@@ -4973,10 +4973,7 @@ export function to_jsx_attribute(attr, transform_context) {
 		} else if (value.type !== 'JSXExpressionContainer') {
 			value = to_jsx_expression_container(value);
 		} else if (value.expression?.type === 'RefExpression') {
-			value = {
-				...value,
-				expression: create_ref_prop_call(value.expression, transform_context),
-			};
+			value = to_jsx_expression_container(create_ref_prop_call(value.expression, transform_context));
 		}
 	}
 
@@ -5023,7 +5020,7 @@ function create_ref_prop_call(node, transform_context) {
 				/** @type {any} */ ({
 					type: 'AssignmentExpression',
 					operator: '=',
-					left: clone_expression_node(argument),
+					left: clone_expression_node(argument, false),
 					right: b.id('v'),
 					metadata: { path: [] },
 				}),
