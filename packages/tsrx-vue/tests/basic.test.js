@@ -181,8 +181,10 @@ describe('@tsrx/vue basic', () => {
 
 		expect(code).toContain("from '@tsrx/vue/ref'");
 		expect(code).toContain('{...{ input_ref: __create_ref_prop(() => input, (v) => input = v) }}');
-		expect(code).toContain('{...__normalize_spread_props(props)}');
-		expect(code).toContain('ref={__normalize_spread_props(props).ref}');
+		expect(code).toContain('let Child__spread_props1;');
+		expect(code).toContain('{...(Child__spread_props1 = __normalize_spread_props(props))}');
+		expect(code).toContain('ref={Child__spread_props1.ref}');
+		expect(code.match(/__normalize_spread_props\(/g)).toHaveLength(1);
 	});
 
 	it('rejects multiple ref={...} attributes on the same element', () => {

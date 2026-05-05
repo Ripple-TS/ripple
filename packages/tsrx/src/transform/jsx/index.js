@@ -924,6 +924,7 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 
 		if (is_jsx_child(child)) {
 			const jsx = to_jsx_child(child, transform_context);
+			statements.push(...extract_jsx_setup_declarations(jsx));
 			if (interleaved && is_capturable_jsx_child(jsx)) {
 				const { declaration, reference } = captureJsxChild(jsx, capture_index++);
 				statements.push(declaration);
@@ -4576,29 +4577,81 @@ function normalize_host_ref_spreads(attrs, is_host, transform_context) {
 
 		transform_context.needs_ref_prop = true;
 		const normalized = b.call(NORMALIZE_SPREAD_PROPS_INTERNAL_NAME, attr.argument, ...ref_exprs);
-		const spread = {
-			...attr,
-			argument: normalized,
-		};
 
 		if (needs_explicit_spread_ref) {
-			return [
-				spread,
-				b.jsx_attribute(
-					b.jsx_id('ref'),
-					to_jsx_expression_container(b.member(clone_expression_node(normalized), 'ref'), attr),
-					false,
-					attr,
-				),
-			];
+			const normalized_id = create_generated_identifier(
+				create_spread_props_name(transform_context),
+			);
+			const spread = {
+				...attr,
+				argument: b.parenthesized(b.assignment('=', clone_identifier(normalized_id), normalized)),
+			};
+			const ref_attr = b.jsx_attribute(
+				b.jsx_id('ref'),
+				to_jsx_expression_container(b.member(clone_identifier(normalized_id), 'ref'), attr),
+				false,
+				attr,
+			);
+			add_jsx_setup_declaration(ref_attr, b.let(clone_identifier(normalized_id)));
+
+			return [spread, ref_attr];
 		}
 
 		return [
 			{
-				...spread,
+				...attr,
+				argument: normalized,
 			},
 		];
 	});
+}
+
+/**
+ * @param {TransformContext} transform_context
+ * @returns {string}
+ */
+function create_spread_props_name(transform_context) {
+	if (transform_context.helper_state) {
+		return create_helper_name(transform_context.helper_state, 'spread_props');
+	}
+
+	transform_context.local_statement_component_index += 1;
+	return `_tsrx_spread_props_${transform_context.local_statement_component_index}`;
+}
+
+/**
+ * @param {any} node
+ * @param {any} declaration
+ */
+function add_jsx_setup_declaration(node, declaration) {
+	node.metadata ??= { path: [] };
+	(node.metadata.generated_setup_declarations ??= []).push(declaration);
+}
+
+/**
+ * @param {any} node
+ * @param {Set<any>} [seen]
+ * @returns {any[]}
+ */
+function extract_jsx_setup_declarations(node, seen = new Set()) {
+	if (node == null || typeof node !== 'object' || seen.has(node)) {
+		return [];
+	}
+	seen.add(node);
+
+	const declarations = node.metadata?.generated_setup_declarations ?? [];
+	if (node.metadata?.generated_setup_declarations) {
+		delete node.metadata.generated_setup_declarations;
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		declarations.push(...extract_jsx_setup_declarations(node[key], seen));
+	}
+
+	return declarations;
 }
 
 /**

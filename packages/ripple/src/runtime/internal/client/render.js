@@ -1,6 +1,6 @@
 /** @import { Block } from '#client' */
 
-import { destroy_block, ref } from './blocks.js';
+import { branch, destroy_block, ref } from './blocks.js';
 import { DESTROYED, REF_PROP } from './constants.js';
 import { isRefProp as is_ref_prop } from '@tsrx/core/runtime/ref';
 import { is_ripple_object } from './utils.js';
@@ -268,30 +268,32 @@ export function apply_element_spread(element, fn) {
 	return () => {
 		var next = fn();
 
-		for (const key of Reflect.ownKeys(effects)) {
-			if (!next[key] && effects[key]) {
-				destroy_block(/** @type {Block} */ (effects[key]));
-				effects[key] = undefined;
-			}
-		}
-
 		/** @type {Record<symbol, any>} */
 		var current_symbols = {};
 
 		for (const symbol of get_own_property_symbols(next)) {
+			if (symbol.description !== REF_PROP) {
+				continue;
+			}
 			const ref_fn = next[symbol];
 			current_symbols[symbol] = ref_fn;
 
 			if (
-				symbol.description === REF_PROP &&
-				(!(symbol in prev_symbols) ||
-					ref_fn !== prev_symbols[symbol] ||
-					(effects[symbol] && (effects[symbol].f & DESTROYED) !== 0))
+				!(symbol in prev_symbols) ||
+				ref_fn !== prev_symbols[symbol] ||
+				(effects[symbol] && (effects[symbol].f & DESTROYED) !== 0)
 			) {
 				if (effects[symbol] && (effects[symbol].f & DESTROYED) === 0) {
 					destroy_block(effects[symbol]);
 				}
-				effects[symbol] = ref(element, () => ref_fn);
+				effects[symbol] = create_spread_ref_effect(element, ref_fn);
+			}
+		}
+
+		for (const symbol of get_own_property_symbols(prev_symbols)) {
+			if (!(symbol in current_symbols) && effects[symbol]) {
+				destroy_block(/** @type {Block} */ (effects[symbol]));
+				effects[symbol] = undefined;
 			}
 		}
 
@@ -316,7 +318,14 @@ export function apply_element_spread(element, fn) {
 				if (effects[key] && (effects[key].f & DESTROYED) === 0) {
 					destroy_block(effects[key]);
 				}
-				effects[key] = ref(element, () => ref_fn);
+				effects[key] = create_spread_ref_effect(element, ref_fn);
+			}
+		}
+
+		for (const key in prev_ref_props) {
+			if (!(key in current_ref_props) && effects[key]) {
+				destroy_block(/** @type {Block} */ (effects[key]));
+				effects[key] = undefined;
 			}
 		}
 
@@ -361,4 +370,19 @@ export function apply_element_spread(element, fn) {
 		}
 		prev = current;
 	};
+}
+
+/**
+ * Keep spread refs in a branch block so ordinary spread updates do not destroy
+ * and recreate the ref block before `apply_element_spread` can compare the
+ * previous and current ref values.
+ *
+ * @param {Element} element
+ * @param {any} ref_fn
+ * @returns {Block}
+ */
+function create_spread_ref_effect(element, ref_fn) {
+	return branch(() => {
+		ref(element, () => ref_fn);
+	});
 }

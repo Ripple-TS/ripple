@@ -383,6 +383,39 @@ describe('refs', () => {
 		},
 	);
 
+	it('clears a named ref prop when a host spread changes it to a regular prop', () => {
+		let input: HTMLInputElement | null | undefined;
+		let previous: HTMLInputElement | undefined;
+
+		component Child(props: PropsWithExtras<{}>) {
+			let &[as_ref] = track(true);
+
+			<input
+				type="text"
+				value="keep"
+				{...(as_ref ? { input_ref: props.input_ref } : { input_ref: 'regular prop' })}
+			/>
+			<button class="toggle" onClick={() => (as_ref = false)}>{'toggle'}</button>
+		}
+
+		component App() {
+			<Child input_ref={ref input} />
+		}
+
+		render(App);
+		flushSync();
+		expect(input).toBeInstanceOf(HTMLInputElement);
+		previous = input!;
+		expect(previous.value).toBe('keep');
+		expect(previous.getAttribute('input_ref')).toBeNull();
+
+		(container.querySelector('.toggle') as HTMLButtonElement).click();
+		flushSync();
+		expect(input).toBeNull();
+		expect(previous.value).toBe('keep');
+		expect(previous.getAttribute('input_ref')).toBe('regular prop');
+	});
+
 	it('clears the Tracked when the host element unmounts', () => {
 		let captured: Tracked<HTMLDivElement | null> | undefined;
 		let toggle: Tracked<boolean> | undefined;
