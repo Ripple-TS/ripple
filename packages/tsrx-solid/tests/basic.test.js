@@ -723,6 +723,20 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain('{...__normalize_spread_props(props)}');
 		});
 
+		it('normalizes named ref props on host elements before lowering attributes', () => {
+			const { code } = compile(
+				`component App() {
+					let input;
+					<input input_ref={ref input} />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain("from '@tsrx/solid/ref'");
+			expect(code).toContain('ref={__create_ref_prop(() => input, (v) => input = v)}');
+			expect(code).not.toContain('input_ref=');
+		});
+
 		it('rejects multiple ref={expr} attributes on the same element', () => {
 			expect(() =>
 				compile(
