@@ -44,14 +44,15 @@ import {
 	register_boundary_paused_block,
 	replace_boundary_request,
 } from './try.js';
+import { is_ripple_object } from './utils.js';
+
 import {
 	define_property,
 	get_descriptor,
 	get_own_property_symbols,
 	is_array,
-	is_ripple_object,
 	object_keys,
-} from './utils.js';
+} from '@tsrx/core/runtime/language-helpers';
 import { get_async_track_result } from '../../../utils/async.js';
 import { get_track_async_script_id } from '../../../utils/track-async-serialization.js';
 import * as devalue from 'devalue';

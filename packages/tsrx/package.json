@@ -31,6 +31,7 @@
       "types": "./types/runtime/ref.d.ts",
       "default": "./src/runtime/ref.js"
     },
+    "./runtime/*": "./src/runtime/*.js",
     "./test-harness/source-mappings": "./tests/shared/source-mappings.js",
     "./test-harness/compile": "./tests/shared/compile.js"
   },

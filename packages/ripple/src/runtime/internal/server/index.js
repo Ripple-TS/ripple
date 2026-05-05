@@ -27,7 +27,8 @@ import {
 	TRACKED_UPDATED,
 } from '../client/constants.js';
 import { DEV } from 'esm-env';
-import { is_ripple_object, array_slice } from '../client/utils.js';
+import { is_ripple_object } from '../client/utils.js';
+import { array_slice } from '@tsrx/core/runtime/language-helpers';
 import { escape, escapeScript as escape_script } from '@tsrx/core';
 import { isBooleanAttribute as is_boolean_attribute } from '@tsrx/core';
 import { clsx } from 'clsx';

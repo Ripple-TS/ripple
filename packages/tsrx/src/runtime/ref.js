@@ -1,3 +1,11 @@
+import {
+	has_own_property,
+	get_descriptor,
+	has_prototype_accessor,
+} from '@tsrx/core/runtime/language-helpers';
+
+const REF_VALUE = Symbol();
+
 /**
  * Merge multiple refs (function refs and ref objects) into a single
  * callback ref. Used by React, Preact, and Vue targets when an element has
@@ -39,8 +47,6 @@ export function mergeRefs(...refs) {
 		};
 	};
 }
-
-const REF_VALUE = Symbol();
 
 export { is_ref_prop as isRefProp };
 
@@ -166,7 +172,7 @@ export function normalize_spread_props(props, ...outer_refs) {
 	let existing_ref;
 
 	for (const key of Reflect.ownKeys(props)) {
-		const descriptor = Object.getOwnPropertyDescriptor(props, key);
+		const descriptor = get_descriptor(props, key);
 		if (!descriptor?.enumerable) {
 			continue;
 		}
@@ -206,15 +212,6 @@ export function normalize_spread_props(props, ...outer_refs) {
 
 /**
  * @param {object} value
- * @param {PropertyKey} key
- * @returns {boolean}
- */
-function has_own_property(value, key) {
-	return Object.prototype.hasOwnProperty.call(value, key);
-}
-
-/**
- * @param {object} value
  * @param {'current' | 'value'} key
  * @returns {boolean}
  */
@@ -225,10 +222,10 @@ function is_ref_object(value, key) {
 	if (key === 'value' && '__v_isRef' in value) {
 		return true;
 	}
-	if (has_own_property(value, key)) {
+	if (has_own_property.call(value, key)) {
 		return true;
 	}
-	return key === 'value' && has_value_accessor(value);
+	return key === 'value' && has_prototype_accessor(value, 'value');
 }
 
 /**
@@ -243,20 +240,4 @@ function is_dom_node(value) {
 			'nodeName' in value &&
 			typeof (/** @type {{ nodeName?: unknown }} */ (value).nodeName) === 'string')
 	);
-}
-
-/**
- * @param {object} value
- * @returns {boolean}
- */
-function has_value_accessor(value) {
-	var proto = Object.getPrototypeOf(value);
-	while (proto != null) {
-		var descriptor = Object.getOwnPropertyDescriptor(proto, 'value');
-		if (descriptor !== undefined) {
-			return typeof descriptor.get === 'function' || typeof descriptor.set === 'function';
-		}
-		proto = Object.getPrototypeOf(proto);
-	}
-	return false;
 }

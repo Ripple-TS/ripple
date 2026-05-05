@@ -3,12 +3,12 @@
 import { destroy_block, ref } from './blocks.js';
 import { DESTROYED, REF_PROP } from './constants.js';
 import { isRefProp as is_ref_prop } from '@tsrx/core/runtime/ref';
+import { is_ripple_object } from './utils.js';
 import {
 	get_descriptors,
 	get_own_property_symbols,
 	get_prototype_of,
-	is_ripple_object,
-} from './utils.js';
+} from '@tsrx/core/runtime/language-helpers';
 import { event } from './events.js';
 import {
 	getAttributeEventName as get_attribute_event_name,
@@ -279,7 +279,7 @@ export function apply_element_spread(element, fn) {
 		var current_symbols = {};
 
 		for (const symbol of get_own_property_symbols(next)) {
-			var ref_fn = next[symbol];
+			const ref_fn = next[symbol];
 			current_symbols[symbol] = ref_fn;
 
 			if (
@@ -301,7 +301,7 @@ export function apply_element_spread(element, fn) {
 		var current_ref_props = {};
 
 		for (const key in next) {
-			var ref_fn = next[key];
+			const ref_fn = next[key];
 			if (!is_ref_prop(ref_fn)) {
 				continue;
 			}

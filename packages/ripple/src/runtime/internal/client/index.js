@@ -90,7 +90,7 @@ export { switch_block as switch } from './switch.js';
 
 export { template, append, text } from './template.js';
 
-export { array_slice } from './utils.js';
+export { array_slice } from '@tsrx/core/runtime/language-helpers';
 
 export { ripple_array } from '../../array.js';
 
