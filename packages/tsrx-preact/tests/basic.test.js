@@ -228,6 +228,29 @@ describe('@tsrx/preact basic', () => {
 			expect(code).toContain('{...__normalize_spread_props(props)}');
 		});
 
+		it('normalizes multiple host spreads once while merging one explicit ref', () => {
+			const { code } = compile(
+				`export component App() {
+					const first = {};
+					const second = {};
+					function cb(_node) {}
+					<input {...first} {...second} ref={cb} />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('let App__spread_props1 = __normalize_spread_props(first);');
+			expect(code).toContain('let App__spread_props2 = __normalize_spread_props(second);');
+			expect(code).toContain('{...App__spread_props1}');
+			expect(code).toContain('{...App__spread_props2}');
+			expect(code).toContain(
+				'ref={__mergeRefs(App__spread_props1.ref, App__spread_props2.ref, cb)}',
+			);
+			expect(code.match(/__normalize_spread_props\(/g)).toHaveLength(2);
+			expect(code).not.toContain('__normalize_spread_props(first, cb)');
+			expect(code).not.toContain('__normalize_spread_props(second, cb)');
+		});
+
 		it('rejects multiple ref={expr} attributes on the same element', () => {
 			expect(() =>
 				compile(

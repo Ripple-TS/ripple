@@ -86,6 +86,42 @@ component NamedSpreadAfterRefApp() {
 	/>
 }
 
+let multi_spread_first_node: HTMLInputElement | null = null;
+let multi_spread_second_node: HTMLInputElement | null = null;
+let multi_spread_native_node: HTMLInputElement | null = null;
+let multi_spread_native_calls = 0;
+
+function multiSpreadExplicitNativeRef(node: HTMLInputElement | null) {
+	if (node) {
+		multi_spread_native_calls += 1;
+	}
+	multi_spread_native_node = node;
+}
+
+component MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) {
+	const first = { type: props.type, first_ref: props.first_ref };
+	const second = { second_ref: props.second_ref };
+
+	<input
+		{...first}
+		{...second}
+		ref={multiSpreadExplicitNativeRef}
+		class="multi-spread-explicit-ref"
+	/>
+}
+
+component MultiSpreadExplicitRefApp() {
+	<MultiSpreadExplicitRefInput
+		type="text"
+		first_ref={ref (node: HTMLInputElement | null) => {
+			multi_spread_first_node = node;
+		}}
+		second_ref={ref (node: HTMLInputElement | null) => {
+			multi_spread_second_node = node;
+		}}
+	/>
+}
+
 const named_ref_object: { current: HTMLInputElement | null } = { current: null };
 
 component NamedRefObjectApp() {
@@ -135,6 +171,24 @@ describe('@tsrx/vite-plugin-preact runtime', () => {
 		await render(NamedSpreadAfterRefApp);
 		expect(named_spread_after_node).toBeInstanceOf(HTMLInputElement);
 		expect(named_spread_after_node).toBe(named_spread_after_native_node);
+	});
+
+	it('merges named refs from multiple host spreads with one explicit ref', async () => {
+		multi_spread_first_node = null;
+		multi_spread_second_node = null;
+		multi_spread_native_node = null;
+		multi_spread_native_calls = 0;
+		await render(MultiSpreadExplicitRefApp);
+		expect(multi_spread_first_node).toBeInstanceOf(HTMLInputElement);
+		expect(multi_spread_first_node).toBe(multi_spread_second_node);
+		expect(multi_spread_first_node).toBe(multi_spread_native_node);
+		expect(multi_spread_native_calls).toBe(1);
+		expect(container.querySelector('.multi-spread-explicit-ref')!.hasAttribute('first_ref')).toBe(
+			false,
+		);
+		expect(container.querySelector('.multi-spread-explicit-ref')!.hasAttribute('second_ref')).toBe(
+			false,
+		);
 	});
 
 	it('assigns named ref props backed by Preact-style ref objects', async () => {

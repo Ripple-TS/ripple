@@ -248,6 +248,7 @@ function component_to_function_declaration(component, transform_context) {
 					}
 					if (early_interleaved) {
 						const jsx = to_jsx_child(child, transform_context);
+						outer.push(...extract_solid_jsx_setup_declarations(jsx));
 						if (is_capturable_jsx_child(jsx)) {
 							const { declaration, reference } = captureJsxChild(jsx, early_capture_index++);
 							outer.push(declaration);
@@ -292,6 +293,7 @@ function component_to_function_declaration(component, transform_context) {
 	for (const child of effective_body) {
 		if (is_jsx_child(child)) {
 			const jsx = to_jsx_child(child, transform_context);
+			statements.push(...extract_solid_jsx_setup_declarations(jsx));
 			if (interleaved && is_capturable_jsx_child(jsx)) {
 				const { declaration, reference } = captureJsxChild(jsx, capture_index++);
 				statements.push(declaration);
@@ -486,6 +488,7 @@ function body_to_jsx_child(body_nodes, transform_context) {
 
 		if (is_jsx_child(child)) {
 			const jsx = to_jsx_child(child, transform_context);
+			statements.push(...extract_solid_jsx_setup_declarations(jsx));
 			if (interleaved && is_capturable_jsx_child(jsx)) {
 				const { declaration, reference } = captureJsxChild(jsx, capture_index++);
 				statements.push(declaration);
@@ -673,7 +676,9 @@ function loop_body_to_callback_statements(body_nodes, transform_context) {
 		}
 
 		if (is_jsx_child(child)) {
-			children.push(to_jsx_child(child, transform_context));
+			const jsx = to_jsx_child(child, transform_context);
+			statements.push(...extract_solid_jsx_setup_declarations(jsx));
+			children.push(jsx);
 		} else if (is_bare_render_expression(child)) {
 			children.push(to_jsx_expression_container(child, child));
 		} else {
@@ -1723,29 +1728,96 @@ function normalize_solid_named_ref_attributes(attrs, is_host, transform_context)
 function normalize_solid_host_ref_spreads(attrs, is_host, transform_context) {
 	if (!is_host) return attrs;
 
-	const has_spread = attrs.some((attr) => attr?.type === 'JSXSpreadAttribute');
 	const ref_exprs = attrs
 		.filter((attr) => is_solid_jsx_ref_attribute(attr))
 		.map((attr) => attr.value.expression);
+	const needs_synthetic_spread_ref = ref_exprs.length > 0;
 
 	return attrs.flatMap((attr) => {
-		if (has_spread && ref_exprs.length > 0 && is_solid_jsx_ref_attribute(attr)) {
-			return [];
-		}
-
 		if (!attr || attr.type !== 'JSXSpreadAttribute') {
 			return [attr];
 		}
 
 		transform_context.needs_ref_prop = true;
+		const normalized = b.call(NORMALIZE_SPREAD_PROPS_INTERNAL_NAME, attr.argument);
+
+		if (needs_synthetic_spread_ref) {
+			const normalized_id = create_generated_identifier(
+				create_solid_spread_props_name(transform_context),
+			);
+			const spread = {
+				...attr,
+				argument: clone_identifier(normalized_id),
+			};
+			const ref_attr = b.jsx_attribute(
+				b.jsx_id('ref'),
+				b.jsx_expression_container(b.member(clone_identifier(normalized_id), 'ref'), attr),
+				false,
+				attr,
+			);
+			ref_attr.metadata = { ...(ref_attr.metadata || {}) };
+			/** @type {any} */ (ref_attr.metadata).from_ref_keyword = true;
+			add_solid_jsx_setup_declaration(spread, b.let(clone_identifier(normalized_id), normalized));
+
+			return [spread, ref_attr];
+		}
 
 		return [
 			{
 				...attr,
-				argument: b.call(NORMALIZE_SPREAD_PROPS_INTERNAL_NAME, attr.argument, ...ref_exprs),
+				argument: normalized,
 			},
 		];
 	});
+}
+
+/**
+ * @param {TransformContext} transform_context
+ * @returns {string}
+ */
+function create_solid_spread_props_name(transform_context) {
+	if (transform_context.helper_state) {
+		transform_context.helper_state.next_id += 1;
+		return `${transform_context.helper_state.base_name}__spread_props${transform_context.helper_state.next_id}`;
+	}
+
+	transform_context.local_statement_component_index += 1;
+	return `_tsrx_spread_props_${transform_context.local_statement_component_index}`;
+}
+
+/**
+ * @param {any} node
+ * @param {any} declaration
+ */
+function add_solid_jsx_setup_declaration(node, declaration) {
+	node.metadata ??= { path: [] };
+	(node.metadata.generated_setup_declarations ??= []).push(declaration);
+}
+
+/**
+ * @param {any} node
+ * @param {Set<any>} [seen]
+ * @returns {any[]}
+ */
+function extract_solid_jsx_setup_declarations(node, seen = new Set()) {
+	if (node == null || typeof node !== 'object' || seen.has(node)) {
+		return [];
+	}
+	seen.add(node);
+
+	const declarations = node.metadata?.generated_setup_declarations ?? [];
+	if (node.metadata?.generated_setup_declarations) {
+		delete node.metadata.generated_setup_declarations;
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		declarations.push(...extract_solid_jsx_setup_declarations(node[key], seen));
+	}
+
+	return declarations;
 }
 
 /**

@@ -4569,32 +4569,28 @@ function mark_type_only_named_ref_attribute(attr) {
 function normalize_host_ref_spreads(attrs, is_host, transform_context) {
 	if (!is_host) return attrs;
 
-	const has_spread = attrs.some((attr) => attr?.type === 'JSXSpreadAttribute');
 	const needs_explicit_spread_ref =
 		transform_context.platform.jsx?.hostSpreadRefStrategy === 'explicit-ref-attr';
 	const ref_exprs = attrs
 		.filter((attr) => is_jsx_ref_attribute(attr))
 		.map((attr) => attr.value.expression);
+	const needs_synthetic_spread_ref = needs_explicit_spread_ref || ref_exprs.length > 0;
 
 	return attrs.flatMap((attr) => {
-		if (has_spread && ref_exprs.length > 0 && is_jsx_ref_attribute(attr)) {
-			return [];
-		}
-
 		if (!attr || attr.type !== 'JSXSpreadAttribute') {
 			return [attr];
 		}
 
 		transform_context.needs_ref_prop = true;
-		const normalized = b.call(NORMALIZE_SPREAD_PROPS_INTERNAL_NAME, attr.argument, ...ref_exprs);
+		const normalized = b.call(NORMALIZE_SPREAD_PROPS_INTERNAL_NAME, attr.argument);
 
-		if (needs_explicit_spread_ref) {
+		if (needs_synthetic_spread_ref) {
 			const normalized_id = create_generated_identifier(
 				create_spread_props_name(transform_context),
 			);
 			const spread = {
 				...attr,
-				argument: b.parenthesized(b.assignment('=', clone_identifier(normalized_id), normalized)),
+				argument: clone_identifier(normalized_id),
 			};
 			const ref_attr = b.jsx_attribute(
 				b.jsx_id('ref'),
@@ -4602,7 +4598,9 @@ function normalize_host_ref_spreads(attrs, is_host, transform_context) {
 				false,
 				attr,
 			);
-			add_jsx_setup_declaration(ref_attr, b.let(clone_identifier(normalized_id)));
+			ref_attr.metadata = { ...(ref_attr.metadata || {}) };
+			/** @type {any} */ (ref_attr.metadata).from_ref_keyword = true;
+			add_jsx_setup_declaration(spread, b.let(clone_identifier(normalized_id), normalized));
 
 			return [spread, ref_attr];
 		}
