@@ -450,103 +450,82 @@ When a prop name matches the variable, use the shorthand:
 <Input {value} {onChange} />
 ```
 
-### DOM refs — `{ref expr}` and `ref={...}`
+### DOM refs — `{ref expr}`, `ref={...}`, and named ref props
 
-TSRX has two ref syntaxes:
+Use refs when you need the DOM node. TSRX has three forms:
 
-- **Keyword form `{ref expr}`** — the canonical TSRX form. Works on every
-  target. Multiple per element are allowed and the compiler merges them.
-- **TSX-style attribute `ref={refObject}`** — accepted on every target
-  *except Ripple*. Targets the runtime's native ref-object primitive
-  (e.g. React's `useRef()`, Vue's `ref()`). At most one per element;
-  multiple `ref={...}` is a compile error.
+- **Keyword form `{ref expr}`** — a direct ref on the current element or component.
+- **Native-style attribute `ref={expr}`** — the target runtime's native ref
+  attribute. At most one `ref={...}` attribute is allowed on one element.
+- **Named ref prop `inputRef={ref expr}`** — a string-keyed ref prop that are
+	great for component and element composition. On host elements TSRX
+  applies named ref props as refs instead of emitting them as attributes.
 
-What `expr` can be — and how it's interpreted — depends on the target:
+What `expr` can be — and how it is interpreted — depends on the target:
 
-| Target | Callback `(n) => …` | Mutable `let` var | Reactive primitive | `ref={refObject}` attribute |
+| Target | Direct callback | Direct mutable `let` | Direct reactive/object ref | Named mutable prop |
 | --- | --- | --- | --- | --- |
-| React | ✓ | — | — | ✓ `useRef()` (`.current`) |
-| Preact | ✓ | — | — | ✓ `useRef()` (`.current`) |
-| Solid | ✓ | ✓ | ✓ signal setter (callback form) | ✓ |
-| Vue | ✓ | — | — | ✓ `ref()` / `useTemplateRef()` (`.value`) |
-| Ripple | ✓ | ✓ | ✓ `Tracked` from `track()` (`.value`) | — |
+| React | ✓ | — | ✓ `useRef()` / `createRef()` | ✓ |
+| Preact | ✓ | — | ✓ `useRef()` / `createRef()` | ✓ |
+| Solid | ✓ | ✓ | ✓ native Solid refs, including arrays | ✓ |
+| Vue | ✓ | — | ✓ Vue `ref()` / function refs | ✓ |
+| Ripple | ✓ | ✓ | ✓ `Tracked` from `track()` | ✓ |
 
-Ripple's `Tracked` and the mutable `let` form are runtime-dispatched: at
-mount, `ref()` decides whether to call the value as a function, set its
-`.value` (Tracked), or assign the element to the slot (plain variable).
-Ripple does not accept the TSX-style `ref={...}` attribute — use the
-keyword form.
 
 ```tsrx
 // Callback ref — every target.
-<input {ref (node) => node.focus()} />
+<input {ref (node) => node?.focus()} />
 ```
 
 ```tsrx
-// Mutable-variable ref — Solid, Ripple only. React/Preact need a callback
-// or `ref={useRef()}`; Vue needs a callback or `ref={ref()}`.
+// Mutable-variable direct refs — Solid and Ripple host elements.
 component AutoFocus() {
   let input: HTMLInputElement | undefined;
-  <input {ref input} type="text" />
+  <input ref={input} {ref input} myOtherRef={ref input} type="text" />
 }
 ```
 
 ```tsrx
-// Reactive primitive — Ripple's Tracked.
-import { track } from 'ripple';
+// Named mutable ref prop — every target.
 
-component App() {
-  const inputRef = track<HTMLInputElement | null>(null);
-  <input {ref inputRef} type="text" />
-  // later: inputRef.value is the input element
+component Form() {
+  let input: HTMLInputElement | undefined;
+  <Field inputRef={ref input} />
+}
+
+component Field(props) {
+  <input {...props} />
 }
 ```
 
 ```tsrx
-// React/Preact ref object — useRef + callback combo.
+// React/Preact ref object + anonymous and named callback refs.
 import { useRef } from 'react';
 
 component SearchBox() {
   const inputRef = useRef<HTMLInputElement>(null);
-  function logNode(node: HTMLInputElement) { console.log(node); }
+  function logNode(node: HTMLInputElement | null) { console.log(node); }
 
-  // At most one `ref={...}` + any number of `{ref ...}`.
-  <input ref={inputRef} {ref logNode} type="text" />
+  <input ref={inputRef} {ref logNode} logRef={ref logNode} type="text" />
 }
 ```
 
-**Combining refs**: any number of `{ref ...}` callbacks may sit alongside
-at most one `ref={...}` attribute (on platforms that support
-`ref={...}`). The compiler folds them into a single attribute that fires
-every callback and assigns every ref object on mount. Two or more
-`ref={...}` attributes on the same element is a compile error.
+**Combining refs**: you may combine one `ref={...}` with any number of
+anonymous or named `{ref ...}` expressions on one host element. React,
+Preact, and Vue use the target `ref` helper (`@tsrx/<target>/ref`) to merge
+callbacks and ref objects. Solid emits a native ref array such as
+`ref={[a, b]}`. Ripple applies refs through its block runtime.
 
-**Composite refs**: work on React, Preact, Solid, and Ripple. The child
-receives the ref as a regular prop and applies it to a DOM element —
-typically by spreading `{...props}`. On Ripple, use a callback or a
-`Tracked` for cross-boundary capture; plain `let` variables only work on
-host elements (the setter closure needs direct lexical access). Vue is
-different: component refs resolve to component instances rather than the
-rendered DOM node, so `@tsrx/vue` currently supports `{ref ...}` only on
-host elements.
+**Component refs and Vue**: in React, Preact, Solid, and Ripple, ref props can
+cross component boundaries when the child forwards or spreads props onto a
+host element. Vue is special: `ref={...}` on a Vue component remains Vue's
+native component ref and is not forwarded to the child's DOM element. Use a
+named ref prop such as `inputRef={ref input}` when a Vue component should
+expose an inner DOM ref.
 
-```tsrx
-component TextField(props) {
-  <input {...props} />
-}
-
-component Form() {
-  function logNode(node: HTMLInputElement) { console.log(node); }
-  <TextField {ref logNode} />
-}
-```
-
-**Multi-ref runtime**: React, Preact, and Vue share a `mergeRefs` helper
-(imported from `@tsrx/<target>/merge-refs`) that handles function refs,
-`.current` ref objects, `.value` ref objects, and React 19 cleanup return
-values uniformly. Solid emits `ref={[a, b]}` instead — its ref runtime
-iterates array refs natively. Ripple invokes each ref through its block
-runtime.
+**Runtime inspection**: named ref props are marked at runtime. Use
+`isRefProp(value)` to detect a named ref prop. Anonymous `{ref ...}` props are
+not publicly inspectable because their prop keys are unique symbols.
 
 ### Lexical template scoping
 
@@ -970,9 +949,9 @@ component List<T>({ items, render }: Props<T>) {
 | Lazy array destructure   | `let &[count, set] = createSignal(0);`           |
 | Prop shorthand           | `<Input {value} {onChange} />`                   |
 | Callback ref             | `<input {ref (node) => ...} />`                  |
-| Mutable-variable ref (Solid/Ripple) | `<input {ref varName} />`                |
-| Reactive primitive ref (Ripple/Solid) | `<input {ref tracker} />`             |
-| Ref-object attribute (except Ripple) | `<input ref={useRefValue} />`          |
+| Direct mutable ref (Solid/Ripple) | `<input ref={varName} />`                  |
+| Named mutable ref prop  | `<Field inputRef={ref input} />`            |
+| Reactive/object ref     | `<input ref={useRefValue} />`               |
 | Multiple host refs       | `<input ref={obj} {ref a} {ref b} />`            |
 | Conditional rendering    | `if (cond) { ... } else { ... }`                 |
 | List rendering           | `for (const x of xs; index i; key x.id) { ... }` |

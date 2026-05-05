@@ -17,11 +17,11 @@ Ripple is a TypeScript UI framework that combines the best parts of React, Solid
 # Create new project from template
 npx degit Ripple-TS/ripple/templates/basic my-app
 cd my-app
-npm i && npm run dev
+pnpm install && pnpm dev
 
 # Or install in existing project
-npm install ripple
-npm install --save-dev '@ripple-ts/vite-plugin'  # For Vite integration
+pnpm add ripple
+pnpm add -D '@ripple-ts/vite-plugin'  # For Vite integration
 ```
 
 ## Core Syntax & Concepts
@@ -62,7 +62,7 @@ expressions must be wrapped in curly braces `{}`.
 
 // ✅ CORRECT - JavaScript strings in expressions
 <div>{'Hello World'}</div>
-<p>{`This works correctly`}</p>
+<p>{"This works correctly"}</p>
 
 // ✅ CORRECT - Variables and expressions
 <div>{greeting}</div>
@@ -205,7 +205,7 @@ component App() {
 // ❌ WRONG - Returning values from components
 component App() {
   if (error) {
-    return "failed";  // Compilation error
+    return 'failed';  // Compilation error
   }
 }
 ```
@@ -302,6 +302,43 @@ count++;                    // Read/write directly
 let &[count, countTracked] = track(0);
 ```
 
+#### Accessing Tracked Values with `.value`
+
+As an alternative to lazy destructuring, you can read and write a tracked value directly using the `.value` property on the `Tracked<V>` object:
+
+```ripple
+import { track } from 'ripple';
+
+const count = track(0);
+
+// Read the current value
+console.log(count.value);  // 0
+
+// Write a new value
+count.value++;
+console.log(count.value);  // 1
+```
+
+Using `&[...]` lazy destructuring is preferred in most cases because it produces cleaner, more readable code. However, `.value` is useful when you need to keep the `Tracked<V>` object around — for example, when storing tracked values in data structures, passing them as props typed as `Tracked<T>`, or when you need both the tracked object and its value in different contexts:
+
+```ripple
+import { track } from 'ripple';
+
+// Storing tracked values in an array — use .value to read/write
+const items = [track(1), track(2), track(3)];
+items[0].value++;  // reactively updates
+
+// Passing tracked objects as props — the child receives the Tracked<T> object
+component Child(props: { count: Tracked<number> }) {
+  <div>{props.count.value}</div>
+}
+
+// Using &[value, trackedValue] gives you both:
+let &[count, countTracked] = track(0);
+count++;                    // convenient direct access via lazy destructuring
+console.log(countTracked.value);  // equivalent: read via .value on the tracked object
+```
+
 Objects can also contain tracked values — use lazy destructuring to access them:
 ```ripple
 import { track } from 'ripple';
@@ -367,6 +404,55 @@ export component App() {
 
 > Note: If no value is returned from either `get` or `set`, `undefined` is either exposed (for get) or stored (for set). Also, if only supplying the `set`, the `get` parameter must be set to `undefined`.
 
+#### Lazy Destructuring (`&{...}` / `&[...]`)
+
+Lazy destructuring uses the `&` prefix directly before `{` or `[` in a destructuring pattern. Instead of eagerly pulling values out of the source object, lazy destructuring compiles each variable access to a deferred property/index lookup on the source. This preserves reactivity for reactive props and other tracked objects.
+
+```ripple
+// Lazy object destructuring
+const &{ a, b } = props;
+// Compiles to: a → props.a, b → props.b (accessed lazily)
+
+// Lazy array destructuring
+const &[first, second] = items;
+// Compiles to: first → items[0], second → items[1]
+
+// With default values
+const &{ x = 10 } = props;
+// Compiles to: x → _$_.fallback(props.x, 10)
+
+// With rest patterns
+const &{ a, ...rest } = props;
+// Compiles to: a → props.a, rest → { ...props, a: undefined } (lazily)
+```
+
+**Component props** — use `&{...}` to lazily destructure props, preserving reactivity:
+
+```ripple
+component Child(&{ count, className, children }: Props) {
+  // count, className, children are lazily read from __props
+  <button class={className}>{children}</button>
+  <pre>"Count is: "{count}</pre>
+}
+```
+
+**Function parameters** — works in regular functions too:
+
+```ripple
+function process(&{ x, y }: Point) {
+  return x + y; // lazily reads from the parameter object
+}
+```
+
+**Variable declarations** — lazy destructuring works with `const`, `let`, and `var`:
+
+```ripple
+const &{ a, b } = someObject;     // read-only lazy access
+let &{ x, y } = mutableObject;    // supports assignment: x = 5 writes back to mutableObject.x
+```
+
+> **When to use lazy destructuring**: Use `&{...}` whenever you destructure reactive props or tracked objects and need the variables to remain reactive. Regular destructuring (`{ a, b } = obj`) eagerly copies values and loses reactivity.
+
 ### Transporting Reactivity
 
 **Critical Concept**: Ripple doesn't constrain reactivity to components only. `Tracked<V>` objects can simply be passed by reference between boundaries to improve expressivity and co-location.
@@ -376,7 +462,7 @@ export component App() {
 import { track, effect } from 'ripple';
 
 function createDouble(&[count]) {
-  const double = track(() => count * 2);
+  const &[double] = track(() => count * 2);
 
   effect(() => {
     console.log('Count:', count)
@@ -397,7 +483,7 @@ export component App() {
 
 #### Dynamic Component Transport Pattern
 
-Ripple has built-in support for dynamic components, a way to render different components based on reactive state. Instead of hardcoding which component to show, you can store a component in a `Tracked` via `track()`, and update it at runtime. When the tracked value changes, Ripple automatically unmounts the previous component and mounts the new one. Dynamic components are written with the `<@Component />` tag, where the `@` tells the compiler that the component reference is dynamic. This makes it straightforward to pass components as props or swap them directly within a component, enabling flexible, state-driven UIs with minimal boilerplate.
+Ripple has built-in support for dynamic components, a way to render different components based on reactive state. Instead of hardcoding which component to show, you can store a component in a `Tracked` via `track()`, and update it at runtime. When the tracked value changes, Ripple automatically unmounts the previous component and mounts the new one. Dynamic components are written with the `<@Component />` tag, where `@` is a special marker that tells the compiler the component or element is dynamic — it does not dereference or unwrap the value. The expression after `@` (e.g., `swapMe` in `<@swapMe />`) is treated as a `Tracked` value, and the runtime handles unwrapping it internally. This makes it straightforward to pass components as props or swap them directly within a component, enabling flexible, state-driven UIs with minimal boilerplate.
 
 ```ripple
 import { track } from 'ripple';
@@ -575,19 +661,26 @@ component ErrorBoundary() {
 
 ### Children Components
 
-Use `children` prop for component composition. Use `Children` type to accept one or more children:
+Use the `children` prop for component composition. Use the `Children` type to accept one or more children. If you need to pass additional child components such as `Header`, `Footer`, or `InlineComp`, define them in scope and pass them as explicit props on the component element. Do not declare `component Foo() {}` directly inside another component's child content.
 
 ```ripple
-import type { Children } from 'ripple';
+import type { Children, Component } from 'ripple';
 
-component Card(props: { children: Children }) {
+component Card(props: { children: Children; Footer?: Component }) {
   <div class="card">
-    {children}
+    {props.children}
+    if (props.Footer) {
+      <props.Footer />
+    }
   </div>
 }
 
+component Footer() {
+  <button>"OK"</button>
+}
+
 // Usage
-<Card>
+<Card Footer={Footer}>
   <p>"Card content here"</p>
 </Card>
 ```
@@ -789,32 +882,59 @@ Both examples above will render the same inline styles, however, it's recommende
 
 ### DOM References (Refs)
 
-Use `{ref fn}` syntax to capture DOM element references:
+Ripple supports three DOM ref forms:
+
+- `{ref expr}` — anonymous prop as a direct TSRX keyword ref.
+- `ref={expr}` — native-style direct ref attribute on the current element.
+- `anyName={ref expr}` — named ref prop
+
+All three styles can be used on components and elements.
+Named ref props are applied as refs instead of emitted as attributes.
+
+Refs accept callbacks, `Tracked` values for reactive assignments, and mutable
+identifiers/member expressions and cross component boundaries.
 
 ```ripple
 import { track } from 'ripple';
 
 export component App() {
-  let &[div] = track();
+  let div: HTMLDivElement | null | undefined;
+  const input = track<HTMLInputElement | null>(null);
 
-  const divRef = (node) => {
-    div = node;
-    console.log("mounted", node);
+	// anonymous style
+  <div {ref div}>"Hello world"</div>
 
-    return () => {
-      div = undefined;
-      console.log("unmounted", node);
-    };
-  };
+	// native-like style
+  <input ref={input} type="text" />
 
-  <div {ref divRef}>"Hello world"</div>
+	// callback style
+  <button {ref (node) => console.log("mounted", node)}>"Log"</button>
 }
 ```
 
-Inline refs:
+Named refs are recommended for better Component and DOM composition:
+
 ```ripple
-<div {ref (node) => console.log(node)}>"Content"</div>
+component Field({ inputRef, buttonRef ...rest }) {
+	// on DOM elements refs are registered without attributes added
+	<div class="wrapper" {...rest}>
+		<input inputRef={inputRef} {...rest} />
+		<button buttonRef={buttonRef}>"Reset"</button>
+	</div>
+	</div>
+}
+
+export component App() {
+  let input: HTMLInputElement | null | undefined;
+	let button = track<HTMLButtonElement | null>(null);
+	let wrapper: HTMLElement | null | undefined;
+  <Field inputRef={ref input} buttonRef={ref button} {ref (node) => wrapper = node} />
+}
 ```
+
+Named ref props are marked at runtime. Use `isRefProp(value)` to detect one.
+Anonymous `{ref ...}` props use unique symbol keys and are intentionally not
+publicly inspectable.
 
 ## Built-in APIs
 
@@ -996,9 +1116,9 @@ Just like objects, you can use the `Tracked<V>` objects in any standard JavaScri
 ```ripple
 import { track } from 'ripple';
 
-let &[first] = track(0);
-let &[second] = track(0);
-const arr = [first, second];
+let &[first, firstTracked] = track(0);
+let &[second, secondTracked] = track(0);
+const arr = [firstTracked, secondTracked];
 
 const &[total] = track(() => arr.reduce((a, b) => a + b, 0));
 
@@ -1166,7 +1286,7 @@ Ripple provides a compatibility layer for integrating with React applications. T
 #### Installation
 
 ```bash
-npm install @ripple-ts/compat-react
+pnpm add @ripple-ts/compat-react
 ```
 
 #### Using React Components in Ripple (tsx:react)
@@ -1461,6 +1581,41 @@ export component App() {
 }
 ```
 
+### Explicit Text
+
+Direct double-quoted children are static escaped text. By default, a
+`{expression}` in a template can render either text or a fragment. If you know
+the expression will always be text, use the `{text}` directive to make that
+explicit:
+
+```ripple
+export component Frame({ children }) {
+	<div class="frame">
+		{text 'before'}
+		{children}
+		{text 'after'}
+	</div>
+}
+```
+
+The `{text}` directive guarantees the expression is treated as text content.
+Like regular expressions, the value is HTML-escaped. Unlike `{html}`, the
+content is never parsed as HTML. The compiler can optimize `{text}` expressions
+more efficiently than general expressions that might need to handle component
+rendering.
+
+```ripple
+export component App() {
+	const markup = '<span>Not HTML</span>';
+
+	// Renders the literal string "<span>Not HTML</span>" as text
+	<div>{text markup}</div>
+}
+```
+
+Note: `text` is a reserved keyword in Ripple expressions. You cannot use `text`
+as a variable name inside `{braces}`.
+
 ## TypeScript Integration
 
 ### Component Types
@@ -1523,6 +1678,93 @@ export default defineConfig({
 }
 ```
 
+### TSRX MCP Server
+
+Use `@tsrx/mcp` when an AI coding tool supports Model Context Protocol (MCP) and
+needs target-aware TSRX help. The server exposes current TSRX documentation,
+target detection, project inspection, formatting, compilation, diagnostic
+analysis, and read-only file validation.
+
+Hosted endpoint:
+
+For hosted MCP apps and connectors, use:
+
+```text
+https://mcp.tsrx.dev/mcp
+```
+
+This is the best starting point for ChatGPT web and other clients that connect to
+an HTTP MCP server instead of launching a local command.
+
+ChatGPT setup:
+
+Add `https://mcp.tsrx.dev/mcp` when creating a custom app or connector from
+ChatGPT developer mode, then select that app from the tools menu in a chat.
+
+Self-hosting:
+
+To self-host the endpoint, deploy the monorepo's `website-mcp` app anywhere that
+can run a Node HTTP server and connect remote MCP clients to its `/mcp` route.
+
+Local MCP server:
+
+For local repository work in Codex, Cursor, Gemini CLI, or Claude Code, install
+`@tsrx/mcp` as a stdio MCP server so the tool can inspect your project.
+
+Generic local MCP client config:
+
+```json
+{
+  "mcpServers": {
+    "tsrx": {
+      "command": "npx",
+      "args": ["-y", "@tsrx/mcp"]
+    }
+  }
+}
+```
+
+Codex setup:
+
+```toml
+# ~/.codex/config.toml
+[mcp_servers.tsrx]
+command = "npx"
+args = ["-y", "@tsrx/mcp"]
+```
+
+Gemini CLI setup:
+
+Put the generic `mcpServers` JSON in `.gemini/settings.json` for a project, or
+`~/.gemini/settings.json` globally.
+
+Cursor setup:
+
+Put the generic `mcpServers` JSON in `.cursor/mcp.json` for a project, or
+`~/.cursor/mcp.json` globally. Cursor Agent and `cursor-agent` discover the
+configured tools automatically.
+
+Claude Code setup:
+
+```bash
+claude mcp add tsrx -- npx -y @tsrx/mcp
+```
+
+Recommended agent workflow:
+
+- Start with `inspect-project` to identify the active runtime target, installed
+  TSRX packages, formatting/typecheck scripts, and likely project commands.
+- Use `detect-target` when only the runtime target is needed.
+- For generated source, run `format-tsrx`, then `compile-tsrx`. If compilation
+  fails, run `analyze-tsrx`, apply the advice, format again, and compile again.
+- For existing `.tsrx` files, prefer `validate-tsrx-file`; it reads the file and
+  runs formatting, compilation, and diagnostic advice in one read-only pass.
+- Fetch `tsrx://docs/{slug}.md` resources for target-neutral syntax details and
+  `tsrx://targets/{target}.md` for runtime-specific handoff guidance.
+
+The MCP server is target-neutral. Runtime-specific imports, bundler setup, and
+framework semantics should come from the detected target package and its docs.
+
 ## Key Differences from Other Frameworks
 
 ### vs React
@@ -1544,7 +1786,7 @@ export default defineConfig({
 
 ## Best Practices
 
-1. **Reactivity**: Use `track()` (imported from `'ripple'`) to create reactive variables and `&[]` lazy destructuring to access them
+1. **Reactivity**: Use `track()` (imported from `'ripple'`) with `&[]` lazy destructuring to create reactive variables
 2. **Strings**: Use direct double-quoted children for static text, and `{}` for JavaScript expressions
 3. **Effects**: Use `effect()` (imported from `'ripple'`) for side effects, not direct reactive variable access
 4. **Components**: Keep components focused and use TypeScript interfaces for props
