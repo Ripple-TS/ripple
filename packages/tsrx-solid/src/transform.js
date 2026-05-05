@@ -1658,7 +1658,11 @@ function transform_element_attributes(raw_attrs, is_composite, transform_context
 	/** @type {any[]} */
 	const result = [];
 
-	for (const attr of normalize_solid_named_ref_attributes(raw_attrs, !is_composite, transform_context)) {
+	for (const attr of normalize_solid_named_ref_attributes(
+		raw_attrs,
+		!is_composite,
+		transform_context,
+	)) {
 		if (!attr) continue;
 		result.push(toJsxAttribute(attr, /** @type {any} */ (transform_context)));
 	}

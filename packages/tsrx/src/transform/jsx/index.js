@@ -1599,9 +1599,7 @@ function create_component_return_statement(
 	map_render_node_locations = true,
 ) {
 	const cloned = render_nodes.map((node) =>
-		map_render_node_locations
-			? clone_expression_node(node)
-			: clone_expression_node(node, false),
+		map_render_node_locations ? clone_expression_node(node) : clone_expression_node(node, false),
 	);
 
 	return set_loc(b.return(build_return_expression(cloned) || create_null_literal()), source_node);
@@ -4973,7 +4971,9 @@ export function to_jsx_attribute(attr, transform_context) {
 		} else if (value.type !== 'JSXExpressionContainer') {
 			value = to_jsx_expression_container(value);
 		} else if (value.expression?.type === 'RefExpression') {
-			value = to_jsx_expression_container(create_ref_prop_call(value.expression, transform_context));
+			value = to_jsx_expression_container(
+				create_ref_prop_call(value.expression, transform_context),
+			);
 		}
 	}
 

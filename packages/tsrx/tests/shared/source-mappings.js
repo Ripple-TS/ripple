@@ -752,7 +752,10 @@ component App() {
 			const ref_state_container_offset = source.indexOf('{ref state.input}');
 			const ref_state_offset = source.indexOf('ref state.input') + 'ref '.length;
 			const ref_state_input_offset = ref_state_offset + 'state.'.length;
-			const generated_input_getter = result.code.indexOf('input', result.code.indexOf('() => input'));
+			const generated_input_getter = result.code.indexOf(
+				'input',
+				result.code.indexOf('() => input'),
+			);
 			const generated_state_getter = result.code.indexOf(
 				'state.input',
 				result.code.indexOf('otherRef'),
@@ -760,8 +763,7 @@ component App() {
 
 			const find_mappings = (source_offset, length) =>
 				result.mappings.filter(
-					(mapping) =>
-						mapping.sourceOffsets[0] === source_offset && mapping.lengths[0] === length,
+					(mapping) => mapping.sourceOffsets[0] === source_offset && mapping.lengths[0] === length,
 				);
 
 			const input_mappings = find_mappings(ref_input_offset, 'input'.length);

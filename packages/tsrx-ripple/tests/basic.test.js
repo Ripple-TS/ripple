@@ -133,7 +133,10 @@ component App() {
 		const ref_state_offset = source.indexOf('ref state.input') + 'ref '.length;
 		const ref_state_input_offset = ref_state_offset + 'state.'.length;
 		const generated_input_getter = result.code.indexOf('input', result.code.indexOf('() => input'));
-		const generated_state_getter = result.code.indexOf('state.input', result.code.indexOf('otherRef'));
+		const generated_state_getter = result.code.indexOf(
+			'state.input',
+			result.code.indexOf('otherRef'),
+		);
 
 		const find_mappings = (source_offset, length) =>
 			result.mappings.filter(

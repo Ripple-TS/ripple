@@ -3061,22 +3061,22 @@ function transform_ts_child(node, context) {
 								is_ref_expression_value
 									? undefined
 									: attr_value === null
-									? /** @type {AST.NodeWithLocation} */ (value)
-									: // account location for opening and closing braces around the expression
-										/** @type {AST.NodeWithLocation} */ ({
-											start: attr_value.start - 1,
-											end: attr_value.end + 1,
-											loc: {
-												start: {
-													line: attr_value.loc.start.line,
-													column: attr_value.loc.start.column - 1,
+										? /** @type {AST.NodeWithLocation} */ (value)
+										: // account location for opening and closing braces around the expression
+											/** @type {AST.NodeWithLocation} */ ({
+												start: attr_value.start - 1,
+												end: attr_value.end + 1,
+												loc: {
+													start: {
+														line: attr_value.loc.start.line,
+														column: attr_value.loc.start.column - 1,
+													},
+													end: {
+														line: attr_value.loc.end.line,
+														column: attr_value.loc.end.column + 1,
+													},
 												},
-												end: {
-													line: attr_value.loc.end.line,
-													column: attr_value.loc.end.column + 1,
-												},
-											},
-										}),
+											}),
 							),
 					attr.shorthand ?? false,
 					/** @type {AST.NodeWithLocation} */ (attr),
