@@ -1,5 +1,9 @@
 ---
+'@tsrx/core': patch
+'@tsrx/react': patch
+'@tsrx/preact': patch
 '@tsrx/solid': patch
+'@tsrx/vue': patch
 ---
 
-Import Solid ref helpers only when their generated calls are emitted.
+Import ref helpers only when their generated calls are emitted.

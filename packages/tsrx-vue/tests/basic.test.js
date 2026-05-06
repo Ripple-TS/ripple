@@ -234,6 +234,24 @@ describe('@tsrx/vue basic', () => {
 		expect(code.match(/__normalize_spread_props\(/g)).toHaveLength(1);
 	});
 
+	it('imports only create_ref_prop for component ref props without host spreads', () => {
+		const { code } = compile(
+			`component Child(props) {
+				<span>{'child'}</span>
+			}
+
+			component App() {
+				let input;
+				<Child input_ref={ref input} />
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain("from '@tsrx/vue/ref'");
+		expect(code).toContain('{...{ input_ref: __create_ref_prop(() => input, (v) => input = v) }}');
+		expect(code).not.toContain('normalize_spread_props');
+	});
+
 	it('normalizes multiple host spreads once while merging one explicit ref', () => {
 		const { code } = compile(
 			`component App() {
@@ -251,6 +269,7 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toContain('{...App__spread_props2}');
 		expect(code).toContain('ref={__mergeRefs(App__spread_props1.ref, App__spread_props2.ref, cb)}');
 		expect(code.match(/__normalize_spread_props\(/g)).toHaveLength(2);
+		expect(code).not.toContain('create_ref_prop');
 		expect(code).not.toContain('__normalize_spread_props(first, cb)');
 		expect(code).not.toContain('__normalize_spread_props(second, cb)');
 	});

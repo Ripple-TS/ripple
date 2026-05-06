@@ -37,6 +37,7 @@ export interface JsxTransformContext {
 	needs_suspense: boolean;
 	needs_merge_refs: boolean;
 	needs_ref_prop: boolean;
+	needs_normalize_spread_props: boolean;
 	needs_fragment: boolean;
 	module_scoped_hook_components: boolean;
 	helper_state: {

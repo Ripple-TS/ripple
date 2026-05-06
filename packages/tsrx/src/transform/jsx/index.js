@@ -170,6 +170,7 @@ export function createJsxTransform(platform) {
 			needs_suspense: false,
 			needs_merge_refs: false,
 			needs_ref_prop: false,
+			needs_normalize_spread_props: false,
 			needs_fragment: false,
 			module_scoped_hook_components:
 				options?.moduleScopedHookComponents ?? !!platform.hooks?.moduleScopedHookComponents,
@@ -4204,6 +4205,10 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 			: null;
 	const ref_prop_source =
 		transform_context.needs_ref_prop && platform.imports.refProp ? platform.imports.refProp : null;
+	const normalize_spread_props_source =
+		transform_context.needs_normalize_spread_props && platform.imports.refProp
+			? platform.imports.refProp
+			: null;
 
 	/** @type {Map<string, any[]>} */
 	const ref_imports = new Map();
@@ -4240,7 +4245,10 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 			},
 			metadata: { path: [] },
 		});
-		add_ref_import_specifier(ref_imports, ref_prop_source, {
+	}
+
+	if (normalize_spread_props_source !== null) {
+		add_ref_import_specifier(ref_imports, normalize_spread_props_source, {
 			type: 'ImportSpecifier',
 			imported: {
 				type: 'Identifier',
@@ -4581,7 +4589,7 @@ function normalize_host_ref_spreads(attrs, is_host, transform_context) {
 			return [attr];
 		}
 
-		transform_context.needs_ref_prop = true;
+		transform_context.needs_normalize_spread_props = true;
 		const normalized = b.call(NORMALIZE_SPREAD_PROPS_INTERNAL_NAME, attr.argument);
 
 		if (needs_synthetic_spread_ref) {

@@ -228,6 +228,24 @@ describe('@tsrx/preact basic', () => {
 			expect(code).toContain('{...__normalize_spread_props(props)}');
 		});
 
+		it('imports only create_ref_prop for component ref props without host spreads', () => {
+			const { code } = compile(
+				`export component Child(props) {
+					<span>{'child'}</span>
+				}
+
+				export component App() {
+					let input;
+					<Child input_ref={ref input} />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain("from '@tsrx/preact/ref'");
+			expect(code).toContain('input_ref={__create_ref_prop(() => input, (v) => input = v)}');
+			expect(code).not.toContain('normalize_spread_props');
+		});
+
 		it('normalizes multiple host spreads once while merging one explicit ref', () => {
 			const { code } = compile(
 				`export component App() {
@@ -247,6 +265,7 @@ describe('@tsrx/preact basic', () => {
 				'ref={__mergeRefs(App__spread_props1.ref, App__spread_props2.ref, cb)}',
 			);
 			expect(code.match(/__normalize_spread_props\(/g)).toHaveLength(2);
+			expect(code).not.toContain('create_ref_prop');
 			expect(code).not.toContain('__normalize_spread_props(first, cb)');
 			expect(code).not.toContain('__normalize_spread_props(second, cb)');
 		});

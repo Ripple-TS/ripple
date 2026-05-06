@@ -1119,6 +1119,9 @@ function inject_vue_imports(program, transform_context) {
 
 	if (transform_context.needs_ref_prop) {
 		ensure_named_import(program, '@tsrx/vue/ref', 'create_ref_prop', CREATE_REF_PROP_INTERNAL_NAME);
+	}
+
+	if (transform_context.needs_normalize_spread_props) {
 		ensure_named_import(
 			program,
 			'@tsrx/vue/ref',
