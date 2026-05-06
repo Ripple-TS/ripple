@@ -423,6 +423,40 @@ importers:
         specifier: catalog:default
         version: 5.9.3
 
+  packages/bun-plugin-solid:
+    dependencies:
+      '@babel/core':
+        specifier: ^7.29.0
+        version: 7.29.0
+      '@babel/preset-typescript':
+        specifier: ^7.28.5
+        version: 7.28.5(@babel/core@7.29.0)
+      '@tsrx/solid':
+        specifier: workspace:*
+        version: link:../tsrx-solid
+      babel-preset-solid:
+        specifier: 2.0.0-beta.7
+        version: 2.0.0-beta.7(@babel/core@7.29.0)(solid-js@2.0.0-beta.7)
+      bun:
+        specifier: ^1.0.0
+        version: 1.3.10
+    devDependencies:
+      '@solidjs/web':
+        specifier: 2.0.0-beta.7
+        version: 2.0.0-beta.7(@solidjs/signals@2.0.0-beta.7)(solid-js@2.0.0-beta.7)
+      '@types/babel__core':
+        specifier: ^7.20.5
+        version: 7.20.5
+      '@types/bun':
+        specifier: catalog:default
+        version: 1.3.10
+      solid-js:
+        specifier: 2.0.0-beta.7
+        version: 2.0.0-beta.7
+      typescript:
+        specifier: catalog:default
+        version: 5.9.3
+
   packages/bun-plugin-vue:
     dependencies:
       '@tsrx/vue':
@@ -7442,7 +7476,7 @@ snapshots:
       '@babel/helper-compilation-targets': 7.28.6
       '@babel/helper-module-transforms': 7.28.6(@babel/core@7.29.0)
       '@babel/helpers': 7.29.2
-      '@babel/parser': 7.29.0
+      '@babel/parser': 7.29.2
       '@babel/template': 7.28.6
       '@babel/traverse': 7.29.0
       '@babel/types': 7.29.0
@@ -7620,7 +7654,7 @@ snapshots:
   '@babel/template@7.28.6':
     dependencies:
       '@babel/code-frame': 7.29.0
-      '@babel/parser': 7.29.0
+      '@babel/parser': 7.29.2
       '@babel/types': 7.29.0
 
   '@babel/traverse@7.29.0':
@@ -7628,7 +7662,7 @@ snapshots:
       '@babel/code-frame': 7.29.0
       '@babel/generator': 7.29.1
       '@babel/helper-globals': 7.28.0
-      '@babel/parser': 7.29.0
+      '@babel/parser': 7.29.2
       '@babel/template': 7.28.6
       '@babel/types': 7.29.0
       debug: 4.4.3
@@ -9112,7 +9146,7 @@ snapshots:
 
   '@types/babel__core@7.20.5':
     dependencies:
-      '@babel/parser': 7.29.0
+      '@babel/parser': 7.29.2
       '@babel/types': 7.29.0
       '@types/babel__generator': 7.27.0
       '@types/babel__template': 7.4.4
@@ -9124,7 +9158,7 @@ snapshots:
 
   '@types/babel__template@7.4.4':
     dependencies:
-      '@babel/parser': 7.29.0
+      '@babel/parser': 7.29.2
       '@babel/types': 7.29.0
 
   '@types/babel__traverse@7.28.0':
@@ -9679,7 +9713,7 @@ snapshots:
 
   '@vue/compiler-core@3.5.29':
     dependencies:
-      '@babel/parser': 7.29.0
+      '@babel/parser': 7.29.2
       '@vue/shared': 3.5.29
       entities: 7.0.1
       estree-walker: 2.0.2
@@ -9718,7 +9752,7 @@ snapshots:
 
   '@vue/compiler-sfc@3.5.29':
     dependencies:
-      '@babel/parser': 7.29.0
+      '@babel/parser': 7.29.2
       '@vue/compiler-core': 3.5.29
       '@vue/compiler-dom': 3.5.29
       '@vue/compiler-ssr': 3.5.29

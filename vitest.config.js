@@ -126,6 +126,15 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'bun-plugin-solid',
+					include: ['packages/bun-plugin-solid/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'tsrx-solid',
 					include: ['packages/tsrx-solid/tests/**/*.test.js'],
 					environment: 'node',

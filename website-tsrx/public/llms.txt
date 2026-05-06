@@ -47,9 +47,10 @@ npm install -D @tsrx/rspack-plugin-preact  # Rspack
 npm install -D @tsrx/bun-plugin-preact     # Bun
 
 # Solid target
-npm install @tsrx/solid
+npm install @tsrx/solid solid-js @solidjs/web
 npm install -D @tsrx/vite-plugin-solid
 npm install -D @tsrx/rspack-plugin-solid
+npm install -D @tsrx/bun-plugin-solid      # Bun
 
 # Vue target
 npm install @tsrx/vue vue vue-jsx-vapor
@@ -222,6 +223,29 @@ include?: RegExp, exclude?: RegExp | RegExp[] }` — override the automatic JSX
 runtime import source (defaults to `'preact'`), override the module used for
 `Suspense` (defaults to `'preact/compat'`), disable virtual CSS emission, or
 filter which files the plugin compiles.
+
+### Bun setup (Solid target)
+
+`@tsrx/bun-plugin-solid` compiles `.tsrx` → TSX via `@tsrx/solid`, runs the
+final TypeScript + Solid JSX transform through Babel with
+`@babel/preset-typescript` and `babel-preset-solid`, and serves
+component-local `<style>` blocks as sibling virtual CSS modules.
+
+```ts
+// build.ts
+import tsrxSolid from '@tsrx/bun-plugin-solid';
+
+await Bun.build({
+  entrypoints: ['./src/App.tsrx'],
+  outdir: './dist',
+  target: 'browser',
+  plugins: [tsrxSolid()],
+});
+```
+
+Options: `{ solid?: object, emitCss?: boolean, include?: RegExp, exclude?: RegExp | RegExp[] }`
+forwards options to `babel-preset-solid`, disables virtual CSS emission when
+requested, or filters which files the plugin compiles.
 
 ### Bun setup (Vue target)
 

@@ -150,6 +150,21 @@ const PREACT_BUN_CONFIG_HTML = [
 	'<span class="ln">8</span> <span class="br">}</span><span class="br">)</span>;',
 ].join('\n');
 
+const SOLID_BUN_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/solid</span> <span class="str">@tsrx/bun-plugin-solid</span> <span class="str">solid-js</span> <span class="str">@solidjs/web</span>',
+].join('\n');
+
+const SOLID_BUN_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="prop">tsrxSolid</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/bun-plugin-solid\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">await</span> <span class="prop">Bun</span>.<span class="fn">build</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">4</span>   <span class="prop">entrypoints</span>: <span class="br">[</span><span class="str">\'./src/App.tsrx\'</span><span class="br">]</span>,',
+	'<span class="ln">5</span>   <span class="prop">outdir</span>: <span class="str">\'./dist\'</span>,',
+	'<span class="ln">6</span>   <span class="prop">target</span>: <span class="str">\'browser\'</span>,',
+	'<span class="ln">7</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="fn">tsrxSolid</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">8</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
 const VUE_BUN_INSTALL_HTML = [
 	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/vue</span> <span class="str">@tsrx/bun-plugin-vue</span> <span class="str">vue</span> <span class="str">vue-jsx-vapor</span>',
 ].join('\n');
@@ -243,6 +258,7 @@ const NAV_GROUPS = [
 			{ id: 'preact-bun', label: 'Preact + Bun' },
 			{ id: 'solid-vite', label: 'Solid + Vite' },
 			{ id: 'solid-rspack', label: 'Solid + Rspack' },
+			{ id: 'solid-bun', label: 'Solid + Bun' },
 			{ id: 'vue-vite', label: 'Vue + Vite' },
 			{ id: 'vue-rspack', label: 'Vue + Rspack' },
 			{ id: 'vue-bun', label: 'Vue + Bun' },
@@ -535,6 +551,28 @@ export component GettingStartedPage() {
 							" automatically, while per-component "
 							<code class="inline-code">"<style>"</code>
 							" blocks still flow through Rspack's built-in CSS module type."
+						</p>
+					</section>
+
+					<section class="doc-section" id="solid-bun">
+						<h2 class="section-heading">"Solid + Bun"</h2>
+						<p class="section-body">"Install the Solid compiler, the Bun plugin, and Solid:"</p>
+						<pre class="code-block">
+							<code>{html SOLID_BUN_INSTALL_HTML}</code>
+						</pre>
+						<p class="section-body">"Then use the plugin in your Bun build script:"</p>
+						<pre class="code-block">
+							<code>{html SOLID_BUN_CONFIG_HTML}</code>
+						</pre>
+						<p class="section-body">
+							<code class="inline-code">"@tsrx/bun-plugin-solid"</code>
+							" compiles "
+							<code class="inline-code">".tsrx"</code>
+							" modules with "
+							<code class="inline-code">"@tsrx/solid"</code>
+							" and runs Solid's Babel JSX transform inside the Bun plugin. Component-local "
+							<code class="inline-code">"<style>"</code>
+							" blocks are emitted as sibling virtual CSS modules."
 						</p>
 					</section>
 
