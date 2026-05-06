@@ -139,6 +139,36 @@ describe('@tsrx/vue basic', () => {
 		expect(ref_mapping?.data.verification).toBe(false);
 	});
 
+	it('keeps named component ref props direct in Volar TSX for completions', () => {
+		const source = `import { ref } from 'vue';
+
+		component NamedForwardInput(props: { type: string; input_ref?: any }) {
+			<input type={props.type} ref={props.input_ref} />
+		}
+
+		const named_vue_ref_object = ref<HTMLInputElement | null>(null);
+
+		component App() {
+			<NamedForwardInput type="text" input_ref={ref named_vue_ref_object} />
+		}`;
+		const result = compile_to_volar_mappings(source, 'App.tsrx');
+		const source_prop_offset = source.indexOf('input_ref={ref');
+		const generated_prop_offset = result.code.indexOf('input_ref={__create_ref_prop');
+		const prop_mapping = result.mappings.find(
+			(mapping) =>
+				mapping.sourceOffsets[0] === source_prop_offset &&
+				mapping.generatedOffsets[0] === generated_prop_offset &&
+				mapping.generatedLengths[0] === 'input_ref'.length,
+		);
+
+		expect(result.code).toContain(
+			'<NamedForwardInput type="text" input_ref={__create_ref_prop(() => named_vue_ref_object, (v) => named_vue_ref_object = v)} />',
+		);
+		expect(result.code).not.toContain('input_ref: __create_ref_prop');
+		expect(prop_mapping?.data.completion).toBe(true);
+		expect(prop_mapping?.data.verification).toBe(true);
+	});
+
 	it('rejects {ref ...} on composite components', () => {
 		expect(() =>
 			compile(

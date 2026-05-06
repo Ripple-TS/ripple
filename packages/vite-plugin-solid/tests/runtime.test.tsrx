@@ -121,7 +121,7 @@ let element_ref_captured: HTMLDivElement | null = null;
 
 component ElementRefApp() {
 	let el: HTMLDivElement | undefined;
-	<div {ref el} class="ref-target">{'ref test'}</div>
+	<div {ref el} class="ref-target">"ref test"</div>
 	// Solid sets refs synchronously during rendering.
 	queueMicrotask(() => {
 		element_ref_captured = el ?? null;
@@ -138,9 +138,7 @@ component ElementRefCallbackApp() {
 			callback_ref_captured = node;
 		}}
 		class="ref-callback"
-	>
-		{'ref callback'}
-	</div>
+	>"ref callback"</div>
 }
 
 // ── Ref on composite components via prop forwarding ──

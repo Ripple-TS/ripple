@@ -869,7 +869,7 @@ function preprocess_ref_attributes(attrs, element, transform_context) {
 				transform_context?.comments,
 			);
 		}
-		if (is_vue_named_ref_attribute(attr)) {
+		if (!transform_context.typeOnly && is_vue_named_ref_attribute(attr)) {
 			result.push(create_vue_named_ref_spread(attr));
 			continue;
 		}
@@ -880,8 +880,10 @@ function preprocess_ref_attributes(attrs, element, transform_context) {
 
 /**
  * Vue's JSX transform treats prop names ending in `ref` as template-ref
- * sugar on components. Keep named TSRX refs as ordinary props by hiding the
- * static prop name behind an object spread before Vue sees the JSX.
+ * sugar on components. Keep named TSRX refs as ordinary runtime props by
+ * hiding the static prop name behind an object spread before Vue sees the JSX.
+ * Type-only virtual TSX skips that spread so Volar can offer completions on
+ * the real component prop name.
  *
  * @param {any} attr
  * @returns {boolean}
