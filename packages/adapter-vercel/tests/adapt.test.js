@@ -29,6 +29,25 @@ describe('adapt()', () => {
 	});
 
 	/**
+	 * @param {string} version
+	 * @param {() => Promise<void>} callback
+	 */
+	async function with_process_version(version, callback) {
+		const descriptor = Object.getOwnPropertyDescriptor(process, 'version');
+		Object.defineProperty(process, 'version', {
+			value: version,
+			configurable: true,
+		});
+		try {
+			await callback();
+		} finally {
+			if (descriptor) {
+				Object.defineProperty(process, 'version', descriptor);
+			}
+		}
+	}
+
+	/**
 	 * Create a minimal Ripple build output structure.
 	 *
 	 * @param {string} root
@@ -143,6 +162,24 @@ describe('adapt()', () => {
 		expect(vc_config.framework.slug).toBe('ripple');
 		expect(vc_config.framework.version).toMatch(/^\d+\.\d+\.\d+/);
 		expect(vc_config.runtime).toMatch(/^nodejs\d+\.x$/);
+	});
+
+	it('uses the latest Vercel-supported runtime on newer local Node versions', async () => {
+		const { adapt } = await import('../src/adapt.js');
+		create_build_output(tmp_dir);
+
+		await with_process_version('v26.0.0', async () => {
+			await adapt({ verbose: false });
+		});
+
+		const vc_config = JSON.parse(
+			readFileSync(
+				join(tmp_dir, '.vercel', 'output', 'functions', 'index.func', '.vc-config.json'),
+				'utf-8',
+			),
+		);
+
+		expect(vc_config.runtime).toBe('nodejs24.x');
 	});
 
 	it('generates ESM package.json in function directory', async () => {
