@@ -29,7 +29,7 @@ import {
 	REF_PROP,
 	TRACKED_OBJECT,
 	DEFAULT_NAMESPACE,
-	DERIVED_UPDATED,
+	TRACKED_UPDATED,
 	SUSPENSE_PENDING,
 	SUSPENSE_REJECTED,
 	TRY_BLOCK,
@@ -44,18 +44,20 @@ import {
 	register_boundary_paused_block,
 	replace_boundary_request,
 } from './try.js';
+import { is_ripple_object } from './utils.js';
+
 import {
 	define_property,
 	get_descriptor,
 	get_own_property_symbols,
 	is_array,
-	is_ripple_object,
 	object_keys,
-} from './utils.js';
+} from '@tsrx/core/runtime/language-helpers';
 import { get_async_track_result } from '../../../utils/async.js';
 import { get_track_async_script_id } from '../../../utils/track-async-serialization.js';
 import * as devalue from 'devalue';
 import { hydrating, track_hash_reference } from './hydration.js';
+import { create_ref_prop as create_core_ref_prop } from '@tsrx/core/runtime/ref';
 
 const FLUSH_MICROTASK = 0;
 const FLUSH_SYNC = 1;
@@ -668,7 +670,7 @@ export function track_async(fn, b, hash) {
 
 		// Abort previous in-flight request
 		if (abort_controller !== null && abort_controller.signal.aborted === false) {
-			abort_controller.abort(DERIVED_UPDATED);
+			abort_controller.abort(TRACKED_UPDATED);
 		}
 		abort_controller = null;
 
@@ -766,7 +768,7 @@ export function track_async(fn, b, hash) {
 				if (current_version !== version) return; // stale
 
 				var is_internal_abort =
-					error === DERIVED_UPDATED || current_abort_controller?.signal?.reason === DERIVED_UPDATED;
+					error === TRACKED_UPDATED || current_abort_controller?.signal?.reason === TRACKED_UPDATED;
 				if (is_internal_abort) {
 					// Internal abort (superseded by a new request) — don't set rejected
 					if (request_id > 0 && boundary !== null) {
@@ -799,7 +801,7 @@ export function track_async(fn, b, hash) {
 		return () => {
 			// Teardown: abort in-flight request when block is destroyed
 			if (current_abort_controller !== null && current_abort_controller.signal.aborted === false) {
-				current_abort_controller.abort(DERIVED_UPDATED);
+				current_abort_controller.abort(TRACKED_UPDATED);
 			}
 		};
 	});
@@ -1651,6 +1653,15 @@ export function with_ns(namespace, fn) {
  */
 export function ref_prop() {
 	return Symbol(REF_PROP);
+}
+
+/**
+ * @param {() => any} get_ref_value
+ * @param {(value: any) => void} [set_ref_value]
+ * @returns {(node: any) => void | (() => void)}
+ */
+export function create_ref_prop(get_ref_value, set_ref_value) {
+	return create_core_ref_prop(() => untrack(get_ref_value), set_ref_value);
 }
 
 /**

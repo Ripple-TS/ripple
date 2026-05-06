@@ -143,7 +143,7 @@ export function identifier_to_jsx_name(id) {
 			/** @type {any} */ ({
 				type: 'JSXIdentifier',
 				name: id.name,
-				metadata: { path: [], is_component: /^[A-Z]/.test(id.name) },
+				metadata: { ...(id.metadata || {}), path: [], is_component: /^[A-Z]/.test(id.name) },
 			}),
 			id,
 		);
@@ -376,26 +376,26 @@ export function to_text_expression(expression, source_node = expression) {
 }
 
 /**
- * Deep-clone an AST subtree. `loc` / `start` / `end` are shallow-shared by
- * reference rather than recursed into — `loc` objects can contain back-refs
- * to sub-objects that would blow the stack with a naive deep clone, and
- * every other traversal in the targets treats these positional keys as
- * shared.
+ * Deep-clone an AST subtree.
  *
  * @param {any} node
+ * @param {boolean} with_locations
  * @returns {any}
  */
-export function clone_expression_node(node) {
+export function clone_expression_node(node, with_locations = true) {
 	if (!node || typeof node !== 'object') return node;
-	if (Array.isArray(node)) return node.map(clone_expression_node);
-	const clone = { ...node };
-	for (const key of Object.keys(clone)) {
-		if (key === 'loc' || key === 'start' || key === 'end') continue;
-		if (key === 'metadata') {
-			clone.metadata = clone.metadata ? { ...clone.metadata } : { path: [] };
+	if (Array.isArray(node)) return node.map((child) => clone_expression_node(child, with_locations));
+	const clone = /** @type {Record<string, any>} */ ({});
+
+	for (const key of Object.keys(node)) {
+		if (!with_locations && (key === 'loc' || key === 'start' || key === 'end')) {
 			continue;
 		}
-		clone[key] = clone_expression_node(clone[key]);
+		if (key === 'metadata') {
+			clone.metadata = node.metadata ? { ...node.metadata } : { path: [] };
+			continue;
+		}
+		clone[key] = clone_expression_node(node[key], with_locations);
 	}
 	return clone;
 }

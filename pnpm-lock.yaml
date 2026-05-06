@@ -633,6 +633,9 @@ importers:
 
   packages/ripple:
     dependencies:
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:../tsrx-ripple
@@ -655,9 +658,6 @@ importers:
         specifier: workspace:*
         version: 'link:'
     devDependencies:
-      '@tsrx/core':
-        specifier: workspace:*
-        version: link:../tsrx
       '@types/node':
         specifier: catalog:default
         version: 24.11.0

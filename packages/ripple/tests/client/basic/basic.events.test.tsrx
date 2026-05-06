@@ -123,6 +123,36 @@ describe('basic client > events', () => {
 		expect(countSpan.textContent).toBe('1');
 	});
 
+	it('removes event listeners from spread props when they are replaced by another prop', () => {
+		component Basic() {
+			let &[enabled] = track(true);
+			let &[count] = track(0);
+
+			<button class="target" {...(enabled ? { onClick: () => count++ } : { title: 'disabled' })}>
+				{'target'}
+			</button>
+			<button class="toggle" onClick={() => (enabled = false)}>{'toggle'}</button>
+			<span class="count">{count}</span>
+		}
+
+		render(Basic);
+
+		const target = container.querySelector('.target');
+		const toggle = container.querySelector('.toggle');
+		const count = container.querySelector('.count');
+
+		target.click();
+		flushSync();
+		expect(count.textContent).toBe('1');
+
+		toggle.click();
+		flushSync();
+		expect(target.getAttribute('title')).toBe('disabled');
+		target.click();
+		flushSync();
+		expect(count.textContent).toBe('1');
+	});
+
 	it('handles both delegated and non-delegated events in spread props', () => {
 		component Basic() {
 			let &[clickCount] = track(0);

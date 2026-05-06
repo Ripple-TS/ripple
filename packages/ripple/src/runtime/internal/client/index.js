@@ -32,7 +32,7 @@ export {
 
 export {
 	UNINITIALIZED,
-	DERIVED_UPDATED,
+	TRACKED_UPDATED,
 	SUSPENSE_PENDING,
 	SUSPENSE_REJECTED,
 } from './constants.js';
@@ -65,6 +65,7 @@ export {
 	pop_component,
 	untrack,
 	ref_prop,
+	create_ref_prop,
 	fallback,
 	exclude_from_object,
 	derived,
@@ -89,7 +90,7 @@ export { switch_block as switch } from './switch.js';
 
 export { template, append, text } from './template.js';
 
-export { array_slice } from './utils.js';
+export { array_slice } from '@tsrx/core/runtime/language-helpers';
 
 export { ripple_array } from '../../array.js';
 

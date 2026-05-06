@@ -1320,7 +1320,7 @@ export function TSRXPlugin(config) {
 					if (!nextChars) {
 						this.raise(
 							ref.start,
-							'"component" is a Ripple keyword and cannot be used as an identifier',
+							'"component" is a TSRX keyword and cannot be used as an identifier',
 						);
 					}
 				}
@@ -1344,6 +1344,21 @@ export function TSRXPlugin(config) {
 			jsx_parseExpressionContainer() {
 				let node = /** @type {ESTreeJSX.JSXExpressionContainer} */ (this.startNode());
 				this.next();
+
+				if (this.type === tt.name && this.value === 'ref') {
+					const ref_node = /** @type {AST.RefExpression} */ (this.startNode());
+					this.next();
+					if (this.type === tt.braceR) {
+						this.raise(
+							this.start,
+							'"ref" is a TSRX keyword and must be used in the form {ref item}',
+						);
+					}
+					ref_node.argument = this.parseMaybeAssign();
+					node.expression = /** @type {any} */ (this.finishNode(ref_node, 'RefExpression'));
+					this.expect(tt.braceR);
+					return this.finishNode(node, 'JSXExpressionContainer');
+				}
 
 				if (this.type === tt.name && this.value === 'html') {
 					node.html = true;

@@ -150,57 +150,46 @@ const SHORTHAND_HTML = [
 
 const REFS_HTML = [
 	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">AutoFocus</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln"> 2</span>   <span class="kw">let</span> <span class="prop">input</span>: <span class="type">HTMLInputElement</span> | <span class="type">undefined</span>;',
-	'<span class="ln"> 3</span>',
-	'<span class="ln"> 4</span>   <span class="cmt">// Mutable-variable ref — Solid, Ripple only</span>',
-	'<span class="ln"> 5</span>   <span class="tag">&lt;</span><span class="el">input</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="prop">input</span><span class="tbr">}</span> <span class="attr">type</span>=<span class="str">"text"</span> <span class="tag">/&gt;</span>',
-	'<span class="ln"> 6</span>',
-	'<span class="ln"> 7</span>   <span class="cmt">// Callback ref — works on every target</span>',
-	'<span class="ln"> 8</span>   <span class="tag">&lt;</span><span class="el">input</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="br">(</span><span class="prop">node</span><span class="br">)</span> =&gt; <span class="prop">node</span>.<span class="fn">focus</span><span class="br">(</span><span class="br">)</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
-	'<span class="ln"> 9</span> <span class="br">}</span>',
-].join('\n');
-
-const REFS_TRACKED_HTML = [
-	'<span class="ln"> 1</span> <span class="kw">import</span> <span class="br">{</span> <span class="prop">track</span> <span class="br">}</span> <span class="kw">from</span> <span class="str">\'ripple\'</span>;',
-	'<span class="ln"> 2</span>',
-	'<span class="ln"> 3</span> <span class="kw">component</span> <span class="fn">App</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln"> 4</span>   <span class="cmt">// Ripple: a Tracked is a reactive ref slot — read via .value.</span>',
-	'<span class="ln"> 5</span>   <span class="kw">const</span> <span class="prop">inputRef</span> = <span class="fn">track</span><span class="br">&lt;</span><span class="type">HTMLInputElement</span> | <span class="type">null</span><span class="br">&gt;</span><span class="br">(</span><span class="val">null</span><span class="br">)</span>;',
-	'<span class="ln"> 6</span>',
-	'<span class="ln"> 7</span>   <span class="tag">&lt;</span><span class="el">input</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="prop">inputRef</span><span class="tbr">}</span> <span class="attr">type</span>=<span class="str">"text"</span> <span class="tag">/&gt;</span>',
-	'<span class="ln"> 8</span>   <span class="cmt">// later: inputRef.value is the input element</span>',
-	'<span class="ln"> 9</span> <span class="br">}</span>',
+	'<span class="ln"> 2</span>   <span class="kw">function</span> <span class="fn">focusInput</span><span class="br">(</span><span class="prop">node</span>: <span class="type">HTMLInputElement</span> | <span class="type">null</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 3</span>     <span class="prop">node</span>?.<span class="fn">focus</span><span class="br">(</span><span class="br">)</span>;',
+	'<span class="ln"> 4</span>   <span class="br">}</span>',
+	'<span class="ln"> 5</span>',
+	'<span class="ln"> 6</span>   <span class="cmt">// TSRX keyword ref.</span>',
+	'<span class="ln"> 7</span>   <span class="tag">&lt;</span><span class="el">input</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="prop">focusInput</span><span class="tbr">}</span> <span class="attr">type</span>=<span class="str">"text"</span> <span class="tag">/&gt;</span>',
+	'<span class="ln"> 8</span>',
+	'<span class="ln"> 9</span>   <span class="cmt">// Native-style ref attribute.</span>',
+	'<span class="ln">10</span>   <span class="tag">&lt;</span><span class="el">input</span> <span class="attr">ref</span>=<span class="tbr">{</span><span class="prop">focusInput</span><span class="tbr">}</span> <span class="attr">type</span>=<span class="str">"text"</span> <span class="tag">/&gt;</span>',
+	'<span class="ln">11</span>',
+	'<span class="ln">12</span>   <span class="cmt">// Named ref prop on a host element.</span>',
+	'<span class="ln">13</span>   <span class="tag">&lt;</span><span class="el">input</span> <span class="attr">focusRef</span>=<span class="tbr">{</span><span class="kw">ref</span> <span class="prop">focusInput</span><span class="tbr">}</span> <span class="attr">type</span>=<span class="str">"text"</span> <span class="tag">/&gt;</span>',
+	'<span class="ln">14</span> <span class="br">}</span>',
 ].join('\n');
 
 const REFS_OBJECT_HTML = [
 	'<span class="ln"> 1</span> <span class="kw">import</span> <span class="br">{</span> <span class="prop">useRef</span> <span class="br">}</span> <span class="kw">from</span> <span class="str">\'react\'</span>;',
 	'<span class="ln"> 2</span>',
 	'<span class="ln"> 3</span> <span class="kw">component</span> <span class="fn">SearchBox</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln"> 4</span>   <span class="cmt">// React/Preact: ref={useRef()}; Vue: ref={ref()} or useTemplateRef().</span>',
+	'<span class="ln"> 4</span>   <span class="cmt">// Use the target&apos;s native ref object when you want an object slot.</span>',
 	'<span class="ln"> 5</span>   <span class="kw">const</span> <span class="prop">inputRef</span> = <span class="fn">useRef</span><span class="br">&lt;</span><span class="type">HTMLInputElement</span><span class="br">&gt;</span><span class="br">(</span><span class="val">null</span><span class="br">)</span>;',
 	'<span class="ln"> 6</span>   <span class="kw">function</span> <span class="fn">logNode</span><span class="br">(</span><span class="prop">node</span>: <span class="type">HTMLInputElement</span><span class="br">)</span> <span class="br">{</span> <span class="fn">console</span>.<span class="fn">log</span><span class="br">(</span><span class="prop">node</span><span class="br">)</span>; <span class="br">}</span>',
 	'<span class="ln"> 7</span>',
-	'<span class="ln"> 8</span>   <span class="cmt">// At most one ref={...} attribute + any number of {ref ...} callbacks.</span>',
-	'<span class="ln"> 9</span>   <span class="tag">&lt;</span><span class="el">input</span> <span class="attr">ref</span>=<span class="tbr">{</span><span class="prop">inputRef</span><span class="tbr">}</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="prop">logNode</span><span class="tbr">}</span> <span class="attr">type</span>=<span class="str">"text"</span> <span class="tag">/&gt;</span>',
+	'<span class="ln"> 8</span>   <span class="cmt">// Native ref object + anonymous and named callback refs.</span>',
+	'<span class="ln"> 9</span>   <span class="tag">&lt;</span><span class="el">input</span> <span class="attr">ref</span>=<span class="tbr">{</span><span class="prop">inputRef</span><span class="tbr">}</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="prop">logNode</span><span class="tbr">}</span> <span class="attr">logRef</span>=<span class="tbr">{</span><span class="kw">ref</span> <span class="prop">logNode</span><span class="tbr">}</span> <span class="attr">type</span>=<span class="str">"text"</span> <span class="tag">/&gt;</span>',
 	'<span class="ln">10</span> <span class="br">}</span>',
 ].join('\n');
 
-const REFS_COMPOSITE_HTML = [
-	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">TextField</span><span class="br">(</span><span class="prop">props</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln"> 2</span>   <span class="cmt">// Spreading props forwards the ref onto the underlying DOM element.</span>',
+const REFS_NAMED_HTML = [
+	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">Field</span><span class="br">(</span><span class="prop">props</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 2</span>   <span class="cmt">// The named ref prop is normalized into the real DOM ref.</span>',
 	'<span class="ln"> 3</span>   <span class="tag">&lt;</span><span class="el">input</span> <span class="tbr">{</span>...<span class="prop">props</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
 	'<span class="ln"> 4</span> <span class="br">}</span>',
 	'<span class="ln"> 5</span>',
 	'<span class="ln"> 6</span> <span class="kw">component</span> <span class="fn">Form</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln"> 7</span>   <span class="kw">function</span> <span class="fn">logNode</span><span class="br">(</span><span class="prop">node</span>: <span class="type">HTMLInputElement</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln"> 8</span>     <span class="fn">console</span>.<span class="fn">log</span><span class="br">(</span><span class="prop">node</span><span class="br">)</span>;',
-	'<span class="ln"> 9</span>   <span class="br">}</span>',
-	'<span class="ln">10</span>',
-	'<span class="ln">11</span>   <span class="cmt">// Composite refs work on React/Preact/Solid/Ripple. Use a callback or</span>',
-	'<span class="ln">12</span>   <span class="cmt">// the target&apos;s ref-object primitive — plain mutable vars don&apos;t</span>',
-	'<span class="ln">13</span>   <span class="cmt">// propagate across the component boundary.</span>',
-	'<span class="ln">14</span>   <span class="tag">&lt;</span><span class="el">TextField</span> <span class="tbr">{</span><span class="kw">ref</span> <span class="prop">logNode</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
-	'<span class="ln">15</span> <span class="br">}</span>',
+	'<span class="ln"> 7</span>   <span class="kw">let</span> <span class="prop">input</span>: <span class="type">HTMLInputElement</span> | <span class="type">undefined</span>;',
+	'<span class="ln"> 8</span>',
+	'<span class="ln"> 9</span>   <span class="cmt">// The compiler creates the assignment callback.</span>',
+	'<span class="ln">10</span>   <span class="tag">&lt;</span><span class="el">Field</span> <span class="attr">inputRef</span>=<span class="tbr">{</span><span class="kw">ref</span> <span class="prop">input</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
+	'<span class="ln">11</span> <span class="br">}</span>',
 ].join('\n');
 
 const SCOPING_HTML = [
@@ -598,115 +587,92 @@ export component FeaturesPage() {
 					<section class="doc-section" id="refs">
 						<h2 class="section-heading">{'DOM refs'}</h2>
 						<p class="section-body">
-							{'TSRX has two ref syntaxes. The keyword form '}
+							{'Use refs when you need the DOM node. There are three forms:'}
+						</p>
+						<table class="ref-target-table">
+							<thead>
+								<tr>
+									<th>{'Syntax'}</th>
+									<th>{'Use it for'}</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>
+										<code class="inline-code">{'{ref value}'}</code>
+									</td>
+									<td>{'A direct ref on the current element.'}</td>
+								</tr>
+								<tr>
+									<td>
+										<code class="inline-code">{'ref={value}'}</code>
+									</td>
+									<td>{'The native-style ref attribute.'}</td>
+								</tr>
+								<tr>
+									<td>
+										<code class="inline-code">{'inputRef={ref value}'}</code>
+									</td>
+									<td>{'A named ref prop that can be forwarded through components.'}</td>
+								</tr>
+							</tbody>
+						</table>
+						<p class="section-body">
+							{'The '}
 							<code class="inline-code">{'{ref expr}'}</code>
-							{' is the canonical TSRX ref and works on every target — multiple keyword refs may sit on the same element and the compiler merges them. The TSX-style attribute form '}
-							<code class="inline-code">{'ref={refObject}'}</code>
-							{' targets the runtime\'s native ref-object primitive and is accepted on every target except Ripple; at most one per element.'}
+							{' and '}
+							<code class="inline-code">{'ref={expr}'}</code>
+							{' forms attach a ref directly to the current element.'}
+						</p>
+						<p class="section-body">
+							{'Named ref props '}
+							<code class="inline-code">{'anyName={ref expr}'}</code>
+							{' are useful for component APIs, and they also work on host elements: TSRX applies them as refs instead of emitting them as attributes.'}
 						</p>
 						<pre class="code-block">
 							<code>{html REFS_HTML}</code>
 						</pre>
 						<p class="section-body">
-							{'What '}
-							<code class="inline-code">{'expr'}</code>
-							{' can be and how it\'s interpreted depends on the target. Callback refs work on every target; mutable-variable assignment sugar ('}
-							<code class="inline-code">{'let var; <el {ref var} />'}</code>
-							{') works on Solid and Ripple. React, Preact, and Vue need a callback or the target\'s ref-object primitive instead. Reactive primitives are a Ripple/Solid specialty. Ripple accepts a '}
+							{'A ref value can be a callback, a mutable variable in named-ref form, or the target framework\'s ref object, such as React/Preact '}
+							<code class="inline-code">{'useRef()'}</code>
+							{', Vue '}
+							<code class="inline-code">{'ref()'}</code>
+							{', or a Ripple '}
 							<code class="inline-code">{'Tracked'}</code>
-							{' from '}
-							<code class="inline-code">{'track()'}</code>
-							{' and Solid accepts a signal setter.'}
-						</p>
-						<table class="ref-target-table">
-							<thead>
-								<tr>
-									<th>{'Target'}</th>
-									<th>{'Callback '}</th>
-									<th>{'Mutable Local'}</th>
-									<th>{'Reactive primitive'}</th>
-									<th>{'TSX ref={...}'}</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr>
-									<td>{'React'}</td>
-									<td>{'✓'}</td>
-									<td>{'—'}</td>
-									<td>{'—'}</td>
-									<td>{'✓'}</td>
-								</tr>
-								<tr>
-									<td>{'Preact'}</td>
-									<td>{'✓'}</td>
-									<td>{'—'}</td>
-									<td>{'—'}</td>
-									<td>{'✓'}</td>
-								</tr>
-								<tr>
-									<td>{'Solid'}</td>
-									<td>{'✓'}</td>
-									<td>{'✓'}</td>
-									<td>{'✓'}</td>
-									<td>{'✓'}</td>
-								</tr>
-								<tr>
-									<td>{'Vue'}</td>
-									<td>{'✓'}</td>
-									<td>{'—'}</td>
-									<td>{'—'}</td>
-									<td>{'✓'}</td>
-								</tr>
-								<tr>
-									<td>{'Ripple'}</td>
-									<td>{'✓'}</td>
-									<td>{'✓'}</td>
-									<td>{'✓'}</td>
-									<td>{'—'}</td>
-								</tr>
-							</tbody>
-						</table>
-						<pre class="code-block">
-							<code>{html REFS_TRACKED_HTML}</code>
-						</pre>
-						<p class="section-body">
-							{'You can combine at most one '}
+							{'. Ripple and Solid also support mutable variables on direct host refs. You may combine one '}
 							<code class="inline-code">{'ref={...}'}</code>
-							{' attribute with any number of '}
+							{' with any number of anonymous or named '}
 							<code class="inline-code">{'{ref ...}'}</code>
-							{' on the same element. The compiler folds them into one ref that fires every callback and assigns every ref object on mount.'}
+							{' expressions on one host element; TSRX merges them. Solid also accepts an array in '}
+							<code class="inline-code">{'ref={...}'}</code>
+							{'.'}
 						</p>
 						<pre class="code-block">
 							<code>{html REFS_OBJECT_HTML}</code>
 						</pre>
 						<p class="section-body">
-							{'Composite refs work on React, Preact, Solid, and Ripple. The child receives the ref as a regular prop and applies it to a DOM element — typically by spreading '}
+							{'For reusable components, use a named ref prop when the component API needs a specific ref name. Refs can be forwarded explicitly or through '}
 							<code class="inline-code">{'{...props}'}</code>
-							{', which lets the target framework wire the ref through automatically. Use a callback or the target\'s ref-object primitive for cross-boundary capture; plain '}
-							<code class="inline-code">{'let'}</code>
-							{' variables only work on host elements (the assignment-sugar setter needs direct lexical access to the slot). Vue is different: component refs resolve to component instances rather than the rendered DOM node, so the Vue target currently supports '}
-							<code class="inline-code">{'{ref ...}'}</code>
-							{' only on host elements.'}
+							{', and mutable variables can be used as ref values.'}
+						</p>
+						<p class="section-body">
+							{'Vue keeps '}
+							<code class="inline-code">{'ref={...}'}</code>
+							{' on components as Vue\'s native component ref; it is not forwarded to a DOM element inside the component. Use a named '}
+							<code class="inline-code">{'inputRef={ref input}'}</code>
+							{' or anonymous '}
+							<code class="inline-code">{'{ref input}'}</code>
+							{' when a Vue component should expose an inner DOM ref.'}
 						</p>
 						<pre class="code-block">
-							<code>{html REFS_COMPOSITE_HTML}</code>
+							<code>{html REFS_NAMED_HTML}</code>
 						</pre>
 						<p class="section-body muted">
-							{'Multi-ref runtime: React, Preact, and Vue share a '}
-							<code class="inline-code">{'mergeRefs'}</code>
-							{' helper (imported from '}
-							<code class="inline-code">{'@tsrx/<target>/merge-refs'}</code>
-							{') that handles function refs, '}
-							<code class="inline-code">{'.current'}</code>
-							{' ref objects, '}
-							<code class="inline-code">{'.value'}</code>
-							{' ref objects, and React 19 cleanup return values uniformly. Solid emits an array literal '}
-							<code class="inline-code">{'ref={[a, b]}'}</code>
-							{' — its ref runtime iterates arrays natively. Ripple uses a per-ref '}
-							<code class="inline-code">{'Symbol'}</code>
-							{' key so refs survive '}
-							<code class="inline-code">{'{...rest}'}</code>
-							{' spreading without colliding with user-named props.'}
+							{'Named ref props are marked at runtime. Use '}
+							<code class="inline-code">{'isRefProp(value)'}</code>
+							{' to detect one; anonymous '}
+							<code class="inline-code">{'{ref ...}'}</code>
+							{' props are intentionally not publicly inspectable because their prop keys are unique symbols.'}
 						</p>
 					</section>
 

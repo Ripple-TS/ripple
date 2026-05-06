@@ -36,6 +36,8 @@ export interface JsxTransformContext {
 	needs_error_boundary: boolean;
 	needs_suspense: boolean;
 	needs_merge_refs: boolean;
+	needs_ref_prop: boolean;
+	needs_normalize_spread_props: boolean;
 	needs_fragment: boolean;
 	module_scoped_hook_components: boolean;
 	helper_state: {
@@ -290,9 +292,14 @@ export interface JsxPlatform {
 		 * Module to import `mergeRefs` from when an element has more than one
 		 * `ref` attribute and the platform uses the `'merge-refs'` strategy.
 		 * Required when `jsx.multiRefStrategy === 'merge-refs'`; ignored
-		 * otherwise. React: `'@tsrx/react/merge-refs'`. Preact: `'@tsrx/preact/merge-refs'`.
+		 * otherwise. React: `'@tsrx/react/ref'`. Preact: `'@tsrx/preact/ref'`.
 		 */
 		mergeRefs?: string;
+		/**
+		 * Module to import named-ref-prop helpers from when compiling
+		 * `prop={ref expr}` or normalizing host spreads containing named refs.
+		 */
+		refProp?: string;
 	};
 
 	jsx: {
@@ -320,6 +327,12 @@ export interface JsxPlatform {
 		 *   unchanged. The platform's runtime is responsible.
 		 */
 		multiRefStrategy?: 'merge-refs' | 'array';
+		/**
+		 * Some JSX runtimes do not apply a `ref` that arrives through a props
+		 * spread. In that case, host spread normalization also emits an
+		 * explicit `ref={normalized.ref}` attribute.
+		 */
+		hostSpreadRefStrategy?: 'explicit-ref-attr';
 	};
 
 	validation: {

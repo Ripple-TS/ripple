@@ -16,7 +16,7 @@ import {
 	set_tracking,
 	tracking,
 } from './runtime.js';
-import { array_from, define_property, is_array } from './utils.js';
+import { array_from, define_property, is_array } from '@tsrx/core/runtime/language-helpers';
 import { render } from './blocks.js';
 
 /** @type {Set<string>} */

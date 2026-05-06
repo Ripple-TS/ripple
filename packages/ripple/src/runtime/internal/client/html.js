@@ -4,7 +4,7 @@ import { remove_block_dom, render } from './blocks.js';
 import { get_first_child, get_next_sibling } from './operations.js';
 import { active_block } from './runtime.js';
 import { assign_nodes, create_fragment_from_html } from './template.js';
-import { hydrate_next, hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
+import { hydrate_next, hydrating, set_hydrate_node } from './hydration.js';
 import { COMMENT_NODE } from '../../../constants.js';
 
 /**

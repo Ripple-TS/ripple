@@ -42,7 +42,7 @@ export const NAMESPACE_URI = {
 	mathml: 'http://www.w3.org/1998/Math/MathML',
 };
 /** @type {unique symbol} */
-export const DERIVED_UPDATED = Symbol('derived_updated');
+export const TRACKED_UPDATED = Symbol('TRACKED_UPDATED');
 /** @type {unique symbol} */
 export const SUSPENSE_PENDING = Symbol('suspense_pending');
 /** @type {unique symbol} */

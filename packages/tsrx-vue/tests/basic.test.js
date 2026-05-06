@@ -122,6 +122,53 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toMatch(/ref=\{capture\}/);
 	});
 
+	it('keeps Vue host ref expressions clean in Volar TSX while disabling prop verification', () => {
+		const source = `component App() {
+			<div ref={(node: HTMLDivElement) => {}}>{'x'}</div>
+		}`;
+		const result = compile_to_volar_mappings(source, 'App.tsrx');
+		const generated_ref_offset = result.code.indexOf('ref=');
+		const ref_mapping = result.mappings.find(
+			(mapping) =>
+				mapping.generatedOffsets[0] === generated_ref_offset &&
+				mapping.generatedLengths[0] === 'ref'.length,
+		);
+
+		expect(result.code).toContain('ref={(node: HTMLDivElement) => {}}');
+		expect(result.code).not.toContain('as any');
+		expect(ref_mapping?.data.verification).toBe(false);
+	});
+
+	it('keeps named component ref props direct in Volar TSX for completions', () => {
+		const source = `import { ref } from 'vue';
+
+		component NamedForwardInput(props: { type: string; input_ref?: any }) {
+			<input type={props.type} ref={props.input_ref} />
+		}
+
+		const named_vue_ref_object = ref<HTMLInputElement | null>(null);
+
+		component App() {
+			<NamedForwardInput type="text" input_ref={ref named_vue_ref_object} />
+		}`;
+		const result = compile_to_volar_mappings(source, 'App.tsrx');
+		const source_prop_offset = source.indexOf('input_ref={ref');
+		const generated_prop_offset = result.code.indexOf('input_ref={__create_ref_prop');
+		const prop_mapping = result.mappings.find(
+			(mapping) =>
+				mapping.sourceOffsets[0] === source_prop_offset &&
+				mapping.generatedOffsets[0] === generated_prop_offset &&
+				mapping.generatedLengths[0] === 'input_ref'.length,
+		);
+
+		expect(result.code).toContain(
+			'<NamedForwardInput type="text" input_ref={__create_ref_prop(() => named_vue_ref_object, (v) => named_vue_ref_object = v)} />',
+		);
+		expect(result.code).not.toContain('input_ref: __create_ref_prop');
+		expect(prop_mapping?.data.completion).toBe(true);
+		expect(prop_mapping?.data.verification).toBe(true);
+	});
+
 	it('rejects {ref ...} on composite components', () => {
 		expect(() =>
 			compile(
@@ -149,7 +196,7 @@ describe('@tsrx/vue basic', () => {
 		);
 
 		expect(code).toContain('ref={__mergeRefs(a, b)}');
-		expect(code).toContain("import { mergeRefs as __mergeRefs } from '@tsrx/vue/merge-refs'");
+		expect(code).toContain("import { mergeRefs as __mergeRefs } from '@tsrx/vue/ref'");
 	});
 
 	it('combines a single ref={expr} with multiple {ref expr} keyword-form refs via mergeRefs', () => {
@@ -164,6 +211,89 @@ describe('@tsrx/vue basic', () => {
 		);
 
 		expect(code).toContain('ref={__mergeRefs(a, b, c)}');
+	});
+
+	it('allows named ref props through components and normalizes host spreads', () => {
+		const { code } = compile(
+			`component Child(props) {
+				<input {...props} />
+			}
+
+			component App() {
+				let input;
+				<Child input_ref={ref input} />
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain("from '@tsrx/vue/ref'");
+		expect(code).toContain('{...{ input_ref: __create_ref_prop(() => input, (v) => input = v) }}');
+		expect(code).toContain('let Child__spread_props1 = __normalize_spread_props(props);');
+		expect(code).toContain('{...Child__spread_props1}');
+		expect(code).toContain('ref={Child__spread_props1.ref}');
+		expect(code.match(/__normalize_spread_props\(/g)).toHaveLength(1);
+	});
+
+	it('imports only create_ref_prop for component ref props without host spreads', () => {
+		const { code } = compile(
+			`component Child(props) {
+				<span>{'child'}</span>
+			}
+
+			component App() {
+				let input;
+				<Child input_ref={ref input} />
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain("from '@tsrx/vue/ref'");
+		expect(code).toContain('{...{ input_ref: __create_ref_prop(() => input, (v) => input = v) }}');
+		expect(code).not.toContain('normalize_spread_props');
+	});
+
+	it('declares normalized host spread refs inside tsx expression blocks', () => {
+		const { code } = compile(
+			`class Foo {
+				bar() {
+					const props = {};
+					function cb(_node) {}
+					return <tsx><input {...props} ref={cb} /></tsx>;
+				}
+			}`,
+			'App.tsrx',
+		);
+		const declaration_offset = code.indexOf(
+			'let _tsrx_spread_props_1 = __normalize_spread_props(props);',
+		);
+		const spread_offset = code.indexOf('{..._tsrx_spread_props_1}');
+
+		expect(declaration_offset).toBeGreaterThan(-1);
+		expect(spread_offset).toBeGreaterThan(declaration_offset);
+		expect(code).toContain('_tsrx_spread_props_1.ref');
+		expect(code).not.toContain('<tsx>');
+	});
+
+	it('normalizes multiple host spreads once while merging one explicit ref', () => {
+		const { code } = compile(
+			`component App() {
+			const first = {};
+			const second = {};
+			function cb(_node) {}
+			<input {...first} {...second} ref={cb} />
+		}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('let App__spread_props1 = __normalize_spread_props(first);');
+		expect(code).toContain('let App__spread_props2 = __normalize_spread_props(second);');
+		expect(code).toContain('{...App__spread_props1}');
+		expect(code).toContain('{...App__spread_props2}');
+		expect(code).toContain('ref={__mergeRefs(App__spread_props1.ref, App__spread_props2.ref, cb)}');
+		expect(code.match(/__normalize_spread_props\(/g)).toHaveLength(2);
+		expect(code).not.toContain('create_ref_prop');
+		expect(code).not.toContain('__normalize_spread_props(first, cb)');
+		expect(code).not.toContain('__normalize_spread_props(second, cb)');
 	});
 
 	it('rejects multiple ref={...} attributes on the same element', () => {

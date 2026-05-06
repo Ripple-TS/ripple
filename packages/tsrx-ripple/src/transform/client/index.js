@@ -523,6 +523,67 @@ function set_hidden_import_from_ripple(name, context, is_obfuscated = false) {
 }
 
 /**
+ * @param {AST.RefExpression} node
+ * @param {VisitorClientContext} context
+ * @returns {AST.CallExpression}
+ */
+function create_ref_prop_call(node, context) {
+	return create_ref_value_call(node.argument, context);
+}
+
+/**
+ * @param {any} source_argument
+ * @param {VisitorClientContext} context
+ * @returns {AST.CallExpression}
+ */
+function create_ref_value_call(source_argument, context) {
+	const { state, visit } = context;
+	const metadata = { tracking: false };
+	const source =
+		source_argument.type === 'JSXExpressionContainer'
+			? source_argument.expression
+			: source_argument;
+	const argument = /** @type {AST.Expression} */ (
+		visit(source, { ...state, flush_node: null, metadata })
+	);
+	/** @type {AST.Expression[]} */
+	const args = [b.thunk(argument)];
+	add_ref_setter_arg(args, source, argument);
+
+	return b.call(
+		state.to_ts ? set_hidden_import_from_ripple('createRefProp', context) : '_$_.create_ref_prop',
+		...args,
+	);
+}
+
+/**
+ * @param {AST.Expression[]} args
+ * @param {any} source_argument
+ * @param {AST.Expression} argument
+ * @returns {void}
+ */
+function add_ref_setter_arg(args, source_argument, argument) {
+	const source =
+		source_argument.type === 'JSXExpressionContainer'
+			? source_argument.expression
+			: source_argument;
+	const arg_type = source?.type;
+
+	if (arg_type === 'Identifier' || arg_type === 'MemberExpression') {
+		args.push(
+			b.arrow(
+				[b.id('v')],
+				b.assignment(
+					'=',
+					/** @type {AST.Pattern} */ (clone_expression_node(argument, false)),
+					b.id('v'),
+				),
+			),
+		);
+	}
+}
+
+/**
  * @param {AST.NodeWithLocation} loc_info
  * @param {number} [start_offset]
  * @param {number} [length]
@@ -1131,9 +1192,20 @@ const visitors = {
 
 	JSXExpressionContainer(node, context) {
 		if (context.state.to_ts) {
+			if (node.expression?.type === 'RefExpression') {
+				return /** @type {any} */ ({
+					type: 'JSXExpressionContainer',
+					expression: create_ref_prop_call(node.expression, context),
+					metadata: { path: [] },
+				});
+			}
 			return context.next();
 		}
 		return context.visit(node.expression);
+	},
+
+	RefExpression(node, context) {
+		return create_ref_prop_call(node, context);
 	},
 
 	JSXEmptyExpression(node, context) {
@@ -1449,6 +1521,32 @@ const visitors = {
 							continue;
 						}
 
+						if (name === 'ref') {
+							const id = state.flush_node?.();
+							const metadata = { tracking: false };
+							const ref_value = /** @type {AST.Expression} */ (
+								visit(attr.value, { ...state, metadata })
+							);
+							const ref_args = [/** @type {AST.Expression} */ (id), b.thunk(ref_value)];
+							add_ref_setter_arg(ref_args, attr.value, ref_value);
+							state.init?.push(b.stmt(b.call('_$_.ref', ...ref_args)));
+							continue;
+						}
+
+						const attr_value = /** @type {any} */ (attr.value);
+						if (
+							attr_value.type === 'RefExpression' ||
+							(attr_value.type === 'JSXExpressionContainer' &&
+								attr_value.expression?.type === 'RefExpression')
+						) {
+							const id = state.flush_node?.();
+							const ref_expression =
+								attr_value.type === 'RefExpression' ? attr_value : attr_value.expression;
+							const ref_value = create_ref_prop_call(ref_expression, context);
+							state.init?.push(b.stmt(b.call('_$_.ref', id, b.thunk(ref_value))));
+							continue;
+						}
+
 						if (
 							attr.value.type === 'Literal' &&
 							name !== 'class' &&
@@ -1645,19 +1743,7 @@ const visitors = {
 					// those (function/Tracked dispatch wins), strict module
 					// parsers like rolldown still reject `(v) => (foo() = v)`
 					// at parse time.
-					const arg_type = attr.argument.type;
-					if (arg_type === 'Identifier' || arg_type === 'MemberExpression') {
-						ref_args.push(
-							b.arrow(
-								[b.id('v')],
-								b.assignment(
-									'=',
-									/** @type {AST.Pattern} */ (clone_expression_node(argument)),
-									b.id('v'),
-								),
-							),
-						);
-					}
+					add_ref_setter_arg(ref_args, attr.argument, argument);
 
 					state.init?.push(b.stmt(b.call('_$_.ref', ...ref_args)));
 				}
@@ -1832,6 +1918,11 @@ const visitors = {
 				if (attr.type === 'Attribute') {
 					if (attr.name.type === 'Identifier') {
 						const metadata = { tracking: false };
+						if (attr.name.name === 'ref' && attr.value !== null) {
+							props.push(b.prop('init', b.key('ref'), create_ref_value_call(attr.value, context)));
+							continue;
+						}
+
 						let property =
 							attr.value === null
 								? b.literal(true)
@@ -1908,17 +1999,9 @@ const visitors = {
 					);
 				} else if (attr.type === 'RefAttribute') {
 					const ref_id = state.scope.generate('ref');
-					const metadata = { tracking: false };
 					state.init?.push(b.var(ref_id, b.call('_$_.ref_prop')));
 					props.push(
-						b.prop(
-							'init',
-							b.id(ref_id),
-							/** @type {AST.Expression} */ (
-								visit(attr.argument, { ...state, flush_node: null, metadata })
-							),
-							true,
-						),
+						b.prop('init', b.id(ref_id), create_ref_value_call(attr.argument, context), true),
 					);
 				} else {
 					throw new Error('TODO');
@@ -2966,6 +3049,7 @@ function transform_ts_child(node, context) {
 					has_children_props = true;
 				}
 
+				const is_ref_expression_value = attr_value?.type === 'RefExpression';
 				const jsx_attr = b.jsx_attribute(
 					jsx_name,
 					// match the source code usage of expressions for literals
@@ -2974,23 +3058,25 @@ function transform_ts_child(node, context) {
 						? /** @type {AST.Literal} */ (value)
 						: b.jsx_expression_container(
 								/** @type {AST.Expression} */ (value),
-								attr_value === null
-									? /** @type {AST.NodeWithLocation} */ (value)
-									: // account location for opening and closing braces around the expression
-										/** @type {AST.NodeWithLocation} */ ({
-											start: attr_value.start - 1,
-											end: attr_value.end + 1,
-											loc: {
-												start: {
-													line: attr_value.loc.start.line,
-													column: attr_value.loc.start.column - 1,
+								is_ref_expression_value
+									? undefined
+									: attr_value === null
+										? /** @type {AST.NodeWithLocation} */ (value)
+										: // account location for opening and closing braces around the expression
+											/** @type {AST.NodeWithLocation} */ ({
+												start: attr_value.start - 1,
+												end: attr_value.end + 1,
+												loc: {
+													start: {
+														line: attr_value.loc.start.line,
+														column: attr_value.loc.start.column - 1,
+													},
+													end: {
+														line: attr_value.loc.end.line,
+														column: attr_value.loc.end.column + 1,
+													},
 												},
-												end: {
-													line: attr_value.loc.end.line,
-													column: attr_value.loc.end.column + 1,
-												},
-											},
-										}),
+											}),
 							),
 					attr.shorthand ?? false,
 					/** @type {AST.NodeWithLocation} */ (attr),

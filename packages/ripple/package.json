@@ -74,12 +74,12 @@
     "clsx": "catalog:default",
     "devalue": "catalog:default",
     "esm-env": "catalog:default",
+    "@tsrx/core": "workspace:*",
     "@tsrx/ripple": "workspace:*",
     "@types/estree": "catalog:default",
     "@types/estree-jsx": "catalog:default"
   },
   "devDependencies": {
-    "@tsrx/core": "workspace:*",
     "@types/node": "catalog:default",
     "@typescript-eslint/types": "catalog:default",
     "typescript": "catalog:default",
