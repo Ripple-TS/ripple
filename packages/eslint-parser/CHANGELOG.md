@@ -1,5 +1,13 @@
 # @tsrx/eslint-parser
 
+## 0.3.49
+
+### Patch Changes
+
+- Updated dependencies
+  [[`b54a72f`](https://github.com/Ripple-TS/ripple/commit/b54a72f721adb5f08a5bf3e3d006780b7e1eb471)]:
+  - @tsrx/ripple@0.0.30
+
 ## 0.3.48
 
 ## 0.3.47

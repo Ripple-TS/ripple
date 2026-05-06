@@ -1,5 +1,42 @@
 # @tsrx/vue
 
+## 0.0.23
+
+### Patch Changes
+
+- [#1071](https://github.com/Ripple-TS/ripple/pull/1071)
+  [`b54a72f`](https://github.com/Ripple-TS/ripple/commit/b54a72f721adb5f08a5bf3e3d006780b7e1eb471)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add named ref props with
+  `prop_name={ref expr}` syntax and expose `isRefProp()` for runtime detection of
+  named ref prop values.
+
+- [#1071](https://github.com/Ripple-TS/ripple/pull/1071)
+  [`b54a72f`](https://github.com/Ripple-TS/ripple/commit/b54a72f721adb5f08a5bf3e3d006780b7e1eb471)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Import ref helpers only when
+  their generated calls are emitted.
+
+- [#1071](https://github.com/Ripple-TS/ripple/pull/1071)
+  [`b54a72f`](https://github.com/Ripple-TS/ripple/commit/b54a72f721adb5f08a5bf3e3d006780b7e1eb471)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Declare normalized host
+  spread refs emitted from TSX expression blocks.
+
+- [#1071](https://github.com/Ripple-TS/ripple/pull/1071)
+  [`b54a72f`](https://github.com/Ripple-TS/ripple/commit/b54a72f721adb5f08a5bf3e3d006780b7e1eb471)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Suppress Vue host ref prop
+  verification in type-only TSRX output without changing the generated ref
+  expression.
+
+- [#1071](https://github.com/Ripple-TS/ripple/pull/1071)
+  [`b54a72f`](https://github.com/Ripple-TS/ripple/commit/b54a72f721adb5f08a5bf3e3d006780b7e1eb471)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep Vue named ref component
+  props as direct attributes in type-only TSX so Volar can complete prop names.
+
+- Updated dependencies
+  [[`b54a72f`](https://github.com/Ripple-TS/ripple/commit/b54a72f721adb5f08a5bf3e3d006780b7e1eb471),
+  [`b54a72f`](https://github.com/Ripple-TS/ripple/commit/b54a72f721adb5f08a5bf3e3d006780b7e1eb471),
+  [`b54a72f`](https://github.com/Ripple-TS/ripple/commit/b54a72f721adb5f08a5bf3e3d006780b7e1eb471)]:
+  - @tsrx/core@0.0.28
+
 ## 0.0.22
 
 ### Patch Changes
