@@ -270,9 +270,7 @@ export function apply_element_spread(element, fn) {
 
 	return () => {
 		var next = fn();
-
-		/** @type {Record<symbol, any>} */
-		var current_symbols = {};
+		var current_symbols = /** @type {Record<symbol, any>} */ ({});
 
 		for (const symbol of get_own_property_symbols(next)) {
 			if (symbol.description !== REF_PROP) {

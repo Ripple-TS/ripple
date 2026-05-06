@@ -389,19 +389,17 @@ export function to_text_expression(expression, source_node = expression) {
 export function clone_expression_node(node, with_locations = true) {
 	if (!node || typeof node !== 'object') return node;
 	if (Array.isArray(node)) return node.map((child) => clone_expression_node(child, with_locations));
-	const clone = { ...node };
-	if (!with_locations) {
-		delete clone.loc;
-		delete clone.start;
-		delete clone.end;
-	}
-	for (const key of Object.keys(clone)) {
-		if (key === 'loc' || key === 'start' || key === 'end') continue;
-		if (key === 'metadata') {
-			clone.metadata = clone.metadata ? { ...clone.metadata } : { path: [] };
+	const clone = /** @type {Record<string, any>} */ ({});
+
+	for (const key of Object.keys(node)) {
+		if (!with_locations && (key === 'loc' || key === 'start' || key === 'end')) {
 			continue;
 		}
-		clone[key] = clone_expression_node(clone[key], with_locations);
+		if (key === 'metadata') {
+			clone.metadata = node.metadata ? { ...node.metadata } : { path: [] };
+			continue;
+		}
+		clone[key] = clone_expression_node(node[key], with_locations);
 	}
 	return clone;
 }
