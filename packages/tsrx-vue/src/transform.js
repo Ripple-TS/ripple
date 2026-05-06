@@ -14,6 +14,7 @@ import {
 	MERGE_REFS_INTERNAL_NAME,
 	NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
 	setLocation,
+	toJsxAttribute,
 } from '@tsrx/core';
 
 /**
@@ -63,6 +64,13 @@ const vue_platform = {
 		preprocessElementAttributes(attrs, ctx, element) {
 			return preprocess_ref_attributes(attrs, element, ctx);
 		},
+		transformElementAttributes(attrs, ctx, element) {
+			const result = attrs.map((attr) => toJsxAttribute(attr, ctx));
+			if (!ctx.typeOnly || is_component_like_element(element)) {
+				return result;
+			}
+			return result.map(mark_type_only_host_ref_attribute);
+		},
 		renderForOf: (node, loop_params, body_statements, ctx) =>
 			render_for_of_as_vapor_for(node, loop_params, body_statements, ctx),
 		createErrorBoundaryContent(try_content) {
@@ -97,6 +105,34 @@ const vue_platform = {
 };
 
 export const transform = createJsxTransform(vue_platform);
+
+/**
+ * Vue's `VNodeRef` type is wider than TSRX host refs because it also supports
+ * component instances and null teardown values. In editor-only TSX, keep the ref
+ * expression unchanged but stop TypeScript verification from reporting that
+ * Vue-specific assignability diagnostic on the generated `ref` prop token.
+ *
+ * @param {any} attr
+ * @returns {any}
+ */
+function mark_type_only_host_ref_attribute(attr) {
+	if (
+		!attr ||
+		attr.type !== 'JSXAttribute' ||
+		attr.name?.type !== 'JSXIdentifier' ||
+		attr.name.name !== 'ref'
+	) {
+		return attr;
+	}
+
+	return {
+		...attr,
+		name: {
+			...attr.name,
+			metadata: { ...(attr.name.metadata || {}), disable_verification: true },
+		},
+	};
+}
 
 /**
  * @param {any} component

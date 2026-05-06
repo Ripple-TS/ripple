@@ -122,6 +122,23 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toMatch(/ref=\{capture\}/);
 	});
 
+	it('keeps Vue host ref expressions clean in Volar TSX while disabling prop verification', () => {
+		const source = `component App() {
+			<div ref={(node: HTMLDivElement) => {}}>{'x'}</div>
+		}`;
+		const result = compile_to_volar_mappings(source, 'App.tsrx');
+		const generated_ref_offset = result.code.indexOf('ref=');
+		const ref_mapping = result.mappings.find(
+			(mapping) =>
+				mapping.generatedOffsets[0] === generated_ref_offset &&
+				mapping.generatedLengths[0] === 'ref'.length,
+		);
+
+		expect(result.code).toContain('ref={(node: HTMLDivElement) => {}}');
+		expect(result.code).not.toContain('as any');
+		expect(ref_mapping?.data.verification).toBe(false);
+	});
+
 	it('rejects {ref ...} on composite components', () => {
 		expect(() =>
 			compile(

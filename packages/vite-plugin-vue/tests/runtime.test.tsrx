@@ -91,9 +91,7 @@ component ElementRefApp() {
 			element_ref_captured = node;
 		}}
 		class="ref-target"
-	>
-		{'ref test'}
-	</div>
+	>"ref test"</div>
 }
 
 component KeywordRefCallbackApp() {
@@ -868,7 +866,7 @@ describe('tsrx-vue runtime', () => {
 		expect(multi_dom_ref_a).toBeInstanceOf(HTMLInputElement);
 		expect(multi_dom_ref_b).toBeInstanceOf(HTMLInputElement);
 		expect(multi_dom_ref_a).toBe(multi_dom_ref_b);
-		expect(multi_dom_ref_a?.className).toContain('multi-dom-ref');
+		expect(multi_dom_ref_a!.className).toContain('multi-dom-ref');
 	});
 
 	it('combines a single ref={fn} with a {ref expr} keyword-form ref via mergeRefs', async () => {

@@ -376,11 +376,7 @@ export function to_text_expression(expression, source_node = expression) {
 }
 
 /**
- * Deep-clone an AST subtree. `loc` / `start` / `end` are shallow-shared by
- * reference rather than recursed into — `loc` objects can contain back-refs
- * to sub-objects that would blow the stack with a naive deep clone, and
- * every other traversal in the targets treats these positional keys as
- * shared.
+ * Deep-clone an AST subtree.
  *
  * @param {any} node
  * @param {boolean} with_locations
