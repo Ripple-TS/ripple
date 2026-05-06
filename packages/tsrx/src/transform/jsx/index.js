@@ -4646,7 +4646,7 @@ function create_spread_props_name(transform_context) {
  * @param {any} node
  * @param {any} declaration
  */
-function add_jsx_setup_declaration(node, declaration) {
+export function add_jsx_setup_declaration(node, declaration) {
 	node.metadata ??= { path: [] };
 	(node.metadata.generated_setup_declarations ??= []).push(declaration);
 }
@@ -4656,7 +4656,7 @@ function add_jsx_setup_declaration(node, declaration) {
  * @param {Set<any>} [seen]
  * @returns {any[]}
  */
-function extract_jsx_setup_declarations(node, seen = new Set()) {
+export function extract_jsx_setup_declarations(node, seen = new Set()) {
 	if (node == null || typeof node !== 'object' || seen.has(node)) {
 		return [];
 	}

@@ -9,8 +9,10 @@ import {
 	toJsxAttribute,
 	validateAtMostOneRefAttribute,
 	setLocation,
+	addJsxSetupDeclaration as add_jsx_setup_declaration,
 	applyLazyTransforms as apply_lazy_transforms,
 	collectLazyBindingsFromComponent as collect_lazy_bindings_from_component,
+	extractJsxSetupDeclarations as extract_jsx_setup_declarations,
 	replaceLazyParams as replace_lazy_params,
 	rewriteLoopContinuesToBareReturns as rewrite_loop_continues_to_bare_returns,
 	isRefPropExpression as is_ref_prop_expression,
@@ -250,7 +252,7 @@ function component_to_function_declaration(component, transform_context) {
 					}
 					if (early_interleaved) {
 						const jsx = to_jsx_child(child, transform_context);
-						outer.push(...extract_solid_jsx_setup_declarations(jsx));
+						outer.push(...extract_jsx_setup_declarations(jsx));
 						if (is_capturable_jsx_child(jsx)) {
 							const { declaration, reference } = captureJsxChild(jsx, early_capture_index++);
 							outer.push(declaration);
@@ -295,7 +297,7 @@ function component_to_function_declaration(component, transform_context) {
 	for (const child of effective_body) {
 		if (is_jsx_child(child)) {
 			const jsx = to_jsx_child(child, transform_context);
-			statements.push(...extract_solid_jsx_setup_declarations(jsx));
+			statements.push(...extract_jsx_setup_declarations(jsx));
 			if (interleaved && is_capturable_jsx_child(jsx)) {
 				const { declaration, reference } = captureJsxChild(jsx, capture_index++);
 				statements.push(declaration);
@@ -490,7 +492,7 @@ function body_to_jsx_child(body_nodes, transform_context) {
 
 		if (is_jsx_child(child)) {
 			const jsx = to_jsx_child(child, transform_context);
-			statements.push(...extract_solid_jsx_setup_declarations(jsx));
+			statements.push(...extract_jsx_setup_declarations(jsx));
 			if (interleaved && is_capturable_jsx_child(jsx)) {
 				const { declaration, reference } = captureJsxChild(jsx, capture_index++);
 				statements.push(declaration);
@@ -679,7 +681,7 @@ function loop_body_to_callback_statements(body_nodes, transform_context) {
 
 		if (is_jsx_child(child)) {
 			const jsx = to_jsx_child(child, transform_context);
-			statements.push(...extract_solid_jsx_setup_declarations(jsx));
+			statements.push(...extract_jsx_setup_declarations(jsx));
 			children.push(jsx);
 		} else if (is_bare_render_expression(child)) {
 			children.push(to_jsx_expression_container(child, child));
@@ -1766,7 +1768,7 @@ function normalize_solid_host_ref_spreads(attrs, is_host, transform_context) {
 			);
 			ref_attr.metadata = { ...(ref_attr.metadata || {}) };
 			/** @type {any} */ (ref_attr.metadata).from_ref_keyword = true;
-			add_solid_jsx_setup_declaration(spread, b.let(clone_identifier(normalized_id), normalized));
+			add_jsx_setup_declaration(spread, b.let(clone_identifier(normalized_id), normalized));
 
 			return [spread, ref_attr];
 		}
@@ -1792,41 +1794,6 @@ function create_solid_spread_props_name(transform_context) {
 
 	transform_context.local_statement_component_index += 1;
 	return `_tsrx_spread_props_${transform_context.local_statement_component_index}`;
-}
-
-/**
- * @param {any} node
- * @param {any} declaration
- */
-function add_solid_jsx_setup_declaration(node, declaration) {
-	node.metadata ??= { path: [] };
-	(node.metadata.generated_setup_declarations ??= []).push(declaration);
-}
-
-/**
- * @param {any} node
- * @param {Set<any>} [seen]
- * @returns {any[]}
- */
-function extract_solid_jsx_setup_declarations(node, seen = new Set()) {
-	if (node == null || typeof node !== 'object' || seen.has(node)) {
-		return [];
-	}
-	seen.add(node);
-
-	const declarations = node.metadata?.generated_setup_declarations ?? [];
-	if (node.metadata?.generated_setup_declarations) {
-		delete node.metadata.generated_setup_declarations;
-	}
-
-	for (const key of Object.keys(node)) {
-		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
-			continue;
-		}
-		declarations.push(...extract_solid_jsx_setup_declarations(node[key], seen));
-	}
-
-	return declarations;
 }
 
 /**
