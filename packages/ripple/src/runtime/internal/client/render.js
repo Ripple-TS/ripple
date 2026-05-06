@@ -144,11 +144,14 @@ function set_attribute_helper(element, key, value, remove_listeners, prev) {
 		element.classList.add(value);
 	} else if (typeof key === 'string' && is_event_attribute(key)) {
 		// Handle event handlers in spread props
-		const event_name = get_attribute_event_name(key, value);
 		if (remove_listeners[key]) {
 			remove_listeners[key]();
+			remove_listeners[key] = undefined;
 		}
-		remove_listeners[key] = event(event_name, element, value);
+		if (value != null) {
+			const event_name = get_attribute_event_name(key, value);
+			remove_listeners[key] = event(event_name, element, value);
+		}
 	} else {
 		set_attribute(element, key, value);
 	}
@@ -333,14 +336,14 @@ export function apply_element_spread(element, fn) {
 
 		for (let key in remove_listeners) {
 			// Remove event listeners that are no longer present
-			if (!(key in next) && remove_listeners[key]) {
+			if ((!(key in next) || is_ref_prop(next[key])) && remove_listeners[key]) {
 				remove_listeners[key]();
 				remove_listeners[key] = undefined;
 			}
 		}
 
 		for (const key in prev) {
-			if (!(key in next)) {
+			if (!(key in next) || is_ref_prop(next[key])) {
 				if (key === '#class') {
 					continue;
 				}
