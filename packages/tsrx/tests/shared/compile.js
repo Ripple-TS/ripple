@@ -1158,6 +1158,28 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toContain('<tsx>');
 		});
 
+		it('declares normalized host spread refs inside tsx expression blocks', () => {
+			const { code } = compile(
+				`class Foo {
+					bar() {
+						const props = {};
+						function cb(_node) {}
+						return <tsx><input {...props} ref={cb} /></tsx>;
+					}
+				}`,
+				'App.tsrx',
+			);
+			const declaration_offset = code.indexOf(
+				'let _tsrx_spread_props_1 = __normalize_spread_props(props);',
+			);
+			const spread_offset = code.indexOf('{..._tsrx_spread_props_1}');
+
+			expect(declaration_offset).toBeGreaterThan(-1);
+			expect(spread_offset).toBeGreaterThan(declaration_offset);
+			expect(code).toContain('_tsrx_spread_props_1.ref');
+			expect(code).not.toContain('<tsx>');
+		});
+
 		it('unwraps a tsx block containing a single expression to the expression', () => {
 			// Regression: previously `<tsx>{'Hello'}</tsx>` was compiled to
 			// `return {'Hello'};`, which is a JS syntax error because `{`

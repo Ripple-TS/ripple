@@ -406,6 +406,32 @@ component SpreadRefApp() {
 	/>
 }
 
+let tsx_spread_ref_captured: HTMLInputElement | null = null;
+let tsx_explicit_ref_captured: HTMLInputElement | null = null;
+
+class TsxSpreadRefRenderer {
+	render() {
+		const props = {
+			id: 'tsx-spread-ref-input',
+			ref: (node: HTMLInputElement | null) => {
+				tsx_spread_ref_captured = node;
+			},
+		};
+
+		return <tsx>
+			<input {...props} ref={(node: HTMLInputElement | null) => {
+				tsx_explicit_ref_captured = node;
+			}} />
+		</tsx>;
+	}
+}
+
+component TsxSpreadRefApp() {
+	const renderer = new TsxSpreadRefRenderer();
+
+	<div class="tsx-spread-ref">{renderer.render()}</div>
+}
+
 // ── Named ref props merged with native and anonymous refs ──
 
 let named_direct_node: HTMLInputElement | null = null;
@@ -1109,6 +1135,15 @@ describe('tsrx-react runtime', () => {
 		await render(SpreadRefApp);
 		expect(spread_ref_captured).toBeInstanceOf(HTMLInputElement);
 		expect(spread_ref_captured!.id).toBe('spread-input');
+	});
+
+	it('merges spread and explicit refs inside tsx expression blocks', async () => {
+		tsx_spread_ref_captured = null;
+		tsx_explicit_ref_captured = null;
+		await render(TsxSpreadRefApp);
+		expect(tsx_spread_ref_captured).toBeInstanceOf(HTMLInputElement);
+		expect(tsx_spread_ref_captured).toBe(tsx_explicit_ref_captured);
+		expect(tsx_spread_ref_captured!.id).toBe('tsx-spread-ref-input');
 	});
 
 	it('merges direct named ref props with native ref and anonymous {ref}', async () => {

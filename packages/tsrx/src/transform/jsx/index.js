@@ -384,13 +384,20 @@ export function createJsxTransform(platform) {
 
 			Tsx(node, { next, path }) {
 				const inner = /** @type {any} */ (next() ?? node);
-				return /** @type {any} */ (tsx_node_to_jsx_expression(inner, in_jsx_child_context(path)));
+				const in_jsx_child = in_jsx_child_context(path);
+				return /** @type {any} */ (
+					wrap_jsx_setup_declarations(tsx_node_to_jsx_expression(inner, in_jsx_child), in_jsx_child)
+				);
 			},
 
 			TsxCompat(node, { next, path, state }) {
 				const inner = /** @type {any} */ (next() ?? node);
+				const in_jsx_child = in_jsx_child_context(path);
 				return /** @type {any} */ (
-					tsx_compat_node_to_jsx_expression(inner, state, in_jsx_child_context(path))
+					wrap_jsx_setup_declarations(
+						tsx_compat_node_to_jsx_expression(inner, state, in_jsx_child),
+						in_jsx_child,
+					)
 				);
 			},
 
@@ -4668,6 +4675,31 @@ function extract_jsx_setup_declarations(node, seen = new Set()) {
 	}
 
 	return declarations;
+}
+
+/**
+ * @param {any} expression
+ * @param {boolean} in_jsx_child
+ * @returns {any}
+ */
+function wrap_jsx_setup_declarations(expression, in_jsx_child) {
+	const declarations = extract_jsx_setup_declarations(expression);
+	if (declarations.length === 0) {
+		return expression;
+	}
+
+	const return_expression =
+		expression?.type === 'JSXExpressionContainer' ? expression.expression : expression;
+	const call = b.call(
+		b.arrow(
+			[],
+			b.block([...declarations, b.return(return_expression)], expression),
+			false,
+			expression,
+		),
+	);
+
+	return in_jsx_child ? to_jsx_expression_container(call, expression) : call;
 }
 
 /**
