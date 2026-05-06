@@ -48,12 +48,7 @@ const VERCEL_OUTPUT_DIR = '.vercel/output';
  */
 function get_default_runtime() {
 	const major = Number(process.version.slice(1).split('.')[0]);
-	const valid = [20, 22, 24];
-	const latest = valid.at(-1);
-
-	if (latest && major > latest) {
-		return `nodejs${latest}.x`;
-	}
+	const valid = [22, 24, 26];
 
 	if (!valid.includes(major)) {
 		throw new Error(
