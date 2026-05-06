@@ -7,7 +7,7 @@ let container;
 
 globalThis.render = async function render(Component, props) {
 	await act(() => {
-		preactRender(h(Component, props ?? {}), container);
+		preactRender(h(Component, props ?? null), container);
 	});
 };
 

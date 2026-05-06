@@ -882,32 +882,59 @@ Both examples above will render the same inline styles, however, it's recommende
 
 ### DOM References (Refs)
 
-Use `{ref fn}` syntax to capture DOM element references:
+Ripple supports three DOM ref forms:
+
+- `{ref expr}` — anonymous prop as a direct TSRX keyword ref.
+- `ref={expr}` — native-style direct ref attribute on the current element.
+- `anyName={ref expr}` — named ref prop
+
+All three styles can be used on components and elements.
+Named ref props are applied as refs instead of emitted as attributes.
+
+Refs accept callbacks, `Tracked` values for reactive assignments, and mutable
+identifiers/member expressions and cross component boundaries.
 
 ```ripple
 import { track } from 'ripple';
 
 export component App() {
-  let &[div] = track();
+  let div: HTMLDivElement | null | undefined;
+  const input = track<HTMLInputElement | null>(null);
 
-  const divRef = (node) => {
-    div = node;
-    console.log("mounted", node);
+	// anonymous style
+  <div {ref div}>"Hello world"</div>
 
-    return () => {
-      div = undefined;
-      console.log("unmounted", node);
-    };
-  };
+	// native-like style
+  <input ref={input} type="text" />
 
-  <div {ref divRef}>"Hello world"</div>
+	// callback style
+  <button {ref (node) => console.log("mounted", node)}>"Log"</button>
 }
 ```
 
-Inline refs:
+Named refs are recommended for better Component and DOM composition:
+
 ```ripple
-<div {ref (node) => console.log(node)}>"Content"</div>
+component Field({ inputRef, buttonRef ...rest }) {
+	// on DOM elements refs are registered without attributes added
+	<div class="wrapper" {...rest}>
+		<input inputRef={inputRef} {...rest} />
+		<button buttonRef={buttonRef}>"Reset"</button>
+	</div>
+	</div>
+}
+
+export component App() {
+  let input: HTMLInputElement | null | undefined;
+	let button = track<HTMLButtonElement | null>(null);
+	let wrapper: HTMLElement | null | undefined;
+  <Field inputRef={ref input} buttonRef={ref button} {ref (node) => wrapper = node} />
+}
 ```
+
+Named ref props are marked at runtime. Use `isRefProp(value)` to detect one.
+Anonymous `{ref ...}` props use unique symbol keys and are intentionally not
+publicly inspectable.
 
 ## Built-in APIs
 

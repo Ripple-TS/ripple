@@ -12,10 +12,11 @@ export {
 } from './internal/server/index.js';
 export {
 	UNINITIALIZED,
-	DERIVED_UPDATED,
+	TRACKED_UPDATED,
 	SUSPENSE_PENDING,
 	SUSPENSE_REJECTED,
 } from './internal/client/constants.js';
+export { isRefProp } from '@tsrx/core/runtime/ref';
 
 export const effect = noop;
 export const createRefKey = noop;

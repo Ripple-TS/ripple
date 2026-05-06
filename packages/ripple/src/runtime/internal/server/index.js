@@ -24,14 +24,16 @@ import {
 	SUSPENSE_PENDING,
 	SUSPENSE_REJECTED,
 	ASYNC_DERIVED_READ_THROWN,
-	DERIVED_UPDATED,
+	TRACKED_UPDATED,
 } from '../client/constants.js';
 import { DEV } from 'esm-env';
-import { is_ripple_object, array_slice } from '../client/utils.js';
+import { is_ripple_object } from '../client/utils.js';
+import { array_slice } from '@tsrx/core/runtime/language-helpers';
 import { escape, escapeScript as escape_script } from '@tsrx/core';
 import { isBooleanAttribute as is_boolean_attribute } from '@tsrx/core';
 import { clsx } from 'clsx';
 import { normalizeCssPropertyName as normalize_css_property_name } from '@tsrx/core';
+import { create_ref_prop } from '@tsrx/core/runtime/ref';
 import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../constants.js';
 import { is_tsrx_element, normalize_children, tsrx_element } from '../../element.js';
 import {
@@ -56,6 +58,7 @@ export { context } from './context.js';
 export { try_block, component_block, regular_block } from './blocks.js';
 export { array_slice };
 export { tsrx_element, normalize_children };
+export { create_ref_prop };
 
 /** @extends Error */
 export class TrackAsyncRunError extends Error {
@@ -1566,7 +1569,7 @@ function register_block_rerun(block) {
 		cancel: () => {
 			cancelled = true;
 			if (t && t.aa) {
-				t.aa.abort(DERIVED_UPDATED);
+				t.aa.abort(TRACKED_UPDATED);
 				t.aa = null;
 				t.ap = null;
 			}

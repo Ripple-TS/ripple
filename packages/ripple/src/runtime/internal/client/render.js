@@ -1,13 +1,14 @@
 /** @import { Block } from '#client' */
 
-import { destroy_block, ref } from './blocks.js';
+import { branch, destroy_block, ref } from './blocks.js';
 import { DESTROYED, REF_PROP } from './constants.js';
+import { isRefProp as is_ref_prop } from '@tsrx/core/runtime/ref';
+import { is_ripple_object } from './utils.js';
 import {
 	get_descriptors,
 	get_own_property_symbols,
 	get_prototype_of,
-	is_ripple_object,
-} from './utils.js';
+} from '@tsrx/core/runtime/language-helpers';
 import { event } from './events.js';
 import {
 	getAttributeEventName as get_attribute_event_name,
@@ -143,11 +144,14 @@ function set_attribute_helper(element, key, value, remove_listeners, prev) {
 		element.classList.add(value);
 	} else if (typeof key === 'string' && is_event_attribute(key)) {
 		// Handle event handlers in spread props
-		const event_name = get_attribute_event_name(key, value);
 		if (remove_listeners[key]) {
 			remove_listeners[key]();
+			remove_listeners[key] = undefined;
 		}
-		remove_listeners[key] = event(event_name, element, value);
+		if (value != null) {
+			const event_name = get_attribute_event_name(key, value);
+			remove_listeners[key] = event(event_name, element, value);
+		}
 	} else {
 		set_attribute(element, key, value);
 	}
@@ -254,56 +258,90 @@ export function set_selected(element, selected) {
 export function apply_element_spread(element, fn) {
 	/** @type {Record<string | symbol, any>} */
 	var prev = {};
-	/** @type {Record<symbol, Block | undefined>} */
+	/** @type {Record<string | symbol, Block | undefined>} */
 	var effects = {};
 	/** @type {Record<string | symbol, (() => void) | undefined>} */
 	var remove_listeners = {};
 
 	/** @type {Record<symbol, any>} */
 	var prev_symbols = {};
+	/** @type {Record<string, any>} */
+	var prev_ref_props = {};
 
 	return () => {
 		var next = fn();
-
-		for (const symbol of get_own_property_symbols(effects)) {
-			if (!next[symbol] && effects[symbol]) {
-				destroy_block(effects[symbol]);
-				effects[symbol] = undefined;
-			}
-		}
-
-		/** @type {Record<symbol, any>} */
-		var current_symbols = {};
+		var current_symbols = /** @type {Record<symbol, any>} */ ({});
 
 		for (const symbol of get_own_property_symbols(next)) {
-			var ref_fn = next[symbol];
+			if (symbol.description !== REF_PROP) {
+				continue;
+			}
+			const ref_fn = next[symbol];
 			current_symbols[symbol] = ref_fn;
 
 			if (
-				symbol.description === REF_PROP &&
-				(!(symbol in prev_symbols) ||
-					ref_fn !== prev_symbols[symbol] ||
-					(effects[symbol] && (effects[symbol].f & DESTROYED) !== 0))
+				!(symbol in prev_symbols) ||
+				ref_fn !== prev_symbols[symbol] ||
+				(effects[symbol] && (effects[symbol].f & DESTROYED) !== 0)
 			) {
 				if (effects[symbol] && (effects[symbol].f & DESTROYED) === 0) {
 					destroy_block(effects[symbol]);
 				}
-				effects[symbol] = ref(element, () => ref_fn);
+				effects[symbol] = create_spread_ref_effect(element, ref_fn);
+			}
+		}
+
+		for (const symbol of get_own_property_symbols(prev_symbols)) {
+			if (!(symbol in current_symbols) && effects[symbol]) {
+				destroy_block(/** @type {Block} */ (effects[symbol]));
+				effects[symbol] = undefined;
 			}
 		}
 
 		prev_symbols = current_symbols;
 
+		/** @type {Record<string, any>} */
+		var current_ref_props = {};
+
+		for (const key in next) {
+			const ref_fn = next[key];
+			if (!is_ref_prop(ref_fn)) {
+				continue;
+			}
+
+			current_ref_props[key] = ref_fn;
+
+			if (
+				!(key in prev_ref_props) ||
+				ref_fn !== prev_ref_props[key] ||
+				(effects[key] && (effects[key].f & DESTROYED) !== 0)
+			) {
+				if (effects[key] && (effects[key].f & DESTROYED) === 0) {
+					destroy_block(effects[key]);
+				}
+				effects[key] = create_spread_ref_effect(element, ref_fn);
+			}
+		}
+
+		for (const key in prev_ref_props) {
+			if (!(key in current_ref_props) && effects[key]) {
+				destroy_block(/** @type {Block} */ (effects[key]));
+				effects[key] = undefined;
+			}
+		}
+
+		prev_ref_props = current_ref_props;
+
 		for (let key in remove_listeners) {
 			// Remove event listeners that are no longer present
-			if (!(key in next) && remove_listeners[key]) {
+			if ((!(key in next) || is_ref_prop(next[key])) && remove_listeners[key]) {
 				remove_listeners[key]();
 				remove_listeners[key] = undefined;
 			}
 		}
 
 		for (const key in prev) {
-			if (!(key in next)) {
+			if (!(key in next) || is_ref_prop(next[key])) {
 				if (key === '#class') {
 					continue;
 				}
@@ -317,6 +355,9 @@ export function apply_element_spread(element, fn) {
 			if (key === 'children') continue;
 
 			let value = next[key];
+			if (is_ref_prop(value)) {
+				continue;
+			}
 			if (is_ripple_object(value)) {
 				value = get(value);
 			}
@@ -330,4 +371,19 @@ export function apply_element_spread(element, fn) {
 		}
 		prev = current;
 	};
+}
+
+/**
+ * Keep spread refs in a branch block so ordinary spread updates do not destroy
+ * and recreate the ref block before `apply_element_spread` can compare the
+ * previous and current ref values.
+ *
+ * @param {Element} element
+ * @param {any} ref_fn
+ * @returns {Block}
+ */
+function create_spread_ref_effect(element, ref_fn) {
+	return branch(() => {
+		ref(element, () => ref_fn);
+	});
 }

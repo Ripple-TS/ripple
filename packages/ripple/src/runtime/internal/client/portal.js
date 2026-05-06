@@ -5,13 +5,7 @@ import { UNINITIALIZED } from './constants.js';
 import { handle_root_events } from './events.js';
 import { create_text } from './operations.js';
 import { active_block } from './runtime.js';
-import {
-	hydrating,
-	hydrate_next,
-	hydrate_node,
-	set_hydrating,
-	set_hydrate_node,
-} from './hydration.js';
+import { hydrating, hydrate_node, set_hydrating, set_hydrate_node } from './hydration.js';
 import { is_tsrx_element } from '../../element.js';
 
 /**

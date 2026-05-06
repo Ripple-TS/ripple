@@ -721,6 +721,92 @@ component C() {
 		});
 	});
 
+	describe(`[${name}] named ref prop setters do not duplicate mappings`, () => {
+		it('maps mutable ref targets only to the getter side', () => {
+			const source = `component Child(props: { inputRef?: any; otherRef?: any }) {
+	<input />
+}
+
+component App() {
+	let input: HTMLInputElement | undefined;
+	const state = { input: undefined as HTMLInputElement | undefined };
+	<input type="text" inputRef={ref input} />
+	<Child inputRef={ref input} otherRef={ref state.input} />
+}`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+
+			const host_element_offset = source.indexOf('<input type="text"');
+			const host_ref_name_offset = source.indexOf('inputRef', host_element_offset);
+			const host_ref_container_offset = source.indexOf('{ref input}', host_element_offset);
+			const generated_host_element_offset = result.code.indexOf('<input type="text"');
+			const generated_host_ref_name_offset = result.code.indexOf(
+				'inputRef',
+				generated_host_element_offset,
+			);
+			const generated_host_ref_offset = result.code.indexOf(
+				'create_ref_prop',
+				generated_host_element_offset,
+			);
+			const ref_container_offset = source.indexOf('{ref input}');
+			const ref_input_offset = source.indexOf('ref input') + 'ref '.length;
+			const ref_state_container_offset = source.indexOf('{ref state.input}');
+			const ref_state_offset = source.indexOf('ref state.input') + 'ref '.length;
+			const ref_state_input_offset = ref_state_offset + 'state.'.length;
+			const generated_input_getter = result.code.indexOf(
+				'input',
+				result.code.indexOf('() => input'),
+			);
+			const generated_state_getter = result.code.indexOf(
+				'state.input',
+				result.code.indexOf('otherRef'),
+			);
+
+			const find_mappings = (source_offset, length) =>
+				result.mappings.filter(
+					(mapping) => mapping.sourceOffsets[0] === source_offset && mapping.lengths[0] === length,
+				);
+
+			const input_mappings = find_mappings(ref_input_offset, 'input'.length);
+			const state_mappings = find_mappings(ref_state_offset, 'state'.length);
+			const state_input_mappings = find_mappings(ref_state_input_offset, 'input'.length);
+			const host_ref_name_mappings = find_mappings(host_ref_name_offset, 'inputRef'.length);
+			const container_mappings = result.mappings.filter(
+				(mapping) =>
+					mapping.sourceOffsets[0] === ref_container_offset ||
+					mapping.sourceOffsets[0] === ref_state_container_offset,
+			);
+			const host_wrapper_mappings = result.mappings.filter((mapping) => {
+				const generated_start = mapping.generatedOffsets[0];
+				const generated_end = generated_start + mapping.generatedLengths[0];
+				return (
+					(mapping.sourceOffsets[0] === host_element_offset ||
+						mapping.sourceOffsets[0] === host_ref_container_offset) &&
+					generated_start <= generated_host_ref_offset &&
+					generated_host_ref_offset < generated_end
+				);
+			});
+
+			expect(result.errors).toEqual([]);
+			expect(result.code).toContain('() => input, (v) => input = v');
+			expect(result.code).toContain('() => state.input, (v) => state.input = v');
+			expect(result.code).toContain('inputRef={');
+			expect(container_mappings).toEqual([]);
+			expect(host_wrapper_mappings).toEqual([]);
+			expect(host_ref_name_mappings).toHaveLength(1);
+			expect(host_ref_name_mappings[0].generatedOffsets[0]).toBe(generated_host_ref_name_offset);
+			expect(host_ref_name_mappings[0].data.verification).toBe(false);
+			expect(host_ref_name_mappings[0].data.semantic).toBe(true);
+			expect(input_mappings).toHaveLength(1);
+			expect(state_mappings).toHaveLength(1);
+			expect(state_input_mappings).toHaveLength(1);
+			expect(input_mappings[0].generatedOffsets[0]).toBe(generated_input_getter);
+			expect(state_mappings[0].generatedOffsets[0]).toBe(generated_state_getter);
+			expect(state_input_mappings[0].generatedOffsets[0]).toBe(
+				generated_state_getter + 'state.'.length,
+			);
+		});
+	});
+
 	describe(`[${name}] generic type arguments on JSX component tags`, () => {
 		it('maps the type argument identifier back to source', () => {
 			const source = `type User = { name: string };

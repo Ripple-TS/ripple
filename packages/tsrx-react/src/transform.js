@@ -17,7 +17,8 @@ const react_platform = {
 		fragment: 'react',
 		suspense: 'react',
 		errorBoundary: '@tsrx/react/error-boundary',
-		mergeRefs: '@tsrx/react/merge-refs',
+		mergeRefs: '@tsrx/react/ref',
+		refProp: '@tsrx/react/ref',
 	},
 	jsx: {
 		rewriteClassAttr: true,

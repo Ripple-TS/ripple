@@ -35,7 +35,8 @@ const preact_platform = {
 		fragment: 'preact',
 		suspense: DEFAULT_SUSPENSE_SOURCE,
 		errorBoundary: '@tsrx/preact/error-boundary',
-		mergeRefs: '@tsrx/preact/merge-refs',
+		mergeRefs: '@tsrx/preact/ref',
+		refProp: '@tsrx/preact/ref',
 	},
 	jsx: {
 		rewriteClassAttr: false,

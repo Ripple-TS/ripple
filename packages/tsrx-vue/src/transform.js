@@ -6,11 +6,15 @@ import {
 	builders,
 	clone_expression_node,
 	clone_identifier,
+	CREATE_REF_PROP_INTERNAL_NAME,
 	create_generated_identifier,
 	componentToFunctionDeclaration,
 	createJsxTransform,
 	error,
+	MERGE_REFS_INTERNAL_NAME,
+	NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
 	setLocation,
+	toJsxAttribute,
 } from '@tsrx/core';
 
 /**
@@ -27,12 +31,14 @@ const vue_platform = {
 	imports: {
 		suspense: 'vue',
 		errorBoundary: '@tsrx/vue/error-boundary',
-		mergeRefs: '@tsrx/vue/merge-refs',
+		mergeRefs: '@tsrx/vue/ref',
+		refProp: '@tsrx/vue/ref',
 	},
 	jsx: {
 		rewriteClassAttr: false,
 		acceptedTsxKinds: ['vue'],
 		multiRefStrategy: 'merge-refs',
+		hostSpreadRefStrategy: 'explicit-ref-attr',
 	},
 	validation: {
 		requireUseServerForAwait: true,
@@ -57,6 +63,13 @@ const vue_platform = {
 		},
 		preprocessElementAttributes(attrs, ctx, element) {
 			return preprocess_ref_attributes(attrs, element, ctx);
+		},
+		transformElementAttributes(attrs, ctx, element) {
+			const result = attrs.map((attr) => toJsxAttribute(attr, ctx));
+			if (!ctx.typeOnly || is_component_like_element(element)) {
+				return result;
+			}
+			return result.map(mark_type_only_host_ref_attribute);
 		},
 		renderForOf: (node, loop_params, body_statements, ctx) =>
 			render_for_of_as_vapor_for(node, loop_params, body_statements, ctx),
@@ -92,6 +105,34 @@ const vue_platform = {
 };
 
 export const transform = createJsxTransform(vue_platform);
+
+/**
+ * Vue's `VNodeRef` type is wider than TSRX host refs because it also supports
+ * component instances and null teardown values. In editor-only TSX, keep the ref
+ * expression unchanged but stop TypeScript verification from reporting that
+ * Vue-specific assignability diagnostic on the generated `ref` prop token.
+ *
+ * @param {any} attr
+ * @returns {any}
+ */
+function mark_type_only_host_ref_attribute(attr) {
+	if (
+		!attr ||
+		attr.type !== 'JSXAttribute' ||
+		attr.name?.type !== 'JSXIdentifier' ||
+		attr.name.name !== 'ref'
+	) {
+		return attr;
+	}
+
+	return {
+		...attr,
+		name: {
+			...attr.name,
+			metadata: { ...(attr.name.metadata || {}), disable_verification: true },
+		},
+	};
+}
 
 /**
  * @param {any} component
@@ -817,6 +858,7 @@ function preprocess_ref_attributes(attrs, element, transform_context) {
 	if (!is_component_like_element(element)) {
 		return attrs;
 	}
+	const result = [];
 	for (const attr of attrs) {
 		if (attr?.type === 'RefAttribute') {
 			error(
@@ -827,8 +869,72 @@ function preprocess_ref_attributes(attrs, element, transform_context) {
 				transform_context?.comments,
 			);
 		}
+		if (!transform_context.typeOnly && is_vue_named_ref_attribute(attr)) {
+			result.push(create_vue_named_ref_spread(attr));
+			continue;
+		}
+		result.push(attr);
 	}
-	return attrs;
+	return result;
+}
+
+/**
+ * Vue's JSX transform treats prop names ending in `ref` as template-ref
+ * sugar on components. Keep named TSRX refs as ordinary runtime props by
+ * hiding the static prop name behind an object spread before Vue sees the JSX.
+ * Type-only virtual TSX skips that spread so Volar can offer completions on
+ * the real component prop name.
+ *
+ * @param {any} attr
+ * @returns {boolean}
+ */
+function is_vue_named_ref_attribute(attr) {
+	const attr_name = get_vue_attribute_name(attr);
+	const value = get_vue_attribute_expression(attr);
+	return !!(
+		attr_name &&
+		attr_name !== 'ref' &&
+		(attr?.type === 'Attribute' || attr?.type === 'JSXAttribute') &&
+		(value?.type === 'RefExpression' ||
+			(value?.type === 'CallExpression' &&
+				value.callee?.type === 'Identifier' &&
+				value.callee.name === CREATE_REF_PROP_INTERNAL_NAME))
+	);
+}
+
+/**
+ * @param {any} attr
+ * @returns {any}
+ */
+function create_vue_named_ref_spread(attr) {
+	const attr_name = get_vue_attribute_name(attr);
+	const value = get_vue_attribute_expression(attr);
+	if (attr_name === null) return attr;
+	const prop = builders.prop('init', builders.key(attr_name), value, false, false);
+	return builders.jsx_spread_attribute(builders.object([prop], attr), attr);
+}
+
+/**
+ * @param {any} attr
+ * @returns {string | null}
+ */
+function get_vue_attribute_name(attr) {
+	if (attr?.type === 'Attribute') {
+		return typeof attr.name === 'string' ? attr.name : (attr.name?.name ?? null);
+	}
+	if (attr?.type === 'JSXAttribute') {
+		return attr.name?.type === 'JSXIdentifier' ? attr.name.name : null;
+	}
+	return null;
+}
+
+/**
+ * @param {any} attr
+ * @returns {any}
+ */
+function get_vue_attribute_expression(attr) {
+	const value = attr?.value;
+	return value?.type === 'JSXExpressionContainer' ? value.expression : value;
 }
 
 /**
@@ -1008,7 +1114,20 @@ function inject_vue_imports(program, transform_context) {
 	}
 
 	if (transform_context.needs_merge_refs) {
-		ensure_named_import(program, '@tsrx/vue/merge-refs', 'mergeRefs', '__mergeRefs');
+		ensure_named_import(program, '@tsrx/vue/ref', 'mergeRefs', MERGE_REFS_INTERNAL_NAME);
+	}
+
+	if (transform_context.needs_ref_prop) {
+		ensure_named_import(program, '@tsrx/vue/ref', 'create_ref_prop', CREATE_REF_PROP_INTERNAL_NAME);
+	}
+
+	if (transform_context.needs_normalize_spread_props) {
+		ensure_named_import(
+			program,
+			'@tsrx/vue/ref',
+			'normalize_spread_props',
+			NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
+		);
 	}
 }
 

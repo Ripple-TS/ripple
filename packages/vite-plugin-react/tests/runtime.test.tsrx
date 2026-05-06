@@ -406,6 +406,171 @@ component SpreadRefApp() {
 	/>
 }
 
+let tsx_spread_ref_captured: HTMLInputElement | null = null;
+let tsx_explicit_ref_captured: HTMLInputElement | null = null;
+
+class TsxSpreadRefRenderer {
+	render() {
+		const props = {
+			id: 'tsx-spread-ref-input',
+			ref: (node: HTMLInputElement | null) => {
+				tsx_spread_ref_captured = node;
+			},
+		};
+
+		return <tsx>
+			<input {...props} ref={(node: HTMLInputElement | null) => {
+				tsx_explicit_ref_captured = node;
+			}} />
+		</tsx>;
+	}
+}
+
+component TsxSpreadRefApp() {
+	const renderer = new TsxSpreadRefRenderer();
+
+	<div class="tsx-spread-ref">{renderer.render()}</div>
+}
+
+// ── Named ref props merged with native and anonymous refs ──
+
+let named_direct_node: HTMLInputElement | null = null;
+let named_direct_native_node: HTMLInputElement | null = null;
+let named_direct_anonymous_node: HTMLInputElement | null = null;
+
+component NamedDirectRefApp() {
+	function nativeRef(node: HTMLInputElement | null) {
+		named_direct_native_node = node;
+	}
+
+	function anonymousRef(node: HTMLInputElement | null) {
+		named_direct_anonymous_node = node;
+	}
+
+	<input
+		ref={nativeRef}
+		{ref anonymousRef}
+		input_ref={ref (node: HTMLInputElement | null) => {
+			named_direct_node = node;
+		}}
+		class="named-direct-ref"
+		type="text"
+	/>
+}
+
+let named_forward_node: HTMLInputElement | null = null;
+
+component NamedForwardInput(props: { type: string; input_ref?: any }) {
+	<input type={props.type} ref={props.input_ref} class="named-forward-ref" />
+}
+
+component NamedForwardRefApp() {
+	<NamedForwardInput
+		type="text"
+		input_ref={ref (node: HTMLInputElement | null) => {
+			named_forward_node = node;
+		}}
+	/>
+}
+
+let named_spread_before_node: HTMLInputElement | null = null;
+let named_spread_before_native_node: HTMLInputElement | null = null;
+
+function namedSpreadBeforeNativeRef(node: HTMLInputElement | null) {
+	named_spread_before_native_node = node;
+}
+
+component NamedSpreadBeforeRefInput(props: { type: string; input_ref?: any }) {
+	<input {...props} ref={namedSpreadBeforeNativeRef} class="named-spread-before-ref" />
+}
+
+component NamedSpreadBeforeRefApp() {
+	<NamedSpreadBeforeRefInput
+		type="text"
+		input_ref={ref (node: HTMLInputElement | null) => {
+			named_spread_before_node = node;
+		}}
+	/>
+}
+
+let named_spread_after_node: HTMLInputElement | null = null;
+let named_spread_after_native_node: HTMLInputElement | null = null;
+
+function namedSpreadAfterNativeRef(node: HTMLInputElement | null) {
+	named_spread_after_native_node = node;
+}
+
+component NamedSpreadAfterRefInput(props: { type: string; input_ref?: any }) {
+	<input ref={namedSpreadAfterNativeRef} {...props} class="named-spread-after-ref" />
+}
+
+component NamedSpreadAfterRefApp() {
+	<NamedSpreadAfterRefInput
+		type="text"
+		input_ref={ref (node: HTMLInputElement | null) => {
+			named_spread_after_node = node;
+		}}
+	/>
+}
+
+let multi_spread_first_node: HTMLInputElement | null = null;
+let multi_spread_second_node: HTMLInputElement | null = null;
+let multi_spread_native_node: HTMLInputElement | null = null;
+let multi_spread_native_calls = 0;
+
+function multiSpreadExplicitNativeRef(node: HTMLInputElement | null) {
+	if (node) {
+		multi_spread_native_calls += 1;
+	}
+	multi_spread_native_node = node;
+}
+
+component MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) {
+	const first = { type: props.type, first_ref: props.first_ref };
+	const second = { second_ref: props.second_ref };
+
+	<input
+		{...first}
+		{...second}
+		ref={multiSpreadExplicitNativeRef}
+		class="multi-spread-explicit-ref"
+	/>
+}
+
+component MultiSpreadExplicitRefApp() {
+	<MultiSpreadExplicitRefInput
+		type="text"
+		first_ref={ref (node: HTMLInputElement | null) => {
+			multi_spread_first_node = node;
+		}}
+		second_ref={ref (node: HTMLInputElement | null) => {
+			multi_spread_second_node = node;
+		}}
+	/>
+}
+
+const named_ref_object: { current: HTMLInputElement | null } = { current: null };
+
+component NamedRefObjectApp() {
+	<NamedForwardInput type="text" input_ref={ref named_ref_object} />
+}
+
+let named_mutable_unmount_slot: HTMLInputElement | null | undefined;
+
+component NamedMutableUnmountApp() {
+	const [show, setShow] = useState(true);
+
+	if (show) {
+		<input
+			type="text"
+			class="named-mutable-unmount"
+			defaultValue="keep"
+			input_ref={ref named_mutable_unmount_slot}
+		/>
+	}
+	<button class="named-mutable-unmount-hide" onClick={() => setShow(false)}>{'hide'}</button>
+}
+
 // ── Try/catch: synchronous error boundary ──
 
 component ThrowingChild() {
@@ -970,6 +1135,87 @@ describe('tsrx-react runtime', () => {
 		await render(SpreadRefApp);
 		expect(spread_ref_captured).toBeInstanceOf(HTMLInputElement);
 		expect(spread_ref_captured!.id).toBe('spread-input');
+	});
+
+	it('merges spread and explicit refs inside tsx expression blocks', async () => {
+		tsx_spread_ref_captured = null;
+		tsx_explicit_ref_captured = null;
+		await render(TsxSpreadRefApp);
+		expect(tsx_spread_ref_captured).toBeInstanceOf(HTMLInputElement);
+		expect(tsx_spread_ref_captured).toBe(tsx_explicit_ref_captured);
+		expect(tsx_spread_ref_captured!.id).toBe('tsx-spread-ref-input');
+	});
+
+	it('merges direct named ref props with native ref and anonymous {ref}', async () => {
+		named_direct_node = null;
+		named_direct_native_node = null;
+		named_direct_anonymous_node = null;
+		await render(NamedDirectRefApp);
+		expect(named_direct_node).toBeInstanceOf(HTMLInputElement);
+		expect(named_direct_node).toBe(named_direct_native_node);
+		expect(named_direct_node).toBe(named_direct_anonymous_node);
+		expect(container.querySelector('.named-direct-ref')!.hasAttribute('input_ref')).toBe(false);
+	});
+
+	it('supports explicit forwarding of named ref props into host ref', async () => {
+		named_forward_node = null;
+		await render(NamedForwardRefApp);
+		expect(named_forward_node).toBeInstanceOf(HTMLInputElement);
+		expect(named_forward_node!.className).toBe('named-forward-ref');
+	});
+
+	it('merges named spread refs with native ref after the spread', async () => {
+		named_spread_before_node = null;
+		named_spread_before_native_node = null;
+		await render(NamedSpreadBeforeRefApp);
+		expect(named_spread_before_node).toBeInstanceOf(HTMLInputElement);
+		expect(named_spread_before_node).toBe(named_spread_before_native_node);
+	});
+
+	it('merges named spread refs with native ref before the spread', async () => {
+		named_spread_after_node = null;
+		named_spread_after_native_node = null;
+		await render(NamedSpreadAfterRefApp);
+		expect(named_spread_after_node).toBeInstanceOf(HTMLInputElement);
+		expect(named_spread_after_node).toBe(named_spread_after_native_node);
+	});
+
+	it('merges named refs from multiple host spreads with one explicit ref', async () => {
+		multi_spread_first_node = null;
+		multi_spread_second_node = null;
+		multi_spread_native_node = null;
+		multi_spread_native_calls = 0;
+		await render(MultiSpreadExplicitRefApp);
+		expect(multi_spread_first_node).toBeInstanceOf(HTMLInputElement);
+		expect(multi_spread_first_node).toBe(multi_spread_second_node);
+		expect(multi_spread_first_node).toBe(multi_spread_native_node);
+		expect(multi_spread_native_calls).toBe(1);
+		expect(container.querySelector('.multi-spread-explicit-ref')!.hasAttribute('first_ref')).toBe(
+			false,
+		);
+		expect(container.querySelector('.multi-spread-explicit-ref')!.hasAttribute('second_ref')).toBe(
+			false,
+		);
+	});
+
+	it('assigns named ref props backed by React-style ref objects', async () => {
+		named_ref_object.current = null;
+		await render(NamedRefObjectApp);
+		expect(named_ref_object.current).toBeInstanceOf(HTMLInputElement);
+		expect(named_ref_object.current!.className).toBe('named-forward-ref');
+	});
+
+	it('clears named mutable ref props on unmount without mutating input.value', async () => {
+		named_mutable_unmount_slot = undefined;
+		await render(NamedMutableUnmountApp);
+		expect(named_mutable_unmount_slot).toBeInstanceOf(HTMLInputElement);
+		const previous_input = named_mutable_unmount_slot!;
+		expect(previous_input.value).toBe('keep');
+
+		await click('.named-mutable-unmount-hide');
+
+		expect(named_mutable_unmount_slot).toBeNull();
+		expect(previous_input.value).toBe('keep');
 	});
 
 	// ── Reactive control flow: if ──

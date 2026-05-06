@@ -1,6 +1,6 @@
 import { TEXT_NODE } from '../../../constants.js';
 import { hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
-import { get_descriptor } from './utils.js';
+import { get_descriptor } from '@tsrx/core/runtime/language-helpers';
 
 /** @type {(() => Node | null)} */
 var first_child_getter;

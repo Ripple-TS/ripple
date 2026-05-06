@@ -6,6 +6,7 @@ import { createVolarMappingsResult, dedupeMappings, parseModule } from '@tsrx/co
 import { DEFAULT_SUSPENSE_SOURCE, transform } from './transform.js';
 
 export { DEFAULT_SUSPENSE_SOURCE };
+export { isRefProp } from './ref.js';
 
 /**
  * Parse tsrx-preact source code to an ESTree AST.

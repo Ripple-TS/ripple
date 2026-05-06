@@ -27,10 +27,11 @@
     "./types/acorn": {
       "types": "./types/acorn.d.ts"
     },
-    "./runtime/merge-refs": {
-      "types": "./types/runtime/merge-refs.d.ts",
-      "default": "./src/runtime/merge-refs.js"
+    "./runtime/ref": {
+      "types": "./types/runtime/ref.d.ts",
+      "default": "./src/runtime/ref.js"
     },
+    "./runtime/*": "./src/runtime/*.js",
     "./test-harness/source-mappings": "./tests/shared/source-mappings.js",
     "./test-harness/compile": "./tests/shared/compile.js"
   },
