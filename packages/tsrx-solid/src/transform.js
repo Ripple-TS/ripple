@@ -52,6 +52,7 @@ import { builders as b } from '@tsrx/core';
  *   needs_match: boolean,
  *   needs_errored: boolean,
  *   needs_loading: boolean,
+ *   needs_normalize_spread_props: boolean,
  * }} TransformContext
  */
 
@@ -107,6 +108,7 @@ const solid_platform = {
 			needs_match: false,
 			needs_errored: false,
 			needs_loading: false,
+			needs_normalize_spread_props: false,
 		}),
 		validateComponentAwait: (await_expression, _component, ctx, _requires, source) => {
 			const await_start = get_await_keyword_start(await_expression, source);
@@ -1359,36 +1361,43 @@ const TEMPLATE_FRAGMENT_ERROR =
  * @param {TransformContext} transform_context
  */
 function inject_solid_imports(program, transform_context) {
-	if (transform_context.needs_ref_prop) {
+	if (transform_context.needs_ref_prop || transform_context.needs_normalize_spread_props) {
+		const specifiers = [];
+
+		if (transform_context.needs_ref_prop) {
+			specifiers.push({
+				type: 'ImportSpecifier',
+				imported: { type: 'Identifier', name: 'create_ref_prop', metadata: { path: [] } },
+				local: {
+					type: 'Identifier',
+					name: CREATE_REF_PROP_INTERNAL_NAME,
+					metadata: { path: [] },
+				},
+				metadata: { path: [] },
+			});
+		}
+
+		if (transform_context.needs_normalize_spread_props) {
+			specifiers.push({
+				type: 'ImportSpecifier',
+				imported: {
+					type: 'Identifier',
+					name: 'normalize_spread_props',
+					metadata: { path: [] },
+				},
+				local: {
+					type: 'Identifier',
+					name: NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
+					metadata: { path: [] },
+				},
+				metadata: { path: [] },
+			});
+		}
+
 		program.body.unshift(
 			/** @type {any} */ ({
 				type: 'ImportDeclaration',
-				specifiers: [
-					{
-						type: 'ImportSpecifier',
-						imported: { type: 'Identifier', name: 'create_ref_prop', metadata: { path: [] } },
-						local: {
-							type: 'Identifier',
-							name: CREATE_REF_PROP_INTERNAL_NAME,
-							metadata: { path: [] },
-						},
-						metadata: { path: [] },
-					},
-					{
-						type: 'ImportSpecifier',
-						imported: {
-							type: 'Identifier',
-							name: 'normalize_spread_props',
-							metadata: { path: [] },
-						},
-						local: {
-							type: 'Identifier',
-							name: NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
-							metadata: { path: [] },
-						},
-						metadata: { path: [] },
-					},
-				],
+				specifiers,
 				source: {
 					type: 'Literal',
 					value: '@tsrx/solid/ref',
@@ -1738,7 +1747,7 @@ function normalize_solid_host_ref_spreads(attrs, is_host, transform_context) {
 			return [attr];
 		}
 
-		transform_context.needs_ref_prop = true;
+		transform_context.needs_normalize_spread_props = true;
 		const normalized = b.call(NORMALIZE_SPREAD_PROPS_INTERNAL_NAME, attr.argument);
 
 		if (needs_synthetic_spread_ref) {
