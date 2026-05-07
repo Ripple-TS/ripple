@@ -111,12 +111,28 @@ const flattenPackageFiles = (files: any[], prefix = ''): string[] =>
 
 const resolveExportTarget = (entry: any): string | undefined => {
 	if (typeof entry === 'string') return entry;
+	if (Array.isArray(entry)) {
+		return entry.map(resolveExportTarget).find(Boolean);
+	}
 	if (!entry || typeof entry !== 'object') return undefined;
 	return (
 		resolveExportTarget(entry.browser) ??
 		resolveExportTarget(entry.import) ??
 		resolveExportTarget(entry.default)
 	);
+};
+
+const getPackageExportEntries = (exports: any) => {
+	if (!exports) return [];
+	if (typeof exports !== 'object' || Array.isArray(exports)) {
+		return [['.', exports]];
+	}
+
+	const entries = Object.entries(exports);
+	if (entries.some(([exportPath]) => exportPath.startsWith('.'))) {
+		return entries.filter(([exportPath]) => exportPath.startsWith('.'));
+	}
+	return [['.', exports]];
 };
 
 const addExportToImportMap = async (
@@ -150,7 +166,7 @@ const getPackageExportImports = async (name: string, version: string) => {
 	const packageJson = await getPackageJson(name, version);
 	const imports: Record<string, string> = {};
 	await Promise.all(
-		Object.entries(packageJson.exports ?? {}).map(([exportPath, entry]) =>
+		getPackageExportEntries(packageJson.exports).map(([exportPath, entry]) =>
 			addExportToImportMap(imports, name, version, exportPath, entry),
 		),
 	);
@@ -185,6 +201,7 @@ const getRuntimeDependencyImports = async (dependencies: Record<string, string> 
 	);
 
 	const imports: Record<string, string> = {};
+	const directDependencyNames = new Set(dependencyInfos.map(({ name }) => name));
 	for (const { name, version, exportImports } of dependencyInfos) {
 		Object.assign(
 			imports,
@@ -196,7 +213,10 @@ const getRuntimeDependencyImports = async (dependencies: Record<string, string> 
 
 	for (const { packageJson, exportImports } of dependencyInfos) {
 		if (Object.keys(exportImports).length > 0) {
-			Object.assign(imports, getPackageDependencyImports(packageJson.dependencies));
+			Object.assign(
+				imports,
+				getPackageDependencyImports(packageJson.dependencies, directDependencyNames),
+			);
 		}
 	}
 
