@@ -1,5 +1,18 @@
 # @ripple-ts/adapter-vercel
 
+## 1.0.0
+
+### Patch Changes
+
+- [#1074](https://github.com/Ripple-TS/ripple/pull/1074)
+  [`246079b`](https://github.com/Ripple-TS/ripple/commit/246079be73882a8e3192672320005eaa132ade28)
+  Thanks [@RazinShafayet2007](https://github.com/RazinShafayet2007)! - Handle Node
+  26 in Vercel adapter runtime detection.
+
+- Updated dependencies []:
+  - @ripple-ts/adapter@1.0.0
+  - @ripple-ts/adapter-node@1.0.0
+
 ## 0.3.49
 
 ### Patch Changes
