@@ -22,6 +22,7 @@ playground/vue/src
 
 website/.vitepress/dist/
 website/.vitepress/cache/
+website/.vitepress/.temp/
 
 # Optional eslint cache
 .eslintcache
