@@ -11,7 +11,7 @@ export const documentation_sections = [
 		use_cases:
 			'always, introduction, explain tsrx, compare jsx, language model context, runtime targets',
 		content:
-			'# TSRX Overview\n\nTSRX is a TypeScript language extension for authoring declarative UI in .tsrx files. It adds a small set of syntax forms on top of TypeScript, while letting each target compiler define the runtime semantics.\n\nCore ideas:\n- component declarations use the component keyword.\n- JSX-like elements can be written as statements inside component bodies.\n- control-flow statements can contain template output.\n- expression-position JSX must use <>...</> or <tsx>...</tsx>.\n- lazy destructuring uses &[] and &{} for by-reference bindings.\n\nThe core language docs should stay target-neutral. After identifying the active runtime target, use target-specific docs, prompts, or skills for runtime imports, bundler setup, and semantics that are not defined by TSRX itself.\n\nSource: website-tsrx/src/pages/specification.tsrx',
+			'# TSRX Overview\n\nTSRX is a TypeScript language extension for authoring declarative UI in .tsrx files. It adds a small set of syntax forms on top of TypeScript, while letting each target compiler define the runtime semantics.\n\nCore ideas:\n- component declarations use the component keyword.\n- JSX-like elements can be written as statements inside component bodies.\n- control-flow statements can contain template output.\n- expression-position native TSRX must use <tsrx>...</tsrx>; JSX-style values use <>...</> or <tsx>...</tsx>.\n- lazy destructuring uses &[] and &{} for by-reference bindings.\n\nThe core language docs should stay target-neutral. After identifying the active runtime target, use target-specific docs, prompts, or skills for runtime imports, bundler setup, and semantics that are not defined by TSRX itself.\n\nSource: website-tsrx/src/pages/specification.tsrx',
 	},
 	{
 		slug: 'components',
@@ -31,11 +31,11 @@ export const documentation_sections = [
 	},
 	{
 		slug: 'tsx-expression-values',
-		title: 'TSX Expression Values',
+		title: 'Expression Values',
 		use_cases:
-			'fragments, tsx tag, pass jsx as prop, return jsx from helper, expression position jsx',
+			'fragments, tsrx tag, tsx tag, pass template as prop, return template from helper, render props, expression position jsx',
 		content:
-			'# TSX Expression Values\n\nRegular template elements in component bodies are statements and have no value. When JSX must be used in expression position, wrap it in `<>...</>` or `<tsx>...</tsx>`.\n\n```tsx\ncomponent App() {\n  const title = <><span>"Settings"</span></>;\n\n  <Card title={title} />\n}\n```\n\nUse this for assigning JSX to variables, returning JSX from helper functions, or passing JSX as props. Do not write `const el = <div />` directly in TSRX component code.\n\nSpecification grammar:\n\n```text\nTsxElement :\n  <tsx> TsxChildrenopt </tsx>\n\nTsxCompatElement :\n  <tsx: IdentifierName> TsxChildrenopt </tsx: IdentifierName>\n\nTsxFragmentShorthand :\n  <> TsxChildrenopt </>\n```\n\nSource: website-tsrx/src/pages/specification.tsrx#tsx-islands',
+			'# Expression Values\n\nRegular template elements in component bodies are statements and have no value. When native TSRX must be used in expression position, wrap it in `<tsrx>...</tsrx>`. When JSX-style children must be used in expression position, wrap them in `<>...</>` or `<tsx>...</tsx>`.\n\n```tsx\ncomponent App() {\n  const title = <tsrx><span>"Settings"</span></tsrx>;\n\n  <Card title={title} />\n}\n```\n\nNative TSRX expression fragments can contain setup statements and template control flow:\n\n```tsx\nfunction badge(label: string) {\n  return <tsrx>\n    const normalized = label.trim();\n    <span class="badge">{normalized}</span>\n  </tsrx>;\n}\n```\n\nUse these wrappers for assigning UI to variables, returning UI from helper functions, or passing UI as props. Do not write `const el = <div />` directly in TSRX component code.\n\nSpecification grammar:\n\n```text\nTsrxExpression :\n  <tsrx> TemplateChildrenopt </tsrx>\n\nTsxElement :\n  <tsx> TsxChildrenopt </tsx>\n\nTsxCompatElement :\n  <tsx: IdentifierName> TsxChildrenopt </tsx: IdentifierName>\n\nTsxFragmentShorthand :\n  <> TsxChildrenopt </>\n```\n\nSource: website-tsrx/src/pages/specification.tsrx#tsx-islands',
 	},
 	{
 		slug: 'control-flow',
