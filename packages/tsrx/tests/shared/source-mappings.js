@@ -712,6 +712,7 @@ component C() {
 				`class Foo { bar() { return <tsrx>"Hello"</tsrx>; } }`,
 				`class Foo { bar() { return <tsrx><div>"a"</div><div>"b"</div></tsrx>; } }`,
 				`class Foo { bar() { return <tsrx>const x = 1; <div>{x}</div></tsrx>; } }`,
+				`class Foo { bar() { return <tsrx>; <div>"ok"</div></tsrx>; } }`,
 				`class Foo { bar() { return <tsrx>if (true) { <div>"yes"</div> }</tsrx>; } }`,
 			];
 			for (const source of sources) {

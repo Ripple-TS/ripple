@@ -3088,7 +3088,9 @@ function build_tsrx_to_ts_expression(node, context) {
 	/** @type {TsrxTsStatement[]} */
 	const init = [];
 	const ts_state = { ...state, init };
-	for (const child of node.children) {
+	for (const child of node.children.filter((child) => {
+		return child != null && child.type !== 'EmptyStatement';
+	})) {
 		transform_ts_child(
 			/** @type {AST.Node} */ (child),
 			/** @type {TransformClientContext} */ ({ visit, state: ts_state }),
