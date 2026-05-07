@@ -27,6 +27,7 @@
 		"@typescript-eslint/parser": "^8.20.0",
 		"vite": "^8.0.0 ",
 		"@ripple-ts/vite-plugin": "latest",
+		"@ripple-ts/language-server": "latest",
 		"@tsrx/typescript-plugin": "latest"
 	},
 	"dependencies": {

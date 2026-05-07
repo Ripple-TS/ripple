@@ -95,4 +95,71 @@ describe('for statements in SSR', () => {
 			'<div class="Item 1 0">Item 1 0</div><div class="Item 2 1">Item 2 1</div><div class="Item 3 2">Item 3 2</div>',
 		);
 	});
+
+	it('allows continue to skip a for...of iteration', async () => {
+		component App() {
+			const items = ['Item 1', '', 'Item 3'];
+
+			for (const item of items) {
+				if (!item) continue;
+				<div>{item}</div>
+			}
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>Item 1</div><div>Item 3</div>');
+	});
+
+	it('allows ordinary function control flow inside for...of loops', async () => {
+		component App() {
+			const items = ['Item 1', '', 'Item 3'];
+
+			for (const item of items) {
+				function label(value) {
+					for (let i = 0; i < 1; i++) {
+						while (i < 0) {
+							break;
+						}
+						if (!value) return 'missing';
+					}
+					return value;
+				}
+
+				<div>{label(item)}</div>
+			}
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>Item 1</div><div>missing</div><div>Item 3</div>');
+	});
+
+	it('throws for return statements inside for...of loops', () => {
+		expect(
+			() => compile(
+				`component App(items) {
+					for (const item of items) {
+						if (!item) return
+						<div>{item}</div>
+					}
+				}`,
+				'App.tsrx',
+				{ mode: 'server' },
+			),
+		).toThrow('Return statements are not allowed inside component for...of loops');
+	});
+
+	it('throws for break statements targeting for...of loops', () => {
+		expect(
+			() => compile(
+				`component App(items) {
+					for (const item of items) {
+						if (!item) break
+						<div>{item}</div>
+					}
+				}`,
+				'App.tsrx',
+				{ mode: 'server' },
+			),
+		).toThrow('Break statements are not allowed inside component for...of loops');
+	});
 });

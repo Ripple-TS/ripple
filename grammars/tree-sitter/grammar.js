@@ -149,7 +149,7 @@ module.exports = grammar({
 				seq($.identifier, optional(seq(',', choice($.namespace_import, $.named_imports)))),
 			),
 
-		from_clause: ($) => seq('from', $.string),
+		from_clause: ($) => seq('from', choice($.string, $.identifier)),
 
 		namespace_import: ($) => seq('*', 'as', $.identifier),
 
@@ -167,7 +167,7 @@ module.exports = grammar({
 				$.export_statement,
 				$.import_statement,
 				$.declaration,
-				$.server_block,
+				$.module_declaration,
 				$.expression_statement,
 				$.if_statement,
 				$.switch_statement,
@@ -367,7 +367,6 @@ module.exports = grammar({
 				$.jsx_element,
 				$.jsx_fragment,
 				$.jsx_self_closing_element,
-				$.server_block,
 				$.variable_declaration,
 				$.lexical_declaration,
 				$.function_declaration,
@@ -555,9 +554,6 @@ module.exports = grammar({
 				$.undefined,
 				$.object,
 				$.array,
-				$.server_member_expression,
-				$.style_member_expression,
-				$.style_subscript_expression,
 				$.function_expression,
 				$.arrow_function,
 				$.class_expression,
@@ -569,13 +565,10 @@ module.exports = grammar({
 				$.jsx_self_closing_element,
 			),
 
-		server_block: ($) => seq('#server', '{', repeat($.statement), '}'),
+		module_declaration: ($) =>
+			seq('module', field('name', $.identifier), field('body', $.module_body)),
 
-		server_member_expression: ($) => seq('#server', '.', field('property', $.identifier)),
-
-		style_member_expression: ($) => seq('#style', '.', field('property', $.identifier)),
-
-		style_subscript_expression: ($) => seq('#style', '[', field('index', $.expression), ']'),
+		module_body: ($) => seq('{', repeat($.statement), '}'),
 
 		yield_expression: ($) => prec.right(seq('yield', optional('*'), optional($.expression))),
 
@@ -906,11 +899,14 @@ module.exports = grammar({
 						seq('ref', choice($.identifier, $.arrow_function, $.function_expression)),
 						seq('html', $.expression),
 						seq('text', $.expression),
+						$.style_directive,
 						repeat1($.component_statement),
 					),
 				),
 				'}',
 			),
+
+		style_directive: ($) => seq('style', $.string),
 
 		_jsx_attribute_value: ($) =>
 			choice($.string, $.jsx_expression, $.jsx_element, $.jsx_fragment, $.jsx_self_closing_element),

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { runSharedCompileDiagnosticsTests } from '@tsrx/core/test-harness/compile';
+import {
+	runSharedAnonymousComponentTests,
+	runSharedClassComponentDeclarationTests,
+	runSharedCompileDiagnosticsTests,
+	runSharedComponentLoopControlFlowTests,
+	runSharedComponentParamsTests,
+} from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
 
@@ -9,7 +15,11 @@ runSharedSourceMappingTests({
 	name: 'vue',
 	rejectsComponentAwait: true,
 });
+runSharedAnonymousComponentTests({ compile, name: 'vue' });
+runSharedComponentLoopControlFlowTests({ compile, name: 'vue' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'vue' });
+runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'vue' });
+runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name: 'vue' });
 
 describe('@tsrx/vue basic', () => {
 	it('wraps named component exports in defineVaporComponent', () => {
@@ -81,7 +91,7 @@ describe('@tsrx/vue basic', () => {
 	});
 
 	it('emits scoped CSS and applies the scope hash to host elements', () => {
-		const { code, css } = compile(
+		const { code, css, cssHash } = compile(
 			`component App() {
 				<div class="card">{'Hi'}</div>
 
@@ -94,10 +104,10 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(css).not.toBeNull();
-		expect(code).toContain(`class="card ${css?.hash}"`);
-		expect(css?.code).toContain(`.card.${css?.hash}`);
-		expect(css?.code).toContain('color: red;');
+		expect(css).not.toBe('');
+		expect(code).toContain(`class="card ${cssHash}"`);
+		expect(css).toContain(`.card.${cssHash}`);
+		expect(css).toContain('color: red;');
 	});
 
 	it('{ref fn} on a DOM element compiles to ref={fn}', () => {
@@ -110,6 +120,53 @@ describe('@tsrx/vue basic', () => {
 		);
 
 		expect(code).toMatch(/ref=\{capture\}/);
+	});
+
+	it('keeps Vue host ref expressions clean in Volar TSX while disabling prop verification', () => {
+		const source = `component App() {
+			<div ref={(node: HTMLDivElement) => {}}>{'x'}</div>
+		}`;
+		const result = compile_to_volar_mappings(source, 'App.tsrx');
+		const generated_ref_offset = result.code.indexOf('ref=');
+		const ref_mapping = result.mappings.find(
+			(mapping) =>
+				mapping.generatedOffsets[0] === generated_ref_offset &&
+				mapping.generatedLengths[0] === 'ref'.length,
+		);
+
+		expect(result.code).toContain('ref={(node: HTMLDivElement) => {}}');
+		expect(result.code).not.toContain('as any');
+		expect(ref_mapping?.data.verification).toBe(false);
+	});
+
+	it('keeps named component ref props direct in Volar TSX for completions', () => {
+		const source = `import { ref } from 'vue';
+
+		component NamedForwardInput(props: { type: string; input_ref?: any }) {
+			<input type={props.type} ref={props.input_ref} />
+		}
+
+		const named_vue_ref_object = ref<HTMLInputElement | null>(null);
+
+		component App() {
+			<NamedForwardInput type="text" input_ref={ref named_vue_ref_object} />
+		}`;
+		const result = compile_to_volar_mappings(source, 'App.tsrx');
+		const source_prop_offset = source.indexOf('input_ref={ref');
+		const generated_prop_offset = result.code.indexOf('input_ref={__create_ref_prop');
+		const prop_mapping = result.mappings.find(
+			(mapping) =>
+				mapping.sourceOffsets[0] === source_prop_offset &&
+				mapping.generatedOffsets[0] === generated_prop_offset &&
+				mapping.generatedLengths[0] === 'input_ref'.length,
+		);
+
+		expect(result.code).toContain(
+			'<NamedForwardInput type="text" input_ref={__create_ref_prop(() => named_vue_ref_object, (v) => named_vue_ref_object = v)} />',
+		);
+		expect(result.code).not.toContain('input_ref: __create_ref_prop');
+		expect(prop_mapping?.data.completion).toBe(true);
+		expect(prop_mapping?.data.verification).toBe(true);
 	});
 
 	it('rejects {ref ...} on composite components', () => {
@@ -139,7 +196,7 @@ describe('@tsrx/vue basic', () => {
 		);
 
 		expect(code).toContain('ref={__mergeRefs(a, b)}');
-		expect(code).toContain("import { mergeRefs as __mergeRefs } from '@tsrx/vue/merge-refs'");
+		expect(code).toContain("import { mergeRefs as __mergeRefs } from '@tsrx/vue/ref'");
 	});
 
 	it('combines a single ref={expr} with multiple {ref expr} keyword-form refs via mergeRefs', () => {
@@ -154,6 +211,89 @@ describe('@tsrx/vue basic', () => {
 		);
 
 		expect(code).toContain('ref={__mergeRefs(a, b, c)}');
+	});
+
+	it('allows named ref props through components and normalizes host spreads', () => {
+		const { code } = compile(
+			`component Child(props) {
+				<input {...props} />
+			}
+
+			component App() {
+				let input;
+				<Child input_ref={ref input} />
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain("from '@tsrx/vue/ref'");
+		expect(code).toContain('{...{ input_ref: __create_ref_prop(() => input, (v) => input = v) }}');
+		expect(code).toContain('let Child__spread_props1 = __normalize_spread_props(props);');
+		expect(code).toContain('{...Child__spread_props1}');
+		expect(code).toContain('ref={Child__spread_props1.ref}');
+		expect(code.match(/__normalize_spread_props\(/g)).toHaveLength(1);
+	});
+
+	it('imports only create_ref_prop for component ref props without host spreads', () => {
+		const { code } = compile(
+			`component Child(props) {
+				<span>{'child'}</span>
+			}
+
+			component App() {
+				let input;
+				<Child input_ref={ref input} />
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain("from '@tsrx/vue/ref'");
+		expect(code).toContain('{...{ input_ref: __create_ref_prop(() => input, (v) => input = v) }}');
+		expect(code).not.toContain('normalize_spread_props');
+	});
+
+	it('declares normalized host spread refs inside tsx expression blocks', () => {
+		const { code } = compile(
+			`class Foo {
+				bar() {
+					const props = {};
+					function cb(_node) {}
+					return <tsx><input {...props} ref={cb} /></tsx>;
+				}
+			}`,
+			'App.tsrx',
+		);
+		const declaration_offset = code.indexOf(
+			'let _tsrx_spread_props_1 = __normalize_spread_props(props);',
+		);
+		const spread_offset = code.indexOf('{..._tsrx_spread_props_1}');
+
+		expect(declaration_offset).toBeGreaterThan(-1);
+		expect(spread_offset).toBeGreaterThan(declaration_offset);
+		expect(code).toContain('_tsrx_spread_props_1.ref');
+		expect(code).not.toContain('<tsx>');
+	});
+
+	it('normalizes multiple host spreads once while merging one explicit ref', () => {
+		const { code } = compile(
+			`component App() {
+			const first = {};
+			const second = {};
+			function cb(_node) {}
+			<input {...first} {...second} ref={cb} />
+		}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('let App__spread_props1 = __normalize_spread_props(first);');
+		expect(code).toContain('let App__spread_props2 = __normalize_spread_props(second);');
+		expect(code).toContain('{...App__spread_props1}');
+		expect(code).toContain('{...App__spread_props2}');
+		expect(code).toContain('ref={__mergeRefs(App__spread_props1.ref, App__spread_props2.ref, cb)}');
+		expect(code.match(/__normalize_spread_props\(/g)).toHaveLength(2);
+		expect(code).not.toContain('create_ref_prop');
+		expect(code).not.toContain('__normalize_spread_props(first, cb)');
+		expect(code).not.toContain('__normalize_spread_props(second, cb)');
 	});
 
 	it('rejects multiple ref={...} attributes on the same element', () => {
@@ -398,7 +538,8 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('<template v-for={item in items}><div>{item}</div></template>');
+		expect(code).toContain('<VaporFor in={items}>{(item) => <div>{item}</div>}</VaporFor>');
+		expect(code).toContain("import { defineVaporComponent, VaporFor } from 'vue-jsx-vapor';");
 		expect(code).not.toContain('not yet supported in Vue TSRX');
 	});
 
@@ -412,9 +553,27 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('<template v-for={item in items} key={item.id}>');
-		expect(code).toContain('key={item.id}');
-		expect(code).toContain('item.text');
+		expect(code).toContain('<VaporFor in={items} getKey={(item) => item.id}>');
+		expect(code).toContain('item.value.text');
+	});
+
+	it('does not rewrite shadowed loop params inside nested keyed slot functions', () => {
+		const { code } = compile(
+			`component App({ items, getNew, use }: { items: { id: string, text: string }[], getNew: () => unknown, use: (item: unknown) => void }) {
+				for (const item of items; key item.id) {
+					<button onClick={() => {
+						const item = getNew();
+						use(item);
+					}}>{item.text}</button>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('const item = getNew();');
+		expect(code).toContain('use(item);');
+		expect(code).toContain('item.value.text');
+		expect(code).not.toContain('use(item.value)');
 	});
 
 	it('compiles indexed keyed for...of statements in component bodies', () => {
@@ -427,9 +586,60 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('<template v-for={(item, i) in items} key={item.id}>');
-		expect(code).toContain('{i}');
-		expect(code).toContain('item.text');
+		expect(code).toContain('<VaporFor in={items} getKey={(item, i) => item.id}>');
+		expect(code).toContain('{(item, i) => <div>');
+		expect(code).toContain('{i.value}');
+		expect(code).toContain('item.value.text');
+	});
+
+	it('keeps explicit loop keys on single static for...of templates', () => {
+		const { code } = compile(
+			`component App({ items }: { items: string[] }) {
+				for (const item of items; index i; key i) {
+					<div>{'test'}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('<VaporFor in={items} getKey={(item, i) => i}>');
+		expect(code).toContain('{(item, i) => <div>');
+		expect(code).toContain("<div>{'test'}</div>");
+		expect(code).not.toContain('<div key={i}>');
+		expect(code).not.toContain('<Fragment');
+	});
+
+	it('keeps implicit index keys on multi-child for...of templates', () => {
+		const { code } = compile(
+			`component App({ items }: { items: string[] }) {
+				for (const item of items; index i) {
+					<div>{'one'}</div>
+					<div>{'two'}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('<VaporFor in={items} getKey={(item, i) => i}>');
+		expect(code).toContain('{(item, i) => <>');
+		expect(code).toContain('App__static1');
+		expect(code).toContain('App__static2');
+		expect(code).not.toContain('<Fragment');
+	});
+
+	it('falls back without injecting VaporFor for keyed destructuring patterns it cannot rewrite', () => {
+		const { code } = compile(
+			`component App({ items, keyName }: { items: Array<Record<string, string>>, keyName: string }) {
+				for (const { [keyName]: label } of items) {
+					<div key={label}>{label}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('.map(({ [keyName]: label }) => {');
+		expect(code).toContain('<div key={label}>{label}</div>');
+		expect(code).not.toContain('VaporFor');
 	});
 
 	it('compiles switch statements in component bodies', () => {

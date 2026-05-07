@@ -263,6 +263,24 @@ export function createNodes(...values) {
 
 export const defineVaporComponent = defineVaporComponentBase;
 
+export const VaporFor = defineVaporComponentBase(
+	/**
+	 * @param {{ in?: ShimValue, getKey?: (value: ShimValue, key: ShimValue, index?: number) => ShimValue }} props
+	 * @param {{ slots: { default?: (...values: ShimValue[]) => ShimValue } }} context
+	 * @returns {ShimValue}
+	 */
+	(props, { slots }) =>
+		Vue.createFor(
+			() => props.in,
+			(item, key, index) =>
+				slots.default
+					? slots.default(props.getKey === undefined ? item.value : item, key, index)
+					: [],
+			props.getKey === undefined ? (item) => item : props.getKey,
+		),
+	{ props: ['in', 'getKey'] },
+);
+
 /**
  * @param {ShimValue} type
  * @param {ShimValue} props

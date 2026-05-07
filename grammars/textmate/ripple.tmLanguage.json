@@ -99,7 +99,7 @@
           "include": "#var-expr"
         },
         {
-          "include": "#server-block"
+          "include": "#module-declaration"
         },
         {
           "include": "#component-declaration"
@@ -321,6 +321,9 @@
         },
         {
           "include": "#comment"
+        },
+        {
+          "include": "#component-expression"
         },
         {
           "include": "#function-expression"
@@ -1456,6 +1459,33 @@
       "patterns": [
         {
           "include": "#function-name"
+        },
+        {
+          "include": "#component-body"
+        }
+      ]
+    },
+    "component-expression": {
+      "name": "meta.function.expression.js",
+      "begin": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(component\\b)(?:\\s*(\\*))?(?:(?:\\s+|(?<=\\*))([_$[:alpha:]][_$[:alnum:]]*))?\\s*",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.type.function.js"
+        },
+        "2": {
+          "name": "keyword.generator.asterisk.js"
+        },
+        "3": {
+          "name": "meta.definition.function.js entity.name.function.js"
+        }
+      },
+      "end": "(?=;)|(?<=\\})",
+      "patterns": [
+        {
+          "include": "#function-name"
+        },
+        {
+          "include": "#single-line-comment-consuming-line-ending"
         },
         {
           "include": "#component-body"
@@ -6502,7 +6532,7 @@
     "jsx-attribute-expression": {
       "patterns": [
         {
-          "include": "#style-member-expression"
+          "include": "#jsx-style-directive"
         },
         {
           "include": "#jsx-ref-modifier"
@@ -6520,9 +6550,6 @@
     },
     "non-jsx-expression": {
       "patterns": [
-        {
-          "include": "#style-member-expression"
-        },
         {
           "include": "#jsx-html-modifier"
         },
@@ -6671,14 +6698,17 @@
         }
       ]
     },
-    "server-block": {
-      "name": "meta.server-block.js",
-      "begin": "(#server)\\s*(\\{)",
+    "module-declaration": {
+      "name": "meta.module-declaration.js",
+      "begin": "\\b(module)\\s+([A-Za-z_$][\\w$]*)\\s*(\\{)",
       "beginCaptures": {
         "1": {
-          "name": "keyword.control.ripple.js"
+          "name": "keyword.control.module.js"
         },
         "2": {
+          "name": "entity.name.namespace.module.js"
+        },
+        "3": {
           "name": "punctuation.definition.block.js"
         }
       },
@@ -6694,30 +6724,18 @@
         }
       ]
     },
-    "style-member-expression": {
+    "jsx-style-directive": {
+      "name": "meta.style-directive.js",
+      "begin": "\\b(style)(?=\\s+(?:'|\\\"))",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.ripple.js"
+        }
+      },
+      "end": "(?=\\s*\\})",
       "patterns": [
         {
-          "name": "meta.style-member-expression.computed.js",
-          "begin": "(#style)(\\[)",
-          "beginCaptures": {
-            "1": {
-              "name": "keyword.control.ripple.js"
-            },
-            "2": {
-              "name": "meta.brace.square.js"
-            }
-          },
-          "end": "\\]",
-          "endCaptures": {
-            "0": {
-              "name": "meta.brace.square.js"
-            }
-          },
-          "patterns": [
-            {
-              "include": "#string"
-            }
-          ]
+          "include": "#string"
         }
       ]
     },
@@ -7032,7 +7050,7 @@
     "jsx-tsx-attribute-expression": {
       "patterns": [
         {
-          "include": "#style-member-expression"
+          "include": "#jsx-style-directive"
         },
         {
           "include": "#jsx-ref-modifier"

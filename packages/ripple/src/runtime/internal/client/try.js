@@ -9,15 +9,7 @@ import {
 	resume_block,
 } from './blocks.js';
 import { TRY_BLOCK } from './constants.js';
-import {
-	hydrate_next,
-	hydrate_node,
-	hydrating,
-	set_hydrate_node,
-	set_hydrating,
-	skip_to_hydration_end,
-} from './hydration.js';
-import { get_next_sibling } from './operations.js';
+import { hydrate_next, hydrating } from './hydration.js';
 import {
 	active_block,
 	queue_microtask,

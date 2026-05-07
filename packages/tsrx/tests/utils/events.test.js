@@ -1,13 +1,13 @@
-/** @import { AddEventObject } from '#public'*/
+/** @import { AddEventObject } from '../../types/index' */
 
 import { describe, it, expect } from 'vitest';
 import {
-	is_non_delegated,
-	is_event_attribute,
-	get_attribute_event_name,
-	is_passive_event,
-	is_capture_event,
-} from '../../src/utils/events.js';
+	isNonDelegated as is_non_delegated,
+	isEventAttribute as is_event_attribute,
+	getAttributeEventName as get_attribute_event_name,
+	isPassiveEvent as is_passive_event,
+	isCaptureEvent as is_capture_event,
+} from '@tsrx/core';
 
 describe('events utility', () => {
 	describe('is event delegated', () => {

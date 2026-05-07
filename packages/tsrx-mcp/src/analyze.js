@@ -1,4 +1,12 @@
-import { DIAGNOSTIC_CODES } from '@tsrx/core';
+import {
+	COMPONENT_DO_WHILE_STATEMENT_ERROR,
+	COMPONENT_FOR_IN_STATEMENT_ERROR,
+	COMPONENT_FOR_STATEMENT_ERROR,
+	COMPONENT_LOOP_BREAK_ERROR,
+	COMPONENT_LOOP_RETURN_ERROR,
+	COMPONENT_WHILE_STATEMENT_ERROR,
+	DIAGNOSTIC_CODES,
+} from '@tsrx/core';
 import { compile_tsrx } from './compile.js';
 
 /**
@@ -28,6 +36,7 @@ function create_advice(input) {
 	/** @type {TSRXAdvice[]} */
 	const advice = [];
 	const error_codes = new Set(compileResult.errors.map((error) => error.code).filter(Boolean));
+	const error_messages = new Set(compileResult.errors.map((error) => error.message));
 
 	if (!compileResult.target) {
 		advice.push({
@@ -95,6 +104,36 @@ function create_advice(input) {
 			message:
 				'When JSX is needed as a value, wrap it in a fragment `<>...</>` or `<tsx>...</tsx>` so TSRX knows it is an expression rather than a template statement.',
 			documentation: ['tsrx://docs/tsx-expression-values.md'],
+		});
+	}
+
+	if (
+		error_messages.has(COMPONENT_LOOP_RETURN_ERROR) ||
+		error_messages.has(COMPONENT_LOOP_BREAK_ERROR)
+	) {
+		advice.push({
+			kind: 'component-loop-control-flow',
+			severity: 'error',
+			title: 'Use continue inside component for...of loops',
+			message:
+				'Top-level return and break statements are not valid inside a component for...of loop. Use continue to skip the current rendered item. Nested functions inside the loop keep ordinary JavaScript control flow.',
+			documentation: ['tsrx://docs/control-flow.md'],
+		});
+	}
+
+	if (
+		error_messages.has(COMPONENT_FOR_STATEMENT_ERROR) ||
+		error_messages.has(COMPONENT_FOR_IN_STATEMENT_ERROR) ||
+		error_messages.has(COMPONENT_WHILE_STATEMENT_ERROR) ||
+		error_messages.has(COMPONENT_DO_WHILE_STATEMENT_ERROR)
+	) {
+		advice.push({
+			kind: 'unsupported-component-loop',
+			severity: 'error',
+			title: 'Use for...of for component list rendering',
+			message:
+				'Component template scope supports for...of loops for rendering lists. Move regular for, for...in, while, and do...while loops into a nested function, event handler, effect, or helper.',
+			documentation: ['tsrx://docs/control-flow.md'],
 		});
 	}
 

@@ -380,6 +380,37 @@ export function convert_source_map_to_mappings(
 		css_element_info,
 	});
 
+	/** @type {Map<string, number>} */
+	const generated_position_indexes = new Map();
+
+	/**
+	 * When a transform expands one source identifier into multiple generated
+	 * identifiers (e.g. `import { foo } from server` -> `const foo =
+	 * _$_server_$_.foo`), esrap records multiple generated positions for the
+	 * same source location. Keep token mappings in generated-order by consuming
+	 * the next matching generated token instead of always using the first one.
+	 * @param {Token} token
+	 * @returns {{ line: number; column: number }}
+	 */
+	function get_generated_position_for_token(token) {
+		const key = `${token.loc.start.line}:${token.loc.start.column}`;
+		const positions = src_to_gen_map.get(key);
+		if (!positions || positions.length === 0) {
+			throw new Error(`No source map entry for position "${key}"`);
+		}
+
+		const matching_positions = positions.filter((position) => {
+			const offset = loc_to_offset(position.line, position.column, gen_line_offsets);
+			return generated_code.startsWith(token.generated, offset);
+		});
+		const candidates = matching_positions.length > 0 ? matching_positions : positions;
+		const index_key = `${key}:${token.generated}`;
+		const index = generated_position_indexes.get(index_key) ?? 0;
+		generated_position_indexes.set(index_key, index + 1);
+
+		return candidates[Math.min(index, candidates.length - 1)];
+	}
+
 	/**
 	 * Needed for a mapping that includes the computed brackets for diagnostics
 	 * @param {AST.MethodDefinition | AST.Property} node
@@ -408,7 +439,6 @@ export function convert_source_map_to_mappings(
 	}
 
 	/**
-	 * @typedef {AST.MethodDefinition & {value: {metadata: {is_component: true}}}} MethodIsComponent
 	 * @typedef {AST.Property & {value: AST.FunctionExpression, method: true} & {value: {metadata: {is_component: true}}}} PropertyIsComponent
 	 */
 
@@ -416,7 +446,7 @@ export function convert_source_map_to_mappings(
 	 * Maps `component` to the identifier's location
 	 * e.g. const obj = { component something() { } }
 	 * since there is no function keyword in source maps
-	 * @param {MethodIsComponent | PropertyIsComponent} node
+	 * @param {PropertyIsComponent} node
 	 * @returns {void}
 	 */
 	function set_component_mapping_to_name(node) {
@@ -532,16 +562,17 @@ export function convert_source_map_to_mappings(
 			} else if (node.type === 'JSXIdentifier') {
 				// JSXIdentifiers can also be capitalized (for dynamic components)
 				if (node.loc && node.name) {
-					if (node.metadata?.is_capitalized) {
-						tokens.push({
-							source: node.metadata.source_name,
-							generated: node.name,
-							loc: node.loc,
-							metadata: {},
-						});
-					} else {
-						tokens.push({ source: node.name, generated: node.name, loc: node.loc, metadata: {} });
+					/** @type {Token} */
+					const token = {
+						source: node.metadata?.is_capitalized ? node.metadata.source_name : node.name,
+						generated: node.name,
+						loc: node.loc,
+						metadata: {},
+					};
+					if (node.metadata?.disable_verification) {
+						token.mappingData = { ...mapping_data, verification: false };
 					}
+					tokens.push(token);
 				}
 				return; // Leaf node, don't traverse further
 			} else if (node.type === 'Literal') {
@@ -653,8 +684,11 @@ export function convert_source_map_to_mappings(
 				// Nothing to visit (just source string)
 				return;
 			} else if (node.type === 'JSXOpeningElement') {
-				// Visit name and attributes in source order
+				// Visit name, type arguments, and attributes in source order
 				visit(node.name);
+				if (node.typeArguments) {
+					visit(node.typeArguments);
+				}
 				for (const attr of node.attributes) {
 					visit(attr);
 				}
@@ -833,6 +867,15 @@ export function convert_source_map_to_mappings(
 					// but since we already map the opening - start, we just need the proper end
 					// and it was causing some issues with mappings
 					mapping.generatedLengths = [mapping.generatedLengths[0] + 1];
+					if (!closing && opening.selfClosing) {
+						const generated_close_length = '/>;'.length;
+						mapping.sourceOffsets = [/** @type {AST.NodeWithLocation} */ (opening).end - 2];
+						mapping.lengths = ['/>'.length];
+						mapping.generatedOffsets = [
+							mapping.generatedOffsets[0] + mapping.generatedLengths[0] - generated_close_length,
+						];
+						mapping.generatedLengths = [generated_close_length];
+					}
 					mappings.push(mapping);
 				}
 
@@ -1496,15 +1539,8 @@ export function convert_source_map_to_mappings(
 					set_bracket_computed_mapping(node, mappings);
 				}
 
-				if (node.value.metadata.is_component) {
-					set_component_mapping_to_name(/** @type {MethodIsComponent} */ (node));
-				}
-
 				if (node.key.type === 'Literal') {
-					handle_literal(
-						node.key,
-						/** @type {AST.FunctionExpression} */ (node.value).metadata.is_component,
-					);
+					handle_literal(node.key);
 				} else {
 					visit(node.key);
 				}
@@ -2179,11 +2215,7 @@ export function convert_source_map_to_mappings(
 		const gen_length = gen_text.length;
 		let gen_line_col;
 		try {
-			gen_line_col = get_generated_position(
-				token.loc.start.line,
-				token.loc.start.column,
-				src_to_gen_map,
-			);
+			gen_line_col = get_generated_position_for_token(token);
 		} catch {
 			continue;
 		}

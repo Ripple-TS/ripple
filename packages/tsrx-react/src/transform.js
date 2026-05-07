@@ -14,9 +14,11 @@ import { createJsxTransform } from '@tsrx/core';
 const react_platform = {
 	name: 'React',
 	imports: {
+		fragment: 'react',
 		suspense: 'react',
 		errorBoundary: '@tsrx/react/error-boundary',
-		mergeRefs: '@tsrx/react/merge-refs',
+		mergeRefs: '@tsrx/react/ref',
+		refProp: '@tsrx/react/ref',
 	},
 	jsx: {
 		rewriteClassAttr: true,
@@ -25,6 +27,9 @@ const react_platform = {
 	},
 	validation: {
 		requireUseServerForAwait: false,
+	},
+	hooks: {
+		moduleScopedHookComponents: true,
 	},
 };
 

@@ -177,24 +177,24 @@ function generateImportEdit(documentText, importName) {
  */
 const RIPPLE_SNIPPETS = [
 	{
-		label: '#style',
+		label: '{style}',
 		kind: CompletionItemKind.Snippet,
 		detail: 'Scoped CSS class reference',
 		documentation:
-			'Produces a scoped CSS class string for passing to child components.\nThe class must be defined as a standalone selector in <style>.\n\nUsage: <Child cls={#style.highlight} />',
-		insertText: '#style.${1:className}',
+			'Produces a scoped CSS class string for passing to child components.\nThe class must be defined as a standalone selector in <style>.\n\nUsage: <Child cls={style "highlight"} />',
+		insertText: 'style "${1:className}"',
 		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-#-style',
+		sortText: '0-style',
 	},
 	{
-		label: '#server',
+		label: 'module server',
 		kind: CompletionItemKind.Snippet,
-		detail: 'Server-only code block (module level)',
+		detail: 'Server-only submodule (module level)',
 		documentation:
-			'Marks a block as server-only. Code inside is tree-shaken on the client.\nMust be at module top level.\n\nUsage:\n#server {\n  export async function loadData() { ... }\n}',
-		insertText: '#server {\n\t$0\n}',
+			'Declares a server-only submodule. Import exported functions with `import { loadData } from server` before using them.\nMust be at module top level.\n\nUsage:\nmodule server {\n  export async function loadData() { ... }\n}\n\nimport { loadData } from server;',
+		insertText: 'module server {\n\t$0\n}',
 		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-#-server',
+		sortText: '0-module-server',
 	},
 	{
 		label: 'component',
@@ -368,8 +368,8 @@ export function createCompletionPlugin() {
 			completionProvider: {
 				// Trigger on Ripple-specific syntax:
 				// '<' - JSX/HTML tags
-				// '#' - #style, #server keywords
-				triggerCharacters: ['<', '#'],
+				// '{' - {style}, {ref}, and other TSRX directive snippets
+				triggerCharacters: ['<', '{'],
 				resolveProvider: false,
 			},
 		},

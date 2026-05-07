@@ -1427,8 +1427,8 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 		}
 
-		case 'StyleIdentifier': {
-			nodeContent = '#style';
+		case 'Style': {
+			nodeContent = ['style ', path.call(print, 'value')];
 			break;
 		}
 
@@ -1441,11 +1441,6 @@ function printRippleNode(node, path, options, print, args) {
 			} else {
 				nodeContent = node.source.trim();
 			}
-			break;
-		}
-
-		case 'ServerIdentifier': {
-			nodeContent = '#server';
 			break;
 		}
 
@@ -1637,6 +1632,10 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = ['{ref ', path.call(print, 'argument'), '}'];
 			break;
 
+		case 'RefExpression':
+			nodeContent = ['ref ', path.call(print, 'argument')];
+			break;
+
 		case 'SpreadAttribute': {
 			/** @type {Doc[]} */
 			const parts = ['{...', path.call(print, 'argument'), '}'];
@@ -1695,15 +1694,17 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printFunctionExpression(node, path, options, print);
 			break;
 
+		case 'TSModuleBlock':
 		case 'BlockStatement': {
 			// Apply the same block formatting pattern as component bodies
 			if (!node.body || node.body.length === 0) {
 				// Handle innerComments for empty blocks
 				if (innerCommentParts.length > 0) {
+					const blockNode = /** @type {AST.BlockStatement} */ (node);
 					// Check if we need to preserve blank lines between comments
-					if (node.innerComments && node.innerComments.length > 0) {
+					if (blockNode.innerComments && blockNode.innerComments.length > 0) {
 						const commentDocs = [];
-						const comments = node.innerComments;
+						const comments = blockNode.innerComments;
 
 						for (let i = 0; i < comments.length; i++) {
 							const comment = comments[i];
@@ -1804,9 +1805,14 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 		}
 
-		case 'ServerBlock': {
-			const blockContent = path.call(print, 'body');
-			nodeContent = ['#server ', blockContent];
+		case 'TSModuleDeclaration': {
+			nodeContent = [
+				node.metadata?.module_keyword ?? 'module',
+				' ',
+				path.call(print, 'id'),
+				' ',
+				path.call(print, 'body'),
+			];
 			break;
 		}
 
@@ -2387,11 +2393,13 @@ function printImportDeclaration(node, path, options, _print) {
 		parts.push(' from');
 	}
 
-	parts.push(
-		' ',
-		formatStringLiteral(/** @type {string} */ (node.source.value), options),
-		semi(options),
-	);
+	const source = /** @type {AST.Literal | AST.Identifier} */ (/** @type {unknown} */ (node.source));
+	const sourceDoc =
+		source.type === 'Identifier'
+			? source.name
+			: formatStringLiteral(/** @type {string} */ (source.value), options);
+
+	parts.push(' ', sourceDoc, semi(options));
 
 	return parts;
 }
@@ -2430,8 +2438,15 @@ function printExportNamedDeclaration(node, path, options, print) {
 		parts.push(' }');
 
 		if (node.source) {
+			const source = /** @type {AST.Literal | AST.Identifier} */ (
+				/** @type {unknown} */ (node.source)
+			);
 			parts.push(' from ');
-			parts.push(formatStringLiteral(/** @type {string} */ (node.source.value), options));
+			parts.push(
+				source.type === 'Identifier'
+					? source.name
+					: formatStringLiteral(/** @type {string} */ (source.value), options),
+			);
 		}
 		parts.push(semi(options));
 
@@ -2508,9 +2523,11 @@ function printComponent(
 		contentParts.push(statements);
 	}
 
+	const isArrowComponent = node.metadata?.arrow === true && !node.id && !args.skipComponentLabel;
+
 	// Use Prettier's standard block statement pattern
 	/** @type {Doc[]} */
-	const parts = [signatureParts, ' {'];
+	const parts = [signatureParts, isArrowComponent ? ' => {' : ' {'];
 
 	if (statements.length > 0) {
 		// Build content manually with proper spacing
@@ -2594,10 +2611,14 @@ function printComponent(
 				contentParts.push(doc);
 			}
 
-			return [signatureParts, ' ', group(['{', indent([hardline, contentParts]), hardline, '}'])];
+			return [
+				signatureParts,
+				isArrowComponent ? ' => ' : ' ',
+				group(['{', indent([hardline, contentParts]), hardline, '}']),
+			];
 		}
 
-		parts[1] = ' {}';
+		parts[1] = isArrowComponent ? ' => {}' : ' {}';
 	}
 	return parts;
 }
@@ -3886,7 +3907,6 @@ function printPropertyDefinition(node, path, options, print) {
 function printMethodDefinition(node, path, options, print) {
 	/** @type {Doc[]} */
 	const parts = [];
-	const is_component = /** @type {AST.TSRXMethodDefinition} */ (node).value?.type === 'Component';
 
 	// Access modifiers (public, private, protected)
 	if (node.accessibility) {
@@ -3917,16 +3937,6 @@ function printMethodDefinition(node, path, options, print) {
 		parts.push('*');
 	}
 
-	if (is_component) {
-		if (node.value.id) {
-			// takes care of component methods
-			parts.push(path.call(print, 'value'));
-			return parts;
-		}
-
-		parts.push('component ');
-	}
-
 	// the key is 'constructor' and we already handled that above
 	parts.push(...printKey(node, path, options, print));
 
@@ -3938,15 +3948,6 @@ function printMethodDefinition(node, path, options, print) {
 		} else {
 			parts.push(typeParams);
 		}
-	}
-
-	if (is_component) {
-		const componentDoc = path.call(
-			(childPath) => print(childPath, { skipComponentLabel: true }),
-			'value',
-		);
-		parts.push(componentDoc);
-		return parts;
 	}
 
 	// Parameters - use proper path.map for TypeScript support
@@ -5748,6 +5749,12 @@ function printJSXElement(node, path, options, print) {
 	const hasAttributes = openingElement.attributes && openingElement.attributes.length > 0;
 	const hasChildren = node.children && node.children.length > 0;
 
+	/** @type {Doc} */
+	let typeArgsDoc = '';
+	if (openingElement.typeArguments) {
+		typeArgsDoc = path.call(print, 'openingElement', 'typeArguments');
+	}
+
 	// Format attributes
 	/** @type {Doc} */
 	let attributesDoc = '';
@@ -5778,11 +5785,11 @@ function printJSXElement(node, path, options, print) {
 	}
 
 	if (isSelfClosing) {
-		return ['<', tagName, attributesDoc, ' />'];
+		return ['<', tagName, typeArgsDoc, attributesDoc, ' />'];
 	}
 
 	if (!hasChildren) {
-		return ['<', tagName, attributesDoc, '></', tagName, '>'];
+		return ['<', tagName, typeArgsDoc, attributesDoc, '></', tagName, '>'];
 	}
 
 	// Format children - filter out empty text nodes and merge adjacent text nodes
@@ -5826,7 +5833,7 @@ function printJSXElement(node, path, options, print) {
 
 	// Check if content can be inlined (single text node or single expression)
 	if (childrenDocs.length === 1 && typeof childrenDocs[0] === 'string') {
-		return ['<', tagName, attributesDoc, '>', childrenDocs[0], '</', tagName, '>'];
+		return ['<', tagName, typeArgsDoc, attributesDoc, '>', childrenDocs[0], '</', tagName, '>'];
 	}
 
 	// Multiple children or complex children - format with line breaks
@@ -5842,6 +5849,7 @@ function printJSXElement(node, path, options, print) {
 	return group([
 		'<',
 		tagName,
+		typeArgsDoc,
 		attributesDoc,
 		'>',
 		indent([hardline, ...formattedChildren]),
@@ -6019,6 +6027,12 @@ function is_attribute_value_breakable(value, is_nested_in_object = false) {
 function printElement(element, path, options, print) {
 	const node = /** @type {AST.Element & AST.NodeWithLocation} */ (element);
 	const tagName = printMemberExpressionSimple(node.id, options);
+	const openingElement = /** @type {any} */ (node.openingElement);
+	/** @type {Doc} */
+	let typeArgsDoc = '';
+	if (openingElement?.typeArguments) {
+		typeArgsDoc = path.call(print, 'openingElement', 'typeArguments');
+	}
 	const elementLeadingComments = getElementLeadingComments(node);
 
 	// `metadata.elementLeadingComments` may include comments that actually appear *inside* the element
@@ -6095,7 +6109,7 @@ function printElement(element, path, options, print) {
 	}
 
 	if (isSelfClosing && !hasInnerComments && !hasAttributes) {
-		const elementDoc = group(['<', tagName, ' />']);
+		const elementDoc = group(['<', tagName, typeArgsDoc, ' />']);
 		return metadataCommentParts.length > 0 ? [...metadataCommentParts, elementDoc] : elementDoc;
 	}
 
@@ -6146,6 +6160,7 @@ function printElement(element, path, options, print) {
 	const openingTag = group([
 		'<',
 		tagName,
+		typeArgsDoc,
 		hasAttributes
 			? indent([
 					...attrDocs,

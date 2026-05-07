@@ -20,12 +20,13 @@ import {
 	flatten_switch_consequent,
 	get_for_of_iteration_params,
 	identifier_to_jsx_name,
+	is_bare_render_expression,
 	is_dynamic_element_id,
 	is_jsx_child,
 	set_loc,
 	to_text_expression,
 } from './ast-builders.js';
-import { render_stylesheets as renderStylesheets } from '../stylesheet.js';
+import { render_css_result } from '../stylesheet.js';
 import {
 	set_location as setLocation,
 	jsx_attribute as build_jsx_attribute,
@@ -40,7 +41,14 @@ import {
 } from '../lazy.js';
 import { find_first_top_level_await_in_component_body } from '../await.js';
 import { prepare_stylesheet_for_render, annotate_component_with_hash } from '../scoping.js';
-import { validate_component_return_statement } from '../../analyze/validation.js';
+import {
+	validate_class_component_declarations,
+	validate_component_loop_break_statement,
+	validate_component_loop_return_statement,
+	validate_component_params,
+	validate_component_return_statement,
+	validate_component_unsupported_loop_statement,
+} from '../../analyze/validation.js';
 import { get_component_from_path } from '../../utils/ast.js';
 import {
 	is_interleaved_body as is_interleaved_body_core,
@@ -60,6 +68,63 @@ import { is_hoist_safe_jsx_node } from '../jsx-hoist.js';
 /**
  * @typedef {{ source_name: string, read: () => any }} LazyBinding
  */
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_function_or_class_boundary(node) {
+	return (
+		node?.type === 'FunctionDeclaration' ||
+		node?.type === 'FunctionExpression' ||
+		node?.type === 'ArrowFunctionExpression' ||
+		node?.type === 'ClassDeclaration' ||
+		node?.type === 'ClassExpression'
+	);
+}
+
+/**
+ * @param {any[]} path
+ * @returns {boolean}
+ */
+function is_inside_component_for_of(path) {
+	for (let i = path.length - 1; i >= 0; i -= 1) {
+		const node = path[i];
+		if (is_function_or_class_boundary(node) || node?.type === 'Component') {
+			return false;
+		}
+		if (node?.type === 'ForOfStatement') {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * @param {any[]} path
+ * @returns {boolean}
+ */
+function break_targets_component_loop(path) {
+	for (let i = path.length - 1; i >= 0; i -= 1) {
+		const node = path[i];
+		if (is_function_or_class_boundary(node) || node?.type === 'Component') {
+			return false;
+		}
+		if (node?.type === 'SwitchStatement') {
+			return false;
+		}
+		if (
+			node?.type === 'ForOfStatement' ||
+			node?.type === 'ForStatement' ||
+			node?.type === 'ForInStatement' ||
+			node?.type === 'WhileStatement' ||
+			node?.type === 'DoWhileStatement'
+		) {
+			return true;
+		}
+	}
+	return false;
+}
 
 /**
  * Build a `transform()` function for a specific JSX platform (React, Preact,
@@ -104,6 +169,11 @@ export function createJsxTransform(platform) {
 			needs_error_boundary: false,
 			needs_suspense: false,
 			needs_merge_refs: false,
+			needs_ref_prop: false,
+			needs_normalize_spread_props: false,
+			needs_fragment: false,
+			module_scoped_hook_components:
+				options?.moduleScopedHookComponents ?? !!platform.hooks?.moduleScopedHookComponents,
 			helper_state: null,
 			available_bindings: new Map(),
 			lazy_next_id: 0,
@@ -112,17 +182,42 @@ export function createJsxTransform(platform) {
 			collect,
 			errors: collect ? options?.errors : undefined,
 			comments: options?.comments,
+			typeOnly: !!options?.typeOnly,
 			// Platforms can seed their own tracking state (e.g. solid's
 			// needs_show / needs_for flags) via `hooks.initialState`.
 			...(platform.hooks?.initialState?.() ?? {}),
 		};
 
-		preallocate_lazy_ids(/** @type {any} */ (ast), transform_context);
+		if (!transform_context.typeOnly) {
+			preallocate_lazy_ids(/** @type {any} */ (ast), transform_context);
+		}
 
 		walk(/** @type {any} */ (ast), transform_context, {
 			ReturnStatement(node, { next, path }) {
 				if (get_component_from_path(path)) {
-					validate_component_return_statement(
+					if (is_inside_component_for_of(path)) {
+						validate_component_loop_return_statement(
+							node,
+							filename,
+							transform_context.errors,
+							transform_context.comments,
+						);
+					} else {
+						validate_component_return_statement(
+							node,
+							filename,
+							transform_context.errors,
+							transform_context.comments,
+						);
+					}
+				}
+
+				return next();
+			},
+
+			BreakStatement(node, { next, path }) {
+				if (get_component_from_path(path) && break_targets_component_loop(path)) {
+					validate_component_loop_break_statement(
 						node,
 						filename,
 						transform_context.errors,
@@ -133,8 +228,77 @@ export function createJsxTransform(platform) {
 				return next();
 			},
 
+			ForStatement(node, { next, path }) {
+				if (get_component_from_path(path)) {
+					validate_component_unsupported_loop_statement(
+						node,
+						filename,
+						transform_context.errors,
+						transform_context.comments,
+					);
+				}
+
+				return next();
+			},
+
+			ForInStatement(node, { next, path }) {
+				if (get_component_from_path(path)) {
+					validate_component_unsupported_loop_statement(
+						node,
+						filename,
+						transform_context.errors,
+						transform_context.comments,
+					);
+				}
+
+				return next();
+			},
+
+			WhileStatement(node, { next, path }) {
+				if (get_component_from_path(path)) {
+					validate_component_unsupported_loop_statement(
+						node,
+						filename,
+						transform_context.errors,
+						transform_context.comments,
+					);
+				}
+
+				return next();
+			},
+
+			DoWhileStatement(node, { next, path }) {
+				if (get_component_from_path(path)) {
+					validate_component_unsupported_loop_statement(
+						node,
+						filename,
+						transform_context.errors,
+						transform_context.comments,
+					);
+				}
+
+				return next();
+			},
+
+			ClassBody(node, { next }) {
+				validate_class_component_declarations(
+					/** @type {any} */ (node),
+					filename,
+					transform_context.errors,
+					transform_context.comments,
+				);
+				return next();
+			},
+
 			Component(node, { next, state }) {
 				const as_any = /** @type {any} */ (node);
+
+				validate_component_params(
+					as_any,
+					filename,
+					transform_context.errors,
+					transform_context.comments,
+				);
 
 				const await_expression = find_first_top_level_await_in_component_body(as_any.body || []);
 
@@ -220,13 +384,20 @@ export function createJsxTransform(platform) {
 
 			Tsx(node, { next, path }) {
 				const inner = /** @type {any} */ (next() ?? node);
-				return /** @type {any} */ (tsx_node_to_jsx_expression(inner, in_jsx_child_context(path)));
+				const in_jsx_child = in_jsx_child_context(path);
+				return /** @type {any} */ (
+					wrap_jsx_setup_declarations(tsx_node_to_jsx_expression(inner, in_jsx_child), in_jsx_child)
+				);
 			},
 
 			TsxCompat(node, { next, path, state }) {
 				const inner = /** @type {any} */ (next() ?? node);
+				const in_jsx_child = in_jsx_child_context(path);
 				return /** @type {any} */ (
-					tsx_compat_node_to_jsx_expression(inner, state, in_jsx_child_context(path))
+					wrap_jsx_setup_declarations(
+						tsx_compat_node_to_jsx_expression(inner, state, in_jsx_child),
+						in_jsx_child,
+					)
 				);
 			},
 
@@ -254,14 +425,13 @@ export function createJsxTransform(platform) {
 				return /** @type {any} */ (to_jsx_expression_container(inner.expression, inner));
 			},
 
-			MemberExpression(node, { next, state }) {
-				const as_any = /** @type {any} */ (node);
-				if (as_any.object && as_any.object.type === 'StyleIdentifier' && state.current_css_hash) {
-					const class_name = as_any.computed ? as_any.property.value : as_any.property.name;
-					const value = `${state.current_css_hash} ${class_name}`;
-					return /** @type {any} */ ({ type: 'Literal', value, raw: JSON.stringify(value) });
-				}
-				return next();
+			Style(node, { state, path }) {
+				validate_style_directive(node, state, path);
+				const class_name = typeof node.value.value === 'string' ? node.value.value : '';
+				const value = state.current_css_hash
+					? `${state.current_css_hash} ${class_name}`
+					: class_name;
+				return /** @type {any} */ (b.literal(value, node));
 			},
 
 			// Default .metadata on every function-like node so downstream consumers
@@ -271,6 +441,27 @@ export function createJsxTransform(platform) {
 			FunctionDeclaration: ensure_function_metadata,
 			FunctionExpression: ensure_function_metadata,
 			ArrowFunctionExpression: ensure_function_metadata,
+
+			RefExpression(node) {
+				return create_ref_prop_call(node, transform_context);
+			},
+
+			JSXOpeningElement(node, { next }) {
+				const visited = next() || node;
+				const is_component = is_component_like_jsx_name(visited.name);
+				const attrs = normalize_named_ref_attributes(
+					visited.attributes || [],
+					!is_component,
+					transform_context,
+				);
+				return {
+					...visited,
+					attributes: merge_duplicate_refs(
+						normalize_host_ref_spreads(attrs, !is_component, transform_context),
+						transform_context,
+					),
+				};
+			},
 		});
 
 		const expanded = expand_component_helpers(/** @type {AST.Program} */ (transformed));
@@ -284,8 +475,15 @@ export function createJsxTransform(platform) {
 		// declarations, arrow functions, etc.). Component bodies have already been
 		// transformed inside component_to_function_declaration; this catches plain
 		// functions outside components and any lazy patterns in module scope.
+		// In type-only mode, the lazy patterns survive untouched: esrap ignores the
+		// non-standard `lazy` flag, so `&{ a, b }` prints as `{ a, b }`, `let &[a]
+		// = expr` prints as `let [a] = expr`, and the bare statement-level form
+		// `&[x] = expr;` (used when `x` is already declared) prints as `[x] =
+		// expr;` — a valid destructuring assignment to the existing binding.
 		const final_program = /** @type {any} */ (
-			apply_lazy_transforms(/** @type {any} */ (expanded), new Map())
+			transform_context.typeOnly
+				? expanded
+				: apply_lazy_transforms(/** @type {any} */ (expanded), new Map())
 		);
 
 		const result = print(/** @type {any} */ (final_program), tsx_with_ts_locations(), {
@@ -293,17 +491,11 @@ export function createJsxTransform(platform) {
 			sourceMapContent: source,
 		});
 
-		const css =
-			stylesheets.length > 0
-				? {
-						code: renderStylesheets(
-							/** @type {any} */ (stylesheets.map(prepare_stylesheet_for_render)),
-						),
-						hash: stylesheets.map((s) => s.hash).join(' '),
-					}
-				: null;
+		const { css, cssHash } = render_css_result(
+			/** @type {any} */ (stylesheets.map(prepare_stylesheet_for_render)),
+		);
 
-		return { ast: final_program, code: result.code, map: result.map, css };
+		return { ast: final_program, code: result.code, map: result.map, css, cssHash };
 	}
 
 	return transform;
@@ -351,7 +543,7 @@ function has_use_server_directive(program) {
  * @param {any} component
  * @param {TransformContext} transform_context
  * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] }} [walk_helper_state]
- * @returns {AST.FunctionDeclaration}
+ * @returns {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression}
  */
 export function component_to_function_declaration(component, transform_context, walk_helper_state) {
 	const helper_state = walk_helper_state || create_helper_state(component.id?.name || 'Component');
@@ -367,7 +559,11 @@ export function component_to_function_declaration(component, transform_context, 
 	// Collect lazy binding info WITHOUT mutating patterns. Stores lazy_id on metadata
 	// for later replacement. Body bindings (count, setCount, etc.) are still in the
 	// original patterns, so collect_statement_bindings during build will find them.
-	const lazy_bindings = collect_lazy_bindings_from_component(params, body, transform_context);
+	// In type-only mode the lazy rewrite is skipped entirely so destructuring
+	// patterns survive into the virtual TSX and TypeScript can flow real types.
+	const lazy_bindings = transform_context.typeOnly
+		? new Map()
+		: collect_lazy_bindings_from_component(params, body, transform_context);
 
 	// Save and set context for this component scope
 	const saved_helper_state = transform_context.helper_state;
@@ -391,28 +587,62 @@ export function component_to_function_declaration(component, transform_context, 
 	const final_body =
 		lazy_bindings.size > 0 ? apply_lazy_transforms(body_block, lazy_bindings) : body_block;
 
-	const fn = /** @type {any} */ ({
-		type: 'FunctionDeclaration',
-		id: component.id,
-		typeParameters: component.typeParameters,
-		params: final_params,
-		body: final_body,
-		async: is_async_component,
-		generator: false,
-		metadata: {
-			path: [],
-			is_component: true,
-		},
-	});
+	/** @type {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression} */
+	let fn;
+
+	if (component.id) {
+		fn = /** @type {any} */ ({
+			type: 'FunctionDeclaration',
+			id: component.id,
+			typeParameters: component.typeParameters,
+			params: final_params,
+			body: final_body,
+			async: is_async_component,
+			generator: false,
+			metadata: {
+				path: [],
+				is_component: true,
+			},
+		});
+	} else if (component.metadata?.arrow) {
+		fn = /** @type {any} */ ({
+			type: 'ArrowFunctionExpression',
+			typeParameters: component.typeParameters,
+			params: final_params,
+			body: final_body,
+			async: is_async_component,
+			generator: false,
+			expression: false,
+			metadata: {
+				path: [],
+				is_component: true,
+			},
+		});
+	} else {
+		fn = /** @type {any} */ ({
+			type: 'FunctionExpression',
+			id: null,
+			typeParameters: component.typeParameters,
+			params: final_params,
+			body: final_body,
+			async: is_async_component,
+			generator: false,
+			metadata: {
+				path: [],
+				is_component: true,
+			},
+		});
+	}
 
 	// Restore context
 	transform_context.helper_state = saved_helper_state;
 	transform_context.available_bindings = saved_bindings;
 
-	fn.metadata.generated_helpers = helper_state.helpers;
-	fn.metadata.generated_statics = helper_state.statics;
+	const fn_metadata = /** @type {any} */ (fn.metadata);
+	fn_metadata.generated_helpers = helper_state.helpers;
+	fn_metadata.generated_statics = helper_state.statics;
 
-	if (fn.id) {
+	if (fn.type === 'FunctionDeclaration' && fn.id) {
 		fn.id.metadata = /** @type {AST.Identifier['metadata']} */ ({
 			...fn.id.metadata,
 			is_component: true,
@@ -441,6 +671,7 @@ function build_component_statements(body_nodes, transform_context) {
 function build_render_statements(body_nodes, return_null_when_empty, transform_context) {
 	const statements = [];
 	const render_nodes = [];
+	let has_bare_return = false;
 
 	// Create a new bindings map so inner-scope bindings from
 	// collect_statement_bindings don't leak to the caller's scope.
@@ -453,6 +684,10 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 	// any JSX is constructed, and every JSX child would observe the final
 	// state of mutable variables.
 	const interleaved = is_interleaved_body(body_nodes);
+	const capture_static_early_return_nodes =
+		!interleaved &&
+		!transform_context.platform.hooks?.isTopLevelSetupCall &&
+		body_nodes.filter(is_returning_if_statement).length > 1;
 	let capture_index = 0;
 
 	for (let i = 0; i < body_nodes.length; i += 1) {
@@ -461,6 +696,7 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 		if (is_bare_return_statement(child)) {
 			statements.push(create_component_return_statement(render_nodes, child));
 			render_nodes.length = 0;
+			has_bare_return = true;
 			continue;
 		}
 
@@ -475,6 +711,15 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 				transform_context,
 				true,
 			);
+
+			if (capture_static_early_return_nodes) {
+				capture_index = capture_static_early_return_render_nodes(
+					render_nodes,
+					statements,
+					capture_index,
+					transform_context,
+				);
+			}
 
 			if (branch_has_hooks || continuation_has_hooks) {
 				if (transform_context.platform.hooks?.isTopLevelSetupCall) {
@@ -691,6 +936,7 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 
 		if (is_jsx_child(child)) {
 			const jsx = to_jsx_child(child, transform_context);
+			statements.push(...extract_jsx_setup_declarations(jsx));
 			if (interleaved && is_capturable_jsx_child(jsx)) {
 				const { declaration, reference } = captureJsxChild(jsx, capture_index++);
 				statements.push(declaration);
@@ -698,6 +944,8 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 			} else {
 				render_nodes.push(jsx);
 			}
+		} else if (is_bare_render_expression(child)) {
+			render_nodes.push(to_jsx_expression_container(child, child));
 		} else {
 			statements.push(child);
 			collect_statement_bindings(child, transform_context.available_bindings);
@@ -709,7 +957,7 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 	}
 
 	const return_arg = build_return_expression(render_nodes);
-	if (return_arg || return_null_when_empty) {
+	if (return_arg || (return_null_when_empty && !has_bare_return)) {
 		statements.push({
 			type: 'ReturnStatement',
 			argument: return_arg || { type: 'Literal', value: null, raw: 'null' },
@@ -986,6 +1234,25 @@ function create_helper_state(base_name) {
 }
 
 /**
+ * @param {TransformContext} transform_context
+ * @returns {boolean}
+ */
+function should_use_module_scoped_hook_components(transform_context) {
+	return !!(transform_context.helper_state && transform_context.module_scoped_hook_components);
+}
+
+/**
+ * @param {AST.Identifier} helper_id
+ * @param {TransformContext} transform_context
+ * @returns {AST.Identifier}
+ */
+function create_module_scoped_hook_component_id(helper_id, transform_context) {
+	return create_generated_identifier(
+		`${transform_context.helper_state?.base_name || 'Component'}__${helper_id.name}`,
+	);
+}
+
+/**
  * @param {any[]} params
  * @returns {Map<string, AST.Identifier>}
  */
@@ -1154,14 +1421,67 @@ function hoist_static_render_nodes(render_nodes, transform_context) {
 }
 
 /**
+ * Static JSX that appears before multiple early-return guards is otherwise
+ * cloned into every generated return. Capture it once at its source position
+ * and reuse the reference, matching the interleaved-statement capture path
+ * without moving dynamic render-time expressions across guards.
+ *
+ * @param {any[]} render_nodes
+ * @param {any[]} statements
+ * @param {number} capture_index
+ * @param {TransformContext} transform_context
+ * @returns {number}
+ */
+function capture_static_early_return_render_nodes(
+	render_nodes,
+	statements,
+	capture_index,
+	transform_context,
+) {
+	for (let i = 0; i < render_nodes.length; i += 1) {
+		const node = render_nodes[i];
+		if (!is_static_early_return_capture_node(node, transform_context)) {
+			continue;
+		}
+
+		const { declaration, reference } = captureJsxChild(node, capture_index++);
+		statements.push(declaration);
+		render_nodes[i] = reference;
+	}
+
+	return capture_index;
+}
+
+/**
+ * @param {any} node
+ * @param {TransformContext} transform_context
+ * @returns {boolean}
+ */
+function is_static_early_return_capture_node(node, transform_context) {
+	if (node?.type !== 'JSXElement' && node?.type !== 'JSXFragment') {
+		return false;
+	}
+	if (!is_hoist_safe_jsx_node(node)) {
+		return false;
+	}
+	if (
+		transform_context.platform.hooks?.canHoistStaticNode &&
+		!transform_context.platform.hooks.canHoistStaticNode(node, transform_context)
+	) {
+		return false;
+	}
+	return !references_scope_bindings(node, transform_context.available_bindings);
+}
+
+/**
  * @param {AST.Program} program
  * @returns {AST.Program}
  */
 function expand_component_helpers(program) {
 	program.body = program.body.flatMap((statement) => {
-		const meta = get_generated_component_metadata(statement);
-		const statics = meta?.generated_statics || [];
-		const helpers = meta?.generated_helpers || [];
+		const metas = get_generated_component_metadata_list(statement);
+		const statics = metas.flatMap((meta) => meta.generated_statics || []);
+		const helpers = metas.flatMap((meta) => meta.generated_helpers || []);
 		if (statics.length || helpers.length) {
 			return [...statics, ...helpers, statement];
 		}
@@ -1174,30 +1494,63 @@ function expand_component_helpers(program) {
 
 /**
  * Component hooks may replace a `Component` node with a function declaration,
- * variable declaration, or export-safe expression. Generated helper/statics
- * metadata is carried on whichever replacement node the hook returns, so
- * helper expansion must read metadata from that broader set.
+ * variable declaration, object literal member, or export-safe expression.
+ * Generated helper/statics metadata is carried on whichever replacement node
+ * the hook returns, so helper expansion must read metadata from that broader
+ * set.
  *
  * @param {any} node
- * @returns {{ generated_helpers?: any[], generated_statics?: any[] } | null}
+ * @returns {{ generated_helpers?: any[], generated_statics?: any[] }[]}
  */
-function get_generated_component_metadata(node) {
-	if (!node || typeof node !== 'object') {
-		return null;
-	}
+function get_generated_component_metadata_list(node) {
+	/** @type {{ generated_helpers?: any[], generated_statics?: any[] }[]} */
+	const metas = [];
+	const seen_nodes = new Set();
+	const seen_metas = new Set();
 
-	if (node.metadata?.generated_helpers || node.metadata?.generated_statics) {
-		return node.metadata;
-	}
+	/** @param {any} current */
+	const visit = (current) => {
+		if (!current || typeof current !== 'object' || seen_nodes.has(current)) {
+			return;
+		}
 
-	if (
-		(node.type === 'ExportNamedDeclaration' || node.type === 'ExportDefaultDeclaration') &&
-		node.declaration?.metadata
-	) {
-		return node.declaration.metadata;
-	}
+		seen_nodes.add(current);
 
-	return null;
+		if (current.metadata?.generated_helpers || current.metadata?.generated_statics) {
+			if (!seen_metas.has(current.metadata)) {
+				seen_metas.add(current.metadata);
+				metas.push(current.metadata);
+			}
+			return;
+		}
+
+		if (
+			current.type === 'FunctionDeclaration' ||
+			current.type === 'FunctionExpression' ||
+			current.type === 'ArrowFunctionExpression'
+		) {
+			return;
+		}
+
+		for (const key of Object.keys(current)) {
+			if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+				continue;
+			}
+
+			const value = current[key];
+			if (Array.isArray(value)) {
+				for (const child of value) {
+					visit(child);
+				}
+			} else {
+				visit(value);
+			}
+		}
+	};
+
+	visit(node);
+
+	return metas;
 }
 
 /**
@@ -1254,9 +1607,7 @@ function create_component_return_statement(
 	map_render_node_locations = true,
 ) {
 	const cloned = render_nodes.map((node) =>
-		map_render_node_locations
-			? clone_expression_node(node)
-			: clone_expression_node_without_locations(node),
+		map_render_node_locations ? clone_expression_node(node) : clone_expression_node(node, false),
 	);
 
 	return set_loc(b.return(build_return_expression(cloned) || create_null_literal()), source_node);
@@ -1323,7 +1674,7 @@ function build_tail_helper(continuation_body, source_node, transform_context) {
  * @returns {any}
  */
 function clone_tail_invocation(tail_helper) {
-	return clone_expression_node_without_locations(tail_helper.component_element);
+	return clone_expression_node(tail_helper.component_element, false);
 }
 
 /**
@@ -1338,6 +1689,126 @@ function clone_tail_invocation(tail_helper) {
  */
 function append_tail_invocation(body, tail_helper) {
 	return [...body, clone_tail_invocation(tail_helper)];
+}
+
+/**
+ * @param {AST.Identifier} tail_synthetic_id
+ * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
+ * @returns {any}
+ */
+function create_loop_tail_expression(tail_synthetic_id, tail_helper) {
+	return b.logical('&&', clone_identifier(tail_synthetic_id), clone_tail_invocation(tail_helper));
+}
+
+/**
+ * @param {AST.Identifier} tail_synthetic_id
+ * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
+ * @returns {any}
+ */
+function create_loop_tail_conditional(tail_synthetic_id, tail_helper) {
+	return b.conditional(
+		clone_identifier(tail_synthetic_id),
+		clone_tail_invocation(tail_helper),
+		create_null_literal(),
+	);
+}
+
+/**
+ * @param {any[]} statements
+ * @param {AST.Identifier} tail_synthetic_id
+ * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
+ * @returns {void}
+ */
+function append_loop_tail_to_return_statements(statements, tail_synthetic_id, tail_helper) {
+	for (const statement of statements) {
+		append_loop_tail_to_return_statement(statement, tail_synthetic_id, tail_helper, false);
+	}
+}
+
+/**
+ * @param {any} node
+ * @param {AST.Identifier} tail_synthetic_id
+ * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
+ * @param {boolean} inside_nested_function
+ * @returns {void}
+ */
+function append_loop_tail_to_return_statement(
+	node,
+	tail_synthetic_id,
+	tail_helper,
+	inside_nested_function,
+) {
+	if (!node || typeof node !== 'object') {
+		return;
+	}
+
+	if (
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression'
+	) {
+		inside_nested_function = true;
+	}
+
+	if (!inside_nested_function && node.type === 'ReturnStatement') {
+		if (
+			references_scope_bindings(
+				node.argument,
+				new Map([[tail_synthetic_id.name, tail_synthetic_id]]),
+			)
+		) {
+			return;
+		}
+		node.argument = append_loop_tail_to_return_argument(
+			node.argument,
+			tail_synthetic_id,
+			tail_helper,
+		);
+		return;
+	}
+
+	if (Array.isArray(node)) {
+		for (const child of node) {
+			append_loop_tail_to_return_statement(
+				child,
+				tail_synthetic_id,
+				tail_helper,
+				inside_nested_function,
+			);
+		}
+		return;
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		append_loop_tail_to_return_statement(
+			node[key],
+			tail_synthetic_id,
+			tail_helper,
+			inside_nested_function,
+		);
+	}
+}
+
+/**
+ * @param {any} return_argument
+ * @param {AST.Identifier} tail_synthetic_id
+ * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
+ * @returns {any}
+ */
+function append_loop_tail_to_return_argument(return_argument, tail_synthetic_id, tail_helper) {
+	if (return_argument == null || is_null_literal(return_argument)) {
+		return create_loop_tail_conditional(tail_synthetic_id, tail_helper);
+	}
+
+	return (
+		build_return_expression([
+			return_argument_to_render_node(return_argument),
+			to_jsx_expression_container(create_loop_tail_expression(tail_synthetic_id, tail_helper)),
+		]) || create_null_literal()
+	);
 }
 
 /**
@@ -1704,7 +2175,11 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	}
 
 	const has_tail = continuation_body.length > 0;
-	const original_loop_body = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
+	const original_loop_body = /** @type {any[]} */ (
+		rewrite_loop_continues_to_bare_returns(
+			node.body.type === 'BlockStatement' ? node.body.body : [node.body],
+		)
+	);
 
 	// When there's a tail, build TailHelper first so its component_element can
 	// be embedded inside the loop helper's body (gated on isLast). The
@@ -1721,18 +2196,13 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	} else {
 		tail_synthetic_id = /** @type {any} */ (null);
 	}
-	const loop_body = has_tail
-		? [
-				...original_loop_body,
-				b.jsx_expression_container(
-					b.logical(
-						'&&',
-						clone_identifier(tail_synthetic_id),
-						clone_tail_invocation(/** @type {any} */ (tail_helper)),
-					),
-				),
-			]
-		: original_loop_body;
+	const loop_tail_expression = has_tail
+		? create_loop_tail_expression(tail_synthetic_id, /** @type {any} */ (tail_helper))
+		: null;
+	const loop_body =
+		has_tail && loop_tail_expression
+			? [...original_loop_body, b.jsx_expression_container(loop_tail_expression)]
+			: original_loop_body;
 
 	const source_id = create_generated_identifier(
 		`_tsrx_iteration_items_${transform_context.local_statement_component_index + 1}`,
@@ -1759,27 +2229,33 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	const helper_id = create_generated_identifier(
 		create_local_statement_component_name(transform_context),
 	);
+	const use_module_scoped_component = should_use_module_scoped_hook_components(transform_context);
+	const component_id = use_module_scoped_component
+		? create_module_scoped_hook_component_id(helper_id, transform_context)
+		: helper_id;
 
-	const outer_aliases = outer_bindings.map((binding) =>
-		create_helper_type_alias_declaration(helper_id, binding),
-	);
-	const loop_aliases = loop_bindings.map((binding) =>
-		create_loop_scoped_type_alias_declaration(helper_id, binding, source_id, loop_params),
-	);
+	const outer_aliases = use_module_scoped_component
+		? []
+		: outer_bindings.map((binding) => create_helper_type_alias_declaration(helper_id, binding));
+	const loop_aliases = use_module_scoped_component
+		? []
+		: loop_bindings.map((binding) =>
+				create_loop_scoped_type_alias_declaration(helper_id, binding, source_id, loop_params),
+			);
 
 	// Synthetic `isLast` prop on the loop helper when there's a tail. It's
-	// passed from the .map callback as `i === source.length - 1` so the loop
-	// helper renders the tail helper only on the last iteration. We do not
-	// gate on this prop's value here — the JSXLogicalExpression appended to
-	// `loop_body` does the gating at render time.
+	// passed from the .map callback as `i === source.length - 1` so every
+	// loop-helper return can append the tail helper on the last iteration.
 	const tail_isLast_alias = has_tail
-		? {
-				id: create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
-				declaration: b.ts_type_alias(
-					create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
-					b.ts_keyword_type('boolean'),
-				),
-			}
+		? use_module_scoped_component
+			? null
+			: {
+					id: create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
+					declaration: b.ts_type_alias(
+						create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
+						b.ts_keyword_type('boolean'),
+					),
+				}
 		: null;
 
 	const ordered_bindings = [...outer_bindings, ...loop_bindings];
@@ -1793,7 +2269,7 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	const signature_use_typeof = has_tail ? [...ordered_use_typeof, false] : ordered_use_typeof;
 
 	const props_type =
-		signature_bindings.length > 0
+		signature_bindings.length > 0 && !use_module_scoped_component
 			? create_helper_props_type_literal_with_typeof_flags(
 					signature_bindings,
 					signature_aliases,
@@ -1801,7 +2277,13 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 				)
 			: null;
 	const params =
-		props_type !== null ? [create_typed_helper_props_pattern(signature_bindings, props_type)] : [];
+		signature_bindings.length > 0
+			? [
+					props_type !== null
+						? create_typed_helper_props_pattern(signature_bindings, props_type)
+						: create_helper_props_pattern(signature_bindings),
+				]
+			: [];
 
 	const fn_saved_bindings = transform_context.available_bindings;
 	transform_context.available_bindings = new Map(fn_saved_bindings);
@@ -1809,15 +2291,27 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 		transform_context.available_bindings.set(tail_synthetic_id.name, tail_synthetic_id);
 	}
 	const fn_body_statements = build_render_statements(loop_body, true, transform_context);
+	if (has_tail) {
+		append_loop_tail_to_return_statements(
+			fn_body_statements,
+			tail_synthetic_id,
+			/** @type {any} */ (tail_helper),
+		);
+	}
 	transform_context.available_bindings = fn_saved_bindings;
 
 	const helper_fn = /** @type {any} */ (
-		b.function(clone_identifier(helper_id), params, b.block(fn_body_statements))
+		b.function(clone_identifier(component_id), params, b.block(fn_body_statements))
 	);
 	helper_fn.metadata = { path: [], is_component: true, is_method: false };
 
 	let helper_decl;
-	if (transform_context.helper_state) {
+	if (transform_context.helper_state && use_module_scoped_component) {
+		transform_context.helper_state.helpers.push(
+			create_helper_declaration(component_id, helper_fn, node, transform_context),
+		);
+		helper_decl = null;
+	} else if (transform_context.helper_state) {
 		const cache_id = create_generated_identifier(
 			`${transform_context.helper_state.base_name}__${helper_id.name}`,
 		);
@@ -1834,7 +2328,7 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	transform_context.available_bindings = saved_bindings;
 
 	const callback_invocation_element = create_helper_component_element(
-		helper_id,
+		component_id,
 		ordered_bindings,
 		node,
 		{ mapWrapper: false, mapBindingNames: false, mapBindingValues: false },
@@ -1852,7 +2346,7 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 		index_identifier = null;
 	}
 
-	const body_key_expression = find_key_expression_in_body(loop_body);
+	const body_key_expression = find_key_expression_in_body(original_loop_body);
 	const explicit_key_expression =
 		body_key_expression ?? (node.key ? clone_expression_node(node.key) : undefined);
 	const key_expression =
@@ -1915,7 +2409,9 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	if (has_tail && tail_isLast_alias) {
 		hoist_statements.push(tail_isLast_alias.declaration);
 	}
-	hoist_statements.push(helper_decl);
+	if (helper_decl) {
+		hoist_statements.push(helper_decl);
+	}
 
 	return {
 		hoist_statements,
@@ -2086,9 +2582,9 @@ function prepend_render_nodes_to_return_statement(node, render_nodes, inside_nes
  * @returns {any}
  */
 function combine_render_return_argument(render_nodes, return_argument) {
-	const combined = render_nodes.map((node) => clone_expression_node_without_locations(node));
+	const combined = render_nodes.map((node) => clone_expression_node(node, false));
 
-	if (!is_null_literal(return_argument)) {
+	if (return_argument != null && !is_null_literal(return_argument)) {
 		combined.push(return_argument_to_render_node(return_argument));
 	}
 
@@ -2117,30 +2613,6 @@ function return_argument_to_render_node(argument) {
  */
 function is_null_literal(node) {
 	return node?.type === 'Literal' && node.value == null;
-}
-
-/**
- * @param {any} node
- * @returns {any}
- */
-function clone_expression_node_without_locations(node) {
-	if (!node || typeof node !== 'object') return node;
-	if (Array.isArray(node)) return node.map(clone_expression_node_without_locations);
-
-	const clone = { ...node };
-	delete clone.loc;
-	delete clone.start;
-	delete clone.end;
-
-	for (const key of Object.keys(clone)) {
-		if (key === 'metadata') {
-			clone.metadata = clone.metadata ? { ...clone.metadata } : { path: [] };
-			continue;
-		}
-		clone[key] = clone_expression_node_without_locations(clone[key]);
-	}
-
-	return clone;
 }
 
 const TEMPLATE_FRAGMENT_ERROR =
@@ -2209,7 +2681,12 @@ function to_jsx_element(node, transform_context, raw_children = node.children ||
 		(/** @type {any} */ attribute) => attribute?.metadata?.has_unmappable_value,
 	);
 
-	const opening_element_node = b.jsx_opening_element(name, attributes, selfClosing);
+	const opening_element_node = b.jsx_opening_element(
+		name,
+		attributes,
+		selfClosing,
+		node.openingElement?.typeArguments,
+	);
 	const openingElement = has_unmappable_attribute
 		? opening_element_node
 		: set_loc(opening_element_node, node.openingElement || node);
@@ -2370,8 +2847,8 @@ function create_local_statement_component_name(transform_context) {
 /**
  * Wraps a list of body nodes into a component and returns
  * statements that return `<ComponentName prop1={prop1} ... />`.
- * The component is hoisted to module level via helper_state to avoid
- * recreating the component identity on every render.
+ * Targets can either emit the helper component at module scope or cache the
+ * component identity in module state while initializing it from the parent.
  * Used when a control flow branch contains hook calls that must be moved
  * into their own component boundary to satisfy the Rules of Hooks.
  *
@@ -2444,24 +2921,36 @@ function create_hook_safe_helper(
 	const helper_id =
 		preallocated_helper_id ??
 		create_generated_identifier(create_local_statement_component_name(transform_context));
+	const use_module_scoped_component = should_use_module_scoped_hook_components(transform_context);
+	const component_id = use_module_scoped_component
+		? create_module_scoped_hook_component_id(helper_id, transform_context)
+		: helper_id;
 	const helper_bindings = get_referenced_helper_bindings(
 		body_nodes,
 		transform_context.available_bindings,
 	);
-	const aliases = helper_bindings.map((binding) =>
-		create_helper_type_alias_declaration(helper_id, binding),
-	);
+	const aliases = use_module_scoped_component
+		? []
+		: helper_bindings.map((binding) => create_helper_type_alias_declaration(helper_id, binding));
 	const props_type =
-		helper_bindings.length > 0 ? create_helper_props_type_literal(helper_bindings, aliases) : null;
+		helper_bindings.length > 0 && !use_module_scoped_component
+			? create_helper_props_type_literal(helper_bindings, aliases)
+			: null;
 	const params =
-		props_type !== null ? [create_typed_helper_props_pattern(helper_bindings, props_type)] : [];
+		helper_bindings.length > 0
+			? [
+					props_type !== null
+						? create_typed_helper_props_pattern(helper_bindings, props_type)
+						: create_helper_props_pattern(helper_bindings),
+				]
+			: [];
 
 	const saved_bindings = transform_context.available_bindings;
 	transform_context.available_bindings = new Map(saved_bindings);
 
 	const helper_fn = /** @type {any} */ ({
 		type: 'FunctionExpression',
-		id: clone_identifier(helper_id),
+		id: clone_identifier(component_id),
 		params,
 		body: {
 			type: 'BlockStatement',
@@ -2480,7 +2969,7 @@ function create_hook_safe_helper(
 	transform_context.available_bindings = saved_bindings;
 
 	const component_element = create_helper_component_element(
-		helper_id,
+		component_id,
 		helper_bindings,
 		source_node,
 		{
@@ -2507,6 +2996,16 @@ function create_hook_safe_helper(
 				...aliases.map((alias) => alias.declaration),
 				create_helper_declaration(helper_id, helper_fn, source_node, transform_context),
 			],
+			component_element,
+		};
+	}
+
+	if (use_module_scoped_component) {
+		transform_context.helper_state.helpers.push(
+			create_helper_declaration(component_id, helper_fn, source_node, transform_context),
+		);
+		return {
+			setup_statements: [],
 			component_element,
 		};
 	}
@@ -2769,6 +3268,108 @@ function get_body_source_node(body_nodes) {
 /**
  * @param {any} node
  * @param {TransformContext} transform_context
+ * @param {any[]} path
+ */
+function validate_style_directive(node, transform_context, path) {
+	const { attribute, element } = get_style_attribute_context(node, path);
+
+	if (!attribute) {
+		error(
+			'`{style "class_name"}` can only be used as an element attribute value.',
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
+		);
+	}
+
+	if (element && is_dom_style_target(element)) {
+		error(
+			'`{style "class_name"}` cannot be used directly on DOM elements. Pass the class to a child component instead.',
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
+		);
+	}
+
+	if (!transform_context.current_css_hash) {
+		error(
+			'`{style "class_name"}` requires a <style> block in the current component.',
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
+		);
+	}
+}
+
+/**
+ * @param {any} node
+ * @param {any[]} path
+ * @returns {{ attribute: any, element: any }}
+ */
+function get_style_attribute_context(node, path) {
+	const parent = path.at(-1);
+	const attribute =
+		parent?.type === 'Attribute' && parent.value === node
+			? parent
+			: path
+					.findLast((ancestor) => ancestor?.type === 'Element')
+					?.attributes?.find(
+						(/** @type {any} */ attr) =>
+							attr?.type === 'Attribute' &&
+							(attr.value === node || node_contains(attr.value, node)),
+					);
+	const element = path.findLast(
+		(ancestor) =>
+			ancestor?.type === 'Element' &&
+			(!attribute || ancestor.attributes?.some((/** @type {any} */ attr) => attr === attribute)),
+	);
+
+	return { attribute: attribute ?? null, element: element ?? null };
+}
+
+/**
+ * @param {any} root
+ * @param {any} target
+ * @returns {boolean}
+ */
+function node_contains(root, target) {
+	if (!root || typeof root !== 'object') {
+		return false;
+	}
+	if (root === target) {
+		return true;
+	}
+	if (Array.isArray(root)) {
+		return root.some((child) => node_contains(child, target));
+	}
+	for (const key of Object.keys(root)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		if (node_contains(root[key], target)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * @param {any} element
+ * @returns {boolean}
+ */
+function is_dom_style_target(element) {
+	if (!element?.id || is_dynamic_element_id(element.id)) {
+		return false;
+	}
+	return element.id.type === 'Identifier' && /^[a-z]/.test(element.id.name);
+}
+
+/**
+ * @param {any} node
+ * @param {TransformContext} transform_context
  * @returns {any}
  */
 function to_jsx_child(node, transform_context) {
@@ -2944,6 +3545,71 @@ function find_key_expression_in_body(body_nodes) {
 }
 
 /**
+ * @param {any} source_node
+ * @returns {any}
+ */
+function continue_to_bare_return(source_node) {
+	return set_loc(
+		/** @type {any} */ ({
+			type: 'ReturnStatement',
+			argument: null,
+			metadata: { path: [] },
+		}),
+		source_node,
+	);
+}
+
+/**
+ * `continue` in a component `for...of` body means "skip this item". JSX targets
+ * lower `for...of` to callbacks, so a raw ContinueStatement would be invalid JS;
+ * a bare `return` from the callback preserves the item-skip behavior.
+ *
+ * @param {any[] | any} node
+ * @param {boolean} [is_root]
+ * @returns {any[] | any}
+ */
+export function rewrite_loop_continues_to_bare_returns(node, is_root = true) {
+	if (Array.isArray(node)) {
+		return node.map((child) => rewrite_loop_continues_to_bare_returns(child, false));
+	}
+
+	if (!node || typeof node !== 'object') {
+		return node;
+	}
+
+	if (node.type === 'ContinueStatement') {
+		return continue_to_bare_return(node);
+	}
+
+	if (is_function_or_class_boundary(node) || (!is_root && is_loop_statement(node))) {
+		return node;
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		node[key] = rewrite_loop_continues_to_bare_returns(node[key], false);
+	}
+
+	return node;
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_loop_statement(node) {
+	return (
+		node?.type === 'ForOfStatement' ||
+		node?.type === 'ForStatement' ||
+		node?.type === 'ForInStatement' ||
+		node?.type === 'WhileStatement' ||
+		node?.type === 'DoWhileStatement'
+	);
+}
+
+/**
  * @param {any} node
  * @param {TransformContext} transform_context
  * @returns {ESTreeJSX.JSXExpressionContainer}
@@ -2960,7 +3626,11 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	}
 
 	const loop_params = get_for_of_iteration_params(node.left, node.index);
-	const loop_body = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
+	const loop_body = /** @type {any[]} */ (
+		rewrite_loop_continues_to_bare_returns(
+			node.body.type === 'BlockStatement' ? node.body.body : [node.body],
+		)
+	);
 	const has_hooks = body_contains_top_level_hook_call(loop_body, transform_context, true);
 	const body_key_expression = find_key_expression_in_body(loop_body);
 	const explicit_key_expression =
@@ -2985,13 +3655,13 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 		collect_pattern_bindings(param, transform_context.available_bindings);
 	}
 
+	if (implicit_non_hook_key_expression && should_apply_key_to_loop_body(loop_body)) {
+		apply_key_to_loop_body(loop_body, implicit_non_hook_key_expression);
+	}
+
 	const body_statements = has_hooks
 		? hook_safe_render_statements(loop_body, key_expression, transform_context)
 		: build_render_statements(loop_body, true, transform_context);
-
-	if (implicit_non_hook_key_expression) {
-		apply_key_to_render_statements(body_statements, implicit_non_hook_key_expression);
-	}
 
 	const platform_for_of = transform_context.platform.hooks?.renderForOf?.(
 		node,
@@ -3002,6 +3672,11 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	if (platform_for_of) {
 		transform_context.available_bindings = saved_bindings;
 		return platform_for_of;
+	}
+
+	const non_hook_key_expression = key_expression ?? implicit_non_hook_key_expression;
+	if (!has_hooks && non_hook_key_expression) {
+		apply_key_to_render_statements(body_statements, non_hook_key_expression, transform_context);
 	}
 
 	// Restore bindings
@@ -3041,19 +3716,33 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 }
 
 /**
- * @param {any[]} statements
+ * @param {any[]} body_nodes
  * @param {any} key_expression
  * @returns {void}
  */
-function apply_key_to_render_statements(statements, key_expression) {
-	for (let i = statements.length - 1; i >= 0; i -= 1) {
-		const statement = statements[i];
-		if (statement?.type !== 'ReturnStatement' || !statement.argument) {
-			continue;
+function apply_key_to_loop_body(body_nodes, key_expression) {
+	for (const node of body_nodes) {
+		if (node.type === 'Element') {
+			const attributes = node.attributes || (node.attributes = []);
+			const has_key = attributes.some((/** @type {any} */ attr) => {
+				const attr_name = typeof attr.name === 'string' ? attr.name : attr.name?.name;
+				return attr_name === 'key';
+			});
+
+			if (!has_key) {
+				attributes.push({
+					type: 'Attribute',
+					name: { type: 'Identifier', name: 'key', metadata: { path: [] } },
+					value: clone_expression_node(key_expression),
+					shorthand: false,
+					metadata: { path: [] },
+				});
+			}
+			return;
 		}
 
-		if (statement.argument.type === 'JSXElement') {
-			const attributes = statement.argument.openingElement?.attributes || [];
+		if (node.type === 'JSXElement') {
+			const attributes = node.openingElement?.attributes || [];
 			const has_key = attributes.some(
 				(/** @type {any} */ attr) =>
 					attr.type === 'JSXAttribute' &&
@@ -3074,10 +3763,90 @@ function apply_key_to_render_statements(statements, key_expression) {
 					}),
 				);
 			}
+			return;
+		}
+	}
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @returns {boolean}
+ */
+function should_apply_key_to_loop_body(body_nodes) {
+	let keyable_children = 0;
+	for (const node of body_nodes) {
+		if (node.type === 'Element' || node.type === 'JSXElement') {
+			keyable_children += 1;
+		}
+	}
+	return keyable_children === 1;
+}
+
+/**
+ * @param {any[]} statements
+ * @param {any} key_expression
+ * @param {TransformContext} transform_context
+ * @returns {void}
+ */
+function apply_key_to_render_statements(statements, key_expression, transform_context) {
+	for (let i = statements.length - 1; i >= 0; i -= 1) {
+		const statement = statements[i];
+		if (statement?.type !== 'ReturnStatement' || !statement.argument) {
+			continue;
+		}
+
+		if (statement.argument.type === 'JSXElement') {
+			apply_key_to_jsx_element(statement.argument, key_expression);
+		} else if (statement.argument.type === 'JSXFragment') {
+			transform_context.needs_fragment = true;
+			statement.argument = keyed_fragment_to_jsx_element(statement.argument, key_expression);
 		}
 
 		return;
 	}
+}
+
+/**
+ * @param {any} element
+ * @param {any} key_expression
+ * @returns {void}
+ */
+function apply_key_to_jsx_element(element, key_expression) {
+	const attributes = element.openingElement?.attributes || [];
+	const has_key = attributes.some(
+		(/** @type {any} */ attr) =>
+			attr.type === 'JSXAttribute' &&
+			attr.name?.type === 'JSXIdentifier' &&
+			attr.name.name === 'key',
+	);
+
+	if (!has_key) {
+		attributes.push(
+			b.jsx_attribute(
+				b.jsx_id('key'),
+				to_jsx_expression_container(clone_expression_node(key_expression), key_expression),
+			),
+		);
+	}
+}
+
+/**
+ * @param {any} fragment
+ * @param {any} key_expression
+ * @returns {any}
+ */
+function keyed_fragment_to_jsx_element(fragment, key_expression) {
+	const name = b.jsx_id('Fragment');
+	const key_attribute = b.jsx_attribute(
+		b.jsx_id('key'),
+		to_jsx_expression_container(clone_expression_node(key_expression), key_expression),
+	);
+
+	return b.jsx_element_fresh(
+		b.jsx_opening_element(name, [key_attribute]),
+		b.jsx_closing_element(clone_jsx_name(name)),
+		fragment.children,
+	);
 }
 
 /**
@@ -3367,6 +4136,27 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 	/** @type {any[]} */
 	const imports = [];
 
+	if (transform_context.needs_fragment && platform.imports.fragment) {
+		const fragment_source = platform.imports.fragment;
+		imports.push({
+			type: 'ImportDeclaration',
+			specifiers: [
+				{
+					type: 'ImportSpecifier',
+					imported: { type: 'Identifier', name: 'Fragment', metadata: { path: [] } },
+					local: { type: 'Identifier', name: 'Fragment', metadata: { path: [] } },
+					metadata: { path: [] },
+				},
+			],
+			source: {
+				type: 'Literal',
+				value: fragment_source,
+				raw: `'${fragment_source}'`,
+			},
+			metadata: { path: [] },
+		});
+	}
+
 	if (transform_context.needs_suspense) {
 		imports.push({
 			type: 'ImportDeclaration',
@@ -3416,30 +4206,79 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 		});
 	}
 
-	if (transform_context.needs_merge_refs && platform.imports.mergeRefs) {
-		const merge_refs_source = platform.imports.mergeRefs;
+	const merge_refs_source =
+		transform_context.needs_merge_refs && platform.imports.mergeRefs
+			? platform.imports.mergeRefs
+			: null;
+	const ref_prop_source =
+		transform_context.needs_ref_prop && platform.imports.refProp ? platform.imports.refProp : null;
+	const normalize_spread_props_source =
+		transform_context.needs_normalize_spread_props && platform.imports.refProp
+			? platform.imports.refProp
+			: null;
+
+	/** @type {Map<string, any[]>} */
+	const ref_imports = new Map();
+
+	if (merge_refs_source !== null) {
+		add_ref_import_specifier(ref_imports, merge_refs_source, {
+			type: 'ImportSpecifier',
+			imported: {
+				type: 'Identifier',
+				name: 'mergeRefs',
+				metadata: { path: [] },
+			},
+			local: {
+				type: 'Identifier',
+				name: MERGE_REFS_INTERNAL_NAME,
+				metadata: { path: [] },
+			},
+			metadata: { path: [] },
+		});
+	}
+
+	if (ref_prop_source !== null) {
+		add_ref_import_specifier(ref_imports, ref_prop_source, {
+			type: 'ImportSpecifier',
+			imported: {
+				type: 'Identifier',
+				name: 'create_ref_prop',
+				metadata: { path: [] },
+			},
+			local: {
+				type: 'Identifier',
+				name: CREATE_REF_PROP_INTERNAL_NAME,
+				metadata: { path: [] },
+			},
+			metadata: { path: [] },
+		});
+	}
+
+	if (normalize_spread_props_source !== null) {
+		add_ref_import_specifier(ref_imports, normalize_spread_props_source, {
+			type: 'ImportSpecifier',
+			imported: {
+				type: 'Identifier',
+				name: 'normalize_spread_props',
+				metadata: { path: [] },
+			},
+			local: {
+				type: 'Identifier',
+				name: NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
+				metadata: { path: [] },
+			},
+			metadata: { path: [] },
+		});
+	}
+
+	for (const [source, ref_specifiers] of ref_imports) {
 		imports.push({
 			type: 'ImportDeclaration',
-			specifiers: [
-				{
-					type: 'ImportSpecifier',
-					imported: {
-						type: 'Identifier',
-						name: 'mergeRefs',
-						metadata: { path: [] },
-					},
-					local: {
-						type: 'Identifier',
-						name: MERGE_REFS_LOCAL_NAME,
-						metadata: { path: [] },
-					},
-					metadata: { path: [] },
-				},
-			],
+			specifiers: ref_specifiers,
 			source: {
 				type: 'Literal',
-				value: merge_refs_source,
-				raw: `'${merge_refs_source}'`,
+				value: source,
+				raw: `'${source}'`,
 			},
 			metadata: { path: [] },
 		});
@@ -3447,6 +4286,20 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 
 	if (imports.length > 0) {
 		program.body.unshift(...imports);
+	}
+}
+
+/**
+ * @param {Map<string, any[]>} imports
+ * @param {string} source
+ * @param {any} specifier
+ */
+function add_ref_import_specifier(imports, source, specifier) {
+	const specifiers = imports.get(source);
+	if (specifiers) {
+		specifiers.push(specifier);
+	} else {
+		imports.set(source, [specifier]);
 	}
 }
 
@@ -3571,6 +4424,8 @@ function create_render_switch_case(switch_case, transform_context) {
 
 		if (is_jsx_child(child)) {
 			render_nodes.push(to_jsx_child(child, transform_context));
+		} else if (is_bare_render_expression(child)) {
+			render_nodes.push(to_jsx_expression_container(child, child));
 		} else {
 			case_body.push(child);
 		}
@@ -3634,6 +4489,8 @@ function to_jsx_expression_container(expression, source_node = expression) {
  */
 function transform_element_attributes_dispatch(attrs, transform_context, element) {
 	validate_at_most_one_ref_attribute(attrs, transform_context);
+	const is_component = is_component_like_element(element);
+	attrs = normalize_named_ref_attributes(attrs, !is_component, transform_context);
 	const preprocess = transform_context.platform.hooks?.preprocessElementAttributes;
 	if (preprocess) {
 		attrs = preprocess(attrs, transform_context, element);
@@ -3642,7 +4499,238 @@ function transform_element_attributes_dispatch(attrs, transform_context, element
 	const result = hook
 		? hook(attrs, transform_context, element)
 		: attrs.map((/** @type {any} */ a) => to_jsx_attribute(a, transform_context));
-	return merge_duplicate_refs(result, transform_context);
+	return merge_duplicate_refs(
+		normalize_host_ref_spreads(result, !is_component, transform_context),
+		transform_context,
+	);
+}
+
+/**
+ * @param {any} element
+ * @returns {boolean}
+ */
+function is_component_like_element(element) {
+	const id = element?.id;
+	if (!id) return false;
+	if (id.type === 'Identifier') return /^[A-Z]/.test(id.name);
+	if (id.type === 'JSXIdentifier') return /^[A-Z]/.test(id.name);
+	if (id.type === 'MemberExpression') return true;
+	if (id.type === 'JSXMemberExpression') return true;
+	return false;
+}
+
+/**
+ * @param {any} name
+ * @returns {boolean}
+ */
+function is_component_like_jsx_name(name) {
+	if (!name) return false;
+	if (name.type === 'JSXIdentifier') return /^[A-Z]/.test(name.name);
+	if (name.type === 'JSXMemberExpression') return true;
+	return false;
+}
+
+/**
+ * @param {any[]} attrs
+ * @param {boolean} is_host
+ * @param {TransformContext} transform_context
+ * @returns {any[]}
+ */
+function normalize_named_ref_attributes(attrs, is_host, transform_context) {
+	if (!is_host) return attrs;
+
+	return attrs.map((attr) => {
+		if (!is_named_ref_attribute(attr)) {
+			return attr;
+		}
+
+		if (transform_context.typeOnly) {
+			return mark_type_only_named_ref_attribute(attr);
+		}
+
+		return {
+			...attr,
+			metadata: { ...(attr.metadata || {}), from_ref_keyword: true },
+			name:
+				attr.name?.type === 'JSXIdentifier'
+					? { ...attr.name, name: 'ref' }
+					: { type: 'Identifier', name: 'ref', metadata: { path: [] } },
+		};
+	});
+}
+
+/**
+ * @param {any} attr
+ * @returns {any}
+ */
+function mark_type_only_named_ref_attribute(attr) {
+	return {
+		...attr,
+		name: attr.name
+			? {
+					...attr.name,
+					metadata: { ...(attr.name.metadata || {}), disable_verification: true },
+				}
+			: attr.name,
+	};
+}
+
+/**
+ * @param {any[]} attrs
+ * @param {boolean} is_host
+ * @param {TransformContext} transform_context
+ * @returns {any[]}
+ */
+function normalize_host_ref_spreads(attrs, is_host, transform_context) {
+	if (!is_host) return attrs;
+
+	const needs_explicit_spread_ref =
+		transform_context.platform.jsx?.hostSpreadRefStrategy === 'explicit-ref-attr';
+	const ref_exprs = attrs
+		.filter((attr) => is_jsx_ref_attribute(attr))
+		.map((attr) => attr.value.expression);
+	const needs_synthetic_spread_ref = needs_explicit_spread_ref || ref_exprs.length > 0;
+
+	return attrs.flatMap((attr) => {
+		if (!attr || attr.type !== 'JSXSpreadAttribute') {
+			return [attr];
+		}
+
+		transform_context.needs_normalize_spread_props = true;
+		const normalized = b.call(NORMALIZE_SPREAD_PROPS_INTERNAL_NAME, attr.argument);
+
+		if (needs_synthetic_spread_ref) {
+			const normalized_id = create_generated_identifier(
+				create_spread_props_name(transform_context),
+			);
+			const spread = {
+				...attr,
+				argument: clone_identifier(normalized_id),
+			};
+			const ref_attr = b.jsx_attribute(
+				b.jsx_id('ref'),
+				to_jsx_expression_container(b.member(clone_identifier(normalized_id), 'ref'), attr),
+				false,
+				attr,
+			);
+			ref_attr.metadata = { ...(ref_attr.metadata || {}) };
+			/** @type {any} */ (ref_attr.metadata).from_ref_keyword = true;
+			add_jsx_setup_declaration(spread, b.let(clone_identifier(normalized_id), normalized));
+
+			return [spread, ref_attr];
+		}
+
+		return [
+			{
+				...attr,
+				argument: normalized,
+			},
+		];
+	});
+}
+
+/**
+ * @param {TransformContext} transform_context
+ * @returns {string}
+ */
+function create_spread_props_name(transform_context) {
+	if (transform_context.helper_state) {
+		return create_helper_name(transform_context.helper_state, 'spread_props');
+	}
+
+	transform_context.local_statement_component_index += 1;
+	return `_tsrx_spread_props_${transform_context.local_statement_component_index}`;
+}
+
+/**
+ * @param {any} node
+ * @param {any} declaration
+ */
+export function add_jsx_setup_declaration(node, declaration) {
+	node.metadata ??= { path: [] };
+	(node.metadata.generated_setup_declarations ??= []).push(declaration);
+}
+
+/**
+ * @param {any} node
+ * @param {Set<any>} [seen]
+ * @returns {any[]}
+ */
+export function extract_jsx_setup_declarations(node, seen = new Set()) {
+	if (node == null || typeof node !== 'object' || seen.has(node)) {
+		return [];
+	}
+	seen.add(node);
+
+	const declarations = node.metadata?.generated_setup_declarations ?? [];
+	if (node.metadata?.generated_setup_declarations) {
+		delete node.metadata.generated_setup_declarations;
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		declarations.push(...extract_jsx_setup_declarations(node[key], seen));
+	}
+
+	return declarations;
+}
+
+/**
+ * @param {any} expression
+ * @param {boolean} in_jsx_child
+ * @returns {any}
+ */
+function wrap_jsx_setup_declarations(expression, in_jsx_child) {
+	const declarations = extract_jsx_setup_declarations(expression);
+	if (declarations.length === 0) {
+		return expression;
+	}
+
+	const return_expression =
+		expression?.type === 'JSXExpressionContainer' ? expression.expression : expression;
+	const call = b.call(
+		b.arrow(
+			[],
+			b.block([...declarations, b.return(return_expression)], expression),
+			false,
+			expression,
+		),
+	);
+
+	return in_jsx_child ? to_jsx_expression_container(call, expression) : call;
+}
+
+/**
+ * @param {any} attr
+ * @returns {boolean}
+ */
+function is_named_ref_attribute(attr) {
+	return !!(
+		attr &&
+		(attr.type === 'Attribute' || attr.type === 'JSXAttribute') &&
+		attr.name &&
+		((attr.name.type === 'Identifier' && attr.name.name !== 'ref') ||
+			(attr.name.type === 'JSXIdentifier' && attr.name.name !== 'ref')) &&
+		(attr.value?.type === 'RefExpression' ||
+			is_ref_prop_expression(attr.value) ||
+			(attr.value?.type === 'JSXExpressionContainer' &&
+				is_ref_prop_expression(attr.value.expression)))
+	);
+}
+
+/**
+ * @param {any} expression
+ * @returns {boolean}
+ */
+export function is_ref_prop_expression(expression) {
+	return (
+		expression?.type === 'RefExpression' ||
+		(expression?.type === 'CallExpression' &&
+			expression.callee?.type === 'Identifier' &&
+			expression.callee.name === CREATE_REF_PROP_INTERNAL_NAME)
+	);
 }
 
 /**
@@ -3762,7 +4850,7 @@ export function merge_duplicate_refs(jsx_attrs, transform_context) {
 					type: 'CallExpression',
 					callee: {
 						type: 'Identifier',
-						name: MERGE_REFS_LOCAL_NAME,
+						name: MERGE_REFS_INTERNAL_NAME,
 						metadata: { path: [] },
 					},
 					arguments: ref_exprs,
@@ -3823,7 +4911,9 @@ function is_jsx_ref_attribute(attr) {
  * double-underscore matches the convention for compiler-generated
  * identifiers and avoids shadowing user-declared `mergeRefs` symbols.
  */
-const MERGE_REFS_LOCAL_NAME = '__mergeRefs';
+export const MERGE_REFS_INTERNAL_NAME = '__mergeRefs';
+export const CREATE_REF_PROP_INTERNAL_NAME = '__create_ref_prop';
+export const NORMALIZE_SPREAD_PROPS_INTERNAL_NAME = '__normalize_spread_props';
 
 /**
  * @param {any} attr
@@ -3832,7 +4922,31 @@ const MERGE_REFS_LOCAL_NAME = '__mergeRefs';
  */
 export function to_jsx_attribute(attr, transform_context) {
 	if (!attr) return attr;
-	if (attr.type === 'JSXAttribute' || attr.type === 'JSXSpreadAttribute') {
+	if (attr.type === 'JSXAttribute') {
+		if (
+			attr.value?.type === 'JSXExpressionContainer' &&
+			attr.value.expression?.type === 'RefExpression'
+		) {
+			return {
+				...attr,
+				value: to_jsx_expression_container(
+					create_ref_prop_call(attr.value.expression, transform_context),
+				),
+				metadata: { ...(attr.metadata || {}), from_ref_keyword: true },
+			};
+		}
+		if (
+			attr.value?.type === 'JSXExpressionContainer' &&
+			is_ref_prop_expression(attr.value.expression)
+		) {
+			return {
+				...attr,
+				metadata: { ...(attr.metadata || {}), from_ref_keyword: true },
+			};
+		}
+		return attr;
+	}
+	if (attr.type === 'JSXSpreadAttribute') {
 		return attr;
 	}
 	if (attr.type === 'SpreadAttribute') {
@@ -3883,15 +4997,28 @@ export function to_jsx_attribute(attr, transform_context) {
 		attr_name && attr_name.type === 'Identifier' ? identifier_to_jsx_name(attr_name) : attr_name;
 
 	let value = attr.value;
+	const is_ref_expression_value =
+		value?.type === 'RefExpression' ||
+		is_ref_prop_expression(value) ||
+		(value?.type === 'JSXExpressionContainer' && is_ref_prop_expression(value.expression));
 	if (value) {
 		if (value.type === 'Literal' && typeof value.value === 'string') {
 			// Keep string literal as attribute string.
+		} else if (value.type === 'RefExpression') {
+			value = to_jsx_expression_container(create_ref_prop_call(value, transform_context));
 		} else if (value.type !== 'JSXExpressionContainer') {
 			value = to_jsx_expression_container(value);
+		} else if (value.expression?.type === 'RefExpression') {
+			value = to_jsx_expression_container(
+				create_ref_prop_call(value.expression, transform_context),
+			);
 		}
 	}
 
 	const jsx_attribute = build_jsx_attribute(name, value || null, attr.shorthand === true);
+	if (is_ref_expression_value) {
+		/** @type {any} */ (jsx_attribute.metadata).from_ref_keyword = true;
+	}
 
 	if (value_has_unmappable_jsx_loc(value)) {
 		/** @type {any} */ (jsx_attribute.metadata).has_unmappable_value = true;
@@ -3911,6 +5038,35 @@ function value_has_unmappable_jsx_loc(value) {
 		(value.expression?.type === 'JSXElement' || value.expression?.type === 'JSXFragment') &&
 		!value.expression.loc
 	);
+}
+
+/**
+ * @param {any} node
+ * @param {TransformContext} transform_context
+ * @returns {any}
+ */
+function create_ref_prop_call(node, transform_context) {
+	transform_context.needs_ref_prop = true;
+
+	const argument = node.argument;
+	const args = [b.thunk(argument)];
+
+	if (argument.type === 'Identifier' || argument.type === 'MemberExpression') {
+		args.push(
+			b.arrow(
+				[b.id('v')],
+				/** @type {any} */ ({
+					type: 'AssignmentExpression',
+					operator: '=',
+					left: clone_expression_node(argument, false),
+					right: b.id('v'),
+					metadata: { path: [] },
+				}),
+			),
+		);
+	}
+
+	return b.call(CREATE_REF_PROP_INTERNAL_NAME, ...args);
 }
 
 /**

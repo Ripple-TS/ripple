@@ -91,9 +91,7 @@ component ElementRefApp() {
 			element_ref_captured = node;
 		}}
 		class="ref-target"
-	>
-		{'ref test'}
-	</div>
+	>"ref test"</div>
 }
 
 component KeywordRefCallbackApp() {
@@ -140,6 +138,127 @@ component ValueRefObjectApp() {
 	}
 
 	<input {ref value_ref_object} {ref callbackRef} class="value-ref" type="text" />
+}
+
+let named_direct_node: HTMLInputElement | null = null;
+let named_direct_native_node: HTMLInputElement | null = null;
+let named_direct_anonymous_node: HTMLInputElement | null = null;
+
+component NamedDirectRefApp() {
+	function nativeRef(node: HTMLInputElement | null) {
+		named_direct_native_node = node;
+	}
+
+	function anonymousRef(node: HTMLInputElement | null) {
+		named_direct_anonymous_node = node;
+	}
+
+	<input
+		ref={nativeRef}
+		{ref anonymousRef}
+		input_ref={ref (node: HTMLInputElement | null) => {
+			named_direct_node = node;
+		}}
+		class="named-direct-ref"
+		type="text"
+	/>
+}
+
+let named_forward_node: HTMLInputElement | null = null;
+
+component NamedForwardInput(props: { type: string; input_ref?: any }) {
+	<input type={props.type} ref={props.input_ref} class="named-forward-ref" />
+}
+
+component NamedForwardRefApp() {
+	<NamedForwardInput
+		type="text"
+		input_ref={ref (node: HTMLInputElement | null) => {
+			named_forward_node = node;
+		}}
+	/>
+}
+
+let named_spread_before_node: HTMLInputElement | null = null;
+let named_spread_before_native_node: HTMLInputElement | null = null;
+
+function namedSpreadBeforeNativeRef(node: HTMLInputElement | null) {
+	named_spread_before_native_node = node;
+}
+
+component NamedSpreadBeforeRefInput(props: { type: string; input_ref?: any }) {
+	<input {...props} ref={namedSpreadBeforeNativeRef} class="named-spread-before-ref" />
+}
+
+component NamedSpreadBeforeRefApp() {
+	<NamedSpreadBeforeRefInput
+		type="text"
+		input_ref={ref (node: HTMLInputElement | null) => {
+			named_spread_before_node = node;
+		}}
+	/>
+}
+
+let named_spread_after_node: HTMLInputElement | null = null;
+let named_spread_after_native_node: HTMLInputElement | null = null;
+
+function namedSpreadAfterNativeRef(node: HTMLInputElement | null) {
+	named_spread_after_native_node = node;
+}
+
+component NamedSpreadAfterRefInput(props: { type: string; input_ref?: any }) {
+	<input ref={namedSpreadAfterNativeRef} {...props} class="named-spread-after-ref" />
+}
+
+component NamedSpreadAfterRefApp() {
+	<NamedSpreadAfterRefInput
+		type="text"
+		input_ref={ref (node: HTMLInputElement | null) => {
+			named_spread_after_node = node;
+		}}
+	/>
+}
+
+let multi_spread_first_node: HTMLInputElement | null = null;
+let multi_spread_second_node: HTMLInputElement | null = null;
+let multi_spread_native_node: HTMLInputElement | null = null;
+let multi_spread_native_calls = 0;
+
+function multiSpreadExplicitNativeRef(node: HTMLInputElement | null) {
+	if (node) {
+		multi_spread_native_calls += 1;
+	}
+	multi_spread_native_node = node;
+}
+
+component MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) {
+	const first = { type: props.type, first_ref: props.first_ref };
+	const second = { second_ref: props.second_ref };
+
+	<input
+		{...first}
+		{...second}
+		ref={multiSpreadExplicitNativeRef}
+		class="multi-spread-explicit-ref"
+	/>
+}
+
+component MultiSpreadExplicitRefApp() {
+	<MultiSpreadExplicitRefInput
+		type="text"
+		first_ref={ref (node: HTMLInputElement | null) => {
+			multi_spread_first_node = node;
+		}}
+		second_ref={ref (node: HTMLInputElement | null) => {
+			multi_spread_second_node = node;
+		}}
+	/>
+}
+
+const named_vue_ref_object = ref<HTMLInputElement | null>(null);
+
+component NamedRefObjectApp() {
+	<NamedForwardInput type="text" input_ref={ref named_vue_ref_object} />
 }
 
 component CounterApp() {
@@ -327,6 +446,15 @@ component ForReactiveApp() {
 	<button class="remove" onClick={() => (items.value = items.value.slice(1))}>{'remove'}</button>
 }
 
+component ForContinueApp() {
+	const items = ref(['a', '', 'c']);
+
+	for (const item of items.value) {
+		if (!item) continue;
+		<li class="continue-item" key={item}>{item}</li>
+	}
+}
+
 component ForIndexReactiveApp() {
 	const items = ref(['a', 'b', 'c']);
 
@@ -378,6 +506,30 @@ component ForKeyedStateApp() {
 	</button>
 }
 
+component ForJsxKeyedStateApp() {
+	const items = ref([
+		{ id: 'a', label: 'Alpha' },
+		{ id: 'b', label: 'Beta' },
+		{ id: 'c', label: 'Gamma' },
+	]);
+
+	for (const item of items.value) {
+		<KeyedRow key={item.id} {item} />
+	}
+
+	<button class="reverse-jsx-keyed" onClick={() => (items.value = [...items.value].reverse())}>
+		{'reverse'}
+	</button>
+	<button
+		class="rename-jsx-keyed-beta"
+		onClick={() => (items.value = items.value.map(
+			(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
+		))}
+	>
+		{'rename'}
+	</button>
+}
+
 component ForIndexKeyedStateApp() {
 	const items = ref([
 		{ id: 'a', label: 'Alpha' },
@@ -391,6 +543,104 @@ component ForIndexKeyedStateApp() {
 
 	<button class="reverse-index-keyed" onClick={() => (items.value = [...items.value].reverse())}>
 		{'reverse'}
+	</button>
+}
+
+component ForJsxIndexKeyedApp() {
+	const items = ref([
+		{ id: 'a', label: 'Alpha' },
+		{ id: 'b', label: 'Beta' },
+		{ id: 'c', label: 'Gamma' },
+	]);
+
+	for (const item of items.value; index i) {
+		<p key={item.id} class={`jsx-index-keyed-row row-${item.id}`}>{`${i}:${item.label}`}</p>
+	}
+
+	<button
+		class="reverse-jsx-index-keyed"
+		onClick={() => (items.value = [...items.value].reverse())}
+	>
+		{'reverse'}
+	</button>
+}
+
+component ForNestedIndexKeyedApp() {
+	const items = ref([
+		{ id: 'a', label: 'Alpha' },
+		{ id: 'b', label: 'Beta' },
+		{ id: 'c', label: 'Gamma' },
+	]);
+
+	for (const item of items.value; index i; key item.id) {
+		<section class={`nested-index-keyed-row row-${item.id}`}>
+			<div>
+				<span>{`${i}:${item.label}`}</span>
+			</div>
+		</section>
+	}
+
+	<button
+		class="reverse-nested-index-keyed"
+		onClick={() => (items.value = [...items.value].reverse())}
+	>
+		{'reverse'}
+	</button>
+	<button
+		class="rename-nested-index-keyed-beta"
+		onClick={() => (items.value = items.value.map(
+			(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
+		))}
+	>
+		{'rename'}
+	</button>
+}
+
+component ForImplicitIndexKeyFragmentApp() {
+	const items = ref(['a', 'b', 'c']);
+
+	for (const item of items.value; index i) {
+		<span class="fragment-index-item">{`${i}:${item}`}</span>
+		<span class="fragment-value-item">{item}</span>
+	}
+
+	<button class="reverse-fragment-index" onClick={() => (items.value = [...items.value].reverse())}>
+		{'reverse'}
+	</button>
+}
+
+component DestructuredKeyedRow(props: { id: string; label: string }) {
+	const count = ref(0);
+
+	<button class={`destructured-keyed-row row-${props.id}`} onClick={() => count.value++}>
+		{`${props.label}:${count.value}`}
+	</button>
+}
+
+component ForDestructuredKeyedStateApp() {
+	const items = ref([
+		{ id: 'a', label: 'Alpha' },
+		{ id: 'b', label: 'Beta' },
+		{ id: 'c', label: 'Gamma' },
+	]);
+
+	for (const { id, label } of items.value; key id) {
+		<DestructuredKeyedRow {id} {label} />
+	}
+
+	<button
+		class="reverse-destructured-keyed"
+		onClick={() => (items.value = [...items.value].reverse())}
+	>
+		{'reverse'}
+	</button>
+	<button
+		class="rename-destructured-keyed-beta"
+		onClick={() => (items.value = items.value.map(
+			(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
+		))}
+	>
+		{'rename'}
 	</button>
 }
 
@@ -616,7 +866,7 @@ describe('tsrx-vue runtime', () => {
 		expect(multi_dom_ref_a).toBeInstanceOf(HTMLInputElement);
 		expect(multi_dom_ref_b).toBeInstanceOf(HTMLInputElement);
 		expect(multi_dom_ref_a).toBe(multi_dom_ref_b);
-		expect(multi_dom_ref_a?.className).toContain('multi-dom-ref');
+		expect(multi_dom_ref_a!.className).toContain('multi-dom-ref');
 	});
 
 	it('combines a single ref={fn} with a {ref expr} keyword-form ref via mergeRefs', async () => {
@@ -633,6 +883,65 @@ describe('tsrx-vue runtime', () => {
 		await render(ValueRefObjectApp);
 		expect(value_ref_object.value).toBeInstanceOf(HTMLInputElement);
 		expect(value_ref_object.value).toBe(value_ref_callback_node);
+	});
+
+	it('merges direct named ref props with native ref and anonymous {ref}', async () => {
+		named_direct_node = null;
+		named_direct_native_node = null;
+		named_direct_anonymous_node = null;
+		await render(NamedDirectRefApp);
+		expect(named_direct_node).toBeInstanceOf(HTMLInputElement);
+		expect(named_direct_node).toBe(named_direct_native_node);
+		expect(named_direct_node).toBe(named_direct_anonymous_node);
+		expect(container.querySelector('.named-direct-ref')!.hasAttribute('input_ref')).toBe(false);
+	});
+
+	it('supports explicit forwarding of named ref props into host ref', async () => {
+		named_forward_node = null;
+		await render(NamedForwardRefApp);
+		expect(named_forward_node).toBeInstanceOf(HTMLInputElement);
+		expect(named_forward_node!.className).toContain('named-forward-ref');
+	});
+
+	it('merges named spread refs with native ref after the spread', async () => {
+		named_spread_before_node = null;
+		named_spread_before_native_node = null;
+		await render(NamedSpreadBeforeRefApp);
+		expect(named_spread_before_node).toBeInstanceOf(HTMLInputElement);
+		expect(named_spread_before_node).toBe(named_spread_before_native_node);
+	});
+
+	it('merges named spread refs with native ref before the spread', async () => {
+		named_spread_after_node = null;
+		named_spread_after_native_node = null;
+		await render(NamedSpreadAfterRefApp);
+		expect(named_spread_after_node).toBeInstanceOf(HTMLInputElement);
+		expect(named_spread_after_node).toBe(named_spread_after_native_node);
+	});
+
+	it('merges named refs from multiple host spreads with one explicit ref', async () => {
+		multi_spread_first_node = null;
+		multi_spread_second_node = null;
+		multi_spread_native_node = null;
+		multi_spread_native_calls = 0;
+		await render(MultiSpreadExplicitRefApp);
+		expect(multi_spread_first_node).toBeInstanceOf(HTMLInputElement);
+		expect(multi_spread_first_node).toBe(multi_spread_second_node);
+		expect(multi_spread_first_node).toBe(multi_spread_native_node);
+		expect(multi_spread_native_calls).toBe(1);
+		expect(container.querySelector('.multi-spread-explicit-ref')!.hasAttribute('first_ref')).toBe(
+			false,
+		);
+		expect(container.querySelector('.multi-spread-explicit-ref')!.hasAttribute('second_ref')).toBe(
+			false,
+		);
+	});
+
+	it('assigns named ref props backed by Vue ref objects', async () => {
+		named_vue_ref_object.value = null;
+		await render(NamedRefObjectApp);
+		expect(named_vue_ref_object.value).toBeInstanceOf(HTMLInputElement);
+		expect(named_vue_ref_object.value!.className).toContain('named-forward-ref');
 	});
 
 	it('increments a counter on click', async () => {
@@ -803,6 +1112,11 @@ describe('tsrx-vue runtime', () => {
 		expect(after[0].textContent).toBe('b');
 	});
 
+	it('skips for-of iterations with continue', async () => {
+		await render(ForContinueApp);
+		expect(texts('.continue-item')).toEqual(['a', 'c']);
+	});
+
 	it('updates for-of index bindings after insertions, removals, and reorders', async () => {
 		await render(ForIndexReactiveApp);
 		expect(texts('.indexed-item')).toEqual([
@@ -856,6 +1170,28 @@ describe('tsrx-vue runtime', () => {
 		expect(text('.row-b')).toBe('Bravo:1');
 	});
 
+	it('preserves component state when keys come from JSX key attributes', async () => {
+		await render(ForJsxKeyedStateApp);
+		expect(texts('.keyed-row')).toEqual([
+			'Alpha:0',
+			'Beta:0',
+			'Gamma:0',
+		]);
+
+		await click('.row-b');
+		expect(text('.row-b')).toBe('Beta:1');
+
+		await click('.reverse-jsx-keyed');
+		expect(texts('.keyed-row')).toEqual([
+			'Gamma:0',
+			'Beta:1',
+			'Alpha:0',
+		]);
+
+		await click('.rename-jsx-keyed-beta');
+		expect(text('.row-b')).toBe('Bravo:1');
+	});
+
 	it('updates index bindings in keyed for-of loops after reorders', async () => {
 		await render(ForIndexKeyedStateApp);
 		expect(texts('.indexed-keyed-row')).toEqual([
@@ -870,6 +1206,81 @@ describe('tsrx-vue runtime', () => {
 			'1:Beta',
 			'2:Alpha',
 		]);
+	});
+
+	it('updates index bindings when JSX key attributes drive keyed for-of loops', async () => {
+		await render(ForJsxIndexKeyedApp);
+		expect(texts('.jsx-index-keyed-row')).toEqual([
+			'0:Alpha',
+			'1:Beta',
+			'2:Gamma',
+		]);
+
+		await click('.reverse-jsx-index-keyed');
+		expect(texts('.jsx-index-keyed-row')).toEqual([
+			'0:Gamma',
+			'1:Beta',
+			'2:Alpha',
+		]);
+	});
+
+	it('updates keyed item and index reads inside nested loop output', async () => {
+		await render(ForNestedIndexKeyedApp);
+		expect(texts('.nested-index-keyed-row')).toEqual([
+			'0:Alpha',
+			'1:Beta',
+			'2:Gamma',
+		]);
+
+		await click('.reverse-nested-index-keyed');
+		expect(texts('.nested-index-keyed-row')).toEqual([
+			'0:Gamma',
+			'1:Beta',
+			'2:Alpha',
+		]);
+
+		await click('.rename-nested-index-keyed-beta');
+		expect(text('.row-b')).toBe('1:Bravo');
+	});
+
+	it('updates implicit index-keyed fragments after reorders', async () => {
+		await render(ForImplicitIndexKeyFragmentApp);
+		expect(texts('.fragment-index-item')).toEqual([
+			'0:a',
+			'1:b',
+			'2:c',
+		]);
+		expect(texts('.fragment-value-item')).toEqual(['a', 'b', 'c']);
+
+		await click('.reverse-fragment-index');
+		expect(texts('.fragment-index-item')).toEqual([
+			'0:c',
+			'1:b',
+			'2:a',
+		]);
+		expect(texts('.fragment-value-item')).toEqual(['c', 'b', 'a']);
+	});
+
+	it('preserves keyed component state for destructured for-of loop params', async () => {
+		await render(ForDestructuredKeyedStateApp);
+		expect(texts('.destructured-keyed-row')).toEqual([
+			'Alpha:0',
+			'Beta:0',
+			'Gamma:0',
+		]);
+
+		await click('.row-b');
+		expect(text('.row-b')).toBe('Beta:1');
+
+		await click('.reverse-destructured-keyed');
+		expect(texts('.destructured-keyed-row')).toEqual([
+			'Gamma:0',
+			'Beta:1',
+			'Alpha:0',
+		]);
+
+		await click('.rename-destructured-keyed-beta');
+		expect(text('.row-b')).toBe('Bravo:1');
 	});
 
 	it('switches rendered branches reactively', async () => {

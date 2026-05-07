@@ -3,7 +3,7 @@
   "description": "Vue compiler built on @tsrx/core",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.16",
+  "version": "0.0.23",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -22,19 +22,20 @@
       "types": "./types/error-boundary.d.ts",
       "default": "./src/error-boundary.js"
     },
-    "./merge-refs": {
-      "types": "./types/merge-refs.d.ts",
-      "default": "./src/merge-refs.js"
+    "./ref": {
+      "types": "./types/ref.d.ts",
+      "default": "./src/ref.js"
     }
   },
   "dependencies": {
     "@tsrx/core": "workspace:*",
     "esrap": "catalog:default",
+    "is-reference": "catalog:default",
     "zimmerframe": "catalog:default"
   },
   "peerDependencies": {
     "vue": ">=3.5",
-    "vue-jsx-vapor": ">=3.2.10"
+    "vue-jsx-vapor": ">=3.2.12"
   },
   "devDependencies": {
     "@types/estree": "catalog:default",

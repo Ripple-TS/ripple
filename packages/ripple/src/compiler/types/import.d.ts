@@ -39,6 +39,7 @@ import {
 	RippleDate as _$_Date__Ripple,
 	createRefKey as _$_RefKey__create,
 } from 'ripple';
+import { create_ref_prop as _$_RefProp__create } from '@tsrx/core/runtime/ref';
 
 export {
 	_$_Map__Ripple,
@@ -49,4 +50,5 @@ export {
 	_$_URLSearchParams__Ripple,
 	_$_Date__Ripple,
 	_$_RefKey__create,
+	_$_RefProp__create,
 };

@@ -11,6 +11,7 @@ on:
       - "pnpm-workspace.yaml"
       - "vitest.config.js"
       - ".changeset/**"
+      - ".github/workflows/ci.yml"
 
   pull_request:
     branches: [main, develop]
@@ -22,6 +23,7 @@ on:
       - "pnpm-workspace.yaml"
       - "vitest.config.js"
       - ".changeset/**"
+      - ".github/workflows/ci.yml"
 
 jobs:
   test:
@@ -29,7 +31,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [22, 24]
+        node-version: [22, 24, 26]
 
     steps:
       - name: Checkout code

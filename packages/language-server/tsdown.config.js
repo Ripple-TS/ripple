@@ -15,11 +15,14 @@ const ROOT_EXTERNAL_PACKAGES = [
 	'volar-service-typescript',
 	/* also definitely need it for monkey patching */
 	/^volar-service-typescript(?:\/.*)?$/,
+	/* dynamic require()s of internal files — can't be bundled */
+	'volar-service-css',
+	/^volar-service-css(?:\/.*)?$/,
 ];
 
 export default defineConfig({
 	inlineOnly: false,
-	entry: ['src/server.js', 'bin/language-server.js'],
+	entry: ['src/server.js', 'src/language-server.js'],
 	format: ['cjs'],
 	outExtensions: () => ({ js: '.js' }),
 	platform: 'node',

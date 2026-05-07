@@ -1,0 +1,24 @@
+# @tsrx/bun-plugin-vue
+
+## 0.0.3
+
+### Patch Changes
+
+- Updated dependencies
+  [[`b54a72f`](https://github.com/Ripple-TS/ripple/commit/b54a72f721adb5f08a5bf3e3d006780b7e1eb471),
+  [`b54a72f`](https://github.com/Ripple-TS/ripple/commit/b54a72f721adb5f08a5bf3e3d006780b7e1eb471),
+  [`b54a72f`](https://github.com/Ripple-TS/ripple/commit/b54a72f721adb5f08a5bf3e3d006780b7e1eb471),
+  [`b54a72f`](https://github.com/Ripple-TS/ripple/commit/b54a72f721adb5f08a5bf3e3d006780b7e1eb471),
+  [`b54a72f`](https://github.com/Ripple-TS/ripple/commit/b54a72f721adb5f08a5bf3e3d006780b7e1eb471)]:
+  - @tsrx/vue@0.0.23
+
+## 0.0.2
+
+### Patch Changes
+
+- [#1041](https://github.com/Ripple-TS/ripple/pull/1041)
+  [`b1e717e`](https://github.com/Ripple-TS/ripple/commit/b1e717e33283f17209c5b4fc2bc2e70037d90460)
+  Thanks [@RazinShafayet2007](https://github.com/RazinShafayet2007)! - Add a Bun
+  plugin for compiling `.tsrx` files with `@tsrx/vue`, running the downstream
+  `vue-jsx-vapor` transform, and emitting component-local styles as virtual CSS
+  modules.

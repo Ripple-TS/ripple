@@ -8,7 +8,7 @@ import {
 	get_prototype_of,
 	is_array,
 	object_prototype,
-} from './internal/client/utils.js';
+} from '@tsrx/core/runtime/language-helpers';
 import {
 	MAX_ARRAY_LENGTH,
 	TRACKED_ARRAY,

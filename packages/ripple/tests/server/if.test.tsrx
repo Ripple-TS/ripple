@@ -27,6 +27,19 @@ describe('if statements in SSR', () => {
 		expect(body).toBeHtml('<div>Else block</div>');
 	});
 
+	it('renders bare double-quoted text in if-else branches', async () => {
+		component App() {
+			let condition = false;
+
+			if (condition) {
+				"Hello Ripple"
+			} else "Hello React"
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('Hello React');
+	});
+
 	it('renders else if block when condition is true', async () => {
 		component App() {
 			let value = 'b';

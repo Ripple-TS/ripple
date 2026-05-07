@@ -1857,7 +1857,7 @@ files = [...(files ?? []), ...dt.files];`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should preserve component as a named or an anonymous property', async () => {
+		it('should preserve component properties in named, legacy anonymous, and arrow forms', async () => {
 			const expected = `const UI = {
   span: component Span() {
     <span>{'Hello from Span'}</span>
@@ -1866,6 +1866,9 @@ files = [...(files ?? []), ...dt.files];`;
     <button>
       {children}
     </button>
+  },
+  arrowButton: component({ children }) => {
+    <button>{children}</button>
   },
 };`;
 
@@ -1917,32 +1920,10 @@ files = [...(files ?? []), ...dt.files];`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should preserve class component method', async () => {
-			const expected = `class TestClass {
-  component something() {
-    <div>{'Nested component'}</div>
-  }
-}`;
-
-			const result = await format(expected, { singleQuote: true, printWidth: 100 });
-			expect(result).toBeWithNewline(expected);
-		});
-
 		it('should preserve class computed method', async () => {
 			const expected = `class TestClass {
   ['something']() {
     const i = 10;
-  }
-}`;
-
-			const result = await format(expected, { singleQuote: true, printWidth: 100 });
-			expect(result).toBeWithNewline(expected);
-		});
-
-		it('should preserve class computed component method', async () => {
-			const expected = `class TestClass {
-  component ['something']() {
-    <div>{'Nested component'}</div>
   }
 }`;
 
@@ -1977,23 +1958,6 @@ files = [...(files ?? []), ...dt.files];`;
 			const expected = `class Foo {
   bar() {
     return <tsx>{'Hello'}</tsx>;
-  }
-}`;
-
-			const result = await format(input, { singleQuote: true, printWidth: 100 });
-			expect(result).toBeWithNewline(expected);
-		});
-
-		it('should format class with a literal component method', async () => {
-			const input = `class TestClass {
-  component 'something'() {
-    <div>{'Nested component'}</div>
-  }
-}`;
-
-			const expected = `class TestClass {
-  component something() {
-    <div>{'Nested component'}</div>
   }
 }`;
 
@@ -3474,6 +3438,46 @@ declare function processData<T>(data: T): Promise<T>;`;
   };
 }`;
 			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve generic type arguments on JSX component tags', async () => {
+			const input = `type User = { name: string };
+component RenderProp<Item>(props: { children: (item: Item) => any }) {}
+export component App() {
+	<RenderProp<User>>
+		{(item) => item.name}
+	</RenderProp>
+}`;
+
+			const expected = `type User = { name: string };
+component RenderProp<Item>(props: { children: (item: Item) => any }) {}
+export component App() {
+  <RenderProp<User>>
+    {(item) => item.name}
+  </RenderProp>
+}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve generic type arguments on self-closing JSX component tags', async () => {
+			const input = `component Box<T>({ value }: { value: T }) {
+	<div>{String(value)}</div>
+}
+export component App() {
+	<Box<string> value="hi" />
+}`;
+
+			const expected = `component Box<T>({ value }: { value: T }) {
+  <div>{String(value)}</div>
+}
+export component App() {
+  <Box<string> value="hi" />
+}`;
+
+			const result = await format(input);
 			expect(result).toBeWithNewline(expected);
 		});
 

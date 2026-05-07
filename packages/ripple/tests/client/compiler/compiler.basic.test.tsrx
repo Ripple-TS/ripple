@@ -20,25 +20,25 @@ describe('compiler > basics', () => {
 		const source = `export component App() {
   <div id="myid" class="myclass">{"Hello World"}</div>
 
-  <style>#style</style>
+  <style>__STYLE__</style>
 }`;
 		const style1 = '.myid {color: green }';
 		const style2 = '#myid {color: green }';
 		const style3 = 'div {color: green }';
 
-		let input = source.replace('#style', style1);
+		let input = source.replace('__STYLE__', style1);
 		let ast = parse(input);
 		expect(
 			((ast.body[0] as AST.ExportNamedDeclaration).declaration as unknown as AST.Component)?.css.source,
 		).toEqual(style1);
 
-		input = source.replace('#style', style2);
+		input = source.replace('__STYLE__', style2);
 		ast = parse(input);
 		expect(
 			((ast.body[0] as AST.ExportNamedDeclaration).declaration as unknown as AST.Component)?.css.source,
 		).toEqual(style2);
 
-		input = source.replace('#style', style3);
+		input = source.replace('__STYLE__', style3);
 		ast = parse(input);
 		expect(
 			((ast.body[0] as AST.ExportNamedDeclaration).declaration as unknown as AST.Component)?.css.source,
@@ -65,8 +65,8 @@ describe('compiler > basics', () => {
 		expect(explicit_text.type).toBe('Text');
 		expect((explicit_text.expression as AST.Identifier).name).toBe('markup');
 
-		const { js } = compile(source, 'text-directive.tsrx', { mode: 'client' });
-		expect(js.code).not.toContain('_$_.html');
+		const { code } = compile(source, 'text-directive.tsrx', { mode: 'client' });
+		expect(code).not.toContain('_$_.html');
 
 		const invalid_source = `export component App() {
 	const text = 'plain';
@@ -77,6 +77,48 @@ describe('compiler > basics', () => {
 		expect(() => parse(invalid_source)).toThrow(
 			'"text" is a TSRX keyword and must be used in the form {text some_value}',
 		);
+	});
+
+	it('parses backtick text inside fragments as JSX text', () => {
+		const source = `let a = component () {
+			<>
+				\`333\`
+			</>
+		}`;
+
+		const ast = parse(source);
+		const declaration = (ast.body[0] as AST.VariableDeclaration).declarations[0];
+		const component_node = declaration.init as unknown as AST.Component;
+		const fragment = component_node.body[0] as any;
+
+		expect(fragment.type).toBe('Tsx');
+		expect(fragment.children[0].type).toBe('JSXText');
+		expect(fragment.children[0].value).toContain('`333`');
+	});
+
+	it('parses backtick text around JSX elements inside fragments', () => {
+		const source = `let a = component () {
+			<>
+				\`
+				<b></b>
+				\`
+			</>
+		}`;
+
+		const ast = parse(source);
+		const declaration = (ast.body[0] as AST.VariableDeclaration).declarations[0];
+		const component_node = declaration.init as unknown as AST.Component;
+		const fragment = component_node.body[0] as any;
+
+		expect(fragment.type).toBe('Tsx');
+		expect(fragment.children.map((child: any) => child.type)).toEqual([
+			'JSXText',
+			'JSXElement',
+			'JSXText',
+		]);
+		expect(fragment.children[0].value).toContain('`');
+		expect(fragment.children[1].openingElement.name.name).toBe('b');
+		expect(fragment.children[2].value).toContain('`');
 	});
 
 	it('renders without crashing', () => {
@@ -276,10 +318,36 @@ describe('compiler > basics', () => {
 	<div class="b">{'b'}</div>
 }`;
 
-		const { js } = compile(source, 'grouped-count.tsrx', { mode: 'client' });
+		const { code } = compile(source, 'grouped-count.tsrx', { mode: 'client' });
 
-		expect(js.code).toMatch(/_\$_\.template\(`<!><!>`,\s*1,\s*2\)/);
-		expect(js.code).not.toMatch(/_\$_\.template\(`<!><!>`,\s*1,\s*3\)/);
+		expect(code).toMatch(/_\$_\.template\(`<!><!>`,\s*1,\s*2\)/);
+		expect(code).not.toMatch(/_\$_\.template\(`<!><!>`,\s*1,\s*3\)/);
+	});
+
+	it('emits anonymous component expressions as arrows in client output', () => {
+		const source = `
+const Inline = component(props) => {
+	<div>{props.x}</div>
+}
+`;
+		const result = compile(source, 'anonymous-component.tsrx', { mode: 'client' }).code;
+
+		expect(result).toContain('const Inline = (__anchor, props, __block) => {');
+		expect(result).not.toContain('function Inline');
+		expect(result).not.toContain('function (__anchor');
+	});
+
+	it('emits legacy anonymous component expressions as functions in client output', () => {
+		const source = `
+const Inline = component(props) {
+	<div>{props.x}</div>
+}
+`;
+		const result = compile(source, 'anonymous-component.tsrx', { mode: 'client' }).code;
+
+		expect(result).toContain('const Inline = function (__anchor, props, __block) {');
+		expect(result).not.toContain('function Inline');
+		expect(result).not.toContain('const Inline = (__anchor, props, __block) => {');
 	});
 
 	// 	it(
@@ -426,6 +494,64 @@ export component MyComponent<Item>(props: Props<Item>) {
 		expect(result).toContain('export function MyComponent<Item>(props: Props<Item>)');
 	});
 
+	it('emits anonymous component expressions as arrows in to_ts output', () => {
+		const source = `
+const Inline = component(props: { x: string }) => {
+	<div>{props.x}</div>
+}
+`;
+		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
+
+		expect(result).toContain('const Inline = (props: { x: string }) => {');
+		expect(result).not.toContain('function Inline');
+		expect(result).not.toContain('function (props');
+	});
+
+	it('emits legacy anonymous component expressions as functions in to_ts output', () => {
+		const source = `
+const Inline = component(props: { x: string }) {
+	<div>{props.x}</div>
+}
+`;
+		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
+
+		expect(result).toContain('const Inline = function(props: { x: string }) {');
+		expect(result).not.toContain('function Inline');
+		expect(result).not.toContain('const Inline = (props: { x: string }) => {');
+	});
+
+	it('preserves generic type arguments on JSX component tags in to_ts output', () => {
+		const source = `
+type User = { name: string };
+
+component RenderProp<Item>(props: { children: (item: Item) => any }) {}
+
+export component App() {
+	<RenderProp<User>>
+		{(item) => item.name}
+	</RenderProp>
+}
+`;
+		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
+
+		expect(result).toContain('<RenderProp<User>');
+	});
+
+	it('preserves generic type arguments on self-closing JSX component tags in to_ts output', () => {
+		const source = `
+component Box<T>({ value }: { value: T }) {
+	<div>{String(value)}</div>
+}
+
+export component App() {
+	<Box<string> value="hi" />
+}
+`;
+		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
+
+		expect(result).toContain('<Box<string>');
+	});
+
 	it('preserves regular function type parameters in to_ts output', () => {
 		const source = `
 type Props<Item> = {
@@ -485,12 +611,12 @@ function use_nested({ value: &[count, tracked] }: { value: Tracked<number> }) {
 	return tracked;
 }
 `;
-		const { js } = compile(source, 'tracked-nested-lazy.tsrx', { mode: 'client' });
+		const { code } = compile(source, 'tracked-nested-lazy.tsrx', { mode: 'client' });
 
 		// Nested lazy array should still use tracked tuple fast path from outer annotation.
-		expect(js.code).toContain('_$_.update(');
-		expect(js.code).not.toContain('[0]');
-		expect(js.code).not.toContain('[1]');
+		expect(code).toContain('_$_.update(');
+		expect(code).not.toContain('[0]');
+		expect(code).not.toContain('[1]');
 	});
 
 	it('uses tracked fast path for nested lazy params at tuple rest positions', () => {
@@ -501,11 +627,11 @@ function use_tuple_rest({ value: [head, &[count, tracked]] }: { value: [number, 
 	return tracked;
 }
 `;
-		const { js } = compile(source, 'tracked-nested-lazy-tuple-rest.tsrx', { mode: 'client' });
+		const { code } = compile(source, 'tracked-nested-lazy-tuple-rest.tsrx', { mode: 'client' });
 
 		// Tuple rest element access should resolve to Tracked<number>, not Tracked<number>[].
-		expect(js.code).toContain('_$_.update(');
-		expect(js.code).not.toContain('[1]');
+		expect(code).toContain('_$_.update(');
+		expect(code).not.toContain('[1]');
 	});
 
 	it('preserves generic type args in interface extends for Volar mappings', () => {
@@ -633,7 +759,7 @@ export component App() {
 }
 `;
 
-		const result = compile(source, 'test.tsrx', { mode: 'client' }).js.code;
+		const result = compile(source, 'test.tsrx', { mode: 'client' }).code;
 
 		// Template children should take precedence - explicit children prop should be removed
 		expect((result.match(/children:/g) || []).length).toBe(1);
@@ -674,7 +800,7 @@ export component App() {
 }
 `;
 		const result = compile(source, 'test.tsrx', { mode: 'client' });
-		const code = result.js.code;
+		const code = result.code;
 
 		// The constructor's compiled output should contain __block = _$_.scope()
 		expect(code).toContain('__block');
@@ -722,6 +848,75 @@ export component App() {
 				(item) => item.message.includes('Identifier \'test\' has already been declared'),
 			),
 		).toBe(true);
+	});
+
+	it('maps module server import identifiers in Volar output', () => {
+		const source = `module server {
+	export function loadUser() {
+		return { id: '1' };
+	}
+}
+
+import { loadUser as getUser } from server;
+import { loadUser } from server;
+
+component App() {
+	const user = getUser();
+	const user2 = loadUser();
+	<div>{user.id}{user2.id}</div>
+}`;
+		const result = compile_to_volar_mappings(source, 'test.tsrx', { loose: true });
+		const generated_member = '_$_server_$_.loadUser';
+		const generated_member_offset = result.code.indexOf(generated_member);
+		const generated_imported_offset = generated_member_offset + '_$_server_$_'.length + 1;
+		const generated_local_offset = result.code.indexOf('const getUser') + 'const '.length;
+		const generated_non_alias_member_offset =
+			result.code.indexOf(generated_member, generated_member_offset + 1) + '_$_server_$_'.length +
+			1;
+		const generated_non_alias_local_offset =
+			result.code.indexOf('const loadUser') + 'const '.length;
+		const source_imported_offset = source.indexOf('loadUser as');
+		const source_local_offset = source.indexOf('getUser }');
+		const source_non_alias_offset = source.indexOf('loadUser }');
+		const source_server_offset = source.indexOf('server;');
+
+		function find_mapping(
+			source_offset: number,
+			generated_offset: number,
+			length: number,
+			generated_length = length,
+		) {
+			return result.mappings.find(
+				(mapping) => mapping.sourceOffsets[0] === source_offset &&
+					mapping.generatedOffsets[0] === generated_offset &&
+					mapping.lengths[0] === length &&
+					mapping.generatedLengths[0] === generated_length,
+			);
+		}
+
+		expect(result.errors).toEqual([]);
+		expect(result.code).toContain('const getUser = _$_server_$_.loadUser;');
+		expect(result.code).toContain('const loadUser = _$_server_$_.loadUser;');
+		expect(
+			find_mapping(source_imported_offset, generated_imported_offset, 'loadUser'.length),
+		).toBeDefined();
+		expect(
+			find_mapping(source_local_offset, generated_local_offset, 'getUser'.length),
+		).toBeDefined();
+		expect(
+			find_mapping(source_non_alias_offset, generated_non_alias_local_offset, 'loadUser'.length),
+		).toBeDefined();
+		expect(
+			find_mapping(source_non_alias_offset, generated_non_alias_member_offset, 'loadUser'.length),
+		).toBeDefined();
+		expect(
+			find_mapping(
+				source_server_offset,
+				generated_member_offset,
+				'server'.length,
+				'_$_server_$_'.length,
+			),
+		).toBeDefined();
 	});
 
 	it('collects volar parser diagnostics outside loose mode', () => {
@@ -781,6 +976,22 @@ export component App() {}
 		);
 	});
 
+	it('does not let nested for...of continues satisfy an outer if body', () => {
+		const source = `
+export component App({ items }: { items: string[] }) {
+	if (items.length) {
+		for (const item of items) {
+			if (!item) continue
+		}
+	}
+}`;
+
+		const result = compile(source, 'test.tsrx', { collect: true });
+		expect(result.errors.map((error) => error.message)).toContain(
+			'Component if statements must contain a template in their "then" body. Move the if statement into an effect if it does not render anything.',
+		);
+	});
+
 	it('preserves class extends generic type arguments in volar output', () => {
 		const source = `class StringMap extends Map<string, string> {}
 export component App() {}`;
@@ -805,7 +1016,7 @@ export component App() {
 }
 `;
 
-		const result = compile(source, 'test.tsrx', { mode: 'client' }).js.code;
+		const result = compile(source, 'test.tsrx', { mode: 'client' }).code;
 
 		expect(result).toContain('_$_.normalize_children(');
 	});
@@ -843,7 +1054,7 @@ export component App() {
 }
 `;
 
-		const result = compile(source, 'test.tsrx', { mode: 'client' }).js.code;
+		const result = compile(source, 'test.tsrx', { mode: 'client' }).code;
 
 		expect(result).toContain('_$_.spread_props(');
 	});

@@ -4,6 +4,8 @@
 import { createVolarMappingsResult, dedupeMappings, parseModule } from '@tsrx/core';
 import { transform } from './transform.js';
 
+export { isRefProp } from './ref.js';
+
 /**
  * Parse tsrx-react source code to an ESTree AST.
  * @param {string} source
@@ -22,7 +24,7 @@ export function parse(source, filename, options) {
  * @param {string} source
  * @param {string} [filename]
  * @param {{ collect?: boolean, loose?: boolean }} [options]
- * @returns {{ code: string, map: any, css: { code: string, hash: string } | null, errors: CompileError[] }}
+ * @returns {{ code: string, map: any, css: string, cssHash: string | null, errors: CompileError[] }}
  */
 export function compile(source, filename, options) {
 	const errors = /** @type {CompileError[]} */ ([]);
@@ -63,6 +65,8 @@ export function compile_to_volar_mappings(source, filename, options) {
 	const transformed = transform(ast, source, filename, {
 		collect: true,
 		loose: !!options?.loose,
+		moduleScopedHookComponents: false,
+		typeOnly: true,
 		errors,
 		comments,
 	});

@@ -82,8 +82,15 @@ export async function handleTSRXMcpNodeRequest(req, res, options = {}) {
 	});
 
 	try {
+		const req_with_body = /** @type {import('node:http').IncomingMessage & { body?: unknown }} */ (
+			req
+		);
+		const parsed_body = Object.prototype.hasOwnProperty.call(req_with_body, 'body')
+			? req_with_body.body
+			: undefined;
+
 		await server.connect(transport);
-		await transport.handleRequest(req, res);
+		await transport.handleRequest(req, res, parsed_body);
 	} catch (error) {
 		if (!res.headersSent) {
 			send_json(res, 500, {

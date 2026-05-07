@@ -8,7 +8,8 @@
 import { effect, render } from './blocks.js';
 import { on } from './events.js';
 import { get, set } from './runtime.js';
-import { is_array, is_ripple_object } from './utils.js';
+import { is_ripple_object } from './utils.js';
+import { is_array } from '@tsrx/core/runtime/language-helpers';
 
 /**
  * @param {string} name

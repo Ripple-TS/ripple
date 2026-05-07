@@ -175,7 +175,7 @@ const STYLE_COMPOSITION_HTML = [
 	'<span class="ln"> 9</span> <span class="br">}</span>',
 	'<span class="ln">10</span>',
 	'<span class="ln">11</span> <span class="kw">component</span> <span class="fn">App</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln">12</span>   <span class="tag">&lt;</span><span class="el">Badge</span> <span class="attr">className</span>=<span class="tbr">{</span><span class="reactive">#style</span>.<span class="prop">highlight</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
+	'<span class="ln">12</span>   <span class="tag">&lt;</span><span class="el">Badge</span> <span class="attr">className</span>=<span class="tbr">{</span><span class="kw">style</span> <span class="str">\'highlight\'</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
 	'<span class="ln">13</span>',
 	'<span class="ln">14</span>   <span class="tag">&lt;</span><span class="el">style</span><span class="tag">&gt;</span>',
 	'<span class="ln">15</span>     <span class="css-sel">.highlight</span> <span class="css-br">{</span> <span class="attr">background</span>: <span class="val">#e8f5e9</span>; <span class="attr">color</span>: <span class="val">#2e7d32</span>; <span class="css-br">}</span>',
@@ -417,6 +417,30 @@ export component DocsPage() {
 							<code class="inline-code">{'key'}</code>
 							{' clauses so you don\'t need separate counters or key-extraction boilerplate.'}
 						</p>
+						<p class="section-body">
+							{'Use '}
+							<code class="inline-code">{'continue'}</code>
+							{' inside a component '}
+							<code class="inline-code">{'for...of'}</code>
+							{' body to skip the current item. Top-level '}
+							<code class="inline-code">{'return'}</code>
+							{' and '}
+							<code class="inline-code">{'break'}</code>
+							{' statements are not allowed there, because loop rendering lowers to target-specific callbacks or blocks. Nested functions inside the loop keep ordinary JavaScript control flow.'}
+						</p>
+						<p class="section-body">
+							{'Other JavaScript loops are not component rendering constructs: regular '}
+							<code class="inline-code">{'for'}</code>
+							{', '}
+							<code class="inline-code">{'for...in'}</code>
+							{', '}
+							<code class="inline-code">{'while'}</code>
+							{', and '}
+							<code class="inline-code">{'do...while'}</code>
+							{' are rejected in component template scope. Move imperative loops into a nested function or effect, or render collections with '}
+							<code class="inline-code">{'for...of'}</code>
+							{'.'}
+						</p>
 						<pre class="code-block">
 							<code>{html FOR_HTML}</code>
 						</pre>
@@ -496,9 +520,9 @@ export component DocsPage() {
 						<h2 class="section-heading">{'Style composition'}</h2>
 						<p class="section-body">
 							{'Because scoped styles don\'t cross component boundaries, TSRX provides '}
-							<code class="inline-code">{'#style'}</code>
+							<code class="inline-code">{'{style "className"}'}</code>
 							{' for passing scoped class names to child components as props. '}
-							<code class="inline-code">{'#style.className'}</code>
+							<code class="inline-code">{'{style "highlight"}'}</code>
 							{' produces a string containing both the scope hash and the class name, which the child applies via its '}
 							<code class="inline-code">{'class'}</code>
 							{' attribute.'}
@@ -508,7 +532,7 @@ export component DocsPage() {
 						</pre>
 						<p class="section-body">
 							{'The class referenced via '}
-							<code class="inline-code">{'#style'}</code>
+							<code class="inline-code">{'{style}'}</code>
 							{' must exist as a standalone selector in the component\'s '}
 							<code class="inline-code">{'<style>'}</code>
 							{' block. Classes that only appear in compound or descendant selectors cannot be passed.'}

@@ -22,7 +22,7 @@ export function parse(source, filename, options) {
  * @param {string} source
  * @param {string} filename
  * @param {CompileOptions} [options]
- * @returns {object}
+ * @returns {{ code: string, map: any, css: string, cssHash: string | null, errors: CompileError[], js: { code: string, map: any } }}
  */
 export function compile(source, filename, options = {}) {
 	const errors = /** @type {CompileError[]} */ ([]);
@@ -56,7 +56,15 @@ export function compile(source, filename, options = {}) {
 					options?.hmr ?? false,
 				);
 
-	return { ...result, errors };
+	const { ast: _ast, ...rest } = result;
+	return {
+		...rest,
+		// Temporary back-compat for the LiveCodes playground
+		// (live-codes/livecodes#865), which still reads `js.code`. Remove once
+		// the playground is replaced.
+		js: { code: rest.code, map: rest.map },
+		errors,
+	};
 }
 
 /**
@@ -95,10 +103,10 @@ export function compile_to_volar_mappings(source, filename, options = {}) {
 		ast: transformed.ast,
 		ast_from_source: ast,
 		source,
-		generated_code: transformed.js.code,
-		source_map: transformed.js.map,
-		post_processing_changes: transformed.js.post_processing_changes,
-		line_offsets: transformed.js.line_offsets,
+		generated_code: transformed.code,
+		source_map: transformed.map,
+		post_processing_changes: transformed.post_processing_changes,
+		line_offsets: transformed.line_offsets,
 		errors: transformed.errors,
 	});
 }

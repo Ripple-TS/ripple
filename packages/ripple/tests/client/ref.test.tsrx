@@ -1,9 +1,70 @@
 import type { PropsWithExtras } from 'ripple';
 import { describe, it, expect } from 'vitest';
-import { RippleArray, createRefKey, effect, flushSync, track } from 'ripple';
+import { RippleArray, createRefKey, effect, flushSync, isRefProp, track } from 'ripple';
 import type { Tracked } from 'ripple';
 
 describe('refs', () => {
+	it('reports ordinary functions and ref objects as non named-ref props', () => {
+		expect(isRefProp(() => {})).toBe(false);
+		expect(isRefProp({ current: null })).toBe(false);
+		expect(isRefProp({ value: null })).toBe(false);
+	});
+
+	it('captures a host element with a named ref prop', () => {
+		let captured: HTMLInputElement | null = null;
+
+		component App() {
+			let input: HTMLInputElement | undefined;
+
+			<input type="text" input_ref={ref input} />
+
+			effect(() => {
+				captured = input ?? null;
+			});
+		}
+
+		render(App);
+		flushSync();
+
+		expect(captured).toBeInstanceOf(HTMLInputElement);
+	});
+
+	it('forwards a named ref prop explicitly through a component', () => {
+		let captured: HTMLInputElement | null = null;
+
+		component Child(props: PropsWithExtras<{}>) {
+			expect(isRefProp(props.input_ref)).toBe(true);
+			<input type="text" ref={props.input_ref} />
+		}
+
+		component App() {
+			<Child input_ref={ref (node: HTMLInputElement | null) => (captured = node)} />
+		}
+
+		render(App);
+		flushSync();
+
+		expect(captured).toBeInstanceOf(HTMLInputElement);
+	});
+
+	it('applies named ref props from host spreads', () => {
+		let captured: HTMLInputElement | null = null;
+
+		component Child(props: PropsWithExtras<{}>) {
+			expect(isRefProp(props.input_ref)).toBe(true);
+			<input type="text" {...props} />
+		}
+
+		component App() {
+			<Child input_ref={ref (node: HTMLInputElement | null) => (captured = node)} />
+		}
+
+		render(App);
+		flushSync();
+
+		expect(captured).toBeInstanceOf(HTMLInputElement);
+	});
+
 	it('capture a <div>', () => {
 		let div: HTMLDivElement | undefined;
 
@@ -138,6 +199,95 @@ describe('refs', () => {
 		expect(captured!.textContent).toBe('Hello World');
 	});
 
+	it('assigns a host element to a plain let variable via ref={var}', () => {
+		let captured: HTMLDivElement | null = null;
+
+		component App() {
+			let div: HTMLDivElement | undefined;
+
+			<div ref={div}>{'Hello ref attr'}</div>
+
+			effect(() => {
+				captured = div ?? null;
+			});
+		}
+
+		render(App);
+		flushSync();
+		expect(captured).toBeInstanceOf(HTMLDivElement);
+		expect(captured!.textContent).toBe('Hello ref attr');
+	});
+
+	it('clears a plain let variable via ref={var} when the host element unmounts', () => {
+		let div: HTMLDivElement | null | undefined;
+
+		component App() {
+			let &[show] = track(true);
+
+			if (show) {
+				<div ref={div}>{'Hello cleanup'}</div>
+			}
+
+			<button class="toggle" onClick={() => (show = false)}>{'hide'}</button>
+		}
+
+		render(App);
+		flushSync();
+		expect(div).toBeInstanceOf(HTMLDivElement);
+
+		(container.querySelector('.toggle') as HTMLButtonElement).click();
+		flushSync();
+		expect(div).toBeNull();
+	});
+
+	it('assigns a host element to a member expression via ref={state.var}', () => {
+		let captured: HTMLInputElement | null = null;
+
+		component App() {
+			const state: { input?: HTMLInputElement } = {};
+
+			<input type="text" ref={state.input} />
+
+			effect(() => {
+				captured = state.input ?? null;
+			});
+		}
+
+		render(App);
+		flushSync();
+		expect(captured).toBeInstanceOf(HTMLInputElement);
+	});
+
+	it('clears a plain let variable via component ref={var} when the host element unmounts', () => {
+		let input: HTMLInputElement | null | undefined;
+		let previous: HTMLInputElement | undefined;
+
+		component Child(props: PropsWithExtras<{}>) {
+			<input type="text" value="keep" {...props} />
+		}
+
+		component App() {
+			let &[show] = track(true);
+
+			if (show) {
+				<Child ref={input} />
+			}
+
+			<button class="toggle" onClick={() => (show = false)}>{'hide'}</button>
+		}
+
+		render(App);
+		flushSync();
+		expect(input).toBeInstanceOf(HTMLInputElement);
+		previous = input!;
+		expect(previous.value).toBe('keep');
+
+		(container.querySelector('.toggle') as HTMLButtonElement).click();
+		flushSync();
+		expect(input).toBeNull();
+		expect(previous.value).toBe('keep');
+	});
+
 	it(
 		'uses the function path even when the variable is an Identifier (function wins over setter)',
 		() => {
@@ -176,14 +326,7 @@ describe('refs', () => {
 		},
 	);
 
-	it('does NOT propagate a plain let variable through a composite component via {...rest}', () => {
-		// Assignment-sugar (`let foo; <el {ref foo} />`) only works on
-		// host elements, where the setter closure has direct lexical
-		// access to the parent's slot. Passing a plain `let` variable
-		// through a composite forwards only its current value into the
-		// child's local prop bag — there is no slot identity across the
-		// component boundary. Use a `Tracked` (object identity) when you
-		// need the captured node to be visible in the parent.
+	it('propagates a plain let variable through a composite component via {...rest}', () => {
 		let captured: HTMLInputElement | null = null;
 
 		component Child({ id, ...rest }: PropsWithExtras<{ id: string }>) {
@@ -202,11 +345,108 @@ describe('refs', () => {
 
 		render(App);
 		flushSync();
-		// The DOM input was created and exists — but the parent's `input`
-		// slot stays unset because there is no setter to forward through
-		// the composite boundary.
 		expect(container.querySelector('input')).toBeInstanceOf(HTMLInputElement);
-		expect(captured).toBeNull();
+		expect(captured).toBeInstanceOf(HTMLInputElement);
+		expect(captured!.id).toBe('example');
+	});
+
+	it(
+		'clears a plain let variable forwarded through a named ref prop when the host element unmounts',
+		() => {
+			let input: HTMLInputElement | null | undefined;
+			let previous: HTMLInputElement | undefined;
+
+			component Child(props: PropsWithExtras<{}>) {
+				<input type="text" value="keep" {...props} />
+			}
+
+			component App() {
+				let &[show] = track(true);
+
+				if (show) {
+					<Child input_ref={ref input} />
+				}
+
+				<button class="toggle" onClick={() => (show = false)}>{'hide'}</button>
+			}
+
+			render(App);
+			flushSync();
+			expect(input).toBeInstanceOf(HTMLInputElement);
+			previous = input!;
+			expect(previous.value).toBe('keep');
+
+			(container.querySelector('.toggle') as HTMLButtonElement).click();
+			flushSync();
+			expect(input).toBeNull();
+			expect(previous.value).toBe('keep');
+		},
+	);
+
+	it('clears a named ref prop when a host spread changes it to a regular prop', () => {
+		let input: HTMLInputElement | null | undefined;
+		let previous: HTMLInputElement | undefined;
+
+		component Child(props: PropsWithExtras<{}>) {
+			let &[as_ref] = track(true);
+
+			<input
+				type="text"
+				value="keep"
+				{...(as_ref ? { input_ref: props.input_ref } : { input_ref: 'regular prop' })}
+			/>
+			<button class="toggle" onClick={() => (as_ref = false)}>{'toggle'}</button>
+		}
+
+		component App() {
+			<Child input_ref={ref input} />
+		}
+
+		render(App);
+		flushSync();
+		expect(input).toBeInstanceOf(HTMLInputElement);
+		previous = input!;
+		expect(previous.value).toBe('keep');
+		expect(previous.getAttribute('input_ref')).toBeNull();
+
+		(container.querySelector('.toggle') as HTMLButtonElement).click();
+		flushSync();
+		expect(input).toBeNull();
+		expect(previous.value).toBe('keep');
+		expect(previous.getAttribute('input_ref')).toBe('regular prop');
+	});
+
+	it('removes a regular spread attribute when the key changes to a named ref prop', () => {
+		let input: HTMLInputElement | null | undefined;
+		let previous: HTMLInputElement | undefined;
+
+		component Child(props: PropsWithExtras<{}>) {
+			let &[as_ref] = track(false);
+
+			<input
+				type="text"
+				value="keep"
+				{...(as_ref ? { input_ref: props.input_ref } : { input_ref: 'regular prop' })}
+			/>
+			<button class="toggle" onClick={() => (as_ref = true)}>{'toggle'}</button>
+		}
+
+		component App() {
+			<Child input_ref={ref input} />
+		}
+
+		render(App);
+		flushSync();
+		expect(input).toBeUndefined();
+		previous = container.querySelector('input') as HTMLInputElement;
+		expect(previous.value).toBe('keep');
+		expect(previous.getAttribute('input_ref')).toBe('regular prop');
+
+		(container.querySelector('.toggle') as HTMLButtonElement).click();
+		flushSync();
+		expect(input).toBe(previous);
+		expect(previous.value).toBe('keep');
+		expect(previous.getAttribute('input_ref')).toBeNull();
 	});
 
 	it('clears the Tracked when the host element unmounts', () => {

@@ -6,7 +6,7 @@ import { FOR_BLOCK, TRACKED_ARRAY } from './constants.js';
 import { hydrate_next, hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
 import { create_text, get_first_child, get_last_child, next_sibling } from './operations.js';
 import { active_block, set, tracked, untrack } from './runtime.js';
-import { array_from, is_array } from './utils.js';
+import { array_from, is_array } from '@tsrx/core/runtime/language-helpers';
 
 /**
  * @template V

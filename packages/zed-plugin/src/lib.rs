@@ -34,29 +34,43 @@ impl TsrxExtension {
 
     fn system_binary_path(worktree: &zed::Worktree) -> Option<PathBuf> {
         let (os, _) = zed::current_platform();
-        let candidates: &[&str] = match os {
-            zed::Os::Windows => &[
-                "ripple-language-server.cmd",
-                "ripple-language-server",
-                "node_modules/.bin/ripple-language-server.cmd",
-                "node_modules/.bin/ripple-language-server",
-            ],
-            _ => &[
-                "ripple-language-server",
-                "node_modules/.bin/ripple-language-server",
-            ],
+        let bin_name = match os {
+            zed::Os::Windows => "ripple-language-server.cmd",
+            _ => "ripple-language-server",
         };
 
-        for candidate in candidates {
-            if let Some(path) = worktree.which(candidate) {
-                let path_buf = PathBuf::from(path);
-                if fs::metadata(&path_buf).map_or(false, |stat| stat.is_file()) {
-                    return Some(path_buf);
-                }
+        let root_str = worktree.root_path();
+        eprintln!("[ripple-ext] worktree root: {}", root_str);
+        let root = PathBuf::from(&root_str);
+
+        // 1. Project-local: if the project's package.json declares
+        //    PACKAGE_NAME as a dep, npm/pnpm will have placed a bin wrapper at
+        //    node_modules/.bin/<bin_name>. We can't probe inside node_modules
+        //    via worktree.read_text_file (Zed excludes it from the indexed
+        //    worktree), so we read package.json instead and infer.
+        let needle = format!("\"{}\"", PACKAGE_NAME);
+        if let Ok(pkg_json) = worktree.read_text_file("package.json") {
+            if pkg_json.contains(&needle) {
+                let abs = root.join("node_modules").join(".bin").join(bin_name);
+                eprintln!("[ripple-ext] using project-local bin: {}", abs.display());
+                return Some(abs);
             }
+            eprintln!("[ripple-ext] package.json does not declare {}", PACKAGE_NAME);
+        } else {
+            eprintln!("[ripple-ext] no package.json at worktree root");
         }
 
-        None
+        // 2. PATH lookup (for global installs).
+        match worktree.which(bin_name) {
+            Some(path) => {
+                eprintln!("[ripple-ext] which({}) -> {}", bin_name, path);
+                Some(PathBuf::from(path))
+            }
+            None => {
+                eprintln!("[ripple-ext] which({}) -> None; falling back to npm install", bin_name);
+                None
+            }
+        }
     }
 
     fn install_language_server(
@@ -135,21 +149,40 @@ impl TsrxExtension {
             return Ok(bin_path);
         }
 
-        let fallback_path = extension_dir
-            .join("node_modules")
-            .join(PACKAGE_NAME)
-            .join("bin")
-            .join("language-server.js");
+        // Fallback: parse the installed package's package.json `bin` field
+        // and resolve from there. Auto-tracks whatever path the package
+        // declares (string form or { "<name>": "<path>" } object form), so
+        // this stays correct if the LSP restructures its layout.
+        let pkg_dir = extension_dir.join("node_modules").join(PACKAGE_NAME);
+        let pkg_json_path = pkg_dir.join("package.json");
+        let manifest_fallback = if let Ok(contents) = fs::read_to_string(&pkg_json_path) {
+            if let Ok(manifest) = serde_json::from_str::<Value>(&contents) {
+                let rel = match manifest.get("bin") {
+                    Some(Value::String(s)) => Some(s.as_str().to_owned()),
+                    Some(Value::Object(map)) => map
+                        .values()
+                        .find_map(|v| v.as_str().map(str::to_owned)),
+                    _ => None,
+                };
+                rel.map(|r| pkg_dir.join(r))
+            } else {
+                None
+            }
+        } else {
+            None
+        };
 
-        if fs::metadata(&fallback_path).map_or(false, |stat| stat.is_file()) {
-            return Ok(fallback_path);
+        if let Some(path) = manifest_fallback.as_ref() {
+            if fs::metadata(path).map_or(false, |stat| stat.is_file()) {
+                return Ok(path.clone());
+            }
         }
 
-        Err(format!(
-            "expected a binary at {} or {}",
-            bin_path.display(),
-            fallback_path.display()
-        ))
+        let mut tried = format!("{}", bin_path.display());
+        if let Some(p) = manifest_fallback {
+            tried.push_str(&format!(" or {}", p.display()));
+        }
+        Err(format!("expected a binary at {}", tried))
     }
 
     fn extension_dir() -> Result<PathBuf, String> {
@@ -219,11 +252,53 @@ impl zed::Extension for TsrxExtension {
     ) -> Result<zed::Command, String> {
         let binary_path = self.language_server_binary_path(language_server_id, worktree)?;
 
-        Ok(zed::Command {
-            command: binary_path,
-            args: vec!["--stdio".to_string()],
-            env: worktree.shell_env(),
-        })
+        // Wrap the spawn in a shell snippet that prints an actionable error if
+        // the bin disappears between detection and exec. Needed because we
+        // cannot probe paths under node_modules from inside the wasm sandbox,
+        // so the project-local path returned by system_binary_path is a guess
+        // (we trust package.json + that the user ran their package manager).
+        // If the guess is wrong, this gives the user a clear message and
+        // recovery steps instead of a bare OS-level "no such file" error.
+        let (os, _) = zed::current_platform();
+        let mut env = worktree.shell_env();
+        env.push(("RIPPLE_LSP_BIN".into(), binary_path.clone()));
+        env.push(("RIPPLE_LSP_PKG".into(), PACKAGE_NAME.into()));
+
+        let cmd = match os {
+            zed::Os::Windows => zed::Command {
+                command: "cmd".into(),
+                args: vec![
+                    "/c".into(),
+                    "if exist \"%RIPPLE_LSP_BIN%\" ( \
+                       \"%RIPPLE_LSP_BIN%\" --stdio \
+                     ) else ( \
+                       echo [ripple-language-server] not found at \"%RIPPLE_LSP_BIN%\". \
+Run `pnpm install` ^(or `npm install`^) in your project, \
+or remove \"%RIPPLE_LSP_PKG%\" from your dependencies to use the auto-installed version. 1>&2 \
+                       & exit /b 127 \
+                     )".into(),
+                ],
+                env,
+            },
+            _ => zed::Command {
+                command: "/bin/sh".into(),
+                args: vec![
+                    "-c".into(),
+                    "if [ -x \"$RIPPLE_LSP_BIN\" ]; then \
+                       exec \"$RIPPLE_LSP_BIN\" --stdio; \
+                     else \
+                       printf '%s\\n' \
+                         \"[ripple-language-server] not found at $RIPPLE_LSP_BIN. \
+Run \\`pnpm install\\` (or \\`npm install\\`) in your project, \
+or remove \\\"$RIPPLE_LSP_PKG\\\" from your dependencies to use the auto-installed version.\" >&2; \
+                       exit 127; \
+                     fi".into(),
+                ],
+                env,
+            },
+        };
+
+        Ok(cmd)
     }
 }
 

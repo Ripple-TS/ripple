@@ -87,7 +87,7 @@ async function compile_target(target: CompileTarget, source: string) {
 			target,
 			output: {
 				code: await format_js(react_result.code),
-				css: await format_css(react_result.css?.code ?? ''),
+				css: await format_css(react_result.css),
 			},
 		};
 	}
@@ -99,7 +99,7 @@ async function compile_target(target: CompileTarget, source: string) {
 			target,
 			output: {
 				code: await format_js(preact_result.code),
-				css: await format_css(preact_result.css?.code ?? ''),
+				css: await format_css(preact_result.css),
 			},
 		};
 	}
@@ -111,7 +111,7 @@ async function compile_target(target: CompileTarget, source: string) {
 			target,
 			output: {
 				code: await format_js(solid_result.code),
-				css: await format_css(solid_result.css?.code ?? ''),
+				css: await format_css(solid_result.css),
 			},
 		};
 	}
@@ -123,7 +123,7 @@ async function compile_target(target: CompileTarget, source: string) {
 			target,
 			output: {
 				code: await format_js(vue_result.code),
-				css: await format_css(vue_result.css?.code ?? ''),
+				css: await format_css(vue_result.css),
 			},
 		};
 	}
@@ -144,7 +144,7 @@ async function compile_target(target: CompileTarget, source: string) {
 	return {
 		target,
 		output: {
-			code: await format_js(ripple_result.js.code),
+			code: await format_js(ripple_result.code),
 			css: await format_css(ripple_result.css),
 		},
 	};

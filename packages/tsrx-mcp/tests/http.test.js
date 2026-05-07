@@ -19,10 +19,19 @@ afterEach(async () => {
 });
 
 /**
- * @param {{ bearerToken?: string }} [options]
+ * @param {{ bearerToken?: string, preparseBody?: boolean }} [options]
  */
 async function create_test_endpoint(options = {}) {
-	const server = createServer((req, res) => {
+	const server = createServer(async (req, res) => {
+		if (options.preparseBody === true && req.method === 'POST') {
+			const chunks = [];
+			for await (const chunk of req) {
+				chunks.push(chunk);
+			}
+			const req_with_body =
+				/** @type {import('node:http').IncomingMessage & { body?: unknown }} */ (req);
+			req_with_body.body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+		}
 		handleTSRXMcpNodeRequest(req, res, options);
 	});
 	servers.push(server);
@@ -35,11 +44,12 @@ async function create_test_endpoint(options = {}) {
 
 /**
  * @param {(client: Client) => Promise<void>} run
- * @param {{ bearerToken?: string }} [options]
+ * @param {{ bearerToken?: string, preparseBody?: boolean }} [options]
  */
 async function with_http_client(run, options = {}) {
 	const url = await create_test_endpoint({
 		bearerToken: options.bearerToken,
+		preparseBody: options.preparseBody,
 	});
 	const transport = new StreamableHTTPClientTransport(url, {
 		requestInit: options.bearerToken
@@ -95,6 +105,9 @@ describe('@tsrx/mcp HTTP server', () => {
 				'format-tsrx',
 				'get-documentation',
 				'list-sections',
+				'review-tsrx-accessibility',
+				'review-tsrx-components',
+				'review-tsrx-styles',
 			]);
 		});
 	});
@@ -153,6 +166,17 @@ describe('@tsrx/mcp HTTP server', () => {
 				expect(output.sections[0].slug).toBe('components');
 			},
 			{ bearerToken: 'test-token' },
+		);
+	});
+
+	it('supports hosts that provide a pre-parsed request body', async () => {
+		await with_http_client(
+			async (client) => {
+				const { tools } = await client.listTools();
+
+				expect(tools.map((tool) => tool.name)).toContain('compile-tsrx');
+			},
+			{ preparseBody: true },
 		);
 	});
 });

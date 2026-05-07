@@ -53,6 +53,15 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'tsrx-ripple',
+					include: ['packages/tsrx-ripple/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'tsrx-react',
 					include: ['packages/tsrx-react/tests/**/*.test.js'],
 					environment: 'node',
@@ -80,6 +89,16 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'tsrx-preact-runtime',
+					include: ['packages/vite-plugin-preact/tests/**/*.test.tsrx'],
+					environment: 'jsdom',
+					setupFiles: ['packages/vite-plugin-preact/tests/setup.js'],
+					globals: true,
+				},
+				plugins: [(await import('./packages/vite-plugin-preact/src/index.js')).tsrxPreact()],
+			},
+			{
+				test: {
 					name: 'bun-plugin-preact',
 					include: ['packages/bun-plugin-preact/tests/**/*.test.js'],
 					environment: 'node',
@@ -91,6 +110,15 @@ export default defineConfig({
 				test: {
 					name: 'bun-plugin-react',
 					include: ['packages/bun-plugin-react/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
+					name: 'bun-plugin-vue',
+					include: ['packages/bun-plugin-vue/tests/**/*.test.js'],
 					environment: 'node',
 					globals: true,
 				},
@@ -301,6 +329,15 @@ export default defineConfig({
 				test: {
 					name: 'utils',
 					include: ['packages/ripple/tests/utils/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
+					name: 'tsrx-utils',
+					include: ['packages/tsrx/tests/utils/**/*.test.js'],
 					environment: 'node',
 					globals: true,
 				},

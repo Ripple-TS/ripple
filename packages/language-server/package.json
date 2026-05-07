@@ -1,16 +1,20 @@
 {
   "name": "@ripple-ts/language-server",
-  "version": "0.3.41",
+  "version": "0.3.49",
   "description": "Language Server Protocol implementation for Ripple",
   "main": "dist/server.js",
   "type": "module",
   "bin": {
-    "ripple-language-server": "bin/language-server.js"
+    "ripple-language-server": "./dist/language-server.js"
   },
+  "files": [
+    "dist"
+  ],
   "author": "Dominic Gannaway",
   "license": "MIT",
   "scripts": {
-    "build": "tsdown"
+    "build": "tsdown",
+    "prepare": "tsdown"
   },
   "repository": {
     "type": "git",

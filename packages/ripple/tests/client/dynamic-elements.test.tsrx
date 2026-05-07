@@ -1,5 +1,5 @@
 import type { PropsWithExtras } from 'ripple';
-import { createRefKey, flushSync, track } from 'ripple';
+import { createRefKey, effect, flushSync, track } from 'ripple';
 
 describe('dynamic DOM elements', () => {
 	it('renders static dynamic element', () => {
@@ -223,6 +223,84 @@ describe('dynamic DOM elements', () => {
 		expect(capturedElement!.tagName).toBe('ARTICLE');
 		expect(capturedElement!.id).toBe('ref-test');
 		expect(capturedElement!.textContent).toBe('Element with ref');
+	});
+
+	it('handles ref={...}, {ref ...}, and named ref props on dynamic DOM elements', () => {
+		let refAttrElement: HTMLInputElement | null = null;
+		let anonymousRefElement: HTMLInputElement | null = null;
+		let namedRefElement: HTMLInputElement | null = null;
+
+		component App() {
+			let tag = track('input');
+			let input: HTMLInputElement | undefined;
+			const state: { anonymous?: HTMLInputElement } = {};
+
+			<@tag
+				id="dynamic-ref-combo"
+				type="text"
+				ref={input}
+				{ref state.anonymous}
+				input_ref={ref (node: HTMLInputElement | null) => {
+					namedRefElement = node;
+				}}
+			/>
+
+			effect(() => {
+				refAttrElement = input ?? null;
+				anonymousRefElement = state.anonymous ?? null;
+			});
+		}
+
+		render(App);
+		flushSync();
+
+		const element = container.querySelector('#dynamic-ref-combo');
+		expect(element).toBeInstanceOf(HTMLInputElement);
+		expect(refAttrElement).toBe(element);
+		expect(anonymousRefElement).toBe(element);
+		expect(namedRefElement).toBe(element);
+		expect(element!.hasAttribute('ref')).toBe(false);
+		expect(element!.hasAttribute('input_ref')).toBe(false);
+	});
+
+	it('forwards dynamic ref forms through a dynamic component that spreads props', () => {
+		let refAttrElement: HTMLInputElement | null = null;
+		let anonymousRefElement: HTMLInputElement | null = null;
+		let namedRefElement: HTMLInputElement | null = null;
+
+		component Child(props: PropsWithExtras<{}>) {
+			<input id="dynamic-component-ref-combo" type="text" {...props} />
+		}
+
+		component App() {
+			let dynamic = track(() => Child);
+			let input: HTMLInputElement | undefined;
+			const state: { anonymous?: HTMLInputElement } = {};
+
+			<@dynamic
+				ref={input}
+				{ref state.anonymous}
+				input_ref={ref (node: HTMLInputElement | null) => {
+					namedRefElement = node;
+				}}
+			/>
+
+			effect(() => {
+				refAttrElement = input ?? null;
+				anonymousRefElement = state.anonymous ?? null;
+			});
+		}
+
+		render(App);
+		flushSync();
+
+		const element = container.querySelector('#dynamic-component-ref-combo');
+		expect(element).toBeInstanceOf(HTMLInputElement);
+		expect(refAttrElement).toBe(element);
+		expect(anonymousRefElement).toBe(element);
+		expect(namedRefElement).toBe(element);
+		expect(element!.hasAttribute('ref')).toBe(false);
+		expect(element!.hasAttribute('input_ref')).toBe(false);
 	});
 
 	it('handles dynamic element with createRefKey in spread', () => {

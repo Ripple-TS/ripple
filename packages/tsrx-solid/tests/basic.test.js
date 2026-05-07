@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+	runSharedAnonymousComponentTests,
+	runSharedClassComponentDeclarationTests,
 	runSharedCompileDiagnosticsTests,
 	runSharedCompileTests,
+	runSharedComponentParamsTests,
 } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
@@ -13,8 +16,11 @@ runSharedSourceMappingTests({
 	rejectsComponentAwait: true,
 });
 
+runSharedAnonymousComponentTests({ compile, name: 'solid' });
 runSharedCompileTests({ compile, name: 'solid', classAttrName: 'class' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'solid' });
+runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'solid' });
+runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name: 'solid' });
 
 describe('@tsrx/solid basic', () => {
 	describe('component → function', () => {
@@ -449,6 +455,59 @@ describe('@tsrx/solid basic', () => {
 			expect(show_idx).toBeGreaterThan(-1);
 			expect(signal_idx).toBeLessThan(show_idx);
 		});
+
+		it('early-return keeps preceding JSX outside the guarded continuation', () => {
+			const { code } = compile(
+				`export default component A() {
+					let early = true;
+					<>"Hello"</>
+					if (early) {
+						return
+					}
+					<>"World"</>
+				}`,
+				'A.tsrx',
+			);
+
+			const hello_idx = code.indexOf('<>"Hello"</>');
+			const show_idx = code.indexOf('<Show when={!early}');
+			const world_idx = code.indexOf('<>"World"</>');
+			expect(hello_idx).toBeGreaterThan(-1);
+			expect(show_idx).toBeGreaterThan(-1);
+			expect(world_idx).toBeGreaterThan(show_idx);
+			expect(hello_idx).toBeLessThan(show_idx);
+			expect(code).not.toContain('return <Show when={!early}');
+		});
+
+		it('nests sequential early-return continuations', () => {
+			const { code } = compile(
+				`export default component A() {
+					let early = true
+					<>"Hello"</>
+					if (early) {
+						return
+					}
+					<>"World"</>
+					if (!early) {
+						return
+					}
+					<>"done"</>
+				}`,
+				'A.tsrx',
+			);
+
+			const hello_idx = code.indexOf('<>"Hello"</>');
+			const outer_show_idx = code.indexOf('<Show when={!early}');
+			const world_idx = code.indexOf('<>"World"</>');
+			const inner_show_idx = code.indexOf('<Show when={early}');
+			const done_idx = code.indexOf('<>"done"</>');
+			expect(hello_idx).toBeGreaterThan(-1);
+			expect(outer_show_idx).toBeGreaterThan(hello_idx);
+			expect(world_idx).toBeGreaterThan(outer_show_idx);
+			expect(inner_show_idx).toBeGreaterThan(world_idx);
+			expect(done_idx).toBeGreaterThan(inner_show_idx);
+			expect(code).not.toContain('<Show when={!early}>{(_) =>');
+		});
 	});
 
 	describe('<tsx> fragments', () => {
@@ -481,7 +540,7 @@ describe('@tsrx/solid basic', () => {
 
 	describe('scoped CSS', () => {
 		it('emits css and annotates elements with the scope class', () => {
-			const { code, css } = compile(
+			const { code, css, cssHash } = compile(
 				`export component App() {
 					<div class="wrapper">{'hi'}</div>
 					<style>
@@ -490,26 +549,24 @@ describe('@tsrx/solid basic', () => {
 				}`,
 				'App.tsrx',
 			);
-			expect(css).not.toBeNull();
-			expect(css?.code).toContain('.wrapper.');
+			expect(css).not.toBe('');
+			expect(css).toContain('.wrapper.');
 			// hash is applied to element's class attribute
 			expect(code).toMatch(/class="wrapper tsrx-[a-z0-9]+"/);
 		});
 
-		it('#style.name compiles to a scoped class literal', () => {
-			const { code } = compile(
-				`export component App() {
-					<div class={#style.root}>{'hi'}</div>
-					<style>
-						.root { color: blue; }
-					</style>
-				}`,
-				'App.tsrx',
-			);
-			// `#style.root` macro expands to `"hash root"`; the per-element scope
-			// class is additionally templated in, mirroring @tsrx/react behavior.
-			expect(code).toMatch(/"tsrx-[a-z0-9]+ root"/);
-			expect(code).not.toContain('#style');
+		it('rejects {style} directly on DOM elements', () => {
+			expect(() =>
+				compile(
+					`export component App() {
+						<div class={style 'root'}>{'hi'}</div>
+						<style>
+							.root { color: blue; }
+						</style>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/cannot be used directly on DOM elements/);
 		});
 	});
 
@@ -646,6 +703,79 @@ describe('@tsrx/solid basic', () => {
 
 			expect(code).toContain('ref={refA}');
 			expect(code).not.toContain('[refA');
+		});
+
+		it('wraps named ref props and normalizes host spreads', () => {
+			const { code } = compile(
+				`component Child(props) {
+					<input {...props} />
+				}
+
+				component App() {
+					let input;
+					<Child input_ref={ref input} />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain("from '@tsrx/solid/ref'");
+			expect(code).toContain('input_ref={__create_ref_prop(() => input, (v) => input = v)}');
+			expect(code).toContain('{...__normalize_spread_props(props)}');
+		});
+
+		it('imports only create_ref_prop for component ref props without host spreads', () => {
+			const { code } = compile(
+				`component Child(props) {
+					<span>{'child'}</span>
+				}
+
+				component App() {
+					let input;
+					<Child input_ref={ref input} />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain("from '@tsrx/solid/ref'");
+			expect(code).toContain('input_ref={__create_ref_prop(() => input, (v) => input = v)}');
+			expect(code).not.toContain('normalize_spread_props');
+		});
+
+		it('normalizes multiple host spreads once while merging one explicit ref', () => {
+			const { code } = compile(
+				`component App() {
+					const first = {};
+					const second = {};
+					function cb(_node) {}
+					<input {...first} {...second} ref={cb} />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('let App__spread_props1 = __normalize_spread_props(first);');
+			expect(code).toContain('let App__spread_props2 = __normalize_spread_props(second);');
+			expect(code).toContain('{...App__spread_props1}');
+			expect(code).toContain('{...App__spread_props2}');
+			expect(code).toContain('ref={[App__spread_props1.ref, App__spread_props2.ref, cb]}');
+			expect(code.match(/__normalize_spread_props\(/g)).toHaveLength(2);
+			expect(code).not.toContain('create_ref_prop');
+			expect(code).not.toContain('__normalize_spread_props(first, cb)');
+			expect(code).not.toContain('__normalize_spread_props(second, cb)');
+		});
+
+		it('normalizes named ref props on host elements before lowering attributes', () => {
+			const { code } = compile(
+				`component App() {
+					let input;
+					<input input_ref={ref input} />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain("from '@tsrx/solid/ref'");
+			expect(code).toContain('ref={__create_ref_prop(() => input, (v) => input = v)}');
+			expect(code).not.toContain('normalize_spread_props');
+			expect(code).not.toContain('input_ref=');
 		});
 
 		it('rejects multiple ref={expr} attributes on the same element', () => {

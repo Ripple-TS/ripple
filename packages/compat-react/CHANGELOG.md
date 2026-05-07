@@ -1,5 +1,64 @@
 # @ripple-ts/compat-react
 
+## 0.3.49
+
+### Patch Changes
+
+- Updated dependencies
+  [[`b54a72f`](https://github.com/Ripple-TS/ripple/commit/b54a72f721adb5f08a5bf3e3d006780b7e1eb471)]:
+  - ripple@0.3.49
+
+## 0.3.48
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.48
+
+## 0.3.47
+
+### Patch Changes
+
+- Updated dependencies
+  [[`a960343`](https://github.com/Ripple-TS/ripple/commit/a960343169aee906162211c502b6cc6b74e2a124)]:
+  - ripple@0.3.47
+
+## 0.3.46
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.46
+
+## 0.3.45
+
+### Patch Changes
+
+- Updated dependencies
+  [[`d1acf12`](https://github.com/Ripple-TS/ripple/commit/d1acf129cdd0bf2ee596dbab26ec4df829a33880)]:
+  - ripple@0.3.45
+
+## 0.3.44
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.44
+
+## 0.3.43
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.43
+
+## 0.3.42
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.42
+
 ## 0.3.41
 
 ### Patch Changes

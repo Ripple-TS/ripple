@@ -55,6 +55,7 @@ npm install -D @tsrx/rspack-plugin-solid
 npm install @tsrx/vue vue vue-jsx-vapor
 npm install -D @tsrx/vite-plugin-vue
 npm install -D @tsrx/rspack-plugin-vue
+npm install -D @tsrx/bun-plugin-vue        # Bun
 
 # Ripple target
 npm install ripple @ripple-ts/vite-plugin
@@ -221,6 +222,31 @@ include?: RegExp, exclude?: RegExp | RegExp[] }` — override the automatic JSX
 runtime import source (defaults to `'preact'`), override the module used for
 `Suspense` (defaults to `'preact/compat'`), disable virtual CSS emission, or
 filter which files the plugin compiles.
+
+### Bun setup (Vue target)
+
+`@tsrx/bun-plugin-vue` compiles `.tsrx` → TSX via `@tsrx/vue`, runs the
+downstream `vue-jsx-vapor` transform, strips the remaining TypeScript syntax
+with Bun, and serves component-local `<style>` blocks as sibling virtual CSS
+modules.
+
+```ts
+// build.ts
+import tsrxVue from '@tsrx/bun-plugin-vue';
+
+await Bun.build({
+  entrypoints: ['./src/App.tsrx'],
+  outdir: './dist',
+  target: 'browser',
+  plugins: [tsrxVue()],
+});
+```
+
+Options: `{ vapor?: { macros?: boolean | object, interop?: boolean, compiler?: { runtimeModuleName?: string } }, emitCss?: boolean, include?: RegExp, exclude?: RegExp | RegExp[] }`
+— forwards options to `vue-jsx-vapor`, disables virtual CSS emission when
+requested, or filters which files the plugin compiles. Like the Vite and
+Rspack Vue integrations, editor typechecking should set
+`jsxImportSource: 'vue-jsx-vapor'`.
 
 Files use the `.tsrx` extension. The compiler transforms the same source
 differently per target — e.g. `if` lowers to `<Show>` on Solid, an IIFE +
@@ -424,103 +450,82 @@ When a prop name matches the variable, use the shorthand:
 <Input {value} {onChange} />
 ```
 
-### DOM refs — `{ref expr}` and `ref={...}`
+### DOM refs — `{ref expr}`, `ref={...}`, and named ref props
 
-TSRX has two ref syntaxes:
+Use refs when you need the DOM node. TSRX has three forms:
 
-- **Keyword form `{ref expr}`** — the canonical TSRX form. Works on every
-  target. Multiple per element are allowed and the compiler merges them.
-- **TSX-style attribute `ref={refObject}`** — accepted on every target
-  *except Ripple*. Targets the runtime's native ref-object primitive
-  (e.g. React's `useRef()`, Vue's `ref()`). At most one per element;
-  multiple `ref={...}` is a compile error.
+- **Keyword form `{ref expr}`** — a direct ref on the current element or component.
+- **Native-style attribute `ref={expr}`** — the target runtime's native ref
+  attribute. At most one `ref={...}` attribute is allowed on one element.
+- **Named ref prop `inputRef={ref expr}`** — a string-keyed ref prop that are
+	great for component and element composition. On host elements TSRX
+  applies named ref props as refs instead of emitting them as attributes.
 
-What `expr` can be — and how it's interpreted — depends on the target:
+What `expr` can be — and how it is interpreted — depends on the target:
 
-| Target | Callback `(n) => …` | Mutable `let` var | Reactive primitive | `ref={refObject}` attribute |
+| Target | Direct callback | Direct mutable `let` | Direct reactive/object ref | Named mutable prop |
 | --- | --- | --- | --- | --- |
-| React | ✓ | — | — | ✓ `useRef()` (`.current`) |
-| Preact | ✓ | — | — | ✓ `useRef()` (`.current`) |
-| Solid | ✓ | ✓ | ✓ signal setter (callback form) | ✓ |
-| Vue | ✓ | — | — | ✓ `ref()` / `useTemplateRef()` (`.value`) |
-| Ripple | ✓ | ✓ | ✓ `Tracked` from `track()` (`.value`) | — |
+| React | ✓ | — | ✓ `useRef()` / `createRef()` | ✓ |
+| Preact | ✓ | — | ✓ `useRef()` / `createRef()` | ✓ |
+| Solid | ✓ | ✓ | ✓ native Solid refs, including arrays | ✓ |
+| Vue | ✓ | — | ✓ Vue `ref()` / function refs | ✓ |
+| Ripple | ✓ | ✓ | ✓ `Tracked` from `track()` | ✓ |
 
-Ripple's `Tracked` and the mutable `let` form are runtime-dispatched: at
-mount, `ref()` decides whether to call the value as a function, set its
-`.value` (Tracked), or assign the element to the slot (plain variable).
-Ripple does not accept the TSX-style `ref={...}` attribute — use the
-keyword form.
 
 ```tsrx
 // Callback ref — every target.
-<input {ref (node) => node.focus()} />
+<input {ref (node) => node?.focus()} />
 ```
 
 ```tsrx
-// Mutable-variable ref — Solid, Ripple only. React/Preact need a callback
-// or `ref={useRef()}`; Vue needs a callback or `ref={ref()}`.
+// Mutable-variable direct refs — Solid and Ripple host elements.
 component AutoFocus() {
   let input: HTMLInputElement | undefined;
-  <input {ref input} type="text" />
+  <input ref={input} {ref input} myOtherRef={ref input} type="text" />
 }
 ```
 
 ```tsrx
-// Reactive primitive — Ripple's Tracked.
-import { track } from 'ripple';
+// Named mutable ref prop — every target.
 
-component App() {
-  const inputRef = track<HTMLInputElement | null>(null);
-  <input {ref inputRef} type="text" />
-  // later: inputRef.value is the input element
+component Form() {
+  let input: HTMLInputElement | undefined;
+  <Field inputRef={ref input} />
+}
+
+component Field(props) {
+  <input {...props} />
 }
 ```
 
 ```tsrx
-// React/Preact ref object — useRef + callback combo.
+// React/Preact ref object + anonymous and named callback refs.
 import { useRef } from 'react';
 
 component SearchBox() {
   const inputRef = useRef<HTMLInputElement>(null);
-  function logNode(node: HTMLInputElement) { console.log(node); }
+  function logNode(node: HTMLInputElement | null) { console.log(node); }
 
-  // At most one `ref={...}` + any number of `{ref ...}`.
-  <input ref={inputRef} {ref logNode} type="text" />
+  <input ref={inputRef} {ref logNode} logRef={ref logNode} type="text" />
 }
 ```
 
-**Combining refs**: any number of `{ref ...}` callbacks may sit alongside
-at most one `ref={...}` attribute (on platforms that support
-`ref={...}`). The compiler folds them into a single attribute that fires
-every callback and assigns every ref object on mount. Two or more
-`ref={...}` attributes on the same element is a compile error.
+**Combining refs**: you may combine one `ref={...}` with any number of
+anonymous or named `{ref ...}` expressions on one host element. React,
+Preact, and Vue use the target `ref` helper (`@tsrx/<target>/ref`) to merge
+callbacks and ref objects. Solid emits a native ref array such as
+`ref={[a, b]}`. Ripple applies refs through its block runtime.
 
-**Composite refs**: work on React, Preact, Solid, and Ripple. The child
-receives the ref as a regular prop and applies it to a DOM element —
-typically by spreading `{...props}`. On Ripple, use a callback or a
-`Tracked` for cross-boundary capture; plain `let` variables only work on
-host elements (the setter closure needs direct lexical access). Vue is
-different: component refs resolve to component instances rather than the
-rendered DOM node, so `@tsrx/vue` currently supports `{ref ...}` only on
-host elements.
+**Component refs and Vue**: in React, Preact, Solid, and Ripple, ref props can
+cross component boundaries when the child forwards or spreads props onto a
+host element. Vue is special: `ref={...}` on a Vue component remains Vue's
+native component ref and is not forwarded to the child's DOM element. Use a
+named ref prop such as `inputRef={ref input}` when a Vue component should
+expose an inner DOM ref.
 
-```tsrx
-component TextField(props) {
-  <input {...props} />
-}
-
-component Form() {
-  function logNode(node: HTMLInputElement) { console.log(node); }
-  <TextField {ref logNode} />
-}
-```
-
-**Multi-ref runtime**: React, Preact, and Vue share a `mergeRefs` helper
-(imported from `@tsrx/<target>/merge-refs`) that handles function refs,
-`.current` ref objects, `.value` ref objects, and React 19 cleanup return
-values uniformly. Solid emits `ref={[a, b]}` instead — its ref runtime
-iterates array refs natively. Ripple invokes each ref through its block
-runtime.
+**Runtime inspection**: named ref props are marked at runtime. Use
+`isRefProp(value)` to detect a named ref prop. Anonymous `{ref ...}` props are
+not publicly inspectable because their prop keys are unique symbols.
 
 ### Lexical template scoping
 
@@ -587,11 +592,13 @@ component StatusBadge({ status }: { status: string }) {
 ### `for ... of` with `index` and `key`
 
 TSRX extends `for ... of` with optional `index i` and `key expr` clauses.
+Use `continue` to skip an item before rendering it.
 
 ```tsrx
 component TodoList({ items }: { items: Todo[] }) {
   <ul>
     for (const item of items; index i; key item.id) {
+      if (item.hidden) continue;
       <li>{i + 1}". "{item.text}</li>
     }
   </ul>
@@ -602,6 +609,19 @@ component TodoList({ items }: { items: Todo[] }) {
 - `key expr` — stable identity for reconciliation. On Solid this lowers to
   `<For keyed={(item) => expr}>`. On React this becomes the `key` prop.
   On Ripple it drives the runtime's keyed for-block.
+- `continue` — skips the current rendered iteration. This is the only
+  supported top-level loop control-flow statement inside a component
+  `for...of` body.
+
+Top-level `return` and `break` are not allowed inside component `for...of`
+loops. Use `continue` for early item skips. Use a bare `return;` only for
+non-loop guard exits in the component body, and use `break` only for `switch`
+cases.
+
+Component rendering supports `for...of` for lists. Regular `for` loops,
+`for...in`, `while`, and `do...while` are not supported in component template
+scope. Move imperative loops into a nested function, event handler, effect, or
+helper, where normal JavaScript control flow rules apply.
 
 ### `switch`
 
@@ -734,10 +754,10 @@ selectors, or parts of a chain:
 - `:global(.foo, .bar)`
 - `.scoped :global(.unscoped) .also-scoped`
 
-### Style composition via `#style`
+### Style composition via `{style}`
 
 Because scoped classes don't cross component boundaries, TSRX provides
-`#style.className` — a compile-time identifier that expands to a string
+`{style "className"}` — an attribute-value directive that expands to a string
 containing both the scope hash and the class name. Pass it to a child, which
 applies it via its regular `class` attribute.
 
@@ -750,14 +770,14 @@ component Badge({ className }: { className?: string }) {
 }
 
 component App() {
-  <Badge className={#style.highlight} />
+  <Badge className={style "highlight"} />
   <style>
     .highlight { background: #e8f5e9; color: #2e7d32; }
   </style>
 }
 ```
 
-The class referenced via `#style` must appear as a standalone selector in
+The class referenced via `{style}` must appear as a standalone selector in
 the surrounding component's `<style>`. Classes that only appear as part of
 compound/descendant selectors cannot be passed.
 
@@ -929,9 +949,9 @@ component List<T>({ items, render }: Props<T>) {
 | Lazy array destructure   | `let &[count, set] = createSignal(0);`           |
 | Prop shorthand           | `<Input {value} {onChange} />`                   |
 | Callback ref             | `<input {ref (node) => ...} />`                  |
-| Mutable-variable ref (Solid/Ripple) | `<input {ref varName} />`                |
-| Reactive primitive ref (Ripple/Solid) | `<input {ref tracker} />`             |
-| Ref-object attribute (except Ripple) | `<input ref={useRefValue} />`          |
+| Direct mutable ref (Solid/Ripple) | `<input ref={varName} />`                  |
+| Named mutable ref prop  | `<Field inputRef={ref input} />`            |
+| Reactive/object ref     | `<input ref={useRefValue} />`               |
 | Multiple host refs       | `<input ref={obj} {ref a} {ref b} />`            |
 | Conditional rendering    | `if (cond) { ... } else { ... }`                 |
 | List rendering           | `for (const x of xs; index i; key x.id) { ... }` |
@@ -942,7 +962,7 @@ component List<T>({ items, render }: Props<T>) {
 | Guard exit               | `if (!user) { <p>"signin"</p> return; }`       |
 | Scoped style             | `<style> .x { ... } </style>`                    |
 | Escape scoping           | `:global(.class)`                                |
-| Cross-component class    | `<Child className={#style.foo} />`               |
+| Cross-component class    | `<Child className={style "foo"} />`              |
 | Dynamic element          | `<@tag />` with a `Tracked` / stateful `tag`     |
 
 ## Resources

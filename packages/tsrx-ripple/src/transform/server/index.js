@@ -11,11 +11,12 @@
 
 import {
 	builders,
+	clone_expression_node,
 	escape,
 	isEventAttribute,
 	isInsideComponent as is_inside_component,
+	renderCssResult,
 	renderStylesheets,
-	STYLE_IDENTIFIER,
 	CSS_HASH_IDENTIFIER,
 	obfuscateIdentifier,
 	BLOCK_CLOSE,
@@ -89,6 +90,108 @@ function apply_tsrx_css_scoping(nodes, state) {
 
 	for (const node of nodes) {
 		visit_node(node);
+	}
+}
+
+/**
+ * @param {AST.ImportDeclaration} node
+ * @returns {string | null}
+ */
+function get_submodule_import_source_name(node) {
+	const source = /** @type {AST.Literal | AST.Identifier} */ (node.source);
+	return source.type === 'Identifier' ? source.name : null;
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_server_module_declaration(node) {
+	return (
+		node.type === 'TSModuleDeclaration' &&
+		/** @type {AST.TSModuleDeclaration} */ (node).metadata?.module_keyword === 'module' &&
+		/** @type {AST.TSModuleDeclaration} */ (node).id?.type === 'Identifier' &&
+		/** @type {AST.Identifier} */ (/** @type {AST.TSModuleDeclaration} */ (node).id).name ===
+			'server'
+	);
+}
+
+/**
+ * @param {AST.ImportSpecifier} specifier
+ * @returns {string | null}
+ */
+function get_imported_name(specifier) {
+	const imported = specifier.imported;
+	if (imported.type === 'Identifier') {
+		return imported.name;
+	}
+	if (imported.type === 'Literal' && typeof imported.value === 'string') {
+		return imported.value;
+	}
+	return null;
+}
+
+/**
+ * @param {AST.ImportDeclaration} node
+ * @returns {AST.Statement[]}
+ */
+function transform_server_module_import(node) {
+	/** @type {AST.Statement[]} */
+	const declarations = [];
+	const source_name = get_submodule_import_source_name(node);
+	for (const specifier of node.specifiers) {
+		if (specifier.type !== 'ImportSpecifier') {
+			continue;
+		}
+		const imported_name = get_imported_name(specifier);
+		if (imported_name === null) {
+			continue;
+		}
+		const local_name = specifier.local.name;
+		const server_identifier = b.id(
+			'_$_server_$_',
+			/** @type {AST.NodeWithLocation} */ (node.source),
+		);
+		if (source_name !== null) {
+			server_identifier.metadata.source_name = source_name;
+		}
+		const imported_identifier = b.id(
+			imported_name,
+			/** @type {AST.NodeWithLocation} */ (specifier.imported),
+		);
+		const local_identifier = b.id(
+			local_name,
+			/** @type {AST.NodeWithLocation} */ (specifier.local),
+		);
+		declarations.push(
+			b.const(
+				local_identifier,
+				b.function(
+					null,
+					[b.rest(b.id('args'))],
+					b.block([
+						b.return(
+							b.call(b.member(server_identifier, imported_identifier), b.spread(b.id('args'))),
+						),
+					]),
+				),
+			),
+		);
+	}
+	return declarations;
+}
+
+/**
+ * @param {AST.Statement | AST.Statement[] | AST.Directive | AST.ModuleDeclaration} statement
+ * @param {Array<AST.Statement | AST.Directive | AST.ModuleDeclaration>} statements
+ */
+function push_statement(statement, statements) {
+	if (Array.isArray(statement)) {
+		for (const item of statement) {
+			statements.push(item);
+		}
+	} else {
+		statements.push(statement);
 	}
 }
 
@@ -230,6 +333,10 @@ function transform_children(children, context) {
 	const process_node = (node, local_state = state) => {
 		if (node.type === 'BreakStatement') {
 			state.init?.push(b.break);
+			return;
+		}
+		if (node.type === 'ContinueStatement') {
+			state.init?.push(b.continue);
 			return;
 		}
 		if (
@@ -422,6 +529,10 @@ const visitors = {
 		}
 	},
 
+	RefExpression(node, context) {
+		return create_ref_prop_call(node, context);
+	},
+
 	Component(node, context) {
 		/** @type {AST.Pattern | null} */
 		let props_param_output = null;
@@ -455,23 +566,6 @@ const visitors = {
 
 			// Register CSS hash during rendering
 			body_statements.push(hash, b.stmt(b.call(b.id('_$_.output_register_css'), hash_id)));
-
-			if (node.metadata.styleIdentifierPresent) {
-				/** @type {AST.Property[]} */
-				const properties = [];
-				if (node.metadata.topScopedClasses && node.metadata.topScopedClasses.size > 0) {
-					for (const [className] of node.metadata.topScopedClasses) {
-						properties.push(
-							b.prop(
-								'init',
-								b.key(className),
-								b.template([b.quasi('', false), b.quasi(` ${className}`, true)], [hash_id]),
-							),
-						);
-					}
-				}
-				body_statements.push(b.var(b.id(STYLE_IDENTIFIER), b.object(properties)));
-			}
 		}
 
 		body_statements.push(
@@ -488,21 +582,17 @@ const visitors = {
 			b.stmt(b.call('_$_.pop_component')),
 		);
 
-		let component_fn = b.function(
-			node.id,
-			props_param_output ? [props_param_output] : [],
-			b.block(body_statements),
-		);
+		const component_params = props_param_output ? [props_param_output] : [];
+		const component_body = b.block(body_statements);
 
-		// Anonymous components return a FunctionExpression
 		if (!node.id) {
-			return component_fn;
+			return node.metadata?.arrow
+				? b.arrow(component_params, component_body)
+				: b.function(null, component_params, component_body);
 		}
 
 		// Named components return a FunctionDeclaration
-		const declaration = b.function_declaration(node.id, component_fn.params, component_fn.body);
-
-		return declaration;
+		return b.function_declaration(node.id, component_params, component_body);
 	},
 
 	CallExpression(node, context) {
@@ -962,6 +1052,19 @@ const visitors = {
 							continue;
 						}
 
+						if (name === 'ref') {
+							continue;
+						}
+
+						const attr_value = /** @type {any} */ (attr.value);
+						if (
+							attr_value.type === 'RefExpression' ||
+							(attr_value.type === 'JSXExpressionContainer' &&
+								attr_value.expression?.type === 'RefExpression')
+						) {
+							continue;
+						}
+
 						if (attr.value.type === 'Literal' && name !== 'class') {
 							handle_static_attr(name, attr.value.value);
 							continue;
@@ -1333,15 +1436,29 @@ const visitors = {
 
 		const consequent_body =
 			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+		const consequent_scope = context.state.scopes.get(node.consequent) || context.state.scope;
+
+		if (node.metadata?.has_continue && !node.metadata?.has_template && !node.alternate) {
+			context.state.init?.push(
+				b.if(
+					/** @type {AST.Expression} */ (context.visit(node.test)),
+					b.block(
+						transform_body(consequent_body, {
+							...context,
+							state: { ...context.state, scope: consequent_scope },
+						}),
+					),
+				),
+			);
+			return;
+		}
 
 		const consequent = b.block(
 			transform_body(consequent_body, {
 				...context,
 				state: {
 					...context.state,
-					scope: /** @type {ScopeInterface} */ (
-						context.state.scopes.get(node.consequent) || context.state.scope
-					),
+					scope: /** @type {ScopeInterface} */ (consequent_scope),
 				},
 			}),
 		);
@@ -1355,7 +1472,9 @@ const visitors = {
 			const alternate_body_nodes =
 				node.alternate.type === 'IfStatement'
 					? [node.alternate]
-					: /** @type {AST.BlockStatement} */ (node.alternate).body;
+					: node.alternate.type === 'BlockStatement'
+						? node.alternate.body
+						: [node.alternate];
 
 			alternate = b.block(
 				transform_body(alternate_body_nodes, {
@@ -1418,16 +1537,19 @@ const visitors = {
 		}
 	},
 
-	ServerIdentifier(node, context) {
-		return b.id('_$_server_$_');
-	},
-
-	StyleIdentifier(node, context) {
-		return b.id(STYLE_IDENTIFIER);
+	Style(node, context) {
+		const class_name = typeof node.value.value === 'string' ? node.value.value : '';
+		const hash = context.state.component?.css?.hash;
+		const value = hash ? `${hash} ${class_name}` : class_name;
+		return b.literal(value);
 	},
 
 	ImportDeclaration(node, context) {
 		const { state } = context;
+
+		if (get_submodule_import_source_name(node) === 'server') {
+			return /** @type {any} */ (transform_server_module_import(node));
+		}
 
 		if (!state.to_ts && node.importKind === 'type') {
 			return b.empty;
@@ -1658,15 +1780,31 @@ const visitors = {
 		context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(node.content))));
 	},
 
-	ServerBlock(node, context) {
-		const exports = node.metadata.exports;
+	TSModuleBlock(node, context) {
+		/** @type {AST.Statement[]} */
+		const statements = [];
+		for (const statement of node.body) {
+			push_statement(
+				/** @type {AST.Statement | AST.Statement[]} */ (context.visit(statement)),
+				statements,
+			);
+		}
+		return { ...node, body: statements };
+	},
 
-		// Convert Imports inside ServerBlock to local variables
+	TSModuleDeclaration(node, context) {
+		if (!is_server_module_declaration(node)) {
+			return context.next();
+		}
+
+		const exports = node.metadata.exports ?? new Set();
+
+		// Convert imports inside `module server` to local variables.
 		// ImportDeclaration() visitor will add imports to the top of the module
 		/** @type {AST.VariableDeclaration[]} */
 		const server_block_locals = [];
 
-		const block = /** @type {AST.BlockStatement} */ (
+		const block = /** @type {AST.TSModuleBlock} */ (
 			context.visit(node.body, {
 				...context.state,
 				ancestor_server_block: node,
@@ -1719,10 +1857,11 @@ const visitors = {
 		const statements = [];
 
 		for (const statement of node.body) {
-			statements.push(
-				/** @type {AST.Statement | AST.Directive | AST.ModuleDeclaration} */ (
+			push_statement(
+				/** @type {AST.Statement | AST.Statement[] | AST.Directive | AST.ModuleDeclaration} */ (
 					context.visit(statement)
 				),
+				statements,
 			);
 		}
 
@@ -1731,12 +1870,36 @@ const visitors = {
 };
 
 /**
+ * @param {AST.RefExpression} node
+ * @param {TransformServerContext} context
+ * @returns {AST.CallExpression}
+ */
+function create_ref_prop_call(node, context) {
+	const { state, visit } = context;
+	const argument = /** @type {AST.Expression} */ (visit(node.argument, state));
+	/** @type {AST.Expression[]} */
+	const args = [b.thunk(argument)];
+	const arg_type = node.argument.type;
+
+	if (arg_type === 'Identifier' || arg_type === 'MemberExpression') {
+		args.push(
+			b.arrow(
+				[b.id('v')],
+				b.assignment('=', /** @type {AST.Pattern} */ (clone_expression_node(argument)), b.id('v')),
+			),
+		);
+	}
+
+	return b.call('_$_.create_ref_prop', ...args);
+}
+
+/**
  * @param {string} filename
  * @param {string} source
  * @param {AnalysisResult} analysis
  * @param {boolean} minify_css
  * @param {boolean} [dev]
- * @returns {{ ast: AST.Program; js: { code: string; map: RawSourceMap | null }; css: string; }}
+ * @returns {{ ast: AST.Program; code: string; map: RawSourceMap | null; css: string; cssHash: string | null; }}
  */
 export function transform_server(filename, source, analysis, minify_css, dev = false) {
 	// Use component metadata collected during the analyze phase
@@ -1748,7 +1911,6 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 		init: null,
 		scope: analysis.scope,
 		scopes: analysis.scopes,
-		serverIdentifierPresent: analysis.metadata.serverIdentifierPresent,
 		stylesheets: [],
 		component_metadata,
 		ancestor_server_block: undefined,
@@ -1766,11 +1928,10 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 
 	const program = /** @type {AST.Program} */ (walk(analysis.ast, { ...state }, visitors));
 
-	const css = renderStylesheets(state.stylesheets, minify_css);
+	const { css, cssHash } = renderCssResult(state.stylesheets, minify_css);
 
-	// Add CSS registration if there are stylesheets
-	if (state.stylesheets.length > 0 && css) {
-		// Register each stylesheet's CSS
+	// Register each stylesheet's CSS so the runtime can serialize it
+	if (css) {
 		for (const stylesheet of state.stylesheets) {
 			const css_for_component = renderStylesheets([stylesheet]);
 			/** @type {AST.Program} */ (program).body.push(
@@ -1796,14 +1957,20 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 
 	program.body = body;
 
-	const js = print(program, /** @type {Visitors<AST.Node, TransformServerState>} */ (ts()), {
-		sourceMapContent: source,
-		sourceMapSource: path.basename(filename),
-	});
+	const { code, map } = print(
+		program,
+		/** @type {Visitors<AST.Node, TransformServerState>} */ (ts()),
+		{
+			sourceMapContent: source,
+			sourceMapSource: path.basename(filename),
+		},
+	);
 
 	return {
 		ast: /** @type {AST.Program} */ (program),
-		js,
+		code,
+		map,
 		css,
+		cssHash,
 	};
 }

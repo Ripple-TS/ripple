@@ -105,7 +105,7 @@ export function branch(fn, flags = 0, state = null) {
  *   - a `Tracked` (e.g. from `track()`) — `tracked.value` is set to the
  *     element on mount and reset to `null` on unmount.
  *   - a plain mutable var (`let foo;`) — the element is assigned to the
- *     variable. No teardown is run, released with the component.
+ *     variable on mount and reset to `null` on unmount.
  *
  * `get_fn` is invoked through `untrack` so the surrounding render block
  * doesn't subscribe to whatever the thunk happens to read. The supported
@@ -148,7 +148,14 @@ export function ref(element, get_fn, set_fn) {
 					});
 				});
 			} else if (set_fn !== undefined) {
-				set_fn(element);
+				e = branch(() => {
+					effect(() => {
+						set_fn(element);
+						return () => {
+							set_fn(null);
+						};
+					});
+				});
 			}
 		}
 	});

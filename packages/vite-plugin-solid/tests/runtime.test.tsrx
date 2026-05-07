@@ -121,7 +121,7 @@ let element_ref_captured: HTMLDivElement | null = null;
 
 component ElementRefApp() {
 	let el: HTMLDivElement | undefined;
-	<div {ref el} class="ref-target">{'ref test'}</div>
+	<div {ref el} class="ref-target">"ref test"</div>
 	// Solid sets refs synchronously during rendering.
 	queueMicrotask(() => {
 		element_ref_captured = el ?? null;
@@ -138,9 +138,7 @@ component ElementRefCallbackApp() {
 			callback_ref_captured = node;
 		}}
 		class="ref-callback"
-	>
-		{'ref callback'}
-	</div>
+	>"ref callback"</div>
 }
 
 // ── Ref on composite components via prop forwarding ──
@@ -252,6 +250,129 @@ component DeepRefApp() {
 	<DeepOuter type="text" {ref onMount} />
 }
 
+// ── Named ref props merged with native and anonymous refs ──
+
+let named_direct_node: HTMLInputElement | null = null;
+let named_direct_native_node: HTMLInputElement | null = null;
+let named_direct_anonymous_node: HTMLInputElement | null = null;
+
+component NamedDirectRefApp() {
+	function nativeRef(node: HTMLInputElement | null) {
+		named_direct_native_node = node;
+	}
+
+	function anonymousRef(node: HTMLInputElement | null) {
+		named_direct_anonymous_node = node;
+	}
+
+	<input
+		ref={nativeRef}
+		{ref anonymousRef}
+		input_ref={ref (node: HTMLInputElement | null) => {
+			named_direct_node = node;
+		}}
+		class="named-direct-ref"
+		type="text"
+	/>
+}
+
+let named_forward_node: HTMLInputElement | null = null;
+
+component NamedForwardInput(props: { type: string; input_ref?: any }) {
+	<input type={props.type} ref={props.input_ref} class="named-forward-ref" />
+}
+
+component NamedForwardRefApp() {
+	<NamedForwardInput
+		type="text"
+		input_ref={ref (node: HTMLInputElement | null) => {
+			named_forward_node = node;
+		}}
+	/>
+}
+
+let named_spread_before_node: HTMLInputElement | null = null;
+let named_spread_before_native_node: HTMLInputElement | null = null;
+
+function namedSpreadBeforeNativeRef(node: HTMLInputElement | null) {
+	named_spread_before_native_node = node;
+}
+
+component NamedSpreadBeforeRefInput(props: { type: string; input_ref?: any }) {
+	<input {...props} ref={namedSpreadBeforeNativeRef} class="named-spread-before-ref" />
+}
+
+component NamedSpreadBeforeRefApp() {
+	<NamedSpreadBeforeRefInput
+		type="text"
+		input_ref={ref (node: HTMLInputElement | null) => {
+			named_spread_before_node = node;
+		}}
+	/>
+}
+
+let named_spread_after_node: HTMLInputElement | null = null;
+let named_spread_after_native_node: HTMLInputElement | null = null;
+
+function namedSpreadAfterNativeRef(node: HTMLInputElement | null) {
+	named_spread_after_native_node = node;
+}
+
+component NamedSpreadAfterRefInput(props: { type: string; input_ref?: any }) {
+	<input ref={namedSpreadAfterNativeRef} {...props} class="named-spread-after-ref" />
+}
+
+component NamedSpreadAfterRefApp() {
+	<NamedSpreadAfterRefInput
+		type="text"
+		input_ref={ref (node: HTMLInputElement | null) => {
+			named_spread_after_node = node;
+		}}
+	/>
+}
+
+let multi_spread_first_node: HTMLInputElement | null = null;
+let multi_spread_second_node: HTMLInputElement | null = null;
+let multi_spread_native_node: HTMLInputElement | null = null;
+let multi_spread_native_calls = 0;
+
+function multiSpreadExplicitNativeRef(node: HTMLInputElement | null) {
+	if (node) {
+		multi_spread_native_calls += 1;
+	}
+	multi_spread_native_node = node;
+}
+
+component MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) {
+	const first = { type: props.type, first_ref: props.first_ref };
+	const second = { second_ref: props.second_ref };
+
+	<input
+		{...first}
+		{...second}
+		ref={multiSpreadExplicitNativeRef}
+		class="multi-spread-explicit-ref"
+	/>
+}
+
+component MultiSpreadExplicitRefApp() {
+	<MultiSpreadExplicitRefInput
+		type="text"
+		first_ref={ref (node: HTMLInputElement | null) => {
+			multi_spread_first_node = node;
+		}}
+		second_ref={ref (node: HTMLInputElement | null) => {
+			multi_spread_second_node = node;
+		}}
+	/>
+}
+
+const named_ref_object: { value: HTMLInputElement | null } = { value: null };
+
+component NamedRefObjectApp() {
+	<NamedForwardInput type="text" input_ref={ref named_ref_object} />
+}
+
 // ── If-statement with reactivity ──
 
 component IfReactiveApp() {
@@ -277,6 +398,27 @@ component ForReactiveApp() {
 
 	<button class="add" onClick={() => setItems([...items(), 'd'])}>{'add'}</button>
 	<button class="remove" onClick={() => setItems(items().slice(1))}>{'remove'}</button>
+}
+
+component ForContinueApp() {
+	const items = ['a', '', 'c'];
+
+	for (const item of items) {
+		const item_value = (item as unknown as () => string)();
+		if (!item_value) continue;
+		<li class="continue-item">{item_value}</li>
+	}
+}
+
+component ForContinueAfterPriorJsxApp() {
+	const items = ['a', '', 'c'];
+
+	for (const item of items) {
+		const item_value = (item as unknown as () => string)();
+		<span class="continue-before">{`before-${item_value || 'empty'}`}</span>
+		if (!item_value) continue;
+		<span class="continue-after">{`after-${item_value}`}</span>
+	}
 }
 
 // ── Switch with reactivity ──
@@ -587,6 +729,19 @@ component EarlyReturnWithSignalsApp() {
 	<button class="early-skip" onClick={() => setSkip(true)}>{'skip'}</button>
 }
 
+component TemplateBeforeEarlyReturnApp() {
+	const [guard, setGuard] = createSignal(false);
+
+	<button class="template-return-toggle" onClick={() => setGuard(!guard())}>{'toggle'}</button>
+
+	if (guard()) {
+		<p class="template-return-guard">{'guard'}</p>
+		return;
+	}
+
+	<p class="template-return-rest">{'rest'}</p>
+}
+
 // ── Static structure inside control flow ──
 
 component StaticInBranchApp() {
@@ -824,6 +979,65 @@ describe('tsrx-solid runtime', () => {
 		expect(deep_ref_captured!.type).toBe('text');
 	});
 
+	it('merges direct named ref props with native ref and anonymous {ref}', async () => {
+		named_direct_node = null;
+		named_direct_native_node = null;
+		named_direct_anonymous_node = null;
+		await render(NamedDirectRefApp);
+		expect(named_direct_node).toBeInstanceOf(HTMLInputElement);
+		expect(named_direct_node).toBe(named_direct_native_node);
+		expect(named_direct_node).toBe(named_direct_anonymous_node);
+		expect(container.querySelector('.named-direct-ref')!.hasAttribute('input_ref')).toBe(false);
+	});
+
+	it('supports explicit forwarding of named ref props into host ref', async () => {
+		named_forward_node = null;
+		await render(NamedForwardRefApp);
+		expect(named_forward_node).toBeInstanceOf(HTMLInputElement);
+		expect(named_forward_node!.className).toBe('named-forward-ref');
+	});
+
+	it('merges named spread refs with native ref after the spread', async () => {
+		named_spread_before_node = null;
+		named_spread_before_native_node = null;
+		await render(NamedSpreadBeforeRefApp);
+		expect(named_spread_before_node).toBeInstanceOf(HTMLInputElement);
+		expect(named_spread_before_node).toBe(named_spread_before_native_node);
+	});
+
+	it('merges named spread refs with native ref before the spread', async () => {
+		named_spread_after_node = null;
+		named_spread_after_native_node = null;
+		await render(NamedSpreadAfterRefApp);
+		expect(named_spread_after_node).toBeInstanceOf(HTMLInputElement);
+		expect(named_spread_after_node).toBe(named_spread_after_native_node);
+	});
+
+	it('merges named refs from multiple host spreads with one explicit ref', async () => {
+		multi_spread_first_node = null;
+		multi_spread_second_node = null;
+		multi_spread_native_node = null;
+		multi_spread_native_calls = 0;
+		await render(MultiSpreadExplicitRefApp);
+		expect(multi_spread_first_node).toBeInstanceOf(HTMLInputElement);
+		expect(multi_spread_first_node).toBe(multi_spread_second_node);
+		expect(multi_spread_first_node).toBe(multi_spread_native_node);
+		expect(multi_spread_native_calls).toBe(1);
+		expect(container.querySelector('.multi-spread-explicit-ref')!.hasAttribute('first_ref')).toBe(
+			false,
+		);
+		expect(container.querySelector('.multi-spread-explicit-ref')!.hasAttribute('second_ref')).toBe(
+			false,
+		);
+	});
+
+	it('assigns named ref props backed by value ref objects', async () => {
+		named_ref_object.value = null;
+		await render(NamedRefObjectApp);
+		expect(named_ref_object.value).toBeInstanceOf(HTMLInputElement);
+		expect(named_ref_object.value!.className).toBe('named-forward-ref');
+	});
+
 	// ── Reactive control flow: if ──
 
 	it('toggles if-else branches on signal change (<Show>)', async () => {
@@ -854,6 +1068,33 @@ describe('tsrx-solid runtime', () => {
 		const after = container.querySelectorAll('.item');
 		expect(after.length).toBe(3);
 		expect(after[0].textContent).toBe('b');
+	});
+
+	it('skips for-of iterations with continue', async () => {
+		await render(ForContinueApp);
+		expect(
+			Array.from(container.querySelectorAll('.continue-item'), (item) => item.textContent),
+		).toEqual([
+			'a',
+			'c',
+		]);
+	});
+
+	it('keeps prior JSX children when continue skips a for-of continuation', async () => {
+		await render(ForContinueAfterPriorJsxApp);
+		expect(
+			Array.from(container.querySelectorAll('.continue-before'), (item) => item.textContent),
+		).toEqual([
+			'before-a',
+			'before-empty',
+			'before-c',
+		]);
+		expect(
+			Array.from(container.querySelectorAll('.continue-after'), (item) => item.textContent),
+		).toEqual([
+			'after-a',
+			'after-c',
+		]);
 	});
 
 	// ── Reactive control flow: switch ──
@@ -1083,6 +1324,18 @@ describe('tsrx-solid runtime', () => {
 		await click('.early-skip');
 		expect(container.querySelector('.early-count')).toBeNull();
 		expect(container.querySelector('.early-doubled')).toBeNull();
+	});
+
+	it('early return after rendering a branch template skips the continuation', async () => {
+		await render(TemplateBeforeEarlyReturnApp);
+		expect(text('.template-return-toggle')).toBe('toggle');
+		expect(text('.template-return-rest')).toBe('rest');
+		expect(container.querySelector('.template-return-guard')).toBeNull();
+
+		await click('.template-return-toggle');
+		expect(text('.template-return-toggle')).toBe('toggle');
+		expect(text('.template-return-guard')).toBe('guard');
+		expect(container.querySelector('.template-return-rest')).toBeNull();
 	});
 
 	// ── Static structure ──

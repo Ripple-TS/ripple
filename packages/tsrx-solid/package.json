@@ -3,7 +3,7 @@
   "description": "Solid compiler built on @tsrx/core",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.21",
+  "version": "0.0.28",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -17,6 +17,10 @@
     ".": {
       "types": "./types/index.d.ts",
       "default": "./src/index.js"
+    },
+    "./ref": {
+      "types": "./types/ref.d.ts",
+      "default": "./src/ref.js"
     }
   },
   "dependencies": {

@@ -3,7 +3,7 @@ import { DIAGNOSTIC_CODES } from '../../src/diagnostics.js';
 
 /**
  * @typedef {{
- *   compile: (source: string, filename?: string, options?: any) => { code: string, css: { code: string, hash: string } | null, errors: Array<{ message: string, code?: string }> },
+ *   compile: (source: string, filename?: string, options?: any) => { code: string, css: string, cssHash: string | null, errors: Array<{ message: string, code?: string }> },
  *   name: string,
  *   classAttrName: 'class' | 'className',
  * }} CompileHarness
@@ -56,15 +56,544 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 }
 
 /**
+ * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
+ */
+export function runSharedFragmentExpressionRenderTests({ compile, name }) {
+	describe(`[${name}] fragment expression render bodies`, () => {
+		it('renders a component-body fragment shorthand with a lone expression child', () => {
+			const { code } = compile(
+				`export default component A() {
+					<>{"Hello"}</>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('return "Hello";');
+		});
+
+		it('renders lone expression fragment shorthand inside conditional render bodies', () => {
+			const { code } = compile(
+				`export component A() {
+					if (show) {
+						<>{"Hello"}</>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('"Hello"');
+			expect(code).not.toMatch(/^[\t ]*"Hello";?\n\s*return null;/m);
+		});
+
+		it('renders lone expression fragment shorthand inside loop render bodies', () => {
+			const { code } = compile(
+				`export component A() {
+					for (const value of values) {
+						<>{value}</>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('value');
+			expect(code).not.toMatch(/^[\t ]*value;?\n\s*return null;/m);
+		});
+
+		it('renders lone expression fragment shorthand inside switch case bodies', () => {
+			const { code } = compile(
+				`export component A() {
+					switch (state) {
+						case "ready":
+							<>{"Ready"}</>
+							break
+						default:
+							<>{"Waiting"}</>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('"Ready"');
+			expect(code).toContain('"Waiting"');
+			expect(code).not.toMatch(/^[\t ]*"Ready";?\n\s*break;/m);
+			expect(code).not.toMatch(/^[\t ]*"Waiting";?\n\s*return null;/m);
+		});
+	});
+}
+
+/**
+ * Shared component-loop regressions. Vue does not share the full JSX output
+ * suite because its component export shape differs, but it should still share
+ * these component-body validation rules.
+ *
+ * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
+ */
+export function runSharedComponentLoopControlFlowTests({ compile, name }) {
+	runSharedFragmentExpressionRenderTests({ compile, name });
+
+	describe(`[${name}] component loop control flow`, () => {
+		it('uses continue to skip a for...of iteration', () => {
+			const { code } = compile(
+				`export component App({ items }: { items: string[] }) {
+					for (const item of items) {
+						if (!item) continue
+						<div>{item}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).not.toContain('continue;');
+			expect(code).toMatch(/return null;|\? (?:null|\[\]) :/);
+			expect(code).toContain('<div>{item}</div>');
+		});
+
+		it('keeps rendered content before continue branches', () => {
+			const { code } = compile(
+				`export component App({ items }: { items: string[] }) {
+					for (const item of items) {
+						<span>{item}</span>
+						if (!item) continue
+						<div>{item}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).not.toContain('continue;');
+			expect(code).not.toContain('{}');
+			expect(code).toContain('<span>{item}</span>');
+			expect(code).toContain('<div>{item}</div>');
+		});
+
+		it.runIf(['react', 'preact'].includes(name))(
+			'keeps explicit loop keys on otherwise static children',
+			() => {
+				const { code } = compile(
+					`export component App() {
+						for (const item of items; index i; key i) {
+							<div>{'test'}</div>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain("return <div key={i}>{'test'}</div>;");
+				expect(code).not.toContain('__static');
+			},
+		);
+
+		it.runIf(['react', 'preact'].includes(name))(
+			'keeps implicit loop keys on multi-child static loop bodies',
+			() => {
+				const { code } = compile(
+					`export component App() {
+						for (const item of items; index i) {
+							<div>{'one'}</div>
+							<div>{'two'}</div>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				const fragment_source = name === 'react' ? 'react' : 'preact';
+				expect(code).toContain(`import { Fragment } from '${fragment_source}';`);
+				expect(code).toContain('<Fragment key={i}>');
+				expect(code).toContain('</Fragment>');
+			},
+		);
+
+		it('allows ordinary function control flow inside for...of loops', () => {
+			const { code } = compile(
+				`export component App({ items }: { items: string[] }) {
+					for (const item of items) {
+						function label(value: string) {
+							for (let i = 0; i < 1; i++) {
+								while (i < 0) {
+									break
+								}
+								if (!value) return 'missing'
+							}
+							return value
+						}
+
+						<div>{label(item)}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function label');
+			expect(code).toContain('label(item)');
+		});
+
+		it('rejects return statements inside for...of loops', () => {
+			expect(() =>
+				compile(
+					`export component App({ items }: { items: string[] }) {
+						for (const item of items) {
+							if (!item) return
+							<div>{item}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow('Return statements are not allowed inside component for...of loops');
+		});
+
+		it('rejects break statements targeting for...of loops', () => {
+			expect(() =>
+				compile(
+					`export component App({ items }: { items: string[] }) {
+						for (const item of items) {
+							if (!item) break
+							<div>{item}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow('Break statements are not allowed inside component for...of loops');
+		});
+
+		it.each([
+			['for', `for (let i = 0; i < items.length; i++) { <div>{items[i]}</div> }`],
+			['for...in', `for (const key in items) { <div>{items[key]}</div> }`],
+			['while', `while (items.length) { <div>{items[0]}</div> }`],
+			['do...while', `do { <div>{items[0]}</div> } while (items.length)`],
+		])('rejects %s loops in component templates', (_label, loop) => {
+			expect(() =>
+				compile(
+					`export component App({ items }: { items: string[] }) {
+						${loop}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/loops are not supported in components/);
+		});
+	});
+}
+
+/**
+ * Shared anonymous component expression regressions. These cover parser support
+ * for arrow-shaped anonymous components and the cross-target lowering contract:
+ * arrow-authored anonymous components become arrow functions, legacy anonymous
+ * components stay function expressions, and named components continue to use
+ * declarations in the broader shared suite.
+ *
+ * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
+ */
+export function runSharedAnonymousComponentTests({ compile, name }) {
+	describe(`[${name}] anonymous component expressions`, () => {
+		const jsx_targets = ['react', 'preact', 'solid'];
+
+		it.runIf(jsx_targets.includes(name))(
+			'parses anonymous component arrow expressions as plain arrow functions',
+			() => {
+				const { code } = compile(
+					`const Inline = component(props: { x: string }) => {
+						<div>{props.x}</div>
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('const Inline = (props: { x: string }) => {');
+				expect(code).toContain('<div>{props.x}</div>');
+				expect(code).not.toContain('function Inline');
+				expect(code).not.toContain('function (props');
+			},
+		);
+
+		it.runIf(name === 'vue')(
+			'parses anonymous component arrow expressions as defineVaporComponent arrows',
+			() => {
+				const { code } = compile(
+					`const Inline = component(props: { x: string }) => {
+						<div>{props.x}</div>
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('const Inline = defineVaporComponent((props: { x: string }) => {');
+				expect(code).toContain('<div>{props.x}</div>');
+				expect(code).not.toContain('function Inline');
+				expect(code).not.toContain('function (props');
+			},
+		);
+
+		it.runIf(jsx_targets.includes(name))(
+			'lowers legacy anonymous component expressions to plain function expressions',
+			() => {
+				const { code } = compile(
+					`const Inline = component() {
+						<div>{'inline'}</div>
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('const Inline = function () {');
+				expect(code).toContain("<div>{'inline'}</div>");
+				expect(code).not.toContain('function Inline');
+				expect(code).not.toContain('const Inline = () => {');
+			},
+		);
+
+		it.runIf(name === 'vue')(
+			'lowers legacy anonymous component expressions to defineVaporComponent functions',
+			() => {
+				const { code } = compile(
+					`const Inline = component() {
+						<div>{'inline'}</div>
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('const Inline = defineVaporComponent(function () {');
+				expect(code).toContain("<div>{'inline'}</div>");
+				expect(code).not.toContain('function Inline');
+				expect(code).not.toContain('const Inline = defineVaporComponent(() => {');
+			},
+		);
+	});
+}
+
+/**
+ * Shared validation that components only accept a single (props) parameter.
+ * Without this rule, JSX targets pass extra params straight through into the
+ * generated function, and ripple silently drops them. The rule is enforced
+ * across every component declaration shape — named declaration, anonymous
+ * expression (legacy and arrow), and arrow class property (regular and
+ * static). Runs against both `compile` (which throws) and
+ * `compile_to_volar_mappings` (which collects errors) so the same rule fires
+ * for production builds and editor tooling.
+ *
+ * @param {Pick<CompileHarness, 'compile' | 'name'> & Pick<CompileDiagnosticsHarness, 'compile_to_volar_mappings'>} harness
+ */
+export function runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name }) {
+	const expected_message =
+		'Components accept a single props parameter. Move additional inputs into the props object instead.';
+
+	/**
+	 * @param {string} source
+	 * @param {string} label
+	 */
+	function expect_compile_throws(source, label) {
+		it(`rejects ${label} via compile`, () => {
+			expect(() => compile(source, 'App.tsrx')).toThrow(/single props parameter/);
+		});
+	}
+
+	/**
+	 * @param {string} source
+	 * @param {string} label
+	 */
+	function expect_volar_collects(source, label) {
+		it(`surfaces ${label} via Volar mappings`, () => {
+			const result = compile_to_volar_mappings(source, 'App.tsrx');
+
+			expect(
+				result.errors.some((error) =>
+					/** @type {{ message?: string }} */ (error).message?.includes(expected_message),
+				),
+			).toBe(true);
+		});
+	}
+
+	const cases = /** @type {const} */ ([
+		[
+			'a named component declaration with multiple parameters',
+			`export component App(a, b) {
+				<div>{a}</div>
+			}`,
+		],
+		[
+			'an anonymous component expression with multiple parameters',
+			`const Inline = component(a, b) {
+				<div>{a}</div>
+			}`,
+		],
+		[
+			'an anonymous arrow component expression with multiple parameters',
+			`const Inline = component(a, b) => {
+				<div>{a}</div>
+			}`,
+		],
+		[
+			'an arrow component class property with multiple parameters',
+			`export class App {
+				Inline = component(a, b) => {
+					<div>{a}</div>
+				}
+			}`,
+		],
+		[
+			'a static arrow component class property with multiple parameters',
+			`export class App {
+				static Inline = component(a, b) => {
+					<div>{a}</div>
+				}
+			}`,
+		],
+	]);
+
+	describe(`[${name}] component params`, () => {
+		it('accepts a single props parameter', () => {
+			expect(() =>
+				compile(
+					`export component App(props) {
+						<div>{props.value}</div>
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
+
+		for (const [label, source] of cases) {
+			expect_compile_throws(source, label);
+			expect_volar_collects(source, label);
+		}
+
+		it('reports one Volar diagnostic per extra parameter, each at the param position', () => {
+			const result = compile_to_volar_mappings(
+				`export component App(a, b, c) {
+					<div>{a}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			const offending = result.errors.filter((error) =>
+				/** @type {{ message?: string }} */ (error).message?.includes(expected_message),
+			);
+
+			expect(offending).toHaveLength(2);
+
+			const positions = offending.map((error) => /** @type {{ pos?: number }} */ (error).pos);
+			expect(new Set(positions).size).toBe(2);
+		});
+	});
+}
+
+/**
+ * Shared validation that components declared inside a class must use an arrow
+ * function class property (regular or static). The method-style form
+ * (`component foo() {}` inside a class body) is rejected at parse time. The
+ * non-arrow property form (`Foo = component() {}`) is rejected by the analyze
+ * stage. Runs against both `compile` (which throws) and
+ * `compile_to_volar_mappings` (which collects errors) so the rule is enforced
+ * in production and editor tooling alike.
+ *
+ * @param {Pick<CompileHarness, 'compile' | 'name'> & Pick<CompileDiagnosticsHarness, 'compile_to_volar_mappings'>} harness
+ */
+export function runSharedClassComponentDeclarationTests({
+	compile,
+	compile_to_volar_mappings,
+	name,
+}) {
+	describe(`[${name}] class component declarations`, () => {
+		it('allows an arrow component as a class property', () => {
+			expect(() =>
+				compile(
+					`export class App {
+						Inline = component() => {
+							<div>{'hi'}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
+
+		it('allows an arrow component as a static class property', () => {
+			expect(() =>
+				compile(
+					`export class App {
+						static Inline = component() => {
+							<div>{'hi'}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
+
+		it('rejects a component declared as a class method at parse time', () => {
+			expect(() =>
+				compile(
+					`export class App {
+						component Inline() {
+							<div>{'hi'}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/Unexpected token/);
+		});
+
+		it('rejects a non-arrow component as a class property value', () => {
+			expect(() =>
+				compile(
+					`export class App {
+						Inline = component() {
+							<div>{'hi'}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/Non-arrow component property values are not allowed/);
+		});
+
+		it('surfaces non-arrow property class component errors via Volar mappings', () => {
+			const result = compile_to_volar_mappings(
+				`export class App {
+					Inline = component() {
+						<div>{'hi'}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(
+				result.errors.some((error) =>
+					/** @type {{ message?: string }} */ (error).message?.includes(
+						'Non-arrow component property values are not allowed',
+					),
+				),
+			).toBe(true);
+		});
+
+		it('does not flag arrow component class properties via Volar mappings', () => {
+			const result = compile_to_volar_mappings(
+				`export class App {
+					Inline = component() => {
+						<div>{'hi'}</div>
+					}
+					static Other = component() => {
+						<span>{'hello'}</span>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(
+				result.errors.some((error) =>
+					/** @type {{ message?: string }} */ (error).message?.includes(
+						'arrow function class property',
+					),
+				),
+			).toBe(false);
+		});
+	});
+}
+
+/**
  * Shared compile-output regressions. These assert observable properties of
  * the generated code (not source-map structure) that every JSX target should
- * satisfy — e.g. the factory walker's `MemberExpression` rewrite of
- * `StyleIdentifier` refs into class-name literals must survive whatever
- * `transformElement` hook the platform wires in.
+ * satisfy across whatever `transformElement` hook the platform wires in.
  *
  * @param {CompileHarness} harness
  */
 export function runSharedCompileTests({ compile, name, classAttrName }) {
+	runSharedComponentLoopControlFlowTests({ compile, name });
+
 	describe(`[${name}] component export shapes`, () => {
 		// `component X()` maps to `function X()` identically on every target
 		// (react / preact / solid) — the keyword rewrite is done at the
@@ -127,6 +656,38 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 
 			expect(code).toContain('export function MyComponent<Item>(props: Props<Item>)');
 		});
+
+		it('preserves generic type arguments on JSX component tags', () => {
+			const { code } = compile(
+				`type User = { name: string };
+
+				component RenderProp<Item>(props: { children: (item: Item) => any }) {}
+
+				export component App() {
+					<RenderProp<User>>
+						{(item) => item.name}
+					</RenderProp>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<RenderProp<User>>');
+		});
+
+		it('preserves generic type arguments on self-closing JSX component tags', () => {
+			const { code } = compile(
+				`component Box<T>({ value }: { value: T }) {
+					<div>{String(value)}</div>
+				}
+
+				export component App() {
+					<Box<string> value="hi" />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<Box<string>');
+		});
 	});
 
 	describe(`[${name}] TypeScript output`, () => {
@@ -160,8 +721,8 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 		it('accepts direct double-quoted text children', () => {
 			const { code } = compile(
 				`export component App({ count }: { count: number }) {
-					<p>"clicked " {count} " times"</p>
-				}`,
+						<p>"clicked " {count} " times"</p>
+					}`,
 				'App.tsrx',
 			);
 
@@ -170,15 +731,45 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 			expect(code).toContain('" times"');
 		});
 
+		it('accepts indented direct double-quoted text children', () => {
+			const { code } = compile(
+				`export default component App() {
+						<div>
+							"Hello"
+						</div>
+					}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('"Hello"');
+			expect(code).not.toContain('"Hello";');
+			expect(code).not.toContain('return null;');
+		});
+
 		it('accepts direct double-quoted text at the start of template bodies', () => {
 			const { code } = compile(
 				`export component App() {
-					"hello"
-				}`,
+						"hello"
+					}`,
 				'App.tsrx',
 			);
 
 			expect(code).toContain('"hello"');
+		});
+
+		it('accepts direct double-quoted text in if-else branches', () => {
+			const { code } = compile(
+				`export component App() {
+					if (false) {
+						"Hello Ripple"
+					} else "Hello React";
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('"Hello Ripple"');
+			expect(code).toContain('"Hello React"');
+			expect(code).not.toContain('return null;');
 		});
 
 		it('decodes entities in direct double-quoted text children like JSX attributes', () => {
@@ -476,50 +1067,68 @@ export function optionalFn(bar: string, baz?: string) {
 				),
 			).not.toThrow();
 		});
+
+		it('returns accumulated branch templates without an extra empty return', () => {
+			const { code } = compile(
+				`export component App() {
+					if (x) {
+						<div>{"hello world"}</div>
+						return
+					}
+
+					<div>{"hello world 2"}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('hello world');
+			expect(code).toContain('hello world 2');
+			expect(code).not.toMatch(/return\s*;\s*return/);
+			expect(code).not.toMatch(/return <div>\{"hello world"\}<\/div>;\s*return null;/);
+		});
 	});
 
-	describe(`[${name}] walker transforms survive element lowering`, () => {
-		it('rewrites #style member expressions inside element child expressions', () => {
-			const { code } = compile(
-				`export component App() {
-					<div>{#style.root}</div>
-					<style>
-						.root { color: blue; }
-					</style>
-				}`,
-				'App.tsrx',
-			);
-			expect(code).toMatch(/"tsrx-[a-z0-9]+ root"/);
-			expect(code).not.toContain('#style');
+	describe(`[${name}] style directive restrictions`, () => {
+		it('rejects {style} inside element child expressions', () => {
+			expect(() =>
+				compile(
+					`export component App() {
+						<div>{style 'root'}</div>
+						<style>
+							.root { color: blue; }
+						</style>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/can only be used as an element attribute value/);
 		});
 
-		it('rewrites #style bracket notation inside element child expressions', () => {
-			const { code } = compile(
-				`export component App() {
-					<div>{#style['accent']}</div>
-					<style>
-						.accent { color: red; }
-					</style>
-				}`,
-				'App.tsrx',
-			);
-			expect(code).toMatch(/"tsrx-[a-z0-9]+ accent"/);
-			expect(code).not.toContain('#style');
+		it('rejects {style} directly on DOM elements', () => {
+			expect(() =>
+				compile(
+					`export component App() {
+						<div class={style 'root'}>{'hi'}</div>
+						<style>
+							.root { color: blue; }
+						</style>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/cannot be used directly on DOM elements/);
 		});
 
-		it('rewrites #style inside a {text expr} sole child', () => {
-			const { code } = compile(
-				`export component App() {
-					<div>{text #style.root}</div>
-					<style>
-						.root { color: blue; }
-					</style>
-				}`,
-				'App.tsrx',
-			);
-			expect(code).toMatch(/"tsrx-[a-z0-9]+ root"/);
-			expect(code).not.toContain('#style');
-			expect(code).not.toContain('StyleIdentifier');
+		it('does not parse the removed #style syntax', () => {
+			expect(() =>
+				compile(
+					`export component App() {
+						<Child cls={#style.root} />
+						<style>
+							.root { color: blue; }
+						</style>
+					}`,
+					'App.tsrx',
+				),
+			).toThrow();
 		});
 	});
 
@@ -549,6 +1158,28 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toContain('<tsx>');
 		});
 
+		it('declares normalized host spread refs inside tsx expression blocks', () => {
+			const { code } = compile(
+				`class Foo {
+					bar() {
+						const props = {};
+						function cb(_node) {}
+						return <tsx><input {...props} ref={cb} /></tsx>;
+					}
+				}`,
+				'App.tsrx',
+			);
+			const declaration_offset = code.indexOf(
+				'let _tsrx_spread_props_1 = __normalize_spread_props(props);',
+			);
+			const spread_offset = code.indexOf('{..._tsrx_spread_props_1}');
+
+			expect(declaration_offset).toBeGreaterThan(-1);
+			expect(spread_offset).toBeGreaterThan(declaration_offset);
+			expect(code).toContain('_tsrx_spread_props_1.ref');
+			expect(code).not.toContain('<tsx>');
+		});
+
 		it('unwraps a tsx block containing a single expression to the expression', () => {
 			// Regression: previously `<tsx>{'Hello'}</tsx>` was compiled to
 			// `return {'Hello'};`, which is a JS syntax error because `{`
@@ -571,6 +1202,49 @@ export function optionalFn(bar: string, baz?: string) {
 		it('wraps tsx text-only content in a fragment so it remains valid JSX', () => {
 			const { code } = compile(`class Foo { bar() { return <tsx>plain text</tsx>; } }`, 'App.tsrx');
 			expect(code).toContain('return <>plain text</>;');
+		});
+
+		it('parses text-only fragment initializers before template expression children', () => {
+			const { code } = compile(
+				`export component Button() {
+					const x = <>Hello world</>
+
+					{x}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('const x = <>Hello world</>;');
+			expect(code).toContain('return x;');
+		});
+
+		it('parses backtick text inside fragments as JSX text', () => {
+			const { code } = compile(
+				`let a = component () {
+					<>
+						\`333\`
+					</>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('`333`');
+		});
+
+		it('parses backtick text around JSX elements inside fragments', () => {
+			const { code } = compile(
+				`let a = component () {
+					<>
+						\`
+						<b></b>
+						\`
+					</>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('`');
+			expect(code).toContain('<b></b>');
 		});
 
 		it('wraps multiple tsx children in a fragment', () => {
@@ -1024,7 +1698,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 	describe(`[${name}] scoped CSS`, () => {
 		it('applies the scope hash to host elements and emits the hashed stylesheet', () => {
-			const { code, css } = compile(
+			const { code, css, cssHash } = compile(
 				`export component App() {
 					<div>{'Hello world'}</div>
 
@@ -1035,15 +1709,15 @@ export function optionalFn(bar: string, baz?: string) {
 				'App.tsrx',
 			);
 
-			expect(css).not.toBeNull();
+			expect(css).not.toBe('');
 			expect(code).toContain("{'Hello world'}");
-			expect(code).toContain(`${classAttrName}="${css?.hash}"`);
-			expect(css?.code).toContain(`.div.${css?.hash}`);
-			expect(css?.code).toContain('color: red;');
+			expect(code).toContain(`${classAttrName}="${cssHash}"`);
+			expect(css).toContain(`.div.${cssHash}`);
+			expect(css).toContain('color: red;');
 		});
 
 		it('applies the scope hash inside a <tsx> block', () => {
-			const { code, css } = compile(
+			const { code, css, cssHash } = compile(
 				`component Card() {
 					<tsx>
 						<div class="card">
@@ -1071,12 +1745,12 @@ export function optionalFn(bar: string, baz?: string) {
 				'Card.tsrx',
 			);
 
-			expect(css).not.toBeNull();
-			expect(count_substring(code, `${classAttrName}="card ${css?.hash}"`)).toBe(2);
+			expect(css).not.toBe('');
+			expect(count_substring(code, `${classAttrName}="card ${cssHash}"`)).toBe(2);
 		});
 
 		it('applies the scope hash inside fragment shorthand', () => {
-			const { code, css } = compile(
+			const { code, css, cssHash } = compile(
 				`component Card() {
 					<>
 						<div class="card">
@@ -1104,12 +1778,12 @@ export function optionalFn(bar: string, baz?: string) {
 				'Card.tsrx',
 			);
 
-			expect(css).not.toBeNull();
-			expect(count_substring(code, `${classAttrName}="card ${css?.hash}"`)).toBe(2);
+			expect(css).not.toBe('');
+			expect(count_substring(code, `${classAttrName}="card ${cssHash}"`)).toBe(2);
 		});
 
 		it('does not apply scoped css hashes to composite components', () => {
-			const { code, css } = compile(
+			const { code, css, cssHash } = compile(
 				`component Child() {
 					<div>{'Hello world'}</div>
 				}
@@ -1125,17 +1799,17 @@ export function optionalFn(bar: string, baz?: string) {
 				'App.tsrx',
 			);
 
-			expect(css).not.toBeNull();
-			expect(code).toContain(`<div ${classAttrName}="${css?.hash}">{'Styled content'}</div>`);
+			expect(css).not.toBe('');
+			expect(code).toContain(`<div ${classAttrName}="${cssHash}">{'Styled content'}</div>`);
 			expect(code).not.toMatch(/<Child\s+class(Name)?="/);
 		});
 
-		it('passes #style.name through a composite component prop', () => {
+		it('passes {style} through a composite component prop', () => {
 			// `className` here is a prop on a composite component, not a DOM
 			// attribute — every target passes prop names through unchanged,
 			// so the assertion is cross-platform regardless of the host-
 			// element class attribute shape.
-			const { code, css } = compile(
+			const { code, css, cssHash } = compile(
 				`component Badge({ className }: { className?: string }) {
 					<span class={['badge', className ?? '']}>{'New'}</span>
 
@@ -1145,7 +1819,7 @@ export function optionalFn(bar: string, baz?: string) {
 				}
 
 				export component App() {
-					<Badge className={#style.highlight} />
+					<Badge className={style 'highlight'} />
 
 					<style>
 						.highlight { background: green; }
@@ -1154,26 +1828,48 @@ export function optionalFn(bar: string, baz?: string) {
 				'App.tsrx',
 			);
 
-			expect(css).not.toBeNull();
-			const app_hash = css?.hash.split(' ').find((h) => code.includes(`"${h} highlight"`));
+			expect(css).not.toBe('');
+			const app_hash = cssHash.split(' ').find((h) => code.includes(`${h} highlight`));
 			expect(app_hash).toBeTruthy();
-			expect(code).toContain(`className="${app_hash} highlight"`);
+			expect(code).toMatch(new RegExp(`className=["']${app_hash} highlight["']`));
 		});
 
-		it('passes #style bracket notation through a composite component prop', () => {
-			const { code, css } = compile(
+		it('passes {style} through a composite component prop when the element has children', () => {
+			const { code, css, cssHash } = compile(
+				`component Child({ className }: { className?: string }) {
+						<span class={className}>"hello world"</span>
+					}
+
+					export component App() {
+						<Child className={style 'container'}>"hello world"</Child>
+
+						<style>
+							.container { color: red; }
+						</style>
+					}`,
+				'App.tsrx',
+			);
+
+			expect(css).not.toBe('');
+			const app_hash = cssHash.split(' ').find((h) => code.includes(`${h} container`));
+			expect(app_hash).toBeTruthy();
+			expect(code).toMatch(new RegExp(`className=["']${app_hash} container["']`));
+		});
+
+		it('passes hyphenated {style} class names through a composite component prop', () => {
+			const { code, css, cssHash } = compile(
 				`export component App() {
-					<Child cls={#style['accent']} />
+						<Child cls={style 'accent-tone'} />
 
 					<style>
-						.accent { color: red; }
+						.accent-tone { color: red; }
 					</style>
 				}`,
 				'App.tsrx',
 			);
 
-			expect(css).not.toBeNull();
-			expect(code).toContain('accent"');
+			expect(css).not.toBe('');
+			expect(code).toContain('accent-tone');
 		});
 	});
 
@@ -1492,6 +2188,54 @@ export function optionalFn(bar: string, baz?: string) {
 				);
 
 				expect(code).toMatchSnapshot();
+			});
+
+			it('renders the lifted tail when the last hook iteration continues', () => {
+				const { code } = compile(
+					`export component App({ items }: { items: number[] }) {
+						let last: number | undefined;
+						for (const item of items; index i) {
+							[last] = useState(item);
+							if (item === 0) continue
+							<div key={i}>{last}</div>
+						}
+						<span>{last}</span>
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).not.toContain('continue;');
+				expect(code).toContain('return <span>{last}</span>;');
+				expect(code).toMatch(
+					/if \(item === 0\) \{\s+return _tsrx_isLast_\d+ \? <(?:\w+__)?StatementBodyHook\d+ last=\{last\} \/> : null;\s+\}/,
+				);
+				expect(code).toMatch(
+					/return <><div key=\{i\}>\{last\}<\/div>\{_tsrx_isLast_\d+ && <(?:\w+__)?StatementBodyHook\d+ last=\{last\} \/>}<\/>;/,
+				);
+			});
+
+			it('renders the lifted tail when the last iteration continues before loop hooks', () => {
+				const { code } = compile(
+					`export component App() {
+						let last: number | undefined;
+						for (const item of [1, 2, 3]; index i) {
+							if (i === 2) continue
+							[last] = useState(item);
+							<div key={i}>{last}</div>
+						}
+						console.log(last);
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).not.toContain('continue;');
+				expect(code).toContain('console.log(last);');
+				expect(code).toMatch(
+					/if \(i === 2\) \{[\s\S]*return [\s\S]*_tsrx_isLast_\d+ && <(?:\w+__)?StatementBodyHook\d+ last=\{last\} \/>/,
+				);
+				expect(code).toMatch(
+					/return <><div key=\{i\}>\{last\}<\/div>\{_tsrx_isLast_\d+ && <(?:\w+__)?StatementBodyHook\d+ last=\{last\} \/>}<\/>;/,
+				);
 			});
 
 			it('lifts the tail of a for-of with hooks (inline-literal iteration source)', () => {

@@ -14,7 +14,14 @@ export interface JsxTransformResult {
 	 * downstream Vite / Rollup plugins to chain source maps.
 	 */
 	map: RawSourceMap;
-	css: { code: string; hash: string } | null;
+	/** Rendered CSS for the module, or `''` when the module emits no styles. */
+	css: string;
+	/**
+	 * Space-separated scope hashes for the rendered CSS, or `null` when the
+	 * module emits no styles. When multiple `<style>` blocks contribute, the
+	 * hashes appear in source order.
+	 */
+	cssHash: string | null;
 }
 
 /**
@@ -29,6 +36,10 @@ export interface JsxTransformContext {
 	needs_error_boundary: boolean;
 	needs_suspense: boolean;
 	needs_merge_refs: boolean;
+	needs_ref_prop: boolean;
+	needs_normalize_spread_props: boolean;
+	needs_fragment: boolean;
+	module_scoped_hook_components: boolean;
 	helper_state: {
 		base_name: string;
 		next_id: number;
@@ -47,6 +58,8 @@ export interface JsxTransformContext {
 	errors: CompileError[] | undefined;
 	/** Module-level comments used to honor `@tsrx-ignore` / `@tsrx-expect-error`. */
 	comments: AST.CommentWithLocation[] | undefined;
+	/** True when emitting a type-only virtual TSX module; preserves lazy destructuring patterns. */
+	typeOnly: boolean;
 }
 
 /**
@@ -79,6 +92,20 @@ export interface JsxTransformOptions {
 	 * `@tsrx-expect-error` line comments.
 	 */
 	comments?: AST.CommentWithLocation[];
+	/**
+	 * Override whether hook-isolation helper components are emitted directly at
+	 * module scope. React runtime compilation enables this, while editor tooling
+	 * can disable it to preserve lexical `typeof` helper prop types.
+	 */
+	moduleScopedHookComponents?: boolean;
+	/**
+	 * Emit a type-only virtual TSX module — output is fed to TypeScript for
+	 * editor diagnostics / completions and never executed. Skips the lazy
+	 * destructuring rewrite (`&{ a, b }` → `__lazy0: { a: any; b: any }`) so
+	 * destructuring patterns survive and TypeScript can flow real types to the
+	 * bindings.
+	 */
+	typeOnly?: boolean;
 }
 
 /**
@@ -135,6 +162,13 @@ export interface JsxPlatformHooks {
 	 */
 	wrapHelperComponent?: (helperFn: any, helperId: any, ctx: any, sourceNode: any) => any;
 	/**
+	 * Emit hook-isolation helper components as unique module-scope declarations
+	 * instead of lazily creating and caching them from the parent component body.
+	 * React enables this so generated branches stay compatible with the React
+	 * Compiler's Rules of Hooks validation.
+	 */
+	moduleScopedHookComponents?: boolean;
+	/**
 	 * Inject module-level imports after the main walk. Default: import
 	 * `Suspense` from `platform.imports.suspense` and `TsrxErrorBoundary`
 	 * from `platform.imports.errorBoundary` if the walk flagged them.
@@ -161,7 +195,7 @@ export interface JsxPlatformHooks {
 	 * Optionally replace the default React-style `.map(...)` lowering for a
 	 * `for...of` body after the shared transform has already produced its render
 	 * statements and applied any explicit or implicit keys. Vue uses this to hand
-	 * the loop to the downstream Vapor JSX compiler as a native `v-for` template.
+	 * the loop to the downstream Vapor JSX compiler as a typed `VaporFor` component.
 	 */
 	renderForOf?: (node: any, loopParams: any[], bodyStatements: any[], ctx: any) => any | null;
 	/**
@@ -240,6 +274,11 @@ export interface JsxPlatform {
 
 	imports: {
 		/**
+		 * Module to import `Fragment` from when a keyed fragment is required
+		 * for a multi-child loop body. React: `'react'`. Preact: `'preact'`.
+		 */
+		fragment?: string;
+		/**
 		 * Module to import `Suspense` from when a `try { ... } pending { ... }`
 		 * block appears. React: `'react'`. Preact: `'preact/compat'`.
 		 */
@@ -253,9 +292,14 @@ export interface JsxPlatform {
 		 * Module to import `mergeRefs` from when an element has more than one
 		 * `ref` attribute and the platform uses the `'merge-refs'` strategy.
 		 * Required when `jsx.multiRefStrategy === 'merge-refs'`; ignored
-		 * otherwise. React: `'@tsrx/react/merge-refs'`. Preact: `'@tsrx/preact/merge-refs'`.
+		 * otherwise. React: `'@tsrx/react/ref'`. Preact: `'@tsrx/preact/ref'`.
 		 */
 		mergeRefs?: string;
+		/**
+		 * Module to import named-ref-prop helpers from when compiling
+		 * `prop={ref expr}` or normalizing host spreads containing named refs.
+		 */
+		refProp?: string;
 	};
 
 	jsx: {
@@ -283,6 +327,12 @@ export interface JsxPlatform {
 		 *   unchanged. The platform's runtime is responsible.
 		 */
 		multiRefStrategy?: 'merge-refs' | 'array';
+		/**
+		 * Some JSX runtimes do not apply a `ref` that arrives through a props
+		 * spread. In that case, host spread normalization also emits an
+		 * explicit `ref={normalized.ref}` attribute.
+		 */
+		hostSpreadRefStrategy?: 'explicit-ref-attr';
 	};
 
 	validation: {
@@ -345,4 +395,4 @@ export function componentToFunctionDeclaration(
 	component: any,
 	ctx: any,
 	helperState?: any,
-): AST.FunctionDeclaration;
+): AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression;

@@ -57,18 +57,21 @@ export function assignment_pattern(left, right) {
 /**
  * @param {Array<AST.Pattern>} params
  * @param {AST.BlockStatement | AST.Expression} body
+ * @param {AST.NodeWithLocation} [loc_info]
  * @returns {AST.ArrowFunctionExpression}
  */
-export function arrow(params, body, async = false) {
-	return {
+export function arrow(params, body, async = false, loc_info) {
+	const node = /** @type {AST.ArrowFunctionExpression} */ ({
 		type: 'ArrowFunctionExpression',
 		params,
 		body,
 		expression: body.type !== 'BlockStatement',
 		generator: false,
 		async,
-		metadata: /** @type {any} */ (null), // should not be used by codegen
-	};
+		metadata: { path: [] },
+	});
+
+	return set_location(node, loc_info);
 }
 
 /**
@@ -1107,15 +1110,23 @@ export function jsx_attribute(name, value = null, shorthand = false, loc_info) {
  * @param {ESTreeJSX.JSXOpeningElement['name']} name
  * @param {ESTreeJSX.JSXOpeningElement['attributes']} [attributes]
  * @param {boolean} [self_closing]
+ * @param {ESTreeJSX.JSXOpeningElement['typeArguments']} [type_arguments]
  * @param {AST.NodeWithLocation} [loc_info]
  * @returns {ESTreeJSX.JSXOpeningElement}
  */
-export function jsx_opening_element(name, attributes = [], self_closing = false, loc_info) {
+export function jsx_opening_element(
+	name,
+	attributes = [],
+	self_closing = false,
+	type_arguments = undefined,
+	loc_info,
+) {
 	const node = /** @type {ESTreeJSX.JSXOpeningElement} */ ({
 		type: 'JSXOpeningElement',
 		name,
 		attributes,
 		selfClosing: self_closing,
+		typeArguments: type_arguments,
 		metadata: { path: [] },
 	});
 
@@ -1335,6 +1346,15 @@ export const break_statement = {
 	metadata: { path: [] },
 };
 
+/**
+ * @type {AST.ContinueStatement}
+ */
+export const continue_statement = {
+	type: 'ContinueStatement',
+	label: null,
+	metadata: { path: [] },
+};
+
 export {
 	await_builder as await,
 	let_builder as let,
@@ -1344,6 +1364,7 @@ export {
 	true_instance as true,
 	false_instance as false,
 	break_statement as break,
+	continue_statement as continue,
 	for_builder as for,
 	switch_builder as switch,
 	function_builder as function,

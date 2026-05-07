@@ -32,9 +32,11 @@ export const DEFAULT_SUSPENSE_SOURCE = 'preact/compat';
 const preact_platform = {
 	name: 'Preact',
 	imports: {
+		fragment: 'preact',
 		suspense: DEFAULT_SUSPENSE_SOURCE,
 		errorBoundary: '@tsrx/preact/error-boundary',
-		mergeRefs: '@tsrx/preact/merge-refs',
+		mergeRefs: '@tsrx/preact/ref',
+		refProp: '@tsrx/preact/ref',
 	},
 	jsx: {
 		rewriteClassAttr: false,

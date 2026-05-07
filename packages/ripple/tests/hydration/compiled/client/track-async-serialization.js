@@ -32,10 +32,8 @@ var root_25 = _$_.template(`<button class="increment">increment</button><!>`, 1,
 
 import { track, trackAsync } from 'ripple';
 
-var _$__u0023_server = {
-	formatValue(...args) {
-		return _$_.rpc('1215faad', args);
-	}
+const formatValue = function (...args) {
+	return _$_.rpc('1215faad', args);
 };
 
 export function AsyncWithServerCall(__anchor, _, __block) {
@@ -54,7 +52,7 @@ export function AsyncWithServerCall(__anchor, _, __block) {
 	_$_.try(
 		node,
 		(__anchor) => {
-			let lazy_1 = _$_.track_async(() => _$_.with_scope(__block, () => _$__u0023_server.formatValue(_$_.get(lazy))), __block, 'f0c2b41e');
+			let lazy_1 = _$_.track_async(() => _$_.with_scope(__block, () => formatValue(_$_.get(lazy))), __block, 'f0c2b41e');
 			var p_1 = root_1();
 
 			{

@@ -6,6 +6,7 @@ import { createVolarMappingsResult, dedupeMappings, parseModule } from '@tsrx/co
 import { DEFAULT_SUSPENSE_SOURCE, transform } from './transform.js';
 
 export { DEFAULT_SUSPENSE_SOURCE };
+export { isRefProp } from './ref.js';
 
 /**
  * Parse tsrx-preact source code to an ESTree AST.
@@ -25,7 +26,7 @@ export function parse(source, filename, options) {
  * @param {string} source
  * @param {string} [filename]
  * @param {CompileOptions & { collect?: boolean, loose?: boolean }} [compile_options]
- * @returns {{ code: string, map: any, css: { code: string, hash: string } | null, errors: CompileError[] }}
+ * @returns {{ code: string, map: any, css: string, cssHash: string | null, errors: CompileError[] }}
  */
 export function compile(source, filename, compile_options) {
 	const errors = /** @type {CompileError[]} */ ([]);
@@ -69,6 +70,7 @@ export function compile_to_volar_mappings(source, filename, options) {
 		...options,
 		collect: true,
 		loose: !!options?.loose,
+		typeOnly: true,
 		errors,
 		comments,
 	});

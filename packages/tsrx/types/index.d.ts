@@ -64,8 +64,9 @@ interface BaseNodeMetaData {
 	scoped?: boolean;
 	path: AST.Node[];
 	has_template?: boolean;
-	source_name?: string | '#server' | '#style';
+	source_name?: string;
 	source_length?: number;
+	module_keyword?: 'module' | 'namespace';
 	is_capitalized?: boolean;
 	commentContainerId?: number;
 	parenthesized?: boolean;
@@ -73,6 +74,7 @@ interface BaseNodeMetaData {
 	returns?: AST.ReturnStatement[];
 	has_return?: boolean;
 	has_throw?: boolean;
+	has_continue?: boolean;
 	is_reactive?: boolean;
 	lone_return?: boolean;
 	forceMapping?: boolean;
@@ -206,22 +208,20 @@ declare module 'estree' {
 		TsxCompat: TsxCompat;
 		TSRXExpression: TSRXExpression;
 		Html: Html;
+		Style: Style;
 		Element: Element;
 		Text: TextNode;
-		ServerBlock: ServerBlock;
-		ServerBlockStatement: ServerBlockStatement;
-		ServerIdentifier: ServerIdentifier;
-		StyleIdentifier: StyleIdentifier;
 		Attribute: Attribute;
 		RefAttribute: RefAttribute;
+		RefExpression: RefExpression;
 		SpreadAttribute: SpreadAttribute;
 		ParenthesizedExpression: ParenthesizedExpression;
 		ScriptContent: ScriptContent;
 	}
 
 	interface ExpressionMap {
-		StyleIdentifier: StyleIdentifier;
-		ServerIdentifier: ServerIdentifier;
+		Style: Style;
+		RefExpression: RefExpression;
 		Text: TextNode;
 		JSXEmptyExpression: ESTreeJSX.JSXEmptyExpression;
 		ParenthesizedExpression: ParenthesizedExpression;
@@ -266,14 +266,6 @@ declare module 'estree' {
 	interface ForOfStatement {
 		index?: AST.Identifier | null;
 		key?: AST.Expression | null;
-	}
-
-	interface ServerIdentifier extends AST.BaseExpression {
-		type: 'ServerIdentifier';
-	}
-
-	interface StyleIdentifier extends AST.BaseExpression {
-		type: 'StyleIdentifier';
 	}
 
 	interface ImportDeclaration {
@@ -330,15 +322,15 @@ declare module 'estree' {
 	 */
 	interface Component extends AST.BaseNode {
 		type: 'Component';
-		// null is for anonymous components {component: () => {}}
+		// null is for anonymous components, e.g. `component(props) => {}`
 		id: AST.Identifier | null;
 		params: AST.Pattern[];
 		body: AST.Node[];
 		css: CSS.StyleSheet | null;
 		metadata: BaseNodeMetaData & {
+			arrow?: boolean;
 			topScopedClasses?: TopScopedClasses;
 			styleClasses?: StyleClasses;
-			styleIdentifierPresent?: boolean;
 		};
 		default: boolean;
 		typeParameters?: AST.TSTypeParameterDeclaration;
@@ -368,6 +360,12 @@ declare module 'estree' {
 	interface Html extends AST.BaseNode {
 		type: 'Html';
 		expression: AST.Expression;
+	}
+
+	interface Style extends AST.BaseExpression {
+		type: 'Style';
+		value: AST.Literal;
+		loc?: AST.SourceLocation;
 	}
 
 	export interface TSRXExpression extends AST.BaseExpression {
@@ -416,18 +414,6 @@ declare module 'estree' {
 		loc?: AST.SourceLocation;
 	}
 
-	interface ServerBlockStatement extends Omit<BlockStatement, 'body'> {
-		body: (AST.Statement | AST.ExportNamedDeclaration)[];
-	}
-
-	interface ServerBlock extends AST.BaseNode {
-		type: 'ServerBlock';
-		body: ServerBlockStatement;
-		metadata: BaseNodeMetaData & {
-			exports: Set<string>;
-		};
-	}
-
 	interface ScriptContent extends Omit<AST.Element, 'type'> {
 		type: 'ScriptContent';
 		content: string;
@@ -449,6 +435,12 @@ declare module 'estree' {
 
 	interface RefAttribute extends AST.BaseNode {
 		type: 'RefAttribute';
+		argument: AST.Expression;
+		loc?: AST.SourceLocation;
+	}
+
+	interface RefExpression extends AST.BaseNode {
+		type: 'RefExpression';
 		argument: AST.Expression;
 		loc?: AST.SourceLocation;
 	}
@@ -477,10 +469,6 @@ declare module 'estree' {
 	 */
 	interface TSRXProgram extends Omit<Program, 'body'> {
 		body: (Program['body'][number] | Component | FunctionExpression)[];
-	}
-
-	interface TSRXMethodDefinition extends Omit<AST.MethodDefinition, 'value'> {
-		value: AST.MethodDefinition['value'] | Component;
 	}
 
 	interface TSRXProperty extends Omit<AST.Property, 'value'> {
@@ -694,6 +682,7 @@ declare module 'estree-jsx' {
 	interface JSXExpressionContainer {
 		html?: boolean;
 		text?: boolean;
+		style?: boolean;
 	}
 
 	interface JSXMemberExpression {
@@ -977,6 +966,9 @@ declare module 'estree' {
 	> {
 		body: TSModuleBlock;
 		id: AST.Identifier;
+		metadata: BaseNodeMetaData & {
+			exports?: Set<string>;
+		};
 	}
 	interface TSNamedTupleMember extends Omit<
 		AcornTSNode<TSESTree.TSNamedTupleMember>,
@@ -1184,7 +1176,9 @@ export interface AnalysisResult {
 	scope: ScopeInterface;
 	component_metadata: Array<{ id: string }>;
 	metadata: {
-		serverIdentifierPresent: boolean;
+		serverImportsPresent: boolean;
+		serverImportDeclarations: AST.ImportDeclaration[];
+		serverModule: AST.TSModuleDeclaration | null;
 	};
 	errors: CompileError[];
 	comments: AST.CommentWithLocation[];
@@ -1209,6 +1203,7 @@ export type DeclarationKind =
 	| 'rest_param'
 	| 'component'
 	| 'import'
+	| 'module'
 	| 'using'
 	| 'await using';
 
@@ -1239,7 +1234,8 @@ export interface Binding {
 		| AST.Expression
 		| AST.FunctionDeclaration
 		| AST.ClassDeclaration
-		| AST.ImportDeclaration;
+		| AST.ImportDeclaration
+		| AST.TSModuleDeclaration;
 	/** Whether this binding has been reassigned */
 	reassigned: boolean;
 	/** Whether this binding has been mutated (property access) */
@@ -1331,7 +1327,8 @@ export interface ScopeInterface {
 			| AST.Expression
 			| AST.FunctionDeclaration
 			| AST.ClassDeclaration
-			| AST.ImportDeclaration,
+			| AST.ImportDeclaration
+			| AST.TSModuleDeclaration,
 	): Binding;
 	/** Get binding by name */
 	get(name: string): Binding | null;
@@ -1357,8 +1354,7 @@ export interface BaseState {
 	/** For utils */
 	scope: ScopeInterface;
 	scopes: Map<AST.Node | AST.Node[], ScopeInterface>;
-	serverIdentifierPresent: boolean;
-	ancestor_server_block: AST.ServerBlock | undefined;
+	ancestor_server_block: AST.TSModuleDeclaration | undefined;
 	inside_head?: boolean;
 	keep_component_style?: boolean;
 
@@ -1508,15 +1504,20 @@ export type StyleClasses = Map<string, AST.MemberExpression['property']>;
 /**
  * Event handling types
  */
-export interface AddEventObject {
+export interface AddEventOptions extends ExtendedEventOptions {
 	customName?: string;
-	// from AddEventListenerOptions
+}
+
+export interface AddEventObject extends AddEventOptions {
+	handleEvent(object: Event): void;
+}
+
+export interface ExtendedEventOptions {
+	capture?: boolean;
 	once?: boolean;
 	passive?: boolean;
 	signal?: AbortSignal;
-	capture?: boolean;
-	// from EventListenerObject
-	handleEvent?(object: Event): void;
+	delegated?: boolean;
 }
 
 /**
@@ -1578,15 +1579,17 @@ export interface VolarMappingsResult {
  * Result of compilation operation
  */
 export interface CompileResult {
-	/** The transformed AST */
-	ast: AST.Program;
-	/** The generated JavaScript code with source map */
-	js: {
-		code: string;
-		map: import('source-map').RawSourceMap;
-	};
-	/** The generated CSS */
+	/** The generated JavaScript code */
+	code: string;
+	/** Source map for the generated code */
+	map: import('source-map').RawSourceMap;
+	/** Rendered CSS for the module, or `''` when the module emits no styles. */
 	css: string;
+	/**
+	 * Space-separated scope hashes for the rendered CSS, or `null` when the
+	 * module emits no styles.
+	 */
+	cssHash: string | null;
 	/**
 	 * Non-fatal errors collected during compilation. Populated only when the
 	 * caller passes `collect: true` or `loose: true`; empty otherwise.
@@ -1601,6 +1604,46 @@ export interface VolarCompileOptions extends Omit<ParseOptions, 'errors' | 'comm
 	minify_css?: boolean;
 	dev?: boolean;
 }
+
+/**
+ * Common base options accepted by every TSRX target's `compile` entry point.
+ * Targets that need extra knobs (e.g. ripple's `mode`/`dev`/`hmr`, preact's
+ * `suspenseSource`) intersect their own option type with this base when
+ * declaring their `compile` export.
+ */
+export interface BaseCompileOptions {
+	collect?: boolean;
+	loose?: boolean;
+}
+
+/**
+ * Shared `compile` signature for every TSRX target package. Per-target
+ * `compile` declarations should be `CompileFn<TOptions, TResult>` so any
+ * drift in the shared contract becomes a typecheck error in every package.
+ *
+ * @template TOptions Per-target options accepted as the third argument.
+ *   Defaults to {@link BaseCompileOptions}.
+ * @template TResult Per-target result type. Must extend {@link CompileResult};
+ *   targets may add fields (e.g. ripple's deprecated `js` back-compat field)
+ *   via intersection.
+ */
+export type CompileFn<
+	TOptions = BaseCompileOptions,
+	TResult extends CompileResult = CompileResult,
+> = (source: string, filename?: string, options?: TOptions) => TResult;
+
+/**
+ * Shared `compile_to_volar_mappings` signature for every TSRX target package.
+ *
+ * @template TOptions Per-target options accepted as the third argument.
+ *   Defaults to {@link ParseOptions}; targets may intersect their own option
+ *   type to add e.g. `suspenseSource`.
+ */
+export type VolarCompileFn<TOptions = ParseOptions> = (
+	source: string,
+	filename?: string,
+	options?: TOptions,
+) => VolarMappingsResult;
 
 /**
  * Source map transformation types

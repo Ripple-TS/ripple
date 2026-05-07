@@ -189,7 +189,7 @@ function previous_word_before(input, pos) {
 /**
  * Acorn parser plugin for Ripple syntax extensions.
  * Adds support for: component declarations, &[]/&{} lazy destructuring,
- * #server blocks, #style identifiers, and enhanced JSX handling.
+ * submodule imports, TSRX directives, and enhanced JSX handling.
  *
  * @param {import('../types/index').TSRXPluginConfig} [config] - Plugin configuration
  * @returns {(Parser: Parse.ParserConstructor) => Parse.ParserConstructor} Parser extension function
@@ -222,6 +222,22 @@ export function TSRXPlugin(config) {
 			#functionBodyDepth = 0;
 
 			/**
+			 * @type {Parse.Parser['finishNode']}
+			 */
+			finishNode(node, type) {
+				const finished = super.finishNode(node, type);
+				if (type === 'TSModuleDeclaration') {
+					const start = /** @type {number} */ (finished.start);
+					const source = this.input.slice(start, start + 'namespace'.length);
+					finished.metadata ??= { path: [] };
+					finished.metadata.module_keyword = source.startsWith('namespace')
+						? 'namespace'
+						: 'module';
+				}
+				return finished;
+			}
+
+			/**
 			 * @param {Parse.Options} options
 			 * @param {string} input
 			 */
@@ -234,6 +250,13 @@ export function TSRXPlugin(config) {
 				this.#filename = tsrx_options?.filename || null;
 			}
 
+			#resetTokenStartToCurrentPosition() {
+				if (this.start !== this.pos) {
+					this.start = this.pos;
+					this.startLoc = this.curPosition();
+				}
+			}
+
 			#previousNonWhitespaceChar() {
 				let index = this.pos - 1;
 				while (index >= 0) {
@@ -244,6 +267,56 @@ export function TSRXPlugin(config) {
 					index--;
 				}
 				return null;
+			}
+
+			#popTsxTokenContextBeforeTemplateExpressionChild() {
+				let index = this.pos;
+				let has_newline = false;
+
+				// Text-only Tsx nodes can leave the tokenizer in JSX text mode.
+				// Only unwind it for ASI before a following TSRX `{expr}` child;
+				// fragment props like `content={<></>}` still need the JSX context.
+				while (index < this.input.length) {
+					const ch = this.input.charCodeAt(index);
+					if (ch === 32 || ch === 9) {
+						index++;
+					} else if (ch === 10 || ch === 13) {
+						has_newline = true;
+						index++;
+					} else if (ch === 47 && this.input.charCodeAt(index + 1) === 42) {
+						const end = this.input.indexOf('*/', index + 2);
+						const comment_end = end === -1 ? this.input.length : end + 2;
+						if (this.input.slice(index, comment_end).match(regex_newline_characters)) {
+							has_newline = true;
+						}
+						index = comment_end;
+					} else if (ch === 47 && this.input.charCodeAt(index + 1) === 47) {
+						has_newline = true;
+						index += 2;
+						while (index < this.input.length) {
+							const comment_ch = this.input.charCodeAt(index);
+							if (comment_ch === 10 || comment_ch === 13) break;
+							index++;
+						}
+					} else {
+						break;
+					}
+				}
+
+				if (!has_newline || this.input.charCodeAt(index) !== 123) {
+					return;
+				}
+
+				const context_index = this.context.lastIndexOf(tstc.tc_expr);
+				if (context_index !== -1) {
+					this.context.length = context_index;
+				}
+			}
+
+			#popTemplateLiteralTokenContext() {
+				while (this.curContext()?.token === '`') {
+					this.context.pop();
+				}
 			}
 
 			#isDoubleQuotedTextChildStart() {
@@ -484,65 +557,6 @@ export function TSRXPlugin(config) {
 				}
 
 				return super.parseProperty(isPattern, refDestructuringErrors);
-			}
-
-			/**
-			 * Override parseClassElement to support component methods in classes.
-			 * Handles syntax like `class Foo { component something() { <div /> } }`
-			 * Also supports computed names: `class Foo { component ['something']() { <div /> } }`
-			 * @type {Parse.Parser['parseClassElement']}
-			 */
-			parseClassElement(constructorAllowsSuper) {
-				// Check if this is a component method: component name( ... ) { ... }
-				if (this.type === tt.name && this.value === 'component') {
-					// Look ahead to see if this is "component identifier(",
-					// "component identifier<", "component [", or "component 'string'"
-					const lookahead = this.input.slice(this.pos).match(/^\s*(?:(\w+)\s*[(<]|\[|['"])/);
-					if (lookahead) {
-						// This is a component method definition
-						const node = /** @type {AST.MethodDefinition} */ (this.startNode());
-						const isComputed = lookahead[0].trim().startsWith('[');
-						const isStringLiteral = /^['"]/.test(lookahead[0].trim());
-
-						if (isComputed) {
-							// For computed names, consume 'component'
-							// parse the key, then parse component without name
-							this.next(); // consume 'component'
-							this.next(); // consume '['
-							node.key = this.parseExpression();
-							this.expect(tt.bracketR);
-							node.computed = true;
-
-							// Parse component without name (skipName: true)
-							const component_node = this.parseComponent({ skipName: true });
-							/** @type {AST.TSRXMethodDefinition} */ (node).value = component_node;
-						} else if (isStringLiteral) {
-							// For string literal names, consume 'component'
-							// parse the string key, then parse component without name
-							this.next(); // consume 'component'
-							node.key = /** @type {AST.Literal} */ (this.parseExprAtom());
-							node.computed = false;
-
-							// Parse component without name (skipName: true)
-							const component_node = this.parseComponent({ skipName: true });
-							/** @type {AST.TSRXMethodDefinition} */ (node).value = component_node;
-						} else {
-							// Use parseComponent which handles consuming 'component', parsing name, params, and body
-							const component_node = this.parseComponent({ requireName: true });
-
-							node.key = /** @type {AST.Identifier} */ (component_node.id);
-							/** @type {AST.TSRXMethodDefinition} */ (node).value = component_node;
-							node.computed = false;
-						}
-
-						node.static = false;
-						node.kind = 'method';
-
-						return this.finishNode(node, 'MethodDefinition');
-					}
-				}
-
-				return super.parseClassElement(constructorAllowsSuper);
 			}
 
 			/**
@@ -820,44 +834,6 @@ export function TSRXPlugin(config) {
 					}
 				}
 
-				if (code === 35) {
-					// # character
-					if (this.pos + 1 < this.input.length) {
-						/** @param {string} value */
-						const startsWith = (value) =>
-							this.input.slice(this.pos, this.pos + value.length) === value;
-						/** @param {number} length */
-						const char_after = (length) =>
-							this.pos + length < this.input.length ? this.input.charCodeAt(this.pos + length) : -1;
-						/** @param {number} ch */
-						const is_ripple_delimiter = (ch) =>
-							ch === 40 || // (
-							ch === 41 || // )
-							ch === 60 || // <
-							ch === 46 || // .
-							ch === 44 || // ,
-							ch === 59 || // ;
-							ch === 91 || // [
-							ch === 93 || // ]
-							ch === 123 || // {
-							ch === 125 || // }
-							ch === 32 || // space
-							ch === 9 || // tab
-							ch === 10 || // newline
-							ch === 13 || // carriage return
-							ch === -1; // EOF
-
-						if (startsWith('#server') && is_ripple_delimiter(char_after(7))) {
-							this.pos += 7;
-							return this.finishToken(tt.name, '#server');
-						}
-
-						if (startsWith('#style') && is_ripple_delimiter(char_after(6))) {
-							this.pos += 6;
-							return this.finishToken(tt.name, '#style');
-						}
-					}
-				}
 				this.#allowTagStartAfterDoubleQuotedText = false;
 				return super.getTokenFromCode(code);
 			}
@@ -970,22 +946,6 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['parseExprAtom']}
 			 */
 			parseExprAtom(refDestructuringErrors, forNew, forInit) {
-				const lookahead_type = this.lookahead().type;
-				const is_next_call_token = lookahead_type === tt.parenL || lookahead_type === tt.relational;
-
-				// Check if this is #server identifier for server function calls
-				if (this.type === tt.name && this.value === '#server') {
-					const node = this.startNode();
-					this.next();
-					return /** @type {AST.ServerIdentifier} */ (this.finishNode(node, 'ServerIdentifier'));
-				}
-
-				if (this.type === tt.name && this.value === '#style') {
-					const node = this.startNode();
-					this.next();
-					return /** @type {AST.StyleIdentifier} */ (this.finishNode(node, 'StyleIdentifier'));
-				}
-
 				// Check if this is a component expression (e.g., in object literal values)
 				if (this.type === tt.name && this.value === 'component') {
 					return this.parseComponent();
@@ -1015,9 +975,9 @@ export function TSRXPlugin(config) {
 
 			/**
 			 * Override checkLocalExport to check all scopes in the scope stack.
-			 * This is needed because server blocks create nested scopes, but exports
-			 * from within server blocks should still be valid if the identifier is
-			 * declared in the server block's scope (not just the top-level module scope).
+			 * This is needed because submodules create nested scopes, but exports
+			 * from within submodules should still be valid if the identifier is
+			 * declared in the submodule scope (not just the top-level module scope).
 			 * @type {Parse.Parser['checkLocalExport']}
 			 */
 			checkLocalExport(id) {
@@ -1034,31 +994,6 @@ export function TSRXPlugin(config) {
 				}
 				// Not found in any scope, add to undefinedExports for later error
 				this.undefinedExports[name] = id;
-			}
-
-			/**
-			 * @type {Parse.Parser['parseServerBlock']}
-			 */
-			parseServerBlock() {
-				const node = /** @type {AST.ServerBlock} */ (this.startNode());
-				this.next();
-
-				const body = /** @type {AST.ServerBlockStatement} */ (this.startNode());
-				node.body = body;
-				body.body = [];
-
-				this.expect(tt.braceL);
-				this.enterScope(0);
-				while (this.type !== tt.braceR) {
-					const stmt = /** @type {AST.Statement} */ (this.parseStatement(null, true));
-					body.body.push(stmt);
-				}
-				this.next();
-				this.exitScope();
-				this.finishNode(body, 'BlockStatement');
-
-				this.awaitPos = 0;
-				return this.finishNode(node, 'ServerBlock');
 			}
 
 			/**
@@ -1108,6 +1043,19 @@ export function TSRXPlugin(config) {
 
 				this.parseFunctionParams(node);
 				this.checkComponentParams(node.params);
+
+				const is_arrow_component = this.type === tt.arrow;
+				if (is_arrow_component) {
+					if (node.id || requireName || skipName) {
+						this.raise(
+							this.start,
+							'Arrow component syntax is only supported for anonymous component expressions.',
+						);
+					}
+					node.metadata ??= { path: [] };
+					node.metadata.arrow = true;
+					this.next();
+				}
 
 				// Reset before `eat(braceL)` so the lookahead `next()` it triggers reads
 				// the component body's first token as if we'd entered fresh — no
@@ -1364,15 +1312,15 @@ export function TSRXPlugin(config) {
 			 */
 			checkUnreserved(ref) {
 				if (ref.name === 'component') {
-					// Allow 'component' when it's followed by an identifier and '(' or '<' (component method in object literal or class)
-					// e.g., { component something() { ... } } or class Foo { component something<T>() { ... } }
+					// Allow 'component' when it's followed by an identifier and '(' or '<' (component method in object literal)
+					// e.g., { component something() { ... } }
 					// Also allow computed names: { component ['name']() { ... } }
 					// Also allow string literal names: { component 'name'() { ... } }
 					const nextChars = this.input.slice(this.pos).match(/^\s*(?:(\w+)\s*[(<]|\[|['"])/);
 					if (!nextChars) {
 						this.raise(
 							ref.start,
-							'"component" is a Ripple keyword and cannot be used as an identifier',
+							'"component" is a TSRX keyword and cannot be used as an identifier',
 						);
 					}
 				}
@@ -1397,6 +1345,21 @@ export function TSRXPlugin(config) {
 				let node = /** @type {ESTreeJSX.JSXExpressionContainer} */ (this.startNode());
 				this.next();
 
+				if (this.type === tt.name && this.value === 'ref') {
+					const ref_node = /** @type {AST.RefExpression} */ (this.startNode());
+					this.next();
+					if (this.type === tt.braceR) {
+						this.raise(
+							this.start,
+							'"ref" is a TSRX keyword and must be used in the form {ref item}',
+						);
+					}
+					ref_node.argument = this.parseMaybeAssign();
+					node.expression = /** @type {any} */ (this.finishNode(ref_node, 'RefExpression'));
+					this.expect(tt.braceR);
+					return this.finishNode(node, 'JSXExpressionContainer');
+				}
+
 				if (this.type === tt.name && this.value === 'html') {
 					node.html = true;
 					this.next();
@@ -1415,10 +1378,26 @@ export function TSRXPlugin(config) {
 							'"text" is a TSRX keyword and must be used in the form {text some_value}',
 						);
 					}
+				} else if (
+					this.type === tt.name &&
+					this.value === 'style' &&
+					this.lookahead().type === tt.string
+				) {
+					node.style = true;
+					this.next();
 				}
 
 				node.expression =
 					this.type === tt.braceR ? this.jsx_parseEmptyExpression() : this.parseExpression();
+				if (
+					node.style &&
+					(node.expression.type !== 'Literal' || typeof node.expression.value !== 'string')
+				) {
+					this.raise(
+						/** @type {number} */ (node.expression.start),
+						'"style" is a TSRX keyword and must be used in the form {style "class_name"}',
+					);
+				}
 				this.expect(tt.braceR);
 
 				return this.finishNode(node, 'JSXExpressionContainer');
@@ -1812,6 +1791,7 @@ export function TSRXPlugin(config) {
 								break;
 							}
 							// If not a comment, fall through to default case
+							this.#resetTokenStartToCurrentPosition();
 							this.context.push(b_stat);
 							this.exprAllowed = true;
 							return original.readToken.call(this, ch);
@@ -1831,6 +1811,7 @@ export function TSRXPlugin(config) {
 									this.#path.at(-1)?.type === 'Component' ||
 									this.#path.at(-1)?.type === 'Element')
 							) {
+								this.#resetTokenStartToCurrentPosition();
 								return original.readToken.call(this, ch);
 							}
 							this.raise(
@@ -1855,6 +1836,7 @@ export function TSRXPlugin(config) {
 							} else if (ch === 32 || ch === 9) {
 								++this.pos;
 							} else {
+								this.#resetTokenStartToCurrentPosition();
 								this.context.push(b_stat);
 								this.exprAllowed = true;
 								return original.readToken.call(this, ch);
@@ -1986,6 +1968,14 @@ export function TSRXPlugin(config) {
 						if (attr.value !== null) {
 							if (attr.value.type === 'JSXExpressionContainer') {
 								const expression = attr.value.expression;
+								if (attr.value.style) {
+									/** @type {AST.Style} */ (/** @type {unknown} */ (attr.value)).type = 'Style';
+									/** @type {AST.Style} */ (/** @type {unknown} */ (attr.value)).value =
+										/** @type {AST.Literal} */ (expression);
+									delete (/** @type {any} */ (attr.value).expression);
+									delete (/** @type {any} */ (attr.value).style);
+									continue;
+								}
 								if (expression.type === 'Literal') {
 									expression.was_expression = true;
 								}
@@ -2038,6 +2028,7 @@ export function TSRXPlugin(config) {
 							if (this.type !== tstt.jsxTagEnd) {
 								raise_error();
 							}
+							this.#popTsxTokenContextBeforeTemplateExpressionChild();
 							this.next();
 						}
 					}
@@ -2223,6 +2214,7 @@ export function TSRXPlugin(config) {
 								if (this.type !== tstt.jsxTagEnd) {
 									raise_error();
 								}
+								this.#popTsxTokenContextBeforeTemplateExpressionChild();
 								this.next();
 							}
 						} else if (element.type === 'TsxCompat') {
@@ -2254,6 +2246,7 @@ export function TSRXPlugin(config) {
 								if (this.type !== tstt.jsxTagEnd) {
 									raise_error();
 								}
+								this.#popTsxTokenContextBeforeTemplateExpressionChild();
 								this.next();
 							}
 						} else if (this.#path[this.#path.length - 1] === element) {
@@ -2352,7 +2345,7 @@ export function TSRXPlugin(config) {
 							body.push(node);
 						} else if (this.type === tstt.jsxTagStart) {
 							// Parse JSX element
-							const node = super.parseExpression();
+							const node = super.jsx_parseElement();
 							body.push(node);
 						} else {
 							const start = this.start;
@@ -2383,6 +2376,7 @@ export function TSRXPlugin(config) {
 								body.push(node);
 							}
 
+							this.#popTemplateLiteralTokenContext();
 							// Always call next() to ensure parser makes progress
 							this.next();
 						}
@@ -2415,7 +2409,7 @@ export function TSRXPlugin(config) {
 							body.push(node);
 						} else if (this.type === tstt.jsxTagStart) {
 							// Parse JSX element
-							const node = super.parseExpression();
+							const node = super.jsx_parseElement();
 							body.push(node);
 						} else {
 							const start = this.start;
@@ -2446,6 +2440,7 @@ export function TSRXPlugin(config) {
 								body.push(node);
 							}
 
+							this.#popTemplateLiteralTokenContext();
 							this.next();
 						}
 					}
@@ -2455,11 +2450,23 @@ export function TSRXPlugin(config) {
 					// Keep JSXEmptyExpression as-is (for prettier to handle comments)
 					// but convert other expressions to Html/TSRXExpression/Text nodes
 					if (node.expression.type !== 'JSXEmptyExpression') {
-						/** @type {AST.TSRXExpression | AST.Html | AST.TextNode} */ (
+						/** @type {AST.TSRXExpression | AST.Html | AST.TextNode | AST.Style} */ (
 							/** @type {unknown} */ (node)
-						).type = node.html ? 'Html' : node.text ? 'Text' : 'TSRXExpression';
+						).type = node.html
+							? 'Html'
+							: node.text
+								? 'Text'
+								: node.style
+									? 'Style'
+									: 'TSRXExpression';
+						if (node.style) {
+							/** @type {AST.Style} */ (/** @type {unknown} */ (node)).value =
+								/** @type {AST.Literal} */ (node.expression);
+							delete (/** @type {any} */ (node).expression);
+						}
 						delete node.html;
 						delete node.text;
+						delete node.style;
 					}
 					body.push(node);
 				} else if (this.type === tt.string && this.input.charCodeAt(this.start) === 34) {
@@ -2602,6 +2609,66 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
+			 * Parse proposal-style imports from an inline module declaration:
+			 * `import { foo } from server;`
+			 *
+			 * Acorn's import parser currently requires a string literal source. TSRX
+			 * extends only the source position; all specifier parsing stays delegated
+			 * to Acorn/@sveltejs/acorn-typescript.
+			 * @type {Parse.Parser['parseImport']}
+			 */
+			parseImport(node) {
+				const tokenIsIdentifier = /** @type {any} */ (Parser.acornTypeScript).tokenIsIdentifier;
+				const parser = /** @type {any} */ (this);
+				const import_node = /** @type {any} */ (node);
+				let enterHead = parser.lookahead();
+				import_node.importKind = 'value';
+				parser.importOrExportOuterKind = 'value';
+				if (tokenIsIdentifier(enterHead.type) || this.match(tt.star) || this.match(tt.braceL)) {
+					let ahead = parser.lookahead(2);
+					if (
+						ahead.type !== tt.comma &&
+						!parser.isContextualWithState('from', ahead) &&
+						ahead.type !== tt.eq &&
+						parser.ts_eatContextualWithState('type', 1, enterHead)
+					) {
+						parser.importOrExportOuterKind = 'type';
+						import_node.importKind = 'type';
+						enterHead = parser.lookahead();
+						ahead = parser.lookahead(2);
+					}
+					if (tokenIsIdentifier(enterHead.type) && ahead.type === tt.eq) {
+						this.next();
+						const importNode = parser.tsParseImportEqualsDeclaration(node);
+						parser.importOrExportOuterKind = 'value';
+						return importNode;
+					}
+				}
+				this.next();
+				if (this.type === tt.string) {
+					import_node.specifiers = [];
+					import_node.source = this.parseExprAtom();
+				} else {
+					import_node.specifiers = this.parseImportSpecifiers();
+					this.expectContextual('from');
+					if (this.type === tt.string) {
+						import_node.source = this.parseExprAtom();
+					} else if (tokenIsIdentifier(this.type)) {
+						const source = this.parseIdent(false);
+						source.metadata ??= { path: [] };
+						import_node.source = source;
+					} else {
+						this.unexpected();
+					}
+				}
+				parser.parseMaybeImportAttributes(node);
+				this.semicolon();
+				this.finishNode(node, 'ImportDeclaration');
+				parser.importOrExportOuterKind = 'value';
+				return import_node;
+			}
+
+			/**
 			 * @type {Parse.Parser['parseStatement']}
 			 */
 			parseStatement(context, topLevel, exports) {
@@ -2616,28 +2683,28 @@ export function TSRXPlugin(config) {
 					const node = this.jsx_parseExpressionContainer();
 					// Keep JSXEmptyExpression as-is (don't convert to TSRXExpression/Text/Html)
 					if (node.expression.type !== 'JSXEmptyExpression') {
-						/** @type {AST.TSRXExpression | AST.Html | AST.TextNode} */ (
+						/** @type {AST.TSRXExpression | AST.Html | AST.TextNode | AST.Style} */ (
 							/** @type {unknown} */ (node)
-						).type = node.html ? 'Html' : node.text ? 'Text' : 'TSRXExpression';
+						).type = node.html
+							? 'Html'
+							: node.text
+								? 'Text'
+								: node.style
+									? 'Style'
+									: 'TSRXExpression';
+						if (node.style) {
+							/** @type {AST.Style} */ (/** @type {unknown} */ (node)).value =
+								/** @type {AST.Literal} */ (node.expression);
+							delete (/** @type {any} */ (node).expression);
+						}
 						delete node.html;
 						delete node.text;
+						delete node.style;
 					}
 
 					return /** @type {ESTreeJSX.JSXEmptyExpression | AST.TSRXExpression | AST.Html | AST.TextNode | ESTreeJSX.JSXExpressionContainer} */ (
 						/** @type {unknown} */ (node)
 					);
-				}
-
-				if (this.value === '#server') {
-					// Peek ahead to see if this is a server block (#server { ... }) vs
-					// a server identifier expression (#server.fn(), #server.fn().then())
-					let peek_pos = this.end;
-					while (peek_pos < this.input.length && /\s/.test(this.input[peek_pos])) peek_pos++;
-					if (peek_pos < this.input.length && this.input.charCodeAt(peek_pos) === 123) {
-						// Next non-whitespace character is '{' — parse as server block
-						return this.parseServerBlock();
-					}
-					// Otherwise fall through to parse as expression statement (e.g., #server.fn().then(...))
 				}
 
 				if (this.value === 'component') {
@@ -2655,6 +2722,19 @@ export function TSRXPlugin(config) {
 					if (!node) {
 						this.unexpected();
 					}
+					return node;
+				}
+
+				if (
+					this.#functionBodyDepth === 0 &&
+					this.type === tt.string &&
+					this.input.charCodeAt(this.start) === 34 &&
+					(this.#path.at(-1)?.type === 'Component' || this.#path.at(-1)?.type === 'Element')
+				) {
+					this.pos = this.start;
+					this.#readDoubleQuotedTextChildToken();
+					const node = this.parseDoubleQuotedTextChild();
+					this.semicolon();
 					return node;
 				}
 

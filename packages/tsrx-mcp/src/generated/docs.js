@@ -43,7 +43,7 @@ export const documentation_sections = [
 		use_cases:
 			'if else, for loops, switch, try catch, conditional rendering, lists, guard returns',
 		content:
-			'# Control Flow\n\nStandard JavaScript control flow can contain template statements inside component bodies and nested element children.\n\n```tsx\ncomponent List({ items }: { items: string[] }) {\n  if (items.length === 0) {\n    <p>"No items"</p>\n    return;\n  }\n\n  <ul>\n    for (const item of items) {\n      <li>{item}</li>\n    }\n  </ul>\n}\n```\n\nA bare `return;` exits the current render path. A return with a value is invalid inside a TSRX component body.\n\nSource: website-tsrx/src/pages/features.tsrx#if',
+			'# Control Flow\n\nStandard JavaScript control flow can contain template statements inside component bodies and nested element children.\n\n```tsx\ncomponent List({ items }: { items: string[] }) {\n  if (items.length === 0) {\n    <p>"No items"</p>\n    return;\n  }\n\n  <ul>\n    for (const item of items; index i; key item) {\n      if (!item) continue;\n      <li>{item}</li>\n    }\n  </ul>\n}\n```\n\nA bare `return;` exits the current render path. A return with a value is invalid inside a TSRX component body.\n\nInside a component `for...of` loop, `continue` skips the current rendered iteration and is the only supported top-level loop control-flow statement. Top-level `return` and `break` are invalid inside component `for...of` loops; use `continue` for item skips, `return;` for non-loop guard exits, and `break` only for `switch` cases.\n\nComponent rendering supports `for...of` list loops. Regular `for`, `for...in`, `while`, and `do...while` loops are not supported in component template scope. Move imperative loops into a nested function, event handler, effect, or helper where normal JavaScript control flow rules apply.\n\nSource: website-tsrx/src/pages/features.tsrx#for',
 	},
 	{
 		slug: 'lazy-destructuring',
@@ -56,9 +56,9 @@ export const documentation_sections = [
 		slug: 'style-and-server',
 		title: 'Style and Server Extensions',
 		use_cases:
-			'#style, scoped css, #server, server blocks, compile-time identifiers',
+			'style directive, scoped css, module server, submodule imports, compile-time identifiers',
 		content:
-			'# Style and Server Extensions\n\n`#style` is a compile-time identifier for scoped CSS class names declared in the current module.\n\n```tsx\n<div class={#style.card} />\n```\n\n`#server { ... }` marks a lexical region intended for server compile targets. TSRX parses the block; target compilers decide how to emit or strip it.\n\nSpecification grammar:\n\n```text\nStyleIdentifier :\n  #style\n\nStyleAccess :\n  #style . IdentifierName\n  #style [ StringLiteral ]\n\nServerIdentifier :\n  #server\n\nServerBlock :\n  #server { StatementListopt }\n\nServerMemberAccess :\n  #server . IdentifierName\n```\n\nSource: website-tsrx/src/pages/specification.tsrx#style',
+			'# Style and Server Extensions\n\n`{style "className"}` is an attribute-value directive for scoped CSS class names declared in the current module.\n\n```tsx\n<Child className={style "card"} />\n```\n\n`module server { ... }` declares a server-oriented submodule in the Ripple host profile. Import exported functions with `import { load } from server` before use.\n\nSpecification grammar:\n\n```text\nStyleAttributeExpression :\n  { style StringLiteral }\n\nSubmoduleDeclaration :\n  module Identifier { ModuleItemListopt }\n\nSubmoduleImportDeclaration :\n  import ImportClause from Identifier ;\n\n```\n\nSource: website-tsrx/src/pages/specification.tsrx#style',
 	},
 	{
 		slug: 'target-integration',

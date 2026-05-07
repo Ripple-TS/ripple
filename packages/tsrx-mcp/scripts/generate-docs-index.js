@@ -177,7 +177,8 @@ component List({ items }: { items: string[] }) {
   }
 
   <ul>
-    for (const item of items) {
+    for (const item of items; index i; key item) {
+      if (!item) continue;
       <li>{item}</li>
     }
   </ul>
@@ -186,7 +187,11 @@ component List({ items }: { items: string[] }) {
 
 A bare \`return;\` exits the current render path. A return with a value is invalid inside a TSRX component body.
 
-Source: website-tsrx/src/pages/features.tsrx#if`,
+Inside a component \`for...of\` loop, \`continue\` skips the current rendered iteration and is the only supported top-level loop control-flow statement. Top-level \`return\` and \`break\` are invalid inside component \`for...of\` loops; use \`continue\` for item skips, \`return;\` for non-loop guard exits, and \`break\` only for \`switch\` cases.
+
+Component rendering supports \`for...of\` list loops. Regular \`for\`, \`for...in\`, \`while\`, and \`do...while\` loops are not supported in component template scope. Move imperative loops into a nested function, event handler, effect, or helper where normal JavaScript control flow rules apply.
+
+Source: website-tsrx/src/pages/features.tsrx#for`,
 		},
 		{
 			slug: 'lazy-destructuring',
@@ -214,16 +219,17 @@ Source: website-tsrx/src/pages/specification.tsrx#lazy`,
 		{
 			slug: 'style-and-server',
 			title: 'Style and Server Extensions',
-			use_cases: '#style, scoped css, #server, server blocks, compile-time identifiers',
+			use_cases:
+				'style directive, scoped css, module server, submodule imports, compile-time identifiers',
 			content: `# Style and Server Extensions
 
-\`#style\` is a compile-time identifier for scoped CSS class names declared in the current module.
+\`{style "className"}\` is an attribute-value directive for scoped CSS class names declared in the current module.
 
 \`\`\`tsx
-<div class={#style.card} />
+<Child className={style "card"} />
 \`\`\`
 
-\`#server { ... }\` marks a lexical region intended for server compile targets. TSRX parses the block; target compilers decide how to emit or strip it.
+\`module server { ... }\` declares a server-oriented submodule in the Ripple host profile. Import exported functions with \`import { load } from server\` before use.
 
 Specification grammar:
 

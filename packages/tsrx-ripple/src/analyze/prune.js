@@ -551,7 +551,7 @@ function apply_combinator(relative_selector, rest_selectors, rule, node, directi
  */
 function get_element_parent(node) {
 	// Check if metadata and path exist
-	if (!node.metadata || !node.metadata.path) {
+	if (!node.metadata || !node.metadata.path || !node.metadata.path.length) {
 		return null;
 	}
 
@@ -1083,11 +1083,11 @@ export function prune_css(css, element, styleClasses, topScopedClasses) {
 				node.metadata.used = true;
 			}
 
-			// Populate top_scoped_classes for truly standalone class selectors (for #style support).
+			// Populate top_scoped_classes for truly standalone class selectors ({style} support).
 			// A class is standalone only when the entire effective selector chain (after resolving
 			// nesting and stripping :global) is a single RelativeSelector with a single ClassSelector.
 			// This prevents classes from compound selectors like `.wrapper .nested` or selectors
-			// inside :global() from being treated as valid #style targets.
+			// inside :global() from being treated as valid {style} targets.
 			if (selectors.length === 1) {
 				const sole_selector = selectors[0];
 				if (
