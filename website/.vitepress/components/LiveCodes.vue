@@ -10,7 +10,9 @@ import { PlaygroundProps } from './PlaygroundProps';
 import { examples } from '../../docs/examples';
 
 const playgroundUrl = 'https://ripple.livecodes.pages.dev';
-const apiUrl = 'https://data.jsdelivr.com/v1/packages/npm/ripple';
+const registryUrl = 'https://registry.npmjs.org/ripple';
+const cdnPackageUrl = 'https://cdn.jsdelivr.net/npm';
+const esmUrl = 'https://esm.run';
 
 type UserSettings = { vim?: boolean; ai?: boolean; fontSize?: number };
 
@@ -47,11 +49,15 @@ const ai = ref(getUserSettings().ai !== false);
 const fontSize = ref(getUserSettings().fontSize || 12);
 const hash = props.isMainPlayground ? window.location.hash : undefined;
 
-const pkg = await fetch(apiUrl)
+const pkg = await fetch(registryUrl)
 	.then((res) => res.json())
 	.catch(() => ({}));
-const latest = pkg.tags?.latest || 'latest';
-const allVersions = pkg.versions.map((v: { version: string }) => v.version);
+const allVersions = Object.keys(pkg.versions ?? {})
+	.filter((v) => !pkg.versions[v]?.deprecated)
+	.sort((a, b) => new Date(pkg.time?.[b] ?? 0).getTime() - new Date(pkg.time?.[a] ?? 0).getTime());
+const latest = allVersions.includes(pkg['dist-tags']?.latest)
+	? pkg['dist-tags'].latest
+	: allVersions[0] || 'latest';
 const versions = allVersions.filter((_v: string, i: number) => i < 30);
 let versionParam = new URLSearchParams(window.location.search).get('v');
 if (versionParam === 'latest') {
@@ -60,6 +66,179 @@ if (versionParam === 'latest') {
 	versionParam = null;
 }
 const version = ref(versionParam || latest);
+
+const packageJsonCache = new Map<string, Promise<Record<string, any>>>();
+const packageFilesCache = new Map<string, Promise<string[]>>();
+
+const normalizePackageVersion = (versionRange: string | undefined) => {
+	if (!versionRange) return 'latest';
+	return versionRange.match(/\d+\.\d+\.\d+(?:-[\w.-]+)?/)?.[0] ?? 'latest';
+};
+
+const getPackageJson = (name: string, version: string) => {
+	const key = `${name}@${version}`;
+	let packageJson = packageJsonCache.get(key);
+	if (!packageJson) {
+		packageJson = fetch(`${cdnPackageUrl}/${name}@${version}/package.json`)
+			.then((res) => (res.ok ? res.json() : {}))
+			.catch(() => ({}));
+		packageJsonCache.set(key, packageJson);
+	}
+	return packageJson;
+};
+
+const getPackageFiles = (name: string, version: string) => {
+	const key = `${name}@${version}`;
+	let files = packageFilesCache.get(key);
+	if (!files) {
+		files = fetch(`https://data.jsdelivr.com/v1/packages/npm/${name}@${version}`)
+			.then((res) => (res.ok ? res.json() : {}))
+			.then((pkg) => flattenPackageFiles(pkg.files ?? []))
+			.catch(() => []);
+		packageFilesCache.set(key, files);
+	}
+	return files;
+};
+
+const flattenPackageFiles = (files: any[], prefix = ''): string[] =>
+	files.flatMap((file) => {
+		const path = `${prefix}/${file.name}`;
+		if (file.type === 'directory') {
+			return flattenPackageFiles(file.files ?? [], path);
+		}
+		return path;
+	});
+
+const resolveExportTarget = (entry: any): string | undefined => {
+	if (typeof entry === 'string') return entry;
+	if (Array.isArray(entry)) {
+		return entry.map(resolveExportTarget).find(Boolean);
+	}
+	if (!entry || typeof entry !== 'object') return undefined;
+	return (
+		resolveExportTarget(entry.browser) ??
+		resolveExportTarget(entry.import) ??
+		resolveExportTarget(entry.default)
+	);
+};
+
+const getPackageExportEntries = (exports: any) => {
+	if (!exports) return [];
+	if (typeof exports !== 'object' || Array.isArray(exports)) {
+		return [['.', exports]];
+	}
+
+	const entries = Object.entries(exports);
+	if (entries.some(([exportPath]) => exportPath.startsWith('.'))) {
+		return entries.filter(([exportPath]) => exportPath.startsWith('.'));
+	}
+	return [['.', exports]];
+};
+
+const addExportToImportMap = async (
+	imports: Record<string, string>,
+	name: string,
+	version: string,
+	exportPath: string,
+	entry: any,
+) => {
+	const target = resolveExportTarget(entry);
+	if (!target || target.endsWith('.d.ts')) return;
+
+	const baseUrl = `${cdnPackageUrl}/${name}@${version}`;
+	if (!exportPath.includes('*') || !target.includes('*')) {
+		const specifier = exportPath === '.' ? name : `${name}/${exportPath.slice(2)}`;
+		imports[specifier] = `${baseUrl}/${target.replace(/^\.\//, '')}`;
+		return;
+	}
+
+	const [targetPrefix, targetSuffix] = target.replace(/^\.\//, '/').split('*');
+	const [specifierPrefix, specifierSuffix] = exportPath.slice(2).split('*');
+	for (const file of await getPackageFiles(name, version)) {
+		if (!file.startsWith(targetPrefix) || !file.endsWith(targetSuffix)) continue;
+		const matched = file.slice(targetPrefix.length, file.length - targetSuffix.length);
+		const specifier = `${name}/${specifierPrefix}${matched}${specifierSuffix}`;
+		imports[specifier] = `${baseUrl}${file}`;
+	}
+};
+
+const getPackageExportImports = async (name: string, version: string) => {
+	const packageJson = await getPackageJson(name, version);
+	const imports: Record<string, string> = {};
+	await Promise.all(
+		getPackageExportEntries(packageJson.exports).map(([exportPath, entry]) =>
+			addExportToImportMap(imports, name, version, exportPath, entry),
+		),
+	);
+	return imports;
+};
+
+const getPackageDependencyImports = (
+	dependencies: Record<string, string> = {},
+	skip = new Set<string>(),
+) => {
+	const imports: Record<string, string> = {};
+	for (const [name, versionRange] of Object.entries(dependencies)) {
+		if (skip.has(name) || name.startsWith('@types/')) continue;
+		const version = normalizePackageVersion(versionRange);
+		imports[name] = `${esmUrl}/${name}@${version}`;
+		imports[`${name}/`] = `${esmUrl}/${name}@${version}/`;
+	}
+	return imports;
+};
+
+const getRuntimeDependencyImports = async (dependencies: Record<string, string> = {}) => {
+	const dependencyInfos = await Promise.all(
+		Object.entries(dependencies)
+			.filter(([name]) => !name.startsWith('@types/'))
+			.map(async ([name, versionRange]) => {
+				const version = normalizePackageVersion(versionRange);
+				const packageJson = await getPackageJson(name, version);
+				const exportImports =
+					packageJson.exports !== undefined ? await getPackageExportImports(name, version) : {};
+				return { name, version, packageJson, exportImports };
+			}),
+	);
+
+	const imports: Record<string, string> = {};
+	const directDependencyNames = new Set(dependencyInfos.map(({ name }) => name));
+	for (const { name, version, exportImports } of dependencyInfos) {
+		Object.assign(
+			imports,
+			Object.keys(exportImports).length > 0
+				? exportImports
+				: getPackageDependencyImports({ [name]: version }),
+		);
+	}
+
+	for (const { packageJson, exportImports } of dependencyInfos) {
+		if (Object.keys(exportImports).length > 0) {
+			Object.assign(
+				imports,
+				getPackageDependencyImports(packageJson.dependencies, directDependencyNames),
+			);
+		}
+	}
+
+	return imports;
+};
+
+const getRippleRuntimeImports = async (
+	rippleVersion: string,
+	baseImports: Record<string, string> = {},
+) => {
+	const ripplePackageJson = await getPackageJson('ripple', rippleVersion);
+	const [rippleImports, dependencyImports] = await Promise.all([
+		getPackageExportImports('ripple', rippleVersion),
+		getRuntimeDependencyImports(ripplePackageJson.dependencies),
+	]);
+
+	return {
+		...baseImports,
+		...dependencyImports,
+		...rippleImports,
+	};
+};
 
 const defaultContent = `
 import { track } from 'ripple';
@@ -130,6 +309,7 @@ const getStyle = () => ({
 const config: Partial<Config> = {
 	title: title.value,
 	customSettings: { ripple: { version: version.value } },
+	imports: await getRippleRuntimeImports(version.value),
 	view: props.view ?? 'split',
 	mode: props.mode ?? 'full',
 	tools: props.tools ?? undefined,
@@ -181,7 +361,7 @@ const onReady = (sdk: Playground) => {
 	playground = sdk;
 
 	// sync the UI with config from  shared URL
-	playground.getConfig().then((config) => {
+	playground.getConfig().then(async (config) => {
 		if (
 			config.title?.trim() &&
 			config.title !== 'Untitled Project' &&
@@ -224,12 +404,14 @@ const onReady = (sdk: Playground) => {
 			};
 		}
 
-		const selectedVersion = versionParam || config.customSettings?.ripple?.version;
-		if (
-			selectedVersion &&
-			allVersions.includes(selectedVersion) &&
-			selectedVersion !== version.value
-		) {
+		let selectedVersion = versionParam || config.customSettings?.ripple?.version || version.value;
+		if (selectedVersion === 'latest') {
+			selectedVersion = latest;
+		}
+		if (!allVersions.includes(selectedVersion)) {
+			selectedVersion = version.value;
+		}
+		if (selectedVersion && selectedVersion !== version.value) {
 			newConfig = {
 				...newConfig,
 				customSettings: {
@@ -238,6 +420,11 @@ const onReady = (sdk: Playground) => {
 			};
 			version.value = selectedVersion;
 		}
+
+		newConfig = {
+			...newConfig,
+			imports: await getRippleRuntimeImports(selectedVersion, config.imports),
+		};
 
 		if (vim.value && config.editorMode !== 'vim') {
 			newConfig = {
@@ -348,8 +535,10 @@ watch(title, async () => {
 
 watch(version, async () => {
 	if (!playground) return;
+	const config = await playground.getConfig();
 	playground.setConfig({
 		customSettings: { ripple: { version: version.value } },
+		imports: await getRippleRuntimeImports(version.value, config.imports),
 	});
 	await updateUrl();
 });
