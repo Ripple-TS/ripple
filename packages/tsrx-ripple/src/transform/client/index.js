@@ -3105,24 +3105,33 @@ function build_tsrx_to_ts_expression(node, context) {
 
 	/** @type {AST.Statement[]} */
 	const body = [];
-	/** @type {TsrxTsExpression[]} */
-	let trailing_children = [];
+	const has_children = inline_children.some(Boolean);
+	const children_id = has_children ? state.scope.generate('children') : null;
+	if (children_id !== null) {
+		body.push(b.const(b.id(children_id), b.array([])));
+	}
 	for (const statement of statements) {
 		const child = statement_to_tsrx_ts_expression(statement);
 		if (child) {
-			trailing_children.push(child);
-		} else {
-			for (const trailing_child of trailing_children) {
-				body.push(b.stmt(/** @type {AST.Expression} */ (trailing_child)));
+			if (children_id !== null) {
+				body.push(
+					b.stmt(
+						b.call(b.member(b.id(children_id), 'push'), /** @type {AST.Expression} */ (child)),
+					),
+				);
 			}
-			trailing_children = [];
+		} else {
 			body.push(/** @type {AST.Statement} */ (statement));
 		}
 	}
 
 	body.push(
 		b.return(
-			/** @type {AST.Expression} */ (build_tsrx_ts_return_expression(trailing_children)),
+			children_id === null
+				? b.literal(null)
+				: /** @type {AST.Expression} */ (
+						b.jsx_fragment([b.jsx_expression_container(b.id(children_id))])
+					),
 			/** @type {AST.NodeWithLocation} */ (node),
 		),
 	);
