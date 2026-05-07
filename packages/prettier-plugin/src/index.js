@@ -2192,6 +2192,10 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printTsxCompat(node, path, options, print);
 			break;
 
+		case 'Tsrx':
+			nodeContent = printTsrx(node, path, options, print);
+			break;
+
 		case 'Tsx':
 			nodeContent = printTsx(node, path, options, print);
 			break;
@@ -5628,6 +5632,51 @@ function printTsx(node, path, options, print) {
 	}
 
 	// Use softline to allow single-line when content fits
+	return group([
+		tagName,
+		indent([softline, join(softline, printedChildren)]),
+		softline,
+		closingTagName,
+	]);
+}
+
+/**
+ * Print a Tsrx node - renders native TSRX template children inside
+ * <tsrx>...</tsrx>.
+ * @param {AST.Tsrx} node - The Tsrx node
+ * @param {AstPath<AST.Tsrx>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
+function printTsrx(node, path, options, print) {
+	const tagName = '<tsrx>';
+	const closingTagName = '</tsrx>';
+	const hasChildren = Array.isArray(node.children) && node.children.length > 0;
+
+	if (!hasChildren) {
+		return [tagName, closingTagName];
+	}
+
+	const printedChildren = [];
+
+	for (let i = 0; i < node.children.length; i++) {
+		const child = node.children[i];
+
+		if (child.type === 'JSXText') {
+			const text = child.value.trim();
+			if (!text) continue;
+			printedChildren.push(text);
+		} else {
+			const printedChild = path.call(print, 'children', i);
+			printedChildren.push(printedChild);
+		}
+	}
+
+	if (printedChildren.length === 0) {
+		return [tagName, closingTagName];
+	}
+
 	return group([
 		tagName,
 		indent([softline, join(softline, printedChildren)]),

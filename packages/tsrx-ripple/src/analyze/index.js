@@ -239,6 +239,7 @@ function mark_control_flow_has_template(path) {
 			node.type === 'IfStatement' ||
 			node.type === 'SwitchStatement' ||
 			node.type === 'Tsx' ||
+			node.type === 'Tsrx' ||
 			node.type === 'TsxCompat'
 		) {
 			node.metadata.has_template = true;
@@ -336,6 +337,14 @@ function mark_control_flow_has_continue(path) {
  */
 function is_inside_tsx_context(path) {
 	return path.some((node) => node?.type === 'TsxCompat' || node?.type === 'Tsx');
+}
+
+/**
+ * @param {AnalysisContext['path']} path
+ * @returns {boolean}
+ */
+function is_inside_tsrx_context(path) {
+	return path.some((node) => node?.type === 'Tsrx');
 }
 
 /**
@@ -2110,6 +2119,11 @@ const visitors = {
 		return context.next();
 	},
 
+	Tsrx(_, context) {
+		mark_control_flow_has_template(context.path);
+		return context.next();
+	},
+
 	TsxCompat(node, context) {
 		mark_control_flow_has_template(context.path);
 
@@ -2132,7 +2146,7 @@ const visitors = {
 			error(TEMPLATE_FRAGMENT_ERROR, context.state.analysis.module.filename, node);
 		}
 
-		if (!is_inside_component(context)) {
+		if (!is_inside_component(context) && !is_inside_tsrx_context(context.path)) {
 			error(
 				'Elements cannot be used outside of components',
 				context.state.analysis.module.filename,

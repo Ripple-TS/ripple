@@ -568,3 +568,74 @@ describe('tsx expression', () => {
 		expect(container.querySelector('.success')).toBeFalsy();
 	});
 });
+
+describe('tsrx expression', () => {
+	it('renders native double-quoted text in an assigned fragment', () => {
+		component App() {
+			const el = <tsrx><div>"Hello world"</div></tsrx>;
+			{el}
+		}
+
+		render(App);
+
+		const div = container.querySelector('div');
+		expect(div).toBeTruthy();
+		expect(div.textContent).toBe('Hello world');
+	});
+
+	it('runs setup statements before native template output', () => {
+		component App() {
+			const el = <tsrx>const label = 'from setup';<div>{label}</div></tsrx>;
+			{el}
+		}
+
+		render(App);
+
+		expect(container.querySelector('div').textContent).toBe('from setup');
+	});
+
+	it('updates reactive expressions inside native fragments', () => {
+		component App() {
+			let &[count] = track(0);
+			const el = <tsrx><div>{'count: ' + count}</div></tsrx>;
+			{el}
+			<button onClick={() => count++}>{'increment'}</button>
+		}
+
+		render(App);
+
+		expect(container.querySelector('div').textContent).toBe('count: 0');
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('div').textContent).toBe('count: 1');
+	});
+
+	it('renders native control flow inside an assigned fragment', () => {
+		component App() {
+			const el = <tsrx>
+				if (true) {
+					<span>"visible"</span>
+				}
+			</tsrx>;
+			{el}
+		}
+
+		render(App);
+
+		expect(container.querySelector('span').textContent).toBe('visible');
+	});
+
+	it('renders fragments returned from helpers outside components', () => {
+		function makeFragment(label: string) {
+			return <tsrx><span>{label}</span></tsrx>;
+		}
+
+		component App() {
+			{makeFragment('from helper')}
+		}
+
+		render(App);
+
+		expect(container.querySelector('span').textContent).toBe('from helper');
+	});
+});

@@ -119,36 +119,39 @@ component App() {
 
 This design enforces clear separation between component templates and regular JavaScript logic, making code more predictable and easier to analyze.
 
-### Using `<>` or `<tsx>` for JSX Expression Values
+### Using `<>`, `<tsx>`, or `<tsrx>` for Expression Values
 
-**IMPORTANT**: Regular Ripple elements are statement-based and can only appear directly inside component bodies or nested template blocks. If you need to create JSX as a value in expression position, wrap it in `<>...</>` or the equivalent `<tsx>...</tsx>` form.
+**IMPORTANT**: Regular TSRX elements are statement-based and can only appear directly inside component bodies or nested template blocks. If you need to create UI as a value in expression position, wrap it in an expression island.
 
-Use `<>...</>` or `<tsx>...</tsx>` when you need to:
-- assign JSX to a variable
-- return JSX from a helper function
-- pass JSX directly as a prop or `children`
+Use `<tsrx>...</tsrx>` when you want native TSRX template syntax in expression position. Use `<>...</>` or `<tsx>...</tsx>` when you want JSX-style children instead.
+
+Use these wrappers when you need to:
+- assign UI to a variable
+- return UI from a helper function
+- pass UI directly as a prop or `children`
 - build reusable render factories
 
 ```ripple
-// ✅ CORRECT - JSX used as an expression value via fragment shorthand
+// ✅ CORRECT - native TSRX template used as an expression value
 component App() {
-  const title = <><span class="title">Title</span></>;
+  const title = <tsrx><span class="title">"Title"</span></tsrx>;
 
   <div>{title}</div>
 }
 
-// ✅ CORRECT - returning JSX from a helper function
+// ✅ CORRECT - returning a native TSRX fragment from a helper function
 function createBadge(label: string) {
-  return <>
-    <span class="badge">{label}</span>
-  </>;
+  return <tsrx>
+    const normalized = label.trim();
+    <span class="badge">{normalized}</span>
+  </tsrx>;
 }
 
 component App() {
   {createBadge('New')}
 }
 
-// ✅ CORRECT - passing JSX directly as props
+// ✅ CORRECT - passing JSX-style props via fragment shorthand
 component Card(props: { title: any; children: any }) {
   <section>
     <h2>{props.title}</h2>
@@ -165,19 +168,21 @@ component App() {
 ```
 
 **LLM DO:**
-- Use `<>...</>` as the default wrapper when JSX must exist in expression position.
-- Use `<tsx>...</tsx>` when you want the explicit long form; it is equivalent.
-- Treat either form as a renderable value that can be stored, returned, and passed around.
-- Keep using normal Ripple syntax and semantics inside either wrapper.
+- Use `<tsrx>...</tsrx>` when you want normal Ripple/TSRX template syntax in expression position, including double-quoted text children, setup statements, and template control flow.
+- Use `<>...</>` as the default wrapper when JSX-style children must exist in expression position.
+- Use `<tsx>...</tsx>` when you want the explicit long form of the JSX-style wrapper; it is equivalent to `<>...</>`.
+- Treat all three forms as renderable values that can be stored, returned, and passed around.
 
 **LLM DON'T:**
 - Do not write `const el = <div />;` directly in Ripple code.
-- Do not return bare JSX from helper functions without `<>...</>` or `<tsx>...</tsx>`.
+- Do not return bare UI from helper functions without `<tsrx>...</tsrx>`, `<>...</>`, or `<tsx>...</tsx>`.
+- Do not use double-quoted TSRX text children inside `<>...</>` or `<tsx>...</tsx>` when you mean native TSRX text; use `<tsrx>...</tsrx>` instead.
 - Do not confuse plain `<tsx>` with `<tsx:react>`.
 - Do not require React compat for plain `<tsx>`.
 
 **Key distinction:**
-- `<>...</>` / `<tsx>...</tsx>`: expression-form Ripple JSX value
+- `<tsrx>...</tsrx>`: expression-form native Ripple/TSRX template value
+- `<>...</>` / `<tsx>...</tsx>`: expression-form JSX-style value
 - `<tsx:react>`: React compatibility block with React JSX semantics and compat setup
 
 ### ⚠️ Critical: Early Returns Are Guard Exits, Not JSX Returns

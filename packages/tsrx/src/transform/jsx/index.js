@@ -390,6 +390,17 @@ export function createJsxTransform(platform) {
 				);
 			},
 
+			Tsrx(node, { next, path, state }) {
+				const inner = /** @type {any} */ (next() ?? node);
+				const in_jsx_child = in_jsx_child_context(path);
+				return /** @type {any} */ (
+					wrap_jsx_setup_declarations(
+						tsrx_node_to_jsx_expression(inner, state, in_jsx_child),
+						in_jsx_child,
+					)
+				);
+			},
+
 			TsxCompat(node, { next, path, state }) {
 				const inner = /** @type {any} */ (next() ?? node);
 				const in_jsx_child = in_jsx_child_context(path);
@@ -3379,6 +3390,8 @@ function to_jsx_child(node, transform_context) {
 			// We're inside a JSX child position by construction, so keep a
 			// JSXExpressionContainer wrapper for bare `{expr}` children.
 			return tsx_node_to_jsx_expression(node, true);
+		case 'Tsrx':
+			return tsrx_node_to_jsx_expression(node, transform_context, true);
 		case 'TsxCompat':
 			return tsx_compat_node_to_jsx_expression(node, transform_context, true);
 		case 'Element':
@@ -3411,6 +3424,59 @@ function to_jsx_child(node, transform_context) {
 		default:
 			return node;
 	}
+}
+
+/**
+ * Lower a `<tsrx>` node's native TSRX template body to a JSX expression.
+ * Unlike `<tsx>`, children have already been parsed and transformed through
+ * the normal TSRX Element/Text/control-flow visitors.
+ *
+ * @param {any} node
+ * @param {TransformContext} transform_context
+ * @param {boolean} [in_jsx_child]
+ * @returns {any}
+ */
+function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = false) {
+	const children = (node.children || []).filter(
+		(/** @type {any} */ child) =>
+			child &&
+			child.type !== 'EmptyStatement' &&
+			(child.type !== 'JSXText' || child.value.trim() !== ''),
+	);
+
+	/** @type {any} */
+	let expression;
+	if (children.length === 0) {
+		expression = create_null_literal();
+	} else if (
+		children.every(is_inline_element_child) &&
+		!children_contain_return_semantics(children)
+	) {
+		const saved_inside_element_child = transform_context.inside_element_child;
+		transform_context.inside_element_child = true;
+		try {
+			const render_nodes = children.map((/** @type {any} */ child) =>
+				to_jsx_child(child, transform_context),
+			);
+			expression = build_return_expression(render_nodes) || create_null_literal();
+		} finally {
+			transform_context.inside_element_child = saved_inside_element_child;
+		}
+	} else {
+		expression = statement_body_to_jsx_child(children, transform_context).expression;
+	}
+
+	if (
+		in_jsx_child &&
+		expression.type !== 'JSXElement' &&
+		expression.type !== 'JSXFragment' &&
+		expression.type !== 'JSXText' &&
+		expression.type !== 'JSXExpressionContainer'
+	) {
+		return to_jsx_expression_container(expression, node);
+	}
+
+	return expression;
 }
 
 /**

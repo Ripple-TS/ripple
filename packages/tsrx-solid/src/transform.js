@@ -411,6 +411,8 @@ function to_jsx_child(node, transform_context) {
 			// We're inside a JSX child position by construction; keep `{expr}`
 			// containers wrapped. See helpers.js.
 			return tsx_node_to_jsx_expression(node, true);
+		case 'Tsrx':
+			return tsrx_node_to_jsx_expression(node, transform_context, true);
 		case 'TsxCompat':
 			return tsx_compat_node_to_jsx_expression(node, transform_context, true);
 		case 'Element':
@@ -434,6 +436,40 @@ function to_jsx_child(node, transform_context) {
 		default:
 			return node;
 	}
+}
+
+/**
+ * Lower a `<tsrx>` node's native TSRX template body to a Solid JSX expression.
+ *
+ * @param {any} node
+ * @param {TransformContext} transform_context
+ * @param {boolean} [in_jsx_child]
+ * @returns {any}
+ */
+function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = false) {
+	const children = (node.children || []).filter(
+		(/** @type {any} */ child) =>
+			child &&
+			child.type !== 'EmptyStatement' &&
+			(child.type !== 'JSXText' || child.value.trim() !== ''),
+	);
+
+	let expression = body_to_jsx_child(children, transform_context);
+	if (is_branch_arrow(expression)) {
+		expression = b.call(expression);
+	}
+
+	if (
+		in_jsx_child &&
+		expression.type !== 'JSXElement' &&
+		expression.type !== 'JSXFragment' &&
+		expression.type !== 'JSXText' &&
+		expression.type !== 'JSXExpressionContainer'
+	) {
+		return to_jsx_expression_container(expression, node);
+	}
+
+	return expression;
 }
 
 /**

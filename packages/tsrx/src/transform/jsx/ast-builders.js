@@ -175,6 +175,7 @@ export function is_jsx_child(node) {
 		t === 'JSXExpressionContainer' ||
 		t === 'JSXText' ||
 		t === 'Tsx' ||
+		t === 'Tsrx' ||
 		t === 'TsxCompat' ||
 		t === 'Element' ||
 		t === 'Text' ||

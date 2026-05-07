@@ -207,6 +207,7 @@ function is_template_or_control_flow(node) {
 		node.type === 'Text' ||
 		node.type === 'Html' ||
 		node.type === 'Tsx' ||
+		node.type === 'Tsrx' ||
 		node.type === 'TsxCompat' ||
 		node.type === 'IfStatement' ||
 		node.type === 'ForOfStatement' ||
@@ -1713,6 +1714,37 @@ const visitors = {
 		const init = [];
 		transform_children(
 			converted_children,
+			/** @type {TransformServerContext} */ ({
+				visit,
+				state: {
+					...state,
+					init,
+				},
+			}),
+		);
+
+		if (state.template_child) {
+			// Template body: push children statements inline
+			if (init.length > 0) {
+				state.init?.push(b.block(init));
+			}
+		} else {
+			// Expression context: return tsrx_element(render_fn)
+			const render_fn = b.function(b.id('render_children'), [], b.block(init));
+			return b.call('_$_.tsrx_element', render_fn);
+		}
+	},
+
+	Tsrx(node, { visit, state }) {
+		const children = node.children.filter(
+			(child) => child != null && child.type !== 'EmptyStatement',
+		);
+		apply_tsrx_css_scoping(children, state);
+
+		/** @type {AST.Statement[]} */
+		const init = [];
+		transform_children(
+			children,
 			/** @type {TransformServerContext} */ ({
 				visit,
 				state: {

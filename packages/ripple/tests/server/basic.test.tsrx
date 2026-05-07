@@ -40,6 +40,18 @@ second"</pre>
 		);
 	});
 
+	it('renders inline tsrx fragments', async () => {
+		component Basic() {
+			const content = <tsrx>const label = 'Server';<span>{label}</span></tsrx>;
+
+			<div>{content}</div>
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toBeHtml('<div><span>Server</span></div>');
+	});
+
 	it('renders tracked state updates', async () => {
 		component Counter() {
 			let &[count] = track(0);

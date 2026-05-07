@@ -285,7 +285,7 @@ export component Button({ label, onClick }: {
 
 **LLM DON'T:**
 - Do not `return <JSX />` from a component body.
-- Do not assign `.tsrx` JSX to a variable outside a `<>...</>` or `<tsx>...</tsx>` wrapper.
+- Do not assign `.tsrx` UI to a variable outside a `<tsrx>...</tsrx>`, `<>...</>`, or `<tsx>...</tsx>` wrapper.
 - Do not mix `function Component()` and `component Component()` patterns.
 
 ### Statement-based JSX
@@ -325,40 +325,45 @@ quoted JSX attribute values. Use entities such as `&quot;` and `&amp;` for liter
 characters that need escaping; backslashes are literal text and do not escape the
 closing quote.
 
-### Using `<>` or `<tsx>` for JSX values
+### Using `<>`, `<tsx>`, or `<tsrx>` for expression values
 
-When you need JSX in **expression position** — assigning it to a variable,
-passing it as a prop, returning from a helper — wrap it in `<>...</>` or the
-equivalent `<tsx>...</tsx>` form.
+When you need UI in **expression position** — assigning it to a variable,
+passing it as a prop, returning from a helper — wrap it in an expression island.
+Use `<tsrx>...</tsrx>` for native TSRX template syntax. Use `<>...</>` or the
+equivalent `<tsx>...</tsx>` form for JSX-style children.
 
 ```tsrx
 component App() {
-  const title = <><span class="title">"Settings"</span></>;
+  const title = <tsrx><span class="title">"Settings"</span></tsrx>;
   <Card {title} />
 }
 ```
 
 ```tsrx
-// ✅ CORRECT — return JSX from a helper via fragment shorthand
+// ✅ CORRECT — return native TSRX from a helper
 function badge(label: string) {
-  return <><span class="badge">{label}</span></>;
+  return <tsrx>
+    const normalized = label.trim();
+    <span class="badge">{normalized}</span>
+  </tsrx>;
 }
 
-// ✅ CORRECT — pass JSX as a prop via fragment shorthand
+// ✅ CORRECT — pass JSX-style values via fragment shorthand
 <Card
-  title={<><span>"Settings"</span></>}
-  children={<><p>"Body"</p></>}
+  title={<><span>Settings</span></>}
+  children={<><p>Body</p></>}
 />
 ```
 
 **LLM DO:**
-- Use `<>...</>` as the default wrapper when JSX must live in expression position.
-- Use `<tsx>...</tsx>` when you want the explicit long form; it is equivalent.
-- Keep normal TSRX syntax and semantics inside either wrapper.
+- Use `<tsrx>...</tsrx>` when you want normal TSRX template syntax in expression position, including double-quoted text children, setup statements, and template control flow.
+- Use `<>...</>` as the default wrapper when JSX-style children must live in expression position.
+- Use `<tsx>...</tsx>` when you want the explicit long form of the JSX-style wrapper; it is equivalent to `<>...</>`.
 
 **LLM DON'T:**
 - Do not write `const el = <div />;` at the top level of a component.
-- Do not return bare JSX from regular functions without `<>...</>` or `<tsx>...</tsx>`.
+- Do not return bare UI from regular functions without `<tsrx>...</tsrx>`, `<>...</>`, or `<tsx>...</tsx>`.
+- Do not put direct double-quoted TSRX text children inside `<>...</>` or `<tsx>...</tsx>` when you mean native TSRX text; use `<tsrx>...</tsrx>` instead.
 
 ### Text children and expressions: `"..."`, `{ ... }`, `{text ...}`, `{html ...}`
 
@@ -941,7 +946,8 @@ component List<T>({ items, render }: Props<T>) {
 | ------------------------ | ------------------------------------------------ |
 | Component declaration    | `component Name(props: T) { ... }`               |
 | Exported component       | `export component Name(...) { ... }`             |
-| JSX as value             | `const v = <tsx><span /></tsx>;`                 |
+| TSRX as value            | `const v = <tsrx><span>"Hi"</span></tsrx>;`      |
+| JSX as value             | `const v = <tsx><span>Hi</span></tsx>;`          |
 | Text content             | `<p>"literal"</p>`, `<p>{expr}</p>`             |
 | Forced escaped text      | `<span>{text expr}</span>`                       |
 | Raw HTML (Ripple, host-only Vue) | `<article>{html markup}</article>`        |
