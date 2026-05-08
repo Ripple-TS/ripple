@@ -202,6 +202,7 @@ export function TSRXPlugin(config) {
 		// Some parser constructors (e.g. via TS plugins) expose `tokContexts` without `b_stat`.
 		// If we push an undefined context, Acorn's tokenizer will later crash reading `.override`.
 		const b_stat = tc.b_stat || acorn.tokContexts.b_stat;
+		const b_expr = tc.b_expr || acorn.tokContexts.b_expr;
 		const tstt = Parser.acornTypeScript.tokTypes;
 		const tstc = Parser.acornTypeScript.tokContexts;
 
@@ -326,7 +327,7 @@ export function TSRXPlugin(config) {
 
 				const context_index = this.context.length - 1;
 				if (
-					this.context[context_index] === acorn.tokContexts.b_expr &&
+					this.context[context_index] === b_expr &&
 					this.context[context_index - 1] === tstc.tc_oTag
 				) {
 					this.context.pop();
