@@ -1,5 +1,19 @@
 # @ripple-ts/adapter-vercel
 
+## 0.3.51
+
+### Patch Changes
+
+- [`f1b1f94`](https://github.com/Ripple-TS/ripple/commit/f1b1f9475553cbe3632a5cc9794a8f54615c29f2)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Patch packages currently
+  versioned at 0.3.50 to fix the bump that caused major 1.0.0 release with a minor
+  changeset.
+
+- Updated dependencies
+  [[`f1b1f94`](https://github.com/Ripple-TS/ripple/commit/f1b1f9475553cbe3632a5cc9794a8f54615c29f2)]:
+  - @ripple-ts/adapter@0.3.51
+  - @ripple-ts/adapter-node@0.3.51
+
 ## 0.3.50
 
 ### Patch Changes
