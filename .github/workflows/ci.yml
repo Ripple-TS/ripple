@@ -9,6 +9,7 @@ on:
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
+      - "scripts/**"
       - "vitest.config.js"
       - ".changeset/**"
       - ".github/workflows/ci.yml"
@@ -21,6 +22,7 @@ on:
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
+      - "scripts/**"
       - "vitest.config.js"
       - ".changeset/**"
       - ".github/workflows/ci.yml"
@@ -99,14 +101,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Disallow major bumps in changesets
-        run: |
-          matches=$(grep -lE "^['\"][^'\"]+['\"]: major$" .changeset/*.md 2>/dev/null || true)
-          if [ -n "$matches" ]; then
-            echo "::error::Major version bumps are not allowed. Offending changeset files:"
-            echo "$matches"
-            exit 1
-          fi
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Disallow major and minor bumps in changesets
+        run: node scripts/check-changesets.js
 
   typecheck:
     runs-on: ubuntu-latest

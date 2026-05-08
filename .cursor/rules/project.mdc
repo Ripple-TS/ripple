@@ -127,8 +127,18 @@ packages often use `.test.js` or `.test.ts`.
 Add a changeset for user-facing package changes. Skip changesets for docs-only,
 test-only, and internal tooling updates.
 
+Only use `patch` changesets. Do not use `minor` or `major` bump types in this
+repo; prerelease packages must stay on the patch track until a release plan
+explicitly changes that policy.
+
 ```bash
 pnpm changeset
+```
+
+Validate pending changesets before versioning or publishing:
+
+```bash
+pnpm changeset:check
 ```
 
 ## Practical Guidance For Agents
