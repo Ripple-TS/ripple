@@ -320,15 +320,20 @@ export function TSRXPlugin(config) {
 				}
 			}
 
-			#popJsxAttributeExpressionContextAfterTemplateElement() {
-				if (this.type !== tt.braceR) {
+			#popTokenContextsAfterTemplateExpressionElement() {
+				const context_index = this.context.length - 1;
+				if (
+					this.context[context_index] === b_stat &&
+					this.context[context_index - 1] === tstc.tc_expr
+				) {
+					this.context.length = context_index - 1;
 					return;
 				}
 
-				const context_index = this.context.length - 1;
 				if (
-					this.context[context_index] === b_expr &&
-					this.context[context_index - 1] === tstc.tc_oTag
+					(this.type === tt.braceR && this.context[context_index] === b_expr) ||
+					(this.type === tt.parenR && this.context[context_index]?.token === '(') ||
+					(this.type === tt.bracketR && this.context[context_index]?.token === '[')
 				) {
 					this.context.pop();
 					this.exprAllowed = false;
@@ -1929,7 +1934,7 @@ export function TSRXPlugin(config) {
 					const parsed = /** @type {import('estree-jsx').JSXElement} */ (
 						/** @type {unknown} */ (this.parseElement())
 					);
-					this.#popJsxAttributeExpressionContextAfterTemplateElement();
+					this.#popTokenContextsAfterTemplateExpressionElement();
 					return parsed;
 				}
 

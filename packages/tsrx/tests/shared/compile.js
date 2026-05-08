@@ -1353,6 +1353,46 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('{"Title"}');
 			expect(code).not.toContain('<tsrx>');
 		});
+
+		it('lowers native TSRX template fragments parenthesized in JSX attribute values', () => {
+			const { code } = compile(
+				`class Foo { bar() { return <Card content={(<tsrx><span>"Title"</span></tsrx>)} />; } }`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('{"Title"}');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('lowers native TSRX template fragments passed to calls in JSX attribute values', () => {
+			const { code } = compile(
+				`class Foo { bar() { return <Card content={wrap(<tsrx><span>"Title"</span></tsrx>)} />; } }`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('{"Title"}');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('lowers native TSRX template fragments in object property JSX attribute values', () => {
+			const { code } = compile(
+				`class Foo { bar() { return <Card content={{ child: <tsrx><span>"Title"</span></tsrx> }} />; } }`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('{"Title"}');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('lowers native TSRX template fragments returned from render callback props', () => {
+			const { code } = compile(
+				`class Foo { bar() { return <List render={() => { return <tsrx><span>"Item"</span></tsrx>; }} />; } }`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('{"Item"}');
+			expect(code).not.toContain('<tsrx>');
+		});
 	});
 
 	describe(`[${name}] lazy destructuring shadowing`, () => {
