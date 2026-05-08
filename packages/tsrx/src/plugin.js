@@ -319,6 +319,21 @@ export function TSRXPlugin(config) {
 				}
 			}
 
+			#popJsxAttributeExpressionContextAfterTemplateElement() {
+				if (this.type !== tt.braceR) {
+					return;
+				}
+
+				const context_index = this.context.length - 1;
+				if (
+					this.context[context_index] === acorn.tokContexts.b_expr &&
+					this.context[context_index - 1] === tstc.tc_oTag
+				) {
+					this.context.pop();
+					this.exprAllowed = false;
+				}
+			}
+
 			#isDoubleQuotedTextChildStart() {
 				if (this.#path.findLast((n) => n.type === 'TsxCompat' || n.type === 'Tsx')) {
 					return false;
@@ -1910,9 +1925,18 @@ export function TSRXPlugin(config) {
 					// Use Ripple's parseElement to create a Tsx/Tsrx/TsxCompat node.
 					// Bare fragments (<></>) are shorthand for <tsx>...</tsx>.
 					this.next();
-					return /** @type {import('estree-jsx').JSXElement} */ (
+					const parsed = /** @type {import('estree-jsx').JSXElement} */ (
 						/** @type {unknown} */ (this.parseElement())
 					);
+					this.#popJsxAttributeExpressionContextAfterTemplateElement();
+					return parsed;
+				}
+
+				if (
+					!this.#path.findLast((node) => node.type === 'Component') &&
+					!this.#functionStack.findLast(is_pascal_case_function)
+				) {
+					return super.jsx_parseElement();
 				}
 
 				const code = this.#functionStack.findLast(is_pascal_case_function)
