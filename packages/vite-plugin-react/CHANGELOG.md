@@ -6,7 +6,7 @@
 
 - Updated dependencies
   [[`2a85e9b`](https://github.com/Ripple-TS/ripple/commit/2a85e9bb73f4d82f2bd2273c33735b4dc7b82d5f)]:
-  - @tsrx/react@0.2.0
+  - @tsrx/react@0.1.23
 
 ## 0.0.30
 

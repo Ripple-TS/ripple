@@ -1,6 +1,6 @@
 # @ripple-ts/adapter-vercel
 
-## 1.0.0
+## 0.3.50
 
 ### Patch Changes
 
@@ -10,8 +10,8 @@
   26 in Vercel adapter runtime detection.
 
 - Updated dependencies []:
-  - @ripple-ts/adapter@1.0.0
-  - @ripple-ts/adapter-node@1.0.0
+  - @ripple-ts/adapter@0.3.50
+  - @ripple-ts/adapter-node@0.3.50
 
 ## 0.3.49
 
