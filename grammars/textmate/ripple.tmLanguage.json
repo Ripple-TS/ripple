@@ -6241,6 +6241,9 @@
           "include": "#jsx-tag-tsx"
         },
         {
+          "include": "#jsx-tag-tsrx"
+        },
+        {
           "include": "#jsx-tag-tsx-react"
         },
         {
@@ -6462,6 +6465,9 @@
           "include": "#jsx-tag-tsx"
         },
         {
+          "include": "#jsx-tag-tsrx"
+        },
+        {
           "include": "#jsx-tag-tsx-react"
         },
         {
@@ -6558,6 +6564,9 @@
         },
         {
           "include": "#jsx-tag-tsx"
+        },
+        {
+          "include": "#jsx-tag-tsrx"
         },
         {
           "include": "#jsx-tag-tsx-react"
@@ -6806,6 +6815,47 @@
           "patterns": [
             {
               "include": "#jsx-tsx-children"
+            }
+          ]
+        }
+      ]
+    },
+    "jsx-tag-tsrx": {
+      "name": "tsrx.tag.js",
+      "begin": "(?:[ \\t]*)(<)(tsrx)(?![^>]*/>)(?=\\s*>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.js"
+        },
+        "2": {
+          "name": "entity.name.tag.js"
+        }
+      },
+      "end": "(</)\\s*(tsrx)\\s*(>)",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.js"
+        },
+        "2": {
+          "name": "entity.name.tag.js"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.js"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(>)",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.end.js"
+            }
+          },
+          "end": "(?=</tsrx>)",
+          "contentName": "meta.jsx.children.js",
+          "patterns": [
+            {
+              "include": "#jsx-children"
             }
           ]
         }

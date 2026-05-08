@@ -205,6 +205,7 @@ declare module 'estree' {
 	interface NodeMap {
 		Component: Component;
 		Tsx: Tsx;
+		Tsrx: Tsrx;
 		TsxCompat: TsxCompat;
 		TSRXExpression: TSRXExpression;
 		Html: Html;
@@ -346,6 +347,16 @@ declare module 'estree' {
 		closingElement: ESTreeJSX.JSXClosingElement;
 	}
 
+	interface Tsrx extends AST.BaseNode {
+		type: 'Tsrx';
+		attributes: Array<any>;
+		children: AST.Node[];
+		selfClosing?: boolean;
+		unclosed?: boolean;
+		openingElement: ESTreeJSX.JSXOpeningElement;
+		closingElement: ESTreeJSX.JSXClosingElement;
+	}
+
 	interface TsxCompat extends AST.BaseNode {
 		type: 'TsxCompat';
 		kind: string;
@@ -479,7 +490,7 @@ declare module 'estree' {
 
 	export type TSRXStatement = AST.Statement | TSESTree.Statement;
 
-	export type NodeWithChildren = AST.Element | AST.Tsx | AST.TsxCompat;
+	export type NodeWithChildren = AST.Element | AST.Tsx | AST.Tsrx | AST.TsxCompat;
 
 	export namespace CSS {
 		export interface BaseNode extends AST.NodeWithMaybeComments {

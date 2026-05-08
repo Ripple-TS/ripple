@@ -1,6 +1,7 @@
 const MODIFIED_PRODUCTIONS = [
 	'PrimaryExpression :',
 	'  ComponentExpression',
+	'  TsrxExpression',
 	'  TsxExpression',
 	'',
 	'StatementListItem :',
@@ -18,6 +19,9 @@ const MODIFIED_PRODUCTIONS = [
 	'LazyArrayBindingPattern :',
 	'  &[ BindingElementListopt ]',
 	'',
+	'TsrxExpression :',
+	'  <tsrx> TemplateChildrenopt </tsrx>',
+	'',
 	'TsxExpression :',
 	'  <tsx> TsxChildrenopt </tsx>',
 	'  <tsx: IdentifierName> TsxChildrenopt </tsx: IdentifierName>',
@@ -32,7 +36,10 @@ const COMPONENT_GRAMMAR = [
 	'  component BindingIdentifieropt ( FormalParametersopt ) { ComponentBody }',
 ].join('\n');
 
-const TSX_GRAMMAR = [
+const EXPRESSION_ISLAND_GRAMMAR = [
+	'TsrxExpression :',
+	'  <tsrx> TemplateChildrenopt </tsrx>',
+	'',
 	'TsxElement :',
 	'  <tsx> TsxChildrenopt </tsx>',
 	'',
@@ -84,6 +91,7 @@ const AST_NODE_MAPPING = [
 	'JSXAttributeName JSXAttributeInitializeropt -> Attribute',
 	'{ ... AssignmentExpression } in attribute position -> SpreadAttribute',
 	'ref={ AssignmentExpression } -> RefAttribute',
+	'<tsrx> TemplateChildrenopt </tsrx> -> Tsrx',
 	'<tsx> TsxChildrenopt </tsx> -> Tsx',
 	'<> TsxChildrenopt </> -> Tsx',
 	'<tsx: IdentifierName> TsxChildrenopt </tsx: IdentifierName> -> TsxCompat',
@@ -150,6 +158,16 @@ const TEMPLATE_AST_SHAPE = [
 ].join('\n');
 
 const TSX_AST_SHAPE = [
+	'interface Tsrx {',
+	'  type: \'Tsrx\';',
+	'  attributes: Array<any>;',
+	'  children: Node[];',
+	'  openingElement: JSXOpeningElement;',
+	'  closingElement: JSXClosingElement;',
+	'  selfClosing?: boolean;',
+	'  unclosed?: boolean;',
+	'}',
+	'',
 	'interface Tsx {',
 	'  type: \'Tsx\';',
 	'  attributes: Array<any>;',
@@ -207,7 +225,7 @@ const NAV_ITEMS = [
 	{ id: 'productions', label: 'Modified Productions' },
 	{ id: 'components', label: 'Components' },
 	{ id: 'templates', label: 'Template Elements' },
-	{ id: 'tsx-islands', label: 'TSX Islands' },
+	{ id: 'tsx-islands', label: 'Expression Islands' },
 	{ id: 'lazy', label: 'Lazy Destructuring' },
 	{ id: 'style', label: 'Style Syntax' },
 	{ id: 'server-profile', label: 'Server Extensions' },
@@ -221,7 +239,7 @@ export component SpecificationPage() {
 		<title>{'TSRX | Specification'}</title>
 		<meta
 			name="description"
-			content="Draft TSRX language specification: TypeScript-compatible grammar extensions, component syntax, TSX islands, lazy destructuring, style identifiers, and host-defined server extensions."
+			content="Draft TSRX language specification: TypeScript-compatible grammar extensions, component syntax, expression islands, lazy destructuring, style identifiers, and host-defined server extensions."
 		/>
 	</head>
 
@@ -287,7 +305,7 @@ export component SpecificationPage() {
 						<div class="status-panel">
 							<p class="status-chip">{'First-edition scope'}</p>
 							<p class="section-body compact">
-								{'The current draft fixes the syntax and early-error surface for component declarations, statement-oriented template elements, TSX expression islands, lazy destructuring, raw style elements, {style} attribute values, and proposal-aligned submodule declarations.'}
+								{'The current draft fixes the syntax and early-error surface for component declarations, statement-oriented template elements, expression islands, lazy destructuring, raw style elements, {style} attribute values, and proposal-aligned submodule declarations.'}
 							</p>
 						</div>
 					</section>
@@ -308,12 +326,12 @@ export component SpecificationPage() {
 					<section class="doc-section" id="rationale">
 						<h2 class="section-heading">{'Rationale'}</h2>
 						<p class="section-body">
-							{'TSRX exists to define a predictable syntax for component-oriented source code without forcing all tree-shaped UI through the expression positions of JSX. In TSRX, template structure is explicit in the component body, and expression-position UI values are explicit through TSX islands.'}
+							{'TSRX exists to define a predictable syntax for component-oriented source code without forcing all tree-shaped UI through the expression positions of JSX. In TSRX, template structure is explicit in the component body, and expression-position UI values are explicit through TSRX or TSX islands.'}
 						</p>
 						<ul class="spec-list">
 							<li>{'Component bodies may contain element statements directly.'}</li>
 							<li>
-								{'JSX-compatible values remain available, but only through explicit TSX island syntax.'}
+								{'JSX-compatible values remain available, but only through explicit island syntax.'}
 							</li>
 							<li>
 								{'Lazy destructuring is represented as source syntax rather than a host-specific library convention.'}
@@ -475,17 +493,19 @@ export component SpecificationPage() {
 					</section>
 
 					<section class="doc-section" id="tsx-islands">
-						<h2 class="section-heading">{'4.4 TSX Expression Islands'}</h2>
+						<h2 class="section-heading">{'4.4 Expression Islands'}</h2>
 						<p class="section-body">
-							{'TSRX does not admit arbitrary JSX elements in expression position. When a JSX-compatible tree must participate in ordinary expression evaluation, it must be written as a TSX island.'}
+							{'TSRX does not admit arbitrary template or JSX elements in expression position. When a tree must participate in ordinary expression evaluation, it must be written as an expression island. The <tsrx> form keeps native TSRX template children, while TSX islands use JSX-compatible children.'}
 						</p>
 						<pre class="code-block plain">
-							<code>{TSX_GRAMMAR}</code>
+							<code>{EXPRESSION_ISLAND_GRAMMAR}</code>
 						</pre>
 						<p class="section-body">
 							{'The fragment shorthand form is equivalent to a '}
 							<code class="inline-code">{'<tsx>...</tsx>'}</code>
-							{' form in expression position. Compatibility islands through '}
+							{' form in expression position. Native TSRX template islands use '}
+							<code class="inline-code">{'<tsrx>...</tsrx>'}</code>
+							{'. Compatibility islands through '}
 							<code class="inline-code">{'<tsx:kind>'}</code>
 							{' are part of core TSRX syntax, although the meaning of '}
 							<code class="inline-code">{'kind'}</code>
@@ -527,7 +547,7 @@ export component SpecificationPage() {
 						<h2 class="section-heading">{'5 Static Semantics: Early Errors'}</h2>
 						<ul class="spec-list">
 							<li>
-								{'A JSX element other than a TSX island must not appear as a generic ECMAScript expression.'}
+								{'A template or JSX element other than an expression island must not appear as a generic ECMAScript expression.'}
 							</li>
 							<li>
 								{'A JSX fragment must not appear in template position outside a TSX island context.'}
@@ -544,10 +564,12 @@ export component SpecificationPage() {
 							<li>
 								<code class="inline-code">{'<tsx />'}</code>
 								{' and '}
+								<code class="inline-code">{'<tsrx />'}</code>
+								{' and '}
 								<code class="inline-code">{'<tsx:kind />'}</code>
 								{' are not well-formed and must be rejected.'}
 							</li>
-							<li>{'Opening and closing tags for TSX islands must match.'}</li>
+							<li>{'Opening and closing tags for expression islands must match.'}</li>
 							<li>
 								{'{style StringLiteral} must only be used as a whole element attribute value.'}
 							</li>
@@ -658,14 +680,17 @@ export component SpecificationPage() {
 								{' tag, but those details are not part of the general Element shape described here.'}
 							</li>
 						</ul>
-						<h3 class="appendix-heading">{'A.4 TSX island nodes'}</h3>
+						<h3 class="appendix-heading">{'A.4 Expression island nodes'}</h3>
 						<p class="section-body">
-							{'Expression-position TSX islands use distinct node kinds so tools can distinguish ordinary template elements from JSX-compatible subtrees. The fragment shorthand is represented as Tsx, while compatibility islands with an explicit kind are represented as TsxCompat.'}
+							{'Expression-position islands use distinct node kinds so tools can distinguish ordinary template elements, native TSRX subtrees, and JSX-compatible subtrees. The <tsrx> form is represented as Tsrx, the TSX fragment shorthand is represented as Tsx, and compatibility islands with an explicit kind are represented as TsxCompat.'}
 						</p>
 						<pre class="code-block plain">
 							<code>{TSX_AST_SHAPE}</code>
 						</pre>
 						<ul class="spec-list">
+							<li>
+								{'Tsrx corresponds to <tsrx> ... </tsrx> when that form appears in expression position. Its children array follows the native TSRX template-child model.'}
+							</li>
 							<li>
 								{'Tsx corresponds to both <tsx> ... </tsx> and the fragment shorthand <> ... </> when those forms appear in expression position.'}
 							</li>
@@ -673,7 +698,7 @@ export component SpecificationPage() {
 								{'TsxCompat corresponds to <tsx:kind> ... </tsx:kind>, and the kind field stores the compatibility discriminator exactly as parsed.'}
 							</li>
 							<li>
-								{'The children arrays follow the JSX child model inherited from the ESTree JSX node family rather than TSRX template-child normalization.'}
+								{'Tsx and TsxCompat children arrays follow the JSX child model inherited from the ESTree JSX node family rather than TSRX template-child normalization.'}
 							</li>
 							<li>
 								{'openingElement, closingElement, selfClosing, and unclosed serve the same recovery and source-preservation role as on Element nodes.'}

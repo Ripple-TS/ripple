@@ -102,6 +102,22 @@ describe('prettier-plugin', () => {
 			expect(typeof result.cursorOffset).toBe('number');
 		});
 
+		it('should format tsrx expression fragments', async () => {
+			const input = `component App(){const content=<tsrx>const label="Hi";<div>"Hello" {label}</div></tsrx>;{content}}`;
+			const expected = `component App() {
+  const content = <tsrx>
+    const label = 'Hi';
+    <div>
+      "Hello"
+      {label}
+    </div>
+  </tsrx>;
+  {content}
+}`;
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should format whitespace correctly', async () => {
 			const input = `export component Test(){
         let count=0

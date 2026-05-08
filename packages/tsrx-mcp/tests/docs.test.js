@@ -24,6 +24,9 @@ describe('@tsrx/mcp documentation index', () => {
 		expect(find_documentation_section('tsx-expression-values')?.content ?? '').toContain(
 			'TsxElement',
 		);
+		expect(find_documentation_section('tsx-expression-values')?.content ?? '').toContain(
+			'TsrxExpression',
+		);
 	});
 
 	it('documents component loop control-flow rules', () => {

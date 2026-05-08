@@ -1281,6 +1281,40 @@ export function optionalFn(bar: string, baz?: string) {
 		});
 	});
 
+	describe(`[${name}] <tsrx> template fragments`, () => {
+		it('lowers native TSRX template text in expression position', () => {
+			const { code } = compile(
+				`class Foo { bar() { return <tsrx><div>"Hello"</div></tsrx>; } }`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('{"Hello"}');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('preserves statements before template output', () => {
+			const { code } = compile(
+				`class Foo { bar() { return <tsrx>const label = 'Hi'; <div>{label}</div></tsrx>; } }`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain("const label = 'Hi';");
+			expect(code).toContain('{label}');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('supports control flow inside native template fragments', () => {
+			const { code } = compile(
+				`class Foo { bar() { return <tsrx>if (true) { <div>"yes"</div> }</tsrx>; } }`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('true');
+			expect(code).toContain('{"yes"}');
+			expect(code).not.toContain('<tsrx>');
+		});
+	});
+
 	describe(`[${name}] lazy destructuring shadowing`, () => {
 		// Lazy `&{ name }` destructuring rewrites `name` to `__lazy0.name` at
 		// component scope, but locals with the same name must shadow — the

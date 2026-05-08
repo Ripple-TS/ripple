@@ -695,6 +695,32 @@ component C() {
 		});
 	});
 
+	describe(`[${name}] <tsrx> blocks preserve source locations`, () => {
+		it('keeps loc on native template elements inside tsrx blocks', () => {
+			const source = `component C() { <tsrx><div>"hi"</div></tsrx> }`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			const div_offset = source.indexOf('<div>');
+			const has_div_mapping = result.mappings.some(
+				(/** @type {{ sourceOffsets: number[] }} */ m) => m.sourceOffsets[0] === div_offset + 1,
+			);
+			expect(has_div_mapping).toBe(true);
+		});
+
+		it('does not crash for common native template fragment shapes', () => {
+			const sources = [
+				`class Foo { bar() { return <tsrx>{"Hello"}</tsrx>; } }`,
+				`class Foo { bar() { return <tsrx>"Hello"</tsrx>; } }`,
+				`class Foo { bar() { return <tsrx><div>"a"</div><div>"b"</div></tsrx>; } }`,
+				`class Foo { bar() { return <tsrx>const x = 1; <div>{x}</div></tsrx>; } }`,
+				`class Foo { bar() { return <tsrx>; <div>"ok"</div></tsrx>; } }`,
+				`class Foo { bar() { return <tsrx>if (true) { <div>"yes"</div> }</tsrx>; } }`,
+			];
+			for (const source of sources) {
+				expect(() => compile_to_volar_mappings(source, 'App.tsrx', { loose: true })).not.toThrow();
+			}
+		});
+	});
+
 	describe(`[${name}] shorthand attribute does not duplicate mapping on the generated name`, () => {
 		it('does not map the synthesized attribute name back to {count}', () => {
 			// `<X {count} />` expands to `<X count={count} />`. The generated

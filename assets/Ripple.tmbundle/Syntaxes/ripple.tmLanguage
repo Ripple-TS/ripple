@@ -5260,6 +5260,10 @@
 				</dict>
 				<dict>
 					<key>include</key>
+					<string>#jsx-tag-tsrx</string>
+				</dict>
+				<dict>
+					<key>include</key>
 					<string>#jsx-tag-tsx-react</string>
 				</dict>
 				<dict>
@@ -5317,6 +5321,10 @@
 				<dict>
 					<key>include</key>
 					<string>#jsx-tag-tsx</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tag-tsrx</string>
 				</dict>
 				<dict>
 					<key>include</key>
@@ -5954,6 +5962,72 @@
 						<dict>
 							<key>include</key>
 							<string>#jsx-tsx-children</string>
+						</dict>
+					</array>
+				</dict>
+			</array>
+		</dict>
+		<key>jsx-tag-tsrx</key>
+		<dict>
+			<key>begin</key>
+			<string>(?:[ \t]*)(&lt;)(tsrx)(?![^&gt;]*/&gt;)(?=\s*&gt;)</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.tag.begin.js</string>
+				</dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>entity.name.tag.js</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>(&lt;/)\s*(tsrx)\s*(&gt;)</string>
+			<key>endCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.tag.begin.js</string>
+				</dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>entity.name.tag.js</string>
+				</dict>
+				<key>3</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.tag.end.js</string>
+				</dict>
+			</dict>
+			<key>name</key>
+			<string>tsrx.tag.js</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>begin</key>
+					<string>(&gt;)</string>
+					<key>beginCaptures</key>
+					<dict>
+						<key>1</key>
+						<dict>
+							<key>name</key>
+							<string>punctuation.definition.tag.end.js</string>
+						</dict>
+					</dict>
+					<key>contentName</key>
+					<string>meta.jsx.children.js</string>
+					<key>end</key>
+					<string>(?=&lt;/tsrx&gt;)</string>
+					<key>patterns</key>
+					<array>
+						<dict>
+							<key>include</key>
+							<string>#jsx-children</string>
 						</dict>
 					</array>
 				</dict>
@@ -6913,6 +6987,10 @@
 				<dict>
 					<key>include</key>
 					<string>#jsx-tag-tsx</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tag-tsrx</string>
 				</dict>
 				<dict>
 					<key>include</key>

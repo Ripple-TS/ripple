@@ -177,3 +177,26 @@ component App() {
 		);
 	});
 });
+
+describe('@tsrx/ripple <tsrx> Volar output', () => {
+	it('returns children before and after setup statements', () => {
+		const source = `class Foo { bar() { return <tsrx><div>"before"</div> const x = 1; <div>{x}</div></tsrx>; } }`;
+		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+		const match = result.code.match(/const ([A-Za-z_$][\w$]*) = \[\];/);
+		expect(match).not.toBeNull();
+
+		const children_id = /** @type {RegExpMatchArray} */ (match)[1];
+		const first_push = result.code.indexOf(`${children_id}.push(<div>`);
+		const declaration = result.code.indexOf('const x = 1;');
+		const second_push = result.code.indexOf(`${children_id}.push(<div>`, first_push + 1);
+		const returned_children = result.code.indexOf(`return <>{${children_id}}</>;`);
+
+		expect(first_push).toBeGreaterThan(-1);
+		expect(declaration).toBeGreaterThan(-1);
+		expect(second_push).toBeGreaterThan(-1);
+		expect(returned_children).toBeGreaterThan(-1);
+		expect(first_push).toBeLessThan(declaration);
+		expect(declaration).toBeLessThan(second_push);
+		expect(second_push).toBeLessThan(returned_children);
+	});
+});

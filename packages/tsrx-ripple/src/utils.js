@@ -545,6 +545,11 @@ export function is_children_template_expression(expression, scope, component_sco
 	}
 
 	const unwrapped = unwrap_template_expression(expression);
+	const unwrapped_node = /** @type {AST.Node} */ (unwrapped);
+
+	if (is_template_fragment_node(unwrapped_node)) {
+		return true;
+	}
 
 	if (unwrapped.type === 'MemberExpression') {
 		let property_name = null;
@@ -573,18 +578,60 @@ export function is_children_template_expression(expression, scope, component_sco
 	}
 
 	if (unwrapped.type !== 'Identifier' || unwrapped.name !== 'children') {
+		if (unwrapped.type === 'Identifier') {
+			const binding = scope.get(unwrapped.name);
+			return is_template_fragment_binding(binding, scope);
+		}
 		return false;
 	}
 
 	const binding = scope.get(unwrapped.name);
 	return (
-		(binding?.declaration_kind === 'param' ||
+		is_template_fragment_binding(binding, scope) ||
+		((binding?.declaration_kind === 'param' ||
 			binding?.kind === 'prop' ||
 			binding?.kind === 'prop_fallback' ||
 			binding?.kind === 'lazy' ||
 			binding?.kind === 'lazy_fallback') &&
-		(component_scope === null || binding.scope === component_scope)
+			(component_scope === null || binding.scope === component_scope))
 	);
+}
+
+/**
+ * @param {AST.Node | null | undefined} node
+ * @returns {boolean}
+ */
+function is_template_fragment_node(node) {
+	return node?.type === 'Tsx' || node?.type === 'Tsrx' || node?.type === 'TsxCompat';
+}
+
+/**
+ * @param {Binding | null | undefined} binding
+ * @param {ScopeInterface} scope
+ * @param {Set<Binding>} [visited]
+ * @returns {boolean}
+ */
+function is_template_fragment_binding(binding, scope, visited = new Set()) {
+	if (!binding || binding.reassigned || visited.has(binding)) {
+		return false;
+	}
+	visited.add(binding);
+
+	const initial = binding.initial;
+	if (!initial) {
+		return false;
+	}
+
+	const initial_node = /** @type {AST.Node} */ (initial);
+	if (is_template_fragment_node(initial_node)) {
+		return true;
+	}
+
+	if (initial_node.type === 'Identifier') {
+		return is_template_fragment_binding(scope.get(initial_node.name), scope, visited);
+	}
+
+	return false;
 }
 
 /**

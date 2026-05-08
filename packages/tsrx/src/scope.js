@@ -127,6 +127,13 @@ export function create_scopes(ast, root, parent, error_options) {
 			next({ scope });
 		},
 
+		Tsrx(node, { state, next }) {
+			const scope = state.scope.child();
+			scopes.set(node, scope);
+
+			next({ scope });
+		},
+
 		TSModuleDeclaration(node, { state, next }) {
 			const is_submodule = node.metadata?.module_keyword === 'module';
 			if (is_submodule && node.id?.type === 'Identifier') {

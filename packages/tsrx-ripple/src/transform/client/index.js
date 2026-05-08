@@ -1437,6 +1437,51 @@ const visitors = {
 		return element;
 	},
 
+	Tsrx(node, context) {
+		const { state, visit } = context;
+
+		// to_ts mode: produce a JSX fragment from native TSRX children.
+		if (state.to_ts) {
+			return build_tsrx_to_ts_expression(node, context);
+		}
+
+		const children_filtered = node.children.filter((child) => {
+			return child != null && child.type !== 'EmptyStatement';
+		});
+		apply_tsrx_css_scoping(children_filtered, state);
+
+		const children_component = b.component(b.id('render_children'), [], children_filtered);
+
+		const element = b.call(
+			'_$_.tsrx_element',
+			/** @type {AST.Expression} */ (
+				visit(children_component, {
+					...state,
+					namespace: state.namespace,
+					is_tsrx_element: true,
+				})
+			),
+		);
+
+		// Template body context: push to template and schedule init
+		if (state.flush_node) {
+			state.template?.push('<!>');
+
+			const id = state.flush_node(false);
+
+			const call = b.call('_$_.expression', id, b.thunk(element));
+			state.init?.push(
+				state.namespace !== DEFAULT_NAMESPACE
+					? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(call)))
+					: b.stmt(call),
+			);
+			return;
+		}
+
+		// Expression context: return the tsrx_element directly as an expression value
+		return element;
+	},
+
 	Element(node, context) {
 		const { state, visit } = context;
 
@@ -1872,6 +1917,7 @@ const visitors = {
 							child.type === 'ForOfStatement' ||
 							child.type === 'SwitchStatement' ||
 							child.type === 'Tsx' ||
+							child.type === 'Tsrx' ||
 							child.type === 'TsxCompat' ||
 							child.type === 'Html' ||
 							(child.type === 'Element' &&
@@ -2997,6 +3043,103 @@ function join_template(items) {
 }
 
 /**
+ * @typedef {AST.Statement | ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} TsrxTsStatement
+ * @typedef {AST.Expression | ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} TsrxTsExpression
+ */
+
+/**
+ * @param {TsrxTsStatement} statement
+ * @returns {TsrxTsExpression | null}
+ */
+function statement_to_tsrx_ts_expression(statement) {
+	if (statement.type === 'ExpressionStatement') {
+		return /** @type {AST.ExpressionStatement} */ (statement).expression;
+	}
+	const node = /** @type {AST.Node} */ (statement);
+	if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
+		return /** @type {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} */ (node);
+	}
+	return null;
+}
+
+/**
+ * @param {TsrxTsExpression[]} children
+ * @returns {TsrxTsExpression}
+ */
+function build_tsrx_ts_return_expression(children) {
+	return children.length === 0
+		? b.literal(null)
+		: children.length === 1
+			? children[0]
+			: b.jsx_fragment(/** @type {ESTreeJSX.JSXFragment['children']} */ (children));
+}
+
+/**
+ * Builds a TSX expression for Volar/TypeScript output. Pure template children can
+ * remain inline JSX; fragments with setup statements need an IIFE so declarations
+ * stay in statement position.
+ *
+ * @param {AST.Tsrx} node
+ * @param {VisitorClientContext} context
+ * @returns {TsrxTsExpression}
+ */
+function build_tsrx_to_ts_expression(node, context) {
+	const { state, visit } = context;
+	/** @type {TsrxTsStatement[]} */
+	const init = [];
+	const ts_state = { ...state, init };
+
+	for (const child of node.children) {
+		if (child == null || child.type === 'EmptyStatement') continue;
+		transform_ts_child(
+			/** @type {AST.Node} */ (child),
+			/** @type {TransformClientContext} */ ({ visit, state: ts_state }),
+		);
+	}
+	const statements = init.filter((statement) => statement.type !== 'EmptyStatement');
+	const inline_children = statements.map(statement_to_tsrx_ts_expression);
+
+	if (inline_children.every(Boolean)) {
+		return build_tsrx_ts_return_expression(/** @type {TsrxTsExpression[]} */ (inline_children));
+	}
+
+	/** @type {AST.Statement[]} */
+	const body = [];
+	const has_children = inline_children.some(Boolean);
+	const children_id = has_children ? state.scope.generate('children') : null;
+	if (children_id !== null) {
+		body.push(b.const(b.id(children_id), b.array([])));
+	}
+	for (const statement of statements) {
+		const child = statement_to_tsrx_ts_expression(statement);
+		if (child) {
+			if (children_id !== null) {
+				body.push(
+					b.stmt(
+						b.call(b.member(b.id(children_id), 'push'), /** @type {AST.Expression} */ (child)),
+					),
+				);
+			}
+		} else {
+			body.push(/** @type {AST.Statement} */ (statement));
+		}
+	}
+
+	body.push(
+		b.return(
+			children_id === null
+				? b.literal(null)
+				: /** @type {AST.Expression} */ (
+						b.jsx_fragment([b.jsx_expression_container(b.id(children_id))])
+					),
+			/** @type {AST.NodeWithLocation} */ (node),
+		),
+	);
+
+	return b.call(b.arrow([], b.block(body)));
+}
+
+/**
  * @param {AST.Node} node
  * @param {TransformClientContext} context
  */
@@ -3403,6 +3546,12 @@ function transform_ts_child(node, context) {
 			return result;
 		}
 		state.init.push(b.stmt(result));
+	} else if (node.type === 'Tsrx') {
+		const result = build_tsrx_to_ts_expression(node, context);
+		if (!state.init) {
+			return result;
+		}
+		state.init.push(b.stmt(/** @type {AST.Expression} */ (result)));
 	} else if (node.type === 'JSXExpressionContainer') {
 		// JSX comments {/* ... */} are JSXExpressionContainer with JSXEmptyExpression
 		// These should be preserved in the output as-is for prettier to handle
@@ -3429,7 +3578,18 @@ function transform_ts_child(node, context) {
 			),
 		);
 	} else {
-		throw new Error('TODO');
+		const result = visit(node, state);
+		if (!state.init) {
+			return result;
+		}
+		if (result && /** @type {AST.Node} */ (result).type !== 'EmptyStatement') {
+			push_statement(
+				/** @type {AST.Statement | AST.Statement[] | AST.Directive | AST.ModuleDeclaration} */ (
+					result
+				),
+				state.init,
+			);
+		}
 	}
 }
 
@@ -3445,6 +3605,7 @@ function is_template_or_control_flow(node) {
 		node.type === 'Text' ||
 		node.type === 'Html' ||
 		node.type === 'Tsx' ||
+		node.type === 'Tsrx' ||
 		node.type === 'TsxCompat' ||
 		node.type === 'IfStatement' ||
 		node.type === 'ForOfStatement' ||
@@ -3537,6 +3698,7 @@ function element_has_dynamic_content(element) {
 			child.type === 'ForOfStatement' ||
 			child.type === 'SwitchStatement' ||
 			child.type === 'Tsx' ||
+			child.type === 'Tsrx' ||
 			child.type === 'TsxCompat' ||
 			child.type === 'Html'
 		) {
@@ -3713,6 +3875,7 @@ function transform_children(children, context) {
 				node.type === 'ForOfStatement' ||
 				node.type === 'SwitchStatement' ||
 				node.type === 'Tsx' ||
+				node.type === 'Tsrx' ||
 				node.type === 'TsxCompat' ||
 				node.type === 'Html' ||
 				(node.type === 'Element' &&
@@ -3997,6 +4160,7 @@ function transform_children(children, context) {
 							child.type === 'ForOfStatement' ||
 							child.type === 'SwitchStatement' ||
 							child.type === 'Tsx' ||
+							child.type === 'Tsrx' ||
 							child.type === 'TsxCompat' ||
 							child.type === 'Html' ||
 							(child.type === 'Element' &&
@@ -4024,7 +4188,7 @@ function transform_children(children, context) {
 						state.init?.push(b.stmt(b.call('_$_.pop', id)));
 					}
 				}
-			} else if (node.type === 'TsxCompat' || node.type === 'Tsx') {
+			} else if (node.type === 'TsxCompat' || node.type === 'Tsx' || node.type === 'Tsrx') {
 				skipped = 0;
 
 				visit(node, {

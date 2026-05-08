@@ -49,7 +49,10 @@ export async function generate_docs_index() {
 		'COMPONENT_GRAMMAR',
 		specification_source,
 	);
-	const tsx_grammar = extract_string_array_constant('TSX_GRAMMAR', specification_source);
+	const expression_island_grammar = extract_string_array_constant(
+		'EXPRESSION_ISLAND_GRAMMAR',
+		specification_source,
+	);
 	const template_expression_grammar = extract_string_array_constant(
 		'TEMPLATE_EXPRESSION_GRAMMAR',
 		specification_source,
@@ -75,7 +78,7 @@ Core ideas:
 - component declarations use the component keyword.
 - JSX-like elements can be written as statements inside component bodies.
 - control-flow statements can contain template output.
-- expression-position JSX must use <>...</> or <tsx>...</tsx>.
+- expression-position native TSRX must use <tsrx>...</tsrx>; JSX-style values use <>...</> or <tsx>...</tsx>.
 - lazy destructuring uses &[] and &{} for by-reference bindings.
 
 The core language docs should stay target-neutral. After identifying the active runtime target, use target-specific docs, prompts, or skills for runtime imports, bundler setup, and semantics that are not defined by TSRX itself.
@@ -135,27 +138,38 @@ Source: website-tsrx/src/pages/specification.tsrx#templates`,
 		},
 		{
 			slug: 'tsx-expression-values',
-			title: 'TSX Expression Values',
+			title: 'Expression Values',
 			use_cases:
-				'fragments, tsx tag, pass jsx as prop, return jsx from helper, expression position jsx',
-			content: `# TSX Expression Values
+				'fragments, tsrx tag, tsx tag, pass template as prop, return template from helper, render props, expression position jsx',
+			content: `# Expression Values
 
-Regular template elements in component bodies are statements and have no value. When JSX must be used in expression position, wrap it in \`<>...</>\` or \`<tsx>...</tsx>\`.
+Regular template elements in component bodies are statements and have no value. When native TSRX must be used in expression position, wrap it in \`<tsrx>...</tsrx>\`. When JSX-style children must be used in expression position, wrap them in \`<>...</>\` or \`<tsx>...</tsx>\`.
 
 \`\`\`tsx
 component App() {
-  const title = <><span>"Settings"</span></>;
+  const title = <tsrx><span>"Settings"</span></tsrx>;
 
   <Card title={title} />
 }
 \`\`\`
 
-Use this for assigning JSX to variables, returning JSX from helper functions, or passing JSX as props. Do not write \`const el = <div />\` directly in TSRX component code.
+Native TSRX expression fragments can contain setup statements and template control flow:
+
+\`\`\`tsx
+function badge(label: string) {
+  return <tsrx>
+    const normalized = label.trim();
+    <span class="badge">{normalized}</span>
+  </tsrx>;
+}
+\`\`\`
+
+Use these wrappers for assigning UI to variables, returning UI from helper functions, or passing UI as props. Do not write \`const el = <div />\` directly in TSRX component code.
 
 Specification grammar:
 
 \`\`\`text
-${tsx_grammar}
+${expression_island_grammar}
 \`\`\`
 
 Source: website-tsrx/src/pages/specification.tsrx#tsx-islands`,

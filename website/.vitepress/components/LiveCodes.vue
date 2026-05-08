@@ -248,14 +248,14 @@ export default component Counter() {
   let &[double] = track(() => count * 2);
 
   <div class="container">
-    <h2>{'Counter'}</h2>
-    <p>{\`Count: \${count}\`}</p>
-    <p>{\`Double: \${double}\`}</p>
+    <h2>"Counter"</h2>
+    <p>"Count: "{count}</p>
+    <p>"Double: "{double}</p>
 
-    <button onClick={() => count--}>{'-'}</button>
-    <button onClick={() => count++}>{'+'}</button>
+    <button onClick={() => count--}>"-"</button>
+    <button onClick={() => count++}>"+"</button>
     if (count !== 0) {
-      <div><button onClick={() => count = 0}>{'Reset'}</button></div>
+      <div><button onClick={() => count = 0}>"Reset"</button></div>
     }
   </div>
 

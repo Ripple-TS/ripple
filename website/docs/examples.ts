@@ -99,7 +99,7 @@ export default component App() {
 	{
 		title: 'Props',
 		code: `export default component App() {
-	<Card message={"A Card"} />
+	<Card message="A Card" />
 
 	const message = "Another card";
 	<Card {message} /> // props shorthand
@@ -161,11 +161,11 @@ component Composite(&{ PropComp, InlineComp }) {
 }
 
 component Separate() {
-	<p>{\`I'm a separate component.\`}</p>
+	<p>"I'm a separate component."</p>
 }
 
 component InlineComp() {
-	<p>{\`I'm an inline component.\`}</p>
+	<p>"I'm an inline component."</p>
 }
 
 export default component App() {
@@ -437,20 +437,20 @@ export default component App() {
   // const arr = RippleArray.of(1, 2, 3);
 
   // array methods can be used as usual
-  <p>{"arr: "}{arr.join(", ")}</p>
-  <p>{"double: "}{arr.map(x => x * 2).join(", ")}</p>
-  <p>{"even: "}{arr.filter(x => x % 2 === 0).join(", ")}</p>
+  <p>"arr: "{arr.join(", ")}</p>
+  <p>"double: "{arr.map(x => x * 2).join(", ")}</p>
+  <p>"even: "{arr.filter(x => x % 2 === 0).join(", ")}</p>
   console.log(arr instanceof Array);
 
   // reactive assignment
   let &[sum] = track(() => arr.reduce((a, b) => a + b, 0));
-  <p>{"sum: "}{sum}</p>
+  <p>"sum: "{sum}</p>
 
   let &[count] = track(3);
   const inc = () => count++;
   const dec = () => { if (count > 0) count-- };
-  <button onClick={() => { dec(); arr.pop(); }}>{"pop"}</button>
-  <button onClick={() => { inc(); arr.push(count); }}>{"push"}</button>
+  <button onClick={() => { dec(); arr.pop(); }}>"pop"</button>
+  <button onClick={() => { inc(); arr.push(count); }}>"push"</button>
 
   <style>
     button {
@@ -483,14 +483,14 @@ export default component App() {
   const set = new RippleSet([1, 2, 3]);
 
   // direct usage
-  <p>{"Direct usage: set contains 2: "}{set.has(2)}</p>
+  <p>"Direct usage: set contains 2: "{set.has(2)}</p>
 
   // reactive assignment
   let &[has] = track(() => set.has(2));
-  <p>{"Assigned usage: set contains 2: "}{has}</p>
+  <p>"Assigned usage: set contains 2: "{has}</p>
 
-  <button onClick={() => set.delete(2)}>{"Delete 2"}</button>
-  <button onClick={() => set.add(2)}>{"Add 2"}</button>
+  <button onClick={() => set.delete(2)}>"Delete 2"</button>
+  <button onClick={() => set.add(2)}>"Add 2"</button>
 }
 `,
 	},
@@ -502,14 +502,14 @@ export default component App() {
   const map = new RippleMap([[1,1], [2,2], [3,3], [4,4]]);
 
   // direct usage
-  <p>{"Direct usage: map has an item with key 2: "}{map.has(2)}</p>
+  <p>"Direct usage: map has an item with key 2: "{map.has(2)}</p>
 
   // reactive assignment
   let &[has] = track(() => map.has(2));
-  <p>{"Assigned usage: map has an item with key 2: "}{has}</p>
+  <p>"Assigned usage: map has an item with key 2: "{has}</p>
 
-  <button onClick={() => map.delete(2)}>{"Delete item with key 2"}</button>
-  <button onClick={() => map.set(2, 2)}>{"Add key 2 with value 2"}</button>
+  <button onClick={() => map.delete(2)}>"Delete item with key 2"</button>
+  <button onClick={() => map.set(2, 2)}>"Add key 2 with value 2"</button>
 }
 `,
 	},
@@ -521,16 +521,16 @@ export default component App() {
   const date = new RippleDate(2025, 0, 1, 12, 0, 0);
 
   // direct usage
-  <p>{"Direct usage: Current year is "}{date.getFullYear()}</p>
-  <p>{"ISO String: "}{date.toISOString()}</p>
+  <p>"Direct usage: Current year is "{date.getFullYear()}</p>
+  <p>"ISO String: "{date.toISOString()}</p>
 
   // reactive assignment
   let &[year] = track(() => date.getFullYear());
   let &[month] = track(() => date.getMonth());
-  <p>{"Assigned usage: Year "}{year}{", Month "}{month}</p>
+  <p>"Assigned usage: Year "{year}", Month "{month}</p>
 
-  <button onClick={() => date.setFullYear(2026)}>{"Change to 2026"}</button>
-  <button onClick={() => date.setMonth(11)}>{"Change to December"}</button>
+  <button onClick={() => date.setFullYear(2026)}>"Change to 2026"</button>
+  <button onClick={() => date.setMonth(11)}>"Change to December"</button>
 }
 `,
 	},
