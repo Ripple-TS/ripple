@@ -271,6 +271,43 @@ export function TSRXPlugin(config) {
 				return null;
 			}
 
+			/**
+			 * @param {number} index
+			 */
+			#skipWhitespaceAndComments(index) {
+				while (index < this.input.length) {
+					const ch = this.input.charCodeAt(index);
+					if (ch === 32 || ch === 9 || ch === 10 || ch === 13) {
+						index++;
+					} else if (ch === 47 && this.input.charCodeAt(index + 1) === 42) {
+						const end = this.input.indexOf('*/', index + 2);
+						index = end === -1 ? this.input.length : end + 2;
+					} else if (ch === 47 && this.input.charCodeAt(index + 1) === 47) {
+						index += 2;
+						while (index < this.input.length) {
+							const comment_ch = this.input.charCodeAt(index);
+							if (comment_ch === 10 || comment_ch === 13) break;
+							index++;
+						}
+					} else {
+						break;
+					}
+				}
+				return index;
+			}
+
+			#countFollowingRightBraces() {
+				let index = this.end;
+				let count = 0;
+				while (index < this.input.length) {
+					index = this.#skipWhitespaceAndComments(index);
+					if (this.input.charCodeAt(index) !== 125) break;
+					count++;
+					index++;
+				}
+				return count;
+			}
+
 			#isInsideComponent() {
 				return this.#componentDepth > 0;
 			}
@@ -331,6 +368,8 @@ export function TSRXPlugin(config) {
 
 			#popTokenContextsAfterTemplateExpressionElement() {
 				const context_index = this.context.length - 1;
+				const following_right_braces =
+					this.type === tt.braceR ? this.#countFollowingRightBraces() : 0;
 				if (
 					this.context[context_index] === b_stat &&
 					this.context[context_index - 1] === tstc.tc_expr
@@ -339,8 +378,23 @@ export function TSRXPlugin(config) {
 					return;
 				}
 
+				// When a native <tsrx> expression ends immediately before `}}`, the
+				// first brace can belong to an inner callback/object body, not the
+				// surrounding JSX expression container.
 				if (
-					(this.type === tt.braceR && this.context[context_index] === b_expr) ||
+					this.type === tt.braceR &&
+					this.context[context_index] === b_stat &&
+					this.context[context_index - 1] === b_expr &&
+					following_right_braces === 1
+				) {
+					this.context.length = context_index;
+					return;
+				}
+
+				if (
+					(this.type === tt.braceR &&
+						this.context[context_index] === b_expr &&
+						(following_right_braces === 0 || this.context[context_index - 1] === b_expr)) ||
 					(this.type === tt.parenR && this.context[context_index]?.token === '(') ||
 					(this.type === tt.bracketR && this.context[context_index]?.token === '[')
 				) {

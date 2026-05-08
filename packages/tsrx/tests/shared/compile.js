@@ -86,6 +86,27 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 			expect(result.code).toContain('bySwitch: (role) => (() => {');
 			expect(result.code).not.toContain('return null;');
 		});
+
+		it('parses native TSRX callback returns in JSX props without semicolons', () => {
+			const result = compile_to_volar_mappings(
+				`class Foo {
+					bar() {
+						return <List
+							render={(item) => {
+								return <tsrx>
+									<span>{item.name}</span>
+								</tsrx>
+							}}
+						/>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(result.errors).toEqual([]);
+			expect(result.code).not.toContain('<tsrx>');
+			expect(result.code).toContain('item.name');
+		});
 	});
 }
 
@@ -1507,6 +1528,82 @@ export function optionalFn(bar: string, baz?: string) {
 
 			expect(code).toContain('{"Item"}');
 			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('lowers native TSRX template fragments returned from callback props without semicolons', () => {
+			const { code } = compile(
+				`class Foo {
+					bar() {
+						return <List
+							render={(item) => {
+								return <tsrx>
+									<span>{item.name}</span>
+								</tsrx>
+							}}
+						/>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('item.name');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('lowers native TSRX template fragments in returned object props without semicolons', () => {
+			const { code } = compile(
+				`class Foo {
+					bar() {
+						return <List
+							render={(item) => {
+								return {
+									child: <tsrx>
+										<span>{item.name}</span>
+									</tsrx>
+								}
+							}}
+						/>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('item.name');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('preserves JSX parser state across comments after semicolon-free TSRX returns', () => {
+			const cases = [
+				`class Foo {
+					bar() {
+						return <List
+							render={(item) => {
+								return <tsrx>
+									<span>{item.name}</span>
+								</tsrx> /* block comment */
+							}}
+						/>
+					}
+				}`,
+				`class Foo {
+					bar() {
+						return <List
+							render={(item) => {
+								return <tsrx>
+									<span>{item.name}</span>
+								</tsrx> // line comment
+							}}
+						/>
+					}
+				}`,
+			];
+
+			for (const source of cases) {
+				const { code } = compile(source, 'App.tsrx');
+
+				expect(code).toContain('item.name');
+				expect(code).not.toContain('<tsrx>');
+			}
 		});
 
 		it('keeps return-value branches in native TSRX callback props as plain conditionals', () => {
