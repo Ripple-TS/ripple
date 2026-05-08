@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.0.1
+
+### Patch Changes
+
+- [`f1b1f94`](https://github.com/Ripple-TS/ripple/commit/f1b1f9475553cbe3632a5cc9794a8f54615c29f2)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Patch packages currently
+  versioned at 0.3.50 to fix the bump that caused major 1.0.0 release with a minor
+  changeset.
+
+- Updated dependencies
+  [[`f1b1f94`](https://github.com/Ripple-TS/ripple/commit/f1b1f9475553cbe3632a5cc9794a8f54615c29f2)]:
+  - @ripple-ts/language-server@0.3.51
+  - @tsrx/typescript-plugin@0.3.51
+  - @tsrx/react@0.2.1
+  - @tsrx/ripple@0.1.1
+
 ## 2.0.0
 
 ### Patch Changes
@@ -8,8 +24,8 @@
   [[`2a85e9b`](https://github.com/Ripple-TS/ripple/commit/2a85e9bb73f4d82f2bd2273c33735b4dc7b82d5f)]:
   - @tsrx/ripple@0.1.0
   - @tsrx/react@0.2.0
-  - @ripple-ts/language-server@1.0.0
-  - @tsrx/typescript-plugin@1.0.0
+  - @ripple-ts/language-server@0.3.50
+  - @tsrx/typescript-plugin@0.3.50
 
 ## 1.0.25
 

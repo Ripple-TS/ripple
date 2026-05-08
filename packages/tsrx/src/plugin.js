@@ -1702,7 +1702,22 @@ export function TSRXPlugin(config) {
 					chunkStart = this.pos;
 
 				while (true) {
-					if (this.pos >= this.input.length) this.raise(this.start, 'Unterminated JSX contents');
+					if (this.pos >= this.input.length) {
+						const inside_open_template = this.#path.findLast(
+							(n) =>
+								n.type === 'Element' ||
+								n.type === 'Tsrx' ||
+								n.type === 'TsxCompat' ||
+								n.type === 'Tsx',
+						);
+						if (!inside_open_template) {
+							while (this.curContext() === tstc.tc_expr) {
+								this.context.pop();
+							}
+							return this.finishToken(tt.eof);
+						}
+						this.raise(this.start, 'Unterminated JSX contents');
+					}
 					let ch = this.input.charCodeAt(this.pos);
 
 					switch (ch) {

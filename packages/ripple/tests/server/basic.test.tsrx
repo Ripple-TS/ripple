@@ -42,7 +42,10 @@ second"</pre>
 
 	it('renders inline tsrx fragments', async () => {
 		component Basic() {
-			const content = <tsrx>const label = 'Server';<span>{label}</span></tsrx>;
+			const content = <tsrx>
+				const label = 'Server';
+				<span>{label}</span>
+			</tsrx>;
 
 			<div>{content}</div>
 		}

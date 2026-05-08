@@ -118,6 +118,45 @@ describe('prettier-plugin', () => {
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should keep sibling children in tsrx expression fragments on separate lines', async () => {
+			const input = `function Test(p1,p2){return <tsrx><div>"Hello"</div><div>{p1}</div><div>{p2}</div></tsrx>}`;
+			const expected = `function Test(p1, p2) {
+  return <tsrx>
+    <div>"Hello"</div>
+    <div>{p1}</div>
+    <div>{p2}</div>
+  </tsrx>;
+}`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should format shorthand tsx fragments like JSX fragments', async () => {
+			const input = `function Test(p1,p2){return <><div>Hello</div><div>{p1}</div><div>{p2}</div></>}`;
+			const expected = `function Test(p1, p2) {
+  return <>
+    <div>Hello</div>
+    <div>{p1}</div>
+    <div>{p2}</div>
+  </>;
+}`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should format tsx expression fragments like shorthand fragments', async () => {
+			const input = `function Test(p1,p2){return <tsx><div>Hello</div><div>{p1}</div><div>{p2}</div></tsx>}`;
+			const expected = `function Test(p1, p2) {
+  return <tsx>
+    <div>Hello</div>
+    <div>{p1}</div>
+    <div>{p2}</div>
+  </tsx>;
+}`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should format whitespace correctly', async () => {
 			const input = `export component Test(){
         let count=0

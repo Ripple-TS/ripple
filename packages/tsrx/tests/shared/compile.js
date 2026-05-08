@@ -1292,6 +1292,26 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toContain('<tsrx>');
 		});
 
+		it('parses compact native TSRX templates before a trailing newline at EOF', () => {
+			const { code } = compile(
+				[
+					`export component App() {`,
+					`\tconst title = <tsrx><h1>"Hello There"</h1>{Test(1, 2)}</tsrx>;`,
+					`\t{title}`,
+					`}`,
+					``,
+					`function Test(p1, p2) {`,
+					`\treturn <tsrx><div>"Hello"</div><div>{p1}</div><div>{p2}</div></tsrx>;`,
+					`}`,
+					``,
+				].join('\n'),
+				'App.tsrx',
+			);
+
+			expect(code).toContain('{"Hello"}');
+			expect(code).not.toContain('<tsrx>');
+		});
+
 		it('preserves statements before template output', () => {
 			const { code } = compile(
 				`class Foo { bar() { return <tsrx>const label = 'Hi'; <div>{label}</div></tsrx>; } }`,

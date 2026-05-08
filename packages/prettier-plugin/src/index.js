@@ -5631,6 +5631,15 @@ function printTsx(node, path, options, print) {
 		return [tagName, closingTagName];
 	}
 
+	if (printedChildren.length > 1) {
+		return group([
+			tagName,
+			indent([hardline, join(hardline, printedChildren)]),
+			hardline,
+			closingTagName,
+		]);
+	}
+
 	// Use softline to allow single-line when content fits
 	return group([
 		tagName,
@@ -5679,8 +5688,8 @@ function printTsrx(node, path, options, print) {
 
 	return group([
 		tagName,
-		indent([softline, join(softline, printedChildren)]),
-		softline,
+		indent([hardline, join(hardline, printedChildren)]),
+		hardline,
 		closingTagName,
 	]);
 }
@@ -5882,6 +5891,17 @@ function printJSXElement(node, path, options, print) {
 
 	// Check if content can be inlined (single text node or single expression)
 	if (childrenDocs.length === 1 && typeof childrenDocs[0] === 'string') {
+		return ['<', tagName, typeArgsDoc, attributesDoc, '>', childrenDocs[0], '</', tagName, '>'];
+	}
+	const meaningfulChildren = node.children.filter(
+		(child) => child.type !== 'JSXText' || child.value.trim(),
+	);
+	const singleMeaningfulChild = meaningfulChildren.length === 1 ? meaningfulChildren[0] : null;
+	if (
+		childrenDocs.length === 1 &&
+		singleMeaningfulChild?.type === 'JSXExpressionContainer' &&
+		singleMeaningfulChild.expression.type === 'Identifier'
+	) {
 		return ['<', tagName, typeArgsDoc, attributesDoc, '>', childrenDocs[0], '</', tagName, '>'];
 	}
 

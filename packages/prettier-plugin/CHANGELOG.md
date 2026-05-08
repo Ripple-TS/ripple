@@ -1,15 +1,34 @@
 # @tsrx/prettier-plugin
 
-## 1.0.0
+## 0.3.51
 
-### Minor Changes
+### Patch Changes
+
+- [`0fdf340`](https://github.com/Ripple-TS/ripple/commit/0fdf3408417a7565a00304b766e958b438b3c834)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep sibling children in
+  `<tsrx>`, `<tsx>`, and shorthand `<>` fragments on separate formatted lines and
+  avoid stale JSX tokenizer state at EOF after compact `<tsrx>` expressions.
+
+- [`f1b1f94`](https://github.com/Ripple-TS/ripple/commit/f1b1f9475553cbe3632a5cc9794a8f54615c29f2)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Patch packages currently
+  versioned at 0.3.50 to fix the bump that caused major 1.0.0 release with a minor
+  changeset.
+
+- Updated dependencies
+  [[`0fdf340`](https://github.com/Ripple-TS/ripple/commit/0fdf3408417a7565a00304b766e958b438b3c834)]:
+  - @tsrx/core@0.1.1
+  - @tsrx/ripple@0.1.1
+
+## 0.3.50
+
+### Patch Changes
+
+- Remove the obsolete `ripple` peer dependency.
 
 - [#1088](https://github.com/Ripple-TS/ripple/pull/1088)
   [`2a85e9b`](https://github.com/Ripple-TS/ripple/commit/2a85e9bb73f4d82f2bd2273c33735b4dc7b82d5f)
   Thanks [@trueadm](https://github.com/trueadm)! - Add `<tsrx>...</tsrx>`
   expression fragments for inline native TSRX template values.
-
-### Patch Changes
 
 - Updated dependencies
   [[`2a85e9b`](https://github.com/Ripple-TS/ripple/commit/2a85e9bb73f4d82f2bd2273c33735b4dc7b82d5f)]:
