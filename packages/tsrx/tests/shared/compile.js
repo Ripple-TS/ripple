@@ -1279,6 +1279,65 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 			expect(code).toContain('return <><div>a</div><div>b</div></>;');
 		});
+
+		it('keeps special fragment returns inside component-local functions', () => {
+			const compat_kind = name === 'solid' ? 'solid' : 'react';
+			const { code } = compile(
+				`export component App() {
+					<div>"App"</div>
+					function FragmentReturn() {
+						return <><div>fragment</div></>;
+					}
+					function TsxReturn() {
+						return <tsx><div>tsx</div></tsx>;
+					}
+					function TsrxReturn() {
+						return <tsrx><div>"tsrx"</div></tsrx>;
+					}
+					function CompatReturn() {
+						return <tsx:${compat_kind}><div>compat</div></tsx:${compat_kind}>;
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).not.toContain('return;');
+			expect(code).toMatch(/function FragmentReturn\(\) {\s+return <div/);
+			expect(code).toMatch(/function TsxReturn\(\) {\s+return <div/);
+			expect(code).toMatch(/function TsrxReturn\(\) {\s+return <div/);
+			expect(code).toMatch(/function CompatReturn\(\) {\s+return <div/);
+		});
+
+		it('keeps special fragment returns inside component prop arrow functions', () => {
+			const compat_kind = name === 'solid' ? 'solid' : 'react';
+			const { code } = compile(
+				`component Child(props) {}
+
+				export component App() {
+					<Child
+						fragment={() => {
+							return <><div>fragment</div></>;
+						}}
+						tsx={() => {
+							return <tsx><div>tsx</div></tsx>;
+						}}
+						tsrx={() => {
+							return <tsrx><div>"tsrx"</div></tsrx>;
+						}}
+						compat={() => {
+							return <tsx:${compat_kind}><div>compat</div></tsx:${compat_kind}>;
+						}}
+					/>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).not.toContain('return;');
+			expect(code).toMatch(/fragment=\{\(\) => \{\s+return <div/);
+			expect(code).toMatch(/tsx=\{\(\) => \{\s+return <div/);
+			expect(code).toMatch(/tsrx=\{\(\) => \{\s+return <div/);
+			expect(code).toMatch(/compat=\{\(\) => \{\s+return <div/);
+		});
 	});
 
 	describe(`[${name}] <tsrx> template fragments`, () => {

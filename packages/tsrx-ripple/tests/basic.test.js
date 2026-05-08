@@ -200,3 +200,54 @@ describe('@tsrx/ripple <tsrx> Volar output', () => {
 		expect(second_push).toBeLessThan(returned_children);
 	});
 });
+
+describe('@tsrx/ripple nested function fragment returns', () => {
+	it('keeps special fragment returns inside component-local functions', () => {
+		const { code } = compile(
+			`export component App() {
+				<div>"App"</div>
+				function FragmentReturn() {
+					return <><div>fragment</div></>;
+				}
+				function TsxReturn() {
+					return <tsx><div>tsx</div></tsx>;
+				}
+				function TsrxReturn() {
+					return <tsrx><div>"tsrx"</div></tsrx>;
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).not.toContain('return;');
+		expect(code).toMatch(/function FragmentReturn\(\) {\s+return _\$_.tsrx_element/);
+		expect(code).toMatch(/function TsxReturn\(\) {\s+return _\$_.tsrx_element/);
+		expect(code).toMatch(/function TsrxReturn\(\) {\s+return _\$_.tsrx_element/);
+	});
+
+	it('keeps special fragment returns inside component prop arrow functions', () => {
+		const { code } = compile(
+			`component Child(props) {}
+
+			export component App() {
+				<Child
+					fragment={() => {
+						return <><div>fragment</div></>;
+					}}
+					tsx={() => {
+						return <tsx><div>tsx</div></tsx>;
+					}}
+					tsrx={() => {
+						return <tsrx><div>"tsrx"</div></tsrx>;
+					}}
+				/>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).not.toContain('return;');
+		expect(code).toMatch(/fragment: \(\) => {\s+return _\$_.tsrx_element/);
+		expect(code).toMatch(/tsx: \(\) => {\s+return _\$_.tsrx_element/);
+		expect(code).toMatch(/tsrx: \(\) => {\s+return _\$_.tsrx_element/);
+	});
+});

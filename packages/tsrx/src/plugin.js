@@ -220,6 +220,7 @@ export function TSRXPlugin(config) {
 			#errors = undefined;
 			/** @type {string | null} */
 			#filename = null;
+			#componentDepth = 0;
 			#functionBodyDepth = 0;
 
 			/**
@@ -268,6 +269,14 @@ export function TSRXPlugin(config) {
 					index--;
 				}
 				return null;
+			}
+
+			#isInsideComponent() {
+				return this.#componentDepth > 0;
+			}
+
+			#isInsideComponentTemplate() {
+				return this.#isInsideComponent() && this.#functionBodyDepth === 0;
 			}
 
 			#popTsxTokenContextBeforeTemplateExpressionChild() {
@@ -738,7 +747,7 @@ export function TSRXPlugin(config) {
 
 				if (code === 60) {
 					// < character
-					const inComponent = this.#path.findLast((n) => n.type === 'Component');
+					const inComponent = this.#isInsideComponentTemplate();
 					/** @type {number | null} */
 					let prevNonWhitespaceChar = null;
 
@@ -1094,11 +1103,13 @@ export function TSRXPlugin(config) {
 				this.eat(tt.braceL);
 				node.body = [];
 				this.#path.push(node);
+				this.#componentDepth++;
 
 				try {
 					this.parseTemplateBody(node.body);
 				} finally {
 					this.#functionBodyDepth = parent_function_body_depth;
+					this.#componentDepth--;
 				}
 				this.#path.pop();
 				this.exitScope();
@@ -1322,6 +1333,23 @@ export function TSRXPlugin(config) {
 			parseFunctionBody(node, isArrowFunction, isMethod, forInit, ...args) {
 				this.#functionBodyDepth++;
 				this.#functionStack.push(node);
+				// Inside a component, nested JS function bodies should parse like
+				// ordinary functions, not component template bodies.
+				if (
+					// Only adjust functions declared while parsing a component body.
+					this.#isInsideComponent() &&
+					// A stale JSX expression context means the surrounding template
+					// tokenizer can still treat `<` as template markup.
+					this.context.some((context) => context === tstc.tc_expr) &&
+					// Keep arrows/functions inside JSX tags, such as event handlers,
+					// on the normal JSX attribute parsing path.
+					!this.context.some((context) => context === tstc.tc_oTag || context === tstc.tc_cTag) &&
+					// Only reset statement-level function bodies, not expression
+					// contexts that are actively parsing JSX.
+					this.curContext() === b_stat
+				) {
+					this.context = [b_stat];
+				}
 
 				try {
 					return super.parseFunctionBody(node, isArrowFunction, isMethod, forInit, ...args);
