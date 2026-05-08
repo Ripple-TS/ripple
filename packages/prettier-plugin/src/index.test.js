@@ -231,6 +231,30 @@ describe('prettier-plugin', () => {
   />
 }`,
 				},
+				{
+					input: `component Test() {
+  <A fallback={(error) => <tsx:react>
+    <B id="xyz" status="error" moreProps={{ a: 1, b: 2 }} value={getErrorMessage(
+      error,
+    )} otherProp={2} />
+  </tsx:react>} />
+}`,
+					expected: `component Test() {
+  <A
+    fallback={(error) => (
+      <tsx:react>
+        <B
+          id="xyz"
+          status="error"
+          moreProps={{ a: 1, b: 2 }}
+          value={getErrorMessage(error)}
+          otherProp={2}
+        />
+      </tsx:react>
+    )}
+  />
+}`,
+				},
 			];
 
 			for (const { input, expected } of cases) {

@@ -2805,6 +2805,7 @@ function printArrowFunction(node, path, options, print, args) {
 function isTemplateExpression(node) {
 	return (
 		node.type === 'Tsx' ||
+		node.type === 'TsxCompat' ||
 		node.type === 'Tsrx' ||
 		node.type === 'JSXElement' ||
 		node.type === 'JSXFragment'
