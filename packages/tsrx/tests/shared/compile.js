@@ -1333,6 +1333,26 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('{"yes"}');
 			expect(code).not.toContain('<tsrx>');
 		});
+
+		it('lowers native TSRX template fragments in component JSX attribute values', () => {
+			const { code } = compile(
+				`component App() { <Card content={<tsrx><span>"Title"</span></tsrx>} /> }`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('{"Title"}');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('lowers native TSRX template fragments in JSX attribute values', () => {
+			const { code } = compile(
+				`class Foo { bar() { return <Card content={<tsrx><span>"Title"</span></tsrx>} />; } }`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('{"Title"}');
+			expect(code).not.toContain('<tsrx>');
+		});
 	});
 
 	describe(`[${name}] lazy destructuring shadowing`, () => {

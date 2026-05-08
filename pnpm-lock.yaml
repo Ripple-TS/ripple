@@ -651,9 +651,6 @@ importers:
       '@tsrx/core':
         specifier: workspace:*
         version: link:../tsrx
-      '@tsrx/ripple':
-        specifier: workspace:*
-        version: link:../tsrx-ripple
     devDependencies:
       '@types/node':
         specifier: catalog:default

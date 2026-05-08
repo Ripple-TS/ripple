@@ -202,6 +202,7 @@ export function TSRXPlugin(config) {
 		// Some parser constructors (e.g. via TS plugins) expose `tokContexts` without `b_stat`.
 		// If we push an undefined context, Acorn's tokenizer will later crash reading `.override`.
 		const b_stat = tc.b_stat || acorn.tokContexts.b_stat;
+		const b_expr = tc.b_expr || acorn.tokContexts.b_expr;
 		const tstt = Parser.acornTypeScript.tokTypes;
 		const tstc = Parser.acornTypeScript.tokContexts;
 
@@ -316,6 +317,21 @@ export function TSRXPlugin(config) {
 			#popTemplateLiteralTokenContext() {
 				while (this.curContext()?.token === '`') {
 					this.context.pop();
+				}
+			}
+
+			#popJsxAttributeExpressionContextAfterTemplateElement() {
+				if (this.type !== tt.braceR) {
+					return;
+				}
+
+				const context_index = this.context.length - 1;
+				if (
+					this.context[context_index] === b_expr &&
+					this.context[context_index - 1] === tstc.tc_oTag
+				) {
+					this.context.pop();
+					this.exprAllowed = false;
 				}
 			}
 
@@ -1910,9 +1926,18 @@ export function TSRXPlugin(config) {
 					// Use Ripple's parseElement to create a Tsx/Tsrx/TsxCompat node.
 					// Bare fragments (<></>) are shorthand for <tsx>...</tsx>.
 					this.next();
-					return /** @type {import('estree-jsx').JSXElement} */ (
+					const parsed = /** @type {import('estree-jsx').JSXElement} */ (
 						/** @type {unknown} */ (this.parseElement())
 					);
+					this.#popJsxAttributeExpressionContextAfterTemplateElement();
+					return parsed;
+				}
+
+				if (
+					!this.#path.findLast((node) => node.type === 'Component') &&
+					!this.#functionStack.findLast(is_pascal_case_function)
+				) {
+					return super.jsx_parseElement();
 				}
 
 				const code = this.#functionStack.findLast(is_pascal_case_function)

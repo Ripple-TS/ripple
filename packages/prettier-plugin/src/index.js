@@ -18,7 +18,7 @@
 
 /** @typedef {{ isInAttribute?: boolean, isInArray?: boolean, allowInlineObject?: boolean, isConditionalTest?: boolean, isNestedConditional?: boolean, suppressLeadingComments?: boolean, suppressExpressionLeadingComments?: boolean, isInlineContext?: boolean, isStatement?: boolean, isLogicalAndOr?: boolean, allowShorthandProperty?: boolean, isFirstChild?: boolean, skipComponentLabel?: boolean, noBreakInside?: boolean, expandLastArg?: boolean }} PrintArgs */
 
-import { parse } from '@tsrx/ripple';
+import { parseModule } from '@tsrx/core';
 import { doc } from 'prettier';
 
 const { builders, utils } = doc;
@@ -58,7 +58,7 @@ export const parsers = {
 		 * @returns {AST.Program}
 		 */
 		parse(text, _options) {
-			return parse(text);
+			return parseModule(text);
 		},
 
 		/**

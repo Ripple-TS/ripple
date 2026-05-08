@@ -1,5 +1,14 @@
 # @tsrx/core
 
+## 0.1.2
+
+### Patch Changes
+
+- [#1092](https://github.com/Ripple-TS/ripple/pull/1092)
+  [`2010290`](https://github.com/Ripple-TS/ripple/commit/20102904d68951b47dce3958f88ddd1fc150e7a1)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix parsing inline `<tsrx>`
+  template fragments inside JSX attribute expression values.
+
 ## 0.1.1
 
 ### Patch Changes
