@@ -271,43 +271,6 @@ export function TSRXPlugin(config) {
 				return null;
 			}
 
-			/**
-			 * @param {number} index
-			 */
-			#skipWhitespaceAndComments(index) {
-				while (index < this.input.length) {
-					const ch = this.input.charCodeAt(index);
-					if (ch === 32 || ch === 9 || ch === 10 || ch === 13) {
-						index++;
-					} else if (ch === 47 && this.input.charCodeAt(index + 1) === 42) {
-						const end = this.input.indexOf('*/', index + 2);
-						index = end === -1 ? this.input.length : end + 2;
-					} else if (ch === 47 && this.input.charCodeAt(index + 1) === 47) {
-						index += 2;
-						while (index < this.input.length) {
-							const comment_ch = this.input.charCodeAt(index);
-							if (comment_ch === 10 || comment_ch === 13) break;
-							index++;
-						}
-					} else {
-						break;
-					}
-				}
-				return index;
-			}
-
-			#countFollowingRightBraces() {
-				let index = this.end;
-				let count = 0;
-				while (index < this.input.length) {
-					index = this.#skipWhitespaceAndComments(index);
-					if (this.input.charCodeAt(index) !== 125) break;
-					count++;
-					index++;
-				}
-				return count;
-			}
-
 			#isInsideComponent() {
 				return this.#componentDepth > 0;
 			}
@@ -366,10 +329,99 @@ export function TSRXPlugin(config) {
 				}
 			}
 
-			#popTokenContextsAfterTemplateExpressionElement() {
+			/**
+			 * @param {number} index
+			 * @returns {number}
+			 */
+			#skipWhitespaceAndComments(index) {
+				while (index < this.input.length) {
+					const ch = this.input.charCodeAt(index);
+					if (ch === 32 || ch === 9 || ch === 10 || ch === 13) {
+						index++;
+					} else if (ch === 47 && this.input.charCodeAt(index + 1) === 42) {
+						const end = this.input.indexOf('*/', index + 2);
+						index = end === -1 ? this.input.length : end + 2;
+					} else if (ch === 47 && this.input.charCodeAt(index + 1) === 47) {
+						index += 2;
+						while (index < this.input.length) {
+							const comment_ch = this.input.charCodeAt(index);
+							if (comment_ch === 10 || comment_ch === 13) break;
+							index++;
+						}
+					} else {
+						break;
+					}
+				}
+				return index;
+			}
+
+			/** @returns {number} */
+			#countFollowingRightBraces() {
+				let index = this.end;
+				let count = 0;
+				while (index < this.input.length) {
+					index = this.#skipWhitespaceAndComments(index);
+					if (this.input.charCodeAt(index) !== 125) break;
+					count++;
+					index++;
+				}
+				return count;
+			}
+
+			/**
+			 * @param {AST.Tsx | AST.Tsrx | AST.TsxCompat} node
+			 * @returns {boolean}
+			 */
+			#hasDirectStatementChild(node) {
+				return node.children?.some(
+					(child) => child.type.endsWith('Statement') || child.type === 'VariableDeclaration',
+				);
+			}
+
+			/**
+			 * @param {AST.Tsx | AST.Tsrx | AST.TsxCompat} node
+			 */
+			#popTokenContextsAfterTemplateExpressionElement(node) {
 				const context_index = this.context.length - 1;
 				const following_right_braces =
-					this.type === tt.braceR ? this.#countFollowingRightBraces() : 0;
+					this.type === tt.braceR || this.type === tt.comma ? this.#countFollowingRightBraces() : 0;
+				let expression_contexts_before_template = 0;
+				for (let index = context_index - 2; this.context[index] === b_expr; index--) {
+					expression_contexts_before_template++;
+				}
+
+				// Expression-bodied <tsrx> props can leave an extra statement or
+				// expression context before a following object-property comma.
+				// Statement-bodied templates (`return`, `if`, `switch`, etc.) need
+				// the older JSX-expression cleanup below instead.
+				if (
+					this.type === tt.comma &&
+					this.context[context_index] === b_stat &&
+					this.context[context_index - 1] === tstc.tc_expr &&
+					(expression_contexts_before_template === 2 || following_right_braces > 1) &&
+					!this.#hasDirectStatementChild(node)
+				) {
+					if (following_right_braces > 1 && expression_contexts_before_template > 1) {
+						this.context.splice(context_index - 2, expression_contexts_before_template - 1);
+					}
+					this.context.pop();
+					this.exprAllowed = false;
+					return;
+				}
+
+				if (
+					this.type === tt.comma &&
+					this.context[context_index] === b_expr &&
+					this.context[context_index - 1] === b_expr &&
+					!this.#hasDirectStatementChild(node)
+				) {
+					if (expression_contexts_before_template === 0) {
+						this.context.push(b_expr);
+					}
+					this.exprAllowed = false;
+					return;
+				}
+
 				if (
 					this.context[context_index] === b_stat &&
 					this.context[context_index - 1] === tstc.tc_expr
@@ -2016,7 +2068,9 @@ export function TSRXPlugin(config) {
 					const parsed = /** @type {import('estree-jsx').JSXElement} */ (
 						/** @type {unknown} */ (this.parseElement())
 					);
-					this.#popTokenContextsAfterTemplateExpressionElement();
+					this.#popTokenContextsAfterTemplateExpressionElement(
+						/** @type {AST.Tsx | AST.Tsrx | AST.TsxCompat} */ (/** @type {unknown} */ (parsed)),
+					);
 					return parsed;
 				}
 

@@ -1572,6 +1572,98 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toContain('<tsrx>');
 		});
 
+		it('lowers native TSRX template fragments in nested render props without trailing commas', () => {
+			const cases = [
+				`class Foo {
+					bar() {
+						return <Page
+							params={{
+								details: {
+									render: () => <tsrx>
+										<div>"nested"</div>
+									</tsrx>
+								}
+							}}
+						/>
+					}
+				}`,
+				`class Foo {
+					bar() {
+						return <Page
+							params={{
+								details: {
+									render: () => <tsrx>
+										<div>"nested trailing comma"</div>
+									</tsrx>,
+								},
+							}}
+						/>
+					}
+				}`,
+			];
+
+			for (const source of cases) {
+				const { code } = compile(source, 'App.tsrx');
+
+				expect(code).toContain('nested');
+				expect(code).not.toContain('<tsrx>');
+			}
+		});
+
+		it('lowers native TSRX template fragments in top-level render props', () => {
+			const cases = [
+				[
+					`class Foo {
+					bar() {
+						return <Page
+							params={{
+								render: () => <tsrx>
+									<div>"top"</div>
+								</tsrx>,
+							}}
+						/>
+					}
+				}`,
+					'top',
+				],
+				[
+					`class Foo {
+					bar() {
+						return <Page
+							params={{
+								render: (icon: () => JSX.Element) => <tsrx>
+									<div>"typed top"</div>
+								</tsrx>,
+							}}
+						/>
+					}
+				}`,
+					'typed top',
+				],
+				[
+					`class Foo {
+					bar() {
+						return <Page
+							params={{
+								render: () => <tsrx>
+									return [<>View</>];
+								</tsrx>,
+							}}
+						/>
+					}
+				}`,
+					'View',
+				],
+			];
+
+			for (const [source, expected] of cases) {
+				const { code } = compile(source, 'App.tsrx');
+
+				expect(code).toContain(expected);
+				expect(code).not.toContain('<tsrx>');
+			}
+		});
+
 		it('preserves JSX parser state across comments after semicolon-free TSRX returns', () => {
 			const cases = [
 				`class Foo {
@@ -1604,6 +1696,126 @@ export function optionalFn(bar: string, baz?: string) {
 				expect(code).toContain('item.name');
 				expect(code).not.toContain('<tsrx>');
 			}
+		});
+
+		it('lowers native TSRX template fragments from typed nested render props', () => {
+			const cases = [
+				`class Foo {
+					bar() {
+						return <Page
+							params={{
+								details: {
+									render: (icon: () => JSX.Element) => <tsrx>
+										<div>"typed"</div>
+									</tsrx>,
+								},
+							}}
+						/>
+					}
+				}`,
+				`class Foo {
+					bar() {
+						return <Page
+							params={{
+								details: {
+									render: (tag: string, className: string, icon: () => JSX.Element) => <tsrx>
+										<div>"typed trailing comma"</div>
+									</tsrx>,
+								},
+							}}
+						/>
+					}
+				}`,
+			];
+
+			for (const source of cases) {
+				const { code } = compile(source, 'App.tsrx');
+
+				expect(code).toContain('typed');
+				expect(code).not.toContain('<tsrx>');
+			}
+		});
+
+		it('lowers dynamic native TSRX tags from typed nested render props', () => {
+			const { code } = compile(
+				`class Foo {
+					bar() {
+						return <Page
+							params={{
+								details: {
+									render: (tag: string, className: string, icon: () => JSX.Element) => <tsrx>
+										<@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
+											if (icon) {
+												icon();
+											}
+										</@tag>
+									</tsrx>,
+								},
+							}}
+						/>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('className');
+			expect(code).toContain('has-icon');
+			expect(code).toContain('icon()');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('lowers native TSRX templates in complex nested params objects', () => {
+			const { code } = compile(
+				`class Foo {
+					bar() {
+						return <Page
+							params={{
+								title: 'Welcome',
+								header: {
+									class: 'foo',
+									children: <><h1>Big things are coming!</h1></>,
+								},
+								content: <><p>Lorem ipsum...</p></>,
+								menuItems: [
+									<><span>Copy</span></>,
+									<><span>Cut</span></>,
+									<><span>Delete</span></>,
+								],
+								menuAlt: (isAdmin) => <tsrx>
+									if (isAdmin) {
+										return [<>Delete</>, <>Edit</>];
+									} else {
+										return [<>View</>];
+									}
+								</tsrx>,
+								details: {
+									label: {
+										class: 'custom',
+										children: [<>Shipping & returns</>],
+									},
+									leadingIcon: { children: <>icon</> },
+								},
+								details2: {
+									render: (tag: string, className: string, icon: () => JSX.Element) => <tsrx>
+										<@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
+											if (icon) {
+												icon();
+											}
+										</@tag>
+									</tsrx>,
+								},
+							}}
+						/>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('Welcome');
+			expect(code).toContain('isAdmin');
+			expect(code).toContain('className');
+			expect(code).toContain('has-icon');
+			expect(code).not.toContain('<tsrx>');
 		});
 
 		it('keeps return-value branches in native TSRX callback props as plain conditionals', () => {
