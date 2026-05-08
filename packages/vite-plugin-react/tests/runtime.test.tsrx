@@ -419,9 +419,12 @@ class TsxSpreadRefRenderer {
 		};
 
 		return <tsx>
-			<input {...props} ref={(node: HTMLInputElement | null) => {
-				tsx_explicit_ref_captured = node;
-			}} />
+			<input
+				{...props}
+				ref={(node: HTMLInputElement | null) => {
+					tsx_explicit_ref_captured = node;
+				}}
+			/>
 		</tsx>;
 	}
 }
