@@ -4,6 +4,8 @@
 
 ### Patch Changes
 
+- Remove the obsolete `ripple` peer dependency.
+
 - [#1088](https://github.com/Ripple-TS/ripple/pull/1088)
   [`2a85e9b`](https://github.com/Ripple-TS/ripple/commit/2a85e9bb73f4d82f2bd2273c33735b4dc7b82d5f)
   Thanks [@trueadm](https://github.com/trueadm)! - Add `<tsrx>...</tsrx>`
@@ -11,8 +13,8 @@
 
 - Updated dependencies
   [[`2a85e9b`](https://github.com/Ripple-TS/ripple/commit/2a85e9bb73f4d82f2bd2273c33735b4dc7b82d5f)]:
-  - @tsrx/core@0.0.29
-  - @tsrx/ripple@0.0.31
+  - @tsrx/core@0.1.0
+  - @tsrx/ripple@0.1.0
 
 ## 0.3.49
 

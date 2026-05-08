@@ -6,11 +6,11 @@
 
 - Updated dependencies
   [[`2a85e9b`](https://github.com/Ripple-TS/ripple/commit/2a85e9bb73f4d82f2bd2273c33735b4dc7b82d5f)]:
-  - @tsrx/ripple@0.0.31
-  - @tsrx/react@0.1.23
-  - @tsrx/preact@0.0.24
-  - @tsrx/solid@0.0.29
-  - @tsrx/vue@0.0.24
+  - @tsrx/ripple@0.1.0
+  - @tsrx/react@0.2.0
+  - @tsrx/preact@0.1.0
+  - @tsrx/solid@0.1.0
+  - @tsrx/vue@0.1.0
 
 ## 0.3.49
 

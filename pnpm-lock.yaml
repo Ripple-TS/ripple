@@ -627,9 +627,6 @@ importers:
       prettier:
         specifier: catalog:default
         version: 3.8.3
-      ripple:
-        specifier: workspace:*
-        version: link:../ripple
 
   packages/ripple:
     dependencies:

@@ -1,13 +1,13 @@
 # Changelog
 
-## 1.0.26
+## 2.0.0
 
 ### Patch Changes
 
 - Updated dependencies
   [[`2a85e9b`](https://github.com/Ripple-TS/ripple/commit/2a85e9bb73f4d82f2bd2273c33735b4dc7b82d5f)]:
-  - @tsrx/ripple@0.0.31
-  - @tsrx/react@0.1.23
+  - @tsrx/ripple@0.1.0
+  - @tsrx/react@0.2.0
   - @ripple-ts/language-server@0.3.50
   - @tsrx/typescript-plugin@0.3.50
 

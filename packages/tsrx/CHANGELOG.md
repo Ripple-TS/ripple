@@ -1,8 +1,8 @@
 # @tsrx/core
 
-## 0.0.29
+## 0.1.0
 
-### Patch Changes
+### Minor Changes
 
 - [#1088](https://github.com/Ripple-TS/ripple/pull/1088)
   [`2a85e9b`](https://github.com/Ripple-TS/ripple/commit/2a85e9bb73f4d82f2bd2273c33735b4dc7b82d5f)

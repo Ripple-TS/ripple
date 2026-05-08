@@ -20,12 +20,10 @@
     "directory": "packages/prettier-plugin"
   },
   "peerDependencies": {
-    "ripple": "catalog:peer",
     "prettier": "catalog:peer"
   },
   "devDependencies": {
     "@types/node": "catalog:default",
-    "ripple": "workspace:*",
     "prettier": "catalog:default"
   },
   "dependencies": {
