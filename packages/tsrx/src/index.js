@@ -149,6 +149,7 @@ export {
 	MERGE_REFS_INTERNAL_NAME,
 	merge_duplicate_refs as mergeDuplicateRefs,
 	NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
+	return_value_body_to_expression as returnValueBodyToExpression,
 	rewrite_loop_continues_to_bare_returns as rewriteLoopContinuesToBareReturns,
 	to_jsx_attribute as toJsxAttribute,
 	validate_at_most_one_ref_attribute as validateAtMostOneRefAttribute,

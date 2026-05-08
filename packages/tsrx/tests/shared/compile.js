@@ -9,7 +9,7 @@ import { DIAGNOSTIC_CODES } from '../../src/diagnostics.js';
  * }} CompileHarness
  *
  * @typedef {{
- *   compile_to_volar_mappings: (source: string, filename?: string, options?: any) => { errors: Array<{ code?: string }> },
+ *   compile_to_volar_mappings: (source: string, filename?: string, options?: any) => { code: string, errors: Array<{ code?: string }> },
  *   name: string,
  * }} CompileDiagnosticsHarness
  *
@@ -51,6 +51,40 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 			);
 
 			expect(diagnostic_codes(result)).toContain(DIAGNOSTIC_CODES.JSX_RETURN_IN_COMPONENT);
+		});
+
+		it('keeps return-value native TSRX templates clean in type-only output', () => {
+			const result = compile_to_volar_mappings(
+				`component Test() {
+					<Page
+						params={{
+							menuAlt: (isAdmin) => <tsrx>
+								if (isAdmin) {
+									return [<>Delete</>, <>Edit</>];
+								} else {
+									return [<>View</>];
+								}
+							</tsrx>,
+							bySwitch: (role) => <tsrx>
+								switch (role) {
+									case 'admin':
+										return [<>Edit</>];
+									default:
+										return [<>View</>];
+								}
+							</tsrx>,
+						}}
+					/>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(result.errors).toEqual([]);
+			expect(result.code).toContain(
+				'menuAlt: (isAdmin) => isAdmin ? [<>Delete</>, <>Edit</>] : [<>View</>]',
+			);
+			expect(result.code).toContain('bySwitch: (role) => (() => {');
+			expect(result.code).not.toContain('return null;');
 		});
 	});
 }
@@ -1338,6 +1372,28 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toMatch(/tsrx=\{\(\) => \{\s+return <div/);
 			expect(code).toMatch(/compat=\{\(\) => \{\s+return <div/);
 		});
+
+		it('keeps expression child arrays in fragment, tsx, and compat callback props', () => {
+			const compat_kind = name === 'solid' ? 'solid' : 'react';
+			const { code } = compile(
+				`component Child(props) {}
+
+				export component App() {
+					<Child
+						fragment={() => <>{[<>Delete</>, <>Edit</>]}</>}
+						tsx={() => <tsx>{[<>Delete</>, <>Edit</>]}</tsx>}
+						compat={() => <tsx:${compat_kind}>{[<>Delete</>, <>Edit</>]}</tsx:${compat_kind}>}
+					/>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('fragment={() => [<>Delete</>, <>Edit</>]}');
+			expect(code).toContain('tsx={() => [<>Delete</>, <>Edit</>]}');
+			expect(code).toContain('compat={() => [<>Delete</>, <>Edit</>]}');
+			expect(code).not.toContain('return null;');
+			expect(code).not.toContain('<tsx>');
+		});
 	});
 
 	describe(`[${name}] <tsrx> template fragments`, () => {
@@ -1451,6 +1507,68 @@ export function optionalFn(bar: string, baz?: string) {
 
 			expect(code).toContain('{"Item"}');
 			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('keeps return-value branches in native TSRX callback props as plain conditionals', () => {
+			const { code } = compile(
+				`component Test() {
+					<Page
+						params={{
+							menuAlt: (isAdmin) => <tsrx>
+								if (isAdmin) {
+									return [<>Delete</>, <>Edit</>];
+								} else {
+									return [<>View</>];
+								}
+							</tsrx>,
+							direct: () => <tsrx>
+								return [<>View</>];
+							</tsrx>,
+							bySwitch: (role) => <tsrx>
+								switch (role) {
+									case 'admin':
+										return [<>Edit</>];
+									default:
+										return [<>View</>];
+								}
+							</tsrx>,
+							byForOf: (items) => <tsrx>
+								for (const item of items) {
+									if (item.active) {
+										return [<>{item.label}</>];
+									}
+								}
+
+								return [<>Empty</>];
+							</tsrx>,
+							byTry: (load) => <tsrx>
+								try {
+									return [<>{load()}</>];
+								} catch (error) {
+									return [<>Error</>];
+								}
+							</tsrx>,
+						}}
+					/>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain(
+				'menuAlt: (isAdmin) => isAdmin ? [<>Delete</>, <>Edit</>] : [<>View</>]',
+			);
+			expect(code).toContain('direct: () => [<>View</>]');
+			expect(code).toContain('bySwitch: (role) => (() => {');
+			expect(code).toContain('switch (role)');
+			expect(code).toContain('byForOf: (items) => (() => {');
+			expect(code).toContain('for (const item of items)');
+			expect(code).toContain('return [<>Empty</>];');
+			expect(code).toContain('byTry: (load) => (() => {');
+			expect(code).toContain('try {');
+			expect(code).toContain('catch(error)');
+			expect(code).toContain('return [<>Error</>];');
+			expect(code).not.toContain('return null;');
+			expect(code).not.toContain('? (() =>');
 		});
 	});
 

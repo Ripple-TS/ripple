@@ -682,7 +682,7 @@ function build_component_statements(body_nodes, transform_context) {
 function build_render_statements(body_nodes, return_null_when_empty, transform_context) {
 	const statements = [];
 	const render_nodes = [];
-	let has_bare_return = false;
+	let has_terminal_return = false;
 
 	// Create a new bindings map so inner-scope bindings from
 	// collect_statement_bindings don't leak to the caller's scope.
@@ -707,7 +707,13 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 		if (is_bare_return_statement(child)) {
 			statements.push(create_component_return_statement(render_nodes, child));
 			render_nodes.length = 0;
-			has_bare_return = true;
+			has_terminal_return = true;
+			continue;
+		}
+
+		if (child?.type === 'ReturnStatement' && child.argument != null) {
+			statements.push(child);
+			has_terminal_return = true;
 			continue;
 		}
 
@@ -968,7 +974,7 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 	}
 
 	const return_arg = build_return_expression(render_nodes);
-	if (return_arg || (return_null_when_empty && !has_bare_return)) {
+	if (return_arg || (return_null_when_empty && !has_terminal_return)) {
 		statements.push({
 			type: 'ReturnStatement',
 			argument: return_arg || { type: 'Literal', value: null, raw: 'null' },
@@ -2761,7 +2767,10 @@ function child_contains_return_semantics(node) {
 		return false;
 	}
 
-	if (node.type === 'ReturnStatement' || is_lone_return_if_statement(node)) {
+	if (
+		(node.type === 'ReturnStatement' && node.argument == null) ||
+		is_lone_return_if_statement(node)
+	) {
 		return true;
 	}
 
@@ -3448,22 +3457,25 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 	let expression;
 	if (children.length === 0) {
 		expression = create_null_literal();
-	} else if (
-		children.every(is_inline_element_child) &&
-		!children_contain_return_semantics(children)
-	) {
-		const saved_inside_element_child = transform_context.inside_element_child;
-		transform_context.inside_element_child = true;
-		try {
-			const render_nodes = children.map((/** @type {any} */ child) =>
-				to_jsx_child(child, transform_context),
-			);
-			expression = build_return_expression(render_nodes) || create_null_literal();
-		} finally {
-			transform_context.inside_element_child = saved_inside_element_child;
-		}
 	} else {
-		expression = statement_body_to_jsx_child(children, transform_context).expression;
+		expression = return_value_body_to_expression(children, node, transform_context);
+	}
+
+	if (!expression) {
+		if (children.every(is_inline_element_child) && !children_contain_return_semantics(children)) {
+			const saved_inside_element_child = transform_context.inside_element_child;
+			transform_context.inside_element_child = true;
+			try {
+				const render_nodes = children.map((/** @type {any} */ child) =>
+					to_jsx_child(child, transform_context),
+				);
+				expression = build_return_expression(render_nodes) || create_null_literal();
+			} finally {
+				transform_context.inside_element_child = saved_inside_element_child;
+			}
+		} else {
+			expression = statement_body_to_jsx_child(children, transform_context).expression;
+		}
 	}
 
 	if (
@@ -3477,6 +3489,149 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 	}
 
 	return expression;
+}
+
+/**
+ * Explicit return values inside expression-position `<tsrx>` templates are JavaScript
+ * values, so keep them out of platform render control flow.
+ *
+ * @param {any[]} body_nodes
+ * @param {any} source_node
+ * @param {TransformContext} [transform_context]
+ * @returns {any | null}
+ */
+export function return_value_body_to_expression(body_nodes, source_node, transform_context) {
+	if (!body_contains_top_level_return_value(body_nodes)) return null;
+
+	if (body_nodes.length === 1) {
+		const expression = return_value_statement_to_expression(body_nodes[0], transform_context);
+		if (expression) return expression;
+	}
+
+	return create_statement_iife(body_nodes, source_node, transform_context);
+}
+
+/**
+ * @param {any} node
+ * @param {TransformContext} [transform_context]
+ * @returns {any | null}
+ */
+function return_value_statement_to_expression(node, transform_context) {
+	if (node?.type === 'ReturnStatement' && node.argument != null) {
+		return node.argument;
+	}
+
+	if (node?.type === 'IfStatement') {
+		return return_value_if_statement_to_conditional_expression(node, transform_context);
+	}
+
+	return null;
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function body_contains_top_level_return_value(node) {
+	if (!node || typeof node !== 'object') return false;
+
+	if (Array.isArray(node)) {
+		return node.some(body_contains_top_level_return_value);
+	}
+
+	if (node.type === 'ReturnStatement') {
+		return node.argument != null;
+	}
+
+	if (
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression' ||
+		node.type === 'ClassDeclaration' ||
+		node.type === 'ClassExpression' ||
+		node.type === 'Component'
+	) {
+		return false;
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		if (body_contains_top_level_return_value(node[key])) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @param {any} source_node
+ * @param {TransformContext} [transform_context]
+ * @returns {any}
+ */
+function create_statement_iife(body_nodes, source_node, transform_context) {
+	return set_generated_expression_loc(
+		b.call(b.arrow([], b.block(body_nodes))),
+		source_node,
+		transform_context,
+	);
+}
+
+/**
+ * @param {any} node
+ * @param {any} source_node
+ * @param {TransformContext} [transform_context]
+ * @returns {any}
+ */
+function set_generated_expression_loc(node, source_node, transform_context) {
+	if (transform_context?.typeOnly || !source_node?.loc) return node;
+	return setLocation(/** @type {any} */ (node), source_node);
+}
+
+/**
+ * @returns {any}
+ */
+function create_undefined_expression() {
+	return b.unary('void', b.literal(0));
+}
+
+/**
+ * @param {any} node
+ * @param {TransformContext} [transform_context]
+ * @returns {any | null}
+ */
+function return_value_block_to_expression(node, transform_context) {
+	const body = node?.type === 'BlockStatement' ? node.body : node ? [node] : [];
+	if (body.length !== 1) return null;
+
+	return return_value_statement_to_expression(body[0], transform_context);
+}
+
+/**
+ * @param {any} node
+ * @param {TransformContext} [transform_context]
+ * @returns {any | null}
+ */
+function return_value_if_statement_to_conditional_expression(node, transform_context) {
+	if (!node || node.type !== 'IfStatement') return null;
+
+	const consequent = return_value_block_to_expression(node.consequent, transform_context);
+	if (!consequent) return null;
+
+	let alternate = create_undefined_expression();
+	if (node.alternate) {
+		alternate = return_value_block_to_expression(node.alternate, transform_context);
+		if (!alternate) return null;
+	}
+
+	return set_generated_expression_loc(
+		b.conditional(node.test, consequent, alternate),
+		node,
+		transform_context,
+	);
 }
 
 /**
