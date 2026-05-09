@@ -1361,24 +1361,21 @@ function collect_descendant_declaration_bindings(node, bindings) {
  * @returns {boolean}
  */
 function function_contains_hook_bearing_tsrx(node, transform_context) {
-	return node_contains_hook_bearing_tsrx(node.body, false, transform_context);
+	return node_contains_hook_bearing_tsrx(node.body, transform_context);
 }
 
 /**
  * @param {any} node
- * @param {boolean} inside_nested_function
  * @param {TransformContext} transform_context
  * @returns {boolean}
  */
-function node_contains_hook_bearing_tsrx(node, inside_nested_function, transform_context) {
+function node_contains_hook_bearing_tsrx(node, transform_context) {
 	if (!node || typeof node !== 'object') {
 		return false;
 	}
 
 	if (Array.isArray(node)) {
-		return node.some((child) =>
-			node_contains_hook_bearing_tsrx(child, inside_nested_function, transform_context),
-		);
+		return node.some((child) => node_contains_hook_bearing_tsrx(child, transform_context));
 	}
 
 	if (node.type === 'Tsrx') {
@@ -1398,7 +1395,7 @@ function node_contains_hook_bearing_tsrx(node, inside_nested_function, transform
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
 			continue;
 		}
-		if (node_contains_hook_bearing_tsrx(node[key], inside_nested_function, transform_context)) {
+		if (node_contains_hook_bearing_tsrx(node[key], transform_context)) {
 			return true;
 		}
 	}
