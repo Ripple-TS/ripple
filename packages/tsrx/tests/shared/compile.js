@@ -1818,6 +1818,54 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toContain('<tsrx>');
 		});
 
+		it('parses fragment arrays as object property values inside JSX attribute objects', () => {
+			const { code } = compile(
+				`class Foo {
+					bar() {
+						return <Page
+							params={{
+								menuItems: [
+									<><span>Copy</span></>,
+									<><span>Cut</span></>,
+									<><span>Delete</span></>,
+								],
+								details: {
+									label: {
+										children: [<>Shipping & returns</>],
+									},
+								},
+							}}
+						/>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('Copy');
+			expect(code).toContain('Cut');
+			expect(code).toContain('Delete');
+			expect(code).toContain('Shipping');
+		});
+
+		it('expression statement inside a JS function body nested in a JSX attribute', () => {
+			const { code } = compile(
+				`component App() {
+					<Page params={{
+						f: () => {
+							<tsrx>
+								<div>"x"</div>
+							</tsrx>
+						},
+					}} />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<div>x</div>');
+			expect(code).not.toContain('<tsrx>');
+			expect(code).not.toContain('return null;');
+		});
+
 		it('keeps return-value branches in native TSRX callback props as plain conditionals', () => {
 			const { code } = compile(
 				`component Test() {

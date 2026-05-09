@@ -403,22 +403,37 @@ export function TSRXPlugin(config) {
 						if (expr_count === 2 || following_braces > 1) {
 							if (following_braces > 1 && expr_count > 1) {
 								ctx.splice(ci - 2, expr_count - 1);
+								ctx.pop();
+								this.exprAllowed = false;
+								return;
+							}
+							if (expr_count === 2 && following_braces === 0) {
+								// Fragment expression value followed by another
+								// object/array entry inside a JSX expression
+								// container (`{ a: <></>, b: ... }` or
+								// `[<></>, ...]`): strip both the leaked tc_expr
+								// and b_stat so the next entry parses as an
+								// expression, and leave exprAllowed alone so a
+								// following `<` still tokenizes as jsxTagStart.
+								ctx.length = ci - 1;
+								return;
 							}
 							ctx.pop();
 							this.exprAllowed = false;
 							return;
 						}
 					}
-					// Tail `..., b_expr, b_expr` for fragments inside an array or
-					// object literal: re-arm expression mode so the next item
-					// parses as an expression value, not a JSX child. If the
-					// surrounding b_expr chain has already been consumed, push
-					// one back so the subsequent item still has a literal context.
+					// Tail `..., b_expr, b_expr` for fragments-with-children
+					// inside an array or object literal: re-arm expression mode
+					// so the next item parses as an expression value, not a JSX
+					// child. If the surrounding b_expr chain has already been
+					// consumed, push one back so the subsequent item still has
+					// a literal context. Leave exprAllowed alone so a following
+					// `<` still tokenizes as jsxTagStart.
 					if (top === b_expr && second === b_expr) {
-						if (ctx[ci - 2] !== b_expr) {
+						if (ctx[ci - 2] !== b_expr && ctx[ci - 2] !== tstc.tc_oTag) {
 							ctx.push(b_expr);
 						}
-						this.exprAllowed = false;
 						return;
 					}
 				}
@@ -429,7 +444,6 @@ export function TSRXPlugin(config) {
 					ctx.length = ci - 1;
 					return;
 				}
-
 				// Closing token after the template at expression position. For `}`
 				// only pop if it actually closes this `b_expr` — otherwise the
 				// brace targets an inner callback/object body that should pop it
