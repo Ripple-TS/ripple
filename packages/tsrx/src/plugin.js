@@ -216,6 +216,8 @@ export function TSRXPlugin(config) {
 			#loose = false;
 			/** @type {AST.Node[]} */
 			#functionStack = [];
+			/** @type {Array<{ parentContext: any[], canRestore: boolean, restore: boolean }>} */
+			#functionBodyContextRestoreStack = [];
 			/** @type {import('../types/index').CompileError[] | undefined} */
 			#errors = undefined;
 			/** @type {string | null} */
@@ -1151,6 +1153,11 @@ export function TSRXPlugin(config) {
 				skipName = false,
 			} = {}) {
 				const node = /** @type {AST.Component} */ (this.startNode());
+				const parent_context = [...this.context];
+				const restore_parent_context =
+					!requireName &&
+					this.#isInsideComponent() &&
+					this.context.some((context) => context === tstc.tc_oTag || context === tstc.tc_cTag);
 				node.type = 'Component';
 				node.css = null;
 				node.default = isDefault;
@@ -1227,6 +1234,10 @@ export function TSRXPlugin(config) {
 
 				this.next();
 				skipWhitespace(this);
+				if (restore_parent_context) {
+					this.context = this.type === tt.braceR ? parent_context.slice(0, -1) : parent_context;
+					this.exprAllowed = false;
+				}
 				this.finishNode(node, 'Component');
 				this.awaitPos = 0;
 
@@ -1444,6 +1455,14 @@ export function TSRXPlugin(config) {
 			parseFunctionBody(node, isArrowFunction, isMethod, forInit, ...args) {
 				this.#functionBodyDepth++;
 				this.#functionStack.push(node);
+				const context_restore = {
+					parentContext: [...this.context],
+					canRestore:
+						this.#isInsideComponent() &&
+						this.context.some((context) => context === tstc.tc_oTag || context === tstc.tc_cTag),
+					restore: false,
+				};
+				this.#functionBodyContextRestoreStack.push(context_restore);
 				// Inside a component, nested JS function bodies should parse like
 				// ordinary functions, not component template bodies.
 				if (
@@ -1452,9 +1471,9 @@ export function TSRXPlugin(config) {
 					// A stale JSX expression context means the surrounding template
 					// tokenizer can still treat `<` as template markup.
 					this.context.some((context) => context === tstc.tc_expr) &&
-					// Keep arrows/functions inside JSX tags, such as event handlers,
-					// on the normal JSX attribute parsing path.
-					!this.context.some((context) => context === tstc.tc_oTag || context === tstc.tc_cTag) &&
+					// Keep callback props on their surrounding JSX attribute path until
+					// statement-position TSRX needs to suspend it.
+					!context_restore.canRestore &&
 					// Only reset statement-level function bodies, not expression
 					// contexts that are actively parsing JSX.
 					this.curContext() === b_stat
@@ -1465,6 +1484,11 @@ export function TSRXPlugin(config) {
 				try {
 					return super.parseFunctionBody(node, isArrowFunction, isMethod, forInit, ...args);
 				} finally {
+					if (context_restore.restore) {
+						this.context = context_restore.parentContext.slice(0, -1);
+						this.exprAllowed = false;
+					}
+					this.#functionBodyContextRestoreStack.pop();
 					this.#functionStack.pop();
 					this.#functionBodyDepth--;
 				}
@@ -3007,6 +3031,18 @@ export function TSRXPlugin(config) {
 						if (this.curContext() === b_stat) {
 							this.context.pop();
 						}
+					}
+					const context_restore = this.#functionBodyContextRestoreStack.at(-1);
+					if (
+						this.#functionBodyDepth > 0 &&
+						node.type === 'Tsrx' &&
+						context_restore?.canRestore &&
+						this.type !== tt.braceR &&
+						this.type !== tt.comma
+					) {
+						context_restore.restore = true;
+						this.context = [b_stat];
+						this.exprAllowed = true;
 					}
 					return node;
 				}
