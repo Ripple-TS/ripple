@@ -1,5 +1,6 @@
 import { lazy } from 'preact/compat';
 import { act } from 'preact/test-utils';
+import { useState } from 'preact/hooks';
 
 component ResolvedChild(props: { value: string }) {
 	<p class="resolved">{props.value}</p>
@@ -145,6 +146,28 @@ component NamedRefObjectApp() {
 	<NamedForwardInput type="text" input_ref={ref named_ref_object} />
 }
 
+function TsrxExpressionHookPanel(props: { active: boolean; label: string }) {
+	if (!props.active) return null;
+
+	return <tsrx>
+		const [count, setCount] = useState(0);
+		<button class="tsrx-expression-hook-count" onClick={() => setCount(count + 1)}>
+			{props.label + ':' + count}
+		</button>
+	</tsrx>;
+}
+
+component TsrxExpressionHookApp() {
+	const [active, setActive] = useState(false);
+	const [label, setLabel] = useState('first');
+
+	<button class="tsrx-expression-hook-toggle" onClick={() => setActive(!active)}>
+		{active ? 'hide' : 'show'}
+	</button>
+	<button class="tsrx-expression-hook-label" onClick={() => setLabel('second')}>{'label'}</button>
+	<TsrxExpressionHookPanel {active} {label} />
+}
+
 describe('@tsrx/vite-plugin-preact runtime', () => {
 	it('renders nothing for an empty pending fallback then resolves', async () => {
 		let resolve_fn: (mod: { default: typeof ResolvedChild }) => void;
@@ -229,5 +252,25 @@ describe('@tsrx/vite-plugin-preact runtime', () => {
 		await render(NamedRefObjectApp);
 		expect(named_ref_object.current).toBeInstanceOf(HTMLInputElement);
 		expect(named_ref_object.current!.className).toBe('named-forward-ref');
+	});
+
+	it('keeps <tsrx> expression hook state stable across regular function rerenders', async () => {
+		await render(TsrxExpressionHookApp);
+		expect(container.querySelector('.tsrx-expression-hook-count')).toBeNull();
+
+		await act(() => {
+			(container.querySelector('.tsrx-expression-hook-toggle') as HTMLButtonElement).click();
+		});
+		expect(container.querySelector('.tsrx-expression-hook-count')?.textContent).toBe('first:0');
+
+		await act(() => {
+			(container.querySelector('.tsrx-expression-hook-count') as HTMLButtonElement).click();
+		});
+		expect(container.querySelector('.tsrx-expression-hook-count')?.textContent).toBe('first:1');
+
+		await act(() => {
+			(container.querySelector('.tsrx-expression-hook-label') as HTMLButtonElement).click();
+		});
+		expect(container.querySelector('.tsrx-expression-hook-count')?.textContent).toBe('second:1');
 	});
 });

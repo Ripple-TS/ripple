@@ -916,6 +916,30 @@ component HookInSwitchWithScopeApp() {
 	</button>
 }
 
+// ── Hook inside expression-position <tsrx> from a regular function ──
+
+function TsrxExpressionHookPanel(props: { active: boolean; label: string }) {
+	if (!props.active) return null;
+
+	return <tsrx>
+		const [count, setCount] = useState(0);
+		<button class="tsrx-expression-hook-count" onClick={() => setCount(count + 1)}>
+			{props.label + ':' + count}
+		</button>
+	</tsrx>;
+}
+
+component TsrxExpressionHookApp() {
+	const [active, setActive] = useState(false);
+	const [label, setLabel] = useState('first');
+
+	<button class="tsrx-expression-hook-toggle" onClick={() => setActive(!active)}>
+		{active ? 'hide' : 'show'}
+	</button>
+	<button class="tsrx-expression-hook-label" onClick={() => setLabel('second')}>{'label'}</button>
+	<TsrxExpressionHookPanel {active} {label} />
+}
+
 // ── Static hoisting: mixed static and dynamic siblings ──
 
 component StaticHoistMixedApp() {
@@ -1582,6 +1606,20 @@ describe('tsrx-react runtime', () => {
 
 		await click('.switch-scope-tab');
 		expect(text('.switch-scope-val')).toBe('dark:info');
+	});
+
+	it('keeps <tsrx> expression hook state stable across regular function rerenders', async () => {
+		await render(TsrxExpressionHookApp);
+		expect(container.querySelector('.tsrx-expression-hook-count')).toBeNull();
+
+		await click('.tsrx-expression-hook-toggle');
+		expect(text('.tsrx-expression-hook-count')).toBe('first:0');
+
+		await click('.tsrx-expression-hook-count');
+		expect(text('.tsrx-expression-hook-count')).toBe('first:1');
+
+		await click('.tsrx-expression-hook-label');
+		expect(text('.tsrx-expression-hook-count')).toBe('second:1');
 	});
 
 	// ── Static hoisting ──
