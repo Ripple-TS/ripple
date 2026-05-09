@@ -440,7 +440,7 @@ export function runSharedAnonymousComponentTests({ compile, name }) {
 				);
 
 				expect(code).toContain('children={function');
-				expect(code).toContain('items.map((item, i)');
+				expect(code).toContain(name === 'solid' ? '<For each={items}>' : 'items.map((item, i)');
 				expect(code).toContain('<li key={i}>{item}</li>');
 			},
 		);
