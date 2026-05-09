@@ -745,6 +745,22 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 		});
 	});
 
+	describe(`[${name}] component try pending fallbacks`, () => {
+		it('allows empty pending blocks as null fallbacks', () => {
+			const { code } = compile(
+				`export component App() {
+					try {
+						<div>{'content'}</div>
+					} pending {}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('fallback={null}');
+			expect(code).toContain("{'content'}");
+		});
+	});
+
 	describe(`[${name}] TypeScript output`, () => {
 		it('collects unclosed tag diagnostics without loose recovery silence', () => {
 			const result = compile(

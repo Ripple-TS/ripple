@@ -4164,7 +4164,7 @@ function try_statement_to_jsx_child(node, transform_context) {
 			);
 		}
 		const pending_body = pending.body || [];
-		if (!pending_body.some(is_jsx_child)) {
+		if (pending_body.length > 0 && !pending_body.some(is_jsx_child)) {
 			error(
 				'Component try statements must contain a template in their "pending" body. Rendering a pending fallback is required to have a template.',
 				transform_context.filename,
@@ -4186,7 +4186,10 @@ function try_statement_to_jsx_child(node, transform_context) {
 	if (pending) {
 		transform_context.needs_suspense = true;
 		const pending_body_nodes = pending.body || [];
-		const fallback_content = statement_body_to_jsx_child(pending_body_nodes, transform_context);
+		const fallback_content =
+			pending_body_nodes.length === 0
+				? to_jsx_expression_container(create_null_literal())
+				: statement_body_to_jsx_child(pending_body_nodes, transform_context);
 
 		result = create_jsx_element(
 			'Suspense',

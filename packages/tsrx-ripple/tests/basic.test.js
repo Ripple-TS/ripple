@@ -17,6 +17,22 @@ runSharedComponentParamsTests({
 	name: 'ripple',
 });
 
+describe('@tsrx/ripple try pending fallbacks', () => {
+	it('allows empty pending blocks as null fallbacks', () => {
+		const { code } = compile(
+			`component App() {
+				try {
+					<div>{'content'}</div>
+				} pending {}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('_$_.try(');
+		expect(code).toContain('template(`<div>content</div>`');
+	});
+});
+
 describe('@tsrx/ripple named ref props', () => {
 	it('wraps named ref props for components', () => {
 		const { code } = compile(

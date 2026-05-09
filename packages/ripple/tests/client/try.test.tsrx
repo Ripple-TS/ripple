@@ -12,6 +12,40 @@ import {
 } from 'ripple';
 
 describe('try block with catch and pending', () => {
+	it('renders nothing for an empty pending fallback before resolving', async () => {
+		let resolve_value: (value: string) => void = () => {};
+		const promise = new Promise<string>((resolve) => {
+			resolve_value = resolve;
+		});
+
+		component App() {
+			<span class="before">{'before'}</span>
+			try {
+				let &[data] = trackAsync(() => promise);
+				<p class="resolved">{data}</p>
+			} pending {}
+			<span class="after">{'after'}</span>
+		}
+
+		render(App);
+
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.before')?.textContent).toBe('before');
+		expect(container.querySelector('.after')?.textContent).toBe('after');
+		expect(container.querySelector('.resolved')).toBeNull();
+		expect(container.innerHTML).not.toContain('loading');
+
+		resolve_value('resolved value');
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		flushSync();
+
+		expect(container.querySelector('.resolved')?.textContent).toBe('resolved value');
+		expect(container.querySelector('.before')?.textContent).toBe('before');
+		expect(container.querySelector('.after')?.textContent).toBe('after');
+	});
+
 	it('catch block works when a child throws synchronously', async () => {
 		component App() {
 			try {

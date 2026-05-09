@@ -2029,7 +2029,7 @@ const visitors = {
 
 			context.visit(node.pending, state);
 
-			if (!node.metadata.has_template) {
+			if ((node.pending.body || []).length > 0 && !node.metadata.has_template) {
 				error(
 					'Component try statements must contain a template in their "pending" body. Rendering a pending fallback is required to have a template.',
 					state.analysis.module.filename,

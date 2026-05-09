@@ -1,6 +1,23 @@
 import { trackAsync } from 'ripple';
 
 describe('try block with catch and pending (server)', () => {
+	it('renders resolved content with an empty pending fallback', async () => {
+		component App() {
+			<span>{'before'}</span>
+			try {
+				let &[data] = trackAsync(() => Promise.resolve('resolved value'));
+				<p>{data}</p>
+			} pending {}
+			<span>{'after'}</span>
+		}
+
+		const { body } = await render(App);
+		expect(body).toContain('before');
+		expect(body).toContain('resolved value');
+		expect(body).toContain('after');
+		expect(body).not.toContain('loading');
+	});
+
 	it('catch block works when component throws before await with pending block', async () => {
 		component ThrowingChild() {
 			throw new Error('sync error');

@@ -1,3 +1,20 @@
+import { lazy } from 'preact/compat';
+import { act } from 'preact/test-utils';
+
+component ResolvedChild(props: { value: string }) {
+	<p class="resolved">{props.value}</p>
+}
+
+component EmptyPendingSuspenseApp(props: {
+	loader: () => Promise<{ default: typeof ResolvedChild }>;
+}) {
+	const LazyChild = lazy(props.loader);
+
+	try {
+		<LazyChild value="hello" />
+	} pending {}
+}
+
 component ForContinueApp() {
 	const items = ['a', '', 'c'];
 
@@ -129,6 +146,22 @@ component NamedRefObjectApp() {
 }
 
 describe('@tsrx/vite-plugin-preact runtime', () => {
+	it('renders nothing for an empty pending fallback then resolves', async () => {
+		let resolve_fn: (mod: { default: typeof ResolvedChild }) => void;
+		const loader = () => new Promise<{ default: typeof ResolvedChild }>((r) => {
+			resolve_fn = r;
+		});
+
+		await render(EmptyPendingSuspenseApp, { loader });
+		expect(container.innerHTML).toBe('');
+		expect(container.querySelector('.resolved')).toBeNull();
+
+		await act(async () => {
+			resolve_fn!({ default: ResolvedChild });
+		});
+		expect(container.querySelector('.resolved')?.textContent).toBe('hello');
+	});
+
 	it('skips for-of iterations with continue', async () => {
 		await render(ForContinueApp);
 		expect(
