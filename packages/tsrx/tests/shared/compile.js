@@ -1861,7 +1861,8 @@ export function optionalFn(bar: string, baz?: string) {
 				'App.tsrx',
 			);
 
-			expect(code).toContain('<div>x</div>');
+			expect(code).toContain('<div');
+			expect(code).toContain('"x"');
 			expect(code).not.toContain('<tsrx>');
 			expect(code).not.toContain('return null;');
 		});

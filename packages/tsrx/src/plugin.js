@@ -2999,6 +2999,15 @@ export function TSRXPlugin(config) {
 					if (!node) {
 						this.unexpected();
 					}
+					if (this.#functionBodyDepth > 0 && node.type === 'Tsrx' && this.curContext() === b_stat) {
+						this.context.pop();
+						if (this.curContext() === tstc.tc_expr) {
+							this.context.pop();
+						}
+						if (this.curContext() === b_stat) {
+							this.context.pop();
+						}
+					}
 					return node;
 				}
 
