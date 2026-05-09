@@ -382,75 +382,66 @@ export function TSRXPlugin(config) {
 			 * @param {AST.Tsx | AST.Tsrx | AST.TsxCompat} node
 			 */
 			#popTokenContextsAfterTemplateExpressionElement(node) {
-				const context_index = this.context.length - 1;
-				const following_right_braces =
-					this.type === tt.braceR || this.type === tt.comma ? this.#countFollowingRightBraces() : 0;
-				let expression_contexts_before_template = 0;
-				for (let index = context_index - 2; this.context[index] === b_expr; index--) {
-					expression_contexts_before_template++;
-				}
+				const ctx = this.context;
+				const ci = ctx.length - 1;
+				const top = ctx[ci];
+				const second = ctx[ci - 1];
 
-				// Expression-bodied <tsrx> props can leave an extra statement or
-				// expression context before a following object-property comma.
-				// Statement-bodied templates (`return`, `if`, `switch`, etc.) need
-				// the older JSX-expression cleanup below instead.
-				if (
-					this.type === tt.comma &&
-					this.context[context_index] === b_stat &&
-					this.context[context_index - 1] === tstc.tc_expr &&
-					(expression_contexts_before_template === 2 || following_right_braces > 1) &&
-					!this.#hasDirectStatementChild(node)
-				) {
-					if (following_right_braces > 1 && expression_contexts_before_template > 1) {
-						this.context.splice(context_index - 2, expression_contexts_before_template - 1);
+				// Expression-bodied templates (no statement child) followed by `,`
+				// in an object/array literal need surgical fixups; statement-bodied
+				// templates fall through to the JSX-expression-container strip.
+				const has_stmt_child = this.#hasDirectStatementChild(node);
+				if (this.type === tt.comma && !has_stmt_child) {
+					// Tail `..., (b_expr)+, tc_expr, b_stat`: the JSX expression
+					// container leaks an extra `tc_expr, b_stat`. Pop them, and if
+					// the JSX container also closes immediately (`}}` ahead), drop
+					// one of the doubled-up `b_expr` contexts too.
+					if (top === b_stat && second === tstc.tc_expr) {
+						let expr_count = 0;
+						for (let i = ci - 2; ctx[i] === b_expr; i--) expr_count++;
+						const following_braces = this.#countFollowingRightBraces();
+						if (expr_count === 2 || following_braces > 1) {
+							if (following_braces > 1 && expr_count > 1) {
+								ctx.splice(ci - 2, expr_count - 1);
+							}
+							ctx.pop();
+							this.exprAllowed = false;
+							return;
+						}
 					}
-					this.context.pop();
-					this.exprAllowed = false;
-					return;
-				}
-
-				if (
-					this.type === tt.comma &&
-					this.context[context_index] === b_expr &&
-					this.context[context_index - 1] === b_expr &&
-					!this.#hasDirectStatementChild(node)
-				) {
-					if (expression_contexts_before_template === 0) {
-						this.context.push(b_expr);
+					// Tail `..., b_expr, b_expr` for fragments inside an array or
+					// object literal: re-arm expression mode so the next item
+					// parses as an expression value, not a JSX child. If the
+					// surrounding b_expr chain has already been consumed, push
+					// one back so the subsequent item still has a literal context.
+					if (top === b_expr && second === b_expr) {
+						if (ctx[ci - 2] !== b_expr) {
+							ctx.push(b_expr);
+						}
+						this.exprAllowed = false;
+						return;
 					}
-					this.exprAllowed = false;
+				}
+
+				// Inside `{<tsrx>...</tsrx>}` JSX expression container — strip
+				// both the leaked `b_stat` and the container's `tc_expr`.
+				if (top === b_stat && second === tstc.tc_expr) {
+					ctx.length = ci - 1;
 					return;
 				}
 
-				if (
-					this.context[context_index] === b_stat &&
-					this.context[context_index - 1] === tstc.tc_expr
-				) {
-					this.context.length = context_index - 1;
-					return;
-				}
-
-				// When a native <tsrx> expression ends immediately before `}}`, the
-				// first brace can belong to an inner callback/object body, not the
-				// surrounding JSX expression container.
-				if (
-					this.type === tt.braceR &&
-					this.context[context_index] === b_stat &&
-					this.context[context_index - 1] === b_expr &&
-					following_right_braces === 1
-				) {
-					this.context.length = context_index;
-					return;
-				}
-
+				// Closing token after the template at expression position. For `}`
+				// only pop if it actually closes this `b_expr` — otherwise the
+				// brace targets an inner callback/object body that should pop it
+				// naturally on the next token step.
 				if (
 					(this.type === tt.braceR &&
-						this.context[context_index] === b_expr &&
-						(following_right_braces === 0 || this.context[context_index - 1] === b_expr)) ||
-					(this.type === tt.parenR && this.context[context_index]?.token === '(') ||
-					(this.type === tt.bracketR && this.context[context_index]?.token === '[')
+						top === b_expr &&
+						(this.#countFollowingRightBraces() === 0 || second === b_expr)) ||
+					(this.type === tt.parenR && top?.token === '(') ||
+					(this.type === tt.bracketR && top?.token === '[')
 				) {
-					this.context.pop();
+					ctx.pop();
 					this.exprAllowed = false;
 				}
 			}
