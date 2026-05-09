@@ -1,5 +1,56 @@
 # @tsrx/core
 
+## 0.1.3
+
+### Patch Changes
+
+- [#1103](https://github.com/Ripple-TS/ripple/pull/1103)
+  [`5a59d73`](https://github.com/Ripple-TS/ripple/commit/5a59d73daf60b2652c86ffad2a4eaf3d801e40d7)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Parse statement-position
+  `<tsrx>` templates inside nested functions in JSX attribute objects.
+
+- [#1099](https://github.com/Ripple-TS/ripple/pull/1099)
+  [`4f360f0`](https://github.com/Ripple-TS/ripple/commit/4f360f008edf61492cf85afa646c797c80a73f22)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep explicit return values
+  in expression-position `<tsrx>` templates out of render control-flow lowering.
+
+- [#1102](https://github.com/Ripple-TS/ripple/pull/1102)
+  [`c042672`](https://github.com/Ripple-TS/ripple/commit/c04267255d35945753ca8090006622c96fa0a14f)
+  Thanks [@trueadm](https://github.com/trueadm)! - Allow empty `pending {}` blocks
+  in component try statements to render a null fallback.
+
+- [#1098](https://github.com/Ripple-TS/ripple/pull/1098)
+  [`a9d640f`](https://github.com/Ripple-TS/ripple/commit/a9d640f0728996b3f21b452ffe6040e54d82609c)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep special fragment return
+  values inside component-local functions attached to their return statements.
+
+- [#1103](https://github.com/Ripple-TS/ripple/pull/1103)
+  [`5a59d73`](https://github.com/Ripple-TS/ripple/commit/5a59d73daf60b2652c86ffad2a4eaf3d801e40d7)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Parser fix for fragment
+  expression values inside JSX attribute objects/arrays. Previously the leaked
+  `tc_expr, b_stat` token contexts after a fragment caused the next entry's `<` to
+  be tokenized as a TS relational operator instead of `jsxTagStart`. Affected
+  shapes:
+  - `params={{ list: [<>A</>, <>B</>] }}` (multi-fragment array as object
+    property)
+  - `params={{ a: <>X</>, b: ... }}` (fragment as object property followed by
+    another property)
+  - `params={{ list: [<><span>A</span></>, <><span>B</span></>] }}` (same shapes
+    with fragments containing child elements)
+
+- [#1101](https://github.com/Ripple-TS/ripple/pull/1101)
+  [`2ae792c`](https://github.com/Ripple-TS/ripple/commit/2ae792cdca7d466e552a330ea965cefec2b1f5a5)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve JSX parser state for
+  semicolon-free native TSRX returns inside callback props.
+
+- [#1095](https://github.com/Ripple-TS/ripple/pull/1095)
+  [`96360f3`](https://github.com/Ripple-TS/ripple/commit/96360f36306180e67ce69e464dd545773e57e8b1)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Parser fix for <tsrx> -
+  cleans up the pending token context for }, ), ], plus the callback-return case:
+  parenthesized: content={(<tsrx>...</tsrx>)} passed as a call arg:
+  content={wrap(<tsrx>...</tsrx>)} used as an object property:
+  content={{ child: <tsrx>...</tsrx> }}
+
 ## 0.1.2
 
 ### Patch Changes

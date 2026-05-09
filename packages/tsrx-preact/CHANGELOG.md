@@ -1,5 +1,34 @@
 # @tsrx/preact
 
+## 0.1.3
+
+### Patch Changes
+
+- [#1099](https://github.com/Ripple-TS/ripple/pull/1099)
+  [`4f360f0`](https://github.com/Ripple-TS/ripple/commit/4f360f008edf61492cf85afa646c797c80a73f22)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep explicit return values
+  in expression-position `<tsrx>` templates out of render control-flow lowering.
+
+- [#1102](https://github.com/Ripple-TS/ripple/pull/1102)
+  [`c042672`](https://github.com/Ripple-TS/ripple/commit/c04267255d35945753ca8090006622c96fa0a14f)
+  Thanks [@trueadm](https://github.com/trueadm)! - Allow empty `pending {}` blocks
+  in component try statements to render a null fallback.
+
+- [#1101](https://github.com/Ripple-TS/ripple/pull/1101)
+  [`2ae792c`](https://github.com/Ripple-TS/ripple/commit/2ae792cdca7d466e552a330ea965cefec2b1f5a5)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve JSX parser state for
+  semicolon-free native TSRX returns inside callback props.
+
+- Updated dependencies
+  [[`5a59d73`](https://github.com/Ripple-TS/ripple/commit/5a59d73daf60b2652c86ffad2a4eaf3d801e40d7),
+  [`4f360f0`](https://github.com/Ripple-TS/ripple/commit/4f360f008edf61492cf85afa646c797c80a73f22),
+  [`c042672`](https://github.com/Ripple-TS/ripple/commit/c04267255d35945753ca8090006622c96fa0a14f),
+  [`a9d640f`](https://github.com/Ripple-TS/ripple/commit/a9d640f0728996b3f21b452ffe6040e54d82609c),
+  [`5a59d73`](https://github.com/Ripple-TS/ripple/commit/5a59d73daf60b2652c86ffad2a4eaf3d801e40d7),
+  [`2ae792c`](https://github.com/Ripple-TS/ripple/commit/2ae792cdca7d466e552a330ea965cefec2b1f5a5),
+  [`96360f3`](https://github.com/Ripple-TS/ripple/commit/96360f36306180e67ce69e464dd545773e57e8b1)]:
+  - @tsrx/core@0.1.3
+
 ## 0.1.2
 
 ### Patch Changes
