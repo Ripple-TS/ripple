@@ -2585,6 +2585,99 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('after');
 		});
 
+		it('allows conditional hook callbacks to read outer bindings', () => {
+			const { code } = compile(
+				`export component App({ show, value }: { show: boolean; value: string }) {
+							const label = value.trim();
+							if (show) {
+								useEffect(() => {
+									console.log(label);
+								}, [label]);
+								<span>{label}</span>
+							}
+						}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('useEffect(');
+			expect(code).toContain('label={label}');
+			expect(code).toContain('StatementBodyHook');
+		});
+
+		it('allows conditional hook callbacks to mutate branch-local bindings', () => {
+			const { code } = compile(
+				`export component App({ show, value }: { show: boolean; value: string }) {
+							if (show) {
+								let latest: string | undefined;
+								useEffect(() => {
+									latest = value;
+								}, [value]);
+								<span>{value}</span>
+							}
+						}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('latest = value');
+			expect(code).toContain('StatementBodyHook');
+		});
+
+		it('allows conditional hook callbacks to mutate module-level bindings', () => {
+			const { code } = compile(
+				`let effectCount = 0;
+
+						export component App({ show }: { show: boolean }) {
+							if (show) {
+								useEffect(() => {
+									effectCount++;
+								}, []);
+								<span>{effectCount}</span>
+							}
+						}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('effectCount++');
+			expect(code).toContain('StatementBodyHook');
+		});
+
+		it('rejects conditional hook callbacks that assign to parent-scope bindings', () => {
+			expect(() =>
+				compile(
+					`export component App({ show, value }: { show: boolean; value: string }) {
+								let latest: string | undefined;
+								if (show) {
+									useEffect(() => {
+										latest = value;
+									}, [value]);
+									<span>{value}</span>
+								}
+								console.log(latest);
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useEffect callback mutates `latest`/);
+		});
+
+		it('rejects conditional hook cleanup callbacks that mutate parent-scope bindings', () => {
+			expect(() =>
+				compile(
+					`export component App({ show }: { show: boolean }) {
+								let cleanupCount = 0;
+								if (show) {
+									useEffect(() => {
+										return () => {
+											cleanupCount++;
+										};
+									}, []);
+									<span>{'visible'}</span>
+								}
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useEffect callback mutates `cleanupCount`/);
+		});
+
 		it('rejects assigning hook results to bindings outside an extracted if branch', () => {
 			expect(() =>
 				compile(
@@ -2616,6 +2709,55 @@ export function optionalFn(bar: string, baz?: string) {
 					'App.tsrx',
 				),
 			).toThrow(/hook result is assigned to `x`/);
+		});
+
+		it('rejects compound assigning hook results to bindings outside an extracted branch', () => {
+			expect(() =>
+				compile(
+					`export component App({ show }: { show: boolean }) {
+								let total = 0;
+								if (show) {
+									total += useCustomNumber();
+									<div>{total}</div>
+								}
+								console.log(total);
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useCustomNumber result is assigned to `total`/);
+		});
+
+		it('rejects compound assigning hook-derived locals to bindings outside an extracted branch', () => {
+			expect(() =>
+				compile(
+					`export component App({ show }: { show: boolean }) {
+								let total = 0;
+								if (show) {
+									const delta = useCustomNumber();
+									total += delta;
+									<div>{total}</div>
+								}
+								console.log(total);
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/hook result is assigned to `total`/);
+		});
+
+		it('rejects hook-result assignments nested inside assignment targets', () => {
+			expect(() =>
+				compile(
+					`export component App({ show }: { show: boolean }) {
+								let key = 0;
+								const values: Record<number, string> = {};
+								if (show) {
+									values[key = useCustomNumber()] = 'active';
+									<div>{values[key]}</div>
+								}
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useCustomNumber result is assigned to `key`/);
 		});
 
 		it('rejects assigning hook results to outer bindings inside <tsrx> expressions', () => {

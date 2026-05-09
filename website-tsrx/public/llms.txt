@@ -793,9 +793,10 @@ compound/descendant selectors cannot be passed.
 The compiler isolates hook calls that appear in conditional, loop, switch, try,
 or expression-position `<tsrx>...</tsrx>` scopes behind generated child
 components when it can do so safely. Hook results must stay local to that
-generated component. Assigning a hook result to a variable declared outside the
-branch is a compiler error; move that state into an explicit child component
-when values need to cross the boundary.
+generated component. Hook callbacks may read outer values, and may mutate
+branch-local or module-level bindings, but mutating a parent component/function
+binding across the generated component boundary is a compiler error. Move that
+state into an explicit child component when values need to cross the boundary.
 
 React additionally supports top-level component-body `await` and TSRX emits
 an async component function when it appears in the component body.

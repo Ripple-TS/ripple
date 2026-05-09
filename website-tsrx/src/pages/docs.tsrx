@@ -600,7 +600,7 @@ export component DocsPage() {
 							<code class="inline-code">{'@tsrx/preact'}</code>
 							{', hooks that appear in conditional, loop, switch, try, or expression-position '}
 							<code class="inline-code">{'<tsrx>...</tsrx>'}</code>
-							{' scopes are isolated behind generated child components when the compiler can do so safely. Hook results must stay local to that generated component; assigning a hook result to a variable declared outside the branch is a compiler error. Move that state into an explicit child component when values need to cross the boundary.'}
+							{' scopes are isolated behind generated child components when the compiler can do so safely. Hook callbacks may read outer values and mutate branch-local or module-level bindings, but assigning hook results or mutating a parent binding across the generated component boundary is a compiler error. Move that state into an explicit child component when values need to cross the boundary.'}
 						</p>
 						<pre class="code-block">
 							<code>{html REACT_HOOKS_HTML}</code>

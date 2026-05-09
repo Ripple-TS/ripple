@@ -3083,6 +3083,8 @@ function get_referenced_helper_bindings(body_nodes, available_bindings) {
 
 const HOOK_OUTER_ASSIGNMENT_ERROR =
 	'Hook calls inside conditional or repeated TSRX scopes must keep their results local to the generated hook component.';
+const HOOK_CALLBACK_OUTER_MUTATION_ERROR =
+	'Hook callbacks inside conditional or repeated TSRX scopes must not mutate bindings declared outside the generated hook component.';
 
 /**
  * @param {any[]} body_nodes
@@ -3258,6 +3260,10 @@ function validate_hook_outer_assignments_in_node(
 		return;
 	}
 
+	if (node.type === 'CallExpression' && is_hook_callee(node.callee)) {
+		validate_hook_callback_outer_mutations(node, shadowed_names, transform_context);
+	}
+
 	if (node.type === 'BlockStatement') {
 		const next_shadowed = new Set(shadowed_names);
 		const next_hook_result_names = new Set(hook_result_names);
@@ -3299,7 +3305,6 @@ function validate_hook_outer_assignments_in_node(
 
 	if (
 		node.type === 'AssignmentExpression' &&
-		node.operator === '=' &&
 		expression_contains_hook_derived_value(node.right, transform_context, hook_result_names)
 	) {
 		const outer_names = get_referenced_outer_binding_names(
@@ -3324,14 +3329,159 @@ function validate_hook_outer_assignments_in_node(
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
 			continue;
 		}
-		if (key === 'left' && node.type === 'AssignmentExpression') {
-			continue;
-		}
 		validate_hook_outer_assignments_in_node(
 			node[key],
 			shadowed_names,
 			transform_context,
 			hook_result_names,
+		);
+	}
+}
+
+/**
+ * @param {any} call_node
+ * @param {Set<string>} shadowed_names
+ * @param {TransformContext} transform_context
+ * @returns {void}
+ */
+function validate_hook_callback_outer_mutations(call_node, shadowed_names, transform_context) {
+	const hook_name = get_hook_callee_name(call_node.callee);
+	for (const argument of call_node.arguments || []) {
+		if (!is_function_like_node(argument)) {
+			continue;
+		}
+		const callback_shadowed_names = create_function_like_shadowed_names(argument, shadowed_names);
+		validate_hook_callback_outer_mutations_in_node(
+			argument.body,
+			callback_shadowed_names,
+			transform_context,
+			hook_name,
+		);
+	}
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_function_like_node(node) {
+	return (
+		node?.type === 'FunctionDeclaration' ||
+		node?.type === 'FunctionExpression' ||
+		node?.type === 'ArrowFunctionExpression'
+	);
+}
+
+/**
+ * @param {any} node
+ * @param {Set<string>} shadowed_names
+ * @returns {Set<string>}
+ */
+function create_function_like_shadowed_names(node, shadowed_names) {
+	const next_shadowed_names = new Set(shadowed_names);
+	for (const param of node.params || []) {
+		collect_pattern_names(param, next_shadowed_names);
+	}
+	if (node.body?.type === 'BlockStatement') {
+		for (const name of collect_block_binding_names(node.body.body || [])) {
+			next_shadowed_names.add(name);
+		}
+	}
+	return next_shadowed_names;
+}
+
+/**
+ * @param {any} node
+ * @param {Set<string>} shadowed_names
+ * @param {TransformContext} transform_context
+ * @param {string} hook_name
+ * @returns {void}
+ */
+function validate_hook_callback_outer_mutations_in_node(
+	node,
+	shadowed_names,
+	transform_context,
+	hook_name,
+) {
+	if (!node || typeof node !== 'object') {
+		return;
+	}
+
+	if (Array.isArray(node)) {
+		for (const child of node) {
+			validate_hook_callback_outer_mutations_in_node(
+				child,
+				shadowed_names,
+				transform_context,
+				hook_name,
+			);
+		}
+		return;
+	}
+
+	if (is_function_like_node(node)) {
+		validate_hook_callback_outer_mutations_in_node(
+			node.body,
+			create_function_like_shadowed_names(node, shadowed_names),
+			transform_context,
+			hook_name,
+		);
+		return;
+	}
+
+	if (node.type === 'BlockStatement') {
+		const next_shadowed_names = new Set(shadowed_names);
+		for (const name of collect_block_binding_names(node.body || [])) {
+			next_shadowed_names.add(name);
+		}
+		for (const child of node.body || []) {
+			validate_hook_callback_outer_mutations_in_node(
+				child,
+				next_shadowed_names,
+				transform_context,
+				hook_name,
+			);
+		}
+		return;
+	}
+
+	if (node.type === 'AssignmentExpression') {
+		const outer_names = get_referenced_outer_binding_names(
+			node.left,
+			transform_context.available_bindings,
+			shadowed_names,
+		);
+		if (outer_names.length > 0) {
+			report_hook_callback_outer_mutation_error(node, outer_names, hook_name, transform_context);
+		}
+	}
+
+	if (node.type === 'UpdateExpression') {
+		const outer_names = get_referenced_outer_binding_names(
+			node.argument,
+			transform_context.available_bindings,
+			shadowed_names,
+		);
+		if (outer_names.length > 0) {
+			report_hook_callback_outer_mutation_error(node, outer_names, hook_name, transform_context);
+		}
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		if (key === 'left' && node.type === 'AssignmentExpression') {
+			continue;
+		}
+		if (key === 'argument' && node.type === 'UpdateExpression') {
+			continue;
+		}
+		validate_hook_callback_outer_mutations_in_node(
+			node[key],
+			shadowed_names,
+			transform_context,
+			hook_name,
 		);
 	}
 }
@@ -3567,6 +3717,25 @@ function report_hook_outer_assignment_error(node, names, hook_name, transform_co
 		names.length === 1 ? `\`${names[0]}\`` : names.map((name) => `\`${name}\``).join(', ');
 	error(
 		`${HOOK_OUTER_ASSIGNMENT_ERROR} The ${hook_name} result is assigned to ${target}, which is declared outside that generated component. Declare the hook result inside the TSRX branch, or move the hook into an explicit child component and pass values with props.`,
+		transform_context.filename,
+		node,
+		transform_context.errors,
+		transform_context.comments,
+	);
+}
+
+/**
+ * @param {any} node
+ * @param {string[]} names
+ * @param {string} hook_name
+ * @param {TransformContext} transform_context
+ * @returns {void}
+ */
+function report_hook_callback_outer_mutation_error(node, names, hook_name, transform_context) {
+	const target =
+		names.length === 1 ? `\`${names[0]}\`` : names.map((name) => `\`${name}\``).join(', ');
+	error(
+		`${HOOK_CALLBACK_OUTER_MUTATION_ERROR} The ${hook_name} callback mutates ${target}. Read outer values through props or dependencies, and move mutable state into an explicit child component when it needs to change over time.`,
 		transform_context.filename,
 		node,
 		transform_context.errors,
