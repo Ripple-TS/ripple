@@ -2921,6 +2921,73 @@ export function optionalFn(bar: string, baz?: string) {
 			).toThrow(/useState result is assigned to `last`/);
 		});
 
+		it('rejects hook results assigned to an outer binding after a for-of with a same-named const declaration', () => {
+			expect(() =>
+				compile(
+					`export component App({ show, items }: { show: boolean; items: number[] }) {
+								let x: number | undefined;
+								if (show) {
+									for (const x of items) {
+										<div key={x}>{x}</div>
+									}
+									[x] = useState(0);
+								}
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useState result is assigned to `x`/);
+		});
+
+		it('allows hook usage inside a for-of body whose let-declared loop var shadows an outer binding', () => {
+			const { code } = compile(
+				`export component App({ show, items }: { show: boolean; items: number[] }) {
+							let x: number | undefined;
+							if (show) {
+								for (let x of items) {
+									const [val] = useState(x);
+									<div key={x}>{val}</div>
+								}
+							}
+						}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('useState(x)');
+			expect(code).toContain('StatementBodyHook');
+		});
+
+		it('rejects for-of whose hook iterable is bound into an outer identifier', () => {
+			expect(() =>
+				compile(
+					`export component App({ show }: { show: boolean }) {
+								let x: number | undefined;
+								if (show) {
+									for (x of useState(0)) {
+										<div>{x}</div>
+									}
+								}
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useState result is assigned to `x`/);
+		});
+
+		it('rejects for-of whose hook iterable is bound into an outer destructuring target', () => {
+			expect(() =>
+				compile(
+					`export component App({ show }: { show: boolean }) {
+								let a: number | undefined;
+								let b: number | undefined;
+								if (show) {
+									for ([a, b] of [useState(0)]) {
+										<div>{a}{b}</div>
+									}
+								}
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useState result is assigned to `a`, `b`/);
+		});
+
 		it('rejects hook results assigned to a for-of assignment-target outer binding', () => {
 			expect(() =>
 				compile(

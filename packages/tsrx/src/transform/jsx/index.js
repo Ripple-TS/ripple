@@ -3159,7 +3159,7 @@ function collect_block_binding_names_from_statement(statement, names) {
 	}
 
 	if (statement.type === 'ForOfStatement' || statement.type === 'ForInStatement') {
-		if (statement.left?.type === 'VariableDeclaration') {
+		if (statement.left?.type === 'VariableDeclaration' && statement.left.kind === 'var') {
 			for (const declaration of statement.left.declarations || []) {
 				collect_pattern_names(declaration.id, names);
 			}
@@ -3167,7 +3167,11 @@ function collect_block_binding_names_from_statement(statement, names) {
 		return;
 	}
 
-	if (statement.type === 'ForStatement' && statement.init?.type === 'VariableDeclaration') {
+	if (
+		statement.type === 'ForStatement' &&
+		statement.init?.type === 'VariableDeclaration' &&
+		statement.init.kind === 'var'
+	) {
 		for (const declaration of statement.init.declarations || []) {
 			collect_pattern_names(declaration.id, names);
 		}
@@ -3318,6 +3322,57 @@ function validate_hook_outer_assignments_in_node(
 		for (const name of get_referenced_local_binding_names(node.left, shadowed_names)) {
 			hook_result_names.add(name);
 		}
+	}
+
+	if (node.type === 'ForOfStatement') {
+		if (
+			node.left &&
+			node.left.type !== 'VariableDeclaration' &&
+			expression_contains_hook_derived_value(node.right, transform_context, hook_result_names)
+		) {
+			const outer_names = get_referenced_outer_binding_names(
+				node.left,
+				transform_context.available_bindings,
+				shadowed_names,
+			);
+			if (outer_names.length > 0) {
+				report_hook_outer_assignment_error(
+					node,
+					outer_names,
+					find_first_hook_call_name(node.right) || 'hook',
+					transform_context,
+				);
+			}
+			for (const name of get_referenced_local_binding_names(node.left, shadowed_names)) {
+				hook_result_names.add(name);
+			}
+		}
+
+		validate_hook_outer_assignments_in_node(
+			node.right,
+			shadowed_names,
+			transform_context,
+			hook_result_names,
+		);
+
+		// Loop-declared bindings (`for (const x of …)`, `for (let x of …)`) live
+		// only in the body. They are deliberately NOT in the enclosing block's
+		// shadowed set (see collect_block_binding_names_from_statement), so add
+		// them just for the body recursion to keep references to the loop var
+		// from being flagged as outer-binding mutations.
+		const body_shadowed = new Set(shadowed_names);
+		if (node.left && node.left.type === 'VariableDeclaration') {
+			for (const declaration of node.left.declarations || []) {
+				collect_pattern_names(declaration.id, body_shadowed);
+			}
+		}
+		validate_hook_outer_assignments_in_node(
+			node.body,
+			body_shadowed,
+			transform_context,
+			hook_result_names,
+		);
+		return;
 	}
 
 	for (const key of Object.keys(node)) {
