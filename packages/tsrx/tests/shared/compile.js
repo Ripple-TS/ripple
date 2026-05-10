@@ -392,6 +392,59 @@ export function runSharedAnonymousComponentTests({ compile, name }) {
 			},
 		);
 
+		it.runIf(jsx_targets.includes(name))(
+			'parses legacy anonymous component expressions inside JSX attribute objects',
+			() => {
+				const { code } = compile(
+					`export component App() {
+						<Page
+							params={{
+								menuAlt2: component({ isAdmin, children }: { isAdmin: boolean, children: (items: JSX.Element[]) => JSX.Element }) {
+									const items = [];
+									if (isAdmin) {
+										items.push(<>Delete</>, <>Edit</>);
+									} else {
+										items.push(<>View</>);
+									}
+									{children(items)}
+								},
+							}}
+						/>
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('menuAlt2');
+				expect(code).toContain('items.push');
+				expect(code).toContain('children(items)');
+				expect(code).toContain('</>;');
+			},
+		);
+
+		it.runIf(jsx_targets.includes(name))(
+			'parses legacy anonymous component expressions as JSX attribute values',
+			() => {
+				const { code } = compile(
+					`export component App() {
+						<Child
+							children={component ({ items }: { items: JSX.Element[] }) {
+								<ul>
+									for (const item of items; index i) {
+										<li key={i}>{item}</li>
+									}
+								</ul>
+							}}
+						/>
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('children={function');
+				expect(code).toContain(name === 'solid' ? '<For each={items}>' : 'items.map((item, i)');
+				expect(code).toContain('<li key={i}>{item}</li>');
+			},
+		);
+
 		it.runIf(name === 'vue')(
 			'lowers legacy anonymous component expressions to defineVaporComponent functions',
 			() => {
@@ -1881,6 +1934,33 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('"x"');
 			expect(code).not.toContain('<tsrx>');
 			expect(code).not.toContain('return null;');
+		});
+
+		it('parses native TSRX statements before later JS statements in JSX attribute callbacks', () => {
+			const { code } = compile(
+				`component App() {
+					<Page params={{
+						menuAlt: (isAdmin) => {
+							const items = [];
+							<tsrx>
+								if (isAdmin) {
+									items.push(<>Delete</>, <>Edit</>);
+								} else {
+									items.push(<>View</>);
+								}
+							</tsrx>
+							return items;
+						},
+					}} />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('isAdmin');
+			expect(code).toContain('return items');
+			expect(code).toContain('Delete');
+			expect(code).toContain('View');
+			expect(code).not.toContain('<tsrx>');
 		});
 
 		it('keeps return-value branches in native TSRX callback props as plain conditionals', () => {
