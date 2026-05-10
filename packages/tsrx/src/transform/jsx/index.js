@@ -57,6 +57,79 @@ import {
 } from '../jsx-interleave.js';
 import { is_hoist_safe_jsx_node } from '../jsx-hoist.js';
 
+const HOOK_OUTER_ASSIGNMENT_ERROR =
+	'Hook calls inside conditional or repeated TSRX scopes must keep their results local to the generated hook component.';
+const HOOK_CALLBACK_OUTER_MUTATION_ERROR =
+	'Hook callbacks inside conditional or repeated TSRX scopes must not mutate bindings declared outside the generated hook component.';
+const TEMPLATE_FRAGMENT_ERROR =
+	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.';
+
+/**
+ * @param {AST.Node} node
+ * @param {TransformContext} transform_context
+ */
+function report_html_template_unsupported_error(node, transform_context) {
+	// this should be a fatal error so we don't pass the errors collection,
+	// since we don't have a transform for the Html node
+	error(
+		`\`{html ...}\` is not supported on the ${transform_context.platform.name} target. Use \`dangerouslySetInnerHTML={{ __html: ... }}\` as an element attribute instead.`,
+		transform_context.filename,
+		node,
+	);
+}
+
+/**
+ * @param {AST.Node} node
+ * @param {TransformContext} transform_context
+ */
+function report_jsx_fragment_in_tsrx_error(node, transform_context) {
+	error(
+		TEMPLATE_FRAGMENT_ERROR,
+		transform_context.filename,
+		node,
+		transform_context.errors,
+		transform_context.comments,
+	);
+}
+
+/**
+ * @param {AST.Node} node
+ * @param {string[]} names
+ * @param {string} hook_name
+ * @param {TransformContext} transform_context
+ * @returns {void}
+ */
+function report_hook_outer_assignment_error(node, names, hook_name, transform_context) {
+	const target =
+		names.length === 1 ? `\`${names[0]}\`` : names.map((name) => `\`${name}\``).join(', ');
+	error(
+		`${HOOK_OUTER_ASSIGNMENT_ERROR} The ${hook_name} result is assigned to ${target}, which is declared outside that generated component. Declare the hook result inside the TSRX branch, or move the hook into an explicit child component and pass values with props.`,
+		transform_context.filename,
+		node,
+		transform_context.errors,
+		transform_context.comments,
+	);
+}
+
+/**
+ * @param {AST.Node} node
+ * @param {string[]} names
+ * @param {string} hook_name
+ * @param {TransformContext} transform_context
+ * @returns {void}
+ */
+function report_hook_callback_outer_mutation_error(node, names, hook_name, transform_context) {
+	const target =
+		names.length === 1 ? `\`${names[0]}\`` : names.map((name) => `\`${name}\``).join(', ');
+	error(
+		`${HOOK_CALLBACK_OUTER_MUTATION_ERROR} The ${hook_name} callback mutates ${target}. Read outer values through props or dependencies, and move mutable state into an explicit child component when it needs to change over time.`,
+		transform_context.filename,
+		node,
+		transform_context.errors,
+		transform_context.comments,
+	);
+}
+
 /**
  * Local alias for the shared `JsxTransformContext`. Kept as a typedef so the
  * rest of this file's `@param {TransformContext}` annotations don't all have
@@ -2790,9 +2863,6 @@ function is_null_literal(node) {
 	return node?.type === 'Literal' && node.value == null;
 }
 
-const TEMPLATE_FRAGMENT_ERROR =
-	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.';
-
 /**
  * @param {any} node
  * @param {TransformContext} transform_context
@@ -2801,13 +2871,7 @@ const TEMPLATE_FRAGMENT_ERROR =
 function to_jsx_element(node, transform_context, raw_children = node.children || []) {
 	if (node.type === 'JSXElement') return node;
 	if (!node.id) {
-		error(
-			TEMPLATE_FRAGMENT_ERROR,
-			transform_context.filename,
-			node,
-			transform_context.errors,
-			transform_context.comments,
-		);
+		report_jsx_fragment_in_tsrx_error(node, transform_context);
 		return set_loc(
 			/** @type {any} */ ({
 				type: 'JSXFragment',
@@ -2846,9 +2910,7 @@ function to_jsx_element(node, transform_context, raw_children = node.children ||
 		}
 	} else {
 		if (walked_children.some((/** @type {any} */ c) => c && c.type === 'Html')) {
-			throw new Error(
-				`\`{html ...}\` is not supported on the ${transform_context.platform.name} target. Use \`dangerouslySetInnerHTML={{ __html: ... }}\` as an element attribute instead.`,
-			);
+			return report_html_template_unsupported_error(node, transform_context);
 		}
 		children = create_element_children(walked_children, transform_context);
 	}
@@ -3077,11 +3139,6 @@ function get_referenced_helper_bindings(body_nodes, available_bindings) {
 
 	return helper_bindings;
 }
-
-const HOOK_OUTER_ASSIGNMENT_ERROR =
-	'Hook calls inside conditional or repeated TSRX scopes must keep their results local to the generated hook component.';
-const HOOK_CALLBACK_OUTER_MUTATION_ERROR =
-	'Hook callbacks inside conditional or repeated TSRX scopes must not mutate bindings declared outside the generated hook component.';
 
 /**
  * @param {any[]} body_nodes
@@ -3754,44 +3811,6 @@ function get_hook_callee_name(callee) {
 }
 
 /**
- * @param {any} node
- * @param {string[]} names
- * @param {string} hook_name
- * @param {TransformContext} transform_context
- * @returns {void}
- */
-function report_hook_outer_assignment_error(node, names, hook_name, transform_context) {
-	const target =
-		names.length === 1 ? `\`${names[0]}\`` : names.map((name) => `\`${name}\``).join(', ');
-	error(
-		`${HOOK_OUTER_ASSIGNMENT_ERROR} The ${hook_name} result is assigned to ${target}, which is declared outside that generated component. Declare the hook result inside the TSRX branch, or move the hook into an explicit child component and pass values with props.`,
-		transform_context.filename,
-		node,
-		transform_context.errors,
-		transform_context.comments,
-	);
-}
-
-/**
- * @param {any} node
- * @param {string[]} names
- * @param {string} hook_name
- * @param {TransformContext} transform_context
- * @returns {void}
- */
-function report_hook_callback_outer_mutation_error(node, names, hook_name, transform_context) {
-	const target =
-		names.length === 1 ? `\`${names[0]}\`` : names.map((name) => `\`${name}\``).join(', ');
-	error(
-		`${HOOK_CALLBACK_OUTER_MUTATION_ERROR} The ${hook_name} callback mutates ${target}. Read outer values through props or dependencies, and move mutable state into an explicit child component when it needs to change over time.`,
-		transform_context.filename,
-		node,
-		transform_context.errors,
-		transform_context.comments,
-	);
-}
-
-/**
  * @param {any[]} body_nodes
  * @param {any} key_expression
  * @param {any} source_node
@@ -4286,9 +4305,7 @@ function to_jsx_child(node, transform_context) {
 		case 'TSRXExpression':
 			return to_jsx_expression_container(node.expression, node);
 		case 'Html':
-			throw new Error(
-				`\`{html ...}\` is not supported on the ${transform_context.platform.name} target. Use \`dangerouslySetInnerHTML={{ __html: ... }}\` as an element attribute instead.`,
-			);
+			return report_html_template_unsupported_error(node, transform_context);
 		case 'IfStatement':
 			return (
 				transform_context.platform.hooks?.controlFlow?.ifStatement ?? if_statement_to_jsx_child
