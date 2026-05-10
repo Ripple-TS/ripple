@@ -3250,12 +3250,7 @@ function validate_hook_outer_assignments_in_node(
 		return;
 	}
 
-	if (
-		node.type === 'FunctionDeclaration' ||
-		node.type === 'FunctionExpression' ||
-		node.type === 'ArrowFunctionExpression' ||
-		node.type === 'Component'
-	) {
+	if (is_function_like_node(node)) {
 		return;
 	}
 
@@ -3416,9 +3411,12 @@ function validate_hook_callback_outer_mutations(call_node, shadowed_names, trans
  */
 function is_function_like_node(node) {
 	return (
-		node?.type === 'FunctionDeclaration' ||
-		node?.type === 'FunctionExpression' ||
-		node?.type === 'ArrowFunctionExpression'
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression' ||
+		// this is just in case but we should already
+		// have a component replaced with a function node
+		node.type === 'Component'
 	);
 }
 
